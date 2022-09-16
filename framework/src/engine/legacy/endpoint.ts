@@ -12,9 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Database, InMemoryDatabase } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
+import { isHexString } from '@liskhq/lisk-validator';
 import { RequestContext } from '../rpc/rpc_server';
 import { LegacyBlockJSON } from './types';
+import { Storage } from './storage';
+import { decodeBlockJSON } from './codec';
 
 interface EndpointArgs {
 	db: Database;
@@ -22,24 +25,28 @@ interface EndpointArgs {
 
 export class LegacyEndpoint {
 	[key: string]: unknown;
-	private _db!: Database | InMemoryDatabase;
+	private readonly _storage: Storage;
 
-	// eslint-disable-next-line @typescript-eslint/no-useless-constructor, no-useless-constructor, @typescript-eslint/no-empty-function
-	public constructor(_args: EndpointArgs) {}
-
-	public init(db: Database | InMemoryDatabase) {
-		this._db = db;
-		// eslint-disable-next-line no-console
-		console.log(this._db);
+	public constructor(args: EndpointArgs) {
+		this._storage = new Storage(args.db);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/require-await
-	public async getBlockByID(_context: RequestContext): Promise<LegacyBlockJSON> {
-		return {} as LegacyBlockJSON;
+	public async getBlockByID(context: RequestContext): Promise<LegacyBlockJSON> {
+		const { id } = context.params;
+		if (!isHexString(id)) {
+			throw new Error('Invalid parameters. id must be a valid hex string.');
+		}
+
+		return decodeBlockJSON(await this._storage.getBlockByID(Buffer.from(id as string, 'hex')))
+			.block;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/require-await
-	public async getBlockByHeight(_context: RequestContext): Promise<LegacyBlockJSON> {
-		return {} as LegacyBlockJSON;
+	public async getBlockByHeight(context: RequestContext): Promise<LegacyBlockJSON> {
+		const { height } = context.params;
+		if (typeof height !== 'number' || height < 0) {
+			throw new Error('Invalid parameters. height must be zero or a positive number.');
+		}
+
+		return decodeBlockJSON(await this._storage.getBlockByHeight(height)).block;
 	}
 }
