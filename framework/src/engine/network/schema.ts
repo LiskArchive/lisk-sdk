@@ -15,6 +15,7 @@
 export const customNodeInfoSchema = {
 	$id: '/nodeInfo/custom',
 	type: 'object',
+	required: ['height', 'blockVersion', 'lastBlockID', 'maxHeightPrevoted'],
 	properties: {
 		height: {
 			dataType: 'uint32',
@@ -31,6 +32,13 @@ export const customNodeInfoSchema = {
 		lastBlockID: {
 			dataType: 'bytes',
 			fieldNumber: 4,
+		},
+		legacy: {
+			type: 'array',
+			fieldNumber: 5,
+			items: {
+				dataType: 'bytes',
+			},
 		},
 	},
 };
