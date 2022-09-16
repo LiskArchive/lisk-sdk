@@ -208,7 +208,6 @@ export class Engine {
 		const legacyEndpoint = new LegacyEndpoint({
 			db: this._legacyDB,
 		});
-		legacyEndpoint.init(this._blockchainDB);
 
 		const chainEndpoint = new ChainEndpoint({
 			chain: this._chain,
