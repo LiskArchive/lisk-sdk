@@ -15,14 +15,14 @@
 
 import * as fs from 'fs-extra';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import * as Config from '@oclif/config';
 import { HashOnionCommand } from '../../../src/bootstrapping/commands/hash-onion';
 import { getConfig } from '../../helpers/config';
+import { Awaited } from '../../types';
 
 describe('hash-onion command', () => {
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];

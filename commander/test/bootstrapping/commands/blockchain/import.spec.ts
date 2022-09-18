@@ -16,11 +16,11 @@
 import * as fs from 'fs-extra';
 import { homedir } from 'os';
 import * as path from 'path';
-import * as Config from '@oclif/config';
 import { getBlockchainDBPath } from '../../../../src/utils/path';
 import * as downloadUtils from '../../../../src/utils/download';
 import { ImportCommand } from '../../../../src/bootstrapping/commands/blockchain/import';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 describe('blockchain:import', () => {
 	const defaultDataPath = path.join(homedir(), '.lisk', 'lisk-core');
@@ -28,7 +28,7 @@ describe('blockchain:import', () => {
 	const pathToBlockchainGzip = '/path/to/blockchain.db.tar.gz';
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];

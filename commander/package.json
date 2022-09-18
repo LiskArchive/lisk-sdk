@@ -50,8 +50,16 @@
 		"bin": "lisk",
 		"plugins": [
 			"@oclif/plugin-help",
-			"@oclif/plugin-autocomplete"
+			"@oclif/plugin-autocomplete",
+			"@oclif/plugin-version"
 		],
+		"additionalHelpFlags": [
+			"-h"
+		],
+		"additionalVersionFlags": [
+			"-v"
+		],
+		"topicSeparator": " ",
 		"topics": {
 			"account": {
 				"description": "Commands relating to Lisk accounts."
@@ -102,12 +110,10 @@
 		"@liskhq/lisk-transactions": "^6.0.0-alpha.3",
 		"@liskhq/lisk-utils": "^0.3.0-alpha.0",
 		"@liskhq/lisk-validator": "^0.7.0-alpha.3",
-		"@oclif/command": "1.8.0",
-		"@oclif/config": "1.17.0",
-		"@oclif/errors": "1.2.2",
-		"@oclif/parser": "3.8.5",
-		"@oclif/plugin-autocomplete": "0.3.0",
-		"@oclif/plugin-help": "3.2.2",
+		"@oclif/core": "1.16.1",
+		"@oclif/plugin-autocomplete": "1.3.0",
+		"@oclif/plugin-help": "5.1.12",
+		"@oclif/plugin-version": "1.1.2",
 		"axios": "0.21.2",
 		"bip39": "3.0.3",
 		"chalk": "4.1.0",
@@ -126,8 +132,7 @@
 		"yeoman-generator": "5.2.0"
 	},
 	"devDependencies": {
-		"@oclif/dev-cli": "1.26.0",
-		"@oclif/test": "1.2.8",
+		"@oclif/test": "2.1.1",
 		"@types/bip39": "3.0.0",
 		"@types/expect": "24.3.0",
 		"@types/fs-extra": "9.0.1",

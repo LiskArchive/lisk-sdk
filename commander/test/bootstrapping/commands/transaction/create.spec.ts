@@ -18,7 +18,6 @@ import { Application, transactionSchema } from 'lisk-framework';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as apiClient from '@liskhq/lisk-api-client';
 import * as transactions from '@liskhq/lisk-transactions';
-import * as Config from '@oclif/config';
 
 import * as appUtils from '../../../../src/utils/application';
 import * as readerUtils from '../../../../src/utils/reader';
@@ -26,6 +25,7 @@ import { tokenTransferParamsSchema, dposVoteParamsSchema } from '../../../helper
 import { CreateCommand } from '../../../../src/bootstrapping/commands/transaction/create';
 import { getConfig } from '../../../helpers/config';
 import { PromiseResolvedType } from '../../../../src/types';
+import { Awaited } from '../../../types';
 
 describe('transaction:create command', () => {
 	const passphrase = 'peanut hundred pen hawk invite exclude brain chunk gadget wait wrong ready';
@@ -57,7 +57,7 @@ describe('transaction:create command', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let clientMock: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>>;
 
 	// In order to test the command we need to extended the base crete command and provide application implementation
@@ -180,7 +180,7 @@ describe('transaction:create command', () => {
 							],
 							config,
 						),
-					).rejects.toThrow('--data-path= cannot also be provided when using --offline=');
+					).rejects.toThrow('--data-path=/tmp cannot also be provided when using --offline');
 				});
 			});
 
@@ -198,7 +198,9 @@ describe('transaction:create command', () => {
 							],
 							config,
 						),
-					).rejects.toThrow('--chain-id= must also be provided when using --offline=');
+					).rejects.toThrow(
+						'All of the following must be provided when using --offline: --chain-id, --nonce',
+					);
 				});
 			});
 
@@ -217,7 +219,9 @@ describe('transaction:create command', () => {
 							],
 							config,
 						),
-					).rejects.toThrow('--nonce= must also be provided when using --offline=');
+					).rejects.toThrow(
+						'All of the following must be provided when using --offline: --chain-id, --nonce',
+					);
 				});
 			});
 
@@ -238,7 +242,7 @@ describe('transaction:create command', () => {
 							config,
 						),
 					).rejects.toThrow(
-						'--sender-public-key= must also be provided when using --no-signature=',
+						'All of the following must be provided when using --no-signature: --sender-public-key',
 					);
 				});
 			});

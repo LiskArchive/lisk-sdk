@@ -16,7 +16,7 @@
  */
 import { Application, PartialApplicationConfig } from 'lisk-framework';
 import { objects } from '@liskhq/lisk-utils';
-import { Command, flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import * as fs from 'fs-extra';
 import { join, resolve } from 'path';
 import { validator } from '@liskhq/lisk-validator';
@@ -50,8 +50,7 @@ export abstract class BaseGenesisBlockCommand extends Command {
 	async run(): Promise<void> {
 		const {
 			flags: { output, config: configFilePath, network, 'assets-file': assetsFile },
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		} = this.parse(BaseGenesisBlockCommand);
+		} = await this.parse(BaseGenesisBlockCommand);
 		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;
 		const regexCamelCase = /^([a-z]+)(([A-Z]([a-z]+))+)$/;

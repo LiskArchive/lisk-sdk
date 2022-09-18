@@ -13,7 +13,7 @@
  *
  */
 
-import Command, { flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as cryptography from '@liskhq/lisk-cryptography';
@@ -49,7 +49,7 @@ export class HashOnionCommand extends Command {
 	async run(): Promise<void> {
 		const {
 			flags: { output, count, distance, pretty },
-		} = this.parse(HashOnionCommand);
+		} = await this.parse(HashOnionCommand);
 
 		if (distance <= 0 || !validator.isValidInteger(distance)) {
 			throw new Error('Distance flag must be an integer and greater than 0.');

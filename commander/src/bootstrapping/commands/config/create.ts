@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Command, flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import { homedir } from 'os';
 import * as fs from 'fs-extra';
 import { join, resolve } from 'path';
@@ -49,8 +49,7 @@ export class CreateCommand extends Command {
 	async run(): Promise<void> {
 		const {
 			flags: { output, label, 'community-identifier': communityIdentifier },
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		} = this.parse(CreateCommand);
+		} = await this.parse(CreateCommand);
 
 		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;

@@ -14,7 +14,7 @@
  */
 
 import * as apiClient from '@liskhq/lisk-api-client';
-import { Command } from '@oclif/command';
+import { Command } from '@oclif/core';
 import { RegisteredSchema, ModuleMetadataJSON } from 'lisk-framework';
 import { PromiseResolvedType } from '../../types';
 import { isApplicationRunning } from '../../utils/application';
@@ -45,7 +45,7 @@ export abstract class BaseIPCClientCommand extends Command {
 	}
 
 	async init(): Promise<void> {
-		const { flags } = this.parse(this.constructor as typeof BaseIPCClientCommand);
+		const { flags } = await this.parse(this.constructor as typeof BaseIPCClientCommand);
 		this.baseIPCClientFlags = flags;
 		this._dataPath = this.baseIPCClientFlags['data-path']
 			? this.baseIPCClientFlags['data-path']

@@ -15,7 +15,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { encrypt } from '@liskhq/lisk-cryptography';
-import { Command, flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import * as fs from 'fs-extra';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPasswordFromPrompt } from '../../../utils/reader';
@@ -75,7 +75,7 @@ export class EncryptCommand extends Command {
 	};
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(EncryptCommand);
+		const { flags } = await this.parse(EncryptCommand);
 		const password = flags.password ?? (await getPasswordFromPrompt('password', true));
 
 		const keysWithoutEncryption = (fs.readJSONSync(

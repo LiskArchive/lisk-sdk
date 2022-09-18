@@ -14,15 +14,15 @@
  */
 
 import * as repl from 'repl';
-import * as Config from '@oclif/config';
 import * as apiClient from '@liskhq/lisk-api-client';
 import { ConsoleCommand } from '../../../src/bootstrapping/commands/console';
 import { getConfig } from '../../helpers/config';
+import { Awaited } from '../../types';
 
 jest.mock('repl');
 
 describe('hash-onion command', () => {
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let stdout: string[];
 
 	beforeEach(async () => {

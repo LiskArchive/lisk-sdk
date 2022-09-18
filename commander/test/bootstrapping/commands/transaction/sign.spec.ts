@@ -18,7 +18,6 @@ import { ed } from '@liskhq/lisk-cryptography';
 import { Application, IPCChannel, transactionSchema } from 'lisk-framework';
 import * as apiClient from '@liskhq/lisk-api-client';
 import { codec } from '@liskhq/lisk-codec';
-import * as Config from '@oclif/config';
 import { TransactionAttrs } from '@liskhq/lisk-chain';
 
 import {
@@ -38,6 +37,7 @@ import {
 	mockEncodedTransaction,
 	mockJSONTransaction,
 } from '../../../helpers/mocks';
+import { Awaited } from '../../../types';
 
 describe('transaction:sign command', () => {
 	const senderPassphrase = accountsForMultisignature.targetAccount.passphrase;
@@ -83,7 +83,7 @@ describe('transaction:sign command', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	// In order to test the command we need to extended the base crete command and provide application implementation
 	class SignCommandExtended extends SignCommand {
@@ -141,7 +141,7 @@ describe('transaction:sign command', () => {
 						],
 						config,
 					),
-				).rejects.toThrow('--data-path= cannot also be provided when using --offline=');
+				).rejects.toThrow('--data-path=/tmp cannot also be provided when using --offline');
 			});
 		});
 
@@ -152,7 +152,7 @@ describe('transaction:sign command', () => {
 						[unsignedTransaction, `--passphrase=${senderPassphrase}`, '--offline'],
 						config,
 					),
-				).rejects.toThrow('--chain-id= must also be provided when using --offline=');
+				).rejects.toThrow('All of the following must be provided when using --offline: --chain-id');
 			});
 		});
 

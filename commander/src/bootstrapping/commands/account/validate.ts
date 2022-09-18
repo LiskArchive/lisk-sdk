@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Command } from '@oclif/command';
+import { Command } from '@oclif/core';
 import * as cryptography from '@liskhq/lisk-cryptography';
 
 interface Args {
@@ -34,7 +34,7 @@ export class ValidateCommand extends Command {
 	];
 
 	async run(): Promise<void> {
-		const { args } = this.parse(ValidateCommand);
+		const { args } = await this.parse(ValidateCommand);
 		const { address } = args as Args;
 
 		try {

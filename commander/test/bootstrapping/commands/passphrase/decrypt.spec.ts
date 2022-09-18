@@ -13,11 +13,11 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import * as Config from '@oclif/config';
 
 import * as readerUtils from '../../../../src/utils/reader';
 import { DecryptCommand } from '../../../../src/bootstrapping/commands/passphrase/decrypt';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -38,7 +38,7 @@ describe('passphrase:decrypt', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];

@@ -17,10 +17,10 @@ import { ed, bls, encrypt, utils } from '@liskhq/lisk-cryptography';
 import * as apiClient from '@liskhq/lisk-api-client';
 import { when } from 'jest-when';
 import * as fs from 'fs-extra';
-import * as Config from '@oclif/config';
 import * as appUtils from '../../../../src/utils/application';
 import { ExportCommand } from '../../../../src/bootstrapping/commands/generator/export';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 describe('generator:export', () => {
 	const defaultPassword = 'elephant tree paris dragon chair galaxy';
@@ -51,7 +51,7 @@ describe('generator:export', () => {
 	let fileData: any;
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let invokeMock: jest.Mock;
 
 	beforeEach(async () => {

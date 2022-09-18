@@ -14,10 +14,10 @@
  *
  */
 import * as inquirer from 'inquirer';
-import * as Config from '@oclif/config';
 import { getConfig } from '../../helpers/config';
 import DecryptCommand from '../../../src/commands/message/decrypt';
 import * as readerUtils from '../../../src/utils/reader';
+import { Awaited } from '../../types';
 
 describe('message:decrypt', () => {
 	const defaultSenderPublicKey = 'fd061b9146691f3c56504be051175d5b76d1b1d0179c5c4370e18534c5882122';
@@ -29,7 +29,7 @@ describe('message:decrypt', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];

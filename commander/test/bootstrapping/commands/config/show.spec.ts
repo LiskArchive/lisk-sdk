@@ -14,15 +14,15 @@
  */
 import * as fs from 'fs-extra';
 import * as os from 'os';
-import * as Config from '@oclif/config';
 import { when } from 'jest-when';
 import { ShowCommand } from '../../../../src/bootstrapping/commands/config/show';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 describe('config:show command', () => {
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];

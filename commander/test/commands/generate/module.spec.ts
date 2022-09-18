@@ -14,15 +14,15 @@
  *
  */
 
-import * as Config from '@oclif/config';
 import BaseBootstrapCommand from '../../../src/base_bootstrap_command';
 import ModuleCommand from '../../../src/commands/generate/module';
 import { getConfig } from '../../helpers/config';
+import { Awaited } from '../../types';
 
 describe('generate:module command', () => {
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];

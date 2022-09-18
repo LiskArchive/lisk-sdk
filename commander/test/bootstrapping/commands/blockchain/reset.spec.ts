@@ -17,12 +17,12 @@ import * as fs from 'fs-extra';
 import * as inquirer from 'inquirer';
 import { homedir } from 'os';
 import { join } from 'path';
-import * as Config from '@oclif/config';
 
 import * as appUtils from '../../../../src/utils/application';
 import * as pathUtils from '../../../../src/utils/path';
 import { ResetCommand } from '../../../../src/bootstrapping/commands/blockchain/reset';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 const defaultDataPath = join(homedir(), '.lisk', 'lisk-core');
 
@@ -31,7 +31,7 @@ describe('blockchain:reset', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];

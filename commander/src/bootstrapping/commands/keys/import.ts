@@ -15,7 +15,7 @@
 
 import { encrypt } from '@liskhq/lisk-cryptography';
 import * as apiClient from '@liskhq/lisk-api-client';
-import { flags as flagParser } from '@oclif/command';
+import { Flags as flagParser } from '@oclif/core';
 import * as fs from 'fs-extra';
 import { PromiseResolvedType } from '../../../types';
 import { BaseIPCClientCommand } from '../base_ipc_client';
@@ -73,7 +73,7 @@ export abstract class ImportCommand extends BaseIPCClientCommand {
 	protected _client!: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(ImportCommand);
+		const { flags } = await this.parse(ImportCommand);
 		if (!this._client) {
 			this.error('APIClient is not initialized.');
 		}

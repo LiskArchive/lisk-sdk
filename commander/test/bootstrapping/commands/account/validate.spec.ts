@@ -13,9 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as Config from '@oclif/config';
 import { ValidateCommand } from '../../../../src/bootstrapping/commands/account/validate';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 describe('account:validate', () => {
 	const validAddress = 'lskso9zqyapuhu8kv7txfbohwrhjfbd4gkxewcuxz';
@@ -23,7 +23,7 @@ describe('account:validate', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];

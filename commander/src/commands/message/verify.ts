@@ -14,7 +14,7 @@
  *
  */
 import { ed } from '@liskhq/lisk-cryptography';
-import { flags as flagParser } from '@oclif/command';
+import { Flags as flagParser } from '@oclif/core';
 
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
@@ -76,7 +76,7 @@ export default class VerifyCommand extends BaseCommand {
 		const {
 			args,
 			flags: { message: messageSource },
-		} = this.parse(VerifyCommand);
+		} = await this.parse(VerifyCommand);
 
 		const { publicKey, signature, message } = args as Args;
 
