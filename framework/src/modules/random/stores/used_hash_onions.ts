@@ -11,13 +11,15 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseOffchainStore, ImmutableOffchainStoreGetter } from '../../base_offchain_store';
+import {
+	BaseOffchainStore,
+	ImmutableOffchainStoreGetter,
+	OffchainStoreGetter,
+} from '../../base_offchain_store';
 import { NotFoundError } from '../../../state_machine';
-import { STORE_PREFIX_USED_HASH_ONION } from '../constants';
 
 export interface UsedHashOnion {
 	readonly count: number;
-	readonly address: Buffer;
 	readonly height: number;
 }
 
@@ -36,20 +38,15 @@ export const usedHashOnionsStoreSchema = {
 			fieldNumber: 1,
 			items: {
 				type: 'object',
-				required: ['address', 'count', 'height'],
+				required: ['count', 'height'],
 				properties: {
-					address: {
-						dataType: 'bytes',
-						format: 'lisk32',
-						fieldNumber: 1,
-					},
 					count: {
 						dataType: 'uint32',
-						fieldNumber: 2,
+						fieldNumber: 1,
 					},
 					height: {
 						dataType: 'uint32',
-						fieldNumber: 3,
+						fieldNumber: 2,
 					},
 				},
 			},
@@ -66,11 +63,9 @@ export class UsedHashOnionsStore extends BaseOffchainStore<UsedHashOnionStoreObj
 		height?: number,
 	): Promise<UsedHashOnion | undefined> {
 		try {
-			const { usedHashOnions } = await this.get(ctx, STORE_PREFIX_USED_HASH_ONION);
+			const { usedHashOnions } = await this.get(ctx, address);
+
 			return usedHashOnions.reduce<UsedHashOnion | undefined>((prev, curr) => {
-				if (!curr.address.equals(address)) {
-					return prev;
-				}
 				// if the height is not specified, return the highest
 				if (height === undefined) {
 					if (!prev || prev.height < curr.height) {
@@ -90,5 +85,75 @@ export class UsedHashOnionsStore extends BaseOffchainStore<UsedHashOnionStoreObj
 			}
 			throw error;
 		}
+	}
+
+	public async setLatest(
+		ctx: OffchainStoreGetter,
+		finalizedHeight: number,
+		address: Buffer,
+		usedHashOnion: UsedHashOnion,
+		originalusedHashOnions: UsedHashOnion[],
+	): Promise<void> {
+		const usedHashOnionStoreObject = {
+			usedHashOnions: originalusedHashOnions,
+		};
+
+		const index = usedHashOnionStoreObject.usedHashOnions.findIndex(
+			ho => ho.count === usedHashOnion.count,
+		);
+
+		if (index === -1) {
+			usedHashOnionStoreObject.usedHashOnions.push(usedHashOnion);
+		} else {
+			usedHashOnionStoreObject.usedHashOnions[index] = usedHashOnion;
+		}
+
+		await this.set(
+			ctx,
+			address,
+			this._filterUsedHashOnions(usedHashOnionStoreObject.usedHashOnions, finalizedHeight),
+		);
+	}
+
+	private _filterUsedHashOnions(
+		usedHashOnions: UsedHashOnion[],
+		finalizedHeight: number,
+	): UsedHashOnionStoreObject {
+		const filteredObject = usedHashOnions.reduce(
+			({ others, highest }, current) => {
+				if (highest === null) {
+					return {
+						highest: current,
+						others,
+					};
+				}
+
+				if (highest.height < current.height) {
+					others.push(highest);
+
+					return {
+						highest: current,
+						others,
+					};
+				}
+
+				others.push(current);
+
+				return {
+					highest,
+					others,
+				};
+			},
+			{
+				others: [] as UsedHashOnion[],
+				highest: null as UsedHashOnion | null,
+			},
+		);
+
+		const filtered = filteredObject.others.filter(ho => ho.height > finalizedHeight);
+		filtered.push(filteredObject.highest!);
+		return {
+			usedHashOnions: filtered,
+		};
 	}
 }
