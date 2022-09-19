@@ -23,17 +23,22 @@ import { LegacyBlockJSON } from '../../../../src/engine/legacy/types';
 const bufferToHex = (b: Buffer) => Buffer.from(b).toString('hex');
 
 describe('Legacy endpoint', () => {
-	const legacyEndpoint = new LegacyEndpoint({ db: new InMemoryDatabase() as any });
-	const encodedBlock = codec.encode(blockSchemaV2, {
-		header: codec.encode(blockHeaderSchemaV2, blockFixtures[0].header),
-		transactions: blockFixtures[0].transactions,
+	let encodedBlock: Buffer;
+	let legacyEndpoint: LegacyEndpoint;
+
+	beforeEach(() => {
+		legacyEndpoint = new LegacyEndpoint({ db: new InMemoryDatabase() as any });
+		encodedBlock = codec.encode(blockSchemaV2, {
+			header: codec.encode(blockHeaderSchemaV2, blockFixtures[0].header),
+			transactions: blockFixtures[0].transactions,
+		});
+
+		jest.spyOn(legacyEndpoint.storage, 'getBlockByID').mockResolvedValue(encodedBlock);
+		jest.spyOn(legacyEndpoint.storage, 'getBlockByHeight').mockResolvedValue(encodedBlock);
 	});
 
-	legacyEndpoint.storage.getBlockByID = jest.fn().mockResolvedValue(encodedBlock);
-	legacyEndpoint.storage.getBlockByHeight = jest.fn().mockResolvedValue(encodedBlock);
-
 	describe('LegacyEndpoint', () => {
-		const matchExpectations = (block: LegacyBlockJSON) => {
+		const matchBlockExpectations = (block: LegacyBlockJSON) => {
 			expect(block.header.id).toEqual(bufferToHex(blockFixtures[0].header.id));
 			expect(block.header.version).toEqual(blockFixtures[0].header.version);
 			expect(block.header.timestamp).toEqual(blockFixtures[0].header.timestamp);
@@ -60,7 +65,7 @@ describe('Legacy endpoint', () => {
 				params: { id: bufferToHex(blockFixtures[0].header.id) },
 			} as any);
 
-			matchExpectations(block);
+			matchBlockExpectations(block);
 		});
 
 		it('getBlockByHeight', async () => {
@@ -68,7 +73,7 @@ describe('Legacy endpoint', () => {
 				params: { height: blockFixtures[0].header.height },
 			} as any);
 
-			matchExpectations(block);
+			matchBlockExpectations(block);
 		});
 	});
 });
