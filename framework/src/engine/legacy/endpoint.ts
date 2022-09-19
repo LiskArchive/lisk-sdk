@@ -25,28 +25,27 @@ interface EndpointArgs {
 
 export class LegacyEndpoint {
 	[key: string]: unknown;
-	private readonly _storage: Storage;
+	public readonly storage: Storage;
 
 	public constructor(args: EndpointArgs) {
-		this._storage = new Storage(args.db);
+		this.storage = new Storage(args.db);
 	}
 
 	public async getBlockByID(context: RequestContext): Promise<LegacyBlockJSON> {
 		const { id } = context.params;
 		if (!isHexString(id)) {
-			throw new Error('Invalid parameters. id must be a valid hex string.');
+			throw new Error('Invalid parameters. `id` must be a valid hex string.');
 		}
 
-		return decodeBlockJSON(await this._storage.getBlockByID(Buffer.from(id as string, 'hex')))
-			.block;
+		return decodeBlockJSON(await this.storage.getBlockByID(Buffer.from(id as string, 'hex'))).block;
 	}
 
 	public async getBlockByHeight(context: RequestContext): Promise<LegacyBlockJSON> {
 		const { height } = context.params;
 		if (typeof height !== 'number' || height < 0) {
-			throw new Error('Invalid parameters. height must be zero or a positive number.');
+			throw new Error('Invalid parameters. `height` must be zero or a positive number.');
 		}
 
-		return decodeBlockJSON(await this._storage.getBlockByHeight(height)).block;
+		return decodeBlockJSON(await this.storage.getBlockByHeight(height)).block;
 	}
 }
