@@ -544,7 +544,6 @@ export const genesisInteroperabilityStoreSchema = {
 		'terminatedStateSubstore',
 		'terminatedOutboxSubstore',
 		'registeredNamesSubstore',
-		'registeredNetworkIDsSubstore',
 	],
 	properties: {
 		outboxRootSubstore: {
@@ -686,25 +685,6 @@ export const genesisInteroperabilityStoreSchema = {
 					},
 					storeValue: {
 						...chainIDSchema,
-						fieldNumber: 2,
-					},
-				},
-			},
-		},
-		registeredNetworkIDsSubstore: {
-			type: 'array',
-			fieldNumber: 9,
-			items: {
-				type: 'object',
-				required: ['storeKey', 'storeValue'],
-				properties: {
-					storeKey: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-					storeValue: {
-						...chainIDSchema,
-						$id: '/modules/interoperability/genesis/registeredNetworkIDsSubstore',
 						fieldNumber: 2,
 					},
 				},
