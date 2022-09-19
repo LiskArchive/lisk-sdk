@@ -104,6 +104,9 @@ export class Engine {
 	public async start() {
 		await this._init();
 		await this._network.start();
+		if (this._config.legacy.sync) {
+			await this._legacyChainHandler.syncBlocks();
+		}
 		await this._generator.start();
 		await this._consensus.start();
 		await this._rpcServer.start();
@@ -146,6 +149,7 @@ export class Engine {
 			chain: this._chain,
 			genesisConfig: this._config.genesis,
 			bft: this._bftModule,
+			legacyChainHandler: this._legacyChainHandler,
 		});
 		this._generator = new Generator({
 			abi: this._abi,

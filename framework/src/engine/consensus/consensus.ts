@@ -61,6 +61,7 @@ import { ValidatorInfo } from './certificate_generation/types';
 import { BFTModule } from '../bft';
 import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../abi';
 import { isEmptyConsensusUpdate } from './utils';
+import { LegacyChainHandler } from '../legacy/legacy_chain_handler';
 
 interface ConsensusArgs {
 	chain: Chain;
@@ -68,6 +69,7 @@ interface ConsensusArgs {
 	genesisConfig: GenesisConfig;
 	abi: ABI;
 	bft: BFTModule;
+	legacyChainHandler: LegacyChainHandler;
 }
 
 interface InitArgs {
@@ -103,6 +105,7 @@ export class Consensus {
 	private readonly _mutex: jobHandlers.Mutex;
 	private readonly _bft: BFTModule;
 	private readonly _genesisConfig: GenesisConfig;
+	private readonly _legacyChainHandler: LegacyChainHandler;
 
 	// init parameters
 	private _logger!: Logger;
@@ -122,6 +125,7 @@ export class Consensus {
 		this._mutex = new jobHandlers.Mutex();
 		this._bft = args.bft;
 		this._genesisConfig = args.genesisConfig;
+		this._legacyChainHandler = args.legacyChainHandler;
 	}
 
 	public async init(args: InitArgs): Promise<void> {
@@ -549,6 +553,8 @@ export class Consensus {
 			});
 			await this._executeValidated(block);
 
+			// eslint-disable-next-line no-console
+			console.log(this._legacyChainHandler);
 			// Since legacy property is optional we don't need to send it here
 			this._network.applyNodeInfo({
 				height: block.header.height,
