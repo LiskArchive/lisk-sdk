@@ -92,6 +92,15 @@ export interface RPCConfig {
 	host: string;
 }
 
+export interface LegacyConfig {
+	sync: boolean;
+	brackets: {
+		startHeight: number;
+		snapshotHeight: number;
+		snapshotBlockID: string;
+	}[];
+}
+
 export interface GeneratorConfig {
 	keys: {
 		fromFile?: string;
@@ -105,6 +114,7 @@ export interface PluginConfig extends Record<string, unknown> {
 export interface ApplicationConfig {
 	system: SystemConfig;
 	rpc: RPCConfig;
+	legacy: LegacyConfig;
 	genesis: GenesisConfig;
 	network: NetworkConfig;
 	transactionPool: TransactionPoolConfig;
