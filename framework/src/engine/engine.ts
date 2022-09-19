@@ -156,7 +156,7 @@ export class Engine {
 			network: this._network,
 		});
 		this._legacyChainHandler = new LegacyChainHandler({
-			config: this._config,
+			legacyConfig: this._config.legacy,
 		});
 		this._rpcServer = new RPCServer(this._config.system.dataPath, this._config.rpc);
 
