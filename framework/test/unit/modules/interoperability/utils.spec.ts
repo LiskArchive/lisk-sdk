@@ -62,7 +62,6 @@ import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefi
 import { createGenesisBlockContext } from '../../../../src/testing';
 import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
 import { RegisteredNamesStore } from '../../../../src/modules/interoperability/stores/registered_names';
-import { RegisteredNetworkStore } from '../../../../src/modules/interoperability/stores/registered_network_ids';
 import { ChainValidatorsStore } from '../../../../src/modules/interoperability/stores/chain_validators';
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
@@ -1180,13 +1179,12 @@ describe('Utils', () => {
 		});
 	});
 
-	// TODO: Unskip and update for networkIdentifier in issue #7442
-	describe.skip('initGenesisStateUtil', () => {
+	describe('initGenesisStateUtil', () => {
 		const { getRandomBytes } = cryptography.utils;
 		const timestamp = 2592000 * 100;
 		const chainAccount = {
 			name: 'account1',
-			networkID: Buffer.alloc(0),
+			chainID: Buffer.alloc(0),
 			lastCertificate: {
 				height: 567467,
 				timestamp: timestamp - 500000,
@@ -1197,7 +1195,7 @@ describe('Utils', () => {
 		};
 		const sidechainChainAccount = {
 			name: 'sidechain1',
-			networkID: getRandomBytes(32),
+			chainID: getRandomBytes(32),
 			lastCertificate: {
 				height: 10,
 				stateRoot: utils.getRandomBytes(32),
@@ -1256,7 +1254,7 @@ describe('Utils', () => {
 			partnerChainInboxSize: 1,
 		};
 		const registeredNameId = { id: Buffer.from('77', 'hex') };
-		const registeredNetworkId = { id: Buffer.from('88', 'hex') };
+		const registeredChainId = { id: Buffer.from('88', 'hex') };
 		const validData = {
 			outboxRootSubstore: [
 				{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: outboxRoot },
@@ -1290,9 +1288,9 @@ describe('Utils', () => {
 				{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: registeredNameId },
 				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredNameId },
 			],
-			registeredNetworkIDsSubstore: [
-				{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: registeredNetworkId },
-				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredNetworkId },
+			registeredChainIDsSubstore: [
+				{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: registeredChainId },
+				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredChainId },
 			],
 		};
 
@@ -1313,7 +1311,6 @@ describe('Utils', () => {
 		let chainValidatorsSubstore: ChainValidatorsStore;
 		let ownChainDataSubstore: OwnChainAccountStore;
 		let registeredNamesSubstore: RegisteredNamesStore;
-		let registeredNetworkIDsSubstore: RegisteredNetworkStore;
 
 		beforeEach(async () => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -1330,7 +1327,6 @@ describe('Utils', () => {
 			chainDataSubstore = interopMod.stores.get(ChainAccountStore);
 			terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
 			registeredNamesSubstore = interopMod.stores.get(RegisteredNamesStore);
-			registeredNetworkIDsSubstore = interopMod.stores.get(RegisteredNetworkStore);
 		});
 
 		it('should not throw error if asset does not exist', async () => {
@@ -1469,22 +1465,6 @@ describe('Utils', () => {
 				registeredNamesSubstore: [
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredNameId },
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredNameId },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if registered network ids store key is duplicated', async () => {
-			const validData1 = {
-				...validData,
-				registeredNetworkIDsSubstore: [
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredNetworkId },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredNetworkId },
 				],
 			};
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
@@ -2102,7 +2082,6 @@ describe('Utils', () => {
 			chainDataSubstore = interopMod.stores.get(ChainAccountStore);
 			terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
 			registeredNamesSubstore = interopMod.stores.get(RegisteredNamesStore);
-			registeredNetworkIDsSubstore = interopMod.stores.get(RegisteredNetworkStore);
 			ownChainDataSubstore = interopMod.stores.get(OwnChainAccountStore);
 
 			for (const data of validData.chainDataSubstore) {
@@ -2138,11 +2117,6 @@ describe('Utils', () => {
 			for (const data of validData.registeredNamesSubstore) {
 				await expect(
 					registeredNamesSubstore.has(createStoreGetter(stateStore), data.storeKey),
-				).resolves.toBeTrue();
-			}
-			for (const data of validData.registeredNetworkIDsSubstore) {
-				await expect(
-					registeredNetworkIDsSubstore.has(createStoreGetter(stateStore), data.storeKey),
 				).resolves.toBeTrue();
 			}
 			for (const data of validData.ownChainDataSubstore) {
