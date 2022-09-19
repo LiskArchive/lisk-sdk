@@ -153,10 +153,7 @@ export abstract class BaseInteroperabilityStore {
 		});
 
 		return Promise.all(
-			chainAccounts.map(async chainAccount => {
-				const chainIDBuffer = utils.intToBuffer(chainAccount.key.readUInt32BE(0), 4);
-				return chainSubstore.get(this.context, chainIDBuffer);
-			}),
+			chainAccounts.map(async chainAccount => chainSubstore.get(this.context, chainAccount.key)),
 		);
 	}
 

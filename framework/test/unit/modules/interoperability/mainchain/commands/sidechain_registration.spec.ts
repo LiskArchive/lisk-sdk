@@ -29,8 +29,15 @@ import {
 	MAX_CHAIN_NAME_LENGTH,
 	EVENT_NAME_CHAIN_ACCOUNT_UPDATED,
 	EVENT_NAME_CCM_PROCESSED,
+	CROSS_CHAIN_COMMAND_REGISTRATION,
+	CCM_SENT_STATUS_SUCCESS,
+	CHAIN_REGISTERED,
 } from '../../../../../../src/modules/interoperability/constants';
-import { sidechainRegParams } from '../../../../../../src/modules/interoperability/schemas';
+import {
+	ccmSchema,
+	registrationCCMParamsSchema,
+	sidechainRegParams,
+} from '../../../../../../src/modules/interoperability/schemas';
 import { SidechainRegistrationParams } from '../../../../../../src/modules/interoperability/types';
 import {
 	CommandExecuteContext,
@@ -233,6 +240,15 @@ describe('Sidechain registration command', () => {
 			expect(result.error?.message).toInclude('Chain ID already registered.');
 		});
 
+		it('should return error if first byte of chainID does not match', async () => {
+			const invalidChain = Buffer.from([0x11, 0x01, 0x02, 0x01]);
+			verifyContext.params.chainID = invalidChain;
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude('Chain ID does not match the mainchain network.');
+		});
+
 		it(`should return error if initValidators array count exceeds ${MAX_NUM_VALIDATORS}`, async () => {
 			verifyContext.params.initValidators = new Array(MAX_NUM_VALIDATORS + 2).fill({
 				blsKey: utils.getRandomBytes(48),
@@ -404,6 +420,29 @@ describe('Sidechain registration command', () => {
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude('Certificate threshold above maximum bft weight');
 		});
+
+		it(`should return error if sidechainRegistrationFee is not equal ${REGISTRATION_FEE}`, async () => {
+			verifyContext.params.sidechainRegistrationFee = BigInt(9);
+
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
+				`Sidechain registration fee must be equal to ${REGISTRATION_FEE}`,
+			);
+		});
+
+		it(`should return error if available balance < ${REGISTRATION_FEE}`, async () => {
+			const insufficientBalance = BigInt(0);
+			jest.spyOn(tokenMethod, 'getAvailableBalance').mockResolvedValue(insufficientBalance);
+
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
+				`Sender does not have enough balance. Required: ${REGISTRATION_FEE}, found: ${insufficientBalance}`,
+			);
+		});
 	});
 
 	describe('execute', () => {
@@ -524,11 +563,29 @@ describe('Sidechain registration command', () => {
 		});
 
 		it(`should emit ${EVENT_NAME_CHAIN_ACCOUNT_UPDATED} event`, async () => {
+			const sidechainAccount = {
+				name: 'sidechain',
+				lastCertificate: {
+					height: 0,
+					timestamp: 0,
+					stateRoot: EMPTY_HASH,
+					validatorsHash: computeValidatorsHash(
+						transactionParams.initValidators,
+						transactionParams.certificateThreshold,
+					),
+				},
+				status: CHAIN_REGISTERED,
+			};
+
 			// Act
 			await sidechainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(chainAccountUpdatedEvent.log).toHaveBeenCalled();
+			expect(chainAccountUpdatedEvent.log).toHaveBeenCalledWith(
+				expect.anything(),
+				newChainID,
+				sidechainAccount,
+			);
 		});
 
 		it('should update nonce in own chain acount substore', async () => {
@@ -547,11 +604,31 @@ describe('Sidechain registration command', () => {
 		});
 
 		it(`should emit ${EVENT_NAME_CCM_PROCESSED} event`, async () => {
+			const encodedParams = codec.encode(registrationCCMParamsSchema, {
+				name: transactionParams.name,
+				chainID: transactionParams.chainID,
+				messageFeeTokenID: { chainID: utils.intToBuffer(1, 4), localID: utils.intToBuffer(0, 4) },
+			});
+			const ccm = {
+				nonce: BigInt(0),
+				module: MODULE_NAME_INTEROPERABILITY,
+				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+				sendingChainID: chainID,
+				receivingChainID: newChainID,
+				fee: BigInt(0),
+				status: CCM_STATUS_OK,
+				params: encodedParams,
+			};
+			const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
+
 			// Act
 			await sidechainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(ccmProcessedEvent.log).toHaveBeenCalled();
+			expect(ccmProcessedEvent.log).toHaveBeenCalledWith(expect.anything(), chainID, newChainID, {
+				ccmID,
+				status: CCM_SENT_STATUS_SUCCESS,
+			});
 		});
 	});
 });

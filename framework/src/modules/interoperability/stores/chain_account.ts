@@ -43,7 +43,7 @@ const chainAccountJSONSchema = {
 		},
 		lastCertificate: {
 			type: 'object',
-			fieldNumber: 3,
+			fieldNumber: 2,
 			required: ['height', 'timestamp', 'stateRoot', 'validatorsHash'],
 			properties: {
 				height: {
@@ -66,7 +66,7 @@ const chainAccountJSONSchema = {
 		},
 		status: {
 			dataType: 'uint32',
-			fieldNumber: 4,
+			fieldNumber: 3,
 		},
 	},
 };

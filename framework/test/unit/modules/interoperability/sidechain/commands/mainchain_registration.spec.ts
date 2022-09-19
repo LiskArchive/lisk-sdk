@@ -68,7 +68,7 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
 }));
 
-// TODO: Unskip and update for networkIdentifier in issue #7442
+// TODO: Unskip and update for networkIdentifier in issue #7441
 describe.skip('Mainchain registration command', () => {
 	const interopMod = new SidechainInteroperabilityModule();
 
