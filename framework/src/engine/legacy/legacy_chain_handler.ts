@@ -13,10 +13,10 @@
  */
 
 import { Database, InMemoryDatabase } from '@liskhq/lisk-db';
-import { EngineConfig } from '../../types';
+import { LegacyConfig } from '../../types';
 
 interface LegacyChainHandlerArgs {
-	config: EngineConfig;
+	legacyConfig: LegacyConfig;
 }
 
 interface LegacyHandlerInitArgs {
@@ -24,11 +24,11 @@ interface LegacyHandlerInitArgs {
 }
 
 export class LegacyChainHandler {
-	private readonly _config: EngineConfig;
+	private readonly _legacyConfig: LegacyConfig;
 	private _db!: Database | InMemoryDatabase;
 
 	public constructor(args: LegacyChainHandlerArgs) {
-		this._config = args.config;
+		this._legacyConfig = args.legacyConfig;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -39,7 +39,7 @@ export class LegacyChainHandler {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async syncBlocks(): Promise<void> {
 		// eslint-disable-next-line no-console
-		console.log(this._config);
+		console.log(this._legacyConfig);
 		// eslint-disable-next-line no-console
 		console.log(this._db);
 		// TODO: implement the logic, general flow is as below

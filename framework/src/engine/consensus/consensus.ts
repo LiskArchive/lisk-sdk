@@ -549,6 +549,7 @@ export class Consensus {
 			});
 			await this._executeValidated(block);
 
+			// Since legacy property is optional we don't need to send it here
 			this._network.applyNodeInfo({
 				height: block.header.height,
 				lastBlockID: block.header.id,

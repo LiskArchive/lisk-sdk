@@ -15,6 +15,10 @@ Object {
     "maxTransactionsSize": 15360,
     "minFeePerByte": 1000,
   },
+  "legacy": Object {
+    "brackets": Array [],
+    "sync": false,
+  },
   "modules": Object {},
   "network": Object {
     "port": 5000,

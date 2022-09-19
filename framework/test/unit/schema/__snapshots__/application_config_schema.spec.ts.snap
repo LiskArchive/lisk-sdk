@@ -18,6 +18,10 @@ Object {
       "maxTransactionsSize": 15360,
       "minFeePerByte": 1000,
     },
+    "legacy": Object {
+      "brackets": Array [],
+      "sync": false,
+    },
     "modules": Object {},
     "network": Object {
       "port": 7667,
@@ -134,6 +138,42 @@ Object {
         "chainID",
         "maxTransactionsSize",
         "minFeePerByte",
+      ],
+      "type": "object",
+    },
+    "legacy": Object {
+      "properties": Object {
+        "brackets": Object {
+          "items": Object {
+            "properties": Object {
+              "snapshotBlockID": Object {
+                "format": "hex",
+                "type": "string",
+              },
+              "snapshotHeight": Object {
+                "minimum": 0,
+                "type": "number",
+              },
+              "startHeight": Object {
+                "minimum": 0,
+                "type": "number",
+              },
+            },
+            "required": Array [
+              "startHeight",
+              "snapshotHeight",
+              "snapshotBlockID",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "sync": Object {
+          "type": "boolean",
+        },
+      },
+      "required": Array [
+        "brackets",
       ],
       "type": "object",
     },
