@@ -44,6 +44,8 @@ import {
 	CONSENSUS_EVENT_BLOCK_BROADCAST,
 	NETWORK_EVENT_POST_BLOCK,
 } from '../../../../src/engine/consensus/constants';
+import { LegacyChainHandler } from '../../../../src/engine/legacy/legacy_chain_handler';
+import { LegacyConfig } from '../../../../src';
 
 describe('consensus', () => {
 	const genesis = (genesisBlock() as unknown) as Block;
@@ -52,6 +54,8 @@ describe('consensus', () => {
 	let network: Network;
 	let bft: BFTModule;
 	let abi: ABI;
+	let legacyChainHandler: LegacyChainHandler;
+	let legacyConfig: LegacyConfig;
 
 	let dbMock: any;
 
@@ -115,6 +119,22 @@ describe('consensus', () => {
 				certificateThreshold: 0,
 			}),
 		} as never;
+		legacyConfig = {
+			sync: true,
+			brackets: [
+				{
+					startHeight: 0,
+					snapshotBlockID: utils.getRandomBytes(20).toString('hex'),
+					snapshotHeight: 100,
+				},
+				{
+					startHeight: 101,
+					snapshotBlockID: utils.getRandomBytes(20).toString('hex'),
+					snapshotHeight: 1000,
+				},
+			],
+		};
+		legacyChainHandler = new LegacyChainHandler({ legacyConfig });
 		consensus = new Consensus({
 			abi,
 			chain,
@@ -123,6 +143,7 @@ describe('consensus', () => {
 			genesisConfig: {
 				blockTime: 10,
 			} as any,
+			legacyChainHandler,
 		});
 		dbMock = {
 			get: jest.fn(),
