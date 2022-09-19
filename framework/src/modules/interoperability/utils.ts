@@ -68,7 +68,6 @@ import { ChainAccountStore } from './stores/chain_account';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/terminated_outbox';
 import { TerminatedStateStore } from './stores/terminated_state';
 import { RegisteredNamesStore } from './stores/registered_names';
-import { RegisteredNetworkStore } from './stores/registered_network_ids';
 
 interface CommonExecutionLogicArgs {
 	stores: NamedRegistry;
@@ -881,25 +880,6 @@ export const initGenesisStateUtil = async (
 		registeredNamesStoreKeySet.add(registeredNames.storeKey);
 
 		await registeredNamesStore.set(ctx, registeredNames.storeKey, registeredNames.storeValue);
-	}
-
-	const registeredNetworkIDsStoreKeySet = new dataStructures.BufferSet();
-	const registeredNetworkIDsStore = stores.get(RegisteredNetworkStore);
-	for (const registeredNetworkIDs of genesisStore.registeredNetworkIDsSubstore) {
-		if (registeredNetworkIDsStoreKeySet.has(registeredNetworkIDs.storeKey)) {
-			throw new Error(
-				`Registered network id's store key ${registeredNetworkIDs.storeKey.toString(
-					'hex',
-				)} is duplicated.`,
-			);
-		}
-		registeredNetworkIDsStoreKeySet.add(registeredNetworkIDs.storeKey);
-
-		await registeredNetworkIDsStore.set(
-			ctx,
-			registeredNetworkIDs.storeKey,
-			registeredNetworkIDs.storeValue,
-		);
 	}
 };
 
