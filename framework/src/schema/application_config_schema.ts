@@ -53,6 +53,25 @@ export const applicationConfigSchema = {
 				port: { type: 'number', minimum: 1024, maximum: 65535 },
 			},
 		},
+		legacy: {
+			type: 'object',
+			required: ['brackets'],
+			properties: {
+				sync: { type: 'boolean' },
+				brackets: {
+					type: 'array',
+					items: {
+						type: 'object',
+						required: ['startHeight', 'snapshotHeight', 'snapshotBlockID'],
+						properties: {
+							startHeight: { type: 'number', minimum: 0 },
+							snapshotHeight: { type: 'number', minimum: 0 },
+							snapshotBlockID: { type: 'string', format: 'hex' },
+						},
+					},
+				},
+			},
+		},
 		network: {
 			type: 'object',
 			properties: {
@@ -269,6 +288,10 @@ export const applicationConfigSchema = {
 			modes: ['ipc'],
 			port: DEFAULT_PORT_RPC,
 			host: DEFAULT_HOST,
+		},
+		legacy: {
+			sync: false,
+			brackets: [],
 		},
 		network: {
 			version: '1.0',
