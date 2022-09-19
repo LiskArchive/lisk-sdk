@@ -14,10 +14,16 @@
 
 export {
 	Transaction,
+	TransactionJSON,
 	transactionSchema,
 	blockHeaderSchema,
 	blockSchema,
 	signingBlockHeaderSchema,
+	Block,
+	BlockJSON,
+	BlockHeader,
+	BlockHeaderJSON,
+	BlockAssetJSON,
 } from '@liskhq/lisk-chain';
 export {
 	BaseModule,
