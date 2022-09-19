@@ -154,9 +154,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 			header2: contradictingBlock,
 		};
 
-		const { networkIdentifier } = await this.apiClient.invoke<{ networkIdentifier: string }>(
-			'system_getNodeInfo',
-		);
+		const { chainID } = await this.apiClient.invoke<{ chainID: string }>('system_getNodeInfo');
 
 		const encodedParams = codec.encode(pomParamsInfo.params, pomTransactionParams);
 
@@ -174,7 +172,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		tx.signatures.push(
 			ed.signData(
 				TAG_TRANSACTION,
-				Buffer.from(networkIdentifier, 'hex'),
+				Buffer.from(chainID, 'hex'),
 				tx.getSigningBytes(),
 				this._state.privateKey,
 			),

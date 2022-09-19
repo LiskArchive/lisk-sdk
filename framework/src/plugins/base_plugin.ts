@@ -110,7 +110,7 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 
 	public get apiClient(): APIClient {
 		if (!this._apiClient) {
-			throw new Error('RPC with IPC protocol must be enabled to use APIClient.');
+			throw new Error('RPC with IPC protocol must be enabled to use MethodClient.');
 		}
 		return this._apiClient;
 	}

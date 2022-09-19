@@ -26,7 +26,7 @@ interface CreateTransactionInput {
 	nonce?: bigint;
 	fee?: bigint;
 	passphrase?: string;
-	networkIdentifier?: Buffer;
+	chainID?: Buffer;
 }
 
 export const createTransaction = ({
@@ -36,7 +36,7 @@ export const createTransaction = ({
 	nonce,
 	fee,
 	passphrase,
-	networkIdentifier,
+	chainID,
 }: CreateTransactionInput): Transaction => {
 	const { publicKey, privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase ?? '');
 	// eslint-disable-next-line new-cap
@@ -69,11 +69,11 @@ export const createTransaction = ({
 		return result;
 	}
 
-	if (!networkIdentifier) {
+	if (!chainID) {
 		throw new Error('Network identifier is required to sign a transaction');
 	}
 
-	result.sign(networkIdentifier, privateKey);
+	result.sign(chainID, privateKey);
 
 	return result;
 };

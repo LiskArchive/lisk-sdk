@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { APIContext, ImmutableAPIContext } from '../../state_machine';
+import { MethodContext, ImmutableMethodContext } from '../../state_machine';
 import { CCMsg } from '../interoperability/types';
 
 export type TokenID = Buffer;
@@ -55,10 +55,10 @@ export interface GenesisTokenStore {
 	terminatedEscrowSubstore: Buffer[];
 }
 
-export interface InteroperabilityAPI {
-	getOwnChainAccount(apiContext: ImmutableAPIContext): Promise<{ id: Buffer }>;
+export interface InteroperabilityMethod {
+	getOwnChainAccount(methodContext: ImmutableMethodContext): Promise<{ id: Buffer }>;
 	send(
-		apiContext: APIContext,
+		methodContext: MethodContext,
 		feeAddress: Buffer,
 		module: string,
 		crossChainCommand: string,
@@ -67,7 +67,7 @@ export interface InteroperabilityAPI {
 		status: number,
 		parameters: Buffer,
 	): Promise<boolean>;
-	error(apiContext: APIContext, ccm: CCMsg, code: number): Promise<void>;
-	terminateChain(apiContext: APIContext, chainID: Buffer): Promise<void>;
-	getChannel(apiContext: APIContext, chainID: Buffer): Promise<{ messageFeeTokenID: Buffer }>;
+	error(methodContext: MethodContext, ccm: CCMsg, code: number): Promise<void>;
+	terminateChain(methodContext: MethodContext, chainID: Buffer): Promise<void>;
+	getChannel(methodContext: MethodContext, chainID: Buffer): Promise<{ messageFeeTokenID: Buffer }>;
 }

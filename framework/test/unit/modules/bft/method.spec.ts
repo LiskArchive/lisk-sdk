@@ -16,7 +16,7 @@ import { NotFoundError, StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
-import { BFTAPI } from '../../../../src/engine/bft/api';
+import { BFTMethod } from '../../../../src/engine/bft/method';
 import {
 	EMPTY_KEY,
 	MODULE_STORE_PREFIX_BFT,
@@ -35,15 +35,15 @@ import {
 } from '../../../../src/engine/bft/schemas';
 import { createFakeBlockHeader } from '../../../../src/testing';
 
-describe('BFT API', () => {
-	let bftAPI: BFTAPI;
-	let validatorsAPI: { getValidatorAccount: jest.Mock };
+describe('BFT Method', () => {
+	let bftMethod: BFTMethod;
+	let validatorsMethod: { getValidatorAccount: jest.Mock };
 	let stateStore: StateStore;
 
 	beforeEach(() => {
-		bftAPI = new BFTAPI();
-		validatorsAPI = { getValidatorAccount: jest.fn() };
-		bftAPI.init(103);
+		bftMethod = new BFTMethod();
+		validatorsMethod = { getValidatorAccount: jest.fn() };
+		bftMethod.init(103);
 	});
 
 	describe('areHeadersContradicting', () => {
@@ -51,7 +51,7 @@ describe('BFT API', () => {
 			const header1 = createFakeBlockHeader({
 				generatorAddress: utils.getRandomBytes(20),
 			});
-			expect(bftAPI.areHeadersContradicting(header1, header1)).toBeFalse();
+			expect(bftMethod.areHeadersContradicting(header1, header1)).toBeFalse();
 		});
 
 		it('should return true when blocks contradicting', () => {
@@ -66,7 +66,7 @@ describe('BFT API', () => {
 				maxHeightPrevoted: 1099,
 				generatorAddress,
 			});
-			expect(bftAPI.areHeadersContradicting(header1, header2)).toBeTrue();
+			expect(bftMethod.areHeadersContradicting(header1, header2)).toBeTrue();
 		});
 
 		it('should return false when blocks are notcontradicting', () => {
@@ -80,7 +80,7 @@ describe('BFT API', () => {
 				maxHeightPrevoted: 1099,
 				generatorAddress: utils.getRandomBytes(20),
 			});
-			expect(bftAPI.areHeadersContradicting(header1, header2)).toBeFalse();
+			expect(bftMethod.areHeadersContradicting(header1, header2)).toBeFalse();
 		});
 	});
 
@@ -130,7 +130,7 @@ describe('BFT API', () => {
 
 		it('should return true when blockBFTInfos includes the block from the same generator and conflicting', async () => {
 			await expect(
-				bftAPI.isHeaderContradictingChain(
+				bftMethod.isHeaderContradictingChain(
 					stateStore,
 					createFakeBlockHeader({
 						height: 4,
@@ -144,7 +144,7 @@ describe('BFT API', () => {
 
 		it('should return false when blockBFTInfos includes the block from the same generator but not conflicting', async () => {
 			await expect(
-				bftAPI.isHeaderContradictingChain(
+				bftMethod.isHeaderContradictingChain(
 					stateStore,
 					createFakeBlockHeader({
 						height: 4,
@@ -158,7 +158,7 @@ describe('BFT API', () => {
 
 		it('should return false when blockBFTInfos does not include the block from the same generator', async () => {
 			await expect(
-				bftAPI.isHeaderContradictingChain(
+				bftMethod.isHeaderContradictingChain(
 					stateStore,
 					createFakeBlockHeader({
 						height: 4,
@@ -189,11 +189,11 @@ describe('BFT API', () => {
 		});
 
 		it('should return true if the BFT parameter exist for the height', async () => {
-			await expect(bftAPI.existBFTParameters(stateStore, 20)).resolves.toBeTrue();
+			await expect(bftMethod.existBFTParameters(stateStore, 20)).resolves.toBeTrue();
 		});
 
 		it('should return false if the BFT parameter does not exist for the height', async () => {
-			await expect(bftAPI.existBFTParameters(stateStore, 10)).resolves.toBeFalse();
+			await expect(bftMethod.existBFTParameters(stateStore, 10)).resolves.toBeFalse();
 		});
 	});
 
@@ -227,15 +227,15 @@ describe('BFT API', () => {
 		});
 
 		it('should return BFT parameters if it exists for the lower height', async () => {
-			await expect(bftAPI.getBFTParameters(stateStore, 25)).resolves.toEqual(params20);
+			await expect(bftMethod.getBFTParameters(stateStore, 25)).resolves.toEqual(params20);
 		});
 
 		it('should return BFT parameters if it exists for the height', async () => {
-			await expect(bftAPI.getBFTParameters(stateStore, 20)).resolves.toEqual(params20);
+			await expect(bftMethod.getBFTParameters(stateStore, 20)).resolves.toEqual(params20);
 		});
 
 		it('should throw if the BFT parameter does not exist for the height or lower', async () => {
-			await expect(bftAPI.getBFTParameters(stateStore, 19)).rejects.toThrow(
+			await expect(bftMethod.getBFTParameters(stateStore, 19)).rejects.toThrow(
 				BFTParameterNotFoundError,
 			);
 		});
@@ -286,7 +286,7 @@ describe('BFT API', () => {
 		});
 
 		it('should return current BFT heights', async () => {
-			await expect(bftAPI.getBFTHeights(stateStore)).resolves.toEqual({
+			await expect(bftMethod.getBFTHeights(stateStore)).resolves.toEqual({
 				maxHeightPrevoted: 10,
 				maxHeightPrecommitted: 8,
 				maxHeightCertified: 1,
@@ -340,7 +340,7 @@ describe('BFT API', () => {
 				bftVotesSchema,
 			);
 
-			await expect(bftAPI.currentHeaderImpliesMaximalPrevotes(stateStore)).resolves.toBeFalse();
+			await expect(bftMethod.currentHeaderImpliesMaximalPrevotes(stateStore)).resolves.toBeFalse();
 		});
 
 		it('should return true if blockBFTInfo does not contain the information', async () => {
@@ -382,7 +382,7 @@ describe('BFT API', () => {
 				bftVotesSchema,
 			);
 
-			await expect(bftAPI.currentHeaderImpliesMaximalPrevotes(stateStore)).resolves.toBeTrue();
+			await expect(bftMethod.currentHeaderImpliesMaximalPrevotes(stateStore)).resolves.toBeTrue();
 		});
 
 		it('should return false if the last generated height is generated by different address', async () => {
@@ -424,7 +424,7 @@ describe('BFT API', () => {
 				bftVotesSchema,
 			);
 
-			await expect(bftAPI.currentHeaderImpliesMaximalPrevotes(stateStore)).resolves.toBeFalse();
+			await expect(bftMethod.currentHeaderImpliesMaximalPrevotes(stateStore)).resolves.toBeFalse();
 		});
 
 		it('should return true when it is consecutive valid block header', async () => {
@@ -466,7 +466,7 @@ describe('BFT API', () => {
 				bftVotesSchema,
 			);
 
-			await expect(bftAPI.currentHeaderImpliesMaximalPrevotes(stateStore)).resolves.toBeTrue();
+			await expect(bftMethod.currentHeaderImpliesMaximalPrevotes(stateStore)).resolves.toBeTrue();
 		});
 	});
 
@@ -499,11 +499,11 @@ describe('BFT API', () => {
 		});
 
 		it('should return the next height strictly higher than the input where BFT parameter exists', async () => {
-			await expect(bftAPI.getNextHeightBFTParameters(stateStore, 20)).resolves.toEqual(30);
+			await expect(bftMethod.getNextHeightBFTParameters(stateStore, 20)).resolves.toEqual(30);
 		});
 
 		it('should throw when the next height strictly higher than the input BFT parameters does not exist', async () => {
-			await expect(bftAPI.getNextHeightBFTParameters(stateStore, 30)).rejects.toThrow(
+			await expect(bftMethod.getNextHeightBFTParameters(stateStore, 30)).rejects.toThrow(
 				BFTParameterNotFoundError,
 			);
 		});
@@ -533,7 +533,7 @@ describe('BFT API', () => {
 		const params30 = createParam();
 
 		beforeEach(async () => {
-			validatorsAPI.getValidatorAccount.mockResolvedValue({ blsKey: utils.getRandomBytes(32) });
+			validatorsMethod.getValidatorAccount.mockResolvedValue({ blsKey: utils.getRandomBytes(32) });
 			stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(utils.intToBuffer(20, 4), params20, bftParametersSchema);
@@ -596,11 +596,11 @@ describe('BFT API', () => {
 
 		it('should throw when validators exceeds batch size', async () => {
 			await expect(
-				bftAPI.setBFTParameters(
+				bftMethod.setBFTParameters(
 					stateStore,
 					BigInt(68),
 					BigInt(68),
-					new Array(bftAPI['_batchSize'] + 1).fill(0).map(() => ({
+					new Array(bftMethod['_batchSize'] + 1).fill(0).map(() => ({
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(1),
 						blsKey: utils.getRandomBytes(48),
@@ -611,7 +611,7 @@ describe('BFT API', () => {
 
 		it('should throw when less than 1/3 of aggregateBFTWeight for precommitThreshold is given', async () => {
 			await expect(
-				bftAPI.setBFTParameters(stateStore, BigInt(34), BigInt(68), [
+				bftMethod.setBFTParameters(stateStore, BigInt(34), BigInt(68), [
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
@@ -633,7 +633,7 @@ describe('BFT API', () => {
 
 		it('should throw when precommitThreshold is given is greater than aggregateBFTWeight', async () => {
 			await expect(
-				bftAPI.setBFTParameters(stateStore, BigInt(104), BigInt(68), [
+				bftMethod.setBFTParameters(stateStore, BigInt(104), BigInt(68), [
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
@@ -655,7 +655,7 @@ describe('BFT API', () => {
 
 		it('should throw when less than 1/3 of aggregateBFTWeight for certificateThreshold is given', async () => {
 			await expect(
-				bftAPI.setBFTParameters(stateStore, BigInt(68), BigInt(34), [
+				bftMethod.setBFTParameters(stateStore, BigInt(68), BigInt(34), [
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
@@ -677,7 +677,7 @@ describe('BFT API', () => {
 
 		it('should throw when certificateThreshold is given is greater than aggregateBFTWeight', async () => {
 			await expect(
-				bftAPI.setBFTParameters(stateStore, BigInt(68), BigInt(104), [
+				bftMethod.setBFTParameters(stateStore, BigInt(68), BigInt(104), [
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
@@ -716,7 +716,7 @@ describe('BFT API', () => {
 				},
 			];
 			beforeEach(async () => {
-				await bftAPI.setBFTParameters(stateStore, BigInt(68), BigInt(68), validators);
+				await bftMethod.setBFTParameters(stateStore, BigInt(68), BigInt(68), validators);
 			});
 
 			it('should not create set BFTParameters when there is no change from previous params', async () => {
@@ -736,7 +736,7 @@ describe('BFT API', () => {
 				];
 				await votesStore.setWithSchema(EMPTY_KEY, currentVotes as never, bftVotesSchema);
 
-				await bftAPI.setBFTParameters(stateStore, BigInt(68), BigInt(68), validators);
+				await bftMethod.setBFTParameters(stateStore, BigInt(68), BigInt(68), validators);
 
 				const paramsStore = stateStore.getStore(
 					MODULE_STORE_PREFIX_BFT,
@@ -799,7 +799,7 @@ describe('BFT API', () => {
 					bftVotesSchema,
 				);
 
-				await bftAPI.setBFTParameters(stateStore, BigInt(68), BigInt(68), [
+				await bftMethod.setBFTParameters(stateStore, BigInt(68), BigInt(68), [
 					{
 						address: generatorAddress,
 						bftWeight: BigInt(50),
@@ -889,11 +889,11 @@ describe('BFT API', () => {
 						bftWeight: BigInt(20),
 					},
 				];
-				validatorsAPI.getValidatorAccount.mockImplementation((_, address: Buffer) => {
+				validatorsMethod.getValidatorAccount.mockImplementation((_, address: Buffer) => {
 					return { blsKey: accounts.find(k => k.address.equals(address))?.blsKey };
 				});
 
-				const validatorsHash = bftAPI['_computeValidatorsHash'](accounts, BigInt(99));
+				const validatorsHash = bftMethod['_computeValidatorsHash'](accounts, BigInt(99));
 
 				const sortedAccounts = [...accounts];
 				sortedAccounts.sort((a, b) => a.blsKey.compare(b.blsKey));
@@ -978,7 +978,7 @@ describe('BFT API', () => {
 				},
 				bftVotesSchema,
 			);
-			await expect(bftAPI.getGeneratorKeys(stateStore, 50)).resolves.toEqual(keys30.generators);
+			await expect(bftMethod.getGeneratorKeys(stateStore, 50)).resolves.toEqual(keys30.generators);
 		});
 	});
 
@@ -1038,7 +1038,7 @@ describe('BFT API', () => {
 				bftVotesSchema,
 			);
 			await expect(
-				bftAPI.setGeneratorKeys(stateStore, createKeys().generators),
+				bftMethod.setGeneratorKeys(stateStore, createKeys().generators),
 			).resolves.toBeUndefined();
 			const keysStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_GENERATOR_KEYS);
 			await expect(keysStore.has(utils.intToBuffer(36, 4))).resolves.toBeTrue();

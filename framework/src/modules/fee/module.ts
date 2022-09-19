@@ -16,27 +16,27 @@ import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { defaultConfig } from './constants';
-import { ModuleConfig, TokenAPI } from './types';
+import { ModuleConfig, TokenMethod } from './types';
 import {
 	TransactionExecuteContext,
 	TransactionVerifyContext,
 	VerificationResult,
 	VerifyStatus,
 } from '../../state_machine';
-import { FeeAPI } from './api';
+import { FeeMethod } from './method';
 import { FeeEndpoint } from './endpoint';
 import { configSchema } from './schemas';
 
 export class FeeModule extends BaseModule {
-	public api = new FeeAPI(this.stores, this.events);
+	public method = new FeeMethod(this.stores, this.events);
 	public configSchema = configSchema;
 	public endpoint = new FeeEndpoint(this.stores, this.offchainStores);
-	private _tokenAPI!: TokenAPI;
+	private _tokenMethod!: TokenMethod;
 	private _minFeePerByte!: number;
 	private _tokenID!: Buffer;
 
-	public addDependencies(tokenAPI: TokenAPI) {
-		this._tokenAPI = tokenAPI;
+	public addDependencies(tokenMethod: TokenMethod) {
+		this._tokenMethod = tokenMethod;
 	}
 
 	public metadata(): ModuleMetadata {
@@ -60,7 +60,7 @@ export class FeeModule extends BaseModule {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
-		const { getAPIContext, transaction } = context;
+		const { getMethodContext, transaction } = context;
 		const minFee = BigInt(this._minFeePerByte * transaction.getBytes().length);
 
 		if (transaction.fee < minFee) {
@@ -70,8 +70,8 @@ export class FeeModule extends BaseModule {
 			};
 		}
 
-		const balance = await this._tokenAPI.getAvailableBalance(
-			getAPIContext(),
+		const balance = await this._tokenMethod.getAvailableBalance(
+			getMethodContext(),
 			transaction.senderAddress,
 			this._tokenID,
 		);
@@ -91,13 +91,13 @@ export class FeeModule extends BaseModule {
 			transaction: { senderAddress },
 		} = context;
 		const minFee = BigInt(this._minFeePerByte * context.transaction.getBytes().length);
-		const apiContext = context.getAPIContext();
+		const methodContext = context.getMethodContext();
 
-		const isNative = await this._tokenAPI.isNative(apiContext, this._tokenID);
+		const isNative = await this._tokenMethod.isNative(methodContext, this._tokenID);
 		if (isNative) {
-			await this._tokenAPI.burn(apiContext, senderAddress, this._tokenID, minFee);
-			await this._tokenAPI.transfer(
-				apiContext,
+			await this._tokenMethod.burn(methodContext, senderAddress, this._tokenID, minFee);
+			await this._tokenMethod.transfer(
+				methodContext,
 				senderAddress,
 				generatorAddress,
 				this._tokenID,
@@ -107,8 +107,8 @@ export class FeeModule extends BaseModule {
 			return;
 		}
 
-		await this._tokenAPI.transfer(
-			apiContext,
+		await this._tokenMethod.transfer(
+			methodContext,
 			senderAddress,
 			generatorAddress,
 			this._tokenID,

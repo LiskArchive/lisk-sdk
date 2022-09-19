@@ -26,6 +26,7 @@ import {
 import { InMemoryDatabase, Database, NotFoundError } from '@liskhq/lisk-db';
 import { isHexString, validator } from '@liskhq/lisk-validator';
 import { SparseMerkleTree, SMTProof } from '@liskhq/lisk-tree';
+import { address } from '@liskhq/lisk-cryptography';
 import { JSONObject } from '../../types';
 import { RequestContext } from '../rpc/rpc_server';
 import {
@@ -243,7 +244,9 @@ export class ChainEndpoint {
 		const generatorsInfo = [];
 		for (let i = slotInRound; i < slotInRound + keys.generators.length; i += 1) {
 			generatorsInfo.push({
-				address: keys.generators[i % keys.generators.length].address.toString('hex'),
+				address: address.getLisk32AddressFromAddress(
+					keys.generators[i % keys.generators.length].address,
+				),
 				nextAllocatedTime,
 			});
 			nextAllocatedTime += this._blockSlot.blockTime();

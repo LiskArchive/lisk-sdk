@@ -28,7 +28,7 @@ export interface TransactionAttrs {
 	readonly signatures: ReadonlyArray<Buffer>;
 	readonly id?: Buffer;
 }
-export type TransactionJSON = JSONObject<TransactionAttrs>;
+export type TransactionJSON = JSONObject<TransactionAttrs> & { id: string };
 
 export const transactionSchema = {
 	$id: '/lisk/transaction',
@@ -138,10 +138,10 @@ export class Transaction {
 		return transactionBytes;
 	}
 
-	public sign(networkIdentifier: Buffer, privateKey: Buffer): void {
+	public sign(chainID: Buffer, privateKey: Buffer): void {
 		const signature = ed.signDataWithPrivateKey(
 			TAG_TRANSACTION,
-			networkIdentifier,
+			chainID,
 			this.getSigningBytes(),
 			privateKey,
 		);
@@ -171,8 +171,8 @@ export class Transaction {
 		}
 	}
 
-	public toJSON(): JSONObject<TransactionAttrs> {
-		return codec.toJSON(transactionSchema, this._getProps());
+	public toJSON(): TransactionJSON {
+		return { ...codec.toJSON(transactionSchema, this._getProps()), id: this.id.toString('hex') };
 	}
 
 	public toObject(): TransactionAttrs {

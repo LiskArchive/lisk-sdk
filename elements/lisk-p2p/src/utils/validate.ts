@@ -38,11 +38,11 @@ const validateNetworkCompatibility = (peerInfo: P2PPeerInfo, nodeInfo: P2PNodeIn
 		return false;
 	}
 
-	if (!peerInfo.sharedState.networkIdentifier) {
+	if (!peerInfo.sharedState.chainID) {
 		return false;
 	}
 
-	return peerInfo.sharedState.networkIdentifier === nodeInfo.networkIdentifier;
+	return peerInfo.sharedState.chainID.equals(nodeInfo.chainID);
 };
 
 const validateNetworkVersionCompatibility = (

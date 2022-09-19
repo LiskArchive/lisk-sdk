@@ -13,10 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as Config from '@oclif/config';
 import { getConfig } from '../../helpers/config';
 import VerifyCommand from '../../../src/commands/message/verify';
 import * as readerUtils from '../../../src/utils/reader';
+import { Awaited } from '../../types';
 
 describe('message:verify', () => {
 	const message = 'Hello World';
@@ -28,7 +28,7 @@ describe('message:verify', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];

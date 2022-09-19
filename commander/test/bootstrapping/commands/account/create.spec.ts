@@ -15,10 +15,10 @@
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as passphrase from '@liskhq/lisk-passphrase';
-import * as Config from '@oclif/config';
 
 import { CreateCommand } from '../../../../src/bootstrapping/commands/account/create';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 describe('account:create', () => {
 	const defaultMnemonic =
@@ -30,7 +30,7 @@ describe('account:create', () => {
 		Buffer.from(secondDefaultMnemonic, 'utf-8'),
 	);
 	let results: any;
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		results = [];
@@ -55,9 +55,6 @@ describe('account:create', () => {
 						cryptography.legacy.getKeys(defaultMnemonic).publicKey,
 						'lsk',
 					),
-					binaryAddress: cryptography.address
-						.getAddressFromPublicKey(cryptography.legacy.getKeys(defaultMnemonic).publicKey)
-						.toString('hex'),
 					passphrase: defaultMnemonic,
 				},
 			]);
@@ -78,9 +75,6 @@ describe('account:create', () => {
 						cryptography.legacy.getKeys(defaultMnemonic).publicKey,
 						'lsk',
 					),
-					binaryAddress: cryptography.address
-						.getAddressFromPublicKey(cryptography.legacy.getKeys(defaultMnemonic).publicKey)
-						.toString('hex'),
 					passphrase: defaultMnemonic,
 				},
 				{
@@ -94,9 +88,6 @@ describe('account:create', () => {
 						cryptography.legacy.getKeys(secondDefaultMnemonic).publicKey,
 						'lsk',
 					),
-					binaryAddress: cryptography.address
-						.getAddressFromPublicKey(cryptography.legacy.getKeys(secondDefaultMnemonic).publicKey)
-						.toString('hex'),
 					passphrase: secondDefaultMnemonic,
 				},
 			];

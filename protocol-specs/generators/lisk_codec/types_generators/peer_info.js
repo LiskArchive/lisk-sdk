@@ -22,7 +22,7 @@ const { PeerInfo } = prepareProtobuffersObjects();
 const peerInfo = {
 	ipAddress: '1.1.1.1',
 	wsPort: 1111,
-	networkIdentifier: 'f8fe7ecc3e29f58f39d8a538f9a35b80b4b6ab9674f0300e25e33ff41274ae32',
+	chainID: '10000000',
 	networkVersion: '2.0',
 	nonce: 'iNIgD0Mb3s/RMaXbs',
 	os: 'darwin',
@@ -40,7 +40,7 @@ const peerInfoSchema = {
 			dataType: 'uint32',
 			fieldNumber: 2,
 		},
-		networkIdentifier: {
+		chainID: {
 			dataType: 'string',
 			fieldNumber: 3,
 		},

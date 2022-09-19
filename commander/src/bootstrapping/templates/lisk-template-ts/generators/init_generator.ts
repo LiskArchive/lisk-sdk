@@ -115,7 +115,7 @@ export default class InitGenerator extends Generator {
 			'config/default/dev-validators.json',
 			'--no-encrypt',
 			'--count',
-			'100',
+			'103',
 			'--passphrase',
 			passphrase,
 		]);

@@ -21,7 +21,7 @@ import { ForgerPlugin } from '../../../src';
 describe('Forger Info Sync', () => {
 	let appEnv: testing.ApplicationEnv;
 	let accountNonce = 0;
-	let networkIdentifier: Buffer;
+	let chainID: Buffer;
 
 	beforeAll(async () => {
 		const rootPath = '~/.lisk/forger-plugin';
@@ -36,7 +36,7 @@ describe('Forger Info Sync', () => {
 		});
 		await appEnv.startApplication();
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
-		networkIdentifier = appEnv.networkIdentifier;
+		chainID = appEnv.chainID;
 	});
 
 	afterAll(async () => {
@@ -53,7 +53,7 @@ describe('Forger Info Sync', () => {
 			recipientAddress: account.address,
 			fee: '0.3',
 			nonce: accountNonce,
-			networkIdentifier,
+			chainID,
 		});
 		accountNonce += 1;
 		await appEnv.ipcClient.invoke('txpool_postTransaction', {

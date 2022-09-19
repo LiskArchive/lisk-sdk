@@ -15,7 +15,7 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Command, flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import * as fs from 'fs-extra';
 import { utils as cryptoUtils } from '@liskhq/lisk-cryptography';
 import { ApplicationConfig, Application, PartialApplicationConfig } from 'lisk-framework';
@@ -88,16 +88,10 @@ export abstract class StartCommand extends Command {
 				'Host to be used for api-client. Environment variable "LISK_API_HOST" can also be used.',
 			env: 'LISK_API_HOST',
 		}),
-		'console-log': flagParser.string({
-			description:
-				'Console log level. Environment variable "LISK_CONSOLE_LOG_LEVEL" can also be used.',
-			env: 'LISK_CONSOLE_LOG_LEVEL',
-			options: LOG_OPTIONS,
-		}),
 		log: flagParser.string({
 			char: 'l',
-			description: 'File log level. Environment variable "LISK_FILE_LOG_LEVEL" can also be used.',
-			env: 'LISK_FILE_LOG_LEVEL',
+			description: 'Log level. Environment variable "LISK_LOG_LEVEL" can also be used.',
+			env: 'LISK_LOG_LEVEL',
 			options: LOG_OPTIONS,
 		}),
 		'seed-peers': flagParser.string({
@@ -108,7 +102,7 @@ export abstract class StartCommand extends Command {
 	};
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(this.constructor as typeof StartCommand);
+		const { flags } = await this.parse(this.constructor as typeof StartCommand);
 		const dataPath = flags['data-path']
 			? flags['data-path']
 			: getDefaultPath(this.config.pjson.name);
@@ -189,15 +183,8 @@ export abstract class StartCommand extends Command {
 				port: flags['api-port'],
 			});
 		}
-		if (flags['console-log']) {
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			config.logger = config.logger ?? {};
-			config.logger.consoleLogLevel = flags['console-log'];
-		}
 		if (flags.log) {
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			config.logger = config.logger ?? {};
-			config.logger.fileLogLevel = flags.log;
+			config.system.logLevel = flags.log;
 		}
 		if (flags.port) {
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -222,7 +209,7 @@ export abstract class StartCommand extends Command {
 
 		// Get application and start
 		try {
-			const app = this.getApplication(config);
+			const app = await this.getApplication(config);
 			await app.run();
 		} catch (errors) {
 			this.error(
@@ -233,7 +220,7 @@ export abstract class StartCommand extends Command {
 		}
 	}
 
-	abstract getApplication(config: PartialApplicationConfig): Application;
+	abstract getApplication(config: PartialApplicationConfig): Promise<Application>;
 
 	abstract getApplicationConfigDir(): string;
 }

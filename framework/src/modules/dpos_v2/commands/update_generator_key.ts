@@ -22,14 +22,14 @@ import {
 import { BaseCommand } from '../../base_command';
 import { updateGeneratorKeyCommandParamsSchema } from '../schemas';
 import { DelegateStore } from '../stores/delegate';
-import { UpdateGeneratorKeyParams, ValidatorsAPI } from '../types';
+import { UpdateGeneratorKeyParams, ValidatorsMethod } from '../types';
 
 export class UpdateGeneratorKeyCommand extends BaseCommand {
 	public schema = updateGeneratorKeyCommandParamsSchema;
-	private _validatorsAPI!: ValidatorsAPI;
+	private _validatorsMethod!: ValidatorsMethod;
 
-	public addDependencies(validatorsAPI: ValidatorsAPI) {
-		this._validatorsAPI = validatorsAPI;
+	public addDependencies(validatorsMethod: ValidatorsMethod) {
+		this._validatorsMethod = validatorsMethod;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -64,10 +64,10 @@ export class UpdateGeneratorKeyCommand extends BaseCommand {
 
 	public async execute(context: CommandExecuteContext<UpdateGeneratorKeyParams>): Promise<void> {
 		const { transaction } = context;
-		const apiContext = context.getAPIContext();
+		const methodContext = context.getMethodContext();
 
-		await this._validatorsAPI.setValidatorGeneratorKey(
-			apiContext,
+		await this._validatorsMethod.setValidatorGeneratorKey(
+			methodContext,
 			transaction.senderAddress,
 			context.params.generatorKey,
 		);

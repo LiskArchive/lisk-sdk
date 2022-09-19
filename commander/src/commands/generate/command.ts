@@ -41,7 +41,7 @@ export default class CommandCommand extends BaseBootstrapCommand {
 	];
 
 	async run(): Promise<void> {
-		const { args } = this.parse(CommandCommand);
+		const { args } = await this.parse(CommandCommand);
 		const { moduleName, commandName } = args as CommandCommandArgs;
 
 		// validate folder name to not include camelcase or whitespace

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { EVENT_STANDARD_TYPE_ID, standardEventDataSchema } from '@liskhq/lisk-chain';
+import { standardEventDataSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { TransactionExecutionResult } from '../abi';
 import { Logger } from '../logger';
@@ -23,6 +23,7 @@ import { GenerationContext } from './generator_context';
 import { GenesisBlockContext } from './genesis_block_context';
 import { TransactionContext } from './transaction_context';
 import { VerifyStatus, VerificationResult } from './types';
+import { EVENT_TRANSACTION_NAME } from './constants';
 
 export class StateMachine {
 	private readonly _modules: BaseModule[] = [];
@@ -92,7 +93,10 @@ export class StateMachine {
 				if (mod.verifyTransaction) {
 					const result = await mod.verifyTransaction(transactionContext);
 					if (result.status !== VerifyStatus.OK) {
-						this._logger.debug('Transaction verification failed');
+						this._logger.debug(
+							{ err: result.error, module: mod.name },
+							'Transaction verification failed',
+						);
 						return result;
 					}
 				}
@@ -102,7 +106,10 @@ export class StateMachine {
 			if (command.verify) {
 				const result = await command.verify(commandContext);
 				if (result.status !== VerifyStatus.OK) {
-					this._logger.debug('Transaction verification failed');
+					this._logger.debug(
+						{ err: result.error, module: ctx.transaction.module, command: command.name },
+						'Command verification failed',
+					);
 					return result;
 				}
 			}
@@ -125,7 +132,10 @@ export class StateMachine {
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
-					this._logger.debug({ err: error as Error }, 'Transaction execution failed');
+					this._logger.debug(
+						{ err: error as Error, module: mod.name },
+						'Transaction beforeCommandExecution failed',
+					);
 					return TransactionExecutionResult.INVALID;
 				}
 			}
@@ -139,7 +149,7 @@ export class StateMachine {
 			await command.execute(commandContext);
 			ctx.eventQueue.unsafeAdd(
 				ctx.transaction.module,
-				EVENT_STANDARD_TYPE_ID,
+				EVENT_TRANSACTION_NAME,
 				codec.encode(standardEventDataSchema, { success: true }),
 				[ctx.transaction.id],
 			);
@@ -148,12 +158,15 @@ export class StateMachine {
 			ctx.stateStore.restoreSnapshot(commandStateStoreSnapshotID);
 			ctx.eventQueue.unsafeAdd(
 				ctx.transaction.module,
-				EVENT_STANDARD_TYPE_ID,
+				EVENT_TRANSACTION_NAME,
 				codec.encode(standardEventDataSchema, { success: false }),
 				[ctx.transaction.id],
 			);
 			status = TransactionExecutionResult.FAIL;
-			this._logger.debug({ err: error as Error }, 'Transaction execution failed');
+			this._logger.debug(
+				{ err: error as Error, module: ctx.transaction.module, command: ctx.transaction.command },
+				'Transaction execution failed',
+			);
 		}
 
 		// Execute after transaction hooks
@@ -164,7 +177,10 @@ export class StateMachine {
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
-					this._logger.debug({ err: error as Error }, 'Transaction execution failed');
+					this._logger.debug(
+						{ err: error as Error, module: mod.name },
+						'Transaction afterCommandExecution failed',
+					);
 					return TransactionExecutionResult.INVALID;
 				}
 			}

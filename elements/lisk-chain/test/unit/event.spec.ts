@@ -22,9 +22,10 @@ import { EVENT_TOPIC_HASH_LENGTH_BYTES, EVENT_TOTAL_INDEX_LENGTH_BYTES } from '.
 describe('event', () => {
 	const eventObj = {
 		module: 'token',
-		typeID: Buffer.from([0, 0, 0, 1]),
+		name: 'Token Event Name',
 		topics: [utils.getRandomBytes(32), utils.getRandomBytes(20), utils.getRandomBytes(2)],
-		index: 3,
+		index: 4,
+		height: 10,
 		data: utils.getRandomBytes(200),
 	};
 	const encodedEvent = codec.encode(eventSchema, eventObj);
@@ -36,15 +37,11 @@ describe('event', () => {
 	});
 
 	describe('id', () => {
-		it('should return event id', () => {
+		it('should return event id and equals to SHA-256(encode(eventSchema, event))', () => {
 			const event = Event.fromBytes(encodedEvent);
-			const id = event.id(30);
+			const id = event.id();
 
-			expect(id.slice(0, 4)).toEqual(Buffer.from([0, 0, 0, 30]));
-			const indexBytes = Buffer.alloc(4);
-			// eslint-disable-next-line no-bitwise
-			indexBytes.writeUInt32BE(eventObj.index << 2, 0);
-			expect(id.slice(4)).toEqual(indexBytes);
+			expect(id).toEqual(utils.hash(codec.encode(eventSchema, event.toObject())));
 		});
 	});
 
@@ -92,8 +89,9 @@ describe('event', () => {
 			const event = Event.fromBytes(encodedEvent).toJSON();
 			expect(event).toEqual({
 				module: 'token',
-				typeID: eventObj.typeID.toString('hex'),
-				index: 3,
+				name: 'Token Event Name',
+				index: 4,
+				height: 10,
 				topics: eventObj.topics.map(t => t.toString('hex')),
 				data: expect.any(String),
 			});

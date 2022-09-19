@@ -15,8 +15,7 @@ Object {
           "delegateAddress": Object {
             "dataType": "bytes",
             "fieldNumber": 1,
-            "maxLength": 20,
-            "minLength": 20,
+            "format": "lisk32",
           },
         },
         "required": Array [

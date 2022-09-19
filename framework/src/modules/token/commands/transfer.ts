@@ -19,7 +19,7 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../state_machine';
-import { TokenAPI } from '../api';
+import { TokenMethod } from '../method';
 import { transferParamsSchema } from '../schemas';
 
 interface Params {
@@ -31,10 +31,10 @@ interface Params {
 
 export class TransferCommand extends BaseCommand {
 	public schema = transferParamsSchema;
-	private _api!: TokenAPI;
+	private _method!: TokenMethod;
 
-	public init(args: { api: TokenAPI }) {
-		this._api = args.api;
+	public init(args: { method: TokenMethod }) {
+		this._method = args.method;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -56,8 +56,8 @@ export class TransferCommand extends BaseCommand {
 
 	public async execute(context: CommandExecuteContext<Params>): Promise<void> {
 		const { params } = context;
-		await this._api.transfer(
-			context.getAPIContext(),
+		await this._method.transfer(
+			context.getMethodContext(),
 			context.transaction.senderAddress,
 			params.recipientAddress,
 			params.tokenID,

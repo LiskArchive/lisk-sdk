@@ -18,15 +18,15 @@ import { defaultConfig, EMPTY_KEY, MODULE_NAME_DPOS } from '../constants';
 import { DelegateStore } from '../stores/delegate';
 import { GenesisDataStore } from '../stores/genesis';
 import { VoterStore } from '../stores/voter';
-import { TokenAPI, TokenIDDPoS, UnlockCommandDependencies } from '../types';
+import { TokenMethod, TokenIDDPoS, UnlockCommandDependencies } from '../types';
 import { hasWaited, isPunished, isCertificateGenerated } from '../utils';
 
 export class UnlockCommand extends BaseCommand {
-	private _tokenAPI!: TokenAPI;
+	private _tokenMethod!: TokenMethod;
 	private _tokenIDDPoS!: TokenIDDPoS;
 
 	public addDependencies(args: UnlockCommandDependencies) {
-		this._tokenAPI = args.tokenAPI;
+		this._tokenMethod = args.tokenMethod;
 	}
 
 	public init(args: { tokenIDDPoS: TokenIDDPoS }) {
@@ -36,7 +36,7 @@ export class UnlockCommand extends BaseCommand {
 	public async execute(context: CommandExecuteContext): Promise<void> {
 		const {
 			transaction: { senderAddress },
-			getAPIContext,
+			getMethodContext,
 			maxHeightCertified,
 			header: { height },
 		} = context;
@@ -61,8 +61,8 @@ export class UnlockCommand extends BaseCommand {
 					roundLength: defaultConfig.roundLength,
 				})
 			) {
-				await this._tokenAPI.unlock(
-					getAPIContext(),
+				await this._tokenMethod.unlock(
+					getMethodContext(),
 					senderAddress,
 					MODULE_NAME_DPOS,
 					this._tokenIDDPoS,

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { bls } from '@liskhq/lisk-cryptography';
+import { address as cryptoAddress, bls } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { NotFoundError } from '@liskhq/lisk-db';
 import { ModuleEndpointContext } from '../../types';
@@ -58,15 +58,15 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 		ctx: ModuleEndpointContext,
 	): Promise<{ generatorKey: string; blsKey: string }> {
 		validator.validate<GetValidatorRequest>(getValidatorRequestSchema, ctx.params);
-		const req = ctx.params;
-		const { address } = req;
-
 		const validatorsKeysSubStore = this.stores.get(ValidatorKeysStore);
 
 		let persistedValue;
 
 		try {
-			persistedValue = await validatorsKeysSubStore.get(ctx, Buffer.from(address, 'hex'));
+			persistedValue = await validatorsKeysSubStore.get(
+				ctx,
+				cryptoAddress.getAddressFromLisk32Address(ctx.params.address),
+			);
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;

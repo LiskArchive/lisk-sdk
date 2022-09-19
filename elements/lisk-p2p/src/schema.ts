@@ -18,8 +18,8 @@ export const nodeInfoSchema = {
 	$id: '/nodeInfo',
 	type: 'object',
 	properties: {
-		networkIdentifier: {
-			dataType: 'string',
+		chainID: {
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 		networkVersion: {
@@ -35,7 +35,7 @@ export const nodeInfoSchema = {
 			fieldNumber: 4,
 		},
 	},
-	required: ['networkIdentifier', 'networkVersion', 'nonce'],
+	required: ['chainID', 'networkVersion', 'nonce'],
 };
 
 export const peerInfoSchema = {

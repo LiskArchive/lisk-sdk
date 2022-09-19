@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Command } from '@oclif/command';
+import { Command } from '@oclif/core';
 import * as cryptography from '@liskhq/lisk-cryptography';
 
 interface Args {
@@ -21,7 +21,7 @@ interface Args {
 }
 
 export class ValidateCommand extends Command {
-	static description = 'Validate base32 address.';
+	static description = 'Validate lisk32 address.';
 
 	static examples = ['account:validate lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmux2g'];
 
@@ -34,21 +34,13 @@ export class ValidateCommand extends Command {
 	];
 
 	async run(): Promise<void> {
-		const { args } = this.parse(ValidateCommand);
+		const { args } = await this.parse(ValidateCommand);
 		const { address } = args as Args;
 
 		try {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			cryptography.address.validateLisk32Address(address, this.config.pjson.lisk.addressPrefix);
-			const binaryAddress = cryptography.address
-				.getAddressFromLisk32Address(address)
-				.toString('hex');
-
-			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			this.log(
-				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				`Address ${address} is a valid base32 address and the corresponding binary address is ${binaryAddress}.`,
-			);
+			this.log(`Address ${address} is a valid lisk32 address`);
 		} catch (error) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			this.error(error.message);

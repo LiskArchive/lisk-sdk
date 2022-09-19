@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BlockHeader, StateStore } from '@liskhq/lisk-chain';
-import { BFTAPI } from './api';
+import { BFTMethod } from './method';
 import {
 	EMPTY_KEY,
 	MODULE_NAME_BFT,
@@ -34,7 +34,7 @@ import { deleteGeneratorKeys } from './utils';
 
 export class BFTModule {
 	public name = MODULE_NAME_BFT;
-	public api = new BFTAPI();
+	public method = new BFTMethod();
 
 	private _batchSize!: number;
 	private _maxLengthBlockBFTInfos!: number;
@@ -42,7 +42,7 @@ export class BFTModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(batchSize: number): Promise<void> {
 		this._batchSize = batchSize;
-		this.api.init(this._batchSize);
+		this.method.init(this._batchSize);
 		this._maxLengthBlockBFTInfos = 3 * this._batchSize;
 	}
 

@@ -18,7 +18,6 @@ import { Application, transactionSchema } from 'lisk-framework';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as apiClient from '@liskhq/lisk-api-client';
 import * as transactions from '@liskhq/lisk-transactions';
-import * as Config from '@oclif/config';
 
 import * as appUtils from '../../../../src/utils/application';
 import * as readerUtils from '../../../../src/utils/reader';
@@ -26,15 +25,16 @@ import { tokenTransferParamsSchema, dposVoteParamsSchema } from '../../../helper
 import { CreateCommand } from '../../../../src/bootstrapping/commands/transaction/create';
 import { getConfig } from '../../../helpers/config';
 import { PromiseResolvedType } from '../../../../src/types';
+import { Awaited } from '../../../types';
 
 describe('transaction:create command', () => {
 	const passphrase = 'peanut hundred pen hawk invite exclude brain chunk gadget wait wrong ready';
 	const transferParams =
-		'{"tokenID": "0000000000000000","amount":100,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}';
+		'{"tokenID": "0000000000000000","amount":100,"recipientAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","data":"send token"}';
 	const voteParams =
-		'{"votes":[{"delegateAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","amount":100},{"delegateAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","amount":-50}]}';
+		'{"votes":[{"delegateAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","amount":100},{"delegateAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","amount":-50}]}';
 	const unVoteParams =
-		'{"votes":[{"delegateAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","amount":-50}]}';
+		'{"votes":[{"delegateAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","amount":-50}]}';
 	const { publicKey } = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 	const senderPublicKey = publicKey.toString('hex');
 	const mockEncodedTransaction = Buffer.from('encoded transaction');
@@ -43,13 +43,13 @@ describe('transaction:create command', () => {
 			tokenID: '0000000000000000',
 			amount: '100',
 			data: 'send token',
-			recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+			recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
 		},
 		command: 'transfer',
 		fee: '100000000',
 		module: 'token',
 		nonce: 'transfer',
-		senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+		senderPublicKey: '31048f87ca35a00a553633dd03c788d4b82ea9caf6ccc36315cf8e595f3e7a83',
 		signatures: [
 			'3cc8c8c81097fe59d9df356b3c3f1dd10f619bfabb54f5d187866092c67e0102c64dbe24f357df493cc7ebacdd2e55995db8912245b718d88ebf7f4f4ac01f04',
 		],
@@ -57,7 +57,7 @@ describe('transaction:create command', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let clientMock: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>>;
 
 	// In order to test the command we need to extended the base crete command and provide application implementation
@@ -104,7 +104,7 @@ describe('transaction:create command', () => {
 			],
 			node: {
 				getNodeInfo: jest.fn().mockResolvedValue({
-					networkIdentifier: '873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3',
+					chainID: '10000000',
 				}),
 			},
 			transaction: {
@@ -123,7 +123,7 @@ describe('transaction:create command', () => {
 		jest.spyOn(inquirer, 'prompt').mockResolvedValue({
 			tokenID: '0000000000000000',
 			amount: 100,
-			recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+			recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
 			data: 'send token',
 		});
 		jest.spyOn(readerUtils, 'getPassphraseFromPrompt').mockResolvedValue(passphrase);
@@ -174,13 +174,13 @@ describe('transaction:create command', () => {
 								'--params={"amount": "abc"}',
 								`--passphrase=${passphrase}`,
 								'--offline',
-								'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+								'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 								'--nonce=1',
 								'--data-path=/tmp',
 							],
 							config,
 						),
-					).rejects.toThrow('--data-path= cannot also be provided when using --offline=');
+					).rejects.toThrow('--data-path=/tmp cannot also be provided when using --offline');
 				});
 			});
 
@@ -198,7 +198,9 @@ describe('transaction:create command', () => {
 							],
 							config,
 						),
-					).rejects.toThrow('--network-identifier= must also be provided when using --offline=');
+					).rejects.toThrow(
+						'All of the following must be provided when using --offline: --chain-id, --nonce',
+					);
 				});
 			});
 
@@ -213,11 +215,13 @@ describe('transaction:create command', () => {
 								'--params={"amount": "abc"}',
 								`--passphrase=${passphrase}`,
 								'--offline',
-								'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+								'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							],
 							config,
 						),
-					).rejects.toThrow('--nonce= must also be provided when using --offline=');
+					).rejects.toThrow(
+						'All of the following must be provided when using --offline: --chain-id, --nonce',
+					);
 				});
 			});
 
@@ -232,13 +236,13 @@ describe('transaction:create command', () => {
 								`--params=${transferParams}`,
 								'--no-signature',
 								'--offline',
-								'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+								'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 								'--nonce=1',
 							],
 							config,
 						),
 					).rejects.toThrow(
-						'--sender-public-key= must also be provided when using --no-signature=',
+						'All of the following must be provided when using --no-signature: --sender-public-key',
 					);
 				});
 			});
@@ -251,10 +255,10 @@ describe('transaction:create command', () => {
 								'token',
 								'transfer',
 								'100000000',
-								'--params={"tokenID":"0000000000000000","amount":100,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815"}',
+								'--params={"tokenID":"0000000000000000","amount":100,"recipientAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9"}',
 								`--passphrase=${passphrase}`,
 								'--offline',
-								'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+								'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 								'--nonce=1',
 								'--network=devnet',
 							],
@@ -276,7 +280,7 @@ describe('transaction:create command', () => {
 							'--offline',
 							`--params=${transferParams}`,
 							`--passphrase=${passphrase}`,
-							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+							'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
 						config,
@@ -299,7 +303,7 @@ describe('transaction:create command', () => {
 							`--params=${transferParams}`,
 							'--no-signature',
 							`--sender-public-key=${senderPublicKey}`,
-							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+							'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
 						config,
@@ -321,7 +325,7 @@ describe('transaction:create command', () => {
 							'--offline',
 							`--params=${voteParams}`,
 							`--passphrase=${passphrase}`,
-							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+							'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
 						config,
@@ -343,7 +347,7 @@ describe('transaction:create command', () => {
 							'--offline',
 							`--params=${unVoteParams}`,
 							`--passphrase=${passphrase}`,
-							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+							'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
 						config,
@@ -366,7 +370,7 @@ describe('transaction:create command', () => {
 							'100000000',
 							`--passphrase=${passphrase}`,
 							'--offline',
-							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+							'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
 						config,
@@ -397,7 +401,7 @@ describe('transaction:create command', () => {
 							'transfer',
 							'100000000',
 							'--offline',
-							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+							'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
 						config,
@@ -433,7 +437,7 @@ describe('transaction:create command', () => {
 							`--sender-public-key=${senderPublicKey}`,
 							'--json',
 							'--offline',
-							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+							'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
 						config,
@@ -448,12 +452,12 @@ describe('transaction:create command', () => {
 							command: 'transfer',
 							nonce: '1',
 							fee: '100000000',
-							senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+							senderPublicKey,
 							params: {
 								tokenID: '0000000000000000',
 								amount: '100',
 								data: 'send token',
-								recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+								recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
 							},
 							signatures: [],
 						},
@@ -472,7 +476,7 @@ describe('transaction:create command', () => {
 							`--passphrase=${passphrase}`,
 							'--json',
 							'--offline',
-							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+							'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
 						config,
@@ -488,12 +492,12 @@ describe('transaction:create command', () => {
 							nonce: '1',
 							fee: '100000000',
 							id: expect.any(String),
-							senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+							senderPublicKey: '31048f87ca35a00a553633dd03c788d4b82ea9caf6ccc36315cf8e595f3e7a83',
 							params: {
 								tokenID: '0000000000000000',
 								amount: '100',
 								data: 'send token',
-								recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+								recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
 							},
 							signatures: [expect.any(String)],
 						},
@@ -715,12 +719,12 @@ describe('transaction:create command', () => {
 							command: 'transfer',
 							nonce: 'transfer',
 							fee: '100000000',
-							senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+							senderPublicKey: '31048f87ca35a00a553633dd03c788d4b82ea9caf6ccc36315cf8e595f3e7a83',
 							params: {
 								tokenID: '0000000000000000',
 								amount: '100',
 								data: 'send token',
-								recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+								recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
 							},
 							signatures: [
 								'3cc8c8c81097fe59d9df356b3c3f1dd10f619bfabb54f5d187866092c67e0102c64dbe24f357df493cc7ebacdd2e55995db8912245b718d88ebf7f4f4ac01f04',

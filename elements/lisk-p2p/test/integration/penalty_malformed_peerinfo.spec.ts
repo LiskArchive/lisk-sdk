@@ -49,7 +49,7 @@ describe('penalty sending malformed peerInfo', () => {
 		});
 
 		p2pNodeList[0].applyNodeInfo({
-			networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+			chainID: Buffer.from('10000000', 'hex'),
 			networkVersion: '1.1',
 			options: { invalid: '1.'.repeat(13000) },
 			advertiseAddress: true,

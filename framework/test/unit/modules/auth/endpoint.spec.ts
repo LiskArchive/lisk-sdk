@@ -1,17 +1,23 @@
 import { NotFoundError, TAG_TRANSACTION, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { ed, address as cryptoAddress, utils, legacy } from '@liskhq/lisk-cryptography';
+import { ed, address as cryptoAddress, utils, legacy, address } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { AuthModule } from '../../../../src/modules/auth';
-import { COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP } from '../../../../src/modules/auth/constants';
+import {
+	COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP,
+	MESSAGE_TAG_MULTISIG_REG,
+} from '../../../../src/modules/auth/constants';
 import { AuthEndpoint } from '../../../../src/modules/auth/endpoint';
 import { InvalidNonceError } from '../../../../src/modules/auth/errors';
-import { registerMultisignatureParamsSchema } from '../../../../src/modules/auth/schemas';
+import {
+	multisigRegMsgSchema,
+	registerMultisignatureParamsSchema,
+} from '../../../../src/modules/auth/schemas';
 import { AuthAccountStore } from '../../../../src/modules/auth/stores/auth_account';
 import { createTransientModuleEndpointContext } from '../../../../src/testing';
 
 describe('AuthEndpoint', () => {
-	const networkIdentifier = Buffer.from(
+	const chainID = Buffer.from(
 		'ce6b20ee7f7797e102f68d15099e7d5b0e8d4c50f98a7865ea168717539ec3aa',
 		'hex',
 	);
@@ -80,7 +86,7 @@ describe('AuthEndpoint', () => {
 			// Arrange
 			const context = createTransientModuleEndpointContext({
 				params: {
-					address: existingAddress.toString('hex'),
+					address: address.getLisk32AddressFromAddress(existingAddress),
 				},
 			});
 
@@ -115,7 +121,7 @@ describe('AuthEndpoint', () => {
 			// Arrange
 			const context = createTransientModuleEndpointContext({
 				params: {
-					address: nonExistingAddress.toString('hex'),
+					address: address.getLisk32AddressFromAddress(nonExistingAddress),
 				},
 			});
 
@@ -158,7 +164,7 @@ describe('AuthEndpoint', () => {
 
 			const signature = ed.signDataWithPrivateKey(
 				TAG_TRANSACTION,
-				networkIdentifier,
+				chainID,
 				transaction.getBytes(),
 				existingPrivateKey,
 			);
@@ -171,7 +177,7 @@ describe('AuthEndpoint', () => {
 				params: {
 					transaction: transactionAsString,
 				},
-				networkIdentifier,
+				chainID,
 			});
 
 			when(authAccountStore.get as jest.Mock)
@@ -204,7 +210,7 @@ describe('AuthEndpoint', () => {
 			(transaction.signatures as any).push(
 				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
-					networkIdentifier,
+					chainID,
 					transaction.getSigningBytes(),
 					accounts.mandatoryOne.privateKey as Buffer,
 				),
@@ -213,7 +219,7 @@ describe('AuthEndpoint', () => {
 			(transaction.signatures as any).push(
 				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
-					networkIdentifier,
+					chainID,
 					transaction.getSigningBytes(),
 					accounts.mandatoryTwo.privateKey as Buffer,
 				),
@@ -222,7 +228,7 @@ describe('AuthEndpoint', () => {
 			(transaction.signatures as any).push(
 				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
-					networkIdentifier,
+					chainID,
 					transaction.getSigningBytes(),
 					accounts.optionalOne.privateKey as Buffer,
 				),
@@ -236,7 +242,7 @@ describe('AuthEndpoint', () => {
 				params: {
 					transaction: transactionAsString,
 				},
-				networkIdentifier,
+				chainID,
 			});
 
 			when(authAccountStore.get as jest.Mock)
@@ -255,13 +261,15 @@ describe('AuthEndpoint', () => {
 		});
 
 		it('should verify the transaction of register multisignature group', async () => {
-			const transactionParams = codec.encode(registerMultisignatureParamsSchema, {
+			const decodedTxParams = {
 				numberOfSignatures: 3,
 				mandatoryKeys: [accounts.mandatoryOne.publicKey, accounts.mandatoryTwo.publicKey],
 				optionalKeys: [accounts.optionalOne.publicKey, accounts.optionalTwo.publicKey],
-			});
+				signatures: [],
+			};
+			const transactionParams = codec.encode(registerMultisignatureParamsSchema, decodedTxParams);
 
-			const transaction = new Transaction({
+			const rawTx = {
 				module: 'auth',
 				command: COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP,
 				nonce: BigInt('0'),
@@ -269,69 +277,86 @@ describe('AuthEndpoint', () => {
 				senderPublicKey: existingSenderPublicKey,
 				params: transactionParams,
 				signatures: [],
+			};
+
+			const transaction = new Transaction({ ...rawTx });
+
+			const message = codec.encode(multisigRegMsgSchema, {
+				address: transaction.senderAddress,
+				nonce: transaction.nonce,
+				numberOfSignatures: decodedTxParams.numberOfSignatures,
+				mandatoryKeys: decodedTxParams.mandatoryKeys,
+				optionalKeys: decodedTxParams.optionalKeys,
 			});
 
-			(transaction.signatures as any).push(
+			(decodedTxParams.signatures as any).push(
 				ed.signDataWithPrivateKey(
-					TAG_TRANSACTION,
-					networkIdentifier,
-					transaction.getSigningBytes(),
-					existingPrivateKey,
-				),
-			);
-
-			(transaction.signatures as any).push(
-				ed.signDataWithPrivateKey(
-					TAG_TRANSACTION,
-					networkIdentifier,
-					transaction.getSigningBytes(),
+					MESSAGE_TAG_MULTISIG_REG,
+					chainID,
+					message,
 					accounts.mandatoryOne.privateKey as Buffer,
 				),
 			);
 
-			(transaction.signatures as any).push(
+			(decodedTxParams.signatures as any).push(
 				ed.signDataWithPrivateKey(
-					TAG_TRANSACTION,
-					networkIdentifier,
-					transaction.getSigningBytes(),
+					MESSAGE_TAG_MULTISIG_REG,
+					chainID,
+					message,
 					accounts.mandatoryTwo.privateKey as Buffer,
 				),
 			);
 
-			(transaction.signatures as any).push(
+			(decodedTxParams.signatures as any).push(
 				ed.signDataWithPrivateKey(
-					TAG_TRANSACTION,
-					networkIdentifier,
-					transaction.getSigningBytes(),
+					MESSAGE_TAG_MULTISIG_REG,
+					chainID,
+					message,
 					accounts.optionalOne.privateKey as Buffer,
 				),
 			);
 
-			(transaction.signatures as any).push(
+			(decodedTxParams.signatures as any).push(
+				ed.signDataWithPrivateKey(
+					MESSAGE_TAG_MULTISIG_REG,
+					chainID,
+					message,
+					accounts.optionalTwo.privateKey as Buffer,
+				),
+			);
+
+			const encodedTransactionParams = codec.encode(
+				registerMultisignatureParamsSchema,
+				decodedTxParams,
+			);
+
+			const signedTransaction = new Transaction({ ...rawTx, params: encodedTransactionParams });
+
+			(signedTransaction.signatures as any).push(
 				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
-					networkIdentifier,
-					transaction.getSigningBytes(),
-					accounts.optionalTwo.privateKey as Buffer,
+					chainID,
+					signedTransaction.getSigningBytes(),
+					existingPrivateKey,
 				),
 			);
 
 			when(authAccountStore.get as jest.Mock)
 				.calledWith(expect.anything(), existingAddress)
 				.mockReturnValue({
-					mandatoryKeys: [accounts.mandatoryOne.publicKey, accounts.mandatoryTwo.publicKey],
-					optionalKeys: [accounts.optionalOne.publicKey, accounts.optionalTwo.publicKey],
+					mandatoryKeys: [],
+					optionalKeys: [],
 					nonce: BigInt(0),
-					numberOfSignatures: 3,
+					numberOfSignatures: 0,
 				});
 
-			const transactionAsString = transaction.getBytes().toString('hex');
+			const transactionAsString = signedTransaction.getBytes().toString('hex');
 
 			const context = createTransientModuleEndpointContext({
 				params: {
 					transaction: transactionAsString,
 				},
-				networkIdentifier,
+				chainID,
 			});
 
 			// Assert

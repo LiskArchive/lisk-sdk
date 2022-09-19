@@ -20,9 +20,7 @@ import { Transaction } from '../../src/transaction';
 import { Block, BlockAssets, BlockHeader } from '../../src';
 import { BlockHeaderAttrs } from '../../src/block_header';
 
-export const defaultNetworkIdentifier = Buffer.from(
-	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
-);
+export const defaultChainID = Buffer.from('10000000', 'hex');
 
 const getKeyPair = (): { publicKey: Buffer; privateKey: Buffer } => {
 	const passphrase = Mnemonic.generateMnemonic();
@@ -62,7 +60,7 @@ export const createValidDefaultBlock = async (
 		transactions?: Transaction[];
 		assets?: BlockAssets;
 	},
-	networkIdentifier: Buffer = defaultNetworkIdentifier,
+	chainID: Buffer = defaultChainID,
 ): Promise<Block> => {
 	const keypair = getKeyPair();
 	const transactions = block?.transactions ?? [];
@@ -92,6 +90,6 @@ export const createValidDefaultBlock = async (
 		...block?.header,
 	});
 
-	blockHeader.sign(networkIdentifier, keypair.privateKey);
+	blockHeader.sign(chainID, keypair.privateKey);
 	return new Block(blockHeader, transactions, blockAssets);
 };

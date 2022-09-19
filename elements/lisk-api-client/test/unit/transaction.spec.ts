@@ -14,7 +14,7 @@
  */
 
 import { when } from 'jest-when';
-import { legacy } from '@liskhq/lisk-cryptography';
+import { address, legacy } from '@liskhq/lisk-cryptography';
 import { Transaction } from '../../src/transaction';
 import { metadata, nodeInfo, schema, tx } from '../utils/transaction';
 
@@ -48,7 +48,7 @@ describe('transaction', () => {
 		fee: '10000000',
 		senderPublicKey: publicKey1.toString('hex'),
 		params: {
-			recipientAddress: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
+			recipientAddress: 'lsk7tyskeefnd6p6bfksd7ytp5jyaw8f2r9foa6ch',
 			amount: '4008489300000000',
 			data: '',
 		},
@@ -62,7 +62,7 @@ describe('transaction', () => {
 		fee: '10000000',
 		senderPublicKey: publicKey1.toString('hex'),
 		params: {
-			recipientAddress: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
+			recipientAddress: 'lsk7tyskeefnd6p6bfksd7ytp5jyaw8f2r9foa6ch',
 			amount: '4008489300000000',
 			data: '',
 		},
@@ -79,7 +79,7 @@ describe('transaction', () => {
 		params: {
 			...tx.params,
 			amount: tx.params.amount.toString(),
-			recipientAddress: tx.params.recipientAddress.toString('hex'),
+			recipientAddress: address.getLisk32AddressFromAddress(tx.params.recipientAddress),
 		},
 	};
 

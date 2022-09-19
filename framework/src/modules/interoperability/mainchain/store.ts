@@ -31,7 +31,7 @@ import {
 	handlePromiseErrorWithNull,
 	validateFormat,
 } from '../utils';
-import { MODULE_NAME_TOKEN, TokenCCAPI } from '../cc_apis';
+import { MODULE_NAME_TOKEN, TokenCCMethod } from '../cc_methods';
 import { ForwardCCMsgResult } from './types';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
@@ -50,30 +50,23 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	}
 
 	public async forward(ccmForwardContext: CCMForwardContext): Promise<ForwardCCMsgResult> {
-		const {
-			ccm,
-			eventQueue,
-			logger,
-			networkIdentifier,
-			getAPIContext,
-			getStore,
-		} = ccmForwardContext;
-		const apiContext = getAPIContext();
-		const tokenCCAPI = this.interoperableModuleAPIs.get(MODULE_NAME_TOKEN) as
-			| TokenCCAPI
+		const { ccm, eventQueue, logger, chainID, getMethodContext, getStore } = ccmForwardContext;
+		const methodContext = getMethodContext();
+		const tokenCCMethod = this.interoperableModuleMethods.get(MODULE_NAME_TOKEN) as
+			| TokenCCMethod
 			| undefined;
 		const beforeCCMSendContext = createCCMsgBeforeSendContext({
 			ccm,
 			eventQueue,
-			getAPIContext,
+			getMethodContext,
 			logger,
-			networkIdentifier,
+			chainID,
 			getStore,
 			feeAddress: EMPTY_FEE_ADDRESS,
 		});
 
-		if (!tokenCCAPI) {
-			throw new Error('TokenCCAPI does not exist.');
+		if (!tokenCCMethod) {
+			throw new Error('TokenCCMethod does not exist.');
 		}
 
 		const receivingChainAccount = await handlePromiseErrorWithNull(
@@ -84,7 +77,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 
 		if (receivingChainAccount?.status === CHAIN_ACTIVE && isLive) {
 			const isTokenTransferred = await handlePromiseErrorWithNull(
-				tokenCCAPI.forwardMessageFee(apiContext, ccm),
+				tokenCCMethod.forwardMessageFee(methodContext, ccm),
 			);
 
 			if (!isTokenTransferred) {
@@ -112,10 +105,10 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		await this.sendInternal({
 			eventQueue: ccmForwardContext.eventQueue,
 			feeAddress: ccmForwardContext.feeAddress,
-			getAPIContext: ccmForwardContext.getAPIContext,
+			getMethodContext: ccmForwardContext.getMethodContext,
 			getStore: ccmForwardContext.getStore,
 			logger: ccmForwardContext.logger,
-			networkIdentifier: ccmForwardContext.networkIdentifier,
+			chainID: ccmForwardContext.chainID,
 			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 			module: MODULE_NAME_INTEROPERABILITY,
 			fee: BigInt(0),
@@ -198,13 +191,13 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			ccm,
 			eventQueue: sendContext.eventQueue,
 			feeAddress: sendContext.feeAddress,
-			getAPIContext: sendContext.getAPIContext,
+			getMethodContext: sendContext.getMethodContext,
 			getStore: sendContext.getStore,
 			logger: sendContext.logger,
-			networkIdentifier: sendContext.networkIdentifier,
+			chainID: sendContext.chainID,
 		});
 
-		for (const mod of this.interoperableModuleAPIs.values()) {
+		for (const mod of this.interoperableModuleMethods.values()) {
 			if (mod?.beforeSendCCM) {
 				try {
 					await mod.beforeSendCCM(beforeSendContext);

@@ -16,10 +16,10 @@ import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { defaultConfig, TYPE_ID_REWARD_MINTED } from './constants';
-import { ModuleConfig, RandomAPI, TokenAPI, RewardMintedData } from './types';
+import { defaultConfig } from './constants';
+import { ModuleConfig, RandomMethod, TokenMethod, RewardMintedData } from './types';
 import { BlockAfterExecuteContext } from '../../state_machine';
-import { RewardAPI } from './api';
+import { RewardMethod } from './method';
 import { RewardEndpoint } from './endpoint';
 import {
 	configSchema,
@@ -27,20 +27,21 @@ import {
 	getDefaultRewardAtHeightResponseSchema,
 	rewardMintedDataSchema,
 } from './schemas';
+import { EVENT_REWARD_MINTED_DATA_NAME } from '../../state_machine/constants';
 
 export class RewardModule extends BaseModule {
-	public api = new RewardAPI(this.stores, this.events);
+	public method = new RewardMethod(this.stores, this.events);
 	public configSchema = configSchema;
 	public endpoint = new RewardEndpoint(this.stores, this.offchainStores);
-	private _tokenAPI!: TokenAPI;
-	private _randomAPI!: RandomAPI;
+	private _tokenMethod!: TokenMethod;
+	private _randomMethod!: RandomMethod;
 	private _tokenID!: Buffer;
 	private _moduleConfig!: ModuleConfig;
 
-	public addDependencies(tokenAPI: TokenAPI, randomAPI: RandomAPI) {
-		this._tokenAPI = tokenAPI;
-		this._randomAPI = randomAPI;
-		this.api.addDependencies(this._randomAPI);
+	public addDependencies(tokenMethod: TokenMethod, randomMethod: RandomMethod) {
+		this._tokenMethod = tokenMethod;
+		this._randomMethod = randomMethod;
+		this.method.addDependencies(this._randomMethod);
 	}
 
 	public metadata(): ModuleMetadata {
@@ -67,7 +68,7 @@ export class RewardModule extends BaseModule {
 		this._moduleConfig = (config as unknown) as ModuleConfig;
 		this._tokenID = Buffer.from(this._moduleConfig.tokenID, 'hex');
 
-		this.api.init({
+		this.method.init({
 			config: {
 				brackets: this._moduleConfig.brackets.map(bracket => BigInt(bracket)),
 				offset: this._moduleConfig.offset,
@@ -85,20 +86,19 @@ export class RewardModule extends BaseModule {
 	}
 
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
-		const [blockReward, reduction] = await this.api.getBlockReward(
-			context.getAPIContext(),
+		const [blockReward, reduction] = await this.method.getBlockReward(
+			context.getMethodContext(),
 			context.header,
 			context.assets,
 			context.impliesMaxPrevote,
 		);
-
 		if (blockReward < BigInt(0)) {
 			throw new Error("Block reward can't be negative.");
 		}
 
 		if (blockReward !== BigInt(0)) {
-			await this._tokenAPI.mint(
-				context.getAPIContext(),
+			await this._tokenMethod.mint(
+				context.getMethodContext(),
 				context.header.generatorAddress,
 				this._tokenID,
 				blockReward,
@@ -113,7 +113,7 @@ export class RewardModule extends BaseModule {
 		const data = codec.encode(rewardMintedDataSchema, rewardMintedData);
 		context.eventQueue.add(
 			this.name,
-			TYPE_ID_REWARD_MINTED,
+			EVENT_REWARD_MINTED_DATA_NAME,
 			codec.encode(rewardMintedDataSchema, data),
 			[context.header.generatorAddress],
 		);

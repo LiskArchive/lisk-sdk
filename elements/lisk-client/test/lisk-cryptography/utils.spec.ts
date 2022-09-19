@@ -16,14 +16,7 @@
 import { cryptography } from '../../src';
 
 const {
-	utils: {
-		generateHashOnionSeed,
-		hexToBuffer,
-		intToBuffer,
-		getNetworkIdentifier,
-		hashOnion,
-		hash: hashFunction,
-	},
+	utils: { generateHashOnionSeed, hexToBuffer, intToBuffer, hashOnion, hash: hashFunction },
 } = cryptography;
 
 describe('buffer', () => {
@@ -269,24 +262,6 @@ describe('buffer', () => {
 				expect(hashFunction.bind(null, arrayToHash as any)).toThrow(
 					'Unsupported data:1,2,3 and format:undefined. Currently only Buffers or hex and utf8 strings are supported.',
 				);
-			});
-		});
-
-		describe('#getNetworkIdentifier', () => {
-			const genesisBlockID = Buffer.from(
-				'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-				'hex',
-			);
-			const communityIdentifier = 'LISK';
-			const expectedHash = Buffer.from(
-				'6f201e72e20571b93ed42470caa94af1ace79dc9930ab5bb144ddd5df5753e73',
-				'hex',
-			);
-
-			it('should generate a sha256 hash from genesis block transaction root and community identifier', () => {
-				const networkIdentifier = getNetworkIdentifier(genesisBlockID, communityIdentifier);
-
-				expect(networkIdentifier).toEqual(expectedHash);
 			});
 		});
 	});

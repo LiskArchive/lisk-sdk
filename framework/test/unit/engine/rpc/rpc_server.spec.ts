@@ -73,7 +73,7 @@ describe('RPC server', () => {
 				host: '0.0.0.0',
 				port: 7887,
 			});
-			rpcServer.init({ logger: fakeLogger, networkIdentifier: Buffer.alloc(0) });
+			rpcServer.init({ logger: fakeLogger, chainID: Buffer.alloc(0) });
 			// eslint-disable-next-line @typescript-eslint/require-await
 			rpcServer.registerEndpoint('system', 'getNodeInfo', async () => {
 				return {
@@ -125,7 +125,7 @@ describe('RPC server', () => {
 				host: '0.0.0.0',
 				port: 7887,
 			});
-			rpcServer.init({ logger: fakeLogger, networkIdentifier: Buffer.alloc(0) });
+			rpcServer.init({ logger: fakeLogger, chainID: Buffer.alloc(0) });
 			// eslint-disable-next-line @typescript-eslint/require-await
 			rpcServer.registerEndpoint('system', 'getNodeInfo', async () => {
 				return {

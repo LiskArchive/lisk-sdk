@@ -13,14 +13,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Command, flags as flagParser } from '@oclif/command';
-
+import { Command, Flags as flagParser } from '@oclif/core';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as passphrase from '@liskhq/lisk-passphrase';
 
 interface AccountInfo {
 	readonly address: string;
-	readonly binaryAddress: string;
 	readonly passphrase: string;
 	readonly privateKey: string;
 	readonly publicKey: string;
@@ -35,7 +33,6 @@ const createAccount = (prefix: string): AccountInfo => {
 		Buffer.from(generatedPassphrase, 'utf-8'),
 	);
 	const blsPublicKey = cryptography.bls.getPublicKeyFromPrivateKey(blsPrivateKey);
-	const binaryAddress = cryptography.address.getAddressFromPublicKey(publicKey);
 	const address = cryptography.address.getLisk32AddressFromPublicKey(publicKey, prefix);
 
 	return {
@@ -44,7 +41,6 @@ const createAccount = (prefix: string): AccountInfo => {
 		publicKey: publicKey.toString('hex'),
 		blsPrivateKey: blsPrivateKey.toString('hex'),
 		blsPublicKey: blsPublicKey.toString('hex'),
-		binaryAddress: binaryAddress.toString('hex'),
 		address,
 	};
 };
@@ -66,7 +62,7 @@ export class CreateCommand extends Command {
 	async run(): Promise<void> {
 		const {
 			flags: { count },
-		} = this.parse(CreateCommand);
+		} = await this.parse(CreateCommand);
 		const numberOfAccounts = parseInt(count, 10);
 		if (
 			count !== numberOfAccounts.toString() ||

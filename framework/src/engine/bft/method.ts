@@ -50,7 +50,7 @@ export interface BlockHeaderAsset {
 	maxHeightPreviouslyForged: number;
 }
 
-export class BFTAPI {
+export class BFTMethod {
 	private _batchSize!: number;
 
 	public init(batchSize: number) {

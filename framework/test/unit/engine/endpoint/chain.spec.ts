@@ -55,14 +55,16 @@ describe('Chain endpoint', () => {
 					index: 0,
 					module: 'token',
 					topics: [utils.getRandomBytes(32)],
-					typeID: Buffer.from([0, 0, 0, 1]),
+					name: 'Token Event Name',
+					height: 12,
 					data: utils.getRandomBytes(32),
 				}),
 				new Event({
 					index: 1,
 					module: 'token',
 					topics: [utils.getRandomBytes(32)],
-					typeID: Buffer.from([0, 0, 0, 1]),
+					name: 'Token Event Name',
+					height: 12,
 					data: utils.getRandomBytes(32),
 				}),
 			]);
@@ -87,7 +89,8 @@ describe('Chain endpoint', () => {
 				index: 0,
 				module: 'token',
 				topics: [expect.any(String)],
-				typeID: '00000001',
+				name: 'Token Event Name',
+				height: 12,
 				data: expect.any(String),
 			});
 		});
@@ -100,14 +103,16 @@ describe('Chain endpoint', () => {
 					index: 0,
 					module: 'transfer',
 					topics: [utils.getRandomBytes(32)],
-					typeID: Buffer.from([0, 0, 0, 1]),
+					name: 'Transfer Event Name',
+					height: 12,
 					data: utils.getRandomBytes(32),
 				}),
 				new Event({
 					index: 1,
 					module: 'transfer',
 					topics: [utils.getRandomBytes(32)],
-					typeID: Buffer.from([0, 0, 0, 1]),
+					name: 'Transfer Event Name',
+					height: 12,
 					data: utils.getRandomBytes(32),
 				}),
 			]);
@@ -201,7 +206,7 @@ describe('Chain endpoint', () => {
 
 			expect(list).toHaveLength(2);
 			expect(typeof list[0].address).toBe('string');
-			expect(list[0].address).toHaveLength(40);
+			expect(list[0].address).toHaveLength(41);
 			expect(typeof list[0].nextAllocatedTime).toBe('number');
 		});
 

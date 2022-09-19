@@ -37,16 +37,12 @@ export const computeCertificateFromBlockHeader = (blockHeader: BlockHeader): Cer
 	};
 };
 
-export const signCertificate = (
-	sk: Buffer,
-	networkIdentifier: Buffer,
-	certificate: Certificate,
-): Buffer => {
+export const signCertificate = (sk: Buffer, chainID: Buffer, certificate: Certificate): Buffer => {
 	const { aggregationBits, signature, ...rawCertificate } = certificate;
 
 	return bls.signData(
 		MESSAGE_TAG_CERTIFICATE,
-		networkIdentifier,
+		chainID,
 		codec.encode(certificateSchema, rawCertificate),
 		sk,
 	);
@@ -55,7 +51,7 @@ export const signCertificate = (
 export const verifySingleCertificateSignature = (
 	pk: Buffer,
 	signature: Buffer,
-	networkIdentifier: Buffer,
+	chainID: Buffer,
 	certificate: Certificate,
 ): boolean => {
 	const message = codec.encode(certificateSchema, {
@@ -66,14 +62,14 @@ export const verifySingleCertificateSignature = (
 		validatorsHash: certificate.validatorsHash,
 	});
 
-	return bls.verifyData(MESSAGE_TAG_CERTIFICATE, networkIdentifier, message, signature, pk);
+	return bls.verifyData(MESSAGE_TAG_CERTIFICATE, chainID, message, signature, pk);
 };
 
 export const verifyAggregateCertificateSignature = (
 	keysList: Buffer[],
 	weights: number[] | bigint[],
 	threshold: number | bigint,
-	networkIdentifier: Buffer,
+	chainID: Buffer,
 	certificate: Certificate,
 ): boolean => {
 	if (!certificate.aggregationBits || !certificate.signature) {
@@ -94,7 +90,7 @@ export const verifyAggregateCertificateSignature = (
 		aggregationBits,
 		signature,
 		MESSAGE_TAG_CERTIFICATE,
-		networkIdentifier,
+		chainID,
 		message,
 		weights,
 		threshold,

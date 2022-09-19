@@ -12,13 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	CHAIN_ID_LENGTH,
-	LOCAL_ID_LENGTH,
-	TOKEN_ID_LENGTH,
-	ADDRESS_LENGTH,
-	MAX_DATA_LENGTH,
-} from './constants';
+import { CHAIN_ID_LENGTH, LOCAL_ID_LENGTH, TOKEN_ID_LENGTH, MAX_DATA_LENGTH } from './constants';
 
 export const configSchema = {
 	$id: '/token/config',
@@ -161,8 +155,7 @@ export const transferParamsSchema = {
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 3,
-			minLength: ADDRESS_LENGTH,
-			maxLength: ADDRESS_LENGTH,
+			format: 'lisk32',
 		},
 		data: {
 			dataType: 'string',
@@ -197,8 +190,7 @@ export const crossChainTransferParams = {
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 4,
-			minLength: ADDRESS_LENGTH,
-			maxLength: ADDRESS_LENGTH,
+			format: 'lisk32',
 		},
 		data: {
 			dataType: 'string',
@@ -239,14 +231,12 @@ export const crossChainTransferMessageParams = {
 		senderAddress: {
 			dataType: 'bytes',
 			fieldNumber: 3,
-			minLength: ADDRESS_LENGTH,
-			maxLength: ADDRESS_LENGTH,
+			format: 'lisk32',
 		},
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 4,
-			minLength: ADDRESS_LENGTH,
-			maxLength: ADDRESS_LENGTH,
+			format: 'lisk32',
 		},
 		data: {
 			dataType: 'string',
@@ -293,8 +283,7 @@ export const crossChainForwardMessageParams = {
 		senderAddress: {
 			dataType: 'bytes',
 			fieldNumber: 3,
-			minLength: ADDRESS_LENGTH,
-			maxLength: ADDRESS_LENGTH,
+			format: 'lisk32',
 		},
 		forwardToChainID: {
 			dataType: 'bytes',
@@ -305,8 +294,7 @@ export const crossChainForwardMessageParams = {
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 5,
-			minLength: ADDRESS_LENGTH,
-			maxLength: ADDRESS_LENGTH,
+			format: 'lisk32',
 		},
 		data: {
 			dataType: 'string',
@@ -341,9 +329,8 @@ export const genesisTokenStoreSchema = {
 				properties: {
 					address: {
 						dataType: 'bytes',
+						format: 'lisk32',
 						fieldNumber: 1,
-						minLength: 20,
-						maxLength: 20,
 					},
 					tokenID: {
 						dataType: 'bytes',
@@ -453,9 +440,7 @@ export const getBalanceRequestSchema = {
 	properties: {
 		address: {
 			type: 'string',
-			format: 'hex',
-			minLength: ADDRESS_LENGTH * 2,
-			maxLength: ADDRESS_LENGTH * 2,
+			format: 'lisk32',
 		},
 		tokenID: {
 			type: 'string',
@@ -501,9 +486,7 @@ export const getBalancesRequestSchema = {
 	properties: {
 		address: {
 			type: 'string',
-			format: 'hex',
-			minLength: ADDRESS_LENGTH * 2,
-			maxLength: ADDRESS_LENGTH * 2,
+			format: 'lisk32',
 		},
 	},
 	required: ['address'],

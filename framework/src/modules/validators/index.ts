@@ -13,4 +13,4 @@
  */
 
 export { ValidatorsModule } from './module';
-export { ValidatorsAPI } from './api';
+export { ValidatorsMethod } from './method';

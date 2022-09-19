@@ -15,10 +15,10 @@
  */
 
 import * as cryptography from '@liskhq/lisk-cryptography';
-import * as Config from '@oclif/config';
 import * as readerUtils from '../../../../src/utils/reader';
 import { CreateCommand } from '../../../../src/bootstrapping/commands/blskey/create';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -35,7 +35,7 @@ describe('blskey:create command', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];

@@ -14,11 +14,11 @@ import {
 	BlockAfterExecuteContext,
 } from 'lisk-sdk';
 import { <%= moduleClass %>Endpoint } from './endpoint';
-import { <%= moduleClass %>API } from './api';
+import { <%= moduleClass %>Method } from './method';
 
 export class <%= moduleClass %>Module extends BaseModule {
     public endpoint = new <%= moduleClass %>Endpoint(this.stores, this.offchainStores);
-    public api = new <%= moduleClass %>API(this.stores, this.events);
+    public method = new <%= moduleClass %>Method(this.stores, this.events);
     public commands = [];
 
 	public constructor() {

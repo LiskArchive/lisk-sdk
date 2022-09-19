@@ -14,7 +14,7 @@
 
 import { BlockAssets, BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { Logger } from '../logger';
-import { createAPIContext } from './api_context';
+import { createMethodContext } from './method_context';
 import { EventQueue } from './event_queue';
 import { PrefixedStateReadWriter } from './prefixed_state_read_writer';
 import { InsertAssetContext } from './types';
@@ -24,13 +24,13 @@ interface GenerationContextArgs {
 	stateStore: PrefixedStateReadWriter;
 	header: BlockHeader;
 	generatorStore: StateStore;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	finalizedHeight: number;
 }
 
 export class GenerationContext {
 	private readonly _logger: Logger;
-	private readonly _networkIdentifier: Buffer;
+	private readonly _chainID: Buffer;
 	private readonly _stateStore: PrefixedStateReadWriter;
 	private readonly _header: BlockHeader;
 	private readonly _assets: BlockAssets;
@@ -39,7 +39,7 @@ export class GenerationContext {
 
 	public constructor(args: GenerationContextArgs) {
 		this._logger = args.logger;
-		this._networkIdentifier = args.networkIdentifier;
+		this._chainID = args.chainID;
 		this._header = args.header;
 		this._stateStore = args.stateStore;
 		this._generatorStore = args.generatorStore;
@@ -54,15 +54,18 @@ export class GenerationContext {
 	public getInsertAssetContext(): InsertAssetContext {
 		return {
 			logger: this._logger,
-			getAPIContext: () =>
-				createAPIContext({ stateStore: this._stateStore, eventQueue: new EventQueue() }),
+			getMethodContext: () =>
+				createMethodContext({
+					stateStore: this._stateStore,
+					eventQueue: new EventQueue(this._header.height),
+				}),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			getOffchainStore: (moduleID: Buffer, subStorePrefix: Buffer) =>
 				this._generatorStore.getStore(moduleID, subStorePrefix.readUInt16BE(0)),
 			header: this._header,
 			assets: this._assets,
-			networkIdentifier: this._networkIdentifier,
+			chainID: this._chainID,
 			getFinalizedHeight: () => this._finalizedHeight,
 		};
 	}

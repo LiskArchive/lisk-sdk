@@ -117,4 +117,4 @@ Communicates with plugins which do not reside in the same process as the Control
 
 To load a plugin as a child process, make sure you have `ipc` enabled in the config file and set the option `loadAsChildProcess: true` when registering the plugin using the Application method `registerPlugin`.
 
-Currently, the only Lisk native plugin supported is HTTP API plugin which will be loaded as child process if you have `ipc` enabled.
+Currently, the only Lisk native plugin supported is HTTP Method plugin which will be loaded as child process if you have `ipc` enabled.

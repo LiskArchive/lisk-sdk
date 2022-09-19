@@ -14,7 +14,7 @@
  *
  */
 import { ed, legacy } from '@liskhq/lisk-cryptography';
-import { flags as flagParser } from '@oclif/command';
+import { Flags as flagParser } from '@oclif/core';
 
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
@@ -63,7 +63,7 @@ export default class SignCommand extends BaseCommand {
 		const {
 			args,
 			flags: { passphrase: passphraseSource, message: messageSource },
-		} = this.parse(SignCommand);
+		} = await this.parse(SignCommand);
 
 		const { message }: Args = args;
 

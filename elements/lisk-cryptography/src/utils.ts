@@ -46,9 +46,6 @@ export const hash = (data: Buffer | string, format?: string): Buffer => {
 	);
 };
 
-export const getNetworkIdentifier = (genesisBlockID: Buffer, communityIdentifier: string): Buffer =>
-	hash(Buffer.concat([genesisBlockID, Buffer.from(communityIdentifier, 'utf8')]));
-
 export const parseKeyDerivationPath = (path: string) => {
 	if (!path.startsWith('m') || !path.includes('/')) {
 		throw new Error('Invalid path format');
@@ -99,14 +96,10 @@ export const createMessageTag = (domain: string, version?: number | string): str
 	return `LSK_${version ? `${domain}:${version}` : domain}_`;
 };
 
-export const tagMessage = (
-	tag: string,
-	networkIdentifier: Buffer,
-	message: string | Buffer,
-): Buffer =>
+export const tagMessage = (tag: string, chainID: Buffer, message: string | Buffer): Buffer =>
 	Buffer.concat([
 		Buffer.from(tag, 'utf8'),
-		networkIdentifier,
+		chainID,
 		typeof message === 'string' ? Buffer.from(message, 'utf8') : message,
 	]);
 

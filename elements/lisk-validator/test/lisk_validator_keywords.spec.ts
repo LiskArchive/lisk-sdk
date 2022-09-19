@@ -201,6 +201,20 @@ describe('validator keywords', () => {
 						'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should pass "dataType" keyword validation',
 					);
 				});
+
+				it('should be invalid if format is address and length is not 20', () => {
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: {
+									myProp: { dataType: 'bytes', fieldNumber: 1, format: 'lisk32' },
+								},
+							},
+							{ myProp: Buffer.alloc(11, 255) },
+						),
+					).toThrow("Lisk validator found 1 error[s]:\nProperty '.myProp' address length invalid");
+				});
 			});
 
 			describe('boolean', () => {

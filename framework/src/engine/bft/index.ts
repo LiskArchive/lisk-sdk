@@ -13,5 +13,5 @@
  */
 
 export { BFTModule } from './module';
-export type { BFTAPI } from './api';
+export type { BFTMethod } from './method';
 export { computeValidatorsHash } from './utils';

@@ -36,19 +36,11 @@ const AccountDialog: React.FC<AccountDialogProps> = props => {
 				{account && (
 					<Grid container fluid spacing={3}>
 						<Grid row rowBorder>
-							<Grid xs={12}>
-								<Box mb={2}>
-									<Text type={'h3'}>Binary address</Text>
-								</Box>
-								<CopiableText text={account.binaryAddress}>{account.binaryAddress}</CopiableText>
-							</Grid>
-						</Grid>
-						<Grid row rowBorder>
 							<Grid md={6} xs={12}>
 								<Box mb={2} mr={1}>
-									<Text type={'h3'}>Base32 address</Text>
+									<Text type={'h3'}>Lisk32 address</Text>
 								</Box>
-								<CopiableText text={account.base32Address}>{account.base32Address}</CopiableText>
+								<CopiableText text={account.address}>{account.address}</CopiableText>
 							</Grid>
 							<Grid md={6} xs={12}>
 								<Box mb={2}>

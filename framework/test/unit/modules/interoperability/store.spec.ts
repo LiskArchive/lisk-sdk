@@ -285,7 +285,7 @@ describe('Base interoperability store', () => {
 			status: 1,
 			params: Buffer.alloc(0),
 		};
-		const beforeSendCCMContext = testing.createBeforeSendCCMsgAPIContext({
+		const beforeSendCCMContext = testing.createBeforeSendCCMsgMethodContext({
 			ccm,
 			feeAddress: utils.getRandomBytes(32),
 		});
@@ -368,18 +368,18 @@ describe('Base interoperability store', () => {
 		const ccCommandsMap = new Map();
 		ccCommandsMap.set(MODULE_NAME_INTEROPERABILITY, ccCommands);
 
-		const ccAPIMod1 = {
+		const ccMethodMod1 = {
 			beforeSendCCM: jest.fn(),
 			beforeApplyCCM: jest.fn(),
 		};
-		const ccAPIMod2 = {
+		const ccMethodMod2 = {
 			beforeSendCCM: jest.fn(),
 			beforeApplyCCM: jest.fn(),
 		};
 
-		const ccAPIModsMap = new Map();
-		ccAPIModsMap.set('cc1', ccAPIMod1);
-		ccAPIModsMap.set('cc2', ccAPIMod2);
+		const ccMethodModsMap = new Map();
+		ccMethodModsMap.set('cc1', ccMethodMod1);
+		ccMethodModsMap.set('cc2', ccMethodMod2);
 
 		const ccu: CCUpdateParams = {
 			activeValidatorsUpdate: [],
@@ -389,12 +389,12 @@ describe('Base interoperability store', () => {
 			sendingChainID: utils.intToBuffer(2, 4),
 		};
 
-		const beforeSendCCMContext = testing.createBeforeSendCCMsgAPIContext({
+		const beforeSendCCMContext = testing.createBeforeSendCCMsgMethodContext({
 			ccm,
 			feeAddress: utils.getRandomBytes(32),
 		});
 
-		const beforeApplyCCMContext = testing.createBeforeApplyCCMsgAPIContext({
+		const beforeApplyCCMContext = testing.createBeforeApplyCCMsgMethodContext({
 			...beforeSendCCMContext,
 			ccm,
 			ccu,
@@ -407,10 +407,10 @@ describe('Base interoperability store', () => {
 			ccu,
 			ccmSize: getCCMSize(ccm),
 			eventQueue: beforeSendCCMContext.eventQueue,
-			getAPIContext: beforeSendCCMContext.getAPIContext,
+			getMethodContext: beforeSendCCMContext.getMethodContext,
 			getStore: beforeSendCCMContext.getStore,
 			logger: beforeSendCCMContext.logger,
-			networkIdentifier: beforeSendCCMContext.networkIdentifier,
+			chainID: beforeSendCCMContext.chainID,
 			feeAddress: Buffer.alloc(0),
 			trsSender: beforeApplyCCMContext.trsSender,
 		};
@@ -419,7 +419,7 @@ describe('Base interoperability store', () => {
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
 				interopMod.stores,
 				context,
-				ccAPIModsMap,
+				ccMethodModsMap,
 			);
 		});
 
@@ -431,19 +431,19 @@ describe('Base interoperability store', () => {
 			await expect(
 				mainchainStoreLocal.apply(ccmApplyContext, ccCommandsMap),
 			).resolves.toBeUndefined();
-			expect(ccAPIMod1.beforeApplyCCM).toHaveBeenCalledTimes(0);
+			expect(ccMethodMod1.beforeApplyCCM).toHaveBeenCalledTimes(0);
 		});
 
 		it('should call all the interoperable beforeApplyCCM hooks', async () => {
 			// Arrange
-			const ccAPISampleMod = {
+			const ccMethodSampleMod = {
 				beforeSendCCM: jest.fn(),
 				beforeApplyCCM: jest.fn(),
 			};
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
 				interopMod.stores,
 				context,
-				new Map().set('mod1', ccAPISampleMod),
+				new Map().set('mod1', ccMethodSampleMod),
 			);
 			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal');
@@ -452,8 +452,8 @@ describe('Base interoperability store', () => {
 			await expect(
 				mainchainStoreLocal.apply(ccmApplyContext, ccCommandsMap),
 			).resolves.toBeUndefined();
-			expect(ccAPISampleMod.beforeApplyCCM).toHaveBeenCalledTimes(1);
-			expect(ccAPISampleMod.beforeApplyCCM).toHaveBeenCalledWith(
+			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledTimes(1);
+			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledWith(
 				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
 			);
 		});
@@ -469,7 +469,7 @@ describe('Base interoperability store', () => {
 			mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
 				interopMod.stores,
 				context,
-				new Map().set('newMod', ccAPIMod1),
+				new Map().set('newMod', ccMethodMod1),
 			);
 			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal');
@@ -478,8 +478,8 @@ describe('Base interoperability store', () => {
 			await expect(
 				mainchainStoreLocal.apply(ccmApplyContext, localCCCommandsMap),
 			).resolves.toBeUndefined();
-			expect(ccAPIMod1.beforeApplyCCM).toHaveBeenCalledTimes(1);
-			expect(ccAPIMod1.beforeApplyCCM).toHaveBeenCalledWith(
+			expect(ccMethodMod1.beforeApplyCCM).toHaveBeenCalledTimes(1);
+			expect(ccMethodMod1.beforeApplyCCM).toHaveBeenCalledWith(
 				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
 			);
 			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledTimes(1);
@@ -496,14 +496,14 @@ describe('Base interoperability store', () => {
 					execute: jest.fn(),
 				},
 			]);
-			const ccAPISampleMod = {
+			const ccMethodSampleMod = {
 				beforeSendCCM: jest.fn(),
 				beforeApplyCCM: jest.fn(),
 			};
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
 				interopMod.stores,
 				context,
-				new Map().set('mod1', ccAPISampleMod),
+				new Map().set('mod1', ccMethodSampleMod),
 			);
 
 			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
@@ -513,8 +513,8 @@ describe('Base interoperability store', () => {
 			await expect(
 				mainchainStoreLocal.apply(ccmApplyContext, localCCCommandsMap),
 			).resolves.toBeUndefined();
-			expect(ccAPISampleMod.beforeApplyCCM).toHaveBeenCalledTimes(1);
-			expect(ccAPISampleMod.beforeApplyCCM).toHaveBeenCalledWith(
+			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledTimes(1);
+			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledWith(
 				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
 			);
 			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledTimes(1);
@@ -525,18 +525,18 @@ describe('Base interoperability store', () => {
 
 		it('should execute the cross chain command of interoperable module with name interoperability', async () => {
 			// Arrange
-			const ccAPISampleMod = {
+			const ccMethodSampleMod = {
 				beforeSendCCM: jest.fn(),
 				beforeApplyCCM: jest.fn(),
 			};
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
 				interopMod.stores,
 				context,
-				new Map().set(MODULE_NAME_INTEROPERABILITY, ccAPISampleMod),
+				new Map().set(MODULE_NAME_INTEROPERABILITY, ccMethodSampleMod),
 			);
 			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal');
-			const executeCCMContext = testing.createExecuteCCMsgAPIContext({
+			const executeCCMContext = testing.createExecuteCCMsgMethodContext({
 				...beforeSendCCMContext,
 			});
 
@@ -544,8 +544,8 @@ describe('Base interoperability store', () => {
 			await expect(
 				mainchainStoreLocal.apply(ccmApplyContext, ccCommandsMap),
 			).resolves.toBeUndefined();
-			expect(ccAPISampleMod.beforeApplyCCM).toHaveBeenCalledTimes(1);
-			expect(ccAPISampleMod.beforeApplyCCM).toHaveBeenCalledWith(
+			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledTimes(1);
+			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledWith(
 				expect.objectContaining({ ccu: beforeApplyCCMContext.ccu }),
 			);
 			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledTimes(0);

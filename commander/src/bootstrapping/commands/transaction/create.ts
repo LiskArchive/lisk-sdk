@@ -19,7 +19,7 @@ import { codec, Schema } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 import { validator } from '@liskhq/lisk-validator';
-import Command, { flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import {
 	Application,
 	PartialApplicationConfig,
@@ -49,7 +49,7 @@ interface Args {
 }
 
 interface CreateFlags {
-	'network-identifier'?: string;
+	'chain-id'?: string;
 	passphrase?: string;
 	params?: string;
 	pretty: boolean;
@@ -86,9 +86,10 @@ const getParamsObject = async (metadata: ModuleMetadataJSON[], flags: CreateFlag
 	return params;
 };
 
-const getPassphraseAddressAndPublicKey = async (flags: CreateFlags) => {
+const getKeysFromFlags = async (flags: CreateFlags) => {
 	let passphrase!: string;
 	let publicKey!: Buffer;
+	let privateKey!: Buffer;
 	let address!: Buffer;
 
 	if (flags['no-signature']) {
@@ -97,21 +98,21 @@ const getPassphraseAddressAndPublicKey = async (flags: CreateFlags) => {
 		passphrase = '';
 	} else {
 		passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
-		const keys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+		const keys = await deriveKeypair(passphrase, flags['key-derivation-path']);
 		publicKey = keys.publicKey;
+		privateKey = keys.privateKey;
 		address = cryptography.address.getAddressFromPublicKey(publicKey);
 	}
 
-	return { address, passphrase, publicKey };
+	return { address, passphrase, publicKey, privateKey };
 };
 
 const validateAndSignTransaction = async (
 	transaction: Transaction,
 	schema: RegisteredSchema,
 	metadata: ModuleMetadataJSON[],
-	networkIdentifier: string,
-	passphrase: string,
-	keyDerivationPath: string,
+	chainID: string,
+	privateKey: Buffer,
 	noSignature: boolean,
 ) => {
 	const { params, ...transactionWithoutParams } = transaction;
@@ -128,10 +129,9 @@ const validateAndSignTransaction = async (
 	};
 
 	if (!noSignature) {
-		const { privateKey } = await deriveKeypair(passphrase, keyDerivationPath);
 		return transactions.signTransaction(
 			decodedTx,
-			Buffer.from(networkIdentifier, 'hex'),
+			Buffer.from(chainID, 'hex'),
 			privateKey,
 			paramsSchema,
 		);
@@ -147,7 +147,7 @@ const createTransactionOffline = async (
 	transaction: Transaction,
 ) => {
 	const params = await getParamsObject(metadata, flags, args);
-	const { passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
+	const { publicKey, privateKey } = await getKeysFromFlags(flags);
 	transaction.nonce = flags.nonce ?? '0';
 	transaction.params = params;
 	transaction.senderPublicKey = publicKey.toString('hex') || (flags['sender-public-key'] as string);
@@ -156,9 +156,8 @@ const createTransactionOffline = async (
 		transaction,
 		registeredSchema,
 		metadata,
-		flags['network-identifier'] as string,
-		passphrase,
-		flags['key-derivation-path'],
+		flags['chain-id'] as string,
+		privateKey,
 		flags['no-signature'],
 	);
 };
@@ -172,15 +171,15 @@ const createTransactionOnline = async (
 	transaction: Transaction,
 ) => {
 	const nodeInfo = await client.node.getNodeInfo();
-	const { address, passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
+	const { address, privateKey, publicKey } = await getKeysFromFlags(flags);
 	const account = await client.invoke<{ nonce: string }>('auth_getAuthAccount', {
-		address: address.toString('hex'),
+		address: cryptography.address.getLisk32AddressFromAddress(address),
 	});
 	const params = await getParamsObject(metadata, flags, args);
 
-	if (flags['network-identifier'] && flags['network-identifier'] !== nodeInfo.networkIdentifier) {
+	if (flags['chain-id'] && flags['chain-id'] !== nodeInfo.chainID) {
 		throw new Error(
-			`Invalid networkIdentifier specified, actual: ${flags['network-identifier']}, expected: ${nodeInfo.networkIdentifier}.`,
+			`Invalid chainID specified, actual: ${flags['chain-id']}, expected: ${nodeInfo.chainID}.`,
 		);
 	}
 
@@ -198,9 +197,8 @@ const createTransactionOnline = async (
 		transaction,
 		registeredSchema,
 		metadata,
-		nodeInfo.networkIdentifier,
-		passphrase,
-		flags['key-derivation-path'],
+		nodeInfo.chainID,
+		privateKey,
 		flags['no-signature'],
 	);
 };
@@ -229,9 +227,9 @@ export abstract class CreateCommand extends Command {
 	];
 
 	static examples = [
-		'transaction:create token transfer 100000000 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\'',
-		'transaction:create token transfer 100000000 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\' --json',
-		'transaction:create token transfer 100000000 --offline --network mainnet --network-identifier 873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3 --nonce 1 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\'',
+		'transaction:create token transfer 100000000 --params=\'{"amount":100000000,"recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"send token"}\'',
+		'transaction:create token transfer 100000000 --params=\'{"amount":100000000,"recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"send token"}\' --json',
+		'transaction:create token transfer 100000000 --offline --network mainnet --chain-id 10000000 --nonce 1 --params=\'{"amount":100000000,"recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"send token"}\'',
 		'transaction:create token transfer 100000000 --file=/txn_params.json',
 		'transaction:create token transfer 100000000 --file=/txn_params.json --json',
 	];
@@ -246,7 +244,7 @@ export abstract class CreateCommand extends Command {
 		// We can't specify default value with `dependsOn` https://github.com/oclif/oclif/issues/211
 		offline: flagParser.boolean({
 			...flagsWithParser.offline,
-			dependsOn: ['network-identifier', 'nonce'],
+			dependsOn: ['chain-id', 'nonce'],
 			exclusive: ['data-path'],
 		}),
 		'no-signature': flagParser.boolean({
@@ -254,7 +252,7 @@ export abstract class CreateCommand extends Command {
 				'Creates the transaction without a signature. Your passphrase will therefore not be required',
 			dependsOn: ['sender-public-key'],
 		}),
-		'network-identifier': flagsWithParser.networkIdentifier,
+		'chain-id': flagsWithParser.chainID,
 		nonce: flagParser.string({
 			description: 'Nonce of the transaction.',
 		}),
@@ -279,7 +277,7 @@ export abstract class CreateCommand extends Command {
 	protected _dataPath!: string;
 
 	async run(): Promise<void> {
-		const { args, flags } = this.parse(CreateCommand);
+		const { args, flags } = await this.parse(CreateCommand);
 
 		const incompleteTransaction = {
 			module: args.module,

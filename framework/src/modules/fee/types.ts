@@ -12,30 +12,30 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { APIContext, ImmutableAPIContext } from '../../state_machine/types';
+import { MethodContext, ImmutableMethodContext } from '../../state_machine/types';
 
 export type FeeTokenID = Buffer;
 
 export interface ModuleConfig {
 	feeTokenID: string;
 }
-export interface TokenAPI {
+export interface TokenMethod {
 	transfer: (
-		apiContext: APIContext,
+		methodContext: MethodContext,
 		senderAddress: Buffer,
 		generatorAddress: Buffer,
 		id: Buffer,
 		amount: bigint,
 	) => Promise<void>;
-	isNative: (apiContext: APIContext, id: FeeTokenID) => Promise<boolean>;
+	isNative: (methodContext: MethodContext, id: FeeTokenID) => Promise<boolean>;
 	burn: (
-		apiContext: APIContext,
+		methodContext: MethodContext,
 		senderAddress: Buffer,
 		id: FeeTokenID,
 		amount: bigint,
 	) => Promise<void>;
 	getAvailableBalance(
-		apiContext: ImmutableAPIContext,
+		methodContext: ImmutableMethodContext,
 		address: Buffer,
 		tokenID: Buffer,
 	): Promise<bigint>;

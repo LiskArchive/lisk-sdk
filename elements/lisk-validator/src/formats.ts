@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import {
 	isHexString,
 	isBytes,
@@ -62,4 +63,13 @@ export const oddInteger = (data: string | number): boolean => {
 		return Number.isInteger(data) && data % 2 === 1;
 	}
 	return /^\d*[13579]$/.test(data);
+};
+
+export const lisk32 = (data: string): boolean => {
+	try {
+		cryptoAddress.validateLisk32Address(data);
+		return true;
+	} catch (error) {
+		return false;
+	}
 };

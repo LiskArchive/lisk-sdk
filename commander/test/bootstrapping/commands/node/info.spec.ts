@@ -14,18 +14,18 @@
  */
 import * as fs from 'fs-extra';
 import * as apiClient from '@liskhq/lisk-api-client';
-import * as Config from '@oclif/config';
 
 import { getConfig } from '../../../helpers/config';
 import { BaseIPCClientCommand } from '../../../../src/bootstrapping/commands/base_ipc_client';
 import * as appUtils from '../../../../src/utils/application';
 import { InfoCommand } from '../../../../src/bootstrapping/commands/node/info';
+import { Awaited } from '../../../types';
 
 describe('node:info command', () => {
 	const queryResult = {
 		version: '3.0.0-beta.1',
 		networkVersion: '1.1',
-		networkIdentifier: '873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3',
+		chainID: '10000000',
 		lastBlockID: 'c955d438e5cc09cc0f78039876562b6cb613a14d155a69d80b1a50944822ee74',
 		height: 297,
 		finalizedHeight: 0,
@@ -49,7 +49,7 @@ describe('node:info command', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let getMock: jest.Mock;
 
 	beforeEach(async () => {

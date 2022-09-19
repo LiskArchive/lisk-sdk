@@ -16,14 +16,14 @@ import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { address, legacy, utils } from '@liskhq/lisk-cryptography';
 import { TokenModule, VerifyStatus } from '../../../../../src';
-import { TokenAPI } from '../../../../../src/modules/token/api';
+import { TokenMethod } from '../../../../../src/modules/token/method';
 import { TransferCommand } from '../../../../../src/modules/token/commands/transfer';
 import { MIN_BALANCE } from '../../../../../src/modules/token/constants';
 import { transferParamsSchema } from '../../../../../src/modules/token/schemas';
 import { SupplyStore } from '../../../../../src/modules/token/stores/supply';
 import { UserStore } from '../../../../../src/modules/token/stores/user';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
-import { createTransactionContext, createTransientAPIContext } from '../../../../../src/testing';
+import { createTransactionContext, createTransientMethodContext } from '../../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 
 describe('Transfer command', () => {
@@ -31,9 +31,9 @@ describe('Transfer command', () => {
 
 	const localTokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 	const secondTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
-	const api = new TokenAPI(tokenModule.stores, tokenModule.events, tokenModule.name);
+	const method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
 	let command: TransferCommand;
-	let interopAPI: {
+	let interopMethod: {
 		getOwnChainAccount: jest.Mock;
 		send: jest.Mock;
 		error: jest.Mock;
@@ -43,22 +43,22 @@ describe('Transfer command', () => {
 
 	beforeEach(() => {
 		command = new TransferCommand(tokenModule.stores, tokenModule.events);
-		interopAPI = {
+		interopMethod = {
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn(),
 			error: jest.fn(),
 			terminateChain: jest.fn(),
 			getChannel: jest.fn(),
 		};
-		api.addDependencies(interopAPI as never);
-		api.init({
+		method.addDependencies(interopMethod as never);
+		method.init({
 			minBalances: [
 				{ tokenID: localTokenID, amount: BigInt(MIN_BALANCE) },
 				{ tokenID: secondTokenID, amount: BigInt(MIN_BALANCE) },
 			],
 		});
 		command.init({
-			api,
+			method,
 		});
 	});
 
@@ -106,7 +106,7 @@ describe('Transfer command', () => {
 			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
 
 			expect(result.status).toEqual(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(".recipientAddress' maxLength exceeded");
+			expect(result.error?.message).toInclude(".recipientAddress' address length invalid");
 		});
 
 		it('should fail when data is more than 64 characters', async () => {
@@ -168,7 +168,7 @@ describe('Transfer command', () => {
 		beforeEach(async () => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			const userStore = tokenModule.stores.get(UserStore);
-			const context = createTransientAPIContext({ stateStore });
+			const context = createTransientMethodContext({ stateStore });
 			await userStore.set(
 				context,
 				userStore.getKey(address.getAddressFromPublicKey(sender.publicKey), localTokenID),

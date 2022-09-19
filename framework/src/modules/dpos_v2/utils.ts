@@ -64,11 +64,11 @@ export const isUsername = (username: string): boolean => {
 
 export const validateSignature = (
 	tag: string,
-	networkIdentifier: Buffer,
+	chainID: Buffer,
 	publicKey: Buffer,
 	signature: Buffer,
 	bytes: Buffer,
-): boolean => ed.verifyData(tag, networkIdentifier, bytes, signature, publicKey);
+): boolean => ed.verifyData(tag, chainID, bytes, signature, publicKey);
 
 export interface DelegateWeight {
 	readonly delegateAddress: Buffer;

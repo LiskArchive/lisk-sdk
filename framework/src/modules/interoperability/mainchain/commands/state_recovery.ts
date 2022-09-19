@@ -26,7 +26,7 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../../state_machine';
-import { createRecoverCCMsgAPIContext } from '../../../../testing';
+import { createRecoverCCMsgMethodContext } from '../../../../testing';
 import { TerminatedStateStore } from '../../stores/terminated_state';
 import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 
@@ -109,13 +109,13 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 		const storeQueries = [];
 
 		// The recover function corresponding to the module applies the recovery logic
-		const moduleAPI = this.interoperableCCAPIs.get(module);
-		if (!moduleAPI || !moduleAPI.recover) {
+		const moduleMethod = this.interoperableCCMethods.get(module);
+		if (!moduleMethod || !moduleMethod.recover) {
 			throw new Error('Recovery not available for module');
 		}
 
 		for (const entry of storeEntries) {
-			const recoverContext = createRecoverCCMsgAPIContext({
+			const recoverContext = createRecoverCCMsgMethodContext({
 				terminatedChainID: chainID,
 				module,
 				storePrefix: entry.storePrefix,
@@ -124,7 +124,7 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 				feeAddress: transaction.senderAddress,
 			});
 			try {
-				await moduleAPI.recover(recoverContext);
+				await moduleMethod.recover(recoverContext);
 			} catch (err) {
 				throw new Error('Recovery failed');
 			}
@@ -150,6 +150,6 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 	protected getInteroperabilityStore(
 		context: StoreGetter | ImmutableStoreGetter,
 	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
+		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
 	}
 }

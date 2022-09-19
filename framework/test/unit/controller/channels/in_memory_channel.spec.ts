@@ -201,7 +201,7 @@ describe('InMemoryChannel Channel', () => {
 			).toBeInstanceOf(PrefixedStateReadWriter);
 			expect(
 				params.endpoints.action1.mock.calls[0][0]
-					.getImmutableAPIContext()
+					.getImmutableMethodContext()
 					.getStore(Buffer.from([0, 0, 0, 0]), Buffer.from([0, 0, 0, 0])),
 			).toBeInstanceOf(PrefixedStateReadWriter);
 		});

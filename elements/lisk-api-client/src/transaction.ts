@@ -88,14 +88,14 @@ export class Transaction {
 		},
 	): Promise<DecodedTransactionJSON<T>> {
 		const txInput = input;
-		const networkIdentifier = Buffer.from(this._nodeInfo.networkIdentifier, 'hex');
+		const chainID = Buffer.from(this._nodeInfo.chainID, 'hex');
 		const privateKey = Buffer.from(privateKeyHex, 'hex');
 		const publicKey = ed.getPublicKeyFromPrivateKey(privateKey);
-		const address = cryptoAddress.getAddressFromPublicKey(publicKey);
+		const address = cryptoAddress.getLisk32AddressFromPublicKey(publicKey);
 		let authAccount: AuthAccount | undefined;
 		try {
 			authAccount = await this._channel.invoke<AuthAccount>('auth_getAuthAccount', {
-				address: address.toString('hex'),
+				address,
 			});
 		} catch (error) {
 			throw new Error('Auth module is not registered or does not have "getAuthAccount" endpoint.');
@@ -141,7 +141,7 @@ export class Transaction {
 		if (authAccount.numberOfSignatures > 0) {
 			const signedTx = signMultiSignatureTransaction(
 				rawTx,
-				networkIdentifier,
+				chainID,
 				privateKey,
 				{
 					mandatoryKeys: authAccount.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
@@ -155,7 +155,7 @@ export class Transaction {
 		if (options?.multisignatureKeys && options?.includeSenderSignature) {
 			const signedTx = signMultiSignatureTransaction(
 				rawTx,
-				networkIdentifier,
+				chainID,
 				privateKey,
 				{
 					mandatoryKeys: authAccount.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
@@ -166,7 +166,7 @@ export class Transaction {
 			);
 			return this.toJSON(signedTx) as DecodedTransactionJSON<T>;
 		}
-		const signedTx = signTransaction(rawTx, networkIdentifier, privateKey, commandSchema);
+		const signedTx = signTransaction(rawTx, chainID, privateKey, commandSchema);
 		return this.toJSON(signedTx) as DecodedTransactionJSON<T>;
 	}
 
@@ -205,17 +205,17 @@ export class Transaction {
 		);
 		const decodedTx = this.fromJSON(transaction as TransactionJSON);
 		this._validateTransaction(decodedTx);
-		const networkIdentifier = Buffer.from(this._nodeInfo.networkIdentifier, 'hex');
-		const address = cryptoAddress.getAddressFromPublicKey(decodedTx.senderPublicKey);
+		const chainID = Buffer.from(this._nodeInfo.chainID, 'hex');
+		const address = cryptoAddress.getLisk32AddressFromPublicKey(decodedTx.senderPublicKey);
 		const authAccount = await this._channel.invoke<AuthAccount>('auth_getAuthAccount', {
-			address: address.toString('hex'),
+			address,
 		});
 		if (authAccount.numberOfSignatures > 0) {
 			for (const privateKeyHex of privateKeyHexes) {
 				const privateKey = Buffer.from(privateKeyHex, 'hex');
 				signMultiSignatureTransaction(
 					decodedTx,
-					networkIdentifier,
+					chainID,
 					privateKey,
 					{
 						mandatoryKeys: authAccount.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
@@ -232,7 +232,7 @@ export class Transaction {
 				const privateKey = Buffer.from(privateKeyHex, 'hex');
 				signMultiSignatureTransaction(
 					decodedTx,
-					networkIdentifier,
+					chainID,
 					privateKey,
 					{
 						mandatoryKeys: options.multisignatureKeys.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
@@ -246,7 +246,7 @@ export class Transaction {
 		}
 		const signedTx = signTransaction(
 			decodedTx,
-			networkIdentifier,
+			chainID,
 			Buffer.from(privateKeyHexes[0], 'hex'),
 			commandSchema,
 		) as DecodedTransaction;

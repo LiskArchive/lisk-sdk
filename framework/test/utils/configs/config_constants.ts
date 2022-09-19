@@ -15,7 +15,7 @@
 export const constantsConfig = (overriddenConfigProperties = {}) => ({
 	blockTime: 10,
 	delegateListRoundOffset: 2,
-	communityIdentifier: 'Lisk',
+	chainID: '10000000',
 	rewards: {
 		milestones: [
 			'500000000', // Initial Reward

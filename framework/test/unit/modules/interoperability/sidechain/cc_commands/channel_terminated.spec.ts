@@ -21,24 +21,24 @@ import {
 import { SidechainCCChannelTerminatedCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands/channel_terminated';
 import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
-import { createExecuteCCMsgAPIContext } from '../../../../../../src/testing';
+import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
 
 describe('SidechainCCChannelTerminatedCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
 	const createTerminatedStateAccountMock = jest.fn();
 
-	const ccAPIMod1 = {
+	const ccMethodMod1 = {
 		beforeSendCCM: jest.fn(),
 		beforeApplyCCM: jest.fn(),
 	};
-	const ccAPIMod2 = {
+	const ccMethodMod2 = {
 		beforeSendCCM: jest.fn(),
 		beforeApplyCCM: jest.fn(),
 	};
-	const ccAPIsMap = new Map();
-	ccAPIsMap.set(1, ccAPIMod1);
-	ccAPIsMap.set(2, ccAPIMod2);
-	const networkIdentifier = utils.getRandomBytes(32);
+	const ccMethodsMap = new Map();
+	ccMethodsMap.set(1, ccMethodMod1);
+	ccMethodsMap.set(2, ccMethodMod2);
+	const chainID = utils.getRandomBytes(32);
 	const ccm = {
 		nonce: BigInt(0),
 		module: MODULE_NAME_INTEROPERABILITY,
@@ -49,20 +49,20 @@ describe('SidechainCCChannelTerminatedCommand', () => {
 		status: 0,
 		params: Buffer.alloc(0),
 	};
-	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgAPIContext({
+	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
 		ccm,
-		networkIdentifier,
+		chainID,
 	});
 
 	const ccChannelTerminatedCommand = new SidechainCCChannelTerminatedCommand(
 		interopMod.stores,
 		interopMod.events,
-		ccAPIsMap,
+		ccMethodsMap,
 	);
 	const mainchainInteroperabilityStore = new SidechainInteroperabilityStore(
 		interopMod.stores,
 		sampleExecuteContext,
-		ccAPIsMap,
+		ccMethodsMap,
 	);
 	mainchainInteroperabilityStore.createTerminatedStateAccount = createTerminatedStateAccountMock;
 	(ccChannelTerminatedCommand as any)['getInteroperabilityStore'] = jest
@@ -70,7 +70,7 @@ describe('SidechainCCChannelTerminatedCommand', () => {
 		.mockReturnValue(mainchainInteroperabilityStore);
 
 	describe('execute', () => {
-		it('should call validators API registerValidatorKeys', async () => {
+		it('should call validators Method registerValidatorKeys', async () => {
 			await ccChannelTerminatedCommand.execute(sampleExecuteContext);
 
 			expect(createTerminatedStateAccountMock).toHaveBeenCalledWith(ccm.sendingChainID);

@@ -43,7 +43,7 @@ describe('state_machine', () => {
 	const assets = new BlockAssets();
 	let stateStore: PrefixedStateReadWriter;
 	let eventQueue: EventQueue;
-	const networkIdentifier = Buffer.from('network identifier', 'utf8');
+	const chainID = Buffer.from('network identifier', 'utf8');
 	const transaction = {
 		module: 'customModule0',
 		command: 'customCommand0',
@@ -57,7 +57,7 @@ describe('state_machine', () => {
 
 	beforeEach(async () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		eventQueue = new EventQueue();
+		eventQueue = new EventQueue(0);
 		stateMachine = new StateMachine();
 		mod = new CustomModule0();
 		stateMachine.registerModule(mod);
@@ -78,7 +78,7 @@ describe('state_machine', () => {
 			expect(mod.initGenesisState).toHaveBeenCalledWith({
 				logger,
 				eventQueue: expect.any(Object),
-				getAPIContext: expect.any(Function),
+				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),
 				header: genesisHeader,
 				assets,
@@ -111,7 +111,7 @@ describe('state_machine', () => {
 				logger,
 				stateStore,
 				header,
-				networkIdentifier,
+				chainID,
 				transaction,
 				currentValidators: [],
 				impliesMaxPrevote: true,
@@ -120,10 +120,10 @@ describe('state_machine', () => {
 			});
 			const result = await stateMachine.verifyTransaction(ctx);
 			expect(mod.verifyTransaction).toHaveBeenCalledWith({
-				networkIdentifier,
+				chainID,
 				logger,
 				transaction,
-				getAPIContext: expect.any(Function),
+				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),
 			});
 			expect(mod.commands[0].verify).toHaveBeenCalledTimes(1);
@@ -136,7 +136,7 @@ describe('state_machine', () => {
 				logger,
 				stateStore,
 				header,
-				networkIdentifier,
+				chainID,
 				transaction,
 				currentValidators: [],
 				impliesMaxPrevote: true,
@@ -157,7 +157,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transaction,
 				currentValidators: [
 					{
@@ -173,13 +173,13 @@ describe('state_machine', () => {
 			});
 			await stateMachine.executeTransaction(ctx);
 			expect(mod.beforeCommandExecute).toHaveBeenCalledWith({
-				networkIdentifier,
+				chainID,
 				logger,
 				transaction,
 				header,
 				assets,
 				eventQueue: expect.any(Object),
-				getAPIContext: expect.any(Function),
+				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),
 				currentValidators: expect.any(Array),
 				impliesMaxPrevote: true,
@@ -197,7 +197,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transaction,
 				currentValidators: [],
 				impliesMaxPrevote: true,
@@ -215,31 +215,32 @@ describe('state_machine', () => {
 			const events = [
 				{
 					module: 'customModule0',
-					typeID: Buffer.from([0, 0, 0, 0]),
+					name: 'customModule0 Event Name',
+					height: 12,
 					data: utils.getRandomBytes(20),
 					topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
 				},
 				{
 					module: 'auth',
-					typeID: Buffer.from([0, 0, 0, 0]),
+					name: 'Auth Event Name',
+					height: 12,
 					data: utils.getRandomBytes(20),
 					topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
 				},
 				{
 					module: 'customModule0',
-					typeID: Buffer.from([0, 0, 0, 0]),
+					name: 'customModule0 Event Name',
+					height: 12,
 					data: utils.getRandomBytes(20),
 					topics: [utils.getRandomBytes(32)],
 				},
 			];
 			for (const e of events) {
-				eventQueue.unsafeAdd(e.module, e.typeID, e.data, e.topics);
+				eventQueue.unsafeAdd(e.module, e.name, e.data, e.topics);
 			}
 
 			mod.beforeCommandExecute.mockImplementation(() => {
-				eventQueue.add('auth', Buffer.from([0, 0, 0, 1]), utils.getRandomBytes(100), [
-					utils.getRandomBytes(32),
-				]);
+				eventQueue.add('auth', 'Auth Name', utils.getRandomBytes(100), [utils.getRandomBytes(32)]);
 			});
 
 			mod.afterCommandExecute.mockImplementation(() => {
@@ -252,7 +253,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transaction,
 				currentValidators: [],
 				impliesMaxPrevote: true,
@@ -272,7 +273,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transactions: [transaction],
 				currentValidators: [],
 				impliesMaxPrevote: false,
@@ -281,11 +282,11 @@ describe('state_machine', () => {
 			});
 			await stateMachine.verifyAssets(ctx);
 			expect(mod.verifyAssets).toHaveBeenCalledWith({
-				networkIdentifier,
+				chainID,
 				logger,
 				header,
 				assets,
-				getAPIContext: expect.any(Function),
+				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),
 			});
 			// expect(systemMod.verifyAssets).toHaveBeenCalledTimes(1);
@@ -301,7 +302,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transactions: [transaction],
 				currentValidators: [],
 				impliesMaxPrevote: false,
@@ -310,12 +311,12 @@ describe('state_machine', () => {
 			});
 			await stateMachine.beforeExecuteBlock(ctx);
 			expect(mod.beforeTransactionsExecute).toHaveBeenCalledWith({
-				networkIdentifier,
+				chainID,
 				logger,
 				header,
 				assets,
 				eventQueue: expect.any(Object),
-				getAPIContext: expect.any(Function),
+				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),
 				currentValidators: expect.any(Array),
 				impliesMaxPrevote: expect.any(Boolean),
@@ -333,7 +334,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transactions: [transaction],
 				currentValidators: [],
 				impliesMaxPrevote: false,
@@ -356,7 +357,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transactions: [transaction],
 				currentValidators: [],
 				impliesMaxPrevote: false,
@@ -365,12 +366,12 @@ describe('state_machine', () => {
 			});
 			await stateMachine.afterExecuteBlock(ctx);
 			expect(mod.afterTransactionsExecute).toHaveBeenCalledWith({
-				networkIdentifier,
+				chainID,
 				logger,
 				header,
 				assets,
 				eventQueue: expect.any(Object),
-				getAPIContext: expect.any(Function),
+				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),
 				transactions: [transaction],
 				currentValidators: expect.any(Array),
@@ -390,7 +391,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transactions: [transaction],
 				currentValidators: [],
 				impliesMaxPrevote: false,
@@ -413,7 +414,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transactions: [transaction],
 				currentValidators: [],
 				impliesMaxPrevote: false,
@@ -422,12 +423,12 @@ describe('state_machine', () => {
 			});
 			await stateMachine.executeBlock(ctx);
 			expect(mod.beforeTransactionsExecute).toHaveBeenCalledWith({
-				networkIdentifier,
+				chainID,
 				logger,
 				header,
 				assets,
 				eventQueue: expect.any(Object),
-				getAPIContext: expect.any(Function),
+				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),
 				currentValidators: expect.any(Array),
 				impliesMaxPrevote: expect.any(Boolean),
@@ -436,12 +437,12 @@ describe('state_machine', () => {
 			});
 			expect(mod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
 			expect(mod.afterTransactionsExecute).toHaveBeenCalledWith({
-				networkIdentifier,
+				chainID,
 				logger,
 				header,
 				assets,
 				eventQueue: expect.any(Object),
-				getAPIContext: expect.any(Function),
+				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),
 				transactions: [transaction],
 				currentValidators: expect.any(Array),

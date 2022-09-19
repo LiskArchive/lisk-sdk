@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { encrypt } from '@liskhq/lisk-cryptography';
+import { address as cryptoAddress, encrypt } from '@liskhq/lisk-cryptography';
 import { Batch, Database } from '@liskhq/lisk-db';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
@@ -95,7 +95,7 @@ export class Endpoint {
 		for (const info of list) {
 			status.push({
 				...info,
-				address: info.address.toString('hex'),
+				address: cryptoAddress.getLisk32AddressFromAddress(info.address),
 				enabled: this._keypairs.has(info.address),
 			});
 		}
@@ -105,11 +105,11 @@ export class Endpoint {
 	public async setStatus(ctx: RequestContext): Promise<void> {
 		validator.validate<SetStatusRequest>(setStatusRequestSchema, ctx.params);
 		const req = ctx.params;
-		const address = Buffer.from(req.address, 'hex');
+		const address = cryptoAddress.getAddressFromLisk32Address(req.address);
 		const generatorStore = new GeneratorStore(this._generatorDB);
 		const keysExist = await generatorKeysExist(generatorStore, address);
 		if (!keysExist) {
-			throw new Error(`Keys for ${address.toString('hex')} is not registered.`);
+			throw new Error(`Keys for ${req.address} is not registered.`);
 		}
 		const batch = new Batch();
 		await setLastGeneratedInfo(generatorStore, address, req);
@@ -121,16 +121,14 @@ export class Endpoint {
 		validator.validate<UpdateStatusRequest>(updateStatusRequestSchema, ctx.params);
 
 		const req = ctx.params;
-		const address = Buffer.from(req.address, 'hex');
+		const address = cryptoAddress.getAddressFromLisk32Address(req.address);
 		const generatorStore = new GeneratorStore(this._generatorDB);
 		let generatorKeys: GeneratorKeys;
 		try {
 			generatorKeys = await getGeneratorKeys(generatorStore, address);
 		} catch (error) {
 			if (error instanceof NotFoundError) {
-				throw new Error(
-					`Generator with address: ${address.toString('hex')} does not have keys registered.`,
-				);
+				throw new Error(`Generator with address: ${req.address} does not have keys registered.`);
 			}
 			throw error;
 		}
@@ -149,7 +147,7 @@ export class Endpoint {
 		// Before disabling, above ensure decrypt is successful
 		if (!req.enable) {
 			// Disable delegate by removing keypairs corresponding to address
-			this._keypairs.delete(Buffer.from(req.address, 'hex'));
+			this._keypairs.delete(cryptoAddress.getAddressFromLisk32Address(ctx.params.address));
 			ctx.logger.info(`Forging disabled on account: ${req.address}`);
 			return {
 				address: req.address,
@@ -167,7 +165,7 @@ export class Endpoint {
 		try {
 			lastGeneratedInfo = await getLastGeneratedInfo(
 				generatorStore,
-				Buffer.from(req.address, 'hex'),
+				cryptoAddress.getAddressFromLisk32Address(req.address),
 			);
 		} catch (error) {
 			ctx.logger.debug(`Last generated information does not exist for address: ${req.address}`);
@@ -181,7 +179,11 @@ export class Endpoint {
 		}
 
 		if (lastGeneratedInfo === undefined) {
-			await setLastGeneratedInfo(generatorStore, Buffer.from(req.address, 'hex'), req);
+			await setLastGeneratedInfo(
+				generatorStore,
+				cryptoAddress.getAddressFromLisk32Address(req.address),
+				req,
+			);
 		}
 
 		// Enable delegate to forge by adding keypairs corresponding to address
@@ -233,13 +235,13 @@ export class Endpoint {
 		let generatorKeys: GeneratorKeys;
 		if (ctx.params.type === 'plain') {
 			generatorKeys = {
-				address: Buffer.from(ctx.params.address, 'hex'),
+				address: cryptoAddress.getAddressFromLisk32Address(ctx.params.address),
 				type: ctx.params.type,
 				data: codec.fromJSON<PlainGeneratorKeyData>(plainGeneratorKeysSchema, ctx.params.data),
 			};
 		} else {
 			generatorKeys = {
-				address: Buffer.from(ctx.params.address, 'hex'),
+				address: cryptoAddress.getAddressFromLisk32Address(ctx.params.address),
 				type: ctx.params.type,
 				data: codec.fromJSON<encrypt.EncryptedMessageObject>(
 					encryptedMessageSchema,
@@ -250,7 +252,11 @@ export class Endpoint {
 
 		const generatorStore = new GeneratorStore(this._generatorDB);
 		const batch = new Batch();
-		await setGeneratorKey(generatorStore, Buffer.from(ctx.params.address, 'hex'), generatorKeys);
+		await setGeneratorKey(
+			generatorStore,
+			cryptoAddress.getAddressFromLisk32Address(ctx.params.address),
+			generatorKeys,
+		);
 		generatorStore.finalize(batch);
 		await this._generatorDB.write(batch);
 	}
@@ -263,13 +269,13 @@ export class Endpoint {
 		for (const key of keys) {
 			if (key.type === 'plain') {
 				jsonKeys.push({
-					address: key.address.toString('hex'),
+					address: cryptoAddress.getLisk32AddressFromAddress(key.address),
 					type: key.type,
 					data: codec.toJSON<JSONObject<PlainGeneratorKeyData>>(plainGeneratorKeysSchema, key.data),
 				});
 			} else {
 				jsonKeys.push({
-					address: key.address.toString('hex'),
+					address: cryptoAddress.getLisk32AddressFromAddress(key.address),
 					type: key.type,
 					data: key.data,
 				});
@@ -285,7 +291,7 @@ export class Endpoint {
 		const generatorStore = new GeneratorStore(this._generatorDB);
 		const keysExist = await generatorKeysExist(
 			generatorStore,
-			Buffer.from(ctx.params.address, 'hex'),
+			cryptoAddress.getAddressFromLisk32Address(ctx.params.address),
 		);
 
 		return {

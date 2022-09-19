@@ -521,7 +521,7 @@ Object {
     },
     Object {
       "assetID": 0,
-      "assetName": "registerMultisignatureGroup",
+      "assetName": "registerMultisignature",
       "moduleID": 4,
       "moduleName": "keys",
       "schema": Object {

@@ -13,9 +13,12 @@
  */
 
 import { RewardModule } from '../../../../src/modules/reward';
-import { createBlockHeaderWithDefaults, createTransientAPIContext } from '../../../../src/testing';
+import {
+	createBlockHeaderWithDefaults,
+	createTransientMethodContext,
+} from '../../../../src/testing';
 
-describe('RewardModuleAPI', () => {
+describe('RewardModuleMethod', () => {
 	const genesisConfig: any = {};
 	const moduleConfig = {
 		distance: 3000000,
@@ -38,7 +41,7 @@ describe('RewardModuleAPI', () => {
 	let context: any;
 	let blockAsset: any;
 	beforeEach(async () => {
-		context = createTransientAPIContext({});
+		context = createTransientMethodContext({});
 
 		blockAsset = {
 			getAsset: jest.fn(),
@@ -57,14 +60,14 @@ describe('RewardModuleAPI', () => {
 				{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
 			);
 			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
-			const rewardFromAPI = await rewardModule.api.getBlockReward(
+			const rewardFromMethod = await rewardModule.method.getBlockReward(
 				context,
 				blockHeader,
 				blockAsset,
 				true,
 			);
 
-			expect(rewardFromAPI[0]).toBe(rewardFromConfig);
+			expect(rewardFromMethod[0]).toBe(rewardFromConfig);
 		});
 
 		it(`should getBlockReward return quarter reward for bracket ${nthBracket} due to bft violation`, async () => {
@@ -73,14 +76,14 @@ describe('RewardModuleAPI', () => {
 				{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
 			);
 			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
-			const rewardFromAPI = await rewardModule.api.getBlockReward(
+			const rewardFromMethod = await rewardModule.method.getBlockReward(
 				context,
 				blockHeader,
 				blockAsset,
 				false,
 			);
 
-			expect(rewardFromAPI[0]).toBe(BigInt(rewardFromConfig) / BigInt(4));
+			expect(rewardFromMethod[0]).toBe(BigInt(rewardFromConfig) / BigInt(4));
 		});
 
 		it(`should getBlockReward return no reward for bracket ${nthBracket} due to seedReveal violation`, async () => {
@@ -89,14 +92,14 @@ describe('RewardModuleAPI', () => {
 				{ isSeedRevealValid: jest.fn().mockReturnValue(false) } as any,
 			);
 			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
-			const rewardFromAPI = await rewardModule.api.getBlockReward(
+			const rewardFromMethod = await rewardModule.method.getBlockReward(
 				context,
 				blockHeader,
 				blockAsset,
 				true,
 			);
 
-			expect(rewardFromAPI[0]).toBe(BigInt(0));
+			expect(rewardFromMethod[0]).toBe(BigInt(0));
 		});
 	});
 
@@ -106,13 +109,13 @@ describe('RewardModuleAPI', () => {
 			{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
 		);
 		const blockHeader = createBlockHeaderWithDefaults({ height: 1 });
-		const rewardFromAPI = await rewardModule.api.getBlockReward(
+		const rewardFromMethod = await rewardModule.method.getBlockReward(
 			context,
 			blockHeader,
 			blockAsset,
 			true,
 		);
 
-		expect(rewardFromAPI[0]).toBe(BigInt(0));
+		expect(rewardFromMethod[0]).toBe(BigInt(0));
 	});
 });

@@ -48,7 +48,7 @@ const NodeInfoDialog: React.FC<NodeInfoDialogProps> = props => {
 					</Grid>
 
 					<Grid row>
-						<NodeInfoItem label={'Network identifier'} value={nodeInfo.networkIdentifier} />
+						<NodeInfoItem label={'Network identifier'} value={nodeInfo.chainID} />
 						<NodeInfoItem label={'Last block ID'} value={nodeInfo.lastBlockID} />
 					</Grid>
 

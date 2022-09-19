@@ -117,7 +117,7 @@ export class OutboundPeer extends Peer {
 		const { options, ...nodeInfo } = this._serverNodeInfo as P2PNodeInfo;
 		const queryObject = {
 			networkVersion: nodeInfo.networkVersion,
-			networkIdentifier: nodeInfo.networkIdentifier,
+			chainID: nodeInfo.chainID.toString('hex'),
 			nonce: nodeInfo.nonce,
 			advertiseAddress: nodeInfo.advertiseAddress,
 			port: this._peerConfig.hostPort,

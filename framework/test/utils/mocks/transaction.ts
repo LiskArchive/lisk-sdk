@@ -15,10 +15,14 @@
 
 import { Transaction, BlockHeader, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { ed } from '@liskhq/lisk-cryptography';
+import { ed, address } from '@liskhq/lisk-cryptography';
 import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
 import { TokenModule } from '../../../src';
-import { registerMultisignatureParamsSchema } from '../../../src/modules/auth/schemas';
+import { MESSAGE_TAG_MULTISIG_REG } from '../../../src/modules/auth/constants';
+import {
+	multisigRegMsgSchema,
+	registerMultisignatureParamsSchema,
+} from '../../../src/modules/auth/schemas';
 import {
 	delegateRegistrationCommandParamsSchema,
 	pomCommandParamsSchema,
@@ -33,7 +37,7 @@ export const createTransferTransaction = (input: {
 	recipientAddress: Buffer;
 	amount?: bigint;
 	nonce: bigint;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	privateKey: Buffer;
 	fee?: bigint;
 }): Transaction => {
@@ -56,14 +60,14 @@ export const createTransferTransaction = (input: {
 		signatures: [],
 	});
 	tx.signatures.push(
-		ed.signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.privateKey),
+		ed.signData(TAG_TRANSACTION, input.chainID, tx.getSigningBytes(), input.privateKey),
 	);
 	return tx;
 };
 
 export const createDelegateRegisterTransaction = (input: {
 	nonce: bigint;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	privateKey: Buffer;
 	generatorKey: Buffer;
 	blsKey: Buffer;
@@ -89,14 +93,14 @@ export const createDelegateRegisterTransaction = (input: {
 		signatures: [],
 	});
 	tx.signatures.push(
-		ed.signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.privateKey),
+		ed.signData(TAG_TRANSACTION, input.chainID, tx.getSigningBytes(), input.privateKey),
 	);
 	return tx;
 };
 
 export const createDelegateVoteTransaction = (input: {
 	nonce: bigint;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	privateKey: Buffer;
 	fee?: bigint;
 	votes: { delegateAddress: Buffer; amount: bigint }[];
@@ -116,52 +120,72 @@ export const createDelegateVoteTransaction = (input: {
 		signatures: [],
 	});
 	tx.signatures.push(
-		ed.signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.privateKey),
+		ed.signData(TAG_TRANSACTION, input.chainID, tx.getSigningBytes(), input.privateKey),
 	);
 	return tx;
 };
 
 export const createMultiSignRegisterTransaction = (input: {
 	nonce: bigint;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	fee?: bigint;
 	mandatoryKeys: Buffer[];
 	optionalKeys: Buffer[];
 	numberOfSignatures: number;
 	senderPublicKey: Buffer;
+	signatures?: Buffer[];
 	privateKeys: Buffer[];
 }): Transaction => {
-	const encodedAsset = codec.encode(registerMultisignatureParamsSchema, {
-		mandatoryKeys: input.mandatoryKeys,
-		optionalKeys: input.optionalKeys,
-		numberOfSignatures: input.numberOfSignatures,
-	});
+	let memberSignatures = input.signatures;
+	if (!memberSignatures) {
+		const senderAddress = address.getAddressFromPublicKey(input.senderPublicKey);
+		const encodedMessage = codec.encode(multisigRegMsgSchema, {
+			mandatoryKeys: input.mandatoryKeys,
+			optionalKeys: input.optionalKeys,
+			numberOfSignatures: input.numberOfSignatures,
+			nonce: input.nonce,
+			address: senderAddress,
+		});
+
+		memberSignatures = [...input.privateKeys].map(privateKey => {
+			return ed.signData(MESSAGE_TAG_MULTISIG_REG, input.chainID, encodedMessage, privateKey);
+		});
+	}
+
 	const params = {
 		mandatoryKeys: input.mandatoryKeys,
 		optionalKeys: input.optionalKeys,
 		numberOfSignatures: input.numberOfSignatures,
+		signatures: memberSignatures,
 	};
-	const transaction = [...input.privateKeys].reduce<Record<string, unknown>>(
-		(prev, current) => {
-			return signMultiSignatureTransaction(
-				prev,
-				input.networkIdentifier,
-				current,
-				params,
-				registerMultisignatureParamsSchema,
-				true,
-			);
-		},
-		{
-			module: 'auth',
-			command: 'registerMultisignatureGroup',
-			nonce: input.nonce,
-			senderPublicKey: input.senderPublicKey,
-			fee: input.fee ?? BigInt('1100000000'),
-			params,
-			signatures: [],
-		},
+	const encodedAsset = codec.encode(registerMultisignatureParamsSchema, params);
+
+	const unsignedTx = {
+		module: 'auth',
+		command: 'registerMultisignature',
+		nonce: input.nonce,
+		senderPublicKey: input.senderPublicKey,
+		fee: input.fee ?? BigInt('1100000000'),
+		signatures: [],
+		params: encodedAsset,
+	};
+	const unsignedTxObj = new Transaction({ ...unsignedTx });
+
+	const senderSignature = ed.signData(
+		TAG_TRANSACTION,
+		input.chainID,
+		unsignedTxObj.getSigningBytes(),
+		input.privateKeys[0],
 	);
+	const transaction = {
+		module: 'auth',
+		command: 'registerMultisignature',
+		nonce: input.nonce,
+		senderPublicKey: input.senderPublicKey,
+		fee: input.fee ?? BigInt('1100000000'),
+		signatures: [senderSignature],
+		params: encodedAsset,
+	};
 
 	const tx = new Transaction({ ...transaction, params: encodedAsset } as any);
 	return tx;
@@ -169,7 +193,7 @@ export const createMultiSignRegisterTransaction = (input: {
 
 export const createMultisignatureTransferTransaction = (input: {
 	nonce: bigint;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	recipientAddress: Buffer;
 	amount: bigint;
 	fee?: bigint;
@@ -191,7 +215,7 @@ export const createMultisignatureTransferTransaction = (input: {
 		(prev, current) => {
 			return signMultiSignatureTransaction(
 				prev,
-				input.networkIdentifier,
+				input.chainID,
 				current,
 				{
 					mandatoryKeys: input.mandatoryKeys,
@@ -217,7 +241,7 @@ export const createMultisignatureTransferTransaction = (input: {
 
 export const createReportMisbehaviorTransaction = (input: {
 	nonce: bigint;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	privateKey: Buffer;
 	header1: BlockHeader;
 	header2: BlockHeader;
@@ -239,7 +263,7 @@ export const createReportMisbehaviorTransaction = (input: {
 		signatures: [],
 	});
 	tx.signatures.push(
-		ed.signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.privateKey),
+		ed.signData(TAG_TRANSACTION, input.chainID, tx.getSigningBytes(), input.privateKey),
 	);
 	return tx;
 };

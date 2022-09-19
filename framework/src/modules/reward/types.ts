@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockAssets, APIContext, ImmutableAPIContext } from '../../state_machine';
+import { BlockAssets, MethodContext, ImmutableMethodContext } from '../../state_machine';
 
 export interface ModuleConfig {
 	tokenID: string;
@@ -21,20 +21,25 @@ export interface ModuleConfig {
 	distance: number;
 }
 
-export interface TokenAPI {
-	mint: (apiContext: APIContext, address: Buffer, id: Buffer, amount: bigint) => Promise<void>;
+export interface TokenMethod {
+	mint: (
+		methodContext: MethodContext,
+		address: Buffer,
+		id: Buffer,
+		amount: bigint,
+	) => Promise<void>;
 }
 
-export interface RandomAPI {
+export interface RandomMethod {
 	isSeedRevealValid(
-		apiContext: ImmutableAPIContext,
+		methodContext: ImmutableMethodContext,
 		generatorAddress: Buffer,
 		assets: BlockAssets,
 	): Promise<boolean>;
 }
 
-export interface BFTAPI {
-	currentHeaderImpliesMaximalPrevotes(apiContext: ImmutableAPIContext): Promise<boolean>;
+export interface BFTMethod {
+	currentHeaderImpliesMaximalPrevotes(methodContext: ImmutableMethodContext): Promise<boolean>;
 }
 
 export interface RewardMintedData {
@@ -54,7 +59,7 @@ export interface EndpointInitArgs {
 	};
 }
 
-export interface APIInitArgs {
+export interface MethodInitArgs {
 	config: {
 		brackets: ReadonlyArray<bigint>;
 		offset: number;

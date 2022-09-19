@@ -14,11 +14,11 @@
  */
 import * as fs from 'fs-extra';
 import * as apiClient from '@liskhq/lisk-api-client';
-import * as Config from '@oclif/config';
 import { BaseIPCClientCommand } from '../../../../src/bootstrapping/commands/base_ipc_client';
 import * as appUtils from '../../../../src/utils/application';
 import { GetCommand } from '../../../../src/bootstrapping/commands/block/get';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 describe('block:get command', () => {
 	const blockSchema = {
@@ -110,7 +110,7 @@ describe('block:get command', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let getMock: jest.Mock;
 	let getByHeightMock: jest.Mock;
 

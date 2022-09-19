@@ -17,7 +17,7 @@ import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { defaultConfig, EMPTY_KEY } from './constants';
 import { GenesisBlockExecuteContext } from '../../state_machine';
-import { ValidatorsAPI } from './api';
+import { ValidatorsMethod } from './method';
 import { ValidatorsEndpoint } from './endpoint';
 import { configSchema, validateBLSKeyRequestSchema, validateBLSKeyResponseSchema } from './schemas';
 import { GenesisStore } from './stores/genesis';
@@ -27,7 +27,7 @@ import { GeneratorKeyRegistrationEvent } from './events/generator_key_registrati
 import { BLSKeyRegistrationEvent } from './events/bls_key_registration';
 
 export class ValidatorsModule extends BaseModule {
-	public api = new ValidatorsAPI(this.stores, this.events);
+	public method = new ValidatorsMethod(this.stores, this.events);
 	public endpoint = new ValidatorsEndpoint(this.stores, this.offchainStores);
 	private _blockTime!: number;
 
@@ -68,7 +68,7 @@ export class ValidatorsModule extends BaseModule {
 
 		this._blockTime = config.blockTime as number;
 
-		this.api.init({
+		this.method.init({
 			config: {
 				blockTime: this._blockTime,
 			},

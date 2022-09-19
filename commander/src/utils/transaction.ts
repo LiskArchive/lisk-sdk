@@ -77,6 +77,28 @@ export const encodeTransaction = (
 	return txBytes;
 };
 
+export const encodeTransactionJSON = (
+	schema: RegisteredSchema,
+	metadata: ModuleMetadataJSON[],
+	transaction: Record<string, unknown>,
+	apiClient?: liskApiClient.APIClient,
+): Buffer => {
+	if (apiClient) {
+		return apiClient.transaction.encode(apiClient.transaction.fromJSON(transaction as never));
+	}
+	const paramsSchema = getParamsSchema(
+		metadata,
+		transaction.module as string,
+		transaction.command as string,
+	);
+	const paramsBytes = codec.encodeJSON(paramsSchema as Schema, transaction.params as object);
+	const txBytes = codec.encodeJSON(schema.transaction, {
+		...transaction,
+		params: paramsBytes.toString('hex'),
+	});
+	return txBytes;
+};
+
 export const transactionToJSON = (
 	schema: RegisteredSchema,
 	metadata: ModuleMetadataJSON[],

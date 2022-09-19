@@ -17,9 +17,8 @@ import { BaseInteroperabilityEndpoint } from '../base_interoperability_endpoint'
 import { ImmutableStoreGetter, StoreGetter } from '../../base_store';
 
 export class MainchainInteroperabilityEndpoint extends BaseInteroperabilityEndpoint<MainchainInteroperabilityStore> {
-	protected getInteroperabilityStore(
+	protected getInteroperabilityStore = (
 		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
-	}
+	): MainchainInteroperabilityStore =>
+		new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
 }

@@ -14,7 +14,7 @@
 
 import { BlockAssets, Transaction } from '@liskhq/lisk-chain';
 import { Logger } from '../logger';
-import { createAPIContext, createImmutableAPIContext } from './api_context';
+import { createMethodContext, createImmutableMethodContext } from './method_context';
 import { EVENT_INDEX_AFTER_TRANSACTIONS, EVENT_INDEX_BEFORE_TRANSACTIONS } from './constants';
 import { EventQueue } from './event_queue';
 import { PrefixedStateReadWriter } from './prefixed_state_read_writer';
@@ -28,7 +28,7 @@ import {
 } from './types';
 
 export interface ContextParams {
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	stateStore: PrefixedStateReadWriter;
 	header: BlockHeader;
 	assets: BlockAssets;
@@ -43,7 +43,7 @@ export interface ContextParams {
 
 export class BlockContext {
 	private readonly _stateStore: PrefixedStateReadWriter;
-	private readonly _networkIdentifier: Buffer;
+	private readonly _chainID: Buffer;
 	private readonly _logger: Logger;
 	private readonly _eventQueue: EventQueue;
 	private readonly _header: BlockHeader;
@@ -61,7 +61,7 @@ export class BlockContext {
 
 	public constructor(params: ContextParams) {
 		this._logger = params.logger;
-		this._networkIdentifier = params.networkIdentifier;
+		this._chainID = params.chainID;
 		this._stateStore = params.stateStore;
 		this._eventQueue = params.eventQueue;
 		this._header = params.header;
@@ -87,8 +87,8 @@ export class BlockContext {
 	public getBlockVerifyExecuteContext(): BlockVerifyContext {
 		return {
 			logger: this._logger,
-			networkIdentifier: this._networkIdentifier,
-			getAPIContext: () => createImmutableAPIContext(this._stateStore),
+			chainID: this._chainID,
+			getMethodContext: () => createImmutableMethodContext(this._stateStore),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
@@ -100,10 +100,10 @@ export class BlockContext {
 		const childQueue = this._eventQueue.getChildQueue(EVENT_INDEX_BEFORE_TRANSACTIONS);
 		return {
 			logger: this._logger,
-			networkIdentifier: this._networkIdentifier,
+			chainID: this._chainID,
 			eventQueue: childQueue,
-			getAPIContext: () =>
-				createAPIContext({ stateStore: this._stateStore, eventQueue: childQueue }),
+			getMethodContext: () =>
+				createMethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
@@ -122,10 +122,10 @@ export class BlockContext {
 		const childQueue = this._eventQueue.getChildQueue(EVENT_INDEX_AFTER_TRANSACTIONS);
 		return {
 			logger: this._logger,
-			networkIdentifier: this._networkIdentifier,
+			chainID: this._chainID,
 			eventQueue: childQueue,
-			getAPIContext: () =>
-				createAPIContext({ stateStore: this._stateStore, eventQueue: childQueue }),
+			getMethodContext: () =>
+				createMethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
@@ -154,7 +154,7 @@ export class BlockContext {
 
 	public getTransactionContext(tx: Transaction): TransactionContext {
 		return new TransactionContext({
-			networkIdentifier: this._networkIdentifier,
+			chainID: this._chainID,
 			logger: this._logger,
 			stateStore: this._stateStore,
 			transaction: tx,

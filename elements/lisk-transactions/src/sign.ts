@@ -94,12 +94,12 @@ const sanitizeSignaturesArray = (
 
 export const signTransactionWithPrivateKey = (
 	transactionObject: Record<string, unknown>,
-	networkIdentifier: Buffer,
+	chainID: Buffer,
 	privateKey: Buffer,
 	paramsSchema?: object,
 ): Record<string, unknown> => {
-	if (!networkIdentifier.length) {
-		throw new Error('Network identifier is required to sign a transaction');
+	if (!chainID.length) {
+		throw new Error('ChainID is required to sign a transaction');
 	}
 
 	if (!privateKey.length || privateKey.length !== 64) {
@@ -113,7 +113,7 @@ export const signTransactionWithPrivateKey = (
 
 	const signature = ed.signDataWithPrivateKey(
 		TAG_TRANSACTION,
-		networkIdentifier,
+		chainID,
 		getSigningBytes(transactionObject, paramsSchema),
 		privateKey,
 	);
@@ -127,14 +127,14 @@ export const signTransaction = signTransactionWithPrivateKey;
 
 export const signMultiSignatureTransactionWithPrivateKey = (
 	transactionObject: Record<string, unknown>,
-	networkIdentifier: Buffer,
+	chainID: Buffer,
 	privateKey: Buffer,
 	keys: MultiSignatureKeys,
 	paramsSchema?: object,
 	includeSenderSignature = false,
 ): Record<string, unknown> => {
-	if (!networkIdentifier.length) {
-		throw new Error('Network identifier is required to sign a transaction');
+	if (!chainID.length) {
+		throw new Error('ChainID is required to sign a transaction');
 	}
 
 	if (!privateKey || privateKey.length !== 64) {
@@ -156,7 +156,7 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 	const publicKey = ed.getPublicKeyFromPrivateKey(privateKey);
 	const signature = ed.signDataWithPrivateKey(
 		TAG_TRANSACTION,
-		networkIdentifier,
+		chainID,
 		getSigningBytes(transactionObject, paramsSchema),
 		privateKey,
 	);

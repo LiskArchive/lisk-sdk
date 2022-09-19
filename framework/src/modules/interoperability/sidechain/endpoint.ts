@@ -12,14 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { SidechainInteroperabilityStore } from './store';
 import { BaseInteroperabilityEndpoint } from '../base_interoperability_endpoint';
-import { ImmutableStoreGetter, StoreGetter } from '../../base_store';
+import { StoreGetter, ImmutableStoreGetter } from '../../base_store';
+import { SidechainInteroperabilityStore } from './store';
 
 export class SidechainInteroperabilityEndpoint extends BaseInteroperabilityEndpoint<SidechainInteroperabilityStore> {
-	protected getInteroperabilityStore(
+	protected getInteroperabilityStore = (
 		context: StoreGetter | ImmutableStoreGetter,
-	): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
-	}
+	): SidechainInteroperabilityStore =>
+		new SidechainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
 }

@@ -14,7 +14,6 @@
 
 // Parameters passed by `child_process.fork(_, parameters)`
 
-import { join } from 'path';
 import { createLogger, Logger } from '../logger';
 import { getEndpointHandlers } from '../endpoint';
 import { BasePlugin } from '../plugins/base_plugin';
@@ -40,10 +39,8 @@ const _loadPlugin = async (
 
 	const dirs = systemDirs(appConfig.system.dataPath);
 	logger = createLogger({
-		consoleLogLevel: appConfig.logger.consoleLogLevel,
-		fileLogLevel: appConfig.logger.fileLogLevel,
-		logFilePath: join(dirs.logs, `plugin-${pluginName}.log`),
-		module: `plugin_${pluginName}`,
+		logLevel: appConfig.system.logLevel,
+		name: `plugin_${pluginName}`,
 	});
 
 	channel = new IPCChannel(

@@ -15,7 +15,7 @@
  */
 
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { Command } from '@oclif/command';
+import { Command } from '@oclif/core';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt } from '../../../utils/reader';
 
@@ -51,7 +51,7 @@ export class CreateCommand extends Command {
 	async run(): Promise<void> {
 		const {
 			flags: { passphrase: passphraseSource, pretty },
-		} = this.parse(CreateCommand);
+		} = await this.parse(CreateCommand);
 		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 		const blsKeys = createBlsKey(passphrase);
 		this.printJSON(blsKeys, pretty);

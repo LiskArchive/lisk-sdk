@@ -13,9 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as Config from '@oclif/config';
 import { ValidateCommand } from '../../../../src/bootstrapping/commands/account/validate';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 describe('account:validate', () => {
 	const validAddress = 'lskso9zqyapuhu8kv7txfbohwrhjfbd4gkxewcuxz';
@@ -23,7 +23,7 @@ describe('account:validate', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];
@@ -36,9 +36,7 @@ describe('account:validate', () => {
 	describe('account:validate', () => {
 		it('should show address is valid', async () => {
 			await ValidateCommand.run([validAddress], config);
-			expect(stdout[0]).toContain(
-				'is a valid base32 address and the corresponding binary address is',
-			);
+			expect(stdout[0]).toContain('is a valid lisk32 address');
 		});
 
 		it('should show address is invalid', async () => {

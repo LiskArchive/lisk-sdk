@@ -38,7 +38,7 @@ describe('p2p', () => {
 			maxOutboundConnections: 20,
 			maxInboundConnections: 100,
 			nodeInfo: {
-				networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				chainID: Buffer.from('10000000', 'hex'),
 				networkVersion: '1.1',
 				options: {},
 				nonce: 'nonce',
@@ -100,7 +100,7 @@ describe('p2p', () => {
 			p2pNodeWithoutPeers = new P2P({
 				port: 5001,
 				nodeInfo: {
-					networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+					chainID: Buffer.from('10000000', 'hex'),
 					networkVersion: '1.1',
 					options: {},
 					nonce: 'nonce',
@@ -177,7 +177,7 @@ describe('p2p', () => {
 				],
 				customNodeInfoSchema,
 				nodeInfo: {
-					networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+					chainID: Buffer.from('10000000', 'hex'),
 					networkVersion: '1.1',
 					nonce: 'nonce',
 					advertiseAddress: true,
@@ -221,7 +221,7 @@ describe('p2p', () => {
 				maxInboundConnections: 100,
 				customNodeInfoSchema,
 				nodeInfo: {
-					networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+					chainID: Buffer.from('10000000', 'hex'),
 					networkVersion: '1.1',
 					nonce: 'nonce1',
 					advertiseAddress: true,

@@ -13,7 +13,7 @@
  *
  */
 import * as fs from 'fs-extra';
-import { Command, flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import * as inquirer from 'inquirer';
 import {
 	getDefaultPath,
@@ -42,7 +42,7 @@ export class ResetCommand extends Command {
 	};
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(ResetCommand);
+		const { flags } = await this.parse(ResetCommand);
 		const dataPath = flags['data-path']
 			? flags['data-path']
 			: getDefaultPath(this.config.pjson.name);

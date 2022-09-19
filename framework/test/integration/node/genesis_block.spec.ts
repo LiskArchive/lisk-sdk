@@ -13,6 +13,7 @@
  */
 import { codec } from '@liskhq/lisk-codec';
 import { Chain } from '@liskhq/lisk-chain';
+import { address } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../src/testing';
 import { createTransferTransaction, DEFAULT_TOKEN_ID } from '../../utils/mocks/transaction';
 import { TokenModule } from '../../../src';
@@ -26,7 +27,7 @@ describe('genesis block', () => {
 	const genesis = testing.fixtures.defaultFaucetAccount;
 
 	let processEnv: testing.BlockProcessingEnv;
-	let networkIdentifier: Buffer;
+	let chainID: Buffer;
 
 	beforeAll(async () => {
 		processEnv = await testing.getBlockProcessingEnv({
@@ -34,7 +35,7 @@ describe('genesis block', () => {
 				databasePath,
 			},
 		});
-		networkIdentifier = processEnv.getNetworkId();
+		chainID = processEnv.getNetworkId();
 	});
 
 	afterAll(() => {
@@ -65,7 +66,7 @@ describe('genesis block', () => {
 						'token_getBalance',
 						{
 							tokenID: DEFAULT_TOKEN_ID.toString('hex'),
-							address: data.address.toString('hex'),
+							address: address.getLisk32AddressFromAddress(data.address),
 						},
 					);
 					expect(balance.availableBalance).toEqual(data.availableBalance.toString());
@@ -78,7 +79,11 @@ describe('genesis block', () => {
 				}>('chain_getGeneratorList', {});
 				expect(
 					validators.list
-						.sort((a, b) => Buffer.from(a.address, 'hex').compare(Buffer.from(b.address, 'hex')))
+						.sort((a, b) =>
+							address
+								.getAddressFromLisk32Address(a.address)
+								.compare(address.getAddressFromLisk32Address(b.address)),
+						)
 						.map(v => v.address),
 				).toMatchSnapshot();
 			});
@@ -98,7 +103,7 @@ describe('genesis block', () => {
 			);
 			recipientAddress = decoded.userSubstore[decoded.userSubstore.length - 1].address;
 			const recipient = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
-				address: recipientAddress.toString('hex'),
+				address: address.getLisk32AddressFromAddress(recipientAddress),
 				tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 			});
 			oldBalance = BigInt(recipient.availableBalance);
@@ -110,7 +115,7 @@ describe('genesis block', () => {
 			const transaction = createTransferTransaction({
 				amount: BigInt('100000000000'),
 				recipientAddress,
-				networkIdentifier,
+				chainID,
 				nonce: BigInt(authData.nonce),
 				privateKey: Buffer.from(genesis.privateKey, 'hex'),
 			});
@@ -140,7 +145,7 @@ describe('genesis block', () => {
 				chain.init({
 					db: processEnv.getBlockchainDB(),
 					genesisBlock: processEnv.getGenesisBlock(),
-					networkIdentifier: processEnv.getNetworkId(),
+					chainID: processEnv.getNetworkId(),
 				});
 				await newConsensus.init({
 					db: consensus['_db'],
@@ -149,7 +154,7 @@ describe('genesis block', () => {
 				});
 
 				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
-					address: recipientAddress.toString('hex'),
+					address: address.getLisk32AddressFromAddress(recipientAddress),
 					tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 				});
 

@@ -39,21 +39,21 @@ import { Logger, createLogger } from './logger';
 import { DuplicateAppInstanceError } from './errors';
 import { BaseModule, ModuleMetadataJSON } from './modules/base_module';
 import { getEndpointHandlers, mergeEndpointHandlers } from './endpoint';
-import { ValidatorsAPI, ValidatorsModule } from './modules/validators';
-import { TokenModule, TokenAPI } from './modules/token';
-import { AuthModule, AuthAPI } from './modules/auth';
-import { FeeModule, FeeAPI } from './modules/fee';
-import { RewardModule, RewardAPI } from './modules/reward';
-import { RandomModule, RandomAPI } from './modules/random';
-import { DPoSModule, DPoSAPI } from './modules/dpos_v2';
+import { ValidatorsMethod, ValidatorsModule } from './modules/validators';
+import { TokenModule, TokenMethod } from './modules/token';
+import { AuthModule, AuthMethod } from './modules/auth';
+import { FeeModule, FeeMethod } from './modules/fee';
+import { RewardModule, RewardMethod } from './modules/reward';
+import { RandomModule, RandomMethod } from './modules/random';
+import { DPoSModule, DPoSMethod } from './modules/dpos_v2';
 import { generateGenesisBlock, GenesisBlockGenerateInput } from './genesis_block';
 import { StateMachine } from './state_machine';
 import { ABIHandler, EVENT_ENGINE_READY } from './abi_handler/abi_handler';
 import { ABIServer } from './abi_handler/abi_server';
 import { SidechainInteroperabilityModule } from './modules/interoperability/sidechain/module';
 import { MainchainInteroperabilityModule } from './modules/interoperability/mainchain/module';
-import { SidechainInteroperabilityAPI } from './modules/interoperability/sidechain/api';
-import { MainchainInteroperabilityAPI } from './modules/interoperability/mainchain/api';
+import { SidechainInteroperabilityMethod } from './modules/interoperability/sidechain/method';
+import { MainchainInteroperabilityMethod } from './modules/interoperability/mainchain/method';
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -103,15 +103,15 @@ const registerProcessHooks = (app: Application): void => {
 
 interface DefaultApplication {
 	app: Application;
-	api: {
-		validator: ValidatorsAPI;
-		auth: AuthAPI;
-		token: TokenAPI;
-		fee: FeeAPI;
-		random: RandomAPI;
-		reward: RewardAPI;
-		dpos: DPoSAPI;
-		interoperability: SidechainInteroperabilityAPI | MainchainInteroperabilityAPI;
+	method: {
+		validator: ValidatorsMethod;
+		auth: AuthMethod;
+		token: TokenMethod;
+		fee: FeeMethod;
+		random: RandomMethod;
+		reward: RewardMethod;
+		dpos: DPoSMethod;
+		interoperability: SidechainInteroperabilityMethod | MainchainInteroperabilityMethod;
 	};
 }
 
@@ -172,10 +172,10 @@ export class Application {
 			: new SidechainInteroperabilityModule();
 
 		// resolve dependencies
-		feeModule.addDependencies(tokenModule.api);
-		rewardModule.addDependencies(tokenModule.api, randomModule.api);
-		dposModule.addDependencies(randomModule.api, validatorModule.api, tokenModule.api);
-		tokenModule.addDependencies(interoperabilityModule.api);
+		feeModule.addDependencies(tokenModule.method);
+		rewardModule.addDependencies(tokenModule.method, randomModule.method);
+		dposModule.addDependencies(randomModule.method, validatorModule.method, tokenModule.method);
+		tokenModule.addDependencies(interoperabilityModule.method);
 
 		// resolve interoperability dependencies
 		interoperabilityModule.registerInteroperableModule(tokenModule);
@@ -192,15 +192,15 @@ export class Application {
 
 		return {
 			app: application,
-			api: {
-				validator: validatorModule.api,
-				token: tokenModule.api,
-				auth: authModule.api,
-				fee: feeModule.api,
-				dpos: dposModule.api,
-				random: randomModule.api,
-				reward: rewardModule.api,
-				interoperability: interoperabilityModule.api,
+			method: {
+				validator: validatorModule.method,
+				token: tokenModule.method,
+				auth: authModule.method,
+				fee: feeModule.method,
+				dpos: dposModule.method,
+				random: randomModule.method,
+				reward: rewardModule.method,
+				interoperability: interoperabilityModule.method,
 			},
 		};
 	}
@@ -291,8 +291,9 @@ export class Application {
 				this._controller
 					.start()
 					.then(() => {
-						this.logger.debug(this._controller.getEvents(), 'Application listening to events');
-						this.logger.info(this._controller.getEndpoints(), 'Application ready for endpoints');
+						for (const method of this._controller.getEndpoints()) {
+							this.logger.info({ method }, `Registered endpoint`);
+						}
 						this.channel.publish(APP_EVENT_READY);
 					})
 					.catch(err => {
@@ -365,11 +366,9 @@ export class Application {
 	}
 
 	private _initLogger(): Logger {
-		const dirs = systemDirs(this.config.system.dataPath);
 		return createLogger({
-			...this.config.logger,
-			logFilePath: path.join(dirs.logs, 'lisk.log'),
-			module: 'lisk:app',
+			logLevel: this.config?.system.logLevel ?? 'none',
+			name: 'application',
 		});
 	}
 

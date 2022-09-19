@@ -113,7 +113,7 @@ describe('fee', () => {
 			// Arrange
 			const delegateRegisterTransaction = {
 				...validTransaction,
-				moduleID: utils.intToBuffer(5, 4),
+				module: utils.intToBuffer(5, 4),
 				command: 'transfer',
 				params: { username: 'delegate1' },
 			};

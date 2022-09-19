@@ -18,7 +18,7 @@ import { isUInt64, validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { GenesisBlockExecuteContext, BlockAfterExecuteContext } from '../../state_machine';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { DPoSAPI } from './api';
+import { DPoSMethod } from './method';
 import { DelegateRegistrationCommand } from './commands/delegate_registration';
 import { ReportDelegateMisbehaviorCommand } from './commands/pom';
 import { UnlockCommand } from './commands/unlock';
@@ -43,9 +43,9 @@ import {
 	getVoterResponseSchema,
 } from './schemas';
 import {
-	RandomAPI,
-	TokenAPI,
-	ValidatorsAPI,
+	RandomMethod,
+	TokenMethod,
+	ValidatorsMethod,
 	SnapshotStoreData,
 	GenesisStore,
 	ModuleConfigJSON,
@@ -69,7 +69,7 @@ import { SnapshotStore } from './stores/snapshot';
 import { VoterStore } from './stores/voter';
 
 export class DPoSModule extends BaseModule {
-	public api = new DPoSAPI(this.stores, this.events);
+	public method = new DPoSMethod(this.stores, this.events);
 	public configSchema = configSchema;
 	public endpoint = new DPoSEndpoint(this.stores, this.offchainStores);
 
@@ -97,9 +97,9 @@ export class DPoSModule extends BaseModule {
 		this._voteCommand,
 	];
 
-	private _randomAPI!: RandomAPI;
-	private _validatorsAPI!: ValidatorsAPI;
-	private _tokenAPI!: TokenAPI;
+	private _randomMethod!: RandomMethod;
+	private _validatorsMethod!: ValidatorsMethod;
+	private _tokenMethod!: TokenMethod;
 	private _moduleConfig!: ModuleConfig;
 
 	public constructor() {
@@ -116,22 +116,26 @@ export class DPoSModule extends BaseModule {
 		return 'dpos';
 	}
 
-	public addDependencies(randomAPI: RandomAPI, validatorsAPI: ValidatorsAPI, tokenAPI: TokenAPI) {
-		this._randomAPI = randomAPI;
-		this._validatorsAPI = validatorsAPI;
-		this._tokenAPI = tokenAPI;
+	public addDependencies(
+		randomMethod: RandomMethod,
+		validatorsMethod: ValidatorsMethod,
+		tokenMethod: TokenMethod,
+	) {
+		this._randomMethod = randomMethod;
+		this._validatorsMethod = validatorsMethod;
+		this._tokenMethod = tokenMethod;
 
-		this._delegateRegistrationCommand.addDependencies(this._validatorsAPI);
+		this._delegateRegistrationCommand.addDependencies(this._validatorsMethod);
 		this._reportDelegateMisbehaviorCommand.addDependencies({
-			tokenAPI: this._tokenAPI,
-			validatorsAPI: this._validatorsAPI,
+			tokenMethod: this._tokenMethod,
+			validatorsMethod: this._validatorsMethod,
 		});
 		this._unlockCommand.addDependencies({
-			tokenAPI: this._tokenAPI,
+			tokenMethod: this._tokenMethod,
 		});
-		this._updateGeneratorKeyCommand.addDependencies(this._validatorsAPI);
+		this._updateGeneratorKeyCommand.addDependencies(this._validatorsMethod);
 		this._voteCommand.addDependencies({
-			tokenAPI: this._tokenAPI,
+			tokenMethod: this._tokenMethod,
 		});
 	}
 
@@ -363,10 +367,10 @@ export class DPoSModule extends BaseModule {
 			return;
 		}
 		const genesisStore = codec.decode<GenesisStore>(genesisStoreSchema, assetBytes);
-		const apiContext = context.getAPIContext();
+		const methodContext = context.getMethodContext();
 		for (const dposValidator of genesisStore.validators) {
-			const valid = await this._validatorsAPI.registerValidatorKeys(
-				apiContext,
+			const valid = await this._validatorsMethod.registerValidatorKeys(
+				methodContext,
 				dposValidator.address,
 				dposValidator.blsKey,
 				dposValidator.generatorKey,
@@ -389,8 +393,8 @@ export class DPoSModule extends BaseModule {
 			for (const pendingUnlock of voterData.value.pendingUnlocks) {
 				votedAmount += pendingUnlock.amount;
 			}
-			const lockedAmount = await this._tokenAPI.getLockedAmount(
-				apiContext,
+			const lockedAmount = await this._tokenMethod.getLockedAmount(
+				methodContext,
 				voterData.key,
 				this._moduleConfig.tokenIDDPoS,
 				this.name,
@@ -405,8 +409,8 @@ export class DPoSModule extends BaseModule {
 		const initBFTThreshold = BigInt(Math.floor((2 * initDelegates.length) / 3) + 1);
 		const validators = [];
 		for (const validatorAddress of initDelegates) {
-			const validatorAccount = await this._validatorsAPI.getValidatorAccount(
-				apiContext,
+			const validatorAccount = await this._validatorsMethod.getValidatorAccount(
+				methodContext,
 				validatorAddress,
 			);
 			validators.push({
@@ -564,19 +568,19 @@ export class DPoSModule extends BaseModule {
 		const snapshotStore = this.stores.get(SnapshotStore);
 		const snapshot = await snapshotStore.get(context, utils.intToBuffer(nextRound, 4));
 
-		const apiContext = context.getAPIContext();
+		const methodContext = context.getMethodContext();
 
 		// Update the validators
 		const validators = [...snapshot.activeDelegates];
 		let standbyDelegates: Buffer[] = [];
-		const randomSeed1 = await this._randomAPI.getRandomBytes(
-			apiContext,
+		const randomSeed1 = await this._randomMethod.getRandomBytes(
+			methodContext,
 			height + 1 - Math.floor((this._moduleConfig.roundLength * 3) / 2),
 			this._moduleConfig.roundLength,
 		);
 		if (this._moduleConfig.numberStandbyDelegates === 2) {
-			const randomSeed2 = await this._randomAPI.getRandomBytes(
-				apiContext,
+			const randomSeed2 = await this._randomMethod.getRandomBytes(
+				methodContext,
 				height + 1 - 2 * this._moduleConfig.roundLength,
 				this._moduleConfig.roundLength,
 			);
@@ -593,8 +597,8 @@ export class DPoSModule extends BaseModule {
 		const shuffledValidators = shuffleDelegateList(randomSeed1, validators);
 		const bftValidators = [];
 		for (const validatorAddress of shuffledValidators) {
-			const validatorAccount = await this._validatorsAPI.getValidatorAccount(
-				apiContext,
+			const validatorAccount = await this._validatorsMethod.getValidatorAccount(
+				methodContext,
 				validatorAddress,
 			);
 			const isActive =
@@ -615,16 +619,16 @@ export class DPoSModule extends BaseModule {
 	}
 
 	private async _updateProductivity(context: BlockAfterExecuteContext, previousTimestamp: number) {
-		const { logger, header, getAPIContext } = context;
+		const { logger, header, getMethodContext } = context;
 
 		const round = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
 		logger.debug(round, 'Updating delegates productivity for round');
 
 		const newHeight = header.height;
-		const apiContext = getAPIContext();
+		const methodContext = getMethodContext();
 		const generators = context.currentValidators;
-		const missedBlocks = await this._validatorsAPI.getGeneratorsBetweenTimestamps(
-			apiContext,
+		const missedBlocks = await this._validatorsMethod.getGeneratorsBetweenTimestamps(
+			methodContext,
 			previousTimestamp,
 			header.timestamp,
 			generators,

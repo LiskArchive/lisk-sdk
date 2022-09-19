@@ -13,7 +13,7 @@
  */
 import { Schema } from '@liskhq/lisk-codec';
 import { Logger } from './logger';
-import { ImmutableAPIContext, ImmutableSubStore, SubStore } from './state_machine/types';
+import { ImmutableMethodContext, ImmutableSubStore, SubStore } from './state_machine/types';
 import { RPC_MODES } from './constants';
 
 export interface SocketPaths {
@@ -60,7 +60,7 @@ export interface GenesisConfig {
 		fromFile?: string;
 		blob?: string;
 	};
-	communityIdentifier: string;
+	chainID: string;
 	maxTransactionsSize: number;
 	minFeePerByte: number;
 	blockTime: number;
@@ -78,6 +78,7 @@ export interface TransactionPoolConfig {
 export interface SystemConfig {
 	version: string;
 	dataPath: string;
+	logLevel: string;
 	keepEventsForHeights: number;
 }
 
@@ -103,10 +104,6 @@ export interface PluginConfig extends Record<string, unknown> {
 
 export interface ApplicationConfig {
 	system: SystemConfig;
-	logger: {
-		fileLogLevel: string;
-		consoleLogLevel: string;
-	};
 	rpc: RPCConfig;
 	genesis: GenesisConfig;
 	network: NetworkConfig;
@@ -151,8 +148,8 @@ export interface PluginEndpointContext {
 export interface ModuleEndpointContext extends PluginEndpointContext {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
-	getImmutableAPIContext: () => ImmutableAPIContext;
-	networkIdentifier: Buffer;
+	getImmutableMethodContext: () => ImmutableMethodContext;
+	chainID: Buffer;
 }
 
 export type EndpointHandler = (
@@ -174,7 +171,7 @@ export type JSONObject<T> = Replaced<T, bigint | Buffer, string>;
 
 export interface Event {
 	readonly module: string;
-	readonly typeID: Buffer;
+	readonly name: string;
 	readonly topics: Buffer[];
 	readonly index: number;
 	readonly data: Buffer;

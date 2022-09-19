@@ -60,10 +60,10 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 			const beforeSendContext = createCCMsgBeforeSendContext({
 				ccm,
 				eventQueue: context.eventQueue,
-				getAPIContext: context.getAPIContext,
+				getMethodContext: context.getMethodContext,
 				getStore: context.getStore,
 				logger: context.logger,
-				networkIdentifier: context.networkIdentifier,
+				chainID: context.chainID,
 				feeAddress: context.feeAddress,
 			});
 			await interoperabilityStore.terminateChainInternal(ccm.sendingChainID, beforeSendContext);
@@ -73,6 +73,6 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 	protected getInteroperabilityStore(
 		context: StoreGetter | ImmutableStoreGetter,
 	): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
+		return new SidechainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
 	}
 }

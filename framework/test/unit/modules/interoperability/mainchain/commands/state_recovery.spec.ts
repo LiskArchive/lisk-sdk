@@ -22,7 +22,7 @@ import {
 	MainchainInteroperabilityModule,
 } from '../../../../../../src';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
-import { BaseInteroperableAPI } from '../../../../../../src/modules/interoperability/base_interoperable_api';
+import { BaseInteroperableMethod } from '../../../../../../src/modules/interoperability/base_interoperable_method';
 import {
 	COMMAND_NAME_STATE_RECOVERY,
 	MODULE_NAME_INTEROPERABILITY,
@@ -47,8 +47,8 @@ describe('Mainchain StateRecoveryCommand', () => {
 	let stateRecoveryCommand: StateRecoveryCommand;
 	let commandVerifyContext: CommandVerifyContext<StateRecoveryParams>;
 	let commandExecuteContext: CommandExecuteContext<StateRecoveryParams>;
-	let interoperableCCAPIs: Map<string, BaseInteroperableAPI>;
-	let interoperableAPI: any;
+	let interoperableCCMethods: Map<string, BaseInteroperableMethod>;
+	let interoperableMethod: any;
 	let ccCommands: Map<string, BaseCCCommand[]>;
 	let transaction: Transaction;
 	let transactionParams: StateRecoveryParams;
@@ -59,17 +59,17 @@ describe('Mainchain StateRecoveryCommand', () => {
 	let terminatedStateAccount: TerminatedStateAccount;
 
 	beforeEach(async () => {
-		interoperableCCAPIs = new Map();
-		interoperableAPI = {
+		interoperableCCMethods = new Map();
+		interoperableMethod = {
 			module: MODULE_NAME_INTEROPERABILITY,
 			recover: jest.fn(),
 		};
-		interoperableCCAPIs.set(MODULE_NAME_INTEROPERABILITY, interoperableAPI);
+		interoperableCCMethods.set(MODULE_NAME_INTEROPERABILITY, interoperableMethod);
 		ccCommands = new Map();
 		stateRecoveryCommand = new StateRecoveryCommand(
 			interopMod.stores,
 			interopMod.events,
-			interoperableCCAPIs,
+			interoperableCCMethods,
 			ccCommands,
 		);
 		transactionParams = {
@@ -166,15 +166,15 @@ describe('Mainchain StateRecoveryCommand', () => {
 		});
 
 		it('should throw error if recovery not available for module', async () => {
-			interoperableCCAPIs.delete(MODULE_NAME_INTEROPERABILITY);
+			interoperableCCMethods.delete(MODULE_NAME_INTEROPERABILITY);
 
 			await expect(stateRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
 				'Recovery not available for module',
 			);
 		});
 
-		it('should throw error if recover api fails', async () => {
-			interoperableAPI.recover = jest.fn().mockRejectedValue(new Error('error'));
+		it('should throw error if recover method fails', async () => {
+			interoperableMethod.recover = jest.fn().mockRejectedValue(new Error('error'));
 
 			await expect(stateRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
 				'Recovery failed',

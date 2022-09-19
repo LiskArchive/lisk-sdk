@@ -27,7 +27,7 @@ import { MainchainInteroperabilityStore } from '../store';
 import { verifyMessageRecovery, swapReceivingAndSendingChainIDs, getCCMSize } from '../../utils';
 import { CCM_STATUS_RECOVERED, CHAIN_ACTIVE, EMPTY_FEE_ADDRESS } from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
-import { BaseInteroperableAPI } from '../../base_interoperable_api';
+import { BaseInteroperableMethod } from '../../base_interoperable_method';
 import { createCCCommandExecuteContext } from '../../context';
 import { TerminatedOutboxAccount } from '../../stores/terminated_outbox';
 import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
@@ -66,7 +66,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 	}
 
 	public async execute(context: CommandExecuteContext<MessageRecoveryParams>): Promise<void> {
-		const { transaction, params, getAPIContext, logger, networkIdentifier, getStore } = context;
+		const { transaction, params, getMethodContext, logger, chainID, getStore } = context;
 
 		const chainIdAsBuffer = params.chainID;
 
@@ -75,17 +75,17 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			codec.decode<CCMsg>(ccmSchema, serializedCCMsg),
 		);
 		for (const ccm of deserializedCCMs) {
-			const apisWithBeforeRecoverCCM = [...this.interoperableCCAPIs.values()].filter(api =>
-				Reflect.has(api, 'beforeRecoverCCM'),
-			) as Pick<Required<BaseInteroperableAPI>, 'beforeRecoverCCM'>[];
-			for (const api of apisWithBeforeRecoverCCM) {
-				await api.beforeRecoverCCM({
+			const methodsWithBeforeRecoverCCM = [...this.interoperableCCMethods.values()].filter(method =>
+				Reflect.has(method, 'beforeRecoverCCM'),
+			) as Pick<Required<BaseInteroperableMethod>, 'beforeRecoverCCM'>[];
+			for (const method of methodsWithBeforeRecoverCCM) {
+				await method.beforeRecoverCCM({
 					ccm,
 					trsSender: transaction.senderAddress,
 					eventQueue: context.eventQueue,
-					getAPIContext,
+					getMethodContext,
 					logger,
-					networkIdentifier,
+					chainID,
 					getStore,
 					feeAddress: EMPTY_FEE_ADDRESS,
 				});
@@ -151,10 +151,10 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 					ccmSize: getCCMSize(ccm),
 					eventQueue: context.eventQueue,
 					feeAddress: EMPTY_FEE_ADDRESS,
-					getAPIContext,
+					getMethodContext,
 					getStore,
 					logger,
-					networkIdentifier,
+					chainID,
 				});
 
 				await ccCommand.execute(ccCommandExecuteContext);
@@ -182,6 +182,6 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 	protected getInteroperabilityStore(
 		context: StoreGetter | ImmutableStoreGetter,
 	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
+		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
 	}
 }

@@ -46,7 +46,7 @@ describe('Transaction pool', () => {
 				nonce: BigInt(authData.nonce),
 				recipientAddress: account.address,
 				amount: BigInt('100000000000'),
-				networkIdentifier: processEnv.getNetworkId(),
+				chainID: processEnv.getNetworkId(),
 				privateKey: Buffer.from(genesis.privateKey, 'hex'),
 			});
 			await processEnv.getGenerator()['_pool'].add(transaction);

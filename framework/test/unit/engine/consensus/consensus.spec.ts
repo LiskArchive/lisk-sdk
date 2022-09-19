@@ -32,7 +32,7 @@ import { loggerMock } from '../../../../src/testing/mocks';
 import {
 	createFakeBlockHeader,
 	createValidDefaultBlock,
-	defaultNetworkIdentifier,
+	defaultChainID,
 	genesisBlock,
 } from '../../../fixtures';
 import * as forkchoice from '../../../../src/engine/consensus/fork_choice/fork_choice_rule';
@@ -66,7 +66,7 @@ describe('consensus', () => {
 			finalizedHeight: 0,
 			loadLastBlocks: jest.fn(),
 			lastBlock,
-			networkIdentifier: Buffer.from('network-identifier'),
+			chainID: Buffer.from('network-identifier'),
 			validateBlock: jest.fn(),
 			validateTransaction: jest.fn(),
 			removeBlock: jest.fn(),
@@ -81,7 +81,7 @@ describe('consensus', () => {
 		bft = {
 			initGenesisState: jest.fn(),
 			beforeTransactionsExecute: jest.fn(),
-			api: {
+			method: {
 				getGeneratorKeys: jest.fn().mockResolvedValue([]),
 				currentHeaderImpliesMaximalPrevotes: jest.fn().mockResolvedValue(true),
 				getBFTHeights: jest
@@ -165,7 +165,7 @@ describe('consensus', () => {
 
 		it('should execute genesis block if genesis block does not exist', async () => {
 			// Arrange
-			jest.spyOn(consensus['_bft'].api, 'getBFTParameters').mockResolvedValue({
+			jest.spyOn(consensus['_bft'].method, 'getBFTParameters').mockResolvedValue({
 				validatorsHash: genesis.header.validatorsHash,
 			} as never);
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
@@ -194,7 +194,7 @@ describe('consensus', () => {
 		it('should fail initialization if eventRoot is invalid', async () => {
 			// Arrange
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
-			jest.spyOn(consensus['_bft'].api, 'getBFTParameters').mockResolvedValue({
+			jest.spyOn(consensus['_bft'].method, 'getBFTParameters').mockResolvedValue({
 				validatorsHash: genesis.header.validatorsHash,
 			} as never);
 			jest
@@ -213,7 +213,7 @@ describe('consensus', () => {
 		it('should fail initialization if validatorsHash is invalid', async () => {
 			// Arrange
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
-			jest.spyOn(consensus['_bft'].api, 'getBFTParameters').mockResolvedValue({
+			jest.spyOn(consensus['_bft'].method, 'getBFTParameters').mockResolvedValue({
 				validatorsHash: utils.getRandomBytes(32),
 			} as never);
 			await expect(
@@ -630,7 +630,7 @@ describe('consensus', () => {
 					},
 				});
 				stateStore = new StateStore(new InMemoryDatabase());
-				jest.spyOn(bft.api, 'getBFTParameters').mockResolvedValue({
+				jest.spyOn(bft.method, 'getBFTParameters').mockResolvedValue({
 					validatorsHash: block.header.validatorsHash,
 				} as never);
 				consensus['_verifyEventRoot'] = jest.fn().mockReturnValue(undefined);
@@ -667,7 +667,7 @@ describe('consensus', () => {
 				stateStore = new StateStore(new InMemoryDatabase());
 				jest.spyOn(chain, 'saveBlock').mockResolvedValue();
 				jest.spyOn(consensus, 'finalizedHeight').mockReturnValue(0);
-				jest.spyOn(bft.api, 'getBFTParameters').mockResolvedValue({
+				jest.spyOn(bft.method, 'getBFTParameters').mockResolvedValue({
 					validatorsHash: block.header.validatorsHash,
 				} as never);
 				jest.spyOn(consensus.events, 'emit');
@@ -804,7 +804,7 @@ describe('consensus', () => {
 
 			describe('bftProperties', () => {
 				it('should throw error for invalid maxHeightPrevoted', async () => {
-					when(consensus['_bft'].api.getBFTHeights as never)
+					when(consensus['_bft'].method.getBFTHeights as never)
 						.calledWith(stateStore)
 						.mockResolvedValue({ maxHeightPrevoted: block.header.maxHeightPrevoted + 1 } as never);
 
@@ -816,11 +816,11 @@ describe('consensus', () => {
 				});
 
 				it('should throw error if the header is contradicting', async () => {
-					when(consensus['_bft'].api.getBFTHeights as never)
+					when(consensus['_bft'].method.getBFTHeights as never)
 						.calledWith(stateStore)
 						.mockResolvedValue({ maxHeightPrevoted: block.header.maxHeightPrevoted } as never);
 
-					when(consensus['_bft'].api.isHeaderContradictingChain as never)
+					when(consensus['_bft'].method.isHeaderContradictingChain as never)
 						.calledWith(stateStore, block.header)
 						.mockResolvedValue(true as never);
 
@@ -830,11 +830,11 @@ describe('consensus', () => {
 				});
 
 				it('should be success if maxHeightPrevoted is valid and header is not contradicting', async () => {
-					when(consensus['_bft'].api.getBFTHeights as never)
+					when(consensus['_bft'].method.getBFTHeights as never)
 						.calledWith(stateStore)
 						.mockResolvedValue({ maxHeightPrevoted: block.header.maxHeightPrevoted } as never);
 
-					when(consensus['_bft'].api.isHeaderContradictingChain as never)
+					when(consensus['_bft'].method.isHeaderContradictingChain as never)
 						.calledWith(stateStore, block.header)
 						.mockResolvedValue(false as never);
 
@@ -848,7 +848,7 @@ describe('consensus', () => {
 				it('should throw error for invalid signature', async () => {
 					const generatorKey = utils.getRandomBytes(32);
 
-					when(consensus['_bft'].api.getGeneratorKeys as never)
+					when(consensus['_bft'].method.getGeneratorKeys as never)
 						.calledWith(stateStore, block.header.height)
 						.mockResolvedValue([{ address: block.header.generatorAddress, generatorKey }] as never);
 
@@ -869,12 +869,12 @@ describe('consensus', () => {
 					(blockHeader as any).generatorAddress = cryptoAddress.getAddressFromPublicKey(
 						keyPair.publicKey,
 					);
-					(consensus['_chain'] as any).networkIdentifier = defaultNetworkIdentifier;
+					(consensus['_chain'] as any).chainID = defaultChainID;
 
-					blockHeader.sign(consensus['_chain'].networkIdentifier, keyPair.privateKey);
+					blockHeader.sign(consensus['_chain'].chainID, keyPair.privateKey);
 					const validBlock = new Block(blockHeader, [], new BlockAssets());
 
-					when(consensus['_bft'].api.getGeneratorKeys as never)
+					when(consensus['_bft'].method.getGeneratorKeys as never)
 						.calledWith(stateStore, validBlock.header.height)
 						.mockResolvedValue([
 							{ address: validBlock.header.generatorAddress, generatorKey: keyPair.publicKey },
@@ -888,7 +888,7 @@ describe('consensus', () => {
 
 			describe('validatorsHash', () => {
 				it('should throw error when validatorsHash is undefined', async () => {
-					when(consensus['_bft'].api.getBFTParameters as never)
+					when(consensus['_bft'].method.getBFTParameters as never)
 						.calledWith(stateStore, block.header.height + 1)
 						.mockResolvedValue({
 							validatorsHash: utils.hash(utils.getRandomBytes(32)),
@@ -908,7 +908,7 @@ describe('consensus', () => {
 				});
 
 				it('should throw error for invalid validatorsHash', async () => {
-					when(consensus['_bft'].api.getBFTParameters as never)
+					when(consensus['_bft'].method.getBFTParameters as never)
 						.calledWith(stateStore, block.header.height + 1)
 						.mockResolvedValue({
 							validatorsHash: utils.hash(utils.getRandomBytes(32)),
@@ -925,7 +925,7 @@ describe('consensus', () => {
 				});
 
 				it('should be success for valid validatorsHash', async () => {
-					when(consensus['_bft'].api.getBFTParameters as never)
+					when(consensus['_bft'].method.getBFTParameters as never)
 						.calledWith(stateStore, block.header.height + 1)
 						.mockResolvedValue({ validatorsHash: block.header.validatorsHash } as never);
 
@@ -981,7 +981,8 @@ describe('consensus', () => {
 							index: 0,
 							module: 'token',
 							topics: [Buffer.from([0])],
-							typeID: Buffer.from([0, 0, 0, 1]),
+							name: 'Token Event Name',
+							height: 12,
 						}),
 					]),
 				).rejects.toThrow(

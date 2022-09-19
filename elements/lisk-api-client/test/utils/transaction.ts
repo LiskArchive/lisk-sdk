@@ -26,7 +26,7 @@ export const nodeInfo: NodeInfo = {
 	version:
 		'3.0.0-beta.2.4-88b24e03bb28925a036293126dd96ac636218e29-6a1742532104af6f5c010e2ae77d3d982d471751.6a17425',
 	networkVersion: '2.0',
-	networkIdentifier: 'ccb837b25bc4f1b43fc08c2e80b07c6b46b84bf2264f6a37eaa4416fe478a0c5',
+	chainID: '00000000',
 	lastBlockID: '57a669f7170239a68460af284eb1ba043839fe828be302b9c0e65fee498c954e',
 	height: 276626,
 	genesisHeight: 0,
@@ -80,7 +80,7 @@ export const metadata: ModuleMetadata[] = [
 					required: ['amount', 'recipientAddress', 'data'],
 					properties: {
 						amount: { dataType: 'uint64', fieldNumber: 1 },
-						recipientAddress: { dataType: 'bytes', fieldNumber: 2, minLength: 20, maxLength: 20 },
+						recipientAddress: { dataType: 'bytes', fieldNumber: 2, format: 'lisk32' },
 						data: { dataType: 'string', fieldNumber: 3, minLength: 0, maxLength: 64 },
 					},
 				},
@@ -96,7 +96,7 @@ export const metadata: ModuleMetadata[] = [
 		commands: [
 			{
 				id: utils.intToBuffer(0, 4).toString('hex'),
-				name: 'registerMultisignatureGroup',
+				name: 'registerMultisignature',
 				params: {
 					$id: '/lisk/keys/register',
 					type: 'object',

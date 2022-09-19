@@ -26,17 +26,17 @@ import { MAX_UNLOCKING, MAX_VOTE, MODULE_NAME_DPOS, TEN_UNIT } from '../constant
 import { voteCommandParamsSchema } from '../schemas';
 import { DelegateStore } from '../stores/delegate';
 import { VoterStore } from '../stores/voter';
-import { TokenAPI, TokenIDDPoS, VoteCommandDependencies, VoteTransactionParams } from '../types';
+import { TokenMethod, TokenIDDPoS, VoteCommandDependencies, VoteTransactionParams } from '../types';
 import { sortUnlocking } from '../utils';
 
 export class VoteDelegateCommand extends BaseCommand {
 	public schema = voteCommandParamsSchema;
 
-	private _tokenAPI!: TokenAPI;
+	private _tokenMethod!: TokenMethod;
 	private _tokenIDDPoS!: TokenIDDPoS;
 
 	public addDependencies(args: VoteCommandDependencies) {
-		this._tokenAPI = args.tokenAPI;
+		this._tokenMethod = args.tokenMethod;
 	}
 
 	public init(args: { tokenIDDPoS: TokenIDDPoS }) {
@@ -126,7 +126,7 @@ export class VoteDelegateCommand extends BaseCommand {
 		const {
 			transaction: { senderAddress },
 			params: { votes },
-			getAPIContext,
+			getMethodContext,
 			header: { height },
 		} = context;
 
@@ -198,8 +198,8 @@ export class VoteDelegateCommand extends BaseCommand {
 						  };
 				upvote.amount += vote.amount;
 
-				await this._tokenAPI.lock(
-					getAPIContext(),
+				await this._tokenMethod.lock(
+					getMethodContext(),
 					senderAddress,
 					MODULE_NAME_DPOS,
 					this._tokenIDDPoS,

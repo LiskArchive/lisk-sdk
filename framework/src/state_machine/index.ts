@@ -20,14 +20,14 @@ export { TransactionContext } from './transaction_context';
 export { BlockContext } from './block_context';
 export { GenesisBlockContext } from './genesis_block_context';
 export { EventQueue } from './event_queue';
-export { createAPIContext, createImmutableAPIContext } from './api_context';
+export { createMethodContext, createImmutableMethodContext } from './method_context';
 export {
-	APIContext,
+	MethodContext,
 	BlockHeader,
 	BlockAssets,
 	VerifyStatus,
 	ImmutableSubStore,
-	ImmutableAPIContext,
+	ImmutableMethodContext,
 	BlockExecuteContext,
 	BlockAfterExecuteContext,
 	BlockVerifyContext,

@@ -1,9 +1,9 @@
-import * as Config from '@oclif/config';
 import { AccountCreateCommand } from '../../../src/commands/account/create';
+import { Awaited } from '../../types';
 import { getConfig } from '../../utils/config';
 
 describe('account:create', () => {
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let results: any;
 	beforeEach(async () => {
 		results = [];
@@ -38,7 +38,6 @@ describe('account:create', () => {
 				'publicKey',
 				'blsPrivateKey',
 				'blsPublicKey',
-				'binaryAddress',
 				'address',
 			]);
 		});

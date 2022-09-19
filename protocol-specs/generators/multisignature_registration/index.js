@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { ed } = require('@liskhq/lisk-cryptography');
+const { ed, legacy, address } = require('@liskhq/lisk-cryptography');
 const { Codec } = require('@liskhq/lisk-codec');
 const BaseGenerator = require('../base_generator');
 const { baseTransactionSchema } = require('../../utils/schema');
@@ -22,10 +22,48 @@ const { baseTransactionSchema } = require('../../utils/schema');
 const codec = new Codec();
 
 const TAG_TRANSACTION = Buffer.from('LSK_TX_', 'utf8');
-const networkIdentifier = Buffer.from(
-	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
-	'hex',
-);
+const MESSAGE_TAG_MULTISIG_REG = 'LSK_RMSG_';
+const chainID = Buffer.from('10000000', 'hex');
+
+const multisigRegMsgSchema = {
+	$id: '/auth/command/regMultisigMsg',
+	type: 'object',
+	required: ['address', 'nonce', 'numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
+	properties: {
+		address: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+			minLength: 20,
+			maxLength: 20,
+		},
+		nonce: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		numberOfSignatures: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+		mandatoryKeys: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: 32,
+				maxLength: 32,
+			},
+			fieldNumber: 4,
+		},
+		optionalKeys: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: 32,
+				maxLength: 32,
+			},
+			fieldNumber: 5,
+		},
+	},
+};
 
 const accounts = {
 	targetAccount: {
@@ -97,8 +135,8 @@ const outputHexAccount = account => ({
 	address: account.address,
 });
 
-const multisigRegAsset = {
-	$id: '/multisignature/registrationAsset',
+const multisigRegParams = {
+	$id: '/multisignature/registrationParams',
 	type: 'object',
 	properties: {
 		numberOfSignatures: { dataType: 'uint32', fieldNumber: 1 },
@@ -112,27 +150,32 @@ const multisigRegAsset = {
 			items: { dataType: 'bytes' },
 			fieldNumber: 3,
 		},
+		signatures: {
+			type: 'array',
+			items: { dataType: 'bytes' },
+			fieldNumber: 4,
+		},
 	},
-	required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
+	required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys', 'signatures'],
 };
 
-const getAssetBytes = asset => codec.encode(multisigRegAsset, asset);
+const getParamsBytes = params => codec.encode(multisigRegParams, params);
 
 const getSignBytes = tx => {
-	const assetBytes = getAssetBytes(tx.params);
+	const paramsBytes = getParamsBytes(tx.params);
 	const signingTx = {
 		...tx,
-		params: assetBytes,
+		params: paramsBytes,
 		signatures: [],
 	};
 	return codec.encode(baseTransactionSchema, signingTx);
 };
 
 const encode = tx => {
-	const assetBytes = getAssetBytes(tx.params);
+	const paramsBytes = getParamsBytes(tx.params);
 	const txWithAssetBytes = {
 		...tx,
-		params: assetBytes,
+		params: paramsBytes,
 	};
 	return codec.encode(baseTransactionSchema, txWithAssetBytes);
 };
@@ -141,17 +184,23 @@ const sortKeysAscending = publicKeys =>
 	publicKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
 
 const createSignatureObject = (txBuffer, account) => ({
-	signature: Buffer.from(
-		ed.signData(TAG_TRANSACTION, networkIdentifier, txBuffer, account.passphrase),
-		'hex',
+	signature: ed.signData(
+		TAG_TRANSACTION,
+		chainID,
+		txBuffer,
+		legacy.getPrivateAndPublicKeyFromPassphrase(account.passphrase).privateKey,
 	),
+});
+
+const createSignatureForMultisignature = (messageBytes, account) => ({
+	signature: ed.signData(MESSAGE_TAG_MULTISIG_REG, chainID, messageBytes, account.privateKey),
 });
 
 const generateValidMultisignatureRegistrationTransaction = () => {
 	// basic transaction
 	const unsignedTransaction = {
 		module: 'auth',
-		command: 'registerMultisignatureGroup',
+		command: 'registerMultisignature',
 		senderPublicKey: Buffer.from(
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 			'hex',
@@ -168,6 +217,7 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 				Buffer.from('fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6', 'hex'),
 			],
 			numberOfSignatures: 4,
+			signatures: [],
 		},
 	};
 
@@ -180,15 +230,30 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 	sortKeysAscending(tx.params.mandatoryKeys);
 	sortKeysAscending(tx.params.optionalKeys);
 
-	const txBuffer = getSignBytes(tx);
+	// Members sign in order
+	const messageBytes = codec.encode(multisigRegMsgSchema, {
+		address: address.getAddressFromPublicKey(tx.senderPublicKey),
+		nonce: tx.nonce,
+		numberOfSignatures: tx.params.numberOfSignatures,
+		mandatoryKeys: tx.params.mandatoryKeys,
+		optionalKeys: tx.params.optionalKeys,
+	});
+	tx.params.signatures.push(
+		createSignatureForMultisignature(messageBytes, accounts.mandatoryTwo).signature,
+	);
+	tx.params.signatures.push(
+		createSignatureForMultisignature(messageBytes, accounts.mandatoryOne).signature,
+	);
+	tx.params.signatures.push(
+		createSignatureForMultisignature(messageBytes, accounts.optionalOne).signature,
+	);
+	tx.params.signatures.push(
+		createSignatureForMultisignature(messageBytes, accounts.optionalTwo).signature,
+	);
 
 	// Sender signs
+	const txBuffer = getSignBytes(tx);
 	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
-	// Members sign in order
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.mandatoryTwo).signature);
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.mandatoryOne).signature);
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.optionalOne).signature);
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.optionalTwo).signature);
 
 	const encodedTx = encode(tx);
 
@@ -196,7 +261,7 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 		description: 'Both mandatory and optional member group',
 		input: {
 			account: outputHexAccount(accounts.targetAccount),
-			networkIdentifier,
+			chainID,
 			members: {
 				mandatoryOne: outputHexAccount(accounts.mandatoryOne),
 				mandatoryTwo: outputHexAccount(accounts.mandatoryTwo),
@@ -220,7 +285,7 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
 		module: 'auth',
-		command: 'registerMultisignatureGroup',
+		command: 'registerMultisignature',
 		params: {
 			mandatoryKeys: [
 				Buffer.from('0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe', 'hex'),
@@ -232,6 +297,7 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 				Buffer.from('fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6', 'hex'),
 			],
 			numberOfSignatures: 4,
+			signatures: [],
 		},
 		signatures: [],
 	};
@@ -245,26 +311,42 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 	sortKeysAscending(tx.params.mandatoryKeys);
 	sortKeysAscending(tx.params.optionalKeys);
 
-	const txBuffer = getSignBytes(tx);
-
-	// Sender signs
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
+	const messageBytes = codec.encode(multisigRegMsgSchema, {
+		address: address.getAddressFromPublicKey(tx.senderPublicKey),
+		nonce: tx.nonce,
+		numberOfSignatures: tx.params.numberOfSignatures,
+		mandatoryKeys: tx.params.mandatoryKeys,
+		optionalKeys: tx.params.optionalKeys,
+	});
 	// Members sign in order
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
+	tx.params.signatures.push(
+		createSignatureForMultisignature(messageBytes, accounts.targetAccount).signature,
+	);
 	// In the case where the Sender is part of mandatory its signature should be included too;
 	// in this case given the lexicographical order it happens to be first but could be in different order
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.mandatoryTwo).signature);
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.mandatoryOne).signature);
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.optionalOne).signature);
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.optionalTwo).signature);
+	tx.params.signatures.push(
+		createSignatureForMultisignature(messageBytes, accounts.mandatoryTwo).signature,
+	);
+	tx.params.signatures.push(
+		createSignatureForMultisignature(messageBytes, accounts.mandatoryOne).signature,
+	);
+	tx.params.signatures.push(
+		createSignatureForMultisignature(messageBytes, accounts.optionalOne).signature,
+	);
+	tx.params.signatures.push(
+		createSignatureForMultisignature(messageBytes, accounts.optionalTwo).signature,
+	);
 
+	// Sender signs
+	const txBuffer = getSignBytes(tx);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
 	const encodedTx = encode(tx);
 
 	return {
 		description: 'Sender is a member of the group',
 		input: {
 			account: outputHexAccount(accounts.targetAccount),
-			networkIdentifier,
+			chainID,
 			members: {
 				targetAccount: outputHexAccount(accounts.targetAccount),
 				mandatoryOne: outputHexAccount(accounts.mandatoryOne),
@@ -289,7 +371,7 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
 		module: 'auth',
-		command: 'registerMultisignatureGroup',
+		command: 'registerMultisignature',
 		params: {
 			mandatoryKeys: [],
 			optionalKeys: [
@@ -297,6 +379,7 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 				Buffer.from('fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6', 'hex'),
 			],
 			numberOfSignatures: 1,
+			signatures: [],
 		},
 		signatures: [],
 	};
@@ -310,21 +393,31 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 	sortKeysAscending(tx.params.mandatoryKeys);
 	sortKeysAscending(tx.params.optionalKeys);
 
-	const txBuffer = getSignBytes(tx);
+	const messageBytes = codec.encode(multisigRegMsgSchema, {
+		address: address.getAddressFromPublicKey(tx.senderPublicKey),
+		nonce: tx.nonce,
+		numberOfSignatures: tx.params.numberOfSignatures,
+		mandatoryKeys: tx.params.mandatoryKeys,
+		optionalKeys: tx.params.optionalKeys,
+	});
+	// Members sign in order
+	tx.params.signatures.push(
+		createSignatureForMultisignature(messageBytes, accounts.optionalOne).signature,
+	);
+	tx.params.signatures.push(
+		createSignatureForMultisignature(messageBytes, accounts.optionalTwo).signature,
+	);
 
 	// Sender signs
+	const txBuffer = getSignBytes(tx);
 	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
-	// Members sign in order
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.optionalOne).signature);
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.optionalTwo).signature);
-
 	const encodedTx = encode(tx);
 
 	return {
 		description: 'Only optional members',
 		input: {
 			account: outputHexAccount(accounts.targetAccount),
-			networkIdentifier,
+			chainID,
 			members: {
 				optionalOne: outputHexAccount(accounts.optionalOne),
 				optionalTwo: outputHexAccount(accounts.optionalTwo),
@@ -346,7 +439,7 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
 		module: 'auth',
-		command: 'registerMultisignatureGroup',
+		command: 'registerMultisignature',
 		params: {
 			mandatoryKeys: [
 				Buffer.from('4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39', 'hex'),
@@ -354,6 +447,7 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 			],
 			optionalKeys: [],
 			numberOfSignatures: 2,
+			signatures: [],
 		},
 		signatures: [],
 	};
@@ -367,13 +461,25 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 	sortKeysAscending(tx.params.mandatoryKeys);
 	sortKeysAscending(tx.params.optionalKeys);
 
+	const messageBytes = codec.encode(multisigRegMsgSchema, {
+		address: address.getAddressFromPublicKey(tx.senderPublicKey),
+		nonce: tx.nonce,
+		numberOfSignatures: tx.params.numberOfSignatures,
+		mandatoryKeys: tx.params.mandatoryKeys,
+		optionalKeys: tx.params.optionalKeys,
+	});
+	// Members sign in order
+	tx.params.signatures.push(
+		createSignatureForMultisignature(messageBytes, accounts.mandatoryTwo).signature,
+	);
+	tx.params.signatures.push(
+		createSignatureForMultisignature(messageBytes, accounts.mandatoryOne).signature,
+	);
+
 	const txBuffer = getSignBytes(tx);
 
 	// Sender signs
 	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
-	// Members sign in order
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.mandatoryTwo).signature);
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.mandatoryOne).signature);
 
 	const encodedTx = encode(tx);
 
@@ -381,7 +487,7 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 		description: 'Only mandatory members',
 		input: {
 			account: outputHexAccount(accounts.targetAccount),
-			networkIdentifier,
+			chainID,
 			members: {
 				mandatoryOne: outputHexAccount(accounts.mandatoryOne),
 				mandatoryTwo: outputHexAccount(accounts.mandatoryTwo),
@@ -417,7 +523,7 @@ const generateFormerSecondSignatureTransactioon = () => {
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
 		module: 'auth',
-		command: 'registerMultisignatureGroup',
+		command: 'registerMultisignature',
 		params: {
 			mandatoryKeys: [
 				Buffer.from('0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe', 'hex'),
@@ -425,6 +531,7 @@ const generateFormerSecondSignatureTransactioon = () => {
 			],
 			optionalKeys: [],
 			numberOfSignatures: 2,
+			signatures: [],
 		},
 		signatures: [],
 	};
@@ -438,13 +545,25 @@ const generateFormerSecondSignatureTransactioon = () => {
 	sortKeysAscending(tx.params.mandatoryKeys);
 	sortKeysAscending(tx.params.optionalKeys);
 
+	const messageBytes = codec.encode(multisigRegMsgSchema, {
+		address: address.getAddressFromPublicKey(tx.senderPublicKey),
+		nonce: tx.nonce,
+		numberOfSignatures: tx.params.numberOfSignatures,
+		mandatoryKeys: tx.params.mandatoryKeys,
+		optionalKeys: tx.params.optionalKeys,
+	});
+	// Members sign in order
+	tx.params.signatures.push(
+		createSignatureForMultisignature(messageBytes, accounts.targetAccount).signature,
+	);
+	tx.params.signatures.push(
+		createSignatureForMultisignature(messageBytes, secondSignature).signature,
+	);
+
 	const txBuffer = getSignBytes(tx);
 
 	// Sender signs
 	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
-	// Members sign in order
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
-	tx.signatures.push(createSignatureObject(txBuffer, secondSignature).signature);
 
 	const encodedTx = encode(tx);
 
@@ -452,7 +571,7 @@ const generateFormerSecondSignatureTransactioon = () => {
 		description: 'Second signature case',
 		input: {
 			account: outputHexAccount(accounts.targetAccount),
-			networkIdentifier,
+			chainID,
 			members: {
 				mandatoryOne: outputHexAccount(accounts.targetAccount),
 				mandatoryTwo: outputHexAccount(secondSignature),

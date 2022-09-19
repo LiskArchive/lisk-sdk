@@ -12,6 +12,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { address } from '@liskhq/lisk-cryptography';
 import {
 	BaseTypes,
 	IteratableGenericObject,
@@ -20,7 +21,7 @@ import {
 	SchemaProps,
 } from './types';
 
-type mapperFunction = (value: BaseTypes) => BaseTypes;
+type mapperFunction = (value: BaseTypes, format?: string) => BaseTypes;
 
 interface mappersInterface {
 	toJSON: {
@@ -39,7 +40,18 @@ const mappers: mappersInterface = {
 		uint64: value => (value as BigInt).toString(),
 		sint64: value => (value as BigInt).toString(),
 		string: value => value as string,
-		bytes: value => (value as Buffer).toString('hex'),
+		bytes: (value, format?: string) => {
+			if (!format || format === 'hex') {
+				return (value as Buffer).toString('hex');
+			}
+			if (format === 'base64') {
+				return (value as Buffer).toString('base64');
+			}
+			if (format === 'lisk32') {
+				return address.getLisk32AddressFromAddress(value as Buffer);
+			}
+			throw new Error(`Unknown format ${format}.`);
+		},
 		boolean: value => value as boolean,
 	},
 	fromJSON: {
@@ -48,7 +60,18 @@ const mappers: mappersInterface = {
 		uint64: value => BigInt(value),
 		sint64: value => BigInt(value),
 		string: value => value as string,
-		bytes: value => Buffer.from(value as string, 'hex'),
+		bytes: (value, format?: string) => {
+			if (!format || format === 'hex') {
+				return Buffer.from(value as string, 'hex');
+			}
+			if (format === 'base64') {
+				return Buffer.from(value as string, 'base64');
+			}
+			if (format === 'lisk32') {
+				return address.getAddressFromLisk32Address(value as string);
+			}
+			throw new Error(`Unknown format ${format}.`);
+		},
 		boolean: value => value as boolean,
 	},
 };
@@ -136,7 +159,10 @@ export const recursiveTypeCast = (
 					}
 
 					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-					(object[key] as any)[i] = mappers[mode][schemaProp.items.dataType](value[i]);
+					(object[key] as any)[i] = mappers[mode][schemaProp.items.dataType](
+						value[i],
+						schemaProp.items.format,
+					);
 				}
 			}
 			dataPath.pop();
@@ -150,7 +176,10 @@ export const recursiveTypeCast = (
 				continue;
 			}
 
-			object[key] = mappers[mode][(schemaProp.dataType as unknown) as string](value);
+			object[key] = mappers[mode][(schemaProp.dataType as unknown) as string](
+				value,
+				schemaProp.format,
+			);
 
 			delete object[(Symbol.iterator as unknown) as string];
 			dataPath.pop();

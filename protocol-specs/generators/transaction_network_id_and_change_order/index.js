@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { signData } = require('@liskhq/lisk-cryptography');
+const { ed, legacy } = require('@liskhq/lisk-cryptography');
 const { Codec } = require('@liskhq/lisk-codec');
 const BaseGenerator = require('../base_generator');
 const { baseTransactionSchema } = require('../../utils/schema');
@@ -76,10 +76,7 @@ const accounts = [
 	},
 ];
 
-const networkIdentifier = Buffer.from(
-	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
-	'hex',
-);
+const chainID = Buffer.from('10000000', 'hex');
 
 const balanceTransferAsset = {
 	type: 'object',
@@ -121,9 +118,11 @@ const generateValidTransferTransaction = () => {
 	};
 	const signingBytes = codec.encode(baseTransactionSchema, signingTx);
 
-	const signature = Buffer.from(
-		signData(TAG_TRANSACTION, networkIdentifier, signingBytes, accounts[0].passphrase),
-		'hex',
+	const signature = ed.signData(
+		TAG_TRANSACTION,
+		chainID,
+		signingBytes,
+		legacy.getPrivateAndPublicKeyFromPassphrase(accounts[0].passphrase).privateKey,
 	);
 
 	const encodedTx = codec.encode(baseTransactionSchema, {
@@ -142,7 +141,7 @@ const generateValidTransferTransaction = () => {
 				privateKey: accounts[0].privateKey,
 				address: accounts[0].address,
 			},
-			networkIdentifier,
+			chainID,
 		},
 		output: {
 			transaction: encodedTx,
@@ -170,12 +169,11 @@ const generateValidDelegateTransaction = () => {
 	};
 	const signingBytes = codec.encode(baseTransactionSchema, signingTx);
 
-	const signature = Buffer.from(
-		signData(
-			Buffer.concat([TAG_TRANSACTION, networkIdentifier, signingBytes]),
-			accounts[0].passphrase,
-		),
-		'hex',
+	const signature = ed.signData(
+		TAG_TRANSACTION,
+		chainID,
+		signingBytes,
+		legacy.getPrivateAndPublicKeyFromPassphrase(accounts[0].passphrase).privateKey,
 	);
 
 	const encodedTx = codec.encode(baseTransactionSchema, {
@@ -194,7 +192,7 @@ const generateValidDelegateTransaction = () => {
 				privateKey: accounts[0].privateKey,
 				address: accounts[0].address,
 			},
-			networkIdentifier,
+			chainID,
 		},
 		output: {
 			transaction: encodedTx,

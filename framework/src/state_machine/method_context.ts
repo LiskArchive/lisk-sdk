@@ -14,30 +14,30 @@
 
 import { EventQueue } from './event_queue';
 import { PrefixedStateReadWriter, StateDBReadWriter } from './prefixed_state_read_writer';
-import { SubStore, ImmutableSubStore, ImmutableAPIContext } from './types';
+import { SubStore, ImmutableSubStore, ImmutableMethodContext } from './types';
 
 interface Params {
 	stateStore: PrefixedStateReadWriter;
 	eventQueue: EventQueue;
 }
 
-export const createAPIContext = (params: Params) => new APIContext(params);
+export const createMethodContext = (params: Params) => new MethodContext(params);
 
-export const createNewAPIContext = (db: StateDBReadWriter) =>
-	new APIContext({ stateStore: new PrefixedStateReadWriter(db), eventQueue: new EventQueue() });
+export const createNewMethodContext = (db: StateDBReadWriter) =>
+	new MethodContext({ stateStore: new PrefixedStateReadWriter(db), eventQueue: new EventQueue(0) });
 
 interface ImmutableSubStoreGetter {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
 
-export const createImmutableAPIContext = (
+export const createImmutableMethodContext = (
 	immutableSubstoreGetter: ImmutableSubStoreGetter,
-): ImmutableAPIContext => ({
+): ImmutableMethodContext => ({
 	getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 		immutableSubstoreGetter.getStore(moduleID, storePrefix),
 });
 
-export class APIContext {
+export class MethodContext {
 	private readonly _stateStore: PrefixedStateReadWriter;
 	private readonly _eventQueue: EventQueue;
 

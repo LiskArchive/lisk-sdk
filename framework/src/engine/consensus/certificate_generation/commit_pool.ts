@@ -32,14 +32,14 @@ import {
 import { Network } from '../../network';
 import { singleCommitSchema, singleCommitsNetworkPacketSchema } from './schema';
 import { CommitList, COMMIT_SORT } from './commit_list';
-import { BFTAPI } from '../../bft';
+import { BFTMethod } from '../../bft';
 
 export class CommitPool {
 	private readonly _nonGossipedCommits: CommitList;
 	private readonly _nonGossipedCommitsLocal: CommitList;
 	private readonly _gossipedCommits: CommitList;
 	private readonly _blockTime: number;
-	private readonly _bftAPI: BFTAPI;
+	private readonly _bftMethod: BFTMethod;
 	private readonly _chain: Chain;
 	private readonly _network: Network;
 	private readonly _db: Database;
@@ -47,7 +47,7 @@ export class CommitPool {
 
 	public constructor(config: CommitPoolConfig) {
 		this._blockTime = config.blockTime;
-		this._bftAPI = config.bftAPI;
+		this._bftMethod = config.bftMethod;
 		this._chain = config.chain;
 		this._network = config.network;
 		this._db = config.db;
@@ -79,7 +79,7 @@ export class CommitPool {
 		}
 	}
 
-	public async validateCommit(apiContext: StateStore, commit: SingleCommit): Promise<boolean> {
+	public async validateCommit(methodContext: StateStore, commit: SingleCommit): Promise<boolean> {
 		// Validation step 4
 		const blockHeaderAtCommitHeight = await this._chain.dataAccess.getBlockHeaderByHeight(
 			commit.height,
@@ -108,12 +108,12 @@ export class CommitPool {
 		}
 
 		// Validation Step 3
-		const { maxHeightPrecommitted } = await this._bftAPI.getBFTHeights(apiContext);
+		const { maxHeightPrecommitted } = await this._bftMethod.getBFTHeights(methodContext);
 		const isCommitInRange =
 			commit.height >= maxHeightPrecommitted - COMMIT_RANGE_STORED &&
 			commit.height <= maxHeightPrecommitted;
-		const doesBFTParamExistForNextHeight = await this._bftAPI.existBFTParameters(
-			apiContext,
+		const doesBFTParamExistForNextHeight = await this._bftMethod.existBFTParameters(
+			methodContext,
 			commit.height + 1,
 		);
 		if (!isCommitInRange && !doesBFTParamExistForNextHeight) {
@@ -121,7 +121,7 @@ export class CommitPool {
 		}
 
 		// Validation Step 5
-		const { validators } = await this._bftAPI.getBFTParameters(apiContext, commit.height);
+		const { validators } = await this._bftMethod.getBFTParameters(methodContext, commit.height);
 		const validator = validators.find(v => v.address.equals(commit.validatorAddress));
 		if (!validator) {
 			throw new Error('Commit validator was not active for its height.');
@@ -129,11 +129,11 @@ export class CommitPool {
 
 		// Validation Step 6
 		const certificate = computeCertificateFromBlockHeader(blockHeaderAtCommitHeight);
-		const { networkIdentifier } = this._chain;
+		const { chainID } = this._chain;
 		const isSingleCertificateVerified = verifySingleCertificateSignature(
 			validator.blsKey,
 			commit.certificateSignature,
-			networkIdentifier,
+			chainID,
 			certificate,
 		);
 
@@ -154,7 +154,7 @@ export class CommitPool {
 	public createSingleCommit(
 		blockHeader: BlockHeader,
 		validatorInfo: ValidatorInfo,
-		networkIdentifier: Buffer,
+		chainID: Buffer,
 	): SingleCommit {
 		const commit = {
 			blockID: blockHeader.id,
@@ -162,7 +162,7 @@ export class CommitPool {
 			validatorAddress: validatorInfo.address,
 			certificateSignature: signCertificate(
 				validatorInfo.blsSecretKey,
-				networkIdentifier,
+				chainID,
 				computeCertificateFromBlockHeader(blockHeader),
 			),
 		};
@@ -174,7 +174,7 @@ export class CommitPool {
 		stateStore: StateStore,
 		aggregateCommit: AggregateCommit,
 	): Promise<boolean> {
-		const { maxHeightCertified, maxHeightPrecommitted } = await this._bftAPI.getBFTHeights(
+		const { maxHeightCertified, maxHeightPrecommitted } = await this._bftMethod.getBFTHeights(
 			stateStore,
 		);
 
@@ -202,7 +202,7 @@ export class CommitPool {
 		}
 
 		try {
-			const heightNextBFTParameters = await this._bftAPI.getNextHeightBFTParameters(
+			const heightNextBFTParameters = await this._bftMethod.getNextHeightBFTParameters(
 				stateStore,
 				maxHeightCertified + 1,
 			);
@@ -222,8 +222,8 @@ export class CommitPool {
 			aggregationBits: aggregateCommit.aggregationBits,
 			signature: aggregateCommit.certificateSignature,
 		};
-		const { networkIdentifier } = this._chain;
-		const bftParams = await this._bftAPI.getBFTParameters(stateStore, aggregateCommit.height);
+		const { chainID } = this._chain;
+		const bftParams = await this._bftMethod.getBFTParameters(stateStore, aggregateCommit.height);
 		const threshold = bftParams.certificateThreshold;
 
 		const validatorKeysWithWeights = [];
@@ -239,17 +239,17 @@ export class CommitPool {
 			validatorKeys,
 			weights,
 			threshold,
-			networkIdentifier,
+			chainID,
 			certificate,
 		);
 	}
 
-	public async getAggregateCommit(apiContext: StateStore): Promise<AggregateCommit> {
-		return this._selectAggregateCommit(apiContext);
+	public async getAggregateCommit(methodContext: StateStore): Promise<AggregateCommit> {
+		return this._selectAggregateCommit(methodContext);
 	}
 
 	public async aggregateSingleCommits(
-		apiContext: StateStore,
+		methodContext: StateStore,
 		singleCommits: SingleCommit[],
 	): Promise<AggregateCommit> {
 		if (singleCommits.length === 0) {
@@ -259,7 +259,7 @@ export class CommitPool {
 		const { height } = singleCommits[0];
 
 		// assuming this list of validators includes all validators corresponding to each singleCommit.validatorAddress
-		const { validators } = await this._bftAPI.getBFTParameters(apiContext, height);
+		const { validators } = await this._bftMethod.getBFTParameters(methodContext, height);
 		const addressToBlsKey: dataStructures.BufferMap<Buffer> = new dataStructures.BufferMap();
 		const validatorKeys: Buffer[] = [];
 
@@ -298,16 +298,16 @@ export class CommitPool {
 		return aggregateCommit;
 	}
 
-	private async _selectAggregateCommit(apiContext: StateStore): Promise<AggregateCommit> {
-		const { maxHeightCertified, maxHeightPrecommitted } = await this._bftAPI.getBFTHeights(
-			apiContext,
+	private async _selectAggregateCommit(methodContext: StateStore): Promise<AggregateCommit> {
+		const { maxHeightCertified, maxHeightPrecommitted } = await this._bftMethod.getBFTHeights(
+			methodContext,
 		);
 		let heightNextBFTParameters: number;
 		let nextHeight: number;
 
 		try {
-			heightNextBFTParameters = await this._bftAPI.getNextHeightBFTParameters(
-				apiContext,
+			heightNextBFTParameters = await this._bftMethod.getNextHeightBFTParameters(
+				methodContext,
 				maxHeightCertified + 1,
 			);
 			nextHeight = Math.min(heightNextBFTParameters - 1, maxHeightPrecommitted);
@@ -331,7 +331,7 @@ export class CommitPool {
 			const {
 				validators: bftParamValidators,
 				certificateThreshold,
-			} = await this._bftAPI.getBFTParameters(apiContext, nextHeight);
+			} = await this._bftMethod.getBFTParameters(methodContext, nextHeight);
 
 			for (const matchingAddress of nextValidators) {
 				const bftParamsValidatorInfo = bftParamValidators.find(bftParamValidator =>
@@ -345,7 +345,7 @@ export class CommitPool {
 			}
 
 			if (aggregateBFTWeight >= certificateThreshold) {
-				return this.aggregateSingleCommits(apiContext, singleCommits);
+				return this.aggregateSingleCommits(methodContext, singleCommits);
 			}
 
 			nextHeight -= 1;
@@ -358,13 +358,13 @@ export class CommitPool {
 		};
 	}
 
-	private async _job(apiContext: StateStore): Promise<void> {
+	private async _job(methodContext: StateStore): Promise<void> {
 		const removalHeight = await this._getMaxRemovalHeight();
-		const { maxHeightPrecommitted } = await this._bftAPI.getBFTHeights(apiContext);
+		const { maxHeightPrecommitted } = await this._bftMethod.getBFTHeights(methodContext);
 
 		// Clean up nonGossipedCommits
 		const deletedNonGossipedHeights = await this._getDeleteHeights(
-			apiContext,
+			methodContext,
 			this._nonGossipedCommits,
 			removalHeight,
 			maxHeightPrecommitted,
@@ -374,7 +374,7 @@ export class CommitPool {
 		}
 		// Clean up nonGossipedCommitsLocal
 		const deletedNonGossipedHeightsLocal = await this._getDeleteHeights(
-			apiContext,
+			methodContext,
 			this._nonGossipedCommitsLocal,
 			removalHeight,
 			maxHeightPrecommitted,
@@ -384,7 +384,7 @@ export class CommitPool {
 		}
 		// Clean up gossipedCommits
 		const deletedGossipedHeights = await this._getDeleteHeights(
-			apiContext,
+			methodContext,
 			this._gossipedCommits,
 			removalHeight,
 			maxHeightPrecommitted,
@@ -394,7 +394,7 @@ export class CommitPool {
 		}
 		// 2. Select commits to gossip
 		const nextHeight = this._chain.lastBlock.header.height + 1;
-		const { validators } = await this._bftAPI.getBFTParameters(apiContext, nextHeight);
+		const { validators } = await this._bftMethod.getBFTParameters(methodContext, nextHeight);
 
 		const maxSelectedCommitsLength = 2 * validators.length;
 		// Get a list of commits sorted by ascending order of height
@@ -449,7 +449,7 @@ export class CommitPool {
 	}
 
 	private async _getDeleteHeights(
-		apiContext: StateStore,
+		methodContext: StateStore,
 		commitMap: CommitList,
 		removalHeight: number,
 		maxHeightPrecommitted: number,
@@ -472,8 +472,8 @@ export class CommitPool {
 					continue;
 				}
 				// Condition #2
-				const changeOfBFTParams = await this._bftAPI.existBFTParameters(
-					apiContext,
+				const changeOfBFTParams = await this._bftMethod.existBFTParameters(
+					methodContext,
 					singleCommit.height + 1,
 				);
 				if (changeOfBFTParams) {

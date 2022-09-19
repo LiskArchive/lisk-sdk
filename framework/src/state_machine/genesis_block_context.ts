@@ -13,7 +13,7 @@
  */
 
 import { Logger } from '../logger';
-import { APIContext } from './api_context';
+import { MethodContext } from './method_context';
 import { EVENT_INDEX_FINALIZE_GENESIS_STATE, EVENT_INDEX_INIT_GENESIS_STATE } from './constants';
 import { EventQueue } from './event_queue';
 import { PrefixedStateReadWriter } from './prefixed_state_read_writer';
@@ -51,7 +51,8 @@ export class GenesisBlockContext {
 		const childQueue = this._eventQueue.getChildQueue(EVENT_INDEX_INIT_GENESIS_STATE);
 		return {
 			eventQueue: childQueue,
-			getAPIContext: () => new APIContext({ stateStore: this._stateStore, eventQueue: childQueue }),
+			getMethodContext: () =>
+				new MethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
@@ -78,7 +79,8 @@ export class GenesisBlockContext {
 		const childQueue = this._eventQueue.getChildQueue(EVENT_INDEX_FINALIZE_GENESIS_STATE);
 		return {
 			eventQueue: childQueue,
-			getAPIContext: () => new APIContext({ stateStore: this._stateStore, eventQueue: childQueue }),
+			getMethodContext: () =>
+				new MethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,

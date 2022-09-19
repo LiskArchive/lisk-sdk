@@ -14,12 +14,12 @@
  */
 import * as fs from 'fs-extra';
 import * as apiClient from '@liskhq/lisk-api-client';
-import * as Config from '@oclif/config';
 
 import { BaseIPCClientCommand } from '../../../../src/bootstrapping/commands/base_ipc_client';
 import * as appUtils from '../../../../src/utils/application';
 import { StatusCommand } from '../../../../src/bootstrapping/commands/generator/status';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 describe('forging:status command', () => {
 	const forgingInfoMock = {
@@ -35,7 +35,7 @@ describe('forging:status command', () => {
 	};
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let invokeMock: jest.Mock;
 
 	beforeEach(async () => {

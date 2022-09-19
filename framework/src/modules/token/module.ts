@@ -14,6 +14,7 @@
 import { isUInt64, validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { objects, dataStructures } from '@liskhq/lisk-utils';
+import { address } from '@liskhq/lisk-cryptography';
 import {
 	ADDRESS_LENGTH,
 	CHAIN_ID_ALIAS_NATIVE,
@@ -36,14 +37,17 @@ import {
 	getSupportedTokensResponseSchema,
 	getTotalSupplyResponseSchema,
 } from './schemas';
-import { TokenAPI } from './api';
+import { TokenMethod } from './method';
 import { TokenEndpoint } from './endpoint';
 import { GenesisTokenStore, MinBalance, ModuleConfig } from './types';
 import { splitTokenID } from './utils';
 import { CCTransferCommand } from './commands/cc_transfer';
 import { BaseInteroperableModule } from '../interoperability/base_interoperable_module';
-import { TokenInteroperableAPI } from './cc_api';
-import { MainchainInteroperabilityAPI, SidechainInteroperabilityAPI } from '../interoperability';
+import { TokenInteroperableMethod } from './cc_method';
+import {
+	MainchainInteroperabilityMethod,
+	SidechainInteroperabilityMethod,
+} from '../interoperability';
 import { UserStore } from './stores/user';
 import { EscrowStore } from './stores/escrow';
 import { SupplyStore } from './stores/supply';
@@ -52,9 +56,9 @@ import { AvailableLocalIDStore } from './stores/available_local_id';
 import { TransferEvent } from './events/transfer';
 
 export class TokenModule extends BaseInteroperableModule {
-	public api = new TokenAPI(this.stores, this.events, this.name);
+	public method = new TokenMethod(this.stores, this.events, this.name);
 	public endpoint = new TokenEndpoint(this.stores, this.offchainStores);
-	public crossChainAPI = new TokenInteroperableAPI(this.stores, this.events, this.api);
+	public crossChainMethod = new TokenInteroperableMethod(this.stores, this.events, this.method);
 
 	private _minBalances!: MinBalance[];
 	private readonly _transferCommand = new TransferCommand(this.stores, this.events);
@@ -74,9 +78,9 @@ export class TokenModule extends BaseInteroperableModule {
 	}
 
 	public addDependencies(
-		interoperabilityAPI: MainchainInteroperabilityAPI | SidechainInteroperabilityAPI,
+		interoperabilityMethod: MainchainInteroperabilityMethod | SidechainInteroperabilityMethod,
 	) {
-		this.api.addDependencies(interoperabilityAPI);
+		this.method.addDependencies(interoperabilityMethod);
 	}
 
 	public metadata(): ModuleMetadata {
@@ -110,7 +114,7 @@ export class TokenModule extends BaseInteroperableModule {
 				params: command.schema,
 			})),
 			events: this.events.values().map(v => ({
-				typeID: v.name,
+				name: v.name,
 				data: v.schema,
 			})),
 			assets: [
@@ -132,10 +136,10 @@ export class TokenModule extends BaseInteroperableModule {
 			tokenID: Buffer.from(mb.tokenID, 'hex'),
 			amount: BigInt(mb.amount),
 		}));
-		this.api.init({ minBalances: this._minBalances });
-		this.endpoint.init(this.api, config.supportedTokenIDs);
+		this.method.init({ minBalances: this._minBalances });
+		this.endpoint.init(this.method, config.supportedTokenIDs);
 		this._transferCommand.init({
-			api: this.api,
+			method: this.method,
 		});
 	}
 
@@ -164,9 +168,9 @@ export class TokenModule extends BaseInteroperableModule {
 			// Validate uniqueness of address/tokenID pair
 			if (userKeySet.has(key)) {
 				throw new Error(
-					`Address ${userData.address.toString('hex')} and tokenID ${userData.tokenID.toString(
-						'hex',
-					)} pair is duplicated.`,
+					`Address ${address.getLisk32AddressFromAddress(
+						userData.address,
+					)} and tokenID ${userData.tokenID.toString('hex')} pair is duplicated.`,
 				);
 			}
 			userKeySet.add(key);
@@ -186,7 +190,9 @@ export class TokenModule extends BaseInteroperableModule {
 				// Validate locked balances must not be zero
 				if (lockedBalance.amount === BigInt(0)) {
 					throw new Error(
-						`Address ${userData.address.toString('hex')} contains 0 amount locked balance.`,
+						`Address ${address.getLisk32AddressFromAddress(
+							userData.address,
+						)} contains 0 amount locked balance.`,
 					);
 				}
 				// Validate locked balances must be sorted
@@ -198,12 +204,16 @@ export class TokenModule extends BaseInteroperableModule {
 			// Validate locked balance module ID uniqueness
 			if (lockedBalanceModuleIDSet.size !== userData.lockedBalances.length) {
 				throw new Error(
-					`Address ${userData.address.toString('hex')} has duplicate module in locked balances.`,
+					`Address ${address.getLisk32AddressFromAddress(
+						userData.address,
+					)} has duplicate module in locked balances.`,
 				);
 			}
 			// Validate userSubstore not to be empty
 			if (userData.lockedBalances.length === 0 && userData.availableBalance === BigInt(0)) {
-				throw new Error(`Address ${userData.address.toString('hex')} has empty data.`);
+				throw new Error(
+					`Address ${address.getLisk32AddressFromAddress(userData.address)} has empty data.`,
+				);
 			}
 
 			await userStore.set(context, key, userData);

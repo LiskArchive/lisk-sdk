@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { APIContext } from '../../state_machine';
+import { MethodContext } from '../../state_machine';
 
 export interface BFTHeader {
 	id: Buffer;
@@ -44,10 +44,10 @@ export interface AggregateCommit {
 
 export interface CommitPool {
 	verifyAggregateCommit: (
-		apiContext: APIContext,
+		methodContext: MethodContext,
 		aggregateCommit: AggregateCommit,
 	) => Promise<boolean>;
-	getAggregateCommit: (apiContext: APIContext) => Promise<AggregateCommit>;
+	getAggregateCommit: (methodContext: MethodContext) => Promise<AggregateCommit>;
 }
 
 export interface ValidatorUpdate {

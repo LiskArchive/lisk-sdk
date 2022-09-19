@@ -20,7 +20,7 @@ import { ForgerPlugin } from '../../src';
 describe('forger:getVoters action', () => {
 	let appEnv: testing.ApplicationEnv;
 	let accountNonce = 0;
-	let networkIdentifier: Buffer;
+	let chainID: Buffer;
 
 	beforeAll(async () => {
 		const rootPath = '~/.lisk/forger-plugin';
@@ -35,7 +35,7 @@ describe('forger:getVoters action', () => {
 		});
 		await appEnv.startApplication();
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
-		networkIdentifier = appEnv.application['_node'].networkIdentifier;
+		chainID = appEnv.application['_node'].chainID;
 	});
 
 	afterAll(async () => {
@@ -72,7 +72,7 @@ describe('forger:getVoters action', () => {
 				recipientAddress: forgingDelegateAddress,
 				fee: '0.3',
 				nonce: accountNonce,
-				networkIdentifier,
+				chainID,
 			});
 			accountNonce += 1;
 

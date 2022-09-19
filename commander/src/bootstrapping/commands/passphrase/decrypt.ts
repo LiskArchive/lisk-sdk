@@ -13,7 +13,7 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import Command from '@oclif/command';
+import { Command } from '@oclif/core';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPasswordFromPrompt } from '../../../utils/reader';
 
@@ -61,7 +61,7 @@ export class DecryptCommand extends Command {
 		const {
 			args,
 			flags: { password: passwordSource, pretty },
-		} = this.parse(DecryptCommand);
+		} = await this.parse(DecryptCommand);
 		const { encryptedPassphrase }: Args = args;
 		const password = passwordSource ?? (await getPasswordFromPrompt('password', true));
 		const result = await processInputs(password, encryptedPassphrase as string);

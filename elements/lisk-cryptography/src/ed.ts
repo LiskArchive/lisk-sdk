@@ -161,17 +161,17 @@ export const signAndPrintMessage = (message: string, privateKey: Buffer): string
 
 export const signDataWithPrivateKey = (
 	tag: string,
-	networkIdentifier: Buffer,
+	chainID: Buffer,
 	data: Buffer,
 	privateKey: Buffer,
-): Buffer => signDetached(hash(tagMessage(tag, networkIdentifier, data)), privateKey);
+): Buffer => signDetached(hash(tagMessage(tag, chainID, data)), privateKey);
 
 export const signData = signDataWithPrivateKey;
 
 export const verifyData = (
 	tag: string,
-	networkIdentifier: Buffer,
+	chainID: Buffer,
 	data: Buffer,
 	signature: Buffer,
 	publicKey: Buffer,
-): boolean => verifyDetached(hash(tagMessage(tag, networkIdentifier, data)), signature, publicKey);
+): boolean => verifyDetached(hash(tagMessage(tag, chainID, data)), signature, publicKey);

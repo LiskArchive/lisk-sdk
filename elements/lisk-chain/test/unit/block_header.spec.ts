@@ -50,7 +50,7 @@ const getGenesisBlockAttrs = () => ({
 	transactionRoot: EMPTY_HASH,
 	assetRoot: EMPTY_HASH,
 	eventRoot: EMPTY_HASH,
-	generatorAddress: EMPTY_BUFFER,
+	generatorAddress: Buffer.alloc(20, 0),
 	maxHeightPrevoted: 1009988,
 	maxHeightGenerated: 0,
 	validatorsHash: utils.hash(Buffer.alloc(0)),
@@ -231,18 +231,6 @@ describe('block_header', () => {
 
 				expect(() => blockHeader.validateGenesis()).toThrow(
 					'Genesis block header transaction root must be empty hash',
-				);
-			});
-
-			it('should throw error if generatorAddress is not empty buffer', () => {
-				const block = getGenesisBlockAttrs();
-				const blockHeader = new BlockHeader({
-					...block,
-					generatorAddress: utils.getRandomBytes(32),
-				});
-
-				expect(() => blockHeader.validateGenesis()).toThrow(
-					'Genesis block header generatorAddress must be empty bytes',
 				);
 			});
 

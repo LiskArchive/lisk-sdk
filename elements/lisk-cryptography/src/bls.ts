@@ -57,20 +57,16 @@ const writeBit = (buf: Buffer, bit: number, val: boolean): void => {
 	}
 };
 
-export const signData = (
-	tag: string,
-	networkIdentifier: Buffer,
-	data: Buffer,
-	privateKey: Buffer,
-): Buffer => blsSign(privateKey, hash(tagMessage(tag, networkIdentifier, data)));
+export const signData = (tag: string, chainID: Buffer, data: Buffer, privateKey: Buffer): Buffer =>
+	blsSign(privateKey, hash(tagMessage(tag, chainID, data)));
 
 export const verifyData = (
 	tag: string,
-	networkIdentifier: Buffer,
+	chainID: Buffer,
 	data: Buffer,
 	signature: Buffer,
 	publicKey: Buffer,
-): boolean => blsVerify(publicKey, hash(tagMessage(tag, networkIdentifier, data)), signature);
+): boolean => blsVerify(publicKey, hash(tagMessage(tag, chainID, data)), signature);
 
 export const createAggSig = (
 	publicKeysList: Buffer[],
@@ -98,10 +94,10 @@ export const verifyAggSig = (
 	aggregationBits: Buffer,
 	signature: Buffer,
 	tag: string,
-	networkIdentifier: Buffer,
+	chainID: Buffer,
 	message: Buffer,
 ): boolean => {
-	const taggedMessage = tagMessage(tag, networkIdentifier, message);
+	const taggedMessage = tagMessage(tag, chainID, message);
 	const keys: Buffer[] = [];
 
 	for (const [index, key] of publicKeysList.entries()) {
@@ -118,12 +114,12 @@ export const verifyWeightedAggSig = (
 	aggregationBits: Buffer,
 	signature: Buffer,
 	tag: string,
-	networkIdentifier: Buffer,
+	chainID: Buffer,
 	message: Buffer,
 	weights: number[] | bigint[],
 	threshold: number | bigint,
 ): boolean => {
-	const taggedMessage = tagMessage(tag, networkIdentifier, message);
+	const taggedMessage = tagMessage(tag, chainID, message);
 	const keys: Buffer[] = [];
 	let weightSum = BigInt(0);
 

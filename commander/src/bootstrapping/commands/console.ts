@@ -14,7 +14,7 @@
  */
 
 import { REPLServer, start } from 'repl';
-import Command, { flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import * as apiClient from '@liskhq/lisk-api-client';
 
 interface ConsoleFlags {
@@ -43,7 +43,7 @@ export class ConsoleCommand extends Command {
 	};
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(ConsoleCommand);
+		const { flags } = await this.parse(ConsoleCommand);
 
 		this.log('Entering Lisk REPL: type `Ctrl+C` or `.exit` to exit');
 

@@ -18,5 +18,5 @@ export { VoteDelegateCommand } from './commands/vote_delegate';
 export { UpdateGeneratorKeyCommand } from './commands/update_generator_key';
 export { ReportDelegateMisbehaviorCommand } from './commands/pom';
 export { UnlockCommand } from './commands/unlock';
-export { DPoSAPI } from './api';
+export { DPoSMethod } from './method';
 export { genesisStoreSchema } from './schemas';

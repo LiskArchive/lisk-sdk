@@ -13,8 +13,8 @@
  */
 
 import { Logger } from '../../logger';
-import { APIContext, EventQueue } from '../../state_machine';
-import { ImmutableAPIContext, ImmutableSubStore, SubStore } from '../../state_machine/types';
+import { MethodContext, EventQueue } from '../../state_machine';
+import { ImmutableMethodContext, ImmutableSubStore, SubStore } from '../../state_machine/types';
 import { OutboxRoot } from './stores/outbox_root';
 import { TerminatedOutboxAccount } from './stores/terminated_outbox';
 import { TerminatedStateAccount } from './stores/terminated_state';
@@ -61,30 +61,30 @@ export interface CCUpdateParams {
 	inboxUpdate: InboxUpdate;
 }
 
-export interface CCAPIContext {
-	getAPIContext: () => APIContext;
+export interface CCMethodContext {
+	getMethodContext: () => MethodContext;
 	getStore: StoreCallback;
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	eventQueue: EventQueue;
 	feeAddress: Buffer;
 	ccm: CCMsg;
 }
 
-export interface BeforeApplyCCMsgAPIContext extends CCAPIContext {
+export interface BeforeApplyCCMsgMethodContext extends CCMethodContext {
 	ccu: CCUpdateParams;
 	trsSender: Buffer;
 }
 
-export interface BeforeSendCCMsgAPIContext extends CCAPIContext {
+export interface BeforeSendCCMsgMethodContext extends CCMethodContext {
 	feeAddress: Buffer;
 }
 
-export interface BeforeRecoverCCMsgAPIContext extends CCAPIContext {
+export interface BeforeRecoverCCMsgMethodContext extends CCMethodContext {
 	trsSender: Buffer;
 }
 
-export interface RecoverCCMsgAPIContext extends CCAPIContext {
+export interface RecoverCCMsgMethodContext extends CCMethodContext {
 	terminatedChainID: Buffer;
 	module: string;
 	storePrefix: Buffer;
@@ -100,27 +100,27 @@ export interface SendInternalContext {
 	status: number;
 	params: Buffer;
 	timestamp?: number;
-	getAPIContext: () => APIContext;
+	getMethodContext: () => MethodContext;
 	getStore: StoreCallback;
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	eventQueue: EventQueue;
 	feeAddress: Buffer;
 }
 
 export interface TerminateChainContext {
-	getAPIContext: () => APIContext;
+	getMethodContext: () => MethodContext;
 	getStore: StoreCallback;
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	eventQueue: EventQueue;
 }
 
 export interface CCMApplyContext {
-	getAPIContext: () => APIContext;
+	getMethodContext: () => MethodContext;
 	getStore: StoreCallback;
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	eventQueue: EventQueue;
 	feeAddress: Buffer;
 	ccm: CCMsg;
@@ -130,10 +130,10 @@ export interface CCMApplyContext {
 }
 
 export interface CCMForwardContext {
-	getAPIContext: () => APIContext;
+	getMethodContext: () => MethodContext;
 	getStore: StoreCallback;
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	eventQueue: EventQueue;
 	feeAddress: Buffer;
 	ccm: CCMsg;
@@ -230,11 +230,11 @@ export interface ChannelDataJSON {
 
 export interface CCCommandExecuteContext {
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	eventQueue: EventQueue;
 	ccm: CCMsg;
 	ccmSize: bigint;
-	getAPIContext: () => APIContext;
+	getMethodContext: () => MethodContext;
 	getStore: StoreCallback;
 	feeAddress: Buffer;
 }
@@ -269,12 +269,15 @@ export interface ValidatorKeys {
 	blsKey: Buffer;
 }
 
-export interface ValidatorsAPI {
-	getValidatorAccount(apiContext: ImmutableAPIContext, address: Buffer): Promise<ValidatorKeys>;
+export interface ValidatorsMethod {
+	getValidatorAccount(
+		methodContext: ImmutableMethodContext,
+		address: Buffer,
+	): Promise<ValidatorKeys>;
 }
 
 export interface CrossChainCommandDependencies {
-	validatorsAPI: ValidatorsAPI;
+	validatorsMethod: ValidatorsMethod;
 }
 
 export interface ValidatorsHashInput {

@@ -13,7 +13,7 @@
  *
  */
 import * as utils from '@liskhq/lisk-utils';
-import { Command } from '@oclif/command';
+import { Command } from '@oclif/core';
 import * as fs from 'fs-extra';
 import { ApplicationConfig } from 'lisk-framework';
 import { flagsWithParser } from '../../../utils/flags';
@@ -35,7 +35,7 @@ export class ShowCommand extends Command {
 	};
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(ShowCommand);
+		const { flags } = await this.parse(ShowCommand);
 		const dataPath = flags['data-path']
 			? flags['data-path']
 			: getDefaultPath(this.config.pjson.name);

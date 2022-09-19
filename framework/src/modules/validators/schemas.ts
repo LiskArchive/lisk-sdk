@@ -69,9 +69,7 @@ export const getValidatorRequestSchema = {
 	properties: {
 		address: {
 			dataType: 'string',
-			format: 'hex',
-			minLength: 40,
-			maxLength: 40,
+			format: 'lisk32',
 		},
 	},
 	required: ['address'],

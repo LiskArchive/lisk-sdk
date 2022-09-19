@@ -12,16 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { ApplicationConfig } from '../../types';
 import * as accountFixture from './keys_fixture.json';
 
 export const defaultConfig: ApplicationConfig = {
-	logger: {
-		fileLogLevel: 'none',
-		consoleLogLevel: 'none',
-	},
 	system: {
 		version: '0.1.0',
+		logLevel: 'none',
 		keepEventsForHeights: -1,
 		dataPath: '~/.lisk/default',
 	},
@@ -29,7 +27,7 @@ export const defaultConfig: ApplicationConfig = {
 		block: {},
 		bftBatchSize: 103,
 		blockTime: 10,
-		communityIdentifier: 'sdk',
+		chainID: '10000000',
 		maxTransactionsSize: 15 * 1024, // Kilo Bytes
 		minFeePerByte: 1000,
 	},
@@ -64,10 +62,14 @@ export const defaultConfig: ApplicationConfig = {
 };
 
 export const getKeysFromDefaultConfig = (address: Buffer) => {
-	const account = accountFixture.keys.find(key => Buffer.from(key.address, 'hex').equals(address));
+	const account = accountFixture.keys.find(key =>
+		cryptoAddress.getAddressFromLisk32Address(key.address).equals(address),
+	);
 	if (!account) {
 		throw new Error(
-			`Delegate with address: ${address.toString('hex')} does not exists in default config`,
+			`Delegate with address: ${cryptoAddress.getLisk32AddressFromAddress(
+				address,
+			)} does not exists in default config`,
 		);
 	}
 	return account;

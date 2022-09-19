@@ -17,7 +17,7 @@ import { BaseCCCommand } from '../../interoperability/base_cc_command';
 import { MODULE_NAME_INTEROPERABILITY } from '../../interoperability/constants';
 import { CCCommandExecuteContext } from '../../interoperability/types';
 import { NamedRegistry } from '../../named_registry';
-import { TokenAPI } from '../api';
+import { TokenMethod } from '../method';
 import {
 	CCM_STATUS_OK,
 	CCM_STATUS_PROTOCOL_VIOLATION,
@@ -32,32 +32,32 @@ import {
 } from '../schemas';
 import { EscrowStore } from '../stores/escrow';
 import { UserStore } from '../stores/user';
-import { InteroperabilityAPI } from '../types';
+import { InteroperabilityMethod } from '../types';
 import { splitTokenID } from '../utils';
 
 export class CCForwardCommand extends BaseCCCommand {
 	public schema = crossChainForwardMessageParams;
 
-	private readonly _tokenAPI: TokenAPI;
-	private _interopAPI!: InteroperabilityAPI;
+	private readonly _tokenMethod: TokenMethod;
+	private _interopMethod!: InteroperabilityMethod;
 
-	public constructor(stores: NamedRegistry, events: NamedRegistry, tokenAPI: TokenAPI) {
+	public constructor(stores: NamedRegistry, events: NamedRegistry, tokenMethod: TokenMethod) {
 		super(stores, events);
-		this._tokenAPI = tokenAPI;
+		this._tokenMethod = tokenMethod;
 	}
 
 	public get name(): string {
 		return CROSS_CHAIN_COMMAND_NAME_FORWARD;
 	}
 
-	public addDependencies(interoperabilityAPI: InteroperabilityAPI) {
-		this._interopAPI = interoperabilityAPI;
+	public addDependencies(interoperabilityMethod: InteroperabilityMethod) {
+		this._interopMethod = interoperabilityMethod;
 	}
 
 	public async execute(ctx: CCCommandExecuteContext): Promise<void> {
 		const { ccm } = ctx;
-		const apiContext = ctx.getAPIContext();
-		const { id: ownChainID } = await this._interopAPI.getOwnChainAccount(apiContext);
+		const methodContext = ctx.getMethodContext();
+		const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
 		let params: CCForwardMessageParams;
 		try {
 			params = codec.decode<CCForwardMessageParams>(crossChainForwardMessageParams, ccm.params);
@@ -65,9 +65,9 @@ export class CCForwardCommand extends BaseCCCommand {
 		} catch (error) {
 			ctx.logger.debug({ err: error as Error }, 'Error verifying the params.');
 			if (ccm.status === CCM_STATUS_OK) {
-				await this._interopAPI.error(apiContext, ccm, CCM_STATUS_PROTOCOL_VIOLATION);
+				await this._interopMethod.error(methodContext, ccm, CCM_STATUS_PROTOCOL_VIOLATION);
 			}
-			await this._interopAPI.terminateChain(apiContext, ccm.sendingChainID);
+			await this._interopMethod.terminateChain(methodContext, ccm.sendingChainID);
 			return;
 		}
 
@@ -76,11 +76,11 @@ export class CCForwardCommand extends BaseCCCommand {
 
 		if (ccm.status !== CCM_STATUS_OK) {
 			if (!ccm.sendingChainID.equals(chainID)) {
-				await this._interopAPI.terminateChain(apiContext, ccm.sendingChainID);
+				await this._interopMethod.terminateChain(methodContext, ccm.sendingChainID);
 				return;
 			}
 			await userStore.updateAvailableBalance(
-				apiContext,
+				methodContext,
 				params.senderAddress,
 				params.tokenID,
 				params.amount + params.forwardedMessageFee,
@@ -90,36 +90,36 @@ export class CCForwardCommand extends BaseCCCommand {
 
 		if (!chainID.equals(ownChainID)) {
 			if (ccm.status === CCM_STATUS_OK) {
-				await this._interopAPI.error(apiContext, ccm, CCM_STATUS_PROTOCOL_VIOLATION);
+				await this._interopMethod.error(methodContext, ccm, CCM_STATUS_PROTOCOL_VIOLATION);
 			}
-			await this._interopAPI.terminateChain(apiContext, ccm.sendingChainID);
+			await this._interopMethod.terminateChain(methodContext, ccm.sendingChainID);
 			return;
 		}
 
-		const escrowedAmount = await this._tokenAPI.getEscrowedAmount(
-			apiContext,
+		const escrowedAmount = await this._tokenMethod.getEscrowedAmount(
+			methodContext,
 			ccm.sendingChainID,
 			params.tokenID,
 		);
 
 		if (escrowedAmount < params.amount + params.forwardedMessageFee) {
 			if (ccm.status === CCM_STATUS_OK) {
-				await this._interopAPI.error(apiContext, ccm, CCM_STATUS_PROTOCOL_VIOLATION);
+				await this._interopMethod.error(methodContext, ccm, CCM_STATUS_PROTOCOL_VIOLATION);
 			}
-			await this._interopAPI.terminateChain(apiContext, ccm.sendingChainID);
+			await this._interopMethod.terminateChain(methodContext, ccm.sendingChainID);
 			return;
 		}
 
 		const escrowStore = this.stores.get(EscrowStore);
 		const escrowKey = Buffer.concat([ccm.sendingChainID, localID]);
-		const escrowData = await escrowStore.get(apiContext, escrowKey);
+		const escrowData = await escrowStore.get(methodContext, escrowKey);
 
 		escrowData.amount -= params.amount + params.forwardedMessageFee;
-		await escrowStore.set(apiContext, escrowKey, escrowData);
+		await escrowStore.set(methodContext, escrowKey, escrowData);
 		const localTokenID = Buffer.concat([CHAIN_ID_ALIAS_NATIVE, localID]);
 
 		await userStore.updateAvailableBalance(
-			apiContext,
+			methodContext,
 			params.senderAddress,
 			localTokenID,
 			params.amount + params.forwardedMessageFee,
@@ -133,8 +133,8 @@ export class CCForwardCommand extends BaseCCCommand {
 			data: params.data,
 		});
 
-		const sendResult = await this._interopAPI.send(
-			apiContext,
+		const sendResult = await this._interopMethod.send(
+			methodContext,
 			params.senderAddress,
 			MODULE_NAME_INTEROPERABILITY,
 			CROSS_CHAIN_COMMAND_NAME_TRANSFER,
@@ -148,7 +148,7 @@ export class CCForwardCommand extends BaseCCCommand {
 		}
 
 		await userStore.updateAvailableBalance(
-			apiContext,
+			methodContext,
 			params.senderAddress,
 			localTokenID,
 			-params.amount,

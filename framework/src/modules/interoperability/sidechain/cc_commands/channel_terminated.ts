@@ -37,6 +37,6 @@ export class SidechainCCChannelTerminatedCommand extends BaseInteroperabilityCCC
 	protected getInteroperabilityStore(
 		context: StoreGetter | ImmutableStoreGetter,
 	): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
+		return new SidechainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
 	}
 }

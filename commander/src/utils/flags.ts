@@ -14,7 +14,7 @@
  *
  */
 
-import { flags as flagParser } from '@oclif/command';
+import { Flags as flagParser } from '@oclif/core';
 import { DEFAULT_NETWORK } from '../constants';
 
 const messageDescription = `Specifies a source for providing a message to the command. If a string is provided directly as an argument, this option will be ignored. The message must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
@@ -33,7 +33,7 @@ const passwordDescription = `Specifies a source for your secret password. Comman
 	Examples:
 	- --password=pass:password123 (should only be used where security is not important)
 `;
-const networkIdentifierDescription =
+const chainIDDescription =
 	'Network identifier defined for the network or main | test for the Lisk Network.';
 
 const communityIdentifierDescription = 'Unique community identifier for network.';
@@ -106,8 +106,8 @@ export const flags: FlagMap = {
 		char: 'w',
 		description: passwordDescription,
 	},
-	networkIdentifier: {
-		description: networkIdentifierDescription,
+	chainID: {
+		description: chainIDDescription,
 	},
 	communityIdentifier: {
 		description: communityIdentifierDescription,
@@ -172,6 +172,6 @@ export const flagsWithParser = {
 	}),
 	json: flagParser.boolean(flags.json),
 	senderPublicKey: flagParser.string(flags.senderPublicKey),
-	networkIdentifier: flagParser.string(flags.networkIdentifier),
+	chainID: flagParser.string(flags.chainID),
 	file: flagParser.string(flags.file),
 };

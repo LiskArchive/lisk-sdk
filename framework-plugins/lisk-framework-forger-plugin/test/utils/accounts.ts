@@ -15,13 +15,13 @@
 import { cryptography } from 'lisk-sdk';
 
 export const getRandomAccount = () => {
-	const { publicKey, privateKey } = cryptography.ed.getKeys(
+	const { publicKey, privateKey } = cryptography.legacy.getKeys(
 		cryptography.utils.getRandomBytes(20).toString('hex'),
 	);
 	const address = cryptography.address.getAddressFromPublicKey(publicKey);
 
 	return {
-		address: address.toString('hex'),
+		address: cryptography.address.getLisk32AddressFromAddress(address),
 		publicKey: publicKey.toString('hex'),
 		privateKey: privateKey.toString('hex'),
 		nonce: 0,

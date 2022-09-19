@@ -23,20 +23,20 @@ import {
 	TransactionVerifyContext,
 	VerificationResult,
 } from '../../state_machine';
-import { AuthAPI } from './api';
-import { RegisterMultisignatureGroupCommand } from './commands/register_multisignature';
+import { AuthMethod } from './method';
 import { MAX_NUMBER_OF_SIGNATURES } from './constants';
 import { AuthEndpoint } from './endpoint';
 import { configSchema, genesisAuthStoreSchema } from './schemas';
-import { GenesisAuthStore } from './types';
+import { GenesisAuthStore, ImmutableStoreCallback } from './types';
 import { verifyNonce, verifySignatures } from './utils';
 import { AuthAccount, authAccountSchema, AuthAccountStore } from './stores/auth_account';
+import { RegisterMultisignatureCommand } from './commands/register_multisignature';
 
 export class AuthModule extends BaseModule {
-	public api = new AuthAPI(this.stores, this.events);
+	public method = new AuthMethod(this.stores, this.events);
 	public endpoint = new AuthEndpoint(this.name, this.stores, this.offchainStores);
 	public configSchema = configSchema;
-	public commands = [new RegisterMultisignatureGroupCommand(this.stores, this.events)];
+	public commands = [new RegisterMultisignatureCommand(this.stores, this.events)];
 
 	public constructor() {
 		super();
@@ -51,7 +51,7 @@ export class AuthModule extends BaseModule {
 				params: command.schema,
 			})),
 			events: this.events.values().map(v => ({
-				typeID: v.name,
+				name: v.name,
 				data: v.schema,
 			})),
 			assets: [
@@ -135,7 +135,7 @@ export class AuthModule extends BaseModule {
 	}
 
 	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
-		const { transaction, networkIdentifier } = context;
+		const { transaction, chainID } = context;
 		const store = this.stores.get(AuthAccountStore);
 
 		let senderAccount: AuthAccount;
@@ -158,12 +158,16 @@ export class AuthModule extends BaseModule {
 		// Verify nonce of the transaction, it can be FAILED, PENDING or OK
 		const nonceStatus = verifyNonce(transaction, senderAccount);
 
+		const isMultisignatureAccount = await this._isMultisignatureAccount(
+			context.getStore,
+			transaction.senderAddress,
+		);
 		verifySignatures(
-			this.name,
 			transaction,
 			transaction.getSigningBytes(),
-			networkIdentifier,
+			chainID,
 			senderAccount,
+			isMultisignatureAccount,
 		);
 
 		return nonceStatus;
@@ -184,7 +188,28 @@ export class AuthModule extends BaseModule {
 
 		const senderAccount = await store.get(context, transaction.senderAddress);
 		senderAccount.nonce += BigInt(1);
+		await store.set(context, transaction.senderAddress, {
+			nonce: senderAccount.nonce,
+			numberOfSignatures: senderAccount.numberOfSignatures,
+			mandatoryKeys: senderAccount.mandatoryKeys,
+			optionalKeys: senderAccount.optionalKeys,
+		});
+	}
 
-		await store.set(context, transaction.senderAddress, senderAccount);
+	private async _isMultisignatureAccount(
+		getStore: ImmutableStoreCallback,
+		address: Buffer,
+	): Promise<boolean> {
+		const authSubstore = this.stores.get(AuthAccountStore);
+		try {
+			const authAccount = await authSubstore.get({ getStore }, address);
+
+			return authAccount.numberOfSignatures !== 0;
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			return false;
+		}
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Lisk Foundation
+ * Copyright © 2022 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,6 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseAPI } from '../base_api';
+import { BaseInteroperableMethod } from '../base_interoperable_method';
 
-export class FeeAPI extends BaseAPI {}
+export class MainchainCCMethod extends BaseInteroperableMethod {}

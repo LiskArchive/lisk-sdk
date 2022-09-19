@@ -208,7 +208,7 @@ describe('Network discovery', () => {
 				maxInboundConnections: 0,
 				port: 5020,
 				nodeInfo: {
-					networkIdentifier: 'aaa',
+					chainID: Buffer.from('aaa', 'hex'),
 					networkVersion: '9.9',
 					nonce: '404',
 					advertiseAddress: true,

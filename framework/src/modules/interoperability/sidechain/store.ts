@@ -67,13 +67,13 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 			ccm,
 			eventQueue: sendContext.eventQueue,
 			feeAddress: sendContext.feeAddress,
-			getAPIContext: sendContext.getAPIContext,
+			getMethodContext: sendContext.getMethodContext,
 			getStore: sendContext.getStore,
 			logger: sendContext.logger,
-			networkIdentifier: sendContext.networkIdentifier,
+			chainID: sendContext.chainID,
 		});
 
-		for (const mod of this.interoperableModuleAPIs.values()) {
+		for (const mod of this.interoperableModuleMethods.values()) {
 			if (mod?.beforeSendCCM) {
 				try {
 					await mod.beforeSendCCM(beforeSendContext);

@@ -18,7 +18,7 @@ import { SidechainCCRegistrationCommand } from '../../../../../../src/modules/in
 import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
-import { createExecuteCCMsgAPIContext } from '../../../../../../src/testing';
+import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
 import { SidechainInteroperabilityModule } from '../../../../../../src';
 import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
@@ -38,24 +38,24 @@ describe('SidechainCCRegistrationCommand', () => {
 		nonce: BigInt(0),
 	};
 
-	const ccAPIMod1 = {
+	const ccMethodMod1 = {
 		beforeSendCCM: jest.fn(),
 		beforeApplyCCM: jest.fn(),
 	};
 
-	const ccAPIMod2 = {
+	const ccMethodMod2 = {
 		beforeSendCCM: jest.fn(),
 		beforeApplyCCM: jest.fn(),
 	};
 
-	const ccAPIsMap = new Map();
-	ccAPIsMap.set(1, ccAPIMod1);
-	ccAPIsMap.set(2, ccAPIMod2);
+	const ccMethodsMap = new Map();
+	ccMethodsMap.set(1, ccMethodMod1);
+	ccMethodsMap.set(2, ccMethodMod2);
 
-	const networkIdentifier = utils.getRandomBytes(32);
+	const chainID = utils.getRandomBytes(32);
 
 	const ccmRegistrationParams = {
-		networkID: networkIdentifier,
+		networkID: chainID,
 		name: ownChainAccount.name,
 		messageFeeTokenID: {
 			chainID: utils.intToBuffer(1, 4),
@@ -95,9 +95,9 @@ describe('SidechainCCRegistrationCommand', () => {
 		},
 		partnerChainOutboxRoot: Buffer.alloc(0),
 	};
-	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgAPIContext({
+	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
 		ccm,
-		networkIdentifier,
+		chainID,
 	});
 
 	let sidechainInteroperabilityStore: SidechainInteroperabilityStore;
@@ -107,7 +107,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		sidechainInteroperabilityStore = new SidechainInteroperabilityStore(
 			interopMod.stores,
 			sampleExecuteContext,
-			ccAPIsMap,
+			ccMethodsMap,
 		);
 		sidechainInteroperabilityStore.terminateChainInternal = terminateChainInternalMock;
 		sidechainInteroperabilityStore.getChannel = getChannelMock;
@@ -116,7 +116,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		ccRegistrationCommand = new SidechainCCRegistrationCommand(
 			interopMod.stores,
 			interopMod.events,
-			ccAPIsMap,
+			ccMethodsMap,
 		);
 		(ccRegistrationCommand as any)['getInteroperabilityStore'] = jest
 			.fn()
@@ -153,7 +153,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
-				networkIdentifier,
+				chainID,
 				ccm,
 			}),
 		);
@@ -180,7 +180,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
-				networkIdentifier,
+				chainID,
 				ccm: invalidCCM,
 			}),
 		);
@@ -198,7 +198,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
-				networkIdentifier,
+				chainID,
 				ccm,
 			}),
 		);
@@ -216,7 +216,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
-				networkIdentifier,
+				chainID,
 				ccm,
 			}),
 		);
@@ -251,7 +251,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
-				networkIdentifier,
+				chainID,
 				ccm,
 			}),
 		);
@@ -286,7 +286,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
-				networkIdentifier,
+				chainID,
 				ccm,
 			}),
 		);
@@ -301,14 +301,14 @@ describe('SidechainCCRegistrationCommand', () => {
 		const differentNetworkID = utils.getRandomBytes(32);
 		await ccRegistrationCommand.execute({
 			...sampleExecuteContext,
-			networkIdentifier: differentNetworkID,
+			chainID: differentNetworkID,
 		});
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
-				networkIdentifier: differentNetworkID,
+				chainID: differentNetworkID,
 				ccm,
 			}),
 		);

@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { TokenModule } from '../../../../../src/modules/token';
-import { TokenAPI } from '../../../../../src/modules/token/api';
+import { TokenMethod } from '../../../../../src/modules/token/method';
 import { CCTransferCommand } from '../../../../../src/modules/token/cc_commands/cc_transfer';
 import {
 	CCM_STATUS_OK,
@@ -33,7 +33,10 @@ import { EscrowStore } from '../../../../../src/modules/token/stores/escrow';
 import { SupplyStore } from '../../../../../src/modules/token/stores/supply';
 import { UserStore } from '../../../../../src/modules/token/stores/user';
 import { EventQueue } from '../../../../../src/state_machine';
-import { APIContext, createAPIContext } from '../../../../../src/state_machine/api_context';
+import {
+	MethodContext,
+	createMethodContext,
+} from '../../../../../src/state_machine/method_context';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import { fakeLogger } from '../../../../utils/mocks';
@@ -58,8 +61,8 @@ describe('CrossChain Transfer command', () => {
 	const sendingChainID = Buffer.from([3, 0, 0, 0]);
 
 	let command: CCTransferCommand;
-	let api: TokenAPI;
-	let interopAPI: {
+	let method: TokenMethod;
+	let interopMethod: {
 		getOwnChainAccount: jest.Mock;
 		send: jest.Mock;
 		error: jest.Mock;
@@ -67,12 +70,12 @@ describe('CrossChain Transfer command', () => {
 		getChannel: jest.Mock;
 	};
 	let stateStore: PrefixedStateReadWriter;
-	let apiContext: APIContext;
+	let methodContext: MethodContext;
 
 	beforeEach(async () => {
-		api = new TokenAPI(tokenModule.stores, tokenModule.events, tokenModule.name);
-		command = new CCTransferCommand(tokenModule.stores, tokenModule.events, api);
-		interopAPI = {
+		method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
+		command = new CCTransferCommand(tokenModule.stores, tokenModule.events, method);
+		interopMethod = {
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn(),
 			error: jest.fn(),
@@ -83,9 +86,9 @@ describe('CrossChain Transfer command', () => {
 			{ tokenID: defaultTokenIDAlias, amount: BigInt(MIN_BALANCE) },
 			{ tokenID: defaultForeignTokenID, amount: BigInt(MIN_BALANCE) },
 		];
-		api.addDependencies(interopAPI as never);
-		command.addDependencies(interopAPI);
-		api.init({
+		method.addDependencies(interopMethod as never);
+		command.addDependencies(interopMethod);
+		method.init({
 			minBalances,
 		});
 		command.init({
@@ -95,35 +98,35 @@ describe('CrossChain Transfer command', () => {
 
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
-		apiContext = createAPIContext({
+		methodContext = createMethodContext({
 			stateStore,
-			eventQueue: new EventQueue(),
+			eventQueue: new EventQueue(0),
 		});
 		const userStore = tokenModule.stores.get(UserStore);
 		await userStore.set(
-			apiContext,
+			methodContext,
 			userStore.getKey(defaultAddress, defaultTokenIDAlias),
 			defaultAccount,
 		);
 		await userStore.set(
-			apiContext,
+			methodContext,
 			userStore.getKey(defaultAddress, defaultForeignTokenID),
 			defaultAccount,
 		);
 
 		const supplyStore = tokenModule.stores.get(SupplyStore);
-		await supplyStore.set(apiContext, defaultTokenIDAlias.slice(CHAIN_ID_LENGTH), {
+		await supplyStore.set(methodContext, defaultTokenIDAlias.slice(CHAIN_ID_LENGTH), {
 			totalSupply: defaultTotalSupply,
 		});
 
 		const nextAvailableLocalIDStore = tokenModule.stores.get(AvailableLocalIDStore);
-		await nextAvailableLocalIDStore.set(apiContext, EMPTY_BYTES, {
+		await nextAvailableLocalIDStore.set(methodContext, EMPTY_BYTES, {
 			nextAvailableLocalID: Buffer.from([0, 0, 0, 5]),
 		});
 
 		const escrowStore = tokenModule.stores.get(EscrowStore);
 		await escrowStore.set(
-			apiContext,
+			methodContext,
 			Buffer.concat([
 				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
@@ -131,7 +134,7 @@ describe('CrossChain Transfer command', () => {
 			{ amount: defaultEscrowAmount },
 		);
 		await escrowStore.set(
-			apiContext,
+			methodContext,
 			Buffer.concat([Buffer.from([3, 0, 0, 0]), defaultTokenIDAlias.slice(CHAIN_ID_LENGTH)]),
 			{ amount: defaultEscrowAmount },
 		);
@@ -153,19 +156,19 @@ describe('CrossChain Transfer command', () => {
 						params: Buffer.from([255, 2, 3]),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
-					eventQueue: new EventQueue(),
+					getMethodContext: () => methodContext,
+					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
 				'Value yields unsupported wireType',
 			);
-			expect(interopAPI.terminateChain).toHaveBeenCalledWith(
-				expect.any(APIContext),
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
+				expect.any(MethodContext),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -190,19 +193,19 @@ describe('CrossChain Transfer command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
-					eventQueue: new EventQueue(),
+					getMethodContext: () => methodContext,
+					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
 				"tokenID' maxLength exceeded",
 			);
-			expect(interopAPI.terminateChain).toHaveBeenCalledWith(
-				expect.any(APIContext),
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
+				expect.any(MethodContext),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -227,19 +230,19 @@ describe('CrossChain Transfer command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
-					eventQueue: new EventQueue(),
+					getMethodContext: () => methodContext,
+					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
-				"senderAddress' maxLength exceeded",
+				"senderAddress' address length invalid",
 			);
-			expect(interopAPI.terminateChain).toHaveBeenCalledWith(
-				expect.any(APIContext),
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
+				expect.any(MethodContext),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -264,19 +267,19 @@ describe('CrossChain Transfer command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
-					eventQueue: new EventQueue(),
+					getMethodContext: () => methodContext,
+					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
-				"recipientAddress' minLength not satisfied",
+				"recipientAddress' address length invalid",
 			);
-			expect(interopAPI.terminateChain).toHaveBeenCalledWith(
-				expect.any(APIContext),
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
+				expect.any(MethodContext),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -301,19 +304,19 @@ describe('CrossChain Transfer command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
-					eventQueue: new EventQueue(),
+					getMethodContext: () => methodContext,
+					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
 				"data' must NOT have more than 64 characters",
 			);
-			expect(interopAPI.terminateChain).toHaveBeenCalledWith(
-				expect.any(APIContext),
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
+				expect.any(MethodContext),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -338,19 +341,19 @@ describe('CrossChain Transfer command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
-					eventQueue: new EventQueue(),
+					getMethodContext: () => methodContext,
+					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
 				'is not sufficient',
 			);
-			expect(interopAPI.terminateChain).toHaveBeenCalledWith(
-				expect.any(APIContext),
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
+				expect.any(MethodContext),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -375,23 +378,23 @@ describe('CrossChain Transfer command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
-					eventQueue: new EventQueue(),
+					getMethodContext: () => methodContext,
+					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
 				'is not sufficient',
 			);
-			expect(interopAPI.terminateChain).toHaveBeenCalledWith(
-				expect.any(APIContext),
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
+				expect.any(MethodContext),
 				Buffer.from([3, 0, 0, 0]),
 			);
-			expect(interopAPI.error).toHaveBeenCalledWith(
-				apiContext,
+			expect(interopMethod.error).toHaveBeenCalledWith(
+				methodContext,
 				expect.anything(),
 				CCM_STATUS_PROTOCOL_VIOLATION,
 			);
@@ -418,16 +421,16 @@ describe('CrossChain Transfer command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
-					eventQueue: new EventQueue(),
+					getMethodContext: () => methodContext,
+					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
-			expect(interopAPI.error).toHaveBeenCalledWith(
-				apiContext,
+			expect(interopMethod.error).toHaveBeenCalledWith(
+				methodContext,
 				expect.anything(),
 				CCM_STATUS_TOKEN_NOT_SUPPORTED,
 			);
@@ -457,16 +460,16 @@ describe('CrossChain Transfer command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
-					eventQueue: new EventQueue(),
+					getMethodContext: () => methodContext,
+					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			await expect(
-				api.getEscrowedAmount(apiContext, Buffer.from([3, 0, 0, 0]), defaultTokenID),
+				method.getEscrowedAmount(methodContext, Buffer.from([3, 0, 0, 0]), defaultTokenID),
 			).resolves.toEqual(BigInt(10));
 		});
 
@@ -491,16 +494,16 @@ describe('CrossChain Transfer command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
-					eventQueue: new EventQueue(),
+					getMethodContext: () => methodContext,
+					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			await expect(
-				api.getAvailableBalance(apiContext, recipientAddress, defaultTokenID),
+				method.getAvailableBalance(methodContext, recipientAddress, defaultTokenID),
 			).resolves.toEqual(defaultEscrowAmount - BigInt(10) - MIN_BALANCE);
 		});
 	});

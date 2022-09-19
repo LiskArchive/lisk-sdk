@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { NotFoundError } from '@liskhq/lisk-db';
-import { APIContext } from '../../../state_machine';
+import { MethodContext } from '../../../state_machine';
 import { BaseStore, StoreGetter } from '../../base_store';
-import { InteroperabilityAPI } from '../types';
+import { InteroperabilityMethod } from '../types';
 
 export interface EscrowStoreData {
 	amount: bigint;
@@ -56,8 +56,8 @@ export class EscrowStore extends BaseStore<EscrowStoreData> {
 	}
 
 	public async deductEscrowAmountWithTerminate(
-		context: APIContext,
-		interopAPI: InteroperabilityAPI,
+		context: MethodContext,
+		interopMethod: InteroperabilityMethod,
 		sendingChainID: Buffer,
 		localID: Buffer,
 		amount: bigint,
@@ -73,7 +73,7 @@ export class EscrowStore extends BaseStore<EscrowStoreData> {
 			escrowData = { amount: BigInt(0) };
 		}
 		if (escrowData.amount < amount) {
-			await interopAPI.terminateChain(context, sendingChainID);
+			await interopMethod.terminateChain(context, sendingChainID);
 			return;
 		}
 

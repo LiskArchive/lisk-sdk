@@ -372,14 +372,16 @@ describe('data_access', () => {
 					index: 0,
 					module: 'token',
 					topics: [utils.getRandomBytes(32)],
-					typeID: Buffer.from([0, 0, 0, 0]),
+					name: 'Token Event Name',
+					height: 10,
 				}),
 				new Event({
 					data: utils.getRandomBytes(20),
 					index: 1,
 					module: 'auth',
 					topics: [utils.getRandomBytes(32)],
-					typeID: Buffer.from([0, 0, 0, 0]),
+					name: 'Auth Event Name',
+					height: 12,
 				}),
 			];
 			db.get.mockResolvedValue(encodeByteArray(original.map(e => e.getBytes())) as never);

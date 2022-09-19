@@ -16,7 +16,6 @@
 import * as fs from 'fs-extra';
 import { transactionSchema } from 'lisk-framework';
 import * as apiClient from '@liskhq/lisk-api-client';
-import * as Config from '@oclif/config';
 
 import { BaseIPCClientCommand } from '../../../../src/bootstrapping/commands/base_ipc_client';
 import * as appUtils from '../../../../src/utils/application';
@@ -27,6 +26,7 @@ import {
 } from '../../../helpers/transactions';
 import { GetCommand } from '../../../../src/bootstrapping/commands/transaction/get';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 describe('transaction:get command', () => {
 	const commands = [
@@ -40,7 +40,7 @@ describe('transaction:get command', () => {
 		amount: '1',
 		fee: '0.2',
 		nonce: 1,
-		recipientAddress: '0903f4c5cb599a7928aef27e314e98291d1e3888',
+		recipientAddress: 'lskxpxg4y755b9nr6m7f4gcvtk2mp7yj7p364mzem',
 	});
 	const encodedTransaction = encodeTransactionFromJSON(
 		transferTransaction as any,
@@ -50,7 +50,7 @@ describe('transaction:get command', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let getMock: jest.Mock;
 
 	beforeEach(async () => {

@@ -23,7 +23,7 @@ import { SidechainCCSidechainTerminatedCommand } from '../../../../../../src/mod
 import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
 import { sidechainTerminatedCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
-import { createExecuteCCMsgAPIContext } from '../../../../../../src/testing';
+import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
 import { SidechainInteroperabilityModule } from '../../../../../../src';
 
 describe('SidechainCCSidechainTerminatedCommand', () => {
@@ -33,21 +33,21 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 	const hasTerminatedStateAccountMock = jest.fn();
 	const createTerminatedStateAccountMock = jest.fn();
 
-	const ccAPIMod1 = {
+	const ccMethodMod1 = {
 		beforeSendCCM: jest.fn(),
 		beforeApplyCCM: jest.fn(),
 	};
 
-	const ccAPIMod2 = {
+	const ccMethodMod2 = {
 		beforeSendCCM: jest.fn(),
 		beforeApplyCCM: jest.fn(),
 	};
 
-	const ccAPIsMap = new Map();
-	ccAPIsMap.set(1, ccAPIMod1);
-	ccAPIsMap.set(2, ccAPIMod2);
+	const ccMethodsMap = new Map();
+	ccMethodsMap.set(1, ccMethodMod1);
+	ccMethodsMap.set(2, ccMethodMod2);
 
-	const networkIdentifier = utils.getRandomBytes(32);
+	const chainID = utils.getRandomBytes(32);
 
 	const ccmSidechainTerminatedParams = {
 		chainID: utils.intToBuffer(5, 4),
@@ -73,13 +73,13 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 		...ccm,
 		sendingChainID: utils.intToBuffer(2, 4),
 	};
-	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgAPIContext({
+	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
 		ccm,
-		networkIdentifier,
+		chainID,
 	});
-	const sampleExecuteContextNew: CCCommandExecuteContext = createExecuteCCMsgAPIContext({
+	const sampleExecuteContextNew: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
 		ccm: ccmNew,
-		networkIdentifier,
+		chainID,
 	});
 
 	let mainchainInteroperabilityStore: SidechainInteroperabilityStore;
@@ -89,7 +89,7 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 		mainchainInteroperabilityStore = new SidechainInteroperabilityStore(
 			interopMod.stores,
 			sampleExecuteContext,
-			ccAPIsMap,
+			ccMethodsMap,
 		);
 		mainchainInteroperabilityStore.terminateChainInternal = terminateChainInternalMock;
 		mainchainInteroperabilityStore.hasTerminatedStateAccount = hasTerminatedStateAccountMock;
@@ -98,7 +98,7 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 		ccSidechainTerminatedCommand = new SidechainCCSidechainTerminatedCommand(
 			interopMod.stores,
 			interopMod.events,
-			ccAPIsMap,
+			ccMethodsMap,
 		);
 		(ccSidechainTerminatedCommand as any)['getInteroperabilityStore'] = jest
 			.fn()
@@ -113,7 +113,7 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 			ccmNew.sendingChainID,
 			expect.objectContaining({
 				ccm: ccmNew,
-				networkIdentifier,
+				chainID,
 			}),
 		);
 	});

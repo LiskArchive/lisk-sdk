@@ -14,9 +14,9 @@
 
 import { BaseModule } from '../base_module';
 import { BaseCCCommand } from './base_cc_command';
-import { BaseInteroperableAPI } from './base_interoperable_api';
+import { BaseInteroperableMethod } from './base_interoperable_method';
 
 export abstract class BaseInteroperableModule extends BaseModule {
 	public crossChainCommand: BaseCCCommand[] = [];
-	public abstract crossChainAPI: BaseInteroperableAPI;
+	public abstract crossChainMethod: BaseInteroperableMethod;
 }

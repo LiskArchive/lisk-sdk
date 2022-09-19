@@ -99,7 +99,7 @@ export class ABIHandler implements ABI {
 	private readonly _config: ApplicationConfig;
 
 	private _executionContext: ExecutionContext | undefined;
-	private _networkIdentifier?: Buffer;
+	private _chainID?: Buffer;
 
 	public constructor(args: ABIHandlerConstructor) {
 		this._config = args.config;
@@ -111,16 +111,16 @@ export class ABIHandler implements ABI {
 		this._channel = args.channel;
 	}
 
-	public get networkIdentifier(): Buffer {
-		if (!this._networkIdentifier) {
+	public get chainID(): Buffer {
+		if (!this._chainID) {
 			throw new Error('Network identifier is not set.');
 		}
-		return this._networkIdentifier;
+		return this._chainID;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async ready(req: ReadyRequest): Promise<ReadyResponse> {
-		this._networkIdentifier = req.networkIdentifier;
+	public async ready(_req: ReadyRequest): Promise<ReadyResponse> {
+		this._chainID = Buffer.from(this._config.genesis.chainID, 'hex');
 
 		this.event.emit(EVENT_ENGINE_READY);
 		return {};
@@ -157,7 +157,7 @@ export class ABIHandler implements ABI {
 		}
 		const genesisBlock = readGenesisBlock(this._config, this._logger);
 		const context = new GenesisBlockContext({
-			eventQueue: new EventQueue(),
+			eventQueue: new EventQueue(genesisBlock.header.height),
 			header: genesisBlock.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
@@ -185,7 +185,7 @@ export class ABIHandler implements ABI {
 			header: this._executionContext.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
-			networkIdentifier: this.networkIdentifier,
+			chainID: this.chainID,
 			generatorStore: this._executionContext.moduleStore,
 			finalizedHeight: req.finalizedHeight,
 		});
@@ -208,9 +208,9 @@ export class ABIHandler implements ABI {
 			header: this._executionContext.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
-			networkIdentifier: this.networkIdentifier,
+			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
-			eventQueue: new EventQueue(),
+			eventQueue: new EventQueue(this._executionContext.header.height),
 			// verifyAssets does not have access to transactions
 			transactions: [],
 			// verifyAssets does not have access to those properties
@@ -238,9 +238,9 @@ export class ABIHandler implements ABI {
 			header: this._executionContext.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
-			networkIdentifier: this.networkIdentifier,
+			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
-			eventQueue: new EventQueue(),
+			eventQueue: new EventQueue(this._executionContext.header.height),
 			currentValidators: req.consensus.currentValidators,
 			impliesMaxPrevote: req.consensus.implyMaxPrevote,
 			maxHeightCertified: req.consensus.maxHeightCertified,
@@ -269,9 +269,9 @@ export class ABIHandler implements ABI {
 			header: this._executionContext.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
-			networkIdentifier: this.networkIdentifier,
+			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
-			eventQueue: new EventQueue(),
+			eventQueue: new EventQueue(this._executionContext.header.height),
 			currentValidators: req.consensus.currentValidators,
 			impliesMaxPrevote: req.consensus.implyMaxPrevote,
 			maxHeightCertified: req.consensus.maxHeightCertified,
@@ -298,11 +298,11 @@ export class ABIHandler implements ABI {
 			stateStore = this._executionContext.stateStore;
 		}
 		const context = new TransactionContext({
-			eventQueue: new EventQueue(),
+			eventQueue: new EventQueue(0),
 			logger: this._logger,
 			transaction: new Transaction(req.transaction),
 			stateStore,
-			networkIdentifier: this.networkIdentifier,
+			chainID: this.chainID,
 			// These values are not used
 			currentValidators: [],
 			impliesMaxPrevote: true,
@@ -336,11 +336,11 @@ export class ABIHandler implements ABI {
 			header = new BlockHeader(req.header);
 		}
 		const context = new TransactionContext({
-			eventQueue: new EventQueue(),
+			eventQueue: new EventQueue(header.height),
 			logger: this._logger,
 			transaction: new Transaction(req.transaction),
 			stateStore,
-			networkIdentifier: this.networkIdentifier,
+			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
 			header,
 			currentValidators: req.consensus.currentValidators,
@@ -430,10 +430,12 @@ export class ABIHandler implements ABI {
 		const params = JSON.parse(req.params.toString('utf8')) as Record<string, unknown>;
 		try {
 			const resp = await this._channel.invoke(req.method, params);
+			this._logger.info({ method: req.method }, 'Called ABI query successfully');
 			return {
 				data: Buffer.from(JSON.stringify(resp), 'utf-8'),
 			};
 		} catch (error) {
+			this._logger.info({ method: req.method, err: error as Error }, 'Failed to call ABI query');
 			return {
 				data: Buffer.from(
 					JSON.stringify({

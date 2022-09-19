@@ -44,7 +44,7 @@ interface ChainConstructor {
 
 interface ChainInitArgs {
 	readonly db: Database;
-	readonly networkIdentifier: Buffer;
+	readonly chainID: Buffer;
 	readonly genesisBlock: Block;
 }
 
@@ -65,7 +65,7 @@ export class Chain {
 
 	private _lastBlock?: Block;
 	private _finalizedHeight?: number;
-	private _networkIdentifier!: Buffer;
+	private _chainID!: Buffer;
 	private _genesisHeight!: number;
 
 	public constructor({
@@ -107,12 +107,12 @@ export class Chain {
 		return this._finalizedHeight;
 	}
 
-	public get networkIdentifier(): Buffer {
-		return this._networkIdentifier;
+	public get chainID(): Buffer {
+		return this._chainID;
 	}
 
 	public init(args: ChainInitArgs): void {
-		this._networkIdentifier = args.networkIdentifier;
+		this._chainID = args.chainID;
 		this.dataAccess = new DataAccess({
 			db: args.db,
 			minBlockHeaderCache: this.constants.minBlockHeaderCache,

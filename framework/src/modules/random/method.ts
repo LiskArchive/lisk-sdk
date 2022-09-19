@@ -13,8 +13,8 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { BlockAssets, ImmutableAPIContext } from '../../state_machine';
-import { BaseAPI } from '../base_api';
+import { BlockAssets, ImmutableMethodContext } from '../../state_machine';
+import { BaseMethod } from '../base_method';
 import { NamedRegistry } from '../named_registry';
 import { EMPTY_KEY } from '../validators/constants';
 import { blockHeaderAssetRandomModule } from './schemas';
@@ -22,7 +22,7 @@ import { ValidatorRevealsStore } from './stores/validator_reveals';
 import { BlockHeaderAssetRandomModule } from './types';
 import { getSeedRevealValidity, getRandomSeed } from './utils';
 
-export class RandomAPI extends BaseAPI {
+export class RandomMethod extends BaseMethod {
 	private readonly _moduleName: string;
 
 	public constructor(stores: NamedRegistry, events: NamedRegistry, moduleName: string) {
@@ -31,12 +31,12 @@ export class RandomAPI extends BaseAPI {
 	}
 
 	public async isSeedRevealValid(
-		apiContext: ImmutableAPIContext,
+		methodContext: ImmutableMethodContext,
 		generatorAddress: Buffer,
 		blockAssets: BlockAssets,
 	): Promise<boolean> {
 		const randomDataStore = this.stores.get(ValidatorRevealsStore);
-		const { validatorReveals } = await randomDataStore.get(apiContext, EMPTY_KEY);
+		const { validatorReveals } = await randomDataStore.get(methodContext, EMPTY_KEY);
 		const asset = blockAssets.getAsset(this._moduleName);
 		if (!asset) {
 			throw new Error('Block asset is missing.');
@@ -51,12 +51,12 @@ export class RandomAPI extends BaseAPI {
 	}
 
 	public async getRandomBytes(
-		apiContext: ImmutableAPIContext,
+		methodContext: ImmutableMethodContext,
 		height: number,
 		numberOfSeeds: number,
 	): Promise<Buffer> {
 		const randomDataStore = this.stores.get(ValidatorRevealsStore);
-		const { validatorReveals } = await randomDataStore.get(apiContext, EMPTY_KEY);
+		const { validatorReveals } = await randomDataStore.get(methodContext, EMPTY_KEY);
 
 		return getRandomSeed(height, numberOfSeeds, validatorReveals);
 	}

@@ -15,8 +15,8 @@
 import { genesisAuthStoreSchema } from '../../auth/schemas';
 import { ModuleMetadata } from '../../base_module';
 import { BaseInteroperabilityModule } from '../base_interoperability_module';
-import { MainchainInteroperabilityAPI } from './api';
-import { MainchainCCAPI } from './cc_api';
+import { MainchainInteroperabilityMethod } from './method';
+import { MainchainCCMethod } from './cc_method';
 import { MainchainInteroperabilityEndpoint } from './endpoint';
 import {
 	getChainAccountRequestSchema,
@@ -33,12 +33,16 @@ import { terminatedStateSchema } from '../stores/terminated_state';
 import { terminatedOutboxSchema } from '../stores/terminated_outbox';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
-	public crossChainAPI = new MainchainCCAPI(this.stores, this.events);
-	public api = new MainchainInteroperabilityAPI(this.stores, this.events, this.interoperableCCAPIs);
+	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
+	public method = new MainchainInteroperabilityMethod(
+		this.stores,
+		this.events,
+		this.interoperableCCMethods,
+	);
 	public endpoint = new MainchainInteroperabilityEndpoint(
 		this.stores,
 		this.offchainStores,
-		this.interoperableCCAPIs,
+		this.interoperableCCMethods,
 	);
 
 	public metadata(): ModuleMetadata {

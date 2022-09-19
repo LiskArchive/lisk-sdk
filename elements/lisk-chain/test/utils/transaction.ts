@@ -13,7 +13,7 @@
  */
 
 import { utils, ed, legacy } from '@liskhq/lisk-cryptography';
-import { defaultNetworkIdentifier } from './block';
+import { defaultChainID } from './block';
 import { Transaction } from '../../src/transaction';
 import { TAG_TRANSACTION } from '../../src';
 
@@ -39,7 +39,7 @@ export const getTransaction = (input?: { nonce?: bigint }): Transaction => {
 	});
 	const signature = ed.signData(
 		TAG_TRANSACTION,
-		defaultNetworkIdentifier,
+		defaultChainID,
 		tx.getSigningBytes(),
 		legacy.getPrivateAndPublicKeyFromPassphrase(genesisAddress.passphrase).privateKey,
 	);

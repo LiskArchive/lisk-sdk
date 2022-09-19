@@ -13,4 +13,4 @@
  */
 
 export { AuthModule } from './module';
-export { AuthAPI } from './api';
+export { AuthMethod } from './method';

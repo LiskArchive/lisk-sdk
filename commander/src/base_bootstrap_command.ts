@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Command, flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { env } from './bootstrapping/env';
@@ -40,11 +40,7 @@ export default abstract class BaseBootstrapCommand extends Command {
 	}
 
 	async init(): Promise<void> {
-		// Typing problem where constructor is not allow as Input<any> but it requires to be the type
-		const { flags } = this.parse(
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			(this.constructor as unknown) as flagParser.Input<any>,
-		);
+		const { flags } = await this.parse(this.constructor as never);
 		this.bootstrapFlags = flags as BootstrapFlags;
 
 		process.stdout.on('error', (err: { errno: string }): void => {

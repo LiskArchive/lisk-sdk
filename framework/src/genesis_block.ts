@@ -59,7 +59,7 @@ export const generateGenesisBlock = async (
 		previousBlockID,
 		height,
 		timestamp,
-		generatorAddress: EMPTY_BUFFER,
+		generatorAddress: Buffer.alloc(20, 0),
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: height,
 		signature: EMPTY_BUFFER,
@@ -81,7 +81,7 @@ export const generateGenesisBlock = async (
 	const stateStore = new PrefixedStateReadWriter(stateDB.newReadWriter());
 
 	const blockCtx = new GenesisBlockContext({
-		eventQueue: new EventQueue(),
+		eventQueue: new EventQueue(height),
 		header,
 		assets,
 		logger,
