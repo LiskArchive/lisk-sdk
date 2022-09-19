@@ -14,7 +14,6 @@
 
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { ModuleEndpointContext, RandomModule } from '../../../../src';
-import { STORE_PREFIX_USED_HASH_ONION } from '../../../../src/modules/random/constants';
 import { RandomEndpoint } from '../../../../src/modules/random/endpoint';
 import { HashOnionStore } from '../../../../src/modules/random/stores/hash_onion';
 import { UsedHashOnionsStore } from '../../../../src/modules/random/stores/used_hash_onions';
@@ -331,15 +330,13 @@ describe('RandomModuleEndpoint', () => {
 			});
 
 			const usedHashOnionStore = randomEndpoint['offchainStores'].get(UsedHashOnionsStore);
-			await usedHashOnionStore.set(context, STORE_PREFIX_USED_HASH_ONION, {
-				usedHashOnions: [
-					{
-						address: cryptography.address.getAddressFromLisk32Address(address),
-						count: 20,
-						height: 2121,
-					},
-				],
-			});
+			await usedHashOnionStore.set(
+				context,
+				cryptography.address.getAddressFromLisk32Address(address),
+				{
+					usedHashOnions: [{ count: 20, height: 2121 }],
+				},
+			);
 		});
 
 		it('should return error if param is empty', async () => {
@@ -401,15 +398,13 @@ describe('RandomModuleEndpoint', () => {
 			});
 
 			const usedHashOnionStore = randomEndpoint['offchainStores'].get(UsedHashOnionsStore);
-			await usedHashOnionStore.set(context, STORE_PREFIX_USED_HASH_ONION, {
-				usedHashOnions: [
-					{
-						address: cryptography.address.getAddressFromLisk32Address(address),
-						count: 20,
-						height: 2121,
-					},
-				],
-			});
+			await usedHashOnionStore.set(
+				context,
+				cryptography.address.getAddressFromLisk32Address(address),
+				{
+					usedHashOnions: [{ count: 20, height: 2121 }],
+				},
+			);
 		});
 
 		it('should reject if the seed does not exist', async () => {
