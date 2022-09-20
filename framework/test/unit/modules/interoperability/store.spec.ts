@@ -98,7 +98,6 @@ describe('Base interoperability store', () => {
 	};
 	const chainAccount = {
 		name: 'account1',
-		networkID: Buffer.alloc(0),
 		lastCertificate: {
 			height: 567467,
 			timestamp: 2592000,
@@ -109,7 +108,6 @@ describe('Base interoperability store', () => {
 	};
 	const chainAccount2 = {
 		name: 'account2',
-		networkID: Buffer.alloc(0),
 		lastCertificate: {
 			height: 567467,
 			timestamp: 2592000,

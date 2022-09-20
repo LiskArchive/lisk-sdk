@@ -22,7 +22,7 @@ import { SidechainInteroperabilityStore } from '../store';
 import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 
 interface CCMRegistrationParams {
-	networkID: Buffer;
+	chainID: Buffer;
 	name: string;
 	messageFeeTokenID: MessageFeeTokenID;
 }
@@ -57,7 +57,7 @@ export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCComman
 				!sendingChainChannelAccount.messageFeeTokenID.localID.equals(
 					decodedParams.messageFeeTokenID.localID,
 				)) ||
-			!decodedParams.networkID.equals(ctx.chainID)
+			!decodedParams.chainID.equals(ctx.chainID)
 		) {
 			const beforeSendContext = createCCMsgBeforeSendContext({
 				ccm,

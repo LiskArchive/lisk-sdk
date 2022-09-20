@@ -52,7 +52,6 @@ describe('Sidechain interoperability store', () => {
 	beforeEach(() => {
 		chainAccount = {
 			name: 'account1',
-			networkID: Buffer.alloc(0),
 			lastCertificate: {
 				height: 567467,
 				timestamp: 500000,
@@ -122,7 +121,6 @@ describe('Sidechain interoperability store', () => {
 
 		const activeChainAccount: ChainAccount = {
 			name: 'account1',
-			networkID: Buffer.alloc(0),
 			lastCertificate: {
 				height: 567467,
 				timestamp: 500000,

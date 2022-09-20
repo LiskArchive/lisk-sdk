@@ -68,7 +68,8 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
 }));
 
-describe('Mainchain registration command', () => {
+// TODO: Unskip and update for networkIdentifier in issue #7441
+describe.skip('Mainchain registration command', () => {
 	const interopMod = new SidechainInteroperabilityModule();
 
 	const unsortedMainchainValidators: ActiveValidators[] = [];
@@ -228,7 +229,6 @@ describe('Mainchain registration command', () => {
 		};
 		const chainAccount = {
 			name: MAINCHAIN_NAME,
-			networkID: MAINCHAIN_NETWORK_ID,
 			lastCertificate: {
 				height: 0,
 				timestamp: 0,

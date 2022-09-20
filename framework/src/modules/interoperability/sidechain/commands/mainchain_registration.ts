@@ -143,7 +143,6 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 		const chainSubstore = this.stores.get(ChainAccountStore);
 		await chainSubstore.set(context, MAINCHAIN_ID_BUFFER, {
 			name: MAINCHAIN_NAME,
-			networkID: MAINCHAIN_NETWORK_ID,
 			lastCertificate: {
 				height: 0,
 				timestamp: 0,

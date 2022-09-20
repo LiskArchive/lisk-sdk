@@ -22,7 +22,7 @@ import { MainchainInteroperabilityStore } from '../store';
 import { StoreGetter } from '../../../base_store';
 
 interface CCMRegistrationParams {
-	networkID: Buffer;
+	chainID: Buffer;
 	name: string;
 	messageFeeTokenID: MessageFeeTokenID;
 }
@@ -58,7 +58,7 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			!sendingChainChannelAccount.messageFeeTokenID.localID.equals(
 				decodedParams.messageFeeTokenID.localID,
 			) ||
-			!decodedParams.networkID.equals(ctx.chainID) ||
+			!decodedParams.chainID.equals(ctx.chainID) ||
 			ccm.nonce !== BigInt(0) // Only in mainchain
 		) {
 			const beforeSendContext = createCCMsgBeforeSendContext({

@@ -147,13 +147,13 @@ export abstract class BaseInteroperabilityStore {
 	public async getAllChainAccounts(startChainID: Buffer): Promise<ChainAccount[]> {
 		const chainSubstore = this.stores.get(ChainAccountStore);
 		const endBuf = utils.intToBuffer(MAX_UINT32, 4);
-		const chainIDs = await chainSubstore.iterate(this.context, { gte: startChainID, lte: endBuf });
+		const chainAccounts = await chainSubstore.iterate(this.context, {
+			gte: startChainID,
+			lte: endBuf,
+		});
 
 		return Promise.all(
-			chainIDs.map(async chainID => {
-				const chainIDBuffer = utils.intToBuffer(chainID.key.readUInt32BE(0), 4);
-				return chainSubstore.get(this.context, chainIDBuffer);
-			}),
+			chainAccounts.map(async chainAccount => chainSubstore.get(this.context, chainAccount.key)),
 		);
 	}
 

@@ -126,7 +126,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		const verifyCertificateSignatureResult = verifyCertificateSignature(
 			txParams,
 			partnerValidators,
-			partnerChainAccount,
+			partnerChainIDBuffer,
 		);
 		if (verifyCertificateSignatureResult.error) {
 			return verifyCertificateSignatureResult;

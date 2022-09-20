@@ -55,7 +55,7 @@ describe('SidechainCCRegistrationCommand', () => {
 	const chainID = utils.getRandomBytes(32);
 
 	const ccmRegistrationParams = {
-		networkID: chainID,
+		chainID,
 		name: ownChainAccount.name,
 		messageFeeTokenID: {
 			chainID: utils.intToBuffer(1, 4),
@@ -292,23 +292,23 @@ describe('SidechainCCRegistrationCommand', () => {
 		);
 	});
 
-	it('should call terminateChainInternal when decodedParams.networkID !== ownChainAccount.networkID', async () => {
+	it('should call terminateChainInternal when decodedParams.chainID !== ownChainAccount.chainID', async () => {
 		// Arrange
 		getChannelMock.mockResolvedValue(channelData);
 
 		getOwnChainAccountMock.mockResolvedValue(ownChainAccount);
 
-		const differentNetworkID = utils.getRandomBytes(32);
+		const differentChainID = utils.getRandomBytes(32);
 		await ccRegistrationCommand.execute({
 			...sampleExecuteContext,
-			chainID: differentNetworkID,
+			chainID: differentChainID,
 		});
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
-				chainID: differentNetworkID,
+				chainID: differentChainID,
 				ccm,
 			}),
 		);

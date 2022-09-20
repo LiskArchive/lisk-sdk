@@ -17,6 +17,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { MainchainInteroperabilityModule } from '../../../../../../src';
 import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainCCRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands';
@@ -52,10 +53,10 @@ describe('MainchainCCRegistrationCommand', () => {
 	ccMethodsMap.set(1, ccMethodMod1);
 	ccMethodsMap.set(2, ccMethodMod2);
 
-	const chainID = utils.getRandomBytes(32);
+	const chainID = utils.intToBuffer(2, 4);
 
 	const ccmRegistrationParams = {
-		networkID: chainID,
+		chainID,
 		name: ownChainAccount.name,
 		messageFeeTokenID: {
 			chainID: utils.intToBuffer(1, 4),
@@ -72,8 +73,8 @@ describe('MainchainCCRegistrationCommand', () => {
 		nonce: BigInt(0),
 		module: MODULE_NAME_INTEROPERABILITY,
 		crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-		sendingChainID: utils.intToBuffer(2, 4),
-		receivingChainID: utils.intToBuffer(1, 4),
+		sendingChainID: chainID,
+		receivingChainID: MAINCHAIN_ID_BUFFER,
 		fee: BigInt(20000),
 		status: 0,
 		params: encodedRegistrationParams,
@@ -165,8 +166,8 @@ describe('MainchainCCRegistrationCommand', () => {
 			nonce: BigInt(0),
 			module: MODULE_NAME_INTEROPERABILITY,
 			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-			sendingChainID: utils.intToBuffer(2, 4),
-			receivingChainID: utils.intToBuffer(1, 4),
+			sendingChainID: chainID,
+			receivingChainID: MAINCHAIN_ID_BUFFER,
 			fee: BigInt(20000),
 			status: 1,
 			params: encodedRegistrationParams,
@@ -292,7 +293,7 @@ describe('MainchainCCRegistrationCommand', () => {
 		);
 	});
 
-	it('should call terminateChainInternal when decodedParams.networkID !== ownChainAccount.networkID', async () => {
+	it('should call terminateChainInternal when decodedParams.chainID !== ownChainAccount.chainID', async () => {
 		// Arrange
 		getChannelMock.mockResolvedValue(channelData);
 
@@ -320,8 +321,8 @@ describe('MainchainCCRegistrationCommand', () => {
 			nonce: BigInt(1), // nonce not equal to 0
 			module: MODULE_NAME_INTEROPERABILITY,
 			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-			sendingChainID: utils.intToBuffer(2, 4),
-			receivingChainID: utils.intToBuffer(1, 4),
+			sendingChainID: chainID,
+			receivingChainID: MAINCHAIN_ID_BUFFER,
 			fee: BigInt(20000),
 			status: 0,
 			params: encodedRegistrationParams,

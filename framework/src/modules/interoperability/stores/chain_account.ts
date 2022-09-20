@@ -29,26 +29,21 @@ export interface LastCertificateJSON {
 
 export interface ChainAccount {
 	name: string;
-	networkID: Buffer;
 	lastCertificate: LastCertificate;
 	status: number;
 }
 
 const chainAccountJSONSchema = {
 	type: 'object',
-	required: ['name', 'networkID', 'lastCertificate', 'status'],
+	required: ['name', 'lastCertificate', 'status'],
 	properties: {
 		name: {
 			dataType: 'string',
 			fieldNumber: 1,
 		},
-		networkID: {
-			dataType: 'bytes',
-			fieldNumber: 2,
-		},
 		lastCertificate: {
 			type: 'object',
-			fieldNumber: 3,
+			fieldNumber: 2,
 			required: ['height', 'timestamp', 'stateRoot', 'validatorsHash'],
 			properties: {
 				height: {
@@ -71,7 +66,7 @@ const chainAccountJSONSchema = {
 		},
 		status: {
 			dataType: 'uint32',
-			fieldNumber: 4,
+			fieldNumber: 3,
 		},
 	},
 };

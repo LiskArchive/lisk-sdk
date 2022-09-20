@@ -156,14 +156,12 @@ export interface LastCertificateJSON {
 
 export interface ChainAccount {
 	name: string;
-	networkID: Buffer;
 	lastCertificate: LastCertificate;
 	status: number;
 }
 
 export interface ChainAccountJSON {
 	name: string;
-	networkID: string;
 	lastCertificate: LastCertificateJSON;
 	status: number;
 }
@@ -251,9 +249,10 @@ export interface RegistrationParametersValidator {
 
 export interface SidechainRegistrationParams {
 	name: string;
-	genesisBlockID: Buffer;
+	chainID: Buffer;
 	initValidators: RegistrationParametersValidator[];
 	certificateThreshold: bigint;
+	sidechainRegistrationFee: bigint;
 }
 
 export interface MainchainRegistrationParams {
