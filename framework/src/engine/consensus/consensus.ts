@@ -37,6 +37,7 @@ import { AbortError, ApplyPenaltyAndRestartError, RestartError } from './synchro
 import { BlockExecutor } from './synchronizer/type';
 import { Network } from '../network';
 import { NetworkEndpoint, EndpointArgs } from './network_endpoint';
+import { NetworkEndpoint as LegacyNetworkEndpoint } from '../legacy/network_endpoint';
 import { EventPostBlockData, postBlockEventSchema } from './schema';
 import {
 	CONSENSUS_EVENT_BLOCK_BROADCAST,
@@ -52,6 +53,7 @@ import {
 	NETWORK_RPC_GET_BLOCKS_FROM_ID,
 	NETWORK_RPC_GET_HIGHEST_COMMON_BLOCK,
 	NETWORK_RPC_GET_LAST_BLOCK,
+	NETWORK_LEGACY_GET_BLOCKS,
 } from './constants';
 import { GenesisConfig } from '../../types';
 import { AggregateCommit } from './types';
@@ -109,6 +111,7 @@ export class Consensus {
 	private _db!: Database;
 	private _commitPool!: CommitPool;
 	private _endpoint!: NetworkEndpoint;
+	private _legacyEndpoint!: LegacyNetworkEndpoint;
 	private _synchronizer!: Synchronizer;
 	private _blockSlot!: Slots;
 
@@ -140,6 +143,11 @@ export class Consensus {
 			network: this._network,
 			db: this._db,
 		} as EndpointArgs); // TODO: Remove casting in issue where commitPool is added here
+		this._legacyEndpoint = new LegacyNetworkEndpoint({
+			logger: this._logger,
+			network: this._network,
+			db: this._db,
+		});
 		const blockExecutor = this._createBlockExecutor();
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
 			chain: this._chain,
@@ -164,6 +172,9 @@ export class Consensus {
 			interval: this._genesisConfig.blockTime,
 		});
 
+		this._network.registerEndpoint(NETWORK_LEGACY_GET_BLOCKS, async ({ data, peerId }) =>
+			this._legacyEndpoint.handleRPCGetLegacyBlocksFromId(data, peerId),
+		);
 		this._network.registerEndpoint(NETWORK_RPC_GET_LAST_BLOCK, ({ peerId }) =>
 			this._endpoint.handleRPCGetLastBlock(peerId),
 		);
