@@ -17,7 +17,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { blockHeaderSchemaV2, blockSchemaV2 } from './schemas';
 import { LegacyBlock, LegacyBlockJSON, RawLegacyBlock } from './types';
 
-interface LegacyBlockSchema {
+export interface LegacyBlockSchema {
 	header: Schema;
 	block: Schema;
 }
@@ -73,7 +73,8 @@ export const encodeBlock = (data: LegacyBlock): Buffer => {
 	if (!blockSchema) {
 		throw new Error(`Legacy block version ${data.header.version} is not registered.`);
 	}
-	const headerBytes = codec.encode(blockSchema.header, data.header);
+	const { id, ...blockHeader } = data.header;
+	const headerBytes = codec.encode(blockSchema.header, blockHeader);
 
 	return codec.encode(blockSchema.block, {
 		header: headerBytes,
