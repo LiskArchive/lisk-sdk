@@ -106,7 +106,9 @@ export class Engine {
 		await this._init();
 		await this._network.start();
 		if (this._config.legacy.sync) {
+			this._logger.info('Legacy block sync started');
 			await this._legacyChainHandler.syncBlocks();
+			this._logger.info('Legacy block sync completed');
 		}
 		await this._generator.start();
 		await this._consensus.start();
@@ -151,7 +153,6 @@ export class Engine {
 			chain: this._chain,
 			genesisConfig: this._config.genesis,
 			bft: this._bftModule,
-			legacyChainHandler: this._legacyChainHandler,
 		});
 		this._generator = new Generator({
 			abi: this._abi,
