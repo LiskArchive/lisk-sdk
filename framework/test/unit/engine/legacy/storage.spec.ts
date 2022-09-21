@@ -15,12 +15,9 @@
 
 import { intToBuffer } from '@liskhq/lisk-cryptography/dist-node/utils';
 import { Batch, Database, InMemoryDatabase } from '@liskhq/lisk-db';
-import { decodeBlockJSON, encodeBlock } from '../../../../src/engine/legacy/codec';
-import {
-	DB_KEY_BLOCK_ID,
-	DB_KEY_BLOCK_HEIGHT,
-	Storage,
-} from '../../../../src/engine/legacy/storage';
+import { encodeBlock } from '../../../../src/engine/legacy/codec';
+import { DB_KEY_BLOCK_HEIGHT, DB_KEY_BLOCK_ID } from '../../../../src/engine/legacy/constants';
+import { Storage } from '../../../../src/engine/legacy/storage';
 import { blockFixtures } from './fixtures';
 
 describe('Legacy storage', () => {
@@ -57,14 +54,14 @@ describe('Legacy storage', () => {
 	describe('getBlockByID', () => {
 		it('should return block with given id', async () => {
 			const { header, transactions } = blockFixtures[0];
-			const { block } = await storage.getBlockByID(header.id);
+			const result = await storage.getBlockByID(header.id);
 
-			expect(block).toEqual(decodeBlockJSON(encodeBlock({ header, transactions })).block);
+			expect(result).toEqual(encodeBlock({ header, transactions }));
 		});
 
-		it('should throw an error if the block is not found', async () => {
+		it('should throw error if block with given id does not exist', async () => {
 			await expect(storage.getBlockByID(Buffer.alloc(0))).rejects.toThrow(
-				'Specified key  does not exist.',
+				`Specified key 00 does not exist`,
 			);
 		});
 	});
@@ -72,14 +69,14 @@ describe('Legacy storage', () => {
 	describe('getBlockByHeight', () => {
 		it('should return block with given height', async () => {
 			const { header, transactions } = blockFixtures[0];
-			const { block } = await storage.getBlockByHeight(header.height);
+			const result = await storage.getBlockByHeight(header.height);
 
-			expect(block).toEqual(decodeBlockJSON(encodeBlock({ header, transactions })).block);
+			expect(result).toEqual(encodeBlock({ header, transactions }));
 		});
 
 		it('should throw an error if the block is not found', async () => {
-			await expect(storage.getBlockByHeight(0)).rejects.toThrow(
-				'Specified height 0 does not exist.',
+			await expect(storage.getBlockByHeight(100)).rejects.toThrow(
+				`Specified key 0100000064 does not exist`,
 			);
 		});
 	});
@@ -90,8 +87,7 @@ describe('Legacy storage', () => {
 			const result = await storage.getBlocksByHeightBetween(header.height, header.height + 1);
 
 			expect(result).toHaveLength(2);
-			expect(result[1].block).toEqual(decodeBlockJSON(encodeBlock({ header, transactions })).block);
-			expect(result[1].block.header.height).toBeLessThan(result[0].block.header.height);
+			expect(result[1]).toEqual(encodeBlock({ header, transactions }));
 		});
 	});
 
@@ -119,7 +115,7 @@ describe('Legacy storage', () => {
 		});
 
 		it('should return false if block does not exist', async () => {
-			const result = await storage.isBlockHeightPersisted(0);
+			const result = await storage.isBlockHeightPersisted(100);
 
 			expect(result).toBeFalse();
 		});
@@ -130,9 +126,9 @@ describe('Legacy storage', () => {
 			const { header, transactions } = blockFixtures[0];
 			await storage.saveBlock(header.id, header.height, encodeBlock({ header, transactions }));
 
-			const { block } = await storage.getBlockByID(header.id);
+			const result = await storage.getBlockByID(header.id);
 
-			expect(block).toEqual(decodeBlockJSON(encodeBlock({ header, transactions })).block);
+			expect(result).toEqual(encodeBlock({ header, transactions }));
 		});
 	});
 });
