@@ -41,6 +41,7 @@ import { OutboxRootStore } from '../stores/outbox_root';
 import { ChainValidatorsStore } from '../stores/chain_validators';
 import { ChainAccountUpdatedEvent } from '../events/chain_account_updated';
 import { CcmProcessedEvent } from '../events/ccm_processed';
+import { InvalidRegistrationSignatureEvent } from '../events/invalid_registration_signature';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod: BaseInteroperableMethod = new SidechainCCMethod(
@@ -77,6 +78,10 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.stores.register(ChainValidatorsStore, new ChainValidatorsStore(this.name));
 		this.events.register(ChainAccountUpdatedEvent, new ChainAccountUpdatedEvent(this.name));
 		this.events.register(CcmProcessedEvent, new CcmProcessedEvent(this.name));
+		this.events.register(
+			InvalidRegistrationSignatureEvent,
+			new InvalidRegistrationSignatureEvent(this.name),
+		);
 	}
 
 	public metadata(): ModuleMetadata {
