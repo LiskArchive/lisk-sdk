@@ -37,7 +37,7 @@ import { AbortError, ApplyPenaltyAndRestartError, RestartError } from './synchro
 import { BlockExecutor } from './synchronizer/type';
 import { Network } from '../network';
 import { NetworkEndpoint, EndpointArgs } from './network_endpoint';
-import { NetworkEndpoint as LegacyNetworkEndpoint } from '../legacy/network_endpoint';
+import { LegacyNetworkEndpoint } from '../legacy/network_endpoint';
 import { EventPostBlockData, postBlockEventSchema } from './schema';
 import {
 	CONSENSUS_EVENT_BLOCK_BROADCAST,
@@ -76,6 +76,7 @@ interface InitArgs {
 	logger: Logger;
 	genesisBlock: Block;
 	db: Database;
+	legacyDB: Database;
 }
 
 interface ExecuteOptions {
@@ -146,7 +147,7 @@ export class Consensus {
 		this._legacyEndpoint = new LegacyNetworkEndpoint({
 			logger: this._logger,
 			network: this._network,
-			db: this._db,
+			db: args.legacyDB,
 		});
 		const blockExecutor = this._createBlockExecutor();
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
