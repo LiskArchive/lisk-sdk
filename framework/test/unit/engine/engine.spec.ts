@@ -110,7 +110,7 @@ describe('engine', () => {
 			expect(LegacyChainHandler.prototype.syncBlocks).toHaveBeenCalledTimes(0);
 		});
 
-		it('should initialize legacy chain handler an start syncing blocks if config is set to true', async () => {
+		it('should initialize legacy chain handler and start syncing blocks if config is set to true', async () => {
 			await engine.stop();
 			engine = new Engine(abi, {
 				...defaultConfig,
