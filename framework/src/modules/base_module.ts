@@ -44,7 +44,7 @@ export interface ModuleMetadata {
 	}[];
 	events: {
 		name: string;
-		data: Schema;
+		data?: Schema;
 	}[];
 	commands: {
 		name: string;
@@ -66,7 +66,7 @@ export interface ModuleMetadataJSON {
 	}[];
 	events: {
 		name: string;
-		data: Schema;
+		data?: Schema;
 	}[];
 	commands: {
 		name: string;
