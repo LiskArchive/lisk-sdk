@@ -27,7 +27,6 @@ describe('TransactionPool class', () => {
 		transactionPool = new TransactionPool({
 			applyTransactions: jest.fn(),
 			transactionReorganizationInterval: 1,
-			minFeePerByte: 1000,
 			maxPayloadLength: 15360,
 		});
 		jest.spyOn(transactionPool.events, 'emit');
@@ -53,7 +52,6 @@ describe('TransactionPool class', () => {
 					minReplacementFeeDifference: BigInt(100),
 					minEntranceFeePriority: BigInt(10),
 					transactionExpiryTime: 60 * 60 * 1000, // 1 hours in ms
-					minFeePerByte: 1000,
 					maxPayloadLength: 15360,
 				});
 
@@ -334,8 +332,7 @@ describe('TransactionPool class', () => {
 			// Arrange
 			transactionPool = new TransactionPool({
 				applyTransactions: jest.fn(),
-				minEntranceFeePriority: BigInt(10),
-				minFeePerByte: 1000,
+				minEntranceFeePriority: BigInt(400),
 				maxPayloadLength: 15360,
 			});
 			const lowFeeTrx = {
@@ -362,7 +359,6 @@ describe('TransactionPool class', () => {
 				applyTransactions: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
-				minFeePerByte: 1000,
 				maxPayloadLength: 15360,
 			});
 
@@ -416,7 +412,6 @@ describe('TransactionPool class', () => {
 				applyTransactions: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
-				minFeePerByte: 1000,
 				maxPayloadLength: 15360,
 			});
 
@@ -483,7 +478,6 @@ describe('TransactionPool class', () => {
 				applyTransactions: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
-				minFeePerByte: 1000,
 				maxPayloadLength: 15360,
 			});
 
@@ -531,7 +525,6 @@ describe('TransactionPool class', () => {
 				applyTransactions: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
-				minFeePerByte: 1000,
 				maxPayloadLength: 15360,
 			});
 
@@ -697,7 +690,6 @@ describe('TransactionPool class', () => {
 				applyTransactions: jest.fn().mockResolvedValue([{ status: Status.OK, errors: [] }]),
 				transactionReorganizationInterval: 1,
 				maxTransactions: 2,
-				minFeePerByte: 1000,
 				maxPayloadLength: 15360,
 			});
 			jest.spyOn(transactionPool.events, 'emit');
@@ -773,7 +765,6 @@ describe('TransactionPool class', () => {
 				applyTransactions: jest.fn().mockResolvedValue([{ status: Status.OK, errors: [] }]),
 				transactionReorganizationInterval: 1,
 				maxTransactions: 2,
-				minFeePerByte: 1000,
 				maxPayloadLength: 15360,
 			});
 			jest.spyOn(transactionPool.events, 'emit');
@@ -856,7 +847,6 @@ describe('TransactionPool class', () => {
 			transactionPool = new TransactionPool({
 				applyTransactions: jest.fn(),
 				transactionReorganizationInterval: 1,
-				minFeePerByte: 1000,
 				maxPayloadLength: 15360,
 			});
 			await transactionPool.add(transactionsFromSender1[0]);
