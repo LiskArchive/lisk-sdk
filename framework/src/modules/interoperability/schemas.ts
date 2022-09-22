@@ -19,6 +19,8 @@ import {
 	MAX_NUM_VALIDATORS,
 	MIN_CHAIN_NAME_LENGTH,
 	MAX_CHAIN_NAME_LENGTH,
+	BLS_PUBLIC_KEY_LENGTH,
+	BLS_SIGNATURE_LENGTH,
 } from './constants';
 import { chainAccountSchema } from './stores/chain_account';
 import { chainValidatorsSchema } from './stores/chain_validators';
@@ -104,8 +106,8 @@ export const sidechainRegParams = {
 					blsKey: {
 						dataType: 'bytes',
 						fieldNumber: 1,
-						minLength: 48,
-						maxLength: 48,
+						minLength: BLS_PUBLIC_KEY_LENGTH,
+						maxLength: BLS_PUBLIC_KEY_LENGTH,
 					},
 					bftWeight: {
 						dataType: 'uint64',
@@ -135,11 +137,13 @@ export const mainchainRegParams = {
 		ownChainID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 		ownName: {
 			dataType: 'string',
 			fieldNumber: 2,
-			minLength: 1,
+			minLength: MIN_CHAIN_NAME_LENGTH,
 			maxLength: MAX_LENGTH_NAME,
 		},
 		mainchainValidators: {
@@ -152,8 +156,8 @@ export const mainchainRegParams = {
 					blsKey: {
 						dataType: 'bytes',
 						fieldNumber: 1,
-						minLength: 48,
-						maxLength: 48,
+						minLength: BLS_PUBLIC_KEY_LENGTH,
+						maxLength: BLS_PUBLIC_KEY_LENGTH,
 					},
 					bftWeight: {
 						dataType: 'uint64',
@@ -167,6 +171,8 @@ export const mainchainRegParams = {
 		signature: {
 			dataType: 'bytes',
 			fieldNumber: 4,
+			minItems: BLS_SIGNATURE_LENGTH,
+			maxItems: BLS_SIGNATURE_LENGTH,
 		},
 		aggregationBits: {
 			dataType: 'bytes',
@@ -204,8 +210,8 @@ export const crossChainUpdateTransactionParams = {
 					blsKey: {
 						dataType: 'bytes',
 						fieldNumber: 1,
-						minLength: 48,
-						maxLength: 48,
+						minLength: BLS_PUBLIC_KEY_LENGTH,
+						maxLength: BLS_PUBLIC_KEY_LENGTH,
 					},
 					bftWeight: {
 						dataType: 'uint64',
@@ -394,11 +400,13 @@ export const registrationSignatureMessageSchema = {
 		ownChainID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 		ownName: {
 			dataType: 'string',
 			fieldNumber: 2,
-			minLength: 1,
+			minLength: MIN_CHAIN_NAME_LENGTH,
 			maxLength: MAX_LENGTH_NAME,
 		},
 		mainchainValidators: {
@@ -411,8 +419,8 @@ export const registrationSignatureMessageSchema = {
 					blsKey: {
 						dataType: 'bytes',
 						fieldNumber: 1,
-						minLength: 48,
-						maxLength: 48,
+						minLength: BLS_PUBLIC_KEY_LENGTH,
+						maxLength: BLS_PUBLIC_KEY_LENGTH,
 					},
 					bftWeight: {
 						dataType: 'uint64',

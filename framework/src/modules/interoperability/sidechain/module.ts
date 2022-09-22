@@ -18,7 +18,7 @@ import { BaseInteroperabilityModule } from '../base_interoperability_module';
 import { BaseInteroperableMethod } from '../base_interoperable_method';
 import { SidechainInteroperabilityMethod } from './method';
 import { SidechainCCMethod } from './cc_method';
-// import { MainchainRegistrationCommand } from './commands/mainchain_registration';
+import { MainchainRegistrationCommand } from './commands/mainchain_registration';
 import { SidechainInteroperabilityEndpoint } from './endpoint';
 import {
 	getChainAccountRequestSchema,
@@ -28,11 +28,19 @@ import {
 } from '../schemas';
 import { GenesisBlockExecuteContext } from '../../../state_machine';
 import { initGenesisStateUtil } from '../utils';
-import { chainAccountSchema, allChainAccountsSchema } from '../stores/chain_account';
-import { channelSchema } from '../stores/channel_data';
-import { ownChainAccountSchema } from '../stores/own_chain_account';
+import {
+	chainAccountSchema,
+	allChainAccountsSchema,
+	ChainAccountStore,
+} from '../stores/chain_account';
+import { ChannelDataStore, channelSchema } from '../stores/channel_data';
+import { ownChainAccountSchema, OwnChainAccountStore } from '../stores/own_chain_account';
 import { terminatedStateSchema } from '../stores/terminated_state';
 import { terminatedOutboxSchema } from '../stores/terminated_outbox';
+import { OutboxRootStore } from '../stores/outbox_root';
+import { ChainValidatorsStore } from '../stores/chain_validators';
+import { ChainAccountUpdatedEvent } from '../events/chain_account_updated';
+import { CcmProcessedEvent } from '../events/ccm_processed';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod: BaseInteroperableMethod = new SidechainCCMethod(
@@ -49,11 +57,27 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.offchainStores,
 		this.interoperableCCMethods,
 	);
-	// private readonly _mainchainRegistrationCommand = new MainchainRegistrationCommand(
-	// 	this.id,
-	// 	new Map(),
-	// 	new Map(),
-	// ); // To be updated with actual implementation
+
+	private readonly _mainchainRegistrationCommand = new MainchainRegistrationCommand(
+		this.stores,
+		this.events,
+		this.interoperableCCMethods,
+		this.interoperableCCCommands,
+	);
+
+	// eslint-disable-next-line @typescript-eslint/member-ordering
+	public commands = [this._mainchainRegistrationCommand];
+
+	public constructor() {
+		super();
+		this.stores.register(ChainAccountStore, new ChainAccountStore(this.name));
+		this.stores.register(OwnChainAccountStore, new OwnChainAccountStore(this.name));
+		this.stores.register(ChannelDataStore, new ChannelDataStore(this.name));
+		this.stores.register(OutboxRootStore, new OutboxRootStore(this.name));
+		this.stores.register(ChainValidatorsStore, new ChainValidatorsStore(this.name));
+		this.events.register(ChainAccountUpdatedEvent, new ChainAccountUpdatedEvent(this.name));
+		this.events.register(CcmProcessedEvent, new CcmProcessedEvent(this.name));
+	}
 
 	public metadata(): ModuleMetadata {
 		return {
