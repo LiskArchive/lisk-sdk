@@ -12,51 +12,71 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Database } from '@liskhq/lisk-db';
-
-export const DB_KEY_BLOCK_ID = Buffer.from([0]);
+import { intToBuffer } from '@liskhq/lisk-cryptography/dist-node/utils';
+import { Batch, Database } from '@liskhq/lisk-db';
+import { DB_KEY_BLOCK_HEIGHT, DB_KEY_BLOCK_ID } from './constants';
 
 export class Storage {
 	private readonly _db: Database;
 
 	public constructor(db: Database) {
 		this._db = db;
-		// eslint-disable-next-line no-console
-		console.log(this._db);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getBlockByID(_id: Buffer): Promise<Buffer> {
-		return Buffer.alloc(0);
+	public async getBlockByID(id: Buffer): Promise<Buffer> {
+		return this._db.get(Buffer.concat([DB_KEY_BLOCK_ID, id]));
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getBlockByHeight(_height: number): Promise<Buffer> {
-		return Buffer.alloc(0);
+	public async getBlockByHeight(height: number): Promise<Buffer> {
+		return this.getBlockByID(
+			await this._db.get(Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(height, 4)])),
+		);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getBlocksByHeightBetween(_fromHeight: number, _toHeight: number): Promise<Buffer[]> {
-		return [];
+	public async getBlocksByHeightBetween(fromHeight: number, toHeight: number): Promise<Buffer[]> {
+		const blockIDs = await this._getBlockIDsBetweenHeights(fromHeight, toHeight);
+		return Promise.all(blockIDs.map(async id => this.getBlockByID(id)));
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async isBlockPersisted(_blockID: Buffer): Promise<boolean> {
-		return true;
+	public async isBlockPersisted(blockID: Buffer): Promise<boolean> {
+		return this._db.has(Buffer.concat([DB_KEY_BLOCK_ID, blockID]));
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async isBlockHeightPersisted(_height: number): Promise<boolean> {
-		return true;
+	public async isBlockHeightPersisted(height: number): Promise<boolean> {
+		return this._db.has(Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(height, 4)]));
 	}
 
-	/*
-		Save Block
-	*/
-	public async saveBlock(
-		_id: Buffer,
-		_height: number,
-		_block: Buffer,
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
-	): Promise<void> {}
+	public async saveBlock(id: Buffer, height: number, block: Buffer): Promise<void> {
+		const batch = new Batch();
+		batch.set(Buffer.concat([DB_KEY_BLOCK_ID, id]), block);
+		batch.set(Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(height, 4)]), id);
+
+		await this._db.write(batch);
+	}
+
+	private async _getBlockIDsBetweenHeights(
+		fromHeight: number,
+		toHeight: number,
+	): Promise<Buffer[]> {
+		const stream = this._db.createReadStream({
+			gte: Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(fromHeight, 4)]),
+			lte: Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(toHeight, 4)]),
+			reverse: true,
+		});
+
+		return new Promise<Buffer[]>((resolve, reject) => {
+			const ids: Buffer[] = [];
+
+			stream
+				.on('data', ({ value }: { value: Buffer }) => {
+					ids.push(value);
+				})
+				.on('error', error => {
+					reject(error);
+				})
+				.on('end', () => {
+					resolve(ids);
+				});
+		});
+	}
 }
