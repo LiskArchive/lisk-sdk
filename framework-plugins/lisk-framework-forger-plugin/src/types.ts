@@ -29,10 +29,6 @@ export interface Voters {
 	amount: bigint;
 }
 
-export interface TransactionFees {
-	readonly minFeePerByte: number;
-}
-
 export interface ForgetSyncInfo {
 	syncUptoHeight: number;
 }

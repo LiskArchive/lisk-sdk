@@ -29,7 +29,6 @@ export interface GenesisConfig {
 		readonly offset: number;
 		readonly distance: number;
 	};
-	readonly minFeePerByte: number;
 }
 
 export interface NodeInfo {
