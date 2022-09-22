@@ -18,6 +18,7 @@ export type FeeTokenID = Buffer;
 
 export interface ModuleConfig {
 	feeTokenID: string;
+	minFeePerByte: number;
 }
 export interface TokenMethod {
 	transfer: (
