@@ -188,6 +188,7 @@ export class Engine {
 			db: this._blockchainDB,
 			genesisBlock: genesis,
 			logger: this._logger,
+			legacyDB: this._legacyDB,
 		});
 		await this._generator.init({
 			blockchainDB: this._blockchainDB,

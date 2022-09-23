@@ -23,7 +23,7 @@ export interface EndpointArgs {
 	db: Database;
 }
 
-export class NetworkEndpoint extends BaseNetworkEndpoint {
+export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 	private readonly _logger: Logger;
 	private readonly _network: Network;
 	private readonly _db: Database | InMemoryDatabase;
