@@ -174,14 +174,7 @@ export const applicationConfigSchema = {
 		},
 		genesis: {
 			type: 'object',
-			required: [
-				'block',
-				'blockTime',
-				'bftBatchSize',
-				'chainID',
-				'maxTransactionsSize',
-				'minFeePerByte',
-			],
+			required: ['block', 'blockTime', 'bftBatchSize', 'chainID', 'maxTransactionsSize'],
 			properties: {
 				block: {
 					type: 'object',
@@ -226,11 +219,6 @@ export const applicationConfigSchema = {
 					type: 'string',
 					format: 'hex',
 					description: 'The unique name of the chain as a string encoded in Hex format',
-				},
-				minFeePerByte: {
-					type: 'integer',
-					minimum: 0,
-					description: 'Minimum fee per bytes required for a transaction to be valid',
 				},
 				maxTransactionsSize: {
 					type: 'integer',
@@ -303,7 +291,6 @@ export const applicationConfigSchema = {
 			chainID: '10000000',
 			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 			maxTransactionsSize: 15 * 1024, // Kilo Bytes
-			minFeePerByte: 1000,
 		},
 		generator: {
 			keys: {},

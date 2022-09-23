@@ -11,7 +11,6 @@
 		"communityIdentifier": "Lisk",
 		"maxTransactionsSize": 15360,
 		"bftThreshold": 68,
-		"minFeePerByte": 1000,
 		"rewards": {
 			"milestones": [
 				"500000000",

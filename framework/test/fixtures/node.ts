@@ -34,7 +34,6 @@ export const nodeOptions = {
 		chainID: '10000000',
 		maxTransactionsSize: 15 * 1024, // 15kb
 		bftBatchSize: 103,
-		minFeePerByte: 1000, // 10k beddows or 0.00001 LSK
 	},
 	transactionPool: {
 		maxTransactions: 4096,

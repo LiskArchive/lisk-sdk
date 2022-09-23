@@ -50,12 +50,12 @@ export class FeeModule extends BaseModule {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs): Promise<void> {
-		const { genesisConfig, moduleConfig } = args;
+		const { moduleConfig } = args;
 		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
 		validator.validate<ModuleConfig>(configSchema, config);
 
 		this._tokenID = Buffer.from(config.feeTokenID, 'hex');
-		this._minFeePerByte = genesisConfig.minFeePerByte;
+		this._minFeePerByte = config.minFeePerByte;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
