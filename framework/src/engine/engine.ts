@@ -46,6 +46,7 @@ import { ConsensusEndpoint } from './endpoint/consensus';
 import { EngineConfig } from '../types';
 import { readGenesisBlock } from '../utils/genesis_block';
 import { LegacyChainHandler } from './legacy/legacy_chain_handler';
+import { LegacyEndpoint } from './legacy/endpoint';
 
 const isEmpty = (value: unknown): boolean => {
 	switch (typeof value) {
@@ -192,6 +193,7 @@ export class Engine {
 			db: this._blockchainDB,
 			genesisBlock: genesis,
 			logger: this._logger,
+			legacyDB: this._legacyDB,
 		});
 		await this._generator.init({
 			blockchainDB: this._blockchainDB,
@@ -208,6 +210,11 @@ export class Engine {
 			logger: this._logger,
 			chainID: this._chain.chainID,
 		});
+
+		const legacyEndpoint = new LegacyEndpoint({
+			db: this._legacyDB,
+		});
+
 		const chainEndpoint = new ChainEndpoint({
 			chain: this._chain,
 			genesisBlockTimestamp: genesis.header.timestamp,
@@ -234,6 +241,9 @@ export class Engine {
 			blockchainDB: this._blockchainDB,
 		});
 
+		for (const [name, handler] of Object.entries(getEndpointHandlers(legacyEndpoint))) {
+			this._rpcServer.registerEndpoint('legacy', name, handler);
+		}
 		for (const [name, handler] of Object.entries(getEndpointHandlers(chainEndpoint))) {
 			this._rpcServer.registerEndpoint('chain', name, handler);
 		}

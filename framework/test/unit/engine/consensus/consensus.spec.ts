@@ -21,6 +21,7 @@ import { utils, address as cryptoAddress, bls, legacy } from '@liskhq/lisk-crypt
 import { ApplyPenaltyError } from '../../../../src/errors';
 import { Consensus } from '../../../../src/engine/consensus/consensus';
 import { NetworkEndpoint } from '../../../../src/engine/consensus/network_endpoint';
+import { LegacyNetworkEndpoint } from '../../../../src/engine/legacy/network_endpoint';
 import { Synchronizer } from '../../../../src/engine/consensus/synchronizer';
 import {
 	ApplyPenaltyAndRestartError,
@@ -132,35 +133,38 @@ describe('consensus', () => {
 		genesis.validateGenesis = jest.fn();
 	});
 
+	const initConsensus = async () => {
+		return consensus.init({
+			logger: loggerMock,
+			db: dbMock,
+			genesisBlock: genesis,
+			legacyDB: dbMock,
+		});
+	};
+
 	describe('init', () => {
 		it('should instantiate synchronizer', async () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-			});
+			await initConsensus();
 			expect(consensus['_synchronizer']).toBeInstanceOf(Synchronizer);
 		});
 
 		it('should instantiate endpoint', async () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-			});
+			await initConsensus();
 			expect(consensus['_endpoint']).toBeInstanceOf(NetworkEndpoint);
+		});
+
+		it('should instantiate legacy endpoint', async () => {
+			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
+			await initConsensus();
+			expect(consensus['_legacyEndpoint']).toBeInstanceOf(LegacyNetworkEndpoint);
 		});
 
 		it('should register endpoints', async () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-			});
-			expect(network.registerEndpoint).toHaveBeenCalledTimes(3);
+			await initConsensus();
+			expect(network.registerEndpoint).toHaveBeenCalledTimes(4);
 		});
 
 		it('should execute genesis block if genesis block does not exist', async () => {
@@ -169,11 +173,7 @@ describe('consensus', () => {
 				validatorsHash: genesis.header.validatorsHash,
 			} as never);
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-			});
+			await initConsensus();
 
 			expect(genesis.validateGenesis).toHaveBeenCalledTimes(1);
 			expect(chain.saveBlock).toHaveBeenCalledTimes(1);
@@ -182,11 +182,7 @@ describe('consensus', () => {
 
 		it('should not execute genesis block if it exists in chain', async () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-			});
+			await initConsensus();
 			expect(chain.saveBlock).not.toHaveBeenCalled();
 			expect(chain.loadLastBlocks).toHaveBeenCalledTimes(1);
 		});
@@ -201,13 +197,7 @@ describe('consensus', () => {
 				.spyOn(consensus, '_verifyEventRoot' as never)
 				.mockRejectedValue(new Error('Event root is not valid for the block') as never);
 
-			await expect(
-				consensus.init({
-					logger: loggerMock,
-					db: dbMock,
-					genesisBlock: genesis,
-				}),
-			).rejects.toThrow('Event root is not valid for the block');
+			await expect(initConsensus()).rejects.toThrow('Event root is not valid for the block');
 		});
 
 		it('should fail initialization if validatorsHash is invalid', async () => {
@@ -216,13 +206,7 @@ describe('consensus', () => {
 			jest.spyOn(consensus['_bft'].method, 'getBFTParameters').mockResolvedValue({
 				validatorsHash: utils.getRandomBytes(32),
 			} as never);
-			await expect(
-				consensus.init({
-					logger: loggerMock,
-					db: dbMock,
-					genesisBlock: genesis,
-				}),
-			).rejects.toThrow('Genesis block validators hash is invalid');
+			await expect(initConsensus()).rejects.toThrow('Genesis block validators hash is invalid');
 		});
 	});
 
@@ -235,11 +219,7 @@ describe('consensus', () => {
 		const blockHeader = createFakeBlockHeader({ height: 303 });
 
 		beforeEach(async () => {
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-			});
+			await initConsensus();
 
 			jest.spyOn(consensus['_commitPool'], 'addCommit');
 		});
@@ -266,11 +246,7 @@ describe('consensus', () => {
 	describe('onBlockReceive', () => {
 		const peerID = 'peer-id';
 		beforeEach(async () => {
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-			});
+			await initConsensus();
 		});
 
 		it('should not execute when syncing', async () => {
@@ -592,11 +568,7 @@ describe('consensus', () => {
 	});
 	describe('execute', () => {
 		beforeEach(async () => {
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-			});
+			await initConsensus();
 		});
 
 		it('should not throw error when block execution fail', async () => {
@@ -613,11 +585,7 @@ describe('consensus', () => {
 		let stateStore: StateStore;
 
 		beforeEach(async () => {
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-			});
+			await initConsensus();
 		});
 
 		describe('when skipBroadcast option is not specified', () => {
@@ -678,6 +646,7 @@ describe('consensus', () => {
 					db: dbMock,
 					genesisBlock: genesis,
 					logger: fakeLogger,
+					legacyDB: dbMock,
 				});
 				jest.spyOn(consensus['_commitPool'], 'verifyAggregateCommit');
 			});
