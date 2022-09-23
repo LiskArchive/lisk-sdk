@@ -29,6 +29,6 @@ export const NETWORK_RPC_GET_BLOCKS_FROM_ID = 'getBlocksFromId';
 export const NETWORK_RPC_GET_HIGHEST_COMMON_BLOCK = 'getHighestCommonBlock';
 export const NETWORK_RPC_GET_SINGLE_COMMIT_FROM_ID = 'getSingleCommit';
 
-export const NETWORK_LEGACY_GET_BLOCKS = 'getLegacyBlocksFromId';
+export const NETWORK_LEGACY_GET_BLOCKS_FROM_ID = 'getLegacyBlocksFromId';
 
 export const EMPTY_HASH = utils.hash(Buffer.alloc(0));

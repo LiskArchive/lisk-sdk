@@ -53,7 +53,7 @@ import {
 	NETWORK_RPC_GET_BLOCKS_FROM_ID,
 	NETWORK_RPC_GET_HIGHEST_COMMON_BLOCK,
 	NETWORK_RPC_GET_LAST_BLOCK,
-	NETWORK_LEGACY_GET_BLOCKS,
+	NETWORK_LEGACY_GET_BLOCKS_FROM_ID,
 } from './constants';
 import { GenesisConfig } from '../../types';
 import { AggregateCommit } from './types';
@@ -173,7 +173,7 @@ export class Consensus {
 			interval: this._genesisConfig.blockTime,
 		});
 
-		this._network.registerEndpoint(NETWORK_LEGACY_GET_BLOCKS, async ({ data, peerId }) =>
+		this._network.registerEndpoint(NETWORK_LEGACY_GET_BLOCKS_FROM_ID, async ({ data, peerId }) =>
 			this._legacyEndpoint.handleRPCGetLegacyBlocksFromId(data, peerId),
 		);
 		this._network.registerEndpoint(NETWORK_RPC_GET_LAST_BLOCK, ({ peerId }) =>
