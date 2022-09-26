@@ -33,7 +33,6 @@ export interface TransactionPoolConfig {
 	readonly minEntranceFeePriority?: bigint;
 	readonly transactionReorganizationInterval?: number;
 	readonly minReplacementFeeDifference?: bigint;
-	readonly minFeePerByte: number;
 	readonly maxPayloadLength: number;
 	applyTransactions(transactions: ReadonlyArray<Transaction>): Promise<void>;
 }
@@ -74,7 +73,6 @@ export class TransactionPool {
 	private readonly _minEntranceFeePriority: bigint;
 	private readonly _transactionReorganizationInterval: number;
 	private readonly _minReplacementFeeDifference: bigint;
-	private readonly _minFeePerByte: number;
 	private readonly _maxPayloadLength: number;
 	private readonly _reorganizeJob: Job<void>;
 	private readonly _feePriorityQueue: dataStructures.MinHeap<Buffer, bigint>;
@@ -97,7 +95,6 @@ export class TransactionPool {
 			config.transactionReorganizationInterval ?? DEFAULT_REORGANIZE_TIME;
 		this._minReplacementFeeDifference =
 			config.minReplacementFeeDifference ?? DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE;
-		this._minFeePerByte = config.minFeePerByte;
 		this._maxPayloadLength = config.maxPayloadLength;
 		this._reorganizeJob = new Job(
 			async () => this._reorganize(),
@@ -161,6 +158,7 @@ export class TransactionPool {
 		// Check for minimum entrance fee priority to the TxPool and if its low then reject the incoming tx
 		// eslint-disable-next-line no-param-reassign
 		incomingTx.feePriority = this._calculateFeePriority(incomingTx);
+
 		if (incomingTx.feePriority < this._minEntranceFeePriority) {
 			const error = new TransactionPoolError(
 				'Rejecting transaction due to failed minimum entrance fee priority requirement.',
@@ -319,11 +317,7 @@ export class TransactionPool {
 	}
 
 	private _calculateFeePriority(trx: Transaction): bigint {
-		return (trx.fee - this._calculateMinFee(trx)) / BigInt(trx.getBytes().length);
-	}
-
-	private _calculateMinFee(trx: Transaction): bigint {
-		return BigInt(this._minFeePerByte * trx.getBytes().length);
+		return trx.fee / BigInt(trx.getBytes().length);
 	}
 
 	private _getStatus(errorResponse: TransactionFailedResponse): TransactionStatus {

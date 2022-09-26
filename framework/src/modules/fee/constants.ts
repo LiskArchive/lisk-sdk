@@ -16,4 +16,5 @@ export const MODULE_ID_FEE = 14;
 export const NATIVE_TOKEN_CHAIN_ID = 0;
 export const defaultConfig = {
 	feeTokenID: '0000000000000000',
+	minFeePerByte: 1000,
 };

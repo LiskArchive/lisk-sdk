@@ -62,7 +62,6 @@ export interface GenesisConfig {
 	};
 	chainID: string;
 	maxTransactionsSize: number;
-	minFeePerByte: number;
 	blockTime: number;
 	bftBatchSize: number;
 }

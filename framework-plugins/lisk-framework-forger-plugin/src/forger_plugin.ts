@@ -29,7 +29,7 @@ import {
 	setForgerInfo,
 	setForgerSyncInfo,
 } from './db';
-import { Forger, TransactionFees, Voters } from './types';
+import { Forger, Voters } from './types';
 import { Endpoint } from './endpoint';
 
 const { Block } = chain;
@@ -83,7 +83,6 @@ export class ForgerPlugin extends BasePlugin {
 
 	private _forgerPluginDB!: liskDB.Database;
 	private _forgersList!: utils.dataStructures.BufferMap<boolean>;
-	private _transactionFees!: TransactionFees;
 
 	public get nodeModulePath(): string {
 		return __filename;
@@ -106,9 +105,6 @@ export class ForgerPlugin extends BasePlugin {
 		// Fetch and set forger list from the app
 		await this._setForgersList();
 
-		// Fetch and set transactions fees
-		await this._setTransactionFees();
-
 		// Sync the information
 		await this._syncForgerInfo();
 
@@ -127,13 +123,6 @@ export class ForgerPlugin extends BasePlugin {
 		for (const { address, forging } of forgersList) {
 			this._forgersList.set(Buffer.from(address, 'hex'), forging);
 		}
-	}
-
-	private async _setTransactionFees(): Promise<void> {
-		const { genesisConfig } = await this.apiClient.invoke<NodeInfo>('system_getNodeInfo');
-		this._transactionFees = {
-			minFeePerByte: genesisConfig.minFeePerByte,
-		};
 	}
 
 	private _getForgerHeaderAndTransactionsInfo(
@@ -377,9 +366,7 @@ export class ForgerPlugin extends BasePlugin {
 
 		for (const txJSON of transactions) {
 			const trx = chain.Transaction.fromJSON(txJSON);
-			const minFeeRequired =
-				BigInt(this._transactionFees.minFeePerByte) * BigInt(trx.getBytes().length);
-			fee += BigInt(trx.fee) - minFeeRequired;
+			fee += BigInt(trx.fee);
 		}
 
 		return fee;

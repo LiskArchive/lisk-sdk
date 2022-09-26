@@ -12,13 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 export { Chain } from './chain';
-export {
-	Transaction,
-	TransactionAttrs,
-	transactionSchema,
-	calculateMinFee,
-	TransactionJSON,
-} from './transaction';
+export { Transaction, TransactionAttrs, transactionSchema, TransactionJSON } from './transaction';
 export {
 	blockHeaderSchema,
 	blockSchema,

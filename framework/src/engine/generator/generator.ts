@@ -123,7 +123,6 @@ export class Generator {
 		this._keypairs = new dataStructures.BufferMap();
 		this._pool = new TransactionPool({
 			maxPayloadLength: args.config.genesis.maxTransactionsSize,
-			minFeePerByte: args.config.genesis.minFeePerByte,
 			applyTransactions: async (transactions: Transaction[]) =>
 				this._verifyTransaction(transactions),
 		});

@@ -75,11 +75,6 @@ export const transactionSchema = {
 	},
 };
 
-export const calculateMinFee = (tx: Transaction, minFeePerByte: number): bigint => {
-	const size = tx.getBytes().length;
-	return BigInt(minFeePerByte * size);
-};
-
 export class Transaction {
 	public readonly module: string;
 	public readonly command: string;
