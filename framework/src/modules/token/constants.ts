@@ -17,6 +17,8 @@ export const CROSS_CHAIN_COMMAND_NAME_FORWARD = 'crossChainForward';
 
 export const ADDRESS_LENGTH = 20;
 export const MAX_DATA_LENGTH = 64;
+export const MIN_MODULE_NAME_LENGTH = 1;
+export const MAX_MODULE_NAME_LENGTH = 32;
 
 export const MAX_TRANSACTION_AMOUNT = '9223372036854775807';
 export const DEFAULT_MIN_REMAINING_BALANCE = '5000000';
@@ -47,3 +49,11 @@ export const defaultConfig = {
 };
 
 export const EMPTY_BYTES = Buffer.alloc(0);
+
+export const enum TokenEventResult {
+	SUCCESSFUL = 0,
+	FAIL_INSUFFICIENT_BALANCE = 1,
+	FAIL_RECIPIENT_NOT_INITIALIZED = 2,
+}
+
+export type TokenErrorEventResult = Exclude<TokenEventResult, TokenEventResult.SUCCESSFUL>;

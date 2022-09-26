@@ -14,35 +14,35 @@
 import { BaseEvent, EventQueuer } from '../../base_event';
 import { TOKEN_ID_LENGTH, TokenEventResult, TokenErrorEventResult } from '../constants';
 
-export interface TransferEventData {
-	senderAddress: Buffer;
+export interface InitializeUserStoreEventData {
+	address: Buffer;
 	tokenID: Buffer;
-	amount: bigint;
-	recipientAddress: Buffer;
+	initPayingAddress: Buffer;
+	initializationFee: bigint;
 }
 
-export const transferEventSchema = {
-	$id: '/token/events/transfer',
+export const initializeUserStoreEventSchema = {
+	$id: '/token/events/initializeUserStore',
 	type: 'object',
-	required: ['senderAddress', 'recipientAddress', 'tokenID', 'amount', 'result'],
+	required: ['address', 'tokenID', 'initPayingAddress', 'initializationFee', 'result'],
 	properties: {
-		senderAddress: {
+		address: {
 			dataType: 'bytes',
 			format: 'lisk32',
 			fieldNumber: 1,
-		},
-		recipientAddress: {
-			dataType: 'bytes',
-			format: 'lisk32',
-			fieldNumber: 2,
 		},
 		tokenID: {
 			dataType: 'bytes',
 			minLength: TOKEN_ID_LENGTH,
 			maxLength: TOKEN_ID_LENGTH,
+			fieldNumber: 2,
+		},
+		initPayingAddress: {
+			dataType: 'bytes',
+			format: 'lisk32',
 			fieldNumber: 3,
 		},
-		amount: {
+		initializationFee: {
 			dataType: 'uint64',
 			fieldNumber: 4,
 		},
@@ -53,17 +53,20 @@ export const transferEventSchema = {
 	},
 };
 
-export class TransferEvent extends BaseEvent<TransferEventData & { result: TokenEventResult }> {
-	public schema = transferEventSchema;
+export class InitializeUserStoreEvent extends BaseEvent<
+	InitializeUserStoreEventData & { result: TokenEventResult }
+> {
+	public schema = initializeUserStoreEventSchema;
 
-	public log(ctx: EventQueuer, data: TransferEventData): void {
-		this.add(ctx, { ...data, result: TokenEventResult.SUCCESSFUL }, [
-			data.senderAddress,
-			data.recipientAddress,
-		]);
+	public log(ctx: EventQueuer, data: InitializeUserStoreEventData): void {
+		this.add(ctx, { ...data, result: TokenEventResult.SUCCESSFUL }, [data.address]);
 	}
 
-	public error(ctx: EventQueuer, data: TransferEventData, result: TokenErrorEventResult): void {
-		this.add(ctx, { ...data, result }, [data.senderAddress, data.recipientAddress], true);
+	public error(
+		ctx: EventQueuer,
+		data: InitializeUserStoreEventData,
+		result: TokenErrorEventResult,
+	): void {
+		this.add(ctx, { ...data, result }, [data.address], true);
 	}
 }
