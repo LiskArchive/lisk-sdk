@@ -188,18 +188,6 @@ pipeline {
 						}
 					}
 				}
-				// stage('Lisk Framework Functional') {
-				// 	agent { node { label 'lisk-sdk-quirky' }}
-				// 	steps {
-				// 		setup()
-				// 		run_jest('functional')
-				// 	}
-				// 	post {
-				// 		cleanup {
-				// 			teardown_jest('functional')
-				// 		}
-				// 	}
-				// }
 				stage('Lisk Framework Plugins Unit') {
 					agent { node { label 'lisk-framework' }}
 					steps {
@@ -218,6 +206,24 @@ pipeline {
 								done
 							'''
 							stash name: "coverage_framework_plugins", includes: "coverage_framework_plugins/*", allowEmpty: true
+						}
+					}
+				}
+				stage('Lisk SDK Functional') {
+					agent { node { label 'lisk-sdk-quirky' }}
+					steps {
+						setup()
+						nvm(getNodejsVersion()) {
+							dir('test') {
+								sh 'npm test'
+							}
+						}
+					}
+					post {
+						cleanup {
+							timeout(1) {
+								sh 'killall --verbose --wait node || true'
+							}
 						}
 					}
 				}

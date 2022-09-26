@@ -1,0 +1,53 @@
+{
+	"name": "lisk-sdk-test",
+	"version": "0.1.0",
+	"description": "Functional tests for Lisk SDK",
+	"private": true,
+	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
+	"license": "Apache-2.0",
+	"keywords": [
+		"lisk",
+		"blockchain"
+	],
+	"homepage": "https://github.com/LiskHQ/lisk-sdk#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/LiskHQ/lisk-sdk.git"
+	},
+	"bugs": {
+		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
+	},
+	"engines": {
+		"node": ">=16.14.1 <=16",
+		"npm": ">=8.1.0"
+	},
+	"main": "dist-node/index.js",
+	"scripts": {
+		"test": "jest --force-exit",
+		"test:debug": "DEBUG=functional-test jest --force-exit",
+		"test:debug:full": "DEBUG=functional-test,application jest --force-exit",
+		"lint": "eslint --ext .js,.ts .",
+		"lint:fix": "eslint --fix --ext .js,.ts .",
+		"format": "prettier --write '**/*'"
+	},
+	"dependencies": {
+		"lisk-sdk": "^6.0.0-alpha.0",
+		"debug": "4.3.1"
+	},
+	"devDependencies": {
+		"@types/jest": "26.0.21",
+		"@types/node": "12.20.6",
+		"@typescript-eslint/eslint-plugin": "4.19.0",
+		"@typescript-eslint/parser": "4.19.0",
+		"eslint": "7.22.0",
+		"eslint-config-lisk-base": "2.0.1",
+		"eslint-plugin-import": "2.22.1",
+		"eslint-plugin-jest": "24.3.2",
+		"jest": "26.6.3",
+		"jest-extended": "0.11.5",
+		"prettier": "2.2.1",
+		"ts-jest": "26.5.4",
+		"ts-node": "9.1.1",
+		"typescript": "4.2.3"
+	}
+}

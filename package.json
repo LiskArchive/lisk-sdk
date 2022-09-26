@@ -29,7 +29,8 @@
 			"examples/*",
 			"commander",
 			"sdk",
-			"protocol-specs"
+			"protocol-specs",
+			"test"
 		],
 		"nohoist": [
 			"**@types/mocha",
