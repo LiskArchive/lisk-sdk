@@ -12,19 +12,32 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseEvent, EventQueuer } from '../../base_event';
-import { TOKEN_ID_LENGTH, TokenEventResult, TokenErrorEventResult } from '../constants';
+import {
+	CHAIN_ID_LENGTH,
+	TOKEN_ID_LENGTH,
+	TokenEventResult,
+	TokenErrorEventResult,
+} from '../constants';
 
-export interface TransferEventData {
+export interface TransferCrossChainEventData {
 	senderAddress: Buffer;
 	tokenID: Buffer;
 	amount: bigint;
 	recipientAddress: Buffer;
+	receivingChainID: Buffer;
 }
 
-export const transferEventSchema = {
-	$id: '/token/events/transfer',
+export const transferCrossChainEventSchema = {
+	$id: '/token/events/transferCrossChain',
 	type: 'object',
-	required: ['senderAddress', 'recipientAddress', 'tokenID', 'amount', 'result'],
+	required: [
+		'senderAddress',
+		'recipientAddress',
+		'tokenID',
+		'amount',
+		'receivingChainID',
+		'result',
+	],
 	properties: {
 		senderAddress: {
 			dataType: 'bytes',
@@ -46,24 +59,42 @@ export const transferEventSchema = {
 			dataType: 'uint64',
 			fieldNumber: 4,
 		},
+		receivingChainID: {
+			dataType: 'bytes',
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
+			fieldNumber: 5,
+		},
 		result: {
 			dataType: 'uint32',
-			fieldNumber: 5,
+			fieldNumber: 6,
 		},
 	},
 };
 
-export class TransferEvent extends BaseEvent<TransferEventData & { result: TokenEventResult }> {
-	public schema = transferEventSchema;
+export class TransferCrossChainEvent extends BaseEvent<
+	TransferCrossChainEventData & { result: TokenEventResult }
+> {
+	public schema = transferCrossChainEventSchema;
 
-	public log(ctx: EventQueuer, data: TransferEventData): void {
+	public log(ctx: EventQueuer, data: TransferCrossChainEventData): void {
 		this.add(ctx, { ...data, result: TokenEventResult.SUCCESSFUL }, [
 			data.senderAddress,
 			data.recipientAddress,
+			data.receivingChainID,
 		]);
 	}
 
-	public error(ctx: EventQueuer, data: TransferEventData, result: TokenErrorEventResult): void {
-		this.add(ctx, { ...data, result }, [data.senderAddress, data.recipientAddress], true);
+	public error(
+		ctx: EventQueuer,
+		data: TransferCrossChainEventData,
+		result: TokenErrorEventResult,
+	): void {
+		this.add(
+			ctx,
+			{ ...data, result },
+			[data.senderAddress, data.recipientAddress, data.receivingChainID],
+			true,
+		);
 	}
 }

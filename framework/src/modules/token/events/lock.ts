@@ -12,28 +12,35 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseEvent, EventQueuer } from '../../base_event';
-import { TOKEN_ID_LENGTH, TokenEventResult, TokenErrorEventResult } from '../constants';
+import {
+	TOKEN_ID_LENGTH,
+	TokenEventResult,
+	TokenErrorEventResult,
+	MAX_MODULE_NAME_LENGTH,
+	MIN_MODULE_NAME_LENGTH,
+} from '../constants';
 
-export interface TransferEventData {
-	senderAddress: Buffer;
+export interface LockEventData {
+	address: Buffer;
+	module: string;
 	tokenID: Buffer;
 	amount: bigint;
-	recipientAddress: Buffer;
 }
 
-export const transferEventSchema = {
-	$id: '/token/events/transfer',
+export const lockEventSchema = {
+	$id: '/token/events/lock',
 	type: 'object',
-	required: ['senderAddress', 'recipientAddress', 'tokenID', 'amount', 'result'],
+	required: ['address', 'module', 'tokenID', 'amount', 'result'],
 	properties: {
-		senderAddress: {
+		address: {
 			dataType: 'bytes',
 			format: 'lisk32',
 			fieldNumber: 1,
 		},
-		recipientAddress: {
-			dataType: 'bytes',
-			format: 'lisk32',
+		module: {
+			dataType: 'string',
+			minLength: MIN_MODULE_NAME_LENGTH,
+			maxLength: MAX_MODULE_NAME_LENGTH,
 			fieldNumber: 2,
 		},
 		tokenID: {
@@ -53,17 +60,14 @@ export const transferEventSchema = {
 	},
 };
 
-export class TransferEvent extends BaseEvent<TransferEventData & { result: TokenEventResult }> {
-	public schema = transferEventSchema;
+export class LockEvent extends BaseEvent<LockEventData & { result: TokenEventResult }> {
+	public schema = lockEventSchema;
 
-	public log(ctx: EventQueuer, data: TransferEventData): void {
-		this.add(ctx, { ...data, result: TokenEventResult.SUCCESSFUL }, [
-			data.senderAddress,
-			data.recipientAddress,
-		]);
+	public log(ctx: EventQueuer, data: LockEventData): void {
+		this.add(ctx, { ...data, result: TokenEventResult.SUCCESSFUL }, [data.address]);
 	}
 
-	public error(ctx: EventQueuer, data: TransferEventData, result: TokenErrorEventResult): void {
-		this.add(ctx, { ...data, result }, [data.senderAddress, data.recipientAddress], true);
+	public error(ctx: EventQueuer, data: LockEventData, result: TokenErrorEventResult): void {
+		this.add(ctx, { ...data, result }, [data.address], true);
 	}
 }

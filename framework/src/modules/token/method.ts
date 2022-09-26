@@ -43,7 +43,7 @@ import { EscrowStore } from './stores/escrow';
 import { AvailableLocalIDStore } from './stores/available_local_id';
 import { SupplyStore } from './stores/supply';
 import { NamedRegistry } from '../named_registry';
-import { TransferEvent, TransferEventResult } from './events/transfer';
+import { TransferEvent } from './events/transfer';
 
 export class TokenMethod extends BaseMethod {
 	private readonly _moduleName: string;
@@ -343,7 +343,6 @@ export class TokenMethod extends BaseMethod {
 		transferEvent.log(methodContext, {
 			amount,
 			recipientAddress,
-			result: TransferEventResult.SUCCESSFUL,
 			senderAddress,
 			tokenID,
 		});

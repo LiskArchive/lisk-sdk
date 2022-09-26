@@ -14,56 +14,47 @@
 import { BaseEvent, EventQueuer } from '../../base_event';
 import { TOKEN_ID_LENGTH, TokenEventResult, TokenErrorEventResult } from '../constants';
 
-export interface TransferEventData {
-	senderAddress: Buffer;
+export interface MintEventData {
+	address: Buffer;
 	tokenID: Buffer;
 	amount: bigint;
-	recipientAddress: Buffer;
 }
 
-export const transferEventSchema = {
-	$id: '/token/events/transfer',
+export const mintEventSchema = {
+	$id: '/token/events/mint',
 	type: 'object',
-	required: ['senderAddress', 'recipientAddress', 'tokenID', 'amount', 'result'],
+	required: ['address', 'tokenID', 'amount', 'result'],
 	properties: {
-		senderAddress: {
+		address: {
 			dataType: 'bytes',
 			format: 'lisk32',
 			fieldNumber: 1,
-		},
-		recipientAddress: {
-			dataType: 'bytes',
-			format: 'lisk32',
-			fieldNumber: 2,
 		},
 		tokenID: {
 			dataType: 'bytes',
 			minLength: TOKEN_ID_LENGTH,
 			maxLength: TOKEN_ID_LENGTH,
-			fieldNumber: 3,
+			fieldNumber: 2,
 		},
 		amount: {
 			dataType: 'uint64',
-			fieldNumber: 4,
+			fieldNumber: 3,
 		},
 		result: {
 			dataType: 'uint32',
-			fieldNumber: 5,
+			fieldNumber: 4,
 		},
 	},
 };
 
-export class TransferEvent extends BaseEvent<TransferEventData & { result: TokenEventResult }> {
-	public schema = transferEventSchema;
+export class MintEvent extends BaseEvent<MintEventData & { result: TokenEventResult }> {
+	public schema = mintEventSchema;
 
-	public log(ctx: EventQueuer, data: TransferEventData): void {
-		this.add(ctx, { ...data, result: TokenEventResult.SUCCESSFUL }, [
-			data.senderAddress,
-			data.recipientAddress,
-		]);
+	public log(ctx: EventQueuer, data: MintEventData): void {
+		this.add(ctx, { ...data, result: TokenEventResult.SUCCESSFUL }, [data.address]);
 	}
 
-	public error(ctx: EventQueuer, data: TransferEventData, result: TokenErrorEventResult): void {
-		this.add(ctx, { ...data, result }, [data.senderAddress, data.recipientAddress], true);
+	public error(ctx: EventQueuer, data: MintEventData, result: TokenErrorEventResult): void {
+		this.add(ctx, { ...data, result }, [data.address], true);
 	}
 }

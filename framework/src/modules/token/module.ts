@@ -54,6 +54,24 @@ import { SupplyStore } from './stores/supply';
 import { TerminatedEscrowStore } from './stores/terminated_escrow';
 import { AvailableLocalIDStore } from './stores/available_local_id';
 import { TransferEvent } from './events/transfer';
+import { TransferCrossChainEvent } from './events/transfer_cross_chain';
+import { CcmTransferEvent } from './events/ccm_transfer';
+import { MintEvent } from './events/mint';
+import { BurnEvent } from './events/burn';
+import { LockEvent } from './events/lock';
+import { UnlockEvent } from './events/unlock';
+import { InitializeTokenEvent } from './events/initialize_token';
+import { InitializeUserStoreEvent } from './events/initialize_user_store';
+import { InitializeEscrowStoreEvent } from './events/initialize_escrow_store';
+import { RecoverEvent } from './events/recover';
+import { BeforeCCCExecutionEvent } from './events/before_ccc_execution';
+import { BeforeCCMForwardingEvent } from './events/before_ccm_forwarding';
+import { AllTokensSupportedEvent } from './events/all_tokens_supported';
+import { AllTokensSupportRemovedEvent } from './events/all_tokens_supported_removed';
+import { AllTokensFromChainSupportedEvent } from './events/all_tokens_from_chain_supported';
+import { AllTokensFromChainSupportRemovedEvent } from './events/all_tokens_from_chain_supported_removed';
+import { TokenIDSupportedEvent } from './events/token_id_supported';
+import { TokenIDSupportRemovedEvent } from './events/token_id_supported_removed';
 
 export class TokenModule extends BaseInteroperableModule {
 	public method = new TokenMethod(this.stores, this.events, this.name);
@@ -75,6 +93,30 @@ export class TokenModule extends BaseInteroperableModule {
 		this.stores.register(TerminatedEscrowStore, new TerminatedEscrowStore(this.name));
 		this.stores.register(AvailableLocalIDStore, new AvailableLocalIDStore(this.name));
 		this.events.register(TransferEvent, new TransferEvent(this.name));
+		this.events.register(TransferCrossChainEvent, new TransferCrossChainEvent(this.name));
+		this.events.register(CcmTransferEvent, new CcmTransferEvent(this.name));
+		this.events.register(MintEvent, new MintEvent(this.name));
+		this.events.register(BurnEvent, new BurnEvent(this.name));
+		this.events.register(LockEvent, new LockEvent(this.name));
+		this.events.register(UnlockEvent, new UnlockEvent(this.name));
+		this.events.register(InitializeTokenEvent, new InitializeTokenEvent(this.name));
+		this.events.register(InitializeUserStoreEvent, new InitializeUserStoreEvent(this.name));
+		this.events.register(InitializeEscrowStoreEvent, new InitializeEscrowStoreEvent(this.name));
+		this.events.register(RecoverEvent, new RecoverEvent(this.name));
+		this.events.register(BeforeCCCExecutionEvent, new BeforeCCCExecutionEvent(this.name));
+		this.events.register(BeforeCCMForwardingEvent, new BeforeCCMForwardingEvent(this.name));
+		this.events.register(AllTokensSupportedEvent, new AllTokensSupportedEvent(this.name));
+		this.events.register(AllTokensSupportRemovedEvent, new AllTokensSupportRemovedEvent(this.name));
+		this.events.register(
+			AllTokensFromChainSupportedEvent,
+			new AllTokensFromChainSupportedEvent(this.name),
+		);
+		this.events.register(
+			AllTokensFromChainSupportRemovedEvent,
+			new AllTokensFromChainSupportRemovedEvent(this.name),
+		);
+		this.events.register(TokenIDSupportedEvent, new TokenIDSupportedEvent(this.name));
+		this.events.register(TokenIDSupportRemovedEvent, new TokenIDSupportRemovedEvent(this.name));
 	}
 
 	public addDependencies(
