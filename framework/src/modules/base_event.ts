@@ -19,9 +19,9 @@ export interface EventQueuer {
 }
 
 export abstract class BaseEvent<T> {
-	private readonly _moduleName: string;
+	public schema?: Schema;
 
-	public abstract schema: Schema;
+	private readonly _moduleName: string;
 
 	public get key(): Buffer {
 		return Buffer.from(this._moduleName + this.name, 'utf-8');
@@ -37,14 +37,10 @@ export abstract class BaseEvent<T> {
 	}
 
 	public add(ctx: EventQueuer, data: T, topics?: Buffer[], noRevert?: boolean): void {
-		if (!this.schema) {
-			throw new Error('Schema is not set');
-		}
-
 		ctx.eventQueue.add(
 			this._moduleName,
 			this.name,
-			codec.encode(this.schema, data as Record<string, unknown>),
+			this.schema ? codec.encode(this.schema, data as Record<string, unknown>) : Buffer.alloc(0),
 			topics,
 			noRevert,
 		);

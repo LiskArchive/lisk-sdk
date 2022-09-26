@@ -16,7 +16,7 @@ import { Schema } from '@liskhq/lisk-codec';
 interface Named {
 	name: string;
 	key: Buffer;
-	schema: Schema;
+	schema?: Schema;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

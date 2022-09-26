@@ -53,6 +53,7 @@ import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { ChainAccountUpdatedEvent } from '../../events/chain_account_updated';
 import { CcmProcessedEvent } from '../../events/ccm_processed';
+import { InvalidRegistrationSignatureEvent } from '../../events/invalid_registration_signature';
 
 export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 	public schema = mainchainRegParams;
@@ -159,13 +160,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			)
 		) {
 			// emit persistent event with empty data
-			context.eventQueue.add(
-				this.name,
-				this.name.charAt(0).toLowerCase() + this.name.substr(1),
-				EMPTY_BYTES,
-				[ownChainID],
-				true,
-			);
+			this.events.get(InvalidRegistrationSignatureEvent).log(context, ownChainID);
 			throw new Error('Invalid signature property.');
 		}
 

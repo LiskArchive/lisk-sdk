@@ -67,6 +67,7 @@ import { CcmProcessedEvent } from '../../../../../../src/modules/interoperabilit
 import { ChainAccountUpdatedEvent } from '../../../../../../src/modules/interoperability/events/chain_account_updated';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
+import { InvalidRegistrationSignatureEvent } from '../../../../../../src/modules/interoperability/events/invalid_registration_signature';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -274,6 +275,7 @@ describe('Mainchain registration command', () => {
 		let chainValidatorsSubstore: ChainValidatorsStore;
 		let chainAccountUpdatedEvent: ChainAccountUpdatedEvent;
 		let ccmProcessedEvent: CcmProcessedEvent;
+		let invalidRegistrationSignatureEvent: InvalidRegistrationSignatureEvent;
 
 		beforeEach(() => {
 			channelDataSubstore = interopMod.stores.get(ChannelDataStore);
@@ -282,6 +284,7 @@ describe('Mainchain registration command', () => {
 			chainDataSubstore = interopMod.stores.get(ChainAccountStore);
 			chainAccountUpdatedEvent = interopMod.events.get(ChainAccountUpdatedEvent);
 			ccmProcessedEvent = interopMod.events.get(CcmProcessedEvent);
+			invalidRegistrationSignatureEvent = interopMod.events.get(InvalidRegistrationSignatureEvent);
 
 			jest.spyOn(chainDataSubstore, 'set');
 			jest.spyOn(channelDataSubstore, 'set');
@@ -290,6 +293,7 @@ describe('Mainchain registration command', () => {
 			jest.spyOn(ownChainAccountSubstore, 'set');
 			jest.spyOn(chainAccountUpdatedEvent, 'log');
 			jest.spyOn(ccmProcessedEvent, 'log');
+			jest.spyOn(invalidRegistrationSignatureEvent, 'log');
 			jest.spyOn(crypto.bls, 'verifyWeightedAggSig').mockReturnValue(true);
 
 			context = createTransactionContext({
@@ -335,7 +339,10 @@ describe('Mainchain registration command', () => {
 			await expect(mainchainRegistrationCommand.execute(context)).rejects.toThrow(
 				'Invalid signature property.',
 			);
-			expect(context.eventQueue.add).toHaveBeenCalled();
+			expect(invalidRegistrationSignatureEvent.log).toHaveBeenCalledWith(
+				expect.anything(),
+				params.ownChainID,
+			);
 		});
 
 		it('should add an entry to chain account substore', async () => {
