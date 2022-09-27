@@ -12,6 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { utils } from '@liskhq/lisk-cryptography';
+import { regularMerkleTree } from '@liskhq/lisk-tree';
+import { encodeBlock } from '../../../../src/engine/legacy/codec';
+import { LegacyBlockHeader, LegacyBlockWithID } from '../../../../src/engine/legacy/types';
+
+// Version 2 blocks
 export const blockFixtures = [
 	{
 		header: {
@@ -78,3 +84,49 @@ export const blockFixtures = [
 		],
 	},
 ];
+
+export const createFakeLegacyBlockHeaderV2 = (
+	header?: Partial<LegacyBlockHeader>,
+	transactions?: Buffer[],
+): LegacyBlockWithID => {
+	const transactionRoot = transactions
+		? regularMerkleTree.calculateMerkleRootWithLeaves(transactions.map(tx => utils.hash(tx)))
+		: utils.hash(utils.getRandomBytes(32));
+
+	const blockHeader = {
+		version: 2,
+		timestamp: header?.timestamp ?? 0,
+		height: header?.height ?? 0,
+		previousBlockID: header?.previousBlockID ?? utils.hash(utils.getRandomBytes(32)),
+		transactionRoot,
+		generatorPublicKey: header?.generatorPublicKey ?? utils.getRandomBytes(32),
+		reward: header?.reward ?? BigInt(500000000),
+		asset: header?.asset ?? utils.getRandomBytes(20),
+		signature: header?.signature ?? utils.getRandomBytes(64),
+	};
+	const id = utils.hash(encodeBlock({ header: blockHeader, transactions: transactions ?? [] }));
+
+	return {
+		header: { ...blockHeader, id },
+		transactions: transactions ?? [],
+	};
+};
+
+/**
+ * @params start: Start height of the block range going backwards
+ * @params numberOfBlocks: Number of blocks to be generated with decreasing height
+ * */
+export const getLegacyBlocksRangeV2 = (start: number, numberOfBlocks: number): Buffer[] => {
+	const blocks: LegacyBlockWithID[] = [];
+
+	for (let i = start; i >= start - numberOfBlocks; i -= 1) {
+		// After the startHeight, all the blocks are generated with previousBlockID as previous height block ID
+		const block = createFakeLegacyBlockHeaderV2({
+			height: i,
+			previousBlockID: i === start ? utils.getRandomBytes(32) : blocks[start - i - 1].header.id,
+		});
+		blocks.push(block);
+	}
+
+	return blocks.map(b => encodeBlock(b));
+};
