@@ -14,3 +14,4 @@
 
 export const DB_KEY_BLOCK_ID = Buffer.from([0]);
 export const DB_KEY_BLOCK_HEIGHT = Buffer.from([1]);
+export const DB_KEY_LEGACY_BRACKET = Buffer.from([2]);
