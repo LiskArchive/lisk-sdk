@@ -14,6 +14,8 @@
  */
 
 import { Command, Flags as flagParser } from '@oclif/core';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 import { encryptPassphrase } from '../../../utils/commons';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt, getPasswordFromPrompt } from '../../../utils/reader';
@@ -26,10 +28,10 @@ export class EncryptCommand extends Command {
 
 	static examples = [
 		'passphrase:encrypt',
-		'passphrase:encrypt --passphrase your-passphrase',
+		'passphrase:encrypt --passphrase your-passphrase --output /mypath/keys.json',
 		'passphrase:encrypt --password your-password',
-		'passphrase:encrypt --password your-password --passphrase your-passphrase --pretty',
-		'passphrase:encrypt --output-public-key',
+		'passphrase:encrypt --password your-password --passphrase your-passphrase --output /mypath/keys.json',
+		'passphrase:encrypt --output-public-key --output /mypath/keys.json',
 	];
 
 	static flags = {
@@ -38,7 +40,7 @@ export class EncryptCommand extends Command {
 		'output-public-key': flagParser.boolean({
 			description: outputPublicKeyOptionDescription,
 		}),
-		pretty: flagsWithParser.pretty,
+		output: flagsWithParser.output,
 	};
 
 	async run(): Promise<void> {
@@ -47,22 +49,23 @@ export class EncryptCommand extends Command {
 				passphrase: passphraseSource,
 				password: passwordSource,
 				'output-public-key': outputPublicKey,
-				pretty,
+				output,
 			},
 		} = await this.parse(EncryptCommand);
+
+		if (output) {
+			const { dir } = path.parse(output);
+			fs.ensureDirSync(dir);
+		}
 
 		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 		const password = passwordSource ?? (await getPasswordFromPrompt('password', true));
 		const result = await encryptPassphrase(passphrase, password, outputPublicKey);
 
-		this.printJSON(result, pretty);
-	}
-
-	public printJSON(message?: object, pretty = false): void {
-		if (pretty) {
-			this.log(JSON.stringify(message, undefined, '  '));
+		if (output) {
+			fs.writeJSONSync(output, result, { spaces: ' ' });
 		} else {
-			this.log(JSON.stringify(message));
+			this.log(JSON.stringify(result, undefined, '  '));
 		}
 	}
 }
