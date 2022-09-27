@@ -21,7 +21,7 @@ export interface TokenIDSupportRemovedEventData {
 export const tokenIDSupportRemovedEventSchema = {
 	$id: '/token/events/tokenIDSupportRemoved',
 	type: 'object',
-	required: ['chainID'],
+	required: ['tokenID'],
 	properties: {
 		tokenID: {
 			dataType: 'bytes',

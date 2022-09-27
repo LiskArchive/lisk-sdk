@@ -23,7 +23,6 @@ export interface RecoverEventData {
 	terminatedChainID: Buffer;
 	tokenID: Buffer;
 	amount: bigint;
-	recipientAddress: Buffer;
 }
 
 export const recoverEventSchema = {

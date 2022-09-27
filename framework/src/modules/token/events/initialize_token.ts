@@ -19,7 +19,7 @@ export interface InitializeTokenEventData {
 }
 
 export const initializeTokenEventSchema = {
-	$id: '/token/events/nitializeTokenEvent',
+	$id: '/token/events/initializeTokenEvent',
 	type: 'object',
 	required: ['tokenID', 'result'],
 	properties: {
