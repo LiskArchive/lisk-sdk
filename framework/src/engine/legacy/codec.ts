@@ -15,7 +15,7 @@
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { blockHeaderSchemaV2, blockSchemaV2, legacyChainBracketInfoSchema } from './schemas';
-import { LegacyBlock, LegacyBlockJSON, LegacyChainBracketInfo, RawLegacyBlock } from './types';
+import { LegacyBlock, LegacyBlockJSON, LegacyChainBracketInfo, RawLegacyBlock, LegacyBlockWithID, LegacyBlockHeaderWithID} from './types';
 
 interface LegacyBlockSchema {
 	header: Schema;
@@ -32,7 +32,9 @@ export const blockSchemaMap: Record<number, LegacyBlockSchema> = {
 // Implement read version logic when adding more versions
 const readVersion = (): number => 2;
 
-export const decodeBlock = (data: Buffer): { block: LegacyBlock; schema: LegacyBlockSchema } => {
+export const decodeBlock = (
+	data: Buffer,
+): { block: LegacyBlockWithID; schema: LegacyBlockSchema } => {
 	const version = readVersion();
 	const blockSchema = blockSchemaMap[version];
 	if (!blockSchema) {
@@ -44,7 +46,7 @@ export const decodeBlock = (data: Buffer): { block: LegacyBlock; schema: LegacyB
 		block: {
 			...rawBlock,
 			header: {
-				...codec.decode(blockSchema.header, rawBlock.header),
+				...codec.decode<LegacyBlockHeaderWithID>(blockSchema.header, rawBlock.header),
 				id,
 			},
 		},
