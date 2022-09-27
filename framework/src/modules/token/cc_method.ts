@@ -53,7 +53,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 		const [feeTokenChainID, feeTokenLocalID] = splitTokenID(messageFeeTokenID);
 		const userStore = this.stores.get(UserStore);
 		if (!feeTokenChainID.equals(ownChainID)) {
-			await userStore.updateAvailableBalanceWithCreate(
+			await userStore.addAvailableBalanceWithCreate(
 				methodContext,
 				transaction.senderAddress,
 				messageFeeTokenID,
@@ -74,7 +74,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 			methodContext,
 			messageFeeTokenID,
 		);
-		await userStore.updateAvailableBalanceWithCreate(
+		await userStore.addAvailableBalanceWithCreate(
 			methodContext,
 			transaction.senderAddress,
 			canonicalTokenID,
@@ -96,7 +96,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 		const [feeTokenChainID, feeTokenLocalID] = splitTokenID(messageFeeTokenID);
 		const userStore = this.stores.get(UserStore);
 		if (!feeTokenChainID.equals(ownChainID)) {
-			await userStore.updateAvailableBalanceWithCreate(
+			await userStore.addAvailableBalanceWithCreate(
 				methodContext,
 				transaction.senderAddress,
 				messageFeeTokenID,
@@ -117,7 +117,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 			methodContext,
 			messageFeeTokenID,
 		);
-		await userStore.updateAvailableBalanceWithCreate(
+		await userStore.addAvailableBalanceWithCreate(
 			methodContext,
 			transaction.senderAddress,
 			canonicalTokenID,
@@ -136,13 +136,13 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 			methodContext,
 			ccm.sendingChainID,
 		);
-		const [feeTokenChainID, feeTokenLocalID] = splitTokenID(messageFeeTokenID);
+		const [feeTokenChainID] = splitTokenID(messageFeeTokenID);
 		const userStore = this.stores.get(UserStore);
 		let tokenID = messageFeeTokenID;
 		if (feeTokenChainID.equals(ownChainID)) {
 			tokenID = await this._tokenMethod.getCanonicalTokenID(methodContext, messageFeeTokenID);
 			const escrowStore = this.stores.get(EscrowStore);
-			await escrowStore.addAmount(methodContext, ccm.receivingChainID, feeTokenLocalID, ccm.fee);
+			await escrowStore.addAmount(methodContext, ccm.receivingChainID, messageFeeTokenID, ccm.fee);
 		}
 		const payer = await userStore.get(ctx, userStore.getKey(transaction.senderAddress, tokenID));
 		if (payer.availableBalance < ccm.fee) {
@@ -194,7 +194,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 		await escrowStore.set(ctx, escrowKey, escrowData);
 
 		const localTokenID = Buffer.concat([CHAIN_ID_ALIAS_NATIVE, localID]);
-		await userStore.updateAvailableBalanceWithCreate(
+		await userStore.addAvailableBalanceWithCreate(
 			methodContext,
 			address,
 			localTokenID,

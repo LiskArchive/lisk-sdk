@@ -144,7 +144,7 @@ export class CCTransferCommand extends BaseCCCommand {
 		}
 
 		const userStore = this.stores.get(UserStore);
-		await userStore.updateAvailableBalanceWithCreate(
+		await userStore.addAvailableBalanceWithCreate(
 			methodContext,
 			recipientAddress,
 			canonicalTokenID,

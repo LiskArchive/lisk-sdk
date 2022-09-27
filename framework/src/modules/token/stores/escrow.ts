@@ -38,11 +38,11 @@ export class EscrowStore extends BaseStore<EscrowStoreData> {
 	public async addAmount(
 		context: StoreGetter,
 		sendingChainID: Buffer,
-		localID: Buffer,
+		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
 		let escrowData: EscrowStoreData;
-		const escrowKey = Buffer.concat([sendingChainID, localID]);
+		const escrowKey = Buffer.concat([sendingChainID, tokenID]);
 		try {
 			escrowData = await this.get(context, escrowKey);
 		} catch (error) {
@@ -59,11 +59,11 @@ export class EscrowStore extends BaseStore<EscrowStoreData> {
 		context: MethodContext,
 		interopMethod: InteroperabilityMethod,
 		sendingChainID: Buffer,
-		localID: Buffer,
+		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
-		const escrowKey = Buffer.concat([sendingChainID, localID]);
 		let escrowData: EscrowStoreData;
+		const escrowKey = Buffer.concat([sendingChainID, tokenID]);
 		try {
 			escrowData = await this.get(context, escrowKey);
 		} catch (error) {

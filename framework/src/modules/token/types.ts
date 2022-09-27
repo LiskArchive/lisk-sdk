@@ -22,7 +22,6 @@ export interface ModuleConfig {
 		tokenID: string;
 		amount: string;
 	}[];
-	supportedTokenIDs: string[];
 }
 
 export interface MinBalance {
@@ -41,18 +40,18 @@ export interface GenesisTokenStore {
 		}[];
 	}[];
 	supplySubstore: {
-		localID: Buffer;
+		tokenID: Buffer;
 		totalSupply: bigint;
 	}[];
 	escrowSubstore: {
 		escrowChainID: Buffer;
-		localID: Buffer;
+		tokenID: Buffer;
 		amount: bigint;
 	}[];
-	availableLocalIDSubstore: {
-		nextAvailableLocalID: Buffer;
-	};
-	terminatedEscrowSubstore: Buffer[];
+	supportedTokensSubstore: {
+		chainID: Buffer;
+		supportedTokenIDs: Buffer[];
+	}[];
 }
 
 export interface InteroperabilityMethod {

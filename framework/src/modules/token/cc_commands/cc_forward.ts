@@ -79,7 +79,7 @@ export class CCForwardCommand extends BaseCCCommand {
 				await this._interopMethod.terminateChain(methodContext, ccm.sendingChainID);
 				return;
 			}
-			await userStore.updateAvailableBalance(
+			await userStore.addAvailableBalance(
 				methodContext,
 				params.senderAddress,
 				params.tokenID,
@@ -118,7 +118,7 @@ export class CCForwardCommand extends BaseCCCommand {
 		await escrowStore.set(methodContext, escrowKey, escrowData);
 		const localTokenID = Buffer.concat([CHAIN_ID_ALIAS_NATIVE, localID]);
 
-		await userStore.updateAvailableBalance(
+		await userStore.addAvailableBalance(
 			methodContext,
 			params.senderAddress,
 			localTokenID,
@@ -147,7 +147,7 @@ export class CCForwardCommand extends BaseCCCommand {
 			return;
 		}
 
-		await userStore.updateAvailableBalance(
+		await userStore.addAvailableBalance(
 			methodContext,
 			params.senderAddress,
 			localTokenID,

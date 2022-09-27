@@ -27,9 +27,17 @@ describe('schema/application_config_schema.js', () => {
 
 	it('should validate if module properties are objects', () => {
 		const config = objects.cloneDeep(applicationConfigSchema.default);
-		config.modules = { myModule: { myProp: 1 } };
 
-		expect(() => validator.validate(applicationConfigSchema, config)).not.toThrow();
+		expect(() =>
+			validator.validate(applicationConfigSchema, {
+				...config,
+				genesis: {
+					...config.genesis,
+					chainID: '10000000',
+				},
+				modules: { myModule: { myProp: 1 } },
+			}),
+		).not.toThrow();
 	});
 
 	it('should not validate if module properties are not objects', () => {

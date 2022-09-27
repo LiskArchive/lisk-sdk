@@ -88,7 +88,7 @@ describe('transaction:sign command', () => {
 	// In order to test the command we need to extended the base crete command and provide application implementation
 	class SignCommandExtended extends SignCommand {
 		getApplication = () => {
-			const { app } = Application.defaultApplication();
+			const { app } = Application.defaultApplication({ genesis: { chainID: '00000000' } });
 			return app;
 		};
 	}
