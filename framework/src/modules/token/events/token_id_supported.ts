@@ -21,7 +21,7 @@ export interface TokenIDSupportedEventData {
 export const tokenIDSupportedEventSchema = {
 	$id: '/token/events/tokenIDSupported',
 	type: 'object',
-	required: ['chainID'],
+	required: ['tokenID'],
 	properties: {
 		tokenID: {
 			dataType: 'bytes',

@@ -12,23 +12,29 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseEvent, EventQueuer } from '../../base_event';
-import { TOKEN_ID_LENGTH, TokenEventResult, TokenErrorEventResult } from '../constants';
+import {
+	TOKEN_ID_LENGTH,
+	TokenEventResult,
+	TokenErrorEventResult,
+	CHAIN_ID_LENGTH,
+} from '../constants';
 
-export interface InitializeEscrowStoreEventData {
-	address: Buffer;
+export interface InitializeEscrowAccountEventData {
+	chainID: Buffer;
 	tokenID: Buffer;
 	initPayingAddress: Buffer;
 	initializationFee: bigint;
 }
 
-export const initializeEscrowStoreEventSchema = {
-	$id: '/token/events/initializeEscrowStore',
+export const initializeEscrowAccountEventSchema = {
+	$id: '/token/events/initializeEscrowAccount',
 	type: 'object',
-	required: ['address', 'tokenID', 'initPayingAddress', 'initializationFee', 'result'],
+	required: ['chainID', 'tokenID', 'initPayingAddress', 'initializationFee', 'result'],
 	properties: {
-		address: {
+		chainID: {
 			dataType: 'bytes',
-			format: 'lisk32',
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 			fieldNumber: 1,
 		},
 		tokenID: {
@@ -53,20 +59,20 @@ export const initializeEscrowStoreEventSchema = {
 	},
 };
 
-export class InitializeEscrowStoreEvent extends BaseEvent<
-	InitializeEscrowStoreEventData & { result: TokenEventResult }
+export class InitializeEscrowAccountEvent extends BaseEvent<
+	InitializeEscrowAccountEventData & { result: TokenEventResult }
 > {
-	public schema = initializeEscrowStoreEventSchema;
+	public schema = initializeEscrowAccountEventSchema;
 
-	public log(ctx: EventQueuer, data: InitializeEscrowStoreEventData): void {
-		this.add(ctx, { ...data, result: TokenEventResult.SUCCESSFUL }, [data.address]);
+	public log(ctx: EventQueuer, data: InitializeEscrowAccountEventData): void {
+		this.add(ctx, { ...data, result: TokenEventResult.SUCCESSFUL }, [data.chainID]);
 	}
 
 	public error(
 		ctx: EventQueuer,
-		data: InitializeEscrowStoreEventData,
+		data: InitializeEscrowAccountEventData,
 		result: TokenErrorEventResult,
 	): void {
-		this.add(ctx, { ...data, result }, [data.address], true);
+		this.add(ctx, { ...data, result }, [data.chainID], true);
 	}
 }

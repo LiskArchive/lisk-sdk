@@ -14,15 +14,15 @@
 import { BaseEvent, EventQueuer } from '../../base_event';
 import { TOKEN_ID_LENGTH, TokenEventResult, TokenErrorEventResult } from '../constants';
 
-export interface InitializeUserStoreEventData {
+export interface InitializeUserAccountEventData {
 	address: Buffer;
 	tokenID: Buffer;
 	initPayingAddress: Buffer;
 	initializationFee: bigint;
 }
 
-export const initializeUserStoreEventSchema = {
-	$id: '/token/events/initializeUserStore',
+export const initializeUserAccountEventSchema = {
+	$id: '/token/events/initializeUserAccount',
 	type: 'object',
 	required: ['address', 'tokenID', 'initPayingAddress', 'initializationFee', 'result'],
 	properties: {
@@ -53,18 +53,18 @@ export const initializeUserStoreEventSchema = {
 	},
 };
 
-export class InitializeUserStoreEvent extends BaseEvent<
-	InitializeUserStoreEventData & { result: TokenEventResult }
+export class InitializeUserAccountEvent extends BaseEvent<
+	InitializeUserAccountEventData & { result: TokenEventResult }
 > {
-	public schema = initializeUserStoreEventSchema;
+	public schema = initializeUserAccountEventSchema;
 
-	public log(ctx: EventQueuer, data: InitializeUserStoreEventData): void {
+	public log(ctx: EventQueuer, data: InitializeUserAccountEventData): void {
 		this.add(ctx, { ...data, result: TokenEventResult.SUCCESSFUL }, [data.address]);
 	}
 
 	public error(
 		ctx: EventQueuer,
-		data: InitializeUserStoreEventData,
+		data: InitializeUserAccountEventData,
 		result: TokenErrorEventResult,
 	): void {
 		this.add(ctx, { ...data, result }, [data.address], true);
