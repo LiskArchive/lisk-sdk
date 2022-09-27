@@ -34,7 +34,7 @@ describe('SidechainCCRegistrationCommand', () => {
 
 	const ownChainAccount = {
 		name: 'sidechain',
-		id: utils.intToBuffer(1, 4),
+		chainID: utils.intToBuffer(1, 4),
 		nonce: BigInt(0),
 	};
 
@@ -186,11 +186,14 @@ describe('SidechainCCRegistrationCommand', () => {
 		);
 	});
 
-	it('should call terminateChainInternal when ownChainAccount.id !== ccm.receivingChainID', async () => {
+	it('should call terminateChainInternal when ownChainAccount.chainID !== ccm.receivingChainID', async () => {
 		// Arrange
 		getChannelMock.mockResolvedValue(channelData);
 
-		getOwnChainAccountMock.mockResolvedValue({ ...ownChainAccount, id: utils.intToBuffer(3, 4) });
+		getOwnChainAccountMock.mockResolvedValue({
+			...ownChainAccount,
+			chainID: utils.intToBuffer(3, 4),
+		});
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 

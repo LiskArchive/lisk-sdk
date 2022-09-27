@@ -50,7 +50,7 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 		if (
 			sendingChainChannelAccount.inbox.size !== 1 ||
 			ccm.status !== CCM_STATUS_OK ||
-			!ownChainAccount.id.equals(ccm.receivingChainID) ||
+			!ownChainAccount.chainID.equals(ccm.receivingChainID) ||
 			ownChainAccount.name !== decodedParams.name ||
 			!sendingChainChannelAccount.messageFeeTokenID.chainID.equals(
 				decodedParams.messageFeeTokenID.chainID,

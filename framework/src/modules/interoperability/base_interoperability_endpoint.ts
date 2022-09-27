@@ -100,10 +100,10 @@ export abstract class BaseInteroperabilityEndpoint<
 	public async getOwnChainAccount(context: ModuleEndpointContext): Promise<OwnChainAccountJSON> {
 		const interoperabilityStore = this.getInteroperabilityStore(context);
 
-		const { id, name, nonce } = await interoperabilityStore.getOwnChainAccount();
+		const { chainID, name, nonce } = await interoperabilityStore.getOwnChainAccount();
 
 		return {
-			id: id.toString('hex'),
+			chainID: chainID.toString('hex'),
 			name,
 			nonce: nonce.toString(),
 		};

@@ -82,7 +82,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 
 		const interoperabilityStore = this.getInteroperabilityStore(context);
 		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
-		if (!ownChainID.equals(ownChainAccount.id)) {
+		if (!ownChainID.equals(ownChainAccount.chainID)) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(`Invalid ownChainID property.`),
@@ -197,7 +197,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 		const ownChainAccountSubstore = this.stores.get(OwnChainAccountStore);
 		await ownChainAccountSubstore.set(context, EMPTY_BYTES, {
 			name: ownName,
-			id: ownChainID,
+			chainID: ownChainID,
 			nonce: BigInt(0),
 		});
 		this.events
@@ -216,7 +216,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			nonce: ownChainAccount.nonce,
 			module: MODULE_NAME_INTEROPERABILITY,
 			crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
-			sendingChainID: ownChainAccount.id,
+			sendingChainID: ownChainAccount.chainID,
 			receivingChainID: MAINCHAIN_ID_BUFFER,
 			fee: BigInt(0),
 			status: CCM_STATUS_OK,
@@ -229,10 +229,12 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 		await ownChainAccountSubstore.set(context, EMPTY_BYTES, ownChainAccount);
 
 		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
-		this.events.get(CcmProcessedEvent).log(methodContext, ownChainAccount.id, MAINCHAIN_ID_BUFFER, {
-			ccmID,
-			status: CCM_SENT_STATUS_SUCCESS,
-		});
+		this.events
+			.get(CcmProcessedEvent)
+			.log(methodContext, ownChainAccount.chainID, MAINCHAIN_ID_BUFFER, {
+				ccmID,
+				status: CCM_SENT_STATUS_SUCCESS,
+			});
 	}
 
 	protected getInteroperabilityStore(

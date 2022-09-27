@@ -133,7 +133,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 		for (const ccm of deserializedCCMs) {
 			const newCcm = swapReceivingAndSendingChainIDs(ccm);
 
-			if (ownChainAccount.id.equals(ccm.receivingChainID)) {
+			if (ownChainAccount.chainID.equals(ccm.receivingChainID)) {
 				const ccCommands = this.ccCommands.get(newCcm.module);
 
 				if (!ccCommands) {

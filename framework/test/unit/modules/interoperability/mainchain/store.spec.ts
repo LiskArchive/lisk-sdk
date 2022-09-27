@@ -78,7 +78,7 @@ describe('Mainchain interoperability store', () => {
 
 		ownChainAccount = {
 			name: 'mainchain',
-			id: MAINCHAIN_ID_BUFFER,
+			chainID: MAINCHAIN_ID_BUFFER,
 			nonce: BigInt('0'),
 		};
 

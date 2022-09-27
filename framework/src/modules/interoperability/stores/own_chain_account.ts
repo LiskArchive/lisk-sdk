@@ -15,20 +15,20 @@ import { BaseStore } from '../../base_store';
 
 export interface OwnChainAccount {
 	name: string;
-	id: Buffer;
+	chainID: Buffer;
 	nonce: bigint;
 }
 
 export const ownChainAccountSchema = {
 	$id: '/modules/interoperability/ownChainAccount',
 	type: 'object',
-	required: ['name', 'id', 'nonce'],
+	required: ['name', 'chainID', 'nonce'],
 	properties: {
 		name: {
 			dataType: 'string',
 			fieldNumber: 1,
 		},
-		id: {
+		chainID: {
 			dataType: 'bytes',
 			fieldNumber: 2,
 		},

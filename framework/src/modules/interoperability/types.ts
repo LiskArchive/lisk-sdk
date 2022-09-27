@@ -168,13 +168,13 @@ export interface ChainAccountJSON {
 
 export interface OwnChainAccount {
 	name: string;
-	id: Buffer;
+	chainID: Buffer;
 	nonce: bigint;
 }
 
 export interface OwnChainAccountJSON {
 	name: string;
-	id: string;
+	chainID: string;
 	nonce: string;
 }
 

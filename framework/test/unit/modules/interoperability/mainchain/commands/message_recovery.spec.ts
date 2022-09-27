@@ -396,7 +396,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 			storeMock.getOwnChainAccount.mockResolvedValue({
 				name: `mainchain`,
-				id: utils.intToBuffer(0, 4),
+				chainID: utils.intToBuffer(0, 4),
 				nonce: BigInt(0),
 			});
 

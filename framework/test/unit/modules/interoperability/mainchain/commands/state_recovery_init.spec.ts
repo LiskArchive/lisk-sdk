@@ -150,7 +150,7 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 			};
 			const ownChainAccount = {
 				name: 'mainchain',
-				id: MAINCHAIN_ID_BUFFER,
+				chainID: MAINCHAIN_ID_BUFFER,
 				nonce: BigInt('0'),
 			};
 			interopStoreMock = {
@@ -176,7 +176,7 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Sidechain id is not valid');
+			expect(result.error?.message).toInclude('Sidechain ID is not valid.');
 		});
 
 		it('should return error if terminated state account exists and is initialized', async () => {

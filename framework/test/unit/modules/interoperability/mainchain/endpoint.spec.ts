@@ -131,13 +131,13 @@ describe('Mainchain endpoint', () => {
 	};
 
 	const ownChainAccount: OwnChainAccount = {
-		id: intToBuffer(1, 4),
+		chainID: intToBuffer(1, 4),
 		name: 'main',
 		nonce: BigInt(10),
 	};
 
 	const ownChainAccountJSON: OwnChainAccountJSON = {
-		id: ownChainAccount.id.toString('hex'),
+		chainID: ownChainAccount.chainID.toString('hex'),
 		name: ownChainAccount.name,
 		nonce: ownChainAccount.nonce.toString(),
 	};

@@ -63,7 +63,7 @@ describe('Sidechain interoperability store', () => {
 
 		ownChainAccount = {
 			name: 'mainchain',
-			id: utils.intToBuffer(2, 4),
+			chainID: utils.intToBuffer(2, 4),
 			nonce: BigInt('0'),
 		};
 

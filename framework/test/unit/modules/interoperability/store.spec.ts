@@ -212,13 +212,13 @@ describe('Base interoperability store', () => {
 		const stateRoot = Buffer.from('888d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex');
 		const ownChainAccount1 = {
 			name: 'mainchain',
-			id: MAINCHAIN_ID_BUFFER,
+			chainID: MAINCHAIN_ID_BUFFER,
 			nonce: BigInt('0'),
 		};
 
 		const ownChainAccount2 = {
 			name: 'chain1',
-			id: utils.intToBuffer(7, 4),
+			chainID: utils.intToBuffer(7, 4),
 			nonce: BigInt('0'),
 		};
 
