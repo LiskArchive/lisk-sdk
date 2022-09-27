@@ -15,7 +15,7 @@
 
 import { intToBuffer } from '@liskhq/lisk-cryptography/dist-node/utils';
 import { Batch, Database, InMemoryDatabase } from '@liskhq/lisk-db';
-import { encodeBlock } from '../../../../src/engine/legacy/codec';
+import { encodeBlock, encodeLegacyChainBracketInfo } from '../../../../src/engine/legacy/codec';
 import { DB_KEY_BLOCK_HEIGHT, DB_KEY_BLOCK_ID } from '../../../../src/engine/legacy/constants';
 import { Storage } from '../../../../src/engine/legacy/storage';
 import { blockFixtures } from './fixtures';
@@ -129,6 +129,59 @@ describe('Legacy storage', () => {
 			const result = await storage.getBlockByID(header.id);
 
 			expect(result).toEqual(encodeBlock({ header, transactions }));
+		});
+	});
+
+	describe('setLegacyChainBracketInfo', () => {
+		it('should save the chain bracket info', async () => {
+			const { header } = blockFixtures[1];
+			const bracketInfo = {
+				startHeight: header.height,
+				snapshotBlockHeight: header.height,
+				lastBlockHeight: header.height,
+			};
+			await storage.setLegacyChainBracketInfo(header.id, bracketInfo);
+
+			const result = await storage.getLegacyChainBracketInfo(header.id);
+
+			expect(result).toEqual(encodeLegacyChainBracketInfo(bracketInfo));
+		});
+
+		it('should throw error if block with given id does not exist', async () => {
+			const { header } = blockFixtures[1];
+			const bracketInfo = {
+				startHeight: header.height,
+				snapshotBlockHeight: header.height,
+				lastBlockHeight: header.height,
+			};
+
+			await storage.setLegacyChainBracketInfo(header.id, bracketInfo);
+
+			await expect(storage.getLegacyChainBracketInfo(Buffer.alloc(0))).rejects.toThrow(
+				`Specified key 02 does not exist`,
+			);
+		});
+	});
+
+	describe('getLegacyChainBracketInfo', () => {
+		it('should return the chain bracket info', async () => {
+			const { header } = blockFixtures[1];
+			const bracketInfo = {
+				startHeight: header.height,
+				snapshotBlockHeight: header.height,
+				lastBlockHeight: header.height,
+			};
+			await storage.setLegacyChainBracketInfo(header.id, bracketInfo);
+
+			const result = await storage.getLegacyChainBracketInfo(header.id);
+
+			expect(result).toEqual(encodeLegacyChainBracketInfo(bracketInfo));
+		});
+
+		it('should throw error if block with given id does not exist', async () => {
+			await expect(storage.getLegacyChainBracketInfo(Buffer.alloc(0))).rejects.toThrow(
+				`Specified key 02 does not exist`,
+			);
 		});
 	});
 });

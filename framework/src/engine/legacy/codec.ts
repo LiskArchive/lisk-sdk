@@ -14,8 +14,8 @@
 
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { blockHeaderSchemaV2, blockSchemaV2 } from './schemas';
-import { LegacyBlock, LegacyBlockJSON, RawLegacyBlock } from './types';
+import { blockHeaderSchemaV2, blockSchemaV2, legacyChainBracketInfoSchema } from './schemas';
+import { LegacyBlock, LegacyBlockJSON, LegacyChainBracketInfo, RawLegacyBlock } from './types';
 
 interface LegacyBlockSchema {
 	header: Schema;
@@ -80,3 +80,6 @@ export const encodeBlock = (data: LegacyBlock): Buffer => {
 		transactions: data.transactions,
 	});
 };
+
+export const encodeLegacyChainBracketInfo = (data: LegacyChainBracketInfo): Buffer =>
+	codec.encode(legacyChainBracketInfoSchema, data);

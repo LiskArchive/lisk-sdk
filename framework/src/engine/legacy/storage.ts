@@ -14,7 +14,9 @@
 
 import { intToBuffer } from '@liskhq/lisk-cryptography/dist-node/utils';
 import { Batch, Database } from '@liskhq/lisk-db';
-import { DB_KEY_BLOCK_HEIGHT, DB_KEY_BLOCK_ID } from './constants';
+import { encodeLegacyChainBracketInfo } from './codec';
+import { DB_KEY_BLOCK_HEIGHT, DB_KEY_BLOCK_ID, DB_KEY_LEGACY_BRACKET } from './constants';
+import { LegacyChainBracketInfo } from './types';
 
 export class Storage {
 	private readonly _db: Database;
@@ -52,6 +54,20 @@ export class Storage {
 		batch.set(Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(height, 4)]), id);
 
 		await this._db.write(batch);
+	}
+
+	public async getLegacyChainBracketInfo(snapshotBlockID: Buffer): Promise<Buffer> {
+		return this._db.get(Buffer.concat([DB_KEY_LEGACY_BRACKET, snapshotBlockID]));
+	}
+
+	public async setLegacyChainBracketInfo(
+		snapshotBlockID: Buffer,
+		bracketInfo: LegacyChainBracketInfo,
+	): Promise<void> {
+		await this._db.set(
+			Buffer.concat([DB_KEY_LEGACY_BRACKET, snapshotBlockID]),
+			encodeLegacyChainBracketInfo(bracketInfo),
+		);
 	}
 
 	private async _getBlockIDsBetweenHeights(
