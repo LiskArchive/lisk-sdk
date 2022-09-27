@@ -33,6 +33,7 @@ import {
 } from '../../../src/engine/consensus/constants';
 import { defaultConfig } from '../../../src/testing/fixtures';
 import { createFakeBlockHeader } from '../../fixtures';
+import { LegacyChainHandler } from '../../../src/engine/legacy/legacy_chain_handler';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-db');
@@ -58,6 +59,8 @@ describe('engine', () => {
 		jest.spyOn(Network.prototype, 'init');
 		jest.spyOn(Network.prototype, 'start');
 		jest.spyOn(Network.prototype, 'stop');
+		jest.spyOn(LegacyChainHandler.prototype, 'init');
+		jest.spyOn(LegacyChainHandler.prototype, 'syncBlocks');
 		jest.spyOn(Consensus.prototype, 'init');
 		jest.spyOn(Consensus.prototype, 'start');
 		jest.spyOn(Consensus.prototype, 'stop');
@@ -100,6 +103,35 @@ describe('engine', () => {
 		it('should initialize and start network', () => {
 			expect(Network.prototype.init).toHaveBeenCalledTimes(1);
 			expect(Network.prototype.start).toHaveBeenCalledTimes(1);
+		});
+
+		it('should initialize legacy chain handler but not start syncing blocks if config is set to false', () => {
+			expect(LegacyChainHandler.prototype.init).toHaveBeenCalledTimes(1);
+			expect(LegacyChainHandler.prototype.syncBlocks).toHaveBeenCalledTimes(0);
+		});
+
+		it('should initialize legacy chain handler and start syncing blocks if config is set to true', async () => {
+			await engine.stop();
+			engine = new Engine(abi, {
+				...defaultConfig,
+				genesis: {
+					...defaultConfig.genesis,
+					block: {
+						blob: new Block(createFakeBlockHeader(), [], new BlockAssets())
+							.getBytes()
+							.toString('hex'),
+					},
+				},
+				legacy: {
+					sync: true,
+					brackets: [],
+				},
+			});
+			engine['_chainID'] = Buffer.from('100000000', 'hex');
+			await engine.start();
+
+			expect(LegacyChainHandler.prototype.init).toHaveBeenCalledTimes(2);
+			expect(LegacyChainHandler.prototype.syncBlocks).toHaveBeenCalledTimes(1);
 		});
 
 		it('should initialize and start consensus', () => {

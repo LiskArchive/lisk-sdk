@@ -105,6 +105,11 @@ export class Engine {
 	public async start() {
 		await this._init();
 		await this._network.start();
+		if (this._config.legacy.sync) {
+			this._logger.info('Legacy block sync started');
+			await this._legacyChainHandler.syncBlocks();
+			this._logger.info('Legacy block sync completed');
+		}
 		await this._generator.start();
 		await this._consensus.start();
 		await this._rpcServer.start();
@@ -188,6 +193,7 @@ export class Engine {
 			db: this._blockchainDB,
 			genesisBlock: genesis,
 			logger: this._logger,
+			legacyDB: this._legacyDB,
 		});
 		await this._generator.init({
 			blockchainDB: this._blockchainDB,
