@@ -14,13 +14,7 @@
 import { BlockAssets } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { genesisTokenStoreSchema, TokenModule } from '../../../../src/modules/token';
-import {
-	CHAIN_ID_LENGTH,
-	EMPTY_BYTES,
-	LOCAL_ID_LENGTH,
-	TOKEN_ID_LENGTH,
-} from '../../../../src/modules/token/constants';
-import { AvailableLocalIDStore } from '../../../../src/modules/token/stores/available_local_id';
+import { LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from '../../../../src/modules/token/constants';
 import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
 import { SupplyStore } from '../../../../src/modules/token/stores/supply';
 import { UserStore } from '../../../../src/modules/token/stores/user';
@@ -37,7 +31,11 @@ describe('token module', () => {
 	describe('init', () => {
 		it('should initialize config with default value when module config is empty', async () => {
 			await expect(
-				tokenModule.init({ genesisConfig: {} as any, moduleConfig: {}, generatorConfig: {} }),
+				tokenModule.init({
+					genesisConfig: { chainID: '00000000' } as any,
+					moduleConfig: {},
+					generatorConfig: {},
+				}),
 			).toResolve();
 
 			expect(tokenModule['_minBalances'][0].amount.toString()).toEqual('5000000');
@@ -49,7 +47,7 @@ describe('token module', () => {
 		it('should initialize config with given value', async () => {
 			await expect(
 				tokenModule.init({
-					genesisConfig: {} as any,
+					genesisConfig: { chainID: '00000000' } as any,
 					moduleConfig: {
 						minBalances: [{ amount: '900000000', tokenID: '0000000100000000' }],
 						supportedTokenID: ['000000020000'],
@@ -66,6 +64,14 @@ describe('token module', () => {
 	});
 
 	describe('initGenesisState', () => {
+		beforeEach(async () => {
+			await tokenModule.init({
+				genesisConfig: { chainID: '00000000' } as any,
+				moduleConfig: {},
+				generatorConfig: {},
+			});
+		});
+
 		it('should setup initial state', async () => {
 			const context = createGenesisBlockContext({}).createInitGenesisStateContext();
 			return expect(tokenModule.initGenesisState(context)).resolves.toBeUndefined();
@@ -102,17 +108,6 @@ describe('token module', () => {
 				lte: Buffer.alloc(TOKEN_ID_LENGTH, 255),
 			});
 			expect(allEscrows).toHaveLength(input.escrowSubstore.length);
-
-			const nextAvailableLocalIDStore = tokenModule.stores.get(AvailableLocalIDStore);
-			const { nextAvailableLocalID } = await nextAvailableLocalIDStore.get(context, EMPTY_BYTES);
-			expect(nextAvailableLocalID).toEqual(input.availableLocalIDSubstore.nextAvailableLocalID);
-
-			const terminatedEscrowStore = tokenModule.stores.get(EscrowStore);
-			const allTerminatedEscrows = await terminatedEscrowStore.iterate(context, {
-				gte: Buffer.alloc(CHAIN_ID_LENGTH, 0),
-				lte: Buffer.alloc(CHAIN_ID_LENGTH, 255),
-			});
-			expect(allTerminatedEscrows).toHaveLength(input.terminatedEscrowSubstore.length);
 		});
 
 		it.each(invalidGenesisAssets)('%s', async (_desc, input, err) => {

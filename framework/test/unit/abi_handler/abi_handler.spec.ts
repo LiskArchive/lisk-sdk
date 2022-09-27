@@ -58,10 +58,16 @@ describe('abi handler', () => {
 			moduleDB: new InMemoryDatabase() as never,
 			stateMachine,
 			modules: [mod2, mod],
-			config: applicationConfigSchema.default,
+			config: {
+				...applicationConfigSchema.default,
+				genesis: { ...applicationConfigSchema.default.genesis, chainID: '10000000' },
+			},
 		});
 		abiHandler['_chainID'] = utils.getRandomBytes(32);
-		await stateMachine.init(loggerMock, {} as any);
+		await stateMachine.init(loggerMock, {
+			...applicationConfigSchema.default.genesis,
+			chainID: '00000000',
+		});
 	});
 
 	describe('ready', () => {
@@ -77,7 +83,10 @@ describe('abi handler', () => {
 				moduleDB: new InMemoryDatabase() as never,
 				stateMachine,
 				modules: [mod],
-				config: applicationConfigSchema.default,
+				config: {
+					...applicationConfigSchema.default,
+					genesis: { ...applicationConfigSchema.default.genesis, chainID: '10000000' },
+				},
 			});
 
 			const chainID = Buffer.from('10000000', 'hex');

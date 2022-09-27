@@ -25,12 +25,10 @@ import {
 	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_NAME_FORWARD,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-	EMPTY_BYTES,
 	MIN_BALANCE,
 	TOKEN_ID_LENGTH,
 } from '../../../../../src/modules/token/constants';
 import { crossChainForwardMessageParams } from '../../../../../src/modules/token/schemas';
-import { AvailableLocalIDStore } from '../../../../../src/modules/token/stores/available_local_id';
 import { EscrowStore } from '../../../../../src/modules/token/stores/escrow';
 import { SupplyStore } from '../../../../../src/modules/token/stores/supply';
 import { UserStore } from '../../../../../src/modules/token/stores/user';
@@ -91,6 +89,7 @@ describe('CrossChain Forward command', () => {
 		method.addDependencies(interopMethod as never);
 		command.addDependencies(interopMethod);
 		method.init({
+			ownchainID: Buffer.from([0, 0, 0, 1]),
 			minBalances,
 		});
 
@@ -100,25 +99,12 @@ describe('CrossChain Forward command', () => {
 			eventQueue: new EventQueue(0),
 		});
 		const userStore = tokenModule.stores.get(UserStore);
-		await userStore.set(
-			methodContext,
-			userStore.getKey(defaultAddress, defaultTokenIDAlias),
-			defaultAccount,
-		);
-		await userStore.set(
-			methodContext,
-			userStore.getKey(defaultAddress, defaultForeignTokenID),
-			defaultAccount,
-		);
+		await userStore.save(methodContext, defaultAddress, defaultTokenIDAlias, defaultAccount);
+		await userStore.save(methodContext, defaultAddress, defaultForeignTokenID, defaultAccount);
 
 		const supplyStore = tokenModule.stores.get(SupplyStore);
 		await supplyStore.set(methodContext, defaultTokenIDAlias.slice(CHAIN_ID_LENGTH), {
 			totalSupply: defaultTotalSupply,
-		});
-
-		const nextAvailableLocalIDStore = tokenModule.stores.get(AvailableLocalIDStore);
-		await nextAvailableLocalIDStore.set(methodContext, EMPTY_BYTES, {
-			nextAvailableLocalID: Buffer.from([0, 0, 0, 5]),
 		});
 
 		const escrowStore = tokenModule.stores.get(EscrowStore);
@@ -138,7 +124,8 @@ describe('CrossChain Forward command', () => {
 		jest.spyOn(fakeLogger, 'debug');
 	});
 
-	describe('execute', () => {
+	// TODO: Remove in https://github.com/LiskHQ/lisk-sdk/issues/7577
+	describe.skip('execute', () => {
 		it('should terminate chain if token ID is not 8 bytes', async () => {
 			await expect(
 				command.execute({

@@ -1,0 +1,173 @@
+/*
+ * Copyright © 2022 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+import { StoreGetter } from '../../../../../src/modules/base_store';
+import {
+	ALL_SUPPORTED_TOKENS_KEY,
+	SupportedTokensStore,
+} from '../../../../../src/modules/token/stores/supported_tokens';
+import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
+import { createStoreGetter } from '../../../../../src/testing/utils';
+
+describe('SupportedTokensStore', () => {
+	const ownChainID = Buffer.from([1, 0, 0, 1]);
+
+	let store: SupportedTokensStore;
+	let context: StoreGetter;
+
+	beforeEach(() => {
+		store = new SupportedTokensStore('token');
+		const db = new InMemoryPrefixedStateDB();
+		const stateStore = new PrefixedStateReadWriter(db);
+		context = createStoreGetter(stateStore);
+
+		store.registerOwnChainID(ownChainID);
+	});
+
+	describe('allSupported', () => {
+		it('should return true if only key is ALL_SUPPORTED_TOKENS_KEY', async () => {
+			await store.set(context, ALL_SUPPORTED_TOKENS_KEY, { supportedTokenIDs: [] });
+
+			await expect(store.allSupported(context)).resolves.toBeTrue();
+		});
+
+		it('should return false if there is other supported keys', async () => {
+			await store.set(context, Buffer.from([1, 1, 1, 1]), { supportedTokenIDs: [] });
+
+			await expect(store.allSupported(context)).resolves.toBeFalse();
+		});
+	});
+
+	describe('isSupported', () => {
+		it('should return true if tokenID is native token', async () => {
+			await expect(
+				store.isSupported(context, Buffer.from([1, 0, 0, 1, 0, 0, 0, 0])),
+			).resolves.toBeTrue();
+		});
+
+		it('should return true if tokenID is LSK', async () => {
+			await expect(
+				store.isSupported(context, Buffer.from([1, 0, 0, 0, 0, 0, 0, 0])),
+			).resolves.toBeTrue();
+		});
+
+		it('should return false if tokenID is LSK but different network', async () => {
+			await expect(
+				store.isSupported(context, Buffer.from([0, 0, 0, 0, 0, 0, 0, 0])),
+			).resolves.toBeFalse();
+		});
+
+		it('should return true if chainID is supported', async () => {
+			await store.set(context, Buffer.from([1, 1, 1, 1]), { supportedTokenIDs: [] });
+
+			await expect(
+				store.isSupported(context, Buffer.from([1, 1, 1, 1, 0, 0, 0, 0])),
+			).resolves.toBeTrue();
+		});
+
+		it('should return false if chainID is supported but not this token', async () => {
+			await store.set(context, Buffer.from([1, 1, 1, 1]), {
+				supportedTokenIDs: [Buffer.from([1, 1, 1, 1, 0, 0, 0, 0])],
+			});
+
+			await expect(
+				store.isSupported(context, Buffer.from([1, 1, 1, 1, 0, 0, 0, 1])),
+			).resolves.toBeFalse();
+		});
+
+		it('should return true if chainID is supported and this token', async () => {
+			await store.set(context, Buffer.from([1, 1, 1, 1]), {
+				supportedTokenIDs: [Buffer.from([1, 1, 1, 1, 0, 0, 0, 0])],
+			});
+
+			await expect(
+				store.isSupported(context, Buffer.from([1, 1, 1, 1, 0, 0, 0, 0])),
+			).resolves.toBeTrue();
+		});
+	});
+
+	describe('supportAll', () => {
+		it('should remove all other keys and insert ALL_SUPPORTED_TOKENS_KEY', async () => {
+			await store.set(context, Buffer.from([1, 1, 1, 1]), {
+				supportedTokenIDs: [Buffer.from([1, 1, 1, 1, 0, 0, 0, 0])],
+			});
+
+			await store.supportAll(context);
+
+			await expect(store.allSupported(context)).resolves.toBeTrue();
+		});
+	});
+
+	describe('supportChain', () => {
+		it('should not insert data if chainID is LSK', async () => {
+			await store.supportChain(context, Buffer.from([1, 0, 0, 0]));
+
+			await expect(store.has(context, Buffer.from([1, 0, 0, 0]))).resolves.toBeFalse();
+		});
+
+		it('should not insert data if chainID is own chain', async () => {
+			await store.supportChain(context, ownChainID);
+
+			await expect(store.has(context, ownChainID)).resolves.toBeFalse();
+		});
+
+		it('should insert data with empty list', async () => {
+			await store.set(context, ALL_SUPPORTED_TOKENS_KEY, { supportedTokenIDs: [] });
+
+			await store.supportChain(context, Buffer.from([2, 0, 0, 0]));
+
+			await expect(store.allSupported(context)).resolves.toBeFalse();
+			await expect(
+				store.isSupported(context, Buffer.from([2, 0, 0, 0, 0, 0, 0, 0])),
+			).resolves.toBeTrue();
+		});
+	});
+
+	describe('supportToken', () => {
+		it('should not insert data if chainID is LSK', async () => {
+			await store.supportToken(context, Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]));
+
+			await expect(store.has(context, Buffer.from([1, 0, 0, 0]))).resolves.toBeFalse();
+		});
+
+		it('should not insert data if chainID is own chain', async () => {
+			await store.supportToken(context, Buffer.concat([ownChainID, Buffer.from([0, 0, 0, 0])]));
+
+			await expect(store.has(context, Buffer.from(ownChainID))).resolves.toBeFalse();
+		});
+
+		it('should insert if there is no previous data', async () => {
+			const tokenID = Buffer.from([2, 0, 0, 0, 1, 0, 0, 0]);
+			await store.supportToken(context, tokenID);
+
+			const supportedTokens = await store.get(context, Buffer.from([2, 0, 0, 0]));
+			expect(supportedTokens.supportedTokenIDs).toHaveLength(1);
+			expect(supportedTokens.supportedTokenIDs[0]).toEqual(tokenID);
+		});
+
+		it('should update if there is previous data', async () => {
+			await store.set(context, Buffer.from([2, 0, 0, 0]), {
+				supportedTokenIDs: [Buffer.from([2, 0, 0, 0, 1, 0, 0, 1])],
+			});
+
+			const tokenID = Buffer.from([2, 0, 0, 0, 1, 0, 0, 0]);
+			await store.supportToken(context, tokenID);
+
+			const supportedTokens = await store.get(context, Buffer.from([2, 0, 0, 0]));
+			expect(supportedTokens.supportedTokenIDs).toHaveLength(2);
+			expect(supportedTokens.supportedTokenIDs[0]).toEqual(tokenID);
+		});
+	});
+});

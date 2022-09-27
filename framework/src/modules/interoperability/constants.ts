@@ -20,7 +20,7 @@ export const MODULE_NAME_INTEROPERABILITY = 'interoperability';
 export const MAINCHAIN_ID = 1;
 export const MAINCHAIN_ID_BUFFER = utils.intToBuffer(MAINCHAIN_ID, 4);
 // TODO: To be updated after token module update
-export const TOKEN_ID_LSK = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
+export const TOKEN_ID_LSK = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 export const TOKEN_ID_LSK_MAINCHAIN = {
 	chainID: utils.intToBuffer(1, 4),
 	localID: utils.intToBuffer(0, 4),

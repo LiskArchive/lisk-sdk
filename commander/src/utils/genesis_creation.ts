@@ -81,7 +81,6 @@ interface GenesisBlockDefaultAccountInput {
 
 export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefaultAccountInput) => {
 	const localID = Buffer.from([0, 0, 0, 0]).toString('hex');
-	const nextLocalID = Buffer.from([0, 0, 0, 1]).toString('hex');
 	const tokenID = `${input.chainID}${localID}`;
 	input.keysList.sort((a, b) =>
 		address
@@ -100,15 +99,12 @@ export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefault
 				})),
 				supplySubstore: [
 					{
-						localID,
+						tokenID,
 						totalSupply: (input.tokenDistribution * BigInt(input.keysList.length)).toString(),
 					},
 				],
 				escrowSubstore: [],
-				availableLocalIDSubstore: {
-					nextAvailableLocalID: nextLocalID,
-				},
-				terminatedEscrowSubstore: [],
+				supportedTokensSubstore: [],
 			} as Record<string, unknown>,
 			schema: tokenGenesisStoreSchema,
 		},

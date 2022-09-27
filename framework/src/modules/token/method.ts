@@ -21,8 +21,6 @@ import {
 	ADDRESS_LENGTH,
 	CCM_STATUS_OK,
 	CHAIN_ID_ALIAS_NATIVE,
-	EMPTY_BYTES,
-	LOCAL_ID_LENGTH,
 	TOKEN_ID_LSK,
 	CROSS_CHAIN_COMMAND_NAME_FORWARD,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
@@ -40,7 +38,6 @@ import {
 } from '../interoperability';
 import { UserStore } from './stores/user';
 import { EscrowStore } from './stores/escrow';
-import { AvailableLocalIDStore } from './stores/available_local_id';
 import { SupplyStore } from './stores/supply';
 import { NamedRegistry } from '../named_registry';
 import { TransferEvent } from './events/transfer';
@@ -48,6 +45,7 @@ import { TransferEvent } from './events/transfer';
 export class TokenMethod extends BaseMethod {
 	private readonly _moduleName: string;
 	private _minBalances!: MinBalance[];
+	private _ownChainID!: Buffer;
 	private _interoperabilityMethod!:
 		| MainchainInteroperabilityMethod
 		| SidechainInteroperabilityMethod;
@@ -57,8 +55,9 @@ export class TokenMethod extends BaseMethod {
 		this._moduleName = moduleName;
 	}
 
-	public init(args: { minBalances: MinBalance[] }): void {
+	public init(args: { minBalances: MinBalance[]; ownchainID: Buffer }): void {
 		this._minBalances = args.minBalances;
+		this._ownChainID = args.ownchainID;
 	}
 
 	public addDependencies(
@@ -138,36 +137,10 @@ export class TokenMethod extends BaseMethod {
 		return userStore.accountExist(methodContext, address);
 	}
 
-	public async getNextAvailableLocalID(methodContext: ImmutableMethodContext): Promise<Buffer> {
-		const nextAvailableLocalIDStore = this.stores.get(AvailableLocalIDStore);
-		const { nextAvailableLocalID } = await nextAvailableLocalIDStore.get(
-			methodContext,
-			EMPTY_BYTES,
-		);
-
-		return nextAvailableLocalID;
-	}
-
-	public async initializeToken(methodContext: MethodContext, localID: Buffer): Promise<void> {
-		const supplyStore = this.stores.get(SupplyStore);
-		const supplyExist = await supplyStore.has(methodContext, localID);
-		if (supplyExist) {
-			throw new Error('Token is already initialized.');
-		}
-		await supplyStore.set(methodContext, localID, { totalSupply: BigInt(0) });
-
-		const nextAvailableLocalIDStore = this.stores.get(AvailableLocalIDStore);
-		const { nextAvailableLocalID } = await nextAvailableLocalIDStore.get(
-			methodContext,
-			EMPTY_BYTES,
-		);
-		if (localID.compare(nextAvailableLocalID) >= 0) {
-			const newAvailableLocalID = Buffer.alloc(LOCAL_ID_LENGTH);
-			newAvailableLocalID.writeUInt32BE(localID.readUInt32BE(0) + 1, 0);
-			await nextAvailableLocalIDStore.set(methodContext, EMPTY_BYTES, {
-				nextAvailableLocalID: newAvailableLocalID,
-			});
-		}
+	// TODO: Update method with #7576
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async initializeToken(_methodContext: MethodContext): Promise<Buffer> {
+		return Buffer.alloc(0);
 	}
 
 	public async mint(
@@ -229,7 +202,7 @@ export class TokenMethod extends BaseMethod {
 			};
 		}
 		recipient.availableBalance += receivedAmount;
-		await userStore.set(methodContext, userStore.getKey(address, canonicalTokenID), recipient);
+		await userStore.save(methodContext, address, canonicalTokenID, recipient);
 		supply.totalSupply += receivedAmount;
 		await supplyStore.set(methodContext, localID, supply);
 	}
@@ -258,11 +231,11 @@ export class TokenMethod extends BaseMethod {
 			);
 		}
 		sender.availableBalance -= amount;
-		await userStore.set(methodContext, userStore.getKey(address, canonicalTokenID), sender);
+		await userStore.save(methodContext, address, canonicalTokenID, sender);
 
 		const supplyStore = this.stores.get(SupplyStore);
 		const [, localID] = splitTokenID(canonicalTokenID);
-		const supply = await supplyStore.get(methodContext, localID);
+		const supply = await supplyStore.get(methodContext, canonicalTokenID);
 		supply.totalSupply -= amount;
 		await supplyStore.set(methodContext, localID, supply);
 	}
@@ -288,7 +261,7 @@ export class TokenMethod extends BaseMethod {
 			);
 		}
 		sender.availableBalance -= amount;
-		await userStore.set(methodContext, userStore.getKey(senderAddress, canonicalTokenID), sender);
+		await userStore.save(methodContext, senderAddress, canonicalTokenID, sender);
 
 		const recipientExist = await userStore.accountExist(methodContext, recipientAddress);
 
@@ -334,11 +307,7 @@ export class TokenMethod extends BaseMethod {
 			};
 		}
 		recipient.availableBalance += receivedAmount;
-		await userStore.set(
-			methodContext,
-			userStore.getKey(recipientAddress, canonicalTokenID),
-			recipient,
-		);
+		await userStore.save(methodContext, recipientAddress, canonicalTokenID, recipient);
 		const transferEvent = this.events.get(TransferEvent);
 		transferEvent.log(methodContext, {
 			amount,
@@ -382,8 +351,7 @@ export class TokenMethod extends BaseMethod {
 				amount,
 			});
 		}
-		user.lockedBalances.sort((a, b) => a.module.localeCompare(b.module, 'en'));
-		await userStore.set(methodContext, userStore.getKey(address, canonicalTokenID), user);
+		await userStore.save(methodContext, address, canonicalTokenID, user);
 	}
 
 	public async unlock(
@@ -417,7 +385,7 @@ export class TokenMethod extends BaseMethod {
 		} else {
 			user.lockedBalances.splice(lockedIndex, 1);
 		}
-		await userStore.set(methodContext, userStore.getKey(address, canonicalTokenID), user);
+		await userStore.save(methodContext, address, canonicalTokenID, user);
 	}
 
 	public async isNative(methodContext: ImmutableMethodContext, tokenID: TokenID): Promise<boolean> {
@@ -504,10 +472,10 @@ export class TokenMethod extends BaseMethod {
 				return;
 			}
 			sender.availableBalance -= amount;
-			await userStore.set(methodContext, userStore.getKey(senderAddress, canonicalTokenID), sender);
+			await userStore.save(methodContext, senderAddress, canonicalTokenID, sender);
 			if (chainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
 				const escrowStore = this.stores.get(EscrowStore);
-				await escrowStore.addAmount(methodContext, receivingChainID, localID, amount);
+				await escrowStore.addAmount(methodContext, receivingChainID, canonicalTokenID, amount);
 			}
 			return;
 		}
@@ -543,7 +511,7 @@ export class TokenMethod extends BaseMethod {
 			return;
 		}
 		sender.availableBalance -= amount + messageFee;
-		await userStore.set(methodContext, userStore.getKey(senderAddress, canonicalTokenID), sender);
+		await userStore.save(methodContext, senderAddress, canonicalTokenID, sender);
 	}
 
 	public async getCanonicalTokenID(
@@ -552,7 +520,7 @@ export class TokenMethod extends BaseMethod {
 	): Promise<TokenID> {
 		const [chainID] = splitTokenID(tokenID);
 		// tokenID is already canonical
-		if (chainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
+		if (chainID.equals(this._ownChainID)) {
 			return tokenID;
 		}
 		const { id } = await this._interoperabilityMethod.getOwnChainAccount(methodContext);

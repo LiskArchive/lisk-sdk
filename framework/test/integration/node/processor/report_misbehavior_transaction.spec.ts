@@ -17,7 +17,7 @@ import { nodeUtils } from '../../../utils';
 import {
 	createTransferTransaction,
 	createReportMisbehaviorTransaction,
-	DEFAULT_TOKEN_ID,
+	defaultTokenID,
 } from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
 import { Keys } from '../../../../src/testing/fixtures';
@@ -75,7 +75,7 @@ describe('Transaction order', () => {
 				'token_getBalance',
 				{
 					address: blockGenerator.address,
-					tokenID: DEFAULT_TOKEN_ID.toString('hex'),
+					tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),
 				},
 			);
 
@@ -99,7 +99,7 @@ describe('Transaction order', () => {
 			expect(updatedDelegate.pomHeights).toHaveLength(1);
 			const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
 				address: blockGenerator.address,
-				tokenID: DEFAULT_TOKEN_ID.toString('hex'),
+				tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),
 			});
 			expect(balance.availableBalance).toEqual(
 				(BigInt(originalBalance.availableBalance) - BigInt(100000000)).toString(),
