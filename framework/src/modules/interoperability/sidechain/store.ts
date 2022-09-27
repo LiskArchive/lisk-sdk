@@ -65,7 +65,7 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 			nonce: ownChainAccount.nonce,
 			params: sendContext.params,
 			receivingChainID: sendContext.receivingChainID,
-			sendingChainID: ownChainAccount.id,
+			sendingChainID: ownChainAccount.chainID,
 			status: sendContext.status,
 		};
 

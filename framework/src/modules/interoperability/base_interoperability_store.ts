@@ -275,7 +275,7 @@ export abstract class BaseInteroperabilityStore {
 		else {
 			// Processing on the mainchain
 			const ownChainAccount = await this.getOwnChainAccount();
-			if (ownChainAccount.id.equals(getIDAsKeyForStore(MAINCHAIN_ID))) {
+			if (ownChainAccount.chainID.equals(getIDAsKeyForStore(MAINCHAIN_ID))) {
 				// If the account does not exist on the mainchain, the input chainID is invalid.
 				return false;
 			}

@@ -118,7 +118,7 @@ describe('Mainchain registration command', () => {
 	describe('verify', () => {
 		beforeEach(() => {
 			jest.spyOn(ownChainAccountSubstore, 'get').mockResolvedValue({
-				id: utils.intToBuffer(11, 4),
+				chainID: utils.intToBuffer(11, 4),
 				name: 'testchain',
 				nonce: BigInt(0),
 			});
@@ -410,7 +410,7 @@ describe('Mainchain registration command', () => {
 
 		it('should add an entry to own chain account substore', async () => {
 			// Arrange
-			const expectedValue = { name: params.ownName, id: params.ownChainID, nonce: BigInt(0) };
+			const expectedValue = { name: params.ownName, chainID: params.ownChainID, nonce: BigInt(0) };
 
 			// Act
 			await mainchainRegistrationCommand.execute(context);
@@ -476,7 +476,7 @@ describe('Mainchain registration command', () => {
 
 		it('should update nonce in own chain acount substore', async () => {
 			// Arrange
-			const expectedValue = { name: params.ownName, id: params.ownChainID, nonce: BigInt(1) };
+			const expectedValue = { name: params.ownName, chainID: params.ownChainID, nonce: BigInt(1) };
 
 			// Act
 			await mainchainRegistrationCommand.execute(context);
@@ -497,14 +497,14 @@ describe('Mainchain registration command', () => {
 			});
 			const ownChainAccount = {
 				name: params.ownName,
-				id: params.ownChainID,
+				chainID: params.ownChainID,
 				nonce: BigInt(0),
 			};
 			const ccm = {
 				nonce: ownChainAccount.nonce,
 				module: MODULE_NAME_INTEROPERABILITY,
 				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
-				sendingChainID: ownChainAccount.id,
+				sendingChainID: ownChainAccount.chainID,
 				receivingChainID: MAINCHAIN_ID_BUFFER,
 				fee: BigInt(0),
 				status: CCM_STATUS_OK,
@@ -518,7 +518,7 @@ describe('Mainchain registration command', () => {
 			// Assert
 			expect(ccmProcessedEvent.log).toHaveBeenCalledWith(
 				expect.anything(),
-				ownChainAccount.id,
+				ownChainAccount.chainID,
 				MAINCHAIN_ID_BUFFER,
 				{
 					ccmID,

@@ -147,7 +147,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 				.calledWith()
 				.mockResolvedValue({
 					name: `chain${chainID.toString('hex')}`,
-					id: ccm.sendingChainID,
+					chainID: ccm.sendingChainID,
 					nonce: BigInt(0),
 				});
 		}
@@ -296,7 +296,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 				.calledWith()
 				.mockResolvedValue({
 					name: `chain${chainID.toString('hex')}`,
-					id: utils.intToBuffer(0, 4),
+					chainID: utils.intToBuffer(0, 4),
 					nonce: BigInt(0),
 				});
 		}

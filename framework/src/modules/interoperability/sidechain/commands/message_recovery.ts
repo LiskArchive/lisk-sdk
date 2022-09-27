@@ -138,7 +138,7 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 		for (const ccm of deserializedCCMs) {
 			const newCcm = swapReceivingAndSendingChainIDs(ccm);
 
-			if (!ownChainAccount.id.equals(newCcm.receivingChainID)) {
+			if (!ownChainAccount.chainID.equals(newCcm.receivingChainID)) {
 				continue;
 			}
 
