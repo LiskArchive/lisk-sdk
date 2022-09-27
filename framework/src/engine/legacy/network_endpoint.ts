@@ -15,21 +15,17 @@
 import { Database } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { validator } from '@liskhq/lisk-validator';
-import { DataAccess } from '@liskhq/lisk-chain';
-import {
-	DEFAULT_KEEP_EVENTS_FOR_HEIGHTS,
-	DEFAULT_MAX_BLOCK_HEADER_CACHE,
-	DEFAULT_MIN_BLOCK_HEADER_CACHE,
-} from '@liskhq/lisk-chain/dist-node/constants';
 import { Logger } from '../../logger';
 import { Network } from '../network';
 import { BaseNetworkEndpoint } from '../network/base_network_endpoint';
-import { NETWORK_LEGACY_GET_BLOCKS } from '../consensus/constants';
+import { NETWORK_LEGACY_GET_BLOCKS_FROM_ID } from '../consensus/constants';
 import {
 	getBlocksFromIdRequestSchema,
 	getBlocksFromIdResponseSchema,
 	RPCBlocksByIdData,
 } from '../consensus/schema';
+import { Storage } from './storage';
+import { decodeBlock } from './codec';
 
 const LEGACY_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY = 100;
 
@@ -40,7 +36,7 @@ export interface EndpointArgs {
 }
 
 export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
-	public readonly _dataAccess: DataAccess;
+	public readonly _storage: Storage;
 	private readonly _logger: Logger;
 	private readonly _network: Network;
 
@@ -48,20 +44,14 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 		super(args.network);
 		this._logger = args.logger;
 		this._network = args.network;
-		// this._db = args.db;
-		this._dataAccess = new DataAccess({
-			db: args.db,
-			keepEventsForHeights: DEFAULT_KEEP_EVENTS_FOR_HEIGHTS,
-			minBlockHeaderCache: DEFAULT_MIN_BLOCK_HEADER_CACHE,
-			maxBlockHeaderCache: DEFAULT_MAX_BLOCK_HEADER_CACHE,
-		});
+		this._storage = new Storage(args.db);
 	}
 
 	// return 100 blocks desc starting from the id
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async handleRPCGetLegacyBlocksFromId(data: unknown, peerId: string): Promise<Buffer> {
 		this.addRateLimit(
-			NETWORK_LEGACY_GET_BLOCKS,
+			NETWORK_LEGACY_GET_BLOCKS_FROM_ID,
 			peerId,
 			LEGACY_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY,
 		);
@@ -76,7 +66,7 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 					req: data,
 					peerID: peerId,
 				},
-				`${NETWORK_LEGACY_GET_BLOCKS} response failed on decoding`,
+				`${NETWORK_LEGACY_GET_BLOCKS_FROM_ID} response failed on decoding`,
 			);
 			this._network.applyPenaltyOnPeer({
 				peerId,
@@ -94,7 +84,7 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 					req: data,
 					peerID: peerId,
 				},
-				`${NETWORK_LEGACY_GET_BLOCKS} response failed on validation`,
+				`${NETWORK_LEGACY_GET_BLOCKS_FROM_ID} response failed on validation`,
 			);
 			this._network.applyPenaltyOnPeer({
 				peerId,
@@ -104,21 +94,21 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 		}
 		const { blockId } = decodedData;
 
-		let lastBlock;
+		let lastBlockHeader;
 		try {
-			lastBlock = await this._dataAccess.getBlockHeaderByID(blockId);
+			const block = await this._storage.getBlockByID(blockId);
+			lastBlockHeader = decodeBlock(block).block.header;
 		} catch (errors) {
 			return codec.encode(getBlocksFromIdResponseSchema, { blocks: [] });
 		}
 
-		const lastBlockHeight = lastBlock.height;
+		const lastBlockHeight = lastBlockHeader.height;
 		const fetchUntilHeight = lastBlockHeight + 100;
 
-		const blocks = await this._dataAccess.getBlocksByHeightBetween(
+		const encodedBlocks = await this._storage.getBlocksByHeightBetween(
 			lastBlockHeight,
 			fetchUntilHeight,
 		);
-		const encodedBlocks = blocks.map(block => block.getBytes());
 
 		return codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks });
 	}

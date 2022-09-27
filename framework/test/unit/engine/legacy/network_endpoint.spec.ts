@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { utils } from '@liskhq/lisk-cryptography';
-import { Block, BlockAssets } from '@liskhq/lisk-chain';
+import { Block } from '@liskhq/lisk-chain';
 import { Database, InMemoryDatabase } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { LegacyNetworkEndpoint } from '../../../../src/engine/legacy/network_endpoint';
@@ -24,7 +24,8 @@ import {
 	getBlocksFromIdResponseSchema,
 } from '../../../../src/engine/consensus/schema';
 
-import { createFakeBlockHeader } from '../../../fixtures';
+import { getLegacyBlocksRangeV2 } from './fixtures';
+import { decodeBlock, encodeBlock } from '../../../../src/engine/legacy/codec';
 
 describe('Legacy P2P network endpoint', () => {
 	const defaultPeerId = 'peer-id';
@@ -45,7 +46,16 @@ describe('Legacy P2P network endpoint', () => {
 			db,
 		});
 	});
+
+	afterAll(() => {
+		db.close();
+	});
+
 	describe('handleRPCGetLegacyBlocksFromId', () => {
+		afterEach(async () => {
+			await db.clear();
+		});
+
 		it('should apply penalty on the peer when data format is invalid', async () => {
 			const invalidBytes = Buffer.from([244, 21, 21]);
 			await expect(
@@ -53,6 +63,7 @@ describe('Legacy P2P network endpoint', () => {
 			).rejects.toThrow();
 			expect(network.applyPenaltyOnPeer).toHaveBeenCalledTimes(1);
 		});
+
 		it("should return empty list if id doesn't exist", async () => {
 			const blockId = utils.getRandomBytes(32);
 			const blockIds = codec.encode(getBlocksFromIdRequestSchema, {
@@ -61,28 +72,34 @@ describe('Legacy P2P network endpoint', () => {
 			const blocks = await endpoint.handleRPCGetLegacyBlocksFromId(blockIds, defaultPeerId);
 			expect(blocks).toEqual(codec.encode(getBlocksFromIdResponseSchema, { blocks: [] }));
 		});
-		it('should return blocks from Id', async () => {
-			jest.spyOn(endpoint._dataAccess, 'getBlockHeaderByID').mockResolvedValue(
-				createFakeBlockHeader({
-					height: 10,
-				}) as never,
-			);
-			jest.spyOn(endpoint._dataAccess, 'getBlocksByHeightBetween').mockImplementation(
-				async (fromHeight: number, toHeight: number): Promise<Block[]> => {
-					const blocks = [];
-					for (let i = fromHeight; i < toHeight; i += 1) {
-						blocks.push(new Block(createFakeBlockHeader(), [], new BlockAssets()));
-					}
-					return Promise.resolve(blocks);
-				},
-			);
-			const blockId = utils.getRandomBytes(32);
 
-			const blockIds = codec.encode(getBlocksFromIdRequestSchema, {
-				blockId,
-			});
+		it('should return 100 blocks from the requested Id', async () => {
+			const startHeight = 110;
+			// 100 blocks including the requested block ID
+			const blockList = getLegacyBlocksRangeV2(startHeight, 99);
 
-			const blocks = await endpoint.handleRPCGetLegacyBlocksFromId(blockIds, defaultPeerId);
+			const requestedBlock = decodeBlock(blockList[0]).block;
+
+			const {
+				header: { id, ...blockHeader },
+				transactions,
+			} = requestedBlock;
+
+			const requestedBlockWithoutID = { header: { ...blockHeader }, transactions };
+
+			const encodedBlockWithoutID = encodeBlock(requestedBlockWithoutID);
+			const requestedBlockID = utils.hash(encodedBlockWithoutID);
+
+			// Save blocks to the database
+			for (let i = 0; i < blockList.length; i += 1) {
+				const block = blockList[i];
+				await endpoint['_storage'].saveBlock(utils.hash(block), startHeight + i, block);
+			}
+
+			const encodedRequest = codec.encode(getBlocksFromIdRequestSchema, {
+				blockId: requestedBlockID,
+			} as never);
+			const blocks = await endpoint.handleRPCGetLegacyBlocksFromId(encodedRequest, defaultPeerId);
 			expect(
 				codec.decode<{ blocks: Block[] }>(getBlocksFromIdResponseSchema, blocks).blocks,
 			).toHaveLength(100);
