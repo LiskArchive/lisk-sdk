@@ -80,3 +80,14 @@ export const blockHeaderSchemaV2 = {
 		'asset',
 	],
 };
+
+export const legacyChainBracketInfoSchema = {
+	$id: '/lisk/legacyChainBracketInfo',
+	type: 'object',
+	properties: {
+		startHeight: { dataType: 'uint32', fieldNumber: 1 },
+		snapshotBlockHeight: { dataType: 'uint32', fieldNumber: 2 },
+		lastBlockHeight: { dataType: 'uint32', fieldNumber: 3 },
+	},
+	required: ['startHeight', 'snapshotBlockHeight', 'lastBlockHeight'],
+};
