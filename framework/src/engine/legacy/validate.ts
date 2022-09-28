@@ -16,9 +16,12 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { validator } from '@liskhq/lisk-validator';
 import { decodeBlock } from './codec';
-import { LegacyBlock } from './types';
+import { LegacyBlockWithID } from './types';
 
-export const validateLegacyBlock = (receivedBlock: Buffer, decodedNextBlock: LegacyBlock): void => {
+export const validateLegacyBlock = (
+	receivedBlock: Buffer,
+	decodedNextBlock: LegacyBlockWithID,
+): void => {
 	const { block: decodedBlock, schema: blockSchema } = decodeBlock(receivedBlock);
 	validator.validate(blockSchema.header, decodedBlock.header);
 

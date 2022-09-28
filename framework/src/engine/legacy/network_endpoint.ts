@@ -12,10 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { InMemoryDatabase, Database } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
+import { codec } from '@liskhq/lisk-codec';
+import { validator } from '@liskhq/lisk-validator';
 import { Logger } from '../../logger';
 import { Network } from '../network';
 import { BaseNetworkEndpoint } from '../network/base_network_endpoint';
+import { NETWORK_LEGACY_GET_BLOCKS_FROM_ID } from '../consensus/constants';
+import {
+	getBlocksFromIdRequestSchema,
+	getBlocksFromIdResponseSchema,
+	RPCBlocksByIdData,
+} from '../consensus/schema';
+import { Storage } from './storage';
+import { decodeBlock } from './codec';
+
+const LEGACY_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY = 100;
 
 export interface EndpointArgs {
 	logger: Logger;
@@ -24,22 +36,83 @@ export interface EndpointArgs {
 }
 
 export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
+	public readonly _storage: Storage;
 	private readonly _logger: Logger;
 	private readonly _network: Network;
-	private readonly _db: Database | InMemoryDatabase;
 
 	public constructor(args: EndpointArgs) {
 		super(args.network);
 		this._logger = args.logger;
 		this._network = args.network;
-		this._db = args.db;
+		this._storage = new Storage(args.db);
 	}
 
 	// return 100 blocks desc starting from the id
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async handleRPCGetLegacyBlocksFromId(_data: unknown, _peerId: string): Promise<Buffer> {
-		// eslint-disable-next-line no-console
-		console.log(this._logger, this._network, this._db);
-		return Buffer.alloc(0);
+	public async handleRPCGetLegacyBlocksFromID(data: unknown, peerID: string): Promise<Buffer> {
+		this.addRateLimit(
+			NETWORK_LEGACY_GET_BLOCKS_FROM_ID,
+			peerID,
+			LEGACY_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY,
+		);
+
+		let rpcBlocksByIdData: RPCBlocksByIdData;
+		try {
+			rpcBlocksByIdData = codec.decode<RPCBlocksByIdData>(
+				getBlocksFromIdRequestSchema,
+				data as never,
+			);
+		} catch (error) {
+			this._logger.warn(
+				{
+					err: error as Error,
+					req: data,
+					peerID,
+				},
+				`${NETWORK_LEGACY_GET_BLOCKS_FROM_ID} response failed on decoding`,
+			);
+			this._network.applyPenaltyOnPeer({
+				peerId: peerID,
+				penalty: 100,
+			});
+			throw error;
+		}
+
+		try {
+			validator.validate(getBlocksFromIdRequestSchema, rpcBlocksByIdData);
+		} catch (error) {
+			this._logger.warn(
+				{
+					err: error as Error,
+					req: data,
+					peerID,
+				},
+				`${NETWORK_LEGACY_GET_BLOCKS_FROM_ID} response failed on validation`,
+			);
+			this._network.applyPenaltyOnPeer({
+				peerId: peerID,
+				penalty: 100,
+			});
+			throw error;
+		}
+		const { blockId } = rpcBlocksByIdData;
+
+		let lastBlockHeader;
+		try {
+			const block = await this._storage.getBlockByID(blockId);
+			lastBlockHeader = decodeBlock(block).block.header;
+		} catch (errors) {
+			return codec.encode(getBlocksFromIdResponseSchema, { blocks: [] });
+		}
+
+		const lastBlockHeight = lastBlockHeader.height;
+		const fetchUntilHeight = lastBlockHeight + 100;
+
+		const encodedBlocks = await this._storage.getBlocksByHeightBetween(
+			lastBlockHeight,
+			fetchUntilHeight,
+		);
+
+		return codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks });
 	}
 }
