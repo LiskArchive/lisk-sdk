@@ -366,6 +366,7 @@ export class DPoSModule extends BaseModule {
 		if (!assetBytes) {
 			return;
 		}
+		const { logger } = context;
 		const genesisStore = codec.decode<GenesisStore>(genesisStoreSchema, assetBytes);
 		const methodContext = context.getMethodContext();
 		for (const dposValidator of genesisStore.validators) {
@@ -380,6 +381,7 @@ export class DPoSModule extends BaseModule {
 				throw new Error('Invalid validator key.');
 			}
 		}
+		logger.info('register validator keys');
 		const voterStore = this.stores.get(VoterStore);
 		const allVoters = await voterStore.iterate(context, {
 			gte: Buffer.alloc(20),
@@ -403,6 +405,7 @@ export class DPoSModule extends BaseModule {
 				throw new Error('Voted amount is not locked');
 			}
 		}
+		logger.info('checked locked amount');
 
 		const initDelegates = [...genesisStore.genesisData.initDelegates];
 		initDelegates.sort((a, b) => a.compare(b));
@@ -421,6 +424,7 @@ export class DPoSModule extends BaseModule {
 			});
 		}
 		context.setNextValidators(initBFTThreshold, initBFTThreshold, validators);
+		logger.info('set next validators');
 
 		const MAX_UINT32 = 2 ** 32 - 1;
 		const snapshotStore = this.stores.get(SnapshotStore);
@@ -443,6 +447,7 @@ export class DPoSModule extends BaseModule {
 				throw new Error('Invalid snapshot. Latest snapshot should be the genesis round.');
 			}
 		}
+		logger.info('validate snapshot');
 	}
 
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
