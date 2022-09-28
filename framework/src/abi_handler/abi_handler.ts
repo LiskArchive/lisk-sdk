@@ -155,7 +155,9 @@ export class ABIHandler implements ABI {
 				)}. Context is not initialized or different.`,
 			);
 		}
+		this._logger.info('reading genesis block');
 		const genesisBlock = readGenesisBlock(this._config, this._logger);
+		this._logger.info('read genesis block');
 		const context = new GenesisBlockContext({
 			eventQueue: new EventQueue(genesisBlock.header.height),
 			header: genesisBlock.header,
@@ -164,7 +166,9 @@ export class ABIHandler implements ABI {
 			assets: genesisBlock.assets,
 		});
 
+		this._logger.info('executeGenesisBlock');
 		await this._stateMachine.executeGenesisBlock(context);
+		this._logger.info('executed executeGenesisBlock');
 		return {
 			events: context.eventQueue.getEvents().map(e => e.toObject()),
 			certificateThreshold: context.nextValidators.certificateThreshold,

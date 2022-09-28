@@ -66,12 +66,14 @@ export class StateMachine {
 		const initContext = ctx.createInitGenesisStateContext();
 		for (const mod of this._modules) {
 			if (mod.initGenesisState) {
+				this._logger.info({ module: mod.name }, 'executin initGenesisState');
 				await mod.initGenesisState(initContext);
 			}
 		}
 		const finalizeContext = ctx.createFinalizeGenesisStateContext();
 		for (const mod of this._modules) {
 			if (mod.finalizeGenesisState) {
+				this._logger.info({ module: mod.name }, 'executin finalizeGenesisState');
 				await mod.finalizeGenesisState(finalizeContext);
 			}
 		}
