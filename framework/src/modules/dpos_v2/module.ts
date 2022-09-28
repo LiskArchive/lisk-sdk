@@ -367,8 +367,10 @@ export class DPoSModule extends BaseModule {
 			return;
 		}
 		const { logger } = context;
+		logger.info('start dpos finalize genesis state');
 		const genesisStore = codec.decode<GenesisStore>(genesisStoreSchema, assetBytes);
 		const methodContext = context.getMethodContext();
+		logger.info('register validator keys');
 		for (const dposValidator of genesisStore.validators) {
 			const valid = await this._validatorsMethod.registerValidatorKeys(
 				methodContext,
@@ -381,7 +383,7 @@ export class DPoSModule extends BaseModule {
 				throw new Error('Invalid validator key.');
 			}
 		}
-		logger.info('register validator keys');
+		logger.info('registered validator keys');
 		const voterStore = this.stores.get(VoterStore);
 		const allVoters = await voterStore.iterate(context, {
 			gte: Buffer.alloc(20),
