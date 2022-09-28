@@ -28,7 +28,7 @@ import { getLegacyBlocksRangeV2 } from './fixtures';
 import { decodeBlock, encodeBlock } from '../../../../src/engine/legacy/codec';
 
 describe('Legacy P2P network endpoint', () => {
-	const defaultPeerId = 'peer-id';
+	const defaultPeerID = 'peer-id';
 
 	let network: Network;
 	let db: Database;
@@ -59,26 +59,26 @@ describe('Legacy P2P network endpoint', () => {
 		it('should apply penalty on the peer when data format is invalid', async () => {
 			const invalidBytes = Buffer.from([244, 21, 21]);
 			await expect(
-				endpoint.handleRPCGetLegacyBlocksFromId(invalidBytes, defaultPeerId),
+				endpoint.handleRPCGetLegacyBlocksFromID(invalidBytes, defaultPeerID),
 			).rejects.toThrow();
 			expect(network.applyPenaltyOnPeer).toHaveBeenCalledTimes(1);
 		});
 
-		it("should return empty list if id doesn't exist", async () => {
+		it("should return empty list if ID doesn't exist", async () => {
 			const blockId = utils.getRandomBytes(32);
 			const blockIds = codec.encode(getBlocksFromIdRequestSchema, {
 				blockId,
 			});
-			const blocks = await endpoint.handleRPCGetLegacyBlocksFromId(blockIds, defaultPeerId);
+			const blocks = await endpoint.handleRPCGetLegacyBlocksFromID(blockIds, defaultPeerID);
 			expect(blocks).toEqual(codec.encode(getBlocksFromIdResponseSchema, { blocks: [] }));
 		});
 
-		it('should return 100 blocks from the requested Id', async () => {
+		it('should return 100 blocks from the requested ID', async () => {
 			const startHeight = 110;
 			// 100 blocks including the requested block ID
-			const blockList = getLegacyBlocksRangeV2(startHeight, 99);
+			const blocks = getLegacyBlocksRangeV2(startHeight, 99);
 
-			const requestedBlock = decodeBlock(blockList[0]).block;
+			const requestedBlock = decodeBlock(blocks[0]).block;
 
 			const {
 				header: { id, ...blockHeader },
@@ -91,17 +91,20 @@ describe('Legacy P2P network endpoint', () => {
 			const requestedBlockID = utils.hash(encodedBlockWithoutID);
 
 			// Save blocks to the database
-			for (let i = 0; i < blockList.length; i += 1) {
-				const block = blockList[i];
+			for (let i = 0; i < blocks.length; i += 1) {
+				const block = blocks[i];
 				await endpoint['_storage'].saveBlock(utils.hash(block), startHeight + i, block);
 			}
 
 			const encodedRequest = codec.encode(getBlocksFromIdRequestSchema, {
 				blockId: requestedBlockID,
 			} as never);
-			const blocks = await endpoint.handleRPCGetLegacyBlocksFromId(encodedRequest, defaultPeerId);
+			const blocksReceived = await endpoint.handleRPCGetLegacyBlocksFromID(
+				encodedRequest,
+				defaultPeerID,
+			);
 			expect(
-				codec.decode<{ blocks: Block[] }>(getBlocksFromIdResponseSchema, blocks).blocks,
+				codec.decode<{ blocks: Block[] }>(getBlocksFromIdResponseSchema, blocksReceived).blocks,
 			).toHaveLength(100);
 		});
 	});

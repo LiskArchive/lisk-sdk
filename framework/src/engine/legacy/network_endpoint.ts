@@ -49,50 +49,53 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 
 	// return 100 blocks desc starting from the id
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async handleRPCGetLegacyBlocksFromId(data: unknown, peerId: string): Promise<Buffer> {
+	public async handleRPCGetLegacyBlocksFromID(data: unknown, peerID: string): Promise<Buffer> {
 		this.addRateLimit(
 			NETWORK_LEGACY_GET_BLOCKS_FROM_ID,
-			peerId,
+			peerID,
 			LEGACY_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY,
 		);
 
-		let decodedData: RPCBlocksByIdData;
+		let rpcBlocksByIdData: RPCBlocksByIdData;
 		try {
-			decodedData = codec.decode<RPCBlocksByIdData>(getBlocksFromIdRequestSchema, data as never);
+			rpcBlocksByIdData = codec.decode<RPCBlocksByIdData>(
+				getBlocksFromIdRequestSchema,
+				data as never,
+			);
 		} catch (error) {
 			this._logger.warn(
 				{
 					err: error as Error,
 					req: data,
-					peerID: peerId,
+					peerID,
 				},
 				`${NETWORK_LEGACY_GET_BLOCKS_FROM_ID} response failed on decoding`,
 			);
 			this._network.applyPenaltyOnPeer({
-				peerId,
+				peerId: peerID,
 				penalty: 100,
 			});
 			throw error;
 		}
 
 		try {
-			validator.validate(getBlocksFromIdRequestSchema, decodedData);
+			validator.validate(getBlocksFromIdRequestSchema, rpcBlocksByIdData);
 		} catch (error) {
 			this._logger.warn(
 				{
 					err: error as Error,
 					req: data,
-					peerID: peerId,
+					peerID,
 				},
 				`${NETWORK_LEGACY_GET_BLOCKS_FROM_ID} response failed on validation`,
 			);
 			this._network.applyPenaltyOnPeer({
-				peerId,
+				peerId: peerID,
 				penalty: 100,
 			});
 			throw error;
 		}
-		const { blockId } = decodedData;
+		const { blockId } = rpcBlocksByIdData;
 
 		let lastBlockHeader;
 		try {
