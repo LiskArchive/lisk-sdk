@@ -294,6 +294,7 @@ export class ABIClient implements ABI {
 			method,
 			params,
 		};
+		this._logger.info(requestBody, 'ABI requesting. [api client]');
 		const encodedRequest = codec.encode(ipcRequestSchema, requestBody);
 		await this._dealer.send([encodedRequest]);
 		const response = defer<Buffer>();
@@ -301,8 +302,12 @@ export class ABIClient implements ABI {
 
 		const resp = await Promise.race([
 			response.promise,
-			timeout(DEFAULT_TIMEOUT, `Response not received in ${DEFAULT_TIMEOUT}ms`),
+			timeout(DEFAULT_TIMEOUT, `Response not received in ${DEFAULT_TIMEOUT}ms for ${method}`),
 		]);
+		this._logger.info(
+			{ method: requestBody.method, id: requestBody.id },
+			'ABI response received. [api client]',
+		);
 		const decodedResp =
 			Object.keys(respSchema.properties).length > 0 ? codec.decode<T>(respSchema, resp) : ({} as T);
 

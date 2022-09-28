@@ -100,10 +100,15 @@ export class Engine {
 
 	public async start() {
 		await this._init();
+		this._logger.info('init');
 		await this._network.start();
+		this._logger.info('network');
 		await this._generator.start();
+		this._logger.info('generator');
 		await this._consensus.start();
+		this._logger.info('consensus');
 		await this._rpcServer.start();
+		this._logger.info('rpc server');
 		await this._abi.ready({
 			lastBlockHeight: this._chain.lastBlock.header.height,
 			chainID: this._chain.chainID,
@@ -170,22 +175,26 @@ export class Engine {
 			chainID: this._chainID,
 			genesisBlock: genesis,
 		});
+		this._logger.info('chain init');
 
 		await this._network.init({
 			nodeDB: this._nodeDB,
 			logger: this._logger,
 			chainID: this._chainID,
 		});
+		this._logger.info('network init');
 		await this._consensus.init({
 			db: this._blockchainDB,
 			genesisBlock: genesis,
 			logger: this._logger,
 		});
+		this._logger.info('consensus init');
 		await this._generator.init({
 			blockchainDB: this._blockchainDB,
 			generatorDB: this._generatorDB,
 			logger: this._logger,
 		});
+		this._logger.info('generator init');
 
 		this._registerEventListeners();
 
@@ -193,6 +202,7 @@ export class Engine {
 			logger: this._logger,
 			chainID: this._chain.chainID,
 		});
+		this._logger.info('rpc init');
 		const chainEndpoint = new ChainEndpoint({
 			chain: this._chain,
 			genesisBlockTimestamp: genesis.header.timestamp,

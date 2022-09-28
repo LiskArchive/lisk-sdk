@@ -1075,6 +1075,9 @@ export class Consensus {
 				expectedStateRoot: genesisBlock.header.stateRoot,
 			});
 			return result.events.map(e => new Event(e));
+		} catch (err) {
+			this._logger.error({ err: err as Error }, 'Fail to execute genesis block');
+			throw err;
 		} finally {
 			await this._abi.clear({});
 		}

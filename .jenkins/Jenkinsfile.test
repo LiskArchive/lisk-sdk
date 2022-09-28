@@ -215,7 +215,7 @@ pipeline {
 						setup()
 						nvm(getNodejsVersion()) {
 							dir('test') {
-								sh 'npm test'
+								sh 'npm run test:debug:full'
 							}
 						}
 					}

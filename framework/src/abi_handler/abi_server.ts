@@ -176,6 +176,7 @@ export class ABIServer {
 				this._logger.debug({ err: error as Error }, 'Failed to decode ABI request');
 				continue;
 			}
+			this._logger.info(request, 'ABI request received');
 			const handler = this._abiHandlers[request.method];
 			if (!handler) {
 				await this._replyError(sender, `Method ${request.method} is not registered.`, request.id);
@@ -203,6 +204,7 @@ export class ABIServer {
 								: Buffer.alloc(0),
 					}),
 				]);
+				this._logger.info(request, 'responded from abi server');
 			} catch (error) {
 				this._logger.error({ err: error as Error, method: request.method }, 'Fail to respond');
 				await this._replyError(sender, (error as Error).message, request.id);
