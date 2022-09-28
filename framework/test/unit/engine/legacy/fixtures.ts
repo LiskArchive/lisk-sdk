@@ -115,15 +115,16 @@ export const createFakeLegacyBlockHeaderV2 = (
 /**
  * @params start: Start height of the block range going backwards
  * @params numberOfBlocks: Number of blocks to be generated with decreasing height
- * */
-export const getLegacyBlocksRangeV2 = (start: number, numberOfBlocks: number): Buffer[] => {
+ */
+export const getLegacyBlocksRangeV2 = (startHeight: number, numberOfBlocks: number): Buffer[] => {
 	const blocks: LegacyBlockWithID[] = [];
 
-	for (let i = start; i >= start - numberOfBlocks; i -= 1) {
+	for (let i = startHeight; i >= startHeight - numberOfBlocks; i -= 1) {
 		// After the startHeight, all the blocks are generated with previousBlockID as previous height block ID
 		const block = createFakeLegacyBlockHeaderV2({
 			height: i,
-			previousBlockID: i === start ? utils.getRandomBytes(32) : blocks[start - i - 1].header.id,
+			previousBlockID:
+				i === startHeight ? utils.getRandomBytes(32) : blocks[startHeight - i - 1].header.id,
 		});
 		blocks.push(block);
 	}
