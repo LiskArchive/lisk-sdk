@@ -370,8 +370,10 @@ export class DPoSModule extends BaseModule {
 		logger.info('start dpos finalize genesis state');
 		const genesisStore = codec.decode<GenesisStore>(genesisStoreSchema, assetBytes);
 		const methodContext = context.getMethodContext();
-		logger.info('register validator keys');
+		logger.info({ num: genesisStore.validators.length }, 'register validator keys');
+		let i = 0;
 		for (const dposValidator of genesisStore.validators) {
+			logger.info({ i }, '_validatorsMethod.registerValidatorKeys');
 			const valid = await this._validatorsMethod.registerValidatorKeys(
 				methodContext,
 				dposValidator.address,
@@ -379,9 +381,11 @@ export class DPoSModule extends BaseModule {
 				dposValidator.generatorKey,
 				dposValidator.proofOfPossession,
 			);
+			logger.info({ i }, '_validatorsMethod.registerValidatorKeys done');
 			if (!valid) {
 				throw new Error('Invalid validator key.');
 			}
+			i += 1;
 		}
 		logger.info('registered validator keys');
 		const voterStore = this.stores.get(VoterStore);
