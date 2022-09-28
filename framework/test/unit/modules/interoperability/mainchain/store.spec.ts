@@ -145,7 +145,6 @@ describe('Mainchain interoperability store', () => {
 		});
 
 		it('should return true if chainID equals ownChainAccount id', async () => {
-			await mainchainInteroperabilityStore.setOwnChainAccount(ownChainAccount);
 			const isLive = await mainchainInteroperabilityStore.isLive(ownChainAccount.id, timestamp);
 
 			expect(isLive).toBe(true);
