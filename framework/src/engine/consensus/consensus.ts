@@ -174,7 +174,7 @@ export class Consensus {
 		});
 
 		this._network.registerEndpoint(NETWORK_LEGACY_GET_BLOCKS_FROM_ID, async ({ data, peerId }) =>
-			this._legacyEndpoint.handleRPCGetLegacyBlocksFromId(data, peerId),
+			this._legacyEndpoint.handleRPCGetLegacyBlocksFromID(data, peerId),
 		);
 		this._network.registerEndpoint(NETWORK_RPC_GET_LAST_BLOCK, ({ peerId }) =>
 			this._endpoint.handleRPCGetLastBlock(peerId),

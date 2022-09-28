@@ -16,7 +16,6 @@ import { JSONObject } from '../../types';
 
 export interface LegacyBlockHeader {
 	[key: string]: unknown;
-	id: Buffer;
 	version: number;
 	height: number;
 	previousBlockID: Buffer;
@@ -32,6 +31,15 @@ export interface RawLegacyBlock {
 
 export interface LegacyBlock {
 	header: LegacyBlockHeader;
+	transactions: Buffer[];
+}
+
+export interface LegacyBlockHeaderWithID extends LegacyBlockHeader {
+	id: Buffer;
+}
+
+export interface LegacyBlockWithID extends LegacyBlock {
+	header: LegacyBlockHeaderWithID;
 	transactions: Buffer[];
 }
 
