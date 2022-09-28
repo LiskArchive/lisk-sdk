@@ -32,11 +32,9 @@ import { splitTokenID } from './utils';
 
 export class TokenEndpoint extends BaseEndpoint {
 	private _tokenMethod!: TokenMethod;
-	private _supportedTokenIDs: string[] = [];
 
-	public init(tokenMethod: TokenMethod, supportedTokenIDs: string[]) {
+	public init(tokenMethod: TokenMethod) {
 		this._tokenMethod = tokenMethod;
-		this._supportedTokenIDs = supportedTokenIDs;
 	}
 
 	public async getBalances(
@@ -113,12 +111,13 @@ export class TokenEndpoint extends BaseEndpoint {
 		};
 	}
 
+	// TODO: Update to use SupportedTokensStore #7579
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async getSupportedTokens(
 		_context: ModuleEndpointContext,
 	): Promise<{ tokenIDs: string[] }> {
 		return {
-			tokenIDs: this._supportedTokenIDs,
+			tokenIDs: [],
 		};
 	}
 

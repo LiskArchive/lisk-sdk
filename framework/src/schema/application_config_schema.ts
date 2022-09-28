@@ -288,8 +288,6 @@ export const applicationConfigSchema = {
 			},
 			blockTime: 10,
 			bftBatchSize: 103,
-			chainID: '10000000',
-			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 			maxTransactionsSize: 15 * 1024, // Kilo Bytes
 		},
 		generator: {

@@ -13,13 +13,8 @@
  */
 import { address, utils } from '@liskhq/lisk-cryptography';
 import { TokenMethod, TokenModule } from '../../../../src/modules/token';
-import {
-	CHAIN_ID_LENGTH,
-	EMPTY_BYTES,
-	TOKEN_ID_LENGTH,
-} from '../../../../src/modules/token/constants';
+import { CHAIN_ID_LENGTH, TOKEN_ID_LENGTH } from '../../../../src/modules/token/constants';
 import { TokenEndpoint } from '../../../../src/modules/token/endpoint';
-import { AvailableLocalIDStore } from '../../../../src/modules/token/stores/available_local_id';
 import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
 import { SupplyStore } from '../../../../src/modules/token/stores/supply';
 import { UserStore } from '../../../../src/modules/token/stores/user';
@@ -30,7 +25,7 @@ import {
 	createTransientModuleEndpointContext,
 } from '../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
-import { DEFAULT_TOKEN_ID } from '../../../utils/mocks/transaction';
+import { DEFAULT_LOCAL_ID } from '../../../utils/mocks/transaction';
 
 describe('token endpoint', () => {
 	const tokenModule = new TokenModule();
@@ -49,7 +44,7 @@ describe('token endpoint', () => {
 	};
 	const defaultTotalSupply = BigInt('100000000000000');
 	const defaultEscrowAmount = BigInt('100000000000');
-	const supportedTokenIDs = ['0000000000000000', '0000000200000000'];
+	// const supportedTokenIDs = ['0000000000000000', '0000000200000000'];
 
 	let endpoint: TokenEndpoint;
 	let stateStore: PrefixedStateReadWriter;
@@ -59,9 +54,10 @@ describe('token endpoint', () => {
 		const method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
 		endpoint = new TokenEndpoint(tokenModule.stores, tokenModule.offchainStores);
 		method.init({
+			ownchainID: Buffer.from([0, 0, 0, 1]),
 			minBalances: [
 				{
-					tokenID: DEFAULT_TOKEN_ID,
+					tokenID: DEFAULT_LOCAL_ID,
 					amount: BigInt(5000000),
 				},
 			],
@@ -73,29 +69,16 @@ describe('token endpoint', () => {
 			terminateChain: jest.fn(),
 			getChannel: jest.fn(),
 		} as never);
-		endpoint.init(method, supportedTokenIDs);
+		endpoint.init(method);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		methodContext = createTransientMethodContext({ stateStore });
 		const userStore = tokenModule.stores.get(UserStore);
-		await userStore.set(
-			methodContext,
-			userStore.getKey(defaultAddress, defaultTokenIDAlias),
-			defaultAccount,
-		);
-		await userStore.set(
-			methodContext,
-			userStore.getKey(defaultAddress, defaultForeignTokenID),
-			defaultAccount,
-		);
+		await userStore.save(methodContext, defaultAddress, defaultTokenID, defaultAccount);
+		await userStore.save(methodContext, defaultAddress, defaultForeignTokenID, defaultAccount);
 
 		const supplyStore = tokenModule.stores.get(SupplyStore);
 		await supplyStore.set(methodContext, defaultTokenIDAlias.slice(CHAIN_ID_LENGTH), {
 			totalSupply: defaultTotalSupply,
-		});
-
-		const nextAvailableLocalIDStore = tokenModule.stores.get(AvailableLocalIDStore);
-		await nextAvailableLocalIDStore.set(methodContext, EMPTY_BYTES, {
-			nextAvailableLocalID: Buffer.from([0, 0, 0, 5]),
 		});
 
 		const escrowStore = tokenModule.stores.get(EscrowStore);
@@ -138,7 +121,7 @@ describe('token endpoint', () => {
 			expect(resp).toEqual({
 				balances: [
 					{
-						tokenID: '0000000000000000',
+						tokenID: '0000000100000000',
 						availableBalance: defaultAccount.availableBalance.toString(),
 						lockedBalances: defaultAccount.lockedBalances.map(lb => ({
 							...lb,
@@ -220,7 +203,7 @@ describe('token endpoint', () => {
 				stateStore,
 				params: {
 					address: address.getLisk32AddressFromAddress(defaultAddress),
-					tokenID: defaultTokenIDAlias.toString('hex'),
+					tokenID: defaultTokenID.toString('hex'),
 				},
 			});
 			const resp = await endpoint.getBalance(moduleEndpointContext);
@@ -253,15 +236,7 @@ describe('token endpoint', () => {
 	});
 
 	describe('getSupportedTokens', () => {
-		it('should return all supported tokens', async () => {
-			const moduleEndpointContext = createTransientModuleEndpointContext({
-				stateStore,
-			});
-			const resp = await endpoint.getSupportedTokens(moduleEndpointContext);
-			expect(resp).toEqual({
-				tokenIDs: supportedTokenIDs,
-			});
-		});
+		it.todo('should return all supported tokens');
 	});
 
 	describe('getEscrowedAmounts', () => {

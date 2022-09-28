@@ -12,7 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { CHAIN_ID_LENGTH, LOCAL_ID_LENGTH, TOKEN_ID_LENGTH, MAX_DATA_LENGTH } from './constants';
+import {
+	CHAIN_ID_LENGTH,
+	TOKEN_ID_LENGTH,
+	MAX_DATA_LENGTH,
+	MIN_MODULE_NAME_LENGTH,
+	MAX_MODULE_NAME_LENGTH,
+} from './constants';
 
 export const configSchema = {
 	$id: '/token/config',
@@ -312,13 +318,7 @@ export const crossChainForwardMessageParams = {
 export const genesisTokenStoreSchema = {
 	$id: '/token/module/genesis',
 	type: 'object',
-	required: [
-		'userSubstore',
-		'supplySubstore',
-		'escrowSubstore',
-		'availableLocalIDSubstore',
-		'terminatedEscrowSubstore',
-	],
+	required: ['userSubstore', 'supplySubstore', 'escrowSubstore', 'supportedTokensSubstore'],
 	properties: {
 		userSubstore: {
 			type: 'array',
@@ -351,6 +351,8 @@ export const genesisTokenStoreSchema = {
 							properties: {
 								module: {
 									dataType: 'string',
+									minLength: MIN_MODULE_NAME_LENGTH,
+									maxLength: MAX_MODULE_NAME_LENGTH,
 									fieldNumber: 1,
 								},
 								amount: {
@@ -368,13 +370,13 @@ export const genesisTokenStoreSchema = {
 			fieldNumber: 2,
 			items: {
 				type: 'object',
-				required: ['localID', 'totalSupply'],
+				required: ['tokenID', 'totalSupply'],
 				properties: {
-					localID: {
+					tokenID: {
 						dataType: 'bytes',
 						fieldNumber: 1,
-						minLength: LOCAL_ID_LENGTH,
-						maxLength: LOCAL_ID_LENGTH,
+						minLength: TOKEN_ID_LENGTH,
+						maxLength: TOKEN_ID_LENGTH,
 					},
 					totalSupply: {
 						dataType: 'uint64',
@@ -388,19 +390,19 @@ export const genesisTokenStoreSchema = {
 			fieldNumber: 3,
 			items: {
 				type: 'object',
-				required: ['escrowChainID', 'localID', 'amount'],
+				required: ['escrowChainID', 'tokenID', 'amount'],
 				properties: {
 					escrowChainID: {
 						dataType: 'bytes',
-						fieldNumber: 1,
 						minLength: CHAIN_ID_LENGTH,
 						maxLength: CHAIN_ID_LENGTH,
+						fieldNumber: 1,
 					},
-					localID: {
+					tokenID: {
 						dataType: 'bytes',
 						fieldNumber: 2,
-						minLength: LOCAL_ID_LENGTH,
-						maxLength: LOCAL_ID_LENGTH,
+						minLength: TOKEN_ID_LENGTH,
+						maxLength: TOKEN_ID_LENGTH,
 					},
 					amount: {
 						dataType: 'uint64',
@@ -409,26 +411,29 @@ export const genesisTokenStoreSchema = {
 				},
 			},
 		},
-		availableLocalIDSubstore: {
-			type: 'object',
-			required: ['nextAvailableLocalID'],
-			fieldNumber: 4,
-			properties: {
-				nextAvailableLocalID: {
-					dataType: 'bytes',
-					fieldNumber: 1,
-					minLength: LOCAL_ID_LENGTH,
-					maxLength: LOCAL_ID_LENGTH,
-				},
-			},
-		},
-		terminatedEscrowSubstore: {
+		supportedTokensSubstore: {
 			type: 'array',
-			fieldNumber: 5,
+			fieldNumber: 4,
 			items: {
-				dataType: 'bytes',
-				minLength: CHAIN_ID_LENGTH,
-				maxLength: CHAIN_ID_LENGTH,
+				type: 'object',
+				required: ['chainID', 'supportedTokenIDs'],
+				properties: {
+					chainID: {
+						dataType: 'bytes',
+						minLength: CHAIN_ID_LENGTH,
+						maxLength: CHAIN_ID_LENGTH,
+						fieldNumber: 1,
+					},
+					supportedTokenIDs: {
+						type: 'array',
+						fieldNumber: 2,
+						items: {
+							dataType: 'bytes',
+							minLength: TOKEN_ID_LENGTH,
+							maxLength: TOKEN_ID_LENGTH,
+						},
+					},
+				},
 			},
 		},
 	},
