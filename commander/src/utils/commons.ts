@@ -31,12 +31,9 @@ export const encryptPassphrase = async (
 	password: string,
 	outputPublicKey: boolean,
 ): Promise<Record<string, unknown>> => {
-	const encryptedPassphraseObject = await cryptography.encrypt.encryptMessageWithPassword(
+	const encryptedPassphrase = await cryptography.encrypt.encryptMessageWithPassword(
 		passphrase,
 		password,
-	);
-	const encryptedPassphrase = cryptography.encrypt.stringifyEncryptedMessage(
-		encryptedPassphraseObject,
 	);
 
 	return outputPublicKey
