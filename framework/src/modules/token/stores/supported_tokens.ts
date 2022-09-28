@@ -129,9 +129,6 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 		if (chainID.equals(this._ownChainID)) {
 			return true;
 		}
-		if (chainID[0] === this._ownChainID[0] && chainID.slice(1).equals(CHAIN_ID_LSK.slice(1))) {
-			return true;
-		}
-		return false;
+		return chainID[0] === this._ownChainID[0] && chainID.slice(1).equals(CHAIN_ID_LSK.slice(1));
 	}
 }
