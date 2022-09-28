@@ -37,7 +37,11 @@ export class LegacyChainHandler {
 		this._db = args.db;
 
 		for (const bracket of this._legacyConfig.brackets) {
-			if (!bracket.snapshotBlockID) {
+			const bracketInfo = await storage.getLegacyChainBracketInfo(
+				Buffer.from(bracket.snapshotBlockID, 'hex'),
+			);
+
+			if (!bracketInfo) {
 				await storage.setLegacyChainBracketInfo(Buffer.from(bracket.snapshotBlockID), {
 					startHeight: bracket.startHeight,
 					snapshotBlockHeight: bracket.snapshotHeight,

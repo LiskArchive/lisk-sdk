@@ -82,7 +82,7 @@ export const blockHeaderSchemaV2 = {
 };
 
 export const legacyChainBracketInfoSchema = {
-	$id: '/lisk/legacyChainBracketInfo',
+	$id: '/legacy/legacyChainBracketInfo',
 	type: 'object',
 	properties: {
 		startHeight: { dataType: 'uint32', fieldNumber: 1 },
