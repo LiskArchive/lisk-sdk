@@ -556,8 +556,8 @@ export class TokenMethod extends BaseMethod {
 		if (chainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
 			return tokenID;
 		}
-		const OwnChainAccount = await this._interoperabilityMethod.getOwnChainAccount(methodContext);
-		if (chainID.equals(OwnChainAccount.chainID)) {
+		const ownChainAccount = await this._interoperabilityMethod.getOwnChainAccount(methodContext);
+		if (chainID.equals(ownChainAccount.chainID)) {
 			return getNativeTokenID(tokenID);
 		}
 		return tokenID;
