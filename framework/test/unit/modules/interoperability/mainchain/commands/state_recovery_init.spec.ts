@@ -176,7 +176,7 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Sidechain ID is not valid.');
+			expect(result.error?.message).toInclude('Sidechain id is not valid');
 		});
 
 		it('should return error if terminated state account exists and is initialized', async () => {

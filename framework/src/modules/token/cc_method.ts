@@ -50,7 +50,7 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 		if (ccm.fee < BigInt(0)) {
 			throw new Error('Fee must be greater or equal to zero.');
 		}
-		const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
+		const { chainID: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
 		const { messageFeeTokenID } = await this._interopMethod.getChannel(
 			methodContext,
 			ccm.sendingChainID,
@@ -93,7 +93,7 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 		if (ccm.fee < BigInt(0)) {
 			throw new Error('Fee must be greater or equal to zero.');
 		}
-		const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
+		const { chainID: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
 		const { messageFeeTokenID } = await this._interopMethod.getChannel(
 			methodContext,
 			ccm.sendingChainID,
@@ -136,7 +136,7 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 		if (ccm.fee < BigInt(0)) {
 			throw new Error('Fee must be greater or equal to zero.');
 		}
-		const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
+		const { chainID: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
 		const { messageFeeTokenID } = await this._interopMethod.getChannel(
 			methodContext,
 			ccm.sendingChainID,
@@ -178,7 +178,7 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 			account.availableBalance +
 			account.lockedBalances.reduce((prev, curr) => prev + curr.amount, BigInt(0));
 
-		const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
+		const { chainID: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
 
 		if (!ownChainID.equals(chainID)) {
 			throw new Error(

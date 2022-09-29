@@ -56,7 +56,7 @@ export interface GenesisTokenStore {
 }
 
 export interface InteroperabilityMethod {
-	getOwnChainAccount(methodContext: ImmutableMethodContext): Promise<{ id: Buffer }>;
+	getOwnChainAccount(methodContext: ImmutableMethodContext): Promise<{ chainID: Buffer }>;
 	send(
 		methodContext: MethodContext,
 		feeAddress: Buffer,
