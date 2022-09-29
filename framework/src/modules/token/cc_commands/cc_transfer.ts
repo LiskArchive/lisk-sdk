@@ -62,7 +62,7 @@ export class CCTransferCommand extends BaseCCCommand {
 	public async execute(ctx: CCCommandExecuteContext): Promise<void> {
 		const { ccm } = ctx;
 		const methodContext = ctx.getMethodContext();
-		const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
+		const { chainID: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
 		let params: CCTransferMessageParams;
 		let tokenChainID;
 		let tokenLocalID;
