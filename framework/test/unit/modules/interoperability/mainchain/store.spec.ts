@@ -27,6 +27,7 @@ import {
 	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	CHAIN_TERMINATED,
 } from '../../../../../src/modules/interoperability/constants';
 import { createCCMsgBeforeSendContext } from '../../../../../src/modules/interoperability/context';
 import { MainchainInteroperabilityStore } from '../../../../../src/modules/interoperability/mainchain/store';
@@ -66,7 +67,6 @@ describe('Mainchain interoperability store', () => {
 	beforeEach(() => {
 		chainAccount = {
 			name: 'account1',
-			networkID: Buffer.alloc(0),
 			lastCertificate: {
 				height: 567467,
 				timestamp: timestamp - 500000,
@@ -140,26 +140,47 @@ describe('Mainchain interoperability store', () => {
 	});
 
 	describe('isLive', () => {
-		it('should return false if chain is already terminated', async () => {
-			await terminatedStateSubstore.set(context, chainID, chainAccount);
+		beforeEach(async () => {
+			await mainchainInteroperabilityStore.setOwnChainAccount(ownChainAccount);
+		});
+
+		it('should return true if chainID equals ownChainAccount id', async () => {
+			const isLive = await mainchainInteroperabilityStore.isLive(ownChainAccount.id, timestamp);
+
+			expect(isLive).toBe(true);
+		});
+
+		it('should return false if ownChainAccount id does not equal mainchain ID', async () => {
+			await mainchainInteroperabilityStore.setOwnChainAccount({
+				...ownChainAccount,
+				id: utils.getRandomBytes(32),
+			});
 			const isLive = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
 
 			expect(isLive).toBe(false);
 		});
 
-		it('should return false if chain is not terminated & liveness requirement is not satisfied', async () => {
+		it(`should return false if chain account exists and status is ${CHAIN_TERMINATED}`, async () => {
+			await chainDataSubstore.set(context, chainID, { ...chainAccount, status: CHAIN_TERMINATED });
+			const isLive = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
+
+			expect(isLive).toBe(false);
+		});
+
+		it(`should return false if chain account exists & status is ${CHAIN_ACTIVE} & liveness requirement is not satisfied`, async () => {
 			chainAccount.lastCertificate.timestamp = timestamp - LIVENESS_LIMIT - 1;
-			await chainDataSubstore.set(context, chainID, chainAccount);
+			await chainDataSubstore.set(context, chainID, { ...chainAccount, status: CHAIN_ACTIVE });
 
 			const isLive = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
 
 			expect(isLive).toBe(false);
 		});
 
-		it('should return true if chain is not terminated & liveness requirement is satisfied', async () => {
-			chainAccount.lastCertificate.timestamp = timestamp - LIVENESS_LIMIT + 1;
-			await chainDataSubstore.set(context, chainID, chainAccount);
-			const isLive = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
+		it('should return true if chain account does not exist', async () => {
+			const isLive = await mainchainInteroperabilityStore.isLive(
+				utils.getRandomBytes(32),
+				timestamp,
+			);
 
 			expect(isLive).toBe(true);
 		});
@@ -237,8 +258,7 @@ describe('Mainchain interoperability store', () => {
 		});
 
 		it('should return false if the receiving chain is not live', async () => {
-			jest.spyOn(mainchainInteroperabilityStore, 'isLive');
-			chainAccount.lastCertificate.timestamp = timestamp - LIVENESS_LIMIT - 1;
+			jest.spyOn(mainchainInteroperabilityStore, 'isLive').mockResolvedValue(false);
 			await chainDataSubstore.set(context, ccm.receivingChainID, chainAccount);
 
 			await expect(
@@ -248,7 +268,7 @@ describe('Mainchain interoperability store', () => {
 		});
 
 		it('should return false if the receiving chain is not active', async () => {
-			jest.spyOn(mainchainInteroperabilityStore, 'isLive');
+			jest.spyOn(mainchainInteroperabilityStore, 'isLive').mockResolvedValue(false);
 			await chainDataSubstore.set(context, ccm.receivingChainID, chainAccount);
 
 			await expect(
