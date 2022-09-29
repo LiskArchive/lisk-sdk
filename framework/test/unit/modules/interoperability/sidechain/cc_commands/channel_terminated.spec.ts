@@ -21,6 +21,7 @@ import {
 import { SidechainCCChannelTerminatedCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands/channel_terminated';
 import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
+import { NamedRegistry } from '../../../../../../src/modules/named_registry';
 import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
 
 describe('SidechainCCChannelTerminatedCommand', () => {
@@ -63,6 +64,7 @@ describe('SidechainCCChannelTerminatedCommand', () => {
 		interopMod.stores,
 		sampleExecuteContext,
 		ccMethodsMap,
+		new NamedRegistry(),
 	);
 	mainchainInteroperabilityStore.createTerminatedStateAccount = createTerminatedStateAccountMock;
 	(ccChannelTerminatedCommand as any)['getInteroperabilityStore'] = jest

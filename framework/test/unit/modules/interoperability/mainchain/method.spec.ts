@@ -16,6 +16,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { MainchainInteroperabilityModule } from '../../../../../src';
 import { MainchainInteroperabilityMethod } from '../../../../../src/modules/interoperability/mainchain/method';
 import { MainchainInteroperabilityStore } from '../../../../../src/modules/interoperability/mainchain/store';
+import { NamedRegistry } from '../../../../../src/modules/named_registry';
 import { MethodContext } from '../../../../../src/state_machine';
 import { createTransientMethodContext } from '../../../../../src/testing';
 
@@ -39,6 +40,7 @@ describe('Mainchain Method', () => {
 			interopMod.stores,
 			methodContext,
 			interoperableCCMethods,
+			new NamedRegistry(),
 		);
 		jest
 			.spyOn(mainchainInteroperabilityMethod as any, 'getInteroperabilityStore')

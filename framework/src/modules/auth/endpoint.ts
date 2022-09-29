@@ -23,8 +23,13 @@ import { AuthAccountStore } from './stores/auth_account';
 import { NamedRegistry } from '../named_registry';
 
 export class AuthEndpoint extends BaseEndpoint {
-	public constructor(_moduleName: string, stores: NamedRegistry, offchainStores: NamedRegistry) {
-		super(stores, offchainStores);
+	public constructor(
+		_moduleName: string,
+		stores: NamedRegistry,
+		offchainStores: NamedRegistry,
+		events: NamedRegistry,
+	) {
+		super(stores, offchainStores, events);
 	}
 
 	public async getAuthAccount(context: ModuleEndpointContext): Promise<AuthAccountJSON> {

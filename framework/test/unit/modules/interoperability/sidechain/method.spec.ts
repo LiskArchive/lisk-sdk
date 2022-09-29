@@ -16,6 +16,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { SidechainInteroperabilityModule } from '../../../../../src';
 import { SidechainInteroperabilityMethod } from '../../../../../src/modules/interoperability/sidechain/method';
 import { SidechainInteroperabilityStore } from '../../../../../src/modules/interoperability/sidechain/store';
+import { NamedRegistry } from '../../../../../src/modules/named_registry';
 import { MethodContext } from '../../../../../src/state_machine';
 
 describe('Sidechain Method', () => {
@@ -38,6 +39,7 @@ describe('Sidechain Method', () => {
 			interopMod.stores,
 			methodContext,
 			interoperableCCMethods,
+			new NamedRegistry(),
 		);
 		jest
 			.spyOn(sidechainInteroperabilityMethod as any, 'getInteroperabilityStore')

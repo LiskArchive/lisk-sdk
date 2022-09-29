@@ -75,6 +75,11 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 	}
 
 	protected getInteroperabilityStore(context: StoreGetter): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
+		return new MainchainInteroperabilityStore(
+			this.stores,
+			context,
+			this.interoperableCCMethods,
+			this.events,
+		);
 	}
 }

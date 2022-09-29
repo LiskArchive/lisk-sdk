@@ -25,7 +25,7 @@ import { CCMsg, MessageRecoveryParams } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { MainchainInteroperabilityStore } from '../store';
 import { verifyMessageRecovery, swapReceivingAndSendingChainIDs, getCCMSize } from '../../utils';
-import { CCM_STATUS_RECOVERED, CHAIN_ACTIVE, EMPTY_FEE_ADDRESS } from '../../constants';
+import { CCM_STATUS_CODE_RECOVERED, CHAIN_ACTIVE, EMPTY_FEE_ADDRESS } from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
 import { BaseInteroperableMethod } from '../../base_interoperable_method';
 import { createCCCommandExecuteContext } from '../../context';
@@ -94,7 +94,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			const recoveryCCM: CCMsg = {
 				...ccm,
 				fee: BigInt(0),
-				status: CCM_STATUS_RECOVERED,
+				status: CCM_STATUS_CODE_RECOVERED,
 			};
 			const encodedUpdatedCCM = codec.encode(ccmSchema, recoveryCCM);
 			updatedCCMs.push(encodedUpdatedCCM);
@@ -182,6 +182,11 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 	protected getInteroperabilityStore(
 		context: StoreGetter | ImmutableStoreGetter,
 	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
+		return new MainchainInteroperabilityStore(
+			this.stores,
+			context,
+			this.interoperableCCMethods,
+			this.events,
+		);
 	}
 }

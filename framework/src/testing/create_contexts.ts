@@ -226,7 +226,7 @@ export const createTransientModuleEndpointContext = (params: {
 	return ctx;
 };
 
-const createCCMethodContext = (params: {
+export const createCCMethodContext = (params: {
 	stateStore?: PrefixedStateReadWriter;
 	logger?: Logger;
 	chainID?: Buffer;

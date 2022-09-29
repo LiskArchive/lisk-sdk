@@ -57,6 +57,7 @@ import { ChainAccountStore } from './stores/chain_account';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/terminated_outbox';
 
 export abstract class BaseInteroperabilityStore {
+	public readonly events: NamedRegistry;
 	public readonly context: StoreGetter | ImmutableStoreGetter;
 	protected readonly stores: NamedRegistry;
 	protected readonly interoperableModuleMethods = new Map<string, BaseInteroperableMethod>();
@@ -65,10 +66,12 @@ export abstract class BaseInteroperabilityStore {
 		stores: NamedRegistry,
 		context: StoreGetter | ImmutableStoreGetter,
 		interoperableModuleMethods: Map<string, BaseInteroperableMethod>,
+		events: NamedRegistry,
 	) {
 		this.context = context;
 		this.stores = stores;
 		this.interoperableModuleMethods = interoperableModuleMethods;
+		this.events = events;
 	}
 
 	public async getOwnChainAccount(): Promise<OwnChainAccount> {

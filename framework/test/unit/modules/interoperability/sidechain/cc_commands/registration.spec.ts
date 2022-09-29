@@ -24,6 +24,7 @@ import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
+import { NamedRegistry } from '../../../../../../src/modules/named_registry';
 
 describe('SidechainCCRegistrationCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
@@ -108,6 +109,7 @@ describe('SidechainCCRegistrationCommand', () => {
 			interopMod.stores,
 			sampleExecuteContext,
 			ccMethodsMap,
+			new NamedRegistry(),
 		);
 		sidechainInteroperabilityStore.terminateChainInternal = terminateChainInternalMock;
 		sidechainInteroperabilityStore.getChannel = getChannelMock;

@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { MainchainInteroperabilityModule, testing } from '../../../../../src';
 import { StoreGetter } from '../../../../../src/modules/base_store';
 import {
-	CCM_STATUS_CHANNEL_UNAVAILABLE,
 	MAINCHAIN_ID,
 	LIVENESS_LIMIT,
 	MAX_CCM_SIZE,
@@ -28,13 +28,20 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	CHAIN_TERMINATED,
+	CCM_STATUS_CODE_FAILED_CCM,
+	EVENT_NAME_CCM_PROCESSED,
+	EVENT_NAME_CCM_SEND_SUCCESS,
+	CCM_PROCESSED_RESULT_DISCARDED,
+	CCM_PROCESSED_RESULT_BOUNCED,
 } from '../../../../../src/modules/interoperability/constants';
 import { createCCMsgBeforeSendContext } from '../../../../../src/modules/interoperability/context';
+import { CcmProcessedEvent } from '../../../../../src/modules/interoperability/events/ccm_processed';
+import { CcmSendSuccessEvent } from '../../../../../src/modules/interoperability/events/ccm_send_success';
 import { MainchainInteroperabilityStore } from '../../../../../src/modules/interoperability/mainchain/store';
 import { ForwardCCMsgResult } from '../../../../../src/modules/interoperability/mainchain/types';
+import { ccmSchema } from '../../../../../src/modules/interoperability/schemas';
 import { ChainAccountStore } from '../../../../../src/modules/interoperability/stores/chain_account';
 import { ChannelDataStore } from '../../../../../src/modules/interoperability/stores/channel_data';
-import { TerminatedStateStore } from '../../../../../src/modules/interoperability/stores/terminated_state';
 import {
 	BeforeSendCCMsgMethodContext,
 	CCMForwardContext,
@@ -42,6 +49,8 @@ import {
 	CCUpdateParams,
 	SendInternalContext,
 } from '../../../../../src/modules/interoperability/types';
+import { NamedRegistry } from '../../../../../src/modules/named_registry';
+import { MIN_RETURN_FEE } from '../../../../../src/modules/token/constants';
 import { EventQueue } from '../../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { MethodContext } from '../../../../../src/state_machine/types';
@@ -58,7 +67,6 @@ describe('Mainchain interoperability store', () => {
 	let ownChainAccount: any;
 	let stateStore: PrefixedStateReadWriter;
 	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
-	let terminatedStateSubstore: TerminatedStateStore;
 	let chainDataSubstore: ChainAccountStore;
 	let channelDataSubstore: ChannelDataStore;
 
@@ -87,11 +95,11 @@ describe('Mainchain interoperability store', () => {
 
 		channelDataSubstore = interopMod.stores.get(ChannelDataStore);
 		chainDataSubstore = interopMod.stores.get(ChainAccountStore);
-		terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
 		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
 			interopMod.stores,
 			context,
 			new Map(),
+			interopMod.events,
 		);
 	});
 
@@ -102,8 +110,8 @@ describe('Mainchain interoperability store', () => {
 			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 			sendingChainID: utils.intToBuffer(2, 4),
 			receivingChainID: utils.intToBuffer(3, 4),
-			fee: BigInt(1),
-			status: 1,
+			fee: BigInt(100000),
+			status: CCM_STATUS_OK,
 			params: Buffer.alloc(0),
 		};
 
@@ -111,30 +119,106 @@ describe('Mainchain interoperability store', () => {
 			...ccm,
 			sendingChainID: ccm.receivingChainID,
 			receivingChainID: ccm.sendingChainID,
-			status: CCM_STATUS_CHANNEL_UNAVAILABLE,
 		};
 
+		const ccmBounceContext = {
+			ccm,
+			newCCMStatus: CCM_STATUS_OK,
+			ccmProcessedEventCode: 0,
+			eventQueue: new EventQueue(0),
+		};
+
+		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
+		const minimumFee = MIN_RETURN_FEE * BigInt(ccmID.length);
+		let ccmProcessedEvent: CcmProcessedEvent;
+		let ccmSendSuccessEvent: CcmSendSuccessEvent;
+
 		beforeEach(() => {
+			ccmProcessedEvent = mainchainInteroperabilityStore.events.get(CcmProcessedEvent);
+			ccmSendSuccessEvent = mainchainInteroperabilityStore.events.get(CcmSendSuccessEvent);
+			jest.spyOn(ccmProcessedEvent, 'log');
+			jest.spyOn(ccmSendSuccessEvent, 'log');
 			mainchainInteroperabilityStore.addToOutbox = jest.fn();
 		});
 
-		it('should not call addToOutbox if terminatedStateAccount exists', async () => {
-			// Arrange
-			await terminatedStateSubstore.set(context, ccm.sendingChainID, chainAccount);
-
+		it(`should not call addToOutbox if ccm status is not equal to ${CCM_STATUS_OK}`, async () => {
 			// Act
-			await mainchainInteroperabilityStore.bounce(ccm);
+			await mainchainInteroperabilityStore.bounce({
+				...ccmBounceContext,
+				ccm: { ...ccm, status: CCM_STATUS_CODE_FAILED_CCM },
+			});
 
 			expect(mainchainInteroperabilityStore.addToOutbox).not.toHaveBeenCalled();
 		});
 
-		it('should call addToOutbox with new CCM if terminatedStateAccount does exist', async () => {
+		it(`should call addToOutbox with new CCM with zero fee if newCCMStatus === ${CCM_STATUS_CODE_FAILED_CCM}`, async () => {
 			// Act
-			await mainchainInteroperabilityStore.bounce(ccm);
+			await mainchainInteroperabilityStore.bounce({
+				...ccmBounceContext,
+				newCCMStatus: CCM_STATUS_CODE_FAILED_CCM,
+			});
 
 			expect(mainchainInteroperabilityStore.addToOutbox).toHaveBeenCalledWith(
 				newCCM.receivingChainID,
-				newCCM,
+				{
+					...newCCM,
+					fee: BigInt(0),
+					status: CCM_STATUS_CODE_FAILED_CCM,
+				},
+			);
+		});
+
+		it(`should call addToOutbox with new CCM with fee minus ${minimumFee} if newCCMStatus !== ${CCM_STATUS_CODE_FAILED_CCM}`, async () => {
+			// Act
+			await mainchainInteroperabilityStore.bounce(ccmBounceContext);
+
+			expect(mainchainInteroperabilityStore.addToOutbox).toHaveBeenCalledWith(
+				newCCM.receivingChainID,
+				{
+					...newCCM,
+					status: CCM_STATUS_OK,
+					fee: (newCCM.fee -= minimumFee),
+				},
+			);
+		});
+
+		it(`should emit ${EVENT_NAME_CCM_PROCESSED} event if ccm status is ${CCM_STATUS_OK} and ccm fee is >= ${minimumFee}`, async () => {
+			// Act
+			await mainchainInteroperabilityStore.bounce(ccmBounceContext);
+
+			expect(ccmProcessedEvent.log).toHaveBeenCalled();
+		});
+
+		it(`should emit ${EVENT_NAME_CCM_SEND_SUCCESS} event if ccm status is ${CCM_STATUS_OK} and ccm fee is >= ${minimumFee}`, async () => {
+			// Act
+			await mainchainInteroperabilityStore.bounce(ccmBounceContext);
+
+			expect(ccmSendSuccessEvent.log).toHaveBeenCalled();
+		});
+
+		it(`should emit ${EVENT_NAME_CCM_PROCESSED} event with if ccm status is not ${CCM_STATUS_OK}`, async () => {
+			// Arrange
+			const ccmWithChangedStatus = {
+				...ccm,
+				status: CCM_PROCESSED_RESULT_BOUNCED,
+			};
+			const newCCMID = utils.hash(codec.encode(ccmSchema, ccmWithChangedStatus));
+
+			// Act
+			await mainchainInteroperabilityStore.bounce({
+				...ccmBounceContext,
+				ccm: ccmWithChangedStatus,
+			});
+
+			expect(ccmProcessedEvent.log).toHaveBeenCalledWith(
+				{ eventQueue: ccmBounceContext.eventQueue },
+				ccm.sendingChainID,
+				ccm.receivingChainID,
+				{
+					ccmID: newCCMID,
+					result: CCM_PROCESSED_RESULT_DISCARDED,
+					code: ccmBounceContext.ccmProcessedEventCode,
+				},
 			);
 		});
 	});
@@ -351,6 +435,7 @@ describe('Mainchain interoperability store', () => {
 				interopMod.stores,
 				context,
 				modsMap,
+				new NamedRegistry(),
 			);
 
 			jest.spyOn(mainchainInteropStoreLocal, 'isLive');
@@ -369,7 +454,8 @@ describe('Mainchain interoperability store', () => {
 		});
 	});
 
-	describe('forward', () => {
+	// TODO: To be updated in issue #7623
+	describe.skip('forward', () => {
 		let tokenCCMethod: any;
 		let forwardContext: CCMForwardContext;
 		let receivingChainAccount: any;
@@ -390,6 +476,7 @@ describe('Mainchain interoperability store', () => {
 				interopMod.stores,
 				context,
 				interoperableModuleMethods,
+				new NamedRegistry(),
 			);
 
 			receivingChainAccount = {

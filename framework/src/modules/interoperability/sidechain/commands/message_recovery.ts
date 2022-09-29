@@ -26,7 +26,7 @@ import { BaseInteroperabilityCommand } from '../../base_interoperability_command
 import { SidechainInteroperabilityStore } from '../store';
 import { verifyMessageRecovery, swapReceivingAndSendingChainIDs, getCCMSize } from '../../utils';
 import {
-	CCM_STATUS_RECOVERED,
+	CCM_STATUS_CODE_RECOVERED,
 	COMMAND_NAME_MESSAGE_RECOVERY,
 	EMPTY_FEE_ADDRESS,
 } from '../../constants';
@@ -99,7 +99,7 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			const recoveryCCM: CCMsg = {
 				...ccm,
 				fee: BigInt(0),
-				status: CCM_STATUS_RECOVERED,
+				status: CCM_STATUS_CODE_RECOVERED,
 			};
 			const encodedUpdatedCCM = codec.encode(ccmSchema, recoveryCCM);
 			updatedCCMs.push(encodedUpdatedCCM);
@@ -172,6 +172,11 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 	protected getInteroperabilityStore(
 		context: StoreGetter | ImmutableStoreGetter,
 	): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
+		return new SidechainInteroperabilityStore(
+			this.stores,
+			context,
+			this.interoperableCCMethods,
+			this.events,
+		);
 	}
 }

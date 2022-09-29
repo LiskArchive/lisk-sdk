@@ -42,6 +42,7 @@ import { ChainAccountUpdatedEvent } from '../events/chain_account_updated';
 import { RegisteredNamesStore } from '../stores/registered_names';
 import { OutboxRootStore } from '../stores/outbox_root';
 import { ChainValidatorsStore } from '../stores/chain_validators';
+import { CcmSendSuccessEvent } from '../events/ccm_send_success';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
@@ -54,6 +55,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.stores,
 		this.offchainStores,
 		this.interoperableCCMethods,
+		this.events,
 	);
 
 	private readonly _sidechainRegistrationCommand = new SidechainRegistrationCommand(
@@ -76,6 +78,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.stores.register(ChainValidatorsStore, new ChainValidatorsStore(this.name));
 		this.events.register(ChainAccountUpdatedEvent, new ChainAccountUpdatedEvent(this.name));
 		this.events.register(CcmProcessedEvent, new CcmProcessedEvent(this.name));
+		this.events.register(CcmSendSuccessEvent, new CcmSendSuccessEvent(this.name));
 	}
 
 	public addDependencies(tokenMethod: TokenMethod) {

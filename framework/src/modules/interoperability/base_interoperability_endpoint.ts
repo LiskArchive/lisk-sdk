@@ -42,8 +42,9 @@ export abstract class BaseInteroperabilityEndpoint<
 		protected stores: NamedRegistry,
 		protected offchainStores: NamedRegistry,
 		interoperableCCMethods: Map<string, BaseInteroperableMethod>,
+		protected events: NamedRegistry,
 	) {
-		super(stores, offchainStores);
+		super(stores, offchainStores, events);
 		this.interoperableCCMethods = interoperableCCMethods;
 	}
 

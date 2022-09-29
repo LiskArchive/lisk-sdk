@@ -20,5 +20,10 @@ export class SidechainInteroperabilityEndpoint extends BaseInteroperabilityEndpo
 	protected getInteroperabilityStore = (
 		context: StoreGetter | ImmutableStoreGetter,
 	): SidechainInteroperabilityStore =>
-		new SidechainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
+		new SidechainInteroperabilityStore(
+			this.stores,
+			context,
+			this.interoperableCCMethods,
+			this.events,
+		);
 }

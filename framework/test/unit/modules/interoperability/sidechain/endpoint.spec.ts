@@ -34,6 +34,7 @@ import {
 	OwnChainAccountJSON,
 } from '../../../../../src/modules/interoperability/types';
 import { chainAccountToJSON } from '../../../../../src/modules/interoperability/utils';
+import { NamedRegistry } from '../../../../../src/modules/named_registry';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 
@@ -158,11 +159,13 @@ describe('Sidechain endpoint', () => {
 			interopMod.stores,
 			interopMod.offchainStores,
 			interoperableCCMethods,
+			new NamedRegistry(),
 		);
 		sidechainInteroperabilityStore = new SidechainInteroperabilityStore(
 			interopMod.stores,
 			moduleContext,
 			interoperableCCMethods,
+			new NamedRegistry(),
 		);
 		jest
 			.spyOn(sidechainInteroperabilityEndpoint as any, 'getInteroperabilityStore')

@@ -36,6 +36,7 @@ import {
 import { chainAccountToJSON } from '../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
+import { NamedRegistry } from '../../../../../src/modules/named_registry';
 
 describe('Mainchain endpoint', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -160,11 +161,13 @@ describe('Mainchain endpoint', () => {
 			interopMod.stores,
 			moduleContext,
 			interoperableCCMethods,
+			new NamedRegistry(),
 		);
 		mainchainInteroperabilityEndpoint = new MainchainInteroperabilityEndpoint(
 			interopMod.stores,
 			interopMod.offchainStores,
 			interoperableCCMethods,
+			new NamedRegistry(),
 		);
 
 		jest

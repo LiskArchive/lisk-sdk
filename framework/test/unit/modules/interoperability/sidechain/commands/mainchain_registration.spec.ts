@@ -19,14 +19,13 @@ import { codec } from '@liskhq/lisk-codec';
 import { LiskValidationError } from '@liskhq/lisk-validator';
 import { MainchainRegistrationCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/mainchain_registration';
 import {
-	CCM_SENT_STATUS_SUCCESS,
 	CCM_STATUS_OK,
 	CHAIN_REGISTERED,
 	COMMAND_NAME_MAINCHAIN_REG,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	EMPTY_BYTES,
 	EMPTY_HASH,
-	EVENT_NAME_CCM_PROCESSED,
+	EVENT_NAME_CCM_SEND_SUCCESS,
 	EVENT_NAME_CHAIN_ACCOUNT_UPDATED,
 	MAINCHAIN_ID_BUFFER,
 	MAINCHAIN_NAME,
@@ -63,11 +62,11 @@ import { OutboxRootStore } from '../../../../../../src/modules/interoperability/
 import { ChainAccountStore } from '../../../../../../src/modules/interoperability/stores/chain_account';
 import { ChainValidatorsStore } from '../../../../../../src/modules/interoperability/stores/chain_validators';
 import { createTransactionContext } from '../../../../../../src/testing';
-import { CcmProcessedEvent } from '../../../../../../src/modules/interoperability/events/ccm_processed';
 import { ChainAccountUpdatedEvent } from '../../../../../../src/modules/interoperability/events/chain_account_updated';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
 import { InvalidRegistrationSignatureEvent } from '../../../../../../src/modules/interoperability/events/invalid_registration_signature';
+import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -274,7 +273,7 @@ describe('Mainchain registration command', () => {
 		let chainDataSubstore: ChainAccountStore;
 		let chainValidatorsSubstore: ChainValidatorsStore;
 		let chainAccountUpdatedEvent: ChainAccountUpdatedEvent;
-		let ccmProcessedEvent: CcmProcessedEvent;
+		let ccmSendSuccessEvent: CcmSendSuccessEvent;
 		let invalidRegistrationSignatureEvent: InvalidRegistrationSignatureEvent;
 
 		beforeEach(() => {
@@ -283,16 +282,15 @@ describe('Mainchain registration command', () => {
 			outboxRootSubstore = interopMod.stores.get(OutboxRootStore);
 			chainDataSubstore = interopMod.stores.get(ChainAccountStore);
 			chainAccountUpdatedEvent = interopMod.events.get(ChainAccountUpdatedEvent);
-			ccmProcessedEvent = interopMod.events.get(CcmProcessedEvent);
+			ccmSendSuccessEvent = interopMod.events.get(CcmSendSuccessEvent);
 			invalidRegistrationSignatureEvent = interopMod.events.get(InvalidRegistrationSignatureEvent);
-
 			jest.spyOn(chainDataSubstore, 'set');
 			jest.spyOn(channelDataSubstore, 'set');
 			jest.spyOn(chainValidatorsSubstore, 'set');
 			jest.spyOn(outboxRootSubstore, 'set');
 			jest.spyOn(ownChainAccountSubstore, 'set');
 			jest.spyOn(chainAccountUpdatedEvent, 'log');
-			jest.spyOn(ccmProcessedEvent, 'log');
+			jest.spyOn(ccmSendSuccessEvent, 'log');
 			jest.spyOn(invalidRegistrationSignatureEvent, 'log');
 			jest.spyOn(crypto.bls, 'verifyWeightedAggSig').mockReturnValue(true);
 
@@ -489,7 +487,7 @@ describe('Mainchain registration command', () => {
 			);
 		});
 
-		it(`should emit ${EVENT_NAME_CCM_PROCESSED} event`, async () => {
+		it(`should emit ${EVENT_NAME_CCM_SEND_SUCCESS} event`, async () => {
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
 				chainID: MAINCHAIN_ID_BUFFER,
 				name: MAINCHAIN_NAME,
@@ -516,13 +514,13 @@ describe('Mainchain registration command', () => {
 			await mainchainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(ccmProcessedEvent.log).toHaveBeenCalledWith(
+			expect(ccmSendSuccessEvent.log).toHaveBeenCalledWith(
 				expect.anything(),
 				ownChainAccount.chainID,
 				MAINCHAIN_ID_BUFFER,
+				ccmID,
 				{
 					ccmID,
-					status: CCM_SENT_STATUS_SUCCESS,
 				},
 			);
 		});

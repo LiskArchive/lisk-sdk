@@ -41,6 +41,7 @@ import { ChainAccountStore } from '../../../../src/modules/interoperability/stor
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { createStoreGetter } from '../../../../src/testing/utils';
 import { StoreGetter } from '../../../../src/modules/base_store';
+import { NamedRegistry } from '../../../../src/modules/named_registry';
 
 describe('Base interoperability store', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -143,6 +144,7 @@ describe('Base interoperability store', () => {
 			interopMod.stores,
 			context,
 			new Map(),
+			new NamedRegistry(),
 		);
 	});
 
@@ -418,6 +420,7 @@ describe('Base interoperability store', () => {
 				interopMod.stores,
 				context,
 				ccMethodModsMap,
+				new NamedRegistry(),
 			);
 		});
 
@@ -442,6 +445,7 @@ describe('Base interoperability store', () => {
 				interopMod.stores,
 				context,
 				new Map().set('mod1', ccMethodSampleMod),
+				new NamedRegistry(),
 			);
 			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal');
@@ -468,6 +472,7 @@ describe('Base interoperability store', () => {
 				interopMod.stores,
 				context,
 				new Map().set('newMod', ccMethodMod1),
+				new NamedRegistry(),
 			);
 			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal');
@@ -502,6 +507,7 @@ describe('Base interoperability store', () => {
 				interopMod.stores,
 				context,
 				new Map().set('mod1', ccMethodSampleMod),
+				new NamedRegistry(),
 			);
 
 			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
@@ -531,6 +537,7 @@ describe('Base interoperability store', () => {
 				interopMod.stores,
 				context,
 				new Map().set(MODULE_NAME_INTEROPERABILITY, ccMethodSampleMod),
+				new NamedRegistry(),
 			);
 			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal');

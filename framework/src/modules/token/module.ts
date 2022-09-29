@@ -57,7 +57,7 @@ import { TransferEvent } from './events/transfer';
 
 export class TokenModule extends BaseInteroperableModule {
 	public method = new TokenMethod(this.stores, this.events, this.name);
-	public endpoint = new TokenEndpoint(this.stores, this.offchainStores);
+	public endpoint = new TokenEndpoint(this.stores, this.offchainStores, this.events);
 	public crossChainMethod = new TokenInteroperableMethod(this.stores, this.events, this.method);
 
 	private _minBalances!: MinBalance[];

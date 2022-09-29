@@ -28,10 +28,9 @@ import {
 	REGISTRATION_FEE,
 	MAX_CHAIN_NAME_LENGTH,
 	EVENT_NAME_CHAIN_ACCOUNT_UPDATED,
-	EVENT_NAME_CCM_PROCESSED,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
-	CCM_SENT_STATUS_SUCCESS,
 	CHAIN_REGISTERED,
+	EVENT_NAME_CCM_SEND_SUCCESS,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	ccmSchema,
@@ -60,8 +59,8 @@ import { ChainValidatorsStore } from '../../../../../../src/modules/interoperabi
 import { createTransactionContext } from '../../../../../../src/testing';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 import { EMPTY_BYTES, TOKEN_ID_LSK } from '../../../../../../src/modules/token/constants';
-import { CcmProcessedEvent } from '../../../../../../src/modules/interoperability/events/ccm_processed';
 import { ChainAccountUpdatedEvent } from '../../../../../../src/modules/interoperability/events/chain_account_updated';
+import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
 
 describe('Sidechain registration command', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -127,8 +126,6 @@ describe('Sidechain registration command', () => {
 	let registeredNamesSubstore: RegisteredNamesStore;
 	let verifyContext: CommandVerifyContext<SidechainRegistrationParams>;
 	let tokenMethod: TokenMethod;
-	let chainAccountUpdatedEvent: ChainAccountUpdatedEvent;
-	let ccmProcessedEvent: CcmProcessedEvent;
 
 	beforeEach(async () => {
 		sidechainRegistrationCommand = new SidechainRegistrationCommand(
@@ -168,10 +165,6 @@ describe('Sidechain registration command', () => {
 		jest.spyOn(registeredNamesSubstore, 'set');
 		jest.spyOn(chainAccountSubstore, 'set');
 		jest.spyOn(ownChainAccountSubstore, 'set');
-		chainAccountUpdatedEvent = interopMod.events.get(ChainAccountUpdatedEvent);
-		ccmProcessedEvent = interopMod.events.get(CcmProcessedEvent);
-		jest.spyOn(chainAccountUpdatedEvent, 'log');
-		jest.spyOn(ccmProcessedEvent, 'log');
 	});
 
 	describe('verify', () => {
@@ -447,8 +440,14 @@ describe('Sidechain registration command', () => {
 
 	describe('execute', () => {
 		let context: CommandExecuteContext<SidechainRegistrationParams>;
+		let chainAccountUpdatedEvent: ChainAccountUpdatedEvent;
+		let ccmSendSuccessEvent: CcmSendSuccessEvent;
 
 		beforeEach(() => {
+			chainAccountUpdatedEvent = interopMod.events.get(ChainAccountUpdatedEvent);
+			ccmSendSuccessEvent = interopMod.events.get(CcmSendSuccessEvent);
+			jest.spyOn(chainAccountUpdatedEvent, 'log');
+			jest.spyOn(ccmSendSuccessEvent, 'log');
 			context = createTransactionContext({
 				transaction,
 				stateStore,
@@ -603,7 +602,7 @@ describe('Sidechain registration command', () => {
 			);
 		});
 
-		it(`should emit ${EVENT_NAME_CCM_PROCESSED} event`, async () => {
+		it(`should emit ${EVENT_NAME_CCM_SEND_SUCCESS} event`, async () => {
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
 				name: transactionParams.name,
 				chainID: transactionParams.chainID,
@@ -619,16 +618,22 @@ describe('Sidechain registration command', () => {
 				status: CCM_STATUS_OK,
 				params: encodedParams,
 			};
+
 			const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
 
 			// Act
 			await sidechainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(ccmProcessedEvent.log).toHaveBeenCalledWith(expect.anything(), chainID, newChainID, {
+			expect(ccmSendSuccessEvent.log).toHaveBeenCalledWith(
+				expect.anything(),
+				chainID,
+				newChainID,
 				ccmID,
-				status: CCM_SENT_STATUS_SUCCESS,
-			});
+				{
+					ccmID,
+				},
+			);
 		});
 	});
 });
