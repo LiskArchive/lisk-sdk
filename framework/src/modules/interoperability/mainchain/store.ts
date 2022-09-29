@@ -39,11 +39,11 @@ import { ForwardCCMsgResult } from './types';
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async isLive(chainID: Buffer, timestamp: number): Promise<boolean> {
 		const ownChainAccount = await this.getOwnChainAccount();
-		if (chainID.equals(ownChainAccount.id)) {
+		if (chainID.equals(ownChainAccount.chainID)) {
 			return true;
 		}
 
-		if (!ownChainAccount.id.equals(MAINCHAIN_ID_BUFFER)) {
+		if (!ownChainAccount.chainID.equals(MAINCHAIN_ID_BUFFER)) {
 			return false;
 		}
 

@@ -145,7 +145,10 @@ describe('Mainchain interoperability store', () => {
 		});
 
 		it('should return true if chainID equals ownChainAccount id', async () => {
-			const isLive = await mainchainInteroperabilityStore.isLive(ownChainAccount.id, timestamp);
+			const isLive = await mainchainInteroperabilityStore.isLive(
+				ownChainAccount.chainID,
+				timestamp,
+			);
 
 			expect(isLive).toBe(true);
 		});
@@ -153,7 +156,7 @@ describe('Mainchain interoperability store', () => {
 		it('should return false if ownChainAccount id does not equal mainchain ID', async () => {
 			await mainchainInteroperabilityStore.setOwnChainAccount({
 				...ownChainAccount,
-				id: utils.getRandomBytes(32),
+				chainID: utils.getRandomBytes(32),
 			});
 			const isLive = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
 
