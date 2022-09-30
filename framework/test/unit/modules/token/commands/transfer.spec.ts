@@ -26,7 +26,8 @@ import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefix
 import { createTransactionContext, createTransientMethodContext } from '../../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 
-describe('Transfer command', () => {
+// TODO: Fix in https://github.com/LiskHQ/lisk-sdk/issues/7573
+describe.skip('Transfer command', () => {
 	const tokenModule = new TokenModule();
 
 	const localTokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
@@ -52,10 +53,15 @@ describe('Transfer command', () => {
 		};
 		method.addDependencies(interopMethod as never);
 		method.init({
-			ownchainID: Buffer.from([0, 0, 0, 1]),
+			ownChainID: Buffer.from([0, 0, 0, 1]),
+			escrowAccountInitializationFee: BigInt(50000000),
+			userAccountInitializationFee: BigInt(50000000),
+			feeTokenID: localTokenID,
 			minBalances: [
-				{ tokenID: localTokenID, amount: BigInt(MIN_BALANCE) },
-				{ tokenID: secondTokenID, amount: BigInt(MIN_BALANCE) },
+				{
+					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
+					amount: BigInt(5000000),
+				},
 			],
 		});
 		command.init({
@@ -198,7 +204,6 @@ describe('Transfer command', () => {
 			await supplyStore.set(context, localTokenID.slice(4), { totalSupply });
 		});
 
-		// TODO: Fix in https://github.com/LiskHQ/lisk-sdk/issues/7573
 		it.skip('should reject when sender does not have enough balance for amount', async () => {
 			const context = createTransactionContext({
 				stateStore,

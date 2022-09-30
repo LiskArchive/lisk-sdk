@@ -22,6 +22,7 @@ export interface ModuleConfig {
 		tokenID: string;
 		amount: string;
 	}[];
+	feeTokenID: string;
 }
 
 export interface MinBalance {
@@ -69,4 +70,5 @@ export interface InteroperabilityMethod {
 	error(methodContext: MethodContext, ccm: CCMsg, code: number): Promise<void>;
 	terminateChain(methodContext: MethodContext, chainID: Buffer): Promise<void>;
 	getChannel(methodContext: MethodContext, chainID: Buffer): Promise<{ messageFeeTokenID: Buffer }>;
+	getMessageFeeTokenID(methodContext: MethodContext, chainID: Buffer): Promise<Buffer>;
 }

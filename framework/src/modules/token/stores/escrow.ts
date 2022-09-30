@@ -35,14 +35,26 @@ export const escrowStoreSchema = {
 export class EscrowStore extends BaseStore<EscrowStoreData> {
 	public schema = escrowStoreSchema;
 
+	public getKey(escrowChainID: Buffer, tokenID: Buffer): Buffer {
+		return Buffer.concat([escrowChainID, tokenID]);
+	}
+
+	public async createDefaultAccount(
+		context: StoreGetter,
+		chainID: Buffer,
+		tokenID: Buffer,
+	): Promise<void> {
+		await this.set(context, this.getKey(chainID, tokenID), { amount: BigInt(0) });
+	}
+
 	public async addAmount(
 		context: StoreGetter,
-		sendingChainID: Buffer,
+		chainID: Buffer,
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
 		let escrowData: EscrowStoreData;
-		const escrowKey = Buffer.concat([sendingChainID, tokenID]);
+		const escrowKey = Buffer.concat([chainID, tokenID]);
 		try {
 			escrowData = await this.get(context, escrowKey);
 		} catch (error) {

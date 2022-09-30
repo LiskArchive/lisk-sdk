@@ -18,7 +18,7 @@ import { NotFoundError } from '../../state_machine';
 import { JSONObject, ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { TokenMethod } from './method';
-import { CHAIN_ID_ALIAS_NATIVE, LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from './constants';
+import { LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from './constants';
 import {
 	getBalanceRequestSchema,
 	getBalancesRequestSchema,
@@ -30,12 +30,11 @@ import { SupplyStore } from './stores/supply';
 import { UserStore } from './stores/user';
 import { splitTokenID } from './utils';
 
-export class TokenEndpoint extends BaseEndpoint {
-	private _tokenMethod!: TokenMethod;
+const CHAIN_ID_ALIAS_NATIVE = Buffer.from([0, 0, 0, 1]);
 
-	public init(tokenMethod: TokenMethod) {
-		this._tokenMethod = tokenMethod;
-	}
+export class TokenEndpoint extends BaseEndpoint {
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	public init(_tokenMethod: TokenMethod) {}
 
 	public async getBalances(
 		context: ModuleEndpointContext,
@@ -69,13 +68,9 @@ export class TokenEndpoint extends BaseEndpoint {
 
 		const address = cryptography.address.getAddressFromLisk32Address(context.params.address);
 		const tokenID = Buffer.from(context.params.tokenID, 'hex');
-		const canonicalTokenID = await this._tokenMethod.getCanonicalTokenID(
-			context.getImmutableMethodContext(),
-			tokenID,
-		);
 		const userStore = this.stores.get(UserStore);
 		try {
-			const user = await userStore.get(context, userStore.getKey(address, canonicalTokenID));
+			const user = await userStore.get(context, userStore.getKey(address, tokenID));
 			return {
 				availableBalance: user.availableBalance.toString(),
 				lockedBalances: user.lockedBalances.map(b => ({

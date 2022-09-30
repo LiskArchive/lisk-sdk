@@ -76,7 +76,7 @@ describe('Process block', () => {
 					address: genesis.address,
 					tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),
 				});
-				const expected = originalBalance - transaction.fee - amount;
+				const expected = originalBalance - transaction.fee - amount - BigInt(50000000);
 				expect(balance.availableBalance).toEqual(expected.toString());
 			});
 

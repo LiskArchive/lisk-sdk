@@ -62,6 +62,17 @@ export class UserStore extends BaseStore<UserStoreData> {
 		return allUserData.length !== 0;
 	}
 
+	public async createDefaultAccount(
+		context: StoreGetter,
+		address: Buffer,
+		tokenID: Buffer,
+	): Promise<void> {
+		await this.set(context, this.getKey(address, tokenID), {
+			availableBalance: BigInt(0),
+			lockedBalances: [],
+		});
+	}
+
 	public async addAvailableBalanceWithCreate(
 		context: StoreGetter,
 		address: Buffer,

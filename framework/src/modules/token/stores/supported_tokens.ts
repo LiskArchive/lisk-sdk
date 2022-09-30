@@ -49,14 +49,7 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 	}
 
 	public async allSupported(context: ImmutableStoreGetter): Promise<boolean> {
-		const allSupportedTokens = await this.iterate(context, {
-			gte: Buffer.alloc(4, 0),
-			lte: Buffer.alloc(4, 255),
-		});
-
-		return (
-			allSupportedTokens.length === 1 && allSupportedTokens[0].key.equals(ALL_SUPPORTED_TOKENS_KEY)
-		);
+		return this.has(context, ALL_SUPPORTED_TOKENS_KEY);
 	}
 
 	public async isSupported(context: ImmutableStoreGetter, tokenID: Buffer): Promise<boolean> {
@@ -84,6 +77,17 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 		return false;
 	}
 
+	public async removeAll(context: StoreGetter): Promise<void> {
+		// check if exist
+		const allSupportedTokens = await this.iterate(context, {
+			gte: Buffer.alloc(4, 0),
+			lte: Buffer.alloc(4, 255),
+		});
+		for (const { key } of allSupportedTokens) {
+			await this.del(context, key);
+		}
+	}
+
 	public async supportAll(context: StoreGetter): Promise<void> {
 		const allSupportedTokens = await this.iterate(context, {
 			gte: Buffer.alloc(4, 0),
@@ -100,8 +104,24 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 		if (this._isMainchainOrNative(Buffer.concat([chainID, Buffer.alloc(LOCAL_ID_LENGTH)]))) {
 			return;
 		}
+		const allSupported = await this.allSupported(context);
+		if (allSupported) {
+			return;
+		}
 		await this.del(context, ALL_SUPPORTED_TOKENS_KEY);
 		await this.set(context, chainID, { supportedTokenIDs: [] });
+	}
+
+	public async removeSupportForChain(context: StoreGetter, chainID: Buffer): Promise<void> {
+		// LSK or native token do not need entry
+		if (this._isMainchainOrNative(Buffer.concat([chainID, Buffer.alloc(LOCAL_ID_LENGTH)]))) {
+			return;
+		}
+		const supportExist = await this.has(context, chainID);
+		if (!supportExist) {
+			throw new Error(`ChainID ${chainID.toString('hex')} is not supported.`);
+		}
+		await this.del(context, chainID);
 	}
 
 	public async supportToken(context: StoreGetter, tokenID: Buffer): Promise<void> {
@@ -109,7 +129,11 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 		if (this._isMainchainOrNative(tokenID)) {
 			return;
 		}
-		const chainID = tokenID.slice(0, CHAIN_ID_LENGTH);
+		const allSupported = await this.allSupported(context);
+		if (allSupported) {
+			return;
+		}
+		const [chainID] = splitTokenID(tokenID);
 		let supported: SupportedTokensStoreData = { supportedTokenIDs: [] };
 		try {
 			supported = await this.get(context, chainID);
@@ -122,6 +146,29 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 		supported.supportedTokenIDs.sort((a, b) => a.compare(b));
 		await this.del(context, ALL_SUPPORTED_TOKENS_KEY);
 		await this.set(context, chainID, supported);
+	}
+
+	public async removeSupportForToken(context: StoreGetter, tokenID: Buffer): Promise<void> {
+		if (this._isMainchainOrNative(tokenID)) {
+			return;
+		}
+		const allSupported = await this.allSupported(context);
+		if (allSupported) {
+			return;
+		}
+		const [chainID] = splitTokenID(tokenID);
+		const supported = await this.get(context, chainID);
+		const index = supported.supportedTokenIDs.findIndex(id => id.equals(tokenID));
+		if (index < 0) {
+			throw new Error(`TokenID ${tokenID.toString('hex')} is not supported.`);
+		}
+		supported.supportedTokenIDs.splice(index, 1);
+
+		if (supported.supportedTokenIDs.length > 0) {
+			await this.set(context, chainID, supported);
+		} else {
+			await this.del(context, chainID);
+		}
 	}
 
 	private _isMainchainOrNative(tokenID: Buffer): boolean {
