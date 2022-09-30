@@ -28,9 +28,13 @@ export const ccmProcessedEventSchema = {
 			dataType: 'bytes',
 			fieldNumber: 1,
 		},
-		status: {
+		result: {
 			dataType: 'uint32',
 			fieldNumber: 2,
+		},
+		status: {
+			dataType: 'uint32',
+			fieldNumber: 3,
 		},
 	},
 };
