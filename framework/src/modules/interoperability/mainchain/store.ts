@@ -19,9 +19,11 @@ import {
 	CCM_STATUS_OK,
 	CHAIN_ACTIVE,
 	CHAIN_REGISTERED,
+	CHAIN_TERMINATED,
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_FEE_ADDRESS,
 	LIVENESS_LIMIT,
+	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../constants';
 import { createCCMsgBeforeSendContext } from '../context';
@@ -36,14 +38,27 @@ import { ForwardCCMsgResult } from './types';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async isLive(chainID: Buffer, timestamp: number): Promise<boolean> {
-		const isTerminated = await this.hasTerminatedStateAccount(chainID);
-		if (isTerminated) {
+		const ownChainAccount = await this.getOwnChainAccount();
+		if (chainID.equals(ownChainAccount.id)) {
+			return true;
+		}
+
+		if (!ownChainAccount.id.equals(MAINCHAIN_ID_BUFFER)) {
 			return false;
 		}
 
-		const chainAccount = await this.getChainAccount(chainID);
-		if (timestamp - chainAccount.lastCertificate.timestamp > LIVENESS_LIMIT) {
-			return false;
+		const chainAccountExists = await this.chainAccountExist(chainID);
+		if (chainAccountExists) {
+			const chainAccount = await this.getChainAccount(chainID);
+			if (chainAccount.status === CHAIN_TERMINATED) {
+				return false;
+			}
+			if (
+				chainAccount.status === CHAIN_ACTIVE &&
+				timestamp - chainAccount.lastCertificate.timestamp > LIVENESS_LIMIT
+			) {
+				return false;
+			}
 		}
 
 		return true;

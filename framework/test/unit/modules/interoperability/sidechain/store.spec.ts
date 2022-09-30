@@ -14,6 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import {
+	CHAIN_TERMINATED,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	MAINCHAIN_ID,
 	MAX_CCM_SIZE,
@@ -82,7 +83,14 @@ describe('Sidechain interoperability store', () => {
 	});
 
 	describe('isLive', () => {
-		it('should return false if chain is already terminated', async () => {
+		it(`should return false if chain account exists and status is ${CHAIN_TERMINATED}`, async () => {
+			await chainDataSubstore.set(context, chainID, { ...chainAccount, status: CHAIN_TERMINATED });
+			const isLive = await sidechainInteroperabilityStore.isLive(chainID);
+
+			expect(isLive).toBe(false);
+		});
+
+		it('should return false if chainID exists in terminated state', async () => {
 			await terminatedStateSubstore.set(context, chainID, chainAccount);
 			const isLive = await sidechainInteroperabilityStore.isLive(chainID);
 

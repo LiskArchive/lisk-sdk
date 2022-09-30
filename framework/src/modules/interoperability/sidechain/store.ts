@@ -13,15 +13,27 @@
  */
 
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
-import { CHAIN_ACTIVE, MAINCHAIN_ID } from '../constants';
+import { CHAIN_ACTIVE, CHAIN_TERMINATED, MAINCHAIN_ID } from '../constants';
 import { createCCMsgBeforeSendContext } from '../context';
 import { CCMsg, SendInternalContext } from '../types';
 import { getIDAsKeyForStore, validateFormat } from '../utils';
 
 export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async isLive(chainID: Buffer): Promise<boolean> {
+		const chainAccountExists = await this.chainAccountExist(chainID);
+		if (chainAccountExists) {
+			const chainAccount = await this.getChainAccount(chainID);
+			if (chainAccount.status === CHAIN_TERMINATED) {
+				return false;
+			}
+		}
+
 		const isTerminated = await this.hasTerminatedStateAccount(chainID);
-		return !isTerminated;
+		if (isTerminated) {
+			return false;
+		}
+
+		return true;
 	}
 
 	public async sendInternal(sendContext: SendInternalContext): Promise<boolean> {
