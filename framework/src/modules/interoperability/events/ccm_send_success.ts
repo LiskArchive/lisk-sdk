@@ -33,7 +33,7 @@ export const ccmSendSuccessDataSchema = {
 	},
 };
 
-export class CcmSentSuccessEvent extends BaseEvent<CcmSendSuccessEventData> {
+export class CcmSendSuccessEvent extends BaseEvent<CcmSendSuccessEventData> {
 	public schema = ccmSendSuccessDataSchema;
 
 	public log(
