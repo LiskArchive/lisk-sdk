@@ -20,13 +20,12 @@ import { TokenMethod } from '../method';
 import {
 	CCM_STATUS_OK,
 	CCM_STATUS_TOKEN_NOT_SUPPORTED,
-	CHAIN_ID_ALIAS_NATIVE,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 } from '../constants';
 import { CCTransferMessageParams, crossChainTransferMessageParams } from '../schemas';
-import { EscrowStore } from '../stores/escrow';
-import { SupplyStore } from '../stores/supply';
-import { UserStore } from '../stores/user';
+// import { EscrowStore } from '../stores/escrow';
+// import { SupplyStore } from '../stores/supply';
+// import { UserStore } from '../stores/user';
 import { InteroperabilityMethod, MinBalance } from '../types';
 import { splitTokenID, tokenSupported } from '../utils';
 
@@ -36,7 +35,7 @@ export class CCTransferCommand extends BaseCCCommand {
 	private readonly _tokenMethod: TokenMethod;
 	private _interopMethod!: InteroperabilityMethod;
 	private _supportedTokenIDs!: Buffer[];
-	private _minBalances!: MinBalance[];
+	// private _minBalances!: MinBalance[];
 
 	public constructor(stores: NamedRegistry, events: NamedRegistry, tokenMethod: TokenMethod) {
 		super(stores, events);
@@ -53,7 +52,7 @@ export class CCTransferCommand extends BaseCCCommand {
 
 	public init(args: { minBalances: MinBalance[]; supportedTokenIDs: Buffer[] }): void {
 		this._supportedTokenIDs = args.supportedTokenIDs;
-		this._minBalances = args.minBalances;
+		// this._minBalances = args.minBalances;
 	}
 
 	public async execute(ctx: CrossChainMessageContext): Promise<void> {
@@ -62,12 +61,12 @@ export class CCTransferCommand extends BaseCCCommand {
 		const { chainID: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
 		let params: CCTransferMessageParams;
 		let tokenChainID;
-		let tokenLocalID;
+		// let tokenLocalID;
 		try {
 			params = codec.decode<CCTransferMessageParams>(crossChainTransferMessageParams, ccm.params);
 			validator.validate(crossChainTransferMessageParams, params);
 
-			[tokenChainID, tokenLocalID] = splitTokenID(params.tokenID);
+			[tokenChainID] = splitTokenID(params.tokenID);
 			if (tokenChainID.equals(ownChainID)) {
 				const escrowedAmount = await this._tokenMethod.getEscrowedAmount(
 					methodContext,
@@ -98,57 +97,55 @@ export class CCTransferCommand extends BaseCCCommand {
 			ccm.status === CCM_STATUS_OK
 		) {
 			await this._interopMethod.error(methodContext, ccm, CCM_STATUS_TOKEN_NOT_SUPPORTED);
-			return;
 		}
 
-		let { recipientAddress } = params;
-		if (ccm.status !== CCM_STATUS_OK) {
-			recipientAddress = params.senderAddress;
-		}
+		// let { recipientAddress } = params;
+		// if (ccm.status !== CCM_STATUS_OK) {
+		// 	recipientAddress = params.senderAddress;
+		// }
 
-		const canonicalTokenID = await this._tokenMethod.getCanonicalTokenID(
-			methodContext,
-			params.tokenID,
-		);
-		const recipientExist = await this._tokenMethod.accountExists(
-			methodContext,
-			params.recipientAddress,
-		);
-		let receivedAmount = params.amount;
-		if (!recipientExist) {
-			const minBalance = this._minBalances.find(mb => mb.tokenID.equals(canonicalTokenID))?.amount;
-			if (!minBalance || minBalance > params.amount) {
-				// TODO: Update to development branch. This is not used anymore
-				// if (ccm.fee >= MIN_RETURN_FEE * ctx.ccmSize && ccm.status === CCM_STATUS_OK) {
-				// 	await this._interopMethod.error(methodContext, ccm, CCM_STATUS_MIN_BALANCE_NOT_REACHED);
-				// }
-				return;
-			}
-			receivedAmount -= minBalance;
-			const [canonicalChainID, canonicalLocalID] = splitTokenID(canonicalTokenID);
-			if (canonicalChainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
-				const supplyStore = this.stores.get(SupplyStore);
-				const supply = await supplyStore.get(methodContext, canonicalLocalID);
-				supply.totalSupply -= minBalance;
-				await supplyStore.set(methodContext, canonicalLocalID, supply);
-			}
-		}
+		// const canonicalTokenID = await this._tokenMethod.getCanonicalTokenID(
+		// 	methodContext,
+		// 	params.tokenID,
+		// );
+		// const recipientExist = await this._tokenMethod.accountExists(
+		// 	methodContext,
+		// 	params.recipientAddress,
+		// );
+		// let receivedAmount = params.amount;
+		// if (!recipientExist) {
+		// 	const minBalance = this._minBalances.find(mb => mb.tokenID.equals(canonicalTokenID))?.amount;
+		// 	if (!minBalance || minBalance > params.amount) {
+		// 		if (ccm.fee >= MIN_RETURN_FEE * ctx.ccmSize && ccm.status === CCM_STATUS_OK) {
+		// 			await this._interopMethod.error(methodContext, ccm, CCM_STATUS_MIN_BALANCE_NOT_REACHED);
+		// 		}
+		// 		return;
+		// 	}
+		// 	receivedAmount -= minBalance;
+		// 	const [canonicalChainID, canonicalLocalID] = splitTokenID(canonicalTokenID);
+		// 	if (canonicalChainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
+		// 		const supplyStore = this.stores.get(SupplyStore);
+		// 		const supply = await supplyStore.get(methodContext, canonicalLocalID);
+		// 		supply.totalSupply -= minBalance;
+		// 		await supplyStore.set(methodContext, canonicalLocalID, supply);
+		// 	}
+		// }
 
-		if (tokenChainID.equals(ownChainID)) {
-			const escrowStore = this.stores.get(EscrowStore);
-			const escrowKey = Buffer.concat([ccm.sendingChainID, tokenLocalID]);
-			const escrowData = await escrowStore.get(methodContext, escrowKey);
+		// if (tokenChainID.equals(ownChainID)) {
+		// 	const escrowStore = this.stores.get(EscrowStore);
+		// 	const escrowKey = Buffer.concat([ccm.sendingChainID, tokenLocalID]);
+		// 	const escrowData = await escrowStore.get(methodContext, escrowKey);
 
-			escrowData.amount -= params.amount;
-			await escrowStore.set(methodContext, escrowKey, escrowData);
-		}
+		// 	escrowData.amount -= params.amount;
+		// 	await escrowStore.set(methodContext, escrowKey, escrowData);
+		// }
 
-		const userStore = this.stores.get(UserStore);
-		await userStore.addAvailableBalanceWithCreate(
-			methodContext,
-			recipientAddress,
-			canonicalTokenID,
-			receivedAmount,
-		);
+		// const userStore = this.stores.get(UserStore);
+		// await userStore.addAvailableBalanceWithCreate(
+		// 	methodContext,
+		// 	recipientAddress,
+		// 	canonicalTokenID,
+		// 	receivedAmount,
+		// );
 	}
 }

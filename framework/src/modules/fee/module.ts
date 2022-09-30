@@ -93,7 +93,7 @@ export class FeeModule extends BaseModule {
 		const minFee = BigInt(this._minFeePerByte * context.transaction.getBytes().length);
 		const methodContext = context.getMethodContext();
 
-		const isNative = await this._tokenMethod.isNative(methodContext, this._tokenID);
+		const isNative = this._tokenMethod.isNativeToken(this._tokenID);
 		if (isNative) {
 			await this._tokenMethod.burn(methodContext, senderAddress, this._tokenID, minFee);
 			await this._tokenMethod.transfer(

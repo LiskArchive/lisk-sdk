@@ -28,7 +28,7 @@ export interface TokenMethod {
 		id: Buffer,
 		amount: bigint,
 	) => Promise<void>;
-	isNative: (methodContext: MethodContext, id: FeeTokenID) => Promise<boolean>;
+	isNativeToken: (id: FeeTokenID) => boolean;
 	burn: (
 		methodContext: MethodContext,
 		senderAddress: Buffer,

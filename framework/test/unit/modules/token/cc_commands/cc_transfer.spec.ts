@@ -86,10 +86,18 @@ describe.skip('CrossChain Transfer command', () => {
 			{ tokenID: defaultForeignTokenID, amount: BigInt(MIN_BALANCE) },
 		];
 		method.addDependencies(interopMethod as never);
-		command.addDependencies(interopMethod);
+		command.addDependencies(interopMethod as any);
 		method.init({
-			ownchainID: Buffer.from([0, 0, 0, 1]),
-			minBalances,
+			ownChainID: Buffer.from([0, 0, 0, 1]),
+			escrowAccountInitializationFee: BigInt(50000000),
+			userAccountInitializationFee: BigInt(50000000),
+			feeTokenID: defaultTokenID,
+			minBalances: [
+				{
+					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
+					amount: BigInt(5000000),
+				},
+			],
 		});
 		command.init({
 			minBalances,

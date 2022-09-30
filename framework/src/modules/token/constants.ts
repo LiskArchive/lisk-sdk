@@ -37,7 +37,6 @@ export const TOKEN_ID_LENGTH = CHAIN_ID_LENGTH + LOCAL_ID_LENGTH;
 export const LOCAL_ID_LSK = Buffer.alloc(LOCAL_ID_LENGTH, 0);
 export const CHAIN_ID_LSK = Buffer.from([0, 0, 0, 0]);
 export const TOKEN_ID_LSK = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
-export const CHAIN_ID_ALIAS_NATIVE = Buffer.alloc(CHAIN_ID_LENGTH, 0);
 
 export const defaultConfig = {
 	minBalances: [
@@ -54,6 +53,14 @@ export const enum TokenEventResult {
 	SUCCESSFUL = 0,
 	FAIL_INSUFFICIENT_BALANCE = 1,
 	FAIL_RECIPIENT_NOT_INITIALIZED = 2,
+	INVALID_INITIALIZATION_FEE_VALUE = 3,
+	DATA_TOO_LONG = 4,
+	ESCROW_NOT_INITIALIZED = 5,
+	INVALID_TOKEN_ID = 6,
+	MINT_FAIL_NON_NATIVE_TOKEN = 11,
+	MINT_FAIL_TOTAL_SUPPLY_TOO_BIG = 12,
+	MINT_FAIL_TOKEN_NOT_INITIALIZED = 13,
+	MAX_AVAILABLE_ID_REACHED = 14,
 }
 
 export type TokenErrorEventResult = Exclude<TokenEventResult, TokenEventResult.SUCCESSFUL>;

@@ -31,15 +31,11 @@ import {
 } from './schemas';
 import { TokenMethod } from './method';
 import { TokenEndpoint } from './endpoint';
-import { GenesisTokenStore, MinBalance, ModuleConfig } from './types';
+import { GenesisTokenStore, InteroperabilityMethod, MinBalance, ModuleConfig } from './types';
 import { splitTokenID } from './utils';
 import { CCTransferCommand } from './commands/cc_transfer';
 import { BaseInteroperableModule } from '../interoperability/base_interoperable_module';
 import { TokenInteroperableMethod } from './cc_method';
-import {
-	MainchainInteroperabilityMethod,
-	SidechainInteroperabilityMethod,
-} from '../interoperability';
 import { UserStore } from './stores/user';
 import { EscrowStore } from './stores/escrow';
 import { SupplyStore } from './stores/supply';
@@ -110,9 +106,7 @@ export class TokenModule extends BaseInteroperableModule {
 		this.events.register(TokenIDSupportRemovedEvent, new TokenIDSupportRemovedEvent(this.name));
 	}
 
-	public addDependencies(
-		interoperabilityMethod: MainchainInteroperabilityMethod | SidechainInteroperabilityMethod,
-	) {
+	public addDependencies(interoperabilityMethod: InteroperabilityMethod) {
 		this.method.addDependencies(interoperabilityMethod);
 	}
 
@@ -162,17 +156,28 @@ export class TokenModule extends BaseInteroperableModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig, genesisConfig } = args;
-		const config = objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
+		this._ownChainID = Buffer.from(genesisConfig.chainID, 'hex');
+		const config = objects.mergeDeep(
+			{},
+			defaultConfig,
+			{ feeTokenID: Buffer.concat([this._ownChainID, Buffer.alloc(4, 0)]).toString('hex') },
+			moduleConfig,
+		) as ModuleConfig;
 		validator.validate(configSchema, config);
 
-		this._ownChainID = Buffer.from(genesisConfig.chainID, 'hex');
 		this.stores.get(SupportedTokensStore).registerOwnChainID(this._ownChainID);
 
 		this._minBalances = config.minBalances.map(mb => ({
 			tokenID: Buffer.from(mb.tokenID, 'hex'),
 			amount: BigInt(mb.amount),
 		}));
-		this.method.init({ minBalances: this._minBalances, ownchainID: this._ownChainID });
+		this.method.init({
+			minBalances: this._minBalances,
+			ownChainID: this._ownChainID,
+			escrowAccountInitializationFee: BigInt('50000000'),
+			feeTokenID: Buffer.from(config.feeTokenID, 'hex'),
+			userAccountInitializationFee: BigInt('50000000'),
+		});
 		this.endpoint.init(this.method);
 		this._transferCommand.init({
 			method: this.method,

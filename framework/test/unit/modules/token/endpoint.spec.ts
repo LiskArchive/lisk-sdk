@@ -13,7 +13,7 @@
  */
 import { address, utils } from '@liskhq/lisk-cryptography';
 import { TokenMethod, TokenModule } from '../../../../src/modules/token';
-import { CHAIN_ID_LENGTH, TOKEN_ID_LENGTH } from '../../../../src/modules/token/constants';
+import { CHAIN_ID_LENGTH } from '../../../../src/modules/token/constants';
 import { TokenEndpoint } from '../../../../src/modules/token/endpoint';
 import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
 import { SupplyStore } from '../../../../src/modules/token/stores/supply';
@@ -30,7 +30,6 @@ import { DEFAULT_LOCAL_ID } from '../../../utils/mocks/transaction';
 describe('token endpoint', () => {
 	const tokenModule = new TokenModule();
 	const defaultAddress = utils.getRandomBytes(20);
-	const defaultTokenIDAlias = Buffer.alloc(TOKEN_ID_LENGTH, 0);
 	const defaultTokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
 	const defaultForeignTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
 	const defaultAccount = {
@@ -54,13 +53,16 @@ describe('token endpoint', () => {
 		const method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
 		endpoint = new TokenEndpoint(tokenModule.stores, tokenModule.offchainStores);
 		method.init({
-			ownchainID: Buffer.from([0, 0, 0, 1]),
+			ownChainID: Buffer.from([0, 0, 0, 1]),
 			minBalances: [
 				{
 					tokenID: DEFAULT_LOCAL_ID,
 					amount: BigInt(5000000),
 				},
 			],
+			escrowAccountInitializationFee: BigInt(50000000),
+			userAccountInitializationFee: BigInt(50000000),
+			feeTokenID: defaultTokenID,
 		});
 		method.addDependencies({
 			getOwnChainAccount: jest.fn().mockResolvedValue({ chainID: Buffer.from([0, 0, 0, 1]) }),
@@ -77,7 +79,7 @@ describe('token endpoint', () => {
 		await userStore.save(methodContext, defaultAddress, defaultForeignTokenID, defaultAccount);
 
 		const supplyStore = tokenModule.stores.get(SupplyStore);
-		await supplyStore.set(methodContext, defaultTokenIDAlias.slice(CHAIN_ID_LENGTH), {
+		await supplyStore.set(methodContext, defaultTokenID.slice(CHAIN_ID_LENGTH), {
 			totalSupply: defaultTotalSupply,
 		});
 
@@ -86,7 +88,7 @@ describe('token endpoint', () => {
 			methodContext,
 			Buffer.concat([
 				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
-				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
+				defaultTokenID.slice(CHAIN_ID_LENGTH),
 			]),
 			{ amount: defaultEscrowAmount },
 		);
@@ -227,7 +229,7 @@ describe('token endpoint', () => {
 			expect(resp).toEqual({
 				totalSupply: [
 					{
-						tokenID: defaultTokenIDAlias.toString('hex'),
+						tokenID: defaultTokenID.toString('hex'),
 						totalSupply: defaultTotalSupply.toString(),
 					},
 				],
@@ -248,7 +250,7 @@ describe('token endpoint', () => {
 			expect(resp).toEqual({
 				escrowedAmounts: [
 					{
-						tokenID: defaultTokenIDAlias.toString('hex'),
+						tokenID: defaultTokenID.toString('hex'),
 						escrowChainID: defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH).toString('hex'),
 						amount: defaultEscrowAmount.toString(),
 					},
