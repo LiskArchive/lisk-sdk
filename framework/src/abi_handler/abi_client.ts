@@ -302,6 +302,11 @@ export class ABIClient implements ABI {
 		await this._dealer.send([encodedRequest]);
 		const response = defer<Buffer>();
 		this._pendingRequests[this._globalID.toString()] = response as Defer<unknown>;
+		// Increment ID before async task
+		this._globalID += BigInt(1);
+		if (this._globalID >= BigInt(2) ** BigInt(64)) {
+			this._globalID = BigInt(0);
+		}
 
 		const resp = await Promise.race([
 			response.promise,
@@ -314,9 +319,6 @@ export class ABIClient implements ABI {
 		const decodedResp =
 			Object.keys(respSchema.properties).length > 0 ? codec.decode<T>(respSchema, resp) : ({} as T);
 
-		if (this._globalID >= BigInt(2) ** BigInt(64)) {
-			this._globalID = BigInt(0);
-		}
 		return decodedResp;
 	}
 
