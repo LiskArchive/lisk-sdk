@@ -66,13 +66,17 @@ export class StateMachine {
 		const initContext = ctx.createInitGenesisStateContext();
 		for (const mod of this._modules) {
 			if (mod.initGenesisState) {
+				this._logger.debug({ moduleName: mod.name }, 'Executing initGenesisState');
 				await mod.initGenesisState(initContext);
+				this._logger.debug({ moduleName: mod.name }, 'Executed initGenesisState');
 			}
 		}
 		const finalizeContext = ctx.createFinalizeGenesisStateContext();
 		for (const mod of this._modules) {
 			if (mod.finalizeGenesisState) {
+				this._logger.debug({ moduleName: mod.name }, 'Executing finalizeGenesisState');
 				await mod.finalizeGenesisState(finalizeContext);
+				this._logger.debug({ moduleName: mod.name }, 'Executed finalizeGenesisState');
 			}
 		}
 	}
@@ -81,7 +85,9 @@ export class StateMachine {
 		const initContext = ctx.getInsertAssetContext();
 		for (const mod of this._modules) {
 			if (mod.insertAssets) {
+				this._logger.debug({ moduleName: mod.name }, 'Executing insertAssets');
 				await mod.insertAssets(initContext);
+				this._logger.debug({ moduleName: mod.name }, 'Executed insertAssets');
 			}
 		}
 	}
@@ -91,7 +97,9 @@ export class StateMachine {
 		try {
 			for (const mod of this._modules) {
 				if (mod.verifyTransaction) {
+					this._logger.debug({ moduleName: mod.name }, 'Executing verifyTransaction');
 					const result = await mod.verifyTransaction(transactionContext);
+					this._logger.debug({ moduleName: mod.name }, 'Executed verifyTransaction');
 					if (result.status !== VerifyStatus.OK) {
 						this._logger.debug(
 							{ err: result.error, module: mod.name },
@@ -104,7 +112,15 @@ export class StateMachine {
 			const command = this._getCommand(ctx.transaction.module, ctx.transaction.command);
 			const commandContext = ctx.createCommandVerifyContext(command.schema);
 			if (command.verify) {
+				this._logger.debug(
+					{ commName: command.name, moduleName: ctx.transaction.module },
+					'Executing command.verify',
+				);
 				const result = await command.verify(commandContext);
+				this._logger.debug(
+					{ commName: command.name, moduleName: ctx.transaction.module },
+					'Executed command.verify',
+				);
 				if (result.status !== VerifyStatus.OK) {
 					this._logger.debug(
 						{ err: result.error, module: ctx.transaction.module, command: command.name },
@@ -115,7 +131,14 @@ export class StateMachine {
 			}
 			return { status: VerifyStatus.OK };
 		} catch (error) {
-			this._logger.debug({ err: error as Error }, 'Transaction verification failed');
+			this._logger.debug(
+				{
+					err: error as Error,
+					commName: ctx.transaction.command,
+					moduleName: ctx.transaction.module,
+				},
+				'Transaction verification failed',
+			);
 			return { status: VerifyStatus.FAIL, error: error as Error };
 		}
 	}
@@ -128,7 +151,9 @@ export class StateMachine {
 		for (const mod of this._modules) {
 			if (mod.beforeCommandExecute) {
 				try {
+					this._logger.debug({ moduleName: mod.name }, 'Executing beforeCommandExecute');
 					await mod.beforeCommandExecute(transactionContext);
+					this._logger.debug({ moduleName: mod.name }, 'Executed beforeCommandExecute');
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
@@ -146,7 +171,9 @@ export class StateMachine {
 		const commandStateStoreSnapshotID = ctx.stateStore.createSnapshot();
 		const commandContext = ctx.createCommandExecuteContext(command.schema);
 		try {
+			this._logger.debug({ commName: command.name }, 'Executing command.execute');
 			await command.execute(commandContext);
+			this._logger.debug({ commName: command.name }, 'executed command.execute');
 			ctx.eventQueue.unsafeAdd(
 				ctx.transaction.module,
 				EVENT_TRANSACTION_NAME,
@@ -165,7 +192,7 @@ export class StateMachine {
 			status = TransactionExecutionResult.FAIL;
 			this._logger.debug(
 				{ err: error as Error, module: ctx.transaction.module, command: ctx.transaction.command },
-				'Transaction execution failed',
+				'Command execution failed',
 			);
 		}
 
@@ -173,7 +200,9 @@ export class StateMachine {
 		for (const mod of this._modules) {
 			if (mod.afterCommandExecute) {
 				try {
+					this._logger.debug({ moduleName: mod.name }, 'Executing beforeCommandExecute');
 					await mod.afterCommandExecute(transactionContext);
+					this._logger.debug({ moduleName: mod.name }, 'Executed beforeCommandExecute');
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
@@ -198,7 +227,9 @@ export class StateMachine {
 		const blockVerifyContext = ctx.getBlockVerifyExecuteContext();
 		for (const mod of this._modules) {
 			if (mod.verifyAssets) {
+				this._logger.debug({ moduleName: mod.name }, 'Executing verifyAssets');
 				await mod.verifyAssets(blockVerifyContext);
+				this._logger.debug({ moduleName: mod.name }, 'Executed verifyAssets');
 			}
 		}
 	}
@@ -207,7 +238,9 @@ export class StateMachine {
 		const blockExecuteContext = ctx.getBlockExecuteContext();
 		for (const mod of this._modules) {
 			if (mod.beforeTransactionsExecute) {
+				this._logger.debug({ moduleName: mod.name }, 'Executing beforeTransactionsExecute');
 				await mod.beforeTransactionsExecute(blockExecuteContext);
+				this._logger.debug({ moduleName: mod.name }, 'Executed beforeTransactionsExecute');
 			}
 		}
 	}
@@ -216,7 +249,9 @@ export class StateMachine {
 		const blockExecuteContext = ctx.getBlockAfterExecuteContext();
 		for (const mod of this._modules) {
 			if (mod.afterTransactionsExecute) {
+				this._logger.debug({ moduleName: mod.name }, 'Executing afterTransactionsExecute');
 				await mod.afterTransactionsExecute(blockExecuteContext);
+				this._logger.debug({ moduleName: mod.name }, 'Executed afterTransactionsExecute');
 			}
 		}
 	}
