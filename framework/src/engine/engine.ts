@@ -104,9 +104,10 @@ export class Engine {
 		await this._generator.start();
 		await this._consensus.start();
 		await this._rpcServer.start();
-		await this._abi.ready({
+		await this._abi.init({
 			lastBlockHeight: this._chain.lastBlock.header.height,
 			chainID: this._chain.chainID,
+			lastStateRoot: this._chain.lastBlock.header.stateRoot as Buffer,
 		});
 		this._logger.info('Engine started');
 	}

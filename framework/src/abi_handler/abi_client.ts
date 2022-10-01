@@ -17,10 +17,10 @@ import { Dealer } from 'zeromq';
 import {
 	ABI,
 	IPCResponse,
-	readyRequestSchema,
-	readyResponseSchema,
-	ReadyRequest,
-	ReadyResponse,
+	initRequestSchema,
+	initResponseSchema,
+	InitRequest,
+	InitResponse,
 	InitStateMachineRequest,
 	InitStateMachineResponse,
 	InitGenesisStateRequest,
@@ -156,8 +156,8 @@ export class ABIClient implements ABI {
 		this._globalID = BigInt(0);
 	}
 
-	public async ready(req: ReadyRequest): Promise<ReadyResponse> {
-		return this._call<ReadyResponse>('ready', req, readyRequestSchema, readyResponseSchema);
+	public async init(req: InitRequest): Promise<InitResponse> {
+		return this._call<InitResponse>('init', req, initRequestSchema, initResponseSchema);
 	}
 
 	public async initStateMachine(req: InitStateMachineRequest): Promise<InitStateMachineResponse> {
@@ -294,6 +294,10 @@ export class ABIClient implements ABI {
 			method,
 			params,
 		};
+		this._logger.debug(
+			{ method: requestBody.method, id: requestBody.id, file: 'abi_client' },
+			'Requesting ABI server',
+		);
 		const encodedRequest = codec.encode(ipcRequestSchema, requestBody);
 		await this._dealer.send([encodedRequest]);
 		const response = defer<Buffer>();
@@ -303,6 +307,10 @@ export class ABIClient implements ABI {
 			response.promise,
 			timeout(DEFAULT_TIMEOUT, `Response not received in ${DEFAULT_TIMEOUT}ms`),
 		]);
+		this._logger.debug(
+			{ method: requestBody.method, id: requestBody.id, file: 'abi_client' },
+			'Reseived response from ABI server',
+		);
 		const decodedResp =
 			Object.keys(respSchema.properties).length > 0 ? codec.decode<T>(respSchema, resp) : ({} as T);
 

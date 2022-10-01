@@ -43,7 +43,7 @@ describe('engine', () => {
 
 	beforeEach(() => {
 		abi = {
-			ready: jest.fn(),
+			init: jest.fn(),
 		} as never;
 		jest.spyOn(logger, 'createLogger').mockReturnValue(fakeLogger);
 		jest.spyOn(Chain.prototype, 'genesisBlockExist').mockResolvedValue(true);
