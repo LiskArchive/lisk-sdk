@@ -33,10 +33,6 @@ const passwordDescription = `Specifies a source for your secret password. Comman
 	Examples:
 	- --password=pass:password123 (should only be used where security is not important)
 `;
-const chainIDDescription =
-	'Network identifier defined for the network or main | test for the Lisk Network.';
-
-const communityIdentifierDescription = 'Unique community identifier for network.';
 
 const dataPathDescription =
 	'Directory path to specify where node data is stored. Environment variable "LISK_DATA_PATH" can also be used.';
@@ -105,12 +101,6 @@ export const flags: FlagMap = {
 	password: {
 		char: 'w',
 		description: passwordDescription,
-	},
-	chainID: {
-		description: chainIDDescription,
-	},
-	communityIdentifier: {
-		description: communityIdentifierDescription,
 	},
 	dataPath: {
 		char: 'd',

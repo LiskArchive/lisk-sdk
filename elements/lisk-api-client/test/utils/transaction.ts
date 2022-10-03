@@ -37,17 +37,7 @@ export const nodeInfo: NodeInfo = {
 		blockTime: 10,
 		maxTransactionsSize: 15360,
 		bftThreshold: 68,
-		minFeePerByte: 1000,
-		rewards: {
-			milestones: ['500000000', '400000000', '300000000', '200000000', '100000000'],
-			offset: 2160,
-			distance: 3000000,
-		},
-		communityIdentifier: 'Lisk',
-		minRemainingBalance: '5000000',
-		activeDelegates: 101,
-		standbyDelegates: 2,
-		delegateListRoundOffset: 2,
+		chainID: '00000000',
 	},
 	network: {
 		port: 8080,

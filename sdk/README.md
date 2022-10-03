@@ -107,7 +107,6 @@ You can also define your blockchain application parameters such as `blockTime`, 
 ```js
 const { app } = Application.defaultApplication(genesisBlockDevnet, {
     genesisConfig: {
-      communityIdentifier: 'newChain',
       blockTime: 5,
       maxTransactionsSize: 100 * 1024,
       minRemainingBalance: "5000000",

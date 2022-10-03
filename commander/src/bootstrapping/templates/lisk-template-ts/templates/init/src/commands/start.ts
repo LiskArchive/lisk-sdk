@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 import { Flags as flagParser } from '@oclif/core';
+import { FlagInput } from '@oclif/core/lib/interfaces';
 import { BaseStartCommand } from 'lisk-commander';
 import { Application, ApplicationConfig, PartialApplicationConfig } from 'lisk-sdk';
 import { ForgerPlugin } from '@liskhq/lisk-framework-forger-plugin';
@@ -41,10 +42,11 @@ const setPluginConfig = (config: ApplicationConfig, flags: Flags): void => {
 	}
 };
 
-// type StartFlags = typeof BaseStartCommand.flags & flagParser.Input<any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type StartFlags = typeof BaseStartCommand.flags & FlagInput<any>;
 
 export class StartCommand extends BaseStartCommand {
-	static flags = {
+	static flags: StartFlags = {
 		...BaseStartCommand.flags,
 		'enable-forger-plugin': flagParser.boolean({
 			description:
