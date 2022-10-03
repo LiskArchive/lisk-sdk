@@ -174,6 +174,7 @@ export interface AfterTransactionsExecuteResponse {
 
 export interface VerifyTransactionRequest {
 	contextID: Buffer;
+	header: BlockHeader;
 	transaction: Transaction;
 }
 

@@ -249,6 +249,7 @@ describe('CrossChainUpdateCommand', () => {
 			verifyContext = {
 				getMethodContext: () => createTransientMethodContext({ stateStore }),
 				getStore: createStoreGetter(stateStore).getStore,
+				header: { height: 20, timestamp: 10000 },
 				logger: testing.mocks.loggerMock,
 				chainID,
 				params,
