@@ -214,7 +214,7 @@ export class ABIServer {
 			} catch (error) {
 				this._logger.error(
 					{ err: error as Error, method: request.method, id: request.id },
-					'Fail to respond',
+					'Failed to respond',
 				);
 				await this._replyError(sender, (error as Error).message, request.id);
 				continue;

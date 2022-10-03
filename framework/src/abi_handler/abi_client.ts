@@ -87,6 +87,7 @@ import {
 import { Logger } from '../logger';
 
 const DEFAULT_TIMEOUT = 500;
+const MAX_UINT64 = BigInt(2) ** BigInt(64) - BigInt(1);
 
 interface Defer<T> {
 	promise: Promise<T>;
@@ -302,9 +303,9 @@ export class ABIClient implements ABI {
 		await this._dealer.send([encodedRequest]);
 		const response = defer<Buffer>();
 		this._pendingRequests[this._globalID.toString()] = response as Defer<unknown>;
-		// Increment ID before async task
+		// Increment ID before async task, reset to zero at MAX uint64
 		this._globalID += BigInt(1);
-		if (this._globalID >= BigInt(2) ** BigInt(64)) {
+		if (this._globalID >= MAX_UINT64) {
 			this._globalID = BigInt(0);
 		}
 
@@ -314,7 +315,7 @@ export class ABIClient implements ABI {
 		]);
 		this._logger.debug(
 			{ method: requestBody.method, id: requestBody.id, file: 'abi_client' },
-			'Reseived response from ABI server',
+			'Received response from ABI server',
 		);
 		const decodedResp =
 			Object.keys(respSchema.properties).length > 0 ? codec.decode<T>(respSchema, resp) : ({} as T);

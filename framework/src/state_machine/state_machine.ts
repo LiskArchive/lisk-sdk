@@ -102,7 +102,7 @@ export class StateMachine {
 					this._logger.debug({ moduleName: mod.name }, 'Executed verifyTransaction');
 					if (result.status !== VerifyStatus.OK) {
 						this._logger.debug(
-							{ err: result.error, module: mod.name },
+							{ err: result.error, moduleName: mod.name },
 							'Transaction verification failed',
 						);
 						return result;
@@ -113,17 +113,17 @@ export class StateMachine {
 			const commandContext = ctx.createCommandVerifyContext(command.schema);
 			if (command.verify) {
 				this._logger.debug(
-					{ commName: command.name, moduleName: ctx.transaction.module },
+					{ commandName: command.name, moduleName: ctx.transaction.module },
 					'Executing command.verify',
 				);
 				const result = await command.verify(commandContext);
 				this._logger.debug(
-					{ commName: command.name, moduleName: ctx.transaction.module },
+					{ commandName: command.name, moduleName: ctx.transaction.module },
 					'Executed command.verify',
 				);
 				if (result.status !== VerifyStatus.OK) {
 					this._logger.debug(
-						{ err: result.error, module: ctx.transaction.module, command: command.name },
+						{ err: result.error, moduleName: ctx.transaction.module, commandName: command.name },
 						'Command verification failed',
 					);
 					return result;
@@ -134,7 +134,7 @@ export class StateMachine {
 			this._logger.debug(
 				{
 					err: error as Error,
-					commName: ctx.transaction.command,
+					commandName: ctx.transaction.command,
 					moduleName: ctx.transaction.module,
 				},
 				'Transaction verification failed',
@@ -158,7 +158,7 @@ export class StateMachine {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
 					this._logger.debug(
-						{ err: error as Error, module: mod.name },
+						{ err: error as Error, moduleName: mod.name },
 						'Transaction beforeCommandExecution failed',
 					);
 					return TransactionExecutionResult.INVALID;
@@ -171,9 +171,9 @@ export class StateMachine {
 		const commandStateStoreSnapshotID = ctx.stateStore.createSnapshot();
 		const commandContext = ctx.createCommandExecuteContext(command.schema);
 		try {
-			this._logger.debug({ commName: command.name }, 'Executing command.execute');
+			this._logger.debug({ commandName: command.name }, 'Executing command.execute');
 			await command.execute(commandContext);
-			this._logger.debug({ commName: command.name }, 'executed command.execute');
+			this._logger.debug({ commandName: command.name }, 'Executed command.execute');
 			ctx.eventQueue.unsafeAdd(
 				ctx.transaction.module,
 				EVENT_TRANSACTION_NAME,
@@ -191,7 +191,11 @@ export class StateMachine {
 			);
 			status = TransactionExecutionResult.FAIL;
 			this._logger.debug(
-				{ err: error as Error, module: ctx.transaction.module, command: ctx.transaction.command },
+				{
+					err: error as Error,
+					moduleName: ctx.transaction.module,
+					commandName: ctx.transaction.command,
+				},
 				'Command execution failed',
 			);
 		}
@@ -200,14 +204,14 @@ export class StateMachine {
 		for (const mod of this._modules) {
 			if (mod.afterCommandExecute) {
 				try {
-					this._logger.debug({ moduleName: mod.name }, 'Executing beforeCommandExecute');
+					this._logger.debug({ moduleName: mod.name }, 'Executing afterCommandExecute');
 					await mod.afterCommandExecute(transactionContext);
-					this._logger.debug({ moduleName: mod.name }, 'Executed beforeCommandExecute');
+					this._logger.debug({ moduleName: mod.name }, 'Executed afterCommandExecute');
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
 					this._logger.debug(
-						{ err: error as Error, module: mod.name },
+						{ err: error as Error, moduleName: mod.name },
 						'Transaction afterCommandExecution failed',
 					);
 					return TransactionExecutionResult.INVALID;

@@ -114,7 +114,7 @@ const createProcessableBlock = async (
 	transactions: Transaction[],
 	timestamp?: number,
 ): Promise<Block> => {
-	engine['_logger'].info({ transactions: transactions.length }, 'Start generating block');
+	engine['_logger'].info({ numberOfTransactions: transactions.length }, 'Start generating block');
 	// Get previous block and generate valid timestamp, seed reveal, maxHeightPrevoted, reward and maxHeightPreviouslyForged
 	const stateStore = new StateStore(engine['_blockchainDB']);
 	const previousBlockHeader = engine['_chain'].lastBlock.header;
@@ -136,7 +136,7 @@ const createProcessableBlock = async (
 		transactions,
 	});
 	engine['_logger'].info(
-		{ height: block.header.height, transactions: block.transactions.length },
+		{ height: block.header.height, numberOfTransactions: block.transactions.length },
 		'Generated block',
 	);
 
@@ -229,13 +229,13 @@ export const getBlockProcessingEnv = async (
 		getBlockchainDB: () => engine['_blockchainDB'],
 		process: async (block): Promise<void> => {
 			logger.debug(
-				{ height: block.header.height, transactions: block.transactions.length },
-				'start executing block',
+				{ height: block.header.height, numberOfTransactions: block.transactions.length },
+				'Start executing block',
 			);
 			await engine['_consensus']['_execute'](block, 'peer-id');
 			logger.debug(
-				{ height: block.header.height, transactions: block.transactions.length },
-				'executed block',
+				{ height: block.header.height, numberOfTransactions: block.transactions.length },
+				'Executed block',
 			);
 		},
 		processUntilHeight: async (height): Promise<void> => {
