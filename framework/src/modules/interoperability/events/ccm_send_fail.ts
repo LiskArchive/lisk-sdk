@@ -13,41 +13,32 @@
  */
 
 import { BaseEvent, EventQueuer } from '../../base_event';
+import { ccmSchema } from '../schemas';
 
-export interface CcmProcessedEventData {
+export interface CcmSendFailEventData {
 	ccmID: Buffer;
-	status: number;
 }
 
-export const ccmProcessedEventSchema = {
-	$id: '/interoperability/events/ccmProcessed',
+export const ccmSendFailDataSchema = {
+	$id: '/interoperability/events/ccmSendFail',
 	type: 'object',
-	required: ['ccmID', 'status'],
+	required: ['ccm', 'code'],
 	properties: {
-		ccmID: {
-			dataType: 'bytes',
+		ccm: {
+			...ccmSchema,
 			fieldNumber: 1,
 		},
-		result: {
+		code: {
 			dataType: 'uint32',
 			fieldNumber: 2,
-		},
-		status: {
-			dataType: 'uint32',
-			fieldNumber: 3,
 		},
 	},
 };
 
-export class CcmProcessedEvent extends BaseEvent<CcmProcessedEventData> {
-	public schema = ccmProcessedEventSchema;
+export class CcmSendFailEvent extends BaseEvent<CcmSendFailEventData> {
+	public schema = ccmSendFailDataSchema;
 
-	public log(
-		ctx: EventQueuer,
-		sendingChainID: Buffer,
-		receivingChainID: Buffer,
-		data: CcmProcessedEventData,
-	): void {
-		this.add(ctx, data, [sendingChainID, receivingChainID, data.ccmID]);
+	public log(ctx: EventQueuer, data: CcmSendFailEventData): void {
+		this.add(ctx, data, []);
 	}
 }
