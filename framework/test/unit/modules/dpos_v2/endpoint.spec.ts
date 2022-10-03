@@ -165,8 +165,8 @@ describe('DposModuleEndpoint', () => {
 
 	describe('getAllDelegates', () => {
 		describe('when input address is valid', () => {
-			const address1Str = address1.toString('hex');
-			const address2Str = address2.toString('hex');
+			const address1Str = cryptoAddress.getLisk32AddressFromAddress(address1);
+			const address2Str = cryptoAddress.getLisk32AddressFromAddress(address2);
 
 			const addresses = [address1Str, address2Str];
 
