@@ -76,6 +76,7 @@ export class HighFeeGenerationStrategy {
 				const { result: verifyResult } = await this._abi.verifyTransaction({
 					contextID,
 					transaction: lowestNonceHighestFeeTrx.toObject(),
+					header: header.toObject(),
 				});
 				if (verifyResult !== TransactionVerifyResult.OK) {
 					throw new Error('Transaction is not valid');

@@ -381,10 +381,13 @@ export class ABIHandler implements ABI {
 		req: VerifyTransactionRequest,
 	): Promise<VerifyTransactionResponse> {
 		let stateStore: PrefixedStateReadWriter;
+		let header: BlockHeader;
 		if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
 			stateStore = new PrefixedStateReadWriter(this._stateDB.newReadWriter());
+			header = new BlockHeader(req.header);
 		} else {
 			stateStore = this._executionContext.stateStore;
+			header = this._executionContext.header;
 		}
 		const context = new TransactionContext({
 			eventQueue: new EventQueue(0),
@@ -392,7 +395,7 @@ export class ABIHandler implements ABI {
 			transaction: new Transaction(req.transaction),
 			stateStore,
 			chainID: this.chainID,
-			// These values are not used
+			header,
 			currentValidators: [],
 			impliesMaxPrevote: true,
 			maxHeightCertified: 0,

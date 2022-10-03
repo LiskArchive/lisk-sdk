@@ -312,6 +312,7 @@ export class Generator {
 			const { result: verifyResult } = await this._abi.verifyTransaction({
 				contextID: Buffer.alloc(0),
 				transaction,
+				header: this._chain.lastBlock.header.toObject(),
 			});
 			if (verifyResult !== TransactionVerifyResult.OK) {
 				throw new Error('Transaction is not valid');
@@ -718,6 +719,7 @@ export class Generator {
 				const { result: verifyResult } = await this._abi.verifyTransaction({
 					contextID,
 					transaction,
+					header: header.toObject(),
 				});
 				if (verifyResult !== TransactionVerifyResult.OK) {
 					throw new Error('Transaction is not valid');

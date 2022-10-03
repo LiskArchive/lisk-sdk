@@ -91,6 +91,7 @@ export interface VerificationResult {
 export interface TransactionVerifyContext {
 	chainID: Buffer;
 	logger: Logger;
+	header: { timestamp: number; height: number };
 	transaction: Transaction;
 	stateStore: ImmutableStateStore;
 	getMethodContext: () => ImmutableMethodContext;
@@ -100,6 +101,7 @@ export interface TransactionVerifyContext {
 export interface CommandVerifyContext<T = undefined> {
 	logger: Logger;
 	chainID: Buffer;
+	header: { timestamp: number; height: number };
 	transaction: Transaction; // without decoding params
 	params: T;
 	getMethodContext: () => ImmutableMethodContext;

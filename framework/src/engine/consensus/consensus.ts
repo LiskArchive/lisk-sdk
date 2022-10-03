@@ -966,6 +966,7 @@ export class Consensus {
 				const { result: verifyResult } = await this._abi.verifyTransaction({
 					contextID,
 					transaction: transaction.toObject(),
+					header: block.header.toObject(),
 				});
 				if (verifyResult !== TransactionVerifyResult.OK) {
 					this._logger.debug(`Failed to verify transaction ${transaction.id.toString('hex')}`);
