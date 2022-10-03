@@ -208,7 +208,6 @@ export const genesisBlockID = Buffer.from(
 	'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
 	'hex',
 );
-export const communityIdentifier = 'Lisk';
 
 export const chainID = Buffer.from('10000000', 'hex');
 

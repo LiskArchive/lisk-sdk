@@ -98,9 +98,11 @@ export default class CommandGenerator extends Generator {
 		const value = (property.getStructure() as { initializer: string }).initializer;
 
 		if (value === '[]' || value === '') {
-			property.set({ initializer: `[new ${this._commandClass}()]` });
+			property.set({ initializer: `[new ${this._commandClass}(this.stores, this.events)]` });
 		} else if (value.endsWith(']')) {
-			property.set({ initializer: `${value.slice(0, -1)}, new ${this._commandClass}()]` });
+			property.set({
+				initializer: `${value.slice(0, -1)}, new ${this._commandClass}(this.stores, this.events)]`,
+			});
 		} else {
 			this.log('Asset can not be registered. Please register it by yourself.');
 		}
