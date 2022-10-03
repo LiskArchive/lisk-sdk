@@ -244,10 +244,17 @@ export class Storage {
 	}
 
 	public async getEvents(height: number): Promise<Event[]> {
-		const eventsByte = await this._db.get(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(height)));
-		const events = decodeByteArray(eventsByte);
+		try {
+			const eventsByte = await this._db.get(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(height)));
+			const events = decodeByteArray(eventsByte);
 
-		return events.map(e => Event.fromBytes(e));
+			return events.map(e => Event.fromBytes(e));
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			return [];
+		}
 	}
 
 	public async getTempBlocks(): Promise<Buffer[]> {
