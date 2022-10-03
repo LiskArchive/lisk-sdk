@@ -33,6 +33,7 @@ import { USER_SUBSTORE_INITIALIZATION_FEE } from '../../../src/modules/token/con
 describe('abi handler', () => {
 	let abiHandler: ABIHandler;
 	let stateDBMock: StateDB;
+	let root: Buffer;
 
 	beforeEach(async () => {
 		jest
@@ -63,10 +64,8 @@ describe('abi handler', () => {
 			},
 		});
 		abiHandler['_chainID'] = utils.getRandomBytes(32);
-		await stateMachine.init(loggerMock, {
-			...applicationConfigSchema.default.genesis,
-			chainID: '00000000',
-		});
+		await stateMachine.init(loggerMock, {} as any);
+		root = utils.getRandomBytes(32);
 	});
 
 	describe('init', () => {
@@ -87,7 +86,6 @@ describe('abi handler', () => {
 					genesis: { ...applicationConfigSchema.default.genesis, chainID: '10000000' },
 				},
 			});
-			const root = utils.getRandomBytes(32);
 			(stateDBMock.getCurrentState as jest.Mock).mockResolvedValue({ root, version: 21 });
 
 			const chainID = Buffer.from('10000000', 'hex');
@@ -98,7 +96,6 @@ describe('abi handler', () => {
 		});
 
 		it('should revert state until the same height', async () => {
-			const root = utils.getRandomBytes(32);
 			(stateDBMock.getCurrentState as jest.Mock).mockResolvedValue({ root, version: 21 });
 
 			(stateDBMock.revert as jest.Mock).mockResolvedValue(root);
@@ -109,7 +106,6 @@ describe('abi handler', () => {
 		});
 
 		it('should reject init if states are different with the same height', async () => {
-			const root = utils.getRandomBytes(32);
 			(stateDBMock.getCurrentState as jest.Mock).mockResolvedValue({ root, version: 21 });
 
 			(stateDBMock.revert as jest.Mock).mockResolvedValue(root);
@@ -126,7 +122,6 @@ describe('abi handler', () => {
 		});
 
 		it('should reject init if engine last block height is higher than application height', async () => {
-			const root = utils.getRandomBytes(32);
 			((stateDBMock as any).getCurrentState as jest.Mock).mockResolvedValue({ root, version: 21 });
 
 			(stateDBMock.revert as jest.Mock).mockResolvedValue(root);

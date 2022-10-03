@@ -120,13 +120,12 @@ export class ABIHandler implements ABI {
 	}
 
 	public async cacheGenesisState(): Promise<void> {
-		// eslint-disable-next-line
 		const { version, root } = await this._stateDB.getCurrentState();
-		// state db is alread initialized
+		// Skip if state db is already initialized
 		if (version !== 0 || !root.equals(utils.hash(Buffer.alloc(0)))) {
 			this._logger.debug(
 				{ version, root: root.toString('hex') },
-				'Skip cacheing genesis state. state is already initialized',
+				'Skip caching genesis state as state is already initialized',
 			);
 			return;
 		}
@@ -136,7 +135,7 @@ export class ABIHandler implements ABI {
 				stateRoot: genesisBlock.header.stateRoot?.toString('hex'),
 				height: genesisBlock.header.height,
 			},
-			'Start cacheing genesis state',
+			'Start caching genesis state',
 		);
 		const stateStore = new PrefixedStateReadWriter(this._stateDB.newReadWriter());
 
@@ -180,7 +179,7 @@ export class ABIHandler implements ABI {
 		const currentState = await this._stateDB.getCurrentState();
 		if (req.lastBlockHeight > currentState.version) {
 			throw new Error(
-				`Invalid engine state. Conflict at height Engine: ${req.lastBlockHeight} and application state ${currentState.version}`,
+				`Invalid engine state. Conflict at engine height ${req.lastBlockHeight} and application state ${currentState.version}.`,
 			);
 		}
 		if (req.lastBlockHeight < currentState.version) {
@@ -200,7 +199,7 @@ export class ABIHandler implements ABI {
 						req.lastBlockHeight
 					} Engine state ${req.lastStateRoot.toString(
 						'hex',
-					)} and application state ${currentState.root.toString('hex')}`,
+					)} and application state ${currentState.root.toString('hex')}.`,
 				);
 			}
 		}
@@ -453,12 +452,11 @@ export class ABIHandler implements ABI {
 				)}. Context is not initialized or different.`,
 			);
 		}
-		// eslint-disable-next-line
 		const currentState = await this._stateDB.getCurrentState();
 		if (req.expectedStateRoot.equals(currentState.root)) {
 			this._logger.debug(
 				{ stateRoot: currentState.root },
-				'skipping commit. Current state is already expected state',
+				'Skipping commit. Current state is already expected state',
 			);
 			return { stateRoot: currentState.root };
 		}
