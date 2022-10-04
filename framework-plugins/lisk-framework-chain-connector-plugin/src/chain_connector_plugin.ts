@@ -24,12 +24,32 @@ import {
 	codec,
 	chain,
 	BFTParameters,
+	CHAIN_ACTIVE,
+	CHAIN_TERMINATED,
+	LIVENESS_LIMIT,
+	ChainAccount,
+	BFTValidator,
+	OutboxRootWitness,
+	MESSAGE_TAG_CERTIFICATE,
+	ActiveValidator,
+	certificateSchema,
+	cryptography,
+	MODULE_ID_INTEROPERABILITY,
+	STORE_PREFIX_OUTBOX_ROOT,
 } from 'lisk-sdk';
 import { CCM_BASED_CCU_FREQUENCY, EMPTY_BYTES, LIVENESS_BASED_CCU_FREQUENCY } from './constants';
 import { getChainConnectorInfo, getDBInstance, setChainConnectorInfo } from './db';
 import { Endpoint } from './endpoint';
-import { chainConnectorInfoSchema, configSchema } from './schemas';
-import { ChainConnectorInfo, ChainConnectorPluginConfig, SentCCUs } from './types';
+import { chainConnectorInfoSchema, configSchema, ccmSchema } from './schemas';
+import {
+	ChainConnectorInfo,
+	ChainConnectorPluginConfig,
+	SentCCUs,
+	CrossChainUpdateTransactionParams,
+	InboxUpdate,
+	ProveResponse,
+} from './types';
+import { getActiveValidatorsDiff } from './utils';
 
 interface Data {
 	readonly blockHeader: chain.BlockHeaderJSON;
@@ -37,6 +57,24 @@ interface Data {
 interface CCUFrequencyConfig {
 	ccm: number;
 	liveness: number;
+}
+
+interface LivenessValidationResult {
+	status: boolean;
+	isLive: boolean;
+	chainID: Buffer;
+	certificateTimestamp: number;
+	blockTimestamp: number;
+}
+
+interface CertificateValidationResult {
+	status: boolean;
+	livenessValidationResult?: LivenessValidationResult;
+	chainStatus: number;
+	certificate: Certificate;
+	header: chain.BlockHeader;
+	hasValidBLSWeightedAggSig?: boolean;
+	message: string;
 }
 
 export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig> {
@@ -140,8 +178,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			height -= 1;
 		}
 
-		// eslint-disable-next-line no-useless-return, consistent-return
-		return;
+		return undefined;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -189,6 +226,79 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		);
 
 		await setChainConnectorInfo(this._chainConnectorPluginDB, chainConnectorInfo);
+	}
+
+	public async calculateCCUParams(
+		sendingChainID: Buffer,
+		certificate: Certificate,
+		newCertificateThreshold: bigint,
+	): Promise<CrossChainUpdateTransactionParams | undefined> {
+		let activeBFTValidatorsUpdate: BFTValidator[];
+		let activeValidatorsUpdate: ActiveValidator[] = [];
+		let certificateThreshold = newCertificateThreshold;
+
+		const blockHeader = this._chainConnectorState.blockHeaders.find(
+			header => header.height === certificate.height,
+		)!;
+
+		const chainAccount = await this._mainchainAPIClient.invoke<ChainAccount>(
+			'interoperability_getChainAccount',
+			{ chainID: sendingChainID },
+		);
+
+		const certificateBytes = codec.encode(certificateSchema, certificate);
+
+		const certificateValidationResult = await this._validateCertificate(
+			certificateBytes,
+			certificate,
+			blockHeader,
+			chainAccount,
+		);
+		if (!certificateValidationResult.status) {
+			this.logger.error(certificateValidationResult, 'Certificate validation failed');
+
+			return undefined;
+		}
+
+		if (!chainAccount.lastCertificate.validatorsHash.equals(certificate.validatorsHash)) {
+			const validatorDataAtCertificate = this._chainConnectorState.validatorsHashPreimage.find(
+				data => data.validatorsHash.equals(blockHeader.validatorsHash!),
+			)!;
+
+			const validatorDataAtLastCertificate = this._chainConnectorState.validatorsHashPreimage.find(
+				data => data.validatorsHash.equals(chainAccount.lastCertificate.validatorsHash),
+			)!;
+
+			if (
+				validatorDataAtCertificate.certificateThreshold ===
+				validatorDataAtLastCertificate.certificateThreshold
+			) {
+				certificateThreshold = BigInt(0);
+			}
+
+			activeBFTValidatorsUpdate = getActiveValidatorsDiff(
+				validatorDataAtLastCertificate.validators,
+				validatorDataAtCertificate.validators,
+			);
+
+			activeValidatorsUpdate = activeBFTValidatorsUpdate.map(
+				validator =>
+					({
+						blsKey: validator.blsKey,
+						bftWeight: validator.bftWeight,
+					} as ActiveValidator),
+			);
+		}
+
+		const inboxUpdate = await this._calculateInboxUpdate(sendingChainID);
+
+		return {
+			sendingChainID,
+			certificate: certificateBytes,
+			activeValidatorsUpdate,
+			certificateThreshold,
+			inboxUpdate,
+		};
 	}
 
 	private async _newBlockhandler(data?: Record<string, unknown>) {
@@ -296,7 +406,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		for (let i = 0; i < validatorData.validators.length; i += 1) {
 			if (aggregateCommit.aggregationBits[i] === 1) {
 				const blsKey = validatorData.validators[i].blsKey.toString('hex');
-				if (blsKeyToBFTWeight[blsKey] === undefined) {
+				if (!blsKeyToBFTWeight[blsKey]) {
 					return false;
 				}
 
@@ -311,8 +421,149 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		return false;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	private async _createCCU() {}
+	private async _calculateInboxUpdate(sendingChainID: Buffer): Promise<InboxUpdate> {
+		// TODO: Fetch as many CCMs as configured in _ccuFrequency.ccm, between lastCertificateHeight and certificateHeight - After #7569
+		const serialzedCCMs = this._chainConnectorState.crossChainMessages
+			.slice(0, this._ccuFrequency.ccm)
+			.map(ccm => codec.encode(ccmSchema, ccm));
+
+		const outboxKey = this._rawStateStoreKey(sendingChainID);
+
+		const stateProveResponse = await this._sidechainAPIClient.invoke<ProveResponse>('state_prove', {
+			queries: [outboxKey],
+		});
+		const inclusionProofOutboxRoot: OutboxRootWitness = {
+			bitmap: stateProveResponse.proof.queries[0].bitmap,
+			siblingHashes: stateProveResponse.proof.siblingHashes,
+		};
+
+		const inboxUpdate: InboxUpdate = {
+			crossChainMessages: serialzedCCMs,
+			messageWitnessHashes: [],
+			outboxRootWitness: inclusionProofOutboxRoot,
+		};
+
+		return inboxUpdate;
+	}
+
+	private _rawStateStoreKey(chainID: Buffer) {
+		const moduleIDBuffer = Buffer.alloc(4);
+		moduleIDBuffer.writeInt32BE(MODULE_ID_INTEROPERABILITY, 0);
+		const storePrefixBuffer = Buffer.alloc(2);
+		storePrefixBuffer.writeUInt16BE(STORE_PREFIX_OUTBOX_ROOT, 0);
+
+		return Buffer.concat([chain.DB_KEY_STATE_STORE, moduleIDBuffer, storePrefixBuffer, chainID]);
+	}
+
+	private async _validateCertificate(
+		certificateBytes: Buffer,
+		certificate: Certificate,
+		blockHeader: chain.BlockHeader,
+		chainAccount: ChainAccount,
+	): Promise<CertificateValidationResult> {
+		const result: CertificateValidationResult = {
+			status: false,
+			chainStatus: chainAccount.status,
+			certificate,
+			header: blockHeader,
+			message: 'Certificate validation failed.',
+		};
+
+		if (chainAccount.status === CHAIN_TERMINATED) {
+			result.message = 'Sending chain is terminated.';
+			return result;
+		}
+
+		if (certificate.height <= chainAccount.lastCertificate.height) {
+			result.message = 'Certificate height is higher than last certified height.';
+			return result;
+		}
+
+		const certificateLivenessValidationResult = await this._verifyLiveness(
+			chainAccount.networkID,
+			certificate.timestamp,
+			blockHeader.timestamp,
+		);
+
+		result.livenessValidationResult = certificateLivenessValidationResult;
+
+		if (!certificateLivenessValidationResult.status) {
+			result.message = 'Liveness validation failed.';
+			return result;
+		}
+
+		if (chainAccount.status === CHAIN_ACTIVE) {
+			result.status = true;
+
+			return result;
+		}
+
+		const validatorData = this._chainConnectorState.validatorsHashPreimage.find(data =>
+			data.validatorsHash.equals(blockHeader.validatorsHash!),
+		);
+
+		if (!validatorData) {
+			result.message = 'Block validators are not valid.';
+
+			return result;
+		}
+
+		const keysList = validatorData.validators.map(validator => validator.blsKey);
+
+		const weights = validatorData.validators.map(validator => validator.bftWeight);
+
+		const hasValidWeightedAggSig = cryptography.bls.verifyWeightedAggSig(
+			keysList,
+			certificate.aggregationBits!,
+			certificate.signature!,
+			MESSAGE_TAG_CERTIFICATE,
+			chainAccount.networkID,
+			certificateBytes,
+			weights,
+			validatorData.certificateThreshold as bigint,
+		);
+
+		if (hasValidWeightedAggSig) {
+			result.hasValidBLSWeightedAggSig = true;
+			result.status = false;
+			return result;
+		}
+
+		result.message = 'Weighted aggregate signature is not valid.';
+
+		return result;
+	}
+
+	private async _verifyLiveness(
+		chainID: Buffer,
+		certificateTimestamp: number,
+		blockTimestamp: number,
+	): Promise<LivenessValidationResult> {
+		const isLive = await this._mainchainAPIClient.invoke<boolean>('interoperability_isLive', {
+			chainID,
+			timestamp: certificateTimestamp,
+		});
+
+		const result: LivenessValidationResult = {
+			status: true,
+			isLive,
+			chainID,
+			certificateTimestamp,
+			blockTimestamp,
+		};
+
+		if (isLive && blockTimestamp - certificateTimestamp < LIVENESS_LIMIT / 2) {
+			return result;
+		}
+
+		result.status = false;
+
+		return result;
+	}
+
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	private async _cleanup() {}
+
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	private async _createCCU() {}
 }

@@ -32,4 +32,17 @@ export {
 	OutboxJSON,
 	MessageFeeTokenID,
 	MessageFeeTokenIDJSON,
+	InboxUpdate,
+	CrossChainUpdateTransactionParams,
+	ActiveValidator,
+	OutboxRootWitness,
 } from './types';
+export {
+	CHAIN_TERMINATED,
+	LIVENESS_LIMIT,
+	MESSAGE_TAG_CERTIFICATE,
+	CHAIN_ACTIVE,
+	STORE_PREFIX_OUTBOX_ROOT,
+	MODULE_ID_INTEROPERABILITY,
+} from './constants';
+export { rawStateStoreKey } from './utils';
