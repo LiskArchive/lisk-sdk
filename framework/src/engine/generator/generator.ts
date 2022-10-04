@@ -566,6 +566,7 @@ export class Generator {
 			consensus,
 			transactions: transactions.map(tx => tx.toObject()),
 		});
+		blockEvents.push(...afterResult.events.map(e => new Event(e)));
 		if (
 			!isEmptyConsensusUpdate(
 				afterResult.preCommitThreshold,
@@ -594,7 +595,9 @@ export class Generator {
 
 		// Add event root calculation
 		const keypairs = [];
-		for (const e of blockEvents) {
+		for (let index = 0; index < blockEvents.length; index += 1) {
+			const e = blockEvents[index];
+			e.setIndex(index);
 			const pairs = e.keyPair();
 			for (const pair of pairs) {
 				keypairs.push(pair);
