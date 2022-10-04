@@ -91,6 +91,17 @@ export {
 	MessageFeeTokenIDJSON,
 	Outbox,
 	OutboxJSON,
+	InboxUpdate,
+	CrossChainUpdateTransactionParams,
+	ActiveValidator,
+	OutboxRootWitness,
+	rawStateStoreKey,
+	CHAIN_ACTIVE,
+	CHAIN_TERMINATED,
+	LIVENESS_LIMIT,
+	MESSAGE_TAG_CERTIFICATE,
+	STORE_PREFIX_OUTBOX_ROOT,
+	MODULE_ID_INTEROPERABILITY,
 } from './modules/interoperability';
 export { RewardMethod, RewardModule } from './modules/reward';
 export { FeeMethod, FeeModule } from './modules/fee';
@@ -116,3 +127,4 @@ export { BFTParameters } from './engine/bft/schemas';
 export { aggregateCommitSchema } from './engine/consensus/certificate_generation/schema';
 export { computeCertificateFromBlockHeader } from './engine/consensus/certificate_generation/utils';
 export { Certificate } from './engine/consensus/certificate_generation/types';
+export { certificateSchema } from './engine/consensus/certificate_generation/schema';
