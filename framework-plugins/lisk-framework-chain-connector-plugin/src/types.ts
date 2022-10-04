@@ -12,7 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Transaction, chain, BFTValidator, AggregateCommit, CCMsg } from 'lisk-sdk';
+import {
+	Transaction,
+	chain,
+	BFTValidator,
+	AggregateCommit,
+	CCMsg,
+	ActiveValidator,
+	OutboxRootWitness,
+} from 'lisk-sdk';
 
 export interface ChainConnectorPluginConfig {
 	mainchainIPCPath: string;
@@ -53,4 +61,33 @@ export interface ValidatorsDataJSON {
 	certificateThreshold: string;
 	validators: BFTValidatorJSON[];
 	validatorsHash: string;
+}
+
+export interface CrossChainUpdateTransactionParams {
+	sendingChainID: Buffer;
+	certificate: Buffer;
+	activeValidatorsUpdate: ActiveValidator[];
+	certificateThreshold: bigint;
+	inboxUpdate: InboxUpdate;
+}
+
+export interface InboxUpdate {
+	crossChainMessages: Buffer[];
+	messageWitnessHashes: Buffer[];
+	outboxRootWitness: OutboxRootWitness;
+}
+
+export interface Proof {
+	siblingHashes: Buffer[];
+	queries: QueryProof[];
+}
+
+export interface QueryProof {
+	key: Buffer;
+	value: Buffer;
+	bitmap: Buffer;
+}
+
+export interface ProveResponse {
+	proof: Proof;
 }

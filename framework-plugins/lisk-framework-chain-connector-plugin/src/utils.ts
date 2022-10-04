@@ -14,6 +14,7 @@
 
 import {
 	AggregateCommit,
+	BFTValidator,
 	ChannelData,
 	ChannelDataJSON,
 	Inbox,
@@ -101,4 +102,39 @@ export const channelDataJSONToObj = (channelData: ChannelDataJSON): ChannelData 
 		inbox: inboxJSON,
 		partnerChainOutboxRoot: Buffer.from(partnerChainOutboxRoot, 'hex'),
 	};
+};
+
+export const getActiveValidatorsDiff = (
+	currentValidators: BFTValidator[],
+	newValidators: BFTValidator[],
+): BFTValidator[] => {
+	const activeValidatorsUpdate: BFTValidator[] = [];
+
+	for (const newValidator of newValidators) {
+		const existingValidator = currentValidators.find(
+			validator =>
+				Buffer.compare(validator.blsKey, newValidator.blsKey) === 0 &&
+				validator.bftWeight === newValidator.bftWeight,
+		);
+
+		if (existingValidator === undefined) {
+			activeValidatorsUpdate.push(newValidator);
+		}
+	}
+
+	for (const currentValidator of currentValidators) {
+		const newValidator = newValidators.find(
+			validator => Buffer.compare(validator.blsKey, currentValidator.blsKey) === 0,
+		);
+
+		if (newValidator === undefined) {
+			activeValidatorsUpdate.push({
+				blsKey: currentValidator.blsKey,
+				bftWeight: BigInt(0),
+				address: currentValidator.address,
+			});
+		}
+	}
+
+	return activeValidatorsUpdate;
 };
