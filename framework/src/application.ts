@@ -284,6 +284,7 @@ export class Application {
 				stateDB: this._stateDB,
 				stateMachine: this._stateMachine,
 			});
+			await this._abiHandler.cacheGenesisState();
 			const abiSocketPath = `ipc://${path.join(socketsPath, 'abi.ipc')}`;
 
 			this._abiServer = new ABIServer(this.logger, abiSocketPath, this._abiHandler);
