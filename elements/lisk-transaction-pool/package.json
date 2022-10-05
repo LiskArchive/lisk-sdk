@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-transaction-pool",
-	"version": "0.6.0-alpha.3",
+	"version": "0.6.0-alpha.4",
 	"description": "Transaction pool library for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",

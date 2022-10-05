@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-api-client",
-	"version": "6.0.0-alpha.3",
+	"version": "6.0.0-alpha.4",
 	"description": "An API client for the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -44,7 +44,7 @@
 		"zeromq": "6.0.0-beta.6"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-chain": "^0.4.0-alpha.3",
+		"@liskhq/lisk-chain": "^0.4.0-alpha.4",
 		"@types/jest": "26.0.21",
 		"@types/jest-when": "2.7.2",
 		"@types/node": "12.20.6",
