@@ -77,7 +77,7 @@ export class DPoSEndpoint extends BaseEndpoint {
 				...delegate,
 				totalVotesReceived: delegate.totalVotesReceived.toString(),
 				selfVotes: delegate.selfVotes.toString(),
-				address: data.key.toString('hex'),
+				address: cryptoAddress.getLisk32AddressFromAddress(data.key),
 			};
 			response.push(delegateJSON);
 		}
