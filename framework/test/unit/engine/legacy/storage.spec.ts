@@ -132,37 +132,6 @@ describe('Legacy storage', () => {
 		});
 	});
 
-	describe('setLegacyChainBracketInfo', () => {
-		it('should save the chain bracket info', async () => {
-			const { header } = blockFixtures[1];
-			const bracketInfo = {
-				startHeight: header.height,
-				snapshotBlockHeight: header.height,
-				lastBlockHeight: header.height,
-			};
-			await storage.setLegacyChainBracketInfo(header.id, bracketInfo);
-
-			const result = await storage.getLegacyChainBracketInfo(header.id);
-
-			expect(result).toEqual(encodeLegacyChainBracketInfo(bracketInfo));
-		});
-
-		it('should throw error if block with given id does not exist', async () => {
-			const { header } = blockFixtures[1];
-			const bracketInfo = {
-				startHeight: header.height,
-				snapshotBlockHeight: header.height,
-				lastBlockHeight: header.height,
-			};
-
-			await storage.setLegacyChainBracketInfo(header.id, bracketInfo);
-
-			await expect(storage.getLegacyChainBracketInfo(Buffer.alloc(0))).rejects.toThrow(
-				`Specified key 02 does not exist`,
-			);
-		});
-	});
-
 	describe('getLegacyChainBracketInfo', () => {
 		it('should return the chain bracket info', async () => {
 			const { header } = blockFixtures[1];
@@ -171,6 +140,7 @@ describe('Legacy storage', () => {
 				snapshotBlockHeight: header.height,
 				lastBlockHeight: header.height,
 			};
+
 			await storage.setLegacyChainBracketInfo(header.id, bracketInfo);
 
 			const result = await storage.getLegacyChainBracketInfo(header.id);
