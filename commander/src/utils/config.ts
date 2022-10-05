@@ -27,10 +27,8 @@ export const defaultConfig = {
 		},
 		blockTime: 10,
 		bftBatchSize: 103,
-		communityIdentifier: 'sdk',
 		// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 		maxTransactionsSize: 15 * 1024, // Kilo Bytes
-		minFeePerByte: 1000,
 	},
 	generator: {
 		keys: {},
