@@ -38,7 +38,7 @@ import { loggerMock } from '../../../src/testing/mocks';
 
 describe('state_machine', () => {
 	const genesisHeader = {} as BlockHeader;
-	const header = {} as BlockHeader;
+	const header = { timestamp: 123, height: 20 } as BlockHeader;
 	const logger = {} as Logger;
 	const assets = new BlockAssets();
 	let stateStore: PrefixedStateReadWriter;
@@ -123,6 +123,7 @@ describe('state_machine', () => {
 				chainID,
 				logger,
 				transaction,
+				header,
 				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),
 			});

@@ -425,8 +425,9 @@ describe('abi handler', () => {
 	describe('verifyTransaction', () => {
 		it('should execute verifyTransaction with existing context when context ID is not empty and resolve the response', async () => {
 			jest.spyOn(abiHandler['_stateMachine'], 'verifyTransaction');
+			const header = createFakeBlockHeader().toObject();
 			const { contextID } = await abiHandler.initStateMachine({
-				header: createFakeBlockHeader().toObject(),
+				header,
 			});
 			// Add random data to check if new state store is used or not
 			await abiHandler['_executionContext']?.stateStore.set(
@@ -445,6 +446,7 @@ describe('abi handler', () => {
 			const resp = await abiHandler.verifyTransaction({
 				contextID,
 				transaction: tx.toObject(),
+				header,
 			});
 
 			expect(abiHandler['_stateMachine'].verifyTransaction).toHaveBeenCalledTimes(1);
@@ -458,8 +460,9 @@ describe('abi handler', () => {
 
 		it('should execute verifyTransaction with new context when context ID is empty and resolve the response', async () => {
 			jest.spyOn(abiHandler['_stateMachine'], 'verifyTransaction');
+			const header = createFakeBlockHeader({ height: 10 }).toObject();
 			await abiHandler.initStateMachine({
-				header: createFakeBlockHeader().toObject(),
+				header,
 			});
 			// Add random data to check if new state store is used or not
 			const key = utils.getRandomBytes(20);
@@ -476,11 +479,15 @@ describe('abi handler', () => {
 			const resp = await abiHandler.verifyTransaction({
 				contextID: Buffer.alloc(0),
 				transaction: tx.toObject(),
+				header,
 			});
 
 			expect(abiHandler['_stateMachine'].verifyTransaction).toHaveBeenCalledTimes(1);
 			const usedStateStore = (abiHandler['_stateMachine'].verifyTransaction as jest.Mock).mock
 				.calls[0][0]['_stateStore'];
+			const usedHeader = (abiHandler['_stateMachine'].verifyTransaction as jest.Mock).mock
+				.calls[0][0]['_header'];
+			expect(usedHeader.height).toEqual(10);
 			// Expect used state store does not have previous information
 			await expect(usedStateStore.has(key)).resolves.toBeFalse();
 			expect(resp.result).toEqual(TransactionVerifyResult.INVALID);
