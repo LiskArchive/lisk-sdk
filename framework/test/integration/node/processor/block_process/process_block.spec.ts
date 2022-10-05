@@ -111,10 +111,8 @@ describe('Process block', () => {
 				expect(processedBlock.header.id).toEqual(newBlock.header.id);
 			});
 
-			it('should not save the events to the database', async () => {
-				await expect(dataAccess.getEvents(newBlock.header.height)).rejects.toThrow(
-					'does not exist',
-				);
+			it('should save the events to the database', async () => {
+				await expect(dataAccess.getEvents(newBlock.header.height)).resolves.not.toBeEmpty();
 			});
 		});
 	});
