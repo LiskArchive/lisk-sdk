@@ -49,6 +49,7 @@ export const THRESHOLD_MAINCHAIN = 68;
 export const MESSAGE_TAG_CERTIFICATE = 'LSK_CE_';
 export const MIN_CHAIN_NAME_LENGTH = 1;
 export const MAX_CHAIN_NAME_LENGTH = 32;
+export const HASH_LENGTH = 32;
 
 // Chain status
 export const CHAIN_REGISTERED = 0;

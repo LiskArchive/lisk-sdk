@@ -13,41 +13,36 @@
  */
 
 import { BaseEvent, EventQueuer } from '../../base_event';
+import { HASH_LENGTH } from '../constants';
 
-export interface CcmProcessedEventData {
+export interface CcmSendSuccessEventData {
 	ccmID: Buffer;
-	status: number;
 }
 
-export const ccmProcessedEventSchema = {
-	$id: '/interoperability/events/ccmProcessed',
+export const ccmSendSuccessDataSchema = {
+	$id: '/interoperability/events/ccmSendSuccess',
 	type: 'object',
-	required: ['ccmID', 'status'],
+	required: ['ccmID'],
 	properties: {
 		ccmID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
-		},
-		result: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-		status: {
-			dataType: 'uint32',
-			fieldNumber: 3,
+			minLength: HASH_LENGTH,
+			maxLength: HASH_LENGTH,
 		},
 	},
 };
 
-export class CcmProcessedEvent extends BaseEvent<CcmProcessedEventData> {
-	public schema = ccmProcessedEventSchema;
+export class CcmSendSuccessEvent extends BaseEvent<CcmSendSuccessEventData> {
+	public schema = ccmSendSuccessDataSchema;
 
 	public log(
 		ctx: EventQueuer,
 		sendingChainID: Buffer,
 		receivingChainID: Buffer,
-		data: CcmProcessedEventData,
+		sentCCMID: Buffer,
+		data: CcmSendSuccessEventData,
 	): void {
-		this.add(ctx, data, [sendingChainID, receivingChainID, data.ccmID]);
+		this.add(ctx, data, [sendingChainID, receivingChainID, sentCCMID]);
 	}
 }
