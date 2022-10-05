@@ -21,7 +21,6 @@ import { TokenMethod } from '../method';
 import {
 	CCM_STATUS_OK,
 	CCM_STATUS_PROTOCOL_VIOLATION,
-	CHAIN_ID_ALIAS_NATIVE,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	CROSS_CHAIN_COMMAND_NAME_FORWARD,
 } from '../constants';
@@ -116,7 +115,7 @@ export class CCForwardCommand extends BaseCCCommand {
 
 		escrowData.amount -= params.amount + params.forwardedMessageFee;
 		await escrowStore.set(methodContext, escrowKey, escrowData);
-		const localTokenID = Buffer.concat([CHAIN_ID_ALIAS_NATIVE, localID]);
+		const localTokenID = Buffer.concat([Buffer.alloc(0), localID]);
 
 		await userStore.addAvailableBalance(
 			methodContext,
