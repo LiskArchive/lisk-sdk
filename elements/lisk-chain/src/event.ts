@@ -34,7 +34,8 @@ export interface EventAttr {
 type EventJSON = JSONObject<EventAttr>;
 
 export class Event {
-	private readonly _index: number;
+	private _index: number;
+
 	private readonly _module: string;
 	private readonly _name: string;
 	private readonly _topics: Buffer[];
@@ -57,6 +58,10 @@ export class Event {
 
 	public id(): Buffer {
 		return utils.hash(codec.encode(eventSchema, this.toObject()));
+	}
+
+	public setIndex(index: number): void {
+		this._index = index;
 	}
 
 	public getBytes(): Buffer {

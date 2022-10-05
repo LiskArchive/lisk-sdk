@@ -114,7 +114,9 @@ describe('generator', () => {
 			}),
 		} as never;
 		abi = {
-			beforeTransactionsExecute: jest.fn().mockResolvedValue({ events: [] }),
+			beforeTransactionsExecute: jest.fn().mockResolvedValue({
+				events: [],
+			}),
 			afterTransactionsExecute: jest.fn().mockResolvedValue({
 				events: [],
 				nextValidators: [],
@@ -537,14 +539,29 @@ describe('generator', () => {
 			jest.spyOn(abi, 'beforeTransactionsExecute').mockResolvedValue({
 				events: [
 					{
-						data: utils.getRandomBytes(32),
+						module: 'sample',
+						name: 'init',
+						data: Buffer.from([0, 0, 2]),
+						topics: [Buffer.from([2])],
+						height: 2,
 						index: 0,
-						module: 'token',
-						topics: [Buffer.from([0])],
-						name: 'Transfer Name',
-						height: 12,
 					},
 				],
+			});
+			jest.spyOn(abi, 'afterTransactionsExecute').mockResolvedValue({
+				events: [
+					{
+						module: 'sample',
+						name: 'init',
+						data: Buffer.from([0, 0, 1]),
+						topics: [Buffer.from([3])],
+						height: 2,
+						index: 0,
+					},
+				],
+				nextValidators: [],
+				preCommitThreshold: BigInt(0),
+				certificateThreshold: BigInt(0),
 			});
 			const block = await generator.generateBlock({
 				generatorAddress,
