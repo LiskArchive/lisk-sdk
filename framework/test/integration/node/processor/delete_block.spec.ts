@@ -120,9 +120,9 @@ describe('Delete block', () => {
 			});
 
 			it('should delete the events from the database', async () => {
-				await expect(processEnv.getDataAccess().getEvents(newBlock.header.height)).rejects.toThrow(
-					'does not exist',
-				);
+				await expect(
+					processEnv.getDataAccess().getEvents(newBlock.header.height),
+				).resolves.toBeEmpty();
 			});
 
 			it('should match the sender account to the original state', async () => {

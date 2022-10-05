@@ -319,6 +319,7 @@ export class Consensus {
 			// setting peerID to localhost with non existing port because this function is only called internally.
 			await this._execute(block, '127.0.0.1:0');
 		} catch (error) {
+			await this._abi.clear({});
 			this._logger.error({ err: error as Error }, 'Fail to execute block.');
 		}
 	}
@@ -961,7 +962,7 @@ export class Consensus {
 				assets: block.assets.getAll(),
 				consensus,
 			});
-			events.push(...beforeResult.events.map(e => new Event(e)));
+			events.push(...beforeResult.events);
 			for (const transaction of block.transactions) {
 				const { result: verifyResult } = await this._abi.verifyTransaction({
 					contextID,
@@ -984,7 +985,7 @@ export class Consensus {
 					this._logger.debug(`Failed to execute transaction ${transaction.id.toString('hex')}`);
 					throw new Error(`Failed to execute transaction ${transaction.id.toString('hex')}.`);
 				}
-				events.push(...txExecResult.events.map(e => new Event(e)));
+				events.push(...txExecResult.events);
 			}
 			const afterResult = await this._abi.afterTransactionsExecute({
 				contextID,
@@ -992,6 +993,7 @@ export class Consensus {
 				consensus,
 				transactions: block.transactions.map(tx => tx.toObject()),
 			});
+			events.push(...afterResult.events);
 
 			if (
 				!isEmptyConsensusUpdate(
@@ -1017,7 +1019,11 @@ export class Consensus {
 				});
 			}
 
-			return events;
+			return events.map((e, i) => {
+				const event = new Event(e);
+				event.setIndex(i);
+				return event;
+			});
 		} catch (err) {
 			await this._abi.clear({});
 			throw err;
@@ -1075,7 +1081,11 @@ export class Consensus {
 				stateRoot: utils.hash(Buffer.alloc(0)),
 				expectedStateRoot: genesisBlock.header.stateRoot,
 			});
-			return result.events.map(e => new Event(e));
+			return result.events.map((e, i) => {
+				const event = new Event(e);
+				event.setIndex(i);
+				return event;
+			});
 		} finally {
 			await this._abi.clear({});
 		}
