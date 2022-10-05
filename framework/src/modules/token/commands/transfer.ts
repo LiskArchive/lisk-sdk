@@ -56,6 +56,14 @@ export class TransferCommand extends BaseCommand {
 
 	public async execute(context: CommandExecuteContext<Params>): Promise<void> {
 		const { params } = context;
+		// TODO: Fix in https://github.com/LiskHQ/lisk-sdk/issues/7573
+		await this._method.initializeUserAccount(
+			context.getMethodContext(),
+			params.recipientAddress,
+			params.tokenID,
+			context.transaction.senderAddress,
+			BigInt(50000000),
+		);
 		await this._method.transfer(
 			context.getMethodContext(),
 			context.transaction.senderAddress,

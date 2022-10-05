@@ -186,7 +186,7 @@ describe('Transaction order', () => {
 					nonce: BigInt(authData.nonce),
 					fee: BigInt('200000'),
 					recipientAddress: newAccount.address,
-					amount: BigInt('10000000000'),
+					amount: BigInt('100000000000'),
 					chainID,
 					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
