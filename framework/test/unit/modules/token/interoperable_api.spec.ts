@@ -19,7 +19,6 @@ import {
 	CCM_STATUS_OK,
 	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_NAME_FORWARD,
-	MIN_BALANCE,
 	TOKEN_ID_LENGTH,
 } from '../../../../src/modules/token/constants';
 import { TokenInteroperableMethod } from '../../../../src/modules/token/cc_method';
@@ -96,16 +95,16 @@ describe('CrossChain Forward command', () => {
 			terminateChain: jest.fn(),
 			getChannel: jest.fn().mockResolvedValue({ messageFeeTokenID: defaultTokenID }),
 		};
-		const minBalances = [
-			{ tokenID: defaultTokenIDAlias, amount: BigInt(MIN_BALANCE) },
-			{ tokenID: defaultForeignTokenID, amount: BigInt(MIN_BALANCE) },
-		];
+		// const minBalances = [
+		// 	{ tokenID: defaultTokenIDAlias, amount: BigInt(MIN_BALANCE) },
+		// 	{ tokenID: defaultForeignTokenID, amount: BigInt(MIN_BALANCE) },
+		// ];
 		tokenMethod.addDependencies(interopMethod as never);
-		tokenInteropMethod.addDependencies(interopMethod);
-		tokenMethod.init({
-			ownchainID: Buffer.from([0, 0, 0, 1]),
-			minBalances,
-		});
+		// tokenInteropMethod.addDependencies(interopMethod);
+		// tokenMethod.init({
+		// 	ownchainID: Buffer.from([0, 0, 0, 1]),
+		// 	minBalances,
+		// });
 
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		methodContext = createMethodContext({

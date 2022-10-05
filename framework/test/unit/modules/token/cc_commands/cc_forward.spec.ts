@@ -25,7 +25,6 @@ import {
 	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_NAME_FORWARD,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-	MIN_BALANCE,
 	TOKEN_ID_LENGTH,
 } from '../../../../../src/modules/token/constants';
 import { crossChainForwardMessageParams } from '../../../../../src/modules/token/schemas';
@@ -82,16 +81,17 @@ describe('CrossChain Forward command', () => {
 			terminateChain: jest.fn(),
 			getChannel: jest.fn(),
 		};
-		const minBalances = [
-			{ tokenID: defaultTokenIDAlias, amount: BigInt(MIN_BALANCE) },
-			{ tokenID: defaultForeignTokenID, amount: BigInt(MIN_BALANCE) },
-		];
+		// const minBalances = [
+		// 	{ tokenID: defaultTokenIDAlias, amount: BigInt(MIN_BALANCE) },
+		// 	{ tokenID: defaultForeignTokenID, amount: BigInt(MIN_BALANCE) },
+		// ];
 		method.addDependencies(interopMethod as never);
-		command.addDependencies(interopMethod);
-		method.init({
-			ownchainID: Buffer.from([0, 0, 0, 1]),
-			minBalances,
-		});
+		// command.addDependencies(interopMethod);
+		// method.init({
+		// 	ownChainID: Buffer.from([0, 0, 0, 1]),
+		// 	minBalances,
+
+		// });
 
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		methodContext = createMethodContext({
