@@ -33,8 +33,8 @@ export class LegacyChainHandler {
 	}
 
 	public async init(args: LegacyHandlerInitArgs): Promise<void> {
-		const storage = new Storage(this._db as Database);
 		this._db = args.db;
+		const storage = new Storage(this._db as Database);
 
 		for (const bracket of this._legacyConfig.brackets) {
 			const bracketInfo = await storage.getLegacyChainBracketInfo(
