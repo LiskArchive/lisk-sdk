@@ -33,14 +33,12 @@ import {
 import { EscrowStore } from './stores/escrow';
 import { UserStore } from './stores/user';
 import { InteroperabilityMethod } from './types';
+import { BaseCCMethod } from '../interoperability/base_cc_method';
 import { BeforeCCCExecutionEvent } from './events/before_ccc_execution';
 import { RecoverEvent } from './events/recover';
 import { EMPTY_BYTES } from '../interoperability/constants';
 import { BeforeCCMForwardingEvent } from './events/before_ccm_forwarding';
 import { MODULE_NAME_TOKEN } from '../interoperability/cc_methods';
-import { BaseCCMethod } from '../interoperability/base_cc_method';
-
-const CHAIN_ID_ALIAS_NATIVE = Buffer.alloc(0); // To be removed
 
 export class TokenInteroperableMethod extends BaseCCMethod {
 	private readonly _tokenMethod: TokenMethod;
