@@ -263,7 +263,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			nonce: ownChainAccount.nonce,
 			module: MODULE_NAME_INTEROPERABILITY,
 			crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
-			sendingChainID: ownChainAccount.id,
+			sendingChainID: ownChainAccount.chainID,
 			receivingChainID: chainID,
 			fee: BigInt(0),
 			status: CCM_STATUS_OK,
@@ -278,7 +278,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 
 		// Emit CCM processed event.
 		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
-		this.events.get(CcmProcessedEvent).log(methodContext, ownChainAccount.id, chainID, {
+		this.events.get(CcmProcessedEvent).log(methodContext, ownChainAccount.chainID, chainID, {
 			ccmID,
 			status: CCM_SENT_STATUS_SUCCESS,
 		});

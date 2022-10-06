@@ -76,7 +76,7 @@ describe('CrossChain Transfer command', () => {
 		method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
 		command = new CCTransferCommand(tokenModule.stores, tokenModule.events, method);
 		interopMethod = {
-			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
+			getOwnChainAccount: jest.fn().mockResolvedValue({ chainID: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn(),
 			error: jest.fn(),
 			terminateChain: jest.fn(),

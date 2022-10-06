@@ -150,7 +150,7 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 			};
 			const ownChainAccount = {
 				name: 'mainchain',
-				id: MAINCHAIN_ID_BUFFER,
+				chainID: MAINCHAIN_ID_BUFFER,
 				nonce: BigInt('0'),
 			};
 			interopStoreMock = {

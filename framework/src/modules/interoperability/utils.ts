@@ -639,7 +639,7 @@ export const initGenesisStateUtil = async (
 			!(
 				tokenID.chainID.readInt32BE(0) === 1 ||
 				tokenID.chainID.equals(channelData.storeKey) ||
-				tokenID.chainID.equals(ownChainAccount.id)
+				tokenID.chainID.equals(ownChainAccount.chainID)
 			)
 		) {
 			throw new Error(
@@ -745,7 +745,7 @@ export const initGenesisStateUtil = async (
 
 		if (
 			!(
-				chainDataStoreKey.equals(ownChainAccount.id) ||
+				chainDataStoreKey.equals(ownChainAccount.chainID) ||
 				chainDataStoreKey.equals(MAINCHAIN_ID_BUFFER)
 			)
 		) {
@@ -757,7 +757,10 @@ export const initGenesisStateUtil = async (
 
 	if (
 		isAnotherSidechainAccount &&
-		!(chainDataStoreKeySet.has(MAINCHAIN_ID_BUFFER) && chainDataStoreKeySet.has(ownChainAccount.id))
+		!(
+			chainDataStoreKeySet.has(MAINCHAIN_ID_BUFFER) &&
+			chainDataStoreKeySet.has(ownChainAccount.chainID)
+		)
 	) {
 		throw new Error(
 			'If a chain account for another sidechain is present, then a chain account for the mainchain must be present, as well as the own chain account.',

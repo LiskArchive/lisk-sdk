@@ -156,7 +156,7 @@ describe('Sidechain registration command', () => {
 		ownChainAccountSubstore = interopMod.stores.get(OwnChainAccountStore);
 		await ownChainAccountSubstore.set(createStoreGetter(stateStore), EMPTY_BYTES, {
 			name: 'lisk',
-			id: chainID,
+			chainID,
 			nonce: BigInt(0),
 		});
 		await chainAccountSubstore.set(createStoreGetter(stateStore), existingChainID, chainAccount);
@@ -590,7 +590,7 @@ describe('Sidechain registration command', () => {
 
 		it('should update nonce in own chain acount substore', async () => {
 			// Arrange
-			const expectedValue = { name: 'lisk', id: chainID, nonce: BigInt(1) };
+			const expectedValue = { name: 'lisk', chainID, nonce: BigInt(1) };
 
 			// Act
 			await sidechainRegistrationCommand.execute(context);

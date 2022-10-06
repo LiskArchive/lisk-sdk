@@ -67,7 +67,7 @@ describe('token endpoint', () => {
 			],
 		});
 		method.addDependencies({
-			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
+			getOwnChainAccount: jest.fn().mockResolvedValue({ chainID: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn().mockResolvedValue(true),
 			error: jest.fn(),
 			terminateChain: jest.fn(),

@@ -67,7 +67,7 @@ describe('token module', () => {
 			],
 		});
 		method.addDependencies({
-			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
+			getOwnChainAccount: jest.fn().mockResolvedValue({ chainID: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn().mockResolvedValue(true),
 			error: jest.fn(),
 			terminateChain: jest.fn(),
@@ -508,7 +508,7 @@ describe('token module', () => {
 			jest.spyOn(method['_interoperabilityMethod'], 'send').mockResolvedValue(false);
 			jest
 				.spyOn(method['_interoperabilityMethod'], 'getOwnChainAccount')
-				.mockResolvedValue({ id: Buffer.from([0, 0, 0, 2]) } as never);
+				.mockResolvedValue({ chainID: Buffer.from([0, 0, 0, 2]) } as never);
 			const receivingChainID = Buffer.from([0, 0, 0, 3]);
 			const messageFee = BigInt('10000');
 			const userStore = tokenModule.stores.get(UserStore);
@@ -639,7 +639,7 @@ describe('token module', () => {
 				jest.spyOn(codec, 'encode');
 				jest
 					.spyOn(method['_interoperabilityMethod'], 'getOwnChainAccount')
-					.mockResolvedValue({ id: Buffer.from([0, 0, 0, 2]) } as never);
+					.mockResolvedValue({ chainID: Buffer.from([0, 0, 0, 2]) } as never);
 				const userStore = tokenModule.stores.get(UserStore);
 				await userStore.set(
 					methodContext,

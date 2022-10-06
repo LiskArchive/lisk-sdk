@@ -475,7 +475,7 @@ export class TokenMethod extends BaseMethod {
 		}
 		let newTokenID: Buffer;
 		if (CHAIN_ID_ALIAS_NATIVE.equals(chainID)) {
-			const { id: ownChainID } = await this._interoperabilityMethod.getOwnChainAccount(
+			const { chainID: ownChainID } = await this._interoperabilityMethod.getOwnChainAccount(
 				methodContext,
 			);
 			newTokenID = Buffer.concat([ownChainID, localID]);
@@ -556,8 +556,8 @@ export class TokenMethod extends BaseMethod {
 		if (chainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
 			return tokenID;
 		}
-		const { id } = await this._interoperabilityMethod.getOwnChainAccount(methodContext);
-		if (chainID.equals(id)) {
+		const ownChainAccount = await this._interoperabilityMethod.getOwnChainAccount(methodContext);
+		if (chainID.equals(ownChainAccount.chainID)) {
 			return getNativeTokenID(tokenID);
 		}
 		return tokenID;

@@ -49,7 +49,7 @@ export class StateRecoveryInitializationCommand extends BaseInteroperabilityComm
 		const interoperabilityStore = this.getInteroperabilityStore(context);
 		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
 
-		if (chainID.equals(MAINCHAIN_ID_BUFFER) || chainID.equals(ownChainAccount.id)) {
+		if (chainID.equals(MAINCHAIN_ID_BUFFER) || chainID.equals(ownChainAccount.chainID)) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(`Sidechain id is not valid`),

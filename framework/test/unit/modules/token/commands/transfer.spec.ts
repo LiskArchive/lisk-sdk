@@ -44,7 +44,7 @@ describe('Transfer command', () => {
 	beforeEach(() => {
 		command = new TransferCommand(tokenModule.stores, tokenModule.events);
 		interopMethod = {
-			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
+			getOwnChainAccount: jest.fn().mockResolvedValue({ chainID: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn(),
 			error: jest.fn(),
 			terminateChain: jest.fn(),

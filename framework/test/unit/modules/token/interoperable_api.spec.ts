@@ -92,7 +92,7 @@ describe('CrossChain Forward command', () => {
 			tokenMethod,
 		);
 		interopMethod = {
-			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
+			getOwnChainAccount: jest.fn().mockResolvedValue({ chainID: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn(),
 			error: jest.fn(),
 			terminateChain: jest.fn(),
