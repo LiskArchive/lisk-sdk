@@ -65,13 +65,12 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 		const { chainID: feeTokenChainID, localID: feeTokenLocalID } = messageFeeTokenID;
 		const userStore = this.stores.get(UserStore);
 
-		if (feeTokenChainID.equals(ownChainID)) {
-			const escrowedAmount = await this._tokenMethod.getEscrowedAmount(
-				methodContext,
-				ccm.sendingChainID,
-				feeTokenLocalID,
-			);
-			if (escrowedAmount < ccm.fee) {
+		if (chainID.equals(this._ownChainID)) {
+			const escrowStore = this.stores.get(EscrowStore);
+			const escrowKey = escrowStore.getKey(ccm.sendingChainID, tokenID);
+			const escrowAccount = await escrowStore.getOrDefault(methodContext, escrowKey);
+
+			if (escrowAccount.amount < ccm.fee) {
 				this.events.get(BeforeCCCExecutionEvent).error(
 					methodContext,
 					{
@@ -97,12 +96,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 			);
 		}
 
-		await userStore.addAvailableBalanceWithCreate(
-			methodContext,
-			relayerAddress,
-			feeTokenLocalID,
-			ccm.fee,
-		);
+		await userStore.addAvailableBalance(methodContext, relayerAddress, tokenID, ccm.fee);
 
 		this.events.get(BeforeCCCExecutionEvent).log(methodContext, {
 			sendingChainID: ccm.sendingChainID,
@@ -125,12 +119,10 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 		);
 		const { chainID: feeTokenChainID, localID: feeTokenLocalID } = messageFeeTokenID;
 
-		const escrowedAmount = await this._tokenMethod.getEscrowedAmount(
-			methodContext,
-			ccm.sendingChainID,
-			feeTokenLocalID,
-		);
-		if (escrowedAmount < ccm.fee) {
+		const escrowStore = this.stores.get(EscrowStore);
+		const escrowKey = escrowStore.getKey(ccm.sendingChainID, tokenID);
+		const escrowAccount = await escrowStore.getOrDefault(methodContext, escrowKey);
+		if (escrowAccount.amount < ccm.fee) {
 			this.events.get(BeforeCCMForwardingEvent).error(
 				methodContext,
 				{
@@ -155,17 +147,16 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 		);
 		await escrowStore.addAmount(methodContext, ccm.receivingChainID, feeTokenLocalID, ccm.fee);
 
-		const decodedParams = codec.decode<CCForwardMessageParams>(
-			crossChainForwardMessageParams,
-			ccm.params,
-		);
-
 		if (
 			ccm.module === MODULE_NAME_TOKEN &&
 			ccm.crossChainCommand === CROSS_CHAIN_COMMAND_NAME_TRANSFER &&
-			feeTokenChainID === ownChainID
+			chainID.equals(this._ownChainID)
 		) {
-			if (escrowedAmount < decodedParams.amount) {
+			const decodedParams = codec.decode<CCForwardMessageParams>(
+				crossChainForwardMessageParams,
+				ccm.params,
+			);
+			if (escrowAccount.amount < decodedParams.amount) {
 				this.events.get(BeforeCCMForwardingEvent).error(
 					methodContext,
 					{
@@ -180,13 +171,10 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 				throw new Error('Insufficient balance in the sending chain for the transfer.');
 			}
 
-			await escrowStore.deductEscrowAmountWithTerminate(
-				methodContext,
-				this._interopMethod,
-				ccm.sendingChainID,
-				feeTokenLocalID,
-				decodedParams.amount,
-			);
+			const updatedEscrowAccount = await escrowStore.getOrDefault(methodContext, escrowKey);
+			updatedEscrowAccount.amount -= decodedParams.amount;
+			await escrowStore.set(methodContext, escrowKey, updatedEscrowAccount);
+
 			await escrowStore.addAmount(
 				methodContext,
 				ccm.receivingChainID,
@@ -206,17 +194,14 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 	public async verifyCrossChainMessage(ctx: CrossChainMessageContext): Promise<void> {
 		const { ccm } = ctx;
 		const methodContext = ctx.getMethodContext();
-		if (ccm.fee < BigInt(0)) {
-			throw new Error('Fee must be greater or equal to zero.');
-		}
-		const { chainID: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
-		const { messageFeeTokenID } = await this._interopMethod.getChannel(
+		const tokenID = await this._interopMethod.getMessageFeeTokenID(
 			methodContext,
 			ccm.sendingChainID,
 		);
-		const { chainID: feeTokenChainID, localID: feeTokenLocalID } = messageFeeTokenID;
-		if (feeTokenChainID.equals(ownChainID)) {
-			const escrowedAmount = await this._tokenMethod.getEscrowedAmount(
+		const [chainID] = splitTokenID(tokenID);
+		if (chainID.equals(this._ownChainID)) {
+			const escrowStore = this.stores.get(EscrowStore);
+			const escrowAccount = await escrowStore.getOrDefault(
 				methodContext,
 				ccm.sendingChainID,
 				feeTokenLocalID,
@@ -264,8 +249,8 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 
 		const { chainID: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
 		const escrowStore = this.stores.get(EscrowStore);
-		const escrowKey = Buffer.concat([ctx.terminatedChainID, localID]);
-		const escrowData = await escrowStore.get(ctx, escrowKey);
+		const escrowKey = escrowStore.getKey(ctx.terminatedChainID, tokenID);
+		const escrowData = await escrowStore.getOrDefault(methodContext, escrowKey);
 
 		if (!ownChainID.equals(chainID) || escrowData.amount < totalAmount) {
 			this.events
@@ -281,15 +266,9 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 		}
 
 		escrowData.amount -= totalAmount;
-		await escrowStore.set(ctx, escrowKey, escrowData);
+		await escrowStore.set(methodContext, escrowKey, escrowData);
 
-		const localTokenID = Buffer.concat([CHAIN_ID_ALIAS_NATIVE, localID]);
-		await userStore.addAvailableBalanceWithCreate(
-			methodContext,
-			address,
-			localTokenID,
-			totalAmount,
-		);
+		await userStore.addAvailableBalance(methodContext, address, tokenID, totalAmount);
 
 		this.events.get(RecoverEvent).log(methodContext, address, {
 			terminatedChainID: ctx.terminatedChainID,
