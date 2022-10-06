@@ -63,7 +63,7 @@ import { TokenIDSupportRemovedEvent } from './events/token_id_supported_removed'
 export class TokenModule extends BaseInteroperableModule {
 	public method = new TokenMethod(this.stores, this.events, this.name);
 	public endpoint = new TokenEndpoint(this.stores, this.offchainStores);
-	public crossChainMethod = new TokenInteroperableMethod(this.stores, this.events, this.method);
+	public crossChainMethod = new TokenInteroperableMethod(this.stores, this.events);
 
 	private _minBalances!: MinBalance[];
 	private _ownChainID!: Buffer;
@@ -178,6 +178,7 @@ export class TokenModule extends BaseInteroperableModule {
 			feeTokenID: Buffer.from(config.feeTokenID, 'hex'),
 			userAccountInitializationFee: BigInt('50000000'),
 		});
+		this.crossChainMethod.init(this._ownChainID);
 		this.endpoint.init(this.method);
 		this._transferCommand.init({
 			method: this.method,
