@@ -22,143 +22,137 @@ import {
 } from '../interoperability/types';
 import { NamedRegistry } from '../named_registry';
 import { TokenMethod } from './method';
-import { ADDRESS_LENGTH, CHAIN_ID_ALIAS_NATIVE, CHAIN_ID_LENGTH } from './constants';
+import { ADDRESS_LENGTH, CHAIN_ID_LENGTH } from './constants';
 
 import { UserStoreData, userStoreSchema } from './schemas';
 import { EscrowStore } from './stores/escrow';
 import { UserStore } from './stores/user';
 import { InteroperabilityMethod } from './types';
-import { splitTokenID } from './utils';
 
 export class TokenInteroperableMethod extends BaseInteroperableMethod {
-	private readonly _tokenMethod: TokenMethod;
-
 	private _interopMethod!: InteroperabilityMethod;
 
-	public constructor(stores: NamedRegistry, events: NamedRegistry, tokenMethod: TokenMethod) {
+	public constructor(stores: NamedRegistry, events: NamedRegistry, _tokenMethod: TokenMethod) {
 		super(stores, events);
-		this._tokenMethod = tokenMethod;
 	}
 
 	public addDependencies(interoperabilityMethod: InteroperabilityMethod) {
 		this._interopMethod = interoperabilityMethod;
 	}
 
-	public async beforeApplyCCM(ctx: BeforeApplyCCMsgMethodContext): Promise<void> {
-		const { ccm } = ctx;
-		const methodContext = ctx.getMethodContext();
-		if (ccm.fee < BigInt(0)) {
-			throw new Error('Fee must be greater or equal to zero.');
-		}
-		const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
-		const { messageFeeTokenID } = await this._interopMethod.getChannel(
-			methodContext,
-			ccm.sendingChainID,
-		);
-		const [feeTokenChainID, feeTokenLocalID] = splitTokenID(messageFeeTokenID);
-		const userStore = this.stores.get(UserStore);
-		if (!feeTokenChainID.equals(ownChainID)) {
-			await userStore.addAvailableBalanceWithCreate(
-				methodContext,
-				ctx.trsSender,
-				messageFeeTokenID,
-				ccm.fee,
-			);
-			return;
-		}
-		const escrowStore = this.stores.get(EscrowStore);
-		await escrowStore.deductEscrowAmountWithTerminate(
-			methodContext,
-			this._interopMethod,
-			ccm.sendingChainID,
-			feeTokenLocalID,
-			ccm.fee,
-		);
-
-		const canonicalTokenID = await this._tokenMethod.getCanonicalTokenID(
-			methodContext,
-			messageFeeTokenID,
-		);
-		await userStore.addAvailableBalanceWithCreate(
-			methodContext,
-			ctx.trsSender,
-			canonicalTokenID,
-			ccm.fee,
-		);
+	public async beforeApplyCCM(_ctx: BeforeApplyCCMsgMethodContext): Promise<void> {
+		// const { ccm } = ctx;
+		// const methodContext = ctx.getMethodContext();
+		// if (ccm.fee < BigInt(0)) {
+		// 	throw new Error('Fee must be greater or equal to zero.');
+		// }
+		// const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
+		// const { messageFeeTokenID } = await this._interopMethod.getChannel(
+		// 	methodContext,
+		// 	ccm.sendingChainID,
+		// );
+		// const [feeTokenChainID, feeTokenLocalID] = splitTokenID(messageFeeTokenID);
+		// const userStore = this.stores.get(UserStore);
+		// if (!feeTokenChainID.equals(ownChainID)) {
+		// 	await userStore.addAvailableBalanceWithCreate(
+		// 		methodContext,
+		// 		ctx.trsSender,
+		// 		messageFeeTokenID,
+		// 		ccm.fee,
+		// 	);
+		// 	return;
+		// }
+		// const escrowStore = this.stores.get(EscrowStore);
+		// await escrowStore.deductEscrowAmountWithTerminate(
+		// 	methodContext,
+		// 	this._interopMethod,
+		// 	ccm.sendingChainID,
+		// 	feeTokenLocalID,
+		// 	ccm.fee,
+		// );
+		// const canonicalTokenID = await this._tokenMethod.getCanonicalTokenID(
+		// 	methodContext,
+		// 	messageFeeTokenID,
+		// );
+		// await userStore.addAvailableBalanceWithCreate(
+		// 	methodContext,
+		// 	ctx.trsSender,
+		// 	canonicalTokenID,
+		// 	ccm.fee,
+		// );
 	}
 
-	public async beforeRecoverCCM(ctx: BeforeRecoverCCMsgMethodContext): Promise<void> {
-		const { ccm } = ctx;
-		const methodContext = ctx.getMethodContext();
-		if (ccm.fee < BigInt(0)) {
-			throw new Error('Fee must be greater or equal to zero.');
-		}
-		const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
-		const { messageFeeTokenID } = await this._interopMethod.getChannel(
-			methodContext,
-			ccm.sendingChainID,
-		);
-		const [feeTokenChainID, feeTokenLocalID] = splitTokenID(messageFeeTokenID);
-		const userStore = this.stores.get(UserStore);
-		if (!feeTokenChainID.equals(ownChainID)) {
-			await userStore.addAvailableBalanceWithCreate(
-				methodContext,
-				ctx.trsSender,
-				messageFeeTokenID,
-				ccm.fee,
-			);
-			return;
-		}
-
-		const escrowStore = this.stores.get(EscrowStore);
-		await escrowStore.deductEscrowAmountWithTerminate(
-			methodContext,
-			this._interopMethod,
-			ccm.sendingChainID,
-			feeTokenLocalID,
-			ccm.fee,
-		);
-		const canonicalTokenID = await this._tokenMethod.getCanonicalTokenID(
-			methodContext,
-			messageFeeTokenID,
-		);
-		await userStore.addAvailableBalanceWithCreate(
-			methodContext,
-			ctx.trsSender,
-			canonicalTokenID,
-			ccm.fee,
-		);
+	public async beforeRecoverCCM(_ctx: BeforeRecoverCCMsgMethodContext): Promise<void> {
+		// const { ccm } = ctx;
+		// const methodContext = ctx.getMethodContext();
+		// if (ccm.fee < BigInt(0)) {
+		// 	throw new Error('Fee must be greater or equal to zero.');
+		// }
+		// const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
+		// const { messageFeeTokenID } = await this._interopMethod.getChannel(
+		// 	methodContext,
+		// 	ccm.sendingChainID,
+		// );
+		// const [feeTokenChainID, feeTokenLocalID] = splitTokenID(messageFeeTokenID);
+		// const userStore = this.stores.get(UserStore);
+		// if (!feeTokenChainID.equals(ownChainID)) {
+		// 	await userStore.addAvailableBalanceWithCreate(
+		// 		methodContext,
+		// 		ctx.trsSender,
+		// 		messageFeeTokenID,
+		// 		ccm.fee,
+		// 	);
+		// 	return;
+		// }
+		// const escrowStore = this.stores.get(EscrowStore);
+		// await escrowStore.deductEscrowAmountWithTerminate(
+		// 	methodContext,
+		// 	this._interopMethod,
+		// 	ccm.sendingChainID,
+		// 	feeTokenLocalID,
+		// 	ccm.fee,
+		// );
+		// const canonicalTokenID = await this._tokenMethod.getCanonicalTokenID(
+		// 	methodContext,
+		// 	messageFeeTokenID,
+		// );
+		// await userStore.addAvailableBalanceWithCreate(
+		// 	methodContext,
+		// 	ctx.trsSender,
+		// 	canonicalTokenID,
+		// 	ccm.fee,
+		// );
 	}
 
-	public async beforeSendCCM(ctx: BeforeSendCCMsgMethodContext): Promise<void> {
-		const { ccm } = ctx;
-		const methodContext = ctx.getMethodContext();
-		if (ccm.fee < BigInt(0)) {
-			throw new Error('Fee must be greater or equal to zero.');
-		}
-		const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
-		const { messageFeeTokenID } = await this._interopMethod.getChannel(
-			methodContext,
-			ccm.sendingChainID,
-		);
-		const [feeTokenChainID] = splitTokenID(messageFeeTokenID);
-		const userStore = this.stores.get(UserStore);
-		let tokenID = messageFeeTokenID;
-		if (feeTokenChainID.equals(ownChainID)) {
-			tokenID = await this._tokenMethod.getCanonicalTokenID(methodContext, messageFeeTokenID);
-			const escrowStore = this.stores.get(EscrowStore);
-			await escrowStore.addAmount(methodContext, ccm.receivingChainID, messageFeeTokenID, ccm.fee);
-		}
-		const payer = await userStore.get(ctx, userStore.getKey(ctx.feeAddress, tokenID));
-		if (payer.availableBalance < ccm.fee) {
-			throw new Error(
-				`Payer ${ctx.feeAddress.toString(
-					'hex',
-				)} does not have sufficient balance for fee ${ccm.fee.toString()}`,
-			);
-		}
-		payer.availableBalance -= ccm.fee;
-		await userStore.save(ctx, ctx.feeAddress, tokenID, payer);
+	public async beforeSendCCM(_ctx: BeforeSendCCMsgMethodContext): Promise<void> {
+		// const { ccm } = ctx;
+		// const methodContext = ctx.getMethodContext();
+		// if (ccm.fee < BigInt(0)) {
+		// 	throw new Error('Fee must be greater or equal to zero.');
+		// }
+		// const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
+		// const { messageFeeTokenID } = await this._interopMethod.getChannel(
+		// 	methodContext,
+		// 	ccm.sendingChainID,
+		// );
+		// const [feeTokenChainID] = splitTokenID(messageFeeTokenID);
+		// const userStore = this.stores.get(UserStore);
+		// let tokenID = messageFeeTokenID;
+		// if (feeTokenChainID.equals(ownChainID)) {
+		// 	tokenID = await this._tokenMethod.getCanonicalTokenID(methodContext, messageFeeTokenID);
+		// 	const escrowStore = this.stores.get(EscrowStore);
+		// 	await escrowStore.addAmount(methodContext, ccm.receivingChainID, messageFeeTokenID, ccm.fee);
+		// }
+		// const payer = await userStore.get(ctx, userStore.getKey(ctx.feeAddress, tokenID));
+		// if (payer.availableBalance < ccm.fee) {
+		// 	throw new Error(
+		// 		`Payer ${ctx.feeAddress.toString(
+		// 			'hex',
+		// 		)} does not have sufficient balance for fee ${ccm.fee.toString()}`,
+		// 	);
+		// }
+		// payer.availableBalance -= ccm.fee;
+		// await userStore.save(ctx, ctx.feeAddress, tokenID, payer);
 	}
 
 	public async recover(ctx: RecoverCCMsgMethodContext): Promise<void> {
@@ -198,7 +192,7 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 		escrowData.amount -= totalAmount;
 		await escrowStore.set(ctx, escrowKey, escrowData);
 
-		const localTokenID = Buffer.concat([CHAIN_ID_ALIAS_NATIVE, localID]);
+		const localTokenID = Buffer.concat([Buffer.alloc(0), localID]);
 		await userStore.addAvailableBalanceWithCreate(
 			methodContext,
 			address,

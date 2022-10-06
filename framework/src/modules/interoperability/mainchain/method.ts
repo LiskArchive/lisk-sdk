@@ -84,6 +84,14 @@ export class MainchainInteroperabilityMethod extends BaseMethod {
 		throw new Error('Need to be implemented');
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async getMessageFeeTokenID(
+		_methodContext: MethodContext,
+		_chainID: Buffer,
+	): Promise<Buffer> {
+		throw new Error('Need to be implemented');
+	}
+
 	protected getInteroperabilityStore(
 		context: StoreGetter | ImmutableStoreGetter,
 	): MainchainInteroperabilityStore {

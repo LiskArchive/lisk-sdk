@@ -69,6 +69,9 @@ export interface InteroperabilityMethod {
 	): Promise<boolean>;
 	error(methodContext: MethodContext, ccm: CCMsg, code: number): Promise<void>;
 	terminateChain(methodContext: MethodContext, chainID: Buffer): Promise<void>;
-	getChannel(methodContext: MethodContext, chainID: Buffer): Promise<{ messageFeeTokenID: Buffer }>;
+	getChannel(
+		methodContext: MethodContext,
+		chainID: Buffer,
+	): Promise<{ messageFeeTokenID: { chainID: Buffer; localID: Buffer } }>;
 	getMessageFeeTokenID(methodContext: MethodContext, chainID: Buffer): Promise<Buffer>;
 }
