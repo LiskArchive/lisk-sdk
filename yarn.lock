@@ -296,13 +296,13 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@chainsafe/blst@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@chainsafe/blst/-/blst-0.2.0.tgz#5e2d2707c2c0d56ff077a00179a5255eaca14099"
-  integrity sha512-eyyLm4C+Zhl18YwFa93J+xRSHj0NrBZodBO+z+aaREf71RnA7/EvOcAPVLpEW2CI7PsInhVne/ufb+A7gfHQrg==
+"@chainsafe/blst@0.2.6":
+  version "0.2.6"
+  resolved "https://registry.yarnpkg.com/@chainsafe/blst/-/blst-0.2.6.tgz#56f17c82338d62421321dca60250951dd3a7db7a"
+  integrity sha512-7mzE9IRjG0TZKPit83GT4XPSgMnqmMT4AAeUTyTj/IwO4FDPQ3fJVheT6i9LaH3I4Y18oaL68G9j+Uh3mEEAYg==
   dependencies:
     node-fetch "^2.6.1"
-    node-gyp "^7.1.2"
+    node-gyp "^8.4.0"
 
 "@cnakazawa/watch@^1.0.3":
   version "1.0.4"
@@ -11336,7 +11336,7 @@ node-gyp@^5.0.2:
     tar "^4.4.12"
     which "^1.3.1"
 
-node-gyp@^7.1.0, node-gyp@^7.1.2:
+node-gyp@^7.1.0:
   version "7.1.2"
   resolved "https://registry.yarnpkg.com/node-gyp/-/node-gyp-7.1.2.tgz#21a810aebb187120251c3bcec979af1587b188ae"
   integrity sha512-CbpcIo7C3eMu3dL1c3d0xw449fHIGALIJsRP4DDPHpyiW8vcriNY7ubh9TE4zEKfSxscY7PjeFnshE7h75ynjQ==
@@ -11352,7 +11352,7 @@ node-gyp@^7.1.0, node-gyp@^7.1.2:
     tar "^6.0.2"
     which "^2.0.2"
 
-node-gyp@^8.2.0:
+node-gyp@^8.2.0, node-gyp@^8.4.0:
   version "8.4.1"
   resolved "https://registry.yarnpkg.com/node-gyp/-/node-gyp-8.4.1.tgz#3d49308fc31f768180957d6b5746845fbd429937"
   integrity sha512-olTJRgUtAb/hOXG0E93wZDs5YiJlgbXxTwQAFHyNlRsXQnYzUaF2aGgujZbw+hR8aF4ZG/rST57bWMWD16jr9w==

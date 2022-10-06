@@ -35,6 +35,7 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
+		"@chainsafe/blst": "0.2.6",
 		"@liskhq/lisk-passphrase": "4.0.0-alpha.0",
 		"buffer-reverse": "1.0.1",
 		"ed2curve": "0.3.0",
@@ -43,14 +44,10 @@
 		"varuint-bitcoin": "1.1.2"
 	},
 	"peerDependencies": {
-		"@chainsafe/blst": "0.2.4",
 		"sodium-native": "3.2.1"
 	},
 	"peerDependenciesMeta": {
 		"sodium-native": {
-			"optional": true
-		},
-		"@chainsafe/blst": {
 			"optional": true
 		}
 	},
