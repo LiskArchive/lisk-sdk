@@ -13,16 +13,20 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { utils } from '@liskhq/lisk-cryptography';
-import { TokenMethod, TokenModule } from '../../../../src/modules/token';
+import { address, utils } from '@liskhq/lisk-cryptography';
+import { TokenModule } from '../../../../src/modules/token';
 import {
 	CCM_STATUS_OK,
 	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_NAME_FORWARD,
-	TOKEN_ID_LENGTH,
+	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+	TokenEventResult,
 } from '../../../../src/modules/token/constants';
 import { TokenInteroperableMethod } from '../../../../src/modules/token/cc_method';
-import { userStoreSchema } from '../../../../src/modules/token/schemas';
+import {
+	crossChainForwardMessageParams,
+	userStoreSchema,
+} from '../../../../src/modules/token/schemas';
 import { MethodContext, createMethodContext, EventQueue } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
@@ -30,13 +34,20 @@ import { fakeLogger } from '../../../utils/mocks';
 import { UserStore } from '../../../../src/modules/token/stores/user';
 import { SupplyStore } from '../../../../src/modules/token/stores/supply';
 import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
+import { BeforeCCCExecutionEvent } from '../../../../src/modules/token/events/before_ccc_execution';
+import { BeforeCCMForwardingEvent } from '../../../../src/modules/token/events/before_ccm_forwarding';
+import { RecoverEvent } from '../../../../src/modules/token/events/recover';
 
-describe('CrossChain Forward command', () => {
+describe('TokenInteroperableMethod', () => {
 	const tokenModule = new TokenModule();
-	const defaultAddress = utils.getRandomBytes(20);
-	const defaultTokenIDAlias = Buffer.alloc(TOKEN_ID_LENGTH, 0);
-	const defaultTokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
-	const defaultForeignTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
+	const defaultPublicKey = Buffer.from(
+		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+		'hex',
+	);
+	const defaultAddress = address.getAddressFromPublicKey(defaultPublicKey);
+	const ownChainID = Buffer.from([0, 0, 0, 1]);
+	const defaultTokenID = Buffer.concat([ownChainID, Buffer.alloc(4)]);
+	const defaultForeignTokenID = Buffer.from([0, 0, 0, 2, 0, 0, 0, 0]);
 	const defaultAccount = {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
@@ -69,104 +80,69 @@ describe('CrossChain Forward command', () => {
 	};
 
 	let tokenInteropMethod: TokenInteroperableMethod;
-	let tokenMethod: TokenMethod;
-	let interopMethod: {
-		getOwnChainAccount: jest.Mock;
-		send: jest.Mock;
-		error: jest.Mock;
-		terminateChain: jest.Mock;
-		getChannel: jest.Mock;
-	};
 	let stateStore: PrefixedStateReadWriter;
 	let methodContext: MethodContext;
 	let userStore: UserStore;
+	let escrowStore: EscrowStore;
+
+	const checkEventResult = (
+		eventQueue: EventQueue,
+		BaseEvent: any,
+		expectedResult: TokenEventResult,
+		length = 1,
+		index = 0,
+	) => {
+		expect(eventQueue.getEvents()).toHaveLength(length);
+		expect(eventQueue.getEvents()[index].toObject().name).toEqual(new BaseEvent('token').name);
+		expect(
+			codec.decode<Record<string, unknown>>(
+				new BaseEvent('token').schema,
+				eventQueue.getEvents()[index].toObject().data,
+			).result,
+		).toEqual(expectedResult);
+	};
 
 	beforeEach(async () => {
-		tokenMethod = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
-		tokenInteropMethod = new TokenInteroperableMethod(
-			tokenModule.stores,
-			tokenModule.events,
-			tokenMethod,
-		);
-		interopMethod = {
-			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
-			send: jest.fn(),
-			error: jest.fn(),
-			terminateChain: jest.fn(),
-			getChannel: jest.fn().mockResolvedValue({ messageFeeTokenID: defaultTokenID }),
-		};
-		// const minBalances = [
-		// 	{ tokenID: defaultTokenIDAlias, amount: BigInt(MIN_BALANCE) },
-		// 	{ tokenID: defaultForeignTokenID, amount: BigInt(MIN_BALANCE) },
-		// ];
-		tokenMethod.addDependencies(interopMethod as never);
-		// tokenInteropMethod.addDependencies(interopMethod);
-		// tokenMethod.init({
-		// 	ownchainID: Buffer.from([0, 0, 0, 1]),
-		// 	minBalances,
-		// });
+		tokenInteropMethod = new TokenInteroperableMethod(tokenModule.stores, tokenModule.events);
+		tokenInteropMethod.init(ownChainID);
+		tokenInteropMethod.addDependencies({
+			send: jest.fn().mockResolvedValue(true),
+			getMessageFeeTokenID: jest.fn().mockResolvedValue(defaultTokenID),
+		} as never);
 
-		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		methodContext = createMethodContext({
-			stateStore,
-			eventQueue: new EventQueue(0),
+			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
+			eventQueue: new EventQueue(0).getChildQueue(Buffer.from([0])),
 		});
 		userStore = tokenModule.stores.get(UserStore);
-		await userStore.save(methodContext, defaultAddress, defaultTokenIDAlias, defaultAccount);
+		await userStore.save(methodContext, defaultAddress, defaultTokenID, defaultAccount);
 		await userStore.save(methodContext, defaultAddress, defaultForeignTokenID, defaultAccount);
 
 		const supplyStore = tokenModule.stores.get(SupplyStore);
-		await supplyStore.set(methodContext, defaultTokenIDAlias.slice(CHAIN_ID_LENGTH), {
+		await supplyStore.set(methodContext, defaultTokenID, {
 			totalSupply: defaultTotalSupply,
 		});
 
-		const escrowStore = tokenModule.stores.get(EscrowStore);
+		escrowStore = tokenModule.stores.get(EscrowStore);
 		await escrowStore.set(
 			methodContext,
-			Buffer.concat([
-				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
-				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
-			]),
+			Buffer.concat([defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH), defaultTokenID]),
 			{ amount: defaultEscrowAmount },
 		);
 		await escrowStore.set(
 			methodContext,
-			Buffer.concat([Buffer.from([3, 0, 0, 0]), defaultTokenIDAlias.slice(CHAIN_ID_LENGTH)]),
+			Buffer.concat([Buffer.from([3, 0, 0, 0]), defaultTokenID]),
 			{ amount: defaultEscrowAmount },
 		);
 	});
 
-	// TODO: Update with https://github.com/LiskHQ/lisk-sdk/issues/7577
-	describe.skip('beforeApplyCCM', () => {
-		it('should reject if fee is negative', async () => {
+	describe('beforeCrossChainCommandExecution', () => {
+		it('should credit fee to transaction sender if token id is not native', async () => {
+			jest
+				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenID')
+				.mockResolvedValue(defaultForeignTokenID);
 			await expect(
-				tokenInteropMethod.beforeApplyCCM({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(-3),
-						status: CCM_STATUS_OK,
-						params: utils.getRandomBytes(30),
-					},
-					feeAddress: defaultAddress,
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
-					ccu,
-					trsSender: defaultAddress,
-				}),
-			).rejects.toThrow('Fee must be greater or equal to zero');
-		});
-
-		it('should credit fee to transaction sender if fee token id is not native', async () => {
-			interopMethod.getChannel.mockResolvedValue({ messageFeeTokenID: defaultForeignTokenID });
-			await expect(
-				tokenInteropMethod.beforeApplyCCM({
+				tokenInteropMethod.beforeCrossChainCommandExecution({
 					ccm: {
 						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
 						module: tokenModule.name,
@@ -184,17 +160,24 @@ describe('CrossChain Forward command', () => {
 					logger: fakeLogger,
 					chainID: utils.getRandomBytes(32),
 					ccu,
-					trsSender: defaultAddress,
+					trsSender: defaultPublicKey,
 				}),
 			).resolves.toBeUndefined();
-			await expect(
-				tokenMethod.getAvailableBalance(methodContext, defaultAddress, defaultForeignTokenID),
-			).resolves.toEqual(defaultAccount.availableBalance + fee);
+			const { availableBalance } = await userStore.get(
+				methodContext,
+				userStore.getKey(defaultAddress, defaultForeignTokenID),
+			);
+			expect(availableBalance).toEqual(defaultAccount.availableBalance + fee);
+			checkEventResult(
+				methodContext.eventQueue,
+				BeforeCCCExecutionEvent,
+				TokenEventResult.SUCCESSFUL,
+			);
 		});
 
-		it('should terminate sending chain if escrow balance is not sufficient', async () => {
+		it('should throw if escrow balance is not sufficient', async () => {
 			await expect(
-				tokenInteropMethod.beforeApplyCCM({
+				tokenInteropMethod.beforeCrossChainCommandExecution({
 					ccm: {
 						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
 						module: tokenModule.name,
@@ -212,15 +195,19 @@ describe('CrossChain Forward command', () => {
 					logger: fakeLogger,
 					chainID: utils.getRandomBytes(32),
 					ccu,
-					trsSender: defaultAddress,
+					trsSender: defaultPublicKey,
 				}),
-			).resolves.toBeUndefined();
-			expect(interopMethod.terminateChain).toHaveBeenCalled();
+			).rejects.toThrow('Insufficient balance in the sending chain for the message fee.');
+			checkEventResult(
+				methodContext.eventQueue,
+				BeforeCCCExecutionEvent,
+				TokenEventResult.FAIL_INSUFFICIENT_BALANCE,
+			);
 		});
 
 		it('should deduct escrow account for fee and credit to sender if token id is native', async () => {
 			await expect(
-				tokenInteropMethod.beforeApplyCCM({
+				tokenInteropMethod.beforeCrossChainCommandExecution({
 					ccm: {
 						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
 						module: tokenModule.name,
@@ -238,75 +225,31 @@ describe('CrossChain Forward command', () => {
 					logger: fakeLogger,
 					chainID: utils.getRandomBytes(32),
 					ccu,
-					trsSender: defaultAddress,
+					trsSender: defaultPublicKey,
 				}),
 			).resolves.toBeUndefined();
-			await expect(
-				tokenMethod.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
-			).resolves.toEqual(defaultAccount.availableBalance + fee);
-			await expect(
-				tokenMethod.getEscrowedAmount(methodContext, sendingChainID, defaultTokenID),
-			).resolves.toEqual(defaultEscrowAmount - fee);
+			const { availableBalance } = await userStore.get(
+				methodContext,
+				userStore.getKey(defaultAddress, defaultTokenID),
+			);
+			expect(availableBalance).toEqual(defaultAccount.availableBalance + fee);
+			const { amount } = await escrowStore.get(
+				methodContext,
+				userStore.getKey(sendingChainID, defaultTokenID),
+			);
+			expect(amount).toEqual(defaultEscrowAmount - fee);
+			checkEventResult(
+				methodContext.eventQueue,
+				BeforeCCCExecutionEvent,
+				TokenEventResult.SUCCESSFUL,
+			);
 		});
 	});
 
-	// TODO: Update with https://github.com/LiskHQ/lisk-sdk/issues/7577
-	describe.skip('beforeRecoverCCM', () => {
-		it('should reject if fee is negative', async () => {
+	describe('beforeCrossChainMessageForwarding', () => {
+		it('should throw if escrow balance is not sufficient', async () => {
 			await expect(
-				tokenInteropMethod.beforeRecoverCCM({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(-3),
-						status: CCM_STATUS_OK,
-						params: utils.getRandomBytes(30),
-					},
-					feeAddress: defaultAddress,
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
-					trsSender: defaultAddress,
-				}),
-			).rejects.toThrow('Fee must be greater or equal to zero');
-		});
-
-		it('should credit fee to transaction sender if message fee token id is not native', async () => {
-			interopMethod.getChannel.mockResolvedValue({ messageFeeTokenID: defaultForeignTokenID });
-			await expect(
-				tokenInteropMethod.beforeRecoverCCM({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee,
-						status: CCM_STATUS_OK,
-						params: utils.getRandomBytes(30),
-					},
-					feeAddress: defaultAddress,
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
-					trsSender: defaultAddress,
-				}),
-			).resolves.toBeUndefined();
-			await expect(
-				tokenMethod.getAvailableBalance(methodContext, defaultAddress, defaultForeignTokenID),
-			).resolves.toEqual(defaultAccount.availableBalance + fee);
-		});
-
-		it('should terminate sending chain if escrow balance is not sufficient', async () => {
-			await expect(
-				tokenInteropMethod.beforeRecoverCCM({
+				tokenInteropMethod.beforeCrossChainMessageForwarding({
 					ccm: {
 						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
 						module: tokenModule.name,
@@ -323,15 +266,19 @@ describe('CrossChain Forward command', () => {
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
 					chainID: utils.getRandomBytes(32),
-					trsSender: defaultAddress,
+					trsSender: defaultPublicKey,
 				}),
-			).resolves.toBeUndefined();
-			expect(interopMethod.terminateChain).toHaveBeenCalled();
+			).rejects.toThrow('Insufficient balance in the sending chain for the message fee.');
+			checkEventResult(
+				methodContext.eventQueue,
+				BeforeCCMForwardingEvent,
+				TokenEventResult.FAIL_INSUFFICIENT_BALANCE,
+			);
 		});
 
-		it('should deduct escrow account for fee and credit to sender if token id is native', async () => {
+		it('should deduct escrow account for fee and credit to sender if ccm command is forward', async () => {
 			await expect(
-				tokenInteropMethod.beforeRecoverCCM({
+				tokenInteropMethod.beforeCrossChainMessageForwarding({
 					ccm: {
 						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
 						module: tokenModule.name,
@@ -340,7 +287,15 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee,
 						status: CCM_STATUS_OK,
-						params: utils.getRandomBytes(30),
+						params: codec.encode(crossChainForwardMessageParams, {
+							tokenID: utils.getRandomBytes(9),
+							amount: BigInt(1000),
+							senderAddress: defaultAddress,
+							forwardToChainID: Buffer.from([4, 0, 0, 0]),
+							recipientAddress: defaultAddress,
+							data: 'ddd',
+							forwardedMessageFee: BigInt(2000),
+						}),
 					},
 					feeAddress: defaultAddress,
 					getMethodContext: () => methodContext,
@@ -348,46 +303,111 @@ describe('CrossChain Forward command', () => {
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
 					chainID: utils.getRandomBytes(32),
-					trsSender: defaultAddress,
+					trsSender: defaultPublicKey,
 				}),
 			).resolves.toBeUndefined();
+
+			const { amount } = await escrowStore.get(
+				methodContext,
+				userStore.getKey(sendingChainID, defaultTokenID),
+			);
+			expect(amount).toEqual(defaultEscrowAmount - fee);
+			const { amount: receiver } = await escrowStore.get(
+				methodContext,
+				userStore.getKey(Buffer.from([0, 0, 0, 1]), defaultTokenID),
+			);
+			expect(receiver).toEqual(fee);
+		});
+
+		it('should throw if ccm command is transfer but escrow amount is less than the ccm params amount', async () => {
 			await expect(
-				tokenMethod.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
-			).resolves.toEqual(defaultAccount.availableBalance + fee);
+				tokenInteropMethod.beforeCrossChainMessageForwarding({
+					ccm: {
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+						module: tokenModule.name,
+						nonce: BigInt(1),
+						sendingChainID,
+						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						fee,
+						status: CCM_STATUS_OK,
+						params: codec.encode(crossChainForwardMessageParams, {
+							tokenID: utils.getRandomBytes(9),
+							amount: defaultEscrowAmount + BigInt(1000),
+							senderAddress: defaultAddress,
+							forwardToChainID: Buffer.from([4, 0, 0, 0]),
+							recipientAddress: defaultAddress,
+							data: 'ddd',
+							forwardedMessageFee: BigInt(2000),
+						}),
+					},
+					feeAddress: defaultAddress,
+					getMethodContext: () => methodContext,
+					eventQueue: new EventQueue(0),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+					logger: fakeLogger,
+					chainID: utils.getRandomBytes(32),
+					trsSender: defaultPublicKey,
+				}),
+			).rejects.toThrow('Insufficient balance in the sending chain for the transfer.');
+			checkEventResult(
+				methodContext.eventQueue,
+				BeforeCCMForwardingEvent,
+				TokenEventResult.INSUFFICIENT_ESCROW_BALANCE,
+			);
+		});
+
+		it('should deduct escrow account for fee+ccm.params.amount and credit to sender if ccm command is forward', async () => {
 			await expect(
-				tokenMethod.getEscrowedAmount(methodContext, sendingChainID, defaultTokenID),
-			).resolves.toEqual(defaultEscrowAmount - fee);
+				tokenInteropMethod.beforeCrossChainMessageForwarding({
+					ccm: {
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+						module: tokenModule.name,
+						nonce: BigInt(1),
+						sendingChainID,
+						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						fee,
+						status: CCM_STATUS_OK,
+						params: codec.encode(crossChainForwardMessageParams, {
+							tokenID: utils.getRandomBytes(9),
+							amount: BigInt(1000),
+							senderAddress: defaultAddress,
+							forwardToChainID: Buffer.from([4, 0, 0, 0]),
+							recipientAddress: defaultAddress,
+							data: 'ddd',
+							forwardedMessageFee: BigInt(2000),
+						}),
+					},
+					feeAddress: defaultAddress,
+					getMethodContext: () => methodContext,
+					eventQueue: new EventQueue(0),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+					logger: fakeLogger,
+					chainID: utils.getRandomBytes(32),
+					trsSender: defaultPublicKey,
+				}),
+			).resolves.toBeUndefined();
+			const { amount } = await escrowStore.get(
+				methodContext,
+				userStore.getKey(sendingChainID, defaultTokenID),
+			);
+			expect(amount).toEqual(defaultEscrowAmount - fee - BigInt(1000));
+			const { amount: receiver } = await escrowStore.get(
+				methodContext,
+				userStore.getKey(Buffer.from([0, 0, 0, 1]), defaultTokenID),
+			);
+			expect(receiver).toEqual(fee + BigInt(1000));
+			checkEventResult(
+				methodContext.eventQueue,
+				BeforeCCMForwardingEvent,
+				TokenEventResult.SUCCESSFUL,
+			);
 		});
 	});
 
-	// TODO: Update with https://github.com/LiskHQ/lisk-sdk/issues/7577
-	describe.skip('beforeSendCCM', () => {
-		it('should reject if fee is negative', async () => {
+	describe('verifyCrossChainMessage', () => {
+		it('should resolve if token id is native and escrow amount is sufficient', async () => {
 			await expect(
-				tokenInteropMethod.beforeSendCCM({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(-3),
-						status: CCM_STATUS_OK,
-						params: utils.getRandomBytes(30),
-					},
-					feeAddress: defaultAddress,
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
-				}),
-			).rejects.toThrow('Fee must be greater or equal to zero');
-		});
-
-		it('should credit receiving chain escrow account for fee if message token id is native', async () => {
-			await expect(
-				tokenInteropMethod.beforeSendCCM({
+				tokenInteropMethod.verifyCrossChainMessage({
 					ccm: {
 						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
 						module: tokenModule.name,
@@ -406,21 +426,18 @@ describe('CrossChain Forward command', () => {
 					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
-			await expect(
-				tokenMethod.getEscrowedAmount(methodContext, Buffer.from([0, 0, 0, 1]), defaultTokenID),
-			).resolves.toEqual(fee);
 		});
 
-		it('should reject if fee payer does not have sufficient balance', async () => {
+		it('should reject if token id is native and fee payer does not have sufficient balance', async () => {
 			await expect(
-				tokenInteropMethod.beforeSendCCM({
+				tokenInteropMethod.verifyCrossChainMessage({
 					ccm: {
 						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: fee + defaultAccount.availableBalance + BigInt(1),
+						fee: fee + defaultEscrowAmount,
 						status: CCM_STATUS_OK,
 						params: utils.getRandomBytes(30),
 					},
@@ -431,12 +448,15 @@ describe('CrossChain Forward command', () => {
 					logger: fakeLogger,
 					chainID: utils.getRandomBytes(32),
 				}),
-			).rejects.toThrow('does not have sufficient balance for fee');
+			).rejects.toThrow('Insufficient escrow amount.');
 		});
 
-		it('should deduct fee from fee payer', async () => {
+		it('should resolve if token id is not native', async () => {
+			jest
+				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenID')
+				.mockResolvedValue(defaultForeignTokenID);
 			await expect(
-				tokenInteropMethod.beforeSendCCM({
+				tokenInteropMethod.verifyCrossChainMessage({
 					ccm: {
 						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
 						module: tokenModule.name,
@@ -455,15 +475,11 @@ describe('CrossChain Forward command', () => {
 					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
-			await expect(
-				tokenMethod.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
-			).resolves.toEqual(defaultAccount.availableBalance - fee);
 		});
 	});
 
-	// TODO: Update with https://github.com/LiskHQ/lisk-sdk/issues/7577
-	describe.skip('recover', () => {
-		it('should reject if store fix is not store prefix user', async () => {
+	describe('recover', () => {
+		it('should reject if store prefix is not store prefix user', async () => {
 			await expect(
 				tokenInteropMethod.recover({
 					ccm: {
@@ -491,7 +507,12 @@ describe('CrossChain Forward command', () => {
 					}),
 					terminatedChainID: sendingChainID,
 				}),
-			).rejects.toThrow('Invalid store prefix');
+			).rejects.toThrow('Invalid arguments.');
+			checkEventResult(
+				methodContext.eventQueue,
+				RecoverEvent,
+				TokenEventResult.RECOVER_FAIL_INVALID_INPUTS,
+			);
 		});
 
 		it('should reject if store key is not 28 bytes', async () => {
@@ -522,10 +543,51 @@ describe('CrossChain Forward command', () => {
 					}),
 					terminatedChainID: sendingChainID,
 				}),
-			).rejects.toThrow('Invalid store key');
+			).rejects.toThrow('Invalid arguments.');
+			checkEventResult(
+				methodContext.eventQueue,
+				RecoverEvent,
+				TokenEventResult.RECOVER_FAIL_INVALID_INPUTS,
+			);
+		});
+
+		it('should reject if store value cannot be decoded', async () => {
+			await expect(
+				tokenInteropMethod.recover({
+					ccm: {
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						module: tokenModule.name,
+						nonce: BigInt(1),
+						sendingChainID,
+						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						fee: BigInt(-3),
+						status: CCM_STATUS_OK,
+						params: utils.getRandomBytes(30),
+					},
+					feeAddress: defaultAddress,
+					getMethodContext: () => methodContext,
+					eventQueue: new EventQueue(0),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+					logger: fakeLogger,
+					chainID: utils.getRandomBytes(32),
+					module: tokenModule.name,
+					storeKey: Buffer.concat([defaultAddress, defaultTokenID]),
+					storePrefix: userStore.subStorePrefix,
+					storeValue: utils.getRandomBytes(32),
+					terminatedChainID: sendingChainID,
+				}),
+			).rejects.toThrow('Invalid arguments.');
+			checkEventResult(
+				methodContext.eventQueue,
+				RecoverEvent,
+				TokenEventResult.RECOVER_FAIL_INVALID_INPUTS,
+			);
 		});
 
 		it('should reject if token is not native', async () => {
+			jest
+				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenID')
+				.mockResolvedValue(defaultForeignTokenID);
 			await expect(
 				tokenInteropMethod.recover({
 					ccm: {
@@ -553,7 +615,12 @@ describe('CrossChain Forward command', () => {
 					}),
 					terminatedChainID: sendingChainID,
 				}),
-			).rejects.toThrow('does not match with own chain ID');
+			).rejects.toThrow('Insufficient escrow amount.');
+			checkEventResult(
+				methodContext.eventQueue,
+				RecoverEvent,
+				TokenEventResult.RECOVER_FAIL_INSUFFICIENT_ESCROW,
+			);
 		});
 
 		it('should reject if not enough balance is escrowed', async () => {
@@ -585,11 +652,20 @@ describe('CrossChain Forward command', () => {
 					}),
 					terminatedChainID: sendingChainID,
 				}),
-			).rejects.toThrow('is not sufficient for');
+			).rejects.toThrow('Insufficient escrow amount.');
+			checkEventResult(
+				methodContext.eventQueue,
+				RecoverEvent,
+				TokenEventResult.RECOVER_FAIL_INSUFFICIENT_ESCROW,
+			);
 		});
 
 		it('should deduct escrowed amount for the total recovered amount', async () => {
 			const recipient = utils.getRandomBytes(20);
+			await userStore.set(methodContext, Buffer.concat([recipient, defaultTokenID]), {
+				availableBalance: BigInt(0),
+				lockedBalances: [],
+			});
 			await expect(
 				tokenInteropMethod.recover({
 					ccm: {
@@ -615,17 +691,25 @@ describe('CrossChain Forward command', () => {
 					terminatedChainID: sendingChainID,
 				}),
 			).resolves.toBeUndefined();
-			await expect(
-				tokenMethod.getEscrowedAmount(methodContext, sendingChainID, defaultTokenID),
-			).resolves.toEqual(
+
+			const { amount } = await escrowStore.get(
+				methodContext,
+				userStore.getKey(sendingChainID, defaultTokenID),
+			);
+			expect(amount).toEqual(
 				defaultEscrowAmount -
 					defaultAccount.availableBalance -
 					defaultAccount.lockedBalances[0].amount,
 			);
+			checkEventResult(methodContext.eventQueue, RecoverEvent, TokenEventResult.SUCCESSFUL);
 		});
 
 		it('should credit the address for the total recovered amount', async () => {
 			const recipient = utils.getRandomBytes(20);
+			await userStore.set(methodContext, Buffer.concat([recipient, defaultTokenID]), {
+				availableBalance: BigInt(0),
+				lockedBalances: [],
+			});
 			await expect(
 				tokenInteropMethod.recover({
 					ccm: {
@@ -651,9 +735,15 @@ describe('CrossChain Forward command', () => {
 					terminatedChainID: sendingChainID,
 				}),
 			).resolves.toBeUndefined();
-			await expect(
-				tokenMethod.getAvailableBalance(methodContext, recipient, defaultTokenID),
-			).resolves.toEqual(defaultAccount.availableBalance + defaultAccount.lockedBalances[0].amount);
+
+			const { availableBalance } = await userStore.get(
+				methodContext,
+				userStore.getKey(recipient, defaultTokenID),
+			);
+			expect(availableBalance).toEqual(
+				defaultAccount.availableBalance + defaultAccount.lockedBalances[0].amount,
+			);
+			checkEventResult(methodContext.eventQueue, RecoverEvent, TokenEventResult.SUCCESSFUL);
 		});
 	});
 });
