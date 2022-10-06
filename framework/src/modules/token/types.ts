@@ -23,6 +23,7 @@ export interface ModuleConfig {
 		amount: string;
 	}[];
 	feeTokenID: string;
+	accountInitializationFee: string;
 }
 
 export interface MinBalance {

@@ -46,6 +46,16 @@ export const configSchema = {
 				format: 'hex',
 			},
 		},
+		accountInitializationFee: {
+			type: 'string',
+			format: 'uint64',
+		},
+		feeTokenID: {
+			type: 'string',
+			format: 'hex',
+			minLength: TOKEN_ID_LENGTH * 2,
+			maxLength: TOKEN_ID_LENGTH * 2,
+		},
 	},
 };
 
@@ -146,7 +156,7 @@ export const transferParamsSchema = {
 	$id: '/lisk/transferParams',
 	title: 'Transfer transaction params',
 	type: 'object',
-	required: ['tokenID', 'amount', 'recipientAddress', 'data'],
+	required: ['tokenID', 'amount', 'recipientAddress', 'data', 'accountInitializationFee'],
 	properties: {
 		tokenID: {
 			dataType: 'bytes',
@@ -168,6 +178,10 @@ export const transferParamsSchema = {
 			fieldNumber: 4,
 			minLength: 0,
 			maxLength: MAX_DATA_LENGTH,
+		},
+		accountInitializationFee: {
+			dataType: 'uint64',
+			fieldNumber: 5,
 		},
 	},
 };

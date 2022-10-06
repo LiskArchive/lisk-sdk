@@ -41,6 +41,7 @@ export const sampleTokenTestScenario = (fixtures: Fixtures) =>
 						recipientAddress: target.address,
 						data: '',
 						tokenID: Buffer.alloc(8, 0).toString('hex'),
+						accountInitializationFee: BigInt(5000000),
 					},
 				},
 				fixtures.validators.keys[0].privateKey,

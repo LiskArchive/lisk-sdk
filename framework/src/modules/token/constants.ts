@@ -37,6 +37,8 @@ export const TOKEN_ID_LENGTH = CHAIN_ID_LENGTH + LOCAL_ID_LENGTH;
 export const LOCAL_ID_LSK = Buffer.alloc(LOCAL_ID_LENGTH, 0);
 export const CHAIN_ID_LSK = Buffer.from([0, 0, 0, 0]);
 export const TOKEN_ID_LSK = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
+export const USER_SUBSTORE_INITIALIZATION_FEE = '5000000';
+export const TOKEN_ID_STORE_INITIALIZATION = TOKEN_ID_LSK;
 
 export const defaultConfig = {
 	minBalances: [
@@ -45,6 +47,7 @@ export const defaultConfig = {
 			amount: DEFAULT_MIN_REMAINING_BALANCE,
 		},
 	],
+	accountInitializationFee: USER_SUBSTORE_INITIALIZATION_FEE,
 };
 
 export const EMPTY_BYTES = Buffer.alloc(0);
