@@ -44,3 +44,9 @@ export interface LegacyBlockWithID extends LegacyBlock {
 }
 
 export type LegacyBlockJSON = JSONObject<LegacyBlock>;
+
+export interface LegacyChainBracketInfo {
+	startHeight: number;
+	snapshotBlockHeight: number;
+	lastBlockHeight: number;
+}
