@@ -18,28 +18,25 @@ import { CCCommandExecuteContext } from '../../interoperability/types';
 import { NamedRegistry } from '../../named_registry';
 import { TokenMethod } from '../method';
 import {
-	CCM_STATUS_MIN_BALANCE_NOT_REACHED,
 	CCM_STATUS_OK,
 	CCM_STATUS_PROTOCOL_VIOLATION,
-	CCM_STATUS_TOKEN_NOT_SUPPORTED,
-	CHAIN_ID_ALIAS_NATIVE,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+	FEE_CCM_INIT_USER_STORE,
 	MIN_RETURN_FEE,
 } from '../constants';
 import { CCTransferMessageParams, crossChainTransferMessageParams } from '../schemas';
 import { EscrowStore } from '../stores/escrow';
-import { SupplyStore } from '../stores/supply';
 import { UserStore } from '../stores/user';
 import { InteroperabilityMethod, MinBalance } from '../types';
 import { splitTokenID, tokenSupported } from '../utils';
 
-export class CCTransferCommand extends BaseCCCommand {
+export class CrossChainTransferCommand extends BaseCCCommand {
 	public schema = crossChainTransferMessageParams;
 
 	private readonly _tokenMethod: TokenMethod;
 	private _interopMethod!: InteroperabilityMethod;
 	private _supportedTokenIDs!: Buffer[];
-	private _minBalances!: MinBalance[];
+	// private _minBalances!: MinBalance[];
 
 	public constructor(stores: NamedRegistry, events: NamedRegistry, tokenMethod: TokenMethod) {
 		super(stores, events);
@@ -56,99 +53,109 @@ export class CCTransferCommand extends BaseCCCommand {
 
 	public init(args: { minBalances: MinBalance[]; supportedTokenIDs: Buffer[] }): void {
 		this._supportedTokenIDs = args.supportedTokenIDs;
-		this._minBalances = args.minBalances;
+		// this._minBalances = args.minBalances;
 	}
 
-	public async execute(ctx: CCCommandExecuteContext): Promise<void> {
-		const { ccm } = ctx;
+	public async verify(ctx: CCCommandExecuteContext): Promise<void> {
+		const { ccm, ccmSize } = ctx;
 		const methodContext = ctx.getMethodContext();
 		const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
 		let params: CCTransferMessageParams;
-		let tokenChainID;
-		let tokenLocalID;
+		let tokenChainID: Buffer;
+		const { sendingChainID, status, fee } = ccm;
+
 		try {
 			params = codec.decode<CCTransferMessageParams>(crossChainTransferMessageParams, ccm.params);
 			validator.validate(crossChainTransferMessageParams, params);
+			const { tokenID, amount } = params;
+			[tokenChainID] = splitTokenID(tokenID);
 
-			[tokenChainID, tokenLocalID] = splitTokenID(params.tokenID);
+			if (
+				!tokenChainID.equals(ownChainID) &&
+				!tokenChainID.equals(sendingChainID) &&
+				!tokenChainID.equals(tokenChainID)
+			) {
+				throw new Error(
+					'Token must be native to either the sending or the receiving chain or the mainchain.',
+				);
+			}
+
 			if (tokenChainID.equals(ownChainID)) {
 				const escrowedAmount = await this._tokenMethod.getEscrowedAmount(
 					methodContext,
 					ccm.sendingChainID,
-					params.tokenID,
+					tokenID,
 				);
-				if (params.amount > escrowedAmount) {
-					throw new Error(
-						`Amount ${params.amount.toString()} is not sufficient for ${escrowedAmount.toString()}`,
-					);
+
+				if (escrowedAmount < amount) {
+					throw new Error('Insufficient balance in escrow account.');
 				}
 			}
 		} catch (error) {
 			ctx.logger.debug({ err: error as Error }, 'Error verifying the params.');
-			if (ccm.status === CCM_STATUS_OK && ccm.fee >= MIN_RETURN_FEE * ctx.ccmSize) {
+
+			if (status === CCM_STATUS_OK && fee >= MIN_RETURN_FEE * ccmSize) {
 				await this._interopMethod.error(methodContext, ccm, CCM_STATUS_PROTOCOL_VIOLATION);
 			}
-			await this._interopMethod.terminateChain(methodContext, ccm.sendingChainID);
 
-			return;
+			await this._interopMethod.terminateChain(methodContext, sendingChainID);
 		}
+	}
 
-		if (
-			!tokenSupported(this._supportedTokenIDs, params.tokenID) &&
-			ccm.fee >= ctx.ccmSize * MIN_RETURN_FEE &&
-			ccm.status === CCM_STATUS_OK
-		) {
-			await this._interopMethod.error(methodContext, ccm, CCM_STATUS_TOKEN_NOT_SUPPORTED);
-			return;
-		}
+	public async execute(ctx: CCCommandExecuteContext): Promise<void> {
+		const { ccm, ccmSize } = ctx;
+		const methodContext = ctx.getMethodContext();
+		const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
+		let params: CCTransferMessageParams;
+		const { sendingChainID, status, fee } = ccm;
+		let recipientAddress: Buffer;
 
-		let { recipientAddress } = params;
-		if (ccm.status !== CCM_STATUS_OK) {
-			recipientAddress = params.senderAddress;
-		}
+		try {
+			params = codec.decode<CCTransferMessageParams>(crossChainTransferMessageParams, ccm.params);
+			validator.validate(crossChainTransferMessageParams, params);
+		} catch (error) {
+			ctx.logger.debug({ err: error as Error }, 'Error verifying the params.');
 
-		const canonicalTokenID = await this._tokenMethod.getCanonicalTokenID(
-			methodContext,
-			params.tokenID,
-		);
-		const recipientExist = await this._tokenMethod.accountExists(
-			methodContext,
-			params.recipientAddress,
-		);
-		let receivedAmount = params.amount;
-		if (!recipientExist) {
-			const minBalance = this._minBalances.find(mb => mb.tokenID.equals(canonicalTokenID))?.amount;
-			if (!minBalance || minBalance > params.amount) {
-				if (ccm.fee >= MIN_RETURN_FEE * ctx.ccmSize && ccm.status === CCM_STATUS_OK) {
-					await this._interopMethod.error(methodContext, ccm, CCM_STATUS_MIN_BALANCE_NOT_REACHED);
-				}
-				return;
+			if (status === CCM_STATUS_OK && fee >= MIN_RETURN_FEE * ccmSize) {
+				await this._interopMethod.error(methodContext, ccm, CCM_STATUS_PROTOCOL_VIOLATION);
 			}
-			receivedAmount -= minBalance;
-			const [canonicalChainID, canonicalLocalID] = splitTokenID(canonicalTokenID);
-			if (canonicalChainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
-				const supplyStore = this.stores.get(SupplyStore);
-				const supply = await supplyStore.get(methodContext, canonicalLocalID);
-				supply.totalSupply -= minBalance;
-				await supplyStore.set(methodContext, canonicalLocalID, supply);
+
+			await this._interopMethod.terminateChain(methodContext, sendingChainID);
+			return;
+		}
+		const { tokenID, amount, senderAddress } = params;
+		recipientAddress = params.recipientAddress;
+		const [tokenChainID, tokenLocalID] = splitTokenID(tokenID);
+
+		if (!tokenSupported(this._supportedTokenIDs, tokenID)) {
+			// TODO: emit event else throw error
+		}
+
+		if (status !== CCM_STATUS_OK) {
+			recipientAddress = senderAddress;
+		}
+
+		const userStore = this.stores.get(UserStore);
+		const user = await userStore.get(methodContext, userStore.getKey(recipientAddress, tokenID));
+		if (!user) {
+			if (fee < FEE_CCM_INIT_USER_STORE) {
+				throw new Error('Insufficient fee to initialize user account.');
+			} else {
+				// TODO: if the relayer does not have enough balance, burn will raise exception
 			}
 		}
 
 		if (tokenChainID.equals(ownChainID)) {
 			const escrowStore = this.stores.get(EscrowStore);
-			const escrowKey = Buffer.concat([ccm.sendingChainID, tokenLocalID]);
+			const escrowKey = Buffer.concat([sendingChainID, tokenLocalID]);
 			const escrowData = await escrowStore.get(methodContext, escrowKey);
 
-			escrowData.amount -= params.amount;
+			escrowData.amount -= amount;
 			await escrowStore.set(methodContext, escrowKey, escrowData);
 		}
 
-		const userStore = this.stores.get(UserStore);
-		await userStore.addAvailableBalanceWithCreate(
-			methodContext,
-			recipientAddress,
-			canonicalTokenID,
-			receivedAmount,
-		);
+		await userStore.addAvailableBalanceWithCreate(methodContext, recipientAddress, tokenID, amount);
+
+		// TODO: emit event
 	}
 }

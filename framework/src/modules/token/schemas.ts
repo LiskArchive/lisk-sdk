@@ -18,6 +18,7 @@ import {
 	MAX_DATA_LENGTH,
 	MIN_MODULE_NAME_LENGTH,
 	MAX_MODULE_NAME_LENGTH,
+	ADDRESS_LENGTH,
 } from './constants';
 
 export const configSchema = {
@@ -226,9 +227,8 @@ export const crossChainTransferMessageParams = {
 	properties: {
 		tokenID: {
 			dataType: 'bytes',
+			length: TOKEN_ID_LENGTH,
 			fieldNumber: 1,
-			minLength: TOKEN_ID_LENGTH,
-			maxLength: TOKEN_ID_LENGTH,
 		},
 		amount: {
 			dataType: 'uint64',
@@ -236,19 +236,18 @@ export const crossChainTransferMessageParams = {
 		},
 		senderAddress: {
 			dataType: 'bytes',
+			length: ADDRESS_LENGTH,
 			fieldNumber: 3,
-			format: 'lisk32',
 		},
 		recipientAddress: {
 			dataType: 'bytes',
+			length: ADDRESS_LENGTH,
 			fieldNumber: 4,
-			format: 'lisk32',
 		},
 		data: {
 			dataType: 'string',
-			fieldNumber: 5,
-			minLength: 0,
 			maxLength: MAX_DATA_LENGTH,
+			fieldNumber: 5,
 		},
 	},
 };

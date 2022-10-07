@@ -16,7 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { TokenModule } from '../../../../../src/modules/token';
 import { TokenMethod } from '../../../../../src/modules/token/method';
-import { CCTransferCommand } from '../../../../../src/modules/token/cc_commands/cc_transfer';
+import { CrossChainTransferCommand } from '../../../../../src/modules/token/cc_commands/cc_transfer';
 import {
 	CCM_STATUS_OK,
 	CCM_STATUS_PROTOCOL_VIOLATION,

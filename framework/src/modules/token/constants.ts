@@ -30,6 +30,7 @@ export const CCM_STATUS_MIN_BALANCE_NOT_REACHED = 66;
 
 export const MIN_BALANCE = BigInt(5000000);
 export const MIN_RETURN_FEE = BigInt(1000);
+export const FEE_CCM_INIT_USER_STORE = BigInt(5000000);
 
 export const CHAIN_ID_LENGTH = 4;
 export const LOCAL_ID_LENGTH = 4;
