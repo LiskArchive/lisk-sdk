@@ -20,7 +20,7 @@ export const createAccount = async () => {
 	const generatorKeyPath = "m/25519'/134'/0'/0'";
 	const blsKeyPath = 'm/12381/134/0/0';
 	const mnemonicPassphrase = passphrase.Mnemonic.generateMnemonic(256);
-	const privateKey = await cryptography.ed.getKeyPairFromPhraseAndPath(
+	const privateKey = await cryptography.ed.getPrivateKeyFromPhraseAndPath(
 		mnemonicPassphrase,
 		accountKeyPath,
 	);
@@ -28,7 +28,7 @@ export const createAccount = async () => {
 
 	const address = cryptography.address.getLisk32AddressFromPublicKey(publicKey);
 
-	const generatorPrivateKey = await cryptography.ed.getKeyPairFromPhraseAndPath(
+	const generatorPrivateKey = await cryptography.ed.getPrivateKeyFromPhraseAndPath(
 		mnemonicPassphrase,
 		generatorKeyPath,
 	);
