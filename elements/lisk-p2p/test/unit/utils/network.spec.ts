@@ -179,13 +179,15 @@ describe('utils/network', () => {
 			expect(expirePeerFromBucket(peerBucket, DEFAULT_EVICTION_THRESHOLD_TIME)).toBeUndefined();
 		});
 
-		it('should return undefined when peers don\'t have dateAdded field', () => {
+		it("should return undefined when peers don't have dateAdded field", () => {
 			const peerBucketWithoutDateAdded = new Map<string, P2PEnhancedPeerInfo>();
 			const peers = initPeerInfoList();
 			for (const p of peers) {
 				peerBucketWithoutDateAdded.set(p?.peerId, p);
 			}
-			expect(expirePeerFromBucket(peerBucketWithoutDateAdded, DEFAULT_EVICTION_THRESHOLD_TIME)).toBeUndefined();
+			expect(
+				expirePeerFromBucket(peerBucketWithoutDateAdded, DEFAULT_EVICTION_THRESHOLD_TIME),
+			).toBeUndefined();
 		});
 	});
 

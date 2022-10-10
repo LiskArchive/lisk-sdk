@@ -144,7 +144,7 @@ export const expirePeerFromBucket = (
 	for (const [peerId, peer] of bucket) {
 		if (peer.dateAdded) {
 			const timeDifference = Math.round(
-				Math.abs(new Date().getTime()- (peer.dateAdded as Date).getTime()),
+				Math.abs(new Date().getTime() - peer.dateAdded.getTime()),
 			);
 
 			if (timeDifference >= thresholdTime) {
