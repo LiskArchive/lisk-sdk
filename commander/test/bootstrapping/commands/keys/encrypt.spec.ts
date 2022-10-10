@@ -71,7 +71,7 @@ describe('keys:encrypt', () => {
 
 	describe('when encrypting with a file path flag', () => {
 		beforeEach(async () => {
-			const generatorPrivateKey = await ed.getKeyPairFromPhraseAndPath(
+			const generatorPrivateKey = await ed.getPrivateKeyFromPhraseAndPath(
 				'passphrase',
 				"m/25519'/134'/0'/0'",
 			);

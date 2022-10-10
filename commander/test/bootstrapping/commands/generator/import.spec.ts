@@ -83,7 +83,7 @@ describe('keys:import', () => {
 
 	describe('when importing with existing file', () => {
 		beforeEach(async () => {
-			const generatorPrivateKey = await ed.getKeyPairFromPhraseAndPath(
+			const generatorPrivateKey = await ed.getPrivateKeyFromPhraseAndPath(
 				'passphrase',
 				"m/25519'/134'/0'/0'",
 			);
