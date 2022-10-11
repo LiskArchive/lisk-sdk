@@ -17,7 +17,7 @@ import { EventEmitter2, ListenerFn } from 'eventemitter2';
 import { join } from 'path';
 import { Request } from '../request';
 import { Event } from '../event';
-import { BaseChannel } from './base_channel';
+import { BaseChannel, InvokeRequest } from './base_channel';
 import { IPCClient } from '../ipc/ipc_client';
 import { EndpointInfo, ChannelType, EndpointHandlers } from '../../types';
 import * as JSONRPC from '../jsonrpc';
@@ -81,7 +81,11 @@ export class IPCChannel extends BaseChannel {
 				if (event.toString() === IPC_EVENTS.RPC_EVENT) {
 					const request = Request.fromJSONRPCRequest(JSON.parse(eventData.toString()));
 					if (request.namespace === this.namespace) {
-						this.invoke(request.key(), request.params)
+						this.invoke({
+							methodName: request.key(),
+							context: {},
+							params: request.params,
+						})
 							.then(result => {
 								this._rpcServer
 									.send([
@@ -196,8 +200,8 @@ export class IPCChannel extends BaseChannel {
 			});
 	}
 
-	public async invoke<T>(methodName: string, params?: Record<string, unknown>): Promise<T> {
-		const request = new Request(this._getNextRequestId(), methodName, params);
+	public async invoke<T>(req: InvokeRequest): Promise<T> {
+		const request = new Request(this._getNextRequestId(), req.methodName, req.params);
 
 		// When the handler is within the same channel
 		if (request.namespace === this.namespace) {
@@ -213,6 +217,7 @@ export class IPCChannel extends BaseChannel {
 				getImmutableMethodContext: () => {
 					throw new Error('getImmutableMethodContext cannot be called on IPC channel');
 				},
+				header: req.context.header,
 				params: request.params ?? {},
 				getOffchainStore: () => {
 					throw new Error('getOffchainStore cannot be called on IPC channel');

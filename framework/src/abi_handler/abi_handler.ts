@@ -529,7 +529,13 @@ export class ABIHandler implements ABI {
 	public async query(req: QueryRequest): Promise<QueryResponse> {
 		const params = JSON.parse(req.params.toString('utf8')) as Record<string, unknown>;
 		try {
-			const resp = await this._channel.invoke(req.method, params);
+			const resp = await this._channel.invoke({
+				context: {
+					header: req.header,
+				},
+				methodName: req.method,
+				params,
+			});
 			this._logger.info({ method: req.method }, 'Called ABI query successfully');
 			return {
 				data: Buffer.from(JSON.stringify(resp), 'utf-8'),

@@ -249,7 +249,11 @@ describe.skip('IPCChannel Channel', () => {
 		it('should execute the action straight away if the plugins are the same and action is a string', async () => {
 			// Act
 			await ipcChannel.registerToBus();
-			await ipcChannel.invoke(actionName, actionParams);
+			await ipcChannel.invoke({
+				context: {},
+				methodName: actionName,
+				params: actionParams,
+			});
 
 			// Assert
 			expect(params.endpoints.action1).toHaveBeenCalled();
@@ -259,7 +263,11 @@ describe.skip('IPCChannel Channel', () => {
 			// Act
 			await ipcChannel.registerToBus();
 			const action = new Request(null, actionName, actionParams);
-			await ipcChannel.invoke(action.key(), actionParams);
+			await ipcChannel.invoke({
+				context: {},
+				methodName: action.key(),
+				params: actionParams,
+			});
 
 			// Assert
 			expect(params.endpoints.action1).toHaveBeenCalledWith(action.params);

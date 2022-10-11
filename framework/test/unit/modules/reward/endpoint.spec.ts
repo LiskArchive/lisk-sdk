@@ -11,9 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Logger } from '../../../../src/logger';
 import { RewardModule } from '../../../../src/modules/reward';
-import { fakeLogger } from '../../../utils/mocks';
+import { createTransientModuleEndpointContext } from '../../../../src/testing';
 
 describe('RewardModuleEndpoint', () => {
 	const genesisConfig: any = {};
@@ -30,9 +29,7 @@ describe('RewardModuleEndpoint', () => {
 		tokenID: '0000000000000000',
 	};
 	const generatorConfig: any = {};
-	const chainID = Buffer.alloc(0);
 
-	const logger: Logger = fakeLogger;
 	let rewardModule: RewardModule;
 
 	beforeAll(async () => {
@@ -55,61 +52,49 @@ describe('RewardModuleEndpoint', () => {
 		const currentHeight = offset + nthBracket * distance;
 		// eslint-disable-next-line no-loop-func
 		it(`should getDefaultRewardAtHeight work for the ${nthBracket}th bracket`, () => {
-			const rewardFromEndpoint = rewardModule.endpoint.getDefaultRewardAtHeight({
-				getStore: jest.fn(),
-				getImmutableMethodContext: jest.fn(),
-				logger,
-				params: {
-					height: currentHeight,
-				},
-				chainID,
-				getOffchainStore: jest.fn(),
-			});
+			const rewardFromEndpoint = rewardModule.endpoint.getDefaultRewardAtHeight(
+				createTransientModuleEndpointContext({
+					params: {
+						height: currentHeight,
+					},
+				}),
+			);
 			expect(rewardFromEndpoint).toEqual({ reward: rewardFromConfig.toString() });
 		});
 	}
 
 	it('should getDefaultRewardAtHeight work for the height below offset', () => {
-		const rewardFromEndpoint = rewardModule.endpoint.getDefaultRewardAtHeight({
-			getStore: jest.fn(),
-			getImmutableMethodContext: jest.fn(),
-			logger,
-			params: {
-				height: offset - 1,
-			},
-			chainID,
-			getOffchainStore: jest.fn(),
-		});
+		const rewardFromEndpoint = rewardModule.endpoint.getDefaultRewardAtHeight(
+			createTransientModuleEndpointContext({
+				params: {
+					height: offset - 1,
+				},
+			}),
+		);
 		expect(rewardFromEndpoint).toEqual({ reward: '0' });
 	});
 
 	it('should throw an error when parameter height is not a number', () => {
 		expect(() =>
-			rewardModule.endpoint.getDefaultRewardAtHeight({
-				getStore: jest.fn(),
-				getImmutableMethodContext: jest.fn(),
-				logger,
-				params: {
-					height: 'Not a number',
-				},
-				chainID,
-				getOffchainStore: jest.fn(),
-			}),
+			rewardModule.endpoint.getDefaultRewardAtHeight(
+				createTransientModuleEndpointContext({
+					params: {
+						height: 'Not a number',
+					},
+				}),
+			),
 		).toThrow('Parameter height must be a number.');
 	});
 
 	it('should throw an error when parameter height is below 0', () => {
 		expect(() =>
-			rewardModule.endpoint.getDefaultRewardAtHeight({
-				getStore: jest.fn(),
-				getImmutableMethodContext: jest.fn(),
-				logger,
-				params: {
-					height: -1,
-				},
-				chainID,
-				getOffchainStore: jest.fn(),
-			}),
+			rewardModule.endpoint.getDefaultRewardAtHeight(
+				createTransientModuleEndpointContext({
+					params: {
+						height: -1,
+					},
+				}),
+			),
 		).toThrow('Parameter height cannot be smaller than 0.');
 	});
 });
