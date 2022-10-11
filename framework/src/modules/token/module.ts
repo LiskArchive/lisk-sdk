@@ -59,11 +59,17 @@ import { AllTokensFromChainSupportedEvent } from './events/all_tokens_from_chain
 import { AllTokensFromChainSupportRemovedEvent } from './events/all_tokens_from_chain_supported_removed';
 import { TokenIDSupportedEvent } from './events/token_id_supported';
 import { TokenIDSupportRemovedEvent } from './events/token_id_supported_removed';
+import { CrossChainTransferCommand } from './cc_commands/cc_transfer';
 
 export class TokenModule extends BaseInteroperableModule {
 	public method = new TokenMethod(this.stores, this.events, this.name);
 	public endpoint = new TokenEndpoint(this.stores, this.offchainStores);
 	public crossChainMethod = new TokenInteroperableMethod(this.stores, this.events);
+	public crossChainTransferCommand = new CrossChainTransferCommand(
+		this.stores,
+		this.events,
+		this.method,
+	);
 
 	private _minBalances!: MinBalance[];
 	private _ownChainID!: Buffer;
@@ -167,6 +173,7 @@ export class TokenModule extends BaseInteroperableModule {
 		validator.validate(configSchema, config);
 
 		this.stores.get(SupportedTokensStore).registerOwnChainID(this._ownChainID);
+		this.crossChainTransferCommand.init({ ownChainID: this._ownChainID });
 
 		this._minBalances = config.minBalances.map(mb => ({
 			tokenID: Buffer.from(mb.tokenID, 'hex'),
