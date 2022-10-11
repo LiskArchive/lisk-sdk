@@ -28,7 +28,7 @@ export abstract class MetadataCommand extends BaseIPCClientCommand {
 			this.error('APIClient is not initialized.');
 		}
 		try {
-			const metadataInfo = await this._client.invoke('node_getMetadata');
+			const metadataInfo = await this._client.invoke('system_getMetadata');
 			this.printJSON((metadataInfo as unknown) as Record<string, unknown>);
 		} catch (errors) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

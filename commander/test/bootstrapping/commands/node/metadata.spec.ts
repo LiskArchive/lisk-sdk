@@ -96,7 +96,7 @@ describe('node:metadata command', () => {
 		it('should get node metadata and display as an object', async () => {
 			await MetadataCommand.run([], config);
 			expect(getMock).toHaveBeenCalledTimes(1);
-			expect(getMock).toHaveBeenCalledWith('node_getMetadata');
+			expect(getMock).toHaveBeenCalledWith('system_getMetadata');
 			expect(BaseIPCClientCommand.prototype.printJSON).toHaveBeenCalledTimes(1);
 			expect(BaseIPCClientCommand.prototype.printJSON).toHaveBeenCalledWith(queryResult);
 		});
