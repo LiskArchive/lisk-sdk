@@ -24,7 +24,7 @@ const {
 		signData,
 		signDataWithPrivateKey,
 		verifyData,
-		getKeyPairFromPhraseAndPath,
+		getPrivateKeyFromPhraseAndPath,
 		getPublicKeyFromPrivateKey,
 	},
 	utils: { createMessageTag },
@@ -196,11 +196,11 @@ ${defaultSignature}
 		});
 	});
 
-	describe('getKeyPairFromPhraseAndPath', () => {
+	describe('getPrivateKeyFromPhraseAndPath', () => {
 		const passphrase =
 			'target cancel solution recipe vague faint bomb convince pink vendor fresh patrol';
 		it('should get keypair from valid phrase and path', async () => {
-			const privateKey = await getKeyPairFromPhraseAndPath(passphrase, `m/44'/134'/0'`);
+			const privateKey = await getPrivateKeyFromPhraseAndPath(passphrase, `m/44'/134'/0'`);
 			const publicKey = getPublicKeyFromPrivateKey(privateKey);
 			expect(publicKey.toString('hex')).toBe(
 				'c6bae83af23540096ac58d5121b00f33be6f02f05df785766725acdd5d48be9d',
@@ -211,26 +211,26 @@ ${defaultSignature}
 		});
 
 		it('should fail for empty string path', async () => {
-			await expect(getKeyPairFromPhraseAndPath(passphrase, '')).rejects.toThrow(
+			await expect(getPrivateKeyFromPhraseAndPath(passphrase, '')).rejects.toThrow(
 				'Invalid path format',
 			);
 		});
 
 		it('should fail if path does not start with "m"', async () => {
-			await expect(getKeyPairFromPhraseAndPath(passphrase, `/44'/134'/0'`)).rejects.toThrow(
+			await expect(getPrivateKeyFromPhraseAndPath(passphrase, `/44'/134'/0'`)).rejects.toThrow(
 				'Invalid path format',
 			);
 		});
 
 		it('should fail if path does not include at least one "/"', async () => {
-			await expect(getKeyPairFromPhraseAndPath(passphrase, 'm441340')).rejects.toThrow(
+			await expect(getPrivateKeyFromPhraseAndPath(passphrase, 'm441340')).rejects.toThrow(
 				'Invalid path format',
 			);
 		});
 
 		it('should fail for path with invalid segment', async () => {
 			await expect(
-				getKeyPairFromPhraseAndPath(
+				getPrivateKeyFromPhraseAndPath(
 					passphrase,
 					`m//134'/0'`, // should be number with or without ' between every back slash
 				),
@@ -238,20 +238,20 @@ ${defaultSignature}
 		});
 
 		it('should fail for path with invalid characters', async () => {
-			await expect(getKeyPairFromPhraseAndPath(passphrase, `m/a'/134b'/0'`)).rejects.toThrow(
+			await expect(getPrivateKeyFromPhraseAndPath(passphrase, `m/a'/134b'/0'`)).rejects.toThrow(
 				'Invalid path format',
 			);
 		});
 
 		it('should fail for path with non-sanctioned special characters', async () => {
-			await expect(getKeyPairFromPhraseAndPath(passphrase, `m/4a'/#134b'/0'`)).rejects.toThrow(
+			await expect(getPrivateKeyFromPhraseAndPath(passphrase, `m/4a'/#134b'/0'`)).rejects.toThrow(
 				'Invalid path format',
 			);
 		});
 
 		it(`should fail for path with segment greater than ${MAX_UINT32} / 2`, async () => {
 			await expect(
-				getKeyPairFromPhraseAndPath(passphrase, `m/44'/134'/${MAX_UINT32}'`),
+				getPrivateKeyFromPhraseAndPath(passphrase, `m/44'/134'/${MAX_UINT32}'`),
 			).rejects.toThrow('Invalid path format');
 		});
 	});

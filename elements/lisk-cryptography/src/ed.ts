@@ -76,7 +76,7 @@ const getChildKey = (node: { key: Buffer; chainCode: Buffer }, index: number) =>
 	};
 };
 
-export const getKeyPairFromPhraseAndPath = async (
+export const getPrivateKeyFromPhraseAndPath = async (
 	phrase: string,
 	path: string,
 ): Promise<Buffer> => {

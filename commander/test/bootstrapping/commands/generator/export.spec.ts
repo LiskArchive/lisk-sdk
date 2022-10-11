@@ -69,7 +69,7 @@ describe('generator:export', () => {
 			invoke: invokeMock,
 		} as never);
 
-		const generatorPrivateKey = await ed.getKeyPairFromPhraseAndPath(
+		const generatorPrivateKey = await ed.getPrivateKeyFromPhraseAndPath(
 			'passphrase',
 			"m/25519'/134'/0'/0'",
 		);
