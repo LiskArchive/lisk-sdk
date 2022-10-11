@@ -39,6 +39,19 @@ export class EscrowStore extends BaseStore<EscrowStoreData> {
 		return Buffer.concat([escrowChainID, tokenID]);
 	}
 
+	public async getOrDefault(ctx: StoreGetter, key: Buffer): Promise<EscrowStoreData> {
+		let escrowData: EscrowStoreData;
+		try {
+			escrowData = await this.get(ctx, key);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			escrowData = { amount: BigInt(0) };
+		}
+		return escrowData;
+	}
+
 	public async createDefaultAccount(
 		context: StoreGetter,
 		chainID: Buffer,
@@ -53,16 +66,8 @@ export class EscrowStore extends BaseStore<EscrowStoreData> {
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
-		let escrowData: EscrowStoreData;
 		const escrowKey = Buffer.concat([chainID, tokenID]);
-		try {
-			escrowData = await this.get(context, escrowKey);
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
-			escrowData = { amount: BigInt(0) };
-		}
+		const escrowData = await this.getOrDefault(context, escrowKey);
 		escrowData.amount += amount;
 		await this.set(context, escrowKey, escrowData);
 	}
