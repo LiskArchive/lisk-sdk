@@ -242,14 +242,18 @@ describe.skip('IPCChannel', () => {
 			it('should be able to invoke its own actions.', async () => {
 				// Act && Assert
 				await expect(
-					alphaChannel.invoke<number>(`${alpha.namespace}:multiplyByTwo`, {
-						val: 2,
+					alphaChannel.invoke<number>({
+						context: {},
+						methodName: `${alpha.namespace}_multiplyByTwo`,
+						params: { val: 2 },
 					}),
 				).resolves.toBe(4);
 
 				await expect(
-					alphaChannel.invoke<number>(`${alpha.namespace}:multiplyByThree`, {
-						val: 4,
+					alphaChannel.invoke<number>({
+						context: {},
+						methodName: `${alpha.namespace}_multiplyByThree`,
+						params: { val: 4 },
 					}),
 				).resolves.toBe(12);
 			});
@@ -257,14 +261,18 @@ describe.skip('IPCChannel', () => {
 			it("should be able to invoke other channels' actions.", async () => {
 				// Act && Assert
 				await expect(
-					alphaChannel.invoke<number>(`${beta.namespace}:divideByTwo`, {
-						val: 4,
+					alphaChannel.invoke<number>({
+						context: {},
+						methodName: `${beta.namespace}:divideByTwo`,
+						params: { val: 4 },
 					}),
 				).resolves.toEqual(2);
 
 				await expect(
-					alphaChannel.invoke<number>(`${beta.namespace}:divideByThree`, {
-						val: 9,
+					alphaChannel.invoke<number>({
+						context: {},
+						methodName: `${beta.namespace}:divideByThree`,
+						params: { val: 9 },
 					}),
 				).resolves.toEqual(3);
 			});
@@ -274,7 +282,13 @@ describe.skip('IPCChannel', () => {
 				const invalidActionName = 'INVALID_ACTION_NAME';
 
 				// Act && Assert
-				await expect(alphaChannel.invoke(`${beta.namespace}_${invalidActionName}`)).rejects.toThrow(
+				await expect(
+					alphaChannel.invoke({
+						context: {},
+						methodName: `${beta.namespace}_${invalidActionName}`,
+						params: { val: 2 },
+					}),
+				).rejects.toThrow(
 					`Action name "${beta.namespace}_${invalidActionName}" must be a valid name with module name and action name.`,
 				);
 			});
@@ -282,7 +296,11 @@ describe.skip('IPCChannel', () => {
 			// eslint-disable-next-line jest/no-disabled-tests
 			it.skip('should be rejected with error', async () => {
 				await expect(
-					await alphaChannel.invoke(`${beta.namespace}:withError`, { val: 1 }),
+					await alphaChannel.invoke({
+						context: {},
+						methodName: `${beta.namespace}:withError`,
+						params: { val: 1 },
+					}),
 				).rejects.toThrow('Invalid Request');
 			});
 		});

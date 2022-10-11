@@ -179,7 +179,7 @@ describe('InMemoryChannel Channel', () => {
 			const actionFullName = `${inMemoryChannel.namespace}_${actionName}`;
 
 			// Act
-			await inMemoryChannel.invoke(actionFullName);
+			await inMemoryChannel.invoke({ methodName: actionFullName, context: {} });
 
 			// Assert
 			expect(params.endpoints.action1).toHaveBeenCalled();
@@ -190,7 +190,7 @@ describe('InMemoryChannel Channel', () => {
 			const actionFullName = `${inMemoryChannel.namespace}_${actionName}`;
 
 			// Act
-			await inMemoryChannel.invoke(actionFullName);
+			await inMemoryChannel.invoke({ methodName: actionFullName, context: {} });
 
 			// Assert
 			expect(
@@ -214,7 +214,7 @@ describe('InMemoryChannel Channel', () => {
 			await inMemoryChannel.registerToBus(bus);
 			jest.spyOn(bus, 'invoke').mockResolvedValue({ result: {} } as never);
 
-			await inMemoryChannel.invoke(actionFullName);
+			await inMemoryChannel.invoke({ methodName: actionFullName, context: {} });
 
 			// Assert
 			expect(inMemoryChannel['bus'].invoke).toHaveBeenCalled();

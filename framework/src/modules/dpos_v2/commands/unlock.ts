@@ -14,7 +14,7 @@
 
 import { CommandExecuteContext } from '../../../state_machine/types';
 import { BaseCommand } from '../../base_command';
-import { defaultConfig, EMPTY_KEY, MODULE_NAME_DPOS } from '../constants';
+import { EMPTY_KEY, MODULE_NAME_DPOS } from '../constants';
 import { DelegateStore } from '../stores/delegate';
 import { GenesisDataStore } from '../stores/genesis';
 import { VoterStore } from '../stores/voter';
@@ -24,13 +24,15 @@ import { hasWaited, isPunished, isCertificateGenerated } from '../utils';
 export class UnlockCommand extends BaseCommand {
 	private _tokenMethod!: TokenMethod;
 	private _tokenIDDPoS!: TokenIDDPoS;
+	private _roundLength!: number;
 
 	public addDependencies(args: UnlockCommandDependencies) {
 		this._tokenMethod = args.tokenMethod;
 	}
 
-	public init(args: { tokenIDDPoS: TokenIDDPoS }) {
+	public init(args: { tokenIDDPoS: TokenIDDPoS; roundLength: number }) {
 		this._tokenIDDPoS = args.tokenIDDPoS;
+		this._roundLength = args.roundLength;
 	}
 
 	public async execute(context: CommandExecuteContext): Promise<void> {
@@ -58,7 +60,7 @@ export class UnlockCommand extends BaseCommand {
 					unlockObject,
 					genesisHeight,
 					maxHeightCertified,
-					roundLength: defaultConfig.roundLength,
+					roundLength: this._roundLength,
 				})
 			) {
 				await this._tokenMethod.unlock(
