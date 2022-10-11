@@ -87,6 +87,7 @@ export {
 	GenesisBlockExecuteContext,
 	InsertAssetContext,
 	MethodContext,
+	ImmutableMethodContext,
 	CommandExecuteContext,
 	CommandVerifyContext,
 	VerificationResult,
