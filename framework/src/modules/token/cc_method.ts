@@ -148,7 +148,8 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 				crossChainForwardMessageParams,
 				ccm.params,
 			);
-			if (escrowAccount.amount < decodedParams.amount) {
+			const updatedEscrowAccount = await escrowStore.get(methodContext, escrowKey);
+			if (updatedEscrowAccount.amount < decodedParams.amount) {
 				this.events.get(BeforeCCMForwardingEvent).error(
 					methodContext,
 					{
@@ -163,7 +164,6 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 				throw new Error('Insufficient balance in the sending chain for the transfer.');
 			}
 
-			const updatedEscrowAccount = await escrowStore.getOrDefault(methodContext, escrowKey);
 			updatedEscrowAccount.amount -= decodedParams.amount;
 			await escrowStore.set(methodContext, escrowKey, updatedEscrowAccount);
 

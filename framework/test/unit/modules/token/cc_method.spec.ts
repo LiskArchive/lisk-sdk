@@ -276,7 +276,7 @@ describe('TokenInteroperableMethod', () => {
 			);
 		});
 
-		it('should deduct escrow account for fee and credit to sender if ccm command is forward', async () => {
+		it('should deduct escrow account for fee and credit to receving chain escrow account if ccm command is forward', async () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainMessageForwarding({
 					ccm: {
@@ -356,7 +356,7 @@ describe('TokenInteroperableMethod', () => {
 			);
 		});
 
-		it('should deduct escrow account for fee+ccm.params.amount and credit to sender if ccm command is forward', async () => {
+		it('should deduct escrow account for fee+ccm.params.amount and credit to sender if ccm command is transfer', async () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainMessageForwarding({
 					ccm: {
@@ -428,7 +428,7 @@ describe('TokenInteroperableMethod', () => {
 			).resolves.toBeUndefined();
 		});
 
-		it('should reject if token id is native and fee payer does not have sufficient balance', async () => {
+		it('should reject if token id is native and sending chain escrow account does not have sufficient balance', async () => {
 			await expect(
 				tokenInteropMethod.verifyCrossChainMessage({
 					ccm: {
