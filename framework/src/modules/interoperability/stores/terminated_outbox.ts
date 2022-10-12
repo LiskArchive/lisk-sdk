@@ -11,6 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import { HASH_LENGTH } from '@liskhq/lisk-chain/dist-node/constants';
 import { BaseStore } from '../../base_store';
 
 export interface TerminatedOutboxAccount {
@@ -32,14 +34,15 @@ export const terminatedOutboxSchema = {
 	properties: {
 		outboxRoot: {
 			dataType: 'bytes',
+			length: HASH_LENGTH,
 			fieldNumber: 1,
 		},
 		outboxSize: {
-			dataType: 'uint32',
+			dataType: 'uint64',
 			fieldNumber: 2,
 		},
 		partnerChainInboxSize: {
-			dataType: 'uint32',
+			dataType: 'uint64',
 			fieldNumber: 3,
 		},
 	},
