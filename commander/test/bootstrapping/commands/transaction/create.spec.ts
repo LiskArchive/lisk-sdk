@@ -30,7 +30,7 @@ import { Awaited } from '../../../types';
 describe('transaction:create command', () => {
 	const passphrase = 'peanut hundred pen hawk invite exclude brain chunk gadget wait wrong ready';
 	const transferParams =
-		'{"tokenID": "0000000000000000","amount":100,"recipientAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","data":"send token"}';
+		'{"tokenID": "0000000000000000","amount":100,"recipientAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","data":"send token", "accountInitializationFee": "5000000"}';
 	const voteParams =
 		'{"votes":[{"delegateAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","amount":100},{"delegateAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","amount":-50}]}';
 	const unVoteParams =
@@ -44,6 +44,7 @@ describe('transaction:create command', () => {
 			amount: '100',
 			data: 'send token',
 			recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
+			accountInitializationFee: BigInt(5000000),
 		},
 		command: 'transfer',
 		fee: '100000000',
@@ -125,6 +126,7 @@ describe('transaction:create command', () => {
 			amount: 100,
 			recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
 			data: 'send token',
+			accountInitializationFee: BigInt(5000000),
 		});
 		jest.spyOn(readerUtils, 'getPassphraseFromPrompt').mockResolvedValue(passphrase);
 	});
@@ -255,7 +257,7 @@ describe('transaction:create command', () => {
 								'token',
 								'transfer',
 								'100000000',
-								'--params={"tokenID":"0000000000000000","amount":100,"recipientAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9"}',
+								'--params={"tokenID":"0000000000000000","amount":100,"recipientAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9", "accountInitializationFee": "5000000"}',
 								`--passphrase=${passphrase}`,
 								'--offline',
 								'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
@@ -266,6 +268,27 @@ describe('transaction:create command', () => {
 						),
 					).rejects.toThrow(
 						"Lisk validator found 1 error[s]:\nMissing property, must have required property 'data'",
+					);
+				});
+
+				it('should throw error when transfer params accountInitializationFee is empty.', async () => {
+					await expect(
+						CreateCommandExtended.run(
+							[
+								'token',
+								'transfer',
+								'100000000',
+								'--params={"tokenID":"0000000000000000","amount":100,"recipientAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9", "data": ""}',
+								`--passphrase=${passphrase}`,
+								'--offline',
+								'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+								'--nonce=1',
+								'--network=devnet',
+							],
+							config,
+						),
+					).rejects.toThrow(
+						"Lisk validator found 1 error[s]:\nMissing property, must have required property 'accountInitializationFee'",
 					);
 				});
 			});
@@ -385,6 +408,11 @@ describe('transaction:create command', () => {
 							type: 'input',
 						},
 						{ message: 'Please enter: data: ', name: 'data', type: 'input' },
+						{
+							message: 'Please enter: accountInitializationFee: ',
+							name: 'accountInitializationFee',
+							type: 'input',
+						},
 					]);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
@@ -416,6 +444,11 @@ describe('transaction:create command', () => {
 							type: 'input',
 						},
 						{ message: 'Please enter: data: ', name: 'data', type: 'input' },
+						{
+							message: 'Please enter: accountInitializationFee: ',
+							name: 'accountInitializationFee',
+							type: 'input',
+						},
 					]);
 					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
@@ -458,6 +491,7 @@ describe('transaction:create command', () => {
 								amount: '100',
 								data: 'send token',
 								recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
+								accountInitializationFee: '5000000',
 							},
 							signatures: [],
 						},
@@ -498,6 +532,7 @@ describe('transaction:create command', () => {
 								amount: '100',
 								data: 'send token',
 								recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
+								accountInitializationFee: '5000000',
 							},
 							signatures: [expect.any(String)],
 						},
@@ -621,6 +656,11 @@ describe('transaction:create command', () => {
 							type: 'input',
 						},
 						{ message: 'Please enter: data: ', name: 'data', type: 'input' },
+						{
+							message: 'Please enter: accountInitializationFee: ',
+							name: 'accountInitializationFee',
+							type: 'input',
+						},
 					]);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
@@ -645,6 +685,11 @@ describe('transaction:create command', () => {
 							type: 'input',
 						},
 						{ message: 'Please enter: data: ', name: 'data', type: 'input' },
+						{
+							message: 'Please enter: accountInitializationFee: ',
+							name: 'accountInitializationFee',
+							type: 'input',
+						},
 					]);
 					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
@@ -667,6 +712,11 @@ describe('transaction:create command', () => {
 							type: 'input',
 						},
 						{ message: 'Please enter: data: ', name: 'data', type: 'input' },
+						{
+							message: 'Please enter: accountInitializationFee: ',
+							name: 'accountInitializationFee',
+							type: 'input',
+						},
 					]);
 					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
@@ -725,6 +775,7 @@ describe('transaction:create command', () => {
 								amount: '100',
 								data: 'send token',
 								recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
+								accountInitializationFee: BigInt(5000000),
 							},
 							signatures: [
 								'3cc8c8c81097fe59d9df356b3c3f1dd10f619bfabb54f5d187866092c67e0102c64dbe24f357df493cc7ebacdd2e55995db8912245b718d88ebf7f4f4ac01f04',

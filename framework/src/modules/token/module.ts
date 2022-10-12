@@ -157,6 +157,7 @@ export class TokenModule extends BaseInteroperableModule {
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig, genesisConfig } = args;
 		this._ownChainID = Buffer.from(genesisConfig.chainID, 'hex');
+
 		const config = objects.mergeDeep(
 			{},
 			defaultConfig,
@@ -182,6 +183,8 @@ export class TokenModule extends BaseInteroperableModule {
 		this.endpoint.init(this.method);
 		this._transferCommand.init({
 			method: this.method,
+			accountInitializationFee: BigInt(config.accountInitializationFee),
+			feeTokenID: Buffer.from(config.feeTokenID, 'hex'),
 		});
 	}
 

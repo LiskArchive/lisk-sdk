@@ -19,6 +19,7 @@ import {
 	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	TokenEventResult,
+	USER_SUBSTORE_INITIALIZATION_FEE,
 } from '../../../../src/modules/token/constants';
 import { AllTokensFromChainSupportedEvent } from '../../../../src/modules/token/events/all_tokens_from_chain_supported';
 import { AllTokensFromChainSupportRemovedEvent } from '../../../../src/modules/token/events/all_tokens_from_chain_supported_removed';
@@ -104,7 +105,9 @@ describe('token module', () => {
 				chainID: '00000001',
 			} as never,
 			generatorConfig: {},
-			moduleConfig: {},
+			moduleConfig: {
+				accountInitializationFee: USER_SUBSTORE_INITIALIZATION_FEE,
+			},
 		});
 		method.addDependencies({
 			send: jest.fn().mockResolvedValue(true),

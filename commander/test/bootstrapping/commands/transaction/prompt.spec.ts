@@ -37,6 +37,11 @@ describe('prompt', () => {
 					message: 'Please enter: recipientAddress: ',
 				},
 				{ type: 'input', name: 'data', message: 'Please enter: data: ' },
+				{
+					type: 'input',
+					name: 'accountInitializationFee',
+					message: 'Please enter: accountInitializationFee: ',
+				},
 			]);
 		});
 	});

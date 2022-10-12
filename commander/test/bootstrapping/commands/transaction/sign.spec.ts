@@ -196,6 +196,7 @@ describe('transaction:sign command', () => {
 							amount: '100',
 							data: 'send token',
 							recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
+							accountInitializationFee: BigInt(5000000).toString(),
 						},
 						command: 'transfer',
 						fee: '100000000',
@@ -232,6 +233,7 @@ describe('transaction:sign command', () => {
 				numberOfSignatures: messageForRegistration.numberOfSignatures,
 				mandatoryKeys: messageForRegistration.mandatoryKeys,
 				optionalKeys: messageForRegistration.optionalKeys,
+				accountInitializationFee: BigInt(5000000),
 				signatures: [] as Buffer[],
 			};
 
@@ -365,8 +367,9 @@ describe('transaction:sign command', () => {
 				nonce: '2',
 				fee: '100000000',
 				senderPublicKey: 'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
-				params:
-					'0a08000000000000000010641a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815220a73656e6420746f6b656e',
+				params: codec
+					.encodeJSON(tokenTransferParamsSchema, (mockJSONTransaction as any).params)
+					.toString('hex'),
 				signatures: [],
 			};
 			const unsignedMultiSigTransaction = codec
@@ -463,6 +466,7 @@ describe('transaction:sign command', () => {
 								amount: '100',
 								data: 'send token',
 								recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
+								accountInitializationFee: BigInt(5000000).toString(),
 							},
 							command: 'transfer',
 							fee: '100000000',
@@ -705,8 +709,9 @@ describe('transaction:sign command', () => {
 				nonce: '2',
 				fee: '100000000',
 				senderPublicKey: 'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
-				params:
-					'0a08000000000000000010641a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815220a73656e6420746f6b656e',
+				params: codec
+					.encodeJSON(tokenTransferParamsSchema, (mockJSONTransaction as any).params)
+					.toString('hex'),
 				signatures: [],
 			};
 			const unsignedTransaction = codec.encodeJSON(transactionSchema, baseTX).toString('hex');
@@ -800,6 +805,7 @@ describe('transaction:sign command', () => {
 								amount: '100',
 								data: 'send token',
 								recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
+								accountInitializationFee: BigInt(5000000).toString(),
 							},
 							command: 'transfer',
 							fee: '100000000',

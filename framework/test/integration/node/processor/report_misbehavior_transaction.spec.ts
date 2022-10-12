@@ -50,7 +50,7 @@ describe('Transaction order', () => {
 			amount: BigInt('10000000000'),
 			chainID,
 			privateKey: Buffer.from(genesis.privateKey, 'hex'),
-			fee: BigInt(165000), // minFee not to give fee for generator
+			fee: BigInt(170000), // minFee not to give fee for generator
 		});
 		newBlock = await processEnv.createBlock([transaction]);
 
