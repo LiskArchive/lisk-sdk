@@ -11,6 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import { codec } from '@liskhq/lisk-codec';
+import * as cryptography from '@liskhq/lisk-cryptography';
+import { dataStructures } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseCommand } from '../../base_command';
 import {
@@ -18,9 +22,17 @@ import {
 	CommandVerifyContext,
 	VerificationResult,
 	VerifyStatus,
+	MethodContext,
 } from '../../../state_machine';
 import { TokenMethod } from '../method';
-import { crossChainTransferParams } from '../schemas';
+import { crossChainTransferParamsSchema } from '../schemas';
+import { InteroperabilityMethod, TokenID } from '../types';
+import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../constants';
+import { splitTokenID } from '../utils';
+import { EscrowStore } from '../stores/escrow';
+import { InitializeEscrowAccountEvent } from '../events/initialize_escrow_account';
+import { UserStore } from '../stores/user';
+import { TransferCrossChainEvent } from '../events/transfer_cross_chain';
 
 interface Params {
 	tokenID: Buffer;
@@ -29,14 +41,32 @@ interface Params {
 	recipientAddress: Buffer;
 	data: string;
 	messageFee: bigint;
+	escrowInitializationFee: bigint;
 }
 
 export class CCTransferCommand extends BaseCommand {
-	public schema = crossChainTransferParams;
+	public schema = crossChainTransferParamsSchema;
+	private _moduleName!: string;
 	private _method!: TokenMethod;
+	private _interoperabilityMethod!: InteroperabilityMethod;
+	private _escrowFeeTokenID!: Buffer;
+	private _escrowInitializationFee!: bigint;
+	private _ownChainID!: Buffer;
 
-	public init(args: { method: TokenMethod }) {
+	public init(args: {
+		moduleName: string;
+		method: TokenMethod;
+		interoperabilityMethod: InteroperabilityMethod;
+		escrowFeeTokenID: Buffer;
+		escrowInitializationFee: bigint;
+		ownChainID: Buffer;
+	}) {
+		this._moduleName = args.moduleName;
 		this._method = args.method;
+		this._interoperabilityMethod = args.interoperabilityMethod;
+		this._escrowFeeTokenID = args.escrowFeeTokenID;
+		this._escrowInitializationFee = args.escrowInitializationFee;
+		this._ownChainID = args.ownChainID;
 	}
 
 	public get name() {
@@ -49,6 +79,65 @@ export class CCTransferCommand extends BaseCommand {
 
 		try {
 			validator.validate(this.schema, params);
+
+			const [tokenChainID, _] = splitTokenID(params.tokenID);
+
+			const [mainChainID] = splitTokenID(this._method.getMainchainTokenID());
+
+			if (
+				![this._ownChainID, params.receivingChainID, mainChainID].some(allowedChainID =>
+					tokenChainID.equals(allowedChainID),
+				)
+			) {
+				throw new Error(
+					'Token must be native to either the sending or the receiving chain or the mainchain.',
+				);
+			}
+
+			const escrowStore = this.stores.get(EscrowStore);
+			const escrowAccountKey = escrowStore.getKey(params.receivingChainID, params.tokenID);
+			const escrowAccoutExists = await escrowStore.has(context, escrowAccountKey);
+			const balanceCheck = new dataStructures.BufferMap<bigint>();
+
+			if (tokenChainID.equals(this._ownChainID) && !escrowAccoutExists) {
+				if (params.escrowInitializationFee !== this._escrowInitializationFee) {
+					throw new Error('Invalid escrow initialization fee.');
+				}
+				balanceCheck.set(this._escrowFeeTokenID, this._escrowInitializationFee);
+			}
+
+			balanceCheck.set(
+				params.tokenID,
+				(balanceCheck.get(params.tokenID) ?? BigInt(0)) + params.amount,
+			);
+
+			const messageFeeTokenID = await this._interoperabilityMethod.getMessageFeeTokenID(
+				context.getMethodContext(),
+				params.receivingChainID,
+			);
+
+			balanceCheck.set(
+				messageFeeTokenID,
+				(balanceCheck.get(messageFeeTokenID) ?? BigInt(0)) + params.amount,
+			);
+
+			for (const [tokenID, amount] of balanceCheck.entries()) {
+				const availableBalance = await this._method.getAvailableBalance(
+					context.getMethodContext(),
+					context.transaction.senderAddress,
+					tokenID,
+				);
+
+				if (availableBalance < amount) {
+					throw new Error(
+						`${cryptography.address.getLisk32AddressFromAddress(
+							context.transaction.senderAddress,
+						)} balance ${availableBalance.toString()} for ${tokenID.toString(
+							'hex',
+						)} is not sufficient for ${amount.toString()}.`,
+					);
+				}
+			}
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -65,15 +154,81 @@ export class CCTransferCommand extends BaseCommand {
 			params,
 			transaction: { senderAddress },
 		} = context;
-		await this._method.transferCrossChain(
+
+		const [tokenChainID, _] = splitTokenID(params.tokenID);
+
+		const escrowStore = this.stores.get(EscrowStore);
+		const escrowAccountKey = escrowStore.getKey(params.receivingChainID, params.tokenID);
+		const escrowAccoutExists = await escrowStore.has(context, escrowAccountKey);
+
+		if (tokenChainID.equals(this._ownChainID) && !escrowAccoutExists) {
+			await this._initializeEscrowStoreInternal(
+				context.getMethodContext(),
+				params.receivingChainID,
+				params.tokenID,
+				senderAddress,
+			);
+		}
+
+		const userStore = this.stores.get(UserStore);
+		const senderAccountKey = userStore.getKey(senderAddress, params.tokenID);
+		const senderAccount = await userStore.get(context, senderAccountKey);
+
+		if (senderAccount.availableBalance < params.amount) {
+			throw new Error(
+				`${cryptography.address.getLisk32AddressFromAddress(
+					senderAddress,
+				)} balance ${senderAccount.availableBalance.toString()} for ${params.tokenID.toString(
+					'hex',
+				)} is not sufficient for ${params.amount.toString()}.`,
+			);
+		}
+
+		senderAccount.availableBalance -= params.amount;
+		await userStore.save(context, senderAddress, params.tokenID, senderAccount);
+
+		this.events.get(TransferCrossChainEvent).log(context, {
+			senderAddress,
+			receivingChainID: params.receivingChainID,
+			tokenID: params.tokenID,
+			amount: params.amount,
+			recipientAddress: params.recipientAddress,
+		});
+
+		await this._interoperabilityMethod.send(
 			context.getMethodContext(),
 			senderAddress,
+			this._moduleName,
+			CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 			params.receivingChainID,
-			params.recipientAddress,
-			params.tokenID,
-			params.amount,
 			params.messageFee,
-			params.data,
+			CCM_STATUS_OK,
+			codec.encode(this.schema, params),
 		);
+	}
+
+	private async _initializeEscrowStoreInternal(
+		methodContext: MethodContext,
+		chainID: Buffer,
+		tokenID: TokenID,
+		initPayingAddress: Buffer,
+	) {
+		await this._method.burn(
+			methodContext,
+			initPayingAddress,
+			this._escrowFeeTokenID,
+			this._escrowInitializationFee,
+		);
+
+		const escrowStore = this.stores.get(EscrowStore);
+		await escrowStore.createDefaultAccount(methodContext, chainID, tokenID);
+
+		const initializeEscrowAccountEvent = this.events.get(InitializeEscrowAccountEvent);
+		initializeEscrowAccountEvent.log(methodContext, {
+			chainID,
+			tokenID,
+			initPayingAddress,
+			initializationFee: this._escrowInitializationFee,
+		});
 	}
 }

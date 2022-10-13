@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2022 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -39,6 +39,8 @@ export const CHAIN_ID_LSK = Buffer.from([0, 0, 0, 0]);
 export const TOKEN_ID_LSK = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 export const USER_SUBSTORE_INITIALIZATION_FEE = '5000000';
 export const TOKEN_ID_STORE_INITIALIZATION = TOKEN_ID_LSK;
+
+export const ESCROW_SUBSTORE_INITIALIZATION_FEE = BigInt(5000000);
 
 export const defaultConfig = {
 	minBalances: [
