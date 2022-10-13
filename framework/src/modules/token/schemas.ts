@@ -56,6 +56,10 @@ export const configSchema = {
 			minLength: TOKEN_ID_LENGTH * 2,
 			maxLength: TOKEN_ID_LENGTH * 2,
 		},
+		escrowInitializationFee: {
+			type: 'string',
+			format: 'uint64',
+		},
 	},
 };
 
@@ -186,10 +190,18 @@ export const transferParamsSchema = {
 	},
 };
 
-export const crossChainTransferParams = {
+export const crossChainTransferParamsSchema = {
 	$id: '/lisk/ccTransferParams',
 	type: 'object',
-	required: ['tokenID', 'amount', 'receivingChainID', 'recipientAddress', 'data', 'messageFee'],
+	required: [
+		'tokenID',
+		'amount',
+		'receivingChainID',
+		'recipientAddress',
+		'data',
+		'messageFee',
+		'escrowInitializationFee',
+	],
 	properties: {
 		tokenID: {
 			dataType: 'bytes',
@@ -222,6 +234,10 @@ export const crossChainTransferParams = {
 			dataType: 'uint64',
 			fieldNumber: 6,
 		},
+		escrowInitializationFee: {
+			dataType: 'uint64',
+			fieldNumber: 7,
+		},
 	},
 };
 
@@ -231,6 +247,8 @@ export interface CCTransferMessageParams {
 	senderAddress: Buffer;
 	recipientAddress: Buffer;
 	data: string;
+	messageFee: bigint;
+	escrowInitialzationFee: bigint;
 }
 
 export const crossChainTransferMessageParams = {
