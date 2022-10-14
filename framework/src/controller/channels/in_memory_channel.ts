@@ -17,7 +17,7 @@ import { Database, StateDB } from '@liskhq/lisk-db';
 import { StateStore } from '@liskhq/lisk-chain';
 import { Event, EventCallback } from '../event';
 import { Request } from '../request';
-import { BaseChannel } from './base_channel';
+import { BaseChannel, InvokeRequest } from './base_channel';
 import { Bus } from '../bus';
 import * as JSONRPC from '../jsonrpc/types';
 import { ChannelType, EndpointHandlers } from '../../types';
@@ -90,8 +90,8 @@ export class InMemoryChannel extends BaseChannel {
 		this.bus.publish(event.toJSONRPCNotification());
 	}
 
-	public async invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T> {
-		const request = new Request(this._getNextRequestId(), actionName, params);
+	public async invoke<T>(req: InvokeRequest): Promise<T> {
+		const request = new Request(this._getNextRequestId(), req.methodName, req.params);
 
 		if (request.namespace === this.namespace) {
 			if (this.endpointHandlers[request.name] === undefined) {
@@ -112,6 +112,7 @@ export class InMemoryChannel extends BaseChannel {
 					const stateStore = new PrefixedStateReadWriter(this._db.newReadWriter());
 					return stateStore.getStore(moduleID, storePrefix);
 				},
+				header: req.context.header,
 				getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) => {
 					const stateStore = new StateStore(this._moduleDB);
 					return stateStore.getStore(moduleID, storePrefix);

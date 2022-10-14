@@ -148,6 +148,13 @@ export interface ModuleEndpointContext extends PluginEndpointContext {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	getImmutableMethodContext: () => ImmutableMethodContext;
+	header: {
+		height: number;
+		timestamp: number;
+		aggregateCommit: {
+			height: number;
+		};
+	};
 	chainID: Buffer;
 }
 
