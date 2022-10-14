@@ -74,11 +74,13 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 		// Check if key count is out of bounds
 		if (
 			mandatoryKeys.length + optionalKeys.length > MAX_NUMBER_OF_SIGNATURES ||
-			mandatoryKeys.length + optionalKeys.length <= 0
+			mandatoryKeys.length + optionalKeys.length < 1
 		) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('The count of Mandatory and Optional keys should be between 1 and 64.'),
+				error: new Error(
+					`The count of Mandatory and Optional keys should be between 1 and ${MAX_NUMBER_OF_SIGNATURES}.`,
+				),
 			};
 		}
 
