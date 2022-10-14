@@ -17,7 +17,13 @@ import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { ModuleEndpointContext } from '../../types';
 import { VerifyStatus } from '../../state_machine';
 import { BaseEndpoint } from '../base_endpoint';
-import { AuthAccountJSON, ImmutableStoreCallback, VerifyEndpointResultJSON } from './types';
+import {
+	AuthAccountJSON,
+	ImmutableStoreCallback,
+	VerifyEndpointResultJSON,
+	KeySignaturePair,
+	SortedMultisignatureGroup,
+} from './types';
 import { getTransactionFromParameter, verifyNonceStrict, verifySignatures } from './utils';
 import { AuthAccountStore } from './stores/auth_account';
 import { NamedRegistry } from '../named_registry';
@@ -99,6 +105,28 @@ export class AuthEndpoint extends BaseEndpoint {
 
 		const verificationResult = verifyNonceStrict(transaction, account).status;
 		return { verified: verificationResult === VerifyStatus.OK };
+	}
+
+	public sortMultisignatureGroup(context: ModuleEndpointContext): SortedMultisignatureGroup {
+		const mandatory = context.params.mandatory as KeySignaturePair[];
+		const optional = context.params.optional as KeySignaturePair[];
+
+		const compareStrings = (a: string, b: string) => (a < b ? -1 : 1);
+
+		const sortedMandatory = mandatory
+			.slice()
+			.sort((itemA, itemB) => compareStrings(itemA.publicKey, itemB.publicKey));
+		const sortedOptional = optional
+			.slice()
+			.sort((itemA, itemB) => compareStrings(itemA.publicKey, itemB.publicKey));
+
+		return {
+			mandatoryKeys: sortedMandatory.map(item => item.publicKey),
+			optionalKeys: sortedOptional.map(item => item.publicKey),
+			signatures: sortedMandatory
+				.map(item => item.signature)
+				.concat(sortedOptional.map(item => item.signature)),
+		};
 	}
 
 	private async _isMultisignatureAccount(
