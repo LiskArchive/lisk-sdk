@@ -487,4 +487,52 @@ describe('AuthEndpoint', () => {
 			);
 		});
 	});
+
+	describe('sortMultisignatureGroup', () => {
+		it('should sort signatures when provided mandatory and optional keys', () => {
+			// Arrange
+			const inputData = {
+				mandatory: [
+					{
+						publicKey: '3333333333333333333333333333333333333333333333333333333333333333',
+						signature:
+							'22222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222',
+					},
+					{
+						publicKey: '0000000000000000000000000000000000000000000000000000000000000000',
+						signature:
+							'11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111',
+					},
+					{
+						publicKey: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+						signature:
+							'00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+					},
+				],
+				optional: [
+					{
+						publicKey: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+						signature: '',
+					},
+					{
+						publicKey: '2222222222222222222222222222222222222222222222222222222222222222',
+						signature:
+							'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+					},
+				],
+			};
+
+			const context = createTransientModuleEndpointContext({ params: inputData });
+
+			// Act
+			const sortedSignatures = authEndpoint.sortMultisignatureGroup(context);
+
+			// Assert
+			expect(sortedSignatures.signatures[0]).toEqual(inputData.mandatory[1].signature);
+			expect(sortedSignatures.signatures[1]).toEqual(inputData.mandatory[0].signature);
+			expect(sortedSignatures.signatures[2]).toEqual(inputData.mandatory[2].signature);
+			expect(sortedSignatures.signatures[3]).toEqual(inputData.optional[1].signature);
+			expect(sortedSignatures.signatures[4]).toEqual(inputData.optional[0].signature);
+		});
+	});
 });
