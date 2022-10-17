@@ -34,9 +34,9 @@ describe('Legacy storage', () => {
 	beforeEach(async () => {
 		batch = new Batch();
 		for (const block of blocks) {
-			const { header, transactions } = block;
+			const { header, payload } = block;
 
-			batch.set(Buffer.concat([DB_KEY_BLOCK_ID, header.id]), encodeBlock({ header, transactions }));
+			batch.set(Buffer.concat([DB_KEY_BLOCK_ID, header.id]), encodeBlock({ header, payload }));
 			batch.set(Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(header.height, 4)]), header.id);
 		}
 
@@ -53,10 +53,10 @@ describe('Legacy storage', () => {
 
 	describe('getBlockByID', () => {
 		it('should return block with given id', async () => {
-			const { header, transactions } = blockFixtures[0];
+			const { header, payload } = blockFixtures[0];
 			const result = await storage.getBlockByID(header.id);
 
-			expect(result).toEqual(encodeBlock({ header, transactions }));
+			expect(result).toEqual(encodeBlock({ header, payload }));
 		});
 
 		it('should throw error if block with given id does not exist', async () => {
@@ -68,10 +68,10 @@ describe('Legacy storage', () => {
 
 	describe('getBlockByHeight', () => {
 		it('should return block with given height', async () => {
-			const { header, transactions } = blockFixtures[0];
+			const { header, payload } = blockFixtures[0];
 			const result = await storage.getBlockByHeight(header.height);
 
-			expect(result).toEqual(encodeBlock({ header, transactions }));
+			expect(result).toEqual(encodeBlock({ header, payload }));
 		});
 
 		it('should throw an error if the block is not found', async () => {
@@ -83,11 +83,11 @@ describe('Legacy storage', () => {
 
 	describe('getBlocksByHeightBetween', () => {
 		it('should return blocks with given height range', async () => {
-			const { header, transactions } = blockFixtures[0];
+			const { header, payload } = blockFixtures[0];
 			const result = await storage.getBlocksByHeightBetween(header.height, header.height + 1);
 
 			expect(result).toHaveLength(2);
-			expect(result[1]).toEqual(encodeBlock({ header, transactions }));
+			expect(result[1]).toEqual(encodeBlock({ header, payload }));
 		});
 	});
 
@@ -123,12 +123,12 @@ describe('Legacy storage', () => {
 
 	describe('saveBlock', () => {
 		it('should save the block', async () => {
-			const { header, transactions } = blockFixtures[0];
-			await storage.saveBlock(header.id, header.height, encodeBlock({ header, transactions }));
+			const { header, payload } = blockFixtures[0];
+			await storage.saveBlock(header.id, header.height, encodeBlock({ header, payload }));
 
 			const result = await storage.getBlockByID(header.id);
 
-			expect(result).toEqual(encodeBlock({ header, transactions }));
+			expect(result).toEqual(encodeBlock({ header, payload }));
 		});
 	});
 
