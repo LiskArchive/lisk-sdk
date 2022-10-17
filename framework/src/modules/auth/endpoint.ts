@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { ModuleEndpointContext } from '../../types';
@@ -27,6 +28,7 @@ import {
 import { getTransactionFromParameter, verifyNonceStrict, verifySignatures } from './utils';
 import { AuthAccountStore } from './stores/auth_account';
 import { NamedRegistry } from '../named_registry';
+import { sortMultisignatureGroupSchema } from './schemas';
 
 export class AuthEndpoint extends BaseEndpoint {
 	public constructor(_moduleName: string, stores: NamedRegistry, offchainStores: NamedRegistry) {
@@ -108,6 +110,8 @@ export class AuthEndpoint extends BaseEndpoint {
 	}
 
 	public sortMultisignatureGroup(context: ModuleEndpointContext): SortedMultisignatureGroup {
+		validator.validate(sortMultisignatureGroupSchema, context.params);
+
 		const mandatory = context.params.mandatory as KeySignaturePair[];
 		const optional = context.params.optional as KeySignaturePair[];
 
@@ -115,17 +119,21 @@ export class AuthEndpoint extends BaseEndpoint {
 
 		const sortedMandatory = mandatory
 			.slice()
-			.sort((itemA, itemB) => compareStrings(itemA.publicKey, itemB.publicKey));
+			.sort((keySignaturePairA, keySignaturePairB) =>
+				compareStrings(keySignaturePairA.publicKey, keySignaturePairB.publicKey),
+			);
 		const sortedOptional = optional
 			.slice()
-			.sort((itemA, itemB) => compareStrings(itemA.publicKey, itemB.publicKey));
+			.sort((keySignaturePairA, keySignaturePairB) =>
+				compareStrings(keySignaturePairA.publicKey, keySignaturePairB.publicKey),
+			);
 
 		return {
-			mandatoryKeys: sortedMandatory.map(item => item.publicKey),
-			optionalKeys: sortedOptional.map(item => item.publicKey),
+			mandatoryKeys: sortedMandatory.map(keySignaturePair => keySignaturePair.publicKey),
+			optionalKeys: sortedOptional.map(keySignaturePair => keySignaturePair.publicKey),
 			signatures: sortedMandatory
-				.map(item => item.signature)
-				.concat(sortedOptional.map(item => item.signature)),
+				.map(keySignaturePair => keySignaturePair.signature)
+				.concat(sortedOptional.map(keySignaturePair => keySignaturePair.signature)),
 		};
 	}
 
