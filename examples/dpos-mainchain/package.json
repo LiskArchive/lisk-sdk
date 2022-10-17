@@ -79,7 +79,7 @@
 			"hash-onion": {
 				"description": "Create hash onions to be used by the forger."
 			},
-			"node": {
+			"system": {
 				"description": "Commands relating to dpos-mainchain node."
 			},
 			"passphrase": {

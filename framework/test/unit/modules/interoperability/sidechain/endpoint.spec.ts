@@ -35,6 +35,7 @@ import {
 } from '../../../../../src/modules/interoperability/types';
 import { chainAccountToJSON } from '../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
+import { createTransientModuleEndpointContext } from '../../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 
 describe('Sidechain endpoint', () => {
@@ -146,14 +147,7 @@ describe('Sidechain endpoint', () => {
 
 	beforeEach(() => {
 		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		moduleContext = {
-			getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
-			getImmutableMethodContext: jest.fn(),
-			getOffchainStore: jest.fn(),
-			chainID: Buffer.alloc(0),
-			params: {},
-			logger: {} as any,
-		};
+		moduleContext = createTransientModuleEndpointContext({ stateStore });
 		sidechainInteroperabilityEndpoint = new SidechainInteroperabilityEndpoint(
 			interopMod.stores,
 			interopMod.offchainStores,

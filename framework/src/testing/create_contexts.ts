@@ -13,7 +13,13 @@
  *
  */
 
-import { BlockAssets, BlockHeader, StateStore, Transaction } from '@liskhq/lisk-chain';
+import {
+	BlockAssets,
+	BlockHeader,
+	BlockHeaderAttrs,
+	StateStore,
+	Transaction,
+} from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { ModuleEndpointContext } from '../types';
@@ -204,6 +210,7 @@ export const createTransientMethodContext = (params: {
 export const createTransientModuleEndpointContext = (params: {
 	stateStore?: PrefixedStateReadWriter;
 	moduleStore?: StateStore;
+	context?: { header: BlockHeaderAttrs };
 	params?: Record<string, unknown>;
 	logger?: Logger;
 	chainID?: Buffer;
@@ -220,6 +227,7 @@ export const createTransientModuleEndpointContext = (params: {
 			moduleStore.getStore(moduleID, storePrefix),
 		getImmutableMethodContext: () => createImmutableMethodContext(stateStore),
 		params: parameters,
+		header: params.context?.header ?? createTestHeader(),
 		logger,
 		chainID,
 	};

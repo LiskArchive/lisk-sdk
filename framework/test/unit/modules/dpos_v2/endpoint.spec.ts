@@ -14,10 +14,14 @@
 
 import { address as cryptoAddress, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import { Logger } from '../../../../src/logger';
-import { defaultConfig } from '../../../../src/modules/dpos_v2/constants';
+import {
+	defaultConfig,
+	EMPTY_KEY,
+	VOTER_PUNISH_TIME,
+	WAIT_TIME_SELF_VOTE,
+	WAIT_TIME_VOTE,
+} from '../../../../src/modules/dpos_v2/constants';
 import { DPoSEndpoint } from '../../../../src/modules/dpos_v2/endpoint';
-import { fakeLogger } from '../../../utils/mocks';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { ModuleConfig } from '../../../../src/modules/dpos_v2/types';
@@ -25,20 +29,24 @@ import { DPoSModule } from '../../../../src';
 import { VoterStore, voterStoreSchema } from '../../../../src/modules/dpos_v2/stores/voter';
 import { DelegateStore } from '../../../../src/modules/dpos_v2/stores/delegate';
 import { createStoreGetter } from '../../../../src/testing/utils';
+import {
+	createFakeBlockHeader,
+	createTransientModuleEndpointContext,
+} from '../../../../src/testing';
+import { GenesisDataStore } from '../../../../src/modules/dpos_v2/stores/genesis';
 
 describe('DposModuleEndpoint', () => {
 	const dpos = new DPoSModule();
 
-	const logger: Logger = fakeLogger;
 	let dposEndpoint: DPoSEndpoint;
 	let stateStore: PrefixedStateReadWriter;
 	let voterSubStore: VoterStore;
 	let delegateSubStore: DelegateStore;
+	let genesisSubStore: GenesisDataStore;
 
 	const address = utils.getRandomBytes(20);
 	const address1 = utils.getRandomBytes(20);
 	const address2 = utils.getRandomBytes(20);
-	const chainID = Buffer.alloc(0);
 	const voterData = {
 		sentVotes: [
 			{
@@ -78,38 +86,35 @@ describe('DposModuleEndpoint', () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		voterSubStore = dpos.stores.get(VoterStore);
 		delegateSubStore = dpos.stores.get(DelegateStore);
+		genesisSubStore = dpos.stores.get(GenesisDataStore);
 	});
 
 	describe('getVoter', () => {
 		describe('when input address is valid', () => {
 			it('should return correct voter data corresponding to the input address', async () => {
 				await voterSubStore.set(createStoreGetter(stateStore), address, voterData);
-				const voterDataReturned = await dposEndpoint.getVoter({
-					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableMethodContext: jest.fn(),
-					logger,
-					params: {
-						address: cryptoAddress.getLisk32AddressFromAddress(address),
-					},
-					chainID,
-					getOffchainStore: jest.fn(),
-				});
+				const voterDataReturned = await dposEndpoint.getVoter(
+					createTransientModuleEndpointContext({
+						stateStore,
+						params: {
+							address: cryptoAddress.getLisk32AddressFromAddress(address),
+						},
+					}),
+				);
 
 				expect(voterDataReturned).toStrictEqual(codec.toJSON(voterStoreSchema, voterData));
 			});
 
 			it('should return valid JSON output', async () => {
 				await voterSubStore.set(createStoreGetter(stateStore), address, voterData);
-				const voterDataReturned = await dposEndpoint.getVoter({
-					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableMethodContext: jest.fn(),
-					logger,
-					params: {
-						address: cryptoAddress.getLisk32AddressFromAddress(address),
-					},
-					chainID,
-					getOffchainStore: jest.fn(),
-				});
+				const voterDataReturned = await dposEndpoint.getVoter(
+					createTransientModuleEndpointContext({
+						stateStore,
+						params: {
+							address: cryptoAddress.getLisk32AddressFromAddress(address),
+						},
+					}),
+				);
 
 				expect(voterDataReturned.sentVotes[0].delegateAddress).toBeString();
 				expect(voterDataReturned.sentVotes[0].amount).toBeString();
@@ -123,16 +128,14 @@ describe('DposModuleEndpoint', () => {
 		describe('when input address is valid', () => {
 			it('should return correct delegate data corresponding to the input address', async () => {
 				await delegateSubStore.set(createStoreGetter(stateStore), address, delegateData);
-				const delegateDataReturned = await dposEndpoint.getDelegate({
-					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableMethodContext: jest.fn(),
-					logger,
-					params: {
-						address: cryptoAddress.getLisk32AddressFromAddress(address),
-					},
-					chainID,
-					getOffchainStore: jest.fn(),
-				});
+				const delegateDataReturned = await dposEndpoint.getDelegate(
+					createTransientModuleEndpointContext({
+						stateStore,
+						params: {
+							address: cryptoAddress.getLisk32AddressFromAddress(address),
+						},
+					}),
+				);
 
 				const delegateDataJSON = {
 					...delegateData,
@@ -146,16 +149,14 @@ describe('DposModuleEndpoint', () => {
 
 			it('should return valid JSON output', async () => {
 				await delegateSubStore.set(createStoreGetter(stateStore), address, delegateData);
-				const delegateDataReturned = await dposEndpoint.getDelegate({
-					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableMethodContext: jest.fn(),
-					logger,
-					params: {
-						address: cryptoAddress.getLisk32AddressFromAddress(address),
-					},
-					chainID,
-					getOffchainStore: jest.fn(),
-				});
+				const delegateDataReturned = await dposEndpoint.getDelegate(
+					createTransientModuleEndpointContext({
+						stateStore,
+						params: {
+							address: cryptoAddress.getLisk32AddressFromAddress(address),
+						},
+					}),
+				);
 
 				expect(delegateDataReturned.totalVotesReceived).toBeString();
 				expect(delegateDataReturned.selfVotes).toBeString();
@@ -178,14 +179,9 @@ describe('DposModuleEndpoint', () => {
 			it('should return correct data for all delegates', async () => {
 				await delegateSubStore.set(createStoreGetter(stateStore), address1, delegateData1);
 				await delegateSubStore.set(createStoreGetter(stateStore), address2, delegateData2);
-				const { delegates: delegatesDataReturned } = await dposEndpoint.getAllDelegates({
-					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableMethodContext: jest.fn(),
-					logger,
-					params: {},
-					chainID,
-					getOffchainStore: jest.fn(),
-				});
+				const { delegates: delegatesDataReturned } = await dposEndpoint.getAllDelegates(
+					createTransientModuleEndpointContext({ stateStore }),
+				);
 
 				expect(addresses).toContain(delegatesDataReturned[0].address);
 				expect(addresses).toContain(delegatesDataReturned[1].address);
@@ -194,14 +190,9 @@ describe('DposModuleEndpoint', () => {
 			it('should return valid JSON output', async () => {
 				await delegateSubStore.set(createStoreGetter(stateStore), address, delegateData1);
 				await delegateSubStore.set(createStoreGetter(stateStore), address1, delegateData2);
-				const { delegates: delegatesDataReturned } = await dposEndpoint.getAllDelegates({
-					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableMethodContext: jest.fn(),
-					logger,
-					params: {},
-					chainID,
-					getOffchainStore: jest.fn(),
-				});
+				const { delegates: delegatesDataReturned } = await dposEndpoint.getAllDelegates(
+					createTransientModuleEndpointContext({ stateStore }),
+				);
 
 				expect(delegatesDataReturned[0].totalVotesReceived).toBeString();
 				expect(delegatesDataReturned[0].selfVotes).toBeString();
@@ -216,6 +207,141 @@ describe('DposModuleEndpoint', () => {
 			const constants = await dposEndpoint.getConstants();
 
 			expect(constants).toStrictEqual(defaultConfig);
+		});
+	});
+
+	describe('getPendingUnlocks', () => {
+		it('should reject if input address is invalid', async () => {
+			await expect(
+				dposEndpoint.getPendingUnlocks(
+					createTransientModuleEndpointContext({
+						params: {
+							address: 1,
+						},
+					}),
+				),
+			).rejects.toThrow('Parameter address must be a string');
+		});
+
+		it('should reject if input address is not lisk32 format', async () => {
+			await expect(
+				dposEndpoint.getPendingUnlocks(
+					createTransientModuleEndpointContext({
+						params: {
+							address: 'lskos7tnf5jx4e6jq400000000000000000000000',
+						},
+					}),
+				),
+			).rejects.toThrow('Invalid character found in address');
+		});
+
+		it('should return empty if voter does not exist', async () => {
+			await expect(
+				dposEndpoint.getPendingUnlocks(
+					createTransientModuleEndpointContext({
+						params: {
+							address: 'lskos7tnf5jx4e6jq4bf5z4gwo2ow5he4khn75gpo',
+						},
+					}),
+				),
+			).resolves.toEqual({ pendingUnlocks: [] });
+		});
+
+		it('should return return all pending unlocks with expected unlockable heights', async () => {
+			await delegateSubStore.set(createStoreGetter(stateStore), address, {
+				...delegateData,
+				name: 'delegate',
+				pomHeights: [],
+			});
+			await delegateSubStore.set(createStoreGetter(stateStore), address1, {
+				...delegateData,
+				name: 'delegate1',
+				pomHeights: [],
+			});
+			const pomHeight = 260000;
+			await delegateSubStore.set(createStoreGetter(stateStore), address2, {
+				...delegateData,
+				name: 'delegate2',
+				pomHeights: [pomHeight],
+			});
+			const pendingUnlocks = [
+				{
+					amount: BigInt(200),
+					delegateAddress: address,
+					unvoteHeight: 100000,
+				},
+				{
+					amount: BigInt(200),
+					delegateAddress: address1,
+					unvoteHeight: 300000,
+				},
+				{
+					amount: BigInt(500),
+					delegateAddress: address2,
+					unvoteHeight: 250000,
+				},
+			];
+			await voterSubStore.set(createStoreGetter(stateStore), address, {
+				sentVotes: [],
+				pendingUnlocks,
+			});
+			await genesisSubStore.set(createStoreGetter(stateStore), EMPTY_KEY, {
+				height: 0,
+				initDelegates: [],
+				initRounds: 3,
+			});
+
+			await expect(
+				dposEndpoint.getPendingUnlocks(
+					createTransientModuleEndpointContext({
+						stateStore,
+						context: {
+							header: createFakeBlockHeader({
+								height: 1000000,
+								timestamp: 100000,
+								aggregateCommit: {
+									aggregationBits: Buffer.alloc(0),
+									certificateSignature: Buffer.alloc(0),
+									height: 250000,
+								},
+							}),
+						},
+						params: {
+							address: cryptoAddress.getLisk32AddressFromAddress(address),
+						},
+					}),
+				),
+			).resolves.toEqual({
+				pendingUnlocks: [
+					{
+						...pendingUnlocks[0],
+						delegateAddress: cryptoAddress.getLisk32AddressFromAddress(
+							pendingUnlocks[0].delegateAddress,
+						),
+						amount: pendingUnlocks[0].amount.toString(),
+						unlockable: true,
+						expectedUnlockableHeight: pendingUnlocks[0].unvoteHeight + WAIT_TIME_SELF_VOTE,
+					},
+					{
+						...pendingUnlocks[1],
+						delegateAddress: cryptoAddress.getLisk32AddressFromAddress(
+							pendingUnlocks[1].delegateAddress,
+						),
+						amount: pendingUnlocks[1].amount.toString(),
+						unlockable: false,
+						expectedUnlockableHeight: pendingUnlocks[1].unvoteHeight + WAIT_TIME_VOTE,
+					},
+					{
+						...pendingUnlocks[2],
+						delegateAddress: cryptoAddress.getLisk32AddressFromAddress(
+							pendingUnlocks[2].delegateAddress,
+						),
+						amount: pendingUnlocks[2].amount.toString(),
+						unlockable: false,
+						expectedUnlockableHeight: pomHeight + VOTER_PUNISH_TIME,
+					},
+				],
+			});
 		});
 	});
 });

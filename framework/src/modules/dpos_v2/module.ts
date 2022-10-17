@@ -186,7 +186,10 @@ export class DPoSModule extends BaseModule {
 		this.endpoint.init(this._moduleConfig);
 
 		this._reportDelegateMisbehaviorCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
-		this._unlockCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
+		this._unlockCommand.init({
+			tokenIDDPoS: this._moduleConfig.tokenIDDPoS,
+			roundLength: this._moduleConfig.roundLength,
+		});
 		this._voteCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
 	}
 
