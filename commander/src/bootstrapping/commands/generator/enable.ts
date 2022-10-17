@@ -37,7 +37,7 @@ export abstract class EnableCommand extends BaseForgingCommand {
 			description: 'Last forged block height.',
 		},
 		{
-			name: 'maxHeightPreviouslyForged',
+			name: 'maxHeightGenerated',
 			required: true,
 			description: 'Delegates largest previously forged height.',
 		},
