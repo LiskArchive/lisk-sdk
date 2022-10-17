@@ -18,10 +18,10 @@ import * as apiClient from '@liskhq/lisk-api-client';
 import { getConfig } from '../../../helpers/config';
 import { BaseIPCClientCommand } from '../../../../src/bootstrapping/commands/base_ipc_client';
 import * as appUtils from '../../../../src/utils/application';
-import { InfoCommand } from '../../../../src/bootstrapping/commands/node/info';
+import { InfoCommand } from '../../../../src/bootstrapping/commands/system/node-info';
 import { Awaited } from '../../../types';
 
-describe('node:info command', () => {
+describe('system:node-info command', () => {
 	const queryResult = {
 		version: '3.0.0-beta.1',
 		networkVersion: '1.1',
@@ -70,7 +70,7 @@ describe('node:info command', () => {
 		} as never);
 	});
 
-	describe('node:info', () => {
+	describe('system:node-info', () => {
 		it('should get node info and display as an object', async () => {
 			await InfoCommand.run([], config);
 			expect(getMock).toHaveBeenCalledTimes(1);
