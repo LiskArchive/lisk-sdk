@@ -64,8 +64,9 @@ export abstract class BaseSynchronizer {
 	protected async _getHighestCommonBlockFromNetwork(
 		peerId: string,
 		ids: Buffer[],
-	): Promise<BlockHeader> {
+	): Promise<BlockHeader | undefined> {
 		const blockIds = codec.encode(getHighestCommonBlockRequestSchema, { ids });
+
 		const { data } = (await this._network.requestFromPeer({
 			procedure: NETWORK_RPC_GET_HIGHEST_COMMON_BLOCK,
 			peerId,
@@ -79,11 +80,15 @@ export abstract class BaseSynchronizer {
 			data,
 		);
 
+		if (!decodedResp.id.length) {
+			return undefined;
+		}
 		try {
 			validator.validate(getHighestCommonBlockResponseSchema, decodedResp);
 		} catch {
 			throw new ApplyPenaltyAndAbortError(peerId, 'Invalid common block response format');
 		}
+
 		return this._chain.dataAccess.getBlockHeaderByID(decodedResp.id);
 	}
 
