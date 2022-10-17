@@ -44,7 +44,7 @@ export const setStatusRequestSchema = {
 	$id: '/lisk/setStatusRequest',
 	title: 'Set block generation status',
 	type: 'object',
-	required: ['address', 'height', 'maxHeightGenerated', 'maxHeightPrevoted'],
+	required: ['address', 'height', 'maxHeightPreviouslyForged', 'maxHeightPrevoted'],
 	properties: {
 		address: {
 			type: 'string',
@@ -54,7 +54,7 @@ export const setStatusRequestSchema = {
 			type: 'integer',
 			minimum: 0,
 		},
-		maxHeightGenerated: {
+		maxHeightPreviouslyForged: {
 			type: 'integer',
 			minimum: 0,
 		},
