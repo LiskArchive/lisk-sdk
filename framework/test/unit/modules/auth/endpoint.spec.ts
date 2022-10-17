@@ -1,6 +1,7 @@
 import { NotFoundError, TAG_TRANSACTION, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { ed, address as cryptoAddress, utils, legacy, address } from '@liskhq/lisk-cryptography';
+import { LiskValidationError } from '@liskhq/lisk-validator';
 import { when } from 'jest-when';
 import { AuthModule } from '../../../../src/modules/auth';
 import {
@@ -533,6 +534,26 @@ describe('AuthEndpoint', () => {
 			expect(sortedSignatures.signatures[2]).toEqual(inputData.mandatory[2].signature);
 			expect(sortedSignatures.signatures[3]).toEqual(inputData.optional[1].signature);
 			expect(sortedSignatures.signatures[4]).toEqual(inputData.optional[0].signature);
+		});
+
+		it('should throw a validation error when provided invalid request', () => {
+			// Arrange
+			const inputData = {
+				mandatory: [
+					// left empty to trigger the error test case
+				],
+				optional: [
+					{
+						publicKey: 'invalid public key', // invalid public key to trigger the error test case
+						signature: '',
+					},
+				],
+			};
+
+			const context = createTransientModuleEndpointContext({ params: inputData });
+
+			// Act & Assert
+			expect(() => authEndpoint.sortMultisignatureGroup(context)).toThrow(LiskValidationError);
 		});
 	});
 });
