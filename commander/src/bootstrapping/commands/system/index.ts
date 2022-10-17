@@ -12,5 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { InfoCommand as NodeInfoCommand } from './info';
+export { InfoCommand as NodeInfoCommand } from './node-info';
 export { MetadataCommand as NodeMetadataCommand } from './metadata';
