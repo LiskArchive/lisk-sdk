@@ -19,10 +19,10 @@ export abstract class EnableCommand extends BaseForgingCommand {
 	static description = 'Enable forging for given delegate address.';
 
 	static examples = [
-		'generator:enable ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815 100 100 10',
-		'generator:enable ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815 100 100 10 --overwrite',
-		'generator:enable ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815 100 100 10 --data-path ./data',
-		'generator:enable ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815 100 100 10 --data-path ./data --password your_password',
+		'generator:enable lsk24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu 100 100 10',
+		'generator:enable lsk24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu 100 100 10 --overwrite',
+		'generator:enable lsk24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu 100 100 10 --data-path ./data',
+		'generator:enable lsk24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu 100 100 10 --data-path ./data --password your_password',
 	];
 
 	static flags = {
