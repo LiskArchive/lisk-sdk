@@ -30,7 +30,7 @@ describe('Legacy endpoint', () => {
 		legacyEndpoint = new LegacyEndpoint({ db: new InMemoryDatabase() as any });
 		encodedBlock = codec.encode(blockSchemaV2, {
 			header: codec.encode(blockHeaderSchemaV2, blockFixtures[0].header),
-			transactions: blockFixtures[0].transactions,
+			payload: blockFixtures[0].payload,
 		});
 
 		jest.spyOn(legacyEndpoint.storage, 'getBlockByID').mockResolvedValue(encodedBlock);
@@ -56,8 +56,8 @@ describe('Legacy endpoint', () => {
 			expect(block.header.asset).toEqual(bufferToHex(blockFixtures[0].header.asset));
 			expect(block.header.signature).toEqual(bufferToHex(blockFixtures[0].header.signature));
 
-			expect(block.transactions).toHaveLength(blockFixtures[0].transactions.length);
-			expect(block.transactions[0]).toEqual(bufferToHex(blockFixtures[0].transactions[0]));
+			expect(block.payload).toHaveLength(blockFixtures[0].payload.length);
+			expect(block.payload[0]).toEqual(bufferToHex(blockFixtures[0].payload[0]));
 		};
 
 		it('getBlockByID', async () => {

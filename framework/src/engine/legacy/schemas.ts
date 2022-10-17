@@ -20,7 +20,7 @@ export const blockSchemaV2 = {
 			dataType: 'bytes',
 			fieldNumber: 1,
 		},
-		transactions: {
+		payload: {
 			type: 'array',
 			items: {
 				dataType: 'bytes',
@@ -28,7 +28,7 @@ export const blockSchemaV2 = {
 			fieldNumber: 2,
 		},
 	},
-	required: ['header', 'transactions'],
+	required: ['header', 'payload'],
 };
 
 const HASH_LENGTH = 32;

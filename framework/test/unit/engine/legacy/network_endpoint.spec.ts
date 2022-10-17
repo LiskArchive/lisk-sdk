@@ -82,10 +82,10 @@ describe('Legacy P2P network endpoint', () => {
 
 			const {
 				header: { id, ...blockHeader },
-				transactions,
+				payload,
 			} = requestedBlock;
 
-			const requestedBlockWithoutID = { header: { ...blockHeader }, transactions };
+			const requestedBlockWithoutID = { header: { ...blockHeader }, payload };
 
 			const encodedBlockWithoutID = encodeBlock(requestedBlockWithoutID);
 			const requestedBlockID = utils.hash(encodedBlockWithoutID);

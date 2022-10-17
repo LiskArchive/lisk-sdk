@@ -24,7 +24,7 @@ describe('Legacy codec', () => {
 		beforeEach(() => {
 			encodedBlock = codec.encode(blockSchemaV2, {
 				header: codec.encode(blockHeaderSchemaV2, blockFixtures[0].header),
-				transactions: blockFixtures[0].transactions,
+				payload: blockFixtures[0].payload,
 			});
 		});
 

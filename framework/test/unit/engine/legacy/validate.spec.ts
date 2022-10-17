@@ -31,7 +31,7 @@ describe('Legacy valdate', () => {
 					...blockFixtures[0].header,
 					generatorPublicKey: Buffer.from([0, 0, 1]),
 				},
-				transactions: [...blockFixtures[0].transactions],
+				payload: [...blockFixtures[0].payload],
 			});
 			expect(() => validateLegacyBlock(invalidEncodedBlock, blockFixtures[1])).toThrow(
 				"Property '.generatorPublicKey' minLength not satisfied",
@@ -44,7 +44,7 @@ describe('Legacy valdate', () => {
 					...blockFixtures[0].header,
 					transactionRoot: Buffer.from([0, 0, 1]),
 				},
-				transactions: [...blockFixtures[0].transactions],
+				payload: [...blockFixtures[0].payload],
 			});
 			expect(() => validateLegacyBlock(invalidEncodedBlock, blockFixtures[1])).toThrow(
 				"Property '.transactionRoot' minLength not satisfied",
@@ -57,7 +57,7 @@ describe('Legacy valdate', () => {
 					...blockFixtures[0].header,
 					previousBlockID: Buffer.from([0, 0, 1]),
 				},
-				transactions: [...blockFixtures[0].transactions],
+				payload: [...blockFixtures[0].payload],
 			});
 			expect(() => validateLegacyBlock(invalidEncodedBlock, blockFixtures[1])).toThrow(
 				"Property '.previousBlockID' minLength not satisfied",
@@ -70,7 +70,7 @@ describe('Legacy valdate', () => {
 					...blockFixtures[0].header,
 					signature: Buffer.from([0, 0, 1]),
 				},
-				transactions: [...blockFixtures[0].transactions],
+				payload: [...blockFixtures[0].payload],
 			});
 			expect(() => validateLegacyBlock(invalidEncodedBlock, blockFixtures[1])).toThrow(
 				"Property '.signature' minLength not satisfied",
@@ -84,7 +84,7 @@ describe('Legacy valdate', () => {
 						...blockFixtures[1].header,
 						height: 3333,
 					},
-					transactions: blockFixtures[1].transactions,
+					payload: blockFixtures[1].payload,
 				}),
 			).toThrow('Received block at height 19583714 is not consecutive to next block 3333');
 		});
@@ -99,7 +99,7 @@ describe('Legacy valdate', () => {
 							'hex',
 						),
 					},
-					transactions: blockFixtures[1].transactions,
+					payload: blockFixtures[1].payload,
 				}),
 			).toThrow('is not previous block of');
 		});
@@ -109,7 +109,7 @@ describe('Legacy valdate', () => {
 				header: {
 					...blockFixtures[0].header,
 				},
-				transactions: [],
+				payload: [],
 			});
 			expect(() => validateLegacyBlock(invalidEncodedBlock, blockFixtures[1])).toThrow(
 				'Received block has invalid transaction root',
