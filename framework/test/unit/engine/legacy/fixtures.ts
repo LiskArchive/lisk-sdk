@@ -44,7 +44,7 @@ export const blockFixtures = [
 				'hex',
 			),
 		},
-		transactions: [
+		payload: [
 			Buffer.from(
 				'0802100018950b2090a10f2a20fdb1de14521b437e61a89d1a2c54f20eef3a897819269ddfed7c2c6f6372ec85322e08e7f6e35e12142d84df54c6465a06069e3e5b566086f827acf4261a11726f62696e686f6f64207061796f7574733a40ce3761c3bd3c7e1e39cf370dc82d11e84f3b1ec85175aad5f004d41de4ec04a6cf0ae4e0f2ed8ad98ce4b93eaafab48f11aeb0dd6b4942d8e0ed0fdf88648e04',
 				'hex',
@@ -76,7 +76,7 @@ export const blockFixtures = [
 			),
 			id: Buffer.from('31636e108a3ee5d22672631c582dbd8e06576b932f3cd303144abf165a3bc84d', 'hex'),
 		},
-		transactions: [
+		payload: [
 			Buffer.from(
 				'0802100018960b2090a10f2a20fdb1de14521b437e61a89d1a2c54f20eef3a897819269ddfed7c2c6f6372ec85322e08e7f6e35e1214ef93860e2196de35f10cdf1b8b17adff7129dae41a11726f62696e686f6f64207061796f7574733a403f2c770abe2f6ad25bce6d83f8b51e8713554bc314042cbce86ff7f5033fdff6f041ad41af0ccb42d946c8c42b95d5f4aab90db6f5b3cef067385fe2c39c5309',
 				'hex',
@@ -87,10 +87,10 @@ export const blockFixtures = [
 
 export const createFakeLegacyBlockHeaderV2 = (
 	header?: Partial<LegacyBlockHeader>,
-	transactions?: Buffer[],
+	payload?: Buffer[],
 ): LegacyBlockWithID => {
-	const transactionRoot = transactions
-		? regularMerkleTree.calculateMerkleRootWithLeaves(transactions.map(tx => utils.hash(tx)))
+	const transactionRoot = payload
+		? regularMerkleTree.calculateMerkleRootWithLeaves(payload.map(tx => utils.hash(tx)))
 		: utils.hash(utils.getRandomBytes(32));
 
 	const blockHeader = {
@@ -104,11 +104,11 @@ export const createFakeLegacyBlockHeaderV2 = (
 		asset: header?.asset ?? utils.getRandomBytes(20),
 		signature: header?.signature ?? utils.getRandomBytes(64),
 	};
-	const id = utils.hash(encodeBlock({ header: blockHeader, transactions: transactions ?? [] }));
+	const id = utils.hash(encodeBlock({ header: blockHeader, payload: payload ?? [] }));
 
 	return {
 		header: { ...blockHeader, id },
-		transactions: transactions ?? [],
+		payload: payload ?? [],
 	};
 };
 

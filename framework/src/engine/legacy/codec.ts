@@ -64,7 +64,7 @@ export const decodeBlockJSON = (
 				...codec.toJSON(schema.header, block.header),
 				id: block.header.id.toString('hex'),
 			},
-			transactions: block.transactions.map(tx => tx.toString('hex')),
+			payload: block.payload.map(tx => tx.toString('hex')),
 		},
 		schema,
 	};
@@ -79,7 +79,7 @@ export const encodeBlock = (data: LegacyBlock): Buffer => {
 
 	return codec.encode(blockSchema.block, {
 		header: headerBytes,
-		transactions: data.transactions,
+		payload: data.payload,
 	});
 };
 

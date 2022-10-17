@@ -40,7 +40,7 @@ export const validateLegacyBlock = (
 	}
 
 	const transactionRoot = regularMerkleTree.calculateMerkleRootWithLeaves(
-		decodedBlock.transactions.map(tx => utils.hash(tx)),
+		decodedBlock.payload.map(tx => utils.hash(tx)),
 	);
 
 	if (!decodedBlock.header.transactionRoot.equals(transactionRoot)) {
