@@ -17,7 +17,7 @@ import { BaseIPCClientCommand } from '../base_ipc_client';
 export abstract class InfoCommand extends BaseIPCClientCommand {
 	static description = 'Get node information from a running application.';
 
-	static examples = ['node:info', 'node:info --data-path ./lisk'];
+	static examples = ['system:node-info', 'system:node-info --data-path ./lisk'];
 
 	static flags = {
 		...BaseIPCClientCommand.flags,
