@@ -12,36 +12,33 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ApplicationConfigForPlugin, GenesisConfig, testing, cryptography } from 'lisk-sdk';
+import {
+	ApplicationConfigForPlugin,
+	GenesisConfig,
+	testing,
+	cryptography,
+	apiClient,
+} from 'lisk-sdk';
 import { ChainConnectorPlugin } from '../../src/chain_connector_plugin';
 import * as db from '../../src/db';
 
 describe('getSentCCUs', () => {
 	const appConfigForPlugin: ApplicationConfigForPlugin = {
-		rootPath: '~/.lisk',
-		label: 'my-app',
-		logger: {
-			consoleLogLevel: 'info',
-			fileLogLevel: 'none',
-			logFileName: 'plugin-ChainConnector.log',
-		},
 		system: {
 			keepEventsForHeights: -1,
+			dataPath: '~/.lisk',
+			logLevel: 'info',
+			version: '1.0.0',
 		},
 		rpc: {
-			modes: [],
+			modes: ['ipc'],
 			port: 8080,
 			host: '127.0.0.1',
-		},
-		generation: {
-			force: false,
-			waitThreshold: 2,
-			generators: [],
-			modules: {},
 		},
 		network: {
 			seedPeers: [],
 			port: 5000,
+			version: '1.0.0',
 		},
 		transactionPool: {
 			maxTransactions: 4096,
@@ -50,9 +47,13 @@ describe('getSentCCUs', () => {
 			minEntranceFeePriority: '0',
 			minReplacementFeeDifference: '10',
 		},
-		version: '',
-		networkVersion: '',
 		genesis: {} as GenesisConfig,
+		generator: {
+			keys: {
+				fromFile: '',
+			},
+		},
+		modules: {},
 	};
 
 	const validators = [
@@ -98,12 +99,13 @@ describe('getSentCCUs', () => {
 
 	beforeEach(async () => {
 		chainConnectorPlugin = new ChainConnectorPlugin();
+		jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({} as never);
+
 		await chainConnectorPlugin.init({
 			config: { mainchainIPCPath: '~/.lisk/mainchain' },
 			appConfig: appConfigForPlugin,
 			logger: testing.mocks.loggerMock,
 		});
-
 		jest.spyOn(db, 'getChainConnectorInfo').mockReturnValue(chainConnectorInfo as never);
 	});
 
