@@ -16,22 +16,18 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { ModuleEndpointContext } from '../../../src';
 import { RequestContext } from '../../../src/engine/rpc/rpc_server';
-import { createImmutableMethodContext } from '../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../src/state_machine/prefixed_state_read_writer';
+import { createTransientModuleEndpointContext } from '../../../src/testing';
 import { fakeLogger } from './logger';
 
 export const createContext = (
 	stateStore: PrefixedStateReadWriter,
 	params: Record<string, unknown>,
-): ModuleEndpointContext => ({
-	getImmutableMethodContext: () => createImmutableMethodContext(stateStore),
-	getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-	logger: fakeLogger,
-	chainID: utils.getRandomBytes(32),
-	params,
-	getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) =>
-		stateStore.getStore(moduleID, storePrefix),
-});
+): ModuleEndpointContext =>
+	createTransientModuleEndpointContext({
+		stateStore,
+		params,
+	});
 
 export const createRequestContext = (params: Record<string, unknown>): RequestContext => ({
 	logger: fakeLogger,

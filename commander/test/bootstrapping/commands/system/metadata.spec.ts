@@ -18,10 +18,10 @@ import * as apiClient from '@liskhq/lisk-api-client';
 import { getConfig } from '../../../helpers/config';
 import { BaseIPCClientCommand } from '../../../../src/bootstrapping/commands/base_ipc_client';
 import * as appUtils from '../../../../src/utils/application';
-import { MetadataCommand } from '../../../../src/bootstrapping/commands/node/metadata';
+import { MetadataCommand } from '../../../../src/bootstrapping/commands/system/metadata';
 import { Awaited } from '../../../types';
 
-describe('node:metadata command', () => {
+describe('system:metadata command', () => {
 	const queryResult = {
 		modules: [
 			{
@@ -92,7 +92,7 @@ describe('node:metadata command', () => {
 		} as never);
 	});
 
-	describe('node:metadata', () => {
+	describe('system:metadata', () => {
 		it('should get node metadata and display as an object', async () => {
 			await MetadataCommand.run([], config);
 			expect(getMock).toHaveBeenCalledTimes(1);

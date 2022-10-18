@@ -274,10 +274,11 @@ export class Bus {
 		const channelInfo = this._channels[request.namespace];
 		if (channelInfo.type === ChannelType.InMemory) {
 			try {
-				const result = await (channelInfo.channel as BaseChannel).invoke<T>(
-					actionFullName,
-					actionParams,
-				);
+				const result = await (channelInfo.channel as BaseChannel).invoke<T>({
+					context: {},
+					methodName: actionFullName,
+					params: actionParams,
+				});
 
 				return request.buildJSONRPCResponse({
 					result,

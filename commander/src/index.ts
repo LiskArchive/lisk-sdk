@@ -35,7 +35,7 @@ export {
 	GeneratorImportCommand,
 	GeneratorExportCommand,
 } from './bootstrapping/commands/generator';
-export { NodeInfoCommand, NodeMetadataCommand } from './bootstrapping/commands/node';
+export { NodeInfoCommand, NodeMetadataCommand } from './bootstrapping/commands/system';
 export {
 	PassphraseDecryptCommand,
 	PassphraseEncryptCommand,

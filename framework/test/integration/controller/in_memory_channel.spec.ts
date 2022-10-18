@@ -186,12 +186,20 @@ describe('InMemoryChannel', () => {
 			it('should be able to invoke its own endpoints.', async () => {
 				// Act && Assert
 				await expect(
-					inMemoryChannelAlpha.invoke<number>(`${alpha.moduleName}_multiplyByTwo`, { val: 2 }),
+					inMemoryChannelAlpha.invoke<number>({
+						context: {},
+						methodName: `${alpha.moduleName}_multiplyByTwo`,
+						params: { val: 2 },
+					}),
 				).resolves.toBe(4);
 
 				await expect(
-					inMemoryChannelAlpha.invoke<number>(`${alpha.moduleName}_multiplyByThree`, {
-						val: 4,
+					inMemoryChannelAlpha.invoke<number>({
+						context: {},
+						methodName: `${alpha.moduleName}_multiplyByThree`,
+						params: {
+							val: 4,
+						},
 					}),
 				).resolves.toBe(12);
 			});
@@ -199,11 +207,19 @@ describe('InMemoryChannel', () => {
 			it("should be able to invoke other channels' endpoints.", async () => {
 				// Act && Assert
 				await expect(
-					inMemoryChannelAlpha.invoke<number>(`${beta.moduleName}_divideByTwo`, { val: 4 }),
+					inMemoryChannelAlpha.invoke<number>({
+						context: {},
+						methodName: `${beta.moduleName}_divideByTwo`,
+						params: { val: 4 },
+					}),
 				).resolves.toBe(2);
 
 				await expect(
-					inMemoryChannelAlpha.invoke<number>(`${beta.moduleName}_divideByThree`, { val: 9 }),
+					inMemoryChannelAlpha.invoke<number>({
+						context: {},
+						methodName: `${beta.moduleName}_divideByThree`,
+						params: { val: 9 },
+					}),
 				).resolves.toBe(3);
 			});
 
@@ -213,7 +229,10 @@ describe('InMemoryChannel', () => {
 
 				// Act && Assert
 				await expect(
-					inMemoryChannelAlpha.invoke(`${beta.moduleName}_${invalidEndpointName}`),
+					inMemoryChannelAlpha.invoke({
+						methodName: `${beta.moduleName}_${invalidEndpointName}`,
+						context: {},
+					}),
 				).rejects.toThrow(
 					`Request '${beta.moduleName}_${invalidEndpointName}' is not registered to bus.`,
 				);
