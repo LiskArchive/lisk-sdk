@@ -12,6 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import {
+	MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH,
+	MAX_MODULE_NAME_LENGTH,
+	MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH,
+	MIN_MODULE_NAME_LENGTH,
+} from '@liskhq/lisk-chain/dist-node/constants';
 import { CHAIN_ID_LENGTH } from '../token/constants';
 import {
 	MAX_LENGTH_NAME,
@@ -34,46 +40,54 @@ export const ccmSchema = {
 	$id: '/modules/interoperability/ccm',
 	type: 'object',
 	required: [
-		'nonce',
 		'module',
 		'crossChainCommand',
+		'nonce',
+		'fee',
 		'sendingChainID',
 		'receivingChainID',
-		'fee',
-		'status',
 		'params',
+		'status',
 	],
 	properties: {
-		nonce: {
-			dataType: 'uint64',
-			fieldNumber: 1,
-		},
 		module: {
 			dataType: 'string',
-			fieldNumber: 2,
+			minLength: MIN_MODULE_NAME_LENGTH,
+			maxLength: MAX_MODULE_NAME_LENGTH,
+			fieldNumber: 1,
 		},
 		crossChainCommand: {
 			dataType: 'string',
+			minLength: MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH,
+			maxLength: MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH,
+			fieldNumber: 2,
+		},
+		nonce: {
+			dataType: 'uint64',
 			fieldNumber: 3,
-		},
-		sendingChainID: {
-			dataType: 'bytes',
-			fieldNumber: 4,
-		},
-		receivingChainID: {
-			dataType: 'bytes',
-			fieldNumber: 5,
 		},
 		fee: {
 			dataType: 'uint64',
-			fieldNumber: 6,
+			fieldNumber: 4,
 		},
-		status: {
-			dataType: 'uint32',
-			fieldNumber: 7,
+		sendingChainID: {
+			dataType: 'bytes',
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
+			fieldNumber: 5,
+		},
+		receivingChainID: {
+			dataType: 'bytes',
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
+			fieldNumber: 6,
 		},
 		params: {
 			dataType: 'bytes',
+			fieldNumber: 7,
+		},
+		status: {
+			dataType: 'uint32',
 			fieldNumber: 8,
 		},
 	},
