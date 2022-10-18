@@ -20,7 +20,7 @@ import { BaseIPCClientCommand } from './base_ipc_client';
 interface Args {
 	readonly address: string;
 	readonly height?: number;
-	readonly maxHeightPreviouslyForged?: number;
+	readonly maxHeightGenerated?: number;
 	readonly maxHeightPrevoted?: number;
 }
 
@@ -45,17 +45,17 @@ export abstract class BaseForgingCommand extends BaseIPCClientCommand {
 
 	async run(): Promise<void> {
 		const { args, flags } = await this.parse(this.constructor as typeof BaseForgingCommand);
-		const { address, height, maxHeightPreviouslyForged, maxHeightPrevoted } = args as Args;
+		const { address, height, maxHeightGenerated, maxHeightPrevoted } = args as Args;
 		let password;
 
 		if (
 			this.forging &&
 			(isLessThanZero(height) ||
-				isLessThanZero(maxHeightPreviouslyForged) ||
+				isLessThanZero(maxHeightGenerated) ||
 				isLessThanZero(maxHeightPrevoted))
 		) {
 			throw new Error(
-				'The maxHeightPreviouslyForged and maxHeightPrevoted parameter value must be greater than or equal to 0',
+				'The maxHeightGenerated and maxHeightPrevoted parameter value must be greater than or equal to 0',
 			);
 		}
 
@@ -81,7 +81,7 @@ export abstract class BaseForgingCommand extends BaseIPCClientCommand {
 				password,
 				enabled: this.forging,
 				height: Number(height ?? 0),
-				maxHeightPreviouslyForged: Number(maxHeightPreviouslyForged ?? 0),
+				maxHeightGenerated: Number(maxHeightGenerated ?? 0),
 				maxHeightPrevoted: Number(maxHeightPrevoted ?? 0),
 			});
 			this.log('Status updated.');
