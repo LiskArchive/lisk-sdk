@@ -18,7 +18,6 @@ import {
 	computeCertificateFromBlockHeader,
 	BFTHeights,
 	cryptography,
-	passphrase,
 	chain,
 	testing,
 	apiClient,
@@ -26,8 +25,6 @@ import {
 	GenesisConfig,
 	LIVENESS_LIMIT,
 	CHAIN_TERMINATED,
-	MODULE_ID_INTEROPERABILITY,
-	STORE_PREFIX_OUTBOX_ROOT,
 	ChainAccount,
 	CHAIN_ACTIVE,
 	codec,
@@ -39,30 +36,21 @@ import * as dbApi from '../../src/db';
 import * as utils from '../../src/utils';
 
 const appConfigForPlugin: ApplicationConfigForPlugin = {
-	rootPath: '~/.lisk',
-	label: 'my-app',
-	logger: {
-		consoleLogLevel: 'info',
-		fileLogLevel: 'none',
-		logFileName: 'plugin-ChainConnector.log',
-	},
 	system: {
 		keepEventsForHeights: -1,
+		dataPath: '~/.lisk',
+		logLevel: 'info',
+		version: '1.0.0',
 	},
 	rpc: {
 		modes: ['ipc'],
 		port: 8080,
 		host: '127.0.0.1',
 	},
-	generation: {
-		force: false,
-		waitThreshold: 2,
-		generators: [],
-		modules: {},
-	},
 	network: {
 		seedPeers: [],
 		port: 5000,
+		version: '1.0.0',
 	},
 	transactionPool: {
 		maxTransactions: 4096,
@@ -71,9 +59,13 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 		minEntranceFeePriority: '0',
 		minReplacementFeeDifference: '10',
 	},
-	version: '',
-	networkVersion: '',
 	genesis: {} as GenesisConfig,
+	generator: {
+		keys: {
+			fromFile: '',
+		},
+	},
+	modules: {},
 };
 
 describe('ChainConnectorPlugin', () => {
@@ -235,8 +227,11 @@ describe('ChainConnectorPlugin', () => {
 
 		it('should invoke "consensus_getBFTParameters" on _sidechainAPIClient', async () => {
 			const block = await testing.createBlock({
-				networkIdentifier: cryptography.utils.getRandomBytes(32),
-				passphrase: passphrase.Mnemonic.generateMnemonic(),
+				chainID: Buffer.from('00001111', 'hex'),
+				privateKey: Buffer.from(
+					'd4b1a8a6f91482c40ba1d5c054bd7595cc0230291244fc47869f51c21af657b9e142de105ecd851507f2627e991b54b2b71104b11b6660d0646b9fdbe415fd87',
+					'hex',
+				),
 				previousBlockID: cryptography.utils.getRandomBytes(20),
 				timestamp: Math.floor(Date.now() / 1000),
 			});
@@ -639,29 +634,6 @@ describe('ChainConnectorPlugin', () => {
 		});
 	});
 
-	describe('_rawStateStoreKey', () => {
-		it('should concatenate provided chainID', () => {
-			const chainID = Buffer.from('200');
-
-			const moduleIDBuffer = Buffer.alloc(4);
-			moduleIDBuffer.writeInt32BE(MODULE_ID_INTEROPERABILITY, 0);
-
-			const storePrefixBuffer = Buffer.alloc(2);
-			storePrefixBuffer.writeUInt16BE(STORE_PREFIX_OUTBOX_ROOT, 0);
-
-			const expected = Buffer.concat([
-				chain.DB_KEY_STATE_STORE,
-				moduleIDBuffer,
-				storePrefixBuffer,
-				chainID,
-			]);
-
-			const actual = chainConnectorPlugin['_rawStateStoreKey'](chainID);
-
-			expect(Buffer.compare(expected, actual)).toBe(0);
-		});
-	});
-
 	describe('_verifyLiveness', () => {
 		beforeEach(() => {
 			(chainConnectorPlugin as any)['_mainchainAPIClient'] = {
@@ -720,12 +692,14 @@ describe('ChainConnectorPlugin', () => {
 			const certificate = { height: 5 } as Certificate;
 			const blockHeader = {} as chain.BlockHeader;
 			const chainAccount = { status: CHAIN_TERMINATED } as ChainAccount;
+			const sendingChainID = Buffer.from('01');
 
 			const result = await chainConnectorPlugin['_validateCertificate'](
 				certificateBytes,
 				certificate,
 				blockHeader,
 				chainAccount,
+				sendingChainID,
 			);
 
 			expect(result.status).toBe(false);
@@ -736,12 +710,14 @@ describe('ChainConnectorPlugin', () => {
 			const certificate = { height: 5 } as Certificate;
 			const blockHeader = {} as chain.BlockHeader;
 			const chainAccout = { status: CHAIN_ACTIVE, lastCertificate: { height: 5 } } as ChainAccount;
+			const sendingChainID = Buffer.from('01');
 
 			const result = await chainConnectorPlugin['_validateCertificate'](
 				certificateBytes,
 				certificate,
 				blockHeader,
 				chainAccout,
+				sendingChainID,
 			);
 
 			expect(result.status).toBe(false);
@@ -756,12 +732,14 @@ describe('ChainConnectorPlugin', () => {
 			const certificate = { height: 5 } as Certificate;
 			const blockHeader = {} as chain.BlockHeader;
 			const chainAccount = { status: CHAIN_ACTIVE, lastCertificate: { height: 4 } } as ChainAccount;
+			const sendingChainID = Buffer.from('01');
 
 			const result = await chainConnectorPlugin['_validateCertificate'](
 				certificateBytes,
 				certificate,
 				blockHeader,
 				chainAccount,
+				sendingChainID,
 			);
 
 			expect(result.status).toBe(false);
@@ -776,12 +754,14 @@ describe('ChainConnectorPlugin', () => {
 			const certificate = { height: 5 } as Certificate;
 			const blockHeader = {} as chain.BlockHeader;
 			const chainAccount = { status: CHAIN_ACTIVE, lastCertificate: { height: 4 } } as ChainAccount;
+			const sendingChainID = Buffer.from('01');
 
 			const result = await chainConnectorPlugin['_validateCertificate'](
 				certificateBytes,
 				certificate,
 				blockHeader,
 				chainAccount,
+				sendingChainID,
 			);
 
 			expect(result.status).toBe(true);
@@ -815,9 +795,11 @@ describe('ChainConnectorPlugin', () => {
 				signature: Buffer.from('10'),
 			} as Certificate;
 			const blockHeader = { validatorsHash: Buffer.from('10') } as chain.BlockHeader;
+			const sendingChainID = Buffer.from('01');
+
 			const chainAccount = {
 				status: 0,
-				networkID: Buffer.from('10'),
+				name: 'chain1',
 				lastCertificate: { height: 4 },
 			} as ChainAccount;
 
@@ -826,6 +808,7 @@ describe('ChainConnectorPlugin', () => {
 				certificate,
 				blockHeader,
 				chainAccount,
+				sendingChainID,
 			);
 
 			expect(result.status).toBe(false);
@@ -861,15 +844,17 @@ describe('ChainConnectorPlugin', () => {
 			const blockHeader = { validatorsHash: Buffer.from('11') } as chain.BlockHeader;
 			const chainAccount = {
 				status: 0,
-				networkID: Buffer.from('10'),
+				name: 'chain1',
 				lastCertificate: { height: 4 },
 			} as ChainAccount;
+			const sendingChainID = Buffer.from('01');
 
 			const result = await chainConnectorPlugin['_validateCertificate'](
 				certificateBytes,
 				certificate,
 				blockHeader,
 				chainAccount,
+				sendingChainID,
 			);
 
 			expect(result.status).toBe(false);
@@ -877,8 +862,7 @@ describe('ChainConnectorPlugin', () => {
 	});
 
 	describe('_calculateInboxUpdate', () => {
-		const sendingChainID = Buffer.from('01');
-		const outboxKey = Buffer.from('01');
+		const sendingChainID = Buffer.from('00000001', 'hex');
 
 		const expectedInboxUpdate = {
 			crossChainMessages: [Buffer.from('01'), Buffer.from('01')],
@@ -906,8 +890,6 @@ describe('ChainConnectorPlugin', () => {
 				],
 			} as never;
 
-			chainConnectorPlugin['_rawStateStoreKey'] = jest.fn().mockReturnValue(outboxKey);
-
 			jest.spyOn(codec, 'encode').mockReturnValue(Buffer.from('01') as never);
 
 			chainConnectorPlugin['_sidechainAPIClient'] = sidechainAPIClientMock as never;
@@ -930,22 +912,15 @@ describe('ChainConnectorPlugin', () => {
 			expect(codec.encode).toHaveBeenCalledTimes(2);
 		});
 
-		it('should call _rawStateStoreKey with provided chainAccount.networkID', async () => {
-			await chainConnectorPlugin['_calculateInboxUpdate'](sendingChainID);
-
-			expect(chainConnectorPlugin['_rawStateStoreKey']).toHaveBeenCalledTimes(1);
-			expect(chainConnectorPlugin['_rawStateStoreKey']).toHaveBeenCalledWith(sendingChainID);
-		});
-
 		it('should call state_prove endpoint on _sidechainAPIClient', async () => {
-			await chainConnectorPlugin['_calculateInboxUpdate'](Buffer.from('07'));
+			await chainConnectorPlugin['_calculateInboxUpdate'](sendingChainID);
 
 			expect(chainConnectorPlugin['_sidechainAPIClient'].invoke).toHaveBeenCalledTimes(1);
 
 			expect(chainConnectorPlugin['_sidechainAPIClient'].invoke).toHaveBeenCalledWith(
 				'state_prove',
 				{
-					queries: [outboxKey],
+					queries: [sendingChainID],
 				},
 			);
 		});
@@ -1041,6 +1016,7 @@ describe('ChainConnectorPlugin', () => {
 				certificate,
 				filteredBlockHeader,
 				chainAccount,
+				sendingChainID,
 			);
 		});
 
