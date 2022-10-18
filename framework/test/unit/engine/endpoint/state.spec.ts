@@ -22,7 +22,7 @@ import { fakeLogger } from '../../../utils/mocks';
 
 describe('state endpoint', () => {
 	const logger: Logger = fakeLogger;
-	const networkIdentifier = Buffer.alloc(0);
+	const chainID = Buffer.from('00001111', 'hex');
 	const queryKeys = [utils.getRandomBytes(32), utils.getRandomBytes(32)];
 
 	let endpoint: StateEndpoint;
@@ -59,7 +59,7 @@ describe('state endpoint', () => {
 						params: {
 							invalid: 'schema',
 						},
-						networkIdentifier,
+						chainID,
 					}),
 				).rejects.toThrow(LiskValidationError);
 			});
@@ -71,7 +71,7 @@ describe('state endpoint', () => {
 						params: {
 							keys: queryKeys[0],
 						},
-						networkIdentifier,
+						chainID,
 					}),
 				).rejects.toThrow();
 			});
@@ -83,7 +83,7 @@ describe('state endpoint', () => {
 						params: {
 							keys: ['xxxx'],
 						},
-						networkIdentifier,
+						chainID,
 					}),
 				).rejects.toThrow();
 			});
@@ -104,13 +104,13 @@ describe('state endpoint', () => {
 					} as never,
 				});
 				await expect(
-					endpoint.stateProve({ logger, params: { keys: queryKeys }, networkIdentifier }),
+					endpoint.stateProve({ logger, params: { keys: queryKeys }, chainID }),
 				).rejects.toThrow('Last block header state root is empty.');
 			});
 
 			it('should call abi.prove with appropriate parameters if last block header state root is not empty', async () => {
 				const proveSpy = jest.spyOn(abi, 'prove');
-				await endpoint.stateProve({ logger, params: { keys: queryKeys }, networkIdentifier });
+				await endpoint.stateProve({ logger, params: { keys: queryKeys }, chainID });
 
 				expect(proveSpy).toHaveBeenCalledTimes(1);
 				expect(proveSpy).toHaveBeenCalledWith({
