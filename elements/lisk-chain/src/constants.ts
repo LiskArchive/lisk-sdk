@@ -39,6 +39,8 @@ export const MIN_MODULE_NAME_LENGTH = 1;
 export const MAX_MODULE_NAME_LENGTH = 32;
 export const MIN_EVENT_NAME_LENGTH = 1;
 export const MAX_EVENT_NAME_LENGTH = 32;
+export const MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH = 1;
+export const MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH = 32;
 
 export const SMT_PREFIX_SIZE = 6;
 
