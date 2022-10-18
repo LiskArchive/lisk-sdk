@@ -34,8 +34,6 @@ import {
 	ActiveValidator,
 	certificateSchema,
 	cryptography,
-	MODULE_ID_INTEROPERABILITY,
-	STORE_PREFIX_OUTBOX_ROOT,
 } from 'lisk-sdk';
 import { CCM_BASED_CCU_FREQUENCY, EMPTY_BYTES, LIVENESS_BASED_CCU_FREQUENCY } from './constants';
 import { getChainConnectorInfo, getDBInstance, setChainConnectorInfo } from './db';
@@ -78,7 +76,6 @@ interface CertificateValidationResult {
 }
 
 export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig> {
-	public name = 'chainConnector';
 	public endpoint = new Endpoint();
 	public configSchema = configSchema;
 	private _chainConnectorPluginDB!: liskDB.Database;
@@ -253,6 +250,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			certificate,
 			blockHeader,
 			chainAccount,
+			sendingChainID,
 		);
 		if (!certificateValidationResult.status) {
 			this.logger.error(certificateValidationResult, 'Certificate validation failed');
@@ -427,7 +425,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			.slice(0, this._ccuFrequency.ccm)
 			.map(ccm => codec.encode(ccmSchema, ccm));
 
-		const outboxKey = this._rawStateStoreKey(sendingChainID);
+		// TODO: should use the store prefix with sendingChainID after issue https://github.com/LiskHQ/lisk-sdk/issues/7631
+		const outboxKey = sendingChainID;
 
 		const stateProveResponse = await this._sidechainAPIClient.invoke<ProveResponse>('state_prove', {
 			queries: [outboxKey],
@@ -446,20 +445,12 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		return inboxUpdate;
 	}
 
-	private _rawStateStoreKey(chainID: Buffer) {
-		const moduleIDBuffer = Buffer.alloc(4);
-		moduleIDBuffer.writeInt32BE(MODULE_ID_INTEROPERABILITY, 0);
-		const storePrefixBuffer = Buffer.alloc(2);
-		storePrefixBuffer.writeUInt16BE(STORE_PREFIX_OUTBOX_ROOT, 0);
-
-		return Buffer.concat([chain.DB_KEY_STATE_STORE, moduleIDBuffer, storePrefixBuffer, chainID]);
-	}
-
 	private async _validateCertificate(
 		certificateBytes: Buffer,
 		certificate: Certificate,
 		blockHeader: chain.BlockHeader,
 		chainAccount: ChainAccount,
+		sendingChainID: Buffer,
 	): Promise<CertificateValidationResult> {
 		const result: CertificateValidationResult = {
 			status: false,
@@ -480,7 +471,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 
 		const certificateLivenessValidationResult = await this._verifyLiveness(
-			chainAccount.networkID,
+			sendingChainID,
 			certificate.timestamp,
 			blockHeader.timestamp,
 		);
@@ -517,7 +508,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			certificate.aggregationBits!,
 			certificate.signature!,
 			MESSAGE_TAG_CERTIFICATE,
-			chainAccount.networkID,
+			sendingChainID,
 			certificateBytes,
 			weights,
 			validatorData.certificateThreshold as bigint,
