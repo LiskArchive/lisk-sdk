@@ -87,6 +87,11 @@ export class SidechainInteroperabilityMethod extends BaseMethod {
 	protected getInteroperabilityStore(
 		context: StoreGetter | ImmutableStoreGetter,
 	): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
+		return new SidechainInteroperabilityStore(
+			this.stores,
+			context,
+			this.interoperableCCMethods,
+			this.events,
+		);
 	}
 }

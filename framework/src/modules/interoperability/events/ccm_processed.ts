@@ -16,13 +16,14 @@ import { BaseEvent, EventQueuer } from '../../base_event';
 
 export interface CcmProcessedEventData {
 	ccmID: Buffer;
-	status: number;
+	result: number;
+	code: number;
 }
 
 export const ccmProcessedEventSchema = {
 	$id: '/interoperability/events/ccmProcessed',
 	type: 'object',
-	required: ['ccmID', 'status'],
+	required: ['ccmID', 'result', 'code'],
 	properties: {
 		ccmID: {
 			dataType: 'bytes',
@@ -32,7 +33,7 @@ export const ccmProcessedEventSchema = {
 			dataType: 'uint32',
 			fieldNumber: 2,
 		},
-		status: {
+		code: {
 			dataType: 'uint32',
 			fieldNumber: 3,
 		},

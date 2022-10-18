@@ -35,6 +35,7 @@ import { ChainAccountStore } from '../../../../../src/modules/interoperability/s
 import { TerminatedStateStore } from '../../../../../src/modules/interoperability/stores/terminated_state';
 import { StoreGetter } from '../../../../../src/modules/base_store';
 import { createStoreGetter } from '../../../../../src/testing/utils';
+import { NamedRegistry } from '../../../../../src/modules/named_registry';
 
 describe('Sidechain interoperability store', () => {
 	const sidechainInterops = new SidechainInteroperabilityModule();
@@ -79,6 +80,7 @@ describe('Sidechain interoperability store', () => {
 			sidechainInterops.stores,
 			context,
 			new Map(),
+			new NamedRegistry(),
 		);
 	});
 
@@ -173,6 +175,7 @@ describe('Sidechain interoperability store', () => {
 				sidechainInterops.stores,
 				context,
 				modsMap,
+				new NamedRegistry(),
 			);
 
 			jest.spyOn(sidechainInteropStoreLocal, 'isLive').mockResolvedValue(true);
@@ -196,6 +199,7 @@ describe('Sidechain interoperability store', () => {
 				sidechainInterops.stores,
 				context,
 				modsMap,
+				new NamedRegistry(),
 			);
 
 			jest.spyOn(sidechainInteropStoreLocal, 'isLive').mockResolvedValue(true);
@@ -300,6 +304,7 @@ describe('Sidechain interoperability store', () => {
 				sidechainInterops.stores,
 				context,
 				modsMap,
+				new NamedRegistry(),
 			);
 
 			jest.spyOn(sidechainInteropStoreLocal, 'isLive');

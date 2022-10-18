@@ -140,6 +140,13 @@ export interface CCMForwardContext {
 	ccu: CCUpdateParams;
 }
 
+export interface CCMBounceContext {
+	eventQueue: EventQueue;
+	ccm: CCMsg;
+	newCCMStatus: number;
+	ccmProcessedEventCode: number;
+}
+
 export interface LastCertificate {
 	height: number;
 	timestamp: number;

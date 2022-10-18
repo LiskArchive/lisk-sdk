@@ -73,7 +73,7 @@ describe('DposModuleEndpoint', () => {
 	};
 
 	beforeEach(() => {
-		dposEndpoint = new DPoSEndpoint(dpos.stores, dpos.offchainStores);
+		dposEndpoint = new DPoSEndpoint(dpos.stores, dpos.offchainStores, dpos.events);
 		dposEndpoint.init(config);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		voterSubStore = dpos.stores.get(VoterStore);

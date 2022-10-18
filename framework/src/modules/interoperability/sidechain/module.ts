@@ -42,6 +42,7 @@ import { ChainValidatorsStore } from '../stores/chain_validators';
 import { ChainAccountUpdatedEvent } from '../events/chain_account_updated';
 import { CcmProcessedEvent } from '../events/ccm_processed';
 import { InvalidRegistrationSignatureEvent } from '../events/invalid_registration_signature';
+import { CcmSendSuccessEvent } from '../events/ccm_send_success';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod: BaseInteroperableMethod = new SidechainCCMethod(
@@ -57,6 +58,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.stores,
 		this.offchainStores,
 		this.interoperableCCMethods,
+		this.events,
 	);
 
 	private readonly _mainchainRegistrationCommand = new MainchainRegistrationCommand(
@@ -78,6 +80,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.stores.register(ChainValidatorsStore, new ChainValidatorsStore(this.name));
 		this.events.register(ChainAccountUpdatedEvent, new ChainAccountUpdatedEvent(this.name));
 		this.events.register(CcmProcessedEvent, new CcmProcessedEvent(this.name));
+		this.events.register(CcmSendSuccessEvent, new CcmSendSuccessEvent(this.name));
 		this.events.register(
 			InvalidRegistrationSignatureEvent,
 			new InvalidRegistrationSignatureEvent(this.name),

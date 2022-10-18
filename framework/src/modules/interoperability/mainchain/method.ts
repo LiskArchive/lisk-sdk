@@ -87,6 +87,11 @@ export class MainchainInteroperabilityMethod extends BaseMethod {
 	protected getInteroperabilityStore(
 		context: StoreGetter | ImmutableStoreGetter,
 	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
+		return new MainchainInteroperabilityStore(
+			this.stores,
+			context,
+			this.interoperableCCMethods,
+			this.events,
+		);
 	}
 }

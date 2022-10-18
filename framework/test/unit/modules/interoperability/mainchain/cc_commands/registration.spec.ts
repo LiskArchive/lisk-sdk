@@ -24,6 +24,7 @@ import { MainchainCCRegistrationCommand } from '../../../../../../src/modules/in
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
+import { NamedRegistry } from '../../../../../../src/modules/named_registry';
 import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
 
 describe('MainchainCCRegistrationCommand', () => {
@@ -109,6 +110,7 @@ describe('MainchainCCRegistrationCommand', () => {
 			interopMod.stores,
 			sampleExecuteContext,
 			ccMethodsMap,
+			new NamedRegistry(),
 		);
 		mainchainInteroperabilityStore.terminateChainInternal = terminateChainInternalMock;
 		mainchainInteroperabilityStore.getChannel = getChannelMock;

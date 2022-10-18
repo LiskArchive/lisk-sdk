@@ -64,10 +64,15 @@ export const CCM_STATUS_OK = 0;
 export const CCM_STATUS_MODULE_NOT_SUPPORTED = 1;
 export const CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED = 2;
 export const CCM_STATUS_CHANNEL_UNAVAILABLE = 3;
-export const CCM_STATUS_RECOVERED = 4;
+export const CCM_STATUS_CODE_FAILED_CCM = 4;
+export const CCM_STATUS_CODE_CHANNEL_UNAVAILABLE = 1;
+export const CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE = 1;
 export const MIN_RETURN_FEE = BigInt(1000);
 export const CROSS_CHAIN_COMMAND_REGISTRATION = 'crossChainCommandRegistration';
 export const CCM_SENT_STATUS_SUCCESS = 0;
+export const CCM_PROCESSED_RESULT_BOUNCED = 2;
+export const CCM_PROCESSED_RESULT_DISCARDED = 3;
+export const CCM_STATUS_CODE_RECOVERED = 5;
 
 // Commands
 export const COMMAND_NAME_SIDECHAIN_REG = 'sidechainRegistration';
@@ -79,3 +84,4 @@ export const COMMAND_NAME_STATE_RECOVERY_INIT = 'stateRecoveryInitialization';
 // Events
 export const EVENT_NAME_CHAIN_ACCOUNT_UPDATED = 'chainAccountUpdated';
 export const EVENT_NAME_CCM_PROCESSED = 'ccmProcessed';
+export const EVENT_NAME_CCM_SEND_SUCCESS = 'ccmSendSucess';

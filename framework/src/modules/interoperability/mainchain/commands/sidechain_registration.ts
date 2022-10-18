@@ -28,7 +28,6 @@ import {
 	TOKEN_ID_LSK,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	EMPTY_BYTES,
-	CCM_SENT_STATUS_SUCCESS,
 } from '../../constants';
 import { ccmSchema, registrationCCMParamsSchema, sidechainRegParams } from '../../schemas';
 import { SidechainRegistrationParams } from '../../types';
@@ -48,7 +47,7 @@ import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { TokenMethod } from '../../../token';
 import { ChainAccountUpdatedEvent } from '../../events/chain_account_updated';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
-import { CcmProcessedEvent } from '../../events/ccm_processed';
+import { CcmSendSuccessEvent } from '../../events/ccm_send_success';
 
 export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 	public schema = sidechainRegParams;
@@ -269,24 +268,29 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			status: CCM_STATUS_OK,
 			params: encodedParams,
 		};
+
 		const interoperabilityStore = this.getInteroperabilityStore(context);
 		await interoperabilityStore.addToOutbox(chainID, ccm);
-
 		// Update own chain account nonce
 		ownChainAccount.nonce += BigInt(1);
 		await ownChainAccountSubstore.set(context, EMPTY_BYTES, ownChainAccount);
 
-		// Emit CCM processed event.
 		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
-		this.events.get(CcmProcessedEvent).log(methodContext, ownChainAccount.chainID, chainID, {
-			ccmID,
-			status: CCM_SENT_STATUS_SUCCESS,
-		});
+		this.events
+			.get(CcmSendSuccessEvent)
+			.log(methodContext, ownChainAccount.chainID, chainID, ccmID, {
+				ccmID,
+			});
 	}
 
 	protected getInteroperabilityStore(
 		context: StoreGetter | ImmutableStoreGetter,
 	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
+		return new MainchainInteroperabilityStore(
+			this.stores,
+			context,
+			this.interoperableCCMethods,
+			this.events,
+		);
 	}
 }

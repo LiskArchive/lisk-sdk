@@ -20,5 +20,10 @@ export class MainchainInteroperabilityEndpoint extends BaseInteroperabilityEndpo
 	protected getInteroperabilityStore = (
 		context: StoreGetter | ImmutableStoreGetter,
 	): MainchainInteroperabilityStore =>
-		new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
+		new MainchainInteroperabilityStore(
+			this.stores,
+			context,
+			this.interoperableCCMethods,
+			this.events,
+		);
 }

@@ -25,6 +25,7 @@ import { sidechainTerminatedCCMParamsSchema } from '../../../../../../src/module
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
 import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
 import { SidechainInteroperabilityModule } from '../../../../../../src';
+import { NamedRegistry } from '../../../../../../src/modules/named_registry';
 
 describe('SidechainCCSidechainTerminatedCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
@@ -90,6 +91,7 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 			interopMod.stores,
 			sampleExecuteContext,
 			ccMethodsMap,
+			new NamedRegistry(),
 		);
 		mainchainInteroperabilityStore.terminateChainInternal = terminateChainInternalMock;
 		mainchainInteroperabilityStore.hasTerminatedStateAccount = hasTerminatedStateAccountMock;

@@ -42,6 +42,7 @@ import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/pre
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
 import { TerminatedOutboxStore } from '../../../../../../src/modules/interoperability/stores/terminated_outbox';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
+import { NamedRegistry } from '../../../../../../src/modules/named_registry';
 
 describe('Mainchain MessageRecoveryCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -80,6 +81,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				interopMod.stores,
 				createStoreGetter(stateStore),
 				new Map(),
+				new NamedRegistry(),
 			);
 			messageRecoveryCommand = new MainchainMessageRecoveryCommand(
 				interopMod.stores,

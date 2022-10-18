@@ -28,7 +28,7 @@ import { BLSKeyRegistrationEvent } from './events/bls_key_registration';
 
 export class ValidatorsModule extends BaseModule {
 	public method = new ValidatorsMethod(this.stores, this.events);
-	public endpoint = new ValidatorsEndpoint(this.stores, this.offchainStores);
+	public endpoint = new ValidatorsEndpoint(this.stores, this.offchainStores, this.events);
 	private _blockTime!: number;
 
 	public constructor() {

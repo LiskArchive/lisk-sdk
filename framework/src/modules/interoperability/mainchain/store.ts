@@ -13,9 +13,15 @@
  */
 
 import { NotFoundError } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
+import { utils } from '@liskhq/lisk-cryptography';
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
 import {
-	CCM_STATUS_CHANNEL_UNAVAILABLE,
+	CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
+	CCM_PROCESSED_RESULT_BOUNCED,
+	CCM_PROCESSED_RESULT_DISCARDED,
+	CCM_STATUS_CODE_CHANNEL_UNAVAILABLE,
+	CCM_STATUS_CODE_FAILED_CCM,
 	CCM_STATUS_OK,
 	CHAIN_ACTIVE,
 	CHAIN_REGISTERED,
@@ -24,10 +30,11 @@ import {
 	EMPTY_FEE_ADDRESS,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID_BUFFER,
+	MIN_RETURN_FEE,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../constants';
 import { createCCMsgBeforeSendContext } from '../context';
-import { CCMForwardContext, CCMsg, SendInternalContext } from '../types';
+import { CCMBounceContext, CCMForwardContext, CCMsg, SendInternalContext } from '../types';
 import {
 	getEncodedSidechainTerminatedCCMParam,
 	handlePromiseErrorWithNull,
@@ -35,6 +42,9 @@ import {
 } from '../utils';
 import { MODULE_NAME_TOKEN, TokenCCMethod } from '../cc_methods';
 import { ForwardCCMsgResult } from './types';
+import { ccmSchema } from '../schemas';
+import { CcmProcessedEvent } from '../events/ccm_processed';
+import { CcmSendSuccessEvent } from '../events/ccm_send_success';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async isLive(chainID: Buffer, timestamp: number): Promise<boolean> {
@@ -106,8 +116,12 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		if (ccm.status !== CCM_STATUS_OK) {
 			return ForwardCCMsgResult.INVALID_CCM;
 		}
-
-		await this.bounce(ccm);
+		await this.bounce({
+			ccm,
+			newCCMStatus: CCM_STATUS_CODE_CHANNEL_UNAVAILABLE,
+			ccmProcessedEventCode: CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
+			eventQueue,
+		});
 
 		if (!receivingChainAccount || receivingChainAccount.status === CHAIN_REGISTERED) {
 			return ForwardCCMsgResult.INACTIVE_RECEIVING_CHAIN;
@@ -136,22 +150,47 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		return ForwardCCMsgResult.INFORM_SIDECHAIN_TERMINATION;
 	}
 
-	public async bounce(ccm: CCMsg): Promise<void> {
-		const terminatedStateAccountExists = await this.hasTerminatedStateAccount(ccm.sendingChainID);
+	public async bounce(context: CCMBounceContext): Promise<void> {
+		const { ccm, eventQueue, newCCMStatus, ccmProcessedEventCode } = context;
+		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
+		const minimumFee = MIN_RETURN_FEE * BigInt(ccmID.length);
+		if (ccm.status === CCM_STATUS_OK && ccm.fee >= minimumFee) {
+			this.events
+				.get(CcmProcessedEvent)
+				.log({ eventQueue }, ccm.sendingChainID, ccm.receivingChainID, {
+					ccmID,
+					result: CCM_PROCESSED_RESULT_BOUNCED,
+					code: ccmProcessedEventCode,
+				});
+			const newCCM = {
+				...ccm,
+				sendingChainID: ccm.receivingChainID,
+				receivingChainID: ccm.sendingChainID,
+				status: newCCMStatus,
+			};
 
-		// Messages from terminated chains are discarded, and never returned
-		if (terminatedStateAccountExists) {
+			// If the function is called during the cross-chain command execution, the fee is set to 0
+			if (newCCMStatus === CCM_STATUS_CODE_FAILED_CCM) {
+				newCCM.fee = BigInt(0);
+			} else {
+				newCCM.fee -= minimumFee;
+			}
+			await this.addToOutbox(newCCM.receivingChainID, newCCM);
+			const newCCMID = utils.hash(codec.encode(ccmSchema, newCCM));
+			this.events
+				.get(CcmSendSuccessEvent)
+				.log({ eventQueue }, newCCM.sendingChainID, newCCM.receivingChainID, newCCMID, { ccmID });
+
 			return;
 		}
 
-		const newCCM = {
-			...ccm,
-			sendingChainID: ccm.receivingChainID,
-			receivingChainID: ccm.sendingChainID,
-			status: CCM_STATUS_CHANNEL_UNAVAILABLE,
-		};
-
-		await this.addToOutbox(newCCM.receivingChainID, newCCM);
+		this.events
+			.get(CcmProcessedEvent)
+			.log({ eventQueue }, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				result: CCM_PROCESSED_RESULT_DISCARDED,
+				code: ccmProcessedEventCode,
+			});
 	}
 
 	public async sendInternal(sendContext: SendInternalContext): Promise<boolean> {
