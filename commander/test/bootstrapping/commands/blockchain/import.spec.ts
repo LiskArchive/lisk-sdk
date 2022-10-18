@@ -27,7 +27,7 @@ describe('blockchain:import', () => {
 	const defaultBlockchainDBPath = getBlockchainDBPath(defaultDataPath);
 	const defaultStateDBPath = getStateDBPath(defaultDataPath);
 	const defaultOutputPath = path.join(defaultDataPath, 'data');
-	const pathToBlockchainGzip = '/path/to/blockchain.db.tar.gz';
+	const pathToBlockchainGzip = '/path/to/blockchain.tar.gz';
 	let stdout: string[];
 	let stderr: string[];
 	let config: Awaited<ReturnType<typeof getConfig>>;
@@ -62,7 +62,7 @@ describe('blockchain:import', () => {
 			expect(downloadUtils.extract).toHaveBeenCalledTimes(1);
 			expect(downloadUtils.extract).toHaveBeenCalledWith(
 				path.dirname(pathToBlockchainGzip),
-				'blockchain.db.tar.gz',
+				'blockchain.tar.gz',
 				defaultOutputPath,
 			);
 		});
@@ -83,7 +83,7 @@ describe('blockchain:import', () => {
 			expect(downloadUtils.extract).toHaveBeenCalledTimes(1);
 			expect(downloadUtils.extract).toHaveBeenCalledWith(
 				path.dirname(pathToBlockchainGzip),
-				'blockchain.db.tar.gz',
+				'blockchain.tar.gz',
 				outputPath,
 			);
 		});
@@ -113,7 +113,7 @@ describe('blockchain:import', () => {
 				expect(downloadUtils.extract).toHaveBeenCalledTimes(1);
 				expect(downloadUtils.extract).toHaveBeenCalledWith(
 					path.dirname(pathToBlockchainGzip),
-					'blockchain.db.tar.gz',
+					'blockchain.tar.gz',
 					defaultOutputPath,
 				);
 			});

@@ -14,6 +14,7 @@
  */
 
 import { Command } from '@oclif/core';
+import * as fs from 'fs-extra';
 import { join } from 'path';
 import * as tar from 'tar';
 import { flagsWithParser } from '../../../utils/flags';
@@ -39,10 +40,11 @@ export class ExportCommand extends Command {
 			: getDefaultPath(this.config.pjson.name);
 		const inputPath = join(dataPath, 'data');
 		const exportPath = flags.output ? flags.output : process.cwd();
+		fs.ensureDirSync(exportPath);
 
 		this.log('Exporting blockchain:');
 		this.log(`   ${getFullPath(inputPath)}`);
-		const filePath = join(exportPath, 'blockchain.db.tar.gz');
+		const filePath = join(exportPath, 'blockchain.tar.gz');
 		await tar.create(
 			{
 				gzip: true,
