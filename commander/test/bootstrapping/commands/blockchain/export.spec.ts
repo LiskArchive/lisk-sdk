@@ -45,7 +45,7 @@ describe('blockchain:export', () => {
 					file: join(process.cwd(), 'blockchain.db.tar.gz'),
 					gzip: true,
 				},
-				['blockchain.db'],
+				['state.db', 'blockchain.db'],
 			);
 		});
 	});
@@ -60,7 +60,7 @@ describe('blockchain:export', () => {
 					file: join(process.cwd(), 'blockchain.db.tar.gz'),
 					gzip: true,
 				},
-				['blockchain.db'],
+				['state.db', 'blockchain.db'],
 			);
 		});
 	});
@@ -75,7 +75,7 @@ describe('blockchain:export', () => {
 					file: join('/my/dir/', 'blockchain.db.tar.gz'),
 					gzip: true,
 				},
-				['blockchain.db'],
+				['state.db', 'blockchain.db'],
 			);
 		});
 	});

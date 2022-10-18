@@ -16,7 +16,7 @@
 import * as fs from 'fs-extra';
 import { homedir } from 'os';
 import * as path from 'path';
-import { getBlockchainDBPath } from '../../../../src/utils/path';
+import { getBlockchainDBPath, getStateDBPath } from '../../../../src/utils/path';
 import * as downloadUtils from '../../../../src/utils/download';
 import { ImportCommand } from '../../../../src/bootstrapping/commands/blockchain/import';
 import { getConfig } from '../../../helpers/config';
@@ -25,6 +25,8 @@ import { Awaited } from '../../../types';
 describe('blockchain:import', () => {
 	const defaultDataPath = path.join(homedir(), '.lisk', 'lisk-core');
 	const defaultBlockchainDBPath = getBlockchainDBPath(defaultDataPath);
+	const defaultStateDBPath = getStateDBPath(defaultDataPath);
+	const defaultOutputPath = path.join(defaultDataPath, 'data');
 	const pathToBlockchainGzip = '/path/to/blockchain.db.tar.gz';
 	let stdout: string[];
 	let stderr: string[];
@@ -52,32 +54,37 @@ describe('blockchain:import', () => {
 	describe('when importing with no existing blockchain data', () => {
 		it('should import "blockchain.db" from given path', async () => {
 			await ImportCommand.run([pathToBlockchainGzip], config);
-			expect(fs.existsSync).toHaveBeenCalledTimes(1);
+			expect(fs.existsSync).toHaveBeenCalledTimes(2);
 			expect(fs.existsSync).toHaveBeenCalledWith(defaultBlockchainDBPath);
+			expect(fs.existsSync).toHaveBeenCalledWith(defaultStateDBPath);
 			expect(fs.ensureDirSync).toHaveBeenCalledTimes(1);
-			expect(fs.ensureDirSync).toHaveBeenCalledWith(defaultBlockchainDBPath);
+			expect(fs.ensureDirSync).toHaveBeenCalledWith(defaultOutputPath);
 			expect(downloadUtils.extract).toHaveBeenCalledTimes(1);
 			expect(downloadUtils.extract).toHaveBeenCalledWith(
 				path.dirname(pathToBlockchainGzip),
 				'blockchain.db.tar.gz',
-				defaultBlockchainDBPath,
+				defaultOutputPath,
 			);
 		});
 	});
 
 	describe('when importing with --data-path flag', () => {
-		const dataPath = getBlockchainDBPath('/my/app/');
+		const dataPath = '/my/app/';
+		const blockchainDBPath = getBlockchainDBPath(dataPath);
+		const stateDBPath = getStateDBPath(dataPath);
+		const outputPath = path.join(dataPath, 'data');
 		it('should import "blockchain.db" from given path', async () => {
 			await ImportCommand.run([pathToBlockchainGzip, '--data-path=/my/app/'], config);
-			expect(fs.existsSync).toHaveBeenCalledTimes(1);
-			expect(fs.existsSync).toHaveBeenCalledWith(dataPath);
+			expect(fs.existsSync).toHaveBeenCalledTimes(2);
+			expect(fs.existsSync).toHaveBeenCalledWith(blockchainDBPath);
+			expect(fs.existsSync).toHaveBeenCalledWith(stateDBPath);
 			expect(fs.ensureDirSync).toHaveBeenCalledTimes(1);
-			expect(fs.ensureDirSync).toHaveBeenCalledWith(dataPath);
+			expect(fs.ensureDirSync).toHaveBeenCalledWith(outputPath);
 			expect(downloadUtils.extract).toHaveBeenCalledTimes(1);
 			expect(downloadUtils.extract).toHaveBeenCalledWith(
 				path.dirname(pathToBlockchainGzip),
 				'blockchain.db.tar.gz',
-				dataPath,
+				outputPath,
 			);
 		});
 	});
@@ -98,15 +105,16 @@ describe('blockchain:import', () => {
 		describe('when importing with --force flag', () => {
 			it('should import "blockchain.db" to given data-path', async () => {
 				await ImportCommand.run([pathToBlockchainGzip, '--force'], config);
-				expect(fs.existsSync).toHaveBeenCalledTimes(1);
+				expect(fs.existsSync).toHaveBeenCalledTimes(2);
 				expect(fs.existsSync).toHaveBeenCalledWith(defaultBlockchainDBPath);
+				expect(fs.existsSync).toHaveBeenCalledWith(defaultStateDBPath);
 				expect(fs.ensureDirSync).toHaveBeenCalledTimes(1);
-				expect(fs.ensureDirSync).toHaveBeenCalledWith(defaultBlockchainDBPath);
+				expect(fs.ensureDirSync).toHaveBeenCalledWith(defaultOutputPath);
 				expect(downloadUtils.extract).toHaveBeenCalledTimes(1);
 				expect(downloadUtils.extract).toHaveBeenCalledWith(
 					path.dirname(pathToBlockchainGzip),
 					'blockchain.db.tar.gz',
-					defaultBlockchainDBPath,
+					defaultOutputPath,
 				);
 			});
 		});

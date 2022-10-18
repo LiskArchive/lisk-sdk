@@ -16,7 +16,12 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { Command, Flags as flagParser } from '@oclif/core';
-import { getBlockchainDBPath, getDefaultPath, getFullPath } from '../../../utils/path';
+import {
+	getBlockchainDBPath,
+	getDefaultPath,
+	getFullPath,
+	getStateDBPath,
+} from '../../../utils/path';
 import { extract } from '../../../utils/download';
 import { flagsWithParser } from '../../../utils/flags';
 
@@ -53,6 +58,8 @@ export class ImportCommand extends Command {
 			? flags['data-path']
 			: getDefaultPath(this.config.pjson.name);
 		const blockchainDBPath = getBlockchainDBPath(dataPath);
+		const stateDBPath = getStateDBPath(dataPath);
+		const outputPath = path.join(dataPath, 'data');
 
 		if (path.extname(filepath) !== '.gz') {
 			this.error('The blockchain data file must be a gzip file.');
@@ -67,12 +74,21 @@ export class ImportCommand extends Command {
 			fs.removeSync(blockchainDBPath);
 		}
 
-		fs.ensureDirSync(blockchainDBPath);
+		if (fs.existsSync(stateDBPath)) {
+			if (!flags.force) {
+				this.error(
+					`There is already a state data file found at ${dataPath}. Use --force to override.`,
+				);
+			}
+			fs.removeSync(stateDBPath);
+		}
+
+		fs.ensureDirSync(outputPath);
 		this.log(`Importing blockchain from ${getFullPath(filepath)}`);
 
-		await extract(path.dirname(filepath), path.basename(filepath), blockchainDBPath);
+		await extract(path.dirname(filepath), path.basename(filepath), outputPath);
 
 		this.log('Import completed.');
-		this.log(`   ${getFullPath(dataPath)}`);
+		this.log(`   ${getFullPath(outputPath)}`);
 	}
 }
