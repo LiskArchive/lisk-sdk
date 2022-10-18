@@ -104,6 +104,58 @@ export const registerMultisignatureParamsSchema = {
 	required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys', 'signatures'],
 };
 
+export const sortMultisignatureGroupSchema = {
+	$id: '/auth/command/sortMultisig',
+	required: ['mandatory', 'optional'],
+	type: 'object',
+	properties: {
+		mandatory: {
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					publicKey: {
+						type: 'string',
+						minLength: ED25519_PUBLIC_KEY_LENGTH * 2,
+						maxLength: ED25519_PUBLIC_KEY_LENGTH * 2,
+						fieldNumber: 1,
+					},
+					signature: {
+						type: 'string',
+						minLength: ED25519_SIGNATURE_LENGTH * 2,
+						maxLength: ED25519_SIGNATURE_LENGTH * 2,
+						fieldNumber: 2,
+					},
+				},
+			},
+			minItems: 1,
+			maxItems: MAX_NUMBER_OF_SIGNATURES,
+		},
+		optional: {
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					publicKey: {
+						type: 'string',
+						minLength: ED25519_PUBLIC_KEY_LENGTH * 2,
+						maxLength: ED25519_PUBLIC_KEY_LENGTH * 2,
+						fieldNumber: 3,
+					},
+					signature: {
+						type: 'string',
+						minLength: 0,
+						maxLength: ED25519_SIGNATURE_LENGTH * 2,
+						fieldNumber: 4,
+					},
+				},
+			},
+			minItems: 0,
+			maxItems: MAX_NUMBER_OF_SIGNATURES,
+		},
+	},
+};
+
 export const multisigRegMsgSchema = {
 	$id: '/auth/command/regMultisigMsg',
 	type: 'object',
