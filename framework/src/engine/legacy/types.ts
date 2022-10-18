@@ -26,12 +26,12 @@ export type LegacyBlockHeaderJSON = JSONObject<LegacyBlockHeader>;
 
 export interface RawLegacyBlock {
 	header: Buffer;
-	transactions: Buffer[];
+	payload: Buffer[];
 }
 
 export interface LegacyBlock {
 	header: LegacyBlockHeader;
-	transactions: Buffer[];
+	payload: Buffer[];
 }
 
 export interface LegacyBlockHeaderWithID extends LegacyBlockHeader {
@@ -40,7 +40,7 @@ export interface LegacyBlockHeaderWithID extends LegacyBlockHeader {
 
 export interface LegacyBlockWithID extends LegacyBlock {
 	header: LegacyBlockHeaderWithID;
-	transactions: Buffer[];
+	payload: Buffer[];
 }
 
 export type LegacyBlockJSON = JSONObject<LegacyBlock>;
