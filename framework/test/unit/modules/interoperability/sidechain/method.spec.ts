@@ -18,6 +18,7 @@ import { SidechainInteroperabilityMethod } from '../../../../../src/modules/inte
 import { SidechainInteroperabilityStore } from '../../../../../src/modules/interoperability/sidechain/store';
 import { NamedRegistry } from '../../../../../src/modules/named_registry';
 import { MethodContext } from '../../../../../src/state_machine';
+import { MAINCHAIN_ID_BUFFER } from '../../../../../dist-node/modules/interoperability/constants';
 
 describe('Sidechain Method', () => {
 	const interopMod = new SidechainInteroperabilityModule();
@@ -134,6 +135,33 @@ describe('Sidechain Method', () => {
 			expect(sidechainInteroperabilityStore.getTerminatedOutboxAccount).toHaveBeenCalledWith(
 				chainID,
 			);
+		});
+	});
+
+	describe('getMessageFeeTokenID', () => {
+		beforeEach(() => {
+			jest.spyOn(sidechainInteroperabilityStore, 'getChannel').mockResolvedValue({
+				messageFeeTokenID: {
+					localID: Buffer.from('10000000', 'hex'),
+				},
+			} as never);
+		});
+
+		it('should assign chainID as MAINCHAIN_ID_BUFFER if chainAccount not found', async () => {
+			jest
+				.spyOn(sidechainInteroperabilityStore, 'getChainAccount')
+				.mockResolvedValue(null as never);
+			const newChainID = Buffer.from('1234', 'hex');
+
+			await sidechainInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
+			expect(sidechainInteroperabilityStore.getChannel).toHaveBeenCalledWith(MAINCHAIN_ID_BUFFER);
+		});
+
+		it('should process with input chainID', async () => {
+			const newChainID = Buffer.from('1234', 'hex');
+
+			await sidechainInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
+			expect(sidechainInteroperabilityStore.getChannel).toHaveBeenCalledWith(newChainID);
 		});
 	});
 });

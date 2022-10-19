@@ -20,6 +20,7 @@ import { ChainAccount } from './stores/chain_account';
 import { CCMsg } from './types';
 import { StoreGetter, ImmutableStoreGetter } from '../base_store';
 import { BaseInteroperabilityStore } from './base_interoperability_store';
+import { MAINCHAIN_ID_BUFFER } from './constants';
 
 export abstract class BaseInteroperabilityMethod<
 	T extends BaseInteroperabilityStore
@@ -57,6 +58,16 @@ export abstract class BaseInteroperabilityMethod<
 
 	public async getTerminatedOutboxAccount(context: ImmutableMethodContext, chainID: Buffer) {
 		return this.getInteroperabilityStore(context).getTerminatedOutboxAccount(chainID);
+	}
+
+	public async getMessageFeeTokenID(
+		context: ImmutableMethodContext,
+		_chainID: Buffer,
+	): Promise<Buffer> {
+		const chainID = !(await this.getChainAccount(context, _chainID))
+			? MAINCHAIN_ID_BUFFER
+			: _chainID;
+		return (await this.getChannel(context, chainID)).messageFeeTokenID.localID;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
