@@ -101,7 +101,7 @@ describe('block:get command', () => {
 				'5aa36d00cbcd135b55484c17ba89da8ecbac4df2ccc2c0c12b9db0cf4e48c74122c6c8d5100cf83fa83f79d5684eccf2ef9e6c55408bac9dea45c2b5aa590a0c',
 			timestamp: 1592924699,
 			transactionRoot: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-			maxHeightPreviouslyForged: 0,
+			maxHeightGenerated: 0,
 			maxHeightPrevoted: 0,
 			version: 2,
 		},
