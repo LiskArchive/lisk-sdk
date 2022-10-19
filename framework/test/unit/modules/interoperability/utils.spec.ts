@@ -23,9 +23,11 @@ import {
 	CHAIN_REGISTERED,
 	CHAIN_TERMINATED,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID_BUFFER,
+	MAX_CCM_SIZE,
 	MAX_NUM_VALIDATORS,
 	MAX_UINT64,
 	MODULE_NAME_INTEROPERABILITY,
@@ -53,6 +55,7 @@ import {
 	getIDAsKeyForStore,
 	initGenesisStateUtil,
 	updateActiveValidators,
+	validateFormat,
 	verifyCertificateSignature,
 } from '../../../../src/modules/interoperability/utils';
 import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
@@ -69,6 +72,7 @@ import { OutboxRootStore } from '../../../../src/modules/interoperability/stores
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
 import { createStoreGetter } from '../../../../src/testing/utils';
+import { CCMsg } from '../../../../dist-node/modules/interoperability/types';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -2124,6 +2128,58 @@ describe('Utils', () => {
 					ownChainDataSubstore.has(createStoreGetter(stateStore), data.storeKey),
 				).resolves.toBeTrue();
 			}
+		});
+	});
+
+	describe('validateFormat', () => {
+		const buildCCM = (obj: Partial<CCMsg>) => ({
+			crossChainCommand: obj.crossChainCommand ?? CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+			fee: obj.fee ?? BigInt(0),
+			module: obj.module ?? MODULE_NAME_INTEROPERABILITY,
+			nonce: obj.nonce ?? BigInt(1),
+			params: obj.params ?? Buffer.alloc(MAX_CCM_SIZE - 100),
+			receivingChainID: obj.receivingChainID ?? utils.intToBuffer(2, 4),
+			sendingChainID: obj.sendingChainID ?? cryptography.utils.intToBuffer(20, 4),
+			status: obj.status ?? CCM_STATUS_OK,
+		});
+		it('should throw if format does not fit ccmSchema', () => {
+			expect(() =>
+				validateFormat(
+					buildCCM({
+						module: '',
+					}),
+				),
+			).toThrow("Property '.module' must NOT have fewer than 1 characters");
+		});
+		it('should throw if module does not pass Regex', () => {
+			expect(() =>
+				validateFormat(
+					buildCCM({
+						module: '!@#$%',
+					}),
+				),
+			).toThrow('Cross-chain message module name must be alphanumeric.');
+		});
+		it('should throw if crossChainCommand does not pass Regex', () => {
+			expect(() =>
+				validateFormat(
+					buildCCM({
+						crossChainCommand: '!@#$$%',
+					}),
+				),
+			).toThrow('Cross-chain message crossChainCommand name must be alphanumeric.');
+		});
+		it('should throw if byteLength exceeds MAX_CCM_SIZE', () => {
+			expect(() =>
+				validateFormat(
+					buildCCM({
+						params: Buffer.alloc(MAX_CCM_SIZE + 100),
+					}),
+				),
+			).toThrow(`Cross chain message is over the the max ccm size limit of ${MAX_CCM_SIZE}`);
+		});
+		it('should pass validateFormat check', () => {
+			expect(() => validateFormat(buildCCM({}))).not.toThrow();
 		});
 	});
 });
