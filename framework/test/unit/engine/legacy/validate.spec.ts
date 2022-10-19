@@ -86,7 +86,7 @@ describe('Legacy valdate', () => {
 					},
 					payload: blockFixtures[1].payload,
 				}),
-			).toThrow('Received block at height 19583714 is not consecutive to next block 3333');
+			).toThrow('Received block at height 16270306 is not consecutive to next block 3333');
 		});
 
 		it('should fail if previous id does not match', () => {
