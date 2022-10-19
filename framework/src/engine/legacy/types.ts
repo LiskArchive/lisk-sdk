@@ -14,6 +14,12 @@
 
 import { JSONObject } from '../../types';
 
+export interface LegacyBlockBracket {
+	startHeight: number;
+	snapshotHeight: number;
+	snapshotBlockID: string;
+}
+
 export interface LegacyBlockHeader {
 	[key: string]: unknown;
 	version: number;
@@ -49,4 +55,11 @@ export interface LegacyChainBracketInfo {
 	startHeight: number;
 	snapshotBlockHeight: number;
 	lastBlockHeight: number;
+}
+
+export interface Peer {
+	readonly peerId: string;
+	readonly options: {
+		readonly legacy: Buffer[];
+	};
 }
