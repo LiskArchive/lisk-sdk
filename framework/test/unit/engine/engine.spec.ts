@@ -60,7 +60,7 @@ describe('engine', () => {
 		jest.spyOn(Network.prototype, 'start');
 		jest.spyOn(Network.prototype, 'stop');
 		jest.spyOn(LegacyChainHandler.prototype, 'init');
-		jest.spyOn(LegacyChainHandler.prototype, 'syncBlocks');
+		jest.spyOn(LegacyChainHandler.prototype, 'sync');
 		jest.spyOn(Consensus.prototype, 'init');
 		jest.spyOn(Consensus.prototype, 'start');
 		jest.spyOn(Consensus.prototype, 'stop');
@@ -107,7 +107,7 @@ describe('engine', () => {
 
 		it('should initialize legacy chain handler but not start syncing blocks if config is set to false', () => {
 			expect(LegacyChainHandler.prototype.init).toHaveBeenCalledTimes(1);
-			expect(LegacyChainHandler.prototype.syncBlocks).toHaveBeenCalledTimes(0);
+			expect(LegacyChainHandler.prototype.sync).toHaveBeenCalledTimes(0);
 		});
 
 		it('should initialize legacy chain handler and start syncing blocks if config is set to true', async () => {
@@ -131,7 +131,7 @@ describe('engine', () => {
 			await engine.start();
 
 			expect(LegacyChainHandler.prototype.init).toHaveBeenCalledTimes(2);
-			expect(LegacyChainHandler.prototype.syncBlocks).toHaveBeenCalledTimes(1);
+			expect(LegacyChainHandler.prototype.sync).toHaveBeenCalledTimes(1);
 		});
 
 		it('should initialize and start consensus', () => {
