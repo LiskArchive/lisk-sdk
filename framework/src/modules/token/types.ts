@@ -24,6 +24,7 @@ export interface ModuleConfig {
 	}[];
 	feeTokenID: string;
 	accountInitializationFee: string;
+	escrowInitializationFee: string;
 }
 
 export interface MinBalance {
@@ -74,5 +75,5 @@ export interface InteroperabilityMethod {
 		methodContext: MethodContext,
 		chainID: Buffer,
 	): Promise<{ messageFeeTokenID: { chainID: Buffer; localID: Buffer } }>;
-	getMessageFeeTokenID(methodContext: MethodContext, chainID: Buffer): Promise<Buffer>;
+	getMessageFeeTokenID(methodContext: ImmutableMethodContext, chainID: Buffer): Promise<Buffer>;
 }
