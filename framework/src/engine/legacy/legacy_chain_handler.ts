@@ -15,6 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { P2PRequestPacket } from '@liskhq/lisk-p2p/dist-node/types';
 import { Database, NotFoundError } from '@liskhq/lisk-db';
+import { INVALID_PEER_INFO_PENALTY } from '@liskhq/lisk-p2p/dist-node/constants';
 import { LegacyConfig } from '../../types';
 import { Network } from '../network';
 import { getBlocksFromIdResponseSchema } from '../consensus/schema';
@@ -66,10 +67,6 @@ export class LegacyChainHandler {
 	}
 
 	public async sync() {
-		if (!this._legacyConfig.sync) {
-			return;
-		}
-
 		for (const bracket of this._legacyConfig.brackets) {
 			const encodedBracketInfo = await this._storage.getLegacyChainBracketInfo(
 				Buffer.from(bracket.snapshotBlockID, 'hex'),
@@ -78,6 +75,8 @@ export class LegacyChainHandler {
 				legacyChainBracketInfoSchema,
 				encodedBracketInfo,
 			);
+
+			// means this bracket is already synced/parsed (in next `syncBlocks` step)
 			if (bracket.startHeight === bracketInfo.lastBlockHeight) {
 				continue;
 			}
@@ -85,9 +84,11 @@ export class LegacyChainHandler {
 				await this._storage.getBlockByHeight(bracketInfo.lastBlockHeight),
 			).block;
 
+			// start parsing bracket from `lastBlock` height`
 			await this._trySyncBlocks(bracket, lastBlock);
 		}
 
+		// when ALL brackets are synced/parsed, finally update node with it's `legacy` property
 		this._network.applyNodeInfo({
 			legacy: this._legacyConfig.brackets.map(bracket =>
 				Buffer.from(bracket.snapshotBlockID, 'hex'),
@@ -115,16 +116,17 @@ export class LegacyChainHandler {
 	/**
 	 * Flow of syncing legacy blocks
 	 *
-	 * Check if we have `sync` property `true` in configuration
-	 * getConnectedPeers from network
-	 * Filter peers having their `legacy` buffer array property contains `snapshotBlockID`
+	 * Check if we have `sync` property `true` in configuration (already done in engine.ts)
+	 * call getConnectedPeers from network
+	 * Filter peers having their `legacy` buffer array contains `snapshotBlockID`
 	 * If there is no peer, throw error, this error will be used in outside function to retry calling `syncBlocks` after x amount of time
 	 * Get a random peer from list of filtered peers with legacy info
 	 * Make a request to that random peer by calling its `getLegacyBlocksFromId` method with `data` property set to `legacyBlock.header.id`
-	 * Try to decode response data buffer into Block, apply penalty in case of error
-	 * Start saving parsed blocks one by one
-	 * repeat, if last parsed block height is still higher than bracket.startHeight
-	 * finally, update node info
+	 * Try to decode response data buffer using getBlocksFromIdResponseSchema, apply penalty in case of error & retry syncBlocks
+	 * Validate `blocks: Buffer[]`, apply penalty in case of error & retry syncBlocks
+	 * Decode `blocks: Buffer[]` into LegacyBlock[] & start saving one by one
+	 * If last block height is still higher than bracket.startHeight, save bracket with `lastBlockHeight: lastBlock?.header.height` & repeat syncBlocks
+	 * If last block height equals bracket.startHeight, simply save bracket with `lastBlockHeight: lastBlock?.header.height`
 	 */
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public async syncBlocks(bracket: LegacyBlockBracket, legacyBlock: LegacyBlock): Promise<void> {
@@ -148,26 +150,37 @@ export class LegacyChainHandler {
 		};
 
 		const response = await this._network.requestFromPeer({ ...p2PRequestPacket, peerId });
-		if (!(response.data as []).length) {
-			return;
-		}
 
 		// `data` is expected to hold blocks in DESC order
 		const { data } = response;
 		let legacyBlocks: LegacyBlock[];
+
+		const applyPenaltyAndRepeat = async () => {
+			this._network.applyPenaltyOnPeer({ peerId, penalty: INVALID_PEER_INFO_PENALTY });
+			await this.syncBlocks(bracket, legacyBlock);
+		};
+
 		try {
 			// this part is needed to make sure `data` returns ONLY `{ blocks: Buffer[] }` & not any extra field(s)
 			const { blocks } = codec.decode<{ blocks: Buffer[] }>(
 				getBlocksFromIdResponseSchema,
 				data as Buffer,
 			);
+			if (!(blocks.length > 0)) {
+				await applyPenaltyAndRepeat();
+			}
+
 			this._applyValidation(blocks);
+
 			legacyBlocks = blocks.map(block => decodeBlock(block).block);
+			if (!(legacyBlocks.length > 0)) {
+				await applyPenaltyAndRepeat();
+			}
 		} catch (err) {
-			this._network.applyPenaltyOnPeer({ peerId, penalty: 100 });
-			return;
+			await applyPenaltyAndRepeat(); // catch validation error
 		}
 
+		// @ts-expect-error Variable 'legacyBlocks' is used before being assigned.
 		for (const block of legacyBlocks) {
 			if (block.header.height > bracket.startHeight) {
 				await this._storage.saveBlock(
@@ -178,6 +191,7 @@ export class LegacyChainHandler {
 			}
 		}
 
+		// @ts-expect-error Variable 'legacyBlocks' is used before being assigned.
 		const lastBlock = legacyBlocks[legacyBlocks.length - 1];
 		if (lastBlock && lastBlock.header.height > bracket.startHeight) {
 			await this._updateBracketInfo(lastBlock, bracket);
