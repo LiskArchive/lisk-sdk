@@ -74,7 +74,10 @@ describe('MainchainCCChannelTerminatedCommand', () => {
 		it('should call validators Method registerValidatorKeys', async () => {
 			await ccChannelTerminatedCommand.execute(sampleExecuteContext);
 
-			expect(createTerminatedStateAccountMock).toHaveBeenCalledWith(ccm.sendingChainID);
+			expect(createTerminatedStateAccountMock).toHaveBeenCalledWith(
+				sampleExecuteContext,
+				ccm.sendingChainID,
+			);
 		});
 	});
 });
