@@ -17,7 +17,7 @@ import {
 	MAX_MODULE_NAME_LENGTH,
 	MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH,
 	MIN_MODULE_NAME_LENGTH,
-} from '@liskhq/lisk-chain/dist-node/constants';
+} from '@liskhq/lisk-chain';
 import { CHAIN_ID_LENGTH } from '../token/constants';
 import {
 	MAX_LENGTH_NAME,

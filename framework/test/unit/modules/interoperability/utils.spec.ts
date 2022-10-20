@@ -41,6 +41,7 @@ import {
 	ChannelData,
 	CrossChainUpdateTransactionParams,
 	InboxUpdate,
+	CCMsg,
 } from '../../../../src/modules/interoperability/types';
 import {
 	checkActiveValidatorsUpdate,
@@ -72,7 +73,6 @@ import { OutboxRootStore } from '../../../../src/modules/interoperability/stores
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
 import { createStoreGetter } from '../../../../src/testing/utils';
-import { CCMsg } from '../../../../dist-node/modules/interoperability/types';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -2142,6 +2142,7 @@ describe('Utils', () => {
 			sendingChainID: obj.sendingChainID ?? cryptography.utils.intToBuffer(20, 4),
 			status: obj.status ?? CCM_STATUS_OK,
 		});
+
 		it('should throw if format does not fit ccmSchema', () => {
 			expect(() =>
 				validateFormat(
@@ -2151,6 +2152,7 @@ describe('Utils', () => {
 				),
 			).toThrow("Property '.module' must NOT have fewer than 1 characters");
 		});
+
 		it('should throw if module does not pass Regex', () => {
 			expect(() =>
 				validateFormat(
@@ -2160,6 +2162,7 @@ describe('Utils', () => {
 				),
 			).toThrow('Cross-chain message module name must be alphanumeric.');
 		});
+
 		it('should throw if crossChainCommand does not pass Regex', () => {
 			expect(() =>
 				validateFormat(
@@ -2169,6 +2172,7 @@ describe('Utils', () => {
 				),
 			).toThrow('Cross-chain message crossChainCommand name must be alphanumeric.');
 		});
+
 		it('should throw if byteLength exceeds MAX_CCM_SIZE', () => {
 			expect(() =>
 				validateFormat(
@@ -2176,8 +2180,9 @@ describe('Utils', () => {
 						params: Buffer.alloc(MAX_CCM_SIZE + 100),
 					}),
 				),
-			).toThrow(`Cross chain message is over the the max ccm size limit of ${MAX_CCM_SIZE}`);
+			).toThrow(`Cross chain message is over the the max CCM size limit of ${MAX_CCM_SIZE}`);
 		});
+
 		it('should pass validateFormat check', () => {
 			expect(() => validateFormat(buildCCM({}))).not.toThrow();
 		});
