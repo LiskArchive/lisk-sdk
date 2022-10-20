@@ -69,12 +69,7 @@ import {
 } from './types';
 import { getOrDefaultLastGeneratedInfo, setLastGeneratedInfo } from './generated_info';
 import { CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED } from '../consensus/constants';
-import {
-	ABI,
-	TransactionExecutionResult,
-	TransactionVerifyResult,
-	Consensus as ConsensusParams,
-} from '../../abi';
+import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../abi';
 import { BFTModule } from '../bft';
 import { isEmptyConsensusUpdate } from '../consensus';
 import { getPathFromDataPath } from '../../utils/path';
@@ -499,6 +494,11 @@ export class Generator {
 			generatorAddress,
 		);
 		const aggregateCommit = await this._consensus.getAggregateCommit(stateStore);
+		const impliesMaxPrevote = await this._bft.method.impliesMaximalPrevotes(stateStore, {
+			height,
+			maxHeightGenerated,
+			generatorAddress,
+		});
 
 		const blockHeader = new BlockHeader({
 			generatorAddress,
@@ -507,6 +507,7 @@ export class Generator {
 			version: BLOCK_VERSION,
 			maxHeightPrevoted,
 			maxHeightGenerated,
+			impliesMaxPrevote,
 			aggregateCommit,
 			assetRoot: Buffer.alloc(0),
 			stateRoot: Buffer.alloc(0),
@@ -530,11 +531,9 @@ export class Generator {
 		const blockAssets = new BlockAssets(assets);
 
 		await this._bft.beforeTransactionsExecute(stateStore, blockHeader);
-		const consensus = await this._consensus.getConsensusParams(stateStore, blockHeader);
 		const { events: beforeTxsEvents } = await this._abi.beforeTransactionsExecute({
 			contextID,
 			assets: blockAssets.getAll(),
-			consensus,
 		});
 		blockEvents.push(...beforeTxsEvents.map(e => new Event(e)));
 		if (input.transactions) {
@@ -542,7 +541,6 @@ export class Generator {
 				contextID,
 				blockHeader,
 				blockAssets,
-				consensus,
 				input.transactions,
 			);
 			blockEvents.push(...txEvents);
@@ -551,19 +549,13 @@ export class Generator {
 			const {
 				transactions: executedTxs,
 				events: txEvents,
-			} = await this._forgingStrategy.getTransactionsForBlock(
-				contextID,
-				blockHeader,
-				blockAssets,
-				consensus,
-			);
+			} = await this._forgingStrategy.getTransactionsForBlock(contextID, blockHeader, blockAssets);
 			blockEvents.push(...txEvents);
 			transactions = executedTxs;
 		}
 		const afterResult = await this._abi.afterTransactionsExecute({
 			contextID,
 			assets: blockAssets.getAll(),
-			consensus,
 			transactions: transactions.map(tx => tx.toObject()),
 		});
 		blockEvents.push(...afterResult.events.map(e => new Event(e)));
@@ -712,7 +704,6 @@ export class Generator {
 		contextID: Buffer,
 		header: BlockHeader,
 		assets: BlockAssets,
-		consensus: ConsensusParams,
 		transactions: Transaction[],
 	): Promise<{ transactions: Transaction[]; events: Event[] }> {
 		const executedTransactions = [];
@@ -731,7 +722,6 @@ export class Generator {
 					contextID,
 					header: header.toObject(),
 					transaction,
-					consensus,
 					assets: assets.getAll(),
 					dryRun: false,
 				});

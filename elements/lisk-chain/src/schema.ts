@@ -59,10 +59,11 @@ export const signingBlockHeaderSchema = {
 		stateRoot: { dataType: 'bytes', fieldNumber: 9 },
 		maxHeightPrevoted: { dataType: 'uint32', fieldNumber: 10 },
 		maxHeightGenerated: { dataType: 'uint32', fieldNumber: 11 },
-		validatorsHash: { dataType: 'bytes', fieldNumber: 12 },
+		impliesMaxPrevote: { dataType: 'boolean', fieldNumber: 12 },
+		validatorsHash: { dataType: 'bytes', fieldNumber: 13 },
 		aggregateCommit: {
 			type: 'object',
-			fieldNumber: 13,
+			fieldNumber: 14,
 			required: ['height', 'aggregationBits', 'certificateSignature'],
 			properties: {
 				height: {
@@ -92,6 +93,7 @@ export const signingBlockHeaderSchema = {
 		'stateRoot',
 		'maxHeightPrevoted',
 		'maxHeightGenerated',
+		'impliesMaxPrevote',
 		'validatorsHash',
 		'aggregateCommit',
 	],
@@ -103,7 +105,7 @@ export const blockHeaderSchema = {
 	required: [...signingBlockHeaderSchema.required, 'signature'],
 	properties: {
 		...signingBlockHeaderSchema.properties,
-		signature: { dataType: 'bytes', fieldNumber: 14 },
+		signature: { dataType: 'bytes', fieldNumber: 15 },
 	},
 };
 
@@ -113,7 +115,7 @@ export const blockHeaderSchemaWithId = {
 	required: [...blockHeaderSchema.required, 'id'],
 	properties: {
 		...blockHeaderSchema.properties,
-		id: { dataType: 'bytes', fieldNumber: 15 },
+		id: { dataType: 'bytes', fieldNumber: 16 },
 	},
 };
 

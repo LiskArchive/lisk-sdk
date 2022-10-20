@@ -12,7 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext, ImmutableMethodContext } from '../../state_machine/types';
+import {
+	MethodContext,
+	ImmutableMethodContext,
+	Validator,
+	NextValidatorsSetter,
+} from '../../state_machine/types';
 import { JSONObject } from '../../types';
 
 export type TokenIDDPoS = Buffer;
@@ -64,8 +69,14 @@ export interface ValidatorsMethod {
 		methodContext: ImmutableMethodContext,
 		startTimestamp: number,
 		endTimestamp: number,
-		validators: { address: Buffer }[],
 	): Promise<Record<string, number>>;
+	setValidatorsParams(
+		methodContext: MethodContext,
+		validatorSetter: NextValidatorsSetter,
+		preCommitThreshold: bigint,
+		certificateThreshold: bigint,
+		validators: Validator[],
+	): Promise<void>;
 }
 
 export interface TokenMethod {

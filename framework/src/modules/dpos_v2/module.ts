@@ -423,7 +423,13 @@ export class DPoSModule extends BaseModule {
 				bftWeight: BigInt(1),
 			});
 		}
-		context.setNextValidators(initBFTThreshold, initBFTThreshold, validators);
+		await this._validatorsMethod.setValidatorsParams(
+			context.getMethodContext(),
+			context,
+			initBFTThreshold,
+			initBFTThreshold,
+			validators,
+		);
 
 		const MAX_UINT32 = 2 ** 32 - 1;
 		const snapshotStore = this.stores.get(SnapshotStore);
@@ -614,7 +620,9 @@ export class DPoSModule extends BaseModule {
 				bftWeight: isActive ? BigInt(1) : BigInt(0),
 			});
 		}
-		context.setNextValidators(
+		await this._validatorsMethod.setValidatorsParams(
+			context.getMethodContext(),
+			context,
 			BigInt(this._moduleConfig.bftThreshold),
 			BigInt(this._moduleConfig.bftThreshold),
 			bftValidators,
@@ -629,12 +637,10 @@ export class DPoSModule extends BaseModule {
 
 		const newHeight = header.height;
 		const methodContext = getMethodContext();
-		const generators = context.currentValidators;
 		const missedBlocks = await this._validatorsMethod.getGeneratorsBetweenTimestamps(
 			methodContext,
 			previousTimestamp,
 			header.timestamp,
-			generators,
 		);
 
 		const delegateStore = this.stores.get(DelegateStore);

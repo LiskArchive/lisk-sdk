@@ -417,10 +417,6 @@ describe('CrossChainUpdateCommand', () => {
 				assets: new BlockAssets(),
 				eventQueue: new EventQueue(0),
 				header: blockHeader as BlockHeader,
-				certificateThreshold: BigInt(0),
-				currentValidators: [],
-				impliesMaxPrevote: true,
-				maxHeightCertified: 0,
 			};
 
 			await partnerValidatorStore.set(

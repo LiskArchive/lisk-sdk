@@ -21,6 +21,8 @@ import { ValidatorKeys, ValidatorKeysStore } from './stores/validator_keys';
 import { BLSKeyStore } from './stores/bls_keys';
 import { BLSKeyRegistrationEvent } from './events/bls_key_registration';
 import { GenesisData, GenesisStore } from './stores/genesis';
+import { ValidatorsParams, ValidatorsParamsStore } from './stores/validators_params';
+import { NextValidatorsSetter, Validator } from '../../state_machine/types';
 
 export class ValidatorsMethod extends BaseMethod {
 	private _blockTime!: number;
@@ -258,7 +260,6 @@ export class ValidatorsMethod extends BaseMethod {
 		methodContext: ImmutableMethodContext,
 		startTimestamp: number,
 		endTimestamp: number,
-		validators: { address: Buffer }[],
 	): Promise<Record<string, number>> {
 		if (endTimestamp < startTimestamp) {
 			throw new Error('End timestamp must be greater than start timestamp.');
@@ -281,6 +282,9 @@ export class ValidatorsMethod extends BaseMethod {
 
 		let totalSlots = endSlotNumber - startSlotNumber + 1;
 
+		const { validators } = await this.stores
+			.get(ValidatorsParamsStore)
+			.get(methodContext, EMPTY_KEY);
 		const generatorAddresses = validators.map(validator => validator.address.toString('binary'));
 		const baseSlots = Math.floor(totalSlots / generatorAddresses.length);
 
@@ -306,5 +310,26 @@ export class ValidatorsMethod extends BaseMethod {
 		}
 
 		return result;
+	}
+
+	public async getValidatorsParams(
+		methodContext: ImmutableMethodContext,
+	): Promise<ValidatorsParams> {
+		return this.stores.get(ValidatorsParamsStore).get(methodContext, EMPTY_KEY);
+	}
+
+	public async setValidatorsParams(
+		methodContext: MethodContext,
+		validatorSetter: NextValidatorsSetter,
+		preCommitThreshold: bigint,
+		certificateThreshold: bigint,
+		validators: Validator[],
+	): Promise<void> {
+		await this.stores.get(ValidatorsParamsStore).set(methodContext, EMPTY_KEY, {
+			certificateThreshold,
+			preCommitThreshold,
+			validators,
+		});
+		validatorSetter.setNextValidators(preCommitThreshold, certificateThreshold, validators);
 	}
 }

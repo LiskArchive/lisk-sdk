@@ -29,6 +29,7 @@ import {
 	BFTParameters,
 	bftParametersSchema,
 	BFTVotes,
+	BFTVotesBlockInfo,
 	bftVotesSchema,
 	generatorKeysSchema,
 	validatorsHashInputSchema,
@@ -102,24 +103,24 @@ describe('BFT Method', () => {
 							generatorAddress,
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
+							prevoteWeight: BigInt(0),
+							precommitWeight: BigInt(0),
 						},
 						{
 							height: 2,
 							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
+							prevoteWeight: BigInt(0),
+							precommitWeight: BigInt(0),
 						},
 						{
 							height: 1,
 							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
+							prevoteWeight: BigInt(0),
+							precommitWeight: BigInt(0),
 						},
 					],
 					activeValidatorsVoteInfo: [],
@@ -259,24 +260,24 @@ describe('BFT Method', () => {
 							generatorAddress,
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
+							prevoteWeight: BigInt(0),
+							precommitWeight: BigInt(0),
 						},
 						{
 							height: 2,
 							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
+							prevoteWeight: BigInt(0),
+							precommitWeight: BigInt(0),
 						},
 						{
 							height: 1,
 							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
+							prevoteWeight: BigInt(0),
+							precommitWeight: BigInt(0),
 						},
 					],
 					activeValidatorsVoteInfo: [],
@@ -294,179 +295,277 @@ describe('BFT Method', () => {
 		});
 	});
 
-	describe('currentHeaderImpliesMaximalPrevotes', () => {
+	describe('impliesMaximalPrevotes', () => {
 		const generatorAddress = utils.getRandomBytes(20);
 
 		beforeEach(() => {
 			stateStore = new StateStore(new InMemoryDatabase());
 		});
 
+		const testImpliesMaximalPrevotes = async (
+			target: BFTVotesBlockInfo,
+			list: BFTVotesBlockInfo[],
+			expected: boolean,
+		) => {
+			const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
+			await votesStore.setWithSchema(
+				EMPTY_KEY,
+				{
+					maxHeightPrevoted: 10,
+					maxHeightPrecommitted: 8,
+					maxHeightCertified: 1,
+					blockBFTInfos: [...list],
+					activeValidatorsVoteInfo: [],
+				},
+				bftVotesSchema,
+			);
+			await expect(bftMethod.impliesMaximalPrevotes(stateStore, target)).resolves.toEqual(expected);
+			await votesStore.setWithSchema(
+				EMPTY_KEY,
+				{
+					maxHeightPrevoted: 10,
+					maxHeightPrecommitted: 8,
+					maxHeightCertified: 1,
+					blockBFTInfos: [target, ...list],
+					activeValidatorsVoteInfo: [],
+				},
+				bftVotesSchema,
+			);
+			await expect(bftMethod.impliesMaximalPrevotes(stateStore, target)).resolves.toEqual(expected);
+		};
+
+		it('should throw if the input is not consecutive or equal to the block in bftBlockInfos', async () => {
+			const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
+			await votesStore.setWithSchema(
+				EMPTY_KEY,
+				{
+					maxHeightPrevoted: 10,
+					maxHeightPrecommitted: 8,
+					maxHeightCertified: 1,
+					blockBFTInfos: [
+						{
+							height: 102,
+							generatorAddress,
+							maxHeightGenerated: 0,
+							maxHeightPrevoted: 0,
+							prevoteWeight: BigInt(0),
+							precommitWeight: BigInt(0),
+						},
+						{
+							height: 101,
+							generatorAddress: utils.getRandomBytes(20),
+							maxHeightGenerated: 0,
+							maxHeightPrevoted: 0,
+							prevoteWeight: BigInt(0),
+							precommitWeight: BigInt(0),
+						},
+					],
+					activeValidatorsVoteInfo: [],
+				},
+				bftVotesSchema,
+			);
+
+			await expect(
+				bftMethod.impliesMaximalPrevotes(stateStore, {
+					height: 105,
+					generatorAddress: utils.getRandomBytes(20),
+					maxHeightGenerated: 1,
+				}),
+			).rejects.toThrow('Input header with height 105 is invalid.');
+		});
+
+		// eslint-disable-next-line jest/expect-expect
+		it('should return false when bftInfoBlocks is empty', async () => {
+			await testImpliesMaximalPrevotes(
+				{
+					height: 1,
+					generatorAddress: utils.getRandomBytes(20),
+					maxHeightGenerated: 120,
+					maxHeightPrevoted: 0,
+					prevoteWeight: BigInt(0),
+					precommitWeight: BigInt(0),
+				},
+				[],
+				false,
+			);
+		});
+
+		// eslint-disable-next-line jest/expect-expect
 		it('should return false if maxHeightGenerated is greater than the height', async () => {
-			const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
-			await votesStore.setWithSchema(
-				EMPTY_KEY,
+			await testImpliesMaximalPrevotes(
 				{
-					maxHeightPrevoted: 10,
-					maxHeightPrecommitted: 8,
-					maxHeightCertified: 1,
-					blockBFTInfos: [
-						{
-							height: 103,
-							generatorAddress: utils.getRandomBytes(20),
-							maxHeightGenerated: 120,
-							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
-						},
-						{
-							height: 102,
-							generatorAddress,
-							maxHeightGenerated: 0,
-							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
-						},
-						{
-							height: 101,
-							generatorAddress: utils.getRandomBytes(20),
-							maxHeightGenerated: 0,
-							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
-						},
-					],
-					activeValidatorsVoteInfo: [],
+					height: 103,
+					generatorAddress: utils.getRandomBytes(20),
+					maxHeightGenerated: 120,
+					maxHeightPrevoted: 0,
+					prevoteWeight: BigInt(0),
+					precommitWeight: BigInt(0),
 				},
-				bftVotesSchema,
+				[
+					{
+						height: 102,
+						generatorAddress,
+						maxHeightGenerated: 0,
+						maxHeightPrevoted: 0,
+						prevoteWeight: BigInt(0),
+						precommitWeight: BigInt(0),
+					},
+					{
+						height: 101,
+						generatorAddress: utils.getRandomBytes(20),
+						maxHeightGenerated: 0,
+						maxHeightPrevoted: 0,
+						prevoteWeight: BigInt(0),
+						precommitWeight: BigInt(0),
+					},
+				],
+				false,
 			);
-
-			await expect(bftMethod.currentHeaderImpliesMaximalPrevotes(stateStore)).resolves.toBeFalse();
 		});
 
+		// eslint-disable-next-line jest/expect-expect
 		it('should return true if blockBFTInfo does not contain the information', async () => {
-			const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
-			await votesStore.setWithSchema(
-				EMPTY_KEY,
+			await testImpliesMaximalPrevotes(
 				{
-					maxHeightPrevoted: 10,
-					maxHeightPrecommitted: 8,
-					maxHeightCertified: 1,
-					blockBFTInfos: [
-						{
-							height: 103,
-							generatorAddress: utils.getRandomBytes(20),
-							maxHeightGenerated: 1,
-							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
-						},
-						{
-							height: 102,
-							generatorAddress,
-							maxHeightGenerated: 0,
-							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
-						},
-						{
-							height: 101,
-							generatorAddress: utils.getRandomBytes(20),
-							maxHeightGenerated: 0,
-							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
-						},
-					],
-					activeValidatorsVoteInfo: [],
+					height: 103,
+					generatorAddress: utils.getRandomBytes(20),
+					maxHeightGenerated: 1,
+					maxHeightPrevoted: 0,
+					prevoteWeight: BigInt(0),
+					precommitWeight: BigInt(0),
 				},
-				bftVotesSchema,
+				[
+					{
+						height: 102,
+						generatorAddress,
+						maxHeightGenerated: 0,
+						maxHeightPrevoted: 0,
+						prevoteWeight: BigInt(0),
+						precommitWeight: BigInt(0),
+					},
+					{
+						height: 101,
+						generatorAddress: utils.getRandomBytes(20),
+						maxHeightGenerated: 0,
+						maxHeightPrevoted: 0,
+						prevoteWeight: BigInt(0),
+						precommitWeight: BigInt(0),
+					},
+				],
+				true,
 			);
-
-			await expect(bftMethod.currentHeaderImpliesMaximalPrevotes(stateStore)).resolves.toBeTrue();
 		});
 
+		// eslint-disable-next-line jest/expect-expect
+		it('should return true if previous height is above limit of blockBFTInfos', async () => {
+			await testImpliesMaximalPrevotes(
+				{
+					height: 211,
+					generatorAddress: utils.getRandomBytes(20),
+					maxHeightGenerated: 1,
+					maxHeightPrevoted: 0,
+					prevoteWeight: BigInt(0),
+					precommitWeight: BigInt(0),
+				},
+				new Array(206).fill(0).map((_, i) => ({
+					height: 210 - i,
+					generatorAddress: utils.getRandomBytes(20),
+					maxHeightGenerated: 0,
+					maxHeightPrevoted: 0,
+					prevoteWeight: BigInt(0),
+					precommitWeight: BigInt(0),
+				})),
+				true,
+			);
+		});
+
+		// eslint-disable-next-line jest/expect-expect
+		it('should return false if maxHeightGenerated is the end of blockBFTInfos and generated by different address', async () => {
+			await testImpliesMaximalPrevotes(
+				{
+					height: 211,
+					generatorAddress: utils.getRandomBytes(20),
+					maxHeightGenerated: 5,
+					maxHeightPrevoted: 0,
+					prevoteWeight: BigInt(0),
+					precommitWeight: BigInt(0),
+				},
+				new Array(206).fill(0).map((_, i) => ({
+					height: 210 - i,
+					generatorAddress: utils.getRandomBytes(20),
+					maxHeightGenerated: 0,
+					maxHeightPrevoted: 0,
+					prevoteWeight: BigInt(0),
+					precommitWeight: BigInt(0),
+				})),
+				false,
+			);
+		});
+
+		// eslint-disable-next-line jest/expect-expect
 		it('should return false if the last generated height is generated by different address', async () => {
-			const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
-			await votesStore.setWithSchema(
-				EMPTY_KEY,
+			await testImpliesMaximalPrevotes(
 				{
-					maxHeightPrevoted: 10,
-					maxHeightPrecommitted: 8,
-					maxHeightCertified: 1,
-					blockBFTInfos: [
-						{
-							height: 103,
-							generatorAddress: utils.getRandomBytes(20),
-							maxHeightGenerated: 101,
-							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
-						},
-						{
-							height: 102,
-							generatorAddress,
-							maxHeightGenerated: 0,
-							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
-						},
-						{
-							height: 101,
-							generatorAddress: utils.getRandomBytes(20),
-							maxHeightGenerated: 0,
-							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
-						},
-					],
-					activeValidatorsVoteInfo: [],
+					height: 103,
+					generatorAddress: utils.getRandomBytes(20),
+					maxHeightGenerated: 101,
+					maxHeightPrevoted: 0,
+					prevoteWeight: BigInt(0),
+					precommitWeight: BigInt(0),
 				},
-				bftVotesSchema,
+				[
+					{
+						height: 102,
+						generatorAddress,
+						maxHeightGenerated: 0,
+						maxHeightPrevoted: 0,
+						prevoteWeight: BigInt(0),
+						precommitWeight: BigInt(0),
+					},
+					{
+						height: 101,
+						generatorAddress: utils.getRandomBytes(20),
+						maxHeightGenerated: 0,
+						maxHeightPrevoted: 0,
+						prevoteWeight: BigInt(0),
+						precommitWeight: BigInt(0),
+					},
+				],
+				false,
 			);
-
-			await expect(bftMethod.currentHeaderImpliesMaximalPrevotes(stateStore)).resolves.toBeFalse();
 		});
 
+		// eslint-disable-next-line jest/expect-expect
 		it('should return true when it is consecutive valid block header', async () => {
-			const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
-			await votesStore.setWithSchema(
-				EMPTY_KEY,
+			await testImpliesMaximalPrevotes(
 				{
-					maxHeightPrevoted: 10,
-					maxHeightPrecommitted: 8,
-					maxHeightCertified: 1,
-					blockBFTInfos: [
-						{
-							height: 103,
-							generatorAddress,
-							maxHeightGenerated: 102,
-							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
-						},
-						{
-							height: 102,
-							generatorAddress,
-							maxHeightGenerated: 0,
-							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
-						},
-						{
-							height: 101,
-							generatorAddress: utils.getRandomBytes(20),
-							maxHeightGenerated: 0,
-							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
-						},
-					],
-					activeValidatorsVoteInfo: [],
+					height: 103,
+					generatorAddress,
+					maxHeightGenerated: 102,
+					maxHeightPrevoted: 0,
+					prevoteWeight: BigInt(0),
+					precommitWeight: BigInt(0),
 				},
-				bftVotesSchema,
+				[
+					{
+						height: 102,
+						generatorAddress,
+						maxHeightGenerated: 0,
+						maxHeightPrevoted: 0,
+						prevoteWeight: BigInt(0),
+						precommitWeight: BigInt(0),
+					},
+					{
+						height: 101,
+						generatorAddress: utils.getRandomBytes(20),
+						maxHeightGenerated: 0,
+						maxHeightPrevoted: 0,
+						prevoteWeight: BigInt(0),
+						precommitWeight: BigInt(0),
+					},
+				],
+				true,
 			);
-
-			await expect(bftMethod.currentHeaderImpliesMaximalPrevotes(stateStore)).resolves.toBeTrue();
 		});
 	});
 
@@ -552,24 +651,24 @@ describe('BFT Method', () => {
 							generatorAddress: addresses[0],
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
+							prevoteWeight: BigInt(0),
+							precommitWeight: BigInt(0),
 						},
 						{
 							height: 102,
 							generatorAddress,
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
+							prevoteWeight: BigInt(0),
+							precommitWeight: BigInt(0),
 						},
 						{
 							height: 101,
 							generatorAddress: addresses[1],
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
+							prevoteWeight: BigInt(0),
+							precommitWeight: BigInt(0),
 						},
 					],
 					activeValidatorsVoteInfo: [
@@ -954,24 +1053,24 @@ describe('BFT Method', () => {
 							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
+							prevoteWeight: BigInt(0),
+							precommitWeight: BigInt(0),
 						},
 						{
 							height: 34,
 							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
+							prevoteWeight: BigInt(0),
+							precommitWeight: BigInt(0),
 						},
 						{
 							height: 33,
 							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
+							prevoteWeight: BigInt(0),
+							precommitWeight: BigInt(0),
 						},
 					],
 					activeValidatorsVoteInfo: [],
@@ -1013,24 +1112,24 @@ describe('BFT Method', () => {
 							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
+							prevoteWeight: BigInt(0),
+							precommitWeight: BigInt(0),
 						},
 						{
 							height: 34,
 							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
+							prevoteWeight: BigInt(0),
+							precommitWeight: BigInt(0),
 						},
 						{
 							height: 33,
 							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
-							precommitWeight: 0,
+							prevoteWeight: BigInt(0),
+							precommitWeight: BigInt(0),
 						},
 					],
 					activeValidatorsVoteInfo: [],

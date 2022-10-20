@@ -34,6 +34,7 @@ describe('_handleFork', () => {
 		eventRoot: cryptography.utils.hash(Buffer.alloc(0)),
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: 0,
+		impliesMaxPrevote: false,
 		assetRoot: cryptography.utils.hash(Buffer.alloc(0)),
 		validatorsHash: cryptography.utils.getRandomBytes(32),
 		aggregateCommit: {

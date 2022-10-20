@@ -39,7 +39,7 @@ export interface RandomMethod {
 }
 
 export interface BFTMethod {
-	currentHeaderImpliesMaximalPrevotes(methodContext: ImmutableMethodContext): Promise<boolean>;
+	impliesMaximalPrevotes(methodContext: ImmutableMethodContext): Promise<boolean>;
 }
 
 export interface DefaultReward {

@@ -60,6 +60,7 @@ export interface BlockHeader {
 	generatorAddress: Buffer;
 	maxHeightPrevoted: number;
 	maxHeightGenerated: number;
+	impliesMaxPrevote: boolean;
 	aggregateCommit: {
 		height: number;
 		aggregationBits: Buffer;
@@ -105,10 +106,6 @@ export interface CommandExecuteContext<T = undefined> {
 	eventQueue: EventQueue;
 	header: BlockHeader;
 	assets: BlockAssets;
-	currentValidators: Validator[];
-	impliesMaxPrevote: boolean;
-	maxHeightCertified: number;
-	certificateThreshold: bigint;
 	transaction: Transaction; // without decoding params
 	params: T;
 	getMethodContext: () => MethodContext;
@@ -138,10 +135,6 @@ export interface TransactionExecuteContext {
 	header: BlockHeader;
 	assets: BlockAssets;
 	transaction: Transaction;
-	currentValidators: Validator[];
-	impliesMaxPrevote: boolean;
-	maxHeightCertified: number;
-	certificateThreshold: bigint;
 }
 
 export interface BlockVerifyContext {
@@ -161,10 +154,6 @@ export interface BlockExecuteContext {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
-	currentValidators: Validator[];
-	impliesMaxPrevote: boolean;
-	maxHeightCertified: number;
-	certificateThreshold: bigint;
 }
 
 export interface Validator {
@@ -174,14 +163,18 @@ export interface Validator {
 	blsKey: Buffer;
 }
 
-export interface BlockAfterExecuteContext extends BlockExecuteContext {
-	transactions: ReadonlyArray<Transaction>;
+export interface NextValidatorsSetter {
 	setNextValidators: (
 		preCommitThreshold: bigint,
 		certificateThreshold: bigint,
 		validators: Validator[],
 	) => void;
 }
+
+export type BlockAfterExecuteContext = BlockExecuteContext &
+	NextValidatorsSetter & {
+		transactions: ReadonlyArray<Transaction>;
+	};
 
 export interface InsertAssetContext {
 	logger: Logger;

@@ -79,6 +79,7 @@ describe('Delegate registration command', () => {
 			registerValidatorKeys: jest.fn().mockResolvedValue(true),
 			getValidatorAccount: jest.fn(),
 			getGeneratorsBetweenTimestamps: jest.fn(),
+			setValidatorsParams: jest.fn(),
 		};
 		delegateRegistrationCommand.addDependencies(mockValidatorsMethod);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());

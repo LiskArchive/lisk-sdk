@@ -239,8 +239,6 @@ export class Engine {
 			broadcaster: this._generator.broadcaster,
 			pool: this._generator.txpool,
 			chain: this._chain,
-			consensus: this._consensus,
-			blockchainDB: this._blockchainDB,
 		});
 
 		for (const [name, handler] of Object.entries(getEndpointHandlers(legacyEndpoint))) {

@@ -398,27 +398,6 @@ export class Consensus {
 		return this._blockSlot.getSlotTime(slot);
 	}
 
-	public async getConsensusParams(stateStore: StateStore, header: BlockHeader) {
-		const bftParams = await this._bft.method.getBFTParameters(stateStore, header.height);
-		const generatorKeys = await this._bft.method.getGeneratorKeys(stateStore, header.height);
-		const validators = generatorKeys.map(generator => {
-			const bftValidator = bftParams.validators.find(v => v.address.equals(generator.address));
-			return {
-				...generator,
-				bftWeight: bftValidator?.bftWeight ?? BigInt(0),
-				blsKey: bftValidator?.blsKey ?? Buffer.alloc(0),
-			};
-		});
-		const implyMaxPrevote = await this._bft.method.currentHeaderImpliesMaximalPrevotes(stateStore);
-		const { maxHeightCertified } = await this._bft.method.getBFTHeights(stateStore);
-		return {
-			currentValidators: validators,
-			implyMaxPrevote,
-			maxHeightCertified,
-			certificateThreshold: bftParams.certificateThreshold,
-		};
-	}
-
 	private async _execute(block: Block, peerID: string): Promise<void> {
 		if (this._stop) {
 			return;
@@ -766,6 +745,10 @@ export class Consensus {
 				`Contradicting headers for the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
+		const implyMaxPrevote = await this._bft.method.impliesMaximalPrevotes(stateStore, block.header);
+		if (block.header.impliesMaxPrevote !== implyMaxPrevote) {
+			throw new Error('Invalid imply max prevote.');
+		}
 	}
 
 	private async _verifyAssetsSignature(stateStore: StateStore, block: Block): Promise<void> {
@@ -967,13 +950,11 @@ export class Consensus {
 	): Promise<Event[]> {
 		try {
 			await this._bft.beforeTransactionsExecute(stateStore, block.header);
-			const consensus = await this.getConsensusParams(stateStore, block.header);
 
 			const events = [];
 			const beforeResult = await this._abi.beforeTransactionsExecute({
 				contextID,
 				assets: block.assets.getAll(),
-				consensus,
 			});
 			events.push(...beforeResult.events);
 			for (const transaction of block.transactions) {
@@ -992,7 +973,6 @@ export class Consensus {
 					dryRun: false,
 					header: block.header.toObject(),
 					transaction: transaction.toObject(),
-					consensus,
 				});
 				if (txExecResult.result === TransactionExecutionResult.INVALID) {
 					this._logger.debug(`Failed to execute transaction ${transaction.id.toString('hex')}`);
@@ -1003,7 +983,6 @@ export class Consensus {
 			const afterResult = await this._abi.afterTransactionsExecute({
 				contextID,
 				assets: block.assets.getAll(),
-				consensus,
 				transactions: block.transactions.map(tx => tx.toObject()),
 			});
 			events.push(...afterResult.events);

@@ -28,6 +28,7 @@ export interface BlockHeaderAttrs {
 	readonly timestamp: number;
 	readonly maxHeightPrevoted: number;
 	readonly maxHeightGenerated: number;
+	readonly impliesMaxPrevote: boolean;
 	readonly aggregateCommit: {
 		readonly height: number;
 		readonly aggregationBits: Buffer;
@@ -52,6 +53,7 @@ export class BlockHeader {
 	public readonly timestamp: number;
 	public readonly maxHeightPrevoted: number;
 	public readonly maxHeightGenerated: number;
+	public readonly impliesMaxPrevote: boolean;
 	private _aggregateCommit: {
 		height: number;
 		aggregationBits: Buffer;
@@ -73,6 +75,7 @@ export class BlockHeader {
 		previousBlockID,
 		maxHeightPrevoted,
 		maxHeightGenerated,
+		impliesMaxPrevote,
 		aggregateCommit,
 		validatorsHash,
 		stateRoot,
@@ -89,6 +92,7 @@ export class BlockHeader {
 		this.timestamp = timestamp;
 		this.maxHeightPrevoted = maxHeightPrevoted;
 		this.maxHeightGenerated = maxHeightGenerated;
+		this.impliesMaxPrevote = impliesMaxPrevote;
 		this._aggregateCommit = aggregateCommit;
 		this._validatorsHash = validatorsHash;
 		this._eventRoot = eventRoot;
@@ -359,6 +363,7 @@ export class BlockHeader {
 			generatorAddress: this.generatorAddress,
 			maxHeightPrevoted: this.maxHeightPrevoted,
 			maxHeightGenerated: this.maxHeightGenerated,
+			impliesMaxPrevote: this.impliesMaxPrevote,
 		};
 	}
 

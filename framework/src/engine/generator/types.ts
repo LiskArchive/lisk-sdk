@@ -18,7 +18,6 @@ import { encrypt } from '@liskhq/lisk-cryptography';
 import { IterateOptions } from '@liskhq/lisk-db';
 import { AggregateCommit } from '../consensus/types';
 import { ValidatorInfo } from '../consensus/certificate_generation/types';
-import { Consensus as ABIConsensus } from '../../abi';
 import { JSONObject } from '../../types';
 
 export interface Keypair {
@@ -51,7 +50,6 @@ export interface Consensus {
 	) => Promise<Buffer>;
 	getSlotNumber: (timestamp: number) => number;
 	getSlotTime: (slot: number) => number;
-	getConsensusParams: (stateStore: StateStore, blockHeader: BlockHeader) => Promise<ABIConsensus>;
 	readonly events: EventEmitter;
 }
 

@@ -84,7 +84,7 @@ describe('consensus', () => {
 			beforeTransactionsExecute: jest.fn(),
 			method: {
 				getGeneratorKeys: jest.fn().mockResolvedValue([]),
-				currentHeaderImpliesMaximalPrevotes: jest.fn().mockResolvedValue(true),
+				impliesMaximalPrevotes: jest.fn().mockResolvedValue(true),
 				getBFTHeights: jest
 					.fn()
 					.mockResolvedValue({ maxHeghgtPrevoted: 0, maxHeightPrecommitted: 0 }),

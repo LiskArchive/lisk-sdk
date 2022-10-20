@@ -55,6 +55,7 @@ export interface BlockHeader {
 	stateRoot: Buffer;
 	maxHeightPrevoted: number;
 	maxHeightGenerated: number;
+	impliesMaxPrevote: boolean;
 	validatorsHash: Buffer;
 	aggregateCommit: AggregateCommit;
 	signature: Buffer;
@@ -141,17 +142,9 @@ export interface VerifyAssetsRequest {
 
 export interface VerifyAssetsResponse {}
 
-export interface Consensus {
-	currentValidators: Validator[];
-	certificateThreshold: bigint;
-	implyMaxPrevote: boolean;
-	maxHeightCertified: number;
-}
-
 export interface BeforeTransactionsExecuteRequest {
 	contextID: Buffer;
 	assets: BlockAsset[];
-	consensus: Consensus;
 }
 
 export interface BeforeTransactionsExecuteResponse {
@@ -161,7 +154,6 @@ export interface BeforeTransactionsExecuteResponse {
 export interface AfterTransactionsExecuteRequest {
 	contextID: Buffer;
 	assets: BlockAsset[];
-	consensus: Consensus;
 	transactions: Transaction[];
 }
 
@@ -188,7 +180,6 @@ export interface ExecuteTransactionRequest {
 	assets: BlockAsset[];
 	dryRun: boolean;
 	header: BlockHeader;
-	consensus: Consensus;
 }
 
 export interface ExecuteTransactionResponse {

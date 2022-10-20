@@ -142,6 +142,7 @@ describe('generator', () => {
 				setGeneratorKeys: jest.fn(),
 				getBFTParameters: jest.fn().mockResolvedValue({ validators: [] }),
 				existBFTParameters: jest.fn().mockResolvedValue(false),
+				impliesMaximalPrevotes: jest.fn().mockResolvedValue(false),
 			},
 		} as never;
 
@@ -510,6 +511,19 @@ describe('generator', () => {
 			});
 
 			expect(block.header.validatorsHash).toEqual(validatorsHash);
+		});
+
+		it('should assign impliesMaxPrevote to the block', async () => {
+			jest.spyOn(generator['_bft'].method, 'impliesMaximalPrevotes').mockResolvedValue(true);
+
+			const block = await generator.generateBlock({
+				generatorAddress,
+				timestamp: currentTime,
+				privateKey: keypair.privateKey,
+				height: 2,
+			});
+
+			expect(block.header.impliesMaxPrevote).toEqual(true);
 		});
 
 		it('should assign assetRoot to the block', async () => {

@@ -43,7 +43,6 @@ export class RewardMethod extends BaseMethod {
 		context: ImmutableMethodContext,
 		header: BlockHeader,
 		assets: BlockAssets,
-		impliesMaximalPrevotes: boolean,
 	): Promise<[bigint, number]> {
 		const defaultReward = calculateDefaultReward({
 			height: header.height,
@@ -64,7 +63,7 @@ export class RewardMethod extends BaseMethod {
 			return [BigInt(0), REWARD_REDUCTION_SEED_REVEAL];
 		}
 
-		if (!impliesMaximalPrevotes) {
+		if (!header.impliesMaxPrevote) {
 			return [defaultReward / BigInt(REWARD_REDUCTION_FACTOR_BFT), REWARD_REDUCTION_MAX_PREVOTES];
 		}
 

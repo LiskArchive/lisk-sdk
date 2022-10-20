@@ -32,6 +32,7 @@ const getBlockAttrs = () => ({
 	generatorAddress: Buffer.from('be63fb1c0426573352556f18b21efd5b6183c39c', 'hex'),
 	maxHeightPrevoted: 1000988,
 	maxHeightGenerated: 1000988,
+	impliesMaxPrevote: true,
 	validatorsHash: utils.hash(Buffer.alloc(0)),
 	aggregateCommit: {
 		height: 0,
@@ -50,6 +51,7 @@ const getGenesisBlockAttrs = () => ({
 	transactionRoot: EMPTY_HASH,
 	assetRoot: EMPTY_HASH,
 	eventRoot: EMPTY_HASH,
+	impliesMaxPrevote: true,
 	generatorAddress: Buffer.alloc(20, 0),
 	maxHeightPrevoted: 1009988,
 	maxHeightGenerated: 0,
@@ -63,12 +65,12 @@ const getGenesisBlockAttrs = () => ({
 });
 
 const blockId = Buffer.from(
-	'f14104e384546adaba487af56e658188eea07bb534a61b4cbb9ccaee54139b8c',
+	'926ef9e8f01294c9b1f068119002a3903f5a2820b957759402faefeb8fd6e97a',
 	'hex',
 );
 
 const blockHeaderBytes = Buffer.from(
-	'080110c4d23d18c4d23d22144a462ea57a8c9f72d866c09770e5ec70cef187272a14be63fb1c0426573352556f18b21efd5b6183c39c3214b27ca21f40d44113c2090ca8f05fb706c54e87dd3a14b27ca21f40d44113c2090ca8f05fb706c54e87dd422030dda4fbc395828e5a9f2f8824771e434fce4945a1e7820012440d09dd1e2b6d4a147f9d96a09a3fd17f3478eb7bef3a8bda00e1238b509c8c3d589c8c3d6220e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8556a06080012001a0072146da88e2fd4435e26e02682435f108002ccc3ddd5',
+	'080110c4d23d18c4d23d22144a462ea57a8c9f72d866c09770e5ec70cef187272a14be63fb1c0426573352556f18b21efd5b6183c39c3214b27ca21f40d44113c2090ca8f05fb706c54e87dd3a14b27ca21f40d44113c2090ca8f05fb706c54e87dd422030dda4fbc395828e5a9f2f8824771e434fce4945a1e7820012440d09dd1e2b6d4a147f9d96a09a3fd17f3478eb7bef3a8bda00e1238b509c8c3d589c8c3d60016a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8557206080012001a007a146da88e2fd4435e26e02682435f108002ccc3ddd5',
 	'hex',
 );
 
