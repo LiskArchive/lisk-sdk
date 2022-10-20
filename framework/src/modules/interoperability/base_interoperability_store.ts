@@ -147,6 +147,11 @@ export abstract class BaseInteroperabilityStore {
 		return chainSubstore.get(this.context, chainID);
 	}
 
+	public async hasChainAccount(chainID: Buffer): Promise<boolean> {
+		const chainSubstore = this.stores.get(ChainAccountStore);
+		return chainSubstore.has(this.context, chainID);
+	}
+
 	public async getAllChainAccounts(startChainID: Buffer): Promise<ChainAccount[]> {
 		const chainSubstore = this.stores.get(ChainAccountStore);
 		const endBuf = utils.intToBuffer(MAX_UINT32, 4);

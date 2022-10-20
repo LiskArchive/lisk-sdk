@@ -62,12 +62,12 @@ export abstract class BaseInteroperabilityMethod<
 
 	public async getMessageFeeTokenID(
 		context: ImmutableMethodContext,
-		_chainID: Buffer,
+		chainID: Buffer,
 	): Promise<Buffer> {
-		const chainID = !(await this.getChainAccount(context, _chainID))
+		const updatedChainID = !(await this.getInteroperabilityStore(context).hasChainAccount(chainID))
 			? MAINCHAIN_ID_BUFFER
-			: _chainID;
-		return (await this.getChannel(context, chainID)).messageFeeTokenID.localID;
+			: chainID;
+		return (await this.getChannel(context, updatedChainID)).messageFeeTokenID.localID;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
