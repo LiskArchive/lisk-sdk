@@ -15,7 +15,6 @@
 import { codec } from '@liskhq/lisk-codec';
 import { P2PRequestPacket } from '@liskhq/lisk-p2p/dist-node/types';
 import { Database, NotFoundError } from '@liskhq/lisk-db';
-import { INVALID_PEER_INFO_PENALTY } from '@liskhq/lisk-p2p/dist-node/constants';
 import { LegacyConfig } from '../../types';
 import { Network } from '../network';
 import { getBlocksFromIdResponseSchema } from '../consensus/schema';
@@ -156,7 +155,7 @@ export class LegacyChainHandler {
 		let legacyBlocks: LegacyBlock[];
 
 		const applyPenaltyAndRepeat = async () => {
-			this._network.applyPenaltyOnPeer({ peerId, penalty: INVALID_PEER_INFO_PENALTY });
+			this._network.applyPenaltyOnPeer({ peerId, penalty: 100 });
 			await this.syncBlocks(bracket, legacyBlock);
 		};
 
