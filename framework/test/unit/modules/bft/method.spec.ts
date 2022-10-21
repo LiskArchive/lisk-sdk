@@ -320,18 +320,6 @@ describe('BFT Method', () => {
 				bftVotesSchema,
 			);
 			await expect(bftMethod.impliesMaximalPrevotes(stateStore, target)).resolves.toEqual(expected);
-			await votesStore.setWithSchema(
-				EMPTY_KEY,
-				{
-					maxHeightPrevoted: 10,
-					maxHeightPrecommitted: 8,
-					maxHeightCertified: 1,
-					blockBFTInfos: [target, ...list],
-					activeValidatorsVoteInfo: [],
-				},
-				bftVotesSchema,
-			);
-			await expect(bftMethod.impliesMaximalPrevotes(stateStore, target)).resolves.toEqual(expected);
 		};
 
 		it('should throw if the input is not consecutive or equal to the block in bftBlockInfos', async () => {
