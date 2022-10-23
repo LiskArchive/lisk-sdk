@@ -12,12 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH,
-	MAX_MODULE_NAME_LENGTH,
-	MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH,
-	MIN_MODULE_NAME_LENGTH,
-} from '@liskhq/lisk-chain';
 import { CHAIN_ID_LENGTH, TOKEN_ID_LENGTH } from '../token/constants';
 import {
 	MAX_LENGTH_NAME,
@@ -27,6 +21,10 @@ import {
 	MAX_CHAIN_NAME_LENGTH,
 	BLS_PUBLIC_KEY_LENGTH,
 	BLS_SIGNATURE_LENGTH,
+	MAX_MODULE_NAME_LENGTH,
+	MIN_MODULE_NAME_LENGTH,
+	MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH,
+	MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH,
 } from './constants';
 import { chainAccountSchema } from './stores/chain_account';
 import { chainValidatorsSchema } from './stores/chain_validators';

@@ -491,7 +491,7 @@ export class TokenMethod extends BaseMethod {
 				recipientAddress,
 				data,
 			});
-			const sendResult = await this._interoperabilityMethod.send(
+			await this._interoperabilityMethod.send(
 				methodContext,
 				senderAddress,
 				this._moduleName,
@@ -501,9 +501,7 @@ export class TokenMethod extends BaseMethod {
 				CCM_STATUS_OK,
 				message,
 			);
-			if (!sendResult) {
-				return;
-			}
+
 			sender.availableBalance -= amount;
 			await userStore.set(methodContext, userStore.getKey(senderAddress, canonicalTokenID), sender);
 			if (chainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
@@ -530,7 +528,7 @@ export class TokenMethod extends BaseMethod {
 			data,
 			forwardedMessageFee: messageFee,
 		});
-		const sendResult = await this._interoperabilityMethod.send(
+		await this._interoperabilityMethod.send(
 			methodContext,
 			senderAddress,
 			this._moduleName,
@@ -540,9 +538,7 @@ export class TokenMethod extends BaseMethod {
 			CCM_STATUS_OK,
 			message,
 		);
-		if (!sendResult) {
-			return;
-		}
+
 		sender.availableBalance -= amount + messageFee;
 		await userStore.set(methodContext, userStore.getKey(senderAddress, canonicalTokenID), sender);
 	}
