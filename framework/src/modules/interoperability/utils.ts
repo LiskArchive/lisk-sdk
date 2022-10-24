@@ -17,6 +17,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils, bls } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { dataStructures } from '@liskhq/lisk-utils';
+import { NAME_REGEX } from '@liskhq/lisk-chain';
 import {
 	ActiveValidators,
 	CCMsg,
@@ -86,8 +87,14 @@ export const validateFormat = (ccm: CCMsg) => {
 	validator.validate(ccmSchema, ccm);
 
 	const serializedCCM = codec.encode(ccmSchema, ccm);
+	for (const field of ['module', 'crossChainCommand'] as const) {
+		if (!new RegExp(NAME_REGEX).test(ccm[field])) {
+			throw new Error(`Cross-chain message ${field} name must be alphanumeric.`);
+		}
+	}
+
 	if (serializedCCM.byteLength > MAX_CCM_SIZE) {
-		throw new Error(`Cross chain message is over the the max ccm size limit of ${MAX_CCM_SIZE}`);
+		throw new Error(`Cross-chain message size is larger than ${MAX_CCM_SIZE}.`);
 	}
 };
 
