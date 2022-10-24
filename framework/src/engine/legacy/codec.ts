@@ -15,7 +15,14 @@
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { blockHeaderSchemaV2, blockSchemaV2, legacyChainBracketInfoSchema } from './schemas';
-import { LegacyBlock, LegacyBlockJSON, LegacyChainBracketInfo, RawLegacyBlock, LegacyBlockWithID, LegacyBlockHeaderWithID} from './types';
+import {
+	LegacyBlock,
+	LegacyBlockJSON,
+	LegacyChainBracketInfo,
+	RawLegacyBlock,
+	LegacyBlockWithID,
+	LegacyBlockHeaderWithID,
+} from './types';
 
 interface LegacyBlockSchema {
 	header: Schema;
