@@ -212,7 +212,7 @@ describe('generator endpoint', () => {
 						},
 						chainID,
 					}),
-				).rejects.toThrow(LiskValidationError);
+				).rejects.toThrow("must have required property 'transaction'");
 			});
 
 			it('should reject with error when transaction bytes is invalid', async () => {
@@ -225,6 +225,19 @@ describe('generator endpoint', () => {
 						chainID,
 					}),
 				).rejects.toThrow();
+			});
+
+			it('should reject with error when skipVerify is not boolean', async () => {
+				await expect(
+					endpoint.dryRunTransaction({
+						logger,
+						params: {
+							transaction: 'xxxx',
+							skipVerify: 'test',
+						},
+						chainID,
+					}),
+				).rejects.toThrow("'.skipVerify' should be of type 'boolean'");
 			});
 		});
 
@@ -288,6 +301,30 @@ describe('generator endpoint', () => {
 					events: eventsJson,
 				});
 			});
+		});
+
+		it('should not verify transaction when skipVerify', async () => {
+			(abi.verifyTransaction as jest.Mock).mockResolvedValue({
+				result: TransactionVerifyResult.OK,
+			});
+
+			(abi.executeTransaction as jest.Mock).mockResolvedValue({
+				result: TransactionExecutionResult.OK,
+				events,
+			});
+
+			await expect(
+				endpoint.dryRunTransaction({
+					logger,
+					params: {
+						transaction: tx.getBytes().toString('hex'),
+						skipVerify: true,
+					},
+					chainID,
+				}),
+			).toResolve();
+
+			expect(abi.verifyTransaction).toBeCalledTimes(0);
 		});
 
 		describe('when both verification is success & execution returns OK', () => {
