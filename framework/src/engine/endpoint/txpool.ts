@@ -115,16 +115,18 @@ export class TxpoolEndpoint {
 		const transaction = Transaction.fromBytes(Buffer.from(req.transaction, 'hex'));
 		const header = this._chain.lastBlock.header.toObject();
 
-		const { result } = await this._abi.verifyTransaction({
-			contextID: Buffer.alloc(0),
-			transaction: transaction.toObject(),
-			header,
-		});
-		if (result === TransactionVerifyResult.INVALID) {
-			return {
-				success: false,
-				events: [],
-			};
+		if (!req.skipVerify) {
+			const { result } = await this._abi.verifyTransaction({
+				contextID: Buffer.alloc(0),
+				transaction: transaction.toObject(),
+				header,
+			});
+			if (result === TransactionVerifyResult.INVALID) {
+				return {
+					success: false,
+					events: [],
+				};
+			}
 		}
 
 		const stateStore = new StateStore(this._blockchainDB);
