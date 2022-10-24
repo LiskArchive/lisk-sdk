@@ -106,7 +106,7 @@ export class BFTMethod {
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 		// if blockBFTInfos is empty (ie: right after executing genesis block), next block never implies prevotes
 		if (bftVotes.blockBFTInfos.length === 0) {
-			return false;
+			return header.height > header.maxHeightGenerated;
 		}
 		const [currentTip] = bftVotes.blockBFTInfos;
 		// input height is not next block of the stored information

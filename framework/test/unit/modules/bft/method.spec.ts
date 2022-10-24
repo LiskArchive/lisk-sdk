@@ -363,10 +363,10 @@ describe('BFT Method', () => {
 		});
 
 		// eslint-disable-next-line jest/expect-expect
-		it('should return false when bftInfoBlocks is empty', async () => {
+		it('should return false when bftInfoBlocks is empty and height is equal to maxHeightGenerated', async () => {
 			await testImpliesMaximalPrevotes(
 				{
-					height: 1,
+					height: 120,
 					generatorAddress: utils.getRandomBytes(20),
 					maxHeightGenerated: 120,
 					maxHeightPrevoted: 0,
@@ -375,6 +375,22 @@ describe('BFT Method', () => {
 				},
 				[],
 				false,
+			);
+		});
+
+		// eslint-disable-next-line jest/expect-expect
+		it('should return true when bftInfoBlocks is empty and height greater than maxHeightGenerated', async () => {
+			await testImpliesMaximalPrevotes(
+				{
+					height: 121,
+					generatorAddress: utils.getRandomBytes(20),
+					maxHeightGenerated: 120,
+					maxHeightPrevoted: 0,
+					prevoteWeight: BigInt(0),
+					precommitWeight: BigInt(0),
+				},
+				[],
+				true,
 			);
 		});
 
