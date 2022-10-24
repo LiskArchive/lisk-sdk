@@ -94,7 +94,7 @@ export const validateFormat = (ccm: CCMsg) => {
 	}
 
 	if (serializedCCM.byteLength > MAX_CCM_SIZE) {
-		throw new Error(`Cross chain message is over the the max CCM size limit of ${MAX_CCM_SIZE}`);
+		throw new Error(`Cross-chain message size is larger than ${MAX_CCM_SIZE}.`);
 	}
 };
 

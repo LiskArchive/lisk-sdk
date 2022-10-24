@@ -2180,7 +2180,7 @@ describe('Utils', () => {
 						params: Buffer.alloc(MAX_CCM_SIZE + 100),
 					}),
 				),
-			).toThrow(`Cross chain message is over the the max CCM size limit of ${MAX_CCM_SIZE}`);
+			).toThrow(`Cross-chain message size is larger than ${MAX_CCM_SIZE}.`);
 		});
 
 		it('should pass validateFormat check', () => {
