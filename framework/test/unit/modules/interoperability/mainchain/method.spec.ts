@@ -19,6 +19,7 @@ import { MainchainInteroperabilityStore } from '../../../../../src/modules/inter
 import { NamedRegistry } from '../../../../../src/modules/named_registry';
 import { MethodContext } from '../../../../../src/state_machine';
 import { createTransientMethodContext } from '../../../../../src/testing';
+import { MAINCHAIN_ID_BUFFER } from '../../../../../src/modules/interoperability/constants';
 
 describe('Mainchain Method', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -54,6 +55,7 @@ describe('Mainchain Method', () => {
 		jest
 			.spyOn(mainchainInteroperabilityStore, 'getTerminatedOutboxAccount')
 			.mockResolvedValue({} as never);
+		jest.spyOn(mainchainInteroperabilityStore, 'hasChainAccount').mockResolvedValue(false);
 	});
 
 	describe('getChainAccount', () => {
@@ -135,6 +137,29 @@ describe('Mainchain Method', () => {
 			expect(mainchainInteroperabilityStore.getTerminatedOutboxAccount).toHaveBeenCalledWith(
 				chainID,
 			);
+		});
+	});
+
+	describe('getMessageFeeTokenID', () => {
+		const newChainID = Buffer.from('1234', 'hex');
+		beforeEach(() => {
+			jest.spyOn(mainchainInteroperabilityStore, 'getChannel').mockResolvedValue({
+				messageFeeTokenID: {
+					localID: Buffer.from('10000000', 'hex'),
+				},
+			} as never);
+		});
+
+		it('should assign chainID as MAINCHAIN_ID_BUFFER if chainAccount not found', async () => {
+			await mainchainInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
+			expect(mainchainInteroperabilityStore.getChannel).toHaveBeenCalledWith(MAINCHAIN_ID_BUFFER);
+		});
+
+		it('should process with input chainID', async () => {
+			jest.spyOn(mainchainInteroperabilityStore, 'hasChainAccount').mockResolvedValue(true);
+
+			await mainchainInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
+			expect(mainchainInteroperabilityStore.getChannel).toHaveBeenCalledWith(newChainID);
 		});
 	});
 });
