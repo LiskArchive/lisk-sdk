@@ -46,17 +46,17 @@ export const configSchema = {
 				format: 'hex',
 			},
 		},
-		accountInitializationFee: {
-			type: 'string',
-			format: 'uint64',
-		},
 		feeTokenID: {
 			type: 'string',
 			format: 'hex',
 			minLength: TOKEN_ID_LENGTH * 2,
 			maxLength: TOKEN_ID_LENGTH * 2,
 		},
-		escrowInitializationFee: {
+		userAccountInitializationFee: {
+			type: 'string',
+			format: 'uint64',
+		},
+		escrowAccountInitializationFee: {
 			type: 'string',
 			format: 'uint64',
 		},
