@@ -18,6 +18,7 @@ import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_co
 import { CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED, MAINCHAIN_ID } from '../../constants';
 import { createCCMsgBeforeSendContext } from '../../context';
 import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
+import { TerminatedStateStore } from '../../stores/terminated_state';
 import { CCCommandExecuteContext } from '../../types';
 import { getIDAsKeyForStore } from '../../utils';
 import { SidechainInteroperabilityStore } from '../store';
@@ -46,9 +47,10 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		if (ccm.sendingChainID.equals(getIDAsKeyForStore(MAINCHAIN_ID))) {
-			const isTerminated = await interoperabilityStore.hasTerminatedStateAccount(
-				decodedParams.chainID,
-			);
+			const isTerminated = await this.stores
+				.get(TerminatedStateStore)
+				.get(context, decodedParams.chainID);
+
 			if (isTerminated) {
 				return;
 			}

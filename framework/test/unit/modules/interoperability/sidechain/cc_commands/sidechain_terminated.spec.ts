@@ -26,6 +26,7 @@ import { CCCommandExecuteContext } from '../../../../../../src/modules/interoper
 import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
 import { SidechainInteroperabilityModule } from '../../../../../../src';
 import { NamedRegistry } from '../../../../../../src/modules/named_registry';
+import { TerminatedStateStore } from '../../../../../../src/modules/interoperability/stores/terminated_state';
 
 describe('SidechainCCSidechainTerminatedCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
@@ -33,6 +34,12 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 	const terminateChainInternalMock = jest.fn();
 	const hasTerminatedStateAccountMock = jest.fn();
 	const createTerminatedStateAccountMock = jest.fn();
+
+	const terminateStateAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
 
 	const ccMethodMod1 = {
 		beforeSendCCM: jest.fn(),
@@ -93,9 +100,12 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 			ccMethodsMap,
 			new NamedRegistry(),
 		);
+
+		interopMod.stores.register(TerminatedStateStore, terminateStateAccountStoreMock as never);
+
 		mainchainInteroperabilityStore.terminateChainInternal = terminateChainInternalMock;
-		mainchainInteroperabilityStore.hasTerminatedStateAccount = hasTerminatedStateAccountMock;
 		mainchainInteroperabilityStore.createTerminatedStateAccount = createTerminatedStateAccountMock;
+		interopMod.stores.get(TerminatedStateStore).get = hasTerminatedStateAccountMock;
 
 		ccSidechainTerminatedCommand = new SidechainCCSidechainTerminatedCommand(
 			interopMod.stores,

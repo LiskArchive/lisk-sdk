@@ -13,13 +13,15 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_NAME_REGISTRATION } from '../../constants';
+import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_NAME_REGISTRATION, EMPTY_BYTES } from '../../constants';
 import { registrationCCMParamsSchema } from '../../schemas';
 import { CCCommandExecuteContext } from '../../types';
 import { createCCMsgBeforeSendContext } from '../../context';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 import { MainchainInteroperabilityStore } from '../store';
 import { StoreGetter } from '../../../base_store';
+import { ChannelDataStore } from '../../stores/channel_data';
+import { OwnChainAccountStore } from '../../stores/own_chain_account';
 
 interface CCMRegistrationParams {
 	chainID: Buffer;
@@ -44,8 +46,10 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			ccm.params,
 		);
 		const interoperabilityStore = this.getInteroperabilityStore(ctx);
-		const sendingChainChannelAccount = await interoperabilityStore.getChannel(ccm.sendingChainID);
-		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
+		const sendingChainChannelAccount = await this.stores
+			.get(ChannelDataStore)
+			.get(ctx, ccm.sendingChainID);
+		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(ctx, EMPTY_BYTES);
 
 		if (
 			sendingChainChannelAccount.inbox.size !== 1 ||

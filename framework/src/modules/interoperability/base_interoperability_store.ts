@@ -13,7 +13,6 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { NotFoundError } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import {
@@ -31,11 +30,9 @@ import {
 } from './constants';
 import { ccmSchema } from './schemas';
 import {
-	ChannelData,
 	CCMsg,
 	ChainAccount,
 	SendInternalContext,
-	OwnChainAccount,
 	CCMApplyContext,
 	TerminateChainContext,
 	CreateTerminatedStateAccountContext,
@@ -61,7 +58,7 @@ import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
 
 export abstract class BaseInteroperabilityStore {
 	public readonly events: NamedRegistry;
-	public readonly context: StoreGetter | ImmutableStoreGetter;
+	public readonly context: StoreGetter;
 	protected readonly stores: NamedRegistry;
 	protected readonly interoperableModuleMethods = new Map<string, BaseInteroperableMethod>();
 
@@ -71,34 +68,10 @@ export abstract class BaseInteroperabilityStore {
 		interoperableModuleMethods: Map<string, BaseInteroperableMethod>,
 		events: NamedRegistry,
 	) {
-		this.context = context;
+		this.context = context as StoreGetter;
 		this.stores = stores;
 		this.interoperableModuleMethods = interoperableModuleMethods;
 		this.events = events;
-	}
-
-	public async getOwnChainAccount(): Promise<OwnChainAccount> {
-		const ownChainAccountStore = this.stores.get(OwnChainAccountStore);
-		return ownChainAccountStore.get(this.context, getIDAsKeyForStore(MAINCHAIN_ID));
-	}
-
-	public async setOwnChainAccount(ownChainAccount: OwnChainAccount): Promise<void> {
-		const ownChainAccountStore = this.stores.get(OwnChainAccountStore);
-		await ownChainAccountStore.set(
-			this.context as StoreGetter,
-			getIDAsKeyForStore(MAINCHAIN_ID),
-			ownChainAccount,
-		);
-	}
-
-	public async getChannel(chainID: Buffer): Promise<ChannelData> {
-		const channelAccountStore = this.stores.get(ChannelDataStore);
-		return channelAccountStore.get(this.context, chainID);
-	}
-
-	public async setChannel(chainID: Buffer, channeldata: ChannelData): Promise<void> {
-		const channelAccountStore = this.stores.get(ChannelDataStore);
-		await channelAccountStore.set(this.context as StoreGetter, chainID, channeldata);
 	}
 
 	public async appendToInboxTree(chainID: Buffer, appendData: Buffer) {
@@ -109,7 +82,7 @@ export abstract class BaseInteroperabilityStore {
 			appendPath: channel.inbox.appendPath,
 			size: channel.inbox.size,
 		});
-		await channelSubstore.set(this.context as StoreGetter, chainID, {
+		await channelSubstore.set(this.context, chainID, {
 			...channel,
 			inbox: updatedInbox,
 		});
@@ -123,7 +96,7 @@ export abstract class BaseInteroperabilityStore {
 			appendPath: channel.outbox.appendPath,
 			size: channel.outbox.size,
 		});
-		await channelSubstore.set(this.context as StoreGetter, chainID, {
+		await channelSubstore.set(this.context, chainID, {
 			...channel,
 			outbox: updatedOutbox,
 		});
@@ -137,17 +110,7 @@ export abstract class BaseInteroperabilityStore {
 		const channel = await channelSubstore.get(this.context, chainID);
 
 		const outboxRootSubstore = this.stores.get(OutboxRootStore);
-		await outboxRootSubstore.set(this.context as StoreGetter, chainID, channel.outbox);
-	}
-
-	public async hasTerminatedStateAccount(chainID: Buffer): Promise<boolean> {
-		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
-		return terminatedStateSubstore.has(this.context, chainID);
-	}
-
-	public async getChainAccount(chainID: Buffer): Promise<ChainAccount> {
-		const chainSubstore = this.stores.get(ChainAccountStore);
-		return chainSubstore.get(this.context, chainID);
+		await outboxRootSubstore.set(this.context, chainID, channel.outbox);
 	}
 
 	public async hasChainAccount(chainID: Buffer): Promise<boolean> {
@@ -168,25 +131,6 @@ export abstract class BaseInteroperabilityStore {
 		);
 	}
 
-	public async chainAccountExist(chainID: Buffer): Promise<boolean> {
-		const chainSubstore = this.stores.get(ChainAccountStore);
-		try {
-			await chainSubstore.get(this.context, chainID);
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
-			return false;
-		}
-
-		return true;
-	}
-
-	public async getTerminatedStateAccount(chainID: Buffer): Promise<TerminatedStateAccount> {
-		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
-		return terminatedStateSubstore.get(this.context, chainID);
-	}
-
 	public async createTerminatedOutboxAccount(
 		chainID: Buffer,
 		outboxRoot: Buffer,
@@ -201,12 +145,7 @@ export abstract class BaseInteroperabilityStore {
 			partnerChainInboxSize,
 		};
 
-		await terminatedOutboxSubstore.set(this.context as StoreGetter, chainID, terminatedOutbox);
-	}
-
-	public async hasTerminatedOutboxAccount(chainID: Buffer) {
-		const terminatedOutboxSubstore = this.stores.get(TerminatedOutboxStore);
-		return terminatedOutboxSubstore.has(this.context, chainID);
+		await terminatedOutboxSubstore.set(this.context, chainID, terminatedOutbox);
 	}
 
 	public async setTerminatedOutboxAccount(
@@ -232,15 +171,9 @@ export abstract class BaseInteroperabilityStore {
 			...params,
 		};
 
-		await terminatedOutboxSubstore.set(this.context as StoreGetter, chainID, terminatedOutbox);
+		await terminatedOutboxSubstore.set(this.context, chainID, terminatedOutbox);
 
 		return true;
-	}
-
-	public async terminatedOutboxAccountExist(chainID: Buffer) {
-		const terminatedOutboxSubstore = this.stores.get(TerminatedOutboxStore);
-
-		return terminatedOutboxSubstore.has(this.context, chainID);
 	}
 
 	public async getTerminatedOutboxAccount(chainID: Buffer) {
@@ -254,9 +187,9 @@ export abstract class BaseInteroperabilityStore {
 		chainID: Buffer,
 		stateRoot?: Buffer,
 	): Promise<void> {
+		const chainSubstore = this.stores.get(ChainAccountStore);
 		let terminatedState: TerminatedStateAccount;
 
-		const chainSubstore = this.stores.get(ChainAccountStore);
 		const chainAccountExists = await chainSubstore.has(this.context, chainID);
 		if (chainAccountExists) {
 			const chainAccount = await chainSubstore.get(this.context, chainID);
@@ -265,7 +198,7 @@ export abstract class BaseInteroperabilityStore {
 				status: CHAIN_TERMINATED,
 			});
 			const outboxRootSubstore = this.stores.get(OutboxRootStore);
-			await outboxRootSubstore.del(this.context as StoreGetter, chainID);
+			await outboxRootSubstore.del(this.context, chainID);
 
 			terminatedState = {
 				stateRoot: stateRoot ?? chainAccount.lastCertificate.stateRoot,
@@ -277,7 +210,9 @@ export abstract class BaseInteroperabilityStore {
 				.log({ eventQueue: context.eventQueue }, chainID, chainAccount);
 		} else {
 			// Processing on the mainchain
-			const ownChainAccount = await this.getOwnChainAccount();
+			const ownChainAccount = await this.stores
+				.get(OwnChainAccountStore)
+				.get(this.context, EMPTY_BYTES);
 			if (ownChainAccount.chainID.equals(getIDAsKeyForStore(MAINCHAIN_ID))) {
 				// If the account does not exist on the mainchain, the input chainID is invalid.
 				throw new Error('Chain to be terminated is not valid.');
@@ -344,7 +279,9 @@ export abstract class BaseInteroperabilityStore {
 		interoperableCCCommands: Map<string, BaseCCCommand[]>,
 	): Promise<void> {
 		const { ccm, eventQueue, logger, chainID, getMethodContext, getStore } = ccmApplyContext;
-		const isTerminated = await this.hasTerminatedStateAccount(ccm.sendingChainID);
+		const isTerminated = await this.stores
+			.get(TerminatedStateStore)
+			.has(this.context, ccm.sendingChainID);
 		if (isTerminated) {
 			return;
 		}
@@ -362,7 +299,6 @@ export abstract class BaseInteroperabilityStore {
 			ccmApplyContext.ccu,
 			ccmApplyContext.trsSender,
 		);
-
 		for (const mod of this.interoperableModuleMethods.values()) {
 			if (mod?.beforeApplyCCM) {
 				try {
@@ -404,6 +340,7 @@ export abstract class BaseInteroperabilityStore {
 				params: ccm.params,
 				receivingChainID: ccm.receivingChainID,
 				status: CCM_STATUS_MODULE_NOT_SUPPORTED,
+				timestamp: Date.now(),
 			});
 
 			return;

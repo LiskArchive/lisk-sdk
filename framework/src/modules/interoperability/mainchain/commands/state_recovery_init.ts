@@ -27,14 +27,13 @@ import {
 	CHAIN_TERMINATED,
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
-	MAINCHAIN_ID,
 	MAINCHAIN_ID_BUFFER,
 } from '../../constants';
 import { stateRecoveryInitParams } from '../../schemas';
 import { chainAccountSchema, ChainAccountStore } from '../../stores/chain_account';
+import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { TerminatedStateAccount, TerminatedStateStore } from '../../stores/terminated_state';
 import { ChainAccount, StateRecoveryInitParams } from '../../types';
-import { getIDAsKeyForStore } from '../../utils';
 import { MainchainInteroperabilityStore } from '../store';
 
 export class StateRecoveryInitializationCommand extends BaseInteroperabilityCommand {
@@ -46,8 +45,7 @@ export class StateRecoveryInitializationCommand extends BaseInteroperabilityComm
 		const {
 			params: { chainID, sidechainChainAccount, bitmap, siblingHashes },
 		} = context;
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
+		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
 
 		if (chainID.equals(MAINCHAIN_ID_BUFFER) || chainID.equals(ownChainAccount.chainID)) {
 			return {
@@ -73,9 +71,9 @@ export class StateRecoveryInitializationCommand extends BaseInteroperabilityComm
 			chainAccountSchema,
 			sidechainChainAccount,
 		);
-		const mainchainAccount = await interoperabilityStore.getChainAccount(
-			getIDAsKeyForStore(MAINCHAIN_ID),
-		);
+		const mainchainAccount = await this.stores
+			.get(ChainAccountStore)
+			.get(context, MAINCHAIN_ID_BUFFER);
 		if (
 			deserializedInteropAccount.status !== CHAIN_TERMINATED &&
 			mainchainAccount.lastCertificate.timestamp -
@@ -143,9 +141,9 @@ export class StateRecoveryInitializationCommand extends BaseInteroperabilityComm
 
 		const interoperabilityStore = this.getInteroperabilityStore(context);
 
-		const doesTerminatedStateAccountExist = await interoperabilityStore.hasTerminatedStateAccount(
-			params.chainID,
-		);
+		const doesTerminatedStateAccountExist = await this.stores
+			.get(TerminatedStateStore)
+			.has(context, params.chainID);
 		if (doesTerminatedStateAccountExist) {
 			const newTerminatedStateAccount: TerminatedStateAccount = {
 				stateRoot: sidechainChainAccount.lastCertificate.stateRoot,

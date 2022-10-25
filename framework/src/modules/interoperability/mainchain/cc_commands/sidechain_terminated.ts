@@ -21,6 +21,7 @@ import {
 } from '../../constants';
 import { createCCMsgBeforeSendContext } from '../../context';
 import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
+import { TerminatedStateStore } from '../../stores/terminated_state';
 import { CCCommandExecuteContext } from '../../types';
 import { MainchainInteroperabilityStore } from '../store';
 
@@ -48,9 +49,9 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		if (ccm.sendingChainID.equals(MAINCHAIN_ID_BUFFER)) {
-			const isTerminated = await interoperabilityStore.hasTerminatedStateAccount(
-				decodedParams.chainID,
-			);
+			const isTerminated = await this.stores
+				.get(TerminatedStateStore)
+				.has(context, decodedParams.chainID);
 			if (isTerminated) {
 				return;
 			}

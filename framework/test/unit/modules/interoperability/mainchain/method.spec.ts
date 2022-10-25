@@ -16,6 +16,11 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { MainchainInteroperabilityModule } from '../../../../../src';
 import { MainchainInteroperabilityMethod } from '../../../../../src/modules/interoperability/mainchain/method';
 import { MainchainInteroperabilityStore } from '../../../../../src/modules/interoperability/mainchain/store';
+import { ChainAccountStore } from '../../../../../src/modules/interoperability/stores/chain_account';
+import { ChannelDataStore } from '../../../../../src/modules/interoperability/stores/channel_data';
+import { OwnChainAccountStore } from '../../../../../src/modules/interoperability/stores/own_chain_account';
+import { TerminatedOutboxStore } from '../../../../../src/modules/interoperability/stores/terminated_outbox';
+import { TerminatedStateStore } from '../../../../../src/modules/interoperability/stores/terminated_state';
 import { NamedRegistry } from '../../../../../src/modules/named_registry';
 import { MethodContext } from '../../../../../src/state_machine';
 import { createTransientMethodContext } from '../../../../../src/testing';
@@ -26,6 +31,31 @@ describe('Mainchain Method', () => {
 
 	const chainID = utils.intToBuffer(1, 4);
 	const interoperableCCMethods = new Map();
+	const chainAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
+	const channelStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
+	const ownChainAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
+	const terminateStateAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
+	const terminatedOutboxAccountMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
 	let mainchainInteroperabilityMethod: MainchainInteroperabilityMethod;
 	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
 	let methodContext: MethodContext;
@@ -46,97 +76,74 @@ describe('Mainchain Method', () => {
 		jest
 			.spyOn(mainchainInteroperabilityMethod as any, 'getInteroperabilityStore')
 			.mockReturnValue(mainchainInteroperabilityStore);
-		jest.spyOn(mainchainInteroperabilityStore, 'getChainAccount').mockResolvedValue({} as never);
-		jest.spyOn(mainchainInteroperabilityStore, 'getChannel').mockResolvedValue({} as never);
-		jest.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount').mockResolvedValue({} as never);
-		jest
-			.spyOn(mainchainInteroperabilityStore, 'getTerminatedStateAccount')
-			.mockResolvedValue({} as never);
-		jest
-			.spyOn(mainchainInteroperabilityStore, 'getTerminatedOutboxAccount')
-			.mockResolvedValue({} as never);
-		jest.spyOn(mainchainInteroperabilityStore, 'hasChainAccount').mockResolvedValue(false);
+
+		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
+		interopMod.stores.register(ChannelDataStore, channelStoreMock as never);
+		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
+		interopMod.stores.register(TerminatedStateStore, terminateStateAccountStoreMock as never);
+		interopMod.stores.register(TerminatedOutboxStore, terminatedOutboxAccountMock as never);
 	});
 
 	describe('getChainAccount', () => {
-		it('should call getInteroperabilityStore', async () => {
-			await mainchainInteroperabilityMethod.getChainAccount(methodContext, chainID);
-
-			expect(mainchainInteroperabilityMethod['getInteroperabilityStore']).toHaveBeenCalledWith(
-				methodContext,
-			);
-		});
-
 		it('should call getChainAccount', async () => {
 			await mainchainInteroperabilityMethod.getChainAccount(methodContext, chainID);
 
-			expect(mainchainInteroperabilityStore.getChainAccount).toHaveBeenCalledWith(chainID);
+			expect(chainAccountStoreMock.get).toHaveBeenCalledWith(methodContext, chainID);
 		});
 	});
 
 	describe('getChannel', () => {
-		it('should call getInteroperabilityStore', async () => {
-			await mainchainInteroperabilityMethod.getChannel(methodContext, chainID);
-
-			expect(mainchainInteroperabilityMethod['getInteroperabilityStore']).toHaveBeenCalledWith(
-				methodContext,
-			);
-		});
-
 		it('should call getChannel', async () => {
 			await mainchainInteroperabilityMethod.getChannel(methodContext, chainID);
 
-			expect(mainchainInteroperabilityStore.getChannel).toHaveBeenCalledWith(chainID);
+			expect(channelStoreMock.get).toHaveBeenCalledWith(methodContext, chainID);
 		});
 	});
 
 	describe('getOwnChainAccount', () => {
-		it('should call getInteroperabilityStore', async () => {
-			await mainchainInteroperabilityMethod.getOwnChainAccount(methodContext);
-
-			expect(mainchainInteroperabilityMethod['getInteroperabilityStore']).toHaveBeenCalledWith(
-				methodContext,
-			);
-		});
-
 		it('should call getOwnChainAccount', async () => {
 			await mainchainInteroperabilityMethod.getOwnChainAccount(methodContext);
 
-			expect(mainchainInteroperabilityStore.getOwnChainAccount).toHaveBeenCalled();
+			expect(ownChainAccountStoreMock.get).toHaveBeenCalled();
 		});
 	});
 
 	describe('getTerminatedStateAccount', () => {
-		it('should call getInteroperabilityStore', async () => {
-			await mainchainInteroperabilityMethod.getTerminatedStateAccount(methodContext, chainID);
-
-			expect(mainchainInteroperabilityMethod['getInteroperabilityStore']).toHaveBeenCalledWith(
-				methodContext,
-			);
-		});
-
 		it('should call getTerminatedStateAccount', async () => {
 			await mainchainInteroperabilityMethod.getTerminatedStateAccount(methodContext, chainID);
 
-			expect(mainchainInteroperabilityStore.getTerminatedStateAccount).toHaveBeenCalled();
+			expect(terminateStateAccountStoreMock.get).toHaveBeenCalled();
 		});
 	});
 
 	describe('getTerminatedOutboxAccount', () => {
-		it('should call getInteroperabilityStore', async () => {
-			await mainchainInteroperabilityMethod.getTerminatedOutboxAccount(methodContext, chainID);
-
-			expect(mainchainInteroperabilityMethod['getInteroperabilityStore']).toHaveBeenCalledWith(
-				methodContext,
-			);
-		});
-
 		it('should call getTerminatedStateAccount', async () => {
 			await mainchainInteroperabilityMethod.getTerminatedOutboxAccount(methodContext, chainID);
 
-			expect(mainchainInteroperabilityStore.getTerminatedOutboxAccount).toHaveBeenCalledWith(
-				chainID,
-			);
+			expect(terminatedOutboxAccountMock.get).toHaveBeenCalledWith(methodContext, chainID);
+		});
+	});
+
+	describe('getMessageFeeTokenID', () => {
+		const newChainID = Buffer.from('1234', 'hex');
+		beforeEach(() => {
+			jest.spyOn(mainchainInteroperabilityStore, 'getChannel').mockResolvedValue({
+				messageFeeTokenID: {
+					localID: Buffer.from('10000000', 'hex'),
+				},
+			} as never);
+		});
+
+		it('should assign chainID as MAINCHAIN_ID_BUFFER if chainAccount not found', async () => {
+			await mainchainInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
+			expect(mainchainInteroperabilityStore.getChannel).toHaveBeenCalledWith(MAINCHAIN_ID_BUFFER);
+		});
+
+		it('should process with input chainID', async () => {
+			jest.spyOn(mainchainInteroperabilityStore, 'hasChainAccount').mockResolvedValue(true);
+
+			await mainchainInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
+			expect(mainchainInteroperabilityStore.getChannel).toHaveBeenCalledWith(newChainID);
 		});
 	});
 

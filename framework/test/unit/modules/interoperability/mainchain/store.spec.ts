@@ -14,6 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
+import { when } from 'jest-when';
 import { MainchainInteroperabilityModule, testing } from '../../../../../src';
 import { StoreGetter } from '../../../../../src/modules/base_store';
 import {
@@ -33,6 +34,7 @@ import {
 	EVENT_NAME_CCM_SEND_SUCCESS,
 	CCM_PROCESSED_RESULT_DISCARDED,
 	CCM_PROCESSED_RESULT_BOUNCED,
+	EMPTY_BYTES,
 } from '../../../../../src/modules/interoperability/constants';
 import { createCCMsgBeforeSendContext } from '../../../../../src/modules/interoperability/context';
 import { CcmProcessedEvent } from '../../../../../src/modules/interoperability/events/ccm_processed';
@@ -42,6 +44,7 @@ import { ForwardCCMsgResult } from '../../../../../src/modules/interoperability/
 import { ccmSchema } from '../../../../../src/modules/interoperability/schemas';
 import { ChainAccountStore } from '../../../../../src/modules/interoperability/stores/chain_account';
 import { ChannelDataStore } from '../../../../../src/modules/interoperability/stores/channel_data';
+import { OwnChainAccountStore } from '../../../../../src/modules/interoperability/stores/own_chain_account';
 import {
 	BeforeSendCCMsgMethodContext,
 	CCMForwardContext,
@@ -60,7 +63,10 @@ import { createStoreGetter } from '../../../../../src/testing/utils';
 
 describe('Mainchain interoperability store', () => {
 	const interopMod = new MainchainInteroperabilityModule();
-
+	const ownChainAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+	};
 	const chainID = Buffer.from(MAINCHAIN_ID.toString(16), 'hex');
 	const timestamp = 2592000 * 100;
 	let chainAccount: any;
@@ -95,6 +101,7 @@ describe('Mainchain interoperability store', () => {
 
 		channelDataSubstore = interopMod.stores.get(ChannelDataStore);
 		chainDataSubstore = interopMod.stores.get(ChainAccountStore);
+		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
 		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
 			interopMod.stores,
 			context,
@@ -225,7 +232,9 @@ describe('Mainchain interoperability store', () => {
 
 	describe('isLive', () => {
 		beforeEach(async () => {
-			await mainchainInteroperabilityStore.setOwnChainAccount(ownChainAccount);
+			when(ownChainAccountStoreMock.get as never)
+				.calledWith(expect.anything(), EMPTY_BYTES)
+				.mockResolvedValue(ownChainAccount as never);
 		});
 
 		it('should return true if chainID equals ownChainAccount id', async () => {
@@ -238,10 +247,13 @@ describe('Mainchain interoperability store', () => {
 		});
 
 		it('should return false if ownChainAccount id does not equal mainchain ID', async () => {
-			await mainchainInteroperabilityStore.setOwnChainAccount({
-				...ownChainAccount,
-				chainID: utils.getRandomBytes(32),
-			});
+			when(ownChainAccountStoreMock.get as never)
+				.calledWith(expect.anything(), EMPTY_BYTES)
+				.mockResolvedValue({
+					...ownChainAccount,
+					chainID: utils.getRandomBytes(32),
+				} as never);
+
 			const isLive = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
 
 			expect(isLive).toBe(false);
@@ -386,7 +398,10 @@ describe('Mainchain interoperability store', () => {
 
 			jest.spyOn(mainchainInteroperabilityStore, 'isLive');
 			await chainDataSubstore.set(context, ccm.receivingChainID, activeChainAccount);
-			await mainchainInteroperabilityStore.setOwnChainAccount(ownChainAccount);
+
+			when(ownChainAccountStoreMock.get as never)
+				.calledWith()
+				.mockResolvedValue(ownChainAccount as never);
 
 			await expect(
 				mainchainInteroperabilityStore.sendInternal(sendInternalContextLocal),
@@ -419,7 +434,9 @@ describe('Mainchain interoperability store', () => {
 
 			jest.spyOn(mainchainInteroperabilityStore, 'isLive');
 			await chainDataSubstore.set(context, ccm.receivingChainID, activeChainAccount);
-			await mainchainInteroperabilityStore.setOwnChainAccount(ownChainAccount);
+			when(ownChainAccountStoreMock.get as never)
+				.calledWith()
+				.mockResolvedValue(ownChainAccount as never);
 
 			await expect(
 				mainchainInteroperabilityStore.sendInternal(sendInternalContextLocal as any),
@@ -437,7 +454,11 @@ describe('Mainchain interoperability store', () => {
 
 			jest.spyOn(mainchainInteropStoreLocal, 'isLive');
 			await chainDataSubstore.set(context, ccm.receivingChainID, activeChainAccount);
-			await mainchainInteropStoreLocal.setOwnChainAccount(ownChainAccount);
+
+			when(interopMod.stores.get(OwnChainAccountStore).get as never)
+				.calledWith()
+				.mockResolvedValue(ownChainAccount as never);
+
 			await channelDataSubstore.set(context, ccm.receivingChainID, channelData);
 			jest.spyOn(mainchainInteropStoreLocal, 'appendToOutboxTree').mockResolvedValue({} as never);
 
@@ -543,9 +564,9 @@ describe('Mainchain interoperability store', () => {
 			jest.spyOn(mainchainInteroperabilityStore, 'isLive').mockImplementation();
 			jest.spyOn(mainchainInteroperabilityStore, 'bounce').mockImplementation();
 			jest.spyOn(mainchainInteroperabilityStore, 'sendInternal').mockImplementation();
-			jest
-				.spyOn(mainchainInteroperabilityStore, 'getChainAccount')
-				.mockReturnValue(receivingChainAccount);
+			interopMod.stores.get(ChainAccountStore).get = jest
+				.fn()
+				.mockResolvedValue(receivingChainAccount);
 			jest.spyOn(mainchainInteroperabilityStore, 'addToOutbox').mockImplementation();
 			jest.spyOn(mainchainInteroperabilityStore, 'terminateChainInternal').mockImplementation();
 		});

@@ -14,17 +14,27 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { intToBuffer } from '@liskhq/lisk-cryptography/dist-node/utils';
-import { MainchainInteroperabilityModule, ModuleEndpointContext } from '../../../../../src';
-import { MainchainInteroperabilityEndpoint } from '../../../../../src/modules/interoperability/mainchain/endpoint';
-import { MainchainInteroperabilityStore } from '../../../../../src/modules/interoperability/mainchain/store';
 import {
-	TerminatedStateAccount,
-	TerminatedStateAccountJSON,
-} from '../../../../../src/modules/interoperability/stores/terminated_state';
+	ImmutableStoreGetter,
+	ModuleEndpointContext,
+	SidechainInteroperabilityModule,
+	StoreGetter,
+} from '../../../../src';
+import { BaseInteroperabilityEndpoint } from '../../../../src/modules/interoperability/base_interoperability_endpoint';
+import { SidechainInteroperabilityStore } from '../../../../src/modules/interoperability/sidechain/store';
+import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
+import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
+import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
 import {
 	TerminatedOutboxAccount,
 	TerminatedOutboxAccountJSON,
-} from '../../../../../src/modules/interoperability/stores/terminated_outbox';
+	TerminatedOutboxStore,
+} from '../../../../src/modules/interoperability/stores/terminated_outbox';
+import {
+	TerminatedStateAccount,
+	TerminatedStateAccountJSON,
+	TerminatedStateStore,
+} from '../../../../src/modules/interoperability/stores/terminated_state';
 import {
 	ChainAccount,
 	ChainAccountJSON,
@@ -32,17 +42,52 @@ import {
 	ChannelDataJSON,
 	OwnChainAccount,
 	OwnChainAccountJSON,
-} from '../../../../../src/modules/interoperability/types';
-import { chainAccountToJSON } from '../../../../../src/modules/interoperability/utils';
-import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
-import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
-import { NamedRegistry } from '../../../../../src/modules/named_registry';
+} from '../../../../src/modules/interoperability/types';
+import { chainAccountToJSON } from '../../../../src/modules/interoperability/utils';
+import { NamedRegistry } from '../../../../src/modules/named_registry';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 
-describe('Mainchain endpoint', () => {
-	const interopMod = new MainchainInteroperabilityModule();
-
+class TestEndpoint extends BaseInteroperabilityEndpoint<SidechainInteroperabilityStore> {
+	protected getInteroperabilityStore = (
+		context: StoreGetter | ImmutableStoreGetter,
+	): SidechainInteroperabilityStore =>
+		new SidechainInteroperabilityStore(
+			this.stores,
+			context,
+			this.interoperableCCMethods,
+			this.events,
+		);
+}
+describe('Test interoperability endpoint', () => {
+	const interopMod = new SidechainInteroperabilityModule();
 	const chainID = utils.intToBuffer(1, 4);
 	const interoperableCCMethods = new Map();
+	const chainAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
+	const channelStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
+	const ownChainAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
+	const terminateStateAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
+	const terminatedOutboxAccountMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
 
 	let moduleContext: ModuleEndpointContext;
 
@@ -137,8 +182,8 @@ describe('Mainchain endpoint', () => {
 		nonce: ownChainAccount.nonce.toString(),
 	};
 
-	let mainchainInteroperabilityEndpoint: MainchainInteroperabilityEndpoint;
-	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
+	let TestInteroperabilityEndpoint: TestEndpoint;
+	let sidechainInteroperabilityStore: SidechainInteroperabilityStore;
 
 	beforeEach(() => {
 		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -150,56 +195,51 @@ describe('Mainchain endpoint', () => {
 			params: {},
 			logger: {} as any,
 		};
-
-		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
-			interopMod.stores,
-			moduleContext,
-			interoperableCCMethods,
-			new NamedRegistry(),
-		);
-		mainchainInteroperabilityEndpoint = new MainchainInteroperabilityEndpoint(
+		TestInteroperabilityEndpoint = new TestEndpoint(
 			interopMod.stores,
 			interopMod.offchainStores,
 			interoperableCCMethods,
 			new NamedRegistry(),
 		);
+		sidechainInteroperabilityStore = new SidechainInteroperabilityStore(
+			interopMod.stores,
+			moduleContext,
+			interoperableCCMethods,
+			new NamedRegistry(),
+		);
+		jest
+			.spyOn(TestInteroperabilityEndpoint as any, 'getInteroperabilityStore')
+			.mockReturnValue(sidechainInteroperabilityStore);
 
 		jest
-			.spyOn(mainchainInteroperabilityEndpoint as any, 'getInteroperabilityStore')
-			.mockReturnValue(mainchainInteroperabilityStore);
-		jest.spyOn(mainchainInteroperabilityStore, 'getChainAccount').mockResolvedValue(chainAccount);
-		jest
-			.spyOn(mainchainInteroperabilityStore, 'getAllChainAccounts')
+			.spyOn(sidechainInteroperabilityStore, 'getAllChainAccounts')
 			.mockResolvedValue([chainAccount, chainAccount2]);
-		jest.spyOn(mainchainInteroperabilityStore, 'getChannel').mockResolvedValue(channelData);
-		jest
-			.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount')
-			.mockResolvedValue(ownChainAccount);
-		jest
-			.spyOn(mainchainInteroperabilityStore, 'getTerminatedStateAccount')
-			.mockResolvedValue(terminateStateAccount);
-		jest
-			.spyOn(mainchainInteroperabilityStore, 'getTerminatedOutboxAccount')
-			.mockResolvedValue(terminatedOutboxAccount);
+
+		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
+		interopMod.stores.register(ChannelDataStore, channelStoreMock as never);
+		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
+		interopMod.stores.register(TerminatedStateStore, terminateStateAccountStoreMock as never);
+		interopMod.stores.register(TerminatedOutboxStore, terminatedOutboxAccountMock as never);
+
+		chainAccountStoreMock.get.mockResolvedValue(chainAccount);
+		channelStoreMock.get.mockResolvedValue(channelData);
+		ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount);
+		terminateStateAccountStoreMock.get.mockResolvedValue(terminateStateAccount);
+		terminatedOutboxAccountMock.get.mockResolvedValue(terminatedOutboxAccount);
 	});
 
 	describe('getChainAccount', () => {
 		let chainAccountResult: ChainAccountJSON;
 
 		beforeEach(async () => {
-			chainAccountResult = await mainchainInteroperabilityEndpoint.getChainAccount(
+			chainAccountResult = await TestInteroperabilityEndpoint.getChainAccount(
 				moduleContext,
 				chainID,
 			);
 		});
-		it('should call getInteroperabilityStore', async () => {
-			expect(mainchainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
-				moduleContext,
-			);
-		});
 
 		it('should call getChainAccount', async () => {
-			expect(mainchainInteroperabilityStore.getChainAccount).toHaveBeenCalledWith(chainID);
+			expect(chainAccountStoreMock.get).toHaveBeenCalledWith(expect.anything(), chainID);
 		});
 
 		it('should return JSON format result', () => {
@@ -211,18 +251,19 @@ describe('Mainchain endpoint', () => {
 		let chainAccountResults: ChainAccountJSON[];
 
 		beforeEach(async () => {
-			({
-				chains: chainAccountResults,
-			} = await mainchainInteroperabilityEndpoint.getAllChainAccounts(moduleContext, chainID));
+			({ chains: chainAccountResults } = await TestInteroperabilityEndpoint.getAllChainAccounts(
+				moduleContext,
+				chainID,
+			));
 		});
 		it('should call getInteroperabilityStore', async () => {
-			expect(mainchainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
+			expect(TestInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
 				moduleContext,
 			);
 		});
 
 		it('should call getAllChainAccounts', async () => {
-			expect(mainchainInteroperabilityStore.getAllChainAccounts).toHaveBeenCalledWith(chainID);
+			expect(sidechainInteroperabilityStore.getAllChainAccounts).toHaveBeenCalledWith(chainID);
 		});
 
 		it('should return JSON format result', () => {
@@ -234,20 +275,11 @@ describe('Mainchain endpoint', () => {
 		let channelDataResult: ChannelDataJSON;
 
 		beforeEach(async () => {
-			channelDataResult = await mainchainInteroperabilityEndpoint.getChannel(
-				moduleContext,
-				chainID,
-			);
-		});
-
-		it('should call getInteroperabilityStore', async () => {
-			expect(mainchainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
-				moduleContext,
-			);
+			channelDataResult = await TestInteroperabilityEndpoint.getChannel(moduleContext, chainID);
 		});
 
 		it('should call getChannel', async () => {
-			expect(mainchainInteroperabilityStore.getChannel).toHaveBeenCalledWith(chainID);
+			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), chainID);
 		});
 
 		it('should return JSON format result', () => {
@@ -259,19 +291,11 @@ describe('Mainchain endpoint', () => {
 		let ownChainAccountResult: OwnChainAccountJSON;
 
 		beforeEach(async () => {
-			ownChainAccountResult = await mainchainInteroperabilityEndpoint.getOwnChainAccount(
-				moduleContext,
-			);
-		});
-
-		it('should call getInteroperabilityStore', async () => {
-			expect(mainchainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
-				moduleContext,
-			);
+			ownChainAccountResult = await TestInteroperabilityEndpoint.getOwnChainAccount(moduleContext);
 		});
 
 		it('should call getOwnChainAccount', async () => {
-			expect(mainchainInteroperabilityStore.getOwnChainAccount).toHaveBeenCalled();
+			expect(ownChainAccountStoreMock.get).toHaveBeenCalled();
 		});
 
 		it('should return JSON format result', () => {
@@ -283,20 +307,14 @@ describe('Mainchain endpoint', () => {
 		let terminateStateAccountResult: TerminatedStateAccountJSON;
 
 		beforeEach(async () => {
-			terminateStateAccountResult = await mainchainInteroperabilityEndpoint.getTerminatedStateAccount(
+			terminateStateAccountResult = await TestInteroperabilityEndpoint.getTerminatedStateAccount(
 				moduleContext,
 				chainID,
 			);
 		});
 
-		it('should call getInteroperabilityStore', async () => {
-			expect(mainchainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
-				moduleContext,
-			);
-		});
-
 		it('should call getTerminatedStateAccount', async () => {
-			expect(mainchainInteroperabilityStore.getTerminatedStateAccount).toHaveBeenCalled();
+			expect(terminateStateAccountStoreMock.get).toHaveBeenCalled();
 		});
 
 		it('should return JSON format result', () => {
@@ -308,22 +326,14 @@ describe('Mainchain endpoint', () => {
 		let terminatedOutboxAccountResult: TerminatedOutboxAccountJSON;
 
 		beforeEach(async () => {
-			terminatedOutboxAccountResult = await mainchainInteroperabilityEndpoint.getTerminatedOutboxAccount(
+			terminatedOutboxAccountResult = await TestInteroperabilityEndpoint.getTerminatedOutboxAccount(
 				moduleContext,
 				chainID,
-			);
-		});
-
-		it('should call getInteroperabilityStore', async () => {
-			expect(mainchainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
-				moduleContext,
 			);
 		});
 
 		it('should call getTerminatedStateAccount', async () => {
-			expect(mainchainInteroperabilityStore.getTerminatedOutboxAccount).toHaveBeenCalledWith(
-				chainID,
-			);
+			expect(terminatedOutboxAccountMock.get).toHaveBeenCalledWith(expect.anything(), chainID);
 		});
 
 		it('should return JSON format result', () => {

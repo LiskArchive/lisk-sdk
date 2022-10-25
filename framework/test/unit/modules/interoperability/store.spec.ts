@@ -45,9 +45,26 @@ import { NamedRegistry } from '../../../../src/modules/named_registry';
 import { EventQueue } from '../../../../src/state_machine';
 import { ChainAccountUpdatedEvent } from '../../../../src/modules/interoperability/events/chain_account_updated';
 import { TerminatedStateCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_state_created';
+import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
 
 describe('Base interoperability store', () => {
 	const interopMod = new MainchainInteroperabilityModule();
+	const chainAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+		iterate: jest.fn(),
+	};
+	const ownChainAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
+	const terminateStateAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
 	const chainID = Buffer.from('01', 'hex');
 	const appendData = Buffer.from(
 		'0c4c839c0fd8155fd0d52efc7dd29d2a71919dee517d50967cd26f4db2e0d1c5b',
@@ -107,16 +124,6 @@ describe('Base interoperability store', () => {
 		},
 		status: 2739,
 	};
-	const chainAccount2 = {
-		name: 'account2',
-		lastCertificate: {
-			height: 567467,
-			timestamp: 2592000,
-			stateRoot: Buffer.alloc(0),
-			validatorsHash: Buffer.alloc(0),
-		},
-		status: 4567,
-	};
 	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
 	let channelDataSubstore: ChannelDataStore;
 	let outboxRootSubstore: OutboxRootStore;
@@ -139,6 +146,11 @@ describe('Base interoperability store', () => {
 		jest.spyOn(terminatedOutboxSubstore, 'set');
 		chainDataSubstore = interopMod.stores.get(ChainAccountStore);
 		terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
+
+		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
+		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
+		// interopMod.stores.register(TerminatedStateStore, terminateStateAccountStoreMock as never);
+
 		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
 			interopMod.stores,
 			context,
@@ -241,12 +253,9 @@ describe('Base interoperability store', () => {
 		});
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account exists for the id and state root is provided', async () => {
-			await chainDataSubstore.set(context, chainId, chainAccount);
-			await mainchainInteroperabilityStore.createTerminatedStateAccount(
-				createTerminatedStateAccountContext,
-				chainId,
-				stateRoot,
-			);
+			chainDataSubstore.get = chainAccountStoreMock.get.mockResolvedValue(chainAccount);
+			chainDataSubstore.has = chainAccountStoreMock.has.mockResolvedValue(true);
+			await mainchainInteroperabilityStore.createTerminatedStateAccount(createTerminatedStateAccountContext, chainId, stateRoot);
 
 			await expect(terminatedStateSubstore.get(context, chainId)).resolves.toStrictEqual({
 				stateRoot,
@@ -270,7 +279,8 @@ describe('Base interoperability store', () => {
 		});
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account exists for the id but state root is not provided', async () => {
-			await chainDataSubstore.set(context, chainId, chainAccount);
+			chainDataSubstore.get = chainAccountStoreMock.get.mockResolvedValue(chainAccount);
+			chainDataSubstore.has = chainAccountStoreMock.has.mockResolvedValue(true);
 			await mainchainInteroperabilityStore.createTerminatedStateAccount(
 				createTerminatedStateAccountContext,
 				chainId,
@@ -285,9 +295,8 @@ describe('Base interoperability store', () => {
 
 		it('should throw error if chain account does not exist for the id and ownchain account id is mainchain id', async () => {
 			const chainIdNew = utils.intToBuffer(9, 4);
-			jest
-				.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount')
-				.mockResolvedValue(ownChainAccount1 as never);
+			ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount1 as never);
+			chainDataSubstore.has = chainAccountStoreMock.has.mockResolvedValue(false);
 
 			await expect(
 				mainchainInteroperabilityStore.createTerminatedStateAccount(
@@ -299,9 +308,7 @@ describe('Base interoperability store', () => {
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account does not exist for the id and ownchain account id is not the same as mainchain id', async () => {
 			const chainIdNew = utils.intToBuffer(10, 4);
-			jest
-				.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount')
-				.mockResolvedValue(ownChainAccount2 as never);
+			ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount2 as never);
 			await chainDataSubstore.set(context, getIDAsKeyForStore(MAINCHAIN_ID), chainAccount);
 			await mainchainInteroperabilityStore.createTerminatedStateAccount(
 				createTerminatedStateAccountContext,
@@ -464,7 +471,7 @@ describe('Base interoperability store', () => {
 
 		it('should return immediately if sending chain is terminated', async () => {
 			// Arrange
-			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(true);
+			terminatedStateSubstore.has = terminateStateAccountStoreMock.has.mockResolvedValue(true);
 
 			// Act & Assert
 			await expect(
@@ -485,7 +492,7 @@ describe('Base interoperability store', () => {
 				new Map().set('mod1', ccMethodSampleMod),
 				new NamedRegistry(),
 			);
-			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
+			terminateStateAccountStoreMock.has.mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal');
 
 			// Act & Assert
@@ -512,8 +519,9 @@ describe('Base interoperability store', () => {
 				new Map().set('newMod', ccMethodMod1),
 				new NamedRegistry(),
 			);
-			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
-			jest.spyOn(mainchainStoreLocal, 'sendInternal');
+			terminatedStateSubstore.has = terminateStateAccountStoreMock.has.mockResolvedValue(false);
+
+			jest.spyOn(mainchainStoreLocal, 'sendInternal').mockResolvedValue({} as never);
 
 			// Act & Assert
 			await expect(
@@ -548,8 +556,8 @@ describe('Base interoperability store', () => {
 				new NamedRegistry(),
 			);
 
-			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
-			jest.spyOn(mainchainStoreLocal, 'sendInternal');
+			terminateStateAccountStoreMock.has.mockResolvedValue(false);
+			jest.spyOn(mainchainStoreLocal, 'sendInternal').mockResolvedValue({} as never);
 
 			// Act & Assert
 			await expect(
@@ -577,8 +585,9 @@ describe('Base interoperability store', () => {
 				new Map().set(MODULE_NAME_INTEROPERABILITY, ccMethodSampleMod),
 				new NamedRegistry(),
 			);
-			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
-			jest.spyOn(mainchainStoreLocal, 'sendInternal');
+			terminateStateAccountStoreMock.has.mockResolvedValue(false);
+			jest.spyOn(mainchainStoreLocal, 'sendInternal').mockResolvedValue({} as never);
+
 			const executeCCMContext = testing.createExecuteCCMsgMethodContext({
 				...beforeSendCCMContext,
 			});
@@ -706,26 +715,6 @@ describe('Base interoperability store', () => {
 				expect(isValueChanged).toBeTrue();
 				expect(changedAccount).toEqual({ ...terminatedOutboxAccount, ...changedValues });
 			});
-		});
-	});
-
-	describe('getAllChainAccounts', () => {
-		const chainId = utils.intToBuffer(1, 4);
-		const chainId2 = utils.intToBuffer(100, 4);
-		beforeEach(async () => {
-			await chainDataSubstore.set(context, chainId, chainAccount);
-			await chainDataSubstore.set(context, chainId2, chainAccount2);
-		});
-
-		it('should return all stored chains', async () => {
-			await expect(
-				mainchainInteroperabilityStore.getAllChainAccounts(chainId),
-			).resolves.toStrictEqual([chainAccount, chainAccount2]);
-		});
-		it('should return all stored chains with chainID gte startChainID', async () => {
-			await expect(
-				mainchainInteroperabilityStore.getAllChainAccounts(chainId2),
-			).resolves.toStrictEqual([chainAccount2]);
 		});
 	});
 });

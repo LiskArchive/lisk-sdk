@@ -9,7 +9,6 @@ import {
 	COMMAND_NAME_STATE_RECOVERY_INIT,
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
-	MAINCHAIN_ID,
 	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
@@ -24,7 +23,6 @@ import { CommandExecuteContext, MainchainInteroperabilityModule } from '../../..
 import { TransactionContext } from '../../../../../../src/state_machine';
 import { stateRecoveryInitParams } from '../../../../../../src/modules/interoperability/schemas';
 import { createTransactionContext } from '../../../../../../src/testing';
-import { getIDAsKeyForStore } from '../../../../../../src/modules/interoperability/utils';
 import { CommandVerifyContext, VerifyStatus } from '../../../../../../src/state_machine/types';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
@@ -32,18 +30,32 @@ import {
 	TerminatedStateAccount,
 	TerminatedStateStore,
 } from '../../../../../../src/modules/interoperability/stores/terminated_state';
-import { chainAccountSchema } from '../../../../../../src/modules/interoperability/stores/chain_account';
+import {
+	chainAccountSchema,
+	ChainAccountStore,
+} from '../../../../../../src/modules/interoperability/stores/chain_account';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
+import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 
 describe('Mainchain StateRecoveryInitializationCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
-	type StoreMock = Mocked<
-		MainchainInteroperabilityStore,
-		| 'hasTerminatedStateAccount'
-		| 'createTerminatedStateAccount'
-		| 'getOwnChainAccount'
-		| 'getChainAccount'
-	>;
+	type StoreMock = Mocked<MainchainInteroperabilityStore, 'createTerminatedStateAccount'>;
+	const chainAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+		key: Buffer.from('chainAccount', 'hex'),
+	};
+	const ownChainAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
+	const terminateStateAccountMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
 	let stateRecoveryInitCommand: StateRecoveryInitializationCommand;
 	let commandExecuteContext: CommandExecuteContext<StateRecoveryInitParams>;
 	let transaction: Transaction;
@@ -124,11 +136,14 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 			stateRecoveryInitParams,
 		);
 
+		const chainAccountStore = new ChainAccountStore(interopMod.name);
+		chainAccountStoreMock.key = chainAccountStore.key;
+
+		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
+		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
+
 		interopStoreMock = {
 			createTerminatedStateAccount: jest.fn(),
-			hasTerminatedStateAccount: jest.fn().mockResolvedValue(true),
-			getOwnChainAccount: jest.fn(),
-			getChainAccount: jest.fn(),
 		};
 
 		jest
@@ -153,11 +168,10 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 				chainID: MAINCHAIN_ID_BUFFER,
 				nonce: BigInt('0'),
 			};
+			terminateStateAccountMock.has.mockResolvedValue(true);
+			ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount);
 			interopStoreMock = {
 				createTerminatedStateAccount: jest.fn(),
-				hasTerminatedStateAccount: jest.fn().mockResolvedValue(true),
-				getOwnChainAccount: jest.fn().mockResolvedValue(ownChainAccount),
-				getChainAccount: jest.fn(),
 			};
 			commandVerifyContext = transactionContext.createCommandVerifyContext<StateRecoveryInitParams>(
 				stateRecoveryInitParams,
@@ -191,8 +205,8 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 		});
 
 		it('should return error if the sidechain is not terminated on the mainchain but the sidechain violates the liveness requirement', async () => {
-			when(interopStoreMock.getChainAccount)
-				.calledWith(getIDAsKeyForStore(MAINCHAIN_ID))
+			when(chainAccountStoreMock.get)
+				.calledWith(expect.anything(), MAINCHAIN_ID_BUFFER)
 				.mockResolvedValue(mainchainAccount);
 			sidechainChainAccount = {
 				name: 'sidechain1',
@@ -247,8 +261,8 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 		});
 
 		it('should return error if terminated state account does not exist and proof of inclusion is not verified', async () => {
-			when(interopStoreMock.getChainAccount)
-				.calledWith(getIDAsKeyForStore(MAINCHAIN_ID))
+			when(chainAccountStoreMock.get)
+				.calledWith(expect.anything(), MAINCHAIN_ID_BUFFER)
 				.mockResolvedValue(mainchainAccount);
 			jest.spyOn(sparseMerkleTree, 'verify').mockReturnValue(false);
 			await terminatedStateSubstore.del(createStoreGetter(stateStore), transactionParams.chainID);
@@ -277,10 +291,13 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 
 		it('should update the terminated state account when there is one', async () => {
 			// Arrange & Assign & Act
-			when(interopStoreMock.hasTerminatedStateAccount)
-				.calledWith(transactionParams.chainID)
+			when(terminateStateAccountMock.has)
+				.calledWith(expect.anything(), transactionParams.chainID)
 				.mockResolvedValue(false);
 
+			const terminatedStateStore = interopMod.stores.get(TerminatedStateStore);
+			terminatedStateStore.get = terminateStateAccountMock.get;
+			terminateStateAccountMock.get.mockResolvedValue(terminatedStateAccount);
 			await stateRecoveryInitCommand.execute(commandExecuteContext);
 
 			const accountFromStore = await terminatedStateSubstore.get(
@@ -290,11 +307,6 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 
 			// Assert
 			expect(accountFromStore).toEqual(terminatedStateAccount);
-			expect(interopStoreMock.createTerminatedStateAccount).toHaveBeenCalledWith(
-				commandExecuteContext,
-				transactionParams.chainID,
-				terminatedStateAccount.stateRoot,
-			);
 		});
 	});
 });

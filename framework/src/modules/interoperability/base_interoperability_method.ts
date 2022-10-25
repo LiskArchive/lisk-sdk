@@ -35,6 +35,9 @@ import { ccmSchema } from './schemas';
 import { validateFormat } from './utils';
 import { TokenMethod } from '../token';
 import { OwnChainAccountStore } from './stores/own_chain_account';
+import { ChannelDataStore } from './stores/channel_data';
+import { TerminatedStateStore } from './stores/terminated_state';
+import { TerminatedOutboxStore } from './stores/terminated_outbox';
 
 export abstract class BaseInteroperabilityMethod<
 	T extends BaseInteroperabilityStore
@@ -77,23 +80,23 @@ export abstract class BaseInteroperabilityMethod<
 		context: ImmutableMethodContext,
 		chainID: Buffer,
 	): Promise<ChainAccount> {
-		return this.getInteroperabilityStore(context).getChainAccount(chainID);
+		return this.stores.get(ChainAccountStore).get(context, chainID);
 	}
 
 	public async getChannel(context: ImmutableMethodContext, chainID: Buffer) {
-		return this.getInteroperabilityStore(context).getChannel(chainID);
+		return this.stores.get(ChannelDataStore).get(context, chainID);
 	}
 
 	public async getOwnChainAccount(context: ImmutableMethodContext) {
-		return this.getInteroperabilityStore(context).getOwnChainAccount();
+		return this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
 	}
 
 	public async getTerminatedStateAccount(context: ImmutableMethodContext, chainID: Buffer) {
-		return this.getInteroperabilityStore(context).getTerminatedStateAccount(chainID);
+		return this.stores.get(TerminatedStateStore).get(context, chainID);
 	}
 
 	public async getTerminatedOutboxAccount(context: ImmutableMethodContext, chainID: Buffer) {
-		return this.getInteroperabilityStore(context).getTerminatedOutboxAccount(chainID);
+		return this.stores.get(TerminatedOutboxStore).get(context, chainID);
 	}
 
 	public async getMessageFeeTokenID(

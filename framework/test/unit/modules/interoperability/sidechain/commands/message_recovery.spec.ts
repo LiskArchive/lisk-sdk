@@ -26,6 +26,7 @@ import { TransactionContext } from '../../../../../../src/state_machine';
 import {
 	COMMAND_NAME_MESSAGE_RECOVERY,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	EMPTY_BYTES,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
@@ -34,12 +35,21 @@ import {
 } from '../../../../../../src/modules/interoperability/schemas';
 import { createTransactionContext } from '../../../../../../src/testing';
 import { swapReceivingAndSendingChainIDs } from '../../../../../../src/modules/interoperability/utils';
-import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
-import { Mocked } from '../../../../../utils/types';
+import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
+import { TerminatedOutboxStore } from '../../../../../../src/modules/interoperability/stores/terminated_outbox';
 
 describe('Sidechain MessageRecoveryCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
-
+	const ownChainAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
+	const terminatedOutboxAccountMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
 	const createCommandExecuteContext = (ccms: CCMsg[]) => {
 		const ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 
@@ -73,14 +83,6 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		return commandExecuteContext;
 	};
 
-	type StoreMock = Mocked<
-		SidechainInteroperabilityStore,
-		| 'getOwnChainAccount'
-		| 'getTerminatedOutboxAccount'
-		| 'setTerminatedOutboxAccount'
-		| 'terminatedOutboxAccountExist'
-	>;
-
 	let messageRecoveryCommand: SidechainMessageRecoveryCommand;
 	let commandExecuteContext: CommandExecuteContext<MessageRecoveryParams>;
 	let interoperableCCMethods: Map<string, BaseInteroperableMethod>;
@@ -89,7 +91,6 @@ describe('Sidechain MessageRecoveryCommand', () => {
 	let transactionParams: MessageRecoveryParams;
 	let encodedTransactionParams: Buffer;
 	let transactionContext: TransactionContext;
-	let storeMock: StoreMock;
 	let ccms: CCMsg[];
 
 	beforeEach(() => {
@@ -128,23 +129,17 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 		commandExecuteContext = createCommandExecuteContext(ccms);
 
-		storeMock = {
-			getOwnChainAccount: jest.fn(),
-			getTerminatedOutboxAccount: jest.fn(),
-			setTerminatedOutboxAccount: jest.fn(),
-			terminatedOutboxAccountExist: jest.fn().mockResolvedValue(true),
-		};
-
-		jest
-			.spyOn(messageRecoveryCommand, 'getInteroperabilityStore' as any)
-			.mockImplementation(() => storeMock);
+		jest.spyOn(messageRecoveryCommand, 'getInteroperabilityStore' as any);
 		jest.spyOn(regularMerkleTree, 'calculateRootFromUpdateData').mockReturnValue(Buffer.alloc(32));
+
+		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
+		interopMod.stores.register(TerminatedOutboxStore, terminatedOutboxAccountMock as never);
 
 		for (const ccm of ccms) {
 			const chainID = ccm.sendingChainID;
 
-			when(storeMock.getOwnChainAccount)
-				.calledWith()
+			when(ownChainAccountStoreMock.get)
+				.calledWith(expect.anything(), EMPTY_BYTES)
 				.mockResolvedValue({
 					name: `chain${chainID.toString('hex')}`,
 					chainID: ccm.sendingChainID,
@@ -172,13 +167,15 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 		const { chainID } = transactionParams;
 
-		when(storeMock.getTerminatedOutboxAccount)
-			.calledWith(chainID)
+		when(terminatedOutboxAccountMock.get)
+			.calledWith(expect.anything(), chainID)
 			.mockResolvedValue({
 				outboxRoot: utils.getRandomBytes(32),
 				outboxSize: 1,
 				partnerChainInboxSize: 1,
 			});
+
+		terminatedOutboxAccountMock.has.mockResolvedValue(true);
 	});
 
 	// The verify hook is already tested under ../../mainchain/commands/message_recovery.ts hence not added here to avoid duplication
@@ -279,7 +276,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		// Assign & Arrange
 		const { chainID } = transactionParams;
 
-		when(storeMock.terminatedOutboxAccountExist).calledWith(chainID).mockResolvedValue(false);
+		when(terminatedOutboxAccountMock.has).calledWith(chainID).mockResolvedValue(false);
 
 		// Assert
 		await expect(messageRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
@@ -292,8 +289,8 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		for (const ccm of ccms) {
 			const chainID = ccm.sendingChainID;
 
-			when(storeMock.getOwnChainAccount)
-				.calledWith()
+			when(ownChainAccountStoreMock.get)
+				.calledWith(expect.anything(), EMPTY_BYTES)
 				.mockResolvedValue({
 					name: `chain${chainID.toString('hex')}`,
 					chainID: utils.intToBuffer(0, 4),

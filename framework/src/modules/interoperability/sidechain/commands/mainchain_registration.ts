@@ -79,8 +79,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
+		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
 		if (!ownChainID.equals(ownChainAccount.chainID)) {
 			return {
 				status: VerifyStatus.FAIL,

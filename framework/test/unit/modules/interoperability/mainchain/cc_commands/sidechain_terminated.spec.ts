@@ -23,6 +23,7 @@ import {
 import { MainchainCCSidechainTerminatedCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands';
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { sidechainTerminatedCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
+import { TerminatedStateStore } from '../../../../../../src/modules/interoperability/stores/terminated_state';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
 import { NamedRegistry } from '../../../../../../src/modules/named_registry';
 import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
@@ -94,7 +95,8 @@ describe('MainchainCCSidechainTerminatedCommand', () => {
 			new NamedRegistry(),
 		);
 		mainchainInteroperabilityStore.terminateChainInternal = terminateChainInternalMock;
-		mainchainInteroperabilityStore.hasTerminatedStateAccount = hasTerminatedStateAccountMock;
+
+		interopMod.stores.get(TerminatedStateStore).has = hasTerminatedStateAccountMock;
 		mainchainInteroperabilityStore.createTerminatedStateAccount = createTerminatedStateAccountMock;
 
 		ccSidechainTerminatedCommand = new MainchainCCSidechainTerminatedCommand(

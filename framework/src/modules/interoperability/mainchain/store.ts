@@ -27,6 +27,7 @@ import {
 	CHAIN_REGISTERED,
 	CHAIN_TERMINATED,
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+	EMPTY_BYTES,
 	EMPTY_FEE_ADDRESS,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID_BUFFER,
@@ -45,10 +46,14 @@ import { ForwardCCMsgResult } from './types';
 import { ccmSchema } from '../schemas';
 import { CcmProcessedEvent } from '../events/ccm_processed';
 import { CcmSendSuccessEvent } from '../events/ccm_send_success';
+import { OwnChainAccountStore } from '../stores/own_chain_account';
+import { ChainAccountStore } from '../stores/chain_account';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async isLive(chainID: Buffer, timestamp: number): Promise<boolean> {
-		const ownChainAccount = await this.getOwnChainAccount();
+		const ownChainAccount = await this.stores
+			.get(OwnChainAccountStore)
+			.get(this.context, EMPTY_BYTES);
 		if (chainID.equals(ownChainAccount.chainID)) {
 			return true;
 		}
@@ -57,9 +62,9 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			return false;
 		}
 
-		const chainAccountExists = await this.chainAccountExist(chainID);
+		const chainAccountExists = await this.stores.get(ChainAccountStore).has(this.context, chainID);
 		if (chainAccountExists) {
-			const chainAccount = await this.getChainAccount(chainID);
+			const chainAccount = await this.stores.get(ChainAccountStore).get(this.context, chainID);
 			if (chainAccount.status === CHAIN_TERMINATED) {
 				return false;
 			}
@@ -95,7 +100,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		}
 
 		const receivingChainAccount = await handlePromiseErrorWithNull(
-			this.getChainAccount(ccm.receivingChainID),
+			this.stores.get(ChainAccountStore).get(this.context, ccm.receivingChainID),
 		);
 
 		const isLive = await this.isLive(ccm.receivingChainID, Date.now());
@@ -197,7 +202,9 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		let receivingChainAccount;
 		try {
 			// Chain has to exist on mainchain
-			receivingChainAccount = await this.getChainAccount(sendContext.receivingChainID);
+			receivingChainAccount = await this.stores
+				.get(ChainAccountStore)
+				.get(this.context, sendContext.receivingChainID);
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -222,7 +229,9 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			return false;
 		}
 
-		const ownChainAccount = await this.getOwnChainAccount();
+		const ownChainAccount = await this.stores
+			.get(OwnChainAccountStore)
+			.get(this.context, EMPTY_BYTES);
 		// Create cross-chain message
 		const ccm: CCMsg = {
 			crossChainCommand: sendContext.crossChainCommand,
@@ -262,7 +271,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		}
 		await this.addToOutbox(sendContext.receivingChainID, ccm);
 		ownChainAccount.nonce += BigInt(1);
-		await this.setOwnChainAccount(ownChainAccount);
+		await this.stores.get(OwnChainAccountStore).set(this.context, EMPTY_BYTES, ownChainAccount);
 
 		return true;
 	}

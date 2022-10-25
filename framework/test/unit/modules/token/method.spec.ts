@@ -485,7 +485,6 @@ describe('token module', () => {
 				),
 			).rejects.toThrow('is not sufficient for');
 		});
-
 		// TODO: Update after Token module update
 		// eslint-disable-next-line jest/no-disabled-tests
 		it.skip('should not update sender balance if send fail and chain id is native chain', async () => {
@@ -505,7 +504,6 @@ describe('token module', () => {
 				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
 			).resolves.toEqual(defaultAccount.availableBalance);
 		});
-
 		// TODO: Update after Token module update
 		// eslint-disable-next-line jest/no-disabled-tests
 		it.skip('should not update sender balance if send fail and chain id is mainchain', async () => {
