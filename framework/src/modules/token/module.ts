@@ -31,7 +31,7 @@ import {
 } from './schemas';
 import { TokenMethod } from './method';
 import { TokenEndpoint } from './endpoint';
-import { GenesisTokenStore, InteroperabilityMethod, MinBalance, ModuleConfig } from './types';
+import { GenesisTokenStore, InteroperabilityMethod, MinBalance, ModuleConfigJSON } from './types';
 import { splitTokenID } from './utils';
 import { CCTransferCommand } from './commands/cc_transfer';
 import { BaseInteroperableModule } from '../interoperability/base_interoperable_module';
@@ -169,7 +169,7 @@ export class TokenModule extends BaseInteroperableModule {
 			defaultConfig,
 			{ feeTokenID: Buffer.concat([this._ownChainID, Buffer.alloc(4, 0)]).toString('hex') },
 			moduleConfig,
-		) as ModuleConfig;
+		) as ModuleConfigJSON;
 		validator.validate(configSchema, config);
 
 		this.stores.get(SupportedTokensStore).registerOwnChainID(this._ownChainID);
@@ -190,7 +190,7 @@ export class TokenModule extends BaseInteroperableModule {
 		this.endpoint.init(this.method);
 		this._transferCommand.init({
 			method: this.method,
-			accountInitializationFee: BigInt(config.accountInitializationFee),
+			accountInitializationFee: BigInt(config.userAccountInitializationFee),
 			feeTokenID: Buffer.from(config.feeTokenID, 'hex'),
 		});
 	}
