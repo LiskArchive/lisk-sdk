@@ -48,3 +48,9 @@ export const defaultConfig = {
 	numberStandbyDelegates: 2,
 	tokenIDDPoS: '0000000000000000',
 };
+
+export const enum PoSEventResult {
+	SUCCESSFUL = 0,
+	FAIL_INSUFFICIENT_BALANCE = 1,
+	FAIL_RECIPIENT_NOT_INITIALIZED = 2,
+}
