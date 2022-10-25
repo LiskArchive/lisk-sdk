@@ -108,7 +108,6 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 		if (allSupported) {
 			return;
 		}
-		await this.del(context, ALL_SUPPORTED_TOKENS_KEY);
 		await this.set(context, chainID, { supportedTokenIDs: [] });
 	}
 
@@ -117,9 +116,18 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 		if (this._isMainchainOrNative(Buffer.concat([chainID, Buffer.alloc(LOCAL_ID_LENGTH)]))) {
 			return;
 		}
+		const allSupported = await this.allSupported(context);
+		if (allSupported) {
+			throw new Error('Invalid operation. All tokens from all chains are supported.');
+		}
+		if (chainID.equals(this._ownChainID)) {
+			throw new Error(
+				'Invalid operation. All tokens from all the specified chain should be supported.',
+			);
+		}
 		const supportExist = await this.has(context, chainID);
 		if (!supportExist) {
-			throw new Error(`ChainID ${chainID.toString('hex')} is not supported.`);
+			return;
 		}
 		await this.del(context, chainID);
 	}
@@ -137,6 +145,9 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 		let supported: SupportedTokensStoreData = { supportedTokenIDs: [] };
 		try {
 			supported = await this.get(context, chainID);
+			if (supported.supportedTokenIDs.length === 0) {
+				return;
+			}
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -150,24 +161,30 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 
 	public async removeSupportForToken(context: StoreGetter, tokenID: Buffer): Promise<void> {
 		if (this._isMainchainOrNative(tokenID)) {
-			return;
+			throw new Error('Cannot remove support for LSK token.');
 		}
 		const allSupported = await this.allSupported(context);
 		if (allSupported) {
-			return;
+			throw new Error('All tokens are supported.');
 		}
 		const [chainID] = splitTokenID(tokenID);
-		const supported = await this.get(context, chainID);
-		const index = supported.supportedTokenIDs.findIndex(id => id.equals(tokenID));
-		if (index < 0) {
-			throw new Error(`TokenID ${tokenID.toString('hex')} is not supported.`);
+		const supportExist = await this.has(context, chainID);
+		if (!supportExist) {
+			return;
 		}
-		supported.supportedTokenIDs.splice(index, 1);
+		const supported = await this.get(context, chainID);
+		if (supported.supportedTokenIDs.length === 0) {
+			throw new Error('All tokens from the specified chain are supported.');
+		}
 
-		if (supported.supportedTokenIDs.length > 0) {
+		const index = supported.supportedTokenIDs.findIndex(id => id.equals(tokenID));
+		if (index >= 0) {
+			supported.supportedTokenIDs.splice(index, 1);
 			await this.set(context, chainID, supported);
-		} else {
-			await this.del(context, chainID);
+
+			if (supported.supportedTokenIDs.length === 0) {
+				await this.del(context, chainID);
+			}
 		}
 	}
 
