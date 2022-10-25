@@ -12,11 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import { StoreGetter } from '../../../base_store';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 import { CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED } from '../../constants';
 import { channelTerminatedCCMParamsSchema } from '../../schemas';
-import { CCCommandExecuteContext } from '../../types';
+import { CCCommandExecuteContext, ChannelTerminatedCCMParams } from '../../types';
 import { MainchainInteroperabilityStore } from '../store';
 
 export class MainchainCCChannelTerminatedCommand extends BaseInteroperabilityCCCommand {
@@ -27,11 +28,27 @@ export class MainchainCCChannelTerminatedCommand extends BaseInteroperabilityCCC
 	}
 
 	public async execute(context: CCCommandExecuteContext): Promise<void> {
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-		if (!context.ccm) {
-			throw new Error('CCM to execute channel terminated cross chain command is missing.');
+		if (await this.getInteroperabilityStore(context).isLive(context.chainID, Date.now())) {
+			const interoperabilityStore = this.getInteroperabilityStore(context);
+			if (!context.ccm) {
+				throw new Error('CCM to execute channel terminated cross chain command is missing.');
+			}
+			const ccmParamsChannel = await interoperabilityStore.getChannel(context.chainID);
+			const channelTerminatedCCMParams = codec.decode<ChannelTerminatedCCMParams>(
+				this.schema,
+				context.ccm.params,
+			);
+			await interoperabilityStore.createTerminatedStateAccount(
+				context.ccm.sendingChainID,
+				channelTerminatedCCMParams.stateRoot,
+			);
+			await interoperabilityStore.createTerminatedOutboxAccount(
+				context.ccm.sendingChainID,
+				ccmParamsChannel.outbox.root,
+				ccmParamsChannel.outbox.size,
+				channelTerminatedCCMParams.inboxSize,
+			);
 		}
-		await interoperabilityStore.createTerminatedStateAccount(context.ccm.sendingChainID);
 	}
 
 	protected getInteroperabilityStore(context: StoreGetter): MainchainInteroperabilityStore {

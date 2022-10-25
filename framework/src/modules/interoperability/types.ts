@@ -380,3 +380,8 @@ export interface GenesisInteroperabilityStore {
 		storeValue: ChainID;
 	}[];
 }
+
+export interface ChannelTerminatedCCMParams {
+	stateRoot: Buffer;
+	inboxSize: number;
+}
