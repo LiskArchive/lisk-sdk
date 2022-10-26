@@ -18,13 +18,7 @@ import { JSONObject } from '../../types';
 
 export type TokenID = Buffer;
 
-export interface MinBalance {
-	tokenID: Buffer;
-	amount: bigint;
-}
-
 export interface ModuleConfig {
-	minBalances: MinBalance[];
 	ownChainID: Buffer;
 	userAccountInitializationFee: bigint;
 	escrowAccountInitializationFee: bigint;

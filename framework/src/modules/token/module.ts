@@ -31,7 +31,7 @@ import {
 } from './schemas';
 import { TokenMethod } from './method';
 import { TokenEndpoint } from './endpoint';
-import { GenesisTokenStore, InteroperabilityMethod, MinBalance, ModuleConfigJSON } from './types';
+import { GenesisTokenStore, InteroperabilityMethod, ModuleConfigJSON } from './types';
 import { splitTokenID } from './utils';
 import { CCTransferCommand } from './commands/cc_transfer';
 import { BaseInteroperableModule } from '../interoperability/base_interoperable_module';
@@ -71,7 +71,6 @@ export class TokenModule extends BaseInteroperableModule {
 		this.method,
 	);
 
-	private _minBalances!: MinBalance[];
 	private _ownChainID!: Buffer;
 	private readonly _transferCommand = new TransferCommand(this.stores, this.events);
 	private readonly _ccTransferCommand = new CCTransferCommand(this.stores, this.events);
@@ -175,12 +174,7 @@ export class TokenModule extends BaseInteroperableModule {
 		this.stores.get(SupportedTokensStore).registerOwnChainID(this._ownChainID);
 		this.crossChainTransferCommand.init({ ownChainID: this._ownChainID });
 
-		this._minBalances = config.minBalances.map(mb => ({
-			tokenID: Buffer.from(mb.tokenID, 'hex'),
-			amount: BigInt(mb.amount),
-		}));
 		this.method.init({
-			minBalances: this._minBalances,
 			ownChainID: this._ownChainID,
 			escrowAccountInitializationFee: BigInt('50000000'),
 			feeTokenID: Buffer.from(config.feeTokenID, 'hex'),

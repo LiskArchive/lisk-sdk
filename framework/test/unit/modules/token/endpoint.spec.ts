@@ -25,7 +25,6 @@ import {
 	createTransientModuleEndpointContext,
 } from '../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
-import { DEFAULT_LOCAL_ID } from '../../../utils/mocks/transaction';
 
 describe('token endpoint', () => {
 	const tokenModule = new TokenModule();
@@ -54,12 +53,6 @@ describe('token endpoint', () => {
 		endpoint = new TokenEndpoint(tokenModule.stores, tokenModule.offchainStores);
 		method.init({
 			ownChainID: Buffer.from([0, 0, 0, 1]),
-			minBalances: [
-				{
-					tokenID: DEFAULT_LOCAL_ID,
-					amount: BigInt(5000000),
-				},
-			],
 			escrowAccountInitializationFee: BigInt(50000000),
 			userAccountInitializationFee: BigInt(50000000),
 			feeTokenID: defaultTokenID,

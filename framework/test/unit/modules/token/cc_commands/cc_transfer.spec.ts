@@ -88,12 +88,6 @@ describe('CrossChain Transfer Command', () => {
 			escrowAccountInitializationFee: BigInt(50000000),
 			userAccountInitializationFee: BigInt(50000000),
 			feeTokenID: defaultTokenID,
-			minBalances: [
-				{
-					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
-					amount: BigInt(5000000),
-				},
-			],
 		});
 		command.init({
 			ownChainID,

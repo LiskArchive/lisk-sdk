@@ -21,14 +21,11 @@ export const MIN_MODULE_NAME_LENGTH = 1;
 export const MAX_MODULE_NAME_LENGTH = 32;
 
 export const MAX_TRANSACTION_AMOUNT = '9223372036854775807';
-export const DEFAULT_MIN_REMAINING_BALANCE = BigInt(5000000);
 
 export const CCM_STATUS_OK = 0;
 export const CCM_STATUS_TOKEN_NOT_SUPPORTED = 64;
 export const CCM_STATUS_PROTOCOL_VIOLATION = 65;
-export const CCM_STATUS_MIN_BALANCE_NOT_REACHED = 66;
 
-export const MIN_BALANCE = BigInt(5000000);
 export const MIN_RETURN_FEE = BigInt(1000);
 export const FEE_CCM_INIT_USER_STORE = BigInt(5000000);
 
@@ -44,14 +41,8 @@ export const ESCROW_SUBSTORE_INITIALIZATION_FEE = BigInt(5000000);
 export const TOKEN_ID_STORE_INITIALIZATION = TOKEN_ID_LSK;
 
 export const defaultConfig = {
-	minBalances: [
-		{
-			tokenID: Buffer.alloc(TOKEN_ID_LENGTH, 0).toString('hex'),
-			amount: String(DEFAULT_MIN_REMAINING_BALANCE),
-		},
-	],
-	userAccountInitializationFee: String(USER_SUBSTORE_INITIALIZATION_FEE),
-	escrowAccountInitializationFee: String(ESCROW_SUBSTORE_INITIALIZATION_FEE),
+	userAccountInitializationFee: USER_SUBSTORE_INITIALIZATION_FEE.toString(),
+	escrowAccountInitializationFee: ESCROW_SUBSTORE_INITIALIZATION_FEE.toString(),
 };
 
 export const EMPTY_BYTES = Buffer.alloc(0);

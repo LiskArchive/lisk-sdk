@@ -19,7 +19,6 @@ import { TokenModule, VerifyStatus } from '../../../../../src';
 import { TokenMethod } from '../../../../../src/modules/token/method';
 import { TransferCommand } from '../../../../../src/modules/token/commands/transfer';
 import {
-	MIN_BALANCE,
 	TOKEN_ID_STORE_INITIALIZATION,
 	USER_SUBSTORE_INITIALIZATION_FEE,
 } from '../../../../../src/modules/token/constants';
@@ -47,8 +46,6 @@ describe('Transfer command', () => {
 	const defaultEscrowAccountInitFee = BigInt('50000000');
 
 	const defaultTokenID = Buffer.concat([ownChainID, Buffer.alloc(4)]);
-	const localTokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
-	const secondTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
 	const method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
 	let command: TransferCommand;
 	let interopMethod: {
@@ -93,10 +90,6 @@ describe('Transfer command', () => {
 			escrowAccountInitializationFee: defaultEscrowAccountInitFee,
 			userAccountInitializationFee: defaultUserAccountInitFee,
 			feeTokenID: defaultTokenID,
-			minBalances: [
-				{ tokenID: localTokenID, amount: BigInt(MIN_BALANCE) },
-				{ tokenID: secondTokenID, amount: BigInt(MIN_BALANCE) },
-			],
 		});
 
 		command.init({
