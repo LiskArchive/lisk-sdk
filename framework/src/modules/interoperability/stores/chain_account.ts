@@ -11,8 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { utils } from '@liskhq/lisk-cryptography';
+import { ModuleEndpointContext } from '../../../types';
 import { BaseStore } from '../../base_store';
 import { HASH_LENGTH } from '../constants';
+import { MAX_UINT32 } from '../constants';
 
 export interface LastCertificate {
 	height: number;
@@ -96,4 +99,19 @@ export const allChainAccountsSchema = {
 
 export class ChainAccountStore extends BaseStore<ChainAccount> {
 	public schema = chainAccountSchema;
+
+	public async getAllAccounts(
+		context: ModuleEndpointContext,
+		startChainID: Buffer,
+	): Promise<ChainAccount[]> {
+		const endBuf = utils.intToBuffer(MAX_UINT32, 4);
+		const chainAccounts = await this.iterate(context, {
+			gte: startChainID,
+			lte: endBuf,
+		});
+
+		return Promise.all(
+			chainAccounts.map(async chainAccount => this.get(context, chainAccount.key)),
+		);
+	}
 }
