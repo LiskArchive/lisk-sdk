@@ -24,22 +24,6 @@ export const configSchema = {
 	$id: '/token/config',
 	type: 'object',
 	properties: {
-		minBalances: {
-			type: 'array',
-			items: {
-				type: 'object',
-				properties: {
-					tokenID: {
-						type: 'string',
-						format: 'hex',
-					},
-					amount: {
-						type: 'string',
-						format: 'uint64',
-					},
-				},
-			},
-		},
 		supportedTokenIDs: {
 			items: {
 				type: 'string',
