@@ -13,10 +13,17 @@
  */
 import { NotFoundError } from '@liskhq/lisk-db';
 import { BaseStore, ImmutableStoreGetter } from '../../base_store';
+import { MAX_NUMBER_BYTES_Q96, TOKEN_ID_LENGTH } from '../constants';
+
+export interface VoteSharingCofficientObject {
+	tokenID: Buffer;
+	coefficient: Buffer;
+}
 
 export interface VoteObject {
 	delegateAddress: Buffer;
 	amount: bigint;
+	voteSharingCoefficients: VoteSharingCofficientObject[];
 }
 
 export interface UnlockingObject {
@@ -40,15 +47,37 @@ export const voterStoreSchema = {
 			fieldNumber: 1,
 			items: {
 				type: 'object',
-				required: ['delegateAddress', 'amount'],
+				required: ['delegateAddress', 'amount', 'voteSharingCoefficients'],
 				properties: {
 					delegateAddress: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						format: 'lisk32',
 					},
 					amount: {
 						dataType: 'uint64',
 						fieldNumber: 2,
+					},
+					voteSharingCoefficients: {
+						type: 'array',
+						fieldNumber: 3,
+						items: {
+							type: 'object',
+							required: ['tokenID', 'coefficient'],
+							properties: {
+								tokenID: {
+									dataType: 'bytes',
+									fieldNumber: 1,
+									minLength: TOKEN_ID_LENGTH,
+									maxLength: TOKEN_ID_LENGTH,
+								},
+								coefficient: {
+									dataType: 'bytes',
+									fieldNumber: 2,
+									maxLength: MAX_NUMBER_BYTES_Q96,
+								},
+							},
+						},
 					},
 				},
 			},
@@ -63,6 +92,7 @@ export const voterStoreSchema = {
 					delegateAddress: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						format: 'lisk32',
 					},
 					amount: {
 						dataType: 'uint64',

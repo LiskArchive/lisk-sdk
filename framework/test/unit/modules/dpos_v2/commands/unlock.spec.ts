@@ -79,6 +79,9 @@ describe('UnlockCommand', () => {
 		isBanned: false,
 		pomHeights: [],
 		consecutiveMissedBlocks: 0,
+		commission: 0,
+		lastCommissionIncreaseHeight: 0,
+		sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 	};
 	const publicKey = utils.getRandomBytes(32);
 	const transaction = new Transaction({
@@ -147,7 +150,11 @@ describe('UnlockCommand', () => {
 			};
 			await voterSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				sentVotes: [
-					{ delegateAddress: unlockableObject.delegateAddress, amount: unlockableObject.amount },
+					{
+						delegateAddress: unlockableObject.delegateAddress,
+						amount: unlockableObject.amount,
+						voteSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+					},
 				],
 				pendingUnlocks: [unlockableObject, nonUnlockableObject],
 			});
@@ -199,8 +206,16 @@ describe('UnlockCommand', () => {
 			};
 			await voterSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				sentVotes: [
-					{ delegateAddress: unlockableObject.delegateAddress, amount: delegate1.amount },
-					{ delegateAddress: nonUnlockableObject.delegateAddress, amount: delegate2.amount },
+					{
+						delegateAddress: unlockableObject.delegateAddress,
+						amount: delegate1.amount,
+						voteSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+					},
+					{
+						delegateAddress: nonUnlockableObject.delegateAddress,
+						amount: delegate2.amount,
+						voteSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+					},
 				],
 				pendingUnlocks: [unlockableObject, nonUnlockableObject],
 			});
@@ -280,18 +295,25 @@ describe('UnlockCommand', () => {
 			};
 			await voterSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				sentVotes: [
-					{ delegateAddress: unlockableObject.delegateAddress, amount: unlockableObject.amount },
+					{
+						delegateAddress: unlockableObject.delegateAddress,
+						amount: unlockableObject.amount,
+						voteSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+					},
 					{
 						delegateAddress: unlockableObject2.delegateAddress,
 						amount: unlockableObject2.amount,
+						voteSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 					{
 						delegateAddress: unlockableObject3.delegateAddress,
 						amount: unlockableObject3.amount,
+						voteSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 					{
 						delegateAddress: nonUnlockableObject.delegateAddress,
 						amount: nonUnlockableObject.amount,
+						voteSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [
@@ -352,10 +374,15 @@ describe('UnlockCommand', () => {
 			};
 			await voterSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				sentVotes: [
-					{ delegateAddress: unlockableObject.delegateAddress, amount: unlockableObject.amount },
+					{
+						delegateAddress: unlockableObject.delegateAddress,
+						amount: unlockableObject.amount,
+						voteSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+					},
 					{
 						delegateAddress: nonUnlockableObject.delegateAddress,
 						amount: nonUnlockableObject.amount,
+						voteSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [unlockableObject, nonUnlockableObject],
@@ -407,6 +434,7 @@ describe('UnlockCommand', () => {
 					{
 						delegateAddress: nonUnlockableObject.delegateAddress,
 						amount: nonUnlockableObject.amount,
+						voteSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [nonUnlockableObject],
@@ -451,7 +479,11 @@ describe('UnlockCommand', () => {
 			};
 			await voterSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				sentVotes: [
-					{ delegateAddress: unlockableObject.delegateAddress, amount: unlockableObject.amount },
+					{
+						delegateAddress: unlockableObject.delegateAddress,
+						amount: unlockableObject.amount,
+						voteSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+					},
 				],
 				pendingUnlocks: [nonUnlockableObject],
 			});
@@ -503,7 +535,11 @@ describe('UnlockCommand', () => {
 			};
 			await voterSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				sentVotes: [
-					{ delegateAddress: unlockableObject.delegateAddress, amount: unlockableObject.amount },
+					{
+						delegateAddress: unlockableObject.delegateAddress,
+						amount: unlockableObject.amount,
+						voteSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+					},
 				],
 				pendingUnlocks: [unlockableObject, nonUnlockableObject],
 			});

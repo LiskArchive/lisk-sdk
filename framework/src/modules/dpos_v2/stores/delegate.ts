@@ -12,6 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseStore } from '../../base_store';
+import { MAX_NUMBER_BYTES_Q96, TOKEN_ID_LENGTH } from '../constants';
+
+export interface VoteSharingCofficientObject {
+	tokenID: Buffer;
+	coefficient: Buffer;
+}
 
 export interface DelegateAccount {
 	name: string;
@@ -21,6 +27,9 @@ export interface DelegateAccount {
 	isBanned: boolean;
 	pomHeights: number[];
 	consecutiveMissedBlocks: number;
+	commission: number;
+	lastCommissionIncreaseHeight: number;
+	sharingCoefficients: VoteSharingCofficientObject[];
 }
 
 export const delegateStoreSchema = {
@@ -34,6 +43,9 @@ export const delegateStoreSchema = {
 		'isBanned',
 		'pomHeights',
 		'consecutiveMissedBlocks',
+		'commission',
+		'lastCommissionIncreaseHeight',
+		'sharingCoefficients',
 	],
 	properties: {
 		name: {
@@ -64,6 +76,35 @@ export const delegateStoreSchema = {
 		consecutiveMissedBlocks: {
 			dataType: 'uint32',
 			fieldNumber: 7,
+		},
+		commission: {
+			dataType: 'uint32',
+			fieldNumber: 8,
+		},
+		lastCommissionIncreaseHeight: {
+			dataType: 'uint32',
+			fieldNumber: 9,
+		},
+		sharingCoefficients: {
+			type: 'array',
+			fieldNumber: 10,
+			items: {
+				type: 'object',
+				required: ['tokenID', 'coefficient'],
+				properties: {
+					tokenID: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+						minLength: TOKEN_ID_LENGTH,
+						maxLength: TOKEN_ID_LENGTH,
+					},
+					coefficient: {
+						dataType: 'bytes',
+						fieldNumber: 2,
+						maxLength: MAX_NUMBER_BYTES_Q96,
+					},
+				},
+			},
 		},
 	},
 };

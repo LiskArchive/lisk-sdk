@@ -120,6 +120,11 @@ export interface DelegateRegistrationParams {
 	generatorKey: Buffer;
 }
 
+export interface VoteSharingCofficientObject {
+	tokenID: Buffer;
+	coefficient: Buffer;
+}
+
 export interface DelegateAccount {
 	name: string;
 	totalVotesReceived: bigint;
@@ -128,6 +133,9 @@ export interface DelegateAccount {
 	isBanned: boolean;
 	pomHeights: number[];
 	consecutiveMissedBlocks: number;
+	commission: number;
+	lastCommissionIncreaseHeight: number;
+	sharingCoefficients: VoteSharingCofficientObject[];
 }
 
 export interface DelegateAccountJSON {

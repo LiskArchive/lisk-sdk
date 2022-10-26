@@ -65,6 +65,9 @@ describe('Update generator key command', () => {
 			isBanned: false,
 			pomHeights: [],
 			consecutiveMissedBlocks: 0,
+			commission: 0,
+			lastCommissionIncreaseHeight: 0,
+			sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 		});
 	});
 

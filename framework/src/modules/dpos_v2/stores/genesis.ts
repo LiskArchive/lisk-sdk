@@ -35,7 +35,10 @@ export const genesisDataStoreSchema = {
 		initDelegates: {
 			type: 'array',
 			fieldNumber: 3,
-			items: { dataType: 'bytes' },
+			items: {
+				dataType: 'bytes',
+				format: 'lisk32',
+			},
 		},
 	},
 };

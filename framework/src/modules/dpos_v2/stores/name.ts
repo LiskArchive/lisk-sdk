@@ -25,6 +25,7 @@ export const nameStoreSchema = {
 		delegateAddress: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			format: 'lisk32',
 		},
 	},
 };

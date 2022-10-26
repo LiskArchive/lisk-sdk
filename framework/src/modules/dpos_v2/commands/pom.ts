@@ -117,6 +117,7 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 		*/
 		const delegateAddress = header1.generatorAddress;
 		const delegateSubStore = this.stores.get(DelegateStore);
+
 		const delegateAccount = await delegateSubStore.get(context, delegateAddress);
 
 		if (delegateAccount.isBanned) {
