@@ -19,7 +19,6 @@ import { JSONObject } from '../../types';
 export type TokenID = Buffer;
 
 export interface ModuleConfig {
-	ownChainID: Buffer;
 	userAccountInitializationFee: bigint;
 	escrowAccountInitializationFee: bigint;
 	feeTokenID: Buffer;
