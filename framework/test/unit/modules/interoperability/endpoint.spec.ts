@@ -13,15 +13,8 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { intToBuffer } from '@liskhq/lisk-cryptography/dist-node/utils';
-import {
-	ImmutableStoreGetter,
-	ModuleEndpointContext,
-	SidechainInteroperabilityModule,
-	StoreGetter,
-} from '../../../../src';
+import { ModuleEndpointContext, SidechainInteroperabilityModule } from '../../../../src';
 import { BaseInteroperabilityEndpoint } from '../../../../src/modules/interoperability/base_interoperability_endpoint';
-import { SidechainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/sidechain/store';
 import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
@@ -44,29 +37,19 @@ import {
 	OwnChainAccountJSON,
 } from '../../../../src/modules/interoperability/types';
 import { chainAccountToJSON } from '../../../../src/modules/interoperability/utils';
-import { NamedRegistry } from '../../../../src/modules/named_registry';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 
-class TestEndpoint extends BaseInteroperabilityEndpoint<SidechainInteroperabilityInternalMethod> {
-	protected getInteroperabilityInternalMethod = (
-		context: StoreGetter | ImmutableStoreGetter,
-	): SidechainInteroperabilityInternalMethod =>
-		new SidechainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			context,
-			this.interoperableCCMethods,
-		);
-}
+class TestEndpoint extends BaseInteroperabilityEndpoint {}
+
 describe('Test interoperability endpoint', () => {
 	const interopMod = new SidechainInteroperabilityModule();
 	const chainID = utils.intToBuffer(1, 4);
-	const interoperableCCMethods = new Map();
 	const chainAccountStoreMock = {
 		get: jest.fn(),
 		set: jest.fn(),
 		has: jest.fn(),
+		getAllAccounts: jest.fn(),
 	};
 	const channelStoreMock = {
 		get: jest.fn(),
@@ -171,7 +154,7 @@ describe('Test interoperability endpoint', () => {
 	};
 
 	const ownChainAccount: OwnChainAccount = {
-		chainID: intToBuffer(1, 4),
+		chainID: utils.intToBuffer(1, 4),
 		name: 'main',
 		nonce: BigInt(10),
 	};
@@ -183,7 +166,6 @@ describe('Test interoperability endpoint', () => {
 	};
 
 	let TestInteroperabilityEndpoint: TestEndpoint;
-	let sidechainInteroperabilityInternalMethod: SidechainInteroperabilityInternalMethod;
 
 	beforeEach(() => {
 		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -195,25 +177,7 @@ describe('Test interoperability endpoint', () => {
 			params: {},
 			logger: {} as any,
 		};
-		TestInteroperabilityEndpoint = new TestEndpoint(
-			interopMod.stores,
-			interopMod.offchainStores,
-			interoperableCCMethods,
-			new NamedRegistry(),
-		);
-		sidechainInteroperabilityInternalMethod = new SidechainInteroperabilityInternalMethod(
-			interopMod.stores,
-			new NamedRegistry(),
-			moduleContext,
-			interoperableCCMethods,
-		);
-		jest
-			.spyOn(TestInteroperabilityEndpoint as any, 'getInteroperabilityInternalMethod')
-			.mockReturnValue(sidechainInteroperabilityInternalMethod);
-
-		jest
-			.spyOn(sidechainInteroperabilityInternalMethod, 'getAllChainAccounts')
-			.mockResolvedValue([chainAccount, chainAccount2]);
+		TestInteroperabilityEndpoint = new TestEndpoint(interopMod.stores, interopMod.offchainStores);
 
 		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
 		interopMod.stores.register(ChannelDataStore, channelStoreMock as never);
@@ -222,6 +186,7 @@ describe('Test interoperability endpoint', () => {
 		interopMod.stores.register(TerminatedOutboxStore, terminatedOutboxAccountMock as never);
 
 		chainAccountStoreMock.get.mockResolvedValue(chainAccount);
+		chainAccountStoreMock.getAllAccounts.mockResolvedValue([chainAccount, chainAccount2]);
 		channelStoreMock.get.mockResolvedValue(channelData);
 		ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount);
 		terminateStateAccountStoreMock.get.mockResolvedValue(terminateStateAccount);
@@ -255,17 +220,6 @@ describe('Test interoperability endpoint', () => {
 				moduleContext,
 				chainID,
 			));
-		});
-		it('should call getInteroperabilityInternalMethod', async () => {
-			expect(
-				TestInteroperabilityEndpoint['getInteroperabilityInternalMethod'],
-			).toHaveBeenCalledWith(moduleContext);
-		});
-
-		it('should call getAllChainAccounts', async () => {
-			expect(sidechainInteroperabilityInternalMethod.getAllChainAccounts).toHaveBeenCalledWith(
-				chainID,
-			);
 		});
 
 		it('should return JSON format result', () => {

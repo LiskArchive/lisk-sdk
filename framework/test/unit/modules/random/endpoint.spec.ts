@@ -58,11 +58,7 @@ describe('RandomModuleEndpoint', () => {
 
 	beforeEach(async () => {
 		const randomModule = new RandomModule();
-		randomEndpoint = new RandomEndpoint(
-			randomModule.stores,
-			randomModule.offchainStores,
-			randomModule.events,
-		);
+		randomEndpoint = new RandomEndpoint(randomModule.stores, randomModule.offchainStores);
 		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		context = createTransientModuleEndpointContext({
 			stateStore,

@@ -17,9 +17,5 @@ export abstract class BaseEndpoint {
 	[key: string]: unknown;
 
 	// eslint-disable-next-line no-useless-constructor
-	public constructor(
-		protected stores: NamedRegistry,
-		protected offchainStores: NamedRegistry,
-		protected events: NamedRegistry,
-	) {}
+	public constructor(protected stores: NamedRegistry, protected offchainStores: NamedRegistry) {}
 }

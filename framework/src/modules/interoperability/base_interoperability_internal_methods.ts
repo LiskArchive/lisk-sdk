@@ -58,9 +58,7 @@ import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
 import { BaseInternalMethod } from '../BaseInternalMethod';
 
 export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMethod {
-	public readonly events: NamedRegistry;
 	public readonly context: StoreGetter;
-	protected readonly stores: NamedRegistry;
 	protected readonly interoperableModuleMethods = new Map<string, BaseInteroperableMethod>();
 
 	public constructor(
@@ -69,11 +67,9 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		context: StoreGetter | ImmutableStoreGetter,
 		interoperableModuleMethods: Map<string, BaseInteroperableMethod>,
 	) {
-		super(stores, events, context);
+		super(stores, events);
 		this.context = context as StoreGetter;
-		this.stores = stores;
 		this.interoperableModuleMethods = interoperableModuleMethods;
-		this.events = events;
 	}
 
 	public async appendToInboxTree(chainID: Buffer, appendData: Buffer) {

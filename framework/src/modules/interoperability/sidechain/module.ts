@@ -54,12 +54,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.events,
 		this.interoperableCCMethods,
 	);
-	public endpoint = new SidechainInteroperabilityEndpoint(
-		this.stores,
-		this.offchainStores,
-		this.interoperableCCMethods,
-		this.events,
-	);
+	public endpoint = new SidechainInteroperabilityEndpoint(this.stores, this.offchainStores);
 
 	private readonly _mainchainRegistrationCommand = new MainchainRegistrationCommand(
 		this.stores,

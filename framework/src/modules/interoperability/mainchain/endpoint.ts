@@ -12,18 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MainchainInteroperabilityInternalMethod } from './store';
 import { BaseInteroperabilityEndpoint } from '../base_interoperability_endpoint';
-import { ImmutableStoreGetter, StoreGetter } from '../../base_store';
 
-export class MainchainInteroperabilityEndpoint extends BaseInteroperabilityEndpoint<MainchainInteroperabilityInternalMethod> {
-	protected getInteroperabilityInternalMethod = (
-		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityInternalMethod =>
-		new MainchainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			context,
-			this.interoperableCCMethods,
-		);
-}
+export class MainchainInteroperabilityEndpoint extends BaseInteroperabilityEndpoint {}

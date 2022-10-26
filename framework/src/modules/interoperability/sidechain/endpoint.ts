@@ -13,17 +13,5 @@
  */
 
 import { BaseInteroperabilityEndpoint } from '../base_interoperability_endpoint';
-import { StoreGetter, ImmutableStoreGetter } from '../../base_store';
-import { SidechainInteroperabilityInternalMethod } from './store';
 
-export class SidechainInteroperabilityEndpoint extends BaseInteroperabilityEndpoint<SidechainInteroperabilityInternalMethod> {
-	protected getInteroperabilityInternalMethod = (
-		context: StoreGetter | ImmutableStoreGetter,
-	): SidechainInteroperabilityInternalMethod =>
-		new SidechainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			context,
-			this.interoperableCCMethods,
-		);
-}
+export class SidechainInteroperabilityEndpoint extends BaseInteroperabilityEndpoint {}

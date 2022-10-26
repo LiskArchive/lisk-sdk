@@ -12,20 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StoreGetter, ImmutableStoreGetter } from './base_store';
 import { NamedRegistry } from './named_registry';
 
 export abstract class BaseInternalMethod {
 	public readonly events: NamedRegistry;
-	public readonly context: StoreGetter | ImmutableStoreGetter;
 	protected readonly stores: NamedRegistry;
 
-	public constructor(
-		stores: NamedRegistry,
-		events: NamedRegistry,
-		context: StoreGetter | ImmutableStoreGetter,
-	) {
-		this.context = context;
+	public constructor(stores: NamedRegistry, events: NamedRegistry) {
 		this.stores = stores;
 		this.events = events;
 	}
