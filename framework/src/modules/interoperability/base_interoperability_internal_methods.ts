@@ -55,8 +55,9 @@ import { ChainAccountStore } from './stores/chain_account';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/terminated_outbox';
 import { ChainAccountUpdatedEvent } from './events/chain_account_updated';
 import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
+import { BaseInternalMethod } from '../BaseInternalMethod';
 
-export abstract class BaseInteroperabilityStore {
+export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMethod {
 	public readonly events: NamedRegistry;
 	public readonly context: StoreGetter;
 	protected readonly stores: NamedRegistry;
@@ -64,10 +65,11 @@ export abstract class BaseInteroperabilityStore {
 
 	public constructor(
 		stores: NamedRegistry,
+		events: NamedRegistry,
 		context: StoreGetter | ImmutableStoreGetter,
 		interoperableModuleMethods: Map<string, BaseInteroperableMethod>,
-		events: NamedRegistry,
 	) {
+		super(stores, events, context);
 		this.context = context as StoreGetter;
 		this.stores = stores;
 		this.interoperableModuleMethods = interoperableModuleMethods;

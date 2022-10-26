@@ -18,7 +18,7 @@ import { registrationCCMParamsSchema } from '../../schemas';
 import { CCCommandExecuteContext } from '../../types';
 import { createCCMsgBeforeSendContext } from '../../context';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
-import { SidechainInteroperabilityStore } from '../store';
+import { SidechainInteroperabilityInternalMethod } from '../store';
 import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { ChannelDataStore } from '../../stores/channel_data';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
@@ -45,7 +45,7 @@ export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			registrationCCMParamsSchema,
 			ccm.params,
 		);
-		const interoperabilityStore = this.getInteroperabilityStore(ctx);
+		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(ctx);
 		const sendingChainChannelAccount = await this.stores
 			.get(ChannelDataStore)
 			.get(ctx, ccm.sendingChainID);
@@ -69,18 +69,21 @@ export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCComman
 				chainID: ctx.chainID,
 				feeAddress: ctx.feeAddress,
 			});
-			await interoperabilityStore.terminateChainInternal(ccm.sendingChainID, beforeSendContext);
+			await InteroperabilityInternalMethod.terminateChainInternal(
+				ccm.sendingChainID,
+				beforeSendContext,
+			);
 		}
 	}
 
-	protected getInteroperabilityStore(
+	protected getInteroperabilityInternalMethod(
 		context: StoreGetter | ImmutableStoreGetter,
-	): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(
+	): SidechainInteroperabilityInternalMethod {
+		return new SidechainInteroperabilityInternalMethod(
 			this.stores,
+			this.events,
 			context,
 			this.interoperableCCMethods,
-			this.events,
 		);
 	}
 }

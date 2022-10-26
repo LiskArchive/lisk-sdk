@@ -21,7 +21,7 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainCCRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands';
-import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
@@ -105,17 +105,17 @@ describe('MainchainCCRegistrationCommand', () => {
 		chainID,
 	});
 
-	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
+	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 	let ccRegistrationCommand: MainchainCCRegistrationCommand;
 
 	beforeEach(() => {
-		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
+		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 			interopMod.stores,
+			new NamedRegistry(),
 			sampleExecuteContext,
 			ccMethodsMap,
-			new NamedRegistry(),
 		);
-		mainchainInteroperabilityStore.terminateChainInternal = terminateChainInternalMock;
+		mainchainInteroperabilityInternalMethod.terminateChainInternal = terminateChainInternalMock;
 
 		interopMod.stores.register(ChannelDataStore, getChannelMock as never);
 		interopMod.stores.register(OwnChainAccountStore, getOwnChainAccountMock as never);
@@ -125,9 +125,9 @@ describe('MainchainCCRegistrationCommand', () => {
 			interopMod.events,
 			ccMethodsMap,
 		);
-		(ccRegistrationCommand as any)['getInteroperabilityStore'] = jest
+		(ccRegistrationCommand as any)['getInteroperabilityInternalMethod'] = jest
 			.fn()
-			.mockReturnValue(mainchainInteroperabilityStore);
+			.mockReturnValue(mainchainInteroperabilityInternalMethod);
 	});
 
 	it('should call terminateChainInternal when sendingChainChannelAccount.inbox.size !== 1', async () => {

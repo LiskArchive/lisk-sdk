@@ -23,7 +23,7 @@ import {
 } from '../../../../state_machine/types';
 import { CCMsg, MessageRecoveryParams } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
-import { MainchainInteroperabilityStore } from '../store';
+import { MainchainInteroperabilityInternalMethod } from '../store';
 import { verifyMessageRecovery, swapReceivingAndSendingChainIDs, getCCMSize } from '../../utils';
 import {
 	CCM_STATUS_CODE_RECOVERED,
@@ -53,11 +53,11 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			params: { chainID, idxs, crossChainMessages, siblingHashes },
 		} = context;
 		const chainIdAsBuffer = chainID;
-		const interoperabilityStore = this.getInteroperabilityStore(context);
+		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 		let terminatedChainOutboxAccount: TerminatedOutboxAccount | undefined;
 
 		try {
-			terminatedChainOutboxAccount = await interoperabilityStore.getTerminatedOutboxAccount(
+			terminatedChainOutboxAccount = await InteroperabilityInternalMethod.getTerminatedOutboxAccount(
 				chainIdAsBuffer,
 			);
 		} catch (error) {
@@ -107,7 +107,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			updatedCCMs.push(encodedUpdatedCCM);
 		}
 
-		const interoperabilityStore = this.getInteroperabilityStore(context);
+		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 
 		const doesTerminatedOutboxAccountExist = await this.stores
 			.get(TerminatedOutboxStore)
@@ -173,7 +173,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			const chainAccountExist = await this.stores
 				.get(ChainAccountStore)
 				.has(context, ccmChainIdAsBuffer);
-			const isLive = await interoperabilityStore.isLive(ccmChainIdAsBuffer, Date.now());
+			const isLive = await InteroperabilityInternalMethod.isLive(ccmChainIdAsBuffer, Date.now());
 
 			if (!chainAccountExist || !isLive) {
 				continue;
@@ -187,18 +187,18 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 				continue;
 			}
 
-			await interoperabilityStore.addToOutbox(ccmChainIdAsBuffer, newCcm);
+			await InteroperabilityInternalMethod.addToOutbox(ccmChainIdAsBuffer, newCcm);
 		}
 	}
 
-	protected getInteroperabilityStore(
+	protected getInteroperabilityInternalMethod(
 		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(
+	): MainchainInteroperabilityInternalMethod {
+		return new MainchainInteroperabilityInternalMethod(
 			this.stores,
+			this.events,
 			context,
 			this.interoperableCCMethods,
-			this.events,
 		);
 	}
 }

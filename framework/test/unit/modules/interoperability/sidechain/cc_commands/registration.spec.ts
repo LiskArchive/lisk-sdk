@@ -16,7 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SidechainCCRegistrationCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands/registration';
 import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
-import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
+import { SidechainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/sidechain/store';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
 import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
 import { SidechainInteroperabilityModule } from '../../../../../../src';
@@ -105,17 +105,17 @@ describe('SidechainCCRegistrationCommand', () => {
 		chainID,
 	});
 
-	let sidechainInteroperabilityStore: SidechainInteroperabilityStore;
+	let sidechainInteroperabilityInternalMethod: SidechainInteroperabilityInternalMethod;
 	let ccRegistrationCommand: SidechainCCRegistrationCommand;
 
 	beforeEach(() => {
-		sidechainInteroperabilityStore = new SidechainInteroperabilityStore(
+		sidechainInteroperabilityInternalMethod = new SidechainInteroperabilityInternalMethod(
 			interopMod.stores,
+			new NamedRegistry(),
 			sampleExecuteContext,
 			ccMethodsMap,
-			new NamedRegistry(),
 		);
-		sidechainInteroperabilityStore.terminateChainInternal = terminateChainInternalMock;
+		sidechainInteroperabilityInternalMethod.terminateChainInternal = terminateChainInternalMock;
 
 		interopMod.stores.register(ChannelDataStore, channelStoreMock as never);
 		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
@@ -125,9 +125,9 @@ describe('SidechainCCRegistrationCommand', () => {
 			interopMod.events,
 			ccMethodsMap,
 		);
-		(ccRegistrationCommand as any)['getInteroperabilityStore'] = jest
+		(ccRegistrationCommand as any)['getInteroperabilityInternalMethod'] = jest
 			.fn()
-			.mockReturnValue(sidechainInteroperabilityStore);
+			.mockReturnValue(sidechainInteroperabilityInternalMethod);
 	});
 
 	it('should call terminateChainInternal when sendingChainChannelAccount.inbox.size !== 1', async () => {

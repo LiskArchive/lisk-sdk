@@ -21,7 +21,7 @@ import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
 import { TerminatedStateStore } from '../../stores/terminated_state';
 import { CCCommandExecuteContext } from '../../types';
 import { getIDAsKeyForStore } from '../../utils';
-import { SidechainInteroperabilityStore } from '../store';
+import { SidechainInteroperabilityInternalMethod } from '../store';
 
 interface CCMSidechainTerminatedParams {
 	chainID: Buffer;
@@ -44,7 +44,7 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 			sidechainTerminatedCCMParamsSchema,
 			ccm.params,
 		);
-		const interoperabilityStore = this.getInteroperabilityStore(context);
+		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 
 		if (ccm.sendingChainID.equals(getIDAsKeyForStore(MAINCHAIN_ID))) {
 			const isTerminated = await this.stores
@@ -54,7 +54,7 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 			if (isTerminated) {
 				return;
 			}
-			await interoperabilityStore.createTerminatedStateAccount(
+			await InteroperabilityInternalMethod.createTerminatedStateAccount(
 				context,
 				decodedParams.chainID,
 				decodedParams.stateRoot,
@@ -69,18 +69,21 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 				chainID: context.chainID,
 				feeAddress: context.feeAddress,
 			});
-			await interoperabilityStore.terminateChainInternal(ccm.sendingChainID, beforeSendContext);
+			await InteroperabilityInternalMethod.terminateChainInternal(
+				ccm.sendingChainID,
+				beforeSendContext,
+			);
 		}
 	}
 
-	protected getInteroperabilityStore(
+	protected getInteroperabilityInternalMethod(
 		context: StoreGetter | ImmutableStoreGetter,
-	): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(
+	): SidechainInteroperabilityInternalMethod {
+		return new SidechainInteroperabilityInternalMethod(
 			this.stores,
+			this.events,
 			context,
 			this.interoperableCCMethods,
-			this.events,
 		);
 	}
 }

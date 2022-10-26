@@ -19,7 +19,7 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { SidechainCCChannelTerminatedCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands/channel_terminated';
-import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
+import { SidechainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/sidechain/store';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
 import { NamedRegistry } from '../../../../../../src/modules/named_registry';
 import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
@@ -60,16 +60,16 @@ describe('SidechainCCChannelTerminatedCommand', () => {
 		interopMod.events,
 		ccMethodsMap,
 	);
-	const mainchainInteroperabilityStore = new SidechainInteroperabilityStore(
+	const mainchainInteroperabilityInternalMethod = new SidechainInteroperabilityInternalMethod(
 		interopMod.stores,
+		new NamedRegistry(),
 		sampleExecuteContext,
 		ccMethodsMap,
-		new NamedRegistry(),
 	);
-	mainchainInteroperabilityStore.createTerminatedStateAccount = createTerminatedStateAccountMock;
-	(ccChannelTerminatedCommand as any)['getInteroperabilityStore'] = jest
-		.fn()
-		.mockReturnValue(mainchainInteroperabilityStore);
+	mainchainInteroperabilityInternalMethod.createTerminatedStateAccount = createTerminatedStateAccountMock;
+	(ccChannelTerminatedCommand as any)[
+		'getInteroperabilityInternalMethod'
+	] = jest.fn().mockReturnValue(mainchainInteroperabilityInternalMethod);
 
 	describe('execute', () => {
 		it('should call validators Method registerValidatorKeys', async () => {

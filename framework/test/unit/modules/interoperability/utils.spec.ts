@@ -36,7 +36,7 @@ import {
 } from '../../../../src/modules/interoperability/constants';
 import {
 	ccmSchema,
-	genesisInteroperabilityStoreSchema,
+	genesisInteroperabilityInternalMethodSchema,
 } from '../../../../src/modules/interoperability/schemas';
 import {
 	ChainAccount,
@@ -1339,7 +1339,7 @@ describe('Utils', () => {
 		});
 
 		it('should throw if the asset object is invalid', async () => {
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, invalidData);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, invalidData);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1356,7 +1356,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: outboxRoot },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1372,7 +1372,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: chainAccount },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1388,7 +1388,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1404,7 +1404,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1420,7 +1420,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: ownChainAccount },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1436,7 +1436,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1452,7 +1452,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedOutboxAccount },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1468,7 +1468,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredNameId },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1484,7 +1484,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: outboxRoot },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1500,7 +1500,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: chainAccount },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1516,7 +1516,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1532,7 +1532,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1548,7 +1548,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 1]), storeValue: chainAccount },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1564,7 +1564,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 1]), storeValue: chainAccount },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1580,7 +1580,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 1]), storeValue: chainAccount },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1596,7 +1596,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1615,7 +1615,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1634,7 +1634,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1658,7 +1658,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1677,7 +1677,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1699,7 +1699,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1736,7 +1736,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1770,7 +1770,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1807,7 +1807,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1844,7 +1844,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1881,7 +1881,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1909,7 +1909,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput1 },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1928,7 +1928,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1956,7 +1956,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -1984,7 +1984,7 @@ describe('Utils', () => {
 					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -2006,7 +2006,7 @@ describe('Utils', () => {
 					},
 				],
 			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
@@ -2015,7 +2015,7 @@ describe('Utils', () => {
 		});
 
 		it('should create all the corresponding entries in the interoperability module state for every substore for valid input', async () => {
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData);
+			const encodedAsset = codec.encode(genesisInteroperabilityInternalMethodSchema, validData);
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),

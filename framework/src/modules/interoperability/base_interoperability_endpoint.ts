@@ -28,7 +28,7 @@ import { ModuleEndpointContext } from '../../types';
 import { NamedRegistry } from '../named_registry';
 import { TerminatedStateAccountJSON, TerminatedStateStore } from './stores/terminated_state';
 import { TerminatedOutboxAccountJSON } from './stores/terminated_outbox';
-import { BaseInteroperabilityStore } from './base_interoperability_store';
+import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import { chainAccountToJSON } from './utils';
 import { ImmutableStoreGetter, StoreGetter } from '../base_store';
 import { ChainValidatorsStore } from './stores/chain_validators';
@@ -38,10 +38,12 @@ import { OwnChainAccountStore } from './stores/own_chain_account';
 import { EMPTY_BYTES } from './constants';
 
 export abstract class BaseInteroperabilityEndpoint<
-	T extends BaseInteroperabilityStore
+	T extends BaseInteroperabilityInternalMethod
 > extends BaseEndpoint {
 	protected readonly interoperableCCMethods = new Map<string, BaseInteroperableMethod>();
-	protected abstract getInteroperabilityStore: (context: StoreGetter | ImmutableStoreGetter) => T;
+	protected abstract getInteroperabilityInternalMethod: (
+		context: StoreGetter | ImmutableStoreGetter,
+	) => T;
 
 	public constructor(
 		protected stores: NamedRegistry,
@@ -64,10 +66,10 @@ export abstract class BaseInteroperabilityEndpoint<
 		context: ModuleEndpointContext,
 		startChainID: Buffer,
 	): Promise<{ chains: ChainAccountJSON[] }> {
-		const interoperabilityStore = this.getInteroperabilityStore(context);
+		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 
 		const chainAccounts = (
-			await interoperabilityStore.getAllChainAccounts(startChainID)
+			await InteroperabilityInternalMethod.getAllChainAccounts(startChainID)
 		).map(chainAccount => chainAccountToJSON(chainAccount));
 
 		return { chains: chainAccounts };
@@ -123,13 +125,13 @@ export abstract class BaseInteroperabilityEndpoint<
 		context: ModuleEndpointContext,
 		chainID: Buffer,
 	): Promise<TerminatedOutboxAccountJSON> {
-		const interoperabilityStore = this.getInteroperabilityStore(context);
+		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 
 		const {
 			outboxRoot,
 			outboxSize,
 			partnerChainInboxSize,
-		} = await interoperabilityStore.getTerminatedOutboxAccount(chainID);
+		} = await InteroperabilityInternalMethod.getTerminatedOutboxAccount(chainID);
 
 		return {
 			outboxRoot: outboxRoot.toString('hex'),

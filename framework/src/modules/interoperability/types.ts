@@ -329,7 +329,7 @@ export interface ChainID {
 	chainID: Buffer;
 }
 
-export interface GenesisInteroperabilityStore {
+export interface GenesisInteroperabilityInternalMethod {
 	outboxRootSubstore: {
 		storeKey: Buffer;
 		storeValue: OutboxRoot;

@@ -17,7 +17,7 @@ import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_co
 import { CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED } from '../../constants';
 import { channelTerminatedCCMParamsSchema } from '../../schemas';
 import { CCCommandExecuteContext } from '../../types';
-import { MainchainInteroperabilityStore } from '../store';
+import { MainchainInteroperabilityInternalMethod } from '../store';
 
 export class MainchainCCChannelTerminatedCommand extends BaseInteroperabilityCCCommand {
 	public schema = channelTerminatedCCMParamsSchema;
@@ -27,19 +27,21 @@ export class MainchainCCChannelTerminatedCommand extends BaseInteroperabilityCCC
 	}
 
 	public async execute(context: CCCommandExecuteContext): Promise<void> {
-		const interoperabilityStore = this.getInteroperabilityStore(context);
+		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 		if (!context.ccm) {
 			throw new Error('CCM to execute channel terminated cross chain command is missing.');
 		}
-		await interoperabilityStore.createTerminatedStateAccount(context, context.ccm.sendingChainID);
+		await InteroperabilityInternalMethod.createTerminatedStateAccount(context, context.ccm.sendingChainID);
 	}
 
-	protected getInteroperabilityStore(context: StoreGetter): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(
+	protected getInteroperabilityInternalMethod(
+		context: StoreGetter,
+	): MainchainInteroperabilityInternalMethod {
+		return new MainchainInteroperabilityInternalMethod(
 			this.stores,
+			this.events,
 			context,
 			this.interoperableCCMethods,
-			this.events,
 		);
 	}
 }

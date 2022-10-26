@@ -23,7 +23,7 @@ import { createCCMsgBeforeSendContext } from '../../context';
 import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
 import { TerminatedStateStore } from '../../stores/terminated_state';
 import { CCCommandExecuteContext } from '../../types';
-import { MainchainInteroperabilityStore } from '../store';
+import { MainchainInteroperabilityInternalMethod } from '../store';
 
 interface CCMSidechainTerminatedParams {
 	chainID: Buffer;
@@ -46,7 +46,7 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 			sidechainTerminatedCCMParamsSchema,
 			ccm.params,
 		);
-		const interoperabilityStore = this.getInteroperabilityStore(context);
+		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 
 		if (ccm.sendingChainID.equals(MAINCHAIN_ID_BUFFER)) {
 			const isTerminated = await this.stores
@@ -55,7 +55,7 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 			if (isTerminated) {
 				return;
 			}
-			await interoperabilityStore.createTerminatedStateAccount(
+			await InteroperabilityInternalMethod.createTerminatedStateAccount(
 				context,
 				decodedParams.chainID,
 				decodedParams.stateRoot,
@@ -70,16 +70,21 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 				chainID: context.chainID,
 				feeAddress: context.feeAddress,
 			});
-			await interoperabilityStore.terminateChainInternal(ccm.sendingChainID, beforeSendContext);
+			await InteroperabilityInternalMethod.terminateChainInternal(
+				ccm.sendingChainID,
+				beforeSendContext,
+			);
 		}
 	}
 
-	protected getInteroperabilityStore(context: StoreGetter): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(
+	protected getInteroperabilityInternalMethod(
+		context: StoreGetter,
+	): MainchainInteroperabilityInternalMethod {
+		return new MainchainInteroperabilityInternalMethod(
 			this.stores,
+			this.events,
 			context,
 			this.interoperableCCMethods,
-			this.events,
 		);
 	}
 }

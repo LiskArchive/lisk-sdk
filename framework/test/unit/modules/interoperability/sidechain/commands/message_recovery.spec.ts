@@ -129,7 +129,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 		commandExecuteContext = createCommandExecuteContext(ccms);
 
-		jest.spyOn(messageRecoveryCommand, 'getInteroperabilityStore' as any);
+		jest.spyOn(messageRecoveryCommand, 'getInteroperabilityInternalMethod' as any);
 		jest.spyOn(regularMerkleTree, 'calculateRootFromUpdateData').mockReturnValue(Buffer.alloc(32));
 
 		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);

@@ -49,7 +49,7 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { BlockHeader, EventQueue } from '../../../../../../src/state_machine';
-import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
+import { SidechainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/sidechain/store';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
 import { CROSS_CHAIN_COMMAND_NAME_FORWARD } from '../../../../../../src/modules/token/constants';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
@@ -235,7 +235,7 @@ describe('CrossChainUpdateCommand', () => {
 			.spyOn(interopUtils, 'checkInboxUpdateValidity')
 			.mockReturnValue({ status: VerifyStatus.OK });
 
-		jest.spyOn(SidechainInteroperabilityStore.prototype, 'isLive').mockResolvedValue(true);
+		jest.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'isLive').mockResolvedValue(true);
 
 		jest.spyOn(interopUtils, 'computeValidatorsHash').mockReturnValue(validatorsHash);
 		jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
@@ -251,7 +251,9 @@ describe('CrossChainUpdateCommand', () => {
 				params,
 				transaction: defaultTransaction as any,
 			};
-			jest.spyOn(SidechainInteroperabilityStore.prototype, 'isLive').mockResolvedValue(true);
+			jest
+				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'isLive')
+				.mockResolvedValue(true);
 			sidechainCCUUpdateCommand = new SidechainCCUpdateCommand(
 				interopMod.stores,
 				interopMod.events,
@@ -283,7 +285,9 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should return error when chain is active but not live', async () => {
-			jest.spyOn(SidechainInteroperabilityStore.prototype, 'isLive').mockResolvedValue(false);
+			jest
+				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'isLive')
+				.mockResolvedValue(false);
 			const { status, error } = await sidechainCCUUpdateCommand.verify(verifyContext);
 
 			expect(status).toEqual(VerifyStatus.FAIL);
@@ -464,7 +468,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(interopUtils, 'computeValidatorsHash')
 				.mockReturnValue(defaultCertificateValues.validatorsHash);
 			const terminateChainInternalMock = jest
-				.spyOn(SidechainInteroperabilityStore.prototype, 'terminateChainInternal')
+				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'terminateChainInternal')
 				.mockResolvedValue({} as never);
 			const invalidCCMContext = {
 				...executeContext,
@@ -488,7 +492,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(interopUtils, 'computeValidatorsHash')
 				.mockReturnValue(defaultCertificateValues.validatorsHash);
 			const terminateChainInternalMock = jest
-				.spyOn(SidechainInteroperabilityStore.prototype, 'terminateChainInternal')
+				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'terminateChainInternal')
 				.mockResolvedValue({} as never);
 
 			await expect(sidechainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
@@ -511,7 +515,7 @@ describe('CrossChainUpdateCommand', () => {
 				.mockReturnValue(defaultCertificateValues.validatorsHash);
 			jest.spyOn(interopUtils, 'commonCCUExecutelogic').mockReturnValue({} as never);
 			const terminateChainInternalMock = jest
-				.spyOn(SidechainInteroperabilityStore.prototype, 'terminateChainInternal')
+				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'terminateChainInternal')
 				.mockResolvedValue({} as never);
 
 			const invalidCCMContext = {
@@ -543,7 +547,7 @@ describe('CrossChainUpdateCommand', () => {
 			jest.spyOn(interopUtils, 'commonCCUExecutelogic').mockReturnValue({} as never);
 
 			const terminateChainInternalMock = jest
-				.spyOn(SidechainInteroperabilityStore.prototype, 'terminateChainInternal')
+				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'terminateChainInternal')
 				.mockResolvedValue({} as never);
 
 			const invalidCCMContext = {
@@ -584,10 +588,10 @@ describe('CrossChainUpdateCommand', () => {
 				.mockReturnValue({} as never);
 
 			const appendToInboxTreeMock = jest
-				.spyOn(SidechainInteroperabilityStore.prototype, 'appendToInboxTree')
+				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'appendToInboxTree')
 				.mockResolvedValue({} as never);
 			const applyMock = jest
-				.spyOn(SidechainInteroperabilityStore.prototype, 'apply')
+				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'apply')
 				.mockResolvedValue({} as never);
 
 			const validCCMContext = {

@@ -15,7 +15,7 @@
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { BaseInteroperabilityStore } from '../base_interoperability_store';
+import { BaseInteroperabilityInternalMethod } from '../base_interoperability_internal_methods';
 import {
 	CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
 	CCM_PROCESSED_RESULT_BOUNCED,
@@ -49,7 +49,7 @@ import { CcmSendSuccessEvent } from '../events/ccm_send_success';
 import { OwnChainAccountStore } from '../stores/own_chain_account';
 import { ChainAccountStore } from '../stores/chain_account';
 
-export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
+export class MainchainInteroperabilityInternalMethod extends BaseInteroperabilityInternalMethod {
 	public async isLive(chainID: Buffer, timestamp: number): Promise<boolean> {
 		const ownChainAccount = await this.stores
 			.get(OwnChainAccountStore)

@@ -21,7 +21,7 @@ import {
 	StoreGetter,
 } from '../../../../src';
 import { BaseInteroperabilityEndpoint } from '../../../../src/modules/interoperability/base_interoperability_endpoint';
-import { SidechainInteroperabilityStore } from '../../../../src/modules/interoperability/sidechain/store';
+import { SidechainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/sidechain/store';
 import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
@@ -48,15 +48,15 @@ import { NamedRegistry } from '../../../../src/modules/named_registry';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 
-class TestEndpoint extends BaseInteroperabilityEndpoint<SidechainInteroperabilityStore> {
-	protected getInteroperabilityStore = (
+class TestEndpoint extends BaseInteroperabilityEndpoint<SidechainInteroperabilityInternalMethod> {
+	protected getInteroperabilityInternalMethod = (
 		context: StoreGetter | ImmutableStoreGetter,
-	): SidechainInteroperabilityStore =>
-		new SidechainInteroperabilityStore(
+	): SidechainInteroperabilityInternalMethod =>
+		new SidechainInteroperabilityInternalMethod(
 			this.stores,
+			this.events,
 			context,
 			this.interoperableCCMethods,
-			this.events,
 		);
 }
 describe('Test interoperability endpoint', () => {
@@ -183,7 +183,7 @@ describe('Test interoperability endpoint', () => {
 	};
 
 	let TestInteroperabilityEndpoint: TestEndpoint;
-	let sidechainInteroperabilityStore: SidechainInteroperabilityStore;
+	let sidechainInteroperabilityInternalMethod: SidechainInteroperabilityInternalMethod;
 
 	beforeEach(() => {
 		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -201,18 +201,18 @@ describe('Test interoperability endpoint', () => {
 			interoperableCCMethods,
 			new NamedRegistry(),
 		);
-		sidechainInteroperabilityStore = new SidechainInteroperabilityStore(
+		sidechainInteroperabilityInternalMethod = new SidechainInteroperabilityInternalMethod(
 			interopMod.stores,
+			new NamedRegistry(),
 			moduleContext,
 			interoperableCCMethods,
-			new NamedRegistry(),
 		);
 		jest
-			.spyOn(TestInteroperabilityEndpoint as any, 'getInteroperabilityStore')
-			.mockReturnValue(sidechainInteroperabilityStore);
+			.spyOn(TestInteroperabilityEndpoint as any, 'getInteroperabilityInternalMethod')
+			.mockReturnValue(sidechainInteroperabilityInternalMethod);
 
 		jest
-			.spyOn(sidechainInteroperabilityStore, 'getAllChainAccounts')
+			.spyOn(sidechainInteroperabilityInternalMethod, 'getAllChainAccounts')
 			.mockResolvedValue([chainAccount, chainAccount2]);
 
 		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
@@ -256,14 +256,16 @@ describe('Test interoperability endpoint', () => {
 				chainID,
 			));
 		});
-		it('should call getInteroperabilityStore', async () => {
-			expect(TestInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
-				moduleContext,
-			);
+		it('should call getInteroperabilityInternalMethod', async () => {
+			expect(
+				TestInteroperabilityEndpoint['getInteroperabilityInternalMethod'],
+			).toHaveBeenCalledWith(moduleContext);
 		});
 
 		it('should call getAllChainAccounts', async () => {
-			expect(sidechainInteroperabilityStore.getAllChainAccounts).toHaveBeenCalledWith(chainID);
+			expect(sidechainInteroperabilityInternalMethod.getAllChainAccounts).toHaveBeenCalledWith(
+				chainID,
+			);
 		});
 
 		it('should return JSON format result', () => {

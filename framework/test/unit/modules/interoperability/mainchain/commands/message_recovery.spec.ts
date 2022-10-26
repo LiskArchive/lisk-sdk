@@ -27,7 +27,7 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainMessageRecoveryCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/message_recovery';
-import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/store';
 import {
 	ccmSchema,
 	messageRecoveryParamsSchema,
@@ -53,7 +53,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		const LEAF_PREFIX = Buffer.from('00', 'hex');
 
 		let stateStore: PrefixedStateReadWriter;
-		let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
+		let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 		let terminatedOutboxSubstore: TerminatedOutboxStore;
 		let messageRecoveryCommand: MainchainMessageRecoveryCommand;
 		let commandVerifyContext: CommandVerifyContext<MessageRecoveryParams>;
@@ -79,11 +79,11 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 			terminatedOutboxSubstore = interopMod.stores.get(TerminatedOutboxStore);
-			mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
+			mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 				interopMod.stores,
+				new NamedRegistry(),
 				createStoreGetter(stateStore),
 				new Map(),
-				new NamedRegistry(),
 			);
 			messageRecoveryCommand = new MainchainMessageRecoveryCommand(
 				interopMod.stores,
@@ -158,8 +158,8 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
 
 			jest
-				.spyOn(messageRecoveryCommand, 'getInteroperabilityStore' as any)
-				.mockImplementation(() => mainchainInteroperabilityStore);
+				.spyOn(messageRecoveryCommand, 'getInteroperabilityInternalMethod' as any)
+				.mockImplementation(() => mainchainInteroperabilityInternalMethod);
 
 			await terminatedOutboxSubstore.set(createStoreGetter(stateStore), chainID, {
 				outboxRoot,
@@ -328,7 +328,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			return commandExecuteContext;
 		};
 
-		type StoreMock = Mocked<MainchainInteroperabilityStore, 'isLive' | 'addToOutbox'>;
+		type StoreMock = Mocked<MainchainInteroperabilityInternalMethod, 'isLive' | 'addToOutbox'>;
 
 		const chainAccountStoreMock = {
 			get: jest.fn(),
@@ -405,7 +405,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			});
 
 			jest
-				.spyOn(messageRecoveryCommand, 'getInteroperabilityStore' as any)
+				.spyOn(messageRecoveryCommand, 'getInteroperabilityInternalMethod' as any)
 				.mockImplementation(() => storeMock);
 			jest
 				.spyOn(regularMerkleTree, 'calculateRootFromUpdateData')

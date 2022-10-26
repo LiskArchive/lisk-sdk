@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseInteroperabilityStore } from '../base_interoperability_store';
+import { BaseInteroperabilityInternalMethod } from '../base_interoperability_internal_methods';
 import { CHAIN_ACTIVE, CHAIN_TERMINATED, EMPTY_BYTES, MAINCHAIN_ID } from '../constants';
 import { createCCMsgBeforeSendContext } from '../context';
 import { ChainAccountStore } from '../stores/chain_account';
@@ -21,7 +21,7 @@ import { TerminatedStateStore } from '../stores/terminated_state';
 import { CCMsg, SendInternalContext } from '../types';
 import { getIDAsKeyForStore, validateFormat } from '../utils';
 
-export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
+export class SidechainInteroperabilityInternalMethod extends BaseInteroperabilityInternalMethod {
 	public async isLive(chainID: Buffer): Promise<boolean> {
 		const chainAccountExists = await this.stores.get(ChainAccountStore).has(this.context, chainID);
 		if (chainAccountExists) {

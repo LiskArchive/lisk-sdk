@@ -16,7 +16,7 @@ import { BaseCommand } from '../base_command';
 import { ImmutableStoreGetter, StoreGetter } from '../base_store';
 import { NamedRegistry } from '../named_registry';
 import { BaseCCCommand } from './base_cc_command';
-import { BaseInteroperabilityStore } from './base_interoperability_store';
+import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import { BaseInteroperableMethod } from './base_interoperable_method';
 
 export abstract class BaseInteroperabilityCommand extends BaseCommand {
@@ -34,7 +34,7 @@ export abstract class BaseInteroperabilityCommand extends BaseCommand {
 		this.ccCommands = ccCommands;
 	}
 
-	protected abstract getInteroperabilityStore(
+	protected abstract getInteroperabilityInternalMethod(
 		context: StoreGetter | ImmutableStoreGetter,
-	): BaseInteroperabilityStore;
+	): BaseInteroperabilityInternalMethod;
 }

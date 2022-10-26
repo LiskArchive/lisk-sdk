@@ -12,7 +12,7 @@ import {
 	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
-import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { Mocked } from '../../../../../utils/types';
 import { StateRecoveryInitializationCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/state_recovery_init';
 import {
@@ -39,7 +39,7 @@ import { OwnChainAccountStore } from '../../../../../../src/modules/interoperabi
 
 describe('Mainchain StateRecoveryInitializationCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
-	type StoreMock = Mocked<MainchainInteroperabilityStore, 'createTerminatedStateAccount'>;
+	type StoreMock = Mocked<MainchainInteroperabilityInternalMethod, 'createTerminatedStateAccount'>;
 	const chainAccountStoreMock = {
 		get: jest.fn(),
 		set: jest.fn(),
@@ -147,7 +147,7 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 		};
 
 		jest
-			.spyOn(stateRecoveryInitCommand, 'getInteroperabilityStore' as any)
+			.spyOn(stateRecoveryInitCommand, 'getInteroperabilityInternalMethod' as any)
 			.mockImplementation(() => interopStoreMock);
 	});
 

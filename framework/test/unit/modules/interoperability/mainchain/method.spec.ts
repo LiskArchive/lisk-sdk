@@ -15,7 +15,7 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { MainchainInteroperabilityModule } from '../../../../../src';
 import { MainchainInteroperabilityMethod } from '../../../../../src/modules/interoperability/mainchain/method';
-import { MainchainInteroperabilityStore } from '../../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../../src/modules/interoperability/mainchain/store';
 import { ChainAccountStore } from '../../../../../src/modules/interoperability/stores/chain_account';
 import { ChannelDataStore } from '../../../../../src/modules/interoperability/stores/channel_data';
 import { OwnChainAccountStore } from '../../../../../src/modules/interoperability/stores/own_chain_account';
@@ -57,7 +57,7 @@ describe('Mainchain Method', () => {
 		has: jest.fn(),
 	};
 	let mainchainInteroperabilityMethod: MainchainInteroperabilityMethod;
-	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
+	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 	let methodContext: MethodContext;
 
 	beforeEach(() => {
@@ -67,15 +67,15 @@ describe('Mainchain Method', () => {
 			interopMod.events,
 			interoperableCCMethods,
 		);
-		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
+		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 			interopMod.stores,
+			new NamedRegistry(),
 			methodContext,
 			interoperableCCMethods,
-			new NamedRegistry(),
 		);
 		jest
-			.spyOn(mainchainInteroperabilityMethod as any, 'getInteroperabilityStore')
-			.mockReturnValue(mainchainInteroperabilityStore);
+			.spyOn(mainchainInteroperabilityMethod as any, 'getInteroperabilityInternalMethod')
+			.mockReturnValue(mainchainInteroperabilityInternalMethod);
 
 		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
 		interopMod.stores.register(ChannelDataStore, channelStoreMock as never);

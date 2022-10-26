@@ -15,7 +15,7 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { SidechainInteroperabilityModule } from '../../../../../src';
 import { SidechainInteroperabilityMethod } from '../../../../../src/modules/interoperability/sidechain/method';
-import { SidechainInteroperabilityStore } from '../../../../../src/modules/interoperability/sidechain/store';
+import { SidechainInteroperabilityInternalMethod } from '../../../../../src/modules/interoperability/sidechain/store';
 import { ChainAccountStore } from '../../../../../src/modules/interoperability/stores/chain_account';
 import { ChannelDataStore } from '../../../../../src/modules/interoperability/stores/channel_data';
 import { OwnChainAccountStore } from '../../../../../src/modules/interoperability/stores/own_chain_account';
@@ -58,7 +58,7 @@ describe('Sidechain Method', () => {
 
 	let methodContext: MethodContext;
 	let sidechainInteroperabilityMethod: SidechainInteroperabilityMethod;
-	let sidechainInteroperabilityStore: SidechainInteroperabilityStore;
+	let sidechainInteroperabilityInternalMethod: SidechainInteroperabilityInternalMethod;
 
 	beforeEach(() => {
 		methodContext = createTransientMethodContext({});
@@ -67,15 +67,15 @@ describe('Sidechain Method', () => {
 			interopMod.events,
 			interoperableCCMethods,
 		);
-		sidechainInteroperabilityStore = new SidechainInteroperabilityStore(
+		sidechainInteroperabilityInternalMethod = new SidechainInteroperabilityInternalMethod(
 			interopMod.stores,
+			new NamedRegistry(),
 			methodContext,
 			interoperableCCMethods,
-			new NamedRegistry(),
 		);
 		jest
-			.spyOn(sidechainInteroperabilityMethod as any, 'getInteroperabilityStore')
-			.mockReturnValue(sidechainInteroperabilityStore);
+			.spyOn(sidechainInteroperabilityMethod as any, 'getInteroperabilityInternalMethod')
+			.mockReturnValue(sidechainInteroperabilityInternalMethod);
 
 		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
 		interopMod.stores.register(ChannelDataStore, channelStoreMock as never);

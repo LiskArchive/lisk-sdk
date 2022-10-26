@@ -32,7 +32,7 @@ import {
 } from '../../../../src/modules/interoperability/constants';
 import { CcmSendFailEvent } from '../../../../src/modules/interoperability/events/ccm_send_fail';
 import { CcmSendSuccessEvent } from '../../../../src/modules/interoperability/events/ccm_send_success';
-import { MainchainInteroperabilityStore } from '../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/store';
 import { ccmSchema } from '../../../../src/modules/interoperability/schemas';
 import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
@@ -43,15 +43,15 @@ import { ChannelDataStore } from '../../../../src/modules/interoperability/store
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
 
-class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityStore> {
-	protected getInteroperabilityStore = (
+class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {
+	protected getInteroperabilityInternalMethod = (
 		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityStore =>
-		new MainchainInteroperabilityStore(
+	): MainchainInteroperabilityInternalMethod =>
+		new MainchainInteroperabilityInternalMethod(
 			this.stores,
+			this.events,
 			context,
 			this.interoperableCCMethods,
-			this.events,
 		);
 }
 
@@ -85,7 +85,7 @@ describe('Sample Method', () => {
 		has: jest.fn(),
 	};
 	let sampleInteroperabilityMethod: SampleInteroperabilityMethod;
-	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
+	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 	let methodContext: MethodContext;
 	let tokenMethodMock: TokenMethod;
 	let ccmSendFailEventMock: CcmSendFailEvent;
@@ -111,15 +111,15 @@ describe('Sample Method', () => {
 			interoperableCCMethods,
 		);
 		sampleInteroperabilityMethod.addDependencies(tokenMethodMock as any);
-		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
+		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 			interopMod.stores,
+			new NamedRegistry(),
 			methodContext,
 			interoperableCCMethods,
-			new NamedRegistry(),
 		);
 		jest
-			.spyOn(sampleInteroperabilityMethod as any, 'getInteroperabilityStore')
-			.mockReturnValue(mainchainInteroperabilityStore);
+			.spyOn(sampleInteroperabilityMethod as any, 'getInteroperabilityInternalMethod')
+			.mockReturnValue(mainchainInteroperabilityInternalMethod);
 
 		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
 		interopMod.stores.register(ChannelDataStore, channelStoreMock as never);
@@ -208,7 +208,7 @@ describe('Sample Method', () => {
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountSidechain);
-			jest.spyOn(mainchainInteroperabilityStore, 'isLive').mockResolvedValue(true);
+			jest.spyOn(mainchainInteroperabilityInternalMethod, 'isLive').mockResolvedValue(true);
 		});
 
 		it('should throw error and emit event when invalid ccm format', async () => {
@@ -245,7 +245,7 @@ describe('Sample Method', () => {
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountSidechain);
-			jest.spyOn(mainchainInteroperabilityStore, 'isLive').mockResolvedValue(false);
+			jest.spyOn(mainchainInteroperabilityInternalMethod, 'isLive').mockResolvedValue(false);
 
 			// Act & Assert
 			await expect(
@@ -398,7 +398,7 @@ describe('Sample Method', () => {
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountMainchain);
-			jest.spyOn(mainchainInteroperabilityStore, 'addToOutbox').mockResolvedValue();
+			jest.spyOn(mainchainInteroperabilityInternalMethod, 'addToOutbox').mockResolvedValue();
 			jest
 				.spyOn(interopMod.stores.get(ChainAccountStore), 'get')
 				.mockResolvedValue(receivingChainAccount);
@@ -423,7 +423,7 @@ describe('Sample Method', () => {
 				),
 			).resolves.toBeUndefined();
 
-			expect(ownChainAccountStoreMock).toHaveBeenCalledWith(
+			expect(ownChainAccountStoreMock.set).toHaveBeenCalledWith(
 				expect.anything(),
 				EMPTY_BYTES,
 				ownChainAccountMainchain,

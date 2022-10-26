@@ -21,7 +21,7 @@ import { ImmutableMethodContext, MethodContext, NotFoundError } from '../../stat
 import { ChainAccount, ChainAccountStore } from './stores/chain_account';
 import { CCMsg } from './types';
 import { StoreGetter, ImmutableStoreGetter } from '../base_store';
-import { BaseInteroperabilityStore } from './base_interoperability_store';
+import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import {
 	EMPTY_BYTES,
 	CHAIN_ID_MAINCHAIN,
@@ -40,7 +40,7 @@ import { TerminatedStateStore } from './stores/terminated_state';
 import { TerminatedOutboxStore } from './stores/terminated_outbox';
 
 export abstract class BaseInteroperabilityMethod<
-	T extends BaseInteroperabilityStore
+	T extends BaseInteroperabilityInternalMethod
 > extends BaseMethod {
 	protected readonly interoperableCCMethods = new Map<string, BaseInteroperableMethod>();
 	protected _tokenMethod!: TokenMethod & {
@@ -51,7 +51,9 @@ export abstract class BaseInteroperabilityMethod<
 			receivingChainID: Buffer,
 		) => Promise<void>;
 	};
-	protected abstract getInteroperabilityStore: (context: StoreGetter | ImmutableStoreGetter) => T;
+	protected abstract getInteroperabilityInternalMethod: (
+		context: StoreGetter | ImmutableStoreGetter,
+	) => T;
 
 	public constructor(
 		stores: NamedRegistry,
@@ -163,8 +165,8 @@ export abstract class BaseInteroperabilityMethod<
 		// From now on, we can assume that the ccm is valid.
 
 		// receivingChainID must correspond to a live chain.
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-		const isReceivingChainLive = await interoperabilityStore.isLive(
+		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		const isReceivingChainLive = await InteroperabilityInternalMethod.isLive(
 			receivingChainID,
 			timestamp ?? Date.now(),
 		);
@@ -239,7 +241,7 @@ export abstract class BaseInteroperabilityMethod<
 		}
 
 		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
-		await interoperabilityStore.addToOutbox(partnerChainID, ccm);
+		await InteroperabilityInternalMethod.addToOutbox(partnerChainID, ccm);
 		ownChainAccount.nonce += BigInt(1);
 		await this.stores.get(OwnChainAccountStore).set(context, EMPTY_BYTES, ownChainAccount);
 

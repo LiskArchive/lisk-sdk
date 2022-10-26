@@ -547,7 +547,7 @@ export const getTerminatedStateAccountRequestSchema = getChainAccountRequestSche
 
 export const getTerminatedOutboxAccountRequestSchema = getChainAccountRequestSchema;
 
-export const genesisInteroperabilityStoreSchema = {
+export const genesisInteroperabilityInternalMethodSchema = {
 	$id: '/interoperability/module/genesis',
 	type: 'object',
 	required: [

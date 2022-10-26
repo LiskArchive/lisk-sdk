@@ -39,7 +39,7 @@ import {
 import { createCCMsgBeforeSendContext } from '../../../../../src/modules/interoperability/context';
 import { CcmProcessedEvent } from '../../../../../src/modules/interoperability/events/ccm_processed';
 import { CcmSendSuccessEvent } from '../../../../../src/modules/interoperability/events/ccm_send_success';
-import { MainchainInteroperabilityStore } from '../../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../../src/modules/interoperability/mainchain/store';
 import { ForwardCCMsgResult } from '../../../../../src/modules/interoperability/mainchain/types';
 import { ccmSchema } from '../../../../../src/modules/interoperability/schemas';
 import { ChainAccountStore } from '../../../../../src/modules/interoperability/stores/chain_account';
@@ -61,7 +61,7 @@ import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_pr
 import { loggerMock } from '../../../../../src/testing/mocks';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 
-describe('Mainchain interoperability store', () => {
+describe('Mainchain interoperability internal method', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 	const ownChainAccountStoreMock = {
 		get: jest.fn(),
@@ -72,7 +72,7 @@ describe('Mainchain interoperability store', () => {
 	let chainAccount: any;
 	let ownChainAccount: any;
 	let stateStore: PrefixedStateReadWriter;
-	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
+	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 	let chainDataSubstore: ChainAccountStore;
 	let channelDataSubstore: ChannelDataStore;
 
@@ -102,11 +102,11 @@ describe('Mainchain interoperability store', () => {
 		channelDataSubstore = interopMod.stores.get(ChannelDataStore);
 		chainDataSubstore = interopMod.stores.get(ChainAccountStore);
 		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
-		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
+		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 			interopMod.stores,
+			interopMod.events,
 			context,
 			new Map(),
-			interopMod.events,
 		);
 	});
 
@@ -141,31 +141,31 @@ describe('Mainchain interoperability store', () => {
 		let ccmSendSuccessEvent: CcmSendSuccessEvent;
 
 		beforeEach(() => {
-			ccmProcessedEvent = mainchainInteroperabilityStore.events.get(CcmProcessedEvent);
-			ccmSendSuccessEvent = mainchainInteroperabilityStore.events.get(CcmSendSuccessEvent);
+			ccmProcessedEvent = mainchainInteroperabilityInternalMethod.events.get(CcmProcessedEvent);
+			ccmSendSuccessEvent = mainchainInteroperabilityInternalMethod.events.get(CcmSendSuccessEvent);
 			jest.spyOn(ccmProcessedEvent, 'log');
 			jest.spyOn(ccmSendSuccessEvent, 'log');
-			mainchainInteroperabilityStore.addToOutbox = jest.fn();
+			mainchainInteroperabilityInternalMethod.addToOutbox = jest.fn();
 		});
 
 		it(`should not call addToOutbox if ccm status is not equal to ${CCM_STATUS_OK}`, async () => {
 			// Act
-			await mainchainInteroperabilityStore.bounce({
+			await mainchainInteroperabilityInternalMethod.bounce({
 				...ccmBounceContext,
 				ccm: { ...ccm, status: CCM_STATUS_CODE_FAILED_CCM },
 			});
 
-			expect(mainchainInteroperabilityStore.addToOutbox).not.toHaveBeenCalled();
+			expect(mainchainInteroperabilityInternalMethod.addToOutbox).not.toHaveBeenCalled();
 		});
 
 		it(`should call addToOutbox with new CCM with zero fee if newCCMStatus === ${CCM_STATUS_CODE_FAILED_CCM}`, async () => {
 			// Act
-			await mainchainInteroperabilityStore.bounce({
+			await mainchainInteroperabilityInternalMethod.bounce({
 				...ccmBounceContext,
 				newCCMStatus: CCM_STATUS_CODE_FAILED_CCM,
 			});
 
-			expect(mainchainInteroperabilityStore.addToOutbox).toHaveBeenCalledWith(
+			expect(mainchainInteroperabilityInternalMethod.addToOutbox).toHaveBeenCalledWith(
 				newCCM.receivingChainID,
 				{
 					...newCCM,
@@ -177,9 +177,9 @@ describe('Mainchain interoperability store', () => {
 
 		it(`should call addToOutbox with new CCM with fee minus ${minimumFee} if newCCMStatus !== ${CCM_STATUS_CODE_FAILED_CCM}`, async () => {
 			// Act
-			await mainchainInteroperabilityStore.bounce(ccmBounceContext);
+			await mainchainInteroperabilityInternalMethod.bounce(ccmBounceContext);
 
-			expect(mainchainInteroperabilityStore.addToOutbox).toHaveBeenCalledWith(
+			expect(mainchainInteroperabilityInternalMethod.addToOutbox).toHaveBeenCalledWith(
 				newCCM.receivingChainID,
 				{
 					...newCCM,
@@ -191,14 +191,14 @@ describe('Mainchain interoperability store', () => {
 
 		it(`should emit ${EVENT_NAME_CCM_PROCESSED} event if ccm status is ${CCM_STATUS_OK} and ccm fee is >= ${minimumFee}`, async () => {
 			// Act
-			await mainchainInteroperabilityStore.bounce(ccmBounceContext);
+			await mainchainInteroperabilityInternalMethod.bounce(ccmBounceContext);
 
 			expect(ccmProcessedEvent.log).toHaveBeenCalled();
 		});
 
 		it(`should emit ${EVENT_NAME_CCM_SEND_SUCCESS} event if ccm status is ${CCM_STATUS_OK} and ccm fee is >= ${minimumFee}`, async () => {
 			// Act
-			await mainchainInteroperabilityStore.bounce(ccmBounceContext);
+			await mainchainInteroperabilityInternalMethod.bounce(ccmBounceContext);
 
 			expect(ccmSendSuccessEvent.log).toHaveBeenCalled();
 		});
@@ -212,7 +212,7 @@ describe('Mainchain interoperability store', () => {
 			const newCCMID = utils.hash(codec.encode(ccmSchema, ccmWithChangedStatus));
 
 			// Act
-			await mainchainInteroperabilityStore.bounce({
+			await mainchainInteroperabilityInternalMethod.bounce({
 				...ccmBounceContext,
 				ccm: ccmWithChangedStatus,
 			});
@@ -238,7 +238,7 @@ describe('Mainchain interoperability store', () => {
 		});
 
 		it('should return true if chainID equals ownChainAccount id', async () => {
-			const isLive = await mainchainInteroperabilityStore.isLive(
+			const isLive = await mainchainInteroperabilityInternalMethod.isLive(
 				ownChainAccount.chainID,
 				timestamp,
 			);
@@ -254,14 +254,14 @@ describe('Mainchain interoperability store', () => {
 					chainID: utils.getRandomBytes(32),
 				} as never);
 
-			const isLive = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
+			const isLive = await mainchainInteroperabilityInternalMethod.isLive(chainID, timestamp);
 
 			expect(isLive).toBe(false);
 		});
 
 		it(`should return false if chain account exists and status is ${CHAIN_TERMINATED}`, async () => {
 			await chainDataSubstore.set(context, chainID, { ...chainAccount, status: CHAIN_TERMINATED });
-			const isLive = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
+			const isLive = await mainchainInteroperabilityInternalMethod.isLive(chainID, timestamp);
 
 			expect(isLive).toBe(false);
 		});
@@ -270,13 +270,13 @@ describe('Mainchain interoperability store', () => {
 			chainAccount.lastCertificate.timestamp = timestamp - LIVENESS_LIMIT - 1;
 			await chainDataSubstore.set(context, chainID, { ...chainAccount, status: CHAIN_ACTIVE });
 
-			const isLive = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
+			const isLive = await mainchainInteroperabilityInternalMethod.isLive(chainID, timestamp);
 
 			expect(isLive).toBe(false);
 		});
 
 		it('should return true if chain account does not exist', async () => {
-			const isLive = await mainchainInteroperabilityStore.isLive(
+			const isLive = await mainchainInteroperabilityInternalMethod.isLive(
 				utils.getRandomBytes(32),
 				timestamp,
 			);
@@ -349,28 +349,28 @@ describe('Mainchain interoperability store', () => {
 
 		it('should return false if the receiving chain does not exist', async () => {
 			await expect(
-				mainchainInteroperabilityStore.sendInternal(sendInternalContext),
+				mainchainInteroperabilityInternalMethod.sendInternal(sendInternalContext),
 			).resolves.toEqual(false);
 		});
 
 		it('should return false if the receiving chain is not live', async () => {
-			jest.spyOn(mainchainInteroperabilityStore, 'isLive').mockResolvedValue(false);
+			jest.spyOn(mainchainInteroperabilityInternalMethod, 'isLive').mockResolvedValue(false);
 			await chainDataSubstore.set(context, ccm.receivingChainID, chainAccount);
 
 			await expect(
-				mainchainInteroperabilityStore.sendInternal(sendInternalContext),
+				mainchainInteroperabilityInternalMethod.sendInternal(sendInternalContext),
 			).resolves.toEqual(false);
-			expect(mainchainInteroperabilityStore.isLive).toHaveBeenCalledTimes(1);
+			expect(mainchainInteroperabilityInternalMethod.isLive).toHaveBeenCalledTimes(1);
 		});
 
 		it('should return false if the receiving chain is not active', async () => {
-			jest.spyOn(mainchainInteroperabilityStore, 'isLive').mockResolvedValue(false);
+			jest.spyOn(mainchainInteroperabilityInternalMethod, 'isLive').mockResolvedValue(false);
 			await chainDataSubstore.set(context, ccm.receivingChainID, chainAccount);
 
 			await expect(
-				mainchainInteroperabilityStore.sendInternal(sendInternalContext),
+				mainchainInteroperabilityInternalMethod.sendInternal(sendInternalContext),
 			).resolves.toEqual(false);
-			expect(mainchainInteroperabilityStore.isLive).toHaveBeenCalledTimes(1);
+			expect(mainchainInteroperabilityInternalMethod.isLive).toHaveBeenCalledTimes(1);
 		});
 
 		it('should return false if the created ccm is of invalid size', async () => {
@@ -396,7 +396,7 @@ describe('Mainchain interoperability store', () => {
 				timestamp,
 			};
 
-			jest.spyOn(mainchainInteroperabilityStore, 'isLive');
+			jest.spyOn(mainchainInteroperabilityInternalMethod, 'isLive');
 			await chainDataSubstore.set(context, ccm.receivingChainID, activeChainAccount);
 
 			when(ownChainAccountStoreMock.get as never)
@@ -404,9 +404,9 @@ describe('Mainchain interoperability store', () => {
 				.mockResolvedValue(ownChainAccount as never);
 
 			await expect(
-				mainchainInteroperabilityStore.sendInternal(sendInternalContextLocal),
+				mainchainInteroperabilityInternalMethod.sendInternal(sendInternalContextLocal),
 			).resolves.toEqual(false);
-			expect(mainchainInteroperabilityStore.isLive).toHaveBeenCalledTimes(1);
+			expect(mainchainInteroperabilityInternalMethod.isLive).toHaveBeenCalledTimes(1);
 		});
 
 		it('should return false if the ccm created is invalid schema', async () => {
@@ -432,24 +432,24 @@ describe('Mainchain interoperability store', () => {
 				timestamp,
 			};
 
-			jest.spyOn(mainchainInteroperabilityStore, 'isLive');
+			jest.spyOn(mainchainInteroperabilityInternalMethod, 'isLive');
 			await chainDataSubstore.set(context, ccm.receivingChainID, activeChainAccount);
 			when(ownChainAccountStoreMock.get as never)
 				.calledWith()
 				.mockResolvedValue(ownChainAccount as never);
 
 			await expect(
-				mainchainInteroperabilityStore.sendInternal(sendInternalContextLocal as any),
+				mainchainInteroperabilityInternalMethod.sendInternal(sendInternalContextLocal as any),
 			).resolves.toEqual(false);
-			expect(mainchainInteroperabilityStore.isLive).toHaveBeenCalledTimes(1);
+			expect(mainchainInteroperabilityInternalMethod.isLive).toHaveBeenCalledTimes(1);
 		});
 
 		it('should return true and call each module beforeSendCCM crossChainMethod', async () => {
-			const mainchainInteropStoreLocal = new MainchainInteroperabilityStore(
+			const mainchainInteropStoreLocal = new MainchainInteroperabilityInternalMethod(
 				interopMod.stores,
+				new NamedRegistry(),
 				context,
 				modsMap,
-				new NamedRegistry(),
 			);
 
 			jest.spyOn(mainchainInteropStoreLocal, 'isLive');
@@ -490,11 +490,11 @@ describe('Mainchain interoperability store', () => {
 			const interoperableModuleMethods = new Map();
 			interoperableModuleMethods.set('token', tokenCCMethod);
 
-			mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
+			mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 				interopMod.stores,
+				new NamedRegistry(),
 				context,
 				interoperableModuleMethods,
-				new NamedRegistry(),
 			);
 
 			receivingChainAccount = {
@@ -561,24 +561,26 @@ describe('Mainchain interoperability store', () => {
 				feeAddress: EMPTY_FEE_ADDRESS,
 			});
 
-			jest.spyOn(mainchainInteroperabilityStore, 'isLive').mockImplementation();
-			jest.spyOn(mainchainInteroperabilityStore, 'bounce').mockImplementation();
-			jest.spyOn(mainchainInteroperabilityStore, 'sendInternal').mockImplementation();
+			jest.spyOn(mainchainInteroperabilityInternalMethod, 'isLive').mockImplementation();
+			jest.spyOn(mainchainInteroperabilityInternalMethod, 'bounce').mockImplementation();
+			jest.spyOn(mainchainInteroperabilityInternalMethod, 'sendInternal').mockImplementation();
 			interopMod.stores.get(ChainAccountStore).get = jest
 				.fn()
 				.mockResolvedValue(receivingChainAccount);
-			jest.spyOn(mainchainInteroperabilityStore, 'addToOutbox').mockImplementation();
-			jest.spyOn(mainchainInteroperabilityStore, 'terminateChainInternal').mockImplementation();
+			jest.spyOn(mainchainInteroperabilityInternalMethod, 'addToOutbox').mockImplementation();
+			jest
+				.spyOn(mainchainInteroperabilityInternalMethod, 'terminateChainInternal')
+				.mockImplementation();
 		});
 
 		it('should successfully forward CCM', async () => {
 			receivingChainAccount.status = CHAIN_ACTIVE;
-			jest.spyOn(mainchainInteroperabilityStore, 'isLive').mockResolvedValue(true);
+			jest.spyOn(mainchainInteroperabilityInternalMethod, 'isLive').mockResolvedValue(true);
 			jest.spyOn(tokenCCMethod, 'forwardMessageFee').mockResolvedValue(true);
 
-			const result = await mainchainInteroperabilityStore.forward(forwardContext);
+			const result = await mainchainInteroperabilityInternalMethod.forward(forwardContext);
 			expect(tokenCCMethod.forwardMessageFee).toHaveBeenCalledWith(methodContext, ccm);
-			expect(mainchainInteroperabilityStore.addToOutbox).toHaveBeenCalledWith(
+			expect(mainchainInteroperabilityInternalMethod.addToOutbox).toHaveBeenCalledWith(
 				receivingChainIDAsStoreKey,
 				ccm,
 			);
@@ -586,45 +588,45 @@ describe('Mainchain interoperability store', () => {
 		});
 
 		it('should bounce and inform terminated sidechain when sidechain is not active', async () => {
-			const result = await mainchainInteroperabilityStore.forward(forwardContext);
-			expect(mainchainInteroperabilityStore.bounce).toHaveBeenCalledWith(ccm);
-			expect(mainchainInteroperabilityStore.sendInternal).toHaveBeenCalled();
+			const result = await mainchainInteroperabilityInternalMethod.forward(forwardContext);
+			expect(mainchainInteroperabilityInternalMethod.bounce).toHaveBeenCalledWith(ccm);
+			expect(mainchainInteroperabilityInternalMethod.sendInternal).toHaveBeenCalled();
 			expect(result).toBe(ForwardCCMsgResult.INFORM_SIDECHAIN_TERMINATION);
 		});
 
 		it('should throw when tokenCCMethod is not present', async () => {
-			mainchainInteroperabilityStore['interoperableModuleMethods'].delete('token');
-			await expect(mainchainInteroperabilityStore.forward(forwardContext)).rejects.toThrow(
+			mainchainInteroperabilityInternalMethod['interoperableModuleMethods'].delete('token');
+			await expect(mainchainInteroperabilityInternalMethod.forward(forwardContext)).rejects.toThrow(
 				'TokenCCMethod does not exist',
 			);
 		});
 
 		it('should return early when ccm status is not OK', async () => {
 			(ccm as any).status = -1;
-			await expect(mainchainInteroperabilityStore.forward(forwardContext)).resolves.toBe(
+			await expect(mainchainInteroperabilityInternalMethod.forward(forwardContext)).resolves.toBe(
 				ForwardCCMsgResult.INVALID_CCM,
 			);
 		});
 
 		it('should return early when receiving chain does not exist after bounce', async () => {
 			receivingChainAccount.status = CHAIN_REGISTERED;
-			const result = await mainchainInteroperabilityStore.forward(forwardContext);
-			expect(mainchainInteroperabilityStore.bounce).toHaveBeenCalledWith(ccm);
+			const result = await mainchainInteroperabilityInternalMethod.forward(forwardContext);
+			expect(mainchainInteroperabilityInternalMethod.bounce).toHaveBeenCalledWith(ccm);
 			expect(result).toBe(ForwardCCMsgResult.INACTIVE_RECEIVING_CHAIN);
 		});
 
 		it('should return early when receiving chain is not yet active after bounce', async () => {
 			receivingChainAccount.status = CHAIN_REGISTERED;
-			const result = await mainchainInteroperabilityStore.forward(forwardContext);
-			expect(mainchainInteroperabilityStore.bounce).toHaveBeenCalledWith(ccm);
+			const result = await mainchainInteroperabilityInternalMethod.forward(forwardContext);
+			expect(mainchainInteroperabilityInternalMethod.bounce).toHaveBeenCalledWith(ccm);
 			expect(result).toBe(ForwardCCMsgResult.INACTIVE_RECEIVING_CHAIN);
 		});
 
 		it('should terminate receiving chain when it is active and ccm is bounced', async () => {
 			receivingChainAccount.status = CHAIN_ACTIVE;
-			await mainchainInteroperabilityStore.forward(forwardContext);
-			expect(mainchainInteroperabilityStore.bounce).toHaveBeenCalledWith(ccm);
-			expect(mainchainInteroperabilityStore.terminateChainInternal).toHaveBeenCalledWith(
+			await mainchainInteroperabilityInternalMethod.forward(forwardContext);
+			expect(mainchainInteroperabilityInternalMethod.bounce).toHaveBeenCalledWith(ccm);
+			expect(mainchainInteroperabilityInternalMethod.terminateChainInternal).toHaveBeenCalledWith(
 				ccm.receivingChainID,
 				beforeCCMSendContext,
 			);

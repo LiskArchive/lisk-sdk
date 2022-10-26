@@ -43,7 +43,7 @@ import {
 import { MainchainRegistrationParams, ActiveValidators } from '../../types';
 import { computeValidatorsHash, isValidName, sortValidatorsByBLSKey } from '../../utils';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
-import { SidechainInteroperabilityStore } from '../store';
+import { SidechainInteroperabilityInternalMethod } from '../store';
 import { ChainAccountStore } from '../../stores/chain_account';
 import { ChannelDataStore } from '../../stores/channel_data';
 import { ChainValidatorsStore } from '../../stores/chain_validators';
@@ -220,8 +220,8 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			status: CCM_STATUS_OK,
 			params: encodedParams,
 		};
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-		await interoperabilityStore.addToOutbox(MAINCHAIN_ID_BUFFER, ccm);
+		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		await InteroperabilityInternalMethod.addToOutbox(MAINCHAIN_ID_BUFFER, ccm);
 
 		ownChainAccount.nonce += BigInt(1);
 		await ownChainAccountSubstore.set(context, EMPTY_BYTES, ownChainAccount);
@@ -235,14 +235,14 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			});
 	}
 
-	protected getInteroperabilityStore(
+	protected getInteroperabilityInternalMethod(
 		context: StoreGetter | ImmutableStoreGetter,
-	): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(
+	): SidechainInteroperabilityInternalMethod {
+		return new SidechainInteroperabilityInternalMethod(
 			this.stores,
+			this.events,
 			context,
 			this.interoperableCCMethods,
-			this.events,
 		);
 	}
 }
