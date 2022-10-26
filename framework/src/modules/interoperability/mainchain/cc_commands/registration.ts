@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_NAME_REGISTRATION } from '../../constants';
 import { registrationCCMParamsSchema } from '../../schemas';
-import { CCCommandExecuteContext, MessageFeeTokenID } from '../../types';
+import { CCCommandExecuteContext } from '../../types';
 import { createCCMsgBeforeSendContext } from '../../context';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 import { MainchainInteroperabilityStore } from '../store';
@@ -24,7 +24,7 @@ import { StoreGetter } from '../../../base_store';
 interface CCMRegistrationParams {
 	chainID: Buffer;
 	name: string;
-	messageFeeTokenID: MessageFeeTokenID;
+	messageFeeTokenID: Buffer;
 }
 
 export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCCommand {
@@ -39,7 +39,7 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 		if (!ccm) {
 			throw new Error('CCM to execute registration cross chain command is missing.');
 		}
-		const decodedParams = codec.decode<CCMRegistrationParams>(
+		const ccmRegistrationParams = codec.decode<CCMRegistrationParams>(
 			registrationCCMParamsSchema,
 			ccm.params,
 		);
@@ -51,14 +51,11 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			sendingChainChannelAccount.inbox.size !== 1 ||
 			ccm.status !== CCM_STATUS_OK ||
 			!ownChainAccount.chainID.equals(ccm.receivingChainID) ||
-			ownChainAccount.name !== decodedParams.name ||
-			!sendingChainChannelAccount.messageFeeTokenID.chainID.equals(
-				decodedParams.messageFeeTokenID.chainID,
+			ownChainAccount.name !== ccmRegistrationParams.name ||
+			!sendingChainChannelAccount.messageFeeTokenID.equals(
+				ccmRegistrationParams.messageFeeTokenID,
 			) ||
-			!sendingChainChannelAccount.messageFeeTokenID.localID.equals(
-				decodedParams.messageFeeTokenID.localID,
-			) ||
-			!decodedParams.chainID.equals(ctx.chainID) ||
+			!ccmRegistrationParams.chainID.equals(ctx.chainID) ||
 			ccm.nonce !== BigInt(0) // Only in mainchain
 		) {
 			const beforeSendContext = createCCMsgBeforeSendContext({

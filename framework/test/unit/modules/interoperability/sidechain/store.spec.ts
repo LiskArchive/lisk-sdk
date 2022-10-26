@@ -153,10 +153,7 @@ describe('Sidechain interoperability store', () => {
 				root: randomOutboxRoot,
 			},
 			partnerChainOutboxRoot: Buffer.alloc(0),
-			messageFeeTokenID: {
-				chainID: utils.intToBuffer(1, 4),
-				localID: utils.intToBuffer(2, 4),
-			},
+			messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
 		};
 
 		const beforeSendCCMContext = testing.createBeforeSendCCMsgMethodContext({

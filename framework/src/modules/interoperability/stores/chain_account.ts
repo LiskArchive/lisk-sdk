@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseStore } from '../../base_store';
+import { HASH_LENGTH } from '../constants';
 
 export interface LastCertificate {
 	height: number;
@@ -56,10 +57,14 @@ const chainAccountJSONSchema = {
 				},
 				stateRoot: {
 					dataType: 'bytes',
+					minLength: HASH_LENGTH,
+					maxLength: HASH_LENGTH,
 					fieldNumber: 3,
 				},
 				validatorsHash: {
 					dataType: 'bytes',
+					minLength: HASH_LENGTH,
+					maxLength: HASH_LENGTH,
 					fieldNumber: 4,
 				},
 			},
@@ -70,6 +75,8 @@ const chainAccountJSONSchema = {
 		},
 	},
 };
+
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#chain-data-substore
 export const chainAccountSchema = {
 	$id: '/modules/interoperability/chainAccount',
 	...chainAccountJSONSchema,

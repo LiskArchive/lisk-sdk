@@ -25,12 +25,14 @@ import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_BYTES,
+	HASH_LENGTH,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID_BUFFER,
 	MAX_CCM_SIZE,
 	MAX_NUM_VALIDATORS,
 	MAX_UINT64,
 	MODULE_NAME_INTEROPERABILITY,
+	TOKEN_ID_LSK,
 } from '../../../../src/modules/interoperability/constants';
 import {
 	ccmSchema,
@@ -73,6 +75,7 @@ import { OutboxRootStore } from '../../../../src/modules/interoperability/stores
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
 import { createStoreGetter } from '../../../../src/testing/utils';
+import { CHAIN_ID_LENGTH } from '../../../../src/modules/token/constants';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -601,7 +604,7 @@ describe('Utils', () => {
 	describe('checkInboxUpdateValidity', () => {
 		const activeValidatorsUpdate = [...defaultActiveValidatorsUpdate];
 
-		const partnerChainOutboxRoot = cryptography.utils.getRandomBytes(32);
+		const partnerChainOutboxRoot = cryptography.utils.getRandomBytes(HASH_LENGTH);
 		const inboxTree = {
 			root: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
 			appendPath: [
@@ -618,10 +621,7 @@ describe('Utils', () => {
 		};
 		const partnerChannelData: ChannelData = {
 			inbox: inboxTree,
-			messageFeeTokenID: {
-				chainID: utils.intToBuffer(1, 4),
-				localID: utils.intToBuffer(0, 4),
-			},
+			messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
 			outbox: outboxTree,
 			partnerChainOutboxRoot,
 		};
@@ -1006,7 +1006,7 @@ describe('Utils', () => {
 			partnerChannelStoreMock = interopMod.stores.get(ChannelDataStore);
 
 			partnerChannelData = {
-				partnerChainOutboxRoot: Buffer.alloc(1),
+				partnerChainOutboxRoot: Buffer.alloc(HASH_LENGTH),
 				inbox: {
 					size: 2,
 					appendPath: [Buffer.alloc(1)],
@@ -1015,12 +1015,9 @@ describe('Utils', () => {
 				outbox: {
 					size: 0,
 					appendPath: [],
-					root: Buffer.alloc(0),
+					root: Buffer.alloc(HASH_LENGTH),
 				},
-				messageFeeTokenID: {
-					chainID: Buffer.from([0, 0, 0, 0]),
-					localID: Buffer.from([0, 0, 0, 0]),
-				},
+				messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
 			};
 			const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			context = {
@@ -1188,18 +1185,18 @@ describe('Utils', () => {
 		const timestamp = 2592000 * 100;
 		const chainAccount = {
 			name: 'account1',
-			chainID: Buffer.alloc(0),
+			chainID: Buffer.alloc(CHAIN_ID_LENGTH),
 			lastCertificate: {
 				height: 567467,
 				timestamp: timestamp - 500000,
-				stateRoot: Buffer.alloc(0),
-				validatorsHash: Buffer.alloc(0),
+				stateRoot: Buffer.alloc(HASH_LENGTH),
+				validatorsHash: Buffer.alloc(HASH_LENGTH),
 			},
 			status: 2739,
 		};
 		const sidechainChainAccount = {
 			name: 'sidechain1',
-			chainID: getRandomBytes(32),
+			chainID: Buffer.alloc(CHAIN_ID_LENGTH),
 			lastCertificate: {
 				height: 10,
 				stateRoot: utils.getRandomBytes(32),
@@ -1215,19 +1212,19 @@ describe('Utils', () => {
 		};
 		const channelData = {
 			inbox: {
-				appendPath: [Buffer.alloc(1), Buffer.alloc(1)],
-				root: cryptography.utils.getRandomBytes(38),
+				appendPath: [Buffer.alloc(HASH_LENGTH), Buffer.alloc(HASH_LENGTH)],
+				root: cryptography.utils.getRandomBytes(HASH_LENGTH),
 				size: 18,
 			},
-			messageFeeTokenID: { chainID: utils.intToBuffer(1, 4), localID: utils.intToBuffer(0, 4) },
+			messageFeeTokenID: TOKEN_ID_LSK,
 			outbox: {
-				appendPath: [Buffer.alloc(1), Buffer.alloc(1)],
-				root: cryptography.utils.getRandomBytes(38),
+				appendPath: [Buffer.alloc(HASH_LENGTH), Buffer.alloc(HASH_LENGTH)],
+				root: cryptography.utils.getRandomBytes(HASH_LENGTH),
 				size: 18,
 			},
-			partnerChainOutboxRoot: cryptography.utils.getRandomBytes(38),
+			partnerChainOutboxRoot: cryptography.utils.getRandomBytes(HASH_LENGTH),
 		};
-		const outboxRoot = { root: getRandomBytes(32) };
+		const outboxRoot = { root: getRandomBytes(HASH_LENGTH) };
 		const validatorsHashInput = {
 			activeValidators: [
 				{
@@ -1249,16 +1246,16 @@ describe('Utils', () => {
 		};
 		const terminatedStateAccount = {
 			stateRoot: sidechainChainAccount.lastCertificate.stateRoot,
-			mainchainStateRoot: EMPTY_BYTES,
+			mainchainStateRoot: Buffer.alloc(HASH_LENGTH),
 			initialized: true,
 		};
 		const terminatedOutboxAccount = {
-			outboxRoot: getRandomBytes(32),
+			outboxRoot: getRandomBytes(HASH_LENGTH),
 			outboxSize: 1,
 			partnerChainInboxSize: 1,
 		};
-		const registeredNameId = { id: Buffer.from('77', 'hex') };
-		const registeredChainId = { id: Buffer.from('88', 'hex') };
+		const registeredNameId = { chainID: Buffer.alloc(CHAIN_ID_LENGTH) };
+		const registeredChainId = { chainID: Buffer.alloc(CHAIN_ID_LENGTH) };
 		const validData = {
 			outboxRootSubstore: [
 				{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: outboxRoot },
@@ -2004,10 +2001,7 @@ describe('Utils', () => {
 						storeKey: Buffer.from([0, 0, 1, 0]),
 						storeValue: {
 							...channelData,
-							messageFeeTokenID: {
-								chainID: Buffer.from([0, 0, 1, 0]),
-								localID: utils.intToBuffer(0, 4),
-							},
+							messageFeeTokenID: TOKEN_ID_LSK,
 						},
 					},
 				],
@@ -2018,56 +2012,6 @@ describe('Utils', () => {
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
 			await expect(initGenesisStateUtil(context, interopMod.stores)).toResolve();
-		});
-
-		it('should throw if some chain id corresponding to message fee token id of a channel is neither 1 nor corresponding native token id of either chains', async () => {
-			const validData1 = {
-				...validData,
-				channelDataSubstore: [
-					{
-						storeKey: Buffer.from([0, 0, 0, 1]),
-						storeValue: {
-							...channelData,
-							messageFeeTokenID: {
-								chainID: Buffer.from([0, 0, 2, 0]),
-								localID: utils.intToBuffer(0, 4),
-							},
-						},
-					},
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if some chain id corresponding to message fee token id of a channel is 1 but corresponding local id is not 0', async () => {
-			const validData1 = {
-				...validData,
-				channelDataSubstore: [
-					{
-						storeKey: Buffer.from([0, 0, 0, 1]),
-						storeValue: {
-							...channelData,
-							messageFeeTokenID: {
-								chainID: utils.intToBuffer(1, 4),
-								localID: utils.intToBuffer(2, 4),
-							},
-						},
-					},
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should create all the corresponding entries in the interoperability module state for every substore for valid input', async () => {

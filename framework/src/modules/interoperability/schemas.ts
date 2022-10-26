@@ -18,7 +18,7 @@ import {
 	MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH,
 	MIN_MODULE_NAME_LENGTH,
 } from '@liskhq/lisk-chain';
-import { CHAIN_ID_LENGTH } from '../token/constants';
+import { CHAIN_ID_LENGTH, TOKEN_ID_LENGTH } from '../token/constants';
 import {
 	MAX_LENGTH_NAME,
 	NUMBER_MAINCHAIN_VALIDATORS,
@@ -335,19 +335,10 @@ export const registrationCCMParamsSchema = {
 			fieldNumber: 2,
 		},
 		messageFeeTokenID: {
-			type: 'object',
+			dataType: 'bytes',
+			minLength: TOKEN_ID_LENGTH,
+			maxLength: TOKEN_ID_LENGTH,
 			fieldNumber: 3,
-			required: ['chainID', 'localID'],
-			properties: {
-				chainID: {
-					dataType: 'bytes',
-					fieldNumber: 1,
-				},
-				localID: {
-					dataType: 'bytes',
-					fieldNumber: 2,
-				},
-			},
 		},
 	},
 };
@@ -386,13 +377,16 @@ export const sidechainTerminatedCCMParamsSchema = {
 	},
 };
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#registered-names-substore
 export const chainIDSchema = {
 	$id: '/modules/interoperability/chainId',
 	type: 'object',
-	required: ['id'],
+	required: ['chainID'],
 	properties: {
-		id: {
+		chainID: {
 			dataType: 'bytes',
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 			fieldNumber: 1,
 		},
 	},

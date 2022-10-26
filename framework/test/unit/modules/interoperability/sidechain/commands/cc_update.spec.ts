@@ -193,7 +193,7 @@ describe('CrossChainUpdateCommand', () => {
 				root: cryptography.utils.getRandomBytes(38),
 				size: 18,
 			},
-			messageFeeTokenID: { chainID: utils.intToBuffer(1, 4), localID: utils.intToBuffer(0, 4) },
+			messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
 			outbox: {
 				appendPath: [Buffer.alloc(1), Buffer.alloc(1)],
 				root: cryptography.utils.getRandomBytes(38),

@@ -21,10 +21,7 @@ export const MAINCHAIN_ID = 1;
 export const MAINCHAIN_ID_BUFFER = utils.intToBuffer(MAINCHAIN_ID, 4);
 // TODO: To be updated after token module update
 export const TOKEN_ID_LSK = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
-export const TOKEN_ID_LSK_MAINCHAIN = {
-	chainID: utils.intToBuffer(1, 4),
-	localID: utils.intToBuffer(0, 4),
-};
+export const TOKEN_ID_LSK_MAINCHAIN = Buffer.from('0000000000000000', 'hex');
 export const MAINCHAIN_NAME = 'lisk-mainchain';
 export const MAINCHAIN_NETWORK_ID = Buffer.from(
 	'03693f3126b9d0df3096c4ebd59e5c42af4a7f0e313cd7c96a07b6e9f8f54924',
