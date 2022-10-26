@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { MainchainInteroperabilityModule } from '../../../../../../src';
 import {
@@ -23,10 +24,12 @@ import { MainchainInteroperabilityStore } from '../../../../../../src/modules/in
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
 import { NamedRegistry } from '../../../../../../src/modules/named_registry';
 import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
+import { channelTerminatedCCMParamsSchema } from '../../../../../../dist-node/modules/interoperability/schemas';
 
 describe('MainchainCCChannelTerminatedCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 	const createTerminatedStateAccountMock = jest.fn();
+	const createTerminatedOutboxAccountMock = jest.fn();
 
 	const ccMethodMod1 = {
 		beforeSendCCM: jest.fn(),
@@ -40,6 +43,10 @@ describe('MainchainCCChannelTerminatedCommand', () => {
 	ccMethodsMap.set(1, ccMethodMod1);
 	ccMethodsMap.set(2, ccMethodMod2);
 	const chainID = utils.getRandomBytes(32);
+	const ccmParams = {
+		stateRoot: Buffer.from('10000000', 'hex'),
+		inboxSize: 1,
+	};
 	const ccm = {
 		nonce: BigInt(0),
 		module: MODULE_NAME_INTEROPERABILITY,
@@ -48,9 +55,10 @@ describe('MainchainCCChannelTerminatedCommand', () => {
 		receivingChainID: utils.intToBuffer(3, 4),
 		fee: BigInt(20000),
 		status: 0,
-		params: Buffer.alloc(0),
+		params: codec.encode(channelTerminatedCCMParamsSchema, ccmParams),
 	};
 	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
+		ccm,
 		chainID,
 	});
 
@@ -66,15 +74,40 @@ describe('MainchainCCChannelTerminatedCommand', () => {
 		new NamedRegistry(),
 	);
 	mainchainInteroperabilityStore.createTerminatedStateAccount = createTerminatedStateAccountMock;
+	mainchainInteroperabilityStore.createTerminatedOutboxAccount = createTerminatedOutboxAccountMock;
+	mainchainInteroperabilityStore.isLive = jest.fn().mockResolvedValue(false);
 	(ccChannelTerminatedCommand as any)['getInteroperabilityStore'] = jest
 		.fn()
 		.mockReturnValue(mainchainInteroperabilityStore);
+	const channelOutbox = {
+		size: 10,
+		root: Buffer.from('01', 'hex'),
+	};
+	mainchainInteroperabilityStore.getChannel = jest.fn().mockResolvedValue({
+		outbox: channelOutbox,
+	});
 
 	describe('execute', () => {
-		it('should call validators Method registerValidatorKeys', async () => {
+		it('should skip if isLive is false ', async () => {
 			await ccChannelTerminatedCommand.execute(sampleExecuteContext);
+			expect(createTerminatedStateAccountMock).toHaveBeenCalledTimes(0);
+			expect(createTerminatedOutboxAccountMock).toHaveBeenCalledTimes(0);
+		});
 
-			expect(createTerminatedStateAccountMock).toHaveBeenCalledWith(ccm.sendingChainID);
+		it('should call createTerminatedStateAccount and createTerminatedOutboxAccount if isLive', async () => {
+			mainchainInteroperabilityStore.isLive = jest.fn().mockResolvedValue(true);
+
+			await ccChannelTerminatedCommand.execute(sampleExecuteContext);
+			expect(createTerminatedStateAccountMock).toHaveBeenCalledWith(
+				ccm.sendingChainID,
+				ccmParams.stateRoot,
+			);
+			expect(createTerminatedOutboxAccountMock).toHaveBeenCalledWith(
+				ccm.sendingChainID,
+				channelOutbox.root,
+				channelOutbox.size,
+				ccmParams.inboxSize,
+			);
 		});
 	});
 });
