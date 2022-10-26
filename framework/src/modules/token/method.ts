@@ -49,9 +49,13 @@ import { AllTokensFromChainSupportedEvent } from './events/all_tokens_from_chain
 import { AllTokensFromChainSupportRemovedEvent } from './events/all_tokens_from_chain_supported_removed';
 import { TokenIDSupportRemovedEvent } from './events/token_id_supported_removed';
 
+interface MethodConfig extends ModuleConfig {
+	ownChainID: Buffer;
+}
+
 export class TokenMethod extends BaseMethod {
 	private readonly _moduleName: string;
-	private _config!: ModuleConfig;
+	private _config!: MethodConfig;
 	private _interoperabilityMethod!: InteroperabilityMethod;
 
 	public constructor(stores: NamedRegistry, events: NamedRegistry, moduleName: string) {
@@ -59,7 +63,7 @@ export class TokenMethod extends BaseMethod {
 		this._moduleName = moduleName;
 	}
 
-	public init(config: ModuleConfig): void {
+	public init(config: MethodConfig): void {
 		this._config = config;
 	}
 
