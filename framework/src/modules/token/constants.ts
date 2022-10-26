@@ -38,8 +38,6 @@ export const TOKEN_ID_LSK = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 export const USER_SUBSTORE_INITIALIZATION_FEE = BigInt(5000000);
 export const ESCROW_SUBSTORE_INITIALIZATION_FEE = BigInt(5000000);
 
-export const TOKEN_ID_STORE_INITIALIZATION = TOKEN_ID_LSK;
-
 export const defaultConfig = {
 	userAccountInitializationFee: USER_SUBSTORE_INITIALIZATION_FEE.toString(),
 	escrowAccountInitializationFee: ESCROW_SUBSTORE_INITIALIZATION_FEE.toString(),
