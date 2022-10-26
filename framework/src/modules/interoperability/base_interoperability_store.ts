@@ -38,6 +38,7 @@ import {
 	OwnChainAccount,
 	CCMApplyContext,
 	TerminateChainContext,
+	CreateTerminatedStateAccountContext,
 } from './types';
 import { getCCMSize, getIDAsKeyForStore } from './utils';
 import {
@@ -55,6 +56,8 @@ import { OutboxRootStore } from './stores/outbox_root';
 import { TerminatedStateAccount, TerminatedStateStore } from './stores/terminated_state';
 import { ChainAccountStore } from './stores/chain_account';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/terminated_outbox';
+import { ChainAccountUpdatedEvent } from './events/chain_account_updated';
+import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
 
 export abstract class BaseInteroperabilityStore {
 	public readonly events: NamedRegistry;
@@ -246,65 +249,72 @@ export abstract class BaseInteroperabilityStore {
 		return terminatedOutboxSubstore.get(this.context, chainID);
 	}
 
-	public async createTerminatedStateAccount(chainID: Buffer, stateRoot?: Buffer): Promise<boolean> {
-		const chainSubstore = this.stores.get(ChainAccountStore);
-		const isExist = await this.chainAccountExist(chainID);
+	public async createTerminatedStateAccount(
+		context: CreateTerminatedStateAccountContext,
+		chainID: Buffer,
+		stateRoot?: Buffer,
+	): Promise<void> {
 		let terminatedState: TerminatedStateAccount;
 
-		if (stateRoot) {
-			if (isExist) {
-				const chainAccount = await chainSubstore.get(this.context, chainID);
-				chainAccount.status = CHAIN_TERMINATED;
-				await chainSubstore.set(this.context as StoreGetter, chainID, chainAccount);
-				const outboxRootSubstore = this.stores.get(OutboxRootStore);
-				await outboxRootSubstore.del(this.context as StoreGetter, chainID);
-			}
-			terminatedState = {
-				stateRoot,
-				mainchainStateRoot: EMPTY_BYTES,
-				initialized: true,
-			};
-		} else if (isExist) {
+		const chainSubstore = this.stores.get(ChainAccountStore);
+		const chainAccountExists = await chainSubstore.has(this.context, chainID);
+		if (chainAccountExists) {
 			const chainAccount = await chainSubstore.get(this.context, chainID);
-			chainAccount.status = CHAIN_TERMINATED;
-			await chainSubstore.set(this.context as StoreGetter, chainID, chainAccount);
+			await chainSubstore.set(this.context as StoreGetter, chainID, {
+				...chainAccount,
+				status: CHAIN_TERMINATED,
+			});
 			const outboxRootSubstore = this.stores.get(OutboxRootStore);
 			await outboxRootSubstore.del(this.context as StoreGetter, chainID);
 
 			terminatedState = {
-				stateRoot: chainAccount.lastCertificate.stateRoot,
+				stateRoot: stateRoot ?? chainAccount.lastCertificate.stateRoot,
 				mainchainStateRoot: EMPTY_BYTES,
 				initialized: true,
 			};
-		}
-
-		// State root is not available, set it to empty bytes temporarily.
-		// This should only happen on a sidechain.
-		else {
+			this.events
+				.get(ChainAccountUpdatedEvent)
+				.log({ eventQueue: context.eventQueue }, chainID, chainAccount);
+		} else {
 			// Processing on the mainchain
 			const ownChainAccount = await this.getOwnChainAccount();
 			if (ownChainAccount.chainID.equals(getIDAsKeyForStore(MAINCHAIN_ID))) {
 				// If the account does not exist on the mainchain, the input chainID is invalid.
-				return false;
+				throw new Error('Chain to be terminated is not valid.');
 			}
-			const chainAccount = await chainSubstore.get(this.context, getIDAsKeyForStore(MAINCHAIN_ID));
+
+			const mainchainAccount = await chainSubstore.get(
+				this.context,
+				getIDAsKeyForStore(MAINCHAIN_ID),
+			);
+			// State root is not available, set it to empty bytes temporarily.
+			// This should only happen on a sidechain.
 			terminatedState = {
 				stateRoot: EMPTY_BYTES,
-				mainchainStateRoot: chainAccount.lastCertificate.stateRoot,
+				mainchainStateRoot: mainchainAccount.lastCertificate.stateRoot,
 				initialized: false,
 			};
 		}
 
 		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
 		await terminatedStateSubstore.set(this.context as StoreGetter, chainID, terminatedState);
-
-		return true;
+		this.events
+			.get(TerminatedStateCreatedEvent)
+			.log({ eventQueue: context.eventQueue }, chainID, terminatedState);
 	}
 
 	public async terminateChainInternal(
 		chainID: Buffer,
 		terminateChainContext: TerminateChainContext,
 	): Promise<boolean> {
+		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
+		const terminatedStateExists = await terminatedStateSubstore.has(terminateChainContext, chainID);
+
+		// Chain was already terminated, do nothing.
+		if (terminatedStateExists) {
+			return false;
+		}
+
 		const messageSent = await this.sendInternal({
 			module: MODULE_NAME_INTEROPERABILITY,
 			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
@@ -324,7 +334,9 @@ export abstract class BaseInteroperabilityStore {
 			return false;
 		}
 
-		return this.createTerminatedStateAccount(chainID);
+		await this.createTerminatedStateAccount(terminateChainContext, chainID);
+
+		return true;
 	}
 
 	public async apply(

@@ -99,6 +99,7 @@ describe('SidechainCCChannelTerminatedCommand', () => {
 
 			await ccChannelTerminatedCommand.execute(sampleExecuteContext);
 			expect(createTerminatedStateAccountMock).toHaveBeenCalledWith(
+				sampleExecuteContext,
 				ccm.sendingChainID,
 				ccmParams.stateRoot,
 			);

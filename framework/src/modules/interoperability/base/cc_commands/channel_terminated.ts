@@ -37,6 +37,7 @@ export abstract class BaseCCChannelTerminatedCommand extends BaseInteroperabilit
 				context.ccm.params,
 			);
 			await interoperabilityStore.createTerminatedStateAccount(
+				context,
 				context.ccm.sendingChainID,
 				channelTerminatedCCMParams.stateRoot,
 			);

@@ -13,16 +13,12 @@
  */
 
 import { BaseEvent, EventQueuer } from '../../base_event';
-import { terminatedStateSchema } from '../stores/terminated_state';
+import { TerminatedStateAccount, terminatedStateSchema } from '../stores/terminated_state';
 
-export interface TerminatedStateCreatedEventData {
-	ccmID: Buffer;
-}
-
-export class TerminatedStateCreatedEvent extends BaseEvent<TerminatedStateCreatedEventData> {
+export class TerminatedStateCreatedEvent extends BaseEvent<TerminatedStateAccount> {
 	public schema = terminatedStateSchema;
 
-	public log(ctx: EventQueuer, chainID: Buffer, data: TerminatedStateCreatedEventData): void {
+	public log(ctx: EventQueuer, chainID: Buffer, data: TerminatedStateAccount): void {
 		this.add(ctx, data, [chainID]);
 	}
 }

@@ -291,6 +291,7 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 			// Assert
 			expect(accountFromStore).toEqual(terminatedStateAccount);
 			expect(interopStoreMock.createTerminatedStateAccount).toHaveBeenCalledWith(
+				commandExecuteContext,
 				transactionParams.chainID,
 				terminatedStateAccount.stateRoot,
 			);

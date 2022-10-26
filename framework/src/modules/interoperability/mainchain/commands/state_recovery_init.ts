@@ -160,6 +160,7 @@ export class StateRecoveryInitializationCommand extends BaseInteroperabilityComm
 		}
 
 		await interoperabilityStore.createTerminatedStateAccount(
+			context,
 			params.chainID,
 			sidechainChainAccount.lastCertificate.stateRoot,
 		);
