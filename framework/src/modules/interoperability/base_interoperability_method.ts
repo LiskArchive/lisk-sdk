@@ -67,7 +67,7 @@ export abstract class BaseInteroperabilityMethod<
 		const updatedChainID = !(await this.getInteroperabilityStore(context).hasChainAccount(chainID))
 			? MAINCHAIN_ID_BUFFER
 			: chainID;
-		return (await this.getChannel(context, updatedChainID)).messageFeeTokenID.localID;
+		return (await this.getChannel(context, updatedChainID)).messageFeeTokenID;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

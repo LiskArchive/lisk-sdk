@@ -13,12 +13,14 @@
  */
 import { BaseStore } from '../../base_store';
 import { ActiveValidator } from '../types';
+import { BLS_PUBLIC_KEY_LENGTH } from '../constants';
 
 export interface ChainValidators {
 	activeValidators: ActiveValidator[];
 	certificateThreshold: bigint;
 }
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#chain-validators-substore
 export const chainValidatorsSchema = {
 	$id: '/modules/interoperability/chainValidators',
 	type: 'object',
@@ -33,9 +35,9 @@ export const chainValidatorsSchema = {
 				properties: {
 					blsKey: {
 						dataType: 'bytes',
+						minLength: BLS_PUBLIC_KEY_LENGTH,
+						maxLength: BLS_PUBLIC_KEY_LENGTH,
 						fieldNumber: 1,
-						minLength: 48,
-						maxLength: 48,
 					},
 					bftWeight: {
 						dataType: 'uint64',

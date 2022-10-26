@@ -19,7 +19,6 @@ import {
 	ChannelDataJSON,
 	Inbox,
 	InboxJSON,
-	MessageFeeTokenIDJSON,
 	Outbox,
 	OutboxJSON,
 	OwnChainAccountJSON,
@@ -85,13 +84,8 @@ export abstract class BaseInteroperabilityEndpoint<
 		const inboxJSON = this._toBoxJSON(inbox) as InboxJSON;
 		const outboxJSON = this._toBoxJSON(outbox) as OutboxJSON;
 
-		const messageFeeTokenIDJSON: MessageFeeTokenIDJSON = {
-			chainID: messageFeeTokenID.chainID.toString('hex'),
-			localID: messageFeeTokenID.localID.toString('hex'),
-		};
-
 		return {
-			messageFeeTokenID: messageFeeTokenIDJSON,
+			messageFeeTokenID: messageFeeTokenID.toString('hex'),
 			outbox: outboxJSON,
 			inbox: inboxJSON,
 			partnerChainOutboxRoot: partnerChainOutboxRoot.toString('hex'),

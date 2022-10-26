@@ -61,6 +61,7 @@ import { OwnChainAccountStore } from '../../../../../../src/modules/interoperabi
 import { EMPTY_BYTES, TOKEN_ID_LSK } from '../../../../../../src/modules/token/constants';
 import { ChainAccountUpdatedEvent } from '../../../../../../src/modules/interoperability/events/chain_account_updated';
 import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
+import { TOKEN_ID_LSK_MAINCHAIN } from '../../../../../../src/modules/interoperability/constants';
 
 describe('Sidechain registration command', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -207,7 +208,7 @@ describe('Sidechain registration command', () => {
 			await nameSubstore.set(
 				createStoreGetter(stateStore),
 				Buffer.from(transactionParams.name, 'utf8'),
-				{ id: utils.intToBuffer(0, 4) },
+				{ chainID: utils.intToBuffer(0, 4) },
 			);
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
@@ -488,7 +489,7 @@ describe('Sidechain registration command', () => {
 				inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				partnerChainOutboxRoot: EMPTY_HASH,
-				messageFeeTokenID: { chainID: utils.intToBuffer(1, 4), localID: utils.intToBuffer(0, 4) },
+				messageFeeTokenID: TOKEN_ID_LSK_MAINCHAIN,
 			};
 
 			// Act
@@ -535,7 +536,7 @@ describe('Sidechain registration command', () => {
 
 		it('should add an entry to registered names substore', async () => {
 			// Arrange
-			const expectedValue = { id: newChainID };
+			const expectedValue = { chainID: newChainID };
 
 			// Act
 			await sidechainRegistrationCommand.execute(context);
@@ -606,7 +607,7 @@ describe('Sidechain registration command', () => {
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
 				name: transactionParams.name,
 				chainID: transactionParams.chainID,
-				messageFeeTokenID: { chainID: utils.intToBuffer(1, 4), localID: utils.intToBuffer(0, 4) },
+				messageFeeTokenID: TOKEN_ID_LSK_MAINCHAIN,
 			});
 			const ccm = {
 				nonce: BigInt(0),
