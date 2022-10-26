@@ -12,11 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseStore } from '../../base_store';
+import { HASH_LENGTH } from '../constants';
 
 export interface OutboxRoot {
 	root: Buffer;
 }
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#outbox-root-substore
 export const outboxRootSchema = {
 	$id: '/modules/interoperability/outbox',
 	type: 'object',
@@ -24,6 +26,8 @@ export const outboxRootSchema = {
 	properties: {
 		root: {
 			dataType: 'bytes',
+			minLength: HASH_LENGTH,
+			maxLength: HASH_LENGTH,
 			fieldNumber: 1,
 		},
 	},

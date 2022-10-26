@@ -21,6 +21,7 @@ import { TerminatedStateAccount } from './stores/terminated_state';
 
 export type StoreCallback = (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 export type ImmutableStoreCallback = (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
+
 export interface CCMsg {
 	readonly nonce: bigint;
 	readonly module: string;
@@ -189,52 +190,34 @@ export interface OwnChainAccountJSON {
 	nonce: string;
 }
 
-export interface Inbox {
+type InboxOutbox = {
 	appendPath: Buffer[];
 	size: number;
 	root: Buffer;
-}
+};
+export type Inbox = InboxOutbox;
+export type Outbox = InboxOutbox;
 
-export interface InboxJSON {
+type InboxOutboxJSON = {
 	appendPath: string[];
 	size: number;
 	root: string;
-}
-
-export interface Outbox {
-	appendPath: Buffer[];
-	size: number;
-	root: Buffer;
-}
-
-export interface OutboxJSON {
-	appendPath: string[];
-	size: number;
-	root: string;
-}
-
-export interface MessageFeeTokenID {
-	chainID: Buffer;
-	localID: Buffer;
-}
-
-export interface MessageFeeTokenIDJSON {
-	chainID: string;
-	localID: string;
-}
+};
+export type InboxJSON = InboxOutboxJSON;
+export type OutboxJSON = InboxOutboxJSON;
 
 export interface ChannelData {
 	inbox: Inbox;
 	outbox: Outbox;
 	partnerChainOutboxRoot: Buffer;
-	messageFeeTokenID: MessageFeeTokenID;
+	messageFeeTokenID: Buffer;
 }
 
 export interface ChannelDataJSON {
 	inbox: InboxJSON;
 	outbox: OutboxJSON;
 	partnerChainOutboxRoot: string;
-	messageFeeTokenID: MessageFeeTokenIDJSON;
+	messageFeeTokenID: string;
 }
 
 export interface CCCommandExecuteContext {
@@ -343,7 +326,7 @@ export interface ChainValidators {
 }
 
 export interface ChainID {
-	id: Buffer;
+	chainID: Buffer;
 }
 
 export interface GenesisInteroperabilityStore {
@@ -376,10 +359,6 @@ export interface GenesisInteroperabilityStore {
 		storeValue: TerminatedOutboxAccount;
 	}[];
 	registeredNamesSubstore: {
-		storeKey: Buffer;
-		storeValue: ChainID;
-	}[];
-	registeredNetworkIDsSubstore: {
 		storeKey: Buffer;
 		storeValue: ChainID;
 	}[];

@@ -28,6 +28,7 @@ import {
 	TOKEN_ID_LSK,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	EMPTY_BYTES,
+	TOKEN_ID_LSK_MAINCHAIN,
 } from '../../constants';
 import { ccmSchema, registrationCCMParamsSchema, sidechainRegParams } from '../../schemas';
 import { SidechainRegistrationParams } from '../../types';
@@ -215,10 +216,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		await chainSubstore.set(context, chainID, sidechainAccount);
 
 		// Add an entry in the channel substore
-		const messageFeeTokenID = {
-			chainID: utils.intToBuffer(1, 4),
-			localID: utils.intToBuffer(0, 4),
-		};
+		const messageFeeTokenID = TOKEN_ID_LSK_MAINCHAIN;
 		const channelSubstore = this.stores.get(ChannelDataStore);
 		await channelSubstore.set(context, chainID, {
 			inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
@@ -240,7 +238,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 
 		// Add an entry in the registered names substore
 		const registeredNamesSubstore = this.stores.get(RegisteredNamesStore);
-		await registeredNamesSubstore.set(context, Buffer.from(name, 'utf-8'), { id: chainID });
+		await registeredNamesSubstore.set(context, Buffer.from(name, 'utf-8'), { chainID });
 
 		// Burn the registration fee
 		await this._tokenMethod.burn(methodContext, senderAddress, TOKEN_ID_LSK, REGISTRATION_FEE);

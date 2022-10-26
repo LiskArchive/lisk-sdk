@@ -77,10 +77,7 @@ describe('Mainchain endpoint', () => {
 			root: utils.getRandomBytes(32),
 			size: 10,
 		},
-		messageFeeTokenID: {
-			chainID: intToBuffer(0, 4),
-			localID: intToBuffer(1, 4),
-		},
+		messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
 		outbox: {
 			appendPath: [],
 			root: utils.getRandomBytes(32),
@@ -95,10 +92,7 @@ describe('Mainchain endpoint', () => {
 			root: channelData.inbox.root.toString('hex'),
 			size: channelData.inbox.size,
 		},
-		messageFeeTokenID: {
-			chainID: channelData.messageFeeTokenID.chainID.toString('hex'),
-			localID: channelData.messageFeeTokenID.localID.toString('hex'),
-		},
+		messageFeeTokenID: channelData.messageFeeTokenID.toString('hex'),
 		outbox: {
 			appendPath: channelData.outbox.appendPath.map(ap => ap.toString('hex')),
 			root: channelData.outbox.root.toString('hex'),

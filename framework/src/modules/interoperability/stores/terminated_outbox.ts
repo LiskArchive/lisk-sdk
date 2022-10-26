@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseStore } from '../../base_store';
+import { HASH_LENGTH } from '../constants';
 
 export interface TerminatedOutboxAccount {
 	outboxRoot: Buffer;
@@ -25,6 +26,7 @@ export interface TerminatedOutboxAccountJSON {
 	partnerChainInboxSize: number;
 }
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#terminated-outbox-substore
 export const terminatedOutboxSchema = {
 	$id: '/modules/interoperability/terminatedOutbox',
 	type: 'object',
@@ -32,6 +34,8 @@ export const terminatedOutboxSchema = {
 	properties: {
 		outboxRoot: {
 			dataType: 'bytes',
+			minLength: HASH_LENGTH,
+			maxLength: HASH_LENGTH,
 			fieldNumber: 1,
 		},
 		outboxSize: {

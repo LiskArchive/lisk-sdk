@@ -12,48 +12,33 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseStore } from '../../base_store';
+import { HASH_LENGTH } from '../constants';
+import { ChannelData } from '../types';
+import { TOKEN_ID_LENGTH } from '../../token/constants';
 
-export interface Inbox {
-	appendPath: Buffer[];
-	size: number;
-	root: Buffer;
-}
+const inboxOutboxProps = {
+	appendPath: {
+		type: 'array',
+		items: {
+			dataType: 'bytes',
+			minLength: HASH_LENGTH,
+			maxLength: HASH_LENGTH,
+		},
+		fieldNumber: 1,
+	},
+	size: {
+		dataType: 'uint32',
+		fieldNumber: 2,
+	},
+	root: {
+		dataType: 'bytes',
+		minLength: HASH_LENGTH,
+		maxLength: HASH_LENGTH,
+		fieldNumber: 3,
+	},
+};
 
-export interface InboxJSON {
-	appendPath: string[];
-	size: number;
-	root: string;
-}
-
-export interface Outbox {
-	appendPath: Buffer[];
-	size: number;
-	root: Buffer;
-}
-
-export interface OutboxJSON {
-	appendPath: string[];
-	size: number;
-	root: string;
-}
-
-export interface MessageFeeTokenID {
-	chainID: Buffer;
-	localID: Buffer;
-}
-
-export interface MessageFeeTokenIDJSON {
-	chainID: string;
-	localID: string;
-}
-
-export interface ChannelData {
-	inbox: Inbox;
-	outbox: Outbox;
-	partnerChainOutboxRoot: Buffer;
-	messageFeeTokenID: MessageFeeTokenID;
-}
-
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#channel-data-substore
 export const channelSchema = {
 	$id: '/modules/interoperability/channel',
 	type: 'object',
@@ -63,64 +48,25 @@ export const channelSchema = {
 			type: 'object',
 			fieldNumber: 1,
 			required: ['appendPath', 'size', 'root'],
-			properties: {
-				appendPath: {
-					type: 'array',
-					items: {
-						dataType: 'bytes',
-					},
-					fieldNumber: 1,
-				},
-				size: {
-					dataType: 'uint32',
-					fieldNumber: 2,
-				},
-				root: {
-					dataType: 'bytes',
-					fieldNumber: 3,
-				},
-			},
+			properties: inboxOutboxProps,
 		},
 		outbox: {
 			type: 'object',
 			fieldNumber: 2,
 			required: ['appendPath', 'size', 'root'],
-			properties: {
-				appendPath: {
-					type: 'array',
-					items: {
-						dataType: 'bytes',
-					},
-					fieldNumber: 1,
-				},
-				size: {
-					dataType: 'uint32',
-					fieldNumber: 2,
-				},
-				root: {
-					dataType: 'bytes',
-					fieldNumber: 3,
-				},
-			},
+			properties: inboxOutboxProps,
 		},
 		partnerChainOutboxRoot: {
 			dataType: 'bytes',
+			minLength: HASH_LENGTH,
+			maxLength: HASH_LENGTH,
 			fieldNumber: 3,
 		},
 		messageFeeTokenID: {
-			type: 'object',
+			dataType: 'bytes',
+			minLength: TOKEN_ID_LENGTH,
+			maxLength: TOKEN_ID_LENGTH,
 			fieldNumber: 4,
-			required: ['chainID', 'localID'],
-			properties: {
-				chainID: {
-					dataType: 'bytes',
-					fieldNumber: 1,
-				},
-				localID: {
-					dataType: 'bytes',
-					fieldNumber: 2,
-				},
-			},
 		},
 	},
 };
