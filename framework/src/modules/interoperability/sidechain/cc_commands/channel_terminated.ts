@@ -31,7 +31,7 @@ export class SidechainCCChannelTerminatedCommand extends BaseInteroperabilityCCC
 		if (!context.ccm) {
 			throw new Error('CCM to execute channel terminated cross chain command is missing.');
 		}
-		await interoperabilityStore.createTerminatedStateAccount(context.ccm.sendingChainID);
+		await interoperabilityStore.createTerminatedStateAccount(context, context.ccm.sendingChainID);
 	}
 
 	protected getInteroperabilityStore(

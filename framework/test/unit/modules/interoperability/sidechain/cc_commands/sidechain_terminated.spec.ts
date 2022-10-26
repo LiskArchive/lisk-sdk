@@ -134,6 +134,7 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 
 		expect(createTerminatedStateAccountMock).toHaveBeenCalledTimes(1);
 		expect(createTerminatedStateAccountMock).toHaveBeenCalledWith(
+			sampleExecuteContext,
 			ccmSidechainTerminatedParams.chainID,
 			ccmSidechainTerminatedParams.stateRoot,
 		);

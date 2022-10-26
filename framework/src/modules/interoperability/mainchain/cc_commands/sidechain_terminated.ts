@@ -55,6 +55,7 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 				return;
 			}
 			await interoperabilityStore.createTerminatedStateAccount(
+				context,
 				decodedParams.chainID,
 				decodedParams.stateRoot,
 			);

@@ -147,6 +147,10 @@ export interface CCMBounceContext {
 	ccmProcessedEventCode: number;
 }
 
+export interface CreateTerminatedStateAccountContext {
+	eventQueue: EventQueue;
+}
+
 export interface LastCertificate {
 	height: number;
 	timestamp: number;
