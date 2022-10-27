@@ -22,9 +22,7 @@ import {
 } from '../../../../src';
 import { BaseInteroperabilityMethod } from '../../../../src/modules/interoperability/base_interoperability_method';
 import {
-	CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE,
-	CCM_SEND_FAILED_CODE_INVALID_FORMAT,
-	CCM_SEND_FAILED_CODE_MESSAGE_FEE_EXCEPTION,
+	CCMSendFailedCodes,
 	CCM_STATUS_OK,
 	CHAIN_ACTIVE,
 	CHAIN_ID_MAINCHAIN,
@@ -188,6 +186,7 @@ describe('Sample Method', () => {
 	});
 
 	describe('send', () => {
+		const sendingAddress = Buffer.from('lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9');
 		const ownChainAccountSidechain = {
 			name: 'mychain',
 			chainID: Buffer.from('10001000', 'hex'),
@@ -200,6 +199,17 @@ describe('Sample Method', () => {
 			nonce: BigInt(0),
 		};
 
+		const ccm = {
+			module: 'token',
+			crossChainCommand: 'transfer',
+			fee: BigInt(100000),
+			nonce: ownChainAccountSidechain.nonce,
+			params: utils.getRandomBytes(10),
+			receivingChainID: Buffer.from('00000001', 'hex'),
+			sendingChainID: ownChainAccountSidechain.chainID,
+			status: CCM_STATUS_OK,
+		};
+
 		beforeEach(() => {
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
@@ -209,55 +219,35 @@ describe('Sample Method', () => {
 
 		it('should throw error and emit event when invalid ccm format', async () => {
 			// Arrange
-			const sendingAddress = Buffer.from('lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9');
-
-			const ccm = {
-				module: 'token',
-				crossChainCommand: 'transfer',
-				fee: BigInt(100000),
-				nonce: ownChainAccountSidechain.nonce,
-				params: utils.getRandomBytes(MAX_CCM_SIZE),
-				receivingChainID: Buffer.from('00000001', 'hex'),
-				sendingChainID: ownChainAccountSidechain.chainID,
-				status: CCM_STATUS_OK,
-			};
+			const invalidSizeCCM = { ...ccm, params: utils.getRandomBytes(MAX_CCM_SIZE) };
 
 			// Act & Assert
 			await expect(
 				sampleInteroperabilityMethod.send(
 					methodContext,
 					sendingAddress,
-					ccm.module,
-					ccm.crossChainCommand,
-					ccm.receivingChainID,
-					ccm.fee,
-					ccm.status,
-					ccm.params,
+					invalidSizeCCM.module,
+					invalidSizeCCM.crossChainCommand,
+					invalidSizeCCM.receivingChainID,
+					invalidSizeCCM.fee,
+					invalidSizeCCM.status,
+					invalidSizeCCM.params,
 					Date.now(),
 				),
 			).rejects.toThrow('Invalid CCM format.');
 
 			expect(ccmSendFailEventMock.log).toHaveBeenCalledWith(
 				expect.anything(),
-				{ ccm: { ...ccm, params: EMPTY_BYTES }, code: CCM_SEND_FAILED_CODE_INVALID_FORMAT },
+				{
+					ccm: { ...invalidSizeCCM, params: EMPTY_BYTES },
+					code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_INVALID_FORMAT,
+				},
 				true,
 			);
 		});
 
 		it('should throw error and emit event when receiving chain is not live', async () => {
 			// Arrange
-			const sendingAddress = Buffer.from('lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9');
-
-			const ccm = {
-				module: 'token',
-				crossChainCommand: 'transfer',
-				fee: BigInt(100000),
-				nonce: ownChainAccountSidechain.nonce,
-				params: utils.getRandomBytes(10),
-				receivingChainID: Buffer.from('00000001', 'hex'),
-				sendingChainID: ownChainAccountSidechain.chainID,
-				status: CCM_STATUS_OK,
-			};
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountSidechain);
@@ -280,25 +270,22 @@ describe('Sample Method', () => {
 
 			expect(ccmSendFailEventMock.log).toHaveBeenCalledWith(
 				expect.anything(),
-				{ ccm: { ...ccm, params: EMPTY_BYTES }, code: CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE },
+				{
+					ccm: { ...ccm, params: EMPTY_BYTES },
+					code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE,
+				},
 				true,
 			);
 		});
 
 		it('should throw error when processing on mainchain and receiving chain is not active', async () => {
 			// Arrange
-			const sendingAddress = Buffer.from('lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9');
-
-			const ccm = {
-				module: 'token',
-				crossChainCommand: 'transfer',
-				fee: BigInt(100000),
+			const ccmOnMainchain = {
+				...ccm,
 				nonce: ownChainAccountMainchain.nonce,
-				params: utils.getRandomBytes(10),
-				receivingChainID: Buffer.from('00000001', 'hex'),
 				sendingChainID: ownChainAccountMainchain.chainID,
-				status: CCM_STATUS_OK,
 			};
+
 			const receivingChainAccount = {
 				name: 'mychain',
 				lastCertificate: {
@@ -320,37 +307,28 @@ describe('Sample Method', () => {
 				sampleInteroperabilityMethod.send(
 					methodContext,
 					sendingAddress,
-					ccm.module,
-					ccm.crossChainCommand,
-					ccm.receivingChainID,
-					ccm.fee,
-					ccm.status,
-					ccm.params,
+					ccmOnMainchain.module,
+					ccmOnMainchain.crossChainCommand,
+					ccmOnMainchain.receivingChainID,
+					ccmOnMainchain.fee,
+					ccmOnMainchain.status,
+					ccmOnMainchain.params,
 					Date.now(),
 				),
 			).rejects.toThrow('Receiving chain is not active.');
 
 			expect(ccmSendFailEventMock.log).toHaveBeenCalledWith(
 				expect.anything(),
-				{ ccm: { ...ccm, params: EMPTY_BYTES }, code: CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE },
+				{
+					ccm: { ...ccmOnMainchain, params: EMPTY_BYTES },
+					code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE,
+				},
 				true,
 			);
 		});
 
 		it('should throw error when processing on sidechain and receiving chain is not active', async () => {
 			// Arrange
-			const sendingAddress = Buffer.from('lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9');
-
-			const ccm = {
-				module: 'token',
-				crossChainCommand: 'transfer',
-				fee: BigInt(100000),
-				nonce: ownChainAccountSidechain.nonce,
-				params: utils.getRandomBytes(10),
-				receivingChainID: Buffer.from('00000001', 'hex'),
-				sendingChainID: ownChainAccountSidechain.chainID,
-				status: CCM_STATUS_OK,
-			};
 			const receivingChainAccount = {
 				name: 'mychain',
 				lastCertificate: {
@@ -384,25 +362,16 @@ describe('Sample Method', () => {
 
 			expect(ccmSendFailEventMock.log).toHaveBeenCalledWith(
 				expect.anything(),
-				{ ccm: { ...ccm, params: EMPTY_BYTES }, code: CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE },
+				{
+					ccm: { ...ccm, params: EMPTY_BYTES },
+					code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE,
+				},
 				true,
 			);
 		});
 
 		it('should throw error when payMessageFee and log event when tokenMethod.payMessageFee fails', async () => {
 			// Arrange
-			const sendingAddress = Buffer.from('lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9');
-
-			const ccm = {
-				module: 'token',
-				crossChainCommand: 'transfer',
-				fee: BigInt(100000),
-				nonce: ownChainAccountSidechain.nonce,
-				params: utils.getRandomBytes(10),
-				receivingChainID: Buffer.from('00000001', 'hex'),
-				sendingChainID: ownChainAccountSidechain.chainID,
-				status: CCM_STATUS_OK,
-			};
 			const receivingChainAccount = {
 				name: 'mychain',
 				lastCertificate: {
@@ -439,25 +408,22 @@ describe('Sample Method', () => {
 
 			expect(ccmSendFailEventMock.log).toHaveBeenCalledWith(
 				expect.anything(),
-				{ ccm: { ...ccm, params: EMPTY_BYTES }, code: CCM_SEND_FAILED_CODE_MESSAGE_FEE_EXCEPTION },
+				{
+					ccm: { ...ccm, params: EMPTY_BYTES },
+					code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_MESSAGE_FEE_EXCEPTION,
+				},
 				true,
 			);
 		});
 
 		it('should process ccm successfully by calling addToOutbox and log success event', async () => {
 			// Arrange
-			const sendingAddress = Buffer.from('lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9');
-
-			const ccm = {
-				module: 'token',
-				crossChainCommand: 'transfer',
-				fee: BigInt(100000),
+			const ccmOnMainchain = {
+				...ccm,
 				nonce: ownChainAccountMainchain.nonce,
-				params: utils.getRandomBytes(10),
-				receivingChainID: Buffer.from('00000001', 'hex'),
 				sendingChainID: ownChainAccountMainchain.chainID,
-				status: CCM_STATUS_OK,
 			};
+
 			const receivingChainAccount = {
 				name: 'mychain',
 				lastCertificate: {
@@ -479,19 +445,19 @@ describe('Sample Method', () => {
 
 			const ownChainAccountStoreMock = jest.fn();
 			interopMod.stores.get(OwnChainAccountStore).set = ownChainAccountStoreMock;
-			const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
+			const ccmID = utils.hash(codec.encode(ccmSchema, ccmOnMainchain));
 
 			// Act & Assert
 			await expect(
 				sampleInteroperabilityMethod.send(
 					methodContext,
 					sendingAddress,
-					ccm.module,
-					ccm.crossChainCommand,
-					ccm.receivingChainID,
-					ccm.fee,
-					ccm.status,
-					ccm.params,
+					ccmOnMainchain.module,
+					ccmOnMainchain.crossChainCommand,
+					ccmOnMainchain.receivingChainID,
+					ccmOnMainchain.fee,
+					ccmOnMainchain.status,
+					ccmOnMainchain.params,
 					Date.now(),
 				),
 			).resolves.toBeUndefined();
@@ -503,8 +469,8 @@ describe('Sample Method', () => {
 			);
 			expect(ccmSendSuccessEventMock.log).toHaveBeenCalledWith(
 				expect.anything(),
-				ccm.sendingChainID,
-				ccm.receivingChainID,
+				ccmOnMainchain.sendingChainID,
+				ccmOnMainchain.receivingChainID,
 				ccmID,
 				{ ccmID },
 			);

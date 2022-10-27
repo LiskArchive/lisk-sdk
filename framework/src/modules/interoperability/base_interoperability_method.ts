@@ -25,11 +25,10 @@ import { BaseInteroperabilityStore } from './base_interoperability_store';
 import { MAINCHAIN_ID_BUFFER } from './constants';
 import {
 	EMPTY_BYTES,
-	CCM_SEND_FAILED_CODE_INVALID_FORMAT,
-	CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE,
 	CHAIN_ID_MAINCHAIN,
 	CHAIN_ACTIVE,
-	CCM_SEND_FAILED_CODE_MESSAGE_FEE_EXCEPTION,
+	CCMSentFailedCodes,
+	CCMSendFailedCodes,
 } from './constants';
 import { CcmSendFailEvent } from './events/ccm_send_fail';
 import { CcmSendSuccessEvent } from './events/ccm_send_success';
@@ -131,6 +130,18 @@ export abstract class BaseInteroperabilityMethod<
 			sendingChainID: ownChainAccount.chainID,
 			status,
 		};
+		// Not possible to send messages to the own chain.
+		if (receivingChainID.equals(ownChainAccount.chainID)) {
+			this.events.get(CcmSendFailEvent).log(
+				context,
+				{
+					ccm: { ...ccm, params: EMPTY_BYTES },
+					code: CCMSentFailedCodes.CCM_SENT_FAILED_CODE_INVALID_RECEIVING_CHAIN,
+				},
+				true,
+			);
+			throw new Error('Sending chain cannot be the receiving chain.');
+		}
 
 		// Validate ccm size.
 		try {
@@ -140,7 +151,7 @@ export abstract class BaseInteroperabilityMethod<
 				context,
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCM_SEND_FAILED_CODE_INVALID_FORMAT,
+					code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_INVALID_FORMAT,
 				},
 				true,
 			);
@@ -160,7 +171,7 @@ export abstract class BaseInteroperabilityMethod<
 				context,
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE,
+					code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE,
 				},
 				true,
 			);
@@ -198,7 +209,7 @@ export abstract class BaseInteroperabilityMethod<
 				context,
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE,
+					code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE,
 				},
 				true,
 			);
@@ -216,7 +227,7 @@ export abstract class BaseInteroperabilityMethod<
 					context,
 					{
 						ccm: { ...ccm, params: EMPTY_BYTES },
-						code: CCM_SEND_FAILED_CODE_MESSAGE_FEE_EXCEPTION,
+						code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_MESSAGE_FEE_EXCEPTION,
 					},
 					true,
 				);

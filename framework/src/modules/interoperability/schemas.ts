@@ -34,6 +34,7 @@ import { ownChainAccountSchema } from './stores/own_chain_account';
 import { terminatedOutboxSchema } from './stores/terminated_outbox';
 import { terminatedStateSchema } from './stores/terminated_state';
 
+// LIP-0049: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#cross-chain-message-schema
 export const ccmSchema = {
 	$id: '/modules/interoperability/ccm',
 	type: 'object',
