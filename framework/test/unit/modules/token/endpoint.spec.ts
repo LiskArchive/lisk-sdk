@@ -88,10 +88,7 @@ describe('token endpoint', () => {
 		const escrowStore = tokenModule.stores.get(EscrowStore);
 		await escrowStore.set(
 			methodContext,
-			Buffer.concat([
-				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
-				defaultTokenID.slice(CHAIN_ID_LENGTH),
-			]),
+			Buffer.concat([defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH), defaultTokenID]),
 			{ amount: defaultEscrowAmount },
 		);
 

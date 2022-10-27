@@ -18,7 +18,7 @@ import { NotFoundError } from '../../state_machine';
 import { JSONObject, ModuleEndpointContext } from '../../types';
 import { ModuleConfig } from './types';
 import { BaseEndpoint } from '../base_endpoint';
-import { LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from './constants';
+import { CHAIN_ID_LENGTH, TOKEN_ID_LENGTH } from './constants';
 import {
 	getBalanceRequestSchema,
 	getBalancesRequestSchema,
@@ -29,10 +29,7 @@ import {
 import { EscrowStore, EscrowStoreData } from './stores/escrow';
 import { SupplyStore } from './stores/supply';
 import { UserStore } from './stores/user';
-import { splitTokenID } from './utils';
 import { SupportedTokensStore } from './stores/supported_tokens';
-
-const CHAIN_ID_ALIAS_NATIVE = Buffer.from([0, 0, 0, 1]);
 
 export class TokenEndpoint extends BaseEndpoint {
 	private _moduleConfig!: ModuleConfig;
@@ -98,20 +95,16 @@ export class TokenEndpoint extends BaseEndpoint {
 		context: ModuleEndpointContext,
 	): Promise<{ totalSupply: JSONObject<SupplyStoreData & { tokenID: string }>[] }> {
 		const supplyStore = this.stores.get(SupplyStore);
-		const supplyData = await supplyStore.iterate(context, {
-			gte: Buffer.concat([Buffer.alloc(LOCAL_ID_LENGTH, 0)]),
-			lte: Buffer.concat([Buffer.alloc(LOCAL_ID_LENGTH, 255)]),
-		});
+		const supplyData = await supplyStore.getAll(context);
 
 		return {
-			totalSupply: supplyData.map(({ key: localID, value: supply }) => ({
-				tokenID: Buffer.concat([CHAIN_ID_ALIAS_NATIVE, localID]).toString('hex'),
+			totalSupply: supplyData.map(({ key: tokenID, value: supply }) => ({
+				tokenID: tokenID.toString('hex'),
 				totalSupply: supply.totalSupply.toString(),
 			})),
 		};
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	public async getSupportedTokens(
 		context: ModuleEndpointContext,
 	): Promise<{ supportedTokens: string[] }> {
@@ -136,7 +129,6 @@ export class TokenEndpoint extends BaseEndpoint {
 		return { supported: await supportedTokensStore.isSupported(context, tokenID) };
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	public async getEscrowedAmounts(
 		context: ModuleEndpointContext,
 	): Promise<{
@@ -149,11 +141,12 @@ export class TokenEndpoint extends BaseEndpoint {
 		});
 		return {
 			escrowedAmounts: escrowData.map(({ key, value: escrow }) => {
-				const [escrowChainID, localID] = splitTokenID(key);
+				const escrowChainID = key.slice(0, CHAIN_ID_LENGTH);
+				const tokenID = key.slice(CHAIN_ID_LENGTH);
 				return {
 					escrowChainID: escrowChainID.toString('hex'),
 					amount: escrow.amount.toString(),
-					tokenID: Buffer.concat([CHAIN_ID_ALIAS_NATIVE, localID]).toString('hex'),
+					tokenID: tokenID.toString('hex'),
 				};
 			}),
 		};
