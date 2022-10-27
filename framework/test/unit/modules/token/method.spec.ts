@@ -44,7 +44,6 @@ import { UserStore } from '../../../../src/modules/token/stores/user';
 import { MethodContext, createMethodContext, EventQueue } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
-import { DEFAULT_LOCAL_ID } from '../../../utils/mocks/transaction';
 
 describe('token module', () => {
 	const tokenModule = new TokenModule();
@@ -93,12 +92,6 @@ describe('token module', () => {
 			escrowAccountInitializationFee: defaultEscrowAccountInitFee,
 			userAccountInitializationFee: defaultUserAccountInitFee,
 			feeTokenID: defaultTokenID,
-			minBalances: [
-				{
-					tokenID: DEFAULT_LOCAL_ID,
-					amount: BigInt(5000000),
-				},
-			],
 		});
 		await tokenModule.init({
 			genesisConfig: {

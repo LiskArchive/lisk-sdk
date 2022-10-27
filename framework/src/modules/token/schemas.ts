@@ -24,31 +24,11 @@ export const configSchema = {
 	$id: '/token/config',
 	type: 'object',
 	properties: {
-		minBalances: {
-			type: 'array',
-			items: {
-				type: 'object',
-				properties: {
-					tokenID: {
-						type: 'string',
-						format: 'hex',
-					},
-					amount: {
-						type: 'string',
-						format: 'uint64',
-					},
-				},
-			},
-		},
 		supportedTokenIDs: {
 			items: {
 				type: 'string',
 				format: 'hex',
 			},
-		},
-		accountInitializationFee: {
-			type: 'string',
-			format: 'uint64',
 		},
 		feeTokenID: {
 			type: 'string',
@@ -56,7 +36,11 @@ export const configSchema = {
 			minLength: TOKEN_ID_LENGTH * 2,
 			maxLength: TOKEN_ID_LENGTH * 2,
 		},
-		escrowInitializationFee: {
+		userAccountInitializationFee: {
+			type: 'string',
+			format: 'uint64',
+		},
+		escrowAccountInitializationFee: {
 			type: 'string',
 			format: 'uint64',
 		},

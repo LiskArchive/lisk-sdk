@@ -26,7 +26,6 @@ import { CCTransferCommand } from '../../../../../src/modules/token/commands/cc_
 import {
 	CCM_STATUS_OK,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-	MIN_BALANCE,
 } from '../../../../../src/modules/token/constants';
 import { crossChainTransferParamsSchema } from '../../../../../src/modules/token/schemas';
 import { EventQueue } from '../../../../../src/state_machine';
@@ -54,8 +53,6 @@ describe('CCTransfer command', () => {
 	const defaultOwnChainID = Buffer.from([0, 0, 0, 1]);
 	const defaultReceivingChainID = Buffer.from([0, 0, 1, 0]);
 	const defaultTokenID = Buffer.concat([defaultOwnChainID, Buffer.alloc(4)]);
-	const localTokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
-	const secondTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
 	const defaultEscrowFeeTokenId = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 	const defaultUserAccountInitializationFee = BigInt('50000000');
 	const defaultEscrowAccountInitializationFee = BigInt('50000000');
@@ -136,10 +133,6 @@ describe('CCTransfer command', () => {
 			escrowAccountInitializationFee: defaultEscrowAccountInitializationFee,
 			userAccountInitializationFee: defaultUserAccountInitializationFee,
 			feeTokenID: defaultTokenID,
-			minBalances: [
-				{ tokenID: localTokenID, amount: BigInt(MIN_BALANCE) },
-				{ tokenID: secondTokenID, amount: BigInt(MIN_BALANCE) },
-			],
 		});
 
 		command.init({
