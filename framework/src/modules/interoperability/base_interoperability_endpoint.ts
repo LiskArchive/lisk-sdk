@@ -16,6 +16,7 @@ import { BaseEndpoint } from '../base_endpoint';
 import { BaseInteroperableMethod } from './base_interoperable_method';
 import {
 	ChainAccountJSON,
+	ChainValidators,
 	ChannelDataJSON,
 	Inbox,
 	InboxJSON,
@@ -31,6 +32,8 @@ import { TerminatedOutboxAccountJSON } from './stores/terminated_outbox';
 import { BaseInteroperabilityStore } from './base_interoperability_store';
 import { chainAccountToJSON } from './utils';
 import { ImmutableStoreGetter, StoreGetter } from '../base_store';
+import { ChainValidatorsStore } from './stores/chain_validators';
+import { ChainAccountStore } from './stores/chain_account';
 
 export abstract class BaseInteroperabilityEndpoint<
 	T extends BaseInteroperabilityStore
@@ -146,6 +149,33 @@ export abstract class BaseInteroperabilityEndpoint<
 			outboxSize,
 			partnerChainInboxSize,
 		};
+	}
+
+	public async getChainValidators(
+		context: ModuleEndpointContext,
+		chainID: Buffer,
+	): Promise<ChainValidators> {
+		const chainAccountStore = this.stores.get(ChainAccountStore);
+		const chainAccountExists = await chainAccountStore.has(context, chainID);
+		if (!chainAccountExists) {
+			throw new Error('Chain account does not exist.');
+		}
+
+		const chainValidatorsStore = this.stores.get(ChainValidatorsStore);
+
+		const validators = await chainValidatorsStore.get(context, chainID);
+
+		return validators;
+	}
+
+	public async isChainIDAvailable(
+		context: ModuleEndpointContext,
+		chainID: Buffer,
+	): Promise<boolean> {
+		const chainSubstore = this.stores.get(ChainAccountStore);
+		const chainAccountExists = await chainSubstore.has(context, chainID);
+
+		return !chainAccountExists;
 	}
 
 	private _toBoxJSON(box: Inbox | Outbox) {

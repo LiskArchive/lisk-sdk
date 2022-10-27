@@ -127,7 +127,6 @@ describe('Base interoperability store', () => {
 	let stateStore: PrefixedStateReadWriter;
 	let chainDataSubstore: ChainAccountStore;
 	let terminatedStateSubstore: TerminatedStateStore;
-
 	let context: StoreGetter;
 
 	beforeEach(async () => {
