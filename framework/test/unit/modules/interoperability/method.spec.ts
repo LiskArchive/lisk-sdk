@@ -22,7 +22,7 @@ import {
 } from '../../../../src';
 import { BaseInteroperabilityMethod } from '../../../../src/modules/interoperability/base_interoperability_method';
 import {
-	CCMSendFailedCodes,
+	CCM_SENT_FAILED_CODE,
 	CCM_STATUS_OK,
 	CHAIN_ACTIVE,
 	CHAIN_ID_MAINCHAIN,
@@ -210,6 +210,17 @@ describe('Sample Method', () => {
 			status: CCM_STATUS_OK,
 		};
 
+		const getReceivingChainAccountByStatus = (code: number) => ({
+			name: 'mychain',
+			lastCertificate: {
+				height: 0,
+				timestamp: Date.now(),
+				stateRoot: utils.getRandomBytes(32),
+				validatorsHash: utils.getRandomBytes(32),
+			},
+			status: code,
+		});
+
 		beforeEach(() => {
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
@@ -240,7 +251,7 @@ describe('Sample Method', () => {
 				expect.anything(),
 				{
 					ccm: { ...invalidSizeCCM, params: EMPTY_BYTES },
-					code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_INVALID_FORMAT,
+					code: CCM_SENT_FAILED_CODE.INVALID_FORMAT,
 				},
 				true,
 			);
@@ -272,7 +283,7 @@ describe('Sample Method', () => {
 				expect.anything(),
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE,
+					code: CCM_SENT_FAILED_CODE.CHANNEL_UNAVAILABLE,
 				},
 				true,
 			);
@@ -286,16 +297,7 @@ describe('Sample Method', () => {
 				sendingChainID: ownChainAccountMainchain.chainID,
 			};
 
-			const receivingChainAccount = {
-				name: 'mychain',
-				lastCertificate: {
-					height: 0,
-					timestamp: Date.now(),
-					stateRoot: utils.getRandomBytes(32),
-					validatorsHash: utils.getRandomBytes(32),
-				},
-				status: CHAIN_TERMINATED,
-			};
+			const receivingChainAccount = getReceivingChainAccountByStatus(CHAIN_TERMINATED);
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountMainchain);
@@ -321,7 +323,7 @@ describe('Sample Method', () => {
 				expect.anything(),
 				{
 					ccm: { ...ccmOnMainchain, params: EMPTY_BYTES },
-					code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE,
+					code: CCM_SENT_FAILED_CODE.CHANNEL_UNAVAILABLE,
 				},
 				true,
 			);
@@ -329,16 +331,8 @@ describe('Sample Method', () => {
 
 		it('should throw error when processing on sidechain and receiving chain is not active', async () => {
 			// Arrange
-			const receivingChainAccount = {
-				name: 'mychain',
-				lastCertificate: {
-					height: 0,
-					timestamp: Date.now(),
-					stateRoot: utils.getRandomBytes(32),
-					validatorsHash: utils.getRandomBytes(32),
-				},
-				status: CHAIN_TERMINATED,
-			};
+			const receivingChainAccount = getReceivingChainAccountByStatus(CHAIN_TERMINATED);
+
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountSidechain);
@@ -364,7 +358,7 @@ describe('Sample Method', () => {
 				expect.anything(),
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE,
+					code: CCM_SENT_FAILED_CODE.CHANNEL_UNAVAILABLE,
 				},
 				true,
 			);
@@ -372,16 +366,8 @@ describe('Sample Method', () => {
 
 		it('should throw error when payMessageFee and log event when tokenMethod.payMessageFee fails', async () => {
 			// Arrange
-			const receivingChainAccount = {
-				name: 'mychain',
-				lastCertificate: {
-					height: 0,
-					timestamp: Date.now(),
-					stateRoot: utils.getRandomBytes(32),
-					validatorsHash: utils.getRandomBytes(32),
-				},
-				status: CHAIN_ACTIVE,
-			};
+			const receivingChainAccount = getReceivingChainAccountByStatus(CHAIN_ACTIVE);
+
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountSidechain);
@@ -410,7 +396,7 @@ describe('Sample Method', () => {
 				expect.anything(),
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_MESSAGE_FEE_EXCEPTION,
+					code: CCM_SENT_FAILED_CODE.MESSAGE_FEE_EXCEPTION,
 				},
 				true,
 			);
@@ -424,16 +410,8 @@ describe('Sample Method', () => {
 				sendingChainID: ownChainAccountMainchain.chainID,
 			};
 
-			const receivingChainAccount = {
-				name: 'mychain',
-				lastCertificate: {
-					height: 0,
-					timestamp: Date.now(),
-					stateRoot: utils.getRandomBytes(32),
-					validatorsHash: utils.getRandomBytes(32),
-				},
-				status: CHAIN_ACTIVE,
-			};
+			const receivingChainAccount = getReceivingChainAccountByStatus(CHAIN_ACTIVE);
+
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountMainchain);

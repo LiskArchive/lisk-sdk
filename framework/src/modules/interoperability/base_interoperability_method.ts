@@ -22,13 +22,11 @@ import { ChainAccount, ChainAccountStore } from './stores/chain_account';
 import { CCMsg } from './types';
 import { StoreGetter, ImmutableStoreGetter } from '../base_store';
 import { BaseInteroperabilityStore } from './base_interoperability_store';
-import { MAINCHAIN_ID_BUFFER } from './constants';
 import {
 	EMPTY_BYTES,
 	CHAIN_ID_MAINCHAIN,
 	CHAIN_ACTIVE,
-	CCMSentFailedCodes,
-	CCMSendFailedCodes,
+	CCM_SENT_FAILED_CODE
 } from './constants';
 import { CcmSendFailEvent } from './events/ccm_send_fail';
 import { CcmSendSuccessEvent } from './events/ccm_send_success';
@@ -136,7 +134,7 @@ export abstract class BaseInteroperabilityMethod<
 				context,
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSentFailedCodes.CCM_SENT_FAILED_CODE_INVALID_RECEIVING_CHAIN,
+					code: CCM_SENT_FAILED_CODE.INVALID_RECEIVING_CHAIN,
 				},
 				true,
 			);
@@ -151,7 +149,7 @@ export abstract class BaseInteroperabilityMethod<
 				context,
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_INVALID_FORMAT,
+					code: CCM_SENT_FAILED_CODE.INVALID_FORMAT,
 				},
 				true,
 			);
@@ -171,7 +169,7 @@ export abstract class BaseInteroperabilityMethod<
 				context,
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE,
+					code: CCM_SENT_FAILED_CODE.CHANNEL_UNAVAILABLE,
 				},
 				true,
 			);
@@ -209,7 +207,7 @@ export abstract class BaseInteroperabilityMethod<
 				context,
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE,
+					code: CCM_SENT_FAILED_CODE.CHANNEL_UNAVAILABLE,
 				},
 				true,
 			);
@@ -227,7 +225,7 @@ export abstract class BaseInteroperabilityMethod<
 					context,
 					{
 						ccm: { ...ccm, params: EMPTY_BYTES },
-						code: CCMSendFailedCodes.CCM_SEND_FAILED_CODE_MESSAGE_FEE_EXCEPTION,
+						code: CCM_SENT_FAILED_CODE.MESSAGE_FEE_EXCEPTION,
 					},
 					true,
 				);

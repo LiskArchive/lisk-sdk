@@ -77,15 +77,20 @@ export const CCM_SENT_STATUS_SUCCESS = 0;
 export const CCM_PROCESSED_RESULT_BOUNCED = 2;
 export const CCM_PROCESSED_RESULT_DISCARDED = 3;
 export const CCM_STATUS_CODE_RECOVERED = 5;
-export enum CCMSendFailedCodes {
-	CCM_SEND_FAILED_CODE_CHANNEL_UNAVAILABLE = 1,
-	CCM_SEND_FAILED_CODE_MESSAGE_FEE_EXCEPTION,
-	CCM_SEND_FAILED_CODE_INVALID_FORMAT,
+// Value of code of CCM Sent Failed Event
+export enum CCM_SENT_FAILED_CODE {
+	// if sending failed due to the receiving chain not being active.
+	CHANNEL_UNAVAILABLE = 1,
+	// if sending failed due to the fee payment failing.
+	MESSAGE_FEE_EXCEPTION = 11,
+	// if sending failed due to invalid params property.
+	INVALID_PARAMS,
+	// if sending failed due to invalid message format.
+	INVALID_FORMAT,
+	// if sending failed due to invalid receiving chain.
+	INVALID_RECEIVING_CHAIN,
 }
 
-export enum CCMSentFailedCodes {
-	CCM_SENT_FAILED_CODE_INVALID_RECEIVING_CHAIN = 14,
-}
 // Commands
 export const COMMAND_NAME_SIDECHAIN_REG = 'sidechainRegistration';
 export const COMMAND_NAME_MAINCHAIN_REG = 'mainchainRegistration';
