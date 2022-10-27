@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StoreGetter } from '../../../../../src/modules/base_store';
+import { StoreGetter } from '../../../../../src';
 import {
 	ALL_SUPPORTED_TOKENS_KEY,
 	SupportedTokensStore,
@@ -170,9 +170,9 @@ describe('SupportedTokensStore', () => {
 				supportedTokenIDs: [Buffer.from([1, 1, 1, 1, 0, 0, 0, 0])],
 			});
 
-			await expect(store.removeSupportForChain(context, Buffer.from([1, 1, 1, 0]))).rejects.toThrow(
-				'is not supported',
-			);
+			await expect(
+				store.removeSupportForChain(context, Buffer.from([2, 2, 2, 2])),
+			).resolves.toBeUndefined();
 		});
 
 		it('should remove support', async () => {
@@ -236,20 +236,22 @@ describe('SupportedTokensStore', () => {
 	});
 
 	describe('removeSupportForToken', () => {
-		it('should not do anything if chain is native', async () => {
+		it('should reject if chain is native', async () => {
 			await store.set(context, Buffer.from([1, 1, 1, 1]), {
 				supportedTokenIDs: [Buffer.from([1, 1, 1, 1, 0, 0, 0, 0])],
 			});
 
-			await store.removeSupportForToken(context, Buffer.concat([ownChainID, Buffer.alloc(4)]));
-
-			await expect(store.has(context, Buffer.from([1, 1, 1, 1]))).resolves.toBeTrue();
+			await expect(
+				store.removeSupportForToken(context, Buffer.concat([ownChainID, Buffer.alloc(4)])),
+			).rejects.toThrow('Cannot remove support for LSK or native token.');
 		});
 
 		it('should not do anything if all tokens are supported', async () => {
 			await store.set(context, ALL_SUPPORTED_TOKENS_KEY, { supportedTokenIDs: [] });
 			const tokenID = Buffer.from([2, 0, 0, 0, 1, 0, 0, 0]);
-			await expect(store.removeSupportForToken(context, tokenID)).resolves.toBeUndefined();
+			await expect(store.removeSupportForToken(context, tokenID)).rejects.toThrow(
+				'All tokens are supported.',
+			);
 
 			await expect(store.allSupported(context)).resolves.toBeTrue();
 		});
@@ -282,6 +284,32 @@ describe('SupportedTokensStore', () => {
 					Buffer.from([1, 1, 1, 1, 1, 0, 0, 1]),
 				],
 			});
+		});
+
+		it('should return undefined if support does not exist', async () => {
+			await expect(
+				store.removeSupportForToken(context, Buffer.from([1, 1, 1, 1, 1, 0, 0, 0])),
+			).resolves.toBeUndefined();
+		});
+
+		it('should reject if the supported tokens array length is 0', async () => {
+			await store.set(context, Buffer.from([1, 1, 1, 1]), {
+				supportedTokenIDs: [],
+			});
+
+			await expect(
+				store.removeSupportForToken(context, Buffer.from([1, 1, 1, 1, 1, 0, 0, 0])),
+			).rejects.toThrow('All tokens from the specified chain are supported.');
+		});
+
+		it('should remove token from supported tokens if a token with value tokenID exists', async () => {
+			const tokenID = Buffer.from([1, 1, 1, 1, 1, 0, 0, 0]);
+			await store.set(context, Buffer.from([1, 1, 1, 1]), {
+				supportedTokenIDs: [tokenID],
+			});
+
+			await expect(store.removeSupportForToken(context, tokenID)).resolves.toBeUndefined();
+			await expect(store.has(context, Buffer.from([1, 1, 1, 1]))).resolves.toBeFalse();
 		});
 	});
 });
