@@ -24,7 +24,7 @@ import { MainchainInteroperabilityStore } from '../../../../../../src/modules/in
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
 import { NamedRegistry } from '../../../../../../src/modules/named_registry';
 import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
-import { channelTerminatedCCMParamsSchema } from '../../../../../../dist-node/modules/interoperability/schemas';
+import { channelTerminatedCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 
 describe('MainchainCCChannelTerminatedCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
