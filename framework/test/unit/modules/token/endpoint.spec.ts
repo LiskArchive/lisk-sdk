@@ -81,7 +81,7 @@ describe('token endpoint', () => {
 		await userStore.save(methodContext, defaultAddress, defaultForeignTokenID, defaultAccount);
 
 		const supplyStore = tokenModule.stores.get(SupplyStore);
-		await supplyStore.set(methodContext, defaultTokenID.slice(CHAIN_ID_LENGTH), {
+		await supplyStore.set(methodContext, defaultTokenID, {
 			totalSupply: defaultTotalSupply,
 		});
 
@@ -97,9 +97,7 @@ describe('token endpoint', () => {
 
 		const supportedTokensStore = tokenModule.stores.get(SupportedTokensStore);
 		supportedTokensStore.registerOwnChainID(defaultTokenID.slice(CHAIN_ID_LENGTH));
-		await supportedTokensStore.set(methodContext, defaultTokenID.slice(CHAIN_ID_LENGTH), {
-			supportedTokenIDs,
-		});
+		await supportedTokensStore.set(methodContext, defaultTokenID, { supportedTokenIDs });
 	});
 
 	describe('getBalances', () => {
@@ -277,8 +275,7 @@ describe('token endpoint', () => {
 			expect(await endpoint.isSupported(moduleEndpointContext)).toEqual({ supported: true });
 		});
 
-		// eslint-disable-next-line jest/no-disabled-tests
-		it.skip('should return false for a non-supported token', async () => {
+		it('should return false for a non-supported token', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: { tokenID: '8888888888888888' },
