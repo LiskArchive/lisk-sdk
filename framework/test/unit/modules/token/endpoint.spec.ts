@@ -13,11 +13,16 @@
  */
 import { address, utils } from '@liskhq/lisk-cryptography';
 import { TokenMethod, TokenModule } from '../../../../src/modules/token';
-import { CHAIN_ID_LENGTH } from '../../../../src/modules/token/constants';
+import {
+	CHAIN_ID_LENGTH,
+	USER_SUBSTORE_INITIALIZATION_FEE,
+	ESCROW_SUBSTORE_INITIALIZATION_FEE,
+} from '../../../../src/modules/token/constants';
 import { TokenEndpoint } from '../../../../src/modules/token/endpoint';
 import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
 import { SupplyStore } from '../../../../src/modules/token/stores/supply';
 import { UserStore } from '../../../../src/modules/token/stores/user';
+import { SupportedTokensStore } from '../../../../src/modules/token/stores/supported_tokens';
 import { MethodContext } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import {
@@ -25,6 +30,7 @@ import {
 	createTransientModuleEndpointContext,
 } from '../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
+import { ModuleConfig } from '../../../../src/modules/token/types';
 
 describe('token endpoint', () => {
 	const tokenModule = new TokenModule();
@@ -42,7 +48,10 @@ describe('token endpoint', () => {
 	};
 	const defaultTotalSupply = BigInt('100000000000000');
 	const defaultEscrowAmount = BigInt('100000000000');
-	// const supportedTokenIDs = ['0000000000000000', '0000000200000000'];
+	const supportedTokenIDs = [
+		Buffer.from('0000000000000000', 'hex'),
+		Buffer.from('0000000200000000', 'hex'),
+	];
 
 	let endpoint: TokenEndpoint;
 	let stateStore: PrefixedStateReadWriter;
@@ -51,12 +60,12 @@ describe('token endpoint', () => {
 	beforeEach(async () => {
 		const method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
 		endpoint = new TokenEndpoint(tokenModule.stores, tokenModule.offchainStores);
-		method.init({
-			ownChainID: Buffer.from([0, 0, 0, 1]),
-			escrowAccountInitializationFee: BigInt(50000000),
-			userAccountInitializationFee: BigInt(50000000),
+		const config: ModuleConfig = {
+			userAccountInitializationFee: USER_SUBSTORE_INITIALIZATION_FEE,
+			escrowAccountInitializationFee: ESCROW_SUBSTORE_INITIALIZATION_FEE,
 			feeTokenID: defaultTokenID,
-		});
+		};
+		method.init(Object.assign(config, { ownChainID: Buffer.from([0, 0, 0, 1]) }));
 		method.addDependencies({
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn().mockResolvedValue(true),
@@ -64,7 +73,7 @@ describe('token endpoint', () => {
 			terminateChain: jest.fn(),
 			getChannel: jest.fn(),
 		} as never);
-		endpoint.init(method);
+		endpoint.init(config);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		methodContext = createTransientMethodContext({ stateStore });
 		const userStore = tokenModule.stores.get(UserStore);
@@ -85,6 +94,12 @@ describe('token endpoint', () => {
 			]),
 			{ amount: defaultEscrowAmount },
 		);
+
+		const supportedTokensStore = tokenModule.stores.get(SupportedTokensStore);
+		supportedTokensStore.registerOwnChainID(defaultTokenID.slice(CHAIN_ID_LENGTH));
+		await supportedTokensStore.set(methodContext, defaultTokenID.slice(CHAIN_ID_LENGTH), {
+			supportedTokenIDs,
+		});
 	});
 
 	describe('getBalances', () => {
@@ -248,6 +263,36 @@ describe('token endpoint', () => {
 						amount: defaultEscrowAmount.toString(),
 					},
 				],
+			});
+		});
+	});
+
+	describe('isSupported', () => {
+		it('should return true for a supported token', async () => {
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { tokenID: supportedTokenIDs[0].toString('hex') },
+			});
+
+			expect(await endpoint.isSupported(moduleEndpointContext)).toEqual({ supported: true });
+		});
+
+		// eslint-disable-next-line jest/no-disabled-tests
+		it.skip('should return false for a non-supported token', async () => {
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { tokenID: '8888888888888888' },
+			});
+
+			expect(await endpoint.isSupported(moduleEndpointContext)).toEqual({ supported: false });
+		});
+	});
+
+	describe('getInitializationFees', () => {
+		it('should return configured initialization fees for user account and escrow account', () => {
+			expect(endpoint.getInitializationFees()).toEqual({
+				userAccount: USER_SUBSTORE_INITIALIZATION_FEE.toString(),
+				escrowAccount: ESCROW_SUBSTORE_INITIALIZATION_FEE.toString(),
 			});
 		});
 	});

@@ -16,12 +16,13 @@ import { validator } from '@liskhq/lisk-validator';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { NotFoundError } from '../../state_machine';
 import { JSONObject, ModuleEndpointContext } from '../../types';
+import { ModuleConfig } from './types';
 import { BaseEndpoint } from '../base_endpoint';
-import { TokenMethod } from './method';
 import { LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from './constants';
 import {
 	getBalanceRequestSchema,
 	getBalancesRequestSchema,
+	isSupportedSchema,
 	SupplyStoreData,
 	UserStoreData,
 } from './schemas';
@@ -29,12 +30,16 @@ import { EscrowStore, EscrowStoreData } from './stores/escrow';
 import { SupplyStore } from './stores/supply';
 import { UserStore } from './stores/user';
 import { splitTokenID } from './utils';
+import { SupportedTokensStore } from './stores/supported_tokens';
 
 const CHAIN_ID_ALIAS_NATIVE = Buffer.from([0, 0, 0, 1]);
 
 export class TokenEndpoint extends BaseEndpoint {
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public init(_tokenMethod: TokenMethod) {}
+	private _moduleConfig!: ModuleConfig;
+
+	public init(moduleConfig: ModuleConfig) {
+		this._moduleConfig = moduleConfig;
+	}
 
 	public async getBalances(
 		context: ModuleEndpointContext,
@@ -106,14 +111,29 @@ export class TokenEndpoint extends BaseEndpoint {
 		};
 	}
 
-	// TODO: Update to use SupportedTokensStore #7579
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async getSupportedTokens(
-		_context: ModuleEndpointContext,
-	): Promise<{ tokenIDs: string[] }> {
-		return {
-			tokenIDs: [],
-		};
+		context: ModuleEndpointContext,
+	): Promise<{ supportedTokens: string[] }> {
+		const supportedTokensStore = this.stores.get(SupportedTokensStore);
+		const supportedTokens: string[] = [];
+
+		if (await supportedTokensStore.allSupported(context)) {
+			return {
+				supportedTokens: ['*'],
+			};
+		}
+
+		return { supportedTokens };
+	}
+
+	public async isSupported(context: ModuleEndpointContext) {
+		validator.validate<{ tokenID: string }>(isSupportedSchema, context.params);
+
+		const tokenID = Buffer.from(context.params.tokenID, 'hex');
+		const supportedTokensStore = this.stores.get(SupportedTokensStore);
+
+		return { supported: await supportedTokensStore.isSupported(context, tokenID) };
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -136,6 +156,13 @@ export class TokenEndpoint extends BaseEndpoint {
 					tokenID: Buffer.concat([CHAIN_ID_ALIAS_NATIVE, localID]).toString('hex'),
 				};
 			}),
+		};
+	}
+
+	public getInitializationFees() {
+		return {
+			userAccount: this._moduleConfig.userAccountInitializationFee.toString(),
+			escrowAccount: this._moduleConfig.escrowAccountInitializationFee.toString(),
 		};
 	}
 }
