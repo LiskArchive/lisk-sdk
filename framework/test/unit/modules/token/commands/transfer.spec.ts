@@ -257,6 +257,34 @@ describe('Transfer command', () => {
 			);
 		});
 
+		it('should pass if token balance is at least the sum of configured initialization fee and transaction amount when feeTokenID and sending tokenID are the same', async () => {
+			const amount = BigInt(100000000);
+
+			jest
+				.spyOn(command['_method'], 'getAvailableBalance')
+				.mockResolvedValue(amount + BigInt(USER_SUBSTORE_INITIALIZATION_FEE));
+
+			const context = createTransactionContext({
+				transaction: new Transaction({
+					module: 'token',
+					command: 'transfer',
+					fee: BigInt(5000000),
+					nonce: BigInt(0),
+					senderPublicKey: utils.getRandomBytes(32),
+					params: codec.encode(transferParamsSchema, {
+						tokenID: TOKEN_ID_LSK,
+						amount: BigInt(100000000),
+						recipientAddress: utils.getRandomBytes(20),
+						data: '1'.repeat(64),
+						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
+					}),
+					signatures: [utils.getRandomBytes(64)],
+				}),
+			});
+			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
+			expect(result.status).toEqual(VerifyStatus.OK);
+		});
+
 		it('should fail if balance for the provided tokenID is insufficient', async () => {
 			const amount = BigInt(100000000);
 			const availableBalance = amount - BigInt(1);
