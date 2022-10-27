@@ -22,7 +22,7 @@ import { CHAIN_ID_LENGTH, TOKEN_ID_LENGTH } from './constants';
 import {
 	getBalanceRequestSchema,
 	getBalancesRequestSchema,
-	isSupportedSchema,
+	isSupportedRequestSchema,
 	SupplyStoreData,
 	UserStoreData,
 } from './schemas';
@@ -121,7 +121,7 @@ export class TokenEndpoint extends BaseEndpoint {
 	}
 
 	public async isSupported(context: ModuleEndpointContext) {
-		validator.validate<{ tokenID: string }>(isSupportedSchema, context.params);
+		validator.validate<{ tokenID: string }>(isSupportedRequestSchema, context.params);
 
 		const tokenID = Buffer.from(context.params.tokenID, 'hex');
 		const supportedTokensStore = this.stores.get(SupportedTokensStore);

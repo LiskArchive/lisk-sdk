@@ -620,8 +620,8 @@ export const getEscrowedAmountsResponseSchema = {
 	},
 };
 
-export const isSupportedSchema = {
-	$id: '/token/endpoint/isSupported',
+export const isSupportedRequestSchema = {
+	$id: '/token/endpoint/isSupportedRequest',
 	type: 'object',
 	properties: {
 		tokenID: {
@@ -632,4 +632,15 @@ export const isSupportedSchema = {
 		},
 	},
 	required: ['tokenID'],
+};
+
+export const isSupportedResponseSchema = {
+	$id: '/token/endpoint/isSupportedResponse',
+	type: 'object',
+	properties: {
+		supported: {
+			dataType: 'boolean',
+		},
+	},
+	required: ['supported'],
 };

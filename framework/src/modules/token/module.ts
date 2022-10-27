@@ -25,8 +25,11 @@ import {
 	getBalanceRequestSchema,
 	getBalanceResponseSchema,
 	getBalancesRequestSchema,
+	getBalancesResponseSchema,
 	getEscrowedAmountsResponseSchema,
 	getSupportedTokensResponseSchema,
+	isSupportedRequestSchema,
+	isSupportedResponseSchema,
 	getTotalSupplyResponseSchema,
 } from './schemas';
 import { TokenMethod } from './method';
@@ -126,7 +129,7 @@ export class TokenModule extends BaseInteroperableModule {
 				{
 					name: this.endpoint.getBalances.name,
 					request: getBalancesRequestSchema,
-					response: getBalancesRequestSchema,
+					response: getBalancesResponseSchema,
 				},
 				{
 					name: this.endpoint.getTotalSupply.name,
@@ -135,6 +138,11 @@ export class TokenModule extends BaseInteroperableModule {
 				{
 					name: this.endpoint.getSupportedTokens.name,
 					response: getSupportedTokensResponseSchema,
+				},
+				{
+					name: this.endpoint.isSupported.name,
+					request: isSupportedRequestSchema,
+					response: isSupportedResponseSchema,
 				},
 				{
 					name: this.endpoint.getEscrowedAmounts.name,
