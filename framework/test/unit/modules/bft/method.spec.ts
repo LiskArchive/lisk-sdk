@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Slots, StateStore } from '@liskhq/lisk-chain';
+import { StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
@@ -42,7 +42,7 @@ describe('BFT Method', () => {
 	beforeEach(() => {
 		bftMethod = new BFTMethod();
 		validatorsMethod = { getValidatorAccount: jest.fn() };
-		bftMethod.init(103, new Slots({ genesisBlockTimestamp: 0, interval: 10 }));
+		bftMethod.init(103, 0, 10);
 	});
 
 	describe('areHeadersContradicting', () => {

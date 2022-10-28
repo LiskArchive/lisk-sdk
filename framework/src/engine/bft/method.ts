@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader, Slots, StateStore } from '@liskhq/lisk-chain';
+import { BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import {
@@ -49,11 +49,17 @@ export interface BlockHeaderAsset {
 
 export class BFTMethod {
 	private _batchSize!: number;
-	private _slots!: Slots;
+	private _genesisTimestamp!: number;
+	private _blockTime!: number;
 
-	public init(batchSize: number, slots: Slots) {
+	public blockTime(): number {
+		return this._blockTime;
+	}
+
+	public init(batchSize: number, genesisTimestamp: number, blockTime: number) {
 		this._batchSize = batchSize;
-		this._slots = slots;
+		this._genesisTimestamp = genesisTimestamp;
+		this._blockTime = blockTime;
 	}
 
 	public areHeadersContradicting(bftHeader1: BlockHeader, bftHeader2: BlockHeader): boolean {
@@ -229,9 +235,25 @@ export class BFTMethod {
 	): Promise<Validator> {
 		const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 		const bftParams = await getBFTParameters(paramsStore, height);
-		const currentSlot = this._slots.getSlotNumber(timestamp);
+		const currentSlot = this.getSlotNumber(timestamp);
 		const generator = bftParams.validators[currentSlot % bftParams.validators.length];
 		return generator;
+	}
+
+	public getSlotNumber(timestamp: number): number {
+		const elapsedTime = timestamp - this._genesisTimestamp;
+
+		return Math.floor(elapsedTime / this._blockTime);
+	}
+
+	public getSlotTime(slot: number): number {
+		const slotGenesisTimeOffset = slot * this._blockTime;
+
+		return this._genesisTimestamp + slotGenesisTimeOffset;
+	}
+
+	public isWithinTimeslot(slot: number, timestamp: number): boolean {
+		return this.getSlotNumber(timestamp) === slot;
 	}
 
 	private _computeValidatorsHash(validators: Validator[], certificateThreshold: bigint) {

@@ -27,7 +27,6 @@ import { createRequestContext } from '../../../utils/mocks/endpoint';
 
 describe('Chain endpoint', () => {
 	const DEFAULT_INTERVAL = 10;
-	const GENESIS_BLOCK_TIMESTAMP = 1610643809;
 	let stateStore: StateStore;
 	let endpoint: ChainEndpoint;
 	let db: InMemoryDatabase;
@@ -40,8 +39,11 @@ describe('Chain endpoint', () => {
 					getEvents: jest.fn(),
 				},
 			} as any,
-			genesisBlockTimestamp: GENESIS_BLOCK_TIMESTAMP,
-			interval: DEFAULT_INTERVAL,
+			bftMethod: {
+				getSlotNumber: jest.fn().mockReturnValue(0),
+				getSlotTime: jest.fn().mockReturnValue(0),
+				blockTime: jest.fn().mockReturnValue(10),
+			} as any,
 		});
 		db = new InMemoryDatabase();
 		// For this test we will use only in-memory database

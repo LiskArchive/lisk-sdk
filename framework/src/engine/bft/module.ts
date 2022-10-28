@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BlockHeader, Slots, StateStore } from '@liskhq/lisk-chain';
+import { BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { BFTMethod } from './method';
 import {
 	EMPTY_KEY,
@@ -38,9 +38,9 @@ export class BFTModule {
 	private _maxLengthBlockBFTInfos!: number;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async init(batchSize: number, slots: Slots): Promise<void> {
+	public async init(batchSize: number, genesisTimestamp: number, blockTime: number): Promise<void> {
 		this._batchSize = batchSize;
-		this.method.init(this._batchSize, slots);
+		this.method.init(this._batchSize, genesisTimestamp, blockTime);
 		this._maxLengthBlockBFTInfos = 3 * this._batchSize;
 	}
 

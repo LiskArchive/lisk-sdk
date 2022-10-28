@@ -111,8 +111,10 @@ const getAppConfig = (
 };
 
 const getNextTimestamp = (engine: Engine, previousBlock: BlockHeader) => {
-	const previousSlotNumber = engine['_consensus'].getSlotNumber(previousBlock.timestamp);
-	return engine['_consensus'].getSlotTime(previousSlotNumber + 1);
+	const previousSlotNumber = engine['_consensus']['_bft'].method.getSlotNumber(
+		previousBlock.timestamp,
+	);
+	return engine['_consensus']['_bft'].method.getSlotTime(previousSlotNumber + 1);
 };
 
 const createProcessableBlock = async (

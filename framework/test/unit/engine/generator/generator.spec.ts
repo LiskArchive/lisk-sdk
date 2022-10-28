@@ -88,8 +88,7 @@ describe('generator', () => {
 		consensusEvent = new EventEmitter();
 		consensus = {
 			execute: jest.fn(),
-			getSlotNumber: jest.fn(),
-			getSlotTime: jest.fn(),
+
 			getAggregateCommit: jest.fn(),
 			certifySingleCommit: jest.fn(),
 			getMaxRemovalHeight: jest.fn().mockResolvedValue(0),
@@ -142,6 +141,8 @@ describe('generator', () => {
 				existBFTParameters: jest.fn().mockResolvedValue(false),
 				getGeneratorAtTimestamp: jest.fn(),
 				impliesMaximalPrevotes: jest.fn().mockResolvedValue(false),
+				getSlotNumber: jest.fn(),
+				getSlotTime: jest.fn(),
 			},
 		} as never;
 
@@ -371,15 +372,15 @@ describe('generator', () => {
 		});
 
 		it('should not generate if current block slot is same as last block slot', async () => {
-			(consensus.getSlotNumber as jest.Mock).mockReturnValue(lastBlockSlot);
-			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000));
+			(bft.method.getSlotNumber as jest.Mock).mockReturnValue(lastBlockSlot);
+			(bft.method.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000));
 			await generator['_generateLoop']();
 
 			expect(bft.method.getGeneratorAtTimestamp).not.toHaveBeenCalled();
 		});
 
 		it('should not generate if validator is not registered for given time', async () => {
-			(consensus.getSlotNumber as jest.Mock)
+			(bft.method.getSlotNumber as jest.Mock)
 				.mockReturnValueOnce(currentSlot)
 				.mockReturnValueOnce(lastBlockSlot);
 			(bft.method.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue({
@@ -392,10 +393,10 @@ describe('generator', () => {
 		});
 
 		it('should wait for threshold time if last block not received', async () => {
-			(consensus.getSlotNumber as jest.Mock)
+			(bft.method.getSlotNumber as jest.Mock)
 				.mockReturnValueOnce(currentSlot)
 				.mockReturnValueOnce(lastBlockSlot - 1);
-			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000));
+			(bft.method.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000));
 			(bft.method.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue({
 				address: cryptoAddress.getAddressFromLisk32Address(
 					testing.fixtures.keysList.keys[0].address,
@@ -409,10 +410,10 @@ describe('generator', () => {
 		});
 
 		it('should not wait if threshold time passed and last block not received', async () => {
-			(consensus.getSlotNumber as jest.Mock)
+			(bft.method.getSlotNumber as jest.Mock)
 				.mockReturnValueOnce(currentSlot)
 				.mockReturnValueOnce(lastBlockSlot - 1);
-			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) - 5);
+			(bft.method.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) - 5);
 			(bft.method.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue({
 				address: cryptoAddress.getAddressFromLisk32Address(
 					testing.fixtures.keysList.keys[0].address,
@@ -427,10 +428,10 @@ describe('generator', () => {
 		});
 
 		it('should not wait if threshold remaining but last block already received', async () => {
-			(consensus.getSlotNumber as jest.Mock)
+			(bft.method.getSlotNumber as jest.Mock)
 				.mockReturnValueOnce(currentSlot)
 				.mockReturnValueOnce(lastBlockSlot);
-			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) + 5);
+			(bft.method.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) + 5);
 			(bft.method.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue({
 				address: cryptoAddress.getAddressFromLisk32Address(
 					testing.fixtures.keysList.keys[0].address,

@@ -16,7 +16,6 @@ import {
 	Block,
 	Chain,
 	Event,
-	Slots,
 	StateStore,
 	BlockHeader,
 	MAX_EVENTS_PER_BLOCK,
@@ -114,7 +113,6 @@ export class Consensus {
 	private _endpoint!: NetworkEndpoint;
 	private _legacyEndpoint!: LegacyNetworkEndpoint;
 	private _synchronizer!: Synchronizer;
-	private _blockSlot!: Slots;
 
 	private _stop = false;
 
@@ -168,11 +166,11 @@ export class Consensus {
 			blockExecutor,
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
 		});
-		this._blockSlot = new Slots({
-			genesisBlockTimestamp: args.genesisBlock.header.timestamp,
-			interval: this._genesisConfig.blockTime,
-		});
-		await this._bft.init(this._genesisConfig.bftBatchSize, this._blockSlot);
+		await this._bft.init(
+			this._genesisConfig.bftBatchSize,
+			args.genesisBlock.header.timestamp,
+			this._genesisConfig.blockTime,
+		);
 
 		this._network.registerEndpoint(NETWORK_LEGACY_GET_BLOCKS_FROM_ID, async ({ data, peerId }) =>
 			this._legacyEndpoint.handleRPCGetLegacyBlocksFromID(data, peerId),
@@ -381,14 +379,6 @@ export class Consensus {
 		);
 	}
 
-	public getSlotNumber(timestamp: number): number {
-		return this._blockSlot.getSlotNumber(timestamp);
-	}
-
-	public getSlotTime(slot: number): number {
-		return this._blockSlot.getSlotTime(slot);
-	}
-
 	private async _execute(block: Block, peerID: string): Promise<void> {
 		if (this._stop) {
 			return;
@@ -399,7 +389,7 @@ export class Consensus {
 				'Starting to process block',
 			);
 			const { lastBlock } = this._chain;
-			const forkStatus = forkChoice(block.header, lastBlock.header, this._blockSlot);
+			const forkStatus = forkChoice(block.header, lastBlock.header, this._bft.method);
 
 			if (!forkStatusList.includes(forkStatus)) {
 				this._logger.debug({ status: forkStatus, blockId: block.header.id }, 'Unknown fork status');
@@ -643,10 +633,10 @@ export class Consensus {
 	}
 
 	private _verifyTimestamp(block: Block): void {
-		const blockSlotNumber = this._blockSlot.getSlotNumber(block.header.timestamp);
+		const blockSlotNumber = this._bft.method.getSlotNumber(block.header.timestamp);
 		// Check that block is not from the future
 		const currentTimestamp = Math.floor(Date.now() / 1000);
-		const currentSlotNumber = this._blockSlot.getSlotNumber(currentTimestamp);
+		const currentSlotNumber = this._bft.method.getSlotNumber(currentTimestamp);
 		if (blockSlotNumber > currentSlotNumber) {
 			throw new Error(
 				`Invalid timestamp ${
@@ -657,7 +647,7 @@ export class Consensus {
 
 		// Check that block slot is strictly larger than the block slot of previousBlock
 		const { lastBlock } = this._chain;
-		const previousBlockSlotNumber = this._blockSlot.getSlotNumber(lastBlock.header.timestamp);
+		const previousBlockSlotNumber = this._bft.method.getSlotNumber(lastBlock.header.timestamp);
 		if (blockSlotNumber <= previousBlockSlotNumber) {
 			throw new Error(
 				`Invalid timestamp ${
@@ -915,7 +905,7 @@ export class Consensus {
 				const bftParams = await this._bft.method.getBFTParameters(stateStore, nextHeight);
 				return bftParams.validators;
 			},
-			getSlotNumber: timestamp => this._blockSlot.getSlotNumber(timestamp),
+			getSlotNumber: timestamp => this._bft.method.getSlotNumber(timestamp),
 			getFinalizedHeight: () => this.finalizedHeight(),
 		};
 	}

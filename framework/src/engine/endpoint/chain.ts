@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import {
-	Slots,
 	BlockAssetJSON,
 	BlockHeader,
 	BlockJSON,
@@ -38,11 +37,11 @@ import {
 import { areHeadersContradictingRequestSchema, BFTVotes, bftVotesSchema } from '../bft/schemas';
 import { areDistinctHeadersContradicting } from '../bft/utils';
 import { getBFTParameters } from '../bft/bft_params';
+import { BFTMethod } from '../bft';
 
 interface EndpointArgs {
 	chain: Chain;
-	genesisBlockTimestamp: number;
-	interval: number;
+	bftMethod: BFTMethod;
 }
 
 interface GeneratorInfo {
@@ -71,15 +70,12 @@ const proveEventsRequestSchema = {
 export class ChainEndpoint {
 	[key: string]: unknown;
 	private readonly _chain: Chain;
-	private readonly _blockSlot: Slots;
+	private readonly _bftMethod: BFTMethod;
 	private _db!: Database;
 
 	public constructor(args: EndpointArgs) {
 		this._chain = args.chain;
-		this._blockSlot = new Slots({
-			genesisBlockTimestamp: args.genesisBlockTimestamp,
-			interval: args.interval,
-		});
+		this._bftMethod = args.bftMethod;
 	}
 
 	public init(db: Database) {
@@ -238,8 +234,8 @@ export class ChainEndpoint {
 			bftVotes.blockBFTInfos.length > 0 ? bftVotes.blockBFTInfos[0] : { height: 0 };
 		const bftStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 		const bftParams = await getBFTParameters(bftStore, currentHeight + 1);
-		const slot = this._blockSlot.getSlotNumber();
-		const startTime = this._blockSlot.getSlotTime(slot);
+		const slot = this._bftMethod.getSlotNumber(Math.floor(Date.now() / 1000));
+		const startTime = this._bftMethod.getSlotTime(slot);
 		let nextAllocatedTime = startTime;
 		const slotInRound = slot % bftParams.validators.length;
 		const generatorsInfo = [];
@@ -250,7 +246,7 @@ export class ChainEndpoint {
 				),
 				nextAllocatedTime,
 			});
-			nextAllocatedTime += this._blockSlot.blockTime();
+			nextAllocatedTime += this._bftMethod.blockTime();
 		}
 
 		return {

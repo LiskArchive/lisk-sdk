@@ -92,6 +92,7 @@ describe('consensus', () => {
 				isHeaderContradictingChain: jest.fn(),
 				getBFTParameters: jest.fn(),
 				setBFTParameters: jest.fn(),
+				getSlotNumber: jest.fn(),
 			},
 		} as never;
 		abi = {
@@ -724,9 +725,8 @@ describe('consensus', () => {
 			describe('timestamp', () => {
 				it('should throw error when block timestamp is from future', () => {
 					const invalidBlock = { ...block };
-					const now = Date.now();
 
-					Date.now = jest.fn(() => now);
+					jest.spyOn(bft.method, 'getSlotNumber').mockReturnValue(Math.floor(Date.now() / 10));
 
 					(invalidBlock.header as any).timestamp = Math.floor((Date.now() + 10000) / 1000);
 
@@ -739,9 +739,8 @@ describe('consensus', () => {
 
 				it('should throw error when block slot is less than previous block slot', () => {
 					const invalidBlock = { ...block };
-					const now = Date.now();
 
-					Date.now = jest.fn(() => now);
+					jest.spyOn(bft.method, 'getSlotNumber').mockReturnValue(Math.floor(Date.now() / 10));
 
 					(invalidBlock.header as any).timestamp = Math.floor(Date.now() / 1000);
 
@@ -755,9 +754,6 @@ describe('consensus', () => {
 				});
 
 				it('should be success when valid block timestamp', () => {
-					const now = Date.now();
-					Date.now = jest.fn(() => now);
-
 					(block.header as any).timestamp = Math.floor(Date.now() / 1000);
 
 					expect(consensus['_verifyTimestamp'](block as any)).toBeUndefined();

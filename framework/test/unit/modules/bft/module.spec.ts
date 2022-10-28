@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Slots, StateStore } from '@liskhq/lisk-chain';
+import { StateStore } from '@liskhq/lisk-chain';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { BFTModule } from '../../../../src/engine/bft';
 import {
@@ -32,9 +32,7 @@ describe('bft module', () => {
 
 	describe('init', () => {
 		it('should initialize config with given value', async () => {
-			await expect(
-				bftModule.init(20, new Slots({ genesisBlockTimestamp: 0, interval: 10 })),
-			).toResolve();
+			await expect(bftModule.init(20, 0, 10)).toResolve();
 
 			expect(bftModule['_batchSize']).toEqual(20);
 		});

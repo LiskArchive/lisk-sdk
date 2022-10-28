@@ -425,12 +425,12 @@ export class Generator {
 
 		const MS_IN_A_SEC = 1000;
 		const currentTime = Math.floor(new Date().getTime() / MS_IN_A_SEC);
-		const currentSlot = this._consensus.getSlotNumber(currentTime);
+		const currentSlot = this._bft.method.getSlotNumber(currentTime);
 
-		const currentSlotTime = this._consensus.getSlotTime(currentSlot);
+		const currentSlotTime = this._bft.method.getSlotTime(currentSlot);
 
 		const waitThreshold = this._blockTime / 5;
-		const lastBlockSlot = this._consensus.getSlotNumber(this._chain.lastBlock.header.timestamp);
+		const lastBlockSlot = this._bft.method.getSlotNumber(this._chain.lastBlock.header.timestamp);
 
 		if (currentSlot === lastBlockSlot) {
 			this._logger.trace({ slot: currentSlot }, 'Block already generated for the current slot');

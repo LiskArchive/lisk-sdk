@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 /* eslint-disable no-loop-func */
-import { BlockHeader, Slots, StateStore } from '@liskhq/lisk-chain';
+import { BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { utils, address } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { BFTModule } from '../../../../src/engine/bft';
@@ -48,10 +48,7 @@ describe('BFT processing', () => {
 
 			beforeAll(async () => {
 				bftModule = new BFTModule();
-				await bftModule.init(
-					scenario.config.activeDelegates,
-					new Slots({ genesisBlockTimestamp: 0, interval: 10 }),
-				);
+				await bftModule.init(scenario.config.activeDelegates, 0, 10);
 				db = new InMemoryDatabase();
 				stateStore = new StateStore(db);
 
