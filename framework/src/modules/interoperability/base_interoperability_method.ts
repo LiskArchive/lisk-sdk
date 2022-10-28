@@ -26,7 +26,8 @@ import {
 	EMPTY_BYTES,
 	CHAIN_ID_MAINCHAIN,
 	CHAIN_ACTIVE,
-	CCM_SENT_FAILED_CODE
+	CCM_SENT_FAILED_CODE,
+	MAINCHAIN_ID_BUFFER,
 } from './constants';
 import { CcmSendFailEvent } from './events/ccm_send_fail';
 import { CcmSendSuccessEvent } from './events/ccm_send_success';
