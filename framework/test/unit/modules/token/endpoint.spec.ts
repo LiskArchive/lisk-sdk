@@ -52,6 +52,7 @@ describe('token endpoint', () => {
 		Buffer.from('0000000000000000', 'hex'),
 		Buffer.from('0000000200000000', 'hex'),
 	];
+	let supportedTokensStore: SupportedTokensStore;
 
 	let endpoint: TokenEndpoint;
 	let stateStore: PrefixedStateReadWriter;
@@ -92,7 +93,7 @@ describe('token endpoint', () => {
 			{ amount: defaultEscrowAmount },
 		);
 
-		const supportedTokensStore = tokenModule.stores.get(SupportedTokensStore);
+		supportedTokensStore = tokenModule.stores.get(SupportedTokensStore);
 		supportedTokensStore.registerOwnChainID(defaultTokenID.slice(CHAIN_ID_LENGTH));
 		await supportedTokensStore.set(methodContext, defaultTokenID, { supportedTokenIDs });
 	});
@@ -279,6 +280,17 @@ describe('token endpoint', () => {
 			});
 
 			expect(await endpoint.isSupported(moduleEndpointContext)).toEqual({ supported: false });
+		});
+
+		it('should return true for a token from a foreign chain, when all tokens are supported', async () => {
+			await supportedTokensStore.supportAll(methodContext);
+
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { tokenID: '8888888888888888' },
+			});
+
+			expect(await endpoint.isSupported(moduleEndpointContext)).toEqual({ supported: true });
 		});
 	});
 
