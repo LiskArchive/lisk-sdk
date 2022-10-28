@@ -26,7 +26,7 @@ import {
 	CHAIN_ID_LENGTH,
 } from './constants';
 import { crossChainTransferMessageParams, UserStoreData } from './schemas';
-import { InteroperabilityMethod, MinBalance } from './types';
+import { InteroperabilityMethod, ModuleConfig } from './types';
 import { splitTokenID } from './utils';
 import { UserStore } from './stores/user';
 import { EscrowStore } from './stores/escrow';
@@ -49,17 +49,13 @@ import { AllTokensFromChainSupportedEvent } from './events/all_tokens_from_chain
 import { AllTokensFromChainSupportRemovedEvent } from './events/all_tokens_from_chain_supported_removed';
 import { TokenIDSupportRemovedEvent } from './events/token_id_supported_removed';
 
-interface TokenMethodConfig {
-	minBalances: MinBalance[];
+interface MethodConfig extends ModuleConfig {
 	ownChainID: Buffer;
-	userAccountInitializationFee: bigint;
-	escrowAccountInitializationFee: bigint;
-	feeTokenID: Buffer;
 }
 
 export class TokenMethod extends BaseMethod {
 	private readonly _moduleName: string;
-	private _config!: TokenMethodConfig;
+	private _config!: MethodConfig;
 	private _interoperabilityMethod!: InteroperabilityMethod;
 
 	public constructor(stores: NamedRegistry, events: NamedRegistry, moduleName: string) {
@@ -67,7 +63,7 @@ export class TokenMethod extends BaseMethod {
 		this._moduleName = moduleName;
 	}
 
-	public init(config: TokenMethodConfig): void {
+	public init(config: MethodConfig): void {
 		this._config = config;
 	}
 

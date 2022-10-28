@@ -14,23 +14,17 @@
 
 import { MethodContext, ImmutableMethodContext } from '../../state_machine';
 import { CCMsg } from '../interoperability/types';
+import { JSONObject } from '../../types';
 
 export type TokenID = Buffer;
 
 export interface ModuleConfig {
-	minBalances: {
-		tokenID: string;
-		amount: string;
-	}[];
-	feeTokenID: string;
-	accountInitializationFee: string;
-	escrowInitializationFee: string;
+	userAccountInitializationFee: bigint;
+	escrowAccountInitializationFee: bigint;
+	feeTokenID: Buffer;
 }
 
-export interface MinBalance {
-	tokenID: Buffer;
-	amount: bigint;
-}
+export type ModuleConfigJSON = JSONObject<ModuleConfig>;
 
 export interface GenesisTokenStore {
 	userSubstore: {

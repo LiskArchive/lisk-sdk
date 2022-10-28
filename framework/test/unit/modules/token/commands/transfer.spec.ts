@@ -19,8 +19,7 @@ import { TokenModule, VerifyStatus } from '../../../../../src';
 import { TokenMethod } from '../../../../../src/modules/token/method';
 import { TransferCommand } from '../../../../../src/modules/token/commands/transfer';
 import {
-	MIN_BALANCE,
-	TOKEN_ID_STORE_INITIALIZATION,
+	TOKEN_ID_LSK,
 	USER_SUBSTORE_INITIALIZATION_FEE,
 } from '../../../../../src/modules/token/constants';
 import { transferParamsSchema } from '../../../../../src/modules/token/schemas';
@@ -40,15 +39,13 @@ interface Params {
 }
 
 describe('Transfer command', () => {
-	const feeTokenID = TOKEN_ID_STORE_INITIALIZATION;
+	const feeTokenID = TOKEN_ID_LSK;
 	const tokenModule = new TokenModule();
 	const ownChainID = Buffer.from([0, 0, 0, 1]);
 	const defaultUserAccountInitFee = BigInt('50000000');
 	const defaultEscrowAccountInitFee = BigInt('50000000');
 
 	const defaultTokenID = Buffer.concat([ownChainID, Buffer.alloc(4)]);
-	const localTokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
-	const secondTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
 	const method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
 	let command: TransferCommand;
 	let interopMethod: {
@@ -93,10 +90,6 @@ describe('Transfer command', () => {
 			escrowAccountInitializationFee: defaultEscrowAccountInitFee,
 			userAccountInitializationFee: defaultUserAccountInitFee,
 			feeTokenID: defaultTokenID,
-			minBalances: [
-				{ tokenID: localTokenID, amount: BigInt(MIN_BALANCE) },
-				{ tokenID: secondTokenID, amount: BigInt(MIN_BALANCE) },
-			],
 		});
 
 		command.init({
@@ -264,7 +257,7 @@ describe('Transfer command', () => {
 			);
 		});
 
-		it('should pass if token balance for token ID TOKEN_ID_STORE_INITIALIZATION is at least the sum of configured initialization fee and transaction amount', async () => {
+		it('should pass if token balance is at least the sum of configured initialization fee and transaction amount when feeTokenID and sending tokenID are the same', async () => {
 			const amount = BigInt(100000000);
 
 			jest
@@ -279,7 +272,7 @@ describe('Transfer command', () => {
 					nonce: BigInt(0),
 					senderPublicKey: utils.getRandomBytes(32),
 					params: codec.encode(transferParamsSchema, {
-						tokenID: TOKEN_ID_STORE_INITIALIZATION,
+						tokenID: TOKEN_ID_LSK,
 						amount: BigInt(100000000),
 						recipientAddress: utils.getRandomBytes(20),
 						data: '1'.repeat(64),
