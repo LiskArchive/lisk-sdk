@@ -37,7 +37,7 @@ export const supportedTokensStoreSchema = {
 	},
 };
 
-export const ALL_SUPPORTED_TOKENS_KEY = Buffer.from([0, 0, 0, 0]);
+export const ALL_SUPPORTED_TOKENS_KEY = Buffer.alloc(0);
 
 export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 	public schema = supportedTokensStoreSchema;
