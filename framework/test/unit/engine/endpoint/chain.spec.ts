@@ -18,10 +18,10 @@ import { Batch, Database, InMemoryDatabase } from '@liskhq/lisk-db';
 import {
 	EMPTY_KEY,
 	MODULE_STORE_PREFIX_BFT,
+	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
-	STORE_PREFIX_GENERATOR_KEYS,
 } from '../../../../src/engine/bft/constants';
-import { bftVotesSchema, generatorKeysSchema } from '../../../../src/engine/bft/schemas';
+import { bftParametersSchema, bftVotesSchema } from '../../../../src/engine/bft/schemas';
 import { ChainEndpoint } from '../../../../src/engine/endpoint/chain';
 import { createRequestContext } from '../../../utils/mocks/endpoint';
 
@@ -148,25 +148,33 @@ describe('Chain endpoint', () => {
 	});
 
 	describe('getGeneratorList', () => {
-		const createKeys = () => ({
-			generators: [
+		const createBFTParams = () => ({
+			prevoteThreshold: BigInt(20),
+			precommitThreshold: BigInt(30),
+			certificateThreshold: BigInt(40),
+			validators: [
 				{
 					address: utils.getRandomBytes(20),
+					bftWeight: BigInt(10),
+					blsKey: utils.getRandomBytes(42),
 					generatorKey: utils.getRandomBytes(32),
 				},
 				{
 					address: utils.getRandomBytes(20),
+					bftWeight: BigInt(10),
+					blsKey: utils.getRandomBytes(42),
 					generatorKey: utils.getRandomBytes(32),
 				},
 			],
+			validatorsHash: utils.getRandomBytes(32),
 		});
-		const keys = createKeys();
-		let keysStore: StateStore;
+		const bftParams = createBFTParams();
+		let bftParamsStore: StateStore;
 		let votesStore: StateStore;
 
 		beforeEach(async () => {
-			keysStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_GENERATOR_KEYS);
-			await keysStore.setWithSchema(utils.intToBuffer(3, 4), keys, generatorKeysSchema);
+			bftParamsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
+			await bftParamsStore.setWithSchema(utils.intToBuffer(3, 4), bftParams, bftParametersSchema);
 			votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 			await votesStore.setWithSchema(
 				EMPTY_KEY,
@@ -177,7 +185,7 @@ describe('Chain endpoint', () => {
 					blockBFTInfos: [
 						{
 							height: 2,
-							generatorAddress: keys.generators[1].address,
+							generatorAddress: bftParams.validators[1].address,
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
 							prevoteWeight: 0,
@@ -185,7 +193,7 @@ describe('Chain endpoint', () => {
 						},
 						{
 							height: 1,
-							generatorAddress: keys.generators[0].address,
+							generatorAddress: bftParams.validators[0].address,
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
 							prevoteWeight: 0,

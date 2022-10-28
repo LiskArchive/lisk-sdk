@@ -12,15 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader, StateStore } from '@liskhq/lisk-chain';
+import { BlockHeader, Slots, StateStore } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import {
 	areDistinctHeadersContradicting,
-	getGeneratorKeys,
 	sortValidatorsByAddress,
 	sortValidatorsByBLSKey,
-	validatorsEqual,
 } from './utils';
 import { getBFTParameters } from './bft_params';
 import {
@@ -29,7 +27,6 @@ import {
 	MODULE_STORE_PREFIX_BFT,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
-	STORE_PREFIX_GENERATOR_KEYS,
 } from './constants';
 import {
 	bftVotesSchema,
@@ -40,10 +37,10 @@ import {
 	validatorsHashInputSchema,
 	bftParametersSchema,
 	BFTVotesActiveValidatorsVoteInfo,
-	generatorKeysSchema,
 } from './schemas';
-import { BFTHeights, GeneratorKey, BFTValidator } from './types';
+import { BFTHeights } from './types';
 import { BFTParameterNotFoundError } from './errors';
+import { Validator } from '../../abi';
 
 export interface BlockHeaderAsset {
 	maxHeightPrevoted: number;
@@ -52,9 +49,11 @@ export interface BlockHeaderAsset {
 
 export class BFTMethod {
 	private _batchSize!: number;
+	private _slots!: Slots;
 
-	public init(batchSize: number) {
+	public init(batchSize: number, slots: Slots) {
 		this._batchSize = batchSize;
+		this._slots = slots;
 	}
 
 	public areHeadersContradicting(bftHeader1: BlockHeader, bftHeader2: BlockHeader): boolean {
@@ -157,7 +156,7 @@ export class BFTMethod {
 		stateStore: StateStore,
 		precommitThreshold: bigint,
 		certificateThreshold: bigint,
-		validators: BFTValidator[],
+		validators: Validator[],
 	): Promise<void> {
 		if (validators.length > this._batchSize) {
 			throw new Error(
@@ -166,9 +165,6 @@ export class BFTMethod {
 		}
 		let aggregateBFTWeight = BigInt(0);
 		for (const validator of validators) {
-			if (validator.bftWeight <= 0) {
-				throw new Error('Invalid BFT weight. BFT weight must be a positive integer.');
-			}
 			aggregateBFTWeight += validator.bftWeight;
 		}
 		if (
@@ -183,38 +179,8 @@ export class BFTMethod {
 		) {
 			throw new Error('Invalid certificateThreshold input.');
 		}
-		sortValidatorsByAddress(validators);
 
-		const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
-		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
-		// This assumes bftVotes.blockBFTInfos will contain currently executing block
-		const currentHeight =
-			bftVotes.blockBFTInfos.length > 0
-				? bftVotes.blockBFTInfos[0].height
-				: bftVotes.maxHeightPrevoted;
-
-		let currentBFTParams: BFTParameters | undefined;
-		try {
-			currentBFTParams = await this.getBFTParameters(stateStore, currentHeight);
-		} catch (error) {
-			if (!(error instanceof BFTParameterNotFoundError)) {
-				throw error;
-			}
-		}
-
-		// if there is no change in params, return
-		if (
-			currentBFTParams &&
-			validatorsEqual(currentBFTParams.validators, validators) &&
-			currentBFTParams.precommitThreshold === precommitThreshold &&
-			currentBFTParams.certificateThreshold === certificateThreshold
-		) {
-			return;
-		}
-
-		const nextHeight = currentHeight + 1;
 		const validatorsHash = this._computeValidatorsHash(validators, certificateThreshold);
-
 		const bftParams: BFTParameters = {
 			prevoteThreshold: (BigInt(2) * aggregateBFTWeight) / BigInt(3) + BigInt(1),
 			precommitThreshold,
@@ -222,6 +188,14 @@ export class BFTMethod {
 			validators,
 			validatorsHash,
 		};
+
+		const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
+		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
+		// This assumes bftVotes.blockBFTInfos will contain currently executing block
+		const nextHeight =
+			(bftVotes.blockBFTInfos.length > 0
+				? bftVotes.blockBFTInfos[0].height
+				: bftVotes.maxHeightPrevoted) + 1;
 
 		const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 
@@ -248,39 +222,32 @@ export class BFTMethod {
 		await votesStore.setWithSchema(EMPTY_KEY, bftVotes, bftVotesSchema);
 	}
 
-	public async getGeneratorKeys(stateStore: StateStore, height: number): Promise<GeneratorKey[]> {
-		const keysStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_GENERATOR_KEYS);
-		const { generators: validators } = await getGeneratorKeys(keysStore, height);
-
-		return validators;
+	public async getGeneratorAtTimestamp(
+		stateStore: StateStore,
+		height: number,
+		timestamp: number,
+	): Promise<Validator> {
+		const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
+		const bftParams = await getBFTParameters(paramsStore, height);
+		const currentSlot = this._slots.getSlotNumber(timestamp);
+		const generator = bftParams.validators[currentSlot % bftParams.validators.length];
+		return generator;
 	}
 
-	public async setGeneratorKeys(stateStore: StateStore, generators: GeneratorKey[]): Promise<void> {
-		const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
-		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
-		// This assumes bftVotes.blockBFTInfos will contain currently executing block
-		const nextHeight =
-			bftVotes.blockBFTInfos.length > 0
-				? bftVotes.blockBFTInfos[0].height + 1
-				: bftVotes.maxHeightPrevoted + 1;
-
-		const keysStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_GENERATOR_KEYS);
-		const nextHeightBytes = utils.intToBuffer(nextHeight, 4);
-
-		await keysStore.setWithSchema(nextHeightBytes, { generators }, generatorKeysSchema);
-	}
-
-	private _computeValidatorsHash(validators: BFTValidator[], certificateThreshold: bigint) {
-		const activeValidators: ValidatorsHashInfo[] = [];
+	private _computeValidatorsHash(validators: Validator[], certificateThreshold: bigint) {
+		const validatorsHashInfo: ValidatorsHashInfo[] = [];
 		for (const validator of validators) {
-			activeValidators.push({
+			if (validator.bftWeight <= BigInt(0)) {
+				continue;
+			}
+			validatorsHashInfo.push({
 				blsKey: validator.blsKey,
 				bftWeight: validator.bftWeight,
 			});
 		}
-		sortValidatorsByBLSKey(activeValidators);
+		sortValidatorsByBLSKey(validatorsHashInfo);
 		const input: ValidatorsHashInput = {
-			activeValidators,
+			activeValidators: validatorsHashInfo,
 			certificateThreshold,
 		};
 		const encodedValidatorsHashInput = codec.encode(validatorsHashInputSchema, input);

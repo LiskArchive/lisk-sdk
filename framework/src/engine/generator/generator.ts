@@ -439,12 +439,12 @@ export class Generator {
 
 		const nextHeight = this._chain.lastBlock.header.height + 1;
 
-		const generator = await this._consensus.getGeneratorAtTimestamp(
+		const generator = await this._bft.method.getGeneratorAtTimestamp(
 			stateStore,
 			nextHeight,
 			currentTime,
 		);
-		const validatorKeypair = this._keypairs.get(generator);
+		const validatorKeypair = this._keypairs.get(generator.address);
 
 		if (validatorKeypair === undefined) {
 			this._logger.debug({ currentSlot }, 'Waiting for delegate slot');
@@ -467,7 +467,7 @@ export class Generator {
 		}
 		const generatedBlock = await this._generateBlock({
 			height: nextHeight,
-			generatorAddress: generator,
+			generatorAddress: generator.address,
 			privateKey: validatorKeypair.privateKey,
 			timestamp: currentTime,
 		});
@@ -475,7 +475,7 @@ export class Generator {
 			{
 				id: generatedBlock.header.id,
 				height: generatedBlock.header.height,
-				generatorAddress: addressUtil.getLisk32AddressFromAddress(generator),
+				generatorAddress: addressUtil.getLisk32AddressFromAddress(generator.address),
 			},
 			'Generated new block',
 		);
@@ -566,14 +566,12 @@ export class Generator {
 				afterResult.nextValidators,
 			)
 		) {
-			const activeValidators = afterResult.nextValidators.filter(v => v.bftWeight > BigInt(0));
 			await this._bft.method.setBFTParameters(
 				stateStore,
 				afterResult.preCommitThreshold,
 				afterResult.certificateThreshold,
-				activeValidators,
+				afterResult.nextValidators,
 			);
-			await this._bft.method.setGeneratorKeys(stateStore, afterResult.nextValidators);
 		}
 
 		stateStore.finalize(new Batch());

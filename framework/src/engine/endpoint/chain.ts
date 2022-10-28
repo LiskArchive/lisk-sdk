@@ -32,11 +32,12 @@ import { RequestContext } from '../rpc/rpc_server';
 import {
 	EMPTY_KEY,
 	MODULE_STORE_PREFIX_BFT,
+	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
-	STORE_PREFIX_GENERATOR_KEYS,
 } from '../bft/constants';
 import { areHeadersContradictingRequestSchema, BFTVotes, bftVotesSchema } from '../bft/schemas';
-import { areDistinctHeadersContradicting, getGeneratorKeys } from '../bft/utils';
+import { areDistinctHeadersContradicting } from '../bft/utils';
+import { getBFTParameters } from '../bft/bft_params';
 
 interface EndpointArgs {
 	chain: Chain;
@@ -235,17 +236,17 @@ export class ChainEndpoint {
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 		const { height: currentHeight } =
 			bftVotes.blockBFTInfos.length > 0 ? bftVotes.blockBFTInfos[0] : { height: 0 };
-		const keysStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_GENERATOR_KEYS);
-		const keys = await getGeneratorKeys(keysStore, currentHeight + 1);
+		const bftStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
+		const bftParams = await getBFTParameters(bftStore, currentHeight + 1);
 		const slot = this._blockSlot.getSlotNumber();
 		const startTime = this._blockSlot.getSlotTime(slot);
 		let nextAllocatedTime = startTime;
-		const slotInRound = slot % keys.generators.length;
+		const slotInRound = slot % bftParams.validators.length;
 		const generatorsInfo = [];
-		for (let i = slotInRound; i < slotInRound + keys.generators.length; i += 1) {
+		for (let i = slotInRound; i < slotInRound + bftParams.validators.length; i += 1) {
 			generatorsInfo.push({
 				address: address.getLisk32AddressFromAddress(
-					keys.generators[i % keys.generators.length].address,
+					bftParams.validators[i % bftParams.validators.length].address,
 				),
 				nextAllocatedTime,
 			});

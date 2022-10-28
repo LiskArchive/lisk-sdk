@@ -90,7 +90,6 @@ describe('generator', () => {
 			execute: jest.fn(),
 			getSlotNumber: jest.fn(),
 			getSlotTime: jest.fn(),
-			getGeneratorAtTimestamp: jest.fn(),
 			getAggregateCommit: jest.fn(),
 			certifySingleCommit: jest.fn(),
 			getMaxRemovalHeight: jest.fn().mockResolvedValue(0),
@@ -139,9 +138,9 @@ describe('generator', () => {
 					maxHeightCertified: 0,
 				}),
 				setBFTParameters: jest.fn(),
-				setGeneratorKeys: jest.fn(),
 				getBFTParameters: jest.fn().mockResolvedValue({ validators: [] }),
 				existBFTParameters: jest.fn().mockResolvedValue(false),
+				getGeneratorAtTimestamp: jest.fn(),
 				impliesMaximalPrevotes: jest.fn().mockResolvedValue(false),
 			},
 		} as never;
@@ -376,14 +375,16 @@ describe('generator', () => {
 			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000));
 			await generator['_generateLoop']();
 
-			expect(consensus.getGeneratorAtTimestamp).not.toHaveBeenCalled();
+			expect(bft.method.getGeneratorAtTimestamp).not.toHaveBeenCalled();
 		});
 
 		it('should not generate if validator is not registered for given time', async () => {
 			(consensus.getSlotNumber as jest.Mock)
 				.mockReturnValueOnce(currentSlot)
 				.mockReturnValueOnce(lastBlockSlot);
-			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(utils.getRandomBytes(20));
+			(bft.method.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue({
+				address: utils.getRandomBytes(20),
+			});
 			jest.spyOn(generator, '_generateBlock' as never);
 			await generator['_generateLoop']();
 
@@ -395,9 +396,11 @@ describe('generator', () => {
 				.mockReturnValueOnce(currentSlot)
 				.mockReturnValueOnce(lastBlockSlot - 1);
 			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000));
-			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
-				cryptoAddress.getAddressFromLisk32Address(testing.fixtures.keysList.keys[0].address),
-			);
+			(bft.method.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue({
+				address: cryptoAddress.getAddressFromLisk32Address(
+					testing.fixtures.keysList.keys[0].address,
+				),
+			});
 			jest.spyOn(generator, '_generateBlock' as never);
 
 			await generator['_generateLoop']();
@@ -410,9 +413,11 @@ describe('generator', () => {
 				.mockReturnValueOnce(currentSlot)
 				.mockReturnValueOnce(lastBlockSlot - 1);
 			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) - 5);
-			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
-				cryptoAddress.getAddressFromLisk32Address(testing.fixtures.keysList.keys[0].address),
-			);
+			(bft.method.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue({
+				address: cryptoAddress.getAddressFromLisk32Address(
+					testing.fixtures.keysList.keys[0].address,
+				),
+			});
 
 			jest.spyOn(generator, '_generateBlock' as never).mockResolvedValue(forgedBlock as never);
 
@@ -426,9 +431,11 @@ describe('generator', () => {
 				.mockReturnValueOnce(currentSlot)
 				.mockReturnValueOnce(lastBlockSlot);
 			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) + 5);
-			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
-				cryptoAddress.getAddressFromLisk32Address(testing.fixtures.keysList.keys[0].address),
-			);
+			(bft.method.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue({
+				address: cryptoAddress.getAddressFromLisk32Address(
+					testing.fixtures.keysList.keys[0].address,
+				),
+			});
 
 			jest.spyOn(generator, '_generateBlock' as never).mockResolvedValue(forgedBlock as never);
 

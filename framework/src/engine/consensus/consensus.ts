@@ -172,6 +172,7 @@ export class Consensus {
 			genesisBlockTimestamp: args.genesisBlock.header.timestamp,
 			interval: this._genesisConfig.blockTime,
 		});
+		await this._bft.init(this._genesisConfig.bftBatchSize, this._blockSlot);
 
 		this._network.registerEndpoint(NETWORK_LEGACY_GET_BLOCKS_FROM_ID, async ({ data, peerId }) =>
 			this._legacyEndpoint.handleRPCGetLegacyBlocksFromID(data, peerId),
@@ -378,16 +379,6 @@ export class Consensus {
 			maxHeightPrevoted < lastBlockHeader.maxHeightPrevoted ||
 			(maxHeightPrevoted === lastBlockHeader.maxHeightPrevoted && height < lastBlockHeader.height)
 		);
-	}
-	public async getGeneratorAtTimestamp(
-		stateStore: StateStore,
-		height: number,
-		timestamp: number,
-	): Promise<Buffer> {
-		const generators = await this._bft.method.getGeneratorKeys(stateStore, height);
-		const currentSlot = this._blockSlot.getSlotNumber(timestamp);
-		const generator = generators[currentSlot % generators.length];
-		return generator.address;
 	}
 
 	public getSlotNumber(timestamp: number): number {
@@ -709,13 +700,13 @@ export class Consensus {
 				)} of the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
-		const generatorAddress = await this.getGeneratorAtTimestamp(
+		const generator = await this._bft.method.getGeneratorAtTimestamp(
 			stateStore,
 			block.header.height,
 			block.header.timestamp,
 		);
 		// Check that the block generator is eligible to generate in this block slot.
-		if (!block.header.generatorAddress.equals(generatorAddress)) {
+		if (!block.header.generatorAddress.equals(generator.address)) {
 			throw new Error(
 				`Generator with address ${block.header.generatorAddress.toString(
 					'hex',
@@ -752,8 +743,10 @@ export class Consensus {
 	}
 
 	private async _verifyAssetsSignature(stateStore: StateStore, block: Block): Promise<void> {
-		const generatorKeys = await this._bft.method.getGeneratorKeys(stateStore, block.header.height);
-		const generator = generatorKeys.find(gen => gen.address.equals(block.header.generatorAddress));
+		const bftParams = await this._bft.method.getBFTParameters(stateStore, block.header.height);
+		const generator = bftParams.validators.find(validator =>
+			validator.address.equals(block.header.generatorAddress),
+		);
 		if (!generator) {
 			throw new Error(
 				`Validator with address ${block.header.generatorAddress.toString(
@@ -994,16 +987,12 @@ export class Consensus {
 					afterResult.nextValidators,
 				)
 			) {
-				const activeValidators = afterResult.nextValidators.filter(
-					validator => validator.bftWeight > BigInt(0),
-				);
 				await this._bft.method.setBFTParameters(
 					stateStore,
 					afterResult.preCommitThreshold,
 					afterResult.certificateThreshold,
-					activeValidators,
+					afterResult.nextValidators,
 				);
-				await this._bft.method.setGeneratorKeys(stateStore, afterResult.nextValidators);
 				this.events.emit(CONSENSUS_EVENT_VALIDATORS_CHANGED, {
 					preCommitThreshold: afterResult.preCommitThreshold,
 					certificateThreshold: afterResult.certificateThreshold,
@@ -1051,16 +1040,12 @@ export class Consensus {
 				contextID,
 				stateRoot: genesisBlock.header.stateRoot,
 			});
-			const activeValidators = result.nextValidators.filter(
-				validator => validator.bftWeight > BigInt(0),
-			);
 			await this._bft.method.setBFTParameters(
 				stateStore,
 				result.preCommitThreshold,
 				result.certificateThreshold,
-				activeValidators,
+				result.nextValidators,
 			);
-			await this._bft.method.setGeneratorKeys(stateStore, result.nextValidators);
 			this.events.emit(CONSENSUS_EVENT_VALIDATORS_CHANGED, {
 				preCommitThreshold: result.preCommitThreshold,
 				certificateThreshold: result.certificateThreshold,

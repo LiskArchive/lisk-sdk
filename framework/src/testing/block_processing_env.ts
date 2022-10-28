@@ -125,17 +125,17 @@ const createProcessableBlock = async (
 	const stateStore = new StateStore(engine['_blockchainDB']);
 	const previousBlockHeader = engine['_chain'].lastBlock.header;
 	const nextTimestamp = timestamp ?? getNextTimestamp(engine, previousBlockHeader);
-	const validator = await engine['_consensus'].getGeneratorAtTimestamp(
+	const generator = await engine['_consensus']['_bft'].method.getGeneratorAtTimestamp(
 		stateStore,
 		previousBlockHeader.height + 1,
 		nextTimestamp,
 	);
-	const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(validator);
+	const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(generator.address);
 	for (const tx of transactions) {
 		await engine['_generator']['_pool'].add(tx);
 	}
 	const block = await engine.generateBlock({
-		generatorAddress: validator,
+		generatorAddress: generator.address,
 		height: previousBlockHeader.height + 1,
 		privateKey: generatorPrivateKey,
 		timestamp: nextTimestamp,
@@ -261,12 +261,12 @@ export const getBlockProcessingEnv = async (
 		getNextValidatorKeys: async (previousBlockHeader: BlockHeader): Promise<Keys> => {
 			const stateStore = new StateStore(engine['_blockchainDB']);
 			const nextTimestamp = getNextTimestamp(engine, previousBlockHeader);
-			const validator = await engine['_consensus'].getGeneratorAtTimestamp(
+			const validator = await engine['_consensus']['_bft'].method.getGeneratorAtTimestamp(
 				stateStore,
 				previousBlockHeader.height + 1,
 				nextTimestamp,
 			);
-			const keys = getKeysFromDefaultConfig(validator);
+			const keys = getKeysFromDefaultConfig(validator.address);
 
 			return keys;
 		},

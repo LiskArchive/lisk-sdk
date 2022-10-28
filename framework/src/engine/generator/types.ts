@@ -43,11 +43,6 @@ export interface Consensus {
 	getAggregateCommit: (stateStore: StateStore) => Promise<AggregateCommit>;
 	certifySingleCommit: (blockHeader: BlockHeader, validatorInfo: ValidatorInfo) => void;
 	getMaxRemovalHeight: () => Promise<number>;
-	getGeneratorAtTimestamp: (
-		stateStore: StateStore,
-		height: number,
-		timestamp: number,
-	) => Promise<Buffer>;
 	getSlotNumber: (timestamp: number) => number;
 	getSlotTime: (slot: number) => number;
 	readonly events: EventEmitter;
