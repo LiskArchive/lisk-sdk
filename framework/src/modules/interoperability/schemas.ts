@@ -27,7 +27,6 @@ import {
 	MAX_CHAIN_NAME_LENGTH,
 	BLS_PUBLIC_KEY_LENGTH,
 	BLS_SIGNATURE_LENGTH,
-	HASH_LENGTH,
 } from './constants';
 import { chainAccountSchema } from './stores/chain_account';
 import { chainValidatorsSchema } from './stores/chain_validators';
@@ -346,19 +345,8 @@ export const registrationCCMParamsSchema = {
 export const channelTerminatedCCMParamsSchema = {
 	$id: '/modules/interoperability/ccCommand/channelTerminated',
 	type: 'object',
-	required: ['stateRoot', 'inboxSize'],
-	properties: {
-		stateRoot: {
-			dataType: 'bytes',
-			minLength: HASH_LENGTH,
-			maxLength: HASH_LENGTH,
-			fieldNumber: 1,
-		},
-		inboxSize: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-	},
+	required: [],
+	properties: {},
 };
 
 export const sidechainTerminatedCCMParamsSchema = {

@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SidechainInteroperabilityModule } from '../../../../../../src';
 import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	EMPTY_BYTES,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { SidechainCCChannelTerminatedCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands';
@@ -24,12 +24,10 @@ import { SidechainInteroperabilityStore } from '../../../../../../src/modules/in
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
 import { NamedRegistry } from '../../../../../../src/modules/named_registry';
 import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
-import { channelTerminatedCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 
 describe('SidechainCCChannelTerminatedCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
 	const createTerminatedStateAccountMock = jest.fn();
-	const createTerminatedOutboxAccountMock = jest.fn();
 
 	const ccMethodMod1 = {
 		beforeSendCCM: jest.fn(),
@@ -43,10 +41,6 @@ describe('SidechainCCChannelTerminatedCommand', () => {
 	ccMethodsMap.set(1, ccMethodMod1);
 	ccMethodsMap.set(2, ccMethodMod2);
 	const chainID = utils.getRandomBytes(32);
-	const ccmParams = {
-		stateRoot: Buffer.from('10000000', 'hex'),
-		inboxSize: 1,
-	};
 	const ccm = {
 		nonce: BigInt(0),
 		module: MODULE_NAME_INTEROPERABILITY,
@@ -55,7 +49,7 @@ describe('SidechainCCChannelTerminatedCommand', () => {
 		receivingChainID: utils.intToBuffer(3, 4),
 		fee: BigInt(20000),
 		status: 0,
-		params: codec.encode(channelTerminatedCCMParamsSchema, ccmParams),
+		params: EMPTY_BYTES,
 	};
 	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
 		ccm,
@@ -74,7 +68,6 @@ describe('SidechainCCChannelTerminatedCommand', () => {
 		new NamedRegistry(),
 	);
 	sidechainInteroperabilityStore.createTerminatedStateAccount = createTerminatedStateAccountMock;
-	sidechainInteroperabilityStore.createTerminatedOutboxAccount = createTerminatedOutboxAccountMock;
 	sidechainInteroperabilityStore.isLive = jest.fn().mockResolvedValue(false);
 	(ccChannelTerminatedCommand as any)['getInteroperabilityStore'] = jest
 		.fn()
@@ -91,23 +84,15 @@ describe('SidechainCCChannelTerminatedCommand', () => {
 		it('should skip if isLive is false ', async () => {
 			await ccChannelTerminatedCommand.execute(sampleExecuteContext);
 			expect(createTerminatedStateAccountMock).toHaveBeenCalledTimes(0);
-			expect(createTerminatedOutboxAccountMock).toHaveBeenCalledTimes(0);
 		});
 
-		it('should call createTerminatedStateAccount and createTerminatedOutboxAccount if isLive', async () => {
+		it('should call createTerminatedStateAccount if isLive', async () => {
 			sidechainInteroperabilityStore.isLive = jest.fn().mockResolvedValue(true);
 
 			await ccChannelTerminatedCommand.execute(sampleExecuteContext);
 			expect(createTerminatedStateAccountMock).toHaveBeenCalledWith(
 				sampleExecuteContext,
 				ccm.sendingChainID,
-				ccmParams.stateRoot,
-			);
-			expect(createTerminatedOutboxAccountMock).toHaveBeenCalledWith(
-				ccm.sendingChainID,
-				channelOutbox.root,
-				channelOutbox.size,
-				ccmParams.inboxSize,
 			);
 		});
 	});

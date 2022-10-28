@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec } from '@liskhq/lisk-codec';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 import { channelTerminatedCCMParamsSchema } from '../../schemas';
 import { CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED } from '../../constants';
-import { CCCommandExecuteContext, ChannelTerminatedCCMParams } from '../../types';
+import { CCCommandExecuteContext } from '../../types';
 
+// LIP-0049 https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#channel-terminated-message-1
 export abstract class BaseCCChannelTerminatedCommand extends BaseInteroperabilityCCCommand {
 	public schema = channelTerminatedCCMParamsSchema;
 
@@ -31,22 +31,7 @@ export abstract class BaseCCChannelTerminatedCommand extends BaseInteroperabilit
 			if (!context.ccm) {
 				throw new Error('CCM to execute channel terminated cross chain command is missing.');
 			}
-			const ccmParamsChannel = await interoperabilityStore.getChannel(context.chainID);
-			const channelTerminatedCCMParams = codec.decode<ChannelTerminatedCCMParams>(
-				this.schema,
-				context.ccm.params,
-			);
-			await interoperabilityStore.createTerminatedStateAccount(
-				context,
-				context.ccm.sendingChainID,
-				channelTerminatedCCMParams.stateRoot,
-			);
-			await interoperabilityStore.createTerminatedOutboxAccount(
-				context.ccm.sendingChainID,
-				ccmParamsChannel.outbox.root,
-				ccmParamsChannel.outbox.size,
-				channelTerminatedCCMParams.inboxSize,
-			);
+			await interoperabilityStore.createTerminatedStateAccount(context, context.ccm.sendingChainID);
 		}
 	}
 }
