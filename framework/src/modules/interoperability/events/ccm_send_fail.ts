@@ -14,9 +14,11 @@
 
 import { BaseEvent, EventQueuer } from '../../base_event';
 import { ccmSchema } from '../schemas';
+import { CCMsg } from '../types';
 
 export interface CcmSendFailEventData {
-	ccmID: Buffer;
+	ccm: CCMsg;
+	code: number;
 }
 
 export const ccmSendFailDataSchema = {
@@ -38,7 +40,7 @@ export const ccmSendFailDataSchema = {
 export class CcmSendFailEvent extends BaseEvent<CcmSendFailEventData> {
 	public schema = ccmSendFailDataSchema;
 
-	public log(ctx: EventQueuer, data: CcmSendFailEventData): void {
-		this.add(ctx, data, []);
+	public log(ctx: EventQueuer, data: CcmSendFailEventData, noRevert: boolean): void {
+		this.add(ctx, data, [], noRevert);
 	}
 }
