@@ -14,7 +14,6 @@
 import { address, utils } from '@liskhq/lisk-cryptography';
 import { TokenMethod, TokenModule } from '../../../../src/modules/token';
 import {
-	CHAIN_ID_LENGTH,
 	USER_SUBSTORE_INITIALIZATION_FEE,
 	ESCROW_SUBSTORE_INITIALIZATION_FEE,
 } from '../../../../src/modules/token/constants';
@@ -35,8 +34,10 @@ import { ModuleConfig } from '../../../../src/modules/token/types';
 describe('token endpoint', () => {
 	const tokenModule = new TokenModule();
 	const defaultAddress = utils.getRandomBytes(20);
-	const defaultTokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
-	const defaultForeignTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
+	const defaultChainID = Buffer.from([0, 0, 0, 1]);
+	const defaultTokenID = Buffer.concat([defaultChainID, Buffer.from([0, 0, 0, 0])]);
+	const defaultForeignChainID = Buffer.from([1, 0, 0, 0]);
+	const defaultForeignTokenID = Buffer.concat([defaultForeignChainID, Buffer.from([0, 0, 0, 0])]);
 	const defaultAccount = {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
@@ -87,14 +88,12 @@ describe('token endpoint', () => {
 		});
 
 		const escrowStore = tokenModule.stores.get(EscrowStore);
-		await escrowStore.set(
-			methodContext,
-			Buffer.concat([defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH), defaultTokenID]),
-			{ amount: defaultEscrowAmount },
-		);
+		await escrowStore.set(methodContext, Buffer.concat([defaultForeignChainID, defaultTokenID]), {
+			amount: defaultEscrowAmount,
+		});
 
 		supportedTokensStore = tokenModule.stores.get(SupportedTokensStore);
-		supportedTokensStore.registerOwnChainID(defaultTokenID.slice(CHAIN_ID_LENGTH));
+		supportedTokensStore.registerOwnChainID(defaultChainID);
 		await supportedTokensStore.set(methodContext, defaultTokenID, { supportedTokenIDs });
 	});
 
@@ -255,7 +254,7 @@ describe('token endpoint', () => {
 				escrowedAmounts: [
 					{
 						tokenID: defaultTokenID.toString('hex'),
-						escrowChainID: defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH).toString('hex'),
+						escrowChainID: defaultForeignChainID.toString('hex'),
 						amount: defaultEscrowAmount.toString(),
 					},
 				],
@@ -284,7 +283,6 @@ describe('token endpoint', () => {
 
 		it('should return true for a token from a foreign chain, when all tokens are supported', async () => {
 			await supportedTokensStore.supportAll(methodContext);
-
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: { tokenID: '8888888888888888' },
