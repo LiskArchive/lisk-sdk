@@ -34,10 +34,12 @@ import { ModuleConfig } from '../../../../src/modules/token/types';
 describe('token endpoint', () => {
 	const tokenModule = new TokenModule();
 	const defaultAddress = utils.getRandomBytes(20);
-	const defaultChainID = Buffer.from([0, 0, 0, 1]);
+	const mainChainID = Buffer.from([1, 0, 0, 0]);
+	const mainChainTokenID = Buffer.concat([mainChainID, Buffer.from([0, 0, 0, 0])]);
+	const defaultChainID = Buffer.from([1, 0, 0, 1]);
 	const defaultTokenID = Buffer.concat([defaultChainID, Buffer.from([0, 0, 0, 0])]);
-	const defaultForeignChainID = Buffer.from([1, 0, 0, 0]);
-	const defaultForeignTokenID = Buffer.concat([defaultForeignChainID, Buffer.from([0, 0, 0, 0])]);
+	const foreignChainID = Buffer.from([1, 0, 0, 8]);
+	const foreignTokenID = Buffer.concat([foreignChainID, Buffer.from([0, 0, 0, 0])]);
 	const defaultAccount = {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
@@ -47,11 +49,11 @@ describe('token endpoint', () => {
 			},
 		],
 	};
-	const defaultTotalSupply = BigInt('100000000000000');
-	const defaultEscrowAmount = BigInt('100000000000');
-	const supportedTokenIDs = [
-		Buffer.from('0000000000000000', 'hex'),
-		Buffer.from('0000000200000000', 'hex'),
+	const totalSupply = BigInt('100000000000000');
+	const escrowAmount = BigInt('100000000000');
+	const supportedForeignChainTokenIDs = [
+		Buffer.concat([foreignChainID, Buffer.from([0, 0, 0, 8])]),
+		Buffer.concat([foreignChainID, Buffer.from([0, 0, 0, 9])]),
 	];
 	let supportedTokensStore: SupportedTokensStore;
 
@@ -80,21 +82,20 @@ describe('token endpoint', () => {
 		methodContext = createTransientMethodContext({ stateStore });
 		const userStore = tokenModule.stores.get(UserStore);
 		await userStore.save(methodContext, defaultAddress, defaultTokenID, defaultAccount);
-		await userStore.save(methodContext, defaultAddress, defaultForeignTokenID, defaultAccount);
+		await userStore.save(methodContext, defaultAddress, foreignTokenID, defaultAccount);
 
 		const supplyStore = tokenModule.stores.get(SupplyStore);
 		await supplyStore.set(methodContext, defaultTokenID, {
-			totalSupply: defaultTotalSupply,
+			totalSupply,
 		});
 
 		const escrowStore = tokenModule.stores.get(EscrowStore);
-		await escrowStore.set(methodContext, Buffer.concat([defaultForeignChainID, defaultTokenID]), {
-			amount: defaultEscrowAmount,
+		await escrowStore.set(methodContext, Buffer.concat([foreignChainID, defaultTokenID]), {
+			amount: escrowAmount,
 		});
 
 		supportedTokensStore = tokenModule.stores.get(SupportedTokensStore);
 		supportedTokensStore.registerOwnChainID(defaultChainID);
-		await supportedTokensStore.set(methodContext, defaultTokenID, { supportedTokenIDs });
 	});
 
 	describe('getBalances', () => {
@@ -126,7 +127,7 @@ describe('token endpoint', () => {
 			expect(resp).toEqual({
 				balances: [
 					{
-						tokenID: '0000000100000000',
+						tokenID: defaultTokenID.toString('hex'),
 						availableBalance: defaultAccount.availableBalance.toString(),
 						lockedBalances: defaultAccount.lockedBalances.map(lb => ({
 							...lb,
@@ -135,7 +136,7 @@ describe('token endpoint', () => {
 						})),
 					},
 					{
-						tokenID: '0100000000000000',
+						tokenID: foreignTokenID.toString('hex'),
 						availableBalance: defaultAccount.availableBalance.toString(),
 						lockedBalances: defaultAccount.lockedBalances.map(lb => ({
 							...lb,
@@ -233,7 +234,7 @@ describe('token endpoint', () => {
 				totalSupply: [
 					{
 						tokenID: defaultTokenID.toString('hex'),
-						totalSupply: defaultTotalSupply.toString(),
+						totalSupply: totalSupply.toString(),
 					},
 				],
 			});
@@ -241,7 +242,52 @@ describe('token endpoint', () => {
 	});
 
 	describe('getSupportedTokens', () => {
-		it.todo('should return all supported tokens');
+		it('should return * when ALL tokens are supported globally', async () => {
+			await supportedTokensStore.supportAll(methodContext);
+			const moduleEndpointContext = createTransientModuleEndpointContext({ stateStore });
+
+			expect(await endpoint.getSupportedTokens(moduleEndpointContext)).toEqual({
+				supportedTokens: ['*'],
+			});
+		});
+
+		it('should return the list of supported tokens when ALL the tokens from a foreign chain are supported', async () => {
+			await supportedTokensStore.set(methodContext, foreignChainID, { supportedTokenIDs: [] });
+
+			// const anotherForeignChainID = Buffer.from([0, 0, 0, 9]);
+			// await supportedTokensStore.set(methodContext, anotherForeignChainID, { supportedTokenIDs: [] });
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				chainID: defaultChainID,
+			});
+
+			expect(await endpoint.getSupportedTokens(moduleEndpointContext)).toEqual({
+				supportedTokens: [
+					mainChainTokenID.toString('hex'),
+					defaultTokenID.toString('hex'),
+					`${foreignChainID.toString('hex')}********`,
+				],
+			});
+		});
+
+		it('should return the list of supported tokens when NOT ALL the tokens from a foreign chain are supported', async () => {
+			await supportedTokensStore.set(methodContext, foreignChainID, {
+				supportedTokenIDs: supportedForeignChainTokenIDs,
+			});
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				chainID: defaultChainID,
+			});
+
+			expect(await endpoint.getSupportedTokens(moduleEndpointContext)).toEqual({
+				supportedTokens: [
+					mainChainTokenID.toString('hex'),
+					defaultTokenID.toString('hex'),
+					supportedForeignChainTokenIDs[0].toString('hex'),
+					supportedForeignChainTokenIDs[1].toString('hex'),
+				],
+			});
+		});
 	});
 
 	describe('getEscrowedAmounts', () => {
@@ -254,8 +300,8 @@ describe('token endpoint', () => {
 				escrowedAmounts: [
 					{
 						tokenID: defaultTokenID.toString('hex'),
-						escrowChainID: defaultForeignChainID.toString('hex'),
-						amount: defaultEscrowAmount.toString(),
+						escrowChainID: foreignChainID.toString('hex'),
+						amount: escrowAmount.toString(),
 					},
 				],
 			});
@@ -264,9 +310,12 @@ describe('token endpoint', () => {
 
 	describe('isSupported', () => {
 		it('should return true for a supported token', async () => {
+			await supportedTokensStore.set(methodContext, foreignChainID, {
+				supportedTokenIDs: supportedForeignChainTokenIDs,
+			});
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { tokenID: supportedTokenIDs[0].toString('hex') },
+				params: { tokenID: supportedForeignChainTokenIDs[0].toString('hex') },
 			});
 
 			expect(await endpoint.isSupported(moduleEndpointContext)).toEqual({ supported: true });

@@ -109,12 +109,41 @@ export class TokenEndpoint extends BaseEndpoint {
 		context: ModuleEndpointContext,
 	): Promise<{ supportedTokens: string[] }> {
 		const supportedTokensStore = this.stores.get(SupportedTokensStore);
-		const supportedTokens: string[] = [];
 
 		if (await supportedTokensStore.allSupported(context)) {
 			return {
 				supportedTokens: ['*'],
 			};
+		}
+
+		const supportedTokens: string[] = [];
+
+		// main chain token
+		const mainchainTokenID = Buffer.concat([
+			context.chainID.slice(0, 1),
+			Buffer.alloc(TOKEN_ID_LENGTH - 1, 0),
+		]);
+		supportedTokens.push(mainchainTokenID.toString('hex'));
+
+		// native chain tokens
+		const supplyStore = this.stores.get(SupplyStore);
+		const supplyData = await supplyStore.getAll(context);
+
+		for (const tokenSupply of supplyData) {
+			supportedTokens.push(tokenSupply.key.toString('hex'));
+		}
+
+		// foreign chain tokens
+		const supportedTokensData = await supportedTokensStore.getAll(context);
+
+		for (const supportedToken of supportedTokensData) {
+			if (!supportedToken.value.supportedTokenIDs.length) {
+				supportedTokens.push(`${supportedToken.key.toString('hex')}${'********'}`); // key in supported token store is 4-byte chain ID
+			} else {
+				for (const token of supportedToken.value.supportedTokenIDs) {
+					supportedTokens.push(token.toString('hex'));
+				}
+			}
 		}
 
 		return { supportedTokens };

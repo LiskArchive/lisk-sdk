@@ -188,7 +188,7 @@ export class TokenModule extends BaseInteroperableModule {
 		this.stores.get(SupportedTokensStore).registerOwnChainID(this._ownChainID);
 		this.crossChainTransferCommand.init({ ownChainID: this._ownChainID });
 
-		this.method.init(Object.assign(config, { ownChainID: this._ownChainID }));
+		this.method.init({ ...config, ownChainID: this._ownChainID });
 		this.crossChainMethod.init(this._ownChainID);
 		this.endpoint.init(config);
 		this._transferCommand.init({
