@@ -45,6 +45,8 @@ import { GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT } from './generator/consta
 import { ConsensusEndpoint } from './endpoint/consensus';
 import { EngineConfig } from '../types';
 import { readGenesisBlock } from '../utils/genesis_block';
+import { LegacyChainHandler } from './legacy/legacy_chain_handler';
+import { LegacyEndpoint } from './legacy/endpoint';
 
 const isEmpty = (value: unknown): boolean => {
 	switch (typeof value) {
@@ -82,11 +84,13 @@ export class Engine {
 	private _network!: Network;
 	private _chain!: Chain;
 	private _bftModule!: BFTModule;
+	private _legacyChainHandler!: LegacyChainHandler;
 	private _rpcServer!: RPCServer;
 	private _logger!: Logger;
 	private _nodeDB!: Database;
 	private _generatorDB!: Database;
 	private _blockchainDB!: Database;
+	private _legacyDB!: Database;
 	private _chainID!: Buffer;
 
 	public constructor(abi: ABI, config: EngineConfig) {
@@ -101,12 +105,18 @@ export class Engine {
 	public async start() {
 		await this._init();
 		await this._network.start();
+		if (this._config.legacy.sync) {
+			this._logger.info('Legacy block sync started');
+			await this._legacyChainHandler.sync();
+			this._logger.info('Legacy block sync completed');
+		}
 		await this._generator.start();
 		await this._consensus.start();
 		await this._rpcServer.start();
-		await this._abi.ready({
+		await this._abi.init({
 			lastBlockHeight: this._chain.lastBlock.header.height,
 			chainID: this._chain.chainID,
+			lastStateRoot: this._chain.lastBlock.header.stateRoot as Buffer,
 		});
 		this._logger.info('Engine started');
 	}
@@ -152,6 +162,10 @@ export class Engine {
 			config: this._config,
 			network: this._network,
 		});
+		this._legacyChainHandler = new LegacyChainHandler({
+			legacyConfig: this._config.legacy,
+			network: this._network,
+		});
 		this._rpcServer = new RPCServer(this._config.system.dataPath, this._config.rpc);
 
 		const genesis = readGenesisBlock(this._config, this._logger);
@@ -162,6 +176,7 @@ export class Engine {
 		this._generatorDB = new Database(
 			path.join(this._config.system.dataPath, 'data', 'generator.db'),
 		);
+		this._legacyDB = new Database(path.join(this._config.system.dataPath, 'data', 'legacy.db'));
 		this._nodeDB = new Database(path.join(this._config.system.dataPath, 'data', 'node.db'));
 
 		this._chainID = Buffer.from(this._config.genesis.chainID, 'hex');
@@ -180,11 +195,15 @@ export class Engine {
 			db: this._blockchainDB,
 			genesisBlock: genesis,
 			logger: this._logger,
+			legacyDB: this._legacyDB,
 		});
 		await this._generator.init({
 			blockchainDB: this._blockchainDB,
 			generatorDB: this._generatorDB,
 			logger: this._logger,
+		});
+		await this._legacyChainHandler.init({
+			db: this._legacyDB,
 		});
 
 		this._registerEventListeners();
@@ -193,6 +212,11 @@ export class Engine {
 			logger: this._logger,
 			chainID: this._chain.chainID,
 		});
+
+		const legacyEndpoint = new LegacyEndpoint({
+			db: this._legacyDB,
+		});
+
 		const chainEndpoint = new ChainEndpoint({
 			chain: this._chain,
 			genesisBlockTimestamp: genesis.header.timestamp,
@@ -219,6 +243,9 @@ export class Engine {
 			blockchainDB: this._blockchainDB,
 		});
 
+		for (const [name, handler] of Object.entries(getEndpointHandlers(legacyEndpoint))) {
+			this._rpcServer.registerEndpoint('legacy', name, handler);
+		}
 		for (const [name, handler] of Object.entries(getEndpointHandlers(chainEndpoint))) {
 			this._rpcServer.registerEndpoint('chain', name, handler);
 		}
@@ -310,6 +337,7 @@ export class Engine {
 	private _closeDB(): void {
 		this._blockchainDB.close();
 		this._generatorDB.close();
+		this._legacyDB.close();
 		this._nodeDB.close();
 	}
 }

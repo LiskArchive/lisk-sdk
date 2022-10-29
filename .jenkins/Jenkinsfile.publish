@@ -48,7 +48,7 @@ pipeline {
 				}
 				nvm(getNodejsVersion()) {
 					sh '''
-					npx lerna publish --canary --registry https://npm.lisk.com --yes
+					npx lerna publish --canary --preid canary --registry https://npm.lisk.com --yes
 					'''
 				}
 			}

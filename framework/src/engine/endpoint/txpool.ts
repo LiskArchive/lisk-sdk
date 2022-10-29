@@ -67,6 +67,7 @@ export class TxpoolEndpoint {
 		const { result } = await this._abi.verifyTransaction({
 			contextID: Buffer.alloc(0),
 			transaction: transaction.toObject(),
+			header: this._chain.lastBlock.header.toObject(),
 		});
 		if (result === TransactionVerifyResult.INVALID) {
 			throw new InvalidTransactionError('Transaction verification failed.', transaction.id);
@@ -112,16 +113,20 @@ export class TxpoolEndpoint {
 
 		const req = ctx.params;
 		const transaction = Transaction.fromBytes(Buffer.from(req.transaction, 'hex'));
+		const header = this._chain.lastBlock.header.toObject();
 
-		const { result } = await this._abi.verifyTransaction({
-			contextID: Buffer.alloc(0),
-			transaction: transaction.toObject(),
-		});
-		if (result === TransactionVerifyResult.INVALID) {
-			return {
-				success: false,
-				events: [],
-			};
+		if (!req.skipVerify) {
+			const { result } = await this._abi.verifyTransaction({
+				contextID: Buffer.alloc(0),
+				transaction: transaction.toObject(),
+				header,
+			});
+			if (result === TransactionVerifyResult.INVALID) {
+				return {
+					success: false,
+					events: [],
+				};
+			}
 		}
 
 		const stateStore = new StateStore(this._blockchainDB);
@@ -135,7 +140,7 @@ export class TxpoolEndpoint {
 			transaction: transaction.toObject(),
 			assets: this._chain.lastBlock.assets.getAll(),
 			dryRun: true,
-			header: this._chain.lastBlock.header.toObject(),
+			header,
 			consensus,
 		});
 

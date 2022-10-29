@@ -312,6 +312,7 @@ export class Generator {
 			const { result: verifyResult } = await this._abi.verifyTransaction({
 				contextID: Buffer.alloc(0),
 				transaction,
+				header: this._chain.lastBlock.header.toObject(),
 			});
 			if (verifyResult !== TransactionVerifyResult.OK) {
 				throw new Error('Transaction is not valid');
@@ -565,6 +566,7 @@ export class Generator {
 			consensus,
 			transactions: transactions.map(tx => tx.toObject()),
 		});
+		blockEvents.push(...afterResult.events.map(e => new Event(e)));
 		if (
 			!isEmptyConsensusUpdate(
 				afterResult.preCommitThreshold,
@@ -593,7 +595,9 @@ export class Generator {
 
 		// Add event root calculation
 		const keypairs = [];
-		for (const e of blockEvents) {
+		for (let index = 0; index < blockEvents.length; index += 1) {
+			const e = blockEvents[index];
+			e.setIndex(index);
 			const pairs = e.keyPair();
 			for (const pair of pairs) {
 				keypairs.push(pair);
@@ -718,6 +722,7 @@ export class Generator {
 				const { result: verifyResult } = await this._abi.verifyTransaction({
 					contextID,
 					transaction,
+					header: header.toObject(),
 				});
 				if (verifyResult !== TransactionVerifyResult.OK) {
 					throw new Error('Transaction is not valid');

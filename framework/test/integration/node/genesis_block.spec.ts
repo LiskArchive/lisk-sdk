@@ -151,6 +151,7 @@ describe('genesis block', () => {
 					db: consensus['_db'],
 					genesisBlock: processEnv.getGenesisBlock(),
 					logger: consensus['_logger'],
+					legacyDB: consensus['_db'],
 				});
 
 				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {

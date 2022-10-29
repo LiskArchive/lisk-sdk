@@ -45,7 +45,7 @@ export default class InitGenerator extends Generator {
 			{
 				type: 'input',
 				name: 'chainID',
-				message: 'Chain ID in hex representation',
+				message: 'Chain ID in hex representation. ChainID must be 4 bytes (8 characters)',
 				validate: (input: string) => isHexString(input) && input?.length === 8,
 			},
 			{
@@ -92,10 +92,13 @@ export default class InitGenerator extends Generator {
 	}
 
 	public end(): void {
+		this.spawnCommandSync('npm', ['run', 'build']);
 		this.log('Generating genesis block and config.', this.destinationRoot());
 		// create default config file
 		this.spawnCommandSync(`${this.destinationPath('bin/run')}`, [
 			'config:create',
+			'--chain-id',
+			this.answers.chainID,
 			'--output',
 			'config/default',
 		]);

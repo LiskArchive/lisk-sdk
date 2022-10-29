@@ -13,66 +13,64 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { Command } from '@oclif/core';
+import { Command, Flags as flagParser } from '@oclif/core';
+import * as fs from 'fs-extra';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPasswordFromPrompt } from '../../../utils/reader';
 
-interface Args {
-	readonly encryptedPassphrase?: string;
+interface EncryptedMessageObject {
+	readonly version: string;
+	readonly ciphertext: string;
+	readonly mac: string;
+	readonly kdf: cryptography.encrypt.KDF;
+	readonly kdfparams: {
+		parallelism: number;
+		iterations: number;
+		memorySize: number;
+		salt: string;
+	};
+	readonly cipher: cryptography.encrypt.Cipher;
+	readonly cipherparams: {
+		iv: string;
+		tag: string;
+	};
 }
 
-const processInputs = async (
-	password: string,
-	encryptedPassphrase: string,
-): Promise<Record<string, string>> => {
-	const encryptedPassphraseObject = cryptography.encrypt.parseEncryptedMessage(encryptedPassphrase);
-	const passphrase = await cryptography.encrypt.decryptMessageWithPassword(
-		encryptedPassphraseObject as never,
-		password,
-		'utf-8',
-	);
-
-	return { passphrase };
-};
+interface inputFileData {
+	encryptedPassphrase: EncryptedMessageObject;
+	publicKey?: string;
+}
 
 export class DecryptCommand extends Command {
-	static args = [
-		{
-			name: 'encryptedPassphrase',
-			description: 'Encrypted passphrase to decrypt.',
-			required: true,
-		},
-	];
-
 	static description =
 		'Decrypt secret passphrase using the password provided at the time of encryption.';
 
 	static examples = [
-		'passphrase:decrypt "iterations=1000000&cipherText=9b1c60&iv=5c8843f52ed3c0f2aa0086b0&salt=2240b7f1aa9c899894e528cf5b600e9c&tag=23c01112134317a63bcf3d41ea74e83b&version=1"',
-		'passphrase:decrypt "iterations=1000000&cipherText=9b1c60&iv=5c8843f52ed3c0f2aa0086b0&salt=2240b7f1aa9c899894e528cf5b600e9c&tag=23c01112134317a63bcf3d41ea74e83b&version=1" --password your-password',
+		'passphrase:decrypt --file-path ./my/path/output.json',
+		'passphrase:decrypt --file-path ./my/path/output.json --password your-password',
 	];
 
 	static flags = {
 		password: flagsWithParser.password,
-		pretty: flagsWithParser.pretty,
+		'file-path': flagParser.string({
+			char: 'f',
+			description: 'Path of the file to import from',
+			required: true,
+		}),
 	};
 
 	async run(): Promise<void> {
-		const {
-			args,
-			flags: { password: passwordSource, pretty },
-		} = await this.parse(DecryptCommand);
-		const { encryptedPassphrase }: Args = args;
-		const password = passwordSource ?? (await getPasswordFromPrompt('password', true));
-		const result = await processInputs(password, encryptedPassphrase as string);
-		this.printJSON(result, pretty);
-	}
+		const { flags } = await this.parse(DecryptCommand);
+		const { encryptedPassphrase } = (fs.readJSONSync(
+			flags['file-path'],
+		) as unknown) as inputFileData;
+		const password = flags.password ?? (await getPasswordFromPrompt('password', true));
+		const passphrase = await cryptography.encrypt.decryptMessageWithPassword(
+			encryptedPassphrase,
+			password,
+			'utf-8',
+		);
 
-	public printJSON(message?: object, pretty = false): void {
-		if (pretty) {
-			this.log(JSON.stringify(message, undefined, '  '));
-		} else {
-			this.log(JSON.stringify(message));
-		}
+		this.log(JSON.stringify(passphrase, undefined, '  '));
 	}
 }

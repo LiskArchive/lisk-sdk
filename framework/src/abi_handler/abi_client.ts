@@ -17,10 +17,10 @@ import { Dealer } from 'zeromq';
 import {
 	ABI,
 	IPCResponse,
-	readyRequestSchema,
-	readyResponseSchema,
-	ReadyRequest,
-	ReadyResponse,
+	initRequestSchema,
+	initResponseSchema,
+	InitRequest,
+	InitResponse,
 	InitStateMachineRequest,
 	InitStateMachineResponse,
 	InitGenesisStateRequest,
@@ -87,6 +87,7 @@ import {
 import { Logger } from '../logger';
 
 const DEFAULT_TIMEOUT = 500;
+const MAX_UINT64 = BigInt(2) ** BigInt(64) - BigInt(1);
 
 interface Defer<T> {
 	promise: Promise<T>;
@@ -156,8 +157,8 @@ export class ABIClient implements ABI {
 		this._globalID = BigInt(0);
 	}
 
-	public async ready(req: ReadyRequest): Promise<ReadyResponse> {
-		return this._call<ReadyResponse>('ready', req, readyRequestSchema, readyResponseSchema);
+	public async init(req: InitRequest): Promise<InitResponse> {
+		return this._call<InitResponse>('init', req, initRequestSchema, initResponseSchema);
 	}
 
 	public async initStateMachine(req: InitStateMachineRequest): Promise<InitStateMachineResponse> {
@@ -294,21 +295,31 @@ export class ABIClient implements ABI {
 			method,
 			params,
 		};
+		this._logger.debug(
+			{ method: requestBody.method, id: requestBody.id, file: 'abi_client' },
+			'Requesting ABI server',
+		);
 		const encodedRequest = codec.encode(ipcRequestSchema, requestBody);
 		await this._dealer.send([encodedRequest]);
 		const response = defer<Buffer>();
 		this._pendingRequests[this._globalID.toString()] = response as Defer<unknown>;
+		// Increment ID before async task, reset to zero at MAX uint64
+		this._globalID += BigInt(1);
+		if (this._globalID >= MAX_UINT64) {
+			this._globalID = BigInt(0);
+		}
 
 		const resp = await Promise.race([
 			response.promise,
 			timeout(DEFAULT_TIMEOUT, `Response not received in ${DEFAULT_TIMEOUT}ms`),
 		]);
+		this._logger.debug(
+			{ method: requestBody.method, id: requestBody.id, file: 'abi_client' },
+			'Received response from ABI server',
+		);
 		const decodedResp =
 			Object.keys(respSchema.properties).length > 0 ? codec.decode<T>(respSchema, resp) : ({} as T);
 
-		if (this._globalID >= BigInt(2) ** BigInt(64)) {
-			this._globalID = BigInt(0);
-		}
 		return decodedResp;
 	}
 

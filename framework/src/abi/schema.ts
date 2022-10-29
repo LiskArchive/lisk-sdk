@@ -117,10 +117,10 @@ export const consensusSchema = {
 	},
 };
 
-export const readyRequestSchema = {
-	$id: '/abi/readyRequest',
+export const initRequestSchema = {
+	$id: '/abi/initRequest',
 	type: 'object',
-	required: ['chainID', 'lastBlockHeight'],
+	required: ['chainID', 'lastBlockHeight', 'lastStateRoot'],
 	properties: {
 		chainID: {
 			fieldNumber: 1,
@@ -130,11 +130,15 @@ export const readyRequestSchema = {
 			fieldNumber: 2,
 			dataType: 'uint32',
 		},
+		lastStateRoot: {
+			fieldNumber: 3,
+			dataType: 'bytes',
+		},
 	},
 };
 
-export const readyResponseSchema = {
-	$id: '/abi/readyResponse',
+export const initResponseSchema = {
+	$id: '/abi/initResponse',
 	type: 'object',
 	required: [],
 	properties: {},
@@ -363,7 +367,7 @@ export const afterTransactionsExecuteResponseSchema = {
 export const verifyTransactionRequestSchema = {
 	$id: '/abi/verifyTransactionRequest',
 	type: 'object',
-	required: ['contextID', 'transaction'],
+	required: ['contextID', 'transaction', 'header'],
 	properties: {
 		contextID: {
 			fieldNumber: 1,
@@ -372,6 +376,10 @@ export const verifyTransactionRequestSchema = {
 		transaction: {
 			fieldNumber: 2,
 			...transactionSchema,
+		},
+		header: {
+			fieldNumber: 3,
+			...blockHeaderSchema,
 		},
 	},
 };

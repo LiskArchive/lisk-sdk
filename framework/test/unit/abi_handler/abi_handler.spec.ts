@@ -15,7 +15,7 @@ import * as fs from 'fs';
 import { Block, BlockAssets, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { InMemoryDatabase } from '@liskhq/lisk-db';
+import { InMemoryDatabase, StateDB } from '@liskhq/lisk-db';
 import { BaseModule, TokenModule } from '../../../src';
 import { ABIHandler } from '../../../src/abi_handler/abi_handler';
 import { transferParamsSchema } from '../../../src/modules/token/schemas';
@@ -32,7 +32,8 @@ import { USER_SUBSTORE_INITIALIZATION_FEE } from '../../../src/modules/token/con
 
 describe('abi handler', () => {
 	let abiHandler: ABIHandler;
-	let stateDBMock = {};
+	let stateDBMock: StateDB;
+	let root: Buffer;
 
 	beforeEach(async () => {
 		jest
@@ -40,13 +41,11 @@ describe('abi handler', () => {
 			.mockReturnValue(new Block(createFakeBlockHeader(), [], new BlockAssets()).getBytes());
 		stateDBMock = {
 			get: jest.fn(),
-			set: jest.fn(),
-			del: jest.fn(),
-			snapshot: jest.fn(),
-			restoreSnapshot: jest.fn(),
 			finalize: jest.fn(),
+			revert: jest.fn(),
+			getCurrentState: jest.fn(),
 			newReadWriter: () => new InMemoryPrefixedStateDB(),
-		};
+		} as never;
 		const stateMachine = new StateMachine();
 		const mod = new TokenModule();
 		const mod2 = new AuthModule();
@@ -69,10 +68,11 @@ describe('abi handler', () => {
 			...applicationConfigSchema.default.genesis,
 			chainID: '00000000',
 		});
+		root = utils.getRandomBytes(32);
 	});
 
-	describe('ready', () => {
-		it('should return valid response', async () => {
+	describe('init', () => {
+		it('should not revert state and cache chainID if state is correct', async () => {
 			const stateMachine = new StateMachine();
 			const mod = new TokenModule();
 			jest.spyOn(mod.commands[0], 'execute').mockResolvedValue();
@@ -89,11 +89,55 @@ describe('abi handler', () => {
 					genesis: { ...applicationConfigSchema.default.genesis, chainID: '10000000' },
 				},
 			});
+			(stateDBMock.getCurrentState as jest.Mock).mockResolvedValue({ root, version: 21 });
 
 			const chainID = Buffer.from('10000000', 'hex');
-			await abiHandler.ready({ chainID, lastBlockHeight: 21 });
+			await abiHandler.init({ chainID, lastBlockHeight: 21, lastStateRoot: root });
+			expect(stateDBMock.revert).not.toHaveBeenCalled();
 
 			expect(abiHandler.chainID).toEqual(chainID);
+		});
+
+		it('should revert state until the same height', async () => {
+			(stateDBMock.getCurrentState as jest.Mock).mockResolvedValue({ root, version: 21 });
+
+			(stateDBMock.revert as jest.Mock).mockResolvedValue(root);
+
+			await abiHandler.init({ chainID: Buffer.alloc(4), lastBlockHeight: 19, lastStateRoot: root });
+
+			expect(stateDBMock.revert).toHaveBeenCalledTimes(2);
+		});
+
+		it('should reject init if states are different with the same height', async () => {
+			(stateDBMock.getCurrentState as jest.Mock).mockResolvedValue({ root, version: 21 });
+
+			(stateDBMock.revert as jest.Mock).mockResolvedValue(root);
+
+			await expect(
+				abiHandler.init({
+					chainID: Buffer.alloc(4),
+					lastBlockHeight: 19,
+					lastStateRoot: utils.getRandomBytes(32),
+				}),
+			).rejects.toThrow('State cannot be recovered. Conflict at height 19');
+
+			expect(stateDBMock.revert).toHaveBeenCalledTimes(2);
+		});
+
+		it('should reject init if engine last block height is higher than application height', async () => {
+			((stateDBMock as any).getCurrentState as jest.Mock).mockResolvedValue({ root, version: 21 });
+
+			(stateDBMock.revert as jest.Mock).mockResolvedValue(root);
+
+			await expect(
+				abiHandler.init({
+					chainID: Buffer.alloc(4),
+					lastBlockHeight: 22,
+					lastStateRoot: utils.getRandomBytes(32),
+				}),
+			).rejects.toThrow('Invalid engine state');
+
+			expect(stateDBMock.revert).not.toHaveBeenCalled();
 		});
 	});
 
@@ -391,8 +435,9 @@ describe('abi handler', () => {
 	describe('verifyTransaction', () => {
 		it('should execute verifyTransaction with existing context when context ID is not empty and resolve the response', async () => {
 			jest.spyOn(abiHandler['_stateMachine'], 'verifyTransaction');
+			const header = createFakeBlockHeader().toObject();
 			const { contextID } = await abiHandler.initStateMachine({
-				header: createFakeBlockHeader().toObject(),
+				header,
 			});
 			// Add random data to check if new state store is used or not
 			await abiHandler['_executionContext']?.stateStore.set(
@@ -411,6 +456,7 @@ describe('abi handler', () => {
 			const resp = await abiHandler.verifyTransaction({
 				contextID,
 				transaction: tx.toObject(),
+				header,
 			});
 
 			expect(abiHandler['_stateMachine'].verifyTransaction).toHaveBeenCalledTimes(1);
@@ -424,8 +470,9 @@ describe('abi handler', () => {
 
 		it('should execute verifyTransaction with new context when context ID is empty and resolve the response', async () => {
 			jest.spyOn(abiHandler['_stateMachine'], 'verifyTransaction');
+			const header = createFakeBlockHeader({ height: 10 }).toObject();
 			await abiHandler.initStateMachine({
-				header: createFakeBlockHeader().toObject(),
+				header,
 			});
 			// Add random data to check if new state store is used or not
 			const key = utils.getRandomBytes(20);
@@ -442,11 +489,15 @@ describe('abi handler', () => {
 			const resp = await abiHandler.verifyTransaction({
 				contextID: Buffer.alloc(0),
 				transaction: tx.toObject(),
+				header,
 			});
 
 			expect(abiHandler['_stateMachine'].verifyTransaction).toHaveBeenCalledTimes(1);
 			const usedStateStore = (abiHandler['_stateMachine'].verifyTransaction as jest.Mock).mock
 				.calls[0][0]['_stateStore'];
+			const usedHeader = (abiHandler['_stateMachine'].verifyTransaction as jest.Mock).mock
+				.calls[0][0]['_header'];
+			expect(usedHeader.height).toEqual(10);
 			// Expect used state store does not have previous information
 			await expect(usedStateStore.has(key)).resolves.toBeFalse();
 			expect(resp.result).toEqual(TransactionVerifyResult.INVALID);

@@ -55,7 +55,7 @@ export default class ModuleGenerator extends Generator {
 		// Writing test file for the generated module
 		this.fs.copyTpl(
 			`${this._templatePath}/test/unit/modules/module.spec.ts`,
-			this.destinationPath(`test/unit/modules/${this._moduleFileName}/`),
+			this.destinationPath(`test/unit/modules/${this._moduleFileName}/module.spec.ts`),
 			{
 				moduleClass: this._moduleClass,
 				moduleName: this._moduleName,

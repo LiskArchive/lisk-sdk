@@ -55,7 +55,7 @@ describe('ABI client', () => {
 	describe('constructor', () => {
 		it('should have all abi handlers', () => {
 			const allFuncs = Object.getOwnPropertyNames(Object.getPrototypeOf(abiHandler)).filter(
-				name => name !== 'constructor' && name !== 'chainID',
+				name => name !== 'constructor' && name !== 'chainID' && name !== 'cacheGenesisState',
 			);
 
 			const clientFuncs = Object.getOwnPropertyNames(Object.getPrototypeOf(client));

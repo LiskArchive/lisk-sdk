@@ -1,22 +1,28 @@
-import { BaseCommand, CommandVerifyContext, VerificationResult, CommandExecuteContext } from 'lisk-sdk';
+/* eslint-disable class-methods-use-this */
 
-interface Params { }
+import {
+    BaseCommand,
+    CommandVerifyContext,
+    CommandExecuteContext,
+	VerificationResult,
+	VerifyStatus,
+} from 'lisk-sdk';
+
+interface Params {
+}
 
 export class <%= commandClass %> extends BaseCommand {
-  // Define schema for asset
 	public schema = {
-		$id: '<%= moduleName %>/<%= commandName %>-asset',
-		title: '<%= commandClass %> transaction asset for <%= moduleName %> module',
+		$id: '<%= commandClass %>',
 		type: 'object',
-		required: [],
 		properties: {},
 	};
 
-	public async verify(context: CommandVerifyContext<Params>): Promise <VerificationResult> {
-		// Validate your asset
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async verify(_context: CommandVerifyContext<Params>): Promise<VerificationResult> {
+		return { status: VerifyStatus.OK };
 	}
 
-    public async execute(context: CommandExecuteContext<Params>): Promise <void> {
-		throw new Error('Command "<%= commandName %>" execute hook is not implemented.');
+	public async execute(_context: CommandExecuteContext<Params>): Promise<void> {
 	}
 }

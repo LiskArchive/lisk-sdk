@@ -379,7 +379,7 @@ describe('CrossChain Transfer Command', () => {
 
 			const events = ctx.eventQueue.getEvents();
 			expect(events).toHaveLength(1);
-			expect(events[0].toObject().name).toEqual('ccmTransferEvent');
+			expect(events[0].toObject().name).toEqual('ccmTransfer');
 			expect(codec.decode(ccmTransferEventSchema, events[0].toObject().data)).toEqual({
 				senderAddress: defaultAddress,
 				recipientAddress: defaultAddress,
@@ -608,7 +608,7 @@ describe('CrossChain Transfer Command', () => {
 			// Assert
 			expect(amount).toEqual(defaultEscrowAmount - defaultAmount);
 			expect(events).toHaveLength(1);
-			expect(events[0].toObject().name).toEqual('ccmTransferEvent');
+			expect(events[0].toObject().name).toEqual('ccmTransfer');
 			expect(codec.decode(ccmTransferEventSchema, events[0].toObject().data)).toEqual({
 				senderAddress: defaultAddress,
 				recipientAddress: defaultAddress,

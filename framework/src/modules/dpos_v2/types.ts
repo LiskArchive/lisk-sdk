@@ -254,3 +254,13 @@ export interface GenesisStore {
 		initDelegates: Buffer[];
 	};
 }
+
+export interface GetUnlockHeightResponse {
+	pendingUnlocks: {
+		delegateAddress: string;
+		amount: string;
+		unvoteHeight: number;
+		expectedUnlockableHeight: number;
+		unlockable: boolean;
+	}[];
+}

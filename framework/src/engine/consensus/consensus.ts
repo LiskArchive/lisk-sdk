@@ -37,6 +37,7 @@ import { AbortError, ApplyPenaltyAndRestartError, RestartError } from './synchro
 import { BlockExecutor } from './synchronizer/type';
 import { Network } from '../network';
 import { NetworkEndpoint, EndpointArgs } from './network_endpoint';
+import { LegacyNetworkEndpoint } from '../legacy/network_endpoint';
 import { EventPostBlockData, postBlockEventSchema } from './schema';
 import {
 	CONSENSUS_EVENT_BLOCK_BROADCAST,
@@ -52,6 +53,7 @@ import {
 	NETWORK_RPC_GET_BLOCKS_FROM_ID,
 	NETWORK_RPC_GET_HIGHEST_COMMON_BLOCK,
 	NETWORK_RPC_GET_LAST_BLOCK,
+	NETWORK_LEGACY_GET_BLOCKS_FROM_ID,
 } from './constants';
 import { GenesisConfig } from '../../types';
 import { AggregateCommit } from './types';
@@ -74,6 +76,7 @@ interface InitArgs {
 	logger: Logger;
 	genesisBlock: Block;
 	db: Database;
+	legacyDB: Database;
 }
 
 interface ExecuteOptions {
@@ -109,6 +112,7 @@ export class Consensus {
 	private _db!: Database;
 	private _commitPool!: CommitPool;
 	private _endpoint!: NetworkEndpoint;
+	private _legacyEndpoint!: LegacyNetworkEndpoint;
 	private _synchronizer!: Synchronizer;
 	private _blockSlot!: Slots;
 
@@ -140,6 +144,11 @@ export class Consensus {
 			network: this._network,
 			db: this._db,
 		} as EndpointArgs); // TODO: Remove casting in issue where commitPool is added here
+		this._legacyEndpoint = new LegacyNetworkEndpoint({
+			logger: this._logger,
+			network: this._network,
+			db: args.legacyDB,
+		});
 		const blockExecutor = this._createBlockExecutor();
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
 			chain: this._chain,
@@ -164,6 +173,9 @@ export class Consensus {
 			interval: this._genesisConfig.blockTime,
 		});
 
+		this._network.registerEndpoint(NETWORK_LEGACY_GET_BLOCKS_FROM_ID, async ({ data, peerId }) =>
+			this._legacyEndpoint.handleRPCGetLegacyBlocksFromID(data, peerId),
+		);
 		this._network.registerEndpoint(NETWORK_RPC_GET_LAST_BLOCK, ({ peerId }) =>
 			this._endpoint.handleRPCGetLastBlock(peerId),
 		);
@@ -319,6 +331,7 @@ export class Consensus {
 			// setting peerID to localhost with non existing port because this function is only called internally.
 			await this._execute(block, '127.0.0.1:0');
 		} catch (error) {
+			await this._abi.clear({});
 			this._logger.error({ err: error as Error }, 'Fail to execute block.');
 		}
 	}
@@ -549,6 +562,7 @@ export class Consensus {
 			});
 			await this._executeValidated(block);
 
+			// Since legacy property is optional we don't need to send it here
 			this._network.applyNodeInfo({
 				height: block.header.height,
 				lastBlockID: block.header.id,
@@ -961,11 +975,12 @@ export class Consensus {
 				assets: block.assets.getAll(),
 				consensus,
 			});
-			events.push(...beforeResult.events.map(e => new Event(e)));
+			events.push(...beforeResult.events);
 			for (const transaction of block.transactions) {
 				const { result: verifyResult } = await this._abi.verifyTransaction({
 					contextID,
 					transaction: transaction.toObject(),
+					header: block.header.toObject(),
 				});
 				if (verifyResult !== TransactionVerifyResult.OK) {
 					this._logger.debug(`Failed to verify transaction ${transaction.id.toString('hex')}`);
@@ -983,7 +998,7 @@ export class Consensus {
 					this._logger.debug(`Failed to execute transaction ${transaction.id.toString('hex')}`);
 					throw new Error(`Failed to execute transaction ${transaction.id.toString('hex')}.`);
 				}
-				events.push(...txExecResult.events.map(e => new Event(e)));
+				events.push(...txExecResult.events);
 			}
 			const afterResult = await this._abi.afterTransactionsExecute({
 				contextID,
@@ -991,6 +1006,7 @@ export class Consensus {
 				consensus,
 				transactions: block.transactions.map(tx => tx.toObject()),
 			});
+			events.push(...afterResult.events);
 
 			if (
 				!isEmptyConsensusUpdate(
@@ -1016,7 +1032,11 @@ export class Consensus {
 				});
 			}
 
-			return events;
+			return events.map((e, i) => {
+				const event = new Event(e);
+				event.setIndex(i);
+				return event;
+			});
 		} catch (err) {
 			await this._abi.clear({});
 			throw err;
@@ -1074,7 +1094,11 @@ export class Consensus {
 				stateRoot: utils.hash(Buffer.alloc(0)),
 				expectedStateRoot: genesisBlock.header.stateRoot,
 			});
-			return result.events.map(e => new Event(e));
+			return result.events.map((e, i) => {
+				const event = new Event(e);
+				event.setIndex(i);
+				return event;
+			});
 		} finally {
 			await this._abi.clear({});
 		}

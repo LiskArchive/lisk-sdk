@@ -4,7 +4,7 @@ import { BasePlugin } from 'lisk-sdk';
  /* eslint-disable  @typescript-eslint/no-empty-function */
  export class <%= className %> extends BasePlugin {
 	public get nodeModulePath(): string {
-		return <%= __filename %>;
+		return __filename;
 	}
 
 	public async load(): Promise<void> {

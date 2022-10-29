@@ -17,6 +17,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../../../src/testing';
 import { UnlockCommand } from '../../../../../src/modules/dpos_v2/commands/unlock';
 import {
+	defaultConfig,
 	EMPTY_KEY,
 	SELF_VOTE_PUNISH_TIME,
 	VOTER_PUNISH_TIME,
@@ -105,6 +106,10 @@ describe('UnlockCommand', () => {
 		};
 		unlockCommand.addDependencies({
 			tokenMethod: mockTokenMethod,
+		});
+		unlockCommand.init({
+			roundLength: defaultConfig.roundLength,
+			tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS, 'hex'),
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		delegateSubstore = dpos.stores.get(DelegateStore);

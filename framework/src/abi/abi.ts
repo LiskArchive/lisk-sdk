@@ -14,7 +14,7 @@
  */
 
 export interface ABI {
-	ready(req: ReadyRequest): Promise<ReadyResponse>;
+	init(req: InitRequest): Promise<InitResponse>;
 	initStateMachine(req: InitStateMachineRequest): Promise<InitStateMachineResponse>;
 	initGenesisState(req: InitGenesisStateRequest): Promise<InitGenesisStateResponse>;
 	insertAssets(req: InsertAssetsRequest): Promise<InsertAssetsResponse>;
@@ -97,12 +97,13 @@ export interface Validator {
 	blsKey: Buffer;
 }
 
-export interface ReadyRequest {
+export interface InitRequest {
 	chainID: Buffer;
 	lastBlockHeight: number;
+	lastStateRoot: Buffer;
 }
 
-export interface ReadyResponse {}
+export interface InitResponse {}
 
 export interface InitStateMachineRequest {
 	header: BlockHeader;
@@ -173,6 +174,7 @@ export interface AfterTransactionsExecuteResponse {
 
 export interface VerifyTransactionRequest {
 	contextID: Buffer;
+	header: BlockHeader;
 	transaction: Transaction;
 }
 
