@@ -37,7 +37,7 @@ export const supportedTokensStoreSchema = {
 	},
 };
 
-export const ALL_SUPPORTED_TOKENS_KEY = Buffer.from([0, 0, 0, 0]);
+export const ALL_SUPPORTED_TOKENS_KEY = Buffer.alloc(0);
 
 export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 	public schema = supportedTokensStoreSchema;
@@ -77,25 +77,25 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 		return false;
 	}
 
-	public async removeAll(context: StoreGetter): Promise<void> {
-		// check if exist
-		const allSupportedTokens = await this.iterate(context, {
-			gte: Buffer.alloc(4, 0),
-			lte: Buffer.alloc(4, 255),
+	public async getAll(
+		context: ImmutableStoreGetter,
+	): Promise<{ key: Buffer; value: SupportedTokensStoreData }[]> {
+		return this.iterate(context, {
+			gte: Buffer.alloc(TOKEN_ID_LENGTH, 0),
+			lte: Buffer.alloc(TOKEN_ID_LENGTH, 255),
 		});
+	}
+
+	public async removeAll(context: StoreGetter): Promise<void> {
+		const allSupportedTokens = await this.getAll(context);
+
 		for (const { key } of allSupportedTokens) {
 			await this.del(context, key);
 		}
 	}
 
 	public async supportAll(context: StoreGetter): Promise<void> {
-		const allSupportedTokens = await this.iterate(context, {
-			gte: Buffer.alloc(4, 0),
-			lte: Buffer.alloc(4, 255),
-		});
-		for (const { key } of allSupportedTokens) {
-			await this.del(context, key);
-		}
+		await this.removeAll(context);
 		await this.set(context, ALL_SUPPORTED_TOKENS_KEY, { supportedTokenIDs: [] });
 	}
 

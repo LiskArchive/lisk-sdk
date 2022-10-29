@@ -25,13 +25,16 @@ import {
 	getBalanceRequestSchema,
 	getBalanceResponseSchema,
 	getBalancesRequestSchema,
+	getBalancesResponseSchema,
 	getEscrowedAmountsResponseSchema,
 	getSupportedTokensResponseSchema,
+	isSupportedRequestSchema,
+	isSupportedResponseSchema,
 	getTotalSupplyResponseSchema,
 } from './schemas';
 import { TokenMethod } from './method';
 import { TokenEndpoint } from './endpoint';
-import { GenesisTokenStore, InteroperabilityMethod, ModuleConfigJSON } from './types';
+import { GenesisTokenStore, InteroperabilityMethod, ModuleConfig, ModuleConfigJSON } from './types';
 import { splitTokenID } from './utils';
 import { CCTransferCommand } from './commands/cc_transfer';
 import { BaseInteroperableModule } from '../interoperability/base_interoperable_module';
@@ -126,7 +129,7 @@ export class TokenModule extends BaseInteroperableModule {
 				{
 					name: this.endpoint.getBalances.name,
 					request: getBalancesRequestSchema,
-					response: getBalancesRequestSchema,
+					response: getBalancesResponseSchema,
 				},
 				{
 					name: this.endpoint.getTotalSupply.name,
@@ -135,6 +138,11 @@ export class TokenModule extends BaseInteroperableModule {
 				{
 					name: this.endpoint.getSupportedTokens.name,
 					response: getSupportedTokensResponseSchema,
+				},
+				{
+					name: this.endpoint.isSupported.name,
+					request: isSupportedRequestSchema,
+					response: isSupportedResponseSchema,
 				},
 				{
 					name: this.endpoint.getEscrowedAmounts.name,
@@ -163,29 +171,30 @@ export class TokenModule extends BaseInteroperableModule {
 		const { moduleConfig, genesisConfig } = args;
 		this._ownChainID = Buffer.from(genesisConfig.chainID, 'hex');
 
-		const config = objects.mergeDeep(
+		const rawConfig = objects.mergeDeep(
 			{},
 			defaultConfig,
 			{ feeTokenID: Buffer.concat([this._ownChainID, Buffer.alloc(4, 0)]).toString('hex') },
 			moduleConfig,
 		) as ModuleConfigJSON;
-		validator.validate(configSchema, config);
+		validator.validate(configSchema, rawConfig);
+
+		const config: ModuleConfig = {
+			userAccountInitializationFee: BigInt(rawConfig.userAccountInitializationFee),
+			escrowAccountInitializationFee: BigInt(rawConfig.escrowAccountInitializationFee),
+			feeTokenID: Buffer.from(rawConfig.feeTokenID, 'hex'),
+		};
 
 		this.stores.get(SupportedTokensStore).registerOwnChainID(this._ownChainID);
 		this.crossChainTransferCommand.init({ ownChainID: this._ownChainID });
 
-		this.method.init({
-			ownChainID: this._ownChainID,
-			escrowAccountInitializationFee: BigInt('50000000'),
-			feeTokenID: Buffer.from(config.feeTokenID, 'hex'),
-			userAccountInitializationFee: BigInt('50000000'),
-		});
+		this.method.init({ ...config, ownChainID: this._ownChainID });
 		this.crossChainMethod.init(this._ownChainID);
-		this.endpoint.init(this.method);
+		this.endpoint.init(config);
 		this._transferCommand.init({
 			method: this.method,
-			accountInitializationFee: BigInt(config.userAccountInitializationFee),
-			feeTokenID: Buffer.from(config.feeTokenID, 'hex'),
+			accountInitializationFee: config.userAccountInitializationFee,
+			feeTokenID: config.feeTokenID,
 		});
 	}
 
