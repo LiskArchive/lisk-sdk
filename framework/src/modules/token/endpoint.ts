@@ -16,25 +16,27 @@ import { validator } from '@liskhq/lisk-validator';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { NotFoundError } from '../../state_machine';
 import { JSONObject, ModuleEndpointContext } from '../../types';
+import { ModuleConfig } from './types';
 import { BaseEndpoint } from '../base_endpoint';
-import { TokenMethod } from './method';
-import { LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from './constants';
+import { CHAIN_ID_LENGTH, TOKEN_ID_LENGTH } from './constants';
 import {
 	getBalanceRequestSchema,
 	getBalancesRequestSchema,
+	isSupportedRequestSchema,
 	SupplyStoreData,
 	UserStoreData,
 } from './schemas';
 import { EscrowStore, EscrowStoreData } from './stores/escrow';
 import { SupplyStore } from './stores/supply';
 import { UserStore } from './stores/user';
-import { splitTokenID } from './utils';
-
-const CHAIN_ID_ALIAS_NATIVE = Buffer.from([0, 0, 0, 1]);
+import { SupportedTokensStore } from './stores/supported_tokens';
 
 export class TokenEndpoint extends BaseEndpoint {
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public init(_tokenMethod: TokenMethod) {}
+	private _moduleConfig!: ModuleConfig;
+
+	public init(moduleConfig: ModuleConfig) {
+		this._moduleConfig = moduleConfig;
+	}
 
 	public async getBalances(
 		context: ModuleEndpointContext,
@@ -93,30 +95,69 @@ export class TokenEndpoint extends BaseEndpoint {
 		context: ModuleEndpointContext,
 	): Promise<{ totalSupply: JSONObject<SupplyStoreData & { tokenID: string }>[] }> {
 		const supplyStore = this.stores.get(SupplyStore);
-		const supplyData = await supplyStore.iterate(context, {
-			gte: Buffer.concat([Buffer.alloc(LOCAL_ID_LENGTH, 0)]),
-			lte: Buffer.concat([Buffer.alloc(LOCAL_ID_LENGTH, 255)]),
-		});
+		const supplyData = await supplyStore.getAll(context);
 
 		return {
-			totalSupply: supplyData.map(({ key: localID, value: supply }) => ({
-				tokenID: Buffer.concat([CHAIN_ID_ALIAS_NATIVE, localID]).toString('hex'),
+			totalSupply: supplyData.map(({ key: tokenID, value: supply }) => ({
+				tokenID: tokenID.toString('hex'),
 				totalSupply: supply.totalSupply.toString(),
 			})),
 		};
 	}
 
-	// TODO: Update to use SupportedTokensStore #7579
-	// eslint-disable-next-line @typescript-eslint/require-await
 	public async getSupportedTokens(
-		_context: ModuleEndpointContext,
-	): Promise<{ tokenIDs: string[] }> {
-		return {
-			tokenIDs: [],
-		};
+		context: ModuleEndpointContext,
+	): Promise<{ supportedTokens: string[] }> {
+		const supportedTokensStore = this.stores.get(SupportedTokensStore);
+
+		if (await supportedTokensStore.allSupported(context)) {
+			return {
+				supportedTokens: ['*'],
+			};
+		}
+
+		const supportedTokens: string[] = [];
+
+		// main chain token
+		const mainchainTokenID = Buffer.concat([
+			context.chainID.slice(0, 1),
+			Buffer.alloc(TOKEN_ID_LENGTH - 1, 0),
+		]);
+		supportedTokens.push(mainchainTokenID.toString('hex'));
+
+		// native chain tokens
+		const supplyStore = this.stores.get(SupplyStore);
+		const supplyData = await supplyStore.getAll(context);
+
+		for (const tokenSupply of supplyData) {
+			supportedTokens.push(tokenSupply.key.toString('hex'));
+		}
+
+		// foreign chain tokens
+		const supportedTokensData = await supportedTokensStore.getAll(context);
+
+		for (const supportedToken of supportedTokensData) {
+			if (!supportedToken.value.supportedTokenIDs.length) {
+				supportedTokens.push(`${supportedToken.key.toString('hex')}${'********'}`); // key in supported token store is 4-byte chain ID
+			} else {
+				for (const token of supportedToken.value.supportedTokenIDs) {
+					supportedTokens.push(token.toString('hex'));
+				}
+			}
+		}
+
+		return { supportedTokens };
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	public async isSupported(context: ModuleEndpointContext) {
+		validator.validate<{ tokenID: string }>(isSupportedRequestSchema, context.params);
+
+		const tokenID = Buffer.from(context.params.tokenID, 'hex');
+		const supportedTokensStore = this.stores.get(SupportedTokensStore);
+
+		return { supported: await supportedTokensStore.isSupported(context, tokenID) };
+	}
+
 	public async getEscrowedAmounts(
 		context: ModuleEndpointContext,
 	): Promise<{
@@ -129,13 +170,21 @@ export class TokenEndpoint extends BaseEndpoint {
 		});
 		return {
 			escrowedAmounts: escrowData.map(({ key, value: escrow }) => {
-				const [escrowChainID, localID] = splitTokenID(key);
+				const escrowChainID = key.slice(0, CHAIN_ID_LENGTH);
+				const tokenID = key.slice(CHAIN_ID_LENGTH);
 				return {
 					escrowChainID: escrowChainID.toString('hex'),
 					amount: escrow.amount.toString(),
-					tokenID: Buffer.concat([CHAIN_ID_ALIAS_NATIVE, localID]).toString('hex'),
+					tokenID: tokenID.toString('hex'),
 				};
 			}),
+		};
+	}
+
+	public getInitializationFees() {
+		return {
+			userAccount: this._moduleConfig.userAccountInitializationFee.toString(),
+			escrowAccount: this._moduleConfig.escrowAccountInitializationFee.toString(),
 		};
 	}
 }
