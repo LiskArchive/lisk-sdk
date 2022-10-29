@@ -37,7 +37,7 @@ describe('FeeModule', () => {
 		feeModule.addDependencies({
 			burn: jest.fn(),
 			transfer: jest.fn(),
-			isNative: jest.fn(),
+			isNativeToken: jest.fn(),
 			getAvailableBalance: jest.fn(),
 		} as any);
 	});
@@ -115,7 +115,7 @@ describe('FeeModule', () => {
 
 	describe('beforeCommandExecute', () => {
 		it('should transfer transaction fee minus min fee to generator and burn min fee when native token', async () => {
-			jest.spyOn(feeModule['_tokenMethod'], 'isNative').mockResolvedValue(true);
+			jest.spyOn(feeModule['_tokenMethod'], 'isNativeToken').mockReturnValue(true);
 
 			const transaction = new Transaction({
 				module: 'token',
@@ -148,7 +148,7 @@ describe('FeeModule', () => {
 		});
 
 		it('should transfer transaction fee to generator and not burn min fee when non-native token', async () => {
-			jest.spyOn(feeModule['_tokenMethod'], 'isNative').mockResolvedValue(false);
+			jest.spyOn(feeModule['_tokenMethod'], 'isNativeToken').mockReturnValue(false);
 			const transaction = new Transaction({
 				module: 'token',
 				command: 'transfer',

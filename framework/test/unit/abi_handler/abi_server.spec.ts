@@ -43,7 +43,10 @@ describe('ABI server', () => {
 			moduleDB: (new InMemoryDatabase() as unknown) as Database,
 			stateMachine,
 			modules: [mod],
-			config: applicationConfigSchema.default,
+			config: {
+				...applicationConfigSchema.default,
+				genesis: { ...applicationConfigSchema.default.genesis, chainID: '00000000' },
+			},
 		});
 
 		server = new ABIServer(fakeLogger, '/path/to/ipc', abiHandler);

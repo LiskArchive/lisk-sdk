@@ -27,13 +27,13 @@ import { createTransactionContext } from '../../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import { liskToBeddows } from '../../../../utils/assets';
-import { DEFAULT_TOKEN_ID } from '../../../../utils/mocks/transaction';
+import { DEFAULT_LOCAL_ID } from '../../../../utils/mocks/transaction';
 
 describe('VoteCommand', () => {
 	const dpos = new DPoSModule();
 
 	const lastBlockHeight = 200;
-	const tokenIDDPoS = DEFAULT_TOKEN_ID;
+	const tokenIDDPoS = DEFAULT_LOCAL_ID;
 	const senderPublicKey = utils.getRandomBytes(32);
 	const senderAddress = address.getAddressFromPublicKey(senderPublicKey);
 	const delegateAddress1 = utils.getRandomBytes(20);
@@ -68,7 +68,7 @@ describe('VoteCommand', () => {
 			},
 		});
 		command.init({
-			tokenIDDPoS: DEFAULT_TOKEN_ID,
+			tokenIDDPoS: DEFAULT_LOCAL_ID,
 		});
 
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());

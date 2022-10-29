@@ -13,7 +13,7 @@
  */
 import { NotFoundError } from '@liskhq/lisk-db';
 import { BaseStore, ImmutableStoreGetter, StoreGetter } from '../../base_store';
-import { TOKEN_ID_LENGTH } from '../constants';
+import { MAX_MODULE_NAME_LENGTH, MIN_MODULE_NAME_LENGTH, TOKEN_ID_LENGTH } from '../constants';
 import { TokenID } from '../types';
 
 export interface UserStoreData {
@@ -37,7 +37,12 @@ export const userStoreSchema = {
 				type: 'object',
 				required: ['module', 'amount'],
 				properties: {
-					module: { dataType: 'string', fieldNumber: 1 },
+					module: {
+						dataType: 'string',
+						fieldNumber: 1,
+						minLength: MIN_MODULE_NAME_LENGTH,
+						maxLength: MAX_MODULE_NAME_LENGTH,
+					},
 					amount: { dataType: 'uint64', fieldNumber: 2 },
 				},
 			},
@@ -48,6 +53,7 @@ export const userStoreSchema = {
 export class UserStore extends BaseStore<UserStoreData> {
 	public schema = userStoreSchema;
 
+	// TODO: Remove this function when updating the methods
 	public async accountExist(context: ImmutableStoreGetter, address: Buffer): Promise<boolean> {
 		const allUserData = await this.iterate(context, {
 			gte: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 0)]),
@@ -56,7 +62,18 @@ export class UserStore extends BaseStore<UserStoreData> {
 		return allUserData.length !== 0;
 	}
 
-	public async updateAvailableBalanceWithCreate(
+	public async createDefaultAccount(
+		context: StoreGetter,
+		address: Buffer,
+		tokenID: Buffer,
+	): Promise<void> {
+		await this.set(context, this.getKey(address, tokenID), {
+			availableBalance: BigInt(0),
+			lockedBalances: [],
+		});
+	}
+
+	public async addAvailableBalanceWithCreate(
 		context: StoreGetter,
 		address: Buffer,
 		tokenID: Buffer,
@@ -82,7 +99,22 @@ export class UserStore extends BaseStore<UserStoreData> {
 		return Buffer.concat([address, tokenID]);
 	}
 
-	public async updateAvailableBalance(
+	public async save(
+		context: StoreGetter,
+		address: Buffer,
+		tokenID: Buffer,
+		data: UserStoreData,
+	): Promise<void> {
+		const lockedBalances = data.lockedBalances.filter(locked => locked.amount !== BigInt(0));
+		lockedBalances.sort((a, b) => a.module.localeCompare(b.module, 'en'));
+
+		await this.set(context, this.getKey(address, tokenID), {
+			...data,
+			lockedBalances,
+		});
+	}
+
+	public async addAvailableBalance(
 		context: StoreGetter,
 		address: Buffer,
 		tokenID: Buffer,

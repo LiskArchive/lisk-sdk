@@ -14,21 +14,17 @@
 
 import { MethodContext, ImmutableMethodContext } from '../../state_machine';
 import { CCMsg } from '../interoperability/types';
+import { JSONObject } from '../../types';
 
 export type TokenID = Buffer;
 
 export interface ModuleConfig {
-	minBalances: {
-		tokenID: string;
-		amount: string;
-	}[];
-	supportedTokenIDs: string[];
+	userAccountInitializationFee: bigint;
+	escrowAccountInitializationFee: bigint;
+	feeTokenID: Buffer;
 }
 
-export interface MinBalance {
-	tokenID: Buffer;
-	amount: bigint;
-}
+export type ModuleConfigJSON = JSONObject<ModuleConfig>;
 
 export interface GenesisTokenStore {
 	userSubstore: {
@@ -41,18 +37,18 @@ export interface GenesisTokenStore {
 		}[];
 	}[];
 	supplySubstore: {
-		localID: Buffer;
+		tokenID: Buffer;
 		totalSupply: bigint;
 	}[];
 	escrowSubstore: {
 		escrowChainID: Buffer;
-		localID: Buffer;
+		tokenID: Buffer;
 		amount: bigint;
 	}[];
-	availableLocalIDSubstore: {
-		nextAvailableLocalID: Buffer;
-	};
-	terminatedEscrowSubstore: Buffer[];
+	supportedTokensSubstore: {
+		chainID: Buffer;
+		supportedTokenIDs: Buffer[];
+	}[];
 }
 
 export interface InteroperabilityMethod {
@@ -69,5 +65,9 @@ export interface InteroperabilityMethod {
 	): Promise<boolean>;
 	error(methodContext: MethodContext, ccm: CCMsg, code: number): Promise<void>;
 	terminateChain(methodContext: MethodContext, chainID: Buffer): Promise<void>;
-	getChannel(methodContext: MethodContext, chainID: Buffer): Promise<{ messageFeeTokenID: Buffer }>;
+	getChannel(
+		methodContext: MethodContext,
+		chainID: Buffer,
+	): Promise<{ messageFeeTokenID: { chainID: Buffer; localID: Buffer } }>;
+	getMessageFeeTokenID(methodContext: ImmutableMethodContext, chainID: Buffer): Promise<Buffer>;
 }

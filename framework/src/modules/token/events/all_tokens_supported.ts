@@ -11,24 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseStore } from '../../base_store';
+import { BaseEvent, EventQueuer } from '../../base_event';
 
-export interface TerminatedEscrowStoreData {
-	escrowTerminated: boolean;
-}
-
-export const terminatedEscrowStoreSchema = {
-	$id: '/token/store/terminatedEscrow',
-	type: 'object',
-	required: ['escrowTerminated'],
-	properties: {
-		escrowTerminated: {
-			dataType: 'boolean',
-			fieldNumber: 1,
-		},
-	},
-};
-
-export class TerminatedEscrowStore extends BaseStore<TerminatedEscrowStoreData> {
-	public schema = terminatedEscrowStoreSchema;
+export class AllTokensSupportedEvent extends BaseEvent<undefined> {
+	public log(ctx: EventQueuer): void {
+		this.add(ctx, undefined);
+	}
 }

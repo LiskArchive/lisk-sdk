@@ -21,7 +21,7 @@ import {
 	createDelegateRegisterTransaction,
 	createDelegateVoteTransaction,
 	createTransferTransaction,
-	DEFAULT_TOKEN_ID,
+	defaultTokenID,
 } from '../../../../utils/mocks/transaction';
 import { getGeneratorPrivateKeyFromDefaultConfig } from '../../../../../src/testing/fixtures';
 
@@ -74,9 +74,9 @@ describe('Process block', () => {
 			it('should save account state changes from the transaction', async () => {
 				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
 					address: genesis.address,
-					tokenID: DEFAULT_TOKEN_ID.toString('hex'),
+					tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),
 				});
-				const expected = originalBalance - transaction.fee - amount;
+				const expected = originalBalance - transaction.fee - amount - BigInt(5000000);
 				expect(balance.availableBalance).toEqual(expected.toString());
 			});
 
@@ -240,7 +240,7 @@ describe('Process block', () => {
 					'token_getBalance',
 					{
 						address: address.getLisk32AddressFromAddress(account.address),
-						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
+						tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),
 					},
 				);
 				const voteAmount = BigInt('1000000000');
@@ -263,7 +263,7 @@ describe('Process block', () => {
 				// Assess
 				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
 					address: address.getLisk32AddressFromAddress(account.address),
-					tokenID: DEFAULT_TOKEN_ID.toString('hex'),
+					tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),
 				});
 				const votes = await processEnv.invoke<{ sentVotes: Record<string, unknown>[] }>(
 					'dpos_getVoter',
