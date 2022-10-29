@@ -63,6 +63,10 @@ describe('Application', () => {
 	// Arrange
 	const config = {
 		...defaultConfig,
+		genesis: {
+			...defaultConfig.genesis,
+			chainID: '10000000',
+		},
 	};
 	const loggerMock = {
 		info: jest.fn(),
@@ -95,7 +99,7 @@ describe('Application', () => {
 
 	describe('#constructor', () => {
 		it('should be able to start the application with default parameters if config is not provided', () => {
-			const { app } = Application.defaultApplication();
+			const { app } = Application.defaultApplication({ genesis: { chainID: '10000000' } });
 
 			expect(app.config).toBeDefined();
 		});

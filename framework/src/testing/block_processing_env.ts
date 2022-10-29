@@ -85,7 +85,10 @@ export interface BlockProcessingEnv {
 	cleanup: (config: Options) => void;
 }
 
-const getAppConfig = (genesisConfig?: GenesisConfig): ApplicationConfig => {
+const getAppConfig = (
+	genesisConfig?: Partial<GenesisConfig>,
+	moduleConfig?: Record<string, Record<string, unknown>>,
+): ApplicationConfig => {
 	const mergedConfig = objects.mergeDeep(
 		{},
 		{
@@ -97,6 +100,9 @@ const getAppConfig = (genesisConfig?: GenesisConfig): ApplicationConfig => {
 			genesis: {
 				...defaultConfig.genesis,
 				...(genesisConfig ?? {}),
+			},
+			modules: {
+				...(moduleConfig ?? {}),
 			},
 		},
 	) as ApplicationConfig;
@@ -146,7 +152,15 @@ const createProcessableBlock = async (
 export const getBlockProcessingEnv = async (
 	params: BlockProcessingParams,
 ): Promise<BlockProcessingEnv> => {
-	const appConfig = getAppConfig(params.options?.genesis);
+	const chainID = Buffer.from('00000000', 'hex');
+	const appConfig = getAppConfig(
+		params.options?.genesis
+			? {
+					...params.options.genesis,
+					chainID: chainID.toString('hex'),
+			  }
+			: { chainID: chainID.toString('hex') },
+	);
 
 	const systemDir = systemDirs(appConfig.system.dataPath);
 
@@ -210,7 +224,6 @@ export const getBlockProcessingEnv = async (
 	await engine['_init']();
 	engine['_logger'] = logger;
 
-	const chainID = Buffer.from('10000000', 'hex');
 	await abiHandler.init({
 		chainID,
 		lastBlockHeight: engine['_chain'].lastBlock.header.height,
