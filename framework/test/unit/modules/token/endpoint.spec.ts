@@ -33,14 +33,14 @@ import { ModuleConfig } from '../../../../src/modules/token/types';
 
 describe('token endpoint', () => {
 	const tokenModule = new TokenModule();
-	const defaultAddress = utils.getRandomBytes(20);
+	const addr = utils.getRandomBytes(20);
 	const mainChainID = Buffer.from([1, 0, 0, 0]);
 	const mainChainTokenID = Buffer.concat([mainChainID, Buffer.from([0, 0, 0, 0])]);
-	const defaultChainID = Buffer.from([1, 0, 0, 1]);
-	const defaultTokenID = Buffer.concat([defaultChainID, Buffer.from([0, 0, 0, 0])]);
+	const nativeChainID = Buffer.from([1, 0, 0, 1]);
+	const nativeTokenID = Buffer.concat([nativeChainID, Buffer.from([0, 0, 0, 0])]);
 	const foreignChainID = Buffer.from([1, 0, 0, 8]);
 	const foreignTokenID = Buffer.concat([foreignChainID, Buffer.from([0, 0, 0, 0])]);
-	const defaultAccount = {
+	const account = {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
@@ -67,7 +67,7 @@ describe('token endpoint', () => {
 		const config: ModuleConfig = {
 			userAccountInitializationFee: USER_SUBSTORE_INITIALIZATION_FEE,
 			escrowAccountInitializationFee: ESCROW_SUBSTORE_INITIALIZATION_FEE,
-			feeTokenID: defaultTokenID,
+			feeTokenID: nativeTokenID,
 		};
 		method.init(Object.assign(config, { ownChainID: Buffer.from([0, 0, 0, 1]) }));
 		method.addDependencies({
@@ -81,21 +81,21 @@ describe('token endpoint', () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		methodContext = createTransientMethodContext({ stateStore });
 		const userStore = tokenModule.stores.get(UserStore);
-		await userStore.save(methodContext, defaultAddress, defaultTokenID, defaultAccount);
-		await userStore.save(methodContext, defaultAddress, foreignTokenID, defaultAccount);
+		await userStore.save(methodContext, addr, nativeTokenID, account);
+		await userStore.save(methodContext, addr, foreignTokenID, account);
 
 		const supplyStore = tokenModule.stores.get(SupplyStore);
-		await supplyStore.set(methodContext, defaultTokenID, {
+		await supplyStore.set(methodContext, nativeTokenID, {
 			totalSupply,
 		});
 
 		const escrowStore = tokenModule.stores.get(EscrowStore);
-		await escrowStore.set(methodContext, Buffer.concat([foreignChainID, defaultTokenID]), {
+		await escrowStore.set(methodContext, Buffer.concat([foreignChainID, nativeTokenID]), {
 			amount: escrowAmount,
 		});
 
 		supportedTokensStore = tokenModule.stores.get(SupportedTokensStore);
-		supportedTokensStore.registerOwnChainID(defaultChainID);
+		supportedTokensStore.registerOwnChainID(nativeChainID);
 	});
 
 	describe('getBalances', () => {
@@ -121,15 +121,15 @@ describe('token endpoint', () => {
 		it('should return all the balances', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { address: address.getLisk32AddressFromAddress(defaultAddress) },
+				params: { address: address.getLisk32AddressFromAddress(addr) },
 			});
 			const resp = await endpoint.getBalances(moduleEndpointContext);
 			expect(resp).toEqual({
 				balances: [
 					{
-						tokenID: defaultTokenID.toString('hex'),
-						availableBalance: defaultAccount.availableBalance.toString(),
-						lockedBalances: defaultAccount.lockedBalances.map(lb => ({
+						tokenID: nativeTokenID.toString('hex'),
+						availableBalance: account.availableBalance.toString(),
+						lockedBalances: account.lockedBalances.map(lb => ({
 							...lb,
 							module: lb.module,
 							amount: lb.amount.toString(),
@@ -137,8 +137,8 @@ describe('token endpoint', () => {
 					},
 					{
 						tokenID: foreignTokenID.toString('hex'),
-						availableBalance: defaultAccount.availableBalance.toString(),
-						lockedBalances: defaultAccount.lockedBalances.map(lb => ({
+						availableBalance: account.availableBalance.toString(),
+						lockedBalances: account.lockedBalances.map(lb => ({
 							...lb,
 							module: lb.module,
 							amount: lb.amount.toString(),
@@ -163,7 +163,7 @@ describe('token endpoint', () => {
 		it('should reject when input has invalid tokenID', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { address: address.getLisk32AddressFromAddress(defaultAddress), tokenID: '00' },
+				params: { address: address.getLisk32AddressFromAddress(addr), tokenID: '00' },
 			});
 			await expect(endpoint.getBalance(moduleEndpointContext)).rejects.toThrow(
 				".tokenID' must NOT have fewer than 16 characters",
@@ -175,7 +175,7 @@ describe('token endpoint', () => {
 				stateStore,
 				params: {
 					address: address.getLisk32AddressFromAddress(utils.getRandomBytes(20)),
-					tokenID: defaultTokenID.toString('hex'),
+					tokenID: nativeTokenID.toString('hex'),
 				},
 			});
 			const resp = await endpoint.getBalance(moduleEndpointContext);
@@ -189,14 +189,14 @@ describe('token endpoint', () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					address: address.getLisk32AddressFromAddress(defaultAddress),
-					tokenID: defaultTokenID.toString('hex'),
+					address: address.getLisk32AddressFromAddress(addr),
+					tokenID: nativeTokenID.toString('hex'),
 				},
 			});
 			const resp = await endpoint.getBalance(moduleEndpointContext);
 			expect(resp).toEqual({
-				availableBalance: defaultAccount.availableBalance.toString(),
-				lockedBalances: defaultAccount.lockedBalances.map(lb => ({
+				availableBalance: account.availableBalance.toString(),
+				lockedBalances: account.lockedBalances.map(lb => ({
 					...lb,
 					module: lb.module,
 					amount: lb.amount.toString(),
@@ -208,14 +208,14 @@ describe('token endpoint', () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					address: address.getLisk32AddressFromAddress(defaultAddress),
-					tokenID: defaultTokenID.toString('hex'),
+					address: address.getLisk32AddressFromAddress(addr),
+					tokenID: nativeTokenID.toString('hex'),
 				},
 			});
 			const resp = await endpoint.getBalance(moduleEndpointContext);
 			expect(resp).toEqual({
-				availableBalance: defaultAccount.availableBalance.toString(),
-				lockedBalances: defaultAccount.lockedBalances.map(lb => ({
+				availableBalance: account.availableBalance.toString(),
+				lockedBalances: account.lockedBalances.map(lb => ({
 					...lb,
 					module: lb.module,
 					amount: lb.amount.toString(),
@@ -233,7 +233,7 @@ describe('token endpoint', () => {
 			expect(resp).toEqual({
 				totalSupply: [
 					{
-						tokenID: defaultTokenID.toString('hex'),
+						tokenID: nativeTokenID.toString('hex'),
 						totalSupply: totalSupply.toString(),
 					},
 				],
@@ -258,13 +258,13 @@ describe('token endpoint', () => {
 			// await supportedTokensStore.set(methodContext, anotherForeignChainID, { supportedTokenIDs: [] });
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				chainID: defaultChainID,
+				chainID: nativeChainID,
 			});
 
 			expect(await endpoint.getSupportedTokens(moduleEndpointContext)).toEqual({
 				supportedTokens: [
 					mainChainTokenID.toString('hex'),
-					defaultTokenID.toString('hex'),
+					nativeTokenID.toString('hex'),
 					`${foreignChainID.toString('hex')}********`,
 				],
 			});
@@ -276,13 +276,13 @@ describe('token endpoint', () => {
 			});
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				chainID: defaultChainID,
+				chainID: nativeChainID,
 			});
 
 			expect(await endpoint.getSupportedTokens(moduleEndpointContext)).toEqual({
 				supportedTokens: [
 					mainChainTokenID.toString('hex'),
-					defaultTokenID.toString('hex'),
+					nativeTokenID.toString('hex'),
 					supportedForeignChainTokenIDs[0].toString('hex'),
 					supportedForeignChainTokenIDs[1].toString('hex'),
 				],
@@ -299,7 +299,7 @@ describe('token endpoint', () => {
 			expect(resp).toEqual({
 				escrowedAmounts: [
 					{
-						tokenID: defaultTokenID.toString('hex'),
+						tokenID: nativeTokenID.toString('hex'),
 						escrowChainID: foreignChainID.toString('hex'),
 						amount: escrowAmount.toString(),
 					},
