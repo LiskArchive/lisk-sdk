@@ -125,7 +125,7 @@ export class DPoSModule extends BaseModule {
 		this._validatorsMethod = validatorsMethod;
 		this._tokenMethod = tokenMethod;
 
-		this._delegateRegistrationCommand.addDependencies(this._validatorsMethod);
+		this._delegateRegistrationCommand.addDependencies(this._tokenMethod, this._validatorsMethod);
 		this._reportDelegateMisbehaviorCommand.addDependencies({
 			tokenMethod: this._tokenMethod,
 			validatorsMethod: this._validatorsMethod,

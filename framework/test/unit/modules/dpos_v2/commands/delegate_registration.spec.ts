@@ -20,6 +20,7 @@ import { DelegateRegistrationCommand } from '../../../../../src/modules/dpos_v2/
 import { delegateRegistrationCommandParamsSchema } from '../../../../../src/modules/dpos_v2/schemas';
 import {
 	DelegateRegistrationParams,
+	TokenMethod,
 	ValidatorsMethod,
 } from '../../../../../src/modules/dpos_v2/types';
 import { VerifyStatus } from '../../../../../src/state_machine';
@@ -36,6 +37,7 @@ describe('Delegate registration command', () => {
 	let stateStore: PrefixedStateReadWriter;
 	let delegateSubstore: DelegateStore;
 	let nameSubstore: NameStore;
+	let mockTokenMethod: TokenMethod;
 	let mockValidatorsMethod: ValidatorsMethod;
 
 	const transactionParams = {
@@ -77,6 +79,14 @@ describe('Delegate registration command', () => {
 
 	beforeEach(() => {
 		delegateRegistrationCommand = new DelegateRegistrationCommand(dpos.stores, dpos.events);
+		mockTokenMethod = {
+			lock: jest.fn(),
+			unlock: jest.fn(),
+			getAvailableBalance: jest.fn(),
+			burn: jest.fn(),
+			transfer: jest.fn(),
+			getLockedAmount: jest.fn(),
+		};
 		mockValidatorsMethod = {
 			setValidatorGeneratorKey: jest.fn(),
 			registerValidatorKeys: jest.fn().mockResolvedValue(true),
@@ -84,7 +94,7 @@ describe('Delegate registration command', () => {
 			getGeneratorsBetweenTimestamps: jest.fn(),
 			setValidatorsParams: jest.fn(),
 		};
-		delegateRegistrationCommand.addDependencies(mockValidatorsMethod);
+		delegateRegistrationCommand.addDependencies(mockTokenMethod, mockValidatorsMethod);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		delegateSubstore = dpos.stores.get(DelegateStore);
 		nameSubstore = dpos.stores.get(NameStore);

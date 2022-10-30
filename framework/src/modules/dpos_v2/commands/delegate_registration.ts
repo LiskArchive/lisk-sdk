@@ -20,17 +20,21 @@ import {
 	CommandExecuteContext,
 } from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
+import { DELEGATE_REGISTRATION_FEE, TOKEN_ID_FEE } from '../constants';
+import { DelegateRegisteredEvent } from '../events/delegate_registered';
 import { delegateRegistrationCommandParamsSchema } from '../schemas';
 import { DelegateStore } from '../stores/delegate';
 import { NameStore } from '../stores/name';
-import { DelegateRegistrationParams, ValidatorsMethod } from '../types';
+import { DelegateRegistrationParams, TokenMethod, ValidatorsMethod } from '../types';
 import { isUsername } from '../utils';
 
 export class DelegateRegistrationCommand extends BaseCommand {
 	public schema = delegateRegistrationCommandParamsSchema;
 	private _validatorsMethod!: ValidatorsMethod;
+	private _tokenMethod!: TokenMethod;
 
-	public addDependencies(validatorsMethod: ValidatorsMethod) {
+	public addDependencies(tokenMethod: TokenMethod, validatorsMethod: ValidatorsMethod) {
+		this._tokenMethod = tokenMethod;
 		this._validatorsMethod = validatorsMethod;
 	}
 
@@ -52,30 +56,47 @@ export class DelegateRegistrationCommand extends BaseCommand {
 			};
 		}
 
+		if (context.params.delegateRegistrationFee !== DELEGATE_REGISTRATION_FEE) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Invalid delegate registration fee.'),
+			};
+		}
+
+		const balance = await this._tokenMethod.getAvailableBalance(
+			context,
+			transaction.senderAddress,
+			TOKEN_ID_FEE,
+		);
+		if (balance < DELEGATE_REGISTRATION_FEE) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Not sufficient amount for delegate registration fee.'),
+			};
+		}
+
 		if (!isUsername(params.name)) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error(`'name' is in an unsupported format: ${params.name}`),
+				error: new Error('Invalid name'),
 			};
 		}
 
 		const nameSubstore = this.stores.get(NameStore);
 		const nameExists = await nameSubstore.has(context, Buffer.from(params.name, 'utf8'));
-
 		if (nameExists) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Name substore must not have an entry for the store key name'),
+				error: new Error('Name already used by a delegate.'),
 			};
 		}
 
 		const delegateSubstore = this.stores.get(DelegateStore);
 		const delegateExists = await delegateSubstore.has(context, transaction.senderAddress);
-
 		if (delegateExists) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Delegate substore must not have an entry for the store key address'),
+				error: new Error('This address has already registered a delegate.'),
 			};
 		}
 
@@ -87,7 +108,7 @@ export class DelegateRegistrationCommand extends BaseCommand {
 	public async execute(context: CommandExecuteContext<DelegateRegistrationParams>): Promise<void> {
 		const {
 			transaction,
-			params: { name, blsKey, generatorKey, proofOfPossession },
+			params: { name, blsKey, generatorKey, proofOfPossession, delegateRegistrationFee },
 			header: { height },
 		} = context;
 		const methodContext = context.getMethodContext();
@@ -103,6 +124,13 @@ export class DelegateRegistrationCommand extends BaseCommand {
 		if (!isRegistered) {
 			throw new Error('Failed to register validator keys');
 		}
+
+		await this._tokenMethod.burn(
+			context,
+			transaction.senderAddress,
+			TOKEN_ID_FEE,
+			delegateRegistrationFee,
+		);
 
 		const delegateSubstore = this.stores.get(DelegateStore);
 		await delegateSubstore.set(context, transaction.senderAddress, {
@@ -122,6 +150,11 @@ export class DelegateRegistrationCommand extends BaseCommand {
 		const nameSubstore = this.stores.get(NameStore);
 		await nameSubstore.set(context, Buffer.from(name, 'utf8'), {
 			delegateAddress: transaction.senderAddress,
+		});
+
+		this.events.get(DelegateRegisteredEvent).log(context, {
+			address: transaction.senderAddress,
+			name,
 		});
 	}
 }
