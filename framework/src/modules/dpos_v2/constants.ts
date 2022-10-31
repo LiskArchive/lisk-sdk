@@ -36,6 +36,10 @@ export const CHAIN_ID_LENGTH = 4;
 export const LOCAL_ID_LENGTH = 4;
 export const TOKEN_ID_LENGTH = CHAIN_ID_LENGTH + LOCAL_ID_LENGTH;
 export const MAX_NUMBER_BYTES_Q96 = 24;
+export const LOCKING_PERIOD_VOTES = 26_000;
+export const LOCKING_PERIOD_SELF_VOTES = 260_000;
+export const PUNISHMENT_WINDOW_SELF_VOTES = 780_000;
+export const PUNISHMENT_WINDOW_VOTES = 260_000;
 
 export const defaultConfig = {
 	factorSelfVotes: 10,

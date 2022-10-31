@@ -15,7 +15,7 @@
 import { BlockHeader, Transaction } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../../../src/testing';
-import { UnlockCommand } from '../../../../../src/modules/dpos_v2/commands/unlock';
+import { UnlockCommand, CommandExecuteContext, DPoSModule } from '../../../../../src';
 import {
 	defaultConfig,
 	EMPTY_KEY,
@@ -25,13 +25,11 @@ import {
 	WAIT_TIME_VOTE,
 } from '../../../../../src/modules/dpos_v2/constants';
 import { TokenMethod, UnlockingObject, VoterData } from '../../../../../src/modules/dpos_v2/types';
-import { CommandExecuteContext } from '../../../../../src/state_machine/types';
 import { liskToBeddows } from '../../../../utils/assets';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
-import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
+import { InMemoryPrefixedStateDB } from '../../../../../src/testing';
 import { DelegateStore } from '../../../../../src/modules/dpos_v2/stores/delegate';
 import { VoterStore } from '../../../../../src/modules/dpos_v2/stores/voter';
-import { DPoSModule } from '../../../../../src';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import { GenesisDataStore } from '../../../../../src/modules/dpos_v2/stores/genesis';
 
