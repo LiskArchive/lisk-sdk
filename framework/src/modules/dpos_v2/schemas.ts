@@ -25,21 +25,24 @@ export const delegateRegistrationCommandParamsSchema = {
 		},
 		blsKey: {
 			dataType: 'bytes',
-			length: BLS_PUBLIC_KEY_LENGTH,
+			minLength: BLS_PUBLIC_KEY_LENGTH,
+			maxLength: BLS_PUBLIC_KEY_LENGTH,
 			fieldNumber: 2,
 		},
 		proofOfPossession: {
 			dataType: 'bytes',
-			length: BLS_POP_LENGTH,
+			minLength: BLS_POP_LENGTH,
+			maxLength: BLS_POP_LENGTH,
 			fieldNumber: 3,
 		},
 		generatorKey: {
 			dataType: 'bytes',
-			length: ED25519_PUBLIC_KEY_LENGTH,
+			minLength: ED25519_PUBLIC_KEY_LENGTH,
+			maxLength: ED25519_PUBLIC_KEY_LENGTH,
 			fieldNumber: 4,
 		},
 		delegateRegistrationFee: {
-			type: 'uint64',
+			dataType: 'uint64',
 			fieldNumber: 5,
 		},
 	},
