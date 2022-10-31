@@ -146,14 +146,19 @@ describe('Base interoperability internal method', () => {
 		jest.spyOn(terminatedOutboxSubstore, 'set');
 		chainDataSubstore = interopMod.stores.get(ChainAccountStore);
 		terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
+		interopMod.events.register(ChainAccountUpdatedEvent, {
+			log: jest.fn(),
+		} as never);
+		interopMod.events.register(TerminatedStateCreatedEvent, {
+			log: jest.fn(),
+		} as never);
 
 		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
 		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
-		// interopMod.stores.register(TerminatedStateStore, terminateStateAccountStoreMock as never);
 
 		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 			interopMod.stores,
-			new NamedRegistry(),
+			interopMod.events,
 			context,
 			new Map(),
 		);
@@ -242,12 +247,8 @@ describe('Base interoperability internal method', () => {
 		let terminatedStateCreatedEvent: TerminatedStateCreatedEvent;
 
 		beforeEach(() => {
-			chainAccountUpdatedEvent = mainchainInteroperabilityStore.events.get(
-				ChainAccountUpdatedEvent,
-			);
-			terminatedStateCreatedEvent = mainchainInteroperabilityStore.events.get(
-				TerminatedStateCreatedEvent,
-			);
+			chainAccountUpdatedEvent = interopMod.events.get(ChainAccountUpdatedEvent);
+			terminatedStateCreatedEvent = interopMod.events.get(TerminatedStateCreatedEvent);
 			jest.spyOn(chainAccountUpdatedEvent, 'log');
 			jest.spyOn(terminatedStateCreatedEvent, 'log');
 		});
@@ -255,14 +256,11 @@ describe('Base interoperability internal method', () => {
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account exists for the id and state root is provided', async () => {
 			chainDataSubstore.get = chainAccountStoreMock.get.mockResolvedValue(chainAccount);
 			chainDataSubstore.has = chainAccountStoreMock.has.mockResolvedValue(true);
-<<<<<<< HEAD:framework/test/unit/modules/interoperability/store.spec.ts
-			await mainchainInteroperabilityStore.createTerminatedStateAccount(createTerminatedStateAccountContext, chainId, stateRoot);
-=======
 			await mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(
+				createTerminatedStateAccountContext,
 				chainId,
 				stateRoot,
 			);
->>>>>>> b734238dcc (🌱 Create BaseInternalMethod and rename BaseInteroperabilityStore->BaseInteroperabilityInternalMethod):framework/test/unit/modules/interoperability/internal_method.spec.ts
 
 			await expect(terminatedStateSubstore.get(context, chainId)).resolves.toStrictEqual({
 				stateRoot,
@@ -288,14 +286,10 @@ describe('Base interoperability internal method', () => {
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account exists for the id but state root is not provided', async () => {
 			chainDataSubstore.get = chainAccountStoreMock.get.mockResolvedValue(chainAccount);
 			chainDataSubstore.has = chainAccountStoreMock.has.mockResolvedValue(true);
-<<<<<<< HEAD:framework/test/unit/modules/interoperability/store.spec.ts
-			await mainchainInteroperabilityStore.createTerminatedStateAccount(
+			await mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(
 				createTerminatedStateAccountContext,
 				chainId,
 			);
-=======
-			await mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(chainId);
->>>>>>> b734238dcc (🌱 Create BaseInternalMethod and rename BaseInteroperabilityStore->BaseInteroperabilityInternalMethod):framework/test/unit/modules/interoperability/internal_method.spec.ts
 
 			await expect(terminatedStateSubstore.get(context, chainId)).resolves.toStrictEqual({
 				stateRoot: chainAccount.lastCertificate.stateRoot,
@@ -310,30 +304,21 @@ describe('Base interoperability internal method', () => {
 			chainDataSubstore.has = chainAccountStoreMock.has.mockResolvedValue(false);
 
 			await expect(
-<<<<<<< HEAD:framework/test/unit/modules/interoperability/store.spec.ts
-				mainchainInteroperabilityStore.createTerminatedStateAccount(
+				mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(
 					createTerminatedStateAccountContext,
 					chainIdNew,
 				),
 			).rejects.toThrow('Chain to be terminated is not valid');
-=======
-				mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(chainIdNew),
-			).resolves.toEqual(false);
->>>>>>> b734238dcc (🌱 Create BaseInternalMethod and rename BaseInteroperabilityStore->BaseInteroperabilityInternalMethod):framework/test/unit/modules/interoperability/internal_method.spec.ts
 		});
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account does not exist for the id and ownchain account id is not the same as mainchain id', async () => {
 			const chainIdNew = utils.intToBuffer(10, 4);
 			ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount2 as never);
 			await chainDataSubstore.set(context, getIDAsKeyForStore(MAINCHAIN_ID), chainAccount);
-<<<<<<< HEAD:framework/test/unit/modules/interoperability/store.spec.ts
-			await mainchainInteroperabilityStore.createTerminatedStateAccount(
+			await mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(
 				createTerminatedStateAccountContext,
 				chainIdNew,
 			);
-=======
-			await mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(chainIdNew);
->>>>>>> b734238dcc (🌱 Create BaseInternalMethod and rename BaseInteroperabilityStore->BaseInteroperabilityInternalMethod):framework/test/unit/modules/interoperability/internal_method.spec.ts
 
 			await expect(terminatedStateSubstore.get(context, chainIdNew)).resolves.toStrictEqual({
 				stateRoot: EMPTY_BYTES,
@@ -370,49 +355,42 @@ describe('Base interoperability internal method', () => {
 		});
 
 		beforeEach(() => {
-			mainchainInteroperabilityInternalMethod.sendInternal = jest.fn().mockResolvedValue(true);
-			mainchainInteroperabilityInternalMethod.createTerminatedStateAccount = jest
-				.fn()
-				.mockResolvedValue(true);
+			mainchainInteroperabilityInternalMethod.sendInternal = jest.fn();
+			mainchainInteroperabilityInternalMethod.createTerminatedStateAccount = jest.fn();
 		});
 
-		it('should return true if sendInternal and createTerminatedStateAccount return true', async () => {
+		it('should not call sendInternal and createTerminatedStateAccount if terminatedState exists', async () => {
+			interopMod.stores.register(TerminatedStateStore, terminateStateAccountStoreMock as never);
+			terminateStateAccountStoreMock.has.mockResolvedValue(true);
 			expect(
 				await mainchainInteroperabilityInternalMethod.terminateChainInternal(
 					SIDECHAIN_ID,
 					beforeSendCCMContext,
 				),
-			).toBe(true);
+			).toBeUndefined();
+
+			expect(mainchainInteroperabilityInternalMethod.sendInternal).not.toHaveBeenCalled();
+			expect(
+				mainchainInteroperabilityInternalMethod.createTerminatedStateAccount,
+			).not.toHaveBeenCalled();
 		});
 
-		it('should return false if sendInternal returns false', async () => {
-			// Arrange
-			mainchainInteroperabilityInternalMethod.sendInternal = jest.fn().mockResolvedValue(false);
+		it('should call sendInternal and createTerminatedStateAccount if terminatedState does not exist', async () => {
+			interopMod.stores.register(TerminatedStateStore, terminateStateAccountStoreMock as never);
 
+			terminateStateAccountStoreMock.has.mockResolvedValue(false);
 			expect(
 				await mainchainInteroperabilityInternalMethod.terminateChainInternal(
 					SIDECHAIN_ID,
 					beforeSendCCMContext,
 				),
-			).toBe(false);
-		});
-<<<<<<< HEAD:framework/test/unit/modules/interoperability/store.spec.ts
-=======
+			).toBeUndefined();
 
-		it('should return false if createTerminatedStateAccount returns false', async () => {
-			// Arrange
-			mainchainInteroperabilityInternalMethod.createTerminatedStateAccount = jest
-				.fn()
-				.mockResolvedValue(false);
-
+			expect(mainchainInteroperabilityInternalMethod.sendInternal).toHaveBeenCalled();
 			expect(
-				await mainchainInteroperabilityInternalMethod.terminateChainInternal(
-					SIDECHAIN_ID,
-					beforeSendCCMContext,
-				),
-			).toBe(false);
+				mainchainInteroperabilityInternalMethod.createTerminatedStateAccount,
+			).toHaveBeenCalled();
 		});
->>>>>>> b734238dcc (🌱 Create BaseInternalMethod and rename BaseInteroperabilityStore->BaseInteroperabilityInternalMethod):framework/test/unit/modules/interoperability/internal_method.spec.ts
 	});
 
 	describe('apply', () => {

@@ -28,6 +28,7 @@ import {
 	CHAIN_ID_MAINCHAIN,
 	CHAIN_TERMINATED,
 	EMPTY_BYTES,
+	MAINCHAIN_ID_BUFFER,
 	MAX_CCM_SIZE,
 } from '../../../../src/modules/interoperability/constants';
 import { CcmSendFailEvent } from '../../../../src/modules/interoperability/events/ccm_send_fail';
@@ -164,7 +165,7 @@ describe('Sample Method', () => {
 		it('should call getTerminatedStateAccount', async () => {
 			await sampleInteroperabilityMethod.getTerminatedOutboxAccount(methodContext, chainID);
 
-			expect(terminatedOutboxAccountMock.get).toHaveBeenCalledWith(methodContext, chainID);
+			expect(terminatedOutboxAccountMock.get).toHaveBeenCalledWith(expect.anything(), chainID);
 		});
 	});
 
@@ -404,9 +405,8 @@ describe('Sample Method', () => {
 				.mockResolvedValue(receivingChainAccount);
 			jest.spyOn(sampleInteroperabilityMethod['_tokenMethod'], 'payMessageFee').mockResolvedValue();
 
-			const ownChainAccountStoreMock = jest.fn();
-			interopMod.stores.get(OwnChainAccountStore).set = ownChainAccountStoreMock;
-			const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
+			interopMod.stores.get(OwnChainAccountStore).set = ownChainAccountStoreMock.set;
+			const ccmID = utils.hash(codec.encode(ccmSchema, ccmOnMainchain));
 
 			// Act & Assert
 			await expect(
@@ -423,7 +423,7 @@ describe('Sample Method', () => {
 				),
 			).resolves.toBeUndefined();
 
-			expect(ownChainAccountStoreMock.set).toHaveBeenCalledWith(
+			expect(ownChainAccountStoreMock).toHaveBeenCalledWith(
 				expect.anything(),
 				EMPTY_BYTES,
 				ownChainAccountMainchain,
@@ -435,6 +435,29 @@ describe('Sample Method', () => {
 				ccmID,
 				{ ccmID },
 			);
+		});
+	});
+
+	describe('getMessageFeeTokenID', () => {
+		const newChainID = Buffer.from('1234', 'hex');
+		beforeEach(() => {
+			jest.spyOn(channelStoreMock, 'get').mockResolvedValue({
+				messageFeeTokenID: {
+					localID: Buffer.from('10000000', 'hex'),
+				},
+			} as never);
+		});
+
+		it('should assign chainID as MAINCHAIN_ID_BUFFER if chainAccount not found', async () => {
+			await sampleInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
+			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), MAINCHAIN_ID_BUFFER);
+		});
+
+		it('should process with input chainID', async () => {
+			jest.spyOn(chainAccountStoreMock, 'has').mockResolvedValue(true);
+
+			await sampleInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
+			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), newChainID);
 		});
 	});
 });

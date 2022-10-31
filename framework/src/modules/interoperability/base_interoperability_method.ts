@@ -105,7 +105,7 @@ export abstract class BaseInteroperabilityMethod<
 		context: ImmutableMethodContext,
 		chainID: Buffer,
 	): Promise<Buffer> {
-		const updatedChainID = !(await this.getInteroperabilityStore(context).hasChainAccount(chainID))
+		const updatedChainID = !(await this.stores.get(ChainAccountStore).has(context, chainID))
 			? MAINCHAIN_ID_BUFFER
 			: chainID;
 		return (await this.getChannel(context, updatedChainID)).messageFeeTokenID;

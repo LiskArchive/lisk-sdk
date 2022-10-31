@@ -191,7 +191,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		const chainAccountExists = await chainSubstore.has(this.context, chainID);
 		if (chainAccountExists) {
 			const chainAccount = await chainSubstore.get(this.context, chainID);
-			await chainSubstore.set(this.context as StoreGetter, chainID, {
+			await chainSubstore.set(this.context, chainID, {
 				...chainAccount,
 				status: CHAIN_TERMINATED,
 			});
@@ -230,7 +230,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		}
 
 		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
-		await terminatedStateSubstore.set(this.context as StoreGetter, chainID, terminatedState);
+		await terminatedStateSubstore.set(this.context, chainID, terminatedState);
 		this.events
 			.get(TerminatedStateCreatedEvent)
 			.log({ eventQueue: context.eventQueue }, chainID, terminatedState);
@@ -239,16 +239,16 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 	public async terminateChainInternal(
 		chainID: Buffer,
 		terminateChainContext: TerminateChainContext,
-	): Promise<boolean> {
+	): Promise<void> {
 		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
 		const terminatedStateExists = await terminatedStateSubstore.has(terminateChainContext, chainID);
 
 		// Chain was already terminated, do nothing.
 		if (terminatedStateExists) {
-			return false;
+			return;
 		}
 
-		const messageSent = await this.sendInternal({
+		await this.sendInternal({
 			module: MODULE_NAME_INTEROPERABILITY,
 			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
 			receivingChainID: chainID,
@@ -263,13 +263,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			chainID: terminateChainContext.chainID,
 		});
 
-		if (!messageSent) {
-			return false;
-		}
-
 		await this.createTerminatedStateAccount(terminateChainContext, chainID);
-
-		return true;
 	}
 
 	public async apply(
