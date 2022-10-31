@@ -341,7 +341,7 @@ export const registrationCCMParamsSchema = {
 	},
 };
 
-// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#channel-terminated-message-1
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#parameters-1
 export const channelTerminatedCCMParamsSchema = {
 	$id: '/modules/interoperability/ccCommand/channelTerminated',
 	type: 'object',
