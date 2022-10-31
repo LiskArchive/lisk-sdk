@@ -235,6 +235,16 @@ export class BlockHeader {
 			});
 		}
 
+		if (!header.impliesMaxPrevote) {
+			errors.push({
+				message: 'Genesis block header impliesMaxPrevote must be true',
+				keyword: 'const',
+				dataPath: 'header.impliesMaxPrevote',
+				schemaPath: 'properties.impliesMaxPrevote',
+				params: { allowedValue: true },
+			});
+		}
+
 		if (header.aggregateCommit.height !== 0) {
 			errors.push({
 				message: 'Genesis block header aggregateCommit.height must equal 0',

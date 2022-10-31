@@ -63,7 +63,7 @@ const createTestHeader = () =>
 		stateRoot: utils.hash(Buffer.alloc(0)),
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: 0,
-		impliesMaxPrevote: false,
+		impliesMaxPrevote: true,
 		assetRoot: utils.hash(Buffer.alloc(0)),
 		aggregateCommit: {
 			height: 0,
