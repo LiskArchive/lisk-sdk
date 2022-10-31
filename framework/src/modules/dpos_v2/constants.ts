@@ -32,6 +32,10 @@ export const REPORTING_PUNISHMENT_REWARD = BigInt(100000000);
 export const DELEGATE_LIST_ROUND_OFFSET = 2;
 export const EMPTY_KEY = Buffer.alloc(0);
 export const MAX_SNAPSHOT = 3;
+export const CHAIN_ID_LENGTH = 4;
+export const LOCAL_ID_LENGTH = 4;
+export const TOKEN_ID_LENGTH = CHAIN_ID_LENGTH + LOCAL_ID_LENGTH;
+export const MAX_NUMBER_BYTES_Q96 = 24;
 
 export const defaultConfig = {
 	factorSelfVotes: 10,

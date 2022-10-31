@@ -39,6 +39,7 @@ describe('DposModuleApi', () => {
 			{
 				delegateAddress: utils.getRandomBytes(20),
 				amount: BigInt(0),
+				voteSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 			},
 		],
 		pendingUnlocks: [
@@ -58,6 +59,9 @@ describe('DposModuleApi', () => {
 		isBanned: false,
 		pomHeights: [0],
 		consecutiveMissedBlocks: 0,
+		commission: 0,
+		lastCommissionIncreaseHeight: 0,
+		sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 	};
 
 	beforeEach(() => {

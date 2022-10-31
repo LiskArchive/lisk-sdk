@@ -29,7 +29,9 @@ export const snapshotStoreSchema = {
 		activeDelegates: {
 			type: 'array',
 			fieldNumber: 1,
-			items: { dataType: 'bytes' },
+			items: {
+				dataType: 'bytes',
+			},
 		},
 		delegateWeightSnapshot: {
 			type: 'array',
@@ -41,6 +43,7 @@ export const snapshotStoreSchema = {
 					delegateAddress: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						format: 'lisk32',
 					},
 					delegateWeight: {
 						dataType: 'uint64',

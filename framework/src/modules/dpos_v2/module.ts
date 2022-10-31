@@ -61,7 +61,7 @@ import {
 	sortUnlocking,
 	getModuleConfig,
 } from './utils';
-import { DelegateStore } from './stores/delegate';
+import { DelegateStore, VoteSharingCofficientObject } from './stores/delegate';
 import { GenesisDataStore } from './stores/genesis';
 import { NameStore } from './stores/name';
 import { PreviousTimestampStore } from './stores/previous_timestamp';
@@ -316,7 +316,11 @@ export class DPoSModule extends BaseModule {
 				voteMap.set(sentVote.delegateAddress, delegate);
 			}
 			await voterStore.set(context, voter.address, {
-				sentVotes: voter.sentVotes,
+				// TODO: Issue #7669
+				sentVotes: voter.sentVotes.map(sentVote => ({
+					...sentVote,
+					voteSharingCoefficients: [] as VoteSharingCofficientObject[],
+				})),
 				pendingUnlocks: voter.pendingUnlocks,
 			});
 		}
@@ -336,6 +340,10 @@ export class DPoSModule extends BaseModule {
 				isBanned: dposValidator.isBanned,
 				pomHeights: dposValidator.pomHeights,
 				consecutiveMissedBlocks: dposValidator.consecutiveMissedBlocks,
+				// TODO: Issue: #7669
+				commission: 0,
+				lastCommissionIncreaseHeight: 0,
+				sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 			});
 			await nameSubstore.set(context, Buffer.from(dposValidator.name, 'utf-8'), {
 				delegateAddress: dposValidator.address,
@@ -599,11 +607,13 @@ export class DPoSModule extends BaseModule {
 		}
 		const shuffledValidators = shuffleDelegateList(randomSeed1, validators);
 		const bftValidators = [];
+		// TODO: Issue #7670
 		for (const validatorAddress of shuffledValidators) {
 			const validatorAccount = await this._validatorsMethod.getValidatorAccount(
 				methodContext,
 				validatorAddress,
 			);
+
 			const isActive =
 				snapshot.activeDelegates.findIndex(addr => addr.equals(validatorAddress)) > -1;
 			// if validator is active

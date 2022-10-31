@@ -206,7 +206,13 @@ export class VoteDelegateCommand extends BaseCommand {
 					vote.amount,
 				);
 
-				voterData.sentVotes[index] = upvote;
+				// TODO: Issue #7666
+				voterData.sentVotes[index] = {
+					...upvote,
+					delegateAddress: Buffer.from('00'),
+					amount: BigInt(10),
+					voteSharingCoefficients: [] as never,
+				};
 
 				voterData.sentVotes.sort((a, b) => a.delegateAddress.compare(b.delegateAddress));
 				if (voterData.sentVotes.length > MAX_VOTE) {
