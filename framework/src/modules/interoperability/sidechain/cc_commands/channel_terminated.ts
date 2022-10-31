@@ -16,7 +16,7 @@ import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { SidechainInteroperabilityStore } from '../store';
 import { BaseCCChannelTerminatedCommand } from '../../base_cc_commands/channel_terminated';
 
-// LIP-0049 https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#channel-terminated-message-1
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#channel-terminated-message-1
 export class SidechainCCChannelTerminatedCommand extends BaseCCChannelTerminatedCommand {
 	protected getInteroperabilityStore(
 		context: StoreGetter | ImmutableStoreGetter,
