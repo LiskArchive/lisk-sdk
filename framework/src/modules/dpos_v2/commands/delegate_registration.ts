@@ -78,7 +78,7 @@ export class DelegateRegistrationCommand extends BaseCommand {
 		if (!isUsername(params.name)) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Invalid name'),
+				error: new Error(`'name' is in an unsupported format: ${params.name}`),
 			};
 		}
 
@@ -87,7 +87,7 @@ export class DelegateRegistrationCommand extends BaseCommand {
 		if (nameExists) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Name already used by a delegate.'),
+				error: new Error('Name substore must not have an entry for the store key name'),
 			};
 		}
 
@@ -96,7 +96,7 @@ export class DelegateRegistrationCommand extends BaseCommand {
 		if (delegateExists) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('This address has already registered a delegate.'),
+				error: new Error('Delegate substore must not have an entry for the store key address'),
 			};
 		}
 

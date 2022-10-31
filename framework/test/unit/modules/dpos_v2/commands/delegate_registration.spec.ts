@@ -30,6 +30,7 @@ import { DelegateStore } from '../../../../../src/modules/dpos_v2/stores/delegat
 import { NameStore } from '../../../../../src/modules/dpos_v2/stores/name';
 import { DPoSModule } from '../../../../../src';
 import { createStoreGetter } from '../../../../../src/testing/utils';
+import { DELEGATE_REGISTRATION_FEE } from '../../../../../src/modules/dpos_v2/constants';
 
 describe('Delegate registration command', () => {
 	const dpos = new DPoSModule();
@@ -45,6 +46,7 @@ describe('Delegate registration command', () => {
 		generatorKey: utils.getRandomBytes(32),
 		blsKey: utils.getRandomBytes(48),
 		proofOfPossession: utils.getRandomBytes(96),
+		delegateRegistrationFee: DELEGATE_REGISTRATION_FEE,
 	};
 	const defaultDelegateInfo = {
 		name: transactionParams.name,
