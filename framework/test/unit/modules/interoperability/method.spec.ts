@@ -75,7 +75,7 @@ describe('Sample Method', () => {
 		set: jest.fn(),
 		has: jest.fn(),
 	};
-	const terminateStateAccountStoreMock = {
+	const terminatedStateAccountStoreMock = {
 		get: jest.fn(),
 		set: jest.fn(),
 		has: jest.fn(),
@@ -125,7 +125,7 @@ describe('Sample Method', () => {
 		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
 		interopMod.stores.register(ChannelDataStore, channelStoreMock as never);
 		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
-		interopMod.stores.register(TerminatedStateStore, terminateStateAccountStoreMock as never);
+		interopMod.stores.register(TerminatedStateStore, terminatedStateAccountStoreMock as never);
 		interopMod.stores.register(TerminatedOutboxStore, terminatedOutboxAccountMock as never);
 	});
 
@@ -157,7 +157,7 @@ describe('Sample Method', () => {
 		it('should call getTerminatedStateAccount', async () => {
 			await sampleInteroperabilityMethod.getTerminatedStateAccount(methodContext, chainID);
 
-			expect(terminateStateAccountStoreMock.get).toHaveBeenCalled();
+			expect(terminatedStateAccountStoreMock.get).toHaveBeenCalled();
 		});
 	});
 
@@ -423,7 +423,7 @@ describe('Sample Method', () => {
 				),
 			).resolves.toBeUndefined();
 
-			expect(ownChainAccountStoreMock).toHaveBeenCalledWith(
+			expect(ownChainAccountStoreMock.set).toHaveBeenCalledWith(
 				expect.anything(),
 				EMPTY_BYTES,
 				ownChainAccountMainchain,

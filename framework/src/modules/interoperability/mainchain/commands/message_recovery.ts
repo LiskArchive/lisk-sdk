@@ -169,25 +169,21 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 				continue;
 			}
 
-			const ccmChainIdAsBuffer = newCcm.receivingChainID;
-			const chainAccountExist = await this.stores
-				.get(ChainAccountStore)
-				.has(context, ccmChainIdAsBuffer);
-			const isLive = await InteroperabilityInternalMethod.isLive(ccmChainIdAsBuffer, Date.now());
+			const ccmChainId = newCcm.receivingChainID;
+			const chainAccountExist = await this.stores.get(ChainAccountStore).has(context, ccmChainId);
+			const isLive = await InteroperabilityInternalMethod.isLive(ccmChainId, Date.now());
 
 			if (!chainAccountExist || !isLive) {
 				continue;
 			}
 
-			const chainAccount = await this.stores
-				.get(ChainAccountStore)
-				.get(context, ccmChainIdAsBuffer);
+			const chainAccount = await this.stores.get(ChainAccountStore).get(context, ccmChainId);
 
 			if (chainAccount.status !== CHAIN_ACTIVE) {
 				continue;
 			}
 
-			await InteroperabilityInternalMethod.addToOutbox(ccmChainIdAsBuffer, newCcm);
+			await InteroperabilityInternalMethod.addToOutbox(ccmChainId, newCcm);
 		}
 	}
 

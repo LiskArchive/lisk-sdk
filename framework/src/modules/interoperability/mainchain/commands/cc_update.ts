@@ -176,7 +176,12 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			logger: context.logger,
 			chainID: context.chainID,
 		};
-		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		const terminateChainInternal = async () =>
+			interoperabilityInternalMethod.terminateChainInternal(
+				txParams.sendingChainID,
+				terminateChainContext,
+			);
 		let decodedCCMs;
 		try {
 			decodedCCMs = txParams.inboxUpdate.crossChainMessages.map(ccm => ({
@@ -184,10 +189,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 				deserialized: codec.decode<CCMsg>(ccmSchema, ccm),
 			}));
 		} catch (err) {
-			await InteroperabilityInternalMethod.terminateChainInternal(
-				txParams.sendingChainID,
-				terminateChainContext,
-			);
+			await terminateChainInternal();
 
 			throw err;
 		}
@@ -202,10 +204,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			) {
 				partnerChainAccount.status = CHAIN_ACTIVE;
 			} else {
-				await InteroperabilityInternalMethod.terminateChainInternal(
-					txParams.sendingChainID,
-					terminateChainContext,
-				);
+				await terminateChainInternal();
 
 				return; // Exit CCU processing
 			}
@@ -213,29 +212,23 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 
 		for (const ccm of decodedCCMs) {
 			if (!txParams.sendingChainID.equals(ccm.deserialized.sendingChainID)) {
-				await InteroperabilityInternalMethod.terminateChainInternal(
-					txParams.sendingChainID,
-					terminateChainContext,
-				);
+				await terminateChainInternal();
 
 				continue;
 			}
 			try {
 				validateFormat(ccm.deserialized);
 			} catch (error) {
-				await InteroperabilityInternalMethod.terminateChainInternal(
-					txParams.sendingChainID,
-					terminateChainContext,
-				);
+				await terminateChainInternal();
 
 				continue;
 			}
-			await InteroperabilityInternalMethod.appendToInboxTree(
+			await interoperabilityInternalMethod.appendToInboxTree(
 				txParams.sendingChainID,
 				ccm.serialized,
 			);
 			if (!ccm.deserialized.receivingChainID.equals(MAINCHAIN_ID_BUFFER)) {
-				await InteroperabilityInternalMethod.forward({
+				await interoperabilityInternalMethod.forward({
 					ccm: ccm.deserialized,
 					ccu: txParams,
 					eventQueue: context.eventQueue,
@@ -246,7 +239,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 					chainID: context.chainID,
 				});
 			} else {
-				await InteroperabilityInternalMethod.apply(
+				await interoperabilityInternalMethod.apply(
 					{
 						ccm: ccm.deserialized,
 						ccu: txParams,

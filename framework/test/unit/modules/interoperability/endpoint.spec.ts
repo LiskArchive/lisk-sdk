@@ -61,7 +61,7 @@ describe('Test interoperability endpoint', () => {
 		set: jest.fn(),
 		has: jest.fn(),
 	};
-	const terminateStateAccountStoreMock = {
+	const terminatedStateAccountStoreMock = {
 		get: jest.fn(),
 		set: jest.fn(),
 		has: jest.fn(),
@@ -182,14 +182,14 @@ describe('Test interoperability endpoint', () => {
 		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
 		interopMod.stores.register(ChannelDataStore, channelStoreMock as never);
 		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
-		interopMod.stores.register(TerminatedStateStore, terminateStateAccountStoreMock as never);
+		interopMod.stores.register(TerminatedStateStore, terminatedStateAccountStoreMock as never);
 		interopMod.stores.register(TerminatedOutboxStore, terminatedOutboxAccountMock as never);
 
 		chainAccountStoreMock.get.mockResolvedValue(chainAccount);
 		chainAccountStoreMock.getAllAccounts.mockResolvedValue([chainAccount, chainAccount2]);
 		channelStoreMock.get.mockResolvedValue(channelData);
 		ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount);
-		terminateStateAccountStoreMock.get.mockResolvedValue(terminateStateAccount);
+		terminatedStateAccountStoreMock.get.mockResolvedValue(terminateStateAccount);
 		terminatedOutboxAccountMock.get.mockResolvedValue(terminatedOutboxAccount);
 	});
 
@@ -270,7 +270,7 @@ describe('Test interoperability endpoint', () => {
 		});
 
 		it('should call getTerminatedStateAccount', async () => {
-			expect(terminateStateAccountStoreMock.get).toHaveBeenCalled();
+			expect(terminatedStateAccountStoreMock.get).toHaveBeenCalled();
 		});
 
 		it('should return JSON format result', () => {

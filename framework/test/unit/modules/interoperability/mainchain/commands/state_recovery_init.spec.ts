@@ -51,7 +51,7 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 		set: jest.fn(),
 		has: jest.fn(),
 	};
-	const terminateStateAccountMock = {
+	const terminatedStateAccountMock = {
 		get: jest.fn(),
 		set: jest.fn(),
 		has: jest.fn(),
@@ -168,7 +168,7 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 				chainID: MAINCHAIN_ID_BUFFER,
 				nonce: BigInt('0'),
 			};
-			terminateStateAccountMock.has.mockResolvedValue(true);
+			terminatedStateAccountMock.has.mockResolvedValue(true);
 			ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount);
 			interopStoreMock = {
 				createTerminatedStateAccount: jest.fn(),
@@ -291,13 +291,13 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 
 		it('should update the terminated state account when there is one', async () => {
 			// Arrange & Assign & Act
-			when(terminateStateAccountMock.has)
+			when(terminatedStateAccountMock.has)
 				.calledWith(expect.anything(), transactionParams.chainID)
 				.mockResolvedValue(false);
 
 			const terminatedStateStore = interopMod.stores.get(TerminatedStateStore);
-			terminatedStateStore.get = terminateStateAccountMock.get;
-			terminateStateAccountMock.get.mockResolvedValue(terminatedStateAccount);
+			terminatedStateStore.get = terminatedStateAccountMock.get;
+			terminatedStateAccountMock.get.mockResolvedValue(terminatedStateAccount);
 			await stateRecoveryInitCommand.execute(commandExecuteContext);
 
 			const accountFromStore = await terminatedStateSubstore.get(

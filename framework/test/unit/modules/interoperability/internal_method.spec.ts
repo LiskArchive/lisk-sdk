@@ -60,7 +60,7 @@ describe('Base interoperability internal method', () => {
 		set: jest.fn(),
 		has: jest.fn(),
 	};
-	const terminateStateAccountStoreMock = {
+	const terminatedStateAccountStoreMock = {
 		get: jest.fn(),
 		set: jest.fn(),
 		has: jest.fn(),
@@ -360,8 +360,8 @@ describe('Base interoperability internal method', () => {
 		});
 
 		it('should not call sendInternal and createTerminatedStateAccount if terminatedState exists', async () => {
-			interopMod.stores.register(TerminatedStateStore, terminateStateAccountStoreMock as never);
-			terminateStateAccountStoreMock.has.mockResolvedValue(true);
+			interopMod.stores.register(TerminatedStateStore, terminatedStateAccountStoreMock as never);
+			terminatedStateAccountStoreMock.has.mockResolvedValue(true);
 			expect(
 				await mainchainInteroperabilityInternalMethod.terminateChainInternal(
 					SIDECHAIN_ID,
@@ -376,9 +376,9 @@ describe('Base interoperability internal method', () => {
 		});
 
 		it('should call sendInternal and createTerminatedStateAccount if terminatedState does not exist', async () => {
-			interopMod.stores.register(TerminatedStateStore, terminateStateAccountStoreMock as never);
+			interopMod.stores.register(TerminatedStateStore, terminatedStateAccountStoreMock as never);
 
-			terminateStateAccountStoreMock.has.mockResolvedValue(false);
+			terminatedStateAccountStoreMock.has.mockResolvedValue(false);
 			expect(
 				await mainchainInteroperabilityInternalMethod.terminateChainInternal(
 					SIDECHAIN_ID,
@@ -486,7 +486,7 @@ describe('Base interoperability internal method', () => {
 
 		it('should return immediately if sending chain is terminated', async () => {
 			// Arrange
-			terminatedStateSubstore.has = terminateStateAccountStoreMock.has.mockResolvedValue(true);
+			terminatedStateSubstore.has = terminatedStateAccountStoreMock.has.mockResolvedValue(true);
 
 			// Act & Assert
 			await expect(
@@ -507,7 +507,7 @@ describe('Base interoperability internal method', () => {
 				context,
 				new Map().set('mod1', ccMethodSampleMod),
 			);
-			terminateStateAccountStoreMock.has.mockResolvedValue(false);
+			terminatedStateAccountStoreMock.has.mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal');
 
 			// Act & Assert
@@ -534,7 +534,7 @@ describe('Base interoperability internal method', () => {
 				context,
 				new Map().set('newMod', ccMethodMod1),
 			);
-			terminatedStateSubstore.has = terminateStateAccountStoreMock.has.mockResolvedValue(false);
+			terminatedStateSubstore.has = terminatedStateAccountStoreMock.has.mockResolvedValue(false);
 
 			jest.spyOn(mainchainStoreLocal, 'sendInternal').mockResolvedValue({} as never);
 
@@ -571,7 +571,7 @@ describe('Base interoperability internal method', () => {
 				new Map().set('mod1', ccMethodSampleMod),
 			);
 
-			terminateStateAccountStoreMock.has.mockResolvedValue(false);
+			terminatedStateAccountStoreMock.has.mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal').mockResolvedValue({} as never);
 
 			// Act & Assert
@@ -600,7 +600,7 @@ describe('Base interoperability internal method', () => {
 				context,
 				new Map().set(MODULE_NAME_INTEROPERABILITY, ccMethodSampleMod),
 			);
-			terminateStateAccountStoreMock.has.mockResolvedValue(false);
+			terminatedStateAccountStoreMock.has.mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal').mockResolvedValue({} as never);
 
 			const executeCCMContext = testing.createExecuteCCMsgMethodContext({

@@ -165,8 +165,8 @@ export abstract class BaseInteroperabilityMethod<
 		// From now on, we can assume that the ccm is valid.
 
 		// receivingChainID must correspond to a live chain.
-		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
-		const isReceivingChainLive = await InteroperabilityInternalMethod.isLive(
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		const isReceivingChainLive = await interoperabilityInternalMethod.isLive(
 			receivingChainID,
 			timestamp ?? Date.now(),
 		);
@@ -241,7 +241,7 @@ export abstract class BaseInteroperabilityMethod<
 		}
 
 		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
-		await InteroperabilityInternalMethod.addToOutbox(partnerChainID, ccm);
+		await interoperabilityInternalMethod.addToOutbox(partnerChainID, ccm);
 		ownChainAccount.nonce += BigInt(1);
 		await this.stores.get(OwnChainAccountStore).set(context, EMPTY_BYTES, ownChainAccount);
 
