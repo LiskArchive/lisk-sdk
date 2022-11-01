@@ -38,6 +38,11 @@ export interface ActiveValidator {
 	bftWeight: bigint;
 }
 
+export interface ActiveValidatorJSON {
+	blsKey: string;
+	bftWeight: string;
+}
+
 export interface MsgWitness {
 	partnerChainOutboxSize: bigint;
 	siblingHashes: Buffer[];
@@ -323,6 +328,11 @@ export interface CrossChainUpdateTransactionParams {
 export interface ChainValidators {
 	activeValidators: ActiveValidator[];
 	certificateThreshold: bigint;
+}
+
+export interface ChainValidatorsJSON {
+	activeValidators: ActiveValidatorJSON[];
+	certificateThreshold: string;
 }
 
 export interface ChainID {

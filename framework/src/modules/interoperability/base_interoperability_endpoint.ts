@@ -16,7 +16,7 @@ import { BaseEndpoint } from '../base_endpoint';
 import { BaseInteroperableMethod } from './base_interoperable_method';
 import {
 	ChainAccountJSON,
-	ChainValidators,
+	ChainValidatorsJSON,
 	ChannelDataJSON,
 	Inbox,
 	InboxJSON,
@@ -124,7 +124,7 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 	public async getChainValidators(
 		context: ModuleEndpointContext,
 		chainID: Buffer,
-	): Promise<ChainValidators> {
+	): Promise<ChainValidatorsJSON> {
 		const chainAccountStore = this.stores.get(ChainAccountStore);
 		const chainAccountExists = await chainAccountStore.has(context, chainID);
 		if (!chainAccountExists) {
@@ -135,7 +135,13 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 
 		const validators = await chainValidatorsStore.get(context, chainID);
 
-		return validators;
+		return {
+			activeValidators: validators.activeValidators.map(validator => ({
+				blsKey: validator.blsKey.toString('hex'),
+				bftWeight: validator.bftWeight.toString(),
+			})),
+			certificateThreshold: validators.certificateThreshold.toString(),
+		};
 	}
 
 	public async isChainIDAvailable(

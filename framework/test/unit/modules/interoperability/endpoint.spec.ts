@@ -16,6 +16,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { ModuleEndpointContext, SidechainInteroperabilityModule } from '../../../../src';
 import { BaseInteroperabilityEndpoint } from '../../../../src/modules/interoperability/base_interoperability_endpoint';
 import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
+import { ChainValidatorsStore } from '../../../../src/modules/interoperability/stores/chain_validators';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
 import {
@@ -31,6 +32,8 @@ import {
 import {
 	ChainAccount,
 	ChainAccountJSON,
+	ChainValidators,
+	ChainValidatorsJSON,
 	ChannelData,
 	ChannelDataJSON,
 	OwnChainAccount,
@@ -67,6 +70,12 @@ describe('Test interoperability endpoint', () => {
 		has: jest.fn(),
 	};
 	const terminatedOutboxAccountMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
+
+	const chainValidatorsMock = {
 		get: jest.fn(),
 		set: jest.fn(),
 		has: jest.fn(),
@@ -184,6 +193,7 @@ describe('Test interoperability endpoint', () => {
 		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
 		interopMod.stores.register(TerminatedStateStore, terminatedStateAccountStoreMock as never);
 		interopMod.stores.register(TerminatedOutboxStore, terminatedOutboxAccountMock as never);
+		interopMod.stores.register(ChainValidatorsStore, chainValidatorsMock as never);
 
 		chainAccountStoreMock.get.mockResolvedValue(chainAccount);
 		chainAccountStoreMock.getAllAccounts.mockResolvedValue([chainAccount, chainAccount2]);
@@ -203,7 +213,7 @@ describe('Test interoperability endpoint', () => {
 			);
 		});
 
-		it('should call getChainAccount', async () => {
+		it('should call getChainAccount', () => {
 			expect(chainAccountStoreMock.get).toHaveBeenCalledWith(expect.anything(), chainID);
 		});
 
@@ -234,7 +244,7 @@ describe('Test interoperability endpoint', () => {
 			channelDataResult = await testInteroperabilityEndpoint.getChannel(moduleContext, chainID);
 		});
 
-		it('should call getChannel', async () => {
+		it('should call getChannel', () => {
 			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), chainID);
 		});
 
@@ -250,7 +260,7 @@ describe('Test interoperability endpoint', () => {
 			ownChainAccountResult = await testInteroperabilityEndpoint.getOwnChainAccount(moduleContext);
 		});
 
-		it('should call getOwnChainAccount', async () => {
+		it('should call getOwnChainAccount', () => {
 			expect(ownChainAccountStoreMock.get).toHaveBeenCalled();
 		});
 
@@ -269,7 +279,7 @@ describe('Test interoperability endpoint', () => {
 			);
 		});
 
-		it('should call getTerminatedStateAccount', async () => {
+		it('should call getTerminatedStateAccount', () => {
 			expect(terminatedStateAccountStoreMock.get).toHaveBeenCalled();
 		});
 
@@ -288,12 +298,83 @@ describe('Test interoperability endpoint', () => {
 			);
 		});
 
-		it('should call getTerminatedStateAccount', async () => {
+		it('should call getTerminatedStateAccount', () => {
 			expect(terminatedOutboxAccountMock.get).toHaveBeenCalledWith(expect.anything(), chainID);
 		});
 
 		it('should return JSON format result', () => {
 			expect(terminatedOutboxAccountResult).toEqual(terminatedOutboxAccountJSON);
+		});
+	});
+
+	describe('getChainValidators', () => {
+		const chainValidators: ChainValidators = {
+			activeValidators: new Array(11).fill(0).map(() => ({
+				blsKey: utils.getRandomBytes(48),
+				bftWeight: BigInt(1),
+			})),
+			certificateThreshold: BigInt(68),
+		};
+
+		const chainValidatorsJSON: ChainValidatorsJSON = {
+			activeValidators: chainValidators.activeValidators.map(v => ({
+				blsKey: v.blsKey.toString('hex'),
+				bftWeight: v.bftWeight.toString(),
+			})),
+			certificateThreshold: chainValidators.certificateThreshold.toString(),
+		};
+
+		describe('when chain id exists', () => {
+			let getChainValidatorsResult: ChainValidatorsJSON;
+
+			beforeEach(async () => {
+				chainAccountStoreMock.has.mockResolvedValue(true);
+				chainValidatorsMock.get.mockResolvedValue(chainValidators);
+				getChainValidatorsResult = await testInteroperabilityEndpoint.getChainValidators(
+					moduleContext,
+					chainID,
+				);
+			});
+
+			it('should call getTerminatedStateAccount', () => {
+				expect(chainValidatorsMock.get).toHaveBeenCalledWith(expect.anything(), chainID);
+			});
+
+			it('should return JSON format result', () => {
+				expect(getChainValidatorsResult).toEqual(chainValidatorsJSON);
+			});
+		});
+
+		describe('when chain id doesnt exists', () => {
+			it('should throw error when chain id does not exist', async () => {
+				chainAccountStoreMock.has.mockResolvedValue(false);
+				chainValidatorsMock.get.mockResolvedValue(chainValidators);
+
+				await expect(
+					testInteroperabilityEndpoint.getChainValidators(moduleContext, chainID),
+				).rejects.toThrow('Chain account does not exist.');
+			});
+		});
+	});
+
+	describe('isChainIDAvailable', () => {
+		it('should return false when the chainID exists', async () => {
+			chainAccountStoreMock.has.mockResolvedValue(true);
+			const isChainIDAvailableResult = await testInteroperabilityEndpoint.isChainIDAvailable(
+				moduleContext,
+				chainID,
+			);
+			expect(isChainIDAvailableResult).toBeFalse();
+		});
+
+		it('should return true when the chainID does not exists', async () => {
+			chainAccountStoreMock.has.mockResolvedValue(false);
+			const isChainIDAvailableResult = await testInteroperabilityEndpoint.isChainIDAvailable(
+				moduleContext,
+				chainID,
+			);
+
+			expect(isChainIDAvailableResult).toBeTrue();
 		});
 	});
 });
