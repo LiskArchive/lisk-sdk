@@ -68,6 +68,7 @@ describe('DPoS module', () => {
 		numberActiveDelegates: 101,
 		numberStandbyDelegates: 2,
 		tokenIDDPoS: '0000000000000000',
+		tokenIDFee: '0000000000000000',
 	};
 
 	describe('init', () => {
@@ -85,6 +86,7 @@ describe('DPoS module', () => {
 				...defaultConfigs,
 				minWeightStandby: BigInt(defaultConfigs.minWeightStandby),
 				tokenIDDPoS: Buffer.from(defaultConfigs.tokenIDDPoS, 'hex'),
+				tokenIDFee: Buffer.from(defaultConfigs.tokenIDFee, 'hex'),
 			});
 		});
 
