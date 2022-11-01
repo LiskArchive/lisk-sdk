@@ -52,11 +52,11 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			params: { chainID, idxs, crossChainMessages, siblingHashes },
 		} = context;
 		const chainIdAsBuffer = chainID;
-		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 		let terminatedChainOutboxAccount: TerminatedOutboxAccount;
 
 		try {
-			terminatedChainOutboxAccount = await InteroperabilityInternalMethod.getTerminatedOutboxAccount(
+			terminatedChainOutboxAccount = await interoperabilityInternalMethod.getTerminatedOutboxAccount(
 				chainIdAsBuffer,
 			);
 		} catch (error) {
@@ -107,7 +107,7 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			updatedCCMs.push(encodedUpdatedCCM);
 		}
 
-		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 
 		const doesTerminatedOutboxAccountExist = await this.stores
 			.get(TerminatedOutboxStore)
@@ -132,7 +132,7 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 
 		const outboxRoot = regularMerkleTree.calculateRootFromUpdateData(hashedUpdatedCCMs, proof);
 
-		await InteroperabilityInternalMethod.setTerminatedOutboxAccount(chainIdAsBuffer, {
+		await interoperabilityInternalMethod.setTerminatedOutboxAccount(chainIdAsBuffer, {
 			outboxRoot,
 		});
 

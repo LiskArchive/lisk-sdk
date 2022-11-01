@@ -40,24 +40,24 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 		if (!ccm) {
 			throw new Error('CCM to execute sidechain terminated cross chain command is missing.');
 		}
-		const decodedParams = codec.decode<CCMSidechainTerminatedParams>(
+		const ccmSidechainTerminatedParams = codec.decode<CCMSidechainTerminatedParams>(
 			sidechainTerminatedCCMParamsSchema,
 			ccm.params,
 		);
-		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 
 		if (ccm.sendingChainID.equals(getIDAsKeyForStore(MAINCHAIN_ID))) {
 			const isTerminated = await this.stores
 				.get(TerminatedStateStore)
-				.get(context, decodedParams.chainID);
+				.get(context, ccmSidechainTerminatedParams.chainID);
 
 			if (isTerminated) {
 				return;
 			}
-			await InteroperabilityInternalMethod.createTerminatedStateAccount(
+			await interoperabilityInternalMethod.createTerminatedStateAccount(
 				context,
-				decodedParams.chainID,
-				decodedParams.stateRoot,
+				ccmSidechainTerminatedParams.chainID,
+				ccmSidechainTerminatedParams.stateRoot,
 			);
 		} else {
 			const beforeSendContext = createCCMsgBeforeSendContext({
@@ -69,7 +69,7 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 				chainID: context.chainID,
 				feeAddress: context.feeAddress,
 			});
-			await InteroperabilityInternalMethod.terminateChainInternal(
+			await interoperabilityInternalMethod.terminateChainInternal(
 				ccm.sendingChainID,
 				beforeSendContext,
 			);

@@ -81,9 +81,9 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 				),
 			};
 		}
-		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 		if (partnerChainAccount.status === CHAIN_ACTIVE) {
-			const isChainLive = await InteroperabilityInternalMethod.isLive(
+			const isChainLive = await interoperabilityInternalMethod.isLive(
 				txParams.sendingChainID,
 				Date.now(),
 			);

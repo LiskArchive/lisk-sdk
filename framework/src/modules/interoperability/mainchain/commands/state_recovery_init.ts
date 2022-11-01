@@ -139,7 +139,7 @@ export class StateRecoveryInitializationCommand extends BaseInteroperabilityComm
 			params.sidechainChainAccount,
 		);
 
-		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 
 		const doesTerminatedStateAccountExist = await this.stores
 			.get(TerminatedStateStore)
@@ -157,7 +157,7 @@ export class StateRecoveryInitializationCommand extends BaseInteroperabilityComm
 			return;
 		}
 
-		await InteroperabilityInternalMethod.createTerminatedStateAccount(
+		await interoperabilityInternalMethod.createTerminatedStateAccount(
 			context,
 			params.chainID,
 			sidechainChainAccount.lastCertificate.stateRoot,

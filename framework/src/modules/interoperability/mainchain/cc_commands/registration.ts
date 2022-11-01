@@ -45,7 +45,7 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			registrationCCMParamsSchema,
 			ccm.params,
 		);
-		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(ctx);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(ctx);
 		const sendingChainChannelAccount = await this.stores
 			.get(ChannelDataStore)
 			.get(ctx, ccm.sendingChainID);
@@ -71,7 +71,7 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 				chainID: ctx.chainID,
 				feeAddress: ctx.feeAddress,
 			});
-			await InteroperabilityInternalMethod.terminateChainInternal(
+			await interoperabilityInternalMethod.terminateChainInternal(
 				ccm.sendingChainID,
 				beforeSendContext,
 			);

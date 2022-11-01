@@ -165,7 +165,7 @@ describe('Test interoperability endpoint', () => {
 		nonce: ownChainAccount.nonce.toString(),
 	};
 
-	let TestInteroperabilityEndpoint: TestEndpoint;
+	let testInteroperabilityEndpoint: TestEndpoint;
 
 	beforeEach(() => {
 		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -177,7 +177,7 @@ describe('Test interoperability endpoint', () => {
 			params: {},
 			logger: {} as any,
 		};
-		TestInteroperabilityEndpoint = new TestEndpoint(interopMod.stores, interopMod.offchainStores);
+		testInteroperabilityEndpoint = new TestEndpoint(interopMod.stores, interopMod.offchainStores);
 
 		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
 		interopMod.stores.register(ChannelDataStore, channelStoreMock as never);
@@ -197,7 +197,7 @@ describe('Test interoperability endpoint', () => {
 		let chainAccountResult: ChainAccountJSON;
 
 		beforeEach(async () => {
-			chainAccountResult = await TestInteroperabilityEndpoint.getChainAccount(
+			chainAccountResult = await testInteroperabilityEndpoint.getChainAccount(
 				moduleContext,
 				chainID,
 			);
@@ -216,7 +216,7 @@ describe('Test interoperability endpoint', () => {
 		let chainAccountResults: ChainAccountJSON[];
 
 		beforeEach(async () => {
-			({ chains: chainAccountResults } = await TestInteroperabilityEndpoint.getAllChainAccounts(
+			({ chains: chainAccountResults } = await testInteroperabilityEndpoint.getAllChainAccounts(
 				moduleContext,
 				chainID,
 			));
@@ -231,7 +231,7 @@ describe('Test interoperability endpoint', () => {
 		let channelDataResult: ChannelDataJSON;
 
 		beforeEach(async () => {
-			channelDataResult = await TestInteroperabilityEndpoint.getChannel(moduleContext, chainID);
+			channelDataResult = await testInteroperabilityEndpoint.getChannel(moduleContext, chainID);
 		});
 
 		it('should call getChannel', async () => {
@@ -247,7 +247,7 @@ describe('Test interoperability endpoint', () => {
 		let ownChainAccountResult: OwnChainAccountJSON;
 
 		beforeEach(async () => {
-			ownChainAccountResult = await TestInteroperabilityEndpoint.getOwnChainAccount(moduleContext);
+			ownChainAccountResult = await testInteroperabilityEndpoint.getOwnChainAccount(moduleContext);
 		});
 
 		it('should call getOwnChainAccount', async () => {
@@ -263,7 +263,7 @@ describe('Test interoperability endpoint', () => {
 		let terminateStateAccountResult: TerminatedStateAccountJSON;
 
 		beforeEach(async () => {
-			terminateStateAccountResult = await TestInteroperabilityEndpoint.getTerminatedStateAccount(
+			terminateStateAccountResult = await testInteroperabilityEndpoint.getTerminatedStateAccount(
 				moduleContext,
 				chainID,
 			);
@@ -282,7 +282,7 @@ describe('Test interoperability endpoint', () => {
 		let terminatedOutboxAccountResult: TerminatedOutboxAccountJSON;
 
 		beforeEach(async () => {
-			terminatedOutboxAccountResult = await TestInteroperabilityEndpoint.getTerminatedOutboxAccount(
+			terminatedOutboxAccountResult = await testInteroperabilityEndpoint.getTerminatedOutboxAccount(
 				moduleContext,
 				chainID,
 			);

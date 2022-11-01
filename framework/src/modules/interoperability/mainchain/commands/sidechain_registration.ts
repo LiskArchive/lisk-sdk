@@ -267,8 +267,8 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			params: encodedParams,
 		};
 
-		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
-		await InteroperabilityInternalMethod.addToOutbox(chainID, ccm);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		await interoperabilityInternalMethod.addToOutbox(chainID, ccm);
 		// Update own chain account nonce
 		ownChainAccount.nonce += BigInt(1);
 		await ownChainAccountSubstore.set(context, EMPTY_BYTES, ownChainAccount);

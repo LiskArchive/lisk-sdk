@@ -220,8 +220,8 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			status: CCM_STATUS_OK,
 			params: encodedParams,
 		};
-		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
-		await InteroperabilityInternalMethod.addToOutbox(MAINCHAIN_ID_BUFFER, ccm);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		await interoperabilityInternalMethod.addToOutbox(MAINCHAIN_ID_BUFFER, ccm);
 
 		ownChainAccount.nonce += BigInt(1);
 		await ownChainAccountSubstore.set(context, EMPTY_BYTES, ownChainAccount);

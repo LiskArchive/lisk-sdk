@@ -46,7 +46,7 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 			sidechainTerminatedCCMParamsSchema,
 			ccm.params,
 		);
-		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 
 		if (ccm.sendingChainID.equals(MAINCHAIN_ID_BUFFER)) {
 			const isTerminated = await this.stores
@@ -55,7 +55,7 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 			if (isTerminated) {
 				return;
 			}
-			await InteroperabilityInternalMethod.createTerminatedStateAccount(
+			await interoperabilityInternalMethod.createTerminatedStateAccount(
 				context,
 				decodedParams.chainID,
 				decodedParams.stateRoot,
@@ -70,7 +70,7 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 				chainID: context.chainID,
 				feeAddress: context.feeAddress,
 			});
-			await InteroperabilityInternalMethod.terminateChainInternal(
+			await interoperabilityInternalMethod.terminateChainInternal(
 				ccm.sendingChainID,
 				beforeSendContext,
 			);

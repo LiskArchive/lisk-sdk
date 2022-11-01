@@ -80,9 +80,9 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 				),
 			};
 		}
-		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 		if (partnerChainAccount.status === CHAIN_ACTIVE) {
-			const isChainLive = await InteroperabilityInternalMethod.isLive(partnerChainIDBuffer);
+			const isChainLive = await interoperabilityInternalMethod.isLive(partnerChainIDBuffer);
 			if (!isChainLive) {
 				return {
 					status: VerifyStatus.FAIL,

@@ -53,11 +53,11 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			params: { chainID, idxs, crossChainMessages, siblingHashes },
 		} = context;
 		const chainIdAsBuffer = chainID;
-		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 		let terminatedChainOutboxAccount: TerminatedOutboxAccount | undefined;
 
 		try {
-			terminatedChainOutboxAccount = await InteroperabilityInternalMethod.getTerminatedOutboxAccount(
+			terminatedChainOutboxAccount = await interoperabilityInternalMethod.getTerminatedOutboxAccount(
 				chainIdAsBuffer,
 			);
 		} catch (error) {
@@ -107,7 +107,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			updatedCCMs.push(encodedUpdatedCCM);
 		}
 
-		const InteroperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 
 		const doesTerminatedOutboxAccountExist = await this.stores
 			.get(TerminatedOutboxStore)
@@ -171,7 +171,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 
 			const ccmChainId = newCcm.receivingChainID;
 			const chainAccountExist = await this.stores.get(ChainAccountStore).has(context, ccmChainId);
-			const isLive = await InteroperabilityInternalMethod.isLive(ccmChainId, Date.now());
+			const isLive = await interoperabilityInternalMethod.isLive(ccmChainId, Date.now());
 
 			if (!chainAccountExist || !isLive) {
 				continue;
@@ -183,7 +183,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 				continue;
 			}
 
-			await InteroperabilityInternalMethod.addToOutbox(ccmChainId, newCcm);
+			await interoperabilityInternalMethod.addToOutbox(ccmChainId, newCcm);
 		}
 	}
 
