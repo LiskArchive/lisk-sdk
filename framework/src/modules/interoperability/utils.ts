@@ -43,6 +43,8 @@ import {
 	MESSAGE_TAG_CERTIFICATE,
 	MODULE_NAME_INTEROPERABILITY,
 	SMT_KEY_LENGTH,
+	HASH_LENGTH,
+	TOKEN_ID_LSK,
 } from './constants';
 import {
 	ccmSchema,
@@ -69,6 +71,7 @@ import { ChainAccountStore } from './stores/chain_account';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/terminated_outbox';
 import { TerminatedStateStore } from './stores/terminated_state';
 import { RegisteredNamesStore } from './stores/registered_names';
+import { splitTokenID } from '../token/utils';
 
 interface CommonExecutionLogicArgs {
 	stores: NamedRegistry;
@@ -80,6 +83,7 @@ interface CommonExecutionLogicArgs {
 	partnerChainStore: ChainAccountStore;
 	chainIDBuffer: Buffer;
 }
+
 // Returns the big endian uint32 serialization of an integer x, with 0 <= x < 2^32 which is 4 bytes long.
 export const getIDAsKeyForStore = (id: number) => utils.intToBuffer(id, 4);
 
@@ -641,23 +645,16 @@ export const initGenesisStateUtil = async (
 		}
 		channelDataStoreKeySet.add(channelData.storeKey);
 
-		const tokenID = channelData.storeValue.messageFeeTokenID;
+		const channel = channelData.storeValue;
+		const chainID = splitTokenID(channel.messageFeeTokenID)[0];
+
 		if (
-			!(
-				tokenID.chainID.readInt32BE(0) === 1 ||
-				tokenID.chainID.equals(channelData.storeKey) ||
-				tokenID.chainID.equals(ownChainAccount.chainID)
-			)
+			!channel.messageFeeTokenID.equals(TOKEN_ID_LSK) && // corresponding to the LSK token
+			!chainID.equals(channelData.storeKey) && // Token.getChainID(channel.messageFeeTokenID) must be equal to channelData.storeKey
+			!chainID.equals(ownChainAccount.chainID) // the message fee token must be a native token of either chains
 		) {
 			throw new Error(
-				`Chain id corresponding to the channel data store key ${channelData.storeKey.toString(
-					'hex',
-				)} is not valid.`,
-			);
-		}
-		if (tokenID.chainID.equals(MAINCHAIN_ID_BUFFER) && tokenID.localID.readInt32BE(0) !== 0) {
-			throw new Error(
-				`Local id corresponding to the channel data store key ${channelData.storeKey.toString(
+				`messageFeeTokenID corresponding to the channel data store key ${channelData.storeKey.toString(
 					'hex',
 				)} is not valid.`,
 			);
@@ -855,13 +852,13 @@ export const initGenesisStateUtil = async (
 			}
 		} else if (terminatedStateStoreValue.initialized === true) {
 			if (
-				terminatedStateStoreValue.stateRoot.length !== 32 ||
-				!terminatedStateStoreValue.mainchainStateRoot?.equals(EMPTY_BYTES)
+				terminatedStateStoreValue.stateRoot.length !== HASH_LENGTH ||
+				terminatedStateStoreValue.mainchainStateRoot?.length !== HASH_LENGTH
 			) {
 				throw new Error(
 					`For the initialized account associated with terminated state store key ${terminatedStateStoreKey.toString(
 						'hex',
-					)} the mainchainStateRoot must be set to empty bytes and stateRoot to a 32-bytes value.`,
+					)} the mainchainStateRoot must be set to a 32-bytes value and stateRoot to a 32-bytes value.`,
 				);
 			}
 		}

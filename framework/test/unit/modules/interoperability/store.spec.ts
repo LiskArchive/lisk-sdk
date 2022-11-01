@@ -95,10 +95,7 @@ describe('Base interoperability store', () => {
 		inbox: inboxTree,
 		outbox: outboxTree,
 		partnerChainOutboxRoot: Buffer.alloc(0),
-		messageFeeTokenID: {
-			chainID: utils.intToBuffer(0, 4),
-			localID: utils.intToBuffer(0, 4),
-		},
+		messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
 	};
 	const chainAccount = {
 		name: 'account1',

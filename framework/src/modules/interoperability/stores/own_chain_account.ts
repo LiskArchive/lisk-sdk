@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseStore } from '../../base_store';
+import { CHAIN_ID_LENGTH } from '../../token/constants';
 
 export interface OwnChainAccount {
 	name: string;
@@ -19,6 +20,7 @@ export interface OwnChainAccount {
 	nonce: bigint;
 }
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#own-chain-data
 export const ownChainAccountSchema = {
 	$id: '/modules/interoperability/ownChainAccount',
 	type: 'object',
@@ -30,6 +32,8 @@ export const ownChainAccountSchema = {
 		},
 		chainID: {
 			dataType: 'bytes',
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 			fieldNumber: 2,
 		},
 		nonce: {

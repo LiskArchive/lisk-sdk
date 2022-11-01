@@ -22,7 +22,6 @@ import { ChannelDataStore } from './stores/channel_data';
 import { OutboxRootStore } from './stores/outbox_root';
 import { OwnChainAccountStore } from './stores/own_chain_account';
 import { RegisteredNamesStore } from './stores/registered_names';
-import { RegisteredNetworkStore } from './stores/registered_network_ids';
 import { TerminatedOutboxStore } from './stores/terminated_outbox';
 import { TerminatedStateStore } from './stores/terminated_state';
 
@@ -38,7 +37,6 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		this.stores.register(OutboxRootStore, new OutboxRootStore(this.name));
 		this.stores.register(OwnChainAccountStore, new OwnChainAccountStore(this.name));
 		this.stores.register(RegisteredNamesStore, new RegisteredNamesStore(this.name));
-		this.stores.register(RegisteredNetworkStore, new RegisteredNetworkStore(this.name));
 		this.stores.register(TerminatedOutboxStore, new TerminatedOutboxStore(this.name));
 		this.stores.register(TerminatedStateStore, new TerminatedStateStore(this.name));
 	}

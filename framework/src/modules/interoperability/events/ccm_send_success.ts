@@ -42,7 +42,8 @@ export class CcmSendSuccessEvent extends BaseEvent<CcmSendSuccessEventData> {
 		receivingChainID: Buffer,
 		sentCCMID: Buffer,
 		data: CcmSendSuccessEventData,
+		noRevert = false,
 	): void {
-		this.add(ctx, data, [sendingChainID, receivingChainID, sentCCMID]);
+		this.add(ctx, data, [sendingChainID, receivingChainID, sentCCMID], noRevert);
 	}
 }

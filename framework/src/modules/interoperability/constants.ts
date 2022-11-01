@@ -17,14 +17,14 @@ import { utils } from '@liskhq/lisk-cryptography';
 export const MODULE_NAME_INTEROPERABILITY = 'interoperability';
 
 // General constants
+// TODO: Remove after issue https://github.com/LiskHQ/lisk-sdk/issues/7555
 export const MAINCHAIN_ID = 1;
+// TODO: Remove after issue https://github.com/LiskHQ/lisk-sdk/issues/7555
 export const MAINCHAIN_ID_BUFFER = utils.intToBuffer(MAINCHAIN_ID, 4);
+export const CHAIN_ID_MAINCHAIN = Buffer.from('00000000', 'hex');
 // TODO: To be updated after token module update
 export const TOKEN_ID_LSK = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
-export const TOKEN_ID_LSK_MAINCHAIN = {
-	chainID: utils.intToBuffer(1, 4),
-	localID: utils.intToBuffer(0, 4),
-};
+export const TOKEN_ID_LSK_MAINCHAIN = Buffer.from('0000000000000000', 'hex');
 export const MAINCHAIN_NAME = 'lisk-mainchain';
 export const MAINCHAIN_NETWORK_ID = Buffer.from(
 	'03693f3126b9d0df3096c4ebd59e5c42af4a7f0e313cd7c96a07b6e9f8f54924',
@@ -50,7 +50,11 @@ export const MESSAGE_TAG_CERTIFICATE = 'LSK_CE_';
 export const MIN_CHAIN_NAME_LENGTH = 1;
 export const MAX_CHAIN_NAME_LENGTH = 32;
 export const HASH_LENGTH = 32;
-
+export const MIN_MODULE_NAME_LENGTH = 1;
+export const MAX_MODULE_NAME_LENGTH = 32;
+export const MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH = 1;
+export const MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH = 32;
+export const CHAIN_ID_LENGTH = 4;
 // Chain status
 export const CHAIN_REGISTERED = 0;
 export const CHAIN_ACTIVE = 1;
@@ -73,6 +77,19 @@ export const CCM_SENT_STATUS_SUCCESS = 0;
 export const CCM_PROCESSED_RESULT_BOUNCED = 2;
 export const CCM_PROCESSED_RESULT_DISCARDED = 3;
 export const CCM_STATUS_CODE_RECOVERED = 5;
+// Value of code of CCM Sent Failed Event
+export enum CCM_SENT_FAILED_CODE {
+	// if sending failed due to the receiving chain not being active.
+	CHANNEL_UNAVAILABLE = 1,
+	// if sending failed due to the fee payment failing.
+	MESSAGE_FEE_EXCEPTION = 11,
+	// if sending failed due to invalid params property.
+	INVALID_PARAMS,
+	// if sending failed due to invalid message format.
+	INVALID_FORMAT,
+	// if sending failed due to invalid receiving chain.
+	INVALID_RECEIVING_CHAIN,
+}
 
 // Commands
 export const COMMAND_NAME_SIDECHAIN_REG = 'sidechainRegistration';
