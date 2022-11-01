@@ -67,6 +67,7 @@ import { NameStore } from './stores/name';
 import { PreviousTimestampStore } from './stores/previous_timestamp';
 import { SnapshotStore } from './stores/snapshot';
 import { VoterStore } from './stores/voter';
+import { DelegateRegisteredEvent } from './events/delegate_registered';
 
 export class DPoSModule extends BaseModule {
 	public method = new DPoSMethod(this.stores, this.events);
@@ -110,6 +111,7 @@ export class DPoSModule extends BaseModule {
 		this.stores.register(PreviousTimestampStore, new PreviousTimestampStore(this.name));
 		this.stores.register(SnapshotStore, new SnapshotStore(this.name));
 		this.stores.register(VoterStore, new VoterStore(this.name));
+		this.events.register(DelegateRegisteredEvent, new DelegateRegisteredEvent(this.name));
 	}
 
 	public get name() {
