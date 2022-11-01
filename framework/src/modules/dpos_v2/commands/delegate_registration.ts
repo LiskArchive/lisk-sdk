@@ -32,10 +32,15 @@ export class DelegateRegistrationCommand extends BaseCommand {
 	public schema = delegateRegistrationCommandParamsSchema;
 	private _validatorsMethod!: ValidatorsMethod;
 	private _tokenMethod!: TokenMethod;
+	private _tokenIDFee!: Buffer;
 
 	public addDependencies(tokenMethod: TokenMethod, validatorsMethod: ValidatorsMethod) {
 		this._tokenMethod = tokenMethod;
 		this._validatorsMethod = validatorsMethod;
+	}
+
+	public init(args: { tokenIDFee: Buffer }) {
+		this._tokenIDFee = args.tokenIDFee;
 	}
 
 	public get name() {
@@ -128,7 +133,7 @@ export class DelegateRegistrationCommand extends BaseCommand {
 		await this._tokenMethod.burn(
 			context,
 			transaction.senderAddress,
-			TOKEN_ID_FEE,
+			this._tokenIDFee,
 			delegateRegistrationFee,
 		);
 

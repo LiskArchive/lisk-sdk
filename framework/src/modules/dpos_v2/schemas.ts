@@ -163,6 +163,10 @@ export const configSchema = {
 			type: 'string',
 			format: 'hex',
 		},
+		tokenIDFee: {
+			type: 'string',
+			format: 'hex',
+		},
 	},
 	required: [
 		'factorSelfVotes',

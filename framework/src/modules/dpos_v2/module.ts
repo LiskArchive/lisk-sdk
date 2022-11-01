@@ -185,6 +185,7 @@ export class DPoSModule extends BaseModule {
 
 		this.endpoint.init(this._moduleConfig);
 
+		this._delegateRegistrationCommand.init({ tokenIDFee: this._moduleConfig.tokenIDFee });
 		this._reportDelegateMisbehaviorCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
 		this._unlockCommand.init({
 			tokenIDDPoS: this._moduleConfig.tokenIDDPoS,

@@ -35,6 +35,7 @@ export interface ModuleConfig {
 	numberActiveDelegates: number;
 	numberStandbyDelegates: number;
 	tokenIDDPoS: TokenIDDPoS;
+	tokenIDFee: Buffer;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;

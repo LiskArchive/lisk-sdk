@@ -25,7 +25,8 @@ export const MAX_LENGTH_NAME = 20;
 export const TEN_UNIT = BigInt(10) * BigInt(10) ** BigInt(8);
 export const MAX_VOTE = 10;
 export const MAX_UNLOCKING = 20;
-export const TOKEN_ID_FEE = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
+export const TOKEN_ID_DPOS = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
+export const TOKEN_ID_FEE = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 export const DELEGATE_REGISTRATION_FEE = BigInt(10) * BigInt(10) ** BigInt(8);
 export const MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE = 260000;
 export const MAX_POM_HEIGHTS = 5;
@@ -56,7 +57,8 @@ export const defaultConfig = {
 	minWeightStandby: '100000000000',
 	numberActiveDelegates: 101,
 	numberStandbyDelegates: 2,
-	tokenIDDPoS: '0000000000000000',
+	tokenIDDPoS: TOKEN_ID_DPOS.toString('hex'),
+	tokenIDFee: TOKEN_ID_FEE.toString('hex'),
 };
 
 export const enum PoSEventResult {
