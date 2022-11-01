@@ -146,10 +146,9 @@ export class DelegateRegistrationCommand extends BaseCommand {
 			isBanned: false,
 			pomHeights: [],
 			consecutiveMissedBlocks: 0,
-			// TODO: Issue #7665
-			commission: 0,
-			lastCommissionIncreaseHeight: 0,
-			sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+			commission: 10000,
+			lastCommissionIncreaseHeight: height,
+			sharingCoefficients: [],
 		});
 
 		const nameSubstore = this.stores.get(NameStore);

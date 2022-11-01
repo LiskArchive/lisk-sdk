@@ -56,9 +56,9 @@ describe('Delegate registration command', () => {
 		isBanned: false,
 		pomHeights: [],
 		consecutiveMissedBlocks: 0,
-		commission: 0,
+		commission: 10000,
 		lastCommissionIncreaseHeight: 0,
-		sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+		sharingCoefficients: [],
 	};
 	const encodedTransactionParams = codec.encode(
 		delegateRegistrationCommandParamsSchema,
@@ -252,8 +252,7 @@ describe('Delegate registration command', () => {
 			);
 		});
 
-		// TODO: Issue #7665
-		it.skip('should return error if store key address already exists in delegate store', async () => {
+		it('should return error if store key address already exists in delegate store', async () => {
 			await delegateSubstore.set(
 				createStoreGetter(stateStore),
 				transaction.senderAddress,
@@ -277,8 +276,7 @@ describe('Delegate registration command', () => {
 		});
 	});
 
-	// TODO: Issue #7665
-	describe.skip('execute', () => {
+	describe('execute', () => {
 		it('should call validators Method registerValidatorKeys', async () => {
 			const context = testing
 				.createTransactionContext({
