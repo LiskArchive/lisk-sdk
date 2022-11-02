@@ -714,6 +714,22 @@ describe('BFT Method', () => {
 			).rejects.toThrow('Invalid validators size.');
 		});
 
+		it('should throw when bft weight is negative', async () => {
+			await expect(
+				bftMethod.setBFTParameters(
+					stateStore,
+					BigInt(68),
+					BigInt(68),
+					new Array(bftMethod['_batchSize']).fill(0).map(() => ({
+						address: utils.getRandomBytes(20),
+						bftWeight: BigInt(-1),
+						blsKey: utils.getRandomBytes(48),
+						generatorKey: utils.getRandomBytes(32),
+					})),
+				),
+			).rejects.toThrow('BFT Weight must be 0 or greater.');
+		});
+
 		it('should throw when less than 1/3 of aggregateBFTWeight for precommitThreshold is given', async () => {
 			await expect(
 				bftMethod.setBFTParameters(stateStore, BigInt(34), BigInt(68), [
