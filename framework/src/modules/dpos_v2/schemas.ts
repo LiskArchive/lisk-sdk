@@ -12,7 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MAX_LENGTH_NAME } from './constants';
+import {
+	MAX_COMMISSION,
+	MAX_LENGTH_NAME,
+	MAX_NUMBER_BYTES_Q96,
+	TOKEN_ID_LENGTH,
+} from './constants';
 
 export const delegateRegistrationCommandParamsSchema = {
 	$id: '/dpos/command/registerDelegateParams',
@@ -201,6 +206,9 @@ export const genesisStoreSchema = {
 					'isBanned',
 					'pomHeights',
 					'consecutiveMissedBlocks',
+					'commission',
+					'lastCommissionIncreaseHeight',
+					'sharingCoefficients',
 				],
 				properties: {
 					address: {
@@ -249,6 +257,36 @@ export const genesisStoreSchema = {
 						dataType: 'uint32',
 						fieldNumber: 9,
 					},
+					commission: {
+						dataType: 'uint32',
+						fieldNumber: 10,
+						maximum: MAX_COMMISSION,
+					},
+					lastCommissionIncreaseHeight: {
+						dataType: 'uint32',
+						fieldNumber: 11,
+					},
+					sharingCoefficients: {
+						type: 'array',
+						fieldNumber: 12,
+						items: {
+							type: 'object',
+							required: ['tokenID', 'coefficient'],
+							properties: {
+								tokenID: {
+									dataType: 'bytes',
+									minLength: TOKEN_ID_LENGTH,
+									maxLength: TOKEN_ID_LENGTH,
+									fieldNumber: 1,
+								},
+								coefficient: {
+									dataType: 'bytes',
+									maxLength: MAX_NUMBER_BYTES_Q96,
+									fieldNumber: 2,
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -279,6 +317,27 @@ export const genesisStoreSchema = {
 								amount: {
 									dataType: 'uint64',
 									fieldNumber: 2,
+								},
+								voteSharingCoefficients: {
+									type: 'array',
+									fieldNumber: 3,
+									items: {
+										type: 'object',
+										required: ['tokenID', 'coefficient'],
+										properties: {
+											tokenID: {
+												dataType: 'bytes',
+												minLength: TOKEN_ID_LENGTH,
+												maxLength: TOKEN_ID_LENGTH,
+												fieldNumber: 1,
+											},
+											coefficient: {
+												dataType: 'bytes',
+												maxLength: MAX_NUMBER_BYTES_Q96,
+												fieldNumber: 2,
+											},
+										},
+									},
 								},
 							},
 						},

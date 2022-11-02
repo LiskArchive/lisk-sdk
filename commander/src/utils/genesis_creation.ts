@@ -121,9 +121,11 @@ export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefault
 					isBanned: false,
 					pomHeights: [],
 					consecutiveMissedBlocks: 0,
+					commission: 0,
+					lastCommissionIncreaseHeight: 0,
+					sharingCoefficients: [],
 				})),
 				voters: [],
-				snapshots: [],
 				genesisData: {
 					initRounds: 3,
 					initDelegates: input.keysList.slice(0, input.numberOfValidators).map(v => v.address),
