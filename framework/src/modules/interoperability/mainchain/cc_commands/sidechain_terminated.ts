@@ -21,8 +21,9 @@ import {
 } from '../../constants';
 import { createCCMsgBeforeSendContext } from '../../context';
 import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
+import { TerminatedStateStore } from '../../stores/terminated_state';
 import { CCCommandExecuteContext } from '../../types';
-import { MainchainInteroperabilityStore } from '../store';
+import { MainchainInteroperabilityInternalMethod } from '../store';
 
 interface CCMSidechainTerminatedParams {
 	chainID: Buffer;
@@ -45,16 +46,16 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 			sidechainTerminatedCCMParamsSchema,
 			ccm.params,
 		);
-		const interoperabilityStore = this.getInteroperabilityStore(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 
 		if (ccm.sendingChainID.equals(MAINCHAIN_ID_BUFFER)) {
-			const isTerminated = await interoperabilityStore.hasTerminatedStateAccount(
-				decodedParams.chainID,
-			);
+			const isTerminated = await this.stores
+				.get(TerminatedStateStore)
+				.has(context, decodedParams.chainID);
 			if (isTerminated) {
 				return;
 			}
-			await interoperabilityStore.createTerminatedStateAccount(
+			await interoperabilityInternalMethod.createTerminatedStateAccount(
 				context,
 				decodedParams.chainID,
 				decodedParams.stateRoot,
@@ -69,16 +70,21 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 				chainID: context.chainID,
 				feeAddress: context.feeAddress,
 			});
-			await interoperabilityStore.terminateChainInternal(ccm.sendingChainID, beforeSendContext);
+			await interoperabilityInternalMethod.terminateChainInternal(
+				ccm.sendingChainID,
+				beforeSendContext,
+			);
 		}
 	}
 
-	protected getInteroperabilityStore(context: StoreGetter): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(
+	protected getInteroperabilityInternalMethod(
+		context: StoreGetter,
+	): MainchainInteroperabilityInternalMethod {
+		return new MainchainInteroperabilityInternalMethod(
 			this.stores,
+			this.events,
 			context,
 			this.interoperableCCMethods,
-			this.events,
 		);
 	}
 }

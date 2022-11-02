@@ -27,7 +27,7 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainMessageRecoveryCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/message_recovery';
-import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/store';
 import {
 	ccmSchema,
 	messageRecoveryParamsSchema,
@@ -43,6 +43,8 @@ import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory
 import { TerminatedOutboxStore } from '../../../../../../src/modules/interoperability/stores/terminated_outbox';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
 import { NamedRegistry } from '../../../../../../src/modules/named_registry';
+import { ChainAccountStore } from '../../../../../../src/modules/interoperability/stores/chain_account';
+import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 
 describe('Mainchain MessageRecoveryCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -51,7 +53,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		const LEAF_PREFIX = Buffer.from('00', 'hex');
 
 		let stateStore: PrefixedStateReadWriter;
-		let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
+		let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 		let terminatedOutboxSubstore: TerminatedOutboxStore;
 		let messageRecoveryCommand: MainchainMessageRecoveryCommand;
 		let commandVerifyContext: CommandVerifyContext<MessageRecoveryParams>;
@@ -77,11 +79,11 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 			terminatedOutboxSubstore = interopMod.stores.get(TerminatedOutboxStore);
-			mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
+			mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 				interopMod.stores,
+				new NamedRegistry(),
 				createStoreGetter(stateStore),
 				new Map(),
-				new NamedRegistry(),
 			);
 			messageRecoveryCommand = new MainchainMessageRecoveryCommand(
 				interopMod.stores,
@@ -156,8 +158,8 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
 
 			jest
-				.spyOn(messageRecoveryCommand, 'getInteroperabilityStore' as any)
-				.mockImplementation(() => mainchainInteroperabilityStore);
+				.spyOn(messageRecoveryCommand, 'getInteroperabilityInternalMethod' as any)
+				.mockImplementation(() => mainchainInteroperabilityInternalMethod);
 
 			await terminatedOutboxSubstore.set(createStoreGetter(stateStore), chainID, {
 				outboxRoot,
@@ -326,18 +328,23 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			return commandExecuteContext;
 		};
 
-		type StoreMock = Mocked<
-			MainchainInteroperabilityStore,
-			| 'isLive'
-			| 'addToOutbox'
-			| 'getChainAccount'
-			| 'setTerminatedOutboxAccount'
-			| 'getTerminatedOutboxAccount'
-			| 'chainAccountExist'
-			| 'terminatedOutboxAccountExist'
-			| 'getOwnChainAccount'
-		>;
+		type StoreMock = Mocked<MainchainInteroperabilityInternalMethod, 'isLive' | 'addToOutbox'>;
 
+		const chainAccountStoreMock = {
+			get: jest.fn(),
+			set: jest.fn(),
+			has: jest.fn(),
+		};
+		const ownChainAccountStoreMock = {
+			get: jest.fn(),
+			set: jest.fn(),
+			has: jest.fn(),
+		};
+		const terminatedOutboxAccountMock = {
+			get: jest.fn(),
+			set: jest.fn(),
+			has: jest.fn(),
+		};
 		let messageRecoveryCommand: MainchainMessageRecoveryCommand;
 		let commandExecuteContext: CommandExecuteContext<MessageRecoveryParams>;
 		let interoperableCCMethods: Map<string, BaseInteroperableMethod>;
@@ -387,59 +394,59 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 			storeMock = {
 				addToOutbox: jest.fn(),
-				getChainAccount: jest.fn(),
-				getTerminatedOutboxAccount: jest.fn(),
-				setTerminatedOutboxAccount: jest.fn(),
-				chainAccountExist: jest.fn().mockResolvedValue(true),
 				isLive: jest.fn().mockResolvedValue(true),
-				terminatedOutboxAccountExist: jest.fn().mockResolvedValue(true),
-				getOwnChainAccount: jest.fn(),
 			};
 
-			storeMock.getOwnChainAccount.mockResolvedValue({
+			interopMod.stores.get(OwnChainAccountStore).get = ownChainAccountStoreMock.get;
+			ownChainAccountStoreMock.get.mockResolvedValue({
 				name: `mainchain`,
 				chainID: utils.intToBuffer(0, 4),
 				nonce: BigInt(0),
 			});
 
 			jest
-				.spyOn(messageRecoveryCommand, 'getInteroperabilityStore' as any)
+				.spyOn(messageRecoveryCommand, 'getInteroperabilityInternalMethod' as any)
 				.mockImplementation(() => storeMock);
 			jest
 				.spyOn(regularMerkleTree, 'calculateRootFromUpdateData')
 				.mockReturnValue(Buffer.alloc(32));
 
 			let chainID;
+
+			interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
+			interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
+			interopMod.stores.register(TerminatedOutboxStore, terminatedOutboxAccountMock as never);
+
 			for (const ccm of ccms) {
 				chainID = ccm.sendingChainID;
 
-				when(storeMock.getChainAccount)
-					.calledWith(chainID)
-					.mockResolvedValue({
-						name: `chain${chainID.toString('hex')}`,
-						status: CHAIN_ACTIVE,
-						lastCertificate: {
-							height: 1,
-							timestamp: 10,
-							stateRoot: Buffer.alloc(0),
-							validatorsHash: Buffer.alloc(0),
-						},
-					});
+				chainAccountStoreMock.get.mockResolvedValue({
+					name: `chain${chainID.toString('hex')}`,
+					status: CHAIN_ACTIVE,
+					lastCertificate: {
+						height: 1,
+						timestamp: 10,
+						stateRoot: Buffer.alloc(0),
+						validatorsHash: Buffer.alloc(0),
+					},
+				});
 			}
 
 			chainID = transactionParams.chainID;
 
-			when(storeMock.getTerminatedOutboxAccount)
-				.calledWith(chainID)
-				.mockResolvedValue({
-					outboxRoot: utils.getRandomBytes(32),
-					outboxSize: 1,
-					partnerChainInboxSize: 1,
-				});
+			interopMod.stores.get(TerminatedOutboxStore).get = terminatedOutboxAccountMock.get;
+			terminatedOutboxAccountMock.get.mockResolvedValue({
+				outboxRoot: utils.getRandomBytes(32),
+				outboxSize: 1,
+				partnerChainInboxSize: 1,
+			});
+
+			terminatedOutboxAccountMock.has.mockResolvedValue(true);
 		});
 
 		it('should successfully process recovery transaction', async () => {
 			// Act
+			chainAccountStoreMock.has.mockResolvedValue(true);
 			await messageRecoveryCommand.execute(commandExecuteContext);
 			expect.assertions(ccms.length + 1);
 
@@ -449,7 +456,8 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				const outboxRoot = Buffer.alloc(32);
 
 				// Assert
-				expect(storeMock.setTerminatedOutboxAccount).toHaveBeenCalledWith(
+				expect(terminatedOutboxAccountMock.set).toHaveBeenCalledWith(
+					expect.anything(),
 					chainID,
 					expect.objectContaining({
 						outboxRoot,
@@ -489,7 +497,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			// Assign & Arrange
 			const { chainID } = transactionParams;
 
-			when(storeMock.terminatedOutboxAccountExist).calledWith(chainID).mockResolvedValue(false);
+			when(terminatedOutboxAccountMock.has).calledWith(chainID).mockResolvedValue(false);
 
 			// Assert
 			await expect(messageRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
@@ -499,11 +507,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 		it('should not add CCM to outbox when sending chain of the CCM does not exist', async () => {
 			// Assign & Arrange & Act
-			for (const ccm of ccms) {
-				const chainID = ccm.sendingChainID;
-
-				when(storeMock.chainAccountExist).calledWith(chainID).mockResolvedValue(false);
-			}
+			chainAccountStoreMock.has.mockResolvedValue(false);
 
 			await messageRecoveryCommand.execute(commandExecuteContext);
 
@@ -536,7 +540,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			for (const ccm of ccms) {
 				const chainID = ccm.sendingChainID;
 
-				when(storeMock.getChainAccount)
+				when(chainAccountStoreMock.get)
 					.calledWith(chainID)
 					.mockResolvedValue({
 						status: -1,

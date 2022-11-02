@@ -71,7 +71,7 @@ import { VoterStore } from './stores/voter';
 export class DPoSModule extends BaseModule {
 	public method = new DPoSMethod(this.stores, this.events);
 	public configSchema = configSchema;
-	public endpoint = new DPoSEndpoint(this.stores, this.offchainStores, this.events);
+	public endpoint = new DPoSEndpoint(this.stores, this.offchainStores);
 
 	private readonly _delegateRegistrationCommand = new DelegateRegistrationCommand(
 		this.stores,

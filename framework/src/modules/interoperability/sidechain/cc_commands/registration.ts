@@ -13,13 +13,15 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_NAME_REGISTRATION } from '../../constants';
+import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_NAME_REGISTRATION, EMPTY_BYTES } from '../../constants';
 import { registrationCCMParamsSchema } from '../../schemas';
 import { CCCommandExecuteContext } from '../../types';
 import { createCCMsgBeforeSendContext } from '../../context';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
-import { SidechainInteroperabilityStore } from '../store';
+import { SidechainInteroperabilityInternalMethod } from '../store';
 import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
+import { ChannelDataStore } from '../../stores/channel_data';
+import { OwnChainAccountStore } from '../../stores/own_chain_account';
 
 interface CCMRegistrationParams {
 	chainID: Buffer;
@@ -43,9 +45,11 @@ export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			registrationCCMParamsSchema,
 			ccm.params,
 		);
-		const interoperabilityStore = this.getInteroperabilityStore(ctx);
-		const sendingChainChannelAccount = await interoperabilityStore.getChannel(ccm.sendingChainID);
-		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(ctx);
+		const sendingChainChannelAccount = await this.stores
+			.get(ChannelDataStore)
+			.get(ctx, ccm.sendingChainID);
+		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(ctx, EMPTY_BYTES);
 		if (
 			sendingChainChannelAccount.inbox.size !== 1 ||
 			ccm.status !== CCM_STATUS_OK ||
@@ -65,18 +69,21 @@ export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCComman
 				chainID: ctx.chainID,
 				feeAddress: ctx.feeAddress,
 			});
-			await interoperabilityStore.terminateChainInternal(ccm.sendingChainID, beforeSendContext);
+			await interoperabilityInternalMethod.terminateChainInternal(
+				ccm.sendingChainID,
+				beforeSendContext,
+			);
 		}
 	}
 
-	protected getInteroperabilityStore(
+	protected getInteroperabilityInternalMethod(
 		context: StoreGetter | ImmutableStoreGetter,
-	): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(
+	): SidechainInteroperabilityInternalMethod {
+		return new SidechainInteroperabilityInternalMethod(
 			this.stores,
+			this.events,
 			context,
 			this.interoperableCCMethods,
-			this.events,
 		);
 	}
 }

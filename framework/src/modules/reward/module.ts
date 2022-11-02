@@ -32,7 +32,7 @@ import { EVENT_REWARD_MINTED_DATA_NAME } from '../../state_machine/constants';
 export class RewardModule extends BaseModule {
 	public method = new RewardMethod(this.stores, this.events);
 	public configSchema = configSchema;
-	public endpoint = new RewardEndpoint(this.stores, this.offchainStores, this.events);
+	public endpoint = new RewardEndpoint(this.stores, this.offchainStores);
 	private _tokenMethod!: TokenMethod;
 	private _randomMethod!: RandomMethod;
 	private _tokenID!: Buffer;

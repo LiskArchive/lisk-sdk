@@ -16,7 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SidechainCCRegistrationCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands/registration';
 import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
-import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
+import { SidechainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/sidechain/store';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
 import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
 import { SidechainInteroperabilityModule } from '../../../../../../src';
@@ -25,13 +25,23 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { NamedRegistry } from '../../../../../../src/modules/named_registry';
+import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
+import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 
 describe('SidechainCCRegistrationCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
 
 	const terminateChainInternalMock = jest.fn();
-	const getChannelMock = jest.fn();
-	const getOwnChainAccountMock = jest.fn();
+	const channelStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
+	const ownChainAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
 
 	const ownChainAccount = {
 		name: 'sidechain',
@@ -95,28 +105,29 @@ describe('SidechainCCRegistrationCommand', () => {
 		chainID,
 	});
 
-	let sidechainInteroperabilityStore: SidechainInteroperabilityStore;
+	let sidechainInteroperabilityInternalMethod: SidechainInteroperabilityInternalMethod;
 	let ccRegistrationCommand: SidechainCCRegistrationCommand;
 
 	beforeEach(() => {
-		sidechainInteroperabilityStore = new SidechainInteroperabilityStore(
+		sidechainInteroperabilityInternalMethod = new SidechainInteroperabilityInternalMethod(
 			interopMod.stores,
+			new NamedRegistry(),
 			sampleExecuteContext,
 			ccMethodsMap,
-			new NamedRegistry(),
 		);
-		sidechainInteroperabilityStore.terminateChainInternal = terminateChainInternalMock;
-		sidechainInteroperabilityStore.getChannel = getChannelMock;
-		sidechainInteroperabilityStore.getOwnChainAccount = getOwnChainAccountMock;
+		sidechainInteroperabilityInternalMethod.terminateChainInternal = terminateChainInternalMock;
+
+		interopMod.stores.register(ChannelDataStore, channelStoreMock as never);
+		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
 
 		ccRegistrationCommand = new SidechainCCRegistrationCommand(
 			interopMod.stores,
 			interopMod.events,
 			ccMethodsMap,
 		);
-		(ccRegistrationCommand as any)['getInteroperabilityStore'] = jest
+		(ccRegistrationCommand as any)['getInteroperabilityInternalMethod'] = jest
 			.fn()
-			.mockReturnValue(sidechainInteroperabilityStore);
+			.mockReturnValue(sidechainInteroperabilityInternalMethod);
 	});
 
 	it('should call terminateChainInternal when sendingChainChannelAccount.inbox.size !== 1', async () => {
@@ -136,9 +147,9 @@ describe('SidechainCCRegistrationCommand', () => {
 			partnerChainOutboxRoot: Buffer.alloc(0),
 		};
 
-		getChannelMock.mockResolvedValue(dataWithMoreThanOneInboxSize);
+		channelStoreMock.get.mockResolvedValue(dataWithMoreThanOneInboxSize);
 
-		getOwnChainAccountMock.mockResolvedValue(ownChainAccount);
+		ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount);
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
@@ -165,7 +176,7 @@ describe('SidechainCCRegistrationCommand', () => {
 			params: encodedRegistrationParams,
 		};
 
-		getOwnChainAccountMock.mockResolvedValue(ownChainAccount);
+		ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount);
 
 		await ccRegistrationCommand.execute({ ...sampleExecuteContext, ccm: invalidCCM });
 
@@ -181,9 +192,9 @@ describe('SidechainCCRegistrationCommand', () => {
 
 	it('should call terminateChainInternal when ownChainAccount.chainID !== ccm.receivingChainID', async () => {
 		// Arrange
-		getChannelMock.mockResolvedValue(channelData);
+		channelStoreMock.get.mockResolvedValue(channelData);
 
-		getOwnChainAccountMock.mockResolvedValue({
+		ownChainAccountStoreMock.get.mockResolvedValue({
 			...ownChainAccount,
 			chainID: utils.intToBuffer(3, 4),
 		});
@@ -202,9 +213,9 @@ describe('SidechainCCRegistrationCommand', () => {
 
 	it('should call terminateChainInternal when ownChainAccount.name !== decodedParams.name', async () => {
 		// Arrange
-		getChannelMock.mockResolvedValue(channelData);
+		channelStoreMock.get.mockResolvedValue(channelData);
 
-		getOwnChainAccountMock.mockResolvedValue({ ...ownChainAccount, name: 'chain1' });
+		ownChainAccountStoreMock.get.mockResolvedValue({ ...ownChainAccount, name: 'chain1' });
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
@@ -234,9 +245,9 @@ describe('SidechainCCRegistrationCommand', () => {
 			},
 			partnerChainOutboxRoot: Buffer.alloc(0),
 		};
-		getChannelMock.mockResolvedValue(incorrectChainIDChannelData);
+		channelStoreMock.get.mockResolvedValue(incorrectChainIDChannelData);
 
-		getOwnChainAccountMock.mockResolvedValue(ownChainAccount);
+		ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount);
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
@@ -266,9 +277,9 @@ describe('SidechainCCRegistrationCommand', () => {
 			},
 			partnerChainOutboxRoot: Buffer.alloc(0),
 		};
-		getChannelMock.mockResolvedValue(incorrectChainIDChannelData);
+		channelStoreMock.get.mockResolvedValue(incorrectChainIDChannelData);
 
-		getOwnChainAccountMock.mockResolvedValue(ownChainAccount);
+		ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount);
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
@@ -284,9 +295,9 @@ describe('SidechainCCRegistrationCommand', () => {
 
 	it('should call terminateChainInternal when decodedParams.chainID !== ownChainAccount.chainID', async () => {
 		// Arrange
-		getChannelMock.mockResolvedValue(channelData);
+		channelStoreMock.get.mockResolvedValue(channelData);
 
-		getOwnChainAccountMock.mockResolvedValue(ownChainAccount);
+		ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount);
 
 		const differentChainID = utils.getRandomBytes(32);
 		await ccRegistrationCommand.execute({
@@ -306,9 +317,9 @@ describe('SidechainCCRegistrationCommand', () => {
 
 	it('should execute successfully', async () => {
 		// Arrange
-		getChannelMock.mockResolvedValue(channelData);
+		channelStoreMock.get.mockResolvedValue(channelData);
 
-		getOwnChainAccountMock.mockResolvedValue(ownChainAccount);
+		ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount);
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 

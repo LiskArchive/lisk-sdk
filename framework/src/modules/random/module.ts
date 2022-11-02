@@ -42,7 +42,7 @@ import { HashOnion, HashOnionStore } from './stores/hash_onion';
 
 export class RandomModule extends BaseModule {
 	public method = new RandomMethod(this.stores, this.events, this.name);
-	public endpoint = new RandomEndpoint(this.stores, this.offchainStores, this.events);
+	public endpoint = new RandomEndpoint(this.stores, this.offchainStores);
 
 	private _maxLengthReveals!: number;
 

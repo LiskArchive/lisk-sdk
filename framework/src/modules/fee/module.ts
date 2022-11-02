@@ -30,7 +30,7 @@ import { configSchema } from './schemas';
 export class FeeModule extends BaseModule {
 	public method = new FeeMethod(this.stores, this.events);
 	public configSchema = configSchema;
-	public endpoint = new FeeEndpoint(this.stores, this.offchainStores, this.events);
+	public endpoint = new FeeEndpoint(this.stores, this.offchainStores);
 	private _tokenMethod!: TokenMethod;
 	private _minFeePerByte!: number;
 	private _tokenID!: Buffer;
