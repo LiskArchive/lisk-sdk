@@ -36,6 +36,7 @@ export const CHAIN_ID_LENGTH = 4;
 export const LOCAL_ID_LENGTH = 4;
 export const TOKEN_ID_LENGTH = CHAIN_ID_LENGTH + LOCAL_ID_LENGTH;
 export const MAX_NUMBER_BYTES_Q96 = 24;
+export const MAX_CAP = 10000;
 
 export const defaultConfig = {
 	factorSelfVotes: 10,
@@ -46,11 +47,11 @@ export const defaultConfig = {
 	failSafeInactiveWindow: 260000,
 	punishmentWindow: PUNISHMENT_PERIOD,
 	roundLength: 103,
-	bftThreshold: 68,
 	minWeightStandby: '100000000000',
 	numberActiveDelegates: 101,
 	numberStandbyDelegates: 2,
 	tokenIDDPoS: '0000000000000000',
+	maxBFTWeightCap: 500,
 };
 
 export const enum PoSEventResult {

@@ -14,38 +14,30 @@
 import { BaseStore } from '../../base_store';
 
 export interface SnapshotStoreData {
-	activeDelegates: Buffer[];
 	delegateWeightSnapshot: {
-		delegateAddress: Buffer;
-		delegateWeight: bigint;
+		address: Buffer;
+		weight: bigint;
 	}[];
 }
 
 export const snapshotStoreSchema = {
 	$id: '/dpos/store/snapshot',
 	type: 'object',
-	required: ['activeDelegates', 'delegateWeightSnapshot'],
+	required: ['delegateWeightSnapshot'],
 	properties: {
-		activeDelegates: {
+		delegateWeightSnapshot: {
 			type: 'array',
 			fieldNumber: 1,
 			items: {
-				dataType: 'bytes',
-			},
-		},
-		delegateWeightSnapshot: {
-			type: 'array',
-			fieldNumber: 2,
-			items: {
 				type: 'object',
-				required: ['delegateAddress', 'delegateWeight'],
+				required: ['address', 'weight'],
 				properties: {
-					delegateAddress: {
+					address: {
 						dataType: 'bytes',
 						fieldNumber: 1,
 						format: 'lisk32',
 					},
-					delegateWeight: {
+					weight: {
 						dataType: 'uint64',
 						fieldNumber: 2,
 					},
