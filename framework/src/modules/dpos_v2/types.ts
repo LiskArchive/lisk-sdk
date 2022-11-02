@@ -15,7 +15,6 @@
 import {
 	MethodContext,
 	ImmutableMethodContext,
-	Validator,
 	NextValidatorsSetter,
 } from '../../state_machine/types';
 import { JSONObject } from '../../types';
