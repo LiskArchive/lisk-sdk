@@ -19,19 +19,12 @@ import {
 	VerifyStatus,
 } from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
-import {
-	EMPTY_KEY,
-	LOCKING_PERIOD_SELF_VOTES,
-	LOCKING_PERIOD_VOTES,
-	MODULE_NAME_DPOS,
-	PUNISHMENT_WINDOW_SELF_VOTES,
-	PUNISHMENT_WINDOW_VOTES,
-} from '../constants';
+import { EMPTY_KEY, MODULE_NAME_DPOS } from '../constants';
 import { DelegateStore } from '../stores/delegate';
 import { GenesisDataStore } from '../stores/genesis';
 import { VoterStore } from '../stores/voter';
-import { TokenMethod, TokenIDDPoS, UnlockCommandDependencies, UnlockingObject } from '../types';
-import { isPunished, isCertificateGenerated } from '../utils';
+import { TokenMethod, TokenIDDPoS, UnlockCommandDependencies } from '../types';
+import { isPunished, isCertificateGenerated, hasWaited } from '../utils';
 
 export class UnlockCommand extends BaseCommand {
 	private _tokenMethod!: TokenMethod;
@@ -47,7 +40,6 @@ export class UnlockCommand extends BaseCommand {
 		this._roundLength = args.roundLength;
 	}
 
-	// TODO: Check verification logic
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(context: CommandVerifyContext): Promise<VerificationResult> {
 		const { transaction } = context;
@@ -74,7 +66,7 @@ export class UnlockCommand extends BaseCommand {
 		const delegateSubstore = this.stores.get(DelegateStore);
 		const voterSubstore = this.stores.get(VoterStore);
 		const voterData = await voterSubstore.get(context, senderAddress);
-		// const ineligibleUnlocks = [];
+		const ineligibleUnlocks = [];
 		const genesisDataStore = this.stores.get(GenesisDataStore);
 		const genesisData = await genesisDataStore.get(context, EMPTY_KEY);
 		const { height: genesisHeight } = genesisData;
@@ -83,7 +75,8 @@ export class UnlockCommand extends BaseCommand {
 			const { pomHeights } = await delegateSubstore.get(context, unlockObject.delegateAddress);
 
 			if (
-				this._isUnlockable(unlockObject, pomHeights, senderAddress, height) &&
+				hasWaited(unlockObject, senderAddress, height) &&
+				!isPunished(unlockObject, pomHeights, senderAddress, height) &&
 				isCertificateGenerated({
 					unlockObject,
 					genesisHeight,
@@ -91,9 +84,6 @@ export class UnlockCommand extends BaseCommand {
 					roundLength: this._roundLength,
 				})
 			) {
-				// delete unlockObject from voterStore(senderAddress).pendingUnlocks
-				await voterSubstore.del(context, senderAddress);
-
 				await this._tokenMethod.unlock(
 					getMethodContext(),
 					senderAddress,
@@ -101,60 +91,14 @@ export class UnlockCommand extends BaseCommand {
 					this._tokenIDDPoS,
 					unlockObject.amount,
 				);
+				continue;
 			}
-
-			// if (
-			// 	hasWaited(unlockObject, senderAddress, height) &&
-			// 	!isPunished(unlockObject, pomHeights, senderAddress, height) &&
-			// 	isCertificateGenerated({
-			// 		unlockObject,
-			// 		genesisHeight,
-			// 		maxHeightCertified,
-			// 		roundLength: this._roundLength,
-			// 	})
-			// ) {
-			// 	await this._tokenMethod.unlock(
-			// 		getMethodContext(),
-			// 		senderAddress,
-			// 		MODULE_NAME_DPOS,
-			// 		this._tokenIDDPoS,
-			// 		unlockObject.amount,
-			// 	);
-			// 	continue;
-			// }
-			// ineligibleUnlocks.push(unlockObject);
+			ineligibleUnlocks.push(unlockObject);
 		}
-		// if (voterData.pendingUnlocks.length === ineligibleUnlocks.length) {
-		// 	throw new Error('No eligible voter data was found for unlocking');
-		// }
-		// voterData.pendingUnlocks = ineligibleUnlocks;
-		// await voterSubstore.set(context, senderAddress, voterData);
-	}
-
-	public _isUnlockable(
-		unlockObject: UnlockingObject,
-		pomHeights: ReadonlyArray<number>,
-		senderAddress: Buffer,
-		height: number,
-	): boolean {
-		const { delegateAddress } = unlockObject;
-		const lastPomHeight = pomHeights[pomHeights.length - 1];
-		const lockingPeriod = delegateAddress.equals(senderAddress)
-			? LOCKING_PERIOD_SELF_VOTES
-			: LOCKING_PERIOD_VOTES;
-		const punishmentWindow = delegateAddress.equals(senderAddress)
-			? PUNISHMENT_WINDOW_SELF_VOTES
-			: PUNISHMENT_WINDOW_VOTES;
-
-		if (!isPunished(unlockObject, pomHeights, delegateAddress, height)) {
-			if (height - unlockObject.unvoteHeight < lockingPeriod) {
-				return false;
-			}
+		if (voterData.pendingUnlocks.length === ineligibleUnlocks.length) {
+			throw new Error('No eligible voter data was found for unlocking');
 		}
-
-		return !(
-			height - lastPomHeight < punishmentWindow &&
-			lastPomHeight < unlockObject.unvoteHeight + lockingPeriod
-		);
+		voterData.pendingUnlocks = ineligibleUnlocks;
+		await voterSubstore.set(context, senderAddress, voterData);
 	}
 }

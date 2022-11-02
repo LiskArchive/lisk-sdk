@@ -15,7 +15,12 @@
 import { BlockHeader, Transaction } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../../../src/testing';
-import { UnlockCommand, CommandExecuteContext, DPoSModule } from '../../../../../src';
+import {
+	UnlockCommand,
+	CommandExecuteContext,
+	DPoSModule,
+	CommandVerifyContext,
+} from '../../../../../src';
 import {
 	defaultConfig,
 	EMPTY_KEY,
@@ -32,6 +37,7 @@ import { DelegateStore } from '../../../../../src/modules/dpos_v2/stores/delegat
 import { VoterStore } from '../../../../../src/modules/dpos_v2/stores/voter';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import { GenesisDataStore } from '../../../../../src/modules/dpos_v2/stores/genesis';
+import { VerifyStatus } from '../../../../../src/state_machine';
 
 describe('UnlockCommand', () => {
 	const dpos = new DPoSModule();
@@ -49,6 +55,7 @@ describe('UnlockCommand', () => {
 	let unlockableObject3: UnlockingObject;
 	let nonUnlockableObject: UnlockingObject;
 	let context: CommandExecuteContext;
+	let verifyContext: CommandVerifyContext;
 	let storedData: VoterData;
 	const delegate1 = {
 		name: 'delegate1',
@@ -118,6 +125,55 @@ describe('UnlockCommand', () => {
 		genesisSubstore = dpos.stores.get(GenesisDataStore);
 		blockHeight = 8760000;
 		header = testing.createFakeBlockHeader({ height: blockHeight });
+	});
+
+	describe('verify', () => {
+		it('should return an OK verify status', async () => {
+			verifyContext = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					header,
+					chainID,
+					maxHeightCertified: blockHeight,
+				})
+				.createCommandVerifyContext();
+
+			const result = await unlockCommand.verify(verifyContext);
+
+			expect(result.status).toBe(VerifyStatus.OK);
+		});
+
+		it('should return an error if transaction params are not empty', async () => {
+			const transactionX = new Transaction({
+				module: 'dpos',
+				command: 'unlock',
+				senderPublicKey: publicKey,
+				nonce: BigInt(0),
+				fee: BigInt(100000000),
+				params: Buffer.alloc(5),
+				signatures: [publicKey],
+			});
+
+			verifyContext = testing
+				.createTransactionContext({
+					stateStore,
+					transaction: transactionX,
+					header,
+					chainID,
+					maxHeightCertified: blockHeight,
+				})
+				.createCommandVerifyContext();
+
+			const expected = {
+				status: VerifyStatus.FAIL,
+				error: new Error('Unlock transaction params must be empty.'),
+			};
+
+			const result = await unlockCommand.verify(verifyContext);
+
+			expect(result).toMatchObject(expected);
+		});
 	});
 
 	describe(`when non self-voted non-punished account waits ${WAIT_TIME_VOTE} blocks since unvoteHeight`, () => {
