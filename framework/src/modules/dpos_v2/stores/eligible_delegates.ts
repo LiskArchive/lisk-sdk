@@ -54,7 +54,7 @@ export class EligibleDelegatesStore extends BaseStore<EligibleDelegate> {
 	public async getTop(context: ImmutableStoreGetter, count: number) {
 		return this.iterate(context, {
 			gte: Buffer.alloc(KEY_LENGTH, 0),
-			lte: Buffer.alloc(8 + 20, 255),
+			lte: Buffer.alloc(KEY_LENGTH, 255),
 			limit: count,
 			reverse: true,
 		});
@@ -63,7 +63,7 @@ export class EligibleDelegatesStore extends BaseStore<EligibleDelegate> {
 	public async getAll(context: ImmutableStoreGetter) {
 		return this.iterate(context, {
 			gte: Buffer.alloc(KEY_LENGTH, 0),
-			lte: Buffer.alloc(8 + 20, 255),
+			lte: Buffer.alloc(KEY_LENGTH, 255),
 			reverse: true,
 		});
 	}
@@ -83,6 +83,10 @@ export class EligibleDelegatesStore extends BaseStore<EligibleDelegate> {
 		const oldKey = this.getKey(address, oldWeight);
 		await this.del(context, oldKey);
 
+		if (delegate.isBanned) {
+			return;
+		}
+
 		const newWeight = getDelegateWeight(
 			BigInt(this._config.factorSelfVotes),
 			delegate.selfVotes,
@@ -92,9 +96,6 @@ export class EligibleDelegatesStore extends BaseStore<EligibleDelegate> {
 			return;
 		}
 
-		if (delegate.isBanned) {
-			return;
-		}
 		const lastPomHeight = delegate.pomHeights.length
 			? delegate.pomHeights[delegate.pomHeights.length - 1]
 			: 0;
