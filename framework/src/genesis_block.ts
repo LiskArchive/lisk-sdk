@@ -64,7 +64,7 @@ export const generateGenesisBlock = async (
 		maxHeightPrevoted: height,
 		signature: EMPTY_BUFFER,
 		transactionRoot: EMPTY_HASH,
-		impliesMaxPrevote: true,
+		impliesMaxPrevotes: true,
 		assetRoot,
 		aggregateCommit: {
 			height: 0,

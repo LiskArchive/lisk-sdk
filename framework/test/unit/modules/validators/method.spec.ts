@@ -587,7 +587,7 @@ describe('ValidatorsModuleMethod', () => {
 		});
 	});
 
-	describe('getValidatorAccount', () => {
+	describe('getValidatorKeys', () => {
 		const validAddress = utils.getRandomBytes(20);
 		let validatorAccount: ValidatorKeys;
 		beforeEach(async () => {
@@ -603,7 +603,7 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should get validator from store', async () => {
-			const receivedValidatorAccount = await validatorsMethod.getValidatorAccount(
+			const receivedValidatorAccount = await validatorsMethod.getValidatorKeys(
 				methodContext,
 				validAddress,
 			);
@@ -613,14 +613,14 @@ describe('ValidatorsModuleMethod', () => {
 		it('should throw when address length is not 20', async () => {
 			const invalidAddress = utils.getRandomBytes(19);
 			await expect(
-				validatorsMethod.getValidatorAccount(methodContext, invalidAddress),
+				validatorsMethod.getValidatorKeys(methodContext, invalidAddress),
 			).rejects.toThrow('Address is not valid');
 		});
 
 		it('should throw if address does not exist', async () => {
 			const nonExistingAddress = utils.getRandomBytes(20);
 			await expect(
-				validatorsMethod.getValidatorAccount(methodContext, nonExistingAddress),
+				validatorsMethod.getValidatorKeys(methodContext, nonExistingAddress),
 			).rejects.toThrow('No validator account found for the input address.');
 		});
 	});

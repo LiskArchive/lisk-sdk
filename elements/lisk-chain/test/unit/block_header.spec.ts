@@ -32,7 +32,7 @@ const getBlockAttrs = () => ({
 	generatorAddress: Buffer.from('be63fb1c0426573352556f18b21efd5b6183c39c', 'hex'),
 	maxHeightPrevoted: 1000988,
 	maxHeightGenerated: 1000988,
-	impliesMaxPrevote: true,
+	impliesMaxPrevotes: true,
 	validatorsHash: utils.hash(Buffer.alloc(0)),
 	aggregateCommit: {
 		height: 0,
@@ -51,7 +51,7 @@ const getGenesisBlockAttrs = () => ({
 	transactionRoot: EMPTY_HASH,
 	assetRoot: EMPTY_HASH,
 	eventRoot: EMPTY_HASH,
-	impliesMaxPrevote: true,
+	impliesMaxPrevotes: true,
 	generatorAddress: Buffer.alloc(20, 0),
 	maxHeightPrevoted: 1009988,
 	maxHeightGenerated: 0,

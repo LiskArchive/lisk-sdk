@@ -44,7 +44,7 @@ Object {
       "dataType": "uint32",
       "fieldNumber": 3,
     },
-    "impliesMaxPrevote": Object {
+    "impliesMaxPrevotes": Object {
       "dataType": "boolean",
       "fieldNumber": 12,
     },
@@ -97,7 +97,7 @@ Object {
     "stateRoot",
     "maxHeightPrevoted",
     "maxHeightGenerated",
-    "impliesMaxPrevote",
+    "impliesMaxPrevotes",
     "validatorsHash",
     "aggregateCommit",
     "signature",
@@ -154,7 +154,7 @@ Object {
       "dataType": "bytes",
       "fieldNumber": 16,
     },
-    "impliesMaxPrevote": Object {
+    "impliesMaxPrevotes": Object {
       "dataType": "boolean",
       "fieldNumber": 12,
     },
@@ -207,7 +207,7 @@ Object {
     "stateRoot",
     "maxHeightPrevoted",
     "maxHeightGenerated",
-    "impliesMaxPrevote",
+    "impliesMaxPrevotes",
     "validatorsHash",
     "aggregateCommit",
     "signature",
@@ -261,7 +261,7 @@ Object {
       "dataType": "uint32",
       "fieldNumber": 3,
     },
-    "impliesMaxPrevote": Object {
+    "impliesMaxPrevotes": Object {
       "dataType": "boolean",
       "fieldNumber": 12,
     },
@@ -310,7 +310,7 @@ Object {
     "stateRoot",
     "maxHeightPrevoted",
     "maxHeightGenerated",
-    "impliesMaxPrevote",
+    "impliesMaxPrevotes",
     "validatorsHash",
     "aggregateCommit",
   ],

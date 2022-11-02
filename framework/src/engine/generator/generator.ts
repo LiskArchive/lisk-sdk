@@ -494,7 +494,7 @@ export class Generator {
 			generatorAddress,
 		);
 		const aggregateCommit = await this._consensus.getAggregateCommit(stateStore);
-		const impliesMaxPrevote = await this._bft.method.impliesMaximalPrevotes(stateStore, {
+		const impliesMaxPrevotes = await this._bft.method.impliesMaximalPrevotes(stateStore, {
 			height,
 			maxHeightGenerated,
 			generatorAddress,
@@ -507,7 +507,7 @@ export class Generator {
 			version: BLOCK_VERSION,
 			maxHeightPrevoted,
 			maxHeightGenerated,
-			impliesMaxPrevote,
+			impliesMaxPrevotes,
 			aggregateCommit,
 			assetRoot: Buffer.alloc(0),
 			stateRoot: Buffer.alloc(0),

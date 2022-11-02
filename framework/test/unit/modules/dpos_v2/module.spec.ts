@@ -114,7 +114,7 @@ describe('DPoS module', () => {
 			const validatorMethod = {
 				setValidatorGeneratorKey: jest.fn(),
 				registerValidatorKeys: jest.fn().mockResolvedValue(true),
-				getValidatorAccount: jest.fn().mockResolvedValue({
+				getValidatorKeys: jest.fn().mockResolvedValue({
 					blsKey: utils.getRandomBytes(48),
 					generatorKey: utils.getRandomBytes(32),
 				}),
@@ -286,8 +286,6 @@ describe('DPoS module', () => {
 					validAsset.genesisData.initDelegates.map(d => ({
 						bftWeight: BigInt(1),
 						address: d,
-						blsKey: expect.any(Buffer),
-						generatorKey: expect.any(Buffer),
 					})),
 				);
 			});
@@ -701,7 +699,7 @@ describe('DPoS module', () => {
 						const validatorMethod = {
 							setValidatorGeneratorKey: jest.fn(),
 							registerValidatorKeys: jest.fn(),
-							getValidatorAccount: jest.fn().mockResolvedValue({
+							getValidatorKeys: jest.fn().mockResolvedValue({
 								blsKey: utils.getRandomBytes(48),
 								generatorKey: utils.getRandomBytes(32),
 							}),
@@ -781,7 +779,7 @@ describe('DPoS module', () => {
 				validatorMethod = {
 					setValidatorGeneratorKey: jest.fn(),
 					registerValidatorKeys: jest.fn(),
-					getValidatorAccount: jest.fn().mockResolvedValue({
+					getValidatorKeys: jest.fn().mockResolvedValue({
 						blsKey: utils.getRandomBytes(48),
 						generatorKey: utils.getRandomBytes(32),
 					}),

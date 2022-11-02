@@ -55,7 +55,7 @@ export interface BlockHeader {
 	stateRoot: Buffer;
 	maxHeightPrevoted: number;
 	maxHeightGenerated: number;
-	impliesMaxPrevote: boolean;
+	impliesMaxPrevotes: boolean;
 	validatorsHash: Buffer;
 	aggregateCommit: AggregateCommit;
 	signature: Buffer;

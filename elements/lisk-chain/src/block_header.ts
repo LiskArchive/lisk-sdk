@@ -28,7 +28,7 @@ export interface BlockHeaderAttrs {
 	readonly timestamp: number;
 	readonly maxHeightPrevoted: number;
 	readonly maxHeightGenerated: number;
-	readonly impliesMaxPrevote: boolean;
+	readonly impliesMaxPrevotes: boolean;
 	readonly aggregateCommit: {
 		readonly height: number;
 		readonly aggregationBits: Buffer;
@@ -53,7 +53,7 @@ export class BlockHeader {
 	public readonly timestamp: number;
 	public readonly maxHeightPrevoted: number;
 	public readonly maxHeightGenerated: number;
-	public readonly impliesMaxPrevote: boolean;
+	public readonly impliesMaxPrevotes: boolean;
 	private _aggregateCommit: {
 		height: number;
 		aggregationBits: Buffer;
@@ -75,7 +75,7 @@ export class BlockHeader {
 		previousBlockID,
 		maxHeightPrevoted,
 		maxHeightGenerated,
-		impliesMaxPrevote,
+		impliesMaxPrevotes,
 		aggregateCommit,
 		validatorsHash,
 		stateRoot,
@@ -92,7 +92,7 @@ export class BlockHeader {
 		this.timestamp = timestamp;
 		this.maxHeightPrevoted = maxHeightPrevoted;
 		this.maxHeightGenerated = maxHeightGenerated;
-		this.impliesMaxPrevote = impliesMaxPrevote;
+		this.impliesMaxPrevotes = impliesMaxPrevotes;
 		this._aggregateCommit = aggregateCommit;
 		this._validatorsHash = validatorsHash;
 		this._eventRoot = eventRoot;
@@ -235,12 +235,12 @@ export class BlockHeader {
 			});
 		}
 
-		if (!header.impliesMaxPrevote) {
+		if (!header.impliesMaxPrevotes) {
 			errors.push({
-				message: 'Genesis block header impliesMaxPrevote must be true',
+				message: 'Genesis block header impliesMaxPrevotes must be true',
 				keyword: 'const',
-				dataPath: 'header.impliesMaxPrevote',
-				schemaPath: 'properties.impliesMaxPrevote',
+				dataPath: 'header.impliesMaxPrevotes',
+				schemaPath: 'properties.impliesMaxPrevotes',
 				params: { allowedValue: true },
 			});
 		}
@@ -373,7 +373,7 @@ export class BlockHeader {
 			generatorAddress: this.generatorAddress,
 			maxHeightPrevoted: this.maxHeightPrevoted,
 			maxHeightGenerated: this.maxHeightGenerated,
-			impliesMaxPrevote: this.impliesMaxPrevote,
+			impliesMaxPrevotes: this.impliesMaxPrevotes,
 		};
 	}
 

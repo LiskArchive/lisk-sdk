@@ -521,7 +521,7 @@ describe('generator', () => {
 			expect(block.header.validatorsHash).toEqual(validatorsHash);
 		});
 
-		it('should assign impliesMaxPrevote to the block', async () => {
+		it('should assign impliesMaxPrevotes to the block', async () => {
 			jest.spyOn(generator['_bft'].method, 'impliesMaximalPrevotes').mockResolvedValue(true);
 
 			const block = await generator.generateBlock({
@@ -531,7 +531,7 @@ describe('generator', () => {
 				height: 2,
 			});
 
-			expect(block.header.impliesMaxPrevote).toEqual(true);
+			expect(block.header.impliesMaxPrevotes).toEqual(true);
 		});
 
 		it('should assign assetRoot to the block', async () => {

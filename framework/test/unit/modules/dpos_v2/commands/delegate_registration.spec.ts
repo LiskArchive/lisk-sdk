@@ -77,7 +77,7 @@ describe('Delegate registration command', () => {
 		mockValidatorsMethod = {
 			setValidatorGeneratorKey: jest.fn(),
 			registerValidatorKeys: jest.fn().mockResolvedValue(true),
-			getValidatorAccount: jest.fn(),
+			getValidatorKeys: jest.fn(),
 			getGeneratorsBetweenTimestamps: jest.fn(),
 			setValidatorsParams: jest.fn(),
 		};

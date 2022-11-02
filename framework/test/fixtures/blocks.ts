@@ -30,7 +30,7 @@ export const genesisBlock = (): Block => {
 		eventRoot: utils.hash(Buffer.alloc(0)),
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: 0,
-		impliesMaxPrevote: true,
+		impliesMaxPrevotes: true,
 		assetRoot: utils.hash(Buffer.alloc(0)),
 		validatorsHash: utils.getRandomBytes(32),
 		aggregateCommit: {
@@ -54,7 +54,7 @@ export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): Block
 	new BlockHeader({
 		version: 2,
 		timestamp: header?.timestamp ?? 0,
-		impliesMaxPrevote: header?.impliesMaxPrevote ?? true,
+		impliesMaxPrevotes: header?.impliesMaxPrevotes ?? true,
 		height: header?.height ?? 0,
 		previousBlockID: header?.previousBlockID ?? utils.hash(utils.getRandomBytes(4)),
 		transactionRoot: header?.transactionRoot ?? utils.hash(utils.getRandomBytes(4)),
@@ -94,7 +94,7 @@ export const createValidDefaultBlock = async (
 		version: 2,
 		height: 1,
 		previousBlockID: genesisBlock().header.id,
-		impliesMaxPrevote: true,
+		impliesMaxPrevotes: true,
 		timestamp: 1000,
 		transactionRoot: txTree.root,
 		stateRoot: utils.getRandomBytes(32),

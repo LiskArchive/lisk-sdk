@@ -61,7 +61,7 @@ describe('RewardModuleMethod', () => {
 			);
 			const blockHeader = createBlockHeaderWithDefaults({
 				height: currentHeight,
-				impliesMaxPrevote: true,
+				impliesMaxPrevotes: true,
 			});
 			const rewardFromMethod = await rewardModule.method.getBlockReward(
 				context,
@@ -79,7 +79,7 @@ describe('RewardModuleMethod', () => {
 			);
 			const blockHeader = createBlockHeaderWithDefaults({
 				height: currentHeight,
-				impliesMaxPrevote: false,
+				impliesMaxPrevotes: false,
 			});
 			const rewardFromMethod = await rewardModule.method.getBlockReward(
 				context,
@@ -97,7 +97,7 @@ describe('RewardModuleMethod', () => {
 			);
 			const blockHeader = createBlockHeaderWithDefaults({
 				height: currentHeight,
-				impliesMaxPrevote: true,
+				impliesMaxPrevotes: true,
 			});
 			const rewardFromMethod = await rewardModule.method.getBlockReward(
 				context,
@@ -114,7 +114,7 @@ describe('RewardModuleMethod', () => {
 			{ mint: jest.fn() } as any,
 			{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
 		);
-		const blockHeader = createBlockHeaderWithDefaults({ height: 1, impliesMaxPrevote: true });
+		const blockHeader = createBlockHeaderWithDefaults({ height: 1, impliesMaxPrevotes: true });
 		const rewardFromMethod = await rewardModule.method.getBlockReward(
 			context,
 			blockHeader,

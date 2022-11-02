@@ -136,7 +136,7 @@ export class ValidatorsMethod extends BaseMethod {
 		return blsKeysSubStore.get(methodContext, blsKey);
 	}
 
-	public async getValidatorAccount(
+	public async getValidatorKeys(
 		methodContext: ImmutableMethodContext,
 		address: Buffer,
 	): Promise<ValidatorKeys> {
@@ -323,13 +323,23 @@ export class ValidatorsMethod extends BaseMethod {
 		validatorSetter: NextValidatorsSetter,
 		preCommitThreshold: bigint,
 		certificateThreshold: bigint,
-		validators: Validator[],
+		validators: Pick<Validator, 'address' | 'bftWeight'>[],
 	): Promise<void> {
+		const validatorsSubStore = this.stores.get(ValidatorKeysStore);
+		const validatorsWithKey = [];
+		for (const validator of validators) {
+			const keys = await validatorsSubStore.get(methodContext, validator.address);
+			validatorsWithKey.push({
+				...validator,
+				generatorKey: keys.generatorKey,
+				blsKey: keys.blsKey,
+			});
+		}
 		await this.stores.get(ValidatorsParamsStore).set(methodContext, EMPTY_KEY, {
 			certificateThreshold,
 			preCommitThreshold,
-			validators,
+			validators: validatorsWithKey,
 		});
-		validatorSetter.setNextValidators(preCommitThreshold, certificateThreshold, validators);
+		validatorSetter.setNextValidators(preCommitThreshold, certificateThreshold, validatorsWithKey);
 	}
 }

@@ -41,7 +41,7 @@ describe('block', () => {
 			generatorAddress: Buffer.from('be63fb1c0426573352556f18b21efd5b6183c39c', 'hex'),
 			maxHeightPrevoted: 1000988,
 			maxHeightGenerated: 1000988,
-			impliesMaxPrevote: true,
+			impliesMaxPrevotes: true,
 			validatorsHash: utils.hash(Buffer.alloc(0)),
 			aggregateCommit: {
 				height: 0,
@@ -68,7 +68,7 @@ describe('block', () => {
 			generatorAddress: 'be63fb1c0426573352556f18b21efd5b6183c39c',
 			maxHeightPrevoted: 1000988,
 			maxHeightGenerated: 1000988,
-			impliesMaxPrevote: true,
+			impliesMaxPrevotes: true,
 			validatorsHash: utils.hash(Buffer.alloc(0)).toString('hex'),
 			aggregateCommit: {
 				height: 0,

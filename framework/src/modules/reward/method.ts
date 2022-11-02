@@ -63,7 +63,7 @@ export class RewardMethod extends BaseMethod {
 			return [BigInt(0), REWARD_REDUCTION_SEED_REVEAL];
 		}
 
-		if (!header.impliesMaxPrevote) {
+		if (!header.impliesMaxPrevotes) {
 			return [defaultReward / BigInt(REWARD_REDUCTION_FACTOR_BFT), REWARD_REDUCTION_MAX_PREVOTES];
 		}
 

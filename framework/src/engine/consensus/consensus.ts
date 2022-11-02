@@ -727,7 +727,7 @@ export class Consensus {
 			);
 		}
 		const implyMaxPrevote = await this._bft.method.impliesMaximalPrevotes(stateStore, block.header);
-		if (block.header.impliesMaxPrevote !== implyMaxPrevote) {
+		if (block.header.impliesMaxPrevotes !== implyMaxPrevote) {
 			throw new Error('Invalid imply max prevote.');
 		}
 	}

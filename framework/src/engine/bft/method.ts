@@ -14,11 +14,10 @@
 
 import { BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
-import { codec } from '@liskhq/lisk-codec';
 import {
 	areDistinctHeadersContradicting,
+	computeValidatorsHash,
 	sortValidatorsByAddress,
-	sortValidatorsByBLSKey,
 } from './utils';
 import { getBFTParameters } from './bft_params';
 import {
@@ -32,9 +31,6 @@ import {
 	bftVotesSchema,
 	BFTVotes,
 	BFTParameters,
-	ValidatorsHashInfo,
-	ValidatorsHashInput,
-	validatorsHashInputSchema,
 	bftParametersSchema,
 	BFTVotesActiveValidatorsVoteInfo,
 } from './schemas';
@@ -109,7 +105,7 @@ export class BFTMethod {
 	): Promise<boolean> {
 		const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
-		// if blockBFTInfos is empty (ie: right after executing genesis block), next block never implies prevotes
+		// if blockBFTInfos is empty(for genesis block + 1), check the consistency in height and maxHeightGenerated
 		if (bftVotes.blockBFTInfos.length === 0) {
 			return header.height > header.maxHeightGenerated;
 		}
@@ -129,7 +125,7 @@ export class BFTMethod {
 			return false;
 		}
 
-		// previous block generated is not stored in the state, and it will implies maximalPrevotes
+		// there is no block information stored for height previousHeight and blockHeader implies the maximal number of prevotes
 		const offset = currentTip.height - previousHeight;
 		if (offset >= bftVotes.blockBFTInfos.length) {
 			return true;
@@ -171,6 +167,9 @@ export class BFTMethod {
 		}
 		let aggregateBFTWeight = BigInt(0);
 		for (const validator of validators) {
+			if (validator.bftWeight < 0) {
+				throw new Error('BFT Weight must be 0 or greater.');
+			}
 			aggregateBFTWeight += validator.bftWeight;
 		}
 		if (
@@ -186,7 +185,7 @@ export class BFTMethod {
 			throw new Error('Invalid certificateThreshold input.');
 		}
 
-		const validatorsHash = this._computeValidatorsHash(validators, certificateThreshold);
+		const validatorsHash = computeValidatorsHash(validators, certificateThreshold);
 		const bftParams: BFTParameters = {
 			prevoteThreshold: (BigInt(2) * aggregateBFTWeight) / BigInt(3) + BigInt(1),
 			precommitThreshold,
@@ -254,25 +253,5 @@ export class BFTMethod {
 
 	public isWithinTimeslot(slot: number, timestamp: number): boolean {
 		return this.getSlotNumber(timestamp) === slot;
-	}
-
-	private _computeValidatorsHash(validators: Validator[], certificateThreshold: bigint) {
-		const validatorsHashInfo: ValidatorsHashInfo[] = [];
-		for (const validator of validators) {
-			if (validator.bftWeight <= BigInt(0)) {
-				continue;
-			}
-			validatorsHashInfo.push({
-				blsKey: validator.blsKey,
-				bftWeight: validator.bftWeight,
-			});
-		}
-		sortValidatorsByBLSKey(validatorsHashInfo);
-		const input: ValidatorsHashInput = {
-			activeValidators: validatorsHashInfo,
-			certificateThreshold,
-		};
-		const encodedValidatorsHashInput = codec.encode(validatorsHashInputSchema, input);
-		return utils.hash(encodedValidatorsHashInput);
 	}
 }

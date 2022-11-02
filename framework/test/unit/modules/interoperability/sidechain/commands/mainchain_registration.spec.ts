@@ -114,7 +114,7 @@ describe('Mainchain registration command', () => {
 			new Map(),
 		);
 		validatorsMethod = {
-			getValidatorAccount: jest.fn(),
+			getValidatorKeys: jest.fn(),
 			getValidatorsParams: jest.fn(),
 		};
 		mainchainRegistrationCommand.addDependencies(validatorsMethod);

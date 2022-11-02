@@ -61,10 +61,7 @@ export interface ValidatorsMethod {
 		generatorKey: Buffer,
 		proofOfPossession: Buffer,
 	): Promise<boolean>;
-	getValidatorAccount(
-		methodContext: ImmutableMethodContext,
-		address: Buffer,
-	): Promise<ValidatorKeys>;
+	getValidatorKeys(methodContext: ImmutableMethodContext, address: Buffer): Promise<ValidatorKeys>;
 	getGeneratorsBetweenTimestamps(
 		methodContext: ImmutableMethodContext,
 		startTimestamp: number,
@@ -75,7 +72,7 @@ export interface ValidatorsMethod {
 		validatorSetter: NextValidatorsSetter,
 		preCommitThreshold: bigint,
 		certificateThreshold: bigint,
-		validators: Validator[],
+		validators: { address: Buffer; bftWeight: bigint }[],
 	): Promise<void>;
 }
 

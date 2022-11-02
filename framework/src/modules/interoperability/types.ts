@@ -274,10 +274,7 @@ export interface ValidatorKeys {
 }
 
 export interface ValidatorsMethod {
-	getValidatorAccount(
-		methodContext: ImmutableMethodContext,
-		address: Buffer,
-	): Promise<ValidatorKeys>;
+	getValidatorKeys(methodContext: ImmutableMethodContext, address: Buffer): Promise<ValidatorKeys>;
 	getValidatorsParams(
 		methodContext: ImmutableMethodContext,
 	): Promise<{ validators: Validator[]; certificateThreshold: bigint }>;

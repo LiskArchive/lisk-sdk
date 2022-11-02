@@ -60,7 +60,7 @@ export interface BlockHeader {
 	generatorAddress: Buffer;
 	maxHeightPrevoted: number;
 	maxHeightGenerated: number;
-	impliesMaxPrevote: boolean;
+	impliesMaxPrevotes: boolean;
 	aggregateCommit: {
 		height: number;
 		aggregationBits: Buffer;

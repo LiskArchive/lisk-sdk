@@ -33,15 +33,16 @@ import {
 	validatorsHashInputSchema,
 } from '../../../../src/engine/bft/schemas';
 import { createFakeBlockHeader } from '../../../../src/testing';
+import { computeValidatorsHash } from '../../../../src/engine';
 
 describe('BFT Method', () => {
 	let bftMethod: BFTMethod;
-	let validatorsMethod: { getValidatorAccount: jest.Mock };
+	let validatorsMethod: { getValidatorKeys: jest.Mock };
 	let stateStore: StateStore;
 
 	beforeEach(() => {
 		bftMethod = new BFTMethod();
-		validatorsMethod = { getValidatorAccount: jest.fn() };
+		validatorsMethod = { getValidatorKeys: jest.fn() };
 		bftMethod.init(103, 0, 10);
 	});
 
@@ -636,7 +637,7 @@ describe('BFT Method', () => {
 		const params30 = createParam();
 
 		beforeEach(async () => {
-			validatorsMethod.getValidatorAccount.mockResolvedValue({ blsKey: utils.getRandomBytes(32) });
+			validatorsMethod.getValidatorKeys.mockResolvedValue({ blsKey: utils.getRandomBytes(32) });
 			stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(utils.intToBuffer(20, 4), params20, bftParametersSchema);
@@ -969,11 +970,11 @@ describe('BFT Method', () => {
 						bftWeight: BigInt(20),
 					},
 				];
-				validatorsMethod.getValidatorAccount.mockImplementation((_, address: Buffer) => {
+				validatorsMethod.getValidatorKeys.mockImplementation((_, address: Buffer) => {
 					return { blsKey: accounts.find(k => k.address.equals(address))?.blsKey };
 				});
 
-				const validatorsHash = bftMethod['_computeValidatorsHash'](accounts, BigInt(99));
+				const validatorsHash = computeValidatorsHash(accounts, BigInt(99));
 
 				const sortedAccounts = [...accounts];
 				sortedAccounts.sort((a, b) => a.blsKey.compare(b.blsKey));

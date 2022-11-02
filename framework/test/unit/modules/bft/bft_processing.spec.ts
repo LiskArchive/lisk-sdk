@@ -109,7 +109,7 @@ describe('BFT processing', () => {
 					);
 					const header = new BlockHeader({
 						version: 2,
-						impliesMaxPrevote: false,
+						impliesMaxPrevotes: false,
 						aggregateCommit: {
 							height: 0,
 							aggregationBits: Buffer.alloc(0),

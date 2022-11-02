@@ -59,7 +59,7 @@ export const signingBlockHeaderSchema = {
 		stateRoot: { dataType: 'bytes', fieldNumber: 9 },
 		maxHeightPrevoted: { dataType: 'uint32', fieldNumber: 10 },
 		maxHeightGenerated: { dataType: 'uint32', fieldNumber: 11 },
-		impliesMaxPrevote: { dataType: 'boolean', fieldNumber: 12 },
+		impliesMaxPrevotes: { dataType: 'boolean', fieldNumber: 12 },
 		validatorsHash: { dataType: 'bytes', fieldNumber: 13 },
 		aggregateCommit: {
 			type: 'object',
@@ -93,7 +93,7 @@ export const signingBlockHeaderSchema = {
 		'stateRoot',
 		'maxHeightPrevoted',
 		'maxHeightGenerated',
-		'impliesMaxPrevote',
+		'impliesMaxPrevotes',
 		'validatorsHash',
 		'aggregateCommit',
 	],

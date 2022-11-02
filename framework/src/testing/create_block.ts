@@ -32,7 +32,7 @@ export const createBlockHeaderWithDefaults = (header?: Partial<BlockHeaderAttrs>
 		version: header?.version ?? 2,
 		timestamp: header?.timestamp ?? 0,
 		height: header?.height ?? 1,
-		impliesMaxPrevote: header?.impliesMaxPrevote ?? true,
+		impliesMaxPrevotes: header?.impliesMaxPrevotes ?? true,
 		previousBlockID: header?.previousBlockID ?? utils.hash(utils.getRandomBytes(4)),
 		transactionRoot: header?.transactionRoot ?? utils.hash(utils.getRandomBytes(4)),
 		stateRoot: header?.stateRoot ?? utils.hash(utils.getRandomBytes(4)),

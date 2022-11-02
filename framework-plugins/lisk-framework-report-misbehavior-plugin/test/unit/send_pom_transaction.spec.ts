@@ -59,7 +59,7 @@ describe('Send PoM transaction', () => {
 			certificateSignature: Buffer.alloc(0),
 			height: 0,
 		},
-		impliesMaxPrevote: false,
+		impliesMaxPrevotes: false,
 		generatorAddress: random20Bytes,
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: 50,
