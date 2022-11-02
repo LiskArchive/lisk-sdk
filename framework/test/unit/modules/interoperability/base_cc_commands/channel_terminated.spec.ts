@@ -13,19 +13,19 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { MainchainInteroperabilityModule } from '../../../../../../src';
+import { MainchainInteroperabilityModule } from '../../../../../src';
 import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	EMPTY_BYTES,
 	MODULE_NAME_INTEROPERABILITY,
-} from '../../../../../../src/modules/interoperability/constants';
-import { MainchainCCChannelTerminatedCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands/channel_terminated';
-import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
-import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
-import { NamedRegistry } from '../../../../../../src/modules/named_registry';
-import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
+} from '../../../../../src/modules/interoperability/constants';
+import { MainchainCCChannelTerminatedCommand } from '../../../../../src/modules/interoperability/mainchain/cc_commands';
+import { MainchainInteroperabilityStore } from '../../../../../src/modules/interoperability/mainchain/store';
+import { CCCommandExecuteContext } from '../../../../../src/modules/interoperability/types';
+import { NamedRegistry } from '../../../../../src/modules/named_registry';
+import { createExecuteCCMsgMethodContext } from '../../../../../src/testing';
 
-describe('MainchainCCChannelTerminatedCommand', () => {
+describe('BaseCCChannelTerminatedCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 	const createTerminatedStateAccountMock = jest.fn();
 
