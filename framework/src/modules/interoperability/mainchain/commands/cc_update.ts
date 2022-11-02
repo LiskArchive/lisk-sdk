@@ -83,11 +83,11 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		}
 		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 		if (partnerChainAccount.status === CHAIN_ACTIVE) {
-			const isChainLive = await interoperabilityInternalMethod.isLive(
+			const isLive = await interoperabilityInternalMethod.isLive(
 				txParams.sendingChainID,
 				Date.now(),
 			);
-			if (!isChainLive) {
+			if (!isLive) {
 				return {
 					status: VerifyStatus.FAIL,
 					error: new Error(

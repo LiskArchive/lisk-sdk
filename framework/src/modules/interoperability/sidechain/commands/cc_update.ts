@@ -82,8 +82,8 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		}
 		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 		if (partnerChainAccount.status === CHAIN_ACTIVE) {
-			const isChainLive = await interoperabilityInternalMethod.isLive(partnerChainIDBuffer);
-			if (!isChainLive) {
+			const isLive = await interoperabilityInternalMethod.isLive(partnerChainIDBuffer);
+			if (!isLive) {
 				return {
 					status: VerifyStatus.FAIL,
 					error: new Error(

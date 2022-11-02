@@ -15,6 +15,10 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { ModuleEndpointContext, SidechainInteroperabilityModule } from '../../../../src';
 import { BaseInteroperabilityEndpoint } from '../../../../src/modules/interoperability/base_interoperability_endpoint';
+import {
+	BLS_PUBLIC_KEY_LENGTH,
+	THRESHOLD_MAINCHAIN,
+} from '../../../../src/modules/interoperability/constants';
 import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
 import { ChainValidatorsStore } from '../../../../src/modules/interoperability/stores/chain_validators';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
@@ -144,7 +148,7 @@ describe('Test interoperability endpoint', () => {
 		mainchainStateRoot: utils.getRandomBytes(32),
 	};
 
-	const terminateStateAccountJSON: TerminatedStateAccountJSON = {
+	const terminatedStateAccountJSON: TerminatedStateAccountJSON = {
 		stateRoot: terminateStateAccount.stateRoot.toString('hex'),
 		initialized: terminateStateAccount.initialized,
 		mainchainStateRoot: terminateStateAccount.mainchainStateRoot?.toString('hex'),
@@ -270,10 +274,10 @@ describe('Test interoperability endpoint', () => {
 	});
 
 	describe('getTerminatedStateAccount', () => {
-		let terminateStateAccountResult: TerminatedStateAccountJSON;
+		let terminatedStateAccountResult: TerminatedStateAccountJSON;
 
 		beforeEach(async () => {
-			terminateStateAccountResult = await testInteroperabilityEndpoint.getTerminatedStateAccount(
+			terminatedStateAccountResult = await testInteroperabilityEndpoint.getTerminatedStateAccount(
 				moduleContext,
 				chainID,
 			);
@@ -284,7 +288,7 @@ describe('Test interoperability endpoint', () => {
 		});
 
 		it('should return JSON format result', () => {
-			expect(terminateStateAccountResult).toEqual(terminateStateAccountJSON);
+			expect(terminatedStateAccountResult).toEqual(terminatedStateAccountJSON);
 		});
 	});
 
@@ -310,27 +314,27 @@ describe('Test interoperability endpoint', () => {
 	describe('getChainValidators', () => {
 		const chainValidators: ChainValidators = {
 			activeValidators: new Array(11).fill(0).map(() => ({
-				blsKey: utils.getRandomBytes(48),
+				blsKey: utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
 				bftWeight: BigInt(1),
 			})),
-			certificateThreshold: BigInt(68),
+			certificateThreshold: BigInt(THRESHOLD_MAINCHAIN),
 		};
 
 		const chainValidatorsJSON: ChainValidatorsJSON = {
-			activeValidators: chainValidators.activeValidators.map(v => ({
-				blsKey: v.blsKey.toString('hex'),
-				bftWeight: v.bftWeight.toString(),
+			activeValidators: chainValidators.activeValidators.map(validator => ({
+				blsKey: validator.blsKey.toString('hex'),
+				bftWeight: validator.bftWeight.toString(),
 			})),
 			certificateThreshold: chainValidators.certificateThreshold.toString(),
 		};
 
-		describe('when chain id exists', () => {
-			let getChainValidatorsResult: ChainValidatorsJSON;
+		describe('when chain ID exists', () => {
+			let chainValidatorsResult: ChainValidatorsJSON;
 
 			beforeEach(async () => {
 				chainAccountStoreMock.has.mockResolvedValue(true);
 				chainValidatorsMock.get.mockResolvedValue(chainValidators);
-				getChainValidatorsResult = await testInteroperabilityEndpoint.getChainValidators(
+				chainValidatorsResult = await testInteroperabilityEndpoint.getChainValidators(
 					moduleContext,
 					chainID,
 				);
@@ -341,11 +345,11 @@ describe('Test interoperability endpoint', () => {
 			});
 
 			it('should return JSON format result', () => {
-				expect(getChainValidatorsResult).toEqual(chainValidatorsJSON);
+				expect(chainValidatorsResult).toEqual(chainValidatorsJSON);
 			});
 		});
 
-		describe('when chain id doesnt exists', () => {
+		describe('when chain ID doesnt exists', () => {
 			it('should throw error when chain id does not exist', async () => {
 				chainAccountStoreMock.has.mockResolvedValue(false);
 				chainValidatorsMock.get.mockResolvedValue(chainValidators);
@@ -360,11 +364,11 @@ describe('Test interoperability endpoint', () => {
 	describe('isChainIDAvailable', () => {
 		it('should return false when the chainID exists', async () => {
 			chainAccountStoreMock.has.mockResolvedValue(true);
-			const isChainIDAvailableResult = await testInteroperabilityEndpoint.isChainIDAvailable(
+			const isAvailable = await testInteroperabilityEndpoint.isChainIDAvailable(
 				moduleContext,
 				chainID,
 			);
-			expect(isChainIDAvailableResult).toBeFalse();
+			expect(isAvailable).toBeFalse();
 		});
 
 		it('should return true when the chainID does not exists', async () => {
