@@ -52,6 +52,7 @@ export type { EventsDefinition, EventCallback } from './controller/event';
 export * as testing from './testing';
 export * from './types';
 export { ValidatorsMethod, ValidatorsModule } from './modules/validators';
+export { AuthMethod, AuthModule, multisigRegMsgSchema } from './modules/auth';
 export {
 	TokenMethod,
 	TokenModule,
