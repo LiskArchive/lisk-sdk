@@ -12,14 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { CommandExecuteContext } from '../../../state_machine/types';
+import {
+	CommandExecuteContext,
+	CommandVerifyContext,
+	VerificationResult,
+	VerifyStatus,
+} from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
 import { EMPTY_KEY, MODULE_NAME_DPOS } from '../constants';
 import { DelegateStore } from '../stores/delegate';
 import { GenesisDataStore } from '../stores/genesis';
 import { VoterStore } from '../stores/voter';
 import { TokenMethod, TokenIDDPoS, UnlockCommandDependencies } from '../types';
-import { hasWaited, isPunished, isCertificateGenerated } from '../utils';
+import { isPunished, isCertificateGenerated, hasWaited } from '../utils';
 
 export class UnlockCommand extends BaseCommand {
 	private _tokenMethod!: TokenMethod;
@@ -33,6 +38,22 @@ export class UnlockCommand extends BaseCommand {
 	public init(args: { tokenIDDPoS: TokenIDDPoS; roundLength: number }) {
 		this._tokenIDDPoS = args.tokenIDDPoS;
 		this._roundLength = args.roundLength;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async verify(context: CommandVerifyContext): Promise<VerificationResult> {
+		const { transaction } = context;
+
+		if (transaction.params.length !== 0) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Unlock transaction params must be empty.'),
+			};
+		}
+
+		return {
+			status: VerifyStatus.OK,
+		};
 	}
 
 	public async execute(context: CommandExecuteContext): Promise<void> {
