@@ -14,7 +14,12 @@
 
 import { Logger } from '../../logger';
 import { MethodContext, EventQueue } from '../../state_machine';
-import { ImmutableMethodContext, ImmutableSubStore, SubStore } from '../../state_machine/types';
+import {
+	ImmutableMethodContext,
+	ImmutableSubStore,
+	SubStore,
+	Validator,
+} from '../../state_machine/types';
 import { OutboxRoot } from './stores/outbox_root';
 import { TerminatedOutboxAccount } from './stores/terminated_outbox';
 import { TerminatedStateAccount } from './stores/terminated_state';
@@ -269,10 +274,10 @@ export interface ValidatorKeys {
 }
 
 export interface ValidatorsMethod {
-	getValidatorAccount(
+	getValidatorKeys(methodContext: ImmutableMethodContext, address: Buffer): Promise<ValidatorKeys>;
+	getValidatorsParams(
 		methodContext: ImmutableMethodContext,
-		address: Buffer,
-	): Promise<ValidatorKeys>;
+	): Promise<{ validators: Validator[]; certificateThreshold: bigint }>;
 }
 
 export interface CrossChainCommandDependencies {

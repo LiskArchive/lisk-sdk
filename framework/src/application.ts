@@ -167,9 +167,14 @@ export class Application {
 		const randomModule = new RandomModule();
 		const validatorModule = new ValidatorsModule();
 		const dposModule = new DPoSModule();
-		const interoperabilityModule = mainchain
-			? new MainchainInteroperabilityModule()
-			: new SidechainInteroperabilityModule();
+		let interoperabilityModule;
+		if (mainchain) {
+			interoperabilityModule = new MainchainInteroperabilityModule();
+			interoperabilityModule.addDependencies(tokenModule.method);
+		} else {
+			interoperabilityModule = new SidechainInteroperabilityModule();
+			interoperabilityModule.addDependencies(validatorModule.method);
+		}
 
 		// resolve dependencies
 		feeModule.addDependencies(tokenModule.method);

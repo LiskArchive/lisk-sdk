@@ -139,7 +139,7 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 			throw new Error('Different generator address never contradict to each other');
 		}
 
-		const { generatorKey } = await this._validatorsMethod.getValidatorAccount(
+		const { generatorKey } = await this._validatorsMethod.getValidatorKeys(
 			getMethodContext(),
 			header1.generatorAddress,
 		);

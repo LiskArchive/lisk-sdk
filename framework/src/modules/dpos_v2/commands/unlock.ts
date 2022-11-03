@@ -60,8 +60,7 @@ export class UnlockCommand extends BaseCommand {
 		const {
 			transaction: { senderAddress },
 			getMethodContext,
-			maxHeightCertified,
-			header: { height },
+			header: { height, aggregateCommit },
 		} = context;
 		const delegateSubstore = this.stores.get(DelegateStore);
 		const voterSubstore = this.stores.get(VoterStore);
@@ -80,7 +79,7 @@ export class UnlockCommand extends BaseCommand {
 				isCertificateGenerated({
 					unlockObject,
 					genesisHeight,
-					maxHeightCertified,
+					maxHeightCertified: aggregateCommit.height,
 					roundLength: this._roundLength,
 				})
 			) {

@@ -32,7 +32,6 @@ export {
 } from './constants';
 export * from './db_keys';
 export type { RawBlock } from './types';
-export { Slots } from './slots';
 export { concatDBKeys } from './utils';
 
 export { StateStore, NotFoundError, CurrentState, SMTStore, IterateOptions } from './state_store';

@@ -59,12 +59,14 @@ describe('RewardModuleMethod', () => {
 				{ mint: jest.fn() } as any,
 				{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
 			);
-			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
+			const blockHeader = createBlockHeaderWithDefaults({
+				height: currentHeight,
+				impliesMaxPrevotes: true,
+			});
 			const rewardFromMethod = await rewardModule.method.getBlockReward(
 				context,
 				blockHeader,
 				blockAsset,
-				true,
 			);
 
 			expect(rewardFromMethod[0]).toBe(rewardFromConfig);
@@ -75,12 +77,14 @@ describe('RewardModuleMethod', () => {
 				{ mint: jest.fn() } as any,
 				{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
 			);
-			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
+			const blockHeader = createBlockHeaderWithDefaults({
+				height: currentHeight,
+				impliesMaxPrevotes: false,
+			});
 			const rewardFromMethod = await rewardModule.method.getBlockReward(
 				context,
 				blockHeader,
 				blockAsset,
-				false,
 			);
 
 			expect(rewardFromMethod[0]).toBe(BigInt(rewardFromConfig) / BigInt(4));
@@ -91,12 +95,14 @@ describe('RewardModuleMethod', () => {
 				{ mint: jest.fn() } as any,
 				{ isSeedRevealValid: jest.fn().mockReturnValue(false) } as any,
 			);
-			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
+			const blockHeader = createBlockHeaderWithDefaults({
+				height: currentHeight,
+				impliesMaxPrevotes: true,
+			});
 			const rewardFromMethod = await rewardModule.method.getBlockReward(
 				context,
 				blockHeader,
 				blockAsset,
-				true,
 			);
 
 			expect(rewardFromMethod[0]).toBe(BigInt(0));
@@ -108,12 +114,11 @@ describe('RewardModuleMethod', () => {
 			{ mint: jest.fn() } as any,
 			{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
 		);
-		const blockHeader = createBlockHeaderWithDefaults({ height: 1 });
+		const blockHeader = createBlockHeaderWithDefaults({ height: 1, impliesMaxPrevotes: true });
 		const rewardFromMethod = await rewardModule.method.getBlockReward(
 			context,
 			blockHeader,
 			blockAsset,
-			true,
 		);
 
 		expect(rewardFromMethod[0]).toBe(BigInt(0));

@@ -420,18 +420,18 @@ export class DPoSModule extends BaseModule {
 		const initBFTThreshold = BigInt(Math.floor((2 * initDelegates.length) / 3) + 1);
 		const validators = [];
 		for (const validatorAddress of initDelegates) {
-			const validatorAccount = await this._validatorsMethod.getValidatorAccount(
-				methodContext,
-				validatorAddress,
-			);
 			validators.push({
 				address: validatorAddress,
-				blsKey: validatorAccount.blsKey,
-				generatorKey: validatorAccount.generatorKey,
 				bftWeight: BigInt(1),
 			});
 		}
-		context.setNextValidators(initBFTThreshold, initBFTThreshold, validators);
+		await this._validatorsMethod.setValidatorsParams(
+			context.getMethodContext(),
+			context,
+			initBFTThreshold,
+			initBFTThreshold,
+			validators,
+		);
 
 		const MAX_UINT32 = 2 ** 32 - 1;
 		const snapshotStore = this.stores.get(SnapshotStore);
@@ -609,22 +609,17 @@ export class DPoSModule extends BaseModule {
 		const bftValidators = [];
 		// TODO: Issue #7670
 		for (const validatorAddress of shuffledValidators) {
-			const validatorAccount = await this._validatorsMethod.getValidatorAccount(
-				methodContext,
-				validatorAddress,
-			);
-
 			const isActive =
 				snapshot.activeDelegates.findIndex(addr => addr.equals(validatorAddress)) > -1;
 			// if validator is active
 			bftValidators.push({
 				address: validatorAddress,
-				blsKey: validatorAccount.blsKey,
-				generatorKey: validatorAccount.generatorKey,
 				bftWeight: isActive ? BigInt(1) : BigInt(0),
 			});
 		}
-		context.setNextValidators(
+		await this._validatorsMethod.setValidatorsParams(
+			context.getMethodContext(),
+			context,
 			BigInt(this._moduleConfig.bftThreshold),
 			BigInt(this._moduleConfig.bftThreshold),
 			bftValidators,
@@ -639,12 +634,10 @@ export class DPoSModule extends BaseModule {
 
 		const newHeight = header.height;
 		const methodContext = getMethodContext();
-		const generators = context.currentValidators;
 		const missedBlocks = await this._validatorsMethod.getGeneratorsBetweenTimestamps(
 			methodContext,
 			previousTimestamp,
 			header.timestamp,
-			generators,
 		);
 
 		const delegateStore = this.stores.get(DelegateStore);

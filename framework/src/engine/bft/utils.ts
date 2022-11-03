@@ -12,19 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore, BlockHeader } from '@liskhq/lisk-chain';
+import { BlockHeader } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { GeneratorKeysNotFoundError } from './errors';
+import { Validator } from '../../abi';
 import {
 	BFTVotesBlockInfo,
-	GeneratorKeys,
-	generatorKeysSchema,
 	ValidatorsHashInfo,
 	ValidatorsHashInput,
 	validatorsHashInputSchema,
 } from './schemas';
-import { BFTHeader, BFTValidator } from './types';
+import { BFTHeader } from './types';
 
 export const areDistinctHeadersContradicting = (b1: BFTHeader, b2: BFTHeader): boolean => {
 	let earlierBlock = b1;
@@ -82,59 +80,7 @@ export const sortValidatorsByAddress = (validators: { address: Buffer }[]) =>
 export const sortValidatorsByBLSKey = (validators: { blsKey: Buffer }[]) =>
 	validators.sort((a, b) => a.blsKey.compare(b.blsKey));
 
-export const validatorsEqual = (v1: BFTValidator[], v2: BFTValidator[]): boolean => {
-	if (v1.length !== v2.length) {
-		return false;
-	}
-	for (let i = 0; i < v1.length; i += 1) {
-		if (!v1[i].address.equals(v2[i].address)) {
-			return false;
-		}
-		if (v1[i].bftWeight !== v2[i].bftWeight) {
-			return false;
-		}
-	}
-
-	return true;
-};
-
-export const getGeneratorKeys = async (
-	keysStore: StateStore,
-	height: number,
-): Promise<GeneratorKeys> => {
-	const start = utils.intToBuffer(0, 4);
-	const end = utils.intToBuffer(height, 4);
-	const results = await keysStore.iterate({
-		limit: 1,
-		gte: start,
-		lte: end,
-		reverse: true,
-	});
-	if (results.length !== 1) {
-		throw new GeneratorKeysNotFoundError();
-	}
-	const [result] = results;
-
-	return codec.decode<GeneratorKeys>(generatorKeysSchema, result.value);
-};
-
-export const deleteGeneratorKeys = async (keysStore: StateStore, height: number): Promise<void> => {
-	const start = utils.intToBuffer(0, 4);
-	const end = utils.intToBuffer(height, 4);
-	const results = await keysStore.iterate({
-		gte: start,
-		lte: end,
-	});
-	if (results.length <= 1) {
-		return;
-	}
-	// Delete all BFT Parameters except the one of largest height which is at most the input height
-	for (let i = 0; i < results.length - 1; i += 1) {
-		await keysStore.del(results[i].key);
-	}
-};
-
-export const computeValidatorsHash = (validators: BFTValidator[], certificateThreshold: bigint) => {
+export const computeValidatorsHash = (validators: Validator[], certificateThreshold: bigint) => {
 	const activeValidators: ValidatorsHashInfo[] = [];
 	for (const validator of validators) {
 		activeValidators.push({
