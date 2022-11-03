@@ -31,6 +31,7 @@ describe('_handlePostBlock', () => {
 		height: 800000,
 		version: 0,
 		previousBlockID: Buffer.alloc(0),
+		impliesMaxPrevotes: false,
 		timestamp: Math.floor(Date.now() / 1000 - 24 * 60 * 60),
 		stateRoot: cryptography.utils.hash(Buffer.alloc(0)),
 		eventRoot: cryptography.utils.hash(Buffer.alloc(0)),

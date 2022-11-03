@@ -33,10 +33,6 @@ export interface ContextParams {
 	header: BlockHeader;
 	assets: BlockAssets;
 	logger: Logger;
-	currentValidators: Validator[];
-	impliesMaxPrevote: boolean;
-	maxHeightCertified: number;
-	certificateThreshold: bigint;
 	eventQueue: EventQueue;
 	transactions?: ReadonlyArray<Transaction>;
 }
@@ -48,10 +44,6 @@ export class BlockContext {
 	private readonly _eventQueue: EventQueue;
 	private readonly _header: BlockHeader;
 	private readonly _assets: BlockAssets;
-	private readonly _currentValidators: Validator[];
-	private readonly _impliesMaxPrevote: boolean;
-	private readonly _maxHeightCertified: number;
-	private readonly _certificateThreshold: bigint;
 	private _transactions?: ReadonlyArray<Transaction>;
 	private _nextValidators?: {
 		precommitThreshold: bigint;
@@ -66,10 +58,6 @@ export class BlockContext {
 		this._eventQueue = params.eventQueue;
 		this._header = params.header;
 		this._assets = params.assets;
-		this._currentValidators = params.currentValidators;
-		this._impliesMaxPrevote = params.impliesMaxPrevote;
-		this._maxHeightCertified = params.maxHeightCertified;
-		this._certificateThreshold = params.certificateThreshold;
 		this._transactions = params.transactions;
 	}
 
@@ -108,10 +96,6 @@ export class BlockContext {
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
 			assets: this._assets,
-			currentValidators: this._currentValidators,
-			impliesMaxPrevote: this._impliesMaxPrevote,
-			maxHeightCertified: this._maxHeightCertified,
-			certificateThreshold: this._certificateThreshold,
 		};
 	}
 
@@ -131,10 +115,6 @@ export class BlockContext {
 			header: this._header,
 			assets: this._assets,
 			transactions: this._transactions,
-			currentValidators: this._currentValidators,
-			impliesMaxPrevote: this._impliesMaxPrevote,
-			maxHeightCertified: this._maxHeightCertified,
-			certificateThreshold: this._certificateThreshold,
 			setNextValidators: (
 				precommitThreshold: bigint,
 				certificateThreshold: bigint,
@@ -161,10 +141,6 @@ export class BlockContext {
 			eventQueue: this._eventQueue,
 			header: this._header,
 			assets: this._assets,
-			currentValidators: this._currentValidators,
-			impliesMaxPrevote: this._impliesMaxPrevote,
-			maxHeightCertified: this._maxHeightCertified,
-			certificateThreshold: this._certificateThreshold,
 		});
 	}
 

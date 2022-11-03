@@ -219,8 +219,7 @@ export class Engine {
 
 		const chainEndpoint = new ChainEndpoint({
 			chain: this._chain,
-			genesisBlockTimestamp: genesis.header.timestamp,
-			interval: this._config.genesis.blockTime,
+			bftMethod: this._bftModule.method,
 		});
 		chainEndpoint.init(this._blockchainDB);
 		const consensusEndpoint = new ConsensusEndpoint({
@@ -239,8 +238,6 @@ export class Engine {
 			broadcaster: this._generator.broadcaster,
 			pool: this._generator.txpool,
 			chain: this._chain,
-			consensus: this._consensus,
-			blockchainDB: this._blockchainDB,
 		});
 
 		for (const [name, handler] of Object.entries(getEndpointHandlers(legacyEndpoint))) {

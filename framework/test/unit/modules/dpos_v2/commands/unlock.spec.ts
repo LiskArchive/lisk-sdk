@@ -116,7 +116,14 @@ describe('UnlockCommand', () => {
 		voterSubstore = dpos.stores.get(VoterStore);
 		genesisSubstore = dpos.stores.get(GenesisDataStore);
 		blockHeight = 8760000;
-		header = testing.createFakeBlockHeader({ height: blockHeight });
+		header = testing.createFakeBlockHeader({
+			height: blockHeight,
+			aggregateCommit: {
+				aggregationBits: Buffer.alloc(0),
+				certificateSignature: Buffer.alloc(0),
+				height: blockHeight,
+			},
+		});
 	});
 
 	describe(`when non self-voted non-punished account waits ${WAIT_TIME_VOTE} blocks since unvoteHeight`, () => {
@@ -157,7 +164,6 @@ describe('UnlockCommand', () => {
 					transaction,
 					header,
 					chainID,
-					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);
@@ -210,7 +216,6 @@ describe('UnlockCommand', () => {
 					transaction,
 					header,
 					chainID,
-					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);
@@ -307,7 +312,6 @@ describe('UnlockCommand', () => {
 					transaction,
 					header,
 					chainID,
-					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);
@@ -366,7 +370,6 @@ describe('UnlockCommand', () => {
 					transaction,
 					header,
 					chainID,
-					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);
@@ -417,7 +420,6 @@ describe('UnlockCommand', () => {
 					transaction,
 					header,
 					chainID,
-					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();
 		});
@@ -463,9 +465,15 @@ describe('UnlockCommand', () => {
 				.createTransactionContext({
 					stateStore,
 					transaction,
-					header,
+					header: testing.createFakeBlockHeader({
+						height: blockHeight,
+						aggregateCommit: {
+							aggregationBits: Buffer.alloc(0),
+							certificateSignature: Buffer.alloc(0),
+							height: 0,
+						},
+					}),
 					chainID,
-					maxHeightCertified: 0,
 				})
 				.createCommandExecuteContext();
 
@@ -513,7 +521,6 @@ describe('UnlockCommand', () => {
 					transaction,
 					header,
 					chainID,
-					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);

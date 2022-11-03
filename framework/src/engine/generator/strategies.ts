@@ -15,7 +15,7 @@ import { TransactionPool, PooledTransaction } from '@liskhq/lisk-transaction-poo
 import { dataStructures } from '@liskhq/lisk-utils';
 import { Transaction, BlockHeader, BlockAssets, Event } from '@liskhq/lisk-chain';
 import { address } from '@liskhq/lisk-cryptography';
-import { ABI, Consensus, TransactionExecutionResult, TransactionVerifyResult } from '../../abi';
+import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../abi';
 
 export class HighFeeGenerationStrategy {
 	private readonly _abi: ABI;
@@ -44,7 +44,6 @@ export class HighFeeGenerationStrategy {
 		contextID: Buffer,
 		header: BlockHeader,
 		assets: BlockAssets,
-		consensus: Consensus,
 	): Promise<{ transactions: Transaction[]; events: Event[] }> {
 		// Initialize array to select transactions
 		const readyTransactions = [];
@@ -89,7 +88,6 @@ export class HighFeeGenerationStrategy {
 					header: header.toObject(),
 					transaction: lowestNonceHighestFeeTrx.toObject(),
 					assets: assets.getAll(),
-					consensus,
 					dryRun: false,
 				});
 				if (executeResult === TransactionExecutionResult.INVALID) {

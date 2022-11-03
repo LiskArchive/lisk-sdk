@@ -82,8 +82,9 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		mockValidatorsMethod = {
 			setValidatorGeneratorKey: jest.fn(),
 			registerValidatorKeys: jest.fn(),
-			getValidatorAccount: jest.fn().mockResolvedValue({ generatorKey: publicKey }),
+			getValidatorKeys: jest.fn().mockResolvedValue({ generatorKey: publicKey }),
 			getGeneratorsBetweenTimestamps: jest.fn(),
+			setValidatorsParams: jest.fn(),
 		};
 		pomCommand.addDependencies({
 			tokenMethod: mockTokenMethod,

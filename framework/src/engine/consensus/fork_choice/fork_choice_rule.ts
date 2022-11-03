@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader, Slots } from '@liskhq/lisk-chain';
+import { BlockHeader } from '@liskhq/lisk-chain';
 import { BFTHeader } from '../types';
 
 export enum ForkStatus {
@@ -24,13 +24,23 @@ export enum ForkStatus {
 	DISCARD = 6,
 }
 
+interface Slots {
+	getSlotTime(slot: number): number;
+	getSlotNumber(timeStamp: number): number;
+	isWithinTimeslot(slot: number, time: number): boolean;
+}
+
 export const forgingSlot = (slots: Slots, block: BFTHeader): number =>
 	slots.getSlotNumber(block.timestamp);
 
 export const isBlockReceivedWithinForgingSlot = (
 	slots: Slots,
 	{ timestamp, receivedAt }: BFTHeader,
-): boolean => slots.isWithinTimeslot(slots.getSlotNumber(timestamp), receivedAt);
+): boolean =>
+	slots.isWithinTimeslot(
+		slots.getSlotNumber(timestamp),
+		receivedAt ?? Math.floor(Date.now() / 1000),
+	);
 
 export const isLastAppliedBlockReceivedWithinForgingSlot = (
 	slots: Slots,

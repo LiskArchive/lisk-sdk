@@ -24,14 +24,3 @@ export interface BFTHeights {
 	maxHeightPrecommitted: number;
 	maxHeightCertified: number;
 }
-
-export interface BFTValidator {
-	address: Buffer;
-	bftWeight: bigint;
-	blsKey: Buffer;
-}
-
-export interface GeneratorKey {
-	address: Buffer;
-	generatorKey: Buffer;
-}

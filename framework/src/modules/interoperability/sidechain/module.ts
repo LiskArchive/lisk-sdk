@@ -13,7 +13,7 @@
  */
 
 import { genesisAuthStoreSchema } from '../../auth/schemas';
-import { ModuleMetadata } from '../../base_module';
+import { ModuleInitArgs, ModuleMetadata } from '../../base_module';
 import { BaseInteroperabilityModule } from '../base_interoperability_module';
 import { BaseInteroperableMethod } from '../base_interoperable_method';
 import { SidechainInteroperabilityMethod } from './method';
@@ -42,6 +42,7 @@ import { ChainValidatorsStore } from '../stores/chain_validators';
 import { ChainAccountUpdatedEvent } from '../events/chain_account_updated';
 import { CcmProcessedEvent } from '../events/ccm_processed';
 import { InvalidRegistrationSignatureEvent } from '../events/invalid_registration_signature';
+import { ValidatorsMethod } from '../types';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod: BaseInteroperableMethod = new SidechainCCMethod(
@@ -69,6 +70,8 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [this._mainchainRegistrationCommand];
 
+	private _validatorsMethod!: ValidatorsMethod;
+
 	public constructor() {
 		super();
 		this.stores.register(ChainAccountStore, new ChainAccountStore(this.name));
@@ -82,6 +85,10 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			InvalidRegistrationSignatureEvent,
 			new InvalidRegistrationSignatureEvent(this.name),
 		);
+	}
+
+	public addDependencies(validatorsMethod: ValidatorsMethod) {
+		this._validatorsMethod = validatorsMethod;
 	}
 
 	public metadata(): ModuleMetadata {
@@ -133,5 +140,10 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
 		await initGenesisStateUtil(context, this.stores);
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async init(_args: ModuleInitArgs) {
+		this._mainchainRegistrationCommand.addDependencies(this._validatorsMethod);
 	}
 }

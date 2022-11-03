@@ -302,11 +302,6 @@ export class ABIHandler implements ABI {
 			eventQueue: new EventQueue(this._executionContext.header.height),
 			// verifyAssets does not have access to transactions
 			transactions: [],
-			// verifyAssets does not have access to those properties
-			currentValidators: [],
-			impliesMaxPrevote: false,
-			maxHeightCertified: 0,
-			certificateThreshold: BigInt(0),
 		});
 		await this._stateMachine.verifyAssets(context);
 
@@ -330,10 +325,6 @@ export class ABIHandler implements ABI {
 			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
 			eventQueue: new EventQueue(this._executionContext.header.height),
-			currentValidators: req.consensus.currentValidators,
-			impliesMaxPrevote: req.consensus.implyMaxPrevote,
-			maxHeightCertified: req.consensus.maxHeightCertified,
-			certificateThreshold: req.consensus.certificateThreshold,
 			transactions: [],
 		});
 		await this._stateMachine.beforeExecuteBlock(context);
@@ -361,10 +352,6 @@ export class ABIHandler implements ABI {
 			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
 			eventQueue: new EventQueue(this._executionContext.header.height),
-			currentValidators: req.consensus.currentValidators,
-			impliesMaxPrevote: req.consensus.implyMaxPrevote,
-			maxHeightCertified: req.consensus.maxHeightCertified,
-			certificateThreshold: req.consensus.certificateThreshold,
 			transactions: req.transactions.map(tx => new Transaction(tx)),
 		});
 		await this._stateMachine.afterExecuteBlock(context);
@@ -396,10 +383,6 @@ export class ABIHandler implements ABI {
 			stateStore,
 			chainID: this.chainID,
 			header,
-			currentValidators: [],
-			impliesMaxPrevote: true,
-			maxHeightCertified: 0,
-			certificateThreshold: BigInt(0),
 		});
 		const result = await this._stateMachine.verifyTransaction(context);
 
@@ -435,10 +418,6 @@ export class ABIHandler implements ABI {
 			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
 			header,
-			currentValidators: req.consensus.currentValidators,
-			impliesMaxPrevote: req.consensus.implyMaxPrevote,
-			maxHeightCertified: req.consensus.maxHeightCertified,
-			certificateThreshold: req.consensus.certificateThreshold,
 		});
 		const status = await this._stateMachine.executeTransaction(context);
 		return {
