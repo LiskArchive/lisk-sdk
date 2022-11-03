@@ -16,7 +16,7 @@ import { BaseEndpoint } from '../base_endpoint';
 import { BaseInteroperableMethod } from './base_interoperable_method';
 import {
 	ChainAccountJSON,
-	ChainValidators,
+	ChainValidatorsJSON,
 	ChannelDataJSON,
 	Inbox,
 	InboxJSON,
@@ -26,46 +26,35 @@ import {
 } from './types';
 import { ModuleEndpointContext } from '../../types';
 import { NamedRegistry } from '../named_registry';
-import { TerminatedStateAccountJSON } from './stores/terminated_state';
-import { TerminatedOutboxAccountJSON } from './stores/terminated_outbox';
-import { BaseInteroperabilityStore } from './base_interoperability_store';
+import { TerminatedStateAccountJSON, TerminatedStateStore } from './stores/terminated_state';
+import { TerminatedOutboxAccountJSON, TerminatedOutboxStore } from './stores/terminated_outbox';
 import { chainAccountToJSON } from './utils';
-import { ImmutableStoreGetter, StoreGetter } from '../base_store';
 import { ChainValidatorsStore } from './stores/chain_validators';
 import { ChainAccountStore } from './stores/chain_account';
+import { ChannelDataStore } from './stores/channel_data';
+import { OwnChainAccountStore } from './stores/own_chain_account';
+import { EMPTY_BYTES } from './constants';
 
-export abstract class BaseInteroperabilityEndpoint<
-	T extends BaseInteroperabilityStore
-> extends BaseEndpoint {
+export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 	protected readonly interoperableCCMethods = new Map<string, BaseInteroperableMethod>();
-	protected abstract getInteroperabilityStore: (context: StoreGetter | ImmutableStoreGetter) => T;
 
-	public constructor(
-		protected stores: NamedRegistry,
-		protected offchainStores: NamedRegistry,
-		interoperableCCMethods: Map<string, BaseInteroperableMethod>,
-		protected events: NamedRegistry,
-	) {
-		super(stores, offchainStores, events);
-		this.interoperableCCMethods = interoperableCCMethods;
+	public constructor(protected stores: NamedRegistry, protected offchainStores: NamedRegistry) {
+		super(stores, offchainStores);
 	}
 
 	public async getChainAccount(
 		context: ModuleEndpointContext,
 		chainID: Buffer,
 	): Promise<ChainAccountJSON> {
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-		return chainAccountToJSON(await interoperabilityStore.getChainAccount(chainID));
+		return chainAccountToJSON(await this.stores.get(ChainAccountStore).get(context, chainID));
 	}
 
 	public async getAllChainAccounts(
 		context: ModuleEndpointContext,
 		startChainID: Buffer,
 	): Promise<{ chains: ChainAccountJSON[] }> {
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-
 		const chainAccounts = (
-			await interoperabilityStore.getAllChainAccounts(startChainID)
+			await this.stores.get(ChainAccountStore).getAllAccounts(context, startChainID)
 		).map(chainAccount => chainAccountToJSON(chainAccount));
 
 		return { chains: chainAccounts };
@@ -75,14 +64,9 @@ export abstract class BaseInteroperabilityEndpoint<
 		context: ModuleEndpointContext,
 		chainID: Buffer,
 	): Promise<ChannelDataJSON> {
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-
-		const {
-			inbox,
-			messageFeeTokenID,
-			outbox,
-			partnerChainOutboxRoot,
-		} = await interoperabilityStore.getChannel(chainID);
+		const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot } = await this.stores
+			.get(ChannelDataStore)
+			.get(context, chainID);
 
 		const inboxJSON = this._toBoxJSON(inbox) as InboxJSON;
 		const outboxJSON = this._toBoxJSON(outbox) as OutboxJSON;
@@ -96,9 +80,9 @@ export abstract class BaseInteroperabilityEndpoint<
 	}
 
 	public async getOwnChainAccount(context: ModuleEndpointContext): Promise<OwnChainAccountJSON> {
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-
-		const { chainID, name, nonce } = await interoperabilityStore.getOwnChainAccount();
+		const { chainID, name, nonce } = await this.stores
+			.get(OwnChainAccountStore)
+			.get(context, EMPTY_BYTES);
 
 		return {
 			chainID: chainID.toString('hex'),
@@ -111,13 +95,9 @@ export abstract class BaseInteroperabilityEndpoint<
 		context: ModuleEndpointContext,
 		chainID: Buffer,
 	): Promise<TerminatedStateAccountJSON> {
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-
-		const {
-			stateRoot,
-			initialized,
-			mainchainStateRoot,
-		} = await interoperabilityStore.getTerminatedStateAccount(chainID);
+		const { stateRoot, initialized, mainchainStateRoot } = await this.stores
+			.get(TerminatedStateStore)
+			.get(context, chainID);
 
 		return {
 			stateRoot: stateRoot.toString('hex'),
@@ -130,13 +110,9 @@ export abstract class BaseInteroperabilityEndpoint<
 		context: ModuleEndpointContext,
 		chainID: Buffer,
 	): Promise<TerminatedOutboxAccountJSON> {
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-
-		const {
-			outboxRoot,
-			outboxSize,
-			partnerChainInboxSize,
-		} = await interoperabilityStore.getTerminatedOutboxAccount(chainID);
+		const { outboxRoot, outboxSize, partnerChainInboxSize } = await this.stores
+			.get(TerminatedOutboxStore)
+			.get(context, chainID);
 
 		return {
 			outboxRoot: outboxRoot.toString('hex'),
@@ -148,7 +124,7 @@ export abstract class BaseInteroperabilityEndpoint<
 	public async getChainValidators(
 		context: ModuleEndpointContext,
 		chainID: Buffer,
-	): Promise<ChainValidators> {
+	): Promise<ChainValidatorsJSON> {
 		const chainAccountStore = this.stores.get(ChainAccountStore);
 		const chainAccountExists = await chainAccountStore.has(context, chainID);
 		if (!chainAccountExists) {
@@ -159,7 +135,13 @@ export abstract class BaseInteroperabilityEndpoint<
 
 		const validators = await chainValidatorsStore.get(context, chainID);
 
-		return validators;
+		return {
+			activeValidators: validators.activeValidators.map(validator => ({
+				blsKey: validator.blsKey.toString('hex'),
+				bftWeight: validator.bftWeight.toString(),
+			})),
+			certificateThreshold: validators.certificateThreshold.toString(),
+		};
 	}
 
 	public async isChainIDAvailable(

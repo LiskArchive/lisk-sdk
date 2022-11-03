@@ -28,27 +28,31 @@ import {
 	CHAIN_ID_MAINCHAIN,
 	CHAIN_TERMINATED,
 	EMPTY_BYTES,
+	MAINCHAIN_ID_BUFFER,
 	MAX_CCM_SIZE,
 } from '../../../../src/modules/interoperability/constants';
 import { CcmSendFailEvent } from '../../../../src/modules/interoperability/events/ccm_send_fail';
 import { CcmSendSuccessEvent } from '../../../../src/modules/interoperability/events/ccm_send_success';
-import { MainchainInteroperabilityStore } from '../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/store';
 import { ccmSchema } from '../../../../src/modules/interoperability/schemas';
 import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
 import { NamedRegistry } from '../../../../src/modules/named_registry';
 import { EventQueue, MethodContext } from '../../../../src/state_machine';
 import { createTransientMethodContext } from '../../../../src/testing';
+import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
+import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
+import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
 
-class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityStore> {
-	protected getInteroperabilityStore = (
+class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {
+	protected getInteroperabilityInternalMethod = (
 		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityStore =>
-		new MainchainInteroperabilityStore(
+	): MainchainInteroperabilityInternalMethod =>
+		new MainchainInteroperabilityInternalMethod(
 			this.stores,
+			this.events,
 			context,
 			this.interoperableCCMethods,
-			this.events,
 		);
 }
 
@@ -56,8 +60,33 @@ describe('Sample Method', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 	const chainID = utils.intToBuffer(1, 4);
 	const interoperableCCMethods = new Map();
+	const chainAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
+	const channelStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
+	const ownChainAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
+	const terminatedStateAccountStoreMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
+	const terminatedOutboxAccountMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+		has: jest.fn(),
+	};
 	let sampleInteroperabilityMethod: SampleInteroperabilityMethod;
-	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
+	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 	let methodContext: MethodContext;
 	let tokenMethodMock: TokenMethod;
 	let ccmSendFailEventMock: CcmSendFailEvent;
@@ -83,105 +112,60 @@ describe('Sample Method', () => {
 			interoperableCCMethods,
 		);
 		sampleInteroperabilityMethod.addDependencies(tokenMethodMock as any);
-		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
+		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 			interopMod.stores,
+			new NamedRegistry(),
 			methodContext,
 			interoperableCCMethods,
-			new NamedRegistry(),
 		);
 		jest
-			.spyOn(sampleInteroperabilityMethod as any, 'getInteroperabilityStore')
-			.mockReturnValue(mainchainInteroperabilityStore);
-		jest.spyOn(mainchainInteroperabilityStore, 'getChainAccount').mockResolvedValue({} as never);
-		jest.spyOn(mainchainInteroperabilityStore, 'getChannel').mockResolvedValue({} as never);
-		jest.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount').mockResolvedValue({} as never);
-		jest
-			.spyOn(mainchainInteroperabilityStore, 'getTerminatedStateAccount')
-			.mockResolvedValue({} as never);
-		jest
-			.spyOn(mainchainInteroperabilityStore, 'getTerminatedOutboxAccount')
-			.mockResolvedValue({} as never);
+			.spyOn(sampleInteroperabilityMethod as any, 'getInteroperabilityInternalMethod')
+			.mockReturnValue(mainchainInteroperabilityInternalMethod);
+
+		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
+		interopMod.stores.register(ChannelDataStore, channelStoreMock as never);
+		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
+		interopMod.stores.register(TerminatedStateStore, terminatedStateAccountStoreMock as never);
+		interopMod.stores.register(TerminatedOutboxStore, terminatedOutboxAccountMock as never);
 	});
 
 	describe('getChainAccount', () => {
-		it('should call getInteroperabilityStore', async () => {
-			await sampleInteroperabilityMethod.getChainAccount(methodContext, chainID);
-
-			expect(sampleInteroperabilityMethod['getInteroperabilityStore']).toHaveBeenCalledWith(
-				methodContext,
-			);
-		});
-
 		it('should call getChainAccount', async () => {
 			await sampleInteroperabilityMethod.getChainAccount(methodContext, chainID);
 
-			expect(mainchainInteroperabilityStore.getChainAccount).toHaveBeenCalledWith(chainID);
+			expect(chainAccountStoreMock.get).toHaveBeenCalledWith(expect.anything(), chainID);
 		});
 	});
 
 	describe('getChannel', () => {
-		it('should call getInteroperabilityStore', async () => {
-			await sampleInteroperabilityMethod.getChannel(methodContext, chainID);
-
-			expect(sampleInteroperabilityMethod['getInteroperabilityStore']).toHaveBeenCalledWith(
-				methodContext,
-			);
-		});
-
 		it('should call getChannel', async () => {
 			await sampleInteroperabilityMethod.getChannel(methodContext, chainID);
 
-			expect(mainchainInteroperabilityStore.getChannel).toHaveBeenCalledWith(chainID);
+			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), chainID);
 		});
 	});
 
 	describe('getOwnChainAccount', () => {
-		it('should call getInteroperabilityStore', async () => {
-			await sampleInteroperabilityMethod.getOwnChainAccount(methodContext);
-
-			expect(sampleInteroperabilityMethod['getInteroperabilityStore']).toHaveBeenCalledWith(
-				methodContext,
-			);
-		});
-
 		it('should call getOwnChainAccount', async () => {
 			await sampleInteroperabilityMethod.getOwnChainAccount(methodContext);
 
-			expect(mainchainInteroperabilityStore.getOwnChainAccount).toHaveBeenCalled();
+			expect(ownChainAccountStoreMock.get).toHaveBeenCalled();
 		});
 	});
 
 	describe('getTerminatedStateAccount', () => {
-		it('should call getInteroperabilityStore', async () => {
-			await sampleInteroperabilityMethod.getTerminatedStateAccount(methodContext, chainID);
-
-			expect(sampleInteroperabilityMethod['getInteroperabilityStore']).toHaveBeenCalledWith(
-				methodContext,
-			);
-		});
-
 		it('should call getTerminatedStateAccount', async () => {
 			await sampleInteroperabilityMethod.getTerminatedStateAccount(methodContext, chainID);
 
-			expect(mainchainInteroperabilityStore.getTerminatedStateAccount).toHaveBeenCalled();
+			expect(terminatedStateAccountStoreMock.get).toHaveBeenCalled();
 		});
 	});
 
 	describe('getTerminatedOutboxAccount', () => {
-		it('should call getInteroperabilityStore', async () => {
-			await sampleInteroperabilityMethod.getTerminatedOutboxAccount(methodContext, chainID);
-
-			expect(sampleInteroperabilityMethod['getInteroperabilityStore']).toHaveBeenCalledWith(
-				methodContext,
-			);
-		});
-
 		it('should call getTerminatedStateAccount', async () => {
 			await sampleInteroperabilityMethod.getTerminatedOutboxAccount(methodContext, chainID);
 
-			expect(mainchainInteroperabilityStore.getTerminatedOutboxAccount).toHaveBeenCalledWith(
-				chainID,
-			);
+			expect(terminatedOutboxAccountMock.get).toHaveBeenCalledWith(expect.anything(), chainID);
 		});
 	});
 
@@ -225,7 +209,7 @@ describe('Sample Method', () => {
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountSidechain);
-			jest.spyOn(mainchainInteroperabilityStore, 'isLive').mockResolvedValue(true);
+			jest.spyOn(mainchainInteroperabilityInternalMethod, 'isLive').mockResolvedValue(true);
 		});
 
 		it('should throw error and emit event when invalid ccm format', async () => {
@@ -262,7 +246,7 @@ describe('Sample Method', () => {
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountSidechain);
-			jest.spyOn(mainchainInteroperabilityStore, 'isLive').mockResolvedValue(false);
+			jest.spyOn(mainchainInteroperabilityInternalMethod, 'isLive').mockResolvedValue(false);
 
 			// Act & Assert
 			await expect(
@@ -415,14 +399,13 @@ describe('Sample Method', () => {
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountMainchain);
-			jest.spyOn(mainchainInteroperabilityStore, 'addToOutbox').mockResolvedValue();
+			jest.spyOn(mainchainInteroperabilityInternalMethod, 'addToOutbox').mockResolvedValue();
 			jest
 				.spyOn(interopMod.stores.get(ChainAccountStore), 'get')
 				.mockResolvedValue(receivingChainAccount);
 			jest.spyOn(sampleInteroperabilityMethod['_tokenMethod'], 'payMessageFee').mockResolvedValue();
 
-			const ownChainAccountStoreMock = jest.fn();
-			interopMod.stores.get(OwnChainAccountStore).set = ownChainAccountStoreMock;
+			interopMod.stores.get(OwnChainAccountStore).set = ownChainAccountStoreMock.set;
 			const ccmID = utils.hash(codec.encode(ccmSchema, ccmOnMainchain));
 
 			// Act & Assert
@@ -440,7 +423,7 @@ describe('Sample Method', () => {
 				),
 			).resolves.toBeUndefined();
 
-			expect(ownChainAccountStoreMock).toHaveBeenCalledWith(
+			expect(ownChainAccountStoreMock.set).toHaveBeenCalledWith(
 				expect.anything(),
 				EMPTY_BYTES,
 				ownChainAccountMainchain,
@@ -452,6 +435,29 @@ describe('Sample Method', () => {
 				ccmID,
 				{ ccmID },
 			);
+		});
+	});
+
+	describe('getMessageFeeTokenID', () => {
+		const newChainID = Buffer.from('1234', 'hex');
+		beforeEach(() => {
+			jest.spyOn(channelStoreMock, 'get').mockResolvedValue({
+				messageFeeTokenID: {
+					localID: Buffer.from('10000000', 'hex'),
+				},
+			} as never);
+		});
+
+		it('should assign chainID as MAINCHAIN_ID_BUFFER if chainAccount not found', async () => {
+			await sampleInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
+			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), MAINCHAIN_ID_BUFFER);
+		});
+
+		it('should process with input chainID', async () => {
+			jest.spyOn(chainAccountStoreMock, 'has').mockResolvedValue(true);
+
+			await sampleInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
+			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), newChainID);
 		});
 	});
 });

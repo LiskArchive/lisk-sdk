@@ -21,8 +21,9 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainCCSidechainTerminatedCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands';
-import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { sidechainTerminatedCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
+import { TerminatedStateStore } from '../../../../../../src/modules/interoperability/stores/terminated_state';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
 import { NamedRegistry } from '../../../../../../src/modules/named_registry';
 import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
@@ -83,28 +84,29 @@ describe('MainchainCCSidechainTerminatedCommand', () => {
 		chainID,
 	});
 
-	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
+	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 	let ccSidechainTerminatedCommand: MainchainCCSidechainTerminatedCommand;
 
 	beforeEach(() => {
-		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
+		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 			interopMod.stores,
+			new NamedRegistry(),
 			sampleExecuteContext,
 			ccMethodsMap,
-			new NamedRegistry(),
 		);
-		mainchainInteroperabilityStore.terminateChainInternal = terminateChainInternalMock;
-		mainchainInteroperabilityStore.hasTerminatedStateAccount = hasTerminatedStateAccountMock;
-		mainchainInteroperabilityStore.createTerminatedStateAccount = createTerminatedStateAccountMock;
+		mainchainInteroperabilityInternalMethod.terminateChainInternal = terminateChainInternalMock;
+
+		interopMod.stores.get(TerminatedStateStore).has = hasTerminatedStateAccountMock;
+		mainchainInteroperabilityInternalMethod.createTerminatedStateAccount = createTerminatedStateAccountMock;
 
 		ccSidechainTerminatedCommand = new MainchainCCSidechainTerminatedCommand(
 			interopMod.stores,
 			interopMod.events,
 			ccMethodsMap,
 		);
-		(ccSidechainTerminatedCommand as any)['getInteroperabilityStore'] = jest
-			.fn()
-			.mockReturnValue(mainchainInteroperabilityStore);
+		(ccSidechainTerminatedCommand as any)[
+			'getInteroperabilityInternalMethod'
+		] = jest.fn().mockReturnValue(mainchainInteroperabilityInternalMethod);
 	});
 
 	it('should call terminateChainInternal when sendingChainID !== MAINCHAIN_ID', async () => {

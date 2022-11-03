@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Lisk Foundation
+ * Copyright © 2022 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -11,11 +11,15 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 import { NamedRegistry } from './named_registry';
 
-export abstract class BaseEndpoint {
-	[key: string]: unknown;
+export abstract class BaseInternalMethod {
+	public readonly events: NamedRegistry;
+	protected readonly stores: NamedRegistry;
 
-	// eslint-disable-next-line no-useless-constructor
-	public constructor(protected stores: NamedRegistry, protected offchainStores: NamedRegistry) {}
+	public constructor(stores: NamedRegistry, events: NamedRegistry) {
+		this.stores = stores;
+		this.events = events;
+	}
 }

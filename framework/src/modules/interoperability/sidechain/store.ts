@@ -12,23 +12,26 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseInteroperabilityStore } from '../base_interoperability_store';
-import { CHAIN_ACTIVE, CHAIN_TERMINATED, MAINCHAIN_ID } from '../constants';
+import { BaseInteroperabilityInternalMethod } from '../base_interoperability_internal_methods';
+import { CHAIN_ACTIVE, CHAIN_TERMINATED, EMPTY_BYTES, MAINCHAIN_ID } from '../constants';
 import { createCCMsgBeforeSendContext } from '../context';
+import { ChainAccountStore } from '../stores/chain_account';
+import { OwnChainAccountStore } from '../stores/own_chain_account';
+import { TerminatedStateStore } from '../stores/terminated_state';
 import { CCMsg, SendInternalContext } from '../types';
 import { getIDAsKeyForStore, validateFormat } from '../utils';
 
-export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
+export class SidechainInteroperabilityInternalMethod extends BaseInteroperabilityInternalMethod {
 	public async isLive(chainID: Buffer): Promise<boolean> {
-		const chainAccountExists = await this.chainAccountExist(chainID);
+		const chainAccountExists = await this.stores.get(ChainAccountStore).has(this.context, chainID);
 		if (chainAccountExists) {
-			const chainAccount = await this.getChainAccount(chainID);
+			const chainAccount = await this.stores.get(ChainAccountStore).get(this.context, chainID);
 			if (chainAccount.status === CHAIN_TERMINATED) {
 				return false;
 			}
 		}
 
-		const isTerminated = await this.hasTerminatedStateAccount(chainID);
+		const isTerminated = await this.stores.get(TerminatedStateStore).has(this.context, chainID);
 		if (isTerminated) {
 			return false;
 		}
@@ -37,7 +40,9 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 	}
 
 	public async sendInternal(sendContext: SendInternalContext): Promise<boolean> {
-		const isReceivingChainExist = await this.chainAccountExist(sendContext.receivingChainID);
+		const isReceivingChainExist = await this.stores
+			.get(ChainAccountStore)
+			.has(this.context, sendContext.receivingChainID);
 
 		let partnerChainID;
 		if (isReceivingChainExist) {
@@ -46,7 +51,9 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 			partnerChainID = getIDAsKeyForStore(MAINCHAIN_ID);
 		}
 
-		const partnerChainAccount = await this.getChainAccount(partnerChainID);
+		const partnerChainAccount = await this.stores
+			.get(ChainAccountStore)
+			.get(this.context, partnerChainID);
 		// Chain must be live; This checks is always on the receivingChainID
 		const isReceivingChainLive = await this.isLive(sendContext.receivingChainID);
 		if (!isReceivingChainLive) {
@@ -56,7 +63,9 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 		if (partnerChainAccount.status !== CHAIN_ACTIVE) {
 			return false;
 		}
-		const ownChainAccount = await this.getOwnChainAccount();
+		const ownChainAccount = await this.stores
+			.get(OwnChainAccountStore)
+			.get(this.context, EMPTY_BYTES);
 		// Create cross-chain message
 		const ccm: CCMsg = {
 			crossChainCommand: sendContext.crossChainCommand,
@@ -97,7 +106,7 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 
 		await this.addToOutbox(partnerChainID, ccm);
 		ownChainAccount.nonce += BigInt(1);
-		await this.setOwnChainAccount(ownChainAccount);
+		await this.stores.get(OwnChainAccountStore).set(this.context, EMPTY_BYTES, ownChainAccount);
 
 		return true;
 	}

@@ -38,6 +38,11 @@ export interface ActiveValidator {
 	bftWeight: bigint;
 }
 
+export interface ActiveValidatorJSON {
+	blsKey: string;
+	bftWeight: string;
+}
+
 export interface MsgWitness {
 	partnerChainOutboxSize: bigint;
 	siblingHashes: Buffer[];
@@ -325,11 +330,16 @@ export interface ChainValidators {
 	certificateThreshold: bigint;
 }
 
+export interface ChainValidatorsJSON {
+	activeValidators: ActiveValidatorJSON[];
+	certificateThreshold: string;
+}
+
 export interface ChainID {
 	chainID: Buffer;
 }
 
-export interface GenesisInteroperabilityStore {
+export interface GenesisInteroperabilityInternalMethod {
 	outboxRootSubstore: {
 		storeKey: Buffer;
 		storeValue: OutboxRoot;

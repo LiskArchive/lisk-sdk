@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { MainchainInteroperabilityStore } from '../store';
+import { MainchainInteroperabilityInternalMethod } from '../store';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
 	CHAIN_REGISTERED,
@@ -267,8 +267,8 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			params: encodedParams,
 		};
 
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-		await interoperabilityStore.addToOutbox(chainID, ccm);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		await interoperabilityInternalMethod.addToOutbox(chainID, ccm);
 		// Update own chain account nonce
 		ownChainAccount.nonce += BigInt(1);
 		await ownChainAccountSubstore.set(context, EMPTY_BYTES, ownChainAccount);
@@ -281,14 +281,14 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			});
 	}
 
-	protected getInteroperabilityStore(
+	protected getInteroperabilityInternalMethod(
 		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(
+	): MainchainInteroperabilityInternalMethod {
+		return new MainchainInteroperabilityInternalMethod(
 			this.stores,
+			this.events,
 			context,
 			this.interoperableCCMethods,
-			this.events,
 		);
 	}
 }

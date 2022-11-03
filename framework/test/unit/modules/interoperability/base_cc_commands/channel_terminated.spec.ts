@@ -20,7 +20,7 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../src/modules/interoperability/constants';
 import { MainchainCCChannelTerminatedCommand } from '../../../../../src/modules/interoperability/mainchain/cc_commands';
-import { MainchainInteroperabilityStore } from '../../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../../src/modules/interoperability/mainchain/store';
 import { CCCommandExecuteContext } from '../../../../../src/modules/interoperability/types';
 import { NamedRegistry } from '../../../../../src/modules/named_registry';
 import { createExecuteCCMsgMethodContext } from '../../../../../src/testing';
@@ -61,24 +61,17 @@ describe('BaseCCChannelTerminatedCommand', () => {
 		interopMod.events,
 		ccMethodsMap,
 	);
-	const mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
+	const mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 		interopMod.stores,
+		new NamedRegistry(),
 		sampleExecuteContext,
 		ccMethodsMap,
-		new NamedRegistry(),
 	);
-	mainchainInteroperabilityStore.createTerminatedStateAccount = createTerminatedStateAccountMock;
-	mainchainInteroperabilityStore.isLive = jest.fn().mockResolvedValue(false);
-	(ccChannelTerminatedCommand as any)['getInteroperabilityStore'] = jest
-		.fn()
-		.mockReturnValue(mainchainInteroperabilityStore);
-	const channelOutbox = {
-		size: 10,
-		root: Buffer.from('01', 'hex'),
-	};
-	mainchainInteroperabilityStore.getChannel = jest.fn().mockResolvedValue({
-		outbox: channelOutbox,
-	});
+	mainchainInteroperabilityInternalMethod.createTerminatedStateAccount = createTerminatedStateAccountMock;
+	mainchainInteroperabilityInternalMethod.isLive = jest.fn().mockResolvedValue(false);
+	(ccChannelTerminatedCommand as any)[
+		'getInteroperabilityInternalMethod'
+	] = jest.fn().mockReturnValue(mainchainInteroperabilityInternalMethod);
 
 	describe('execute', () => {
 		it('should skip if isLive is false ', async () => {
@@ -87,7 +80,7 @@ describe('BaseCCChannelTerminatedCommand', () => {
 		});
 
 		it('should call createTerminatedStateAccount if isLive', async () => {
-			mainchainInteroperabilityStore.isLive = jest.fn().mockResolvedValue(true);
+			mainchainInteroperabilityInternalMethod.isLive = jest.fn().mockResolvedValue(true);
 
 			await ccChannelTerminatedCommand.execute(sampleExecuteContext);
 			expect(createTerminatedStateAccountMock).toHaveBeenCalledWith(

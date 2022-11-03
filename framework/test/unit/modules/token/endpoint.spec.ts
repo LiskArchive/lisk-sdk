@@ -57,11 +57,7 @@ describe('token endpoint', () => {
 
 	beforeEach(async () => {
 		const method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
-		endpoint = new TokenEndpoint(
-			tokenModule.stores,
-			tokenModule.offchainStores,
-			tokenModule.events,
-		);
+		endpoint = new TokenEndpoint(tokenModule.stores, tokenModule.offchainStores);
 		method.init({
 			minBalances: [
 				{

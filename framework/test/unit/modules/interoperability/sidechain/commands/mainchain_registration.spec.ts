@@ -446,7 +446,7 @@ describe('Mainchain registration command', () => {
 		it('should call addToOutbox with an appropriate ccm', async () => {
 			// Arrange
 			const interopStore = { addToOutbox: jest.fn() };
-			mainchainRegistrationCommand['getInteroperabilityStore'] = jest
+			mainchainRegistrationCommand['getInteroperabilityInternalMethod'] = jest
 				.fn()
 				.mockReturnValue(interopStore);
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {

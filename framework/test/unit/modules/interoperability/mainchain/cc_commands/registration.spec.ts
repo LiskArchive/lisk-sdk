@@ -21,8 +21,10 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainCCRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands';
-import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
+import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
+import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
 import { NamedRegistry } from '../../../../../../src/modules/named_registry';
 import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
@@ -31,8 +33,15 @@ describe('MainchainCCRegistrationCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 
 	const terminateChainInternalMock = jest.fn();
-	const getChannelMock = jest.fn();
-	const getOwnChainAccountMock = jest.fn();
+	const getChannelMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+	};
+
+	const getOwnChainAccountMock = {
+		get: jest.fn(),
+		set: jest.fn(),
+	};
 
 	const ownChainAccount = {
 		name: 'mainchain',
@@ -96,28 +105,29 @@ describe('MainchainCCRegistrationCommand', () => {
 		chainID,
 	});
 
-	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
+	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 	let ccRegistrationCommand: MainchainCCRegistrationCommand;
 
 	beforeEach(() => {
-		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
+		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 			interopMod.stores,
+			new NamedRegistry(),
 			sampleExecuteContext,
 			ccMethodsMap,
-			new NamedRegistry(),
 		);
-		mainchainInteroperabilityStore.terminateChainInternal = terminateChainInternalMock;
-		mainchainInteroperabilityStore.getChannel = getChannelMock;
-		mainchainInteroperabilityStore.getOwnChainAccount = getOwnChainAccountMock;
+		mainchainInteroperabilityInternalMethod.terminateChainInternal = terminateChainInternalMock;
+
+		interopMod.stores.register(ChannelDataStore, getChannelMock as never);
+		interopMod.stores.register(OwnChainAccountStore, getOwnChainAccountMock as never);
 
 		ccRegistrationCommand = new MainchainCCRegistrationCommand(
 			interopMod.stores,
 			interopMod.events,
 			ccMethodsMap,
 		);
-		(ccRegistrationCommand as any)['getInteroperabilityStore'] = jest
+		(ccRegistrationCommand as any)['getInteroperabilityInternalMethod'] = jest
 			.fn()
-			.mockReturnValue(mainchainInteroperabilityStore);
+			.mockReturnValue(mainchainInteroperabilityInternalMethod);
 	});
 
 	it('should call terminateChainInternal when sendingChainChannelAccount.inbox.size !== 1', async () => {
@@ -137,9 +147,9 @@ describe('MainchainCCRegistrationCommand', () => {
 			partnerChainOutboxRoot: Buffer.alloc(0),
 		};
 
-		getChannelMock.mockResolvedValue(dataWithMoreThanOneInboxSize);
+		getChannelMock.get.mockResolvedValue(dataWithMoreThanOneInboxSize);
 
-		getOwnChainAccountMock.mockResolvedValue(ownChainAccount);
+		getOwnChainAccountMock.get.mockResolvedValue(ownChainAccount);
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
@@ -166,7 +176,7 @@ describe('MainchainCCRegistrationCommand', () => {
 			params: encodedRegistrationParams,
 		};
 
-		getOwnChainAccountMock.mockResolvedValue(ownChainAccount);
+		getOwnChainAccountMock.get.mockResolvedValue(ownChainAccount);
 
 		await ccRegistrationCommand.execute({ ...sampleExecuteContext, ccm: invalidCCM });
 
@@ -182,9 +192,9 @@ describe('MainchainCCRegistrationCommand', () => {
 
 	it('should call terminateChainInternal when ownChainAccount.id !== ccm.receivingChainID', async () => {
 		// Arrange
-		getChannelMock.mockResolvedValue(channelData);
+		getChannelMock.get.mockResolvedValue(channelData);
 
-		getOwnChainAccountMock.mockResolvedValue({
+		getOwnChainAccountMock.get.mockResolvedValue({
 			...ownChainAccount,
 			chainID: utils.intToBuffer(3, 4),
 		});
@@ -203,9 +213,9 @@ describe('MainchainCCRegistrationCommand', () => {
 
 	it('should call terminateChainInternal when ownChainAccount.name !== decodedParams.name', async () => {
 		// Arrange
-		getChannelMock.mockResolvedValue(channelData);
+		getChannelMock.get.mockResolvedValue(channelData);
 
-		getOwnChainAccountMock.mockResolvedValue({ ...ownChainAccount, name: 'chain1' });
+		getOwnChainAccountMock.get.mockResolvedValue({ ...ownChainAccount, name: 'chain1' });
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
@@ -235,9 +245,9 @@ describe('MainchainCCRegistrationCommand', () => {
 			},
 			partnerChainOutboxRoot: Buffer.alloc(0),
 		};
-		getChannelMock.mockResolvedValue(incorrectChainIDChannelData);
+		getChannelMock.get.mockResolvedValue(incorrectChainIDChannelData);
 
-		getOwnChainAccountMock.mockResolvedValue(ownChainAccount);
+		getOwnChainAccountMock.get.mockResolvedValue(ownChainAccount);
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
@@ -267,9 +277,9 @@ describe('MainchainCCRegistrationCommand', () => {
 			},
 			partnerChainOutboxRoot: Buffer.alloc(0),
 		};
-		getChannelMock.mockResolvedValue(incorrectChainIDChannelData);
+		getChannelMock.get.mockResolvedValue(incorrectChainIDChannelData);
 
-		getOwnChainAccountMock.mockResolvedValue(ownChainAccount);
+		getOwnChainAccountMock.get.mockResolvedValue(ownChainAccount);
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
@@ -285,9 +295,9 @@ describe('MainchainCCRegistrationCommand', () => {
 
 	it('should call terminateChainInternal when decodedParams.chainID !== ownChainAccount.chainID', async () => {
 		// Arrange
-		getChannelMock.mockResolvedValue(channelData);
+		getChannelMock.get.mockResolvedValue(channelData);
 
-		getOwnChainAccountMock.mockResolvedValue(ownChainAccount);
+		getOwnChainAccountMock.get.mockResolvedValue(ownChainAccount);
 
 		const differentNetworkID = utils.getRandomBytes(32);
 		await ccRegistrationCommand.execute({
@@ -317,9 +327,9 @@ describe('MainchainCCRegistrationCommand', () => {
 			status: 0,
 			params: encodedRegistrationParams,
 		};
-		getChannelMock.mockResolvedValue(channelData);
+		getChannelMock.get.mockResolvedValue(channelData);
 
-		getOwnChainAccountMock.mockResolvedValue(ownChainAccount);
+		getOwnChainAccountMock.get.mockResolvedValue(ownChainAccount);
 
 		await ccRegistrationCommand.execute({ ...sampleExecuteContext, ccm: invalidCCM });
 
@@ -335,9 +345,9 @@ describe('MainchainCCRegistrationCommand', () => {
 
 	it('should execute successfully', async () => {
 		// Arrange
-		getChannelMock.mockResolvedValue(channelData);
+		getChannelMock.get.mockResolvedValue(channelData);
 
-		getOwnChainAccountMock.mockResolvedValue(ownChainAccount);
+		getOwnChainAccountMock.get.mockResolvedValue(ownChainAccount);
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 

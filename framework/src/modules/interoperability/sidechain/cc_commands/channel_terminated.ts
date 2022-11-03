@@ -13,19 +13,19 @@
  */
 
 import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
-import { SidechainInteroperabilityStore } from '../store';
+import { SidechainInteroperabilityInternalMethod } from '../store';
 import { BaseCCChannelTerminatedCommand } from '../../base_cc_commands/channel_terminated';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#channel-terminated-message-1
 export class SidechainCCChannelTerminatedCommand extends BaseCCChannelTerminatedCommand {
-	protected getInteroperabilityStore(
+	protected getInteroperabilityInternalMethod(
 		context: StoreGetter | ImmutableStoreGetter,
-	): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(
+	): SidechainInteroperabilityInternalMethod {
+		return new SidechainInteroperabilityInternalMethod(
 			this.stores,
+			this.events,
 			context,
 			this.interoperableCCMethods,
-			this.events,
 		);
 	}
 }

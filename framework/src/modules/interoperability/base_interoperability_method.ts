@@ -21,7 +21,7 @@ import { ImmutableMethodContext, MethodContext, NotFoundError } from '../../stat
 import { ChainAccount, ChainAccountStore } from './stores/chain_account';
 import { CCMsg } from './types';
 import { StoreGetter, ImmutableStoreGetter } from '../base_store';
-import { BaseInteroperabilityStore } from './base_interoperability_store';
+import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import {
 	EMPTY_BYTES,
 	CHAIN_ID_MAINCHAIN,
@@ -35,9 +35,12 @@ import { ccmSchema } from './schemas';
 import { validateFormat } from './utils';
 import { TokenMethod } from '../token';
 import { OwnChainAccountStore } from './stores/own_chain_account';
+import { ChannelDataStore } from './stores/channel_data';
+import { TerminatedStateStore } from './stores/terminated_state';
+import { TerminatedOutboxStore } from './stores/terminated_outbox';
 
 export abstract class BaseInteroperabilityMethod<
-	T extends BaseInteroperabilityStore
+	T extends BaseInteroperabilityInternalMethod
 > extends BaseMethod {
 	protected readonly interoperableCCMethods = new Map<string, BaseInteroperableMethod>();
 	protected _tokenMethod!: TokenMethod & {
@@ -48,7 +51,9 @@ export abstract class BaseInteroperabilityMethod<
 			receivingChainID: Buffer,
 		) => Promise<void>;
 	};
-	protected abstract getInteroperabilityStore: (context: StoreGetter | ImmutableStoreGetter) => T;
+	protected abstract getInteroperabilityInternalMethod: (
+		context: StoreGetter | ImmutableStoreGetter,
+	) => T;
 
 	public constructor(
 		stores: NamedRegistry,
@@ -77,30 +82,30 @@ export abstract class BaseInteroperabilityMethod<
 		context: ImmutableMethodContext,
 		chainID: Buffer,
 	): Promise<ChainAccount> {
-		return this.getInteroperabilityStore(context).getChainAccount(chainID);
+		return this.stores.get(ChainAccountStore).get(context, chainID);
 	}
 
 	public async getChannel(context: ImmutableMethodContext, chainID: Buffer) {
-		return this.getInteroperabilityStore(context).getChannel(chainID);
+		return this.stores.get(ChannelDataStore).get(context, chainID);
 	}
 
 	public async getOwnChainAccount(context: ImmutableMethodContext) {
-		return this.getInteroperabilityStore(context).getOwnChainAccount();
+		return this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
 	}
 
 	public async getTerminatedStateAccount(context: ImmutableMethodContext, chainID: Buffer) {
-		return this.getInteroperabilityStore(context).getTerminatedStateAccount(chainID);
+		return this.stores.get(TerminatedStateStore).get(context, chainID);
 	}
 
 	public async getTerminatedOutboxAccount(context: ImmutableMethodContext, chainID: Buffer) {
-		return this.getInteroperabilityStore(context).getTerminatedOutboxAccount(chainID);
+		return this.stores.get(TerminatedOutboxStore).get(context, chainID);
 	}
 
 	public async getMessageFeeTokenID(
 		context: ImmutableMethodContext,
 		chainID: Buffer,
 	): Promise<Buffer> {
-		const updatedChainID = !(await this.getInteroperabilityStore(context).hasChainAccount(chainID))
+		const updatedChainID = !(await this.stores.get(ChainAccountStore).has(context, chainID))
 			? MAINCHAIN_ID_BUFFER
 			: chainID;
 		return (await this.getChannel(context, updatedChainID)).messageFeeTokenID;
@@ -160,8 +165,8 @@ export abstract class BaseInteroperabilityMethod<
 		// From now on, we can assume that the ccm is valid.
 
 		// receivingChainID must correspond to a live chain.
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-		const isReceivingChainLive = await interoperabilityStore.isLive(
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		const isReceivingChainLive = await interoperabilityInternalMethod.isLive(
 			receivingChainID,
 			timestamp ?? Date.now(),
 		);
@@ -236,7 +241,7 @@ export abstract class BaseInteroperabilityMethod<
 		}
 
 		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
-		await interoperabilityStore.addToOutbox(partnerChainID, ccm);
+		await interoperabilityInternalMethod.addToOutbox(partnerChainID, ccm);
 		ownChainAccount.nonce += BigInt(1);
 		await this.stores.get(OwnChainAccountStore).set(context, EMPTY_BYTES, ownChainAccount);
 

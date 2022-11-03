@@ -49,7 +49,7 @@ import {
 	validateFormat,
 	verifyCertificateSignature,
 } from '../../utils';
-import { SidechainInteroperabilityStore } from '../store';
+import { SidechainInteroperabilityInternalMethod } from '../store';
 
 export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 	public schema = crossChainUpdateTransactionParams;
@@ -80,10 +80,10 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 				),
 			};
 		}
-		const interoperabilityStore = this.getInteroperabilityStore(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 		if (partnerChainAccount.status === CHAIN_ACTIVE) {
-			const isChainLive = await interoperabilityStore.isLive(partnerChainIDBuffer);
-			if (!isChainLive) {
+			const isLive = await interoperabilityInternalMethod.isLive(partnerChainIDBuffer);
+			if (!isLive) {
 				return {
 					status: VerifyStatus.FAIL,
 					error: new Error(
@@ -165,7 +165,15 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		checkCertificateTimestamp(txParams, decodedCertificate, header);
 
 		// CCM execution
-		const interoperabilityStore = this.getInteroperabilityStore(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		const terminateChainInternal = async () =>
+			interoperabilityInternalMethod.terminateChainInternal(txParams.sendingChainID, {
+				eventQueue: context.eventQueue,
+				getMethodContext: context.getMethodContext,
+				getStore: context.getStore,
+				logger: context.logger,
+				chainID: context.chainID,
+			});
 		let decodedCCMs;
 		try {
 			decodedCCMs = txParams.inboxUpdate.crossChainMessages.map(ccm => ({
@@ -173,13 +181,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 				deserialized: codec.decode<CCMsg>(ccmSchema, ccm),
 			}));
 		} catch (err) {
-			await interoperabilityStore.terminateChainInternal(txParams.sendingChainID, {
-				eventQueue: context.eventQueue,
-				getMethodContext: context.getMethodContext,
-				getStore: context.getStore,
-				logger: context.logger,
-				chainID: context.chainID,
-			});
+			await terminateChainInternal();
 
 			throw err;
 		}
@@ -194,13 +196,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 			) {
 				partnerChainAccount.status = CHAIN_ACTIVE;
 			} else {
-				await interoperabilityStore.terminateChainInternal(txParams.sendingChainID, {
-					eventQueue: context.eventQueue,
-					getMethodContext: context.getMethodContext,
-					getStore: context.getStore,
-					logger: context.logger,
-					chainID: context.chainID,
-				});
+				await terminateChainInternal();
 
 				return; // Exit CCU processing
 			}
@@ -208,32 +204,23 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 
 		for (const ccm of decodedCCMs) {
 			if (!txParams.sendingChainID.equals(ccm.deserialized.sendingChainID)) {
-				await interoperabilityStore.terminateChainInternal(txParams.sendingChainID, {
-					eventQueue: context.eventQueue,
-					getMethodContext: context.getMethodContext,
-					getStore: context.getStore,
-					logger: context.logger,
-					chainID: context.chainID,
-				});
+				await terminateChainInternal();
 
 				continue;
 			}
 			try {
 				validateFormat(ccm.deserialized);
 			} catch (error) {
-				await interoperabilityStore.terminateChainInternal(txParams.sendingChainID, {
-					eventQueue: context.eventQueue,
-					getMethodContext: context.getMethodContext,
-					getStore: context.getStore,
-					logger: context.logger,
-					chainID: context.chainID,
-				});
+				await terminateChainInternal();
 
 				continue;
 			}
-			await interoperabilityStore.appendToInboxTree(txParams.sendingChainID, ccm.serialized);
+			await interoperabilityInternalMethod.appendToInboxTree(
+				txParams.sendingChainID,
+				ccm.serialized,
+			);
 
-			await interoperabilityStore.apply(
+			await interoperabilityInternalMethod.apply(
 				{
 					ccm: ccm.deserialized,
 					ccu: txParams,
@@ -262,14 +249,14 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		});
 	}
 
-	protected getInteroperabilityStore(
+	protected getInteroperabilityInternalMethod(
 		context: StoreGetter | ImmutableStoreGetter,
-	): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(
+	): SidechainInteroperabilityInternalMethod {
+		return new SidechainInteroperabilityInternalMethod(
 			this.stores,
+			this.events,
 			context,
 			this.interoperableCCMethods,
-			this.events,
 		);
 	}
 }

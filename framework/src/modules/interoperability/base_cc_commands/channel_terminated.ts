@@ -31,9 +31,12 @@ export abstract class BaseCCChannelTerminatedCommand extends BaseInteroperabilit
 				`CCM to execute cross chain command '${CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED}' is missing.`,
 			);
 		}
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-		if (await interoperabilityStore.isLive(context.ccm.sendingChainID, Date.now())) {
-			await interoperabilityStore.createTerminatedStateAccount(context, context.ccm.sendingChainID);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		if (await interoperabilityInternalMethod.isLive(context.ccm.sendingChainID, Date.now())) {
+			await interoperabilityInternalMethod.createTerminatedStateAccount(
+				context,
+				context.ccm.sendingChainID,
+			);
 		}
 	}
 }
