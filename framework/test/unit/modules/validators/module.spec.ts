@@ -31,7 +31,7 @@ describe('ValidatorsModule', () => {
 	describe('init', () => {
 		it('should initialize config with default value when module config is empty', async () => {
 			await expect(
-				validatorsModule.init({ genesisConfig: {} as any, moduleConfig: {}, generatorConfig: {} }),
+				validatorsModule.init({ genesisConfig: {} as any, moduleConfig: {} }),
 			).toResolve();
 
 			expect(validatorsModule['_blockTime']).toEqual(10);
@@ -42,7 +42,6 @@ describe('ValidatorsModule', () => {
 				validatorsModule.init({
 					genesisConfig: {} as any,
 					moduleConfig: { blockTime: 3 },
-					generatorConfig: {},
 				}),
 			).toResolve();
 

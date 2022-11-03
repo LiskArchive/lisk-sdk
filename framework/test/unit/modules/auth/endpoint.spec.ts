@@ -489,6 +489,19 @@ describe('AuthEndpoint', () => {
 		});
 	});
 
+	describe('getMultiSigRegMsgSchema', () => {
+		it('should return multiSigRegMsgSchema from the endpoint', async () => {
+			// Arrange
+			const context = createTransientModuleEndpointContext({});
+
+			// Act
+			const result = await authEndpoint.getMultiSigRegMsgSchema(context);
+
+			// Assert
+			expect(result.schema).toEqual(multisigRegMsgSchema);
+		});
+	});
+
 	describe('sortMultisignatureGroup', () => {
 		it('should sort signatures when provided mandatory and optional keys', () => {
 			// Arrange

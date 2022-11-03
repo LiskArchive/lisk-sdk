@@ -77,9 +77,7 @@ describe('DPoS module', () => {
 		});
 
 		it('should initialize config with default value when module config is empty', async () => {
-			await expect(
-				dpos.init({ genesisConfig: {} as any, moduleConfig: {}, generatorConfig: {} }),
-			).toResolve();
+			await expect(dpos.init({ genesisConfig: {} as any, moduleConfig: {} })).toResolve();
 
 			expect(dpos['_moduleConfig']).toEqual({
 				...defaultConfigs,
@@ -93,7 +91,6 @@ describe('DPoS module', () => {
 				dpos.init({
 					genesisConfig: {} as any,
 					moduleConfig: { ...defaultConfigs, maxLengthName: 50 },
-					generatorConfig: {},
 				}),
 			).toResolve();
 
@@ -132,7 +129,6 @@ describe('DPoS module', () => {
 			dpos.addDependencies(randomMethod, validatorMethod, tokenMethod);
 
 			await dpos.init({
-				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: defaultConfigs,
 			});
@@ -314,7 +310,6 @@ describe('DPoS module', () => {
 		beforeEach(async () => {
 			dpos = new DPoSModule();
 			await dpos.init({
-				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: defaultConfigs,
 			});
@@ -636,7 +631,6 @@ describe('DPoS module', () => {
 		beforeEach(async () => {
 			dpos = new DPoSModule();
 			await dpos.init({
-				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: defaultConfigs,
 			});
@@ -845,7 +839,6 @@ describe('DPoS module', () => {
 		beforeEach(async () => {
 			dpos = new DPoSModule();
 			await dpos.init({
-				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: defaultConfigs,
 			});
@@ -1258,7 +1251,6 @@ describe('DPoS module', () => {
 		beforeEach(async () => {
 			dpos = new DPoSModule();
 			await dpos.init({
-				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: defaultConfigs,
 			});
