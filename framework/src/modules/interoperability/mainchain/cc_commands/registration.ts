@@ -12,65 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec } from '@liskhq/lisk-codec';
-import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_NAME_REGISTRATION } from '../../constants';
-import { registrationCCMParamsSchema } from '../../schemas';
-import { CCCommandExecuteContext } from '../../types';
-import { createCCMsgBeforeSendContext } from '../../context';
-import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 import { MainchainInteroperabilityStore } from '../store';
 import { StoreGetter } from '../../../base_store';
+import { BaseCCRegistrationCommand } from '../../base_cc_commands/registration';
 
-interface CCMRegistrationParams {
-	chainID: Buffer;
-	name: string;
-	messageFeeTokenID: Buffer;
-}
-
-export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCCommand {
-	public schema = registrationCCMParamsSchema;
-
-	public get name(): string {
-		return CROSS_CHAIN_COMMAND_NAME_REGISTRATION;
-	}
-
-	public async execute(ctx: CCCommandExecuteContext): Promise<void> {
-		const { ccm } = ctx;
-		if (!ccm) {
-			throw new Error('CCM to execute registration cross chain command is missing.');
-		}
-		const ccmRegistrationParams = codec.decode<CCMRegistrationParams>(
-			registrationCCMParamsSchema,
-			ccm.params,
-		);
-		const interoperabilityStore = this.getInteroperabilityStore(ctx);
-		const sendingChainChannelAccount = await interoperabilityStore.getChannel(ccm.sendingChainID);
-		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
-
-		if (
-			sendingChainChannelAccount.inbox.size !== 1 ||
-			ccm.status !== CCM_STATUS_OK ||
-			!ownChainAccount.chainID.equals(ccm.receivingChainID) ||
-			ownChainAccount.name !== ccmRegistrationParams.name ||
-			!sendingChainChannelAccount.messageFeeTokenID.equals(
-				ccmRegistrationParams.messageFeeTokenID,
-			) ||
-			!ccmRegistrationParams.chainID.equals(ctx.chainID) ||
-			ccm.nonce !== BigInt(0) // Only in mainchain
-		) {
-			const beforeSendContext = createCCMsgBeforeSendContext({
-				ccm,
-				eventQueue: ctx.eventQueue,
-				getMethodContext: ctx.getMethodContext,
-				getStore: ctx.getStore,
-				logger: ctx.logger,
-				chainID: ctx.chainID,
-				feeAddress: ctx.feeAddress,
-			});
-			await interoperabilityStore.terminateChainInternal(ccm.sendingChainID, beforeSendContext);
-		}
-	}
-
+export class MainchainCCRegistrationCommand extends BaseCCRegistrationCommand {
 	protected getInteroperabilityStore(context: StoreGetter): MainchainInteroperabilityStore {
 		return new MainchainInteroperabilityStore(
 			this.stores,

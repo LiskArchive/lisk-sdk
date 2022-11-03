@@ -363,3 +363,9 @@ export interface GenesisInteroperabilityStore {
 		storeValue: ChainID;
 	}[];
 }
+
+export interface CCMRegistrationParams {
+	chainID: Buffer;
+	name: string;
+	messageFeeTokenID: Buffer;
+}
