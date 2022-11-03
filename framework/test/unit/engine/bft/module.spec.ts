@@ -32,7 +32,7 @@ describe('bft module', () => {
 
 	describe('init', () => {
 		it('should initialize config with given value', async () => {
-			await expect(bftModule.init(20)).toResolve();
+			await expect(bftModule.init(20, 0, 10)).toResolve();
 
 			expect(bftModule['_batchSize']).toEqual(20);
 		});

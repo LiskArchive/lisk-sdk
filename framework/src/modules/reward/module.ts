@@ -96,7 +96,6 @@ export class RewardModule extends BaseModule {
 			context.getMethodContext(),
 			context.header,
 			context.assets,
-			context.impliesMaxPrevote,
 		);
 		if (blockReward < BigInt(0)) {
 			throw new Error("Block reward can't be negative.");

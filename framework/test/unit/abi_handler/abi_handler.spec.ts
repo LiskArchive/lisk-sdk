@@ -280,19 +280,6 @@ describe('abi handler', () => {
 				abiHandler.beforeTransactionsExecute({
 					contextID: utils.getRandomBytes(32),
 					assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
-					consensus: {
-						currentValidators: [
-							{
-								address: utils.getRandomBytes(20),
-								bftWeight: BigInt(1),
-								blsKey: utils.getRandomBytes(48),
-								generatorKey: utils.getRandomBytes(32),
-							},
-						],
-						implyMaxPrevote: false,
-						maxHeightCertified: 0,
-						certificateThreshold: BigInt(0),
-					},
 				}),
 			).rejects.toThrow('Context is not initialized or different');
 		});
@@ -305,19 +292,6 @@ describe('abi handler', () => {
 				abiHandler.beforeTransactionsExecute({
 					contextID: utils.getRandomBytes(32),
 					assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
-					consensus: {
-						currentValidators: [
-							{
-								address: utils.getRandomBytes(20),
-								bftWeight: BigInt(1),
-								blsKey: utils.getRandomBytes(48),
-								generatorKey: utils.getRandomBytes(32),
-							},
-						],
-						implyMaxPrevote: false,
-						maxHeightCertified: 0,
-						certificateThreshold: BigInt(0),
-					},
 				}),
 			).rejects.toThrow('Context is not initialized or different');
 		});
@@ -330,19 +304,6 @@ describe('abi handler', () => {
 			const resp = await abiHandler.beforeTransactionsExecute({
 				contextID,
 				assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
-				consensus: {
-					currentValidators: [
-						{
-							address: utils.getRandomBytes(20),
-							bftWeight: BigInt(1),
-							blsKey: utils.getRandomBytes(48),
-							generatorKey: utils.getRandomBytes(32),
-						},
-					],
-					implyMaxPrevote: false,
-					maxHeightCertified: 0,
-					certificateThreshold: BigInt(0),
-				},
 			});
 			expect(abiHandler['_stateMachine'].beforeExecuteBlock).toHaveBeenCalledTimes(1);
 
@@ -356,19 +317,6 @@ describe('abi handler', () => {
 				abiHandler.afterTransactionsExecute({
 					contextID: utils.getRandomBytes(32),
 					assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
-					consensus: {
-						currentValidators: [
-							{
-								address: utils.getRandomBytes(20),
-								bftWeight: BigInt(1),
-								blsKey: utils.getRandomBytes(48),
-								generatorKey: utils.getRandomBytes(32),
-							},
-						],
-						implyMaxPrevote: false,
-						maxHeightCertified: 0,
-						certificateThreshold: BigInt(0),
-					},
 					transactions: [],
 				}),
 			).rejects.toThrow('Context is not initialized or different');
@@ -382,19 +330,6 @@ describe('abi handler', () => {
 				abiHandler.afterTransactionsExecute({
 					contextID: utils.getRandomBytes(32),
 					assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
-					consensus: {
-						currentValidators: [
-							{
-								address: utils.getRandomBytes(20),
-								bftWeight: BigInt(1),
-								blsKey: utils.getRandomBytes(48),
-								generatorKey: utils.getRandomBytes(32),
-							},
-						],
-						implyMaxPrevote: false,
-						maxHeightCertified: 0,
-						certificateThreshold: BigInt(0),
-					},
 					transactions: [],
 				}),
 			).rejects.toThrow('Context is not initialized or different');
@@ -408,19 +343,6 @@ describe('abi handler', () => {
 			const resp = await abiHandler.afterTransactionsExecute({
 				contextID,
 				assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
-				consensus: {
-					currentValidators: [
-						{
-							address: utils.getRandomBytes(20),
-							bftWeight: BigInt(1),
-							blsKey: utils.getRandomBytes(48),
-							generatorKey: utils.getRandomBytes(32),
-						},
-					],
-					implyMaxPrevote: false,
-					maxHeightCertified: 0,
-					certificateThreshold: BigInt(0),
-				},
 				transactions: [],
 			});
 			expect(abiHandler['_stateMachine'].afterExecuteBlock).toHaveBeenCalledTimes(1);
@@ -533,19 +455,6 @@ describe('abi handler', () => {
 				dryRun: false,
 				header: createFakeBlockHeader().toObject(),
 				transaction: tx.toObject(),
-				consensus: {
-					currentValidators: [
-						{
-							address: utils.getRandomBytes(20),
-							bftWeight: BigInt(1),
-							blsKey: utils.getRandomBytes(48),
-							generatorKey: utils.getRandomBytes(32),
-						},
-					],
-					implyMaxPrevote: false,
-					maxHeightCertified: 0,
-					certificateThreshold: BigInt(0),
-				},
 			});
 
 			expect(abiHandler['_stateMachine'].executeTransaction).toHaveBeenCalledTimes(1);
@@ -586,19 +495,6 @@ describe('abi handler', () => {
 				dryRun: true,
 				header: createFakeBlockHeader().toObject(),
 				transaction: tx.toObject(),
-				consensus: {
-					currentValidators: [
-						{
-							address: utils.getRandomBytes(20),
-							bftWeight: BigInt(1),
-							blsKey: utils.getRandomBytes(48),
-							generatorKey: utils.getRandomBytes(32),
-						},
-					],
-					implyMaxPrevote: false,
-					maxHeightCertified: 0,
-					certificateThreshold: BigInt(0),
-				},
 			});
 
 			expect(abiHandler['_stateMachine'].executeTransaction).toHaveBeenCalledTimes(1);

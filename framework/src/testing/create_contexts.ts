@@ -37,7 +37,6 @@ import {
 } from '../state_machine';
 import { loggerMock } from './mocks';
 import { WritableBlockAssets } from '../engine/generator/types';
-import { Validator } from '../abi';
 import { SubStore, StateStore as IStateStore } from '../state_machine/types';
 import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from './in_memory_prefixed_state';
@@ -59,6 +58,7 @@ const createTestHeader = () =>
 		stateRoot: utils.hash(Buffer.alloc(0)),
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: 0,
+		impliesMaxPrevotes: true,
 		assetRoot: utils.hash(Buffer.alloc(0)),
 		aggregateCommit: {
 			height: 0,
@@ -97,7 +97,6 @@ export const createBlockContext = (params: {
 	header?: BlockHeader;
 	assets?: BlockAssets;
 	transactions?: Transaction[];
-	validators?: Validator[];
 }): BlockContext => {
 	const logger = params.logger ?? loggerMock;
 	const stateStore =
@@ -112,12 +111,6 @@ export const createBlockContext = (params: {
 		header,
 		assets: params.assets ?? new BlockAssets(),
 		chainID: utils.getRandomBytes(32),
-		currentValidators: params.validators ?? [],
-		impliesMaxPrevote: true,
-		maxHeightCertified: 0,
-		certificateThreshold: params.validators
-			? (BigInt(2) * BigInt(params.validators.length)) / BigInt(3) + BigInt(1)
-			: BigInt(0),
 	});
 	return ctx;
 };
@@ -165,10 +158,6 @@ export const createTransactionContext = (params: {
 	header?: BlockHeader;
 	assets?: BlockAssets;
 	chainID?: Buffer;
-	currentValidators?: Validator[];
-	impliesMaxPrevote?: boolean;
-	maxHeightCertified?: number;
-	certificateThreshold?: bigint;
 	transaction: Transaction;
 }): TransactionContext => {
 	const logger = params.logger ?? loggerMock;
@@ -184,10 +173,6 @@ export const createTransactionContext = (params: {
 		assets: params.assets ?? new BlockAssets(),
 		chainID: params.chainID ?? utils.getRandomBytes(32),
 		transaction: params.transaction,
-		currentValidators: params.currentValidators ?? [],
-		impliesMaxPrevote: params.impliesMaxPrevote ?? true,
-		maxHeightCertified: params.maxHeightCertified ?? 0,
-		certificateThreshold: params.certificateThreshold ?? BigInt(0),
 	});
 	return ctx;
 };

@@ -80,18 +80,19 @@ describe('consensus', () => {
 			applyNodeInfo: jest.fn(),
 		} as unknown) as Network;
 		bft = {
+			init: jest.fn(),
 			initGenesisState: jest.fn(),
 			beforeTransactionsExecute: jest.fn(),
 			method: {
-				getGeneratorKeys: jest.fn().mockResolvedValue([]),
-				currentHeaderImpliesMaximalPrevotes: jest.fn().mockResolvedValue(true),
+				getGeneratorAtTimestamp: jest.fn(),
+				impliesMaximalPrevotes: jest.fn().mockResolvedValue(true),
 				getBFTHeights: jest
 					.fn()
 					.mockResolvedValue({ maxHeghgtPrevoted: 0, maxHeightPrecommitted: 0 }),
 				isHeaderContradictingChain: jest.fn(),
 				getBFTParameters: jest.fn(),
 				setBFTParameters: jest.fn(),
-				setGeneratorKeys: jest.fn(),
+				getSlotNumber: jest.fn(),
 			},
 		} as never;
 		abi = {
@@ -724,9 +725,8 @@ describe('consensus', () => {
 			describe('timestamp', () => {
 				it('should throw error when block timestamp is from future', () => {
 					const invalidBlock = { ...block };
-					const now = Date.now();
 
-					Date.now = jest.fn(() => now);
+					jest.spyOn(bft.method, 'getSlotNumber').mockReturnValue(Math.floor(Date.now() / 10));
 
 					(invalidBlock.header as any).timestamp = Math.floor((Date.now() + 10000) / 1000);
 
@@ -739,9 +739,8 @@ describe('consensus', () => {
 
 				it('should throw error when block slot is less than previous block slot', () => {
 					const invalidBlock = { ...block };
-					const now = Date.now();
 
-					Date.now = jest.fn(() => now);
+					jest.spyOn(bft.method, 'getSlotNumber').mockReturnValue(Math.floor(Date.now() / 10));
 
 					(invalidBlock.header as any).timestamp = Math.floor(Date.now() / 1000);
 
@@ -755,9 +754,6 @@ describe('consensus', () => {
 				});
 
 				it('should be success when valid block timestamp', () => {
-					const now = Date.now();
-					Date.now = jest.fn(() => now);
-
 					(block.header as any).timestamp = Math.floor(Date.now() / 1000);
 
 					expect(consensus['_verifyTimestamp'](block as any)).toBeUndefined();
@@ -813,10 +809,10 @@ describe('consensus', () => {
 				});
 
 				it('should throw error if generatorAddress has wrong block slot', async () => {
-					jest.spyOn(consensus, 'getGeneratorAtTimestamp');
-					when(consensus.getGeneratorAtTimestamp as never)
+					jest.spyOn(consensus['_bft'].method, 'getGeneratorAtTimestamp');
+					when(consensus['_bft'].method.getGeneratorAtTimestamp as never)
 						.calledWith(stateStore, block.header.height, (block.header as any).timestamp)
-						.mockResolvedValue(utils.getRandomBytes(20) as never);
+						.mockResolvedValue({ address: utils.getRandomBytes(20) } as never);
 
 					await expect(
 						consensus['_verifyGeneratorAddress'](stateStore, block as any),
@@ -830,10 +826,10 @@ describe('consensus', () => {
 				});
 
 				it('should be success if generatorAddress is valid and has right block slot', async () => {
-					jest.spyOn(consensus, 'getGeneratorAtTimestamp');
-					when(consensus.getGeneratorAtTimestamp as never)
+					jest.spyOn(consensus['_bft'].method, 'getGeneratorAtTimestamp');
+					when(consensus['_bft'].method.getGeneratorAtTimestamp as never)
 						.calledWith(stateStore, block.header.height, block.header.timestamp)
-						.mockResolvedValue(block.header.generatorAddress as never);
+						.mockResolvedValue({ address: block.header.generatorAddress } as never);
 
 					await expect(
 						consensus['_verifyGeneratorAddress'](stateStore, block as any),
@@ -887,9 +883,11 @@ describe('consensus', () => {
 				it('should throw error for invalid signature', async () => {
 					const generatorKey = utils.getRandomBytes(32);
 
-					when(consensus['_bft'].method.getGeneratorKeys as never)
+					when(consensus['_bft'].method.getBFTParameters as never)
 						.calledWith(stateStore, block.header.height)
-						.mockResolvedValue([{ address: block.header.generatorAddress, generatorKey }] as never);
+						.mockResolvedValue({
+							validators: [{ address: block.header.generatorAddress, generatorKey }],
+						} as never);
 
 					await expect(
 						consensus['_verifyAssetsSignature'](stateStore, block as any),
@@ -913,11 +911,13 @@ describe('consensus', () => {
 					blockHeader.sign(consensus['_chain'].chainID, keyPair.privateKey);
 					const validBlock = new Block(blockHeader, [], new BlockAssets());
 
-					when(consensus['_bft'].method.getGeneratorKeys as never)
+					when(consensus['_bft'].method.getBFTParameters as never)
 						.calledWith(stateStore, validBlock.header.height)
-						.mockResolvedValue([
-							{ address: validBlock.header.generatorAddress, generatorKey: keyPair.publicKey },
-						] as never);
+						.mockResolvedValue({
+							validators: [
+								{ address: validBlock.header.generatorAddress, generatorKey: keyPair.publicKey },
+							],
+						} as never);
 
 					await expect(
 						consensus['_verifyAssetsSignature'](stateStore, validBlock as any),

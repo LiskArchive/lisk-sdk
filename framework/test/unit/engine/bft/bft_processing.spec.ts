@@ -23,12 +23,12 @@ import {
 	STORE_PREFIX_BFT_VOTES,
 } from '../../../../src/engine/bft/constants';
 import { bftParametersSchema, BFTVotes, bftVotesSchema } from '../../../../src/engine/bft/schemas';
-import { BFTValidator, GeneratorKey } from '../../../../src/engine/bft/types';
 import * as scenario4DelegatesMissedSlots from './bft_processing/4_delegates_missed_slots.json';
 import * as scenario4DelegatesSimple from './bft_processing/4_delegates_simple.json';
 import * as scenario5DelegatesSwitchedCompletely from './bft_processing/5_delegates_switched_completely.json';
 import * as scenario7DelegatesPartialSwitch from './bft_processing/7_delegates_partial_switch.json';
 import * as scenario11DelegatesPartialSwitch from './bft_processing/11_delegates_partial_switch.json';
+import { Validator } from '../../../../src/abi';
 
 describe('BFT processing', () => {
 	const bftScenarios = [
@@ -48,7 +48,7 @@ describe('BFT processing', () => {
 
 			beforeAll(async () => {
 				bftModule = new BFTModule();
-				await bftModule.init(scenario.config.activeDelegates);
+				await bftModule.init(scenario.config.activeDelegates, 0, 10);
 				db = new InMemoryDatabase();
 				stateStore = new StateStore(db);
 
@@ -57,7 +57,7 @@ describe('BFT processing', () => {
 					STORE_PREFIX_BFT_PARAMETERS,
 				);
 				const threshold = Math.floor((scenario.config.activeDelegates * 2) / 3) + 1;
-				const validators: (BFTValidator & GeneratorKey & { minHeightActive: number })[] = [];
+				const validators: (Validator & { minHeightActive: number })[] = [];
 				for (const testCase of scenario.testCases) {
 					const generatorAddress = address.getAddressFromPublicKey(
 						Buffer.from(testCase.input.blockHeader.generatorPublicKey, 'hex'),
@@ -109,6 +109,7 @@ describe('BFT processing', () => {
 					);
 					const header = new BlockHeader({
 						version: 2,
+						impliesMaxPrevotes: false,
 						aggregateCommit: {
 							height: 0,
 							aggregationBits: Buffer.alloc(0),

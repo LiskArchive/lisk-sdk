@@ -44,6 +44,7 @@ import {
 import {
 	ActiveValidators,
 	MainchainRegistrationParams,
+	ValidatorsMethod,
 } from '../../../../../../src/modules/interoperability/types';
 import {
 	VerifyStatus,
@@ -104,6 +105,7 @@ describe('Mainchain registration command', () => {
 	let verifyContext: CommandVerifyContext<MainchainRegistrationParams>;
 	let ownChainAccountSubstore: OwnChainAccountStore;
 	let stateStore: PrefixedStateReadWriter;
+	let validatorsMethod: ValidatorsMethod;
 
 	beforeEach(() => {
 		mainchainRegistrationCommand = new MainchainRegistrationCommand(
@@ -112,6 +114,11 @@ describe('Mainchain registration command', () => {
 			new Map(),
 			new Map(),
 		);
+		validatorsMethod = {
+			getValidatorKeys: jest.fn(),
+			getValidatorsParams: jest.fn(),
+		};
+		mainchainRegistrationCommand.addDependencies(validatorsMethod);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		ownChainAccountSubstore = interopMod.stores.get(OwnChainAccountStore);
 	});
@@ -123,10 +130,9 @@ describe('Mainchain registration command', () => {
 				name: 'testchain',
 				nonce: BigInt(0),
 			});
-			verifyContext = createTransactionContext({
-				transaction,
+			(validatorsMethod.getValidatorsParams as jest.Mock).mockResolvedValue({
 				certificateThreshold: BigInt(40),
-				currentValidators: [
+				validators: [
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(10),
@@ -140,6 +146,9 @@ describe('Mainchain registration command', () => {
 						blsKey: utils.getRandomBytes(48),
 					},
 				],
+			});
+			verifyContext = createTransactionContext({
+				transaction,
 				stateStore,
 			}).createCommandVerifyContext<MainchainRegistrationParams>(mainchainRegParams);
 		});
@@ -296,9 +305,11 @@ describe('Mainchain registration command', () => {
 			jest.spyOn(invalidRegistrationSignatureEvent, 'log');
 			jest.spyOn(crypto.bls, 'verifyWeightedAggSig').mockReturnValue(true);
 
-			context = createTransactionContext({
+			(validatorsMethod.getValidatorsParams as jest.Mock).mockResolvedValue({
 				certificateThreshold: BigInt(40),
-				currentValidators: validatorAccounts,
+				validators: validatorAccounts,
+			});
+			context = createTransactionContext({
 				transaction,
 			}).createCommandExecuteContext(mainchainRegParams);
 		});

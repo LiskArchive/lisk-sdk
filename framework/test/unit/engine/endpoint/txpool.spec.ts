@@ -16,14 +16,12 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { Chain, Transaction, Event } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { LiskValidationError } from '@liskhq/lisk-validator';
-import { Database, InMemoryDatabase } from '@liskhq/lisk-db';
 import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../../../src/abi';
 import { Logger } from '../../../../src/logger';
 import { Broadcaster } from '../../../../src/engine/generator/broadcaster';
 import { InvalidTransactionError } from '../../../../src/engine/generator/errors';
 import { fakeLogger } from '../../../utils/mocks';
 import { TxpoolEndpoint } from '../../../../src/engine/endpoint/txpool';
-import { Consensus } from '../../../../src/engine/consensus';
 
 describe('generator endpoint', () => {
 	const logger: Logger = fakeLogger;
@@ -54,8 +52,6 @@ describe('generator endpoint', () => {
 	let pool: TransactionPool;
 	let abi: ABI;
 	let chain: Chain;
-	let consensus: Consensus;
-	let blockchainDB: Database;
 
 	beforeEach(() => {
 		broadcaster = {
@@ -80,28 +76,11 @@ describe('generator endpoint', () => {
 				},
 			},
 		} as never;
-		consensus = {
-			execute: jest.fn(),
-			getSlotNumber: jest.fn(),
-			getSlotTime: jest.fn(),
-			getGeneratorAtTimestamp: jest.fn(),
-			getAggregateCommit: jest.fn(),
-			certifySingleCommit: jest.fn(),
-			getMaxRemovalHeight: jest.fn().mockResolvedValue(0),
-			getConsensusParams: jest.fn().mockResolvedValue({
-				currentValidators: [],
-				implyMaxPrevote: true,
-				maxHeightCertified: 0,
-			}),
-		} as never;
-		blockchainDB = new InMemoryDatabase() as never;
 		endpoint = new TxpoolEndpoint({
 			abi,
 			broadcaster,
 			pool,
 			chain,
-			consensus,
-			blockchainDB,
 		});
 	});
 

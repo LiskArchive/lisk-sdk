@@ -40,7 +40,7 @@ import {
 	GenesisData,
 	ValidatorsMethod,
 } from '../../../../src/modules/dpos_v2/types';
-import { GenesisBlockExecuteContext } from '../../../../src/state_machine/types';
+import { GenesisBlockExecuteContext, Validator } from '../../../../src/state_machine/types';
 import { invalidAssets, validAsset, validators } from './genesis_block_test_data';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
@@ -114,11 +114,12 @@ describe('DPoS module', () => {
 			const validatorMethod = {
 				setValidatorGeneratorKey: jest.fn(),
 				registerValidatorKeys: jest.fn().mockResolvedValue(true),
-				getValidatorAccount: jest.fn().mockResolvedValue({
+				getValidatorKeys: jest.fn().mockResolvedValue({
 					blsKey: utils.getRandomBytes(48),
 					generatorKey: utils.getRandomBytes(32),
 				}),
 				getGeneratorsBetweenTimestamps: jest.fn(),
+				setValidatorsParams: jest.fn(),
 			};
 			const tokenMethod = {
 				lock: jest.fn(),
@@ -277,18 +278,14 @@ describe('DPoS module', () => {
 				await expect(dpos.initGenesisState(context)).toResolve();
 				await expect(dpos.finalizeGenesisState(context)).toResolve();
 
-				expect(genesisContext.nextValidators.certificateThreshold).toEqual(BigInt(68));
-				expect(genesisContext.nextValidators.precommitThreshold).toEqual(BigInt(68));
-				const activeValidators = genesisContext.nextValidators.validators.filter(
-					v => v.bftWeight > BigInt(0),
-				);
-				expect(activeValidators).toHaveLength(101);
-				expect(activeValidators).toEqual(
+				expect(dpos['_validatorsMethod'].setValidatorsParams).toHaveBeenCalledWith(
+					expect.any(Object),
+					expect.any(Object),
+					BigInt(68),
+					BigInt(68),
 					validAsset.genesisData.initDelegates.map(d => ({
 						bftWeight: BigInt(1),
 						address: d,
-						blsKey: expect.any(Buffer),
-						generatorKey: expect.any(Buffer),
 					})),
 				);
 			});
@@ -702,11 +699,12 @@ describe('DPoS module', () => {
 						const validatorMethod = {
 							setValidatorGeneratorKey: jest.fn(),
 							registerValidatorKeys: jest.fn(),
-							getValidatorAccount: jest.fn().mockResolvedValue({
+							getValidatorKeys: jest.fn().mockResolvedValue({
 								blsKey: utils.getRandomBytes(48),
 								generatorKey: utils.getRandomBytes(32),
 							}),
 							getGeneratorsBetweenTimestamps: jest.fn(),
+							setValidatorsParams: jest.fn(),
 						};
 						const tokenMethod = {
 							lock: jest.fn(),
@@ -721,7 +719,7 @@ describe('DPoS module', () => {
 
 						await dpos['_updateValidators'](context);
 
-						expect(blockContext.nextValidators.validators.length).toBeGreaterThan(1);
+						expect(validatorMethod.setValidatorsParams).toHaveBeenCalledTimes(1);
 					});
 				});
 			}
@@ -781,11 +779,12 @@ describe('DPoS module', () => {
 				validatorMethod = {
 					setValidatorGeneratorKey: jest.fn(),
 					registerValidatorKeys: jest.fn(),
-					getValidatorAccount: jest.fn().mockResolvedValue({
+					getValidatorKeys: jest.fn().mockResolvedValue({
 						blsKey: utils.getRandomBytes(48),
 						generatorKey: utils.getRandomBytes(32),
 					}),
 					getGeneratorsBetweenTimestamps: jest.fn(),
+					setValidatorsParams: jest.fn(),
 				};
 				const tokenMethod = {
 					lock: jest.fn(),
@@ -802,7 +801,9 @@ describe('DPoS module', () => {
 			});
 
 			it('should have activeDelegates + standbyDelegates delegates in the generators list', () => {
-				expect(blockContext.nextValidators.validators).toHaveLength(defaultConfigs.roundLength);
+				expect((validatorMethod.setValidatorsParams as jest.Mock).mock.calls[0][4]).toHaveLength(
+					defaultConfigs.roundLength,
+				);
 			});
 
 			it('should store selected stand by delegates in the generators list', () => {
@@ -812,7 +813,9 @@ describe('DPoS module', () => {
 					Buffer.from(selectedForgers[selectedForgers.length - 2], 'hex'),
 				].sort((a, b) => a.compare(b));
 
-				const standbyCandidatesAddresses = blockContext.nextValidators.validators
+				const updatedValidators = (validatorMethod.setValidatorsParams as jest.Mock).mock
+					.calls[0][4] as Validator[];
+				const standbyCandidatesAddresses = updatedValidators
 					.filter(
 						validator =>
 							standbyDelegatesInFixture.find(fixture => fixture.equals(validator.address)) !==
@@ -907,12 +910,7 @@ describe('DPoS module', () => {
 				}
 
 				when(validatorsMethod.getGeneratorsBetweenTimestamps)
-					.calledWith(
-						context.getMethodContext(),
-						previousTimestamp,
-						currentTimestamp,
-						expect.any(Array),
-					)
+					.calledWith(context.getMethodContext(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
@@ -964,12 +962,7 @@ describe('DPoS module', () => {
 				}
 
 				when(validatorsMethod.getGeneratorsBetweenTimestamps)
-					.calledWith(
-						context.getMethodContext(),
-						previousTimestamp,
-						currentTimestamp,
-						expect.any(Array),
-					)
+					.calledWith(context.getMethodContext(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
@@ -1021,12 +1014,7 @@ describe('DPoS module', () => {
 				}
 
 				when(validatorsMethod.getGeneratorsBetweenTimestamps)
-					.calledWith(
-						context.getMethodContext(),
-						previousTimestamp,
-						currentTimestamp,
-						expect.any(Array),
-					)
+					.calledWith(context.getMethodContext(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
@@ -1073,12 +1061,7 @@ describe('DPoS module', () => {
 				const missedBlocks: Record<string, number> = {};
 
 				when(validatorsMethod.getGeneratorsBetweenTimestamps)
-					.calledWith(
-						context.getMethodContext(),
-						previousTimestamp,
-						currentTimestamp,
-						expect.any(Array),
-					)
+					.calledWith(context.getMethodContext(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
@@ -1125,12 +1108,7 @@ describe('DPoS module', () => {
 				missedBlocks[missedDelegate.toString('binary')] = 1;
 
 				when(validatorsMethod.getGeneratorsBetweenTimestamps)
-					.calledWith(
-						context.getMethodContext(),
-						previousTimestamp,
-						currentTimestamp,
-						expect.any(Array),
-					)
+					.calledWith(context.getMethodContext(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 50;
@@ -1181,12 +1159,7 @@ describe('DPoS module', () => {
 				missedBlocks[missedDelegate.toString('binary')] = 1;
 
 				when(validatorsMethod.getGeneratorsBetweenTimestamps)
-					.calledWith(
-						context.getMethodContext(),
-						previousTimestamp,
-						currentTimestamp,
-						expect.any(Array),
-					)
+					.calledWith(context.getMethodContext(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 40;
@@ -1237,12 +1210,7 @@ describe('DPoS module', () => {
 				missedBlocks[missedDelegate.toString('binary')] = 1;
 
 				when(validatorsMethod.getGeneratorsBetweenTimestamps)
-					.calledWith(
-						context.getMethodContext(),
-						previousTimestamp,
-						currentTimestamp,
-						expect.any(Array),
-					)
+					.calledWith(context.getMethodContext(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 50;
