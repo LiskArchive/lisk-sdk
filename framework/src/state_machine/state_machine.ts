@@ -39,7 +39,6 @@ export class StateMachine {
 	public async init(
 		logger: Logger,
 		genesisConfig: GenesisConfig,
-		generatorConfig: Record<string, Record<string, unknown>> = {},
 		moduleConfig: Record<string, Record<string, unknown>> = {},
 	): Promise<void> {
 		this._logger = logger;
@@ -50,7 +49,6 @@ export class StateMachine {
 			if (mod.init) {
 				await mod.init({
 					moduleConfig: moduleConfig[mod.name] ?? {},
-					generatorConfig: generatorConfig[mod.name] ?? {},
 					genesisConfig,
 				});
 			}

@@ -35,14 +35,13 @@ describe('RewardModule', () => {
 		],
 		tokenID: '0000000000000000',
 	};
-	const generatorConfig: any = {};
 
 	let rewardModule: RewardModule;
 	let mint: any;
 	beforeEach(async () => {
 		mint = jest.fn();
 		rewardModule = new RewardModule();
-		await rewardModule.init({ genesisConfig, moduleConfig, generatorConfig });
+		await rewardModule.init({ genesisConfig, moduleConfig });
 		rewardModule.addDependencies(
 			{ mint } as any,
 			{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
@@ -52,9 +51,7 @@ describe('RewardModule', () => {
 	describe('init', () => {
 		it('should initialize config with default value when module config is empty', async () => {
 			rewardModule = new RewardModule();
-			await expect(
-				rewardModule.init({ genesisConfig: {} as any, moduleConfig: {}, generatorConfig: {} }),
-			).toResolve();
+			await expect(rewardModule.init({ genesisConfig: {} as any, moduleConfig: {} })).toResolve();
 
 			expect(rewardModule['_moduleConfig']).toEqual({ ...moduleConfig });
 		});
@@ -65,7 +62,6 @@ describe('RewardModule', () => {
 				rewardModule.init({
 					genesisConfig: {} as any,
 					moduleConfig: { offset: 1000 },
-					generatorConfig: {},
 				}),
 			).toResolve();
 
@@ -80,7 +76,6 @@ describe('RewardModule', () => {
 					moduleConfig: {
 						tokenID: '00000000000000000',
 					},
-					generatorConfig: {},
 				});
 			} catch (error: any) {
 				// eslint-disable-next-line jest/no-try-expect

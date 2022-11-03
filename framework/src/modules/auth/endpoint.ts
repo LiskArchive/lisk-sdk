@@ -15,6 +15,7 @@
 import { validator } from '@liskhq/lisk-validator';
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
+import { Schema } from '@liskhq/lisk-codec';
 import { ModuleEndpointContext } from '../../types';
 import { VerifyStatus } from '../../state_machine';
 import { BaseEndpoint } from '../base_endpoint';
@@ -28,7 +29,7 @@ import {
 import { getTransactionFromParameter, verifyNonceStrict, verifySignatures } from './utils';
 import { AuthAccountStore } from './stores/auth_account';
 import { NamedRegistry } from '../named_registry';
-import { sortMultisignatureGroupSchema } from './schemas';
+import { multisigRegMsgSchema, sortMultisignatureGroupSchema } from './schemas';
 
 export class AuthEndpoint extends BaseEndpoint {
 	public constructor(_moduleName: string, stores: NamedRegistry, offchainStores: NamedRegistry) {
@@ -107,6 +108,13 @@ export class AuthEndpoint extends BaseEndpoint {
 
 		const verificationResult = verifyNonceStrict(transaction, account).status;
 		return { verified: verificationResult === VerifyStatus.OK };
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async getMultiSigRegMsgSchema(
+		_context: ModuleEndpointContext,
+	): Promise<{ schema: Schema }> {
+		return { schema: multisigRegMsgSchema };
 	}
 
 	public sortMultisignatureGroup(context: ModuleEndpointContext): SortedMultisignatureGroup {

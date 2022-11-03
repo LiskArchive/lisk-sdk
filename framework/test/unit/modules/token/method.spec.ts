@@ -97,7 +97,6 @@ describe('token module', () => {
 			genesisConfig: {
 				chainID: '00000001',
 			} as never,
-			generatorConfig: {},
 			moduleConfig: {
 				accountInitializationFee: USER_SUBSTORE_INITIALIZATION_FEE,
 			},

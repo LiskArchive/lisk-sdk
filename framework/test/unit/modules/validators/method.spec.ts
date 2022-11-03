@@ -58,7 +58,6 @@ describe('ValidatorsModuleMethod', () => {
 	const moduleConfig: any = {
 		blockTime: 10,
 	};
-	const generatorConfig: any = {};
 	const address = utils.getRandomBytes(48);
 	const generatorKey = utils.getRandomBytes(48);
 	const genesisTimestamp = 1610643809;
@@ -72,7 +71,7 @@ describe('ValidatorsModuleMethod', () => {
 	);
 	beforeAll(async () => {
 		validatorsModule = new ValidatorsModule();
-		await validatorsModule.init({ genesisConfig, moduleConfig, generatorConfig });
+		await validatorsModule.init({ genesisConfig, moduleConfig });
 	});
 
 	beforeEach(() => {

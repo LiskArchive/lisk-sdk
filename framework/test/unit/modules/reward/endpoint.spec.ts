@@ -28,13 +28,12 @@ describe('RewardModuleEndpoint', () => {
 		],
 		tokenID: '0000000000000000',
 	};
-	const generatorConfig: any = {};
 
 	let rewardModule: RewardModule;
 
 	beforeAll(async () => {
 		rewardModule = new RewardModule();
-		await rewardModule.init({ genesisConfig, moduleConfig, generatorConfig });
+		await rewardModule.init({ genesisConfig, moduleConfig });
 		rewardModule.addDependencies(
 			{ mint: jest.fn() } as any,
 			{ isSeedRevealValid: jest.fn() } as any,
