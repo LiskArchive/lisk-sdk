@@ -23,7 +23,7 @@ import {
 	TokenMethod,
 	ValidatorsMethod,
 } from '../../../../../src/modules/dpos_v2/types';
-import { VerifyStatus } from '../../../../../src/state_machine';
+import { EventQueue, VerifyStatus } from '../../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import { DelegateStore } from '../../../../../src/modules/dpos_v2/stores/delegate';
@@ -31,10 +31,12 @@ import { NameStore } from '../../../../../src/modules/dpos_v2/stores/name';
 import { DPoSModule } from '../../../../../src';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import { DELEGATE_REGISTRATION_FEE } from '../../../../../src/modules/dpos_v2/constants';
+import { DelegateRegisteredEvent } from '../../../../../src/modules/dpos_v2/events/delegate_registered';
 
 describe('Delegate registration command', () => {
 	const dpos = new DPoSModule();
 	let delegateRegistrationCommand: DelegateRegistrationCommand;
+	let delegateRegisteredEvent: DelegateRegisteredEvent;
 	let stateStore: PrefixedStateReadWriter;
 	let delegateSubstore: DelegateStore;
 	let nameSubstore: NameStore;
@@ -79,6 +81,26 @@ describe('Delegate registration command', () => {
 		'hex',
 	);
 
+	// TODO: move this function to utils and import from all other tests using it
+	const checkEventResult = (
+		eventQueue: EventQueue,
+		EventClass: any,
+		moduleName: string,
+		expectedResult: any,
+		length = 1,
+		index = 0,
+	) => {
+		expect(eventQueue.getEvents()).toHaveLength(length);
+		expect(eventQueue.getEvents()[index].toObject().name).toEqual(new EventClass(moduleName).name);
+
+		const eventData = codec.decode<Record<string, unknown>>(
+			new EventClass(moduleName).schema,
+			eventQueue.getEvents()[index].toObject().data,
+		);
+
+		expect(eventData).toEqual(expectedResult);
+	};
+
 	beforeEach(() => {
 		delegateRegistrationCommand = new DelegateRegistrationCommand(dpos.stores, dpos.events);
 		mockTokenMethod = {
@@ -100,6 +122,9 @@ describe('Delegate registration command', () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		delegateSubstore = dpos.stores.get(DelegateStore);
 		nameSubstore = dpos.stores.get(NameStore);
+
+		delegateRegisteredEvent = dpos.events.get(DelegateRegisteredEvent);
+		jest.spyOn(delegateRegisteredEvent, 'log');
 	});
 
 	describe('verify', () => {
@@ -351,6 +376,32 @@ describe('Delegate registration command', () => {
 			);
 
 			expect(storedData.delegateAddress).toEqual(transaction.senderAddress);
+		});
+
+		it('should emit an event when a delegate is registered', async () => {
+			const context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					chainID,
+				})
+				.createCommandExecuteContext<DelegateRegistrationParams>(
+					delegateRegistrationCommandParamsSchema,
+				);
+
+			await delegateRegistrationCommand.execute(context);
+
+			// check if the event has been dispatched correctly
+			expect(delegateRegisteredEvent.log).toHaveBeenCalledWith(expect.anything(), {
+				address: transaction.senderAddress,
+				name: transactionParams.name,
+			});
+
+			// check if the event is in the event queue
+			checkEventResult(context.eventQueue, DelegateRegisteredEvent, 'dpos', {
+				address: transaction.senderAddress,
+				name: transactionParams.name,
+			});
 		});
 	});
 });
