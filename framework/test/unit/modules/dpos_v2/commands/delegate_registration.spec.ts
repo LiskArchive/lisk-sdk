@@ -299,6 +299,44 @@ describe('Delegate registration command', () => {
 				'Delegate substore must not have an entry for the store key address',
 			);
 		});
+
+		it('should return error if delegate registration fee is different from what is required in config', async () => {
+			const invalidTransactionParams = { ...transactionParams, delegateRegistrationFee: BigInt(0) };
+
+			const encodedInvalidTransactionParams = codec.encode(
+				delegateRegistrationCommandParamsSchema,
+				invalidTransactionParams,
+			);
+			const invalidTransaction = new Transaction({
+				module: 'dpos',
+				command: 'registerDelegate',
+				senderPublicKey: publicKey,
+				nonce: BigInt(0),
+				fee: BigInt(100000000),
+				params: encodedInvalidTransactionParams,
+				signatures: [publicKey],
+			});
+
+			await delegateSubstore.set(
+				createStoreGetter(stateStore),
+				invalidTransaction.senderAddress,
+				defaultDelegateInfo,
+			);
+			const context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction: invalidTransaction,
+					chainID,
+				})
+				.createCommandVerifyContext<DelegateRegistrationParams>(
+					delegateRegistrationCommandParamsSchema,
+				);
+
+			const result = await delegateRegistrationCommand.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude('Invalid delegate registration fee.');
+		});
 	});
 
 	describe('execute', () => {
