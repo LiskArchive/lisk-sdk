@@ -15,10 +15,10 @@
 import { ImmutableMethodContext } from '../../state_machine';
 import { BaseMethod } from '../base_method';
 import { MAX_LENGTH_NAME } from './constants';
-import { DelegateStore } from './stores/delegate';
+import { DelegateAccount, DelegateStore } from './stores/delegate';
 import { NameStore } from './stores/name';
 import { VoterStore } from './stores/voter';
-import { DelegateAccount, VoterData } from './types';
+import { VoterData } from './types';
 import { isUsername } from './utils';
 
 export class DPoSMethod extends BaseMethod {

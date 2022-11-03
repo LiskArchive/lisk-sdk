@@ -35,16 +35,12 @@ import {
 	createTransientMethodContext,
 } from '../../../../src/testing';
 import { genesisStoreSchema } from '../../../../src/modules/dpos_v2/schemas';
-import {
-	DelegateAccount,
-	GenesisData,
-	ValidatorsMethod,
-} from '../../../../src/modules/dpos_v2/types';
+import { GenesisData, ValidatorsMethod } from '../../../../src/modules/dpos_v2/types';
 import { GenesisBlockExecuteContext, Validator } from '../../../../src/state_machine/types';
 import { invalidAssets, validAsset, validators } from './genesis_block_test_data';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
-import { DelegateStore } from '../../../../src/modules/dpos_v2/stores/delegate';
+import { DelegateAccount, DelegateStore } from '../../../../src/modules/dpos_v2/stores/delegate';
 import { VoterStore } from '../../../../src/modules/dpos_v2/stores/voter';
 import { NameStore } from '../../../../src/modules/dpos_v2/stores/name';
 import { PreviousTimestampStore } from '../../../../src/modules/dpos_v2/stores/previous_timestamp';
@@ -67,7 +63,7 @@ describe('DPoS module', () => {
 		minWeightStandby: (BigInt(1000) * BigInt(10 ** 8)).toString(),
 		numberActiveDelegates: 101,
 		numberStandbyDelegates: 2,
-		tokenIDDPoS: '0000000000000000',
+		governanceTokenID: '0000000000000000',
 	};
 
 	describe('init', () => {
@@ -78,20 +74,24 @@ describe('DPoS module', () => {
 
 		it('should initialize config with default value when module config is empty', async () => {
 			await expect(
-				dpos.init({ genesisConfig: {} as any, moduleConfig: {}, generatorConfig: {} }),
-			).toResolve();
+				dpos.init({
+					genesisConfig: { chainID: '00000000' } as any,
+					moduleConfig: {},
+					generatorConfig: {},
+				}),
+			).resolves.toBeUndefined();
 
 			expect(dpos['_moduleConfig']).toEqual({
 				...defaultConfigs,
 				minWeightStandby: BigInt(defaultConfigs.minWeightStandby),
-				tokenIDDPoS: Buffer.from(defaultConfigs.tokenIDDPoS, 'hex'),
+				governanceTokenID: Buffer.alloc(8),
 			});
 		});
 
 		it('should initialize config with given value', async () => {
 			await expect(
 				dpos.init({
-					genesisConfig: {} as any,
+					genesisConfig: { chainID: '00000000' } as any,
 					moduleConfig: { ...defaultConfigs, maxLengthName: 50 },
 					generatorConfig: {},
 				}),
@@ -859,7 +859,9 @@ describe('DPoS module', () => {
 			dpos = new DPoSModule();
 			await dpos.init({
 				generatorConfig: {},
-				genesisConfig: {} as GenesisConfig,
+				genesisConfig: {
+					chainID: '00000000',
+				} as GenesisConfig,
 				moduleConfig: defaultConfigs,
 			});
 
@@ -1275,7 +1277,9 @@ describe('DPoS module', () => {
 			dpos = new DPoSModule();
 			await dpos.init({
 				generatorConfig: {},
-				genesisConfig: {} as GenesisConfig,
+				genesisConfig: {
+					chainID: '00000000',
+				} as GenesisConfig,
 				moduleConfig: defaultConfigs,
 			});
 			dpos.addDependencies(randomMethod, validatorsMethod, tokenMethod);

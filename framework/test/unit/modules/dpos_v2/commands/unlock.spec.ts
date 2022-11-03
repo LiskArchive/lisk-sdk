@@ -117,7 +117,7 @@ describe('UnlockCommand', () => {
 		});
 		unlockCommand.init({
 			roundLength: defaultConfig.roundLength,
-			tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS, 'hex'),
+			governanceTokenID: Buffer.alloc(8),
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		delegateSubstore = dpos.stores.get(DelegateStore);

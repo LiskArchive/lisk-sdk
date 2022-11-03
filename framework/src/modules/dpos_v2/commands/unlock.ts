@@ -23,20 +23,20 @@ import { EMPTY_KEY, MODULE_NAME_DPOS } from '../constants';
 import { DelegateStore } from '../stores/delegate';
 import { GenesisDataStore } from '../stores/genesis';
 import { VoterStore } from '../stores/voter';
-import { TokenMethod, TokenIDDPoS, UnlockCommandDependencies } from '../types';
+import { TokenMethod, TokenID, UnlockCommandDependencies } from '../types';
 import { isPunished, isCertificateGenerated, hasWaited } from '../utils';
 
 export class UnlockCommand extends BaseCommand {
 	private _tokenMethod!: TokenMethod;
-	private _tokenIDDPoS!: TokenIDDPoS;
+	private _governanceTokenID!: TokenID;
 	private _roundLength!: number;
 
 	public addDependencies(args: UnlockCommandDependencies) {
 		this._tokenMethod = args.tokenMethod;
 	}
 
-	public init(args: { tokenIDDPoS: TokenIDDPoS; roundLength: number }) {
-		this._tokenIDDPoS = args.tokenIDDPoS;
+	public init(args: { governanceTokenID: TokenID; roundLength: number }) {
+		this._governanceTokenID = args.governanceTokenID;
 		this._roundLength = args.roundLength;
 	}
 
@@ -87,7 +87,7 @@ export class UnlockCommand extends BaseCommand {
 					getMethodContext(),
 					senderAddress,
 					MODULE_NAME_DPOS,
-					this._tokenIDDPoS,
+					this._governanceTokenID,
 					unlockObject.amount,
 				);
 				continue;

@@ -246,6 +246,6 @@ export function getModuleConfig(config: ModuleConfigJSON): ModuleConfig {
 	return {
 		...config,
 		minWeightStandby: BigInt(config.minWeightStandby),
-		tokenIDDPoS: Buffer.from(config.tokenIDDPoS, 'hex'),
+		governanceTokenID: Buffer.from(config.governanceTokenID, 'hex'),
 	};
 }

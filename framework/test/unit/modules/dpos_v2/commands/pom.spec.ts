@@ -21,7 +21,6 @@ import { ReportDelegateMisbehaviorCommand } from '../../../../../src/modules/dpo
 import * as testing from '../../../../../src/testing';
 import { REPORTING_PUNISHMENT_REWARD } from '../../../../../src/modules/dpos_v2/constants';
 import {
-	DelegateAccount,
 	TokenMethod,
 	ValidatorsMethod,
 	PomTransactionParams,
@@ -32,7 +31,7 @@ import * as bftUtil from '../../../../../src/engine/bft/utils';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import { DPoSModule } from '../../../../../src';
-import { DelegateStore } from '../../../../../src/modules/dpos_v2/stores/delegate';
+import { DelegateAccount, DelegateStore } from '../../../../../src/modules/dpos_v2/stores/delegate';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 
 describe('ReportDelegateMisbehaviorCommand', () => {
@@ -114,7 +113,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		header2 = fakeBlockHeader2 as BlockHeader;
 
 		pomCommand.init({
-			tokenIDDPoS: DEFAULT_LOCAL_ID,
+			governanceTokenID: DEFAULT_LOCAL_ID,
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		transaction = new Transaction({

@@ -47,10 +47,13 @@ describe('utils', () => {
 			const expected: ModuleConfig = {
 				...defaultConfig,
 				minWeightStandby: BigInt(defaultConfig.minWeightStandby),
-				tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS, 'hex'),
+				governanceTokenID: Buffer.alloc(8),
 			};
 
-			const actual: ModuleConfig = getModuleConfig(defaultConfig);
+			const actual: ModuleConfig = getModuleConfig({
+				...defaultConfig,
+				governanceTokenID: '0000000000000000',
+			});
 
 			expect(actual).toStrictEqual(expected);
 		});

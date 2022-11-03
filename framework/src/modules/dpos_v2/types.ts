@@ -18,8 +18,9 @@ import {
 	NextValidatorsSetter,
 } from '../../state_machine/types';
 import { JSONObject } from '../../types';
+import { DelegateAccountJSON } from './stores/delegate';
 
-export type TokenIDDPoS = Buffer;
+export type TokenID = Buffer;
 
 export interface ModuleConfig {
 	factorSelfVotes: number;
@@ -34,7 +35,7 @@ export interface ModuleConfig {
 	minWeightStandby: bigint;
 	numberActiveDelegates: number;
 	numberStandbyDelegates: number;
-	tokenIDDPoS: TokenIDDPoS;
+	governanceTokenID: TokenID;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
@@ -80,32 +81,32 @@ export interface TokenMethod {
 		methodContext: MethodContext,
 		address: Buffer,
 		module: string,
-		tokenID: TokenIDDPoS,
+		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void>;
 	getAvailableBalance(
 		methodContext: ImmutableMethodContext,
 		address: Buffer,
-		tokenID: TokenIDDPoS,
+		tokenID: TokenID,
 	): Promise<bigint>;
 	transfer(
 		methodContext: MethodContext,
 		senderAddress: Buffer,
 		recipientAddress: Buffer,
-		tokenID: TokenIDDPoS,
+		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void>;
 	unlock(
 		methodContext: MethodContext,
 		address: Buffer,
 		module: string,
-		tokenID: TokenIDDPoS,
+		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void>;
 	getLockedAmount(
 		methodContext: ImmutableMethodContext,
 		address: Buffer,
-		tokenID: TokenIDDPoS,
+		tokenID: TokenID,
 		module: string,
 	): Promise<bigint>;
 }
@@ -125,35 +126,6 @@ export interface DelegateRegistrationParams {
 	blsKey: Buffer;
 	proofOfPossession: Buffer;
 	generatorKey: Buffer;
-}
-
-export interface VoteSharingCofficientObject {
-	tokenID: Buffer;
-	coefficient: Buffer;
-}
-
-export interface DelegateAccount {
-	name: string;
-	totalVotesReceived: bigint;
-	selfVotes: bigint;
-	lastGeneratedHeight: number;
-	isBanned: boolean;
-	pomHeights: number[];
-	consecutiveMissedBlocks: number;
-	commission: number;
-	lastCommissionIncreaseHeight: number;
-	sharingCoefficients: VoteSharingCofficientObject[];
-}
-
-export interface DelegateAccountJSON {
-	name: string;
-	totalVotesReceived: string;
-	selfVotes: string;
-	lastGeneratedHeight: number;
-	isBanned: boolean;
-	pomHeights: number[];
-	consecutiveMissedBlocks: number;
-	address: string;
 }
 
 export interface VoterDataJSON {
@@ -278,4 +250,25 @@ export interface GetUnlockHeightResponse {
 		expectedUnlockableHeight: number;
 		unlockable: boolean;
 	}[];
+}
+
+export interface GetGovernanceTokenIDResponse {
+	tokenID: string;
+}
+
+export interface GetValidatorsByStakeRequest {
+	limit?: number;
+}
+
+export interface GetValidatorsByStakeResponse {
+	validators: (DelegateAccountJSON & { address: string })[];
+}
+
+export interface GetLockedRewardsRequest {
+	address: string;
+	tokenID: string;
+}
+
+export interface GetLockedRewardsResponse {
+	reward: string;
 }

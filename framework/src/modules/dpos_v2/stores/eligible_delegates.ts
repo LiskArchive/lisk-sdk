@@ -30,6 +30,9 @@ export const eligibleDelegatesStoreSchema = {
 	},
 };
 
+// uint64 + address
+const KEY_LENGTH = 8 + 20;
+
 export class EligibleDelegatesStore extends BaseStore<EligibleDelegate> {
 	public schema = eligibleDelegatesStoreSchema;
 
@@ -40,10 +43,25 @@ export class EligibleDelegatesStore extends BaseStore<EligibleDelegate> {
 	}
 
 	public async getTop(context: ImmutableStoreGetter, count: number) {
-		return this.iterate(context, { limit: count, reverse: true });
+		return this.iterate(context, {
+			gte: Buffer.alloc(KEY_LENGTH, 0),
+			lte: Buffer.alloc(KEY_LENGTH, 255),
+			limit: count,
+			reverse: true,
+		});
 	}
 
 	public async getAll(context: ImmutableStoreGetter) {
-		return this.iterate(context, { reverse: true });
+		return this.iterate(context, {
+			gte: Buffer.alloc(KEY_LENGTH, 0),
+			lte: Buffer.alloc(KEY_LENGTH, 255),
+			reverse: true,
+		});
+	}
+
+	public splitKey(key: Buffer): [Buffer, bigint] {
+		const weightBytes = key.slice(0, 8);
+		const address = key.slice(8);
+		return [address, weightBytes.readBigUInt64BE()];
 	}
 }
