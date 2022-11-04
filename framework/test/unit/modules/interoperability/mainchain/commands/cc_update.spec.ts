@@ -118,10 +118,7 @@ describe('CrossChainUpdateCommand', () => {
 	const defaultCCMsEncoded = defaultCCMs.map(ccm => codec.encode(ccmSchema, ccm));
 	const defaultInboxUpdateValue = {
 		crossChainMessages: defaultCCMsEncoded,
-		messageWitness: {
-			partnerChainOutboxSize: BigInt(2),
-			siblingHashes: [Buffer.alloc(1)],
-		},
+		messageWitnessHashes: [Buffer.alloc(1)],
 		outboxRootWitness: {
 			bitmap: Buffer.alloc(1),
 			siblingHashes: [Buffer.alloc(1)],
@@ -373,7 +370,7 @@ describe('CrossChainUpdateCommand', () => {
 			jest.spyOn(interopUtils, 'checkInboxUpdateValidity').mockReturnValue({
 				status: VerifyStatus.FAIL,
 				error: new Error(
-					'Failed at verifying state root when messageWitness is non-empty and certificate is empty.',
+					'Failed at verifying state root when messageWitnessHashes is non-empty and certificate is empty.',
 				),
 			});
 
@@ -381,7 +378,7 @@ describe('CrossChainUpdateCommand', () => {
 
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toContain(
-				'Failed at verifying state root when messageWitness is non-empty and certificate is empty.',
+				'Failed at verifying state root when messageWitnessHashes is non-empty and certificate is empty.',
 			);
 		});
 

@@ -31,6 +31,7 @@ import { chainValidatorsSchema } from './stores/chain_validators';
 import { channelSchema } from './stores/channel_data';
 import { outboxRootSchema } from './stores/outbox_root';
 import { ownChainAccountSchema } from './stores/own_chain_account';
+import { chainIDSchema } from './stores/registered_names';
 import { terminatedOutboxSchema } from './stores/terminated_outbox';
 import { terminatedStateSchema } from './stores/terminated_state';
 
@@ -240,28 +241,17 @@ export const crossChainUpdateTransactionParams = {
 		inboxUpdate: {
 			type: 'object',
 			fieldNumber: 5,
-			required: ['crossChainMessages', 'messageWitness', 'outboxRootWitness'],
+			required: ['crossChainMessages', 'messageWitnessHashes', 'outboxRootWitness'],
 			properties: {
 				crossChainMessages: {
 					type: 'array',
 					fieldNumber: 1,
 					items: { dataType: 'bytes' },
 				},
-				messageWitness: {
-					type: 'object',
+				messageWitnessHashes: {
+					type: 'array',
 					fieldNumber: 2,
-					required: ['partnerChainOutboxSize', 'siblingHashes'],
-					properties: {
-						partnerChainOutboxSize: {
-							dataType: 'uint64',
-							fieldNumber: 1,
-						},
-						siblingHashes: {
-							type: 'array',
-							fieldNumber: 2,
-							items: { dataType: 'bytes' },
-						},
-					},
+					items: { dataType: 'bytes' },
 				},
 				outboxRootWitness: {
 					type: 'object',
@@ -359,21 +349,6 @@ export const sidechainTerminatedCCMParamsSchema = {
 		stateRoot: {
 			dataType: 'bytes',
 			fieldNumber: 2,
-		},
-	},
-};
-
-// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#registered-names-substore
-export const chainIDSchema = {
-	$id: '/modules/interoperability/chainId',
-	type: 'object',
-	required: ['chainID'],
-	properties: {
-		chainID: {
-			dataType: 'bytes',
-			minLength: CHAIN_ID_LENGTH,
-			maxLength: CHAIN_ID_LENGTH,
-			fieldNumber: 1,
 		},
 	},
 };
