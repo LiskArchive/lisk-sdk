@@ -28,6 +28,7 @@ import { getEndpointPath } from '../endpoint';
 
 interface BusConfiguration {
 	readonly internalIPCServer: IPCServer;
+	readonly chainID: Buffer;
 }
 
 interface RegisterChannelOptions {

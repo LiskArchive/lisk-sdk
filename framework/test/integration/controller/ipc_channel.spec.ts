@@ -40,6 +40,9 @@ describe.skip('IPCChannel', () => {
 				path: socketsDir,
 			},
 		},
+		genesisConfig: {
+			chainID: '10000000',
+		},
 	};
 
 	const alpha = {
@@ -92,6 +95,7 @@ describe.skip('IPCChannel', () => {
 				alpha.events,
 				alpha.endpoints,
 				config,
+				config.genesisConfig.chainID,
 			);
 
 			betaChannel = new IPCChannel(
@@ -100,6 +104,7 @@ describe.skip('IPCChannel', () => {
 				beta.events,
 				beta.endpoints,
 				config,
+				config.genesisConfig.chainID,
 			);
 
 			await bus.start(logger);
@@ -168,6 +173,7 @@ describe.skip('IPCChannel', () => {
 					omegaName,
 					[omegaEventName],
 					{},
+					config.genesisConfig.chainID,
 				);
 
 				const donePromise = new Promise<void>(resolve => {

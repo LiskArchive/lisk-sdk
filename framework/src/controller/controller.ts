@@ -29,6 +29,7 @@ import { IPCServer } from './ipc/ipc_server';
 export interface ControllerOptions {
 	readonly appConfig: ApplicationConfigForPlugin;
 	readonly pluginConfigs: Record<string, PluginConfig>;
+	readonly chainID: Buffer;
 }
 
 interface ControllerInitArg {
@@ -59,7 +60,7 @@ export class Controller {
 	private readonly _inMemoryPlugins: Record<string, { plugin: BasePlugin; channel: BaseChannel }>;
 	private readonly _plugins: { [key: string]: BasePlugin };
 	private readonly _endpointHandlers: { [namespace: string]: EndpointHandlers };
-
+	private readonly _chainID: Buffer;
 	private readonly _bus: Bus;
 	private readonly _internalIPCServer: IPCServer;
 
@@ -79,6 +80,7 @@ export class Controller {
 
 		this._appConfig = options.appConfig;
 		this._pluginConfigs = options.pluginConfigs ?? {};
+		this._chainID = options.chainID;
 		const dirs = systemDirs(options.appConfig.system.dataPath);
 		this._config = {
 			dataPath: dirs.dataPath,
@@ -92,6 +94,7 @@ export class Controller {
 
 		this._bus = new Bus({
 			internalIPCServer: this._internalIPCServer,
+			chainID: this._chainID,
 		});
 	}
 
@@ -122,6 +125,7 @@ export class Controller {
 			APP_IDENTIFIER,
 			arg.events,
 			arg.endpoints,
+			this._chainID,
 		);
 	}
 
@@ -165,6 +169,7 @@ export class Controller {
 				namespace,
 				[],
 				handlers,
+				this._chainID,
 			);
 			await channel.registerToBus(this._bus);
 		}
@@ -249,6 +254,7 @@ export class Controller {
 			name,
 			plugin.events,
 			plugin.endpoint ? getEndpointHandlers(plugin.endpoint) : {},
+			this._chainID,
 		);
 		await channel.registerToBus(this._bus);
 		this._logger.debug({ plugin: name }, 'Plugin is registered to bus');
