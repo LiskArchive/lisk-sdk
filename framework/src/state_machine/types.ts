@@ -124,6 +124,7 @@ export interface GenesisBlockExecuteContext {
 		certificateThreshold: bigint,
 		validators: Validator[],
 	) => void;
+	chainID: Buffer;
 }
 
 export interface TransactionExecuteContext {

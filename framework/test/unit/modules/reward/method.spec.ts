@@ -32,7 +32,6 @@ describe('RewardModuleMethod', () => {
 		],
 		tokenID: '0000000000000000',
 	};
-	const generatorConfig: any = {};
 
 	const { offset, distance } = moduleConfig;
 	const brackets = moduleConfig.brackets.map(v => BigInt(v));
@@ -47,7 +46,7 @@ describe('RewardModuleMethod', () => {
 			getAsset: jest.fn(),
 		};
 		rewardModule = new RewardModule();
-		await rewardModule.init({ genesisConfig, moduleConfig, generatorConfig });
+		await rewardModule.init({ genesisConfig, moduleConfig });
 	});
 
 	describe.each(Object.entries(brackets))('test for brackets', (index, rewardFromConfig) => {

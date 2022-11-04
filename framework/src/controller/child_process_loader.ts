@@ -48,6 +48,7 @@ const _loadPlugin = async (
 		pluginName,
 		plugin.events,
 		plugin.endpoint ? getEndpointHandlers(plugin.endpoint) : {},
+		Buffer.from(appConfig.genesis.chainID, 'hex'),
 		{
 			socketsPath: dirs.sockets,
 		},

@@ -34,7 +34,6 @@ describe('token module', () => {
 				tokenModule.init({
 					genesisConfig: { chainID: '00000000' } as any,
 					moduleConfig: {},
-					generatorConfig: {},
 				}),
 			).toResolve();
 		});
@@ -46,7 +45,6 @@ describe('token module', () => {
 					moduleConfig: {
 						supportedTokenID: ['000000020000'],
 					},
-					generatorConfig: {},
 				}),
 			).toResolve();
 		});
@@ -57,7 +55,6 @@ describe('token module', () => {
 			await tokenModule.init({
 				genesisConfig: { chainID: '00000000' } as any,
 				moduleConfig: {},
-				generatorConfig: {},
 			});
 		});
 

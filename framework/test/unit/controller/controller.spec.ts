@@ -83,6 +83,8 @@ describe('Controller Class', () => {
 		dataPath: '/user/.lisk/#LABEL',
 		dirs: systemDirs,
 	};
+	const chainID = Buffer.from('10000000', 'hex');
+
 	const appConfig = {
 		...testing.fixtures.defaultConfig,
 		system: {
@@ -95,6 +97,7 @@ describe('Controller Class', () => {
 	const params = {
 		appConfig,
 		pluginConfigs,
+		chainID,
 	};
 
 	const initParams = {

@@ -22,7 +22,6 @@ describe('FeeModule', () => {
 	let feeModule!: FeeModule;
 	let genesisConfig: any;
 	let moduleConfig: any;
-	let generatorConfig: any;
 
 	beforeEach(async () => {
 		genesisConfig = {
@@ -31,9 +30,8 @@ describe('FeeModule', () => {
 		moduleConfig = {
 			feeTokenID: { chainID: utils.intToBuffer(0, 4), localID: utils.intToBuffer(0, 4) },
 		};
-		generatorConfig = {};
 		feeModule = new FeeModule();
-		await feeModule.init({ genesisConfig, moduleConfig, generatorConfig });
+		await feeModule.init({ genesisConfig, moduleConfig });
 		feeModule.addDependencies({
 			burn: jest.fn(),
 			transfer: jest.fn(),
@@ -45,9 +43,7 @@ describe('FeeModule', () => {
 	describe('init', () => {
 		it('should initialize config with default value when module config is empty', async () => {
 			feeModule = new FeeModule();
-			await expect(
-				feeModule.init({ genesisConfig, moduleConfig: {}, generatorConfig: {} }),
-			).toResolve();
+			await expect(feeModule.init({ genesisConfig, moduleConfig: {} })).toResolve();
 
 			expect(feeModule['_tokenID']).toEqual(Buffer.alloc(8, 0));
 		});

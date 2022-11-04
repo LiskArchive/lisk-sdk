@@ -79,6 +79,7 @@ export const createGenesisBlockContext = (params: {
 	eventQueue?: EventQueue;
 	assets?: BlockAssets;
 	logger?: Logger;
+	chainID?: Buffer;
 }): GenesisBlockContext => {
 	const logger = params.logger ?? loggerMock;
 	const stateStore =
@@ -91,6 +92,7 @@ export const createGenesisBlockContext = (params: {
 		header,
 		assets: params.assets ?? new BlockAssets(),
 		logger,
+		chainID: params.chainID ?? Buffer.from('10000000', 'hex'),
 	});
 	return ctx;
 };

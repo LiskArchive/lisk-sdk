@@ -143,6 +143,7 @@ export class Application {
 		this._controller = new Controller({
 			appConfig: rootConfigs,
 			pluginConfigs: plugins,
+			chainID: Buffer.from(this.config.genesis.chainID, 'hex'),
 		});
 		this._stateMachine = new StateMachine();
 	}
@@ -288,6 +289,7 @@ export class Application {
 				modules: this._registeredModules,
 				stateDB: this._stateDB,
 				stateMachine: this._stateMachine,
+				chainID: Buffer.from(this.config.genesis.chainID, 'hex'),
 			});
 			await this._abiHandler.cacheGenesisState();
 			const abiSocketPath = `ipc://${path.join(socketsPath, 'abi.ipc')}`;

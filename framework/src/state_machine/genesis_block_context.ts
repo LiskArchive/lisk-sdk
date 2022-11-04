@@ -25,6 +25,7 @@ export interface ContextParams {
 	header: BlockHeader;
 	assets: BlockAssets;
 	eventQueue: EventQueue;
+	chainID: Buffer;
 }
 
 export class GenesisBlockContext {
@@ -33,6 +34,7 @@ export class GenesisBlockContext {
 	private readonly _header: BlockHeader;
 	private readonly _assets: BlockAssets;
 	private readonly _eventQueue: EventQueue;
+	private readonly _chainID: Buffer;
 	private _nextValidators?: {
 		precommitThreshold: bigint;
 		certificateThreshold: bigint;
@@ -45,6 +47,7 @@ export class GenesisBlockContext {
 		this._eventQueue = params.eventQueue;
 		this._header = params.header;
 		this._assets = params.assets;
+		this._chainID = params.chainID;
 	}
 
 	public createInitGenesisStateContext(): GenesisBlockExecuteContext {
@@ -58,6 +61,7 @@ export class GenesisBlockContext {
 			header: this._header,
 			logger: this._logger,
 			assets: this._assets,
+			chainID: this._chainID,
 			setNextValidators: (
 				precommitThreshold: bigint,
 				certificateThreshold: bigint,
@@ -86,6 +90,7 @@ export class GenesisBlockContext {
 			header: this._header,
 			logger: this._logger,
 			assets: this._assets,
+			chainID: this._chainID,
 			setNextValidators: (
 				precommitThreshold: bigint,
 				certificateThreshold: bigint,

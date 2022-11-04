@@ -62,6 +62,7 @@ describe('abi handler', () => {
 				...applicationConfigSchema.default,
 				genesis: { ...applicationConfigSchema.default.genesis, chainID: '10000000' },
 			},
+			chainID: Buffer.from('10000000', 'hex'),
 		});
 		abiHandler['_chainID'] = utils.getRandomBytes(32);
 		await stateMachine.init(loggerMock, {
@@ -88,6 +89,7 @@ describe('abi handler', () => {
 					...applicationConfigSchema.default,
 					genesis: { ...applicationConfigSchema.default.genesis, chainID: '10000000' },
 				},
+				chainID: Buffer.from('10000000', 'hex'),
 			});
 			(stateDBMock.getCurrentState as jest.Mock).mockResolvedValue({ root, version: 21 });
 

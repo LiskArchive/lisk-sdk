@@ -109,6 +109,7 @@ describe.skip('IPCChannel Channel', () => {
 			params.namespace,
 			params.events,
 			params.endpoints,
+			Buffer.from('10000000', 'hex'),
 			params.options,
 		);
 	});

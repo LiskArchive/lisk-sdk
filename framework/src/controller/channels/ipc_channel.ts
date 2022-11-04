@@ -32,16 +32,19 @@ export class IPCChannel extends BaseChannel {
 	private readonly _emitter: EventEmitter2;
 	private readonly _ipcClient: IPCClient;
 	private readonly _rpcRequestIds: Set<string>;
+	private readonly _chainID: Buffer;
 
 	public constructor(
 		logger: Logger,
 		namespace: string,
 		events: ReadonlyArray<string>,
 		endpoints: EndpointHandlers,
+		chainID: Buffer,
 		options: ChildProcessOptions,
 	) {
 		super(logger, namespace, events, endpoints);
 
+		this._chainID = chainID;
 		this._ipcClient = new IPCClient({
 			socketsDir: options.socketsPath,
 			name: namespace,
@@ -222,6 +225,7 @@ export class IPCChannel extends BaseChannel {
 				getOffchainStore: () => {
 					throw new Error('getOffchainStore cannot be called on IPC channel');
 				},
+				chainID: this._chainID,
 				logger: this._logger,
 			}) as Promise<T>;
 		}

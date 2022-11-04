@@ -77,7 +77,6 @@ describe('RandomModule', () => {
 				randomModule.init({
 					genesisConfig: {} as any,
 					moduleConfig: {},
-					generatorConfig: undefined as any,
 				}),
 			).toResolve();
 
@@ -86,7 +85,6 @@ describe('RandomModule', () => {
 
 		it('should assign config values', async () => {
 			await randomModule.init({
-				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: { maxLengthReveals: 20 },
 			});
@@ -156,7 +154,6 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
@@ -201,7 +198,6 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				generatorConfig: { hashOnions: convertDelegateFixture(genesisDelegates.delegates) },
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
@@ -261,7 +257,6 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
@@ -307,7 +302,6 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				generatorConfig: { hashOnions: convertDelegateFixture(genesisDelegates.delegates) },
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
@@ -379,7 +373,6 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
@@ -418,7 +411,6 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
@@ -441,7 +433,6 @@ describe('RandomModule', () => {
 		let stateStore: PrefixedStateReadWriter;
 		beforeEach(async () => {
 			await randomModule.init({
-				generatorConfig: {},
 				genesisConfig: {} as never,
 				moduleConfig: {
 					maxLengthReveals: 206,
@@ -468,7 +459,6 @@ describe('RandomModule', () => {
 	describe('verifyAssets', () => {
 		beforeEach(async () => {
 			await randomModule.init({
-				generatorConfig: {},
 				genesisConfig: {} as never,
 				moduleConfig: {
 					maxLengthReveals: 206,
@@ -534,7 +524,6 @@ describe('RandomModule', () => {
 
 		beforeEach(async () => {
 			await randomModule.init({
-				generatorConfig: {},
 				genesisConfig: {} as never,
 				moduleConfig: {
 					maxLengthReveals: 6,
