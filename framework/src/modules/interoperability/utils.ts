@@ -28,7 +28,7 @@ import {
 	ChainValidators,
 	InboxUpdate,
 	MsgWitness,
-	GenesisInteroperabilityStore,
+	GenesisInteroperabilityInternalMethod,
 } from './types';
 import {
 	CCM_STATUS_OK,
@@ -48,7 +48,7 @@ import {
 } from './constants';
 import {
 	ccmSchema,
-	genesisInteroperabilityStoreSchema,
+	genesisInteroperabilityInternalMethodSchema,
 	sidechainTerminatedCCMParamsSchema,
 	validatorsHashInputSchema,
 } from './schemas';
@@ -615,11 +615,11 @@ export const initGenesisStateUtil = async (
 		return;
 	}
 
-	const genesisStore = codec.decode<GenesisInteroperabilityStore>(
-		genesisInteroperabilityStoreSchema,
+	const genesisStore = codec.decode<GenesisInteroperabilityInternalMethod>(
+		genesisInteroperabilityInternalMethodSchema,
 		assetBytes,
 	);
-	validator.validate(genesisInteroperabilityStoreSchema, genesisStore);
+	validator.validate(genesisInteroperabilityInternalMethodSchema, genesisStore);
 
 	const outboxRootStoreKeySet = new dataStructures.BufferSet();
 	const outboxRootStore = stores.get(OutboxRootStore);

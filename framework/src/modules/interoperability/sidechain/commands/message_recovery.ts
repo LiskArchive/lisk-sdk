@@ -23,18 +23,20 @@ import {
 } from '../../../../state_machine/types';
 import { CCMsg, MessageRecoveryParams } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
-import { SidechainInteroperabilityStore } from '../store';
+import { SidechainInteroperabilityInternalMethod } from '../store';
 import { verifyMessageRecovery, swapReceivingAndSendingChainIDs, getCCMSize } from '../../utils';
 import {
 	CCM_STATUS_CODE_RECOVERED,
 	COMMAND_NAME_MESSAGE_RECOVERY,
+	EMPTY_BYTES,
 	EMPTY_FEE_ADDRESS,
 } from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
 import { BaseInteroperableMethod } from '../../base_interoperable_method';
 import { createCCCommandExecuteContext } from '../../context';
 import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
-import { TerminatedOutboxAccount } from '../../stores/terminated_outbox';
+import { TerminatedOutboxAccount, TerminatedOutboxStore } from '../../stores/terminated_outbox';
+import { OwnChainAccountStore } from '../../stores/own_chain_account';
 
 export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand {
 	public schema = messageRecoveryParamsSchema;
@@ -50,11 +52,11 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			params: { chainID, idxs, crossChainMessages, siblingHashes },
 		} = context;
 		const chainIdAsBuffer = chainID;
-		const interoperabilityStore = this.getInteroperabilityStore(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 		let terminatedChainOutboxAccount: TerminatedOutboxAccount;
 
 		try {
-			terminatedChainOutboxAccount = await interoperabilityStore.getTerminatedOutboxAccount(
+			terminatedChainOutboxAccount = await interoperabilityInternalMethod.getTerminatedOutboxAccount(
 				chainIdAsBuffer,
 			);
 		} catch (error) {
@@ -105,19 +107,19 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			updatedCCMs.push(encodedUpdatedCCM);
 		}
 
-		const interoperabilityStore = this.getInteroperabilityStore(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 
-		const doesTerminatedOutboxAccountExist = await interoperabilityStore.terminatedOutboxAccountExist(
-			chainIdAsBuffer,
-		);
+		const doesTerminatedOutboxAccountExist = await this.stores
+			.get(TerminatedOutboxStore)
+			.has(context, chainIdAsBuffer);
 
 		if (!doesTerminatedOutboxAccountExist) {
 			throw new Error('Terminated outbox account does not exist.');
 		}
 
-		const terminatedChainOutboxAccount = await interoperabilityStore.getTerminatedOutboxAccount(
-			chainIdAsBuffer,
-		);
+		const terminatedChainOutboxAccount = await this.stores
+			.get(TerminatedOutboxStore)
+			.get(context, chainIdAsBuffer);
 		const terminatedChainOutboxSize = terminatedChainOutboxAccount.outboxSize;
 
 		const proof = {
@@ -130,11 +132,11 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 
 		const outboxRoot = regularMerkleTree.calculateRootFromUpdateData(hashedUpdatedCCMs, proof);
 
-		await interoperabilityStore.setTerminatedOutboxAccount(chainIdAsBuffer, {
+		await interoperabilityInternalMethod.setTerminatedOutboxAccount(chainIdAsBuffer, {
 			outboxRoot,
 		});
 
-		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
+		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
 		for (const ccm of deserializedCCMs) {
 			const newCcm = swapReceivingAndSendingChainIDs(ccm);
 
@@ -169,14 +171,14 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 		}
 	}
 
-	protected getInteroperabilityStore(
+	protected getInteroperabilityInternalMethod(
 		context: StoreGetter | ImmutableStoreGetter,
-	): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(
+	): SidechainInteroperabilityInternalMethod {
+		return new SidechainInteroperabilityInternalMethod(
 			this.stores,
+			this.events,
 			context,
 			this.interoperableCCMethods,
-			this.events,
 		);
 	}
 }

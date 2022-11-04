@@ -50,7 +50,7 @@ import {
 	validateFormat,
 	verifyCertificateSignature,
 } from '../../utils';
-import { MainchainInteroperabilityStore } from '../store';
+import { MainchainInteroperabilityInternalMethod } from '../store';
 
 export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 	public schema = crossChainUpdateTransactionParams;
@@ -81,10 +81,13 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 				),
 			};
 		}
-		const interoperabilityStore = this.getInteroperabilityStore(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 		if (partnerChainAccount.status === CHAIN_ACTIVE) {
-			const isChainLive = await interoperabilityStore.isLive(txParams.sendingChainID, Date.now());
-			if (!isChainLive) {
+			const isLive = await interoperabilityInternalMethod.isLive(
+				txParams.sendingChainID,
+				Date.now(),
+			);
+			if (!isLive) {
 				return {
 					status: VerifyStatus.FAIL,
 					error: new Error(
@@ -173,7 +176,12 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			logger: context.logger,
 			chainID: context.chainID,
 		};
-		const interoperabilityStore = this.getInteroperabilityStore(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		const terminateChainInternal = async () =>
+			interoperabilityInternalMethod.terminateChainInternal(
+				txParams.sendingChainID,
+				terminateChainContext,
+			);
 		let decodedCCMs;
 		try {
 			decodedCCMs = txParams.inboxUpdate.crossChainMessages.map(ccm => ({
@@ -181,10 +189,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 				deserialized: codec.decode<CCMsg>(ccmSchema, ccm),
 			}));
 		} catch (err) {
-			await interoperabilityStore.terminateChainInternal(
-				txParams.sendingChainID,
-				terminateChainContext,
-			);
+			await terminateChainInternal();
 
 			throw err;
 		}
@@ -199,10 +204,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			) {
 				partnerChainAccount.status = CHAIN_ACTIVE;
 			} else {
-				await interoperabilityStore.terminateChainInternal(
-					txParams.sendingChainID,
-					terminateChainContext,
-				);
+				await terminateChainInternal();
 
 				return; // Exit CCU processing
 			}
@@ -210,26 +212,23 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 
 		for (const ccm of decodedCCMs) {
 			if (!txParams.sendingChainID.equals(ccm.deserialized.sendingChainID)) {
-				await interoperabilityStore.terminateChainInternal(
-					txParams.sendingChainID,
-					terminateChainContext,
-				);
+				await terminateChainInternal();
 
 				continue;
 			}
 			try {
 				validateFormat(ccm.deserialized);
 			} catch (error) {
-				await interoperabilityStore.terminateChainInternal(
-					txParams.sendingChainID,
-					terminateChainContext,
-				);
+				await terminateChainInternal();
 
 				continue;
 			}
-			await interoperabilityStore.appendToInboxTree(txParams.sendingChainID, ccm.serialized);
+			await interoperabilityInternalMethod.appendToInboxTree(
+				txParams.sendingChainID,
+				ccm.serialized,
+			);
 			if (!ccm.deserialized.receivingChainID.equals(MAINCHAIN_ID_BUFFER)) {
-				await interoperabilityStore.forward({
+				await interoperabilityInternalMethod.forward({
 					ccm: ccm.deserialized,
 					ccu: txParams,
 					eventQueue: context.eventQueue,
@@ -240,7 +239,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 					chainID: context.chainID,
 				});
 			} else {
-				await interoperabilityStore.apply(
+				await interoperabilityInternalMethod.apply(
 					{
 						ccm: ccm.deserialized,
 						ccu: txParams,
@@ -270,14 +269,14 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		});
 	}
 
-	protected getInteroperabilityStore(
+	protected getInteroperabilityInternalMethod(
 		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(
+	): MainchainInteroperabilityInternalMethod {
+		return new MainchainInteroperabilityInternalMethod(
 			this.stores,
+			this.events,
 			context,
 			this.interoperableCCMethods,
-			this.events,
 		);
 	}
 }

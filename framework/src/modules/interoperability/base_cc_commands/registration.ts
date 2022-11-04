@@ -16,13 +16,17 @@ import { codec } from '@liskhq/lisk-codec';
 import {
 	CCM_STATUS_OK,
 	CHAIN_ACTIVE,
-	CHAIN_ID_MAINCHAIN,
+	MAINCHAIN_ID_BUFFER,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	EMPTY_BYTES,
 } from '../constants';
 import { registrationCCMParamsSchema } from '../schemas';
 import { CCCommandExecuteContext, CCMRegistrationParams } from '../types';
 import { BaseInteroperabilityCCCommand } from '../base_interoperability_cc_commands';
 import { ChainAccountUpdatedEvent } from '../events/chain_account_updated';
+import { OwnChainAccountStore } from '../stores/own_chain_account';
+import { ChannelDataStore } from '../stores/channel_data';
+import { ChainAccountStore } from '../stores/chain_account';
 
 export abstract class BaseCCRegistrationCommand extends BaseInteroperabilityCCCommand {
 	public schema = registrationCCMParamsSchema;
@@ -40,32 +44,31 @@ export abstract class BaseCCRegistrationCommand extends BaseInteroperabilityCCCo
 			registrationCCMParamsSchema,
 			ccm.params,
 		);
-		const interoperabilityStore = this.getInteroperabilityStore(ctx);
-		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
+		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(ctx, EMPTY_BYTES);
 
-		const channel = await interoperabilityStore.getChannel(ccm.sendingChainID);
+		const channel = await this.stores.get(ChannelDataStore).get(ctx, ccm.sendingChainID);
 		if (channel.inbox.size !== 0) {
 			throw new Error('Registration message must be the first message in the inbox.');
 		}
 		if (ccm.status !== CCM_STATUS_OK) {
 			throw new Error('Registration message must have status OK.');
 		}
-		if (ownChainAccount.chainID !== ccm.receivingChainID) {
+		if (!ownChainAccount.chainID.equals(ccm.receivingChainID)) {
 			throw new Error('Registration message must be sent to the chain account ID of the chain.');
 		}
 		if (ownChainAccount.name !== ccmRegistrationParams.name) {
 			throw new Error('Registration message must contain the name of the registered chain.');
 		}
-		if (channel.messageFeeTokenID !== ccmRegistrationParams.messageFeeTokenID) {
+		if (!channel.messageFeeTokenID.equals(ccmRegistrationParams.messageFeeTokenID)) {
 			throw new Error(
 				'Registration message must contain the same message fee token ID as the chain account.',
 			);
 		}
-		if (ownChainAccount.chainID === CHAIN_ID_MAINCHAIN) {
+		if (ownChainAccount.chainID.equals(MAINCHAIN_ID_BUFFER)) {
 			if (ccm.nonce !== BigInt(0)) {
 				throw new Error('Registration message must have nonce 0.');
 			}
-		} else if (ccm.sendingChainID !== CHAIN_ID_MAINCHAIN) {
+		} else if (!ccm.sendingChainID.equals(MAINCHAIN_ID_BUFFER)) {
 			throw new Error('Registration message must be sent from the mainchain.');
 		}
 	}
@@ -75,9 +78,9 @@ export abstract class BaseCCRegistrationCommand extends BaseInteroperabilityCCCo
 		if (!ccm) {
 			throw new Error('CCM to execute registration cross chain command is missing.');
 		}
-		const interoperabilityStore = this.getInteroperabilityStore(ctx);
-		const chainAccount = await interoperabilityStore.getChainAccount(ccm.sendingChainID);
+		const chainAccount = await this.stores.get(ChainAccountStore).get(ctx, ccm.sendingChainID);
 		chainAccount.status = CHAIN_ACTIVE;
+		await this.stores.get(ChainAccountStore).set(ctx, ccm.sendingChainID, chainAccount);
 
 		this.events.get(ChainAccountUpdatedEvent).log(ctx, ccm.sendingChainID, chainAccount);
 	}

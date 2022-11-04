@@ -12,17 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MainchainInteroperabilityStore } from '../store';
+import { MainchainInteroperabilityInternalMethod } from '../store';
 import { StoreGetter } from '../../../base_store';
 import { BaseCCRegistrationCommand } from '../../base_cc_commands/registration';
 
 export class MainchainCCRegistrationCommand extends BaseCCRegistrationCommand {
-	protected getInteroperabilityStore(context: StoreGetter): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(
+	protected getInteroperabilityInternalMethod(
+		context: StoreGetter,
+	): MainchainInteroperabilityInternalMethod {
+		return new MainchainInteroperabilityInternalMethod(
 			this.stores,
+			this.events,
 			context,
 			this.interoperableCCMethods,
-			this.events,
 		);
 	}
 }
