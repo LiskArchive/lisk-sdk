@@ -58,9 +58,11 @@ export const blockAssetsJSON = [
 				isBanned: false,
 				pomHeights: [],
 				consecutiveMissedBlocks: 0,
+				commission: 0,
+				lastCommissionIncreaseHeight: 0,
+				sharingCoefficients: [],
 			})),
 			voters: [],
-			snapshots: [],
 			genesisData: {
 				initRounds: 3,
 				initDelegates: accounts.keys.slice(0, 101).map(account => account.address),
