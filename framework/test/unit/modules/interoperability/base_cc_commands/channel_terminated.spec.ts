@@ -68,13 +68,14 @@ describe('BaseCCChannelTerminatedCommand', () => {
 		ccMethodsMap,
 	);
 	mainchainInteroperabilityInternalMethod.createTerminatedStateAccount = createTerminatedStateAccountMock;
-	mainchainInteroperabilityInternalMethod.isLive = jest.fn().mockResolvedValue(false);
 	(ccChannelTerminatedCommand as any)[
 		'getInteroperabilityInternalMethod'
 	] = jest.fn().mockReturnValue(mainchainInteroperabilityInternalMethod);
 
 	describe('execute', () => {
 		it('should skip if isLive is false ', async () => {
+			mainchainInteroperabilityInternalMethod.isLive = jest.fn().mockResolvedValue(false);
+
 			await ccChannelTerminatedCommand.execute(sampleExecuteContext);
 			expect(createTerminatedStateAccountMock).toHaveBeenCalledTimes(0);
 		});
