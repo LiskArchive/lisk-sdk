@@ -25,10 +25,8 @@ import {
 	CHAIN_ACTIVE,
 } from '../../../../../src/modules/interoperability/constants';
 import { MainchainCCRegistrationCommand } from '../../../../../src/modules/interoperability/mainchain/cc_commands';
-import { MainchainInteroperabilityInternalMethod } from '../../../../../src/modules/interoperability/mainchain/store';
 import { registrationCCMParamsSchema } from '../../../../../src/modules/interoperability/schemas';
 import { CCCommandExecuteContext, CCMsg } from '../../../../../src/modules/interoperability/types';
-import { NamedRegistry } from '../../../../../src/modules/named_registry';
 import { createExecuteCCMsgMethodContext } from '../../../../../src/testing';
 import { ChannelDataStore } from '../../../../../src/modules/interoperability/stores/channel_data';
 import { OwnChainAccountStore } from '../../../../../src/modules/interoperability/stores/own_chain_account';
@@ -39,7 +37,6 @@ import { ChainAccountUpdatedEvent } from '../../../../../src/modules/interoperab
 describe('BaseCCRegistrationCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 
-	const terminateChainInternalMock = jest.fn();
 	const channelStoreMock = {
 		get: jest.fn(),
 		set: jest.fn(),
@@ -55,7 +52,7 @@ describe('BaseCCRegistrationCommand', () => {
 		set: jest.fn(),
 		has: jest.fn(),
 	};
-	const chainAccountUpdatedEvent = {
+	const chainAccountUpdatedEventMock = {
 		log: jest.fn(),
 	};
 
@@ -66,14 +63,12 @@ describe('BaseCCRegistrationCommand', () => {
 	};
 
 	const SIDECHAIN_ID_BUFFER = utils.intToBuffer(2, 4);
-
 	const messageFeeTokenID = Buffer.from('0000000000000011', 'hex');
 	const ccmRegistrationParams = {
 		chainID: SIDECHAIN_ID_BUFFER,
 		name: ownChainAccount.name,
 		messageFeeTokenID,
 	};
-
 	const encodedRegistrationParams = codec.encode(
 		registrationCCMParamsSchema,
 		ccmRegistrationParams,
@@ -106,6 +101,11 @@ describe('BaseCCRegistrationCommand', () => {
 		status: 2739,
 	};
 
+	interopMod.stores.register(ChannelDataStore, channelStoreMock as never);
+	interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
+	interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
+	interopMod.events.register(ChainAccountUpdatedEvent, chainAccountUpdatedEventMock as never);
+
 	const buildCCM = (obj: Partial<CCMsg>) => ({
 		crossChainCommand: obj.crossChainCommand ?? CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 		fee: obj.fee ?? BigInt(0),
@@ -126,37 +126,21 @@ describe('BaseCCRegistrationCommand', () => {
 
 	let ccm: CCMsg;
 	let sampleExecuteContext: CCCommandExecuteContext;
-
-	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 	let ccRegistrationCommand: MainchainCCRegistrationCommand;
 
 	beforeEach(() => {
 		ccm = buildCCM({});
 		sampleExecuteContext = resetContext(ccm);
-		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
-			interopMod.stores,
-			new NamedRegistry(),
-			sampleExecuteContext,
-			new Map(),
-		);
-		mainchainInteroperabilityInternalMethod.terminateChainInternal = terminateChainInternalMock;
 
-		interopMod.stores.register(ChannelDataStore, channelStoreMock as never);
-		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
-		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
-		interopMod.events.register(ChainAccountUpdatedEvent, chainAccountUpdatedEvent as never);
+		channelStoreMock.get.mockResolvedValue(channelData);
+		ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount);
+		chainAccountStoreMock.get.mockResolvedValue(chainAccount);
 
 		ccRegistrationCommand = new MainchainCCRegistrationCommand(
 			interopMod.stores,
 			interopMod.events,
 			new Map(),
 		);
-		(ccRegistrationCommand as any)['getInteroperabilityStore'] = jest
-			.fn()
-			.mockReturnValue(mainchainInteroperabilityInternalMethod);
-		channelStoreMock.get.mockResolvedValue(channelData);
-		ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount);
-		chainAccountStoreMock.get.mockResolvedValue(chainAccount);
 	});
 
 	describe('verify', () => {
@@ -261,7 +245,7 @@ describe('BaseCCRegistrationCommand', () => {
 			chainAccount.status = CHAIN_ACTIVE;
 
 			expect(chainAccountStoreMock.set).toHaveBeenCalledTimes(1);
-			expect(chainAccountUpdatedEvent.log).toHaveBeenCalledWith(
+			expect(chainAccountUpdatedEventMock.log).toHaveBeenCalledWith(
 				sampleExecuteContext,
 				ccm.sendingChainID,
 				chainAccount,
