@@ -39,7 +39,8 @@ export const rewardsAssignedEventParams = {
 		},
 		tokenID: {
 			dataType: 'bytes',
-			length: TOKEN_ID_LENGTH,
+			minLength: TOKEN_ID_LENGTH,
+			maxLength: TOKEN_ID_LENGTH,
 			fieldNumber: 3,
 		},
 		amount: {

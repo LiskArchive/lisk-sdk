@@ -13,6 +13,7 @@
  */
 
 import { utils, ed } from '@liskhq/lisk-cryptography';
+import { math } from '@liskhq/lisk-utils';
 import { ModuleConfig, ModuleConfigJSON, UnlockingObject, VoteSharingCoefficient } from './types';
 import {
 	PUNISHMENT_PERIOD,
@@ -21,6 +22,8 @@ import {
 	WAIT_TIME_SELF_VOTE,
 	WAIT_TIME_VOTE,
 } from './constants';
+
+const { q96 } = math;
 
 export const sortUnlocking = (unlocks: UnlockingObject[]): void => {
 	unlocks.sort((a, b) => {
@@ -275,4 +278,15 @@ export const isSharingCoefficientSorted = (
 		}
 	}
 	return true;
+};
+export const calculateVoteRewards = (
+	voteSharingCoefficient: VoteSharingCoefficient,
+	amount: bigint,
+	delegateSharingCoefficient: VoteSharingCoefficient,
+): bigint => {
+	const qAmount = q96(amount);
+	const qVoteSharingCoefficient = q96(voteSharingCoefficient.coefficient);
+	const qDelegateSharingCoefficient = q96(delegateSharingCoefficient.coefficient);
+	const reward = qDelegateSharingCoefficient.sub(qVoteSharingCoefficient).mul(qAmount);
+	return reward.floor();
 };
