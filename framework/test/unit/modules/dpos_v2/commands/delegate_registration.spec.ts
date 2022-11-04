@@ -337,6 +337,34 @@ describe('Delegate registration command', () => {
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude('Invalid delegate registration fee.');
 		});
+
+		it('should return error if account does not have enough balance for the registration fee', async () => {
+			mockTokenMethod.getAvailableBalance = jest.fn().mockResolvedValue(BigInt(10)); // lower balance than required for delegate registration
+			delegateRegistrationCommand = new DelegateRegistrationCommand(dpos.stores, dpos.events);
+			delegateRegistrationCommand.addDependencies(mockTokenMethod, mockValidatorsMethod);
+
+			await delegateSubstore.set(
+				createStoreGetter(stateStore),
+				transaction.senderAddress,
+				defaultDelegateInfo,
+			);
+			const context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					chainID,
+				})
+				.createCommandVerifyContext<DelegateRegistrationParams>(
+					delegateRegistrationCommandParamsSchema,
+				);
+
+			const result = await delegateRegistrationCommand.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
+				'Not sufficient amount for delegate registration fee.',
+			);
+		});
 	});
 
 	describe('execute', () => {
