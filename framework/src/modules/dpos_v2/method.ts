@@ -12,16 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ImmutableMethodContext } from '../../state_machine';
+import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import { BaseMethod } from '../base_method';
 import { MAX_LENGTH_NAME } from './constants';
+import { Rounds } from './rounds';
 import { DelegateStore } from './stores/delegate';
 import { NameStore } from './stores/name';
 import { VoterStore } from './stores/voter';
-import { DelegateAccount, VoterData } from './types';
+import { DelegateAccount, ModuleConfig, VoterData } from './types';
 import { isUsername } from './utils';
 
 export class DPoSMethod extends BaseMethod {
+	private _config!: ModuleConfig;
+
+	public init(config: ModuleConfig) {
+		this._config = config;
+	}
 	public async isNameAvailable(
 		methodContext: ImmutableMethodContext,
 		name: string,
@@ -57,5 +63,30 @@ export class DPoSMethod extends BaseMethod {
 		const delegate = await delegateSubStore.get(methodContext, address);
 
 		return delegate;
+	}
+
+	public getRoundLength(_methodContext: ImmutableMethodContext): number {
+		return this._config.roundLength;
+	}
+
+	public getNumberOfActiveDelegates(_methodContext: ImmutableMethodContext): number {
+		return this._config.numberActiveDelegates;
+	}
+
+	public async updateSharedRewards(
+		_methodContext: MethodContext,
+		_generatorAddress: Buffer,
+		_tokenID: Buffer,
+		_reward: bigint,
+	): Promise<void> {
+		// TODO: Implement #7715
+	}
+
+	public isEndOfRound(_methodContext: ImmutableMethodContext, height: number): boolean {
+		const rounds = new Rounds({ blocksPerRound: this._config.roundLength });
+		const currentRound = rounds.calcRound(height);
+		const nextRound = rounds.calcRound(height + 1);
+
+		return currentRound < nextRound;
 	}
 }

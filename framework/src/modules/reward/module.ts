@@ -16,7 +16,7 @@ import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { defaultConfig } from './constants';
-import { ModuleConfig, RandomMethod, TokenMethod } from './types';
+import { ModuleConfig, ModuleConfigJSON, RandomMethod, TokenMethod } from './types';
 import { BlockAfterExecuteContext } from '../../state_machine';
 import { RewardMethod } from './method';
 import { RewardEndpoint } from './endpoint';
@@ -33,7 +33,6 @@ export class RewardModule extends BaseModule {
 	public endpoint = new RewardEndpoint(this.stores, this.offchainStores);
 	private _tokenMethod!: TokenMethod;
 	private _randomMethod!: RandomMethod;
-	private _tokenID!: Buffer;
 	private _moduleConfig!: ModuleConfig;
 
 	public constructor() {
@@ -69,25 +68,20 @@ export class RewardModule extends BaseModule {
 	public async init(args: ModuleInitArgs): Promise<void> {
 		const { moduleConfig } = args;
 		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
-		validator.validate(configSchema, config);
+		validator.validate<ModuleConfigJSON>(configSchema, config);
 
-		this._moduleConfig = (config as unknown) as ModuleConfig;
-		this._tokenID = Buffer.from(this._moduleConfig.tokenID, 'hex');
+		this._moduleConfig = {
+			...config,
+			brackets: config.brackets.map(bracket => BigInt(bracket)),
+			tokenID: Buffer.from(config.tokenID, 'hex'),
+		};
 
 		this.method.init({
-			config: {
-				brackets: this._moduleConfig.brackets.map(bracket => BigInt(bracket)),
-				offset: this._moduleConfig.offset,
-				distance: this._moduleConfig.distance,
-			},
+			config: this._moduleConfig,
 		});
 
 		this.endpoint.init({
-			config: {
-				brackets: this._moduleConfig.brackets.map(bracket => BigInt(bracket)),
-				offset: this._moduleConfig.offset,
-				distance: this._moduleConfig.distance,
-			},
+			config: this._moduleConfig,
 		});
 	}
 
@@ -105,7 +99,7 @@ export class RewardModule extends BaseModule {
 			await this._tokenMethod.mint(
 				context.getMethodContext(),
 				context.header.generatorAddress,
-				this._tokenID,
+				this._moduleConfig.tokenID,
 				blockReward,
 			);
 		}
