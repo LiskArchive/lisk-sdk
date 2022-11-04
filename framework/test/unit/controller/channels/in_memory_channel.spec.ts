@@ -42,6 +42,7 @@ describe('InMemoryChannel Channel', () => {
 	const config: any = {};
 	let inMemoryChannel: InMemoryChannel;
 	const bus: Bus = new Bus(config);
+	const chainID = Buffer.from('10000000', 'hex');
 
 	beforeEach(() => {
 		// Act
@@ -52,6 +53,7 @@ describe('InMemoryChannel Channel', () => {
 			params.namespace,
 			params.events,
 			params.endpoints,
+			chainID,
 		);
 	});
 

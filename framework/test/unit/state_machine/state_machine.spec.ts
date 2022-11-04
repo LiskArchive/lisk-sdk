@@ -43,7 +43,7 @@ describe('state_machine', () => {
 	const assets = new BlockAssets();
 	let stateStore: PrefixedStateReadWriter;
 	let eventQueue: EventQueue;
-	const chainID = Buffer.from('network identifier', 'utf8');
+	const chainID = Buffer.from('10000000', 'utf8');
 	const transaction = {
 		module: 'customModule0',
 		command: 'customCommand0',
@@ -72,6 +72,7 @@ describe('state_machine', () => {
 				assets,
 				logger,
 				stateStore,
+				chainID,
 			});
 			await stateMachine.executeGenesisBlock(ctx);
 			expect(mod.initGenesisState).toHaveBeenCalledTimes(1);
@@ -83,6 +84,7 @@ describe('state_machine', () => {
 				header: genesisHeader,
 				assets,
 				setNextValidators: expect.any(Function),
+				chainID,
 			});
 		});
 
@@ -94,6 +96,7 @@ describe('state_machine', () => {
 				assets,
 				logger,
 				stateStore,
+				chainID,
 			});
 			await stateMachine.executeGenesisBlock(ctx);
 

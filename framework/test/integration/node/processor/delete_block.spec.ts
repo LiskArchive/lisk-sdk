@@ -49,7 +49,7 @@ describe('Delete block', () => {
 				databasePath,
 			},
 		});
-		chainID = processEnv.getNetworkId();
+		chainID = processEnv.getChainID();
 	});
 
 	afterAll(() => {
@@ -86,7 +86,7 @@ describe('Delete block', () => {
 					'token_getBalance',
 					{
 						address: genesis.address,
-						tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),
+						tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 					},
 				);
 				transaction = createTransferTransaction({
@@ -130,7 +130,7 @@ describe('Delete block', () => {
 					'token_getBalance',
 					{
 						address: genesis.address,
-						tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),
+						tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 					},
 				);
 				expect(afterBalance).toEqual(originalBalance);
@@ -141,7 +141,7 @@ describe('Delete block', () => {
 					'token_getBalance',
 					{
 						address: address.getLisk32AddressFromAddress(recipientAccount.address),
-						tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),
+						tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 					},
 				);
 				expect(recipientBalance.availableBalance).toEqual('0');
@@ -168,7 +168,7 @@ describe('Delete block', () => {
 					'token_getBalance',
 					{
 						address: genesis.address,
-						tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),
+						tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 					},
 				);
 				const recipientAccount = nodeUtils.createAccount();
@@ -187,7 +187,7 @@ describe('Delete block', () => {
 					'token_getBalance',
 					{
 						address: genesis.address,
-						tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),
+						tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 					},
 				);
 				expect(revertedBalance).toEqual(genesisBalance);

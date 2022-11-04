@@ -34,6 +34,9 @@ describe('InMemoryChannel', () => {
 				path: socketsDir,
 			},
 		},
+		genesis: {
+			chainID: '10000000',
+		},
 	};
 
 	const alpha = {
@@ -74,6 +77,7 @@ describe('InMemoryChannel', () => {
 				alpha.moduleName,
 				alpha.events,
 				alpha.endpoints,
+				config.genesis.chainID,
 			);
 
 			await inMemoryChannelAlpha.registerToBus(bus);
@@ -85,6 +89,7 @@ describe('InMemoryChannel', () => {
 				beta.moduleName,
 				beta.events,
 				beta.endpoints,
+				config.genesis.chainID,
 			);
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			await inMemoryChannelBeta.registerToBus(bus);
@@ -141,6 +146,7 @@ describe('InMemoryChannel', () => {
 					omegaName,
 					[omegaEventName],
 					{},
+					config.genesis.chainID,
 				);
 
 				const donePromise = new Promise<void>(resolve => {

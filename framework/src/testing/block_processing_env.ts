@@ -80,7 +80,7 @@ export interface BlockProcessingEnv {
 	getLastBlock: () => Block;
 	getNextValidatorKeys: (blockHeader: BlockHeader) => Promise<Keys>;
 	getDataAccess: () => DataAccess;
-	getNetworkId: () => Buffer;
+	getChainID: () => Buffer;
 	invoke: <T = void>(path: string, params?: Record<string, unknown>) => Promise<T>;
 	cleanup: (config: Options) => void;
 }
@@ -210,6 +210,7 @@ export const getBlockProcessingEnv = async (
 	const genesisBlock = await generateGenesisBlock(stateMachine, logger, {
 		timestamp: Math.floor(Date.now() / 1000) - 60 * 60,
 		assets: blockAssets,
+		chainID,
 	});
 	const abiHandler = new ABIHandler({
 		channel: channelMock,
@@ -219,6 +220,7 @@ export const getBlockProcessingEnv = async (
 		moduleDB,
 		modules,
 		stateMachine,
+		chainID,
 	});
 	appConfig.genesis.block.blob = genesisBlock.getBytes().toString('hex');
 	appConfig.generator.keys.fromFile = path.join(__dirname, './fixtures/keys_fixture.json');
@@ -306,7 +308,7 @@ export const getBlockProcessingEnv = async (
 
 			return result as T;
 		},
-		getNetworkId: () => chainID,
+		getChainID: () => chainID,
 		getDataAccess: () => engine['_chain'].dataAccess,
 		cleanup: (_val): void => {
 			engine['_closeDB']();

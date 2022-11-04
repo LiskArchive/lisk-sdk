@@ -47,6 +47,7 @@ describe('ABI client', () => {
 				...applicationConfigSchema.default,
 				genesis: { ...applicationConfigSchema.default.genesis, chainID: '00000000' },
 			},
+			chainID: Buffer.from('10000000', 'hex'),
 		});
 
 		client = new ABIClient(fakeLogger, '/path/to/ipc');

@@ -35,6 +35,7 @@ jest.mock('zeromq', () => {
 
 describe('Bus', () => {
 	const channelMock: any = {};
+	const chainID = Buffer.from('10000000', 'hex');
 
 	const channelOptions = {
 		type: 'inMemory',
@@ -47,7 +48,10 @@ describe('Bus', () => {
 		debug: jest.fn(),
 	};
 
-	const busConfig = { internalIPCServer: new IPCServer({ socketsDir: '/unit/bus', name: 'bus' }) };
+	const busConfig = {
+		internalIPCServer: new IPCServer({ socketsDir: '/unit/bus', name: 'bus' }),
+		chainID,
+	};
 
 	let bus: Bus;
 
