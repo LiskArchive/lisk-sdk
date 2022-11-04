@@ -34,6 +34,7 @@ import {
 	CCMApplyContext,
 	TerminateChainContext,
 	CreateTerminatedStateAccountContext,
+	CreateTerminatedOutboxAccountContext,
 } from './types';
 import { getCCMSize, getIDAsKeyForStore } from './utils';
 import {
@@ -54,6 +55,7 @@ import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/termina
 import { ChainAccountUpdatedEvent } from './events/chain_account_updated';
 import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
 import { BaseInternalMethod } from '../BaseInternalMethod';
+import { TerminatedOutboxCreatedEvent } from './events/terminated_outbox_created';
 
 export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMethod {
 	public readonly context: StoreGetter;
@@ -110,20 +112,21 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 	}
 
 	public async createTerminatedOutboxAccount(
+		context: CreateTerminatedOutboxAccountContext,
 		chainID: Buffer,
 		outboxRoot: Buffer,
 		outboxSize: number,
 		partnerChainInboxSize: number,
 	): Promise<void> {
-		const terminatedOutboxSubstore = this.stores.get(TerminatedOutboxStore);
-
 		const terminatedOutbox = {
 			outboxRoot,
 			outboxSize,
 			partnerChainInboxSize,
 		};
 
+		const terminatedOutboxSubstore = this.stores.get(TerminatedOutboxStore);
 		await terminatedOutboxSubstore.set(this.context, chainID, terminatedOutbox);
+		this.events.get(TerminatedOutboxCreatedEvent).log(context, chainID, terminatedOutbox);
 	}
 
 	public async setTerminatedOutboxAccount(

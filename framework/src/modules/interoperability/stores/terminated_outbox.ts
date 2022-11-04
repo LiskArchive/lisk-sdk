@@ -39,11 +39,11 @@ export const terminatedOutboxSchema = {
 			fieldNumber: 1,
 		},
 		outboxSize: {
-			dataType: 'uint32',
+			dataType: 'uint64',
 			fieldNumber: 2,
 		},
 		partnerChainInboxSize: {
-			dataType: 'uint32',
+			dataType: 'uint64',
 			fieldNumber: 3,
 		},
 	},
