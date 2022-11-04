@@ -143,6 +143,7 @@ export class Application {
 		this._controller = new Controller({
 			appConfig: rootConfigs,
 			pluginConfigs: plugins,
+			chainID: Buffer.from(this.config.genesis.chainID, 'hex'),
 		});
 		this._stateMachine = new StateMachine();
 	}

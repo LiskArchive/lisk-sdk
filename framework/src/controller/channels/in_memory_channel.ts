@@ -29,6 +29,7 @@ export class InMemoryChannel extends BaseChannel {
 	private bus!: Bus;
 	private readonly _db: StateDB;
 	private readonly _moduleDB: Database;
+	private readonly _chainID: Buffer;
 
 	public constructor(
 		logger: Logger,
@@ -37,10 +38,12 @@ export class InMemoryChannel extends BaseChannel {
 		namespace: string,
 		events: ReadonlyArray<string>,
 		endpoints: EndpointHandlers,
+		chainID: Buffer,
 	) {
 		super(logger, namespace, events, endpoints);
 		this._db = db;
 		this._moduleDB = moduleDB;
+		this._chainID = chainID;
 	}
 
 	public async registerToBus(bus: Bus): Promise<void> {
@@ -119,6 +122,7 @@ export class InMemoryChannel extends BaseChannel {
 				},
 				getImmutableMethodContext: () =>
 					createImmutableMethodContext(new PrefixedStateReadWriter(this._db.newReadWriter())),
+				chainID: this._chainID,
 			}) as Promise<T>;
 		}
 
