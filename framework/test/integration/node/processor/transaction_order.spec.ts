@@ -35,7 +35,7 @@ describe('Transaction order', () => {
 				databasePath,
 			},
 		});
-		chainID = processEnv.getNetworkId();
+		chainID = processEnv.getChainID();
 	});
 
 	afterAll(() => {

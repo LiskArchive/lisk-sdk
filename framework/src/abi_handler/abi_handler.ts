@@ -76,6 +76,7 @@ export interface ABIHandlerConstructor {
 	moduleDB: Database;
 	modules: BaseModule[];
 	channel: BaseChannel;
+	chainID: Buffer;
 }
 
 interface ExecutionContext {
@@ -110,11 +111,12 @@ export class ABIHandler implements ABI {
 		this._moduleDB = args.moduleDB;
 		this._modules = args.modules;
 		this._channel = args.channel;
+		this._chainID = args.chainID;
 	}
 
 	public get chainID(): Buffer {
 		if (!this._chainID) {
-			throw new Error('Network identifier is not set.');
+			throw new Error('Chain ID is not set.');
 		}
 		return this._chainID;
 	}
@@ -145,6 +147,7 @@ export class ABIHandler implements ABI {
 			logger: this._logger,
 			stateStore,
 			assets: genesisBlock.assets,
+			chainID: this.chainID,
 		});
 
 		await this._stateMachine.executeGenesisBlock(context);
@@ -251,6 +254,7 @@ export class ABIHandler implements ABI {
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
 			assets: genesisBlock.assets,
+			chainID: this.chainID,
 		});
 
 		await this._stateMachine.executeGenesisBlock(context);

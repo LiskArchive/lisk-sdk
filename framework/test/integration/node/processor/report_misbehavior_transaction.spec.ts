@@ -37,7 +37,7 @@ describe('Transaction order', () => {
 				databasePath,
 			},
 		});
-		chainID = processEnv.getNetworkId();
+		chainID = processEnv.getChainID();
 		blockGenerator = await processEnv.getNextValidatorKeys(processEnv.getLastBlock().header);
 		// Fund sender account
 		const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
@@ -75,7 +75,7 @@ describe('Transaction order', () => {
 				'token_getBalance',
 				{
 					address: blockGenerator.address,
-					tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),
+					tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 				},
 			);
 
@@ -99,7 +99,7 @@ describe('Transaction order', () => {
 			expect(updatedDelegate.pomHeights).toHaveLength(1);
 			const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
 				address: blockGenerator.address,
-				tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),
+				tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 			});
 			expect(balance.availableBalance).toEqual(
 				(BigInt(originalBalance.availableBalance) - BigInt(100000000)).toString(),

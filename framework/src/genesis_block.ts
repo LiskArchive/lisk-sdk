@@ -24,6 +24,7 @@ import { EventQueue, GenesisBlockContext, StateMachine } from './state_machine';
 import { PrefixedStateReadWriter } from './state_machine/prefixed_state_read_writer';
 
 export interface GenesisBlockGenerateInput {
+	chainID: Buffer;
 	height?: number;
 	timestamp?: number;
 	previousBlockID?: Buffer;
@@ -87,6 +88,7 @@ export const generateGenesisBlock = async (
 		assets,
 		logger,
 		stateStore,
+		chainID: input.chainID,
 	});
 
 	await stateMachine.executeGenesisBlock(blockCtx);

@@ -35,7 +35,7 @@ describe('genesis block', () => {
 				databasePath,
 			},
 		});
-		chainID = processEnv.getNetworkId();
+		chainID = processEnv.getChainID();
 	});
 
 	afterAll(() => {
@@ -65,7 +65,7 @@ describe('genesis block', () => {
 					const balance = await processEnv.invoke<{ availableBalance: string }>(
 						'token_getBalance',
 						{
-							tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),
+							tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 							address: address.getLisk32AddressFromAddress(data.address),
 						},
 					);
@@ -104,7 +104,7 @@ describe('genesis block', () => {
 			recipientAddress = decoded.userSubstore[decoded.userSubstore.length - 1].address;
 			const recipient = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
 				address: address.getLisk32AddressFromAddress(recipientAddress),
-				tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),
+				tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 			});
 			oldBalance = BigInt(recipient.availableBalance);
 			newBalance = oldBalance + BigInt('100000000000');
@@ -145,7 +145,7 @@ describe('genesis block', () => {
 				chain.init({
 					db: processEnv.getBlockchainDB(),
 					genesisBlock: processEnv.getGenesisBlock(),
-					chainID: processEnv.getNetworkId(),
+					chainID: processEnv.getChainID(),
 				});
 				await newConsensus.init({
 					db: consensus['_db'],
@@ -156,7 +156,7 @@ describe('genesis block', () => {
 
 				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
 					address: address.getLisk32AddressFromAddress(recipientAddress),
-					tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),
+					tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 				});
 
 				// Arrange & Assert
