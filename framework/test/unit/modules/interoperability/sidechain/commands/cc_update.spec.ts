@@ -340,15 +340,12 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should return error checkActiveValidatorsUpdate fails when Validators blsKeys are not unique and lexicographically ordered', async () => {
-			const { status, error } = await sidechainCCUUpdateCommand.verify({
-				...verifyContext,
-				params: { ...params, activeValidatorsUpdate },
-			});
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toContain(
-				'Validators blsKeys must be unique and lexicographically ordered.',
-			);
+			await expect(
+				sidechainCCUUpdateCommand.verify({
+					...verifyContext,
+					params: { ...params, activeValidatorsUpdate },
+				}),
+			).rejects.toThrow('Keys are not sorted lexicographic order.');
 		});
 
 		it('should return VerifyStatus.FAIL when verifyCertificateSignature fails', async () => {

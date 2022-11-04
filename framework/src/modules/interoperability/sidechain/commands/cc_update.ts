@@ -36,7 +36,6 @@ import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { ChannelDataStore } from '../../stores/channel_data';
 import { CCMsg, CrossChainUpdateTransactionParams } from '../../types';
 import {
-	checkActiveValidatorsUpdate,
 	checkCertificateTimestamp,
 	checkCertificateValidity,
 	checkInboxUpdateValidity,
@@ -117,9 +116,14 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		}
 
 		// If params contains a non-empty activeValidatorsUpdate
-		const activeValidatorsValidity = checkActiveValidatorsUpdate(txParams);
-		if (activeValidatorsValidity.error) {
-			return activeValidatorsValidity;
+		if (
+			txParams.activeValidatorsUpdate.length > 0 ||
+			partnerValidators.certificateThreshold !== txParams.newCertificateThreshold
+		) {
+			await this.getInteroperabilityInternalMethod(context).verifyValidatorsUpdate(
+				context.getMethodContext(),
+				txParams,
+			);
 		}
 
 		// When certificate is non-empty

@@ -15,6 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
+import { objects } from '@liskhq/lisk-utils';
 import {
 	CCM_STATUS_OK,
 	EMPTY_BYTES,
@@ -36,7 +37,7 @@ import {
 	CreateTerminatedStateAccountContext,
 	CrossChainUpdateTransactionParams,
 } from './types';
-import { getCCMSize, getIDAsKeyForStore } from './utils';
+import { computeValidatorsHash, getCCMSize, getIDAsKeyForStore } from './utils';
 import {
 	createCCCommandExecuteContext,
 	createCCMsgBeforeApplyContext,
@@ -55,8 +56,8 @@ import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/termina
 import { ChainAccountUpdatedEvent } from './events/chain_account_updated';
 import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
 import { BaseInternalMethod } from '../BaseInternalMethod';
-import { ChainValidatorsStore } from './stores/chain_validators';
-import { MethodContext } from '../../state_machine';
+import { MethodContext, ImmutableMethodContext } from '../../state_machine';
+import { ChainValidatorsStore, updateActiveValidators } from './stores/chain_validators';
 import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';
 import { Certificate } from '../../engine/consensus/certificate_generation/types';
 
@@ -400,6 +401,38 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 				ccu.sendingChainID,
 				ccu.inboxUpdate.messageWitnessHashes,
 			);
+	}
+	public async verifyValidatorsUpdate(
+		context: ImmutableMethodContext,
+		ccu: CrossChainUpdateTransactionParams,
+	): Promise<void> {
+		if (ccu.certificate.length === 0) {
+			throw new Error('Certificate must be non-empty if validators have been updated.');
+		}
+		const blsKeys = ccu.activeValidatorsUpdate.map(v => v.blsKey);
+
+		if (!objects.bufferArrayOrderByLex(blsKeys)) {
+			throw new Error('Keys are not sorted lexicographic order.');
+		}
+		if (!objects.bufferArrayUniqueItems(blsKeys)) {
+			throw new Error('Keys have duplicated entry.');
+		}
+		const { activeValidators } = await this.stores
+			.get(ChainValidatorsStore)
+			.get(context, ccu.sendingChainID);
+
+		const newActiveValidators = updateActiveValidators(
+			activeValidators,
+			ccu.activeValidatorsUpdate,
+		);
+		const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
+		const newValidatorsHash = computeValidatorsHash(
+			newActiveValidators,
+			ccu.newCertificateThreshold,
+		);
+		if (!certificate.validatorsHash.equals(newValidatorsHash)) {
+			throw new Error('ValidatorsHash in certificate and the computed values do not match.');
+		}
 	}
 
 	// Different in mainchain and sidechain so to be implemented in each module store separately

@@ -46,7 +46,6 @@ import {
 	CCMsg,
 } from '../../../../src/modules/interoperability/types';
 import {
-	checkActiveValidatorsUpdate,
 	checkCertificateTimestamp,
 	checkCertificateValidity,
 	checkInboxUpdateValidity,
@@ -185,70 +184,6 @@ describe('Utils', () => {
 			const { status, error } = checkCertificateValidity(
 				partnerChainAccount as ChainAccount,
 				encodedCertificate,
-			);
-
-			expect(status).toEqual(VerifyStatus.OK);
-			expect(error).toBeUndefined();
-		});
-	});
-
-	describe('checkActiveValidatorsUpdate', () => {
-		const activeValidatorsUpdate = [...defaultActiveValidatorsUpdate].sort((v1, v2) =>
-			v2.blsKey.compare(v1.blsKey),
-		);
-		const sortedValidatorsList = [...defaultActiveValidatorsUpdate].sort((v1, v2) =>
-			v1.blsKey.compare(v2.blsKey),
-		);
-
-		const txParams = {
-			activeValidatorsUpdate,
-			newCertificateThreshold: BigInt(10),
-			certificate: Buffer.alloc(2),
-			sendingChainID: utils.intToBuffer(2, 4),
-			inboxUpdate: {},
-		};
-
-		const txParamsWithEmptyCertificate = {
-			activeValidatorsUpdate,
-			newCertificateThreshold: BigInt(10),
-			certificate: EMPTY_BYTES,
-			sendingChainID: utils.intToBuffer(2, 4),
-			inboxUpdate: {},
-		};
-
-		const txParamsSortedValidators = {
-			activeValidatorsUpdate: sortedValidatorsList,
-			newCertificateThreshold: BigInt(10),
-			certificate: Buffer.alloc(2),
-			sendingChainID: utils.intToBuffer(2, 4),
-			inboxUpdate: {},
-		};
-
-		it('should return VerifyStatus.FAIL when certificate is empty', () => {
-			const { status, error } = checkActiveValidatorsUpdate(
-				txParamsWithEmptyCertificate as CrossChainUpdateTransactionParams,
-			);
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toEqual(
-				'Certificate cannot be empty when activeValidatorsUpdate is non-empty or newCertificateThreshold > 0.',
-			);
-		});
-
-		it('should return VerifyStatus.FAIL when validators blsKeys are not unique and lexicographically ordered', () => {
-			const { status, error } = checkActiveValidatorsUpdate(
-				txParams as CrossChainUpdateTransactionParams,
-			);
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toEqual(
-				'Validators blsKeys must be unique and lexicographically ordered.',
-			);
-		});
-
-		it('should return VerifyStatus.OK', () => {
-			const { status, error } = checkActiveValidatorsUpdate(
-				txParamsSortedValidators as CrossChainUpdateTransactionParams,
 			);
 
 			expect(status).toEqual(VerifyStatus.OK);
