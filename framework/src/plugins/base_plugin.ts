@@ -128,7 +128,7 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 
 		if (this._appConfig.rpc.modes.includes('ipc')) {
 			const dirs = systemDirs(this.appConfig.system.dataPath);
-			this._apiClient = await createIPCClient(dirs.sockets);
+			this._apiClient = await createIPCClient(dirs.dataPath);
 		}
 	}
 
