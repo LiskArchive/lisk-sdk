@@ -49,10 +49,12 @@ import { generateGenesisBlock, GenesisBlockGenerateInput } from './genesis_block
 import { StateMachine } from './state_machine';
 import { ABIHandler, EVENT_ENGINE_READY } from './abi_handler/abi_handler';
 import { ABIServer } from './abi_handler/abi_server';
-import { SidechainInteroperabilityModule } from './modules/interoperability/sidechain/module';
-import { MainchainInteroperabilityModule } from './modules/interoperability/mainchain/module';
-import { SidechainInteroperabilityMethod } from './modules/interoperability/sidechain/method';
-import { MainchainInteroperabilityMethod } from './modules/interoperability/mainchain/method';
+import {
+	SidechainInteroperabilityModule,
+	MainchainInteroperabilityModule,
+	SidechainInteroperabilityMethod,
+	MainchainInteroperabilityMethod,
+} from './modules/interoperability';
 import { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_rewards';
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
