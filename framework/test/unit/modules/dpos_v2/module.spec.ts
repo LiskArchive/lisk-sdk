@@ -47,6 +47,7 @@ import { PreviousTimestampStore } from '../../../../src/modules/dpos_v2/stores/p
 import { GenesisDataStore } from '../../../../src/modules/dpos_v2/stores/genesis';
 import { SnapshotStore } from '../../../../src/modules/dpos_v2/stores/snapshot';
 import { createStoreGetter } from '../../../../src/testing/utils';
+import { TOKEN_ID_LENGTH } from '../../../../src/modules/dpos_v2/constants';
 
 describe('DPoS module', () => {
 	const EMPTY_KEY = Buffer.alloc(0);
@@ -84,7 +85,7 @@ describe('DPoS module', () => {
 			expect(dpos['_moduleConfig']).toEqual({
 				...defaultConfigs,
 				minWeightStandby: BigInt(defaultConfigs.minWeightStandby),
-				governanceTokenID: Buffer.alloc(8),
+				governanceTokenID: Buffer.alloc(TOKEN_ID_LENGTH),
 			});
 		});
 
@@ -345,7 +346,9 @@ describe('DPoS module', () => {
 							commission: 0,
 							consecutiveMissedBlocks: 0,
 							lastCommissionIncreaseHeight: 0,
-							sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+							sharingCoefficients: [
+								{ tokenID: Buffer.alloc(TOKEN_ID_LENGTH), coefficient: Buffer.alloc(24) },
+							],
 						},
 					);
 				}
@@ -389,7 +392,9 @@ describe('DPoS module', () => {
 						consecutiveMissedBlocks: 0,
 						commission: 0,
 						lastCommissionIncreaseHeight: 0,
-						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [
+							{ tokenID: Buffer.alloc(TOKEN_ID_LENGTH), coefficient: Buffer.alloc(24) },
+						],
 					});
 				}
 				await dpos['_createVoteWeightSnapshot'](context);
@@ -430,7 +435,9 @@ describe('DPoS module', () => {
 						consecutiveMissedBlocks: 0,
 						commission: 0,
 						lastCommissionIncreaseHeight: 0,
-						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [
+							{ tokenID: Buffer.alloc(TOKEN_ID_LENGTH), coefficient: Buffer.alloc(24) },
+						],
 					});
 				}
 
@@ -471,7 +478,9 @@ describe('DPoS module', () => {
 					consecutiveMissedBlocks: 0,
 					commission: 0,
 					lastCommissionIncreaseHeight: 0,
-					sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+					sharingCoefficients: [
+						{ tokenID: Buffer.alloc(TOKEN_ID_LENGTH), coefficient: Buffer.alloc(24) },
+					],
 				});
 				// set second delegate punished
 				await delegateStore.set(context, Buffer.from(fixtures[1].address, 'hex'), {
@@ -484,7 +493,9 @@ describe('DPoS module', () => {
 					consecutiveMissedBlocks: 0,
 					commission: 0,
 					lastCommissionIncreaseHeight: 0,
-					sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+					sharingCoefficients: [
+						{ tokenID: Buffer.alloc(TOKEN_ID_LENGTH), coefficient: Buffer.alloc(24) },
+					],
 				});
 				for (const data of fixtures.slice(2)) {
 					await delegateStore.set(context, Buffer.from(data.address, 'hex'), {
@@ -497,7 +508,9 @@ describe('DPoS module', () => {
 						consecutiveMissedBlocks: 0,
 						commission: 0,
 						lastCommissionIncreaseHeight: 0,
-						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [
+							{ tokenID: Buffer.alloc(TOKEN_ID_LENGTH), coefficient: Buffer.alloc(24) },
+						],
 					});
 				}
 
@@ -557,7 +570,9 @@ describe('DPoS module', () => {
 					consecutiveMissedBlocks: 0,
 					commission: 0,
 					lastCommissionIncreaseHeight: 0,
-					sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+					sharingCoefficients: [
+						{ tokenID: Buffer.alloc(TOKEN_ID_LENGTH), coefficient: Buffer.alloc(24) },
+					],
 				});
 				// set second delegate no self-vote
 				await delegateStore.set(context, Buffer.from(fixtures[1].address, 'hex'), {
@@ -570,7 +585,9 @@ describe('DPoS module', () => {
 					consecutiveMissedBlocks: 0,
 					commission: 0,
 					lastCommissionIncreaseHeight: 0,
-					sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+					sharingCoefficients: [
+						{ tokenID: Buffer.alloc(TOKEN_ID_LENGTH), coefficient: Buffer.alloc(24) },
+					],
 				});
 				// set third delegate punished
 				await delegateStore.set(context, Buffer.from(fixtures[2].address, 'hex'), {
@@ -583,7 +600,9 @@ describe('DPoS module', () => {
 					consecutiveMissedBlocks: 0,
 					commission: 0,
 					lastCommissionIncreaseHeight: 0,
-					sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+					sharingCoefficients: [
+						{ tokenID: Buffer.alloc(TOKEN_ID_LENGTH), coefficient: Buffer.alloc(24) },
+					],
 				});
 				for (const data of fixtures.slice(3)) {
 					await delegateStore.set(context, Buffer.from(data.address, 'hex'), {
@@ -596,7 +615,9 @@ describe('DPoS module', () => {
 						consecutiveMissedBlocks: 0,
 						commission: 0,
 						lastCommissionIncreaseHeight: 0,
-						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [
+							{ tokenID: Buffer.alloc(TOKEN_ID_LENGTH), coefficient: Buffer.alloc(24) },
+						],
 					});
 				}
 				const snapshotStore = dpos.stores.get(SnapshotStore);
@@ -885,7 +906,9 @@ describe('DPoS module', () => {
 					consecutiveMissedBlocks: 0,
 					commission: 0,
 					lastCommissionIncreaseHeight: 0,
-					sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+					sharingCoefficients: [
+						{ tokenID: Buffer.alloc(TOKEN_ID_LENGTH), coefficient: Buffer.alloc(24) },
+					],
 				}));
 			delegateAddresses = Array.from({ length: 103 }, _ => utils.getRandomBytes(20));
 
