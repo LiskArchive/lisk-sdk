@@ -14,16 +14,12 @@
 import { NotFoundError } from '@liskhq/lisk-db';
 import { BaseStore, ImmutableStoreGetter } from '../../base_store';
 import { MAX_NUMBER_BYTES_Q96, TOKEN_ID_LENGTH } from '../constants';
-
-export interface VoteSharingCofficientObject {
-	tokenID: Buffer;
-	coefficient: Buffer;
-}
+import { VoteSharingCoefficient } from '../types';
 
 export interface VoteObject {
 	delegateAddress: Buffer;
 	amount: bigint;
-	voteSharingCoefficients: VoteSharingCofficientObject[];
+	voteSharingCoefficients: VoteSharingCoefficient[];
 }
 
 export interface UnlockingObject {

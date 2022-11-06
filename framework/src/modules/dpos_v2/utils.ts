@@ -13,12 +13,7 @@
  */
 
 import { utils, ed } from '@liskhq/lisk-cryptography';
-import {
-	ModuleConfig,
-	ModuleConfigJSON,
-	UnlockingObject,
-	VoteSharingCofficientObject,
-} from './types';
+import { ModuleConfig, ModuleConfigJSON, UnlockingObject, VoteSharingCoefficient } from './types';
 import {
 	PUNISHMENT_PERIOD,
 	VOTER_PUNISH_TIME,
@@ -268,7 +263,7 @@ export const getDelegateWeight = (
 };
 
 export const isSharingCoEfficientSorted = (
-	sharingCoefficients: VoteSharingCofficientObject[],
+	sharingCoefficients: VoteSharingCoefficient[],
 ): boolean => {
 	const sharingCoefficientsCopy = [...sharingCoefficients];
 	sharingCoefficientsCopy.sort((a, b) => a.tokenID.compare(b.tokenID));

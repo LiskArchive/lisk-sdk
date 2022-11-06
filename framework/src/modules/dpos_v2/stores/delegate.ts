@@ -13,11 +13,7 @@
  */
 import { BaseStore } from '../../base_store';
 import { MAX_NUMBER_BYTES_Q96, TOKEN_ID_LENGTH } from '../constants';
-
-export interface VoteSharingCofficientObject {
-	tokenID: Buffer;
-	coefficient: Buffer;
-}
+import { VoteSharingCoefficient } from '../types';
 
 export interface DelegateAccount {
 	name: string;
@@ -29,7 +25,7 @@ export interface DelegateAccount {
 	consecutiveMissedBlocks: number;
 	commission: number;
 	lastCommissionIncreaseHeight: number;
-	sharingCoefficients: VoteSharingCofficientObject[];
+	sharingCoefficients: VoteSharingCoefficient[];
 }
 
 export const delegateStoreSchema = {

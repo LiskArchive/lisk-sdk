@@ -127,7 +127,7 @@ export interface DelegateRegistrationParams {
 	generatorKey: Buffer;
 }
 
-export interface VoteSharingCofficientObject {
+export interface VoteSharingCoefficient {
 	tokenID: Buffer;
 	coefficient: Buffer;
 }
@@ -142,7 +142,7 @@ export interface DelegateAccount {
 	consecutiveMissedBlocks: number;
 	commission: number;
 	lastCommissionIncreaseHeight: number;
-	sharingCoefficients: VoteSharingCofficientObject[];
+	sharingCoefficients: VoteSharingCoefficient[];
 }
 
 export interface DelegateAccountJSON {
@@ -237,14 +237,14 @@ export interface GenesisStore {
 		consecutiveMissedBlocks: number;
 		commission: number;
 		lastCommissionIncreaseHeight: number;
-		sharingCoefficients: VoteSharingCofficientObject[];
+		sharingCoefficients: VoteSharingCoefficient[];
 	}[];
 	voters: {
 		address: Buffer;
 		sentVotes: {
 			delegateAddress: Buffer;
 			amount: bigint;
-			voteSharingCoefficients: VoteSharingCofficientObject[];
+			voteSharingCoefficients: VoteSharingCoefficient[];
 		}[];
 		pendingUnlocks: {
 			delegateAddress: Buffer;
