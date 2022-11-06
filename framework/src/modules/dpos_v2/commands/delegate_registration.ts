@@ -20,7 +20,7 @@ import {
 	CommandExecuteContext,
 } from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
-import { DELEGATE_REGISTRATION_FEE, TOKEN_ID_FEE } from '../constants';
+import { TOKEN_ID_FEE } from '../constants';
 import { DelegateRegisteredEvent } from '../events/delegate_registered';
 import { delegateRegistrationCommandParamsSchema } from '../schemas';
 import { DelegateStore } from '../stores/delegate';
@@ -33,14 +33,16 @@ export class DelegateRegistrationCommand extends BaseCommand {
 	private _validatorsMethod!: ValidatorsMethod;
 	private _tokenMethod!: TokenMethod;
 	private _tokenIDFee!: Buffer;
+	private _delegateRegistrationFee!: bigint;
 
 	public addDependencies(tokenMethod: TokenMethod, validatorsMethod: ValidatorsMethod) {
 		this._tokenMethod = tokenMethod;
 		this._validatorsMethod = validatorsMethod;
 	}
 
-	public init(args: { tokenIDFee: Buffer }) {
+	public init(args: { tokenIDFee: Buffer; delegateRegistrationFee: bigint }) {
 		this._tokenIDFee = args.tokenIDFee;
+		this._delegateRegistrationFee = args.delegateRegistrationFee;
 	}
 
 	public get name() {
@@ -61,7 +63,7 @@ export class DelegateRegistrationCommand extends BaseCommand {
 			};
 		}
 
-		if (context.params.delegateRegistrationFee !== DELEGATE_REGISTRATION_FEE) {
+		if (context.params.delegateRegistrationFee !== this._delegateRegistrationFee) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Invalid delegate registration fee.'),
@@ -73,7 +75,7 @@ export class DelegateRegistrationCommand extends BaseCommand {
 			transaction.senderAddress,
 			TOKEN_ID_FEE,
 		);
-		if (balance < DELEGATE_REGISTRATION_FEE) {
+		if (balance < this._delegateRegistrationFee) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Not sufficient amount for delegate registration fee.'),

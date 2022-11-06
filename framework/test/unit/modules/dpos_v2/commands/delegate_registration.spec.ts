@@ -30,7 +30,10 @@ import { DelegateStore } from '../../../../../src/modules/dpos_v2/stores/delegat
 import { NameStore } from '../../../../../src/modules/dpos_v2/stores/name';
 import { DPoSModule } from '../../../../../src';
 import { createStoreGetter } from '../../../../../src/testing/utils';
-import { DELEGATE_REGISTRATION_FEE } from '../../../../../src/modules/dpos_v2/constants';
+import {
+	DELEGATE_REGISTRATION_FEE,
+	TOKEN_ID_FEE,
+} from '../../../../../src/modules/dpos_v2/constants';
 import { DelegateRegisteredEvent } from '../../../../../src/modules/dpos_v2/events/delegate_registered';
 
 describe('Delegate registration command', () => {
@@ -103,6 +106,10 @@ describe('Delegate registration command', () => {
 
 	beforeEach(() => {
 		delegateRegistrationCommand = new DelegateRegistrationCommand(dpos.stores, dpos.events);
+		delegateRegistrationCommand.init({
+			tokenIDFee: TOKEN_ID_FEE,
+			delegateRegistrationFee: DELEGATE_REGISTRATION_FEE,
+		});
 		mockTokenMethod = {
 			lock: jest.fn(),
 			unlock: jest.fn(),
@@ -128,7 +135,8 @@ describe('Delegate registration command', () => {
 	});
 
 	describe('verify', () => {
-		it('should return status OK for valid params', async () => {
+		// eslint-disable-next-line jest/no-focused-tests
+		it.only('should return status OK for valid params', async () => {
 			const context = testing
 				.createTransactionContext({
 					transaction,

@@ -59,6 +59,7 @@ export const defaultConfig = {
 	numberStandbyDelegates: 2,
 	tokenIDDPoS: TOKEN_ID_DPOS.toString('hex'),
 	tokenIDFee: TOKEN_ID_FEE.toString('hex'),
+	delegateRegistrationFee: DELEGATE_REGISTRATION_FEE.toString(),
 };
 
 export const enum PoSEventResult {

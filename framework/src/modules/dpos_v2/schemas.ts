@@ -167,6 +167,10 @@ export const configSchema = {
 			type: 'string',
 			format: 'hex',
 		},
+		delegateRegistrationFee: {
+			type: 'string',
+			format: 'uint64',
+		},
 	},
 	required: [
 		'factorSelfVotes',
@@ -182,6 +186,8 @@ export const configSchema = {
 		'numberActiveDelegates',
 		'numberStandbyDelegates',
 		'tokenIDDPoS',
+		'tokenIDFee',
+		'delegateRegistrationFee',
 	],
 };
 

@@ -54,7 +54,7 @@ import { createStoreGetter } from '../../../../src/testing/utils';
 
 describe('DPoS module', () => {
 	const EMPTY_KEY = Buffer.alloc(0);
-	const defaultConfigs = {
+	const defaultConfig = {
 		factorSelfVotes: 10,
 		maxLengthName: 20,
 		maxNumberSentVotes: 10,
@@ -69,6 +69,7 @@ describe('DPoS module', () => {
 		numberStandbyDelegates: 2,
 		tokenIDDPoS: '0000000000000000',
 		tokenIDFee: '0000000000000000',
+		delegateRegistrationFee: (BigInt(10) * BigInt(10) ** BigInt(8)).toString(),
 	};
 
 	describe('init', () => {
@@ -83,10 +84,11 @@ describe('DPoS module', () => {
 			).toResolve();
 
 			expect(dpos['_moduleConfig']).toEqual({
-				...defaultConfigs,
-				minWeightStandby: BigInt(defaultConfigs.minWeightStandby),
-				tokenIDDPoS: Buffer.from(defaultConfigs.tokenIDDPoS, 'hex'),
-				tokenIDFee: Buffer.from(defaultConfigs.tokenIDFee, 'hex'),
+				...defaultConfig,
+				minWeightStandby: BigInt(defaultConfig.minWeightStandby),
+				tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS, 'hex'),
+				tokenIDFee: Buffer.from(defaultConfig.tokenIDFee, 'hex'),
+				delegateRegistrationFee: BigInt(defaultConfig.delegateRegistrationFee),
 			});
 		});
 
@@ -94,7 +96,7 @@ describe('DPoS module', () => {
 			await expect(
 				dpos.init({
 					genesisConfig: {} as any,
-					moduleConfig: { ...defaultConfigs, maxLengthName: 50 },
+					moduleConfig: { ...defaultConfig, maxLengthName: 50 },
 					generatorConfig: {},
 				}),
 			).toResolve();
@@ -138,7 +140,7 @@ describe('DPoS module', () => {
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 		});
 
@@ -321,7 +323,7 @@ describe('DPoS module', () => {
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 		});
 
@@ -626,12 +628,12 @@ describe('DPoS module', () => {
 				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
 
 				const fixtureAboveThreshold = fixtures.filter(
-					data => BigInt(data.voteWeight) >= BigInt(defaultConfigs.minWeightStandby),
+					data => BigInt(data.voteWeight) >= BigInt(defaultConfig.minWeightStandby),
 				);
 
 				// Remove banned, punished and no self-vote
 				expect(snapshot.delegateWeightSnapshot).toHaveLength(
-					fixtureAboveThreshold.length - 3 - defaultConfigs.numberActiveDelegates,
+					fixtureAboveThreshold.length - 3 - defaultConfig.numberActiveDelegates,
 				);
 			});
 
@@ -654,7 +656,7 @@ describe('DPoS module', () => {
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 		});
 
@@ -692,18 +694,18 @@ describe('DPoS module', () => {
 						const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 						const blockContext = createBlockContext({
 							header: createFakeBlockHeader({
-								height: (defaultRound - 1) * defaultConfigs.roundLength,
+								height: (defaultRound - 1) * defaultConfig.roundLength,
 							}),
 							stateStore,
 						});
 						const context = blockContext.getBlockAfterExecuteContext();
 						const snapshotStore = dpos.stores.get(SnapshotStore);
 						const activeDelegates = delegates
-							.slice(0, defaultConfigs.numberActiveDelegates)
+							.slice(0, defaultConfig.numberActiveDelegates)
 							.map(d => d.delegateAddress);
 						await snapshotStore.set(context, utils.intToBuffer(defaultRound, 4), {
 							activeDelegates,
-							delegateWeightSnapshot: delegates.slice(defaultConfigs.numberActiveDelegates),
+							delegateWeightSnapshot: delegates.slice(defaultConfig.numberActiveDelegates),
 						});
 						const randomMethod = {
 							getRandomBytes: jest
@@ -771,20 +773,20 @@ describe('DPoS module', () => {
 				const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				blockContext = createBlockContext({
 					header: createFakeBlockHeader({
-						height: (defaultRound - 1) * defaultConfigs.roundLength,
+						height: (defaultRound - 1) * defaultConfig.roundLength,
 					}),
 					stateStore,
 				});
 				const snapshotStore = dpos.stores.get(SnapshotStore);
 				const activeDelegates = delegates
-					.slice(0, defaultConfigs.numberActiveDelegates)
+					.slice(0, defaultConfig.numberActiveDelegates)
 					.map(d => d.delegateAddress);
 				await snapshotStore.set(
 					blockContext.getBlockExecuteContext(),
 					utils.intToBuffer(defaultRound, 4),
 					{
 						activeDelegates,
-						delegateWeightSnapshot: delegates.slice(defaultConfigs.numberActiveDelegates),
+						delegateWeightSnapshot: delegates.slice(defaultConfig.numberActiveDelegates),
 					},
 				);
 				const randomMethod = {
@@ -820,7 +822,7 @@ describe('DPoS module', () => {
 
 			it('should have activeDelegates + standbyDelegates delegates in the generators list', () => {
 				expect((validatorMethod.setValidatorsParams as jest.Mock).mock.calls[0][4]).toHaveLength(
-					defaultConfigs.roundLength,
+					defaultConfig.roundLength,
 				);
 			});
 
@@ -865,7 +867,7 @@ describe('DPoS module', () => {
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -1281,7 +1283,7 @@ describe('DPoS module', () => {
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 			dpos.addDependencies(randomMethod, validatorsMethod, tokenMethod);
 

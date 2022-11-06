@@ -36,6 +36,7 @@ export interface ModuleConfig {
 	numberStandbyDelegates: number;
 	tokenIDDPoS: TokenIDDPoS;
 	tokenIDFee: Buffer;
+	delegateRegistrationFee: bigint;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
