@@ -38,6 +38,7 @@ export const CHAIN_ID_LENGTH = 4;
 export const LOCAL_ID_LENGTH = 4;
 export const TOKEN_ID_LENGTH = CHAIN_ID_LENGTH + LOCAL_ID_LENGTH;
 export const MAX_NUMBER_BYTES_Q96 = 24;
+export const COMMISSION = 10000;
 
 // Key length
 export const ED25519_PUBLIC_KEY_LENGTH = 32;

@@ -31,6 +31,7 @@ import { NameStore } from '../../../../../src/modules/dpos_v2/stores/name';
 import { DPoSModule } from '../../../../../src';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import {
+	COMMISSION,
 	DELEGATE_REGISTRATION_FEE,
 	TOKEN_ID_FEE,
 } from '../../../../../src/modules/dpos_v2/constants';
@@ -61,7 +62,7 @@ describe('Delegate registration command', () => {
 		isBanned: false,
 		pomHeights: [],
 		consecutiveMissedBlocks: 0,
-		commission: 10000,
+		commission: COMMISSION,
 		lastCommissionIncreaseHeight: 0,
 		sharingCoefficients: [],
 	};

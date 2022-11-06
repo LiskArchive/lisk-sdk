@@ -20,7 +20,7 @@ import {
 	CommandExecuteContext,
 } from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
-import { TOKEN_ID_FEE } from '../constants';
+import { COMMISSION, TOKEN_ID_FEE } from '../constants';
 import { DelegateRegisteredEvent } from '../events/delegate_registered';
 import { delegateRegistrationCommandParamsSchema } from '../schemas';
 import { DelegateStore } from '../stores/delegate';
@@ -148,7 +148,7 @@ export class DelegateRegistrationCommand extends BaseCommand {
 			isBanned: false,
 			pomHeights: [],
 			consecutiveMissedBlocks: 0,
-			commission: 10000,
+			commission: COMMISSION,
 			lastCommissionIncreaseHeight: height,
 			sharingCoefficients: [],
 		});
