@@ -18,7 +18,6 @@ import {
 	NextValidatorsSetter,
 } from '../../state_machine/types';
 import { JSONObject } from '../../types';
-import { DelegateAccountJSON, VoteSharingCofficientObject } from './stores/delegate';
 
 export type TokenID = Buffer;
 
@@ -137,6 +136,35 @@ export interface DelegateRegistrationParams {
 	delegateRegistrationFee: bigint;
 }
 
+export interface VoteSharingCoefficient {
+	tokenID: Buffer;
+	coefficient: Buffer;
+}
+
+export interface DelegateAccount {
+	name: string;
+	totalVotesReceived: bigint;
+	selfVotes: bigint;
+	lastGeneratedHeight: number;
+	isBanned: boolean;
+	pomHeights: number[];
+	consecutiveMissedBlocks: number;
+	commission: number;
+	lastCommissionIncreaseHeight: number;
+	sharingCoefficients: VoteSharingCoefficient[];
+}
+
+export interface DelegateAccountJSON {
+	name: string;
+	totalVotesReceived: string;
+	selfVotes: string;
+	lastGeneratedHeight: number;
+	isBanned: boolean;
+	pomHeights: number[];
+	consecutiveMissedBlocks: number;
+	address: string;
+}
+
 export interface VoterDataJSON {
 	sentVotes: {
 		delegateAddress: string;
@@ -218,14 +246,14 @@ export interface GenesisStore {
 		consecutiveMissedBlocks: number;
 		commission: number;
 		lastCommissionIncreaseHeight: number;
-		sharingCoefficients: VoteSharingCofficientObject[];
+		sharingCoefficients: VoteSharingCoefficient[];
 	}[];
 	voters: {
 		address: Buffer;
 		sentVotes: {
 			delegateAddress: Buffer;
 			amount: bigint;
-			voteSharingCoefficients: VoteSharingCofficientObject[];
+			voteSharingCoefficients: VoteSharingCoefficient[];
 		}[];
 		pendingUnlocks: {
 			delegateAddress: Buffer;
