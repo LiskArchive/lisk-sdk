@@ -14,7 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { StoreGetter } from '../../../../../src/modules/base_store';
-import { defaultConfig } from '../../../../../src/modules/dpos_v2/constants';
+import { defaultConfig, TOKEN_ID_LENGTH } from '../../../../../src/modules/dpos_v2/constants';
 import { EligibleDelegatesStore } from '../../../../../src/modules/dpos_v2/stores/eligible_delegates';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
@@ -63,7 +63,7 @@ describe('EligibleDelegatesStore', () => {
 			...defaultConfig,
 			tokenIDFee: Buffer.from(defaultConfig.tokenIDFee, 'hex'),
 			minWeightStandby: BigInt(defaultConfig.minWeightStandby),
-			tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS, 'hex'),
+			governanceTokenID: Buffer.alloc(TOKEN_ID_LENGTH),
 			delegateRegistrationFee: BigInt(defaultConfig.delegateRegistrationFee),
 		});
 		for (const eligibleDelegate of eligibleDelegates) {

@@ -26,21 +26,21 @@ import { MAX_UNLOCKING, MAX_VOTE, MODULE_NAME_DPOS, TEN_UNIT } from '../constant
 import { voteCommandParamsSchema } from '../schemas';
 import { DelegateStore } from '../stores/delegate';
 import { VoterStore } from '../stores/voter';
-import { TokenMethod, TokenIDDPoS, VoteCommandDependencies, VoteTransactionParams } from '../types';
+import { TokenMethod, TokenID, VoteCommandDependencies, VoteTransactionParams } from '../types';
 import { sortUnlocking } from '../utils';
 
 export class VoteDelegateCommand extends BaseCommand {
 	public schema = voteCommandParamsSchema;
 
 	private _tokenMethod!: TokenMethod;
-	private _tokenIDDPoS!: TokenIDDPoS;
+	private _governanceTokenID!: TokenID;
 
 	public addDependencies(args: VoteCommandDependencies) {
 		this._tokenMethod = args.tokenMethod;
 	}
 
-	public init(args: { tokenIDDPoS: TokenIDDPoS }) {
-		this._tokenIDDPoS = args.tokenIDDPoS;
+	public init(args: { governanceTokenID: TokenID }) {
+		this._governanceTokenID = args.governanceTokenID;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -202,7 +202,7 @@ export class VoteDelegateCommand extends BaseCommand {
 					getMethodContext(),
 					senderAddress,
 					MODULE_NAME_DPOS,
-					this._tokenIDDPoS,
+					this._governanceTokenID,
 					vote.amount,
 				);
 

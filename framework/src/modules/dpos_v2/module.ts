@@ -39,6 +39,15 @@ import {
 	getAllDelegatesResponseSchema,
 	getDelegateRequestSchema,
 	getDelegateResponseSchema,
+	getGovernanceTokenIDResponseSchema,
+	getLockedRewardsRequestSchema,
+	getLockedRewardsResponseSchema,
+	getLockedVotedAmountRequestSchema,
+	getLockedVotedAmountResponseSchema,
+	getPendingUnlocksRequestSchema,
+	getPendingUnlocksResponseSchema,
+	getValidatorsByStakeRequestSchema,
+	getValidatorsByStakeResponseSchema,
 	getVoterRequestSchema,
 	getVoterResponseSchema,
 } from './schemas';
@@ -172,6 +181,30 @@ export class DPoSModule extends BaseModule {
 					name: this.endpoint.getConstants.name,
 					response: configSchema,
 				},
+				{
+					name: this.endpoint.getGovernanceTokenID.name,
+					response: getGovernanceTokenIDResponseSchema,
+				},
+				{
+					name: this.endpoint.getLockedRewards.name,
+					request: getLockedRewardsRequestSchema,
+					response: getLockedRewardsResponseSchema,
+				},
+				{
+					name: this.endpoint.getLockedVotedAmount.name,
+					request: getLockedVotedAmountRequestSchema,
+					response: getLockedVotedAmountResponseSchema,
+				},
+				{
+					name: this.endpoint.getValidatorsByStake.name,
+					request: getValidatorsByStakeRequestSchema,
+					response: getValidatorsByStakeResponseSchema,
+				},
+				{
+					name: this.endpoint.getPendingUnlocks.name,
+					request: getPendingUnlocksRequestSchema,
+					response: getPendingUnlocksResponseSchema,
+				},
 			],
 			commands: this.commands.map(command => ({
 				name: command.name,
@@ -190,24 +223,39 @@ export class DPoSModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig } = args;
-		const config = objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfigJSON;
+		const defaultGovernanceTokenID = `${args.genesisConfig.chainID}${Buffer.alloc(4).toString(
+			'hex',
+		)}`;
+		const config = objects.mergeDeep(
+			{},
+			{
+				...defaultConfig,
+				governanceTokenID: defaultGovernanceTokenID,
+			},
+			moduleConfig,
+		) as ModuleConfigJSON;
 		validator.validate(configSchema, config);
 
 		this._moduleConfig = getModuleConfig(config);
 
 		this.method.init(this._moduleConfig);
-		this.endpoint.init(this._moduleConfig);
+		this.endpoint.init(this.name, this._moduleConfig, this._tokenMethod);
 
+		this._reportDelegateMisbehaviorCommand.init({
+			governanceTokenID: this._moduleConfig.governanceTokenID,
+		});
 		this._delegateRegistrationCommand.init({
 			tokenIDFee: this._moduleConfig.tokenIDFee,
 			delegateRegistrationFee: this._moduleConfig.delegateRegistrationFee,
 		});
-		this._reportDelegateMisbehaviorCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
+		this._reportDelegateMisbehaviorCommand.init({
+			governanceTokenID: this._moduleConfig.governanceTokenID,
+		});
 		this._unlockCommand.init({
-			tokenIDDPoS: this._moduleConfig.tokenIDDPoS,
+			governanceTokenID: this._moduleConfig.governanceTokenID,
 			roundLength: this._moduleConfig.roundLength,
 		});
-		this._voteCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
+		this._voteCommand.init({ governanceTokenID: this._moduleConfig.governanceTokenID });
 
 		this.stores.get(EligibleDelegatesStore).init(this._moduleConfig);
 	}
@@ -419,7 +467,7 @@ export class DPoSModule extends BaseModule {
 			const lockedAmount = await this._tokenMethod.getLockedAmount(
 				methodContext,
 				voterData.key,
-				this._moduleConfig.tokenIDDPoS,
+				this._moduleConfig.governanceTokenID,
 				this.name,
 			);
 			if (lockedAmount !== votedAmount) {
