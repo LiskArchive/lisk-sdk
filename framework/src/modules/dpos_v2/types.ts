@@ -18,7 +18,7 @@ import {
 	NextValidatorsSetter,
 } from '../../state_machine/types';
 import { JSONObject } from '../../types';
-import { DelegateAccountJSON } from './stores/delegate';
+import { DelegateAccountJSON, VoteSharingCofficientObject } from './stores/delegate';
 
 export type TokenID = Buffer;
 
