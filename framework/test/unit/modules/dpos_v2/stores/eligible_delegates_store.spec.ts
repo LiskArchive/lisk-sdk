@@ -12,7 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { utils } from '@liskhq/lisk-cryptography';
 import { StoreGetter } from '../../../../../src/modules/base_store';
+import { defaultConfig, TOKEN_ID_LENGTH } from '../../../../../src/modules/dpos_v2/constants';
 import { EligibleDelegatesStore } from '../../../../../src/modules/dpos_v2/stores/eligible_delegates';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
@@ -40,11 +42,28 @@ describe('EligibleDelegatesStore', () => {
 			lastPomHeight: 978,
 		},
 	];
+	const defaultDelegateAccount = {
+		name: 'rand',
+		commission: 0,
+		consecutiveMissedBlocks: 0,
+		isBanned: false,
+		lastCommissionIncreaseHeight: 0,
+		lastGeneratedHeight: 0,
+		pomHeights: [],
+		selfVotes: BigInt(200000000000),
+		totalVotesReceived: BigInt(250000000000),
+		sharingCoefficients: [],
+	};
 
 	beforeEach(async () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		context = createStoreGetter(stateStore);
 		eligibleDelegatesStore = new EligibleDelegatesStore('dpos');
+		eligibleDelegatesStore.init({
+			...defaultConfig,
+			minWeightStandby: BigInt(defaultConfig.minWeightStandby),
+			governanceTokenID: Buffer.alloc(TOKEN_ID_LENGTH),
+		});
 		for (const eligibleDelegate of eligibleDelegates) {
 			const key = eligibleDelegatesStore.getKey(
 				eligibleDelegate.address,
@@ -74,6 +93,77 @@ describe('EligibleDelegatesStore', () => {
 			expect(returnedValue).toHaveLength(3);
 			expect(returnedValue[0].value.lastPomHeight).toEqual(978);
 			expect(returnedValue[2].value.lastPomHeight).toEqual(278);
+		});
+	});
+
+	describe('splitKey', () => {
+		it('should return address and weight', () => {
+			const address = utils.getRandomBytes(20);
+			const key = eligibleDelegatesStore.getKey(address, BigInt(999));
+			expect(eligibleDelegatesStore.splitKey(key)).toEqual([address, BigInt(999)]);
+		});
+	});
+
+	describe('update', () => {
+		it('should delete original key and not insert if delegate is banned', async () => {
+			await eligibleDelegatesStore.update(context, eligibleDelegates[0].address, BigInt(10), {
+				...defaultDelegateAccount,
+				isBanned: true,
+			});
+			await expect(
+				eligibleDelegatesStore.has(
+					context,
+					eligibleDelegatesStore.getKey(
+						eligibleDelegates[0].address,
+						defaultDelegateAccount.totalVotesReceived,
+					),
+				),
+			).resolves.toBeFalse();
+		});
+
+		it('should delete original key and not insert if delegate does not have minWeight', async () => {
+			await eligibleDelegatesStore.update(context, eligibleDelegates[0].address, BigInt(10), {
+				...defaultDelegateAccount,
+				selfVotes: BigInt(0),
+			});
+
+			await expect(
+				eligibleDelegatesStore.has(
+					context,
+					eligibleDelegatesStore.getKey(eligibleDelegates[0].address, BigInt(0)),
+				),
+			).resolves.toBeFalse();
+		});
+
+		it('should insert new key with latest pomHeight', async () => {
+			await eligibleDelegatesStore.update(context, eligibleDelegates[0].address, BigInt(10), {
+				...defaultDelegateAccount,
+				pomHeights: [10, 20, 30],
+			});
+			await expect(
+				eligibleDelegatesStore.get(
+					context,
+					eligibleDelegatesStore.getKey(
+						eligibleDelegates[0].address,
+						defaultDelegateAccount.totalVotesReceived,
+					),
+				),
+			).resolves.toEqual({ lastPomHeight: 30 });
+		});
+
+		it('should insert new key with 0 if delegate does not have pomHeights', async () => {
+			await eligibleDelegatesStore.update(context, eligibleDelegates[0].address, BigInt(10), {
+				...defaultDelegateAccount,
+			});
+			await expect(
+				eligibleDelegatesStore.get(
+					context,
+					eligibleDelegatesStore.getKey(
+						eligibleDelegates[0].address,
+						defaultDelegateAccount.totalVotesReceived,
+					),
+				),
+			).resolves.toEqual({ lastPomHeight: 0 });
 		});
 	});
 });

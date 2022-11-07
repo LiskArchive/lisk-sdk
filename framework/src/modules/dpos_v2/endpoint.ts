@@ -134,11 +134,11 @@ export class DPoSEndpoint extends BaseEndpoint {
 			failSafeInactiveWindow: this._moduleConfig.failSafeInactiveWindow,
 			punishmentWindow: this._moduleConfig.punishmentWindow,
 			roundLength: this._moduleConfig.roundLength,
-			bftThreshold: this._moduleConfig.bftThreshold,
 			minWeightStandby: this._moduleConfig.minWeightStandby.toString(),
 			numberActiveDelegates: this._moduleConfig.numberActiveDelegates,
 			numberStandbyDelegates: this._moduleConfig.numberStandbyDelegates,
 			governanceTokenID: this._moduleConfig.governanceTokenID.toString('hex'),
+			maxBFTWeightCap: this._moduleConfig.maxBFTWeightCap,
 		};
 	}
 

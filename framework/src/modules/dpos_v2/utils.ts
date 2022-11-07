@@ -70,24 +70,24 @@ export const validateSignature = (
 	bytes: Buffer,
 ): boolean => ed.verifyData(tag, chainID, bytes, signature, publicKey);
 
-export interface DelegateWeight {
-	readonly delegateAddress: Buffer;
-	readonly delegateWeight: bigint;
+export interface ValidatorWeight {
+	readonly address: Buffer;
+	weight: bigint;
 }
 
 export const pickStandByDelegate = (
-	delegateWeights: ReadonlyArray<DelegateWeight>,
+	delegateWeights: ReadonlyArray<ValidatorWeight>,
 	randomSeed: Buffer,
 ): number => {
 	const seedNumber = randomSeed.readBigUInt64BE();
 	const totalVoteWeight = delegateWeights.reduce(
-		(prev, current) => prev + BigInt(current.delegateWeight),
+		(prev, current) => prev + BigInt(current.weight),
 		BigInt(0),
 	);
 
 	let threshold = seedNumber % totalVoteWeight;
 	for (let i = 0; i < delegateWeights.length; i += 1) {
-		const voteWeight = BigInt(delegateWeights[i].delegateWeight);
+		const voteWeight = BigInt(delegateWeights[i].weight);
 		if (voteWeight > threshold) {
 			return i;
 		}
@@ -99,11 +99,11 @@ export const pickStandByDelegate = (
 
 export const shuffleDelegateList = (
 	previousRoundSeed1: Buffer,
-	addresses: ReadonlyArray<Buffer>,
-): Buffer[] => {
+	addresses: ValidatorWeight[],
+): ValidatorWeight[] => {
 	const delegateList = [...addresses].map(delegate => ({
-		address: delegate,
-	})) as { address: Buffer; roundHash: Buffer }[];
+		...delegate,
+	})) as { address: Buffer; roundHash: Buffer; weight: bigint }[];
 
 	for (const delegate of delegateList) {
 		const seedSource = Buffer.concat([previousRoundSeed1, delegate.address]);
@@ -119,30 +119,30 @@ export const shuffleDelegateList = (
 		return delegate1.address.compare(delegate2.address);
 	});
 
-	return delegateList.map(delegate => delegate.address);
+	return delegateList;
 };
 
 export const selectStandbyDelegates = (
-	delegateWeights: DelegateWeight[],
+	delegateWeights: ValidatorWeight[],
 	randomSeed1: Buffer,
 	randomSeed2?: Buffer,
-): Buffer[] => {
+): ValidatorWeight[] => {
 	const numberOfCandidates = 1 + (randomSeed2 !== undefined ? 1 : 0);
 	// if delegate weights is smaller than number selecting, select all
 	if (delegateWeights.length <= numberOfCandidates) {
-		return delegateWeights.map(c => c.delegateAddress);
+		return delegateWeights;
 	}
-	const result: Buffer[] = [];
+	const result: ValidatorWeight[] = [];
 	const index = pickStandByDelegate(delegateWeights, randomSeed1);
 	const [selected] = delegateWeights.splice(index, 1);
-	result.push(selected.delegateAddress);
+	result.push(selected);
 	// if seed2 is missing, return only 1
 	if (!randomSeed2) {
 		return result;
 	}
 	const secondIndex = pickStandByDelegate(delegateWeights, randomSeed2);
 	const [secondStandby] = delegateWeights.splice(secondIndex, 1);
-	result.push(secondStandby.delegateAddress);
+	result.push(secondStandby);
 
 	return result;
 };
@@ -249,3 +249,15 @@ export function getModuleConfig(config: ModuleConfigJSON): ModuleConfig {
 		governanceTokenID: Buffer.from(config.governanceTokenID, 'hex'),
 	};
 }
+
+export const getDelegateWeight = (
+	factorSelfVotes: bigint,
+	selfVotes: bigint,
+	totalVotesReceived: bigint,
+) => {
+	const cap = selfVotes * factorSelfVotes;
+	if (cap < totalVotesReceived) {
+		return cap;
+	}
+	return totalVotesReceived;
+};

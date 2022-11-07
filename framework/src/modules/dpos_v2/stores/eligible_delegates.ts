@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseStore, ImmutableStoreGetter } from '../../base_store';
+import { BaseStore, ImmutableStoreGetter, StoreGetter } from '../../base_store';
+import { ModuleConfig } from '../types';
+import { getDelegateWeight } from '../utils';
+import { DelegateAccount } from './delegate';
 
 export interface EligibleDelegate {
 	lastPomHeight: number;
@@ -35,6 +38,12 @@ const KEY_LENGTH = 8 + 20;
 
 export class EligibleDelegatesStore extends BaseStore<EligibleDelegate> {
 	public schema = eligibleDelegatesStoreSchema;
+
+	private _config!: ModuleConfig;
+
+	public init(config: ModuleConfig) {
+		this._config = config;
+	}
 
 	public getKey(address: Buffer, delegateWeight: bigint): Buffer {
 		const buffer = Buffer.alloc(8);
@@ -63,5 +72,34 @@ export class EligibleDelegatesStore extends BaseStore<EligibleDelegate> {
 		const weightBytes = key.slice(0, 8);
 		const address = key.slice(8);
 		return [address, weightBytes.readBigUInt64BE()];
+	}
+
+	public async update(
+		context: StoreGetter,
+		address: Buffer,
+		oldWeight: bigint,
+		delegate: DelegateAccount,
+	): Promise<void> {
+		const oldKey = this.getKey(address, oldWeight);
+		await this.del(context, oldKey);
+
+		if (delegate.isBanned) {
+			return;
+		}
+
+		const newWeight = getDelegateWeight(
+			BigInt(this._config.factorSelfVotes),
+			delegate.selfVotes,
+			delegate.totalVotesReceived,
+		);
+		if (newWeight < this._config.minWeightStandby) {
+			return;
+		}
+
+		const lastPomHeight = delegate.pomHeights.length
+			? delegate.pomHeights[delegate.pomHeights.length - 1]
+			: 0;
+
+		await this.set(context, this.getKey(address, newWeight), { lastPomHeight });
 	}
 }
