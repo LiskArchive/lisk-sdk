@@ -43,17 +43,19 @@ import { ValidatorsMethod, ValidatorsModule } from './modules/validators';
 import { TokenModule, TokenMethod } from './modules/token';
 import { AuthModule, AuthMethod } from './modules/auth';
 import { FeeModule, FeeMethod } from './modules/fee';
-import { RewardModule, RewardMethod } from './modules/reward';
 import { RandomModule, RandomMethod } from './modules/random';
 import { DPoSModule, DPoSMethod } from './modules/dpos_v2';
 import { generateGenesisBlock, GenesisBlockGenerateInput } from './genesis_block';
 import { StateMachine } from './state_machine';
 import { ABIHandler, EVENT_ENGINE_READY } from './abi_handler/abi_handler';
 import { ABIServer } from './abi_handler/abi_server';
-import { SidechainInteroperabilityModule } from './modules/interoperability/sidechain/module';
-import { MainchainInteroperabilityModule } from './modules/interoperability/mainchain/module';
-import { SidechainInteroperabilityMethod } from './modules/interoperability/sidechain/method';
-import { MainchainInteroperabilityMethod } from './modules/interoperability/mainchain/method';
+import {
+	SidechainInteroperabilityModule,
+	MainchainInteroperabilityModule,
+	SidechainInteroperabilityMethod,
+	MainchainInteroperabilityMethod,
+} from './modules/interoperability';
+import { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_rewards';
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -109,7 +111,7 @@ interface DefaultApplication {
 		token: TokenMethod;
 		fee: FeeMethod;
 		random: RandomMethod;
-		reward: RewardMethod;
+		reward: DynamicRewardMethod;
 		dpos: DPoSMethod;
 		interoperability: SidechainInteroperabilityMethod | MainchainInteroperabilityMethod;
 	};
@@ -163,7 +165,7 @@ export class Application {
 		const authModule = new AuthModule();
 		const tokenModule = new TokenModule();
 		const feeModule = new FeeModule();
-		const rewardModule = new RewardModule();
+		const rewardModule = new DynamicRewardModule();
 		const randomModule = new RandomModule();
 		const validatorModule = new ValidatorsModule();
 		const dposModule = new DPoSModule();
@@ -178,7 +180,12 @@ export class Application {
 
 		// resolve dependencies
 		feeModule.addDependencies(tokenModule.method);
-		rewardModule.addDependencies(tokenModule.method, randomModule.method);
+		rewardModule.addDependencies(
+			tokenModule.method,
+			randomModule.method,
+			validatorModule.method,
+			dposModule.method,
+		);
 		dposModule.addDependencies(randomModule.method, validatorModule.method, tokenModule.method);
 		tokenModule.addDependencies(interoperabilityModule.method);
 

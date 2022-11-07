@@ -106,9 +106,10 @@ describe('UnlockCommand', () => {
 	beforeEach(() => {
 		unlockCommand = new UnlockCommand(dpos.stores, dpos.events);
 		mockTokenMethod = {
-			unlock: jest.fn(),
 			lock: jest.fn(),
+			unlock: jest.fn(),
 			getAvailableBalance: jest.fn(),
+			burn: jest.fn(),
 			transfer: jest.fn(),
 			getLockedAmount: jest.fn(),
 		};
@@ -117,7 +118,7 @@ describe('UnlockCommand', () => {
 		});
 		unlockCommand.init({
 			roundLength: defaultConfig.roundLength,
-			tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS, 'hex'),
+			governanceTokenID: Buffer.alloc(8),
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		delegateSubstore = dpos.stores.get(DelegateStore);

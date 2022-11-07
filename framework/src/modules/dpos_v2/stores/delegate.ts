@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { JSONObject } from '../../../types';
 import { BaseStore } from '../../base_store';
 import { MAX_NUMBER_BYTES_Q96, TOKEN_ID_LENGTH } from '../constants';
 import { VoteSharingCoefficient } from '../types';
@@ -27,6 +28,8 @@ export interface DelegateAccount {
 	lastCommissionIncreaseHeight: number;
 	sharingCoefficients: VoteSharingCoefficient[];
 }
+
+export type DelegateAccountJSON = JSONObject<DelegateAccount>;
 
 export const delegateStoreSchema = {
 	$id: '/dpos/delegate',

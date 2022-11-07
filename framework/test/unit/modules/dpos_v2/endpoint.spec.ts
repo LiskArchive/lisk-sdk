@@ -38,6 +38,7 @@ import {
 	createTransientModuleEndpointContext,
 } from '../../../../src/testing';
 import { GenesisDataStore } from '../../../../src/modules/dpos_v2/stores/genesis';
+import { EligibleDelegatesStore } from '../../../../src/modules/dpos_v2/stores/eligible_delegates';
 
 describe('DposModuleEndpoint', () => {
 	const dpos = new DPoSModule();
@@ -47,6 +48,7 @@ describe('DposModuleEndpoint', () => {
 	let voterSubStore: VoterStore;
 	let delegateSubStore: DelegateStore;
 	let genesisSubStore: GenesisDataStore;
+	let eligibleDelegatesSubStore: EligibleDelegatesStore;
 
 	const address = utils.getRandomBytes(20);
 	const address1 = utils.getRandomBytes(20);
@@ -85,19 +87,29 @@ describe('DposModuleEndpoint', () => {
 	const config: ModuleConfig = {
 		...defaultConfig,
 		minWeightStandby: BigInt(defaultConfig.minWeightStandby),
-		tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS, 'hex'),
+		governanceTokenID: Buffer.from('1000000000000002'),
+		tokenIDFee: Buffer.from(defaultConfig.tokenIDFee, 'hex'),
+		delegateRegistrationFee: BigInt(defaultConfig.delegateRegistrationFee),
 	};
 
 	beforeEach(() => {
 		dposEndpoint = new DPoSEndpoint(dpos.stores, dpos.offchainStores);
-		dposEndpoint.init(config);
+		dposEndpoint.init('dpos', config, {
+			getAvailableBalance: jest.fn(),
+			getLockedAmount: jest.fn(),
+			burn: jest.fn(),
+			lock: jest.fn(),
+			transfer: jest.fn(),
+			unlock: jest.fn(),
+		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		voterSubStore = dpos.stores.get(VoterStore);
 		delegateSubStore = dpos.stores.get(DelegateStore);
 		genesisSubStore = dpos.stores.get(GenesisDataStore);
+		eligibleDelegatesSubStore = dpos.stores.get(EligibleDelegatesStore);
 	});
 
-	describe.skip('getVoter', () => {
+	describe('getVoter', () => {
 		describe('when input address is valid', () => {
 			it('should return correct voter data corresponding to the input address', async () => {
 				await voterSubStore.set(createStoreGetter(stateStore), address, voterData);
@@ -150,6 +162,12 @@ describe('DposModuleEndpoint', () => {
 					totalVotesReceived: delegateData.totalVotesReceived.toString(),
 					selfVotes: delegateData.selfVotes.toString(),
 					address: cryptoAddress.getLisk32AddressFromAddress(address),
+					sharingCoefficients: [
+						{
+							tokenID: Buffer.alloc(8).toString('hex'),
+							coefficient: Buffer.alloc(24).toString('hex'),
+						},
+					],
 				};
 
 				expect(delegateDataReturned).toStrictEqual(delegateDataJSON);
@@ -210,11 +228,45 @@ describe('DposModuleEndpoint', () => {
 		});
 	});
 
+	describe('getLockedVotedAmount', () => {
+		beforeEach(async () => {
+			const context = createStoreGetter(stateStore);
+			await voterSubStore.set(context, address, {
+				sentVotes: [
+					{ delegateAddress: address1, amount: BigInt(200), voteSharingCoefficients: [] },
+					{ delegateAddress: address2, amount: BigInt(10), voteSharingCoefficients: [] },
+				],
+				pendingUnlocks: [{ amount: BigInt(30), delegateAddress: address1, unvoteHeight: 99 }],
+			});
+		});
+
+		it('should reject with invalid params', async () => {
+			await expect(
+				dposEndpoint.getLockedVotedAmount(
+					createTransientModuleEndpointContext({ stateStore, params: { address: true } }),
+				),
+			).rejects.toThrow('Lisk validator found 1 error[s]:');
+		});
+
+		it('should return amount locked for votes', async () => {
+			const resp = await dposEndpoint.getLockedVotedAmount(
+				createTransientModuleEndpointContext({
+					stateStore,
+					params: { address: cryptoAddress.getLisk32AddressFromAddress(address) },
+				}),
+			);
+			expect(resp.amount).toEqual(Number(200 + 10 + 30).toString());
+		});
+	});
+
 	describe('getConstants', () => {
 		it('should return DPoSModule configuration', async () => {
 			const constants = await dposEndpoint.getConstants();
 
-			expect(constants).toStrictEqual(defaultConfig);
+			expect(constants).toStrictEqual({
+				...defaultConfig,
+				governanceTokenID: config.governanceTokenID.toString('hex'),
+			});
 		});
 	});
 
@@ -350,6 +402,164 @@ describe('DposModuleEndpoint', () => {
 					},
 				],
 			});
+		});
+	});
+
+	describe('getGovernanceTokenID', () => {
+		it('should return governanceTokenID', async () => {
+			await expect(
+				dposEndpoint.getGovernanceTokenID(createTransientModuleEndpointContext({ stateStore })),
+			).resolves.toEqual({
+				tokenID: config.governanceTokenID.toString('hex'),
+			});
+		});
+	});
+
+	describe('getValidatorsByStake', () => {
+		beforeEach(async () => {
+			const context = createStoreGetter(stateStore);
+			await eligibleDelegatesSubStore.set(
+				context,
+				eligibleDelegatesSubStore.getKey(address, BigInt(20)),
+				{ lastPomHeight: 0 },
+			);
+			await eligibleDelegatesSubStore.set(
+				context,
+				eligibleDelegatesSubStore.getKey(address1, BigInt(50)),
+				{ lastPomHeight: 0 },
+			);
+			await eligibleDelegatesSubStore.set(
+				context,
+				eligibleDelegatesSubStore.getKey(address2, BigInt(100)),
+				{ lastPomHeight: 0 },
+			);
+
+			await delegateSubStore.set(context, address, {
+				...delegateData,
+				name: '1',
+			});
+			await delegateSubStore.set(context, address1, {
+				...delegateData,
+				name: '2',
+			});
+			await delegateSubStore.set(context, address2, {
+				...delegateData,
+				name: '3',
+			});
+		});
+
+		it('should reject with invalid params', async () => {
+			await expect(
+				dposEndpoint.getValidatorsByStake(
+					createTransientModuleEndpointContext({ stateStore, params: { limit: true } }),
+				),
+			).rejects.toThrow('Lisk validator found 1 error[s]:');
+		});
+
+		it('should return validators with default limit', async () => {
+			const resp = await dposEndpoint.getValidatorsByStake(
+				createTransientModuleEndpointContext({ stateStore }),
+			);
+			expect(resp.validators).toHaveLength(3);
+			expect(resp.validators[0]).toEqual({
+				...delegateData,
+				name: '3',
+				totalVotesReceived: delegateData.totalVotesReceived.toString(),
+				selfVotes: delegateData.selfVotes.toString(),
+				sharingCoefficients: delegateData.sharingCoefficients.map(co => ({
+					tokenID: co.tokenID.toString('hex'),
+					coefficient: co.coefficient.toString('hex'),
+				})),
+			});
+		});
+
+		it('should return all validators with limit', async () => {
+			const resp = await dposEndpoint.getValidatorsByStake(
+				createTransientModuleEndpointContext({ stateStore, params: { limit: 2 } }),
+			);
+			expect(resp.validators).toHaveLength(2);
+			expect(resp.validators[0]).toEqual({
+				...delegateData,
+				name: '3',
+				address: cryptoAddress.getLisk32AddressFromAddress(address2),
+				totalVotesReceived: delegateData.totalVotesReceived.toString(),
+				selfVotes: delegateData.selfVotes.toString(),
+				sharingCoefficients: delegateData.sharingCoefficients.map(co => ({
+					tokenID: co.tokenID.toString('hex'),
+					coefficient: co.coefficient.toString('hex'),
+				})),
+			});
+			expect(resp.validators[1]).toEqual({
+				...delegateData,
+				address: cryptoAddress.getLisk32AddressFromAddress(address1),
+				name: '2',
+				totalVotesReceived: delegateData.totalVotesReceived.toString(),
+				selfVotes: delegateData.selfVotes.toString(),
+				sharingCoefficients: delegateData.sharingCoefficients.map(co => ({
+					tokenID: co.tokenID.toString('hex'),
+					coefficient: co.coefficient.toString('hex'),
+				})),
+			});
+		});
+	});
+
+	describe('getLockedRewards', () => {
+		beforeEach(async () => {
+			const context = createStoreGetter(stateStore);
+			await voterSubStore.set(context, address, {
+				sentVotes: [
+					{ delegateAddress: address1, amount: BigInt(200), voteSharingCoefficients: [] },
+					{ delegateAddress: address2, amount: BigInt(10), voteSharingCoefficients: [] },
+				],
+				pendingUnlocks: [{ amount: BigInt(30), delegateAddress: address1, unvoteHeight: 99 }],
+			});
+
+			(dposEndpoint['_tokenMethod'].getLockedAmount as jest.Mock).mockResolvedValue(BigInt(5000));
+		});
+
+		it('should reject with invalid params', async () => {
+			await expect(
+				dposEndpoint.getLockedRewards(
+					createTransientModuleEndpointContext({ stateStore, params: { limit: true } }),
+				),
+			).rejects.toThrow('Lisk validator found 2 error[s]:');
+		});
+
+		it('should reject with invalid token ID params', async () => {
+			await expect(
+				dposEndpoint.getLockedRewards(
+					createTransientModuleEndpointContext({
+						stateStore,
+						params: { address: cryptoAddress.getLisk32AddressFromAddress(address), tokenID: 123 },
+					}),
+				),
+			).rejects.toThrow('Lisk validator found 1 error[s]:');
+		});
+
+		it('should return full amount when token ID requested is not governance tokenID', async () => {
+			const resp = await dposEndpoint.getLockedRewards(
+				createTransientModuleEndpointContext({
+					stateStore,
+					params: {
+						address: cryptoAddress.getLisk32AddressFromAddress(address),
+						tokenID: Buffer.alloc(8).toString('hex'),
+					},
+				}),
+			);
+			expect(resp.reward).toEqual('5000');
+		});
+
+		it('should return amount without the amount locked for votes with token ID requested is the governance token ID', async () => {
+			const resp = await dposEndpoint.getLockedRewards(
+				createTransientModuleEndpointContext({
+					stateStore,
+					params: {
+						address: cryptoAddress.getLisk32AddressFromAddress(address),
+						tokenID: config.governanceTokenID.toString('hex'),
+					},
+				}),
+			);
+			expect(resp.reward).toEqual(Number(5000 - 200 - 10 - 30).toString());
 		});
 	});
 });

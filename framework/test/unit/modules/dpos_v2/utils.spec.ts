@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
-import { defaultConfig } from '../../../../src/modules/dpos_v2/constants';
+import { defaultConfig, TOKEN_ID_LENGTH } from '../../../../src/modules/dpos_v2/constants';
 import { ModuleConfig } from '../../../../src/modules/dpos_v2/types';
 import { getModuleConfig, shuffleDelegateList } from '../../../../src/modules/dpos_v2/utils';
 import * as delegateShufflingScenario from '../../../fixtures/dpos_delegate_shuffling/uniformly_shuffled_delegate_list.json';
@@ -50,10 +50,15 @@ describe('utils', () => {
 			const expected: ModuleConfig = {
 				...defaultConfig,
 				minWeightStandby: BigInt(defaultConfig.minWeightStandby),
-				tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS, 'hex'),
+				governanceTokenID: Buffer.alloc(TOKEN_ID_LENGTH),
+				tokenIDFee: Buffer.from(defaultConfig.tokenIDFee, 'hex'),
+				delegateRegistrationFee: BigInt(defaultConfig.delegateRegistrationFee),
 			};
 
-			const actual: ModuleConfig = getModuleConfig(defaultConfig);
+			const actual: ModuleConfig = getModuleConfig({
+				...defaultConfig,
+				governanceTokenID: '0000000000000000',
+			});
 
 			expect(actual).toStrictEqual(expected);
 		});

@@ -39,6 +39,15 @@ import {
 	getAllDelegatesResponseSchema,
 	getDelegateRequestSchema,
 	getDelegateResponseSchema,
+	getGovernanceTokenIDResponseSchema,
+	getLockedRewardsRequestSchema,
+	getLockedRewardsResponseSchema,
+	getLockedVotedAmountRequestSchema,
+	getLockedVotedAmountResponseSchema,
+	getPendingUnlocksRequestSchema,
+	getPendingUnlocksResponseSchema,
+	getValidatorsByStakeRequestSchema,
+	getValidatorsByStakeResponseSchema,
 	getVoterRequestSchema,
 	getVoterResponseSchema,
 } from './schemas';
@@ -60,7 +69,7 @@ import {
 	getModuleConfig,
 	getDelegateWeight,
 	ValidatorWeight,
-	isSharingCoEfficientSorted,
+	isSharingCoefficientSorted,
 } from './utils';
 import { DelegateStore } from './stores/delegate';
 import { GenesisDataStore } from './stores/genesis';
@@ -137,7 +146,7 @@ export class DPoSModule extends BaseModule {
 		this._validatorsMethod = validatorsMethod;
 		this._tokenMethod = tokenMethod;
 
-		this._delegateRegistrationCommand.addDependencies(this._validatorsMethod);
+		this._delegateRegistrationCommand.addDependencies(this._tokenMethod, this._validatorsMethod);
 		this._reportDelegateMisbehaviorCommand.addDependencies({
 			tokenMethod: this._tokenMethod,
 			validatorsMethod: this._validatorsMethod,
@@ -172,6 +181,30 @@ export class DPoSModule extends BaseModule {
 					name: this.endpoint.getConstants.name,
 					response: configSchema,
 				},
+				{
+					name: this.endpoint.getGovernanceTokenID.name,
+					response: getGovernanceTokenIDResponseSchema,
+				},
+				{
+					name: this.endpoint.getLockedRewards.name,
+					request: getLockedRewardsRequestSchema,
+					response: getLockedRewardsResponseSchema,
+				},
+				{
+					name: this.endpoint.getLockedVotedAmount.name,
+					request: getLockedVotedAmountRequestSchema,
+					response: getLockedVotedAmountResponseSchema,
+				},
+				{
+					name: this.endpoint.getValidatorsByStake.name,
+					request: getValidatorsByStakeRequestSchema,
+					response: getValidatorsByStakeResponseSchema,
+				},
+				{
+					name: this.endpoint.getPendingUnlocks.name,
+					request: getPendingUnlocksRequestSchema,
+					response: getPendingUnlocksResponseSchema,
+				},
 			],
 			commands: this.commands.map(command => ({
 				name: command.name,
@@ -190,19 +223,39 @@ export class DPoSModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig } = args;
-		const config = objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfigJSON;
+		const defaultGovernanceTokenID = `${args.genesisConfig.chainID}${Buffer.alloc(4).toString(
+			'hex',
+		)}`;
+		const config = objects.mergeDeep(
+			{},
+			{
+				...defaultConfig,
+				governanceTokenID: defaultGovernanceTokenID,
+			},
+			moduleConfig,
+		) as ModuleConfigJSON;
 		validator.validate(configSchema, config);
 
 		this._moduleConfig = getModuleConfig(config);
 
-		this.endpoint.init(this._moduleConfig);
+		this.method.init(this._moduleConfig);
+		this.endpoint.init(this.name, this._moduleConfig, this._tokenMethod);
 
-		this._reportDelegateMisbehaviorCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
+		this._reportDelegateMisbehaviorCommand.init({
+			governanceTokenID: this._moduleConfig.governanceTokenID,
+		});
+		this._delegateRegistrationCommand.init({
+			tokenIDFee: this._moduleConfig.tokenIDFee,
+			delegateRegistrationFee: this._moduleConfig.delegateRegistrationFee,
+		});
+		this._reportDelegateMisbehaviorCommand.init({
+			governanceTokenID: this._moduleConfig.governanceTokenID,
+		});
 		this._unlockCommand.init({
-			tokenIDDPoS: this._moduleConfig.tokenIDDPoS,
+			governanceTokenID: this._moduleConfig.governanceTokenID,
 			roundLength: this._moduleConfig.roundLength,
 		});
-		this._voteCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
+		this._voteCommand.init({ governanceTokenID: this._moduleConfig.governanceTokenID });
 
 		this.stores.get(EligibleDelegatesStore).init(this._moduleConfig);
 	}
@@ -232,7 +285,7 @@ export class DPoSModule extends BaseModule {
 				);
 			}
 			// sharingCoefficients must be sorted by tokenID
-			if (!isSharingCoEfficientSorted(dposValidator.sharingCoefficients)) {
+			if (!isSharingCoefficientSorted(dposValidator.sharingCoefficients)) {
 				throw new Error('SharingCoefficients must be sorted by tokenID.');
 			}
 
@@ -277,7 +330,7 @@ export class DPoSModule extends BaseModule {
 					}
 				}
 				// sharingCoefficients must be sorted by tokenID
-				if (!isSharingCoEfficientSorted(votes.voteSharingCoefficients)) {
+				if (!isSharingCoefficientSorted(votes.voteSharingCoefficients)) {
 					throw new Error('voteSharingCoefficients must be sorted by tokenID.');
 				}
 			}
@@ -414,7 +467,7 @@ export class DPoSModule extends BaseModule {
 			const lockedAmount = await this._tokenMethod.getLockedAmount(
 				methodContext,
 				voterData.key,
-				this._moduleConfig.tokenIDDPoS,
+				this._moduleConfig.governanceTokenID,
 				this.name,
 			);
 			if (lockedAmount !== votedAmount) {
@@ -446,7 +499,10 @@ export class DPoSModule extends BaseModule {
 
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
 		const { header } = context;
-		const isLastBlockOfRound = this._isLastBlockOfTheRound(header.height);
+		const isLastBlockOfRound = await this.method.isEndOfRound(
+			context.getMethodContext(),
+			header.height,
+		);
 		const previousTimestampStore = this.stores.get(PreviousTimestampStore);
 		const previousTimestampData = await previousTimestampStore.get(context, EMPTY_KEY);
 		const { timestamp: previousTimestamp } = previousTimestampData;
@@ -621,14 +677,6 @@ export class DPoSModule extends BaseModule {
 		generator.consecutiveMissedBlocks = 0;
 		generator.lastGeneratedHeight = newHeight;
 		await delegateStore.set(context, header.generatorAddress, generator);
-	}
-
-	private _isLastBlockOfTheRound(height: number): boolean {
-		const rounds = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
-		const currentRound = rounds.calcRound(height);
-		const nextRound = rounds.calcRound(height + 1);
-
-		return currentRound < nextRound;
 	}
 
 	private async _didBootstrapRoundsEnd(context: BlockAfterExecuteContext) {

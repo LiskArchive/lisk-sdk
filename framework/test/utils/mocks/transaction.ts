@@ -23,6 +23,7 @@ import {
 	multisigRegMsgSchema,
 	registerMultisignatureParamsSchema,
 } from '../../../src/modules/auth/schemas';
+import { DELEGATE_REGISTRATION_FEE } from '../../../src/modules/dpos_v2/constants';
 import {
 	delegateRegistrationCommandParamsSchema,
 	pomCommandParamsSchema,
@@ -84,6 +85,7 @@ export const createDelegateRegisterTransaction = (input: {
 		generatorKey: input.generatorKey,
 		blsKey: input.blsKey,
 		proofOfPossession: input.blsProofOfPossession,
+		delegateRegistrationFee: DELEGATE_REGISTRATION_FEE,
 	});
 
 	const tx = new Transaction({

@@ -14,39 +14,43 @@
 
 import {
 	MAX_COMMISSION,
-	MAX_LENGTH_NAME,
 	MAX_NUMBER_BYTES_Q96,
 	TOKEN_ID_LENGTH,
+	BLS_PUBLIC_KEY_LENGTH,
+	BLS_POP_LENGTH,
+	ED25519_PUBLIC_KEY_LENGTH,
 } from './constants';
 
 export const delegateRegistrationCommandParamsSchema = {
 	$id: '/dpos/command/registerDelegateParams',
 	type: 'object',
-	required: ['name', 'generatorKey', 'blsKey', 'proofOfPossession'],
+	required: ['name', 'blsKey', 'proofOfPossession', 'generatorKey', 'delegateRegistrationFee'],
 	properties: {
 		name: {
 			dataType: 'string',
 			fieldNumber: 1,
-			minLength: 1,
-			maxLength: MAX_LENGTH_NAME,
-		},
-		generatorKey: {
-			dataType: 'bytes',
-			fieldNumber: 2,
-			minLength: 32,
-			maxLength: 32,
 		},
 		blsKey: {
 			dataType: 'bytes',
-			fieldNumber: 3,
-			minLength: 48,
-			maxLength: 48,
+			minLength: BLS_PUBLIC_KEY_LENGTH,
+			maxLength: BLS_PUBLIC_KEY_LENGTH,
+			fieldNumber: 2,
 		},
 		proofOfPossession: {
 			dataType: 'bytes',
+			minLength: BLS_POP_LENGTH,
+			maxLength: BLS_POP_LENGTH,
+			fieldNumber: 3,
+		},
+		generatorKey: {
+			dataType: 'bytes',
+			minLength: ED25519_PUBLIC_KEY_LENGTH,
+			maxLength: ED25519_PUBLIC_KEY_LENGTH,
 			fieldNumber: 4,
-			minLength: 96,
-			maxLength: 96,
+		},
+		delegateRegistrationFee: {
+			dataType: 'uint64',
+			fieldNumber: 5,
 		},
 	},
 };
@@ -158,9 +162,17 @@ export const configSchema = {
 			type: 'integer',
 			format: 'uint32',
 		},
-		tokenIDDPoS: {
+		governanceTokenID: {
 			type: 'string',
 			format: 'hex',
+		},
+		tokenIDFee: {
+			type: 'string',
+			format: 'hex',
+		},
+		delegateRegistrationFee: {
+			type: 'string',
+			format: 'uint64',
 		},
 		maxBFTWeightCap: {
 			type: 'integer',
@@ -181,7 +193,9 @@ export const configSchema = {
 		'minWeightStandby',
 		'numberActiveDelegates',
 		'numberStandbyDelegates',
-		'tokenIDDPoS',
+		'governanceTokenID',
+		'tokenIDFee',
+		'delegateRegistrationFee',
 		'maxBFTWeightCap',
 	],
 };
@@ -390,6 +404,7 @@ export const genesisStoreSchema = {
 const delegateJSONSchema = {
 	type: 'object',
 	required: [
+		'address',
 		'name',
 		'totalVotesReceived',
 		'selfVotes',
@@ -399,6 +414,10 @@ const delegateJSONSchema = {
 		'consecutiveMissedBlocks',
 	],
 	properties: {
+		address: {
+			type: 'string',
+			format: 'lisk32',
+		},
 		name: {
 			type: 'string',
 		},
@@ -503,6 +522,147 @@ export const getAllDelegatesResponseSchema = {
 		delegates: {
 			type: 'array',
 			items: delegateJSONSchema,
+		},
+	},
+};
+
+export const getGovernanceTokenIDResponseSchema = {
+	$id: 'modules/dpos/endpoint/getGovernanceTokenIDResponse',
+	type: 'object',
+	required: ['tokenID'],
+	properties: {
+		tokenID: {
+			type: 'string',
+			format: 'hex',
+		},
+	},
+};
+
+export const getValidatorsByStakeRequestSchema = {
+	$id: 'modules/dpos/endpoint/getValidatorsByStakeRequest',
+	type: 'object',
+	properties: {
+		limit: {
+			type: 'integer',
+			format: 'uint32',
+		},
+	},
+};
+
+export const getValidatorsByStakeResponseSchema = {
+	$id: 'modules/dpos/endpoint/getValidatorsByStakeResponse',
+	type: 'object',
+	required: ['validators'],
+	properties: {
+		validators: {
+			type: 'array',
+			items: delegateJSONSchema,
+		},
+	},
+};
+
+export const getLockedRewardsRequestSchema = {
+	$id: 'modules/dpos/endpoint/getLockedRewardsRequest',
+	type: 'object',
+	required: ['address', 'tokenID'],
+	properties: {
+		address: {
+			type: 'string',
+			format: 'lisk32',
+		},
+		tokenID: {
+			type: 'string',
+			format: 'hex',
+		},
+	},
+};
+
+export const getLockedRewardsResponseSchema = {
+	$id: 'modules/dpos/endpoint/getLockedRewardsResponse',
+	type: 'object',
+	required: ['rewards'],
+	properties: {
+		rewards: {
+			type: 'string',
+			format: 'uint64',
+		},
+	},
+};
+
+export const getLockedVotedAmountRequestSchema = {
+	$id: 'modules/dpos/endpoint/getLockedVotedAmountRequest',
+	type: 'object',
+	required: ['address'],
+	properties: {
+		address: {
+			type: 'string',
+			format: 'lisk32',
+		},
+	},
+};
+
+export const getLockedVotedAmountResponseSchema = {
+	$id: 'modules/dpos/endpoint/getLockedVotedAmountResponse',
+	type: 'object',
+	required: ['amount'],
+	properties: {
+		amount: {
+			type: 'string',
+			format: 'uint64',
+		},
+	},
+};
+
+export const getPendingUnlocksRequestSchema = {
+	$id: 'modules/dpos/endpoint/getPendingUnlocksRequest',
+	type: 'object',
+	required: ['address'],
+	properties: {
+		address: {
+			type: 'string',
+			format: 'lisk32',
+		},
+	},
+};
+
+export const getPendingUnlocksResponseSchema = {
+	$id: 'modules/dpos/endpoint/getPendingUnlocksResponse',
+	type: 'object',
+	required: ['amount'],
+	properties: {
+		pendingUnlocks: {
+			type: 'array',
+			items: {
+				type: 'object',
+				required: [
+					'delegateAddress',
+					'amount',
+					'unvoteHeight',
+					'expectedUnlockableHeight',
+					'unlockable',
+				],
+				properties: {
+					delegateAddress: {
+						type: 'string',
+						format: 'lisk32',
+					},
+					amount: {
+						type: 'string',
+						format: 'uint64',
+					},
+					unvoteHeight: {
+						type: 'integer',
+						format: 'uint32',
+					},
+					expectedUnlockableHeight: {
+						type: 'integer',
+						format: 'uint32',
+					},
+					unlockable: {
+						type: 'boolean',
+					},
+				},
+			},
 		},
 	},
 };

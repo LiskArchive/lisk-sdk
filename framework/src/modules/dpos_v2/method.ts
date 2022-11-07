@@ -12,16 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ImmutableMethodContext } from '../../state_machine';
+import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import { BaseMethod } from '../base_method';
-import { MAX_LENGTH_NAME } from './constants';
-import { DelegateStore } from './stores/delegate';
+import { EMPTY_KEY, MAX_LENGTH_NAME } from './constants';
+import { GenesisDataStore } from './stores/genesis';
+import { VoterStore, VoterData } from './stores/voter';
+import { ModuleConfig } from './types';
+import { DelegateAccount, DelegateStore } from './stores/delegate';
 import { NameStore } from './stores/name';
-import { VoterStore } from './stores/voter';
-import { DelegateAccount, VoterData } from './types';
 import { isUsername } from './utils';
 
 export class DPoSMethod extends BaseMethod {
+	private _config!: ModuleConfig;
+
+	public init(config: ModuleConfig) {
+		this._config = config;
+	}
 	public async isNameAvailable(
 		methodContext: ImmutableMethodContext,
 		name: string,
@@ -57,5 +63,32 @@ export class DPoSMethod extends BaseMethod {
 		const delegate = await delegateSubStore.get(methodContext, address);
 
 		return delegate;
+	}
+
+	public getRoundLength(_methodContext: ImmutableMethodContext): number {
+		return this._config.roundLength;
+	}
+
+	public getNumberOfActiveDelegates(_methodContext: ImmutableMethodContext): number {
+		return this._config.numberActiveDelegates;
+	}
+
+	public async updateSharedRewards(
+		_methodContext: MethodContext,
+		_generatorAddress: Buffer,
+		_tokenID: Buffer,
+		_reward: bigint,
+	): Promise<void> {
+		// TODO: Implement #7715
+	}
+
+	public async isEndOfRound(
+		methodContext: ImmutableMethodContext,
+		height: number,
+	): Promise<boolean> {
+		const { height: genesisHeight } = await this.stores
+			.get(GenesisDataStore)
+			.get(methodContext, EMPTY_KEY);
+		return (height - genesisHeight) % this._config.roundLength === 0;
 	}
 }

@@ -246,7 +246,9 @@ export function getModuleConfig(config: ModuleConfigJSON): ModuleConfig {
 	return {
 		...config,
 		minWeightStandby: BigInt(config.minWeightStandby),
-		tokenIDDPoS: Buffer.from(config.tokenIDDPoS, 'hex'),
+		governanceTokenID: Buffer.from(config.governanceTokenID, 'hex'),
+		tokenIDFee: Buffer.from(config.tokenIDFee, 'hex'),
+		delegateRegistrationFee: BigInt(config.delegateRegistrationFee),
 	};
 }
 
@@ -255,14 +257,14 @@ export const getDelegateWeight = (
 	selfVotes: bigint,
 	totalVotesReceived: bigint,
 ) => {
-	const cap = selfVotes * BigInt(factorSelfVotes);
+	const cap = selfVotes * factorSelfVotes;
 	if (cap < totalVotesReceived) {
 		return cap;
 	}
 	return totalVotesReceived;
 };
 
-export const isSharingCoEfficientSorted = (
+export const isSharingCoefficientSorted = (
 	sharingCoefficients: VoteSharingCoefficient[],
 ): boolean => {
 	const sharingCoefficientsCopy = [...sharingCoefficients];

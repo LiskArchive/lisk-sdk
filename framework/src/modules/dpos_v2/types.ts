@@ -19,7 +19,7 @@ import {
 } from '../../state_machine/types';
 import { JSONObject } from '../../types';
 
-export type TokenIDDPoS = Buffer;
+export type TokenID = Buffer;
 
 export interface ModuleConfig {
 	factorSelfVotes: number;
@@ -33,7 +33,9 @@ export interface ModuleConfig {
 	minWeightStandby: bigint;
 	numberActiveDelegates: number;
 	numberStandbyDelegates: number;
-	tokenIDDPoS: TokenIDDPoS;
+	governanceTokenID: TokenID;
+	tokenIDFee: Buffer;
+	delegateRegistrationFee: bigint;
 	maxBFTWeightCap: number;
 }
 
@@ -80,32 +82,38 @@ export interface TokenMethod {
 		methodContext: MethodContext,
 		address: Buffer,
 		module: string,
-		tokenID: TokenIDDPoS,
+		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void>;
 	getAvailableBalance(
 		methodContext: ImmutableMethodContext,
 		address: Buffer,
-		tokenID: TokenIDDPoS,
+		tokenID: TokenID,
 	): Promise<bigint>;
+	burn(
+		methodContext: MethodContext,
+		address: Buffer,
+		tokenID: Buffer,
+		amount: bigint,
+	): Promise<void>;
 	transfer(
 		methodContext: MethodContext,
 		senderAddress: Buffer,
 		recipientAddress: Buffer,
-		tokenID: TokenIDDPoS,
+		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void>;
 	unlock(
 		methodContext: MethodContext,
 		address: Buffer,
 		module: string,
-		tokenID: TokenIDDPoS,
+		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void>;
 	getLockedAmount(
 		methodContext: ImmutableMethodContext,
 		address: Buffer,
-		tokenID: TokenIDDPoS,
+		tokenID: TokenID,
 		module: string,
 	): Promise<bigint>;
 }
@@ -125,6 +133,7 @@ export interface DelegateRegistrationParams {
 	blsKey: Buffer;
 	proofOfPossession: Buffer;
 	generatorKey: Buffer;
+	delegateRegistrationFee: bigint;
 }
 
 export interface VoteSharingCoefficient {
@@ -266,4 +275,25 @@ export interface GetUnlockHeightResponse {
 		expectedUnlockableHeight: number;
 		unlockable: boolean;
 	}[];
+}
+
+export interface GetGovernanceTokenIDResponse {
+	tokenID: string;
+}
+
+export interface GetValidatorsByStakeRequest {
+	limit?: number;
+}
+
+export interface GetValidatorsByStakeResponse {
+	validators: (DelegateAccountJSON & { address: string })[];
+}
+
+export interface GetLockedRewardsRequest {
+	address: string;
+	tokenID: string;
+}
+
+export interface GetLockedRewardsResponse {
+	reward: string;
 }

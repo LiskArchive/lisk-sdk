@@ -35,28 +35,25 @@ import {
 	createTransientMethodContext,
 } from '../../../../src/testing';
 import { genesisStoreSchema } from '../../../../src/modules/dpos_v2/schemas';
-import {
-	DelegateAccount,
-	GenesisData,
-	ValidatorsMethod,
-} from '../../../../src/modules/dpos_v2/types';
+import { GenesisData, ValidatorsMethod } from '../../../../src/modules/dpos_v2/types';
 import { GenesisBlockExecuteContext, Validator } from '../../../../src/state_machine/types';
 import { invalidAssets, validAsset } from './genesis_block_test_data';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
-import { DelegateStore } from '../../../../src/modules/dpos_v2/stores/delegate';
+import { DelegateAccount, DelegateStore } from '../../../../src/modules/dpos_v2/stores/delegate';
 import { VoterStore } from '../../../../src/modules/dpos_v2/stores/voter';
 import { NameStore } from '../../../../src/modules/dpos_v2/stores/name';
 import { PreviousTimestampStore } from '../../../../src/modules/dpos_v2/stores/previous_timestamp';
 import { GenesisDataStore } from '../../../../src/modules/dpos_v2/stores/genesis';
 import { SnapshotStore } from '../../../../src/modules/dpos_v2/stores/snapshot';
 import { createStoreGetter } from '../../../../src/testing/utils';
+import { TOKEN_ID_LENGTH } from '../../../../src/modules/dpos_v2/constants';
 import { EligibleDelegatesStore } from '../../../../src/modules/dpos_v2/stores/eligible_delegates';
 import { getDelegateWeight, ValidatorWeight } from '../../../../src/modules/dpos_v2/utils';
 
 describe('DPoS module', () => {
 	const EMPTY_KEY = Buffer.alloc(0);
-	const defaultConfigs = {
+	const defaultConfig = {
 		factorSelfVotes: 10,
 		maxLengthName: 20,
 		maxNumberSentVotes: 10,
@@ -68,7 +65,9 @@ describe('DPoS module', () => {
 		minWeightStandby: (BigInt(1000) * BigInt(10 ** 8)).toString(),
 		numberActiveDelegates: 101,
 		numberStandbyDelegates: 2,
-		tokenIDDPoS: '0000000000000000',
+		governanceTokenID: '0000000000000000',
+		tokenIDFee: '0000000000000000',
+		delegateRegistrationFee: (BigInt(10) * BigInt(10) ** BigInt(8)).toString(),
 		maxBFTWeightCap: 500,
 	};
 
@@ -92,21 +91,27 @@ describe('DPoS module', () => {
 	describe('init', () => {
 		it('should initialize config with default value when module config is empty', async () => {
 			await expect(
-				dpos.init({ genesisConfig: {} as any, moduleConfig: {}, generatorConfig: {} }),
-			).toResolve();
+				dpos.init({
+					genesisConfig: { chainID: '00000000' } as any,
+					moduleConfig: {},
+					generatorConfig: {},
+				}),
+			).resolves.toBeUndefined();
 
 			expect(dpos['_moduleConfig']).toEqual({
-				...defaultConfigs,
-				minWeightStandby: BigInt(defaultConfigs.minWeightStandby),
-				tokenIDDPoS: Buffer.from(defaultConfigs.tokenIDDPoS, 'hex'),
+				...defaultConfig,
+				minWeightStandby: BigInt(defaultConfig.minWeightStandby),
+				governanceTokenID: Buffer.alloc(TOKEN_ID_LENGTH),
+				tokenIDFee: Buffer.from(defaultConfig.tokenIDFee, 'hex'),
+				delegateRegistrationFee: BigInt(defaultConfig.delegateRegistrationFee),
 			});
 		});
 
 		it('should initialize config with given value', async () => {
 			await expect(
 				dpos.init({
-					genesisConfig: {} as any,
-					moduleConfig: { ...defaultConfigs, maxLengthName: 50 },
+					genesisConfig: { chainID: '00000000' } as any,
+					moduleConfig: { ...defaultConfig, maxLengthName: 50 },
 					generatorConfig: {},
 				}),
 			).toResolve();
@@ -137,6 +142,7 @@ describe('DPoS module', () => {
 				lock: jest.fn(),
 				unlock: jest.fn(),
 				getAvailableBalance: jest.fn(),
+				burn: jest.fn(),
 				getMinRemainingBalance: jest.fn(),
 				transfer: jest.fn(),
 				getLockedAmount: jest.fn().mockResolvedValue(BigInt(101000000000)),
@@ -146,7 +152,7 @@ describe('DPoS module', () => {
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 		});
 
@@ -286,7 +292,7 @@ describe('DPoS module', () => {
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 		});
 
@@ -306,7 +312,7 @@ describe('DPoS module', () => {
 						eligibleDelegateStore.getKey(
 							Buffer.from(data.address, 'hex'),
 							getDelegateWeight(
-								BigInt(defaultConfigs.factorSelfVotes),
+								BigInt(defaultConfig.factorSelfVotes),
 								BigInt(data.voteWeight),
 								BigInt(data.voteWeight),
 							),
@@ -420,7 +426,7 @@ describe('DPoS module', () => {
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 		});
 
@@ -449,7 +455,7 @@ describe('DPoS module', () => {
 						const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 						const blockContext = createBlockContext({
 							header: createFakeBlockHeader({
-								height: (defaultRound - 1) * defaultConfigs.roundLength,
+								height: (defaultRound - 1) * defaultConfig.roundLength,
 							}),
 							stateStore,
 						});
@@ -484,6 +490,7 @@ describe('DPoS module', () => {
 							lock: jest.fn(),
 							unlock: jest.fn(),
 							getAvailableBalance: jest.fn(),
+							burn: jest.fn(),
 							getMinRemainingBalance: jest.fn(),
 							transfer: jest.fn(),
 							getLockedAmount: jest.fn(),
@@ -519,7 +526,7 @@ describe('DPoS module', () => {
 				const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				blockContext = createBlockContext({
 					header: createFakeBlockHeader({
-						height: (defaultRound - 1) * defaultConfigs.roundLength,
+						height: (defaultRound - 1) * defaultConfig.roundLength,
 					}),
 					stateStore,
 				});
@@ -558,6 +565,7 @@ describe('DPoS module', () => {
 					lock: jest.fn(),
 					unlock: jest.fn(),
 					getAvailableBalance: jest.fn(),
+					burn: jest.fn(),
 					getMinRemainingBalance: jest.fn(),
 					transfer: jest.fn(),
 					getLockedAmount: jest.fn(),
@@ -570,7 +578,7 @@ describe('DPoS module', () => {
 
 			it('should have activeDelegates + standbyDelegates delegates in the generators list', () => {
 				expect((validatorMethod.setValidatorsParams as jest.Mock).mock.calls[0][4]).toHaveLength(
-					defaultConfigs.roundLength,
+					defaultConfig.roundLength,
 				);
 			});
 
@@ -612,8 +620,10 @@ describe('DPoS module', () => {
 		beforeEach(async () => {
 			await dpos.init({
 				generatorConfig: {},
-				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				genesisConfig: {
+					chainID: '00000000',
+				} as GenesisConfig,
+				moduleConfig: defaultConfig,
 			});
 
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -636,7 +646,9 @@ describe('DPoS module', () => {
 					consecutiveMissedBlocks: 0,
 					commission: 0,
 					lastCommissionIncreaseHeight: 0,
-					sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+					sharingCoefficients: [
+						{ tokenID: Buffer.alloc(TOKEN_ID_LENGTH), coefficient: Buffer.alloc(24) },
+					],
 				}));
 			delegateAddresses = Array.from({ length: 103 }, _ => utils.getRandomBytes(20));
 
@@ -1014,7 +1026,7 @@ describe('DPoS module', () => {
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -1041,11 +1053,11 @@ describe('DPoS module', () => {
 				sortValidatorsByWeightDesc(delegates);
 
 				const result = await dpos['_getActiveDelegates'](context, delegates, 6);
-				expect(result).toHaveLength(defaultConfigs.numberActiveDelegates);
+				expect(result).toHaveLength(defaultConfig.numberActiveDelegates);
 				const fromInitDelegates = result.filter(
 					v => initDelegates.findIndex(address => v.address.equals(address)) > -1,
 				);
-				expect(fromInitDelegates).toHaveLength(3 + defaultConfigs.numberActiveDelegates - 6);
+				expect(fromInitDelegates).toHaveLength(3 + defaultConfig.numberActiveDelegates - 6);
 			});
 
 			it('should not select the same delegate twice', async () => {
@@ -1066,7 +1078,7 @@ describe('DPoS module', () => {
 
 				const result = await dpos['_getActiveDelegates'](context, delegates, 6);
 
-				expect(result).toHaveLength(defaultConfigs.numberActiveDelegates);
+				expect(result).toHaveLength(defaultConfig.numberActiveDelegates);
 				const duplicateAddressList = result.filter(v => v.address.equals(initDelegates[0]));
 				expect(duplicateAddressList).toHaveLength(1);
 			});
@@ -1090,7 +1102,7 @@ describe('DPoS module', () => {
 
 				const result = await dpos['_getActiveDelegates'](context, delegates, 6);
 
-				expect(result).toHaveLength(defaultConfigs.numberActiveDelegates);
+				expect(result).toHaveLength(defaultConfig.numberActiveDelegates);
 			});
 		});
 
@@ -1127,7 +1139,7 @@ describe('DPoS module', () => {
 				sortValidatorsByWeightDesc(delegates);
 
 				const result = await dpos['_getActiveDelegates'](context, delegates, 104);
-				expect(result).toHaveLength(defaultConfigs.numberActiveDelegates);
+				expect(result).toHaveLength(defaultConfig.numberActiveDelegates);
 			});
 
 			it('should cap the weight if activeDelegates is more than capValue', async () => {
@@ -1146,7 +1158,7 @@ describe('DPoS module', () => {
 				await dpos['_getActiveDelegates'](context, delegates, 104);
 				expect(dpos['_capWeight']).toHaveBeenCalledWith(
 					expect.any(Array),
-					defaultConfigs.maxBFTWeightCap,
+					defaultConfig.maxBFTWeightCap,
 				);
 			});
 		});
@@ -1222,8 +1234,10 @@ describe('DPoS module', () => {
 		beforeEach(async () => {
 			await dpos.init({
 				generatorConfig: {},
-				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				genesisConfig: {
+					chainID: '00000000',
+				} as GenesisConfig,
+				moduleConfig: defaultConfig,
 			});
 			dpos.addDependencies(randomMethod, validatorsMethod, tokenMethod);
 

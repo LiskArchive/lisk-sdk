@@ -18,9 +18,9 @@ import { address, utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { VoteDelegateCommand, VerifyStatus, DPoSModule } from '../../../../../src';
 import { MAX_UNLOCKING, MODULE_NAME_DPOS } from '../../../../../src/modules/dpos_v2/constants';
-import { DelegateStore } from '../../../../../src/modules/dpos_v2/stores/delegate';
+import { DelegateAccount, DelegateStore } from '../../../../../src/modules/dpos_v2/stores/delegate';
 import { VoterStore } from '../../../../../src/modules/dpos_v2/stores/voter';
-import { DelegateAccount, VoteTransactionParams } from '../../../../../src/modules/dpos_v2/types';
+import { VoteTransactionParams } from '../../../../../src/modules/dpos_v2/types';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 
 import { createTransactionContext } from '../../../../../src/testing';
@@ -33,7 +33,7 @@ describe('VoteCommand', () => {
 	const dpos = new DPoSModule();
 
 	const lastBlockHeight = 200;
-	const tokenIDDPoS = DEFAULT_LOCAL_ID;
+	const governanceTokenID = DEFAULT_LOCAL_ID;
 	const senderPublicKey = utils.getRandomBytes(32);
 	const senderAddress = address.getAddressFromPublicKey(senderPublicKey);
 	const delegateAddress1 = utils.getRandomBytes(20);
@@ -63,12 +63,13 @@ describe('VoteCommand', () => {
 				lock: lockFn,
 				unlock: jest.fn(),
 				getAvailableBalance: jest.fn(),
+				burn: jest.fn(),
 				transfer: jest.fn(),
 				getLockedAmount: jest.fn(),
 			},
 		});
 		command.init({
-			tokenIDDPoS: DEFAULT_LOCAL_ID,
+			governanceTokenID: DEFAULT_LOCAL_ID,
 		});
 
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -553,14 +554,14 @@ describe('VoteCommand', () => {
 					expect.anything(),
 					senderAddress,
 					MODULE_NAME_DPOS,
-					tokenIDDPoS,
+					governanceTokenID,
 					delegate1VoteAmount,
 				);
 				expect(lockFn).toHaveBeenCalledWith(
 					expect.anything(),
 					senderAddress,
 					MODULE_NAME_DPOS,
-					tokenIDDPoS,
+					governanceTokenID,
 					delegate2VoteAmount,
 				);
 			});
@@ -953,7 +954,7 @@ describe('VoteCommand', () => {
 					expect.anything(),
 					senderAddress,
 					MODULE_NAME_DPOS,
-					tokenIDDPoS,
+					governanceTokenID,
 					positiveVoteDelegate1,
 				);
 			});
@@ -1386,7 +1387,7 @@ describe('VoteCommand', () => {
 					expect.anything(),
 					senderAddress,
 					MODULE_NAME_DPOS,
-					tokenIDDPoS,
+					governanceTokenID,
 					senderVoteAmountPositive,
 				);
 			});
