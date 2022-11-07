@@ -13,13 +13,12 @@
  */
 
 import { BlockAssets, MethodContext, ImmutableMethodContext } from '../../state_machine';
+import { Validator } from '../../state_machine/types';
 import { JSONObject } from '../../types';
+import { ModuleConfig as RewardModuleConfig } from '../reward/types';
 
-export interface ModuleConfig {
-	tokenID: Buffer;
-	brackets: ReadonlyArray<bigint>;
-	offset: number;
-	distance: number;
+export interface ModuleConfig extends RewardModuleConfig {
+	factorMinimumRewardActiveDelegates: number;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
@@ -41,8 +40,31 @@ export interface RandomMethod {
 	): Promise<boolean>;
 }
 
-export interface BFTMethod {
-	impliesMaximalPrevotes(methodContext: ImmutableMethodContext): Promise<boolean>;
+export interface ValidatorsMethod {
+	getGeneratorsBetweenTimestamps(
+		methodContext: ImmutableMethodContext,
+		startTimestamp: number,
+		endTimestamp: number,
+	): Promise<Record<string, number>>;
+	getValidatorsParams(
+		methodContext: ImmutableMethodContext,
+	): Promise<{
+		preCommitThreshold: bigint;
+		certificateThreshold: bigint;
+		validators: Validator[];
+	}>;
+}
+
+export interface DPoSMethod {
+	getRoundLength(methodContext: ImmutableMethodContext): number;
+	getNumberOfActiveDelegates(methodContext: ImmutableMethodContext): number;
+	updateSharedRewards(
+		methodContext: MethodContext,
+		generatorAddress: Buffer,
+		tokenID: Buffer,
+		reward: bigint,
+	): Promise<void>;
+	isEndOfRound(methodContext: ImmutableMethodContext, height: number): Promise<boolean>;
 }
 
 export interface DefaultReward {

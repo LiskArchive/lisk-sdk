@@ -238,6 +238,7 @@ export class DPoSModule extends BaseModule {
 
 		this._moduleConfig = getModuleConfig(config);
 
+		this.method.init(this._moduleConfig);
 		this.endpoint.init(this.name, this._moduleConfig, this._tokenMethod);
 
 		this._reportDelegateMisbehaviorCommand.init({
@@ -498,7 +499,10 @@ export class DPoSModule extends BaseModule {
 
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
 		const { header } = context;
-		const isLastBlockOfRound = this._isLastBlockOfTheRound(header.height);
+		const isLastBlockOfRound = await this.method.isEndOfRound(
+			context.getMethodContext(),
+			header.height,
+		);
 		const previousTimestampStore = this.stores.get(PreviousTimestampStore);
 		const previousTimestampData = await previousTimestampStore.get(context, EMPTY_KEY);
 		const { timestamp: previousTimestamp } = previousTimestampData;
@@ -673,14 +677,6 @@ export class DPoSModule extends BaseModule {
 		generator.consecutiveMissedBlocks = 0;
 		generator.lastGeneratedHeight = newHeight;
 		await delegateStore.set(context, header.generatorAddress, generator);
-	}
-
-	private _isLastBlockOfTheRound(height: number): boolean {
-		const rounds = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
-		const currentRound = rounds.calcRound(height);
-		const nextRound = rounds.calcRound(height + 1);
-
-		return currentRound < nextRound;
 	}
 
 	private async _didBootstrapRoundsEnd(context: BlockAfterExecuteContext) {
