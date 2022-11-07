@@ -136,8 +136,7 @@ describe('Delegate registration command', () => {
 	});
 
 	describe('verify', () => {
-		// eslint-disable-next-line jest/no-focused-tests
-		it.only('should return status OK for valid params', async () => {
+		it('should return status OK for valid params', async () => {
 			const context = testing
 				.createTransactionContext({
 					transaction,
@@ -348,8 +347,14 @@ describe('Delegate registration command', () => {
 		});
 
 		it('should return error if account does not have enough balance for the registration fee', async () => {
-			mockTokenMethod.getAvailableBalance = jest.fn().mockResolvedValue(BigInt(10)); // lower balance than required for delegate registration
+			mockTokenMethod.getAvailableBalance = jest
+				.fn()
+				.mockResolvedValue(DELEGATE_REGISTRATION_FEE - BigInt(1));
 			delegateRegistrationCommand = new DelegateRegistrationCommand(dpos.stores, dpos.events);
+			delegateRegistrationCommand.init({
+				tokenIDFee: TOKEN_ID_FEE,
+				delegateRegistrationFee: DELEGATE_REGISTRATION_FEE,
+			});
 			delegateRegistrationCommand.addDependencies(mockTokenMethod, mockValidatorsMethod);
 
 			await delegateSubstore.set(
