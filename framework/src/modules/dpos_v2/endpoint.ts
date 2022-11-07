@@ -138,6 +138,8 @@ export class DPoSEndpoint extends BaseEndpoint {
 			numberActiveDelegates: this._moduleConfig.numberActiveDelegates,
 			numberStandbyDelegates: this._moduleConfig.numberStandbyDelegates,
 			governanceTokenID: this._moduleConfig.governanceTokenID.toString('hex'),
+			tokenIDFee: this._moduleConfig.tokenIDFee.toString('hex'),
+			delegateRegistrationFee: this._moduleConfig.delegateRegistrationFee.toString(),
 			maxBFTWeightCap: this._moduleConfig.maxBFTWeightCap,
 		};
 	}

@@ -88,6 +88,8 @@ describe('DposModuleEndpoint', () => {
 		...defaultConfig,
 		minWeightStandby: BigInt(defaultConfig.minWeightStandby),
 		governanceTokenID: Buffer.from('1000000000000002'),
+		tokenIDFee: Buffer.from(defaultConfig.tokenIDFee, 'hex'),
+		delegateRegistrationFee: BigInt(defaultConfig.delegateRegistrationFee),
 	};
 
 	beforeEach(() => {
@@ -95,6 +97,7 @@ describe('DposModuleEndpoint', () => {
 		dposEndpoint.init('dpos', config, {
 			getAvailableBalance: jest.fn(),
 			getLockedAmount: jest.fn(),
+			burn: jest.fn(),
 			lock: jest.fn(),
 			transfer: jest.fn(),
 			unlock: jest.fn(),

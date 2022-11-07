@@ -51,6 +51,8 @@ describe('utils', () => {
 				...defaultConfig,
 				minWeightStandby: BigInt(defaultConfig.minWeightStandby),
 				governanceTokenID: Buffer.alloc(TOKEN_ID_LENGTH),
+				tokenIDFee: Buffer.from(defaultConfig.tokenIDFee, 'hex'),
+				delegateRegistrationFee: BigInt(defaultConfig.delegateRegistrationFee),
 			};
 
 			const actual: ModuleConfig = getModuleConfig({

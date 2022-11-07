@@ -247,6 +247,8 @@ export function getModuleConfig(config: ModuleConfigJSON): ModuleConfig {
 		...config,
 		minWeightStandby: BigInt(config.minWeightStandby),
 		governanceTokenID: Buffer.from(config.governanceTokenID, 'hex'),
+		tokenIDFee: Buffer.from(config.tokenIDFee, 'hex'),
+		delegateRegistrationFee: BigInt(config.delegateRegistrationFee),
 	};
 }
 

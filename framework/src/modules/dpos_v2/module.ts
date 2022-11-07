@@ -145,7 +145,7 @@ export class DPoSModule extends BaseModule {
 		this._validatorsMethod = validatorsMethod;
 		this._tokenMethod = tokenMethod;
 
-		this._delegateRegistrationCommand.addDependencies(this._validatorsMethod);
+		this._delegateRegistrationCommand.addDependencies(this._tokenMethod, this._validatorsMethod);
 		this._reportDelegateMisbehaviorCommand.addDependencies({
 			tokenMethod: this._tokenMethod,
 			validatorsMethod: this._validatorsMethod,
@@ -239,6 +239,13 @@ export class DPoSModule extends BaseModule {
 
 		this.endpoint.init(this.name, this._moduleConfig, this._tokenMethod);
 
+		this._reportDelegateMisbehaviorCommand.init({
+			governanceTokenID: this._moduleConfig.governanceTokenID,
+		});
+		this._delegateRegistrationCommand.init({
+			tokenIDFee: this._moduleConfig.tokenIDFee,
+			delegateRegistrationFee: this._moduleConfig.delegateRegistrationFee,
+		});
 		this._reportDelegateMisbehaviorCommand.init({
 			governanceTokenID: this._moduleConfig.governanceTokenID,
 		});
