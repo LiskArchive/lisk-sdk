@@ -13,30 +13,11 @@
  */
 
 import { StoreGetter } from '../../../base_store';
-import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
-import { CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED } from '../../constants';
-import { channelTerminatedCCMParamsSchema } from '../../schemas';
-import { CCCommandExecuteContext } from '../../types';
 import { MainchainInteroperabilityInternalMethod } from '../store';
+import { BaseCCChannelTerminatedCommand } from '../../base_cc_commands/channel_terminated';
 
-export class MainchainCCChannelTerminatedCommand extends BaseInteroperabilityCCCommand {
-	public schema = channelTerminatedCCMParamsSchema;
-
-	public get name(): string {
-		return CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED;
-	}
-
-	public async execute(context: CCCommandExecuteContext): Promise<void> {
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
-		if (!context.ccm) {
-			throw new Error('CCM to execute channel terminated cross chain command is missing.');
-		}
-		await interoperabilityInternalMethod.createTerminatedStateAccount(
-			context,
-			context.ccm.sendingChainID,
-		);
-	}
-
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#channel-terminated-message-1
+export class MainchainCCChannelTerminatedCommand extends BaseCCChannelTerminatedCommand {
 	protected getInteroperabilityInternalMethod(
 		context: StoreGetter,
 	): MainchainInteroperabilityInternalMethod {
