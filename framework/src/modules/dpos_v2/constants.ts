@@ -45,6 +45,7 @@ export const ED25519_PUBLIC_KEY_LENGTH = 32;
 export const BLS_PUBLIC_KEY_LENGTH = 48;
 export const BLS_POP_LENGTH = 96;
 export const MAX_CAP = 10000;
+export const MAX_COMMISSION = 10000;
 
 export const defaultConfig = {
 	factorSelfVotes: 10,

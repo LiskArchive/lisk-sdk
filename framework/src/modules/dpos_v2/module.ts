@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
+import { address as cryptoAddress, utils } from '@liskhq/lisk-cryptography';
 import { objects as objectUtils, dataStructures, objects } from '@liskhq/lisk-utils';
 import { isUInt64, validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
@@ -60,8 +60,9 @@ import {
 	getModuleConfig,
 	getDelegateWeight,
 	ValidatorWeight,
+	isSharingCoefficientSorted,
 } from './utils';
-import { DelegateStore, VoteSharingCofficientObject } from './stores/delegate';
+import { DelegateStore } from './stores/delegate';
 import { GenesisDataStore } from './stores/genesis';
 import { NameStore } from './stores/name';
 import { PreviousTimestampStore } from './stores/previous_timestamp';
@@ -222,12 +223,24 @@ export class DPoSModule extends BaseModule {
 		// validators property check
 		const dposValidatorAddresses = [];
 		const dposValidatorNames = [];
-		const dposValidatorAddressMap = new dataStructures.BufferMap();
+		const dposValidatorAddressMap = new dataStructures.BufferMap<GenesisStore['validators'][0]>();
 		for (const dposValidator of genesisStore.validators) {
 			if (!isUsername(dposValidator.name)) {
 				throw new Error(`Invalid validator name ${dposValidator.name}.`);
 			}
-			dposValidatorAddressMap.set(dposValidator.address, true);
+			if (dposValidator.lastCommissionIncreaseHeight > context.header.height) {
+				throw new Error(
+					`Invalid lastCommissionIncreaseHeight ${
+						dposValidator.lastCommissionIncreaseHeight
+					} for ${cryptoAddress.getLisk32AddressFromAddress(dposValidator.address)}.`,
+				);
+			}
+			// sharingCoefficients must be sorted by tokenID
+			if (!isSharingCoefficientSorted(dposValidator.sharingCoefficients)) {
+				throw new Error('SharingCoefficients must be sorted by tokenID.');
+			}
+
+			dposValidatorAddressMap.set(dposValidator.address, dposValidator);
 			dposValidatorAddresses.push(dposValidator.address);
 			dposValidatorNames.push(dposValidator.name);
 		}
@@ -249,9 +262,30 @@ export class DPoSModule extends BaseModule {
 			if (!objectUtils.bufferArrayOrderByLex(voter.sentVotes.map(v => v.delegateAddress))) {
 				throw new Error('Sent vote delegate address is not lexicographically ordered.');
 			}
-			if (voter.sentVotes.some(v => !dposValidatorAddressMap.has(v.delegateAddress))) {
-				throw new Error('Sent vote includes non existing validator address.');
+			for (const votes of voter.sentVotes) {
+				const dposValidator = dposValidatorAddressMap.get(votes.delegateAddress);
+				if (!dposValidator) {
+					throw new Error('Sent vote includes non existing validator address.');
+				}
+				for (const sharingCoefficient of votes.voteSharingCoefficients) {
+					const targetCoefficient = dposValidator.sharingCoefficients.find(co =>
+						co.tokenID.equals(sharingCoefficient.tokenID),
+					);
+					if (
+						!targetCoefficient ||
+						sharingCoefficient.coefficient.compare(targetCoefficient.coefficient) > 0
+					) {
+						throw new Error(
+							'Validator does not have corresponding sharing coefficient or the coefficient value is not consistent.',
+						);
+					}
+				}
+				// sharingCoefficients must be sorted by tokenID
+				if (!isSharingCoefficientSorted(votes.voteSharingCoefficients)) {
+					throw new Error('voteSharingCoefficients must be sorted by tokenID.');
+				}
 			}
+
 			if (voter.pendingUnlocks.length > MAX_UNLOCKING) {
 				throw new Error(`PendingUnlocks exceeds max unlocking ${MAX_UNLOCKING}.`);
 			}
@@ -306,11 +340,7 @@ export class DPoSModule extends BaseModule {
 				voteMap.set(sentVote.delegateAddress, delegate);
 			}
 			await voterStore.set(context, voter.address, {
-				// TODO: Issue #7669
-				sentVotes: voter.sentVotes.map(sentVote => ({
-					...sentVote,
-					voteSharingCoefficients: [] as VoteSharingCofficientObject[],
-				})),
+				sentVotes: voter.sentVotes,
 				pendingUnlocks: voter.pendingUnlocks,
 			});
 		}
@@ -330,10 +360,9 @@ export class DPoSModule extends BaseModule {
 				isBanned: dposValidator.isBanned,
 				pomHeights: dposValidator.pomHeights,
 				consecutiveMissedBlocks: dposValidator.consecutiveMissedBlocks,
-				// TODO: Issue: #7669
-				commission: 0,
-				lastCommissionIncreaseHeight: 0,
-				sharingCoefficients: [],
+				commission: dposValidator.commission,
+				lastCommissionIncreaseHeight: dposValidator.lastCommissionIncreaseHeight,
+				sharingCoefficients: dposValidator.sharingCoefficients,
 			});
 			await nameSubstore.set(context, Buffer.from(dposValidator.name, 'utf-8'), {
 				delegateAddress: dposValidator.address,
@@ -399,43 +428,24 @@ export class DPoSModule extends BaseModule {
 
 		const initDelegates = [...genesisStore.genesisData.initDelegates];
 		initDelegates.sort((a, b) => a.compare(b));
-		const initBFTThreshold = BigInt(Math.floor((2 * initDelegates.length) / 3) + 1);
 		const validators = [];
+		let aggregateBFTWeight = BigInt(0);
 		for (const validatorAddress of initDelegates) {
 			validators.push({
 				address: validatorAddress,
 				bftWeight: BigInt(1),
 			});
+			aggregateBFTWeight += BigInt(1);
 		}
+		const precommitThreshold = (BigInt(2) * aggregateBFTWeight) / BigInt(3) + BigInt(1);
+		const certificateThreshold = precommitThreshold;
 		await this._validatorsMethod.setValidatorsParams(
 			context.getMethodContext(),
 			context,
-			initBFTThreshold,
-			initBFTThreshold,
+			precommitThreshold,
+			certificateThreshold,
 			validators,
 		);
-
-		const MAX_UINT32 = 2 ** 32 - 1;
-		const snapshotStore = this.stores.get(SnapshotStore);
-		const allSnapshots = await snapshotStore.iterate(context, {
-			gte: utils.intToBuffer(0, 4),
-			lte: utils.intToBuffer(MAX_UINT32, 4),
-		});
-		if (context.header.height === 0 && allSnapshots.length > 0) {
-			throw new Error('When genensis height is zero, there should not be a snapshot.');
-		}
-		if (context.header.height !== 0) {
-			if (allSnapshots.length === 0) {
-				throw new Error('When genesis height is non-zero, snapshot is required.');
-			}
-			const genesisRound = new Rounds({ blocksPerRound: this._moduleConfig.roundLength }).calcRound(
-				context.header.height,
-			);
-			const lastsnapshotRound = allSnapshots[allSnapshots.length - 1].key.readUInt32BE(0);
-			if (lastsnapshotRound !== genesisRound) {
-				throw new Error('Invalid snapshot. Latest snapshot should be the genesis round.');
-			}
-		}
 	}
 
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {

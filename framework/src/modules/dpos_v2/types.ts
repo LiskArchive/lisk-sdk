@@ -244,12 +244,16 @@ export interface GenesisStore {
 		isBanned: boolean;
 		pomHeights: number[];
 		consecutiveMissedBlocks: number;
+		commission: number;
+		lastCommissionIncreaseHeight: number;
+		sharingCoefficients: VoteSharingCofficientObject[];
 	}[];
 	voters: {
 		address: Buffer;
 		sentVotes: {
 			delegateAddress: Buffer;
 			amount: bigint;
+			voteSharingCoefficients: VoteSharingCofficientObject[];
 		}[];
 		pendingUnlocks: {
 			delegateAddress: Buffer;

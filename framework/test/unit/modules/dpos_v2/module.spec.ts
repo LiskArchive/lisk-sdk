@@ -185,7 +185,7 @@ describe('DPoS module', () => {
 			});
 
 			it('should store self vote and received votes', async () => {
-				await expect(dpos.initGenesisState(context)).toResolve();
+				await expect(dpos.initGenesisState(context)).resolves.toBeUndefined();
 				await expect(dpos.finalizeGenesisState(context)).toResolve();
 
 				const delegateStore = dpos.stores.get(DelegateStore);
