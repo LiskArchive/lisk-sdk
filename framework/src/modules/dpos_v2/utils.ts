@@ -267,7 +267,7 @@ export const getDelegateWeight = (
 	return totalVotesReceived;
 };
 
-export const isSharingCoEfficientSorted = (
+export const isSharingCoefficientSorted = (
 	sharingCoefficients: VoteSharingCofficientObject[],
 ): boolean => {
 	const sharingCoefficientsCopy = [...sharingCoefficients];

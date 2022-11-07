@@ -60,7 +60,7 @@ import {
 	getModuleConfig,
 	getDelegateWeight,
 	ValidatorWeight,
-	isSharingCoEfficientSorted,
+	isSharingCoefficientSorted,
 } from './utils';
 import { DelegateStore } from './stores/delegate';
 import { GenesisDataStore } from './stores/genesis';
@@ -232,7 +232,7 @@ export class DPoSModule extends BaseModule {
 				);
 			}
 			// sharingCoefficients must be sorted by tokenID
-			if (!isSharingCoEfficientSorted(dposValidator.sharingCoefficients)) {
+			if (!isSharingCoefficientSorted(dposValidator.sharingCoefficients)) {
 				throw new Error('SharingCoefficients must be sorted by tokenID.');
 			}
 
@@ -277,7 +277,7 @@ export class DPoSModule extends BaseModule {
 					}
 				}
 				// sharingCoefficients must be sorted by tokenID
-				if (!isSharingCoEfficientSorted(votes.voteSharingCoefficients)) {
+				if (!isSharingCoefficientSorted(votes.voteSharingCoefficients)) {
 					throw new Error('voteSharingCoefficients must be sorted by tokenID.');
 				}
 			}
