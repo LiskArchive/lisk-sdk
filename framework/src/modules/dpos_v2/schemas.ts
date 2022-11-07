@@ -143,10 +143,6 @@ export const configSchema = {
 			type: 'integer',
 			format: 'uint32',
 		},
-		bftThreshold: {
-			type: 'integer',
-			format: 'uint32',
-		},
 		minWeightStandby: {
 			type: 'string',
 			format: 'uint64',
@@ -171,6 +167,12 @@ export const configSchema = {
 			type: 'string',
 			format: 'uint64',
 		},
+		maxBFTWeightCap: {
+			type: 'integer',
+			format: 'uint32',
+			minimum: 1,
+			maximum: 9999,
+		},
 	},
 	required: [
 		'factorSelfVotes',
@@ -181,20 +183,20 @@ export const configSchema = {
 		'failSafeInactiveWindow',
 		'punishmentWindow',
 		'roundLength',
-		'bftThreshold',
 		'minWeightStandby',
 		'numberActiveDelegates',
 		'numberStandbyDelegates',
 		'tokenIDDPoS',
 		'tokenIDFee',
 		'delegateRegistrationFee',
+		'maxBFTWeightCap',
 	],
 };
 
 export const genesisStoreSchema = {
 	$id: '/dpos/module/genesis',
 	type: 'object',
-	required: ['validators', 'voters', 'snapshots', 'genesisData'],
+	required: ['validators', 'voters', 'genesisData'],
 	properties: {
 		validators: {
 			type: 'array',
@@ -319,48 +321,9 @@ export const genesisStoreSchema = {
 				},
 			},
 		},
-		snapshots: {
-			type: 'array',
-			fieldNumber: 3,
-			maxLength: 3,
-			items: {
-				type: 'object',
-				required: ['roundNumber', 'activeDelegates', 'delegateWeightSnapshot'],
-				properties: {
-					roundNumber: {
-						dataType: 'uint32',
-						fieldNumber: 1,
-					},
-					activeDelegates: {
-						type: 'array',
-						fieldNumber: 2,
-						items: { dataType: 'bytes', format: 'lisk32' },
-					},
-					delegateWeightSnapshot: {
-						type: 'array',
-						fieldNumber: 3,
-						items: {
-							type: 'object',
-							required: ['delegateAddress', 'delegateWeight'],
-							properties: {
-								delegateAddress: {
-									dataType: 'bytes',
-									fieldNumber: 1,
-									format: 'lisk32',
-								},
-								delegateWeight: {
-									dataType: 'uint64',
-									fieldNumber: 2,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
 		genesisData: {
 			type: 'object',
-			fieldNumber: 4,
+			fieldNumber: 3,
 			required: ['initRounds', 'initDelegates'],
 			properties: {
 				initRounds: {

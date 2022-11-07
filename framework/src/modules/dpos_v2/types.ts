@@ -30,13 +30,13 @@ export interface ModuleConfig {
 	failSafeInactiveWindow: number;
 	punishmentWindow: number;
 	roundLength: number;
-	bftThreshold: number;
 	minWeightStandby: bigint;
 	numberActiveDelegates: number;
 	numberStandbyDelegates: number;
 	tokenIDDPoS: TokenIDDPoS;
 	tokenIDFee: Buffer;
 	delegateRegistrationFee: bigint;
+	maxBFTWeightCap: number;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
@@ -223,14 +223,6 @@ export interface UnlockCommandDependencies {
 	tokenMethod: TokenMethod;
 }
 
-export interface SnapshotStoreData {
-	activeDelegates: Buffer[];
-	delegateWeightSnapshot: {
-		delegateAddress: Buffer;
-		delegateWeight: bigint;
-	}[];
-}
-
 export interface PreviousTimestampData {
 	timestamp: number;
 }
@@ -263,14 +255,6 @@ export interface GenesisStore {
 			delegateAddress: Buffer;
 			amount: bigint;
 			unvoteHeight: number;
-		}[];
-	}[];
-	snapshots: {
-		roundNumber: number;
-		activeDelegates: Buffer[];
-		delegateWeightSnapshot: {
-			delegateAddress: Buffer;
-			delegateWeight: bigint;
 		}[];
 	}[];
 	genesisData: {
