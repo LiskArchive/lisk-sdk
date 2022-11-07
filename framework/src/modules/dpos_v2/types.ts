@@ -30,11 +30,13 @@ export interface ModuleConfig {
 	failSafeInactiveWindow: number;
 	punishmentWindow: number;
 	roundLength: number;
-	bftThreshold: number;
 	minWeightStandby: bigint;
 	numberActiveDelegates: number;
 	numberStandbyDelegates: number;
 	tokenIDDPoS: TokenIDDPoS;
+	tokenIDFee: Buffer;
+	delegateRegistrationFee: bigint;
+	maxBFTWeightCap: number;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
@@ -88,6 +90,12 @@ export interface TokenMethod {
 		address: Buffer,
 		tokenID: TokenIDDPoS,
 	): Promise<bigint>;
+	burn(
+		methodContext: MethodContext,
+		address: Buffer,
+		tokenID: Buffer,
+		amount: bigint,
+	): Promise<void>;
 	transfer(
 		methodContext: MethodContext,
 		senderAddress: Buffer,
@@ -125,6 +133,7 @@ export interface DelegateRegistrationParams {
 	blsKey: Buffer;
 	proofOfPossession: Buffer;
 	generatorKey: Buffer;
+	delegateRegistrationFee: bigint;
 }
 
 export interface VoteSharingCofficientObject {
@@ -214,14 +223,6 @@ export interface UnlockCommandDependencies {
 	tokenMethod: TokenMethod;
 }
 
-export interface SnapshotStoreData {
-	activeDelegates: Buffer[];
-	delegateWeightSnapshot: {
-		delegateAddress: Buffer;
-		delegateWeight: bigint;
-	}[];
-}
-
 export interface PreviousTimestampData {
 	timestamp: number;
 }
@@ -243,25 +244,21 @@ export interface GenesisStore {
 		isBanned: boolean;
 		pomHeights: number[];
 		consecutiveMissedBlocks: number;
+		commission: number;
+		lastCommissionIncreaseHeight: number;
+		sharingCoefficients: VoteSharingCofficientObject[];
 	}[];
 	voters: {
 		address: Buffer;
 		sentVotes: {
 			delegateAddress: Buffer;
 			amount: bigint;
+			voteSharingCoefficients: VoteSharingCofficientObject[];
 		}[];
 		pendingUnlocks: {
 			delegateAddress: Buffer;
 			amount: bigint;
 			unvoteHeight: number;
-		}[];
-	}[];
-	snapshots: {
-		roundNumber: number;
-		activeDelegates: Buffer[];
-		delegateWeightSnapshot: {
-			delegateAddress: Buffer;
-			delegateWeight: bigint;
 		}[];
 	}[];
 	genesisData: {

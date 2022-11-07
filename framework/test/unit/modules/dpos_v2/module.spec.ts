@@ -41,7 +41,7 @@ import {
 	ValidatorsMethod,
 } from '../../../../src/modules/dpos_v2/types';
 import { GenesisBlockExecuteContext, Validator } from '../../../../src/state_machine/types';
-import { invalidAssets, validAsset, validators } from './genesis_block_test_data';
+import { invalidAssets, validAsset } from './genesis_block_test_data';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { DelegateStore } from '../../../../src/modules/dpos_v2/stores/delegate';
@@ -51,10 +51,12 @@ import { PreviousTimestampStore } from '../../../../src/modules/dpos_v2/stores/p
 import { GenesisDataStore } from '../../../../src/modules/dpos_v2/stores/genesis';
 import { SnapshotStore } from '../../../../src/modules/dpos_v2/stores/snapshot';
 import { createStoreGetter } from '../../../../src/testing/utils';
+import { EligibleDelegatesStore } from '../../../../src/modules/dpos_v2/stores/eligible_delegates';
+import { getDelegateWeight, ValidatorWeight } from '../../../../src/modules/dpos_v2/utils';
 
 describe('DPoS module', () => {
 	const EMPTY_KEY = Buffer.alloc(0);
-	const defaultConfigs = {
+	const defaultConfig = {
 		factorSelfVotes: 10,
 		maxLengthName: 20,
 		maxNumberSentVotes: 10,
@@ -63,28 +65,44 @@ describe('DPoS module', () => {
 		failSafeInactiveWindow: 260000,
 		punishmentWindow: 780000,
 		roundLength: 103,
-		bftThreshold: 68,
 		minWeightStandby: (BigInt(1000) * BigInt(10 ** 8)).toString(),
 		numberActiveDelegates: 101,
 		numberStandbyDelegates: 2,
 		tokenIDDPoS: '0000000000000000',
+		tokenIDFee: '0000000000000000',
+		delegateRegistrationFee: (BigInt(10) * BigInt(10) ** BigInt(8)).toString(),
+		maxBFTWeightCap: 500,
 	};
 
-	describe('init', () => {
-		let dpos: DPoSModule;
-		beforeEach(() => {
-			dpos = new DPoSModule();
+	const sortValidatorsByWeightDesc = (validators: ValidatorWeight[]) =>
+		validators.sort((a, b) => {
+			const diff = BigInt(b.weight) - BigInt(a.weight);
+			if (diff > BigInt(0)) {
+				return 1;
+			}
+			if (diff < BigInt(0)) {
+				return -1;
+			}
+			return a.address.compare(b.address);
 		});
 
+	let dpos: DPoSModule;
+	beforeEach(() => {
+		dpos = new DPoSModule();
+	});
+
+	describe('init', () => {
 		it('should initialize config with default value when module config is empty', async () => {
 			await expect(
 				dpos.init({ genesisConfig: {} as any, moduleConfig: {}, generatorConfig: {} }),
 			).toResolve();
 
 			expect(dpos['_moduleConfig']).toEqual({
-				...defaultConfigs,
-				minWeightStandby: BigInt(defaultConfigs.minWeightStandby),
-				tokenIDDPoS: Buffer.from(defaultConfigs.tokenIDDPoS, 'hex'),
+				...defaultConfig,
+				minWeightStandby: BigInt(defaultConfig.minWeightStandby),
+				tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS, 'hex'),
+				tokenIDFee: Buffer.from(defaultConfig.tokenIDFee, 'hex'),
+				delegateRegistrationFee: BigInt(defaultConfig.delegateRegistrationFee),
 			});
 		});
 
@@ -92,7 +110,7 @@ describe('DPoS module', () => {
 			await expect(
 				dpos.init({
 					genesisConfig: {} as any,
-					moduleConfig: { ...defaultConfigs, maxLengthName: 50 },
+					moduleConfig: { ...defaultConfig, maxLengthName: 50 },
 					generatorConfig: {},
 				}),
 			).toResolve();
@@ -101,13 +119,10 @@ describe('DPoS module', () => {
 		});
 	});
 
-	// TODO: Issue #7669
-	describe.skip('initGenesisState', () => {
-		let dpos: DPoSModule;
+	describe('initGenesisState', () => {
 		let stateStore: PrefixedStateReadWriter;
 
 		beforeEach(async () => {
-			dpos = new DPoSModule();
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			const randomMethod = {
 				getRandomBytes: jest.fn(),
@@ -126,6 +141,7 @@ describe('DPoS module', () => {
 				lock: jest.fn(),
 				unlock: jest.fn(),
 				getAvailableBalance: jest.fn(),
+				burn: jest.fn(),
 				getMinRemainingBalance: jest.fn(),
 				transfer: jest.fn(),
 				getLockedAmount: jest.fn().mockResolvedValue(BigInt(101000000000)),
@@ -135,7 +151,7 @@ describe('DPoS module', () => {
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 		});
 
@@ -155,48 +171,6 @@ describe('DPoS module', () => {
 			});
 		});
 
-		describe('when the genesis height is zero', () => {
-			it('should throw error if snapshot exist', async () => {
-				const modified = {
-					...validAsset,
-					snapshots: [
-						{
-							roundNumber: 0,
-							activeDelegates: validators.slice(0, 101).map(v => v.address),
-							delegateWeightSnapshot: validators.slice(101).map(v => ({
-								delegateAddress: v.address,
-								delegateWeight: BigInt(100000000000),
-							})),
-						},
-					],
-				};
-				const assetBytes = codec.encode(genesisStoreSchema, modified);
-				const context = createGenesisBlockContext({
-					stateStore,
-					assets: new BlockAssets([{ module: dpos.name, data: assetBytes }]),
-				}).createInitGenesisStateContext();
-				await dpos.initGenesisState(context);
-				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow(
-					'When genensis height is zero, there should not be a snapshot',
-				);
-			});
-		});
-
-		describe('when the genesis height is non-zero', () => {
-			it('should throw error if snapshot does not exist', async () => {
-				const assetBytes = codec.encode(genesisStoreSchema, validAsset);
-				const context = createGenesisBlockContext({
-					stateStore,
-					header: createFakeBlockHeader({ height: 12345 }),
-					assets: new BlockAssets([{ module: dpos.name, data: assetBytes }]),
-				}).createInitGenesisStateContext();
-				await dpos.initGenesisState(context);
-				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow(
-					'When genesis height is non-zero, snapshot is required',
-				);
-			});
-		});
-
 		describe('when the genesis asset is valid', () => {
 			let genesisContext: GenesisBlockContext;
 			let context: GenesisBlockExecuteContext;
@@ -211,7 +185,7 @@ describe('DPoS module', () => {
 			});
 
 			it('should store self vote and received votes', async () => {
-				await expect(dpos.initGenesisState(context)).toResolve();
+				await expect(dpos.initGenesisState(context)).resolves.toBeUndefined();
 				await expect(dpos.finalizeGenesisState(context)).toResolve();
 
 				const delegateStore = dpos.stores.get(DelegateStore);
@@ -223,6 +197,9 @@ describe('DPoS module', () => {
 					pomHeights: [],
 					selfVotes: BigInt(100000000000),
 					totalVotesReceived: BigInt(200000000000),
+					commission: 0,
+					lastCommissionIncreaseHeight: 0,
+					sharingCoefficients: [],
 				});
 			});
 
@@ -309,20 +286,16 @@ describe('DPoS module', () => {
 		});
 	});
 
-	// TODO: Issue #7670
-	describe.skip('_createVoteWeightSnapshot', () => {
-		let dpos: DPoSModule;
-
+	describe('_createVoteWeightSnapshot', () => {
 		beforeEach(async () => {
-			dpos = new DPoSModule();
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 		});
 
-		describe('when there are less number of delegates than active delegates', () => {
+		describe('when all eligible delegates are not punished', () => {
 			const fixtures = forgerSelectionLessTHan103Scenario.testCases.input.voteWeights;
 
 			let context: BlockAfterExecuteContext;
@@ -330,23 +303,20 @@ describe('DPoS module', () => {
 
 			beforeEach(async () => {
 				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-				const delegateStore = dpos.stores.get(DelegateStore);
+				const eligibleDelegateStore = dpos.stores.get(EligibleDelegatesStore);
 				for (const data of fixtures) {
-					await delegateStore.set(
-						createTransientMethodContext({ stateStore }),
-						Buffer.from(data.address, 'hex'),
-						{
-							name: data.address,
-							totalVotesReceived: BigInt(data.voteWeight),
-							selfVotes: BigInt(data.voteWeight),
-							lastGeneratedHeight: 0,
-							isBanned: false,
-							pomHeights: [],
-							commission: 0,
-							consecutiveMissedBlocks: 0,
-							lastCommissionIncreaseHeight: 0,
-							sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
-						},
+					const ctx = createTransientMethodContext({ stateStore });
+					await eligibleDelegateStore.set(
+						ctx,
+						eligibleDelegateStore.getKey(
+							Buffer.from(data.address, 'hex'),
+							getDelegateWeight(
+								BigInt(defaultConfig.factorSelfVotes),
+								BigInt(data.voteWeight),
+								BigInt(data.voteWeight),
+							),
+						),
+						{ lastPomHeight: 0 },
 					);
 				}
 				context = createBlockContext({
@@ -361,179 +331,11 @@ describe('DPoS module', () => {
 				const snapshotStore = dpos.stores.get(SnapshotStore);
 				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
 
-				expect(snapshot.delegateWeightSnapshot).toHaveLength(0);
+				expect(snapshot.delegateWeightSnapshot).toHaveLength(fixtures.length);
 			});
 		});
 
-		describe('when there are more number of delegates than active delegates, but no delegates above standby threshold', () => {
-			const fixtures = forgerSelectionZeroStandbyScenario.testCases.input.voteWeights;
-
-			let context: BlockAfterExecuteContext;
-			let stateStore: PrefixedStateReadWriter;
-
-			beforeEach(async () => {
-				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-				context = createBlockContext({
-					stateStore,
-					header: createFakeBlockHeader({ height: 1030 }),
-				}).getBlockAfterExecuteContext();
-				const delegateStore = dpos.stores.get(DelegateStore);
-				for (const data of fixtures) {
-					await delegateStore.set(context, Buffer.from(data.address, 'hex'), {
-						name: data.address,
-						totalVotesReceived: BigInt(data.voteWeight),
-						selfVotes: BigInt(data.voteWeight),
-						lastGeneratedHeight: 0,
-						isBanned: false,
-						pomHeights: [],
-						consecutiveMissedBlocks: 0,
-						commission: 0,
-						lastCommissionIncreaseHeight: 0,
-						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
-					});
-				}
-				await dpos['_createVoteWeightSnapshot'](context);
-			});
-
-			// TODO: Issue #7670
-			it.todo('should create a snapshot which include top 101 delegates as active delegates');
-
-			it('should create a snapshot which include all delegates in the snapshot', async () => {
-				const snapshotStore = dpos.stores.get(SnapshotStore);
-				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
-
-				expect(snapshot.delegateWeightSnapshot).toHaveLength(2);
-			});
-		});
-
-		describe('when there are more number of delegates than active delegates, but less delegates with standby threshold than required', () => {
-			const fixtures = forgerSelectionOneStandbyScenario.testCases.input.voteWeights;
-
-			let context: BlockAfterExecuteContext;
-			let stateStore: PrefixedStateReadWriter;
-
-			beforeEach(async () => {
-				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-				context = createBlockContext({
-					stateStore,
-					header: createFakeBlockHeader({ height: 1030 }),
-				}).getBlockAfterExecuteContext();
-				const delegateStore = dpos.stores.get(DelegateStore);
-				for (const data of fixtures) {
-					await delegateStore.set(context, Buffer.from(data.address, 'hex'), {
-						name: data.address,
-						totalVotesReceived: BigInt(data.voteWeight),
-						selfVotes: BigInt(data.voteWeight),
-						lastGeneratedHeight: 0,
-						isBanned: false,
-						pomHeights: [],
-						consecutiveMissedBlocks: 0,
-						commission: 0,
-						lastCommissionIncreaseHeight: 0,
-						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
-					});
-				}
-
-				await dpos['_createVoteWeightSnapshot'](context);
-			});
-
-			it.todo('should create a snapshot which include top 101 delegates as active delegates');
-
-			it('should create a snapshot which include all delegates in the snapshot', async () => {
-				const snapshotStore = dpos.stores.get(SnapshotStore);
-				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
-
-				expect(snapshot.delegateWeightSnapshot).toHaveLength(2);
-			});
-		});
-
-		describe('when there are more number of delegates than active delegates, and 2 delegates with standby threshold than required', () => {
-			const fixtures = forgerSelectionTwoStandbyScenario.testCases.input.voteWeights;
-
-			let context: BlockAfterExecuteContext;
-			let stateStore: PrefixedStateReadWriter;
-
-			beforeEach(async () => {
-				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-				context = createBlockContext({
-					stateStore,
-					header: createFakeBlockHeader({ height: 1030 }),
-				}).getBlockAfterExecuteContext();
-				const delegateStore = dpos.stores.get(DelegateStore);
-				// set first delegate to cap the delegate weight
-				await delegateStore.set(context, Buffer.from(fixtures[0].address, 'hex'), {
-					name: 'noselfvote',
-					totalVotesReceived: BigInt(fixtures[0].voteWeight),
-					selfVotes: BigInt(fixtures[0].voteWeight) / BigInt(1000),
-					lastGeneratedHeight: 0,
-					isBanned: false,
-					pomHeights: [],
-					consecutiveMissedBlocks: 0,
-					commission: 0,
-					lastCommissionIncreaseHeight: 0,
-					sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
-				});
-				// set second delegate punished
-				await delegateStore.set(context, Buffer.from(fixtures[1].address, 'hex'), {
-					name: 'punished',
-					totalVotesReceived: BigInt(fixtures[1].voteWeight),
-					selfVotes: BigInt(fixtures[1].voteWeight),
-					lastGeneratedHeight: 0,
-					isBanned: false,
-					pomHeights: [1000],
-					consecutiveMissedBlocks: 0,
-					commission: 0,
-					lastCommissionIncreaseHeight: 0,
-					sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
-				});
-				for (const data of fixtures.slice(2)) {
-					await delegateStore.set(context, Buffer.from(data.address, 'hex'), {
-						name: data.address,
-						totalVotesReceived: BigInt(data.voteWeight),
-						selfVotes: BigInt(data.voteWeight),
-						lastGeneratedHeight: 0,
-						isBanned: false,
-						pomHeights: [],
-						consecutiveMissedBlocks: 0,
-						commission: 0,
-						lastCommissionIncreaseHeight: 0,
-						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
-					});
-				}
-
-				await dpos['_createVoteWeightSnapshot'](context);
-			});
-
-			it.todo('should create a snapshot which include top 101 delegates as active delegates');
-
-			it('should cap the delegate weight', async () => {
-				const snapshotStore = dpos.stores.get(SnapshotStore);
-				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
-
-				const capped = snapshot.delegateWeightSnapshot.find(s =>
-					s.delegateAddress.equals(Buffer.from(fixtures[0].address, 'hex')),
-				);
-
-				// Remove banned, punished and no self-vote
-				expect(capped?.delegateWeight).toEqual(
-					(BigInt(fixtures[0].voteWeight) / BigInt(1000)) * BigInt(10),
-				);
-			});
-
-			it('should set the delegate weight to zero when punished', async () => {
-				const snapshotStore = dpos.stores.get(SnapshotStore);
-				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
-
-				const punished = snapshot.delegateWeightSnapshot.find(s =>
-					s.delegateAddress.equals(Buffer.from(fixtures[1].address, 'hex')),
-				);
-
-				// Remove banned, punished and no self-vote
-				expect(punished?.delegateWeight).toEqual(BigInt(0));
-			});
-		});
-
-		describe('when there are more number of delegates than active delegates, and more delegates with standby threshold than required', () => {
+		describe('when there are delegates who are PoMed', () => {
 			const fixtures = forgerSelectionMoreThan2StandByScenario.testCases.input.voteWeights;
 
 			let context: BlockAfterExecuteContext;
@@ -543,115 +345,87 @@ describe('DPoS module', () => {
 				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				context = createBlockContext({
 					stateStore,
-					header: createFakeBlockHeader({ height: 1030 }),
+					header: createFakeBlockHeader({ height: 1030000 }),
 				}).getBlockAfterExecuteContext();
-				const delegateStore = dpos.stores.get(DelegateStore);
+				const eligibleDelegateStore = dpos.stores.get(EligibleDelegatesStore);
 				// set first delegate banned
-				await delegateStore.set(context, Buffer.from(fixtures[0].address, 'hex'), {
-					name: 'banned',
-					totalVotesReceived: BigInt(fixtures[0].voteWeight),
-					selfVotes: BigInt(fixtures[0].voteWeight),
-					lastGeneratedHeight: 0,
-					isBanned: true,
-					pomHeights: [],
-					consecutiveMissedBlocks: 0,
-					commission: 0,
-					lastCommissionIncreaseHeight: 0,
-					sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
-				});
-				// set second delegate no self-vote
-				await delegateStore.set(context, Buffer.from(fixtures[1].address, 'hex'), {
-					name: 'noselfvote',
-					totalVotesReceived: BigInt(fixtures[1].voteWeight),
-					selfVotes: BigInt(0),
-					lastGeneratedHeight: 0,
-					isBanned: false,
-					pomHeights: [],
-					consecutiveMissedBlocks: 0,
-					commission: 0,
-					lastCommissionIncreaseHeight: 0,
-					sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
-				});
-				// set third delegate punished
-				await delegateStore.set(context, Buffer.from(fixtures[2].address, 'hex'), {
-					name: 'noselfvote',
-					totalVotesReceived: BigInt(fixtures[2].voteWeight),
-					selfVotes: BigInt(fixtures[2].voteWeight),
-					lastGeneratedHeight: 0,
-					isBanned: false,
-					pomHeights: [1000],
-					consecutiveMissedBlocks: 0,
-					commission: 0,
-					lastCommissionIncreaseHeight: 0,
-					sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
-				});
+				await eligibleDelegateStore.set(
+					context,
+					eligibleDelegateStore.getKey(
+						Buffer.from(fixtures[0].address, 'hex'),
+						BigInt(fixtures[0].voteWeight),
+					),
+					{
+						lastPomHeight: 1000,
+					},
+				);
+				await eligibleDelegateStore.set(
+					context,
+					eligibleDelegateStore.getKey(
+						Buffer.from(fixtures[1].address, 'hex'),
+						BigInt(fixtures[1].voteWeight),
+					),
+					{
+						lastPomHeight: 250001,
+					},
+				);
+				await eligibleDelegateStore.set(
+					context,
+					eligibleDelegateStore.getKey(
+						Buffer.from(fixtures[2].address, 'hex'),
+						BigInt(fixtures[2].voteWeight),
+					),
+					{
+						lastPomHeight: 250000,
+					},
+				);
 				for (const data of fixtures.slice(3)) {
-					await delegateStore.set(context, Buffer.from(data.address, 'hex'), {
-						name: data.address,
-						totalVotesReceived: BigInt(data.voteWeight),
-						selfVotes: BigInt(data.voteWeight),
-						lastGeneratedHeight: 0,
-						isBanned: false,
-						pomHeights: [],
-						consecutiveMissedBlocks: 0,
-						commission: 0,
-						lastCommissionIncreaseHeight: 0,
-						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
-					});
+					await eligibleDelegateStore.set(
+						context,
+						eligibleDelegateStore.getKey(Buffer.from(data.address, 'hex'), BigInt(data.voteWeight)),
+						{
+							lastPomHeight: 0,
+						},
+					);
 				}
 				const snapshotStore = dpos.stores.get(SnapshotStore);
-				await snapshotStore.set(context, utils.intToBuffer(10, 4), {
-					activeDelegates: [],
+				await snapshotStore.set(context, utils.intToBuffer(10000, 4), {
 					delegateWeightSnapshot: [],
 				});
-				await snapshotStore.set(context, utils.intToBuffer(11, 4), {
-					activeDelegates: [],
+				await snapshotStore.set(context, utils.intToBuffer(10001, 4), {
 					delegateWeightSnapshot: [],
 				});
-				await snapshotStore.set(context, utils.intToBuffer(12, 4), {
-					activeDelegates: [],
+				await snapshotStore.set(context, utils.intToBuffer(10002, 4), {
 					delegateWeightSnapshot: [],
 				});
 
 				await dpos['_createVoteWeightSnapshot'](context);
 			});
 
-			it.todo('should create a snapshot which include top 101 delegates as active delegates');
-
-			it('should create a snapshot which include all delegates above standby threshold in the snapshot', async () => {
+			it('should create a snapshot which includes all delegates who are not currently punished', async () => {
 				const snapshotStore = dpos.stores.get(SnapshotStore);
-				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
+				const snapshot = await snapshotStore.get(context, utils.intToBuffer(10001 + 2, 4));
 
-				const fixtureAboveThreshold = fixtures.filter(
-					data => BigInt(data.voteWeight) >= BigInt(defaultConfigs.minWeightStandby),
-				);
-
-				// Remove banned, punished and no self-vote
-				expect(snapshot.delegateWeightSnapshot).toHaveLength(
-					fixtureAboveThreshold.length - 3 - defaultConfigs.numberActiveDelegates,
-				);
+				// Remove punished delegates
+				expect(snapshot.delegateWeightSnapshot).toHaveLength(fixtures.length - 1);
 			});
 
-			it('should create a snapshot which remove the snapshot older than 3 rounds', async () => {
+			it('should remove the snapshot older than 3 rounds', async () => {
 				const snapshotStore = dpos.stores.get(SnapshotStore);
 
-				await expect(snapshotStore.has(context, utils.intToBuffer(10, 4))).resolves.toBeFalse();
-				await expect(snapshotStore.has(context, utils.intToBuffer(11, 4))).resolves.toBeTrue();
-				await expect(snapshotStore.has(context, utils.intToBuffer(12, 4))).resolves.toBeTrue();
+				await expect(snapshotStore.has(context, utils.intToBuffer(10000, 4))).resolves.toBeFalse();
+				await expect(snapshotStore.has(context, utils.intToBuffer(10001, 4))).resolves.toBeTrue();
+				await expect(snapshotStore.has(context, utils.intToBuffer(10002, 4))).resolves.toBeTrue();
 			});
 		});
 	});
 
-	// TODO: Issue #7670
-	describe.skip('_updateValidators', () => {
-		let dpos: DPoSModule;
-
+	describe('_updateValidators', () => {
 		beforeEach(async () => {
-			dpos = new DPoSModule();
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 		});
 
@@ -663,7 +437,7 @@ describe('DPoS module', () => {
 				forgerSelectionLessTHan103Scenario,
 				forgerSelectionMoreThan2StandByScenario,
 			];
-			const defaultRound = 5;
+			const defaultRound = 110;
 
 			for (const scenario of scenarios) {
 				// eslint-disable-next-line jest/valid-title,no-loop-func
@@ -672,35 +446,27 @@ describe('DPoS module', () => {
 						// Forger selection relies on vote weight to be sorted
 						const delegates = [
 							...scenario.testCases.input.voteWeights.map(d => ({
-								delegateAddress: Buffer.from(d.address, 'hex'),
-								delegateWeight: BigInt(d.voteWeight),
+								address: Buffer.from(d.address, 'hex'),
+								weight: BigInt(d.voteWeight),
 							})),
 						];
-						delegates.sort((a, b) => {
-							const diff = b.delegateWeight - a.delegateWeight;
-							if (diff > BigInt(0)) {
-								return 1;
-							}
-							if (diff < BigInt(0)) {
-								return -1;
-							}
-							return a.delegateAddress.compare(b.delegateAddress);
-						});
+						sortValidatorsByWeightDesc(delegates);
 						const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 						const blockContext = createBlockContext({
 							header: createFakeBlockHeader({
-								height: (defaultRound - 1) * defaultConfigs.roundLength,
+								height: (defaultRound - 1) * defaultConfig.roundLength,
 							}),
 							stateStore,
 						});
 						const context = blockContext.getBlockAfterExecuteContext();
+						await dpos.stores.get(GenesisDataStore).set(context, EMPTY_KEY, {
+							height: 0,
+							initRounds: 3,
+							initDelegates: [],
+						});
 						const snapshotStore = dpos.stores.get(SnapshotStore);
-						const activeDelegates = delegates
-							.slice(0, defaultConfigs.numberActiveDelegates)
-							.map(d => d.delegateAddress);
 						await snapshotStore.set(context, utils.intToBuffer(defaultRound, 4), {
-							activeDelegates,
-							delegateWeightSnapshot: delegates.slice(defaultConfigs.numberActiveDelegates),
+							delegateWeightSnapshot: delegates,
 						});
 						const randomMethod = {
 							getRandomBytes: jest
@@ -723,6 +489,7 @@ describe('DPoS module', () => {
 							lock: jest.fn(),
 							unlock: jest.fn(),
 							getAvailableBalance: jest.fn(),
+							burn: jest.fn(),
 							getMinRemainingBalance: jest.fn(),
 							transfer: jest.fn(),
 							getLockedAmount: jest.fn(),
@@ -747,40 +514,34 @@ describe('DPoS module', () => {
 
 			beforeEach(async () => {
 				// Forger selection relies on vote weight to be sorted
-				const delegates: { delegateAddress: Buffer; delegateWeight: bigint }[] = [
+				const delegates: { address: Buffer; weight: bigint }[] = [
 					...scenario.testCases.input.voteWeights.map(d => ({
-						delegateAddress: Buffer.from(d.address, 'hex'),
-						delegateWeight: BigInt(d.voteWeight),
+						address: Buffer.from(d.address, 'hex'),
+						weight: BigInt(d.voteWeight),
 					})),
 				];
-				delegates.sort((a, b) => {
-					const diff = BigInt(b.delegateWeight) - BigInt(a.delegateWeight);
-					if (diff > BigInt(0)) {
-						return 1;
-					}
-					if (diff < BigInt(0)) {
-						return -1;
-					}
-					return a.delegateAddress.compare(b.delegateAddress);
-				});
+				sortValidatorsByWeightDesc(delegates);
 
 				const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				blockContext = createBlockContext({
 					header: createFakeBlockHeader({
-						height: (defaultRound - 1) * defaultConfigs.roundLength,
+						height: (defaultRound - 1) * defaultConfig.roundLength,
 					}),
 					stateStore,
 				});
+				await dpos.stores
+					.get(GenesisDataStore)
+					.set(blockContext.getBlockExecuteContext(), EMPTY_KEY, {
+						height: 0,
+						initRounds: 3,
+						initDelegates: [],
+					});
 				const snapshotStore = dpos.stores.get(SnapshotStore);
-				const activeDelegates = delegates
-					.slice(0, defaultConfigs.numberActiveDelegates)
-					.map(d => d.delegateAddress);
 				await snapshotStore.set(
 					blockContext.getBlockExecuteContext(),
 					utils.intToBuffer(defaultRound, 4),
 					{
-						activeDelegates,
-						delegateWeightSnapshot: delegates.slice(defaultConfigs.numberActiveDelegates),
+						delegateWeightSnapshot: delegates,
 					},
 				);
 				const randomMethod = {
@@ -803,6 +564,7 @@ describe('DPoS module', () => {
 					lock: jest.fn(),
 					unlock: jest.fn(),
 					getAvailableBalance: jest.fn(),
+					burn: jest.fn(),
 					getMinRemainingBalance: jest.fn(),
 					transfer: jest.fn(),
 					getLockedAmount: jest.fn(),
@@ -815,7 +577,7 @@ describe('DPoS module', () => {
 
 			it('should have activeDelegates + standbyDelegates delegates in the generators list', () => {
 				expect((validatorMethod.setValidatorsParams as jest.Mock).mock.calls[0][4]).toHaveLength(
-					defaultConfigs.roundLength,
+					defaultConfig.roundLength,
 				);
 			});
 
@@ -853,14 +615,12 @@ describe('DPoS module', () => {
 		let delegateAddresses: Buffer[];
 		let previousTimestampStore: PreviousTimestampStore;
 		let delegateStore: DelegateStore;
-		let dpos: DPoSModule;
 
 		beforeEach(async () => {
-			dpos = new DPoSModule();
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -1250,6 +1010,202 @@ describe('DPoS module', () => {
 		});
 	});
 
+	describe('_getActiveDelegates', () => {
+		let stateStore: PrefixedStateReadWriter;
+		let context: BlockAfterExecuteContext;
+
+		const scenario = forgerSelectionMoreThan2StandByScenario;
+		const initDelegates = new Array(101).fill(0).map(() => utils.getRandomBytes(20));
+
+		beforeEach(async () => {
+			await dpos.init({
+				generatorConfig: {},
+				genesisConfig: {} as GenesisConfig,
+				moduleConfig: defaultConfig,
+			});
+
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+			await dpos.stores.get(GenesisDataStore).set(createStoreGetter(stateStore), EMPTY_KEY, {
+				height: 0,
+				initRounds: 3,
+				initDelegates,
+			});
+			jest.spyOn(dpos, '_capWeight' as never);
+		});
+
+		describe('when current round is less than initRounds + numberOfActiveDelegates', () => {
+			it('should select init delegates for initRounds + numberOfActiveDelegates - round', async () => {
+				context = createBlockContext({
+					stateStore,
+				}).getBlockAfterExecuteContext();
+				// Forger selection relies on vote weight to be sorted
+				const delegates: { address: Buffer; weight: bigint }[] = [
+					...scenario.testCases.input.voteWeights.map(d => ({
+						address: Buffer.from(d.address, 'hex'),
+						weight: BigInt(d.voteWeight),
+					})),
+				];
+				sortValidatorsByWeightDesc(delegates);
+
+				const result = await dpos['_getActiveDelegates'](context, delegates, 6);
+				expect(result).toHaveLength(defaultConfig.numberActiveDelegates);
+				const fromInitDelegates = result.filter(
+					v => initDelegates.findIndex(address => v.address.equals(address)) > -1,
+				);
+				expect(fromInitDelegates).toHaveLength(3 + defaultConfig.numberActiveDelegates - 6);
+			});
+
+			it('should not select the same delegate twice', async () => {
+				context = createBlockContext({
+					stateStore,
+				}).getBlockAfterExecuteContext();
+				// Forger selection relies on vote weight to be sorted
+				const delegates: { address: Buffer; weight: bigint }[] = [
+					...scenario.testCases.input.voteWeights.map(d => ({
+						address: Buffer.from(d.address, 'hex'),
+						weight: BigInt(d.voteWeight),
+					})),
+				];
+				sortValidatorsByWeightDesc(delegates);
+				// Overwrite the snapshot validator address to be the one in init delegates
+				const [duplicateAddress] = initDelegates;
+				delegates[0].address = duplicateAddress;
+
+				const result = await dpos['_getActiveDelegates'](context, delegates, 6);
+
+				expect(result).toHaveLength(defaultConfig.numberActiveDelegates);
+				const duplicateAddressList = result.filter(v => v.address.equals(initDelegates[0]));
+				expect(duplicateAddressList).toHaveLength(1);
+			});
+
+			it('should not select from init delegates if there is not enough snapshot validators', async () => {
+				context = createBlockContext({
+					stateStore,
+				}).getBlockAfterExecuteContext();
+				// Forger selection relies on vote weight to be sorted
+				const delegates: { address: Buffer; weight: bigint }[] = [
+					...scenario.testCases.input.voteWeights.map(d => ({
+						address: Buffer.from(d.address, 'hex'),
+						weight: BigInt(d.voteWeight),
+					})),
+				].slice(10);
+				sortValidatorsByWeightDesc(delegates);
+
+				// Overwrite the snapshot validator address to be the one in init delegates
+				const [duplicateAddress] = initDelegates;
+				delegates[0].address = duplicateAddress;
+
+				const result = await dpos['_getActiveDelegates'](context, delegates, 6);
+
+				expect(result).toHaveLength(defaultConfig.numberActiveDelegates);
+			});
+		});
+
+		describe('when current round is more than initRounds + numberOfActiveDelegates', () => {
+			it('should all if snapshotValidators is less than numberOfActiveDelegates', async () => {
+				context = createBlockContext({
+					stateStore,
+				}).getBlockAfterExecuteContext();
+				// Forger selection relies on vote weight to be sorted
+				const delegates: { address: Buffer; weight: bigint }[] = [
+					...scenario.testCases.input.voteWeights.map(d => ({
+						address: Buffer.from(d.address, 'hex'),
+						weight: BigInt(d.voteWeight),
+					})),
+				].slice(0, 10);
+				sortValidatorsByWeightDesc(delegates);
+
+				const result = await dpos['_getActiveDelegates'](context, delegates, 104);
+				expect(result).toHaveLength(10);
+				expect(dpos['_capWeight']).not.toHaveBeenCalled();
+			});
+
+			it('should numberOfActiveDelegates if snapshotValidators is longer', async () => {
+				context = createBlockContext({
+					stateStore,
+				}).getBlockAfterExecuteContext();
+				// Forger selection relies on vote weight to be sorted
+				const delegates: { address: Buffer; weight: bigint }[] = [
+					...scenario.testCases.input.voteWeights.map(d => ({
+						address: Buffer.from(d.address, 'hex'),
+						weight: BigInt(d.voteWeight),
+					})),
+				];
+				sortValidatorsByWeightDesc(delegates);
+
+				const result = await dpos['_getActiveDelegates'](context, delegates, 104);
+				expect(result).toHaveLength(defaultConfig.numberActiveDelegates);
+			});
+
+			it('should cap the weight if activeDelegates is more than capValue', async () => {
+				context = createBlockContext({
+					stateStore,
+				}).getBlockAfterExecuteContext();
+				// Forger selection relies on vote weight to be sorted
+				const delegates: { address: Buffer; weight: bigint }[] = [
+					...scenario.testCases.input.voteWeights.map(d => ({
+						address: Buffer.from(d.address, 'hex'),
+						weight: BigInt(d.voteWeight),
+					})),
+				];
+				sortValidatorsByWeightDesc(delegates);
+
+				await dpos['_getActiveDelegates'](context, delegates, 104);
+				expect(dpos['_capWeight']).toHaveBeenCalledWith(
+					expect.any(Array),
+					defaultConfig.maxBFTWeightCap,
+				);
+			});
+		});
+	});
+
+	describe('_capWeight', () => {
+		it('should cap the validators input to the value', () => {
+			const addresses = new Array(5).fill(0).map(() => utils.getRandomBytes(20));
+			const cases = [
+				{
+					validators: [
+						{ address: addresses[0], weight: BigInt(1350) },
+						{ address: addresses[1], weight: BigInt(300) },
+						{ address: addresses[2], weight: BigInt(150) },
+						{ address: addresses[3], weight: BigInt(150) },
+						{ address: addresses[4], weight: BigInt(50) },
+					],
+					capValue: 3000,
+					expectedValidators: [
+						{ address: addresses[0], weight: BigInt(262) },
+						{ address: addresses[1], weight: BigInt(262) },
+						{ address: addresses[2], weight: BigInt(150) },
+						{ address: addresses[3], weight: BigInt(150) },
+						{ address: addresses[4], weight: BigInt(50) },
+					],
+				},
+				{
+					validators: [
+						{ address: addresses[0], weight: BigInt(1350) },
+						{ address: addresses[1], weight: BigInt(300) },
+						{ address: addresses[2], weight: BigInt(150) },
+						{ address: addresses[3], weight: BigInt(150) },
+						{ address: addresses[4], weight: BigInt(50) },
+					],
+					capValue: 5000,
+					expectedValidators: [
+						{ address: addresses[0], weight: BigInt(650) },
+						{ address: addresses[1], weight: BigInt(300) },
+						{ address: addresses[2], weight: BigInt(150) },
+						{ address: addresses[3], weight: BigInt(150) },
+						{ address: addresses[4], weight: BigInt(50) },
+					],
+				},
+			];
+
+			for (const c of cases) {
+				dpos['_capWeight'](c.validators, c.capValue);
+				expect(c.validators).toEqual(c.expectedValidators);
+			}
+		});
+	});
+
 	describe('afterTransactionsExecute', () => {
 		const genesisData: GenesisData = {
 			height: 0,
@@ -1265,18 +1221,16 @@ describe('DPoS module', () => {
 		let stateStore: PrefixedStateReadWriter;
 		let height: number;
 		let context: BlockAfterExecuteContext;
-		let dpos: DPoSModule;
 		let previousTimestampStore: PreviousTimestampStore;
 		let currentTimestamp: number;
 		let previousTimestamp: number;
 		let genesisDataStore: GenesisDataStore;
 
 		beforeEach(async () => {
-			dpos = new DPoSModule();
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 			dpos.addDependencies(randomMethod, validatorsMethod, tokenMethod);
 

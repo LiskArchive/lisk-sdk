@@ -767,7 +767,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskzot8pzdcvjhpjwrhq3dkkbf499ok7mhwkrvsq3",
@@ -778,7 +781,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskz89nmk8tuwt93yzqm6wu2jxjdaftr9d5detn8v",
@@ -789,7 +795,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskx2hume2sg9grrnj94cpqkjummtz2mpcgc8dhoe",
@@ -800,7 +809,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskxa4895zkxjspdvu3e5eujash7okvnkkpr8xsr5",
@@ -811,7 +823,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskvcgy7ccuokarwqde8m8ztrur92cob6ju5quy4n",
@@ -822,7 +837,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskvpnf7a2eg5wpxrx9p2tnnxm8y7a7emfj8c3gst",
@@ -833,7 +851,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskvq67zzev53sa6ozt39ft3dsmwxxztb7h29275k",
@@ -844,7 +865,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskvwy3xvehhpfh2aekcaro5sk36vp5z5kns2zaqt",
@@ -855,7 +879,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskcuj9g99y36fc6em2f6zfrd83c6djsvcyzx9u3p",
@@ -866,7 +893,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskc22mfaqzo722aenb6yw7awx8f22nrn54skrj8b",
@@ -877,7 +907,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskchcsq6pgnq6nwttwe9hyj67rb9936cf2ccjk3b",
@@ -888,7 +921,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskp2kubbnvgwhw588t3wp85wthe285r7e2m64w2d",
@@ -899,7 +935,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskmc9nhajmkqczvaeob872h9mefnw63mcec84qzd",
@@ -910,7 +949,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskm8g9dshwfcmfq9ctbrjm9zvb58h5c7y9ecstky",
@@ -921,7 +963,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskmwac26bhz5s5wo7h79dpyucckxku8jw5descbg",
@@ -932,7 +977,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskmadcfr9p3qgx8upeac6xkmk8fjss7atw8p8s2a",
@@ -943,7 +991,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskbm49qcdcyqvavxkm69x22btvhwx6v27kfzghu3",
@@ -954,7 +1005,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskbr5cnd8rjeaot7gtfo79fsywx4nb68b29xeqrh",
@@ -965,7 +1019,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsknyuj2wnn95w8svk7jo38jwxhpnrx7cj3vo4vjc",
@@ -976,7 +1033,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsknax33n2ohy872rdkfp4ud7nsv8eamwt6utw5nb",
@@ -987,7 +1047,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsknatyy4944pxukrhe38bww4bn3myzjp2af4sqgh",
@@ -998,7 +1061,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsknddzdw4xxej5znssc7aapej67s7g476osk7prc",
@@ -1009,7 +1075,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk3oz8mycgs86jehbmpmb83n8z3ctxou47h7r9bs",
@@ -1020,7 +1089,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk37kucto34knfhumezkx3qdwhmbrqfonjmck59z",
@@ -1031,7 +1103,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk3dzjyndh43tdc6vugbdqhfpt3k9juethuzsmdk",
@@ -1042,7 +1117,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk4nst5n99meqxndr684va7hhenw7q8sxs5depnb",
@@ -1053,7 +1131,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk67y3t2sqd7kka2agtcdm68oqvmvyw94nrjqz7f",
@@ -1064,7 +1145,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk6quzyfffe2xhukyq4vjwnebmnapvsgj4we7bad",
@@ -1075,7 +1159,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk5pmheu78re567zd5dnddzh2c3jzn7bwcrjd7dy",
@@ -1086,7 +1173,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk56hpjtt5b8w3h2qgckr57txuw95ja29rsonweo",
@@ -1097,7 +1187,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk5y2q2tn35xrnpdc4oag8sa3ktdacmdcahvwqot",
@@ -1108,7 +1201,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk5rtz6s352qyt9vggx7uyo5b4p2ommfxz36w7ma",
@@ -1119,7 +1215,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskoys3dpcyx5hkr7u2fenpjrbyd69tuyu5ar4dgy",
@@ -1130,7 +1229,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskoq2bmkpfwmmbo3c9pzdby7wmwjvokgmpgbpcj3",
@@ -1141,7 +1243,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskowvmbgn4oye4hae3keyjuzta4t499zqkjqydfd",
@@ -1152,7 +1257,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskos7tnf5jx4e6jq4bf5z4gwo2ow5he4khn75gpo",
@@ -1163,7 +1271,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk966m5mv2xk8hassrq5b8nz97qmy3nh348y6zf7",
@@ -1174,7 +1285,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk7drqfofanzn9rf7g59a2jha5ses3rswmc26hpw",
@@ -1185,7 +1299,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk8vjsq5s8jan9c8y9tmgawd6cttuszbf6jmhvj5",
@@ -1196,7 +1313,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk8netwcxgkpew8g5as2bkwbfraetf8neud25ktc",
@@ -1207,7 +1327,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk8kpswabbcjrnfp89demrfvryx9sgjsma87pusk",
@@ -1218,7 +1341,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk8dz47g5s7qxbyy46qvkrykfoj7wg7rb5ohy97c",
@@ -1229,7 +1355,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk8dsngwh4n6hmf4unqb8gfqgkayabaqdvtq85ja",
@@ -1240,7 +1369,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskux8ew6zq6zddya4u32towauvxmbe3x9hxvbzv4",
@@ -1251,7 +1383,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsku4ftwo3dvgygbnn58octduj6458h5eep2aea6e",
@@ -1262,7 +1397,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskuueow44w67rte7uoryn855hp5kw48szuhe5qmc",
@@ -1273,7 +1411,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskym4rrvgax9ubgqz6944z9q3t6quo5ugw33j3kr",
@@ -1284,7 +1425,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskyunb64dg4x72ue8mzte7cbev8j4nucf9je2sh9",
@@ -1295,7 +1439,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskrzuuu8gkp5bxrbbz9hdjxw2yhnpxdkdz3j8rxr",
@@ -1306,7 +1453,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskrxweey4ak83ek36go6okoxr6bxrepdv3y52k3y",
@@ -1317,7 +1467,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskrccyjmc8cybh9n3kgencq8u7fh796v2zfraco9",
@@ -1328,7 +1481,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskr8bmeh9q5brkctg8g44j82ootju82zu8porwvq",
@@ -1339,7 +1495,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskrskxmbv7s4czgxz5wtdqkay87ts2mfmu4ufcaw",
@@ -1350,7 +1509,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskrgqnuqub85jzcocgjsgb5rexrxc32s9dajhm69",
@@ -1361,7 +1523,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskrga27zfbamdcntpbxxt7sezvmubyxv9vnw2upk",
@@ -1372,7 +1537,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsktn6hodzd7v4kzgpd56osqjfwnzhu4mdyokynum",
@@ -1383,7 +1551,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsktas5pgp3tofv4ke4f2kayw9uyrqpnbf55bw5hm",
@@ -1394,7 +1565,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskk33a2z28ak9yy6eunbmodnynoehtyra5o4jzkn",
@@ -1405,7 +1579,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskk8yh4h2rkp3yegr5xuea62qbos6q8xd6h3wys2",
@@ -1416,7 +1593,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskkqjdxujqmjn2woqjs6txv3trzh6s5gsr882scp",
@@ -1427,7 +1607,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskk2vnyd5dq3ekexog6us6zcze9r64wk456zvj9a",
@@ -1438,7 +1621,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskkjm548jqdrgzqrozpkew9z82kqfvtpmvavj7d6",
@@ -1449,7 +1635,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskqxjqneh4mhkvvgga8wxtrky5ztzt6bh8rcvsvg",
@@ -1460,7 +1649,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskq6j6w8bv4s4to8ty6rz88y2cwcx76o4wcdnsdq",
@@ -1471,7 +1663,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskq5attbvu8s55ngwr3c5cv8392mqayvy4yyhpuy",
@@ -1482,7 +1677,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskqw45qy3ph9rwgow86rudqa7e3vmb93db5e4yad",
@@ -1493,7 +1691,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskqg9k3joyv9ouhjfysscame66hovq42yeev7ug7",
@@ -1504,7 +1705,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskezdab747v9z78hgmcxsokeetcmbdrpj3gzrdcw",
@@ -1515,7 +1719,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lske5sqed53fdcs4m9et28f2k7u9fk6hno9bauday",
@@ -1526,7 +1733,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskee8xh9oc78uhw5dhnaca9mbgmcgbwbnbarvd5d",
@@ -1537,7 +1747,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskewnnr5x7h3ckkmys8d4orvuyyqmf8odmud6qmg",
@@ -1548,7 +1761,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskwv3bh76epo42wvj6sdq8t7dbwar7xmm7h4k92m",
@@ -1559,7 +1775,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskw95u4yqs35jpeourx4jsgdur2br7b9nq88b4g2",
@@ -1570,7 +1789,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskwdkhf2ew9ov65v7srpq2mdq48rmrgp492z3pkn",
@@ -1581,7 +1803,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskwdqjhdgvqde9yrro4pfu464cumns3t5gyzutbm",
@@ -1592,7 +1817,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsk2xxvfxaqpm42wr9reokucegh3quypqg9w9aqfo",
@@ -1603,7 +1831,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lska4qegdqzmsndn5hdn5jngy6nnt9qxjekkkd5jz",
@@ -1614,7 +1845,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lska6rtf7ndbgbx7d8puaaf3heqsqnudkdhvoabdm",
@@ -1625,7 +1859,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskau7uqo6afteazgyknmtotxdjgwr3p9gfr4yzke",
@@ -1636,7 +1873,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskayo6b7wmd3prq8fauwr52tj9ordadwrvuh5hn7",
@@ -1647,7 +1887,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskatntynnut2eee2zxrpdzokrjmok43xczp2fme7",
@@ -1658,7 +1901,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskaw28kpqyffwzb8pcy47nangwwbyxjgnnvh9sfw",
@@ -1669,7 +1915,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskdo2dmatrfwcnzoeohorwqbef4qngvojfdtkqpj",
@@ -1680,7 +1929,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskduxr23bn9pajg8antj6fzaxc7hqpdmomoyshae",
@@ -1691,7 +1943,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsksmpgg7mo4m6ekc9tgvgjr8kh5h6wmgtqvq6776",
@@ -1702,7 +1957,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsksu2u78jmmx7jgu3k8vxcmsv48x3746cts9xejf",
@@ -1713,7 +1971,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsksy7x68enrmjxjb8copn5m8csys6rjejx56pjqt",
@@ -1724,7 +1985,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lsksdfqvkbqpc8eczj2s3dzkxnap5pguaxdw2227r",
@@ -1735,7 +1999,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskjnr8jmvz45dj9z47jbky9sadh3us3rd8tdn7ww",
@@ -1746,7 +2013,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskjtc95w5wqh5gtymqh7dqadb6kbc9x2mwr4eq8d",
@@ -1757,7 +2027,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskjtbchucvrd2s8qjo83e7trpem5edwa6dbjfczq",
@@ -1768,7 +2041,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskhbcq7mps5hhea5736qaggyupdsmgdj8ufzdojp",
@@ -1779,7 +2055,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskhamuapyyfckyg5v8u5o4jjw9bvr5bog7rgx8an",
@@ -1790,7 +2069,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskfx88g3826a4qsyxm4w3fheyymfnucpsq36d326",
@@ -1801,7 +2083,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskfmufdszf9ssqghf2yjkjeetyxy4v9wgawfv725",
@@ -1812,7 +2097,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskf6f3zj4o9fnpt7wd4fowafv8buyd72sgt2864b",
@@ -1823,7 +2111,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskf5sf93qyn28wfzqvr74eca3tywuuzq6xf32p7f",
@@ -1834,7 +2125,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskfowbrr5mdkenm2fcg2hhu76q3vhs74k692vv28",
@@ -1845,7 +2139,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskf7a93qr84d9a6ga543wernvxbsrpvtp299c5mj",
@@ -1856,7 +2153,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskfjd3ymhyzedgneudo2bujnm25u7stu4qpa3jnd",
@@ -1867,7 +2167,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskffxs3orv2au2juwa69hqtrmpcg9vq78cqbdjr4",
@@ -1878,7 +2181,10 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					},
 					{
 						"address": "lskgn7m77b769frqvgq7uko74wcrroqtcjv7nhv95",
@@ -1889,11 +2195,13 @@
 						"lastGeneratedHeight": 0,
 						"isBanned": false,
 						"pomHeights": [],
-						"consecutiveMissedBlocks": 0
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
 					}
 				],
 				"voters": [],
-				"snapshots": [],
 				"genesisData": {
 					"initRounds": 3,
 					"initDelegates": [
@@ -2004,7 +2312,7 @@
 			"schema": {
 				"$id": "/dpos/module/genesis",
 				"type": "object",
-				"required": ["validators", "voters", "snapshots", "genesisData"],
+				"required": ["validators", "voters", "genesisData"],
 				"properties": {
 					"validators": {
 						"type": "array",
@@ -2020,7 +2328,10 @@
 								"lastGeneratedHeight",
 								"isBanned",
 								"pomHeights",
-								"consecutiveMissedBlocks"
+								"consecutiveMissedBlocks",
+								"commission",
+								"lastCommissionIncreaseHeight",
+								"sharingCoefficients"
 							],
 							"properties": {
 								"address": {
@@ -2070,6 +2381,32 @@
 								"consecutiveMissedBlocks": {
 									"dataType": "uint32",
 									"fieldNumber": 9
+								},
+								"commission": {
+									"dataType": "uint32",
+									"fieldNumber": 10
+								},
+								"lastCommissionIncreaseHeight": {
+									"dataType": "uint32",
+									"fieldNumber": 11
+								},
+								"sharingCoefficients": {
+									"type": "array",
+									"fieldNumber": 12,
+									"items": {
+										"type": "object",
+										"required": ["tokenID", "coefficient"],
+										"properties": {
+											"tokenID": {
+												"dataType": "bytes",
+												"fieldNumber": 1
+											},
+											"coefficient": {
+												"dataType": "bytes",
+												"fieldNumber": 2
+											}
+										}
+									}
 								}
 							}
 						}
@@ -2100,6 +2437,24 @@
 											"amount": {
 												"dataType": "uint64",
 												"fieldNumber": 2
+											},
+											"voteSharingCoefficients": {
+												"type": "array",
+												"fieldNumber": 3,
+												"items": {
+													"type": "object",
+													"required": ["tokenID", "coefficient"],
+													"properties": {
+														"tokenID": {
+															"dataType": "bytes",
+															"fieldNumber": 1
+														},
+														"coefficient": {
+															"dataType": "bytes",
+															"fieldNumber": 2
+														}
+													}
+												}
 											}
 										}
 									}
@@ -2131,49 +2486,9 @@
 							}
 						}
 					},
-					"snapshots": {
-						"type": "array",
-						"fieldNumber": 3,
-						"maxLength": 3,
-						"items": {
-							"type": "object",
-							"required": ["roundNumber", "activeDelegates", "delegateWeightSnapshot"],
-							"properties": {
-								"roundNumber": {
-									"dataType": "uint32",
-									"fieldNumber": 1
-								},
-								"activeDelegates": {
-									"type": "array",
-									"fieldNumber": 2,
-									"items": {
-										"dataType": "bytes"
-									}
-								},
-								"delegateWeightSnapshot": {
-									"type": "array",
-									"fieldNumber": 3,
-									"items": {
-										"type": "object",
-										"required": ["delegateAddress", "delegateWeight"],
-										"properties": {
-											"delegateAddress": {
-												"dataType": "bytes",
-												"fieldNumber": 1
-											},
-											"delegateWeight": {
-												"dataType": "uint64",
-												"fieldNumber": 2
-											}
-										}
-									}
-								}
-							}
-						}
-					},
 					"genesisData": {
 						"type": "object",
-						"fieldNumber": 4,
+						"fieldNumber": 3,
 						"required": ["initRounds", "initDelegates"],
 						"properties": {
 							"initRounds": {

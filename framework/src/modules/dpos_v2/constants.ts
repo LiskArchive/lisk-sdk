@@ -25,6 +25,8 @@ export const MAX_LENGTH_NAME = 20;
 export const TEN_UNIT = BigInt(10) * BigInt(10) ** BigInt(8);
 export const MAX_VOTE = 10;
 export const MAX_UNLOCKING = 20;
+export const TOKEN_ID_DPOS = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
+export const TOKEN_ID_FEE = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 export const DELEGATE_REGISTRATION_FEE = BigInt(10) * BigInt(10) ** BigInt(8);
 export const MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE = 260000;
 export const MAX_POM_HEIGHTS = 5;
@@ -36,6 +38,14 @@ export const CHAIN_ID_LENGTH = 4;
 export const LOCAL_ID_LENGTH = 4;
 export const TOKEN_ID_LENGTH = CHAIN_ID_LENGTH + LOCAL_ID_LENGTH;
 export const MAX_NUMBER_BYTES_Q96 = 24;
+export const COMMISSION = 10000;
+
+// Key length
+export const ED25519_PUBLIC_KEY_LENGTH = 32;
+export const BLS_PUBLIC_KEY_LENGTH = 48;
+export const BLS_POP_LENGTH = 96;
+export const MAX_CAP = 10000;
+export const MAX_COMMISSION = 10000;
 
 export const defaultConfig = {
 	factorSelfVotes: 10,
@@ -46,11 +56,13 @@ export const defaultConfig = {
 	failSafeInactiveWindow: 260000,
 	punishmentWindow: PUNISHMENT_PERIOD,
 	roundLength: 103,
-	bftThreshold: 68,
 	minWeightStandby: '100000000000',
 	numberActiveDelegates: 101,
 	numberStandbyDelegates: 2,
-	tokenIDDPoS: '0000000000000000',
+	tokenIDDPoS: TOKEN_ID_DPOS.toString('hex'),
+	tokenIDFee: TOKEN_ID_FEE.toString('hex'),
+	delegateRegistrationFee: DELEGATE_REGISTRATION_FEE.toString(),
+	maxBFTWeightCap: 500,
 };
 
 export const enum PoSEventResult {

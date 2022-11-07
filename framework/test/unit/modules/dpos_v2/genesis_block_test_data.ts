@@ -31,6 +31,9 @@ export const validators = new Array(120).fill(0).map((_, i) => {
 		isBanned: false,
 		pomHeights: [],
 		consecutiveMissedBlocks: 0,
+		commission: 0,
+		lastCommissionIncreaseHeight: 0,
+		sharingCoefficients: [],
 	};
 });
 validators.sort((a, b) => a.address.compare(b.address));
@@ -44,6 +47,7 @@ export const validAsset = {
 				{
 					delegateAddress: validators[0].address,
 					amount: BigInt(1000) * BigInt(100000000),
+					voteSharingCoefficients: [],
 				},
 			],
 			pendingUnlocks: [
@@ -60,6 +64,7 @@ export const validAsset = {
 				{
 					delegateAddress: validators[0].address,
 					amount: BigInt(1000) * BigInt(100000000),
+					voteSharingCoefficients: [],
 				},
 			],
 			pendingUnlocks: [
@@ -71,14 +76,13 @@ export const validAsset = {
 			],
 		},
 	],
-	snapshots: [],
 	genesisData: {
 		initRounds: 3,
 		initDelegates: validators.slice(0, 101).map(v => v.address),
 	},
 };
 
-export const invalidAssets = [
+export const invalidAssets: any[] = [
 	[
 		'Invalid validator name length',
 		{
@@ -96,6 +100,7 @@ export const invalidAssets = [
 						{
 							delegateAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						},
 					],
 					pendingUnlocks: [
@@ -105,16 +110,6 @@ export const invalidAssets = [
 							unvoteHeight: 0,
 						},
 					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
 				},
 			],
 			genesisData: {
@@ -140,6 +135,7 @@ export const invalidAssets = [
 						{
 							delegateAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						},
 					],
 					pendingUnlocks: [
@@ -149,16 +145,6 @@ export const invalidAssets = [
 							unvoteHeight: 0,
 						},
 					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
 				},
 			],
 			genesisData: {
@@ -185,6 +171,7 @@ export const invalidAssets = [
 						{
 							delegateAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						},
 					],
 					pendingUnlocks: [
@@ -194,16 +181,6 @@ export const invalidAssets = [
 							unvoteHeight: 0,
 						},
 					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
 				},
 			],
 			genesisData: {
@@ -230,6 +207,7 @@ export const invalidAssets = [
 						{
 							delegateAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						},
 					],
 					pendingUnlocks: [
@@ -241,14 +219,49 @@ export const invalidAssets = [
 					],
 				},
 			],
-			snapshots: [
+			genesisData: {
+				initRounds: 3,
+				initDelegates: validators.slice(0, 101).map(v => v.address),
+			},
+		},
+		'Validator address is not unique',
+	],
+	[
+		'Not sorted validator sharing coefficient',
+		{
+			validators: [
 				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
+					...validators[0],
+					sharingCoefficients: [
+						{
+							tokenID: Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]),
+							coefficient: Buffer.from([1, 0, 0, 0]),
+						},
+						{
+							tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
+							coefficient: Buffer.from([1, 0, 0, 0]),
+						},
+					],
+				},
+				...validators.slice(1, 101),
+			],
+			voters: [
+				{
+					address: validators[0].address,
+					sentVotes: [
+						{
+							delegateAddress: validators[0].address,
+							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
+						},
+					],
+					pendingUnlocks: [
+						{
+							delegateAddress: validators[0].address,
+							amount: BigInt(10) * BigInt(100000000),
+							unvoteHeight: 0,
+						},
+					],
 				},
 			],
 			genesisData: {
@@ -256,7 +269,7 @@ export const invalidAssets = [
 				initDelegates: validators.slice(0, 101).map(v => v.address),
 			},
 		},
-		'Validator address is not unique',
+		'SharingCoefficients must be sorted by tokenID',
 	],
 	[
 		'Exceed max vote',
@@ -268,6 +281,7 @@ export const invalidAssets = [
 					sentVotes: validators.slice(0, 22).map(v => ({
 						delegateAddress: v.address,
 						amount: BigInt(1000) * BigInt(100000000),
+						voteSharingCoefficients: [],
 					})),
 					pendingUnlocks: [
 						{
@@ -276,16 +290,6 @@ export const invalidAssets = [
 							unvoteHeight: 0,
 						},
 					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
 				},
 			],
 			genesisData: {
@@ -306,10 +310,12 @@ export const invalidAssets = [
 						{
 							delegateAddress: validators[1].address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						},
 						...validators.slice(1, 10).map(v => ({
 							delegateAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -319,16 +325,6 @@ export const invalidAssets = [
 							unvoteHeight: 0,
 						},
 					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
 				},
 			],
 			genesisData: {
@@ -349,14 +345,17 @@ export const invalidAssets = [
 						{
 							delegateAddress: validators[1].address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						},
 						{
 							delegateAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						},
 						...validators.slice(2, 10).map(v => ({
 							delegateAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -366,16 +365,6 @@ export const invalidAssets = [
 							unvoteHeight: 0,
 						},
 					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
 				},
 			],
 			genesisData: {
@@ -396,10 +385,12 @@ export const invalidAssets = [
 						{
 							delegateAddress: Buffer.alloc(20, 0),
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						},
 						...validators.slice(1, 10).map(v => ({
 							delegateAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -411,14 +402,48 @@ export const invalidAssets = [
 					],
 				},
 			],
-			snapshots: [
+			genesisData: {
+				initRounds: 3,
+				initDelegates: validators.slice(0, 101).map(v => v.address),
+			},
+		},
+		'Sent vote includes non existing validator address',
+	],
+	[
+		'sent vote sharing coefficients is not sorted',
+		{
+			validators,
+			voters: [
 				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
+					address: validators[0].address,
+					sentVotes: [
+						{
+							delegateAddress: validators[0].address,
+							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [
+								{
+									tokenID: Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]),
+									coefficient: Buffer.from([1, 0, 0, 0]),
+								},
+								{
+									tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
+									coefficient: Buffer.from([1, 0, 0, 0]),
+								},
+							],
+						},
+						...validators.slice(1, 10).map(v => ({
+							delegateAddress: v.address,
+							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
+						})),
+					],
+					pendingUnlocks: [
+						{
+							delegateAddress: validators[0].address,
+							amount: BigInt(10) * BigInt(100000000),
+							unvoteHeight: 0,
+						},
+					],
 				},
 			],
 			genesisData: {
@@ -426,7 +451,62 @@ export const invalidAssets = [
 				initDelegates: validators.slice(0, 101).map(v => v.address),
 			},
 		},
-		'Sent vote includes non existing validator address',
+		'Validator does not have corresponding sharing coefficient or the coefficient value is not consistent',
+	],
+	[
+		'sent vote sharing coefficients is matching',
+		{
+			validators: [
+				{
+					...validators[0],
+					sharingCoefficients: [
+						{
+							tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
+							coefficient: Buffer.from([100, 100, 100, 0]),
+						},
+						{
+							tokenID: Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]),
+							coefficient: Buffer.from([1, 0, 0, 0]),
+						},
+					],
+				},
+				...validators.slice(1, 101),
+			],
+			voters: [
+				{
+					address: validators[0].address,
+					sentVotes: [
+						{
+							delegateAddress: validators[0].address,
+							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [
+								{
+									tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
+									coefficient: Buffer.from([255, 0, 0, 0]),
+								},
+							],
+						},
+						...validators.slice(1, 10).map(v => ({
+							delegateAddress: v.address,
+							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
+						})),
+					],
+					pendingUnlocks: [
+						{
+							delegateAddress: validators[0].address,
+							amount: BigInt(10) * BigInt(100000000),
+							unvoteHeight: 0,
+						},
+					],
+				},
+			],
+			genesisData: {
+				initRounds: 3,
+				initDelegates: validators.slice(0, 101).map(v => v.address),
+			},
+		},
+		'Validator does not have corresponding sharing coefficient or the coefficient value is not consistent',
 	],
 	[
 		'exceed max unlocking',
@@ -439,6 +519,7 @@ export const invalidAssets = [
 						...validators.slice(0, 10).map(v => ({
 							delegateAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -448,16 +529,6 @@ export const invalidAssets = [
 							unvoteHeight: 0,
 						})),
 					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
 				},
 			],
 			genesisData: {
@@ -478,6 +549,7 @@ export const invalidAssets = [
 						...validators.slice(0, 10).map(v => ({
 							delegateAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -499,16 +571,6 @@ export const invalidAssets = [
 					],
 				},
 			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
-				},
-			],
 			genesisData: {
 				initRounds: 3,
 				initDelegates: validators.slice(0, 101).map(v => v.address),
@@ -527,6 +589,7 @@ export const invalidAssets = [
 						...validators.slice(0, 10).map(v => ({
 							delegateAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -541,16 +604,6 @@ export const invalidAssets = [
 							unvoteHeight: 0,
 						})),
 					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
 				},
 			],
 			genesisData: {
@@ -571,6 +624,7 @@ export const invalidAssets = [
 						...validators.slice(0, 10).map(v => ({
 							delegateAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -587,6 +641,7 @@ export const invalidAssets = [
 						...validators.slice(0, 10).map(v => ({
 							delegateAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -594,249 +649,6 @@ export const invalidAssets = [
 							delegateAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
 							unvoteHeight: 0,
-						})),
-					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
-				},
-			],
-			genesisData: {
-				initRounds: 3,
-				initDelegates: validators.slice(0, 101).map(v => v.address),
-			},
-		},
-		'Voter address is not unique',
-	],
-	[
-		'max snapshot size exceeded',
-		{
-			validators,
-			voters: [
-				{
-					address: validators[0].address,
-					sentVotes: [
-						...validators.slice(0, 10).map(v => ({
-							delegateAddress: v.address,
-							amount: BigInt(1000) * BigInt(100000000),
-						})),
-					],
-					pendingUnlocks: [
-						...validators.slice(0, 20).map(v => ({
-							delegateAddress: v.address,
-							amount: BigInt(1000) * BigInt(100000000),
-							unvoteHeight: 0,
-						})),
-					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
-				},
-				{
-					roundNumber: 1,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
-				},
-				{
-					roundNumber: 2,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
-				},
-				{
-					roundNumber: 3,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
-				},
-			],
-			genesisData: {
-				initRounds: 3,
-				initDelegates: validators.slice(0, 101).map(v => v.address),
-			},
-		},
-		'Snapshot exceeds max snapshot length',
-	],
-	[
-		'snapshots round is not unique',
-		{
-			validators,
-			voters: [
-				{
-					address: validators[0].address,
-					sentVotes: [
-						...validators.slice(0, 10).map(v => ({
-							delegateAddress: v.address,
-							amount: BigInt(1000) * BigInt(100000000),
-						})),
-					],
-					pendingUnlocks: [
-						...validators.slice(0, 20).map(v => ({
-							delegateAddress: v.address,
-							amount: BigInt(1000) * BigInt(100000000),
-							unvoteHeight: 0,
-						})),
-					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
-				},
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
-				},
-			],
-			genesisData: {
-				initRounds: 3,
-				initDelegates: validators.slice(0, 101).map(v => v.address),
-			},
-		},
-		'Snapshot round must be unique',
-	],
-	[
-		'non unique snapshots active delegates address',
-		{
-			validators,
-			voters: [
-				{
-					address: validators[0].address,
-					sentVotes: [
-						...validators.slice(0, 10).map(v => ({
-							delegateAddress: v.address,
-							amount: BigInt(1000) * BigInt(100000000),
-						})),
-					],
-					pendingUnlocks: [
-						...validators.slice(0, 20).map(v => ({
-							delegateAddress: v.address,
-							amount: BigInt(1000) * BigInt(100000000),
-							unvoteHeight: 0,
-						})),
-					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: [validators[1].address, ...validators.slice(1, 101).map(v => v.address)],
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
-				},
-			],
-			genesisData: {
-				initRounds: 3,
-				initDelegates: validators.slice(0, 101).map(v => v.address),
-			},
-		},
-		'Snapshot active delegates address is not unique',
-	],
-	[
-		'non validator snapshots active delegates address',
-		{
-			validators,
-			voters: [
-				{
-					address: validators[0].address,
-					sentVotes: [
-						...validators.slice(0, 10).map(v => ({
-							delegateAddress: v.address,
-							amount: BigInt(1000) * BigInt(100000000),
-						})),
-					],
-					pendingUnlocks: [
-						...validators.slice(0, 20).map(v => ({
-							delegateAddress: v.address,
-							amount: BigInt(1000) * BigInt(100000000),
-							unvoteHeight: 0,
-						})),
-					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: [Buffer.alloc(20, 0), ...validators.slice(1, 101).map(v => v.address)],
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
-				},
-			],
-			genesisData: {
-				initRounds: 3,
-				initDelegates: validators.slice(0, 101).map(v => v.address),
-			},
-		},
-		'Snapshot active delegates includes non existing validator address',
-	],
-	[
-		'non validator snapshots delegate weight address',
-		{
-			validators,
-			voters: [
-				{
-					address: validators[0].address,
-					sentVotes: [
-						...validators.slice(0, 10).map(v => ({
-							delegateAddress: v.address,
-							amount: BigInt(1000) * BigInt(100000000),
-						})),
-					],
-					pendingUnlocks: [
-						...validators.slice(0, 20).map(v => ({
-							delegateAddress: v.address,
-							amount: BigInt(1000) * BigInt(100000000),
-							unvoteHeight: 0,
-						})),
-					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: [
-						{
-							delegateAddress: Buffer.alloc(20, 20),
-							delegateWeight: BigInt(100000000000),
-						},
-						...validators.slice(102).map(v => ({
-							delegateAddress: v.address,
-							delegateWeight: BigInt(100000000000),
 						})),
 					],
 				},
@@ -846,52 +658,7 @@ export const invalidAssets = [
 				initDelegates: validators.slice(0, 101).map(v => v.address),
 			},
 		},
-		'Delegate weight address has non existing validator address',
-	],
-	[
-		'non unique snapshots delegate weight address',
-		{
-			validators,
-			voters: [
-				{
-					address: validators[0].address,
-					sentVotes: [
-						...validators.slice(0, 10).map(v => ({
-							delegateAddress: v.address,
-							amount: BigInt(1000) * BigInt(100000000),
-						})),
-					],
-					pendingUnlocks: [
-						...validators.slice(0, 20).map(v => ({
-							delegateAddress: v.address,
-							amount: BigInt(1000) * BigInt(100000000),
-							unvoteHeight: 0,
-						})),
-					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: [
-						{
-							delegateAddress: validators[102].address,
-							delegateWeight: BigInt(100000000000),
-						},
-						...validators.slice(102).map(v => ({
-							delegateAddress: v.address,
-							delegateWeight: BigInt(100000000000),
-						})),
-					],
-				},
-			],
-			genesisData: {
-				initRounds: 3,
-				initDelegates: validators.slice(0, 101).map(v => v.address),
-			},
-		},
-		'Snapshot delegate weight address is not unique',
+		'Voter address is not unique',
 	],
 	[
 		'non unique init delegate',
@@ -904,6 +671,7 @@ export const invalidAssets = [
 						{
 							delegateAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						},
 					],
 					pendingUnlocks: [
@@ -913,16 +681,6 @@ export const invalidAssets = [
 							unvoteHeight: 0,
 						},
 					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
 				},
 			],
 			genesisData: {
@@ -943,6 +701,7 @@ export const invalidAssets = [
 						{
 							delegateAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						},
 					],
 					pendingUnlocks: [
@@ -952,16 +711,6 @@ export const invalidAssets = [
 							unvoteHeight: 0,
 						},
 					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
 				},
 			],
 			genesisData: {
@@ -982,6 +731,7 @@ export const invalidAssets = [
 						{
 							delegateAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
+							voteSharingCoefficients: [],
 						},
 					],
 					pendingUnlocks: [
@@ -991,16 +741,6 @@ export const invalidAssets = [
 							unvoteHeight: 0,
 						},
 					],
-				},
-			],
-			snapshots: [
-				{
-					roundNumber: 0,
-					activeDelegates: validators.slice(0, 101).map(v => v.address),
-					delegateWeightSnapshot: validators.slice(101).map(v => ({
-						delegateAddress: v.address,
-						delegateWeight: BigInt(100000000000),
-					})),
 				},
 			],
 			genesisData: {

@@ -245,15 +245,16 @@ describe('Delete block', () => {
 
 				const newBlock = await processEnv.createBlock([]);
 				await processEnv.process(newBlock);
-				const validatorsAfter = await processEnv
-					.getConsensus()
-					['_bft'].method.getBFTParameters(
-						processEnv.getConsensusStore(),
-						processEnv.getLastBlock().header.height + 1,
-					);
-				expect(validatorsBefore.validators.map(v => v.address)).not.toEqual(
-					validatorsAfter.validators.map(v => v.address),
-				);
+				// TODO: #7666 after vote command changes the eligible delegate, it should enable
+				// const validatorsAfter = await processEnv
+				// 	.getConsensus()
+				// 	['_bft'].method.getBFTParameters(
+				// 		processEnv.getConsensusStore(),
+				// 		processEnv.getLastBlock().header.height + 1,
+				// 	);
+				// expect(validatorsBefore.validators.map(v => v.address)).not.toEqual(
+				// 	validatorsAfter.validators.map(v => v.address),
+				// );
 				await processEnv.getConsensus()['_deleteLastBlock']();
 				const validatorsReverted = await processEnv
 					.getConsensus()

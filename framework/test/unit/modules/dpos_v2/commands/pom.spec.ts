@@ -79,6 +79,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			lock: jest.fn(),
 			unlock: jest.fn(),
 			getAvailableBalance: jest.fn(),
+			burn: jest.fn(),
 			transfer: jest.fn(),
 			getLockedAmount: jest.fn(),
 		};

@@ -12,36 +12,45 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MAX_LENGTH_NAME } from './constants';
+import {
+	MAX_COMMISSION,
+	MAX_NUMBER_BYTES_Q96,
+	TOKEN_ID_LENGTH,
+	BLS_PUBLIC_KEY_LENGTH,
+	BLS_POP_LENGTH,
+	ED25519_PUBLIC_KEY_LENGTH,
+} from './constants';
 
 export const delegateRegistrationCommandParamsSchema = {
 	$id: '/dpos/command/registerDelegateParams',
 	type: 'object',
-	required: ['name', 'generatorKey', 'blsKey', 'proofOfPossession'],
+	required: ['name', 'blsKey', 'proofOfPossession', 'generatorKey', 'delegateRegistrationFee'],
 	properties: {
 		name: {
 			dataType: 'string',
 			fieldNumber: 1,
-			minLength: 1,
-			maxLength: MAX_LENGTH_NAME,
-		},
-		generatorKey: {
-			dataType: 'bytes',
-			fieldNumber: 2,
-			minLength: 32,
-			maxLength: 32,
 		},
 		blsKey: {
 			dataType: 'bytes',
-			fieldNumber: 3,
-			minLength: 48,
-			maxLength: 48,
+			minLength: BLS_PUBLIC_KEY_LENGTH,
+			maxLength: BLS_PUBLIC_KEY_LENGTH,
+			fieldNumber: 2,
 		},
 		proofOfPossession: {
 			dataType: 'bytes',
+			minLength: BLS_POP_LENGTH,
+			maxLength: BLS_POP_LENGTH,
+			fieldNumber: 3,
+		},
+		generatorKey: {
+			dataType: 'bytes',
+			minLength: ED25519_PUBLIC_KEY_LENGTH,
+			maxLength: ED25519_PUBLIC_KEY_LENGTH,
 			fieldNumber: 4,
-			minLength: 96,
-			maxLength: 96,
+		},
+		delegateRegistrationFee: {
+			dataType: 'uint64',
+			fieldNumber: 5,
 		},
 	},
 };
@@ -141,10 +150,6 @@ export const configSchema = {
 			type: 'integer',
 			format: 'uint32',
 		},
-		bftThreshold: {
-			type: 'integer',
-			format: 'uint32',
-		},
 		minWeightStandby: {
 			type: 'string',
 			format: 'uint64',
@@ -161,6 +166,20 @@ export const configSchema = {
 			type: 'string',
 			format: 'hex',
 		},
+		tokenIDFee: {
+			type: 'string',
+			format: 'hex',
+		},
+		delegateRegistrationFee: {
+			type: 'string',
+			format: 'uint64',
+		},
+		maxBFTWeightCap: {
+			type: 'integer',
+			format: 'uint32',
+			minimum: 1,
+			maximum: 9999,
+		},
 	},
 	required: [
 		'factorSelfVotes',
@@ -171,18 +190,20 @@ export const configSchema = {
 		'failSafeInactiveWindow',
 		'punishmentWindow',
 		'roundLength',
-		'bftThreshold',
 		'minWeightStandby',
 		'numberActiveDelegates',
 		'numberStandbyDelegates',
 		'tokenIDDPoS',
+		'tokenIDFee',
+		'delegateRegistrationFee',
+		'maxBFTWeightCap',
 	],
 };
 
 export const genesisStoreSchema = {
 	$id: '/dpos/module/genesis',
 	type: 'object',
-	required: ['validators', 'voters', 'snapshots', 'genesisData'],
+	required: ['validators', 'voters', 'genesisData'],
 	properties: {
 		validators: {
 			type: 'array',
@@ -199,6 +220,9 @@ export const genesisStoreSchema = {
 					'isBanned',
 					'pomHeights',
 					'consecutiveMissedBlocks',
+					'commission',
+					'lastCommissionIncreaseHeight',
+					'sharingCoefficients',
 				],
 				properties: {
 					address: {
@@ -247,6 +271,36 @@ export const genesisStoreSchema = {
 						dataType: 'uint32',
 						fieldNumber: 9,
 					},
+					commission: {
+						dataType: 'uint32',
+						fieldNumber: 10,
+						maximum: MAX_COMMISSION,
+					},
+					lastCommissionIncreaseHeight: {
+						dataType: 'uint32',
+						fieldNumber: 11,
+					},
+					sharingCoefficients: {
+						type: 'array',
+						fieldNumber: 12,
+						items: {
+							type: 'object',
+							required: ['tokenID', 'coefficient'],
+							properties: {
+								tokenID: {
+									dataType: 'bytes',
+									minLength: TOKEN_ID_LENGTH,
+									maxLength: TOKEN_ID_LENGTH,
+									fieldNumber: 1,
+								},
+								coefficient: {
+									dataType: 'bytes',
+									maxLength: MAX_NUMBER_BYTES_Q96,
+									fieldNumber: 2,
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -278,6 +332,27 @@ export const genesisStoreSchema = {
 									dataType: 'uint64',
 									fieldNumber: 2,
 								},
+								voteSharingCoefficients: {
+									type: 'array',
+									fieldNumber: 3,
+									items: {
+										type: 'object',
+										required: ['tokenID', 'coefficient'],
+										properties: {
+											tokenID: {
+												dataType: 'bytes',
+												minLength: TOKEN_ID_LENGTH,
+												maxLength: TOKEN_ID_LENGTH,
+												fieldNumber: 1,
+											},
+											coefficient: {
+												dataType: 'bytes',
+												maxLength: MAX_NUMBER_BYTES_Q96,
+												fieldNumber: 2,
+											},
+										},
+									},
+								},
 							},
 						},
 					},
@@ -307,48 +382,9 @@ export const genesisStoreSchema = {
 				},
 			},
 		},
-		snapshots: {
-			type: 'array',
-			fieldNumber: 3,
-			maxLength: 3,
-			items: {
-				type: 'object',
-				required: ['roundNumber', 'activeDelegates', 'delegateWeightSnapshot'],
-				properties: {
-					roundNumber: {
-						dataType: 'uint32',
-						fieldNumber: 1,
-					},
-					activeDelegates: {
-						type: 'array',
-						fieldNumber: 2,
-						items: { dataType: 'bytes', format: 'lisk32' },
-					},
-					delegateWeightSnapshot: {
-						type: 'array',
-						fieldNumber: 3,
-						items: {
-							type: 'object',
-							required: ['delegateAddress', 'delegateWeight'],
-							properties: {
-								delegateAddress: {
-									dataType: 'bytes',
-									fieldNumber: 1,
-									format: 'lisk32',
-								},
-								delegateWeight: {
-									dataType: 'uint64',
-									fieldNumber: 2,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
 		genesisData: {
 			type: 'object',
-			fieldNumber: 4,
+			fieldNumber: 3,
 			required: ['initRounds', 'initDelegates'],
 			properties: {
 				initRounds: {

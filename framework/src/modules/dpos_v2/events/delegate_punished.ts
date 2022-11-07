@@ -36,7 +36,7 @@ export const delegatePunishedDataSchema = {
 	},
 };
 
-export class DelegatePunishedEventData extends BaseEvent<DelegatePunishedEventData> {
+export class DelegatePunishedEvent extends BaseEvent<DelegatePunishedEventData> {
 	public schema = delegatePunishedDataSchema;
 
 	public log(ctx: EventQueuer, data: DelegatePunishedEventData): void {

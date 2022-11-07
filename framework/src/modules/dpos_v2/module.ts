@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
+import { address as cryptoAddress, utils } from '@liskhq/lisk-cryptography';
 import { objects as objectUtils, dataStructures, objects } from '@liskhq/lisk-utils';
 import { isUInt64, validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
@@ -29,8 +29,8 @@ import {
 	EMPTY_KEY,
 	MAX_VOTE,
 	MAX_UNLOCKING,
-	MAX_SNAPSHOT,
 	defaultConfig,
+	MAX_CAP,
 } from './constants';
 import { DPoSEndpoint } from './endpoint';
 import {
@@ -46,7 +46,6 @@ import {
 	RandomMethod,
 	TokenMethod,
 	ValidatorsMethod,
-	SnapshotStoreData,
 	GenesisStore,
 	ModuleConfigJSON,
 	ModuleConfig,
@@ -54,19 +53,26 @@ import {
 import { Rounds } from './rounds';
 import {
 	equalUnlocking,
-	isCurrentlyPunished,
 	isUsername,
 	selectStandbyDelegates,
 	shuffleDelegateList,
 	sortUnlocking,
 	getModuleConfig,
+	getDelegateWeight,
+	ValidatorWeight,
+	isSharingCoefficientSorted,
 } from './utils';
-import { DelegateStore, VoteSharingCofficientObject } from './stores/delegate';
+import { DelegateStore } from './stores/delegate';
 import { GenesisDataStore } from './stores/genesis';
 import { NameStore } from './stores/name';
 import { PreviousTimestampStore } from './stores/previous_timestamp';
-import { SnapshotStore } from './stores/snapshot';
+import { SnapshotStore, SnapshotStoreData } from './stores/snapshot';
 import { VoterStore } from './stores/voter';
+import { EligibleDelegatesStore } from './stores/eligible_delegates';
+import { DelegateBannedEvent } from './events/delegate_banned';
+import { DelegatePunishedEvent } from './events/delegate_punished';
+import { DelegateRegisteredEvent } from './events/delegate_registered';
+import { DelegateVotedEvent } from './events/delegate_voted';
 
 export class DPoSModule extends BaseModule {
 	public method = new DPoSMethod(this.stores, this.events);
@@ -110,6 +116,12 @@ export class DPoSModule extends BaseModule {
 		this.stores.register(PreviousTimestampStore, new PreviousTimestampStore(this.name));
 		this.stores.register(SnapshotStore, new SnapshotStore(this.name));
 		this.stores.register(VoterStore, new VoterStore(this.name));
+		this.stores.register(EligibleDelegatesStore, new EligibleDelegatesStore(this.name));
+
+		this.events.register(DelegateBannedEvent, new DelegateBannedEvent(this.name));
+		this.events.register(DelegatePunishedEvent, new DelegatePunishedEvent(this.name));
+		this.events.register(DelegateRegisteredEvent, new DelegateRegisteredEvent(this.name));
+		this.events.register(DelegateVotedEvent, new DelegateVotedEvent(this.name));
 	}
 
 	public get name() {
@@ -125,7 +137,7 @@ export class DPoSModule extends BaseModule {
 		this._validatorsMethod = validatorsMethod;
 		this._tokenMethod = tokenMethod;
 
-		this._delegateRegistrationCommand.addDependencies(this._validatorsMethod);
+		this._delegateRegistrationCommand.addDependencies(this._tokenMethod, this._validatorsMethod);
 		this._reportDelegateMisbehaviorCommand.addDependencies({
 			tokenMethod: this._tokenMethod,
 			validatorsMethod: this._validatorsMethod,
@@ -186,12 +198,18 @@ export class DPoSModule extends BaseModule {
 		this.method.init(this._moduleConfig);
 		this.endpoint.init(this._moduleConfig);
 
+		this._delegateRegistrationCommand.init({
+			tokenIDFee: this._moduleConfig.tokenIDFee,
+			delegateRegistrationFee: this._moduleConfig.delegateRegistrationFee,
+		});
 		this._reportDelegateMisbehaviorCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
 		this._unlockCommand.init({
 			tokenIDDPoS: this._moduleConfig.tokenIDDPoS,
 			roundLength: this._moduleConfig.roundLength,
 		});
 		this._voteCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
+
+		this.stores.get(EligibleDelegatesStore).init(this._moduleConfig);
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
@@ -206,12 +224,24 @@ export class DPoSModule extends BaseModule {
 		// validators property check
 		const dposValidatorAddresses = [];
 		const dposValidatorNames = [];
-		const dposValidatorAddressMap = new dataStructures.BufferMap();
+		const dposValidatorAddressMap = new dataStructures.BufferMap<GenesisStore['validators'][0]>();
 		for (const dposValidator of genesisStore.validators) {
 			if (!isUsername(dposValidator.name)) {
 				throw new Error(`Invalid validator name ${dposValidator.name}.`);
 			}
-			dposValidatorAddressMap.set(dposValidator.address, true);
+			if (dposValidator.lastCommissionIncreaseHeight > context.header.height) {
+				throw new Error(
+					`Invalid lastCommissionIncreaseHeight ${
+						dposValidator.lastCommissionIncreaseHeight
+					} for ${cryptoAddress.getLisk32AddressFromAddress(dposValidator.address)}.`,
+				);
+			}
+			// sharingCoefficients must be sorted by tokenID
+			if (!isSharingCoefficientSorted(dposValidator.sharingCoefficients)) {
+				throw new Error('SharingCoefficients must be sorted by tokenID.');
+			}
+
+			dposValidatorAddressMap.set(dposValidator.address, dposValidator);
 			dposValidatorAddresses.push(dposValidator.address);
 			dposValidatorNames.push(dposValidator.name);
 		}
@@ -233,9 +263,30 @@ export class DPoSModule extends BaseModule {
 			if (!objectUtils.bufferArrayOrderByLex(voter.sentVotes.map(v => v.delegateAddress))) {
 				throw new Error('Sent vote delegate address is not lexicographically ordered.');
 			}
-			if (voter.sentVotes.some(v => !dposValidatorAddressMap.has(v.delegateAddress))) {
-				throw new Error('Sent vote includes non existing validator address.');
+			for (const votes of voter.sentVotes) {
+				const dposValidator = dposValidatorAddressMap.get(votes.delegateAddress);
+				if (!dposValidator) {
+					throw new Error('Sent vote includes non existing validator address.');
+				}
+				for (const sharingCoefficient of votes.voteSharingCoefficients) {
+					const targetCoefficient = dposValidator.sharingCoefficients.find(co =>
+						co.tokenID.equals(sharingCoefficient.tokenID),
+					);
+					if (
+						!targetCoefficient ||
+						sharingCoefficient.coefficient.compare(targetCoefficient.coefficient) > 0
+					) {
+						throw new Error(
+							'Validator does not have corresponding sharing coefficient or the coefficient value is not consistent.',
+						);
+					}
+				}
+				// sharingCoefficients must be sorted by tokenID
+				if (!isSharingCoefficientSorted(votes.voteSharingCoefficients)) {
+					throw new Error('voteSharingCoefficients must be sorted by tokenID.');
+				}
 			}
+
 			if (voter.pendingUnlocks.length > MAX_UNLOCKING) {
 				throw new Error(`PendingUnlocks exceeds max unlocking ${MAX_UNLOCKING}.`);
 			}
@@ -255,33 +306,6 @@ export class DPoSModule extends BaseModule {
 		}
 		if (!objectUtils.bufferArrayUniqueItems(voterAddresses)) {
 			throw new Error('Voter address is not unique.');
-		}
-		// snapshot check
-		if (genesisStore.snapshots.length > MAX_SNAPSHOT) {
-			throw new Error(`Snapshot exceeds max snapshot length ${MAX_SNAPSHOT}.`);
-		}
-		if (
-			new Set(genesisStore.snapshots.map(s => s.roundNumber)).size !== genesisStore.snapshots.length
-		) {
-			throw new Error('Snapshot round must be unique.');
-		}
-		for (const snapshot of genesisStore.snapshots) {
-			if (!objectUtils.bufferArrayUniqueItems(snapshot.activeDelegates)) {
-				throw new Error('Snapshot active delegates address is not unique.');
-			}
-			if (snapshot.activeDelegates.some(v => !dposValidatorAddressMap.has(v))) {
-				throw new Error('Snapshot active delegates includes non existing validator address.');
-			}
-			const delegateWeightAddresses = [];
-			for (const delegateWeight of snapshot.delegateWeightSnapshot) {
-				if (!dposValidatorAddressMap.has(delegateWeight.delegateAddress)) {
-					throw new Error('Delegate weight address has non existing validator address.');
-				}
-				delegateWeightAddresses.push(delegateWeight.delegateAddress);
-			}
-			if (!objectUtils.bufferArrayUniqueItems(delegateWeightAddresses)) {
-				throw new Error('Snapshot delegate weight address is not unique.');
-			}
 		}
 		// check genesis state
 		if (!objectUtils.bufferArrayUniqueItems(genesisStore.genesisData.initDelegates)) {
@@ -317,11 +341,7 @@ export class DPoSModule extends BaseModule {
 				voteMap.set(sentVote.delegateAddress, delegate);
 			}
 			await voterStore.set(context, voter.address, {
-				// TODO: Issue #7669
-				sentVotes: voter.sentVotes.map(sentVote => ({
-					...sentVote,
-					voteSharingCoefficients: [] as VoteSharingCofficientObject[],
-				})),
+				sentVotes: voter.sentVotes,
 				pendingUnlocks: voter.pendingUnlocks,
 			});
 		}
@@ -341,24 +361,15 @@ export class DPoSModule extends BaseModule {
 				isBanned: dposValidator.isBanned,
 				pomHeights: dposValidator.pomHeights,
 				consecutiveMissedBlocks: dposValidator.consecutiveMissedBlocks,
-				// TODO: Issue: #7669
-				commission: 0,
-				lastCommissionIncreaseHeight: 0,
-				sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+				commission: dposValidator.commission,
+				lastCommissionIncreaseHeight: dposValidator.lastCommissionIncreaseHeight,
+				sharingCoefficients: dposValidator.sharingCoefficients,
 			});
 			await nameSubstore.set(context, Buffer.from(dposValidator.name, 'utf-8'), {
 				delegateAddress: dposValidator.address,
 			});
 		}
 
-		const snapshotStore = this.stores.get(SnapshotStore);
-		for (const snapshot of genesisStore.snapshots) {
-			const storeKey = utils.intToBuffer(snapshot.roundNumber, 4);
-			await snapshotStore.set(context, storeKey, {
-				activeDelegates: snapshot.activeDelegates,
-				delegateWeightSnapshot: snapshot.delegateWeightSnapshot,
-			});
-		}
 		const previousTimestampStore = this.stores.get(PreviousTimestampStore);
 		await previousTimestampStore.set(context, EMPTY_KEY, {
 			timestamp: context.header.timestamp,
@@ -418,43 +429,24 @@ export class DPoSModule extends BaseModule {
 
 		const initDelegates = [...genesisStore.genesisData.initDelegates];
 		initDelegates.sort((a, b) => a.compare(b));
-		const initBFTThreshold = BigInt(Math.floor((2 * initDelegates.length) / 3) + 1);
 		const validators = [];
+		let aggregateBFTWeight = BigInt(0);
 		for (const validatorAddress of initDelegates) {
 			validators.push({
 				address: validatorAddress,
 				bftWeight: BigInt(1),
 			});
+			aggregateBFTWeight += BigInt(1);
 		}
+		const precommitThreshold = (BigInt(2) * aggregateBFTWeight) / BigInt(3) + BigInt(1);
+		const certificateThreshold = precommitThreshold;
 		await this._validatorsMethod.setValidatorsParams(
 			context.getMethodContext(),
 			context,
-			initBFTThreshold,
-			initBFTThreshold,
+			precommitThreshold,
+			certificateThreshold,
 			validators,
 		);
-
-		const MAX_UINT32 = 2 ** 32 - 1;
-		const snapshotStore = this.stores.get(SnapshotStore);
-		const allSnapshots = await snapshotStore.iterate(context, {
-			gte: utils.intToBuffer(0, 4),
-			lte: utils.intToBuffer(MAX_UINT32, 4),
-		});
-		if (context.header.height === 0 && allSnapshots.length > 0) {
-			throw new Error('When genensis height is zero, there should not be a snapshot.');
-		}
-		if (context.header.height !== 0) {
-			if (allSnapshots.length === 0) {
-				throw new Error('When genesis height is non-zero, snapshot is required.');
-			}
-			const genesisRound = new Rounds({ blocksPerRound: this._moduleConfig.roundLength }).calcRound(
-				context.header.height,
-			);
-			const lastsnapshotRound = allSnapshots[allSnapshots.length - 1].key.readUInt32BE(0);
-			if (lastsnapshotRound !== genesisRound) {
-				throw new Error('Invalid snapshot. Latest snapshot should be the genesis round.');
-			}
-		}
 	}
 
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
@@ -487,77 +479,22 @@ export class DPoSModule extends BaseModule {
 		const snapshotRound = round.calcRound(snapshotHeight) + DELEGATE_LIST_ROUND_OFFSET;
 		context.logger.debug(`Creating vote weight snapshot for round: ${snapshotRound.toString()}`);
 
-		const delegateStore = this.stores.get(DelegateStore);
-		const delegates = await delegateStore.iterate(context, {
-			gte: Buffer.alloc(20),
-			lte: Buffer.alloc(20, 255),
-		});
-		const voteWeightCapRate = this._moduleConfig.factorSelfVotes;
-
-		// Update totalVotesReceived to voteWeight equivalent before sorting
-		for (const { value: account } of delegates) {
-			// If the account is being punished, then consider them as vote weight 0
-			if (isCurrentlyPunished(snapshotHeight, account.pomHeights)) {
-				account.totalVotesReceived = BigInt(0);
-				continue;
-			}
-
-			const cappedValue = account.selfVotes * BigInt(voteWeightCapRate);
-			if (account.totalVotesReceived > cappedValue) {
-				account.totalVotesReceived = cappedValue;
+		const eligibleDelegateStore = this.stores.get(EligibleDelegatesStore);
+		const eligibleDelegatesList = await eligibleDelegateStore.getAll(context);
+		const delegateWeightSnapshot = [];
+		for (const { key, value } of eligibleDelegatesList) {
+			if (
+				value.lastPomHeight === 0 ||
+				value.lastPomHeight < snapshotHeight - this._moduleConfig.punishmentWindow
+			) {
+				const [address, weight] = eligibleDelegateStore.splitKey(key);
+				delegateWeightSnapshot.push({ address, weight });
 			}
 		}
-
-		delegates.sort((a, b) => {
-			const diff = b.value.totalVotesReceived - a.value.totalVotesReceived;
-			if (diff > BigInt(0)) {
-				return 1;
-			}
-			if (diff < BigInt(0)) {
-				return -1;
-			}
-
-			return a.key.compare(b.key);
-		});
 
 		const snapshotData: SnapshotStoreData = {
-			activeDelegates: [],
-			delegateWeightSnapshot: [],
+			delegateWeightSnapshot,
 		};
-
-		for (const { key: address, value: account } of delegates) {
-			// If the account is banned, do not include in the list
-			if (account.isBanned) {
-				continue;
-			}
-
-			// Select active delegate first
-			if (snapshotData.activeDelegates.length < this._moduleConfig.numberActiveDelegates) {
-				snapshotData.activeDelegates.push(address);
-				continue;
-			}
-
-			// If account has more than threshold, save it as standby
-			if (account.totalVotesReceived >= this._moduleConfig.minWeightStandby) {
-				snapshotData.delegateWeightSnapshot.push({
-					delegateAddress: address,
-					delegateWeight: account.totalVotesReceived,
-				});
-				continue;
-			}
-
-			// From here, it's below threshold
-			// Below threshold, but prepared array does not have enough selected delegate
-			if (snapshotData.delegateWeightSnapshot.length < this._moduleConfig.numberStandbyDelegates) {
-				// In case there was 1 standby delegate who has more than threshold
-				snapshotData.delegateWeightSnapshot.push({
-					delegateAddress: address,
-					delegateWeight: account.totalVotesReceived,
-				});
-				continue;
-			}
-			break;
-		}
 
 		const snapshotStore = this.stores.get(SnapshotStore);
 		const storeKey = utils.intToBuffer(snapshotRound, 4);
@@ -582,50 +519,68 @@ export class DPoSModule extends BaseModule {
 
 		const snapshotStore = this.stores.get(SnapshotStore);
 		const snapshot = await snapshotStore.get(context, utils.intToBuffer(nextRound, 4));
+		const genesisData = await this.stores.get(GenesisDataStore).get(context, EMPTY_KEY);
 
 		const methodContext = context.getMethodContext();
+		const activeValidators = await this._getActiveDelegates(
+			context,
+			snapshot.delegateWeightSnapshot,
+			nextRound,
+		);
+		const validators = [];
+		const activeDelegateMap = new dataStructures.BufferMap<boolean>();
+		for (const v of activeValidators) {
+			activeDelegateMap.set(v.address, true);
+			validators.push(v);
+		}
 
-		// Update the validators
-		const validators = [...snapshot.activeDelegates];
-		let standbyDelegates: Buffer[] = [];
 		const randomSeed1 = await this._randomMethod.getRandomBytes(
 			methodContext,
 			height + 1 - Math.floor((this._moduleConfig.roundLength * 3) / 2),
 			this._moduleConfig.roundLength,
 		);
-		if (this._moduleConfig.numberStandbyDelegates === 2) {
-			const randomSeed2 = await this._randomMethod.getRandomBytes(
-				methodContext,
-				height + 1 - 2 * this._moduleConfig.roundLength,
-				this._moduleConfig.roundLength,
+		// select standby delegates
+		let standbyDelegates: ValidatorWeight[] = [];
+		if (nextRound > genesisData.initRounds + this._moduleConfig.numberActiveDelegates) {
+			const candidates = snapshot.delegateWeightSnapshot.filter(
+				v => !activeDelegateMap.has(v.address),
 			);
-			standbyDelegates = selectStandbyDelegates(
-				snapshot.delegateWeightSnapshot,
-				randomSeed1,
-				randomSeed2,
-			);
-			validators.push(...standbyDelegates);
-		} else if (this._moduleConfig.numberStandbyDelegates === 1) {
-			standbyDelegates = selectStandbyDelegates(snapshot.delegateWeightSnapshot, randomSeed1);
-			validators.push(...standbyDelegates);
+			if (this._moduleConfig.numberStandbyDelegates === 2) {
+				const randomSeed2 = await this._randomMethod.getRandomBytes(
+					methodContext,
+					height + 1 - 2 * this._moduleConfig.roundLength,
+					this._moduleConfig.roundLength,
+				);
+				standbyDelegates = selectStandbyDelegates(candidates, randomSeed1, randomSeed2);
+				validators.push(...standbyDelegates);
+			} else if (this._moduleConfig.numberStandbyDelegates === 1) {
+				standbyDelegates = selectStandbyDelegates(candidates, randomSeed1);
+				validators.push(...standbyDelegates);
+			}
 		}
+		// if there is no validator, then no update
+		if (validators.length === 0) {
+			return;
+		}
+
+		// Update the validators
 		const shuffledValidators = shuffleDelegateList(randomSeed1, validators);
-		const bftValidators = [];
-		// TODO: Issue #7670
-		for (const validatorAddress of shuffledValidators) {
-			const isActive =
-				snapshot.activeDelegates.findIndex(addr => addr.equals(validatorAddress)) > -1;
-			// if validator is active
+		let aggregateBFTWeight = BigInt(0);
+		const bftValidators: { address: Buffer; bftWeight: bigint }[] = [];
+		for (const v of shuffledValidators) {
+			aggregateBFTWeight += v.weight;
 			bftValidators.push({
-				address: validatorAddress,
-				bftWeight: isActive ? BigInt(1) : BigInt(0),
+				address: v.address,
+				bftWeight: v.weight,
 			});
 		}
+		const precommitThreshold = (BigInt(2) * aggregateBFTWeight) / BigInt(3) + BigInt(1);
+		const certificateThreshold = precommitThreshold;
 		await this._validatorsMethod.setValidatorsParams(
 			context.getMethodContext(),
 			context,
-			BigInt(this._moduleConfig.bftThreshold),
-			BigInt(this._moduleConfig.bftThreshold),
+			precommitThreshold,
+			certificateThreshold,
 			bftValidators,
 		);
 	}
@@ -645,6 +600,7 @@ export class DPoSModule extends BaseModule {
 		);
 
 		const delegateStore = this.stores.get(DelegateStore);
+		const eligibleDelegateStore = this.stores.get(EligibleDelegatesStore);
 		for (const addressString of Object.keys(missedBlocks)) {
 			const address = Buffer.from(addressString, 'binary');
 			const delegate = await delegateStore.get(context, address);
@@ -654,6 +610,16 @@ export class DPoSModule extends BaseModule {
 				newHeight - delegate.lastGeneratedHeight > this._moduleConfig.failSafeInactiveWindow
 			) {
 				delegate.isBanned = true;
+				await eligibleDelegateStore.update(
+					context,
+					address,
+					getDelegateWeight(
+						BigInt(this._moduleConfig.factorSelfVotes),
+						delegate.selfVotes,
+						delegate.totalVotesReceived,
+					),
+					delegate,
+				);
 			}
 
 			await delegateStore.set(context, address, delegate);
@@ -674,5 +640,69 @@ export class DPoSModule extends BaseModule {
 		const nextHeightRound = rounds.calcRound(header.height + 1);
 
 		return nextHeightRound > initRounds;
+	}
+
+	// _getActiveDelegates assumes to be called after initRounds is passed
+	// snapshotValidators is expected to be sorted desc by weight
+	private async _getActiveDelegates(
+		context: BlockAfterExecuteContext,
+		snapshotValidators: SnapshotStoreData['delegateWeightSnapshot'],
+		round: number,
+	): Promise<ValidatorWeight[]> {
+		const genesisData = await this.stores.get(GenesisDataStore).get(context, EMPTY_KEY);
+		// After initRounds, each round introduce one new slot for selected validators
+		if (round < genesisData.initRounds + this._moduleConfig.numberActiveDelegates) {
+			const numInitValidators =
+				genesisData.initRounds + this._moduleConfig.numberActiveDelegates - round;
+			const numElectedValidators = this._moduleConfig.numberActiveDelegates - numInitValidators;
+			const activeDelegates = snapshotValidators.slice(0, numElectedValidators);
+			for (const address of genesisData.initDelegates) {
+				// when activeDelegate is filled, don't add anymore
+				if (activeDelegates.length === this._moduleConfig.numberActiveDelegates) {
+					break;
+				}
+				// it should not add duplicate address
+				if (activeDelegates.findIndex(d => d.address.equals(address)) > -1) {
+					continue;
+				}
+				activeDelegates.push({ address, weight: BigInt(1) });
+			}
+			return activeDelegates;
+		}
+		// Delegate selection is out of init rounds
+		const activeDelegates =
+			snapshotValidators.length > this._moduleConfig.numberActiveDelegates
+				? snapshotValidators.slice(0, this._moduleConfig.numberActiveDelegates)
+				: snapshotValidators;
+		// No capping is required
+		const capValue = this._moduleConfig.maxBFTWeightCap;
+		if (activeDelegates.length < Math.ceil(MAX_CAP / capValue)) {
+			return activeDelegates;
+		}
+		// cap the weights
+		return this._capWeight(activeDelegates, this._moduleConfig.maxBFTWeightCap);
+	}
+
+	private _capWeight(validators: ValidatorWeight[], capValue: number) {
+		const maxCappedElements = Math.ceil(MAX_CAP / capValue) - 1;
+		let partialSum = BigInt(0);
+		for (let i = maxCappedElements + 1; i < validators.length; i += 1) {
+			partialSum += validators[i].weight;
+		}
+		for (let i = maxCappedElements; i > 0; i -= 1) {
+			partialSum += validators[i].weight;
+			const cappedWeightRemainingElements =
+				(BigInt(capValue) * partialSum) /
+				BigInt(100) /
+				(BigInt(100) - BigInt(capValue * i) / BigInt(100));
+			if (cappedWeightRemainingElements < validators[i - 1].weight) {
+				for (let j = 0; j < i; j += 1) {
+					// eslint-disable-next-line no-param-reassign
+					validators[j].weight = cappedWeightRemainingElements;
+				}
+				return validators;
+			}
+		}
+		return validators;
 	}
 }

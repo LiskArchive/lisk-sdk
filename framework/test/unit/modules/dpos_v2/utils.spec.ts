@@ -20,8 +20,11 @@ import * as delegateShufflingScenario from '../../../fixtures/dpos_delegate_shuf
 describe('utils', () => {
 	describe('shuffleDelegateList', () => {
 		const { previousRoundSeed1 } = delegateShufflingScenario.testCases.input;
-		const addressList = [...delegateShufflingScenario.testCases.input.delegateList].map(address =>
-			Buffer.from(address, 'hex'),
+		const addressList = [...delegateShufflingScenario.testCases.input.delegateList].map(
+			address => ({
+				address: Buffer.from(address, 'hex'),
+				weight: BigInt(1),
+			}),
 		);
 		it('should return a list of uniformly shuffled list of delegates', () => {
 			const shuffledDelegateList = shuffleDelegateList(
@@ -30,13 +33,13 @@ describe('utils', () => {
 			);
 
 			expect(shuffledDelegateList).toHaveLength(addressList.length);
-			shuffledDelegateList.forEach(address =>
-				expect(addressList.map(a => cryptoAddress.getLisk32AddressFromAddress(a))).toContain(
-					cryptoAddress.getLisk32AddressFromAddress(address),
-				),
+			shuffledDelegateList.forEach(delegate =>
+				expect(
+					addressList.map(a => cryptoAddress.getLisk32AddressFromAddress(a.address)),
+				).toContain(cryptoAddress.getLisk32AddressFromAddress(delegate.address)),
 			);
 
-			expect(shuffledDelegateList.map(b => b.toString('hex'))).toEqual(
+			expect(shuffledDelegateList.map(b => b.address.toString('hex'))).toEqual(
 				delegateShufflingScenario.testCases.output.delegateList,
 			);
 		});
@@ -48,6 +51,8 @@ describe('utils', () => {
 				...defaultConfig,
 				minWeightStandby: BigInt(defaultConfig.minWeightStandby),
 				tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS, 'hex'),
+				tokenIDFee: Buffer.from(defaultConfig.tokenIDFee, 'hex'),
+				delegateRegistrationFee: BigInt(defaultConfig.delegateRegistrationFee),
 			};
 
 			const actual: ModuleConfig = getModuleConfig(defaultConfig);
