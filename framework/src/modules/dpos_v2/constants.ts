@@ -59,7 +59,6 @@ export const defaultConfig = {
 	minWeightStandby: '100000000000',
 	numberActiveDelegates: 101,
 	numberStandbyDelegates: 2,
-	tokenIDDPoS: TOKEN_ID_DPOS.toString('hex'),
 	tokenIDFee: TOKEN_ID_FEE.toString('hex'),
 	delegateRegistrationFee: DELEGATE_REGISTRATION_FEE.toString(),
 	maxBFTWeightCap: 500,

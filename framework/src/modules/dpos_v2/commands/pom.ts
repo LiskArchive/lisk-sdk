@@ -31,7 +31,7 @@ import {
 	PomCommandDependencies,
 	PomTransactionParams,
 	TokenMethod,
-	TokenIDDPoS,
+	TokenID,
 	ValidatorsMethod,
 } from '../types';
 import { getPunishmentPeriod } from '../utils';
@@ -43,15 +43,15 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 	public schema = pomCommandParamsSchema;
 	private _tokenMethod!: TokenMethod;
 	private _validatorsMethod!: ValidatorsMethod;
-	private _tokenIDDPoS!: TokenIDDPoS;
+	private _governanceTokenID!: TokenID;
 
 	public addDependencies(args: PomCommandDependencies) {
 		this._tokenMethod = args.tokenMethod;
 		this._validatorsMethod = args.validatorsMethod;
 	}
 
-	public init(args: { tokenIDDPoS: TokenIDDPoS }) {
-		this._tokenIDDPoS = args.tokenIDDPoS;
+	public init(args: { governanceTokenID: TokenID }) {
+		this._governanceTokenID = args.governanceTokenID;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -155,7 +155,7 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 		const delegateAccountBalance = await this._tokenMethod.getAvailableBalance(
 			getMethodContext(),
 			delegateAddress,
-			this._tokenIDDPoS,
+			this._governanceTokenID,
 		);
 
 		const reward =
@@ -175,7 +175,7 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 				getMethodContext(),
 				delegateAddress,
 				transaction.senderAddress,
-				this._tokenIDDPoS,
+				this._governanceTokenID,
 				reward,
 			);
 		}

@@ -15,26 +15,43 @@
 import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { NotFoundError } from '@liskhq/lisk-db';
+import { validator } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
-import { DelegateStore } from './stores/delegate';
+import { DelegateAccountJSON, DelegateStore, delegateStoreSchema } from './stores/delegate';
 import { VoterData, VoterStore, voterStoreSchema } from './stores/voter';
 import {
-	DelegateAccountJSON,
+	GetGovernanceTokenIDResponse,
+	GetLockedRewardsRequest,
+	GetLockedRewardsResponse,
 	GetUnlockHeightResponse,
+	GetValidatorsByStakeRequest,
+	GetValidatorsByStakeResponse,
 	ModuleConfig,
 	ModuleConfigJSON,
+	TokenMethod,
 	VoterDataJSON,
 } from './types';
 import { getPunishTime, getWaitTime, isCertificateGenerated } from './utils';
 import { GenesisDataStore } from './stores/genesis';
 import { EMPTY_KEY } from './constants';
+import { EligibleDelegatesStore } from './stores/eligible_delegates';
+import {
+	getLockedRewardsRequestSchema,
+	getLockedVotedAmountRequestSchema,
+	getValidatorsByStakeRequestSchema,
+} from './schemas';
+import { ImmutableMethodContext } from '../../state_machine';
 
 export class DPoSEndpoint extends BaseEndpoint {
 	private _moduleConfig!: ModuleConfig;
+	private _moduleName!: string;
+	private _tokenMethod!: TokenMethod;
 
-	public init(moduleConfig: ModuleConfig) {
+	public init(moduleName: string, moduleConfig: ModuleConfig, tokenMethod: TokenMethod) {
+		this._moduleName = moduleName;
 		this._moduleConfig = moduleConfig;
+		this._tokenMethod = tokenMethod;
 	}
 
 	public async getVoter(ctx: ModuleEndpointContext): Promise<VoterDataJSON> {
@@ -52,7 +69,9 @@ export class DPoSEndpoint extends BaseEndpoint {
 		return codec.toJSON(voterStoreSchema, voterData);
 	}
 
-	public async getDelegate(ctx: ModuleEndpointContext): Promise<DelegateAccountJSON> {
+	public async getDelegate(
+		ctx: ModuleEndpointContext,
+	): Promise<DelegateAccountJSON & { address: string }> {
 		const delegateSubStore = this.stores.get(DelegateStore);
 		const { address } = ctx.params;
 		if (typeof address !== 'string') {
@@ -65,16 +84,14 @@ export class DPoSEndpoint extends BaseEndpoint {
 		);
 
 		return {
-			...delegate,
-			totalVotesReceived: delegate.totalVotesReceived.toString(),
-			selfVotes: delegate.selfVotes.toString(),
+			...codec.toJSON<DelegateAccountJSON>(delegateStoreSchema, delegate),
 			address,
 		};
 	}
 
 	public async getAllDelegates(
 		ctx: ModuleEndpointContext,
-	): Promise<{ delegates: DelegateAccountJSON[] }> {
+	): Promise<{ delegates: (DelegateAccountJSON & { address: string })[] }> {
 		const delegateSubStore = this.stores.get(DelegateStore);
 		const startBuf = Buffer.alloc(20);
 		const endBuf = Buffer.alloc(20, 255);
@@ -84,15 +101,26 @@ export class DPoSEndpoint extends BaseEndpoint {
 		for (const data of storeData) {
 			const delegate = await delegateSubStore.get(ctx, data.key);
 			const delegateJSON = {
-				...delegate,
-				totalVotesReceived: delegate.totalVotesReceived.toString(),
-				selfVotes: delegate.selfVotes.toString(),
+				...codec.toJSON<DelegateAccountJSON>(delegateStoreSchema, delegate),
 				address: cryptoAddress.getLisk32AddressFromAddress(data.key),
 			};
 			response.push(delegateJSON);
 		}
 
 		return { delegates: response };
+	}
+
+	public async getLockedVotedAmount(ctx: ModuleEndpointContext): Promise<{ amount: string }> {
+		const { params } = ctx;
+		validator.validate<{ address: string }>(getLockedVotedAmountRequestSchema, params);
+
+		const amount = await this._getLockedVotedAmount(
+			ctx,
+			cryptoAddress.getAddressFromLisk32Address(params.address),
+		);
+		return {
+			amount: amount.toString(),
+		};
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -109,7 +137,7 @@ export class DPoSEndpoint extends BaseEndpoint {
 			minWeightStandby: this._moduleConfig.minWeightStandby.toString(),
 			numberActiveDelegates: this._moduleConfig.numberActiveDelegates,
 			numberStandbyDelegates: this._moduleConfig.numberStandbyDelegates,
-			tokenIDDPoS: this._moduleConfig.tokenIDDPoS.toString('hex'),
+			governanceTokenID: this._moduleConfig.governanceTokenID.toString('hex'),
 			tokenIDFee: this._moduleConfig.tokenIDFee.toString('hex'),
 			delegateRegistrationFee: this._moduleConfig.delegateRegistrationFee.toString(),
 			maxBFTWeightCap: this._moduleConfig.maxBFTWeightCap,
@@ -167,6 +195,81 @@ export class DPoSEndpoint extends BaseEndpoint {
 		return {
 			pendingUnlocks: result,
 		};
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async getGovernanceTokenID(
+		_ctx: ModuleEndpointContext,
+	): Promise<GetGovernanceTokenIDResponse> {
+		return {
+			tokenID: this._moduleConfig.governanceTokenID.toString('hex'),
+		};
+	}
+
+	public async getValidatorsByStake(
+		ctx: ModuleEndpointContext,
+	): Promise<GetValidatorsByStakeResponse> {
+		validator.validate<GetValidatorsByStakeRequest>(getValidatorsByStakeRequestSchema, ctx.params);
+
+		const eligibleDelegateStore = this.stores.get(EligibleDelegatesStore);
+		const delegateSubStore = this.stores.get(DelegateStore);
+		const response = [];
+
+		const delegatesList = await eligibleDelegateStore.getTop(
+			ctx,
+			(ctx.params.limit as number | undefined) ?? 100,
+		);
+		for (const { key } of delegatesList) {
+			const [address] = eligibleDelegateStore.splitKey(key);
+			const delegate = await delegateSubStore.get(ctx, address);
+			const delegateJSON = {
+				...codec.toJSON<DelegateAccountJSON>(delegateStoreSchema, delegate),
+				address: cryptoAddress.getLisk32AddressFromAddress(address),
+			};
+			response.push(delegateJSON);
+		}
+
+		return { validators: response };
+	}
+
+	public async getLockedRewards(ctx: ModuleEndpointContext): Promise<GetLockedRewardsResponse> {
+		validator.validate<GetLockedRewardsRequest>(getLockedRewardsRequestSchema, ctx.params);
+
+		const tokenID = Buffer.from(ctx.params.tokenID, 'hex');
+		const address = cryptoAddress.getAddressFromLisk32Address(ctx.params.address);
+		let locked = await this._tokenMethod.getLockedAmount(
+			ctx.getImmutableMethodContext(),
+			address,
+			tokenID,
+			this._moduleName,
+		);
+		if (!tokenID.equals(this._moduleConfig.governanceTokenID)) {
+			return {
+				reward: locked.toString(),
+			};
+		}
+		// if the token is the same as governance tokenID, subtract the locked amount for vote
+		const lockedAmountForVotes = await this._getLockedVotedAmount(ctx, address);
+		locked -= lockedAmountForVotes;
+
+		return {
+			reward: locked.toString(),
+		};
+	}
+
+	private async _getLockedVotedAmount(
+		ctx: ImmutableMethodContext,
+		address: Buffer,
+	): Promise<bigint> {
+		const voter = await this.stores.get(VoterStore).getOrDefault(ctx, address);
+		let lockedAmount = BigInt(0);
+		for (const votes of voter.sentVotes) {
+			lockedAmount += votes.amount;
+		}
+		for (const unlock of voter.pendingUnlocks) {
+			lockedAmount += unlock.amount;
+		}
+		return lockedAmount;
 	}
 
 	private async _getExpectedUnlockHeight(

@@ -13,12 +13,7 @@
  */
 
 import { utils, ed } from '@liskhq/lisk-cryptography';
-import {
-	ModuleConfig,
-	ModuleConfigJSON,
-	UnlockingObject,
-	VoteSharingCofficientObject,
-} from './types';
+import { ModuleConfig, ModuleConfigJSON, UnlockingObject } from './types';
 import {
 	PUNISHMENT_PERIOD,
 	VOTER_PUNISH_TIME,
@@ -26,6 +21,7 @@ import {
 	WAIT_TIME_SELF_VOTE,
 	WAIT_TIME_VOTE,
 } from './constants';
+import { VoteSharingCofficientObject } from './stores/voter';
 
 export const sortUnlocking = (unlocks: UnlockingObject[]): void => {
 	unlocks.sort((a, b) => {
@@ -251,7 +247,7 @@ export function getModuleConfig(config: ModuleConfigJSON): ModuleConfig {
 	return {
 		...config,
 		minWeightStandby: BigInt(config.minWeightStandby),
-		tokenIDDPoS: Buffer.from(config.tokenIDDPoS, 'hex'),
+		governanceTokenID: Buffer.from(config.governanceTokenID, 'hex'),
 		tokenIDFee: Buffer.from(config.tokenIDFee, 'hex'),
 		delegateRegistrationFee: BigInt(config.delegateRegistrationFee),
 	};
