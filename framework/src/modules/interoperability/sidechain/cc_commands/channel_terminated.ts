@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
+import { StoreGetter } from '../../../base_store';
 import { SidechainInteroperabilityInternalMethod } from '../store';
 import { BaseCCChannelTerminatedCommand } from '../../base_cc_commands/channel_terminated';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#channel-terminated-message-1
 export class SidechainCCChannelTerminatedCommand extends BaseCCChannelTerminatedCommand {
 	protected getInteroperabilityInternalMethod(
-		context: StoreGetter | ImmutableStoreGetter,
+		context: StoreGetter,
 	): SidechainInteroperabilityInternalMethod {
 		return new SidechainInteroperabilityInternalMethod(
 			this.stores,
