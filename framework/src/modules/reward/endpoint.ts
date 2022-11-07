@@ -17,15 +17,11 @@ import { BaseEndpoint } from '../base_endpoint';
 import { calculateDefaultReward } from './calculate_reward';
 import { DefaultReward, ModuleConfig } from './types';
 
-export interface EndpointInitArgs {
-	config: ModuleConfig;
-}
-
 export class RewardEndpoint extends BaseEndpoint {
 	protected _config!: ModuleConfig;
 
-	public init(args: EndpointInitArgs) {
-		this._config = args.config;
+	public init(config: ModuleConfig) {
+		this._config = config;
 	}
 
 	public getDefaultRewardAtHeight(ctx: ModuleEndpointContext): DefaultReward {

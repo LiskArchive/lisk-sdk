@@ -14,9 +14,9 @@
 
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import { BaseMethod } from '../base_method';
-import { MAX_LENGTH_NAME } from './constants';
-import { Rounds } from './rounds';
+import { EMPTY_KEY, MAX_LENGTH_NAME } from './constants';
 import { DelegateStore } from './stores/delegate';
+import { GenesisDataStore } from './stores/genesis';
 import { NameStore } from './stores/name';
 import { VoterStore } from './stores/voter';
 import { DelegateAccount, ModuleConfig, VoterData } from './types';
@@ -82,11 +82,13 @@ export class DPoSMethod extends BaseMethod {
 		// TODO: Implement #7715
 	}
 
-	public isEndOfRound(_methodContext: ImmutableMethodContext, height: number): boolean {
-		const rounds = new Rounds({ blocksPerRound: this._config.roundLength });
-		const currentRound = rounds.calcRound(height);
-		const nextRound = rounds.calcRound(height + 1);
-
-		return currentRound < nextRound;
+	public async isEndOfRound(
+		methodContext: ImmutableMethodContext,
+		height: number,
+	): Promise<boolean> {
+		const { height: genesisHeight } = await this.stores
+			.get(GenesisDataStore)
+			.get(methodContext, EMPTY_KEY);
+		return (height - genesisHeight) % this._config.roundLength === 0;
 	}
 }

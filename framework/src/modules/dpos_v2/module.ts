@@ -459,7 +459,10 @@ export class DPoSModule extends BaseModule {
 
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
 		const { header } = context;
-		const isLastBlockOfRound = this.method.isEndOfRound(context.getMethodContext(), header.height);
+		const isLastBlockOfRound = await this.method.isEndOfRound(
+			context.getMethodContext(),
+			header.height,
+		);
 		const previousTimestampStore = this.stores.get(PreviousTimestampStore);
 		const previousTimestampData = await previousTimestampStore.get(context, EMPTY_KEY);
 		const { timestamp: previousTimestamp } = previousTimestampData;

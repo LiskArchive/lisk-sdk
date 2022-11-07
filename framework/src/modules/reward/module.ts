@@ -80,9 +80,7 @@ export class RewardModule extends BaseModule {
 			config: this._moduleConfig,
 		});
 
-		this.endpoint.init({
-			config: this._moduleConfig,
-		});
+		this.endpoint.init(this._moduleConfig);
 	}
 
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {

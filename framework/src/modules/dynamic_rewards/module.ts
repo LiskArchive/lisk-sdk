@@ -116,9 +116,7 @@ export class DynamicRewardModule extends BaseModule {
 
 		this.method.init({ config: this._moduleConfig });
 
-		this.endpoint.init({
-			config: this._moduleConfig,
-		});
+		this.endpoint.init(this._moduleConfig);
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
@@ -164,7 +162,7 @@ export class DynamicRewardModule extends BaseModule {
 			);
 		}
 
-		const isEndOfRound = this._dposMethod.isEndOfRound(
+		const isEndOfRound = await this._dposMethod.isEndOfRound(
 			context.getMethodContext(),
 			context.header.height,
 		);

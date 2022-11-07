@@ -47,6 +47,9 @@ import {
 } from '../../../../src/modules/reward/constants';
 
 describe('DynamicRewardModule', () => {
+	const defaultRoundLength = 103;
+	const defaultNumberOfActiveDelegates = 101;
+
 	let rewardModule: DynamicRewardModule;
 	let tokenMethod: TokenMethod;
 	let randomMethod: RandomMethod;
@@ -67,8 +70,8 @@ describe('DynamicRewardModule', () => {
 			getValidatorsParams: jest.fn(),
 		};
 		dposMethod = {
-			getNumberOfActiveDelegates: jest.fn().mockReturnValue(101),
-			getRoundLength: jest.fn().mockReturnValue(103),
+			getNumberOfActiveDelegates: jest.fn().mockReturnValue(defaultNumberOfActiveDelegates),
+			getRoundLength: jest.fn().mockReturnValue(defaultRoundLength),
 			updateSharedRewards: jest.fn(),
 			isEndOfRound: jest.fn(),
 		};
@@ -190,7 +193,7 @@ describe('DynamicRewardModule', () => {
 
 		it('should store minimal reward for active delegates when full round is forged', async () => {
 			// Round is already completed once
-			const generatorMap = new Array(103).fill(0).reduce(prev => {
+			const generatorMap = new Array(defaultRoundLength).fill(0).reduce(prev => {
 				// eslint-disable-next-line no-param-reassign
 				prev[utils.getRandomBytes(20).toString('binary')] = 1;
 				return prev;
@@ -370,7 +373,7 @@ describe('DynamicRewardModule', () => {
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
 
-			(dposMethod.isEndOfRound as jest.Mock).mockReturnValue(true);
+			(dposMethod.isEndOfRound as jest.Mock).mockResolvedValue(true);
 
 			await rewardModule.afterTransactionsExecute(blockExecuteContext);
 

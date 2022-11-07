@@ -64,7 +64,7 @@ export interface DPoSMethod {
 		tokenID: Buffer,
 		reward: bigint,
 	): Promise<void>;
-	isEndOfRound(methodContext: ImmutableMethodContext, height: number): boolean;
+	isEndOfRound(methodContext: ImmutableMethodContext, height: number): Promise<boolean>;
 }
 
 export interface DefaultReward {
