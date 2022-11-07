@@ -65,7 +65,7 @@ describe('ChainAccountStore', () => {
 	});
 
 	describe('getAllAccounts', () => {
-		it('should get all acount starting from the specified chainID', async () => {
+		it('should get all account starting from the specified chainID', async () => {
 			const result = await chainAccountStore.getAllAccounts(context, chainIDs[1]);
 
 			expect(result).toHaveLength(2);
