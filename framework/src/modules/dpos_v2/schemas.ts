@@ -14,39 +14,43 @@
 
 import {
 	MAX_COMMISSION,
-	MAX_LENGTH_NAME,
 	MAX_NUMBER_BYTES_Q96,
 	TOKEN_ID_LENGTH,
+	BLS_PUBLIC_KEY_LENGTH,
+	BLS_POP_LENGTH,
+	ED25519_PUBLIC_KEY_LENGTH,
 } from './constants';
 
 export const delegateRegistrationCommandParamsSchema = {
 	$id: '/dpos/command/registerDelegateParams',
 	type: 'object',
-	required: ['name', 'generatorKey', 'blsKey', 'proofOfPossession'],
+	required: ['name', 'blsKey', 'proofOfPossession', 'generatorKey', 'delegateRegistrationFee'],
 	properties: {
 		name: {
 			dataType: 'string',
 			fieldNumber: 1,
-			minLength: 1,
-			maxLength: MAX_LENGTH_NAME,
-		},
-		generatorKey: {
-			dataType: 'bytes',
-			fieldNumber: 2,
-			minLength: 32,
-			maxLength: 32,
 		},
 		blsKey: {
 			dataType: 'bytes',
-			fieldNumber: 3,
-			minLength: 48,
-			maxLength: 48,
+			minLength: BLS_PUBLIC_KEY_LENGTH,
+			maxLength: BLS_PUBLIC_KEY_LENGTH,
+			fieldNumber: 2,
 		},
 		proofOfPossession: {
 			dataType: 'bytes',
+			minLength: BLS_POP_LENGTH,
+			maxLength: BLS_POP_LENGTH,
+			fieldNumber: 3,
+		},
+		generatorKey: {
+			dataType: 'bytes',
+			minLength: ED25519_PUBLIC_KEY_LENGTH,
+			maxLength: ED25519_PUBLIC_KEY_LENGTH,
 			fieldNumber: 4,
-			minLength: 96,
-			maxLength: 96,
+		},
+		delegateRegistrationFee: {
+			dataType: 'uint64',
+			fieldNumber: 5,
 		},
 	},
 };
@@ -162,6 +166,14 @@ export const configSchema = {
 			type: 'string',
 			format: 'hex',
 		},
+		tokenIDFee: {
+			type: 'string',
+			format: 'hex',
+		},
+		delegateRegistrationFee: {
+			type: 'string',
+			format: 'uint64',
+		},
 		maxBFTWeightCap: {
 			type: 'integer',
 			format: 'uint32',
@@ -182,6 +194,8 @@ export const configSchema = {
 		'numberActiveDelegates',
 		'numberStandbyDelegates',
 		'tokenIDDPoS',
+		'tokenIDFee',
+		'delegateRegistrationFee',
 		'maxBFTWeightCap',
 	],
 };

@@ -56,7 +56,7 @@ import { getDelegateWeight, ValidatorWeight } from '../../../../src/modules/dpos
 
 describe('DPoS module', () => {
 	const EMPTY_KEY = Buffer.alloc(0);
-	const defaultConfigs = {
+	const defaultConfig = {
 		factorSelfVotes: 10,
 		maxLengthName: 20,
 		maxNumberSentVotes: 10,
@@ -69,6 +69,8 @@ describe('DPoS module', () => {
 		numberActiveDelegates: 101,
 		numberStandbyDelegates: 2,
 		tokenIDDPoS: '0000000000000000',
+		tokenIDFee: '0000000000000000',
+		delegateRegistrationFee: (BigInt(10) * BigInt(10) ** BigInt(8)).toString(),
 		maxBFTWeightCap: 500,
 	};
 
@@ -96,9 +98,11 @@ describe('DPoS module', () => {
 			).toResolve();
 
 			expect(dpos['_moduleConfig']).toEqual({
-				...defaultConfigs,
-				minWeightStandby: BigInt(defaultConfigs.minWeightStandby),
-				tokenIDDPoS: Buffer.from(defaultConfigs.tokenIDDPoS, 'hex'),
+				...defaultConfig,
+				minWeightStandby: BigInt(defaultConfig.minWeightStandby),
+				tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS, 'hex'),
+				tokenIDFee: Buffer.from(defaultConfig.tokenIDFee, 'hex'),
+				delegateRegistrationFee: BigInt(defaultConfig.delegateRegistrationFee),
 			});
 		});
 
@@ -106,7 +110,7 @@ describe('DPoS module', () => {
 			await expect(
 				dpos.init({
 					genesisConfig: {} as any,
-					moduleConfig: { ...defaultConfigs, maxLengthName: 50 },
+					moduleConfig: { ...defaultConfig, maxLengthName: 50 },
 					generatorConfig: {},
 				}),
 			).toResolve();
@@ -137,6 +141,7 @@ describe('DPoS module', () => {
 				lock: jest.fn(),
 				unlock: jest.fn(),
 				getAvailableBalance: jest.fn(),
+				burn: jest.fn(),
 				getMinRemainingBalance: jest.fn(),
 				transfer: jest.fn(),
 				getLockedAmount: jest.fn().mockResolvedValue(BigInt(101000000000)),
@@ -146,7 +151,7 @@ describe('DPoS module', () => {
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 		});
 
@@ -286,7 +291,7 @@ describe('DPoS module', () => {
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 		});
 
@@ -306,7 +311,7 @@ describe('DPoS module', () => {
 						eligibleDelegateStore.getKey(
 							Buffer.from(data.address, 'hex'),
 							getDelegateWeight(
-								BigInt(defaultConfigs.factorSelfVotes),
+								BigInt(defaultConfig.factorSelfVotes),
 								BigInt(data.voteWeight),
 								BigInt(data.voteWeight),
 							),
@@ -420,7 +425,7 @@ describe('DPoS module', () => {
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 		});
 
@@ -449,7 +454,7 @@ describe('DPoS module', () => {
 						const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 						const blockContext = createBlockContext({
 							header: createFakeBlockHeader({
-								height: (defaultRound - 1) * defaultConfigs.roundLength,
+								height: (defaultRound - 1) * defaultConfig.roundLength,
 							}),
 							stateStore,
 						});
@@ -484,6 +489,7 @@ describe('DPoS module', () => {
 							lock: jest.fn(),
 							unlock: jest.fn(),
 							getAvailableBalance: jest.fn(),
+							burn: jest.fn(),
 							getMinRemainingBalance: jest.fn(),
 							transfer: jest.fn(),
 							getLockedAmount: jest.fn(),
@@ -519,7 +525,7 @@ describe('DPoS module', () => {
 				const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				blockContext = createBlockContext({
 					header: createFakeBlockHeader({
-						height: (defaultRound - 1) * defaultConfigs.roundLength,
+						height: (defaultRound - 1) * defaultConfig.roundLength,
 					}),
 					stateStore,
 				});
@@ -558,6 +564,7 @@ describe('DPoS module', () => {
 					lock: jest.fn(),
 					unlock: jest.fn(),
 					getAvailableBalance: jest.fn(),
+					burn: jest.fn(),
 					getMinRemainingBalance: jest.fn(),
 					transfer: jest.fn(),
 					getLockedAmount: jest.fn(),
@@ -570,7 +577,7 @@ describe('DPoS module', () => {
 
 			it('should have activeDelegates + standbyDelegates delegates in the generators list', () => {
 				expect((validatorMethod.setValidatorsParams as jest.Mock).mock.calls[0][4]).toHaveLength(
-					defaultConfigs.roundLength,
+					defaultConfig.roundLength,
 				);
 			});
 
@@ -613,7 +620,7 @@ describe('DPoS module', () => {
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -1014,7 +1021,7 @@ describe('DPoS module', () => {
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -1041,11 +1048,11 @@ describe('DPoS module', () => {
 				sortValidatorsByWeightDesc(delegates);
 
 				const result = await dpos['_getActiveDelegates'](context, delegates, 6);
-				expect(result).toHaveLength(defaultConfigs.numberActiveDelegates);
+				expect(result).toHaveLength(defaultConfig.numberActiveDelegates);
 				const fromInitDelegates = result.filter(
 					v => initDelegates.findIndex(address => v.address.equals(address)) > -1,
 				);
-				expect(fromInitDelegates).toHaveLength(3 + defaultConfigs.numberActiveDelegates - 6);
+				expect(fromInitDelegates).toHaveLength(3 + defaultConfig.numberActiveDelegates - 6);
 			});
 
 			it('should not select the same delegate twice', async () => {
@@ -1066,7 +1073,7 @@ describe('DPoS module', () => {
 
 				const result = await dpos['_getActiveDelegates'](context, delegates, 6);
 
-				expect(result).toHaveLength(defaultConfigs.numberActiveDelegates);
+				expect(result).toHaveLength(defaultConfig.numberActiveDelegates);
 				const duplicateAddressList = result.filter(v => v.address.equals(initDelegates[0]));
 				expect(duplicateAddressList).toHaveLength(1);
 			});
@@ -1090,7 +1097,7 @@ describe('DPoS module', () => {
 
 				const result = await dpos['_getActiveDelegates'](context, delegates, 6);
 
-				expect(result).toHaveLength(defaultConfigs.numberActiveDelegates);
+				expect(result).toHaveLength(defaultConfig.numberActiveDelegates);
 			});
 		});
 
@@ -1127,7 +1134,7 @@ describe('DPoS module', () => {
 				sortValidatorsByWeightDesc(delegates);
 
 				const result = await dpos['_getActiveDelegates'](context, delegates, 104);
-				expect(result).toHaveLength(defaultConfigs.numberActiveDelegates);
+				expect(result).toHaveLength(defaultConfig.numberActiveDelegates);
 			});
 
 			it('should cap the weight if activeDelegates is more than capValue', async () => {
@@ -1146,7 +1153,7 @@ describe('DPoS module', () => {
 				await dpos['_getActiveDelegates'](context, delegates, 104);
 				expect(dpos['_capWeight']).toHaveBeenCalledWith(
 					expect.any(Array),
-					defaultConfigs.maxBFTWeightCap,
+					defaultConfig.maxBFTWeightCap,
 				);
 			});
 		});
@@ -1223,7 +1230,7 @@ describe('DPoS module', () => {
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfigs,
+				moduleConfig: defaultConfig,
 			});
 			dpos.addDependencies(randomMethod, validatorsMethod, tokenMethod);
 

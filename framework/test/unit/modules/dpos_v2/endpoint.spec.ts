@@ -86,6 +86,8 @@ describe('DposModuleEndpoint', () => {
 		...defaultConfig,
 		minWeightStandby: BigInt(defaultConfig.minWeightStandby),
 		tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS, 'hex'),
+		tokenIDFee: Buffer.from(defaultConfig.tokenIDFee, 'hex'),
+		delegateRegistrationFee: BigInt(defaultConfig.delegateRegistrationFee),
 	};
 
 	beforeEach(() => {

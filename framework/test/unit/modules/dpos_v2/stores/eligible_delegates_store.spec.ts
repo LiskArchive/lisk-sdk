@@ -61,8 +61,10 @@ describe('EligibleDelegatesStore', () => {
 		eligibleDelegatesStore = new EligibleDelegatesStore('dpos');
 		eligibleDelegatesStore.init({
 			...defaultConfig,
+			tokenIDFee: Buffer.from(defaultConfig.tokenIDFee, 'hex'),
 			minWeightStandby: BigInt(defaultConfig.minWeightStandby),
 			tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS, 'hex'),
+			delegateRegistrationFee: BigInt(defaultConfig.delegateRegistrationFee),
 		});
 		for (const eligibleDelegate of eligibleDelegates) {
 			const key = eligibleDelegatesStore.getKey(
