@@ -34,6 +34,8 @@ export interface ModuleConfig {
 	numberActiveDelegates: number;
 	numberStandbyDelegates: number;
 	tokenIDDPoS: TokenIDDPoS;
+	tokenIDFee: Buffer;
+	delegateRegistrationFee: bigint;
 	maxBFTWeightCap: number;
 }
 
@@ -88,6 +90,12 @@ export interface TokenMethod {
 		address: Buffer,
 		tokenID: TokenIDDPoS,
 	): Promise<bigint>;
+	burn(
+		methodContext: MethodContext,
+		address: Buffer,
+		tokenID: Buffer,
+		amount: bigint,
+	): Promise<void>;
 	transfer(
 		methodContext: MethodContext,
 		senderAddress: Buffer,
@@ -125,6 +133,7 @@ export interface DelegateRegistrationParams {
 	blsKey: Buffer;
 	proofOfPossession: Buffer;
 	generatorKey: Buffer;
+	delegateRegistrationFee: bigint;
 }
 
 export interface VoteSharingCofficientObject {

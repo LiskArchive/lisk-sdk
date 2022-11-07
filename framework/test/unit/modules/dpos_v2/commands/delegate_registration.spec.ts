@@ -20,22 +20,31 @@ import { DelegateRegistrationCommand } from '../../../../../src/modules/dpos_v2/
 import { delegateRegistrationCommandParamsSchema } from '../../../../../src/modules/dpos_v2/schemas';
 import {
 	DelegateRegistrationParams,
+	TokenMethod,
 	ValidatorsMethod,
 } from '../../../../../src/modules/dpos_v2/types';
-import { VerifyStatus } from '../../../../../src/state_machine';
+import { EventQueue, VerifyStatus } from '../../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import { DelegateStore } from '../../../../../src/modules/dpos_v2/stores/delegate';
 import { NameStore } from '../../../../../src/modules/dpos_v2/stores/name';
 import { DPoSModule } from '../../../../../src';
 import { createStoreGetter } from '../../../../../src/testing/utils';
+import {
+	COMMISSION,
+	DELEGATE_REGISTRATION_FEE,
+	TOKEN_ID_FEE,
+} from '../../../../../src/modules/dpos_v2/constants';
+import { DelegateRegisteredEvent } from '../../../../../src/modules/dpos_v2/events/delegate_registered';
 
 describe('Delegate registration command', () => {
 	const dpos = new DPoSModule();
 	let delegateRegistrationCommand: DelegateRegistrationCommand;
+	let delegateRegisteredEvent: DelegateRegisteredEvent;
 	let stateStore: PrefixedStateReadWriter;
 	let delegateSubstore: DelegateStore;
 	let nameSubstore: NameStore;
+	let mockTokenMethod: TokenMethod;
 	let mockValidatorsMethod: ValidatorsMethod;
 
 	const transactionParams = {
@@ -43,6 +52,7 @@ describe('Delegate registration command', () => {
 		generatorKey: utils.getRandomBytes(32),
 		blsKey: utils.getRandomBytes(48),
 		proofOfPossession: utils.getRandomBytes(96),
+		delegateRegistrationFee: DELEGATE_REGISTRATION_FEE,
 	};
 	const defaultDelegateInfo = {
 		name: transactionParams.name,
@@ -52,9 +62,9 @@ describe('Delegate registration command', () => {
 		isBanned: false,
 		pomHeights: [],
 		consecutiveMissedBlocks: 0,
-		commission: 0,
+		commission: COMMISSION,
 		lastCommissionIncreaseHeight: 0,
-		sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+		sharingCoefficients: [],
 	};
 	const encodedTransactionParams = codec.encode(
 		delegateRegistrationCommandParamsSchema,
@@ -75,8 +85,40 @@ describe('Delegate registration command', () => {
 		'hex',
 	);
 
+	// TODO: move this function to utils and import from all other tests using it
+	const checkEventResult = (
+		eventQueue: EventQueue,
+		EventClass: any,
+		moduleName: string,
+		expectedResult: any,
+		length = 1,
+		index = 0,
+	) => {
+		expect(eventQueue.getEvents()).toHaveLength(length);
+		expect(eventQueue.getEvents()[index].toObject().name).toEqual(new EventClass(moduleName).name);
+
+		const eventData = codec.decode<Record<string, unknown>>(
+			new EventClass(moduleName).schema,
+			eventQueue.getEvents()[index].toObject().data,
+		);
+
+		expect(eventData).toEqual(expectedResult);
+	};
+
 	beforeEach(() => {
 		delegateRegistrationCommand = new DelegateRegistrationCommand(dpos.stores, dpos.events);
+		delegateRegistrationCommand.init({
+			tokenIDFee: TOKEN_ID_FEE,
+			delegateRegistrationFee: DELEGATE_REGISTRATION_FEE,
+		});
+		mockTokenMethod = {
+			lock: jest.fn(),
+			unlock: jest.fn(),
+			getAvailableBalance: jest.fn(),
+			burn: jest.fn(),
+			transfer: jest.fn(),
+			getLockedAmount: jest.fn(),
+		};
 		mockValidatorsMethod = {
 			setValidatorGeneratorKey: jest.fn(),
 			registerValidatorKeys: jest.fn().mockResolvedValue(true),
@@ -84,14 +126,18 @@ describe('Delegate registration command', () => {
 			getGeneratorsBetweenTimestamps: jest.fn(),
 			setValidatorsParams: jest.fn(),
 		};
-		delegateRegistrationCommand.addDependencies(mockValidatorsMethod);
+		delegateRegistrationCommand.addDependencies(mockTokenMethod, mockValidatorsMethod);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		delegateSubstore = dpos.stores.get(DelegateStore);
 		nameSubstore = dpos.stores.get(NameStore);
+
+		delegateRegisteredEvent = dpos.events.get(DelegateRegisteredEvent);
+		jest.spyOn(delegateRegisteredEvent, 'log');
 	});
 
 	describe('verify', () => {
-		it('should return status OK for valid params', async () => {
+		// eslint-disable-next-line jest/no-focused-tests
+		it.only('should return status OK for valid params', async () => {
 			const context = testing
 				.createTransactionContext({
 					transaction,
@@ -240,8 +286,7 @@ describe('Delegate registration command', () => {
 			);
 		});
 
-		// TODO: Issue #7665
-		it.skip('should return error if store key address already exists in delegate store', async () => {
+		it('should return error if store key address already exists in delegate store', async () => {
 			await delegateSubstore.set(
 				createStoreGetter(stateStore),
 				transaction.senderAddress,
@@ -263,10 +308,75 @@ describe('Delegate registration command', () => {
 				'Delegate substore must not have an entry for the store key address',
 			);
 		});
+
+		it('should return error if delegate registration fee is different from what is required in config', async () => {
+			const invalidTransactionParams = { ...transactionParams, delegateRegistrationFee: BigInt(0) };
+
+			const encodedInvalidTransactionParams = codec.encode(
+				delegateRegistrationCommandParamsSchema,
+				invalidTransactionParams,
+			);
+			const invalidTransaction = new Transaction({
+				module: 'dpos',
+				command: 'registerDelegate',
+				senderPublicKey: publicKey,
+				nonce: BigInt(0),
+				fee: BigInt(100000000),
+				params: encodedInvalidTransactionParams,
+				signatures: [publicKey],
+			});
+
+			await delegateSubstore.set(
+				createStoreGetter(stateStore),
+				invalidTransaction.senderAddress,
+				defaultDelegateInfo,
+			);
+			const context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction: invalidTransaction,
+					chainID,
+				})
+				.createCommandVerifyContext<DelegateRegistrationParams>(
+					delegateRegistrationCommandParamsSchema,
+				);
+
+			const result = await delegateRegistrationCommand.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude('Invalid delegate registration fee.');
+		});
+
+		it('should return error if account does not have enough balance for the registration fee', async () => {
+			mockTokenMethod.getAvailableBalance = jest.fn().mockResolvedValue(BigInt(10)); // lower balance than required for delegate registration
+			delegateRegistrationCommand = new DelegateRegistrationCommand(dpos.stores, dpos.events);
+			delegateRegistrationCommand.addDependencies(mockTokenMethod, mockValidatorsMethod);
+
+			await delegateSubstore.set(
+				createStoreGetter(stateStore),
+				transaction.senderAddress,
+				defaultDelegateInfo,
+			);
+			const context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					chainID,
+				})
+				.createCommandVerifyContext<DelegateRegistrationParams>(
+					delegateRegistrationCommandParamsSchema,
+				);
+
+			const result = await delegateRegistrationCommand.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
+				'Not sufficient amount for delegate registration fee.',
+			);
+		});
 	});
 
-	// TODO: Issue #7665
-	describe.skip('execute', () => {
+	describe('execute', () => {
 		it('should call validators Method registerValidatorKeys', async () => {
 			const context = testing
 				.createTransactionContext({
@@ -341,6 +451,32 @@ describe('Delegate registration command', () => {
 			);
 
 			expect(storedData.delegateAddress).toEqual(transaction.senderAddress);
+		});
+
+		it('should emit an event when a delegate is registered', async () => {
+			const context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					chainID,
+				})
+				.createCommandExecuteContext<DelegateRegistrationParams>(
+					delegateRegistrationCommandParamsSchema,
+				);
+
+			await delegateRegistrationCommand.execute(context);
+
+			// check if the event has been dispatched correctly
+			expect(delegateRegisteredEvent.log).toHaveBeenCalledWith(expect.anything(), {
+				address: transaction.senderAddress,
+				name: transactionParams.name,
+			});
+
+			// check if the event is in the event queue
+			checkEventResult(context.eventQueue, DelegateRegisteredEvent, 'dpos', {
+				address: transaction.senderAddress,
+				name: transactionParams.name,
+			});
 		});
 	});
 });
