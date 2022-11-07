@@ -17,9 +17,9 @@ import { codec } from '@liskhq/lisk-codec';
 import {
 	defaultConfig,
 	EMPTY_KEY,
-	VOTER_PUNISH_TIME,
-	WAIT_TIME_SELF_VOTE,
-	WAIT_TIME_VOTE,
+	PUNISHMENT_WINDOW_VOTES,
+	LOCKING_PERIOD_SELF_VOTES,
+	LOCKING_PERIOD_VOTES,
 } from '../../../../src/modules/dpos_v2/constants';
 import { DPoSEndpoint } from '../../../../src/modules/dpos_v2/endpoint';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
@@ -380,7 +380,7 @@ describe('DposModuleEndpoint', () => {
 						),
 						amount: pendingUnlocks[0].amount.toString(),
 						unlockable: true,
-						expectedUnlockableHeight: pendingUnlocks[0].unvoteHeight + WAIT_TIME_SELF_VOTE,
+						expectedUnlockableHeight: pendingUnlocks[0].unvoteHeight + LOCKING_PERIOD_SELF_VOTES,
 					},
 					{
 						...pendingUnlocks[1],
@@ -389,7 +389,7 @@ describe('DposModuleEndpoint', () => {
 						),
 						amount: pendingUnlocks[1].amount.toString(),
 						unlockable: false,
-						expectedUnlockableHeight: pendingUnlocks[1].unvoteHeight + WAIT_TIME_VOTE,
+						expectedUnlockableHeight: pendingUnlocks[1].unvoteHeight + LOCKING_PERIOD_VOTES,
 					},
 					{
 						...pendingUnlocks[2],
@@ -398,7 +398,7 @@ describe('DposModuleEndpoint', () => {
 						),
 						amount: pendingUnlocks[2].amount.toString(),
 						unlockable: false,
-						expectedUnlockableHeight: pomHeight + VOTER_PUNISH_TIME,
+						expectedUnlockableHeight: pomHeight + PUNISHMENT_WINDOW_VOTES,
 					},
 				],
 			});

@@ -17,26 +17,30 @@ import { BlockHeader, blockHeaderSchema, Transaction } from '@liskhq/lisk-chain'
 import { objects } from '@liskhq/lisk-utils';
 import { address, utils, legacy } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import { ReportDelegateMisbehaviorCommand } from '../../../../../src/modules/dpos_v2/commands/pom';
+import { Status } from '@liskhq/lisk-transaction-pool/dist-node/types';
+import { ReportMisbehaviorCommand, VerifyStatus, DPoSModule } from '../../../../../src';
 import * as testing from '../../../../../src/testing';
-import { REPORTING_PUNISHMENT_REWARD } from '../../../../../src/modules/dpos_v2/constants';
+import {
+	defaultConfig,
+	LOCKING_PERIOD_SELF_VOTES,
+	REPORTING_PUNISHMENT_REWARD,
+} from '../../../../../src/modules/dpos_v2/constants';
 import {
 	TokenMethod,
 	ValidatorsMethod,
 	PomTransactionParams,
 } from '../../../../../src/modules/dpos_v2/types';
-import { VerifyStatus } from '../../../../../src/state_machine/types';
 import { DEFAULT_LOCAL_ID } from '../../../../utils/mocks/transaction';
 import * as bftUtil from '../../../../../src/engine/bft/utils';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
-import { DPoSModule } from '../../../../../src';
 import { DelegateAccount, DelegateStore } from '../../../../../src/modules/dpos_v2/stores/delegate';
 import { createStoreGetter } from '../../../../../src/testing/utils';
+import { EligibleDelegatesStore } from '../../../../../src/modules/dpos_v2/stores/eligible_delegates';
 
-describe('ReportDelegateMisbehaviorCommand', () => {
+describe('ReportMisbehaviorCommand', () => {
 	const dpos = new DPoSModule();
-	let pomCommand: ReportDelegateMisbehaviorCommand;
+	let pomCommand: ReportMisbehaviorCommand;
 	let stateStore: PrefixedStateReadWriter;
 	let delegateSubstore: DelegateStore;
 	let mockTokenMethod: TokenMethod;
@@ -73,7 +77,14 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 	};
 
 	beforeEach(async () => {
-		pomCommand = new ReportDelegateMisbehaviorCommand(dpos.stores, dpos.events);
+		dpos.stores.get(EligibleDelegatesStore).init({
+			...defaultConfig,
+			minWeightStandby: BigInt(defaultConfig.minWeightStandby),
+			governanceTokenID: Buffer.alloc(8),
+			tokenIDFee: Buffer.alloc(8),
+			delegateRegistrationFee: BigInt(defaultConfig.delegateRegistrationFee),
+		});
+		pomCommand = new ReportMisbehaviorCommand(dpos.stores, dpos.events);
 		mockTokenMethod = {
 			lock: jest.fn(),
 			unlock: jest.fn(),
@@ -115,6 +126,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 
 		pomCommand.init({
 			governanceTokenID: DEFAULT_LOCAL_ID,
+			factorSelfVotes: 10,
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		transaction = new Transaction({
@@ -149,7 +161,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 
 	describe('constructor', () => {
 		it('should have valid name', () => {
-			expect(pomCommand.name).toEqual('reportDelegateMisbehavior');
+			expect(pomCommand.name).toEqual('reportMisbehavior');
 		});
 
 		it('should have valid schema', () => {
@@ -158,6 +170,25 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 	});
 
 	describe('verify', () => {
+		it('should successfully verify the transaction', async () => {
+			transactionParamsDecoded = {
+				header1: codec.encode(blockHeaderSchema, { ...header1 }),
+				header2: codec.encode(blockHeaderSchema, { ...header2 }),
+			};
+			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
+			transaction.params = transactionParams;
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+				})
+				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
+
+			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValue(undefined);
+
+			await expect(pomCommand.verify(context)).resolves.toHaveProperty('status', Status.OK);
+		});
+
 		it('should throw error when generatorPublicKey does not match', async () => {
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, {
@@ -177,9 +208,8 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				})
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
-			await expect(pomCommand.verify(context)).resolves.toHaveProperty(
-				'error.message',
-				'BlockHeaders are not contradicting as per BFT violation rules.',
+			await expect(pomCommand.verify(context)).rejects.toThrow(
+				'Different generator address never contradict to each other.',
 			);
 		});
 
@@ -217,14 +247,32 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			await expect(pomCommand.verify(context)).rejects.toThrow();
 		});
 
-		it('should resolve with error when headers are not contradicting', async () => {
+		it('should throw an error when header1 has an invalid signature', async () => {
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, {
 					...header1,
+					signature: utils.getRandomBytes(64),
 				}),
+				header2: codec.encode(blockHeaderSchema, { ...header2 }),
+			};
+			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
+			transaction.params = transactionParams;
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+				})
+				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
+
+			await expect(pomCommand.verify(context)).rejects.toThrow('Invalid block signature.');
+		});
+
+		it('should throw an error when header2 has an invalid signature', async () => {
+			transactionParamsDecoded = {
+				header1: codec.encode(blockHeaderSchema, { ...header1 }),
 				header2: codec.encode(blockHeaderSchema, {
 					...header2,
-					generatorAddress: utils.getRandomBytes(20),
+					signature: utils.getRandomBytes(64),
 				}),
 			};
 			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
@@ -236,10 +284,126 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				})
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
+			await expect(pomCommand.verify(context)).rejects.toThrow('Invalid block signature.');
+		});
+
+		it('should throw an error when maxPunishableHeight is greater than or equal to LOCKING_PERIOD_SELF_VOTES', async () => {
+			transactionParamsDecoded = {
+				header1: codec.encode(blockHeaderSchema, {
+					...header1,
+					height: LOCKING_PERIOD_SELF_VOTES,
+				}),
+				header2: codec.encode(blockHeaderSchema, { ...header2 }),
+			};
+			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
+			transaction.params = transactionParams;
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+				})
+				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
+
+			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValue(undefined);
+
+			await expect(pomCommand.verify(context)).rejects.toThrow('Locking period has expired.');
+		});
+
+		it('should throw error if misbehaving account is already punished at height h', async () => {
+			const block1Height = blockHeight - 768;
+			const block2Height = block1Height + 15;
+
+			const transactionParamsPreDecoded = {
+				header1: { ...header1, height: block1Height },
+				header2: { ...header2, height: block2Height },
+			};
+
+			const updatedDelegateAccount = objects.cloneDeep(misBehavingDelegate);
+			updatedDelegateAccount.pomHeights = [transactionParamsPreDecoded.header1.height + 10];
+			await delegateSubstore.set(
+				createStoreGetter(stateStore),
+				delegate1Address,
+				updatedDelegateAccount,
+			);
+			transactionParamsDecoded = {
+				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
+				header2: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header2),
+			};
+			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
+			transaction.params = transactionParams;
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					header,
+				})
+				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
+
+			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValue(undefined);
+
+			await expect(pomCommand.verify(context)).rejects.toThrow('Delegate is already punished.');
+		});
+
+		it('should throw error if misbehaving account is already banned', async () => {
+			const block1Height = blockHeight - 768;
+			const block2Height = block1Height + 15;
+
+			const transactionParamsPreDecoded = {
+				header1: { ...header1, height: block1Height },
+				header2: { ...header2, height: block2Height },
+			};
+
+			const updatedDelegateAccount = objects.cloneDeep(misBehavingDelegate);
+			updatedDelegateAccount.isBanned = true;
+			await delegateSubstore.set(
+				createStoreGetter(stateStore),
+				delegate1Address,
+				updatedDelegateAccount,
+			);
+			transactionParamsDecoded = {
+				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
+				header2: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header2),
+			};
+			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
+			transaction.params = transactionParams;
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					header,
+				})
+				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
+
+			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValue(undefined);
+
+			await expect(pomCommand.verify(context)).rejects.toThrow('Delegate is already banned.');
+		});
+
+		it('should throw error if both headers are the same', async () => {
+			transactionParamsDecoded = {
+				header1: codec.encode(blockHeaderSchema, {
+					...header1,
+				}),
+				header2: codec.encode(blockHeaderSchema, {
+					...header1,
+				}),
+			};
+			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
+			transaction.params = transactionParams;
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+				})
+				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
+
+			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValue(undefined);
+
 			await expect(pomCommand.verify(context)).resolves.toHaveProperty(
 				'error.message',
 				'BlockHeaders are not contradicting as per BFT violation rules.',
 			);
+			await expect(pomCommand.verify(context)).resolves.toHaveProperty('status', VerifyStatus.FAIL);
 		});
 
 		it('should resolve without error when headers are valid, can be decoded and are contradicting', async () => {
@@ -258,6 +422,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				})
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
+			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValue(undefined);
 			jest.spyOn(bftUtil, 'areDistinctHeadersContradicting').mockReturnValue(true);
 
 			await expect(pomCommand.verify(context)).resolves.toHaveProperty('status', VerifyStatus.OK);
@@ -281,7 +446,9 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				})
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
-			await expect(pomCommand.verify(context)).not.toReject();
+			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValue(undefined);
+
+			await expect(pomCommand.verify(context)).resolves.toHaveProperty('status', VerifyStatus.OK);
 		});
 
 		it('should not throw error when first height is greater than the second height but equal maxHeightPrevoted', async () => {
@@ -301,6 +468,8 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 					transaction,
 				})
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
+
+			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValue(undefined);
 
 			await expect(pomCommand.verify(context)).not.toReject();
 		});
@@ -326,6 +495,8 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				})
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
+			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValue(undefined);
+
 			await expect(pomCommand.verify(context)).not.toReject();
 		});
 
@@ -350,6 +521,8 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 					transaction,
 				})
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
+
+			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValue(undefined);
 
 			await expect(pomCommand.verify(context)).not.toReject();
 		});
@@ -387,102 +560,6 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			await expect(pomCommand.execute(context)).resolves.toBeUndefined();
 		});
 
-		it('should throw error if |header1.height - h| >= 260000', async () => {
-			transactionParamsDecoded = {
-				header1: codec.encode(blockHeaderSchema, {
-					...transactionParamsPreDecoded.header1,
-					height: blockHeight - 260000,
-				}),
-				header2: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header2),
-			};
-			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
-			transaction.params = transactionParams;
-			context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction,
-					header,
-				})
-				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
-
-			await expect(pomCommand.execute(context)).rejects.toThrow(
-				'Difference between header1.height and current height must be less than 260000.',
-			);
-		});
-
-		it('should throw error if |header2.height - h| >= 260000', async () => {
-			transactionParamsDecoded = {
-				header2: codec.encode(blockHeaderSchema, {
-					...transactionParamsPreDecoded.header2,
-					height: blockHeight - 260000,
-				}),
-				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
-			};
-			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
-			transaction.params = transactionParams;
-			context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction,
-					header,
-				})
-				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
-
-			await expect(pomCommand.execute(context)).rejects.toThrow(
-				'Difference between header2.height and current height must be less than 260000.',
-			);
-		});
-
-		it('should throw error when header1 is not properly signed', async () => {
-			transactionParamsDecoded = {
-				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
-				header2: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header2),
-			};
-			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
-			transaction.params = transactionParams;
-			context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction,
-					header,
-				})
-				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
-
-			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockImplementationOnce(() => {
-				throw new Error('Invalid block signature for header 1');
-			});
-			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValueOnce(undefined);
-
-			await expect(pomCommand.execute(context)).rejects.toThrow(
-				'Invalid block signature for header 1',
-			);
-		});
-
-		it('should throw error when header2 is not properly signed', async () => {
-			transactionParamsDecoded = {
-				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
-				header2: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header2),
-			};
-			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
-			transaction.params = transactionParams;
-			context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction,
-					header,
-				})
-				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
-
-			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValueOnce(undefined);
-			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockImplementationOnce(() => {
-				throw new Error('Invalid block signature for header 2');
-			});
-
-			await expect(pomCommand.execute(context)).rejects.toThrow(
-				'Invalid block signature for header 2',
-			);
-		});
-
 		it('should throw error if misbehaving account is not a delegate', async () => {
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, {
@@ -502,62 +579,6 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
 			await expect(pomCommand.execute(context)).rejects.toThrow();
-		});
-
-		it('should throw error if misbehaving account is already banned', async () => {
-			const updatedDelegateAccount = objects.cloneDeep(misBehavingDelegate);
-			updatedDelegateAccount.isBanned = true;
-			await delegateSubstore.set(
-				createStoreGetter(stateStore),
-				delegate1Address,
-				updatedDelegateAccount,
-			);
-			transactionParamsDecoded = {
-				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
-				header2: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header2),
-			};
-			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
-			transaction.params = transactionParams;
-			context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction,
-					header,
-				})
-				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
-
-			await expect(pomCommand.execute(context)).rejects.toThrow(
-				'Cannot apply proof-of-misbehavior. Delegate is already banned.',
-			);
-		});
-
-		it('should throw error if misbehaving account is already punished at height h', async () => {
-			const updatedDelegateAccount = objects.cloneDeep(misBehavingDelegate);
-			updatedDelegateAccount.pomHeights = [
-				(transactionParamsPreDecoded.header1.height as number) + 10,
-			];
-			await delegateSubstore.set(
-				createStoreGetter(stateStore),
-				delegate1Address,
-				updatedDelegateAccount,
-			);
-			transactionParamsDecoded = {
-				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
-				header2: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header2),
-			};
-			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
-			transaction.params = transactionParams;
-			context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction,
-					header,
-				})
-				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
-
-			await expect(pomCommand.execute(context)).rejects.toThrow(
-				'Cannot apply proof-of-misbehavior. Delegate is already punished.',
-			);
 		});
 
 		it('should reward the sender with 1 LSK if delegate has enough balance', async () => {
@@ -682,7 +703,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			expect(updatedDelegate.pomHeights).toEqual([blockHeight]);
 		});
 
-		it('should set isBanned property to true is pomHeights.length === 5', async () => {
+		it('should set isBanned property to true if pomHeights.length === 5', async () => {
 			const pomHeights = [500, 1000, 2000, 4550];
 			const updatedDelegateAccount = objects.cloneDeep(misBehavingDelegate);
 			updatedDelegateAccount.pomHeights = objects.cloneDeep(pomHeights);
@@ -717,6 +738,32 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			expect(updatedDelegate.pomHeights).toEqual([...pomHeights, blockHeight]);
 			expect(updatedDelegate.pomHeights).toHaveLength(5);
 			expect(updatedDelegate.isBanned).toBeTrue();
+
+			const events = context.eventQueue.getEvents();
+			expect(events).toHaveLength(2);
+			expect(events[1].toObject().name).toEqual('delegateBanned');
+		});
+
+		it('should emit a DelegatePunishedEvent', async () => {
+			transactionParamsDecoded = {
+				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
+				header2: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header2),
+			};
+			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
+			transaction.params = transactionParams;
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					header,
+				})
+				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
+
+			await pomCommand.execute(context);
+
+			const events = context.eventQueue.getEvents();
+			expect(events).toHaveLength(1);
+			expect(events[0].toObject().name).toEqual('delegatePunished');
 		});
 
 		it('should not return balance if sender and delegate account are same', async () => {

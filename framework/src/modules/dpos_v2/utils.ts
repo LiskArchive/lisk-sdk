@@ -17,10 +17,10 @@ import { math } from '@liskhq/lisk-utils';
 import { ModuleConfig, ModuleConfigJSON, UnlockingObject, VoteSharingCoefficient } from './types';
 import {
 	PUNISHMENT_PERIOD,
-	VOTER_PUNISH_TIME,
-	SELF_VOTE_PUNISH_TIME,
-	WAIT_TIME_SELF_VOTE,
-	WAIT_TIME_VOTE,
+	PUNISHMENT_WINDOW_VOTES,
+	PUNISHMENT_WINDOW_SELF_VOTES,
+	LOCKING_PERIOD_SELF_VOTES,
+	LOCKING_PERIOD_VOTES,
 } from './constants';
 
 const { q96 } = math;
@@ -163,10 +163,10 @@ export const isCurrentlyPunished = (height: number, pomHeights: ReadonlyArray<nu
 };
 
 export const getWaitTime = (senderAddress: Buffer, delegateAddress: Buffer): number =>
-	delegateAddress.equals(senderAddress) ? WAIT_TIME_SELF_VOTE : WAIT_TIME_VOTE;
+	delegateAddress.equals(senderAddress) ? LOCKING_PERIOD_SELF_VOTES : LOCKING_PERIOD_VOTES;
 
 export const getPunishTime = (senderAddress: Buffer, delegateAddress: Buffer): number =>
-	delegateAddress.equals(senderAddress) ? PUNISHMENT_PERIOD : VOTER_PUNISH_TIME;
+	delegateAddress.equals(senderAddress) ? PUNISHMENT_PERIOD : PUNISHMENT_WINDOW_VOTES;
 
 export const hasWaited = (
 	unlockingObject: UnlockingObject,
@@ -227,8 +227,8 @@ export const getMinPunishedHeight = (
 
 	// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0024.md#update-to-validity-of-unlock-transaction
 	return senderAddress.equals(delegateAddress)
-		? lastPomHeight + SELF_VOTE_PUNISH_TIME
-		: lastPomHeight + VOTER_PUNISH_TIME;
+		? lastPomHeight + PUNISHMENT_WINDOW_SELF_VOTES
+		: lastPomHeight + PUNISHMENT_WINDOW_VOTES;
 };
 
 export const getPunishmentPeriod = (
