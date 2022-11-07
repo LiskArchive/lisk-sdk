@@ -1,6 +1,6 @@
 {
 	"name": "lisk-framework",
-	"version": "0.10.0-alpha.5",
+	"version": "0.10.0-alpha.6",
 	"description": "Lisk blockchain application platform",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -41,8 +41,8 @@
 	},
 	"dependencies": {
 		"@chainsafe/blst": "0.2.4",
-		"@liskhq/lisk-api-client": "^6.0.0-alpha.5",
-		"@liskhq/lisk-chain": "^0.4.0-alpha.5",
+		"@liskhq/lisk-api-client": "^6.0.0-alpha.6",
+		"@liskhq/lisk-chain": "^0.4.0-alpha.6",
 		"@liskhq/lisk-codec": "^0.3.0-alpha.4",
 		"@liskhq/lisk-cryptography": "^4.0.0-alpha.4",
 		"@liskhq/lisk-db": "0.3.0-debug.20-52ffbeac2c1b0b188e8df995a1dc6a1634426a27",

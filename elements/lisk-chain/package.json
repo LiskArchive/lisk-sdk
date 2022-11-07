@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-chain",
-	"version": "0.4.0-alpha.5",
+	"version": "0.4.0-alpha.6",
 	"description": "Blocks and state management implementation that are used for block processing according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
