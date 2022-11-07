@@ -255,7 +255,7 @@ export const getDelegateWeight = (
 	selfVotes: bigint,
 	totalVotesReceived: bigint,
 ) => {
-	const cap = selfVotes * BigInt(factorSelfVotes);
+	const cap = selfVotes * factorSelfVotes;
 	if (cap < totalVotesReceived) {
 		return cap;
 	}
