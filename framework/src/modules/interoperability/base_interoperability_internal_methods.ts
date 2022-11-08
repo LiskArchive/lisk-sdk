@@ -20,10 +20,7 @@ import {
 	EMPTY_BYTES,
 	MAINCHAIN_ID,
 	CHAIN_TERMINATED,
-	MIN_RETURN_FEE,
 	EMPTY_FEE_ADDRESS,
-	CCM_STATUS_MODULE_NOT_SUPPORTED,
-	CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
 	CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
 	MODULE_NAME_INTEROPERABILITY,
 } from './constants';
@@ -31,18 +28,11 @@ import { ccmSchema } from './schemas';
 import {
 	CCMsg,
 	SendInternalContext,
-	CCMApplyContext,
 	TerminateChainContext,
 	CreateTerminatedStateAccountContext,
 } from './types';
-import { getCCMSize, getIDAsKeyForStore } from './utils';
-import {
-	createCCCommandExecuteContext,
-	createCCMsgBeforeApplyContext,
-	createCCMsgBeforeSendContext,
-} from './context';
+import { getIDAsKeyForStore } from './utils';
 import { BaseInteroperableMethod } from './base_interoperable_method';
-import { BaseCCCommand } from './base_cc_command';
 import { ImmutableStoreGetter, StoreGetter } from '../base_store';
 import { NamedRegistry } from '../named_registry';
 import { OwnChainAccountStore } from './stores/own_chain_account';
@@ -244,123 +234,6 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		});
 
 		await this.createTerminatedStateAccount(terminateChainContext, chainID);
-	}
-
-	public async apply(
-		ccmApplyContext: CCMApplyContext,
-		interoperableCCCommands: Map<string, BaseCCCommand[]>,
-	): Promise<void> {
-		const { ccm, eventQueue, logger, chainID, getMethodContext, getStore } = ccmApplyContext;
-		const isTerminated = await this.stores
-			.get(TerminatedStateStore)
-			.has(this.context, ccm.sendingChainID);
-		if (isTerminated) {
-			return;
-		}
-
-		const beforeCCMApplyContext = createCCMsgBeforeApplyContext(
-			{
-				logger,
-				ccm,
-				eventQueue,
-				getMethodContext,
-				getStore,
-				chainID,
-				feeAddress: ccmApplyContext.feeAddress,
-			},
-			ccmApplyContext.ccu,
-			ccmApplyContext.trsSender,
-		);
-		for (const mod of this.interoperableModuleMethods.values()) {
-			if (mod?.beforeApplyCCM) {
-				try {
-					await mod.beforeApplyCCM(beforeCCMApplyContext);
-				} catch (error) {
-					return;
-				}
-			}
-		}
-
-		if (ccm.status !== CCM_STATUS_OK || ccm.fee < MIN_RETURN_FEE * BigInt(getCCMSize(ccm))) {
-			return;
-		}
-
-		const ccCommands = interoperableCCCommands.get(ccm.module);
-
-		// When moduleID is not supported
-		if (!ccCommands) {
-			const beforeCCMSendContext = createCCMsgBeforeSendContext({
-				ccm,
-				eventQueue,
-				getMethodContext,
-				logger,
-				chainID,
-				getStore,
-				feeAddress: EMPTY_FEE_ADDRESS,
-			});
-
-			await this.sendInternal({
-				eventQueue: beforeCCMSendContext.eventQueue,
-				feeAddress: beforeCCMSendContext.feeAddress,
-				getMethodContext: beforeCCMSendContext.getMethodContext,
-				getStore: beforeCCMSendContext.getStore,
-				logger: beforeCCMSendContext.logger,
-				chainID: beforeCCMSendContext.chainID,
-				crossChainCommand: ccm.crossChainCommand,
-				module: ccm.module,
-				fee: BigInt(0),
-				params: ccm.params,
-				receivingChainID: ccm.receivingChainID,
-				status: CCM_STATUS_MODULE_NOT_SUPPORTED,
-				timestamp: Date.now(),
-			});
-
-			return;
-		}
-		const ccCommand = ccCommands.find(cmd => cmd.name === ccm.crossChainCommand);
-
-		// When commandID is not supported
-		if (!ccCommand) {
-			const beforeCCMSendContext = createCCMsgBeforeSendContext({
-				ccm,
-				eventQueue,
-				getMethodContext,
-				logger,
-				chainID,
-				getStore,
-				feeAddress: EMPTY_FEE_ADDRESS,
-			});
-
-			await this.sendInternal({
-				eventQueue: beforeCCMSendContext.eventQueue,
-				feeAddress: beforeCCMSendContext.feeAddress,
-				getMethodContext: beforeCCMSendContext.getMethodContext,
-				getStore: beforeCCMSendContext.getStore,
-				logger: beforeCCMSendContext.logger,
-				chainID: beforeCCMSendContext.chainID,
-				crossChainCommand: ccm.crossChainCommand,
-				module: ccm.module,
-				fee: BigInt(0),
-				params: ccm.params,
-				receivingChainID: ccm.receivingChainID,
-				status: CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
-			});
-
-			return;
-		}
-
-		const ccCommandExecuteContext = createCCCommandExecuteContext({
-			ccm,
-			ccmSize: getCCMSize(ccm),
-			eventQueue,
-			logger,
-			chainID,
-			getMethodContext,
-			getStore,
-			feeAddress: ccmApplyContext.feeAddress,
-		});
-
-		await ccCommand.execute(ccCommandExecuteContext);
 	}
 
 	// Different in mainchain and sidechain so to be implemented in each module store separately

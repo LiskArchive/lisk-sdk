@@ -23,7 +23,7 @@ import {
 	VerifyStatus,
 } from '../../../../state_machine';
 import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
-import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
+import { BaseCrossChainUpdateCommand } from '../../base_cross_chain_update_command';
 import {
 	CHAIN_ACTIVE,
 	CHAIN_REGISTERED,
@@ -45,16 +45,13 @@ import {
 	checkValidatorsHashWithCertificate,
 	checkValidCertificateLiveness,
 	commonCCUExecutelogic,
-	getCCMSize,
 	isInboxUpdateEmpty,
 	validateFormat,
 	verifyCertificateSignature,
 } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../store';
 
-export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
-	public schema = crossChainUpdateTransactionParams;
-
+export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
@@ -239,21 +236,17 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 					chainID: context.chainID,
 				});
 			} else {
-				await interoperabilityInternalMethod.apply(
-					{
-						ccm: ccm.deserialized,
-						ccu: txParams,
-						ccmSize: getCCMSize(ccm.deserialized),
-						eventQueue: context.eventQueue,
-						feeAddress: context.transaction.senderAddress,
-						getMethodContext: context.getMethodContext,
-						getStore: context.getStore,
-						logger: context.logger,
-						chainID: context.chainID,
-						trsSender: context.transaction.senderAddress,
-					},
-					this.ccCommands,
-				);
+				await this.apply({
+					ccm: ccm.deserialized,
+					transaction: context.transaction,
+					eventQueue: context.eventQueue,
+					getMethodContext: context.getMethodContext,
+					getStore: context.getStore,
+					logger: context.logger,
+					chainID: context.chainID,
+					header: context.header,
+					stateStore: context.stateStore,
+				});
 			}
 		}
 		// Common ccu execution logic

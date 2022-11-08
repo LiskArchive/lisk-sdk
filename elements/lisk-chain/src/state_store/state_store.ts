@@ -219,11 +219,12 @@ export class StateStore {
 		}));
 	}
 
-	public createSnapshot(): void {
+	public createSnapshot(): number {
 		this._snapshot = this._cache.copy();
+		return 0;
 	}
 
-	public restoreSnapshot(): void {
+	public restoreSnapshot(_id: number): void {
 		if (!this._snapshot) {
 			throw new Error('Snapshot must be taken first before reverting');
 		}

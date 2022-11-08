@@ -246,6 +246,7 @@ describe('CrossChainUpdateCommand', () => {
 			verifyContext = {
 				getMethodContext: () => createTransientMethodContext({ stateStore }),
 				getStore: createStoreGetter(stateStore).getStore,
+				stateStore,
 				logger: testing.mocks.loggerMock,
 				chainID,
 				params,
@@ -410,6 +411,7 @@ describe('CrossChainUpdateCommand', () => {
 				getMethodContext: () => createTransientMethodContext({ stateStore }),
 				getStore: createStoreGetter(stateStore).getStore,
 				logger: testing.mocks.loggerMock,
+				stateStore,
 				chainID,
 				params,
 				transaction: defaultTransaction as any,
@@ -591,7 +593,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'appendToInboxTree')
 				.mockResolvedValue({} as never);
 			const applyMock = jest
-				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'apply')
+				.spyOn(sidechainCCUUpdateCommand, 'apply')
 				.mockResolvedValue({} as never);
 
 			const validCCMContext = {

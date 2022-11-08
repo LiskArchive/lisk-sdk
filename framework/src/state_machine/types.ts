@@ -18,10 +18,6 @@ import { TransactionVerifyResult } from '../abi';
 import { Logger } from '../logger';
 import { EventQueue } from './event_queue';
 
-export interface EventQueueAdder {
-	add(module: string, name: string, data: Buffer, topics?: Buffer[], noRevert?: boolean): void;
-}
-
 export interface ImmutableSubStore {
 	get(key: Buffer): Promise<Buffer>;
 	getWithSchema<T>(key: Buffer, schema: Schema): Promise<T>;
@@ -35,6 +31,18 @@ export interface SubStore extends ImmutableSubStore {
 	set(key: Buffer, value: Buffer): Promise<void>;
 	// eslint-disable-next-line @typescript-eslint/ban-types
 	setWithSchema(key: Buffer, value: object, schema: Schema): Promise<void>;
+	createSnapshot(): number;
+	restoreSnapshot(snapshotID: number): void;
+}
+
+export interface ImmutableStateStore {
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
+}
+
+export interface StateStore {
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
+	createSnapshot(): number;
+	restoreSnapshot(snapshotID: number): void;
 }
 
 export interface ImmutableMethodContext {
@@ -84,6 +92,7 @@ export interface TransactionVerifyContext {
 	chainID: Buffer;
 	logger: Logger;
 	transaction: Transaction;
+	stateStore: ImmutableStateStore;
 	getMethodContext: () => ImmutableMethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
@@ -95,12 +104,14 @@ export interface CommandVerifyContext<T = undefined> {
 	params: T;
 	getMethodContext: () => ImmutableMethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
+	stateStore: ImmutableStateStore;
 }
 
 export interface CommandExecuteContext<T = undefined> {
 	logger: Logger;
 	chainID: Buffer;
 	eventQueue: EventQueue;
+	stateStore: StateStore;
 	header: BlockHeader;
 	assets: BlockAssets;
 	currentValidators: Validator[];
@@ -115,7 +126,8 @@ export interface CommandExecuteContext<T = undefined> {
 
 export interface GenesisBlockExecuteContext {
 	logger: Logger;
-	eventQueue: EventQueueAdder;
+	eventQueue: EventQueue;
+	stateStore: StateStore;
 	getMethodContext: () => MethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	header: BlockHeader;
@@ -130,7 +142,8 @@ export interface GenesisBlockExecuteContext {
 export interface TransactionExecuteContext {
 	logger: Logger;
 	chainID: Buffer;
-	eventQueue: EventQueueAdder;
+	eventQueue: EventQueue;
+	stateStore: StateStore;
 	getMethodContext: () => MethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	header: BlockHeader;
@@ -145,6 +158,7 @@ export interface TransactionExecuteContext {
 export interface BlockVerifyContext {
 	logger: Logger;
 	chainID: Buffer;
+	stateStore: ImmutableStateStore;
 	getMethodContext: () => ImmutableMethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	header: BlockHeader;
@@ -155,6 +169,7 @@ export interface BlockExecuteContext {
 	logger: Logger;
 	chainID: Buffer;
 	eventQueue: EventQueue;
+	stateStore: StateStore;
 	getMethodContext: () => MethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	header: BlockHeader;
@@ -185,6 +200,7 @@ export interface InsertAssetContext {
 	logger: Logger;
 	chainID: Buffer;
 	getMethodContext: () => MethodContext;
+	stateStore: ImmutableStateStore;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	header: BlockHeader;
 	assets: WritableBlockAssets;
