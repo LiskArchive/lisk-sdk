@@ -13,39 +13,17 @@
  */
 
 import { NotFoundError } from '@liskhq/lisk-chain';
-// import { codec } from '@liskhq/lisk-codec';
-// import { utils } from '@liskhq/lisk-cryptography';
 import { BaseInteroperabilityInternalMethod } from '../base_interoperability_internal_methods';
 import {
-	// CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
-	// CCM_PROCESSED_RESULT_BOUNCED,
-	// CCM_PROCESSED_RESULT_DISCARDED,
-	// CCM_STATUS_CODE_CHANNEL_UNAVAILABLE,
-	// CCM_STATUS_CODE_FAILED_CCM,
-	CCM_STATUS_OK,
 	CHAIN_ACTIVE,
-	CHAIN_REGISTERED,
 	CHAIN_TERMINATED,
-	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_BYTES,
-	EMPTY_FEE_ADDRESS,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID_BUFFER,
-	// MIN_RETURN_FEE,
-	MODULE_NAME_INTEROPERABILITY,
 } from '../constants';
 import { createCCMsgBeforeSendContext } from '../context';
-import { CCMForwardContext, CCMsg, SendInternalContext } from '../types';
-import {
-	getEncodedSidechainTerminatedCCMParam,
-	handlePromiseErrorWithNull,
-	validateFormat,
-} from '../utils';
-import { MODULE_NAME_TOKEN, TokenCCMethod } from '../cc_methods';
-import { ForwardCCMsgResult } from './types';
-// import { ccmSchema } from '../schemas';
-// import { CcmProcessedEvent } from '../events/ccm_processed';
-// import { CcmSendSuccessEvent } from '../events/ccm_send_success';
+import { CCMsg, SendInternalContext } from '../types';
+import { validateFormat } from '../utils';
 import { OwnChainAccountStore } from '../stores/own_chain_account';
 import { ChainAccountStore } from '../stores/chain_account';
 
@@ -77,84 +55,6 @@ export class MainchainInteroperabilityInternalMethod extends BaseInteroperabilit
 		}
 
 		return true;
-	}
-
-	public async forward(ccmForwardContext: CCMForwardContext): Promise<ForwardCCMsgResult> {
-		const { ccm, eventQueue, logger, chainID, getMethodContext, getStore } = ccmForwardContext;
-		const methodContext = getMethodContext();
-		const tokenCCMethod = this.interoperableModuleMethods.get(MODULE_NAME_TOKEN) as
-			| TokenCCMethod
-			| undefined;
-		const beforeCCMSendContext = createCCMsgBeforeSendContext({
-			ccm,
-			eventQueue,
-			getMethodContext,
-			logger,
-			chainID,
-			getStore,
-			feeAddress: EMPTY_FEE_ADDRESS,
-		});
-
-		if (!tokenCCMethod) {
-			throw new Error('TokenCCMethod does not exist.');
-		}
-
-		const receivingChainAccount = await handlePromiseErrorWithNull(
-			this.stores.get(ChainAccountStore).get(this.context, ccm.receivingChainID),
-		);
-
-		const isLive = await this.isLive(ccm.receivingChainID, Date.now());
-
-		if (receivingChainAccount?.status === CHAIN_ACTIVE && isLive) {
-			const isTokenTransferred = await handlePromiseErrorWithNull(
-				tokenCCMethod.forwardMessageFee(methodContext, ccm),
-			);
-
-			if (!isTokenTransferred) {
-				return ForwardCCMsgResult.COULD_NOT_TRANSFER_FORWARD_FEE;
-			}
-
-			await this.addToOutbox(ccm.receivingChainID, ccm);
-			return ForwardCCMsgResult.SUCCESS;
-		}
-
-		if (ccm.status !== CCM_STATUS_OK) {
-			return ForwardCCMsgResult.INVALID_CCM;
-		}
-
-		// TODO: Fix in #7623
-		// await this.bounce({
-		// 	ccm,
-		// 	newCCMStatus: CCM_STATUS_CODE_CHANNEL_UNAVAILABLE,
-		// 	ccmProcessedEventCode: CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
-		// 	eventQueue,
-		// });
-
-		if (!receivingChainAccount || receivingChainAccount.status === CHAIN_REGISTERED) {
-			return ForwardCCMsgResult.INACTIVE_RECEIVING_CHAIN;
-		}
-
-		if (receivingChainAccount.status === CHAIN_ACTIVE) {
-			await this.terminateChainInternal(ccm.receivingChainID, beforeCCMSendContext);
-		}
-
-		await this.sendInternal({
-			eventQueue: ccmForwardContext.eventQueue,
-			feeAddress: ccmForwardContext.feeAddress,
-			getMethodContext: ccmForwardContext.getMethodContext,
-			getStore: ccmForwardContext.getStore,
-			logger: ccmForwardContext.logger,
-			chainID: ccmForwardContext.chainID,
-			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
-			module: MODULE_NAME_INTEROPERABILITY,
-			fee: BigInt(0),
-			params: getEncodedSidechainTerminatedCCMParam(ccm, receivingChainAccount),
-			receivingChainID: ccm.sendingChainID,
-			status: CCM_STATUS_OK,
-			timestamp: Date.now(),
-		});
-
-		return ForwardCCMsgResult.INFORM_SIDECHAIN_TERMINATION;
 	}
 
 	public async sendInternal(sendContext: SendInternalContext): Promise<boolean> {

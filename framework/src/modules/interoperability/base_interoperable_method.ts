@@ -29,4 +29,5 @@ export abstract class BaseInteroperableMethod extends BaseMethod {
 	public verifyCrossChainMessage?(ctx: CrossChainMessageContext): Promise<void>;
 	public beforeCrossChainCommandExecute?(ctx: CrossChainMessageContext): Promise<void>;
 	public afterCrossChainCommandExecute?(ctx: CrossChainMessageContext): Promise<void>;
+	public beforeCrossChainMessageForwarding?(ctx: CrossChainMessageContext): Promise<void>;
 }
