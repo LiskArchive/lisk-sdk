@@ -343,7 +343,7 @@ describe('Base interoperability internal method', () => {
 			status: 1,
 			params: Buffer.alloc(0),
 		};
-		const beforeSendCCMContext = testing.createBeforeSendCCMsgMethodContext({
+		const beforeSendCCMContext = testing.createCrossChainMessageContext({
 			ccm,
 			feeAddress: cryptoUtils.getRandomBytes(32),
 		});

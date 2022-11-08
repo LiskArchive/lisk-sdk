@@ -15,7 +15,6 @@
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { BaseInteroperabilityInternalMethod } from '../base_interoperability_internal_methods';
 import { EMPTY_BYTES, LIVENESS_LIMIT, MAINCHAIN_ID_BUFFER } from '../constants';
-import { createCCMsgBeforeSendContext } from '../context';
 import { CCMsg, SendInternalContext } from '../types';
 import { validateFormat } from '../utils';
 import { OwnChainAccountStore } from '../stores/own_chain_account';
@@ -103,20 +102,10 @@ export class MainchainInteroperabilityInternalMethod extends BaseInteroperabilit
 			return false;
 		}
 
-		const beforeSendContext = createCCMsgBeforeSendContext({
-			ccm,
-			eventQueue: sendContext.eventQueue,
-			feeAddress: sendContext.feeAddress,
-			getMethodContext: sendContext.getMethodContext,
-			getStore: sendContext.getStore,
-			logger: sendContext.logger,
-			chainID: sendContext.chainID,
-		});
-
 		for (const mod of this.interoperableModuleMethods.values()) {
-			if (mod?.beforeSendCCM) {
+			if (mod?.beforeCrossChainCommandExecute) {
 				try {
-					await mod.beforeSendCCM(beforeSendContext);
+					await mod.beforeCrossChainCommandExecute({ ...sendContext, ccm });
 				} catch (error) {
 					return false;
 				}
