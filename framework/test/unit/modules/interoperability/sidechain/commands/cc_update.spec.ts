@@ -339,7 +339,7 @@ describe('CrossChainUpdateCommand', () => {
 			expect(error?.message).toContain('Validators hash given in the certificate is incorrect.');
 		});
 
-		it('should return error checkActiveValidatorsUpdate fails when Validators blsKeys are not unique and lexicographically ordered', async () => {
+		it('should return error verifyValidatorsUpdate fails when Validators blsKeys are not unique and lexicographically ordered', async () => {
 			await expect(
 				sidechainCCUUpdateCommand.verify({
 					...verifyContext,
