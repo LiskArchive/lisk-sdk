@@ -115,7 +115,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		it('should terminate the chain and log event when sending chain is not live', async () => {
 			(internalMethod.isLive as jest.Mock).mockResolvedValue(false);
 
-			await expect(command.apply(context)).resolves.toBeUndefined();
+			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
@@ -137,7 +137,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		it('should terminate the chain and log event when verifyCrossChainMessage fails', async () => {
 			((ccMethods.get('token') as BaseInteroperableMethod)
 				.verifyCrossChainMessage as jest.Mock).mockRejectedValue('error');
-			await expect(command.apply(context)).resolves.toBeUndefined();
+			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
 				context.ccm.sendingChainID,
@@ -157,7 +157,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should bounce if the module is not registered', async () => {
-			jest.spyOn(command, 'bounce').mockResolvedValue();
+			jest.spyOn(command, 'bounce' as never).mockResolvedValue(undefined as never);
 			context = createCrossChainMessageContext({
 				ccm: {
 					...defaultCCM,
@@ -165,13 +165,13 @@ describe('BaseCrossChainUpdateCommand', () => {
 				},
 			});
 
-			await expect(command.apply(context)).resolves.toBeUndefined();
+			await expect(command['apply'](context)).resolves.toBeUndefined();
 
-			expect(command.bounce).toHaveBeenCalledTimes(1);
+			expect(command['bounce']).toHaveBeenCalledTimes(1);
 		});
 
 		it('should bounce if the command is not registered', async () => {
-			jest.spyOn(command, 'bounce').mockResolvedValue();
+			jest.spyOn(command, 'bounce' as never).mockResolvedValue(undefined as never);
 			context = createCrossChainMessageContext({
 				ccm: {
 					...defaultCCM,
@@ -179,9 +179,9 @@ describe('BaseCrossChainUpdateCommand', () => {
 				},
 			});
 
-			await expect(command.apply(context)).resolves.toBeUndefined();
+			await expect(command['apply'](context)).resolves.toBeUndefined();
 
-			expect(command.bounce).toHaveBeenCalledTimes(1);
+			expect(command['bounce']).toHaveBeenCalledTimes(1);
 		});
 
 		it('should terminate the chain and log event when command verify fails', async () => {
@@ -189,7 +189,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				com => com.name === defaultCCM.crossChainCommand,
 			) as BaseCCCommand).verify as jest.Mock).mockRejectedValue('error');
 
-			await expect(command.apply(context)).resolves.toBeUndefined();
+			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
 				context.ccm.sendingChainID,
@@ -212,7 +212,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			((ccMethods.get('token') as BaseInteroperableMethod)
 				.beforeCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
 
-			await expect(command.apply(context)).resolves.toBeUndefined();
+			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
 				context.ccm.sendingChainID,
@@ -239,7 +239,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			jest.spyOn(context.eventQueue, 'restoreSnapshot');
 			jest.spyOn(context.stateStore, 'restoreSnapshot');
 
-			await expect(command.apply(context)).resolves.toBeUndefined();
+			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(context.eventQueue.restoreSnapshot).toHaveBeenCalledWith(99);
 			expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(10);
@@ -249,7 +249,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			(((ccCommands.get(defaultCCM.module) as BaseCCCommand[]).find(
 				com => com.name === defaultCCM.crossChainCommand,
 			) as BaseCCCommand).execute as jest.Mock).mockRejectedValue('error');
-			jest.spyOn(command, 'bounce').mockResolvedValue();
+			jest.spyOn(command, 'bounce' as never).mockResolvedValue(undefined as never);
 			let eventQueueCount = 0;
 			let stateStoreCount = 0;
 			jest.spyOn(context.eventQueue, 'createSnapshot').mockImplementation(() => {
@@ -263,7 +263,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			jest.spyOn(context.eventQueue, 'restoreSnapshot');
 			jest.spyOn(context.stateStore, 'restoreSnapshot');
 
-			await expect(command.apply(context)).resolves.toBeUndefined();
+			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(context.eventQueue.restoreSnapshot).toHaveBeenCalledWith(2);
 			expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(2);
@@ -271,14 +271,14 @@ describe('BaseCrossChainUpdateCommand', () => {
 				(ccMethods.get('token') as BaseInteroperableMethod)
 					.afterCrossChainCommandExecute as jest.Mock,
 			).toHaveBeenCalledTimes(1);
-			expect(command.bounce).toHaveBeenCalledTimes(1);
+			expect(command['bounce']).toHaveBeenCalledTimes(1);
 		});
 
 		it('should terminate the chain and log event when command afterCrossChainCommandExecute fails', async () => {
 			((ccMethods.get('token') as BaseInteroperableMethod)
 				.afterCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
 
-			await expect(command.apply(context)).resolves.toBeUndefined();
+			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
 				context.ccm.sendingChainID,
@@ -305,7 +305,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			jest.spyOn(context.eventQueue, 'restoreSnapshot');
 			jest.spyOn(context.stateStore, 'restoreSnapshot');
 
-			await expect(command.apply(context)).resolves.toBeUndefined();
+			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(context.eventQueue.restoreSnapshot).toHaveBeenCalledWith(99);
 			expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(10);
@@ -317,7 +317,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				.get(defaultCCM.module)
 				?.find(com => com.name === defaultCCM.crossChainCommand);
 
-			await expect(command.apply(context)).resolves.toBeUndefined();
+			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(ccMethod?.verifyCrossChainMessage).toHaveBeenCalledTimes(1);
 			expect(ccMethod?.beforeCrossChainCommandExecute).toHaveBeenCalledTimes(1);
@@ -339,7 +339,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			});
 
 			await expect(
-				command.bounce(context, utils.getRandomBytes(32), 100, ccmStatus, ccmProcessedEventCode),
+				command['bounce'](context, utils.getRandomBytes(32), 100, ccmStatus, ccmProcessedEventCode),
 			).resolves.toBeUndefined();
 
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
@@ -365,7 +365,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			});
 
 			await expect(
-				command.bounce(context, utils.getRandomBytes(32), 100, ccmStatus, ccmProcessedEventCode),
+				command['bounce'](context, utils.getRandomBytes(32), 100, ccmStatus, ccmProcessedEventCode),
 			).resolves.toBeUndefined();
 
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
@@ -391,7 +391,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			});
 
 			await expect(
-				command.bounce(context, utils.getRandomBytes(32), 100, ccmStatus, ccmProcessedEventCode),
+				command['bounce'](context, utils.getRandomBytes(32), 100, ccmStatus, ccmProcessedEventCode),
 			).resolves.toBeUndefined();
 
 			expect(internalMethod.addToOutbox).toHaveBeenCalledWith(context.ccm.sendingChainID, {
@@ -413,7 +413,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			});
 
 			await expect(
-				command.bounce(context, utils.getRandomBytes(32), 100, ccmStatus, ccmProcessedEventCode),
+				command['bounce'](context, utils.getRandomBytes(32), 100, ccmStatus, ccmProcessedEventCode),
 			).resolves.toBeUndefined();
 
 			expect(context.eventQueue.getEvents()).toHaveLength(2);

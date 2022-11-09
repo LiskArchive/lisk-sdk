@@ -11,7 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseStore } from '../../base_store';
+import { regularMerkleTree } from '@liskhq/lisk-tree';
+import { BaseStore, StoreGetter } from '../../base_store';
 import { HASH_LENGTH } from '../constants';
 import { ChannelData } from '../types';
 import { TOKEN_ID_LENGTH } from '../../token/constants';
@@ -73,4 +74,22 @@ export const channelSchema = {
 
 export class ChannelDataStore extends BaseStore<ChannelData> {
 	public schema = channelSchema;
+
+	public async updatePartnerChainOutboxRoot(
+		context: StoreGetter,
+		chainID: Buffer,
+		messageWitnessHashes: Buffer[],
+	): Promise<void> {
+		const channel = await this.get(context, chainID);
+
+		const outboxRoot = regularMerkleTree.calculateRootFromRightWitness(
+			channel.inbox.size,
+			channel.inbox.appendPath,
+			messageWitnessHashes,
+		);
+
+		channel.partnerChainOutboxRoot = outboxRoot;
+
+		await this.set(context, chainID, channel);
+	}
 }

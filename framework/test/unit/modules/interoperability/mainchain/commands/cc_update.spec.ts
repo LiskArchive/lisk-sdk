@@ -58,6 +58,7 @@ import {
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_BYTES,
 	EMPTY_FEE_ADDRESS,
+	HASH_LENGTH,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID_BUFFER,
 	MAX_CCM_SIZE,
@@ -94,7 +95,7 @@ describe('CrossChainUpdateCommand', () => {
 		blockID: cryptography.utils.getRandomBytes(20),
 		height: 21,
 		timestamp: Math.floor(Date.now() / 1000),
-		stateRoot: cryptography.utils.getRandomBytes(38),
+		stateRoot: cryptography.utils.getRandomBytes(HASH_LENGTH),
 		validatorsHash: cryptography.utils.getRandomBytes(48),
 		aggregationBits: cryptography.utils.getRandomBytes(38),
 		signature: cryptography.utils.getRandomBytes(32),
@@ -138,13 +139,10 @@ describe('CrossChainUpdateCommand', () => {
 	const defaultCCMsEncoded = defaultCCMs.map(ccm => codec.encode(ccmSchema, ccm));
 	const defaultInboxUpdateValue = {
 		crossChainMessages: defaultCCMsEncoded,
-		messageWitness: {
-			partnerChainOutboxSize: BigInt(2),
-			siblingHashes: [Buffer.alloc(1)],
-		},
+		messageWitnessHashes: [Buffer.alloc(32)],
 		outboxRootWitness: {
 			bitmap: Buffer.alloc(1),
-			siblingHashes: [Buffer.alloc(1)],
+			siblingHashes: [Buffer.alloc(32)],
 		},
 	};
 	const defaultTransaction = { module: MODULE_NAME_INTEROPERABILITY };
@@ -366,16 +364,13 @@ describe('CrossChainUpdateCommand', () => {
 			expect(error?.message).toContain('Validators hash given in the certificate is incorrect.');
 		});
 
-		it('should return error checkActiveValidatorsUpdate fails when Validators blsKeys are not unique and lexicographically ordered', async () => {
-			const { status, error } = await mainchainCCUUpdateCommand.verify({
-				...verifyContext,
-				params: { ...params, activeValidatorsUpdate },
-			});
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toContain(
-				'Validators blsKeys must be unique and lexicographically ordered.',
-			);
+		it('should return error verifyValidatorsUpdate fails when Validators blsKeys are not unique and lexicographically ordered', async () => {
+			await expect(
+				mainchainCCUUpdateCommand.verify({
+					...verifyContext,
+					params: { ...params, activeValidatorsUpdate },
+				}),
+			).rejects.toThrow('Keys are not sorted lexicographic order.');
 		});
 
 		it('should return VerifyStatus.FAIL when verifyCertificateSignature fails', async () => {
@@ -394,7 +389,7 @@ describe('CrossChainUpdateCommand', () => {
 			jest.spyOn(interopUtils, 'checkInboxUpdateValidity').mockReturnValue({
 				status: VerifyStatus.FAIL,
 				error: new Error(
-					'Failed at verifying state root when messageWitness is non-empty and certificate is empty.',
+					'Failed at verifying state root when messageWitnessHashes is non-empty and certificate is empty.',
 				),
 			});
 
@@ -402,7 +397,7 @@ describe('CrossChainUpdateCommand', () => {
 
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toContain(
-				'Failed at verifying state root when messageWitness is non-empty and certificate is empty.',
+				'Failed at verifying state root when messageWitnessHashes is non-empty and certificate is empty.',
 			);
 		});
 
@@ -660,7 +655,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(mainchainCCUUpdateCommand, '_forward' as never)
 				.mockResolvedValue({} as never);
 			const applyMock = jest
-				.spyOn(mainchainCCUUpdateCommand, 'apply')
+				.spyOn(mainchainCCUUpdateCommand, 'apply' as never)
 				.mockResolvedValue({} as never);
 
 			const invalidCCMContext = {
@@ -733,7 +728,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(command, 'getInteroperabilityInternalMethod' as never)
 				.mockReturnValue(internalMethod as never);
 			jest.spyOn(command['events'].get(CcmProcessedEvent), 'log');
-			jest.spyOn(command, 'bounce');
+			jest.spyOn(command, 'bounce' as never);
 			context = createCrossChainMessageContext({
 				ccm: defaultCCM,
 			});
@@ -772,7 +767,8 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should terminate the chain and log event when verifyCrossChainMessage fails', async () => {
-			(ccMethods.get('token')?.verifyCrossChainMessage as jest.Mock).mockRejectedValue('error');
+			((ccMethods.get('token') as BaseInteroperableMethod)
+				.verifyCrossChainMessage as jest.Mock).mockRejectedValue('error');
 
 			await expect(command['_forward'](context)).resolves.toBeUndefined();
 
@@ -798,8 +794,8 @@ describe('CrossChainUpdateCommand', () => {
 
 			await expect(command['_forward'](context)).resolves.toBeUndefined();
 
-			expect(command.bounce).toHaveBeenCalledTimes(1);
-			expect(command.bounce).toHaveBeenCalledWith(
+			expect(command['bounce']).toHaveBeenCalledTimes(1);
+			expect(command['bounce']).toHaveBeenCalledWith(
 				expect.anything(),
 				expect.any(Buffer),
 				expect.any(Number),
@@ -822,8 +818,8 @@ describe('CrossChainUpdateCommand', () => {
 
 			await expect(command['_forward'](context)).resolves.toBeUndefined();
 
-			expect(command.bounce).toHaveBeenCalledTimes(1);
-			expect(command.bounce).toHaveBeenCalledWith(
+			expect(command['bounce']).toHaveBeenCalledTimes(1);
+			expect(command['bounce']).toHaveBeenCalledWith(
 				expect.anything(),
 				expect.any(Buffer),
 				expect.any(Number),
@@ -873,9 +869,8 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should revert the state and terminate the sending chain if beforeCrossChainMessageForwarding fails', async () => {
-			(ccMethods.get('token')?.beforeCrossChainMessageForwarding as jest.Mock).mockRejectedValue(
-				'error',
-			);
+			((ccMethods.get('token') as BaseInteroperableMethod)
+				.beforeCrossChainMessageForwarding as jest.Mock).mockRejectedValue('error');
 			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
 			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);
 			jest.spyOn(context.eventQueue, 'restoreSnapshot');

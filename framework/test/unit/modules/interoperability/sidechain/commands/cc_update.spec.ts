@@ -115,13 +115,10 @@ describe('CrossChainUpdateCommand', () => {
 	const defaultCCMsEncoded = defaultCCMs.map(ccm => codec.encode(ccmSchema, ccm));
 	const defaultInboxUpdateValue = {
 		crossChainMessages: defaultCCMsEncoded,
-		messageWitness: {
-			partnerChainOutboxSize: BigInt(2),
-			siblingHashes: [Buffer.alloc(1)],
-		},
+		messageWitnessHashes: [Buffer.alloc(32)],
 		outboxRootWitness: {
 			bitmap: Buffer.alloc(1),
-			siblingHashes: [Buffer.alloc(1)],
+			siblingHashes: [Buffer.alloc(32)],
 		},
 	};
 	const defaultTransaction = { module: MODULE_NAME_INTEROPERABILITY };
@@ -343,16 +340,13 @@ describe('CrossChainUpdateCommand', () => {
 			expect(error?.message).toContain('Validators hash given in the certificate is incorrect.');
 		});
 
-		it('should return error checkActiveValidatorsUpdate fails when Validators blsKeys are not unique and lexicographically ordered', async () => {
-			const { status, error } = await sidechainCCUUpdateCommand.verify({
-				...verifyContext,
-				params: { ...params, activeValidatorsUpdate },
-			});
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toContain(
-				'Validators blsKeys must be unique and lexicographically ordered.',
-			);
+		it('should return error verifyValidatorsUpdate fails when Validators blsKeys are not unique and lexicographically ordered', async () => {
+			await expect(
+				sidechainCCUUpdateCommand.verify({
+					...verifyContext,
+					params: { ...params, activeValidatorsUpdate },
+				}),
+			).rejects.toThrow('Keys are not sorted lexicographic order.');
 		});
 
 		it('should return VerifyStatus.FAIL when verifyCertificateSignature fails', async () => {
@@ -371,7 +365,7 @@ describe('CrossChainUpdateCommand', () => {
 			jest.spyOn(interopUtils, 'checkInboxUpdateValidity').mockReturnValue({
 				status: VerifyStatus.FAIL,
 				error: new Error(
-					'Failed at verifying state root when messageWitness is non-empty and certificate is empty.',
+					'Failed at verifying state root when messageWitnessHashes is non-empty and certificate is empty.',
 				),
 			});
 
@@ -379,7 +373,7 @@ describe('CrossChainUpdateCommand', () => {
 
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toContain(
-				'Failed at verifying state root when messageWitness is non-empty and certificate is empty.',
+				'Failed at verifying state root when messageWitnessHashes is non-empty and certificate is empty.',
 			);
 		});
 
@@ -593,7 +587,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'appendToInboxTree')
 				.mockResolvedValue({} as never);
 			const applyMock = jest
-				.spyOn(sidechainCCUUpdateCommand, 'apply')
+				.spyOn(sidechainCCUUpdateCommand, 'apply' as never)
 				.mockResolvedValue({} as never);
 
 			const validCCMContext = {

@@ -15,6 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
+import { objects } from '@liskhq/lisk-utils';
 import {
 	CCM_STATUS_OK,
 	EMPTY_BYTES,
@@ -30,8 +31,9 @@ import {
 	SendInternalContext,
 	TerminateChainContext,
 	CreateTerminatedStateAccountContext,
+	CrossChainUpdateTransactionParams,
 } from './types';
-import { getIDAsKeyForStore } from './utils';
+import { computeValidatorsHash, getIDAsKeyForStore } from './utils';
 import { BaseInteroperableMethod } from './base_interoperable_method';
 import { ImmutableStoreGetter, StoreGetter } from '../base_store';
 import { NamedRegistry } from '../named_registry';
@@ -44,6 +46,10 @@ import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/termina
 import { ChainAccountUpdatedEvent } from './events/chain_account_updated';
 import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
 import { BaseInternalMethod } from '../BaseInternalMethod';
+import { MethodContext, ImmutableMethodContext } from '../../state_machine';
+import { ChainValidatorsStore, updateActiveValidators } from './stores/chain_validators';
+import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';
+import { Certificate } from '../../engine/consensus/certificate_generation/types';
 
 export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMethod {
 	public readonly context: StoreGetter;
@@ -234,6 +240,82 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		});
 
 		await this.createTerminatedStateAccount(terminateChainContext, chainID);
+	}
+
+	public async updateValidators(
+		context: MethodContext,
+		ccu: CrossChainUpdateTransactionParams,
+	): Promise<void> {
+		await this.stores.get(ChainValidatorsStore).updateValidators(context, ccu.sendingChainID, {
+			activeValidators: ccu.activeValidatorsUpdate,
+			certificateThreshold: ccu.newCertificateThreshold,
+		});
+	}
+
+	public async updateCertificate(
+		context: MethodContext,
+		ccu: CrossChainUpdateTransactionParams,
+	): Promise<void> {
+		const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
+		const chainAccountStore = this.stores.get(ChainAccountStore);
+		const chainAccount = await chainAccountStore.get(context, ccu.sendingChainID);
+		const updatedChainAccount = {
+			...chainAccount,
+			lastCertificate: {
+				height: certificate.height,
+				stateRoot: certificate.stateRoot,
+				timestamp: certificate.timestamp,
+				validatorsHash: certificate.validatorsHash,
+			},
+		};
+		await chainAccountStore.set(context, ccu.sendingChainID, updatedChainAccount);
+
+		this.events.get(ChainAccountUpdatedEvent).log(context, ccu.sendingChainID, updatedChainAccount);
+	}
+
+	public async updatePartnerChainOutboxRoot(
+		context: MethodContext,
+		ccu: CrossChainUpdateTransactionParams,
+	): Promise<void> {
+		await this.stores
+			.get(ChannelDataStore)
+			.updatePartnerChainOutboxRoot(
+				context,
+				ccu.sendingChainID,
+				ccu.inboxUpdate.messageWitnessHashes,
+			);
+	}
+	public async verifyValidatorsUpdate(
+		context: ImmutableMethodContext,
+		ccu: CrossChainUpdateTransactionParams,
+	): Promise<void> {
+		if (ccu.certificate.length === 0) {
+			throw new Error('Certificate must be non-empty if validators have been updated.');
+		}
+		const blsKeys = ccu.activeValidatorsUpdate.map(v => v.blsKey);
+
+		if (!objects.bufferArrayOrderByLex(blsKeys)) {
+			throw new Error('Keys are not sorted lexicographic order.');
+		}
+		if (!objects.bufferArrayUniqueItems(blsKeys)) {
+			throw new Error('Keys have duplicated entry.');
+		}
+		const { activeValidators } = await this.stores
+			.get(ChainValidatorsStore)
+			.get(context, ccu.sendingChainID);
+
+		const newActiveValidators = updateActiveValidators(
+			activeValidators,
+			ccu.activeValidatorsUpdate,
+		);
+		const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
+		const newValidatorsHash = computeValidatorsHash(
+			newActiveValidators,
+			ccu.newCertificateThreshold,
+		);
+		if (!certificate.validatorsHash.equals(newValidatorsHash)) {
+			throw new Error('ValidatorsHash in certificate and the computed values do not match.');
+		}
 	}
 
 	// Different in mainchain and sidechain so to be implemented in each module store separately
