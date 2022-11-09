@@ -45,6 +45,7 @@ import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_BYTES,
+	HASH_LENGTH,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID_BUFFER,
 	MAX_CCM_SIZE,
@@ -74,7 +75,7 @@ describe('CrossChainUpdateCommand', () => {
 		blockID: cryptography.utils.getRandomBytes(20),
 		height: 21,
 		timestamp: Math.floor(Date.now() / 1000),
-		stateRoot: cryptography.utils.getRandomBytes(38),
+		stateRoot: cryptography.utils.getRandomBytes(HASH_LENGTH),
 		validatorsHash: cryptography.utils.getRandomBytes(48),
 		aggregationBits: cryptography.utils.getRandomBytes(38),
 		signature: cryptography.utils.getRandomBytes(32),
@@ -118,13 +119,10 @@ describe('CrossChainUpdateCommand', () => {
 	const defaultCCMsEncoded = defaultCCMs.map(ccm => codec.encode(ccmSchema, ccm));
 	const defaultInboxUpdateValue = {
 		crossChainMessages: defaultCCMsEncoded,
-		messageWitness: {
-			partnerChainOutboxSize: BigInt(2),
-			siblingHashes: [Buffer.alloc(1)],
-		},
+		messageWitnessHashes: [Buffer.alloc(32)],
 		outboxRootWitness: {
 			bitmap: Buffer.alloc(1),
-			siblingHashes: [Buffer.alloc(1)],
+			siblingHashes: [Buffer.alloc(32)],
 		},
 	};
 	const defaultTransaction = { module: MODULE_NAME_INTEROPERABILITY };
@@ -373,7 +371,7 @@ describe('CrossChainUpdateCommand', () => {
 			jest.spyOn(interopUtils, 'checkInboxUpdateValidity').mockReturnValue({
 				status: VerifyStatus.FAIL,
 				error: new Error(
-					'Failed at verifying state root when messageWitness is non-empty and certificate is empty.',
+					'Failed at verifying state root when messageWitnessHashes is non-empty and certificate is empty.',
 				),
 			});
 
@@ -381,7 +379,7 @@ describe('CrossChainUpdateCommand', () => {
 
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toContain(
-				'Failed at verifying state root when messageWitness is non-empty and certificate is empty.',
+				'Failed at verifying state root when messageWitnessHashes is non-empty and certificate is empty.',
 			);
 		});
 

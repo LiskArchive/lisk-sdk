@@ -12,8 +12,26 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseStore } from '../../base_store';
-import { chainIDSchema } from '../schemas';
-import { ChainID } from '../types';
+import { CHAIN_ID_LENGTH } from '../constants';
+
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#registered-names-substore
+export const chainIDSchema = {
+	$id: '/modules/interoperability/chainId',
+	type: 'object',
+	required: ['chainID'],
+	properties: {
+		chainID: {
+			dataType: 'bytes',
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
+			fieldNumber: 1,
+		},
+	},
+};
+
+export interface ChainID {
+	chainID: Buffer;
+}
 
 export class RegisteredNamesStore extends BaseStore<ChainID> {
 	public schema = chainIDSchema;
