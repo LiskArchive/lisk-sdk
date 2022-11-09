@@ -1,4 +1,3 @@
-/* eslint-disable no-bitwise */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -13,10 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Q } from './q';
-
-export class Q96 extends Q {
-	public constructor(val: number | bigint | Buffer) {
-		super(val, 96);
-	}
-}
+export { Q } from './q';
+export { Q96 } from './q96';
+export { Q_OPERATION } from './constants';

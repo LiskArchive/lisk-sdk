@@ -17,3 +17,9 @@ export const MAX_SAFE_INTEGER = BigInt(Number.MAX_SAFE_INTEGER);
 export const ZERO = BigInt(0);
 export const ONE = BigInt(1);
 export const TWO = BigInt(2);
+export const MAX_FRAC = 128;
+
+export const enum Q_OPERATION {
+	ROUND_UP = 0,
+	ROUND_DOWN = 1,
+}
