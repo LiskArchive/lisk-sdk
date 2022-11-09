@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_NAME_REGISTRATION, EMPTY_BYTES } from '../../constants';
 import { registrationCCMParamsSchema } from '../../schemas';
-import { CCCommandExecuteContext } from '../../types';
+import { CrossChainMessageContext } from '../../types';
 import { createCCMsgBeforeSendContext } from '../../context';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 import { MainchainInteroperabilityInternalMethod } from '../store';
@@ -36,7 +36,7 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 		return CROSS_CHAIN_COMMAND_NAME_REGISTRATION;
 	}
 
-	public async execute(ctx: CCCommandExecuteContext): Promise<void> {
+	public async execute(ctx: CrossChainMessageContext): Promise<void> {
 		const { ccm } = ctx;
 		if (!ccm) {
 			throw new Error('CCM to execute registration cross chain command is missing.');
@@ -69,7 +69,7 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 				getStore: ctx.getStore,
 				logger: ctx.logger,
 				chainID: ctx.chainID,
-				feeAddress: ctx.feeAddress,
+				feeAddress: ctx.transaction.senderAddress,
 			});
 			await interoperabilityInternalMethod.terminateChainInternal(
 				ccm.sendingChainID,

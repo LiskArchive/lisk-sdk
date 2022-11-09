@@ -17,21 +17,14 @@ import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
 import {
 	BLS_PUBLIC_KEY_LENGTH,
-	CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
-	CCM_STATUS_MODULE_NOT_SUPPORTED,
-	CCM_STATUS_OK,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	EMPTY_BYTES,
-	EMPTY_FEE_ADDRESS,
 	HASH_LENGTH,
 	MAINCHAIN_ID,
 	MAINCHAIN_ID_BUFFER,
-	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/store';
-import { getCCMSize, getIDAsKeyForStore } from '../../../../src/modules/interoperability/utils';
+import { getIDAsKeyForStore } from '../../../../src/modules/interoperability/utils';
 import { MainchainInteroperabilityModule, testing } from '../../../../src';
-import { CCMApplyContext, CCUpdateParams } from '../../../../src/modules/interoperability/types';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
@@ -44,7 +37,6 @@ import { ChainAccountStore } from '../../../../src/modules/interoperability/stor
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { createStoreGetter } from '../../../../src/testing/utils';
 import { StoreGetter } from '../../../../src/modules/base_store';
-import { NamedRegistry } from '../../../../src/modules/named_registry';
 import { EventQueue, MethodContext } from '../../../../src/state_machine';
 import { ChainAccountUpdatedEvent } from '../../../../src/modules/interoperability/events/chain_account_updated';
 import { TerminatedStateCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_state_created';
@@ -388,220 +380,6 @@ describe('Base interoperability internal method', () => {
 			expect(
 				mainchainInteroperabilityInternalMethod.createTerminatedStateAccount,
 			).toHaveBeenCalled();
-		});
-	});
-
-	describe('apply', () => {
-		let mainchainStoreLocal: MainchainInteroperabilityInternalMethod;
-
-		const ccm = {
-			nonce: BigInt(0),
-			module: MODULE_NAME_INTEROPERABILITY,
-			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-			sendingChainID: utils.intToBuffer(2, 4),
-			receivingChainID: utils.intToBuffer(3, 4),
-			fee: BigInt(54000),
-			status: CCM_STATUS_OK,
-			params: Buffer.alloc(0),
-		};
-
-		const ccCommands = [
-			{
-				name: ccm.crossChainCommand,
-				execute: jest.fn(),
-			},
-		];
-		const ccCommandsMap = new Map();
-		ccCommandsMap.set(MODULE_NAME_INTEROPERABILITY, ccCommands);
-
-		const ccMethodMod1 = {
-			beforeSendCCM: jest.fn(),
-			beforeApplyCCM: jest.fn(),
-		};
-		const ccMethodMod2 = {
-			beforeSendCCM: jest.fn(),
-			beforeApplyCCM: jest.fn(),
-		};
-
-		const ccMethodModsMap = new Map();
-		ccMethodModsMap.set('cc1', ccMethodMod1);
-		ccMethodModsMap.set('cc2', ccMethodMod2);
-
-		const ccu: CCUpdateParams = {
-			...ccuParams,
-		};
-
-		const beforeSendCCMContext = testing.createBeforeSendCCMsgMethodContext({
-			ccm,
-			feeAddress: utils.getRandomBytes(32),
-		});
-
-		const beforeApplyCCMContext = testing.createBeforeApplyCCMsgMethodContext({
-			...beforeSendCCMContext,
-			ccm,
-			ccu,
-			payFromAddress: EMPTY_FEE_ADDRESS,
-			trsSender: utils.getRandomBytes(20),
-		});
-
-		const ccmApplyContext: CCMApplyContext = {
-			ccm,
-			ccu,
-			ccmSize: getCCMSize(ccm),
-			eventQueue: beforeSendCCMContext.eventQueue,
-			getMethodContext: beforeSendCCMContext.getMethodContext,
-			getStore: beforeSendCCMContext.getStore,
-			logger: beforeSendCCMContext.logger,
-			chainID: beforeSendCCMContext.chainID,
-			feeAddress: Buffer.alloc(0),
-			trsSender: beforeApplyCCMContext.trsSender,
-		};
-
-		beforeEach(() => {
-			mainchainStoreLocal = new MainchainInteroperabilityInternalMethod(
-				interopMod.stores,
-				new NamedRegistry(),
-				context,
-				ccMethodModsMap,
-			);
-		});
-
-		it('should return immediately if sending chain is terminated', async () => {
-			// Arrange
-			jest.spyOn(interopMod.stores.get(TerminatedStateStore), 'has').mockResolvedValue(true);
-
-			// Act & Assert
-			await expect(
-				mainchainStoreLocal.apply(ccmApplyContext, ccCommandsMap),
-			).resolves.toBeUndefined();
-			expect(ccMethodMod1.beforeApplyCCM).toHaveBeenCalledTimes(0);
-		});
-
-		it('should call all the interoperable beforeApplyCCM hooks', async () => {
-			// Arrange
-			const ccMethodSampleMod = {
-				beforeSendCCM: jest.fn(),
-				beforeApplyCCM: jest.fn(),
-			};
-			mainchainStoreLocal = new MainchainInteroperabilityInternalMethod(
-				interopMod.stores,
-				new NamedRegistry(),
-				context,
-				new Map().set('mod1', ccMethodSampleMod),
-			);
-			jest.spyOn(interopMod.stores.get(TerminatedStateStore), 'has').mockResolvedValue(false);
-			jest.spyOn(mainchainStoreLocal, 'sendInternal');
-
-			// Act & Assert
-			await expect(
-				mainchainStoreLocal.apply(ccmApplyContext, ccCommandsMap),
-			).resolves.toBeUndefined();
-			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledTimes(1);
-			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledWith(
-				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
-			);
-		});
-
-		it('should not execute CCMs and return when module is not supported', async () => {
-			// Arrange
-			const localCCCommandsMap = new Map().set('mod1', [
-				{
-					name: 'newMod',
-					execute: jest.fn(),
-				},
-			]);
-			mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
-				interopMod.stores,
-				new NamedRegistry(),
-				context,
-				new Map().set('newMod', ccMethodMod1),
-			);
-			jest.spyOn(interopMod.stores.get(TerminatedStateStore), 'has').mockResolvedValue(false);
-
-			jest.spyOn(mainchainStoreLocal, 'sendInternal').mockResolvedValue({} as never);
-
-			// Act & Assert
-			await expect(
-				mainchainStoreLocal.apply(ccmApplyContext, localCCCommandsMap),
-			).resolves.toBeUndefined();
-			expect(ccMethodMod1.beforeApplyCCM).toHaveBeenCalledTimes(1);
-			expect(ccMethodMod1.beforeApplyCCM).toHaveBeenCalledWith(
-				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
-			);
-			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledTimes(1);
-			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledWith(
-				expect.objectContaining({ status: CCM_STATUS_MODULE_NOT_SUPPORTED }),
-			);
-		});
-
-		it('should not execute CCMs and return when command is not supported', async () => {
-			// Arrange
-			const localCCCommandsMap = new Map().set(MODULE_NAME_INTEROPERABILITY, [
-				{
-					name: 'cc1',
-					execute: jest.fn(),
-				},
-			]);
-			const ccMethodSampleMod = {
-				beforeSendCCM: jest.fn(),
-				beforeApplyCCM: jest.fn(),
-			};
-			mainchainStoreLocal = new MainchainInteroperabilityInternalMethod(
-				interopMod.stores,
-				new NamedRegistry(),
-				context,
-				new Map().set('mod1', ccMethodSampleMod),
-			);
-
-			jest.spyOn(interopMod.stores.get(TerminatedStateStore), 'has').mockResolvedValue(false);
-			jest.spyOn(mainchainStoreLocal, 'sendInternal').mockResolvedValue({} as never);
-
-			// Act & Assert
-			await expect(
-				mainchainStoreLocal.apply(ccmApplyContext, localCCCommandsMap),
-			).resolves.toBeUndefined();
-			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledTimes(1);
-			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledWith(
-				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
-			);
-			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledTimes(1);
-			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledWith(
-				expect.objectContaining({ status: CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED }),
-			);
-		});
-
-		it('should execute the cross chain command of interoperable module with name interoperability', async () => {
-			// Arrange
-			const ccMethodSampleMod = {
-				beforeSendCCM: jest.fn(),
-				beforeApplyCCM: jest.fn(),
-			};
-			mainchainStoreLocal = new MainchainInteroperabilityInternalMethod(
-				interopMod.stores,
-				new NamedRegistry(),
-				context,
-				new Map().set(MODULE_NAME_INTEROPERABILITY, ccMethodSampleMod),
-			);
-			jest.spyOn(interopMod.stores.get(TerminatedStateStore), 'has').mockResolvedValue(false);
-			jest.spyOn(mainchainStoreLocal, 'sendInternal').mockResolvedValue({} as never);
-
-			const executeCCMContext = testing.createExecuteCCMsgMethodContext({
-				...beforeSendCCMContext,
-			});
-
-			// Act & Assert
-			await expect(
-				mainchainStoreLocal.apply(ccmApplyContext, ccCommandsMap),
-			).resolves.toBeUndefined();
-			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledTimes(1);
-			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledWith(
-				expect.objectContaining({ ccu: beforeApplyCCMContext.ccu }),
-			);
-			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledTimes(0);
-			expect(ccCommands[0].execute).toHaveBeenCalledTimes(1);
-			expect(ccCommands[0].execute).toHaveBeenCalledWith(
-				expect.objectContaining({ ccm: executeCCMContext.ccm }),
-			);
 		});
 	});
 

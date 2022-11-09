@@ -17,8 +17,8 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { SidechainCCRegistrationCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands/registration';
 import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { SidechainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/sidechain/store';
-import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
-import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
+import { CrossChainMessageContext } from '../../../../../../src/modules/interoperability/types';
+import { createCrossChainMessageContext } from '../../../../../../src/testing';
 import { SidechainInteroperabilityModule } from '../../../../../../src';
 import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
@@ -100,7 +100,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		},
 		partnerChainOutboxRoot: Buffer.alloc(0),
 	};
-	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
+	const sampleExecuteContext: CrossChainMessageContext = createCrossChainMessageContext({
 		ccm,
 		chainID,
 	});

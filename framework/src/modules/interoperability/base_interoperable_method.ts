@@ -18,6 +18,7 @@ import {
 	BeforeSendCCMsgMethodContext,
 	BeforeRecoverCCMsgMethodContext,
 	RecoverCCMsgMethodContext,
+	CrossChainMessageContext,
 } from './types';
 
 export abstract class BaseInteroperableMethod extends BaseMethod {
@@ -25,4 +26,7 @@ export abstract class BaseInteroperableMethod extends BaseMethod {
 	public beforeSendCCM?(ctx: BeforeSendCCMsgMethodContext): Promise<void>;
 	public beforeRecoverCCM?(ctx: BeforeRecoverCCMsgMethodContext): Promise<void>;
 	public recover?(ctx: RecoverCCMsgMethodContext): Promise<void>;
+	public verifyCrossChainMessage?(ctx: CrossChainMessageContext): Promise<void>;
+	public beforeCrossChainCommandExecute?(ctx: CrossChainMessageContext): Promise<void>;
+	public afterCrossChainCommandExecute?(ctx: CrossChainMessageContext): Promise<void>;
 }

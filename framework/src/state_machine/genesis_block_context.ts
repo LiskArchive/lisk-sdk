@@ -55,6 +55,7 @@ export class GenesisBlockContext {
 				new MethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
+			stateStore: this._stateStore,
 			header: this._header,
 			logger: this._logger,
 			assets: this._assets,
@@ -83,6 +84,7 @@ export class GenesisBlockContext {
 				new MethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
+			stateStore: this._stateStore,
 			header: this._header,
 			logger: this._logger,
 			assets: this._assets,

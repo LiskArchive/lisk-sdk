@@ -21,9 +21,9 @@ import {
 } from '../../../../../src/modules/interoperability/constants';
 import { MainchainCCChannelTerminatedCommand } from '../../../../../src/modules/interoperability/mainchain/cc_commands';
 import { MainchainInteroperabilityInternalMethod } from '../../../../../src/modules/interoperability/mainchain/store';
-import { CCCommandExecuteContext } from '../../../../../src/modules/interoperability/types';
+import { CrossChainMessageContext } from '../../../../../src/modules/interoperability/types';
 import { NamedRegistry } from '../../../../../src/modules/named_registry';
-import { createExecuteCCMsgMethodContext } from '../../../../../src/testing';
+import { createCrossChainMessageContext } from '../../../../../src/testing';
 
 describe('BaseCCChannelTerminatedCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -51,7 +51,7 @@ describe('BaseCCChannelTerminatedCommand', () => {
 		status: 0,
 		params: EMPTY_BYTES,
 	};
-	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
+	const sampleExecuteContext: CrossChainMessageContext = createCrossChainMessageContext({
 		ccm,
 		chainID,
 	});

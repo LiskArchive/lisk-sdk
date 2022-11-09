@@ -15,7 +15,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseCCCommand } from '../../interoperability/base_cc_command';
 import { MODULE_NAME_INTEROPERABILITY } from '../../interoperability/constants';
-import { CCCommandExecuteContext } from '../../interoperability/types';
+import { CrossChainMessageContext } from '../../interoperability/types';
 import { NamedRegistry } from '../../named_registry';
 import { TokenMethod } from '../method';
 import {
@@ -54,7 +54,7 @@ export class CCForwardCommand extends BaseCCCommand {
 		this._interopMethod = interoperabilityMethod;
 	}
 
-	public async execute(ctx: CCCommandExecuteContext): Promise<void> {
+	public async execute(ctx: CrossChainMessageContext): Promise<void> {
 		const { ccm } = ctx;
 		const methodContext = ctx.getMethodContext();
 		const { chainID: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);

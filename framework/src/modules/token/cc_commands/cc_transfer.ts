@@ -14,17 +14,14 @@
 import { codec } from '@liskhq/lisk-codec';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseCCCommand } from '../../interoperability/base_cc_command';
-import { CCCommandExecuteContext } from '../../interoperability/types';
+import { CrossChainMessageContext } from '../../interoperability/types';
 import { NamedRegistry } from '../../named_registry';
 import { TokenMethod } from '../method';
 import {
-	CCM_STATUS_MIN_BALANCE_NOT_REACHED,
 	CCM_STATUS_OK,
-	CCM_STATUS_PROTOCOL_VIOLATION,
 	CCM_STATUS_TOKEN_NOT_SUPPORTED,
 	CHAIN_ID_ALIAS_NATIVE,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-	MIN_RETURN_FEE,
 } from '../constants';
 import { CCTransferMessageParams, crossChainTransferMessageParams } from '../schemas';
 import { EscrowStore } from '../stores/escrow';
@@ -59,7 +56,7 @@ export class CCTransferCommand extends BaseCCCommand {
 		this._minBalances = args.minBalances;
 	}
 
-	public async execute(ctx: CCCommandExecuteContext): Promise<void> {
+	public async execute(ctx: CrossChainMessageContext): Promise<void> {
 		const { ccm } = ctx;
 		const methodContext = ctx.getMethodContext();
 		const { chainID: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
@@ -85,9 +82,10 @@ export class CCTransferCommand extends BaseCCCommand {
 			}
 		} catch (error) {
 			ctx.logger.debug({ err: error as Error }, 'Error verifying the params.');
-			if (ccm.status === CCM_STATUS_OK && ccm.fee >= MIN_RETURN_FEE * ctx.ccmSize) {
-				await this._interopMethod.error(methodContext, ccm, CCM_STATUS_PROTOCOL_VIOLATION);
-			}
+			// TODO: Update to development branch. This is not used anymore
+			// if (ccm.status === CCM_STATUS_OK && ccm.fee >= MIN_RETURN_FEE * ctx.ccmSize) {
+			// 	await this._interopMethod.error(methodContext, ccm, CCM_STATUS_PROTOCOL_VIOLATION);
+			// }
 			await this._interopMethod.terminateChain(methodContext, ccm.sendingChainID);
 
 			return;
@@ -95,7 +93,8 @@ export class CCTransferCommand extends BaseCCCommand {
 
 		if (
 			!tokenSupported(this._supportedTokenIDs, params.tokenID) &&
-			ccm.fee >= ctx.ccmSize * MIN_RETURN_FEE &&
+			// TODO: Update to development branch. This is not used anymore
+			// ccm.fee >= ctx.ccmSize * MIN_RETURN_FEE &&
 			ccm.status === CCM_STATUS_OK
 		) {
 			await this._interopMethod.error(methodContext, ccm, CCM_STATUS_TOKEN_NOT_SUPPORTED);
@@ -119,9 +118,10 @@ export class CCTransferCommand extends BaseCCCommand {
 		if (!recipientExist) {
 			const minBalance = this._minBalances.find(mb => mb.tokenID.equals(canonicalTokenID))?.amount;
 			if (!minBalance || minBalance > params.amount) {
-				if (ccm.fee >= MIN_RETURN_FEE * ctx.ccmSize && ccm.status === CCM_STATUS_OK) {
-					await this._interopMethod.error(methodContext, ccm, CCM_STATUS_MIN_BALANCE_NOT_REACHED);
-				}
+				// TODO: Update to development branch. This is not used anymore
+				// if (ccm.fee >= MIN_RETURN_FEE * ctx.ccmSize && ccm.status === CCM_STATUS_OK) {
+				// 	await this._interopMethod.error(methodContext, ccm, CCM_STATUS_MIN_BALANCE_NOT_REACHED);
+				// }
 				return;
 			}
 			receivedAmount -= minBalance;

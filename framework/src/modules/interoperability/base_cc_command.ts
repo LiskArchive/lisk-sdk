@@ -14,7 +14,7 @@
 
 import { Schema } from '@liskhq/lisk-codec';
 import { NamedRegistry } from '../named_registry';
-import { CCCommandExecuteContext } from './types';
+import { CrossChainMessageContext, ImmutableCrossChainMessageContext } from './types';
 
 export abstract class BaseCCCommand {
 	public abstract schema: Schema;
@@ -26,5 +26,6 @@ export abstract class BaseCCCommand {
 
 	// eslint-disable-next-line no-useless-constructor
 	public constructor(protected stores: NamedRegistry, protected events: NamedRegistry) {}
-	public abstract execute(ctx: CCCommandExecuteContext): Promise<void>;
+	public verify?(ctx: ImmutableCrossChainMessageContext): Promise<void>;
+	public abstract execute(ctx: CrossChainMessageContext): Promise<void>;
 }
