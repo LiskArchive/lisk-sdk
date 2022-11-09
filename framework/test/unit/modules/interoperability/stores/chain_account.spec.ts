@@ -36,15 +36,15 @@ describe('ChainAccountStore', () => {
 	beforeEach(async () => {
 		context = createStoreGetter(new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()));
 		chainAccountStore = new ChainAccountStore(MODULE_NAME_INTEROPERABILITY);
-		for (const index of [0, 1, 1]) {
-			await chainAccountStore.set(context, chainIDs[0], {
+		for (const index of [0, 1, 2]) {
+			await chainAccountStore.set(context, chainIDs[index], {
 				lastCertificate: {
 					height: 0,
 					stateRoot: utils.getRandomBytes(HASH_LENGTH),
 					timestamp: 100 + index,
 					validatorsHash: utils.getRandomBytes(HASH_LENGTH),
 				},
-				name: `chain${index}`,
+				name: `chain${index + 1}`,
 				status: 0,
 			});
 		}
@@ -57,27 +57,6 @@ describe('ChainAccountStore', () => {
 			expect(chainAccounts).toHaveLength(2);
 			expect(chainAccounts[0].name).toEqual('chain2');
 			expect(chainAccounts[1].name).toEqual('chain3');
-		});
-	});
-
-	describe('updateLastCertificate', () => {
-		it('should update the last certificate of the specified account and return updated account', async () => {
-			const updatedCertificate = {
-				height: 99,
-				stateRoot: utils.getRandomBytes(32),
-				timestamp: 999,
-				validatorsHash: utils.getRandomBytes(32),
-			};
-			const result = await chainAccountStore.updateLastCertificate(
-				context,
-				chainIDs[0],
-				updatedCertificate,
-			);
-
-			expect(result.lastCertificate).toEqual(updatedCertificate);
-
-			const updated = await chainAccountStore.get(context, chainIDs[0]);
-			expect(updated.lastCertificate).toEqual(updatedCertificate);
 		});
 	});
 });

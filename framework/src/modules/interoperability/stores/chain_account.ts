@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { utils } from '@liskhq/lisk-cryptography';
-import { BaseStore, ImmutableStoreGetter, StoreGetter } from '../../base_store';
+import { BaseStore, ImmutableStoreGetter } from '../../base_store';
 import { HASH_LENGTH, MAX_UINT32 } from '../constants';
 
 export interface LastCertificate {
@@ -111,22 +111,5 @@ export class ChainAccountStore extends BaseStore<ChainAccount> {
 		return Promise.all(
 			chainAccounts.map(async chainAccount => this.get(context, chainAccount.key)),
 		);
-	}
-
-	public async updateLastCertificate(
-		context: StoreGetter,
-		chainID: Buffer,
-		certificate: LastCertificate,
-	): Promise<ChainAccount> {
-		const chainAccount = await this.get(context, chainID);
-		chainAccount.lastCertificate = {
-			height: certificate.height,
-			stateRoot: certificate.stateRoot,
-			timestamp: certificate.timestamp,
-			validatorsHash: certificate.validatorsHash,
-		};
-		await this.set(context, chainID, chainAccount);
-
-		return chainAccount;
 	}
 }

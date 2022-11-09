@@ -749,8 +749,8 @@ describe('Base interoperability internal method', () => {
 
 	describe('updateCertificate', () => {
 		it('should update chain account with certificate and log event', async () => {
-			jest.spyOn(interopMod.stores.get(ChainAccountStore), 'updateLastCertificate');
 			jest.spyOn(interopMod.events.get(ChainAccountUpdatedEvent), 'log');
+			jest.spyOn(interopMod.stores.get(ChainAccountStore), 'set');
 
 			const certificate = {
 				blockID: utils.getRandomBytes(HASH_LENGTH),
@@ -780,10 +780,17 @@ describe('Base interoperability internal method', () => {
 
 			await mainchainInteroperabilityInternalMethod.updateCertificate(methodContext, ccu);
 
-			expect(interopMod.stores.get(ChainAccountStore).updateLastCertificate).toHaveBeenCalledWith(
+			expect(interopMod.stores.get(ChainAccountStore).set).toHaveBeenCalledWith(
 				expect.anything(),
 				ccu.sendingChainID,
-				certificate,
+				expect.objectContaining({
+					lastCertificate: {
+						height: certificate.height,
+						stateRoot: certificate.stateRoot,
+						timestamp: certificate.timestamp,
+						validatorsHash: certificate.validatorsHash,
+					},
+				}),
 			);
 			expect(interopMod.events.get(ChainAccountUpdatedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
