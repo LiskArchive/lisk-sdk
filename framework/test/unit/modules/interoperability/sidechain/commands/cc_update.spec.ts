@@ -115,10 +115,10 @@ describe('CrossChainUpdateCommand', () => {
 	const defaultCCMsEncoded = defaultCCMs.map(ccm => codec.encode(ccmSchema, ccm));
 	const defaultInboxUpdateValue = {
 		crossChainMessages: defaultCCMsEncoded,
-		messageWitnessHashes: [Buffer.alloc(1)],
+		messageWitnessHashes: [Buffer.alloc(32)],
 		outboxRootWitness: {
 			bitmap: Buffer.alloc(1),
-			siblingHashes: [Buffer.alloc(1)],
+			siblingHashes: [Buffer.alloc(32)],
 		},
 	};
 	const defaultTransaction = { module: MODULE_NAME_INTEROPERABILITY };

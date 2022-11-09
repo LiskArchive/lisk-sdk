@@ -16,12 +16,14 @@ import { utils as cryptoUtils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
 import {
+	BLS_PUBLIC_KEY_LENGTH,
 	CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
 	CCM_STATUS_MODULE_NOT_SUPPORTED,
 	CCM_STATUS_OK,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	EMPTY_BYTES,
 	EMPTY_FEE_ADDRESS,
+	HASH_LENGTH,
 	MAINCHAIN_ID,
 	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
@@ -43,7 +45,7 @@ import { TerminatedStateStore } from '../../../../src/modules/interoperability/s
 import { createStoreGetter } from '../../../../src/testing/utils';
 import { StoreGetter } from '../../../../src/modules/base_store';
 import { NamedRegistry } from '../../../../src/modules/named_registry';
-import { EventQueue } from '../../../../src/state_machine';
+import { EventQueue, MethodContext } from '../../../../src/state_machine';
 import { ChainAccountUpdatedEvent } from '../../../../src/modules/interoperability/events/chain_account_updated';
 import { TerminatedStateCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_state_created';
 import { createTransientMethodContext } from '../../../../src/testing';
@@ -135,6 +137,7 @@ describe('Base interoperability internal method', () => {
 	let chainDataSubstore: ChainAccountStore;
 	let terminatedStateSubstore: TerminatedStateStore;
 	let context: StoreGetter;
+	let methodContext: MethodContext;
 
 	beforeEach(async () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -156,6 +159,7 @@ describe('Base interoperability internal method', () => {
 			context,
 			new Map(),
 		);
+		methodContext = createTransientMethodContext({ stateStore });
 	});
 
 	describe('appendToInboxTree', () => {
@@ -222,13 +226,13 @@ describe('Base interoperability internal method', () => {
 	describe('createTerminatedStateAccount', () => {
 		const chainId = cryptoUtils.intToBuffer(5, 4);
 		const stateRoot = Buffer.from('888d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex');
-		const ownChainAccount1 = {
+		const ownChainAccountMainchain = {
 			name: 'mainchain',
 			chainID: MAINCHAIN_ID_BUFFER,
 			nonce: BigInt('0'),
 		};
 
-		const ownChainAccount2 = {
+		const ownChainAccount1 = {
 			name: 'chain1',
 			chainID: cryptoUtils.intToBuffer(7, 4),
 			nonce: BigInt('0'),
@@ -296,7 +300,7 @@ describe('Base interoperability internal method', () => {
 			const chainIdNew = cryptoUtils.intToBuffer(9, 4);
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
-				.mockResolvedValue(ownChainAccount1 as never);
+				.mockResolvedValue(ownChainAccountMainchain);
 			jest.spyOn(chainDataSubstore, 'has').mockResolvedValue(false);
 
 			await expect(
@@ -311,7 +315,7 @@ describe('Base interoperability internal method', () => {
 			const chainIdNew = cryptoUtils.intToBuffer(10, 4);
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
-				.mockResolvedValue(ownChainAccount2);
+				.mockResolvedValue(ownChainAccount1);
 			await chainDataSubstore.set(context, utils.getIDAsKeyForStore(MAINCHAIN_ID), chainAccount);
 			await mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(
 				createTerminatedStateAccountContext,
@@ -716,15 +720,13 @@ describe('Base interoperability internal method', () => {
 
 	describe('updateValidators', () => {
 		it('should update validators in ChainValidatorsStore', async () => {
-			const methodContext = createTransientMethodContext({ stateStore });
-
 			jest.spyOn(interopMod.stores.get(ChainValidatorsStore), 'updateValidators');
 
 			const ccu = {
 				...ccuParams,
 				activeValidatorsUpdate: new Array(5).fill(0).map(() => ({
 					bftWeight: BigInt(1),
-					blsKey: cryptoUtils.getRandomBytes(48),
+					blsKey: cryptoUtils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
 				})),
 			};
 
@@ -748,17 +750,15 @@ describe('Base interoperability internal method', () => {
 
 	describe('updateCertificate', () => {
 		it('should update chain account with certificate and log event', async () => {
-			const methodContext = createTransientMethodContext({ stateStore });
-
-			jest.spyOn(interopMod.stores.get(ChainAccountStore), 'updateLastCertificate');
 			jest.spyOn(interopMod.events.get(ChainAccountUpdatedEvent), 'log');
+			jest.spyOn(interopMod.stores.get(ChainAccountStore), 'set');
 
 			const certificate = {
-				blockID: cryptoUtils.getRandomBytes(32),
+				blockID: cryptoUtils.getRandomBytes(HASH_LENGTH),
 				height: 120,
-				stateRoot: cryptoUtils.getRandomBytes(32),
+				stateRoot: cryptoUtils.getRandomBytes(HASH_LENGTH),
 				timestamp: 1212,
-				validatorsHash: cryptoUtils.getRandomBytes(32),
+				validatorsHash: cryptoUtils.getRandomBytes(HASH_LENGTH),
 				aggregationBits: cryptoUtils.getRandomBytes(2),
 				signature: cryptoUtils.getRandomBytes(64),
 			};
@@ -771,9 +771,9 @@ describe('Base interoperability internal method', () => {
 			await interopMod.stores.get(ChainAccountStore).set(context, ccuParams.sendingChainID, {
 				lastCertificate: {
 					height: 20,
-					stateRoot: cryptoUtils.getRandomBytes(32),
+					stateRoot: cryptoUtils.getRandomBytes(HASH_LENGTH),
 					timestamp: 99,
-					validatorsHash: cryptoUtils.getRandomBytes(32),
+					validatorsHash: cryptoUtils.getRandomBytes(HASH_LENGTH),
 				},
 				name: 'chain1',
 				status: 1,
@@ -781,10 +781,17 @@ describe('Base interoperability internal method', () => {
 
 			await mainchainInteroperabilityInternalMethod.updateCertificate(methodContext, ccu);
 
-			expect(interopMod.stores.get(ChainAccountStore).updateLastCertificate).toHaveBeenCalledWith(
+			expect(interopMod.stores.get(ChainAccountStore).set).toHaveBeenCalledWith(
 				expect.anything(),
 				ccu.sendingChainID,
-				certificate,
+				expect.objectContaining({
+					lastCertificate: {
+						height: certificate.height,
+						stateRoot: certificate.stateRoot,
+						timestamp: certificate.timestamp,
+						validatorsHash: certificate.validatorsHash,
+					},
+				}),
 			);
 			expect(interopMod.events.get(ChainAccountUpdatedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
@@ -803,31 +810,29 @@ describe('Base interoperability internal method', () => {
 
 	describe('updatePartnerChainOutboxRoot', () => {
 		it('should update partnerChainOutboxRoot in the channel', async () => {
-			const methodContext = createTransientMethodContext({ stateStore });
-
 			jest.spyOn(interopMod.stores.get(ChannelDataStore), 'updatePartnerChainOutboxRoot');
 
 			const ccu = {
 				...ccuParams,
 				inboxUpdate: {
 					...ccuParams.inboxUpdate,
-					messageWitnessHashes: [cryptoUtils.getRandomBytes(32)],
+					messageWitnessHashes: [cryptoUtils.getRandomBytes(HASH_LENGTH)],
 				},
 			};
 
 			await interopMod.stores.get(ChannelDataStore).set(context, ccu.sendingChainID, {
 				inbox: {
-					appendPath: [cryptoUtils.getRandomBytes(32)],
-					root: cryptoUtils.getRandomBytes(32),
+					appendPath: [cryptoUtils.getRandomBytes(HASH_LENGTH)],
+					root: cryptoUtils.getRandomBytes(HASH_LENGTH),
 					size: 1,
 				},
 				messageFeeTokenID: cryptoUtils.getRandomBytes(8),
 				outbox: {
-					appendPath: [cryptoUtils.getRandomBytes(32)],
+					appendPath: [cryptoUtils.getRandomBytes(HASH_LENGTH)],
 					root: cryptoUtils.getRandomBytes(32),
 					size: 1,
 				},
-				partnerChainOutboxRoot: cryptoUtils.getRandomBytes(32),
+				partnerChainOutboxRoot: cryptoUtils.getRandomBytes(HASH_LENGTH),
 			});
 
 			await mainchainInteroperabilityInternalMethod.updatePartnerChainOutboxRoot(
@@ -857,7 +862,6 @@ describe('Base interoperability internal method', () => {
 		};
 
 		it('shoud reject if the certificate is empty', async () => {
-			const methodContext = createTransientMethodContext({ stateStore });
 			const ccu = {
 				...ccuParams,
 				certificate: Buffer.alloc(0),
@@ -869,7 +873,6 @@ describe('Base interoperability internal method', () => {
 		});
 
 		it('shoud reject if BLS keys are not sorted lexicographically', async () => {
-			const methodContext = createTransientMethodContext({ stateStore });
 			const ccu = {
 				...ccuParams,
 				certificate: codec.encode(certificateSchema, certificate),
@@ -886,7 +889,6 @@ describe('Base interoperability internal method', () => {
 		});
 
 		it('shoud reject if BLS keys are not unique', async () => {
-			const methodContext = createTransientMethodContext({ stateStore });
 			const ccu = {
 				...ccuParams,
 				certificate: codec.encode(certificateSchema, certificate),
@@ -903,7 +905,6 @@ describe('Base interoperability internal method', () => {
 		});
 
 		it('shoud reject new validatorsHash does not match with certificate', async () => {
-			const methodContext = createTransientMethodContext({ stateStore });
 			const ccu = {
 				...ccuParams,
 				certificate: codec.encode(certificateSchema, certificate),
@@ -936,7 +937,6 @@ describe('Base interoperability internal method', () => {
 		});
 
 		it('shoud resolve if updates are valid', async () => {
-			const methodContext = createTransientMethodContext({ stateStore });
 			const ccu = {
 				...ccuParams,
 				certificate: codec.encode(certificateSchema, certificate),

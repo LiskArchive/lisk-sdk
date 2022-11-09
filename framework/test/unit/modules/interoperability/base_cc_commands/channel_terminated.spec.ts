@@ -13,18 +13,19 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { MainchainInteroperabilityModule } from '../../../../../../src';
+import { MainchainInteroperabilityModule } from '../../../../../src';
 import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	EMPTY_BYTES,
 	MODULE_NAME_INTEROPERABILITY,
-} from '../../../../../../src/modules/interoperability/constants';
-import { MainchainCCChannelTerminatedCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands/channel_terminated';
-import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/store';
-import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
-import { NamedRegistry } from '../../../../../../src/modules/named_registry';
-import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
+} from '../../../../../src/modules/interoperability/constants';
+import { MainchainCCChannelTerminatedCommand } from '../../../../../src/modules/interoperability/mainchain/cc_commands';
+import { MainchainInteroperabilityInternalMethod } from '../../../../../src/modules/interoperability/mainchain/store';
+import { CCCommandExecuteContext } from '../../../../../src/modules/interoperability/types';
+import { NamedRegistry } from '../../../../../src/modules/named_registry';
+import { createExecuteCCMsgMethodContext } from '../../../../../src/testing';
 
-describe('MainchainCCChannelTerminatedCommand', () => {
+describe('BaseCCChannelTerminatedCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 	const createTerminatedStateAccountMock = jest.fn();
 
@@ -48,9 +49,10 @@ describe('MainchainCCChannelTerminatedCommand', () => {
 		receivingChainID: utils.intToBuffer(3, 4),
 		fee: BigInt(20000),
 		status: 0,
-		params: Buffer.alloc(0),
+		params: EMPTY_BYTES,
 	};
 	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
+		ccm,
 		chainID,
 	});
 
@@ -71,9 +73,17 @@ describe('MainchainCCChannelTerminatedCommand', () => {
 	] = jest.fn().mockReturnValue(mainchainInteroperabilityInternalMethod);
 
 	describe('execute', () => {
-		it('should call validators Method registerValidatorKeys', async () => {
-			await ccChannelTerminatedCommand.execute(sampleExecuteContext);
+		it('should skip if isLive is false ', async () => {
+			mainchainInteroperabilityInternalMethod.isLive = jest.fn().mockResolvedValue(false);
 
+			await ccChannelTerminatedCommand.execute(sampleExecuteContext);
+			expect(createTerminatedStateAccountMock).toHaveBeenCalledTimes(0);
+		});
+
+		it('should call createTerminatedStateAccount if isLive', async () => {
+			mainchainInteroperabilityInternalMethod.isLive = jest.fn().mockResolvedValue(true);
+
+			await ccChannelTerminatedCommand.execute(sampleExecuteContext);
 			expect(createTerminatedStateAccountMock).toHaveBeenCalledWith(
 				sampleExecuteContext,
 				ccm.sendingChainID,

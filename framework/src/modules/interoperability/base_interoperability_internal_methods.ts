@@ -384,10 +384,20 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		ccu: CrossChainUpdateTransactionParams,
 	): Promise<void> {
 		const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
-		const updatedAccountStore = await this.stores
-			.get(ChainAccountStore)
-			.updateLastCertificate(context, ccu.sendingChainID, certificate);
-		this.events.get(ChainAccountUpdatedEvent).log(context, ccu.sendingChainID, updatedAccountStore);
+		const chainAccountStore = this.stores.get(ChainAccountStore);
+		const chainAccount = await chainAccountStore.get(context, ccu.sendingChainID);
+		const updatedChainAccount = {
+			...chainAccount,
+			lastCertificate: {
+				height: certificate.height,
+				stateRoot: certificate.stateRoot,
+				timestamp: certificate.timestamp,
+				validatorsHash: certificate.validatorsHash,
+			},
+		};
+		await chainAccountStore.set(context, ccu.sendingChainID, updatedChainAccount);
+
+		this.events.get(ChainAccountUpdatedEvent).log(context, ccu.sendingChainID, updatedChainAccount);
 	}
 
 	public async updatePartnerChainOutboxRoot(

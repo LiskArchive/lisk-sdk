@@ -22,6 +22,7 @@ import * as chainValidators from '../../../../../src/modules/interoperability/st
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import { createStoreGetter } from '../../../../../src/testing/utils';
+import { MODULE_NAME_INTEROPERABILITY } from '../../../../../src/modules/interoperability/constants';
 
 describe('ChainValidatorsStore', () => {
 	let context: StoreGetter;
@@ -31,7 +32,7 @@ describe('ChainValidatorsStore', () => {
 
 	beforeEach(async () => {
 		context = createStoreGetter(new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()));
-		chainValidatorsStore = new ChainValidatorsStore('interoperability');
+		chainValidatorsStore = new ChainValidatorsStore(MODULE_NAME_INTEROPERABILITY);
 		await chainValidatorsStore.set(context, chainID, {
 			certificateThreshold: BigInt(99),
 			activeValidators: new Array(5).fill(0).map(() => ({

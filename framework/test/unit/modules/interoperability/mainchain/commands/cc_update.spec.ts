@@ -45,6 +45,7 @@ import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_BYTES,
+	HASH_LENGTH,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID_BUFFER,
 	MAX_CCM_SIZE,
@@ -74,7 +75,7 @@ describe('CrossChainUpdateCommand', () => {
 		blockID: cryptography.utils.getRandomBytes(20),
 		height: 21,
 		timestamp: Math.floor(Date.now() / 1000),
-		stateRoot: cryptography.utils.getRandomBytes(38),
+		stateRoot: cryptography.utils.getRandomBytes(HASH_LENGTH),
 		validatorsHash: cryptography.utils.getRandomBytes(48),
 		aggregationBits: cryptography.utils.getRandomBytes(38),
 		signature: cryptography.utils.getRandomBytes(32),
@@ -118,10 +119,10 @@ describe('CrossChainUpdateCommand', () => {
 	const defaultCCMsEncoded = defaultCCMs.map(ccm => codec.encode(ccmSchema, ccm));
 	const defaultInboxUpdateValue = {
 		crossChainMessages: defaultCCMsEncoded,
-		messageWitnessHashes: [Buffer.alloc(1)],
+		messageWitnessHashes: [Buffer.alloc(32)],
 		outboxRootWitness: {
 			bitmap: Buffer.alloc(1),
-			siblingHashes: [Buffer.alloc(1)],
+			siblingHashes: [Buffer.alloc(32)],
 		},
 	};
 	const defaultTransaction = { module: MODULE_NAME_INTEROPERABILITY };
