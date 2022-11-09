@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+/* eslint-disable max-classes-per-file */
 
 import { utils } from '@liskhq/lisk-cryptography';
 import * as cryptography from '@liskhq/lisk-cryptography';
@@ -30,14 +31,25 @@ import {
 	ChainAccount,
 	ChainValidators,
 	ChannelData,
+	CrossChainMessageContext,
 	CrossChainUpdateTransactionParams,
 } from '../../../../../../src/modules/interoperability/types';
 
 import { Certificate } from '../../../../../../src/engine/consensus/certificate_generation/types';
 import { certificateSchema } from '../../../../../../src/engine/consensus/certificate_generation/schema';
 import * as interopUtils from '../../../../../../src/modules/interoperability/utils';
-import { ccmSchema } from '../../../../../../src/modules/interoperability/schemas';
 import {
+	ccmSchema,
+	sidechainTerminatedCCMParamsSchema,
+} from '../../../../../../src/modules/interoperability/schemas';
+import {
+	CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
+	CCM_PROCESSED_CODE_INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
+	CCM_PROCESSED_CODE_INVALID_CCM_VERIFY_CCM_EXCEPTION,
+	CCM_PROCESSED_CODE_SUCCESS,
+	CCM_PROCESSED_RESULT_DISCARDED,
+	CCM_PROCESSED_RESULT_FORWARDED,
+	CCM_STATUS_CODE_CHANNEL_UNAVAILABLE,
 	CCM_STATUS_OK,
 	CHAIN_ACTIVE,
 	CHAIN_REGISTERED,
@@ -45,6 +57,7 @@ import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_BYTES,
+	EMPTY_FEE_ADDRESS,
 	HASH_LENGTH,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID_BUFFER,
@@ -61,7 +74,14 @@ import { ChainValidatorsStore } from '../../../../../../src/modules/interoperabi
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
-import { createTransientMethodContext } from '../../../../../../src/testing';
+import {
+	createCrossChainMessageContext,
+	createTransientMethodContext,
+} from '../../../../../../src/testing';
+import { BaseInteroperableMethod } from '../../../../../../src/modules/interoperability/base_interoperable_method';
+import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
+import { BaseInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/base_interoperability_internal_methods';
+import { CcmProcessedEvent } from '../../../../../../src/modules/interoperability/events/ccm_processed';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -591,7 +611,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'appendToInboxTree')
 				.mockResolvedValue({} as never);
 			const forwardMock = jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'forward')
+				.spyOn(mainchainCCUUpdateCommand, '_forward' as never)
 				.mockResolvedValue({} as never);
 
 			const invalidCCMContext = {
@@ -632,7 +652,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'appendToInboxTree')
 				.mockResolvedValue({} as never);
 			const forwardMock = jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'forward')
+				.spyOn(mainchainCCUUpdateCommand, '_forward' as never)
 				.mockResolvedValue({} as never);
 			const applyMock = jest
 				.spyOn(mainchainCCUUpdateCommand, 'apply' as never)
@@ -654,6 +674,245 @@ describe('CrossChainUpdateCommand', () => {
 			expect(applyMock).toHaveBeenCalledTimes(1);
 			expect(applyMock).toHaveBeenCalledTimes(1);
 			expect(commonCCUExecutelogicMock).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	describe('_forward', () => {
+		const defaultCCM = {
+			nonce: BigInt(0),
+			module: 'token',
+			crossChainCommand: 'crossChainTransfer',
+			sendingChainID: Buffer.from([0, 0, 2, 0]),
+			receivingChainID: Buffer.from([0, 0, 3, 0]),
+			fee: BigInt(20000),
+			status: 0,
+			params: Buffer.alloc(0),
+		};
+		let context: CrossChainMessageContext;
+		let command: MainchainCCUpdateCommand;
+		let ccMethods: Map<string, BaseInteroperableMethod>;
+		let ccCommands: Map<string, BaseCCCommand[]>;
+		let internalMethod: BaseInteroperabilityInternalMethod;
+
+		beforeEach(async () => {
+			const interopModule = new MainchainInteroperabilityModule();
+			ccMethods = new Map();
+			ccMethods.set(
+				'token',
+				new (class TokenMethod extends BaseInteroperableMethod {
+					public verifyCrossChainMessage = jest.fn();
+					public beforeCrossChainMessageForwarding = jest.fn();
+				})(interopModule.stores, interopModule.events),
+			);
+			ccCommands = new Map();
+			ccCommands.set('token', [
+				new (class CrossChainTransfer extends BaseCCCommand {
+					public schema = { $id: 'test/ccu', properties: {}, type: 'object' };
+					public verify = jest.fn();
+					public execute = jest.fn();
+				})(interopModule.stores, interopModule.events),
+			]);
+			command = new MainchainCCUpdateCommand(
+				interopModule.stores,
+				interopModule.events,
+				ccMethods,
+				ccCommands,
+			);
+			internalMethod = ({
+				isLive: jest.fn().mockResolvedValue(true),
+				addToOutbox: jest.fn(),
+				terminateChainInternal: jest.fn(),
+				sendInternal: jest.fn(),
+			} as unknown) as BaseInteroperabilityInternalMethod;
+			jest
+				.spyOn(command, 'getInteroperabilityInternalMethod' as never)
+				.mockReturnValue(internalMethod as never);
+			jest.spyOn(command['events'].get(CcmProcessedEvent), 'log');
+			jest.spyOn(command, 'bounce' as never);
+			context = createCrossChainMessageContext({
+				ccm: defaultCCM,
+			});
+			await command['stores'].get(ChainAccountStore).set(context, context.ccm.receivingChainID, {
+				lastCertificate: {
+					height: 0,
+					stateRoot: utils.getRandomBytes(32),
+					timestamp: 0,
+					validatorsHash: utils.getRandomBytes(32),
+				},
+				name: 'random',
+				status: CHAIN_ACTIVE,
+			});
+		});
+
+		it('should terminate the chain and log event when sending chain is not live', async () => {
+			(internalMethod.isLive as jest.Mock).mockResolvedValue(false);
+
+			await expect(command['_forward'](context)).resolves.toBeUndefined();
+
+			expect(context.eventQueue.getEvents()).toHaveLength(1);
+			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
+				context.ccm.sendingChainID,
+				expect.anything(),
+			);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.sendingChainID,
+				context.ccm.receivingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCM_PROCESSED_CODE_INVALID_CCM_VERIFY_CCM_EXCEPTION,
+					result: CCM_PROCESSED_RESULT_DISCARDED,
+				},
+			);
+		});
+
+		it('should terminate the chain and log event when verifyCrossChainMessage fails', async () => {
+			((ccMethods.get('token') as BaseInteroperableMethod)
+				.verifyCrossChainMessage as jest.Mock).mockRejectedValue('error');
+
+			await expect(command['_forward'](context)).resolves.toBeUndefined();
+
+			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
+				context.ccm.sendingChainID,
+				expect.anything(),
+			);
+			expect(context.eventQueue.getEvents()).toHaveLength(1);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.sendingChainID,
+				context.ccm.receivingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCM_PROCESSED_CODE_INVALID_CCM_VERIFY_CCM_EXCEPTION,
+					result: CCM_PROCESSED_RESULT_DISCARDED,
+				},
+			);
+		});
+
+		it('should bounce and return if receiving chain does not exist', async () => {
+			await command['stores'].get(ChainAccountStore).del(context, context.ccm.receivingChainID);
+
+			await expect(command['_forward'](context)).resolves.toBeUndefined();
+
+			expect(command['bounce']).toHaveBeenCalledTimes(1);
+			expect(command['bounce']).toHaveBeenCalledWith(
+				expect.anything(),
+				expect.any(Buffer),
+				expect.any(Number),
+				CCM_STATUS_CODE_CHANNEL_UNAVAILABLE,
+				CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
+			);
+		});
+
+		it('should bounce and return if receiving chain status is registered', async () => {
+			await command['stores'].get(ChainAccountStore).set(context, context.ccm.receivingChainID, {
+				lastCertificate: {
+					height: 0,
+					stateRoot: utils.getRandomBytes(32),
+					timestamp: 0,
+					validatorsHash: utils.getRandomBytes(32),
+				},
+				name: 'random',
+				status: CHAIN_REGISTERED,
+			});
+
+			await expect(command['_forward'](context)).resolves.toBeUndefined();
+
+			expect(command['bounce']).toHaveBeenCalledTimes(1);
+			expect(command['bounce']).toHaveBeenCalledWith(
+				expect.anything(),
+				expect.any(Buffer),
+				expect.any(Number),
+				CCM_STATUS_CODE_CHANNEL_UNAVAILABLE,
+				CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
+			);
+		});
+
+		it('should terminate the chain and log event when receiving chain is not live', async () => {
+			// First check sending chain, and second checks receiving chain
+			(internalMethod.isLive as jest.Mock).mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+
+			const chainAccount = await command['stores']
+				.get(ChainAccountStore)
+				.get(context, context.ccm.receivingChainID);
+			await expect(command['_forward'](context)).resolves.toBeUndefined();
+
+			expect(context.eventQueue.getEvents()).toHaveLength(1);
+			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
+				context.ccm.receivingChainID,
+				expect.anything(),
+			);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.sendingChainID,
+				context.ccm.receivingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
+					result: CCM_PROCESSED_RESULT_DISCARDED,
+				},
+			);
+			expect(internalMethod.sendInternal).toHaveBeenCalledWith(
+				expect.objectContaining({
+					fee: BigInt(0),
+					receivingChainID: context.ccm.sendingChainID,
+					module: MODULE_NAME_INTEROPERABILITY,
+					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+					status: CCM_STATUS_OK,
+					params: codec.encode(sidechainTerminatedCCMParamsSchema, {
+						chainID: context.ccm.receivingChainID,
+						stateRoot: chainAccount.lastCertificate.stateRoot,
+					}),
+					feeAddress: EMPTY_FEE_ADDRESS,
+				}),
+			);
+		});
+
+		it('should revert the state and terminate the sending chain if beforeCrossChainMessageForwarding fails', async () => {
+			((ccMethods.get('token') as BaseInteroperableMethod)
+				.beforeCrossChainMessageForwarding as jest.Mock).mockRejectedValue('error');
+			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
+			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);
+			jest.spyOn(context.eventQueue, 'restoreSnapshot');
+			jest.spyOn(context.stateStore, 'restoreSnapshot');
+
+			await expect(command['_forward'](context)).resolves.toBeUndefined();
+
+			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
+				context.ccm.sendingChainID,
+				expect.anything(),
+			);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.sendingChainID,
+				context.ccm.receivingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCM_PROCESSED_CODE_INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
+					result: CCM_PROCESSED_RESULT_DISCARDED,
+				},
+			);
+			expect(context.eventQueue.restoreSnapshot).toHaveBeenCalledWith(99);
+			expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(10);
+		});
+
+		it('should add ccm to receiving chain outbox and log event when valid', async () => {
+			await expect(command['_forward'](context)).resolves.toBeUndefined();
+
+			expect(internalMethod.addToOutbox).toHaveBeenCalledWith(
+				context.ccm.receivingChainID,
+				context.ccm,
+			);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.sendingChainID,
+				context.ccm.receivingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCM_PROCESSED_CODE_SUCCESS,
+					result: CCM_PROCESSED_RESULT_FORWARDED,
+				},
+			);
 		});
 	});
 });

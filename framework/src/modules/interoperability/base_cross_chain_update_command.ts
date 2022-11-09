@@ -48,28 +48,8 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 		const encodedCCM = codec.encode(ccmSchema, ccm);
 		const ccmID = utils.hash(encodedCCM);
 		const internalMethod = this.getInteroperabilityInternalMethod(context);
-		try {
-			const isLive = await internalMethod.isLive(ccm.sendingChainID, context.header.timestamp);
-			if (!isLive) {
-				throw new Error(`Sending chain ${ccm.sendingChainID.toString('hex')} is not live.`);
-			}
-			for (const [module, method] of this.interoperableCCMethods.entries()) {
-				if (method.verifyCrossChainMessage) {
-					logger.debug({ module, ccmID: ccmID.toString('hex') }, 'verifying cross chain message');
-					await method.verifyCrossChainMessage(context);
-				}
-			}
-		} catch (error) {
-			logger.info(
-				{ err: error as Error, moduleName: module, commandName: ccm.crossChainCommand },
-				'Fail to verify cross chain message.',
-			);
-			await internalMethod.terminateChainInternal(ccm.sendingChainID, context);
-			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccmID,
-				code: CCM_PROCESSED_CODE_INVALID_CCM_VERIFY_CCM_EXCEPTION,
-				result: CCM_PROCESSED_RESULT_DISCARDED,
-			});
+		const valid = await this.verifyCCM(context, ccmID);
+		if (!valid) {
 			return;
 		}
 		const commands = this.ccCommands.get(ccm.module);
@@ -233,6 +213,36 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 			.log(context, bouncedCCM.sendingChainID, bouncedCCM.receivingChainID, newCCMID, {
 				ccmID: newCCMID,
 			});
+	}
+
+	protected async verifyCCM(context: CrossChainMessageContext, ccmID: Buffer): Promise<boolean> {
+		const { ccm, logger } = context;
+		const internalMethod = this.getInteroperabilityInternalMethod(context);
+		try {
+			const isLive = await internalMethod.isLive(ccm.sendingChainID, context.header.timestamp);
+			if (!isLive) {
+				throw new Error(`Sending chain ${ccm.sendingChainID.toString('hex')} is not live.`);
+			}
+			for (const [module, method] of this.interoperableCCMethods.entries()) {
+				if (method.verifyCrossChainMessage) {
+					logger.debug({ module, ccmID: ccmID.toString('hex') }, 'verifying cross chain message');
+					await method.verifyCrossChainMessage(context);
+				}
+			}
+			return true;
+		} catch (error) {
+			logger.info(
+				{ err: error as Error, moduleName: module, commandName: ccm.crossChainCommand },
+				'Fail to verify cross chain message.',
+			);
+			await internalMethod.terminateChainInternal(ccm.sendingChainID, context);
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCM_PROCESSED_CODE_INVALID_CCM_VERIFY_CCM_EXCEPTION,
+				result: CCM_PROCESSED_RESULT_DISCARDED,
+			});
+			return false;
+		}
 	}
 
 	protected abstract getInteroperabilityInternalMethod(
