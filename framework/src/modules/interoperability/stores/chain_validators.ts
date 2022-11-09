@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseStore } from '../../base_store';
+import { BaseStore, StoreGetter } from '../../base_store';
 import { ActiveValidator } from '../types';
 import { BLS_PUBLIC_KEY_LENGTH } from '../constants';
 
@@ -53,6 +53,47 @@ export const chainValidatorsSchema = {
 	},
 };
 
+// TODO: Fix with #7742 - In order to avoid circular dependency temporally, move to this file
+export const updateActiveValidators = (
+	activeValidators: ActiveValidator[],
+	activeValidatorsUpdate: ActiveValidator[],
+): ActiveValidator[] => {
+	for (const updatedValidator of activeValidatorsUpdate) {
+		const currentValidator = activeValidators.find(v => v.blsKey.equals(updatedValidator.blsKey));
+		if (currentValidator) {
+			currentValidator.bftWeight = updatedValidator.bftWeight;
+		} else {
+			activeValidators.push(updatedValidator);
+			activeValidators.sort((v1, v2) => v1.blsKey.compare(v2.blsKey));
+		}
+	}
+
+	for (const currentValidator of activeValidators) {
+		if (currentValidator.bftWeight === BigInt(0)) {
+			const index = activeValidators.findIndex(v => v.blsKey.equals(currentValidator.blsKey));
+			activeValidators.splice(index, 1);
+		}
+	}
+
+	return activeValidators;
+};
+
 export class ChainValidatorsStore extends BaseStore<ChainValidators> {
 	public schema = chainValidatorsSchema;
+
+	public async updateValidators(
+		context: StoreGetter,
+		chainID: Buffer,
+		chainValidators: ChainValidators,
+	): Promise<void> {
+		const currentValidators = await this.get(context, chainID);
+
+		currentValidators.certificateThreshold = chainValidators.certificateThreshold;
+		currentValidators.activeValidators = updateActiveValidators(
+			currentValidators.activeValidators,
+			chainValidators.activeValidators,
+		);
+
+		await this.set(context, chainID, currentValidators);
+	}
 }

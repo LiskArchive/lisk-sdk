@@ -30,6 +30,7 @@ import {
 	SendInternalContext,
 	TerminateChainContext,
 	CreateTerminatedStateAccountContext,
+	CrossChainUpdateTransactionParams,
 } from './types';
 import { getIDAsKeyForStore } from './utils';
 import { BaseInteroperableMethod } from './base_interoperable_method';
@@ -44,6 +45,10 @@ import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/termina
 import { ChainAccountUpdatedEvent } from './events/chain_account_updated';
 import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
 import { BaseInternalMethod } from '../BaseInternalMethod';
+import { ChainValidatorsStore } from './stores/chain_validators';
+import { MethodContext } from '../../state_machine';
+import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';
+import { Certificate } from '../../engine/consensus/certificate_generation/types';
 
 export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMethod {
 	public readonly context: StoreGetter;
@@ -234,6 +239,50 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		});
 
 		await this.createTerminatedStateAccount(terminateChainContext, chainID);
+	}
+
+	public async updateValidators(
+		context: MethodContext,
+		ccu: CrossChainUpdateTransactionParams,
+	): Promise<void> {
+		await this.stores.get(ChainValidatorsStore).updateValidators(context, ccu.sendingChainID, {
+			activeValidators: ccu.activeValidatorsUpdate,
+			certificateThreshold: ccu.newCertificateThreshold,
+		});
+	}
+
+	public async updateCertificate(
+		context: MethodContext,
+		ccu: CrossChainUpdateTransactionParams,
+	): Promise<void> {
+		const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
+		const chainAccountStore = this.stores.get(ChainAccountStore);
+		const chainAccount = await chainAccountStore.get(context, ccu.sendingChainID);
+		const updatedChainAccount = {
+			...chainAccount,
+			lastCertificate: {
+				height: certificate.height,
+				stateRoot: certificate.stateRoot,
+				timestamp: certificate.timestamp,
+				validatorsHash: certificate.validatorsHash,
+			},
+		};
+		await chainAccountStore.set(context, ccu.sendingChainID, updatedChainAccount);
+
+		this.events.get(ChainAccountUpdatedEvent).log(context, ccu.sendingChainID, updatedChainAccount);
+	}
+
+	public async updatePartnerChainOutboxRoot(
+		context: MethodContext,
+		ccu: CrossChainUpdateTransactionParams,
+	): Promise<void> {
+		await this.stores
+			.get(ChannelDataStore)
+			.updatePartnerChainOutboxRoot(
+				context,
+				ccu.sendingChainID,
+				ccu.inboxUpdate.messageWitnessHashes,
+			);
 	}
 
 	// Different in mainchain and sidechain so to be implemented in each module store separately

@@ -14,8 +14,11 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
+import { codec } from '@liskhq/lisk-codec';
 import {
+	BLS_PUBLIC_KEY_LENGTH,
 	EMPTY_BYTES,
+	HASH_LENGTH,
 	MAINCHAIN_ID,
 	MAINCHAIN_ID_BUFFER,
 } from '../../../../src/modules/interoperability/constants';
@@ -34,29 +37,16 @@ import { ChainAccountStore } from '../../../../src/modules/interoperability/stor
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { createStoreGetter } from '../../../../src/testing/utils';
 import { StoreGetter } from '../../../../src/modules/base_store';
-import { EventQueue } from '../../../../src/state_machine';
+import { EventQueue, MethodContext } from '../../../../src/state_machine';
 import { ChainAccountUpdatedEvent } from '../../../../src/modules/interoperability/events/chain_account_updated';
 import { TerminatedStateCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_state_created';
+import { createTransientMethodContext } from '../../../../src/testing';
+import { ChainValidatorsStore } from '../../../../src/modules/interoperability/stores/chain_validators';
+import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
 
 describe('Base interoperability internal method', () => {
 	const interopMod = new MainchainInteroperabilityModule();
-	const chainAccountStoreMock = {
-		get: jest.fn(),
-		set: jest.fn(),
-		has: jest.fn(),
-		iterate: jest.fn(),
-	};
-	const ownChainAccountStoreMock = {
-		get: jest.fn(),
-		set: jest.fn(),
-		has: jest.fn(),
-	};
-	const terminatedStateAccountStoreMock = {
-		get: jest.fn(),
-		set: jest.fn(),
-		has: jest.fn(),
-	};
 	const chainID = Buffer.from('01', 'hex');
 	const appendData = Buffer.from(
 		'0c4c839c0fd8155fd0d52efc7dd29d2a71919dee517d50967cd26f4db2e0d1c5b',
@@ -116,6 +106,20 @@ describe('Base interoperability internal method', () => {
 		},
 		status: 2739,
 	};
+	const ccuParams = {
+		activeValidatorsUpdate: [],
+		certificate: Buffer.alloc(0),
+		inboxUpdate: {
+			crossChainMessages: [],
+			messageWitnessHashes: [],
+			outboxRootWitness: {
+				bitmap: Buffer.alloc(0),
+				siblingHashes: [],
+			},
+		},
+		newCertificateThreshold: BigInt(99),
+		sendingChainID: utils.getRandomBytes(4),
+	};
 	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 	let channelDataSubstore: ChannelDataStore;
 	let outboxRootSubstore: OutboxRootStore;
@@ -124,6 +128,7 @@ describe('Base interoperability internal method', () => {
 	let chainDataSubstore: ChainAccountStore;
 	let terminatedStateSubstore: TerminatedStateStore;
 	let context: StoreGetter;
+	let methodContext: MethodContext;
 
 	beforeEach(async () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -138,15 +143,6 @@ describe('Base interoperability internal method', () => {
 		jest.spyOn(terminatedOutboxSubstore, 'set');
 		chainDataSubstore = interopMod.stores.get(ChainAccountStore);
 		terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
-		interopMod.events.register(ChainAccountUpdatedEvent, {
-			log: jest.fn(),
-		} as never);
-		interopMod.events.register(TerminatedStateCreatedEvent, {
-			log: jest.fn(),
-		} as never);
-
-		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
-		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
 
 		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 			interopMod.stores,
@@ -154,6 +150,7 @@ describe('Base interoperability internal method', () => {
 			context,
 			new Map(),
 		);
+		methodContext = createTransientMethodContext({ stateStore });
 	});
 
 	describe('appendToInboxTree', () => {
@@ -220,13 +217,13 @@ describe('Base interoperability internal method', () => {
 	describe('createTerminatedStateAccount', () => {
 		const chainId = utils.intToBuffer(5, 4);
 		const stateRoot = Buffer.from('888d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex');
-		const ownChainAccount1 = {
+		const ownChainAccountMainchain = {
 			name: 'mainchain',
 			chainID: MAINCHAIN_ID_BUFFER,
 			nonce: BigInt('0'),
 		};
 
-		const ownChainAccount2 = {
+		const ownChainAccount1 = {
 			name: 'chain1',
 			chainID: utils.intToBuffer(7, 4),
 			nonce: BigInt('0'),
@@ -246,8 +243,8 @@ describe('Base interoperability internal method', () => {
 		});
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account exists for the id and state root is provided', async () => {
-			chainDataSubstore.get = chainAccountStoreMock.get.mockResolvedValue(chainAccount);
-			chainDataSubstore.has = chainAccountStoreMock.has.mockResolvedValue(true);
+			jest.spyOn(chainDataSubstore, 'get').mockResolvedValue(chainAccount);
+			jest.spyOn(chainDataSubstore, 'has').mockResolvedValue(true);
 			await mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(
 				createTerminatedStateAccountContext,
 				chainId,
@@ -276,8 +273,8 @@ describe('Base interoperability internal method', () => {
 		});
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account exists for the id but state root is not provided', async () => {
-			chainDataSubstore.get = chainAccountStoreMock.get.mockResolvedValue(chainAccount);
-			chainDataSubstore.has = chainAccountStoreMock.has.mockResolvedValue(true);
+			jest.spyOn(chainDataSubstore, 'get').mockResolvedValue(chainAccount);
+			jest.spyOn(chainDataSubstore, 'has').mockResolvedValue(true);
 			await mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(
 				createTerminatedStateAccountContext,
 				chainId,
@@ -292,8 +289,10 @@ describe('Base interoperability internal method', () => {
 
 		it('should throw error if chain account does not exist for the id and ownchain account id is mainchain id', async () => {
 			const chainIdNew = utils.intToBuffer(9, 4);
-			ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount1 as never);
-			chainDataSubstore.has = chainAccountStoreMock.has.mockResolvedValue(false);
+			jest
+				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
+				.mockResolvedValue(ownChainAccountMainchain);
+			jest.spyOn(chainDataSubstore, 'has').mockResolvedValue(false);
 
 			await expect(
 				mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(
@@ -305,7 +304,9 @@ describe('Base interoperability internal method', () => {
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account does not exist for the id and ownchain account id is not the same as mainchain id', async () => {
 			const chainIdNew = utils.intToBuffer(10, 4);
-			ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount2 as never);
+			jest
+				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
+				.mockResolvedValue(ownChainAccount1);
 			await chainDataSubstore.set(context, getIDAsKeyForStore(MAINCHAIN_ID), chainAccount);
 			await mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(
 				createTerminatedStateAccountContext,
@@ -352,8 +353,7 @@ describe('Base interoperability internal method', () => {
 		});
 
 		it('should not call sendInternal and createTerminatedStateAccount if terminatedState exists', async () => {
-			interopMod.stores.register(TerminatedStateStore, terminatedStateAccountStoreMock as never);
-			terminatedStateAccountStoreMock.has.mockResolvedValue(true);
+			jest.spyOn(interopMod.stores.get(TerminatedStateStore), 'has').mockResolvedValue(true);
 			expect(
 				await mainchainInteroperabilityInternalMethod.terminateChainInternal(
 					SIDECHAIN_ID,
@@ -368,9 +368,7 @@ describe('Base interoperability internal method', () => {
 		});
 
 		it('should call sendInternal and createTerminatedStateAccount if terminatedState does not exist', async () => {
-			interopMod.stores.register(TerminatedStateStore, terminatedStateAccountStoreMock as never);
-
-			terminatedStateAccountStoreMock.has.mockResolvedValue(false);
+			jest.spyOn(interopMod.stores.get(TerminatedStateStore), 'has').mockResolvedValue(false);
 			expect(
 				await mainchainInteroperabilityInternalMethod.terminateChainInternal(
 					SIDECHAIN_ID,
@@ -494,6 +492,138 @@ describe('Base interoperability internal method', () => {
 				expect(isValueChanged).toBeTrue();
 				expect(changedAccount).toEqual({ ...terminatedOutboxAccount, ...changedValues });
 			});
+		});
+	});
+
+	describe('updateValidators', () => {
+		it('should update validators in ChainValidatorsStore', async () => {
+			jest.spyOn(interopMod.stores.get(ChainValidatorsStore), 'updateValidators');
+
+			const ccu = {
+				...ccuParams,
+				activeValidatorsUpdate: new Array(5).fill(0).map(() => ({
+					bftWeight: BigInt(1),
+					blsKey: utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+				})),
+			};
+
+			await interopMod.stores.get(ChainValidatorsStore).set(context, ccu.sendingChainID, {
+				activeValidators: [],
+				certificateThreshold: BigInt(0),
+			});
+
+			await mainchainInteroperabilityInternalMethod.updateValidators(methodContext, ccu);
+
+			expect(interopMod.stores.get(ChainValidatorsStore).updateValidators).toHaveBeenCalledWith(
+				expect.anything(),
+				ccu.sendingChainID,
+				{
+					activeValidators: ccu.activeValidatorsUpdate,
+					certificateThreshold: ccu.newCertificateThreshold,
+				},
+			);
+		});
+	});
+
+	describe('updateCertificate', () => {
+		it('should update chain account with certificate and log event', async () => {
+			jest.spyOn(interopMod.events.get(ChainAccountUpdatedEvent), 'log');
+			jest.spyOn(interopMod.stores.get(ChainAccountStore), 'set');
+
+			const certificate = {
+				blockID: utils.getRandomBytes(HASH_LENGTH),
+				height: 120,
+				stateRoot: utils.getRandomBytes(HASH_LENGTH),
+				timestamp: 1212,
+				validatorsHash: utils.getRandomBytes(HASH_LENGTH),
+				aggregationBits: utils.getRandomBytes(2),
+				signature: utils.getRandomBytes(64),
+			};
+
+			const ccu = {
+				...ccuParams,
+				certificate: codec.encode(certificateSchema, certificate),
+			};
+
+			await interopMod.stores.get(ChainAccountStore).set(context, ccuParams.sendingChainID, {
+				lastCertificate: {
+					height: 20,
+					stateRoot: utils.getRandomBytes(HASH_LENGTH),
+					timestamp: 99,
+					validatorsHash: utils.getRandomBytes(HASH_LENGTH),
+				},
+				name: 'chain1',
+				status: 1,
+			});
+
+			await mainchainInteroperabilityInternalMethod.updateCertificate(methodContext, ccu);
+
+			expect(interopMod.stores.get(ChainAccountStore).set).toHaveBeenCalledWith(
+				expect.anything(),
+				ccu.sendingChainID,
+				expect.objectContaining({
+					lastCertificate: {
+						height: certificate.height,
+						stateRoot: certificate.stateRoot,
+						timestamp: certificate.timestamp,
+						validatorsHash: certificate.validatorsHash,
+					},
+				}),
+			);
+			expect(interopMod.events.get(ChainAccountUpdatedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				ccu.sendingChainID,
+				expect.objectContaining({
+					lastCertificate: {
+						height: certificate.height,
+						stateRoot: certificate.stateRoot,
+						timestamp: certificate.timestamp,
+						validatorsHash: certificate.validatorsHash,
+					},
+				}),
+			);
+		});
+	});
+
+	describe('updatePartnerChainOutboxRoot', () => {
+		it('should update partnerChainOutboxRoot in the channel', async () => {
+			jest.spyOn(interopMod.stores.get(ChannelDataStore), 'updatePartnerChainOutboxRoot');
+
+			const ccu = {
+				...ccuParams,
+				inboxUpdate: {
+					...ccuParams.inboxUpdate,
+					messageWitnessHashes: [utils.getRandomBytes(HASH_LENGTH)],
+				},
+			};
+
+			await interopMod.stores.get(ChannelDataStore).set(context, ccu.sendingChainID, {
+				inbox: {
+					appendPath: [utils.getRandomBytes(HASH_LENGTH)],
+					root: utils.getRandomBytes(HASH_LENGTH),
+					size: 1,
+				},
+				messageFeeTokenID: utils.getRandomBytes(8),
+				outbox: {
+					appendPath: [utils.getRandomBytes(HASH_LENGTH)],
+					root: utils.getRandomBytes(32),
+					size: 1,
+				},
+				partnerChainOutboxRoot: utils.getRandomBytes(HASH_LENGTH),
+			});
+
+			await mainchainInteroperabilityInternalMethod.updatePartnerChainOutboxRoot(
+				methodContext,
+				ccu,
+			);
+
+			expect(
+				interopMod.stores.get(ChannelDataStore).updatePartnerChainOutboxRoot,
+			).toHaveBeenCalledWith(
+				expect.anything(),
+				ccu.sendingChainID,
+				ccu.inboxUpdate.messageWitnessHashes,
+			);
 		});
 	});
 });

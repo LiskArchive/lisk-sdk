@@ -22,6 +22,7 @@ import {
 	SubStore,
 } from '../../state_machine/types';
 import { OutboxRoot } from './stores/outbox_root';
+import { ChainID } from './stores/registered_names';
 import { TerminatedOutboxAccount } from './stores/terminated_outbox';
 import { TerminatedStateAccount } from './stores/terminated_state';
 
@@ -49,11 +50,6 @@ export interface ActiveValidatorJSON {
 	bftWeight: string;
 }
 
-export interface MsgWitness {
-	partnerChainOutboxSize: bigint;
-	siblingHashes: Buffer[];
-}
-
 export interface OutboxRootWitness {
 	bitmap: Buffer;
 	siblingHashes: Buffer[];
@@ -61,7 +57,7 @@ export interface OutboxRootWitness {
 
 export interface InboxUpdate {
 	crossChainMessages: Buffer[];
-	messageWitness: MsgWitness;
+	messageWitnessHashes: Buffer[];
 	outboxRootWitness: OutboxRootWitness;
 }
 
@@ -367,10 +363,6 @@ export interface ChainValidators {
 export interface ChainValidatorsJSON {
 	activeValidators: ActiveValidatorJSON[];
 	certificateThreshold: string;
-}
-
-export interface ChainID {
-	chainID: Buffer;
 }
 
 export interface GenesisInteroperabilityInternalMethod {
