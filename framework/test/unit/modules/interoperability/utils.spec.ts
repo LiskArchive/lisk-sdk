@@ -681,7 +681,7 @@ describe('Utils', () => {
 		});
 
 		describe('Non-empty certificate and inboxUpdate', () => {
-			it('should update inboxRoot when when messageWitnessHashes is non-empty', () => {
+			it('should update inboxRoot when messageWitnessHashes is non-empty', () => {
 				const smtVerifySpy = jest
 					.spyOn(merkleTree.sparseMerkleTree, 'verify')
 					.mockReturnValue({} as never);
@@ -801,7 +801,7 @@ describe('Utils', () => {
 				expect(calculateRootFromRightWitnessSpy).toHaveBeenCalled();
 			});
 
-			it('should should not call calculateRootFromRightWitness when messageWitnessHashes is empty', () => {
+			it('should not call calculateRootFromRightWitness when messageWitnessHashes is empty', () => {
 				const txParamsEmptyMessageWitness = {
 					...txParams,
 					certificate: codec.encode(certificateSchema, {

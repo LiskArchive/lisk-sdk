@@ -25,6 +25,7 @@ import {
 	MIN_MODULE_NAME_LENGTH,
 	MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH,
 	MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH,
+	HASH_LENGTH,
 } from './constants';
 import { chainAccountSchema } from './stores/chain_account';
 import { chainValidatorsSchema } from './stores/chain_validators';
@@ -251,7 +252,11 @@ export const crossChainUpdateTransactionParams = {
 				messageWitnessHashes: {
 					type: 'array',
 					fieldNumber: 2,
-					items: { dataType: 'bytes' },
+					items: {
+						dataType: 'bytes',
+						minLength: HASH_LENGTH,
+						maxLength: HASH_LENGTH,
+					},
 				},
 				outboxRootWitness: {
 					type: 'object',
@@ -265,7 +270,11 @@ export const crossChainUpdateTransactionParams = {
 						siblingHashes: {
 							type: 'array',
 							fieldNumber: 2,
-							items: { dataType: 'bytes' },
+							items: {
+								dataType: 'bytes',
+								minLength: HASH_LENGTH,
+								maxLength: HASH_LENGTH,
+							},
 						},
 					},
 				},
