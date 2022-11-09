@@ -64,6 +64,8 @@ export const defaultConfig = {
 	tokenIDFee: TOKEN_ID_FEE.toString('hex'),
 	delegateRegistrationFee: DELEGATE_REGISTRATION_FEE.toString(),
 	maxBFTWeightCap: 500,
+	commissionIncreasePeriod: COMMISSION_INCREASE_PERIOD,
+	maxCommissionIncreaseRate: MAX_COMMISSION_INCREASE_RATE,
 };
 
 export const enum PoSEventResult {

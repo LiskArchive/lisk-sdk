@@ -20,7 +20,6 @@ import {
 	CommandExecuteContext,
 } from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
-import { COMMISSION_INCREASE_PERIOD, MAX_COMMISSION_INCREASE_RATE } from '../constants';
 import { CommissionChangeEvent } from '../events/commission_change';
 import { changeCommissionCommandParamsSchema } from '../schemas';
 import { DelegateStore } from '../stores/delegate';
@@ -28,6 +27,14 @@ import { ChangeCommissionParams } from '../types';
 
 export class ChangeCommissionCommand extends BaseCommand {
 	public schema = changeCommissionCommandParamsSchema;
+
+	private _commissionIncreasePeriod!: number;
+	private _maxCommissionIncreaseRate!: number;
+
+	public init(args: { commissionIncreasePeriod: number; maxCommissionIncreaseRate: number }) {
+		this._commissionIncreasePeriod = args.commissionIncreasePeriod;
+		this._maxCommissionIncreaseRate = args.maxCommissionIncreaseRate;
+	}
 
 	public async verify(
 		context: CommandVerifyContext<ChangeCommissionParams>,
@@ -54,22 +61,23 @@ export class ChangeCommissionCommand extends BaseCommand {
 		const delegate = await delegateStore.get(context, context.transaction.senderAddress);
 		const oldCommission = delegate.commission;
 		const hasIncreasedCommissionRecently =
-			context.header.height - delegate.lastCommissionIncreaseHeight < COMMISSION_INCREASE_PERIOD;
+			context.header.height - delegate.lastCommissionIncreaseHeight <
+			this._commissionIncreasePeriod;
 
 		if (context.params.newCommission > oldCommission && hasIncreasedCommissionRecently) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(
-					`Can only increase the commission again ${COMMISSION_INCREASE_PERIOD} blocks after the last commission increase.`,
+					`Can only increase the commission again ${this._commissionIncreasePeriod} blocks after the last commission increase.`,
 				),
 			};
 		}
 
-		if (context.params.newCommission - oldCommission > MAX_COMMISSION_INCREASE_RATE) {
+		if (context.params.newCommission - oldCommission > this._maxCommissionIncreaseRate) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(
-					`Invalid argument: Commission increase larger than ${MAX_COMMISSION_INCREASE_RATE}.`,
+					`Invalid argument: Commission increase larger than ${this._maxCommissionIncreaseRate}.`,
 				),
 			};
 		}

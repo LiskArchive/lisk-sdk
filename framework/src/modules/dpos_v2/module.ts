@@ -261,6 +261,10 @@ export class DPoSModule extends BaseModule {
 			roundLength: this._moduleConfig.roundLength,
 		});
 		this._voteCommand.init({ governanceTokenID: this._moduleConfig.governanceTokenID });
+		this._changeCommissionCommand.init({
+			commissionIncreasePeriod: this._moduleConfig.commissionIncreasePeriod,
+			maxCommissionIncreaseRate: this._moduleConfig.maxCommissionIncreaseRate,
+		});
 
 		this.stores.get(EligibleDelegatesStore).init(this._moduleConfig);
 	}

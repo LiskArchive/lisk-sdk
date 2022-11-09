@@ -35,6 +35,11 @@ import { CommissionChangeEvent } from '../../../../../src/modules/dpos_v2/events
 describe('Change Commission command', () => {
 	const dpos = new DPoSModule();
 	const changeCommissionCommand = new ChangeCommissionCommand(dpos.stores, dpos.events);
+	changeCommissionCommand.init({
+		commissionIncreasePeriod: COMMISSION_INCREASE_PERIOD,
+		maxCommissionIncreaseRate: MAX_COMMISSION_INCREASE_RATE,
+	});
+
 	let stateStore: PrefixedStateReadWriter;
 	let delegateStore: DelegateStore;
 	let commissionChangedEvent: CommissionChangeEvent;

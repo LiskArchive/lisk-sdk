@@ -193,6 +193,14 @@ export const configSchema = {
 			minimum: 1,
 			maximum: 9999,
 		},
+		commissionIncreasePeriod: {
+			type: 'integer',
+			format: 'uint32',
+		},
+		maxCommissionIncreaseRate: {
+			type: 'integer',
+			format: 'uint32',
+		},
 	},
 	required: [
 		'factorSelfVotes',
