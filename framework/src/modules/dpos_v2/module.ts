@@ -24,6 +24,7 @@ import { ReportDelegateMisbehaviorCommand } from './commands/pom';
 import { UnlockCommand } from './commands/unlock';
 import { UpdateGeneratorKeyCommand } from './commands/update_generator_key';
 import { VoteDelegateCommand } from './commands/vote_delegate';
+import { ChangeCommissionCommand } from './commands/change_commission';
 import {
 	DELEGATE_LIST_ROUND_OFFSET,
 	EMPTY_KEY,
@@ -82,6 +83,7 @@ import { DelegateBannedEvent } from './events/delegate_banned';
 import { DelegatePunishedEvent } from './events/delegate_punished';
 import { DelegateRegisteredEvent } from './events/delegate_registered';
 import { DelegateVotedEvent } from './events/delegate_voted';
+import { CommissionChangeEvent } from './events/commission_change';
 
 export class DPoSModule extends BaseModule {
 	public method = new DPoSMethod(this.stores, this.events);
@@ -102,6 +104,7 @@ export class DPoSModule extends BaseModule {
 		this.events,
 	);
 	private readonly _voteCommand = new VoteDelegateCommand(this.stores, this.events);
+	private readonly _changeCommissionCommand = new ChangeCommissionCommand(this.stores, this.events);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [
@@ -110,6 +113,7 @@ export class DPoSModule extends BaseModule {
 		this._unlockCommand,
 		this._updateGeneratorKeyCommand,
 		this._voteCommand,
+		this._changeCommissionCommand,
 	];
 
 	private _randomMethod!: RandomMethod;
@@ -131,6 +135,7 @@ export class DPoSModule extends BaseModule {
 		this.events.register(DelegatePunishedEvent, new DelegatePunishedEvent(this.name));
 		this.events.register(DelegateRegisteredEvent, new DelegateRegisteredEvent(this.name));
 		this.events.register(DelegateVotedEvent, new DelegateVotedEvent(this.name));
+		this.events.register(CommissionChangeEvent, new CommissionChangeEvent(this.name));
 	}
 
 	public get name() {

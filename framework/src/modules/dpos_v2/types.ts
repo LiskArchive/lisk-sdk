@@ -214,6 +214,10 @@ export interface PomCommandDependencies {
 	validatorsMethod: ValidatorsMethod;
 }
 
+export interface ChangeCommissionParams {
+	newCommission: number;
+}
+
 export interface ValidatorKeys {
 	generatorKey: Buffer;
 	blsKey: Buffer;

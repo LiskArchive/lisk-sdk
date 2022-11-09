@@ -114,6 +114,19 @@ export const pomCommandParamsSchema = {
 	},
 };
 
+export const changeCommissionCommandParamsSchema = {
+	$id: '/dpos/command/changeCommissionCommandParams',
+	type: 'object',
+	required: ['newCommission'],
+	properties: {
+		newCommission: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+			maximum: MAX_COMMISSION,
+		},
+	},
+};
+
 export const configSchema = {
 	$id: '/dpos/config',
 	type: 'object',
