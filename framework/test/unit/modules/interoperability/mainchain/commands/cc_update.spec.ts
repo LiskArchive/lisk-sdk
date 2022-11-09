@@ -638,7 +638,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'forward')
 				.mockResolvedValue({} as never);
 			const applyMock = jest
-				.spyOn(mainchainCCUUpdateCommand, 'apply')
+				.spyOn(mainchainCCUUpdateCommand, 'apply' as never)
 				.mockResolvedValue({} as never);
 
 			const invalidCCMContext = {

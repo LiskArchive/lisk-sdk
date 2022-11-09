@@ -590,7 +590,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'appendToInboxTree')
 				.mockResolvedValue({} as never);
 			const applyMock = jest
-				.spyOn(sidechainCCUUpdateCommand, 'apply')
+				.spyOn(sidechainCCUUpdateCommand, 'apply' as never)
 				.mockResolvedValue({} as never);
 
 			const validCCMContext = {
