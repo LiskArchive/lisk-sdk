@@ -247,6 +247,7 @@ describe('CrossChainUpdateCommand', () => {
 			verifyContext = {
 				getMethodContext: () => createTransientMethodContext({ stateStore }),
 				getStore: createStoreGetter(stateStore).getStore,
+				stateStore,
 				logger: testing.mocks.loggerMock,
 				chainID,
 				params,
@@ -408,6 +409,7 @@ describe('CrossChainUpdateCommand', () => {
 			executeContext = {
 				getMethodContext: () => createTransientMethodContext({ stateStore }),
 				getStore: createStoreGetter(stateStore).getStore,
+				stateStore,
 				logger: testing.mocks.loggerMock,
 				chainID,
 				params,
@@ -633,7 +635,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'forward')
 				.mockResolvedValue({} as never);
 			const applyMock = jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'apply')
+				.spyOn(mainchainCCUUpdateCommand, 'apply' as never)
 				.mockResolvedValue({} as never);
 
 			const invalidCCMContext = {
