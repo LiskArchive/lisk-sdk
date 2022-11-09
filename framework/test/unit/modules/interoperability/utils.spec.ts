@@ -57,7 +57,6 @@ import {
 	computeValidatorsHash,
 	getIDAsKeyForStore,
 	initGenesisStateUtil,
-	updateActiveValidators,
 	validateFormat,
 	verifyCertificateSignature,
 } from '../../../../src/modules/interoperability/utils';
@@ -89,59 +88,6 @@ describe('Utils', () => {
 		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(4) },
 		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
 	];
-
-	describe('updateActiveValidators', () => {
-		const validator1 = {
-			blsKey: cryptography.utils.getRandomBytes(48),
-			bftWeight: BigInt(1),
-		};
-		const validator2 = {
-			blsKey: cryptography.utils.getRandomBytes(48),
-			bftWeight: BigInt(2),
-		};
-		const activeValidators = [validator1, validator2];
-
-		it('should update the existing validator bftWeight with the updated one', () => {
-			const activeValidatorsUpdate = [validator1, { ...validator2, bftWeight: BigInt(3) }];
-
-			expect(updateActiveValidators(activeValidators, activeValidatorsUpdate)).toEqual(
-				activeValidatorsUpdate,
-			);
-		});
-
-		it('should add a validator with its bftWeight in lexicographical order', () => {
-			const activeValidatorsUpdate = [
-				validator1,
-				validator2,
-				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
-			];
-
-			// Should be in lexicographical order
-			activeValidatorsUpdate.sort((v1, v2) => v1.blsKey.compare(v2.blsKey));
-
-			expect(updateActiveValidators(activeValidators, activeValidatorsUpdate)).toEqual(
-				activeValidatorsUpdate,
-			);
-		});
-
-		it('should remove a validator when its bftWeight=0', () => {
-			const activeValidatorsLocal = [...activeValidators];
-			const validator3 = { blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) };
-			activeValidatorsLocal.push(validator3);
-			const activeValidatorsUpdate = [
-				validator1,
-				validator2,
-				{ ...validator3, bftWeight: BigInt(0) },
-			];
-			const updatedValidators = updateActiveValidators(
-				activeValidatorsLocal,
-				activeValidatorsUpdate,
-			);
-
-			const validator3Exists = updatedValidators.some(v => v.blsKey.equals(validator3.blsKey));
-			expect(validator3Exists).toEqual(false);
-		});
-	});
 
 	describe('checkLivenessRequirementFirstCCU', () => {
 		const partnerChainAccount = {
@@ -313,10 +259,7 @@ describe('Utils', () => {
 	describe('checkValidCertificateLiveness', () => {
 		const inboxUpdate = {
 			crossChainMessages: [Buffer.alloc(1)],
-			messageWitness: {
-				partnerChainOutboxSize: BigInt(2),
-				siblingHashes: [Buffer.alloc(1)],
-			},
+			messageWitnessHashes: [Buffer.alloc(1)],
 			outboxRootWitness: {
 				bitmap: Buffer.alloc(1),
 				siblingHashes: [Buffer.alloc(1)],
@@ -324,10 +267,7 @@ describe('Utils', () => {
 		} as InboxUpdate;
 		const inboxUpdateEmpty = {
 			crossChainMessages: [],
-			messageWitness: {
-				partnerChainOutboxSize: BigInt(0),
-				siblingHashes: [],
-			},
+			messageWitnessHashes: [],
 			outboxRootWitness: {
 				bitmap: Buffer.alloc(1),
 				siblingHashes: [],
@@ -678,10 +618,7 @@ describe('Utils', () => {
 
 		const inboxUpdateEmpty = {
 			crossChainMessages: [],
-			messageWitness: {
-				partnerChainOutboxSize: BigInt(0),
-				siblingHashes: [],
-			},
+			messageWitnessHashes: [],
 			outboxRootWitness: {
 				bitmap: Buffer.alloc(0),
 				siblingHashes: [],
@@ -689,10 +626,7 @@ describe('Utils', () => {
 		};
 		const inboxUpdate = {
 			crossChainMessages: inboxUpdateCCMsEncoded,
-			messageWitness: {
-				partnerChainOutboxSize: BigInt(1),
-				siblingHashes: [cryptography.utils.getRandomBytes(32)],
-			},
+			messageWitnessHashes: [cryptography.utils.getRandomBytes(32)],
 			outboxRootWitness: {
 				bitmap: cryptography.utils.getRandomBytes(32),
 				siblingHashes: [cryptography.utils.getRandomBytes(32)],
@@ -747,7 +681,7 @@ describe('Utils', () => {
 		});
 
 		describe('Non-empty certificate and inboxUpdate', () => {
-			it('should update inboxRoot when when messageWitness is non-empty', () => {
+			it('should update inboxRoot when messageWitnessHashes is non-empty', () => {
 				const smtVerifySpy = jest
 					.spyOn(merkleTree.sparseMerkleTree, 'verify')
 					.mockReturnValue({} as never);
@@ -761,7 +695,7 @@ describe('Utils', () => {
 				expect(smtVerifySpy).toHaveBeenCalled();
 			});
 
-			it('should not call calculateRootFromRightWitness when messageWitness is empty', () => {
+			it('should not call calculateRootFromRightWitness when messageWitnessHashes is empty', () => {
 				const calculateRootFromRightWitnessSpy = jest.spyOn(
 					merkleTree.regularMerkleTree,
 					'calculateRootFromRightWitness',
@@ -772,10 +706,7 @@ describe('Utils', () => {
 
 				const inboxUpdateMessageWitnessEmpty = {
 					crossChainMessages: inboxUpdateCCMsEncoded,
-					messageWitness: {
-						partnerChainOutboxSize: BigInt(0),
-						siblingHashes: [],
-					},
+					messageWitnessHashes: [],
 					outboxRootWitness: {
 						bitmap: cryptography.utils.getRandomBytes(32),
 						siblingHashes: [cryptography.utils.getRandomBytes(32)],
@@ -815,7 +746,7 @@ describe('Utils', () => {
 				);
 				expect(status).toEqual(VerifyStatus.FAIL);
 				expect(error?.message).toEqual(
-					'Failed at verifying state root when messageWitness and certificate are non-empty.',
+					'Failed at verifying state root when messageWitnessHashes and certificate are non-empty.',
 				);
 				expect(calculateRootFromRightWitnessSpy).toHaveBeenCalled();
 				expect(smtVerifySpy).toHaveBeenCalled();
@@ -855,7 +786,7 @@ describe('Utils', () => {
 				}),
 			};
 
-			it('should update newInboxRoot when messageWitness is non-empty', () => {
+			it('should update newInboxRoot when messageWitnessHashes is non-empty', () => {
 				const calculateRootFromRightWitnessSpy = jest
 					.spyOn(merkleTree.regularMerkleTree, 'calculateRootFromRightWitness')
 					.mockReturnValue(partnerChannelData.partnerChainOutboxRoot);
@@ -870,7 +801,7 @@ describe('Utils', () => {
 				expect(calculateRootFromRightWitnessSpy).toHaveBeenCalled();
 			});
 
-			it('should should not call calculateRootFromRightWitness when messageWitness is empty', () => {
+			it('should not call calculateRootFromRightWitness when messageWitnessHashes is empty', () => {
 				const txParamsEmptyMessageWitness = {
 					...txParams,
 					certificate: codec.encode(certificateSchema, {
@@ -884,7 +815,7 @@ describe('Utils', () => {
 					}),
 					inboxUpdate: {
 						...txParams.inboxUpdate,
-						messageWitness: { partnerChainOutboxSize: BigInt(0), siblingHashes: [] },
+						messageWitnessHashes: [],
 					},
 				};
 				const calculateRootFromRightWitnessSpy = jest.spyOn(
@@ -920,7 +851,7 @@ describe('Utils', () => {
 					}),
 					inboxUpdate: {
 						...txParams.inboxUpdate,
-						messageWitness: { partnerChainOutboxSize: BigInt(0), siblingHashes: [] },
+						messageWitnessHashes: [],
 					},
 				};
 				const calculateRootFromRightWitnessSpy = jest.spyOn(
@@ -938,7 +869,7 @@ describe('Utils', () => {
 				);
 				expect(status).toEqual(VerifyStatus.FAIL);
 				expect(error?.message).toEqual(
-					'Failed at verifying state root when messageWitness is non-empty and certificate is empty.',
+					'Failed at verifying state root when messageWitnessHashes is non-empty and certificate is empty.',
 				);
 				expect(calculateMerkleRootSpy).toHaveBeenCalledTimes(inboxUpdateCCMsEncoded.length);
 				expect(calculateRootFromRightWitnessSpy).not.toHaveBeenCalled();
@@ -971,10 +902,7 @@ describe('Utils', () => {
 			];
 			inboxUpdate = {
 				crossChainMessages: [Buffer.alloc(1)],
-				messageWitness: {
-					partnerChainOutboxSize: BigInt(2),
-					siblingHashes: [Buffer.alloc(1)],
-				},
+				messageWitnessHashes: [Buffer.alloc(1)],
 				outboxRootWitness: {
 					bitmap: Buffer.alloc(1),
 					siblingHashes: [Buffer.alloc(1)],
@@ -1135,17 +1063,14 @@ describe('Utils', () => {
 			expect(calculateRootFromRightWitness).toHaveBeenCalled();
 		});
 
-		it('should run successfully and return undefined when messageWitness is empty', async () => {
+		it('should run successfully and return undefined when messageWitnessHashes is empty', async () => {
 			const paramsWithEmptyMessageWitness = {
 				activeValidatorsUpdate,
 				newCertificateThreshold: params.newCertificateThreshold,
 				certificate: params.certificate,
 				inboxUpdate: {
 					...inboxUpdate,
-					messageWitness: {
-						partnerChainOutboxSize: BigInt(0),
-						siblingHashes: [],
-					},
+					messageWitnessHashes: [],
 				},
 			};
 			const contextWithEmptyMessageWitness: any = {

@@ -527,10 +527,7 @@ describe('Mainchain interoperability internal method', () => {
 				certificate: Buffer.alloc(0),
 				inboxUpdate: {
 					crossChainMessages: [],
-					messageWitness: {
-						partnerChainOutboxSize: BigInt(0),
-						siblingHashes: [],
-					},
+					messageWitnessHashes: [],
 					outboxRootWitness: {
 						bitmap: Buffer.alloc(0),
 						siblingHashes: [],

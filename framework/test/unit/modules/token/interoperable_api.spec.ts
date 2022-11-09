@@ -58,10 +58,7 @@ describe('CrossChain Forward command', () => {
 		certificate: utils.getRandomBytes(20),
 		inboxUpdate: {
 			crossChainMessages: [],
-			messageWitness: {
-				partnerChainOutboxSize: BigInt(0),
-				siblingHashes: [],
-			},
+			messageWitnessHashes: [],
 			outboxRootWitness: {
 				bitmap: Buffer.alloc(0),
 				siblingHashes: [],
