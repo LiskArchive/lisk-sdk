@@ -30,6 +30,7 @@ import {
 	CCM_PROCESSED_RESULT_BOUNCED,
 	CCM_PROCESSED_RESULT_DISCARDED,
 	CCM_STATUS_CODE_FAILED_CCM,
+	CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
 	CCM_STATUS_MODULE_NOT_SUPPORTED,
 	CCM_STATUS_OK,
 	MIN_RETURN_FEE,
@@ -42,7 +43,7 @@ import { CrossChainMessageContext } from './types';
 export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCommand {
 	public schema = crossChainUpdateTransactionParams;
 
-	public async apply(context: CrossChainMessageContext): Promise<void> {
+	protected async apply(context: CrossChainMessageContext): Promise<void> {
 		const { ccm, logger } = context;
 		const encodedCCM = codec.encode(ccmSchema, ccm);
 		const ccmID = utils.hash(encodedCCM);
@@ -88,7 +89,7 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 				context,
 				ccmID,
 				encodedCCM.length,
-				CCM_STATUS_MODULE_NOT_SUPPORTED,
+				CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
 				CCM_PROCESSED_CODE_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
 			);
 			return;
@@ -195,7 +196,7 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 		}
 	}
 
-	public async bounce(
+	protected async bounce(
 		context: CrossChainMessageContext,
 		ccmID: Buffer,
 		ccmSize: number,
