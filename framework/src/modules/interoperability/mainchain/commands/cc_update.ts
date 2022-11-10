@@ -63,7 +63,6 @@ import {
 	commonCCUExecutelogic,
 	isInboxUpdateEmpty,
 	validateFormat,
-	verifyCertificateSignature,
 } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../store';
 
@@ -145,14 +144,10 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 		}
 
 		// When certificate is non-empty
-		const verifyCertificateSignatureResult = verifyCertificateSignature(
+		await interoperabilityInternalMethod.verifyCertificateSignature(
+			context.getMethodContext(),
 			txParams,
-			partnerValidators,
-			txParams.sendingChainID,
 		);
-		if (verifyCertificateSignatureResult.error) {
-			return verifyCertificateSignatureResult;
-		}
 
 		const partnerChannelStore = this.stores.get(ChannelDataStore);
 		const partnerChannelData = await partnerChannelStore.get(context, txParams.sendingChainID);
