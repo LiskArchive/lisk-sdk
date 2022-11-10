@@ -15,7 +15,7 @@
 import { BaseInteroperabilityCCCommand } from '../base_interoperability_cc_commands';
 import { channelTerminatedCCMParamsSchema } from '../schemas';
 import { CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED } from '../constants';
-import { CCCommandExecuteContext } from '../types';
+import { CrossChainMessageContext } from '../types';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#channel-terminated-message-1
 export abstract class BaseCCChannelTerminatedCommand extends BaseInteroperabilityCCCommand {
@@ -25,7 +25,7 @@ export abstract class BaseCCChannelTerminatedCommand extends BaseInteroperabilit
 		return CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED;
 	}
 
-	public async execute(context: CCCommandExecuteContext): Promise<void> {
+	public async execute(context: CrossChainMessageContext): Promise<void> {
 		if (!context.ccm) {
 			throw new Error(
 				`CCM to execute cross chain command '${CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED}' is missing.`,

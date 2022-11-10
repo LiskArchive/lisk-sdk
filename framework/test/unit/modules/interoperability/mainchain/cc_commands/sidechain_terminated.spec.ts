@@ -24,9 +24,9 @@ import { MainchainCCSidechainTerminatedCommand } from '../../../../../../src/mod
 import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { sidechainTerminatedCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { TerminatedStateStore } from '../../../../../../src/modules/interoperability/stores/terminated_state';
-import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
+import { CrossChainMessageContext } from '../../../../../../src/modules/interoperability/types';
 import { NamedRegistry } from '../../../../../../src/modules/named_registry';
-import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
+import { createCrossChainMessageContext } from '../../../../../../src/testing';
 
 describe('MainchainCCSidechainTerminatedCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -75,11 +75,11 @@ describe('MainchainCCSidechainTerminatedCommand', () => {
 		...ccm,
 		sendingChainID: utils.intToBuffer(2, 4),
 	};
-	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
+	const sampleExecuteContext: CrossChainMessageContext = createCrossChainMessageContext({
 		ccm,
 		chainID,
 	});
-	const sampleExecuteContextNew: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
+	const sampleExecuteContextNew: CrossChainMessageContext = createCrossChainMessageContext({
 		ccm: ccmNew,
 		chainID,
 	});

@@ -243,6 +243,7 @@ describe('CrossChainUpdateCommand', () => {
 			verifyContext = {
 				getMethodContext: () => createTransientMethodContext({ stateStore }),
 				getStore: createStoreGetter(stateStore).getStore,
+				stateStore,
 				logger: testing.mocks.loggerMock,
 				chainID,
 				params,
@@ -339,16 +340,13 @@ describe('CrossChainUpdateCommand', () => {
 			expect(error?.message).toContain('Validators hash given in the certificate is incorrect.');
 		});
 
-		it('should return error checkActiveValidatorsUpdate fails when Validators blsKeys are not unique and lexicographically ordered', async () => {
-			const { status, error } = await sidechainCCUUpdateCommand.verify({
-				...verifyContext,
-				params: { ...params, activeValidatorsUpdate },
-			});
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toContain(
-				'Validators blsKeys must be unique and lexicographically ordered.',
-			);
+		it('should return error verifyValidatorsUpdate fails when Validators blsKeys are not unique and lexicographically ordered', async () => {
+			await expect(
+				sidechainCCUUpdateCommand.verify({
+					...verifyContext,
+					params: { ...params, activeValidatorsUpdate },
+				}),
+			).rejects.toThrow('Keys are not sorted lexicographic order.');
 		});
 
 		it('should return VerifyStatus.FAIL when verifyCertificateSignature fails', async () => {
@@ -407,6 +405,7 @@ describe('CrossChainUpdateCommand', () => {
 				getMethodContext: () => createTransientMethodContext({ stateStore }),
 				getStore: createStoreGetter(stateStore).getStore,
 				logger: testing.mocks.loggerMock,
+				stateStore,
 				chainID,
 				params,
 				transaction: defaultTransaction as any,
@@ -588,7 +587,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'appendToInboxTree')
 				.mockResolvedValue({} as never);
 			const applyMock = jest
-				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'apply')
+				.spyOn(sidechainCCUUpdateCommand, 'apply' as never)
 				.mockResolvedValue({} as never);
 
 			const validCCMContext = {

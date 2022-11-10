@@ -613,8 +613,8 @@ export const genesisInteroperabilityInternalMethodSchema = {
 						fieldNumber: 1,
 					},
 					storeValue: {
-						...chainValidatorsSchema,
 						fieldNumber: 2,
+						...chainValidatorsSchema,
 					},
 				},
 			},

@@ -25,9 +25,9 @@ import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/m
 import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
-import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
+import { CrossChainMessageContext } from '../../../../../../src/modules/interoperability/types';
 import { NamedRegistry } from '../../../../../../src/modules/named_registry';
-import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
+import { createCrossChainMessageContext } from '../../../../../../src/testing';
 
 describe('MainchainCCRegistrationCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -100,7 +100,7 @@ describe('MainchainCCRegistrationCommand', () => {
 		},
 		partnerChainOutboxRoot: Buffer.alloc(0),
 	};
-	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
+	const sampleExecuteContext: CrossChainMessageContext = createCrossChainMessageContext({
 		ccm,
 		chainID,
 	});

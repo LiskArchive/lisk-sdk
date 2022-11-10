@@ -12,30 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
+import { utils as cryptoUtils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
 import {
 	BLS_PUBLIC_KEY_LENGTH,
-	CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
-	CCM_STATUS_MODULE_NOT_SUPPORTED,
-	CCM_STATUS_OK,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	EMPTY_BYTES,
-	EMPTY_FEE_ADDRESS,
 	HASH_LENGTH,
 	MAINCHAIN_ID,
 	MAINCHAIN_ID_BUFFER,
-	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/store';
-import { getCCMSize, getIDAsKeyForStore } from '../../../../src/modules/interoperability/utils';
+import * as utils from '../../../../src/modules/interoperability/utils';
 import { MainchainInteroperabilityModule, testing } from '../../../../src';
-import {
-	CCMApplyContext,
-	CCUpdateParams,
-	CreateTerminatedOutboxAccountContext,
-} from '../../../../src/modules/interoperability/types';
+import { CreateTerminatedOutboxAccountContext } from '../../../../src/modules/interoperability/types';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
@@ -48,12 +38,12 @@ import { ChainAccountStore } from '../../../../src/modules/interoperability/stor
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { createStoreGetter } from '../../../../src/testing/utils';
 import { StoreGetter } from '../../../../src/modules/base_store';
-import { NamedRegistry } from '../../../../src/modules/named_registry';
 import { EventQueue, MethodContext } from '../../../../src/state_machine';
 import { ChainAccountUpdatedEvent } from '../../../../src/modules/interoperability/events/chain_account_updated';
 import { TerminatedStateCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_state_created';
 import { createTransientMethodContext } from '../../../../src/testing';
 import { ChainValidatorsStore } from '../../../../src/modules/interoperability/stores/chain_validators';
+import * as chainValidators from '../../../../src/modules/interoperability/stores/chain_validators';
 import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
 import { TerminatedOutboxCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_outbox_created';
@@ -69,8 +59,8 @@ describe('Base interoperability internal method', () => {
 		nonce: BigInt(0),
 		module: 'token',
 		crossChainCommand: 'crossChainTransfer',
-		sendingChainID: utils.intToBuffer(2, 4),
-		receivingChainID: utils.intToBuffer(3, 4),
+		sendingChainID: cryptoUtils.intToBuffer(2, 4),
+		receivingChainID: cryptoUtils.intToBuffer(3, 4),
 		fee: BigInt(1),
 		status: 1,
 		params: Buffer.alloc(0),
@@ -131,7 +121,7 @@ describe('Base interoperability internal method', () => {
 			},
 		},
 		newCertificateThreshold: BigInt(99),
-		sendingChainID: utils.getRandomBytes(4),
+		sendingChainID: cryptoUtils.getRandomBytes(4),
 	};
 	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 	let channelDataSubstore: ChannelDataStore;
@@ -240,7 +230,7 @@ describe('Base interoperability internal method', () => {
 	});
 
 	describe('createTerminatedStateAccount', () => {
-		const chainId = utils.intToBuffer(5, 4);
+		const chainId = cryptoUtils.intToBuffer(5, 4);
 		const stateRoot = Buffer.from('888d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex');
 		const ownChainAccountMainchain = {
 			name: 'mainchain',
@@ -250,7 +240,7 @@ describe('Base interoperability internal method', () => {
 
 		const ownChainAccount1 = {
 			name: 'chain1',
-			chainID: utils.intToBuffer(7, 4),
+			chainID: cryptoUtils.intToBuffer(7, 4),
 			nonce: BigInt('0'),
 		};
 
@@ -313,7 +303,7 @@ describe('Base interoperability internal method', () => {
 		});
 
 		it('should throw error if chain account does not exist for the id and ownchain account id is mainchain id', async () => {
-			const chainIdNew = utils.intToBuffer(9, 4);
+			const chainIdNew = cryptoUtils.intToBuffer(9, 4);
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountMainchain);
@@ -328,11 +318,11 @@ describe('Base interoperability internal method', () => {
 		});
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account does not exist for the id and ownchain account id is not the same as mainchain id', async () => {
-			const chainIdNew = utils.intToBuffer(10, 4);
+			const chainIdNew = cryptoUtils.intToBuffer(10, 4);
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccount1);
-			await chainDataSubstore.set(context, getIDAsKeyForStore(MAINCHAIN_ID), chainAccount);
+			await chainDataSubstore.set(context, utils.getIDAsKeyForStore(MAINCHAIN_ID), chainAccount);
 			await mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(
 				createTerminatedStateAccountContext,
 				chainIdNew,
@@ -356,20 +346,20 @@ describe('Base interoperability internal method', () => {
 	});
 
 	describe('terminateChainInternal', () => {
-		const SIDECHAIN_ID = utils.intToBuffer(2, 4);
+		const SIDECHAIN_ID = cryptoUtils.intToBuffer(2, 4);
 		const ccm = {
 			nonce: BigInt(0),
 			module: 'token',
 			crossChainCommand: 'crossChainTransfer',
-			sendingChainID: utils.intToBuffer(2, 4),
-			receivingChainID: utils.intToBuffer(3, 4),
+			sendingChainID: cryptoUtils.intToBuffer(2, 4),
+			receivingChainID: cryptoUtils.intToBuffer(3, 4),
 			fee: BigInt(1),
 			status: 1,
 			params: Buffer.alloc(0),
 		};
 		const beforeSendCCMContext = testing.createBeforeSendCCMsgMethodContext({
 			ccm,
-			feeAddress: utils.getRandomBytes(32),
+			feeAddress: cryptoUtils.getRandomBytes(32),
 		});
 
 		beforeEach(() => {
@@ -408,226 +398,12 @@ describe('Base interoperability internal method', () => {
 		});
 	});
 
-	describe('apply', () => {
-		let mainchainStoreLocal: MainchainInteroperabilityInternalMethod;
-
-		const ccm = {
-			nonce: BigInt(0),
-			module: MODULE_NAME_INTEROPERABILITY,
-			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-			sendingChainID: utils.intToBuffer(2, 4),
-			receivingChainID: utils.intToBuffer(3, 4),
-			fee: BigInt(54000),
-			status: CCM_STATUS_OK,
-			params: Buffer.alloc(0),
-		};
-
-		const ccCommands = [
-			{
-				name: ccm.crossChainCommand,
-				execute: jest.fn(),
-			},
-		];
-		const ccCommandsMap = new Map();
-		ccCommandsMap.set(MODULE_NAME_INTEROPERABILITY, ccCommands);
-
-		const ccMethodMod1 = {
-			beforeSendCCM: jest.fn(),
-			beforeApplyCCM: jest.fn(),
-		};
-		const ccMethodMod2 = {
-			beforeSendCCM: jest.fn(),
-			beforeApplyCCM: jest.fn(),
-		};
-
-		const ccMethodModsMap = new Map();
-		ccMethodModsMap.set('cc1', ccMethodMod1);
-		ccMethodModsMap.set('cc2', ccMethodMod2);
-
-		const ccu: CCUpdateParams = {
-			...ccuParams,
-		};
-
-		const beforeSendCCMContext = testing.createBeforeSendCCMsgMethodContext({
-			ccm,
-			feeAddress: utils.getRandomBytes(32),
-		});
-
-		const beforeApplyCCMContext = testing.createBeforeApplyCCMsgMethodContext({
-			...beforeSendCCMContext,
-			ccm,
-			ccu,
-			payFromAddress: EMPTY_FEE_ADDRESS,
-			trsSender: utils.getRandomBytes(20),
-		});
-
-		const ccmApplyContext: CCMApplyContext = {
-			ccm,
-			ccu,
-			ccmSize: getCCMSize(ccm),
-			eventQueue: beforeSendCCMContext.eventQueue,
-			getMethodContext: beforeSendCCMContext.getMethodContext,
-			getStore: beforeSendCCMContext.getStore,
-			logger: beforeSendCCMContext.logger,
-			chainID: beforeSendCCMContext.chainID,
-			feeAddress: Buffer.alloc(0),
-			trsSender: beforeApplyCCMContext.trsSender,
-		};
-
-		beforeEach(() => {
-			mainchainStoreLocal = new MainchainInteroperabilityInternalMethod(
-				interopMod.stores,
-				new NamedRegistry(),
-				context,
-				ccMethodModsMap,
-			);
-		});
-
-		it('should return immediately if sending chain is terminated', async () => {
-			// Arrange
-			jest.spyOn(interopMod.stores.get(TerminatedStateStore), 'has').mockResolvedValue(true);
-
-			// Act & Assert
-			await expect(
-				mainchainStoreLocal.apply(ccmApplyContext, ccCommandsMap),
-			).resolves.toBeUndefined();
-			expect(ccMethodMod1.beforeApplyCCM).toHaveBeenCalledTimes(0);
-		});
-
-		it('should call all the interoperable beforeApplyCCM hooks', async () => {
-			// Arrange
-			const ccMethodSampleMod = {
-				beforeSendCCM: jest.fn(),
-				beforeApplyCCM: jest.fn(),
-			};
-			mainchainStoreLocal = new MainchainInteroperabilityInternalMethod(
-				interopMod.stores,
-				new NamedRegistry(),
-				context,
-				new Map().set('mod1', ccMethodSampleMod),
-			);
-			jest.spyOn(interopMod.stores.get(TerminatedStateStore), 'has').mockResolvedValue(false);
-			jest.spyOn(mainchainStoreLocal, 'sendInternal');
-
-			// Act & Assert
-			await expect(
-				mainchainStoreLocal.apply(ccmApplyContext, ccCommandsMap),
-			).resolves.toBeUndefined();
-			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledTimes(1);
-			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledWith(
-				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
-			);
-		});
-
-		it('should not execute CCMs and return when module is not supported', async () => {
-			// Arrange
-			const localCCCommandsMap = new Map().set('mod1', [
-				{
-					name: 'newMod',
-					execute: jest.fn(),
-				},
-			]);
-			mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
-				interopMod.stores,
-				new NamedRegistry(),
-				context,
-				new Map().set('newMod', ccMethodMod1),
-			);
-			jest.spyOn(interopMod.stores.get(TerminatedStateStore), 'has').mockResolvedValue(false);
-
-			jest.spyOn(mainchainStoreLocal, 'sendInternal').mockResolvedValue({} as never);
-
-			// Act & Assert
-			await expect(
-				mainchainStoreLocal.apply(ccmApplyContext, localCCCommandsMap),
-			).resolves.toBeUndefined();
-			expect(ccMethodMod1.beforeApplyCCM).toHaveBeenCalledTimes(1);
-			expect(ccMethodMod1.beforeApplyCCM).toHaveBeenCalledWith(
-				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
-			);
-			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledTimes(1);
-			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledWith(
-				expect.objectContaining({ status: CCM_STATUS_MODULE_NOT_SUPPORTED }),
-			);
-		});
-
-		it('should not execute CCMs and return when command is not supported', async () => {
-			// Arrange
-			const localCCCommandsMap = new Map().set(MODULE_NAME_INTEROPERABILITY, [
-				{
-					name: 'cc1',
-					execute: jest.fn(),
-				},
-			]);
-			const ccMethodSampleMod = {
-				beforeSendCCM: jest.fn(),
-				beforeApplyCCM: jest.fn(),
-			};
-			mainchainStoreLocal = new MainchainInteroperabilityInternalMethod(
-				interopMod.stores,
-				new NamedRegistry(),
-				context,
-				new Map().set('mod1', ccMethodSampleMod),
-			);
-
-			jest.spyOn(interopMod.stores.get(TerminatedStateStore), 'has').mockResolvedValue(false);
-			jest.spyOn(mainchainStoreLocal, 'sendInternal').mockResolvedValue({} as never);
-
-			// Act & Assert
-			await expect(
-				mainchainStoreLocal.apply(ccmApplyContext, localCCCommandsMap),
-			).resolves.toBeUndefined();
-			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledTimes(1);
-			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledWith(
-				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
-			);
-			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledTimes(1);
-			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledWith(
-				expect.objectContaining({ status: CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED }),
-			);
-		});
-
-		it('should execute the cross chain command of interoperable module with name interoperability', async () => {
-			// Arrange
-			const ccMethodSampleMod = {
-				beforeSendCCM: jest.fn(),
-				beforeApplyCCM: jest.fn(),
-			};
-			mainchainStoreLocal = new MainchainInteroperabilityInternalMethod(
-				interopMod.stores,
-				new NamedRegistry(),
-				context,
-				new Map().set(MODULE_NAME_INTEROPERABILITY, ccMethodSampleMod),
-			);
-			jest.spyOn(interopMod.stores.get(TerminatedStateStore), 'has').mockResolvedValue(false);
-			jest.spyOn(mainchainStoreLocal, 'sendInternal').mockResolvedValue({} as never);
-
-			const executeCCMContext = testing.createExecuteCCMsgMethodContext({
-				...beforeSendCCMContext,
-			});
-
-			// Act & Assert
-			await expect(
-				mainchainStoreLocal.apply(ccmApplyContext, ccCommandsMap),
-			).resolves.toBeUndefined();
-			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledTimes(1);
-			expect(ccMethodSampleMod.beforeApplyCCM).toHaveBeenCalledWith(
-				expect.objectContaining({ ccu: beforeApplyCCMContext.ccu }),
-			);
-			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledTimes(0);
-			expect(ccCommands[0].execute).toHaveBeenCalledTimes(1);
-			expect(ccCommands[0].execute).toHaveBeenCalledWith(
-				expect.objectContaining({ ccm: executeCCMContext.ccm }),
-			);
-		});
-	});
-
 	describe('getTerminatedOutboxAccount', () => {
 		let terminatedChainID: Buffer;
 		let terminatedOutboxAccount: TerminatedOutboxAccount;
 
 		beforeEach(async () => {
-			terminatedChainID = utils.getRandomBytes(32);
+			terminatedChainID = cryptoUtils.getRandomBytes(32);
 
 			terminatedOutboxAccount = {
 				outboxRoot: Buffer.alloc(32),
@@ -648,7 +424,7 @@ describe('Base interoperability internal method', () => {
 		it('should throw when terminated outbox account does not exist', async () => {
 			await expect(
 				mainchainInteroperabilityInternalMethod.getTerminatedOutboxAccount(
-					utils.getRandomBytes(32),
+					cryptoUtils.getRandomBytes(32),
 				),
 			).rejects.toThrow();
 		});
@@ -659,7 +435,7 @@ describe('Base interoperability internal method', () => {
 		let terminatedOutboxAccount: TerminatedOutboxAccount;
 
 		beforeEach(async () => {
-			terminatedChainID = utils.getRandomBytes(32);
+			terminatedChainID = cryptoUtils.getRandomBytes(32);
 
 			terminatedOutboxAccount = {
 				outboxRoot: Buffer.alloc(32),
@@ -673,8 +449,8 @@ describe('Base interoperability internal method', () => {
 		it('should return false when outbox account does not exist', async () => {
 			// Assign
 			const isValueChanged = await mainchainInteroperabilityInternalMethod.setTerminatedOutboxAccount(
-				utils.getRandomBytes(32),
-				{ outboxRoot: utils.getRandomBytes(32) },
+				cryptoUtils.getRandomBytes(32),
+				{ outboxRoot: cryptoUtils.getRandomBytes(32) },
 			);
 
 			// Assert
@@ -684,7 +460,7 @@ describe('Base interoperability internal method', () => {
 		it('should return false when no params provided', async () => {
 			// Assign
 			const isValueChanged = await mainchainInteroperabilityInternalMethod.setTerminatedOutboxAccount(
-				utils.getRandomBytes(32),
+				cryptoUtils.getRandomBytes(32),
 				{},
 			);
 
@@ -697,20 +473,20 @@ describe('Base interoperability internal method', () => {
 				{
 					title: 'should change outboxRoot',
 					changedValues: {
-						outboxRoot: utils.getRandomBytes(32),
+						outboxRoot: cryptoUtils.getRandomBytes(32),
 					},
 				},
 				{
 					title: 'should change outboxRoot and outboxSize',
 					changedValues: {
-						outboxRoot: utils.getRandomBytes(32),
+						outboxRoot: cryptoUtils.getRandomBytes(32),
 						outboxSize: 2,
 					},
 				},
 				{
 					title: 'should change outboxRoot, outboxSize and partnerChainInboxSize',
 					changedValues: {
-						outboxRoot: utils.getRandomBytes(32),
+						outboxRoot: cryptoUtils.getRandomBytes(32),
 						outboxSize: 3,
 						partnerChainInboxSize: 3,
 					},
@@ -742,7 +518,7 @@ describe('Base interoperability internal method', () => {
 				...ccuParams,
 				activeValidatorsUpdate: new Array(5).fill(0).map(() => ({
 					bftWeight: BigInt(1),
-					blsKey: utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+					blsKey: cryptoUtils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
 				})),
 			};
 
@@ -770,13 +546,13 @@ describe('Base interoperability internal method', () => {
 			jest.spyOn(interopMod.stores.get(ChainAccountStore), 'set');
 
 			const certificate = {
-				blockID: utils.getRandomBytes(HASH_LENGTH),
+				blockID: cryptoUtils.getRandomBytes(HASH_LENGTH),
 				height: 120,
-				stateRoot: utils.getRandomBytes(HASH_LENGTH),
+				stateRoot: cryptoUtils.getRandomBytes(HASH_LENGTH),
 				timestamp: 1212,
-				validatorsHash: utils.getRandomBytes(HASH_LENGTH),
-				aggregationBits: utils.getRandomBytes(2),
-				signature: utils.getRandomBytes(64),
+				validatorsHash: cryptoUtils.getRandomBytes(HASH_LENGTH),
+				aggregationBits: cryptoUtils.getRandomBytes(2),
+				signature: cryptoUtils.getRandomBytes(64),
 			};
 
 			const ccu = {
@@ -787,9 +563,9 @@ describe('Base interoperability internal method', () => {
 			await interopMod.stores.get(ChainAccountStore).set(context, ccuParams.sendingChainID, {
 				lastCertificate: {
 					height: 20,
-					stateRoot: utils.getRandomBytes(HASH_LENGTH),
+					stateRoot: cryptoUtils.getRandomBytes(HASH_LENGTH),
 					timestamp: 99,
-					validatorsHash: utils.getRandomBytes(HASH_LENGTH),
+					validatorsHash: cryptoUtils.getRandomBytes(HASH_LENGTH),
 				},
 				name: 'chain1',
 				status: 1,
@@ -832,23 +608,23 @@ describe('Base interoperability internal method', () => {
 				...ccuParams,
 				inboxUpdate: {
 					...ccuParams.inboxUpdate,
-					messageWitnessHashes: [utils.getRandomBytes(HASH_LENGTH)],
+					messageWitnessHashes: [cryptoUtils.getRandomBytes(HASH_LENGTH)],
 				},
 			};
 
 			await interopMod.stores.get(ChannelDataStore).set(context, ccu.sendingChainID, {
 				inbox: {
-					appendPath: [utils.getRandomBytes(HASH_LENGTH)],
-					root: utils.getRandomBytes(HASH_LENGTH),
+					appendPath: [cryptoUtils.getRandomBytes(HASH_LENGTH)],
+					root: cryptoUtils.getRandomBytes(HASH_LENGTH),
 					size: 1,
 				},
-				messageFeeTokenID: utils.getRandomBytes(8),
+				messageFeeTokenID: cryptoUtils.getRandomBytes(8),
 				outbox: {
-					appendPath: [utils.getRandomBytes(HASH_LENGTH)],
-					root: utils.getRandomBytes(32),
+					appendPath: [cryptoUtils.getRandomBytes(HASH_LENGTH)],
+					root: cryptoUtils.getRandomBytes(32),
 					size: 1,
 				},
-				partnerChainOutboxRoot: utils.getRandomBytes(HASH_LENGTH),
+				partnerChainOutboxRoot: cryptoUtils.getRandomBytes(HASH_LENGTH),
 			});
 
 			await mainchainInteroperabilityInternalMethod.updatePartnerChainOutboxRoot(
@@ -863,6 +639,121 @@ describe('Base interoperability internal method', () => {
 				ccu.sendingChainID,
 				ccu.inboxUpdate.messageWitnessHashes,
 			);
+		});
+	});
+
+	describe('verifyValidatorsUpdate', () => {
+		const certificate = {
+			blockID: cryptoUtils.getRandomBytes(32),
+			height: 120,
+			stateRoot: cryptoUtils.getRandomBytes(32),
+			timestamp: 1212,
+			validatorsHash: cryptoUtils.getRandomBytes(32),
+			aggregationBits: cryptoUtils.getRandomBytes(2),
+			signature: cryptoUtils.getRandomBytes(64),
+		};
+
+		it('shoud reject if the certificate is empty', async () => {
+			const ccu = {
+				...ccuParams,
+				certificate: Buffer.alloc(0),
+			};
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
+			).rejects.toThrow('Certificate must be non-empty if validators have been updated');
+		});
+
+		it('shoud reject if BLS keys are not sorted lexicographically', async () => {
+			const ccu = {
+				...ccuParams,
+				certificate: codec.encode(certificateSchema, certificate),
+				activeValidatorsUpdate: [
+					{ blsKey: Buffer.from([0, 0, 0, 0]), bftWeight: BigInt(5) },
+					{ blsKey: Buffer.from([0, 0, 3, 0]), bftWeight: BigInt(5) },
+					{ blsKey: Buffer.from([0, 0, 0, 1]), bftWeight: BigInt(5) },
+				],
+			};
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
+			).rejects.toThrow('Keys are not sorted lexicographic order');
+		});
+
+		it('shoud reject if BLS keys are not unique', async () => {
+			const ccu = {
+				...ccuParams,
+				certificate: codec.encode(certificateSchema, certificate),
+				activeValidatorsUpdate: [
+					{ blsKey: Buffer.from([0, 0, 0, 1]), bftWeight: BigInt(5) },
+					{ blsKey: Buffer.from([0, 0, 0, 1]), bftWeight: BigInt(5) },
+					{ blsKey: Buffer.from([0, 0, 3, 0]), bftWeight: BigInt(5) },
+				],
+			};
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
+			).rejects.toThrow('Keys have duplicated entry');
+		});
+
+		it('shoud reject new validatorsHash does not match with certificate', async () => {
+			const ccu = {
+				...ccuParams,
+				certificate: codec.encode(certificateSchema, certificate),
+				activeValidatorsUpdate: [
+					{ blsKey: Buffer.from([0, 0, 0, 1]), bftWeight: BigInt(5) },
+					{ blsKey: Buffer.from([0, 0, 0, 2]), bftWeight: BigInt(5) },
+					{ blsKey: Buffer.from([0, 0, 3, 0]), bftWeight: BigInt(5) },
+				],
+			};
+
+			const newValidators = new Array(5).fill(0).map(() => ({
+				bftWeight: BigInt(1),
+				blsKey: cryptoUtils.getRandomBytes(48),
+			}));
+			jest.spyOn(chainValidators, 'updateActiveValidators').mockReturnValue(newValidators);
+			jest.spyOn(utils, 'computeValidatorsHash');
+
+			await interopMod.stores.get(ChainValidatorsStore).set(context, ccu.sendingChainID, {
+				activeValidators: [],
+				certificateThreshold: BigInt(0),
+			});
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
+			).rejects.toThrow('ValidatorsHash in certificate and the computed values do not match');
+			expect(utils.computeValidatorsHash).toHaveBeenCalledWith(
+				newValidators,
+				ccu.newCertificateThreshold,
+			);
+		});
+
+		it('shoud resolve if updates are valid', async () => {
+			const ccu = {
+				...ccuParams,
+				certificate: codec.encode(certificateSchema, certificate),
+				activeValidatorsUpdate: [
+					{ blsKey: Buffer.from([0, 0, 0, 1]), bftWeight: BigInt(5) },
+					{ blsKey: Buffer.from([0, 0, 0, 2]), bftWeight: BigInt(5) },
+					{ blsKey: Buffer.from([0, 0, 3, 0]), bftWeight: BigInt(5) },
+				],
+			};
+
+			const newValidators = new Array(5).fill(0).map(() => ({
+				bftWeight: BigInt(1),
+				blsKey: cryptoUtils.getRandomBytes(48),
+			}));
+			jest.spyOn(chainValidators, 'updateActiveValidators').mockReturnValue(newValidators);
+			jest.spyOn(utils, 'computeValidatorsHash').mockReturnValue(certificate.validatorsHash);
+
+			await interopMod.stores.get(ChainValidatorsStore).set(context, ccu.sendingChainID, {
+				activeValidators: [],
+				certificateThreshold: BigInt(0),
+			});
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
+			).resolves.toBeUndefined();
 		});
 	});
 });

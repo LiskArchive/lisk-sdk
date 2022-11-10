@@ -219,11 +219,14 @@ export class StateStore {
 		}));
 	}
 
-	public createSnapshot(): void {
+	// createSnapshot follows the same interface as stateDB. However, it does not support multi snapshot.
+	public createSnapshot(): number {
 		this._snapshot = this._cache.copy();
+		return 0;
 	}
 
-	public restoreSnapshot(): void {
+	// restoreSnapshot does not support multi-snapshot. Therefore, id is not used.
+	public restoreSnapshot(_id: number): void {
 		if (!this._snapshot) {
 			throw new Error('Snapshot must be taken first before reverting');
 		}

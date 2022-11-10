@@ -42,6 +42,7 @@ import {
 	CCCommandExecuteContext,
 	CCMsg,
 	CCUpdateParams,
+	CrossChainMessageContext,
 	RecoverCCMsgMethodContext,
 } from '../modules/interoperability/types';
 import { getIDAsKeyForStore } from './utils';
@@ -141,6 +142,7 @@ export const createBlockGenerateContext = (params: {
 		stateStore.getStore(moduleID, storePrefix);
 
 	const ctx: InsertAssetContext = {
+		stateStore,
 		assets: params.assets ?? new BlockAssets([]),
 		getOffchainStore: params.getOffchainStore ?? getOffchainStore,
 		logger: params.logger ?? loggerMock,
@@ -260,6 +262,48 @@ export const createCCMethodContext = (params: {
 		eventQueue,
 		ccm,
 		feeAddress: params.feeAddress ?? utils.getRandomBytes(20),
+	};
+};
+
+export const createCrossChainMessageContext = (params: {
+	ccm?: CCMsg;
+	feeAddress?: Buffer;
+	logger?: Logger;
+	chainID?: Buffer;
+	header?: { timestamp: number; height: number };
+	transaction?: { senderAddress: Buffer; fee: bigint };
+	stateStore?: PrefixedStateReadWriter;
+	eventQueue?: EventQueue;
+}): CrossChainMessageContext => {
+	const stateStore =
+		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const logger = params.logger ?? loggerMock;
+	const chainID = params.chainID ?? Buffer.alloc(0);
+	const eventQueue = params.eventQueue ?? new EventQueue(0);
+	const getStore = (moduleID: Buffer, storePrefix: Buffer) =>
+		stateStore.getStore(moduleID, storePrefix);
+	return {
+		header: params.header ?? { timestamp: 0, height: 0 },
+		ccm: params.ccm ?? {
+			nonce: BigInt(0),
+			module: 'token',
+			crossChainCommand: 'crossChainTransfer',
+			sendingChainID: getIDAsKeyForStore(2),
+			receivingChainID: getIDAsKeyForStore(3),
+			fee: BigInt(20000),
+			status: 0,
+			params: Buffer.alloc(0),
+		},
+		chainID,
+		eventQueue,
+		getMethodContext: () => createMethodContext({ eventQueue, stateStore }),
+		getStore,
+		logger,
+		stateStore,
+		transaction: params.transaction ?? {
+			senderAddress: utils.getRandomBytes(20),
+			fee: BigInt(100000000),
+		},
 	};
 };
 

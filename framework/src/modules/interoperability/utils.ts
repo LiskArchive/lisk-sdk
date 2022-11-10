@@ -273,42 +273,6 @@ export const checkCertificateValidity = (
 	};
 };
 
-export const checkActiveValidatorsUpdate = (
-	txParams: CrossChainUpdateTransactionParams,
-): VerificationResult => {
-	if (
-		txParams.activeValidatorsUpdate.length === 0 &&
-		txParams.newCertificateThreshold === BigInt(0)
-	) {
-		return { status: VerifyStatus.OK };
-	}
-	// Non-empty certificate
-	if (txParams.certificate.equals(EMPTY_BYTES)) {
-		return {
-			status: VerifyStatus.FAIL,
-			error: new Error(
-				'Certificate cannot be empty when activeValidatorsUpdate is non-empty or newCertificateThreshold > 0.',
-			),
-		};
-	}
-
-	// params.activeValidatorsUpdate has the correct format
-	for (let i = 0; i < txParams.activeValidatorsUpdate.length - 1; i += 1) {
-		const currentValidator = txParams.activeValidatorsUpdate[i];
-		const nextValidator = txParams.activeValidatorsUpdate[i + 1];
-		if (currentValidator.blsKey.compare(nextValidator.blsKey) > -1) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Validators blsKeys must be unique and lexicographically ordered.'),
-			};
-		}
-	}
-
-	return {
-		status: VerifyStatus.OK,
-	};
-};
-
 export const checkInboxUpdateValidity = (
 	stores: NamedRegistry,
 	txParams: CrossChainUpdateTransactionParams,

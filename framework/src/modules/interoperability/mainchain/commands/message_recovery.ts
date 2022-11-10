@@ -24,7 +24,7 @@ import {
 import { CCMsg, MessageRecoveryParams } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { MainchainInteroperabilityInternalMethod } from '../store';
-import { verifyMessageRecovery, swapReceivingAndSendingChainIDs, getCCMSize } from '../../utils';
+import { verifyMessageRecovery, swapReceivingAndSendingChainIDs } from '../../utils';
 import {
 	CCM_STATUS_CODE_RECOVERED,
 	CHAIN_ACTIVE,
@@ -33,7 +33,6 @@ import {
 } from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
 import { BaseInteroperableMethod } from '../../base_interoperable_method';
-import { createCCCommandExecuteContext } from '../../context';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from '../../stores/terminated_outbox';
 import { StoreGetter, ImmutableStoreGetter } from '../../../base_store';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
@@ -154,18 +153,19 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 					continue;
 				}
 
-				const ccCommandExecuteContext = createCCCommandExecuteContext({
-					ccm: newCcm,
-					ccmSize: getCCMSize(ccm),
-					eventQueue: context.eventQueue,
-					feeAddress: EMPTY_FEE_ADDRESS,
-					getMethodContext,
-					getStore,
-					logger,
-					chainID,
-				});
+				// TODO: Fix in #7727
+				// const ccCommandExecuteContext = createCCCommandExecuteContext({
+				// 	ccm: newCcm,
+				// 	ccmSize: getCCMSize(ccm),
+				// 	eventQueue: context.eventQueue,
+				// 	feeAddress: EMPTY_FEE_ADDRESS,
+				// 	getMethodContext,
+				// 	getStore,
+				// 	logger,
+				// 	chainID,
+				// });
 
-				await ccCommand.execute(ccCommandExecuteContext);
+				// await ccCommand.execute(ccCommandExecuteContext);
 				continue;
 			}
 
