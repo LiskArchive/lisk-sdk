@@ -356,6 +356,7 @@ describe('Utils', () => {
 				bftWeight: v.bftWeight + BigInt(1),
 			})),
 		};
+		activeValidatorsUpdate.sort((a, b) => a.blsKey.compare(b.blsKey));
 		const validatorsHash = computeValidatorsHash(
 			activeValidatorsUpdate,
 			partnerValidators.certificateThreshold,

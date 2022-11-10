@@ -46,7 +46,7 @@ import { ChainAccountUpdatedEvent } from './events/chain_account_updated';
 import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
 import { BaseInternalMethod } from '../BaseInternalMethod';
 import { MethodContext, ImmutableMethodContext } from '../../state_machine';
-import { ChainValidatorsStore, updateActiveValidators } from './stores/chain_validators';
+import { ChainValidatorsStore, calculateNewActiveValidators } from './stores/chain_validators';
 import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';
 import { Certificate } from '../../engine/consensus/certificate_generation/types';
 
@@ -303,7 +303,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			.get(ChainValidatorsStore)
 			.get(context, ccu.sendingChainID);
 
-		const newActiveValidators = updateActiveValidators(
+		const newActiveValidators = calculateNewActiveValidators(
 			activeValidators,
 			ccu.activeValidatorsUpdate,
 		);
