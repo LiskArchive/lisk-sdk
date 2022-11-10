@@ -23,7 +23,7 @@ import {
 	VerifyStatus,
 } from '../../../../state_machine';
 import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
-import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
+import { BaseCrossChainUpdateCommand } from '../../base_cross_chain_update_command';
 import {
 	CHAIN_ACTIVE,
 	CHAIN_REGISTERED,
@@ -36,7 +36,6 @@ import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { ChannelDataStore } from '../../stores/channel_data';
 import { CCMsg, CrossChainUpdateTransactionParams } from '../../types';
 import {
-	checkActiveValidatorsUpdate,
 	checkCertificateTimestamp,
 	checkCertificateValidity,
 	checkInboxUpdateValidity,
@@ -44,16 +43,13 @@ import {
 	checkValidatorsHashWithCertificate,
 	checkValidCertificateLiveness,
 	commonCCUExecutelogic,
-	getCCMSize,
 	isInboxUpdateEmpty,
 	validateFormat,
 	verifyCertificateSignature,
 } from '../../utils';
 import { SidechainInteroperabilityInternalMethod } from '../store';
 
-export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
-	public schema = crossChainUpdateTransactionParams;
-
+export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
@@ -117,9 +113,14 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		}
 
 		// If params contains a non-empty activeValidatorsUpdate
-		const activeValidatorsValidity = checkActiveValidatorsUpdate(txParams);
-		if (activeValidatorsValidity.error) {
-			return activeValidatorsValidity;
+		if (
+			txParams.activeValidatorsUpdate.length > 0 ||
+			partnerValidators.certificateThreshold !== txParams.newCertificateThreshold
+		) {
+			await this.getInteroperabilityInternalMethod(context).verifyValidatorsUpdate(
+				context.getMethodContext(),
+				txParams,
+			);
 		}
 
 		// When certificate is non-empty
@@ -220,21 +221,17 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 				ccm.serialized,
 			);
 
-			await interoperabilityInternalMethod.apply(
-				{
-					ccm: ccm.deserialized,
-					ccu: txParams,
-					ccmSize: getCCMSize(ccm.deserialized),
-					eventQueue: context.eventQueue,
-					feeAddress: context.transaction.senderAddress,
-					getMethodContext: context.getMethodContext,
-					getStore: context.getStore,
-					logger: context.logger,
-					chainID: context.chainID,
-					trsSender: context.transaction.senderAddress,
-				},
-				this.ccCommands,
-			);
+			await this.apply({
+				ccm: ccm.deserialized,
+				transaction: context.transaction,
+				eventQueue: context.eventQueue,
+				getMethodContext: context.getMethodContext,
+				getStore: context.getStore,
+				logger: context.logger,
+				chainID: context.chainID,
+				header: context.header,
+				stateStore: context.stateStore,
+			});
 		}
 		// Common ccm execution logic
 		await commonCCUExecutelogic({

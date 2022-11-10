@@ -19,7 +19,7 @@ import { CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED, MAINCHAIN_ID } from '../
 import { createCCMsgBeforeSendContext } from '../../context';
 import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
 import { TerminatedStateStore } from '../../stores/terminated_state';
-import { CCCommandExecuteContext } from '../../types';
+import { CrossChainMessageContext } from '../../types';
 import { getIDAsKeyForStore } from '../../utils';
 import { SidechainInteroperabilityInternalMethod } from '../store';
 
@@ -35,7 +35,7 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 		return CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED;
 	}
 
-	public async execute(context: CCCommandExecuteContext): Promise<void> {
+	public async execute(context: CrossChainMessageContext): Promise<void> {
 		const { ccm } = context;
 		if (!ccm) {
 			throw new Error('CCM to execute sidechain terminated cross chain command is missing.');
@@ -67,7 +67,7 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 				getStore: context.getStore,
 				logger: context.logger,
 				chainID: context.chainID,
-				feeAddress: context.feeAddress,
+				feeAddress: context.transaction.senderAddress,
 			});
 			await interoperabilityInternalMethod.terminateChainInternal(
 				ccm.sendingChainID,

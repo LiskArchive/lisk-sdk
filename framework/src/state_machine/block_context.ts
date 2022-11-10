@@ -89,6 +89,7 @@ export class BlockContext {
 			logger: this._logger,
 			chainID: this._chainID,
 			getMethodContext: () => createImmutableMethodContext(this._stateStore),
+			stateStore: this._stateStore,
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
@@ -102,6 +103,7 @@ export class BlockContext {
 			logger: this._logger,
 			chainID: this._chainID,
 			eventQueue: childQueue,
+			stateStore: this._stateStore,
 			getMethodContext: () =>
 				createMethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
@@ -124,6 +126,7 @@ export class BlockContext {
 			logger: this._logger,
 			chainID: this._chainID,
 			eventQueue: childQueue,
+			stateStore: this._stateStore,
 			getMethodContext: () =>
 				createMethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>

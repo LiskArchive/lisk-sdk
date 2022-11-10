@@ -14,8 +14,15 @@
 
 import { Logger } from '../../logger';
 import { MethodContext, EventQueue } from '../../state_machine';
-import { ImmutableMethodContext, ImmutableSubStore, SubStore } from '../../state_machine/types';
+import {
+	ImmutableMethodContext,
+	ImmutableStateStore,
+	ImmutableSubStore,
+	StateStore,
+	SubStore,
+} from '../../state_machine/types';
 import { OutboxRoot } from './stores/outbox_root';
+import { ChainID } from './stores/registered_names';
 import { TerminatedOutboxAccount } from './stores/terminated_outbox';
 import { TerminatedStateAccount } from './stores/terminated_state';
 
@@ -43,11 +50,6 @@ export interface ActiveValidatorJSON {
 	bftWeight: string;
 }
 
-export interface MsgWitness {
-	partnerChainOutboxSize: bigint;
-	siblingHashes: Buffer[];
-}
-
 export interface OutboxRootWitness {
 	bitmap: Buffer;
 	siblingHashes: Buffer[];
@@ -55,7 +57,7 @@ export interface OutboxRootWitness {
 
 export interface InboxUpdate {
 	crossChainMessages: Buffer[];
-	messageWitness: MsgWitness;
+	messageWitnessHashes: Buffer[];
 	outboxRootWitness: OutboxRootWitness;
 }
 
@@ -128,11 +130,39 @@ export interface CCMApplyContext {
 	logger: Logger;
 	chainID: Buffer;
 	eventQueue: EventQueue;
-	feeAddress: Buffer;
+	blockHeader: {
+		timestamp: number;
+		height: number;
+	};
+	transaction: {
+		senderAddress: Buffer;
+		fee: bigint;
+	};
 	ccm: CCMsg;
-	ccu: CCUpdateParams;
-	trsSender: Buffer;
-	ccmSize: bigint;
+}
+
+export interface ImmutableCrossChainMessageContext {
+	getMethodContext: () => ImmutableMethodContext;
+	getStore: ImmutableStoreCallback;
+	stateStore: ImmutableStateStore;
+	logger: Logger;
+	chainID: Buffer;
+	header: {
+		timestamp: number;
+		height: number;
+	};
+	transaction: {
+		senderAddress: Buffer;
+		fee: bigint;
+	};
+	ccm: CCMsg;
+}
+
+export interface CrossChainMessageContext extends ImmutableCrossChainMessageContext {
+	getMethodContext: () => MethodContext;
+	getStore: StoreCallback;
+	stateStore: StateStore;
+	eventQueue: EventQueue;
 }
 
 export interface CCMForwardContext {
@@ -333,10 +363,6 @@ export interface ChainValidators {
 export interface ChainValidatorsJSON {
 	activeValidators: ActiveValidatorJSON[];
 	certificateThreshold: string;
-}
-
-export interface ChainID {
-	chainID: Buffer;
 }
 
 export interface GenesisInteroperabilityInternalMethod {

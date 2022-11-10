@@ -27,7 +27,6 @@ import {
 	CrossChainUpdateTransactionParams,
 	ChainValidators,
 	InboxUpdate,
-	MsgWitness,
 	GenesisInteroperabilityInternalMethod,
 } from './types';
 import {
@@ -66,7 +65,7 @@ import { NamedRegistry } from '../named_registry';
 import { OutboxRootStore } from './stores/outbox_root';
 import { OwnChainAccountStore } from './stores/own_chain_account';
 import { ChannelDataStore } from './stores/channel_data';
-import { ChainValidatorsStore } from './stores/chain_validators';
+import { ChainValidatorsStore, updateActiveValidators } from './stores/chain_validators';
 import { ChainAccountStore } from './stores/chain_account';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/terminated_outbox';
 import { TerminatedStateStore } from './stores/terminated_state';
@@ -106,30 +105,6 @@ export const getCCMSize = (ccm: CCMsg) => {
 	const serializedCCM = codec.encode(ccmSchema, ccm);
 
 	return BigInt(serializedCCM.byteLength);
-};
-
-export const updateActiveValidators = (
-	activeValidators: ActiveValidators[],
-	activeValidatorsUpdate: ActiveValidators[],
-): ActiveValidators[] => {
-	for (const updatedValidator of activeValidatorsUpdate) {
-		const currentValidator = activeValidators.find(v => v.blsKey.equals(updatedValidator.blsKey));
-		if (currentValidator) {
-			currentValidator.bftWeight = updatedValidator.bftWeight;
-		} else {
-			activeValidators.push(updatedValidator);
-			activeValidators.sort((v1, v2) => v1.blsKey.compare(v2.blsKey));
-		}
-	}
-
-	for (const currentValidator of activeValidators) {
-		if (currentValidator.bftWeight === BigInt(0)) {
-			const index = activeValidators.findIndex(v => v.blsKey.equals(currentValidator.blsKey));
-			activeValidators.splice(index, 1);
-		}
-	}
-
-	return activeValidators;
 };
 
 export const getEncodedSidechainTerminatedCCMParam = (
@@ -237,8 +212,7 @@ export const swapReceivingAndSendingChainIDs = (ccm: CCMsg) => ({
 
 export const isInboxUpdateEmpty = (inboxUpdate: InboxUpdate) =>
 	inboxUpdate.crossChainMessages.length === 0 &&
-	inboxUpdate.messageWitness.siblingHashes.length === 0 &&
-	inboxUpdate.messageWitness.partnerChainOutboxSize === BigInt(0) &&
+	inboxUpdate.messageWitnessHashes.length === 0 &&
 	inboxUpdate.outboxRootWitness.siblingHashes.length === 0 &&
 	inboxUpdate.outboxRootWitness.bitmap.length === 0;
 
@@ -247,9 +221,6 @@ export const isCertificateEmpty = (decodedCertificate: Certificate) =>
 	decodedCertificate.stateRoot.equals(EMPTY_BYTES) ||
 	decodedCertificate.validatorsHash.equals(EMPTY_BYTES) ||
 	decodedCertificate.timestamp === 0;
-
-export const isMessageWitnessEmpty = (messageWitness: MsgWitness) =>
-	messageWitness.partnerChainOutboxSize === BigInt(0) && messageWitness.siblingHashes.length === 0;
 
 export const checkLivenessRequirementFirstCCU = (
 	partnerChainAccount: ChainAccount,
@@ -302,42 +273,6 @@ export const checkCertificateValidity = (
 	};
 };
 
-export const checkActiveValidatorsUpdate = (
-	txParams: CrossChainUpdateTransactionParams,
-): VerificationResult => {
-	if (
-		txParams.activeValidatorsUpdate.length === 0 &&
-		txParams.newCertificateThreshold === BigInt(0)
-	) {
-		return { status: VerifyStatus.OK };
-	}
-	// Non-empty certificate
-	if (txParams.certificate.equals(EMPTY_BYTES)) {
-		return {
-			status: VerifyStatus.FAIL,
-			error: new Error(
-				'Certificate cannot be empty when activeValidatorsUpdate is non-empty or newCertificateThreshold > 0.',
-			),
-		};
-	}
-
-	// params.activeValidatorsUpdate has the correct format
-	for (let i = 0; i < txParams.activeValidatorsUpdate.length - 1; i += 1) {
-		const currentValidator = txParams.activeValidatorsUpdate[i];
-		const nextValidator = txParams.activeValidatorsUpdate[i + 1];
-		if (currentValidator.blsKey.compare(nextValidator.blsKey) > -1) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Validators blsKeys must be unique and lexicographically ordered.'),
-			};
-		}
-	}
-
-	return {
-		status: VerifyStatus.OK,
-	};
-};
-
 export const checkInboxUpdateValidity = (
 	stores: NamedRegistry,
 	txParams: CrossChainUpdateTransactionParams,
@@ -350,7 +285,7 @@ export const checkInboxUpdateValidity = (
 		};
 	}
 	const decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
-	const { crossChainMessages, messageWitness, outboxRootWitness } = txParams.inboxUpdate;
+	const { crossChainMessages, messageWitnessHashes, outboxRootWitness } = txParams.inboxUpdate;
 	const ccmHashes = crossChainMessages.map(ccm => utils.hash(ccm));
 
 	let newInboxRoot;
@@ -368,12 +303,12 @@ export const checkInboxUpdateValidity = (
 	}
 	// non-empty certificate and an inboxUpdate
 	if (!isCertificateEmpty(decodedCertificate)) {
-		// If inboxUpdate contains a non-empty messageWitness, then update newInboxRoot to the output
-		if (!isMessageWitnessEmpty(txParams.inboxUpdate.messageWitness)) {
+		// If inboxUpdate contains a non-empty messageWitnessHashes, then update newInboxRoot to the output
+		if (txParams.inboxUpdate.messageWitnessHashes.length !== 0) {
 			newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
 				newInboxSize,
 				newInboxAppendPath,
-				messageWitness.siblingHashes,
+				messageWitnessHashes,
 			);
 		}
 		const outboxStore = stores.get(OutboxRootStore);
@@ -399,7 +334,7 @@ export const checkInboxUpdateValidity = (
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(
-					'Failed at verifying state root when messageWitness and certificate are non-empty.',
+					'Failed at verifying state root when messageWitnessHashes and certificate are non-empty.',
 				),
 			};
 		}
@@ -407,19 +342,19 @@ export const checkInboxUpdateValidity = (
 
 	// empty certificate and a non-empty inboxUpdate
 	if (isCertificateEmpty(decodedCertificate)) {
-		// If inboxUpdate contains a non-empty messageWitness, then update newInboxRoot to the output
-		if (!isMessageWitnessEmpty(txParams.inboxUpdate.messageWitness)) {
+		// If inboxUpdate contains a non-empty messageWitnessHashes, then update newInboxRoot to the output
+		if (txParams.inboxUpdate.messageWitnessHashes.length !== 0) {
 			newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
 				newInboxSize,
 				newInboxAppendPath,
-				messageWitness.siblingHashes,
+				messageWitnessHashes,
 			);
 		}
 		if (!(newInboxRoot as Buffer).equals(partnerChannelData.partnerChainOutboxRoot)) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(
-					'Failed at verifying state root when messageWitness is non-empty and certificate is empty.',
+					'Failed at verifying state root when messageWitnessHashes is non-empty and certificate is empty.',
 				),
 			};
 		}
@@ -591,16 +526,13 @@ export const commonCCUExecutelogic = async (args: CommonExecutionLogicArgs) => {
 	const partnerChannelStore = stores.get(ChannelDataStore);
 	const partnerChannelData = await partnerChannelStore.get(context, chainIDBuffer);
 	const { inboxUpdate } = context.params;
-	if (
-		inboxUpdate.messageWitness.partnerChainOutboxSize === BigInt(0) ||
-		inboxUpdate.messageWitness.siblingHashes.length === 0
-	) {
+	if (inboxUpdate.messageWitnessHashes.length === 0) {
 		partnerChannelData.partnerChainOutboxRoot = partnerChannelData.inbox.root;
 	} else {
 		partnerChannelData.partnerChainOutboxRoot = regularMerkleTree.calculateRootFromRightWitness(
 			partnerChannelData.inbox.size,
 			partnerChannelData.inbox.appendPath,
-			inboxUpdate.messageWitness.siblingHashes,
+			inboxUpdate.messageWitnessHashes,
 		);
 	}
 	await partnerChannelStore.set(context, chainIDBuffer, partnerChannelData);

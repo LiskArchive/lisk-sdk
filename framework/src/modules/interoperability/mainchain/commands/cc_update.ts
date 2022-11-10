@@ -13,31 +13,52 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { certificateSchema } from '../../../../engine/consensus/certificate_generation/schema';
 import { Certificate } from '../../../../engine/consensus/certificate_generation/types';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
+	NotFoundError,
 	VerificationResult,
 	VerifyStatus,
 } from '../../../../state_machine';
 import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
-import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
+import { BaseCrossChainUpdateCommand } from '../../base_cross_chain_update_command';
 import {
+	CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
+	CCM_PROCESSED_CODE_INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
+	CCM_PROCESSED_CODE_SUCCESS,
+	CCM_PROCESSED_RESULT_DISCARDED,
+	CCM_PROCESSED_RESULT_FORWARDED,
+	CCM_STATUS_CODE_CHANNEL_UNAVAILABLE,
+	CCM_STATUS_OK,
 	CHAIN_ACTIVE,
 	CHAIN_REGISTERED,
 	CHAIN_TERMINATED,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+	EMPTY_FEE_ADDRESS,
 	MAINCHAIN_ID_BUFFER,
+	MODULE_NAME_INTEROPERABILITY,
 } from '../../constants';
-import { ccmSchema, crossChainUpdateTransactionParams } from '../../schemas';
-import { ChainAccountStore } from '../../stores/chain_account';
+import { CcmProcessedEvent } from '../../events/ccm_processed';
+import {
+	ccmSchema,
+	crossChainUpdateTransactionParams,
+	sidechainTerminatedCCMParamsSchema,
+} from '../../schemas';
+import { ChainAccount, ChainAccountStore } from '../../stores/chain_account';
 import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { ChannelDataStore } from '../../stores/channel_data';
-import { CCMsg, CrossChainUpdateTransactionParams, TerminateChainContext } from '../../types';
 import {
-	checkActiveValidatorsUpdate,
+	CCMsg,
+	CrossChainMessageContext,
+	CrossChainUpdateTransactionParams,
+	TerminateChainContext,
+} from '../../types';
+import {
 	checkCertificateTimestamp,
 	checkCertificateValidity,
 	checkInboxUpdateValidity,
@@ -45,16 +66,13 @@ import {
 	checkValidatorsHashWithCertificate,
 	checkValidCertificateLiveness,
 	commonCCUExecutelogic,
-	getCCMSize,
 	isInboxUpdateEmpty,
 	validateFormat,
 	verifyCertificateSignature,
 } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../store';
 
-export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
-	public schema = crossChainUpdateTransactionParams;
-
+export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
@@ -121,9 +139,14 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		}
 
 		// If params contains a non-empty activeValidatorsUpdate
-		const activeValidatorsValidity = checkActiveValidatorsUpdate(txParams);
-		if (activeValidatorsValidity.error) {
-			return activeValidatorsValidity;
+		if (
+			txParams.activeValidatorsUpdate.length > 0 ||
+			partnerValidators.certificateThreshold !== txParams.newCertificateThreshold
+		) {
+			await this.getInteroperabilityInternalMethod(context).verifyValidatorsUpdate(
+				context.getMethodContext(),
+				txParams,
+			);
 		}
 
 		// When certificate is non-empty
@@ -227,33 +250,14 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 				txParams.sendingChainID,
 				ccm.serialized,
 			);
+			const ccmContext = {
+				...context,
+				ccm: ccm.deserialized,
+			};
 			if (!ccm.deserialized.receivingChainID.equals(MAINCHAIN_ID_BUFFER)) {
-				await interoperabilityInternalMethod.forward({
-					ccm: ccm.deserialized,
-					ccu: txParams,
-					eventQueue: context.eventQueue,
-					feeAddress: context.transaction.senderAddress,
-					getMethodContext: context.getMethodContext,
-					getStore: context.getStore,
-					logger: context.logger,
-					chainID: context.chainID,
-				});
+				await this._forward(ccmContext);
 			} else {
-				await interoperabilityInternalMethod.apply(
-					{
-						ccm: ccm.deserialized,
-						ccu: txParams,
-						ccmSize: getCCMSize(ccm.deserialized),
-						eventQueue: context.eventQueue,
-						feeAddress: context.transaction.senderAddress,
-						getMethodContext: context.getMethodContext,
-						getStore: context.getStore,
-						logger: context.logger,
-						chainID: context.chainID,
-						trsSender: context.transaction.senderAddress,
-					},
-					this.ccCommands,
-				);
+				await this.apply(ccmContext);
 			}
 		}
 		// Common ccu execution logic
@@ -278,5 +282,106 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			context,
 			this.interoperableCCMethods,
 		);
+	}
+
+	private async _forward(context: CrossChainMessageContext): Promise<void> {
+		const { ccm, logger } = context;
+		const encodedCCM = codec.encode(ccmSchema, ccm);
+		const ccmID = utils.hash(encodedCCM);
+		const internalMethod = this.getInteroperabilityInternalMethod(context);
+
+		const valid = await this.verifyCCM(context, ccmID);
+		if (!valid) {
+			return;
+		}
+		let receivingChainAccount: ChainAccount;
+		try {
+			receivingChainAccount = await this.stores
+				.get(ChainAccountStore)
+				.get(context, ccm.receivingChainID);
+			if (receivingChainAccount.status === CHAIN_REGISTERED) {
+				await this.bounce(
+					context,
+					ccmID,
+					encodedCCM.length,
+					CCM_STATUS_CODE_CHANNEL_UNAVAILABLE,
+					CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
+				);
+				return;
+			}
+		} catch (error) {
+			if (error instanceof NotFoundError) {
+				await this.bounce(
+					context,
+					ccmID,
+					encodedCCM.length,
+					CCM_STATUS_CODE_CHANNEL_UNAVAILABLE,
+					CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
+				);
+				return;
+			}
+			throw error;
+		}
+		const isLive = await internalMethod.isLive(ccm.receivingChainID, context.header.timestamp);
+		if (!isLive) {
+			await internalMethod.terminateChainInternal(ccm.receivingChainID, context);
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
+				result: CCM_PROCESSED_RESULT_DISCARDED,
+			});
+			await internalMethod.sendInternal({
+				...context,
+				receivingChainID: ccm.sendingChainID,
+				module: MODULE_NAME_INTEROPERABILITY,
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+				fee: BigInt(0),
+				status: CCM_STATUS_OK,
+				params: codec.encode(sidechainTerminatedCCMParamsSchema, {
+					chainID: ccm.receivingChainID,
+					stateRoot: receivingChainAccount.lastCertificate.stateRoot,
+				}),
+				feeAddress: EMPTY_FEE_ADDRESS,
+			});
+			return;
+		}
+		const stateSnapshotID = context.stateStore.createSnapshot();
+		const eventSnapshotID = context.eventQueue.createSnapshot();
+
+		try {
+			for (const [module, method] of this.interoperableCCMethods.entries()) {
+				if (method.beforeCrossChainMessageForwarding) {
+					logger.debug(
+						{
+							moduleName: module,
+							commandName: ccm.crossChainCommand,
+							ccmID: ccmID.toString('hex'),
+						},
+						'Execute beforeCrossChainCommandExecute',
+					);
+					await method.beforeCrossChainMessageForwarding(context);
+				}
+			}
+		} catch (error) {
+			context.eventQueue.restoreSnapshot(eventSnapshotID);
+			context.stateStore.restoreSnapshot(stateSnapshotID);
+			logger.info(
+				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+				'Fail to execute beforeCrossChainCommandExecute.',
+			);
+			await internalMethod.terminateChainInternal(ccm.sendingChainID, context);
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCM_PROCESSED_CODE_INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
+				result: CCM_PROCESSED_RESULT_DISCARDED,
+			});
+			return;
+		}
+		await internalMethod.addToOutbox(ccm.receivingChainID, ccm);
+		this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+			ccmID,
+			code: CCM_PROCESSED_CODE_SUCCESS,
+			result: CCM_PROCESSED_RESULT_FORWARDED,
+		});
 	}
 }

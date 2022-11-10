@@ -73,6 +73,7 @@ export class TransactionContext {
 		return {
 			logger: this._logger,
 			chainID: this._chainID,
+			stateStore: this._stateStore,
 			getMethodContext: () => createImmutableMethodContext(this._stateStore),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
@@ -92,6 +93,7 @@ export class TransactionContext {
 			logger: this._logger,
 			chainID: this._chainID,
 			eventQueue: childQueue,
+			stateStore: this._stateStore,
 			getMethodContext: () =>
 				createMethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
@@ -110,6 +112,7 @@ export class TransactionContext {
 		return {
 			logger: this._logger,
 			chainID: this._chainID,
+			stateStore: this._stateStore,
 			getMethodContext: () =>
 				createMethodContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
@@ -134,8 +137,8 @@ export class TransactionContext {
 		return {
 			logger: this._logger,
 			chainID: this._chainID,
-			// TODO: Need to pass wrapper of eventQueue with possibility to create/restore snapshot https://github.com/LiskHQ/lisk-sdk/issues/7211
-			eventQueue: this.eventQueue,
+			eventQueue: this._eventQueue,
+			stateStore: this._stateStore,
 			getMethodContext: () =>
 				createMethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
