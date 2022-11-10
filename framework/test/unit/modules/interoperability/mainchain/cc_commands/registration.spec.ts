@@ -163,7 +163,7 @@ describe('MainchainCCRegistrationCommand', () => {
 		);
 	});
 
-	it('should call terminateChainInternal when ccm.status !== CCM_STATUS_OK', async () => {
+	it('should call terminateChainInternal when ccm.status !== CCMStatus.OK', async () => {
 		// Arrange
 		const invalidCCM = {
 			nonce: BigInt(0),

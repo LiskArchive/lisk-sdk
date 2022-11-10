@@ -37,10 +37,7 @@ import { certificateSchema } from '../../../../../../src/engine/consensus/certif
 import * as interopUtils from '../../../../../../src/modules/interoperability/utils';
 import { ccmSchema } from '../../../../../../src/modules/interoperability/schemas';
 import {
-	CCM_STATUS_OK,
-	CHAIN_ACTIVE,
-	CHAIN_REGISTERED,
-	CHAIN_TERMINATED,
+	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_BYTES,
@@ -53,7 +50,10 @@ import { SidechainInteroperabilityInternalMethod } from '../../../../../../src/m
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
 import { CROSS_CHAIN_COMMAND_NAME_FORWARD } from '../../../../../../src/modules/token/constants';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
-import { ChainAccountStore } from '../../../../../../src/modules/interoperability/stores/chain_account';
+import {
+	ChainAccountStore,
+	ChainStatus,
+} from '../../../../../../src/modules/interoperability/stores/chain_account';
 import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
 import { ChainValidatorsStore } from '../../../../../../src/modules/interoperability/stores/chain_validators';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
@@ -89,7 +89,7 @@ describe('CrossChainUpdateCommand', () => {
 			params: Buffer.alloc(2),
 			receivingChainID: utils.intToBuffer(3, 4),
 			sendingChainID: defaultSendingChainID,
-			status: CCM_STATUS_OK,
+			status: CCMStatusCode.OK,
 		},
 		{
 			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
@@ -99,7 +99,7 @@ describe('CrossChainUpdateCommand', () => {
 			params: Buffer.alloc(2),
 			receivingChainID: utils.intToBuffer(2, 4),
 			sendingChainID: defaultSendingChainID,
-			status: CCM_STATUS_OK,
+			status: CCMStatusCode.OK,
 		},
 		{
 			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
@@ -109,7 +109,7 @@ describe('CrossChainUpdateCommand', () => {
 			params: Buffer.alloc(2),
 			receivingChainID: utils.intToBuffer(4, 4),
 			sendingChainID: defaultSendingChainID,
-			status: CCM_STATUS_OK,
+			status: CCMStatusCode.OK,
 		},
 	];
 	const defaultCCMsEncoded = defaultCCMs.map(ccm => codec.encode(ccmSchema, ccm));
@@ -182,7 +182,7 @@ describe('CrossChainUpdateCommand', () => {
 				validatorsHash: cryptography.utils.getRandomBytes(48),
 			},
 			name: 'sidechain1',
-			status: CHAIN_ACTIVE,
+			status: ChainStatus.ACTIVE,
 		};
 		partnerChannelAccount = {
 			inbox: {
@@ -273,7 +273,7 @@ describe('CrossChainUpdateCommand', () => {
 		it('should return error when chain has terminated status', async () => {
 			await partnerChainStore.set(createStoreGetter(stateStore), defaultSendingChainID, {
 				...partnerChainAccount,
-				status: CHAIN_TERMINATED,
+				status: ChainStatus.TERMINATED,
 			});
 
 			const { status, error } = await sidechainCCUUpdateCommand.verify(verifyContext);
@@ -295,7 +295,7 @@ describe('CrossChainUpdateCommand', () => {
 		it('should return error checkLivenessRequirementFirstCCU fails', async () => {
 			await partnerChainStore.set(createStoreGetter(stateStore), defaultSendingChainID, {
 				...partnerChainAccount,
-				status: CHAIN_REGISTERED,
+				status: ChainStatus.REGISTERED,
 			});
 
 			const { status, error } = await sidechainCCUUpdateCommand.verify({
@@ -479,10 +479,10 @@ describe('CrossChainUpdateCommand', () => {
 			expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		});
 
-		it('should throw error when chain.status === CHAIN_REGISTERED and inboxUpdate is non-empty and the first CCM is not a registration CCM', async () => {
+		it('should throw error when chain.status === ChainStatus.REGISTERED and inboxUpdate is non-empty and the first CCM is not a registration CCM', async () => {
 			await partnerChainStore.set(createStoreGetter(stateStore), defaultSendingChainID, {
 				...partnerChainAccount,
-				status: CHAIN_REGISTERED,
+				status: ChainStatus.REGISTERED,
 			});
 			jest
 				.spyOn(interopUtils, 'computeValidatorsHash')
@@ -504,7 +504,7 @@ describe('CrossChainUpdateCommand', () => {
 				params: Buffer.alloc(2),
 				receivingChainID: utils.intToBuffer(2, 4),
 				sendingChainID: utils.intToBuffer(50, 4),
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 			});
 			jest
 				.spyOn(interopUtils, 'computeValidatorsHash')
@@ -534,7 +534,7 @@ describe('CrossChainUpdateCommand', () => {
 				params: Buffer.alloc(MAX_CCM_SIZE + 10),
 				receivingChainID: utils.intToBuffer(2, 4),
 				sendingChainID: defaultSendingChainID,
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 			};
 			const invalidCCMSerialized = codec.encode(ccmSchema, invalidCCM);
 			jest
@@ -573,7 +573,7 @@ describe('CrossChainUpdateCommand', () => {
 				params: Buffer.alloc(10),
 				receivingChainID: utils.intToBuffer(80, 4),
 				sendingChainID: defaultSendingChainID,
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 			};
 			const sidechainCCMSerialized = codec.encode(ccmSchema, sidechainCCM);
 			jest

@@ -14,7 +14,6 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import {
-	CHAIN_TERMINATED,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	EMPTY_BYTES,
 	MAINCHAIN_ID,
@@ -33,7 +32,10 @@ import { getIDAsKeyForStore } from '../../../../../src/modules/interoperability/
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import { ChannelDataStore } from '../../../../../src/modules/interoperability/stores/channel_data';
-import { ChainAccountStore } from '../../../../../src/modules/interoperability/stores/chain_account';
+import {
+	ChainAccountStore,
+	ChainStatus,
+} from '../../../../../src/modules/interoperability/stores/chain_account';
 import { TerminatedStateStore } from '../../../../../src/modules/interoperability/stores/terminated_state';
 import { StoreGetter } from '../../../../../src/modules/base_store';
 import { createStoreGetter } from '../../../../../src/testing/utils';
@@ -99,8 +101,11 @@ describe('Sidechain interoperability store', () => {
 	});
 
 	describe('isLive', () => {
-		it(`should return false if chain account exists and status is ${CHAIN_TERMINATED}`, async () => {
-			await chainDataSubstore.set(context, chainID, { ...chainAccount, status: CHAIN_TERMINATED });
+		it(`should return false if chain account exists and status is ${ChainStatus.TERMINATED}`, async () => {
+			await chainDataSubstore.set(context, chainID, {
+				...chainAccount,
+				status: ChainStatus.TERMINATED,
+			});
 			const isLive = await sidechainInteroperabilityInternalMethod.isLive(chainID);
 
 			expect(isLive).toBe(false);

@@ -15,6 +15,13 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { BaseStore, ImmutableStoreGetter } from '../../base_store';
 import { HASH_LENGTH, MAX_UINT32 } from '../constants';
 
+// Chain status
+export const enum ChainStatus {
+	REGISTERED = 0,
+	ACTIVE = 1,
+	TERMINATED = 2,
+}
+
 export interface LastCertificate {
 	height: number;
 	timestamp: number;
@@ -32,7 +39,7 @@ export interface LastCertificateJSON {
 export interface ChainAccount {
 	name: string;
 	lastCertificate: LastCertificate;
-	status: number;
+	status: ChainStatus;
 }
 
 const chainAccountJSONSchema = {

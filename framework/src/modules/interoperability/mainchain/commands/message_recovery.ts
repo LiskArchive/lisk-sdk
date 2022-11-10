@@ -25,18 +25,13 @@ import { CCMsg, MessageRecoveryParams } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { MainchainInteroperabilityInternalMethod } from '../store';
 import { verifyMessageRecovery, swapReceivingAndSendingChainIDs } from '../../utils';
-import {
-	CCM_STATUS_CODE_RECOVERED,
-	CHAIN_ACTIVE,
-	EMPTY_BYTES,
-	EMPTY_FEE_ADDRESS,
-} from '../../constants';
+import { CCMStatusCode, EMPTY_BYTES, EMPTY_FEE_ADDRESS } from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
 import { BaseInteroperableMethod } from '../../base_interoperable_method';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from '../../stores/terminated_outbox';
 import { StoreGetter, ImmutableStoreGetter } from '../../../base_store';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
-import { ChainAccountStore } from '../../stores/chain_account';
+import { ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 
 export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand {
 	public schema = messageRecoveryParamsSchema;
@@ -100,7 +95,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			const recoveryCCM: CCMsg = {
 				...ccm,
 				fee: BigInt(0),
-				status: CCM_STATUS_CODE_RECOVERED,
+				status: CCMStatusCode.RECOVERED,
 			};
 			const encodedUpdatedCCM = codec.encode(ccmSchema, recoveryCCM);
 			updatedCCMs.push(encodedUpdatedCCM);
@@ -179,7 +174,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 
 			const chainAccount = await this.stores.get(ChainAccountStore).get(context, ccmChainId);
 
-			if (chainAccount.status !== CHAIN_ACTIVE) {
+			if (chainAccount.status !== ChainStatus.ACTIVE) {
 				continue;
 			}
 
