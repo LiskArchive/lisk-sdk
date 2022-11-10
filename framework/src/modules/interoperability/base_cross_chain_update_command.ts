@@ -17,25 +17,8 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { ImmutableStoreGetter, StoreGetter } from '../base_store';
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
-import {
-	CCM_PROCESSED_CODE_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
-	CCM_PROCESSED_CODE_FAILED_CCM,
-	CCM_PROCESSED_CODE_INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
-	CCM_PROCESSED_CODE_INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
-	CCM_PROCESSED_CODE_INVALID_CCM_VALIDATION_EXCEPTION,
-	CCM_PROCESSED_CODE_INVALID_CCM_VERIFY_CCM_EXCEPTION,
-	CCM_PROCESSED_CODE_MODULE_NOT_SUPPORTED,
-	CCM_PROCESSED_CODE_SUCCESS,
-	CCM_PROCESSED_RESULT_APPLIED,
-	CCM_PROCESSED_RESULT_BOUNCED,
-	CCM_PROCESSED_RESULT_DISCARDED,
-	CCM_STATUS_CODE_FAILED_CCM,
-	CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
-	CCM_STATUS_MODULE_NOT_SUPPORTED,
-	CCM_STATUS_OK,
-	MIN_RETURN_FEE,
-} from './constants';
-import { CcmProcessedEvent } from './events/ccm_processed';
+import { CCMStatusCode, MIN_RETURN_FEE } from './constants';
+import { CCMProcessedCode, CcmProcessedEvent, CCMProcessedResult } from './events/ccm_processed';
 import { CcmSendSuccessEvent } from './events/ccm_send_success';
 import { ccmSchema, crossChainUpdateTransactionParams } from './schemas';
 import { CrossChainMessageContext } from './types';
@@ -58,8 +41,8 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 				context,
 				ccmID,
 				encodedCCM.length,
-				CCM_STATUS_MODULE_NOT_SUPPORTED,
-				CCM_PROCESSED_CODE_MODULE_NOT_SUPPORTED,
+				CCMStatusCode.MODULE_NOT_SUPPORTED,
+				CCMProcessedCode.MODULE_NOT_SUPPORTED,
 			);
 			return;
 		}
@@ -69,8 +52,8 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 				context,
 				ccmID,
 				encodedCCM.length,
-				CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
-				CCM_PROCESSED_CODE_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
+				CCMStatusCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
+				CCMProcessedCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
 			);
 			return;
 		}
@@ -85,8 +68,8 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 				await internalMethod.terminateChainInternal(ccm.sendingChainID, context);
 				this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 					ccmID,
-					code: CCM_PROCESSED_CODE_INVALID_CCM_VALIDATION_EXCEPTION,
-					result: CCM_PROCESSED_RESULT_DISCARDED,
+					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
 				});
 				return;
 			}
@@ -118,8 +101,8 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 			await internalMethod.terminateChainInternal(ccm.sendingChainID, context);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccmID,
-				code: CCM_PROCESSED_CODE_INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
-				result: CCM_PROCESSED_RESULT_DISCARDED,
+				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
+				result: CCMProcessedResult.DISCARDED,
 			});
 			return;
 		}
@@ -131,8 +114,8 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 			await command.execute(context);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccmID,
-				code: CCM_PROCESSED_CODE_SUCCESS,
-				result: CCM_PROCESSED_RESULT_APPLIED,
+				code: CCMProcessedCode.SUCCESS,
+				result: CCMProcessedResult.APPLIED,
 			});
 		} catch (error) {
 			context.eventQueue.restoreSnapshot(execEventSnapshotID);
@@ -141,8 +124,8 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 				context,
 				ccmID,
 				encodedCCM.length,
-				CCM_STATUS_CODE_FAILED_CCM,
-				CCM_PROCESSED_CODE_FAILED_CCM,
+				CCMStatusCode.FAILED_CCM,
+				CCMProcessedCode.FAILED_CCM,
 			);
 		}
 
@@ -170,8 +153,8 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 			await internalMethod.terminateChainInternal(ccm.sendingChainID, context);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccmID,
-				code: CCM_PROCESSED_CODE_INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
-				result: CCM_PROCESSED_RESULT_DISCARDED,
+				code: CCMProcessedCode.INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
+				result: CCMProcessedResult.DISCARDED,
 			});
 		}
 	}
@@ -180,31 +163,31 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 		context: CrossChainMessageContext,
 		ccmID: Buffer,
 		ccmSize: number,
-		ccmStatus: number,
-		ccmProcessedEventCode: number,
+		ccmStatus: CCMStatusCode,
+		ccmProcessedEventCode: CCMProcessedCode,
 	): Promise<void> {
 		const { ccm } = context;
 		const minFee = MIN_RETURN_FEE * BigInt(ccmSize);
 		const internalMethod = this.getInteroperabilityInternalMethod(context);
-		if (ccm.status !== CCM_STATUS_OK || ccm.fee < minFee) {
+		if (ccm.status !== CCMStatusCode.OK || ccm.fee < minFee) {
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccmID,
 				code: ccmProcessedEventCode,
-				result: CCM_PROCESSED_RESULT_DISCARDED,
+				result: CCMProcessedResult.DISCARDED,
 			});
 			return;
 		}
 		this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 			ccmID,
 			code: ccmProcessedEventCode,
-			result: CCM_PROCESSED_RESULT_BOUNCED,
+			result: CCMProcessedResult.BOUNCED,
 		});
 		const bouncedCCM = {
 			...ccm,
 			status: ccmStatus,
 			sendingChainID: ccm.receivingChainID,
 			receivingChainID: ccm.sendingChainID,
-			fee: ccmStatus === CCM_STATUS_CODE_FAILED_CCM ? BigInt(0) : ccm.fee - minFee,
+			fee: ccmStatus === CCMStatusCode.FAILED_CCM ? BigInt(0) : ccm.fee - minFee,
 		};
 		await internalMethod.addToOutbox(bouncedCCM.receivingChainID, bouncedCCM);
 		const newCCMID = utils.hash(codec.encode(ccmSchema, bouncedCCM));
@@ -238,8 +221,8 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 			await internalMethod.terminateChainInternal(ccm.sendingChainID, context);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccmID,
-				code: CCM_PROCESSED_CODE_INVALID_CCM_VERIFY_CCM_EXCEPTION,
-				result: CCM_PROCESSED_RESULT_DISCARDED,
+				code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+				result: CCMProcessedResult.DISCARDED,
 			});
 			return false;
 		}

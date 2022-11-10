@@ -16,9 +16,22 @@ import { BaseEvent, EventQueuer } from '../../base_event';
 import { ccmSchema } from '../schemas';
 import { CCMsg } from '../types';
 
+export const enum CCMSendFailCode {
+	// if sending failed due to the receiving chain not being active.
+	CHANNEL_UNAVAILABLE = 1,
+	// if sending failed due to the fee payment failing.
+	MESSAGE_FEE_EXCEPTION = 11,
+	// if sending failed due to invalid params property.
+	INVALID_PARAMS,
+	// if sending failed due to invalid message format.
+	INVALID_FORMAT,
+	// if sending failed due to invalid receiving chain.
+	INVALID_RECEIVING_CHAIN,
+}
+
 export interface CcmSendFailEventData {
 	ccm: CCMsg;
-	code: number;
+	code: CCMSendFailCode;
 }
 
 export const ccmSendFailDataSchema = {

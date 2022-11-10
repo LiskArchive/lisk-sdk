@@ -13,9 +13,9 @@
  */
 
 import { BaseInteroperabilityInternalMethod } from '../base_interoperability_internal_methods';
-import { CHAIN_ACTIVE, CHAIN_TERMINATED, EMPTY_BYTES, MAINCHAIN_ID } from '../constants';
+import { EMPTY_BYTES, MAINCHAIN_ID } from '../constants';
 import { createCCMsgBeforeSendContext } from '../context';
-import { ChainAccountStore } from '../stores/chain_account';
+import { ChainAccountStore, ChainStatus } from '../stores/chain_account';
 import { OwnChainAccountStore } from '../stores/own_chain_account';
 import { TerminatedStateStore } from '../stores/terminated_state';
 import { CCMsg, SendInternalContext } from '../types';
@@ -26,7 +26,7 @@ export class SidechainInteroperabilityInternalMethod extends BaseInteroperabilit
 		const chainAccountExists = await this.stores.get(ChainAccountStore).has(this.context, chainID);
 		if (chainAccountExists) {
 			const chainAccount = await this.stores.get(ChainAccountStore).get(this.context, chainID);
-			if (chainAccount.status === CHAIN_TERMINATED) {
+			if (chainAccount.status === ChainStatus.TERMINATED) {
 				return false;
 			}
 		}
@@ -60,7 +60,7 @@ export class SidechainInteroperabilityInternalMethod extends BaseInteroperabilit
 			return false;
 		}
 		// Chain status must be active
-		if (partnerChainAccount.status !== CHAIN_ACTIVE) {
+		if (partnerChainAccount.status !== ChainStatus.ACTIVE) {
 			return false;
 		}
 		const ownChainAccount = await this.stores

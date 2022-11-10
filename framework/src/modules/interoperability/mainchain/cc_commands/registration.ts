@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_NAME_REGISTRATION, EMPTY_BYTES } from '../../constants';
+import { CCMStatusCode, CROSS_CHAIN_COMMAND_NAME_REGISTRATION, EMPTY_BYTES } from '../../constants';
 import { registrationCCMParamsSchema } from '../../schemas';
 import { CrossChainMessageContext } from '../../types';
 import { createCCMsgBeforeSendContext } from '../../context';
@@ -53,7 +53,7 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 
 		if (
 			sendingChainChannelAccount.inbox.size !== 1 ||
-			ccm.status !== CCM_STATUS_OK ||
+			ccm.status !== CCMStatusCode.OK ||
 			!ownChainAccount.chainID.equals(ccm.receivingChainID) ||
 			ownChainAccount.name !== ccmRegistrationParams.name ||
 			!sendingChainChannelAccount.messageFeeTokenID.equals(

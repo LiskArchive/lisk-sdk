@@ -17,13 +17,12 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { objects } from '@liskhq/lisk-utils';
 import {
-	CCM_STATUS_OK,
 	EMPTY_BYTES,
 	MAINCHAIN_ID,
-	CHAIN_TERMINATED,
 	EMPTY_FEE_ADDRESS,
 	CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
 	MODULE_NAME_INTEROPERABILITY,
+	CCMStatusCode,
 } from './constants';
 import { ccmSchema } from './schemas';
 import {
@@ -41,7 +40,7 @@ import { OwnChainAccountStore } from './stores/own_chain_account';
 import { ChannelDataStore } from './stores/channel_data';
 import { OutboxRootStore } from './stores/outbox_root';
 import { TerminatedStateAccount, TerminatedStateStore } from './stores/terminated_state';
-import { ChainAccountStore } from './stores/chain_account';
+import { ChainAccountStore, ChainStatus } from './stores/chain_account';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/terminated_outbox';
 import { ChainAccountUpdatedEvent } from './events/chain_account_updated';
 import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
@@ -169,7 +168,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			const chainAccount = await chainSubstore.get(this.context, chainID);
 			await chainSubstore.set(this.context, chainID, {
 				...chainAccount,
-				status: CHAIN_TERMINATED,
+				status: ChainStatus.TERMINATED,
 			});
 			const outboxRootSubstore = this.stores.get(OutboxRootStore);
 			await outboxRootSubstore.del(this.context, chainID);
@@ -229,7 +228,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
 			receivingChainID: chainID,
 			fee: BigInt(0),
-			status: CCM_STATUS_OK,
+			status: CCMStatusCode.OK,
 			params: EMPTY_BYTES,
 			eventQueue: terminateChainContext.eventQueue,
 			feeAddress: EMPTY_FEE_ADDRESS,

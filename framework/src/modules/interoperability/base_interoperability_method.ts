@@ -18,18 +18,12 @@ import { BaseMethod } from '../base_method';
 import { BaseInteroperableMethod } from './base_interoperable_method';
 import { NamedRegistry } from '../named_registry';
 import { ImmutableMethodContext, MethodContext, NotFoundError } from '../../state_machine';
-import { ChainAccount, ChainAccountStore } from './stores/chain_account';
+import { ChainAccount, ChainAccountStore, ChainStatus } from './stores/chain_account';
 import { CCMsg } from './types';
 import { StoreGetter, ImmutableStoreGetter } from '../base_store';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
-import {
-	EMPTY_BYTES,
-	CHAIN_ID_MAINCHAIN,
-	CHAIN_ACTIVE,
-	CCM_SENT_FAILED_CODE,
-	MAINCHAIN_ID_BUFFER,
-} from './constants';
-import { CcmSendFailEvent } from './events/ccm_send_fail';
+import { EMPTY_BYTES, CHAIN_ID_MAINCHAIN, MAINCHAIN_ID_BUFFER } from './constants';
+import { CCMSendFailCode, CcmSendFailEvent } from './events/ccm_send_fail';
 import { CcmSendSuccessEvent } from './events/ccm_send_success';
 import { ccmSchema } from './schemas';
 import { validateFormat } from './utils';
@@ -140,7 +134,7 @@ export abstract class BaseInteroperabilityMethod<
 				context,
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCM_SENT_FAILED_CODE.INVALID_RECEIVING_CHAIN,
+					code: CCMSendFailCode.INVALID_RECEIVING_CHAIN,
 				},
 				true,
 			);
@@ -155,7 +149,7 @@ export abstract class BaseInteroperabilityMethod<
 				context,
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCM_SENT_FAILED_CODE.INVALID_FORMAT,
+					code: CCMSendFailCode.INVALID_FORMAT,
 				},
 				true,
 			);
@@ -175,7 +169,7 @@ export abstract class BaseInteroperabilityMethod<
 				context,
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCM_SENT_FAILED_CODE.CHANNEL_UNAVAILABLE,
+					code: CCMSendFailCode.CHANNEL_UNAVAILABLE,
 				},
 				true,
 			);
@@ -208,12 +202,12 @@ export abstract class BaseInteroperabilityMethod<
 		}
 
 		// partnerChainID must correspond to an active chain (in this case, not registered).
-		if (receivingChainAccount && receivingChainAccount.status !== CHAIN_ACTIVE) {
+		if (receivingChainAccount && receivingChainAccount.status !== ChainStatus.ACTIVE) {
 			this.events.get(CcmSendFailEvent).log(
 				context,
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCM_SENT_FAILED_CODE.CHANNEL_UNAVAILABLE,
+					code: CCMSendFailCode.CHANNEL_UNAVAILABLE,
 				},
 				true,
 			);
@@ -231,7 +225,7 @@ export abstract class BaseInteroperabilityMethod<
 					context,
 					{
 						ccm: { ...ccm, params: EMPTY_BYTES },
-						code: CCM_SENT_FAILED_CODE.MESSAGE_FEE_EXCEPTION,
+						code: CCMSendFailCode.MESSAGE_FEE_EXCEPTION,
 					},
 					true,
 				);

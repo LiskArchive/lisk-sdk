@@ -16,8 +16,6 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils, bls } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import {
-	CCM_STATUS_OK,
-	CHAIN_REGISTERED,
 	EMPTY_HASH,
 	MAINCHAIN_ID_BUFFER,
 	MAINCHAIN_NAME,
@@ -27,6 +25,7 @@ import {
 	TOKEN_ID_LSK_MAINCHAIN,
 	EMPTY_BYTES,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
+	CCMStatusCode,
 } from '../../constants';
 import {
 	ccmSchema,
@@ -44,7 +43,7 @@ import { MainchainRegistrationParams, ActiveValidators } from '../../types';
 import { computeValidatorsHash, isValidName, sortValidatorsByBLSKey } from '../../utils';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { SidechainInteroperabilityInternalMethod } from '../store';
-import { ChainAccountStore } from '../../stores/chain_account';
+import { ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 import { ChannelDataStore } from '../../stores/channel_data';
 import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { OutboxRootStore } from '../../stores/outbox_root';
@@ -171,7 +170,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 				stateRoot: EMPTY_HASH,
 				validatorsHash: computeValidatorsHash(mainchainValidators, BigInt(THRESHOLD_MAINCHAIN)),
 			},
-			status: CHAIN_REGISTERED,
+			status: ChainStatus.REGISTERED,
 		};
 		await chainSubstore.set(context, MAINCHAIN_ID_BUFFER, mainchainAccount);
 
@@ -217,7 +216,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			sendingChainID: ownChainAccount.chainID,
 			receivingChainID: MAINCHAIN_ID_BUFFER,
 			fee: BigInt(0),
-			status: CCM_STATUS_OK,
+			status: CCMStatusCode.OK,
 			params: encodedParams,
 		};
 		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);

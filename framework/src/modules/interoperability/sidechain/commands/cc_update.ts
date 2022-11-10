@@ -24,14 +24,9 @@ import {
 } from '../../../../state_machine';
 import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { BaseCrossChainUpdateCommand } from '../../base_cross_chain_update_command';
-import {
-	CHAIN_ACTIVE,
-	CHAIN_REGISTERED,
-	CHAIN_TERMINATED,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-} from '../../constants';
+import { CROSS_CHAIN_COMMAND_NAME_REGISTRATION } from '../../constants';
 import { ccmSchema, crossChainUpdateTransactionParams } from '../../schemas';
-import { ChainAccountStore } from '../../stores/chain_account';
+import { ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { ChannelDataStore } from '../../stores/channel_data';
 import { CCMsg, CrossChainUpdateTransactionParams } from '../../types';
@@ -68,7 +63,7 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 		const partnerChainStore = this.stores.get(ChainAccountStore);
 		const partnerChainAccount = await partnerChainStore.get(context, partnerChainIDBuffer);
 		// Section: Liveness of Partner Chain
-		if (partnerChainAccount.status === CHAIN_TERMINATED) {
+		if (partnerChainAccount.status === ChainStatus.TERMINATED) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(
@@ -77,7 +72,7 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 			};
 		}
 		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
-		if (partnerChainAccount.status === CHAIN_ACTIVE) {
+		if (partnerChainAccount.status === ChainStatus.ACTIVE) {
 			const isLive = await interoperabilityInternalMethod.isLive(partnerChainIDBuffer);
 			if (!isLive) {
 				return {
@@ -187,7 +182,7 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 			throw err;
 		}
 		if (
-			partnerChainAccount.status === CHAIN_REGISTERED &&
+			partnerChainAccount.status === ChainStatus.REGISTERED &&
 			!isInboxUpdateEmpty(txParams.inboxUpdate)
 		) {
 			// If the first CCM in inboxUpdate is a registration CCM
@@ -195,7 +190,7 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 				decodedCCMs[0].deserialized.crossChainCommand === CROSS_CHAIN_COMMAND_NAME_REGISTRATION &&
 				decodedCCMs[0].deserialized.sendingChainID.equals(txParams.sendingChainID)
 			) {
-				partnerChainAccount.status = CHAIN_ACTIVE;
+				partnerChainAccount.status = ChainStatus.ACTIVE;
 			} else {
 				await terminateChainInternal();
 

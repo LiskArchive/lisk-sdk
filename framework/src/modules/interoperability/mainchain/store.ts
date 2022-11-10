@@ -14,18 +14,12 @@
 
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { BaseInteroperabilityInternalMethod } from '../base_interoperability_internal_methods';
-import {
-	CHAIN_ACTIVE,
-	CHAIN_TERMINATED,
-	EMPTY_BYTES,
-	LIVENESS_LIMIT,
-	MAINCHAIN_ID_BUFFER,
-} from '../constants';
+import { EMPTY_BYTES, LIVENESS_LIMIT, MAINCHAIN_ID_BUFFER } from '../constants';
 import { createCCMsgBeforeSendContext } from '../context';
 import { CCMsg, SendInternalContext } from '../types';
 import { validateFormat } from '../utils';
 import { OwnChainAccountStore } from '../stores/own_chain_account';
-import { ChainAccountStore } from '../stores/chain_account';
+import { ChainAccountStore, ChainStatus } from '../stores/chain_account';
 
 export class MainchainInteroperabilityInternalMethod extends BaseInteroperabilityInternalMethod {
 	public async isLive(chainID: Buffer, timestamp: number): Promise<boolean> {
@@ -43,11 +37,11 @@ export class MainchainInteroperabilityInternalMethod extends BaseInteroperabilit
 		const chainAccountExists = await this.stores.get(ChainAccountStore).has(this.context, chainID);
 		if (chainAccountExists) {
 			const chainAccount = await this.stores.get(ChainAccountStore).get(this.context, chainID);
-			if (chainAccount.status === CHAIN_TERMINATED) {
+			if (chainAccount.status === ChainStatus.TERMINATED) {
 				return false;
 			}
 			if (
-				chainAccount.status === CHAIN_ACTIVE &&
+				chainAccount.status === ChainStatus.ACTIVE &&
 				timestamp - chainAccount.lastCertificate.timestamp > LIVENESS_LIMIT
 			) {
 				return false;
@@ -84,7 +78,7 @@ export class MainchainInteroperabilityInternalMethod extends BaseInteroperabilit
 			return false;
 		}
 		// Chain status must be active
-		if (receivingChainAccount.status !== CHAIN_ACTIVE) {
+		if (receivingChainAccount.status !== ChainStatus.ACTIVE) {
 			return false;
 		}
 

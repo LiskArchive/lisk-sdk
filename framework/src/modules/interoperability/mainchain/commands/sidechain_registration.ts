@@ -18,10 +18,8 @@ import { validator } from '@liskhq/lisk-validator';
 import { MainchainInteroperabilityInternalMethod } from '../store';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
-	CHAIN_REGISTERED,
 	EMPTY_HASH,
 	MAX_UINT64,
-	CCM_STATUS_OK,
 	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 	REGISTRATION_FEE,
@@ -29,6 +27,7 @@ import {
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	EMPTY_BYTES,
 	TOKEN_ID_LSK_MAINCHAIN,
+	CCMStatusCode,
 } from '../../constants';
 import { ccmSchema, registrationCCMParamsSchema, sidechainRegParams } from '../../schemas';
 import { SidechainRegistrationParams } from '../../types';
@@ -39,7 +38,7 @@ import {
 	VerifyStatus,
 	CommandExecuteContext,
 } from '../../../../state_machine';
-import { ChainAccountStore } from '../../stores/chain_account';
+import { ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 import { ChannelDataStore } from '../../stores/channel_data';
 import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { OutboxRootStore } from '../../stores/outbox_root';
@@ -210,7 +209,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 				stateRoot: EMPTY_HASH,
 				validatorsHash: computeValidatorsHash(initValidators, certificateThreshold),
 			},
-			status: CHAIN_REGISTERED,
+			status: ChainStatus.REGISTERED,
 		};
 
 		await chainSubstore.set(context, chainID, sidechainAccount);
@@ -263,7 +262,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			sendingChainID: ownChainAccount.chainID,
 			receivingChainID: chainID,
 			fee: BigInt(0),
-			status: CCM_STATUS_OK,
+			status: CCMStatusCode.OK,
 			params: encodedParams,
 		};
 

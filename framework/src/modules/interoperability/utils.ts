@@ -30,9 +30,6 @@ import {
 	GenesisInteroperabilityInternalMethod,
 } from './types';
 import {
-	CCM_STATUS_OK,
-	CHAIN_REGISTERED,
-	CHAIN_TERMINATED,
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID_BUFFER,
@@ -44,6 +41,7 @@ import {
 	SMT_KEY_LENGTH,
 	HASH_LENGTH,
 	TOKEN_ID_LSK,
+	CCMStatusCode,
 } from './constants';
 import {
 	ccmSchema,
@@ -66,7 +64,7 @@ import { OutboxRootStore } from './stores/outbox_root';
 import { OwnChainAccountStore } from './stores/own_chain_account';
 import { ChannelDataStore } from './stores/channel_data';
 import { ChainValidatorsStore, updateActiveValidators } from './stores/chain_validators';
-import { ChainAccountStore } from './stores/chain_account';
+import { ChainAccountStore, ChainStatus } from './stores/chain_account';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/terminated_outbox';
 import { TerminatedStateStore } from './stores/terminated_state';
 import { RegisteredNamesStore } from './stores/registered_names';
@@ -174,7 +172,7 @@ export const verifyMessageRecovery = (
 		codec.decode<CCMsg>(ccmSchema, serializedCcm),
 	);
 	for (const ccm of deserializedCCMs) {
-		if (ccm.status !== CCM_STATUS_OK) {
+		if (ccm.status !== CCMStatusCode.OK) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Cross chain message that needs to be recovered is not valid'),
@@ -226,7 +224,10 @@ export const checkLivenessRequirementFirstCCU = (
 	partnerChainAccount: ChainAccount,
 	txParams: CrossChainUpdateTransactionParams,
 ): VerificationResult => {
-	if (partnerChainAccount.status === CHAIN_REGISTERED && txParams.certificate.equals(EMPTY_BYTES)) {
+	if (
+		partnerChainAccount.status === ChainStatus.REGISTERED &&
+		txParams.certificate.equals(EMPTY_BYTES)
+	) {
 		return {
 			status: VerifyStatus.FAIL,
 			error: new Error(
@@ -652,7 +653,7 @@ export const initGenesisStateUtil = async (
 		chainDataStoreKeySet.add(chainDataStoreKey);
 
 		const chainAccountStatus = chainData.storeValue.status;
-		if (chainAccountStatus === CHAIN_TERMINATED) {
+		if (chainAccountStatus === ChainStatus.TERMINATED) {
 			if (outboxRootStoreKeySet.has(chainDataStoreKey)) {
 				throw new Error('Outbox root store cannot have entry for a terminated chain account.');
 			}

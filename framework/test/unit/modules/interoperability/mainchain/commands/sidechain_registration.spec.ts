@@ -18,7 +18,6 @@ import { codec } from '@liskhq/lisk-codec';
 import * as testing from '../../../../../../src/testing';
 import { SidechainRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/sidechain_registration';
 import {
-	CCM_STATUS_OK,
 	EMPTY_HASH,
 	MAX_UINT64,
 	MAX_NUM_VALIDATORS,
@@ -29,8 +28,8 @@ import {
 	MAX_CHAIN_NAME_LENGTH,
 	EVENT_NAME_CHAIN_ACCOUNT_UPDATED,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
-	CHAIN_REGISTERED,
 	EVENT_NAME_CCM_SEND_SUCCESS,
+	CCMStatusCode,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	ccmSchema,
@@ -54,6 +53,7 @@ import { OutboxRootStore } from '../../../../../../src/modules/interoperability/
 import {
 	ChainAccount,
 	ChainAccountStore,
+	ChainStatus,
 } from '../../../../../../src/modules/interoperability/stores/chain_account';
 import { ChainValidatorsStore } from '../../../../../../src/modules/interoperability/stores/chain_validators';
 import { createTransactionContext } from '../../../../../../src/testing';
@@ -469,7 +469,7 @@ describe('Sidechain registration command', () => {
 						transactionParams.certificateThreshold,
 					),
 				},
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 			};
 
 			// Act
@@ -574,7 +574,7 @@ describe('Sidechain registration command', () => {
 						transactionParams.certificateThreshold,
 					),
 				},
-				status: CHAIN_REGISTERED,
+				status: ChainStatus.REGISTERED,
 			};
 
 			// Act
@@ -616,7 +616,7 @@ describe('Sidechain registration command', () => {
 				sendingChainID: chainID,
 				receivingChainID: newChainID,
 				fee: BigInt(0),
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 				params: encodedParams,
 			};
 

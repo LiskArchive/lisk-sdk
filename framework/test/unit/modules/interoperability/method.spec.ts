@@ -22,20 +22,23 @@ import {
 } from '../../../../src';
 import { BaseInteroperabilityMethod } from '../../../../src/modules/interoperability/base_interoperability_method';
 import {
-	CCM_SENT_FAILED_CODE,
-	CCM_STATUS_OK,
-	CHAIN_ACTIVE,
+	CCMStatusCode,
 	CHAIN_ID_MAINCHAIN,
-	CHAIN_TERMINATED,
 	EMPTY_BYTES,
 	MAINCHAIN_ID_BUFFER,
 	MAX_CCM_SIZE,
 } from '../../../../src/modules/interoperability/constants';
-import { CcmSendFailEvent } from '../../../../src/modules/interoperability/events/ccm_send_fail';
+import {
+	CCMSendFailCode,
+	CcmSendFailEvent,
+} from '../../../../src/modules/interoperability/events/ccm_send_fail';
 import { CcmSendSuccessEvent } from '../../../../src/modules/interoperability/events/ccm_send_success';
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/store';
 import { ccmSchema } from '../../../../src/modules/interoperability/schemas';
-import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
+import {
+	ChainAccountStore,
+	ChainStatus,
+} from '../../../../src/modules/interoperability/stores/chain_account';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
 import { NamedRegistry } from '../../../../src/modules/named_registry';
 import { EventQueue, MethodContext } from '../../../../src/state_machine';
@@ -191,7 +194,7 @@ describe('Sample Method', () => {
 			params: utils.getRandomBytes(10),
 			receivingChainID: Buffer.from('00000001', 'hex'),
 			sendingChainID: ownChainAccountSidechain.chainID,
-			status: CCM_STATUS_OK,
+			status: CCMStatusCode.OK,
 		};
 
 		const getReceivingChainAccountByStatus = (code: number) => ({
@@ -235,7 +238,7 @@ describe('Sample Method', () => {
 				expect.anything(),
 				{
 					ccm: { ...invalidSizeCCM, params: EMPTY_BYTES },
-					code: CCM_SENT_FAILED_CODE.INVALID_FORMAT,
+					code: CCMSendFailCode.INVALID_FORMAT,
 				},
 				true,
 			);
@@ -267,7 +270,7 @@ describe('Sample Method', () => {
 				expect.anything(),
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCM_SENT_FAILED_CODE.CHANNEL_UNAVAILABLE,
+					code: CCMSendFailCode.CHANNEL_UNAVAILABLE,
 				},
 				true,
 			);
@@ -281,7 +284,7 @@ describe('Sample Method', () => {
 				sendingChainID: ownChainAccountMainchain.chainID,
 			};
 
-			const receivingChainAccount = getReceivingChainAccountByStatus(CHAIN_TERMINATED);
+			const receivingChainAccount = getReceivingChainAccountByStatus(ChainStatus.TERMINATED);
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountMainchain);
@@ -307,7 +310,7 @@ describe('Sample Method', () => {
 				expect.anything(),
 				{
 					ccm: { ...ccmOnMainchain, params: EMPTY_BYTES },
-					code: CCM_SENT_FAILED_CODE.CHANNEL_UNAVAILABLE,
+					code: CCMSendFailCode.CHANNEL_UNAVAILABLE,
 				},
 				true,
 			);
@@ -315,7 +318,7 @@ describe('Sample Method', () => {
 
 		it('should throw error when processing on sidechain and receiving chain is not active', async () => {
 			// Arrange
-			const receivingChainAccount = getReceivingChainAccountByStatus(CHAIN_TERMINATED);
+			const receivingChainAccount = getReceivingChainAccountByStatus(ChainStatus.TERMINATED);
 
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
@@ -342,7 +345,7 @@ describe('Sample Method', () => {
 				expect.anything(),
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCM_SENT_FAILED_CODE.CHANNEL_UNAVAILABLE,
+					code: CCMSendFailCode.CHANNEL_UNAVAILABLE,
 				},
 				true,
 			);
@@ -350,7 +353,7 @@ describe('Sample Method', () => {
 
 		it('should throw error when payMessageFee and log event when tokenMethod.payMessageFee fails', async () => {
 			// Arrange
-			const receivingChainAccount = getReceivingChainAccountByStatus(CHAIN_ACTIVE);
+			const receivingChainAccount = getReceivingChainAccountByStatus(ChainStatus.ACTIVE);
 
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
@@ -380,7 +383,7 @@ describe('Sample Method', () => {
 				expect.anything(),
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCM_SENT_FAILED_CODE.MESSAGE_FEE_EXCEPTION,
+					code: CCMSendFailCode.MESSAGE_FEE_EXCEPTION,
 				},
 				true,
 			);
@@ -394,7 +397,7 @@ describe('Sample Method', () => {
 				sendingChainID: ownChainAccountMainchain.chainID,
 			};
 
-			const receivingChainAccount = getReceivingChainAccountByStatus(CHAIN_ACTIVE);
+			const receivingChainAccount = getReceivingChainAccountByStatus(ChainStatus.ACTIVE);
 
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
