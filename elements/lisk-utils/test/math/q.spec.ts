@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Q, Q_OPERATION } from '../../src/math';
+import { Q_OPERATION, q } from '../../src/math';
 
 describe('Q', () => {
 	const base = 8;
@@ -34,15 +34,15 @@ describe('Q', () => {
 			[{ input: 0.23, expected: expectedQ(base, 0, [3, 4, 5, 7]), binary: '0.0011101011' }],
 		];
 		it.each(numberCases)('should create Q from number', val => {
-			const q = new Q(val.input, base);
-			expect(q.toBuffer().toString('hex')).toEqual(bigintToHex(val.expected));
+			const actual = q(val.input, base);
+			expect(actual.toBuffer().toString('hex')).toEqual(bigintToHex(val.expected));
 		});
 
 		const bigintCases = [[{ input: BigInt(10), expected: mulBasePow2(base, 10) }]];
 
 		it.each(bigintCases)('should create Q from bigint', val => {
-			const q = new Q(val.input, base);
-			expect(q.toBuffer().toString('hex')).toEqual(bigintToHex(val.expected));
+			const actual = q(val.input, base);
+			expect(actual.toBuffer().toString('hex')).toEqual(bigintToHex(val.expected));
 		});
 
 		const bytesCases = [
@@ -50,8 +50,8 @@ describe('Q', () => {
 		];
 
 		it.each(bytesCases)('should create Q from Buffer', val => {
-			const q = new Q(Buffer.from(val.input, 'hex'), base);
-			expect(q.toBuffer().toString('hex')).toEqual(val.expected);
+			const actual = q(Buffer.from(val.input, 'hex'), base);
+			expect(actual.toBuffer().toString('hex')).toEqual(val.expected);
 		});
 	});
 
@@ -69,9 +69,9 @@ describe('Q', () => {
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(
-				new Q(val.original, base).add(new Q(val.value, base)).toBuffer().toString('hex'),
-			).toEqual(bigintToHex(val.expected));
+			expect(q(val.original, base).add(q(val.value, base)).toBuffer().toString('hex')).toEqual(
+				bigintToHex(val.expected),
+			);
 		});
 	});
 
@@ -92,9 +92,9 @@ describe('Q', () => {
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(
-				new Q(val.original, base).sub(new Q(val.value, base)).toBuffer().toString('hex'),
-			).toEqual(bigintToHex(val.expected));
+			expect(q(val.original, base).sub(q(val.value, base)).toBuffer().toString('hex')).toEqual(
+				bigintToHex(val.expected),
+			);
 		});
 	});
 
@@ -112,9 +112,9 @@ describe('Q', () => {
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(
-				new Q(val.original, base).mul(new Q(val.value, base)).toBuffer().toString('hex'),
-			).toEqual(bigintToHex(val.expected));
+			expect(q(val.original, base).mul(q(val.value, base)).toBuffer().toString('hex')).toEqual(
+				bigintToHex(val.expected),
+			);
 		});
 	});
 
@@ -140,9 +140,9 @@ describe('Q', () => {
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(
-				new Q(val.original, base).div(new Q(val.value, base)).toBuffer().toString('hex'),
-			).toEqual(bigintToHex(val.expected));
+			expect(q(val.original, base).div(q(val.value, base)).toBuffer().toString('hex')).toEqual(
+				bigintToHex(val.expected),
+			);
 		});
 	});
 
@@ -170,10 +170,7 @@ describe('Q', () => {
 
 		it.each(cases)('should result in expected value', val => {
 			expect(
-				new Q(val.original, base)
-					.mulDiv(new Q(val.mul, base), new Q(val.div, base))
-					.toBuffer()
-					.toString('hex'),
+				q(val.original, base).mulDiv(q(val.mul, base), q(val.div, base)).toBuffer().toString('hex'),
 			).toEqual(bigintToHex(val.expected));
 		});
 	});
@@ -191,7 +188,7 @@ describe('Q', () => {
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(new Q(val.original, base).inv().toBuffer().toString('hex')).toEqual(
+			expect(q(val.original, base).inv().toBuffer().toString('hex')).toEqual(
 				bigintToHex(val.expected),
 			);
 		});
@@ -205,7 +202,7 @@ describe('Q', () => {
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(new Q(val.original, base).eq(new Q(val.value, base))).toEqual(val.expected);
+			expect(q(val.original, base).eq(q(val.value, base))).toEqual(val.expected);
 		});
 	});
 
@@ -217,7 +214,7 @@ describe('Q', () => {
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(new Q(val.original, base).lte(new Q(val.value, base))).toEqual(val.expected);
+			expect(q(val.original, base).lte(q(val.value, base))).toEqual(val.expected);
 		});
 	});
 
@@ -229,7 +226,7 @@ describe('Q', () => {
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(new Q(val.original, base).lt(new Q(val.value, base))).toEqual(val.expected);
+			expect(q(val.original, base).lt(q(val.value, base))).toEqual(val.expected);
 		});
 	});
 
@@ -241,7 +238,7 @@ describe('Q', () => {
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(new Q(val.original, base).gte(new Q(val.value, base))).toEqual(val.expected);
+			expect(q(val.original, base).gte(q(val.value, base))).toEqual(val.expected);
 		});
 	});
 
@@ -253,7 +250,7 @@ describe('Q', () => {
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(new Q(val.original, base).gt(new Q(val.value, base))).toEqual(val.expected);
+			expect(q(val.original, base).gt(q(val.value, base))).toEqual(val.expected);
 		});
 	});
 
@@ -266,7 +263,7 @@ describe('Q', () => {
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(new Q(val.original, base).toInt(val.operation)).toEqual(val.expected);
+			expect(q(val.original, base).toInt(val.operation)).toEqual(val.expected);
 		});
 	});
 });

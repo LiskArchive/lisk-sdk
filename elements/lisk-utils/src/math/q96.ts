@@ -15,8 +15,4 @@
 
 import { Q } from './q';
 
-export class Q96 extends Q {
-	public constructor(val: number | bigint | Buffer) {
-		super(val, 96);
-	}
-}
+export const q96 = (val: number | bigint | Buffer): Q => Q.fromValue(val, 96);

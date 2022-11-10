@@ -12,6 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { Q } from './q';
-export { Q96 } from './q96';
+export { Q, q } from './q';
+export { q96 } from './q96';
 export { Q_OPERATION } from './constants';
