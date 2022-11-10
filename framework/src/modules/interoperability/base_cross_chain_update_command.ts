@@ -163,8 +163,8 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 		context: CrossChainMessageContext,
 		ccmID: Buffer,
 		ccmSize: number,
-		ccmStatus: CCMStatusCode,
-		ccmProcessedEventCode: CCMProcessedCode,
+		ccmStatusCode: CCMStatusCode,
+		ccmProcessedCode: CCMProcessedCode,
 	): Promise<void> {
 		const { ccm } = context;
 		const minFee = MIN_RETURN_FEE * BigInt(ccmSize);
@@ -172,22 +172,22 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 		if (ccm.status !== CCMStatusCode.OK || ccm.fee < minFee) {
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccmID,
-				code: ccmProcessedEventCode,
+				code: ccmProcessedCode,
 				result: CCMProcessedResult.DISCARDED,
 			});
 			return;
 		}
 		this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 			ccmID,
-			code: ccmProcessedEventCode,
+			code: ccmProcessedCode,
 			result: CCMProcessedResult.BOUNCED,
 		});
 		const bouncedCCM = {
 			...ccm,
-			status: ccmStatus,
+			status: ccmStatusCode,
 			sendingChainID: ccm.receivingChainID,
 			receivingChainID: ccm.sendingChainID,
-			fee: ccmStatus === CCMStatusCode.FAILED_CCM ? BigInt(0) : ccm.fee - minFee,
+			fee: ccmStatusCode === CCMStatusCode.FAILED_CCM ? BigInt(0) : ccm.fee - minFee,
 		};
 		await internalMethod.addToOutbox(bouncedCCM.receivingChainID, bouncedCCM);
 		const newCCMID = utils.hash(codec.encode(ccmSchema, bouncedCCM));

@@ -29,8 +29,8 @@ import {
 	MAX_CCM_SIZE,
 } from '../../../../src/modules/interoperability/constants';
 import {
-	CCMSendFailCode,
-	CcmSendFailEvent,
+	CCMSentFailedCode,
+	CcmSentFailedEvent,
 } from '../../../../src/modules/interoperability/events/ccm_send_fail';
 import { CcmSendSuccessEvent } from '../../../../src/modules/interoperability/events/ccm_send_success';
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/store';
@@ -92,7 +92,7 @@ describe('Sample Method', () => {
 	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 	let methodContext: MethodContext;
 	let tokenMethodMock: TokenMethod;
-	let ccmSendFailEventMock: CcmSendFailEvent;
+	let ccmSendFailEventMock: CcmSentFailedEvent;
 	let ccmSendSuccessEventMock: CcmSendSuccessEvent;
 
 	beforeEach(() => {
@@ -107,7 +107,7 @@ describe('Sample Method', () => {
 		ccmSendSuccessEventMock = {
 			log: jest.fn(),
 		} as any;
-		interopMod.events.register(CcmSendFailEvent, ccmSendFailEventMock);
+		interopMod.events.register(CcmSentFailedEvent, ccmSendFailEventMock);
 		interopMod.events.register(CcmSendSuccessEvent, ccmSendSuccessEventMock);
 		sampleInteroperabilityMethod = new SampleInteroperabilityMethod(
 			interopMod.stores,
@@ -238,7 +238,7 @@ describe('Sample Method', () => {
 				expect.anything(),
 				{
 					ccm: { ...invalidSizeCCM, params: EMPTY_BYTES },
-					code: CCMSendFailCode.INVALID_FORMAT,
+					code: CCMSentFailedCode.INVALID_FORMAT,
 				},
 				true,
 			);
@@ -270,7 +270,7 @@ describe('Sample Method', () => {
 				expect.anything(),
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSendFailCode.CHANNEL_UNAVAILABLE,
+					code: CCMSentFailedCode.CHANNEL_UNAVAILABLE,
 				},
 				true,
 			);
@@ -310,7 +310,7 @@ describe('Sample Method', () => {
 				expect.anything(),
 				{
 					ccm: { ...ccmOnMainchain, params: EMPTY_BYTES },
-					code: CCMSendFailCode.CHANNEL_UNAVAILABLE,
+					code: CCMSentFailedCode.CHANNEL_UNAVAILABLE,
 				},
 				true,
 			);
@@ -345,7 +345,7 @@ describe('Sample Method', () => {
 				expect.anything(),
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSendFailCode.CHANNEL_UNAVAILABLE,
+					code: CCMSentFailedCode.CHANNEL_UNAVAILABLE,
 				},
 				true,
 			);
@@ -383,7 +383,7 @@ describe('Sample Method', () => {
 				expect.anything(),
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSendFailCode.MESSAGE_FEE_EXCEPTION,
+					code: CCMSentFailedCode.MESSAGE_FEE_EXCEPTION,
 				},
 				true,
 			);

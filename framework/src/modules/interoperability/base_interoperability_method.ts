@@ -23,7 +23,7 @@ import { CCMsg } from './types';
 import { StoreGetter, ImmutableStoreGetter } from '../base_store';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import { EMPTY_BYTES, CHAIN_ID_MAINCHAIN, MAINCHAIN_ID_BUFFER } from './constants';
-import { CCMSendFailCode, CcmSendFailEvent } from './events/ccm_send_fail';
+import { CCMSentFailedCode, CcmSentFailedEvent } from './events/ccm_send_fail';
 import { CcmSendSuccessEvent } from './events/ccm_send_success';
 import { ccmSchema } from './schemas';
 import { validateFormat } from './utils';
@@ -130,11 +130,11 @@ export abstract class BaseInteroperabilityMethod<
 		};
 		// Not possible to send messages to the own chain.
 		if (receivingChainID.equals(ownChainAccount.chainID)) {
-			this.events.get(CcmSendFailEvent).log(
+			this.events.get(CcmSentFailedEvent).log(
 				context,
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSendFailCode.INVALID_RECEIVING_CHAIN,
+					code: CCMSentFailedCode.INVALID_RECEIVING_CHAIN,
 				},
 				true,
 			);
@@ -145,11 +145,11 @@ export abstract class BaseInteroperabilityMethod<
 		try {
 			validateFormat(ccm);
 		} catch (error) {
-			this.events.get(CcmSendFailEvent).log(
+			this.events.get(CcmSentFailedEvent).log(
 				context,
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSendFailCode.INVALID_FORMAT,
+					code: CCMSentFailedCode.INVALID_FORMAT,
 				},
 				true,
 			);
@@ -165,11 +165,11 @@ export abstract class BaseInteroperabilityMethod<
 			timestamp ?? Date.now(),
 		);
 		if (!isReceivingChainLive) {
-			this.events.get(CcmSendFailEvent).log(
+			this.events.get(CcmSentFailedEvent).log(
 				context,
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSendFailCode.CHANNEL_UNAVAILABLE,
+					code: CCMSentFailedCode.CHANNEL_UNAVAILABLE,
 				},
 				true,
 			);
@@ -203,11 +203,11 @@ export abstract class BaseInteroperabilityMethod<
 
 		// partnerChainID must correspond to an active chain (in this case, not registered).
 		if (receivingChainAccount && receivingChainAccount.status !== ChainStatus.ACTIVE) {
-			this.events.get(CcmSendFailEvent).log(
+			this.events.get(CcmSentFailedEvent).log(
 				context,
 				{
 					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSendFailCode.CHANNEL_UNAVAILABLE,
+					code: CCMSentFailedCode.CHANNEL_UNAVAILABLE,
 				},
 				true,
 			);
@@ -221,11 +221,11 @@ export abstract class BaseInteroperabilityMethod<
 				// eslint-disable-next-line no-lonely-if
 				await this._tokenMethod.payMessageFee(context, sendingAddress, fee, partnerChainID);
 			} catch (error) {
-				this.events.get(CcmSendFailEvent).log(
+				this.events.get(CcmSentFailedEvent).log(
 					context,
 					{
 						ccm: { ...ccm, params: EMPTY_BYTES },
-						code: CCMSendFailCode.MESSAGE_FEE_EXCEPTION,
+						code: CCMSentFailedCode.MESSAGE_FEE_EXCEPTION,
 					},
 					true,
 				);
