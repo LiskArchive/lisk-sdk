@@ -832,3 +832,24 @@ export const chainAccountToJSON = (chainAccount: ChainAccount) => {
 		status,
 	};
 };
+
+export const verifyLivenessConditionForRegisteredChains = (
+	ccu: CrossChainUpdateTransactionParams,
+	blockTimestamp: number,
+) => {
+	const inboxEmpty =
+		ccu.inboxUpdate.crossChainMessages.length === 0 &&
+		ccu.inboxUpdate.messageWitnessHashes.length === 0 &&
+		ccu.inboxUpdate.outboxRootWitness.bitmap.length === 0 &&
+		ccu.inboxUpdate.outboxRootWitness.siblingHashes.length === 0;
+	if (ccu.certificate.length === 0 || inboxEmpty) {
+		return;
+	}
+	const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
+	const limitSecond = LIVENESS_LIMIT / 2;
+	if (blockTimestamp - certificate.timestamp > limitSecond) {
+		throw new Error(
+			`The first CCU with a non-empty inbox update cannot contain a certificate older than ${limitSecond} seconds.`,
+		);
+	}
+};
