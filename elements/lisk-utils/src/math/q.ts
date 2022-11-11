@@ -91,7 +91,7 @@ export class Q {
 		return new Q((this._val << this._base) / n._val, this._base);
 	}
 
-	public mulDiv(n: Q, m: Q) {
+	public muldiv(n: Q, m: Q) {
 		if (this._base !== n._base || this._base !== m._base) {
 			throw new Error('Invalid input, base does not match.');
 		}

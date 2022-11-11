@@ -29,7 +29,7 @@ describe('Q', () => {
 		vals.reduce((prev, curr) => prev + pow2(b - curr), BigInt(0));
 	// ExpectedQ generates the Q format big integer
 	// int: integer part of the result
-	// decimalBinaryPosthe elements in the array means the position of "1" in binary.
+	// decimalBinaryPosthe elements should bein the array means the position of "1" in binary.
 	const expectedQ = (b: number, int: number, decimalBinaryPos?: number[]) =>
 		mulBasePow2(b, int) + pow2BaseDiffAddition(b, decimalBinaryPos ?? []);
 	const bigintToHex = (val: bigint) => Buffer.from(val.toString(16), 'hex').toString('hex');
@@ -154,7 +154,7 @@ describe('Q', () => {
 		});
 	});
 
-	describe('mulDiv', () => {
+	describe('muldiv', () => {
 		const cases = [
 			[
 				{
@@ -178,7 +178,7 @@ describe('Q', () => {
 
 		it.each(cases)('should result in expected value', val => {
 			expect(
-				q(val.original, base).mulDiv(q(val.mul, base), q(val.div, base)).toBuffer().toString('hex'),
+				q(val.original, base).muldiv(q(val.mul, base), q(val.div, base)).toBuffer().toString('hex'),
 			).toEqual(bigintToHex(val.expected));
 		});
 	});
