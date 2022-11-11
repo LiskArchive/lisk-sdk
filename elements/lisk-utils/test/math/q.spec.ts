@@ -14,7 +14,12 @@
 
 import { Q_OPERATION, q } from '../../src/math';
 
+/**
+ * For the test cases `binary` represents the calculation result in binary.
+ */
 describe('Q', () => {
+	//  In this test Q8 is used as example because 8 bit is easier to generate the tests.
+	// For Q8 after 9th bit should be ignored
 	const base = 8;
 	const pow2 = (val: number | bigint) => BigInt(2) ** BigInt(val);
 	// mulBasePow2 computes 2 ** base * val
@@ -22,6 +27,9 @@ describe('Q', () => {
 	// pow2BaseDiffAddition accumulates 2 ** (base-vals[n])
 	const pow2BaseDiffAddition = (b: number, vals: number[]) =>
 		vals.reduce((prev, curr) => prev + pow2(b - curr), BigInt(0));
+	// ExpectedQ generates the Q format big integer
+	// int: integer part of the result
+	// decimalBinaryPosthe elements in the array means the position of "1" in binary.
 	const expectedQ = (b: number, int: number, decimalBinaryPos?: number[]) =>
 		mulBasePow2(b, int) + pow2BaseDiffAddition(b, decimalBinaryPos ?? []);
 	const bigintToHex = (val: bigint) => Buffer.from(val.toString(16), 'hex').toString('hex');
