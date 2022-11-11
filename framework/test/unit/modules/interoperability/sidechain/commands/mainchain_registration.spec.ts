@@ -150,7 +150,7 @@ describe('Mainchain registration command', () => {
 			expect(result.status).toBe(VerifyStatus.OK);
 		});
 
-		it('should return error if own chain id is greater 4 bytes', async () => {
+		it('should return error if own chain id is greater than 4 bytes', async () => {
 			verifyContext.params.ownChainID = utils.getRandomBytes(5);
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 
