@@ -27,6 +27,7 @@ import { DPoSModule } from '../../../../../src';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import {
 	COMMISSION_INCREASE_PERIOD,
+	MAX_COMMISSION,
 	MAX_COMMISSION_INCREASE_RATE,
 } from '../../../../../src/modules/dpos_v2/constants';
 import { createFakeBlockHeader } from '../../../../../src/testing';
@@ -178,6 +179,25 @@ describe('Change Commission command', () => {
 			expect(result.error?.message).toInclude(
 				`Invalid argument: Commission increase larger than ${MAX_COMMISSION_INCREASE_RATE}.`,
 			);
+		});
+
+		it('should not allow the commission to be set higher than 100%', async () => {
+			commandParams.newCommission = MAX_COMMISSION + 1;
+			transactionDetails.params = codec.encode(schema, commandParams);
+			transaction = new Transaction(transactionDetails);
+
+			const context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					header: createFakeBlockHeader({ height: COMMISSION_INCREASE_PERIOD + 1 }),
+				})
+				.createCommandVerifyContext<ChangeCommissionParams>(schema);
+
+			const result = await changeCommissionCommand.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`must be <= ${MAX_COMMISSION}`);
 		});
 	});
 
