@@ -71,7 +71,7 @@ import {
 	createCrossChainMessageContext,
 	createTransientMethodContext,
 } from '../../../../../../src/testing';
-import { BaseInteroperableMethod } from '../../../../../../src/modules/interoperability/base_interoperable_method';
+import { BaseCCMethod } from '../../../../../../src/modules/interoperability/base_cc_method';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { BaseInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/base_interoperability_internal_methods';
 import {
@@ -687,7 +687,7 @@ describe('CrossChainUpdateCommand', () => {
 		};
 		let context: CrossChainMessageContext;
 		let command: MainchainCCUpdateCommand;
-		let ccMethods: Map<string, BaseInteroperableMethod>;
+		let ccMethods: Map<string, BaseCCMethod>;
 		let ccCommands: Map<string, BaseCCCommand[]>;
 		let internalMethod: BaseInteroperabilityInternalMethod;
 
@@ -696,7 +696,7 @@ describe('CrossChainUpdateCommand', () => {
 			ccMethods = new Map();
 			ccMethods.set(
 				'token',
-				new (class TokenMethod extends BaseInteroperableMethod {
+				new (class TokenMethod extends BaseCCMethod {
 					public verifyCrossChainMessage = jest.fn();
 					public beforeCrossChainMessageForwarding = jest.fn();
 				})(interopModule.stores, interopModule.events),
@@ -764,7 +764,7 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should terminate the chain and log event when verifyCrossChainMessage fails', async () => {
-			((ccMethods.get('token') as BaseInteroperableMethod)
+			((ccMethods.get('token') as BaseCCMethod)
 				.verifyCrossChainMessage as jest.Mock).mockRejectedValue('error');
 
 			await expect(command['_forward'](context)).resolves.toBeUndefined();
@@ -866,7 +866,7 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should revert the state and terminate the sending chain if beforeCrossChainMessageForwarding fails', async () => {
-			((ccMethods.get('token') as BaseInteroperableMethod)
+			((ccMethods.get('token') as BaseCCMethod)
 				.beforeCrossChainMessageForwarding as jest.Mock).mockRejectedValue('error');
 			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
 			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);

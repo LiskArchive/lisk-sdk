@@ -44,6 +44,7 @@ import { OutboxRootStore } from '../stores/outbox_root';
 import { ChainValidatorsStore } from '../stores/chain_validators';
 import { CcmSendSuccessEvent } from '../events/ccm_send_success';
 import { TerminatedStateCreatedEvent } from '../events/terminated_state_created';
+import { TerminatedOutboxCreatedEvent } from '../events/terminated_outbox_created';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
@@ -76,6 +77,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.events.register(CcmProcessedEvent, new CcmProcessedEvent(this.name));
 		this.events.register(CcmSendSuccessEvent, new CcmSendSuccessEvent(this.name));
 		this.events.register(TerminatedStateCreatedEvent, new TerminatedStateCreatedEvent(this.name));
+		this.events.register(TerminatedOutboxCreatedEvent, new TerminatedOutboxCreatedEvent(this.name));
 	}
 
 	public addDependencies(tokenMethod: TokenMethod) {

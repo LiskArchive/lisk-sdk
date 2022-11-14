@@ -16,7 +16,6 @@ import { codec } from '@liskhq/lisk-codec';
 import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 import { CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED, MAINCHAIN_ID } from '../../constants';
-import { createCCMsgBeforeSendContext } from '../../context';
 import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
 import { TerminatedStateStore } from '../../stores/terminated_state';
 import { CrossChainMessageContext } from '../../types';
@@ -36,7 +35,7 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 	}
 
 	public async execute(context: CrossChainMessageContext): Promise<void> {
-		const { ccm } = context;
+		const { ccm, transaction, header } = context;
 		if (!ccm) {
 			throw new Error('CCM to execute sidechain terminated cross chain command is missing.');
 		}
@@ -60,19 +59,11 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 				ccmSidechainTerminatedParams.stateRoot,
 			);
 		} else {
-			const beforeSendContext = createCCMsgBeforeSendContext({
-				ccm,
-				eventQueue: context.eventQueue,
-				getMethodContext: context.getMethodContext,
-				getStore: context.getStore,
-				logger: context.logger,
-				chainID: context.chainID,
-				feeAddress: context.transaction.senderAddress,
+			await interoperabilityInternalMethod.terminateChainInternal(ccm.sendingChainID, {
+				...context,
+				transaction,
+				header: { height: header.height, timestamp: header.timestamp },
 			});
-			await interoperabilityInternalMethod.terminateChainInternal(
-				ccm.sendingChainID,
-				beforeSendContext,
-			);
 		}
 	}
 

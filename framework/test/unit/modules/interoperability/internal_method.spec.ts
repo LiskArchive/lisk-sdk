@@ -25,6 +25,7 @@ import {
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/store';
 import * as utils from '../../../../src/modules/interoperability/utils';
 import { MainchainInteroperabilityModule, testing } from '../../../../src';
+import { CreateTerminatedOutboxAccountContext } from '../../../../src/modules/interoperability/types';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
@@ -45,6 +46,7 @@ import { ChainValidatorsStore } from '../../../../src/modules/interoperability/s
 import * as chainValidators from '../../../../src/modules/interoperability/stores/chain_validators';
 import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
+import { TerminatedOutboxCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_outbox_created';
 
 describe('Base interoperability internal method', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -195,11 +197,22 @@ describe('Base interoperability internal method', () => {
 	});
 
 	describe('createTerminatedOutboxAccount', () => {
+		const createTerminatedOutboxAccountContext: CreateTerminatedOutboxAccountContext = {
+			eventQueue: new EventQueue(0),
+		};
+		const terminatedOutboxCreatedEventMock = {
+			log: jest.fn(),
+		};
+		interopMod.events.register(
+			TerminatedOutboxCreatedEvent,
+			terminatedOutboxCreatedEventMock as never,
+		);
 		it('should initialise terminated outbox account in store', async () => {
 			const partnerChainInboxSize = 2;
 
 			// Act
 			await mainchainInteroperabilityInternalMethod.createTerminatedOutboxAccount(
+				createTerminatedOutboxAccountContext,
 				chainID,
 				outboxTree.root,
 				outboxTree.size,
@@ -212,6 +225,7 @@ describe('Base interoperability internal method', () => {
 				outboxSize: outboxTree.size,
 				partnerChainInboxSize,
 			});
+			expect(terminatedOutboxCreatedEventMock.log).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -343,7 +357,7 @@ describe('Base interoperability internal method', () => {
 			status: 1,
 			params: Buffer.alloc(0),
 		};
-		const beforeSendCCMContext = testing.createBeforeSendCCMsgMethodContext({
+		const beforeSendCCMContext = testing.createCrossChainMessageContext({
 			ccm,
 			feeAddress: cryptoUtils.getRandomBytes(32),
 		});
