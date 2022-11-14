@@ -14,19 +14,22 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import {
-	CCM_STATUS_OK,
-	CHAIN_ACTIVE,
+	CCMStatusCode,
 	MAINCHAIN_ID_BUFFER,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	EMPTY_BYTES,
 } from '../constants';
 import { registrationCCMParamsSchema } from '../schemas';
-import { CCCommandExecuteContext, CCMRegistrationParams } from '../types';
+import {
+	CCMRegistrationParams,
+	CrossChainMessageContext,
+	ImmutableCrossChainMessageContext,
+} from '../types';
 import { BaseInteroperabilityCCCommand } from '../base_interoperability_cc_commands';
 import { ChainAccountUpdatedEvent } from '../events/chain_account_updated';
 import { OwnChainAccountStore } from '../stores/own_chain_account';
 import { ChannelDataStore } from '../stores/channel_data';
-import { ChainAccountStore } from '../stores/chain_account';
+import { ChainAccountStore, ChainStatus } from '../stores/chain_account';
 
 export abstract class BaseCCRegistrationCommand extends BaseInteroperabilityCCCommand {
 	public schema = registrationCCMParamsSchema;
@@ -35,7 +38,7 @@ export abstract class BaseCCRegistrationCommand extends BaseInteroperabilityCCCo
 		return CROSS_CHAIN_COMMAND_NAME_REGISTRATION;
 	}
 
-	public async verify(ctx: CCCommandExecuteContext): Promise<void> {
+	public async verify(ctx: ImmutableCrossChainMessageContext): Promise<void> {
 		const { ccm } = ctx;
 		if (!ccm) {
 			throw new Error('CCM to execute registration cross chain command is missing.');
@@ -50,7 +53,7 @@ export abstract class BaseCCRegistrationCommand extends BaseInteroperabilityCCCo
 		if (channel.inbox.size !== 0) {
 			throw new Error('Registration message must be the first message in the inbox.');
 		}
-		if (ccm.status !== CCM_STATUS_OK) {
+		if (ccm.status !== CCMStatusCode.OK) {
 			throw new Error('Registration message must have status OK.');
 		}
 		if (!ownChainAccount.chainID.equals(ccm.receivingChainID)) {
@@ -73,13 +76,13 @@ export abstract class BaseCCRegistrationCommand extends BaseInteroperabilityCCCo
 		}
 	}
 
-	public async execute(ctx: CCCommandExecuteContext): Promise<void> {
+	public async execute(ctx: CrossChainMessageContext): Promise<void> {
 		const { ccm } = ctx;
 		if (!ccm) {
 			throw new Error('CCM to execute registration cross chain command is missing.');
 		}
 		const chainAccount = await this.stores.get(ChainAccountStore).get(ctx, ccm.sendingChainID);
-		chainAccount.status = CHAIN_ACTIVE;
+		chainAccount.status = ChainStatus.ACTIVE;
 		await this.stores.get(ChainAccountStore).set(ctx, ccm.sendingChainID, chainAccount);
 
 		this.events.get(ChainAccountUpdatedEvent).log(ctx, ccm.sendingChainID, chainAccount);

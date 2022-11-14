@@ -20,15 +20,16 @@ import {
 	MAINCHAIN_ID,
 	LIVENESS_LIMIT,
 	MAX_CCM_SIZE,
-	CHAIN_ACTIVE,
 	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-	CHAIN_TERMINATED,
 	EMPTY_BYTES,
 } from '../../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityInternalMethod } from '../../../../../src/modules/interoperability/mainchain/store';
-import { ChainAccountStore } from '../../../../../src/modules/interoperability/stores/chain_account';
+import {
+	ChainAccountStore,
+	ChainStatus,
+} from '../../../../../src/modules/interoperability/stores/chain_account';
 import { ChannelDataStore } from '../../../../../src/modules/interoperability/stores/channel_data';
 import { OwnChainAccountStore } from '../../../../../src/modules/interoperability/stores/own_chain_account';
 import { SendInternalContext } from '../../../../../src/modules/interoperability/types';
@@ -115,16 +116,22 @@ describe('Mainchain interoperability internal method', () => {
 			expect(isLive).toBe(false);
 		});
 
-		it(`should return false if chain account exists and status is ${CHAIN_TERMINATED}`, async () => {
-			await chainDataSubstore.set(context, chainID, { ...chainAccount, status: CHAIN_TERMINATED });
+		it(`should return false if chain account exists and status is ${ChainStatus.TERMINATED}`, async () => {
+			await chainDataSubstore.set(context, chainID, {
+				...chainAccount,
+				status: ChainStatus.TERMINATED,
+			});
 			const isLive = await mainchainInteroperabilityInternalMethod.isLive(chainID, timestamp);
 
 			expect(isLive).toBe(false);
 		});
 
-		it(`should return false if chain account exists & status is ${CHAIN_ACTIVE} & liveness requirement is not satisfied`, async () => {
+		it(`should return false if chain account exists & status is ${ChainStatus.ACTIVE} & liveness requirement is not satisfied`, async () => {
 			chainAccount.lastCertificate.timestamp = timestamp - LIVENESS_LIMIT - 1;
-			await chainDataSubstore.set(context, chainID, { ...chainAccount, status: CHAIN_ACTIVE });
+			await chainDataSubstore.set(context, chainID, {
+				...chainAccount,
+				status: ChainStatus.ACTIVE,
+			});
 
 			const isLive = await mainchainInteroperabilityInternalMethod.isLive(chainID, timestamp);
 

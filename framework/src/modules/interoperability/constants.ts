@@ -55,53 +55,30 @@ export const MAX_MODULE_NAME_LENGTH = 32;
 export const MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH = 1;
 export const MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH = 32;
 export const CHAIN_ID_LENGTH = 4;
-// Chain status
-export const CHAIN_REGISTERED = 0;
-export const CHAIN_ACTIVE = 1;
-export const CHAIN_TERMINATED = 2;
 
 // Cross chain commands
 export const CROSS_CHAIN_COMMAND_NAME_REGISTRATION = 'registration';
 export const CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED = 'channelTerminated';
 export const CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED = 'sidechainTerminated';
-export const CCM_STATUS_OK = 0;
-export const CCM_STATUS_MODULE_NOT_SUPPORTED = 1;
-export const CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED = 2;
-export const CCM_STATUS_CHANNEL_UNAVAILABLE = 3;
-export const CCM_STATUS_CODE_FAILED_CCM = 4;
-export const CCM_PROCESSED_CODE_SUCCESS = 0;
-export const CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE = 1;
-export const CCM_PROCESSED_CODE_MODULE_NOT_SUPPORTED = 2;
-export const CCM_PROCESSED_CODE_CROSS_CHAIN_COMMAND_NOT_SUPPORTED = 3;
-export const CCM_PROCESSED_CODE_FAILED_CCM = 4;
-export const CCM_PROCESSED_CODE_INVALID_CCM_VALIDATION_EXCEPTION = 5;
-export const CCM_PROCESSED_CODE_INVALID_CCM_VERIFY_CCM_EXCEPTION = 6;
-export const CCM_PROCESSED_CODE_INVALID_CCM_VERIFY_EXCEPTION = 7;
-export const CCM_PROCESSED_CODE_INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION = 8;
-export const CCM_PROCESSED_CODE_INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION = 9;
-export const CCM_PROCESSED_CODE_INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION = 10;
-export const CCM_STATUS_CODE_CHANNEL_UNAVAILABLE = 1;
+
+export const enum CCMStatusCode {
+	// Value of status of a new CCM which is not a response due do an error
+	OK = 0,
+	// Value of status of returned CCM due to error: channel unavailable
+	CHANNEL_UNAVAILABLE = 1,
+	// Value of status of returned CCM due to error: module not supported
+	MODULE_NOT_SUPPORTED = 2,
+	// Value of status of returned CCM due to error: cross-chain command not supported
+	CROSS_CHAIN_COMMAND_NOT_SUPPORTED = 3,
+	// Value of status of returned CCM due to error: failed ccm execution
+	FAILED_CCM = 4,
+	// Value of status of CCM that have been recovered with a message recovery command
+	RECOVERED = 5,
+}
+
 export const MIN_RETURN_FEE = BigInt(1000);
 export const CROSS_CHAIN_COMMAND_REGISTRATION = 'crossChainCommandRegistration';
 export const CCM_SENT_STATUS_SUCCESS = 0;
-export const CCM_PROCESSED_RESULT_APPLIED = 0;
-export const CCM_PROCESSED_RESULT_FORWARDED = 1;
-export const CCM_PROCESSED_RESULT_BOUNCED = 2;
-export const CCM_PROCESSED_RESULT_DISCARDED = 3;
-export const CCM_STATUS_CODE_RECOVERED = 5;
-// Value of code of CCM Sent Failed Event
-export enum CCM_SENT_FAILED_CODE {
-	// if sending failed due to the receiving chain not being active.
-	CHANNEL_UNAVAILABLE = 1,
-	// if sending failed due to the fee payment failing.
-	MESSAGE_FEE_EXCEPTION = 11,
-	// if sending failed due to invalid params property.
-	INVALID_PARAMS,
-	// if sending failed due to invalid message format.
-	INVALID_FORMAT,
-	// if sending failed due to invalid receiving chain.
-	INVALID_RECEIVING_CHAIN,
-}
 
 // Commands
 export const COMMAND_NAME_SIDECHAIN_REG = 'sidechainRegistration';

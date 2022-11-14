@@ -23,14 +23,9 @@ import {
 } from '../../../../state_machine';
 import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
-import {
-	CHAIN_TERMINATED,
-	EMPTY_BYTES,
-	LIVENESS_LIMIT,
-	MAINCHAIN_ID_BUFFER,
-} from '../../constants';
+import { EMPTY_BYTES, LIVENESS_LIMIT, MAINCHAIN_ID_BUFFER } from '../../constants';
 import { stateRecoveryInitParams } from '../../schemas';
-import { chainAccountSchema, ChainAccountStore } from '../../stores/chain_account';
+import { chainAccountSchema, ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { TerminatedStateAccount, TerminatedStateStore } from '../../stores/terminated_state';
 import { ChainAccount, StateRecoveryInitParams } from '../../types';
@@ -75,7 +70,7 @@ export class StateRecoveryInitializationCommand extends BaseInteroperabilityComm
 			.get(ChainAccountStore)
 			.get(context, MAINCHAIN_ID_BUFFER);
 		if (
-			deserializedInteropAccount.status !== CHAIN_TERMINATED &&
+			deserializedInteropAccount.status !== ChainStatus.TERMINATED &&
 			mainchainAccount.lastCertificate.timestamp -
 				deserializedInteropAccount.lastCertificate.timestamp <=
 				LIVENESS_LIMIT

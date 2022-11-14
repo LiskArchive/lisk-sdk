@@ -21,7 +21,6 @@ import { CommandExecuteContext, MainchainInteroperabilityModule } from '../../..
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { BaseInteroperableMethod } from '../../../../../../src/modules/interoperability/base_interoperable_method';
 import {
-	CHAIN_ACTIVE,
 	COMMAND_NAME_MESSAGE_RECOVERY,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	MODULE_NAME_INTEROPERABILITY,
@@ -43,7 +42,10 @@ import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory
 import { TerminatedOutboxStore } from '../../../../../../src/modules/interoperability/stores/terminated_outbox';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
 import { NamedRegistry } from '../../../../../../src/modules/named_registry';
-import { ChainAccountStore } from '../../../../../../src/modules/interoperability/stores/chain_account';
+import {
+	ChainAccountStore,
+	ChainStatus,
+} from '../../../../../../src/modules/interoperability/stores/chain_account';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 
 describe('Mainchain MessageRecoveryCommand', () => {
@@ -422,7 +424,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 				chainAccountStoreMock.get.mockResolvedValue({
 					name: `chain${chainID.toString('hex')}`,
-					status: CHAIN_ACTIVE,
+					status: ChainStatus.ACTIVE,
 					lastCertificate: {
 						height: 1,
 						timestamp: 10,

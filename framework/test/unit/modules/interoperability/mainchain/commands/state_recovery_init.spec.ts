@@ -4,8 +4,6 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { sparseMerkleTree } from '@liskhq/lisk-tree';
 import {
-	CHAIN_ACTIVE,
-	CHAIN_TERMINATED,
 	COMMAND_NAME_STATE_RECOVERY_INIT,
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
@@ -33,6 +31,7 @@ import {
 import {
 	chainAccountSchema,
 	ChainAccountStore,
+	ChainStatus,
 } from '../../../../../../src/modules/interoperability/stores/chain_account';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
@@ -87,7 +86,7 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 				timestamp: 100,
 				validatorsHash: utils.getRandomBytes(32),
 			},
-			status: CHAIN_TERMINATED,
+			status: ChainStatus.TERMINATED,
 		};
 
 		sidechainChainAccountEncoded = codec.encode(chainAccountSchema, sidechainChainAccount);
@@ -161,7 +160,7 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 					timestamp: 100 + LIVENESS_LIMIT,
 					validatorsHash: utils.getRandomBytes(32),
 				},
-				status: CHAIN_ACTIVE,
+				status: ChainStatus.ACTIVE,
 			};
 			const ownChainAccount = {
 				name: 'mainchain',
@@ -216,7 +215,7 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 					timestamp: 100,
 					validatorsHash: utils.getRandomBytes(32),
 				},
-				status: CHAIN_ACTIVE,
+				status: ChainStatus.ACTIVE,
 			};
 			sidechainChainAccountEncoded = codec.encode(chainAccountSchema, sidechainChainAccount);
 			transactionParams = {

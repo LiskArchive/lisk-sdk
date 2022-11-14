@@ -19,8 +19,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { LiskValidationError } from '@liskhq/lisk-validator';
 import { MainchainRegistrationCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/mainchain_registration';
 import {
-	CCM_STATUS_OK,
-	CHAIN_REGISTERED,
+	CCMStatusCode,
 	COMMAND_NAME_MAINCHAIN_REG,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	EMPTY_BYTES,
@@ -59,7 +58,10 @@ import { SidechainInteroperabilityModule } from '../../../../../../src';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
 import { OutboxRootStore } from '../../../../../../src/modules/interoperability/stores/outbox_root';
-import { ChainAccountStore } from '../../../../../../src/modules/interoperability/stores/chain_account';
+import {
+	ChainAccountStore,
+	ChainStatus,
+} from '../../../../../../src/modules/interoperability/stores/chain_account';
 import { ChainValidatorsStore } from '../../../../../../src/modules/interoperability/stores/chain_validators';
 import { createTransactionContext } from '../../../../../../src/testing';
 import { ChainAccountUpdatedEvent } from '../../../../../../src/modules/interoperability/events/chain_account_updated';
@@ -248,7 +250,7 @@ describe('Mainchain registration command', () => {
 				stateRoot: EMPTY_HASH,
 				validatorsHash: computeValidatorsHash(mainchainValidators, BigInt(THRESHOLD_MAINCHAIN)),
 			},
-			status: CHAIN_REGISTERED,
+			status: ChainStatus.REGISTERED,
 		};
 		const blsKey1 = utils.getRandomBytes(48);
 		const blsKey2 = utils.getRandomBytes(48);
@@ -430,7 +432,7 @@ describe('Mainchain registration command', () => {
 					stateRoot: EMPTY_HASH,
 					validatorsHash: computeValidatorsHash(mainchainValidators, BigInt(THRESHOLD_MAINCHAIN)),
 				},
-				status: CHAIN_REGISTERED,
+				status: ChainStatus.REGISTERED,
 			};
 			// Act
 			await mainchainRegistrationCommand.execute(context);
@@ -461,7 +463,7 @@ describe('Mainchain registration command', () => {
 				sendingChainID: params.ownChainID,
 				receivingChainID: MAINCHAIN_ID_BUFFER,
 				fee: BigInt(0),
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 				params: encodedParams,
 			};
 
@@ -505,7 +507,7 @@ describe('Mainchain registration command', () => {
 				sendingChainID: ownChainAccount.chainID,
 				receivingChainID: MAINCHAIN_ID_BUFFER,
 				fee: BigInt(0),
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 				params: encodedParams,
 			};
 			const ccmID = utils.hash(codec.encode(ccmSchema, ccm));

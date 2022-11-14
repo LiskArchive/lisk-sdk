@@ -16,21 +16,22 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { MainchainInteroperabilityModule } from '../../../../../src';
 import {
-	CCM_STATUS_OK,
-	CCM_STATUS_CODE_FAILED_CCM,
+	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 	HASH_LENGTH,
-	CHAIN_ACTIVE,
 } from '../../../../../src/modules/interoperability/constants';
 import { MainchainCCRegistrationCommand } from '../../../../../src/modules/interoperability/mainchain/cc_commands';
 import { registrationCCMParamsSchema } from '../../../../../src/modules/interoperability/schemas';
-import { CCCommandExecuteContext, CCMsg } from '../../../../../src/modules/interoperability/types';
-import { createExecuteCCMsgMethodContext } from '../../../../../src/testing';
+import { CCMsg, CrossChainMessageContext } from '../../../../../src/modules/interoperability/types';
+import { createCrossChainMessageContext } from '../../../../../src/testing';
 import { ChannelDataStore } from '../../../../../src/modules/interoperability/stores/channel_data';
 import { OwnChainAccountStore } from '../../../../../src/modules/interoperability/stores/own_chain_account';
-import { ChainAccountStore } from '../../../../../src/modules/interoperability/stores/chain_account';
+import {
+	ChainAccountStore,
+	ChainStatus,
+} from '../../../../../src/modules/interoperability/stores/chain_account';
 import { CHAIN_ID_LENGTH } from '../../../../../src/modules/token/constants';
 import { ChainAccountUpdatedEvent } from '../../../../../src/modules/interoperability/events/chain_account_updated';
 
@@ -114,18 +115,18 @@ describe('BaseCCRegistrationCommand', () => {
 		params: obj.params ?? encodedRegistrationParams,
 		receivingChainID: obj.receivingChainID ?? MAINCHAIN_ID_BUFFER,
 		sendingChainID: obj.sendingChainID ?? SIDECHAIN_ID_BUFFER,
-		status: obj.status ?? CCM_STATUS_OK,
+		status: obj.status ?? CCMStatusCode.OK,
 	});
 
-	const resetContext = (ccm: CCMsg): CCCommandExecuteContext => {
-		return createExecuteCCMsgMethodContext({
+	const resetContext = (ccm: CCMsg): CrossChainMessageContext => {
+		return createCrossChainMessageContext({
 			ccm,
 			chainID: SIDECHAIN_ID_BUFFER,
 		});
 	};
 
 	let ccm: CCMsg;
-	let sampleExecuteContext: CCCommandExecuteContext;
+	let sampleExecuteContext: CrossChainMessageContext;
 	let ccRegistrationCommand: MainchainCCRegistrationCommand;
 
 	beforeEach(() => {
@@ -155,10 +156,10 @@ describe('BaseCCRegistrationCommand', () => {
 			);
 		});
 
-		it('should fail if ccm.status != CCM_STATUS_OK', async () => {
+		it('should fail if ccm.status != OK', async () => {
 			sampleExecuteContext = resetContext(
 				buildCCM({
-					status: CCM_STATUS_CODE_FAILED_CCM,
+					status: CCMStatusCode.FAILED_CCM,
 				}),
 			);
 			await expect(ccRegistrationCommand.verify(sampleExecuteContext)).rejects.toThrow(
@@ -242,7 +243,7 @@ describe('BaseCCRegistrationCommand', () => {
 		it('should execute successfully', async () => {
 			await ccRegistrationCommand.execute(sampleExecuteContext);
 
-			chainAccount.status = CHAIN_ACTIVE;
+			chainAccount.status = ChainStatus.ACTIVE;
 
 			expect(chainAccountStoreMock.set).toHaveBeenCalledTimes(1);
 			expect(chainAccountUpdatedEventMock.log).toHaveBeenCalledWith(
