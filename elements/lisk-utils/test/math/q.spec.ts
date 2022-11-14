@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Q_OPERATION, q, q96 } from '../../src/math';
+import { q, q96 } from '../../src/math';
 
 /**
  * For the test cases `binary` represents the calculation result in binary.
@@ -32,7 +32,6 @@ describe('Q', () => {
 	// decimalBinaryPosthe elements should bein the array means the position of "1" in binary.
 	const expectedQ = (b: number, int: number, decimalBinaryPos?: number[]) =>
 		mulBasePow2(b, int) + pow2BaseDiffAddition(b, decimalBinaryPos ?? []);
-	const bigintToHex = (val: bigint) => Buffer.from(val.toString(16), 'hex').toString('hex');
 
 	describe('constructor', () => {
 		const numberCases = [
@@ -44,14 +43,14 @@ describe('Q', () => {
 		];
 		it.each(numberCases)('should create Q from number', val => {
 			const actual = q(val.input, base);
-			expect(actual.toBuffer().toString('hex')).toEqual(bigintToHex(val.expected));
+			expect(actual['_val']).toEqual(val.expected);
 		});
 
 		const bigintCases = [[{ input: BigInt(10), expected: mulBasePow2(base, 10) }]];
 
 		it.each(bigintCases)('should create Q from bigint', val => {
 			const actual = q(val.input, base);
-			expect(actual.toBuffer().toString('hex')).toEqual(bigintToHex(val.expected));
+			expect(actual['_val']).toEqual(val.expected);
 		});
 
 		const bytesCases = [
@@ -78,9 +77,7 @@ describe('Q', () => {
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(q(val.original, base).add(q(val.value, base)).toBuffer().toString('hex')).toEqual(
-				bigintToHex(val.expected),
-			);
+			expect(q(val.original, base).add(q(val.value, base))['_val']).toEqual(val.expected);
 		});
 	});
 
@@ -101,9 +98,7 @@ describe('Q', () => {
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(q(val.original, base).sub(q(val.value, base)).toBuffer().toString('hex')).toEqual(
-				bigintToHex(val.expected),
-			);
+			expect(q(val.original, base).sub(q(val.value, base))['_val']).toEqual(val.expected);
 		});
 
 		it('should result in empty bytes for zero value', () => {
@@ -125,9 +120,7 @@ describe('Q', () => {
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(q(val.original, base).mul(q(val.value, base)).toBuffer().toString('hex')).toEqual(
-				bigintToHex(val.expected),
-			);
+			expect(q(val.original, base).mul(q(val.value, base))['_val']).toEqual(val.expected);
 		});
 
 		it('should result in empty bytes for zero value', () => {
@@ -157,9 +150,7 @@ describe('Q', () => {
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(q(val.original, base).div(q(val.value, base)).toBuffer().toString('hex')).toEqual(
-				bigintToHex(val.expected),
-			);
+			expect(q(val.original, base).div(q(val.value, base))['_val']).toEqual(val.expected);
 		});
 
 		it('should result in empty bytes for zero value', () => {
@@ -190,9 +181,9 @@ describe('Q', () => {
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(
-				q(val.original, base).muldiv(q(val.mul, base), q(val.div, base)).toBuffer().toString('hex'),
-			).toEqual(bigintToHex(val.expected));
+			expect(q(val.original, base).muldiv(q(val.mul, base), q(val.div, base))['_val']).toEqual(
+				val.expected,
+			);
 		});
 
 		it('should result in empty bytes for zero value', () => {
@@ -213,9 +204,7 @@ describe('Q', () => {
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(q(val.original, base).inv().toBuffer().toString('hex')).toEqual(
-				bigintToHex(val.expected),
-			);
+			expect(q(val.original, base).inv()['_val']).toEqual(val.expected);
 		});
 	});
 
@@ -279,16 +268,28 @@ describe('Q', () => {
 		});
 	});
 
-	describe('toInt', () => {
+	describe('ceil', () => {
 		const cases = [
-			[{ original: 200.25, expected: BigInt(200), operation: Q_OPERATION.ROUND_DOWN }],
-			[{ original: 200.32, expected: BigInt(201), operation: Q_OPERATION.ROUND_UP }],
-			[{ original: 200.999999, expected: BigInt(200), operation: Q_OPERATION.ROUND_DOWN }],
-			[{ original: 200.999999, expected: BigInt(201), operation: Q_OPERATION.ROUND_UP }],
+			[{ original: 0, expected: BigInt(0) }],
+			[{ original: 0.1, expected: BigInt(1) }],
+			[{ original: 200, expected: BigInt(200) }],
+			[{ original: 200.32, expected: BigInt(201) }],
+			[{ original: 200.999999, expected: BigInt(201) }],
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(q(val.original, base).toInt(val.operation)).toEqual(val.expected);
+			expect(q(val.original, base).ceil()).toEqual(val.expected);
+		});
+	});
+
+	describe('floor', () => {
+		const cases = [
+			[{ original: 200.25, expected: BigInt(200) }],
+			[{ original: 200.999999, expected: BigInt(200) }],
+		];
+
+		it.each(cases)('should result in expected value', val => {
+			expect(q(val.original, base).floor()).toEqual(val.expected);
 		});
 	});
 

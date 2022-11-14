@@ -13,17 +13,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MAX_FRAC, ONE, Q_OPERATION, TWO } from './constants';
+import { ONE, Q_OPERATION, TWO, ZERO } from './constants';
 
 const numberToQ = (base: bigint, val: number): bigint => {
-	const denominator = TWO ** base;
 	if (Number.isInteger(val)) {
-		return BigInt(val) * denominator;
+		return BigInt(val) << base;
 	}
 	const [intStr, fractionalStr] = val.toString().split('.');
 	return (
-		BigInt(intStr) * denominator +
-		(BigInt(fractionalStr) * denominator) / BigInt(10) ** BigInt(fractionalStr.length)
+		(BigInt(intStr) << base) +
+		(BigInt(fractionalStr) << base) / BigInt(10) ** BigInt(fractionalStr.length)
 	);
 };
 
@@ -35,10 +34,6 @@ export class Q {
 	private readonly _val: bigint;
 
 	public constructor(val: bigint, base: number | bigint) {
-		this._base = BigInt(base);
-		if (this._base > MAX_FRAC) {
-			throw new Error('Base exceeds max fraction allowed.');
-		}
 		this._val = val;
 		this._base = BigInt(base);
 	}
@@ -58,57 +53,55 @@ export class Q {
 	}
 
 	public add(n: Q) {
-		if (this._base !== n._base) {
-			throw new Error('Base of input does not match.');
-		}
+		this._checkBase(n);
+
 		return new Q(this._val + n._val, this._base);
 	}
 
 	public sub(n: Q) {
-		if (this._base !== n._base) {
-			throw new Error('Invalid input, base does not match.');
-		}
+		this._checkBase(n);
 		if (this._val < n._val) {
 			throw new Error('Invalid input, output cannot be negative.');
 		}
+
 		return new Q(this._val - n._val, this._base);
 	}
 
 	public mul(n: Q) {
-		if (this._base !== n._base) {
-			throw new Error('Invalid input, base does not match.');
-		}
-		return new Q((this._val * n._val) >> this._base, this._base);
+		this._checkBase(n);
+
+		return new Q(this._roundDown(this._val * n._val), this._base);
 	}
 
 	public div(n: Q) {
-		if (this._base !== n._base) {
-			throw new Error('Invalid input, base does not match.');
+		this._checkBase(n);
+		if (n._val === ZERO) {
+			throw new Error('Cannot be divided by zero.');
 		}
+
 		return new Q((this._val << this._base) / n._val, this._base);
 	}
 
-	public muldiv(n: Q, m: Q) {
-		if (this._base !== n._base || this._base !== m._base) {
-			throw new Error('Invalid input, base does not match.');
+	public muldiv(n: Q, m: Q, operation: Q_OPERATION = Q_OPERATION.ROUND_DOWN) {
+		this._checkBase(n);
+		this._checkBase(m);
+		if (m._val === ZERO) {
+			throw new Error('Cannot be divided by zero.');
 		}
-		const x = this._val * n._val;
-		const y = x << this._base;
-		const z = y / m._val;
 
-		return new Q(this._roundDown(z), this._base);
+		const mulResult = this._val * n._val;
+		const scaledResult = mulResult << this._base;
+		const divResult = scaledResult / m._val;
+
+		if (operation === Q_OPERATION.ROUND_DOWN) {
+			return new Q(this._roundDown(divResult), this._base);
+		}
+		return new Q(this._roundUp(divResult), this._base);
 	}
 
 	public inv() {
 		const numerator = new Q(ONE << this._base, this._base);
 		return numerator.div(this);
-	}
-
-	public toInt(operation: Q_OPERATION = Q_OPERATION.ROUND_DOWN) {
-		if (operation === Q_OPERATION.ROUND_DOWN) {
-			return this._roundDown(this._val);
-		}
-		return this._roundUp(this._val);
 	}
 
 	public toBuffer(): Buffer {
@@ -135,19 +128,30 @@ export class Q {
 		return this._val >= n._val;
 	}
 
+	public floor(): bigint {
+		return this._roundDown(this._val);
+	}
+
+	public ceil(): bigint {
+		return this._roundUp(this._val);
+	}
+
+	private _checkBase(n: Q) {
+		if (this._base !== n._base) {
+			throw new Error('Invalid input, base does not match.');
+		}
+	}
+
 	private _roundDown(n: bigint) {
 		return n >> this._base;
 	}
 
 	private _roundUp(n: bigint) {
-		const x = ONE << this._base;
-		const y = n % x;
-
-		if (y === BigInt(0)) {
-			return n >> this._base;
+		const result = n >> this._base;
+		// Result is multiple of 2 ** base (ie: integer)
+		if (n % (ONE << this._base) === BigInt(0)) {
+			return result;
 		}
-
-		const r = n >> this._base;
-		return r + ONE;
+		return result + ONE;
 	}
 }
