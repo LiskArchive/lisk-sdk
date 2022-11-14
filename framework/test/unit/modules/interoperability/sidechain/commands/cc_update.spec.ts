@@ -349,7 +349,7 @@ describe('CrossChainUpdateCommand', () => {
 			).rejects.toThrow('Keys are not sorted lexicographic order.');
 		});
 
-		it('should rejct when verifyCertificateSignature fails', async () => {
+		it('should reject when verifyCertificateSignature fails', async () => {
 			jest
 				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'verifyCertificateSignature')
 				.mockRejectedValue(new Error('Certificate is invalid due to invalid signature.'));
