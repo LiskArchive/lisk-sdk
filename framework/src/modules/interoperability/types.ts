@@ -184,6 +184,10 @@ export interface CCMBounceContext {
 	ccmProcessedEventCode: number;
 }
 
+export interface CreateTerminatedOutboxAccountContext {
+	eventQueue: EventQueue;
+}
+
 export interface CreateTerminatedStateAccountContext {
 	eventQueue: EventQueue;
 }

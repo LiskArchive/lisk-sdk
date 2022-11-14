@@ -30,6 +30,7 @@ import {
 	SendInternalContext,
 	TerminateChainContext,
 	CreateTerminatedStateAccountContext,
+	CreateTerminatedOutboxAccountContext,
 	CrossChainUpdateTransactionParams,
 } from './types';
 import { computeValidatorsHash, getIDAsKeyForStore } from './utils';
@@ -45,6 +46,7 @@ import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/termina
 import { ChainAccountUpdatedEvent } from './events/chain_account_updated';
 import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
 import { BaseInternalMethod } from '../BaseInternalMethod';
+import { TerminatedOutboxCreatedEvent } from './events/terminated_outbox_created';
 import { MethodContext, ImmutableMethodContext } from '../../state_machine';
 import { ChainValidatorsStore, updateActiveValidators } from './stores/chain_validators';
 import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';
@@ -105,20 +107,21 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 	}
 
 	public async createTerminatedOutboxAccount(
+		context: CreateTerminatedOutboxAccountContext,
 		chainID: Buffer,
 		outboxRoot: Buffer,
 		outboxSize: number,
 		partnerChainInboxSize: number,
 	): Promise<void> {
-		const terminatedOutboxSubstore = this.stores.get(TerminatedOutboxStore);
-
 		const terminatedOutbox = {
 			outboxRoot,
 			outboxSize,
 			partnerChainInboxSize,
 		};
 
+		const terminatedOutboxSubstore = this.stores.get(TerminatedOutboxStore);
 		await terminatedOutboxSubstore.set(this.context, chainID, terminatedOutbox);
+		this.events.get(TerminatedOutboxCreatedEvent).log(context, chainID, terminatedOutbox);
 	}
 
 	public async setTerminatedOutboxAccount(
