@@ -47,7 +47,11 @@ import { PreviousTimestampStore } from '../../../../src/modules/dpos_v2/stores/p
 import { GenesisDataStore } from '../../../../src/modules/dpos_v2/stores/genesis';
 import { SnapshotStore } from '../../../../src/modules/dpos_v2/stores/snapshot';
 import { createStoreGetter } from '../../../../src/testing/utils';
-import { TOKEN_ID_LENGTH } from '../../../../src/modules/dpos_v2/constants';
+import {
+	COMMISSION_INCREASE_PERIOD,
+	MAX_COMMISSION_INCREASE_RATE,
+	TOKEN_ID_LENGTH,
+} from '../../../../src/modules/dpos_v2/constants';
 import { EligibleDelegatesStore } from '../../../../src/modules/dpos_v2/stores/eligible_delegates';
 import { getDelegateWeight, ValidatorWeight } from '../../../../src/modules/dpos_v2/utils';
 
@@ -69,6 +73,8 @@ describe('DPoS module', () => {
 		tokenIDFee: '0000000000000000',
 		delegateRegistrationFee: (BigInt(10) * BigInt(10) ** BigInt(8)).toString(),
 		maxBFTWeightCap: 500,
+		commissionIncreasePeriod: COMMISSION_INCREASE_PERIOD,
+		maxCommissionIncreaseRate: MAX_COMMISSION_INCREASE_RATE,
 	};
 
 	const sortValidatorsByWeightDesc = (validators: ValidatorWeight[]) =>

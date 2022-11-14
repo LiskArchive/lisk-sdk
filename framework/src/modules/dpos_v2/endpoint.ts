@@ -141,6 +141,8 @@ export class DPoSEndpoint extends BaseEndpoint {
 			tokenIDFee: this._moduleConfig.tokenIDFee.toString('hex'),
 			delegateRegistrationFee: this._moduleConfig.delegateRegistrationFee.toString(),
 			maxBFTWeightCap: this._moduleConfig.maxBFTWeightCap,
+			commissionIncreasePeriod: this._moduleConfig.commissionIncreasePeriod,
+			maxCommissionIncreaseRate: this._moduleConfig.maxCommissionIncreaseRate,
 		};
 	}
 

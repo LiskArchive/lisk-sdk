@@ -37,6 +37,8 @@ export interface ModuleConfig {
 	tokenIDFee: Buffer;
 	delegateRegistrationFee: bigint;
 	maxBFTWeightCap: number;
+	commissionIncreasePeriod: number;
+	maxCommissionIncreaseRate: number;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
@@ -212,6 +214,10 @@ export interface PomTransactionParams {
 export interface PomCommandDependencies {
 	tokenMethod: TokenMethod;
 	validatorsMethod: ValidatorsMethod;
+}
+
+export interface ChangeCommissionParams {
+	newCommission: number;
 }
 
 export interface ValidatorKeys {
