@@ -34,7 +34,6 @@ import {
 	CrossChainUpdateTransactionParams,
 } from './types';
 import { computeValidatorsHash, getIDAsKeyForStore } from './utils';
-import { BaseInteroperableMethod } from './base_interoperable_method';
 import { ImmutableStoreGetter, StoreGetter } from '../base_store';
 import { NamedRegistry } from '../named_registry';
 import { OwnChainAccountStore } from './stores/own_chain_account';
@@ -51,16 +50,17 @@ import { MethodContext, ImmutableMethodContext } from '../../state_machine';
 import { ChainValidatorsStore, updateActiveValidators } from './stores/chain_validators';
 import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';
 import { Certificate } from '../../engine/consensus/certificate_generation/types';
+import { BaseCCMethod } from './base_cc_method';
 
 export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMethod {
 	public readonly context: StoreGetter;
-	protected readonly interoperableModuleMethods = new Map<string, BaseInteroperableMethod>();
+	protected readonly interoperableModuleMethods = new Map<string, BaseCCMethod>();
 
 	public constructor(
 		stores: NamedRegistry,
 		events: NamedRegistry,
 		context: StoreGetter | ImmutableStoreGetter,
-		interoperableModuleMethods: Map<string, BaseInteroperableMethod>,
+		interoperableModuleMethods: Map<string, BaseCCMethod>,
 	) {
 		super(stores, events);
 		this.context = context as StoreGetter;
@@ -239,6 +239,9 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			getStore: terminateChainContext.getStore,
 			logger: terminateChainContext.logger,
 			chainID: terminateChainContext.chainID,
+			header: terminateChainContext.header,
+			transaction: terminateChainContext.transaction,
+			stateStore: terminateChainContext.stateStore,
 		});
 
 		await this.createTerminatedStateAccount(terminateChainContext, chainID);

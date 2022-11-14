@@ -16,7 +16,6 @@ import { codec } from '@liskhq/lisk-codec';
 import { CCMStatusCode, CROSS_CHAIN_COMMAND_NAME_REGISTRATION, EMPTY_BYTES } from '../../constants';
 import { registrationCCMParamsSchema } from '../../schemas';
 import { CrossChainMessageContext } from '../../types';
-import { createCCMsgBeforeSendContext } from '../../context';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 import { MainchainInteroperabilityInternalMethod } from '../store';
 import { StoreGetter } from '../../../base_store';
@@ -62,19 +61,7 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			!ccmRegistrationParams.chainID.equals(ctx.chainID) ||
 			ccm.nonce !== BigInt(0) // Only in mainchain
 		) {
-			const beforeSendContext = createCCMsgBeforeSendContext({
-				ccm,
-				eventQueue: ctx.eventQueue,
-				getMethodContext: ctx.getMethodContext,
-				getStore: ctx.getStore,
-				logger: ctx.logger,
-				chainID: ctx.chainID,
-				feeAddress: ctx.transaction.senderAddress,
-			});
-			await interoperabilityInternalMethod.terminateChainInternal(
-				ccm.sendingChainID,
-				beforeSendContext,
-			);
+			await interoperabilityInternalMethod.terminateChainInternal(ccm.sendingChainID, ctx);
 		}
 	}
 

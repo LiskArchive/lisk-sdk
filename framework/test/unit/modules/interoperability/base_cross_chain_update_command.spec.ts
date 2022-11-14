@@ -18,7 +18,7 @@ import { ImmutableStoreGetter, StoreGetter } from '../../../../src/modules/base_
 import { BaseCCCommand } from '../../../../src/modules/interoperability/base_cc_command';
 import { BaseCrossChainUpdateCommand } from '../../../../src/modules/interoperability/base_cross_chain_update_command';
 import { BaseInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/base_interoperability_internal_methods';
-import { BaseInteroperableMethod } from '../../../../src/modules/interoperability/base_interoperable_method';
+import { BaseCCMethod } from '../../../../src/modules/interoperability/base_cc_method';
 import { CCMStatusCode, MIN_RETURN_FEE } from '../../../../src/modules/interoperability/constants';
 import {
 	CCMProcessedCode,
@@ -60,7 +60,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 	};
 	let context: CrossChainMessageContext;
 	let command: CrossChainUpdateCommand;
-	let ccMethods: Map<string, BaseInteroperableMethod>;
+	let ccMethods: Map<string, BaseCCMethod>;
 	let ccCommands: Map<string, BaseCCCommand[]>;
 	let internalMethod: BaseInteroperabilityInternalMethod;
 
@@ -69,7 +69,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		ccMethods = new Map();
 		ccMethods.set(
 			'token',
-			new (class TokenMethod extends BaseInteroperableMethod {
+			new (class TokenMethod extends BaseCCMethod {
 				public verifyCrossChainMessage = jest.fn();
 				public beforeCrossChainCommandExecute = jest.fn();
 				public afterCrossChainCommandExecute = jest.fn();
@@ -128,7 +128,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should terminate the chain and log event when verifyCrossChainMessage fails', async () => {
-			((ccMethods.get('token') as BaseInteroperableMethod)
+			((ccMethods.get('token') as BaseCCMethod)
 				.verifyCrossChainMessage as jest.Mock).mockRejectedValue('error');
 			await expect(command['apply'](context)).resolves.toBeUndefined();
 
@@ -202,7 +202,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should terminate the chain and log event when command beforeCrossChainCommandExecute fails', async () => {
-			((ccMethods.get('token') as BaseInteroperableMethod)
+			((ccMethods.get('token') as BaseCCMethod)
 				.beforeCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
 
 			await expect(command['apply'](context)).resolves.toBeUndefined();
@@ -225,7 +225,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should revert to the original state/event when command beforeCrossChainCommandExecute fails', async () => {
-			((ccMethods.get('token') as BaseInteroperableMethod)
+			((ccMethods.get('token') as BaseCCMethod)
 				.beforeCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
 			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
 			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);
@@ -261,14 +261,13 @@ describe('BaseCrossChainUpdateCommand', () => {
 			expect(context.eventQueue.restoreSnapshot).toHaveBeenCalledWith(2);
 			expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(2);
 			expect(
-				(ccMethods.get('token') as BaseInteroperableMethod)
-					.afterCrossChainCommandExecute as jest.Mock,
+				(ccMethods.get('token') as BaseCCMethod).afterCrossChainCommandExecute as jest.Mock,
 			).toHaveBeenCalledTimes(1);
 			expect(command['bounce']).toHaveBeenCalledTimes(1);
 		});
 
 		it('should terminate the chain and log event when command afterCrossChainCommandExecute fails', async () => {
-			((ccMethods.get('token') as BaseInteroperableMethod)
+			((ccMethods.get('token') as BaseCCMethod)
 				.afterCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
 
 			await expect(command['apply'](context)).resolves.toBeUndefined();
@@ -291,7 +290,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should restore the original state/event when command afterCrossChainCommandExecute fails', async () => {
-			((ccMethods.get('token') as BaseInteroperableMethod)
+			((ccMethods.get('token') as BaseCCMethod)
 				.afterCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
 			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
 			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);
