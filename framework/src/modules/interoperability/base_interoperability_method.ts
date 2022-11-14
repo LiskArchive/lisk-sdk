@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { BaseMethod } from '../base_method';
-import { BaseInteroperableMethod } from './base_interoperable_method';
+import { BaseCCMethod } from './base_cc_method';
 import { NamedRegistry } from '../named_registry';
 import { ImmutableMethodContext, MethodContext, NotFoundError } from '../../state_machine';
 import { ChainAccount, ChainAccountStore, ChainStatus } from './stores/chain_account';
@@ -36,7 +36,7 @@ import { TerminatedOutboxStore } from './stores/terminated_outbox';
 export abstract class BaseInteroperabilityMethod<
 	T extends BaseInteroperabilityInternalMethod
 > extends BaseMethod {
-	protected readonly interoperableCCMethods = new Map<string, BaseInteroperableMethod>();
+	protected readonly interoperableCCMethods = new Map<string, BaseCCMethod>();
 	protected _tokenMethod!: TokenMethod & {
 		payMessageFee: (
 			context: MethodContext,
@@ -52,7 +52,7 @@ export abstract class BaseInteroperabilityMethod<
 	public constructor(
 		stores: NamedRegistry,
 		events: NamedRegistry,
-		interoperableCCMethods: Map<string, BaseInteroperableMethod>,
+		interoperableCCMethods: Map<string, BaseCCMethod>,
 	) {
 		super(stores, events);
 		this.interoperableCCMethods = interoperableCCMethods;

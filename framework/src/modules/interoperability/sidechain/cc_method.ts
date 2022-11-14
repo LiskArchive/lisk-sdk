@@ -12,6 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseInteroperableMethod } from '../base_interoperable_method';
+import { BaseCCMethod } from '../base_cc_method';
 
-export class SidechainCCMethod extends BaseInteroperableMethod {}
+export class SidechainCCMethod extends BaseCCMethod {}

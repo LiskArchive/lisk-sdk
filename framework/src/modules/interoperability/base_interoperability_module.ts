@@ -13,7 +13,7 @@
  */
 
 import { BaseCCCommand } from './base_cc_command';
-import { BaseInteroperableMethod } from './base_interoperable_method';
+import { BaseCCMethod } from './base_cc_method';
 import { BaseInteroperableModule } from './base_interoperable_module';
 import { MODULE_NAME_INTEROPERABILITY } from './constants';
 import { ChainAccountStore } from './stores/chain_account';
@@ -27,7 +27,7 @@ import { TerminatedStateStore } from './stores/terminated_state';
 
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
 	protected interoperableCCCommands = new Map<string, BaseCCCommand[]>();
-	protected interoperableCCMethods = new Map<string, BaseInteroperableMethod>();
+	protected interoperableCCMethods = new Map<string, BaseCCMethod>();
 
 	public constructor() {
 		super();

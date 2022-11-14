@@ -12,20 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseMethod } from '../base_method';
-import {
-	BeforeApplyCCMsgMethodContext,
-	BeforeSendCCMsgMethodContext,
-	BeforeRecoverCCMsgMethodContext,
-	RecoverCCMsgMethodContext,
-	CrossChainMessageContext,
-} from './types';
+import { BaseMethod } from '..';
+import { CrossChainMessageContext } from './types';
 
-export abstract class BaseInteroperableMethod extends BaseMethod {
-	public beforeApplyCCM?(ctx: BeforeApplyCCMsgMethodContext): Promise<void>;
-	public beforeSendCCM?(ctx: BeforeSendCCMsgMethodContext): Promise<void>;
-	public beforeRecoverCCM?(ctx: BeforeRecoverCCMsgMethodContext): Promise<void>;
-	public recover?(ctx: RecoverCCMsgMethodContext): Promise<void>;
+export abstract class BaseCCMethod extends BaseMethod {
+	public beforeRecoverCCM?(ctx: CrossChainMessageContext): Promise<void>;
+	public recover?(ctx: CrossChainMessageContext): Promise<void>;
 	public verifyCrossChainMessage?(ctx: CrossChainMessageContext): Promise<void>;
 	public beforeCrossChainCommandExecute?(ctx: CrossChainMessageContext): Promise<void>;
 	public afterCrossChainCommandExecute?(ctx: CrossChainMessageContext): Promise<void>;
