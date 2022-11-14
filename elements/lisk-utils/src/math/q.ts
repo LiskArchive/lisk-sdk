@@ -22,7 +22,7 @@ const numberToQ = (base: bigint, val: number): bigint => {
 	if (decimals === 0) {
 		return BigInt(val) * denominator;
 	}
-	const [_, binaryStr] = decimals.toString(2).split('.');
+	const [, binaryStr] = decimals.toString(2).split('.');
 	let result = BigInt(int) * denominator;
 	for (let i = 0; i < base; i += 1) {
 		if (binaryStr.length <= i) {
