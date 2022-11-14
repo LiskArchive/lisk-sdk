@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Q_OPERATION, q } from '../../src/math';
+import { Q_OPERATION, q, q96 } from '../../src/math';
 
 /**
  * For the test cases `binary` represents the calculation result in binary.
@@ -36,6 +36,7 @@ describe('Q', () => {
 
 	describe('constructor', () => {
 		const numberCases = [
+			[{ input: 0, expected: expectedQ(base, 0), binary: '0' }],
 			[{ input: 10, expected: expectedQ(base, 10), binary: '1010' }],
 			[{ input: 10.25, expected: expectedQ(base, 10, [2]), binary: '1010.01' }],
 			[{ input: 0.25, expected: expectedQ(base, 0, [2]), binary: '0.01' }],
@@ -104,6 +105,10 @@ describe('Q', () => {
 				bigintToHex(val.expected),
 			);
 		});
+
+		it('should result in empty bytes for zero value', () => {
+			expect(q(20.444444, base).sub(q(20.444444, base)).toBuffer()).toEqual(Buffer.alloc(0));
+		});
 	});
 
 	describe('mul', () => {
@@ -123,6 +128,10 @@ describe('Q', () => {
 			expect(q(val.original, base).mul(q(val.value, base)).toBuffer().toString('hex')).toEqual(
 				bigintToHex(val.expected),
 			);
+		});
+
+		it('should result in empty bytes for zero value', () => {
+			expect(q(20.444444, base).mul(q(0, base)).toBuffer()).toEqual(Buffer.alloc(0));
 		});
 	});
 
@@ -152,6 +161,10 @@ describe('Q', () => {
 				bigintToHex(val.expected),
 			);
 		});
+
+		it('should result in empty bytes for zero value', () => {
+			expect(q(0, base).mul(q(20.444444, base)).toBuffer()).toEqual(Buffer.alloc(0));
+		});
 	});
 
 	describe('muldiv', () => {
@@ -180,6 +193,10 @@ describe('Q', () => {
 			expect(
 				q(val.original, base).muldiv(q(val.mul, base), q(val.div, base)).toBuffer().toString('hex'),
 			).toEqual(bigintToHex(val.expected));
+		});
+
+		it('should result in empty bytes for zero value', () => {
+			expect(q(0, base).muldiv(q(20.444444, base), q(3, base)).toBuffer()).toEqual(Buffer.alloc(0));
 		});
 	});
 
@@ -272,6 +289,37 @@ describe('Q', () => {
 
 		it.each(cases)('should result in expected value', val => {
 			expect(q(val.original, base).toInt(val.operation)).toEqual(val.expected);
+		});
+	});
+
+	describe('q96', () => {
+		it('should compute add', () => {
+			expect(q96(18.875).add(q96(18.875))).toEqual(q96(37.75));
+		});
+
+		it('should compute sub', () => {
+			expect(q96(10.5).sub(q96(6.125))).toEqual(q96(4.375));
+		});
+
+		it('should compute mul', () => {
+			expect(q96(3.125).mul(q96(12.1875))).toEqual(q96(38.0859375));
+		});
+
+		it('should compute div', () => {
+			expect(q96(14).div(q96(4))).toEqual(q96(3.5));
+		});
+
+		it('should compute muldiv', () => {
+			const oneThird = q96(1).div(q96(3));
+			const quarter = q96(1).div(q96(4));
+			const fourNinths = q96(4).div(q96(9));
+
+			// there is round down with mul. Result hsould be different
+			const muldivResult = oneThird.muldiv(oneThird, quarter);
+			const mulThenDivResult = oneThird.mul(oneThird).div(quarter);
+			expect(muldivResult).not.toEqual(mulThenDivResult);
+			// muldiv should have closer value to fourNinths
+			expect(fourNinths.sub(muldivResult).lt(fourNinths.sub(mulThenDivResult))).toBeTrue();
 		});
 	});
 });

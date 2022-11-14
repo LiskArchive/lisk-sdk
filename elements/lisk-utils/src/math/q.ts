@@ -49,7 +49,10 @@ export class Q {
 		this._base = BigInt(base);
 	}
 
-	public static fromValue(val: number | bigint | Buffer, base: number | bigint = 96) {
+	public static fromValue(val: number | bigint | Buffer | Q, base: number | bigint) {
+		if (val instanceof Q) {
+			return new Q(val._val, val._base);
+		}
 		const bigintBase = BigInt(base);
 		if (typeof val === 'number') {
 			return new Q(numberToQ(bigintBase, val), bigintBase);

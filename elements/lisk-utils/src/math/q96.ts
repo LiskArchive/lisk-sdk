@@ -15,4 +15,4 @@
 
 import { Q } from './q';
 
-export const q96 = (val: number | bigint | Buffer): Q => Q.fromValue(val, 96);
+export const q96 = (val: number | bigint | Buffer | Q): Q => Q.fromValue(val, 96);
