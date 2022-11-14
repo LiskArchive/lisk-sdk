@@ -837,12 +837,7 @@ export const verifyLivenessConditionForRegisteredChains = (
 	ccu: CrossChainUpdateTransactionParams,
 	blockTimestamp: number,
 ) => {
-	const inboxEmpty =
-		ccu.inboxUpdate.crossChainMessages.length === 0 &&
-		ccu.inboxUpdate.messageWitnessHashes.length === 0 &&
-		ccu.inboxUpdate.outboxRootWitness.bitmap.length === 0 &&
-		ccu.inboxUpdate.outboxRootWitness.siblingHashes.length === 0;
-	if (ccu.certificate.length === 0 || inboxEmpty) {
+	if (ccu.certificate.length === 0 || isInboxUpdateEmpty(ccu.inboxUpdate)) {
 		return;
 	}
 	const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
