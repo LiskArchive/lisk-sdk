@@ -15,7 +15,7 @@
 
 import { ONE, Q_OPERATION, TWO, ZERO } from './constants';
 
-const numberToQ = (base: bigint, val: number): bigint => {
+const numberToQ = (val: number, base: bigint): bigint => {
 	if (Number.isInteger(val)) {
 		return BigInt(val) << base;
 	}
@@ -44,7 +44,7 @@ export class Q {
 		}
 		const bigintBase = BigInt(base);
 		if (typeof val === 'number') {
-			return new Q(numberToQ(bigintBase, val), bigintBase);
+			return new Q(numberToQ(val, bigintBase), bigintBase);
 		}
 		if (typeof val === 'bigint') {
 			return new Q(val * TWO ** bigintBase, bigintBase);
