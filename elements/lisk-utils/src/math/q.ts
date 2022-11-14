@@ -22,25 +22,21 @@ const numberToQ = (base: bigint, val: number): bigint => {
 	if (decimals === 0) {
 		return BigInt(val) * denominator;
 	}
-	const [, binaryStr] = decimals.toString(2).split('.');
-	let result = BigInt(int) * denominator;
-	for (let i = 0; i < base; i += 1) {
-		if (binaryStr.length <= i) {
-			return result;
-		}
-		result += TWO ** (base - BigInt(i + 1)) * BigInt(binaryStr[i]);
-	}
-	return result;
+	const [, fractionalStr] = val.toString().split('.');
+	return (
+		BigInt(int) * denominator +
+		(BigInt(fractionalStr) * denominator) / BigInt(10) ** BigInt(fractionalStr.length)
+	);
 };
 
-export const q = (val: number | bigint | Buffer, base: number | bigint = 96): Q =>
+export const q = (val: number | bigint | Buffer, base: number | bigint): Q =>
 	Q.fromValue(val, base);
 
 export class Q {
 	private readonly _base: bigint;
 	private readonly _val: bigint;
 
-	public constructor(val: bigint, base: number | bigint = 96) {
+	public constructor(val: bigint, base: number | bigint) {
 		this._base = BigInt(base);
 		if (this._base > MAX_FRAC) {
 			throw new Error('Base exceeds max fraction allowed.');
