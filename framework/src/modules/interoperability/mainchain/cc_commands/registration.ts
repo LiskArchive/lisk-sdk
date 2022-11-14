@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { CCMStatusCode, CROSS_CHAIN_COMMAND_NAME_REGISTRATION, EMPTY_BYTES } from '../../constants';
 import { registrationCCMParamsSchema } from '../../schemas';
-import { CrossChainMessageContext } from '../../types';
+import { CCCommandExecuteContext } from '../../types';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 import { ChannelDataStore } from '../../stores/channel_data';
@@ -34,7 +34,7 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 		return CROSS_CHAIN_COMMAND_NAME_REGISTRATION;
 	}
 
-	public async execute(ctx: CrossChainMessageContext): Promise<void> {
+	public async execute(ctx: CCCommandExecuteContext<CCMRegistrationParams>): Promise<void> {
 		const { ccm } = ctx;
 		if (!ccm) {
 			throw new Error('CCM to execute registration cross chain command is missing.');

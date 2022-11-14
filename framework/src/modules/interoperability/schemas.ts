@@ -340,14 +340,6 @@ export const registrationCCMParamsSchema = {
 	},
 };
 
-// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#parameters-1
-export const channelTerminatedCCMParamsSchema = {
-	$id: '/modules/interoperability/ccCommand/channelTerminated',
-	type: 'object',
-	required: [],
-	properties: {},
-};
-
 export const sidechainTerminatedCCMParamsSchema = {
 	$id: '/modules/interoperability/ccCommand/sidechainTerminated',
 	type: 'object',
@@ -356,10 +348,14 @@ export const sidechainTerminatedCCMParamsSchema = {
 		chainID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 		stateRoot: {
 			dataType: 'bytes',
 			fieldNumber: 2,
+			minLength: HASH_LENGTH,
+			maxLength: HASH_LENGTH,
 		},
 	},
 };
