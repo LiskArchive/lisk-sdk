@@ -19,9 +19,7 @@ import * as merkleTree from '@liskhq/lisk-tree';
 import { BlockAssets } from '@liskhq/lisk-chain';
 import { MainchainInteroperabilityModule, VerifyStatus } from '../../../../src';
 import {
-	CCM_STATUS_OK,
-	CHAIN_REGISTERED,
-	CHAIN_TERMINATED,
+	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_BYTES,
@@ -64,7 +62,10 @@ import { Certificate } from '../../../../src/engine/consensus/certificate_genera
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { createGenesisBlockContext } from '../../../../src/testing';
-import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
+import {
+	ChainAccountStore,
+	ChainStatus,
+} from '../../../../src/modules/interoperability/stores/chain_account';
 import { RegisteredNamesStore } from '../../../../src/modules/interoperability/stores/registered_names';
 import { ChainValidatorsStore } from '../../../../src/modules/interoperability/stores/chain_validators';
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
@@ -90,7 +91,7 @@ describe('Utils', () => {
 
 	describe('checkLivenessRequirementFirstCCU', () => {
 		const partnerChainAccount = {
-			status: CHAIN_REGISTERED,
+			status: ChainStatus.REGISTERED,
 		};
 
 		const txParamsEmptyCertificate = {
@@ -102,7 +103,7 @@ describe('Utils', () => {
 			certificate: cryptography.utils.getRandomBytes(32),
 		};
 
-		it(`should return VerifyStatus.FAIL status when chain status ${CHAIN_REGISTERED} && certificate is empty`, () => {
+		it(`should return VerifyStatus.FAIL status when chain status ${ChainStatus.REGISTERED} && certificate is empty`, () => {
 			const result = checkLivenessRequirementFirstCCU(
 				partnerChainAccount as ChainAccount,
 				txParamsEmptyCertificate as CrossChainUpdateTransactionParams,
@@ -110,7 +111,7 @@ describe('Utils', () => {
 			expect(result.status).toEqual(VerifyStatus.FAIL);
 		});
 
-		it(`should return status VerifyStatus.OK status when chain status ${CHAIN_REGISTERED} && certificate is non-empty`, () => {
+		it(`should return status VerifyStatus.OK status when chain status ${ChainStatus.REGISTERED} && certificate is non-empty`, () => {
 			const result = checkLivenessRequirementFirstCCU(
 				partnerChainAccount as ChainAccount,
 				txParamsNonEmptyCertificate as CrossChainUpdateTransactionParams,
@@ -512,7 +513,7 @@ describe('Utils', () => {
 				params: Buffer.alloc(2),
 				receivingChainID: utils.intToBuffer(2, 4),
 				sendingChainID: defaultSendingChainID,
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 			},
 			{
 				crossChainCommandID: utils.intToBuffer(2, 4),
@@ -522,7 +523,7 @@ describe('Utils', () => {
 				params: Buffer.alloc(2),
 				receivingChainID: utils.intToBuffer(3, 4),
 				sendingChainID: defaultSendingChainID,
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 			},
 		];
 
@@ -535,7 +536,7 @@ describe('Utils', () => {
 				params: Buffer.alloc(4),
 				receivingChainID: utils.intToBuffer(90, 4),
 				sendingChainID: defaultSendingChainID,
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 			},
 			{
 				crossChainCommandID: utils.intToBuffer(2, 4),
@@ -545,7 +546,7 @@ describe('Utils', () => {
 				params: Buffer.alloc(4),
 				receivingChainID: utils.intToBuffer(70, 4),
 				sendingChainID: defaultSendingChainID,
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 			},
 		];
 		const defaultCCMsEncoded = defaultCCMs.map(ccm => codec.encode(ccmSchema, ccm));
@@ -1063,7 +1064,7 @@ describe('Utils', () => {
 				timestamp: 100,
 				validatorsHash: utils.getRandomBytes(32),
 			},
-			status: CHAIN_TERMINATED,
+			status: ChainStatus.TERMINATED,
 		};
 		const ownChainAccount = {
 			name: 'mainchain',
@@ -1944,7 +1945,7 @@ describe('Utils', () => {
 			params: obj.params ?? Buffer.alloc(MAX_CCM_SIZE - 100),
 			receivingChainID: obj.receivingChainID ?? utils.intToBuffer(2, 4),
 			sendingChainID: obj.sendingChainID ?? cryptography.utils.intToBuffer(20, 4),
-			status: obj.status ?? CCM_STATUS_OK,
+			status: obj.status ?? CCMStatusCode.OK,
 		});
 
 		it('should throw if format does not fit ccmSchema', () => {

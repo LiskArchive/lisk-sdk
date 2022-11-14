@@ -27,29 +27,24 @@ import {
 import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { BaseCrossChainUpdateCommand } from '../../base_cross_chain_update_command';
 import {
-	CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
-	CCM_PROCESSED_CODE_INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
-	CCM_PROCESSED_CODE_SUCCESS,
-	CCM_PROCESSED_RESULT_DISCARDED,
-	CCM_PROCESSED_RESULT_FORWARDED,
-	CCM_STATUS_CODE_CHANNEL_UNAVAILABLE,
-	CCM_STATUS_OK,
-	CHAIN_ACTIVE,
-	CHAIN_REGISTERED,
-	CHAIN_TERMINATED,
+	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_FEE_ADDRESS,
 	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../constants';
-import { CcmProcessedEvent } from '../../events/ccm_processed';
+import {
+	CCMProcessedCode,
+	CcmProcessedEvent,
+	CCMProcessedResult,
+} from '../../events/ccm_processed';
 import {
 	ccmSchema,
 	crossChainUpdateTransactionParams,
 	sidechainTerminatedCCMParamsSchema,
 } from '../../schemas';
-import { ChainAccount, ChainAccountStore } from '../../stores/chain_account';
+import { ChainAccount, ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { ChannelDataStore } from '../../stores/channel_data';
 import {
@@ -91,7 +86,7 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 		const partnerChainAccount = await partnerChainStore.get(context, txParams.sendingChainID);
 
 		// Section: Liveness of Partner Chain
-		if (partnerChainAccount.status === CHAIN_TERMINATED) {
+		if (partnerChainAccount.status === ChainStatus.TERMINATED) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(
@@ -100,7 +95,7 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 			};
 		}
 		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
-		if (partnerChainAccount.status === CHAIN_ACTIVE) {
+		if (partnerChainAccount.status === ChainStatus.ACTIVE) {
 			const isLive = await interoperabilityInternalMethod.isLive(
 				txParams.sendingChainID,
 				Date.now(),
@@ -217,7 +212,7 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 			throw err;
 		}
 		if (
-			partnerChainAccount.status === CHAIN_REGISTERED &&
+			partnerChainAccount.status === ChainStatus.REGISTERED &&
 			!isInboxUpdateEmpty(txParams.inboxUpdate)
 		) {
 			// If the first CCM in inboxUpdate is a registration CCM
@@ -225,7 +220,7 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 				decodedCCMs[0].deserialized.crossChainCommand === CROSS_CHAIN_COMMAND_NAME_REGISTRATION &&
 				decodedCCMs[0].deserialized.receivingChainID.equals(MAINCHAIN_ID_BUFFER)
 			) {
-				partnerChainAccount.status = CHAIN_ACTIVE;
+				partnerChainAccount.status = ChainStatus.ACTIVE;
 			} else {
 				await terminateChainInternal();
 
@@ -299,13 +294,13 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 			receivingChainAccount = await this.stores
 				.get(ChainAccountStore)
 				.get(context, ccm.receivingChainID);
-			if (receivingChainAccount.status === CHAIN_REGISTERED) {
+			if (receivingChainAccount.status === ChainStatus.REGISTERED) {
 				await this.bounce(
 					context,
 					ccmID,
 					encodedCCM.length,
-					CCM_STATUS_CODE_CHANNEL_UNAVAILABLE,
-					CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
+					CCMStatusCode.CHANNEL_UNAVAILABLE,
+					CCMProcessedCode.CHANNEL_UNAVAILABLE,
 				);
 				return;
 			}
@@ -315,8 +310,8 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 					context,
 					ccmID,
 					encodedCCM.length,
-					CCM_STATUS_CODE_CHANNEL_UNAVAILABLE,
-					CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
+					CCMStatusCode.CHANNEL_UNAVAILABLE,
+					CCMProcessedCode.CHANNEL_UNAVAILABLE,
 				);
 				return;
 			}
@@ -327,8 +322,8 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 			await internalMethod.terminateChainInternal(ccm.receivingChainID, context);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccmID,
-				code: CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
-				result: CCM_PROCESSED_RESULT_DISCARDED,
+				code: CCMProcessedCode.CHANNEL_UNAVAILABLE,
+				result: CCMProcessedResult.DISCARDED,
 			});
 			await internalMethod.sendInternal({
 				...context,
@@ -336,7 +331,7 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 				module: MODULE_NAME_INTEROPERABILITY,
 				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 				fee: BigInt(0),
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 				params: codec.encode(sidechainTerminatedCCMParamsSchema, {
 					chainID: ccm.receivingChainID,
 					stateRoot: receivingChainAccount.lastCertificate.stateRoot,
@@ -372,16 +367,16 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 			await internalMethod.terminateChainInternal(ccm.sendingChainID, context);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccmID,
-				code: CCM_PROCESSED_CODE_INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
-				result: CCM_PROCESSED_RESULT_DISCARDED,
+				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
+				result: CCMProcessedResult.DISCARDED,
 			});
 			return;
 		}
 		await internalMethod.addToOutbox(ccm.receivingChainID, ccm);
 		this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 			ccmID,
-			code: CCM_PROCESSED_CODE_SUCCESS,
-			result: CCM_PROCESSED_RESULT_FORWARDED,
+			code: CCMProcessedCode.SUCCESS,
+			result: CCMProcessedResult.FORWARDED,
 		});
 	}
 }

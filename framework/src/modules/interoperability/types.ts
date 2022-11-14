@@ -21,6 +21,7 @@ import {
 	StateStore,
 	SubStore,
 } from '../../state_machine/types';
+import { CCMStatusCode } from './constants';
 import { OutboxRoot } from './stores/outbox_root';
 import { ChainID } from './stores/registered_names';
 import { TerminatedOutboxAccount } from './stores/terminated_outbox';
@@ -105,7 +106,7 @@ export interface SendInternalContext {
 	crossChainCommand: string;
 	receivingChainID: Buffer;
 	fee: bigint;
-	status: number;
+	status: CCMStatusCode;
 	params: Buffer;
 	timestamp?: number;
 	getMethodContext: () => MethodContext;

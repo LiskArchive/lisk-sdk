@@ -19,19 +19,12 @@ import { BaseCCCommand } from '../../../../src/modules/interoperability/base_cc_
 import { BaseCrossChainUpdateCommand } from '../../../../src/modules/interoperability/base_cross_chain_update_command';
 import { BaseInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/base_interoperability_internal_methods';
 import { BaseInteroperableMethod } from '../../../../src/modules/interoperability/base_interoperable_method';
+import { CCMStatusCode, MIN_RETURN_FEE } from '../../../../src/modules/interoperability/constants';
 import {
-	CCM_PROCESSED_CODE_INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
-	CCM_PROCESSED_CODE_INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
-	CCM_PROCESSED_CODE_INVALID_CCM_VALIDATION_EXCEPTION,
-	CCM_PROCESSED_CODE_INVALID_CCM_VERIFY_CCM_EXCEPTION,
-	CCM_PROCESSED_CODE_MODULE_NOT_SUPPORTED,
-	CCM_PROCESSED_RESULT_BOUNCED,
-	CCM_PROCESSED_RESULT_DISCARDED,
-	CCM_STATUS_MODULE_NOT_SUPPORTED,
-	CCM_STATUS_OK,
-	MIN_RETURN_FEE,
-} from '../../../../src/modules/interoperability/constants';
-import { CcmProcessedEvent } from '../../../../src/modules/interoperability/events/ccm_processed';
+	CCMProcessedCode,
+	CcmProcessedEvent,
+	CCMProcessedResult,
+} from '../../../../src/modules/interoperability/events/ccm_processed';
 import { CcmSendSuccessEvent } from '../../../../src/modules/interoperability/events/ccm_send_success';
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/store';
 import { CrossChainMessageContext } from '../../../../src/modules/interoperability/types';
@@ -128,8 +121,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 				context.ccm.receivingChainID,
 				{
 					ccmID: expect.any(Buffer),
-					code: CCM_PROCESSED_CODE_INVALID_CCM_VERIFY_CCM_EXCEPTION,
-					result: CCM_PROCESSED_RESULT_DISCARDED,
+					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
 				},
 			);
 		});
@@ -150,8 +143,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 				context.ccm.receivingChainID,
 				{
 					ccmID: expect.any(Buffer),
-					code: CCM_PROCESSED_CODE_INVALID_CCM_VERIFY_CCM_EXCEPTION,
-					result: CCM_PROCESSED_RESULT_DISCARDED,
+					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
 				},
 			);
 		});
@@ -202,8 +195,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 				context.ccm.receivingChainID,
 				{
 					ccmID: expect.any(Buffer),
-					code: CCM_PROCESSED_CODE_INVALID_CCM_VALIDATION_EXCEPTION,
-					result: CCM_PROCESSED_RESULT_DISCARDED,
+					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
 				},
 			);
 		});
@@ -225,8 +218,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 				context.ccm.receivingChainID,
 				{
 					ccmID: expect.any(Buffer),
-					code: CCM_PROCESSED_CODE_INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
-					result: CCM_PROCESSED_RESULT_DISCARDED,
+					code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
 				},
 			);
 		});
@@ -291,8 +284,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 				context.ccm.receivingChainID,
 				{
 					ccmID: expect.any(Buffer),
-					code: CCM_PROCESSED_CODE_INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
-					result: CCM_PROCESSED_RESULT_DISCARDED,
+					code: CCMProcessedCode.INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
 				},
 			);
 		});
@@ -328,13 +321,13 @@ describe('BaseCrossChainUpdateCommand', () => {
 	});
 
 	describe('bounce', () => {
-		const ccmStatus = CCM_STATUS_MODULE_NOT_SUPPORTED;
-		const ccmProcessedEventCode = CCM_PROCESSED_CODE_MODULE_NOT_SUPPORTED;
+		const ccmStatus = CCMStatusCode.MODULE_NOT_SUPPORTED;
+		const ccmProcessedEventCode = CCMProcessedCode.MODULE_NOT_SUPPORTED;
 		it('should log event when status is not ok', async () => {
 			context = createCrossChainMessageContext({
 				ccm: {
 					...defaultCCM,
-					status: CCM_STATUS_MODULE_NOT_SUPPORTED,
+					status: CCMStatusCode.MODULE_NOT_SUPPORTED,
 				},
 			});
 
@@ -350,7 +343,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				{
 					ccmID: expect.any(Buffer),
 					code: ccmProcessedEventCode,
-					result: CCM_PROCESSED_RESULT_DISCARDED,
+					result: CCMProcessedResult.DISCARDED,
 				},
 			);
 		});
@@ -359,7 +352,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			context = createCrossChainMessageContext({
 				ccm: {
 					...defaultCCM,
-					status: CCM_STATUS_OK,
+					status: CCMStatusCode.OK,
 					fee: BigInt(1),
 				},
 			});
@@ -376,7 +369,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				{
 					ccmID: expect.any(Buffer),
 					code: ccmProcessedEventCode,
-					result: CCM_PROCESSED_RESULT_DISCARDED,
+					result: CCMProcessedResult.DISCARDED,
 				},
 			);
 		});
@@ -385,7 +378,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			context = createCrossChainMessageContext({
 				ccm: {
 					...defaultCCM,
-					status: CCM_STATUS_OK,
+					status: CCMStatusCode.OK,
 					fee: BigInt(100000000000),
 				},
 			});
@@ -407,7 +400,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			context = createCrossChainMessageContext({
 				ccm: {
 					...defaultCCM,
-					status: CCM_STATUS_OK,
+					status: CCMStatusCode.OK,
 					fee: BigInt(100000000000),
 				},
 			});
@@ -424,7 +417,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				{
 					ccmID: expect.any(Buffer),
 					code: ccmProcessedEventCode,
-					result: CCM_PROCESSED_RESULT_BOUNCED,
+					result: CCMProcessedResult.BOUNCED,
 				},
 			);
 			expect(command['events'].get(CcmSendSuccessEvent).log).toHaveBeenCalledWith(

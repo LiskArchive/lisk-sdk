@@ -43,17 +43,7 @@ import {
 	sidechainTerminatedCCMParamsSchema,
 } from '../../../../../../src/modules/interoperability/schemas';
 import {
-	CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
-	CCM_PROCESSED_CODE_INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
-	CCM_PROCESSED_CODE_INVALID_CCM_VERIFY_CCM_EXCEPTION,
-	CCM_PROCESSED_CODE_SUCCESS,
-	CCM_PROCESSED_RESULT_DISCARDED,
-	CCM_PROCESSED_RESULT_FORWARDED,
-	CCM_STATUS_CODE_CHANNEL_UNAVAILABLE,
-	CCM_STATUS_OK,
-	CHAIN_ACTIVE,
-	CHAIN_REGISTERED,
-	CHAIN_TERMINATED,
+	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_BYTES,
@@ -68,7 +58,10 @@ import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/m
 import { BlockHeader, EventQueue } from '../../../../../../src/state_machine';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
 import { CROSS_CHAIN_COMMAND_NAME_FORWARD } from '../../../../../../src/modules/token/constants';
-import { ChainAccountStore } from '../../../../../../src/modules/interoperability/stores/chain_account';
+import {
+	ChainAccountStore,
+	ChainStatus,
+} from '../../../../../../src/modules/interoperability/stores/chain_account';
 import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
 import { ChainValidatorsStore } from '../../../../../../src/modules/interoperability/stores/chain_validators';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
@@ -81,7 +74,11 @@ import {
 import { BaseInteroperableMethod } from '../../../../../../src/modules/interoperability/base_interoperable_method';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { BaseInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/base_interoperability_internal_methods';
-import { CcmProcessedEvent } from '../../../../../../src/modules/interoperability/events/ccm_processed';
+import {
+	CCMProcessedCode,
+	CcmProcessedEvent,
+	CCMProcessedResult,
+} from '../../../../../../src/modules/interoperability/events/ccm_processed';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -113,7 +110,7 @@ describe('CrossChainUpdateCommand', () => {
 			params: Buffer.alloc(2),
 			receivingChainID: utils.intToBuffer(2, 4),
 			sendingChainID: defaultSendingChainIDBuffer,
-			status: CCM_STATUS_OK,
+			status: CCMStatusCode.OK,
 		},
 		{
 			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
@@ -123,7 +120,7 @@ describe('CrossChainUpdateCommand', () => {
 			params: Buffer.alloc(2),
 			receivingChainID: utils.intToBuffer(3, 4),
 			sendingChainID: defaultSendingChainIDBuffer,
-			status: CCM_STATUS_OK,
+			status: CCMStatusCode.OK,
 		},
 		{
 			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
@@ -133,7 +130,7 @@ describe('CrossChainUpdateCommand', () => {
 			params: Buffer.alloc(2),
 			receivingChainID: utils.intToBuffer(4, 4),
 			sendingChainID: defaultSendingChainIDBuffer,
-			status: CCM_STATUS_OK,
+			status: CCMStatusCode.OK,
 		},
 	];
 	const defaultCCMsEncoded = defaultCCMs.map(ccm => codec.encode(ccmSchema, ccm));
@@ -207,7 +204,7 @@ describe('CrossChainUpdateCommand', () => {
 				validatorsHash: cryptography.utils.getRandomBytes(48),
 			},
 			name: 'sidechain1',
-			status: CHAIN_ACTIVE,
+			status: ChainStatus.ACTIVE,
 		};
 		partnerChannelAccount = {
 			inbox: {
@@ -297,7 +294,7 @@ describe('CrossChainUpdateCommand', () => {
 		it('should return error when chain has terminated status', async () => {
 			await partnerChainStore.set(createStoreGetter(stateStore), defaultSendingChainIDBuffer, {
 				...partnerChainAccount,
-				status: CHAIN_TERMINATED,
+				status: ChainStatus.TERMINATED,
 			});
 
 			const { status, error } = await mainchainCCUUpdateCommand.verify(verifyContext);
@@ -319,7 +316,7 @@ describe('CrossChainUpdateCommand', () => {
 		it('should return error checkLivenessRequirementFirstCCU fails', async () => {
 			await partnerChainStore.set(createStoreGetter(stateStore), defaultSendingChainIDBuffer, {
 				...partnerChainAccount,
-				status: CHAIN_REGISTERED,
+				status: ChainStatus.REGISTERED,
 			});
 
 			const { status, error } = await mainchainCCUUpdateCommand.verify({
@@ -504,10 +501,10 @@ describe('CrossChainUpdateCommand', () => {
 			expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		});
 
-		it('should throw error when chain.status === CHAIN_REGISTERED and inboxUpdate is non-empty and the first CCM is not a registration CCM', async () => {
+		it('should throw error when chain.status === ChainStatus.REGISTERED and inboxUpdate is non-empty and the first CCM is not a registration CCM', async () => {
 			await partnerChainStore.set(createStoreGetter(stateStore), defaultSendingChainIDBuffer, {
 				...partnerChainAccount,
-				status: CHAIN_REGISTERED,
+				status: ChainStatus.REGISTERED,
 			});
 
 			jest
@@ -530,7 +527,7 @@ describe('CrossChainUpdateCommand', () => {
 				params: Buffer.alloc(2),
 				receivingChainID: utils.intToBuffer(1, 4),
 				sendingChainID: utils.intToBuffer(50, 4),
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 			});
 			jest
 				.spyOn(interopUtils, 'computeValidatorsHash')
@@ -560,7 +557,7 @@ describe('CrossChainUpdateCommand', () => {
 				params: Buffer.alloc(MAX_CCM_SIZE + 10),
 				receivingChainID: utils.intToBuffer(2, 4),
 				sendingChainID: defaultSendingChainIDBuffer,
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 			};
 			const invalidCCMSerialized = codec.encode(ccmSchema, invalidCCM);
 			jest
@@ -599,7 +596,7 @@ describe('CrossChainUpdateCommand', () => {
 				params: Buffer.alloc(10),
 				receivingChainID: utils.intToBuffer(2, 4),
 				sendingChainID: defaultSendingChainIDBuffer,
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 			};
 			const nonMainchainCCMSerialized = codec.encode(ccmSchema, nonMainchainCCM);
 			jest
@@ -638,7 +635,7 @@ describe('CrossChainUpdateCommand', () => {
 				params: Buffer.alloc(10),
 				receivingChainID: MAINCHAIN_ID_BUFFER,
 				sendingChainID: defaultSendingChainIDBuffer,
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 			};
 			const mainchainCCMSerialized = codec.encode(ccmSchema, mainchainCCM);
 			jest
@@ -740,7 +737,7 @@ describe('CrossChainUpdateCommand', () => {
 					validatorsHash: utils.getRandomBytes(32),
 				},
 				name: 'random',
-				status: CHAIN_ACTIVE,
+				status: ChainStatus.ACTIVE,
 			});
 		});
 
@@ -760,8 +757,8 @@ describe('CrossChainUpdateCommand', () => {
 				context.ccm.receivingChainID,
 				{
 					ccmID: expect.any(Buffer),
-					code: CCM_PROCESSED_CODE_INVALID_CCM_VERIFY_CCM_EXCEPTION,
-					result: CCM_PROCESSED_RESULT_DISCARDED,
+					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
 				},
 			);
 		});
@@ -783,8 +780,8 @@ describe('CrossChainUpdateCommand', () => {
 				context.ccm.receivingChainID,
 				{
 					ccmID: expect.any(Buffer),
-					code: CCM_PROCESSED_CODE_INVALID_CCM_VERIFY_CCM_EXCEPTION,
-					result: CCM_PROCESSED_RESULT_DISCARDED,
+					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
 				},
 			);
 		});
@@ -799,8 +796,8 @@ describe('CrossChainUpdateCommand', () => {
 				expect.anything(),
 				expect.any(Buffer),
 				expect.any(Number),
-				CCM_STATUS_CODE_CHANNEL_UNAVAILABLE,
-				CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
+				CCMStatusCode.CHANNEL_UNAVAILABLE,
+				CCMProcessedCode.CHANNEL_UNAVAILABLE,
 			);
 		});
 
@@ -813,7 +810,7 @@ describe('CrossChainUpdateCommand', () => {
 					validatorsHash: utils.getRandomBytes(32),
 				},
 				name: 'random',
-				status: CHAIN_REGISTERED,
+				status: ChainStatus.REGISTERED,
 			});
 
 			await expect(command['_forward'](context)).resolves.toBeUndefined();
@@ -823,8 +820,8 @@ describe('CrossChainUpdateCommand', () => {
 				expect.anything(),
 				expect.any(Buffer),
 				expect.any(Number),
-				CCM_STATUS_CODE_CHANNEL_UNAVAILABLE,
-				CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
+				CCMStatusCode.CHANNEL_UNAVAILABLE,
+				CCMProcessedCode.CHANNEL_UNAVAILABLE,
 			);
 		});
 
@@ -848,8 +845,8 @@ describe('CrossChainUpdateCommand', () => {
 				context.ccm.receivingChainID,
 				{
 					ccmID: expect.any(Buffer),
-					code: CCM_PROCESSED_CODE_CHANNEL_UNAVAILABLE,
-					result: CCM_PROCESSED_RESULT_DISCARDED,
+					code: CCMProcessedCode.CHANNEL_UNAVAILABLE,
+					result: CCMProcessedResult.DISCARDED,
 				},
 			);
 			expect(internalMethod.sendInternal).toHaveBeenCalledWith(
@@ -858,7 +855,7 @@ describe('CrossChainUpdateCommand', () => {
 					receivingChainID: context.ccm.sendingChainID,
 					module: MODULE_NAME_INTEROPERABILITY,
 					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
-					status: CCM_STATUS_OK,
+					status: CCMStatusCode.OK,
 					params: codec.encode(sidechainTerminatedCCMParamsSchema, {
 						chainID: context.ccm.receivingChainID,
 						stateRoot: chainAccount.lastCertificate.stateRoot,
@@ -888,8 +885,8 @@ describe('CrossChainUpdateCommand', () => {
 				context.ccm.receivingChainID,
 				{
 					ccmID: expect.any(Buffer),
-					code: CCM_PROCESSED_CODE_INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
-					result: CCM_PROCESSED_RESULT_DISCARDED,
+					code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
 				},
 			);
 			expect(context.eventQueue.restoreSnapshot).toHaveBeenCalledWith(99);
@@ -909,8 +906,8 @@ describe('CrossChainUpdateCommand', () => {
 				context.ccm.receivingChainID,
 				{
 					ccmID: expect.any(Buffer),
-					code: CCM_PROCESSED_CODE_SUCCESS,
-					result: CCM_PROCESSED_RESULT_FORWARDED,
+					code: CCMProcessedCode.SUCCESS,
+					result: CCMProcessedResult.FORWARDED,
 				},
 			);
 		});
