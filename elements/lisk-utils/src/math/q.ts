@@ -18,8 +18,7 @@ import { MAX_FRAC, ONE, Q_OPERATION, TWO } from './constants';
 const numberToQ = (base: bigint, val: number): bigint => {
 	const denominator = TWO ** base;
 	const int = Math.floor(val);
-	const decimals = val - int;
-	if (decimals === 0) {
+	if (Number.isInteger(val)) {
 		return BigInt(val) * denominator;
 	}
 	const [, fractionalStr] = val.toString().split('.');
