@@ -17,13 +17,12 @@ import { MAX_FRAC, ONE, Q_OPERATION, TWO } from './constants';
 
 const numberToQ = (base: bigint, val: number): bigint => {
 	const denominator = TWO ** base;
-	const int = Math.floor(val);
 	if (Number.isInteger(val)) {
 		return BigInt(val) * denominator;
 	}
-	const [, fractionalStr] = val.toString().split('.');
+	const [intStr, fractionalStr] = val.toString().split('.');
 	return (
-		BigInt(int) * denominator +
+		BigInt(intStr) * denominator +
 		(BigInt(fractionalStr) * denominator) / BigInt(10) ** BigInt(fractionalStr.length)
 	);
 };
