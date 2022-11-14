@@ -150,10 +150,10 @@ describe('Mainchain interoperability internal method', () => {
 
 	describe('sendInternal', () => {
 		const ccMethodMod1 = {
-			beforeSendCCM: jest.fn(),
+			beforeCrossChainCommandExecute: jest.fn(),
 		};
 		const ccMethodMod2 = {
-			beforeSendCCM: jest.fn(),
+			beforeCrossChainCommandExecute: jest.fn(),
 		};
 
 		const modsMap = new Map();
@@ -199,15 +199,15 @@ describe('Mainchain interoperability internal method', () => {
 			status: 1,
 		};
 
-		const beforeSendCCMContext = testing.createBeforeSendCCMsgMethodContext({
+		const beforeSendCCMContext = testing.createCrossChainMessageContext({
 			ccm,
-			feeAddress: utils.getRandomBytes(32),
 		});
 
 		const sendInternalContext: SendInternalContext = {
 			...beforeSendCCMContext,
 			...ccm,
 			timestamp,
+			feeAddress: utils.getRandomBytes(32),
 		};
 
 		it('should return false if the receiving chain does not exist', async () => {
@@ -248,15 +248,15 @@ describe('Mainchain interoperability internal method', () => {
 				params: Buffer.alloc(MAX_CCM_SIZE), // invalid size
 			};
 
-			const beforeSendCCMContextLocal = testing.createBeforeSendCCMsgMethodContext({
+			const beforeSendCCMContextLocal = testing.createCrossChainMessageContext({
 				ccm: invalidCCM,
-				feeAddress: utils.getRandomBytes(32),
 			});
 
 			const sendInternalContextLocal: SendInternalContext = {
 				...beforeSendCCMContextLocal,
 				...invalidCCM,
 				timestamp,
+				feeAddress: utils.getRandomBytes(32),
 			};
 
 			jest.spyOn(mainchainInteroperabilityInternalMethod, 'isLive');
@@ -284,15 +284,15 @@ describe('Mainchain interoperability internal method', () => {
 				params: Buffer.alloc(0),
 			};
 
-			const beforeSendCCMContextLocal = testing.createBeforeSendCCMsgMethodContext({
+			const beforeSendCCMContextLocal = testing.createCrossChainMessageContext({
 				ccm: invalidCCM as any,
-				feeAddress: utils.getRandomBytes(32),
 			});
 
 			const sendInternalContextLocal = {
 				beforeSendContext: beforeSendCCMContextLocal,
 				...invalidCCM,
 				timestamp,
+				feeAddress: utils.getRandomBytes(32),
 			};
 
 			jest.spyOn(mainchainInteroperabilityInternalMethod, 'isLive');
@@ -330,8 +330,8 @@ describe('Mainchain interoperability internal method', () => {
 			);
 			expect(mainchainInteropStoreLocal.isLive).toHaveBeenCalledTimes(1);
 			expect(mainchainInteropStoreLocal.appendToOutboxTree).toHaveBeenCalledTimes(1);
-			expect(ccMethodMod1.beforeSendCCM).toHaveBeenCalledTimes(1);
-			expect(ccMethodMod2.beforeSendCCM).toHaveBeenCalledTimes(1);
+			expect(ccMethodMod1.beforeCrossChainCommandExecute).toHaveBeenCalledTimes(1);
+			expect(ccMethodMod2.beforeCrossChainCommandExecute).toHaveBeenCalledTimes(1);
 		});
 	});
 });

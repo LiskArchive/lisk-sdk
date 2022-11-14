@@ -19,7 +19,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { MerkleTree, regularMerkleTree } from '@liskhq/lisk-tree';
 import { CommandExecuteContext, MainchainInteroperabilityModule } from '../../../../../../src';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
-import { BaseInteroperableMethod } from '../../../../../../src/modules/interoperability/base_interoperable_method';
+import { BaseCCMethod } from '../../../../../../src/modules/interoperability/base_cc_method';
 import {
 	COMMAND_NAME_MESSAGE_RECOVERY,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
@@ -59,7 +59,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		let terminatedOutboxSubstore: TerminatedOutboxStore;
 		let messageRecoveryCommand: MainchainMessageRecoveryCommand;
 		let commandVerifyContext: CommandVerifyContext<MessageRecoveryParams>;
-		let interoperableCCMethods: Map<string, BaseInteroperableMethod>;
+		let interoperableCCMethods: Map<string, BaseCCMethod>;
 		let ccCommands: Map<string, BaseCCCommand[]>;
 		let transaction: Transaction;
 		let transactionParams: MessageRecoveryParams;
@@ -349,7 +349,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		};
 		let messageRecoveryCommand: MainchainMessageRecoveryCommand;
 		let commandExecuteContext: CommandExecuteContext<MessageRecoveryParams>;
-		let interoperableCCMethods: Map<string, BaseInteroperableMethod>;
+		let interoperableCCMethods: Map<string, BaseCCMethod>;
 		let ccCommands: Map<string, BaseCCCommand[]>;
 		let transaction: Transaction;
 		let transactionParams: MessageRecoveryParams;
@@ -485,7 +485,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 					throw new Error('beforeRecoverCCM Error');
 				}),
 				MODULE_NAME_INTEROPERABILITY,
-			} as unknown) as BaseInteroperableMethod;
+			} as unknown) as BaseCCMethod;
 
 			interoperableCCMethods.set(MODULE_NAME_INTEROPERABILITY, method);
 
