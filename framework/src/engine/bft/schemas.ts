@@ -12,13 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { GeneratorKey, BFTValidator } from './types';
+import { Validator } from '../../abi';
+import { BLS_PUBLIC_KEY_LENGTH, ED25519_PUBLIC_KEY_LENGTH } from './constants';
 
 export interface BFTParameters {
 	prevoteThreshold: bigint;
 	precommitThreshold: bigint;
 	certificateThreshold: bigint;
-	validators: BFTValidator[];
+	validators: Validator[];
 	validatorsHash: Buffer;
 }
 
@@ -54,15 +55,24 @@ export const bftParametersSchema = {
 				properties: {
 					address: {
 						dataType: 'bytes',
+						format: 'lisk32',
 						fieldNumber: 1,
 					},
 					bftWeight: {
 						dataType: 'uint64',
 						fieldNumber: 2,
 					},
-					blsKey: {
+					generatorKey: {
 						dataType: 'bytes',
 						fieldNumber: 3,
+						minLength: ED25519_PUBLIC_KEY_LENGTH,
+						maxLength: ED25519_PUBLIC_KEY_LENGTH,
+					},
+					blsKey: {
+						dataType: 'bytes',
+						fieldNumber: 4,
+						minLength: BLS_PUBLIC_KEY_LENGTH,
+						maxLength: BLS_PUBLIC_KEY_LENGTH,
 					},
 				},
 			},
@@ -70,36 +80,6 @@ export const bftParametersSchema = {
 		validatorsHash: {
 			dataType: 'bytes',
 			fieldNumber: 5,
-		},
-	},
-};
-
-export interface GeneratorKeys {
-	generators: GeneratorKey[];
-}
-
-export const generatorKeysSchema = {
-	$id: '/modules/bft/generatorKeys',
-	type: 'object',
-	required: ['generators'],
-	properties: {
-		generators: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['address', 'generatorKey'],
-				properties: {
-					address: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-					generatorKey: {
-						dataType: 'bytes',
-						fieldNumber: 2,
-					},
-				},
-			},
 		},
 	},
 };

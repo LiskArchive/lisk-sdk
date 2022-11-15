@@ -43,6 +43,7 @@ import {
 	blsKeyRegDataSchema,
 	BLSKeyRegistrationEvent,
 } from '../../../../src/modules/validators/events/bls_key_registration';
+import { ValidatorsParamsStore } from '../../../../src/modules/validators/stores/validators_params';
 
 describe('ValidatorsModuleMethod', () => {
 	let validatorsMethod: ValidatorsMethod;
@@ -52,11 +53,11 @@ describe('ValidatorsModuleMethod', () => {
 	let validatorsSubStore: ValidatorKeysStore;
 	let blsKeysSubStore: BLSKeyStore;
 	let genesisDataSubStore: GenesisStore;
+	let validatorsParamsSubStore: ValidatorsParamsStore;
 	const genesisConfig: any = {};
 	const moduleConfig: any = {
 		blockTime: 10,
 	};
-	const generatorConfig: any = {};
 	const address = utils.getRandomBytes(48);
 	const generatorKey = utils.getRandomBytes(48);
 	const genesisTimestamp = 1610643809;
@@ -70,7 +71,7 @@ describe('ValidatorsModuleMethod', () => {
 	);
 	beforeAll(async () => {
 		validatorsModule = new ValidatorsModule();
-		await validatorsModule.init({ genesisConfig, moduleConfig, generatorConfig });
+		await validatorsModule.init({ genesisConfig, moduleConfig });
 	});
 
 	beforeEach(() => {
@@ -79,6 +80,7 @@ describe('ValidatorsModuleMethod', () => {
 		validatorsSubStore = validatorsModule.stores.get(ValidatorKeysStore);
 		blsKeysSubStore = validatorsModule.stores.get(BLSKeyStore);
 		genesisDataSubStore = validatorsModule.stores.get(GenesisStore);
+		validatorsParamsSubStore = validatorsModule.stores.get(ValidatorsParamsStore);
 		methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue(0) });
 	});
 
@@ -409,15 +411,37 @@ describe('ValidatorsModuleMethod', () => {
 	});
 
 	describe('getGeneratorsBetweenTimestamps', () => {
+		beforeEach(async () => {
+			await validatorsParamsSubStore.set(methodContext, EMPTY_KEY, {
+				certificateThreshold: BigInt(68),
+				preCommitThreshold: BigInt(68),
+				validators: generatorList.map(addr => ({
+					address: Buffer.from(addr, 'hex'),
+					bftWeight: BigInt(1),
+					blsKey: Buffer.alloc(98),
+					generatorKey: Buffer.alloc(32),
+				})),
+			});
+		});
+
 		it('should be able to return if input timestamps are valid', async () => {
 			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
+			await validatorsParamsSubStore.set(methodContext, EMPTY_KEY, {
+				certificateThreshold: BigInt(68),
+				preCommitThreshold: BigInt(68),
+				validators: generatorList.map(addr => ({
+					address: Buffer.from(addr, 'hex'),
+					bftWeight: BigInt(1),
+					blsKey: Buffer.alloc(98),
+					generatorKey: Buffer.alloc(32),
+				})),
+			});
 
 			await expect(
 				validatorsModule.method.getGeneratorsBetweenTimestamps(
 					methodContext,
 					genesisTimestamp + 5,
 					genesisTimestamp + 1834,
-					generatorList.map(addr => ({ address: Buffer.from(addr, 'hex') })),
 				),
 			).resolves.toBeObject();
 		});
@@ -433,7 +457,6 @@ describe('ValidatorsModuleMethod', () => {
 				methodContext,
 				genesisTimestamp,
 				genesisTimestamp + timePerRound + 2 * blockTime + 1,
-				generatorList.map(addr => ({ address: Buffer.from(addr, 'hex') })),
 			);
 			let genWithCountGreaterThanOne = 0;
 			for (const generatorAddress of Object.keys(result)) {
@@ -456,7 +479,6 @@ describe('ValidatorsModuleMethod', () => {
 				methodContext,
 				genesisTimestamp,
 				genesisTimestamp + timePerRound * 2 + 2 * blockTime + 1,
-				generatorList.map(addr => ({ address: Buffer.from(addr, 'hex') })),
 			);
 
 			let genWithCountGreaterThanOne = 0;
@@ -484,7 +506,6 @@ describe('ValidatorsModuleMethod', () => {
 				methodContext,
 				genesisTimestamp,
 				genesisTimestamp,
-				generatorList.map(addr => ({ address: Buffer.from(addr, 'hex') })),
 			);
 
 			expect(Object.keys(result)).toHaveLength(0);
@@ -499,7 +520,6 @@ describe('ValidatorsModuleMethod', () => {
 				methodContext,
 				genesisTimestamp,
 				genesisTimestamp + blockTime - 1,
-				generatorList.map(addr => ({ address: Buffer.from(addr, 'hex') })),
 			);
 
 			expect(Object.keys(result)).toHaveLength(0);
@@ -514,7 +534,6 @@ describe('ValidatorsModuleMethod', () => {
 				methodContext,
 				genesisTimestamp,
 				genesisTimestamp + blockTime,
-				generatorList.map(addr => ({ address: Buffer.from(addr, 'hex') })),
 			);
 
 			expect(Object.keys(result)).toHaveLength(0);
@@ -526,7 +545,6 @@ describe('ValidatorsModuleMethod', () => {
 					methodContext,
 					genesisTimestamp + 10,
 					genesisTimestamp + 1,
-					generatorList.map(addr => ({ address: Buffer.from(addr, 'hex') })),
 				),
 			).rejects.toThrow('End timestamp must be greater than start timestamp.');
 		});
@@ -539,7 +557,6 @@ describe('ValidatorsModuleMethod', () => {
 					methodContext,
 					genesisTimestamp - 100,
 					genesisTimestamp + 1,
-					generatorList.map(addr => ({ address: Buffer.from(addr, 'hex') })),
 				),
 			).rejects.toThrow('Input timestamp must be greater than genesis timestamp.');
 		});
@@ -552,7 +569,6 @@ describe('ValidatorsModuleMethod', () => {
 					methodContext,
 					genesisTimestamp + 2,
 					genesisTimestamp + 3,
-					generatorList.map(addr => ({ address: Buffer.from(addr, 'hex') })),
 				),
 			).resolves.toEqual({});
 		});
@@ -565,13 +581,12 @@ describe('ValidatorsModuleMethod', () => {
 					methodContext,
 					genesisTimestamp + 2,
 					genesisTimestamp + 2,
-					generatorList.map(addr => ({ address: Buffer.from(addr, 'hex') })),
 				),
 			).resolves.toEqual({});
 		});
 	});
 
-	describe('getValidatorAccount', () => {
+	describe('getValidatorKeys', () => {
 		const validAddress = utils.getRandomBytes(20);
 		let validatorAccount: ValidatorKeys;
 		beforeEach(async () => {
@@ -587,7 +602,7 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should get validator from store', async () => {
-			const receivedValidatorAccount = await validatorsMethod.getValidatorAccount(
+			const receivedValidatorAccount = await validatorsMethod.getValidatorKeys(
 				methodContext,
 				validAddress,
 			);
@@ -597,14 +612,14 @@ describe('ValidatorsModuleMethod', () => {
 		it('should throw when address length is not 20', async () => {
 			const invalidAddress = utils.getRandomBytes(19);
 			await expect(
-				validatorsMethod.getValidatorAccount(methodContext, invalidAddress),
+				validatorsMethod.getValidatorKeys(methodContext, invalidAddress),
 			).rejects.toThrow('Address is not valid');
 		});
 
 		it('should throw if address does not exist', async () => {
 			const nonExistingAddress = utils.getRandomBytes(20);
 			await expect(
-				validatorsMethod.getValidatorAccount(methodContext, nonExistingAddress),
+				validatorsMethod.getValidatorKeys(methodContext, nonExistingAddress),
 			).rejects.toThrow('No validator account found for the input address.');
 		});
 	});

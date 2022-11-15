@@ -25,7 +25,6 @@ import {
 	TransactionVerifyContext,
 	BlockHeader,
 	BlockAssets,
-	Validator,
 } from './types';
 
 interface ContextParams {
@@ -34,11 +33,7 @@ interface ContextParams {
 	logger: Logger;
 	eventQueue: EventQueue;
 	transaction: Transaction;
-	currentValidators: Validator[];
-	impliesMaxPrevote: boolean;
-	maxHeightCertified: number;
-	certificateThreshold: bigint;
-	header?: BlockHeader;
+	header: BlockHeader;
 	assets?: BlockAssets;
 }
 
@@ -48,12 +43,8 @@ export class TransactionContext {
 	private readonly _logger: Logger;
 	private readonly _eventQueue: EventQueue;
 	private readonly _transaction: Transaction;
-	private readonly _header?: BlockHeader;
+	private readonly _header: BlockHeader;
 	private readonly _assets?: BlockAssets;
-	private readonly _currentValidators: Validator[];
-	private readonly _impliesMaxPrevote: boolean;
-	private readonly _maxHeightCertified: number;
-	private readonly _certificateThreshold: bigint;
 
 	public constructor(params: ContextParams) {
 		this._stateStore = params.stateStore;
@@ -63,10 +54,6 @@ export class TransactionContext {
 		this._chainID = params.chainID;
 		this._transaction = params.transaction;
 		this._assets = params.assets;
-		this._currentValidators = params.currentValidators;
-		this._impliesMaxPrevote = params.impliesMaxPrevote;
-		this._maxHeightCertified = params.maxHeightCertified;
-		this._certificateThreshold = params.certificateThreshold;
 	}
 
 	public createTransactionVerifyContext(): TransactionVerifyContext {
@@ -74,6 +61,7 @@ export class TransactionContext {
 			logger: this._logger,
 			chainID: this._chainID,
 			stateStore: this._stateStore,
+			header: { height: this._header.height, timestamp: this._header.timestamp },
 			getMethodContext: () => createImmutableMethodContext(this._stateStore),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
@@ -82,9 +70,6 @@ export class TransactionContext {
 	}
 
 	public createTransactionExecuteContext(): TransactionExecuteContext {
-		if (!this._header) {
-			throw new Error('Transaction Execution requires block header in the context.');
-		}
 		if (!this._assets) {
 			throw new Error('Transaction Execution requires block assets in the context.');
 		}
@@ -101,10 +86,6 @@ export class TransactionContext {
 			header: this._header,
 			transaction: this._transaction,
 			assets: this._assets,
-			currentValidators: this._currentValidators,
-			impliesMaxPrevote: this._impliesMaxPrevote,
-			maxHeightCertified: this._maxHeightCertified,
-			certificateThreshold: this._certificateThreshold,
 		};
 	}
 
@@ -113,6 +94,10 @@ export class TransactionContext {
 			logger: this._logger,
 			chainID: this._chainID,
 			stateStore: this._stateStore,
+			header: {
+				height: this._header.height,
+				timestamp: this._header.timestamp,
+			},
 			getMethodContext: () =>
 				createMethodContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
@@ -149,10 +134,6 @@ export class TransactionContext {
 			params: (paramsSchema
 				? codec.decode(paramsSchema, this._transaction.params)
 				: undefined) as T,
-			currentValidators: this._currentValidators,
-			impliesMaxPrevote: this._impliesMaxPrevote,
-			maxHeightCertified: this._maxHeightCertified,
-			certificateThreshold: this._certificateThreshold,
 		};
 	}
 

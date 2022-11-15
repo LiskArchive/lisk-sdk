@@ -14,7 +14,7 @@
 
 import { CommandExecuteContext } from '../../../state_machine/types';
 import { BaseCommand } from '../../base_command';
-import { defaultConfig, EMPTY_KEY, MODULE_NAME_DPOS } from '../constants';
+import { EMPTY_KEY, MODULE_NAME_DPOS } from '../constants';
 import { DelegateStore } from '../stores/delegate';
 import { GenesisDataStore } from '../stores/genesis';
 import { VoterStore } from '../stores/voter';
@@ -24,21 +24,22 @@ import { hasWaited, isPunished, isCertificateGenerated } from '../utils';
 export class UnlockCommand extends BaseCommand {
 	private _tokenMethod!: TokenMethod;
 	private _tokenIDDPoS!: TokenIDDPoS;
+	private _roundLength!: number;
 
 	public addDependencies(args: UnlockCommandDependencies) {
 		this._tokenMethod = args.tokenMethod;
 	}
 
-	public init(args: { tokenIDDPoS: TokenIDDPoS }) {
+	public init(args: { tokenIDDPoS: TokenIDDPoS; roundLength: number }) {
 		this._tokenIDDPoS = args.tokenIDDPoS;
+		this._roundLength = args.roundLength;
 	}
 
 	public async execute(context: CommandExecuteContext): Promise<void> {
 		const {
 			transaction: { senderAddress },
 			getMethodContext,
-			maxHeightCertified,
-			header: { height },
+			header: { height, aggregateCommit },
 		} = context;
 		const delegateSubstore = this.stores.get(DelegateStore);
 		const voterSubstore = this.stores.get(VoterStore);
@@ -57,8 +58,8 @@ export class UnlockCommand extends BaseCommand {
 				isCertificateGenerated({
 					unlockObject,
 					genesisHeight,
-					maxHeightCertified,
-					roundLength: defaultConfig.roundLength,
+					maxHeightCertified: aggregateCommit.height,
+					roundLength: this._roundLength,
 				})
 			) {
 				await this._tokenMethod.unlock(

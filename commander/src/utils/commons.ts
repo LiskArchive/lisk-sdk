@@ -48,7 +48,7 @@ export const deriveKeypair = async (passphrase: string, keyDerivationPath: strin
 	if (keyDerivationPath === 'legacy') {
 		return cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 	}
-	const privateKey = await cryptography.ed.getKeyPairFromPhraseAndPath(
+	const privateKey = await cryptography.ed.getPrivateKeyFromPhraseAndPath(
 		passphrase,
 		keyDerivationPath,
 	);

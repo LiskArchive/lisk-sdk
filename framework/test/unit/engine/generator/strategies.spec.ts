@@ -59,6 +59,7 @@ const getTxMock = (
 		.calledWith({
 			contextID: expect.any(Buffer),
 			transaction: tx.toObject(),
+			header: expect.any(Object),
 		})
 		.mockResolvedValueOnce({
 			result: valid === false ? TransactionVerifyResult.PENDING : TransactionVerifyResult.OK,
@@ -99,12 +100,6 @@ describe('strategies', () => {
 			getProcessableTransactions: jest.fn().mockReturnValue(new dataStructures.BufferMap()),
 		} as any;
 		const contextID = utils.getRandomBytes(32);
-		const consensus = {
-			currentValidators: [],
-			implyMaxPrevote: true,
-			maxHeightCertified: 10,
-			certificateThreshold: BigInt(0),
-		};
 
 		let header: BlockHeader;
 		let strategy: HighFeeGenerationStrategy;
@@ -118,6 +113,7 @@ describe('strategies', () => {
 				previousBlockID: Buffer.from('id'),
 				maxHeightGenerated: 0,
 				maxHeightPrevoted: 0,
+				impliesMaxPrevotes: true,
 				assetRoot: utils.hash(Buffer.alloc(0)),
 				transactionRoot: utils.hash(Buffer.alloc(0)),
 				eventRoot: utils.hash(Buffer.alloc(0)),
@@ -147,7 +143,7 @@ describe('strategies', () => {
 		describe('getTransactionsForBlock', () => {
 			it('should fetch processable transactions from transaction pool', async () => {
 				// Act
-				await strategy.getTransactionsForBlock(contextID, header, new BlockAssets(), consensus);
+				await strategy.getTransactionsForBlock(contextID, header, new BlockAssets());
 
 				// Assert
 				expect(mockTxPool.getProcessableTransactions).toHaveBeenCalledTimes(1);
@@ -163,12 +159,7 @@ describe('strategies', () => {
 				);
 
 				// Act
-				const result = await strategy.getTransactionsForBlock(
-					contextID,
-					header,
-					new BlockAssets(),
-					consensus,
-				);
+				const result = await strategy.getTransactionsForBlock(contextID, header, new BlockAssets());
 
 				// Assert
 				expect(result.transactions.map((tx: any) => tx.id.toString())).toEqual(
@@ -186,12 +177,7 @@ describe('strategies', () => {
 				);
 
 				// Act
-				const result = await strategy.getTransactionsForBlock(
-					contextID,
-					header,
-					new BlockAssets(),
-					consensus,
-				);
+				const result = await strategy.getTransactionsForBlock(contextID, header, new BlockAssets());
 
 				// Assert
 				expect(result.transactions.map((tx: any) => tx.id.toString())).toEqual(
@@ -209,12 +195,7 @@ describe('strategies', () => {
 				);
 
 				// Act
-				const result = await strategy.getTransactionsForBlock(
-					contextID,
-					header,
-					new BlockAssets(),
-					consensus,
-				);
+				const result = await strategy.getTransactionsForBlock(contextID, header, new BlockAssets());
 
 				// Assert
 				expect(result.transactions.map((tx: any) => tx.id.toString())).toEqual(
@@ -227,12 +208,7 @@ describe('strategies', () => {
 				mockTxPool.getProcessableTransactions.mockReturnValue([]);
 
 				// Act
-				const result = await strategy.getTransactionsForBlock(
-					contextID,
-					header,
-					new BlockAssets(),
-					consensus,
-				);
+				const result = await strategy.getTransactionsForBlock(contextID, header, new BlockAssets());
 
 				// Assert
 				expect(result).toEqual({ transactions: [], events: [] });
@@ -248,12 +224,7 @@ describe('strategies', () => {
 				);
 
 				// Act
-				const result = await strategy.getTransactionsForBlock(
-					contextID,
-					header,
-					new BlockAssets(),
-					consensus,
-				);
+				const result = await strategy.getTransactionsForBlock(contextID, header, new BlockAssets());
 
 				// Assert
 				expect(result).toEqual({ transactions: [], events: [] });

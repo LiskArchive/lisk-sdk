@@ -19,7 +19,7 @@ import {
 	REWARD_REDUCTION_FACTOR_BFT,
 	REWARD_REDUCTION_MAX_PREVOTES,
 } from '../../../../src/modules/reward/constants';
-import { EVENT_REWARD_MINTED_DATA_NAME } from '../../../../src/state_machine/constants';
+import { RewardMintedEvent } from '../../../../src/modules/reward/events/reward_minted';
 
 describe('RewardModule', () => {
 	const genesisConfig: any = {};
@@ -35,14 +35,13 @@ describe('RewardModule', () => {
 		],
 		tokenID: '0000000000000000',
 	};
-	const generatorConfig: any = {};
 
 	let rewardModule: RewardModule;
 	let mint: any;
 	beforeEach(async () => {
 		mint = jest.fn();
 		rewardModule = new RewardModule();
-		await rewardModule.init({ genesisConfig, moduleConfig, generatorConfig });
+		await rewardModule.init({ genesisConfig, moduleConfig });
 		rewardModule.addDependencies(
 			{ mint } as any,
 			{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
@@ -52,9 +51,7 @@ describe('RewardModule', () => {
 	describe('init', () => {
 		it('should initialize config with default value when module config is empty', async () => {
 			rewardModule = new RewardModule();
-			await expect(
-				rewardModule.init({ genesisConfig: {} as any, moduleConfig: {}, generatorConfig: {} }),
-			).toResolve();
+			await expect(rewardModule.init({ genesisConfig: {} as any, moduleConfig: {} })).toResolve();
 
 			expect(rewardModule['_moduleConfig']).toEqual({ ...moduleConfig });
 		});
@@ -65,7 +62,6 @@ describe('RewardModule', () => {
 				rewardModule.init({
 					genesisConfig: {} as any,
 					moduleConfig: { offset: 1000 },
-					generatorConfig: {},
 				}),
 			).toResolve();
 
@@ -80,7 +76,6 @@ describe('RewardModule', () => {
 					moduleConfig: {
 						tokenID: '00000000000000000',
 					},
-					generatorConfig: {},
 				});
 			} catch (error: any) {
 				// eslint-disable-next-line jest/no-try-expect
@@ -95,6 +90,10 @@ describe('RewardModule', () => {
 			header: blockHeader,
 		}).getBlockAfterExecuteContext();
 
+		beforeEach(() => {
+			jest.spyOn(rewardModule.events.get(RewardMintedEvent), 'log');
+		});
+
 		it(`should call mint for a valid bracket`, async () => {
 			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
 			expect(mint).toHaveBeenCalledTimes(1);
@@ -106,10 +105,14 @@ describe('RewardModule', () => {
 				.mockReturnValue([BigInt(1), REWARD_NO_REDUCTION]);
 			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
 			expect(mint).toHaveBeenCalledTimes(1);
-			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().name).toBe(
-				EVENT_REWARD_MINTED_DATA_NAME,
+			expect(rewardModule.events.get(RewardMintedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				blockHeader.generatorAddress,
+				{
+					amount: BigInt(1),
+					reduction: 0,
+				},
 			);
-			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().module).toBe('reward');
 		});
 
 		it('should emit rewardMinted event for event type REWARD_REDUCTION_SEED_REVEAL', async () => {
@@ -118,10 +121,14 @@ describe('RewardModule', () => {
 				.mockReturnValue([BigInt(0), REWARD_REDUCTION_SEED_REVEAL]);
 			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
 			expect(mint).toHaveBeenCalledTimes(0);
-			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().name).toBe(
-				EVENT_REWARD_MINTED_DATA_NAME,
+			expect(rewardModule.events.get(RewardMintedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				blockHeader.generatorAddress,
+				{
+					amount: BigInt(0),
+					reduction: 1,
+				},
 			);
-			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().module).toBe('reward');
 		});
 
 		it('should emit rewardMinted event for event type REWARD_REDUCTION_MAX_PREVOTES', async () => {
@@ -133,10 +140,14 @@ describe('RewardModule', () => {
 				]);
 			expect(mint).toHaveBeenCalledTimes(0);
 			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
-			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().name).toBe(
-				EVENT_REWARD_MINTED_DATA_NAME,
+			expect(rewardModule.events.get(RewardMintedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				blockHeader.generatorAddress,
+				{
+					amount: BigInt(0),
+					reduction: 2,
+				},
 			);
-			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().module).toBe('reward');
 		});
 	});
 });

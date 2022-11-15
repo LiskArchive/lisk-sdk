@@ -43,7 +43,11 @@ describe('ABI server', () => {
 			moduleDB: (new InMemoryDatabase() as unknown) as Database,
 			stateMachine,
 			modules: [mod],
-			config: applicationConfigSchema.default,
+			config: {
+				...applicationConfigSchema.default,
+				genesis: { ...applicationConfigSchema.default.genesis, chainID: '00000000' },
+			},
+			chainID: Buffer.from('10000000', 'hex'),
 		});
 
 		server = new ABIServer(fakeLogger, '/path/to/ipc', abiHandler);
@@ -52,7 +56,7 @@ describe('ABI server', () => {
 	describe('constructor', () => {
 		it('should register abi handlers', () => {
 			const allFuncs = Object.getOwnPropertyNames(Object.getPrototypeOf(abiHandler)).filter(
-				name => name !== 'constructor' && name !== 'chainID',
+				name => name !== 'constructor' && name !== 'chainID' && name !== 'cacheGenesisState',
 			);
 			expect(Object.keys(server['_abiHandlers'])).toEqual(allFuncs);
 		});

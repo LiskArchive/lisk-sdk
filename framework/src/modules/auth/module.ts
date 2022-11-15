@@ -30,7 +30,9 @@ import { configSchema, genesisAuthStoreSchema } from './schemas';
 import { GenesisAuthStore, ImmutableStoreCallback } from './types';
 import { verifyNonce, verifySignatures } from './utils';
 import { AuthAccount, authAccountSchema, AuthAccountStore } from './stores/auth_account';
+import { MultisignatureRegistrationEvent } from './events/multisignature_registration';
 import { RegisterMultisignatureCommand } from './commands/register_multisignature';
+import { InvalidSignatureEvent } from './events/invalid_signature';
 
 export class AuthModule extends BaseModule {
 	public method = new AuthMethod(this.stores, this.events);
@@ -41,6 +43,11 @@ export class AuthModule extends BaseModule {
 	public constructor() {
 		super();
 		this.stores.register(AuthAccountStore, new AuthAccountStore(this.name));
+		this.events.register(
+			MultisignatureRegistrationEvent,
+			new MultisignatureRegistrationEvent(this.name),
+		);
+		this.events.register(InvalidSignatureEvent, new InvalidSignatureEvent(this.name));
 	}
 
 	public metadata(): ModuleMetadata {

@@ -81,7 +81,7 @@ describe('base_plugin', () => {
 
 				// Assert
 				expect(apiClient.createIPCClient).toHaveBeenCalledWith(
-					systemDirs(testing.fixtures.defaultConfig.system.dataPath).sockets,
+					systemDirs(testing.fixtures.defaultConfig.system.dataPath).dataPath,
 				);
 			});
 

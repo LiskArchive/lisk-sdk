@@ -14,10 +14,9 @@
 
 import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
-import { codec } from '@liskhq/lisk-codec';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { defaultConfig } from './constants';
-import { ModuleConfig, RandomMethod, TokenMethod, RewardMintedData } from './types';
+import { ModuleConfig, RandomMethod, TokenMethod } from './types';
 import { BlockAfterExecuteContext } from '../../state_machine';
 import { RewardMethod } from './method';
 import { RewardEndpoint } from './endpoint';
@@ -25,9 +24,8 @@ import {
 	configSchema,
 	getDefaultRewardAtHeightRequestSchema,
 	getDefaultRewardAtHeightResponseSchema,
-	rewardMintedDataSchema,
 } from './schemas';
-import { EVENT_REWARD_MINTED_DATA_NAME } from '../../state_machine/constants';
+import { RewardMintedEvent } from './events/reward_minted';
 
 export class RewardModule extends BaseModule {
 	public method = new RewardMethod(this.stores, this.events);
@@ -37,6 +35,11 @@ export class RewardModule extends BaseModule {
 	private _randomMethod!: RandomMethod;
 	private _tokenID!: Buffer;
 	private _moduleConfig!: ModuleConfig;
+
+	public constructor() {
+		super();
+		this.events.register(RewardMintedEvent, new RewardMintedEvent(this.name));
+	}
 
 	public addDependencies(tokenMethod: TokenMethod, randomMethod: RandomMethod) {
 		this._tokenMethod = tokenMethod;
@@ -54,7 +57,10 @@ export class RewardModule extends BaseModule {
 				},
 			],
 			commands: [],
-			events: [],
+			events: this.events.values().map(v => ({
+				name: v.name,
+				data: v.schema,
+			})),
 			assets: [],
 		};
 	}
@@ -90,7 +96,6 @@ export class RewardModule extends BaseModule {
 			context.getMethodContext(),
 			context.header,
 			context.assets,
-			context.impliesMaxPrevote,
 		);
 		if (blockReward < BigInt(0)) {
 			throw new Error("Block reward can't be negative.");
@@ -105,17 +110,9 @@ export class RewardModule extends BaseModule {
 			);
 		}
 
-		const rewardMintedData: RewardMintedData = {
+		this.events.get(RewardMintedEvent).log(context, context.header.generatorAddress, {
 			amount: blockReward,
 			reduction,
-		};
-
-		const data = codec.encode(rewardMintedDataSchema, rewardMintedData);
-		context.eventQueue.add(
-			this.name,
-			EVENT_REWARD_MINTED_DATA_NAME,
-			codec.encode(rewardMintedDataSchema, data),
-			[context.header.generatorAddress],
-		);
+		});
 	}
 }

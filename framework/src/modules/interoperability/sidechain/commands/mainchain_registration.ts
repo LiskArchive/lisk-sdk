@@ -39,7 +39,7 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../../state_machine';
-import { MainchainRegistrationParams, ActiveValidators } from '../../types';
+import { MainchainRegistrationParams, ActiveValidators, ValidatorsMethod } from '../../types';
 import { computeValidatorsHash, isValidName, sortValidatorsByBLSKey } from '../../utils';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { SidechainInteroperabilityInternalMethod } from '../store';
@@ -55,6 +55,12 @@ import { CcmSendSuccessEvent } from '../../events/ccm_send_success';
 
 export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 	public schema = mainchainRegParams;
+
+	private _validatorsMethod!: ValidatorsMethod;
+
+	public addDependencies(validatorsMethod: ValidatorsMethod) {
+		this._validatorsMethod = validatorsMethod;
+	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(
@@ -124,11 +130,13 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 	public async execute(context: CommandExecuteContext<MainchainRegistrationParams>): Promise<void> {
 		const {
 			getMethodContext,
-			currentValidators: validators,
-			certificateThreshold,
 			params: { ownChainID, ownName, mainchainValidators, aggregationBits, signature },
 		} = context;
 		const methodContext = getMethodContext();
+
+		const { validators, certificateThreshold } = await this._validatorsMethod.getValidatorsParams(
+			getMethodContext(),
+		);
 
 		const activeValidators: ActiveValidators[] = validators.filter(v => v.bftWeight > BigInt(0));
 		const keyList: Buffer[] = [];

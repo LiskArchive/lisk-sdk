@@ -265,6 +265,7 @@ describe('CrossChainUpdateCommand', () => {
 				getMethodContext: () => createTransientMethodContext({ stateStore }),
 				getStore: createStoreGetter(stateStore).getStore,
 				stateStore,
+				header: { height: 20, timestamp: 10000 },
 				logger: testing.mocks.loggerMock,
 				chainID,
 				params,
@@ -434,10 +435,6 @@ describe('CrossChainUpdateCommand', () => {
 				assets: new BlockAssets(),
 				eventQueue: new EventQueue(0),
 				header: blockHeader as BlockHeader,
-				certificateThreshold: BigInt(0),
-				currentValidators: [],
-				impliesMaxPrevote: true,
-				maxHeightCertified: 0,
 			};
 
 			await partnerValidatorStore.set(
