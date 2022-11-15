@@ -70,7 +70,7 @@ export class Q {
 	public mul(n: Q) {
 		this._checkBase(n);
 
-		return new Q(this._roundDown(this._val * n._val), this._base);
+		return new Q((this._val * n._val) >> this._base, this._base);
 	}
 
 	public div(n: Q) {
