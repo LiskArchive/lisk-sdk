@@ -346,7 +346,7 @@ export interface ChainValidatorsJSON {
 	certificateThreshold: string;
 }
 
-export interface GenesisInteroperabilityInternalMethod {
+export interface GenesisInteroperability {
 	outboxRootSubstore: {
 		storeKey: Buffer;
 		storeValue: OutboxRoot;
