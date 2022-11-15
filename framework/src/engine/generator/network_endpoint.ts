@@ -247,6 +247,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 		const { result } = await this._abi.verifyTransaction({
 			contextID: EMPTY_BUFFER,
 			transaction: transaction.toObject(),
+			header: this._chain.lastBlock.header.toObject(),
 		});
 		if (result === TransactionVerifyResult.INVALID) {
 			throw new InvalidTransactionError('Transaction verification failed.', transaction.id);

@@ -16,14 +16,12 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { Chain, Transaction, Event } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { LiskValidationError } from '@liskhq/lisk-validator';
-import { Database, InMemoryDatabase } from '@liskhq/lisk-db';
 import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../../../src/abi';
 import { Logger } from '../../../../src/logger';
 import { Broadcaster } from '../../../../src/engine/generator/broadcaster';
 import { InvalidTransactionError } from '../../../../src/engine/generator/errors';
 import { fakeLogger } from '../../../utils/mocks';
 import { TxpoolEndpoint } from '../../../../src/engine/endpoint/txpool';
-import { Consensus } from '../../../../src/engine/consensus';
 
 describe('generator endpoint', () => {
 	const logger: Logger = fakeLogger;
@@ -54,8 +52,6 @@ describe('generator endpoint', () => {
 	let pool: TransactionPool;
 	let abi: ABI;
 	let chain: Chain;
-	let consensus: Consensus;
-	let blockchainDB: Database;
 
 	beforeEach(() => {
 		broadcaster = {
@@ -80,28 +76,11 @@ describe('generator endpoint', () => {
 				},
 			},
 		} as never;
-		consensus = {
-			execute: jest.fn(),
-			getSlotNumber: jest.fn(),
-			getSlotTime: jest.fn(),
-			getGeneratorAtTimestamp: jest.fn(),
-			getAggregateCommit: jest.fn(),
-			certifySingleCommit: jest.fn(),
-			getMaxRemovalHeight: jest.fn().mockResolvedValue(0),
-			getConsensusParams: jest.fn().mockResolvedValue({
-				currentValidators: [],
-				implyMaxPrevote: true,
-				maxHeightCertified: 0,
-			}),
-		} as never;
-		blockchainDB = new InMemoryDatabase() as never;
 		endpoint = new TxpoolEndpoint({
 			abi,
 			broadcaster,
 			pool,
 			chain,
-			consensus,
-			blockchainDB,
 		});
 	});
 
@@ -212,7 +191,7 @@ describe('generator endpoint', () => {
 						},
 						chainID,
 					}),
-				).rejects.toThrow(LiskValidationError);
+				).rejects.toThrow("must have required property 'transaction'");
 			});
 
 			it('should reject with error when transaction bytes is invalid', async () => {
@@ -225,6 +204,19 @@ describe('generator endpoint', () => {
 						chainID,
 					}),
 				).rejects.toThrow();
+			});
+
+			it('should reject with error when skipVerify is not boolean', async () => {
+				await expect(
+					endpoint.dryRunTransaction({
+						logger,
+						params: {
+							transaction: 'xxxx',
+							skipVerify: 'test',
+						},
+						chainID,
+					}),
+				).rejects.toThrow("'.skipVerify' should be of type 'boolean'");
 			});
 		});
 
@@ -288,6 +280,30 @@ describe('generator endpoint', () => {
 					events: eventsJson,
 				});
 			});
+		});
+
+		it('should not verify transaction when skipVerify', async () => {
+			(abi.verifyTransaction as jest.Mock).mockResolvedValue({
+				result: TransactionVerifyResult.OK,
+			});
+
+			(abi.executeTransaction as jest.Mock).mockResolvedValue({
+				result: TransactionExecutionResult.OK,
+				events,
+			});
+
+			await expect(
+				endpoint.dryRunTransaction({
+					logger,
+					params: {
+						transaction: tx.getBytes().toString('hex'),
+						skipVerify: true,
+					},
+					chainID,
+				}),
+			).toResolve();
+
+			expect(abi.verifyTransaction).toBeCalledTimes(0);
 		});
 
 		describe('when both verification is success & execution returns OK', () => {

@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Database } from '@liskhq/lisk-db';
-import { Chain, Transaction, Event, StateStore } from '@liskhq/lisk-chain';
+import { Chain, Transaction, Event } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { validator } from '@liskhq/lisk-validator';
 import { Broadcaster } from '../generator/broadcaster';
@@ -28,15 +27,12 @@ import {
 } from '../generator/schemas';
 import { RequestContext } from '../rpc/rpc_server';
 import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../abi';
-import { Consensus } from '../consensus';
 
 interface EndpointArgs {
 	abi: ABI;
 	pool: TransactionPool;
 	broadcaster: Broadcaster;
 	chain: Chain;
-	consensus: Consensus;
-	blockchainDB: Database;
 }
 
 export class TxpoolEndpoint {
@@ -46,16 +42,12 @@ export class TxpoolEndpoint {
 	private readonly _pool: TransactionPool;
 	private readonly _broadcaster: Broadcaster;
 	private readonly _chain: Chain;
-	private readonly _consensus: Consensus;
-	private readonly _blockchainDB: Database;
 
 	public constructor(args: EndpointArgs) {
 		this._abi = args.abi;
 		this._pool = args.pool;
 		this._broadcaster = args.broadcaster;
 		this._chain = args.chain;
-		this._consensus = args.consensus;
-		this._blockchainDB = args.blockchainDB;
 	}
 
 	public async postTransaction(ctx: RequestContext): Promise<PostTransactionResponse> {
@@ -67,6 +59,7 @@ export class TxpoolEndpoint {
 		const { result } = await this._abi.verifyTransaction({
 			contextID: Buffer.alloc(0),
 			transaction: transaction.toObject(),
+			header: this._chain.lastBlock.header.toObject(),
 		});
 		if (result === TransactionVerifyResult.INVALID) {
 			throw new InvalidTransactionError('Transaction verification failed.', transaction.id);
@@ -112,31 +105,28 @@ export class TxpoolEndpoint {
 
 		const req = ctx.params;
 		const transaction = Transaction.fromBytes(Buffer.from(req.transaction, 'hex'));
+		const header = this._chain.lastBlock.header.toObject();
 
-		const { result } = await this._abi.verifyTransaction({
-			contextID: Buffer.alloc(0),
-			transaction: transaction.toObject(),
-		});
-		if (result === TransactionVerifyResult.INVALID) {
-			return {
-				success: false,
-				events: [],
-			};
+		if (!req.skipVerify) {
+			const { result } = await this._abi.verifyTransaction({
+				contextID: Buffer.alloc(0),
+				transaction: transaction.toObject(),
+				header,
+			});
+			if (result === TransactionVerifyResult.INVALID) {
+				return {
+					success: false,
+					events: [],
+				};
+			}
 		}
-
-		const stateStore = new StateStore(this._blockchainDB);
-		const consensus = await this._consensus.getConsensusParams(
-			stateStore,
-			this._chain.lastBlock.header,
-		);
 
 		const response = await this._abi.executeTransaction({
 			contextID: Buffer.alloc(0),
 			transaction: transaction.toObject(),
 			assets: this._chain.lastBlock.assets.getAll(),
 			dryRun: true,
-			header: this._chain.lastBlock.header.toObject(),
-			consensus,
+			header,
 		});
 
 		return {

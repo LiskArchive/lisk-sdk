@@ -28,13 +28,14 @@ export class <%= moduleClass %>Module extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
+			name: '',
 			endpoints: [],
 			commands: this.commands.map(command => ({
 				name: command.name,
 				params: command.schema,
 			})),
 			events: this.events.values().map(v => ({
-				typeID: v.name,
+				name: v.name,
 				data: v.schema,
 			})),
 			assets: [],

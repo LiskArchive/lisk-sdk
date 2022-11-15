@@ -1,6 +1,7 @@
 import { NotFoundError, TAG_TRANSACTION, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { ed, address as cryptoAddress, utils, legacy, address } from '@liskhq/lisk-cryptography';
+import { LiskValidationError } from '@liskhq/lisk-validator';
 import { when } from 'jest-when';
 import { AuthModule } from '../../../../src/modules/auth';
 import {
@@ -485,6 +486,87 @@ describe('AuthEndpoint', () => {
 					accountNonce,
 				),
 			);
+		});
+	});
+
+	describe('getMultiSigRegMsgSchema', () => {
+		it('should return multiSigRegMsgSchema from the endpoint', async () => {
+			// Arrange
+			const context = createTransientModuleEndpointContext({});
+
+			// Act
+			const result = await authEndpoint.getMultiSigRegMsgSchema(context);
+
+			// Assert
+			expect(result.schema).toEqual(multisigRegMsgSchema);
+		});
+	});
+
+	describe('sortMultisignatureGroup', () => {
+		it('should sort signatures when provided mandatory and optional keys', () => {
+			// Arrange
+			const inputData = {
+				mandatory: [
+					{
+						publicKey: '3333333333333333333333333333333333333333333333333333333333333333',
+						signature:
+							'22222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222',
+					},
+					{
+						publicKey: '0000000000000000000000000000000000000000000000000000000000000000',
+						signature:
+							'11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111',
+					},
+					{
+						publicKey: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+						signature:
+							'00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+					},
+				],
+				optional: [
+					{
+						publicKey: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+						signature: '',
+					},
+					{
+						publicKey: '2222222222222222222222222222222222222222222222222222222222222222',
+						signature:
+							'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+					},
+				],
+			};
+
+			const context = createTransientModuleEndpointContext({ params: inputData });
+
+			// Act
+			const sortedSignatures = authEndpoint.sortMultisignatureGroup(context);
+
+			// Assert
+			expect(sortedSignatures.signatures[0]).toEqual(inputData.mandatory[1].signature);
+			expect(sortedSignatures.signatures[1]).toEqual(inputData.mandatory[0].signature);
+			expect(sortedSignatures.signatures[2]).toEqual(inputData.mandatory[2].signature);
+			expect(sortedSignatures.signatures[3]).toEqual(inputData.optional[1].signature);
+			expect(sortedSignatures.signatures[4]).toEqual(inputData.optional[0].signature);
+		});
+
+		it('should throw a validation error when provided invalid request', () => {
+			// Arrange
+			const inputData = {
+				mandatory: [
+					// left empty to trigger the error test case
+				],
+				optional: [
+					{
+						publicKey: 'invalid public key', // invalid public key to trigger the error test case
+						signature: '',
+					},
+				],
+			};
+
+			const context = createTransientModuleEndpointContext({ params: inputData });
+
+			// Act & Assert
+			expect(() => authEndpoint.sortMultisignatureGroup(context)).toThrow(LiskValidationError);
 		});
 	});
 });

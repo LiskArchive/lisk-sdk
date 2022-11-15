@@ -36,15 +36,12 @@ export const blockAssetsJSON = [
 				),
 			supplySubstore: [
 				{
-					localID: '00000000',
+					tokenID: '0000000000000000',
 					totalSupply: (BigInt(accounts.keys.length) * BigInt('10000000000000')).toString(),
 				},
 			],
 			escrowSubstore: [],
-			availableLocalIDSubstore: {
-				nextAvailableLocalID: '00000000',
-			},
-			terminatedEscrowSubstore: [],
+			supportedTokensSubstore: [],
 		},
 		schema: genesisTokenStoreSchema,
 	},

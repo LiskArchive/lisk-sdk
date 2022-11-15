@@ -22,7 +22,7 @@ import { Database, StateDB } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseModule } from '../modules';
-import { loggerMock, channelMock } from './mocks';
+import { channelMock } from './mocks';
 import {
 	defaultConfig,
 	getGeneratorPrivateKeyFromDefaultConfig,
@@ -51,6 +51,7 @@ import { ABIHandler } from '../abi_handler/abi_handler';
 import { generateGenesisBlock } from '../genesis_block';
 import { systemDirs } from '../system_dirs';
 import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
+import { createLogger } from '../logger';
 
 type Options = {
 	genesis?: GenesisConfig;
@@ -62,6 +63,7 @@ interface BlockProcessingParams {
 	modules?: BaseModule[];
 	options?: Options;
 	initDelegates?: Buffer[];
+	logLevel?: string;
 }
 
 export interface BlockProcessingEnv {
@@ -78,12 +80,15 @@ export interface BlockProcessingEnv {
 	getLastBlock: () => Block;
 	getNextValidatorKeys: (blockHeader: BlockHeader) => Promise<Keys>;
 	getDataAccess: () => DataAccess;
-	getNetworkId: () => Buffer;
+	getChainID: () => Buffer;
 	invoke: <T = void>(path: string, params?: Record<string, unknown>) => Promise<T>;
 	cleanup: (config: Options) => void;
 }
 
-const getAppConfig = (genesisConfig?: GenesisConfig): ApplicationConfig => {
+const getAppConfig = (
+	genesisConfig?: Partial<GenesisConfig>,
+	moduleConfig?: Record<string, Record<string, unknown>>,
+): ApplicationConfig => {
 	const mergedConfig = objects.mergeDeep(
 		{},
 		{
@@ -96,6 +101,9 @@ const getAppConfig = (genesisConfig?: GenesisConfig): ApplicationConfig => {
 				...defaultConfig.genesis,
 				...(genesisConfig ?? {}),
 			},
+			modules: {
+				...(moduleConfig ?? {}),
+			},
 		},
 	) as ApplicationConfig;
 
@@ -103,8 +111,10 @@ const getAppConfig = (genesisConfig?: GenesisConfig): ApplicationConfig => {
 };
 
 const getNextTimestamp = (engine: Engine, previousBlock: BlockHeader) => {
-	const previousSlotNumber = engine['_consensus'].getSlotNumber(previousBlock.timestamp);
-	return engine['_consensus'].getSlotTime(previousSlotNumber + 1);
+	const previousSlotNumber = engine['_consensus']['_bft'].method.getSlotNumber(
+		previousBlock.timestamp,
+	);
+	return engine['_consensus']['_bft'].method.getSlotTime(previousSlotNumber + 1);
 };
 
 const createProcessableBlock = async (
@@ -112,26 +122,31 @@ const createProcessableBlock = async (
 	transactions: Transaction[],
 	timestamp?: number,
 ): Promise<Block> => {
+	engine['_logger'].info({ numberOfTransactions: transactions.length }, 'Start generating block');
 	// Get previous block and generate valid timestamp, seed reveal, maxHeightPrevoted, reward and maxHeightPreviouslyForged
 	const stateStore = new StateStore(engine['_blockchainDB']);
 	const previousBlockHeader = engine['_chain'].lastBlock.header;
 	const nextTimestamp = timestamp ?? getNextTimestamp(engine, previousBlockHeader);
-	const validator = await engine['_consensus'].getGeneratorAtTimestamp(
+	const generator = await engine['_consensus']['_bft'].method.getGeneratorAtTimestamp(
 		stateStore,
 		previousBlockHeader.height + 1,
 		nextTimestamp,
 	);
-	const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(validator);
+	const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(generator.address);
 	for (const tx of transactions) {
 		await engine['_generator']['_pool'].add(tx);
 	}
 	const block = await engine.generateBlock({
-		generatorAddress: validator,
+		generatorAddress: generator.address,
 		height: previousBlockHeader.height + 1,
 		privateKey: generatorPrivateKey,
 		timestamp: nextTimestamp,
 		transactions,
 	});
+	engine['_logger'].info(
+		{ height: block.header.height, numberOfTransactions: block.transactions.length },
+		'Generated block',
+	);
 
 	return block;
 };
@@ -139,7 +154,15 @@ const createProcessableBlock = async (
 export const getBlockProcessingEnv = async (
 	params: BlockProcessingParams,
 ): Promise<BlockProcessingEnv> => {
-	const appConfig = getAppConfig(params.options?.genesis);
+	const chainID = Buffer.from('00000000', 'hex');
+	const appConfig = getAppConfig(
+		params.options?.genesis
+			? {
+					...params.options.genesis,
+					chainID: chainID.toString('hex'),
+			  }
+			: { chainID: chainID.toString('hex') },
+	);
 
 	const systemDir = systemDirs(appConfig.system.dataPath);
 
@@ -164,6 +187,7 @@ export const getBlockProcessingEnv = async (
 		dposModule,
 	];
 	const stateMachine = new StateMachine();
+	const logger = createLogger({ name: 'blockProcessingEnv', logLevel: params.logLevel ?? 'none' });
 
 	// resolve dependencies
 	feeModule.addDependencies(tokenModule.method);
@@ -182,29 +206,32 @@ export const getBlockProcessingEnv = async (
 		...asset,
 		data: codec.fromJSON<Record<string, unknown>>(asset.schema, asset.data),
 	}));
-	await stateMachine.init(loggerMock, appConfig.genesis, appConfig.modules);
-	const genesisBlock = await generateGenesisBlock(stateMachine, loggerMock, {
+	await stateMachine.init(logger, appConfig.genesis, appConfig.modules);
+	const genesisBlock = await generateGenesisBlock(stateMachine, logger, {
 		timestamp: Math.floor(Date.now() / 1000) - 60 * 60,
 		assets: blockAssets,
+		chainID,
 	});
 	const abiHandler = new ABIHandler({
 		channel: channelMock,
 		config: appConfig,
-		logger: loggerMock,
+		logger,
 		stateDB,
 		moduleDB,
 		modules,
 		stateMachine,
+		chainID,
 	});
 	appConfig.genesis.block.blob = genesisBlock.getBytes().toString('hex');
 	appConfig.generator.keys.fromFile = path.join(__dirname, './fixtures/keys_fixture.json');
 	const engine = new Engine(abiHandler, appConfig);
 	await engine['_init']();
+	engine['_logger'] = logger;
 
-	const chainID = Buffer.from('10000000', 'hex');
-	await abiHandler.ready({
+	await abiHandler.init({
 		chainID,
 		lastBlockHeight: engine['_chain'].lastBlock.header.height,
+		lastStateRoot: engine['_chain'].lastBlock.header.stateRoot as Buffer,
 	});
 
 	return {
@@ -217,7 +244,17 @@ export const getBlockProcessingEnv = async (
 		getGenerator: () => engine['_generator'],
 		getMethodContext: () => createNewMethodContext(stateDB.newReadWriter()),
 		getBlockchainDB: () => engine['_blockchainDB'],
-		process: async (block): Promise<void> => engine['_consensus']['_execute'](block, 'peer-id'),
+		process: async (block): Promise<void> => {
+			logger.debug(
+				{ height: block.header.height, numberOfTransactions: block.transactions.length },
+				'Start executing block',
+			);
+			await engine['_consensus']['_execute'](block, 'peer-id');
+			logger.debug(
+				{ height: block.header.height, numberOfTransactions: block.transactions.length },
+				'Executed block',
+			);
+		},
 		processUntilHeight: async (height): Promise<void> => {
 			while (engine['_chain'].lastBlock.header.height < height) {
 				const nextBlock = await createProcessableBlock(engine, []);
@@ -228,12 +265,12 @@ export const getBlockProcessingEnv = async (
 		getNextValidatorKeys: async (previousBlockHeader: BlockHeader): Promise<Keys> => {
 			const stateStore = new StateStore(engine['_blockchainDB']);
 			const nextTimestamp = getNextTimestamp(engine, previousBlockHeader);
-			const validator = await engine['_consensus'].getGeneratorAtTimestamp(
+			const validator = await engine['_consensus']['_bft'].method.getGeneratorAtTimestamp(
 				stateStore,
 				previousBlockHeader.height + 1,
 				nextTimestamp,
 			);
-			const keys = getKeysFromDefaultConfig(validator);
+			const keys = getKeysFromDefaultConfig(validator.address);
 
 			return keys;
 		},
@@ -242,7 +279,7 @@ export const getBlockProcessingEnv = async (
 			const handler = engine['_rpcServer']['_getHandler'](namespace, method);
 			if (handler) {
 				const resp = (await handler({
-					logger: loggerMock,
+					logger,
 					chainID: engine['_chain'].chainID,
 					params: input,
 				})) as T;
@@ -271,7 +308,7 @@ export const getBlockProcessingEnv = async (
 
 			return result as T;
 		},
-		getNetworkId: () => chainID,
+		getChainID: () => chainID,
 		getDataAccess: () => engine['_chain'].dataAccess,
 		cleanup: (_val): void => {
 			engine['_closeDB']();

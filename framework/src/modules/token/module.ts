@@ -15,15 +15,7 @@ import { isUInt64, validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { objects, dataStructures } from '@liskhq/lisk-utils';
 import { address } from '@liskhq/lisk-cryptography';
-import {
-	ADDRESS_LENGTH,
-	CHAIN_ID_ALIAS_NATIVE,
-	CHAIN_ID_LENGTH,
-	defaultConfig,
-	EMPTY_BYTES,
-	LOCAL_ID_LENGTH,
-	TOKEN_ID_LENGTH,
-} from './constants';
+import { ADDRESS_LENGTH, CHAIN_ID_LENGTH, defaultConfig, TOKEN_ID_LENGTH } from './constants';
 import { TransferCommand } from './commands/transfer';
 import { ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { GenesisBlockExecuteContext } from '../../state_machine';
@@ -33,34 +25,56 @@ import {
 	getBalanceRequestSchema,
 	getBalanceResponseSchema,
 	getBalancesRequestSchema,
+	getBalancesResponseSchema,
 	getEscrowedAmountsResponseSchema,
 	getSupportedTokensResponseSchema,
+	isSupportedRequestSchema,
+	isSupportedResponseSchema,
 	getTotalSupplyResponseSchema,
 } from './schemas';
 import { TokenMethod } from './method';
 import { TokenEndpoint } from './endpoint';
-import { GenesisTokenStore, MinBalance, ModuleConfig } from './types';
+import { GenesisTokenStore, InteroperabilityMethod, ModuleConfig, ModuleConfigJSON } from './types';
 import { splitTokenID } from './utils';
 import { CCTransferCommand } from './commands/cc_transfer';
 import { BaseInteroperableModule } from '../interoperability/base_interoperable_module';
 import { TokenInteroperableMethod } from './cc_method';
-import {
-	MainchainInteroperabilityMethod,
-	SidechainInteroperabilityMethod,
-} from '../interoperability';
 import { UserStore } from './stores/user';
 import { EscrowStore } from './stores/escrow';
 import { SupplyStore } from './stores/supply';
-import { TerminatedEscrowStore } from './stores/terminated_escrow';
-import { AvailableLocalIDStore } from './stores/available_local_id';
+import { SupportedTokensStore } from './stores/supported_tokens';
 import { TransferEvent } from './events/transfer';
+import { TransferCrossChainEvent } from './events/transfer_cross_chain';
+import { CcmTransferEvent } from './events/ccm_transfer';
+import { MintEvent } from './events/mint';
+import { BurnEvent } from './events/burn';
+import { LockEvent } from './events/lock';
+import { UnlockEvent } from './events/unlock';
+import { InitializeTokenEvent } from './events/initialize_token';
+import { InitializeUserAccountEvent } from './events/initialize_user_account';
+import { InitializeEscrowAccountEvent } from './events/initialize_escrow_account';
+import { RecoverEvent } from './events/recover';
+import { BeforeCCCExecutionEvent } from './events/before_ccc_execution';
+import { BeforeCCMForwardingEvent } from './events/before_ccm_forwarding';
+import { AllTokensSupportedEvent } from './events/all_tokens_supported';
+import { AllTokensSupportRemovedEvent } from './events/all_tokens_supported_removed';
+import { AllTokensFromChainSupportedEvent } from './events/all_tokens_from_chain_supported';
+import { AllTokensFromChainSupportRemovedEvent } from './events/all_tokens_from_chain_supported_removed';
+import { TokenIDSupportedEvent } from './events/token_id_supported';
+import { TokenIDSupportRemovedEvent } from './events/token_id_supported_removed';
+import { CrossChainTransferCommand } from './cc_commands/cc_transfer';
 
 export class TokenModule extends BaseInteroperableModule {
 	public method = new TokenMethod(this.stores, this.events, this.name);
 	public endpoint = new TokenEndpoint(this.stores, this.offchainStores);
-	public crossChainMethod = new TokenInteroperableMethod(this.stores, this.events, this.method);
+	public crossChainMethod = new TokenInteroperableMethod(this.stores, this.events);
+	public crossChainTransferCommand = new CrossChainTransferCommand(
+		this.stores,
+		this.events,
+		this.method,
+	);
 
-	private _minBalances!: MinBalance[];
+	private _ownChainID!: Buffer;
 	private readonly _transferCommand = new TransferCommand(this.stores, this.events);
 	private readonly _ccTransferCommand = new CCTransferCommand(this.stores, this.events);
 
@@ -72,14 +86,35 @@ export class TokenModule extends BaseInteroperableModule {
 		this.stores.register(UserStore, new UserStore(this.name));
 		this.stores.register(EscrowStore, new EscrowStore(this.name));
 		this.stores.register(SupplyStore, new SupplyStore(this.name));
-		this.stores.register(TerminatedEscrowStore, new TerminatedEscrowStore(this.name));
-		this.stores.register(AvailableLocalIDStore, new AvailableLocalIDStore(this.name));
+		this.stores.register(SupportedTokensStore, new SupportedTokensStore(this.name));
 		this.events.register(TransferEvent, new TransferEvent(this.name));
+		this.events.register(TransferCrossChainEvent, new TransferCrossChainEvent(this.name));
+		this.events.register(CcmTransferEvent, new CcmTransferEvent(this.name));
+		this.events.register(MintEvent, new MintEvent(this.name));
+		this.events.register(BurnEvent, new BurnEvent(this.name));
+		this.events.register(LockEvent, new LockEvent(this.name));
+		this.events.register(UnlockEvent, new UnlockEvent(this.name));
+		this.events.register(InitializeTokenEvent, new InitializeTokenEvent(this.name));
+		this.events.register(InitializeUserAccountEvent, new InitializeUserAccountEvent(this.name));
+		this.events.register(InitializeEscrowAccountEvent, new InitializeEscrowAccountEvent(this.name));
+		this.events.register(RecoverEvent, new RecoverEvent(this.name));
+		this.events.register(BeforeCCCExecutionEvent, new BeforeCCCExecutionEvent(this.name));
+		this.events.register(BeforeCCMForwardingEvent, new BeforeCCMForwardingEvent(this.name));
+		this.events.register(AllTokensSupportedEvent, new AllTokensSupportedEvent(this.name));
+		this.events.register(AllTokensSupportRemovedEvent, new AllTokensSupportRemovedEvent(this.name));
+		this.events.register(
+			AllTokensFromChainSupportedEvent,
+			new AllTokensFromChainSupportedEvent(this.name),
+		);
+		this.events.register(
+			AllTokensFromChainSupportRemovedEvent,
+			new AllTokensFromChainSupportRemovedEvent(this.name),
+		);
+		this.events.register(TokenIDSupportedEvent, new TokenIDSupportedEvent(this.name));
+		this.events.register(TokenIDSupportRemovedEvent, new TokenIDSupportRemovedEvent(this.name));
 	}
 
-	public addDependencies(
-		interoperabilityMethod: MainchainInteroperabilityMethod | SidechainInteroperabilityMethod,
-	) {
+	public addDependencies(interoperabilityMethod: InteroperabilityMethod) {
 		this.method.addDependencies(interoperabilityMethod);
 	}
 
@@ -94,7 +129,7 @@ export class TokenModule extends BaseInteroperableModule {
 				{
 					name: this.endpoint.getBalances.name,
 					request: getBalancesRequestSchema,
-					response: getBalancesRequestSchema,
+					response: getBalancesResponseSchema,
 				},
 				{
 					name: this.endpoint.getTotalSupply.name,
@@ -103,6 +138,11 @@ export class TokenModule extends BaseInteroperableModule {
 				{
 					name: this.endpoint.getSupportedTokens.name,
 					response: getSupportedTokensResponseSchema,
+				},
+				{
+					name: this.endpoint.isSupported.name,
+					request: isSupportedRequestSchema,
+					response: isSupportedResponseSchema,
 				},
 				{
 					name: this.endpoint.getEscrowedAmounts.name,
@@ -128,18 +168,33 @@ export class TokenModule extends BaseInteroperableModule {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
-		const { moduleConfig } = args;
-		const config = objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
-		validator.validate(configSchema, config);
+		const { moduleConfig, genesisConfig } = args;
+		this._ownChainID = Buffer.from(genesisConfig.chainID, 'hex');
 
-		this._minBalances = config.minBalances.map(mb => ({
-			tokenID: Buffer.from(mb.tokenID, 'hex'),
-			amount: BigInt(mb.amount),
-		}));
-		this.method.init({ minBalances: this._minBalances });
-		this.endpoint.init(this.method, config.supportedTokenIDs);
+		const rawConfig = objects.mergeDeep(
+			{},
+			defaultConfig,
+			{ feeTokenID: Buffer.concat([this._ownChainID, Buffer.alloc(4, 0)]).toString('hex') },
+			moduleConfig,
+		) as ModuleConfigJSON;
+		validator.validate(configSchema, rawConfig);
+
+		const config: ModuleConfig = {
+			userAccountInitializationFee: BigInt(rawConfig.userAccountInitializationFee),
+			escrowAccountInitializationFee: BigInt(rawConfig.escrowAccountInitializationFee),
+			feeTokenID: Buffer.from(rawConfig.feeTokenID, 'hex'),
+		};
+
+		this.stores.get(SupportedTokensStore).registerOwnChainID(this._ownChainID);
+		this.crossChainTransferCommand.init({ ownChainID: this._ownChainID });
+
+		this.method.init({ ...config, ownChainID: this._ownChainID });
+		this.crossChainMethod.init(this._ownChainID);
+		this.endpoint.init(config);
 		this._transferCommand.init({
 			method: this.method,
+			accountInitializationFee: config.userAccountInitializationFee,
+			feeTokenID: config.feeTokenID,
 		});
 	}
 
@@ -184,7 +239,7 @@ export class TokenModule extends BaseInteroperableModule {
 			}
 
 			const lockedBalanceModuleIDSet = new Set();
-			let lastModuleID = '';
+			let lastModule = '';
 			for (const lockedBalance of userData.lockedBalances) {
 				lockedBalanceModuleIDSet.add(lockedBalance.module);
 				// Validate locked balances must not be zero
@@ -196,10 +251,10 @@ export class TokenModule extends BaseInteroperableModule {
 					);
 				}
 				// Validate locked balances must be sorted
-				if (lockedBalance.module.localeCompare(lastModuleID, 'en') < 0) {
-					throw new Error('Locked balances must be sorted by moduleID.');
+				if (lockedBalance.module.localeCompare(lastModule, 'en') < 0) {
+					throw new Error('Locked balances must be sorted by module.');
 				}
-				lastModuleID = lockedBalance.module;
+				lastModule = lockedBalance.module;
 			}
 			// Validate locked balance module ID uniqueness
 			if (lockedBalanceModuleIDSet.size !== userData.lockedBalances.length) {
@@ -216,29 +271,29 @@ export class TokenModule extends BaseInteroperableModule {
 				);
 			}
 
-			await userStore.set(context, key, userData);
+			await userStore.save(context, userData.address, userData.tokenID, userData);
 		}
 
 		const copiedSupplyStore = [...genesisStore.supplySubstore];
-		copiedSupplyStore.sort((a, b) => a.localID.compare(b.localID));
+		copiedSupplyStore.sort((a, b) => a.tokenID.compare(b.tokenID));
 
 		const supplyStoreKeySet = new dataStructures.BufferSet();
 		const supplyStore = this.stores.get(SupplyStore);
 		// eslint-disable-next-line @typescript-eslint/prefer-for-of
 		for (let i = 0; i < genesisStore.supplySubstore.length; i += 1) {
 			const supplyData = genesisStore.supplySubstore[i];
-			if (supplyStoreKeySet.has(supplyData.localID)) {
+			if (supplyStoreKeySet.has(supplyData.tokenID)) {
 				throw new Error(
-					`Supply store local ID ${supplyData.localID.toString('hex')} is duplicated.`,
+					`Supply store token ID ${supplyData.tokenID.toString('hex')} is duplicated.`,
 				);
 			}
-			supplyStoreKeySet.add(supplyData.localID);
+			supplyStoreKeySet.add(supplyData.tokenID);
 			// Validate sorting of userSubstore
-			if (!supplyData.localID.equals(copiedSupplyStore[i].localID)) {
-				throw new Error('SupplySubstore must be sorted by localID.');
+			if (!supplyData.tokenID.equals(copiedSupplyStore[i].tokenID)) {
+				throw new Error('SupplySubstore must be sorted by tokenID.');
 			}
 
-			await supplyStore.set(context, supplyData.localID, { totalSupply: supplyData.totalSupply });
+			await supplyStore.set(context, supplyData.tokenID, { totalSupply: supplyData.totalSupply });
 		}
 
 		const copiedEscrowStore = [...genesisStore.escrowSubstore];
@@ -246,7 +301,7 @@ export class TokenModule extends BaseInteroperableModule {
 			if (!a.escrowChainID.equals(b.escrowChainID)) {
 				return a.escrowChainID.compare(b.escrowChainID);
 			}
-			return a.localID.compare(b.localID);
+			return a.tokenID.compare(b.tokenID);
 		});
 
 		const escrowStore = this.stores.get(EscrowStore);
@@ -254,45 +309,63 @@ export class TokenModule extends BaseInteroperableModule {
 		// eslint-disable-next-line @typescript-eslint/prefer-for-of
 		for (let i = 0; i < genesisStore.escrowSubstore.length; i += 1) {
 			const escrowData = genesisStore.escrowSubstore[i];
+			const key = Buffer.concat([escrowData.escrowChainID, escrowData.tokenID]);
 			// validate terminated escrow chain ID/local ID uniqueness
-			const key = Buffer.concat([escrowData.escrowChainID, escrowData.localID]);
 			if (escrowKeySet.has(key)) {
 				throw new Error(
 					`Escrow store escrowChainID ${escrowData.escrowChainID.toString(
 						'hex',
-					)} and localID ${escrowData.localID.toString('hex')} pair is duplicated.`,
+					)} and tokenID ${escrowData.tokenID.toString('hex')} pair is duplicated.`,
 				);
 			}
 			escrowKeySet.add(key);
-			// validate terminated escrow chain ID/local ID order
+			// validate terminated escrow chain ID/token ID order
 			if (
 				!escrowData.escrowChainID.equals(copiedEscrowStore[i].escrowChainID) ||
-				!escrowData.localID.equals(copiedEscrowStore[i].localID)
+				!escrowData.tokenID.equals(copiedEscrowStore[i].tokenID)
 			) {
-				throw new Error('EscrowSubstore must be sorted by escrowChainID and localID.');
+				throw new Error('EscrowSubstore must be sorted by escrowChainID and tokenID.');
 			}
 			await escrowStore.set(context, key, { amount: escrowData.amount });
 		}
 
-		const nextAvailableLocalIDStore = this.stores.get(AvailableLocalIDStore);
-		await nextAvailableLocalIDStore.set(context, EMPTY_BYTES, {
-			nextAvailableLocalID: genesisStore.availableLocalIDSubstore.nextAvailableLocalID,
-		});
+		const copiedSupportedTokenIDsStore = [...genesisStore.supportedTokensSubstore];
+		copiedSupportedTokenIDsStore.sort((a, b) => a.chainID.compare(b.chainID));
 
-		const terminatedEscrowStore = this.stores.get(TerminatedEscrowStore);
-		const terminatedEscrowKeySet = new dataStructures.BufferSet(
-			genesisStore.terminatedEscrowSubstore,
-		);
-		// validate terminated escrow chain ID uniqueness
-		if (terminatedEscrowKeySet.size !== genesisStore.terminatedEscrowSubstore.length) {
-			throw new Error(`Terminated escrow store chainID has duplicate.`);
-		}
-		// validate terminated escrow chain ID order
-		if (!objects.bufferArrayOrderByLex(genesisStore.terminatedEscrowSubstore)) {
-			throw new Error(`Terminated escrow store must be sorted by chainID.`);
-		}
-		for (const terminatedChainID of genesisStore.terminatedEscrowSubstore) {
-			await terminatedEscrowStore.set(context, terminatedChainID, { escrowTerminated: true });
+		const supportedTokenIDsStore = this.stores.get(SupportedTokensStore);
+		const supportedTokenIDsSet = new dataStructures.BufferSet();
+		// eslint-disable-next-line @typescript-eslint/prefer-for-of
+		for (let i = 0; i < genesisStore.supportedTokensSubstore.length; i += 1) {
+			const supportedTokenIDsData = genesisStore.supportedTokensSubstore[i];
+			// validate terminated escrow chain ID/local ID uniqueness
+			if (supportedTokenIDsSet.has(supportedTokenIDsData.chainID)) {
+				throw new Error(
+					`supportedTokenIDsSet chain ID ${supportedTokenIDsData.chainID.toString(
+						'hex',
+					)} is duplicated.`,
+				);
+			}
+			supportedTokenIDsSet.add(supportedTokenIDsData.chainID);
+			// validate terminated escrow chain ID/local ID order
+			if (!supportedTokenIDsData.chainID.equals(copiedSupportedTokenIDsStore[i].chainID)) {
+				throw new Error('supportedTokensSubstore must be sorted by chainID.');
+			}
+			if (
+				!objects.bufferArrayUniqueItems(supportedTokenIDsData.supportedTokenIDs) ||
+				!objects.bufferArrayOrderByLex(supportedTokenIDsData.supportedTokenIDs)
+			) {
+				throw new Error(
+					'supportedTokensSubstore tokenIDs must be unique and sorted by lexicographically.',
+				);
+			}
+			for (const tokenID of supportedTokenIDsData.supportedTokenIDs) {
+				if (!tokenID.slice(0, CHAIN_ID_LENGTH).equals(supportedTokenIDsData.chainID)) {
+					throw new Error('supportedTokensSubstore tokenIDs must match the chainID.');
+				}
+			}
+			await supportedTokenIDsStore.set(context, supportedTokenIDsData.chainID, {
+				supportedTokenIDs: supportedTokenIDsData.supportedTokenIDs,
+			});
 		}
 
 		// verify result
@@ -304,11 +377,11 @@ export class TokenModule extends BaseInteroperableModule {
 		});
 		for (const { key, value: user } of allUsers) {
 			const tokenID = key.slice(ADDRESS_LENGTH);
-			const [chainID, localID] = splitTokenID(tokenID);
-			if (chainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
-				const existingSupply = computedSupply.get(localID) ?? BigInt(0);
+			const [chainID] = splitTokenID(tokenID);
+			if (chainID.equals(this._ownChainID)) {
+				const existingSupply = computedSupply.get(tokenID) ?? BigInt(0);
 				computedSupply.set(
-					localID,
+					tokenID,
 					existingSupply +
 						user.availableBalance +
 						user.lockedBalances.reduce((prev, current) => prev + current.amount, BigInt(0)),
@@ -316,48 +389,40 @@ export class TokenModule extends BaseInteroperableModule {
 			}
 		}
 		const allEscrows = await escrowStore.iterate(context, {
-			gte: Buffer.alloc(CHAIN_ID_LENGTH + LOCAL_ID_LENGTH, 0),
-			lte: Buffer.alloc(CHAIN_ID_LENGTH + LOCAL_ID_LENGTH, 255),
+			gte: Buffer.alloc(CHAIN_ID_LENGTH + TOKEN_ID_LENGTH, 0),
+			lte: Buffer.alloc(CHAIN_ID_LENGTH + TOKEN_ID_LENGTH, 255),
 		});
 		for (const { key, value } of allEscrows) {
-			const [, localID] = splitTokenID(key);
-			const existingSupply = computedSupply.get(localID) ?? BigInt(0);
-			computedSupply.set(localID, existingSupply + value.amount);
+			const tokenID = key.slice(CHAIN_ID_LENGTH);
+			const existingSupply = computedSupply.get(tokenID) ?? BigInt(0);
+			computedSupply.set(tokenID, existingSupply + value.amount);
 		}
-		for (const [localID, supply] of computedSupply.entries()) {
+		for (const [tokenID, supply] of computedSupply.entries()) {
 			if (!isUInt64(supply)) {
 				throw new Error(
-					`Total supply for LocalID: ${localID.toString('hex')} exceeds uint64 range.`,
+					`Total supply for tokenID: ${tokenID.toString('hex')} exceeds uint64 range.`,
 				);
 			}
 		}
 		const storedSupply = new dataStructures.BufferMap<bigint>();
 		const allSupplies = await supplyStore.iterate(context, {
-			gte: Buffer.alloc(LOCAL_ID_LENGTH, 0),
-			lte: Buffer.alloc(LOCAL_ID_LENGTH, 255),
+			gte: Buffer.alloc(TOKEN_ID_LENGTH, 0),
+			lte: Buffer.alloc(TOKEN_ID_LENGTH, 255),
 		});
-		const maxLocalID = allSupplies[allSupplies.length - 1].key;
 		for (const { key, value } of allSupplies) {
 			storedSupply.set(key, value.totalSupply);
 		}
 
-		for (const [localID, supply] of computedSupply.entries()) {
-			const stored = storedSupply.get(localID);
+		for (const [tokenID, supply] of computedSupply.entries()) {
+			const stored = storedSupply.get(tokenID);
 			if (!stored || stored !== supply) {
 				throw new Error('Stored total supply conflicts with computed supply.');
 			}
 		}
-		for (const [localID, supply] of storedSupply.entries()) {
-			if (!computedSupply.has(localID) && supply !== BigInt(0)) {
+		for (const [tokenID, supply] of storedSupply.entries()) {
+			if (!computedSupply.has(tokenID) && supply !== BigInt(0)) {
 				throw new Error('Stored total supply is non zero but cannot be computed.');
 			}
-		}
-
-		// validate next available ID
-		const { nextAvailableLocalID } = await nextAvailableLocalIDStore.get(context, EMPTY_BYTES);
-		// If maxLocalID is larger than nextAvailableLocalID, it is invalid
-		if (maxLocalID.compare(nextAvailableLocalID) > 0) {
-			throw new Error('Max local ID is higher than next availableLocalID');
 		}
 	}
 }

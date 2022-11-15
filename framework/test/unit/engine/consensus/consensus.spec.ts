@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Block, BlockAssets, Chain, StateStore, Event } from '@liskhq/lisk-chain';
+import { Block, BlockAssets, Chain, StateStore, Event, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { when } from 'jest-when';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
@@ -21,6 +21,7 @@ import { utils, address as cryptoAddress, bls, legacy } from '@liskhq/lisk-crypt
 import { ApplyPenaltyError } from '../../../../src/errors';
 import { Consensus } from '../../../../src/engine/consensus/consensus';
 import { NetworkEndpoint } from '../../../../src/engine/consensus/network_endpoint';
+import { LegacyNetworkEndpoint } from '../../../../src/engine/legacy/network_endpoint';
 import { Synchronizer } from '../../../../src/engine/consensus/synchronizer';
 import {
 	ApplyPenaltyAndRestartError,
@@ -39,7 +40,7 @@ import * as forkchoice from '../../../../src/engine/consensus/fork_choice/fork_c
 import { postBlockEventSchema } from '../../../../src/engine/consensus/schema';
 import { fakeLogger } from '../../../utils/mocks';
 import { BFTModule } from '../../../../src/engine/bft';
-import { ABI } from '../../../../src/abi';
+import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../../../src/abi';
 import {
 	CONSENSUS_EVENT_BLOCK_BROADCAST,
 	NETWORK_EVENT_POST_BLOCK,
@@ -79,18 +80,19 @@ describe('consensus', () => {
 			applyNodeInfo: jest.fn(),
 		} as unknown) as Network;
 		bft = {
+			init: jest.fn(),
 			initGenesisState: jest.fn(),
 			beforeTransactionsExecute: jest.fn(),
 			method: {
-				getGeneratorKeys: jest.fn().mockResolvedValue([]),
-				currentHeaderImpliesMaximalPrevotes: jest.fn().mockResolvedValue(true),
+				getGeneratorAtTimestamp: jest.fn(),
+				impliesMaximalPrevotes: jest.fn().mockResolvedValue(true),
 				getBFTHeights: jest
 					.fn()
 					.mockResolvedValue({ maxHeghgtPrevoted: 0, maxHeightPrecommitted: 0 }),
 				isHeaderContradictingChain: jest.fn(),
 				getBFTParameters: jest.fn(),
 				setBFTParameters: jest.fn(),
-				setGeneratorKeys: jest.fn(),
+				getSlotNumber: jest.fn(),
 			},
 		} as never;
 		abi = {
@@ -132,35 +134,38 @@ describe('consensus', () => {
 		genesis.validateGenesis = jest.fn();
 	});
 
+	const initConsensus = async () => {
+		return consensus.init({
+			logger: loggerMock,
+			db: dbMock,
+			genesisBlock: genesis,
+			legacyDB: dbMock,
+		});
+	};
+
 	describe('init', () => {
 		it('should instantiate synchronizer', async () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-			});
+			await initConsensus();
 			expect(consensus['_synchronizer']).toBeInstanceOf(Synchronizer);
 		});
 
 		it('should instantiate endpoint', async () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-			});
+			await initConsensus();
 			expect(consensus['_endpoint']).toBeInstanceOf(NetworkEndpoint);
+		});
+
+		it('should instantiate legacy endpoint', async () => {
+			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
+			await initConsensus();
+			expect(consensus['_legacyEndpoint']).toBeInstanceOf(LegacyNetworkEndpoint);
 		});
 
 		it('should register endpoints', async () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-			});
-			expect(network.registerEndpoint).toHaveBeenCalledTimes(3);
+			await initConsensus();
+			expect(network.registerEndpoint).toHaveBeenCalledTimes(4);
 		});
 
 		it('should execute genesis block if genesis block does not exist', async () => {
@@ -169,11 +174,7 @@ describe('consensus', () => {
 				validatorsHash: genesis.header.validatorsHash,
 			} as never);
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-			});
+			await initConsensus();
 
 			expect(genesis.validateGenesis).toHaveBeenCalledTimes(1);
 			expect(chain.saveBlock).toHaveBeenCalledTimes(1);
@@ -182,11 +183,7 @@ describe('consensus', () => {
 
 		it('should not execute genesis block if it exists in chain', async () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-			});
+			await initConsensus();
 			expect(chain.saveBlock).not.toHaveBeenCalled();
 			expect(chain.loadLastBlocks).toHaveBeenCalledTimes(1);
 		});
@@ -201,13 +198,7 @@ describe('consensus', () => {
 				.spyOn(consensus, '_verifyEventRoot' as never)
 				.mockRejectedValue(new Error('Event root is not valid for the block') as never);
 
-			await expect(
-				consensus.init({
-					logger: loggerMock,
-					db: dbMock,
-					genesisBlock: genesis,
-				}),
-			).rejects.toThrow('Event root is not valid for the block');
+			await expect(initConsensus()).rejects.toThrow('Event root is not valid for the block');
 		});
 
 		it('should fail initialization if validatorsHash is invalid', async () => {
@@ -216,13 +207,7 @@ describe('consensus', () => {
 			jest.spyOn(consensus['_bft'].method, 'getBFTParameters').mockResolvedValue({
 				validatorsHash: utils.getRandomBytes(32),
 			} as never);
-			await expect(
-				consensus.init({
-					logger: loggerMock,
-					db: dbMock,
-					genesisBlock: genesis,
-				}),
-			).rejects.toThrow('Genesis block validators hash is invalid');
+			await expect(initConsensus()).rejects.toThrow('Genesis block validators hash is invalid');
 		});
 	});
 
@@ -235,11 +220,7 @@ describe('consensus', () => {
 		const blockHeader = createFakeBlockHeader({ height: 303 });
 
 		beforeEach(async () => {
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-			});
+			await initConsensus();
 
 			jest.spyOn(consensus['_commitPool'], 'addCommit');
 		});
@@ -266,11 +247,7 @@ describe('consensus', () => {
 	describe('onBlockReceive', () => {
 		const peerID = 'peer-id';
 		beforeEach(async () => {
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-			});
+			await initConsensus();
 		});
 
 		it('should not execute when syncing', async () => {
@@ -592,11 +569,7 @@ describe('consensus', () => {
 	});
 	describe('execute', () => {
 		beforeEach(async () => {
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-			});
+			await initConsensus();
 		});
 
 		it('should not throw error when block execution fail', async () => {
@@ -617,6 +590,10 @@ describe('consensus', () => {
 				logger: loggerMock,
 				db: dbMock,
 				genesisBlock: genesis,
+				legacyDB: dbMock,
+			});
+			jest.spyOn(abi, 'verifyTransaction').mockResolvedValue({
+				result: TransactionVerifyResult.OK,
 			});
 		});
 
@@ -628,6 +605,17 @@ describe('consensus', () => {
 						previousBlockID: chain.lastBlock.header.id,
 						timestamp: consensus['_chain'].lastBlock.header.timestamp + 10,
 					},
+					transactions: [
+						new Transaction({
+							command: 'exec',
+							module: 'sample',
+							fee: BigInt(200),
+							nonce: BigInt(2),
+							params: utils.getRandomBytes(100),
+							senderPublicKey: utils.getRandomBytes(32),
+							signatures: [utils.getRandomBytes(64)],
+						}),
+					],
 				});
 				stateStore = new StateStore(new InMemoryDatabase());
 				jest.spyOn(bft.method, 'getBFTParameters').mockResolvedValue({
@@ -657,6 +645,57 @@ describe('consensus', () => {
 					block: expect.any(Block),
 				});
 			});
+
+			it('should include events from hooks', async () => {
+				jest.spyOn(abi, 'beforeTransactionsExecute').mockResolvedValue({
+					events: [
+						{
+							module: 'sample',
+							name: 'init',
+							data: Buffer.from([0, 0, 2]),
+							topics: [Buffer.from([2])],
+							height: 2,
+							index: 0,
+						},
+					],
+				});
+				jest.spyOn(abi, 'afterTransactionsExecute').mockResolvedValue({
+					events: [
+						{
+							module: 'sample',
+							name: 'init',
+							data: Buffer.from([0, 0, 1]),
+							topics: [Buffer.from([3])],
+							height: 2,
+							index: 0,
+						},
+					],
+					nextValidators: [],
+					preCommitThreshold: BigInt(0),
+					certificateThreshold: BigInt(0),
+				});
+				jest.spyOn(abi, 'executeTransaction').mockResolvedValue({
+					result: TransactionExecutionResult.OK,
+					events: [
+						{
+							module: 'sample',
+							name: 'exec',
+							data: Buffer.from([0, 0, 2]),
+							topics: [utils.getRandomBytes(32)],
+							height: 2,
+							index: 0,
+						},
+					],
+				});
+
+				jest.spyOn(chain, 'saveBlock');
+
+				await consensus['_executeValidated'](block);
+
+				const savingEvents = (chain.saveBlock as jest.Mock).mock.calls[0][1];
+				expect(savingEvents).toHaveLength(3);
+				savingEvents.forEach((e: Event, i: number) => expect(e.toObject().index).toEqual(i));
+			});
 		});
 
 		describe('block verification', () => {
@@ -678,6 +717,7 @@ describe('consensus', () => {
 					db: dbMock,
 					genesisBlock: genesis,
 					logger: fakeLogger,
+					legacyDB: dbMock,
 				});
 				jest.spyOn(consensus['_commitPool'], 'verifyAggregateCommit');
 			});
@@ -685,9 +725,8 @@ describe('consensus', () => {
 			describe('timestamp', () => {
 				it('should throw error when block timestamp is from future', () => {
 					const invalidBlock = { ...block };
-					const now = Date.now();
 
-					Date.now = jest.fn(() => now);
+					jest.spyOn(bft.method, 'getSlotNumber').mockReturnValue(Math.floor(Date.now() / 10));
 
 					(invalidBlock.header as any).timestamp = Math.floor((Date.now() + 10000) / 1000);
 
@@ -700,9 +739,8 @@ describe('consensus', () => {
 
 				it('should throw error when block slot is less than previous block slot', () => {
 					const invalidBlock = { ...block };
-					const now = Date.now();
 
-					Date.now = jest.fn(() => now);
+					jest.spyOn(bft.method, 'getSlotNumber').mockReturnValue(Math.floor(Date.now() / 10));
 
 					(invalidBlock.header as any).timestamp = Math.floor(Date.now() / 1000);
 
@@ -716,9 +754,6 @@ describe('consensus', () => {
 				});
 
 				it('should be success when valid block timestamp', () => {
-					const now = Date.now();
-					Date.now = jest.fn(() => now);
-
 					(block.header as any).timestamp = Math.floor(Date.now() / 1000);
 
 					expect(consensus['_verifyTimestamp'](block as any)).toBeUndefined();
@@ -774,10 +809,10 @@ describe('consensus', () => {
 				});
 
 				it('should throw error if generatorAddress has wrong block slot', async () => {
-					jest.spyOn(consensus, 'getGeneratorAtTimestamp');
-					when(consensus.getGeneratorAtTimestamp as never)
+					jest.spyOn(consensus['_bft'].method, 'getGeneratorAtTimestamp');
+					when(consensus['_bft'].method.getGeneratorAtTimestamp as never)
 						.calledWith(stateStore, block.header.height, (block.header as any).timestamp)
-						.mockResolvedValue(utils.getRandomBytes(20) as never);
+						.mockResolvedValue({ address: utils.getRandomBytes(20) } as never);
 
 					await expect(
 						consensus['_verifyGeneratorAddress'](stateStore, block as any),
@@ -791,10 +826,10 @@ describe('consensus', () => {
 				});
 
 				it('should be success if generatorAddress is valid and has right block slot', async () => {
-					jest.spyOn(consensus, 'getGeneratorAtTimestamp');
-					when(consensus.getGeneratorAtTimestamp as never)
+					jest.spyOn(consensus['_bft'].method, 'getGeneratorAtTimestamp');
+					when(consensus['_bft'].method.getGeneratorAtTimestamp as never)
 						.calledWith(stateStore, block.header.height, block.header.timestamp)
-						.mockResolvedValue(block.header.generatorAddress as never);
+						.mockResolvedValue({ address: block.header.generatorAddress } as never);
 
 					await expect(
 						consensus['_verifyGeneratorAddress'](stateStore, block as any),
@@ -848,9 +883,11 @@ describe('consensus', () => {
 				it('should throw error for invalid signature', async () => {
 					const generatorKey = utils.getRandomBytes(32);
 
-					when(consensus['_bft'].method.getGeneratorKeys as never)
+					when(consensus['_bft'].method.getBFTParameters as never)
 						.calledWith(stateStore, block.header.height)
-						.mockResolvedValue([{ address: block.header.generatorAddress, generatorKey }] as never);
+						.mockResolvedValue({
+							validators: [{ address: block.header.generatorAddress, generatorKey }],
+						} as never);
 
 					await expect(
 						consensus['_verifyAssetsSignature'](stateStore, block as any),
@@ -874,11 +911,13 @@ describe('consensus', () => {
 					blockHeader.sign(consensus['_chain'].chainID, keyPair.privateKey);
 					const validBlock = new Block(blockHeader, [], new BlockAssets());
 
-					when(consensus['_bft'].method.getGeneratorKeys as never)
+					when(consensus['_bft'].method.getBFTParameters as never)
 						.calledWith(stateStore, validBlock.header.height)
-						.mockResolvedValue([
-							{ address: validBlock.header.generatorAddress, generatorKey: keyPair.publicKey },
-						] as never);
+						.mockResolvedValue({
+							validators: [
+								{ address: validBlock.header.generatorAddress, generatorKey: keyPair.publicKey },
+							],
+						} as never);
 
 					await expect(
 						consensus['_verifyAssetsSignature'](stateStore, validBlock as any),

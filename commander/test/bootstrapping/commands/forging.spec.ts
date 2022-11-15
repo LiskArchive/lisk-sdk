@@ -49,13 +49,13 @@ describe('forging', () => {
 			await expect(EnableCommand.run([], config)).rejects.toThrow('Missing 4 required arg');
 		});
 
-		it('should throw an error when height, maxHeightPreviouslyForged and maxHeightPrevoted arg is not provided', async () => {
+		it('should throw an error when height, maxHeightGenerated and maxHeightPrevoted arg is not provided', async () => {
 			await expect(
 				EnableCommand.run(['myAddress', '--password=my-password'], config),
 			).rejects.toThrow('Missing 3 required arg');
 		});
 
-		it('should throw an error when arg maxHeightPreviouslyForged and maxHeightPrevoted  is not provided', async () => {
+		it('should throw an error when arg maxHeightGenerated and maxHeightPrevoted  is not provided', async () => {
 			await expect(
 				EnableCommand.run(['myAddress', '10', '--password=my-password'], config),
 			).rejects.toThrow('Missing 2 required arg');
@@ -75,7 +75,7 @@ describe('forging', () => {
 					enabled: true,
 					password: 'my-password',
 					height: 10,
-					maxHeightPreviouslyForged: 10,
+					maxHeightGenerated: 10,
 					maxHeightPrevoted: 1,
 				});
 			});
@@ -102,7 +102,7 @@ describe('forging', () => {
 					enabled: true,
 					password: 'promptPassword',
 					height: 10,
-					maxHeightPreviouslyForged: 10,
+					maxHeightGenerated: 10,
 					maxHeightPrevoted: 1,
 				});
 			});
@@ -123,7 +123,7 @@ describe('forging', () => {
 						enabled: true,
 						password: 'my-password',
 						height: 10,
-						maxHeightPreviouslyForged: 10,
+						maxHeightGenerated: 10,
 						maxHeightPrevoted: 1,
 					})
 					.mockRejectedValue(new Error('Custom Error'));
@@ -150,7 +150,7 @@ describe('forging', () => {
 					enabled: false,
 					password: 'my-password',
 					height: 0,
-					maxHeightPreviouslyForged: 0,
+					maxHeightGenerated: 0,
 					maxHeightPrevoted: 0,
 				});
 			});
@@ -177,7 +177,7 @@ describe('forging', () => {
 					enabled: false,
 					password: 'promptPassword',
 					height: 0,
-					maxHeightPreviouslyForged: 0,
+					maxHeightGenerated: 0,
 					maxHeightPrevoted: 0,
 				});
 			});
@@ -198,7 +198,7 @@ describe('forging', () => {
 						enabled: false,
 						password: 'my-password',
 						height: 0,
-						maxHeightPreviouslyForged: 0,
+						maxHeightGenerated: 0,
 						maxHeightPrevoted: 0,
 					})
 					.mockRejectedValue(new Error('Custom Error'));

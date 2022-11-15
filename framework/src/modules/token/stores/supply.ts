@@ -11,7 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseStore } from '../../base_store';
+import { BaseStore, ImmutableStoreGetter } from '../../base_store';
+import { TOKEN_ID_LENGTH } from '../constants';
 
 export interface SupplyStoreData {
 	totalSupply: bigint;
@@ -31,4 +32,13 @@ export const supplyStoreSchema = {
 
 export class SupplyStore extends BaseStore<SupplyStoreData> {
 	public schema = supplyStoreSchema;
+
+	public async getAll(
+		context: ImmutableStoreGetter,
+	): Promise<{ key: Buffer; value: SupplyStoreData }[]> {
+		return this.iterate(context, {
+			gte: Buffer.alloc(TOKEN_ID_LENGTH, 0),
+			lte: Buffer.alloc(TOKEN_ID_LENGTH, 255),
+		});
+	}
 }

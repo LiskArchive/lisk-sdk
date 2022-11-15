@@ -13,7 +13,7 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { CHAIN_ID_ALIAS_NATIVE, CHAIN_ID_LENGTH, TOKEN_ID_LENGTH, TOKEN_ID_LSK } from './constants';
+import { CHAIN_ID_LENGTH, TOKEN_ID_LENGTH, TOKEN_ID_LSK } from './constants';
 import { TokenID } from './types';
 
 export const splitTokenID = (tokenID: TokenID): [Buffer, Buffer] => {
@@ -24,11 +24,6 @@ export const splitTokenID = (tokenID: TokenID): [Buffer, Buffer] => {
 	const localID = tokenID.slice(CHAIN_ID_LENGTH);
 
 	return [chainID, localID];
-};
-
-export const getNativeTokenID = (tokenID: TokenID): TokenID => {
-	const localID = tokenID.slice(CHAIN_ID_LENGTH);
-	return Buffer.concat([CHAIN_ID_ALIAS_NATIVE, localID]);
 };
 
 export const tokenSupported = (supportedTokenIDs: Buffer[], tokenID: Buffer): boolean => {

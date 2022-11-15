@@ -113,10 +113,10 @@ export class CreateCommand extends Command {
 			const generatorKeyPath = `m/25519'/134'/${chainid}'/${offset + i}'`;
 			const blsKeyPath = `m/12381/134/${chainid}/${offset + i}`;
 
-			const accountPrivateKey = await ed.getKeyPairFromPhraseAndPath(passphrase, accountKeyPath);
+			const accountPrivateKey = await ed.getPrivateKeyFromPhraseAndPath(passphrase, accountKeyPath);
 			const accountPublicKey = ed.getPublicKeyFromPrivateKey(accountPrivateKey);
 			const address = addressUtil.getAddressFromPublicKey(accountPublicKey);
-			const generatorPrivateKey = await ed.getKeyPairFromPhraseAndPath(
+			const generatorPrivateKey = await ed.getPrivateKeyFromPhraseAndPath(
 				passphrase,
 				generatorKeyPath,
 			);
