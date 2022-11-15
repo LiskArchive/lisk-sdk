@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import {
-	Slots,
 	BlockAssetJSON,
 	BlockHeader,
 	BlockJSON,
@@ -32,16 +31,17 @@ import { RequestContext } from '../rpc/rpc_server';
 import {
 	EMPTY_KEY,
 	MODULE_STORE_PREFIX_BFT,
+	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
-	STORE_PREFIX_GENERATOR_KEYS,
 } from '../bft/constants';
 import { areHeadersContradictingRequestSchema, BFTVotes, bftVotesSchema } from '../bft/schemas';
-import { areDistinctHeadersContradicting, getGeneratorKeys } from '../bft/utils';
+import { areDistinctHeadersContradicting } from '../bft/utils';
+import { getBFTParameters } from '../bft/bft_params';
+import { BFTMethod } from '../bft';
 
 interface EndpointArgs {
 	chain: Chain;
-	genesisBlockTimestamp: number;
-	interval: number;
+	bftMethod: BFTMethod;
 }
 
 interface GeneratorInfo {
@@ -70,15 +70,12 @@ const proveEventsRequestSchema = {
 export class ChainEndpoint {
 	[key: string]: unknown;
 	private readonly _chain: Chain;
-	private readonly _blockSlot: Slots;
+	private readonly _bftMethod: BFTMethod;
 	private _db!: Database;
 
 	public constructor(args: EndpointArgs) {
 		this._chain = args.chain;
-		this._blockSlot = new Slots({
-			genesisBlockTimestamp: args.genesisBlockTimestamp,
-			interval: args.interval,
-		});
+		this._bftMethod = args.bftMethod;
 	}
 
 	public init(db: Database) {
@@ -235,21 +232,21 @@ export class ChainEndpoint {
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 		const { height: currentHeight } =
 			bftVotes.blockBFTInfos.length > 0 ? bftVotes.blockBFTInfos[0] : { height: 0 };
-		const keysStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_GENERATOR_KEYS);
-		const keys = await getGeneratorKeys(keysStore, currentHeight + 1);
-		const slot = this._blockSlot.getSlotNumber();
-		const startTime = this._blockSlot.getSlotTime(slot);
+		const bftStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
+		const bftParams = await getBFTParameters(bftStore, currentHeight + 1);
+		const slot = this._bftMethod.getSlotNumber(Math.floor(Date.now() / 1000));
+		const startTime = this._bftMethod.getSlotTime(slot);
 		let nextAllocatedTime = startTime;
-		const slotInRound = slot % keys.generators.length;
+		const slotInRound = slot % bftParams.validators.length;
 		const generatorsInfo = [];
-		for (let i = slotInRound; i < slotInRound + keys.generators.length; i += 1) {
+		for (let i = slotInRound; i < slotInRound + bftParams.validators.length; i += 1) {
 			generatorsInfo.push({
 				address: address.getLisk32AddressFromAddress(
-					keys.generators[i % keys.generators.length].address,
+					bftParams.validators[i % bftParams.validators.length].address,
 				),
 				nextAllocatedTime,
 			});
-			nextAllocatedTime += this._blockSlot.blockTime();
+			nextAllocatedTime += this._bftMethod.blockTime();
 		}
 
 		return {

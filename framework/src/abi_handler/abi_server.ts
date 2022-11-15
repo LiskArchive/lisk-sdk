@@ -19,8 +19,8 @@ import {
 	IPCRequest,
 	ipcRequestSchema,
 	ipcResponseSchema,
-	readyRequestSchema,
-	readyResponseSchema,
+	initRequestSchema,
+	initResponseSchema,
 	afterTransactionsExecuteRequestSchema,
 	afterTransactionsExecuteResponseSchema,
 	beforeTransactionsExecuteRequestSchema,
@@ -73,10 +73,10 @@ export class ABIServer {
 		this._socketPath = socketPath;
 		this._logger = logger;
 		this._router = new Router();
-		this._abiHandlers[abi.ready.name] = {
-			request: readyRequestSchema,
-			response: readyResponseSchema,
-			func: abi.ready.bind(abi),
+		this._abiHandlers[abi.init.name] = {
+			request: initRequestSchema,
+			response: initResponseSchema,
+			func: abi.init.bind(abi),
 		};
 		this._abiHandlers[abi.initStateMachine.name] = {
 			request: initStateMachineRequestSchema,
@@ -176,6 +176,10 @@ export class ABIServer {
 				this._logger.debug({ err: error as Error }, 'Failed to decode ABI request');
 				continue;
 			}
+			this._logger.debug(
+				{ method: request.method, id: request.id, file: 'abi_server' },
+				'Received and decoded request',
+			);
 			const handler = this._abiHandlers[request.method];
 			if (!handler) {
 				await this._replyError(sender, `Method ${request.method} is not registered.`, request.id);
@@ -203,8 +207,15 @@ export class ABIServer {
 								: Buffer.alloc(0),
 					}),
 				]);
+				this._logger.debug(
+					{ method: request.method, id: request.id, file: 'abi_server' },
+					'Responded request',
+				);
 			} catch (error) {
-				this._logger.error({ err: error as Error, method: request.method }, 'Fail to respond');
+				this._logger.error(
+					{ err: error as Error, method: request.method, id: request.id },
+					'Failed to respond',
+				);
 				await this._replyError(sender, (error as Error).message, request.id);
 				continue;
 			}

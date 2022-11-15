@@ -365,6 +365,14 @@ describe('data_access', () => {
 	});
 
 	describe('#getEvents', () => {
+		it('should get empty array if the event does not exist', async () => {
+			db.get.mockRejectedValue(new NotFoundError());
+
+			const resp = await dataAccess.getEvents(30);
+			expect(db.get).toHaveBeenCalledWith(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(30)));
+			expect(resp).toEqual([]);
+		});
+
 		it('should get the events related to heights', async () => {
 			const original = [
 				new Event({

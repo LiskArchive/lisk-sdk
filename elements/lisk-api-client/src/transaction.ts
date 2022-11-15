@@ -39,7 +39,6 @@ import {
 } from './types';
 
 interface Options {
-	readonly minFeePerByte: number;
 	readonly numberOfSignatures: number;
 }
 
@@ -284,7 +283,6 @@ export class Transaction {
 		const commandSchema = getTransactionParamsSchema(transaction, this._metadata);
 		const numberOfSignatures = decodedTx.signatures ? decodedTx.signatures.length : 1;
 		const options: Options = {
-			minFeePerByte: this._nodeInfo.genesisConfig.minFeePerByte,
 			numberOfSignatures,
 		};
 

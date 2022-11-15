@@ -21,7 +21,7 @@ import {
 	createDelegateRegisterTransaction,
 	createDelegateVoteTransaction,
 	createTransferTransaction,
-	DEFAULT_TOKEN_ID,
+	defaultTokenID,
 } from '../../../../utils/mocks/transaction';
 import { getGeneratorPrivateKeyFromDefaultConfig } from '../../../../../src/testing/fixtures';
 
@@ -40,7 +40,7 @@ describe('Process block', () => {
 				databasePath,
 			},
 		});
-		chainID = processEnv.getNetworkId();
+		chainID = processEnv.getChainID();
 		dataAccess = processEnv.getDataAccess();
 		chain = processEnv.getChain();
 	});
@@ -74,9 +74,9 @@ describe('Process block', () => {
 			it('should save account state changes from the transaction', async () => {
 				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
 					address: genesis.address,
-					tokenID: DEFAULT_TOKEN_ID.toString('hex'),
+					tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 				});
-				const expected = originalBalance - transaction.fee - amount;
+				const expected = originalBalance - transaction.fee - amount - BigInt(5000000);
 				expect(balance.availableBalance).toEqual(expected.toString());
 			});
 
@@ -111,10 +111,8 @@ describe('Process block', () => {
 				expect(processedBlock.header.id).toEqual(newBlock.header.id);
 			});
 
-			it('should not save the events to the database', async () => {
-				await expect(dataAccess.getEvents(newBlock.header.height)).rejects.toThrow(
-					'does not exist',
-				);
+			it('should save the events to the database', async () => {
+				await expect(dataAccess.getEvents(newBlock.header.height)).resolves.not.toBeEmpty();
 			});
 		});
 	});
@@ -148,7 +146,7 @@ describe('Process block', () => {
 				const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(
 					invalidBlock.header.generatorAddress,
 				);
-				invalidBlock.header.sign(processEnv.getNetworkId(), generatorPrivateKey);
+				invalidBlock.header.sign(processEnv.getChainID(), generatorPrivateKey);
 				await expect(processEnv.process(invalidBlock)).rejects.toThrow(
 					'Failed to verify transaction',
 				);
@@ -200,7 +198,7 @@ describe('Process block', () => {
 				const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(
 					newBlock.header.generatorAddress,
 				);
-				newBlock.header.sign(processEnv.getNetworkId(), generatorPrivateKey);
+				newBlock.header.sign(processEnv.getChainID(), generatorPrivateKey);
 			});
 
 			it('should discard the block', async () => {
@@ -242,7 +240,7 @@ describe('Process block', () => {
 					'token_getBalance',
 					{
 						address: address.getLisk32AddressFromAddress(account.address),
-						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
+						tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 					},
 				);
 				const voteAmount = BigInt('1000000000');
@@ -265,7 +263,7 @@ describe('Process block', () => {
 				// Assess
 				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
 					address: address.getLisk32AddressFromAddress(account.address),
-					tokenID: DEFAULT_TOKEN_ID.toString('hex'),
+					tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 				});
 				const votes = await processEnv.invoke<{ sentVotes: Record<string, unknown>[] }>(
 					'dpos_getVoter',
@@ -304,7 +302,7 @@ describe('Process block', () => {
 				const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(
 					newBlock.header.generatorAddress,
 				);
-				invalidBlock.header.sign(processEnv.getNetworkId(), generatorPrivateKey);
+				invalidBlock.header.sign(processEnv.getChainID(), generatorPrivateKey);
 				try {
 					await processEnv.process(invalidBlock);
 				} catch (err) {

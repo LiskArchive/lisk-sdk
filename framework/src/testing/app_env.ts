@@ -57,6 +57,7 @@ export class ApplicationEnv {
 	public async startApplication(): Promise<void> {
 		const genesisBlock = await this._application.generateGenesisBlock({
 			assets: [],
+			chainID: Buffer.from(this._application.config.genesis.chainID, 'hex'),
 		});
 		this._application.config.genesis.block.blob = genesisBlock.getBytes().toString('hex');
 

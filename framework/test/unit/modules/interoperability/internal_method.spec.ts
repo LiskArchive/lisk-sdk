@@ -13,6 +13,7 @@
  */
 
 import { utils as cryptoUtils } from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
 import {
@@ -21,11 +22,15 @@ import {
 	HASH_LENGTH,
 	MAINCHAIN_ID,
 	MAINCHAIN_ID_BUFFER,
+	MESSAGE_TAG_CERTIFICATE,
 } from '../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/store';
 import * as utils from '../../../../src/modules/interoperability/utils';
 import { MainchainInteroperabilityModule, testing } from '../../../../src';
-import { CreateTerminatedOutboxAccountContext } from '../../../../src/modules/interoperability/types';
+import {
+	CreateTerminatedOutboxAccountContext,
+	CrossChainUpdateTransactionParams,
+} from '../../../../src/modules/interoperability/types';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
@@ -46,6 +51,7 @@ import { ChainValidatorsStore } from '../../../../src/modules/interoperability/s
 import * as chainValidators from '../../../../src/modules/interoperability/stores/chain_validators';
 import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
+import { Certificate } from '../../../../src/engine/consensus/certificate_generation/types';
 import { TerminatedOutboxCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_outbox_created';
 
 describe('Base interoperability internal method', () => {
@@ -711,7 +717,7 @@ describe('Base interoperability internal method', () => {
 				bftWeight: BigInt(1),
 				blsKey: cryptoUtils.getRandomBytes(48),
 			}));
-			jest.spyOn(chainValidators, 'updateActiveValidators').mockReturnValue(newValidators);
+			jest.spyOn(chainValidators, 'calculateNewActiveValidators').mockReturnValue(newValidators);
 			jest.spyOn(utils, 'computeValidatorsHash');
 
 			await interopMod.stores.get(ChainValidatorsStore).set(context, ccu.sendingChainID, {
@@ -743,7 +749,7 @@ describe('Base interoperability internal method', () => {
 				bftWeight: BigInt(1),
 				blsKey: cryptoUtils.getRandomBytes(48),
 			}));
-			jest.spyOn(chainValidators, 'updateActiveValidators').mockReturnValue(newValidators);
+			jest.spyOn(chainValidators, 'calculateNewActiveValidators').mockReturnValue(newValidators);
 			jest.spyOn(utils, 'computeValidatorsHash').mockReturnValue(certificate.validatorsHash);
 
 			await interopMod.stores.get(ChainValidatorsStore).set(context, ccu.sendingChainID, {
@@ -754,6 +760,179 @@ describe('Base interoperability internal method', () => {
 			await expect(
 				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
 			).resolves.toBeUndefined();
+		});
+	});
+
+	describe('verifyCertificate', () => {
+		const txParams: CrossChainUpdateTransactionParams = {
+			certificate: Buffer.alloc(0),
+			activeValidatorsUpdate: [],
+			newCertificateThreshold: BigInt(10),
+			sendingChainID: cryptoUtils.getRandomBytes(4),
+			inboxUpdate: {
+				crossChainMessages: [],
+				messageWitnessHashes: [],
+				outboxRootWitness: {
+					bitmap: Buffer.alloc(0),
+					siblingHashes: [],
+				},
+			},
+		};
+
+		beforeEach(async () => {
+			await interopMod.stores.get(ChainAccountStore).set(methodContext, txParams.sendingChainID, {
+				lastCertificate: {
+					height: 100,
+					timestamp: 10,
+					stateRoot: cryptoUtils.getRandomBytes(HASH_LENGTH),
+					validatorsHash: cryptoUtils.getRandomBytes(HASH_LENGTH),
+				},
+				name: 'rand',
+				status: 0,
+			});
+		});
+
+		it('should reject when certificate height is lower than last certificate height', async () => {
+			const certificate: Certificate = {
+				blockID: cryptoUtils.getRandomBytes(20),
+				height: 100,
+				timestamp: Math.floor(Date.now() / 1000),
+				stateRoot: cryptoUtils.getRandomBytes(38),
+				validatorsHash: cryptoUtils.getRandomBytes(48),
+				aggregationBits: cryptoUtils.getRandomBytes(38),
+				signature: cryptoUtils.getRandomBytes(32),
+			};
+			const encodedCertificate = codec.encode(certificateSchema, certificate);
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyCertificate(
+					methodContext,
+					{
+						...txParams,
+						certificate: encodedCertificate,
+					},
+					100,
+				),
+			).rejects.toThrow('Certificate height is not greater than last certificate height');
+		});
+
+		it('should reject when certificate timestamp is greater than blockTimestamp', async () => {
+			const certificate: Certificate = {
+				blockID: cryptoUtils.getRandomBytes(20),
+				height: 101,
+				timestamp: 1000,
+				stateRoot: cryptoUtils.getRandomBytes(38),
+				validatorsHash: cryptoUtils.getRandomBytes(48),
+				aggregationBits: cryptoUtils.getRandomBytes(38),
+				signature: cryptoUtils.getRandomBytes(32),
+			};
+			const encodedCertificate = codec.encode(certificateSchema, certificate);
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyCertificate(
+					methodContext,
+					{
+						...txParams,
+						certificate: encodedCertificate,
+					},
+					1000,
+				),
+			).rejects.toThrow(
+				'Certificate timestamp is not smaller than timestamp of the block including the CCU',
+			);
+		});
+
+		it('should resolve when certificate is valid', async () => {
+			const certificate: Certificate = {
+				blockID: cryptoUtils.getRandomBytes(20),
+				height: 101,
+				timestamp: 1000,
+				stateRoot: cryptoUtils.getRandomBytes(38),
+				validatorsHash: cryptoUtils.getRandomBytes(48),
+				aggregationBits: cryptoUtils.getRandomBytes(38),
+				signature: cryptoUtils.getRandomBytes(32),
+			};
+			const encodedCertificate = codec.encode(certificateSchema, certificate);
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyCertificate(
+					methodContext,
+					{
+						...txParams,
+						certificate: encodedCertificate,
+					},
+					1001,
+				),
+			).resolves.toBeUndefined();
+		});
+	});
+
+	describe('verifyCertificateSignature', () => {
+		const activeValidatorsUpdate = [
+			{ blsKey: cryptoUtils.getRandomBytes(48), bftWeight: BigInt(1) },
+			{ blsKey: cryptoUtils.getRandomBytes(48), bftWeight: BigInt(3) },
+			{ blsKey: cryptoUtils.getRandomBytes(48), bftWeight: BigInt(4) },
+			{ blsKey: cryptoUtils.getRandomBytes(48), bftWeight: BigInt(3) },
+		].sort((a, b) => a.blsKey.compare(b.blsKey));
+
+		const certificate: Certificate = {
+			blockID: cryptoUtils.getRandomBytes(20),
+			height: 21,
+			timestamp: Math.floor(Date.now() / 1000),
+			stateRoot: cryptoUtils.getRandomBytes(38),
+			validatorsHash: cryptoUtils.getRandomBytes(48),
+			aggregationBits: cryptoUtils.getRandomBytes(38),
+			signature: cryptoUtils.getRandomBytes(32),
+		};
+		const encodedCertificate = codec.encode(certificateSchema, certificate);
+		const txParams: CrossChainUpdateTransactionParams = {
+			certificate: encodedCertificate,
+			activeValidatorsUpdate,
+			newCertificateThreshold: BigInt(10),
+			sendingChainID: cryptoUtils.getRandomBytes(4),
+			inboxUpdate: {
+				crossChainMessages: [],
+				messageWitnessHashes: [],
+				outboxRootWitness: {
+					bitmap: Buffer.alloc(0),
+					siblingHashes: [],
+				},
+			},
+		};
+
+		beforeEach(async () => {
+			await interopMod.stores
+				.get(ChainValidatorsStore)
+				.set(methodContext, txParams.sendingChainID, {
+					activeValidators: activeValidatorsUpdate,
+					certificateThreshold: BigInt(20),
+				});
+		});
+
+		it('should reject if verifyWeightedAggSig fails', async () => {
+			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(false);
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyCertificateSignature(methodContext, txParams),
+			).rejects.toThrow('Certificate is not a valid aggregate signature');
+
+			expect(cryptography.bls.verifyWeightedAggSig).toHaveBeenCalledWith(
+				activeValidatorsUpdate.map(v => v.blsKey),
+				certificate.aggregationBits as Buffer,
+				certificate.signature as Buffer,
+				MESSAGE_TAG_CERTIFICATE,
+				txParams.sendingChainID,
+				txParams.certificate,
+				activeValidatorsUpdate.map(v => v.bftWeight),
+				txParams.newCertificateThreshold,
+			);
+		});
+
+		it('should resolve when verifyWeightedAggSig return true', async () => {
+			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyCertificateSignature(methodContext, txParams),
+			).resolves.toBeUndefined();
+
+			expect(cryptography.bls.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
 		});
 	});
 });

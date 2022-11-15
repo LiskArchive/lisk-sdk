@@ -104,6 +104,58 @@ export const registerMultisignatureParamsSchema = {
 	required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys', 'signatures'],
 };
 
+export const sortMultisignatureGroupSchema = {
+	$id: '/auth/command/sortMultisig',
+	required: ['mandatory', 'optional'],
+	type: 'object',
+	properties: {
+		mandatory: {
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					publicKey: {
+						type: 'string',
+						minLength: ED25519_PUBLIC_KEY_LENGTH * 2,
+						maxLength: ED25519_PUBLIC_KEY_LENGTH * 2,
+						fieldNumber: 1,
+					},
+					signature: {
+						type: 'string',
+						minLength: ED25519_SIGNATURE_LENGTH * 2,
+						maxLength: ED25519_SIGNATURE_LENGTH * 2,
+						fieldNumber: 2,
+					},
+				},
+			},
+			minItems: 1,
+			maxItems: MAX_NUMBER_OF_SIGNATURES,
+		},
+		optional: {
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					publicKey: {
+						type: 'string',
+						minLength: ED25519_PUBLIC_KEY_LENGTH * 2,
+						maxLength: ED25519_PUBLIC_KEY_LENGTH * 2,
+						fieldNumber: 3,
+					},
+					signature: {
+						type: 'string',
+						minLength: 0,
+						maxLength: ED25519_SIGNATURE_LENGTH * 2,
+						fieldNumber: 4,
+					},
+				},
+			},
+			minItems: 0,
+			maxItems: MAX_NUMBER_OF_SIGNATURES,
+		},
+	},
+};
+
 export const multisigRegMsgSchema = {
 	$id: '/auth/command/regMultisigMsg',
 	type: 'object',
@@ -197,85 +249,6 @@ export const genesisAuthStoreSchema = {
 					},
 				},
 			},
-		},
-	},
-};
-
-// Events schema
-export const multisigRegDataSchema = {
-	$id: '/auth/events/multisigRegData',
-	type: 'object',
-	required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
-	properties: {
-		numberOfSignatures: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		mandatoryKeys: {
-			type: 'array',
-			items: {
-				dataType: 'bytes',
-				minLength: ED25519_PUBLIC_KEY_LENGTH,
-				maxLength: ED25519_PUBLIC_KEY_LENGTH,
-			},
-			fieldNumber: 2,
-		},
-		optionalKeys: {
-			type: 'array',
-			items: {
-				dataType: 'bytes',
-				minLength: ED25519_PUBLIC_KEY_LENGTH,
-				maxLength: ED25519_PUBLIC_KEY_LENGTH,
-			},
-			fieldNumber: 3,
-		},
-	},
-};
-
-export const invalidSigDataSchema = {
-	$id: '/auth/events/invalidSigData',
-	type: 'object',
-	required: [
-		'numberOfSignatures',
-		'mandatoryKeys',
-		'optionalKeys',
-		'failingPublicKey',
-		'failingSignature',
-	],
-	properties: {
-		numberOfSignatures: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		mandatoryKeys: {
-			type: 'array',
-			items: {
-				dataType: 'bytes',
-				minLength: ED25519_PUBLIC_KEY_LENGTH,
-				maxLength: ED25519_PUBLIC_KEY_LENGTH,
-			},
-			fieldNumber: 2,
-		},
-		optionalKeys: {
-			type: 'array',
-			items: {
-				dataType: 'bytes',
-				minLength: ED25519_PUBLIC_KEY_LENGTH,
-				maxLength: ED25519_PUBLIC_KEY_LENGTH,
-			},
-			fieldNumber: 3,
-		},
-		failingPublicKey: {
-			dataType: 'bytes',
-			minLength: ED25519_PUBLIC_KEY_LENGTH,
-			maxLength: ED25519_PUBLIC_KEY_LENGTH,
-			fieldNumber: 4,
-		},
-		failingSignature: {
-			dataType: 'bytes',
-			minLength: ED25519_SIGNATURE_LENGTH,
-			maxLength: ED25519_SIGNATURE_LENGTH,
-			fieldNumber: 5,
 		},
 	},
 };

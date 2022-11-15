@@ -105,8 +105,10 @@ export const downloadAndValidate = async (url: string, dir: string): Promise<voi
 };
 
 export const extract = async (filePath: string, fileName: string, outDir: string): Promise<void> =>
-	tar.x({
-		file: path.join(filePath, fileName),
-		cwd: outDir,
-		strip: 1,
-	});
+	tar.x(
+		{
+			file: path.join(filePath, fileName),
+			cwd: outDir,
+		},
+		['state.db', 'blockchain.db'],
+	);

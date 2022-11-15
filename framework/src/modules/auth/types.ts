@@ -40,6 +40,17 @@ export interface VerifyEndpointResultJSON {
 	verified: boolean;
 }
 
+export interface KeySignaturePair {
+	publicKey: string;
+	signature: string;
+}
+
+export interface SortedMultisignatureGroup {
+	mandatoryKeys: string[];
+	optionalKeys: string[];
+	signatures: string[];
+}
+
 export interface GenesisAuthStore {
 	authDataSubstore: {
 		storeKey: Buffer;

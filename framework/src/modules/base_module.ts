@@ -33,7 +33,6 @@ import { NamedRegistry } from './named_registry';
 export interface ModuleInitArgs {
 	genesisConfig: Omit<GenesisConfig, 'modules'>;
 	moduleConfig: Record<string, unknown>;
-	generatorConfig: Record<string, unknown>;
 }
 
 export interface ModuleMetadata {

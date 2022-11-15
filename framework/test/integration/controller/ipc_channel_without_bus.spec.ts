@@ -32,6 +32,9 @@ describe.skip('IPCChannelWithoutBus', () => {
 
 	const config: any = {
 		socketsPath: socketsDir,
+		genesisConfig: {
+			chainID: '10000000',
+		},
 	};
 
 	const alpha = {
@@ -97,6 +100,7 @@ describe.skip('IPCChannelWithoutBus', () => {
 				alpha.events,
 				alpha.endpoints,
 				config,
+				config.genesisConfig.chainID,
 			);
 
 			betaChannel = new IPCChannel(
@@ -105,6 +109,7 @@ describe.skip('IPCChannelWithoutBus', () => {
 				beta.events,
 				beta.endpoints,
 				config,
+				config.genesisConfig.chainID,
 			);
 
 			await alphaChannel.startAndListen();

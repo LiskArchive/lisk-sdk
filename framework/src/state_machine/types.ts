@@ -68,6 +68,7 @@ export interface BlockHeader {
 	generatorAddress: Buffer;
 	maxHeightPrevoted: number;
 	maxHeightGenerated: number;
+	impliesMaxPrevotes: boolean;
 	aggregateCommit: {
 		height: number;
 		aggregationBits: Buffer;
@@ -91,6 +92,7 @@ export interface VerificationResult {
 export interface TransactionVerifyContext {
 	chainID: Buffer;
 	logger: Logger;
+	header: { timestamp: number; height: number };
 	transaction: Transaction;
 	stateStore: ImmutableStateStore;
 	getMethodContext: () => ImmutableMethodContext;
@@ -100,6 +102,7 @@ export interface TransactionVerifyContext {
 export interface CommandVerifyContext<T = undefined> {
 	logger: Logger;
 	chainID: Buffer;
+	header: { timestamp: number; height: number };
 	transaction: Transaction; // without decoding params
 	params: T;
 	getMethodContext: () => ImmutableMethodContext;
@@ -114,10 +117,6 @@ export interface CommandExecuteContext<T = undefined> {
 	stateStore: StateStore;
 	header: BlockHeader;
 	assets: BlockAssets;
-	currentValidators: Validator[];
-	impliesMaxPrevote: boolean;
-	maxHeightCertified: number;
-	certificateThreshold: bigint;
 	transaction: Transaction; // without decoding params
 	params: T;
 	getMethodContext: () => MethodContext;
@@ -137,6 +136,7 @@ export interface GenesisBlockExecuteContext {
 		certificateThreshold: bigint,
 		validators: Validator[],
 	) => void;
+	chainID: Buffer;
 }
 
 export interface TransactionExecuteContext {
@@ -149,10 +149,6 @@ export interface TransactionExecuteContext {
 	header: BlockHeader;
 	assets: BlockAssets;
 	transaction: Transaction;
-	currentValidators: Validator[];
-	impliesMaxPrevote: boolean;
-	maxHeightCertified: number;
-	certificateThreshold: bigint;
 }
 
 export interface BlockVerifyContext {
@@ -174,10 +170,6 @@ export interface BlockExecuteContext {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
-	currentValidators: Validator[];
-	impliesMaxPrevote: boolean;
-	maxHeightCertified: number;
-	certificateThreshold: bigint;
 }
 
 export interface Validator {
@@ -187,14 +179,18 @@ export interface Validator {
 	blsKey: Buffer;
 }
 
-export interface BlockAfterExecuteContext extends BlockExecuteContext {
-	transactions: ReadonlyArray<Transaction>;
+export interface NextValidatorsSetter {
 	setNextValidators: (
 		preCommitThreshold: bigint,
 		certificateThreshold: bigint,
 		validators: Validator[],
 	) => void;
 }
+
+export type BlockAfterExecuteContext = BlockExecuteContext &
+	NextValidatorsSetter & {
+		transactions: ReadonlyArray<Transaction>;
+	};
 
 export interface InsertAssetContext {
 	logger: Logger;

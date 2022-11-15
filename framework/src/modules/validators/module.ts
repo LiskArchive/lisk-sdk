@@ -25,6 +25,7 @@ import { ValidatorKeysStore } from './stores/validator_keys';
 import { BLSKeyStore } from './stores/bls_keys';
 import { GeneratorKeyRegistrationEvent } from './events/generator_key_registration';
 import { BLSKeyRegistrationEvent } from './events/bls_key_registration';
+import { ValidatorsParamsStore } from './stores/validators_params';
 
 export class ValidatorsModule extends BaseModule {
 	public method = new ValidatorsMethod(this.stores, this.events);
@@ -36,6 +37,7 @@ export class ValidatorsModule extends BaseModule {
 		this.stores.register(GenesisStore, new GenesisStore(this.name));
 		this.stores.register(ValidatorKeysStore, new ValidatorKeysStore(this.name));
 		this.stores.register(BLSKeyStore, new BLSKeyStore(this.name));
+		this.stores.register(ValidatorsParamsStore, new ValidatorsParamsStore(this.name));
 
 		this.events.register(
 			GeneratorKeyRegistrationEvent,

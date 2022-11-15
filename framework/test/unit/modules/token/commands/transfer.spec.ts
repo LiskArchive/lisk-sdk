@@ -14,23 +14,38 @@
 
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { address, legacy, utils } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { TokenModule, VerifyStatus } from '../../../../../src';
 import { TokenMethod } from '../../../../../src/modules/token/method';
 import { TransferCommand } from '../../../../../src/modules/token/commands/transfer';
-import { MIN_BALANCE } from '../../../../../src/modules/token/constants';
+import {
+	TOKEN_ID_LSK,
+	USER_SUBSTORE_INITIALIZATION_FEE,
+} from '../../../../../src/modules/token/constants';
 import { transferParamsSchema } from '../../../../../src/modules/token/schemas';
-import { SupplyStore } from '../../../../../src/modules/token/stores/supply';
 import { UserStore } from '../../../../../src/modules/token/stores/user';
-import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
-import { createTransactionContext, createTransientMethodContext } from '../../../../../src/testing';
-import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
+import { createTransactionContext } from '../../../../../src/testing';
+import { TokenID } from '../../../../../src/modules/token/types';
+import { EventQueue } from '../../../../../src/state_machine';
+import { InitializeUserAccountEvent } from '../../../../../src/modules/token/events/initialize_user_account';
+import { TransferEvent } from '../../../../../src/modules/token/events/transfer';
+
+interface Params {
+	tokenID: TokenID;
+	amount: bigint;
+	recipientAddress: Buffer;
+	data: string;
+	accountInitializationFee: bigint;
+}
 
 describe('Transfer command', () => {
+	const feeTokenID = TOKEN_ID_LSK;
 	const tokenModule = new TokenModule();
+	const ownChainID = Buffer.from([0, 0, 0, 1]);
+	const defaultUserAccountInitFee = BigInt('50000000');
+	const defaultEscrowAccountInitFee = BigInt('50000000');
 
-	const localTokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
-	const secondTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
+	const defaultTokenID = Buffer.concat([ownChainID, Buffer.alloc(4)]);
 	const method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
 	let command: TransferCommand;
 	let interopMethod: {
@@ -39,6 +54,24 @@ describe('Transfer command', () => {
 		error: jest.Mock;
 		terminateChain: jest.Mock;
 		getChannel: jest.Mock;
+	};
+
+	const checkEventResult = (
+		eventQueue: EventQueue,
+		length: number,
+		EventClass: any,
+		index: number,
+		expectedResult: any,
+	) => {
+		expect(eventQueue.getEvents()).toHaveLength(length);
+		expect(eventQueue.getEvents()[index].toObject().name).toEqual(new EventClass('token').name);
+
+		const eventData = codec.decode<Record<string, unknown>>(
+			new EventClass('token').schema,
+			eventQueue.getEvents()[index].toObject().data,
+		);
+
+		expect(eventData).toEqual({ ...expectedResult, result: 0 });
 	};
 
 	beforeEach(() => {
@@ -51,14 +84,18 @@ describe('Transfer command', () => {
 			getChannel: jest.fn(),
 		};
 		method.addDependencies(interopMethod as never);
+
 		method.init({
-			minBalances: [
-				{ tokenID: localTokenID, amount: BigInt(MIN_BALANCE) },
-				{ tokenID: secondTokenID, amount: BigInt(MIN_BALANCE) },
-			],
+			ownChainID: Buffer.from([0, 0, 0, 1]),
+			escrowAccountInitializationFee: defaultEscrowAccountInitFee,
+			userAccountInitializationFee: defaultUserAccountInitFee,
+			feeTokenID: defaultTokenID,
 		});
+
 		command.init({
 			method,
+			accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
+			feeTokenID,
 		});
 	});
 
@@ -76,6 +113,7 @@ describe('Transfer command', () => {
 						amount: BigInt(100000000),
 						recipientAddress: utils.getRandomBytes(20),
 						data: '',
+						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
@@ -99,6 +137,7 @@ describe('Transfer command', () => {
 						amount: BigInt(100000000),
 						recipientAddress: utils.getRandomBytes(30),
 						data: '',
+						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
@@ -122,6 +161,7 @@ describe('Transfer command', () => {
 						amount: BigInt(100000000),
 						recipientAddress: utils.getRandomBytes(20),
 						data: '1'.repeat(65),
+						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
@@ -133,6 +173,10 @@ describe('Transfer command', () => {
 		});
 
 		it('should success when all parameters are valid', async () => {
+			jest
+				.spyOn(command['_method'], 'getAvailableBalance')
+				.mockResolvedValue(BigInt(100000000 + 1));
+
 			const context = createTransactionContext({
 				transaction: new Transaction({
 					module: 'token',
@@ -145,6 +189,7 @@ describe('Transfer command', () => {
 						amount: BigInt(100000000),
 						recipientAddress: utils.getRandomBytes(20),
 						data: '1'.repeat(64),
+						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
@@ -153,270 +198,319 @@ describe('Transfer command', () => {
 
 			expect(result.status).toEqual(VerifyStatus.OK);
 		});
-	});
 
-	describe('execute', () => {
-		let stateStore: PrefixedStateReadWriter;
-		const sender = legacy.getPrivateAndPublicKeyFromPassphrase('sender');
-		const recipient = legacy.getPrivateAndPublicKeyFromPassphrase('recipient');
-		const thirdTokenID = Buffer.from([1, 0, 0, 0, 4, 0, 0, 0]);
-		const tokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
-		const senderBalance = BigInt(200000000);
-		const totalSupply = BigInt('1000000000000');
-		const recipientBalance = BigInt(1000);
-
-		beforeEach(async () => {
-			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			const userStore = tokenModule.stores.get(UserStore);
-			const context = createTransientMethodContext({ stateStore });
-			await userStore.set(
-				context,
-				userStore.getKey(address.getAddressFromPublicKey(sender.publicKey), localTokenID),
-				{ availableBalance: senderBalance, lockedBalances: [] },
-			);
-			await userStore.set(
-				context,
-				userStore.getKey(address.getAddressFromPublicKey(sender.publicKey), secondTokenID),
-				{ availableBalance: senderBalance, lockedBalances: [] },
-			);
-			await userStore.set(
-				context,
-				userStore.getKey(address.getAddressFromPublicKey(sender.publicKey), thirdTokenID),
-				{ availableBalance: senderBalance, lockedBalances: [] },
-			);
-			await userStore.set(
-				context,
-				userStore.getKey(address.getAddressFromPublicKey(recipient.publicKey), localTokenID),
-				{ availableBalance: recipientBalance, lockedBalances: [] },
-			);
-			const supplyStore = tokenModule.stores.get(SupplyStore);
-			await supplyStore.set(context, localTokenID.slice(4), { totalSupply });
-		});
-
-		it('should reject when sender does not have enough balance for amount', async () => {
+		it('should fail for non existent account when initialization fee is not what is configured in init', async () => {
 			const context = createTransactionContext({
-				stateStore,
-				transaction: new Transaction({
-					module: 'token',
-					command: 'transfer',
-					fee: BigInt(0),
-					nonce: BigInt(0),
-					senderPublicKey: sender.publicKey,
-					params: codec.encode(transferParamsSchema, {
-						tokenID,
-						amount: senderBalance + BigInt(1),
-						recipientAddress: utils.getRandomBytes(20),
-						data: '1'.repeat(64),
-					}),
-					signatures: [utils.getRandomBytes(64)],
-				}),
-			});
-			await expect(
-				command.execute(context.createCommandExecuteContext(transferParamsSchema)),
-			).rejects.toThrow('balance 200000000 is not sufficient');
-		});
-
-		it('should resolve when recipient exist for different tokenID but does not have enough balance for minBalance', async () => {
-			const context = createTransactionContext({
-				stateStore,
 				transaction: new Transaction({
 					module: 'token',
 					command: 'transfer',
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
-					senderPublicKey: sender.publicKey,
+					senderPublicKey: utils.getRandomBytes(32),
 					params: codec.encode(transferParamsSchema, {
-						tokenID: thirdTokenID,
-						amount: recipientBalance + BigInt(1),
-						recipientAddress: address.getAddressFromPublicKey(recipient.publicKey),
+						tokenID: Buffer.from('0000000100000000', 'hex'),
+						amount: BigInt(100000000),
+						recipientAddress: utils.getRandomBytes(20),
 						data: '1'.repeat(64),
+						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE) - BigInt(1),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
-			await expect(
-				command.execute(context.createCommandExecuteContext(transferParamsSchema)),
-			).resolves.toBeUndefined();
-
-			// Recipient should receive full amount
-			const userStore = tokenModule.stores.get(UserStore);
-			const result = await userStore.get(
-				context.createCommandExecuteContext(transferParamsSchema),
-				userStore.getKey(address.getAddressFromPublicKey(recipient.publicKey), thirdTokenID),
-			);
-			expect(result.availableBalance).toEqual(recipientBalance + BigInt(1));
+			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
+			expect(result.status).toEqual(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude('Invalid account initialization fee.');
 		});
 
-		it('should reject when recipient does not exist and the token does not have min balance set', async () => {
-			const recipientAddress = utils.getRandomBytes(20);
+		it('should fail if token balance for feeTokenID is less than the sum of configured initialzation fee and transaction amount', async () => {
 			const amount = BigInt(100000000);
+
+			const availableBalance = amount + BigInt(USER_SUBSTORE_INITIALIZATION_FEE) - BigInt(1);
+
+			jest
+				.spyOn(command['_method'], 'getAvailableBalance')
+				.mockResolvedValue(amount + BigInt(USER_SUBSTORE_INITIALIZATION_FEE) - BigInt(1));
+
 			const context = createTransactionContext({
-				stateStore,
 				transaction: new Transaction({
 					module: 'token',
 					command: 'transfer',
-					fee: BigInt(0),
+					fee: BigInt(5000000),
 					nonce: BigInt(0),
-					senderPublicKey: sender.publicKey,
+					senderPublicKey: utils.getRandomBytes(32),
 					params: codec.encode(transferParamsSchema, {
-						tokenID: thirdTokenID,
+						tokenID: feeTokenID,
 						amount,
-						recipientAddress,
+						recipientAddress: utils.getRandomBytes(20),
 						data: '1'.repeat(64),
+						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
-			await expect(
-				command.execute(context.createCommandExecuteContext(transferParamsSchema)),
-			).rejects.toThrow('Address cannot be initialized because min balance is not set');
+			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
+			expect(result.status).toEqual(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
+				`balance ${availableBalance} is not sufficient for ${
+					amount + BigInt(USER_SUBSTORE_INITIALIZATION_FEE)
+				}`,
+			);
 		});
 
-		it('should reject when recipient does not exist and amount is less than minBalance', async () => {
-			const recipientAddress = utils.getRandomBytes(20);
-			const amount = BigInt(100);
+		it('should pass if token balance is at least the sum of configured initialization fee and transaction amount when feeTokenID and sending tokenID are the same', async () => {
+			const amount = BigInt(100000000);
+
+			jest
+				.spyOn(command['_method'], 'getAvailableBalance')
+				.mockResolvedValue(amount + BigInt(USER_SUBSTORE_INITIALIZATION_FEE));
+
 			const context = createTransactionContext({
-				stateStore,
 				transaction: new Transaction({
 					module: 'token',
 					command: 'transfer',
-					fee: BigInt(0),
+					fee: BigInt(5000000),
 					nonce: BigInt(0),
-					senderPublicKey: sender.publicKey,
+					senderPublicKey: utils.getRandomBytes(32),
+					params: codec.encode(transferParamsSchema, {
+						tokenID: TOKEN_ID_LSK,
+						amount: BigInt(100000000),
+						recipientAddress: utils.getRandomBytes(20),
+						data: '1'.repeat(64),
+						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
+					}),
+					signatures: [utils.getRandomBytes(64)],
+				}),
+			});
+			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
+			expect(result.status).toEqual(VerifyStatus.OK);
+		});
+
+		it('should fail if balance for the provided tokenID is insufficient', async () => {
+			const amount = BigInt(100000000);
+			const availableBalance = amount - BigInt(1);
+
+			jest.spyOn(command['_method'], 'getAvailableBalance').mockResolvedValue(amount - BigInt(1));
+
+			const context = createTransactionContext({
+				transaction: new Transaction({
+					module: 'token',
+					command: 'transfer',
+					fee: BigInt(5000000),
+					nonce: BigInt(0),
+					senderPublicKey: utils.getRandomBytes(32),
+					params: codec.encode(transferParamsSchema, {
+						tokenID: Buffer.from('0000000100000000', 'hex'),
+						amount: BigInt(100000000),
+						recipientAddress: utils.getRandomBytes(20),
+						data: '1'.repeat(64),
+						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
+					}),
+					signatures: [utils.getRandomBytes(64)],
+				}),
+			});
+			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
+			expect(result.status).toEqual(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
+				`balance ${availableBalance} is not sufficient for ${amount}`,
+			);
+		});
+
+		it('should pass if balance for the provided tokenID is sufficient', async () => {
+			const amount = BigInt(100000000);
+
+			jest.spyOn(command['_method'], 'getAvailableBalance').mockResolvedValue(amount);
+			const context = createTransactionContext({
+				transaction: new Transaction({
+					module: 'token',
+					command: 'transfer',
+					fee: BigInt(5000000),
+					nonce: BigInt(0),
+					senderPublicKey: utils.getRandomBytes(32),
+					params: codec.encode(transferParamsSchema, {
+						tokenID: Buffer.from('0000000100000000', 'hex'),
+						amount,
+						recipientAddress: utils.getRandomBytes(20),
+						data: '1'.repeat(64),
+						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
+					}),
+					signatures: [utils.getRandomBytes(64)],
+				}),
+			});
+			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
+			expect(result.status).toEqual(VerifyStatus.OK);
+		});
+	});
+
+	describe('execute', () => {
+		it('should initialize recipient account for tokenID does not exist and transfer the amount from sender to recipient', async () => {
+			const amount = BigInt(5);
+			const recipientAddress = utils.getRandomBytes(20);
+			const tokenID = Buffer.from('0000000100000000', 'hex');
+			const userStore = tokenModule.stores.get(UserStore);
+
+			const context = createTransactionContext({
+				transaction: new Transaction({
+					module: 'token',
+					command: 'transfer',
+					fee: BigInt(5000000),
+					nonce: BigInt(0),
+					senderPublicKey: utils.getRandomBytes(32),
 					params: codec.encode(transferParamsSchema, {
 						tokenID,
 						amount,
 						recipientAddress,
 						data: '1'.repeat(64),
+						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
-			await expect(
-				command.execute(context.createCommandExecuteContext(transferParamsSchema)),
-			).rejects.toThrow('does not satisfy min balance requirement');
+
+			const commandExecuteContext = context.createCommandExecuteContext<Params>(
+				transferParamsSchema,
+			);
+
+			jest.spyOn(command['_method'], 'burn').mockImplementation(async () => Promise.resolve());
+
+			await userStore.save(commandExecuteContext, context.transaction.senderAddress, tokenID, {
+				availableBalance: BigInt(10),
+				lockedBalances: [],
+			});
+
+			await command.execute(commandExecuteContext);
+
+			const senderAccount = await userStore.get(
+				commandExecuteContext,
+				userStore.getKey(context.transaction.senderAddress, tokenID),
+			);
+			const recipientAccount = await userStore.get(
+				commandExecuteContext,
+				userStore.getKey(recipientAddress, tokenID),
+			);
+
+			expect(senderAccount.availableBalance.toString()).toEqual(BigInt(5).toString());
+			expect(recipientAccount.availableBalance.toString()).toEqual(BigInt(5).toString());
+
+			expect(command['_method'].burn).toHaveBeenCalledTimes(1);
+
+			checkEventResult(commandExecuteContext.eventQueue, 2, InitializeUserAccountEvent, 0, {
+				address: recipientAddress,
+				tokenID,
+				initPayingAddress: context.transaction.senderAddress,
+				initializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
+			});
+
+			checkEventResult(commandExecuteContext.eventQueue, 2, TransferEvent, 1, {
+				senderAddress: context.transaction.senderAddress,
+				recipientAddress,
+				tokenID,
+				amount,
+			});
 		});
 
-		it('should resolve when recipient does not exist but amount is greater than minBalance', async () => {
+		it('should not initialize existing recipient account for tokenID and transfer the amount from sender to recipient', async () => {
+			const amount = BigInt(5);
 			const recipientAddress = utils.getRandomBytes(20);
-			const amount = BigInt(100000000);
+			const tokenID = Buffer.from('0000000100000000', 'hex');
+			const userStore = tokenModule.stores.get(UserStore);
+
 			const context = createTransactionContext({
-				stateStore,
 				transaction: new Transaction({
 					module: 'token',
 					command: 'transfer',
-					fee: BigInt(0),
+					fee: BigInt(5000000),
 					nonce: BigInt(0),
-					senderPublicKey: sender.publicKey,
+					senderPublicKey: utils.getRandomBytes(32),
 					params: codec.encode(transferParamsSchema, {
 						tokenID,
 						amount,
 						recipientAddress,
 						data: '1'.repeat(64),
+						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
-			await expect(
-				command.execute(context.createCommandExecuteContext(transferParamsSchema)),
-			).resolves.toBeUndefined();
 
-			// Recipient should receive amount - min balance if not exist
-			const userStore = tokenModule.stores.get(UserStore);
-			const result = await userStore.get(
-				context.createCommandExecuteContext(transferParamsSchema),
-				userStore.getKey(recipientAddress, localTokenID),
+			const commandExecuteContext = context.createCommandExecuteContext<Params>(
+				transferParamsSchema,
 			);
-			expect(result.availableBalance).toEqual(amount - MIN_BALANCE);
 
-			// Min balance is burnt
-			const supplyStore = tokenModule.stores.get(SupplyStore);
-			const supply = await supplyStore.get(
-				context.createCommandExecuteContext(transferParamsSchema),
-				localTokenID.slice(4),
+			jest.spyOn(command['_method'], 'burn').mockImplementation(async () => Promise.resolve());
+
+			await userStore.save(commandExecuteContext, context.transaction.senderAddress, tokenID, {
+				availableBalance: BigInt(10),
+				lockedBalances: [],
+			});
+
+			await userStore.save(commandExecuteContext, recipientAddress, tokenID, {
+				availableBalance: BigInt(15),
+				lockedBalances: [],
+			});
+
+			await command.execute(commandExecuteContext);
+
+			const senderAccount = await userStore.get(
+				commandExecuteContext,
+				userStore.getKey(context.transaction.senderAddress, tokenID),
 			);
-			expect(supply.totalSupply).toEqual(totalSupply - MIN_BALANCE);
+			const recipientAccount = await userStore.get(
+				commandExecuteContext,
+				userStore.getKey(recipientAddress, tokenID),
+			);
+
+			expect(senderAccount.availableBalance).toEqual(BigInt(5));
+			expect(recipientAccount.availableBalance).toEqual(BigInt(20));
+
+			expect(command['_method'].burn).toHaveBeenCalledTimes(0);
+
+			checkEventResult(commandExecuteContext.eventQueue, 1, TransferEvent, 0, {
+				senderAddress: context.transaction.senderAddress,
+				recipientAddress,
+				tokenID,
+				amount,
+			});
 		});
 
-		it('should resolve and not burn supply when tokenID is not native and recipient does not exist', async () => {
+		it('should fail if balance for tokenID is not sufficient', async () => {
+			const amount = BigInt(17);
 			const recipientAddress = utils.getRandomBytes(20);
-			const amount = BigInt(100000000);
-			const context = createTransactionContext({
-				stateStore,
-				transaction: new Transaction({
-					module: 'token',
-					command: 'transfer',
-					fee: BigInt(0),
-					nonce: BigInt(0),
-					senderPublicKey: sender.publicKey,
-					params: codec.encode(transferParamsSchema, {
-						tokenID: secondTokenID,
-						amount,
-						recipientAddress,
-						data: '1'.repeat(64),
-					}),
-					signatures: [utils.getRandomBytes(64)],
-				}),
-			});
-			await expect(
-				command.execute(context.createCommandExecuteContext(transferParamsSchema)),
-			).resolves.toBeUndefined();
-
-			// Recipient should receive amount - min balance if not exist
+			const tokenID = Buffer.from('0000000100000000', 'hex');
 			const userStore = tokenModule.stores.get(UserStore);
-			const result = await userStore.get(
-				context.createCommandExecuteContext(transferParamsSchema),
-				userStore.getKey(recipientAddress, secondTokenID),
-			);
-			expect(result.availableBalance).toEqual(amount - MIN_BALANCE);
+			const balance = BigInt(10);
 
-			// Total supply should not change
-			// const supplyStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_SUPPLY);
-			// const supply = await supplyStore.getWithSchema<SupplyStoreData>(
-			// 	localTokenID.slice(4),
-			// 	supplyStoreSchema,
-			// );
-			// expect(supply.totalSupply).toEqual(totalSupply);
-		});
-
-		it('should resolve when recipient receive enough amount and sender has enough balance', async () => {
-			const amount = BigInt(100000000);
 			const context = createTransactionContext({
-				stateStore,
 				transaction: new Transaction({
 					module: 'token',
 					command: 'transfer',
-					fee: BigInt(0),
+					fee: BigInt(5000000),
 					nonce: BigInt(0),
-					senderPublicKey: sender.publicKey,
+					senderPublicKey: utils.getRandomBytes(32),
 					params: codec.encode(transferParamsSchema, {
 						tokenID,
 						amount,
-						recipientAddress: address.getAddressFromPublicKey(recipient.publicKey),
+						recipientAddress,
 						data: '1'.repeat(64),
+						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
-			await expect(
-				command.execute(context.createCommandExecuteContext(transferParamsSchema)),
-			).toResolve();
 
-			// Recipient should get full amount
-			const userStore = tokenModule.stores.get(UserStore);
-			const result = await userStore.get(
-				context.createCommandExecuteContext(transferParamsSchema),
-				userStore.getKey(address.getAddressFromPublicKey(recipient.publicKey), localTokenID),
+			const commandExecuteContext = context.createCommandExecuteContext<Params>(
+				transferParamsSchema,
 			);
-			expect(result.availableBalance).toEqual(amount + recipientBalance);
 
-			// total supply should not change
-			const supplyStore = tokenModule.stores.get(SupplyStore);
-			const supply = await supplyStore.get(
-				context.createCommandExecuteContext(transferParamsSchema),
-				localTokenID.slice(4),
+			jest.spyOn(command['_method'], 'burn').mockImplementation(async () => Promise.resolve());
+
+			await userStore.save(commandExecuteContext, context.transaction.senderAddress, tokenID, {
+				availableBalance: balance,
+				lockedBalances: [],
+			});
+
+			await expect(command.execute(commandExecuteContext)).rejects.toThrow(
+				`balance ${balance} is not sufficient for ${amount}.`,
 			);
-			expect(supply.totalSupply).toEqual(totalSupply);
 		});
 	});
 });

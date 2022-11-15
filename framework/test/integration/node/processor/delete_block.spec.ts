@@ -28,7 +28,7 @@ import {
 	createDelegateRegisterTransaction,
 	createDelegateVoteTransaction,
 	createTransferTransaction,
-	DEFAULT_TOKEN_ID,
+	defaultTokenID,
 } from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
 
@@ -49,7 +49,7 @@ describe('Delete block', () => {
 				databasePath,
 			},
 		});
-		chainID = processEnv.getNetworkId();
+		chainID = processEnv.getChainID();
 	});
 
 	afterAll(() => {
@@ -86,7 +86,7 @@ describe('Delete block', () => {
 					'token_getBalance',
 					{
 						address: genesis.address,
-						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
+						tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 					},
 				);
 				transaction = createTransferTransaction({
@@ -120,9 +120,9 @@ describe('Delete block', () => {
 			});
 
 			it('should delete the events from the database', async () => {
-				await expect(processEnv.getDataAccess().getEvents(newBlock.header.height)).rejects.toThrow(
-					'does not exist',
-				);
+				await expect(
+					processEnv.getDataAccess().getEvents(newBlock.header.height),
+				).resolves.toBeEmpty();
 			});
 
 			it('should match the sender account to the original state', async () => {
@@ -130,7 +130,7 @@ describe('Delete block', () => {
 					'token_getBalance',
 					{
 						address: genesis.address,
-						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
+						tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 					},
 				);
 				expect(afterBalance).toEqual(originalBalance);
@@ -141,7 +141,7 @@ describe('Delete block', () => {
 					'token_getBalance',
 					{
 						address: address.getLisk32AddressFromAddress(recipientAccount.address),
-						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
+						tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 					},
 				);
 				expect(recipientBalance.availableBalance).toEqual('0');
@@ -168,7 +168,7 @@ describe('Delete block', () => {
 					'token_getBalance',
 					{
 						address: genesis.address,
-						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
+						tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 					},
 				);
 				const recipientAccount = nodeUtils.createAccount();
@@ -187,7 +187,7 @@ describe('Delete block', () => {
 					'token_getBalance',
 					{
 						address: genesis.address,
-						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
+						tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 					},
 				);
 				expect(revertedBalance).toEqual(genesisBalance);

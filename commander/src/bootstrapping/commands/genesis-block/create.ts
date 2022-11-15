@@ -82,6 +82,7 @@ export abstract class BaseGenesisBlockCommand extends Command {
 				data: codec.fromJSON(a.schema, a.data),
 				schema: a.schema,
 			})),
+			chainID: Buffer.from(app.config.genesis.chainID, 'hex'),
 		});
 		fs.mkdirSync(configPath, { recursive: true });
 		fs.writeFileSync(resolve(configPath, 'genesis_block.blob'), genesisBlock.getBytes());

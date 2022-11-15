@@ -28,7 +28,7 @@ export abstract class BaseEvent<T> {
 	}
 
 	public get name(): string {
-		const name = this.constructor.name.replace('Store', '');
+		const name = this.constructor.name.replace('Event', '');
 		return name.charAt(0).toLowerCase() + name.substr(1);
 	}
 

@@ -29,7 +29,7 @@ const validData = {
 		},
 		{
 			address: Buffer.alloc(20, 1),
-			tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
+			tokenID: Buffer.from([0, 0, 0, 2, 0, 0, 0, 0]),
 			availableBalance: oneUnit,
 			lockedBalances: [
 				{ module: 'dpos', amount: oneUnit },
@@ -38,20 +38,26 @@ const validData = {
 		},
 	],
 	supplySubstore: [
-		{ localID: Buffer.from([0, 0, 0, 0]), totalSupply: oneUnit * BigInt(6) },
-		{ localID: Buffer.from([0, 0, 1, 0]), totalSupply: oneUnit * BigInt(2) },
+		{ tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), totalSupply: oneUnit * BigInt(2) },
+		{ tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 1, 0]), totalSupply: oneUnit * BigInt(3) },
 	],
 	escrowSubstore: [
 		{
 			escrowChainID: Buffer.from([0, 0, 0, 2]),
-			localID: Buffer.from([0, 0, 0, 0]),
+			tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 1, 0]),
 			amount: oneUnit,
 		},
 	],
-	availableLocalIDSubstore: {
-		nextAvailableLocalID: Buffer.from([0, 0, 1, 1]),
-	},
-	terminatedEscrowSubstore: [Buffer.from([0, 0, 0, 3])],
+	supportedTokensSubstore: [
+		{
+			chainID: Buffer.from([0, 0, 0, 2]),
+			supportedTokenIDs: [],
+		},
+		{
+			chainID: Buffer.from([0, 0, 0, 3]),
+			supportedTokenIDs: [Buffer.from([0, 0, 0, 3, 0, 0, 0, 1])],
+		},
+	],
 };
 
 export const validGenesisAssets = [['Valid genesis asset', validData]];
@@ -197,10 +203,10 @@ export const invalidGenesisAssets = [
 			...validData,
 			supplySubstore: [
 				...validData.supplySubstore,
-				{ localID: Buffer.from([0, 0, 1, 0]), totalSupply: oneUnit * BigInt(6) },
+				{ tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 1, 0]), totalSupply: oneUnit * BigInt(6) },
 			],
 		},
-		'Supply store local ID 00000100 is duplicated.',
+		'Supply store token ID 0000000000000100 is duplicated.',
 	],
 	[
 		'Unsorted supply store',
@@ -208,10 +214,10 @@ export const invalidGenesisAssets = [
 			...validData,
 			supplySubstore: [
 				...validData.supplySubstore,
-				{ localID: Buffer.from([0, 0, 0, 1]), totalSupply: oneUnit * BigInt(6) },
+				{ tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 1]), totalSupply: oneUnit * BigInt(6) },
 			],
 		},
-		'SupplySubstore must be sorted by localID',
+		'SupplySubstore must be sorted by tokenID',
 	],
 	[
 		'Duplicate escrow store',
@@ -221,12 +227,12 @@ export const invalidGenesisAssets = [
 				...validData.escrowSubstore,
 				{
 					escrowChainID: Buffer.from([0, 0, 0, 2]),
-					localID: Buffer.from([0, 0, 0, 0]),
+					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 1, 0]),
 					amount: oneUnit,
 				},
 			],
 		},
-		'Escrow store escrowChainID 00000002 and localID 00000000 pair is duplicated',
+		'Escrow store escrowChainID 00000002 and tokenID 0000000000000100 pair is duplicated',
 	],
 	[
 		'Unsorted escrow store',
@@ -235,29 +241,28 @@ export const invalidGenesisAssets = [
 			escrowSubstore: [
 				...validData.escrowSubstore,
 				{
-					escrowChainID: Buffer.from([0, 0, 0, 0]),
-					localID: Buffer.from([0, 0, 0, 0]),
+					escrowChainID: Buffer.from([0, 0, 0, 1]),
+					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 					amount: oneUnit,
 				},
 			],
 		},
-		'EscrowSubstore must be sorted by escrowChainID and localID',
+		'EscrowSubstore must be sorted by escrowChainID and tokenID',
 	],
 	[
-		'Duplicated terminated escrow store',
+		'Unsorted escrow store for token id',
 		{
 			...validData,
-			terminatedEscrowSubstore: [Buffer.from([0, 0, 0, 3]), Buffer.from([0, 0, 0, 3])],
+			escrowSubstore: [
+				...validData.escrowSubstore,
+				{
+					escrowChainID: Buffer.from([0, 0, 0, 2]),
+					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
+					amount: oneUnit,
+				},
+			],
 		},
-		'Terminated escrow store chainID has duplicate.',
-	],
-	[
-		'Unsorted terminated escrow store',
-		{
-			...validData,
-			terminatedEscrowSubstore: [Buffer.from([1, 0, 0, 3]), Buffer.from([0, 0, 0, 3])],
-		},
-		'Terminated escrow store must be sorted by chainID',
+		'EscrowSubstore must be sorted by escrowChainID and tokenID',
 	],
 	[
 		'Total supply exceeds uint64',
@@ -287,15 +292,15 @@ export const invalidGenesisAssets = [
 				},
 			],
 		},
-		'Total supply for LocalID: 00000000 exceeds uint64 range',
+		'Total supply for tokenID: 0000000000000000 exceeds uint64 range',
 	],
 	[
 		'Not matching calculated and stored total supply',
 		{
 			...validData,
 			supplySubstore: [
-				{ localID: Buffer.from([0, 0, 0, 0]), totalSupply: oneUnit * BigInt(4) },
-				{ localID: Buffer.from([0, 0, 1, 0]), totalSupply: oneUnit * BigInt(2) },
+				{ tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), totalSupply: oneUnit * BigInt(4) },
+				{ tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 1, 0]), totalSupply: oneUnit * BigInt(2) },
 			],
 		},
 		'Stored total supply conflicts with computed supply',
@@ -306,19 +311,84 @@ export const invalidGenesisAssets = [
 			...validData,
 			supplySubstore: [
 				...validData.supplySubstore,
-				{ localID: Buffer.from([0, 0, 9, 9]), totalSupply: oneUnit * BigInt(2) },
+				{ tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 9, 9]), totalSupply: oneUnit * BigInt(2) },
 			],
 		},
 		'Stored total supply is non zero but cannot be computed',
 	],
 	[
-		'Invalid availableLocalID',
+		'Supported tokens store has duplicate chainID on supported ID',
 		{
 			...validData,
-			availableLocalIDSubstore: {
-				nextAvailableLocalID: Buffer.from([0, 0, 0, 0]),
-			},
+			supportedTokensSubstore: [
+				...validData.supportedTokensSubstore,
+				{
+					chainID: Buffer.from([0, 0, 0, 3]),
+					supportedTokenIDs: [],
+				},
+			],
 		},
-		'Max local ID is higher than next availableLocalID',
+		'supportedTokenIDsSet chain ID 00000003 is duplicated',
+	],
+	[
+		'Supported tokens store has unsorted chainID',
+		{
+			...validData,
+			supportedTokensSubstore: [
+				...validData.supportedTokensSubstore,
+				{
+					chainID: Buffer.from([0, 0, 0, 1]),
+					supportedTokenIDs: [],
+				},
+			],
+		},
+		'supportedTokensSubstore must be sorted by chainID',
+	],
+	[
+		'Supported tokens store has duplicate supported token id',
+		{
+			...validData,
+			supportedTokensSubstore: [
+				{
+					chainID: Buffer.from([0, 0, 0, 4]),
+					supportedTokenIDs: [
+						Buffer.from([0, 0, 0, 4, 0, 0, 0, 0]),
+						Buffer.from([0, 0, 0, 4, 0, 0, 0, 0]),
+					],
+				},
+			],
+		},
+		'supportedTokensSubstore tokenIDs must be unique and sorted by lexicographically',
+	],
+	[
+		'Supported tokens store has unsorted supported token id',
+		{
+			...validData,
+			supportedTokensSubstore: [
+				...validData.supportedTokensSubstore,
+				{
+					chainID: Buffer.from([0, 0, 0, 4]),
+					supportedTokenIDs: [
+						Buffer.from([0, 0, 0, 4, 0, 0, 0, 0]),
+						Buffer.from([0, 0, 0, 4, 0, 0, 0, 0]),
+					],
+				},
+			],
+		},
+		'supportedTokensSubstore tokenIDs must be unique and sorted by lexicographically',
+	],
+	[
+		'Supported tokens store has supported token id which does not match with chain id',
+		{
+			...validData,
+			supportedTokensSubstore: [
+				...validData.supportedTokensSubstore,
+				{
+					chainID: Buffer.from([0, 0, 0, 4]),
+					supportedTokenIDs: [Buffer.from([0, 0, 0, 3, 0, 0, 0, 0])],
+				},
+			],
+		},
+		'supportedTokensSubstore tokenIDs must match the chainID',
 	],
 ];
