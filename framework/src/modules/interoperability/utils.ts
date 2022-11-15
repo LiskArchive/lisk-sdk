@@ -63,7 +63,7 @@ import { NamedRegistry } from '../named_registry';
 import { OutboxRootStore } from './stores/outbox_root';
 import { OwnChainAccountStore } from './stores/own_chain_account';
 import { ChannelDataStore } from './stores/channel_data';
-import { ChainValidatorsStore, updateActiveValidators } from './stores/chain_validators';
+import { ChainValidatorsStore, calculateNewActiveValidators } from './stores/chain_validators';
 import { ChainAccountStore, ChainStatus } from './stores/chain_account';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/terminated_outbox';
 import { TerminatedStateStore } from './stores/terminated_state';
@@ -427,7 +427,7 @@ export const checkValidatorsHashWithCertificate = (
 			};
 		}
 
-		const newActiveValidators = updateActiveValidators(
+		const newActiveValidators = calculateNewActiveValidators(
 			partnerValidators.activeValidators,
 			txParams.activeValidatorsUpdate,
 		);
@@ -461,7 +461,7 @@ export const commonCCUExecutelogic = async (args: CommonExecutionLogicArgs) => {
 		chainIDBuffer,
 		context,
 	} = args;
-	const newActiveValidators = updateActiveValidators(
+	const newActiveValidators = calculateNewActiveValidators(
 		partnerValidators.activeValidators,
 		context.params.activeValidatorsUpdate,
 	);

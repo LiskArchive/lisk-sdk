@@ -717,7 +717,7 @@ describe('Base interoperability internal method', () => {
 				bftWeight: BigInt(1),
 				blsKey: cryptoUtils.getRandomBytes(48),
 			}));
-			jest.spyOn(chainValidators, 'updateActiveValidators').mockReturnValue(newValidators);
+			jest.spyOn(chainValidators, 'calculateNewActiveValidators').mockReturnValue(newValidators);
 			jest.spyOn(utils, 'computeValidatorsHash');
 
 			await interopMod.stores.get(ChainValidatorsStore).set(context, ccu.sendingChainID, {
@@ -749,7 +749,7 @@ describe('Base interoperability internal method', () => {
 				bftWeight: BigInt(1),
 				blsKey: cryptoUtils.getRandomBytes(48),
 			}));
-			jest.spyOn(chainValidators, 'updateActiveValidators').mockReturnValue(newValidators);
+			jest.spyOn(chainValidators, 'calculateNewActiveValidators').mockReturnValue(newValidators);
 			jest.spyOn(utils, 'computeValidatorsHash').mockReturnValue(certificate.validatorsHash);
 
 			await interopMod.stores.get(ChainValidatorsStore).set(context, ccu.sendingChainID, {
