@@ -24,7 +24,6 @@ import { MainchainCCRegistrationCommand } from '../../../../../../src/modules/in
 import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
-import { CrossChainMessageContext } from '../../../../../../src/modules/interoperability/types';
 import { createCrossChainMessageContext } from '../../../../../../src/testing';
 
 describe('MainchainCCRegistrationCommand', () => {
@@ -98,10 +97,13 @@ describe('MainchainCCRegistrationCommand', () => {
 		},
 		partnerChainOutboxRoot: Buffer.alloc(0),
 	};
-	const sampleExecuteContext: CrossChainMessageContext = createCrossChainMessageContext({
-		ccm,
-		chainID,
-	});
+	const sampleExecuteContext = {
+		...createCrossChainMessageContext({
+			ccm,
+			chainID,
+		}),
+		params: ccmRegistrationParams,
+	};
 
 	let ccRegistrationCommand: MainchainCCRegistrationCommand;
 
