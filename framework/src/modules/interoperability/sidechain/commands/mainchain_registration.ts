@@ -17,12 +17,10 @@ import { utils, bls } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import {
 	EMPTY_HASH,
-	MAINCHAIN_ID_BUFFER,
 	MAINCHAIN_NAME,
 	MODULE_NAME_INTEROPERABILITY,
 	TAG_CHAIN_REG_MESSAGE,
 	THRESHOLD_MAINCHAIN,
-	TOKEN_ID_LSK_MAINCHAIN,
 	EMPTY_BYTES,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	CCMStatusCode,
@@ -40,7 +38,13 @@ import {
 	VerifyStatus,
 } from '../../../../state_machine';
 import { MainchainRegistrationParams, ActiveValidators, ValidatorsMethod } from '../../types';
-import { computeValidatorsHash, isValidName, sortValidatorsByBLSKey } from '../../utils';
+import {
+	computeValidatorsHash,
+	getMainchainID,
+	getMainchainTokenID,
+	isValidName,
+	sortValidatorsByBLSKey,
+} from '../../utils';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { SidechainInteroperabilityInternalMethod } from '../store';
 import { ChainAccountStore, ChainStatus } from '../../stores/chain_account';
@@ -68,15 +72,8 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 	): Promise<VerificationResult> {
 		const { ownName, mainchainValidators, ownChainID } = context.params;
 
-		if (ownChainID.length > 4) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error(`Own chain id cannot be greater than maximum uint32 number.`),
-			};
-		}
-
 		try {
-			validator.validate(mainchainRegParams, context.params);
+			validator.validate<MainchainRegistrationParams>(mainchainRegParams, context.params);
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -84,8 +81,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
-		if (!ownChainID.equals(ownChainAccount.chainID)) {
+		if (!ownChainID.equals(context.chainID)) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(`Invalid ownChainID property.`),
@@ -110,14 +106,14 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			) {
 				return {
 					status: VerifyStatus.FAIL,
-					error: new Error('Validators blsKeys must be unique and lexicographically ordered'),
+					error: new Error('Validators blsKeys must be unique and lexicographically ordered.'),
 				};
 			}
 
-			if (currentValidator.bftWeight !== BigInt(1)) {
+			if (currentValidator.bftWeight <= 0) {
 				return {
 					status: VerifyStatus.FAIL,
-					error: new Error('Validator bft weight must be equal to 1'),
+					error: new Error('Validator bft weight must be positive integer.'),
 				};
 			}
 		}
@@ -165,10 +161,12 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			)
 		) {
 			// emit persistent event with empty data
-			this.events.get(InvalidRegistrationSignatureEvent).log(context, ownChainID);
+			this.events.get(InvalidRegistrationSignatureEvent).error(context, ownChainID);
 			throw new Error('Invalid signature property.');
 		}
 
+		const mainchainID = getMainchainID(context.chainID);
+		const mainchainTokenID = getMainchainTokenID(context.chainID);
 		const chainSubstore = this.stores.get(ChainAccountStore);
 		const mainchainAccount = {
 			name: MAINCHAIN_NAME,
@@ -180,64 +178,60 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			},
 			status: ChainStatus.REGISTERED,
 		};
-		await chainSubstore.set(context, MAINCHAIN_ID_BUFFER, mainchainAccount);
+		await chainSubstore.set(context, mainchainID, mainchainAccount);
 
 		const channelSubstore = this.stores.get(ChannelDataStore);
-		await channelSubstore.set(context, MAINCHAIN_ID_BUFFER, {
+		await channelSubstore.set(context, mainchainID, {
 			inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 			outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 			partnerChainOutboxRoot: EMPTY_HASH,
-			messageFeeTokenID: TOKEN_ID_LSK_MAINCHAIN,
+			messageFeeTokenID: mainchainTokenID,
 		});
 
 		const chainValidatorsSubstore = this.stores.get(ChainValidatorsStore);
-		await chainValidatorsSubstore.set(context, MAINCHAIN_ID_BUFFER, {
+		await chainValidatorsSubstore.set(context, mainchainID, {
 			activeValidators: mainchainValidators,
 			certificateThreshold: BigInt(THRESHOLD_MAINCHAIN),
 		});
 
 		const outboxRootSubstore = this.stores.get(OutboxRootStore);
-		await outboxRootSubstore.set(context, MAINCHAIN_ID_BUFFER, { root: EMPTY_HASH });
+		await outboxRootSubstore.set(context, mainchainID, { root: EMPTY_HASH });
 
-		const ownChainAccountSubstore = this.stores.get(OwnChainAccountStore);
-		await ownChainAccountSubstore.set(context, EMPTY_BYTES, {
+		this.events.get(ChainAccountUpdatedEvent).log(methodContext, mainchainID, mainchainAccount);
+
+		const encodedParams = codec.encode(registrationCCMParamsSchema, {
+			chainID: mainchainID,
+			name: MAINCHAIN_NAME,
+			messageFeeTokenID: mainchainTokenID,
+		});
+
+		const ownChainAccount = {
 			name: ownName,
 			chainID: ownChainID,
 			nonce: BigInt(0),
-		});
-		this.events
-			.get(ChainAccountUpdatedEvent)
-			.log(methodContext, MAINCHAIN_ID_BUFFER, mainchainAccount);
-
-		const encodedParams = codec.encode(registrationCCMParamsSchema, {
-			chainID: MAINCHAIN_ID_BUFFER,
-			name: MAINCHAIN_NAME,
-			messageFeeTokenID: TOKEN_ID_LSK_MAINCHAIN,
-		});
-
-		const ownChainAccount = await ownChainAccountSubstore.get(context, EMPTY_BYTES);
+		};
 
 		const ccm = {
 			nonce: ownChainAccount.nonce,
 			module: MODULE_NAME_INTEROPERABILITY,
 			crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 			sendingChainID: ownChainAccount.chainID,
-			receivingChainID: MAINCHAIN_ID_BUFFER,
+			receivingChainID: mainchainID,
 			fee: BigInt(0),
 			status: CCMStatusCode.OK,
 			params: encodedParams,
 		};
 		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
-		await interoperabilityInternalMethod.addToOutbox(MAINCHAIN_ID_BUFFER, ccm);
+		await interoperabilityInternalMethod.addToOutbox(mainchainID, ccm);
 
 		ownChainAccount.nonce += BigInt(1);
-		await ownChainAccountSubstore.set(context, EMPTY_BYTES, ownChainAccount);
+		await this.stores.get(OwnChainAccountStore).set(context, EMPTY_BYTES, ownChainAccount);
 
 		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
 
 		this.events
 			.get(CcmSendSuccessEvent)
-			.log(methodContext, ownChainAccount.chainID, MAINCHAIN_ID_BUFFER, ccmID, {
+			.log(methodContext, ownChainAccount.chainID, mainchainID, ccmID, {
 				ccmID,
 			});
 	}

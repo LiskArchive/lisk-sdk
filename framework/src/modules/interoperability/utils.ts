@@ -41,6 +41,7 @@ import {
 	HASH_LENGTH,
 	TOKEN_ID_LSK,
 	CCMStatusCode,
+	CHAIN_ID_LENGTH,
 } from './constants';
 import {
 	ccmSchema,
@@ -784,4 +785,17 @@ export const chainAccountToJSON = (chainAccount: ChainAccount) => {
 		name,
 		status,
 	};
+};
+
+export const getMainchainID = (chainID: Buffer): Buffer => {
+	const networkID = chainID.slice(0, 1);
+	// 3 bytes for remaining chainID bytes
+	return Buffer.concat([networkID, Buffer.alloc(CHAIN_ID_LENGTH - 1, 0)]);
+};
+
+// TODO: Update to use Token method after merging development
+export const getMainchainTokenID = (chainID: Buffer): Buffer => {
+	const networkID = chainID.slice(0, 1);
+	// 3 bytes for remaining chainID bytes
+	return Buffer.concat([networkID, Buffer.alloc(7, 0)]);
 };
