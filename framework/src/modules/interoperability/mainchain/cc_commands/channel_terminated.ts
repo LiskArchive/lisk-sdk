@@ -12,19 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StoreGetter } from '../../../base_store';
-import { MainchainInteroperabilityInternalMethod } from '../store';
+import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 import { BaseCCChannelTerminatedCommand } from '../../base_cc_commands/channel_terminated';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#channel-terminated-message-1
 export class MainchainCCChannelTerminatedCommand extends BaseCCChannelTerminatedCommand {
-	protected getInteroperabilityInternalMethod(
-		context: StoreGetter,
-	): MainchainInteroperabilityInternalMethod {
+	protected getInteroperabilityInternalMethod(): MainchainInteroperabilityInternalMethod {
 		return new MainchainInteroperabilityInternalMethod(
 			this.stores,
 			this.events,
-			context,
 			this.interoperableCCMethods,
 		);
 	}

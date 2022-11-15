@@ -12,18 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MainchainInteroperabilityInternalMethod } from './store';
-import { ImmutableStoreGetter, StoreGetter } from '../../base_store';
+import { MainchainInteroperabilityInternalMethod } from './internal_method';
 import { BaseInteroperabilityMethod } from '../base_interoperability_method';
 
 export class MainchainInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {
-	protected getInteroperabilityInternalMethod = (
-		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityInternalMethod =>
+	protected getInteroperabilityInternalMethod = (): MainchainInteroperabilityInternalMethod =>
 		new MainchainInteroperabilityInternalMethod(
 			this.stores,
 			this.events,
-			context,
 			this.interoperableCCMethods,
 		);
 }

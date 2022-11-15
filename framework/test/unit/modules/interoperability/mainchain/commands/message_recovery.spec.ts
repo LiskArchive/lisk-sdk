@@ -26,7 +26,7 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainMessageRecoveryCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/message_recovery';
-import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/internal_method';
 import {
 	ccmSchema,
 	messageRecoveryParamsSchema,
@@ -84,7 +84,6 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 				interopMod.stores,
 				new NamedRegistry(),
-				createStoreGetter(stateStore),
 				new Map(),
 			);
 			messageRecoveryCommand = new MainchainMessageRecoveryCommand(

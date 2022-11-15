@@ -20,7 +20,7 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../src/modules/interoperability/constants';
 import { MainchainCCChannelTerminatedCommand } from '../../../../../src/modules/interoperability/mainchain/cc_commands';
-import { MainchainInteroperabilityInternalMethod } from '../../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../../src/modules/interoperability/mainchain/internal_method';
 import { CrossChainMessageContext } from '../../../../../src/modules/interoperability/types';
 import { NamedRegistry } from '../../../../../src/modules/named_registry';
 import { createCrossChainMessageContext } from '../../../../../src/testing';
@@ -64,7 +64,6 @@ describe('BaseCCChannelTerminatedCommand', () => {
 	const mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 		interopMod.stores,
 		new NamedRegistry(),
-		sampleExecuteContext,
 		ccMethodsMap,
 	);
 	mainchainInteroperabilityInternalMethod.createTerminatedStateAccount = createTerminatedStateAccountMock;

@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { MainchainInteroperabilityInternalMethod } from '../store';
+import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
 	EMPTY_HASH,
@@ -40,7 +40,6 @@ import { ChannelDataStore } from '../../stores/channel_data';
 import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { OutboxRootStore } from '../../stores/outbox_root';
 import { RegisteredNamesStore } from '../../stores/registered_names';
-import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { TokenMethod } from '../../../token';
 import { ChainAccountUpdatedEvent } from '../../events/chain_account_updated';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
@@ -263,8 +262,8 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			params: encodedParams,
 		};
 
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
-		await interoperabilityInternalMethod.addToOutbox(chainID, ccm);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod();
+		await interoperabilityInternalMethod.addToOutbox(context, chainID, ccm);
 		// Update own chain account nonce
 		ownChainAccount.nonce += BigInt(1);
 		await ownChainAccountSubstore.set(context, EMPTY_BYTES, ownChainAccount);
@@ -277,13 +276,10 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			});
 	}
 
-	protected getInteroperabilityInternalMethod(
-		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityInternalMethod {
+	protected getInteroperabilityInternalMethod(): MainchainInteroperabilityInternalMethod {
 		return new MainchainInteroperabilityInternalMethod(
 			this.stores,
 			this.events,
-			context,
 			this.interoperableCCMethods,
 		);
 	}

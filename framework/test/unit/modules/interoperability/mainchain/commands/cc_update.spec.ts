@@ -54,7 +54,7 @@ import {
 	MAX_CCM_SIZE,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
-import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/internal_method';
 import { BlockHeader, EventQueue } from '../../../../../../src/state_machine';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
 import { CROSS_CHAIN_COMMAND_NAME_FORWARD } from '../../../../../../src/modules/token/constants';
@@ -577,8 +577,8 @@ describe('CrossChainUpdateCommand', () => {
 			await expect(mainchainCCUUpdateCommand.execute(invalidCCMContext)).resolves.toBeUndefined();
 			expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 			expect(terminateChainInternalMock).toHaveBeenCalledWith(
+				expect.anything(),
 				invalidCCM.sendingChainID,
-				expect.any(Object),
 			);
 		});
 
@@ -743,8 +743,8 @@ describe('CrossChainUpdateCommand', () => {
 
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.sendingChainID,
 				expect.anything(),
+				context.ccm.sendingChainID,
 			);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
@@ -765,8 +765,8 @@ describe('CrossChainUpdateCommand', () => {
 			await expect(command['_forward'](context)).resolves.toBeUndefined();
 
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.sendingChainID,
 				expect.anything(),
+				context.ccm.sendingChainID,
 			);
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
@@ -831,8 +831,8 @@ describe('CrossChainUpdateCommand', () => {
 
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.receivingChainID,
 				expect.anything(),
+				context.ccm.receivingChainID,
 			);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
@@ -871,8 +871,8 @@ describe('CrossChainUpdateCommand', () => {
 			await expect(command['_forward'](context)).resolves.toBeUndefined();
 
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.sendingChainID,
 				expect.anything(),
+				context.ccm.sendingChainID,
 			);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
@@ -892,6 +892,7 @@ describe('CrossChainUpdateCommand', () => {
 			await expect(command['_forward'](context)).resolves.toBeUndefined();
 
 			expect(internalMethod.addToOutbox).toHaveBeenCalledWith(
+				expect.anything(),
 				context.ccm.receivingChainID,
 				context.ccm,
 			);

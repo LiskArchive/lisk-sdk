@@ -21,7 +21,7 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainCCRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands';
-import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/internal_method';
 import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
@@ -112,7 +112,6 @@ describe('MainchainCCRegistrationCommand', () => {
 		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 			interopMod.stores,
 			new NamedRegistry(),
-			sampleExecuteContext,
 			ccMethodsMap,
 		);
 		mainchainInteroperabilityInternalMethod.terminateChainInternal = terminateChainInternalMock;

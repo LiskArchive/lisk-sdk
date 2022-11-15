@@ -21,7 +21,7 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainCCSidechainTerminatedCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands';
-import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/internal_method';
 import { sidechainTerminatedCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { TerminatedStateStore } from '../../../../../../src/modules/interoperability/stores/terminated_state';
 import { CrossChainMessageContext } from '../../../../../../src/modules/interoperability/types';
@@ -91,7 +91,6 @@ describe('MainchainCCSidechainTerminatedCommand', () => {
 		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 			interopMod.stores,
 			new NamedRegistry(),
-			sampleExecuteContext,
 			ccMethodsMap,
 		);
 		mainchainInteroperabilityInternalMethod.terminateChainInternal = terminateChainInternalMock;
@@ -114,11 +113,8 @@ describe('MainchainCCSidechainTerminatedCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
+			expect.anything(),
 			ccmNew.sendingChainID,
-			expect.objectContaining({
-				ccm: ccmNew,
-				chainID,
-			}),
 		);
 	});
 

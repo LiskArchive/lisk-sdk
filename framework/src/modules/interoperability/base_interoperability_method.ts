@@ -25,6 +25,7 @@ import { OwnChainAccountStore } from './stores/own_chain_account';
 import { ChannelDataStore } from './stores/channel_data';
 import { TerminatedStateStore } from './stores/terminated_state';
 import { TerminatedOutboxStore } from './stores/terminated_outbox';
+import { CCMsg } from './types';
 
 export abstract class BaseInteroperabilityMethod<
 	T extends BaseInteroperabilityInternalMethod

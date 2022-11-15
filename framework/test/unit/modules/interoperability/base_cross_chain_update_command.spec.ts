@@ -14,7 +14,6 @@
 /* eslint-disable max-classes-per-file */
 import { utils } from '@liskhq/lisk-cryptography';
 import { CommandExecuteContext, MainchainInteroperabilityModule } from '../../../../src';
-import { ImmutableStoreGetter, StoreGetter } from '../../../../src/modules/base_store';
 import { BaseCCCommand } from '../../../../src/modules/interoperability/base_cc_command';
 import { BaseCrossChainUpdateCommand } from '../../../../src/modules/interoperability/base_cross_chain_update_command';
 import { BaseInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/base_interoperability_internal_methods';
@@ -26,7 +25,7 @@ import {
 	CCMProcessedResult,
 } from '../../../../src/modules/interoperability/events/ccm_processed';
 import { CcmSendSuccessEvent } from '../../../../src/modules/interoperability/events/ccm_send_success';
-import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
 import { CrossChainMessageContext } from '../../../../src/modules/interoperability/types';
 import { createCrossChainMessageContext } from '../../../../src/testing';
 
@@ -35,15 +34,8 @@ class CrossChainUpdateCommand extends BaseCrossChainUpdateCommand {
 	public async execute(_context: CommandExecuteContext<unknown>): Promise<void> {
 		throw new Error('Method not implemented.');
 	}
-	protected getInteroperabilityInternalMethod(
-		context: StoreGetter | ImmutableStoreGetter,
-	): BaseInteroperabilityInternalMethod {
-		return new MainchainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			context,
-			new Map(),
-		);
+	protected getInteroperabilityInternalMethod(): BaseInteroperabilityInternalMethod {
+		return new MainchainInteroperabilityInternalMethod(this.stores, this.events, new Map());
 	}
 }
 

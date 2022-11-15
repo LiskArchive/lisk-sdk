@@ -32,7 +32,9 @@ export abstract class BaseCCChannelTerminatedCommand extends BaseInteroperabilit
 			);
 		}
 		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
-		if (await interoperabilityInternalMethod.isLive(context.ccm.sendingChainID, Date.now())) {
+		if (
+			await interoperabilityInternalMethod.isLive(context, context.ccm.sendingChainID, Date.now())
+		) {
 			await interoperabilityInternalMethod.createTerminatedStateAccount(
 				context,
 				context.ccm.sendingChainID,

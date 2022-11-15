@@ -10,7 +10,7 @@ import {
 	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
-import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/internal_method';
 import { Mocked } from '../../../../../utils/types';
 import { StateRecoveryInitializationCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/state_recovery_init';
 import {

@@ -14,12 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import {
-	ImmutableStoreGetter,
-	MainchainInteroperabilityModule,
-	StoreGetter,
-	TokenMethod,
-} from '../../../../src';
+import { MainchainInteroperabilityModule, TokenMethod } from '../../../../src';
 import { BaseInteroperabilityMethod } from '../../../../src/modules/interoperability/base_interoperability_method';
 import {
 	CCMStatusCode,
@@ -33,7 +28,7 @@ import {
 	CcmSentFailedEvent,
 } from '../../../../src/modules/interoperability/events/ccm_send_fail';
 import { CcmSendSuccessEvent } from '../../../../src/modules/interoperability/events/ccm_send_success';
-import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
 import { ccmSchema } from '../../../../src/modules/interoperability/schemas';
 import {
 	ChainAccountStore,
@@ -48,13 +43,10 @@ import { TerminatedStateStore } from '../../../../src/modules/interoperability/s
 import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
 
 class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {
-	protected getInteroperabilityInternalMethod = (
-		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityInternalMethod =>
+	protected getInteroperabilityInternalMethod = (): MainchainInteroperabilityInternalMethod =>
 		new MainchainInteroperabilityInternalMethod(
 			this.stores,
 			this.events,
-			context,
 			this.interoperableCCMethods,
 		);
 }
@@ -118,7 +110,6 @@ describe('Sample Method', () => {
 		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 			interopMod.stores,
 			new NamedRegistry(),
-			methodContext,
 			interoperableCCMethods,
 		);
 		jest

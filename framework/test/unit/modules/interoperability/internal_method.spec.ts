@@ -24,13 +24,10 @@ import {
 	MAINCHAIN_ID_BUFFER,
 	MESSAGE_TAG_CERTIFICATE,
 } from '../../../../src/modules/interoperability/constants';
-import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
 import * as utils from '../../../../src/modules/interoperability/utils';
 import { MainchainInteroperabilityModule, testing } from '../../../../src';
-import {
-	CreateTerminatedOutboxAccountContext,
-	CrossChainUpdateTransactionParams,
-} from '../../../../src/modules/interoperability/types';
+import { CrossChainUpdateTransactionParams } from '../../../../src/modules/interoperability/types';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
@@ -43,7 +40,7 @@ import { ChainAccountStore } from '../../../../src/modules/interoperability/stor
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { createStoreGetter } from '../../../../src/testing/utils';
 import { StoreGetter } from '../../../../src/modules/base_store';
-import { EventQueue, MethodContext } from '../../../../src/state_machine';
+import { MethodContext } from '../../../../src/state_machine';
 import { ChainAccountUpdatedEvent } from '../../../../src/modules/interoperability/events/chain_account_updated';
 import { TerminatedStateCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_state_created';
 import { createTransientMethodContext } from '../../../../src/testing';
@@ -61,7 +58,7 @@ describe('Base interoperability internal method', () => {
 		'0c4c839c0fd8155fd0d52efc7dd29d2a71919dee517d50967cd26f4db2e0d1c5b',
 		'hex',
 	);
-	const CCM = {
+	const ccm = {
 		nonce: BigInt(0),
 		module: 'token',
 		crossChainCommand: 'crossChainTransfer',
@@ -156,7 +153,6 @@ describe('Base interoperability internal method', () => {
 		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 			interopMod.stores,
 			interopMod.events,
-			context,
 			new Map(),
 		);
 		methodContext = createTransientMethodContext({ stateStore });
@@ -165,7 +161,7 @@ describe('Base interoperability internal method', () => {
 	describe('appendToInboxTree', () => {
 		it('should update the channel store with the new inbox tree info', async () => {
 			// Act
-			await mainchainInteroperabilityInternalMethod.appendToInboxTree(chainID, appendData);
+			await mainchainInteroperabilityInternalMethod.appendToInboxTree(context, chainID, appendData);
 
 			// Assert
 			expect(channelDataSubstore.set).toHaveBeenCalledWith(expect.anything(), chainID, {
@@ -178,7 +174,11 @@ describe('Base interoperability internal method', () => {
 	describe('appendToOutboxTree', () => {
 		it('should update the channel store with the new outbox tree info', async () => {
 			// Act
-			await mainchainInteroperabilityInternalMethod.appendToOutboxTree(chainID, appendData);
+			await mainchainInteroperabilityInternalMethod.appendToOutboxTree(
+				context,
+				chainID,
+				appendData,
+			);
 
 			// Assert
 			expect(channelDataSubstore.set).toHaveBeenCalledWith(expect.anything(), chainID, {
@@ -191,7 +191,7 @@ describe('Base interoperability internal method', () => {
 	describe('addToOutbox', () => {
 		it('should update the outbox tree root store with the new outbox root', async () => {
 			// Act
-			await mainchainInteroperabilityInternalMethod.addToOutbox(chainID, CCM);
+			await mainchainInteroperabilityInternalMethod.addToOutbox(context, chainID, ccm);
 
 			// Assert
 			expect(outboxRootSubstore.set).toHaveBeenCalledWith(
@@ -203,9 +203,6 @@ describe('Base interoperability internal method', () => {
 	});
 
 	describe('createTerminatedOutboxAccount', () => {
-		const createTerminatedOutboxAccountContext: CreateTerminatedOutboxAccountContext = {
-			eventQueue: new EventQueue(0),
-		};
 		const terminatedOutboxCreatedEventMock = {
 			log: jest.fn(),
 		};
@@ -218,7 +215,7 @@ describe('Base interoperability internal method', () => {
 
 			// Act
 			await mainchainInteroperabilityInternalMethod.createTerminatedOutboxAccount(
-				createTerminatedOutboxAccountContext,
+				methodContext,
 				chainID,
 				outboxTree.root,
 				outboxTree.size,
@@ -250,9 +247,10 @@ describe('Base interoperability internal method', () => {
 			nonce: BigInt('0'),
 		};
 
-		const createTerminatedStateAccountContext = {
-			eventQueue: new EventQueue(0),
-		};
+		const crossChainMessageContext = testing.createCrossChainMessageContext({
+			ccm,
+		});
+
 		let chainAccountUpdatedEvent: ChainAccountUpdatedEvent;
 		let terminatedStateCreatedEvent: TerminatedStateCreatedEvent;
 
@@ -267,7 +265,7 @@ describe('Base interoperability internal method', () => {
 			jest.spyOn(chainDataSubstore, 'get').mockResolvedValue(chainAccount);
 			jest.spyOn(chainDataSubstore, 'has').mockResolvedValue(true);
 			await mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(
-				createTerminatedStateAccountContext,
+				crossChainMessageContext,
 				chainId,
 				stateRoot,
 			);
@@ -278,12 +276,12 @@ describe('Base interoperability internal method', () => {
 				initialized: true,
 			});
 			expect(chainAccountUpdatedEvent.log).toHaveBeenCalledWith(
-				{ eventQueue: createTerminatedStateAccountContext.eventQueue },
+				{ eventQueue: crossChainMessageContext.eventQueue },
 				chainId,
 				chainAccount,
 			);
 			expect(terminatedStateCreatedEvent.log).toHaveBeenCalledWith(
-				{ eventQueue: createTerminatedStateAccountContext.eventQueue },
+				{ eventQueue: crossChainMessageContext.eventQueue },
 				chainId,
 				{
 					stateRoot,
@@ -297,7 +295,7 @@ describe('Base interoperability internal method', () => {
 			jest.spyOn(chainDataSubstore, 'get').mockResolvedValue(chainAccount);
 			jest.spyOn(chainDataSubstore, 'has').mockResolvedValue(true);
 			await mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(
-				createTerminatedStateAccountContext,
+				crossChainMessageContext,
 				chainId,
 			);
 
@@ -317,7 +315,7 @@ describe('Base interoperability internal method', () => {
 
 			await expect(
 				mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(
-					createTerminatedStateAccountContext,
+					crossChainMessageContext,
 					chainIdNew,
 				),
 			).rejects.toThrow('Chain to be terminated is not valid');
@@ -330,7 +328,7 @@ describe('Base interoperability internal method', () => {
 				.mockResolvedValue(ownChainAccount1);
 			await chainDataSubstore.set(context, utils.getIDAsKeyForStore(MAINCHAIN_ID), chainAccount);
 			await mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(
-				createTerminatedStateAccountContext,
+				crossChainMessageContext,
 				chainIdNew,
 			);
 
@@ -340,7 +338,7 @@ describe('Base interoperability internal method', () => {
 				initialized: false,
 			});
 			expect(terminatedStateCreatedEvent.log).toHaveBeenCalledWith(
-				{ eventQueue: createTerminatedStateAccountContext.eventQueue },
+				{ eventQueue: crossChainMessageContext.eventQueue },
 				chainIdNew,
 				{
 					stateRoot: chainAccount.lastCertificate.stateRoot,
@@ -353,7 +351,7 @@ describe('Base interoperability internal method', () => {
 
 	describe('terminateChainInternal', () => {
 		const SIDECHAIN_ID = cryptoUtils.intToBuffer(2, 4);
-		const ccm = {
+		const ccmLocal = {
 			nonce: BigInt(0),
 			module: 'token',
 			crossChainCommand: 'crossChainTransfer',
@@ -363,9 +361,8 @@ describe('Base interoperability internal method', () => {
 			status: 1,
 			params: Buffer.alloc(0),
 		};
-		const beforeSendCCMContext = testing.createCrossChainMessageContext({
-			ccm,
-			feeAddress: cryptoUtils.getRandomBytes(32),
+		const crossChainMessageContext = testing.createCrossChainMessageContext({
+			ccm: ccmLocal,
 		});
 
 		beforeEach(() => {
@@ -377,8 +374,8 @@ describe('Base interoperability internal method', () => {
 			jest.spyOn(interopMod.stores.get(TerminatedStateStore), 'has').mockResolvedValue(true);
 			expect(
 				await mainchainInteroperabilityInternalMethod.terminateChainInternal(
+					crossChainMessageContext,
 					SIDECHAIN_ID,
-					beforeSendCCMContext,
 				),
 			).toBeUndefined();
 
@@ -392,8 +389,8 @@ describe('Base interoperability internal method', () => {
 			jest.spyOn(interopMod.stores.get(TerminatedStateStore), 'has').mockResolvedValue(false);
 			expect(
 				await mainchainInteroperabilityInternalMethod.terminateChainInternal(
+					crossChainMessageContext,
 					SIDECHAIN_ID,
-					beforeSendCCMContext,
 				),
 			).toBeUndefined();
 
@@ -421,17 +418,15 @@ describe('Base interoperability internal method', () => {
 		});
 
 		it('should successfully retrieve the account', async () => {
-			const account = await mainchainInteroperabilityInternalMethod.getTerminatedOutboxAccount(
-				terminatedChainID,
-			);
+			const account = await interopMod.stores
+				.get(TerminatedOutboxStore)
+				.get(context, terminatedChainID);
 			expect(account).toEqual(terminatedOutboxAccount);
 		});
 
 		it('should throw when terminated outbox account does not exist', async () => {
 			await expect(
-				mainchainInteroperabilityInternalMethod.getTerminatedOutboxAccount(
-					cryptoUtils.getRandomBytes(32),
-				),
+				interopMod.stores.get(TerminatedOutboxStore).get(context, terminatedChainID),
 			).rejects.toThrow();
 		});
 	});
@@ -454,10 +449,9 @@ describe('Base interoperability internal method', () => {
 
 		it('should return false when outbox account does not exist', async () => {
 			// Assign
-			const isValueChanged = await mainchainInteroperabilityInternalMethod.setTerminatedOutboxAccount(
-				cryptoUtils.getRandomBytes(32),
-				{ outboxRoot: cryptoUtils.getRandomBytes(32) },
-			);
+			const isValueChanged = await interopMod.stores
+				.get(TerminatedOutboxStore)
+				.set(context, terminatedChainID, { outboxRoot: cryptoUtils.getRandomBytes(32) } as any);
 
 			// Assert
 			expect(isValueChanged).toBeFalse();
@@ -465,10 +459,9 @@ describe('Base interoperability internal method', () => {
 
 		it('should return false when no params provided', async () => {
 			// Assign
-			const isValueChanged = await mainchainInteroperabilityInternalMethod.setTerminatedOutboxAccount(
-				cryptoUtils.getRandomBytes(32),
-				{},
-			);
+			const isValueChanged = await interopMod.stores
+				.get(TerminatedOutboxStore)
+				.set(context, terminatedChainID, { outboxRoot: cryptoUtils.getRandomBytes(32) } as any);
 
 			// Assert
 			expect(isValueChanged).toBeFalse();
@@ -502,15 +495,14 @@ describe('Base interoperability internal method', () => {
 			// TODO: I have no idea why `$title` is not working, fix this
 			it.each(testCases)('$title', async ({ changedValues }) => {
 				// Assign
-				const isValueChanged = await mainchainInteroperabilityInternalMethod.setTerminatedOutboxAccount(
-					terminatedChainID,
-					changedValues,
-				);
+				const isValueChanged = await interopMod.stores
+					.get(TerminatedOutboxStore)
+					.set(context, terminatedChainID, changedValues as any);
 
 				const changedAccount = await terminatedOutboxSubstore.get(context, terminatedChainID);
 
 				// Assert
-				expect(isValueChanged).toBeTrue();
+				expect(isValueChanged).toBeUndefined();
 				expect(changedAccount).toEqual({ ...terminatedOutboxAccount, ...changedValues });
 			});
 		});

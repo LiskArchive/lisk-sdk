@@ -30,6 +30,7 @@ export const MAINCHAIN_NETWORK_ID = Buffer.from(
 	'03693f3126b9d0df3096c4ebd59e5c42af4a7f0e313cd7c96a07b6e9f8f54924',
 	'hex',
 ); // TBD
+export const MAX_RESERVED_ERROR_STATUS = 63;
 export const BLS_PUBLIC_KEY_LENGTH = 48;
 export const BLS_SIGNATURE_LENGTH = 96;
 export const SMT_KEY_LENGTH = 38;

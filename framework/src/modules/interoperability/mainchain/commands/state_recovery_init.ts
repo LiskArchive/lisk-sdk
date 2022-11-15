@@ -21,7 +21,6 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../../state_machine';
-import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { EMPTY_BYTES, LIVENESS_LIMIT, MAINCHAIN_ID_BUFFER } from '../../constants';
 import { stateRecoveryInitParams } from '../../schemas';
@@ -29,7 +28,7 @@ import { chainAccountSchema, ChainAccountStore, ChainStatus } from '../../stores
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { TerminatedStateAccount, TerminatedStateStore } from '../../stores/terminated_state';
 import { ChainAccount, StateRecoveryInitParams } from '../../types';
-import { MainchainInteroperabilityInternalMethod } from '../store';
+import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
 export class StateRecoveryInitializationCommand extends BaseInteroperabilityCommand {
 	public schema = stateRecoveryInitParams;
@@ -134,7 +133,7 @@ export class StateRecoveryInitializationCommand extends BaseInteroperabilityComm
 			params.sidechainChainAccount,
 		);
 
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod();
 
 		const doesTerminatedStateAccountExist = await this.stores
 			.get(TerminatedStateStore)
@@ -159,13 +158,10 @@ export class StateRecoveryInitializationCommand extends BaseInteroperabilityComm
 		);
 	}
 
-	protected getInteroperabilityInternalMethod(
-		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityInternalMethod {
+	protected getInteroperabilityInternalMethod(): MainchainInteroperabilityInternalMethod {
 		return new MainchainInteroperabilityInternalMethod(
 			this.stores,
 			this.events,
-			context,
 			this.interoperableCCMethods,
 		);
 	}

@@ -16,7 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SidechainCCRegistrationCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands/registration';
 import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
-import { SidechainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/sidechain/store';
+import { SidechainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/sidechain/internal_method';
 import { CrossChainMessageContext } from '../../../../../../src/modules/interoperability/types';
 import { createCrossChainMessageContext } from '../../../../../../src/testing';
 import { SidechainInteroperabilityModule } from '../../../../../../src';
@@ -112,7 +112,6 @@ describe('SidechainCCRegistrationCommand', () => {
 		sidechainInteroperabilityInternalMethod = new SidechainInteroperabilityInternalMethod(
 			interopMod.stores,
 			new NamedRegistry(),
-			sampleExecuteContext,
 			ccMethodsMap,
 		);
 		sidechainInteroperabilityInternalMethod.terminateChainInternal = terminateChainInternalMock;
@@ -154,13 +153,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
-		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
-			expect.objectContaining({
-				chainID,
-				ccm,
-			}),
-		);
+		expect(terminateChainInternalMock).toHaveBeenCalledWith(expect.anything(), ccm.sendingChainID);
 	});
 
 	it('should call terminateChainInternal when ccm.status !== CCMStatus.OK', async () => {
@@ -181,13 +174,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		await ccRegistrationCommand.execute({ ...sampleExecuteContext, ccm: invalidCCM });
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
-		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
-			expect.objectContaining({
-				chainID,
-				ccm: invalidCCM,
-			}),
-		);
+		expect(terminateChainInternalMock).toHaveBeenCalledWith(expect.anything(), ccm.sendingChainID);
 	});
 
 	it('should call terminateChainInternal when ownChainAccount.chainID !== ccm.receivingChainID', async () => {
@@ -202,13 +189,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
-		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
-			expect.objectContaining({
-				chainID,
-				ccm,
-			}),
-		);
+		expect(terminateChainInternalMock).toHaveBeenCalledWith(expect.anything(), ccm.sendingChainID);
 	});
 
 	it('should call terminateChainInternal when ownChainAccount.name !== decodedParams.name', async () => {
@@ -220,13 +201,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
-		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
-			expect.objectContaining({
-				chainID,
-				ccm,
-			}),
-		);
+		expect(terminateChainInternalMock).toHaveBeenCalledWith(expect.anything(), ccm.sendingChainID);
 	});
 
 	it('should call terminateChainInternal when sendingChainChannelAccount.chainID !== decodedParams.chainID', async () => {
@@ -252,13 +227,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
-		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
-			expect.objectContaining({
-				chainID,
-				ccm,
-			}),
-		);
+		expect(terminateChainInternalMock).toHaveBeenCalledWith(expect.anything(), ccm.sendingChainID);
 	});
 
 	it('should call terminateChainInternal when sendingChainChannelAccount.localID !== decodedParams.localID', async () => {
@@ -284,13 +253,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
-		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
-			expect.objectContaining({
-				chainID,
-				ccm,
-			}),
-		);
+		expect(terminateChainInternalMock).toHaveBeenCalledWith(expect.anything(), ccm.sendingChainID);
 	});
 
 	it('should call terminateChainInternal when decodedParams.chainID !== ownChainAccount.chainID', async () => {
@@ -306,13 +269,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		});
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
-		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
-			expect.objectContaining({
-				chainID: differentChainID,
-				ccm,
-			}),
-		);
+		expect(terminateChainInternalMock).toHaveBeenCalledWith(expect.anything(), ccm.sendingChainID);
 	});
 
 	it('should execute successfully', async () => {

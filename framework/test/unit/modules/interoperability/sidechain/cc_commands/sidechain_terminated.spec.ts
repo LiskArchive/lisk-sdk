@@ -20,7 +20,7 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { SidechainCCSidechainTerminatedCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands';
-import { SidechainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/sidechain/store';
+import { SidechainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/sidechain/internal_method';
 import { sidechainTerminatedCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { CrossChainMessageContext } from '../../../../../../src/modules/interoperability/types';
 import { createCrossChainMessageContext } from '../../../../../../src/testing';
@@ -97,7 +97,6 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 		mainchainInteroperabilityInternalMethod = new SidechainInteroperabilityInternalMethod(
 			interopMod.stores,
 			new NamedRegistry(),
-			sampleExecuteContext,
 			ccMethodsMap,
 		);
 
@@ -122,11 +121,8 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
+			expect.anything(),
 			ccmNew.sendingChainID,
-			expect.objectContaining({
-				ccm: ccmNew,
-				chainID,
-			}),
 		);
 	});
 
