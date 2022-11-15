@@ -247,7 +247,6 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 
 		// Send registration CCM to the sidechain.
 		const encodedParams = codec.encode(registrationCCMParamsSchema, {
-			chainID,
 			name,
 			messageFeeTokenID,
 		});

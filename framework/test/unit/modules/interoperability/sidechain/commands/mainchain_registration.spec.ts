@@ -452,7 +452,6 @@ describe('Mainchain registration command', () => {
 				.fn()
 				.mockReturnValue(interopStore);
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
-				chainID: MAINCHAIN_ID_BUFFER,
 				name: MAINCHAIN_NAME,
 				messageFeeTokenID: TOKEN_ID_LSK_MAINCHAIN,
 			});
@@ -491,7 +490,6 @@ describe('Mainchain registration command', () => {
 
 		it(`should emit ${EVENT_NAME_CCM_SEND_SUCCESS} event`, async () => {
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
-				chainID: MAINCHAIN_ID_BUFFER,
 				name: MAINCHAIN_NAME,
 				messageFeeTokenID: TOKEN_ID_LSK_MAINCHAIN,
 			});

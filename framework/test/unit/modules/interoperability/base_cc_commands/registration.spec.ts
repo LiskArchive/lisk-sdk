@@ -182,7 +182,6 @@ describe('BaseCCRegistrationCommand', () => {
 			sampleExecuteContext = resetContext(
 				buildCCM({
 					params: codec.encode(registrationCCMParamsSchema, {
-						chainID: SIDECHAIN_ID_BUFFER,
 						name: 'Fake-Name',
 						messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
 					}),
@@ -197,7 +196,6 @@ describe('BaseCCRegistrationCommand', () => {
 			sampleExecuteContext = resetContext(
 				buildCCM({
 					params: codec.encode(registrationCCMParamsSchema, {
-						chainID: SIDECHAIN_ID_BUFFER,
 						name: ownChainAccount.name,
 						messageFeeTokenID: Buffer.from('0000000000000012', 'hex'),
 					}),

@@ -381,7 +381,6 @@ export interface GenesisInteroperabilityInternalMethod {
 }
 
 export interface CCMRegistrationParams {
-	chainID: Buffer;
 	name: string;
 	messageFeeTokenID: Buffer;
 }

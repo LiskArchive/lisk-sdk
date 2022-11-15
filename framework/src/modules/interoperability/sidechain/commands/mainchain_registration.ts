@@ -202,7 +202,6 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			.log(methodContext, MAINCHAIN_ID_BUFFER, mainchainAccount);
 
 		const encodedParams = codec.encode(registrationCCMParamsSchema, {
-			chainID: MAINCHAIN_ID_BUFFER,
 			name: MAINCHAIN_NAME,
 			messageFeeTokenID: TOKEN_ID_LSK_MAINCHAIN,
 		});
