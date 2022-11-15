@@ -1,5 +1,6 @@
+/* eslint-disable no-bitwise */
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2022 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,7 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * as dataStructures from './data_structures';
-export * as jobHandlers from './job_handlers';
-export * as objects from './objects';
-export * as math from './math';
+import { Q } from './q';
+
+export const q96 = (val: number | bigint | Buffer | Q): Q => Q.fromValue(val, 96);
