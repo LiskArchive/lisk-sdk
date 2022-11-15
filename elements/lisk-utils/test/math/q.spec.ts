@@ -24,31 +24,40 @@ describe('Q', () => {
 	const pow2 = (val: number | bigint) => BigInt(2) ** BigInt(val);
 	// mulBasePow2 computes 2 ** base * val
 	const mulBasePow2 = (b: number, val: number | bigint) => pow2(b) * BigInt(val);
-	// pow2BaseDiffAddition accumulates 2 ** (base-vals[n])
-	const pow2BaseDiffAddition = (b: number, vals: number[]) =>
-		vals.reduce((prev, curr) => prev + pow2(b - curr), BigInt(0));
 	// ExpectedQ generates the Q format big integer
 	// int: integer part of the result
 	// decimalBinaryPosthe elements should bein the array means the position of "1" in binary.
-	const expectedQ = (b: number, int: number, decimalBinaryPos?: number[]) =>
-		mulBasePow2(b, int) + pow2BaseDiffAddition(b, decimalBinaryPos ?? []);
+	const expectedQ = (b: number, expectedBinary: string) => {
+		const [int, decimals] = expectedBinary.split('.');
+		let result = mulBasePow2(b, parseInt(int, 2));
+		if (!decimals) {
+			return result;
+		}
+		const trucatedDecimals = decimals.substring(0, b);
+		for (let i = 0; i < trucatedDecimals.length; i += 1) {
+			if (trucatedDecimals[i] === '1') {
+				result += pow2(base - i - 1);
+			}
+		}
+		return result;
+	};
 
 	describe('constructor', () => {
 		const numberCases = [
-			[{ input: 0, expected: expectedQ(base, 0), binary: '0' }],
-			[{ input: 10, expected: expectedQ(base, 10), binary: '1010' }],
-			[{ input: 10.25, expected: expectedQ(base, 10, [2]), binary: '1010.01' }],
-			[{ input: 0.25, expected: expectedQ(base, 0, [2]), binary: '0.01' }],
-			[{ input: 0.23, expected: expectedQ(base, 0, [3, 4, 5, 7]), binary: '0.0011101011' }],
+			[{ input: 0, binary: '0' }],
+			[{ input: 10, binary: '1010' }],
+			[{ input: 10.25, binary: '1010.01' }],
+			[{ input: 0.25, binary: '0.01' }],
+			[{ input: 0.23, binary: '0.0011101011' }],
 		];
-		it.each(numberCases)('should create Q from number', val => {
+		it.each(numberCases)('should create Q from number %o', val => {
 			const actual = q(val.input, base);
-			expect(actual['_val']).toEqual(val.expected);
+			expect(actual['_val']).toEqual(expectedQ(base, val.binary));
 		});
 
 		const bigintCases = [[{ input: BigInt(10), expected: mulBasePow2(base, 10) }]];
 
-		it.each(bigintCases)('should create Q from bigint', val => {
+		it.each(bigintCases)('should create Q from bigint %o', val => {
 			const actual = q(val.input, base);
 			expect(actual['_val']).toEqual(val.expected);
 		});
@@ -57,7 +66,7 @@ describe('Q', () => {
 			[{ input: 'a40000000000000000000000', expected: 'a40000000000000000000000' }],
 		];
 
-		it.each(bytesCases)('should create Q from Buffer', val => {
+		it.each(bytesCases)('should create Q from Buffer %o', val => {
 			const actual = q(Buffer.from(val.input, 'hex'), base);
 			expect(actual.toBuffer().toString('hex')).toEqual(val.expected);
 		});
@@ -69,15 +78,16 @@ describe('Q', () => {
 				{
 					original: 10.25,
 					value: 20.3,
-					expected: expectedQ(base, 30, [1, 5, 6]),
 					binary: '11110.1000110011',
 				},
 			],
-			[{ original: 10, value: 20, expected: expectedQ(base, 30), binary: '11110' }],
+			[{ original: 10, value: 20, binary: '11110' }],
 		];
 
 		it.each(cases)('should result in expected value', val => {
-			expect(q(val.original, base).add(q(val.value, base))['_val']).toEqual(val.expected);
+			expect(q(val.original, base).add(q(val.value, base))['_val']).toEqual(
+				expectedQ(base, val.binary),
+			);
 		});
 	});
 
@@ -87,18 +97,19 @@ describe('Q', () => {
 				{
 					original: 20.3,
 					value: 10.25,
-					expected: expectedQ(base, 10, [5, 6]),
 					binary: '1010.0000110011',
 				},
 			],
-			[{ original: 20, value: 10, expected: expectedQ(base, 10), binary: '11110' }],
-			[{ original: 20.444444, value: 20.444444, expected: BigInt(0), binary: '0' }],
-			[{ original: 20.444444, value: 20.444445, expected: BigInt(0), binary: '0' }],
-			[{ original: 20.444445, value: 20.444444, expected: BigInt(0), binary: '0' }],
+			[{ original: 20, value: 10, binary: '1010' }],
+			[{ original: 20.444444, value: 20.444444, binary: '0' }],
+			[{ original: 20.444444, value: 20.444445, binary: '0' }],
+			[{ original: 20.444445, value: 20.444444, binary: '0' }],
 		];
 
-		it.each(cases)('should result in expected value', val => {
-			expect(q(val.original, base).sub(q(val.value, base))['_val']).toEqual(val.expected);
+		it.each(cases)('should result in expected value %o', val => {
+			expect(q(val.original, base).sub(q(val.value, base))['_val']).toEqual(
+				expectedQ(base, val.binary),
+			);
 		});
 
 		it('should result in empty bytes for zero value', () => {
@@ -112,15 +123,16 @@ describe('Q', () => {
 				{
 					original: 10.25,
 					value: 20.3333,
-					expected: expectedQ(base, 208, [2, 3, 6, 7, 8]),
 					binary: '11010000.0110011111',
 				},
 			],
-			[{ original: 10, value: 20, expected: expectedQ(base, 200), binary: '11001000' }],
+			[{ original: 10, value: 20, binary: '11001000' }],
 		];
 
-		it.each(cases)('should result in expected value', val => {
-			expect(q(val.original, base).mul(q(val.value, base))['_val']).toEqual(val.expected);
+		it.each(cases)('should result in expected value %o', val => {
+			expect(q(val.original, base).mul(q(val.value, base))['_val']).toEqual(
+				expectedQ(base, val.binary),
+			);
 		});
 
 		it('should result in empty bytes for zero value', () => {
@@ -130,12 +142,11 @@ describe('Q', () => {
 
 	describe('div', () => {
 		const cases = [
-			[{ original: 60, value: 20, expected: expectedQ(base, 3), binary: '11110' }],
+			[{ original: 60, value: 20, binary: '11' }],
 			[
 				{
 					original: 60,
 					value: 33,
-					expected: expectedQ(base, 1, [1, 2, 4, 8]),
 					binary: '1.1101000101110100010111',
 				},
 			],
@@ -143,14 +154,15 @@ describe('Q', () => {
 				{
 					original: 6,
 					value: 33,
-					expected: expectedQ(base, 0, [3, 5, 6, 7]),
 					binary: '0.00101110100010111010001',
 				},
 			],
 		];
 
-		it.each(cases)('should result in expected value', val => {
-			expect(q(val.original, base).div(q(val.value, base))['_val']).toEqual(val.expected);
+		it.each(cases)('should result in expected value %o', val => {
+			expect(q(val.original, base).div(q(val.value, base))['_val']).toEqual(
+				expectedQ(base, val.binary),
+			);
 		});
 
 		it('should result in empty bytes for zero value', () => {
@@ -165,7 +177,6 @@ describe('Q', () => {
 					original: 10.25,
 					mul: 20.3333,
 					div: 10,
-					expected: expectedQ(base, 20, [1, 2, 4, 6, 7, 8]),
 					binary: '10100.1101011100011101111001101001',
 				},
 			],
@@ -174,15 +185,14 @@ describe('Q', () => {
 					original: 30,
 					mul: 20,
 					div: 33,
-					expected: expectedQ(base, 18, [3, 5, 6, 7]),
 					binary: '10010.0010111010001',
 				},
 			],
 		];
 
-		it.each(cases)('should result in expected value', val => {
+		it.each(cases)('should result in expected value %o', val => {
 			expect(q(val.original, base).muldiv(q(val.mul, base), q(val.div, base))['_val']).toEqual(
-				val.expected,
+				expectedQ(base, val.binary),
 			);
 		});
 
@@ -193,18 +203,17 @@ describe('Q', () => {
 
 	describe('inv', () => {
 		const cases = [
-			[{ original: 0.25, expected: expectedQ(base, 4), binary: '' }],
+			[{ original: 0.25, binary: '100' }],
 			[
 				{
 					original: 1.5,
-					expected: expectedQ(base, 0, [1, 3, 5, 7]),
 					binary: '0.10101010101010101010',
 				},
 			],
 		];
 
-		it.each(cases)('should result in expected value', val => {
-			expect(q(val.original, base).inv()['_val']).toEqual(val.expected);
+		it.each(cases)('should result in expected value %o', val => {
+			expect(q(val.original, base).inv()['_val']).toEqual(expectedQ(base, val.binary));
 		});
 	});
 
@@ -215,7 +224,7 @@ describe('Q', () => {
 			[{ original: Buffer.from([10, 0, 1]), value: Buffer.from([1, 0, 1]), expected: false }],
 		];
 
-		it.each(cases)('should result in expected value', val => {
+		it.each(cases)('should result in expected value %o', val => {
 			expect(q(val.original, base).eq(q(val.value, base))).toEqual(val.expected);
 		});
 	});
@@ -227,7 +236,7 @@ describe('Q', () => {
 			[{ original: Buffer.from([10, 0, 1]), value: Buffer.from([1, 0, 1]), expected: false }],
 		];
 
-		it.each(cases)('should result in expected value', val => {
+		it.each(cases)('should result in expected value %o', val => {
 			expect(q(val.original, base).lte(q(val.value, base))).toEqual(val.expected);
 		});
 	});
@@ -239,7 +248,7 @@ describe('Q', () => {
 			[{ original: Buffer.from([10, 0, 1]), value: Buffer.from([1, 0, 1]), expected: false }],
 		];
 
-		it.each(cases)('should result in expected value', val => {
+		it.each(cases)('should result in expected value %o', val => {
 			expect(q(val.original, base).lt(q(val.value, base))).toEqual(val.expected);
 		});
 	});
@@ -251,7 +260,7 @@ describe('Q', () => {
 			[{ original: Buffer.from([10, 0, 1]), value: Buffer.from([1, 0, 1]), expected: true }],
 		];
 
-		it.each(cases)('should result in expected value', val => {
+		it.each(cases)('should result in expected value %o', val => {
 			expect(q(val.original, base).gte(q(val.value, base))).toEqual(val.expected);
 		});
 	});
@@ -263,7 +272,7 @@ describe('Q', () => {
 			[{ original: Buffer.from([10, 0, 1]), value: Buffer.from([1, 0, 1]), expected: true }],
 		];
 
-		it.each(cases)('should result in expected value', val => {
+		it.each(cases)('should result in expected value %o', val => {
 			expect(q(val.original, base).gt(q(val.value, base))).toEqual(val.expected);
 		});
 	});
@@ -277,7 +286,7 @@ describe('Q', () => {
 			[{ original: 200.999999, expected: BigInt(201) }],
 		];
 
-		it.each(cases)('should result in expected value', val => {
+		it.each(cases)('should result in expected value %o', val => {
 			expect(q(val.original, base).ceil()).toEqual(val.expected);
 		});
 	});
@@ -288,7 +297,7 @@ describe('Q', () => {
 			[{ original: 200.999999, expected: BigInt(200) }],
 		];
 
-		it.each(cases)('should result in expected value', val => {
+		it.each(cases)('should result in expected value %o', val => {
 			expect(q(val.original, base).floor()).toEqual(val.expected);
 		});
 	});
