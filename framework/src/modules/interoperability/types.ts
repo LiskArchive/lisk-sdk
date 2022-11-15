@@ -67,7 +67,7 @@ export interface CCUpdateParams {
 	sendingChainID: Buffer;
 	certificate: Buffer;
 	activeValidatorsUpdate: ActiveValidator[];
-	newCertificateThreshold: bigint;
+	certificateThreshold: bigint;
 	inboxUpdate: InboxUpdate;
 }
 export interface ImmutableCrossChainMessageContext {
@@ -332,7 +332,7 @@ export interface CrossChainUpdateTransactionParams {
 	sendingChainID: Buffer;
 	certificate: Buffer;
 	activeValidatorsUpdate: ActiveValidator[];
-	newCertificateThreshold: bigint;
+	certificateThreshold: bigint;
 	inboxUpdate: InboxUpdate;
 }
 
@@ -384,4 +384,13 @@ export interface GenesisInteroperability {
 export interface CCMRegistrationParams {
 	name: string;
 	messageFeeTokenID: Buffer;
+}
+export interface TokenMethod {
+	initializeUserAccount(
+		methodContext: MethodContext,
+		address: Buffer,
+		tokenID: Buffer,
+		initPayingAddress: Buffer,
+		initializationFee: bigint,
+	): Promise<void>;
 }

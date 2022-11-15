@@ -16,16 +16,25 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
+import { BaseInteroperabilityMethod } from './base_interoperability_method';
 import { CCMStatusCode, MIN_RETURN_FEE } from './constants';
 import { CCMProcessedCode, CcmProcessedEvent, CCMProcessedResult } from './events/ccm_processed';
 import { CcmSendSuccessEvent } from './events/ccm_send_success';
 import { ccmSchema, crossChainUpdateTransactionParams } from './schemas';
-import { CrossChainMessageContext } from './types';
+import { CrossChainMessageContext, TokenMethod } from './types';
 
 export abstract class BaseCrossChainUpdateCommand<
 	T extends BaseInteroperabilityInternalMethod
 > extends BaseInteroperabilityCommand<T> {
 	public schema = crossChainUpdateTransactionParams;
+
+	protected _tokenMethod!: TokenMethod;
+	protected _interopsMethod!: BaseInteroperabilityMethod<never>;
+
+	public init(interopsMethod: BaseInteroperabilityMethod<never>, tokenMethod: TokenMethod) {
+		this._tokenMethod = tokenMethod;
+		this._interopsMethod = interopsMethod;
+	}
 
 	protected async apply(context: CrossChainMessageContext): Promise<void> {
 		const { ccm, logger } = context;

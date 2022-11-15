@@ -16,6 +16,7 @@ import { utils as cryptoUtils } from '@liskhq/lisk-cryptography';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
+import { SparseMerkleTree } from '@liskhq/lisk-db';
 import {
 	BLS_PUBLIC_KEY_LENGTH,
 	EMPTY_HASH,
@@ -31,7 +32,7 @@ import { CrossChainUpdateTransactionParams } from '../../../../src/modules/inter
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
-import { OutboxRootStore } from '../../../../src/modules/interoperability/stores/outbox_root';
+import { outboxRootSchema, OutboxRootStore } from '../../../../src/modules/interoperability/stores/outbox_root';
 import {
 	TerminatedOutboxAccount,
 	TerminatedOutboxStore,
@@ -123,7 +124,7 @@ describe('Base interoperability internal method', () => {
 				siblingHashes: [],
 			},
 		},
-		newCertificateThreshold: BigInt(99),
+		certificateThreshold: BigInt(99),
 		sendingChainID: cryptoUtils.getRandomBytes(4),
 	};
 	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
@@ -558,7 +559,7 @@ describe('Base interoperability internal method', () => {
 				ccu.sendingChainID,
 				{
 					activeValidators: ccu.activeValidatorsUpdate,
-					certificateThreshold: ccu.newCertificateThreshold,
+					certificateThreshold: ccu.certificateThreshold,
 				},
 			);
 		});
@@ -748,7 +749,7 @@ describe('Base interoperability internal method', () => {
 			).rejects.toThrow('ValidatorsHash in certificate and the computed values do not match');
 			expect(utils.computeValidatorsHash).toHaveBeenCalledWith(
 				newValidators,
-				ccu.newCertificateThreshold,
+				ccu.certificateThreshold,
 			);
 		});
 
@@ -785,7 +786,7 @@ describe('Base interoperability internal method', () => {
 		const txParams: CrossChainUpdateTransactionParams = {
 			certificate: Buffer.alloc(0),
 			activeValidatorsUpdate: [],
-			newCertificateThreshold: BigInt(10),
+			certificateThreshold: BigInt(10),
 			sendingChainID: cryptoUtils.getRandomBytes(4),
 			inboxUpdate: {
 				crossChainMessages: [],
@@ -903,7 +904,7 @@ describe('Base interoperability internal method', () => {
 		const txParams: CrossChainUpdateTransactionParams = {
 			certificate: encodedCertificate,
 			activeValidatorsUpdate,
-			newCertificateThreshold: BigInt(10),
+			certificateThreshold: BigInt(10),
 			sendingChainID: cryptoUtils.getRandomBytes(4),
 			inboxUpdate: {
 				crossChainMessages: [],
@@ -939,7 +940,7 @@ describe('Base interoperability internal method', () => {
 				txParams.sendingChainID,
 				txParams.certificate,
 				activeValidatorsUpdate.map(v => v.bftWeight),
-				txParams.newCertificateThreshold,
+				txParams.certificateThreshold,
 			);
 		});
 
@@ -951,6 +952,90 @@ describe('Base interoperability internal method', () => {
 			).resolves.toBeUndefined();
 
 			expect(cryptography.bls.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	describe('verifyPartnerChainOutboxRoot', () => {
+		const certificate: Certificate = {
+			blockID: cryptoUtils.getRandomBytes(20),
+			height: 21,
+			timestamp: Math.floor(Date.now() / 1000),
+			stateRoot: cryptoUtils.getRandomBytes(38),
+			validatorsHash: cryptoUtils.getRandomBytes(48),
+			aggregationBits: cryptoUtils.getRandomBytes(38),
+			signature: cryptoUtils.getRandomBytes(32),
+		};
+		const encodedCertificate = codec.encode(certificateSchema, certificate);
+		const txParams: CrossChainUpdateTransactionParams = {
+			certificate: encodedCertificate,
+			activeValidatorsUpdate: [],
+			certificateThreshold: BigInt(10),
+			sendingChainID: cryptoUtils.getRandomBytes(4),
+			inboxUpdate: {
+				crossChainMessages: [],
+				messageWitnessHashes: [],
+				outboxRootWitness: {
+					bitmap: cryptoUtils.getRandomBytes(4),
+					siblingHashes: [cryptoUtils.getRandomBytes(32)],
+				},
+			},
+		};
+
+		beforeEach(async () => {
+			await interopMod.stores
+				.get(ChannelDataStore)
+				.set(methodContext, txParams.sendingChainID, {
+					...channelData,
+				});
+		});
+
+		it('should reject when inbox root is empty but partnerchain outbox root does not match', async () => {
+			await expect(mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(context, {
+				...txParams,
+				certificate: Buffer.alloc(0),
+			})).rejects.toThrow('Inbox root does not match partner chain outbox root');
+		});
+
+		it('should reject when certificate state root does not contain valid inclusion proof for inbox update', async () => {
+			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
+
+			await expect(mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(context, {
+				...txParams,
+			})).rejects.toThrow('Invalid inclusion proof for inbox update');
+		});
+
+		it('should resolve when certificate is empty and inbox root matches partner outbox root', async () => {
+			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
+			jest.spyOn(regularMerkleTree, 'calculateRootFromRightWitness').mockReturnValue(channelData.partnerChainOutboxRoot);
+
+			await expect(mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(context, {
+				...txParams,
+				certificate: Buffer.alloc(0),
+			})).resolves.toBeUndefined();
+		});
+
+		it('should resolve when certificate provides valid inclusion proof', async () => {
+			const nextRoot = cryptoUtils.getRandomBytes(32);
+			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(true);
+			jest.spyOn(regularMerkleTree, 'calculateRootFromRightWitness').mockReturnValue(nextRoot);
+
+			await expect(mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(context, {
+				...txParams,
+			})).resolves.toBeUndefined();
+
+			const outboxKey = Buffer.concat([interopMod.stores.get(OutboxRootStore).key, cryptoUtils.hash(txParams.sendingChainID)]);
+			expect(SparseMerkleTree.prototype.verify).toHaveBeenCalledWith(
+				certificate.stateRoot,
+				[outboxKey],
+				{
+					siblingHashes: txParams.inboxUpdate.outboxRootWitness.siblingHashes,
+					queries: [{
+						key: outboxKey,
+						value: codec.encode(outboxRootSchema, { root: nextRoot }),
+						bitmap: txParams.inboxUpdate.outboxRootWitness.bitmap,
+					}],
+				},
+			)
 		});
 	});
 });
