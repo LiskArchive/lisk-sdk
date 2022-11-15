@@ -13,13 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { BaseInteroperableMethod } from '../interoperability/base_interoperable_method';
-import {
-	BeforeApplyCCMsgMethodContext,
-	BeforeRecoverCCMsgMethodContext,
-	BeforeSendCCMsgMethodContext,
-	RecoverCCMsgMethodContext,
-} from '../interoperability/types';
+import { CrossChainMessageContext, RecoverCCMsgMethodContext } from '../interoperability/types';
 import { NamedRegistry } from '../named_registry';
 import { TokenMethod } from './method';
 import { ADDRESS_LENGTH, CHAIN_ID_ALIAS_NATIVE, CHAIN_ID_LENGTH } from './constants';
@@ -29,8 +23,9 @@ import { EscrowStore } from './stores/escrow';
 import { UserStore } from './stores/user';
 import { InteroperabilityMethod } from './types';
 import { splitTokenID } from './utils';
+import { BaseCCMethod } from '../interoperability/base_cc_method';
 
-export class TokenInteroperableMethod extends BaseInteroperableMethod {
+export class TokenInteroperableMethod extends BaseCCMethod {
 	private readonly _tokenMethod: TokenMethod;
 
 	private _interopMethod!: InteroperabilityMethod;
@@ -44,8 +39,8 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 		this._interopMethod = interoperabilityMethod;
 	}
 
-	public async beforeApplyCCM(ctx: BeforeApplyCCMsgMethodContext): Promise<void> {
-		const { ccm } = ctx;
+	public async beforeApplyCCM(ctx: CrossChainMessageContext): Promise<void> {
+		const { ccm, transaction } = ctx;
 		const methodContext = ctx.getMethodContext();
 		if (ccm.fee < BigInt(0)) {
 			throw new Error('Fee must be greater or equal to zero.');
@@ -60,7 +55,7 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 		if (!feeTokenChainID.equals(ownChainID)) {
 			await userStore.updateAvailableBalanceWithCreate(
 				methodContext,
-				ctx.trsSender,
+				transaction.senderAddress,
 				messageFeeTokenID,
 				ccm.fee,
 			);
@@ -81,14 +76,14 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 		);
 		await userStore.updateAvailableBalanceWithCreate(
 			methodContext,
-			ctx.trsSender,
+			transaction.senderAddress,
 			canonicalTokenID,
 			ccm.fee,
 		);
 	}
 
-	public async beforeRecoverCCM(ctx: BeforeRecoverCCMsgMethodContext): Promise<void> {
-		const { ccm } = ctx;
+	public async beforeRecoverCCM(ctx: CrossChainMessageContext): Promise<void> {
+		const { ccm, transaction } = ctx;
 		const methodContext = ctx.getMethodContext();
 		if (ccm.fee < BigInt(0)) {
 			throw new Error('Fee must be greater or equal to zero.');
@@ -103,7 +98,7 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 		if (!feeTokenChainID.equals(ownChainID)) {
 			await userStore.updateAvailableBalanceWithCreate(
 				methodContext,
-				ctx.trsSender,
+				transaction.senderAddress,
 				messageFeeTokenID,
 				ccm.fee,
 			);
@@ -124,14 +119,14 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 		);
 		await userStore.updateAvailableBalanceWithCreate(
 			methodContext,
-			ctx.trsSender,
+			transaction.senderAddress,
 			canonicalTokenID,
 			ccm.fee,
 		);
 	}
 
-	public async beforeSendCCM(ctx: BeforeSendCCMsgMethodContext): Promise<void> {
-		const { ccm } = ctx;
+	public async beforeSendCCM(ctx: CrossChainMessageContext): Promise<void> {
+		const { ccm, transaction } = ctx;
 		const methodContext = ctx.getMethodContext();
 		if (ccm.fee < BigInt(0)) {
 			throw new Error('Fee must be greater or equal to zero.');
@@ -149,16 +144,16 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 			const escrowStore = this.stores.get(EscrowStore);
 			await escrowStore.addAmount(methodContext, ccm.receivingChainID, feeTokenLocalID, ccm.fee);
 		}
-		const payer = await userStore.get(ctx, userStore.getKey(ctx.feeAddress, tokenID));
+		const payer = await userStore.get(ctx, userStore.getKey(transaction.senderAddress, tokenID));
 		if (payer.availableBalance < ccm.fee) {
 			throw new Error(
-				`Payer ${ctx.feeAddress.toString(
+				`Payer ${transaction.senderAddress.toString(
 					'hex',
 				)} does not have sufficient balance for fee ${ccm.fee.toString()}`,
 			);
 		}
 		payer.availableBalance -= ccm.fee;
-		await userStore.set(ctx, userStore.getKey(ctx.feeAddress, tokenID), payer);
+		await userStore.set(ctx, userStore.getKey(transaction.senderAddress, tokenID), payer);
 	}
 
 	public async recover(ctx: RecoverCCMsgMethodContext): Promise<void> {

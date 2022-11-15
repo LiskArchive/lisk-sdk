@@ -17,16 +17,16 @@ import { ImmutableStoreGetter, StoreGetter } from '../base_store';
 import { NamedRegistry } from '../named_registry';
 import { BaseCCCommand } from './base_cc_command';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
-import { BaseInteroperableMethod } from './base_interoperable_method';
+import { BaseCCMethod } from './base_cc_method';
 
 export abstract class BaseInteroperabilityCommand extends BaseCommand {
-	protected readonly interoperableCCMethods = new Map<string, BaseInteroperableMethod>();
+	protected readonly interoperableCCMethods = new Map<string, BaseCCMethod>();
 	protected readonly ccCommands = new Map<string, BaseCCCommand[]>();
 
 	public constructor(
 		stores: NamedRegistry,
 		events: NamedRegistry,
-		interoperableCCMethods: Map<string, BaseInteroperableMethod>,
+		interoperableCCMethods: Map<string, BaseCCMethod>,
 		ccCommands: Map<string, BaseCCCommand[]>,
 	) {
 		super(stores, events);

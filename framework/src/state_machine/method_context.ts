@@ -14,10 +14,15 @@
 
 import { EventQueue } from './event_queue';
 import { PrefixedStateReadWriter, StateDBReadWriter } from './prefixed_state_read_writer';
-import { SubStore, ImmutableSubStore, ImmutableMethodContext } from './types';
+import {
+	SubStore,
+	ImmutableSubStore,
+	ImmutableMethodContext,
+	StateStore as IStateStore,
+} from './types';
 
 interface Params {
-	stateStore: PrefixedStateReadWriter;
+	stateStore: IStateStore;
 	eventQueue: EventQueue;
 }
 
@@ -38,7 +43,7 @@ export const createImmutableMethodContext = (
 });
 
 export class MethodContext {
-	private readonly _stateStore: PrefixedStateReadWriter;
+	private readonly _stateStore: IStateStore;
 	private readonly _eventQueue: EventQueue;
 
 	public constructor(params: Params) {

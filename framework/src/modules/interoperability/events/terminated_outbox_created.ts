@@ -13,16 +13,12 @@
  */
 
 import { BaseEvent, EventQueuer } from '../../base_event';
-import { terminatedOutboxSchema } from '../stores/terminated_outbox';
+import { TerminatedOutboxAccount, terminatedOutboxSchema } from '../stores/terminated_outbox';
 
-export interface TerminatedOutboxCreatedEventData {
-	ccmID: Buffer;
-}
-
-export class TerminatedOutboxCreatedEvent extends BaseEvent<TerminatedOutboxCreatedEventData> {
+export class TerminatedOutboxCreatedEvent extends BaseEvent<TerminatedOutboxAccount> {
 	public schema = terminatedOutboxSchema;
 
-	public log(ctx: EventQueuer, chainID: Buffer, data: TerminatedOutboxCreatedEventData): void {
+	public log(ctx: EventQueuer, chainID: Buffer, data: TerminatedOutboxAccount): void {
 		this.add(ctx, data, [chainID]);
 	}
 }
