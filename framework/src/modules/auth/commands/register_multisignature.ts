@@ -24,24 +24,13 @@ import {
 	VerifyStatus,
 } from '../../../state_machine';
 import { AuthAccountStore } from '../stores/auth_account';
-import {
-	COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP,
-	MAX_NUMBER_OF_SIGNATURES,
-	MESSAGE_TAG_MULTISIG_REG,
-	TYPE_ID_INVALID_SIGNATURE_ERROR,
-	TYPE_ID_MULTISIGNATURE_GROUP_REGISTERED,
-} from '../constants';
-import {
-	invalidSigDataSchema,
-	multisigRegDataSchema,
-	multisigRegMsgSchema,
-	registerMultisignatureParamsSchema,
-} from '../schemas';
+import { MAX_NUMBER_OF_SIGNATURES, MESSAGE_TAG_MULTISIG_REG } from '../constants';
+import { multisigRegMsgSchema, registerMultisignatureParamsSchema } from '../schemas';
 import { RegisterMultisignatureParams } from '../types';
-import { getIDAsKeyForStore } from '../utils';
+import { InvalidSignatureEvent } from '../events/invalid_signature';
+import { MultisignatureRegistrationEvent } from '../events/multisignature_registration';
 
 export class RegisterMultisignatureCommand extends BaseCommand {
-	public id = getIDAsKeyForStore(COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP);
 	public schema = registerMultisignatureParamsSchema;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -85,11 +74,13 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 		// Check if key count is out of bounds
 		if (
 			mandatoryKeys.length + optionalKeys.length > MAX_NUMBER_OF_SIGNATURES ||
-			mandatoryKeys.length + optionalKeys.length <= 0
+			mandatoryKeys.length + optionalKeys.length < 1
 		) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('The count of Mandatory and Optional keys should be between 1 and 64.'),
+				error: new Error(
+					`The count of Mandatory and Optional keys should be between 1 and ${MAX_NUMBER_OF_SIGNATURES}.`,
+				),
 			};
 		}
 
@@ -178,20 +169,13 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 				key,
 			);
 			if (!isValid) {
-				const invalidSignatureEventData = codec.encode(invalidSigDataSchema, {
+				this.events.get(InvalidSignatureEvent).error(context, transaction.senderAddress, {
 					numberOfSignatures: params.numberOfSignatures,
 					mandatoryKeys: params.mandatoryKeys,
 					optionalKeys: params.optionalKeys,
 					failingPublicKey: key,
 					failingSignature: signature,
 				});
-
-				context.eventQueue.add(
-					this.name,
-					TYPE_ID_INVALID_SIGNATURE_ERROR,
-					invalidSignatureEventData,
-					[transaction.senderAddress],
-				);
 				throw new Error(`Invalid signature for public key ${key.toString('hex')}.`);
 			}
 		}
@@ -210,17 +194,10 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 
 		await authSubstore.set(context, transaction.senderAddress, senderAccount);
 
-		const registerMultiSigEventData = codec.encode(multisigRegDataSchema, {
+		this.events.get(MultisignatureRegistrationEvent).log(context, transaction.senderAddress, {
 			numberOfSignatures: params.numberOfSignatures,
 			mandatoryKeys: params.mandatoryKeys,
 			optionalKeys: params.optionalKeys,
 		});
-
-		context.eventQueue.add(
-			this.name,
-			TYPE_ID_MULTISIGNATURE_GROUP_REGISTERED,
-			registerMultiSigEventData,
-			[transaction.senderAddress],
-		);
 	}
 }

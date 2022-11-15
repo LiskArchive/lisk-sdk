@@ -50,8 +50,8 @@ import {
 	QueryResponse,
 	ProveRequest,
 	ProveResponse,
-	ReadyRequest,
-	ReadyResponse,
+	InitRequest,
+	InitResponse,
 } from '../abi';
 import { Logger } from '../logger';
 import { BaseModule } from '../modules';
@@ -76,6 +76,7 @@ export interface ABIHandlerConstructor {
 	moduleDB: Database;
 	modules: BaseModule[];
 	channel: BaseChannel;
+	chainID: Buffer;
 }
 
 interface ExecutionContext {
@@ -100,6 +101,7 @@ export class ABIHandler implements ABI {
 
 	private _executionContext: ExecutionContext | undefined;
 	private _chainID?: Buffer;
+	private _cachedGenesisState: (InitGenesisStateResponse & { stateRoot: Buffer }) | undefined;
 
 	public constructor(args: ABIHandlerConstructor) {
 		this._config = args.config;
@@ -109,18 +111,101 @@ export class ABIHandler implements ABI {
 		this._moduleDB = args.moduleDB;
 		this._modules = args.modules;
 		this._channel = args.channel;
+		this._chainID = args.chainID;
 	}
 
 	public get chainID(): Buffer {
 		if (!this._chainID) {
-			throw new Error('Network identifier is not set.');
+			throw new Error('Chain ID is not set.');
 		}
 		return this._chainID;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async ready(_req: ReadyRequest): Promise<ReadyResponse> {
+	public async cacheGenesisState(): Promise<void> {
+		const { version, root } = await this._stateDB.getCurrentState();
+		// Skip if state db is already initialized
+		if (version !== 0 || !root.equals(utils.hash(Buffer.alloc(0)))) {
+			this._logger.debug(
+				{ version, root: root.toString('hex') },
+				'Skip caching genesis state as state is already initialized',
+			);
+			return;
+		}
+		const genesisBlock = readGenesisBlock(this._config, this._logger);
+		this._logger.info(
+			{
+				stateRoot: genesisBlock.header.stateRoot?.toString('hex'),
+				height: genesisBlock.header.height,
+			},
+			'Start caching genesis state',
+		);
+		const stateStore = new PrefixedStateReadWriter(this._stateDB.newReadWriter());
+
+		const context = new GenesisBlockContext({
+			eventQueue: new EventQueue(genesisBlock.header.height),
+			header: genesisBlock.header,
+			logger: this._logger,
+			stateStore,
+			assets: genesisBlock.assets,
+			chainID: this.chainID,
+		});
+
+		await this._stateMachine.executeGenesisBlock(context);
+		const stateRoot = await this._stateDB.commit(
+			stateStore.inner,
+			genesisBlock.header.height,
+			utils.hash(Buffer.alloc(0)),
+			{
+				readonly: false,
+				expectedRoot: genesisBlock.header.stateRoot,
+				checkRoot: true,
+			},
+		);
+		this._cachedGenesisState = {
+			stateRoot,
+			events: context.eventQueue.getEvents().map(e => e.toObject()),
+			certificateThreshold: context.nextValidators.certificateThreshold,
+			nextValidators: context.nextValidators.validators,
+			preCommitThreshold: context.nextValidators.precommitThreshold,
+		};
+		this._logger.info(
+			{
+				stateRoot: genesisBlock.header.stateRoot?.toString('hex'),
+				height: genesisBlock.header.height,
+			},
+			'Cached genesis state',
+		);
+	}
+
+	public async init(req: InitRequest): Promise<InitResponse> {
 		this._chainID = Buffer.from(this._config.genesis.chainID, 'hex');
+		const currentState = await this._stateDB.getCurrentState();
+		if (req.lastBlockHeight > currentState.version) {
+			throw new Error(
+				`Invalid engine state. Conflict at engine height ${req.lastBlockHeight} and application state ${currentState.version}.`,
+			);
+		}
+		if (req.lastBlockHeight < currentState.version) {
+			this._logger.info(
+				{ engineHeight: req.lastBlockHeight, applicationHeight: currentState.version },
+				'Application is in invalid state. Trying to recover',
+			);
+			const diff = currentState.version - req.lastBlockHeight;
+			for (let i = 0; i < diff; i += 1) {
+				const previousRoot = await this._stateDB.revert(currentState.root, currentState.version);
+				currentState.root = previousRoot;
+				currentState.version -= 1;
+			}
+			if (!currentState.root.equals(req.lastStateRoot)) {
+				throw new Error(
+					`State cannot be recovered. Conflict at height ${
+						req.lastBlockHeight
+					} Engine state ${req.lastStateRoot.toString(
+						'hex',
+					)} and application state ${currentState.root.toString('hex')}.`,
+				);
+			}
+		}
 
 		this.event.emit(EVENT_ENGINE_READY);
 		return {};
@@ -155,6 +240,13 @@ export class ABIHandler implements ABI {
 				)}. Context is not initialized or different.`,
 			);
 		}
+		if (this._cachedGenesisState) {
+			this._logger.debug(
+				{ stateRoot: this._cachedGenesisState.stateRoot },
+				'Responding with cached genesis state',
+			);
+			return this._cachedGenesisState;
+		}
 		const genesisBlock = readGenesisBlock(this._config, this._logger);
 		const context = new GenesisBlockContext({
 			eventQueue: new EventQueue(genesisBlock.header.height),
@@ -162,6 +254,7 @@ export class ABIHandler implements ABI {
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
 			assets: genesisBlock.assets,
+			chainID: this.chainID,
 		});
 
 		await this._stateMachine.executeGenesisBlock(context);
@@ -213,11 +306,6 @@ export class ABIHandler implements ABI {
 			eventQueue: new EventQueue(this._executionContext.header.height),
 			// verifyAssets does not have access to transactions
 			transactions: [],
-			// verifyAssets does not have access to those properties
-			currentValidators: [],
-			impliesMaxPrevote: false,
-			maxHeightCertified: 0,
-			certificateThreshold: BigInt(0),
 		});
 		await this._stateMachine.verifyAssets(context);
 
@@ -241,10 +329,6 @@ export class ABIHandler implements ABI {
 			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
 			eventQueue: new EventQueue(this._executionContext.header.height),
-			currentValidators: req.consensus.currentValidators,
-			impliesMaxPrevote: req.consensus.implyMaxPrevote,
-			maxHeightCertified: req.consensus.maxHeightCertified,
-			certificateThreshold: req.consensus.certificateThreshold,
 			transactions: [],
 		});
 		await this._stateMachine.beforeExecuteBlock(context);
@@ -272,10 +356,6 @@ export class ABIHandler implements ABI {
 			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
 			eventQueue: new EventQueue(this._executionContext.header.height),
-			currentValidators: req.consensus.currentValidators,
-			impliesMaxPrevote: req.consensus.implyMaxPrevote,
-			maxHeightCertified: req.consensus.maxHeightCertified,
-			certificateThreshold: req.consensus.certificateThreshold,
 			transactions: req.transactions.map(tx => new Transaction(tx)),
 		});
 		await this._stateMachine.afterExecuteBlock(context);
@@ -292,10 +372,13 @@ export class ABIHandler implements ABI {
 		req: VerifyTransactionRequest,
 	): Promise<VerifyTransactionResponse> {
 		let stateStore: PrefixedStateReadWriter;
+		let header: BlockHeader;
 		if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
 			stateStore = new PrefixedStateReadWriter(this._stateDB.newReadWriter());
+			header = new BlockHeader(req.header);
 		} else {
 			stateStore = this._executionContext.stateStore;
+			header = this._executionContext.header;
 		}
 		const context = new TransactionContext({
 			eventQueue: new EventQueue(0),
@@ -303,11 +386,7 @@ export class ABIHandler implements ABI {
 			transaction: new Transaction(req.transaction),
 			stateStore,
 			chainID: this.chainID,
-			// These values are not used
-			currentValidators: [],
-			impliesMaxPrevote: true,
-			maxHeightCertified: 0,
-			certificateThreshold: BigInt(0),
+			header,
 		});
 		const result = await this._stateMachine.verifyTransaction(context);
 
@@ -343,10 +422,6 @@ export class ABIHandler implements ABI {
 			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
 			header,
-			currentValidators: req.consensus.currentValidators,
-			impliesMaxPrevote: req.consensus.implyMaxPrevote,
-			maxHeightCertified: req.consensus.maxHeightCertified,
-			certificateThreshold: req.consensus.certificateThreshold,
 		});
 		const status = await this._stateMachine.executeTransaction(context);
 		return {
@@ -363,6 +438,14 @@ export class ABIHandler implements ABI {
 				)}. Context is not initialized or different.`,
 			);
 		}
+		const currentState = await this._stateDB.getCurrentState();
+		if (req.expectedStateRoot.equals(currentState.root)) {
+			this._logger.debug(
+				{ stateRoot: currentState.root },
+				'Skipping commit. Current state is already expected state',
+			);
+			return { stateRoot: currentState.root };
+		}
 		const stateRoot = await this._stateDB.commit(
 			this._executionContext.stateStore.inner,
 			this._executionContext.header.height,
@@ -370,7 +453,7 @@ export class ABIHandler implements ABI {
 			{
 				checkRoot: req.expectedStateRoot.length > 0,
 				readonly: req.dryRun,
-				expectedRoot: req.expectedStateRoot as never,
+				expectedRoot: req.expectedStateRoot,
 			},
 		);
 		return {
@@ -429,7 +512,13 @@ export class ABIHandler implements ABI {
 	public async query(req: QueryRequest): Promise<QueryResponse> {
 		const params = JSON.parse(req.params.toString('utf8')) as Record<string, unknown>;
 		try {
-			const resp = await this._channel.invoke(req.method, params);
+			const resp = await this._channel.invoke({
+				context: {
+					header: req.header,
+				},
+				methodName: req.method,
+				params,
+			});
 			this._logger.info({ method: req.method }, 'Called ABI query successfully');
 			return {
 				data: Buffer.from(JSON.stringify(resp), 'utf-8'),

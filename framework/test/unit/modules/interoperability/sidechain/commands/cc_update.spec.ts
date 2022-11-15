@@ -241,6 +241,7 @@ describe('CrossChainUpdateCommand', () => {
 	describe('verify', () => {
 		beforeEach(() => {
 			verifyContext = {
+				header: { height: 20, timestamp: 10000 },
 				getMethodContext: () => createTransientMethodContext({ stateStore }),
 				getStore: createStoreGetter(stateStore).getStore,
 				stateStore,
@@ -349,16 +350,14 @@ describe('CrossChainUpdateCommand', () => {
 			).rejects.toThrow('Keys are not sorted lexicographic order.');
 		});
 
-		it('should return VerifyStatus.FAIL when verifyCertificateSignature fails', async () => {
-			jest.spyOn(interopUtils, 'verifyCertificateSignature').mockReturnValue({
-				status: VerifyStatus.FAIL,
-				error: new Error('Certificate is invalid due to invalid signature.'),
-			});
+		it('should reject when verifyCertificateSignature fails', async () => {
+			jest
+				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'verifyCertificateSignature')
+				.mockRejectedValue(new Error('Certificate is invalid due to invalid signature.'));
 
-			const { status, error } = await sidechainCCUUpdateCommand.verify(verifyContext);
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toContain('Certificate is invalid due to invalid signature.');
+			await expect(sidechainCCUUpdateCommand.verify(verifyContext)).rejects.toThrow(
+				'Certificate is invalid due to invalid signature',
+			);
 		});
 
 		it('should return error checkInboxUpdateValidity fails', async () => {
@@ -412,10 +411,6 @@ describe('CrossChainUpdateCommand', () => {
 				assets: new BlockAssets(),
 				eventQueue: new EventQueue(0),
 				header: blockHeader as BlockHeader,
-				certificateThreshold: BigInt(0),
-				currentValidators: [],
-				impliesMaxPrevote: true,
-				maxHeightCertified: 0,
 			};
 
 			await partnerValidatorStore.set(

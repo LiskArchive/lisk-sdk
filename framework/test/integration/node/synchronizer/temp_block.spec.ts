@@ -36,7 +36,7 @@ describe('Temp block', () => {
 				databasePath,
 			},
 		});
-		chainID = processEnv.getNetworkId();
+		chainID = processEnv.getChainID();
 		chain = processEnv.getChain();
 	});
 

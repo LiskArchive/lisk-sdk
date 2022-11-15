@@ -12,7 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext, ImmutableMethodContext } from '../../state_machine/types';
+import {
+	MethodContext,
+	ImmutableMethodContext,
+	NextValidatorsSetter,
+} from '../../state_machine/types';
 import { JSONObject } from '../../types';
 
 export type TokenIDDPoS = Buffer;
@@ -56,16 +60,19 @@ export interface ValidatorsMethod {
 		generatorKey: Buffer,
 		proofOfPossession: Buffer,
 	): Promise<boolean>;
-	getValidatorAccount(
-		methodContext: ImmutableMethodContext,
-		address: Buffer,
-	): Promise<ValidatorKeys>;
+	getValidatorKeys(methodContext: ImmutableMethodContext, address: Buffer): Promise<ValidatorKeys>;
 	getGeneratorsBetweenTimestamps(
 		methodContext: ImmutableMethodContext,
 		startTimestamp: number,
 		endTimestamp: number,
-		validators: { address: Buffer }[],
 	): Promise<Record<string, number>>;
+	setValidatorsParams(
+		methodContext: MethodContext,
+		validatorSetter: NextValidatorsSetter,
+		preCommitThreshold: bigint,
+		certificateThreshold: bigint,
+		validators: { address: Buffer; bftWeight: bigint }[],
+	): Promise<void>;
 }
 
 export interface TokenMethod {
@@ -253,4 +260,14 @@ export interface GenesisStore {
 		initRounds: number;
 		initDelegates: Buffer[];
 	};
+}
+
+export interface GetUnlockHeightResponse {
+	pendingUnlocks: {
+		delegateAddress: string;
+		amount: string;
+		unvoteHeight: number;
+		expectedUnlockableHeight: number;
+		unlockable: boolean;
+	}[];
 }

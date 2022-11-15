@@ -22,6 +22,7 @@ import {
 	ImmutableSubStore,
 	StateStore,
 	SubStore,
+	Validator,
 } from '../../state_machine/types';
 import { OutboxRoot } from './stores/outbox_root';
 import { ChainID } from './stores/registered_names';
@@ -278,10 +279,10 @@ export interface ValidatorKeys {
 }
 
 export interface ValidatorsMethod {
-	getValidatorAccount(
+	getValidatorKeys(methodContext: ImmutableMethodContext, address: Buffer): Promise<ValidatorKeys>;
+	getValidatorsParams(
 		methodContext: ImmutableMethodContext,
-		address: Buffer,
-	): Promise<ValidatorKeys>;
+	): Promise<{ validators: Validator[]; certificateThreshold: bigint }>;
 }
 
 export interface CrossChainCommandDependencies {

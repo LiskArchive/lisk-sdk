@@ -270,7 +270,75 @@ describe('fast_chain_switching_mechanism', () => {
 		});
 
 		describe('when fail to request the common block', () => {
-			it('should give up after trying 10 times, apply penalty and restart the mechanism', async () => {
+			it('should give up after trying 10 times if there is a network error, apply penalty and restart the mechanism', async () => {
+				// Arrange
+				const storageReturnValue = [
+					{
+						id: genesisBlock.header.id,
+					},
+					{
+						id: chainModule.lastBlock.header.id,
+					},
+				];
+				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
+					ids: storageReturnValue.map(blocks => blocks.id),
+				});
+				// Simulate peer not sending back a common block
+				when(networkMock.requestFromPeer)
+					.calledWith({
+						procedure: 'getHighestCommonBlock',
+						peerId: aPeerId,
+						data: blockIds,
+					})
+					.mockRejectedValue({
+						data: codec.encode(getHighestCommonBlockResponseSchema, { id: Buffer.alloc(0) }),
+					} as never);
+
+				// Act
+				await expect(fastChainSwitchingMechanism.run(aBlock, aPeerId)).rejects.toThrow(
+					new Errors.ApplyPenaltyAndAbortError(aPeerId, "Peer didn't return a common block"),
+				);
+
+				// Assert
+				expect(networkMock.requestFromPeer).toHaveBeenCalledTimes(9);
+			});
+
+			it('should give up after trying 10 times if the common block response format is invalid, apply penalty and restart the mechanism', async () => {
+				// Arrange
+				const storageReturnValue = [
+					{
+						id: genesisBlock.header.id,
+					},
+					{
+						id: chainModule.lastBlock.header.id,
+					},
+				];
+				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
+					ids: storageReturnValue.map(blocks => blocks.id),
+				});
+				// Simulate peer not sending back a common block
+				when(networkMock.requestFromPeer)
+					.calledWith({
+						procedure: 'getHighestCommonBlock',
+						peerId: aPeerId,
+						data: blockIds,
+					})
+					.mockResolvedValue({
+						data: codec.encode(getHighestCommonBlockResponseSchema, {
+							id: utils.getRandomBytes(37),
+						}),
+					} as never);
+
+				// Act
+				await expect(fastChainSwitchingMechanism.run(aBlock, aPeerId)).rejects.toThrow(
+					new Errors.ApplyPenaltyAndAbortError(aPeerId, "Peer didn't return a common block"),
+				);
+
+				// Assert
+				expect(networkMock.requestFromPeer).toHaveBeenCalledTimes(9);
+			});
+
+			it('should give up if not found, apply penalty and restart the mechanism', async () => {
 				// Arrange
 				const storageReturnValue = [
 					{
@@ -300,7 +368,7 @@ describe('fast_chain_switching_mechanism', () => {
 				);
 
 				// Assert
-				expect(networkMock.requestFromPeer).toHaveBeenCalledTimes(9);
+				expect(networkMock.requestFromPeer).toHaveBeenCalledTimes(1);
 			});
 		});
 

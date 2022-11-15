@@ -55,7 +55,6 @@ import {
 	getIDAsKeyForStore,
 	initGenesisStateUtil,
 	validateFormat,
-	verifyCertificateSignature,
 } from '../../../../src/modules/interoperability/utils';
 import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
 import { Certificate } from '../../../../src/engine/consensus/certificate_generation/types';
@@ -241,71 +240,6 @@ describe('Utils', () => {
 
 		it('should pass successfully', () => {
 			expect(checkValidCertificateLiveness(txParams, header, certificate)).toBeUndefined();
-		});
-	});
-
-	describe('verifyCertificateSignature', () => {
-		const activeValidatorsUpdate = [...defaultActiveValidatorsUpdate];
-		const ceritificate: Certificate = {
-			blockID: cryptography.utils.getRandomBytes(20),
-			height: 21,
-			timestamp: Math.floor(Date.now() / 1000),
-			stateRoot: cryptography.utils.getRandomBytes(38),
-			validatorsHash: cryptography.utils.getRandomBytes(48),
-			aggregationBits: cryptography.utils.getRandomBytes(38),
-			signature: cryptography.utils.getRandomBytes(32),
-		};
-		const encodedCertificate = codec.encode(certificateSchema, ceritificate);
-		const txParams: any = {
-			certificate: encodedCertificate,
-		};
-		const txParamsWithEmptyCertificate: any = {
-			certificate: Buffer.alloc(0),
-		};
-		const partnerValidators: any = {
-			activeValidators: activeValidatorsUpdate,
-			certificateThreshold: 10,
-		};
-		const partnerChainId = MAINCHAIN_ID_BUFFER;
-
-		it('should return VerifyStatus.OK if certificate is empty', () => {
-			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
-			const { status, error } = verifyCertificateSignature(
-				txParamsWithEmptyCertificate,
-				partnerValidators,
-				partnerChainId,
-			);
-
-			expect(status).toEqual(VerifyStatus.OK);
-			expect(error?.message).toBeUndefined();
-			expect(cryptography.bls.verifyWeightedAggSig).not.toHaveBeenCalled();
-		});
-
-		it('should return VerifyStatus.FAIL when certificate signature verification fails', () => {
-			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(false);
-			const { status, error } = verifyCertificateSignature(
-				txParams,
-				partnerValidators,
-				partnerChainId,
-			);
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toEqual('Certificate is invalid due to invalid signature.');
-			expect(cryptography.bls.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
-		});
-
-		it('should return VerifyStatus.OK when certificate signature verification passes', () => {
-			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
-
-			const { status, error } = verifyCertificateSignature(
-				txParams,
-				partnerValidators,
-				partnerChainId,
-			);
-
-			expect(status).toEqual(VerifyStatus.OK);
-			expect(error).toBeUndefined();
-			expect(cryptography.bls.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
 		});
 	});
 

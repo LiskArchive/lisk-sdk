@@ -35,22 +35,39 @@ export const escrowStoreSchema = {
 export class EscrowStore extends BaseStore<EscrowStoreData> {
 	public schema = escrowStoreSchema;
 
-	public async addAmount(
-		context: StoreGetter,
-		sendingChainID: Buffer,
-		localID: Buffer,
-		amount: bigint,
-	): Promise<void> {
+	public getKey(escrowChainID: Buffer, tokenID: Buffer): Buffer {
+		return Buffer.concat([escrowChainID, tokenID]);
+	}
+
+	public async getOrDefault(ctx: StoreGetter, key: Buffer): Promise<EscrowStoreData> {
 		let escrowData: EscrowStoreData;
-		const escrowKey = Buffer.concat([sendingChainID, localID]);
 		try {
-			escrowData = await this.get(context, escrowKey);
+			escrowData = await this.get(ctx, key);
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
 			}
 			escrowData = { amount: BigInt(0) };
 		}
+		return escrowData;
+	}
+
+	public async createDefaultAccount(
+		context: StoreGetter,
+		chainID: Buffer,
+		tokenID: Buffer,
+	): Promise<void> {
+		await this.set(context, this.getKey(chainID, tokenID), { amount: BigInt(0) });
+	}
+
+	public async addAmount(
+		context: StoreGetter,
+		chainID: Buffer,
+		tokenID: Buffer,
+		amount: bigint,
+	): Promise<void> {
+		const escrowKey = Buffer.concat([chainID, tokenID]);
+		const escrowData = await this.getOrDefault(context, escrowKey);
 		escrowData.amount += amount;
 		await this.set(context, escrowKey, escrowData);
 	}
@@ -59,11 +76,11 @@ export class EscrowStore extends BaseStore<EscrowStoreData> {
 		context: MethodContext,
 		interopMethod: InteroperabilityMethod,
 		sendingChainID: Buffer,
-		localID: Buffer,
+		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
-		const escrowKey = Buffer.concat([sendingChainID, localID]);
 		let escrowData: EscrowStoreData;
+		const escrowKey = Buffer.concat([sendingChainID, tokenID]);
 		try {
 			escrowData = await this.get(context, escrowKey);
 		} catch (error) {

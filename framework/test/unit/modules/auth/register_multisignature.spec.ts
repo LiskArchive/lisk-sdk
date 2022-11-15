@@ -18,21 +18,15 @@ import { utils } from '@liskhq/lisk-cryptography';
 import * as fixtures from './fixtures.json';
 import * as testing from '../../../../src/testing';
 import { RegisterMultisignatureCommand } from '../../../../src/modules/auth/commands/register_multisignature';
-import {
-	TYPE_ID_INVALID_SIGNATURE_ERROR,
-	TYPE_ID_MULTISIGNATURE_GROUP_REGISTERED,
-} from '../../../../src/modules/auth/constants';
-import {
-	invalidSigDataSchema,
-	multisigRegDataSchema,
-	registerMultisignatureParamsSchema,
-} from '../../../../src/modules/auth/schemas';
+import { registerMultisignatureParamsSchema } from '../../../../src/modules/auth/schemas';
 import { RegisterMultisignatureParams } from '../../../../src/modules/auth/types';
 import { VerifyStatus } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { AuthModule } from '../../../../src/modules/auth';
 import { AuthAccountStore } from '../../../../src/modules/auth/stores/auth_account';
+import { InvalidSignatureEvent } from '../../../../src/modules/auth/events/invalid_signature';
+import { MultisignatureRegistrationEvent } from '../../../../src/modules/auth/events/multisignature_registration';
 
 describe('Register Multisignature command', () => {
 	let registerMultisignatureCommand: RegisterMultisignatureCommand;
@@ -447,21 +441,20 @@ describe('Register Multisignature command', () => {
 
 			context.eventQueue = eventQueueMock;
 
-			const registerMultiSigEventData = codec.encode(multisigRegDataSchema, {
-				numberOfSignatures: context.params.numberOfSignatures,
-				mandatoryKeys: context.params.mandatoryKeys,
-				optionalKeys: context.params.optionalKeys,
-			});
+			jest.spyOn(authModule.events.get(MultisignatureRegistrationEvent), 'log');
 
 			await expect(registerMultisignatureCommand.execute(context)).resolves.toBeUndefined();
 			const updatedStore = authModule.stores.get(AuthAccountStore);
 			const updatedData = await updatedStore.get(context, transaction.senderAddress);
 			expect(updatedData.mandatoryKeys).toEqual(decodedParams.mandatoryKeys);
-			expect(eventQueueMock.add).toHaveBeenCalledWith(
-				'registerMultisignature',
-				TYPE_ID_MULTISIGNATURE_GROUP_REGISTERED,
-				registerMultiSigEventData,
-				[transaction.senderAddress],
+			expect(authModule.events.get(MultisignatureRegistrationEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				transaction.senderAddress,
+				{
+					numberOfSignatures: context.params.numberOfSignatures,
+					mandatoryKeys: context.params.mandatoryKeys,
+					optionalKeys: context.params.optionalKeys,
+				},
 			);
 		});
 
@@ -503,22 +496,21 @@ describe('Register Multisignature command', () => {
 
 			context.eventQueue = eventQueueMock;
 
-			const invalidSignatureEventData = codec.encode(invalidSigDataSchema, {
-				numberOfSignatures: context.params.numberOfSignatures,
-				mandatoryKeys: context.params.mandatoryKeys,
-				optionalKeys: context.params.optionalKeys,
-				failingPublicKey: context.params.mandatoryKeys[0],
-				failingSignature: invalidSignature,
-			});
+			jest.spyOn(authModule.events.get(InvalidSignatureEvent), 'error');
 			await expect(registerMultisignatureCommand.execute(context)).rejects.toThrow(
 				`Invalid signature for public key ${context.params.mandatoryKeys[0].toString('hex')}.`,
 			);
 
-			expect(eventQueueMock.add).toBeCalledWith(
-				'registerMultisignature',
-				TYPE_ID_INVALID_SIGNATURE_ERROR,
-				invalidSignatureEventData,
-				[invalidTransaction.senderAddress],
+			expect(authModule.events.get(InvalidSignatureEvent).error).toHaveBeenCalledWith(
+				expect.anything(),
+				invalidTransaction.senderAddress,
+				{
+					numberOfSignatures: context.params.numberOfSignatures,
+					mandatoryKeys: context.params.mandatoryKeys,
+					optionalKeys: context.params.optionalKeys,
+					failingPublicKey: context.params.mandatoryKeys[0],
+					failingSignature: invalidSignature,
+				},
 			);
 		});
 

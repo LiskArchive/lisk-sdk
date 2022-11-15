@@ -509,7 +509,189 @@ describe('block_synchronization_mechanism', () => {
 
 		describe('request and revert to last common block from peer', () => {
 			describe('request the highest common block', () => {
-				it('should give up requesting the last common block after 3 tries, and then ban the peer and restart the mechanism', async () => {
+				it('should give up requesting the last common block after 3 tries if there is a network error, and then ban the peer and restart the mechanism', async () => {
+					// Set last block to a high height
+					const lastBlock = await createValidDefaultBlock({
+						header: {
+							height: genesisBlock.header.height + 2000,
+						},
+					});
+					chainModule._lastBlock = lastBlock;
+					// Used in getHighestCommonBlock network action transactions
+					const blockHeightsList = computeBlockHeightsList(
+						finalizedHeight,
+						numberOfValidators,
+						10,
+						Math.ceil(lastBlock.header.height / numberOfValidators),
+					);
+
+					const receivedBlock = await createValidDefaultBlock({
+						header: {
+							height: lastBlock.header.height + 304,
+						},
+					});
+
+					for (const expectedPeer of peersList.expectedSelection) {
+						const { peerId } = expectedPeer;
+						const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
+							ids: blockIdsList.map(id => id),
+						});
+						when(networkMock.requestFromPeer)
+							.calledWith({
+								procedure: 'getHighestCommonBlock',
+								peerId,
+								data: blockIds,
+							})
+							.mockRejectedValue({
+								data: codec.encode(getHighestCommonBlockResponseSchema, { id: Buffer.alloc(0) }),
+							} as never);
+
+						when(networkMock.requestFromPeer)
+							.calledWith({
+								procedure: 'getLastBlock',
+								peerId,
+							})
+							.mockResolvedValue({
+								data: receivedBlock.getBytes(),
+							} as never);
+						const encodedBlocks = requestedBlocks.map(block => block.getBytes());
+						when(networkMock.requestFromPeer)
+							.calledWith({
+								procedure: 'getBlocksFromId',
+								peerId,
+								data: codec.encode(getBlocksFromIdRequestSchema, {
+									blockId: highestCommonBlock.id,
+								}),
+							})
+							.mockResolvedValue({
+								data: codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks }),
+							} as never);
+					}
+
+					when(chainModule.dataAccess.getBlockHeadersWithHeights)
+						.calledWith(blockHeightsList)
+						.mockResolvedValue(blockList.map(b => b.header) as never);
+
+					when(chainModule.dataAccess.getLastBlock)
+						.calledWith()
+						.mockResolvedValue(lastBlock as never);
+
+					when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
+						// If cache size initialization on chain changes this needs to be updated accordingly
+						.calledWith(1496, 2001)
+						.mockResolvedValue([] as never);
+
+					// BFT loads blocks from storage and extracts their headers
+					when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
+						// If cache size initialization on chain changes this needs to be updated accordingly
+						.calledWith(expect.any(Number), expect.any(Number))
+						.mockResolvedValue([lastBlock] as never);
+
+					await expect(blockSynchronizationMechanism.run(receivedBlock)).rejects.toThrow(
+						Errors.ApplyPenaltyAndRestartError,
+					);
+
+					expect(networkMock.requestFromPeer).toHaveBeenCalledTimes(3);
+					expect(networkMock.getConnectedPeers).toHaveBeenCalledTimes(1);
+
+					expect(
+						blockSynchronizationMechanism['_requestAndApplyBlocksToCurrentChain'],
+					).not.toHaveBeenCalled();
+				});
+
+				it('should give up requesting the last common block after 3 tries if the common block response format is invalid, and then ban the peer and restart the mechanism', async () => {
+					// Set last block to a high height
+					const lastBlock = await createValidDefaultBlock({
+						header: {
+							height: genesisBlock.header.height + 2000,
+						},
+					});
+					chainModule._lastBlock = lastBlock;
+					// Used in getHighestCommonBlock network action transactions
+					const blockHeightsList = computeBlockHeightsList(
+						finalizedHeight,
+						numberOfValidators,
+						10,
+						Math.ceil(lastBlock.header.height / numberOfValidators),
+					);
+
+					const receivedBlock = await createValidDefaultBlock({
+						header: {
+							height: lastBlock.header.height + 304,
+						},
+					});
+
+					for (const expectedPeer of peersList.expectedSelection) {
+						const { peerId } = expectedPeer;
+						const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
+							ids: blockIdsList.map(id => id),
+						});
+						when(networkMock.requestFromPeer)
+							.calledWith({
+								procedure: 'getHighestCommonBlock',
+								peerId,
+								data: blockIds,
+							})
+							.mockResolvedValue({
+								data: codec.encode(getHighestCommonBlockResponseSchema, {
+									id: utils.getRandomBytes(37),
+								}),
+							} as never);
+
+						when(networkMock.requestFromPeer)
+							.calledWith({
+								procedure: 'getLastBlock',
+								peerId,
+							})
+							.mockResolvedValue({
+								data: receivedBlock.getBytes(),
+							} as never);
+						const encodedBlocks = requestedBlocks.map(block => block.getBytes());
+						when(networkMock.requestFromPeer)
+							.calledWith({
+								procedure: 'getBlocksFromId',
+								peerId,
+								data: codec.encode(getBlocksFromIdRequestSchema, {
+									blockId: highestCommonBlock.id,
+								}),
+							})
+							.mockResolvedValue({
+								data: codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks }),
+							} as never);
+					}
+
+					when(chainModule.dataAccess.getBlockHeadersWithHeights)
+						.calledWith(blockHeightsList)
+						.mockResolvedValue(blockList.map(b => b.header) as never);
+
+					when(chainModule.dataAccess.getLastBlock)
+						.calledWith()
+						.mockResolvedValue(lastBlock as never);
+
+					when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
+						// If cache size initialization on chain changes this needs to be updated accordingly
+						.calledWith(1496, 2001)
+						.mockResolvedValue([] as never);
+
+					// BFT loads blocks from storage and extracts their headers
+					when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
+						// If cache size initialization on chain changes this needs to be updated accordingly
+						.calledWith(expect.any(Number), expect.any(Number))
+						.mockResolvedValue([lastBlock] as never);
+
+					await expect(blockSynchronizationMechanism.run(receivedBlock)).rejects.toThrow(
+						Errors.ApplyPenaltyAndRestartError,
+					);
+
+					expect(networkMock.requestFromPeer).toHaveBeenCalledTimes(3);
+					expect(networkMock.getConnectedPeers).toHaveBeenCalledTimes(1);
+
+					expect(
+						blockSynchronizationMechanism['_requestAndApplyBlocksToCurrentChain'],
+					).not.toHaveBeenCalled();
+				});
+
+				it('should give up requesting the last common block if not found, and then ban the peer and restart the mechanism', async () => {
 					// Set last block to a high height
 					const lastBlock = await createValidDefaultBlock({
 						header: {
@@ -591,7 +773,6 @@ describe('block_synchronization_mechanism', () => {
 						Errors.ApplyPenaltyAndRestartError,
 					);
 
-					expect(networkMock.requestFromPeer).toHaveBeenCalledTimes(3);
 					expect(networkMock.getConnectedPeers).toHaveBeenCalledTimes(1);
 
 					expect(

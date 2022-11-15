@@ -14,23 +14,17 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { TokenModule } from '../../../../../src/modules/token';
-import { TokenMethod } from '../../../../../src/modules/token/method';
-import { CCTransferCommand } from '../../../../../src/modules/token/cc_commands/cc_transfer';
+import { TokenModule, TokenMethod } from '../../../../../src';
+import { CrossChainTransferCommand } from '../../../../../src/modules/token/cc_commands/cc_transfer';
 import {
 	CCM_STATUS_OK,
-	CCM_STATUS_PROTOCOL_VIOLATION,
-	CCM_STATUS_TOKEN_NOT_SUPPORTED,
 	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-	EMPTY_BYTES,
-	MIN_BALANCE,
-	TOKEN_ID_LENGTH,
+	FEE_CCM_INIT_USER_STORE,
+	TokenEventResult,
 } from '../../../../../src/modules/token/constants';
 import { crossChainTransferMessageParams } from '../../../../../src/modules/token/schemas';
-import { AvailableLocalIDStore } from '../../../../../src/modules/token/stores/available_local_id';
 import { EscrowStore } from '../../../../../src/modules/token/stores/escrow';
-import { SupplyStore } from '../../../../../src/modules/token/stores/supply';
 import { UserStore } from '../../../../../src/modules/token/stores/user';
 import { EventQueue } from '../../../../../src/state_machine';
 import {
@@ -40,27 +34,31 @@ import {
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import { fakeLogger } from '../../../../utils/mocks';
+import { ccmTransferEventSchema } from '../../../../../src/modules/token/events/ccm_transfer';
+import { SupplyStore } from '../../../../../src/modules/token/stores/supply';
 
-describe('CrossChain Transfer command', () => {
+describe('CrossChain Transfer Command', () => {
 	const tokenModule = new TokenModule();
 	const defaultAddress = utils.getRandomBytes(20);
-	const defaultTokenIDAlias = Buffer.alloc(TOKEN_ID_LENGTH, 0);
+	const randomAddress = utils.getRandomBytes(20);
+	const ownChainID = Buffer.from([0, 0, 0, 1]);
 	const defaultTokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
 	const defaultForeignTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
+	const fee = BigInt('1000');
+	const defaultAmount = BigInt(100000000);
 	const defaultAccount = {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
 				module: 'dpos',
-				amount: BigInt(100000000),
+				amount: defaultAmount,
 			},
 		],
 	};
-	const defaultTotalSupply = BigInt('100000000000000');
 	const defaultEscrowAmount = BigInt('100000000000');
 	const sendingChainID = Buffer.from([3, 0, 0, 0]);
 
-	let command: CCTransferCommand;
+	let command: CrossChainTransferCommand;
 	let method: TokenMethod;
 	let interopMethod: {
 		getOwnChainAccount: jest.Mock;
@@ -71,10 +69,12 @@ describe('CrossChain Transfer command', () => {
 	};
 	let stateStore: PrefixedStateReadWriter;
 	let methodContext: MethodContext;
+	let escrowStore: EscrowStore;
+	let userStore: UserStore;
 
 	beforeEach(async () => {
 		method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
-		command = new CCTransferCommand(tokenModule.stores, tokenModule.events, method);
+		command = new CrossChainTransferCommand(tokenModule.stores, tokenModule.events, method);
 		interopMethod = {
 			getOwnChainAccount: jest.fn().mockResolvedValue({ chainID: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn(),
@@ -82,18 +82,15 @@ describe('CrossChain Transfer command', () => {
 			terminateChain: jest.fn(),
 			getChannel: jest.fn(),
 		};
-		const minBalances = [
-			{ tokenID: defaultTokenIDAlias, amount: BigInt(MIN_BALANCE) },
-			{ tokenID: defaultForeignTokenID, amount: BigInt(MIN_BALANCE) },
-		];
 		method.addDependencies(interopMethod as never);
-		command.addDependencies(interopMethod);
 		method.init({
-			minBalances,
+			ownChainID,
+			escrowAccountInitializationFee: BigInt(50000000),
+			userAccountInitializationFee: BigInt(50000000),
+			feeTokenID: defaultTokenID,
 		});
 		command.init({
-			minBalances,
-			supportedTokenIDs: [],
+			ownChainID,
 		});
 
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -102,481 +99,677 @@ describe('CrossChain Transfer command', () => {
 			stateStore,
 			eventQueue: new EventQueue(0),
 		});
-		const userStore = tokenModule.stores.get(UserStore);
-		await userStore.set(
-			methodContext,
-			userStore.getKey(defaultAddress, defaultTokenIDAlias),
-			defaultAccount,
-		);
-		await userStore.set(
-			methodContext,
-			userStore.getKey(defaultAddress, defaultForeignTokenID),
-			defaultAccount,
-		);
+		userStore = tokenModule.stores.get(UserStore);
+		await userStore.save(methodContext, defaultAddress, defaultTokenID, defaultAccount);
+		await userStore.save(methodContext, defaultAddress, defaultForeignTokenID, defaultAccount);
 
 		const supplyStore = tokenModule.stores.get(SupplyStore);
-		await supplyStore.set(methodContext, defaultTokenIDAlias.slice(CHAIN_ID_LENGTH), {
-			totalSupply: defaultTotalSupply,
-		});
+		await supplyStore.set(methodContext, defaultTokenID, { totalSupply: BigInt(10000000000) });
 
-		const nextAvailableLocalIDStore = tokenModule.stores.get(AvailableLocalIDStore);
-		await nextAvailableLocalIDStore.set(methodContext, EMPTY_BYTES, {
-			nextAvailableLocalID: Buffer.from([0, 0, 0, 5]),
-		});
-
-		const escrowStore = tokenModule.stores.get(EscrowStore);
+		escrowStore = tokenModule.stores.get(EscrowStore);
 		await escrowStore.set(
 			methodContext,
-			Buffer.concat([
-				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
-				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
-			]),
+			Buffer.concat([defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH), defaultTokenID]),
 			{ amount: defaultEscrowAmount },
 		);
 		await escrowStore.set(
 			methodContext,
-			Buffer.concat([Buffer.from([3, 0, 0, 0]), defaultTokenIDAlias.slice(CHAIN_ID_LENGTH)]),
+			Buffer.concat([Buffer.from([3, 0, 0, 0]), defaultTokenID]),
 			{ amount: defaultEscrowAmount },
 		);
 		jest.spyOn(fakeLogger, 'debug');
 	});
 
+	describe('verify', () => {
+		it('should throw if validation fails', async () => {
+			// Arrange
+			const params = codec.encode(crossChainTransferMessageParams, {
+				tokenID: Buffer.from([0, 0, 0, 1]),
+				amount: defaultAmount,
+				senderAddress: defaultAddress,
+				recipientAddress: defaultAddress,
+				data: 'ddd',
+			});
+
+			const ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				module: tokenModule.name,
+				nonce: BigInt(1),
+				sendingChainID: Buffer.from([3, 0, 0, 0]),
+				receivingChainID: Buffer.from([0, 0, 0, 1]),
+				fee: BigInt(30000),
+				status: CCM_STATUS_OK,
+				params,
+			};
+
+			const ctx = {
+				ccm,
+				feeAddress: defaultAddress,
+				transaction: {
+					senderAddress: defaultAddress,
+					fee: BigInt(0),
+				},
+				header: {
+					height: 0,
+					timestamp: 0,
+				},
+				stateStore,
+				getMethodContext: () => methodContext,
+				eventQueue: new EventQueue(0),
+				ccmSize: BigInt(30),
+				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+				logger: fakeLogger,
+				chainID: utils.getRandomBytes(32),
+			};
+
+			// Act & Assert
+			await expect(command.verify(ctx)).rejects.toThrow(
+				`Property '.tokenID' minLength not satisfied`,
+			);
+		});
+
+		it('should throw if token is not native to the sending chain, receiving chain or the mainchain', async () => {
+			// Arrange
+			const params = codec.encode(crossChainTransferMessageParams, {
+				tokenID: defaultForeignTokenID,
+				amount: defaultAmount,
+				senderAddress: defaultAddress,
+				recipientAddress: defaultAddress,
+				data: 'ddd',
+			});
+
+			const ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				module: tokenModule.name,
+				nonce: BigInt(1),
+				sendingChainID: Buffer.from([3, 0, 0, 0]),
+				receivingChainID: Buffer.from([0, 0, 0, 1]),
+				fee: BigInt(30000),
+				status: CCM_STATUS_OK,
+				params,
+			};
+
+			const ctx = {
+				ccm,
+				feeAddress: defaultAddress,
+				transaction: {
+					senderAddress: defaultAddress,
+					fee: BigInt(0),
+				},
+				header: {
+					height: 0,
+					timestamp: 0,
+				},
+				stateStore,
+				getMethodContext: () => methodContext,
+				eventQueue: new EventQueue(0),
+				ccmSize: BigInt(30),
+				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+				logger: fakeLogger,
+				chainID: utils.getRandomBytes(32),
+			};
+
+			// Act & Assert
+			await expect(command.verify(ctx)).rejects.toThrow(
+				'Token must be native to either the sending or the receiving chain or the mainchain',
+			);
+		});
+
+		it('should resolve when valid CCM is provided', async () => {
+			// Arrange
+			const params = codec.encode(crossChainTransferMessageParams, {
+				tokenID: defaultTokenID,
+				amount: defaultAmount,
+				senderAddress: defaultAddress,
+				recipientAddress: defaultAddress,
+				data: 'ddd',
+			});
+
+			const ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				module: tokenModule.name,
+				nonce: BigInt(1),
+				sendingChainID: Buffer.from([3, 0, 0, 0]),
+				receivingChainID: Buffer.from([0, 0, 0, 1]),
+				fee: BigInt(30000),
+				status: CCM_STATUS_OK,
+				params,
+			};
+
+			const ctx = {
+				ccm,
+				feeAddress: defaultAddress,
+				transaction: {
+					senderAddress: defaultAddress,
+					fee: BigInt(0),
+				},
+				header: {
+					height: 0,
+					timestamp: 0,
+				},
+				stateStore,
+				getMethodContext: () => methodContext,
+				eventQueue: new EventQueue(0),
+				ccmSize: BigInt(30),
+				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+				logger: fakeLogger,
+				chainID: utils.getRandomBytes(32),
+			};
+
+			// Act & Assert
+			await expect(command.verify(ctx)).resolves.toBeUndefined();
+			await expect(command.verify(ctx)).resolves.not.toThrow();
+		});
+
+		it('should throw if token is own chain and escrowed amount is not sufficient', async () => {
+			// Arrange
+			const params = codec.encode(crossChainTransferMessageParams, {
+				tokenID: defaultTokenID,
+				amount: defaultEscrowAmount + BigInt(1),
+				senderAddress: defaultAddress,
+				recipientAddress: defaultAddress,
+				data: 'ddd',
+			});
+
+			const ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				module: tokenModule.name,
+				nonce: BigInt(1),
+				sendingChainID,
+				receivingChainID: Buffer.from([0, 0, 0, 1]),
+				fee,
+				status: CCM_STATUS_OK,
+				params,
+			};
+
+			const ctx = {
+				ccm,
+				feeAddress: defaultAddress,
+				transaction: {
+					senderAddress: defaultAddress,
+					fee: BigInt(0),
+				},
+				header: {
+					height: 0,
+					timestamp: 0,
+				},
+				stateStore,
+				getMethodContext: () => methodContext,
+				eventQueue: new EventQueue(0),
+				ccmSize: BigInt(30),
+				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+				logger: fakeLogger,
+				chainID: utils.getRandomBytes(32),
+			};
+
+			// Assert
+			await expect(command.verify(ctx)).rejects.toThrow('Insufficient balance in escrow account.');
+		});
+	});
+
 	describe('execute', () => {
-		it('should terminate chain if fail to decode the CCM', async () => {
-			await expect(
-				command.execute({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID: Buffer.from([3, 0, 0, 0]),
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(30000),
-						status: CCM_STATUS_OK,
-						params: Buffer.from([255, 2, 3]),
-					},
-					transaction: {
-						senderAddress: defaultAddress,
-						fee: BigInt(0),
-					},
-					header: {
-						height: 0,
-						timestamp: 0,
-					},
-					stateStore,
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
-				}),
-			).resolves.toBeUndefined();
-			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
-				'Value yields unsupported wireType',
-			);
-			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
-				Buffer.from([3, 0, 0, 0]),
+		it('should throw if validation fails', async () => {
+			// Arrange
+			const params = codec.encode(crossChainTransferMessageParams, {
+				tokenID: Buffer.from([0, 0, 0, 1]),
+				amount: defaultAmount,
+				senderAddress: defaultAddress,
+				recipientAddress: defaultAddress,
+				data: 'ddd',
+			});
+
+			const ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				module: tokenModule.name,
+				nonce: BigInt(1),
+				sendingChainID: Buffer.from([3, 0, 0, 0]),
+				receivingChainID: Buffer.from([0, 0, 0, 1]),
+				fee: BigInt(30000),
+				status: CCM_STATUS_OK,
+				params,
+			};
+
+			const ctx = {
+				ccm,
+				feeAddress: defaultAddress,
+				transaction: {
+					senderAddress: defaultAddress,
+					fee: BigInt(0),
+				},
+				header: {
+					height: 0,
+					timestamp: 0,
+				},
+				stateStore,
+				getMethodContext: () => methodContext,
+				eventQueue: new EventQueue(0),
+				ccmSize: BigInt(30),
+				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+				logger: fakeLogger,
+				chainID: utils.getRandomBytes(32),
+			};
+
+			// Act & Assert
+			await expect(command.execute(ctx)).rejects.toThrow(
+				`Property '.tokenID' minLength not satisfied`,
 			);
 		});
 
-		it('should terminate chain if token ID is not 8 bytes', async () => {
-			await expect(
-				command.execute({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID: Buffer.from([3, 0, 0, 0]),
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(30000),
-						status: CCM_STATUS_OK,
-						params: codec.encode(crossChainTransferMessageParams, {
-							tokenID: utils.getRandomBytes(9),
-							amount: BigInt(1000),
-							senderAddress: defaultAddress,
-							recipientAddress: defaultAddress,
-							data: 'ddd',
-						}),
-					},
-					transaction: {
-						senderAddress: defaultAddress,
-						fee: BigInt(0),
-					},
-					header: {
-						height: 0,
-						timestamp: 0,
-					},
-					stateStore,
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
-				}),
-			).resolves.toBeUndefined();
-			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
-				"tokenID' maxLength exceeded",
-			);
-			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
-				Buffer.from([3, 0, 0, 0]),
+		it('should throw if fail to decode the CCM', async () => {
+			// Arrange
+			const ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				module: tokenModule.name,
+				nonce: BigInt(1),
+				sendingChainID: Buffer.from([3, 0, 0, 0]),
+				receivingChainID: Buffer.from([0, 0, 0, 1]),
+				fee: BigInt(30000),
+				status: CCM_STATUS_OK,
+				params: Buffer.from(''),
+			};
+
+			const ctx = {
+				ccm,
+				feeAddress: defaultAddress,
+				transaction: {
+					senderAddress: defaultAddress,
+					fee: BigInt(0),
+				},
+				header: {
+					height: 0,
+					timestamp: 0,
+				},
+				stateStore,
+				getMethodContext: () => methodContext,
+				eventQueue: new EventQueue(0),
+				ccmSize: BigInt(30),
+				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+				logger: fakeLogger,
+				chainID: utils.getRandomBytes(32),
+			};
+
+			// Act & Assert
+			await expect(command.execute(ctx)).rejects.toThrow(
+				'Message does not contain a property for fieldNumber: 1.',
 			);
 		});
 
-		it('should terminate chain if sender address is not 20 bytes', async () => {
-			await expect(
-				command.execute({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(30000),
-						status: CCM_STATUS_OK,
-						params: codec.encode(crossChainTransferMessageParams, {
-							tokenID: defaultForeignTokenID,
-							amount: BigInt(1000),
-							senderAddress: utils.getRandomBytes(21),
-							recipientAddress: defaultAddress,
-							data: 'ddd',
-						}),
-					},
-					transaction: {
-						senderAddress: defaultAddress,
-						fee: BigInt(0),
-					},
-					header: {
-						height: 0,
-						timestamp: 0,
-					},
-					stateStore,
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
-				}),
-			).resolves.toBeUndefined();
-			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
-				"senderAddress' address length invalid",
+		it('should reject with error event added to the queue when token id is not supported', async () => {
+			// Arrange
+			const params = codec.encode(crossChainTransferMessageParams, {
+				tokenID: defaultForeignTokenID,
+				amount: defaultAmount,
+				senderAddress: defaultAddress,
+				recipientAddress: defaultAddress,
+				data: 'ddd',
+			});
+
+			const ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				module: tokenModule.name,
+				nonce: BigInt(1),
+				sendingChainID: Buffer.from([3, 0, 0, 0]),
+				receivingChainID: Buffer.from([0, 0, 0, 1]),
+				fee: BigInt(30000),
+				status: CCM_STATUS_OK,
+				params,
+			};
+
+			const ctx = {
+				ccm,
+				feeAddress: defaultAddress,
+				transaction: {
+					senderAddress: defaultAddress,
+					fee: BigInt(0),
+				},
+				header: {
+					height: 0,
+					timestamp: 0,
+				},
+				stateStore,
+				getMethodContext: () => methodContext,
+				eventQueue: new EventQueue(0),
+				ccmSize: BigInt(30),
+				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+				logger: fakeLogger,
+				chainID: utils.getRandomBytes(32),
+			};
+
+			// Act & Assert
+			await expect(command.execute(ctx)).rejects.toThrow(
+				`tokenID ${defaultForeignTokenID.toString('hex')} is not supported`,
 			);
-			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
-				Buffer.from([3, 0, 0, 0]),
+
+			const events = ctx.eventQueue.getEvents();
+			expect(events).toHaveLength(1);
+			expect(events[0].toObject().name).toEqual('ccmTransfer');
+			expect(codec.decode(ccmTransferEventSchema, events[0].toObject().data)).toEqual({
+				senderAddress: defaultAddress,
+				recipientAddress: defaultAddress,
+				tokenID: defaultForeignTokenID,
+				amount: defaultAmount,
+				receivingChainID: ccm.receivingChainID,
+				result: TokenEventResult.TOKEN_NOT_SUPPORTED,
+			});
+		});
+
+		it('should assign recipient as sender when CCM status is not ok', async () => {
+			// Arrange
+			const params = codec.encode(crossChainTransferMessageParams, {
+				tokenID: defaultTokenID,
+				amount: defaultAmount,
+				senderAddress: defaultAddress,
+				recipientAddress: randomAddress,
+				data: 'ddd',
+			});
+
+			const ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				module: tokenModule.name,
+				nonce: BigInt(1),
+				sendingChainID: Buffer.from([3, 0, 0, 0]),
+				receivingChainID: Buffer.from([0, 0, 0, 1]),
+				fee: BigInt(30000),
+				status: -1,
+				params,
+			};
+
+			const ctx = {
+				ccm,
+				feeAddress: defaultAddress,
+				transaction: {
+					senderAddress: defaultAddress,
+					fee: BigInt(0),
+				},
+				header: {
+					height: 0,
+					timestamp: 0,
+				},
+				stateStore,
+				getMethodContext: () => methodContext,
+				eventQueue: new EventQueue(0),
+				ccmSize: BigInt(30),
+				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+				logger: fakeLogger,
+				chainID: utils.getRandomBytes(32),
+			};
+
+			// Act & Assert
+			await expect(command.execute(ctx)).resolves.toBeUndefined();
+			await expect(
+				method.userAccountExists(methodContext, defaultAddress, defaultTokenID),
+			).resolves.toEqual(true);
+		});
+
+		it('should reject if ccm fee is not sufficient when recipient user store does not exist', async () => {
+			// Arrange
+			const params = codec.encode(crossChainTransferMessageParams, {
+				tokenID: defaultTokenID,
+				amount: defaultAmount,
+				senderAddress: defaultAddress,
+				recipientAddress: randomAddress,
+				data: 'ddd',
+			});
+
+			const ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				module: tokenModule.name,
+				nonce: BigInt(1),
+				sendingChainID: Buffer.from([3, 0, 0, 0]),
+				receivingChainID: Buffer.from([0, 0, 0, 1]),
+				fee,
+				status: CCM_STATUS_OK,
+				params,
+			};
+
+			const ctx = {
+				ccm,
+				feeAddress: defaultAddress,
+				transaction: {
+					senderAddress: defaultAddress,
+					fee: BigInt(0),
+				},
+				header: {
+					height: 0,
+					timestamp: 0,
+				},
+				stateStore,
+				getMethodContext: () => methodContext,
+				eventQueue: new EventQueue(0),
+				ccmSize: BigInt(30),
+				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+				logger: fakeLogger,
+				chainID: utils.getRandomBytes(32),
+			};
+
+			// Act & Assert
+			await expect(command.execute(ctx)).rejects.toThrow(
+				'Insufficient fee to initialize user account.',
 			);
 		});
 
-		it('should terminate chain if recipient address is not 20 bytes', async () => {
-			await expect(
-				command.execute({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(30000),
-						status: CCM_STATUS_OK,
-						params: codec.encode(crossChainTransferMessageParams, {
-							tokenID: defaultForeignTokenID,
-							amount: BigInt(1000),
-							senderAddress: defaultAddress,
-							recipientAddress: utils.getRandomBytes(19),
-							data: 'ddd',
-						}),
-					},
-					transaction: {
-						senderAddress: defaultAddress,
-						fee: BigInt(0),
-					},
-					header: {
-						height: 0,
-						timestamp: 0,
-					},
-					stateStore,
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
-				}),
-			).resolves.toBeUndefined();
-			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
-				"recipientAddress' address length invalid",
-			);
-			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
-				Buffer.from([3, 0, 0, 0]),
-			);
-		});
+		it("should burn the initialization fee from relayer when recipient user store doesn't exist", async () => {
+			// Arrange
+			const params = codec.encode(crossChainTransferMessageParams, {
+				tokenID: defaultTokenID,
+				amount: defaultAmount,
+				senderAddress: defaultAddress,
+				recipientAddress: randomAddress,
+				data: 'ddd',
+			});
 
-		it('should terminate chain if data exceeds 64 characters', async () => {
-			await expect(
-				command.execute({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(30000),
-						status: CCM_STATUS_OK,
-						params: codec.encode(crossChainTransferMessageParams, {
-							tokenID: defaultForeignTokenID,
-							amount: BigInt(1000),
-							senderAddress: defaultAddress,
-							recipientAddress: defaultAddress,
-							data: 'ddd'.repeat(64),
-						}),
-					},
-					transaction: {
-						senderAddress: defaultAddress,
-						fee: BigInt(0),
-					},
-					header: {
-						height: 0,
-						timestamp: 0,
-					},
-					stateStore,
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
-				}),
-			).resolves.toBeUndefined();
-			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
-				"data' must NOT have more than 64 characters",
-			);
-			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
-				Buffer.from([3, 0, 0, 0]),
-			);
-		});
+			const ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				module: tokenModule.name,
+				nonce: BigInt(1),
+				sendingChainID: Buffer.from([3, 0, 0, 0]),
+				receivingChainID: Buffer.from([0, 0, 0, 1]),
+				fee: FEE_CCM_INIT_USER_STORE + BigInt(1),
+				status: CCM_STATUS_OK,
+				params,
+			};
 
-		it('should terminate chain if token is native and escrowed amount is not sufficient', async () => {
-			await expect(
-				command.execute({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(30000),
-						status: CCM_STATUS_OK,
-						params: codec.encode(crossChainTransferMessageParams, {
-							tokenID: defaultTokenID,
-							amount: defaultEscrowAmount + BigInt(1),
-							senderAddress: defaultAddress,
-							recipientAddress: defaultAddress,
-							data: 'ddd',
-						}),
-					},
-					transaction: {
-						senderAddress: defaultAddress,
-						fee: BigInt(0),
-					},
-					header: {
-						height: 0,
-						timestamp: 0,
-					},
-					stateStore,
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
-				}),
-			).resolves.toBeUndefined();
-			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
-				'is not sufficient',
-			);
-			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
-				Buffer.from([3, 0, 0, 0]),
-			);
-		});
+			const ctx = {
+				ccm,
+				feeAddress: defaultAddress,
+				transaction: {
+					senderAddress: defaultAddress,
+					fee: BigInt(0),
+				},
+				header: {
+					height: 0,
+					timestamp: 0,
+				},
+				stateStore,
+				getMethodContext: () => methodContext,
+				eventQueue: new EventQueue(0),
+				ccmSize: BigInt(30),
+				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+				logger: fakeLogger,
+				chainID: utils.getRandomBytes(32),
+			};
 
-		// TODO: Update to development branch. This is not used anymore
-		// eslint-disable-next-line jest/no-disabled-tests
-		it.skip('should send error if ccm status is ok and has enough fee', async () => {
+			// Act
+			await command.execute(ctx);
+
 			await expect(
-				command.execute({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(3000000),
-						status: CCM_STATUS_OK,
-						params: codec.encode(crossChainTransferMessageParams, {
-							tokenID: defaultTokenID,
-							amount: defaultEscrowAmount + BigInt(1),
-							senderAddress: defaultAddress,
-							recipientAddress: defaultAddress,
-							data: 'ddd',
-						}),
-					},
-					transaction: {
-						senderAddress: defaultAddress,
-						fee: BigInt(0),
-					},
-					header: {
-						height: 0,
-						timestamp: 0,
-					},
-					stateStore,
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
-				}),
-			).resolves.toBeUndefined();
-			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
-				'is not sufficient',
-			);
-			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
-				Buffer.from([3, 0, 0, 0]),
-			);
-			expect(interopMethod.error).toHaveBeenCalledWith(
+				method.userAccountExists(methodContext, randomAddress, defaultTokenID),
+			).resolves.toEqual(true);
+
+			const { availableBalance } = await userStore.get(
 				methodContext,
-				expect.anything(),
-				CCM_STATUS_PROTOCOL_VIOLATION,
+				userStore.getKey(randomAddress, defaultTokenID),
 			);
+			expect(availableBalance).toEqual(defaultAmount);
 		});
 
-		it('should send error if token is not supported, status is ok and has enough fee', async () => {
-			command['_supportedTokenIDs'] = [Buffer.from([4, 0, 0, 0, 0, 0, 0, 0])];
-			await expect(
-				command.execute({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(3000000),
-						status: CCM_STATUS_OK,
-						params: codec.encode(crossChainTransferMessageParams, {
-							tokenID: defaultForeignTokenID,
-							amount: defaultEscrowAmount - BigInt(10),
-							senderAddress: defaultAddress,
-							recipientAddress: defaultAddress,
-							data: 'ddd',
-						}),
-					},
-					transaction: {
-						senderAddress: defaultAddress,
-						fee: BigInt(0),
-					},
-					header: {
-						height: 0,
-						timestamp: 0,
-					},
-					stateStore,
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
-				}),
-			).resolves.toBeUndefined();
-			expect(interopMethod.error).toHaveBeenCalledWith(
+		it('should deduct from escrow account when tokenID is native', async () => {
+			// Arrange
+			const params = codec.encode(crossChainTransferMessageParams, {
+				tokenID: defaultTokenID,
+				amount: defaultAmount,
+				senderAddress: defaultAddress,
+				recipientAddress: defaultAddress,
+				data: 'ddd',
+			});
+
+			const ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				module: tokenModule.name,
+				nonce: BigInt(1),
+				sendingChainID,
+				receivingChainID: Buffer.from([0, 0, 0, 1]),
+				fee,
+				status: CCM_STATUS_OK,
+				params,
+			};
+
+			const ctx = {
+				ccm,
+				feeAddress: defaultAddress,
+				transaction: {
+					senderAddress: defaultAddress,
+					fee: BigInt(0),
+				},
+				header: {
+					height: 0,
+					timestamp: 0,
+				},
+				stateStore,
+				getMethodContext: () => methodContext,
+				eventQueue: new EventQueue(0),
+				ccmSize: BigInt(30),
+				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+				logger: fakeLogger,
+				chainID: utils.getRandomBytes(32),
+			};
+
+			// Act
+			await command.execute(ctx);
+
+			const { availableBalance } = await userStore.get(
 				methodContext,
-				expect.anything(),
-				CCM_STATUS_TOKEN_NOT_SUPPORTED,
+				userStore.getKey(defaultAddress, defaultTokenID),
 			);
+
+			const { amount } = await escrowStore.get(
+				methodContext,
+				userStore.getKey(sendingChainID, defaultTokenID),
+			);
+
+			// Assert
+			expect(availableBalance).toEqual(defaultAccount.availableBalance + defaultAmount);
+			expect(amount).toEqual(defaultEscrowAmount - defaultAmount);
 		});
 
-		it.todo(
-			'should send error if recipient account does not exist and amount is not enough for min balance',
-		);
+		it('should resolve with recipient receiving amount and a success event when valid CCM is provided', async () => {
+			// Arrange
+			const params = codec.encode(crossChainTransferMessageParams, {
+				tokenID: defaultTokenID,
+				amount: defaultAmount,
+				senderAddress: defaultAddress,
+				recipientAddress: defaultAddress,
+				data: 'ddd',
+			});
 
-		it('should subtract from escrow if token is native', async () => {
-			await expect(
-				command.execute({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(3000000),
-						status: CCM_STATUS_OK,
-						params: codec.encode(crossChainTransferMessageParams, {
-							tokenID: defaultTokenID,
-							amount: defaultEscrowAmount - BigInt(10),
-							senderAddress: defaultAddress,
-							recipientAddress: defaultAddress,
-							data: 'ddd',
-						}),
-					},
-					transaction: {
-						senderAddress: defaultAddress,
-						fee: BigInt(0),
-					},
-					header: {
-						height: 0,
-						timestamp: 0,
-					},
-					stateStore,
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
-				}),
-			).resolves.toBeUndefined();
-			await expect(
-				method.getEscrowedAmount(methodContext, Buffer.from([3, 0, 0, 0]), defaultTokenID),
-			).resolves.toEqual(BigInt(10));
+			const ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				module: tokenModule.name,
+				nonce: BigInt(1),
+				sendingChainID,
+				receivingChainID: Buffer.from([0, 0, 0, 1]),
+				fee,
+				status: CCM_STATUS_OK,
+				params,
+			};
+
+			const ctx = {
+				ccm,
+				feeAddress: defaultAddress,
+				transaction: {
+					senderAddress: defaultAddress,
+					fee: BigInt(0),
+				},
+				header: {
+					height: 0,
+					timestamp: 0,
+				},
+				stateStore,
+				getMethodContext: () => methodContext,
+				eventQueue: new EventQueue(0),
+				ccmSize: BigInt(30),
+				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+				logger: fakeLogger,
+				chainID: utils.getRandomBytes(32),
+			};
+
+			// Act
+			await command.execute(ctx);
+
+			const events = ctx.eventQueue.getEvents();
+
+			const { amount } = await escrowStore.get(
+				methodContext,
+				userStore.getKey(sendingChainID, defaultTokenID),
+			);
+
+			// Assert
+			expect(amount).toEqual(defaultEscrowAmount - defaultAmount);
+			expect(events).toHaveLength(1);
+			expect(events[0].toObject().name).toEqual('ccmTransfer');
+			expect(codec.decode(ccmTransferEventSchema, events[0].toObject().data)).toEqual({
+				senderAddress: defaultAddress,
+				recipientAddress: defaultAddress,
+				tokenID: defaultTokenID,
+				amount: defaultAmount,
+				receivingChainID: ccm.receivingChainID,
+				result: ccm.status,
+			});
 		});
 
-		it('should add amount to recipient address', async () => {
-			const recipientAddress = utils.getRandomBytes(20);
-			await expect(
-				command.execute({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(3000000),
-						status: CCM_STATUS_OK,
-						params: codec.encode(crossChainTransferMessageParams, {
-							tokenID: defaultTokenID,
-							amount: defaultEscrowAmount - BigInt(10),
-							senderAddress: defaultAddress,
-							recipientAddress,
-							data: 'ddd',
-						}),
-					},
-					transaction: {
-						senderAddress: defaultAddress,
-						fee: BigInt(0),
-					},
-					header: {
-						height: 0,
-						timestamp: 0,
-					},
-					stateStore,
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
-				}),
-			).resolves.toBeUndefined();
-			await expect(
-				method.getAvailableBalance(methodContext, recipientAddress, defaultTokenID),
-			).resolves.toEqual(defaultEscrowAmount - BigInt(10) - MIN_BALANCE);
+		it('should throw when the fee to initialize an account is insufficient', async () => {
+			// Arrange
+			const params = codec.encode(crossChainTransferMessageParams, {
+				tokenID: defaultTokenID,
+				amount: BigInt(100000000),
+				senderAddress: defaultAddress,
+				recipientAddress: defaultAddress,
+				data: 'ddd',
+			});
+
+			const ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				module: tokenModule.name,
+				nonce: BigInt(1),
+				sendingChainID,
+				receivingChainID: Buffer.from([0, 0, 0, 1]),
+				fee,
+				status: CCM_STATUS_OK,
+				params,
+			};
+
+			const ctx = {
+				ccm,
+				feeAddress: defaultAddress,
+				transaction: {
+					senderAddress: defaultAddress,
+					fee: BigInt(0),
+				},
+				header: {
+					height: 0,
+					timestamp: 0,
+				},
+				stateStore,
+				getMethodContext: () => methodContext,
+				eventQueue: new EventQueue(0),
+				ccmSize: BigInt(30),
+				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+				logger: fakeLogger,
+				chainID: utils.getRandomBytes(32),
+			};
+
+			// Act && Assert
+			await expect(command.execute(ctx)).resolves.toBeUndefined();
 		});
 	});
 });

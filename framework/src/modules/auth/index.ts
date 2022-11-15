@@ -14,3 +14,4 @@
 
 export { AuthModule } from './module';
 export { AuthMethod } from './method';
+export { multisigRegMsgSchema } from './schemas';

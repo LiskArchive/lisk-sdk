@@ -33,7 +33,7 @@ We hope you enjoy building your proof-of-concept blockchain applications using t
 
 ## What is the Lisk SDK?
 
-The Lisk SDK aims to provide an easy and reliable software development kit for building blockchain applications which are compatible with the [Lisk Protocol](https://lisk.com/documentation/lisk-sdk/protocol). The architecture of the Lisk SDK has been designed so that it can be extended to meet the requirements of a wide variety of blockchain application use-cases. The codebase is written entirely in JavaScript, which means for a majority of developers, no significant change of tools or mindset is required to get started. The Lisk SDK makes every effort to allow developers to focus simply and purely on writing the code that matters to their own blockchain application, and nothing more.
+The Lisk SDK aims to provide an easy and reliable software development kit for building blockchain applications which are compatible with the [Lisk Protocol](https://lisk.com/documentation/understand-blockchain/lisk-protocol). The architecture of the Lisk SDK has been designed so that it can be extended to meet the requirements of a wide variety of blockchain application use-cases. The codebase is written entirely in JavaScript, which means for a majority of developers, no significant change of tools or mindset is required to get started. The Lisk SDK makes every effort to allow developers to focus simply and purely on writing the code that matters to their own blockchain application, and nothing more.
 
 ## Usage
 
@@ -107,7 +107,6 @@ You can also define your blockchain application parameters such as `blockTime`, 
 ```js
 const { app } = Application.defaultApplication(genesisBlockDevnet, {
     genesisConfig: {
-      communityIdentifier: 'newChain',
       blockTime: 5,
       maxTransactionsSize: 100 * 1024,
       minRemainingBalance: "5000000",
