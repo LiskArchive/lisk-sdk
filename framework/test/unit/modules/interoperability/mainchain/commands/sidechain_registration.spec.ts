@@ -58,7 +58,7 @@ import {
 import { ChainValidatorsStore } from '../../../../../../src/modules/interoperability/stores/chain_validators';
 import { createTransactionContext } from '../../../../../../src/testing';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
-import { EMPTY_BYTES, TOKEN_ID_LSK } from '../../../../../../src/modules/token/constants';
+import { EMPTY_BYTES } from '../../../../../../src/modules/token/constants';
 import { ChainAccountUpdatedEvent } from '../../../../../../src/modules/interoperability/events/chain_account_updated';
 import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
 import { TOKEN_ID_LSK_MAINCHAIN } from '../../../../../../src/modules/interoperability/constants';
@@ -557,7 +557,7 @@ describe('Sidechain registration command', () => {
 			expect(tokenMethod.burn).toHaveBeenCalledWith(
 				expect.anything(),
 				transaction.senderAddress,
-				TOKEN_ID_LSK,
+				Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]),
 				REGISTRATION_FEE,
 			);
 		});

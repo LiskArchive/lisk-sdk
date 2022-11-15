@@ -88,7 +88,10 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 	}
 
 	public async execute(ctx: CrossChainMessageContext): Promise<void> {
-		const { ccm, transaction: { senderAddress: feeAddress } } = ctx;
+		const {
+			ccm,
+			transaction: { senderAddress: feeAddress },
+		} = ctx;
 		const ownChainID = this._ownChainID;
 		const methodContext = ctx.getMethodContext();
 		const { sendingChainID, status, fee, receivingChainID } = ccm;

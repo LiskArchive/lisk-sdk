@@ -22,7 +22,7 @@ import {
 	ImmutableSubStore,
 	StateStore,
 	SubStore,
-	Validator
+	Validator,
 } from '../../state_machine/types';
 import { OutboxRoot } from './stores/outbox_root';
 import { ChainID } from './stores/registered_names';

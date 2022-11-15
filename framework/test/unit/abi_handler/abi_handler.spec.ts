@@ -65,7 +65,10 @@ describe('abi handler', () => {
 			chainID: Buffer.from('10000000', 'hex'),
 		});
 		abiHandler['_chainID'] = utils.getRandomBytes(32);
-		await stateMachine.init(loggerMock, {} as any);
+		await stateMachine.init(loggerMock, {
+			...applicationConfigSchema.default.genesis,
+			chainID: '00000000',
+		});
 		root = utils.getRandomBytes(32);
 	});
 

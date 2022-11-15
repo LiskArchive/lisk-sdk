@@ -895,7 +895,7 @@ describe('token module', () => {
 		});
 
 		it('should send information to interoperability', async () => {
-			jest.spyOn(method['_interoperabilityMethod'], 'send').mockResolvedValue(true);
+			jest.spyOn(method['_interoperabilityMethod'], 'send').mockResolvedValue();
 			const recipient = utils.getRandomBytes(20);
 			await method.transferCrossChain(
 				methodContext,
