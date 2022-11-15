@@ -40,7 +40,6 @@ import {
 	commonCCUExecutelogic,
 	isInboxUpdateEmpty,
 	validateFormat,
-	verifyCertificateSignature,
 } from '../../utils';
 import { SidechainInteroperabilityInternalMethod } from '../store';
 
@@ -119,14 +118,10 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 		}
 
 		// When certificate is non-empty
-		const verifyCertificateSignatureResult = verifyCertificateSignature(
+		await interoperabilityInternalMethod.verifyCertificateSignature(
+			context.getMethodContext(),
 			txParams,
-			partnerValidators,
-			partnerChainIDBuffer,
 		);
-		if (verifyCertificateSignatureResult.error) {
-			return verifyCertificateSignatureResult;
-		}
 
 		const partnerChannelStore = this.stores.get(ChannelDataStore);
 		const partnerChannelData = await partnerChannelStore.get(context, partnerChainIDBuffer);
@@ -144,7 +139,7 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 	public async execute(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 	): Promise<void> {
-		const { header, params: txParams } = context;
+		const { header, params: txParams, transaction } = context;
 		const chainIDBuffer = txParams.sendingChainID;
 		const partnerChainStore = this.stores.get(ChainAccountStore);
 		const partnerChainAccount = await partnerChainStore.get(context, chainIDBuffer);
@@ -169,6 +164,9 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 				getStore: context.getStore,
 				logger: context.logger,
 				chainID: context.chainID,
+				transaction,
+				header,
+				stateStore: context.stateStore,
 			});
 		let decodedCCMs;
 		try {

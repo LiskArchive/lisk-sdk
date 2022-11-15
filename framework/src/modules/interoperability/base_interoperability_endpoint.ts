@@ -13,7 +13,7 @@
  */
 
 import { BaseEndpoint } from '../base_endpoint';
-import { BaseInteroperableMethod } from './base_interoperable_method';
+import { BaseCCMethod } from './base_cc_method';
 import {
 	ChainAccountJSON,
 	ChainValidatorsJSON,
@@ -36,7 +36,7 @@ import { OwnChainAccountStore } from './stores/own_chain_account';
 import { EMPTY_BYTES } from './constants';
 
 export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
-	protected readonly interoperableCCMethods = new Map<string, BaseInteroperableMethod>();
+	protected readonly interoperableCCMethods = new Map<string, BaseCCMethod>();
 
 	public constructor(protected stores: NamedRegistry, protected offchainStores: NamedRegistry) {
 		super(stores, offchainStores);

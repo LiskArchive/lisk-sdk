@@ -63,7 +63,6 @@ import {
 	commonCCUExecutelogic,
 	isInboxUpdateEmpty,
 	validateFormat,
-	verifyCertificateSignature,
 } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../store';
 
@@ -145,14 +144,10 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 		}
 
 		// When certificate is non-empty
-		const verifyCertificateSignatureResult = verifyCertificateSignature(
+		await interoperabilityInternalMethod.verifyCertificateSignature(
+			context.getMethodContext(),
 			txParams,
-			partnerValidators,
-			txParams.sendingChainID,
 		);
-		if (verifyCertificateSignatureResult.error) {
-			return verifyCertificateSignatureResult;
-		}
 
 		const partnerChannelStore = this.stores.get(ChannelDataStore);
 		const partnerChannelData = await partnerChannelStore.get(context, txParams.sendingChainID);
@@ -170,7 +165,7 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 	public async execute(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 	): Promise<void> {
-		const { header, params: txParams } = context;
+		const { header, params: txParams, transaction } = context;
 		const chainIDBuffer = txParams.sendingChainID;
 		const partnerChainStore = this.stores.get(ChainAccountStore);
 		const partnerChainAccount = await partnerChainStore.get(context, chainIDBuffer);
@@ -188,11 +183,10 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 
 		// CCM execution
 		const terminateChainContext: TerminateChainContext = {
-			eventQueue: context.eventQueue,
-			getMethodContext: context.getMethodContext,
-			getStore: context.getStore,
-			logger: context.logger,
+			...context,
 			chainID: context.chainID,
+			transaction: { senderAddress: transaction.senderAddress, fee: transaction.fee },
+			header: { height: header.height, timestamp: header.timestamp },
 		};
 		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 		const terminateChainInternal = async () =>

@@ -372,7 +372,6 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			const blockHeaders = await this._chain.dataAccess.getBlockHeadersWithHeights(heightList);
 
 			let data: BlockHeader | undefined;
-
 			try {
 				// Request the highest common block with the previously computed list
 				// to the given peer

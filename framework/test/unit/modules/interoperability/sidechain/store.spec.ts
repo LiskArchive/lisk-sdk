@@ -127,10 +127,10 @@ describe('Sidechain interoperability store', () => {
 
 	describe('sendInternal', () => {
 		const ccMethodMod1 = {
-			beforeSendCCM: jest.fn(),
+			beforeCrossChainCommandExecute: jest.fn(),
 		};
 		const ccMethodMod2 = {
-			beforeSendCCM: jest.fn(),
+			beforeCrossChainCommandExecute: jest.fn(),
 		};
 
 		const modsMap = new Map();
@@ -175,14 +175,14 @@ describe('Sidechain interoperability store', () => {
 			messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
 		};
 
-		const beforeSendCCMContext = testing.createBeforeSendCCMsgMethodContext({
+		const beforeSendCCMContext = testing.createCrossChainMessageContext({
 			ccm,
-			feeAddress: utils.getRandomBytes(32),
 		});
 
 		const sendInternalContext: SendInternalContext = {
 			...beforeSendCCMContext,
 			...ccm,
+			feeAddress: utils.getRandomBytes(32),
 		};
 
 		// Sidechain case
@@ -277,14 +277,14 @@ describe('Sidechain interoperability store', () => {
 				params: Buffer.alloc(MAX_CCM_SIZE), // invalid size
 			};
 
-			const beforeSendCCMContextLocal = testing.createBeforeSendCCMsgMethodContext({
+			const beforeSendCCMContextLocal = testing.createCrossChainMessageContext({
 				ccm: invalidCCM,
-				feeAddress: utils.getRandomBytes(32),
 			});
 
 			const sendInternalContextLocal: SendInternalContext = {
 				...beforeSendCCMContextLocal,
 				...invalidCCM,
+				feeAddress: utils.getRandomBytes(32),
 			};
 
 			jest.spyOn(sidechainInteroperabilityInternalMethod, 'isLive');
@@ -310,14 +310,14 @@ describe('Sidechain interoperability store', () => {
 				params: Buffer.alloc(0),
 			};
 
-			const beforeSendCCMContextLocal = testing.createBeforeSendCCMsgMethodContext({
+			const beforeSendCCMContextLocal = testing.createCrossChainMessageContext({
 				ccm: invalidCCM as any,
-				feeAddress: utils.getRandomBytes(32),
 			});
 
 			const sendInternalContextLocal = {
 				beforeSendContext: beforeSendCCMContextLocal,
 				...invalidCCM,
+				feeAddress: utils.getRandomBytes(32),
 			};
 
 			jest.spyOn(sidechainInteroperabilityInternalMethod, 'isLive');
@@ -356,8 +356,8 @@ describe('Sidechain interoperability store', () => {
 			).resolves.toEqual(true);
 			expect(sidechainInteropStoreLocal.isLive).toHaveBeenCalledTimes(1);
 			expect(sidechainInteropStoreLocal.appendToOutboxTree).toHaveBeenCalledTimes(1);
-			expect(ccMethodMod1.beforeSendCCM).toHaveBeenCalledTimes(1);
-			expect(ccMethodMod2.beforeSendCCM).toHaveBeenCalledTimes(1);
+			expect(ccMethodMod1.beforeCrossChainCommandExecute).toHaveBeenCalledTimes(1);
+			expect(ccMethodMod2.beforeCrossChainCommandExecute).toHaveBeenCalledTimes(1);
 		});
 	});
 });

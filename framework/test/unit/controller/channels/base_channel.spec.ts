@@ -15,6 +15,7 @@
 import { EventCallback } from '../../../../src/controller/event';
 import { BaseChannel } from '../../../../src/controller/channels';
 import { fakeLogger } from '../../../utils/mocks';
+import { InvokeRequest } from '../../../../src/controller/channels/base_channel';
 
 class MyChannel extends BaseChannel {
 	public once(_eventName: string, _cb: EventCallback): void {}
@@ -23,7 +24,7 @@ class MyChannel extends BaseChannel {
 	public publish(_eventName: string, _data: Record<string, unknown>): void {}
 	public async registerToBus(_arg: any): Promise<void> {}
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async invoke<T>(_actionName: string, _params?: Record<string, unknown>): Promise<T> {
+	public async invoke<T>(_req: InvokeRequest): Promise<T> {
 		return {} as T;
 	}
 }

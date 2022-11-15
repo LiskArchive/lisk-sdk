@@ -14,7 +14,7 @@
 
 import { regularMerkleTree, sparseMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
-import { utils, bls } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { NAME_REGEX } from '@liskhq/lisk-chain';
@@ -36,7 +36,6 @@ import {
 	MAX_CCM_SIZE,
 	MAX_NUM_VALIDATORS,
 	MAX_UINT64,
-	MESSAGE_TAG_CERTIFICATE,
 	MODULE_NAME_INTEROPERABILITY,
 	SMT_KEY_LENGTH,
 	HASH_LENGTH,
@@ -380,52 +379,6 @@ export const checkValidCertificateLiveness = (
 			`Certificate is not valid as it passed Liveness limit of ${LIVENESS_LIMIT} seconds.`,
 		);
 	}
-};
-
-export const verifyCertificateSignature = (
-	txParams: CrossChainUpdateTransactionParams,
-	partnerValidators: ChainValidators,
-	partnerChainId: Buffer,
-): VerificationResult => {
-	// Only check when ceritificate is non-empty
-	if (txParams.certificate.equals(EMPTY_BYTES)) {
-		return {
-			status: VerifyStatus.OK,
-		};
-	}
-
-	const decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
-
-	if (isCertificateEmpty(decodedCertificate)) {
-		return {
-			status: VerifyStatus.FAIL,
-			error: new Error(
-				'Certificate should have all required values when activeValidatorsUpdate or newCertificateThreshold has a non-empty value.',
-			),
-		};
-	}
-	const { activeValidators, certificateThreshold } = partnerValidators;
-	const verifySignature = bls.verifyWeightedAggSig(
-		activeValidators.map(v => v.blsKey),
-		decodedCertificate.aggregationBits as Buffer,
-		decodedCertificate.signature as Buffer,
-		MESSAGE_TAG_CERTIFICATE,
-		partnerChainId,
-		txParams.certificate,
-		activeValidators.map(v => v.bftWeight),
-		certificateThreshold,
-	);
-
-	if (!verifySignature) {
-		return {
-			status: VerifyStatus.FAIL,
-			error: new Error('Certificate is invalid due to invalid signature.'),
-		};
-	}
-
-	return {
-		status: VerifyStatus.OK,
-	};
 };
 
 export const checkCertificateTimestamp = (

@@ -27,7 +27,7 @@ import { Engine } from '../../src/engine';
 import * as basePluginModule from '../../src/plugins/base_plugin';
 import * as defaultConfig from '../fixtures/config/devnet/config.json';
 import { ABIServer } from '../../src/abi_handler/abi_server';
-import { EVENT_ENGINE_READY } from '../../src/abi_handler/abi_handler';
+import { ABIHandler, EVENT_ENGINE_READY } from '../../src/abi_handler/abi_handler';
 import { systemDirs } from '../../src/system_dirs';
 
 jest.mock('fs-extra');
@@ -63,6 +63,10 @@ describe('Application', () => {
 	// Arrange
 	const config = {
 		...defaultConfig,
+		genesis: {
+			...defaultConfig.genesis,
+			chainID: '10000000',
+		},
 	};
 	const loggerMock = {
 		info: jest.fn(),
@@ -89,12 +93,13 @@ describe('Application', () => {
 		// jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
 		jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
 		jest.spyOn(Engine.prototype, 'start').mockResolvedValue();
+		jest.spyOn(ABIHandler.prototype, 'cacheGenesisState').mockResolvedValue();
 		jest.spyOn(process, 'exit').mockReturnValue(0 as never);
 	});
 
 	describe('#constructor', () => {
 		it('should be able to start the application with default parameters if config is not provided', () => {
-			const { app } = Application.defaultApplication();
+			const { app } = Application.defaultApplication({ genesis: { chainID: '10000000' } });
 
 			expect(app.config).toBeDefined();
 		});
@@ -209,6 +214,10 @@ describe('Application', () => {
 
 		it('should start ABI server', () => {
 			expect(ABIServer.prototype.start).toHaveBeenCalledTimes(1);
+		});
+
+		it('should try to cache genesis state', () => {
+			expect(ABIHandler.prototype.cacheGenesisState).toHaveBeenCalledTimes(1);
 		});
 
 		it('should start engine', () => {

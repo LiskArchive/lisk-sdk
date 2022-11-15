@@ -22,7 +22,6 @@ describe('FeeModule', () => {
 	let feeModule!: FeeModule;
 	let genesisConfig: any;
 	let moduleConfig: any;
-	let generatorConfig: any;
 
 	beforeEach(async () => {
 		genesisConfig = {
@@ -31,13 +30,12 @@ describe('FeeModule', () => {
 		moduleConfig = {
 			feeTokenID: { chainID: utils.intToBuffer(0, 4), localID: utils.intToBuffer(0, 4) },
 		};
-		generatorConfig = {};
 		feeModule = new FeeModule();
-		await feeModule.init({ genesisConfig, moduleConfig, generatorConfig });
+		await feeModule.init({ genesisConfig, moduleConfig });
 		feeModule.addDependencies({
 			burn: jest.fn(),
 			transfer: jest.fn(),
-			isNative: jest.fn(),
+			isNativeToken: jest.fn(),
 			getAvailableBalance: jest.fn(),
 		} as any);
 	});
@@ -45,9 +43,7 @@ describe('FeeModule', () => {
 	describe('init', () => {
 		it('should initialize config with default value when module config is empty', async () => {
 			feeModule = new FeeModule();
-			await expect(
-				feeModule.init({ genesisConfig, moduleConfig: {}, generatorConfig: {} }),
-			).toResolve();
+			await expect(feeModule.init({ genesisConfig, moduleConfig: {} })).toResolve();
 
 			expect(feeModule['_tokenID']).toEqual(Buffer.alloc(8, 0));
 		});
@@ -115,7 +111,7 @@ describe('FeeModule', () => {
 
 	describe('beforeCommandExecute', () => {
 		it('should transfer transaction fee minus min fee to generator and burn min fee when native token', async () => {
-			jest.spyOn(feeModule['_tokenMethod'], 'isNative').mockResolvedValue(true);
+			jest.spyOn(feeModule['_tokenMethod'], 'isNativeToken').mockReturnValue(true);
 
 			const transaction = new Transaction({
 				module: 'token',
@@ -148,7 +144,7 @@ describe('FeeModule', () => {
 		});
 
 		it('should transfer transaction fee to generator and not burn min fee when non-native token', async () => {
-			jest.spyOn(feeModule['_tokenMethod'], 'isNative').mockResolvedValue(false);
+			jest.spyOn(feeModule['_tokenMethod'], 'isNativeToken').mockReturnValue(false);
 			const transaction = new Transaction({
 				module: 'token',
 				command: 'transfer',

@@ -71,7 +71,7 @@ import {
 	createCrossChainMessageContext,
 	createTransientMethodContext,
 } from '../../../../../../src/testing';
-import { BaseInteroperableMethod } from '../../../../../../src/modules/interoperability/base_interoperable_method';
+import { BaseCCMethod } from '../../../../../../src/modules/interoperability/base_cc_method';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { BaseInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/base_interoperability_internal_methods';
 import {
@@ -265,6 +265,7 @@ describe('CrossChainUpdateCommand', () => {
 				getMethodContext: () => createTransientMethodContext({ stateStore }),
 				getStore: createStoreGetter(stateStore).getStore,
 				stateStore,
+				header: { height: 20, timestamp: 10000 },
 				logger: testing.mocks.loggerMock,
 				chainID,
 				params,
@@ -370,16 +371,14 @@ describe('CrossChainUpdateCommand', () => {
 			).rejects.toThrow('Keys are not sorted lexicographic order.');
 		});
 
-		it('should return VerifyStatus.FAIL when verifyCertificateSignature fails', async () => {
-			jest.spyOn(interopUtils, 'verifyCertificateSignature').mockReturnValue({
-				status: VerifyStatus.FAIL,
-				error: new Error('Certificate is invalid due to invalid signature.'),
-			});
+		it('should rejct when verifyCertificateSignature fails', async () => {
+			jest
+				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'verifyCertificateSignature')
+				.mockRejectedValue(new Error('Certificate is invalid due to invalid signature.'));
 
-			const { status, error } = await mainchainCCUUpdateCommand.verify(verifyContext);
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toContain('Certificate is invalid due to invalid signature.');
+			await expect(mainchainCCUUpdateCommand.verify(verifyContext)).rejects.toThrow(
+				'Certificate is invalid due to invalid signature',
+			);
 		});
 
 		it('should return error checkInboxUpdateValidity fails', async () => {
@@ -434,10 +433,6 @@ describe('CrossChainUpdateCommand', () => {
 				assets: new BlockAssets(),
 				eventQueue: new EventQueue(0),
 				header: blockHeader as BlockHeader,
-				certificateThreshold: BigInt(0),
-				currentValidators: [],
-				impliesMaxPrevote: true,
-				maxHeightCertified: 0,
 			};
 
 			await partnerValidatorStore.set(
@@ -687,7 +682,7 @@ describe('CrossChainUpdateCommand', () => {
 		};
 		let context: CrossChainMessageContext;
 		let command: MainchainCCUpdateCommand;
-		let ccMethods: Map<string, BaseInteroperableMethod>;
+		let ccMethods: Map<string, BaseCCMethod>;
 		let ccCommands: Map<string, BaseCCCommand[]>;
 		let internalMethod: BaseInteroperabilityInternalMethod;
 
@@ -696,7 +691,7 @@ describe('CrossChainUpdateCommand', () => {
 			ccMethods = new Map();
 			ccMethods.set(
 				'token',
-				new (class TokenMethod extends BaseInteroperableMethod {
+				new (class TokenMethod extends BaseCCMethod {
 					public verifyCrossChainMessage = jest.fn();
 					public beforeCrossChainMessageForwarding = jest.fn();
 				})(interopModule.stores, interopModule.events),
@@ -764,7 +759,7 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should terminate the chain and log event when verifyCrossChainMessage fails', async () => {
-			((ccMethods.get('token') as BaseInteroperableMethod)
+			((ccMethods.get('token') as BaseCCMethod)
 				.verifyCrossChainMessage as jest.Mock).mockRejectedValue('error');
 
 			await expect(command['_forward'](context)).resolves.toBeUndefined();
@@ -866,7 +861,7 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should revert the state and terminate the sending chain if beforeCrossChainMessageForwarding fails', async () => {
-			((ccMethods.get('token') as BaseInteroperableMethod)
+			((ccMethods.get('token') as BaseCCMethod)
 				.beforeCrossChainMessageForwarding as jest.Mock).mockRejectedValue('error');
 			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
 			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);

@@ -18,6 +18,7 @@ import { homedir } from 'os';
 import * as fs from 'fs-extra';
 import { join, resolve } from 'path';
 import * as inquirer from 'inquirer';
+import { isHexString } from '@liskhq/lisk-validator';
 import { defaultConfig } from '../../../utils/config';
 
 export class CreateCommand extends Command {
@@ -39,16 +40,16 @@ export class CreateCommand extends Command {
 			description: 'App Label',
 			default: 'beta-sdk-app',
 		}),
-		'community-identifier': flagParser.string({
+		'chain-id': flagParser.string({
 			char: 'i',
-			description: 'Community Identifier',
-			default: 'sdk',
+			description: 'ChainID in hex format. For example, Lisk mainnet mainchain is 00000000',
+			required: true,
 		}),
 	};
 
 	async run(): Promise<void> {
 		const {
-			flags: { output, label, 'community-identifier': communityIdentifier },
+			flags: { output, label, 'chain-id': chainID },
 		} = await this.parse(CreateCommand);
 
 		// validate folder name to not include camelcase or whitespace
@@ -58,12 +59,16 @@ export class CreateCommand extends Command {
 			this.error('Invalid name');
 		}
 
+		if (!isHexString(chainID) || chainID.length !== 8) {
+			this.error('Invalid chain ID format. ChainID must be in hex format with 8 characters');
+		}
+
 		// determine proper path
 		const configPath = resolve(output);
 		const filePath = join(configPath, 'config');
 
 		defaultConfig.system.dataPath = join(homedir(), '.lisk', label);
-		defaultConfig.genesis.communityIdentifier = communityIdentifier;
+		(defaultConfig.genesis as Record<string, unknown>).chainID = chainID;
 
 		// check for existing file at given location & ask the user before overwriting
 		if (fs.existsSync(filePath)) {

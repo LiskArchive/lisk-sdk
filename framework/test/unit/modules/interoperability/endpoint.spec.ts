@@ -189,6 +189,7 @@ describe('Test interoperability endpoint', () => {
 			chainID: Buffer.alloc(0),
 			params: {},
 			logger: {} as any,
+			header: { aggregateCommit: { height: 10 }, height: 12, timestamp: Date.now() },
 		};
 		testInteroperabilityEndpoint = new TestEndpoint(interopMod.stores, interopMod.offchainStores);
 

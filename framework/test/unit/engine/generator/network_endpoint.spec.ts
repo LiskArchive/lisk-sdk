@@ -70,6 +70,11 @@ describe('generator network endpoint', () => {
 			constants: {
 				chainID: Buffer.from('chainID'),
 			},
+			lastBlock: {
+				header: {
+					toObject: jest.fn().mockReturnValue({}),
+				},
+			},
 		} as never;
 		pool = {
 			contains: jest.fn().mockReturnValue(false),

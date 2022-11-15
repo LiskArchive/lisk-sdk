@@ -35,7 +35,7 @@ describe('Lisk SDK functional test', () => {
 	let client: apiClient.APIClient;
 
 	beforeAll(async () => {
-		const parameters = ['start', '-d', dataPath, '--api-ws', '--api-ipc'];
+		const parameters = ['start', '-d', dataPath, '--api-ws', '--api-ipc', '--log', 'debug'];
 		appProcess = childProcess.spawn('./bin/run', parameters, {
 			cwd: path.join(__dirname, '../../examples/dpos-mainchain'),
 			env: {

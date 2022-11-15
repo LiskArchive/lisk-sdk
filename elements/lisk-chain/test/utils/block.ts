@@ -41,6 +41,7 @@ export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): Block
 		eventRoot: header?.eventRoot ?? utils.hash(utils.getRandomBytes(32)),
 		stateRoot: header?.stateRoot ?? utils.hash(utils.getRandomBytes(32)),
 		assetRoot: header?.assetRoot ?? utils.hash(utils.getRandomBytes(32)),
+		impliesMaxPrevotes: header?.impliesMaxPrevotes ?? true,
 		validatorsHash: header?.validatorsHash ?? utils.hash(utils.getRandomBytes(32)),
 		aggregateCommit: header?.aggregateCommit ?? {
 			height: 0,
@@ -81,6 +82,7 @@ export const createValidDefaultBlock = async (
 		validatorsHash: utils.hash(utils.getRandomBytes(32)),
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: 0,
+		impliesMaxPrevotes: true,
 		aggregateCommit: {
 			height: 0,
 			aggregationBits: Buffer.alloc(0),

@@ -14,7 +14,7 @@
  */
 
 export interface ABI {
-	ready(req: ReadyRequest): Promise<ReadyResponse>;
+	init(req: InitRequest): Promise<InitResponse>;
 	initStateMachine(req: InitStateMachineRequest): Promise<InitStateMachineResponse>;
 	initGenesisState(req: InitGenesisStateRequest): Promise<InitGenesisStateResponse>;
 	insertAssets(req: InsertAssetsRequest): Promise<InsertAssetsResponse>;
@@ -55,6 +55,7 @@ export interface BlockHeader {
 	stateRoot: Buffer;
 	maxHeightPrevoted: number;
 	maxHeightGenerated: number;
+	impliesMaxPrevotes: boolean;
 	validatorsHash: Buffer;
 	aggregateCommit: AggregateCommit;
 	signature: Buffer;
@@ -97,12 +98,13 @@ export interface Validator {
 	blsKey: Buffer;
 }
 
-export interface ReadyRequest {
+export interface InitRequest {
 	chainID: Buffer;
 	lastBlockHeight: number;
+	lastStateRoot: Buffer;
 }
 
-export interface ReadyResponse {}
+export interface InitResponse {}
 
 export interface InitStateMachineRequest {
 	header: BlockHeader;
@@ -140,17 +142,9 @@ export interface VerifyAssetsRequest {
 
 export interface VerifyAssetsResponse {}
 
-export interface Consensus {
-	currentValidators: Validator[];
-	certificateThreshold: bigint;
-	implyMaxPrevote: boolean;
-	maxHeightCertified: number;
-}
-
 export interface BeforeTransactionsExecuteRequest {
 	contextID: Buffer;
 	assets: BlockAsset[];
-	consensus: Consensus;
 }
 
 export interface BeforeTransactionsExecuteResponse {
@@ -160,7 +154,6 @@ export interface BeforeTransactionsExecuteResponse {
 export interface AfterTransactionsExecuteRequest {
 	contextID: Buffer;
 	assets: BlockAsset[];
-	consensus: Consensus;
 	transactions: Transaction[];
 }
 
@@ -173,6 +166,7 @@ export interface AfterTransactionsExecuteResponse {
 
 export interface VerifyTransactionRequest {
 	contextID: Buffer;
+	header: BlockHeader;
 	transaction: Transaction;
 }
 
@@ -186,7 +180,6 @@ export interface ExecuteTransactionRequest {
 	assets: BlockAsset[];
 	dryRun: boolean;
 	header: BlockHeader;
-	consensus: Consensus;
 }
 
 export interface ExecuteTransactionResponse {

@@ -19,7 +19,6 @@ import {
 	MODULE_STORE_PREFIX_BFT,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
-	STORE_PREFIX_GENERATOR_KEYS,
 } from './constants';
 import { BFTVotes, bftVotesSchema } from './schemas';
 import {
@@ -30,7 +29,6 @@ import {
 	updatePrevotesPrecommits,
 } from './bft_votes';
 import { BFTParametersCache, deleteBFTParameters } from './bft_params';
-import { deleteGeneratorKeys } from './utils';
 
 export class BFTModule {
 	public name = MODULE_NAME_BFT;
@@ -40,9 +38,9 @@ export class BFTModule {
 	private _maxLengthBlockBFTInfos!: number;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async init(batchSize: number): Promise<void> {
+	public async init(batchSize: number, genesisTimestamp: number, blockTime: number): Promise<void> {
 		this._batchSize = batchSize;
-		this.method.init(this._batchSize);
+		this.method.init(this._batchSize, genesisTimestamp, blockTime);
 		this._maxLengthBlockBFTInfos = 3 * this._batchSize;
 	}
 
@@ -85,8 +83,5 @@ export class BFTModule {
 			bftVotes.maxHeightCertified + 1,
 		);
 		await deleteBFTParameters(paramsStore, minHeightBFTParametersRequired);
-
-		const keysStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_GENERATOR_KEYS);
-		await deleteGeneratorKeys(keysStore, minHeightBFTParametersRequired);
 	}
 }

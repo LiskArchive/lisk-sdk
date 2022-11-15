@@ -13,9 +13,8 @@
  */
 
 import { genesisAuthStoreSchema } from '../../auth/schemas';
-import { ModuleMetadata } from '../../base_module';
+import { ModuleInitArgs, ModuleMetadata } from '../../base_module';
 import { BaseInteroperabilityModule } from '../base_interoperability_module';
-import { BaseInteroperableMethod } from '../base_interoperable_method';
 import { SidechainInteroperabilityMethod } from './method';
 import { SidechainCCMethod } from './cc_method';
 import { MainchainRegistrationCommand } from './commands/mainchain_registration';
@@ -43,12 +42,11 @@ import { ChainAccountUpdatedEvent } from '../events/chain_account_updated';
 import { CcmProcessedEvent } from '../events/ccm_processed';
 import { InvalidRegistrationSignatureEvent } from '../events/invalid_registration_signature';
 import { CcmSendSuccessEvent } from '../events/ccm_send_success';
+import { BaseCCMethod } from '../base_cc_method';
+import { ValidatorsMethod } from '../types';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
-	public crossChainMethod: BaseInteroperableMethod = new SidechainCCMethod(
-		this.stores,
-		this.events,
-	);
+	public crossChainMethod: BaseCCMethod = new SidechainCCMethod(this.stores, this.events);
 	public method = new SidechainInteroperabilityMethod(
 		this.stores,
 		this.events,
@@ -66,6 +64,8 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [this._mainchainRegistrationCommand];
 
+	private _validatorsMethod!: ValidatorsMethod;
+
 	public constructor() {
 		super();
 		this.stores.register(ChainAccountStore, new ChainAccountStore(this.name));
@@ -80,6 +80,10 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			InvalidRegistrationSignatureEvent,
 			new InvalidRegistrationSignatureEvent(this.name),
 		);
+	}
+
+	public addDependencies(validatorsMethod: ValidatorsMethod) {
+		this._validatorsMethod = validatorsMethod;
 	}
 
 	public metadata(): ModuleMetadata {
@@ -131,5 +135,10 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
 		await initGenesisStateUtil(context, this.stores);
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async init(_args: ModuleInitArgs) {
+		this._mainchainRegistrationCommand.addDependencies(this._validatorsMethod);
 	}
 }

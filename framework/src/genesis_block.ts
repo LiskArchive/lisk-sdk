@@ -24,6 +24,7 @@ import { EventQueue, GenesisBlockContext, StateMachine } from './state_machine';
 import { PrefixedStateReadWriter } from './state_machine/prefixed_state_read_writer';
 
 export interface GenesisBlockGenerateInput {
+	chainID: Buffer;
 	height?: number;
 	timestamp?: number;
 	previousBlockID?: Buffer;
@@ -64,6 +65,7 @@ export const generateGenesisBlock = async (
 		maxHeightPrevoted: height,
 		signature: EMPTY_BUFFER,
 		transactionRoot: EMPTY_HASH,
+		impliesMaxPrevotes: true,
 		assetRoot,
 		aggregateCommit: {
 			height: 0,
@@ -86,6 +88,7 @@ export const generateGenesisBlock = async (
 		assets,
 		logger,
 		stateStore,
+		chainID: input.chainID,
 	});
 
 	await stateMachine.executeGenesisBlock(blockCtx);
