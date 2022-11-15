@@ -371,16 +371,14 @@ describe('CrossChainUpdateCommand', () => {
 			).rejects.toThrow('Keys are not sorted lexicographic order.');
 		});
 
-		it('should return VerifyStatus.FAIL when verifyCertificateSignature fails', async () => {
-			jest.spyOn(interopUtils, 'verifyCertificateSignature').mockReturnValue({
-				status: VerifyStatus.FAIL,
-				error: new Error('Certificate is invalid due to invalid signature.'),
-			});
+		it('should rejct when verifyCertificateSignature fails', async () => {
+			jest
+				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'verifyCertificateSignature')
+				.mockRejectedValue(new Error('Certificate is invalid due to invalid signature.'));
 
-			const { status, error } = await mainchainCCUUpdateCommand.verify(verifyContext);
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toContain('Certificate is invalid due to invalid signature.');
+			await expect(mainchainCCUUpdateCommand.verify(verifyContext)).rejects.toThrow(
+				'Certificate is invalid due to invalid signature',
+			);
 		});
 
 		it('should return error checkInboxUpdateValidity fails', async () => {
