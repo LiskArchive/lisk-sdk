@@ -625,26 +625,17 @@
 				],
 				"supplySubstore": [
 					{
-						"localID": "00000000",
+						"tokenID": "0000000000000000",
 						"totalSupply": "10300000000000000"
 					}
 				],
 				"escrowSubstore": [],
-				"availableLocalIDSubstore": {
-					"nextAvailableLocalID": "00000001"
-				},
-				"terminatedEscrowSubstore": []
+				"supportedTokensSubstore": []
 			},
 			"schema": {
 				"$id": "/token/module/genesis",
 				"type": "object",
-				"required": [
-					"userSubstore",
-					"supplySubstore",
-					"escrowSubstore",
-					"availableLocalIDSubstore",
-					"terminatedEscrowSubstore"
-				],
+				"required": ["userSubstore", "supplySubstore", "escrowSubstore", "supportedTokensSubstore"],
 				"properties": {
 					"userSubstore": {
 						"type": "array",
@@ -694,13 +685,13 @@
 						"fieldNumber": 2,
 						"items": {
 							"type": "object",
-							"required": ["localID", "totalSupply"],
+							"required": ["tokenID", "totalSupply"],
 							"properties": {
-								"localID": {
+								"tokenID": {
 									"dataType": "bytes",
 									"fieldNumber": 1,
-									"minLength": 4,
-									"maxLength": 4
+									"minLength": 8,
+									"maxLength": 8
 								},
 								"totalSupply": {
 									"dataType": "uint64",
@@ -714,7 +705,7 @@
 						"fieldNumber": 3,
 						"items": {
 							"type": "object",
-							"required": ["escrowChainID", "localID", "amount"],
+							"required": ["escrowChainID", "tokenID", "amount"],
 							"properties": {
 								"escrowChainID": {
 									"dataType": "bytes",
@@ -722,11 +713,11 @@
 									"minLength": 4,
 									"maxLength": 4
 								},
-								"localID": {
+								"tokenID": {
 									"dataType": "bytes",
 									"fieldNumber": 2,
-									"minLength": 4,
-									"maxLength": 4
+									"minLength": 8,
+									"maxLength": 8
 								},
 								"amount": {
 									"dataType": "uint64",
@@ -735,26 +726,29 @@
 							}
 						}
 					},
-					"availableLocalIDSubstore": {
-						"type": "object",
-						"required": ["nextAvailableLocalID"],
-						"fieldNumber": 4,
-						"properties": {
-							"nextAvailableLocalID": {
-								"dataType": "bytes",
-								"fieldNumber": 1,
-								"minLength": 4,
-								"maxLength": 4
-							}
-						}
-					},
-					"terminatedEscrowSubstore": {
+					"supportedTokensSubstore": {
 						"type": "array",
-						"fieldNumber": 5,
+						"fieldNumber": 4,
 						"items": {
-							"dataType": "bytes",
-							"minLength": 4,
-							"maxLength": 4
+							"type": "object",
+							"required": ["chainID", "supportedTokenIDs"],
+							"properties": {
+								"chainID": {
+									"dataType": "bytes",
+									"minLength": 4,
+									"maxLength": 4,
+									"fieldNumber": 1
+								},
+								"supportedTokenIDs": {
+									"type": "array",
+									"fieldNumber": 2,
+									"items": {
+										"dataType": "bytes",
+										"minLength": 8,
+										"maxLength": 8
+									}
+								}
+							}
 						}
 					}
 				}

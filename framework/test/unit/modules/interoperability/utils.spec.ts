@@ -55,7 +55,7 @@ import {
 	getIDAsKeyForStore,
 	initGenesisStateUtil,
 	validateFormat,
-	verifyCertificateSignature,
+	verifyLivenessConditionForRegisteredChains,
 } from '../../../../src/modules/interoperability/utils';
 import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
 import { Certificate } from '../../../../src/engine/consensus/certificate_generation/types';
@@ -244,71 +244,6 @@ describe('Utils', () => {
 		});
 	});
 
-	describe('verifyCertificateSignature', () => {
-		const activeValidatorsUpdate = [...defaultActiveValidatorsUpdate];
-		const ceritificate: Certificate = {
-			blockID: cryptography.utils.getRandomBytes(20),
-			height: 21,
-			timestamp: Math.floor(Date.now() / 1000),
-			stateRoot: cryptography.utils.getRandomBytes(38),
-			validatorsHash: cryptography.utils.getRandomBytes(48),
-			aggregationBits: cryptography.utils.getRandomBytes(38),
-			signature: cryptography.utils.getRandomBytes(32),
-		};
-		const encodedCertificate = codec.encode(certificateSchema, ceritificate);
-		const txParams: any = {
-			certificate: encodedCertificate,
-		};
-		const txParamsWithEmptyCertificate: any = {
-			certificate: Buffer.alloc(0),
-		};
-		const partnerValidators: any = {
-			activeValidators: activeValidatorsUpdate,
-			certificateThreshold: 10,
-		};
-		const partnerChainId = MAINCHAIN_ID_BUFFER;
-
-		it('should return VerifyStatus.OK if certificate is empty', () => {
-			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
-			const { status, error } = verifyCertificateSignature(
-				txParamsWithEmptyCertificate,
-				partnerValidators,
-				partnerChainId,
-			);
-
-			expect(status).toEqual(VerifyStatus.OK);
-			expect(error?.message).toBeUndefined();
-			expect(cryptography.bls.verifyWeightedAggSig).not.toHaveBeenCalled();
-		});
-
-		it('should return VerifyStatus.FAIL when certificate signature verification fails', () => {
-			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(false);
-			const { status, error } = verifyCertificateSignature(
-				txParams,
-				partnerValidators,
-				partnerChainId,
-			);
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toEqual('Certificate is invalid due to invalid signature.');
-			expect(cryptography.bls.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
-		});
-
-		it('should return VerifyStatus.OK when certificate signature verification passes', () => {
-			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
-
-			const { status, error } = verifyCertificateSignature(
-				txParams,
-				partnerValidators,
-				partnerChainId,
-			);
-
-			expect(status).toEqual(VerifyStatus.OK);
-			expect(error).toBeUndefined();
-			expect(cryptography.bls.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
-		});
-	});
-
 	describe('checkCertificateTimestamp', () => {
 		const timestamp = Date.now();
 		const txParams: any = {
@@ -356,6 +291,7 @@ describe('Utils', () => {
 				bftWeight: v.bftWeight + BigInt(1),
 			})),
 		};
+		activeValidatorsUpdate.sort((a, b) => a.blsKey.compare(b.blsKey));
 		const validatorsHash = computeValidatorsHash(
 			activeValidatorsUpdate,
 			partnerValidators.certificateThreshold,
@@ -1990,6 +1926,85 @@ describe('Utils', () => {
 
 		it('should pass validateFormat check', () => {
 			expect(() => validateFormat(buildCCM({}))).not.toThrow();
+		});
+	});
+
+	describe('verifyLivenessConditionForRegisteredChains', () => {
+		const certificate = {
+			blockID: utils.getRandomBytes(20),
+			height: 23,
+			stateRoot: Buffer.alloc(2),
+			timestamp: 100000,
+			validatorsHash: utils.getRandomBytes(20),
+			aggregationBits: utils.getRandomBytes(1),
+			signature: utils.getRandomBytes(32),
+		};
+		const ccuParams = {
+			activeValidatorsUpdate: [],
+			certificate: codec.encode(certificateSchema, certificate),
+			inboxUpdate: {
+				crossChainMessages: [utils.getRandomBytes(100)],
+				messageWitnessHashes: [],
+				outboxRootWitness: {
+					bitmap: Buffer.alloc(0),
+					siblingHashes: [],
+				},
+			},
+			newCertificateThreshold: BigInt(99),
+			sendingChainID: utils.getRandomBytes(4),
+		};
+
+		it('should not throw if certificate is empty', () => {
+			expect(
+				verifyLivenessConditionForRegisteredChains(
+					{
+						...ccuParams,
+						certificate: Buffer.alloc(0),
+					},
+					10000,
+				),
+			).toBeUndefined();
+		});
+
+		it('should not throw if inbox update is empty', () => {
+			expect(
+				verifyLivenessConditionForRegisteredChains(
+					{
+						...ccuParams,
+						inboxUpdate: {
+							crossChainMessages: [],
+							messageWitnessHashes: [],
+							outboxRootWitness: {
+								bitmap: Buffer.alloc(0),
+								siblingHashes: [],
+							},
+						},
+					},
+					10000,
+				),
+			).toBeUndefined();
+		});
+
+		it('should throw if certificate timestamp is older than half of liveness limit', () => {
+			expect(() =>
+				verifyLivenessConditionForRegisteredChains(
+					{
+						...ccuParams,
+					},
+					certificate.timestamp + LIVENESS_LIMIT / 2 + 1,
+				),
+			).toThrow('The first CCU with a non-empty inbox update cannot contain a certificate older');
+		});
+
+		it('should not throw if inbox update is not older than half of liveness limit', () => {
+			expect(
+				verifyLivenessConditionForRegisteredChains(
+					{
+						...ccuParams,
+					},
+					certificate.timestamp + LIVENESS_LIMIT / 2,
+				),
+			).toBeUndefined();
 		});
 	});
 });

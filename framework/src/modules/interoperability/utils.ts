@@ -14,7 +14,7 @@
 
 import { regularMerkleTree, sparseMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
-import { utils, bls } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { NAME_REGEX } from '@liskhq/lisk-chain';
@@ -36,12 +36,12 @@ import {
 	MAX_CCM_SIZE,
 	MAX_NUM_VALIDATORS,
 	MAX_UINT64,
-	MESSAGE_TAG_CERTIFICATE,
 	MODULE_NAME_INTEROPERABILITY,
 	SMT_KEY_LENGTH,
 	HASH_LENGTH,
 	TOKEN_ID_LSK,
 	CCMStatusCode,
+	CHAIN_ID_LENGTH,
 } from './constants';
 import {
 	ccmSchema,
@@ -63,7 +63,7 @@ import { NamedRegistry } from '../named_registry';
 import { OutboxRootStore } from './stores/outbox_root';
 import { OwnChainAccountStore } from './stores/own_chain_account';
 import { ChannelDataStore } from './stores/channel_data';
-import { ChainValidatorsStore, updateActiveValidators } from './stores/chain_validators';
+import { ChainValidatorsStore, calculateNewActiveValidators } from './stores/chain_validators';
 import { ChainAccountStore, ChainStatus } from './stores/chain_account';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/terminated_outbox';
 import { TerminatedStateStore } from './stores/terminated_state';
@@ -381,52 +381,6 @@ export const checkValidCertificateLiveness = (
 	}
 };
 
-export const verifyCertificateSignature = (
-	txParams: CrossChainUpdateTransactionParams,
-	partnerValidators: ChainValidators,
-	partnerChainId: Buffer,
-): VerificationResult => {
-	// Only check when ceritificate is non-empty
-	if (txParams.certificate.equals(EMPTY_BYTES)) {
-		return {
-			status: VerifyStatus.OK,
-		};
-	}
-
-	const decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
-
-	if (isCertificateEmpty(decodedCertificate)) {
-		return {
-			status: VerifyStatus.FAIL,
-			error: new Error(
-				'Certificate should have all required values when activeValidatorsUpdate or newCertificateThreshold has a non-empty value.',
-			),
-		};
-	}
-	const { activeValidators, certificateThreshold } = partnerValidators;
-	const verifySignature = bls.verifyWeightedAggSig(
-		activeValidators.map(v => v.blsKey),
-		decodedCertificate.aggregationBits as Buffer,
-		decodedCertificate.signature as Buffer,
-		MESSAGE_TAG_CERTIFICATE,
-		partnerChainId,
-		txParams.certificate,
-		activeValidators.map(v => v.bftWeight),
-		certificateThreshold,
-	);
-
-	if (!verifySignature) {
-		return {
-			status: VerifyStatus.FAIL,
-			error: new Error('Certificate is invalid due to invalid signature.'),
-		};
-	}
-
-	return {
-		status: VerifyStatus.OK,
-	};
-};
-
 export const checkCertificateTimestamp = (
 	txParams: CrossChainUpdateTransactionParams,
 	certificate: Certificate,
@@ -473,7 +427,7 @@ export const checkValidatorsHashWithCertificate = (
 			};
 		}
 
-		const newActiveValidators = updateActiveValidators(
+		const newActiveValidators = calculateNewActiveValidators(
 			partnerValidators.activeValidators,
 			txParams.activeValidatorsUpdate,
 		);
@@ -507,7 +461,7 @@ export const commonCCUExecutelogic = async (args: CommonExecutionLogicArgs) => {
 		chainIDBuffer,
 		context,
 	} = args;
-	const newActiveValidators = updateActiveValidators(
+	const newActiveValidators = calculateNewActiveValidators(
 		partnerValidators.activeValidators,
 		context.params.activeValidatorsUpdate,
 	);
@@ -831,4 +785,33 @@ export const chainAccountToJSON = (chainAccount: ChainAccount) => {
 		name,
 		status,
 	};
+};
+
+export const verifyLivenessConditionForRegisteredChains = (
+	ccu: CrossChainUpdateTransactionParams,
+	blockTimestamp: number,
+) => {
+	if (ccu.certificate.length === 0 || isInboxUpdateEmpty(ccu.inboxUpdate)) {
+		return;
+	}
+	const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
+	const limitSecond = LIVENESS_LIMIT / 2;
+	if (blockTimestamp - certificate.timestamp > limitSecond) {
+		throw new Error(
+			`The first CCU with a non-empty inbox update cannot contain a certificate older than ${limitSecond} seconds.`,
+		);
+	}
+};
+
+export const getMainchainID = (chainID: Buffer): Buffer => {
+	const networkID = chainID.slice(0, 1);
+	// 3 bytes for remaining chainID bytes
+	return Buffer.concat([networkID, Buffer.alloc(CHAIN_ID_LENGTH - 1, 0)]);
+};
+
+// TODO: Update to use Token method after merging development
+export const getMainchainTokenID = (chainID: Buffer): Buffer => {
+	const networkID = chainID.slice(0, 1);
+	// 3 bytes for remaining chainID bytes
+	return Buffer.concat([networkID, Buffer.alloc(7, 0)]);
 };

@@ -53,6 +53,25 @@ export const applicationConfigSchema = {
 				port: { type: 'number', minimum: 1024, maximum: 65535 },
 			},
 		},
+		legacy: {
+			type: 'object',
+			required: ['brackets'],
+			properties: {
+				sync: { type: 'boolean' },
+				brackets: {
+					type: 'array',
+					items: {
+						type: 'object',
+						required: ['startHeight', 'snapshotHeight', 'snapshotBlockID'],
+						properties: {
+							startHeight: { type: 'number', minimum: 0 },
+							snapshotHeight: { type: 'number', minimum: 0 },
+							snapshotBlockID: { type: 'string', format: 'hex' },
+						},
+					},
+				},
+			},
+		},
 		network: {
 			type: 'object',
 			properties: {
@@ -270,6 +289,10 @@ export const applicationConfigSchema = {
 			port: DEFAULT_PORT_RPC,
 			host: DEFAULT_HOST,
 		},
+		legacy: {
+			sync: false,
+			brackets: [],
+		},
 		network: {
 			version: '1.0',
 			seedPeers: [],
@@ -288,8 +311,6 @@ export const applicationConfigSchema = {
 			},
 			blockTime: 10,
 			bftBatchSize: 103,
-			chainID: '10000000',
-			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 			maxTransactionsSize: 15 * 1024, // Kilo Bytes
 		},
 		generator: {

@@ -65,10 +65,7 @@ const NodeInfoDialog: React.FC<NodeInfoDialogProps> = props => {
 							label={'Block time'}
 							value={nodeInfo.genesisConfig.blockTime.toLocaleString()}
 						/>
-						<NodeInfoItem
-							label={'Community identifier'}
-							value={nodeInfo.genesisConfig.communityIdentifier}
-						/>
+						<NodeInfoItem label={'Chain ID'} value={nodeInfo.genesisConfig.chainID} />
 					</Grid>
 
 					<Grid row>

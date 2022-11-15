@@ -12,19 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseEvent, EventQueuer } from '../../base_event';
-
-export const enum TransferEventResult {
-	SUCCESSFUL = 0,
-	FAIL_INSUFFICIENT_BALANCE = 1,
-	FAIL_RECIPIENT_NOT_INITIALIZED = 2,
-}
+import { TOKEN_ID_LENGTH, TokenEventResult, TokenErrorEventResult } from '../constants';
 
 export interface TransferEventData {
 	senderAddress: Buffer;
 	tokenID: Buffer;
 	amount: bigint;
 	recipientAddress: Buffer;
-	result: TransferEventResult;
 }
 
 export const transferEventSchema = {
@@ -34,18 +28,22 @@ export const transferEventSchema = {
 	properties: {
 		senderAddress: {
 			dataType: 'bytes',
+			format: 'lisk32',
 			fieldNumber: 1,
-		},
-		tokenID: {
-			dataType: 'bytes',
-			fieldNumber: 2,
-		},
-		amount: {
-			dataType: 'uint64',
-			fieldNumber: 3,
 		},
 		recipientAddress: {
 			dataType: 'bytes',
+			format: 'lisk32',
+			fieldNumber: 2,
+		},
+		tokenID: {
+			dataType: 'bytes',
+			minLength: TOKEN_ID_LENGTH,
+			maxLength: TOKEN_ID_LENGTH,
+			fieldNumber: 3,
+		},
+		amount: {
+			dataType: 'uint64',
 			fieldNumber: 4,
 		},
 		result: {
@@ -55,12 +53,17 @@ export const transferEventSchema = {
 	},
 };
 
-export class TransferEvent extends BaseEvent<TransferEventData> {
+export class TransferEvent extends BaseEvent<TransferEventData & { result: TokenEventResult }> {
 	public schema = transferEventSchema;
 
 	public log(ctx: EventQueuer, data: TransferEventData): void {
-		const amountBuffer = Buffer.alloc(8);
-		amountBuffer.writeBigUInt64BE(data.amount);
-		this.add(ctx, data, [data.senderAddress, data.tokenID, data.recipientAddress]);
+		this.add(ctx, { ...data, result: TokenEventResult.SUCCESSFUL }, [
+			data.senderAddress,
+			data.recipientAddress,
+		]);
+	}
+
+	public error(ctx: EventQueuer, data: TransferEventData, result: TokenErrorEventResult): void {
+		this.add(ctx, { ...data, result }, [data.senderAddress, data.recipientAddress], true);
 	}
 }

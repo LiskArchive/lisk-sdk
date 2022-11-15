@@ -88,15 +88,9 @@ export interface ModuleMetadata {
 export interface GenesisConfig {
 	[key: string]: unknown;
 	readonly bftThreshold: number;
-	readonly communityIdentifier: string;
+	readonly chainID: string;
 	readonly blockTime: number;
 	readonly maxTransactionsSize: number;
-	readonly rewards: {
-		readonly milestones: string[];
-		readonly offset: number;
-		readonly distance: number;
-	};
-	readonly minFeePerByte: number;
 }
 
 export interface NodeInfo {

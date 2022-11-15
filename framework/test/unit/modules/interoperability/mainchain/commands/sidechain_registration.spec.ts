@@ -21,7 +21,6 @@ import {
 	EMPTY_HASH,
 	MAX_UINT64,
 	MAX_NUM_VALIDATORS,
-	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 	COMMAND_NAME_SIDECHAIN_REG,
 	REGISTRATION_FEE,
@@ -42,7 +41,10 @@ import {
 	CommandVerifyContext,
 	VerifyStatus,
 } from '../../../../../../src/state_machine';
-import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
+import {
+	computeValidatorsHash,
+	getMainchainTokenID,
+} from '../../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
 import { MainchainInteroperabilityModule, TokenMethod, TokenModule } from '../../../../../../src';
@@ -58,14 +60,13 @@ import {
 import { ChainValidatorsStore } from '../../../../../../src/modules/interoperability/stores/chain_validators';
 import { createTransactionContext } from '../../../../../../src/testing';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
-import { EMPTY_BYTES, TOKEN_ID_LSK } from '../../../../../../src/modules/token/constants';
+import { EMPTY_BYTES } from '../../../../../../src/modules/token/constants';
 import { ChainAccountUpdatedEvent } from '../../../../../../src/modules/interoperability/events/chain_account_updated';
 import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
-import { TOKEN_ID_LSK_MAINCHAIN } from '../../../../../../src/modules/interoperability/constants';
 
 describe('Sidechain registration command', () => {
 	const interopMod = new MainchainInteroperabilityModule();
-	const chainID = MAINCHAIN_ID_BUFFER;
+	const chainID = Buffer.from([0, 0, 0, 0]);
 	const newChainID = utils.intToBuffer(2, 4);
 	const existingChainID = utils.intToBuffer(1, 4);
 	const transactionParams = {
@@ -489,7 +490,7 @@ describe('Sidechain registration command', () => {
 				inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				partnerChainOutboxRoot: EMPTY_HASH,
-				messageFeeTokenID: TOKEN_ID_LSK_MAINCHAIN,
+				messageFeeTokenID: getMainchainTokenID(chainID),
 			};
 
 			// Act
@@ -557,7 +558,7 @@ describe('Sidechain registration command', () => {
 			expect(tokenMethod.burn).toHaveBeenCalledWith(
 				expect.anything(),
 				transaction.senderAddress,
-				TOKEN_ID_LSK,
+				getMainchainTokenID(chainID),
 				REGISTRATION_FEE,
 			);
 		});
@@ -606,7 +607,7 @@ describe('Sidechain registration command', () => {
 		it(`should emit ${EVENT_NAME_CCM_SEND_SUCCESS} event`, async () => {
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
 				name: transactionParams.name,
-				messageFeeTokenID: TOKEN_ID_LSK_MAINCHAIN,
+				messageFeeTokenID: getMainchainTokenID(chainID),
 			});
 			const ccm = {
 				nonce: BigInt(0),

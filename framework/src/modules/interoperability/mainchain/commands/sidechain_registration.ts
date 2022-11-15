@@ -20,18 +20,15 @@ import { BaseInteroperabilityCommand } from '../../base_interoperability_command
 import {
 	EMPTY_HASH,
 	MAX_UINT64,
-	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 	REGISTRATION_FEE,
-	TOKEN_ID_LSK,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	EMPTY_BYTES,
-	TOKEN_ID_LSK_MAINCHAIN,
 	CCMStatusCode,
 } from '../../constants';
 import { ccmSchema, registrationCCMParamsSchema, sidechainRegParams } from '../../schemas';
 import { SidechainRegistrationParams } from '../../types';
-import { computeValidatorsHash, isValidName } from '../../utils';
+import { computeValidatorsHash, getMainchainTokenID, isValidName } from '../../utils';
 import {
 	CommandVerifyContext,
 	VerificationResult,
@@ -66,7 +63,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		} = context;
 
 		try {
-			validator.validate(sidechainRegParams, context.params);
+			validator.validate<SidechainRegistrationParams>(sidechainRegParams, context.params);
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -107,7 +104,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		}
 
 		// Check that the first byte of the chainID matches.
-		if (chainID[0] !== MAINCHAIN_ID_BUFFER[0]) {
+		if (chainID[0] !== context.chainID[0]) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Chain ID does not match the mainchain network.'),
@@ -175,7 +172,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		const availableBalance = await this._tokenMethod.getAvailableBalance(
 			context.getMethodContext(),
 			senderAddress,
-			TOKEN_ID_LSK,
+			getMainchainTokenID(context.chainID),
 		);
 		if (availableBalance < REGISTRATION_FEE) {
 			return {
@@ -215,13 +212,13 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		await chainSubstore.set(context, chainID, sidechainAccount);
 
 		// Add an entry in the channel substore
-		const messageFeeTokenID = TOKEN_ID_LSK_MAINCHAIN;
+		const mainchainTokenID = getMainchainTokenID(context.chainID);
 		const channelSubstore = this.stores.get(ChannelDataStore);
 		await channelSubstore.set(context, chainID, {
 			inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 			outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 			partnerChainOutboxRoot: EMPTY_HASH,
-			messageFeeTokenID,
+			messageFeeTokenID: mainchainTokenID,
 		});
 
 		// Add an entry in the validators substore
@@ -240,7 +237,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		await registeredNamesSubstore.set(context, Buffer.from(name, 'utf-8'), { chainID });
 
 		// Burn the registration fee
-		await this._tokenMethod.burn(methodContext, senderAddress, TOKEN_ID_LSK, REGISTRATION_FEE);
+		await this._tokenMethod.burn(methodContext, senderAddress, mainchainTokenID, REGISTRATION_FEE);
 
 		// Emit chain account updated event.
 		this.events.get(ChainAccountUpdatedEvent).log(methodContext, chainID, sidechainAccount);
@@ -248,7 +245,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		// Send registration CCM to the sidechain.
 		const encodedParams = codec.encode(registrationCCMParamsSchema, {
 			name,
-			messageFeeTokenID,
+			messageFeeTokenID: mainchainTokenID,
 		});
 
 		const ownChainAccountSubstore = this.stores.get(OwnChainAccountStore);

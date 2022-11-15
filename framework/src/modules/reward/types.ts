@@ -39,12 +39,7 @@ export interface RandomMethod {
 }
 
 export interface BFTMethod {
-	currentHeaderImpliesMaximalPrevotes(methodContext: ImmutableMethodContext): Promise<boolean>;
-}
-
-export interface RewardMintedData {
-	amount: bigint;
-	reduction: number;
+	impliesMaximalPrevotes(methodContext: ImmutableMethodContext): Promise<boolean>;
 }
 
 export interface DefaultReward {

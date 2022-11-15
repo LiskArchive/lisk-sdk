@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { utils } from '@liskhq/lisk-cryptography';
+import { bls, utils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { objects } from '@liskhq/lisk-utils';
 import {
@@ -23,6 +23,7 @@ import {
 	CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
 	MODULE_NAME_INTEROPERABILITY,
 	CCMStatusCode,
+	MESSAGE_TAG_CERTIFICATE,
 } from './constants';
 import { ccmSchema } from './schemas';
 import {
@@ -47,7 +48,7 @@ import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
 import { BaseInternalMethod } from '../BaseInternalMethod';
 import { TerminatedOutboxCreatedEvent } from './events/terminated_outbox_created';
 import { MethodContext, ImmutableMethodContext } from '../../state_machine';
-import { ChainValidatorsStore, updateActiveValidators } from './stores/chain_validators';
+import { ChainValidatorsStore, calculateNewActiveValidators } from './stores/chain_validators';
 import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';
 import { Certificate } from '../../engine/consensus/certificate_generation/types';
 import { BaseCCMethod } from './base_cc_method';
@@ -309,7 +310,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			.get(ChainValidatorsStore)
 			.get(context, ccu.sendingChainID);
 
-		const newActiveValidators = updateActiveValidators(
+		const newActiveValidators = calculateNewActiveValidators(
 			activeValidators,
 			ccu.activeValidatorsUpdate,
 		);
@@ -320,6 +321,57 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		);
 		if (!certificate.validatorsHash.equals(newValidatorsHash)) {
 			throw new Error('ValidatorsHash in certificate and the computed values do not match.');
+		}
+	}
+
+	public async verifyCertificate(
+		context: ImmutableMethodContext,
+		params: CrossChainUpdateTransactionParams,
+		blockTimestamp: number,
+	): Promise<void> {
+		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
+		const partnerchainAccount = await this.stores
+			.get(ChainAccountStore)
+			.get(context, params.sendingChainID);
+
+		if (certificate.height <= partnerchainAccount.lastCertificate.height) {
+			throw new Error('Certificate height is not greater than last certificate height.');
+		}
+		if (certificate.timestamp >= blockTimestamp) {
+			throw new Error(
+				'Certificate timestamp is not smaller than timestamp of the block including the CCU.',
+			);
+		}
+	}
+
+	public async verifyCertificateSignature(
+		context: ImmutableMethodContext,
+		params: CrossChainUpdateTransactionParams,
+	): Promise<void> {
+		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
+		const chainValidators = await this.stores
+			.get(ChainValidatorsStore)
+			.get(context, params.sendingChainID);
+		const blsKeys = [];
+		const blsWeights = [];
+		for (const validator of chainValidators.activeValidators) {
+			blsKeys.push(validator.blsKey);
+			blsWeights.push(validator.bftWeight);
+		}
+
+		const verifySignature = bls.verifyWeightedAggSig(
+			blsKeys,
+			certificate.aggregationBits as Buffer,
+			certificate.signature as Buffer,
+			MESSAGE_TAG_CERTIFICATE,
+			params.sendingChainID,
+			params.certificate,
+			blsWeights,
+			params.newCertificateThreshold,
+		);
+
+		if (!verifySignature) {
+			throw new Error('Certificate is not a valid aggregate signature.');
 		}
 	}
 

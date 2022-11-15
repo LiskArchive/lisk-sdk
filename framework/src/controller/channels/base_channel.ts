@@ -17,6 +17,14 @@ import { eventWithModuleNameReg } from '../../constants';
 import { EndpointHandlers } from '../../types';
 import { Logger } from '../../logger';
 
+export interface InvokeRequest {
+	methodName: string;
+	context: {
+		header?: { height: number; timestamp: number; aggregateCommit: { height: number } };
+	};
+	params?: Record<string, unknown>;
+}
+
 export abstract class BaseChannel {
 	public readonly eventsList: ReadonlyArray<string>;
 	public readonly endpointsList: ReadonlyArray<string>;
@@ -83,7 +91,7 @@ export abstract class BaseChannel {
 
 	// Call action of any moduleName through controller
 	// Specified as moduleName_actionName
-	abstract invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T>;
+	abstract invoke<T>(req: InvokeRequest): Promise<T>;
 
 	abstract registerToBus(arg: unknown): Promise<void>;
 	abstract once(eventName: string, cb: EventCallback): void;

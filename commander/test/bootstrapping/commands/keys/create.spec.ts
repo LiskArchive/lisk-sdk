@@ -51,13 +51,13 @@ describe('keys:create command', () => {
 		stderr = [];
 		config = await getConfig();
 
-		defaultAccountPrivateKey = await cryptography.ed.getKeyPairFromPhraseAndPath(
+		defaultAccountPrivateKey = await cryptography.ed.getPrivateKeyFromPhraseAndPath(
 			defaultPassphrase,
 			defaultAccountKeyPath,
 		);
 		defaultAccountPublicKey = cryptography.ed.getPublicKeyFromPrivateKey(defaultAccountPrivateKey);
 		defaultAddress = cryptography.address.getAddressFromPublicKey(defaultAccountPublicKey);
-		defaultGeneratorPrivateKey = await cryptography.ed.getKeyPairFromPhraseAndPath(
+		defaultGeneratorPrivateKey = await cryptography.ed.getPrivateKeyFromPhraseAndPath(
 			defaultPassphrase,
 			defaultGeneratorKeyPath,
 		);
@@ -89,7 +89,7 @@ describe('keys:create command', () => {
 
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
-		jest.spyOn(cryptography.ed, 'getKeyPairFromPhraseAndPath');
+		jest.spyOn(cryptography.ed, 'getPrivateKeyFromPhraseAndPath');
 		jest.spyOn(cryptography.ed, 'getPublicKeyFromPrivateKey');
 		jest.spyOn(cryptography.address, 'getAddressFromPublicKey');
 		jest.spyOn(cryptography.bls, 'getPrivateKeyFromPhraseAndPath');
@@ -115,7 +115,7 @@ describe('keys:create command', () => {
 			await CreateCommand.run([], config);
 			const loggedData = JSON.parse(stdout[0]);
 
-			expect(cryptography.ed.getKeyPairFromPhraseAndPath).toHaveBeenCalledWith(
+			expect(cryptography.ed.getPrivateKeyFromPhraseAndPath).toHaveBeenCalledWith(
 				defaultPassphrase,
 				defaultAccountKeyPath,
 			);
@@ -125,7 +125,7 @@ describe('keys:create command', () => {
 			expect(cryptography.address.getAddressFromPublicKey).toHaveBeenCalledWith(
 				defaultAccountPublicKey,
 			);
-			expect(cryptography.ed.getKeyPairFromPhraseAndPath).toHaveBeenCalledWith(
+			expect(cryptography.ed.getPrivateKeyFromPhraseAndPath).toHaveBeenCalledWith(
 				defaultPassphrase,
 				defaultGeneratorKeyPath,
 			);
@@ -163,7 +163,7 @@ describe('keys:create command', () => {
 			const loggedData = JSON.parse(stdout[0]);
 			const expectedData = [{ ...defaultKeys[0], encrypted: {} }];
 
-			expect(cryptography.ed.getKeyPairFromPhraseAndPath).toHaveBeenCalledWith(
+			expect(cryptography.ed.getPrivateKeyFromPhraseAndPath).toHaveBeenCalledWith(
 				defaultPassphrase,
 				defaultAccountKeyPath,
 			);
@@ -173,7 +173,7 @@ describe('keys:create command', () => {
 			expect(cryptography.address.getAddressFromPublicKey).toHaveBeenCalledWith(
 				defaultAccountPublicKey,
 			);
-			expect(cryptography.ed.getKeyPairFromPhraseAndPath).toHaveBeenCalledWith(
+			expect(cryptography.ed.getPrivateKeyFromPhraseAndPath).toHaveBeenCalledWith(
 				defaultPassphrase,
 				defaultGeneratorKeyPath,
 			);
@@ -205,12 +205,12 @@ describe('keys:create command', () => {
 			const generatorKeyPath2 = `m/25519'/134'/1'/2'`;
 			const blsKeyPath2 = `m/12381/134/1/2`;
 
-			const accountPrivateKey1 = await cryptography.ed.getKeyPairFromPhraseAndPath(
+			const accountPrivateKey1 = await cryptography.ed.getPrivateKeyFromPhraseAndPath(
 				defaultPassphrase,
 				accountKeyPath1,
 			);
 			const accountPublicKey1 = cryptography.ed.getPublicKeyFromPrivateKey(accountPrivateKey1);
-			const generatorPrivateKey1 = await cryptography.ed.getKeyPairFromPhraseAndPath(
+			const generatorPrivateKey1 = await cryptography.ed.getPrivateKeyFromPhraseAndPath(
 				defaultPassphrase,
 				generatorKeyPath1,
 			);
@@ -220,13 +220,13 @@ describe('keys:create command', () => {
 				blsKeyPath1,
 			);
 
-			const accountPrivateKey2 = await cryptography.ed.getKeyPairFromPhraseAndPath(
+			const accountPrivateKey2 = await cryptography.ed.getPrivateKeyFromPhraseAndPath(
 				defaultPassphrase,
 				accountKeyPath2,
 			);
 			const accountPublicKey2 = cryptography.ed.getPublicKeyFromPrivateKey(accountPrivateKey2);
 
-			const generatorPrivateKey2 = await cryptography.ed.getKeyPairFromPhraseAndPath(
+			const generatorPrivateKey2 = await cryptography.ed.getPrivateKeyFromPhraseAndPath(
 				defaultPassphrase,
 				generatorKeyPath2,
 			);
@@ -248,13 +248,13 @@ describe('keys:create command', () => {
 				config,
 			);
 
-			expect(cryptography.ed.getKeyPairFromPhraseAndPath).toHaveBeenCalledWith(
+			expect(cryptography.ed.getPrivateKeyFromPhraseAndPath).toHaveBeenCalledWith(
 				defaultPassphrase,
 				accountKeyPath1,
 			);
 			expect(cryptography.ed.getPublicKeyFromPrivateKey).toHaveBeenCalledWith(accountPrivateKey1);
 			expect(cryptography.address.getAddressFromPublicKey).toHaveBeenCalledWith(accountPublicKey1);
-			expect(cryptography.ed.getKeyPairFromPhraseAndPath).toHaveBeenCalledWith(
+			expect(cryptography.ed.getPrivateKeyFromPhraseAndPath).toHaveBeenCalledWith(
 				defaultPassphrase,
 				generatorKeyPath1,
 			);
@@ -265,13 +265,13 @@ describe('keys:create command', () => {
 			);
 			expect(cryptography.bls.getPublicKeyFromPrivateKey).toHaveBeenCalledWith(blsPrivateKey1);
 
-			expect(cryptography.ed.getKeyPairFromPhraseAndPath).toHaveBeenCalledWith(
+			expect(cryptography.ed.getPrivateKeyFromPhraseAndPath).toHaveBeenCalledWith(
 				defaultPassphrase,
 				accountKeyPath2,
 			);
 			expect(cryptography.ed.getPublicKeyFromPrivateKey).toHaveBeenCalledWith(accountPrivateKey2);
 			expect(cryptography.address.getAddressFromPublicKey).toHaveBeenCalledWith(accountPublicKey2);
-			expect(cryptography.ed.getKeyPairFromPhraseAndPath).toHaveBeenCalledWith(
+			expect(cryptography.ed.getPrivateKeyFromPhraseAndPath).toHaveBeenCalledWith(
 				defaultPassphrase,
 				generatorKeyPath2,
 			);

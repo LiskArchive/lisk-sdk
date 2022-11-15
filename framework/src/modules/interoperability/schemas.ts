@@ -159,7 +159,7 @@ export const mainchainRegParams = {
 			dataType: 'string',
 			fieldNumber: 2,
 			minLength: MIN_CHAIN_NAME_LENGTH,
-			maxLength: MAX_LENGTH_NAME,
+			maxLength: MAX_CHAIN_NAME_LENGTH,
 		},
 		mainchainValidators: {
 			type: 'array',

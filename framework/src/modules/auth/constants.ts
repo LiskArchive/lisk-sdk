@@ -15,11 +15,7 @@
 export const COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP = 'registerMultisignature';
 export const MAX_NUMBER_OF_SIGNATURES = 64;
 
-// Commands
-export const COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP = 0x0000;
 // Events
-export const TYPE_ID_MULTISIGNATURE_GROUP_REGISTERED = '0001';
-export const TYPE_ID_INVALID_SIGNATURE_ERROR = '0002';
 export const MESSAGE_TAG_MULTISIG_REG = 'LSK_RMSG_';
 export const MESSAGE_TAG_TRANSACTION = Buffer.from('LSK_TX_', 'utf8');
 // Constants
