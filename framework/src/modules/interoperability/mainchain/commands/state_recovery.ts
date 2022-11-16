@@ -29,7 +29,7 @@ import {
 import { createRecoverCCMsgMethodContext } from '../../../../testing';
 import { TerminatedStateStore } from '../../stores/terminated_state';
 
-export class StateRecoveryCommand extends BaseInteroperabilityCommand {
+export class StateRecoveryCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = stateRecoveryParamsSchema;
 
 	public async verify(
@@ -144,13 +144,5 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 			...terminatedStateAccount,
 			stateRoot: root,
 		});
-	}
-
-	protected getInteroperabilityInternalMethod(): MainchainInteroperabilityInternalMethod {
-		return new MainchainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			this.interoperableCCMethods,
-		);
 	}
 }

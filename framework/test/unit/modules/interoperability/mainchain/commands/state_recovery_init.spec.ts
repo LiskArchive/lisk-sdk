@@ -76,6 +76,7 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 			interopMod.events,
 			new Map(),
 			new Map(),
+			interopMod['internalMethod'],
 		);
 
 		sidechainChainAccount = {
@@ -144,10 +145,6 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 		interopStoreMock = {
 			createTerminatedStateAccount: jest.fn(),
 		};
-
-		jest
-			.spyOn(stateRecoveryInitCommand, 'getInteroperabilityInternalMethod' as any)
-			.mockImplementation(() => interopStoreMock);
 	});
 
 	describe('verify', () => {

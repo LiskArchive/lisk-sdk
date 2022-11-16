@@ -21,11 +21,9 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainCCSidechainTerminatedCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands';
-import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/internal_method';
 import { sidechainTerminatedCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { TerminatedStateStore } from '../../../../../../src/modules/interoperability/stores/terminated_state';
 import { CrossChainMessageContext } from '../../../../../../src/modules/interoperability/types';
-import { NamedRegistry } from '../../../../../../src/modules/named_registry';
 import { createCrossChainMessageContext } from '../../../../../../src/testing';
 
 describe('MainchainCCSidechainTerminatedCommand', () => {
@@ -84,28 +82,20 @@ describe('MainchainCCSidechainTerminatedCommand', () => {
 		chainID,
 	});
 
-	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 	let ccSidechainTerminatedCommand: MainchainCCSidechainTerminatedCommand;
 
 	beforeEach(() => {
-		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
-			interopMod.stores,
-			new NamedRegistry(),
-			ccMethodsMap,
-		);
-		mainchainInteroperabilityInternalMethod.terminateChainInternal = terminateChainInternalMock;
+		interopMod['internalMethod'].terminateChainInternal = terminateChainInternalMock;
 
 		interopMod.stores.get(TerminatedStateStore).has = hasTerminatedStateAccountMock;
-		mainchainInteroperabilityInternalMethod.createTerminatedStateAccount = createTerminatedStateAccountMock;
+		interopMod['internalMethod'].createTerminatedStateAccount = createTerminatedStateAccountMock;
 
 		ccSidechainTerminatedCommand = new MainchainCCSidechainTerminatedCommand(
 			interopMod.stores,
 			interopMod.events,
 			ccMethodsMap,
+			interopMod['internalMethod'],
 		);
-		(ccSidechainTerminatedCommand as any)[
-			'getInteroperabilityInternalMethod'
-		] = jest.fn().mockReturnValue(mainchainInteroperabilityInternalMethod);
 	});
 
 	it('should call terminateChainInternal when sendingChainID !== MAINCHAIN_ID', async () => {

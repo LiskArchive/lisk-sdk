@@ -135,6 +135,7 @@ describe('Sidechain registration command', () => {
 			interopMod.events,
 			new Map(),
 			new Map(),
+			interopMod['internalMethod'],
 		);
 
 		// Set up dependencies

@@ -16,7 +16,6 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { CommandExecuteContext, MainchainInteroperabilityModule } from '../../../../src';
 import { BaseCCCommand } from '../../../../src/modules/interoperability/base_cc_command';
 import { BaseCrossChainUpdateCommand } from '../../../../src/modules/interoperability/base_cross_chain_update_command';
-import { BaseInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/base_interoperability_internal_methods';
 import { BaseCCMethod } from '../../../../src/modules/interoperability/base_cc_method';
 import { CCMStatusCode, MIN_RETURN_FEE } from '../../../../src/modules/interoperability/constants';
 import {
@@ -29,13 +28,10 @@ import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules
 import { CrossChainMessageContext } from '../../../../src/modules/interoperability/types';
 import { createCrossChainMessageContext } from '../../../../src/testing';
 
-class CrossChainUpdateCommand extends BaseCrossChainUpdateCommand {
+class CrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async execute(_context: CommandExecuteContext<unknown>): Promise<void> {
 		throw new Error('Method not implemented.');
-	}
-	protected getInteroperabilityInternalMethod(): BaseInteroperabilityInternalMethod {
-		return new MainchainInteroperabilityInternalMethod(this.stores, this.events, new Map());
 	}
 }
 
@@ -54,7 +50,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 	let command: CrossChainUpdateCommand;
 	let ccMethods: Map<string, BaseCCMethod>;
 	let ccCommands: Map<string, BaseCCCommand[]>;
-	let internalMethod: BaseInteroperabilityInternalMethod;
+	let internalMethod: MainchainInteroperabilityInternalMethod;
 
 	beforeEach(() => {
 		const interopModule = new MainchainInteroperabilityModule();
@@ -75,20 +71,19 @@ describe('BaseCrossChainUpdateCommand', () => {
 				public execute = jest.fn();
 			})(interopModule.stores, interopModule.events),
 		]);
+		internalMethod = {
+			isLive: jest.fn().mockResolvedValue(true),
+			addToOutbox: jest.fn().mockResolvedValue({}),
+			terminateChainInternal: jest.fn().mockResolvedValue({}),
+		} as any;
+		interopModule['internalMethod'] = internalMethod;
 		command = new CrossChainUpdateCommand(
 			interopModule.stores,
 			interopModule.events,
 			ccMethods,
 			ccCommands,
+			interopModule['internalMethod'],
 		);
-		internalMethod = ({
-			isLive: jest.fn().mockResolvedValue(true),
-			addToOutbox: jest.fn(),
-			terminateChainInternal: jest.fn(),
-		} as unknown) as BaseInteroperabilityInternalMethod;
-		jest
-			.spyOn(command, 'getInteroperabilityInternalMethod' as never)
-			.mockReturnValue(internalMethod as never);
 		jest.spyOn(command['events'].get(CcmProcessedEvent), 'log');
 		jest.spyOn(command['events'].get(CcmSendSuccessEvent), 'log');
 		context = createCrossChainMessageContext({

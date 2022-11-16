@@ -30,7 +30,7 @@ import { TerminatedStateAccount, TerminatedStateStore } from '../../stores/termi
 import { ChainAccount, StateRecoveryInitParams } from '../../types';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
-export class StateRecoveryInitializationCommand extends BaseInteroperabilityCommand {
+export class StateRecoveryInitializationCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = stateRecoveryInitParams;
 
 	public async verify(
@@ -133,8 +133,6 @@ export class StateRecoveryInitializationCommand extends BaseInteroperabilityComm
 			params.sidechainChainAccount,
 		);
 
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod();
-
 		const doesTerminatedStateAccountExist = await this.stores
 			.get(TerminatedStateStore)
 			.has(context, params.chainID);
@@ -151,18 +149,10 @@ export class StateRecoveryInitializationCommand extends BaseInteroperabilityComm
 			return;
 		}
 
-		await interoperabilityInternalMethod.createTerminatedStateAccount(
+		await this.internalMethod.createTerminatedStateAccount(
 			context,
 			params.chainID,
 			sidechainChainAccount.lastCertificate.stateRoot,
-		);
-	}
-
-	protected getInteroperabilityInternalMethod(): MainchainInteroperabilityInternalMethod {
-		return new MainchainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			this.interoperableCCMethods,
 		);
 	}
 }

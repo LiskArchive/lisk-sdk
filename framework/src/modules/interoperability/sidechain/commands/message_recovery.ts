@@ -31,7 +31,7 @@ import { TerminatedOutboxAccount, TerminatedOutboxStore } from '../../stores/ter
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { BaseCCMethod } from '../../base_cc_method';
 
-export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand {
+export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand<SidechainInteroperabilityInternalMethod> {
 	public schema = messageRecoveryParamsSchema;
 
 	public get name(): string {
@@ -140,13 +140,5 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 
 			await ccCommand.execute({ ...context, ccm: newCcm });
 		}
-	}
-
-	protected getInteroperabilityInternalMethod(): SidechainInteroperabilityInternalMethod {
-		return new SidechainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			this.interoperableCCMethods,
-		);
 	}
 }

@@ -17,9 +17,13 @@ import { BaseCCMethod } from './base_cc_method';
 import { NamedRegistry } from '../named_registry';
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import { ChainAccount, ChainAccountStore } from './stores/chain_account';
-import { StoreGetter, ImmutableStoreGetter } from '../base_store';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
-import { EMPTY_BYTES, MAINCHAIN_ID_BUFFER, MAX_RESERVED_ERROR_STATUS, EMPTY_FEE_ADDRESS, } from './constants';
+import {
+	EMPTY_BYTES,
+	MAINCHAIN_ID_BUFFER,
+	MAX_RESERVED_ERROR_STATUS,
+	EMPTY_FEE_ADDRESS,
+} from './constants';
 import { TokenMethod } from '../token';
 import { OwnChainAccountStore } from './stores/own_chain_account';
 import { ChannelDataStore } from './stores/channel_data';
@@ -30,7 +34,6 @@ import { CCMsg } from './types';
 export abstract class BaseInteroperabilityMethod<
 	T extends BaseInteroperabilityInternalMethod
 > extends BaseMethod {
-	protected readonly interoperableCCMethods = new Map<string, BaseCCMethod>();
 	protected _tokenMethod!: TokenMethod & {
 		payMessageFee: (
 			context: MethodContext,
@@ -39,17 +42,14 @@ export abstract class BaseInteroperabilityMethod<
 			receivingChainID: Buffer,
 		) => Promise<void>;
 	};
-	protected abstract getInteroperabilityInternalMethod: (
-		context: StoreGetter | ImmutableStoreGetter,
-	) => T;
 
 	public constructor(
 		stores: NamedRegistry,
 		events: NamedRegistry,
-		interoperableCCMethods: Map<string, BaseCCMethod>,
+		protected readonly interoperableCCMethods = new Map<string, BaseCCMethod>(),
+		protected internalMethod: T,
 	) {
 		super(stores, events);
-		this.interoperableCCMethods = interoperableCCMethods;
 	}
 
 	public addDependencies(
@@ -111,9 +111,7 @@ export abstract class BaseInteroperabilityMethod<
 		params: Buffer,
 		timestamp?: number,
 	): Promise<void> {
-		const internalMethod = this.getInteroperabilityInternalMethod(context);
-
-		await internalMethod.sendInternal(
+		await this.internalMethod.sendInternal(
 			context,
 			sendingAddress,
 			module,

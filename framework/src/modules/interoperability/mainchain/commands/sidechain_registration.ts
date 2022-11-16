@@ -45,7 +45,7 @@ import { ChainAccountUpdatedEvent } from '../../events/chain_account_updated';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { CcmSendSuccessEvent } from '../../events/ccm_send_success';
 
-export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
+export class SidechainRegistrationCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = sidechainRegParams;
 	private _tokenMethod!: TokenMethod;
 
@@ -262,8 +262,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			params: encodedParams,
 		};
 
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod();
-		await interoperabilityInternalMethod.addToOutbox(context, chainID, ccm);
+		await this.internalMethod.addToOutbox(context, chainID, ccm);
 		// Update own chain account nonce
 		ownChainAccount.nonce += BigInt(1);
 		await ownChainAccountSubstore.set(context, EMPTY_BYTES, ownChainAccount);
@@ -274,13 +273,5 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			.log(methodContext, ownChainAccount.chainID, chainID, ccmID, {
 				ccmID,
 			});
-	}
-
-	protected getInteroperabilityInternalMethod(): MainchainInteroperabilityInternalMethod {
-		return new MainchainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			this.interoperableCCMethods,
-		);
 	}
 }

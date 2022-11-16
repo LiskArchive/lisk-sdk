@@ -26,7 +26,7 @@ interface CCMSidechainTerminatedParams {
 	stateRoot: Buffer;
 }
 
-export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityCCCommand {
+export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityCCCommand<SidechainInteroperabilityInternalMethod> {
 	public schema = sidechainTerminatedCCMParamsSchema;
 
 	public get name(): string {
@@ -42,7 +42,6 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 			sidechainTerminatedCCMParamsSchema,
 			ccm.params,
 		);
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod();
 
 		if (ccm.sendingChainID.equals(getIDAsKeyForStore(MAINCHAIN_ID))) {
 			const isTerminated = await this.stores
@@ -52,21 +51,13 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 			if (isTerminated) {
 				return;
 			}
-			await interoperabilityInternalMethod.createTerminatedStateAccount(
+			await this.internalMethods.createTerminatedStateAccount(
 				context,
 				ccmSidechainTerminatedParams.chainID,
 				ccmSidechainTerminatedParams.stateRoot,
 			);
 		} else {
-			await interoperabilityInternalMethod.terminateChainInternal(context, ccm.sendingChainID);
+			await this.internalMethods.terminateChainInternal(context, ccm.sendingChainID);
 		}
-	}
-
-	protected getInteroperabilityInternalMethod(): SidechainInteroperabilityInternalMethod {
-		return new SidechainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			this.interoperableCCMethods,
-		);
 	}
 }

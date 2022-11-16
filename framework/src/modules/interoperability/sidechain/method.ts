@@ -15,11 +15,4 @@
 import { SidechainInteroperabilityInternalMethod } from './internal_method';
 import { BaseInteroperabilityMethod } from '../base_interoperability_method';
 
-export class SidechainInteroperabilityMethod extends BaseInteroperabilityMethod<SidechainInteroperabilityInternalMethod> {
-	protected getInteroperabilityInternalMethod = (): SidechainInteroperabilityInternalMethod =>
-		new SidechainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			this.interoperableCCMethods,
-		);
-}
+export class SidechainInteroperabilityMethod extends BaseInteroperabilityMethod<SidechainInteroperabilityInternalMethod> {}

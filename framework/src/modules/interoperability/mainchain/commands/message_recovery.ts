@@ -32,7 +32,7 @@ import { TerminatedOutboxAccount, TerminatedOutboxStore } from '../../stores/ter
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 
-export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand {
+export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = messageRecoveryParamsSchema;
 
 	public get name(): string {
@@ -90,8 +90,6 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			updatedCCMs.push(encodedUpdatedCCM);
 		}
 
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod();
-
 		const doesTerminatedOutboxAccountExist = await this.stores
 			.get(TerminatedOutboxStore)
 			.has(context, chainIdAsBuffer);
@@ -143,7 +141,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 
 			const ccmChainId = newCcm.receivingChainID;
 			const chainAccountExist = await this.stores.get(ChainAccountStore).has(context, ccmChainId);
-			const isLive = await interoperabilityInternalMethod.isLive(context, ccmChainId, Date.now());
+			const isLive = await this.internalMethod.isLive(context, ccmChainId, Date.now());
 
 			if (!chainAccountExist || !isLive) {
 				continue;
@@ -155,15 +153,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 				continue;
 			}
 
-			await interoperabilityInternalMethod.addToOutbox(context, ccmChainId, newCcm);
+			await this.internalMethod.addToOutbox(context, ccmChainId, newCcm);
 		}
-	}
-
-	protected getInteroperabilityInternalMethod(): MainchainInteroperabilityInternalMethod {
-		return new MainchainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			this.interoperableCCMethods,
-		);
 	}
 }

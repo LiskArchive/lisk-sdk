@@ -60,7 +60,7 @@ import {
 } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
-export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
+export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
@@ -87,13 +87,9 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 				),
 			};
 		}
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod();
+
 		if (partnerChainAccount.status === ChainStatus.ACTIVE) {
-			const isLive = await interoperabilityInternalMethod.isLive(
-				context,
-				txParams.sendingChainID,
-				Date.now(),
-			);
+			const isLive = await this.internalMethod.isLive(context, txParams.sendingChainID, Date.now());
 			if (!isLive) {
 				return {
 					status: VerifyStatus.FAIL,
@@ -132,17 +128,11 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 			txParams.activeValidatorsUpdate.length > 0 ||
 			partnerValidators.certificateThreshold !== txParams.newCertificateThreshold
 		) {
-			await this.getInteroperabilityInternalMethod().verifyValidatorsUpdate(
-				context.getMethodContext(),
-				txParams,
-			);
+			await this.internalMethod.verifyValidatorsUpdate(context.getMethodContext(), txParams);
 		}
 
 		// When certificate is non-empty
-		await interoperabilityInternalMethod.verifyCertificateSignature(
-			context.getMethodContext(),
-			txParams,
-		);
+		await this.internalMethod.verifyCertificateSignature(context.getMethodContext(), txParams);
 
 		const partnerChannelStore = this.stores.get(ChannelDataStore);
 		const partnerChannelData = await partnerChannelStore.get(context, txParams.sendingChainID);
@@ -177,9 +167,8 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 		checkCertificateTimestamp(txParams, decodedCertificate, header);
 
 		// CCM execution
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod();
 		const terminateChainInternal = async () =>
-			interoperabilityInternalMethod.terminateChainInternal(context, txParams.sendingChainID);
+			this.internalMethod.terminateChainInternal(context, txParams.sendingChainID);
 		let decodedCCMs;
 		try {
 			decodedCCMs = txParams.inboxUpdate.crossChainMessages.map(ccm => ({
@@ -221,11 +210,7 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 
 				continue;
 			}
-			await interoperabilityInternalMethod.appendToInboxTree(
-				context,
-				txParams.sendingChainID,
-				ccm.serialized,
-			);
+			await this.internalMethod.appendToInboxTree(context, txParams.sendingChainID, ccm.serialized);
 			const ccmContext = {
 				...context,
 				ccm: ccm.deserialized,
@@ -249,19 +234,10 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 		});
 	}
 
-	protected getInteroperabilityInternalMethod(): MainchainInteroperabilityInternalMethod {
-		return new MainchainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			this.interoperableCCMethods,
-		);
-	}
-
 	private async _forward(context: CrossChainMessageContext): Promise<void> {
 		const { ccm, logger } = context;
 		const encodedCCM = codec.encode(ccmSchema, ccm);
 		const ccmID = utils.hash(encodedCCM);
-		const internalMethod = this.getInteroperabilityInternalMethod();
 
 		const valid = await this.verifyCCM(context, ccmID);
 		if (!valid) {
@@ -295,19 +271,19 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 			}
 			throw error;
 		}
-		const isLive = await internalMethod.isLive(
+		const isLive = await this.internalMethod.isLive(
 			context,
 			ccm.receivingChainID,
 			context.header.timestamp,
 		);
 		if (!isLive) {
-			await internalMethod.terminateChainInternal(context, ccm.receivingChainID);
+			await this.internalMethod.terminateChainInternal(context, ccm.receivingChainID);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccmID,
 				code: CCMProcessedCode.CHANNEL_UNAVAILABLE,
 				result: CCMProcessedResult.DISCARDED,
 			});
-			await internalMethod.sendInternal(
+			await this.internalMethod.sendInternal(
 				context,
 				EMPTY_FEE_ADDRESS,
 				MODULE_NAME_INTEROPERABILITY,
@@ -346,7 +322,7 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
 				'Fail to execute beforeCrossChainCommandExecute.',
 			);
-			await internalMethod.terminateChainInternal(context, ccm.sendingChainID);
+			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccmID,
 				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
@@ -354,7 +330,7 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 			});
 			return;
 		}
-		await internalMethod.addToOutbox(context, ccm.receivingChainID, ccm);
+		await this.internalMethod.addToOutbox(context, ccm.receivingChainID, ccm);
 		this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 			ccmID,
 			code: CCMProcessedCode.SUCCESS,

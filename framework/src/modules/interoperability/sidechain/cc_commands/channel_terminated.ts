@@ -12,16 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 import { BaseCCChannelTerminatedCommand } from '../../base_cc_commands/channel_terminated';
+import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#channel-terminated-message-1
-export class SidechainCCChannelTerminatedCommand extends BaseCCChannelTerminatedCommand {
-	protected getInteroperabilityInternalMethod(): SidechainInteroperabilityInternalMethod {
-		return new SidechainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			this.interoperableCCMethods,
-		);
-	}
-}
+export class SidechainCCChannelTerminatedCommand extends BaseCCChannelTerminatedCommand<SidechainInteroperabilityInternalMethod> {}

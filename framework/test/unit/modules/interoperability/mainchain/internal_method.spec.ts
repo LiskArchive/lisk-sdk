@@ -23,7 +23,10 @@ import {
 	EMPTY_BYTES,
 } from '../../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityInternalMethod } from '../../../../../src/modules/interoperability/mainchain/internal_method';
-import { ChainAccountStore, ChainStatus } from '../../../../../src/modules/interoperability/stores/chain_account';
+import {
+	ChainAccountStore,
+	ChainStatus,
+} from '../../../../../src/modules/interoperability/stores/chain_account';
 import { OwnChainAccountStore } from '../../../../../src/modules/interoperability/stores/own_chain_account';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
@@ -110,7 +113,10 @@ describe('Mainchain interoperability internal method', () => {
 		});
 
 		it(`should return false if chain account exists and status is ${ChainStatus.TERMINATED}`, async () => {
-			await chainDataSubstore.set(context, chainID, { ...chainAccount, status: ChainStatus.TERMINATED });
+			await chainDataSubstore.set(context, chainID, {
+				...chainAccount,
+				status: ChainStatus.TERMINATED,
+			});
 			const isLive = await mainchainInteroperabilityInternalMethod.isLive(
 				context,
 				chainID,

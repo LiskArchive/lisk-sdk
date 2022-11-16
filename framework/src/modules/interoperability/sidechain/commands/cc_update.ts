@@ -42,7 +42,7 @@ import {
 } from '../../utils';
 import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 
-export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
+export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand<SidechainInteroperabilityInternalMethod> {
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
@@ -69,9 +69,9 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 				),
 			};
 		}
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod();
+
 		if (partnerChainAccount.status === ChainStatus.ACTIVE) {
-			const isLive = await interoperabilityInternalMethod.isLive(context, partnerChainIDBuffer);
+			const isLive = await this.internalMethod.isLive(context, partnerChainIDBuffer);
 			if (!isLive) {
 				return {
 					status: VerifyStatus.FAIL,
@@ -110,17 +110,11 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 			txParams.activeValidatorsUpdate.length > 0 ||
 			partnerValidators.certificateThreshold !== txParams.newCertificateThreshold
 		) {
-			await this.getInteroperabilityInternalMethod().verifyValidatorsUpdate(
-				context.getMethodContext(),
-				txParams,
-			);
+			await this.internalMethod.verifyValidatorsUpdate(context.getMethodContext(), txParams);
 		}
 
 		// When certificate is non-empty
-		await interoperabilityInternalMethod.verifyCertificateSignature(
-			context.getMethodContext(),
-			txParams,
-		);
+		await this.internalMethod.verifyCertificateSignature(context.getMethodContext(), txParams);
 
 		const partnerChannelStore = this.stores.get(ChannelDataStore);
 		const partnerChannelData = await partnerChannelStore.get(context, partnerChainIDBuffer);
@@ -155,9 +149,8 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 		checkCertificateTimestamp(txParams, decodedCertificate, header);
 
 		// CCM execution
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod();
 		const terminateChainInternal = async () =>
-			interoperabilityInternalMethod.terminateChainInternal(context, txParams.sendingChainID);
+			this.internalMethod.terminateChainInternal(context, txParams.sendingChainID);
 		let decodedCCMs;
 		try {
 			decodedCCMs = txParams.inboxUpdate.crossChainMessages.map(ccm => ({
@@ -199,11 +192,7 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 
 				continue;
 			}
-			await interoperabilityInternalMethod.appendToInboxTree(
-				context,
-				txParams.sendingChainID,
-				ccm.serialized,
-			);
+			await this.internalMethod.appendToInboxTree(context, txParams.sendingChainID, ccm.serialized);
 
 			await this.apply({
 				ccm: ccm.deserialized,
@@ -228,13 +217,5 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 			partnerValidatorStore,
 			partnerValidators,
 		});
-	}
-
-	protected getInteroperabilityInternalMethod(): SidechainInteroperabilityInternalMethod {
-		return new SidechainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			this.interoperableCCMethods,
-		);
 	}
 }

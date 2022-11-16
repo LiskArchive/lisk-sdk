@@ -80,7 +80,6 @@ describe('Sample Method', () => {
 		has: jest.fn(),
 	};
 	let sampleInteroperabilityMethod: SampleInteroperabilityMethod;
-	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 	let methodContext: MethodContext;
 	let tokenMethodMock: TokenMethod;
 	let ccmSendFailEventMock: CcmSentFailedEvent;
@@ -100,24 +99,14 @@ describe('Sample Method', () => {
 		} as any;
 		interopMod.events.register(CcmSentFailedEvent, ccmSendFailEventMock);
 		interopMod.events.register(CcmSendSuccessEvent, ccmSendSuccessEventMock);
+		interopMod['internalMethod']['_tokenMethod'] = tokenMethodMock as any;
 		sampleInteroperabilityMethod = new SampleInteroperabilityMethod(
 			interopMod.stores,
 			interopMod.events,
 			interoperableCCMethods,
+			interopMod['internalMethod'],
 		);
 		sampleInteroperabilityMethod.addDependencies(tokenMethodMock as any);
-		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
-			interopMod.stores,
-			interopMod.events,
-			interoperableCCMethods,
-		);
-
-		mainchainInteroperabilityInternalMethod.addDependencies({
-			payMessageFee: jest.fn().mockResolvedValue({}),
-		} as any);
-		jest
-			.spyOn(sampleInteroperabilityMethod as any, 'getInteroperabilityInternalMethod')
-			.mockReturnValue(mainchainInteroperabilityInternalMethod);
 
 		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
 		interopMod.stores.register(ChannelDataStore, channelStoreMock as never);
@@ -206,7 +195,7 @@ describe('Sample Method', () => {
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountSidechain);
-			jest.spyOn(mainchainInteroperabilityInternalMethod, 'isLive').mockResolvedValue(true);
+			jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(true);
 		});
 
 		it('should throw error and emit event when invalid ccm format', async () => {
@@ -243,7 +232,7 @@ describe('Sample Method', () => {
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountSidechain);
-			jest.spyOn(mainchainInteroperabilityInternalMethod, 'isLive').mockResolvedValue(false);
+			jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(false);
 
 			// Act & Assert
 			await expect(
@@ -355,9 +344,11 @@ describe('Sample Method', () => {
 			jest
 				.spyOn(interopMod.stores.get(ChainAccountStore), 'get')
 				.mockResolvedValue(receivingChainAccount);
-			jest
-				.spyOn(mainchainInteroperabilityInternalMethod['_tokenMethod'], 'payMessageFee')
-				.mockRejectedValue(new Error('payMessageFee error'));
+
+			(tokenMethodMock as any).payMessageFee.mockRejectedValue(new Error('payMessageFee error'));
+			// jest
+			// 	.spyOn(tokenMethodMock, 'payMessageFee')
+			// 	.mockRejectedValue(new Error('payMessageFee error'));
 			// Act & Assert
 			await expect(
 				sampleInteroperabilityMethod.send(
@@ -393,10 +384,11 @@ describe('Sample Method', () => {
 
 			const receivingChainAccount = getReceivingChainAccountByStatus(ChainStatus.ACTIVE);
 
+			(tokenMethodMock as any).payMessageFee.mockResolvedValue();
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountMainchain);
-			jest.spyOn(mainchainInteroperabilityInternalMethod, 'addToOutbox').mockResolvedValue();
+			jest.spyOn(interopMod['internalMethod'], 'addToOutbox').mockResolvedValue();
 			jest
 				.spyOn(interopMod.stores.get(ChainAccountStore), 'get')
 				.mockResolvedValue(receivingChainAccount);

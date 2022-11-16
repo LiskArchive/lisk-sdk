@@ -27,7 +27,7 @@ interface CCMRegistrationParams {
 	messageFeeTokenID: Buffer;
 }
 
-export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCCommand {
+export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCCommand<SidechainInteroperabilityInternalMethod> {
 	public schema = registrationCCMParamsSchema;
 
 	public get name(): string {
@@ -43,7 +43,6 @@ export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			registrationCCMParamsSchema,
 			ccm.params,
 		);
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod();
 		const sendingChainChannelAccount = await this.stores
 			.get(ChannelDataStore)
 			.get(ctx, ccm.sendingChainID);
@@ -58,15 +57,7 @@ export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			) ||
 			!ccmRegistrationParams.chainID.equals(ctx.chainID)
 		) {
-			await interoperabilityInternalMethod.terminateChainInternal(ctx, ccm.sendingChainID);
+			await this.internalMethods.terminateChainInternal(ctx, ccm.sendingChainID);
 		}
-	}
-
-	protected getInteroperabilityInternalMethod(): SidechainInteroperabilityInternalMethod {
-		return new SidechainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			this.interoperableCCMethods,
-		);
 	}
 }
