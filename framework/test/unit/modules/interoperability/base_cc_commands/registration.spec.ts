@@ -38,21 +38,16 @@ import { ChainAccountUpdatedEvent } from '../../../../../src/modules/interoperab
 describe('BaseCCRegistrationCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 
-	const channelStoreMock = {
+	const objGetSetHas = () => ({
 		get: jest.fn(),
 		set: jest.fn(),
 		has: jest.fn(),
-	};
-	const ownChainAccountStoreMock = {
-		get: jest.fn(),
-		set: jest.fn(),
-		has: jest.fn(),
-	};
-	const chainAccountStoreMock = {
-		get: jest.fn(),
-		set: jest.fn(),
-		has: jest.fn(),
-	};
+	});
+
+	const channelStoreMock = objGetSetHas();
+	const ownChainAccountStoreMock = objGetSetHas();
+	const chainAccountStoreMock = objGetSetHas();
+
 	const chainAccountUpdatedEventMock = {
 		log: jest.fn(),
 	};
