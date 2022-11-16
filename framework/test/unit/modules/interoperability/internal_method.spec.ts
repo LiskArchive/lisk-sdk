@@ -32,7 +32,10 @@ import { CrossChainUpdateTransactionParams } from '../../../../src/modules/inter
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
-import { outboxRootSchema, OutboxRootStore } from '../../../../src/modules/interoperability/stores/outbox_root';
+import {
+	outboxRootSchema,
+	OutboxRootStore,
+} from '../../../../src/modules/interoperability/stores/outbox_root';
 import {
 	TerminatedOutboxAccount,
 	TerminatedOutboxStore,
@@ -982,36 +985,42 @@ describe('Base interoperability internal method', () => {
 		};
 
 		beforeEach(async () => {
-			await interopMod.stores
-				.get(ChannelDataStore)
-				.set(methodContext, txParams.sendingChainID, {
-					...channelData,
-				});
+			await interopMod.stores.get(ChannelDataStore).set(methodContext, txParams.sendingChainID, {
+				...channelData,
+			});
 		});
 
 		it('should reject when inbox root is empty but partnerchain outbox root does not match', async () => {
-			await expect(mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(context, {
-				...txParams,
-				certificate: Buffer.alloc(0),
-			})).rejects.toThrow('Inbox root does not match partner chain outbox root');
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(context, {
+					...txParams,
+					certificate: Buffer.alloc(0),
+				}),
+			).rejects.toThrow('Inbox root does not match partner chain outbox root');
 		});
 
 		it('should reject when certificate state root does not contain valid inclusion proof for inbox update', async () => {
 			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
 
-			await expect(mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(context, {
-				...txParams,
-			})).rejects.toThrow('Invalid inclusion proof for inbox update');
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(context, {
+					...txParams,
+				}),
+			).rejects.toThrow('Invalid inclusion proof for inbox update');
 		});
 
 		it('should resolve when certificate is empty and inbox root matches partner outbox root', async () => {
 			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
-			jest.spyOn(regularMerkleTree, 'calculateRootFromRightWitness').mockReturnValue(channelData.partnerChainOutboxRoot);
+			jest
+				.spyOn(regularMerkleTree, 'calculateRootFromRightWitness')
+				.mockReturnValue(channelData.partnerChainOutboxRoot);
 
-			await expect(mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(context, {
-				...txParams,
-				certificate: Buffer.alloc(0),
-			})).resolves.toBeUndefined();
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(context, {
+					...txParams,
+					certificate: Buffer.alloc(0),
+				}),
+			).resolves.toBeUndefined();
 		});
 
 		it('should resolve when certificate provides valid inclusion proof', async () => {
@@ -1019,23 +1028,30 @@ describe('Base interoperability internal method', () => {
 			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(true);
 			jest.spyOn(regularMerkleTree, 'calculateRootFromRightWitness').mockReturnValue(nextRoot);
 
-			await expect(mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(context, {
-				...txParams,
-			})).resolves.toBeUndefined();
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(context, {
+					...txParams,
+				}),
+			).resolves.toBeUndefined();
 
-			const outboxKey = Buffer.concat([interopMod.stores.get(OutboxRootStore).key, cryptoUtils.hash(txParams.sendingChainID)]);
+			const outboxKey = Buffer.concat([
+				interopMod.stores.get(OutboxRootStore).key,
+				cryptoUtils.hash(txParams.sendingChainID),
+			]);
 			expect(SparseMerkleTree.prototype.verify).toHaveBeenCalledWith(
 				certificate.stateRoot,
 				[outboxKey],
 				{
 					siblingHashes: txParams.inboxUpdate.outboxRootWitness.siblingHashes,
-					queries: [{
-						key: outboxKey,
-						value: codec.encode(outboxRootSchema, { root: nextRoot }),
-						bitmap: txParams.inboxUpdate.outboxRootWitness.bitmap,
-					}],
+					queries: [
+						{
+							key: outboxKey,
+							value: codec.encode(outboxRootSchema, { root: nextRoot }),
+							bitmap: txParams.inboxUpdate.outboxRootWitness.bitmap,
+						},
+					],
 				},
-			)
+			);
 		});
 	});
 });

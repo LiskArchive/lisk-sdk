@@ -767,7 +767,7 @@ describe('CrossChainUpdateCommand', () => {
 			).not.toHaveBeenCalled();
 		});
 
-		it('should call apply for ccm and add to the inbox where receivign chain is the main chain ', async () => {
+		it('should call apply for ccm and add to the inbox where receivign chain is the main chain', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -787,7 +787,7 @@ describe('CrossChainUpdateCommand', () => {
 			).toHaveBeenCalledTimes(3);
 		});
 
-		it('should call forward for ccm and add to the inbox where receivign chain is not the mainchain ', async () => {
+		it('should call forward for ccm and add to the inbox where receivign chain is not the mainchain', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
