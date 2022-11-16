@@ -85,8 +85,8 @@ describe('BaseCCRegistrationCommand', () => {
 		partnerChainOutboxRoot: Buffer.alloc(0),
 	};
 
-	const chainAccount = {
-		name: 'account1',
+	const fakeChainAccount = {
+		name: 'fakeChainAccount',
 		chainID: Buffer.alloc(CHAIN_ID_LENGTH),
 		lastCertificate: {
 			height: 567467,
@@ -113,7 +113,7 @@ describe('BaseCCRegistrationCommand', () => {
 		status: obj.status ?? CCMStatusCode.OK,
 	});
 
-	const resetContext = (ccm: CCMsg): CrossChainMessageContext => {
+	const createContext = (ccm: CCMsg): CrossChainMessageContext => {
 		return createCrossChainMessageContext({
 			ccm,
 			chainID: sidechainIDBuffer,
@@ -126,11 +126,11 @@ describe('BaseCCRegistrationCommand', () => {
 
 	beforeEach(() => {
 		ccm = buildCCM({});
-		sampleExecuteContext = resetContext(ccm);
+		sampleExecuteContext = createContext(ccm);
 
 		channelStoreMock.get.mockResolvedValue(channelData);
 		ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccountMainchain);
-		chainAccountStoreMock.get.mockResolvedValue(chainAccount);
+		chainAccountStoreMock.get.mockResolvedValue(fakeChainAccount);
 
 		ccRegistrationCommand = new MainchainCCRegistrationCommand(
 			interopMod.stores,
@@ -152,18 +152,18 @@ describe('BaseCCRegistrationCommand', () => {
 		});
 
 		it('should fail if ccm.status !== OK', async () => {
-			sampleExecuteContext = resetContext(
+			sampleExecuteContext = createContext(
 				buildCCM({
 					status: CCMStatusCode.FAILED_CCM,
 				}),
 			);
 			await expect(ccRegistrationCommand.verify(sampleExecuteContext)).rejects.toThrow(
-				'Registration message must have status OK.',
+				`Registration message must have status ${CCMStatusCode.OK}.`,
 			);
 		});
 
 		it('should fail if ownChainAccount.chainID !== ccm.receivingChainID', async () => {
-			sampleExecuteContext = resetContext(
+			sampleExecuteContext = createContext(
 				buildCCM({
 					receivingChainID: Buffer.from('1000', 'hex'),
 				}),
@@ -174,7 +174,7 @@ describe('BaseCCRegistrationCommand', () => {
 		});
 
 		it('should fail if ownChainAccount.name !== ccmRegistrationParams.name', async () => {
-			sampleExecuteContext = resetContext(
+			sampleExecuteContext = createContext(
 				buildCCM({
 					params: codec.encode(registrationCCMParamsSchema, {
 						name: 'Fake-Name',
@@ -188,7 +188,7 @@ describe('BaseCCRegistrationCommand', () => {
 		});
 
 		it('should fail if channel.messageFeeTokenID !== ccmRegistrationParams.messageFeeTokenID', async () => {
-			sampleExecuteContext = resetContext(
+			sampleExecuteContext = createContext(
 				buildCCM({
 					params: codec.encode(registrationCCMParamsSchema, {
 						name: ownChainAccountMainchain.name,
@@ -202,7 +202,7 @@ describe('BaseCCRegistrationCommand', () => {
 		});
 
 		it('should fail if chainID is Mainchain and nonce !== 0', async () => {
-			sampleExecuteContext = resetContext(
+			sampleExecuteContext = createContext(
 				buildCCM({
 					nonce: BigInt(1),
 				}),
@@ -213,7 +213,7 @@ describe('BaseCCRegistrationCommand', () => {
 		});
 
 		it('should fail if chainID is Sidechain and sendingChainID !== CHAIN_ID_MAINCHAIN', async () => {
-			sampleExecuteContext = resetContext(
+			sampleExecuteContext = createContext(
 				buildCCM({
 					receivingChainID: sidechainIDBuffer,
 				}),
@@ -236,13 +236,13 @@ describe('BaseCCRegistrationCommand', () => {
 		it('should execute successfully', async () => {
 			await ccRegistrationCommand.execute(sampleExecuteContext);
 
-			chainAccount.status = ChainStatus.ACTIVE;
+			fakeChainAccount.status = ChainStatus.ACTIVE;
 
 			expect(chainAccountStoreMock.set).toHaveBeenCalledTimes(1);
 			expect(chainAccountUpdatedEventMock.log).toHaveBeenCalledWith(
 				sampleExecuteContext,
 				ccm.sendingChainID,
-				chainAccount,
+				fakeChainAccount,
 			);
 		});
 	});

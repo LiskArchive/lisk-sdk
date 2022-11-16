@@ -54,7 +54,7 @@ export abstract class BaseCCRegistrationCommand extends BaseInteroperabilityCCCo
 			throw new Error('Registration message must be the first message in the inbox.');
 		}
 		if (ccm.status !== CCMStatusCode.OK) {
-			throw new Error('Registration message must have status OK.');
+			throw new Error(`Registration message must have status ${CCMStatusCode.OK}.`);
 		}
 		if (!ownChainAccount.chainID.equals(ccm.receivingChainID)) {
 			throw new Error('Registration message must be sent to the chain account ID of the chain.');
