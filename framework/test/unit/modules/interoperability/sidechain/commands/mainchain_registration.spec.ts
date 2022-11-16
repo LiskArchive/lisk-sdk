@@ -482,7 +482,7 @@ describe('Mainchain registration command', () => {
 			await mainchainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(interopStore.addToOutbox).toHaveBeenCalledWith(mainchainID, ccm);
+			expect(interopStore.addToOutbox).toHaveBeenCalledWith(expect.anything(), mainchainID, ccm);
 		});
 
 		it('should update nonce in own chain acount substore', async () => {

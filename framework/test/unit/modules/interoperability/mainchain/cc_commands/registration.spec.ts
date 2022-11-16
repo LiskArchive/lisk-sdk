@@ -154,11 +154,11 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
 			expect.objectContaining({
 				chainID,
 				ccm,
 			}),
+			ccm.sendingChainID,
 		);
 	});
 
@@ -181,11 +181,11 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
 			expect.objectContaining({
 				chainID,
 				ccm: invalidCCM,
 			}),
+			ccm.sendingChainID,
 		);
 	});
 
@@ -202,11 +202,11 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
 			expect.objectContaining({
 				chainID,
 				ccm,
 			}),
+			ccm.sendingChainID,
 		);
 	});
 
@@ -220,11 +220,11 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
 			expect.objectContaining({
 				chainID,
 				ccm,
 			}),
+			ccm.sendingChainID,
 		);
 	});
 
@@ -252,11 +252,11 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
 			expect.objectContaining({
 				chainID,
 				ccm,
 			}),
+			ccm.sendingChainID,
 		);
 	});
 
@@ -284,11 +284,11 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
 			expect.objectContaining({
 				chainID,
 				ccm,
 			}),
+			ccm.sendingChainID,
 		);
 	});
 
@@ -306,11 +306,11 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
 			expect.objectContaining({
 				chainID: differentNetworkID,
 				ccm,
 			}),
+			ccm.sendingChainID,
 		);
 	});
 
@@ -334,11 +334,11 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
 			expect.objectContaining({
 				chainID,
 				ccm: invalidCCM,
 			}),
+			ccm.sendingChainID,
 		);
 	});
 

@@ -845,17 +845,16 @@ describe('CrossChainUpdateCommand', () => {
 				},
 			);
 			expect(internalMethod.sendInternal).toHaveBeenCalledWith(
-				expect.objectContaining({
-					fee: BigInt(0),
-					receivingChainID: context.ccm.sendingChainID,
-					module: MODULE_NAME_INTEROPERABILITY,
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
-					status: CCMStatusCode.OK,
-					params: codec.encode(sidechainTerminatedCCMParamsSchema, {
-						chainID: context.ccm.receivingChainID,
-						stateRoot: chainAccount.lastCertificate.stateRoot,
-					}),
-					feeAddress: EMPTY_FEE_ADDRESS,
+				expect.anything(),
+				EMPTY_FEE_ADDRESS,
+				MODULE_NAME_INTEROPERABILITY,
+				CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+				context.ccm.sendingChainID,
+				BigInt(0),
+				CCMStatusCode.OK,
+				codec.encode(sidechainTerminatedCCMParamsSchema, {
+					chainID: context.ccm.receivingChainID,
+					stateRoot: chainAccount.lastCertificate.stateRoot,
 				}),
 			);
 		});

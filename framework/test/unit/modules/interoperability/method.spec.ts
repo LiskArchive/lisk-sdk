@@ -35,7 +35,6 @@ import {
 	ChainStatus,
 } from '../../../../src/modules/interoperability/stores/chain_account';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
-import { NamedRegistry } from '../../../../src/modules/named_registry';
 import { EventQueue, MethodContext } from '../../../../src/state_machine';
 import { createTransientMethodContext } from '../../../../src/testing';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
@@ -109,9 +108,13 @@ describe('Sample Method', () => {
 		sampleInteroperabilityMethod.addDependencies(tokenMethodMock as any);
 		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
 			interopMod.stores,
-			new NamedRegistry(),
+			interopMod.events,
 			interoperableCCMethods,
 		);
+
+		mainchainInteroperabilityInternalMethod.addDependencies({
+			payMessageFee: jest.fn().mockResolvedValue({}),
+		} as any);
 		jest
 			.spyOn(sampleInteroperabilityMethod as any, 'getInteroperabilityInternalMethod')
 			.mockReturnValue(mainchainInteroperabilityInternalMethod);
@@ -353,7 +356,7 @@ describe('Sample Method', () => {
 				.spyOn(interopMod.stores.get(ChainAccountStore), 'get')
 				.mockResolvedValue(receivingChainAccount);
 			jest
-				.spyOn(sampleInteroperabilityMethod['_tokenMethod'], 'payMessageFee')
+				.spyOn(mainchainInteroperabilityInternalMethod['_tokenMethod'], 'payMessageFee')
 				.mockRejectedValue(new Error('payMessageFee error'));
 			// Act & Assert
 			await expect(
@@ -397,7 +400,6 @@ describe('Sample Method', () => {
 			jest
 				.spyOn(interopMod.stores.get(ChainAccountStore), 'get')
 				.mockResolvedValue(receivingChainAccount);
-			jest.spyOn(sampleInteroperabilityMethod['_tokenMethod'], 'payMessageFee').mockResolvedValue();
 
 			interopMod.stores.get(OwnChainAccountStore).set = ownChainAccountStoreMock.set;
 			const ccmID = utils.hash(codec.encode(ccmSchema, ccmOnMainchain));

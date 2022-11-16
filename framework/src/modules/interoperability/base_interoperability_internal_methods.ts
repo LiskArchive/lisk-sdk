@@ -28,7 +28,6 @@ import {
 import { ccmSchema } from './schemas';
 import { CCMsg, CrossChainUpdateTransactionParams, ChainAccount } from './types';
 import { computeValidatorsHash, getIDAsKeyForStore, validateFormat } from './utils';
-import { ImmutableStoreGetter, StoreGetter } from '../base_store';
 import { NamedRegistry } from '../named_registry';
 import { OwnChainAccountStore } from './stores/own_chain_account';
 import { ChannelDataStore } from './stores/channel_data';
@@ -83,7 +82,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		this._tokenMethod = tokenMethod;
 	}
 
-	public async appendToInboxTree(context: StoreGetter, chainID: Buffer, appendData: Buffer) {
+	public async appendToInboxTree(context: MethodContext, chainID: Buffer, appendData: Buffer) {
 		const channelSubstore = this.stores.get(ChannelDataStore);
 		const channel = await channelSubstore.get(context, chainID);
 		const updatedInbox = regularMerkleTree.calculateMerkleRoot({
@@ -97,7 +96,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		});
 	}
 
-	public async appendToOutboxTree(context: StoreGetter, chainID: Buffer, appendData: Buffer) {
+	public async appendToOutboxTree(context: MethodContext, chainID: Buffer, appendData: Buffer) {
 		const channelSubstore = this.stores.get(ChannelDataStore);
 		const channel = await channelSubstore.get(context, chainID);
 		const updatedOutbox = regularMerkleTree.calculateMerkleRoot({
@@ -111,7 +110,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		});
 	}
 
-	public async addToOutbox(context: StoreGetter, chainID: Buffer, ccm: CCMsg) {
+	public async addToOutbox(context: MethodContext, chainID: Buffer, ccm: CCMsg) {
 		const serializedMessage = codec.encode(ccmSchema, ccm);
 		await this.appendToOutboxTree(context, chainID, serializedMessage);
 
@@ -141,7 +140,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 	}
 
 	public async setTerminatedOutboxAccount(
-		context: StoreGetter,
+		context: MethodContext,
 		chainID: Buffer,
 		params: Partial<TerminatedOutboxAccount>,
 	): Promise<boolean> {
@@ -370,7 +369,6 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		}
 	}
 
-	// Different in mainchain and sidechain so to be implemented in each module store separately
 	public async sendInternal(
 		context: MethodContext,
 		sendingAddress: Buffer,
@@ -512,7 +510,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 
 	// Different in mainchain and sidechain so to be implemented in each module store separately
 	public abstract isLive(
-		context: ImmutableStoreGetter,
+		context: ImmutableMethodContext,
 		chainID: Buffer,
 		timestamp?: number,
 	): Promise<boolean>;

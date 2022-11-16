@@ -104,8 +104,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.sendingChainID,
 				expect.anything(),
+				context.ccm.sendingChainID,
 			);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
@@ -125,8 +125,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.sendingChainID,
 				expect.anything(),
+				context.ccm.sendingChainID,
 			);
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
@@ -177,8 +177,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.sendingChainID,
 				expect.anything(),
+				context.ccm.sendingChainID,
 			);
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
@@ -200,8 +200,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.sendingChainID,
 				expect.anything(),
+				context.ccm.sendingChainID,
 			);
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
@@ -265,8 +265,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.sendingChainID,
 				expect.anything(),
+				context.ccm.sendingChainID,
 			);
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
@@ -378,13 +378,17 @@ describe('BaseCrossChainUpdateCommand', () => {
 				command['bounce'](context, utils.getRandomBytes(32), 100, ccmStatus, ccmProcessedEventCode),
 			).resolves.toBeUndefined();
 
-			expect(internalMethod.addToOutbox).toHaveBeenCalledWith(context.ccm.sendingChainID, {
-				...defaultCCM,
-				status: ccmStatus,
-				sendingChainID: defaultCCM.receivingChainID,
-				receivingChainID: defaultCCM.sendingChainID,
-				fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
-			});
+			expect(internalMethod.addToOutbox).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.sendingChainID,
+				{
+					...defaultCCM,
+					status: ccmStatus,
+					sendingChainID: defaultCCM.receivingChainID,
+					receivingChainID: defaultCCM.sendingChainID,
+					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
+				},
+			);
 		});
 
 		it('should log the event with the new boucing ccm', async () => {

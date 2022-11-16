@@ -38,7 +38,6 @@ import {
 } from '../../../../src/modules/interoperability/stores/terminated_outbox';
 import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
-import { createStoreGetter } from '../../../../src/testing/utils';
 import { StoreGetter } from '../../../../src/modules/base_store';
 import { MethodContext } from '../../../../src/state_machine';
 import { ChainAccountUpdatedEvent } from '../../../../src/modules/interoperability/events/chain_account_updated';
@@ -50,6 +49,7 @@ import { certificateSchema } from '../../../../src/engine/consensus/certificate_
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
 import { Certificate } from '../../../../src/engine/consensus/certificate_generation/types';
 import { TerminatedOutboxCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_outbox_created';
+import { createStoreGetter } from '../../../../src/testing/utils';
 
 describe('Base interoperability internal method', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -133,20 +133,18 @@ describe('Base interoperability internal method', () => {
 	let stateStore: PrefixedStateReadWriter;
 	let chainDataSubstore: ChainAccountStore;
 	let terminatedStateSubstore: TerminatedStateStore;
-	let context: StoreGetter;
 	let methodContext: MethodContext;
+	let storeContext: StoreGetter;
 
 	beforeEach(async () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		context = createStoreGetter(stateStore);
 		regularMerkleTree.calculateMerkleRoot = jest.fn().mockReturnValue(updatedOutboxTree);
 		channelDataSubstore = interopMod.stores.get(ChannelDataStore);
-		await channelDataSubstore.set(context, chainID, channelData);
 		jest.spyOn(channelDataSubstore, 'set');
 		outboxRootSubstore = interopMod.stores.get(OutboxRootStore);
 		jest.spyOn(outboxRootSubstore, 'set');
 		terminatedOutboxSubstore = interopMod.stores.get(TerminatedOutboxStore);
-		jest.spyOn(terminatedOutboxSubstore, 'set');
+		// jest.spyOn(terminatedOutboxSubstore, 'set');
 		chainDataSubstore = interopMod.stores.get(ChainAccountStore);
 		terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
 
@@ -156,12 +154,18 @@ describe('Base interoperability internal method', () => {
 			new Map(),
 		);
 		methodContext = createTransientMethodContext({ stateStore });
+		storeContext = createStoreGetter(stateStore);
+		await channelDataSubstore.set(methodContext, chainID, channelData);
 	});
 
 	describe('appendToInboxTree', () => {
 		it('should update the channel store with the new inbox tree info', async () => {
 			// Act
-			await mainchainInteroperabilityInternalMethod.appendToInboxTree(context, chainID, appendData);
+			await mainchainInteroperabilityInternalMethod.appendToInboxTree(
+				methodContext,
+				chainID,
+				appendData,
+			);
 
 			// Assert
 			expect(channelDataSubstore.set).toHaveBeenCalledWith(expect.anything(), chainID, {
@@ -175,7 +179,7 @@ describe('Base interoperability internal method', () => {
 		it('should update the channel store with the new outbox tree info', async () => {
 			// Act
 			await mainchainInteroperabilityInternalMethod.appendToOutboxTree(
-				context,
+				methodContext,
 				chainID,
 				appendData,
 			);
@@ -191,7 +195,7 @@ describe('Base interoperability internal method', () => {
 	describe('addToOutbox', () => {
 		it('should update the outbox tree root store with the new outbox root', async () => {
 			// Act
-			await mainchainInteroperabilityInternalMethod.addToOutbox(context, chainID, ccm);
+			await mainchainInteroperabilityInternalMethod.addToOutbox(methodContext, chainID, ccm);
 
 			// Assert
 			expect(outboxRootSubstore.set).toHaveBeenCalledWith(
@@ -223,7 +227,7 @@ describe('Base interoperability internal method', () => {
 			);
 
 			// Assert
-			expect(terminatedOutboxSubstore.set).toHaveBeenCalledWith(expect.anything(), chainID, {
+			await expect(terminatedOutboxSubstore.get(methodContext, chainID)).resolves.toEqual({
 				outboxRoot: outboxTree.root,
 				outboxSize: outboxTree.size,
 				partnerChainInboxSize,
@@ -270,7 +274,12 @@ describe('Base interoperability internal method', () => {
 				stateRoot,
 			);
 
-			await expect(terminatedStateSubstore.get(context, chainId)).resolves.toStrictEqual({
+			await expect(
+				terminatedStateSubstore.get(
+					createStoreGetter(crossChainMessageContext.stateStore as any),
+					chainId,
+				),
+			).resolves.toStrictEqual({
 				stateRoot,
 				mainchainStateRoot: EMPTY_BYTES,
 				initialized: true,
@@ -299,7 +308,12 @@ describe('Base interoperability internal method', () => {
 				chainId,
 			);
 
-			await expect(terminatedStateSubstore.get(context, chainId)).resolves.toStrictEqual({
+			await expect(
+				terminatedStateSubstore.get(
+					createStoreGetter(crossChainMessageContext.stateStore as any),
+					chainId,
+				),
+			).resolves.toStrictEqual({
 				stateRoot: chainAccount.lastCertificate.stateRoot,
 				mainchainStateRoot: EMPTY_BYTES,
 				initialized: true,
@@ -326,13 +340,19 @@ describe('Base interoperability internal method', () => {
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccount1);
-			await chainDataSubstore.set(context, utils.getIDAsKeyForStore(MAINCHAIN_ID), chainAccount);
+			await chainDataSubstore.set(
+				createStoreGetter(crossChainMessageContext.stateStore as any),
+				utils.getIDAsKeyForStore(MAINCHAIN_ID),
+				chainAccount,
+			);
 			await mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(
 				crossChainMessageContext,
 				chainIdNew,
 			);
 
-			await expect(terminatedStateSubstore.get(context, chainIdNew)).resolves.toStrictEqual({
+			await expect(
+				terminatedStateSubstore.get(createStoreGetter(crossChainMessageContext as any), chainIdNew),
+			).resolves.toStrictEqual({
 				stateRoot: EMPTY_BYTES,
 				mainchainStateRoot: chainAccount.lastCertificate.stateRoot,
 				initialized: false,
@@ -414,19 +434,21 @@ describe('Base interoperability internal method', () => {
 				partnerChainInboxSize: 1,
 			};
 
-			await terminatedOutboxSubstore.set(context, terminatedChainID, terminatedOutboxAccount);
+			await terminatedOutboxSubstore.set(storeContext, terminatedChainID, terminatedOutboxAccount);
 		});
 
 		it('should successfully retrieve the account', async () => {
 			const account = await interopMod.stores
 				.get(TerminatedOutboxStore)
-				.get(context, terminatedChainID);
+				.get(storeContext, terminatedChainID);
 			expect(account).toEqual(terminatedOutboxAccount);
 		});
 
 		it('should throw when terminated outbox account does not exist', async () => {
+			await interopMod.stores.get(TerminatedOutboxStore).del(storeContext, terminatedChainID);
+
 			await expect(
-				interopMod.stores.get(TerminatedOutboxStore).get(context, terminatedChainID),
+				interopMod.stores.get(TerminatedOutboxStore).get(storeContext, terminatedChainID),
 			).rejects.toThrow();
 		});
 	});
@@ -444,27 +466,31 @@ describe('Base interoperability internal method', () => {
 				partnerChainInboxSize: 1,
 			};
 
-			await terminatedOutboxSubstore.set(context, terminatedChainID, terminatedOutboxAccount);
+			await terminatedOutboxSubstore.set(storeContext, terminatedChainID, terminatedOutboxAccount);
 		});
 
 		it('should return false when outbox account does not exist', async () => {
 			// Assign
 			const isValueChanged = await interopMod.stores
 				.get(TerminatedOutboxStore)
-				.set(context, terminatedChainID, { outboxRoot: cryptoUtils.getRandomBytes(32) } as any);
+				.set(storeContext, terminatedChainID, {
+					outboxRoot: cryptoUtils.getRandomBytes(32),
+				} as any);
 
 			// Assert
-			expect(isValueChanged).toBeFalse();
+			expect(isValueChanged).toBeUndefined();
 		});
 
 		it('should return false when no params provided', async () => {
 			// Assign
 			const isValueChanged = await interopMod.stores
 				.get(TerminatedOutboxStore)
-				.set(context, terminatedChainID, { outboxRoot: cryptoUtils.getRandomBytes(32) } as any);
+				.set(storeContext, terminatedChainID, {
+					outboxRoot: cryptoUtils.getRandomBytes(32),
+				} as any);
 
 			// Assert
-			expect(isValueChanged).toBeFalse();
+			expect(isValueChanged).toBeUndefined();
 		});
 
 		describe('when setting a new value with the call', () => {
@@ -497,9 +523,9 @@ describe('Base interoperability internal method', () => {
 				// Assign
 				const isValueChanged = await interopMod.stores
 					.get(TerminatedOutboxStore)
-					.set(context, terminatedChainID, changedValues as any);
+					.set(storeContext, terminatedChainID, { ...terminatedOutboxAccount, ...changedValues });
 
-				const changedAccount = await terminatedOutboxSubstore.get(context, terminatedChainID);
+				const changedAccount = await terminatedOutboxSubstore.get(storeContext, terminatedChainID);
 
 				// Assert
 				expect(isValueChanged).toBeUndefined();
@@ -520,7 +546,7 @@ describe('Base interoperability internal method', () => {
 				})),
 			};
 
-			await interopMod.stores.get(ChainValidatorsStore).set(context, ccu.sendingChainID, {
+			await interopMod.stores.get(ChainValidatorsStore).set(storeContext, ccu.sendingChainID, {
 				activeValidators: [],
 				certificateThreshold: BigInt(0),
 			});
@@ -558,7 +584,7 @@ describe('Base interoperability internal method', () => {
 				certificate: codec.encode(certificateSchema, certificate),
 			};
 
-			await interopMod.stores.get(ChainAccountStore).set(context, ccuParams.sendingChainID, {
+			await interopMod.stores.get(ChainAccountStore).set(storeContext, ccuParams.sendingChainID, {
 				lastCertificate: {
 					height: 20,
 					stateRoot: cryptoUtils.getRandomBytes(HASH_LENGTH),
@@ -610,7 +636,7 @@ describe('Base interoperability internal method', () => {
 				},
 			};
 
-			await interopMod.stores.get(ChannelDataStore).set(context, ccu.sendingChainID, {
+			await interopMod.stores.get(ChannelDataStore).set(storeContext, ccu.sendingChainID, {
 				inbox: {
 					appendPath: [cryptoUtils.getRandomBytes(HASH_LENGTH)],
 					root: cryptoUtils.getRandomBytes(HASH_LENGTH),
@@ -712,7 +738,7 @@ describe('Base interoperability internal method', () => {
 			jest.spyOn(chainValidators, 'calculateNewActiveValidators').mockReturnValue(newValidators);
 			jest.spyOn(utils, 'computeValidatorsHash');
 
-			await interopMod.stores.get(ChainValidatorsStore).set(context, ccu.sendingChainID, {
+			await interopMod.stores.get(ChainValidatorsStore).set(storeContext, ccu.sendingChainID, {
 				activeValidators: [],
 				certificateThreshold: BigInt(0),
 			});
@@ -744,7 +770,7 @@ describe('Base interoperability internal method', () => {
 			jest.spyOn(chainValidators, 'calculateNewActiveValidators').mockReturnValue(newValidators);
 			jest.spyOn(utils, 'computeValidatorsHash').mockReturnValue(certificate.validatorsHash);
 
-			await interopMod.stores.get(ChainValidatorsStore).set(context, ccu.sendingChainID, {
+			await interopMod.stores.get(ChainValidatorsStore).set(storeContext, ccu.sendingChainID, {
 				activeValidators: [],
 				certificateThreshold: BigInt(0),
 			});

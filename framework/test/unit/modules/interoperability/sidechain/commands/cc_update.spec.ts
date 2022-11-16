@@ -554,8 +554,8 @@ describe('CrossChainUpdateCommand', () => {
 			await expect(sidechainCCUUpdateCommand.execute(invalidCCMContext)).resolves.toBeUndefined();
 			expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 			expect(terminateChainInternalMock).toHaveBeenCalledWith(
+				expect.anything(),
 				invalidCCM.sendingChainID,
-				expect.any(Object),
 			);
 		});
 
