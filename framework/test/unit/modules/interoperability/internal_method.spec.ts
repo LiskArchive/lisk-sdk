@@ -18,7 +18,7 @@ import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
 import {
 	BLS_PUBLIC_KEY_LENGTH,
-	EMPTY_BYTES,
+	EMPTY_HASH,
 	HASH_LENGTH,
 	MAINCHAIN_ID,
 	MAINCHAIN_ID_BUFFER,
@@ -281,7 +281,7 @@ describe('Base interoperability internal method', () => {
 				),
 			).resolves.toStrictEqual({
 				stateRoot,
-				mainchainStateRoot: EMPTY_BYTES,
+				mainchainStateRoot: EMPTY_HASH,
 				initialized: true,
 			});
 			expect(chainAccountUpdatedEvent.log).toHaveBeenCalledWith(
@@ -294,7 +294,7 @@ describe('Base interoperability internal method', () => {
 				chainId,
 				{
 					stateRoot,
-					mainchainStateRoot: EMPTY_BYTES,
+					mainchainStateRoot: EMPTY_HASH,
 					initialized: true,
 				},
 			);
@@ -315,7 +315,7 @@ describe('Base interoperability internal method', () => {
 				),
 			).resolves.toStrictEqual({
 				stateRoot: chainAccount.lastCertificate.stateRoot,
-				mainchainStateRoot: EMPTY_BYTES,
+				mainchainStateRoot: EMPTY_HASH,
 				initialized: true,
 			});
 		});
@@ -351,9 +351,9 @@ describe('Base interoperability internal method', () => {
 			);
 
 			await expect(
-				terminatedStateSubstore.get(createStoreGetter(crossChainMessageContext as any), chainIdNew),
+				terminatedStateSubstore.get(crossChainMessageContext, chainIdNew),
 			).resolves.toStrictEqual({
-				stateRoot: EMPTY_BYTES,
+				stateRoot: EMPTY_HASH,
 				mainchainStateRoot: chainAccount.lastCertificate.stateRoot,
 				initialized: false,
 			});
@@ -361,8 +361,8 @@ describe('Base interoperability internal method', () => {
 				{ eventQueue: crossChainMessageContext.eventQueue },
 				chainIdNew,
 				{
-					stateRoot: chainAccount.lastCertificate.stateRoot,
-					mainchainStateRoot: EMPTY_BYTES,
+					stateRoot: EMPTY_HASH,
+					mainchainStateRoot: chainAccount.lastCertificate.stateRoot,
 					initialized: false,
 				},
 			);

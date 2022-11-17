@@ -151,7 +151,7 @@ describe('Test interoperability endpoint', () => {
 	const terminatedStateAccountJSON: TerminatedStateAccountJSON = {
 		stateRoot: terminateStateAccount.stateRoot.toString('hex'),
 		initialized: terminateStateAccount.initialized,
-		mainchainStateRoot: terminateStateAccount.mainchainStateRoot?.toString('hex'),
+		mainchainStateRoot: terminateStateAccount.mainchainStateRoot.toString('hex'),
 	};
 
 	const terminatedOutboxAccount: TerminatedOutboxAccount = {
