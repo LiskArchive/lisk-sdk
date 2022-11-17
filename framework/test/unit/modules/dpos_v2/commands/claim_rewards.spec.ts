@@ -38,7 +38,8 @@ describe('Change Commission command', () => {
 	let voterStore: VoterStore;
 	let transaction: Transaction;
 	let voterData: VoterData;
-	let delegateInfo: DelegateAccount;
+	let delegateInfo1: DelegateAccount;
+	let delegateInfo2: DelegateAccount;
 
 	beforeEach(async () => {
 		internalMethod = new InternalMethod(dpos.stores, dpos.events, dpos.name);
@@ -85,7 +86,7 @@ describe('Change Commission command', () => {
 			],
 			pendingUnlocks: [],
 		};
-		delegateInfo = {
+		delegateInfo1 = {
 			consecutiveMissedBlocks: 0,
 			isBanned: false,
 			lastGeneratedHeight: 5,
@@ -97,8 +98,21 @@ describe('Change Commission command', () => {
 			lastCommissionIncreaseHeight: 0,
 			sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 		};
+		delegateInfo2 = {
+			consecutiveMissedBlocks: 0,
+			isBanned: false,
+			lastGeneratedHeight: 5,
+			name: 'delegate1',
+			pomHeights: [],
+			selfVotes: BigInt(0),
+			totalVotesReceived: BigInt(0),
+			commission: 0,
+			lastCommissionIncreaseHeight: 0,
+			sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(32) }],
+		};
 
-		await delegateStore.set(createStoreGetter(stateStore), senderAddress, delegateInfo);
+		await delegateStore.set(createStoreGetter(stateStore), senderAddress, delegateInfo1);
+		await delegateStore.set(createStoreGetter(stateStore), Buffer.alloc(20, 1), delegateInfo2);
 		jest.spyOn(internalMethod, 'assignVoteRewards').mockResolvedValue();
 	});
 
@@ -115,7 +129,7 @@ describe('Change Commission command', () => {
 			await expect(claimRewardsCommand.execute(context)).rejects.toThrow();
 		});
 
-		it('should call method assign vote rewards for each entry in sent votes if voter data exists for the sender address', async () => {
+		it('should call method assign vote rewards for each entry in sent votes and update the voter data correctly if voter data exists for the sender address', async () => {
 			await voterStore.set(createStoreGetter(stateStore), senderAddress, voterData);
 			const context = testing
 				.createTransactionContext({
@@ -126,18 +140,14 @@ describe('Change Commission command', () => {
 				.createCommandExecuteContext<Record<string, never>>();
 
 			await claimRewardsCommand.execute(context);
+			const updatedVoterData = await voterStore.get(context, senderAddress);
+
 			expect(internalMethod.assignVoteRewards).toHaveBeenCalledTimes(voterData.sentVotes.length);
-			expect(internalMethod.assignVoteRewards).toHaveBeenCalledWith(
-				context.getMethodContext(),
-				senderAddress,
-				voterData.sentVotes[0],
-				delegateInfo,
+			expect(updatedVoterData.sentVotes[0].voteSharingCoefficients).toStrictEqual(
+				delegateInfo1.sharingCoefficients,
 			);
-			expect(internalMethod.assignVoteRewards).toHaveBeenCalledWith(
-				context.getMethodContext(),
-				senderAddress,
-				voterData.sentVotes[1],
-				delegateInfo,
+			expect(updatedVoterData.sentVotes[1].voteSharingCoefficients).toStrictEqual(
+				delegateInfo2.sharingCoefficients,
 			);
 		});
 	});

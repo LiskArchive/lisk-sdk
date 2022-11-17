@@ -32,16 +32,20 @@ export class ClaimRewardsCommand extends BaseCommand {
 		} = context;
 
 		const delegateStore = this.stores.get(DelegateStore);
-		const delegate = await delegateStore.get(context, senderAddress);
 		const voterStore = this.stores.get(VoterStore);
 		const voterData = await voterStore.get(context, senderAddress);
+
 		for (const sentVote of voterData.sentVotes) {
+			const delegate = await delegateStore.get(context, sentVote.delegateAddress);
 			await this._internalMethod.assignVoteRewards(
 				getMethodContext(),
 				senderAddress,
 				sentVote,
 				delegate,
 			);
+			sentVote.voteSharingCoefficients = delegate.sharingCoefficients;
 		}
+
+		await voterStore.set(context, senderAddress, voterData);
 	}
 }
