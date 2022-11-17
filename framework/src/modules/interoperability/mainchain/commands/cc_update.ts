@@ -15,6 +15,8 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
+import { certificateSchema } from '../../../../engine/consensus/certificate_generation/schema';
+import { Certificate } from '../../../../engine/consensus/certificate_generation/types';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -27,6 +29,7 @@ import {
 	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_FEE_ADDRESS,
+	LIVENESS_LIMIT,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../constants';
 import {
@@ -56,7 +59,11 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<Mainch
 			context.params,
 		);
 
-		const isLive = await this.internalMethod.isLive(context, params.sendingChainID, context.header.timestamp);
+		const isLive = await this.internalMethod.isLive(
+			context,
+			params.sendingChainID,
+			context.header.timestamp,
+		);
 		if (!isLive) {
 			throw new Error('The sending chain is not live.');
 		}
@@ -64,6 +71,11 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<Mainch
 		const sendingChainAccount = await this.stores
 			.get(ChainAccountStore)
 			.get(context, params.sendingChainID);
+
+		if (sendingChainAccount.status === ChainStatus.REGISTERED) {
+			this._verifyLivenessConditionForRegisteredChains(context);
+		}
+
 		if (sendingChainAccount.status === ChainStatus.REGISTERED && params.certificate.length === 0) {
 			throw new Error('The first CCU must contain a non-empty certificate.');
 		}
@@ -282,5 +294,21 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<Mainch
 			code: CCMProcessedCode.SUCCESS,
 			result: CCMProcessedResult.FORWARDED,
 		});
+	}
+
+	private _verifyLivenessConditionForRegisteredChains(
+		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
+	): void {
+		if (context.params.certificate.length === 0 || isInboxUpdateEmpty(context.params.inboxUpdate)) {
+			return;
+		}
+		const certificate = codec.decode<Certificate>(certificateSchema, context.params.certificate);
+		if (context.header.timestamp - certificate.timestamp > LIVENESS_LIMIT / 2) {
+			throw new Error(
+				`The first CCU with a non-empty inbox update cannot contain a certificate older than ${
+					LIVENESS_LIMIT / 2
+				} seconds.`,
+			);
+		}
 	}
 }

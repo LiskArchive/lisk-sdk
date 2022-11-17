@@ -72,11 +72,6 @@ import {
 	CcmProcessedEvent,
 	CCMProcessedResult,
 } from '../../../../../../src/modules/interoperability/events/ccm_processed';
-import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/internal_method';
-
-jest.mock('@liskhq/lisk-cryptography', () => ({
-	...jest.requireActual('@liskhq/lisk-cryptography'),
-}));
 
 describe('CrossChainUpdateCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -281,20 +276,15 @@ describe('CrossChainUpdateCommand', () => {
 					params: codec.encode(crossChainUpdateTransactionParams, params),
 				}),
 			}).createCommandVerifyContext(mainchainCCUUpdateCommand.schema);
+			jest.spyOn(mainchainCCUUpdateCommand['internalMethod'], 'isLive').mockResolvedValue(true);
 			jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'isLive')
-				.mockResolvedValue(true);
-			jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'isLive')
-				.mockResolvedValue(true);
-			jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'verifyCertificate')
+				.spyOn(mainchainCCUUpdateCommand['internalMethod'], 'verifyCertificate')
 				.mockResolvedValue();
 			jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'verifyValidatorsUpdate')
+				.spyOn(mainchainCCUUpdateCommand['internalMethod'], 'verifyValidatorsUpdate')
 				.mockResolvedValue();
 			jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'verifyPartnerChainOutboxRoot')
+				.spyOn(mainchainCCUUpdateCommand['internalMethod'], 'verifyPartnerChainOutboxRoot')
 				.mockResolvedValue();
 		});
 
@@ -308,11 +298,32 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should return error when sending chain not live', async () => {
-			jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'isLive')
-				.mockResolvedValue(false);
+			jest.spyOn(mainchainCCUUpdateCommand['internalMethod'], 'isLive').mockResolvedValue(false);
 			await expect(mainchainCCUUpdateCommand.verify(verifyContext)).rejects.toThrow(
 				'The sending chain is not live',
+			);
+		});
+
+		it('should reject when first CCU contains a certificate older than LIVENESS_LIMIT / 2', async () => {
+			await interopMod.stores.get(ChainAccountStore).set(stateStore, params.sendingChainID, {
+				...partnerChainAccount,
+				status: ChainStatus.REGISTERED,
+			});
+
+			await expect(
+				mainchainCCUUpdateCommand.verify({
+					...verifyContext,
+					header: { timestamp: Math.floor(Date.now() / 1000), height: 0 },
+					params: {
+						...params,
+						certificate: codec.encode(certificateSchema, {
+							...defaultCertificateValues,
+							timestamp: 0,
+						}),
+					},
+				}),
+			).rejects.toThrow(
+				'The first CCU with a non-empty inbox update cannot contain a certificate older',
 			);
 		});
 
@@ -347,7 +358,7 @@ describe('CrossChainUpdateCommand', () => {
 			).resolves.toEqual({ status: VerifyStatus.OK });
 
 			expect(
-				MainchainInteroperabilityInternalMethod.prototype.verifyValidatorsUpdate,
+				mainchainCCUUpdateCommand['internalMethod'].verifyValidatorsUpdate,
 			).toHaveBeenCalledTimes(1);
 		});
 
@@ -363,7 +374,7 @@ describe('CrossChainUpdateCommand', () => {
 			).resolves.toEqual({ status: VerifyStatus.OK });
 
 			expect(
-				MainchainInteroperabilityInternalMethod.prototype.verifyValidatorsUpdate,
+				mainchainCCUUpdateCommand['internalMethod'].verifyValidatorsUpdate,
 			).toHaveBeenCalledTimes(1);
 		});
 
@@ -386,7 +397,7 @@ describe('CrossChainUpdateCommand', () => {
 			).resolves.toEqual({ status: VerifyStatus.OK });
 
 			expect(
-				MainchainInteroperabilityInternalMethod.prototype.verifyPartnerChainOutboxRoot,
+				mainchainCCUUpdateCommand['internalMethod'].verifyPartnerChainOutboxRoot,
 			).toHaveBeenCalledTimes(1);
 		});
 	});
@@ -404,19 +415,19 @@ describe('CrossChainUpdateCommand', () => {
 			}).createCommandExecuteContext(mainchainCCUUpdateCommand.schema);
 			jest.spyOn(interopMod.events.get(CcmProcessedEvent), 'log');
 			jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'verifyCertificateSignature')
+				.spyOn(mainchainCCUUpdateCommand['internalMethod'], 'verifyCertificateSignature')
 				.mockResolvedValue();
 			jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'terminateChainInternal')
+				.spyOn(mainchainCCUUpdateCommand['internalMethod'], 'terminateChainInternal')
 				.mockResolvedValue();
 			jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'updateValidators')
+				.spyOn(mainchainCCUUpdateCommand['internalMethod'], 'updateValidators')
 				.mockResolvedValue();
 			jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'updateCertificate')
+				.spyOn(mainchainCCUUpdateCommand['internalMethod'], 'updateCertificate')
 				.mockResolvedValue();
 			jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'appendToInboxTree')
+				.spyOn(mainchainCCUUpdateCommand['internalMethod'], 'appendToInboxTree')
 				.mockResolvedValue();
 			jest.spyOn(mainchainCCUUpdateCommand, 'apply' as never).mockResolvedValue(undefined as never);
 			jest
@@ -439,7 +450,7 @@ describe('CrossChainUpdateCommand', () => {
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
 			expect(
-				MainchainInteroperabilityInternalMethod.prototype.verifyCertificateSignature,
+				mainchainCCUUpdateCommand['internalMethod'].verifyCertificateSignature,
 			).toHaveBeenCalledTimes(1);
 		});
 
@@ -499,7 +510,7 @@ describe('CrossChainUpdateCommand', () => {
 			).not.toHaveBeenCalled();
 		});
 
-		it('should reject terminate the chain and add an event when ccm format is invalid', async () => {
+		it('should reject and terminate the chain and add an event when ccm format is invalid', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -530,8 +541,8 @@ describe('CrossChainUpdateCommand', () => {
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
 			expect(
-				MainchainInteroperabilityInternalMethod.prototype.terminateChainInternal,
-			).toHaveBeenCalledWith(params.sendingChainID, expect.anything());
+				mainchainCCUUpdateCommand['internalMethod'].terminateChainInternal,
+			).toHaveBeenCalledWith(expect.anything(), params.sendingChainID);
 			expect(interopMod.events.get(CcmProcessedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
 				params.sendingChainID,
@@ -544,7 +555,7 @@ describe('CrossChainUpdateCommand', () => {
 			);
 		});
 
-		it('should reject terminate the chain and add an event when CCM sending chain and ccu sending chain is not the same', async () => {
+		it('should reject and terminate the chain and add an event when CCM sending chain and ccu sending chain is not the same', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -575,8 +586,8 @@ describe('CrossChainUpdateCommand', () => {
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
 			expect(
-				MainchainInteroperabilityInternalMethod.prototype.terminateChainInternal,
-			).toHaveBeenCalledWith(params.sendingChainID, expect.anything());
+				mainchainCCUUpdateCommand['internalMethod'].terminateChainInternal,
+			).toHaveBeenCalledWith(expect.anything(), params.sendingChainID);
 			expect(interopMod.events.get(CcmProcessedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
 				params.sendingChainID,
@@ -589,7 +600,7 @@ describe('CrossChainUpdateCommand', () => {
 			);
 		});
 
-		it('should reject terminate the chain and add an event when receiving chain is the same as sending chain', async () => {
+		it('should reject and terminate the chain and add an event when receiving chain is the same as sending chain', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -620,8 +631,8 @@ describe('CrossChainUpdateCommand', () => {
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
 			expect(
-				MainchainInteroperabilityInternalMethod.prototype.terminateChainInternal,
-			).toHaveBeenCalledWith(params.sendingChainID, expect.anything());
+				mainchainCCUUpdateCommand['internalMethod'].terminateChainInternal,
+			).toHaveBeenCalledWith(expect.anything(), params.sendingChainID);
 			expect(interopMod.events.get(CcmProcessedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
 				params.sendingChainID,
@@ -634,7 +645,7 @@ describe('CrossChainUpdateCommand', () => {
 			);
 		});
 
-		it('should reject terminate the chain and add an event when ccm status is CCMStatusCode.CHANNEL_UNAVAILABLE', async () => {
+		it('should reject and terminate the chain and add an event when ccm status is CCMStatusCode.CHANNEL_UNAVAILABLE', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -665,8 +676,8 @@ describe('CrossChainUpdateCommand', () => {
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
 			expect(
-				MainchainInteroperabilityInternalMethod.prototype.terminateChainInternal,
-			).toHaveBeenCalledWith(params.sendingChainID, expect.anything());
+				mainchainCCUUpdateCommand['internalMethod'].terminateChainInternal,
+			).toHaveBeenCalledWith(expect.anything(), params.sendingChainID);
 			expect(interopMod.events.get(CcmProcessedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
 				params.sendingChainID,
@@ -699,9 +710,7 @@ describe('CrossChainUpdateCommand', () => {
 			}).createCommandExecuteContext(mainchainCCUUpdateCommand.schema);
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
-			expect(
-				MainchainInteroperabilityInternalMethod.prototype.updateValidators,
-			).toHaveBeenCalledTimes(1);
+			expect(mainchainCCUUpdateCommand['internalMethod'].updateValidators).toHaveBeenCalledTimes(1);
 		});
 
 		it('should update validators when certificate threshold is different', async () => {
@@ -722,9 +731,7 @@ describe('CrossChainUpdateCommand', () => {
 			}).createCommandExecuteContext(mainchainCCUUpdateCommand.schema);
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
-			expect(
-				MainchainInteroperabilityInternalMethod.prototype.updateValidators,
-			).toHaveBeenCalledTimes(1);
+			expect(mainchainCCUUpdateCommand['internalMethod'].updateValidators).toHaveBeenCalledTimes(1);
 		});
 
 		it('should update certificate when certificate is not empty', async () => {
@@ -742,9 +749,9 @@ describe('CrossChainUpdateCommand', () => {
 			}).createCommandExecuteContext(mainchainCCUUpdateCommand.schema);
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
-			expect(
-				MainchainInteroperabilityInternalMethod.prototype.updateCertificate,
-			).toHaveBeenCalledTimes(1);
+			expect(mainchainCCUUpdateCommand['internalMethod'].updateCertificate).toHaveBeenCalledTimes(
+				1,
+			);
 		});
 
 		it('should not update certificate when certificate is empty', async () => {
@@ -762,12 +769,10 @@ describe('CrossChainUpdateCommand', () => {
 			}).createCommandExecuteContext(mainchainCCUUpdateCommand.schema);
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
-			expect(
-				MainchainInteroperabilityInternalMethod.prototype.updateCertificate,
-			).not.toHaveBeenCalled();
+			expect(mainchainCCUUpdateCommand['internalMethod'].updateCertificate).not.toHaveBeenCalled();
 		});
 
-		it('should call apply for ccm and add to the inbox where receivign chain is the main chain', async () => {
+		it('should call apply for ccm and add to the inbox where receiving chain is the main chain', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -782,12 +787,12 @@ describe('CrossChainUpdateCommand', () => {
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
 			expect(mainchainCCUUpdateCommand['apply']).toHaveBeenCalledTimes(1);
-			expect(
-				MainchainInteroperabilityInternalMethod.prototype.appendToInboxTree,
-			).toHaveBeenCalledTimes(3);
+			expect(mainchainCCUUpdateCommand['internalMethod'].appendToInboxTree).toHaveBeenCalledTimes(
+				3,
+			);
 		});
 
-		it('should call forward for ccm and add to the inbox where receivign chain is not the mainchain', async () => {
+		it('should call forward for ccm and add to the inbox where receiving chain is not the mainchain', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -802,9 +807,9 @@ describe('CrossChainUpdateCommand', () => {
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
 			expect(mainchainCCUUpdateCommand['_forward']).toHaveBeenCalledTimes(2);
-			expect(
-				MainchainInteroperabilityInternalMethod.prototype.appendToInboxTree,
-			).toHaveBeenCalledTimes(3);
+			expect(mainchainCCUUpdateCommand['internalMethod'].appendToInboxTree).toHaveBeenCalledTimes(
+				3,
+			);
 		});
 	});
 
