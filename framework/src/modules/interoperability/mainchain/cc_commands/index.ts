@@ -14,4 +14,3 @@
 
 export { MainchainCCChannelTerminatedCommand } from './channel_terminated';
 export { MainchainCCRegistrationCommand } from './registration';
-export { MainchainCCSidechainTerminatedCommand } from './sidechain_terminated';
