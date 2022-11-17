@@ -218,7 +218,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			try {
 				await command.verify(context);
 			} catch (error) {
-				logger.info(
+				logger.debug(
 					{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
 					'Fail to verify cross chain command.',
 				);
@@ -250,7 +250,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 		} catch (error) {
 			context.eventQueue.restoreSnapshot(baseEventSnapshotID);
 			context.stateStore.restoreSnapshot(baseStateSnapshotID);
-			logger.info(
+			logger.debug(
 				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
 				'Fail to execute beforeCrossChainCommandExecute.',
 			);
@@ -300,7 +300,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 		} catch (error) {
 			context.eventQueue.restoreSnapshot(baseEventSnapshotID);
 			context.stateStore.restoreSnapshot(baseStateSnapshotID);
-			logger.info(
+			logger.debug(
 				{ err: error as Error, moduleName: module, commandName: ccm.crossChainCommand },
 				'Fail to execute afterCrossChainCommandExecute',
 			);
@@ -344,6 +344,10 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 				code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
 				result: CCMProcessedResult.DISCARDED,
 			});
+			logger.debug(
+				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+				'Fail to execute verifyCrossChainMessage.',
+			);
 			return;
 		}
 		const baseEventSnapshotID = context.eventQueue.createSnapshot();
@@ -366,7 +370,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 		} catch (error) {
 			context.eventQueue.restoreSnapshot(baseEventSnapshotID);
 			context.stateStore.restoreSnapshot(baseStateSnapshotID);
-			logger.info(
+			logger.debug(
 				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
 				'Fail to execute beforeCrossChainMessageForwarding.',
 			);

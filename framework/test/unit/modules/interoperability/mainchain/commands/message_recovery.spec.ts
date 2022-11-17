@@ -892,40 +892,22 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			params: Buffer.alloc(0),
 		};
 		let context: CrossChainMessageContext;
-		let command: MainchainMessageRecoveryCommand;
-		let ccMethods: Map<string, BaseCCMethod>;
-		let ccCommands: Map<string, BaseCCCommand[]>;
-		let internalMethod: MainchainInteroperabilityInternalMethod;
 
 		beforeEach(() => {
-			const interopModule = new MainchainInteroperabilityModule();
-			ccMethods = new Map();
-			ccMethods.set(
+			command['interoperableCCMethods'].set(
 				'token',
 				new (class TokenMethod extends BaseCCMethod {
 					public verifyCrossChainMessage = jest.fn();
 					public beforeCrossChainMessageForwarding = jest.fn();
 				})(interopModule.stores, interopModule.events),
 			);
-			ccCommands = new Map();
-			ccCommands.set('token', [
+			command['ccCommands'].set('token', [
 				new (class CrossChainTransfer extends BaseCCCommand {
 					public schema = { $id: 'test/ccu', properties: {}, type: 'object' };
 					public verify = jest.fn();
 					public execute = jest.fn();
 				})(interopModule.stores, interopModule.events),
 			]);
-			internalMethod = {
-				addToOutbox: jest.fn(),
-			} as any;
-			interopModule['internalMethod'] = internalMethod;
-			command = new MainchainMessageRecoveryCommand(
-				interopModule.stores,
-				interopModule.events,
-				ccMethods,
-				ccCommands,
-				interopModule['internalMethod'],
-			);
 			jest.spyOn(command['events'].get(CcmProcessedEvent), 'log');
 			jest.spyOn(command['events'].get(CcmSendSuccessEvent), 'log');
 			context = createCrossChainMessageContext({
@@ -934,7 +916,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 
 		it('should log event when verifyCrossChainMessage fails', async () => {
-			((ccMethods.get('token') as BaseCCMethod)
+			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
 				.verifyCrossChainMessage as jest.Mock).mockRejectedValue('error');
 			await expect(command['_forwardRecovery'](context)).resolves.toBeUndefined();
 
@@ -952,7 +934,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 
 		it('should log event when command beforeCrossChainMessageForwarding fails', async () => {
-			((ccMethods.get('token') as BaseCCMethod)
+			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
 				.beforeCrossChainMessageForwarding as jest.Mock).mockRejectedValue('error');
 
 			await expect(command['_forwardRecovery'](context)).resolves.toBeUndefined();
@@ -971,7 +953,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 
 		it('should revert to the original state/event when command beforeCrossChainMessageForwarding fails', async () => {
-			((ccMethods.get('token') as BaseCCMethod)
+			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
 				.beforeCrossChainMessageForwarding as jest.Mock).mockRejectedValue('error');
 			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
 			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);
@@ -985,14 +967,14 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 
 		it('should add to outbox and log success', async () => {
-			const ccMethod = ccMethods.get('token');
+			const ccMethod = command['interoperableCCMethods'].get('token');
 
 			await expect(command['_forwardRecovery'](context)).resolves.toBeUndefined();
 
 			expect(ccMethod?.verifyCrossChainMessage).toHaveBeenCalledTimes(1);
 			expect(ccMethod?.beforeCrossChainMessageForwarding).toHaveBeenCalledTimes(1);
 
-			expect(internalMethod.addToOutbox).toHaveBeenCalledWith(
+			expect(command['internalMethod'].addToOutbox).toHaveBeenCalledWith(
 				expect.anything(),
 				context.ccm.sendingChainID,
 				expect.objectContaining({
