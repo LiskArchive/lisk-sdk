@@ -317,6 +317,36 @@ export const messageRecoveryParamsSchema = {
 	},
 };
 
+export const messageRecoveryInitializationParamsSchema = {
+	$id: '/modules/interoperability/mainchain/messageRecoveryInitialization',
+	type: 'object',
+	required: ['chainID', 'channel', 'bitmap', 'siblingHashes'],
+	properties: {
+		chainID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
+		},
+		channel: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+		bitmap: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		siblingHashes: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+			},
+			fieldNumber: 4,
+		},
+	},
+};
+
+// Cross chain commands schemas
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#parameters-2
 export const registrationCCMParamsSchema = {
 	$id: '/modules/interoperability/ccCommand/registration',
