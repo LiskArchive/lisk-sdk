@@ -199,7 +199,6 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand<Si
 		this.events.get(ChainAccountUpdatedEvent).log(methodContext, mainchainID, mainchainAccount);
 
 		const encodedParams = codec.encode(registrationCCMParamsSchema, {
-			chainID: mainchainID,
 			name: MAINCHAIN_NAME,
 			messageFeeTokenID: mainchainTokenID,
 		});

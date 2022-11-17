@@ -13,10 +13,11 @@
  */
 
 import { BaseInteroperabilityInternalMethod } from '../base_interoperability_internal_methods';
-import { EMPTY_BYTES, LIVENESS_LIMIT, MAINCHAIN_ID_BUFFER } from '../constants';
+import { EMPTY_BYTES, LIVENESS_LIMIT } from '../constants';
 import { OwnChainAccountStore } from '../stores/own_chain_account';
 import { ChainAccountStore, ChainStatus } from '../stores/chain_account';
 import { ImmutableStoreGetter } from '../../base_store';
+import { NotFoundError } from '../../../state_machine';
 
 export class MainchainInteroperabilityInternalMethod extends BaseInteroperabilityInternalMethod {
 	public async isLive(
@@ -29,24 +30,23 @@ export class MainchainInteroperabilityInternalMethod extends BaseInteroperabilit
 			return true;
 		}
 
-		if (!ownChainAccount.chainID.equals(MAINCHAIN_ID_BUFFER)) {
-			return false;
-		}
-
-		const chainAccountExists = await this.stores.get(ChainAccountStore).has(context, chainID);
-		if (chainAccountExists) {
+		try {
 			const chainAccount = await this.stores.get(ChainAccountStore).get(context, chainID);
 			if (chainAccount.status === ChainStatus.TERMINATED) {
 				return false;
 			}
-			if (
-				chainAccount.status === ChainStatus.ACTIVE &&
-				timestamp - chainAccount.lastCertificate.timestamp > LIVENESS_LIMIT
-			) {
-				return false;
+			if (chainAccount.status === ChainStatus.ACTIVE) {
+				if (timestamp - chainAccount.lastCertificate.timestamp > LIVENESS_LIMIT) {
+					return false;
+				}
 			}
-		}
 
-		return true;
+			return true;
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			return false;
+		}
 	}
 }

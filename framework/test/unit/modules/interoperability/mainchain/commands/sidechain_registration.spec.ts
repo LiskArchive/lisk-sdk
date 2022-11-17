@@ -608,7 +608,6 @@ describe('Sidechain registration command', () => {
 		it(`should emit ${EVENT_NAME_CCM_SEND_SUCCESS} event`, async () => {
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
 				name: transactionParams.name,
-				chainID: transactionParams.chainID,
 				messageFeeTokenID: getMainchainTokenID(chainID),
 			});
 			const ccm = {
