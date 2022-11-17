@@ -49,6 +49,9 @@ export class Q {
 		if (typeof val === 'bigint') {
 			return new Q(val * TWO ** bigintBase, bigintBase);
 		}
+		if (val.equals(Buffer.alloc(0))) {
+			return new Q(BigInt(0), bigintBase);
+		}
 		return new Q(BigInt(`0x${val.toString('hex')}`), bigintBase);
 	}
 
