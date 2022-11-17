@@ -95,6 +95,7 @@ export const createGenesisBlockContext = (params: {
 export const createBlockContext = (params: {
 	stateStore?: PrefixedStateReadWriter;
 	eventQueue?: EventQueue;
+	chainID?: Buffer;
 	logger?: Logger;
 	header?: BlockHeader;
 	assets?: BlockAssets;
@@ -112,7 +113,7 @@ export const createBlockContext = (params: {
 		transactions: params.transactions ?? [],
 		header,
 		assets: params.assets ?? new BlockAssets(),
-		chainID: utils.getRandomBytes(32),
+		chainID: params.chainID ?? utils.getRandomBytes(4),
 	});
 	return ctx;
 };
