@@ -136,6 +136,7 @@ describe('BaseCCRegistrationCommand', () => {
 			interopMod.stores,
 			interopMod.events,
 			new Map(),
+			interopMod['internalMethod'],
 		);
 	});
 
