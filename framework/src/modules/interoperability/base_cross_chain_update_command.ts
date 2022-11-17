@@ -29,9 +29,9 @@ export abstract class BaseCrossChainUpdateCommand<
 	public schema = crossChainUpdateTransactionParams;
 
 	protected _tokenMethod!: TokenMethod;
-	protected _interopsMethod!: BaseInteroperabilityMethod<never>;
+	protected _interopsMethod!: BaseInteroperabilityMethod<T>;
 
-	public init(interopsMethod: BaseInteroperabilityMethod<never>, tokenMethod: TokenMethod) {
+	public init(interopsMethod: BaseInteroperabilityMethod<T>, tokenMethod: TokenMethod) {
 		this._tokenMethod = tokenMethod;
 		this._interopsMethod = interopsMethod;
 	}
