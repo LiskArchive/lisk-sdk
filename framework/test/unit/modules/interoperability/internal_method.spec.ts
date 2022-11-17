@@ -350,7 +350,9 @@ describe('Base interoperability internal method', () => {
 				chainIdNew,
 			);
 
-			await expect(terminatedStateSubstore.get(crossChainMessageContext, chainIdNew)).resolves.toStrictEqual({
+			await expect(
+				terminatedStateSubstore.get(crossChainMessageContext, chainIdNew),
+			).resolves.toStrictEqual({
 				stateRoot: EMPTY_HASH,
 				mainchainStateRoot: chainAccount.lastCertificate.stateRoot,
 				initialized: false,
