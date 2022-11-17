@@ -95,23 +95,6 @@ describe('Mainchain interoperability internal method', () => {
 			expect(isLive).toBe(true);
 		});
 
-		it('should return false if ownChainAccount id does not equal mainchain ID', async () => {
-			when(ownChainAccountStoreMock.get as never)
-				.calledWith(expect.anything(), EMPTY_BYTES)
-				.mockResolvedValue({
-					...ownChainAccount,
-					chainID: utils.getRandomBytes(32),
-				} as never);
-
-			const isLive = await mainchainInteroperabilityInternalMethod.isLive(
-				context,
-				chainID,
-				timestamp,
-			);
-
-			expect(isLive).toBe(false);
-		});
-
 		it(`should return false if chain account exists and status is ${ChainStatus.TERMINATED}`, async () => {
 			await chainDataSubstore.set(context, chainID, {
 				...chainAccount,
@@ -142,14 +125,29 @@ describe('Mainchain interoperability internal method', () => {
 			expect(isLive).toBe(false);
 		});
 
-		it('should return true if chain account does not exist', async () => {
+		it(`should return true if chain account exists & status is ${ChainStatus.REGISTERED}`, async () => {
+			await chainDataSubstore.set(context, chainID, {
+				...chainAccount,
+				status: ChainStatus.REGISTERED,
+			});
+
+			const isLive = await mainchainInteroperabilityInternalMethod.isLive(
+				context,
+				chainID,
+				timestamp,
+			);
+
+			expect(isLive).toBe(true);
+		});
+
+		it('should return false if chain account does not exist', async () => {
 			const isLive = await mainchainInteroperabilityInternalMethod.isLive(
 				context,
 				utils.getRandomBytes(32),
 				timestamp,
 			);
 
-			expect(isLive).toBe(true);
+			expect(isLive).toBe(false);
 		});
 	});
 });
