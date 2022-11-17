@@ -22,25 +22,38 @@ import {
 	CommandExecuteContext,
 } from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
-import { MAX_UNLOCKING, MAX_VOTE, MODULE_NAME_DPOS, TEN_UNIT } from '../constants';
+import {
+	MAX_NUMBER_PENDING_UNLOCKS,
+	MAX_NUMBER_SENT_VOTES,
+	MODULE_NAME_DPOS,
+	PoSEventResult,
+	BASE_VOTE_AMOUNT,
+} from '../constants';
+import { DelegateVotedEvent } from '../events/delegate_voted';
+import { InternalMethod } from '../internal_method';
 import { voteCommandParamsSchema } from '../schemas';
 import { DelegateStore } from '../stores/delegate';
+import { EligibleDelegatesStore } from '../stores/eligible_delegates';
 import { VoterStore } from '../stores/voter';
-import { TokenMethod, TokenID, VoteCommandDependencies, VoteTransactionParams } from '../types';
-import { sortUnlocking } from '../utils';
+import { TokenMethod, TokenID, VoteTransactionParams } from '../types';
+import { sortUnlocking, getDelegateWeight } from '../utils';
 
 export class VoteDelegateCommand extends BaseCommand {
 	public schema = voteCommandParamsSchema;
 
 	private _tokenMethod!: TokenMethod;
 	private _governanceTokenID!: TokenID;
+	private _internalMethod!: InternalMethod;
+	private _factorSelfVotes!: bigint;
 
-	public addDependencies(args: VoteCommandDependencies) {
+	public addDependencies(args: { tokenMethod: TokenMethod; internalMethod: InternalMethod }) {
 		this._tokenMethod = args.tokenMethod;
+		this._internalMethod = args.internalMethod;
 	}
 
-	public init(args: { governanceTokenID: TokenID }) {
+	public init(args: { governanceTokenID: TokenID; factorSelfVotes: bigint }) {
 		this._governanceTokenID = args.governanceTokenID;
+		this._factorSelfVotes = args.factorSelfVotes;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -73,7 +86,7 @@ export class VoteDelegateCommand extends BaseCommand {
 				};
 			}
 
-			if (vote.amount % TEN_UNIT !== BigInt(0)) {
+			if (vote.amount % BASE_VOTE_AMOUNT !== BigInt(0)) {
 				return {
 					status: VerifyStatus.FAIL,
 					error: new ValidationError(
@@ -90,14 +103,17 @@ export class VoteDelegateCommand extends BaseCommand {
 			}
 		}
 
-		if (upvoteCount > MAX_VOTE) {
+		if (upvoteCount > MAX_NUMBER_SENT_VOTES) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new ValidationError('Upvote can only be casted up to 10.', upvoteCount.toString()),
+				error: new ValidationError(
+					`Upvote can only be casted up to ${MAX_NUMBER_SENT_VOTES}.`,
+					upvoteCount.toString(),
+				),
 			};
 		}
 
-		if (downvoteCount > MAX_VOTE) {
+		if (downvoteCount > MAX_NUMBER_SENT_VOTES) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new ValidationError(
@@ -147,6 +163,22 @@ export class VoteDelegateCommand extends BaseCommand {
 		for (const vote of votes) {
 			const voterData = await voterStore.getOrDefault(context, senderAddress);
 
+			const delegateExists = await delegateStore.has(context, vote.delegateAddress);
+
+			if (!delegateExists) {
+				this.events.get(DelegateVotedEvent).error(
+					context,
+					{
+						senderAddress,
+						delegateAddress: vote.delegateAddress,
+						amount: vote.amount,
+					},
+					PoSEventResult.VOTE_FAILED_NON_REGISTERED_DELEGATE,
+				);
+
+				throw new Error('Invalid vote: no registered delegate with the specified address');
+			}
+
 			const delegateData = await delegateStore.get(context, vote.delegateAddress);
 
 			const originalUpvoteIndex = voterData.sentVotes.findIndex(senderVote =>
@@ -157,16 +189,46 @@ export class VoteDelegateCommand extends BaseCommand {
 			if (vote.amount < BigInt(0)) {
 				// unvote
 				if (originalUpvoteIndex < 0) {
-					throw new Error('Cannot cast downvote to delegate who is not upvoted.');
+					this.events.get(DelegateVotedEvent).error(
+						context,
+						{
+							senderAddress,
+							delegateAddress: vote.delegateAddress,
+							amount: vote.amount,
+						},
+						PoSEventResult.VOTE_FAILED_INVALID_UNVOTE_PARAMETERS,
+					);
+
+					throw new Error('Invalid unvote: Cannot cast downvote to delegate who is not upvoted.');
 				}
+
+				if (voterData.sentVotes[originalUpvoteIndex].amount + vote.amount < BigInt(0)) {
+					this.events.get(DelegateVotedEvent).error(
+						context,
+						{
+							senderAddress,
+							delegateAddress: vote.delegateAddress,
+							amount: vote.amount,
+						},
+						PoSEventResult.VOTE_FAILED_INVALID_UNVOTE_PARAMETERS,
+					);
+
+					throw new Error(
+						'Invalid unvote: The unvote amount exceeds the voted amount for this delegate.',
+					);
+				}
+
+				await this._internalMethod.assignVoteRewards(
+					context,
+					senderAddress,
+					voterData.sentVotes[originalUpvoteIndex],
+					delegateData,
+				);
 
 				voterData.sentVotes[originalUpvoteIndex].amount += vote.amount;
+				voterData.sentVotes[originalUpvoteIndex].voteSharingCoefficients =
+					delegateData.sharingCoefficients;
 
-				if (voterData.sentVotes[originalUpvoteIndex].amount < BigInt(0)) {
-					throw new Error('The downvote amount cannot be greater than upvoted amount.');
-				}
-
-				// Delete entry when amount becomes 0
 				if (voterData.sentVotes[originalUpvoteIndex].amount === BigInt(0)) {
 					voterData.sentVotes = voterData.sentVotes.filter(
 						senderVote => !senderVote.delegateAddress.equals(vote.delegateAddress),
@@ -184,19 +246,24 @@ export class VoteDelegateCommand extends BaseCommand {
 				// Sort account.unlocking
 				sortUnlocking(voterData.pendingUnlocks);
 
-				if (voterData.pendingUnlocks.length > MAX_UNLOCKING) {
-					throw new Error(`Pending unlocks cannot exceed ${MAX_UNLOCKING.toString()}.`);
+				if (voterData.pendingUnlocks.length > MAX_NUMBER_PENDING_UNLOCKS) {
+					this.events.get(DelegateVotedEvent).error(
+						context,
+						{
+							senderAddress,
+							delegateAddress: vote.delegateAddress,
+							amount: vote.amount,
+						},
+						PoSEventResult.VOTE_FAILED_TOO_MANY_PENDING_UNLOCKS,
+					);
+
+					throw new Error(
+						`Pending unlocks cannot exceed ${MAX_NUMBER_PENDING_UNLOCKS.toString()}.`,
+					);
 				}
 			} else {
 				// Upvote amount case
-				const upvote =
-					originalUpvoteIndex > -1
-						? voterData.sentVotes[originalUpvoteIndex]
-						: {
-								delegateAddress: vote.delegateAddress,
-								amount: BigInt(0),
-						  };
-				upvote.amount += vote.amount;
+				let upvote;
 
 				await this._tokenMethod.lock(
 					getMethodContext(),
@@ -206,28 +273,76 @@ export class VoteDelegateCommand extends BaseCommand {
 					vote.amount,
 				);
 
-				// TODO: Issue #7666
+				if (originalUpvoteIndex > -1) {
+					upvote = voterData.sentVotes[originalUpvoteIndex];
+
+					await this._internalMethod.assignVoteRewards(
+						context.getMethodContext(),
+						senderAddress,
+						voterData.sentVotes[originalUpvoteIndex],
+						delegateData,
+					);
+
+					voterData.sentVotes[index].voteSharingCoefficients = delegateData.sharingCoefficients;
+				} else {
+					upvote = {
+						delegateAddress: vote.delegateAddress,
+						amount: BigInt(0),
+						voteSharingCoefficients: delegateData.sharingCoefficients,
+					};
+				}
+
+				upvote.amount += vote.amount;
+
 				voterData.sentVotes[index] = {
 					...upvote,
-					delegateAddress: Buffer.from('00'),
-					amount: BigInt(10),
-					voteSharingCoefficients: [] as never,
 				};
 
 				voterData.sentVotes.sort((a, b) => a.delegateAddress.compare(b.delegateAddress));
-				if (voterData.sentVotes.length > MAX_VOTE) {
-					throw new Error(`Sender can only vote upto ${MAX_VOTE.toString()}.`);
+				if (voterData.sentVotes.length > MAX_NUMBER_SENT_VOTES) {
+					this.events.get(DelegateVotedEvent).error(
+						context,
+						{
+							senderAddress,
+							delegateAddress: vote.delegateAddress,
+							amount: vote.amount,
+						},
+						PoSEventResult.VOTE_FAILED_TOO_MANY_SENT_VOTES,
+					);
+
+					throw new Error(`Sender can only vote upto ${MAX_NUMBER_SENT_VOTES.toString()}.`);
 				}
 			}
 
+			const previousDelegateWeight = getDelegateWeight(
+				this._factorSelfVotes,
+				delegateData.selfVotes,
+				delegateData.totalVotesReceived,
+			);
 			// Change delegate.selfVote if this vote is a self vote
 			if (senderAddress.equals(vote.delegateAddress)) {
-				delegateData.selfVotes = voterData.sentVotes[index].amount;
+				delegateData.selfVotes += vote.amount;
 			}
 
-			await voterStore.set(context, senderAddress, voterData);
 			delegateData.totalVotesReceived += vote.amount;
+
+			const eligibleDelegatesStore = this.stores.get(EligibleDelegatesStore);
+
+			await eligibleDelegatesStore.update(
+				context,
+				vote.delegateAddress,
+				previousDelegateWeight,
+				delegateData,
+			);
+
+			await voterStore.set(context, senderAddress, voterData);
 			await delegateStore.set(context, vote.delegateAddress, delegateData);
+
+			this.events.get(DelegateVotedEvent).log(context, {
+				senderAddress,
+				delegateAddress: vote.delegateAddress,
+				amount: vote.amount,
+			});
 		}
 	}
 }

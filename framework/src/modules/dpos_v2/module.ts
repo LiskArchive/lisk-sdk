@@ -28,8 +28,8 @@ import { ChangeCommissionCommand } from './commands/change_commission';
 import {
 	DELEGATE_LIST_ROUND_OFFSET,
 	EMPTY_KEY,
-	MAX_VOTE,
-	MAX_UNLOCKING,
+	MAX_NUMBER_SENT_VOTES,
+	MAX_NUMBER_PENDING_UNLOCKS,
 	defaultConfig,
 	MAX_CAP,
 } from './constants';
@@ -83,6 +83,7 @@ import { DelegateBannedEvent } from './events/delegate_banned';
 import { DelegatePunishedEvent } from './events/delegate_punished';
 import { DelegateRegisteredEvent } from './events/delegate_registered';
 import { DelegateVotedEvent } from './events/delegate_voted';
+import { InternalMethod } from './internal_method';
 import { CommissionChangeEvent } from './events/commission_change';
 
 export class DPoSModule extends BaseModule {
@@ -116,6 +117,7 @@ export class DPoSModule extends BaseModule {
 		this._changeCommissionCommand,
 	];
 
+	private readonly _internalMethod = new InternalMethod(this.stores, this.events, this.name);
 	private _randomMethod!: RandomMethod;
 	private _validatorsMethod!: ValidatorsMethod;
 	private _tokenMethod!: TokenMethod;
@@ -162,6 +164,7 @@ export class DPoSModule extends BaseModule {
 		this._updateGeneratorKeyCommand.addDependencies(this._validatorsMethod);
 		this._voteCommand.addDependencies({
 			tokenMethod: this._tokenMethod,
+			internalMethod: this._internalMethod,
 		});
 	}
 
@@ -256,17 +259,28 @@ export class DPoSModule extends BaseModule {
 		this._reportDelegateMisbehaviorCommand.init({
 			governanceTokenID: this._moduleConfig.governanceTokenID,
 		});
+		this.endpoint.init(this.name, this._moduleConfig, this._tokenMethod);
+		this._reportDelegateMisbehaviorCommand.init({
+			governanceTokenID: this._moduleConfig.governanceTokenID,
+		});
 		this._unlockCommand.init({
 			governanceTokenID: this._moduleConfig.governanceTokenID,
 			roundLength: this._moduleConfig.roundLength,
 		});
-		this._voteCommand.init({ governanceTokenID: this._moduleConfig.governanceTokenID });
+		this._voteCommand.init({
+			governanceTokenID: this._moduleConfig.governanceTokenID,
+			factorSelfVotes: BigInt(this._moduleConfig.factorSelfVotes),
+		});
 		this._changeCommissionCommand.init({
 			commissionIncreasePeriod: this._moduleConfig.commissionIncreasePeriod,
 			maxCommissionIncreaseRate: this._moduleConfig.maxCommissionIncreaseRate,
 		});
 
 		this.stores.get(EligibleDelegatesStore).init(this._moduleConfig);
+		this._voteCommand.init({
+			governanceTokenID: this._moduleConfig.governanceTokenID,
+			factorSelfVotes: BigInt(this._moduleConfig.factorSelfVotes),
+		});
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
@@ -311,8 +325,8 @@ export class DPoSModule extends BaseModule {
 		// voters property check
 		const voterAddresses = [];
 		for (const voter of genesisStore.voters) {
-			if (voter.sentVotes.length > MAX_VOTE) {
-				throw new Error(`Sent vote exceeds max vote ${MAX_VOTE}.`);
+			if (voter.sentVotes.length > MAX_NUMBER_SENT_VOTES) {
+				throw new Error(`Sent vote exceeds max vote ${MAX_NUMBER_SENT_VOTES}.`);
 			}
 			if (!objectUtils.bufferArrayUniqueItems(voter.sentVotes.map(v => v.delegateAddress))) {
 				throw new Error('Sent vote delegate address is not unique.');
@@ -344,8 +358,8 @@ export class DPoSModule extends BaseModule {
 				}
 			}
 
-			if (voter.pendingUnlocks.length > MAX_UNLOCKING) {
-				throw new Error(`PendingUnlocks exceeds max unlocking ${MAX_UNLOCKING}.`);
+			if (voter.pendingUnlocks.length > MAX_NUMBER_PENDING_UNLOCKS) {
+				throw new Error(`PendingUnlocks exceeds max unlocking ${MAX_NUMBER_PENDING_UNLOCKS}.`);
 			}
 			const sortingPendingUnlocks = [...voter.pendingUnlocks];
 			sortUnlocking(sortingPendingUnlocks);

@@ -37,7 +37,7 @@ export const delegateVotedDataSchema = {
 			format: 'lisk32',
 		},
 		amount: {
-			datatype: 'uint64',
+			dataType: 'sint64',
 			fieldNumber: 3,
 		},
 		result: {
@@ -53,7 +53,7 @@ export class DelegateVotedEvent extends BaseEvent<
 	public schema = delegateVotedDataSchema;
 
 	public log(ctx: EventQueuer, data: DelegateVotedEventData): void {
-		this.add(ctx, { ...data, result: PoSEventResult.SUCCESSFUL }, [
+		this.add(ctx, { ...data, result: PoSEventResult.VOTE_SUCCESSFUL }, [
 			data.senderAddress,
 			data.delegateAddress,
 		]);

@@ -92,6 +92,7 @@ export class EligibleDelegatesStore extends BaseStore<EligibleDelegate> {
 			delegate.selfVotes,
 			delegate.totalVotesReceived,
 		);
+
 		if (newWeight < this._config.minWeightStandby) {
 			return;
 		}
