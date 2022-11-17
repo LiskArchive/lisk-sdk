@@ -311,4 +311,80 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			});
 		}
 	}
+
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-expect-error
+	private async _forwardRecovery(context: CrossChainMessageContext): Promise<void> {
+		const { logger } = context;
+		const ccmID = utils.hash(codec.encode(ccmSchema, context.ccm));
+		const ccm: CCMsg = {
+			...context.ccm,
+			status: CCMStatusCode.RECOVERED,
+			sendingChainID: context.ccm.receivingChainID,
+			receivingChainID: context.ccm.sendingChainID,
+		};
+
+		try {
+			for (const [module, method] of this.interoperableCCMethods.entries()) {
+				if (method.verifyCrossChainMessage) {
+					logger.debug(
+						{
+							moduleName: module,
+							commandName: ccm.crossChainCommand,
+							ccmID: ccmID.toString('hex'),
+						},
+						'Execute verifyCrossChainMessage',
+					);
+					await method.verifyCrossChainMessage(context);
+				}
+			}
+		} catch (error) {
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+				result: CCMProcessedResult.DISCARDED,
+			});
+			return;
+		}
+		const baseEventSnapshotID = context.eventQueue.createSnapshot();
+		const baseStateSnapshotID = context.stateStore.createSnapshot();
+
+		try {
+			for (const [module, method] of this.interoperableCCMethods.entries()) {
+				if (method.beforeCrossChainMessageForwarding) {
+					logger.debug(
+						{
+							moduleName: module,
+							commandName: ccm.crossChainCommand,
+							ccmID: ccmID.toString('hex'),
+						},
+						'Execute beforeCrossChainMessageForwarding',
+					);
+					await method.beforeCrossChainMessageForwarding(context);
+				}
+			}
+		} catch (error) {
+			context.eventQueue.restoreSnapshot(baseEventSnapshotID);
+			context.stateStore.restoreSnapshot(baseStateSnapshotID);
+			logger.info(
+				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+				'Fail to execute beforeCrossChainMessageForwarding.',
+			);
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
+				result: CCMProcessedResult.DISCARDED,
+			});
+			return;
+		}
+
+		await this.internalMethod.addToOutbox(context, ccm.receivingChainID, ccm);
+		const recoveredCCMID = utils.hash(codec.encode(ccmSchema, ccm));
+
+		this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+			ccmID: recoveredCCMID,
+			code: CCMProcessedCode.SUCCESS,
+			result: CCMProcessedResult.FORWARDED,
+		});
+	}
 }
