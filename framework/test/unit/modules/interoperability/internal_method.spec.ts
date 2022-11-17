@@ -992,7 +992,7 @@ describe('Base interoperability internal method', () => {
 
 		it('should reject when inbox root is empty but partnerchain outbox root does not match', async () => {
 			await expect(
-				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(context, {
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
 					...txParams,
 					certificate: Buffer.alloc(0),
 				}),
@@ -1003,7 +1003,7 @@ describe('Base interoperability internal method', () => {
 			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
 
 			await expect(
-				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(context, {
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
 					...txParams,
 				}),
 			).rejects.toThrow('Invalid inclusion proof for inbox update');
@@ -1016,7 +1016,7 @@ describe('Base interoperability internal method', () => {
 				.mockReturnValue(channelData.partnerChainOutboxRoot);
 
 			await expect(
-				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(context, {
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
 					...txParams,
 					certificate: Buffer.alloc(0),
 				}),
@@ -1029,7 +1029,7 @@ describe('Base interoperability internal method', () => {
 			jest.spyOn(regularMerkleTree, 'calculateRootFromRightWitness').mockReturnValue(nextRoot);
 
 			await expect(
-				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(context, {
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
 					...txParams,
 				}),
 			).resolves.toBeUndefined();
