@@ -219,7 +219,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 				await command.verify(context);
 			} catch (error) {
 				logger.info(
-					{ err: error as Error, moduleName: module, commandName: ccm.crossChainCommand },
+					{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
 					'Fail to verify cross chain command.',
 				);
 				this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
