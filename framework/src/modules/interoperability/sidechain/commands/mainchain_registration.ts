@@ -46,18 +46,17 @@ import {
 	sortValidatorsByBLSKey,
 } from '../../utils';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
-import { SidechainInteroperabilityInternalMethod } from '../store';
 import { ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 import { ChannelDataStore } from '../../stores/channel_data';
 import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { OutboxRootStore } from '../../stores/outbox_root';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
-import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { ChainAccountUpdatedEvent } from '../../events/chain_account_updated';
 import { InvalidRegistrationSignatureEvent } from '../../events/invalid_registration_signature';
 import { CcmSendSuccessEvent } from '../../events/ccm_send_success';
+import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 
-export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
+export class MainchainRegistrationCommand extends BaseInteroperabilityCommand<SidechainInteroperabilityInternalMethod> {
 	public schema = mainchainRegParams;
 
 	private _validatorsMethod!: ValidatorsMethod;
@@ -221,8 +220,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			status: CCMStatusCode.OK,
 			params: encodedParams,
 		};
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
-		await interoperabilityInternalMethod.addToOutbox(mainchainID, ccm);
+		await this.internalMethod.addToOutbox(context, mainchainID, ccm);
 
 		ownChainAccount.nonce += BigInt(1);
 		await this.stores.get(OwnChainAccountStore).set(context, EMPTY_BYTES, ownChainAccount);
@@ -234,16 +232,5 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			.log(methodContext, ownChainAccount.chainID, mainchainID, ccmID, {
 				ccmID,
 			});
-	}
-
-	protected getInteroperabilityInternalMethod(
-		context: StoreGetter | ImmutableStoreGetter,
-	): SidechainInteroperabilityInternalMethod {
-		return new SidechainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			context,
-			this.interoperableCCMethods,
-		);
 	}
 }

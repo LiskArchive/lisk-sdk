@@ -45,14 +45,23 @@ import { ChainValidatorsStore } from '../stores/chain_validators';
 import { CcmSendSuccessEvent } from '../events/ccm_send_success';
 import { TerminatedStateCreatedEvent } from '../events/terminated_state_created';
 import { TerminatedOutboxCreatedEvent } from '../events/terminated_outbox_created';
+import { MainchainInteroperabilityInternalMethod } from './internal_method';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
-	public method = new MainchainInteroperabilityMethod(
+	protected internalMethod = new MainchainInteroperabilityInternalMethod(
 		this.stores,
 		this.events,
 		this.interoperableCCMethods,
 	);
+	// eslint-disable-next-line @typescript-eslint/member-ordering
+	public method = new MainchainInteroperabilityMethod(
+		this.stores,
+		this.events,
+		this.interoperableCCMethods,
+		this.internalMethod,
+	);
+	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public endpoint = new MainchainInteroperabilityEndpoint(this.stores, this.offchainStores);
 
 	private readonly _sidechainRegistrationCommand = new SidechainRegistrationCommand(
@@ -60,6 +69,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.events,
 		this.interoperableCCMethods,
 		this.interoperableCCCommands,
+		this.internalMethod,
 	);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering

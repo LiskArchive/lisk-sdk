@@ -13,21 +13,20 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 import { CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED, MAINCHAIN_ID } from '../../constants';
 import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
 import { TerminatedStateStore } from '../../stores/terminated_state';
 import { CrossChainMessageContext } from '../../types';
 import { getIDAsKeyForStore } from '../../utils';
-import { SidechainInteroperabilityInternalMethod } from '../store';
+import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 
 interface CCMSidechainTerminatedParams {
 	chainID: Buffer;
 	stateRoot: Buffer;
 }
 
-export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityCCCommand {
+export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityCCCommand<SidechainInteroperabilityInternalMethod> {
 	public schema = sidechainTerminatedCCMParamsSchema;
 
 	public get name(): string {
@@ -35,7 +34,7 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 	}
 
 	public async execute(context: CrossChainMessageContext): Promise<void> {
-		const { ccm, transaction, header } = context;
+		const { ccm } = context;
 		if (!ccm) {
 			throw new Error('CCM to execute sidechain terminated cross chain command is missing.');
 		}
@@ -43,7 +42,6 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 			sidechainTerminatedCCMParamsSchema,
 			ccm.params,
 		);
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 
 		if (ccm.sendingChainID.equals(getIDAsKeyForStore(MAINCHAIN_ID))) {
 			const isTerminated = await this.stores
@@ -53,28 +51,13 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 			if (isTerminated) {
 				return;
 			}
-			await interoperabilityInternalMethod.createTerminatedStateAccount(
+			await this.internalMethods.createTerminatedStateAccount(
 				context,
 				ccmSidechainTerminatedParams.chainID,
 				ccmSidechainTerminatedParams.stateRoot,
 			);
 		} else {
-			await interoperabilityInternalMethod.terminateChainInternal(ccm.sendingChainID, {
-				...context,
-				transaction,
-				header: { height: header.height, timestamp: header.timestamp },
-			});
+			await this.internalMethods.terminateChainInternal(context, ccm.sendingChainID);
 		}
-	}
-
-	protected getInteroperabilityInternalMethod(
-		context: StoreGetter | ImmutableStoreGetter,
-	): SidechainInteroperabilityInternalMethod {
-		return new SidechainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			context,
-			this.interoperableCCMethods,
-		);
 	}
 }

@@ -21,12 +21,10 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainCCRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands';
-import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 import { CrossChainMessageContext } from '../../../../../../src/modules/interoperability/types';
-import { NamedRegistry } from '../../../../../../src/modules/named_registry';
 import { createCrossChainMessageContext } from '../../../../../../src/testing';
 
 describe('MainchainCCRegistrationCommand', () => {
@@ -105,17 +103,10 @@ describe('MainchainCCRegistrationCommand', () => {
 		chainID,
 	});
 
-	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 	let ccRegistrationCommand: MainchainCCRegistrationCommand;
 
 	beforeEach(() => {
-		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
-			interopMod.stores,
-			new NamedRegistry(),
-			sampleExecuteContext,
-			ccMethodsMap,
-		);
-		mainchainInteroperabilityInternalMethod.terminateChainInternal = terminateChainInternalMock;
+		interopMod['internalMethod'].terminateChainInternal = terminateChainInternalMock;
 
 		interopMod.stores.register(ChannelDataStore, getChannelMock as never);
 		interopMod.stores.register(OwnChainAccountStore, getOwnChainAccountMock as never);
@@ -124,10 +115,8 @@ describe('MainchainCCRegistrationCommand', () => {
 			interopMod.stores,
 			interopMod.events,
 			ccMethodsMap,
+			interopMod['internalMethod'],
 		);
-		(ccRegistrationCommand as any)['getInteroperabilityInternalMethod'] = jest
-			.fn()
-			.mockReturnValue(mainchainInteroperabilityInternalMethod);
 	});
 
 	it('should call terminateChainInternal when sendingChainChannelAccount.inbox.size !== 1', async () => {
@@ -155,11 +144,11 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
 			expect.objectContaining({
 				chainID,
 				ccm,
 			}),
+			ccm.sendingChainID,
 		);
 	});
 
@@ -182,11 +171,11 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
 			expect.objectContaining({
 				chainID,
 				ccm: invalidCCM,
 			}),
+			ccm.sendingChainID,
 		);
 	});
 
@@ -203,11 +192,11 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
 			expect.objectContaining({
 				chainID,
 				ccm,
 			}),
+			ccm.sendingChainID,
 		);
 	});
 
@@ -221,11 +210,11 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
 			expect.objectContaining({
 				chainID,
 				ccm,
 			}),
+			ccm.sendingChainID,
 		);
 	});
 
@@ -253,11 +242,11 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
 			expect.objectContaining({
 				chainID,
 				ccm,
 			}),
+			ccm.sendingChainID,
 		);
 	});
 
@@ -285,11 +274,11 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
 			expect.objectContaining({
 				chainID,
 				ccm,
 			}),
+			ccm.sendingChainID,
 		);
 	});
 
@@ -307,11 +296,11 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
 			expect.objectContaining({
 				chainID: differentNetworkID,
 				ccm,
 			}),
+			ccm.sendingChainID,
 		);
 	});
 
@@ -335,11 +324,11 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccm.sendingChainID,
 			expect.objectContaining({
 				chainID,
 				ccm: invalidCCM,
 			}),
+			ccm.sendingChainID,
 		);
 	});
 

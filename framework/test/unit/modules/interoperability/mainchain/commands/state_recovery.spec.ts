@@ -71,6 +71,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 			interopMod.events,
 			interoperableCCMethods,
 			ccCommands,
+			interopMod['internalMethod'],
 		);
 		transactionParams = {
 			chainID: utils.intToBuffer(3, 4),

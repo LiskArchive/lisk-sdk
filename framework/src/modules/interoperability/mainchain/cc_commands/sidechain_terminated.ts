@@ -13,7 +13,6 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { StoreGetter } from '../../../base_store';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 import {
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
@@ -22,14 +21,14 @@ import {
 import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
 import { TerminatedStateStore } from '../../stores/terminated_state';
 import { CrossChainMessageContext } from '../../types';
-import { MainchainInteroperabilityInternalMethod } from '../store';
+import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
 interface CCMSidechainTerminatedParams {
 	chainID: Buffer;
 	stateRoot: Buffer;
 }
 
-export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityCCCommand {
+export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityCCCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = sidechainTerminatedCCMParamsSchema;
 
 	public get name(): string {
@@ -37,7 +36,7 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 	}
 
 	public async execute(context: CrossChainMessageContext): Promise<void> {
-		const { ccm, transaction, header } = context;
+		const { ccm } = context;
 		if (!ccm) {
 			throw new Error('CCM to execute sidechain terminated cross chain command is missing.');
 		}
@@ -45,7 +44,6 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 			sidechainTerminatedCCMParamsSchema,
 			ccm.params,
 		);
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 
 		if (ccm.sendingChainID.equals(MAINCHAIN_ID_BUFFER)) {
 			const isTerminated = await this.stores
@@ -54,28 +52,13 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 			if (isTerminated) {
 				return;
 			}
-			await interoperabilityInternalMethod.createTerminatedStateAccount(
+			await this.internalMethods.createTerminatedStateAccount(
 				context,
 				decodedParams.chainID,
 				decodedParams.stateRoot,
 			);
 		} else {
-			await interoperabilityInternalMethod.terminateChainInternal(ccm.sendingChainID, {
-				...context,
-				transaction,
-				header: { height: header.height, timestamp: header.timestamp },
-			});
+			await this.internalMethods.terminateChainInternal(context, ccm.sendingChainID);
 		}
-	}
-
-	protected getInteroperabilityInternalMethod(
-		context: StoreGetter,
-	): MainchainInteroperabilityInternalMethod {
-		return new MainchainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			context,
-			this.interoperableCCMethods,
-		);
 	}
 }

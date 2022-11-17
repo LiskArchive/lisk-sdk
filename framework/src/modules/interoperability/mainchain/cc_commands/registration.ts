@@ -17,8 +17,7 @@ import { CCMStatusCode, CROSS_CHAIN_COMMAND_NAME_REGISTRATION, EMPTY_BYTES } fro
 import { registrationCCMParamsSchema } from '../../schemas';
 import { CrossChainMessageContext } from '../../types';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
-import { MainchainInteroperabilityInternalMethod } from '../store';
-import { StoreGetter } from '../../../base_store';
+import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 import { ChannelDataStore } from '../../stores/channel_data';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
 
@@ -28,7 +27,7 @@ interface CCMRegistrationParams {
 	messageFeeTokenID: Buffer;
 }
 
-export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCCommand {
+export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = registrationCCMParamsSchema;
 
 	public get name(): string {
@@ -44,7 +43,6 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			registrationCCMParamsSchema,
 			ccm.params,
 		);
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(ctx);
 		const sendingChainChannelAccount = await this.stores
 			.get(ChannelDataStore)
 			.get(ctx, ccm.sendingChainID);
@@ -61,18 +59,7 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			!ccmRegistrationParams.chainID.equals(ctx.chainID) ||
 			ccm.nonce !== BigInt(0) // Only in mainchain
 		) {
-			await interoperabilityInternalMethod.terminateChainInternal(ccm.sendingChainID, ctx);
+			await this.internalMethods.terminateChainInternal(ctx, ccm.sendingChainID);
 		}
-	}
-
-	protected getInteroperabilityInternalMethod(
-		context: StoreGetter,
-	): MainchainInteroperabilityInternalMethod {
-		return new MainchainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			context,
-			this.interoperableCCMethods,
-		);
 	}
 }
