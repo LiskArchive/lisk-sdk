@@ -154,6 +154,22 @@ describe('MessageRecoveryInitializationCommand', () => {
 			await expect(command.verify(context)).rejects.toThrow('Chain ID is not valid.');
 		});
 
+		it('should reject when chain account does not exist', async () => {
+			await interopMod.stores.get(ChainAccountStore).del(stateStore, targetChainID);
+
+			const context = createTransactionContext({
+				stateStore,
+				transaction: new Transaction({
+					...defaultTx,
+					command: command.name,
+					params: codec.encode(command.schema, {
+						...defaultParams,
+					}),
+				}),
+			}).createCommandVerifyContext<MessageRecoveryInitializationParams>(command.schema);
+			await expect(command.verify(context)).rejects.toThrow('Chain account is not registered');
+		});
+
 		it('should reject when terminated account does not exist', async () => {
 			await interopMod.stores.get(TerminatedStateStore).del(stateStore, targetChainID);
 
