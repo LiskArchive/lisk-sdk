@@ -14,10 +14,8 @@
 /* eslint-disable max-classes-per-file */
 import { utils } from '@liskhq/lisk-cryptography';
 import { CommandExecuteContext, MainchainInteroperabilityModule } from '../../../../src';
-import { ImmutableStoreGetter, StoreGetter } from '../../../../src/modules/base_store';
 import { BaseCCCommand } from '../../../../src/modules/interoperability/base_cc_command';
 import { BaseCrossChainUpdateCommand } from '../../../../src/modules/interoperability/base_cross_chain_update_command';
-import { BaseInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/base_interoperability_internal_methods';
 import { BaseCCMethod } from '../../../../src/modules/interoperability/base_cc_method';
 import { CCMStatusCode, MIN_RETURN_FEE } from '../../../../src/modules/interoperability/constants';
 import {
@@ -26,24 +24,14 @@ import {
 	CCMProcessedResult,
 } from '../../../../src/modules/interoperability/events/ccm_processed';
 import { CcmSendSuccessEvent } from '../../../../src/modules/interoperability/events/ccm_send_success';
-import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
 import { CrossChainMessageContext } from '../../../../src/modules/interoperability/types';
 import { createCrossChainMessageContext } from '../../../../src/testing';
 
-class CrossChainUpdateCommand extends BaseCrossChainUpdateCommand {
+class CrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async execute(_context: CommandExecuteContext<unknown>): Promise<void> {
 		throw new Error('Method not implemented.');
-	}
-	protected getInteroperabilityInternalMethod(
-		context: StoreGetter | ImmutableStoreGetter,
-	): BaseInteroperabilityInternalMethod {
-		return new MainchainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			context,
-			new Map(),
-		);
 	}
 }
 
@@ -62,7 +50,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 	let command: CrossChainUpdateCommand;
 	let ccMethods: Map<string, BaseCCMethod>;
 	let ccCommands: Map<string, BaseCCCommand[]>;
-	let internalMethod: BaseInteroperabilityInternalMethod;
+	let internalMethod: MainchainInteroperabilityInternalMethod;
 
 	beforeEach(() => {
 		const interopModule = new MainchainInteroperabilityModule();
@@ -83,20 +71,19 @@ describe('BaseCrossChainUpdateCommand', () => {
 				public execute = jest.fn();
 			})(interopModule.stores, interopModule.events),
 		]);
+		internalMethod = {
+			isLive: jest.fn().mockResolvedValue(true),
+			addToOutbox: jest.fn().mockResolvedValue({}),
+			terminateChainInternal: jest.fn().mockResolvedValue({}),
+		} as any;
+		interopModule['internalMethod'] = internalMethod;
 		command = new CrossChainUpdateCommand(
 			interopModule.stores,
 			interopModule.events,
 			ccMethods,
 			ccCommands,
+			interopModule['internalMethod'],
 		);
-		internalMethod = ({
-			isLive: jest.fn().mockResolvedValue(true),
-			addToOutbox: jest.fn(),
-			terminateChainInternal: jest.fn(),
-		} as unknown) as BaseInteroperabilityInternalMethod;
-		jest
-			.spyOn(command, 'getInteroperabilityInternalMethod' as never)
-			.mockReturnValue(internalMethod as never);
 		jest.spyOn(command['events'].get(CcmProcessedEvent), 'log');
 		jest.spyOn(command['events'].get(CcmSendSuccessEvent), 'log');
 		context = createCrossChainMessageContext({
@@ -112,8 +99,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.sendingChainID,
 				expect.anything(),
+				context.ccm.sendingChainID,
 			);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
@@ -133,8 +120,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.sendingChainID,
 				expect.anything(),
+				context.ccm.sendingChainID,
 			);
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
@@ -185,8 +172,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.sendingChainID,
 				expect.anything(),
+				context.ccm.sendingChainID,
 			);
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
@@ -208,8 +195,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.sendingChainID,
 				expect.anything(),
+				context.ccm.sendingChainID,
 			);
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
@@ -273,8 +260,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.sendingChainID,
 				expect.anything(),
+				context.ccm.sendingChainID,
 			);
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
@@ -386,13 +373,17 @@ describe('BaseCrossChainUpdateCommand', () => {
 				command['bounce'](context, utils.getRandomBytes(32), 100, ccmStatus, ccmProcessedEventCode),
 			).resolves.toBeUndefined();
 
-			expect(internalMethod.addToOutbox).toHaveBeenCalledWith(context.ccm.sendingChainID, {
-				...defaultCCM,
-				status: ccmStatus,
-				sendingChainID: defaultCCM.receivingChainID,
-				receivingChainID: defaultCCM.sendingChainID,
-				fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
-			});
+			expect(internalMethod.addToOutbox).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.sendingChainID,
+				{
+					...defaultCCM,
+					status: ccmStatus,
+					sendingChainID: defaultCCM.receivingChainID,
+					receivingChainID: defaultCCM.sendingChainID,
+					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
+				},
+			);
 		});
 
 		it('should log the event with the new boucing ccm', async () => {

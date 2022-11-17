@@ -54,7 +54,6 @@ import {
 	MAX_CCM_SIZE,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
-import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { BlockHeader, EventQueue } from '../../../../../../src/state_machine';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
 import { CROSS_CHAIN_COMMAND_NAME_FORWARD } from '../../../../../../src/modules/token/constants';
@@ -73,7 +72,6 @@ import {
 } from '../../../../../../src/testing';
 import { BaseCCMethod } from '../../../../../../src/modules/interoperability/base_cc_method';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
-import { BaseInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/base_interoperability_internal_methods';
 import {
 	CCMProcessedCode,
 	CcmProcessedEvent,
@@ -164,7 +162,9 @@ describe('CrossChainUpdateCommand', () => {
 			interopMod.events,
 			new Map(),
 			new Map(),
+			interopMod['internalMethod'],
 		);
+
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		activeValidatorsUpdate = [
 			{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
@@ -254,7 +254,7 @@ describe('CrossChainUpdateCommand', () => {
 			.spyOn(interopUtils, 'checkInboxUpdateValidity')
 			.mockReturnValue({ status: VerifyStatus.OK });
 
-		jest.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'isLive').mockResolvedValue(true);
+		jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(true);
 		jest.spyOn(interopUtils, 'computeValidatorsHash').mockReturnValue(validatorsHash);
 		jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
 	});
@@ -271,14 +271,13 @@ describe('CrossChainUpdateCommand', () => {
 				params,
 				transaction: defaultTransaction as any,
 			};
-			jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'isLive')
-				.mockResolvedValue(true);
+			jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(true);
 			mainchainCCUUpdateCommand = new MainchainCCUpdateCommand(
 				interopMod.stores,
 				interopMod.events,
 				new Map(),
 				new Map(),
+				interopMod['internalMethod'],
 			);
 		});
 
@@ -305,9 +304,7 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should return error when chain is active but not live', async () => {
-			jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'isLive')
-				.mockResolvedValue(false);
+			jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(false);
 			const { status, error } = await mainchainCCUUpdateCommand.verify(verifyContext);
 
 			expect(status).toEqual(VerifyStatus.FAIL);
@@ -373,7 +370,7 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should rejct when verifyCertificateSignature fails', async () => {
 			jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'verifyCertificateSignature')
+				.spyOn(interopMod['internalMethod'], 'verifyCertificateSignature')
 				.mockRejectedValue(new Error('Certificate is invalid due to invalid signature.'));
 
 			await expect(mainchainCCUUpdateCommand.verify(verifyContext)).rejects.toThrow(
@@ -446,6 +443,7 @@ describe('CrossChainUpdateCommand', () => {
 				interopMod.events,
 				new Map(),
 				new Map(),
+				interopMod['internalMethod'],
 			);
 		});
 
@@ -481,7 +479,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(interopUtils, 'computeValidatorsHash')
 				.mockReturnValue(defaultCertificateValues.validatorsHash);
 			const terminateChainInternalMock = jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'terminateChainInternal')
+				.spyOn(interopMod['internalMethod'], 'terminateChainInternal')
 				.mockResolvedValue({} as never);
 			const invalidCCMContext = {
 				...executeContext,
@@ -506,7 +504,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(interopUtils, 'computeValidatorsHash')
 				.mockReturnValue(defaultCertificateValues.validatorsHash);
 			const terminateChainInternalMock = jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'terminateChainInternal')
+				.spyOn(interopMod['internalMethod'], 'terminateChainInternal')
 				.mockResolvedValue({} as never);
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
@@ -529,7 +527,7 @@ describe('CrossChainUpdateCommand', () => {
 				.mockReturnValue(defaultCertificateValues.validatorsHash);
 			jest.spyOn(interopUtils, 'commonCCUExecutelogic').mockReturnValue({} as never);
 			const terminateChainInternalMock = jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'terminateChainInternal')
+				.spyOn(interopMod['internalMethod'], 'terminateChainInternal')
 				.mockResolvedValue({} as never);
 
 			const invalidCCMContext = {
@@ -561,7 +559,7 @@ describe('CrossChainUpdateCommand', () => {
 			jest.spyOn(interopUtils, 'commonCCUExecutelogic').mockReturnValue({} as never);
 
 			const terminateChainInternalMock = jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'terminateChainInternal')
+				.spyOn(interopMod['internalMethod'], 'terminateChainInternal')
 				.mockResolvedValue({} as never);
 
 			const invalidCCMContext = {
@@ -577,8 +575,8 @@ describe('CrossChainUpdateCommand', () => {
 			await expect(mainchainCCUUpdateCommand.execute(invalidCCMContext)).resolves.toBeUndefined();
 			expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 			expect(terminateChainInternalMock).toHaveBeenCalledWith(
+				expect.anything(),
 				invalidCCM.sendingChainID,
-				expect.any(Object),
 			);
 		});
 
@@ -600,7 +598,7 @@ describe('CrossChainUpdateCommand', () => {
 			jest.spyOn(interopUtils, 'commonCCUExecutelogic').mockReturnValue({} as never);
 
 			const appendToInboxTreeMock = jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'appendToInboxTree')
+				.spyOn(interopMod['internalMethod'], 'appendToInboxTree')
 				.mockResolvedValue({} as never);
 			const forwardMock = jest
 				.spyOn(mainchainCCUUpdateCommand, '_forward' as never)
@@ -641,7 +639,7 @@ describe('CrossChainUpdateCommand', () => {
 				.mockReturnValue({} as never);
 
 			const appendToInboxTreeMock = jest
-				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'appendToInboxTree')
+				.spyOn(interopMod['internalMethod'], 'appendToInboxTree')
 				.mockResolvedValue({} as never);
 			const forwardMock = jest
 				.spyOn(mainchainCCUUpdateCommand, '_forward' as never)
@@ -684,7 +682,6 @@ describe('CrossChainUpdateCommand', () => {
 		let command: MainchainCCUpdateCommand;
 		let ccMethods: Map<string, BaseCCMethod>;
 		let ccCommands: Map<string, BaseCCCommand[]>;
-		let internalMethod: BaseInteroperabilityInternalMethod;
 
 		beforeEach(async () => {
 			const interopModule = new MainchainInteroperabilityModule();
@@ -709,16 +706,9 @@ describe('CrossChainUpdateCommand', () => {
 				interopModule.events,
 				ccMethods,
 				ccCommands,
+				interopMod['internalMethod'],
 			);
-			internalMethod = ({
-				isLive: jest.fn().mockResolvedValue(true),
-				addToOutbox: jest.fn(),
-				terminateChainInternal: jest.fn(),
-				sendInternal: jest.fn(),
-			} as unknown) as BaseInteroperabilityInternalMethod;
-			jest
-				.spyOn(command, 'getInteroperabilityInternalMethod' as never)
-				.mockReturnValue(internalMethod as never);
+
 			jest.spyOn(command['events'].get(CcmProcessedEvent), 'log');
 			jest.spyOn(command, 'bounce' as never);
 			context = createCrossChainMessageContext({
@@ -737,14 +727,16 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should terminate the chain and log event when sending chain is not live', async () => {
-			(internalMethod.isLive as jest.Mock).mockResolvedValue(false);
+			(interopMod['internalMethod'].isLive as jest.Mock).mockResolvedValue(false);
+			const terminateChainInternalMock = jest.fn();
+			interopMod['internalMethod'].terminateChainInternal = terminateChainInternalMock;
 
 			await expect(command['_forward'](context)).resolves.toBeUndefined();
 
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
-			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.sendingChainID,
+			expect(terminateChainInternalMock).toHaveBeenCalledWith(
 				expect.anything(),
+				context.ccm.sendingChainID,
 			);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
@@ -762,11 +754,13 @@ describe('CrossChainUpdateCommand', () => {
 			((ccMethods.get('token') as BaseCCMethod)
 				.verifyCrossChainMessage as jest.Mock).mockRejectedValue('error');
 
+			const terminateChainInternalMock = jest.fn();
+			interopMod['internalMethod'].terminateChainInternal = terminateChainInternalMock;
 			await expect(command['_forward'](context)).resolves.toBeUndefined();
 
-			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.sendingChainID,
+			expect(terminateChainInternalMock).toHaveBeenCalledWith(
 				expect.anything(),
+				context.ccm.sendingChainID,
 			);
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
@@ -822,7 +816,13 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should terminate the chain and log event when receiving chain is not live', async () => {
 			// First check sending chain, and second checks receiving chain
-			(internalMethod.isLive as jest.Mock).mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+			(interopMod['internalMethod'].isLive as jest.Mock)
+				.mockResolvedValueOnce(true)
+				.mockResolvedValueOnce(false);
+			const terminateChainInternalMock = jest.fn();
+			interopMod['internalMethod'].terminateChainInternal = terminateChainInternalMock;
+			const sendInternalMock = jest.fn();
+			interopMod['internalMethod'].sendInternal = sendInternalMock;
 
 			const chainAccount = await command['stores']
 				.get(ChainAccountStore)
@@ -830,9 +830,9 @@ describe('CrossChainUpdateCommand', () => {
 			await expect(command['_forward'](context)).resolves.toBeUndefined();
 
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
-			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.receivingChainID,
+			expect(terminateChainInternalMock).toHaveBeenCalledWith(
 				expect.anything(),
+				context.ccm.receivingChainID,
 			);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
@@ -844,18 +844,17 @@ describe('CrossChainUpdateCommand', () => {
 					result: CCMProcessedResult.DISCARDED,
 				},
 			);
-			expect(internalMethod.sendInternal).toHaveBeenCalledWith(
-				expect.objectContaining({
-					fee: BigInt(0),
-					receivingChainID: context.ccm.sendingChainID,
-					module: MODULE_NAME_INTEROPERABILITY,
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
-					status: CCMStatusCode.OK,
-					params: codec.encode(sidechainTerminatedCCMParamsSchema, {
-						chainID: context.ccm.receivingChainID,
-						stateRoot: chainAccount.lastCertificate.stateRoot,
-					}),
-					feeAddress: EMPTY_FEE_ADDRESS,
+			expect(sendInternalMock).toHaveBeenCalledWith(
+				expect.anything(),
+				EMPTY_FEE_ADDRESS,
+				MODULE_NAME_INTEROPERABILITY,
+				CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+				context.ccm.sendingChainID,
+				BigInt(0),
+				CCMStatusCode.OK,
+				codec.encode(sidechainTerminatedCCMParamsSchema, {
+					chainID: context.ccm.receivingChainID,
+					stateRoot: chainAccount.lastCertificate.stateRoot,
 				}),
 			);
 		});
@@ -868,11 +867,14 @@ describe('CrossChainUpdateCommand', () => {
 			jest.spyOn(context.eventQueue, 'restoreSnapshot');
 			jest.spyOn(context.stateStore, 'restoreSnapshot');
 
+			const terminateChainInternalMock = jest.fn();
+			interopMod['internalMethod'].terminateChainInternal = terminateChainInternalMock;
+
 			await expect(command['_forward'](context)).resolves.toBeUndefined();
 
-			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				context.ccm.sendingChainID,
+			expect(terminateChainInternalMock).toHaveBeenCalledWith(
 				expect.anything(),
+				context.ccm.sendingChainID,
 			);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
@@ -889,9 +891,12 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should add ccm to receiving chain outbox and log event when valid', async () => {
+			const addToOutboxMock = jest.fn();
+			interopMod['internalMethod'].addToOutbox = addToOutboxMock;
 			await expect(command['_forward'](context)).resolves.toBeUndefined();
 
-			expect(internalMethod.addToOutbox).toHaveBeenCalledWith(
+			expect(addToOutboxMock).toHaveBeenCalledWith(
+				expect.anything(),
 				context.ccm.receivingChainID,
 				context.ccm,
 			);

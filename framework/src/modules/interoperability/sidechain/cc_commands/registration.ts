@@ -12,19 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { SidechainInteroperabilityInternalMethod } from '../store';
-import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
+import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 import { BaseCCRegistrationCommand } from '../../base_cc_commands/registration';
 
-export class SidechainCCRegistrationCommand extends BaseCCRegistrationCommand {
-	protected getInteroperabilityInternalMethod(
-		context: StoreGetter | ImmutableStoreGetter,
-	): SidechainInteroperabilityInternalMethod {
-		return new SidechainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			context,
-			this.interoperableCCMethods,
-		);
-	}
-}
+export class SidechainCCRegistrationCommand extends BaseCCRegistrationCommand<SidechainInteroperabilityInternalMethod> {}

@@ -26,7 +26,7 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainMessageRecoveryCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/message_recovery';
-import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/internal_method';
 import {
 	ccmSchema,
 	messageRecoveryParamsSchema,
@@ -37,11 +37,10 @@ import { createTransactionContext } from '../../../../../../src/testing';
 import { swapReceivingAndSendingChainIDs } from '../../../../../../src/modules/interoperability/utils';
 import { TransactionContext } from '../../../../../../src/state_machine';
 import { Mocked } from '../../../../../utils/types';
-import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
-import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
+// import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
+// import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
 import { TerminatedOutboxStore } from '../../../../../../src/modules/interoperability/stores/terminated_outbox';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
-import { NamedRegistry } from '../../../../../../src/modules/named_registry';
 import {
 	ChainAccountStore,
 	ChainStatus,
@@ -54,8 +53,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 	describe('verify', () => {
 		const LEAF_PREFIX = Buffer.from('00', 'hex');
 
-		let stateStore: PrefixedStateReadWriter;
-		let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
+		// let stateStore: PrefixedStateReadWriter;
 		let terminatedOutboxSubstore: TerminatedOutboxStore;
 		let messageRecoveryCommand: MainchainMessageRecoveryCommand;
 		let commandVerifyContext: CommandVerifyContext<MessageRecoveryParams>;
@@ -78,20 +76,14 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		beforeEach(async () => {
 			interoperableCCMethods = new Map();
 			ccCommands = new Map();
-			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 			terminatedOutboxSubstore = interopMod.stores.get(TerminatedOutboxStore);
-			mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
-				interopMod.stores,
-				new NamedRegistry(),
-				createStoreGetter(stateStore),
-				new Map(),
-			);
 			messageRecoveryCommand = new MainchainMessageRecoveryCommand(
 				interopMod.stores,
 				interopMod.events,
 				interoperableCCMethods,
 				ccCommands,
+				interopMod['internalMethod'],
 			);
 
 			ccms = [
@@ -159,23 +151,27 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				transaction,
 			}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
 
-			jest
-				.spyOn(messageRecoveryCommand, 'getInteroperabilityInternalMethod' as any)
-				.mockImplementation(() => mainchainInteroperabilityInternalMethod);
-
-			await terminatedOutboxSubstore.set(createStoreGetter(stateStore), chainID, {
-				outboxRoot,
-				outboxSize: terminatedChainOutboxSize,
-				partnerChainInboxSize: 1,
-			});
+			await terminatedOutboxSubstore.set(
+				createStoreGetter(commandVerifyContext.stateStore as any),
+				chainID,
+				{
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				},
+			);
 		});
 
 		it('should return error if the sidechain outbox root is not valid', async () => {
-			await terminatedOutboxSubstore.set(createStoreGetter(stateStore), chainID, {
-				outboxRoot: utils.getRandomBytes(32),
-				outboxSize: terminatedChainOutboxSize,
-				partnerChainInboxSize: 1,
-			});
+			await terminatedOutboxSubstore.set(
+				createStoreGetter(commandVerifyContext.stateStore as any),
+				chainID,
+				{
+					outboxRoot: utils.getRandomBytes(32),
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				},
+			);
 			const result = await messageRecoveryCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
@@ -183,7 +179,10 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 
 		it('should return error if terminated outbox account does not exist', async () => {
-			await terminatedOutboxSubstore.del(createStoreGetter(stateStore), chainID);
+			await terminatedOutboxSubstore.del(
+				createStoreGetter(commandVerifyContext.stateStore as any),
+				chainID,
+			);
 			const result = await messageRecoveryCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
@@ -205,6 +204,16 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			commandVerifyContext = createTransactionContext({
 				transaction,
 			}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
+
+			await terminatedOutboxSubstore.set(
+				createStoreGetter(commandVerifyContext.stateStore as any),
+				chainID,
+				{
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				},
+			);
 
 			const result = await messageRecoveryCommand.verify(commandVerifyContext);
 
@@ -275,11 +284,15 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			commandVerifyContext = createTransactionContext({
 				transaction,
 			}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
-			await terminatedOutboxSubstore.set(createStoreGetter(stateStore), chainID, {
-				outboxRoot,
-				outboxSize: terminatedChainOutboxSize,
-				partnerChainInboxSize: 1,
-			});
+			await terminatedOutboxSubstore.set(
+				createStoreGetter(commandVerifyContext.stateStore as any),
+				chainID,
+				{
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				},
+			);
 
 			const result = await messageRecoveryCommand.verify(commandVerifyContext);
 
@@ -361,12 +374,18 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		beforeEach(() => {
 			interoperableCCMethods = new Map();
 			ccCommands = new Map();
+			storeMock = {
+				addToOutbox: jest.fn(),
+				isLive: jest.fn().mockResolvedValue(true),
+			};
+			interopMod['internalMethod'] = storeMock as any;
 
 			messageRecoveryCommand = new MainchainMessageRecoveryCommand(
 				interopMod.stores,
 				interopMod.events,
 				interoperableCCMethods,
 				ccCommands,
+				interopMod['internalMethod'],
 			);
 
 			ccms = [
@@ -394,11 +413,6 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 			commandExecuteContext = createCommandExecuteContext(ccms);
 
-			storeMock = {
-				addToOutbox: jest.fn(),
-				isLive: jest.fn().mockResolvedValue(true),
-			};
-
 			interopMod.stores.get(OwnChainAccountStore).get = ownChainAccountStoreMock.get;
 			ownChainAccountStoreMock.get.mockResolvedValue({
 				name: `mainchain`,
@@ -406,9 +420,6 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				nonce: BigInt(0),
 			});
 
-			jest
-				.spyOn(messageRecoveryCommand, 'getInteroperabilityInternalMethod' as any)
-				.mockImplementation(() => storeMock);
 			jest
 				.spyOn(regularMerkleTree, 'calculateRootFromUpdateData')
 				.mockReturnValue(Buffer.alloc(32));
@@ -472,6 +483,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				const chainID = ccm.sendingChainID;
 				// Assert
 				expect(storeMock.addToOutbox).toHaveBeenCalledWith(
+					expect.anything(),
 					chainID,
 					swapReceivingAndSendingChainIDs(ccm),
 				);

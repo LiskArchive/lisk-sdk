@@ -74,7 +74,7 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 
 describe('Mainchain registration command', () => {
 	const interopMod = new SidechainInteroperabilityModule();
-
+	interopMod['internalMethod'] = { addToOutbox: jest.fn() } as any;
 	const unsortedMainchainValidators: ActiveValidators[] = [];
 	for (let i = 0; i < NUMBER_MAINCHAIN_VALIDATORS; i += 1) {
 		unsortedMainchainValidators.push({ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) });
@@ -113,6 +113,7 @@ describe('Mainchain registration command', () => {
 			interopMod.events,
 			new Map(),
 			new Map(),
+			interopMod['internalMethod'],
 		);
 		validatorsMethod = {
 			getValidatorKeys: jest.fn(),
@@ -458,10 +459,6 @@ describe('Mainchain registration command', () => {
 
 		it('should call addToOutbox with an appropriate ccm', async () => {
 			// Arrange
-			const interopStore = { addToOutbox: jest.fn() };
-			mainchainRegistrationCommand['getInteroperabilityInternalMethod'] = jest
-				.fn()
-				.mockReturnValue(interopStore);
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
 				name: MAINCHAIN_NAME,
 				messageFeeTokenID: mainchainTokenID,
@@ -481,7 +478,11 @@ describe('Mainchain registration command', () => {
 			await mainchainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(interopStore.addToOutbox).toHaveBeenCalledWith(mainchainID, ccm);
+			expect(interopMod['internalMethod'].addToOutbox).toHaveBeenCalledWith(
+				expect.anything(),
+				mainchainID,
+				ccm,
+			);
 		});
 
 		it('should update nonce in own chain acount substore', async () => {

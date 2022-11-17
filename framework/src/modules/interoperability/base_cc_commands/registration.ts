@@ -30,8 +30,11 @@ import { ChainAccountUpdatedEvent } from '../events/chain_account_updated';
 import { OwnChainAccountStore } from '../stores/own_chain_account';
 import { ChannelDataStore } from '../stores/channel_data';
 import { ChainAccountStore, ChainStatus } from '../stores/chain_account';
+import { BaseInteroperabilityInternalMethod } from '../base_interoperability_internal_methods';
 
-export abstract class BaseCCRegistrationCommand extends BaseInteroperabilityCCCommand {
+export abstract class BaseCCRegistrationCommand<
+	T extends BaseInteroperabilityInternalMethod
+> extends BaseInteroperabilityCCCommand<T> {
 	public schema = registrationCCMParamsSchema;
 
 	public get name(): string {

@@ -22,7 +22,6 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../../state_machine';
-import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { BaseCrossChainUpdateCommand } from '../../base_cross_chain_update_command';
 import { CROSS_CHAIN_COMMAND_NAME_REGISTRATION } from '../../constants';
 import { ccmSchema, crossChainUpdateTransactionParams } from '../../schemas';
@@ -41,9 +40,9 @@ import {
 	isInboxUpdateEmpty,
 	validateFormat,
 } from '../../utils';
-import { SidechainInteroperabilityInternalMethod } from '../store';
+import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 
-export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
+export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand<SidechainInteroperabilityInternalMethod> {
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
@@ -70,9 +69,9 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 				),
 			};
 		}
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+
 		if (partnerChainAccount.status === ChainStatus.ACTIVE) {
-			const isLive = await interoperabilityInternalMethod.isLive(partnerChainIDBuffer);
+			const isLive = await this.internalMethod.isLive(context, partnerChainIDBuffer);
 			if (!isLive) {
 				return {
 					status: VerifyStatus.FAIL,
@@ -111,17 +110,11 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 			txParams.activeValidatorsUpdate.length > 0 ||
 			partnerValidators.certificateThreshold !== txParams.newCertificateThreshold
 		) {
-			await this.getInteroperabilityInternalMethod(context).verifyValidatorsUpdate(
-				context.getMethodContext(),
-				txParams,
-			);
+			await this.internalMethod.verifyValidatorsUpdate(context.getMethodContext(), txParams);
 		}
 
 		// When certificate is non-empty
-		await interoperabilityInternalMethod.verifyCertificateSignature(
-			context.getMethodContext(),
-			txParams,
-		);
+		await this.internalMethod.verifyCertificateSignature(context.getMethodContext(), txParams);
 
 		const partnerChannelStore = this.stores.get(ChannelDataStore);
 		const partnerChannelData = await partnerChannelStore.get(context, partnerChainIDBuffer);
@@ -139,7 +132,7 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 	public async execute(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 	): Promise<void> {
-		const { header, params: txParams, transaction } = context;
+		const { header, params: txParams } = context;
 		const chainIDBuffer = txParams.sendingChainID;
 		const partnerChainStore = this.stores.get(ChainAccountStore);
 		const partnerChainAccount = await partnerChainStore.get(context, chainIDBuffer);
@@ -156,18 +149,8 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 		checkCertificateTimestamp(txParams, decodedCertificate, header);
 
 		// CCM execution
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 		const terminateChainInternal = async () =>
-			interoperabilityInternalMethod.terminateChainInternal(txParams.sendingChainID, {
-				eventQueue: context.eventQueue,
-				getMethodContext: context.getMethodContext,
-				getStore: context.getStore,
-				logger: context.logger,
-				chainID: context.chainID,
-				transaction,
-				header,
-				stateStore: context.stateStore,
-			});
+			this.internalMethod.terminateChainInternal(context, txParams.sendingChainID);
 		let decodedCCMs;
 		try {
 			decodedCCMs = txParams.inboxUpdate.crossChainMessages.map(ccm => ({
@@ -209,10 +192,7 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 
 				continue;
 			}
-			await interoperabilityInternalMethod.appendToInboxTree(
-				txParams.sendingChainID,
-				ccm.serialized,
-			);
+			await this.internalMethod.appendToInboxTree(context, txParams.sendingChainID, ccm.serialized);
 
 			await this.apply({
 				ccm: ccm.deserialized,
@@ -237,16 +217,5 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand {
 			partnerValidatorStore,
 			partnerValidators,
 		});
-	}
-
-	protected getInteroperabilityInternalMethod(
-		context: StoreGetter | ImmutableStoreGetter,
-	): SidechainInteroperabilityInternalMethod {
-		return new SidechainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			context,
-			this.interoperableCCMethods,
-		);
 	}
 }

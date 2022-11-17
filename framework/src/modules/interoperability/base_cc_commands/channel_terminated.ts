@@ -16,9 +16,12 @@ import { BaseInteroperabilityCCCommand } from '../base_interoperability_cc_comma
 import { channelTerminatedCCMParamsSchema } from '../schemas';
 import { CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED } from '../constants';
 import { CrossChainMessageContext } from '../types';
+import { BaseInteroperabilityInternalMethod } from '../base_interoperability_internal_methods';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#channel-terminated-message-1
-export abstract class BaseCCChannelTerminatedCommand extends BaseInteroperabilityCCCommand {
+export abstract class BaseCCChannelTerminatedCommand<
+	T extends BaseInteroperabilityInternalMethod
+> extends BaseInteroperabilityCCCommand<T> {
 	public schema = channelTerminatedCCMParamsSchema;
 
 	public get name(): string {
@@ -31,12 +34,8 @@ export abstract class BaseCCChannelTerminatedCommand extends BaseInteroperabilit
 				`CCM to execute cross chain command '${CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED}' is missing.`,
 			);
 		}
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
-		if (await interoperabilityInternalMethod.isLive(context.ccm.sendingChainID, Date.now())) {
-			await interoperabilityInternalMethod.createTerminatedStateAccount(
-				context,
-				context.ccm.sendingChainID,
-			);
+		if (await this.internalMethods.isLive(context, context.ccm.sendingChainID, Date.now())) {
+			await this.internalMethods.createTerminatedStateAccount(context, context.ccm.sendingChainID);
 		}
 	}
 }

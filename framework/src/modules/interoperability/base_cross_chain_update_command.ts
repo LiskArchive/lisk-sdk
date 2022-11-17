@@ -14,7 +14,6 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { ImmutableStoreGetter, StoreGetter } from '../base_store';
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import { CCMStatusCode, MIN_RETURN_FEE } from './constants';
@@ -23,14 +22,15 @@ import { CcmSendSuccessEvent } from './events/ccm_send_success';
 import { ccmSchema, crossChainUpdateTransactionParams } from './schemas';
 import { CrossChainMessageContext } from './types';
 
-export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCommand {
+export abstract class BaseCrossChainUpdateCommand<
+	T extends BaseInteroperabilityInternalMethod
+> extends BaseInteroperabilityCommand<T> {
 	public schema = crossChainUpdateTransactionParams;
 
 	protected async apply(context: CrossChainMessageContext): Promise<void> {
 		const { ccm, logger } = context;
 		const encodedCCM = codec.encode(ccmSchema, ccm);
 		const ccmID = utils.hash(encodedCCM);
-		const internalMethod = this.getInteroperabilityInternalMethod(context);
 		const valid = await this.verifyCCM(context, ccmID);
 		if (!valid) {
 			return;
@@ -65,7 +65,7 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 					{ err: error as Error, moduleName: module, commandName: ccm.crossChainCommand },
 					'Fail to verify cross chain command.',
 				);
-				await internalMethod.terminateChainInternal(ccm.sendingChainID, context);
+				await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
 				this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 					ccmID,
 					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
@@ -98,7 +98,7 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
 				'Fail to execute beforeCrossChainCommandExecute.',
 			);
-			await internalMethod.terminateChainInternal(ccm.sendingChainID, context);
+			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccmID,
 				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
@@ -150,7 +150,7 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 				{ err: error as Error, moduleName: module, commandName: ccm.crossChainCommand },
 				'Fail to execute afterCrossChainCommandExecute',
 			);
-			await internalMethod.terminateChainInternal(ccm.sendingChainID, context);
+			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccmID,
 				code: CCMProcessedCode.INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
@@ -168,7 +168,6 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 	): Promise<void> {
 		const { ccm } = context;
 		const minFee = MIN_RETURN_FEE * BigInt(ccmSize);
-		const internalMethod = this.getInteroperabilityInternalMethod(context);
 		if (ccm.status !== CCMStatusCode.OK || ccm.fee < minFee) {
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccmID,
@@ -189,7 +188,7 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 			receivingChainID: ccm.sendingChainID,
 			fee: ccmStatusCode === CCMStatusCode.FAILED_CCM ? BigInt(0) : ccm.fee - minFee,
 		};
-		await internalMethod.addToOutbox(bouncedCCM.receivingChainID, bouncedCCM);
+		await this.internalMethod.addToOutbox(context, bouncedCCM.receivingChainID, bouncedCCM);
 		const newCCMID = utils.hash(codec.encode(ccmSchema, bouncedCCM));
 		this.events
 			.get(CcmSendSuccessEvent)
@@ -200,9 +199,8 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 
 	protected async verifyCCM(context: CrossChainMessageContext, ccmID: Buffer): Promise<boolean> {
 		const { ccm, logger } = context;
-		const internalMethod = this.getInteroperabilityInternalMethod(context);
 		try {
-			const isLive = await internalMethod.isLive(ccm.sendingChainID, context.header.timestamp);
+			const isLive = await this.internalMethod.isLive(context, ccm.sendingChainID);
 			if (!isLive) {
 				throw new Error(`Sending chain ${ccm.sendingChainID.toString('hex')} is not live.`);
 			}
@@ -218,7 +216,7 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 				{ err: error as Error, moduleName: module, commandName: ccm.crossChainCommand },
 				'Fail to verify cross chain message.',
 			);
-			await internalMethod.terminateChainInternal(ccm.sendingChainID, context);
+			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccmID,
 				code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
@@ -227,8 +225,4 @@ export abstract class BaseCrossChainUpdateCommand extends BaseInteroperabilityCo
 			return false;
 		}
 	}
-
-	protected abstract getInteroperabilityInternalMethod(
-		context: StoreGetter | ImmutableStoreGetter,
-	): BaseInteroperabilityInternalMethod;
 }

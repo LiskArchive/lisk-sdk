@@ -44,14 +44,23 @@ import { InvalidRegistrationSignatureEvent } from '../events/invalid_registratio
 import { CcmSendSuccessEvent } from '../events/ccm_send_success';
 import { BaseCCMethod } from '../base_cc_method';
 import { ValidatorsMethod } from '../types';
+import { SidechainInteroperabilityInternalMethod } from './internal_method';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod: BaseCCMethod = new SidechainCCMethod(this.stores, this.events);
-	public method = new SidechainInteroperabilityMethod(
+	protected internalMethod = new SidechainInteroperabilityInternalMethod(
 		this.stores,
 		this.events,
 		this.interoperableCCMethods,
 	);
+	// eslint-disable-next-line @typescript-eslint/member-ordering
+	public method = new SidechainInteroperabilityMethod(
+		this.stores,
+		this.events,
+		this.interoperableCCMethods,
+		this.internalMethod,
+	);
+	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public endpoint = new SidechainInteroperabilityEndpoint(this.stores, this.offchainStores);
 
 	private readonly _mainchainRegistrationCommand = new MainchainRegistrationCommand(
@@ -59,6 +68,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.events,
 		this.interoperableCCMethods,
 		this.interoperableCCCommands,
+		this.internalMethod,
 	);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
