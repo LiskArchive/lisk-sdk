@@ -24,6 +24,7 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 	CHAIN_ID_MAINCHAIN,
 	MESSAGE_TAG_CERTIFICATE,
+	EMPTY_HASH,
 } from './constants';
 import { ccmSchema } from './schemas';
 import { CCMsg, CrossChainUpdateTransactionParams, ChainAccount } from './types';
@@ -188,7 +189,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 
 			terminatedState = {
 				stateRoot: stateRoot ?? chainAccount.lastCertificate.stateRoot,
-				mainchainStateRoot: EMPTY_BYTES,
+				mainchainStateRoot: EMPTY_HASH,
 				initialized: true,
 			};
 			this.events
@@ -206,7 +207,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			// State root is not available, set it to empty bytes temporarily.
 			// This should only happen on a sidechain.
 			terminatedState = {
-				stateRoot: EMPTY_BYTES,
+				stateRoot: EMPTY_HASH,
 				mainchainStateRoot: mainchainAccount.lastCertificate.stateRoot,
 				initialized: false,
 			};

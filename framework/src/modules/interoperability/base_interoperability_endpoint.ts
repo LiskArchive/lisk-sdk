@@ -102,7 +102,7 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 		return {
 			stateRoot: stateRoot.toString('hex'),
 			initialized,
-			mainchainStateRoot: mainchainStateRoot?.toString('hex'),
+			mainchainStateRoot: mainchainStateRoot.toString('hex'),
 		};
 	}
 
