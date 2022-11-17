@@ -380,3 +380,8 @@ export interface GenesisInteroperabilityInternalMethod {
 		storeValue: ChainID;
 	}[];
 }
+
+export interface CCMRegistrationParams {
+	name: string;
+	messageFeeTokenID: Buffer;
+}

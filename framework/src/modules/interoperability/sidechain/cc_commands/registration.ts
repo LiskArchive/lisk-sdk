@@ -12,52 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec } from '@liskhq/lisk-codec';
-import { CCMStatusCode, CROSS_CHAIN_COMMAND_NAME_REGISTRATION, EMPTY_BYTES } from '../../constants';
-import { registrationCCMParamsSchema } from '../../schemas';
-import { CrossChainMessageContext } from '../../types';
-import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 import { SidechainInteroperabilityInternalMethod } from '../internal_method';
-import { ChannelDataStore } from '../../stores/channel_data';
-import { OwnChainAccountStore } from '../../stores/own_chain_account';
+import { BaseCCRegistrationCommand } from '../../base_cc_commands/registration';
 
-interface CCMRegistrationParams {
-	chainID: Buffer;
-	name: string;
-	messageFeeTokenID: Buffer;
-}
-
-export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCCommand<SidechainInteroperabilityInternalMethod> {
-	public schema = registrationCCMParamsSchema;
-
-	public get name(): string {
-		return CROSS_CHAIN_COMMAND_NAME_REGISTRATION;
-	}
-
-	public async execute(ctx: CrossChainMessageContext): Promise<void> {
-		const { ccm } = ctx;
-		if (!ccm) {
-			throw new Error('CCM to execute registration cross chain command is missing.');
-		}
-		const ccmRegistrationParams = codec.decode<CCMRegistrationParams>(
-			registrationCCMParamsSchema,
-			ccm.params,
-		);
-		const sendingChainChannelAccount = await this.stores
-			.get(ChannelDataStore)
-			.get(ctx, ccm.sendingChainID);
-		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(ctx, EMPTY_BYTES);
-		if (
-			sendingChainChannelAccount.inbox.size !== 1 ||
-			ccm.status !== CCMStatusCode.OK ||
-			!ownChainAccount.chainID.equals(ccm.receivingChainID) ||
-			ownChainAccount.name !== ccmRegistrationParams.name ||
-			!sendingChainChannelAccount.messageFeeTokenID.equals(
-				ccmRegistrationParams.messageFeeTokenID,
-			) ||
-			!ccmRegistrationParams.chainID.equals(ctx.chainID)
-		) {
-			await this.internalMethods.terminateChainInternal(ctx, ccm.sendingChainID);
-		}
-	}
-}
+export class SidechainCCRegistrationCommand extends BaseCCRegistrationCommand<SidechainInteroperabilityInternalMethod> {}
