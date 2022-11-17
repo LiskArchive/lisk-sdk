@@ -499,6 +499,20 @@ export const stateRecoveryInitParams = {
 	},
 };
 
+export const terminateSidechainForLivenessParamsSchema = {
+	$id: '/modules/interoperability/mainchain/terminateSidechainForLiveness',
+	type: 'object',
+	required: ['chainID'],
+	properties: {
+		chainID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
+		},
+	},
+};
+
 export const getChainAccountRequestSchema = {
 	$id: '/modules/interoperability/endpoint/getChainAccountRequest',
 	type: 'object',

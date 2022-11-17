@@ -328,6 +328,10 @@ export interface StateRecoveryInitParams {
 	siblingHashes: Buffer[];
 }
 
+export interface TerminateSidehchainForLivenessParams {
+	chainID: Buffer;
+}
+
 export interface CrossChainUpdateTransactionParams {
 	sendingChainID: Buffer;
 	certificate: Buffer;
