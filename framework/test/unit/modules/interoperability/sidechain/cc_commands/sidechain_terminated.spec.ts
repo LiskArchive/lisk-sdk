@@ -65,11 +65,7 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 			interopMod.stores,
 			interopMod.events,
 			new Map(),
-			new SidechainInteroperabilityInternalMethod(
-				interopMod.stores,
-				interopMod.events,
-				new Map(),
-			),
+			new SidechainInteroperabilityInternalMethod(interopMod.stores, interopMod.events, new Map()),
 		);
 
 		jest.spyOn(ccSidechainTerminatedCommand['internalMethods'], 'isLive');
@@ -136,9 +132,7 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 		});
 
 		it('should create terminatedStateAccount when chain is live', async () => {
-			jest
-				.spyOn(ccSidechainTerminatedCommand['internalMethods'], 'isLive')
-				.mockResolvedValue(true);
+			jest.spyOn(ccSidechainTerminatedCommand['internalMethods'], 'isLive').mockResolvedValue(true);
 
 			await expect(
 				ccSidechainTerminatedCommand.execute({

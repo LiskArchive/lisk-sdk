@@ -44,7 +44,6 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 	public async execute(
 		context: CCCommandExecuteContext<CCMSidechainTerminatedParams>,
 	): Promise<void> {
-
 		const isLive = await this.internalMethods.isLive(context, context.params.chainID);
 		if (!isLive) {
 			return;
