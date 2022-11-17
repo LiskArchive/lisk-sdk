@@ -317,25 +317,21 @@ export const messageRecoveryParamsSchema = {
 	},
 };
 
-// Cross chain commands schemas
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#parameters-2
 export const registrationCCMParamsSchema = {
 	$id: '/modules/interoperability/ccCommand/registration',
 	type: 'object',
-	required: ['chainID', 'name', 'messageFeeTokenID'],
+	required: ['name', 'messageFeeTokenID'],
 	properties: {
-		chainID: {
-			dataType: 'bytes',
-			fieldNumber: 1,
-		},
 		name: {
 			dataType: 'string',
-			fieldNumber: 2,
+			fieldNumber: 1,
 		},
 		messageFeeTokenID: {
 			dataType: 'bytes',
 			minLength: TOKEN_ID_LENGTH,
 			maxLength: TOKEN_ID_LENGTH,
-			fieldNumber: 3,
+			fieldNumber: 2,
 		},
 	},
 };

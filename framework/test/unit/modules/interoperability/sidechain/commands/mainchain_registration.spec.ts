@@ -460,7 +460,6 @@ describe('Mainchain registration command', () => {
 		it('should call addToOutbox with an appropriate ccm', async () => {
 			// Arrange
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
-				chainID: mainchainID,
 				name: MAINCHAIN_NAME,
 				messageFeeTokenID: mainchainTokenID,
 			});
@@ -503,7 +502,6 @@ describe('Mainchain registration command', () => {
 
 		it(`should emit ${EVENT_NAME_CCM_SEND_SUCCESS} event`, async () => {
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
-				chainID: mainchainID,
 				name: MAINCHAIN_NAME,
 				messageFeeTokenID: mainchainTokenID,
 			});
