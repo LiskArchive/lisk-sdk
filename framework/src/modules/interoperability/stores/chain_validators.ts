@@ -14,7 +14,7 @@
 import { dataStructures } from '@liskhq/lisk-utils';
 import { BaseStore, StoreGetter } from '../../base_store';
 import { ActiveValidator } from '../types';
-import { BLS_PUBLIC_KEY_LENGTH } from '../constants';
+import { BLS_PUBLIC_KEY_LENGTH, MAX_NUM_VALIDATORS } from '../constants';
 
 export interface ChainValidators {
 	activeValidators: ActiveValidator[];
@@ -30,6 +30,8 @@ export const chainValidatorsSchema = {
 		activeValidators: {
 			type: 'array',
 			fieldNumber: 1,
+			minItems: 1,
+			maxItems: MAX_NUM_VALIDATORS,
 			items: {
 				type: 'object',
 				required: ['blsKey', 'bftWeight'],

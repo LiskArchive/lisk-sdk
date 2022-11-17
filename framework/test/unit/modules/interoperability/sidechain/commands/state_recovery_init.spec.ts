@@ -7,17 +7,17 @@ import {
 	COMMAND_NAME_STATE_RECOVERY_INIT,
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
-	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
-import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/internal_method';
+import { SidechainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/sidechain/internal_method';
 import { Mocked } from '../../../../../utils/types';
-import { StateRecoveryInitializationCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/state_recovery_init';
+import { StateRecoveryInitializationCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/state_recovery_init';
 import {
 	ChainAccount,
+	OwnChainAccount,
 	StateRecoveryInitParams,
 } from '../../../../../../src/modules/interoperability/types';
-import { CommandExecuteContext, MainchainInteroperabilityModule } from '../../../../../../src';
+import { CommandExecuteContext, SidechainInteroperabilityModule } from '../../../../../../src';
 import { TransactionContext } from '../../../../../../src/state_machine';
 import { stateRecoveryInitParams } from '../../../../../../src/modules/interoperability/schemas';
 import { createTransactionContext } from '../../../../../../src/testing';
@@ -37,9 +37,9 @@ import { createStoreGetter } from '../../../../../../src/testing/utils';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 import { getMainchainID } from '../../../../../../src/modules/interoperability/utils';
 
-describe('Mainchain StateRecoveryInitializationCommand', () => {
-	const interopMod = new MainchainInteroperabilityModule();
-	type StoreMock = Mocked<MainchainInteroperabilityInternalMethod, 'createTerminatedStateAccount'>;
+describe('Sidechain StateRecoveryInitializationCommand', () => {
+	const interopMod = new SidechainInteroperabilityModule();
+	type StoreMock = Mocked<SidechainInteroperabilityInternalMethod, 'createTerminatedStateAccount'>;
 	const chainAccountStoreMock = {
 		get: jest.fn(),
 		set: jest.fn(),
@@ -150,6 +150,7 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 	});
 
 	describe('verify', () => {
+		let ownChainAccount: OwnChainAccount;
 		beforeEach(() => {
 			mainchainAccount = {
 				name: 'mainchain',
@@ -161,13 +162,14 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 				},
 				status: ChainStatus.ACTIVE,
 			};
-			const ownChainAccount = {
-				name: 'mainchain',
-				chainID: MAINCHAIN_ID_BUFFER,
+			ownChainAccount = {
+				name: 'sidechain',
+				chainID: utils.intToBuffer(2, 4),
 				nonce: BigInt('0'),
 			};
 			terminatedStateAccountMock.has.mockResolvedValue(true);
 			ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount);
+			chainAccountStoreMock.get.mockResolvedValue(mainchainAccount);
 			interopStoreMock = {
 				createTerminatedStateAccount: jest.fn(),
 			};
@@ -182,7 +184,7 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 		});
 
 		it('should return error if chain id is same as mainchain id or own chain account id', async () => {
-			commandVerifyContext.params.chainID = MAINCHAIN_ID_BUFFER;
+			commandVerifyContext.params.chainID = ownChainAccount.chainID;
 
 			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
 

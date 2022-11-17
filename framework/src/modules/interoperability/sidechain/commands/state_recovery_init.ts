@@ -29,7 +29,7 @@ import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { TerminatedStateAccount, TerminatedStateStore } from '../../stores/terminated_state';
 import { ChainAccount, StateRecoveryInitParams } from '../../types';
 import { getMainchainID } from '../../utils';
-import { MainchainInteroperabilityInternalMethod } from '../internal_method';
+import { MainchainInteroperabilityInternalMethod } from '../../mainchain/internal_method';
 
 export class StateRecoveryInitializationCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = stateRecoveryInitParams;
@@ -42,7 +42,7 @@ export class StateRecoveryInitializationCommand extends BaseInteroperabilityComm
 		} = context;
 		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
 
-		const mainchainID = getMainchainID(context.params.chainID);
+		const mainchainID = getMainchainID(ownChainAccount.chainID);
 		if (chainID.equals(mainchainID) || chainID.equals(ownChainAccount.chainID)) {
 			return {
 				status: VerifyStatus.FAIL,

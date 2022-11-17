@@ -24,8 +24,6 @@ import {
 	getTerminatedStateAccountRequestSchema,
 	getTerminatedOutboxAccountRequestSchema,
 } from '../schemas';
-import { GenesisBlockExecuteContext } from '../../../state_machine';
-import { initGenesisStateUtil } from '../utils';
 import {
 	chainAccountSchema,
 	allChainAccountsSchema,
@@ -139,9 +137,5 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				},
 			],
 		};
-	}
-
-	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
-		await initGenesisStateUtil(context, this.stores);
 	}
 }
