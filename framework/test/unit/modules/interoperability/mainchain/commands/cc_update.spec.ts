@@ -297,7 +297,7 @@ describe('CrossChainUpdateCommand', () => {
 			);
 		});
 
-it('should reject when first CCU contains a certificate older than LIVENESS_LIMIT / 2', async () => {
+		it('should reject when first CCU contains a certificate older than LIVENESS_LIMIT / 2', async () => {
 			await interopMod.stores.get(ChainAccountStore).set(stateStore, params.sendingChainID, {
 				...partnerChainAccount,
 				status: ChainStatus.REGISTERED,
@@ -381,7 +381,7 @@ it('should reject when first CCU contains a certificate older than LIVENESS_LIMI
 			);
 		});
 
-		it('should call apply for ccm and add to the inbox where receivign chain is the main chain', async () => {
+		it('should call apply for ccm and add to the inbox where receiving chain is the main chain', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,

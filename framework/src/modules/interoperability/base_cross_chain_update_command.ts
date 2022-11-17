@@ -22,9 +22,16 @@ import { CCMStatusCode, MIN_RETURN_FEE } from './constants';
 import { CCMProcessedCode, CcmProcessedEvent, CCMProcessedResult } from './events/ccm_processed';
 import { CcmSendSuccessEvent } from './events/ccm_send_success';
 import { ccmSchema, crossChainUpdateTransactionParams } from './schemas';
-import { CrossChainMessageContext, TokenMethod } from './types';
-import { ChainAccountStore } from './stores/chain_account';
-import { getMainchainID } from './utils';
+import {
+	CCMsg,
+	CrossChainMessageContext,
+	CrossChainUpdateTransactionParams,
+	TokenMethod,
+} from './types';
+import { ChainAccountStore, ChainStatus } from './stores/chain_account';
+import { getMainchainID, isInboxUpdateEmpty, validateFormat } from './utils';
+import { ChainValidatorsStore } from './stores/chain_validators';
+import { ChannelDataStore } from './stores/channel_data';
 
 export abstract class BaseCrossChainUpdateCommand<
 	T extends BaseInteroperabilityInternalMethod

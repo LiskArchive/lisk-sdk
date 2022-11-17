@@ -257,9 +257,7 @@ describe('CrossChainUpdateCommand', () => {
 					params: codec.encode(crossChainUpdateTransactionParams, params),
 				}),
 			}).createCommandVerifyContext(sidechainCCUUpdateCommand.schema);
-			jest
-				.spyOn(sidechainCCUUpdateCommand['internalMethod'], 'isLive')
-				.mockResolvedValue(true);
+			jest.spyOn(sidechainCCUUpdateCommand['internalMethod'], 'isLive').mockResolvedValue(true);
 		});
 
 		it('should reject when ccu params validation fails', async () => {
@@ -281,9 +279,7 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should return error when sending chain not live', async () => {
-			jest
-				.spyOn(sidechainCCUUpdateCommand['internalMethod'], 'isLive')
-				.mockResolvedValue(false);
+			jest.spyOn(sidechainCCUUpdateCommand['internalMethod'], 'isLive').mockResolvedValue(false);
 			await expect(sidechainCCUUpdateCommand.verify(verifyContext)).rejects.toThrow(
 				'The sending chain is not live',
 			);
@@ -347,7 +343,7 @@ describe('CrossChainUpdateCommand', () => {
 			);
 		});
 
-		it('should call apply for ccm and add to the inbox where receivign chain is the main chain', async () => {
+		it('should call apply for ccm and add to the inbox where receiving chain is the main chain', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -362,9 +358,9 @@ describe('CrossChainUpdateCommand', () => {
 
 			await expect(sidechainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
 			expect(sidechainCCUUpdateCommand['apply']).toHaveBeenCalledTimes(3);
-			expect(
-				sidechainCCUUpdateCommand['internalMethod'].appendToInboxTree,
-			).toHaveBeenCalledTimes(3);
+			expect(sidechainCCUUpdateCommand['internalMethod'].appendToInboxTree).toHaveBeenCalledTimes(
+				3,
+			);
 		});
 	});
 });

@@ -61,10 +61,8 @@ import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_
 import { ChainValidatorsStore } from '../../../../src/modules/interoperability/stores/chain_validators';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
-import { CrossChainMessageContext } from '../../../../src/modules/interoperability/types';
-import { createCrossChainMessageContext } from '../../../../src/testing';
-import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
 import { getMainchainID } from '../../../../src/modules/interoperability/utils';
+import { BaseInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/base_interoperability_internal_methods';
 
 class CrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
 	// eslint-disable-next-line @typescript-eslint/require-await
