@@ -97,20 +97,17 @@ export class DPoSMethod extends BaseMethod {
 		const selfVotesQ = q96(delegate.selfVotes);
 		const totalVotesQ = q96(delegate.totalVotesReceived);
 
-		let hasItem = false;
-		for (const item of delegate.sharingCoefficients) {
-			if (item.tokenID.equals(tokenID)) {
-				hasItem = true;
-				break;
-			}
-		}
-		if (!hasItem) {
-			delegate.sharingCoefficients.push({ tokenID, coefficient: q96(BigInt(0)).toBuffer() });
+		const matchingCoefficientIndex = delegate.sharingCoefficients.findIndex(coefficient =>
+			coefficient.tokenID.equals(tokenID),
+		);
+		const index =
+			matchingCoefficientIndex > -1
+				? matchingCoefficientIndex
+				: delegate.sharingCoefficients.length;
+		if (matchingCoefficientIndex < 0) {
+			delegate.sharingCoefficients[index] = { tokenID, coefficient: q96(BigInt(0)).toBuffer() };
 		}
 
-		delegate.sharingCoefficients.sort((a, b) => a.tokenID.compare(b.tokenID));
-
-		const index = delegate.sharingCoefficients.findIndex(s => s.tokenID.equals(tokenID));
 		const oldSharingCoefficient = q96(delegate.sharingCoefficients[index].coefficient);
 		const sharingCoefficientIncrease = rewardQ.muldiv(rewardFractionQ, totalVotesQ);
 		const sharedRewards = sharingCoefficientIncrease.mul(totalVotesQ.sub(selfVotesQ)).floor();
@@ -125,6 +122,8 @@ export class DPoSMethod extends BaseMethod {
 
 		const newSharingCoefficient = oldSharingCoefficient.add(sharingCoefficientIncrease);
 		delegate.sharingCoefficients[index].coefficient = newSharingCoefficient.toBuffer();
+
+		delegate.sharingCoefficients.sort((a, b) => a.tokenID.compare(b.tokenID));
 		await delegateStore.set(context, generatorAddress, delegate);
 	}
 

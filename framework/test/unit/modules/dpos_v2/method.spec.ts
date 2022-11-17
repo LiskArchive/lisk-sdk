@@ -28,7 +28,6 @@ import {
 	COMMISSION_INCREASE_PERIOD,
 	MAX_COMMISSION_INCREASE_RATE,
 	MAX_NUMBER_BYTES_Q96,
-	TOKEN_ID_LENGTH,
 } from '../../../../src/modules/dpos_v2/constants';
 
 describe('DposModuleApi', () => {
@@ -190,7 +189,6 @@ describe('DposModuleApi', () => {
 			lastCommissionIncreaseHeight: 0,
 			sharingCoefficients: [
 				{ tokenID: tokenID1, coefficient: Buffer.alloc(MAX_NUMBER_BYTES_Q96) },
-				{ tokenID: tokenID2, coefficient: Buffer.alloc(MAX_NUMBER_BYTES_Q96) },
 				{ tokenID: tokenID3, coefficient: Buffer.alloc(MAX_NUMBER_BYTES_Q96) },
 			],
 		};
@@ -205,8 +203,8 @@ describe('DposModuleApi', () => {
 			commission: 0,
 			lastCommissionIncreaseHeight: 0,
 			sharingCoefficients: [
-				{ tokenID: tokenID2, coefficient: Buffer.from('a40000000000000000000000', 'hex') },
 				{ tokenID: tokenID1, coefficient: Buffer.alloc(MAX_NUMBER_BYTES_Q96) },
+				{ tokenID: tokenID2, coefficient: Buffer.from('a40000000000000000000000', 'hex') },
 				{ tokenID: tokenID3, coefficient: Buffer.alloc(MAX_NUMBER_BYTES_Q96) },
 			],
 		};
@@ -249,8 +247,8 @@ describe('DposModuleApi', () => {
 			expect(delegateSubStore.set).not.toHaveBeenCalled();
 		});
 
-		it('should initialize sharing coefficient to zero and set the appropriate amounts to delegate store for the specified token if there does not exist an item in delegateStore for the token id', async () => {
-			const newTokenID = utils.getRandomBytes(TOKEN_ID_LENGTH);
+		it('should initialize sharing coefficient to zero and set the appropriate amounts in correct order to delegate store for the specified token if there does not exist an item in delegateStore for the token id', async () => {
+			const newTokenID = tokenID2;
 			const reward = BigInt(50);
 			const rewardQ = q96(reward);
 			const commissionQ = q96(BigInt(delegateData2.commission));
@@ -261,11 +259,22 @@ describe('DposModuleApi', () => {
 			const sharingCoefficientIncrease = rewardQ.muldiv(rewardFractionQ, totalVotesQ);
 			const sharedRewards = sharingCoefficientIncrease.mul(totalVotesQ.sub(selfVotesQ)).floor();
 			const newSharingCoefficient = oldSharingCoefficient.add(sharingCoefficientIncrease);
-			const updatedDelegateData = delegateData2;
-			updatedDelegateData.sharingCoefficients.push({
-				tokenID: newTokenID,
-				coefficient: newSharingCoefficient.toBuffer(),
-			});
+			const updatedDelegateData = {
+				consecutiveMissedBlocks: 0,
+				isBanned: false,
+				lastGeneratedHeight: 5,
+				name: 'delegate2',
+				pomHeights: [],
+				selfVotes: BigInt(0),
+				totalVotesReceived: BigInt(4),
+				commission: 0,
+				lastCommissionIncreaseHeight: 0,
+				sharingCoefficients: [
+					{ tokenID: tokenID1, coefficient: Buffer.alloc(MAX_NUMBER_BYTES_Q96) },
+					{ tokenID: tokenID2, coefficient: newSharingCoefficient.toBuffer() },
+					{ tokenID: tokenID3, coefficient: Buffer.alloc(MAX_NUMBER_BYTES_Q96) },
+				],
+			};
 
 			await expect(
 				dposMethod.updateSharedRewards(methodContext, address2, newTokenID, reward),
@@ -286,14 +295,14 @@ describe('DposModuleApi', () => {
 			);
 		});
 
-		it('should lock the appropriate amount of rewards and update the delegate store in correct order with updated sharing coefficients if the token id is aready present but sharing coefficients are not sorted by token id', async () => {
+		it('should lock the appropriate amount of rewards and update the delegate store with updated sharing coefficients if the token id is already present', async () => {
 			const reward = BigInt(70);
 			const rewardQ = q96(reward);
 			const commissionQ = q96(BigInt(delegateData3.commission));
 			const rewardFractionQ = q96(BigInt(1)).sub(commissionQ.div(q96(BigInt(10000))));
 			const selfVotesQ = q96(delegateData3.selfVotes);
 			const totalVotesQ = q96(delegateData3.totalVotesReceived);
-			const oldSharingCoefficient = q96(delegateData3.sharingCoefficients[0].coefficient);
+			const oldSharingCoefficient = q96(delegateData3.sharingCoefficients[1].coefficient);
 			const sharingCoefficientIncrease = rewardQ.muldiv(rewardFractionQ, totalVotesQ);
 			const sharedRewards = sharingCoefficientIncrease.mul(totalVotesQ.sub(selfVotesQ)).floor();
 			const newSharingCoefficient = oldSharingCoefficient.add(sharingCoefficientIncrease);
