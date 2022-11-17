@@ -12,21 +12,26 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { math } from '@liskhq/lisk-utils';
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import { BaseMethod } from '../base_method';
 import { EMPTY_KEY, MAX_LENGTH_NAME } from './constants';
 import { GenesisDataStore } from './stores/genesis';
 import { VoterStore, VoterData } from './stores/voter';
-import { ModuleConfig } from './types';
+import { ModuleConfig, TokenMethod } from './types';
 import { DelegateAccount, DelegateStore } from './stores/delegate';
 import { NameStore } from './stores/name';
 import { isUsername } from './utils';
 
 export class DPoSMethod extends BaseMethod {
 	private _config!: ModuleConfig;
+	private _moduleName!: string;
+	private _tokenMethod!: TokenMethod;
 
-	public init(config: ModuleConfig) {
+	public init(moduleName: string, config: ModuleConfig, tokenMethod: TokenMethod) {
+		this._moduleName = moduleName;
 		this._config = config;
+		this._tokenMethod = tokenMethod;
 	}
 	public async isNameAvailable(
 		methodContext: ImmutableMethodContext,
@@ -74,12 +79,53 @@ export class DPoSMethod extends BaseMethod {
 	}
 
 	public async updateSharedRewards(
-		_methodContext: MethodContext,
-		_generatorAddress: Buffer,
-		_tokenID: Buffer,
-		_reward: bigint,
+		context: MethodContext,
+		generatorAddress: Buffer,
+		tokenID: Buffer,
+		reward: bigint,
 	): Promise<void> {
-		// TODO: Implement #7715
+		const delegateStore = this.stores.get(DelegateStore);
+		const delegate = await delegateStore.get(context, generatorAddress);
+		if (delegate.totalVotesReceived === BigInt(0)) {
+			return;
+		}
+
+		const { q96 } = math;
+		const rewardQ = q96(reward);
+		const commissionQ = q96(BigInt(delegate.commission));
+		const rewardFractionQ = q96(BigInt(1)).sub(commissionQ.div(q96(BigInt(10000))));
+		const selfVotesQ = q96(delegate.selfVotes);
+		const totalVotesQ = q96(delegate.totalVotesReceived);
+
+		let hasItem = false;
+		for (const item of delegate.sharingCoefficients) {
+			if (item.tokenID.equals(tokenID)) {
+				hasItem = true;
+				break;
+			}
+		}
+		if (!hasItem) {
+			delegate.sharingCoefficients.push({ tokenID, coefficient: q96(BigInt(0)).toBuffer() });
+		}
+
+		delegate.sharingCoefficients.sort((a, b) => a.tokenID.compare(b.tokenID));
+
+		const index = delegate.sharingCoefficients.findIndex(s => s.tokenID.equals(tokenID));
+		const oldSharingCoefficient = q96(delegate.sharingCoefficients[index].coefficient);
+		const sharingCoefficientIncrease = rewardQ.muldiv(rewardFractionQ, totalVotesQ);
+		const sharedRewards = sharingCoefficientIncrease.mul(totalVotesQ.sub(selfVotesQ)).floor();
+
+		await this._tokenMethod.lock(
+			context,
+			generatorAddress,
+			this._moduleName,
+			tokenID,
+			sharedRewards,
+		);
+
+		const newSharingCoefficient = oldSharingCoefficient.add(sharingCoefficientIncrease);
+		delegate.sharingCoefficients[index].coefficient = newSharingCoefficient.toBuffer();
+		await delegateStore.set(context, generatorAddress, delegate);
 	}
 
 	public async isEndOfRound(
