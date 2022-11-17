@@ -202,9 +202,7 @@ export class VoteDelegateCommand extends BaseCommand {
 					throw new Error('Invalid unvote: Cannot cast downvote to delegate who is not upvoted.');
 				}
 
-				voterData.sentVotes[originalUpvoteIndex].amount += vote.amount;
-
-				if (voterData.sentVotes[originalUpvoteIndex].amount < BigInt(0)) {
+				if (voterData.sentVotes[originalUpvoteIndex].amount + vote.amount < BigInt(0)) {
 					this.events.get(DelegateVotedEvent).error(
 						context,
 						{
@@ -227,6 +225,7 @@ export class VoteDelegateCommand extends BaseCommand {
 					delegateData,
 				);
 
+				voterData.sentVotes[originalUpvoteIndex].amount += vote.amount;
 				voterData.sentVotes[originalUpvoteIndex].voteSharingCoefficients =
 					delegateData.sharingCoefficients;
 
