@@ -85,6 +85,7 @@ import { DelegateRegisteredEvent } from './events/delegate_registered';
 import { DelegateVotedEvent } from './events/delegate_voted';
 import { InternalMethod } from './internal_method';
 import { CommissionChangeEvent } from './events/commission_change';
+import { ClaimRewardsCommand } from './commands/claim_rewards';
 
 export class DPoSModule extends BaseModule {
 	public method = new DPoSMethod(this.stores, this.events);
@@ -106,6 +107,7 @@ export class DPoSModule extends BaseModule {
 	);
 	private readonly _voteCommand = new VoteDelegateCommand(this.stores, this.events);
 	private readonly _changeCommissionCommand = new ChangeCommissionCommand(this.stores, this.events);
+	private readonly _claimRewardsCommand = new ClaimRewardsCommand(this.stores, this.events);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [
@@ -115,6 +117,7 @@ export class DPoSModule extends BaseModule {
 		this._updateGeneratorKeyCommand,
 		this._voteCommand,
 		this._changeCommissionCommand,
+		this._claimRewardsCommand,
 	];
 
 	private readonly _internalMethod = new InternalMethod(this.stores, this.events, this.name);
@@ -164,6 +167,9 @@ export class DPoSModule extends BaseModule {
 		this._updateGeneratorKeyCommand.addDependencies(this._validatorsMethod);
 		this._voteCommand.addDependencies({
 			tokenMethod: this._tokenMethod,
+			internalMethod: this._internalMethod,
+		});
+		this._claimRewardsCommand.addDependencies({
 			internalMethod: this._internalMethod,
 		});
 	}
