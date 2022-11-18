@@ -16,7 +16,7 @@ export { DPoSModule } from './module';
 export { DelegateRegistrationCommand } from './commands/delegate_registration';
 export { VoteDelegateCommand } from './commands/vote_delegate';
 export { UpdateGeneratorKeyCommand } from './commands/update_generator_key';
-export { ReportDelegateMisbehaviorCommand } from './commands/pom';
+export { ReportMisbehaviorCommand } from './commands/pom';
 export { UnlockCommand } from './commands/unlock';
 export { DPoSMethod } from './method';
 export { genesisStoreSchema } from './schemas';

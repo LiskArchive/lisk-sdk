@@ -261,7 +261,7 @@ export const createReportMisbehaviorTransaction = (input: {
 
 	const tx = new Transaction({
 		module: 'dpos',
-		command: 'reportDelegateMisbehavior',
+		command: 'reportMisbehavior',
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('50000000'),

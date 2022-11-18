@@ -24,10 +24,10 @@ import {
 import {
 	defaultConfig,
 	EMPTY_KEY,
-	SELF_VOTE_PUNISH_TIME,
-	VOTER_PUNISH_TIME,
-	WAIT_TIME_SELF_VOTE,
-	WAIT_TIME_VOTE,
+	PUNISHMENT_WINDOW_SELF_VOTES,
+	PUNISHMENT_WINDOW_VOTES,
+	LOCKING_PERIOD_SELF_VOTES,
+	LOCKING_PERIOD_VOTES,
 } from '../../../../../src/modules/dpos_v2/constants';
 import { TokenMethod, UnlockingObject, VoterData } from '../../../../../src/modules/dpos_v2/types';
 import { liskToBeddows } from '../../../../utils/assets';
@@ -182,7 +182,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when non self-voted non-punished account waits ${WAIT_TIME_VOTE} blocks since unvoteHeight`, () => {
+	describe(`when non self-voted non-punished account waits ${LOCKING_PERIOD_VOTES} blocks since unvoteHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -201,7 +201,7 @@ describe('UnlockCommand', () => {
 			unlockableObject = {
 				delegateAddress: delegate1.address,
 				amount: delegate1.amount,
-				unvoteHeight: blockHeight - WAIT_TIME_VOTE,
+				unvoteHeight: blockHeight - LOCKING_PERIOD_VOTES,
 			};
 			nonUnlockableObject = {
 				delegateAddress: delegate2.address,
@@ -242,7 +242,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when self-voted non-punished account waits ${WAIT_TIME_SELF_VOTE} blocks since unvoteHeight`, () => {
+	describe(`when self-voted non-punished account waits ${LOCKING_PERIOD_SELF_VOTES} blocks since unvoteHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -256,7 +256,7 @@ describe('UnlockCommand', () => {
 			unlockableObject = {
 				delegateAddress: transaction.senderAddress,
 				amount: delegate1.amount,
-				unvoteHeight: blockHeight - WAIT_TIME_SELF_VOTE,
+				unvoteHeight: blockHeight - LOCKING_PERIOD_SELF_VOTES,
 			};
 			nonUnlockableObject = {
 				delegateAddress: transaction.senderAddress,
@@ -302,7 +302,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when non self-voted punished account waits ${VOTER_PUNISH_TIME} blocks and unvoteHeight + ${WAIT_TIME_VOTE} blocks since last pomHeight`, () => {
+	describe(`when non self-voted punished account waits ${PUNISHMENT_WINDOW_VOTES} blocks and unvoteHeight + ${LOCKING_PERIOD_VOTES} blocks since last pomHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -312,7 +312,7 @@ describe('UnlockCommand', () => {
 			await delegateSubstore.set(createStoreGetter(stateStore), delegate1.address, {
 				...defaultDelegateInfo,
 				name: 'punishedvoter1',
-				pomHeights: [blockHeight - VOTER_PUNISH_TIME],
+				pomHeights: [blockHeight - PUNISHMENT_WINDOW_VOTES],
 			});
 			// This covers scenario: has not waited pomHeight + 260,000 blocks but waited unvoteHeight + 2000 blocks and pomHeight is more than unvoteHeight + 2000 blocks
 			await delegateSubstore.set(createStoreGetter(stateStore), delegate2.address, {
@@ -329,22 +329,22 @@ describe('UnlockCommand', () => {
 			await delegateSubstore.set(createStoreGetter(stateStore), delegate4.address, {
 				...defaultDelegateInfo,
 				name: 'punishedvoter4',
-				pomHeights: [blockHeight - VOTER_PUNISH_TIME],
+				pomHeights: [blockHeight - PUNISHMENT_WINDOW_VOTES],
 			});
 			unlockableObject = {
 				delegateAddress: delegate1.address,
 				amount: delegate1.amount,
-				unvoteHeight: blockHeight - WAIT_TIME_VOTE,
+				unvoteHeight: blockHeight - LOCKING_PERIOD_VOTES,
 			};
 			unlockableObject2 = {
 				delegateAddress: delegate2.address,
 				amount: delegate2.amount,
-				unvoteHeight: blockHeight - WAIT_TIME_VOTE - 1000,
+				unvoteHeight: blockHeight - LOCKING_PERIOD_VOTES - 1000,
 			};
 			unlockableObject3 = {
 				delegateAddress: delegate3.address,
 				amount: delegate3.amount,
-				unvoteHeight: blockHeight - WAIT_TIME_VOTE - 1000,
+				unvoteHeight: blockHeight - LOCKING_PERIOD_VOTES - 1000,
 			};
 			nonUnlockableObject = {
 				delegateAddress: delegate4.address,
@@ -407,7 +407,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when self-voted punished account waits ${SELF_VOTE_PUNISH_TIME} blocks and waits unvoteHeight + ${WAIT_TIME_SELF_VOTE} blocks since pomHeight`, () => {
+	describe(`when self-voted punished account waits ${PUNISHMENT_WINDOW_SELF_VOTES} blocks and waits unvoteHeight + ${LOCKING_PERIOD_SELF_VOTES} blocks since pomHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -417,12 +417,12 @@ describe('UnlockCommand', () => {
 			await delegateSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				...defaultDelegateInfo,
 				name: 'punishedselfvoter',
-				pomHeights: [blockHeight - SELF_VOTE_PUNISH_TIME],
+				pomHeights: [blockHeight - PUNISHMENT_WINDOW_SELF_VOTES],
 			});
 			unlockableObject = {
 				delegateAddress: transaction.senderAddress,
 				amount: delegate1.amount,
-				unvoteHeight: blockHeight - WAIT_TIME_SELF_VOTE,
+				unvoteHeight: blockHeight - LOCKING_PERIOD_SELF_VOTES,
 			};
 			nonUnlockableObject = {
 				delegateAddress: transaction.senderAddress,
@@ -468,7 +468,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when self-voted punished account does not wait ${SELF_VOTE_PUNISH_TIME} blocks and waits unvoteHeight + ${WAIT_TIME_SELF_VOTE} blocks since pomHeight`, () => {
+	describe(`when self-voted punished account does not wait ${PUNISHMENT_WINDOW_SELF_VOTES} blocks and waits unvoteHeight + ${LOCKING_PERIOD_SELF_VOTES} blocks since pomHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -483,7 +483,7 @@ describe('UnlockCommand', () => {
 			nonUnlockableObject = {
 				delegateAddress: transaction.senderAddress,
 				amount: delegate1.amount,
-				unvoteHeight: blockHeight - WAIT_TIME_SELF_VOTE,
+				unvoteHeight: blockHeight - LOCKING_PERIOD_SELF_VOTES,
 			};
 			await voterSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				sentVotes: [
@@ -587,7 +587,7 @@ describe('UnlockCommand', () => {
 			unlockableObject = {
 				delegateAddress: delegate1.address,
 				amount: delegate1.amount,
-				unvoteHeight: blockHeight - WAIT_TIME_VOTE,
+				unvoteHeight: blockHeight - LOCKING_PERIOD_VOTES,
 			};
 			nonUnlockableObject = {
 				delegateAddress: delegate2.address,

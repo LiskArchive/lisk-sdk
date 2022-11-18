@@ -20,7 +20,7 @@ import { GenesisBlockExecuteContext, BlockAfterExecuteContext } from '../../stat
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { DPoSMethod } from './method';
 import { DelegateRegistrationCommand } from './commands/delegate_registration';
-import { ReportDelegateMisbehaviorCommand } from './commands/pom';
+import { ReportMisbehaviorCommand } from './commands/pom';
 import { UnlockCommand } from './commands/unlock';
 import { UpdateGeneratorKeyCommand } from './commands/update_generator_key';
 import { VoteDelegateCommand } from './commands/vote_delegate';
@@ -96,7 +96,7 @@ export class DPoSModule extends BaseModule {
 		this.stores,
 		this.events,
 	);
-	private readonly _reportDelegateMisbehaviorCommand = new ReportDelegateMisbehaviorCommand(
+	private readonly _reportMisbehaviorCommand = new ReportMisbehaviorCommand(
 		this.stores,
 		this.events,
 	);
@@ -112,7 +112,7 @@ export class DPoSModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [
 		this._delegateRegistrationCommand,
-		this._reportDelegateMisbehaviorCommand,
+		this._reportMisbehaviorCommand,
 		this._unlockCommand,
 		this._updateGeneratorKeyCommand,
 		this._voteCommand,
@@ -157,7 +157,7 @@ export class DPoSModule extends BaseModule {
 		this._tokenMethod = tokenMethod;
 
 		this._delegateRegistrationCommand.addDependencies(this._tokenMethod, this._validatorsMethod);
-		this._reportDelegateMisbehaviorCommand.addDependencies({
+		this._reportMisbehaviorCommand.addDependencies({
 			tokenMethod: this._tokenMethod,
 			validatorsMethod: this._validatorsMethod,
 		});
@@ -255,19 +255,13 @@ export class DPoSModule extends BaseModule {
 		this.method.init(this.name, this._moduleConfig, this._tokenMethod);
 		this.endpoint.init(this.name, this._moduleConfig, this._tokenMethod);
 
-		this._reportDelegateMisbehaviorCommand.init({
+		this._reportMisbehaviorCommand.init({
 			governanceTokenID: this._moduleConfig.governanceTokenID,
+			factorSelfVotes: this._moduleConfig.factorSelfVotes,
 		});
 		this._delegateRegistrationCommand.init({
 			tokenIDFee: this._moduleConfig.tokenIDFee,
 			delegateRegistrationFee: this._moduleConfig.delegateRegistrationFee,
-		});
-		this._reportDelegateMisbehaviorCommand.init({
-			governanceTokenID: this._moduleConfig.governanceTokenID,
-		});
-		this.endpoint.init(this.name, this._moduleConfig, this._tokenMethod);
-		this._reportDelegateMisbehaviorCommand.init({
-			governanceTokenID: this._moduleConfig.governanceTokenID,
 		});
 		this._unlockCommand.init({
 			governanceTokenID: this._moduleConfig.governanceTokenID,

@@ -16,7 +16,7 @@ import { BaseEvent, EventQueuer } from '../../base_event';
 
 export interface DelegatePunishedEventData {
 	address: Buffer;
-	height: bigint;
+	height: number;
 }
 
 export const delegatePunishedDataSchema = {

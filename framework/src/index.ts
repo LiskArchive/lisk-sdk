@@ -62,7 +62,7 @@ export {
 	DPoSMethod,
 	DPoSModule,
 	DelegateRegistrationCommand,
-	ReportDelegateMisbehaviorCommand,
+	ReportMisbehaviorCommand,
 	UnlockCommand,
 	UpdateGeneratorKeyCommand,
 	VoteDelegateCommand,

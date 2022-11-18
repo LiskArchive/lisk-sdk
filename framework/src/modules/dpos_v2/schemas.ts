@@ -99,7 +99,7 @@ export const voteCommandParamsSchema = {
 };
 
 export const pomCommandParamsSchema = {
-	$id: '/dpos/command/reportDelegateMisbehaviorParams',
+	$id: '/dpos/command/reportMisbehaviorParams',
 	type: 'object',
 	required: ['header1', 'header2'],
 	properties: {

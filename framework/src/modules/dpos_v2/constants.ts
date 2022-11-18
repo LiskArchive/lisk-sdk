@@ -15,10 +15,10 @@ export const MODULE_NAME_DPOS = 'dpos';
 
 export const COMMAND_NAME_DELEGATE_REGISTRATION = 'registerDelegate';
 
-export const WAIT_TIME_VOTE = 2000;
-export const WAIT_TIME_SELF_VOTE = 260000;
-export const VOTER_PUNISH_TIME = 260000;
-export const SELF_VOTE_PUNISH_TIME = 780000;
+export const LOCKING_PERIOD_VOTES = 26000;
+export const LOCKING_PERIOD_SELF_VOTES = 260000;
+export const PUNISHMENT_WINDOW_VOTES = 260000;
+export const PUNISHMENT_WINDOW_SELF_VOTES = 780000;
 // Punishment period is 780k block height by default
 export const PUNISHMENT_PERIOD = 780000;
 export const MAX_LENGTH_NAME = 20;
@@ -29,7 +29,7 @@ export const TOKEN_ID_DPOS = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 export const TOKEN_ID_FEE = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 export const DELEGATE_REGISTRATION_FEE = BigInt(10) * BigInt(10) ** BigInt(8);
 export const MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE = 260000;
-export const MAX_POM_HEIGHTS = 5;
+export const POM_LIMIT_BANNED = 5;
 export const REPORTING_PUNISHMENT_REWARD = BigInt(100000000);
 export const DELEGATE_LIST_ROUND_OFFSET = 2;
 export const EMPTY_KEY = Buffer.alloc(0);

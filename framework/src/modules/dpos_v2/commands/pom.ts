@@ -23,8 +23,8 @@ import {
 import { BaseCommand } from '../../base_command';
 import {
 	REPORTING_PUNISHMENT_REWARD,
-	MAX_POM_HEIGHTS,
-	MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE,
+	POM_LIMIT_BANNED,
+	LOCKING_PERIOD_SELF_VOTES,
 } from '../constants';
 import { pomCommandParamsSchema } from '../schemas';
 import {
@@ -34,32 +34,39 @@ import {
 	TokenID,
 	ValidatorsMethod,
 } from '../types';
-import { getPunishmentPeriod } from '../utils';
+import { getDelegateWeight, getPunishmentPeriod } from '../utils';
 import { ValidationError } from '../../../errors';
 import { areDistinctHeadersContradicting } from '../../../engine/bft/utils';
 import { DelegateStore } from '../stores/delegate';
+import { DelegatePunishedEvent } from '../events/delegate_punished';
+import { DelegateBannedEvent } from '../events/delegate_banned';
+import { EligibleDelegatesStore } from '../stores/eligible_delegates';
 
-export class ReportDelegateMisbehaviorCommand extends BaseCommand {
+export class ReportMisbehaviorCommand extends BaseCommand {
 	public schema = pomCommandParamsSchema;
 	private _tokenMethod!: TokenMethod;
 	private _validatorsMethod!: ValidatorsMethod;
 	private _governanceTokenID!: TokenID;
+	private _factorSelfVotes!: number;
 
 	public addDependencies(args: PomCommandDependencies) {
 		this._tokenMethod = args.tokenMethod;
 		this._validatorsMethod = args.validatorsMethod;
 	}
 
-	public init(args: { governanceTokenID: TokenID }) {
+	public init(args: { governanceTokenID: TokenID; factorSelfVotes: number }) {
 		this._governanceTokenID = args.governanceTokenID;
+		this._factorSelfVotes = args.factorSelfVotes;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(
 		context: CommandVerifyContext<PomTransactionParams>,
 	): Promise<VerificationResult> {
+		const { chainID, getMethodContext, params, header } = context;
+
 		try {
-			validator.validate(this.schema, context.params);
+			validator.validate(this.schema, params);
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -67,13 +74,51 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 			};
 		}
 
-		const header1 = BlockHeader.fromBytes(context.params.header1);
-		header1.validate();
+		const currentHeight = header.height;
+		const header1 = BlockHeader.fromBytes(params.header1);
+		const header2 = BlockHeader.fromBytes(params.header2);
 
-		const header2 = BlockHeader.fromBytes(context.params.header2);
-		header2.validate();
+		if (!header1.generatorAddress.equals(header2.generatorAddress)) {
+			throw new Error('Different generator address never contradict to each other.');
+		}
 
-		// Check for BFT violations:
+		const delegateAddress = header1.generatorAddress;
+		const delegateSubStore = this.stores.get(DelegateStore);
+		const delegateAccount = await delegateSubStore.get(context, delegateAddress);
+
+		const { generatorKey } = await this._validatorsMethod.getValidatorKeys(
+			getMethodContext(),
+			header1.generatorAddress,
+		);
+
+		header1.validateSignature(generatorKey, chainID);
+		header2.validateSignature(generatorKey, chainID);
+
+		const maxPunishableHeight = Math.max(
+			Math.abs(header1.height - currentHeight),
+			Math.abs(header2.height - currentHeight),
+		);
+
+		if (maxPunishableHeight >= LOCKING_PERIOD_SELF_VOTES) {
+			throw new Error('Locking period has expired.');
+		}
+
+		if (
+			getPunishmentPeriod(
+				delegateAddress,
+				delegateAddress,
+				delegateAccount.pomHeights,
+				header.height,
+			) > 0
+		) {
+			throw new Error('Delegate is already punished.');
+		}
+
+		if (delegateAccount.isBanned) {
+			throw new Error('Delegate is already banned.');
+		}
+
+		/* Checking if the two headers are the same or not. */
 		if (header1.id.equals(header2.id) || !areDistinctHeadersContradicting(header1, header2)) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -91,89 +136,57 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async execute(context: CommandExecuteContext<PomTransactionParams>): Promise<void> {
-		const { chainID, getMethodContext, params, transaction, header } = context;
+		const { getMethodContext, params, transaction, header } = context;
+
 		const currentHeight = header.height;
 		const header1 = BlockHeader.fromBytes(params.header1);
-		const header2 = BlockHeader.fromBytes(params.header2);
-		/*
-			|header1.height - h| >= 260,000.
-			|header2.height - h| >= 260,000.
-		*/
 
-		if (Math.abs(header1.height - currentHeight) >= MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE) {
-			throw new Error(
-				`Difference between header1.height and current height must be less than ${MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE.toString()}.`,
-			);
-		}
-
-		if (Math.abs(header2.height - currentHeight) >= MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE) {
-			throw new Error(
-				`Difference between header2.height and current height must be less than ${MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE.toString()}.`,
-			);
-		}
-
-		/*
-			Check if delegate is eligible to be punished
-		*/
-		const delegateAddress = header1.generatorAddress;
+		const punishedAddress = header1.generatorAddress;
 		const delegateSubStore = this.stores.get(DelegateStore);
+		const delegateAccount = await delegateSubStore.get(context, punishedAddress);
 
-		const delegateAccount = await delegateSubStore.get(context, delegateAddress);
-
-		if (delegateAccount.isBanned) {
-			throw new Error('Cannot apply proof-of-misbehavior. Delegate is already banned.');
-		}
-
-		if (
-			getPunishmentPeriod(
-				delegateAddress,
-				delegateAddress,
-				delegateAccount.pomHeights,
-				header.height,
-			) > 0
-		) {
-			throw new Error('Cannot apply proof-of-misbehavior. Delegate is already punished.');
-		}
-
-		if (!header1.generatorAddress.equals(header2.generatorAddress)) {
-			throw new Error('Different generator address never contradict to each other');
-		}
-
-		const { generatorKey } = await this._validatorsMethod.getValidatorKeys(
-			getMethodContext(),
-			header1.generatorAddress,
-		);
-		/*
-			Check block signatures validity
-		*/
-		header1.validateSignature(generatorKey, chainID);
-		header2.validateSignature(generatorKey, chainID);
-
-		/*
-			Update sender account
-		*/
 		const delegateAccountBalance = await this._tokenMethod.getAvailableBalance(
 			getMethodContext(),
-			delegateAddress,
+			punishedAddress,
 			this._governanceTokenID,
 		);
+
+		delegateAccount.pomHeights.push(currentHeight);
+
+		this.events.get(DelegatePunishedEvent).log(context, {
+			address: punishedAddress,
+			height: currentHeight,
+		});
+
+		if (delegateAccount.pomHeights.length === POM_LIMIT_BANNED) {
+			delegateAccount.isBanned = true;
+
+			this.events.get(DelegateBannedEvent).log(context, {
+				address: punishedAddress,
+				height: currentHeight,
+			});
+		}
+
+		const currentWeight = getDelegateWeight(
+			BigInt(this._factorSelfVotes),
+			delegateAccount.selfVotes,
+			delegateAccount.totalVotesReceived,
+		);
+
+		const eligibleDelegateStore = this.stores.get(EligibleDelegatesStore);
+		await eligibleDelegateStore.update(context, punishedAddress, currentWeight, delegateAccount);
+
+		await delegateSubStore.set(context, punishedAddress, delegateAccount);
 
 		const reward =
 			REPORTING_PUNISHMENT_REWARD > delegateAccountBalance
 				? delegateAccountBalance
 				: REPORTING_PUNISHMENT_REWARD;
 
-		delegateAccount.pomHeights.push(currentHeight);
-
-		if (delegateAccount.pomHeights.length >= MAX_POM_HEIGHTS) {
-			delegateAccount.isBanned = true;
-		}
-		await delegateSubStore.set(context, delegateAddress, delegateAccount);
-
 		if (reward > BigInt(0)) {
 			await this._tokenMethod.transfer(
 				getMethodContext(),
-				delegateAddress,
+				punishedAddress,
 				transaction.senderAddress,
 				this._governanceTokenID,
 				reward,
