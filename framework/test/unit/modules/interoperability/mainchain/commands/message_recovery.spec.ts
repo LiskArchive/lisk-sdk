@@ -22,6 +22,7 @@ import { CommandExecuteContext, MainchainInteroperabilityModule } from '../../..
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { BaseCCMethod } from '../../../../../../src/modules/interoperability/base_cc_method';
 import {
+	CCMStatusCode,
 	COMMAND_NAME_MESSAGE_RECOVERY,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	MODULE_NAME_INTEROPERABILITY,
@@ -874,6 +875,123 @@ describe('Mainchain MessageRecoveryCommand', () => {
 					ccmID: expect.any(Buffer),
 					code: CCMProcessedCode.SUCCESS,
 					result: CCMProcessedResult.APPLIED,
+				},
+			);
+		});
+	});
+
+	describe('_forwardRecovery', () => {
+		const defaultCCM = {
+			nonce: BigInt(0),
+			module: 'token',
+			crossChainCommand: 'crossChainTransfer',
+			sendingChainID: Buffer.from([0, 0, 2, 0]),
+			receivingChainID: Buffer.from([0, 0, 3, 0]),
+			fee: BigInt(20000),
+			status: 0,
+			params: Buffer.alloc(0),
+		};
+		let context: CrossChainMessageContext;
+
+		beforeEach(() => {
+			command['interoperableCCMethods'].set(
+				'token',
+				new (class TokenMethod extends BaseCCMethod {
+					public verifyCrossChainMessage = jest.fn();
+					public beforeCrossChainMessageForwarding = jest.fn();
+				})(interopModule.stores, interopModule.events),
+			);
+			command['ccCommands'].set('token', [
+				new (class CrossChainTransfer extends BaseCCCommand {
+					public schema = { $id: 'test/ccu', properties: {}, type: 'object' };
+					public verify = jest.fn();
+					public execute = jest.fn();
+				})(interopModule.stores, interopModule.events),
+			]);
+			jest.spyOn(command['events'].get(CcmProcessedEvent), 'log');
+			jest.spyOn(command['events'].get(CcmSendSuccessEvent), 'log');
+			context = createCrossChainMessageContext({
+				ccm: defaultCCM,
+			});
+		});
+
+		it('should log event when verifyCrossChainMessage fails', async () => {
+			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
+				.verifyCrossChainMessage as jest.Mock).mockRejectedValue('error');
+			await expect(command['_forwardRecovery'](context)).resolves.toBeUndefined();
+
+			expect(context.eventQueue.getEvents()).toHaveLength(1);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.receivingChainID,
+				context.ccm.sendingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+				},
+			);
+		});
+
+		it('should log event when command beforeCrossChainMessageForwarding fails', async () => {
+			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
+				.beforeCrossChainMessageForwarding as jest.Mock).mockRejectedValue('error');
+
+			await expect(command['_forwardRecovery'](context)).resolves.toBeUndefined();
+
+			expect(context.eventQueue.getEvents()).toHaveLength(1);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.receivingChainID,
+				context.ccm.sendingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+				},
+			);
+		});
+
+		it('should revert to the original state/event when command beforeCrossChainMessageForwarding fails', async () => {
+			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
+				.beforeCrossChainMessageForwarding as jest.Mock).mockRejectedValue('error');
+			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
+			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);
+			jest.spyOn(context.eventQueue, 'restoreSnapshot');
+			jest.spyOn(context.stateStore, 'restoreSnapshot');
+
+			await expect(command['_forwardRecovery'](context)).resolves.toBeUndefined();
+
+			expect(context.eventQueue.restoreSnapshot).toHaveBeenCalledWith(99);
+			expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(10);
+		});
+
+		it('should add to outbox and log success', async () => {
+			const ccMethod = command['interoperableCCMethods'].get('token');
+
+			await expect(command['_forwardRecovery'](context)).resolves.toBeUndefined();
+
+			expect(ccMethod?.verifyCrossChainMessage).toHaveBeenCalledTimes(1);
+			expect(ccMethod?.beforeCrossChainMessageForwarding).toHaveBeenCalledTimes(1);
+
+			expect(command['internalMethod'].addToOutbox).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.sendingChainID,
+				expect.objectContaining({
+					sendingChainID: context.ccm.receivingChainID,
+					receivingChainID: context.ccm.sendingChainID,
+					status: CCMStatusCode.RECOVERED,
+				}),
+			);
+			expect(context.eventQueue.getEvents()).toHaveLength(1);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.receivingChainID,
+				context.ccm.sendingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCMProcessedCode.SUCCESS,
+					result: CCMProcessedResult.FORWARDED,
 				},
 			);
 		});
