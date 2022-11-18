@@ -468,7 +468,8 @@ export const stateRecoveryParamsSchema = {
 	},
 };
 
-export const stateRecoveryInitParams = {
+// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#parameters-3
+export const stateRecoveryInitParamsSchema = {
 	$id: '/modules/interoperability/mainchain/stateRecoveryInitialization',
 	type: 'object',
 	required: ['chainID', 'sidechainAccount', 'bitmap', 'siblingHashes'],

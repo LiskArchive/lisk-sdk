@@ -19,7 +19,7 @@ import {
 } from '../../../../../../src/modules/interoperability/types';
 import { CommandExecuteContext, SidechainInteroperabilityModule } from '../../../../../../src';
 import { TransactionContext } from '../../../../../../src/state_machine';
-import { stateRecoveryInitParams } from '../../../../../../src/modules/interoperability/schemas';
+import { stateRecoveryInitParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { createTransactionContext } from '../../../../../../src/testing';
 import { CommandVerifyContext, VerifyStatus } from '../../../../../../src/state_machine/types';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
@@ -100,7 +100,7 @@ describe('Sidechain StateRecoveryInitializationCommand', () => {
 			sidechainAccount: sidechainChainAccountEncoded,
 		};
 
-		encodedTransactionParams = codec.encode(stateRecoveryInitParams, transactionParams);
+		encodedTransactionParams = codec.encode(stateRecoveryInitParamsSchema, transactionParams);
 
 		transaction = new Transaction({
 			module: MODULE_NAME_INTEROPERABILITY,
@@ -134,7 +134,7 @@ describe('Sidechain StateRecoveryInitializationCommand', () => {
 		});
 
 		commandExecuteContext = transactionContext.createCommandExecuteContext<StateRecoveryInitParams>(
-			stateRecoveryInitParams,
+			stateRecoveryInitParamsSchema,
 		);
 
 		const chainAccountStore = new ChainAccountStore(interopMod.name);
@@ -174,7 +174,7 @@ describe('Sidechain StateRecoveryInitializationCommand', () => {
 				createTerminatedStateAccount: jest.fn(),
 			};
 			commandVerifyContext = transactionContext.createCommandVerifyContext<StateRecoveryInitParams>(
-				stateRecoveryInitParams,
+				stateRecoveryInitParamsSchema,
 			);
 		});
 
@@ -186,10 +186,9 @@ describe('Sidechain StateRecoveryInitializationCommand', () => {
 		it('should return error if chain id is same as mainchain id or own chain account id', async () => {
 			commandVerifyContext.params.chainID = ownChainAccount.chainID;
 
-			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Chain ID is not valid.');
+			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
+				'Chain ID is not valid.',
+			);
 		});
 
 		it('should return error if terminated state account exists and is initialized', async () => {
@@ -197,10 +196,10 @@ describe('Sidechain StateRecoveryInitializationCommand', () => {
 				...terminatedStateAccount,
 				initialized: true,
 			});
-			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
 
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Sidechain is already terminated');
+			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
+				'Sidechain is already terminated',
+			);
 		});
 
 		it('should return error if the sidechain is not terminated on the mainchain but the sidechain violates the liveness requirement', async () => {
@@ -225,7 +224,7 @@ describe('Sidechain StateRecoveryInitializationCommand', () => {
 				siblingHashes: [],
 				sidechainAccount: sidechainChainAccountEncoded,
 			};
-			encodedTransactionParams = codec.encode(stateRecoveryInitParams, transactionParams);
+			encodedTransactionParams = codec.encode(stateRecoveryInitParamsSchema, transactionParams);
 			transaction = new Transaction({
 				module: MODULE_NAME_INTEROPERABILITY,
 				command: COMMAND_NAME_STATE_RECOVERY_INIT,
@@ -240,22 +239,20 @@ describe('Sidechain StateRecoveryInitializationCommand', () => {
 				stateStore,
 			});
 			commandVerifyContext = transactionContext.createCommandVerifyContext<StateRecoveryInitParams>(
-				stateRecoveryInitParams,
+				stateRecoveryInitParamsSchema,
 			);
 
-			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Sidechain is not terminated.');
+			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
+				'Sidechain is not terminated.',
+			);
 		});
 
 		it('should return error if terminated state account exists and proof of inclusion is not verified', async () => {
 			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
 
-			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Failed to verify proof of inclusion');
+			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
+				'State recovery initialization proof of inclusion is not valid',
+			);
 		});
 
 		it('should return error if terminated state account does not exist and proof of inclusion is not verified', async () => {
@@ -268,10 +265,9 @@ describe('Sidechain StateRecoveryInitializationCommand', () => {
 
 			await terminatedStateSubstore.del(createStoreGetter(stateStore), transactionParams.chainID);
 
-			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Failed to verify proof of inclusion');
+			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
+				'State recovery initialization proof of inclusion is not valid',
+			);
 		});
 	});
 
