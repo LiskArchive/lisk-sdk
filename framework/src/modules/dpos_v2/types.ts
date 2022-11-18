@@ -182,7 +182,9 @@ export interface VoterDataJSON {
 export interface VoteObject {
 	delegateAddress: Buffer;
 	amount: bigint;
+	voteSharingCoefficients: VoteSharingCoefficient[];
 }
+
 export interface VoterData {
 	sentVotes: VoteObject[];
 	pendingUnlocks: UnlockingObject[];
@@ -194,10 +196,6 @@ export interface NameStoreData {
 
 export interface VoteTransactionParams {
 	votes: VoteObject[];
-}
-
-export interface VoteCommandDependencies {
-	tokenMethod: TokenMethod;
 }
 
 export interface BlockHeaderAssetForDPOS {

@@ -12,10 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
+import { math } from '@liskhq/lisk-utils';
 import { defaultConfig, TOKEN_ID_LENGTH } from '../../../../src/modules/dpos_v2/constants';
-import { ModuleConfig } from '../../../../src/modules/dpos_v2/types';
-import { getModuleConfig, shuffleDelegateList } from '../../../../src/modules/dpos_v2/utils';
+import { ModuleConfig, VoteSharingCoefficient } from '../../../../src/modules/dpos_v2/types';
+import {
+	calculateVoteRewards,
+	getModuleConfig,
+	shuffleDelegateList,
+} from '../../../../src/modules/dpos_v2/utils';
 import * as delegateShufflingScenario from '../../../fixtures/dpos_delegate_shuffling/uniformly_shuffled_delegate_list.json';
+
+const { q96 } = math;
 
 describe('utils', () => {
 	describe('shuffleDelegateList', () => {
@@ -61,6 +68,39 @@ describe('utils', () => {
 			});
 
 			expect(actual).toStrictEqual(expected);
+		});
+	});
+
+	describe('calculateVoteRewards', () => {
+		const delegateSharingCoefficient: VoteSharingCoefficient = {
+			tokenID: Buffer.alloc(TOKEN_ID_LENGTH),
+			coefficient: q96(100).toBuffer(),
+		};
+
+		const voteSharingCoefficient: VoteSharingCoefficient = {
+			tokenID: Buffer.alloc(TOKEN_ID_LENGTH),
+			coefficient: q96(10).toBuffer(),
+		};
+
+		const amount = BigInt(10);
+
+		it('should calculate the vote reward', () => {
+			const qAmount = q96(amount);
+
+			const qVoteSharingCoefficient = q96(voteSharingCoefficient.coefficient);
+			const qDelegateSharingCoefficient = q96(delegateSharingCoefficient.coefficient);
+			const expectedReward = qDelegateSharingCoefficient
+				.sub(qVoteSharingCoefficient)
+				.mul(qAmount)
+				.floor();
+
+			const reward = calculateVoteRewards(
+				voteSharingCoefficient,
+				amount,
+				delegateSharingCoefficient,
+			);
+
+			expect(reward).toEqual(expectedReward);
 		});
 	});
 });
