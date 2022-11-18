@@ -852,7 +852,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(10);
 		});
 
-		it('call all the hooks if defined', async () => {
+		it('should log success event when all the hooks pass', async () => {
 			const ccMethod = command['interoperableCCMethods'].get('token');
 			const ccCommand = command['ccCommands']
 				.get(defaultCCM.module)
