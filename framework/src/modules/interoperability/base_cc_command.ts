@@ -14,18 +14,18 @@
 
 import { Schema } from '@liskhq/lisk-codec';
 import { NamedRegistry } from '../named_registry';
-import { CrossChainMessageContext, ImmutableCrossChainMessageContext } from './types';
+import { CCCommandExecuteContext, ImmutableCrossChainMessageContext } from './types';
 
-export abstract class BaseCCCommand {
-	public abstract schema: Schema;
+export abstract class BaseCCCommand<T = unknown> {
+	public schema?: Schema;
 
 	public get name(): string {
 		const name = this.constructor.name.replace('CCCommand', '');
-		return name.charAt(0).toLowerCase() + name.substr(1);
+		return name.charAt(0).toLowerCase() + name.substring(1);
 	}
 
 	// eslint-disable-next-line no-useless-constructor
 	public constructor(protected stores: NamedRegistry, protected events: NamedRegistry) {}
 	public verify?(ctx: ImmutableCrossChainMessageContext): Promise<void>;
-	public abstract execute(ctx: CrossChainMessageContext): Promise<void>;
+	public abstract execute(ctx: CCCommandExecuteContext<T>): Promise<void>;
 }

@@ -66,7 +66,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 		ccCommands = new Map();
 		ccCommands.set('token', [
 			new (class CrossChainTransfer extends BaseCCCommand {
-				public schema = { $id: 'test/ccu', properties: {}, type: 'object' };
 				public verify = jest.fn();
 				public execute = jest.fn();
 			})(interopModule.stores, interopModule.events),
