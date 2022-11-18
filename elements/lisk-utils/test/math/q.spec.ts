@@ -64,6 +64,7 @@ describe('Q', () => {
 
 		const bytesCases = [
 			[{ input: 'a40000000000000000000000', expected: 'a40000000000000000000000' }],
+			[{ input: '0', expected: '' }],
 		];
 
 		it.each(bytesCases)('should create Q from Buffer %o', val => {

@@ -252,7 +252,7 @@ export class DPoSModule extends BaseModule {
 
 		this._moduleConfig = getModuleConfig(config);
 
-		this.method.init(this._moduleConfig);
+		this.method.init(this.name, this._moduleConfig, this._tokenMethod);
 		this.endpoint.init(this.name, this._moduleConfig, this._tokenMethod);
 
 		this._reportDelegateMisbehaviorCommand.init({
