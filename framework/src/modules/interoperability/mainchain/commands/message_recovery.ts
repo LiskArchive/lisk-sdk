@@ -266,7 +266,8 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 		const execStateSnapshotID = context.stateStore.createSnapshot();
 
 		try {
-			await command.execute(context);
+			const params = command.schema ? codec.decode(command.schema, ccm.params) : {};
+			await command.execute({ ...context, params });
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccmID,
 				code: CCMProcessedCode.SUCCESS,
