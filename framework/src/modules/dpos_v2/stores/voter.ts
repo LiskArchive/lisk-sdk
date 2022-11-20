@@ -14,24 +14,7 @@
 import { NotFoundError } from '@liskhq/lisk-db';
 import { BaseStore, ImmutableStoreGetter } from '../../base_store';
 import { MAX_NUMBER_BYTES_Q96, TOKEN_ID_LENGTH } from '../constants';
-import { VoteSharingCoefficient } from '../types';
-
-export interface VoteObject {
-	delegateAddress: Buffer;
-	amount: bigint;
-	voteSharingCoefficients: VoteSharingCoefficient[];
-}
-
-export interface UnlockingObject {
-	readonly delegateAddress: Buffer;
-	readonly amount: bigint;
-	readonly unvoteHeight: number;
-}
-
-export interface VoterData {
-	sentVotes: VoteObject[];
-	pendingUnlocks: UnlockingObject[];
-}
+import { VoterData } from '../types';
 
 export const voterStoreSchema = {
 	$id: '/dpos/voter',

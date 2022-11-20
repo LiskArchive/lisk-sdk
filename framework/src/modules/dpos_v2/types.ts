@@ -301,3 +301,12 @@ export interface GetLockedRewardsRequest {
 export interface GetLockedRewardsResponse {
 	reward: string;
 }
+
+export interface GetClaimableRewardsRequest {
+	address: string;
+}
+
+export interface ClaimableReward {
+	tokenID: string;
+	reward: string;
+}

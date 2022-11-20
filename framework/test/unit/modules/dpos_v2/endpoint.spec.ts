@@ -24,13 +24,13 @@ import {
 import { DPoSEndpoint } from '../../../../src/modules/dpos_v2/endpoint';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
-import { ModuleConfig } from '../../../../src/modules/dpos_v2/types';
-import { DPoSModule } from '../../../../src';
 import {
+	ModuleConfig,
 	VoterData,
-	VoterStore,
-	voterStoreSchema,
-} from '../../../../src/modules/dpos_v2/stores/voter';
+	VoteSharingCoefficient,
+} from '../../../../src/modules/dpos_v2/types';
+import { DPoSModule } from '../../../../src';
+import { VoterStore, voterStoreSchema } from '../../../../src/modules/dpos_v2/stores/voter';
 import { DelegateStore } from '../../../../src/modules/dpos_v2/stores/delegate';
 import { createStoreGetter } from '../../../../src/testing/utils';
 import {
@@ -39,6 +39,7 @@ import {
 } from '../../../../src/testing';
 import { GenesisDataStore } from '../../../../src/modules/dpos_v2/stores/genesis';
 import { EligibleDelegatesStore } from '../../../../src/modules/dpos_v2/stores/eligible_delegates';
+import { calculateVoteRewards } from '../../../../src/modules/dpos_v2/utils';
 
 describe('DposModuleEndpoint', () => {
 	const dpos = new DPoSModule();
@@ -53,6 +54,8 @@ describe('DposModuleEndpoint', () => {
 	const address = utils.getRandomBytes(20);
 	const address1 = utils.getRandomBytes(20);
 	const address2 = utils.getRandomBytes(20);
+
+	const addressVoter = utils.getRandomBytes(20);
 	const voterData: VoterData = {
 		sentVotes: [
 			{
@@ -70,6 +73,30 @@ describe('DposModuleEndpoint', () => {
 		],
 	};
 
+	const token1 = Buffer.from('1000000000000010');
+	const token2 = Buffer.from('1000000000000020');
+	const voterCoefficient1 = Buffer.from('000000000000000000000000000000000000000000001111');
+	// const voterCoefficient2 = Buffer.from('000000000000000000000000000000000000000000002222');
+	const delegateCoefficient1 = Buffer.from('000000000000000000000000111111111111111111111111');
+	const delegateCoefficient2 = Buffer.from('000000000000000000000000222222222222222222222222');
+
+	const voterSharingCoefficient1: VoteSharingCoefficient = {
+		tokenID: token1,
+		coefficient: voterCoefficient1,
+	};
+	// const voterSharingCoefficient2: VoteSharingCoefficient = {
+	//     tokenID: token2,
+	//     coefficient: voterCoefficient2,
+	// }
+	const delegateSharingCoefficient1: VoteSharingCoefficient = {
+		tokenID: token1,
+		coefficient: delegateCoefficient1,
+	};
+	const delegateSharingCoefficient2: VoteSharingCoefficient = {
+		tokenID: token2,
+		coefficient: delegateCoefficient2,
+	};
+
 	const delegateData = {
 		name: 'delegate1',
 		totalVotesReceived: BigInt(0),
@@ -81,7 +108,7 @@ describe('DposModuleEndpoint', () => {
 		address: cryptoAddress.getLisk32AddressFromAddress(address),
 		commission: 0,
 		lastCommissionIncreaseHeight: 0,
-		sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+		sharingCoefficients: [delegateSharingCoefficient1, delegateSharingCoefficient2],
 	};
 
 	const config: ModuleConfig = {
@@ -164,8 +191,12 @@ describe('DposModuleEndpoint', () => {
 					address: cryptoAddress.getLisk32AddressFromAddress(address),
 					sharingCoefficients: [
 						{
-							tokenID: Buffer.alloc(8).toString('hex'),
-							coefficient: Buffer.alloc(24).toString('hex'),
+							tokenID: token1.toString('hex'),
+							coefficient: delegateCoefficient1.toString('hex'),
+						},
+						{
+							tokenID: token2.toString('hex'),
+							coefficient: delegateCoefficient2.toString('hex'),
 						},
 					],
 				};
@@ -560,6 +591,43 @@ describe('DposModuleEndpoint', () => {
 				}),
 			);
 			expect(resp.reward).toEqual(Number(5000 - 200 - 10 - 30).toString());
+		});
+	});
+
+	describe('getClaimableRewards', () => {
+		// eslint-disable-next-line jest/no-disabled-tests
+		it.skip('should return rewards when voted for 1 delegate which got rewards in 2 tokens', async () => {
+			const amount = BigInt(200);
+			const context = createStoreGetter(stateStore);
+			await delegateSubStore.set(context, address, delegateData);
+			await voterSubStore.set(context, addressVoter, {
+				sentVotes: [
+					{ delegateAddress: address, amount, voteSharingCoefficients: [voterSharingCoefficient1] },
+				],
+				pendingUnlocks: [],
+			});
+
+			const response = await dposEndpoint.getClaimableRewards(
+				createTransientModuleEndpointContext({
+					stateStore,
+					params: {
+						address: cryptoAddress.getLisk32AddressFromAddress(addressVoter),
+					},
+				}),
+			);
+
+			const reward = calculateVoteRewards(
+				voterSharingCoefficient1,
+				amount,
+				delegateSharingCoefficient1,
+			);
+
+			expect(response).toEqual([
+				{
+					tokenID: voterSharingCoefficient1.tokenID.toString(),
+					reward: reward.toString(),
+				},
+			]);
 		});
 	});
 });

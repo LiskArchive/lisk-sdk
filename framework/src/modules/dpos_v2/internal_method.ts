@@ -17,8 +17,7 @@ import { BaseMethod } from '../base_method';
 import { NamedRegistry } from '../named_registry';
 import { MAX_NUMBER_BYTES_Q96 } from './constants';
 import { RewardsAssignedEvent } from './events/rewards_assigned';
-import { VoteObject } from './stores/voter';
-import { DelegateAccount, TokenMethod } from './types';
+import { DelegateAccount, TokenMethod, VoteObject } from './types';
 import { calculateVoteRewards } from './utils';
 
 export class InternalMethod extends BaseMethod {

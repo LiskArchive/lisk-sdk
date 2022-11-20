@@ -279,6 +279,7 @@ export const isSharingCoefficientSorted = (
 	}
 	return true;
 };
+
 export const calculateVoteRewards = (
 	voteSharingCoefficient: VoteSharingCoefficient,
 	amount: bigint,
