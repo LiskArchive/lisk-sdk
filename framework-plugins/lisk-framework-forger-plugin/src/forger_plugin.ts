@@ -271,10 +271,10 @@ export class ForgerPlugin extends BasePlugin {
 		await this._revertVotesReceived(transactions);
 	}
 
-	private _getForgerReceivedVotes(
+	private _getForgerReceivedStakes(
 		transactions: ReadonlyArray<TransactionJSON>,
 	): ForgerReceivedVotes {
-		const forgerReceivedVotes: ForgerReceivedVotes = {};
+		const forgerReceivedStakes: ForgerReceivedVotes = {};
 
 		const posModuleMeta = this.apiClient.metadata.find(c => c.name === MODULE_POS);
 		if (!posModuleMeta) {
@@ -306,17 +306,17 @@ export class ForgerPlugin extends BasePlugin {
 						};
 					}
 					return acc;
-				}, forgerReceivedVotes);
+				}, forgerReceivedStakes);
 			}
 		}
 
-		return forgerReceivedVotes;
+		return forgerReceivedStakes;
 	}
 
 	private async _addVotesReceived(transactions: ReadonlyArray<TransactionJSON>): Promise<void> {
-		const forgerReceivedVotes = this._getForgerReceivedVotes(transactions);
+		const forgerReceivedStakes = this._getForgerReceivedStakes(transactions);
 
-		for (const [validatorAddress, stakeReceived] of Object.entries(forgerReceivedVotes)) {
+		for (const [validatorAddress, stakeReceived] of Object.entries(forgerReceivedStakes)) {
 			const forgerInfo = await getForgerInfo(
 				this._forgerPluginDB,
 				getBinaryAddress(validatorAddress),
@@ -339,9 +339,9 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	private async _revertVotesReceived(transactions: ReadonlyArray<TransactionJSON>): Promise<void> {
-		const forgerReceivedVotes = this._getForgerReceivedVotes(transactions);
+		const forgerReceivedStakes = this._getForgerReceivedStakes(transactions);
 
-		for (const [validatorAddress, stakeReceived] of Object.entries(forgerReceivedVotes)) {
+		for (const [validatorAddress, stakeReceived] of Object.entries(forgerReceivedStakes)) {
 			const forgerInfo = await getForgerInfo(
 				this._forgerPluginDB,
 				getBinaryAddress(validatorAddress),
