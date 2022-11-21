@@ -21,11 +21,11 @@ import {
 	ActiveValidators,
 	CCMsg,
 	ChainAccount,
-	MessageRecoveryVerificationParams,
 	ChannelData,
 	CrossChainUpdateTransactionParams,
 	ChainValidators,
 	InboxUpdate,
+	MessageRecoveryParams,
 } from './types';
 import {
 	EMPTY_BYTES,
@@ -130,43 +130,75 @@ export const sortValidatorsByBLSKey = (validators: ActiveValidators[]) =>
 	validators.sort((a, b) => a.blsKey.compare(b.blsKey));
 
 export const verifyMessageRecovery = (
-	params: MessageRecoveryVerificationParams,
+	params: MessageRecoveryParams,
 	terminatedChainOutboxAccount?: TerminatedOutboxAccount,
 ) => {
 	if (!terminatedChainOutboxAccount) {
 		return {
 			status: VerifyStatus.FAIL,
-			error: new Error('Terminated outbox account does not exist'),
+			error: new Error('Terminated outbox account does not exist.'),
 		};
 	}
 
 	const { idxs, crossChainMessages, siblingHashes } = params;
+
+	// Check that the idxs are sorted in ascending order
+	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#sort_returns_the_reference_to_the_same_array
+	// CAUTION! `sort` modifies original array
+	const sortedIdxs = [...idxs].sort((a, b) => a - b);
+	const isSame =
+		params.idxs.length === sortedIdxs.length &&
+		params.idxs.every((element, index) => element === sortedIdxs[index]);
+	if (!isSame) {
+		return {
+			status: VerifyStatus.FAIL,
+			error: new Error('Cross-chain message indexes are not sorted in ascending order.'),
+		};
+	}
+
+	// Check that the CCMs are still pending.
 	for (const index of idxs) {
 		if (index < terminatedChainOutboxAccount.partnerChainInboxSize) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Cross chain messages are still pending'),
+				error: new Error('Cross-chain message is not pending.'),
 			};
 		}
 	}
 
+	// Process basic checks for all CCMs.
+	// Verify general format. Past this point, we can access ccm root properties.
 	const deserializedCCMs = crossChainMessages.map(serializedCcm =>
 		codec.decode<CCMsg>(ccmSchema, serializedCcm),
 	);
+
 	for (const ccm of deserializedCCMs) {
+		validateFormat(ccm);
+
 		if (ccm.status !== CCMStatusCode.OK) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Cross chain message that needs to be recovered is not valid'),
+				error: new Error('Cross-chain message status is not valid.'),
+			};
+		}
+
+		// The receiving chain must be the terminated chain.
+		if (!ccm.receivingChainID.equals(params.chainID)) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Cross-chain message receiving chain ID is not valid.'),
 			};
 		}
 	}
 
+	// Check the inclusion proof against the sidechain outbox root.
 	const proof = {
 		size: terminatedChainOutboxAccount.outboxSize,
 		idxs,
 		siblingHashes,
 	};
+
+	// Convert each CCM byte to sha256 hash
 	const hashedCCMs = crossChainMessages.map(ccm => utils.hash(ccm));
 	const isVerified = regularMerkleTree.verifyDataBlock(
 		hashedCCMs,
@@ -176,7 +208,7 @@ export const verifyMessageRecovery = (
 	if (!isVerified) {
 		return {
 			status: VerifyStatus.FAIL,
-			error: new Error('The sidechain outbox root is not valid'),
+			error: new Error('Message recovery proof of inclusion is not valid.'),
 		};
 	}
 
@@ -184,6 +216,7 @@ export const verifyMessageRecovery = (
 		status: VerifyStatus.OK,
 	};
 };
+
 export const swapReceivingAndSendingChainIDs = (ccm: CCMsg) => ({
 	...ccm,
 	receivingChainID: ccm.sendingChainID,

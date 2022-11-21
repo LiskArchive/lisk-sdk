@@ -292,6 +292,8 @@ export const messageRecoveryParamsSchema = {
 	properties: {
 		chainID: {
 			dataType: 'bytes',
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 			fieldNumber: 1,
 		},
 		crossChainMessages: {
@@ -313,6 +315,8 @@ export const messageRecoveryParamsSchema = {
 			type: 'array',
 			items: {
 				dataType: 'bytes',
+				minLength: HASH_LENGTH,
+				maxLength: HASH_LENGTH,
 			},
 			fieldNumber: 4,
 		},
