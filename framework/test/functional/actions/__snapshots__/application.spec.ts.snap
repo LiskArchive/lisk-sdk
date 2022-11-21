@@ -9,10 +9,10 @@ Object {
         "dataType": "bytes",
         "fieldNumber": 1,
       },
-      "dpos": Object {
+      "pos": Object {
         "fieldNumber": 5,
         "properties": Object {
-          "delegate": Object {
+          "validator": Object {
             "fieldNumber": 1,
             "properties": Object {
               "consecutiveMissedBlocks": Object {
@@ -34,7 +34,7 @@ Object {
                 },
                 "type": "array",
               },
-              "totalVotesReceived": Object {
+              "totalStakeReceived": Object {
                 "dataType": "uint64",
                 "fieldNumber": 6,
               },
@@ -49,11 +49,11 @@ Object {
               "consecutiveMissedBlocks",
               "lastForgedHeight",
               "isBanned",
-              "totalVotesReceived",
+              "totalStakeReceived",
             ],
             "type": "object",
           },
-          "sentVotes": Object {
+          "sentStakes": Object {
             "fieldNumber": 2,
             "items": Object {
               "properties": Object {
@@ -61,13 +61,13 @@ Object {
                   "dataType": "uint64",
                   "fieldNumber": 2,
                 },
-                "delegateAddress": Object {
+                "validatorAddress": Object {
                   "dataType": "bytes",
                   "fieldNumber": 1,
                 },
               },
               "required": Array [
-                "delegateAddress",
+                "validatorAddress",
                 "amount",
               ],
               "type": "object",
@@ -82,19 +82,19 @@ Object {
                   "dataType": "uint64",
                   "fieldNumber": 2,
                 },
-                "delegateAddress": Object {
+                "validatorAddress": Object {
                   "dataType": "bytes",
                   "fieldNumber": 1,
                 },
-                "unvoteHeight": Object {
+                "unstakeHeight": Object {
                   "dataType": "uint32",
                   "fieldNumber": 3,
                 },
               },
               "required": Array [
-                "delegateAddress",
+                "validatorAddress",
                 "amount",
-                "unvoteHeight",
+                "unstakeHeight",
               ],
               "type": "object",
             },
@@ -153,7 +153,7 @@ Object {
       "token",
       "sequence",
       "keys",
-      "dpos",
+      "pos",
     ],
     "type": "object",
   },
@@ -243,10 +243,10 @@ Object {
                 "dataType": "bytes",
                 "fieldNumber": 1,
               },
-              "dpos": Object {
+              "pos": Object {
                 "fieldNumber": 5,
                 "properties": Object {
-                  "delegate": Object {
+                  "validator": Object {
                     "fieldNumber": 1,
                     "properties": Object {
                       "consecutiveMissedBlocks": Object {
@@ -268,7 +268,7 @@ Object {
                         },
                         "type": "array",
                       },
-                      "totalVotesReceived": Object {
+                      "totalStakeReceived": Object {
                         "dataType": "uint64",
                         "fieldNumber": 6,
                       },
@@ -283,11 +283,11 @@ Object {
                       "consecutiveMissedBlocks",
                       "lastForgedHeight",
                       "isBanned",
-                      "totalVotesReceived",
+                      "totalStakeReceived",
                     ],
                     "type": "object",
                   },
-                  "sentVotes": Object {
+                  "sentStakes": Object {
                     "fieldNumber": 2,
                     "items": Object {
                       "properties": Object {
@@ -295,13 +295,13 @@ Object {
                           "dataType": "uint64",
                           "fieldNumber": 2,
                         },
-                        "delegateAddress": Object {
+                        "validatorAddress": Object {
                           "dataType": "bytes",
                           "fieldNumber": 1,
                         },
                       },
                       "required": Array [
-                        "delegateAddress",
+                        "validatorAddress",
                         "amount",
                       ],
                       "type": "object",
@@ -316,19 +316,19 @@ Object {
                           "dataType": "uint64",
                           "fieldNumber": 2,
                         },
-                        "delegateAddress": Object {
+                        "validatorAddress": Object {
                           "dataType": "bytes",
                           "fieldNumber": 1,
                         },
-                        "unvoteHeight": Object {
+                        "unstakeHeight": Object {
                           "dataType": "uint32",
                           "fieldNumber": 3,
                         },
                       },
                       "required": Array [
-                        "delegateAddress",
+                        "validatorAddress",
                         "amount",
-                        "unvoteHeight",
+                        "unstakeHeight",
                       ],
                       "type": "object",
                     },
@@ -387,13 +387,13 @@ Object {
               "token",
               "sequence",
               "keys",
-              "dpos",
+              "pos",
             ],
             "type": "object",
           },
           "type": "array",
         },
-        "initDelegates": Object {
+        "initValidators": Object {
           "fieldNumber": 2,
           "items": Object {
             "dataType": "bytes",
@@ -409,7 +409,7 @@ Object {
       },
       "required": Array [
         "accounts",
-        "initDelegates",
+        "initValidators",
         "initRounds",
       ],
       "type": "object",
@@ -566,11 +566,11 @@ Object {
     },
     Object {
       "assetID": 0,
-      "assetName": "registerDelegate",
+      "assetName": "registerValidator",
       "moduleID": 5,
-      "moduleName": "dpos",
+      "moduleName": "pos",
       "schema": Object {
-        "$id": "lisk/dpos/register",
+        "$id": "lisk/pos/register",
         "properties": Object {
           "username": Object {
             "dataType": "string",
@@ -587,13 +587,13 @@ Object {
     },
     Object {
       "assetID": 1,
-      "assetName": "voteDelegate",
+      "assetName": "stake",
       "moduleID": 5,
-      "moduleName": "dpos",
+      "moduleName": "pos",
       "schema": Object {
-        "$id": "lisk/dpos/vote",
+        "$id": "lisk/pos/stake",
         "properties": Object {
-          "votes": Object {
+          "stakes": Object {
             "fieldNumber": 1,
             "items": Object {
               "properties": Object {
@@ -601,7 +601,7 @@ Object {
                   "dataType": "sint64",
                   "fieldNumber": 2,
                 },
-                "delegateAddress": Object {
+                "validatorAddress": Object {
                   "dataType": "bytes",
                   "fieldNumber": 1,
                   "maxLength": 20,
@@ -609,7 +609,7 @@ Object {
                 },
               },
               "required": Array [
-                "delegateAddress",
+                "validatorAddress",
                 "amount",
               ],
               "type": "object",
@@ -620,7 +620,7 @@ Object {
           },
         },
         "required": Array [
-          "votes",
+          "stakes",
         ],
         "type": "object",
       },
@@ -629,9 +629,9 @@ Object {
       "assetID": 2,
       "assetName": "unlockToken",
       "moduleID": 5,
-      "moduleName": "dpos",
+      "moduleName": "pos",
       "schema": Object {
-        "$id": "lisk/dpos/unlock",
+        "$id": "lisk/pos/unlock",
         "properties": Object {
           "unlockObjects": Object {
             "fieldNumber": 1,
@@ -641,21 +641,21 @@ Object {
                   "dataType": "uint64",
                   "fieldNumber": 2,
                 },
-                "delegateAddress": Object {
+                "validatorAddress": Object {
                   "dataType": "bytes",
                   "fieldNumber": 1,
                   "maxLength": 20,
                   "minLength": 20,
                 },
-                "unvoteHeight": Object {
+                "unstakeHeight": Object {
                   "dataType": "uint32",
                   "fieldNumber": 3,
                 },
               },
               "required": Array [
-                "delegateAddress",
+                "validatorAddress",
                 "amount",
-                "unvoteHeight",
+                "unstakeHeight",
               ],
               "type": "object",
             },
@@ -674,9 +674,9 @@ Object {
       "assetID": 3,
       "assetName": "reportDelegateMisbehavior",
       "moduleID": 5,
-      "moduleName": "dpos",
+      "moduleName": "pos",
       "schema": Object {
-        "$id": "lisk/dpos/pom",
+        "$id": "lisk/pos/pom",
         "properties": Object {
           "header1": Object {
             "$id": "block-header1",

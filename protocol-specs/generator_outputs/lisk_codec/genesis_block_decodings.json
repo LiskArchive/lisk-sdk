@@ -14,7 +14,7 @@
 				"schema": {
 					"$id": "genesisBlockAssetSchema",
 					"type": "object",
-					"required": ["accounts", "initDelegates", "initRounds"],
+					"required": ["accounts", "initValidators", "initRounds"],
 					"properties": {
 						"accounts": {
 							"type": "array",
@@ -66,7 +66,7 @@
 										"fieldNumber": 6,
 										"type": "object",
 										"properties": {
-											"delegate": {
+											"validator": {
 												"type": "object",
 												"fieldNumber": 1,
 												"properties": {
@@ -93,7 +93,7 @@
 														"dataType": "boolean",
 														"fieldNumber": 5
 													},
-													"totalVotesReceived": {
+													"totalStakeReceived": {
 														"dataType": "uint64",
 														"fieldNumber": 6
 													}
@@ -104,16 +104,16 @@
 													"consecutiveMissedBlocks",
 													"lastForgedHeight",
 													"isBanned",
-													"totalVotesReceived"
+													"totalStakeReceived"
 												]
 											},
-											"sentVotes": {
+											"sentStakes": {
 												"type": "array",
 												"fieldNumber": 2,
 												"items": {
 													"type": "object",
 													"properties": {
-														"delegateAddress": {
+														"validatorAddress": {
 															"dataType": "bytes",
 															"fieldNumber": 1
 														},
@@ -122,7 +122,7 @@
 															"fieldNumber": 2
 														}
 													},
-													"required": ["delegateAddress", "amount"]
+													"required": ["validatorAddress", "amount"]
 												}
 											},
 											"unlocking": {
@@ -131,7 +131,7 @@
 												"items": {
 													"type": "object",
 													"properties": {
-														"delegateAddress": {
+														"validatorAddress": {
 															"dataType": "bytes",
 															"fieldNumber": 1
 														},
@@ -139,12 +139,12 @@
 															"dataType": "uint64",
 															"fieldNumber": 2
 														},
-														"unvoteHeight": {
+														"unstakeHeight": {
 															"dataType": "uint32",
 															"fieldNumber": 3
 														}
 													},
-													"required": ["delegateAddress", "amount", "unvoteHeight"]
+													"required": ["validatorAddress", "amount", "unstakeHeight"]
 												}
 											}
 										}
@@ -154,7 +154,7 @@
 							},
 							"fieldNumber": 1
 						},
-						"initDelegates": {
+						"initValidators": {
 							"type": "array",
 							"items": {
 								"dataType": "bytes"
@@ -171,7 +171,7 @@
 			},
 			"output": {
 				"object": {
-					"initDelegates": [
+					"initValidators": [
 						"03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f",
 						"0903f4c5cb599a7928aef27e314e98291d1e3888",
 						"0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf"
@@ -189,17 +189,17 @@
 								"numberOfSignatures": 0
 							},
 							"asset": {
-								"delegate": {
+								"validator": {
 									"username": "genesis_34",
 									"pomHeights": [],
 									"consecutiveMissedBlocks": 0,
 									"lastForgedHeight": 0,
 									"isBanned": false,
-									"totalVotesReceived": "1000000000000"
+									"totalStakeReceived": "1000000000000"
 								},
-								"sentVotes": [
+								"sentStakes": [
 									{
-										"delegateAddress": "03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f",
+										"validatorAddress": "03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f",
 										"amount": "1000000000000"
 									}
 								],
@@ -217,15 +217,15 @@
 								"numberOfSignatures": 0
 							},
 							"asset": {
-								"delegate": {
+								"validator": {
 									"username": "genesis_74",
 									"pomHeights": [],
 									"consecutiveMissedBlocks": 0,
 									"lastForgedHeight": 0,
 									"isBanned": false,
-									"totalVotesReceived": "1000000000000"
+									"totalStakeReceived": "1000000000000"
 								},
-								"sentVotes": [],
+								"sentStakes": [],
 								"unlocking": []
 							}
 						},
@@ -240,17 +240,17 @@
 								"numberOfSignatures": 0
 							},
 							"asset": {
-								"delegate": {
+								"validator": {
 									"username": "genesis_98",
 									"pomHeights": [],
 									"consecutiveMissedBlocks": 0,
 									"lastForgedHeight": 0,
 									"isBanned": false,
-									"totalVotesReceived": "1000000000000"
+									"totalStakeReceived": "1000000000000"
 								},
-								"sentVotes": [
+								"sentStakes": [
 									{
-										"delegateAddress": "0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf",
+										"validatorAddress": "0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf",
 										"amount": "1000000000000"
 									}
 								],

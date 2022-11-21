@@ -16,7 +16,7 @@
 import { BaseForgingCommand } from '../base_forging';
 
 export abstract class EnableCommand extends BaseForgingCommand {
-	static description = 'Enable forging for given delegate address.';
+	static description = 'Enable forging for given validator address.';
 
 	static examples = [
 		'generator:enable lsk24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu 100 100 10',
@@ -39,12 +39,12 @@ export abstract class EnableCommand extends BaseForgingCommand {
 		{
 			name: 'maxHeightGenerated',
 			required: true,
-			description: 'Delegates largest previously forged height.',
+			description: 'Validators largest previously forged height.',
 		},
 		{
 			name: 'maxHeightPrevoted',
 			required: true,
-			description: 'Delegates largest prevoted height for a block.',
+			description: 'Validators largest prevoted height for a block.',
 		},
 	];
 

@@ -61,7 +61,7 @@ describe('Transaction order', () => {
 		processEnv.cleanup({ databasePath });
 	});
 
-	describe('when report misbehavior transaction is submitted against the delegate', () => {
+	describe('when report misbehavior transaction is submitted against the validator', () => {
 		it('should accept the block with transaction', async () => {
 			// get last block
 			const { header } = processEnv.getLastBlock();
@@ -91,7 +91,7 @@ describe('Transaction order', () => {
 
 			await processEnv.process(nextBlock);
 			const updatedDelegate = await processEnv.invoke<{ pomHeights: number[] }>(
-				'dpos_getDelegate',
+				'pos_getValidator',
 				{
 					address: blockGenerator.address,
 				},

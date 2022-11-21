@@ -62,20 +62,20 @@ export const forgerSyncSchema = {
 	},
 };
 
-export const dposVoteParamsSchema = {
-	$id: '/forger/dpos/vote',
+export const posVoteParamsSchema = {
+	$id: '/forger/pos/stake',
 	type: 'object',
-	required: ['votes'],
+	required: ['stakes'],
 	properties: {
-		votes: {
+		stakes: {
 			type: 'array',
 			minItems: 1,
 			maxItems: 20,
 			items: {
 				type: 'object',
-				required: ['delegateAddress', 'amount'],
+				required: ['validatorAddress', 'amount'],
 				properties: {
-					delegateAddress: {
+					validatorAddress: {
 						dataType: 'bytes',
 						fieldNumber: 1,
 						minLength: 20,

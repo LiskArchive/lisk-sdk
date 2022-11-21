@@ -21,7 +21,7 @@ import {
 	INVALID_BLS_KEY,
 	KeyRegResult,
 } from '../../../../src/modules/validators/constants';
-import * as generatorList from '../../../fixtures/config/devnet/delegates_for_first_round.json';
+import * as generatorList from '../../../fixtures/config/devnet/validators_for_first_round.json';
 import {
 	MethodContext,
 	createNewMethodContext,

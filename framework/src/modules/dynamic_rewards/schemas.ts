@@ -18,10 +18,10 @@ export const configSchema = {
 	type: 'object',
 	properties: {
 		...rewardConfigSchema.properties,
-		factorMinimumRewardActiveDelegates: {
+		factorMinimumRewardActiveValidators: {
 			type: 'integer',
 			minimum: 1,
 		},
 	},
-	required: [...rewardConfigSchema.required, 'factorMinimumRewardActiveDelegates'],
+	required: [...rewardConfigSchema.required, 'factorMinimumRewardActiveValidators'],
 };

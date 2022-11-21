@@ -34,10 +34,10 @@ export interface ForgetSyncInfo {
 }
 
 export interface DPoSAccountJSON {
-	dpos: {
-		delegate: {
+	pos: {
+		validator: {
 			username: string;
-			totalVotesReceived: string;
+			totalStakeReceived: string;
 			consecutiveMissedBlocks: number;
 		};
 	};

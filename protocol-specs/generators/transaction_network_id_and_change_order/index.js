@@ -89,8 +89,8 @@ const balanceTransferAsset = {
 	required: ['amount', 'recipientAddress', 'data'],
 };
 
-const delegateRegAsset = {
-	$id: 'delegateRegAsset',
+const validatorRegAsset = {
+	$id: 'validatorRegAsset',
 	type: 'object',
 	properties: { username: { dataType: 'string', fieldNumber: 1 } },
 	required: ['username'],
@@ -157,11 +157,11 @@ const generateValidDelegateTransaction = () => {
 		nonce: BigInt('2'),
 		fee: BigInt('100000000'),
 		asset: {
-			username: 'new_delegate',
+			username: 'new_validator',
 		},
 	};
 
-	const assetBytes = codec.encode(delegateRegAsset, tx.asset);
+	const assetBytes = codec.encode(validatorRegAsset, tx.asset);
 	const signingTx = {
 		...tx,
 		asset: assetBytes,
@@ -183,7 +183,7 @@ const generateValidDelegateTransaction = () => {
 	});
 
 	return {
-		description: 'A valid delegate transaction',
+		description: 'A valid validator transaction',
 		input: {
 			account: {
 				...accounts[0],
@@ -210,11 +210,11 @@ const validTransferSuite = () => ({
 });
 
 const validDelegateSuite = () => ({
-	title: 'Valid delegate transaction',
-	summary: 'A valid delegate transaction',
+	title: 'Valid validator transaction',
+	summary: 'A valid validator transaction',
 	config: { network: 'devnet' },
 	runner: 'transaction_network_id_and_change_order',
-	handler: 'delegate_transaction_validate',
+	handler: 'validator_transaction_validate',
 	testCases: [generateValidDelegateTransaction()],
 });
 

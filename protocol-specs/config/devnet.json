@@ -1048,7 +1048,7 @@
 				"timestamp": 0,
 				"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 				"asset": {
-					"votes": [
+					"stakes": [
 						"+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f",
 						"+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a",
 						"+3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135",
@@ -1163,7 +1163,7 @@
 		"id": "6524861224470851795"
 	},
 	"forging": {
-		"delegates": [
+		"validators": [
 			{
 				"encryptedPassphrase": "iterations=1&salt=476d4299531718af8c88156aab0bb7d6&cipherText=663dde611776d87029ec188dc616d96d813ecabcef62ed0ad05ffe30528f5462c8d499db943ba2ded55c3b7c506815d8db1c2d4c35121e1d27e740dc41f6c405ce8ab8e3120b23f546d8b35823a30639&iv=1a83940b72adc57ec060a648&tag=b5b1e6c6e225c428a4473735bc8f1fc9&version=1",
 				"publicKey": "9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f"

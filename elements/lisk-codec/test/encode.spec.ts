@@ -162,7 +162,7 @@ describe('encode', () => {
 		it.each(buildTestCases(genesisBlockTestCases))('%s', ({ input, output }) => {
 			const object = {
 				...input.object,
-				initDelegates: input.object.initDelegates.map(d => Buffer.from(d, 'hex')),
+				initValidators: input.object.initValidators.map(d => Buffer.from(d, 'hex')),
 				accounts: input.object.accounts.map(a => getAccountFromJSON(a)),
 			};
 
@@ -301,15 +301,15 @@ describe('encode', () => {
 			expect(result.toString('hex')).toEqual(testCase.output.value);
 		});
 
-		// vote asset
+		// stake asset
 		it(transactionTestCases[1].description, () => {
 			const testCase = transactionTestCases[1];
 			const input = testCase.input as any;
 
 			const object = {
 				...input.object,
-				votes: input.object.votes.map((v: any) => ({
-					delegateAddress: Buffer.from(v.delegateAddress, 'hex'),
+				stakes: input.object.stakes.map((v: any) => ({
+					validatorAddress: Buffer.from(v.validatorAddress, 'hex'),
 					amount: BigInt(v.amount),
 				})),
 			};

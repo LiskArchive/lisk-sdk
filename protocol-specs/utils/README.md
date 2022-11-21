@@ -9,8 +9,8 @@ It's a library that abstracts transaction and block generation by usage of a flu
 Available methods:
 
 - `transfer()`: creates a transfer transaction to be included in a block
-- `registerDelegate()`: creates a delegate registration
-- `castVotesFrom()`: creates vote transactions
+- `registerValidator()`: creates a validator registration
+- `castVotesFrom()`: creates stake transactions
 - `registerMultisignature()`: creates multi signature registration transaction
 - `signTransaction()`: sign a transaction from a multisignature account (needs to be called immediately after creating the transaction)
 - `forge()`: creates a block including all the previously created transactions and it will update account balances and states based on the included transactions.
@@ -29,7 +29,7 @@ chainStateBuilder.transfer('50').from('16313739661670634666L').to('1088116737140
 Register Delegate:
 
 ```javascript
-chainStateBuilder.registerDelegate('ADelegateName').for('2222471382442610527L').forge();
+chainStateBuilder.registerValidator('ADelegateName').for('2222471382442610527L').forge();
 ```
 
 Cast Votes
@@ -37,11 +37,11 @@ Cast Votes
 ```javascript
 chainStateBuilder
 	.castVotesFrom('2222471382442610527L')
-	.voteDelegates([
+	.stakes([
 		'eeeb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'aaab0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 	])
-	.unvoteDelegates([
+	.unstakes([
 		'ooob0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9'
 		'uuub0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 	]);

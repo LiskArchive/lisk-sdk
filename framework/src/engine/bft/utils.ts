@@ -41,7 +41,7 @@ export const areDistinctHeadersContradicting = (b1: BFTHeader, b2: BFTHeader): b
 	) {
 		[earlierBlock, laterBlock] = [laterBlock, earlierBlock];
 	}
-	// Blocks by different delegates are never contradicting
+	// Blocks by different validators are never contradicting
 	if (!earlierBlock.generatorAddress.equals(laterBlock.generatorAddress)) {
 		return false;
 	}
@@ -71,7 +71,7 @@ export const getBlockBFTProperties = (header: BlockHeader): BFTVotesBlockInfo =>
 	maxHeightGenerated: header.maxHeightGenerated,
 	maxHeightPrevoted: header.maxHeightPrevoted,
 	precommitWeight: BigInt(0),
-	prevoteWeight: BigInt(0),
+	prevalidatorWeight: BigInt(0),
 });
 
 export const sortValidatorsByAddress = (validators: { address: Buffer }[]) =>

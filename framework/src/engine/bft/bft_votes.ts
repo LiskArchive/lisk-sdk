@@ -66,7 +66,7 @@ export const updatePrevotesPrecommits = async (
 		v.address.equals(newBlockBFTInfo.generatorAddress),
 	);
 	if (!validatorInfo) {
-		// the validator does not exist, meaning it does not have bft vote weight
+		// the validator does not exist, meaning it does not have bft stake weight
 		return;
 	}
 	const heightNotPrevoted = getHeightNotPrevoted(bftVotes);
@@ -83,7 +83,7 @@ export const updatePrevotesPrecommits = async (
 			break;
 		}
 		const params = await paramsCache.getParameters(blockBFTInfo.height);
-		if (blockBFTInfo.prevoteWeight >= params.prevoteThreshold) {
+		if (blockBFTInfo.prevalidatorWeight >= params.prevoteThreshold) {
 			const bftValidator = params.validators.find(v =>
 				v.address.equals(newBlockBFTInfo.generatorAddress),
 			);
@@ -129,7 +129,7 @@ export const updatePrevotesPrecommits = async (
 				)} must be in the BFT parameters at height ${newBlockBFTInfo.height}`,
 			);
 		}
-		blockBFTInfo.prevoteWeight += bftValidator.bftWeight;
+		blockBFTInfo.prevalidatorWeight += bftValidator.bftWeight;
 	}
 };
 
@@ -139,7 +139,7 @@ export const updateMaxHeightPrevoted = async (
 ): Promise<void> => {
 	for (const blockBFTInfo of bftVotes.blockBFTInfos) {
 		const params = await paramsCache.getParameters(blockBFTInfo.height);
-		if (blockBFTInfo.prevoteWeight >= params.prevoteThreshold) {
+		if (blockBFTInfo.prevalidatorWeight >= params.prevoteThreshold) {
 			// eslint-disable-next-line no-param-reassign
 			bftVotes.maxHeightPrevoted = blockBFTInfo.height;
 			return;

@@ -17,7 +17,7 @@ import { waitTill } from '../utils/application';
 import { createVoteTransaction } from '../utils/transactions';
 import { ForgerPlugin } from '../../src';
 
-describe('forger:getVoters action', () => {
+describe('forger:getStakers action', () => {
 	let appEnv: testing.ApplicationEnv;
 	let accountNonce = 0;
 	let chainID: Buffer;
@@ -26,7 +26,7 @@ describe('forger:getVoters action', () => {
 		const rootPath = '~/.lisk/forger-plugin';
 		const config = {
 			rootPath,
-			label: 'voters_functional',
+			label: 'stakers_functional',
 		} as PartialApplicationConfig;
 
 		appEnv = testing.createDefaultApplicationEnv({
@@ -44,28 +44,28 @@ describe('forger:getVoters action', () => {
 		await appEnv.stopApplication();
 	});
 
-	describe('action forger:getVoters', () => {
+	describe('action forger:getStakers', () => {
 		it('should return valid format', async () => {
 			// Arrange & Act
-			const voters = await appEnv.ipcClient.invoke('forger:getVoters');
+			const stakers = await appEnv.ipcClient.invoke('forger:getStakers');
 
 			// Assert
-			expect(voters).toMatchSnapshot();
-			expect(voters).toBeInstanceOf(Array);
-			expect(voters).toHaveLength(103);
-			expect(voters[0]).toMatchObject(
+			expect(stakers).toMatchSnapshot();
+			expect(stakers).toBeInstanceOf(Array);
+			expect(stakers).toHaveLength(103);
+			expect(stakers[0]).toMatchObject(
 				expect.objectContaining({
 					address: expect.any(String),
 					username: expect.any(String),
-					totalVotesReceived: expect.any(String),
-					voters: expect.any(Array),
+					totalStakeReceived: expect.any(String),
+					stakers: expect.any(Array),
 				}),
 			);
 		});
 
-		it('should return valid voters', async () => {
+		it('should return valid stakers', async () => {
 			// Arrange
-			const initialVoters = await appEnv.ipcClient.invoke('forger:getVoters');
+			const initialVoters = await appEnv.ipcClient.invoke('forger:getStakers');
 			const forgingDelegateAddress = (initialVoters[0] as any).address;
 			const transaction = createVoteTransaction({
 				amount: '10',
@@ -84,13 +84,13 @@ describe('forger:getVoters action', () => {
 			await waitTill(2000);
 
 			// Act
-			const voters = await appEnv.ipcClient.invoke('forger:getVoters');
-			const forgerInfo = (voters as any).find(
+			const stakers = await appEnv.ipcClient.invoke('forger:getStakers');
+			const forgerInfo = (stakers as any).find(
 				(forger: any) => forger.address === forgingDelegateAddress,
 			);
 
 			// Assert
-			expect(forgerInfo.voters[0]).toMatchObject(
+			expect(forgerInfo.stakers[0]).toMatchObject(
 				expect.objectContaining({
 					address: transaction.senderAddress.toString('hex'),
 					amount: '1000000000',

@@ -113,7 +113,7 @@ describe('method client ipc mode', () => {
 			const actions = await await client.invoke('app_getRegisteredActions');
 			expect(actions).toBeArray();
 			expect(actions).toContain('app_getConnectedPeers');
-			expect(actions).toContain('dpos_getAllDelegates');
+			expect(actions).toContain('pos_getAllValidators');
 			expect(actions).toContain('hello_callGreet');
 		});
 	});
@@ -138,17 +138,17 @@ describe('method client ipc mode', () => {
 	});
 
 	describe('module actions', () => {
-		it('should return all the delegates', async () => {
+		it('should return all the validators', async () => {
 			// Act
-			const delegates = await client.invoke('dpos_getAllDelegates');
+			const validators = await client.invoke('pos_getAllValidators');
 			// Assert
-			expect(delegates).toHaveLength(103);
+			expect(validators).toHaveLength(103);
 		});
 
 		it('should throw an error on invalid action', async () => {
 			// Assert
-			await expect(client.invoke('token_getAllDelegates')).rejects.toThrow(
-				"Action 'token_getAllDelegates' is not registered to bus",
+			await expect(client.invoke('token_getAllValidators')).rejects.toThrow(
+				"Action 'token_getAllValidators' is not registered to bus",
 			);
 		});
 	});

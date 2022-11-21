@@ -110,9 +110,9 @@ const { app } = Application.defaultApplication(genesisBlockDevnet, {
       blockTime: 5,
       maxTransactionsSize: 100 * 1024,
       minRemainingBalance: "5000000",
-	  activeDelegates: 101,
-	  standbyDelegates: 2,
-	  delegateListRoundOffset: 2
+	  activeValidators: 101,
+	  standbyValidators: 2,
+	  validatorListRoundOffset: 2
     },
     ...
 });

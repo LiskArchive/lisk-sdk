@@ -16,8 +16,8 @@ test/**/setup.js
 test/integration
 test/functional
 # Temporally disable linting for modules
-src/modules/dpos
-test/unit/modules/dpos
+src/modules/pos
+test/unit/modules/pos
 src/modules/keys
 test/unit/modules/keys
 src/modules/sequence

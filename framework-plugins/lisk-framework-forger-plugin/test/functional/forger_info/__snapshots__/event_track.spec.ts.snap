@@ -9,7 +9,7 @@ Object {
 }
 `;
 
-exports[`Forger Info New Block Vote transactions should save forger info with votes received in new block 1`] = `
+exports[`Forger Info New Block Vote transactions should save forger info with stakes received in new block 1`] = `
 Object {
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,
@@ -47,7 +47,7 @@ Object {
 }
 `;
 
-exports[`Forger Info New Block Vote transactions should update forger info with multiple votes received for same delegate in new block 1`] = `
+exports[`Forger Info New Block Vote transactions should update forger info with multiple stakes received for same validator in new block 1`] = `
 Object {
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,
@@ -85,7 +85,7 @@ Object {
 }
 `;
 
-exports[`Forger Info New Block Vote transactions should update forger info with upvote and downvote for same delegate in new block 1`] = `
+exports[`Forger Info New Block Vote transactions should update forger info with upvote and downvote for same validator in new block 1`] = `
 Object {
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,
@@ -123,7 +123,7 @@ Object {
 }
 `;
 
-exports[`Forger Info New Block Vote transactions should update forger info with voters info and remove when amount becomes zero 1`] = `
+exports[`Forger Info New Block Vote transactions should update forger info with stakers info and remove when amount becomes zero 1`] = `
 Object {
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,
@@ -132,7 +132,7 @@ Object {
 }
 `;
 
-exports[`Forger Info New Block Vote transactions should update forger info with voters info and remove when amount becomes zero 2`] = `
+exports[`Forger Info New Block Vote transactions should update forger info with stakers info and remove when amount becomes zero 2`] = `
 Object {
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,

@@ -114,7 +114,7 @@ export const metadata: ModuleMetadata[] = [
 	},
 	{
 		id: utils.intToBuffer(5, 4).toString('hex'),
-		name: 'dpos',
+		name: 'pos',
 		events: [],
 		assets: [],
 		endpoints: [],
@@ -123,7 +123,7 @@ export const metadata: ModuleMetadata[] = [
 				id: utils.intToBuffer(0, 4).toString('hex'),
 				name: 'transfer',
 				params: {
-					$id: '/lisk/dpos/pom',
+					$id: '/lisk/pos/pom',
 					type: 'object',
 					required: ['header1', 'header2'],
 					properties: {

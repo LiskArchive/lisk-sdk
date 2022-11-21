@@ -109,17 +109,17 @@ describe('fee', () => {
 			expect(minFee.toString()).toEqual(BigInt(txBytes.length * 1000).toString());
 		});
 
-		it('should calculate minimum fee for delegate registration transaction', () => {
+		it('should calculate minimum fee for validator registration transaction', () => {
 			// Arrange
-			const delegateRegisterTransaction = {
+			const validatorRegisterTransaction = {
 				...validTransaction,
 				module: utils.intToBuffer(5, 4),
 				command: 'transfer',
-				params: { username: 'delegate1' },
+				params: { username: 'validator1' },
 			};
 			const options = { minFeePerByte: 1000, numberOfSignatures: 1 };
-			const delegateRegisterParamsSchema = {
-				$id: '/lisk/dpos/register',
+			const validatorRegisterParamsSchema = {
+				$id: '/lisk/pos/register',
 				type: 'object',
 				required: ['username'],
 				properties: {
@@ -132,8 +132,8 @@ describe('fee', () => {
 				},
 			};
 			const minFee = computeMinFee(
-				delegateRegisterTransaction,
-				delegateRegisterParamsSchema,
+				validatorRegisterTransaction,
+				validatorRegisterParamsSchema,
 				options,
 			);
 

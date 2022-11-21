@@ -72,7 +72,7 @@ export const getForgerInfo = async (db: KVStore, forgerAddress: string): Promise
 			Buffer.concat([DB_KEY_FORGER_INFO, Buffer.from(`:${forgerAddress}`, 'utf8')]),
 		);
 	} catch (error) {
-		debug(`Forger info does not exists for delegate: ${forgerAddress}`);
+		debug(`Forger info does not exists for validator: ${forgerAddress}`);
 		return {
 			totalProducedBlocks: 0,
 			totalReceivedFees: BigInt(0),

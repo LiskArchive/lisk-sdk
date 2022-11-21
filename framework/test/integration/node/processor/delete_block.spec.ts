@@ -222,9 +222,9 @@ describe('Delete block', () => {
 					nonce: BigInt(1),
 					chainID,
 					privateKey: recipientAccount.privateKey,
-					votes: [
+					stakes: [
 						{
-							delegateAddress: recipientAccount.address,
+							validatorAddress: recipientAccount.address,
 							amount: BigInt('100000000000'),
 						},
 					],
@@ -245,7 +245,7 @@ describe('Delete block', () => {
 
 				const newBlock = await processEnv.createBlock([]);
 				await processEnv.process(newBlock);
-				// TODO: #7666 after vote command changes the eligible delegate, it should enable
+				// TODO: #7666 after stake command changes the eligible validator, it should enable
 				// const validatorsAfter = await processEnv
 				// 	.getConsensus()
 				// 	['_bft'].method.getBFTParameters(

@@ -18,8 +18,8 @@ import * as os from 'os';
 import { apiClient } from 'lisk-sdk';
 import * as debug from 'debug';
 import { specs as tokenSpecs } from './scenarios/modules/token';
-import * as passphrase from '../../examples/dpos-mainchain/config/default/passphrase.json';
-import * as validators from '../../examples/dpos-mainchain/config/default/dev-validators.json';
+import * as passphrase from '../../examples/pos-mainchain/config/default/passphrase.json';
+import * as validators from '../../examples/pos-mainchain/config/default/dev-validators.json';
 import { block } from './utils';
 
 // dataPath is defined globally to be able to access from all the tests
@@ -37,7 +37,7 @@ describe('Lisk SDK functional test', () => {
 	beforeAll(async () => {
 		const parameters = ['start', '-d', dataPath, '--api-ws', '--api-ipc', '--log', 'debug'];
 		appProcess = childProcess.spawn('./bin/run', parameters, {
-			cwd: path.join(__dirname, '../../examples/dpos-mainchain'),
+			cwd: path.join(__dirname, '../../examples/pos-mainchain'),
 			env: {
 				...process.env,
 				// setting production will run the command with node.js version

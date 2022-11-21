@@ -92,7 +92,7 @@ describe('Forger Info', () => {
 		});
 
 		describe('Vote transactions', () => {
-			it('should save forger info with votes received in new block', async () => {
+			it('should save forger info with stakes received in new block', async () => {
 				// Arrange
 				const forgerPluginInstance = getForgerPlugin(appEnv.application);
 				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
@@ -120,7 +120,7 @@ describe('Forger Info', () => {
 				expect(forgerInfo.votesReceived[0].amount).toEqual(BigInt(1000000000));
 			});
 
-			it('should update forger info with multiple votes received for same delegate in new block', async () => {
+			it('should update forger info with multiple stakes received for same validator in new block', async () => {
 				// Arrange
 				const forgerPluginInstance = getForgerPlugin(appEnv.application);
 				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
@@ -159,7 +159,7 @@ describe('Forger Info', () => {
 				expect(forgerInfo.votesReceived[0].amount).toEqual(BigInt(7000000000));
 			});
 
-			it('should update forger info with upvote and downvote for same delegate in new block', async () => {
+			it('should update forger info with upvote and downvote for same validator in new block', async () => {
 				// Arrange
 				const forgerPluginInstance = getForgerPlugin(appEnv.application);
 				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
@@ -198,7 +198,7 @@ describe('Forger Info', () => {
 				expect(forgerInfo.votesReceived[0].amount).toEqual(BigInt(3000000000));
 			});
 
-			it('should update forger info with voters info and remove when amount becomes zero', async () => {
+			it('should update forger info with stakers info and remove when amount becomes zero', async () => {
 				// Arrange
 				const forgerPluginInstance = getForgerPlugin(appEnv.application);
 				const [forgingDelegateAddress1] = forgerPluginInstance['_forgersList'].entries()[0];

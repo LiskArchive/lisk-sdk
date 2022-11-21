@@ -190,7 +190,7 @@ describe('Chain endpoint', () => {
 							generatorAddress: bftParams.validators[1].address,
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
+							prevalidatorWeight: 0,
 							precommitWeight: 0,
 						},
 						{
@@ -198,7 +198,7 @@ describe('Chain endpoint', () => {
 							generatorAddress: bftParams.validators[0].address,
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
-							prevoteWeight: 0,
+							prevalidatorWeight: 0,
 							precommitWeight: 0,
 						},
 					],

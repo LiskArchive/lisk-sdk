@@ -67,9 +67,9 @@ export const createVoteTransaction = ({
 }): Transaction => {
 	const genesisAccount = testing.fixtures.defaultFaucetAccount;
 	const encodedAsset = codec.encode(new DPoSVoteAsset().schema, {
-		votes: [
+		stakes: [
 			{
-				delegateAddress: Buffer.from(recipientAddress, 'hex'),
+				validatorAddress: Buffer.from(recipientAddress, 'hex'),
 				amount: BigInt(transactions.convertLSKToBeddows(amount)),
 			},
 		],

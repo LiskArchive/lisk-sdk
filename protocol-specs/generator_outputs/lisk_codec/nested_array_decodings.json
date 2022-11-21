@@ -73,7 +73,7 @@
 							]
 						}
 					],
-					"created": ["chain:delegates", "consensus:bft"]
+					"created": ["chain:validators", "consensus:bft"]
 				}
 			}
 		},
@@ -128,7 +128,7 @@
 							"value": ["diff5", "diff6", "diff7", "diff5"]
 						}
 					],
-					"created": ["chain:delegates", "consensus:bft"]
+					"created": ["chain:validators", "consensus:bft"]
 				}
 			}
 		}

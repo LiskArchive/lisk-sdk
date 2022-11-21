@@ -60,7 +60,7 @@
 							"type": "object",
 							"fieldNumber": 6,
 							"properties": {
-								"delegate": {
+								"validator": {
 									"type": "object",
 									"fieldNumber": 1,
 									"properties": {
@@ -87,7 +87,7 @@
 											"dataType": "boolean",
 											"fieldNumber": 5
 										},
-										"totalVotesReceived": {
+										"totalStakeReceived": {
 											"dataType": "uint64",
 											"fieldNumber": 6
 										}
@@ -98,16 +98,16 @@
 										"consecutiveMissedBlocks",
 										"lastForgedHeight",
 										"isBanned",
-										"totalVotesReceived"
+										"totalStakeReceived"
 									]
 								},
-								"sentVotes": {
+								"sentStakes": {
 									"type": "array",
 									"fieldNumber": 2,
 									"items": {
 										"type": "object",
 										"properties": {
-											"delegateAddress": {
+											"validatorAddress": {
 												"dataType": "bytes",
 												"fieldNumber": 1
 											},
@@ -116,7 +116,7 @@
 												"fieldNumber": 2
 											}
 										},
-										"required": ["delegateAddress", "amount"]
+										"required": ["validatorAddress", "amount"]
 									}
 								},
 								"unlocking": {
@@ -125,7 +125,7 @@
 									"items": {
 										"type": "object",
 										"properties": {
-											"delegateAddress": {
+											"validatorAddress": {
 												"dataType": "bytes",
 												"fieldNumber": 1
 											},
@@ -133,12 +133,12 @@
 												"dataType": "uint64",
 												"fieldNumber": 2
 											},
-											"unvoteHeight": {
+											"unstakeHeight": {
 												"dataType": "uint32",
 												"fieldNumber": 3
 											}
 										},
-										"required": ["delegateAddress", "amount", "unvoteHeight"]
+										"required": ["validatorAddress", "amount", "unstakeHeight"]
 									}
 								}
 							}
@@ -162,29 +162,29 @@
 						"optionalKeys": []
 					},
 					"asset": {
-						"delegate": {
+						"validator": {
 							"username": "Catullo",
 							"pomHeights": [85],
 							"consecutiveMissedBlocks": 32,
 							"lastForgedHeight": 64,
 							"isBanned": false,
-							"totalVotesReceived": "300000000"
+							"totalStakeReceived": "300000000"
 						},
-						"sentVotes": [
+						"sentStakes": [
 							{
-								"delegateAddress": "cd32c73e9851c7137980063b8af64aa5a31651f8dcad258b682d2ddf091029e4",
+								"validatorAddress": "cd32c73e9851c7137980063b8af64aa5a31651f8dcad258b682d2ddf091029e4",
 								"amount": "100000000"
 							},
 							{
-								"delegateAddress": "9d86ad24a3f030e5522b6598115bb4d70c1692c9d8995ddfccb377379a2d86c6",
+								"validatorAddress": "9d86ad24a3f030e5522b6598115bb4d70c1692c9d8995ddfccb377379a2d86c6",
 								"amount": "250000000"
 							}
 						],
 						"unlocking": [
 							{
-								"delegateAddress": "655e665765e3c42712d9a425b5b720d10457a5e45de0d4420e7c53ad73b02ef5",
+								"validatorAddress": "655e665765e3c42712d9a425b5b720d10457a5e45de0d4420e7c53ad73b02ef5",
 								"amount": "400000000",
-								"unvoteHeight": 128
+								"unstakeHeight": 128
 							}
 						]
 					}
@@ -244,7 +244,7 @@
 							"type": "object",
 							"fieldNumber": 6,
 							"properties": {
-								"delegate": {
+								"validator": {
 									"type": "object",
 									"fieldNumber": 1,
 									"properties": {
@@ -271,7 +271,7 @@
 											"dataType": "boolean",
 											"fieldNumber": 5
 										},
-										"totalVotesReceived": {
+										"totalStakeReceived": {
 											"dataType": "uint64",
 											"fieldNumber": 6
 										}
@@ -282,16 +282,16 @@
 										"consecutiveMissedBlocks",
 										"lastForgedHeight",
 										"isBanned",
-										"totalVotesReceived"
+										"totalStakeReceived"
 									]
 								},
-								"sentVotes": {
+								"sentStakes": {
 									"type": "array",
 									"fieldNumber": 2,
 									"items": {
 										"type": "object",
 										"properties": {
-											"delegateAddress": {
+											"validatorAddress": {
 												"dataType": "bytes",
 												"fieldNumber": 1
 											},
@@ -300,7 +300,7 @@
 												"fieldNumber": 2
 											}
 										},
-										"required": ["delegateAddress", "amount"]
+										"required": ["validatorAddress", "amount"]
 									}
 								},
 								"unlocking": {
@@ -309,7 +309,7 @@
 									"items": {
 										"type": "object",
 										"properties": {
-											"delegateAddress": {
+											"validatorAddress": {
 												"dataType": "bytes",
 												"fieldNumber": 1
 											},
@@ -317,12 +317,12 @@
 												"dataType": "uint64",
 												"fieldNumber": 2
 											},
-											"unvoteHeight": {
+											"unstakeHeight": {
 												"dataType": "uint32",
 												"fieldNumber": 3
 											}
 										},
-										"required": ["delegateAddress", "amount", "unvoteHeight"]
+										"required": ["validatorAddress", "amount", "unstakeHeight"]
 									}
 								}
 							}
@@ -343,15 +343,15 @@
 						"optionalKeys": []
 					},
 					"asset": {
-						"delegate": {
+						"validator": {
 							"username": "",
 							"pomHeights": [],
 							"consecutiveMissedBlocks": 0,
 							"lastForgedHeight": 0,
 							"isBanned": false,
-							"totalVotesReceived": "0"
+							"totalStakeReceived": "0"
 						},
-						"sentVotes": [],
+						"sentStakes": [],
 						"unlocking": []
 					}
 				}

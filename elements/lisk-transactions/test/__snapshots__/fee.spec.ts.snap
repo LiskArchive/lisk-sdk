@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`fee computeMinFee should calculate minimum fee for delegate registration transaction 1`] = `135000n`;
+exports[`fee computeMinFee should calculate minimum fee for validator registration transaction 1`] = `135000n`;
 
 exports[`fee computeMinFee should calculate minimum fee for given minFeePerByte 1`] = `316000n`;
 

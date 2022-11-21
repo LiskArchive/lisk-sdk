@@ -101,11 +101,11 @@ describe('Clean up old blocks', () => {
 			commands: [
 				{
 					moduleID: utils.intToBuffer(5, 4),
-					moduleName: 'dpos',
+					moduleName: 'pos',
 					commandID: utils.intToBuffer(3, 4),
 					commandName: 'reportDelegateMisbehavior',
 					schema: {
-						$id: '/lisk/dpos/pom',
+						$id: '/lisk/pos/pom',
 						type: 'object',
 						required: ['header1', 'header2'],
 						properties: {

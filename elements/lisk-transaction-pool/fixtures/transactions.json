@@ -39,7 +39,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+25215f583d93ad13b51cf3f74b521fd00a0fba8b650974305dcd786e80e83008"],
+			"stakes": ["+25215f583d93ad13b51cf3f74b521fd00a0fba8b650974305dcd786e80e83008"],
 			"recipientId": "12298336625069163905L",
 			"amount": "0"
 		},
@@ -102,7 +102,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+9bb41fce7cae8b2a248ef46aa6f617ab899d71f6e0927d0557b39a1fb749bcb4"],
+			"stakes": ["+9bb41fce7cae8b2a248ef46aa6f617ab899d71f6e0927d0557b39a1fb749bcb4"],
 			"recipientId": "3747847319783711194L",
 			"amount": "0"
 		},
@@ -165,7 +165,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+5ce189eebf2e55818f198cca0d0496ca23a4eaf0fd815cce161703518e0e3a63"],
+			"stakes": ["+5ce189eebf2e55818f198cca0d0496ca23a4eaf0fd815cce161703518e0e3a63"],
 			"recipientId": "5794491185452817986L",
 			"amount": "0"
 		},
@@ -228,7 +228,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+c628ad9fd25034436280be095a114ddaf08267d4edb069671cf563f4c7ffd9ee"],
+			"stakes": ["+c628ad9fd25034436280be095a114ddaf08267d4edb069671cf563f4c7ffd9ee"],
 			"recipientId": "8523266721081721849L",
 			"amount": "0"
 		},
@@ -291,7 +291,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+a1cc98d89088b4aae6279f33f6b488e20e9022c2942a3ad9a45049205a412f74"],
+			"stakes": ["+a1cc98d89088b4aae6279f33f6b488e20e9022c2942a3ad9a45049205a412f74"],
 			"recipientId": "2632346862538514441L",
 			"amount": "0"
 		},
@@ -354,7 +354,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+d4b99185cf0307954be1f093b74fed64c0a22bd054bf92a0e74190e13208e3d9"],
+			"stakes": ["+d4b99185cf0307954be1f093b74fed64c0a22bd054bf92a0e74190e13208e3d9"],
 			"recipientId": "17266829266570849889L",
 			"amount": "0"
 		},
@@ -417,7 +417,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+b1e4e7b6a34ae07ccf0ee5c80c6d5e6582dcca9bdd5f40b3d1698bf9355c67ff"],
+			"stakes": ["+b1e4e7b6a34ae07ccf0ee5c80c6d5e6582dcca9bdd5f40b3d1698bf9355c67ff"],
 			"recipientId": "10909963504503064046L",
 			"amount": "0"
 		},
@@ -480,7 +480,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+700498d3b049a31a0fe89f0e1690b843981f327e9550be758bbeca90da114238"],
+			"stakes": ["+700498d3b049a31a0fe89f0e1690b843981f327e9550be758bbeca90da114238"],
 			"recipientId": "3488588871520979421L",
 			"amount": "0"
 		},
@@ -543,7 +543,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+b98cbf431b38f5778eeeda14967485d74794e75dd641ae2fc293e811bb2336ea"],
+			"stakes": ["+b98cbf431b38f5778eeeda14967485d74794e75dd641ae2fc293e811bb2336ea"],
 			"recipientId": "4337829998959396793L",
 			"amount": "0"
 		},
@@ -606,7 +606,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+6cbef623057bded813a69576a8d8888c3e7079d1f7814b36ba4a3ca1c91f7179"],
+			"stakes": ["+6cbef623057bded813a69576a8d8888c3e7079d1f7814b36ba4a3ca1c91f7179"],
 			"recipientId": "7618215462200321783L",
 			"amount": "0"
 		},
@@ -669,7 +669,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+004d53519837c3289f0a2889b89b26390408700f228787c2242029f99c3a4bd4"],
+			"stakes": ["+004d53519837c3289f0a2889b89b26390408700f228787c2242029f99c3a4bd4"],
 			"recipientId": "13643066146532836068L",
 			"amount": "0"
 		},
@@ -732,7 +732,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+f7de68db8819ec135c6c53131ede8442532f01c8bef4adeeaa3d747b29270ce3"],
+			"stakes": ["+f7de68db8819ec135c6c53131ede8442532f01c8bef4adeeaa3d747b29270ce3"],
 			"recipientId": "5282964883603386230L",
 			"amount": "0"
 		},
@@ -795,7 +795,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+04c4fcc82aa7aac403f58dca0840ba702b169d7ffe7d137e80df683453639d24"],
+			"stakes": ["+04c4fcc82aa7aac403f58dca0840ba702b169d7ffe7d137e80df683453639d24"],
 			"recipientId": "5875215186750376849L",
 			"amount": "0"
 		},
@@ -858,7 +858,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+edc243c7415f3b701e16b52e84c96f812d5981302cda699baed3428cbba9f905"],
+			"stakes": ["+edc243c7415f3b701e16b52e84c96f812d5981302cda699baed3428cbba9f905"],
 			"recipientId": "372406364815696347L",
 			"amount": "0"
 		},
@@ -921,7 +921,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+b39a7a2d4e5fe0fb2a85fc35ae85bfbed5e8e08c45df0a9050157778d77be706"],
+			"stakes": ["+b39a7a2d4e5fe0fb2a85fc35ae85bfbed5e8e08c45df0a9050157778d77be706"],
 			"recipientId": "11261259397990416889L",
 			"amount": "0"
 		},
@@ -984,7 +984,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+77d10770940304342a225ac52f82d14f644b7abaf8b73964c72cb9c9cfc79dfc"],
+			"stakes": ["+77d10770940304342a225ac52f82d14f644b7abaf8b73964c72cb9c9cfc79dfc"],
 			"recipientId": "1257244595675313090L",
 			"amount": "0"
 		},
@@ -1047,7 +1047,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+c69fbafbc32a175e9606f2faf317a4ab0f7882fda7e0be13a7ea856aa3273892"],
+			"stakes": ["+c69fbafbc32a175e9606f2faf317a4ab0f7882fda7e0be13a7ea856aa3273892"],
 			"recipientId": "17023349411286843752L",
 			"amount": "0"
 		},
@@ -1110,7 +1110,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+746f38653921761a3c86521a3ce7099d3750729e88800068150e12d456f58f40"],
+			"stakes": ["+746f38653921761a3c86521a3ce7099d3750729e88800068150e12d456f58f40"],
 			"recipientId": "3174290987810788334L",
 			"amount": "0"
 		},
@@ -1173,7 +1173,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+222f79302bca0e8635c47b35b57be447e5a5028b8258d32644981a64347df1de"],
+			"stakes": ["+222f79302bca0e8635c47b35b57be447e5a5028b8258d32644981a64347df1de"],
 			"recipientId": "13117683447059096710L",
 			"amount": "0"
 		},
@@ -1236,7 +1236,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+07e68b72b44478c554490b5e7729170900a7948ab07fa5e75f030ac21f3c6acb"],
+			"stakes": ["+07e68b72b44478c554490b5e7729170900a7948ab07fa5e75f030ac21f3c6acb"],
 			"recipientId": "10723234683574181708L",
 			"amount": "0"
 		},
@@ -1299,7 +1299,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+ec5923d8db97a9cb11933450fdc491167ae1e68348edc9b37b245588ab3325ee"],
+			"stakes": ["+ec5923d8db97a9cb11933450fdc491167ae1e68348edc9b37b245588ab3325ee"],
 			"recipientId": "12793954300984313557L",
 			"amount": "0"
 		},
@@ -1362,7 +1362,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+c003576be4a81d06d8ff3ba0c362c5759b9ae65b091d25d6b25f3fac767fa994"],
+			"stakes": ["+c003576be4a81d06d8ff3ba0c362c5759b9ae65b091d25d6b25f3fac767fa994"],
 			"recipientId": "13274387365904449694L",
 			"amount": "0"
 		},
@@ -1425,7 +1425,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+467e86205b8aac13a824bd00cf9f48f469fe0344b577079b2bf35e967e26e680"],
+			"stakes": ["+467e86205b8aac13a824bd00cf9f48f469fe0344b577079b2bf35e967e26e680"],
 			"recipientId": "7049365022267183222L",
 			"amount": "0"
 		},
@@ -1488,7 +1488,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+e172e5558f6f8a6d68d221b9f4f7355be72b8d952033d943226e070eee4fada7"],
+			"stakes": ["+e172e5558f6f8a6d68d221b9f4f7355be72b8d952033d943226e070eee4fada7"],
 			"recipientId": "6556421469083094935L",
 			"amount": "0"
 		},
@@ -1551,7 +1551,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+4ed5d92ad9fe266786034af4a1d53c7d9cf137d3ef14cd4d1f96883aecacc6bc"],
+			"stakes": ["+4ed5d92ad9fe266786034af4a1d53c7d9cf137d3ef14cd4d1f96883aecacc6bc"],
 			"recipientId": "12436360500510125013L",
 			"amount": "0"
 		},
@@ -1614,7 +1614,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+f42eeab0a5244787c671372522470a47f721be40bbfeebc30ce7e0492233ba21"],
+			"stakes": ["+f42eeab0a5244787c671372522470a47f721be40bbfeebc30ce7e0492233ba21"],
 			"recipientId": "9558693083952885061L",
 			"amount": "0"
 		},
@@ -1677,7 +1677,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+a0d22e4809586cfacc42c802fa60b8dac04fef6e80734078d4bcce8602b2fffb"],
+			"stakes": ["+a0d22e4809586cfacc42c802fa60b8dac04fef6e80734078d4bcce8602b2fffb"],
 			"recipientId": "3138991761615412204L",
 			"amount": "0"
 		},
@@ -1740,7 +1740,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+bf69eea92f575c5acba52ebea89200cfcd71e4a22f376518b1569c00e11acf1e"],
+			"stakes": ["+bf69eea92f575c5acba52ebea89200cfcd71e4a22f376518b1569c00e11acf1e"],
 			"recipientId": "15714118231328580921L",
 			"amount": "0"
 		},
@@ -1803,7 +1803,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+93fa6da4b06bc7082f825fc188820daa642f874ecc2149dc8641ec9ddb016415"],
+			"stakes": ["+93fa6da4b06bc7082f825fc188820daa642f874ecc2149dc8641ec9ddb016415"],
 			"recipientId": "16427464421488253629L",
 			"amount": "0"
 		},
@@ -1866,7 +1866,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+5eaea299ffecc2292d9d30ee924566774954bddbfd48b2b725ed733325fc966c"],
+			"stakes": ["+5eaea299ffecc2292d9d30ee924566774954bddbfd48b2b725ed733325fc966c"],
 			"recipientId": "5526525089372276814L",
 			"amount": "0"
 		},
@@ -1929,7 +1929,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+cd833691bc237fd06a49248d23fc8f9f2255fda4121eaa13b40e633704b4044d"],
+			"stakes": ["+cd833691bc237fd06a49248d23fc8f9f2255fda4121eaa13b40e633704b4044d"],
 			"recipientId": "7721246606053221973L",
 			"amount": "0"
 		},
@@ -1992,7 +1992,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+dccbf25d59074855d8f226b1c9bce5764684b88bebb2e97bb5f4c90d7aa2f7c8"],
+			"stakes": ["+dccbf25d59074855d8f226b1c9bce5764684b88bebb2e97bb5f4c90d7aa2f7c8"],
 			"recipientId": "6582134679736962294L",
 			"amount": "0"
 		},
@@ -2055,7 +2055,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+28bc9f8406c08f37313df4ec87519099120368dee910e3fbd3aa3a11b1208423"],
+			"stakes": ["+28bc9f8406c08f37313df4ec87519099120368dee910e3fbd3aa3a11b1208423"],
 			"recipientId": "6313168133983998307L",
 			"amount": "0"
 		},
@@ -2118,7 +2118,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+07a5284e47b57d4162cd7e2b15c8bea3fe18426270497c6ac7c7d505269f79ca"],
+			"stakes": ["+07a5284e47b57d4162cd7e2b15c8bea3fe18426270497c6ac7c7d505269f79ca"],
 			"recipientId": "8586968180834075423L",
 			"amount": "0"
 		},
@@ -2181,7 +2181,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+52a2cf39e31454a9adeee343d01af8ca3ac3f21d6d8a918d7505a77b2f4839f3"],
+			"stakes": ["+52a2cf39e31454a9adeee343d01af8ca3ac3f21d6d8a918d7505a77b2f4839f3"],
 			"recipientId": "17403211532547585358L",
 			"amount": "0"
 		},
@@ -2244,7 +2244,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+3784aca9e387484872a172ffa990f268e533823cea6b439d7d08eb083de1d2ac"],
+			"stakes": ["+3784aca9e387484872a172ffa990f268e533823cea6b439d7d08eb083de1d2ac"],
 			"recipientId": "5679258470572642769L",
 			"amount": "0"
 		},
@@ -2307,7 +2307,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+642abfcd8f699dfdff65a41980dd198555fbeb2a12eb13ef5b158e970dc79141"],
+			"stakes": ["+642abfcd8f699dfdff65a41980dd198555fbeb2a12eb13ef5b158e970dc79141"],
 			"recipientId": "3972333673817467832L",
 			"amount": "0"
 		},
@@ -2370,7 +2370,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+5a815ee6bc625aeff1499a0ecdc2632319885c55de3fdb2ce122e752357ed09c"],
+			"stakes": ["+5a815ee6bc625aeff1499a0ecdc2632319885c55de3fdb2ce122e752357ed09c"],
 			"recipientId": "2817445091933172704L",
 			"amount": "0"
 		},
@@ -2433,7 +2433,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+5b999af8fb15078d7f73056c5db9bd5022781a1a13754484cb9c21c33e9ef7cc"],
+			"stakes": ["+5b999af8fb15078d7f73056c5db9bd5022781a1a13754484cb9c21c33e9ef7cc"],
 			"recipientId": "4633965557515166026L",
 			"amount": "0"
 		},
@@ -2496,7 +2496,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+97743b2cab1b92884c7a1823bf8c30ee34bb2b37a837657652204c56ee27ef5a"],
+			"stakes": ["+97743b2cab1b92884c7a1823bf8c30ee34bb2b37a837657652204c56ee27ef5a"],
 			"recipientId": "18217296755194720663L",
 			"amount": "0"
 		},
@@ -2559,7 +2559,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+3ef267f62704a1a72ad1473e61129ed2637617f98e5db73fd419f637c8a1d182"],
+			"stakes": ["+3ef267f62704a1a72ad1473e61129ed2637617f98e5db73fd419f637c8a1d182"],
 			"recipientId": "666781314329054077L",
 			"amount": "0"
 		},
@@ -2622,7 +2622,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+c10b31c7ed5587d886cb2569ee38ee27b5b44e6c1d80aecfcf2465a09f86acaf"],
+			"stakes": ["+c10b31c7ed5587d886cb2569ee38ee27b5b44e6c1d80aecfcf2465a09f86acaf"],
 			"recipientId": "15453881732217608747L",
 			"amount": "0"
 		},
@@ -2685,7 +2685,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+0ec2061671ef6685ecef5070ef7bf579ce986d7641f4d04be3b8201a1dc09ed3"],
+			"stakes": ["+0ec2061671ef6685ecef5070ef7bf579ce986d7641f4d04be3b8201a1dc09ed3"],
 			"recipientId": "10067423873551418982L",
 			"amount": "0"
 		},
@@ -2748,7 +2748,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+8f0a1215401ef08d5ebd228198aa8dba53c6cd3aea58f42a62f84d436c2b2dc9"],
+			"stakes": ["+8f0a1215401ef08d5ebd228198aa8dba53c6cd3aea58f42a62f84d436c2b2dc9"],
 			"recipientId": "15237561450427276449L",
 			"amount": "0"
 		},
@@ -2811,7 +2811,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+a4635730b95cf45fd1a5c4e9362bb53906e0d186fa245afff055aa2e23915101"],
+			"stakes": ["+a4635730b95cf45fd1a5c4e9362bb53906e0d186fa245afff055aa2e23915101"],
 			"recipientId": "13711091592225112085L",
 			"amount": "0"
 		},
@@ -2874,7 +2874,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+df87eaf0b919bd794246961223d41a5a9e5437dd24503ebacff08c2e7915db50"],
+			"stakes": ["+df87eaf0b919bd794246961223d41a5a9e5437dd24503ebacff08c2e7915db50"],
 			"recipientId": "17367868322943504694L",
 			"amount": "0"
 		},
@@ -2937,7 +2937,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+270f67c47251b1c422eb7a3bfd245fbd45e26fbb054d452877454f040657bac1"],
+			"stakes": ["+270f67c47251b1c422eb7a3bfd245fbd45e26fbb054d452877454f040657bac1"],
 			"recipientId": "7600798692855975651L",
 			"amount": "0"
 		},
@@ -3000,7 +3000,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+a71d922a869d07f35f5fc79e23065bea36b25b9b625d0248ce7386530f002729"],
+			"stakes": ["+a71d922a869d07f35f5fc79e23065bea36b25b9b625d0248ce7386530f002729"],
 			"recipientId": "1600476336849154505L",
 			"amount": "0"
 		},
@@ -3063,7 +3063,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+4935adbd5ca9ad4ce6ef994d8d592e9669c78450686bad820cfb22a41cf3e217"],
+			"stakes": ["+4935adbd5ca9ad4ce6ef994d8d592e9669c78450686bad820cfb22a41cf3e217"],
 			"recipientId": "7739449823295881692L",
 			"amount": "0"
 		},
@@ -3126,7 +3126,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+5c368135825c854c33ee143d435ab87f22688ca1548ba0dd64522c9ace1f1475"],
+			"stakes": ["+5c368135825c854c33ee143d435ab87f22688ca1548ba0dd64522c9ace1f1475"],
 			"recipientId": "4869611128516759332L",
 			"amount": "0"
 		},
@@ -3189,7 +3189,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+310e1eab6db7c2081bdfdc9f4d877f8a9fae7dec7be3de9d483badaf6d3992a9"],
+			"stakes": ["+310e1eab6db7c2081bdfdc9f4d877f8a9fae7dec7be3de9d483badaf6d3992a9"],
 			"recipientId": "2297631283214184578L",
 			"amount": "0"
 		},
@@ -3252,7 +3252,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+7ba9a9f6710dc07bf77a8d53d717e2083207d158650af032e0825758516c251a"],
+			"stakes": ["+7ba9a9f6710dc07bf77a8d53d717e2083207d158650af032e0825758516c251a"],
 			"recipientId": "13540625599369657033L",
 			"amount": "0"
 		},
@@ -3315,7 +3315,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+36a2ee4088aa6b9b7b07f86d21fb5928ec8193d26e425a98c51cde39597ee894"],
+			"stakes": ["+36a2ee4088aa6b9b7b07f86d21fb5928ec8193d26e425a98c51cde39597ee894"],
 			"recipientId": "864881789245260221L",
 			"amount": "0"
 		},
@@ -3378,7 +3378,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+69e254b8f41d93d228962153ae37d83d200a06f173b5effae8a3bf4c0c28b4fc"],
+			"stakes": ["+69e254b8f41d93d228962153ae37d83d200a06f173b5effae8a3bf4c0c28b4fc"],
 			"recipientId": "573465499993194130L",
 			"amount": "0"
 		},
@@ -3441,7 +3441,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+05ebd956f173c6e6848cd1173efa91d6f1e69982b2f46982e0efecc86dd558e2"],
+			"stakes": ["+05ebd956f173c6e6848cd1173efa91d6f1e69982b2f46982e0efecc86dd558e2"],
 			"recipientId": "1957993454347503616L",
 			"amount": "0"
 		},
@@ -3504,7 +3504,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+9e1665fd37a7643f5859fd91568d1783f33838b10c9dd0ebd138fe80a33fb734"],
+			"stakes": ["+9e1665fd37a7643f5859fd91568d1783f33838b10c9dd0ebd138fe80a33fb734"],
 			"recipientId": "7567346131303514705L",
 			"amount": "0"
 		},
@@ -3567,7 +3567,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+857216773288b7f6ae72fc406e78a63d9d0d7dc1d01affde0ecc975ac15120ea"],
+			"stakes": ["+857216773288b7f6ae72fc406e78a63d9d0d7dc1d01affde0ecc975ac15120ea"],
 			"recipientId": "6484331694260405055L",
 			"amount": "0"
 		},
@@ -3630,7 +3630,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+b4a0106962cf18380fbecaa7d3468e0ff8c9246dfb63c3362db1af944be5871d"],
+			"stakes": ["+b4a0106962cf18380fbecaa7d3468e0ff8c9246dfb63c3362db1af944be5871d"],
 			"recipientId": "12138856705023269842L",
 			"amount": "0"
 		},
@@ -3693,7 +3693,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+f7e5c8b610fe008c212bee9701acb0a34c64fed38f7fda0e15a96e37809087fe"],
+			"stakes": ["+f7e5c8b610fe008c212bee9701acb0a34c64fed38f7fda0e15a96e37809087fe"],
 			"recipientId": "13628188138437539735L",
 			"amount": "0"
 		},
@@ -3756,7 +3756,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+4f8976b6cb26c6d63adc9085a29cd7868a69cd222aedb0861b270eb9af55ae2b"],
+			"stakes": ["+4f8976b6cb26c6d63adc9085a29cd7868a69cd222aedb0861b270eb9af55ae2b"],
 			"recipientId": "15979827488030900437L",
 			"amount": "0"
 		},
@@ -3819,7 +3819,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+a5ab4bc66443c0390bc3ea1d81a956af22a60848b30ffca17d966d3ab138e94e"],
+			"stakes": ["+a5ab4bc66443c0390bc3ea1d81a956af22a60848b30ffca17d966d3ab138e94e"],
 			"recipientId": "6463707033609101884L",
 			"amount": "0"
 		},
@@ -3882,7 +3882,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+9f00ebd27711d06ef917809e59553ab8d4464d1bacd48315881562a6df9312ce"],
+			"stakes": ["+9f00ebd27711d06ef917809e59553ab8d4464d1bacd48315881562a6df9312ce"],
 			"recipientId": "2620728400056693845L",
 			"amount": "0"
 		},
@@ -3945,7 +3945,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+2cbcd6eeeb208363e71de31e9f77d069bb153e551eb5db5a7f014906d3b4155b"],
+			"stakes": ["+2cbcd6eeeb208363e71de31e9f77d069bb153e551eb5db5a7f014906d3b4155b"],
 			"recipientId": "7092421626858565089L",
 			"amount": "0"
 		},
@@ -4008,7 +4008,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+a5ec20fda5c263eed32bb7f4af640a6f3865077c2801b2a56af8a28ebd6701ec"],
+			"stakes": ["+a5ec20fda5c263eed32bb7f4af640a6f3865077c2801b2a56af8a28ebd6701ec"],
 			"recipientId": "8991647492352376810L",
 			"amount": "0"
 		},
@@ -4071,7 +4071,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+fd0aedad4fcf996eadab8f64c2a549360ae880597c6e6d536646063aae359d11"],
+			"stakes": ["+fd0aedad4fcf996eadab8f64c2a549360ae880597c6e6d536646063aae359d11"],
 			"recipientId": "10592856102130455468L",
 			"amount": "0"
 		},
@@ -4134,7 +4134,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+dfb9e7398bea08f7e7535eff06155284fd890ed96d3daa20c910e8d9e84f4a18"],
+			"stakes": ["+dfb9e7398bea08f7e7535eff06155284fd890ed96d3daa20c910e8d9e84f4a18"],
 			"recipientId": "15076415483326273316L",
 			"amount": "0"
 		},
@@ -4197,7 +4197,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+0499185401817391c9bfdde1bd4a612f7ca322bb400ae1ce0b4d3adb438e1c0a"],
+			"stakes": ["+0499185401817391c9bfdde1bd4a612f7ca322bb400ae1ce0b4d3adb438e1c0a"],
 			"recipientId": "11533093589842670896L",
 			"amount": "0"
 		},
@@ -4260,7 +4260,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+9607212e8d7f0b49f1cdae74e57f950c3e4c5fd5e5cae7aba55f06fcd629409b"],
+			"stakes": ["+9607212e8d7f0b49f1cdae74e57f950c3e4c5fd5e5cae7aba55f06fcd629409b"],
 			"recipientId": "5239508044876751503L",
 			"amount": "0"
 		},
@@ -4323,7 +4323,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+1625403fc2c9c417d1caeb104206d46c13a626d23c7d14a12ff4c032e1af2587"],
+			"stakes": ["+1625403fc2c9c417d1caeb104206d46c13a626d23c7d14a12ff4c032e1af2587"],
 			"recipientId": "12074326587988059764L",
 			"amount": "0"
 		},
@@ -4386,7 +4386,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+c3461d9a97f2f6b1750f7bda9532b65b6252bdaefa5a7368846490e8694d9c04"],
+			"stakes": ["+c3461d9a97f2f6b1750f7bda9532b65b6252bdaefa5a7368846490e8694d9c04"],
 			"recipientId": "16747552654097155732L",
 			"amount": "0"
 		},
@@ -4449,7 +4449,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+910d802b398c096f9f68cb5dfb2f237028da9b7d25f4d997e43361bf3b9eb2a5"],
+			"stakes": ["+910d802b398c096f9f68cb5dfb2f237028da9b7d25f4d997e43361bf3b9eb2a5"],
 			"recipientId": "6288876117737393283L",
 			"amount": "0"
 		},
@@ -4512,7 +4512,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+f9ccf5ba72337ba4feb4ed0d7bdaccd4e609b3f1638b9a7ff082efa38486c2e7"],
+			"stakes": ["+f9ccf5ba72337ba4feb4ed0d7bdaccd4e609b3f1638b9a7ff082efa38486c2e7"],
 			"recipientId": "10740561143240537279L",
 			"amount": "0"
 		},
@@ -4575,7 +4575,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+228bbf1abfe77285541d501c0cc9dca93e386243c1d8ac62c0a7df68593bfe75"],
+			"stakes": ["+228bbf1abfe77285541d501c0cc9dca93e386243c1d8ac62c0a7df68593bfe75"],
 			"recipientId": "12463861798866987577L",
 			"amount": "0"
 		},
@@ -4638,7 +4638,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+0582ab087459e9a003540fff3d53dc31cfc2959fe0a52aff7c6ebf4f201907f4"],
+			"stakes": ["+0582ab087459e9a003540fff3d53dc31cfc2959fe0a52aff7c6ebf4f201907f4"],
 			"recipientId": "16512507299434191375L",
 			"amount": "0"
 		},
@@ -4701,7 +4701,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+a4d639f3570f33a39d7c8713ea0ec9869c434a051cc0d26aa769c9c5626bae19"],
+			"stakes": ["+a4d639f3570f33a39d7c8713ea0ec9869c434a051cc0d26aa769c9c5626bae19"],
 			"recipientId": "12855517753836685925L",
 			"amount": "0"
 		},
@@ -4764,7 +4764,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+67a9a0f490be0897f46febe1268b39998720ef3d408520443cd3312b50178015"],
+			"stakes": ["+67a9a0f490be0897f46febe1268b39998720ef3d408520443cd3312b50178015"],
 			"recipientId": "16325501434090710761L",
 			"amount": "0"
 		},
@@ -4827,7 +4827,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+2a4a16d25501494d00ffa49f2ecd8002f46ee1f07d4a4678fafb96780d78e143"],
+			"stakes": ["+2a4a16d25501494d00ffa49f2ecd8002f46ee1f07d4a4678fafb96780d78e143"],
 			"recipientId": "5424660779191033983L",
 			"amount": "0"
 		},
@@ -4890,7 +4890,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+246218b0ac0a4c1f8f5bfbfa205d6600e175d03083c98c0e0df0810e0e6055ed"],
+			"stakes": ["+246218b0ac0a4c1f8f5bfbfa205d6600e175d03083c98c0e0df0810e0e6055ed"],
 			"recipientId": "14182590104752563275L",
 			"amount": "0"
 		},
@@ -4953,7 +4953,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+4644c4362150ba6476dcb25d1b2381a1e75501cd6da6c3531a388a98abe3342d"],
+			"stakes": ["+4644c4362150ba6476dcb25d1b2381a1e75501cd6da6c3531a388a98abe3342d"],
 			"recipientId": "5893534871285256844L",
 			"amount": "0"
 		},
@@ -5016,7 +5016,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+9e1f5fe2bb7eb8b0ceb3e42a478eadd2ba5a68cbf44401e3132349b899b52ffb"],
+			"stakes": ["+9e1f5fe2bb7eb8b0ceb3e42a478eadd2ba5a68cbf44401e3132349b899b52ffb"],
 			"recipientId": "12010045913570566959L",
 			"amount": "0"
 		},
@@ -5079,7 +5079,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+0251d537d3278f0317f306e5cd7691363428aa502cdececbd91396aa83ce0135"],
+			"stakes": ["+0251d537d3278f0317f306e5cd7691363428aa502cdececbd91396aa83ce0135"],
 			"recipientId": "16827243971064478236L",
 			"amount": "0"
 		},
@@ -5142,7 +5142,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+1f86c69d53d6b0d1c2a4853cc34e87dfa59c3aaabe2afcbbdb3d72ea6e9d8235"],
+			"stakes": ["+1f86c69d53d6b0d1c2a4853cc34e87dfa59c3aaabe2afcbbdb3d72ea6e9d8235"],
 			"recipientId": "10906820577572630968L",
 			"amount": "0"
 		},
@@ -5205,7 +5205,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+bbc825a2aedc3506e32dbef71c588a30010d5e59fd1eaea147db90c790acf96e"],
+			"stakes": ["+bbc825a2aedc3506e32dbef71c588a30010d5e59fd1eaea147db90c790acf96e"],
 			"recipientId": "15699053529071456783L",
 			"amount": "0"
 		},
@@ -5268,7 +5268,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+14aeb4d00f5e68665521de7c834d4d68cc93e66c18dc8b36063c05feaf3afb24"],
+			"stakes": ["+14aeb4d00f5e68665521de7c834d4d68cc93e66c18dc8b36063c05feaf3afb24"],
 			"recipientId": "5393322898190002128L",
 			"amount": "0"
 		},
@@ -5331,7 +5331,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+e57fc2681b64d55c688fd0870550da15f9b236a9edd12138740485b20854046d"],
+			"stakes": ["+e57fc2681b64d55c688fd0870550da15f9b236a9edd12138740485b20854046d"],
 			"recipientId": "5851974412947226044L",
 			"amount": "0"
 		},
@@ -5394,7 +5394,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+49d16844a506405d10a3cd02934c7c1944ab21905791c19e5d6e0748d1229c52"],
+			"stakes": ["+49d16844a506405d10a3cd02934c7c1944ab21905791c19e5d6e0748d1229c52"],
 			"recipientId": "6777236461751864770L",
 			"amount": "0"
 		},
@@ -5457,7 +5457,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+f91c6be7b1e6da47f2ce854b3e4093fd9492aac36a9966ffd1b0e5484a5d37f9"],
+			"stakes": ["+f91c6be7b1e6da47f2ce854b3e4093fd9492aac36a9966ffd1b0e5484a5d37f9"],
 			"recipientId": "13610022076702374368L",
 			"amount": "0"
 		},
@@ -5520,7 +5520,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+eea4b464f99d5e0c8f6d975371b0663747207e00e939d3776902b0f67cf18db5"],
+			"stakes": ["+eea4b464f99d5e0c8f6d975371b0663747207e00e939d3776902b0f67cf18db5"],
 			"recipientId": "3993995081251903465L",
 			"amount": "0"
 		},
@@ -5583,7 +5583,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+97bcf0f41eb78289d9ecf0fcb746f95b462784dd2d8f72f95663f7cafb9b3155"],
+			"stakes": ["+97bcf0f41eb78289d9ecf0fcb746f95b462784dd2d8f72f95663f7cafb9b3155"],
 			"recipientId": "3045169695963396886L",
 			"amount": "0"
 		},
@@ -5646,7 +5646,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+b9c0e4512141c5fc6b6f6eb9bfd4c2fc6ae6de9bd28e9fa5e4938dbd65733b08"],
+			"stakes": ["+b9c0e4512141c5fc6b6f6eb9bfd4c2fc6ae6de9bd28e9fa5e4938dbd65733b08"],
 			"recipientId": "5618804553878583657L",
 			"amount": "0"
 		},
@@ -5709,7 +5709,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+111a6cc73528309345673de245ba99e22d06a050874538095129722a6a337435"],
+			"stakes": ["+111a6cc73528309345673de245ba99e22d06a050874538095129722a6a337435"],
 			"recipientId": "3287133389630663844L",
 			"amount": "0"
 		},
@@ -5772,7 +5772,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+832642952bb7848cef31227b68d571169d432195acae5b630a6d2ba622d12546"],
+			"stakes": ["+832642952bb7848cef31227b68d571169d432195acae5b630a6d2ba622d12546"],
 			"recipientId": "8948421607304929286L",
 			"amount": "0"
 		},
@@ -5835,7 +5835,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+74eb7469b54b87544c3865282ef64b14f9a78ebe074854d30665d155644bd7ad"],
+			"stakes": ["+74eb7469b54b87544c3865282ef64b14f9a78ebe074854d30665d155644bd7ad"],
 			"recipientId": "7680350476340506614L",
 			"amount": "0"
 		},
@@ -5898,7 +5898,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+0b9130beab3528cab7c4380356cd93c7e672259355ce41a78a182f00dbbdb365"],
+			"stakes": ["+0b9130beab3528cab7c4380356cd93c7e672259355ce41a78a182f00dbbdb365"],
 			"recipientId": "6487574859072015252L",
 			"amount": "0"
 		},
@@ -5961,7 +5961,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+3cff66f6ae6172b072b94405b4361bc3b418f29d5528be19cef5d0bb3bb5fa23"],
+			"stakes": ["+3cff66f6ae6172b072b94405b4361bc3b418f29d5528be19cef5d0bb3bb5fa23"],
 			"recipientId": "3032920508415710378L",
 			"amount": "0"
 		},
@@ -6024,7 +6024,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+b69e54d21eb094c5e2974eabb6a87151bbb273189f88055ac0250b2eff10ea53"],
+			"stakes": ["+b69e54d21eb094c5e2974eabb6a87151bbb273189f88055ac0250b2eff10ea53"],
 			"recipientId": "14131578053375283885L",
 			"amount": "0"
 		},
@@ -6087,7 +6087,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+72bd63ee2f0f4e32e32e83ea2cf40935b12d2de308df583a9bbccbb88aa73a81"],
+			"stakes": ["+72bd63ee2f0f4e32e32e83ea2cf40935b12d2de308df583a9bbccbb88aa73a81"],
 			"recipientId": "12539770102310253441L",
 			"amount": "0"
 		},
@@ -6150,7 +6150,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+4aefbc90ac0097dc3e0bd0ebade85cd82766f4685a59f31042ef1ccc626e31c0"],
+			"stakes": ["+4aefbc90ac0097dc3e0bd0ebade85cd82766f4685a59f31042ef1ccc626e31c0"],
 			"recipientId": "7468093180593042900L",
 			"amount": "0"
 		},
@@ -6213,7 +6213,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+5225496e341a5960cf6ac36e90493c89bb37c1982e6c337928b5b12d31932cc6"],
+			"stakes": ["+5225496e341a5960cf6ac36e90493c89bb37c1982e6c337928b5b12d31932cc6"],
 			"recipientId": "8039639842131530462L",
 			"amount": "0"
 		},
@@ -6276,7 +6276,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+bad88f9f7b214135781b3a4db570a69804ee62e0e161b2c6a5b8e92b2e6bc84e"],
+			"stakes": ["+bad88f9f7b214135781b3a4db570a69804ee62e0e161b2c6a5b8e92b2e6bc84e"],
 			"recipientId": "14912175472599030472L",
 			"amount": "0"
 		},
@@ -6339,7 +6339,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+d074d1db8fef3953e4808ae5495ec8a2ab7467f6c7441d2bc9abcd61d95e169e"],
+			"stakes": ["+d074d1db8fef3953e4808ae5495ec8a2ab7467f6c7441d2bc9abcd61d95e169e"],
 			"recipientId": "14500669038813455569L",
 			"amount": "0"
 		},
@@ -6402,7 +6402,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+8cd1d6d0465d7272b203c6f9ca35dd664e8798ffe62209ea5af90985c081731b"],
+			"stakes": ["+8cd1d6d0465d7272b203c6f9ca35dd664e8798ffe62209ea5af90985c081731b"],
 			"recipientId": "3430046214873810255L",
 			"amount": "0"
 		},
@@ -6465,7 +6465,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+aec4e8fe9dded6937c26bdfede10d6b88946241cd87be9edc540056032c6b511"],
+			"stakes": ["+aec4e8fe9dded6937c26bdfede10d6b88946241cd87be9edc540056032c6b511"],
 			"recipientId": "16516747851220724447L",
 			"amount": "0"
 		},
@@ -6528,7 +6528,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+eed09f07896c16c0c94d2608b974800a09ef95be2e94b07ddd538d8bdb43aa43"],
+			"stakes": ["+eed09f07896c16c0c94d2608b974800a09ef95be2e94b07ddd538d8bdb43aa43"],
 			"recipientId": "10972103432408482162L",
 			"amount": "0"
 		},
@@ -6591,7 +6591,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+3d7a4b522709748e8ddbc286f3109d33bee5b394a2bdb1269b065b78132a4487"],
+			"stakes": ["+3d7a4b522709748e8ddbc286f3109d33bee5b394a2bdb1269b065b78132a4487"],
 			"recipientId": "15873561270753252877L",
 			"amount": "0"
 		},
@@ -6654,7 +6654,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+badc5c9df73e713dfea6a99af8053f50b22b3110464c6ae58921c4c316755564"],
+			"stakes": ["+badc5c9df73e713dfea6a99af8053f50b22b3110464c6ae58921c4c316755564"],
 			"recipientId": "17849699930152083990L",
 			"amount": "0"
 		},
@@ -6717,7 +6717,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+7c44c88b7ae0b9dfad5cbca35f738bc826d23107d6411ab0ba2ff2d115949606"],
+			"stakes": ["+7c44c88b7ae0b9dfad5cbca35f738bc826d23107d6411ab0ba2ff2d115949606"],
 			"recipientId": "7143152327339961892L",
 			"amount": "0"
 		},
@@ -6780,7 +6780,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+20d1f2632be2689d4b54ff2d2c5fa2ebf14e01a897477ec462e75a1986578ce7"],
+			"stakes": ["+20d1f2632be2689d4b54ff2d2c5fa2ebf14e01a897477ec462e75a1986578ce7"],
 			"recipientId": "2549133345932177907L",
 			"amount": "0"
 		},
@@ -6843,7 +6843,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+3c10b37399414e58e17b901b98e25bd5ae365a2376c278b3c420571b3eba9f45"],
+			"stakes": ["+3c10b37399414e58e17b901b98e25bd5ae365a2376c278b3c420571b3eba9f45"],
 			"recipientId": "9438125228453050361L",
 			"amount": "0"
 		},
@@ -6906,7 +6906,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+803055ec150a3ab8aad7c06fb28e21be7ba20eb99460fe36e5fad6cbeb764399"],
+			"stakes": ["+803055ec150a3ab8aad7c06fb28e21be7ba20eb99460fe36e5fad6cbeb764399"],
 			"recipientId": "3916024107904997998L",
 			"amount": "0"
 		},
@@ -6969,7 +6969,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+28dc06c7f9774d215a2511a0761f8dbb285418438808afb8f63b265fe0bc4ddc"],
+			"stakes": ["+28dc06c7f9774d215a2511a0761f8dbb285418438808afb8f63b265fe0bc4ddc"],
 			"recipientId": "1938412918027918963L",
 			"amount": "0"
 		},
@@ -7032,7 +7032,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+01d3afa9417499f056f73e980fb1acf6cbc3ddc5fd50ffa38715ec4f1a49a29b"],
+			"stakes": ["+01d3afa9417499f056f73e980fb1acf6cbc3ddc5fd50ffa38715ec4f1a49a29b"],
 			"recipientId": "3667006431484213724L",
 			"amount": "0"
 		},
@@ -7095,7 +7095,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+b6f0b680d976cadc763cd71caf2c3495f81c5ef07bb2518ae1ec81256bb2a360"],
+			"stakes": ["+b6f0b680d976cadc763cd71caf2c3495f81c5ef07bb2518ae1ec81256bb2a360"],
 			"recipientId": "6625949790222269428L",
 			"amount": "0"
 		},
@@ -7158,7 +7158,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+20b323a973d982b855bf7c373899aadea934b09e39b45e5852ee251e88f8fc2e"],
+			"stakes": ["+20b323a973d982b855bf7c373899aadea934b09e39b45e5852ee251e88f8fc2e"],
 			"recipientId": "2532318941103971096L",
 			"amount": "0"
 		},
@@ -7221,7 +7221,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+c43068ed5194cc2d64068c5ebce55db5e7cc50cf8d9e1990ed794c7f98e57f07"],
+			"stakes": ["+c43068ed5194cc2d64068c5ebce55db5e7cc50cf8d9e1990ed794c7f98e57f07"],
 			"recipientId": "12277599915277509534L",
 			"amount": "0"
 		},
@@ -7284,7 +7284,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+f842a88a982e2e115debdf763cf87894ae2a79fa62fa92aa18a21943212f8aa6"],
+			"stakes": ["+f842a88a982e2e115debdf763cf87894ae2a79fa62fa92aa18a21943212f8aa6"],
 			"recipientId": "12989474873841150704L",
 			"amount": "0"
 		},
@@ -7347,7 +7347,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+75e4e3ec9d84884f4251e261d8cf5ac73f1b1d80029a4f8cb1859e0664bbb625"],
+			"stakes": ["+75e4e3ec9d84884f4251e261d8cf5ac73f1b1d80029a4f8cb1859e0664bbb625"],
 			"recipientId": "13315625913407116641L",
 			"amount": "0"
 		},
@@ -7410,7 +7410,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+49a7c781bf9a78afa071dfb1f458522d70d5026b7bd0873301a99c130c7d74fe"],
+			"stakes": ["+49a7c781bf9a78afa071dfb1f458522d70d5026b7bd0873301a99c130c7d74fe"],
 			"recipientId": "4097147014844535493L",
 			"amount": "0"
 		},
@@ -7473,7 +7473,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+3b1027e5c95eaf4fa9e6becb0691c67f8168a2a37abff281748b0ab6a9f543fb"],
+			"stakes": ["+3b1027e5c95eaf4fa9e6becb0691c67f8168a2a37abff281748b0ab6a9f543fb"],
 			"recipientId": "2351907297337713922L",
 			"amount": "0"
 		},
@@ -7536,7 +7536,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+3b71d14fab58d23e5282f0f890646920e0160da0d31b858458f0b88337212343"],
+			"stakes": ["+3b71d14fab58d23e5282f0f890646920e0160da0d31b858458f0b88337212343"],
 			"recipientId": "17265865472587794602L",
 			"amount": "0"
 		},
@@ -7599,7 +7599,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+e0d4022efd7f873b34687d6e1f5df33f49b5a50430893d0418b4191556c39489"],
+			"stakes": ["+e0d4022efd7f873b34687d6e1f5df33f49b5a50430893d0418b4191556c39489"],
 			"recipientId": "3182358207667693329L",
 			"amount": "0"
 		},
@@ -7662,7 +7662,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+f137223b815c8b0c3b7ddfbf663217cc44d4e630befe0d3acdb0251e5c324b08"],
+			"stakes": ["+f137223b815c8b0c3b7ddfbf663217cc44d4e630befe0d3acdb0251e5c324b08"],
 			"recipientId": "12272175868892632797L",
 			"amount": "0"
 		},
@@ -7725,7 +7725,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+303b1c4ffc1a6ff979d7257468f44344b21b070adcb1909636340bb9510ff1b3"],
+			"stakes": ["+303b1c4ffc1a6ff979d7257468f44344b21b070adcb1909636340bb9510ff1b3"],
 			"recipientId": "13431630650517718259L",
 			"amount": "0"
 		},
@@ -7788,7 +7788,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+212e4ea4cbe06c8899d79f3fad601c8ee28054622a0c674b41d8829b62cc4ebe"],
+			"stakes": ["+212e4ea4cbe06c8899d79f3fad601c8ee28054622a0c674b41d8829b62cc4ebe"],
 			"recipientId": "8748614421722402938L",
 			"amount": "0"
 		},
@@ -7851,7 +7851,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+8ed9ca44d7cd75e6c68311c1b7367c4ec1fe58e4e662befa055f2b9990e8596b"],
+			"stakes": ["+8ed9ca44d7cd75e6c68311c1b7367c4ec1fe58e4e662befa055f2b9990e8596b"],
 			"recipientId": "13486017742700136515L",
 			"amount": "0"
 		},
@@ -7914,7 +7914,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+bdcfdc67cfe2b6b7f874af23f4c8d34fb5a3f95168ccfd0fe112fffd9ee342b1"],
+			"stakes": ["+bdcfdc67cfe2b6b7f874af23f4c8d34fb5a3f95168ccfd0fe112fffd9ee342b1"],
 			"recipientId": "9419095812884114909L",
 			"amount": "0"
 		},
@@ -7977,7 +7977,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+257777e31b4879eea6f70c07428d72148e1e53c3ae6793fa613e47b4cabe09dc"],
+			"stakes": ["+257777e31b4879eea6f70c07428d72148e1e53c3ae6793fa613e47b4cabe09dc"],
 			"recipientId": "10665749510945097506L",
 			"amount": "0"
 		},
@@ -8040,7 +8040,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+39cc310c31327bab431b5cb5aeceb749f079c9b95181128a565b0a60aa0e3a25"],
+			"stakes": ["+39cc310c31327bab431b5cb5aeceb749f079c9b95181128a565b0a60aa0e3a25"],
 			"recipientId": "1543378874947842209L",
 			"amount": "0"
 		},
@@ -8103,7 +8103,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+d26f3805d2eb44819101142b651d3a6def9feb5141750f55ac8cf456508b084f"],
+			"stakes": ["+d26f3805d2eb44819101142b651d3a6def9feb5141750f55ac8cf456508b084f"],
 			"recipientId": "1860461577684079264L",
 			"amount": "0"
 		},
@@ -8166,7 +8166,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+e16bcd555f17db4e4e8966f1a4ca55f9f028f647d736b742e516873ffe43bc14"],
+			"stakes": ["+e16bcd555f17db4e4e8966f1a4ca55f9f028f647d736b742e516873ffe43bc14"],
 			"recipientId": "5984792984008367575L",
 			"amount": "0"
 		},
@@ -8229,7 +8229,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+9562c1a2baa92670c9afed500af66cac91409e0fad648f00bdb2b49fadc6dbdd"],
+			"stakes": ["+9562c1a2baa92670c9afed500af66cac91409e0fad648f00bdb2b49fadc6dbdd"],
 			"recipientId": "17688246838540961114L",
 			"amount": "0"
 		},
@@ -8292,7 +8292,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+1900fab7d59c32119bd94b0dd40de1c8c4095ddd29b9f9296a1a14930c6dfb9b"],
+			"stakes": ["+1900fab7d59c32119bd94b0dd40de1c8c4095ddd29b9f9296a1a14930c6dfb9b"],
 			"recipientId": "12426322581046583489L",
 			"amount": "0"
 		},
@@ -8355,7 +8355,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+8fd722d05867f3b7bb866ea9a475d1fc3b0f274fc4fc7338199ba1dd135dbc40"],
+			"stakes": ["+8fd722d05867f3b7bb866ea9a475d1fc3b0f274fc4fc7338199ba1dd135dbc40"],
 			"recipientId": "18361026162829954637L",
 			"amount": "0"
 		},
@@ -8418,7 +8418,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+15dfdc372f7e1522bf0fff764644521de327f6076fd5f5d8ca9cf20efc6a4dff"],
+			"stakes": ["+15dfdc372f7e1522bf0fff764644521de327f6076fd5f5d8ca9cf20efc6a4dff"],
 			"recipientId": "4447810648093978479L",
 			"amount": "0"
 		},
@@ -8481,7 +8481,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+9b8221b4eb2977dee9a6b4e8fce06115370138c8548b8eeec635fbb6abf85563"],
+			"stakes": ["+9b8221b4eb2977dee9a6b4e8fce06115370138c8548b8eeec635fbb6abf85563"],
 			"recipientId": "13937493016465070517L",
 			"amount": "0"
 		},
@@ -8544,7 +8544,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+a6ca54255c4caa9bb12e3e4fd9d1fc4224be079cc3ee8f45a0183c026eb780d9"],
+			"stakes": ["+a6ca54255c4caa9bb12e3e4fd9d1fc4224be079cc3ee8f45a0183c026eb780d9"],
 			"recipientId": "16739373691139928407L",
 			"amount": "0"
 		},
@@ -8607,7 +8607,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+8c0f8fc5be269c1e3ca9ba297726724b01877a406847cf36e7d84dd8e44b15c5"],
+			"stakes": ["+8c0f8fc5be269c1e3ca9ba297726724b01877a406847cf36e7d84dd8e44b15c5"],
 			"recipientId": "4806469903362416770L",
 			"amount": "0"
 		},
@@ -8670,7 +8670,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+29672a3673b1da494b9bfea408ad974a076a162f228f49611a7b57bdd1328811"],
+			"stakes": ["+29672a3673b1da494b9bfea408ad974a076a162f228f49611a7b57bdd1328811"],
 			"recipientId": "10346253556425626732L",
 			"amount": "0"
 		},
@@ -8733,7 +8733,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+4bab5bb5bb1d5faf77a17e08825062324d3a0432fb565a18167f0eeced801a8f"],
+			"stakes": ["+4bab5bb5bb1d5faf77a17e08825062324d3a0432fb565a18167f0eeced801a8f"],
 			"recipientId": "6643177689096071963L",
 			"amount": "0"
 		},
@@ -8796,7 +8796,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+c84ce13ca70e11ee3db85962b470a6bef9c036ceef718bfca28b2d853f0a42a9"],
+			"stakes": ["+c84ce13ca70e11ee3db85962b470a6bef9c036ceef718bfca28b2d853f0a42a9"],
 			"recipientId": "320853526084300214L",
 			"amount": "0"
 		},
@@ -8859,7 +8859,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+a35f02afa6cd32b08e1ed33b8114349eef18d9e3cb8296bc61693c31c00c46c4"],
+			"stakes": ["+a35f02afa6cd32b08e1ed33b8114349eef18d9e3cb8296bc61693c31c00c46c4"],
 			"recipientId": "3904504284084393779L",
 			"amount": "0"
 		},
@@ -8922,7 +8922,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+ae8dde42864db63b32c65720082cf0c8cf3d80be8012e2b7ad100139a51c926c"],
+			"stakes": ["+ae8dde42864db63b32c65720082cf0c8cf3d80be8012e2b7ad100139a51c926c"],
 			"recipientId": "5226528019016360010L",
 			"amount": "0"
 		},
@@ -8985,7 +8985,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+15d2e4927945fc65e7016e5a899694e54f7ad6fb9cd8c0d029866e828738450b"],
+			"stakes": ["+15d2e4927945fc65e7016e5a899694e54f7ad6fb9cd8c0d029866e828738450b"],
 			"recipientId": "6128170150568124446L",
 			"amount": "0"
 		},
@@ -9048,7 +9048,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+42e7195c8ed019c2af2ee851a4c3bc5d7acc8f1172bedfef96bcb81018cab508"],
+			"stakes": ["+42e7195c8ed019c2af2ee851a4c3bc5d7acc8f1172bedfef96bcb81018cab508"],
 			"recipientId": "15214578104668437953L",
 			"amount": "0"
 		},
@@ -9111,7 +9111,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+441a57f8dc3685c4c73d28670739f11b6932545c3f65d24d893827f4fbe4fdce"],
+			"stakes": ["+441a57f8dc3685c4c73d28670739f11b6932545c3f65d24d893827f4fbe4fdce"],
 			"recipientId": "11624639864567871688L",
 			"amount": "0"
 		},
@@ -9174,7 +9174,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+d89b7e937977843e9e247ca4adf493a018c2bfc3ad1076f2507f261335779fc0"],
+			"stakes": ["+d89b7e937977843e9e247ca4adf493a018c2bfc3ad1076f2507f261335779fc0"],
 			"recipientId": "8071676643666065131L",
 			"amount": "0"
 		},
@@ -9237,7 +9237,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+dcbf5ba23d5e1966d13f73ff78c3fa59f7ec088c666d2c0997e96c3367cb42dd"],
+			"stakes": ["+dcbf5ba23d5e1966d13f73ff78c3fa59f7ec088c666d2c0997e96c3367cb42dd"],
 			"recipientId": "13093347258327855019L",
 			"amount": "0"
 		},
@@ -9300,7 +9300,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+317d6c8745b99e32e07fc0429450375804eae6ed652f0afd4ebfce6bc906ab1c"],
+			"stakes": ["+317d6c8745b99e32e07fc0429450375804eae6ed652f0afd4ebfce6bc906ab1c"],
 			"recipientId": "14608684293975358257L",
 			"amount": "0"
 		},
@@ -9363,7 +9363,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+07a4a89c9d1f6b78f648a15668e141c43465f7f2104691934fcdb693635d786f"],
+			"stakes": ["+07a4a89c9d1f6b78f648a15668e141c43465f7f2104691934fcdb693635d786f"],
 			"recipientId": "399687885325683754L",
 			"amount": "0"
 		},
@@ -9426,7 +9426,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+49332227fc350f1d7957d558d9715b407e7077777e7b9caa1b95174bebc2162c"],
+			"stakes": ["+49332227fc350f1d7957d558d9715b407e7077777e7b9caa1b95174bebc2162c"],
 			"recipientId": "8169435304351891655L",
 			"amount": "0"
 		},
@@ -9489,7 +9489,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+612161b73cb67acfdfec56cd50975182ec747ed45ee1b829a0b20b11614de4e1"],
+			"stakes": ["+612161b73cb67acfdfec56cd50975182ec747ed45ee1b829a0b20b11614de4e1"],
 			"recipientId": "6718335082194300758L",
 			"amount": "0"
 		},
@@ -9552,7 +9552,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+5238c57931fab65bb9a6e6d105be2ce71b0b67db2258c1b1e10ea26aec312d4f"],
+			"stakes": ["+5238c57931fab65bb9a6e6d105be2ce71b0b67db2258c1b1e10ea26aec312d4f"],
 			"recipientId": "1312749963746460682L",
 			"amount": "0"
 		},
@@ -9615,7 +9615,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+651410e5145768b973ada60fd6de5d1973aadc0743a05b2cb0c4844322502b47"],
+			"stakes": ["+651410e5145768b973ada60fd6de5d1973aadc0743a05b2cb0c4844322502b47"],
 			"recipientId": "1357930661074762850L",
 			"amount": "0"
 		},
@@ -9678,7 +9678,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+5ca9c2d799b878d2627f0952fa0852380e4c5f089a10ef3b7a26bb9b8f22ec66"],
+			"stakes": ["+5ca9c2d799b878d2627f0952fa0852380e4c5f089a10ef3b7a26bb9b8f22ec66"],
 			"recipientId": "7987928967922230013L",
 			"amount": "0"
 		},
@@ -9741,7 +9741,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+2b50c09051a480454a6153377b857206d626da3b2b1a78e3cda54cd666a8e676"],
+			"stakes": ["+2b50c09051a480454a6153377b857206d626da3b2b1a78e3cda54cd666a8e676"],
 			"recipientId": "3190776667541768693L",
 			"amount": "0"
 		},
@@ -9804,7 +9804,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+bc1b7f26fe27aff384d7538a54856f89a43fd2e120dbbab8060586303577079f"],
+			"stakes": ["+bc1b7f26fe27aff384d7538a54856f89a43fd2e120dbbab8060586303577079f"],
 			"recipientId": "12313615574089710672L",
 			"amount": "0"
 		},
@@ -9867,7 +9867,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+55248d11da7d0cb7688147da8a2b21e63550e54e4eca07708d58d1fd8d5a01a8"],
+			"stakes": ["+55248d11da7d0cb7688147da8a2b21e63550e54e4eca07708d58d1fd8d5a01a8"],
 			"recipientId": "10069992613393200607L",
 			"amount": "0"
 		},
@@ -9930,7 +9930,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+2d6f1cdb4dc10c7cdcc401ccdf983d0f07f62422b07184735f8530cf15ecdc96"],
+			"stakes": ["+2d6f1cdb4dc10c7cdcc401ccdf983d0f07f62422b07184735f8530cf15ecdc96"],
 			"recipientId": "14192654215365553854L",
 			"amount": "0"
 		},
@@ -9993,7 +9993,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+a570482d4f729aebd1cbc51033676bb0ef7618d9bd88248ec45c8499b9ddd85a"],
+			"stakes": ["+a570482d4f729aebd1cbc51033676bb0ef7618d9bd88248ec45c8499b9ddd85a"],
 			"recipientId": "13716803199232586937L",
 			"amount": "0"
 		},
@@ -10056,7 +10056,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+511a9f7835dfa0508e879feb4aec6907c6dfcff440ec985a9ba304b0ba2a4d84"],
+			"stakes": ["+511a9f7835dfa0508e879feb4aec6907c6dfcff440ec985a9ba304b0ba2a4d84"],
 			"recipientId": "8762913442176959474L",
 			"amount": "0"
 		},
@@ -10119,7 +10119,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+c7df03d4ce0a3c30115b55dc04110527eaba83b4ee8487f6f7f811e81cc116dc"],
+			"stakes": ["+c7df03d4ce0a3c30115b55dc04110527eaba83b4ee8487f6f7f811e81cc116dc"],
 			"recipientId": "1719243736806599794L",
 			"amount": "0"
 		},
@@ -10182,7 +10182,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+346ed673e114c6f2a92cfb548767221ef415d631b9edafbe8db4c98033de7168"],
+			"stakes": ["+346ed673e114c6f2a92cfb548767221ef415d631b9edafbe8db4c98033de7168"],
 			"recipientId": "13961530197827907819L",
 			"amount": "0"
 		},
@@ -10245,7 +10245,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+e0849976e21ae3b49a0cf6ac479389e9c4e30c692d94e36d3b46b1152709488c"],
+			"stakes": ["+e0849976e21ae3b49a0cf6ac479389e9c4e30c692d94e36d3b46b1152709488c"],
 			"recipientId": "1454506391342021962L",
 			"amount": "0"
 		},
@@ -10308,7 +10308,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+c586c24877d8d14f89d46dca72197b07cc928d2d810a8f1c8d1c0ec051104e15"],
+			"stakes": ["+c586c24877d8d14f89d46dca72197b07cc928d2d810a8f1c8d1c0ec051104e15"],
 			"recipientId": "1663443299711429869L",
 			"amount": "0"
 		},
@@ -10371,7 +10371,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+eebfc8f36e3503dd5a591214cc5624ebb61d66cbd41ecac02d75578676f7f8cc"],
+			"stakes": ["+eebfc8f36e3503dd5a591214cc5624ebb61d66cbd41ecac02d75578676f7f8cc"],
 			"recipientId": "10516970142268947805L",
 			"amount": "0"
 		},
@@ -10434,7 +10434,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+a0620e87822c59f872637c73f0fcf15e8a1425137c2f0c6a175e33596c1cef85"],
+			"stakes": ["+a0620e87822c59f872637c73f0fcf15e8a1425137c2f0c6a175e33596c1cef85"],
 			"recipientId": "5922956840970443338L",
 			"amount": "0"
 		},
@@ -10497,7 +10497,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+822a4dd2eba7a84f4f9341840ba7a778e04d1ebedc1842470f313c4e6cdcb8f1"],
+			"stakes": ["+822a4dd2eba7a84f4f9341840ba7a778e04d1ebedc1842470f313c4e6cdcb8f1"],
 			"recipientId": "16157148956722722703L",
 			"amount": "0"
 		},
@@ -10560,7 +10560,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+bef618e5514578332e9b1c8351e0ad5f855aae27b2cb27564d3d1cb3dbc18ee9"],
+			"stakes": ["+bef618e5514578332e9b1c8351e0ad5f855aae27b2cb27564d3d1cb3dbc18ee9"],
 			"recipientId": "6138436421552052381L",
 			"amount": "0"
 		},
@@ -10623,7 +10623,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+39d6225c1dd67df2de046175c97c4c26b43e4c4d44a3ff73dccafe0aad8515cb"],
+			"stakes": ["+39d6225c1dd67df2de046175c97c4c26b43e4c4d44a3ff73dccafe0aad8515cb"],
 			"recipientId": "8690529447321685485L",
 			"amount": "0"
 		},
@@ -10686,7 +10686,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+36f7eed674944bad682c33b2d76d7cf069ef220c316d1d052fc56d4f01d90f7e"],
+			"stakes": ["+36f7eed674944bad682c33b2d76d7cf069ef220c316d1d052fc56d4f01d90f7e"],
 			"recipientId": "16828600199059189083L",
 			"amount": "0"
 		},
@@ -10749,7 +10749,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+c24212c825b4c65db50c95de2b9da5e09fb3802112097e0256e43bc54c1cafb9"],
+			"stakes": ["+c24212c825b4c65db50c95de2b9da5e09fb3802112097e0256e43bc54c1cafb9"],
 			"recipientId": "3117234715182843213L",
 			"amount": "0"
 		},
@@ -10812,7 +10812,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+05b236537af28e1ee0d89e84710b9ce94744330977fa63dc2b8c116adeb11885"],
+			"stakes": ["+05b236537af28e1ee0d89e84710b9ce94744330977fa63dc2b8c116adeb11885"],
 			"recipientId": "18008258998173769426L",
 			"amount": "0"
 		},
@@ -10875,7 +10875,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+700268733539d66fab4de74c38f42549415b1b8337222488d10918bf95599250"],
+			"stakes": ["+700268733539d66fab4de74c38f42549415b1b8337222488d10918bf95599250"],
 			"recipientId": "18327507212732860521L",
 			"amount": "0"
 		},
@@ -10938,7 +10938,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+bce384981dbebb2a41925fcd34e5ea69402e097de22b7e9c6a9d1dfcd7aca7a9"],
+			"stakes": ["+bce384981dbebb2a41925fcd34e5ea69402e097de22b7e9c6a9d1dfcd7aca7a9"],
 			"recipientId": "10642381638630676703L",
 			"amount": "0"
 		},
@@ -11001,7 +11001,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+d011d67c9018ea9282532d9cc3de82533e9a19f7038add13fd54dcbcb038465c"],
+			"stakes": ["+d011d67c9018ea9282532d9cc3de82533e9a19f7038add13fd54dcbcb038465c"],
 			"recipientId": "1832701800952916406L",
 			"amount": "0"
 		},
@@ -11064,7 +11064,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+6075ef9752cd466712c73a7f506788f67ffe121921ba01c2aab956d32e708363"],
+			"stakes": ["+6075ef9752cd466712c73a7f506788f67ffe121921ba01c2aab956d32e708363"],
 			"recipientId": "3272065180880293808L",
 			"amount": "0"
 		},
@@ -11127,7 +11127,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+7033a174c11f5545c698494039ab0ed2bdb3f76c59e2f341cdc18415023f2b35"],
+			"stakes": ["+7033a174c11f5545c698494039ab0ed2bdb3f76c59e2f341cdc18415023f2b35"],
 			"recipientId": "6885133969991843253L",
 			"amount": "0"
 		},
@@ -11190,7 +11190,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+183899c3460f11352dee7071e421aca95ce7ec3a1416c665797a5db61b6e51f7"],
+			"stakes": ["+183899c3460f11352dee7071e421aca95ce7ec3a1416c665797a5db61b6e51f7"],
 			"recipientId": "4869975650883480574L",
 			"amount": "0"
 		},
@@ -11253,7 +11253,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+0024b96aa7172fc5d8e69b120cffc41ae5c817e2f8cc3ec0caaacfedef9c656d"],
+			"stakes": ["+0024b96aa7172fc5d8e69b120cffc41ae5c817e2f8cc3ec0caaacfedef9c656d"],
 			"recipientId": "17382513943689513695L",
 			"amount": "0"
 		},
@@ -11316,7 +11316,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+de08d06bbc23118ad68b35d0e13013904cb0cd4f31672799507fd7584bda3623"],
+			"stakes": ["+de08d06bbc23118ad68b35d0e13013904cb0cd4f31672799507fd7584bda3623"],
 			"recipientId": "8929885107192285804L",
 			"amount": "0"
 		},
@@ -11379,7 +11379,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+1dc2e6bdefac86fc99098e43b627fccd0c45d246227b7533452251a5445c8fbc"],
+			"stakes": ["+1dc2e6bdefac86fc99098e43b627fccd0c45d246227b7533452251a5445c8fbc"],
 			"recipientId": "12364889234919827602L",
 			"amount": "0"
 		},
@@ -11442,7 +11442,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+b2e6515135c4b88eb22ac948939debf9d0556623fdb418de1a9ae6db84ab978e"],
+			"stakes": ["+b2e6515135c4b88eb22ac948939debf9d0556623fdb418de1a9ae6db84ab978e"],
 			"recipientId": "5057331965422499891L",
 			"amount": "0"
 		},
@@ -11505,7 +11505,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+40fa2c635eb91e0c857115a215822ae80c6129976705d5009298f8f5bfa7f90f"],
+			"stakes": ["+40fa2c635eb91e0c857115a215822ae80c6129976705d5009298f8f5bfa7f90f"],
 			"recipientId": "2941105044814971087L",
 			"amount": "0"
 		},
@@ -11568,7 +11568,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+43c1e6bae29b779e3b8d8e8ce285aaa605025d7ce8879dd6e0ff4fcafb18a927"],
+			"stakes": ["+43c1e6bae29b779e3b8d8e8ce285aaa605025d7ce8879dd6e0ff4fcafb18a927"],
 			"recipientId": "4460841135260728414L",
 			"amount": "0"
 		},
@@ -11631,7 +11631,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+8f52257c70d236b7874b8513b5a91b95e56d13fd500edc7153a0df9de6084868"],
+			"stakes": ["+8f52257c70d236b7874b8513b5a91b95e56d13fd500edc7153a0df9de6084868"],
 			"recipientId": "11188995612554378488L",
 			"amount": "0"
 		},
@@ -11694,7 +11694,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+e2559085f4922f53dd81de705667b7f354712645f47c4e4cfcf3c72c548fb782"],
+			"stakes": ["+e2559085f4922f53dd81de705667b7f354712645f47c4e4cfcf3c72c548fb782"],
 			"recipientId": "1826426256229028807L",
 			"amount": "0"
 		},
@@ -11757,7 +11757,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+886b3aca526b343e4cd9d31769dee3b364b22c9c229452f536e07388e3f1c9f7"],
+			"stakes": ["+886b3aca526b343e4cd9d31769dee3b364b22c9c229452f536e07388e3f1c9f7"],
 			"recipientId": "3072337877364613825L",
 			"amount": "0"
 		},
@@ -11820,7 +11820,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+a1e8b8965a25a06e51c99be2f903f7ecb32d07780c921c4c9f5bf1cd0f234e08"],
+			"stakes": ["+a1e8b8965a25a06e51c99be2f903f7ecb32d07780c921c4c9f5bf1cd0f234e08"],
 			"recipientId": "1002722795512430133L",
 			"amount": "0"
 		},
@@ -11883,7 +11883,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+ed9511d396bf4297989dbee7a0317d7a074696588425f170b019430cae7b06a2"],
+			"stakes": ["+ed9511d396bf4297989dbee7a0317d7a074696588425f170b019430cae7b06a2"],
 			"recipientId": "7564039508345962387L",
 			"amount": "0"
 		},
@@ -11946,7 +11946,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+282ea999ff65eb19b18217635a1e022ce5e7718b0ddce8286163eb7f4bcaea25"],
+			"stakes": ["+282ea999ff65eb19b18217635a1e022ce5e7718b0ddce8286163eb7f4bcaea25"],
 			"recipientId": "8477594334433202442L",
 			"amount": "0"
 		},
@@ -12009,7 +12009,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+7e3a99b599d37024e47313a03b2522cdb238d5c82ca2895d65ccc9063138c643"],
+			"stakes": ["+7e3a99b599d37024e47313a03b2522cdb238d5c82ca2895d65ccc9063138c643"],
 			"recipientId": "10061339281844477568L",
 			"amount": "0"
 		},
@@ -12072,7 +12072,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+96ded1032028cd008d35c7230a638bff13455b36781574a9f22bab09aad1717b"],
+			"stakes": ["+96ded1032028cd008d35c7230a638bff13455b36781574a9f22bab09aad1717b"],
 			"recipientId": "10973533420696678447L",
 			"amount": "0"
 		},
@@ -12135,7 +12135,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+479b97219706ccf76d3516d4da104c9a4cfdb22a8b87bf3a3b1b09379e6a474d"],
+			"stakes": ["+479b97219706ccf76d3516d4da104c9a4cfdb22a8b87bf3a3b1b09379e6a474d"],
 			"recipientId": "17205056432162668840L",
 			"amount": "0"
 		},
@@ -12198,7 +12198,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+8fd89d17ce266427ff7fb1b3a283ff913404f4f24d0ea5709815b31ce4602c08"],
+			"stakes": ["+8fd89d17ce266427ff7fb1b3a283ff913404f4f24d0ea5709815b31ce4602c08"],
 			"recipientId": "1831426387655050045L",
 			"amount": "0"
 		},
@@ -12261,7 +12261,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+f24ab602f4424a1fffc754e7492e174185a08c7b06a6b7ed4c8d1bbfcde00d50"],
+			"stakes": ["+f24ab602f4424a1fffc754e7492e174185a08c7b06a6b7ed4c8d1bbfcde00d50"],
 			"recipientId": "2623645469004101929L",
 			"amount": "0"
 		},
@@ -12324,7 +12324,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+c8fa24fed9c52d2cd1db8518690d81710918f64165f8d6ed2d0577f829c4a89b"],
+			"stakes": ["+c8fa24fed9c52d2cd1db8518690d81710918f64165f8d6ed2d0577f829c4a89b"],
 			"recipientId": "8813059541939740410L",
 			"amount": "0"
 		},
@@ -12387,7 +12387,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+e4a393e77e15b016036964854dbad19384296414ae015d0023e22dde2b20d2ac"],
+			"stakes": ["+e4a393e77e15b016036964854dbad19384296414ae015d0023e22dde2b20d2ac"],
 			"recipientId": "13371311846687282017L",
 			"amount": "0"
 		},
@@ -12450,7 +12450,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+f6ff6be887b6f4cc07c6d71dc95aa7bfe9aa888a4c998ca04ef10ecbefd06e5e"],
+			"stakes": ["+f6ff6be887b6f4cc07c6d71dc95aa7bfe9aa888a4c998ca04ef10ecbefd06e5e"],
 			"recipientId": "3539294500270642084L",
 			"amount": "0"
 		},
@@ -12513,7 +12513,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+26fbfbf00c45e24e49bc9dd94c08b60a0e5330c3527753e5e56de2baf591f953"],
+			"stakes": ["+26fbfbf00c45e24e49bc9dd94c08b60a0e5330c3527753e5e56de2baf591f953"],
 			"recipientId": "1059049099930719314L",
 			"amount": "0"
 		},
@@ -12576,7 +12576,7 @@
 		"fee": "10000000",
 		"type": 3,
 		"asset": {
-			"votes": ["+68c538b6b9ed2ec8b1938a3456a2d237629e991bdc9d9880fefbdc43e13c3607"],
+			"stakes": ["+68c538b6b9ed2ec8b1938a3456a2d237629e991bdc9d9880fefbdc43e13c3607"],
 			"recipientId": "13626916270102280476L",
 			"amount": "0"
 		},

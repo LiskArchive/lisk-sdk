@@ -74,20 +74,20 @@
 			}
 		},
 		{
-			"description": "Decoding of valid vote asset",
+			"description": "Decoding of valid stake asset",
 			"input": {
 				"value": "0a1c0a14cd32c73e9851c7137980063b8af64aa5a31651f810ffdf8bb4590a1d0a149d86ad24a3f030e5522b6598115bb4d70c1692c91080c0bebbc51a",
 				"schema": {
 					"$id": "voteAssetSchema",
 					"type": "object",
 					"properties": {
-						"votes": {
+						"stakes": {
 							"type": "array",
 							"fieldNumber": 1,
 							"items": {
 								"type": "object",
 								"properties": {
-									"delegateAddress": {
+									"validatorAddress": {
 										"dataType": "bytes",
 										"fieldNumber": 1
 									},
@@ -96,22 +96,22 @@
 										"fieldNumber": 2
 									}
 								},
-								"required": ["delegateAddress", "amount"]
+								"required": ["validatorAddress", "amount"]
 							}
 						}
 					},
-					"required": ["votes"]
+					"required": ["stakes"]
 				}
 			},
 			"output": {
 				"object": {
-					"votes": [
+					"stakes": [
 						{
-							"delegateAddress": "cd32c73e9851c7137980063b8af64aa5a31651f8",
+							"validatorAddress": "cd32c73e9851c7137980063b8af64aa5a31651f8",
 							"amount": "-12000000000"
 						},
 						{
-							"delegateAddress": "9d86ad24a3f030e5522b6598115bb4d70c1692c9",
+							"validatorAddress": "9d86ad24a3f030e5522b6598115bb4d70c1692c9",
 							"amount": "456000000000"
 						}
 					]

@@ -1,0 +1,760 @@
+{
+	"title": "Random seed for round not passed the middle of the round",
+	"summary": "Random seed for round not passed the middle of the round",
+	"config": {
+		"network": "devnet"
+	},
+	"runner": "pos_random_seed_generation",
+	"handler": "pos_random_seed_generation_not_passed_middle_of_round",
+	"testCases": [
+		{
+			"description": "Random seed for round not passed the middle of the round",
+			"config": {
+				"blocksPerRound": 103
+			},
+			"input": {
+				"blocks": [
+					{
+						"generatorPublicKey": "b4f98dacb1609ad11b63ea20b61a5721a9b502af948c96522260e3d89910a8d9",
+						"height": 1,
+						"asset": {
+							"seedReveal": "4a972ada6e979b0deab41248b563b288"
+						}
+					},
+					{
+						"generatorPublicKey": "842dcd768bf0311100781e6caa7141b62303a20274fa0b83357d7c920b8854c1",
+						"height": 2,
+						"asset": {
+							"seedReveal": "b40a782da34cac87e7244840acfbcc2a"
+						}
+					},
+					{
+						"generatorPublicKey": "0fd794d5949f1b5a89b3d6ee96c2ff8f927e3c0afbb2273db514787738df319b",
+						"height": 3,
+						"asset": {
+							"seedReveal": "d05902f9293657bc2697e35be1a39c6a"
+						}
+					},
+					{
+						"generatorPublicKey": "9c47ddd53f9b5dd467f5d43f56a75248193ec660f150d141025f0781210a1ad5",
+						"height": 4,
+						"asset": {
+							"seedReveal": "c4b2598f129ffc1da54097ccac9e4819"
+						}
+					},
+					{
+						"generatorPublicKey": "5972e8f60c5b4e7f14abbe238e1afb5639b93c4d7fddde4d994f4711133073e6",
+						"height": 5,
+						"asset": {
+							"seedReveal": "6eb0dfef7b56e34d2aded4894d9ed1f3"
+						}
+					},
+					{
+						"generatorPublicKey": "0c911feadff1cc494b08dba1b351da55efc640036909d1567cdedff9e1fba715",
+						"height": 6,
+						"asset": {
+							"seedReveal": "56c7c32a5d1d12b523f1ebd0ee0f2001"
+						}
+					},
+					{
+						"generatorPublicKey": "977d0f44714b0ef1a715c1d883095704f7211b4f7d249a7732ec162331771042",
+						"height": 7,
+						"asset": {
+							"seedReveal": "ed2568f0ec1eaba4529fe3f8962267f4"
+						}
+					},
+					{
+						"generatorPublicKey": "d45199abb012dc33be0af062472f91027ad555cdd07f9959b0f1282bd90c7f2b",
+						"height": 8,
+						"asset": {
+							"seedReveal": "0c2c88cbf6c61834325169952b0997b1"
+						}
+					},
+					{
+						"generatorPublicKey": "eb45b32066facbcf1a5f45a8981e6ddf127aa0eff5d1959d508fc881787c1f21",
+						"height": 9,
+						"asset": {
+							"seedReveal": "2f170c343020d6ced5e4285d43da889b"
+						}
+					},
+					{
+						"generatorPublicKey": "5f784c3821a293977cda333625fe44e692c1c43c6bcf6bdeee77040c0cb9fb59",
+						"height": 10,
+						"asset": {
+							"seedReveal": "08c630ca2fafe28777393d15d6c1ecbe"
+						}
+					},
+					{
+						"generatorPublicKey": "4001d4b535a2dae6ec543f376eb7c9fff4082c99f8274bf236d2eb543b965101",
+						"height": 11,
+						"asset": {
+							"seedReveal": "a538932eaa74f38ae7df3284a928570b"
+						}
+					},
+					{
+						"generatorPublicKey": "54435e76a85376617f4d61a251fd14664bd1842a33edca5a39bb01606de4965c",
+						"height": 12,
+						"asset": {
+							"seedReveal": "96bb5f4583d22f79fa9473ffe3542d0a"
+						}
+					},
+					{
+						"generatorPublicKey": "b87cb682636f6ad9bea38435736ff5e2d14c877b7886004f3c57878c0cda16f7",
+						"height": 13,
+						"asset": {
+							"seedReveal": "57a8f707817a849d51f427eff0a96042"
+						}
+					},
+					{
+						"generatorPublicKey": "6a616e68b0b841066a9ef39f1bfcec61c3f0bc1ed4bcc1ded7fb02c9e7fd967f",
+						"height": 14,
+						"asset": {
+							"seedReveal": "448fc0fdf4345b2c63dd03e50b3bd7b9"
+						}
+					},
+					{
+						"generatorPublicKey": "16e2542b30c94719fb5d59b9ef4bcd5c236b94074afc6d0d5b98dc29efb950f5",
+						"height": 15,
+						"asset": {
+							"seedReveal": "666e2f5bd01a3cf0510165ecd9ffdf46"
+						}
+					},
+					{
+						"generatorPublicKey": "5514e77982e28e410e29e4c7111754137520a5023ecd81a28cc8bd6146d254dd",
+						"height": 16,
+						"asset": {
+							"seedReveal": "7f5a27810790e72c9081adcef2216328"
+						}
+					},
+					{
+						"generatorPublicKey": "8272e341349df2647ba6ced1bd4bb9ab8b00ae881efc61e43b5e7c9023594516",
+						"height": 17,
+						"asset": {
+							"seedReveal": "5ceb9e3bbce3c01b0fcb98f427a28949"
+						}
+					},
+					{
+						"generatorPublicKey": "df6601c47c61de84e699e12c05943e4bbdedc31d658f075a4c6e4ce521d7d349",
+						"height": 18,
+						"asset": {
+							"seedReveal": "6c9527443f60a71f7d94ee09208fa0bb"
+						}
+					},
+					{
+						"generatorPublicKey": "c4e7e2f404529b2e479c0558ecadafaef9898dd0e2afee25f8318e31936c8f21",
+						"height": 19,
+						"asset": {
+							"seedReveal": "491096dbb7c71f2b33271b74700e54c8"
+						}
+					},
+					{
+						"generatorPublicKey": "1953e0296153f7d01bff9aa80252759d006fc897e9a462ed2000bca03bb7d457",
+						"height": 20,
+						"asset": {
+							"seedReveal": "c1f2e4329cc9d406f7ab3ecc0d4a8b42"
+						}
+					},
+					{
+						"generatorPublicKey": "6c9b834531d485b9a55b4080182841ab25f8318e6ba094d88d4a64ae6d3426fc",
+						"height": 21,
+						"asset": {
+							"seedReveal": "86e39b58f8d0599d26c1deb0c6a64f88"
+						}
+					},
+					{
+						"generatorPublicKey": "f127d5c8fb3691138f8bfb7ec4b4c09500f5b082085028299e63095171389f4a",
+						"height": 22,
+						"asset": {
+							"seedReveal": "95c13e55faa415b8dddfaf984cbba148"
+						}
+					},
+					{
+						"generatorPublicKey": "8a105753d8aa69befeba70c5a1f07a19ab5dd0a2eb73c3535f249d5fa96a82ca",
+						"height": 23,
+						"asset": {
+							"seedReveal": "81ce2f5b87a472f48de6c4ba880e8c6c"
+						}
+					},
+					{
+						"generatorPublicKey": "4475b936898ea7397d8013c2e0ba7e5feef82401f8b8b6a2f50482ca5f174357",
+						"height": 24,
+						"asset": {
+							"seedReveal": "4af492ebcdd8cbdf6b3db5ea3f17c44b"
+						}
+					},
+					{
+						"generatorPublicKey": "fe70f5dd9a4b1fea80f5e7499a4d7a9340fe4dea61c271499442b520d0bb3dbc",
+						"height": 25,
+						"asset": {
+							"seedReveal": "ae57faf820863fdb4fbad36c279b9ac2"
+						}
+					},
+					{
+						"generatorPublicKey": "266f3f8731865098b3f82282c11ef9ccd0043c63a6fb9d20f7aa46c6fcab35a8",
+						"height": 26,
+						"asset": {
+							"seedReveal": "253aca06d07c2db1f22e1c98e347fe1d"
+						}
+					},
+					{
+						"generatorPublicKey": "d823065a79b8ef13899b696d6350d828e081ea483f3549e6d1a57e3ec0631e3b",
+						"height": 27,
+						"asset": {
+							"seedReveal": "d30932f2f49a5f946305a7a4150788ee"
+						}
+					},
+					{
+						"generatorPublicKey": "4f0d6a961db13a035ca6a84c330b303b9950bfd08d140ba60cab9b65bef944ab",
+						"height": 28,
+						"asset": {
+							"seedReveal": "a0b4e101573ef13914b96519ecbdc27c"
+						}
+					},
+					{
+						"generatorPublicKey": "e50a1d76d3990518f817a0504813897ce3b3c58ca92a9448c963566d3f33d707",
+						"height": 29,
+						"asset": {
+							"seedReveal": "a3105b0c3510c48242149cfd5a74f0cf"
+						}
+					},
+					{
+						"generatorPublicKey": "83e6c92d5a8cf96a94f75196d9fa882e1e4c7ba35232d629dcdb56c9b23d6eeb",
+						"height": 30,
+						"asset": {
+							"seedReveal": "1aee3942973f00e8f1f80bcf6b0a730e"
+						}
+					},
+					{
+						"generatorPublicKey": "e89e3321099d6e413f205eb4063bb131a0592c5716e4ffe2c4d8a5fa44785307",
+						"height": 31,
+						"asset": {
+							"seedReveal": "b895fc436da35e9faa266c9f3ee7fa55"
+						}
+					},
+					{
+						"generatorPublicKey": "c26c21a3aff990e9e34155d75f15fac35a43119133ad15a2349de1b78f162f93",
+						"height": 32,
+						"asset": {
+							"seedReveal": "4311e50b15ae883b847efdeee23b5b71"
+						}
+					},
+					{
+						"generatorPublicKey": "47603aaaa6bf0944af978ee4aca61c6d68aa184d58bdd2409b544664ce5127b1",
+						"height": 33,
+						"asset": {
+							"seedReveal": "1937f9e814d527735fd50c9a987602d6"
+						}
+					},
+					{
+						"generatorPublicKey": "21f027453e69adae0b271f33df6897f309d7324c1d635097cbfced4228c23726",
+						"height": 34,
+						"asset": {
+							"seedReveal": "6aa25dd334109bc75fca162db93056a9"
+						}
+					},
+					{
+						"generatorPublicKey": "95176306bca4670327a69dbed04f65c69c77f46e2e7a4ea830a40aaee28f6632",
+						"height": 35,
+						"asset": {
+							"seedReveal": "56a75467d9159de7009f5531eca113ff"
+						}
+					},
+					{
+						"generatorPublicKey": "0508416e994d30c1a92948bd3936fa3fecba6932edd859fd5735f841b3f75e96",
+						"height": 36,
+						"asset": {
+							"seedReveal": "b4dce9effcf610a879c153ed9d5c3578"
+						}
+					},
+					{
+						"generatorPublicKey": "b28d5e413921d219a4c62abd69640bc459339f00125593539189304dde4b3db9",
+						"height": 37,
+						"asset": {
+							"seedReveal": "530e9fc31f034b64abd10820db7cee71"
+						}
+					},
+					{
+						"generatorPublicKey": "6d9f346a3d2cd29b350076610644d3485d9f49cba62b85d49dac062733a7731e",
+						"height": 38,
+						"asset": {
+							"seedReveal": "5c82697075c8d56cbf67fc6f4d420379"
+						}
+					},
+					{
+						"generatorPublicKey": "bbbe6f7f8f2b75c82ee14f4ee6c13c4a2242713a4df158294ea9dde664e53a90",
+						"height": 39,
+						"asset": {
+							"seedReveal": "0c49e13455f5fb765c3abd0a2b13f8a6"
+						}
+					},
+					{
+						"generatorPublicKey": "e092d5ac37e6f4cb7f92eecbfedff60be5d73fd33accd1c652bd1eb0227c0137",
+						"height": 40,
+						"asset": {
+							"seedReveal": "04c19ee8a798bf65035c2201e4c738c7"
+						}
+					},
+					{
+						"generatorPublicKey": "dd10f589c25d4c1dbce87371ec05be8ea9a4f7d9772cc0739ef2f1bc83bb8856",
+						"height": 41,
+						"asset": {
+							"seedReveal": "e41a1b8292b4ff1be3d093b7b6b7a982"
+						}
+					},
+					{
+						"generatorPublicKey": "070d317c709e12e199f47316cee56a108f097357b8f8f0278fe179e58d8c2c02",
+						"height": 42,
+						"asset": {
+							"seedReveal": "c78b81ce7943d5f16383339ebdad2b44"
+						}
+					},
+					{
+						"generatorPublicKey": "2d62bc4e726f9151a7a773e7ca7c22cd5748f6991371653c4359282e70d4593e",
+						"height": 43,
+						"asset": {
+							"seedReveal": "a686a27a5c540e0bc31e2b338765e686"
+						}
+					},
+					{
+						"generatorPublicKey": "a4cd42bc2867dadc39206a9b511f9f70a3a4bb80eead223307f7c56b73f4549e",
+						"height": 44,
+						"asset": {
+							"seedReveal": "0478e260b7da3b61ad58749a4df21c42"
+						}
+					},
+					{
+						"generatorPublicKey": "2d1e3b2ed6e5f908f67e42c1caecda2a64882b339fcec18372bb3ce4e03b1176",
+						"height": 45,
+						"asset": {
+							"seedReveal": "f1aaa18fe604728a5eaeea64687d6445"
+						}
+					},
+					{
+						"generatorPublicKey": "e867c96fe3818c457c72ba12894b83e5aaf5e995dcebd56d1b22d0f63a0a4e97",
+						"height": 46,
+						"asset": {
+							"seedReveal": "572809687dada8129df8986d60266a40"
+						}
+					},
+					{
+						"generatorPublicKey": "399c7b332786a15742380b27e2807259d45e115ca926cfcc81f4c6d99dd5dcef",
+						"height": 47,
+						"asset": {
+							"seedReveal": "d4f0fc4f944e57094e5abdd9cc7d1574"
+						}
+					},
+					{
+						"generatorPublicKey": "b1d09697cf898a3f3f0e71c30af3ff09f9e784dfcee34abfaaf80cdf63e6df70",
+						"height": 48,
+						"asset": {
+							"seedReveal": "54b6e7ed1d3af8af79517ad1d998b11c"
+						}
+					},
+					{
+						"generatorPublicKey": "ba698f8c2836f9597514e55cdca59ccac82ba75259f94da5130f1158043d6b03",
+						"height": 49,
+						"asset": {
+							"seedReveal": "0f0532d65feb4379651fc0a2650025c1"
+						}
+					},
+					{
+						"generatorPublicKey": "33c8c34395a71b9052b702f2f165a824241b6af5c13ce961eef6d16684b4119d",
+						"height": 50,
+						"asset": {
+							"seedReveal": "a5f9bf380c90eb24af0ff4644702de2c"
+						}
+					},
+					{
+						"generatorPublicKey": "c2f69b9db94ee1dcfabdc742a8ae9804ea2ac727c8ee0b2f1dd85de5db42423f",
+						"height": 51,
+						"asset": {
+							"seedReveal": "bef23bd88a174fd18f46ed71ed8d9134"
+						}
+					},
+					{
+						"generatorPublicKey": "0ed77b95c171ee9dd0781abaccdc1b63dd0d84a7c108a9e1ce8647e3a72da321",
+						"height": 52,
+						"asset": {
+							"seedReveal": "11a80c6bc43b58694b8ac5ee3ff08f68"
+						}
+					},
+					{
+						"generatorPublicKey": "87980f8740cb615a948576b8ca152e6e89aa0e63c08ed2d44d03fe8d0e04f6ca",
+						"height": 53,
+						"asset": {
+							"seedReveal": "85e334c0102fc8f943bf51343f758cff"
+						}
+					},
+					{
+						"generatorPublicKey": "66d8634d9c2cbff3ddc5be8856f1d582a20a6127a5875757a46b63f41d1d3fc7",
+						"height": 54,
+						"asset": {
+							"seedReveal": "c515ef829d7e85260fe2bc1c2a9dd452"
+						}
+					},
+					{
+						"generatorPublicKey": "b54d973bc5978a6f5d56710ba944529ad5c6f7d1c5048304dd982e2c4a378caf",
+						"height": 55,
+						"asset": {
+							"seedReveal": "e39bba3fe619d64ac3b9fccf1136f080"
+						}
+					},
+					{
+						"generatorPublicKey": "e927389e5ba0b2ab9cc5862302829931b5925c5a1eb579323ab4b34389cf8db1",
+						"height": 56,
+						"asset": {
+							"seedReveal": "059b353e7b90eeeb4f57c00250d192f6"
+						}
+					},
+					{
+						"generatorPublicKey": "0f969918f98c71d37267c554c10e0dd913d9518e32e2de6516226ea47a67b023",
+						"height": 57,
+						"asset": {
+							"seedReveal": "532dbb0cfc2b6a1b9fe14e86192e2a46"
+						}
+					},
+					{
+						"generatorPublicKey": "9094583d4d097cef625d7bc82083eac3522c25d45bbc9dc4bf21210c16879680",
+						"height": 58,
+						"asset": {
+							"seedReveal": "be23dc233ab7c94f139b01bd5ddfc121"
+						}
+					},
+					{
+						"generatorPublicKey": "3bf78d6544c1adefa663de1f74543d72224d41d4a11531a7841c9e5cbc12f1f5",
+						"height": 59,
+						"asset": {
+							"seedReveal": "b3d9fdd40c21439aa0fa7a9db45595bd"
+						}
+					},
+					{
+						"generatorPublicKey": "bb7083b0babbaaa327be9699699ea7ca5fa40f425482139687a79603a416fde6",
+						"height": 60,
+						"asset": {
+							"seedReveal": "bfc11941a2d335d9af6588a776607ee6"
+						}
+					},
+					{
+						"generatorPublicKey": "cfdfcacd90a02dbaa60a9de040acae434b0b9c2f861ce9328819fdaa9090be6e",
+						"height": 61,
+						"asset": {
+							"seedReveal": "9cc60cdfb07ecea331e9500bf67b42fa"
+						}
+					},
+					{
+						"generatorPublicKey": "93d3b024b802c03ee2225fc0a279d456b96188b1f4c6ce987e28b5dc4c641030",
+						"height": 62,
+						"asset": {
+							"seedReveal": "7a3e8a06eb640f590c8b152048868214"
+						}
+					},
+					{
+						"generatorPublicKey": "74413215d6c3c3230858bf8cd04f1ef68a2a935d08548e86fab48af6d2bc3fcb",
+						"height": 63,
+						"asset": {
+							"seedReveal": "0cfb97629708a4b95665dfe4288f4564"
+						}
+					},
+					{
+						"generatorPublicKey": "122a9b80e4b48aae984aae6bf2e01c31bc7d7cbcb1768b2893b2878a437f8507",
+						"height": 64,
+						"asset": {
+							"seedReveal": "74297a59d609ae80def4da76f065eb94"
+						}
+					},
+					{
+						"generatorPublicKey": "aae2851afeb6907ecfb8baa03e02e63137e697ce0b28f84323397bfbf5276229",
+						"height": 65,
+						"asset": {
+							"seedReveal": "1d2960276ccaf4f2b5a3a873ffe04541"
+						}
+					},
+					{
+						"generatorPublicKey": "4eb50ec0d38a1d14abd7de2a1868ecb30483f9f1960100c7b2a865d114159525",
+						"height": 66,
+						"asset": {
+							"seedReveal": "c2b188d0ae04f4e5076a8c92fe18ac1e"
+						}
+					},
+					{
+						"generatorPublicKey": "902a4441ae905a38ab7153d7f83d504d91a9311fa7ad6545bfca901c9dfca8ff",
+						"height": 67,
+						"asset": {
+							"seedReveal": "b2167c0c890c19dbdff65e047551b6e1"
+						}
+					},
+					{
+						"generatorPublicKey": "e479164a31490c2d62df6c8c044365338a67f9cedd8ef8255357369a222f316f",
+						"height": 68,
+						"asset": {
+							"seedReveal": "3bad3a3747fd7586d83202e6326c91fb"
+						}
+					},
+					{
+						"generatorPublicKey": "7c4017932998a5c2210a9f6bb8655382f97ed37ecf079f160fdfb7e6e927fdca",
+						"height": 69,
+						"asset": {
+							"seedReveal": "88e168caeed23efead1e65dd4e76e7f2"
+						}
+					},
+					{
+						"generatorPublicKey": "a2a8eae9e0570d772df7ce38c2d0bcf385bc19a3cf546ea8bfeaf311e5cd1a04",
+						"height": 70,
+						"asset": {
+							"seedReveal": "036b1c876e6c61cd20ecb55e2e7b1ade"
+						}
+					},
+					{
+						"generatorPublicKey": "6dddb2c1137c600283bab0f0b118f77b6e4cf08c2539d1716b90837e21e3504c",
+						"height": 71,
+						"asset": {
+							"seedReveal": "27c91b566e2b3c2c526fdc45f7acdeca"
+						}
+					},
+					{
+						"generatorPublicKey": "30b1fcea3198d8c48ca5be65a3a2db1b7c088bfd921371c3981d9d2d1015d31a",
+						"height": 72,
+						"asset": {
+							"seedReveal": "f8d56dcdcf894d0cd604aefa4883f029"
+						}
+					},
+					{
+						"generatorPublicKey": "752fc5fc9db4eb28d9dbef1bedbc5c709c2e5e028cd3f9c3cc31c61b3c684efb",
+						"height": 73,
+						"asset": {
+							"seedReveal": "d2422e3c54b3acc14ab6cc3b050f4d11"
+						}
+					},
+					{
+						"generatorPublicKey": "508eca3b93cf0c9e25b4b0e671303a911e39185135a7a90a587f03ea99258f38",
+						"height": 74,
+						"asset": {
+							"seedReveal": "f9a14e8eaa115adb5867e012fd5446b3"
+						}
+					},
+					{
+						"generatorPublicKey": "1c67d56de7c940a628c9120cbe0f67a7992bb9dd5ad5e990e4201a1ff3b86256",
+						"height": 75,
+						"asset": {
+							"seedReveal": "200908b84a13055cf545f462f87c359d"
+						}
+					},
+					{
+						"generatorPublicKey": "58be0769be3396ea445ad05914373ab465d568652b39fe73ab46149d13d08024",
+						"height": 76,
+						"asset": {
+							"seedReveal": "dd43167f1ca3e5e1658ab7a6813a92e9"
+						}
+					},
+					{
+						"generatorPublicKey": "a81b2fe2cb8770d8a4bf69ba2792f0c965bec84c1370954d8a5878d6f39a0d22",
+						"height": 77,
+						"asset": {
+							"seedReveal": "77d68483c5f537bdd0522ab30ae5458f"
+						}
+					},
+					{
+						"generatorPublicKey": "c322571143875b44362821c3eaceb2568ca12f9bd471325e0172be3e6a468f5e",
+						"height": 78,
+						"asset": {
+							"seedReveal": "9078fe4fe18727778e21f4bbf1835234"
+						}
+					},
+					{
+						"generatorPublicKey": "635188690d7de1e39d6c03fe09f72091518618971a3d5c990fa85840936d537b",
+						"height": 79,
+						"asset": {
+							"seedReveal": "938b11fd09d91e49fecf123e45776559"
+						}
+					},
+					{
+						"generatorPublicKey": "ede4418538bbdcdd0b6755556748294cabdd32893945a01891b447d6162f713f",
+						"height": 80,
+						"asset": {
+							"seedReveal": "299ac558409b990c08f49afbfb6ff7ca"
+						}
+					},
+					{
+						"generatorPublicKey": "9123a06c42bb6a4e284815af0d38d6ad8a7802c8d187cdefcfce74488a3de6d6",
+						"height": 81,
+						"asset": {
+							"seedReveal": "ea5bbfa5f7499d2756572dae00edab36"
+						}
+					},
+					{
+						"generatorPublicKey": "450faf313a2acbe3c8bd601685c12e2de810369f6c760bbf1dcc7983c93ee95d",
+						"height": 82,
+						"asset": {
+							"seedReveal": "5d1a53ca8df90168f11e354ad845ae41"
+						}
+					},
+					{
+						"generatorPublicKey": "5611c82138404f753fdf7a8f6fb2d965082df316c868986a8a5bcb36437a6a9a",
+						"height": 83,
+						"asset": {
+							"seedReveal": "d8442a33783425babc7c64b8d8bbf032"
+						}
+					},
+					{
+						"generatorPublicKey": "1e9b9e26806bdcaa052612279071d53004bce9437ce44954ed9478530c11d0a7",
+						"height": 84,
+						"asset": {
+							"seedReveal": "bba44fec03364289da4a7f9bb8bea5bb"
+						}
+					},
+					{
+						"generatorPublicKey": "2deae67226e1430ad1dcf677614424a470e473f2cbfa24641edf10124141bb73",
+						"height": 85,
+						"asset": {
+							"seedReveal": "055cb553fd7ddba4438857d439536a4e"
+						}
+					},
+					{
+						"generatorPublicKey": "39bbb1c5ece423d6291e4c4ce490d45747cae3026b4317f5e4163f72fbbffec8",
+						"height": 86,
+						"asset": {
+							"seedReveal": "6340099ac574be1202913b43b7ca36fb"
+						}
+					},
+					{
+						"generatorPublicKey": "ff427146210a65ef7185fc3bdd3ba3f7e3a69ab0334eeab38733928166e0f3c7",
+						"height": 87,
+						"asset": {
+							"seedReveal": "8ae7184f12b1c51540f02d505cee7009"
+						}
+					},
+					{
+						"generatorPublicKey": "6e7e168c2740ca3c85e501742a3538d320cc2ec0971e216bd319fc710638d6bc",
+						"height": 88,
+						"asset": {
+							"seedReveal": "5b0183f3f766a37ba6632ca6702d1678"
+						}
+					},
+					{
+						"generatorPublicKey": "2f59f6c81e1cd5ad416bc5eac4431efaec182605d080565ddfc3a94fdaf34ad0",
+						"height": 89,
+						"asset": {
+							"seedReveal": "7813363b153089a8d357de4ab9bb8263"
+						}
+					},
+					{
+						"generatorPublicKey": "f94042dfa329046380d7f36174400a14088024ba2a397ff4d894e7698b1d46e0",
+						"height": 90,
+						"asset": {
+							"seedReveal": "849c6a9bb7300a964bda8344e9aeee44"
+						}
+					},
+					{
+						"generatorPublicKey": "6121910a23a9fed7e7ab38e498763d124881f139cc9473b6cd9fb65d04eb12f0",
+						"height": 91,
+						"asset": {
+							"seedReveal": "76d92a61ad7caacef881ff66b9a7844f"
+						}
+					},
+					{
+						"generatorPublicKey": "174e68aeaa04e77323bd416d57fea97986f52d706c8d99f6c1e7c2dfe51dfe14",
+						"height": 92,
+						"asset": {
+							"seedReveal": "075f8d36463ea817f737d101fb53768d"
+						}
+					},
+					{
+						"generatorPublicKey": "78fd16a43909729749f38ee7b2ef9e5258caffd7055b99468e7786ac0116b415",
+						"height": 93,
+						"asset": {
+							"seedReveal": "5d66b90dece5e52660c11040410b29ac"
+						}
+					},
+					{
+						"generatorPublicKey": "4b935b6b19cfbd2c446ce037566908e677a806f757ef018efac84471bf48538e",
+						"height": 94,
+						"asset": {
+							"seedReveal": "ea6f9d727608b2ccde9e9867c86a58f1"
+						}
+					},
+					{
+						"generatorPublicKey": "7a0fcce77bd4d8035458f07e15ce7034cdb308b62fb99640f584a43623fab8a7",
+						"height": 95,
+						"asset": {
+							"seedReveal": "bd3abdb66a85b1b43d0c899de2927f49"
+						}
+					},
+					{
+						"generatorPublicKey": "bf6ebd7d49278e9d428402e15a0b9974b5983f39433ed257a280a69fbd3b6d77",
+						"height": 96,
+						"asset": {
+							"seedReveal": "94f505d55403da5f302ade77d7ca9fbf"
+						}
+					},
+					{
+						"generatorPublicKey": "252365f614830cb173d407506250461063b69a2abb22e7f9ebb688e24d8cabad",
+						"height": 97,
+						"asset": {
+							"seedReveal": "7393c875da7858fbe1abd3ed2de03d10"
+						}
+					},
+					{
+						"generatorPublicKey": "9574324bddddd57e3d075efeb80944f67b3fd6f9bfb2759dbdfa1558a00855c6",
+						"height": 98,
+						"asset": {
+							"seedReveal": "cfd4d1df7f479519cf86737da9cba7ff"
+						}
+					},
+					{
+						"generatorPublicKey": "e7e026623f187b536991baceaf4e026401fc1ccf36201214560d94dd17319c9f",
+						"height": 99,
+						"asset": {
+							"seedReveal": "2c7364d9fbfd58c8f736b8e7f905d01c"
+						}
+					},
+					{
+						"generatorPublicKey": "70342b7c85e4e150e0b5a7cd5207e92a7346c3400f9725020d173212cec4720d",
+						"height": 100,
+						"asset": {
+							"seedReveal": "1674ebaee6ab6401276cc81fb01766b4"
+						}
+					},
+					{
+						"generatorPublicKey": "2f75504e01db48becdb6376bae6f12c6ff685496dd162dc7b3a01324fc2cdb21",
+						"height": 101,
+						"asset": {
+							"seedReveal": "e67f54cea93982f25c510e656cfabff4"
+						}
+					},
+					{
+						"generatorPublicKey": "3e0f75205dcd924d48bee93747e6e20e2a601fd98a296e94e545d196a7ff3063",
+						"height": 102,
+						"asset": {
+							"seedReveal": "d05178216858fb5fbee790668d5deef7"
+						}
+					},
+					{
+						"generatorPublicKey": "71f5b7909040c3e09bc97da8bec8444e0ec4e5201d0f29054daa416d30c8a86a",
+						"height": 103,
+						"asset": {
+							"seedReveal": "03048b11fdcd9ebfab8925fa81dae1ba"
+						}
+					},
+					{
+						"generatorPublicKey": "b4f98dacb1609ad11b63ea20b61a5721a9b502af948c96522260e3d89910a8d9",
+						"height": 104,
+						"asset": {
+							"seedReveal": "05f3f3b4e263db505aa03e8b25a70534"
+						}
+					},
+					{
+						"generatorPublicKey": "842dcd768bf0311100781e6caa7141b62303a20274fa0b83357d7c920b8854c1",
+						"height": 105,
+						"asset": {
+							"seedReveal": "bea97e75a744324c20c98fa740b1c480"
+						}
+					}
+				]
+			},
+			"output": {
+				"randomSeed1": null,
+				"randomSeed2": null
+			}
+		}
+	]
+}

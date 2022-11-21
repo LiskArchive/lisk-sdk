@@ -40,10 +40,10 @@ describe('system:node-info command', () => {
 				distance: 3000000,
 			},
 			communityIdentifier: 'Lisk',
-			activeDelegates: 101,
-			standbyDelegates: 2,
+			activeValidators: 101,
+			standbyValidators: 2,
 			totalAmount: '10000000000000000',
-			delegateListRoundOffset: 2,
+			validatorListRoundOffset: 2,
 		},
 	};
 

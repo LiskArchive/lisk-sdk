@@ -16,8 +16,8 @@
 import { Schema } from '@liskhq/lisk-codec';
 import { address } from '@liskhq/lisk-cryptography';
 import {
-	dposGenesisStoreSchema,
-	DPoSModule,
+	posGenesisStoreSchema,
+	PoSModule,
 	tokenGenesisStoreSchema,
 	TokenModule,
 } from 'lisk-framework';
@@ -109,7 +109,7 @@ export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefault
 			schema: tokenGenesisStoreSchema,
 		},
 		{
-			module: new DPoSModule().name,
+			module: new PoSModule().name,
 			data: {
 				validators: input.keysList.map((v, i) => ({
 					address: v.address,
@@ -125,13 +125,13 @@ export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefault
 					lastCommissionIncreaseHeight: 0,
 					sharingCoefficients: [],
 				})),
-				voters: [],
+				stakers: [],
 				genesisData: {
 					initRounds: 3,
-					initDelegates: input.keysList.slice(0, input.numberOfValidators).map(v => v.address),
+					initValidators: input.keysList.slice(0, input.numberOfValidators).map(v => v.address),
 				},
 			} as Record<string, unknown>,
-			schema: dposGenesisStoreSchema,
+			schema: posGenesisStoreSchema,
 		},
 	];
 

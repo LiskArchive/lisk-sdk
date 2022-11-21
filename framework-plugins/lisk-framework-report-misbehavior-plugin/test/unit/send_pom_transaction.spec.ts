@@ -90,13 +90,13 @@ describe('Send PoM transaction', () => {
 			metadata: [
 				{
 					id: utils.intToBuffer(13, 4).toString('hex'),
-					name: 'dpos',
+					name: 'pos',
 					commands: [
 						{
 							id: utils.intToBuffer(3, 4).toString('hex'),
 							name: 'reportDelegateMisbehavior',
 							params: {
-								$id: '/lisk/dpos/pom',
+								$id: '/lisk/pos/pom',
 								type: 'object',
 								required: ['header1', 'header2'],
 								properties: {
@@ -151,7 +151,7 @@ describe('Send PoM transaction', () => {
 			metadata: [
 				{
 					id: utils.intToBuffer(13, 4).toString('hex'),
-					name: 'dpos',
+					name: 'pos',
 					commands: [],
 				},
 			],

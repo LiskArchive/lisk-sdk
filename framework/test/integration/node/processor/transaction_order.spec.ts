@@ -76,7 +76,7 @@ describe('Transaction order', () => {
 			});
 		});
 
-		describe('when account register as delegate and make self vote', () => {
+		describe('when account register as validator and make self stake', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
@@ -92,10 +92,10 @@ describe('Transaction order', () => {
 					chainID,
 					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
-				const registerDelegateTx = createDelegateRegisterTransaction({
+				const registerValidatorTx = createDelegateRegisterTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('1100000000'),
-					username: 'new_delegate',
+					username: 'new_validator',
 					chainID,
 					blsKey: newAccount.blsPublicKey,
 					blsProofOfPossession: newAccount.blsPoP,
@@ -105,16 +105,16 @@ describe('Transaction order', () => {
 				const selfVoteTx = createDelegateVoteTransaction({
 					nonce: BigInt('1'),
 					fee: BigInt('100000000'),
-					votes: [
+					stakes: [
 						{
-							delegateAddress: newAccount.address,
+							validatorAddress: newAccount.address,
 							amount: BigInt('1000000000'),
 						},
 					],
 					chainID,
 					privateKey: newAccount.privateKey,
 				});
-				newBlock = await processEnv.createBlock([fundingTx, registerDelegateTx, selfVoteTx]);
+				newBlock = await processEnv.createBlock([fundingTx, registerValidatorTx, selfVoteTx]);
 				await processEnv.process(newBlock);
 			});
 

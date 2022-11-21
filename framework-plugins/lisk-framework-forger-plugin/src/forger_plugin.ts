@@ -38,18 +38,18 @@ type BlockJSON = chain.BlockJSON;
 type TransactionJSON = chain.TransactionJSON;
 
 const BLOCKS_BATCH_TO_SYNC = 1000;
-const MODULE_DPOS = 'dpos';
-const COMMAND_VOTE = 'vote';
+const MODULE_DPOS = 'pos';
+const COMMAND_VOTE = 'stake';
 
 interface Data {
 	readonly blockHeader: BlockHeaderJSON;
 }
 
 interface VotesParams {
-	readonly votes: Array<Readonly<Vote>>;
+	readonly stakes: Array<Readonly<Vote>>;
 }
 interface Vote {
-	delegateAddress: string;
+	validatorAddress: string;
 	amount: string;
 }
 
@@ -276,13 +276,13 @@ export class ForgerPlugin extends BasePlugin {
 	): ForgerReceivedVotes {
 		const forgerReceivedVotes: ForgerReceivedVotes = {};
 
-		const dposModuleMeta = this.apiClient.metadata.find(c => c.name === MODULE_DPOS);
-		if (!dposModuleMeta) {
-			throw new Error('DPoS votes command is not registered.');
+		const posModuleMeta = this.apiClient.metadata.find(c => c.name === MODULE_DPOS);
+		if (!posModuleMeta) {
+			throw new Error('DPoS stakes command is not registered.');
 		}
-		const voteCommandMeta = dposModuleMeta.commands.find(c => c.name === COMMAND_VOTE);
+		const voteCommandMeta = posModuleMeta.commands.find(c => c.name === COMMAND_VOTE);
 		if (!voteCommandMeta || !voteCommandMeta.params) {
-			throw new Error('DPoS votes command is not registered.');
+			throw new Error('DPoS stakes command is not registered.');
 		}
 
 		for (const trx of transactions) {
@@ -291,14 +291,14 @@ export class ForgerPlugin extends BasePlugin {
 					voteCommandMeta.params,
 					Buffer.from(trx.params, 'hex'),
 				);
-				params.votes.reduce((acc: ForgerReceivedVotes, curr) => {
+				params.stakes.reduce((acc: ForgerReceivedVotes, curr) => {
 					if (
-						this._forgersList.has(getAddressBuffer(curr.delegateAddress)) &&
-						acc[curr.delegateAddress]
+						this._forgersList.has(getAddressBuffer(curr.validatorAddress)) &&
+						acc[curr.validatorAddress]
 					) {
-						acc[curr.delegateAddress].amount += BigInt(curr.amount);
+						acc[curr.validatorAddress].amount += BigInt(curr.amount);
 					} else {
-						acc[curr.delegateAddress] = {
+						acc[curr.validatorAddress] = {
 							address: cryptography.address.getAddressFromPublicKey(
 								Buffer.from(trx.senderPublicKey, 'hex'),
 							),
@@ -316,10 +316,10 @@ export class ForgerPlugin extends BasePlugin {
 	private async _addVotesReceived(transactions: ReadonlyArray<TransactionJSON>): Promise<void> {
 		const forgerReceivedVotes = this._getForgerReceivedVotes(transactions);
 
-		for (const [delegateAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
+		for (const [validatorAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
 			const forgerInfo = await getForgerInfo(
 				this._forgerPluginDB,
-				getBinaryAddress(delegateAddress),
+				getBinaryAddress(validatorAddress),
 			);
 
 			const voterIndex = forgerInfo.votesReceived.findIndex(aVote =>
@@ -334,17 +334,17 @@ export class ForgerPlugin extends BasePlugin {
 					forgerInfo.votesReceived.splice(voterIndex, 1);
 				}
 			}
-			await setForgerInfo(this._forgerPluginDB, getBinaryAddress(delegateAddress), forgerInfo);
+			await setForgerInfo(this._forgerPluginDB, getBinaryAddress(validatorAddress), forgerInfo);
 		}
 	}
 
 	private async _revertVotesReceived(transactions: ReadonlyArray<TransactionJSON>): Promise<void> {
 		const forgerReceivedVotes = this._getForgerReceivedVotes(transactions);
 
-		for (const [delegateAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
+		for (const [validatorAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
 			const forgerInfo = await getForgerInfo(
 				this._forgerPluginDB,
-				getBinaryAddress(delegateAddress),
+				getBinaryAddress(validatorAddress),
 			);
 			const voterIndex = forgerInfo.votesReceived.findIndex(aVote =>
 				aVote.address.equals(votesReceived.address),
@@ -356,7 +356,7 @@ export class ForgerPlugin extends BasePlugin {
 				if (forgerInfo.votesReceived[voterIndex].amount === BigInt(0)) {
 					forgerInfo.votesReceived.splice(voterIndex, 1);
 				}
-				await setForgerInfo(this._forgerPluginDB, getBinaryAddress(delegateAddress), forgerInfo);
+				await setForgerInfo(this._forgerPluginDB, getBinaryAddress(validatorAddress), forgerInfo);
 			}
 		}
 	}

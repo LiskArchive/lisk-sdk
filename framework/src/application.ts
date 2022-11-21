@@ -44,7 +44,7 @@ import { TokenModule, TokenMethod } from './modules/token';
 import { AuthModule, AuthMethod } from './modules/auth';
 import { FeeModule, FeeMethod } from './modules/fee';
 import { RandomModule, RandomMethod } from './modules/random';
-import { DPoSModule, DPoSMethod } from './modules/dpos_v2';
+import { PoSModule, PoSMethod } from './modules/pos';
 import { generateGenesisBlock, GenesisBlockGenerateInput } from './genesis_block';
 import { StateMachine } from './state_machine';
 import { ABIHandler, EVENT_ENGINE_READY } from './abi_handler/abi_handler';
@@ -112,7 +112,7 @@ interface DefaultApplication {
 		fee: FeeMethod;
 		random: RandomMethod;
 		reward: DynamicRewardMethod;
-		dpos: DPoSMethod;
+		pos: PoSMethod;
 		interoperability: SidechainInteroperabilityMethod | MainchainInteroperabilityMethod;
 	};
 }
@@ -168,7 +168,7 @@ export class Application {
 		const rewardModule = new DynamicRewardModule();
 		const randomModule = new RandomModule();
 		const validatorModule = new ValidatorsModule();
-		const dposModule = new DPoSModule();
+		const posModule = new PoSModule();
 		let interoperabilityModule;
 		if (mainchain) {
 			interoperabilityModule = new MainchainInteroperabilityModule();
@@ -184,9 +184,9 @@ export class Application {
 			tokenModule.method,
 			randomModule.method,
 			validatorModule.method,
-			dposModule.method,
+			posModule.method,
 		);
-		dposModule.addDependencies(randomModule.method, validatorModule.method, tokenModule.method);
+		posModule.addDependencies(randomModule.method, validatorModule.method, tokenModule.method);
 		tokenModule.addDependencies(interoperabilityModule.method);
 
 		// resolve interoperability dependencies
@@ -199,7 +199,7 @@ export class Application {
 		application._registerModule(feeModule);
 		application._registerModule(rewardModule);
 		application._registerModule(randomModule);
-		application._registerModule(dposModule);
+		application._registerModule(posModule);
 		application._registerModule(interoperabilityModule);
 
 		return {
@@ -209,7 +209,7 @@ export class Application {
 				token: tokenModule.method,
 				auth: authModule.method,
 				fee: feeModule.method,
-				dpos: dposModule.method,
+				pos: posModule.method,
 				random: randomModule.method,
 				reward: rewardModule.method,
 				interoperability: interoperabilityModule.method,
