@@ -40,11 +40,7 @@ import { WritableBlockAssets } from '../engine/generator/types';
 import { SubStore, StateStore as IStateStore } from '../state_machine/types';
 import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from './in_memory_prefixed_state';
-import {
-	CCMsg,
-	CrossChainMessageContext,
-	RecoverCCMsgMethodContext,
-} from '../modules/interoperability/types';
+import { CCMsg, CrossChainMessageContext, RecoverContext } from '../modules/interoperability/types';
 import { getIDAsKeyForStore } from './utils';
 
 const createTestHeader = () =>
@@ -284,11 +280,11 @@ export const createRecoverCCMsgMethodContext = (params: {
 	getMethodContext?: () => MethodContext;
 	feeAddress: Buffer;
 	eventQueue?: EventQueue;
-}): RecoverCCMsgMethodContext => ({
+}): RecoverContext => ({
 	...createCrossChainMessageContext(params),
 	terminatedChainID: params.terminatedChainID,
 	module: params.module,
-	storePrefix: params.storePrefix,
+	substorePrefix: params.storePrefix,
 	storeKey: params.storeKey,
 	storeValue: params.storeValue,
 });
