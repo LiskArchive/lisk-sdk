@@ -20,7 +20,6 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../src/modules/interoperability/constants';
 import { MainchainCCChannelTerminatedCommand } from '../../../../../src/modules/interoperability/mainchain/cc_commands';
-import { CrossChainMessageContext } from '../../../../../src/modules/interoperability/types';
 import { createCrossChainMessageContext } from '../../../../../src/testing';
 
 describe('BaseCCChannelTerminatedCommand', () => {
@@ -49,10 +48,13 @@ describe('BaseCCChannelTerminatedCommand', () => {
 		status: 0,
 		params: EMPTY_BYTES,
 	};
-	const sampleExecuteContext: CrossChainMessageContext = createCrossChainMessageContext({
-		ccm,
-		chainID,
-	});
+	const sampleExecuteContext = {
+		...createCrossChainMessageContext({
+			ccm,
+			chainID,
+		}),
+		params: undefined,
+	};
 
 	const ccChannelTerminatedCommand = new MainchainCCChannelTerminatedCommand(
 		interopMod.stores,

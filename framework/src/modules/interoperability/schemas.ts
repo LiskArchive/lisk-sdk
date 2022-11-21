@@ -336,14 +336,6 @@ export const registrationCCMParamsSchema = {
 	},
 };
 
-// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#parameters-1
-export const channelTerminatedCCMParamsSchema = {
-	$id: '/modules/interoperability/ccCommand/channelTerminated',
-	type: 'object',
-	required: [],
-	properties: {},
-};
-
 export const sidechainTerminatedCCMParamsSchema = {
 	$id: '/modules/interoperability/ccCommand/sidechainTerminated',
 	type: 'object',
@@ -352,10 +344,14 @@ export const sidechainTerminatedCCMParamsSchema = {
 		chainID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 		stateRoot: {
 			dataType: 'bytes',
 			fieldNumber: 2,
+			minLength: HASH_LENGTH,
+			maxLength: HASH_LENGTH,
 		},
 	},
 };
@@ -472,16 +468,19 @@ export const stateRecoveryParamsSchema = {
 	},
 };
 
-export const stateRecoveryInitParams = {
+// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#parameters-3
+export const stateRecoveryInitParamsSchema = {
 	$id: '/modules/interoperability/mainchain/stateRecoveryInitialization',
 	type: 'object',
-	required: ['chainID', 'sidechainChainAccount', 'bitmap', 'siblingHashes'],
+	required: ['chainID', 'sidechainAccount', 'bitmap', 'siblingHashes'],
 	properties: {
 		chainID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
-		sidechainChainAccount: {
+		sidechainAccount: {
 			dataType: 'bytes',
 			fieldNumber: 2,
 		},
@@ -493,6 +492,8 @@ export const stateRecoveryInitParams = {
 			type: 'array',
 			items: {
 				dataType: 'bytes',
+				minLength: HASH_LENGTH,
+				maxLength: HASH_LENGTH,
 			},
 			fieldNumber: 4,
 		},
@@ -543,7 +544,7 @@ export const getTerminatedStateAccountRequestSchema = getChainAccountRequestSche
 
 export const getTerminatedOutboxAccountRequestSchema = getChainAccountRequestSchema;
 
-export const genesisInteroperabilityInternalMethodSchema = {
+export const genesisInteroperabilitySchema = {
 	$id: '/interoperability/module/genesis',
 	type: 'object',
 	required: [

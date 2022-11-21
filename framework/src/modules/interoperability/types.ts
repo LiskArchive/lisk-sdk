@@ -323,7 +323,7 @@ export interface StateRecoveryParams {
 
 export interface StateRecoveryInitParams {
 	chainID: Buffer;
-	sidechainChainAccount: Buffer;
+	sidechainAccount: Buffer;
 	bitmap: Buffer;
 	siblingHashes: Buffer[];
 }
@@ -350,7 +350,7 @@ export interface ChainValidatorsJSON {
 	certificateThreshold: string;
 }
 
-export interface GenesisInteroperabilityInternalMethod {
+export interface GenesisInteroperability {
 	outboxRootSubstore: {
 		storeKey: Buffer;
 		storeValue: OutboxRoot;

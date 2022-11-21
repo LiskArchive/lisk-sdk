@@ -16,13 +16,13 @@ import { HASH_LENGTH } from '../constants';
 
 export interface TerminatedStateAccount {
 	stateRoot: Buffer;
-	mainchainStateRoot?: Buffer;
+	mainchainStateRoot: Buffer;
 	initialized?: boolean;
 }
 
 export interface TerminatedStateAccountJSON {
 	stateRoot: string;
-	mainchainStateRoot?: string;
+	mainchainStateRoot: string;
 	initialized?: boolean;
 }
 

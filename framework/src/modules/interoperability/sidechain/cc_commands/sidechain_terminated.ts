@@ -12,13 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec } from '@liskhq/lisk-codec';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
-import { CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED, MAINCHAIN_ID } from '../../constants';
+import { CCMStatusCode, CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED } from '../../constants';
 import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
-import { TerminatedStateStore } from '../../stores/terminated_state';
-import { CrossChainMessageContext } from '../../types';
-import { getIDAsKeyForStore } from '../../utils';
+import { CCCommandExecuteContext, ImmutableCrossChainMessageContext } from '../../types';
+import { getMainchainID } from '../../utils';
 import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 
 interface CCMSidechainTerminatedParams {
@@ -33,31 +31,27 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 		return CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED;
 	}
 
-	public async execute(context: CrossChainMessageContext): Promise<void> {
-		const { ccm } = context;
-		if (!ccm) {
-			throw new Error('CCM to execute sidechain terminated cross chain command is missing.');
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async verify(ctx: ImmutableCrossChainMessageContext): Promise<void> {
+		if (ctx.ccm.status !== CCMStatusCode.OK) {
+			throw new Error('Sidechain terminated message must have status OK.');
 		}
-		const ccmSidechainTerminatedParams = codec.decode<CCMSidechainTerminatedParams>(
-			sidechainTerminatedCCMParamsSchema,
-			ccm.params,
+		if (!ctx.ccm.sendingChainID.equals(getMainchainID(ctx.chainID))) {
+			throw new Error('Sidechain terminated message must be sent from the mainchain.');
+		}
+	}
+
+	public async execute(
+		context: CCCommandExecuteContext<CCMSidechainTerminatedParams>,
+	): Promise<void> {
+		const isLive = await this.internalMethods.isLive(context, context.params.chainID);
+		if (!isLive) {
+			return;
+		}
+		await this.internalMethods.createTerminatedStateAccount(
+			context,
+			context.params.chainID,
+			context.params.stateRoot,
 		);
-
-		if (ccm.sendingChainID.equals(getIDAsKeyForStore(MAINCHAIN_ID))) {
-			const isTerminated = await this.stores
-				.get(TerminatedStateStore)
-				.get(context, ccmSidechainTerminatedParams.chainID);
-
-			if (isTerminated) {
-				return;
-			}
-			await this.internalMethods.createTerminatedStateAccount(
-				context,
-				ccmSidechainTerminatedParams.chainID,
-				ccmSidechainTerminatedParams.stateRoot,
-			);
-		} else {
-			await this.internalMethods.terminateChainInternal(context, ccm.sendingChainID);
-		}
 	}
 }

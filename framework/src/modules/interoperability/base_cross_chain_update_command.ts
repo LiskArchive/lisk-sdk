@@ -62,7 +62,7 @@ export abstract class BaseCrossChainUpdateCommand<
 				await command.verify(context);
 			} catch (error) {
 				logger.info(
-					{ err: error as Error, moduleName: module, commandName: ccm.crossChainCommand },
+					{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
 					'Fail to verify cross chain command.',
 				);
 				await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
@@ -111,7 +111,8 @@ export abstract class BaseCrossChainUpdateCommand<
 		const execStateSnapshotID = context.stateStore.createSnapshot();
 
 		try {
-			await command.execute(context);
+			const params = command.schema ? codec.decode(command.schema, context.ccm.params) : {};
+			await command.execute({ ...context, params });
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccmID,
 				code: CCMProcessedCode.SUCCESS,
@@ -147,7 +148,7 @@ export abstract class BaseCrossChainUpdateCommand<
 			context.eventQueue.restoreSnapshot(baseEventSnapshotID);
 			context.stateStore.restoreSnapshot(baseStateSnapshotID);
 			logger.info(
-				{ err: error as Error, moduleName: module, commandName: ccm.crossChainCommand },
+				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
 				'Fail to execute afterCrossChainCommandExecute',
 			);
 			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
@@ -213,7 +214,7 @@ export abstract class BaseCrossChainUpdateCommand<
 			return true;
 		} catch (error) {
 			logger.info(
-				{ err: error as Error, moduleName: module, commandName: ccm.crossChainCommand },
+				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
 				'Fail to verify cross chain message.',
 			);
 			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
