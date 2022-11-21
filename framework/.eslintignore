@@ -15,11 +15,3 @@ test/**/setup.js
 # Temporally disable integration and functional
 test/integration
 test/functional
-# Temporally disable linting for modules
-src/modules/pos
-test/unit/modules/pos
-src/modules/keys
-test/unit/modules/keys
-src/modules/sequence
-test/unit/modules/sequence
-
