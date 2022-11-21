@@ -18,7 +18,7 @@ import { JSONObject } from '../../types';
 import { ModuleConfig as RewardModuleConfig } from '../reward/types';
 
 export interface ModuleConfig extends RewardModuleConfig {
-	factorMinimumRewardActiveDelegates: number;
+	factorMinimumRewardActiveValidators: number;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
@@ -55,9 +55,9 @@ export interface ValidatorsMethod {
 	}>;
 }
 
-export interface DPoSMethod {
+export interface PoSMethod {
 	getRoundLength(methodContext: ImmutableMethodContext): number;
-	getNumberOfActiveDelegates(methodContext: ImmutableMethodContext): number;
+	getNumberOfActiveValidators(methodContext: ImmutableMethodContext): number;
 	updateSharedRewards(
 		methodContext: MethodContext,
 		generatorAddress: Buffer,

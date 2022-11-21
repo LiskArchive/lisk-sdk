@@ -50,7 +50,7 @@ describe('CrossChain Transfer Command', () => {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
-				module: 'dpos',
+				module: 'pos',
 				amount: defaultAmount,
 			},
 		],

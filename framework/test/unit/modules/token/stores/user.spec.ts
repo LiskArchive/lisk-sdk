@@ -25,7 +25,7 @@ describe('UserStore', () => {
 
 	const defaultData = {
 		availableBalance: BigInt(100),
-		lockedBalances: [{ module: 'dpos', amount: BigInt(99) }],
+		lockedBalances: [{ module: 'pos', amount: BigInt(99) }],
 	};
 
 	let store: UserStore;
@@ -80,7 +80,7 @@ describe('UserStore', () => {
 			await store.save(context, defaultAddress, defaultTokenID, {
 				availableBalance: BigInt(100),
 				lockedBalances: [
-					{ module: 'dpos', amount: BigInt(99) },
+					{ module: 'pos', amount: BigInt(99) },
 					{ module: 'chain', amount: BigInt(10) },
 				],
 			});
@@ -90,14 +90,14 @@ describe('UserStore', () => {
 			expect(setValue.availableBalance).toEqual(BigInt(100));
 			expect(setValue.lockedBalances).toHaveLength(2);
 			expect(setValue.lockedBalances[0].module).toEqual('chain');
-			expect(setValue.lockedBalances[1].module).toEqual('dpos');
+			expect(setValue.lockedBalances[1].module).toEqual('pos');
 		});
 
 		it('should removed zero locked balance element', async () => {
 			await store.save(context, defaultAddress, defaultTokenID, {
 				availableBalance: BigInt(100),
 				lockedBalances: [
-					{ module: 'dpos', amount: BigInt(99) },
+					{ module: 'pos', amount: BigInt(99) },
 					{ module: 'dps', amount: BigInt(0) },
 					{ module: 'chain', amount: BigInt(10) },
 				],
@@ -108,7 +108,7 @@ describe('UserStore', () => {
 			expect(setValue.availableBalance).toEqual(BigInt(100));
 			expect(setValue.lockedBalances).toHaveLength(2);
 			expect(setValue.lockedBalances[0].module).toEqual('chain');
-			expect(setValue.lockedBalances[1].module).toEqual('dpos');
+			expect(setValue.lockedBalances[1].module).toEqual('pos');
 		});
 	});
 

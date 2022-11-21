@@ -9,7 +9,7 @@ A set of test generators for unlocking transaction transactions by LIP-0023 and 
 - account: sender account
 - transaction: raw transaction
 - network identifier: network identifier used
-- delegates: accounts which are registered as delegate
+- validators: accounts which are registered as validator
 
 #### Output
 

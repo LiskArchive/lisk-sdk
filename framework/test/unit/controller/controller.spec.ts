@@ -124,7 +124,7 @@ describe('Controller Class', () => {
 			name: 'plugin2',
 		});
 
-		controller.registerEndpoint('dpos', {});
+		controller.registerEndpoint('pos', {});
 		controller.registerEndpoint('auth', {});
 		controller.registerPlugin(inMemoryPlugin, { loadAsChildProcess: false });
 		controller.registerPlugin(childProcessPlugin, { loadAsChildProcess: true });

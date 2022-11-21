@@ -23,7 +23,7 @@ import {
 	REWARD_REDUCTION_SEED_REVEAL,
 } from '../reward/constants';
 import {
-	DPoSMethod,
+	PoSMethod,
 	ModuleConfig,
 	ModuleConfigJSON,
 	RandomMethod,
@@ -55,7 +55,7 @@ export class DynamicRewardModule extends BaseModule {
 	private _tokenMethod!: TokenMethod;
 	private _randomMethod!: RandomMethod;
 	private _validatorMethod!: ValidatorsMethod;
-	private _dposMethod!: DPoSMethod;
+	private _posMethod!: PoSMethod;
 	private _moduleConfig!: ModuleConfig;
 
 	public constructor() {
@@ -69,12 +69,12 @@ export class DynamicRewardModule extends BaseModule {
 		tokenMethod: TokenMethod,
 		randomMethod: RandomMethod,
 		validatorMethod: ValidatorsMethod,
-		dposMethod: DPoSMethod,
+		posMethod: PoSMethod,
 	) {
 		this._tokenMethod = tokenMethod;
 		this._randomMethod = randomMethod;
 		this._validatorMethod = validatorMethod;
-		this._dposMethod = dposMethod;
+		this._posMethod = posMethod;
 	}
 
 	public metadata(): ModuleMetadata {
@@ -154,7 +154,7 @@ export class DynamicRewardModule extends BaseModule {
 				this._moduleConfig.tokenID,
 				blockReward,
 			);
-			await this._dposMethod.updateSharedRewards(
+			await this._posMethod.updateSharedRewards(
 				context.getMethodContext(),
 				context.header.generatorAddress,
 				this._moduleConfig.tokenID,
@@ -162,7 +162,7 @@ export class DynamicRewardModule extends BaseModule {
 			);
 		}
 
-		const isEndOfRound = await this._dposMethod.isEndOfRound(
+		const isEndOfRound = await this._posMethod.isEndOfRound(
 			context.getMethodContext(),
 			context.header.height,
 		);
@@ -204,7 +204,7 @@ export class DynamicRewardModule extends BaseModule {
 		context: ImmutableMethodContext,
 		header: BlockHeader,
 	): Promise<bigint> {
-		const roundLength = this._dposMethod.getRoundLength(context);
+		const roundLength = this._posMethod.getRoundLength(context);
 		const { timestamp } = await this.stores.get(EndOfRoundTimestampStore).get(context, EMPTY_BYTES);
 
 		const generatorsMap = await this._validatorMethod.getGeneratorsBetweenTimestamps(
@@ -214,11 +214,11 @@ export class DynamicRewardModule extends BaseModule {
 		);
 
 		const defaultReward = calculateDefaultReward(this._moduleConfig, header.height);
-		const minimalRewardActiveDelegates =
-			(defaultReward * BigInt(this._moduleConfig.factorMinimumRewardActiveDelegates)) /
+		const minimalRewardActiveValidators =
+			(defaultReward * BigInt(this._moduleConfig.factorMinimumRewardActiveValidators)) /
 			DECIMAL_PERCENT_FACTOR;
 		if (Object.keys(generatorsMap).length >= roundLength) {
-			return minimalRewardActiveDelegates;
+			return minimalRewardActiveValidators;
 		}
 
 		const validatorsParams = await this._validatorMethod.getValidatorsParams(context);
@@ -234,14 +234,15 @@ export class DynamicRewardModule extends BaseModule {
 		if (!bftValidator) {
 			throw new Error('Invalid generator. Validator params does not include the validator.');
 		}
-		const numberOfActiveDelegates = this._dposMethod.getNumberOfActiveDelegates(context);
-		const totalRewardActiveDelegates = defaultReward * BigInt(numberOfActiveDelegates);
-		const stakeRewardActiveDelegates =
-			totalRewardActiveDelegates - BigInt(numberOfActiveDelegates) * minimalRewardActiveDelegates;
+		const numberOfActiveValidators = this._posMethod.getNumberOfActiveValidators(context);
+		const totalRewardActiveValidators = defaultReward * BigInt(numberOfActiveValidators);
+		const stakeRewardActiveValidators =
+			totalRewardActiveValidators -
+			BigInt(numberOfActiveValidators) * minimalRewardActiveValidators;
 		if (bftValidator.bftWeight > BigInt(0)) {
 			return (
-				minimalRewardActiveDelegates +
-				(bftValidator.bftWeight * stakeRewardActiveDelegates) / bftWeightSum
+				minimalRewardActiveValidators +
+				(bftValidator.bftWeight * stakeRewardActiveValidators) / bftWeightSum
 			);
 		}
 

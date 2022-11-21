@@ -22,7 +22,7 @@ import {
 import { RewardMintedEvent } from '../../../../src/modules/reward/events/reward_minted';
 import { DynamicRewardModule } from '../../../../src/modules/dynamic_rewards';
 import {
-	DPoSMethod,
+	PoSMethod,
 	RandomMethod,
 	TokenMethod,
 	ValidatorsMethod,
@@ -48,13 +48,13 @@ import {
 
 describe('DynamicRewardModule', () => {
 	const defaultRoundLength = 103;
-	const defaultNumberOfActiveDelegates = 101;
+	const defaultNumberOfActiveValidators = 101;
 
 	let rewardModule: DynamicRewardModule;
 	let tokenMethod: TokenMethod;
 	let randomMethod: RandomMethod;
 	let validatorsMethod: ValidatorsMethod;
-	let dposMethod: DPoSMethod;
+	let posMethod: PoSMethod;
 
 	beforeEach(async () => {
 		rewardModule = new DynamicRewardModule();
@@ -69,13 +69,13 @@ describe('DynamicRewardModule', () => {
 			getGeneratorsBetweenTimestamps: jest.fn(),
 			getValidatorsParams: jest.fn(),
 		};
-		dposMethod = {
-			getNumberOfActiveDelegates: jest.fn().mockReturnValue(defaultNumberOfActiveDelegates),
+		posMethod = {
+			getNumberOfActiveValidators: jest.fn().mockReturnValue(defaultNumberOfActiveValidators),
 			getRoundLength: jest.fn().mockReturnValue(defaultRoundLength),
 			updateSharedRewards: jest.fn(),
 			isEndOfRound: jest.fn(),
 		};
-		rewardModule.addDependencies(tokenMethod, randomMethod, validatorsMethod, dposMethod);
+		rewardModule.addDependencies(tokenMethod, randomMethod, validatorsMethod, posMethod);
 	});
 
 	describe('init', () => {
@@ -156,13 +156,13 @@ describe('DynamicRewardModule', () => {
 		let standbyValidatorAddress: Buffer;
 		let stateStore: PrefixedStateReadWriter;
 
-		const activeDelegate = 4;
+		const activeValidator = 4;
 		const minimumReward =
 			(BigInt(defaultConfig.brackets[0]) *
-				BigInt(defaultConfig.factorMinimumRewardActiveDelegates)) /
+				BigInt(defaultConfig.factorMinimumRewardActiveValidators)) /
 			DECIMAL_PERCENT_FACTOR;
-		const totalRewardActiveDelegate = BigInt(defaultConfig.brackets[0]) * BigInt(activeDelegate);
-		const ratioReward = totalRewardActiveDelegate - minimumReward * BigInt(activeDelegate);
+		const totalRewardActiveValidator = BigInt(defaultConfig.brackets[0]) * BigInt(activeValidator);
+		const ratioReward = totalRewardActiveValidator - minimumReward * BigInt(activeValidator);
 
 		beforeEach(async () => {
 			generatorAddress = utils.getRandomBytes(20);
@@ -188,10 +188,10 @@ describe('DynamicRewardModule', () => {
 			];
 
 			(validatorsMethod.getValidatorsParams as jest.Mock).mockResolvedValue({ validators });
-			(dposMethod.getNumberOfActiveDelegates as jest.Mock).mockReturnValue(activeDelegate);
+			(posMethod.getNumberOfActiveValidators as jest.Mock).mockReturnValue(activeValidator);
 		});
 
-		it('should store minimal reward for active delegates when full round is forged', async () => {
+		it('should store minimal reward for active validators when full round is forged', async () => {
 			// Round is already completed once
 			const generatorMap = new Array(defaultRoundLength).fill(0).reduce(prev => {
 				// eslint-disable-next-line no-param-reassign
@@ -340,7 +340,7 @@ describe('DynamicRewardModule', () => {
 				rewardModule['_moduleConfig'].tokenID,
 				BigInt(defaultConfig.brackets[0]),
 			);
-			expect(dposMethod.updateSharedRewards).toHaveBeenCalledWith(
+			expect(posMethod.updateSharedRewards).toHaveBeenCalledWith(
 				expect.anything(),
 				blockExecuteContext.header.generatorAddress,
 				rewardModule['_moduleConfig'].tokenID,
@@ -359,7 +359,7 @@ describe('DynamicRewardModule', () => {
 			);
 
 			expect(tokenMethod.mint).not.toHaveBeenCalled();
-			expect(dposMethod.updateSharedRewards).not.toHaveBeenCalled();
+			expect(posMethod.updateSharedRewards).not.toHaveBeenCalled();
 		});
 
 		it('should store timestamp when end of round', async () => {
@@ -373,7 +373,7 @@ describe('DynamicRewardModule', () => {
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
 
-			(dposMethod.isEndOfRound as jest.Mock).mockResolvedValue(true);
+			(posMethod.isEndOfRound as jest.Mock).mockResolvedValue(true);
 
 			await rewardModule.afterTransactionsExecute(blockExecuteContext);
 

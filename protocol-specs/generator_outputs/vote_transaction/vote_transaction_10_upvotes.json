@@ -1,6 +1,6 @@
 {
-	"title": "Valid vote transaction",
-	"summary": "Cases of valid vote transaction with upvote, downvote and mixture of both",
+	"title": "Valid stake transaction",
+	"summary": "Cases of valid stake transaction with upvote, downvote and mixture of both",
 	"config": {
 		"network": "devnet"
 	},
@@ -16,7 +16,7 @@
 					"address": "67aeac2f0dcaae0b7790777a3b4ba296c427dbeb"
 				},
 				"chainID": "10000000",
-				"delegates": [
+				"validators": [
 					{
 						"passphrase": "vivid phrase noble marble puzzle result pony dream loud deliver catch liquid",
 						"publicKey": "5430e775505b3145c124d15dc7c84ca7c751ecb69faf653bfb1e0c91e6e22f8a",
@@ -132,7 +132,7 @@
 					"address": "67aeac2f0dcaae0b7790777a3b4ba296c427dbeb"
 				},
 				"chainID": "10000000",
-				"delegates": [
+				"validators": [
 					{
 						"passphrase": "vivid phrase noble marble puzzle result pony dream loud deliver catch liquid",
 						"publicKey": "5430e775505b3145c124d15dc7c84ca7c751ecb69faf653bfb1e0c91e6e22f8a",
@@ -248,7 +248,7 @@
 					"address": "67aeac2f0dcaae0b7790777a3b4ba296c427dbeb"
 				},
 				"chainID": "10000000",
-				"delegates": [
+				"validators": [
 					{
 						"passphrase": "vivid phrase noble marble puzzle result pony dream loud deliver catch liquid",
 						"publicKey": "5430e775505b3145c124d15dc7c84ca7c751ecb69faf653bfb1e0c91e6e22f8a",

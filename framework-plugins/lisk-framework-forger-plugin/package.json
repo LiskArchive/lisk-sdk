@@ -1,7 +1,7 @@
 {
 	"name": "@liskhq/lisk-framework-forger-plugin",
 	"version": "0.3.0-alpha.5",
-	"description": "A plugin for lisk-framework that monitors configured delegates forging activity and voters information.",
+	"description": "A plugin for lisk-framework that monitors configured validators forging activity and stakers information.",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
 	"keywords": [

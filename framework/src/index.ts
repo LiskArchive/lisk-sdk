@@ -59,15 +59,15 @@ export {
 	genesisTokenStoreSchema as tokenGenesisStoreSchema,
 } from './modules/token';
 export {
-	DPoSMethod,
-	DPoSModule,
-	DelegateRegistrationCommand,
+	PoSMethod,
+	PoSModule,
+	ValidatorRegistrationCommand,
 	ReportMisbehaviorCommand,
 	UnlockCommand,
 	UpdateGeneratorKeyCommand,
-	VoteDelegateCommand,
-	genesisStoreSchema as dposGenesisStoreSchema,
-} from './modules/dpos_v2';
+	StakeCommand,
+	genesisStoreSchema as posGenesisStoreSchema,
+} from './modules/pos';
 export {
 	MainchainCCUpdateCommand,
 	MainchainInteroperabilityMethod,

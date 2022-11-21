@@ -52,7 +52,7 @@ export const createTransferTransaction = ({
 	return tx;
 };
 
-export const createVoteTransaction = ({
+export const createStakeTransaction = ({
 	amount,
 	fee,
 	recipientAddress,
@@ -66,10 +66,10 @@ export const createVoteTransaction = ({
 	chainID: Buffer;
 }): Transaction => {
 	const genesisAccount = testing.fixtures.defaultFaucetAccount;
-	const encodedAsset = codec.encode(new DPoSVoteAsset().schema, {
-		votes: [
+	const encodedAsset = codec.encode(new PoSStakeAsset().schema, {
+		stakes: [
 			{
-				delegateAddress: Buffer.from(recipientAddress, 'hex'),
+				validatorAddress: Buffer.from(recipientAddress, 'hex'),
 				amount: BigInt(transactions.convertLSKToBeddows(amount)),
 			},
 		],

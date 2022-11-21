@@ -16,10 +16,10 @@ import { address } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../utils';
 import {
 	createTransferTransaction,
-	createDelegateRegisterTransaction,
+	createValidatorRegisterTransaction,
 	createMultiSignRegisterTransaction,
 	createMultisignatureTransferTransaction,
-	createDelegateVoteTransaction,
+	createValidatorStakeTransaction,
 } from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
 
@@ -76,7 +76,7 @@ describe('Transaction order', () => {
 			});
 		});
 
-		describe('when account register as delegate and make self vote', () => {
+		describe('when account register as validator and make self stake', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
@@ -92,29 +92,29 @@ describe('Transaction order', () => {
 					chainID,
 					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
-				const registerDelegateTx = createDelegateRegisterTransaction({
+				const registerValidatorTx = createValidatorRegisterTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('1100000000'),
-					username: 'new_delegate',
+					username: 'new_validator',
 					chainID,
 					blsKey: newAccount.blsPublicKey,
 					blsProofOfPossession: newAccount.blsPoP,
 					generatorKey: newAccount.publicKey,
 					privateKey: newAccount.privateKey,
 				});
-				const selfVoteTx = createDelegateVoteTransaction({
+				const selfVoteTx = createValidatorStakeTransaction({
 					nonce: BigInt('1'),
 					fee: BigInt('100000000'),
-					votes: [
+					stakes: [
 						{
-							delegateAddress: newAccount.address,
+							validatorAddress: newAccount.address,
 							amount: BigInt('1000000000'),
 						},
 					],
 					chainID,
 					privateKey: newAccount.privateKey,
 				});
-				newBlock = await processEnv.createBlock([fundingTx, registerDelegateTx, selfVoteTx]);
+				newBlock = await processEnv.createBlock([fundingTx, registerValidatorTx, selfVoteTx]);
 				await processEnv.process(newBlock);
 			});
 

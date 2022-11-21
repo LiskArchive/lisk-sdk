@@ -61,7 +61,7 @@ describe('Transaction order', () => {
 		processEnv.cleanup({ databasePath });
 	});
 
-	describe('when report misbehavior transaction is submitted against the delegate', () => {
+	describe('when report misbehavior transaction is submitted against the validator', () => {
 		it('should accept the block with transaction', async () => {
 			// get last block
 			const { header } = processEnv.getLastBlock();
@@ -90,13 +90,13 @@ describe('Transaction order', () => {
 			const nextBlock = await processEnv.createBlock([tx]);
 
 			await processEnv.process(nextBlock);
-			const updatedDelegate = await processEnv.invoke<{ pomHeights: number[] }>(
-				'dpos_getDelegate',
+			const updatedValidator = await processEnv.invoke<{ pomHeights: number[] }>(
+				'pos_getValidator',
 				{
 					address: blockGenerator.address,
 				},
 			);
-			expect(updatedDelegate.pomHeights).toHaveLength(1);
+			expect(updatedValidator.pomHeights).toHaveLength(1);
 			const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
 				address: blockGenerator.address,
 				tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),

@@ -18,7 +18,7 @@ export const EMPTY_BYTES = Buffer.alloc(0);
 
 export const defaultConfig = {
 	...rewardDefaultConfig,
-	factorMinimumRewardActiveDelegates: 1000,
+	factorMinimumRewardActiveValidators: 1000,
 };
 
 export const DECIMAL_PERCENT_FACTOR = BigInt(10000);

@@ -26,13 +26,13 @@ const loadCSVFile = filePath =>
 		.map(line => line.toString().split(','));
 
 const generateBlockHeader = ({
-	delegateName,
+	validatorName,
 	height,
 	maxHeightPreviouslyForged,
 	maxHeightPrevoted,
-	delegateMinHeightActive,
+	validatorMinHeightActive,
 }) => {
-	const generatorPublicKey = getKeys(delegateName).publicKey;
+	const generatorPublicKey = getKeys(validatorName).publicKey;
 
 	// Generate a deterministic block id from a block height
 	const id = BigNum.fromBuffer(hash(height.toString(), 'utf8').slice(0, 8)).toString();
@@ -42,25 +42,25 @@ const generateBlockHeader = ({
 		height,
 		maxHeightPreviouslyForged,
 		generatorPublicKey,
-		delegateMinHeightActive,
+		validatorMinHeightActive,
 		maxHeightPrevoted,
 	};
 };
 
-const generateBlockHeadersSeries = ({ activeDelegates, count }) => {
-	const threshold = Math.ceil((activeDelegates * 2) / 3);
+const generateBlockHeadersSeries = ({ activeValidators, count }) => {
+	const threshold = Math.ceil((activeValidators * 2) / 3);
 
 	return new Array(count).fill(0).map((_v, index) => {
 		const height = index + 1;
 		const maxHeightPrevoted = height - threshold;
-		const maxHeightPreviouslyForged = height - activeDelegates;
+		const maxHeightPreviouslyForged = height - activeValidators;
 
 		return generateBlockHeader({
-			delegateName: `D${height % activeDelegates}`,
+			validatorName: `D${height % activeValidators}`,
 			height,
 			maxHeightPreviouslyForged: maxHeightPreviouslyForged < 0 ? 0 : maxHeightPreviouslyForged,
 			maxHeightPrevoted: maxHeightPrevoted < 0 ? 0 : maxHeightPrevoted,
-			delegateMinHeightActive: 1,
+			validatorMinHeightActive: 1,
 		});
 	});
 };

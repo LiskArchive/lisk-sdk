@@ -66,7 +66,7 @@ export const updatePrevotesPrecommits = async (
 		v.address.equals(newBlockBFTInfo.generatorAddress),
 	);
 	if (!validatorInfo) {
-		// the validator does not exist, meaning it does not have bft vote weight
+		// the validator does not exist, meaning it does not have bft stake weight
 		return;
 	}
 	const heightNotPrevoted = getHeightNotPrevoted(bftVotes);
