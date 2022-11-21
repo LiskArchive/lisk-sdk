@@ -15,7 +15,7 @@
 import { testing, PartialApplicationConfig } from 'lisk-sdk';
 import { getForgerInfoByAddress, getForgerPlugin, waitTill } from '../../utils/application';
 import { getRandomAccount } from '../../utils/accounts';
-import { createTransferTransaction, createVoteTransaction } from '../../utils/transactions';
+import { createTransferTransaction, createStakeTransaction } from '../../utils/transactions';
 import { ForgerPlugin } from '../../../src';
 
 describe('Forger Info', () => {
@@ -91,12 +91,12 @@ describe('Forger Info', () => {
 			expect(forgerInfo).toMatchSnapshot();
 		});
 
-		describe('Vote transactions', () => {
+		describe('Stake transactions', () => {
 			it('should save forger info with stakes received in new block', async () => {
 				// Arrange
 				const forgerPluginInstance = getForgerPlugin(appEnv.application);
 				const [forgingValidatorAddress] = forgerPluginInstance['_forgersList'].entries()[0];
-				const transaction1 = createVoteTransaction({
+				const transaction1 = createStakeTransaction({
 					amount: '10',
 					recipientAddress: forgingValidatorAddress.toString('hex'),
 					fee: '0.3',
@@ -124,7 +124,7 @@ describe('Forger Info', () => {
 				// Arrange
 				const forgerPluginInstance = getForgerPlugin(appEnv.application);
 				const [forgingValidatorAddress] = forgerPluginInstance['_forgersList'].entries()[0];
-				const transaction1 = createVoteTransaction({
+				const transaction1 = createStakeTransaction({
 					amount: '10',
 					recipientAddress: forgingValidatorAddress.toString('hex'),
 					fee: '0.3',
@@ -132,7 +132,7 @@ describe('Forger Info', () => {
 					chainID,
 				});
 				accountNonce += 1;
-				const transaction2 = createVoteTransaction({
+				const transaction2 = createStakeTransaction({
 					amount: '50',
 					recipientAddress: forgingValidatorAddress.toString('hex'),
 					fee: '0.3',
@@ -163,7 +163,7 @@ describe('Forger Info', () => {
 				// Arrange
 				const forgerPluginInstance = getForgerPlugin(appEnv.application);
 				const [forgingValidatorAddress] = forgerPluginInstance['_forgersList'].entries()[0];
-				const transaction1 = createVoteTransaction({
+				const transaction1 = createStakeTransaction({
 					amount: '-50',
 					recipientAddress: forgingValidatorAddress.toString('hex'),
 					fee: '0.3',
@@ -171,7 +171,7 @@ describe('Forger Info', () => {
 					chainID,
 				});
 				accountNonce += 1;
-				const transaction2 = createVoteTransaction({
+				const transaction2 = createStakeTransaction({
 					amount: '+10',
 					recipientAddress: forgingValidatorAddress.toString('hex'),
 					fee: '0.3',
@@ -203,7 +203,7 @@ describe('Forger Info', () => {
 				const forgerPluginInstance = getForgerPlugin(appEnv.application);
 				const [forgingValidatorAddress1] = forgerPluginInstance['_forgersList'].entries()[0];
 				const [forgingValidatorAddress2] = forgerPluginInstance['_forgersList'].entries()[1];
-				const transaction1 = createVoteTransaction({
+				const transaction1 = createStakeTransaction({
 					amount: '-30',
 					recipientAddress: forgingValidatorAddress1.toString('hex'),
 					fee: '0.3',
@@ -211,7 +211,7 @@ describe('Forger Info', () => {
 					chainID,
 				});
 				accountNonce += 1;
-				const transaction2 = createVoteTransaction({
+				const transaction2 = createStakeTransaction({
 					amount: '20',
 					recipientAddress: forgingValidatorAddress2.toString('hex'),
 					fee: '0.3',

@@ -14,7 +14,7 @@
 
 import { testing, PartialApplicationConfig } from 'lisk-sdk';
 import { waitTill } from '../utils/application';
-import { createVoteTransaction } from '../utils/transactions';
+import { createStakeTransaction } from '../utils/transactions';
 import { ForgerPlugin } from '../../src';
 
 describe('forger:getStakers action', () => {
@@ -65,9 +65,9 @@ describe('forger:getStakers action', () => {
 
 		it('should return valid stakers', async () => {
 			// Arrange
-			const initialVoters = await appEnv.ipcClient.invoke('forger:getStakers');
-			const forgingValidatorAddress = (initialVoters[0] as any).address;
-			const transaction = createVoteTransaction({
+			const initialStakers = await appEnv.ipcClient.invoke('forger:getStakers');
+			const forgingValidatorAddress = (initialStakers[0] as any).address;
+			const transaction = createStakeTransaction({
 				amount: '10',
 				recipientAddress: forgingValidatorAddress,
 				fee: '0.3',

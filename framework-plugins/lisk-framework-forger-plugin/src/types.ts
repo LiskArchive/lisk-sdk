@@ -21,10 +21,10 @@ export interface ForgerInfo {
 	totalProducedBlocks: number;
 	totalReceivedFees: bigint;
 	totalReceivedRewards: bigint;
-	stakeReceived: Voters[];
+	stakeReceived: Stakers[];
 }
 
-export interface Voters {
+export interface Stakers {
 	address: Buffer;
 	amount: bigint;
 }

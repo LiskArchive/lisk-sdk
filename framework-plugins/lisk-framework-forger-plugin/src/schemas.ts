@@ -62,7 +62,7 @@ export const forgerSyncSchema = {
 	},
 };
 
-export const posVoteParamsSchema = {
+export const posStakeParamsSchema = {
 	$id: '/forger/pos/stake',
 	type: 'object',
 	required: ['stakes'],

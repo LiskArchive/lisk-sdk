@@ -21,7 +21,7 @@ import {
 import { getForgerInfo } from './db';
 import { Forger } from './types';
 
-interface Voter {
+interface Staker {
 	readonly address: string;
 	readonly username: string;
 	readonly totalStakeReceived: string;
@@ -59,7 +59,7 @@ export class Endpoint extends BasePluginEndpoint {
 		this._client = apiClient;
 	}
 
-	public async getStakers(_context: PluginEndpointContext): Promise<Voter[]> {
+	public async getStakers(_context: PluginEndpointContext): Promise<Staker[]> {
 		const forgersList = await this._client.invoke<Forger[]>('app_getForgingStatus');
 		const forgerAccounts = [];
 		for (const validator of forgersList) {
@@ -72,7 +72,7 @@ export class Endpoint extends BasePluginEndpoint {
 			});
 		}
 
-		const result: Voter[] = [];
+		const result: Staker[] = [];
 		for (const account of forgerAccounts) {
 			const forgerInfo = await getForgerInfo(
 				this._db,
