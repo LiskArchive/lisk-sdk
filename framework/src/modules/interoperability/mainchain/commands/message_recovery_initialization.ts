@@ -31,6 +31,7 @@ import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { ChainAccountStore } from '../../stores/chain_account';
 import { TerminatedStateStore } from '../../stores/terminated_state';
 import { ChannelDataStore, channelSchema } from '../../stores/channel_data';
+import { TerminatedOutboxStore } from '../../stores/terminated_outbox';
 
 export interface MessageRecoveryInitializationParams {
 	chainID: Buffer;
@@ -39,6 +40,7 @@ export interface MessageRecoveryInitializationParams {
 	siblingHashes: Buffer[];
 }
 
+// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#message-recovery-initialization-command
 export class MessageRecoveryInitializationCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = messageRecoveryInitializationParamsSchema;
 
@@ -47,15 +49,15 @@ export class MessageRecoveryInitializationCommand extends BaseInteroperabilityCo
 	): Promise<VerificationResult> {
 		const { params } = context;
 
-		const ownchain = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
-		const mainchainID = getMainchainID(ownchain.chainID);
-		if (params.chainID.equals(mainchainID) || params.chainID.equals(ownchain.chainID)) {
+		const ownchainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
+		const mainchainID = getMainchainID(ownchainAccount.chainID);
+		if (params.chainID.equals(mainchainID) || params.chainID.equals(ownchainAccount.chainID)) {
 			throw new Error('Chain ID is not valid.');
 		}
 
 		const chainAccountExist = await this.stores.get(ChainAccountStore).has(context, params.chainID);
 		if (!chainAccountExist) {
-			throw new Error('Chain account is not registered.');
+			throw new Error('Chain is not registered.');
 		}
 
 		const terminatedAccount = await this.stores
@@ -65,7 +67,15 @@ export class MessageRecoveryInitializationCommand extends BaseInteroperabilityCo
 			throw new Error('Chain is not terminated.');
 		}
 
+		const terminatedOutboxAccountExist = await this.stores
+			.get(TerminatedOutboxStore)
+			.has(context, params.chainID);
+		if (terminatedOutboxAccountExist) {
+			throw new Error('Terminated outbox account already exists.');
+		}
+
 		const queryKey = Buffer.concat([
+			// key contains both module and store key
 			this.stores.get(ChannelDataStore).key,
 			utils.hash(mainchainID),
 		]);

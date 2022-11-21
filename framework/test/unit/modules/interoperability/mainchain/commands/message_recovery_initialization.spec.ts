@@ -15,7 +15,12 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
-import { MainchainInteroperabilityModule, Transaction, VerifyStatus } from '../../../../../../src';
+import {
+	CommandVerifyContext,
+	MainchainInteroperabilityModule,
+	Transaction,
+	VerifyStatus,
+} from '../../../../../../src';
 import { EMPTY_BYTES, EMPTY_HASH } from '../../../../../../src/modules/interoperability/constants';
 import {
 	MessageRecoveryInitializationCommand,
@@ -30,6 +35,7 @@ import {
 	channelSchema,
 } from '../../../../../../src/modules/interoperability/stores/channel_data';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
+import { TerminatedOutboxStore } from '../../../../../../src/modules/interoperability/stores/terminated_outbox';
 import { TerminatedStateStore } from '../../../../../../src/modules/interoperability/stores/terminated_state';
 import { OwnChainAccount } from '../../../../../../src/modules/interoperability/types';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
@@ -124,6 +130,21 @@ describe('MessageRecoveryInitializationCommand', () => {
 	});
 
 	describe('verify', () => {
+		let defaultContext: CommandVerifyContext<MessageRecoveryInitializationParams>;
+
+		beforeEach(() => {
+			defaultContext = createTransactionContext({
+				stateStore,
+				transaction: new Transaction({
+					...defaultTx,
+					command: command.name,
+					params: codec.encode(command.schema, {
+						...defaultParams,
+					}),
+				}),
+			}).createCommandVerifyContext<MessageRecoveryInitializationParams>(command.schema);
+		});
+
 		it('should reject when chainID is the mainchain', async () => {
 			const context = createTransactionContext({
 				stateStore,
@@ -157,33 +178,13 @@ describe('MessageRecoveryInitializationCommand', () => {
 		it('should reject when chain account does not exist', async () => {
 			await interopMod.stores.get(ChainAccountStore).del(stateStore, targetChainID);
 
-			const context = createTransactionContext({
-				stateStore,
-				transaction: new Transaction({
-					...defaultTx,
-					command: command.name,
-					params: codec.encode(command.schema, {
-						...defaultParams,
-					}),
-				}),
-			}).createCommandVerifyContext<MessageRecoveryInitializationParams>(command.schema);
-			await expect(command.verify(context)).rejects.toThrow('Chain account is not registered');
+			await expect(command.verify(defaultContext)).rejects.toThrow('Chain is not registered');
 		});
 
 		it('should reject when terminated account does not exist', async () => {
 			await interopMod.stores.get(TerminatedStateStore).del(stateStore, targetChainID);
 
-			const context = createTransactionContext({
-				stateStore,
-				transaction: new Transaction({
-					...defaultTx,
-					command: command.name,
-					params: codec.encode(command.schema, {
-						...defaultParams,
-					}),
-				}),
-			}).createCommandVerifyContext<MessageRecoveryInitializationParams>(command.schema);
-			await expect(command.verify(context)).rejects.toThrow('does not exist');
+			await expect(command.verify(defaultContext)).rejects.toThrow('does not exist');
 		});
 
 		it('should reject when terminated account exists but not initialized', async () => {
@@ -193,53 +194,36 @@ describe('MessageRecoveryInitializationCommand', () => {
 				mainchainStateRoot: EMPTY_HASH,
 			});
 
-			const context = createTransactionContext({
-				stateStore,
-				transaction: new Transaction({
-					...defaultTx,
-					command: command.name,
-					params: codec.encode(command.schema, {
-						...defaultParams,
-					}),
-				}),
-			}).createCommandVerifyContext<MessageRecoveryInitializationParams>(command.schema);
-			await expect(command.verify(context)).rejects.toThrow('Chain is not terminated.');
+			await expect(command.verify(defaultContext)).rejects.toThrow('Chain is not terminated.');
+		});
+
+		it('should reject when terminated outbox account exists', async () => {
+			await interopMod.stores.get(TerminatedOutboxStore).set(stateStore, targetChainID, {
+				outboxRoot: utils.getRandomBytes(32),
+				outboxSize: 10,
+				partnerChainInboxSize: 20,
+			});
+
+			await expect(command.verify(defaultContext)).rejects.toThrow(
+				'Terminated outbox account already exists.',
+			);
 		});
 
 		it('should reject when proof of inclusion is not valid', async () => {
 			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
-			const context = createTransactionContext({
-				stateStore,
-				transaction: new Transaction({
-					...defaultTx,
-					command: command.name,
-					params: codec.encode(command.schema, {
-						...defaultParams,
-					}),
-				}),
-			}).createCommandVerifyContext<MessageRecoveryInitializationParams>(command.schema);
-			await expect(command.verify(context)).rejects.toThrow(
+
+			await expect(command.verify(defaultContext)).rejects.toThrow(
 				'Message recovery initialization proof of inclusion is not valid.',
 			);
 		});
 
 		it('should resolve when params is valid', async () => {
-			const context = createTransactionContext({
-				stateStore,
-				transaction: new Transaction({
-					...defaultTx,
-					command: command.name,
-					params: codec.encode(command.schema, {
-						...defaultParams,
-					}),
-				}),
-			}).createCommandVerifyContext<MessageRecoveryInitializationParams>(command.schema);
 			const queryKey = Buffer.concat([
 				interopMod.stores.get(ChannelDataStore).key,
 				utils.hash(Buffer.from([0, 0, 0, 0])),
 			]);
 
-			await expect(command.verify(context)).resolves.toEqual({ status: VerifyStatus.OK });
+			await expect(command.verify(defaultContext)).resolves.toEqual({ status: VerifyStatus.OK });
 			expect(SparseMerkleTree.prototype.verify).toHaveBeenCalledWith(
 				terminatedState.stateRoot,
 				[queryKey],

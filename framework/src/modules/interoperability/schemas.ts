@@ -340,6 +340,8 @@ export const messageRecoveryInitializationParamsSchema = {
 			type: 'array',
 			items: {
 				dataType: 'bytes',
+				minLength: HASH_LENGTH,
+				maxLength: HASH_LENGTH,
 			},
 			fieldNumber: 4,
 		},
