@@ -77,7 +77,7 @@ export const getForgerInfo = async (db: KVStore, forgerAddress: string): Promise
 			totalProducedBlocks: 0,
 			totalReceivedFees: BigInt(0),
 			totalReceivedRewards: BigInt(0),
-			votesReceived: [],
+			stakeReceived: [],
 		};
 	}
 

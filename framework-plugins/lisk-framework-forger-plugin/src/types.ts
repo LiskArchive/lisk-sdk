@@ -21,7 +21,7 @@ export interface ForgerInfo {
 	totalProducedBlocks: number;
 	totalReceivedFees: bigint;
 	totalReceivedRewards: bigint;
-	votesReceived: Voters[];
+	stakeReceived: Voters[];
 }
 
 export interface Voters {

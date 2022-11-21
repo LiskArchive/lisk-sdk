@@ -5,7 +5,7 @@ Object {
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,
   "totalReceivedRewards": 0n,
-  "votesReceived": Array [],
+  "stakeReceived": Array [],
 }
 `;
 
@@ -14,7 +14,7 @@ Object {
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,
   "totalReceivedRewards": 0n,
-  "votesReceived": Array [
+  "stakeReceived": Array [
     Object {
       "address": Object {
         "data": Array [
@@ -52,7 +52,7 @@ Object {
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,
   "totalReceivedRewards": 0n,
-  "votesReceived": Array [
+  "stakeReceived": Array [
     Object {
       "address": Object {
         "data": Array [
@@ -90,7 +90,7 @@ Object {
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,
   "totalReceivedRewards": 0n,
-  "votesReceived": Array [
+  "stakeReceived": Array [
     Object {
       "address": Object {
         "data": Array [
@@ -128,7 +128,7 @@ Object {
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,
   "totalReceivedRewards": 0n,
-  "votesReceived": Array [],
+  "stakeReceived": Array [],
 }
 `;
 
@@ -137,7 +137,7 @@ Object {
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,
   "totalReceivedRewards": 0n,
-  "votesReceived": Array [
+  "stakeReceived": Array [
     Object {
       "address": Object {
         "data": Array [
@@ -175,7 +175,7 @@ Object {
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,
   "totalReceivedRewards": 0n,
-  "votesReceived": Array [],
+  "stakeReceived": Array [],
 }
 `;
 
@@ -184,6 +184,6 @@ Object {
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,
   "totalReceivedRewards": 0n,
-  "votesReceived": Array [],
+  "stakeReceived": Array [],
 }
 `;

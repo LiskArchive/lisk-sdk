@@ -28,7 +28,7 @@ export const forgerInfoSchema = {
 			dataType: 'uint64',
 			fieldNumber: 3,
 		},
-		votesReceived: {
+		stakeReceived: {
 			type: 'array',
 			fieldNumber: 4,
 			items: {
@@ -47,7 +47,7 @@ export const forgerInfoSchema = {
 			required: ['address', 'amount'],
 		},
 	},
-	required: ['totalProducedBlocks', 'totalReceivedFees', 'totalReceivedRewards', 'votesReceived'],
+	required: ['totalProducedBlocks', 'totalReceivedFees', 'totalReceivedRewards', 'stakeReceived'],
 };
 
 export const forgerSyncSchema = {

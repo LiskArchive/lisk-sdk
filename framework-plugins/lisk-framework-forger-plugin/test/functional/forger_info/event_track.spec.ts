@@ -117,7 +117,7 @@ describe('Forger Info', () => {
 				);
 				// Assert
 				expect(forgerInfo).toMatchSnapshot();
-				expect(forgerInfo.votesReceived[0].amount).toEqual(BigInt(1000000000));
+				expect(forgerInfo.stakeReceived[0].amount).toEqual(BigInt(1000000000));
 			});
 
 			it('should update forger info with multiple stakes received for same validator in new block', async () => {
@@ -156,7 +156,7 @@ describe('Forger Info', () => {
 				);
 				// Assert
 				expect(forgerInfo).toMatchSnapshot();
-				expect(forgerInfo.votesReceived[0].amount).toEqual(BigInt(7000000000));
+				expect(forgerInfo.stakeReceived[0].amount).toEqual(BigInt(7000000000));
 			});
 
 			it('should update forger info with upvote and downvote for same validator in new block', async () => {
@@ -195,7 +195,7 @@ describe('Forger Info', () => {
 				);
 				// Assert
 				expect(forgerInfo).toMatchSnapshot();
-				expect(forgerInfo.votesReceived[0].amount).toEqual(BigInt(3000000000));
+				expect(forgerInfo.stakeReceived[0].amount).toEqual(BigInt(3000000000));
 			});
 
 			it('should update forger info with stakers info and remove when amount becomes zero', async () => {
@@ -239,9 +239,9 @@ describe('Forger Info', () => {
 				);
 				// Assert
 				expect(forgerInfo1).toMatchSnapshot();
-				expect(forgerInfo1.votesReceived).toBeEmpty();
+				expect(forgerInfo1.stakeReceived).toBeEmpty();
 				expect(forgerInfo2).toMatchSnapshot();
-				expect(forgerInfo2.votesReceived[0].amount).toEqual(BigInt(2000000000));
+				expect(forgerInfo2.stakeReceived[0].amount).toEqual(BigInt(2000000000));
 			});
 		});
 	});

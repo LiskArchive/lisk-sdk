@@ -83,7 +83,7 @@ export class Endpoint extends BasePluginEndpoint {
 				address: account.address,
 				username: account.name,
 				totalStakeReceived: account.totalStakeReceived,
-				stakers: forgerInfo.votesReceived.map(stake => ({
+				stakers: forgerInfo.stakeReceived.map(stake => ({
 					address: cryptography.address.getLisk32AddressFromAddress(stake.address),
 					amount: stake.amount.toString(),
 				})),
