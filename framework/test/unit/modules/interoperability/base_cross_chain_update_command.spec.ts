@@ -27,6 +27,8 @@ import { CcmSendSuccessEvent } from '../../../../src/modules/interoperability/ev
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
 import { CrossChainMessageContext } from '../../../../src/modules/interoperability/types';
 import { createCrossChainMessageContext } from '../../../../src/testing';
+import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
+import { getMainchainID } from '../../../../src/modules/interoperability/utils';
 
 class CrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -359,7 +361,10 @@ describe('BaseCrossChainUpdateCommand', () => {
 			);
 		});
 
-		it('should add returning ccm to the sending chain', async () => {
+		it('should add returning ccm to the sending chain if sending chain account exists', async () => {
+			const chainAccountStore = command['stores'].get(ChainAccountStore);
+			jest.spyOn(chainAccountStore, 'has').mockResolvedValue(true);
+
 			context = createCrossChainMessageContext({
 				ccm: {
 					...defaultCCM,
@@ -375,6 +380,35 @@ describe('BaseCrossChainUpdateCommand', () => {
 			expect(internalMethod.addToOutbox).toHaveBeenCalledWith(
 				expect.anything(),
 				context.ccm.sendingChainID,
+				{
+					...defaultCCM,
+					status: ccmStatus,
+					sendingChainID: defaultCCM.receivingChainID,
+					receivingChainID: defaultCCM.sendingChainID,
+					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
+				},
+			);
+		});
+
+		it('should add returning ccm to the mainchain outbox when sending chain does not exist', async () => {
+			const chainAccountStore = command['stores'].get(ChainAccountStore);
+			jest.spyOn(chainAccountStore, 'has').mockResolvedValue(false);
+
+			context = createCrossChainMessageContext({
+				ccm: {
+					...defaultCCM,
+					status: CCMStatusCode.OK,
+					fee: BigInt(100000000000),
+				},
+			});
+
+			await expect(
+				command['bounce'](context, utils.getRandomBytes(32), 100, ccmStatus, ccmProcessedEventCode),
+			).resolves.toBeUndefined();
+
+			expect(internalMethod.addToOutbox).toHaveBeenCalledWith(
+				expect.anything(),
+				getMainchainID(context.ccm.sendingChainID),
 				{
 					...defaultCCM,
 					status: ccmStatus,

@@ -22,6 +22,8 @@ import { CCMProcessedCode, CcmProcessedEvent, CCMProcessedResult } from './event
 import { CcmSendSuccessEvent } from './events/ccm_send_success';
 import { ccmSchema, crossChainUpdateTransactionParams } from './schemas';
 import { CrossChainMessageContext, TokenMethod } from './types';
+import { ChainAccountStore } from './stores/chain_account';
+import { getMainchainID } from './utils';
 
 export abstract class BaseCrossChainUpdateCommand<
 	T extends BaseInteroperabilityInternalMethod
@@ -198,7 +200,17 @@ export abstract class BaseCrossChainUpdateCommand<
 			receivingChainID: ccm.sendingChainID,
 			fee: ccmStatusCode === CCMStatusCode.FAILED_CCM ? BigInt(0) : ccm.fee - minFee,
 		};
-		await this.internalMethod.addToOutbox(context, bouncedCCM.receivingChainID, bouncedCCM);
+		let partnerChainID: Buffer;
+		const doesReceivingChainExist = await this.stores
+			.get(ChainAccountStore)
+			.has(context, bouncedCCM.receivingChainID);
+		if (!doesReceivingChainExist) {
+			partnerChainID = getMainchainID(bouncedCCM.receivingChainID);
+		} else {
+			partnerChainID = bouncedCCM.receivingChainID;
+		}
+
+		await this.internalMethod.addToOutbox(context, partnerChainID, bouncedCCM);
 		const newCCMID = utils.hash(codec.encode(ccmSchema, bouncedCCM));
 		this.events
 			.get(CcmSendSuccessEvent)
