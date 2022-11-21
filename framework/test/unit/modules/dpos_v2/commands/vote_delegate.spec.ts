@@ -26,8 +26,8 @@ import { DelegateVotedEvent } from '../../../../../src/modules/dpos_v2/events/de
 import { InternalMethod } from '../../../../../src/modules/dpos_v2/internal_method';
 import { DelegateAccount, DelegateStore } from '../../../../../src/modules/dpos_v2/stores/delegate';
 import { EligibleDelegatesStore } from '../../../../../src/modules/dpos_v2/stores/eligible_delegates';
-import { VoteObject, VoterStore } from '../../../../../src/modules/dpos_v2/stores/voter';
-import { VoteTransactionParams } from '../../../../../src/modules/dpos_v2/types';
+import { VoterStore } from '../../../../../src/modules/dpos_v2/stores/voter';
+import { VoteObject, VoteTransactionParams } from '../../../../../src/modules/dpos_v2/types';
 import { EventQueue, MethodContext } from '../../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 

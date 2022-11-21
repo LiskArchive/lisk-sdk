@@ -21,8 +21,11 @@ import { InMemoryPrefixedStateDB } from '../../../../src/testing';
 import * as utils from '../../../../src/modules/dpos_v2/utils';
 import { MethodContext, TokenMethod } from '../../../../src';
 import { DelegateAccount } from '../../../../src/modules/dpos_v2/stores/delegate';
-import { VoterData } from '../../../../src/modules/dpos_v2/stores/voter';
-import { VoteObject, VoteSharingCoefficient } from '../../../../src/modules/dpos_v2/types';
+import {
+	VoteObject,
+	VoterData,
+	VoteSharingCoefficient,
+} from '../../../../src/modules/dpos_v2/types';
 import { EventQueue } from '../../../../src/state_machine';
 import { MAX_NUMBER_BYTES_Q96 } from '../../../../src/modules/dpos_v2/constants';
 
