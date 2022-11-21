@@ -38,6 +38,8 @@ import {
 	configSchema,
 	genesisStoreSchema,
 	getAllDelegatesResponseSchema,
+	getClaimableRewardsRequestSchema,
+	getClaimableRewardsResponseSchema,
 	getDelegateRequestSchema,
 	getDelegateResponseSchema,
 	getGovernanceTokenIDResponseSchema,
@@ -198,6 +200,11 @@ export class DPoSModule extends BaseModule {
 				{
 					name: this.endpoint.getGovernanceTokenID.name,
 					response: getGovernanceTokenIDResponseSchema,
+				},
+				{
+					name: this.endpoint.getClaimableRewards.name,
+					request: getClaimableRewardsRequestSchema,
+					response: getClaimableRewardsResponseSchema,
 				},
 				{
 					name: this.endpoint.getLockedRewards.name,

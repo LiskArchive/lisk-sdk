@@ -16,11 +16,14 @@ import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { NotFoundError } from '@liskhq/lisk-db';
 import { validator } from '@liskhq/lisk-validator';
+import { dataStructures, math } from '@liskhq/lisk-utils';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { DelegateAccountJSON, DelegateStore, delegateStoreSchema } from './stores/delegate';
-import { VoterData, VoterStore, voterStoreSchema } from './stores/voter';
+import { VoterStore, voterStoreSchema } from './stores/voter';
 import {
+	GetClaimableRewardsRequest,
+	ClaimableReward,
 	GetGovernanceTokenIDResponse,
 	GetLockedRewardsRequest,
 	GetLockedRewardsResponse,
@@ -30,18 +33,22 @@ import {
 	ModuleConfig,
 	ModuleConfigJSON,
 	TokenMethod,
+	VoterData,
 	VoterDataJSON,
 } from './types';
-import { getPunishTime, getWaitTime, isCertificateGenerated } from './utils';
+import { getPunishTime, getWaitTime, isCertificateGenerated, calculateVoteRewards } from './utils';
 import { GenesisDataStore } from './stores/genesis';
 import { EMPTY_KEY } from './constants';
 import { EligibleDelegatesStore } from './stores/eligible_delegates';
 import {
+	getClaimableRewardsRequestSchema,
 	getLockedRewardsRequestSchema,
 	getLockedVotedAmountRequestSchema,
 	getValidatorsByStakeRequestSchema,
 } from './schemas';
 import { ImmutableMethodContext } from '../../state_machine';
+
+const { q96 } = math;
 
 export class DPoSEndpoint extends BaseEndpoint {
 	private _moduleConfig!: ModuleConfig;
@@ -256,6 +263,49 @@ export class DPoSEndpoint extends BaseEndpoint {
 
 		return {
 			reward: locked.toString(),
+		};
+	}
+
+	public async getClaimableRewards(
+		context: ModuleEndpointContext,
+	): Promise<{ rewards: ClaimableReward[] }> {
+		validator.validate<GetClaimableRewardsRequest>(
+			getClaimableRewardsRequestSchema,
+			context.params,
+		);
+
+		const rewards = new dataStructures.BufferMap<bigint>();
+		const address = cryptoAddress.getAddressFromLisk32Address(context.params.address);
+		const { sentVotes: votes } = await this.stores.get(VoterStore).getOrDefault(context, address);
+
+		for (const vote of votes) {
+			if (vote.delegateAddress.equals(address)) {
+				continue;
+			}
+			const delegate = await this.stores.get(DelegateStore).get(context, vote.delegateAddress);
+
+			for (const delegateSharingCoefficient of delegate.sharingCoefficients) {
+				const voteSharingConefficient = vote.voteSharingCoefficients.find(sc =>
+					sc.tokenID.equals(delegateSharingCoefficient.tokenID),
+				) ?? {
+					tokenID: delegateSharingCoefficient.tokenID,
+					coefficient: q96(BigInt(0)).toBuffer(),
+				};
+				const reward = calculateVoteRewards(
+					voteSharingConefficient,
+					vote.amount,
+					delegateSharingCoefficient,
+				);
+				const currentReward = rewards.get(delegateSharingCoefficient.tokenID) ?? BigInt(0);
+				rewards.set(delegateSharingCoefficient.tokenID, reward + currentReward);
+			}
+		}
+
+		return {
+			rewards: rewards.entries().map(([tokenID, reward]) => ({
+				tokenID: tokenID.toString('hex'),
+				reward: reward.toString(),
+			})),
 		};
 	}
 

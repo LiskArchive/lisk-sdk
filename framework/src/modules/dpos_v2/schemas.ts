@@ -610,6 +610,41 @@ export const getLockedRewardsResponseSchema = {
 	},
 };
 
+export const getClaimableRewardsRequestSchema = {
+	$id: 'modules/dpos/endpoint/getClaimableRewardsRequest',
+	type: 'object',
+	required: ['address'],
+	properties: {
+		address: {
+			type: 'string',
+			format: 'lisk32',
+		},
+	},
+};
+
+export const getClaimableRewardsResponseSchema = {
+	$id: 'modules/dpos/endpoint/getClaimableRewardsResponse',
+	type: 'object',
+	properties: {
+		rewards: {
+			items: {
+				type: 'object',
+				required: ['tokenID', 'reward'],
+				properties: {
+					tokenID: {
+						type: 'string',
+						format: 'hex',
+					},
+					reward: {
+						type: 'string',
+						format: 'uint64',
+					},
+				},
+			},
+		},
+	},
+};
+
 export const getLockedVotedAmountRequestSchema = {
 	$id: 'modules/dpos/endpoint/getLockedVotedAmountRequest',
 	type: 'object',
