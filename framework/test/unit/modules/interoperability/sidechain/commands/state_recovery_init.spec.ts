@@ -2,24 +2,24 @@ import { when } from 'jest-when';
 import { Transaction } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import { sparseMerkleTree } from '@liskhq/lisk-tree';
+import { SparseMerkleTree } from '@liskhq/lisk-db';
 import {
 	COMMAND_NAME_STATE_RECOVERY_INIT,
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
-	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
-import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/internal_method';
+import { SidechainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/sidechain/internal_method';
 import { Mocked } from '../../../../../utils/types';
-import { StateRecoveryInitializationCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/state_recovery_init';
+import { StateRecoveryInitializationCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/state_recovery_init';
 import {
 	ChainAccount,
+	OwnChainAccount,
 	StateRecoveryInitParams,
 } from '../../../../../../src/modules/interoperability/types';
-import { CommandExecuteContext, MainchainInteroperabilityModule } from '../../../../../../src';
+import { CommandExecuteContext, SidechainInteroperabilityModule } from '../../../../../../src';
 import { TransactionContext } from '../../../../../../src/state_machine';
-import { stateRecoveryInitParams } from '../../../../../../src/modules/interoperability/schemas';
+import { stateRecoveryInitParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { createTransactionContext } from '../../../../../../src/testing';
 import { CommandVerifyContext, VerifyStatus } from '../../../../../../src/state_machine/types';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
@@ -35,10 +35,11 @@ import {
 } from '../../../../../../src/modules/interoperability/stores/chain_account';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
+import { getMainchainID } from '../../../../../../src/modules/interoperability/utils';
 
-describe('Mainchain StateRecoveryInitializationCommand', () => {
-	const interopMod = new MainchainInteroperabilityModule();
-	type StoreMock = Mocked<MainchainInteroperabilityInternalMethod, 'createTerminatedStateAccount'>;
+describe('Sidechain StateRecoveryInitializationCommand', () => {
+	const interopMod = new SidechainInteroperabilityModule();
+	type StoreMock = Mocked<SidechainInteroperabilityInternalMethod, 'createTerminatedStateAccount'>;
 	const chainAccountStoreMock = {
 		get: jest.fn(),
 		set: jest.fn(),
@@ -96,10 +97,10 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 			chainID: utils.intToBuffer(3, 4),
 			bitmap: Buffer.alloc(0),
 			siblingHashes: [],
-			sidechainChainAccount: sidechainChainAccountEncoded,
+			sidechainAccount: sidechainChainAccountEncoded,
 		};
 
-		encodedTransactionParams = codec.encode(stateRecoveryInitParams, transactionParams);
+		encodedTransactionParams = codec.encode(stateRecoveryInitParamsSchema, transactionParams);
 
 		transaction = new Transaction({
 			module: MODULE_NAME_INTEROPERABILITY,
@@ -133,7 +134,7 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 		});
 
 		commandExecuteContext = transactionContext.createCommandExecuteContext<StateRecoveryInitParams>(
-			stateRecoveryInitParams,
+			stateRecoveryInitParamsSchema,
 		);
 
 		const chainAccountStore = new ChainAccountStore(interopMod.name);
@@ -145,9 +146,11 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 		interopStoreMock = {
 			createTerminatedStateAccount: jest.fn(),
 		};
+		jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(true);
 	});
 
 	describe('verify', () => {
+		let ownChainAccount: OwnChainAccount;
 		beforeEach(() => {
 			mainchainAccount = {
 				name: 'mainchain',
@@ -159,20 +162,20 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 				},
 				status: ChainStatus.ACTIVE,
 			};
-			const ownChainAccount = {
-				name: 'mainchain',
-				chainID: MAINCHAIN_ID_BUFFER,
+			ownChainAccount = {
+				name: 'sidechain',
+				chainID: utils.intToBuffer(2, 4),
 				nonce: BigInt('0'),
 			};
 			terminatedStateAccountMock.has.mockResolvedValue(true);
 			ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount);
+			chainAccountStoreMock.get.mockResolvedValue(mainchainAccount);
 			interopStoreMock = {
 				createTerminatedStateAccount: jest.fn(),
 			};
 			commandVerifyContext = transactionContext.createCommandVerifyContext<StateRecoveryInitParams>(
-				stateRecoveryInitParams,
+				stateRecoveryInitParamsSchema,
 			);
-			jest.spyOn(sparseMerkleTree, 'verify').mockReturnValue(true);
 		});
 
 		it('should return status OK for valid params', async () => {
@@ -181,12 +184,11 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 		});
 
 		it('should return error if chain id is same as mainchain id or own chain account id', async () => {
-			commandVerifyContext.params.chainID = MAINCHAIN_ID_BUFFER;
+			commandVerifyContext.params.chainID = ownChainAccount.chainID;
 
-			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Sidechain id is not valid');
+			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
+				'Chain ID is not valid.',
+			);
 		});
 
 		it('should return error if terminated state account exists and is initialized', async () => {
@@ -194,15 +196,16 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 				...terminatedStateAccount,
 				initialized: true,
 			});
-			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
 
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('The sidechain is already terminated on this chain');
+			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
+				'Sidechain is already terminated',
+			);
 		});
 
 		it('should return error if the sidechain is not terminated on the mainchain but the sidechain violates the liveness requirement', async () => {
+			const mainchainID = getMainchainID(transactionParams.chainID);
 			when(chainAccountStoreMock.get)
-				.calledWith(expect.anything(), MAINCHAIN_ID_BUFFER)
+				.calledWith(expect.anything(), mainchainID)
 				.mockResolvedValue(mainchainAccount);
 			sidechainChainAccount = {
 				name: 'sidechain1',
@@ -219,9 +222,9 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 				chainID: utils.intToBuffer(3, 4),
 				bitmap: Buffer.alloc(0),
 				siblingHashes: [],
-				sidechainChainAccount: sidechainChainAccountEncoded,
+				sidechainAccount: sidechainChainAccountEncoded,
 			};
-			encodedTransactionParams = codec.encode(stateRecoveryInitParams, transactionParams);
+			encodedTransactionParams = codec.encode(stateRecoveryInitParamsSchema, transactionParams);
 			transaction = new Transaction({
 				module: MODULE_NAME_INTEROPERABILITY,
 				command: COMMAND_NAME_STATE_RECOVERY_INIT,
@@ -236,37 +239,35 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 				stateStore,
 			});
 			commandVerifyContext = transactionContext.createCommandVerifyContext<StateRecoveryInitParams>(
-				stateRecoveryInitParams,
+				stateRecoveryInitParamsSchema,
 			);
 
-			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				'The sidechain is not terminated on the mainchain but the sidechain already violated the liveness requirement',
+			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
+				'Sidechain is not terminated.',
 			);
 		});
 
 		it('should return error if terminated state account exists and proof of inclusion is not verified', async () => {
-			jest.spyOn(sparseMerkleTree, 'verify').mockReturnValue(false);
+			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
 
-			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Failed to verify proof of inclusion');
+			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
+				'State recovery initialization proof of inclusion is not valid',
+			);
 		});
 
 		it('should return error if terminated state account does not exist and proof of inclusion is not verified', async () => {
+			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
+			const mainchainID = getMainchainID(transactionParams.chainID);
+
 			when(chainAccountStoreMock.get)
-				.calledWith(expect.anything(), MAINCHAIN_ID_BUFFER)
+				.calledWith(expect.anything(), mainchainID)
 				.mockResolvedValue(mainchainAccount);
-			jest.spyOn(sparseMerkleTree, 'verify').mockReturnValue(false);
+
 			await terminatedStateSubstore.del(createStoreGetter(stateStore), transactionParams.chainID);
 
-			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Failed to verify proof of inclusion');
+			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
+				'State recovery initialization proof of inclusion is not valid',
+			);
 		});
 	});
 
