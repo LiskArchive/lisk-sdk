@@ -622,25 +622,27 @@ describe('DposModuleEndpoint', () => {
 				}),
 			);
 
-			expect(response).toHaveLength(2);
-			expect(response).toEqual([
-				{
-					tokenID: voterSharingCoefficient1.tokenID.toString('hex'),
-					reward: calculateVoteRewards(
-						voterSharingCoefficient1,
-						amount,
-						delegateSharingCoefficient1,
-					).toString(),
-				},
-				{
-					tokenID: voterSharingCoefficient2.tokenID.toString('hex'),
-					reward: calculateVoteRewards(
-						voterSharingCoefficient2,
-						amount,
-						delegateSharingCoefficient2,
-					).toString(),
-				},
-			]);
+			expect(response.rewards).toHaveLength(2);
+			expect(response).toEqual({
+				rewards: [
+					{
+						tokenID: voterSharingCoefficient1.tokenID.toString('hex'),
+						reward: calculateVoteRewards(
+							voterSharingCoefficient1,
+							amount,
+							delegateSharingCoefficient1,
+						).toString(),
+					},
+					{
+						tokenID: voterSharingCoefficient2.tokenID.toString('hex'),
+						reward: calculateVoteRewards(
+							voterSharingCoefficient2,
+							amount,
+							delegateSharingCoefficient2,
+						).toString(),
+					},
+				],
+			});
 		});
 
 		it('should exclude self vote from the claimable rewards', async () => {
@@ -667,7 +669,7 @@ describe('DposModuleEndpoint', () => {
 				}),
 			);
 
-			expect(response).toEqual([]);
+			expect(response).toEqual({ rewards: [] });
 		});
 	});
 });

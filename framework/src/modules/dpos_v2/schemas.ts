@@ -624,18 +624,22 @@ export const getClaimableRewardsRequestSchema = {
 
 export const getClaimableRewardsResponseSchema = {
 	$id: 'modules/dpos/endpoint/getClaimableRewardsResponse',
-	type: 'array',
-	items: {
-		type: 'object',
-		required: ['tokenID', 'reward'],
-		properties: {
-			tokenID: {
-				type: 'string',
-				format: 'hex',
-			},
-			reward: {
-				type: 'string',
-				format: 'uint64',
+	type: 'object',
+	properties: {
+		rewards: {
+			items: {
+				type: 'object',
+				required: ['tokenID', 'reward'],
+				properties: {
+					tokenID: {
+						type: 'string',
+						format: 'hex',
+					},
+					reward: {
+						type: 'string',
+						format: 'uint64',
+					},
+				},
 			},
 		},
 	},

@@ -266,7 +266,9 @@ export class DPoSEndpoint extends BaseEndpoint {
 		};
 	}
 
-	public async getClaimableRewards(context: ModuleEndpointContext): Promise<ClaimableReward[]> {
+	public async getClaimableRewards(
+		context: ModuleEndpointContext,
+	): Promise<{ rewards: ClaimableReward[] }> {
 		validator.validate<GetClaimableRewardsRequest>(
 			getClaimableRewardsRequestSchema,
 			context.params,
@@ -299,10 +301,12 @@ export class DPoSEndpoint extends BaseEndpoint {
 			}
 		}
 
-		return rewards.entries().map(([tokenID, reward]) => ({
-			tokenID: tokenID.toString('hex'),
-			reward: reward.toString(),
-		}));
+		return {
+			rewards: rewards.entries().map(([tokenID, reward]) => ({
+				tokenID: tokenID.toString('hex'),
+				reward: reward.toString(),
+			})),
+		};
 	}
 
 	private async _getLockedVotedAmount(
