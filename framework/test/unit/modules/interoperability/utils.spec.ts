@@ -295,7 +295,7 @@ describe('Utils', () => {
 		const txParams: any = {
 			certificate: encodedCertificate,
 			activeValidatorsUpdate,
-			newCertificateThreshold: BigInt(10),
+			certificateThreshold: BigInt(10),
 		};
 
 		it('should return VerifyStatus.FAIL when certificate is empty', () => {
@@ -307,7 +307,7 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toEqual(
-				'Certificate cannot be empty when activeValidatorsUpdate or newCertificateThreshold has a non-empty value.',
+				'Certificate cannot be empty when activeValidatorsUpdate or certificateThreshold has a non-empty value.',
 			);
 		});
 
@@ -320,7 +320,7 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toEqual(
-				'Certificate should have all required values when activeValidatorsUpdate or newCertificateThreshold has a non-empty value.',
+				'Certificate should have all required values when activeValidatorsUpdate or certificateThreshold has a non-empty value.',
 			);
 		});
 
@@ -360,11 +360,11 @@ describe('Utils', () => {
 			expect(error).toBeUndefined();
 		});
 
-		it('should return VerifyStatus.OK when activeValidatorsUpdate.length === 0 and newCertificateThreshold === 0', () => {
+		it('should return VerifyStatus.OK when activeValidatorsUpdate.length === 0 and certificateThreshold === 0', () => {
 			const ineligibleTxParams = {
 				...txParams,
 				activeValidatorsUpdate: [],
-				newCertificateThreshold: BigInt(0),
+				certificateThreshold: BigInt(0),
 			};
 			const { status, error } = checkValidatorsHashWithCertificate(
 				ineligibleTxParams,
@@ -375,9 +375,9 @@ describe('Utils', () => {
 			expect(error).toBeUndefined();
 		});
 
-		it('should return VerifyStatus.OK when newCertificateThreshold === 0 but activeValidatorsUpdate.length > 0', () => {
+		it('should return VerifyStatus.OK when certificateThreshold === 0 but activeValidatorsUpdate.length > 0', () => {
 			const { status, error } = checkValidatorsHashWithCertificate(
-				{ ...txParams, newCertificateThreshold: BigInt(0) },
+				{ ...txParams, certificateThreshold: BigInt(0) },
 				partnerValidators,
 			);
 
@@ -385,7 +385,7 @@ describe('Utils', () => {
 			expect(error).toBeUndefined();
 		});
 
-		it('should return VerifyStatus.OK when newCertificateThreshold > 0 but activeValidatorsUpdate.length === 0', () => {
+		it('should return VerifyStatus.OK when certificateThreshold > 0 but activeValidatorsUpdate.length === 0', () => {
 			const { status, error } = checkValidatorsHashWithCertificate(
 				{ ...txParams, activeValidatorsUpdate: [] },
 				partnerValidators,
@@ -501,7 +501,7 @@ describe('Utils', () => {
 		const txParams: CrossChainUpdateTransactionParams = {
 			certificate: encodedCertificate,
 			activeValidatorsUpdate,
-			newCertificateThreshold: BigInt(10),
+			certificateThreshold: BigInt(10),
 			inboxUpdate,
 			sendingChainID: utils.intToBuffer(2, 4),
 		};
@@ -571,7 +571,7 @@ describe('Utils', () => {
 				const txParamsEmptyMessageWitness: CrossChainUpdateTransactionParams = {
 					certificate: encodedCertificate,
 					activeValidatorsUpdate,
-					newCertificateThreshold: BigInt(10),
+					certificateThreshold: BigInt(10),
 					inboxUpdate: inboxUpdateMessageWitnessEmpty,
 					sendingChainID: utils.intToBuffer(2, 4),
 				};
@@ -782,7 +782,7 @@ describe('Utils', () => {
 			};
 			params = {
 				activeValidatorsUpdate,
-				newCertificateThreshold: BigInt(10),
+				certificateThreshold: BigInt(10),
 				certificate: Buffer.alloc(2),
 				inboxUpdate,
 			};
@@ -823,7 +823,7 @@ describe('Utils', () => {
 			jest.spyOn(partnerChannelStoreMock, 'set');
 		});
 
-		it('should run successfully and return undefined when newCertificateThreshold is non-zero', async () => {
+		it('should run successfully and return undefined when certificateThreshold is non-zero', async () => {
 			await expect(
 				commonCCUExecutelogic({
 					stores: interopMod.stores,
@@ -840,7 +840,7 @@ describe('Utils', () => {
 			expect(partnerChainStore.set).toHaveBeenCalledTimes(1);
 			expect(partnerChannelStoreMock.get).toHaveBeenCalledTimes(1);
 			expect(partnerChannelStoreMock.set).toHaveBeenCalledTimes(1);
-			expect(partnerValidators.certificateThreshold).toEqual(params.newCertificateThreshold);
+			expect(partnerValidators.certificateThreshold).toEqual(params.certificateThreshold);
 
 			const updatedPartnerChannelData = await partnerChannelStoreMock.get(context, chainIDBuffer);
 
@@ -849,10 +849,10 @@ describe('Utils', () => {
 			);
 		});
 
-		it('should run successfully and return undefined when newCertificateThreshold is zero', async () => {
+		it('should run successfully and return undefined when certificateThreshold is zero', async () => {
 			const paramsWithThresholdZero = {
 				activeValidatorsUpdate,
-				newCertificateThreshold: BigInt(0),
+				certificateThreshold: BigInt(0),
 				certificate: Buffer.alloc(2),
 				inboxUpdate,
 			};
@@ -886,7 +886,7 @@ describe('Utils', () => {
 		it('should run successfully and return undefined when certificate is empty', async () => {
 			const paramsWithEmptyCertificate = {
 				activeValidatorsUpdate,
-				newCertificateThreshold: params.newCertificateThreshold,
+				certificateThreshold: params.certificateThreshold,
 				certificate: EMPTY_BYTES,
 				inboxUpdate,
 			};
@@ -921,7 +921,7 @@ describe('Utils', () => {
 		it('should run successfully and return undefined when messageWitnessHashes is empty', async () => {
 			const paramsWithEmptyMessageWitness = {
 				activeValidatorsUpdate,
-				newCertificateThreshold: params.newCertificateThreshold,
+				certificateThreshold: params.certificateThreshold,
 				certificate: params.certificate,
 				inboxUpdate: {
 					...inboxUpdate,
@@ -1038,7 +1038,7 @@ describe('Utils', () => {
 					siblingHashes: [],
 				},
 			},
-			newCertificateThreshold: BigInt(99),
+			certificateThreshold: BigInt(99),
 			sendingChainID: utils.getRandomBytes(4),
 		};
 
