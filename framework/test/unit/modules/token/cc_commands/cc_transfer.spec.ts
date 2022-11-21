@@ -175,7 +175,7 @@ describe('CrossChain Transfer command', () => {
 				'Value yields unsupported wireType',
 			);
 			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
+				expect.any(Object),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -219,7 +219,7 @@ describe('CrossChain Transfer command', () => {
 				"tokenID' maxLength exceeded",
 			);
 			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
+				expect.any(Object),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -263,7 +263,7 @@ describe('CrossChain Transfer command', () => {
 				"senderAddress' address length invalid",
 			);
 			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
+				expect.any(Object),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -307,7 +307,7 @@ describe('CrossChain Transfer command', () => {
 				"recipientAddress' address length invalid",
 			);
 			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
+				expect.any(Object),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -351,7 +351,7 @@ describe('CrossChain Transfer command', () => {
 				"data' must NOT have more than 64 characters",
 			);
 			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
+				expect.any(Object),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -395,7 +395,7 @@ describe('CrossChain Transfer command', () => {
 				'is not sufficient',
 			);
 			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
+				expect.any(Object),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -441,7 +441,7 @@ describe('CrossChain Transfer command', () => {
 				'is not sufficient',
 			);
 			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
+				expect.any(Object),
 				Buffer.from([3, 0, 0, 0]),
 			);
 			expect(interopMethod.error).toHaveBeenCalledWith(

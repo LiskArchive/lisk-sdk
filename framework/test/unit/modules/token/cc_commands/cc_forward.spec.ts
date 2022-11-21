@@ -140,49 +140,45 @@ describe('CrossChain Forward command', () => {
 
 	describe('execute', () => {
 		it('should terminate chain if token ID is not 8 bytes', async () => {
-			await expect(
-				command.execute({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID: Buffer.from([3, 0, 0, 0]),
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(30000),
-						status: CCM_STATUS_OK,
-						params: codec.encode(crossChainForwardMessageParams, {
-							tokenID: utils.getRandomBytes(9),
-							amount: BigInt(1000),
-							senderAddress: defaultAddress,
-							forwardToChainID: Buffer.from([4, 0, 0, 0]),
-							recipientAddress: defaultAddress,
-							data: 'ddd',
-							forwardedMessageFee: BigInt(2000),
-						}),
-					},
-					transaction: {
+			const ctx = {
+				ccm: {
+					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+					module: tokenModule.name,
+					nonce: BigInt(1),
+					sendingChainID: Buffer.from([3, 0, 0, 0]),
+					receivingChainID: Buffer.from([0, 0, 0, 1]),
+					fee: BigInt(30000),
+					status: CCM_STATUS_OK,
+					params: codec.encode(crossChainForwardMessageParams, {
+						tokenID: utils.getRandomBytes(9),
+						amount: BigInt(1000),
 						senderAddress: defaultAddress,
-						fee: BigInt(0),
-					},
-					header: {
-						height: 0,
-						timestamp: 0,
-					},
-					stateStore,
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
-				}),
-			).resolves.toBeUndefined();
+						forwardToChainID: Buffer.from([4, 0, 0, 0]),
+						recipientAddress: defaultAddress,
+						data: 'ddd',
+						forwardedMessageFee: BigInt(2000),
+					}),
+				},
+				transaction: {
+					senderAddress: defaultAddress,
+					fee: BigInt(0),
+				},
+				header: {
+					height: 0,
+					timestamp: 0,
+				},
+				stateStore,
+				getMethodContext: () => methodContext,
+				eventQueue: new EventQueue(0),
+				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+				logger: fakeLogger,
+				chainID: utils.getRandomBytes(32),
+			};
+			await expect(command.execute(ctx)).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
 				"tokenID' maxLength exceeded",
 			);
-			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
-				Buffer.from([3, 0, 0, 0]),
-			);
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(ctx, Buffer.from([3, 0, 0, 0]));
 		});
 
 		it('should terminate chain if sender address is not 20 bytes', async () => {
@@ -226,7 +222,7 @@ describe('CrossChain Forward command', () => {
 				"senderAddress' address length invalid",
 			);
 			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
+				expect.any(Object),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -272,7 +268,7 @@ describe('CrossChain Forward command', () => {
 				"recipientAddress' address length invalid",
 			);
 			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
+				expect.any(Object),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -318,7 +314,7 @@ describe('CrossChain Forward command', () => {
 				"data' must NOT have more than 64 characters",
 			);
 			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
+				expect.any(Object),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -360,10 +356,7 @@ describe('CrossChain Forward command', () => {
 					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
-			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
-				sendingChainID,
-			);
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(expect.any(Object), sendingChainID);
 			expect(interopMethod.error).toHaveBeenCalledWith(
 				methodContext,
 				expect.anything(),
@@ -408,10 +401,7 @@ describe('CrossChain Forward command', () => {
 					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
-			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
-				sendingChainID,
-			);
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(expect.any(Object), sendingChainID);
 		});
 
 		it('should refund sender if status is not ok and token chain id is sending chain', async () => {
@@ -498,10 +488,7 @@ describe('CrossChain Forward command', () => {
 				expect.anything(),
 				CCM_STATUS_PROTOCOL_VIOLATION,
 			);
-			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
-				sendingChainID,
-			);
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(expect.any(Object), sendingChainID);
 		});
 
 		it('should terminate chain if not not enough amount is escrowed', async () => {
@@ -546,10 +533,7 @@ describe('CrossChain Forward command', () => {
 				expect.anything(),
 				CCM_STATUS_PROTOCOL_VIOLATION,
 			);
-			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
-				expect.any(MethodContext),
-				sendingChainID,
-			);
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(expect.any(Object), sendingChainID);
 		});
 
 		it('should credit amount and fee to sender', async () => {

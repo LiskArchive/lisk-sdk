@@ -25,6 +25,7 @@ import {
 	CCMStatusCode,
 	CHAIN_ID_MAINCHAIN,
 	EMPTY_BYTES,
+	HASH_LENGTH,
 	MAINCHAIN_ID_BUFFER,
 	MAX_CCM_SIZE,
 } from '../../../../src/modules/interoperability/constants';
@@ -46,6 +47,9 @@ import { createTransientMethodContext } from '../../../../src/testing';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
+import { TerminateChainContext } from '../../../../src/modules/interoperability/types';
+import { CHAIN_ID_LENGTH } from '../../../../src/modules/token/constants';
+import { loggerMock } from '../../../../src/testing/mocks';
 
 class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {
 	protected getInteroperabilityInternalMethod = (
@@ -91,6 +95,7 @@ describe('Sample Method', () => {
 	let sampleInteroperabilityMethod: SampleInteroperabilityMethod;
 	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 	let methodContext: MethodContext;
+	let terminateChainContext: TerminateChainContext;
 	let tokenMethodMock: TokenMethod;
 	let ccmSendFailEventMock: CcmSentFailedEvent;
 	let ccmSendSuccessEventMock: CcmSendSuccessEvent;
@@ -98,6 +103,12 @@ describe('Sample Method', () => {
 	beforeEach(() => {
 		const defaultEventQueue = new EventQueue(0, [], [utils.hash(utils.getRandomBytes(32))]);
 		methodContext = createTransientMethodContext({ eventQueue: defaultEventQueue });
+		terminateChainContext = {
+			...methodContext,
+			chainID,
+			logger: loggerMock,
+			getMethodContext: jest.fn() as any,
+		};
 		tokenMethodMock = {
 			payMessageFee: jest.fn(),
 		} as any;
@@ -121,6 +132,8 @@ describe('Sample Method', () => {
 			methodContext,
 			interoperableCCMethods,
 		);
+		mainchainInteroperabilityInternalMethod.sendInternal = jest.fn();
+		mainchainInteroperabilityInternalMethod.createTerminatedStateAccount = jest.fn();
 		jest
 			.spyOn(sampleInteroperabilityMethod as any, 'getInteroperabilityInternalMethod')
 			.mockReturnValue(mainchainInteroperabilityInternalMethod);
@@ -461,6 +474,42 @@ describe('Sample Method', () => {
 
 			await sampleInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
 			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), newChainID);
+		});
+	});
+
+	describe('terminateChain', () => {
+		const sidechainChainAccount = {
+			name: 'sidechain1',
+			chainID: Buffer.alloc(CHAIN_ID_LENGTH),
+			lastCertificate: {
+				height: 10,
+				stateRoot: utils.getRandomBytes(32),
+				timestamp: 100,
+				validatorsHash: utils.getRandomBytes(32),
+			},
+			status: ChainStatus.TERMINATED,
+		};
+		beforeEach(() => {});
+		it('should do nothing if chain was already terminated', async () => {
+			jest
+				.spyOn(sampleInteroperabilityMethod as any, 'getTerminatedStateAccount')
+				.mockResolvedValue({
+					stateRoot: sidechainChainAccount.lastCertificate.stateRoot,
+					mainchainStateRoot: Buffer.alloc(HASH_LENGTH),
+					initialized: true,
+				});
+			await sampleInteroperabilityMethod.terminateChain(terminateChainContext, chainID);
+
+			expect(mainchainInteroperabilityInternalMethod.sendInternal).not.toHaveBeenCalled();
+		});
+
+		it('should process with input chainID', async () => {
+			jest
+				.spyOn(sampleInteroperabilityMethod as any, 'getTerminatedStateAccount')
+				.mockResolvedValue(null);
+
+			await sampleInteroperabilityMethod.terminateChain(terminateChainContext, chainID);
+			expect(mainchainInteroperabilityInternalMethod.sendInternal).toHaveBeenCalledTimes(1);
 		});
 	});
 });

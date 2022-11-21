@@ -86,7 +86,7 @@ export class CCTransferCommand extends BaseCCCommand {
 			// if (ccm.status === CCM_STATUS_OK && ccm.fee >= MIN_RETURN_FEE * ctx.ccmSize) {
 			// 	await this._interopMethod.error(methodContext, ccm, CCM_STATUS_PROTOCOL_VIOLATION);
 			// }
-			await this._interopMethod.terminateChain(methodContext, ccm.sendingChainID);
+			await this._interopMethod.terminateChain(ctx, ccm.sendingChainID);
 
 			return;
 		}

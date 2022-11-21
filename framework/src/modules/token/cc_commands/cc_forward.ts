@@ -67,7 +67,7 @@ export class CCForwardCommand extends BaseCCCommand {
 			if (ccm.status === CCM_STATUS_OK) {
 				await this._interopMethod.error(methodContext, ccm, CCM_STATUS_PROTOCOL_VIOLATION);
 			}
-			await this._interopMethod.terminateChain(methodContext, ccm.sendingChainID);
+			await this._interopMethod.terminateChain(ctx, ccm.sendingChainID);
 			return;
 		}
 
@@ -76,7 +76,7 @@ export class CCForwardCommand extends BaseCCCommand {
 
 		if (ccm.status !== CCM_STATUS_OK) {
 			if (!ccm.sendingChainID.equals(chainID)) {
-				await this._interopMethod.terminateChain(methodContext, ccm.sendingChainID);
+				await this._interopMethod.terminateChain(ctx, ccm.sendingChainID);
 				return;
 			}
 			await userStore.updateAvailableBalance(
@@ -92,7 +92,7 @@ export class CCForwardCommand extends BaseCCCommand {
 			if (ccm.status === CCM_STATUS_OK) {
 				await this._interopMethod.error(methodContext, ccm, CCM_STATUS_PROTOCOL_VIOLATION);
 			}
-			await this._interopMethod.terminateChain(methodContext, ccm.sendingChainID);
+			await this._interopMethod.terminateChain(ctx, ccm.sendingChainID);
 			return;
 		}
 
@@ -106,7 +106,7 @@ export class CCForwardCommand extends BaseCCCommand {
 			if (ccm.status === CCM_STATUS_OK) {
 				await this._interopMethod.error(methodContext, ccm, CCM_STATUS_PROTOCOL_VIOLATION);
 			}
-			await this._interopMethod.terminateChain(methodContext, ccm.sendingChainID);
+			await this._interopMethod.terminateChain(ctx, ccm.sendingChainID);
 			return;
 		}
 

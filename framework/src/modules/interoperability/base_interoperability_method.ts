@@ -19,10 +19,18 @@ import { BaseInteroperableMethod } from './base_interoperable_method';
 import { NamedRegistry } from '../named_registry';
 import { ImmutableMethodContext, MethodContext, NotFoundError } from '../../state_machine';
 import { ChainAccount, ChainAccountStore, ChainStatus } from './stores/chain_account';
-import { CCMsg } from './types';
+import { CCMsg, TerminateChainContext } from './types';
 import { StoreGetter, ImmutableStoreGetter } from '../base_store';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
-import { EMPTY_BYTES, CHAIN_ID_MAINCHAIN, MAINCHAIN_ID_BUFFER } from './constants';
+import {
+	EMPTY_BYTES,
+	CHAIN_ID_MAINCHAIN,
+	MAINCHAIN_ID_BUFFER,
+	EMPTY_FEE_ADDRESS,
+	MODULE_NAME_INTEROPERABILITY,
+	CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
+	CCMStatusCode,
+} from './constants';
 import { CCMSentFailedCode, CcmSentFailedEvent } from './events/ccm_send_fail';
 import { CcmSendSuccessEvent } from './events/ccm_send_success';
 import { ccmSchema } from './schemas';
@@ -250,8 +258,27 @@ export abstract class BaseInteroperabilityMethod<
 		throw new Error('Need to be implemented');
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async terminateChain(_methodContext: MethodContext, _chainID: Buffer): Promise<void> {
-		throw new Error('Need to be implemented');
+	public async terminateChain(context: TerminateChainContext, chainID: Buffer): Promise<void> {
+		if (await this.getTerminatedStateAccount(context, chainID)) {
+			return;
+		}
+
+		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
+		await interoperabilityInternalMethod.sendInternal({
+			module: MODULE_NAME_INTEROPERABILITY,
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
+			receivingChainID: chainID,
+			fee: BigInt(0),
+			status: CCMStatusCode.OK,
+			params: EMPTY_BYTES,
+			eventQueue: context.eventQueue,
+			feeAddress: EMPTY_FEE_ADDRESS,
+			getMethodContext: context.getMethodContext,
+			getStore: context.getStore,
+			logger: context.logger,
+			chainID: context.chainID,
+		});
+
+		await interoperabilityInternalMethod.createTerminatedStateAccount(context, chainID);
 	}
 }
