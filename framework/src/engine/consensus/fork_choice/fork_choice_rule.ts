@@ -128,7 +128,7 @@ export const forkChoice = (
 	}
 
 	if (isDoubleForging(lastBlockHeader, blockHeader)) {
-		// Delegates are the same
+		// Validators are the same
 		// Case 3: double forging different blocks in the same slot.
 		// Last Block stands.
 		return ForkStatus.DOUBLE_FORGING;
@@ -141,7 +141,7 @@ export const forkChoice = (
 			receivedBlock: receivedBFTHeader,
 		})
 	) {
-		// Two competing blocks by different delegates at the same height.
+		// Two competing blocks by different validators at the same height.
 		// Case 4: Tie break
 		return ForkStatus.TIE_BREAK;
 	}

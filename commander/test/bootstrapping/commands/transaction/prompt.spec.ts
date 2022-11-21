@@ -21,7 +21,7 @@ import {
 import {
 	tokenTransferParamsSchema,
 	keysRegisterParamsSchema,
-	dposVoteParamsSchema,
+	posVoteParamsSchema,
 } from '../../../helpers/transactions';
 
 describe('prompt', () => {
@@ -81,28 +81,28 @@ describe('prompt', () => {
 
 	describe('transformNestedAsset', () => {
 		it('should transform result according to nested asset schema', () => {
-			const questions = prepareQuestions(dposVoteParamsSchema);
-			const transformedAsset = transformNestedAsset(dposVoteParamsSchema, [
-				{ votes: 'a,100' },
-				{ votes: 'b,300' },
+			const questions = prepareQuestions(posVoteParamsSchema);
+			const transformedAsset = transformNestedAsset(posVoteParamsSchema, [
+				{ stakes: 'a,100' },
+				{ stakes: 'b,300' },
 			]);
 
 			expect(questions).toEqual([
 				{
 					type: 'input',
-					name: 'votes',
-					message: 'Please enter: votes(delegateAddress, amount): ',
+					name: 'stakes',
+					message: 'Please enter: stakes(validatorAddress, amount): ',
 				},
 				{
 					type: 'confirm',
 					name: 'askAgain',
-					message: 'Want to enter another votes(delegateAddress, amount)',
+					message: 'Want to enter another stakes(validatorAddress, amount)',
 				},
 			]);
 			expect(transformedAsset).toEqual({
-				votes: [
-					{ delegateAddress: 'a', amount: 100 },
-					{ delegateAddress: 'b', amount: 300 },
+				stakes: [
+					{ validatorAddress: 'a', amount: 100 },
+					{ validatorAddress: 'b', amount: 300 },
 				],
 			});
 		});

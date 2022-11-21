@@ -35,18 +35,18 @@ export const getAccountFromJSON = (account: any) => ({
 	},
 	asset: {
 		...account.asset,
-		delegate: {
-			...account.asset.delegate,
-			totalVotesReceived: BigInt(account.asset.delegate.totalVotesReceived),
+		validator: {
+			...account.asset.validator,
+			totalStakeReceived: BigInt(account.asset.validator.totalStakeReceived),
 		},
-		sentVotes: account.asset.sentVotes.map((v: any) => ({
+		sentStakes: account.asset.sentStakes.map((v: any) => ({
 			...v,
-			delegateAddress: Buffer.from(v.delegateAddress, 'hex'),
+			validatorAddress: Buffer.from(v.validatorAddress, 'hex'),
 			amount: BigInt(v.amount),
 		})),
 		unlocking: account.asset.unlocking.map((v: any) => ({
 			...v,
-			delegateAddress: Buffer.from(v.delegateAddress, 'hex'),
+			validatorAddress: Buffer.from(v.validatorAddress, 'hex'),
 			amount: BigInt(v.amount),
 		})),
 	},

@@ -15,7 +15,7 @@
 				},
 				"schema": {
 					"type": "object",
-					"$id": "array-schema-uint32",
+					"$id": "/arraySchemaUint32",
 					"properties": {
 						"list": {
 							"type": "array",
@@ -39,7 +39,7 @@
 				},
 				"schema": {
 					"type": "object",
-					"$id": "array-schema-boolean",
+					"$id": "/arraySchemaBoolean",
 					"properties": {
 						"list": {
 							"type": "array",
@@ -63,7 +63,7 @@
 				},
 				"schema": {
 					"type": "object",
-					"$id": "array-schema-string",
+					"$id": "/arraySchemaString",
 					"properties": {
 						"list": {
 							"type": "array",
@@ -96,7 +96,7 @@
 				},
 				"schema": {
 					"type": "object",
-					"$id": "array-schema-object",
+					"$id": "/arraySchemaObject",
 					"properties": {
 						"list": {
 							"type": "array",
@@ -130,7 +130,7 @@
 				},
 				"schema": {
 					"type": "object",
-					"$id": "array-schema-uint32",
+					"$id": "/arraySchemaUint32",
 					"properties": {
 						"list": {
 							"type": "array",

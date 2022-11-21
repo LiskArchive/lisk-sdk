@@ -1243,7 +1243,7 @@ describe('block_synchronization_mechanism', () => {
 	});
 
 	describe('isValidFor', () => {
-		it('should return true if the difference in block slots between the current block slot and the finalized block slot of the system is bigger than delegatesPerRound*3', async () => {
+		it('should return true if the difference in block slots between the current block slot and the finalized block slot of the system is bigger than validatorsPerRound*3', async () => {
 			when(chainModule.dataAccess.getBlockHeaderByHeight)
 				.calledWith(finalizedHeight)
 				.mockResolvedValue(genesisBlock.header as never);
@@ -1252,7 +1252,7 @@ describe('block_synchronization_mechanism', () => {
 			expect(isValid).toBeTruthy();
 		});
 
-		it('should return false if the difference in block slots between the current block slot and the finalized block slot of the system is smaller than delegatesPerRound*3', async () => {
+		it('should return false if the difference in block slots between the current block slot and the finalized block slot of the system is smaller than validatorsPerRound*3', async () => {
 			when(chainModule.dataAccess.getBlockHeaderByHeight)
 				.calledWith(finalizedHeight)
 				.mockResolvedValue(

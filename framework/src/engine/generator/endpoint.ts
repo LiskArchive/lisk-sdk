@@ -146,7 +146,7 @@ export class Endpoint {
 
 		// Before disabling, above ensure decrypt is successful
 		if (!req.enable) {
-			// Disable delegate by removing keypairs corresponding to address
+			// Disable validator by removing keypairs corresponding to address
 			this._keypairs.delete(cryptoAddress.getAddressFromLisk32Address(ctx.params.address));
 			ctx.logger.info(`Forging disabled on account: ${req.address}`);
 			return {
@@ -186,7 +186,7 @@ export class Endpoint {
 			);
 		}
 
-		// Enable delegate to forge by adding keypairs corresponding to address
+		// Enable validator to forge by adding keypairs corresponding to address
 		this._keypairs.set(address, decryptedKeys);
 		ctx.logger.info(`Block generation enabled on address: ${req.address}`);
 

@@ -14,7 +14,7 @@
 					"address": "e11a11364738225813f86ea85214400e5db08d6e"
 				},
 				"schema": {
-					"$id": "object9",
+					"$id": "/object9",
 					"type": "object",
 					"properties": {
 						"address": {
@@ -35,7 +35,7 @@
 					"address": ""
 				},
 				"schema": {
-					"$id": "object9",
+					"$id": "/object9",
 					"type": "object",
 					"properties": {
 						"address": {

@@ -52,17 +52,17 @@ export const createFakeDefaultAccount = (account: any) => ({
 		optionalKeys: account?.keys?.optionalKeys ?? [],
 		numberOfSignatures: account?.keys?.numberOfSignatures ?? 0,
 	},
-	dpos: {
-		delegate: {
-			username: account?.dpos?.delegate?.username ?? '',
-			pomHeights: account?.dpos?.delegate?.pomHeights ?? [],
-			consecutiveMissedBlocks: account?.dpos?.delegate?.consecutiveMissedBlocks ?? 0,
-			lastForgedHeight: account?.dpos?.delegate?.lastForgedHeight ?? 0,
-			isBanned: account?.dpos?.delegate?.isBanned ?? false,
-			totalVotesReceived: account?.dpos?.delegate?.totalVotesReceived ?? BigInt(0),
+	pos: {
+		validator: {
+			username: account?.pos?.validator?.username ?? '',
+			pomHeights: account?.pos?.validator?.pomHeights ?? [],
+			consecutiveMissedBlocks: account?.pos?.validator?.consecutiveMissedBlocks ?? 0,
+			lastForgedHeight: account?.pos?.validator?.lastForgedHeight ?? 0,
+			isBanned: account?.pos?.validator?.isBanned ?? false,
+			totalStakeReceived: account?.pos?.validator?.totalStakeReceived ?? BigInt(0),
 		},
-		sentVotes: account?.dpos?.sentVotes ?? [],
-		unlocking: account?.dpos?.unlocking ?? [],
+		sentStakes: account?.pos?.sentStakes ?? [],
+		unlocking: account?.pos?.unlocking ?? [],
 	},
 });
 

@@ -13,14 +13,14 @@
 				"object": {
 					"ipAddress": "1.1.1.1",
 					"wsPort": 1111,
-					"networkIdentifier": "f8fe7ecc3e29f58f39d8a538f9a35b80b4b6ab9674f0300e25e33ff41274ae32",
+					"chainID": "10000000",
 					"networkVersion": "2.0",
 					"nonce": "iNIgD0Mb3s/RMaXbs",
 					"os": "darwin",
 					"height": 123
 				},
 				"schema": {
-					"$id": "peerInfo",
+					"$id": "/peerInfo",
 					"type": "object",
 					"properties": {
 						"ipAddress": {
@@ -31,7 +31,7 @@
 							"dataType": "uint32",
 							"fieldNumber": 2
 						},
-						"networkIdentifier": {
+						"chainID": {
 							"dataType": "string",
 							"fieldNumber": 3
 						},
@@ -56,7 +56,7 @@
 				}
 			},
 			"output": {
-				"value": "0a07312e312e312e3110d7081a40663866653765636333653239663538663339643861353338663961333562383062346236616239363734663033303065323565333366663431323734616533322203322e302a11694e496744304d6233732f524d61586273320664617277696e387b"
+				"value": "0a07312e312e312e3110d7081a0831303030303030302203322e302a11694e496744304d6233732f524d61586273320664617277696e387b"
 			}
 		},
 		{
@@ -68,7 +68,7 @@
 					"os": "darwin"
 				},
 				"schema": {
-					"$id": "peerInfo",
+					"$id": "/peerInfo",
 					"type": "object",
 					"properties": {
 						"ipAddress": {
@@ -79,7 +79,7 @@
 							"dataType": "uint32",
 							"fieldNumber": 2
 						},
-						"networkIdentifier": {
+						"chainID": {
 							"dataType": "string",
 							"fieldNumber": 3
 						},

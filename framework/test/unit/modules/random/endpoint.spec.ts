@@ -21,7 +21,7 @@ import { ValidatorRevealsStore } from '../../../../src/modules/random/stores/val
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { createTransientModuleEndpointContext } from '../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
-import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
+import * as genesisValidators from '../../../fixtures/genesis_validators.json';
 
 describe('RandomModuleEndpoint', () => {
 	let randomEndpoint: RandomEndpoint;
@@ -30,25 +30,25 @@ describe('RandomModuleEndpoint', () => {
 	const validatorsData = [
 		{
 			generatorAddress: cryptography.address.getAddressFromLisk32Address(
-				genesisDelegates.delegates[0].address,
+				genesisValidators.validators[0].address,
 			),
-			seedReveal: Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[0], 'hex'),
+			seedReveal: Buffer.from(genesisValidators.validators[0].hashOnion.hashes[0], 'hex'),
 			height: 1,
 			valid: true,
 		},
 		{
 			generatorAddress: cryptography.address.getAddressFromLisk32Address(
-				genesisDelegates.delegates[1].address,
+				genesisValidators.validators[1].address,
 			),
-			seedReveal: Buffer.from(genesisDelegates.delegates[1].hashOnion.hashes[1], 'hex'),
+			seedReveal: Buffer.from(genesisValidators.validators[1].hashOnion.hashes[1], 'hex'),
 			height: 3,
 			valid: true,
 		},
 		{
 			generatorAddress: cryptography.address.getAddressFromLisk32Address(
-				genesisDelegates.delegates[2].address,
+				genesisValidators.validators[2].address,
 			),
-			seedReveal: Buffer.from(genesisDelegates.delegates[2].hashOnion.hashes[1], 'hex'),
+			seedReveal: Buffer.from(genesisValidators.validators[2].hashOnion.hashes[1], 'hex'),
 			height: 5,
 			valid: true,
 		},
@@ -74,7 +74,7 @@ describe('RandomModuleEndpoint', () => {
 	describe('isSeedRevealValid', () => {
 		it('should throw error when seedReveal provided in params is invalid', async () => {
 			// Arrange
-			const { address } = genesisDelegates.delegates[0];
+			const { address } = genesisValidators.validators[0];
 			const hashToBeChecked = '12345%$#6';
 			context.params = { generatorAddress: address, seedReveal: hashToBeChecked };
 
@@ -87,10 +87,10 @@ describe('RandomModuleEndpoint', () => {
 		it('should throw error when generatorAddress provided in params is invalid', async () => {
 			// Arrange
 			const address = ['address'];
-			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
 			const hashes = cryptography.utils.hashOnion(
 				Buffer.from(seed, 'hex'),
-				genesisDelegates.delegates[0].hashOnion.distance,
+				genesisValidators.validators[0].hashOnion.distance,
 				1,
 			);
 			const hashToBeChecked = hashes[1].toString('hex');
@@ -116,11 +116,11 @@ describe('RandomModuleEndpoint', () => {
 
 		it('should return true for a valid seed reveal', async () => {
 			// Arrange
-			const { address } = genesisDelegates.delegates[0];
-			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			const { address } = genesisValidators.validators[0];
+			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
 			const hashes = cryptography.utils.hashOnion(
 				Buffer.from(seed, 'hex'),
-				genesisDelegates.delegates[0].hashOnion.distance,
+				genesisValidators.validators[0].hashOnion.distance,
 				1,
 			);
 			const hashToBeChecked = hashes[1].toString('hex');
@@ -135,11 +135,11 @@ describe('RandomModuleEndpoint', () => {
 
 		it('should return true if no last seed reveal found', async () => {
 			// Arrange
-			const { address } = genesisDelegates.delegates[4];
-			const seed = genesisDelegates.delegates[4].hashOnion.hashes[0];
+			const { address } = genesisValidators.validators[4];
+			const seed = genesisValidators.validators[4].hashOnion.hashes[0];
 			const hashes = cryptography.utils.hashOnion(
 				Buffer.from(seed, 'hex'),
-				genesisDelegates.delegates[0].hashOnion.distance,
+				genesisValidators.validators[0].hashOnion.distance,
 				1,
 			);
 			const hashToBeChecked = hashes[3].toString('hex');
@@ -154,11 +154,11 @@ describe('RandomModuleEndpoint', () => {
 
 		it('should return false for an invalid seed reveal when last seed is not hash of the given reveal', async () => {
 			// Arrange
-			const { address } = genesisDelegates.delegates[1];
-			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			const { address } = genesisValidators.validators[1];
+			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
 			const hashes = cryptography.utils.hashOnion(
 				Buffer.from(seed, 'hex'),
-				genesisDelegates.delegates[0].hashOnion.distance,
+				genesisValidators.validators[0].hashOnion.distance,
 				1,
 			);
 			const hashToBeChecked = hashes[3].toString('hex');
@@ -175,8 +175,8 @@ describe('RandomModuleEndpoint', () => {
 	describe('setHashOnion', () => {
 		it('should create a new seed and store it in the offchain store', async () => {
 			// Arrange
-			const { address } = genesisDelegates.delegates[0];
-			const seed = genesisDelegates.delegates[1].hashOnion.hashes[1];
+			const { address } = genesisValidators.validators[0];
+			const seed = genesisValidators.validators[1].hashOnion.hashes[1];
 			const count = 1000;
 			const distance = 10;
 
@@ -202,7 +202,7 @@ describe('RandomModuleEndpoint', () => {
 		it('should throw error when address provided in params is invalid', async () => {
 			// Arrange
 			const address = ['address'];
-			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
 			const count = 1000;
 			const distance = 1000;
 			context.params = { address, seed, count, distance };
@@ -215,7 +215,7 @@ describe('RandomModuleEndpoint', () => {
 
 		it('should throw error when seed provided in params is invalid', async () => {
 			// Arrange
-			const { address } = genesisDelegates.delegates[0];
+			const { address } = genesisValidators.validators[0];
 			const seed = ['seed'];
 			const count = 1000;
 			const distance = 1000;
@@ -229,8 +229,8 @@ describe('RandomModuleEndpoint', () => {
 
 		it('should throw error when count provided in params is invalid', async () => {
 			// Arrange
-			const { address } = genesisDelegates.delegates[0];
-			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			const { address } = genesisValidators.validators[0];
+			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
 			const count = 'count';
 			const distance = 1000;
 			context.params = { address, seed, count, distance };
@@ -243,8 +243,8 @@ describe('RandomModuleEndpoint', () => {
 
 		it('should throw error when distance provided in params is invalid', async () => {
 			// Arrange
-			const { address } = genesisDelegates.delegates[0];
-			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			const { address } = genesisValidators.validators[0];
+			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
 			const count = 1000;
 			const distance = 'distance';
 			context.params = { address, seed, count, distance };
@@ -257,8 +257,8 @@ describe('RandomModuleEndpoint', () => {
 
 		it('should throw error when count is less than 1', async () => {
 			// Arrange
-			const { address } = genesisDelegates.delegates[0];
-			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			const { address } = genesisValidators.validators[0];
+			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
 			const count = 0;
 			const distance = 1000;
 			context.params = { address, seed, count, distance };
@@ -271,8 +271,8 @@ describe('RandomModuleEndpoint', () => {
 
 		it('should throw error when distance is less than 1', async () => {
 			// Arrange
-			const { address } = genesisDelegates.delegates[0];
-			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			const { address } = genesisValidators.validators[0];
+			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
 			const count = 1000;
 			const distance = 0;
 			context.params = { address, seed, count, distance };
@@ -289,8 +289,8 @@ describe('RandomModuleEndpoint', () => {
 
 		beforeEach(async () => {
 			// Arrange
-			address = genesisDelegates.delegates[0].address;
-			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			address = genesisValidators.validators[0].address;
+			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
 			const count = 1000;
 			const distance = 10;
 
@@ -317,11 +317,11 @@ describe('RandomModuleEndpoint', () => {
 		let address2: string;
 
 		beforeEach(async () => {
-			address = genesisDelegates.delegates[0].address;
-			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			address = genesisValidators.validators[0].address;
+			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
 			const count = 1000;
 			const distance = 10;
-			address2 = genesisDelegates.delegates[1].address;
+			address2 = genesisValidators.validators[1].address;
 
 			await randomEndpoint.setHashOnion({ ...context, params: { address, seed, count, distance } });
 			await randomEndpoint.setHashOnion({
@@ -385,11 +385,11 @@ describe('RandomModuleEndpoint', () => {
 
 		beforeEach(async () => {
 			// Arrange
-			address = genesisDelegates.delegates[0].address;
-			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			address = genesisValidators.validators[0].address;
+			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
 			const count = 1000;
 			const distance = 10;
-			address2 = genesisDelegates.delegates[1].address;
+			address2 = genesisValidators.validators[1].address;
 
 			await randomEndpoint.setHashOnion({ ...context, params: { address, seed, count, distance } });
 			await randomEndpoint.setHashOnion({
@@ -425,7 +425,7 @@ describe('RandomModuleEndpoint', () => {
 			expect(seedUsage).toEqual({
 				count: 20,
 				height: 2121,
-				seed: genesisDelegates.delegates[0].hashOnion.hashes[1],
+				seed: genesisValidators.validators[0].hashOnion.hashes[1],
 			});
 		});
 

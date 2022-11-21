@@ -1,6 +1,6 @@
 # @liskhq/lisk-framework-report-misbehavior-plugin
 
-@liskhq/lisk-framework-report-misbehavior-plugin is a plugin for lisk-framework that provides automatic detection of delegate misbehavior and sends a reportDelegateMisbehaviorTransaction to the running node.
+@liskhq/lisk-framework-report-misbehavior-plugin is a plugin for lisk-framework that provides automatic detection of validator misbehavior and sends a reportValidatorMisbehaviorTransaction to the running node.
 
 ## Installation
 

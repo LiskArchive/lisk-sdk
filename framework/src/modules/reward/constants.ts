@@ -23,7 +23,7 @@ export const TOKEN_ID_LSK_MAINCHAIN = {
 export const REWARD_NO_REDUCTION = 0;
 export const REWARD_REDUCTION_SEED_REVEAL = 1;
 export const REWARD_REDUCTION_MAX_PREVOTES = 2;
-export const REWARD_REDUCTION_FACTOR_BFT = 4;
+export const REWARD_REDUCTION_FACTOR_BFT = BigInt(4);
 
 export const defaultConfig = {
 	tokenID: '0000000000000000',
