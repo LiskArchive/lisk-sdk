@@ -40,7 +40,7 @@ interface ForgerInfo extends Forger {
 	readonly consecutiveMissedBlocks: number;
 }
 
-interface Delegate {
+interface Validator {
 	name: string;
 	totalStakeReceived: string;
 	selfStake: string;
@@ -63,7 +63,7 @@ export class Endpoint extends BasePluginEndpoint {
 		const forgersList = await this._client.invoke<Forger[]>('app_getForgingStatus');
 		const forgerAccounts = [];
 		for (const validator of forgersList) {
-			const res = await this._client.invoke<Delegate>('pos_getDelegate', {
+			const res = await this._client.invoke<Validator>('pos_getValidator', {
 				address: validator.address,
 			});
 			forgerAccounts.push({
@@ -97,7 +97,7 @@ export class Endpoint extends BasePluginEndpoint {
 		const forgersList = await this._client.invoke<ReadonlyArray<Forger>>('app_getForgingStatus');
 		const forgerAccounts = [];
 		for (const validator of forgersList) {
-			const res = await this._client.invoke<Delegate>('pos_getDelegate', {
+			const res = await this._client.invoke<Validator>('pos_getValidator', {
 				address: validator.address,
 			});
 			forgerAccounts.push({

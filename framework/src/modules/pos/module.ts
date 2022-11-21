@@ -28,7 +28,7 @@ import { ChangeCommissionCommand } from './commands/change_commission';
 import {
 	DELEGATE_LIST_ROUND_OFFSET,
 	EMPTY_KEY,
-	MAX_NUMBER_SENT_VOTES,
+	MAX_NUMBER_SENT_STAKES,
 	MAX_NUMBER_PENDING_UNLOCKS,
 	defaultConfig,
 	MAX_CAP,
@@ -335,8 +335,8 @@ export class PoSModule extends BaseModule {
 		// stakers property check
 		const stakerAddresses = [];
 		for (const staker of genesisStore.stakers) {
-			if (staker.sentStakes.length > MAX_NUMBER_SENT_VOTES) {
-				throw new Error(`Sent stake exceeds max stake ${MAX_NUMBER_SENT_VOTES}.`);
+			if (staker.sentStakes.length > MAX_NUMBER_SENT_STAKES) {
+				throw new Error(`Sent stake exceeds max stake ${MAX_NUMBER_SENT_STAKES}.`);
 			}
 			if (!objectUtils.bufferArrayUniqueItems(staker.sentStakes.map(v => v.validatorAddress))) {
 				throw new Error('Sent stake validator address is not unique.');

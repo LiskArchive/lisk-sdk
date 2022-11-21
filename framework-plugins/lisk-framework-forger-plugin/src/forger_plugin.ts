@@ -38,8 +38,8 @@ type BlockJSON = chain.BlockJSON;
 type TransactionJSON = chain.TransactionJSON;
 
 const BLOCKS_BATCH_TO_SYNC = 1000;
-const MODULE_DPOS = 'pos';
-const COMMAND_VOTE = 'stake';
+const MODULE_POS = 'pos';
+const COMMAND_STAKE = 'stake';
 
 interface Data {
 	readonly blockHeader: BlockHeaderJSON;
@@ -276,17 +276,17 @@ export class ForgerPlugin extends BasePlugin {
 	): ForgerReceivedVotes {
 		const forgerReceivedVotes: ForgerReceivedVotes = {};
 
-		const posModuleMeta = this.apiClient.metadata.find(c => c.name === MODULE_DPOS);
+		const posModuleMeta = this.apiClient.metadata.find(c => c.name === MODULE_POS);
 		if (!posModuleMeta) {
-			throw new Error('DPoS stakes command is not registered.');
+			throw new Error('PoS stakes command is not registered.');
 		}
-		const voteCommandMeta = posModuleMeta.commands.find(c => c.name === COMMAND_VOTE);
+		const voteCommandMeta = posModuleMeta.commands.find(c => c.name === COMMAND_STAKE);
 		if (!voteCommandMeta || !voteCommandMeta.params) {
-			throw new Error('DPoS stakes command is not registered.');
+			throw new Error('PoS stakes command is not registered.');
 		}
 
 		for (const trx of transactions) {
-			if (trx.module === MODULE_DPOS && trx.command === COMMAND_VOTE) {
+			if (trx.module === MODULE_POS && trx.command === COMMAND_STAKE) {
 				const params = codec.decode<VotesParams>(
 					voteCommandMeta.params,
 					Buffer.from(trx.params, 'hex'),

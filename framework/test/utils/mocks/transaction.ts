@@ -69,7 +69,7 @@ export const createTransferTransaction = (input: {
 	return tx;
 };
 
-export const createDelegateRegisterTransaction = (input: {
+export const createValidatorRegisterTransaction = (input: {
 	nonce: bigint;
 	chainID: Buffer;
 	privateKey: Buffer;
@@ -103,7 +103,7 @@ export const createDelegateRegisterTransaction = (input: {
 	return tx;
 };
 
-export const createDelegateVoteTransaction = (input: {
+export const createValidatorStakeTransaction = (input: {
 	nonce: bigint;
 	chainID: Buffer;
 	privateKey: Buffer;

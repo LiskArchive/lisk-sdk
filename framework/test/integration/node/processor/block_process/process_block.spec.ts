@@ -18,8 +18,8 @@ import { address } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../../utils';
 import * as testing from '../../../../../src/testing';
 import {
-	createDelegateRegisterTransaction,
-	createDelegateVoteTransaction,
+	createValidatorRegisterTransaction,
+	createValidatorStakeTransaction,
 	createTransferTransaction,
 	defaultTokenID,
 } from '../../../../utils/mocks/transaction';
@@ -216,7 +216,7 @@ describe('Process block', () => {
 			const targetAuthData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
 				address: address.getLisk32AddressFromAddress(account.address),
 			});
-			transaction = createDelegateRegisterTransaction({
+			transaction = createValidatorRegisterTransaction({
 				nonce: BigInt(targetAuthData.nonce),
 				fee: BigInt('3000000000'),
 				username: 'number1',
@@ -244,7 +244,7 @@ describe('Process block', () => {
 					},
 				);
 				const voteAmount = BigInt('1000000000');
-				const voteTransaction = createDelegateVoteTransaction({
+				const voteTransaction = createValidatorStakeTransaction({
 					nonce: BigInt(senderAuthData.nonce),
 					chainID,
 					privateKey: account.privateKey,
@@ -284,7 +284,7 @@ describe('Process block', () => {
 				const senderAuthData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
 					address: address.getLisk32AddressFromAddress(account.address),
 				});
-				invalidTx = createDelegateRegisterTransaction({
+				invalidTx = createValidatorRegisterTransaction({
 					nonce: BigInt(senderAuthData.nonce),
 					fee: BigInt('5000000000'),
 					username: 'number1',

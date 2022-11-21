@@ -156,13 +156,13 @@ describe('DynamicRewardModule', () => {
 		let standbyValidatorAddress: Buffer;
 		let stateStore: PrefixedStateReadWriter;
 
-		const activeDelegate = 4;
+		const activeValidator = 4;
 		const minimumReward =
 			(BigInt(defaultConfig.brackets[0]) *
 				BigInt(defaultConfig.factorMinimumRewardActiveValidators)) /
 			DECIMAL_PERCENT_FACTOR;
-		const totalRewardActiveDelegate = BigInt(defaultConfig.brackets[0]) * BigInt(activeDelegate);
-		const ratioReward = totalRewardActiveDelegate - minimumReward * BigInt(activeDelegate);
+		const totalRewardActiveValidator = BigInt(defaultConfig.brackets[0]) * BigInt(activeValidator);
+		const ratioReward = totalRewardActiveValidator - minimumReward * BigInt(activeValidator);
 
 		beforeEach(async () => {
 			generatorAddress = utils.getRandomBytes(20);
@@ -188,7 +188,7 @@ describe('DynamicRewardModule', () => {
 			];
 
 			(validatorsMethod.getValidatorsParams as jest.Mock).mockResolvedValue({ validators });
-			(posMethod.getNumberOfActiveValidators as jest.Mock).mockReturnValue(activeDelegate);
+			(posMethod.getNumberOfActiveValidators as jest.Mock).mockReturnValue(activeValidator);
 		});
 
 		it('should store minimal reward for active validators when full round is forged', async () => {

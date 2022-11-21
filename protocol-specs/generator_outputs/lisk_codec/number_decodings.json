@@ -12,7 +12,7 @@
 			"input": {
 				"value": "080a",
 				"schema": {
-					"$id": "number-schema-uint32",
+					"$id": "/numberSchemaUint32",
 					"type": "object",
 					"properties": {
 						"number": {
@@ -33,7 +33,7 @@
 			"input": {
 				"value": "0813",
 				"schema": {
-					"$id": "number-schema-sint32",
+					"$id": "/numberSchemaSint32",
 					"type": "object",
 					"properties": {
 						"number": {
@@ -54,7 +54,7 @@
 			"input": {
 				"value": "08ffffc9a4d9cb54",
 				"schema": {
-					"$id": "number-schema-uint64",
+					"$id": "/numberSchemaUint64",
 					"type": "object",
 					"properties": {
 						"number": {
@@ -75,7 +75,7 @@
 			"input": {
 				"value": "08fdffffffffffff1f",
 				"schema": {
-					"$id": "number-schema-sint64",
+					"$id": "/numberSchemaSint64",
 					"type": "object",
 					"properties": {
 						"number": {

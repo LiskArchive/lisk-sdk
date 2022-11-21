@@ -24,7 +24,7 @@ import { BaseCommand } from '../../base_command';
 import {
 	REPORTING_PUNISHMENT_REWARD,
 	POM_LIMIT_BANNED,
-	LOCKING_PERIOD_SELF_VOTES,
+	LOCKING_PERIOD_SELF_STAKES,
 } from '../constants';
 import { pomCommandParamsSchema } from '../schemas';
 import {
@@ -99,7 +99,7 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 			Math.abs(header2.height - currentHeight),
 		);
 
-		if (maxPunishableHeight >= LOCKING_PERIOD_SELF_VOTES) {
+		if (maxPunishableHeight >= LOCKING_PERIOD_SELF_STAKES) {
 			throw new Error('Locking period has expired.');
 		}
 

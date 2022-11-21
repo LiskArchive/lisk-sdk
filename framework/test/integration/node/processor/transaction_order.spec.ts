@@ -16,10 +16,10 @@ import { address } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../utils';
 import {
 	createTransferTransaction,
-	createDelegateRegisterTransaction,
+	createValidatorRegisterTransaction,
 	createMultiSignRegisterTransaction,
 	createMultisignatureTransferTransaction,
-	createDelegateVoteTransaction,
+	createValidatorStakeTransaction,
 } from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
 
@@ -92,7 +92,7 @@ describe('Transaction order', () => {
 					chainID,
 					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
-				const registerValidatorTx = createDelegateRegisterTransaction({
+				const registerValidatorTx = createValidatorRegisterTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('1100000000'),
 					username: 'new_validator',
@@ -102,7 +102,7 @@ describe('Transaction order', () => {
 					generatorKey: newAccount.publicKey,
 					privateKey: newAccount.privateKey,
 				});
-				const selfVoteTx = createDelegateVoteTransaction({
+				const selfVoteTx = createValidatorStakeTransaction({
 					nonce: BigInt('1'),
 					fee: BigInt('100000000'),
 					stakes: [

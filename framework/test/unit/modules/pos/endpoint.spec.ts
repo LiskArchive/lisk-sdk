@@ -18,9 +18,9 @@ import { math } from '@liskhq/lisk-utils';
 import {
 	defaultConfig,
 	EMPTY_KEY,
-	PUNISHMENT_WINDOW_VOTES,
-	LOCKING_PERIOD_SELF_VOTES,
-	LOCKING_PERIOD_VOTES,
+	PUNISHMENT_WINDOW_STAKES,
+	LOCKING_PERIOD_SELF_STAKES,
+	LOCKING_PERIOD_STAKES,
 } from '../../../../src/modules/pos/constants';
 import { PoSEndpoint } from '../../../../src/modules/pos/endpoint';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
@@ -414,7 +414,7 @@ describe('PosModuleEndpoint', () => {
 						),
 						amount: pendingUnlocks[0].amount.toString(),
 						unlockable: true,
-						expectedUnlockableHeight: pendingUnlocks[0].unstakeHeight + LOCKING_PERIOD_SELF_VOTES,
+						expectedUnlockableHeight: pendingUnlocks[0].unstakeHeight + LOCKING_PERIOD_SELF_STAKES,
 					},
 					{
 						...pendingUnlocks[1],
@@ -423,7 +423,7 @@ describe('PosModuleEndpoint', () => {
 						),
 						amount: pendingUnlocks[1].amount.toString(),
 						unlockable: false,
-						expectedUnlockableHeight: pendingUnlocks[1].unstakeHeight + LOCKING_PERIOD_VOTES,
+						expectedUnlockableHeight: pendingUnlocks[1].unstakeHeight + LOCKING_PERIOD_STAKES,
 					},
 					{
 						...pendingUnlocks[2],
@@ -432,7 +432,7 @@ describe('PosModuleEndpoint', () => {
 						),
 						amount: pendingUnlocks[2].amount.toString(),
 						unlockable: false,
-						expectedUnlockableHeight: pomHeight + PUNISHMENT_WINDOW_VOTES,
+						expectedUnlockableHeight: pomHeight + PUNISHMENT_WINDOW_STAKES,
 					},
 				],
 			});

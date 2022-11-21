@@ -24,10 +24,10 @@ import {
 import { BaseCommand } from '../../base_command';
 import {
 	MAX_NUMBER_PENDING_UNLOCKS,
-	MAX_NUMBER_SENT_VOTES,
-	MODULE_NAME_DPOS,
+	MAX_NUMBER_SENT_STAKES,
+	MODULE_NAME_POS,
 	PoSEventResult,
-	BASE_VOTE_AMOUNT,
+	BASE_STAKE_AMOUNT,
 } from '../constants';
 import { ValidatorStakedEvent } from '../events/validator_staked';
 import { InternalMethod } from '../internal_method';
@@ -86,7 +86,7 @@ export class StakeCommand extends BaseCommand {
 				};
 			}
 
-			if (stake.amount % BASE_VOTE_AMOUNT !== BigInt(0)) {
+			if (stake.amount % BASE_STAKE_AMOUNT !== BigInt(0)) {
 				return {
 					status: VerifyStatus.FAIL,
 					error: new ValidationError(
@@ -103,17 +103,17 @@ export class StakeCommand extends BaseCommand {
 			}
 		}
 
-		if (upstakeCount > MAX_NUMBER_SENT_VOTES) {
+		if (upstakeCount > MAX_NUMBER_SENT_STAKES) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new ValidationError(
-					`Upstake can only be casted up to ${MAX_NUMBER_SENT_VOTES}.`,
+					`Upstake can only be casted up to ${MAX_NUMBER_SENT_STAKES}.`,
 					upstakeCount.toString(),
 				),
 			};
 		}
 
-		if (downstakeCount > MAX_NUMBER_SENT_VOTES) {
+		if (downstakeCount > MAX_NUMBER_SENT_STAKES) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new ValidationError(
@@ -173,7 +173,7 @@ export class StakeCommand extends BaseCommand {
 						validatorAddress: stake.validatorAddress,
 						amount: stake.amount,
 					},
-					PoSEventResult.VOTE_FAILED_NON_REGISTERED_DELEGATE,
+					PoSEventResult.STAKE_FAILED_NON_REGISTERED_DELEGATE,
 				);
 
 				throw new Error('Invalid stake: no registered validator with the specified address');
@@ -196,7 +196,7 @@ export class StakeCommand extends BaseCommand {
 							validatorAddress: stake.validatorAddress,
 							amount: stake.amount,
 						},
-						PoSEventResult.VOTE_FAILED_INVALID_UNVOTE_PARAMETERS,
+						PoSEventResult.STAKE_FAILED_INVALID_UNSTAKE_PARAMETERS,
 					);
 
 					throw new Error(
@@ -212,7 +212,7 @@ export class StakeCommand extends BaseCommand {
 							validatorAddress: stake.validatorAddress,
 							amount: stake.amount,
 						},
-						PoSEventResult.VOTE_FAILED_INVALID_UNVOTE_PARAMETERS,
+						PoSEventResult.STAKE_FAILED_INVALID_UNSTAKE_PARAMETERS,
 					);
 
 					throw new Error(
@@ -256,7 +256,7 @@ export class StakeCommand extends BaseCommand {
 							validatorAddress: stake.validatorAddress,
 							amount: stake.amount,
 						},
-						PoSEventResult.VOTE_FAILED_TOO_MANY_PENDING_UNLOCKS,
+						PoSEventResult.STAKE_FAILED_TOO_MANY_PENDING_UNLOCKS,
 					);
 
 					throw new Error(
@@ -270,7 +270,7 @@ export class StakeCommand extends BaseCommand {
 				await this._tokenMethod.lock(
 					getMethodContext(),
 					senderAddress,
-					MODULE_NAME_DPOS,
+					MODULE_NAME_POS,
 					this._posTokenID,
 					stake.amount,
 				);
@@ -301,7 +301,7 @@ export class StakeCommand extends BaseCommand {
 				};
 
 				stakerData.sentStakes.sort((a, b) => a.validatorAddress.compare(b.validatorAddress));
-				if (stakerData.sentStakes.length > MAX_NUMBER_SENT_VOTES) {
+				if (stakerData.sentStakes.length > MAX_NUMBER_SENT_STAKES) {
 					this.events.get(ValidatorStakedEvent).error(
 						context,
 						{
@@ -309,10 +309,10 @@ export class StakeCommand extends BaseCommand {
 							validatorAddress: stake.validatorAddress,
 							amount: stake.amount,
 						},
-						PoSEventResult.VOTE_FAILED_TOO_MANY_SENT_VOTES,
+						PoSEventResult.STAKE_FAILED_TOO_MANY_SENT_STAKES,
 					);
 
-					throw new Error(`Sender can only stake upto ${MAX_NUMBER_SENT_VOTES.toString()}.`);
+					throw new Error(`Sender can only stake upto ${MAX_NUMBER_SENT_STAKES.toString()}.`);
 				}
 			}
 

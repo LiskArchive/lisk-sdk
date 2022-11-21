@@ -16,7 +16,7 @@
 // import { createApplication, closeApplication, waitNBlocks } from '../utils/application';
 // import { Application } from '../../../src';
 
-// describe('Delegate related actions', () => {
+// describe('Validator related actions', () => {
 // 	let app: Application;
 
 // 	beforeAll(async () => {

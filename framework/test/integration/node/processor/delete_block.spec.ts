@@ -25,8 +25,8 @@ import { codec } from '@liskhq/lisk-codec';
 import { address, utils } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../utils';
 import {
-	createDelegateRegisterTransaction,
-	createDelegateVoteTransaction,
+	createValidatorRegisterTransaction,
+	createValidatorStakeTransaction,
 	createTransferTransaction,
 	defaultTokenID,
 } from '../../../utils/mocks/transaction';
@@ -209,7 +209,7 @@ describe('Delete block', () => {
 					chainID,
 					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
-				const transaction2 = createDelegateRegisterTransaction({
+				const transaction2 = createValidatorRegisterTransaction({
 					nonce: BigInt(0),
 					username: 'rand',
 					chainID,
@@ -218,7 +218,7 @@ describe('Delete block', () => {
 					generatorKey: recipientAccount.publicKey,
 					privateKey: recipientAccount.privateKey,
 				});
-				const transaction3 = createDelegateVoteTransaction({
+				const transaction3 = createValidatorStakeTransaction({
 					nonce: BigInt(1),
 					chainID,
 					privateKey: recipientAccount.privateKey,

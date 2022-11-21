@@ -11,21 +11,21 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-export const MODULE_NAME_DPOS = 'pos';
+export const MODULE_NAME_POS = 'pos';
 
 export const COMMAND_NAME_DELEGATE_REGISTRATION = 'registerValidator';
 
-export const LOCKING_PERIOD_VOTES = 26000;
-export const LOCKING_PERIOD_SELF_VOTES = 260000;
-export const PUNISHMENT_WINDOW_VOTES = 260000;
-export const PUNISHMENT_WINDOW_SELF_VOTES = 780000;
+export const LOCKING_PERIOD_STAKES = 26000;
+export const LOCKING_PERIOD_SELF_STAKES = 260000;
+export const PUNISHMENT_WINDOW_STAKES = 260000;
+export const PUNISHMENT_WINDOW_SELF_STAKES = 780000;
 // Punishment period is 780k block height by default
 export const PUNISHMENT_PERIOD = 780000;
 export const MAX_LENGTH_NAME = 20;
-export const BASE_VOTE_AMOUNT = BigInt(10) * BigInt(10) ** BigInt(8);
-export const MAX_NUMBER_SENT_VOTES = 10;
+export const BASE_STAKE_AMOUNT = BigInt(10) * BigInt(10) ** BigInt(8);
+export const MAX_NUMBER_SENT_STAKES = 10;
 export const MAX_NUMBER_PENDING_UNLOCKS = 20;
-export const TOKEN_ID_DPOS = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
+export const TOKEN_ID_POS = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 export const TOKEN_ID_FEE = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 export const DELEGATE_REGISTRATION_FEE = BigInt(10) * BigInt(10) ** BigInt(8);
 export const MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE = 260000;
@@ -70,9 +70,9 @@ export const defaultConfig = {
 };
 
 export const enum PoSEventResult {
-	VOTE_SUCCESSFUL = 0,
-	VOTE_FAILED_NON_REGISTERED_DELEGATE = 1,
-	VOTE_FAILED_INVALID_UNVOTE_PARAMETERS = 2,
-	VOTE_FAILED_TOO_MANY_PENDING_UNLOCKS = 3,
-	VOTE_FAILED_TOO_MANY_SENT_VOTES = 4,
+	STAKE_SUCCESSFUL = 0,
+	STAKE_FAILED_NON_REGISTERED_DELEGATE = 1,
+	STAKE_FAILED_INVALID_UNSTAKE_PARAMETERS = 2,
+	STAKE_FAILED_TOO_MANY_PENDING_UNLOCKS = 3,
+	STAKE_FAILED_TOO_MANY_SENT_STAKES = 4,
 }

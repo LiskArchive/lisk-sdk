@@ -16,11 +16,11 @@
 
 const { utils } = require('@liskhq/lisk-cryptography');
 const BaseGenerator = require('../base_generator');
-const previousDelegateList = require('./validator_address_list.json').validatorList;
+const previousValidatorList = require('./validator_address_list.json').validatorList;
 
-const generateShuffledDelegateList = () => {
+const generateShuffledValidatorList = () => {
 	const previousRoundSeed1 = 'b9acc2f1fda3666bfb34107f1c6dccc4';
-	const validatorList = [...previousDelegateList].map(validator => ({
+	const validatorList = [...previousValidatorList].map(validator => ({
 		address: Buffer.from(validator.address, 'hex'),
 	}));
 	for (const validator of validatorList) {
@@ -39,7 +39,7 @@ const generateShuffledDelegateList = () => {
 	return {
 		input: {
 			previousRoundSeed1,
-			validatorList: previousDelegateList.map(validator => validator.address),
+			validatorList: previousValidatorList.map(validator => validator.address),
 		},
 		output: {
 			validatorList: validatorList.map(validator => validator.address),
@@ -47,15 +47,15 @@ const generateShuffledDelegateList = () => {
 	};
 };
 
-const uniformlyShuffledDelegateList = () => ({
+const uniformlyShuffledValidatorList = () => ({
 	title: 'Uniform shuffling of validator list in each round',
 	summary: 'A uniformly shuffled validator list is generated',
 	config: 'devnet',
 	runner: 'pos_validator_shuffling',
 	handler: 'uniformly_shuffled_validator_list',
-	testCases: generateShuffledDelegateList(),
+	testCases: generateShuffledValidatorList(),
 });
 
 module.exports = BaseGenerator.runGenerator('pos_validator_shuffling', [
-	uniformlyShuffledDelegateList,
+	uniformlyShuffledValidatorList,
 ]);

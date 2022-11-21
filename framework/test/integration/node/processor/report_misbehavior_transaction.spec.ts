@@ -90,13 +90,13 @@ describe('Transaction order', () => {
 			const nextBlock = await processEnv.createBlock([tx]);
 
 			await processEnv.process(nextBlock);
-			const updatedDelegate = await processEnv.invoke<{ pomHeights: number[] }>(
+			const updatedValidator = await processEnv.invoke<{ pomHeights: number[] }>(
 				'pos_getValidator',
 				{
 					address: blockGenerator.address,
 				},
 			);
-			expect(updatedDelegate.pomHeights).toHaveLength(1);
+			expect(updatedValidator.pomHeights).toHaveLength(1);
 			const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
 				address: blockGenerator.address,
 				tokenID: defaultTokenID(processEnv.getNetworkId()).toString('hex'),

@@ -19,7 +19,7 @@ import {
 	VerifyStatus,
 } from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
-import { EMPTY_KEY, MODULE_NAME_DPOS } from '../constants';
+import { EMPTY_KEY, MODULE_NAME_POS } from '../constants';
 import { ValidatorStore } from '../stores/validator';
 import { GenesisDataStore } from '../stores/genesis';
 import { StakerStore } from '../stores/staker';
@@ -86,7 +86,7 @@ export class UnlockCommand extends BaseCommand {
 				await this._tokenMethod.unlock(
 					getMethodContext(),
 					senderAddress,
-					MODULE_NAME_DPOS,
+					MODULE_NAME_POS,
 					this._posTokenID,
 					unlockObject.amount,
 				);

@@ -28,7 +28,7 @@ describe('EventQueue', () => {
 		},
 		{
 			module: 'pos',
-			name: 'DPOS Event Name',
+			name: 'POS Event Name',
 			height: 12,
 			data: utils.getRandomBytes(20),
 			topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],

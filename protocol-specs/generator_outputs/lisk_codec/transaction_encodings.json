@@ -23,7 +23,7 @@
 					]
 				},
 				"schema": {
-					"$id": "baseTransactionSchema",
+					"$id": "/baseTransactionSchema",
 					"type": "object",
 					"properties": {
 						"moduleID": {
@@ -89,7 +89,7 @@
 					]
 				},
 				"schema": {
-					"$id": "voteAssetSchema",
+					"$id": "/voteAssetSchema",
 					"type": "object",
 					"properties": {
 						"stakes": {
@@ -133,7 +133,7 @@
 					]
 				},
 				"schema": {
-					"$id": "multisigAssetSchema",
+					"$id": "/multisigAssetSchema",
 					"type": "object",
 					"properties": {
 						"numberOfSignatures": {
@@ -174,7 +174,7 @@
 					"optionalKeys": []
 				},
 				"schema": {
-					"$id": "multisigAssetSchema",
+					"$id": "/multisigAssetSchema",
 					"type": "object",
 					"properties": {
 						"numberOfSignatures": {

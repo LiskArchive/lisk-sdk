@@ -70,7 +70,7 @@ export const getKeysFromDefaultConfig = (address: Buffer) => {
 	);
 	if (!account) {
 		throw new Error(
-			`Delegate with address: ${cryptoAddress.getLisk32AddressFromAddress(
+			`Validator with address: ${cryptoAddress.getLisk32AddressFromAddress(
 				address,
 			)} does not exists in default config`,
 		);

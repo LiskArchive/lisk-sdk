@@ -94,7 +94,7 @@ describe('Send PoM transaction', () => {
 					commands: [
 						{
 							id: utils.intToBuffer(3, 4).toString('hex'),
-							name: 'reportDelegateMisbehavior',
+							name: 'reportValidatorMisbehavior',
 							params: {
 								$id: '/lisk/pos/pom',
 								type: 'object',

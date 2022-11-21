@@ -66,7 +66,7 @@ export const createVoteTransaction = ({
 	chainID: Buffer;
 }): Transaction => {
 	const genesisAccount = testing.fixtures.defaultFaucetAccount;
-	const encodedAsset = codec.encode(new DPoSVoteAsset().schema, {
+	const encodedAsset = codec.encode(new PoSVoteAsset().schema, {
 		stakes: [
 			{
 				validatorAddress: Buffer.from(recipientAddress, 'hex'),

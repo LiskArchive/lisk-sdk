@@ -33,7 +33,7 @@ export interface ForgetSyncInfo {
 	syncUptoHeight: number;
 }
 
-export interface DPoSAccountJSON {
+export interface PoSAccountJSON {
 	pos: {
 		validator: {
 			username: string;

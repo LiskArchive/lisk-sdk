@@ -672,7 +672,7 @@ Object {
     },
     Object {
       "assetID": 3,
-      "assetName": "reportDelegateMisbehavior",
+      "assetName": "reportValidatorMisbehavior",
       "moduleID": 5,
       "moduleName": "pos",
       "schema": Object {

@@ -13,7 +13,7 @@
 				"object": {
 					"address": "e11a11364738225813f86ea85214400e5db08d6e",
 					"balance": "10000000",
-					"isDelegate": true,
+					"isValidator": true,
 					"name": "validator",
 					"asset": {
 						"data": "Check out the Lisk SDK now in binary!",
@@ -24,7 +24,7 @@
 					}
 				},
 				"schema": {
-					"$id": "object11",
+					"$id": "/object11",
 					"type": "object",
 					"properties": {
 						"address": {
@@ -35,7 +35,7 @@
 							"dataType": "uint64",
 							"fieldNumber": 2
 						},
-						"isDelegate": {
+						"isValidator": {
 							"dataType": "boolean",
 							"fieldNumber": 3
 						},
@@ -71,7 +71,7 @@
 				}
 			},
 			"output": {
-				"value": "0a14e11a11364738225813f86ea85214400e5db08d6e1080ade2041801220864656c65676174652a2d0a25436865636b206f757420746865204c69736b2053444b206e6f7720696e2062696e61727921120408091009"
+				"value": "0a14e11a11364738225813f86ea85214400e5db08d6e1080ade2041801220976616c696461746f722a2d0a25436865636b206f757420746865204c69736b2053444b206e6f7720696e2062696e61727921120408091009"
 			}
 		},
 		{
@@ -82,7 +82,7 @@
 					"value": "1"
 				},
 				"schema": {
-					"$id": "object12",
+					"$id": "/object12",
 					"type": "object",
 					"properties": {
 						"isActive": {

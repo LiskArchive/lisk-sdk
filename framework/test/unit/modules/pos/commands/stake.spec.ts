@@ -19,7 +19,7 @@ import { validator } from '@liskhq/lisk-validator';
 import { StakeCommand, VerifyStatus, PoSModule } from '../../../../../src';
 import {
 	MAX_NUMBER_PENDING_UNLOCKS,
-	MODULE_NAME_DPOS,
+	MODULE_NAME_POS,
 	PoSEventResult,
 } from '../../../../../src/modules/pos/constants';
 import { ValidatorStakedEvent } from '../../../../../src/modules/pos/events/validator_staked';
@@ -557,7 +557,7 @@ describe('StakeCommand', () => {
 			});
 		});
 		describe('when transaction.params.stakes contain positive amount', () => {
-			it('should emit ValidatorStakedEvent with VOTE_SUCCESSFUL result', async () => {
+			it('should emit ValidatorStakedEvent with STAKE_SUCCESSFUL result', async () => {
 				// Arrange
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress: validatorAddress1, amount: liskToBeddows(10) }],
@@ -585,7 +585,7 @@ describe('StakeCommand', () => {
 						validatorAddress: transactionParamsDecoded.stakes[0].validatorAddress,
 						amount: transactionParamsDecoded.stakes[0].amount,
 					},
-					PoSEventResult.VOTE_SUCCESSFUL,
+					PoSEventResult.STAKE_SUCCESSFUL,
 				);
 			});
 
@@ -635,14 +635,14 @@ describe('StakeCommand', () => {
 				expect(lockFn).toHaveBeenCalledWith(
 					expect.anything(),
 					senderAddress,
-					MODULE_NAME_DPOS,
+					MODULE_NAME_POS,
 					posTokenID,
 					validator1StakeAmount,
 				);
 				expect(lockFn).toHaveBeenCalledWith(
 					expect.anything(),
 					senderAddress,
-					MODULE_NAME_DPOS,
+					MODULE_NAME_POS,
 					posTokenID,
 					validator2StakeAmount,
 				);
@@ -832,7 +832,7 @@ describe('StakeCommand', () => {
 				lockFn.mockClear();
 			});
 
-			it('should emit ValidatorStakedEvent with VOTE_SUCCESSFUL result', async () => {
+			it('should emit ValidatorStakedEvent with STAKE_SUCCESSFUL result', async () => {
 				await expect(command.execute(context)).resolves.toBeUndefined();
 
 				for (let i = 0; i < 2; i += 2) {
@@ -846,7 +846,7 @@ describe('StakeCommand', () => {
 							validatorAddress: transactionParamsDecoded.stakes[i].validatorAddress,
 							amount: transactionParamsDecoded.stakes[i].amount,
 						},
-						PoSEventResult.VOTE_SUCCESSFUL,
+						PoSEventResult.STAKE_SUCCESSFUL,
 					);
 				}
 			});
@@ -971,7 +971,7 @@ describe('StakeCommand', () => {
 				expect(validatorData2.totalStakeReceived).toEqual(BigInt(0));
 			});
 
-			it('should throw error and emit ValidatorStakedEvent with VOTE_FAILED_INVALID_UNVOTE_PARAMETERS result when downstaked validator is not already upstaked', async () => {
+			it('should throw error and emit ValidatorStakedEvent with STAKE_FAILED_INVALID_UNSTAKE_PARAMETERS result when downstaked validator is not already upstaked', async () => {
 				// Arrange
 				const downStakeAmount = liskToBeddows(10);
 
@@ -1003,7 +1003,7 @@ describe('StakeCommand', () => {
 						validatorAddress: transactionParamsDecoded.stakes[0].validatorAddress,
 						amount: transactionParamsDecoded.stakes[0].amount,
 					},
-					PoSEventResult.VOTE_FAILED_INVALID_UNVOTE_PARAMETERS,
+					PoSEventResult.STAKE_FAILED_INVALID_UNSTAKE_PARAMETERS,
 				);
 			});
 		});
@@ -1191,7 +1191,7 @@ describe('StakeCommand', () => {
 				expect(lockFn).toHaveBeenCalledWith(
 					expect.anything(),
 					senderAddress,
-					MODULE_NAME_DPOS,
+					MODULE_NAME_POS,
 					posTokenID,
 					positiveStakeValidator1,
 				);
@@ -1269,7 +1269,7 @@ describe('StakeCommand', () => {
 			});
 
 			describe('when transaction.params.stakes contain validator address which is not registered', () => {
-				it('should throw error and emit ValidatorStakedEevnt with VOTE_FAILED_NON_REGISTERED_DELEGATE failure', async () => {
+				it('should throw error and emit ValidatorStakedEevnt with STAKE_FAILED_NON_REGISTERED_DELEGATE failure', async () => {
 					// Arrange
 					const nonExistingValidatorAddress = utils.getRandomBytes(20);
 
@@ -1303,13 +1303,13 @@ describe('StakeCommand', () => {
 							validatorAddress: transactionParamsDecoded.stakes[0].validatorAddress,
 							amount: transactionParamsDecoded.stakes[0].amount,
 						},
-						PoSEventResult.VOTE_FAILED_NON_REGISTERED_DELEGATE,
+						PoSEventResult.STAKE_FAILED_NON_REGISTERED_DELEGATE,
 					);
 				});
 			});
 
 			describe('when transaction.params.stakes positive amount makes stakerData.sentStakes entries more than 10', () => {
-				it('should throw error and emit ValidatorStakedEvent with VOTE_FAILED_TOO_MANY_SENT_VOTES failure', async () => {
+				it('should throw error and emit ValidatorStakedEvent with STAKE_FAILED_TOO_MANY_SENT_STAKES failure', async () => {
 					// Arrange
 					const stakes = [];
 
@@ -1364,13 +1364,13 @@ describe('StakeCommand', () => {
 							validatorAddress: transactionParamsDecoded.stakes[10].validatorAddress,
 							amount: transactionParamsDecoded.stakes[10].amount,
 						},
-						PoSEventResult.VOTE_FAILED_TOO_MANY_SENT_VOTES,
+						PoSEventResult.STAKE_FAILED_TOO_MANY_SENT_STAKES,
 					);
 				});
 			});
 
 			describe('when transaction.params.stakes negative amount decrease stakerData.sentStakes entries yet positive amount makes account exceeds more than 10', () => {
-				it('should throw error and emit ValidatorStakedEvent with VOTE_FAILED_TOO_MANY_SENT_VOTES failure', async () => {
+				it('should throw error and emit ValidatorStakedEvent with STAKE_FAILED_TOO_MANY_SENT_STAKES failure', async () => {
 					// Arrange
 					const initialValidatorAmount = 8;
 					const stakerData = await stakerStore.getOrDefault(
@@ -1481,13 +1481,13 @@ describe('StakeCommand', () => {
 							validatorAddress: stakes[4].validatorAddress,
 							amount: stakes[4].amount,
 						},
-						PoSEventResult.VOTE_FAILED_TOO_MANY_SENT_VOTES,
+						PoSEventResult.STAKE_FAILED_TOO_MANY_SENT_STAKES,
 					);
 				});
 			});
 
 			describe('when transaction.params.stakes has negative amount and makes stakerData.pendingUnlocks more than 20 entries', () => {
-				it('should throw error and emit ValidatorStakedEvent with VOTE_FAILED_TOO_MANY_PENDING_UNLOCKS failure', async () => {
+				it('should throw error and emit ValidatorStakedEvent with STAKE_FAILED_TOO_MANY_PENDING_UNLOCKS failure', async () => {
 					// Arrange
 					const initialValidatorAmountForUnlocks = 19;
 					const stakerData = await stakerStore.getOrDefault(
@@ -1600,7 +1600,7 @@ describe('StakeCommand', () => {
 							validatorAddress: stakes[1].validatorAddress,
 							amount: stakes[1].amount,
 						},
-						PoSEventResult.VOTE_FAILED_TOO_MANY_PENDING_UNLOCKS,
+						PoSEventResult.STAKE_FAILED_TOO_MANY_PENDING_UNLOCKS,
 					);
 
 					expect(mockAssignStakeRewards).toHaveBeenCalledTimes(stakes.length);
@@ -1608,7 +1608,7 @@ describe('StakeCommand', () => {
 			});
 
 			describe('when transaction.params.stakes negative amount exceeds the previously staked amount', () => {
-				it('should throw error and emit ValidatorStakedEvent with VOTE_FAILED_INVALID_UNVOTE_PARAMETERS', async () => {
+				it('should throw error and emit ValidatorStakedEvent with STAKE_FAILED_INVALID_UNSTAKE_PARAMETERS', async () => {
 					// Arrange
 					const stakerData = await stakerStore.getOrDefault(
 						createStoreGetter(stateStore),
@@ -1654,7 +1654,7 @@ describe('StakeCommand', () => {
 							validatorAddress: transactionParamsDecoded.stakes[0].validatorAddress,
 							amount: transactionParamsDecoded.stakes[0].amount,
 						},
-						PoSEventResult.VOTE_FAILED_INVALID_UNVOTE_PARAMETERS,
+						PoSEventResult.STAKE_FAILED_INVALID_UNSTAKE_PARAMETERS,
 					);
 				});
 			});
@@ -1715,7 +1715,7 @@ describe('StakeCommand', () => {
 				expect(lockFn).toHaveBeenCalledWith(
 					expect.anything(),
 					senderAddress,
-					MODULE_NAME_DPOS,
+					MODULE_NAME_POS,
 					posTokenID,
 					senderStakeAmountPositive,
 				);

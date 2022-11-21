@@ -149,7 +149,7 @@ const generateValidTransferTransaction = () => {
 	};
 };
 
-const generateValidDelegateTransaction = () => {
+const generateValidValidatorTransaction = () => {
 	const tx = {
 		moduleID: 5,
 		assetID: 0,
@@ -209,16 +209,16 @@ const validTransferSuite = () => ({
 	testCases: [generateValidTransferTransaction()],
 });
 
-const validDelegateSuite = () => ({
+const validValidatorSuite = () => ({
 	title: 'Valid validator transaction',
 	summary: 'A valid validator transaction',
 	config: { network: 'devnet' },
 	runner: 'transaction_network_id_and_change_order',
 	handler: 'validator_transaction_validate',
-	testCases: [generateValidDelegateTransaction()],
+	testCases: [generateValidValidatorTransaction()],
 });
 
 module.exports = BaseGenerator.runGenerator('transaction_network_id_and_change_order', [
 	validTransferSuite,
-	validDelegateSuite,
+	validValidatorSuite,
 ]);

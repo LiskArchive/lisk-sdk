@@ -12,7 +12,7 @@
 			"input": {
 				"value": "08990810b9ff361a10d59386e0ae435e292fbe0ebcdb954b75",
 				"schema": {
-					"$id": "blockAssetSchema",
+					"$id": "/blockAssetSchema",
 					"type": "object",
 					"properties": {
 						"maxHeightPreviouslyForged": {
@@ -44,7 +44,7 @@
 			"input": {
 				"value": "08001099081a10eaaf9d4c65cb501c811ef812847a5551",
 				"schema": {
-					"$id": "blockAssetSchema",
+					"$id": "/blockAssetSchema",
 					"type": "object",
 					"properties": {
 						"maxHeightPreviouslyForged": {

@@ -22,7 +22,7 @@ import { ReportMisbehaviorCommand, VerifyStatus, PoSModule } from '../../../../.
 import * as testing from '../../../../../src/testing';
 import {
 	defaultConfig,
-	LOCKING_PERIOD_SELF_VOTES,
+	LOCKING_PERIOD_SELF_STAKES,
 	REPORTING_PUNISHMENT_REWARD,
 } from '../../../../../src/modules/pos/constants';
 import {
@@ -287,11 +287,11 @@ describe('ReportMisbehaviorCommand', () => {
 			await expect(pomCommand.verify(context)).rejects.toThrow('Invalid block signature.');
 		});
 
-		it('should throw an error when maxPunishableHeight is greater than or equal to LOCKING_PERIOD_SELF_VOTES', async () => {
+		it('should throw an error when maxPunishableHeight is greater than or equal to LOCKING_PERIOD_SELF_STAKES', async () => {
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, {
 					...header1,
-					height: LOCKING_PERIOD_SELF_VOTES,
+					height: LOCKING_PERIOD_SELF_STAKES,
 				}),
 				header2: codec.encode(blockHeaderSchema, { ...header2 }),
 			};

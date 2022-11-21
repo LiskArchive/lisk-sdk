@@ -32,7 +32,7 @@ const account = {
 	},
 	asset: {
 		validator: {
-			username: 'DelegateA',
+			username: 'ValidatorA',
 			pomHeights: [85],
 			consecutiveMissedBlocks: 32,
 			lastForgedHeight: 64,

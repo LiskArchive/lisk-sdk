@@ -54,7 +54,7 @@ message Keys {
 	repeated bytes optionalKeys = 3;
 }
 
-message Delegate {
+message Validator {
 	required string username = 1;
 	repeated uint32 pomHeights = 2 [packed=true];
 	required uint32 consecutiveMissedBlocks = 3;
@@ -75,7 +75,7 @@ message Unlocking {
 }
 
 message Asset {
-	required Delegate validator = 1;
+	required Validator validator = 1;
 	repeated SentVotes sentStakes = 2;
 	repeated Unlocking unlocking = 3;
 }

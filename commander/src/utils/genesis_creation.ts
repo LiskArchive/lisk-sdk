@@ -79,7 +79,7 @@ interface GenesisBlockDefaultAccountInput {
 	numberOfValidators: number;
 }
 
-export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefaultAccountInput) => {
+export const generateGenesisBlockDefaultPoSAssets = (input: GenesisBlockDefaultAccountInput) => {
 	const localID = Buffer.from([0, 0, 0, 0]).toString('hex');
 	const tokenID = `${input.chainID}${localID}`;
 	input.keysList.sort((a, b) =>

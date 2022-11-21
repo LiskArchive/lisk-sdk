@@ -102,7 +102,7 @@ describe('encode', () => {
 		it.each(buildTestCases(blockTestCases))('%s', ({ input, output }) => {
 			const object = {
 				header: Buffer.from(input.object.header, 'hex'),
-				transactions: input.object.transactions.map(p => Buffer.from(p, 'hex')),
+				payload: input.object.payload.map(p => Buffer.from(p, 'hex')),
 			};
 
 			const result = codec.encode(input.schema, object);

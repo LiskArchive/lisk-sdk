@@ -100,7 +100,7 @@
 					]
 				},
 				"schema": {
-					"$id": "genesisBlockAssetSchema",
+					"$id": "/genesisBlockAssetSchema",
 					"type": "object",
 					"required": ["accounts", "initValidators", "initRounds"],
 					"properties": {

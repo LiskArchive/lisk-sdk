@@ -17,7 +17,7 @@
 const { utils } = require('@liskhq/lisk-cryptography');
 
 const BaseGenerator = require('../base_generator');
-const { list: sampleDelegateList } = require('./forger_list');
+const { list: sampleValidatorList } = require('./forger_list');
 
 const activeValidators = 101;
 const standByValidators = 2;
@@ -73,12 +73,12 @@ const generateSeedReveals = ({ validatorList, numberOfBlocks }) => {
 	const seeds = {};
 
 	for (const validator of validatorList) {
-		const seedsForDelegate = generateSeedOnion(validator.publicKey, numberOfBlocks);
+		const seedsForValidator = generateSeedOnion(validator.publicKey, numberOfBlocks);
 		const counter = 0;
 
 		seeds[validator.publicKey] = {
 			counter,
-			seeds: seedsForDelegate,
+			seeds: seedsForValidator,
 		};
 	}
 
@@ -112,7 +112,7 @@ const endOfRound = (round, blocksPerRound) => round * blocksPerRound;
 const middleOfRound = (round, blocksPerRound) =>
 	Math.floor((startOfRound(round, blocksPerRound) + endOfRound(round, blocksPerRound)) / 2);
 
-const findPreviousBlockOfDelegate = (block, searchTillHeight, blocksMap) => {
+const findPreviousBlockOfValidator = (block, searchTillHeight, blocksMap) => {
 	const { height, generatorPublicKey } = block;
 	const searchTill = Math.max(searchTillHeight, 1);
 
@@ -135,7 +135,7 @@ const selectSeedReveal = ({ fromHeight, toHeight, blocksMap, blocksPerRound }) =
 		const block = blocksMap[i];
 		const blockRound = calcRound(block.height, blocksPerRound);
 
-		const lastForgedBlock = findPreviousBlockOfDelegate(
+		const lastForgedBlock = findPreviousBlockOfValidator(
 			block,
 			startOfRound(blockRound - 1, blocksPerRound),
 			blocksMap,
@@ -235,7 +235,7 @@ const randomSeedFirstRound = () => ({
 		const blocks = generateBlocks({
 			startHeight: 1,
 			numberOfBlocks: blocksPerRound,
-			validatorList: sampleDelegateList.slice(0, blocksPerRound),
+			validatorList: sampleValidatorList.slice(0, blocksPerRound),
 		});
 		const { randomSeed1, randomSeed2 } = generateRandomSeed(blocks, blocksPerRound);
 
@@ -266,19 +266,19 @@ const randomSeedForMoreRounds = () => ({
 		const blocksForTwoRounds = generateBlocks({
 			startHeight: 1,
 			numberOfBlocks: blocksPerRound * 2,
-			validatorList: sampleDelegateList.slice(0, blocksPerRound),
+			validatorList: sampleValidatorList.slice(0, blocksPerRound),
 		});
 
 		const blocksForThreeRounds = generateBlocks({
 			startHeight: 1,
 			numberOfBlocks: blocksPerRound * 3,
-			validatorList: sampleDelegateList.slice(0, blocksPerRound),
+			validatorList: sampleValidatorList.slice(0, blocksPerRound),
 		});
 
 		const blocksForFiveRounds = generateBlocks({
 			startHeight: 1,
 			numberOfBlocks: blocksPerRound * 5,
-			validatorList: sampleDelegateList.slice(0, blocksPerRound),
+			validatorList: sampleValidatorList.slice(0, blocksPerRound),
 		});
 
 		return [
@@ -321,7 +321,7 @@ const randomSeedIfNotPassedMiddleOfRound = () => ({
 		const blocks = generateBlocks({
 			startHeight: 1,
 			numberOfBlocks: blocksPerRound + 2,
-			validatorList: sampleDelegateList.slice(0, blocksPerRound),
+			validatorList: sampleValidatorList.slice(0, blocksPerRound),
 		});
 
 		const randomSeed1 = null;
@@ -352,7 +352,7 @@ const randomSeedForInvalidPreImageOfSeedReveal = () => ({
 	handler: 'pos_random_seed_generation_invalid_seed_reveal',
 	testCases: (() => {
 		const blocksPerRound = activeValidators + standByValidators;
-		const validatorList = sampleDelegateList.slice(0, blocksPerRound);
+		const validatorList = sampleValidatorList.slice(0, blocksPerRound);
 		const blocks = generateBlocks({
 			startHeight: 1,
 			numberOfBlocks: blocksPerRound * 2,
@@ -360,10 +360,10 @@ const randomSeedForInvalidPreImageOfSeedReveal = () => ({
 		});
 
 		// Change seed reveal values for a validator for first round
-		const suspiciousDelegate = validatorList[1];
+		const suspiciousValidator = validatorList[1];
 		for (const block of blocks) {
 			if (
-				block.generatorPublicKey === suspiciousDelegate.publicKey &&
+				block.generatorPublicKey === suspiciousValidator.publicKey &&
 				block.height <= blocksPerRound
 			) {
 				block.asset.seedReveal = strippedHash(numberToBuffer(block.height)).toString('hex');
@@ -397,7 +397,7 @@ const randomSeedIfForgerNotForgedEarlier = () => ({
 	handler: 'pos_random_seed_generation_not_forged_earlier',
 	testCases: (() => {
 		const blocksPerRound = activeValidators + standByValidators;
-		const validatorList = sampleDelegateList.slice(0, blocksPerRound);
+		const validatorList = sampleValidatorList.slice(0, blocksPerRound);
 		const blocks = generateBlocks({
 			startHeight: 1,
 			numberOfBlocks: blocksPerRound * 2,
@@ -405,11 +405,11 @@ const randomSeedIfForgerNotForgedEarlier = () => ({
 		});
 
 		// Change seed reveal values for a validator for first round
-		const oldDelegate = validatorList[0];
-		const newDelegate = sampleDelegateList[blocksPerRound];
+		const oldValidator = validatorList[0];
+		const newValidator = sampleValidatorList[blocksPerRound];
 		for (const block of blocks) {
-			if (block.generatorPublicKey === oldDelegate.publicKey && block.height <= blocksPerRound) {
-				block.generatorPublicKey = newDelegate.publicKey;
+			if (block.generatorPublicKey === oldValidator.publicKey && block.height <= blocksPerRound) {
+				block.generatorPublicKey = newValidator.publicKey;
 			}
 		}
 

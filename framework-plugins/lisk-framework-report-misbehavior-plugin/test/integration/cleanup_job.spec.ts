@@ -103,7 +103,7 @@ describe('Clean up old blocks', () => {
 					moduleID: utils.intToBuffer(5, 4),
 					moduleName: 'pos',
 					commandID: utils.intToBuffer(3, 4),
-					commandName: 'reportDelegateMisbehavior',
+					commandName: 'reportValidatorMisbehavior',
 					schema: {
 						$id: '/lisk/pos/pom',
 						type: 'object',

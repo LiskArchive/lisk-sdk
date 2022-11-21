@@ -26,10 +26,10 @@ Transfer Lisk:
 chainStateBuilder.transfer('50').from('16313739661670634666L').to('10881167371402274308L').forge();
 ```
 
-Register Delegate:
+Register Validator:
 
 ```javascript
-chainStateBuilder.registerValidator('ADelegateName').for('2222471382442610527L').forge();
+chainStateBuilder.registerValidator('AValidatorName').for('2222471382442610527L').forge();
 ```
 
 Cast Votes

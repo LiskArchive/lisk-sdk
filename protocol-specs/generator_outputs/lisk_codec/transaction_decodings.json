@@ -12,7 +12,7 @@
 			"input": {
 				"value": "0814100118d284cb8d9f82e50220eb9a89e10b2a208f057d088a585d938c20d63e430a068d4cea384e588aa0b758c68fca21644dbc3214f214d75bbc4b2ea89e433f3a45af803725416ec33a40204514eb1152355799ece36d17037e5feb4871472c60763bdafe67eb6a38bec632a8e2e62f84a32cf764342a4708a65fbad194e37feec03940f0ff84d3df2a053a400b6730e5898ca56fe0dc1c73de9363f6fc8b335592ef10725a8463bff101a4943e60311f0b1a439a2c9e02cca1379b80a822f4ec48cf212bff1f1c757e92ec02",
 				"schema": {
-					"$id": "baseTransactionSchema",
+					"$id": "/baseTransactionSchema",
 					"type": "object",
 					"properties": {
 						"moduleID": {
@@ -78,7 +78,7 @@
 			"input": {
 				"value": "0a1c0a14cd32c73e9851c7137980063b8af64aa5a31651f810ffdf8bb4590a1d0a149d86ad24a3f030e5522b6598115bb4d70c1692c91080c0bebbc51a",
 				"schema": {
-					"$id": "voteAssetSchema",
+					"$id": "/voteAssetSchema",
 					"type": "object",
 					"properties": {
 						"stakes": {
@@ -123,7 +123,7 @@
 			"input": {
 				"value": "0802122007d6389be6e2109613699c02e78253148989515c3867e4f490eafd004a95b2b412203e754d00815b6b248a981520afbaf913153a26d25e2d5283964779c65ceee7e81a20c8b8fbe474a2b63ccb9744a409569b0a465ee1803f80435aec1c5e7fc2d4ee181a206115424fec0ce9c3bac5a81b5c782827d1f956fb95f1ccfa36c566d04e4d7267",
 				"schema": {
-					"$id": "multisigAssetSchema",
+					"$id": "/multisigAssetSchema",
 					"type": "object",
 					"properties": {
 						"numberOfSignatures": {
@@ -167,7 +167,7 @@
 			"input": {
 				"value": "08021220c8b8fbe474a2b63ccb9744a409569b0a465ee1803f80435aec1c5e7fc2d4ee1812206115424fec0ce9c3bac5a81b5c782827d1f956fb95f1ccfa36c566d04e4d7267",
 				"schema": {
-					"$id": "multisigAssetSchema",
+					"$id": "/multisigAssetSchema",
 					"type": "object",
 					"properties": {
 						"numberOfSignatures": {

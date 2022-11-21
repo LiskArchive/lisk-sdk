@@ -66,10 +66,10 @@ describe('forger:getStakers action', () => {
 		it('should return valid stakers', async () => {
 			// Arrange
 			const initialVoters = await appEnv.ipcClient.invoke('forger:getStakers');
-			const forgingDelegateAddress = (initialVoters[0] as any).address;
+			const forgingValidatorAddress = (initialVoters[0] as any).address;
 			const transaction = createVoteTransaction({
 				amount: '10',
-				recipientAddress: forgingDelegateAddress,
+				recipientAddress: forgingValidatorAddress,
 				fee: '0.3',
 				nonce: accountNonce,
 				chainID,
@@ -86,7 +86,7 @@ describe('forger:getStakers action', () => {
 			// Act
 			const stakers = await appEnv.ipcClient.invoke('forger:getStakers');
 			const forgerInfo = (stakers as any).find(
-				(forger: any) => forger.address === forgingDelegateAddress,
+				(forger: any) => forger.address === forgingValidatorAddress,
 			);
 
 			// Assert

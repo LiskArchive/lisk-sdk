@@ -53,7 +53,7 @@ export class ValidatorStakedEvent extends BaseEvent<
 	public schema = validatorStakedDataSchema;
 
 	public log(ctx: EventQueuer, data: ValidatorStakedEventData): void {
-		this.add(ctx, { ...data, result: PoSEventResult.VOTE_SUCCESSFUL }, [
+		this.add(ctx, { ...data, result: PoSEventResult.STAKE_SUCCESSFUL }, [
 			data.senderAddress,
 			data.validatorAddress,
 		]);

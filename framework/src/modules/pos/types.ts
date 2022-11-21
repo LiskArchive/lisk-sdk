@@ -198,7 +198,7 @@ export interface StakeTransactionParams {
 	stakes: StakeObject[];
 }
 
-export interface BlockHeaderAssetForDPOS {
+export interface BlockHeaderAssetForPOS {
 	seedReveal: Buffer;
 	maxHeightPreviouslyForged: number;
 	maxHeightPrestaked: number;

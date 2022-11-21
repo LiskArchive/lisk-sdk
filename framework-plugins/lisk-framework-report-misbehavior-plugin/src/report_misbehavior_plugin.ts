@@ -126,12 +126,12 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		contradictingBlock: chain.BlockHeader,
 		decodedBlockHeader: chain.BlockHeader,
 	): Promise<string> {
-		// ModuleID:13 (DPoS), CommandID:3 (PoMCommand)
+		// ModuleID:13 (PoS), CommandID:3 (PoMCommand)
 		const posMeta = this.apiClient.metadata.find(
 			m => m.id === Buffer.from([0, 0, 0, 13]).toString('hex'),
 		);
 		if (!posMeta) {
-			throw new Error('DPoS module is not registered in the application.');
+			throw new Error('PoS module is not registered in the application.');
 		}
 		const pomParamsInfo = posMeta.commands.find(
 			m => m.id === Buffer.from([0, 0, 0, 3]).toString('hex'),

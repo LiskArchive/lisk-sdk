@@ -24,10 +24,10 @@ import {
 import {
 	defaultConfig,
 	EMPTY_KEY,
-	PUNISHMENT_WINDOW_SELF_VOTES,
-	PUNISHMENT_WINDOW_VOTES,
-	LOCKING_PERIOD_SELF_VOTES,
-	LOCKING_PERIOD_VOTES,
+	PUNISHMENT_WINDOW_SELF_STAKES,
+	PUNISHMENT_WINDOW_STAKES,
+	LOCKING_PERIOD_SELF_STAKES,
+	LOCKING_PERIOD_STAKES,
 } from '../../../../../src/modules/pos/constants';
 import { TokenMethod, UnlockingObject, StakerData } from '../../../../../src/modules/pos/types';
 import { liskToBeddows } from '../../../../utils/assets';
@@ -182,7 +182,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when non self-staked non-punished account waits ${LOCKING_PERIOD_VOTES} blocks since unstakeHeight`, () => {
+	describe(`when non self-staked non-punished account waits ${LOCKING_PERIOD_STAKES} blocks since unstakeHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -201,7 +201,7 @@ describe('UnlockCommand', () => {
 			unlockableObject = {
 				validatorAddress: validator1.address,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_VOTES,
+				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKES,
 			};
 			nonUnlockableObject = {
 				validatorAddress: validator2.address,
@@ -242,7 +242,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when self-staked non-punished account waits ${LOCKING_PERIOD_SELF_VOTES} blocks since unstakeHeight`, () => {
+	describe(`when self-staked non-punished account waits ${LOCKING_PERIOD_SELF_STAKES} blocks since unstakeHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -256,7 +256,7 @@ describe('UnlockCommand', () => {
 			unlockableObject = {
 				validatorAddress: transaction.senderAddress,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_SELF_VOTES,
+				unstakeHeight: blockHeight - LOCKING_PERIOD_SELF_STAKES,
 			};
 			nonUnlockableObject = {
 				validatorAddress: transaction.senderAddress,
@@ -302,7 +302,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when non self-staked punished account waits ${PUNISHMENT_WINDOW_VOTES} blocks and unstakeHeight + ${LOCKING_PERIOD_VOTES} blocks since last pomHeight`, () => {
+	describe(`when non self-staked punished account waits ${PUNISHMENT_WINDOW_STAKES} blocks and unstakeHeight + ${LOCKING_PERIOD_STAKES} blocks since last pomHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -312,7 +312,7 @@ describe('UnlockCommand', () => {
 			await validatorSubstore.set(createStoreGetter(stateStore), validator1.address, {
 				...defaultValidatorInfo,
 				name: 'punishedstaker1',
-				pomHeights: [blockHeight - PUNISHMENT_WINDOW_VOTES],
+				pomHeights: [blockHeight - PUNISHMENT_WINDOW_STAKES],
 			});
 			// This covers scenario: has not waited pomHeight + 260,000 blocks but waited unstakeHeight + 2000 blocks and pomHeight is more than unstakeHeight + 2000 blocks
 			await validatorSubstore.set(createStoreGetter(stateStore), validator2.address, {
@@ -329,22 +329,22 @@ describe('UnlockCommand', () => {
 			await validatorSubstore.set(createStoreGetter(stateStore), validator4.address, {
 				...defaultValidatorInfo,
 				name: 'punishedstaker4',
-				pomHeights: [blockHeight - PUNISHMENT_WINDOW_VOTES],
+				pomHeights: [blockHeight - PUNISHMENT_WINDOW_STAKES],
 			});
 			unlockableObject = {
 				validatorAddress: validator1.address,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_VOTES,
+				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKES,
 			};
 			unlockableObject2 = {
 				validatorAddress: validator2.address,
 				amount: validator2.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_VOTES - 1000,
+				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKES - 1000,
 			};
 			unlockableObject3 = {
 				validatorAddress: validator3.address,
 				amount: validator3.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_VOTES - 1000,
+				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKES - 1000,
 			};
 			nonUnlockableObject = {
 				validatorAddress: validator4.address,
@@ -407,7 +407,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when self-staked punished account waits ${PUNISHMENT_WINDOW_SELF_VOTES} blocks and waits unstakeHeight + ${LOCKING_PERIOD_SELF_VOTES} blocks since pomHeight`, () => {
+	describe(`when self-staked punished account waits ${PUNISHMENT_WINDOW_SELF_STAKES} blocks and waits unstakeHeight + ${LOCKING_PERIOD_SELF_STAKES} blocks since pomHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -417,12 +417,12 @@ describe('UnlockCommand', () => {
 			await validatorSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				...defaultValidatorInfo,
 				name: 'punishedselfstaker',
-				pomHeights: [blockHeight - PUNISHMENT_WINDOW_SELF_VOTES],
+				pomHeights: [blockHeight - PUNISHMENT_WINDOW_SELF_STAKES],
 			});
 			unlockableObject = {
 				validatorAddress: transaction.senderAddress,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_SELF_VOTES,
+				unstakeHeight: blockHeight - LOCKING_PERIOD_SELF_STAKES,
 			};
 			nonUnlockableObject = {
 				validatorAddress: transaction.senderAddress,
@@ -468,7 +468,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when self-staked punished account does not wait ${PUNISHMENT_WINDOW_SELF_VOTES} blocks and waits unstakeHeight + ${LOCKING_PERIOD_SELF_VOTES} blocks since pomHeight`, () => {
+	describe(`when self-staked punished account does not wait ${PUNISHMENT_WINDOW_SELF_STAKES} blocks and waits unstakeHeight + ${LOCKING_PERIOD_SELF_STAKES} blocks since pomHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -483,7 +483,7 @@ describe('UnlockCommand', () => {
 			nonUnlockableObject = {
 				validatorAddress: transaction.senderAddress,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_SELF_VOTES,
+				unstakeHeight: blockHeight - LOCKING_PERIOD_SELF_STAKES,
 			};
 			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				sentStakes: [
@@ -587,7 +587,7 @@ describe('UnlockCommand', () => {
 			unlockableObject = {
 				validatorAddress: validator1.address,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_VOTES,
+				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKES,
 			};
 			nonUnlockableObject = {
 				validatorAddress: validator2.address,

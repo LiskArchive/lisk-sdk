@@ -22,7 +22,7 @@ const { Objects, ObjectWithOptionalProp } = prepareProtobuffersObjects();
 const object = {
 	address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex'),
 	balance: '10000000',
-	isDelegate: true,
+	isValidator: true,
 	name: 'validator',
 	asset: {
 		data: 'Check out the Lisk SDK now in binary!',
@@ -44,7 +44,7 @@ const objectSchema = {
 			dataType: 'uint64',
 			fieldNumber: 2,
 		},
-		isDelegate: {
+		isValidator: {
 			dataType: 'boolean',
 			fieldNumber: 3,
 		},
