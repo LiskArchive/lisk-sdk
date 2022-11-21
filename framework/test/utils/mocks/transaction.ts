@@ -23,7 +23,7 @@ import {
 	multisigRegMsgSchema,
 	registerMultisignatureParamsSchema,
 } from '../../../src/modules/auth/schemas';
-import { DELEGATE_REGISTRATION_FEE } from '../../../src/modules/pos/constants';
+import { VALIDATOR_REGISTRATION_FEE } from '../../../src/modules/pos/constants';
 import {
 	validatorRegistrationCommandParamsSchema,
 	pomCommandParamsSchema,
@@ -85,7 +85,7 @@ export const createValidatorRegisterTransaction = (input: {
 		generatorKey: input.generatorKey,
 		blsKey: input.blsKey,
 		proofOfPossession: input.blsProofOfPossession,
-		validatorRegistrationFee: DELEGATE_REGISTRATION_FEE,
+		validatorRegistrationFee: VALIDATOR_REGISTRATION_FEE,
 	});
 
 	const tx = new Transaction({

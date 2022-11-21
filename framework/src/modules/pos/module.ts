@@ -26,7 +26,7 @@ import { UpdateGeneratorKeyCommand } from './commands/update_generator_key';
 import { StakeCommand } from './commands/stake';
 import { ChangeCommissionCommand } from './commands/change_commission';
 import {
-	DELEGATE_LIST_ROUND_OFFSET,
+	VALIDATOR_LIST_ROUND_OFFSET,
 	EMPTY_KEY,
 	MAX_NUMBER_SENT_STAKES,
 	MAX_NUMBER_PENDING_UNLOCKS,
@@ -559,7 +559,7 @@ export class PoSModule extends BaseModule {
 	private async _createStakeWeightSnapshot(context: BlockAfterExecuteContext): Promise<void> {
 		const snapshotHeight = context.header.height + 1;
 		const round = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
-		const snapshotRound = round.calcRound(snapshotHeight) + DELEGATE_LIST_ROUND_OFFSET;
+		const snapshotRound = round.calcRound(snapshotHeight) + VALIDATOR_LIST_ROUND_OFFSET;
 		context.logger.debug(`Creating stake weight snapshot for round: ${snapshotRound.toString()}`);
 
 		const eligibleValidatorStore = this.stores.get(EligibleValidatorsStore);
@@ -587,7 +587,7 @@ export class PoSModule extends BaseModule {
 		// Remove outdated information
 		const oldData = await snapshotStore.iterate(context, {
 			gte: utils.intToBuffer(0, 4),
-			lte: utils.intToBuffer(Math.max(0, snapshotRound - DELEGATE_LIST_ROUND_OFFSET - 1), 4),
+			lte: utils.intToBuffer(Math.max(0, snapshotRound - VALIDATOR_LIST_ROUND_OFFSET - 1), 4),
 		});
 		for (const { key } of oldData) {
 			await snapshotStore.del(context, key);

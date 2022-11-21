@@ -173,7 +173,7 @@ export class StakeCommand extends BaseCommand {
 						validatorAddress: stake.validatorAddress,
 						amount: stake.amount,
 					},
-					PoSEventResult.STAKE_FAILED_NON_REGISTERED_DELEGATE,
+					PoSEventResult.STAKE_FAILED_NON_REGISTERED_VALIDATOR,
 				);
 
 				throw new Error('Invalid stake: no registered validator with the specified address');

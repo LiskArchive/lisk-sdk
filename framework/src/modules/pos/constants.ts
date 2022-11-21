@@ -13,7 +13,7 @@
  */
 export const MODULE_NAME_POS = 'pos';
 
-export const COMMAND_NAME_DELEGATE_REGISTRATION = 'registerValidator';
+export const COMMAND_NAME_VALIDATOR_REGISTRATION = 'registerValidator';
 
 export const LOCKING_PERIOD_STAKES = 26000;
 export const LOCKING_PERIOD_SELF_STAKES = 260000;
@@ -27,11 +27,11 @@ export const MAX_NUMBER_SENT_STAKES = 10;
 export const MAX_NUMBER_PENDING_UNLOCKS = 20;
 export const TOKEN_ID_POS = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 export const TOKEN_ID_FEE = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
-export const DELEGATE_REGISTRATION_FEE = BigInt(10) * BigInt(10) ** BigInt(8);
+export const VALIDATOR_REGISTRATION_FEE = BigInt(10) * BigInt(10) ** BigInt(8);
 export const MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE = 260000;
 export const POM_LIMIT_BANNED = 5;
 export const REPORTING_PUNISHMENT_REWARD = BigInt(100000000);
-export const DELEGATE_LIST_ROUND_OFFSET = 2;
+export const VALIDATOR_LIST_ROUND_OFFSET = 2;
 export const EMPTY_KEY = Buffer.alloc(0);
 export const MAX_SNAPSHOT = 3;
 export const CHAIN_ID_LENGTH = 4;
@@ -63,7 +63,7 @@ export const defaultConfig = {
 	numberActiveValidators: 101,
 	numberStandbyValidators: 2,
 	tokenIDFee: TOKEN_ID_FEE.toString('hex'),
-	validatorRegistrationFee: DELEGATE_REGISTRATION_FEE.toString(),
+	validatorRegistrationFee: VALIDATOR_REGISTRATION_FEE.toString(),
 	maxBFTWeightCap: 500,
 	commissionIncreasePeriod: COMMISSION_INCREASE_PERIOD,
 	maxCommissionIncreaseRate: MAX_COMMISSION_INCREASE_RATE,
@@ -71,7 +71,7 @@ export const defaultConfig = {
 
 export const enum PoSEventResult {
 	STAKE_SUCCESSFUL = 0,
-	STAKE_FAILED_NON_REGISTERED_DELEGATE = 1,
+	STAKE_FAILED_NON_REGISTERED_VALIDATOR = 1,
 	STAKE_FAILED_INVALID_UNSTAKE_PARAMETERS = 2,
 	STAKE_FAILED_TOO_MANY_PENDING_UNLOCKS = 3,
 	STAKE_FAILED_TOO_MANY_SENT_STAKES = 4,

@@ -1269,7 +1269,7 @@ describe('StakeCommand', () => {
 			});
 
 			describe('when transaction.params.stakes contain validator address which is not registered', () => {
-				it('should throw error and emit ValidatorStakedEevnt with STAKE_FAILED_NON_REGISTERED_DELEGATE failure', async () => {
+				it('should throw error and emit ValidatorStakedEevnt with STAKE_FAILED_NON_REGISTERED_VALIDATOR failure', async () => {
 					// Arrange
 					const nonExistingValidatorAddress = utils.getRandomBytes(20);
 
@@ -1303,7 +1303,7 @@ describe('StakeCommand', () => {
 							validatorAddress: transactionParamsDecoded.stakes[0].validatorAddress,
 							amount: transactionParamsDecoded.stakes[0].amount,
 						},
-						PoSEventResult.STAKE_FAILED_NON_REGISTERED_DELEGATE,
+						PoSEventResult.STAKE_FAILED_NON_REGISTERED_VALIDATOR,
 					);
 				});
 			});

@@ -32,7 +32,7 @@ import { PoSModule } from '../../../../../src';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import {
 	COMMISSION,
-	DELEGATE_REGISTRATION_FEE,
+	VALIDATOR_REGISTRATION_FEE,
 	TOKEN_ID_FEE,
 } from '../../../../../src/modules/pos/constants';
 import { ValidatorRegisteredEvent } from '../../../../../src/modules/pos/events/validator_registered';
@@ -52,7 +52,7 @@ describe('Validator registration command', () => {
 		generatorKey: utils.getRandomBytes(32),
 		blsKey: utils.getRandomBytes(48),
 		proofOfPossession: utils.getRandomBytes(96),
-		validatorRegistrationFee: DELEGATE_REGISTRATION_FEE,
+		validatorRegistrationFee: VALIDATOR_REGISTRATION_FEE,
 	};
 	const defaultValidatorInfo = {
 		name: transactionParams.name,
@@ -109,7 +109,7 @@ describe('Validator registration command', () => {
 		validatorRegistrationCommand = new RegisterValidatorCommand(pos.stores, pos.events);
 		validatorRegistrationCommand.init({
 			tokenIDFee: TOKEN_ID_FEE,
-			validatorRegistrationFee: DELEGATE_REGISTRATION_FEE,
+			validatorRegistrationFee: VALIDATOR_REGISTRATION_FEE,
 		});
 		mockTokenMethod = {
 			lock: jest.fn(),
@@ -352,11 +352,11 @@ describe('Validator registration command', () => {
 		it('should return error if account does not have enough balance for the registration fee', async () => {
 			mockTokenMethod.getAvailableBalance = jest
 				.fn()
-				.mockResolvedValue(DELEGATE_REGISTRATION_FEE - BigInt(1));
+				.mockResolvedValue(VALIDATOR_REGISTRATION_FEE - BigInt(1));
 			validatorRegistrationCommand = new RegisterValidatorCommand(pos.stores, pos.events);
 			validatorRegistrationCommand.init({
 				tokenIDFee: TOKEN_ID_FEE,
-				validatorRegistrationFee: DELEGATE_REGISTRATION_FEE,
+				validatorRegistrationFee: VALIDATOR_REGISTRATION_FEE,
 			});
 			validatorRegistrationCommand.addDependencies(mockTokenMethod, mockValidatorsMethod);
 
