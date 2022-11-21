@@ -323,7 +323,7 @@ export interface StateRecoveryParams {
 
 export interface StateRecoveryInitParams {
 	chainID: Buffer;
-	sidechainChainAccount: Buffer;
+	sidechainAccount: Buffer;
 	bitmap: Buffer;
 	siblingHashes: Buffer[];
 }
