@@ -16,7 +16,7 @@ import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { NotFoundError } from '@liskhq/lisk-db';
 import { validator } from '@liskhq/lisk-validator';
-// import { q96 } from '@liskhq/lisk-utils/dist-node/math';
+import { dataStructures, math } from '@liskhq/lisk-utils';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { DelegateAccountJSON, DelegateStore, delegateStoreSchema } from './stores/delegate';
@@ -38,7 +38,7 @@ import {
 } from './types';
 import { getPunishTime, getWaitTime, isCertificateGenerated, calculateVoteRewards } from './utils';
 import { GenesisDataStore } from './stores/genesis';
-import { EMPTY_KEY, MAX_NUMBER_BYTES_Q96 } from './constants';
+import { EMPTY_KEY } from './constants';
 import { EligibleDelegatesStore } from './stores/eligible_delegates';
 import {
 	getClaimableRewardsRequestSchema,
@@ -47,6 +47,8 @@ import {
 	getValidatorsByStakeRequestSchema,
 } from './schemas';
 import { ImmutableMethodContext } from '../../state_machine';
+
+const { q96 } = math;
 
 export class DPoSEndpoint extends BaseEndpoint {
 	private _moduleConfig!: ModuleConfig;
@@ -264,74 +266,43 @@ export class DPoSEndpoint extends BaseEndpoint {
 		};
 	}
 
-	/**
-	 * For every vote sent from the given address
-	 * go through all the delegates they voted for
-	 * and based on the accrued rewards from delegate's reward sharing coefficients
-	 * calculate the total reward amount per token
-	 *
-	 * @lip [still not publicly available]
-	 *
-	 * @param context context which contains `address` in lisk32 format as the single param
-	 * @returns array of objects containing token ID and reward amount
-	 */
 	public async getClaimableRewards(context: ModuleEndpointContext): Promise<ClaimableReward[]> {
 		validator.validate<GetClaimableRewardsRequest>(
 			getClaimableRewardsRequestSchema,
 			context.params,
 		);
 
-		const rewards: ClaimableReward[] = [];
+		const rewards = new dataStructures.BufferMap<bigint>();
 		const address = cryptoAddress.getAddressFromLisk32Address(context.params.address);
 		const { sentVotes: votes } = await this.stores.get(VoterStore).getOrDefault(context, address);
 
 		for (const vote of votes) {
-			if (vote.delegateAddress !== address) {
-				const delegate = await this.stores.get(DelegateStore).get(context, vote.delegateAddress);
+			if (vote.delegateAddress.equals(address)) {
+				continue;
+			}
+			const delegate = await this.stores.get(DelegateStore).get(context, vote.delegateAddress);
 
-				for (const delegateSharingCoefficient of delegate.sharingCoefficients) {
-					let voteSharingCoefficient = vote.voteSharingCoefficients.find(coefficient =>
-						coefficient.tokenID.equals(delegateSharingCoefficient.tokenID),
-					);
-					// for a given token ID, add missing sharing coefficient to vote store if it exists in delegate store
-					if (!voteSharingCoefficient) {
-						voteSharingCoefficient = {
-							tokenID: delegateSharingCoefficient.tokenID,
-							coefficient: Buffer.alloc(MAX_NUMBER_BYTES_Q96),
-							// TODO: find out why it breaks when using:
-							// coefficient: q96(0).toBuffer(),
-						};
-						vote.voteSharingCoefficients.push(voteSharingCoefficient);
-						vote.voteSharingCoefficients.sort((a, b) => a.tokenID.compare(b.tokenID));
-					}
-
-					const rewardIndex = rewards.findIndex(
-						reward => reward.tokenID === delegateSharingCoefficient.tokenID.toString(),
-					);
-					// if there is no existing reward for that token ID, push a new reward object
-					if (rewardIndex === -1) {
-						rewards.push({
-							tokenID: delegateSharingCoefficient.tokenID.toString(),
-							reward: calculateVoteRewards(
-								voteSharingCoefficient,
-								vote.amount,
-								delegateSharingCoefficient,
-							).toString(),
-						});
-					}
-					// if reward for the given token ID already exist, increase it by the reward from this delegate
-					else {
-						// TODO: these conversions looks so dirty. consider keeping all reward values as bigints, and converting them all to strings at the very end of the function
-						rewards[rewardIndex].reward = (
-							BigInt(rewards[rewardIndex].reward) +
-							calculateVoteRewards(voteSharingCoefficient, vote.amount, delegateSharingCoefficient)
-						).toString();
-					}
-				}
+			for (const delegateSharingCoefficient of delegate.sharingCoefficients) {
+				const voteSharingConefficient = vote.voteSharingCoefficients.find(sc =>
+					sc.tokenID.equals(delegateSharingCoefficient.tokenID),
+				) ?? {
+					tokenID: delegateSharingCoefficient.tokenID,
+					coefficient: q96(BigInt(0)).toBuffer(),
+				};
+				const reward = calculateVoteRewards(
+					voteSharingConefficient,
+					vote.amount,
+					delegateSharingCoefficient,
+				);
+				const currentReward = rewards.get(delegateSharingCoefficient.tokenID) ?? BigInt(0);
+				rewards.set(delegateSharingCoefficient.tokenID, reward + currentReward);
 			}
 		}
 
-		return rewards;
+		return rewards.entries().map(([tokenID, reward]) => ({
+			tokenID: tokenID.toString('hex'),
+			reward: reward.toString(),
+		}));
 	}
 
 	private async _getLockedVotedAmount(
