@@ -30,7 +30,7 @@ import {
 	MAX_NUMBER_BYTES_Q96,
 } from '../../../../src/modules/pos/constants';
 
-describe('DposModuleApi', () => {
+describe('PoSMethod', () => {
 	const pos = new PoSModule();
 
 	let posMethod: PoSMethod;
