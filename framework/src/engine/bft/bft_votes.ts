@@ -83,7 +83,7 @@ export const updatePrevotesPrecommits = async (
 			break;
 		}
 		const params = await paramsCache.getParameters(blockBFTInfo.height);
-		if (blockBFTInfo.prevalidatorWeight >= params.prevoteThreshold) {
+		if (blockBFTInfo.prevoteWeight >= params.prevoteThreshold) {
 			const bftValidator = params.validators.find(v =>
 				v.address.equals(newBlockBFTInfo.generatorAddress),
 			);
@@ -129,7 +129,7 @@ export const updatePrevotesPrecommits = async (
 				)} must be in the BFT parameters at height ${newBlockBFTInfo.height}`,
 			);
 		}
-		blockBFTInfo.prevalidatorWeight += bftValidator.bftWeight;
+		blockBFTInfo.prevoteWeight += bftValidator.bftWeight;
 	}
 };
 
@@ -139,7 +139,7 @@ export const updateMaxHeightPrevoted = async (
 ): Promise<void> => {
 	for (const blockBFTInfo of bftVotes.blockBFTInfos) {
 		const params = await paramsCache.getParameters(blockBFTInfo.height);
-		if (blockBFTInfo.prevalidatorWeight >= params.prevoteThreshold) {
+		if (blockBFTInfo.prevoteWeight >= params.prevoteThreshold) {
 			// eslint-disable-next-line no-param-reassign
 			bftVotes.maxHeightPrevoted = blockBFTInfo.height;
 			return;

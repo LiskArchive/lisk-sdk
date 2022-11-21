@@ -49,7 +49,7 @@ describe('BFT votes', () => {
 					maxHeightGenerated: 148,
 					maxHeightPrevoted: 148,
 					precommitWeight: BigInt(64),
-					prevalidatorWeight: BigInt(65),
+					prevoteWeight: BigInt(65),
 				},
 				{
 					generatorAddress: accounts[1],
@@ -57,7 +57,7 @@ describe('BFT votes', () => {
 					maxHeightGenerated: 101,
 					maxHeightPrevoted: 104,
 					precommitWeight: BigInt(64),
-					prevalidatorWeight: BigInt(65),
+					prevoteWeight: BigInt(65),
 				},
 				{
 					generatorAddress: accounts[2],
@@ -65,7 +65,7 @@ describe('BFT votes', () => {
 					maxHeightGenerated: 149,
 					maxHeightPrevoted: 104,
 					precommitWeight: BigInt(64),
-					prevalidatorWeight: BigInt(68),
+					prevoteWeight: BigInt(68),
 				},
 				{
 					generatorAddress: accounts[0],
@@ -73,7 +73,7 @@ describe('BFT votes', () => {
 					maxHeightGenerated: 101,
 					maxHeightPrevoted: 104,
 					precommitWeight: BigInt(67),
-					prevalidatorWeight: BigInt(68),
+					prevoteWeight: BigInt(68),
 				},
 			],
 			activeValidatorsVoteInfo: [
@@ -315,9 +315,7 @@ describe('BFT votes', () => {
 			);
 			// accounts[0] has minPrecommitHeight is largestHeightPrecommit + 1 (149). heightNotPrevoted is 147
 			await updatePrevotesPrecommits(bftVotes, paramsCache);
-			expect(bftVotes.blockBFTInfos.find(b => b.height === 149)?.prevalidatorWeight).toEqual(
-				BigInt(68),
-			);
+			expect(bftVotes.blockBFTInfos.find(b => b.height === 149)?.prevoteWeight).toEqual(BigInt(68));
 		});
 
 		it('should not increment the prevote when generator is not active', async () => {
@@ -332,9 +330,7 @@ describe('BFT votes', () => {
 			);
 			// accounts[0] has minPrecommitHeight is largestHeightPrecommit + 1 (149). heightNotPrevoted is 147
 			await updatePrevotesPrecommits(bftVotes, paramsCache);
-			expect(bftVotes.blockBFTInfos.find(b => b.height === 148)?.prevalidatorWeight).toEqual(
-				BigInt(68),
-			);
+			expect(bftVotes.blockBFTInfos.find(b => b.height === 148)?.prevoteWeight).toEqual(BigInt(68));
 		});
 	});
 

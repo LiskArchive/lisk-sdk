@@ -71,7 +71,7 @@ export const getBlockBFTProperties = (header: BlockHeader): BFTVotesBlockInfo =>
 	maxHeightGenerated: header.maxHeightGenerated,
 	maxHeightPrevoted: header.maxHeightPrevoted,
 	precommitWeight: BigInt(0),
-	prevalidatorWeight: BigInt(0),
+	prevoteWeight: BigInt(0),
 });
 
 export const sortValidatorsByAddress = (validators: { address: Buffer }[]) =>

@@ -89,7 +89,7 @@ export interface BFTVotesBlockInfo {
 	generatorAddress: Buffer;
 	maxHeightGenerated: number;
 	maxHeightPrevoted: number;
-	prevalidatorWeight: bigint;
+	prevoteWeight: bigint;
 	precommitWeight: bigint;
 }
 
@@ -131,7 +131,7 @@ export const bftVotesSchema = {
 					'generatorAddress',
 					'maxHeightGenerated',
 					'maxHeightPrevoted',
-					'prevalidatorWeight',
+					'prevoteWeight',
 					'precommitWeight',
 				],
 				properties: {
@@ -139,7 +139,7 @@ export const bftVotesSchema = {
 					generatorAddress: { dataType: 'bytes', fieldNumber: 2 },
 					maxHeightGenerated: { dataType: 'uint32', fieldNumber: 3 },
 					maxHeightPrevoted: { dataType: 'uint32', fieldNumber: 4 },
-					prevalidatorWeight: { dataType: 'uint64', fieldNumber: 5 },
+					prevoteWeight: { dataType: 'uint64', fieldNumber: 5 },
 					precommitWeight: { dataType: 'uint64', fieldNumber: 6 },
 				},
 			},

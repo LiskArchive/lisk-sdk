@@ -166,9 +166,9 @@ describe('BFT processing', () => {
 						const height = Number(heightStr);
 						const bftInfo = result.blockBFTInfos.find(b => b.height === height);
 						if (height > minHeight) {
-							expect(bftInfo?.prevalidatorWeight).toEqual(BigInt(val));
+							expect(bftInfo?.prevoteWeight).toEqual(BigInt(val));
 						} else {
-							expect(bftInfo?.prevalidatorWeight).toBeUndefined();
+							expect(bftInfo?.prevoteWeight).toBeUndefined();
 						}
 					}
 					for (const [heightStr, val] of Object.entries(testCase.output.preCommits)) {
