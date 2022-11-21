@@ -13,6 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { SparseMerkleTree } from '@liskhq/lisk-db';
 import { bls, utils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { objects } from '@liskhq/lisk-utils';
@@ -32,7 +33,7 @@ import { computeValidatorsHash, getIDAsKeyForStore, validateFormat } from './uti
 import { NamedRegistry } from '../named_registry';
 import { OwnChainAccountStore } from './stores/own_chain_account';
 import { ChannelDataStore } from './stores/channel_data';
-import { OutboxRootStore } from './stores/outbox_root';
+import { outboxRootSchema, OutboxRootStore } from './stores/outbox_root';
 import { TerminatedStateAccount, TerminatedStateStore } from './stores/terminated_state';
 import { ChainAccountStore, ChainStatus } from './stores/chain_account';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/terminated_outbox';
@@ -249,7 +250,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 	): Promise<void> {
 		await this.stores.get(ChainValidatorsStore).updateValidators(context, ccu.sendingChainID, {
 			activeValidators: ccu.activeValidatorsUpdate,
-			certificateThreshold: ccu.newCertificateThreshold,
+			certificateThreshold: ccu.certificateThreshold,
 		});
 	}
 
@@ -310,10 +311,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			ccu.activeValidatorsUpdate,
 		);
 		const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
-		const newValidatorsHash = computeValidatorsHash(
-			newActiveValidators,
-			ccu.newCertificateThreshold,
-		);
+		const newValidatorsHash = computeValidatorsHash(newActiveValidators, ccu.certificateThreshold);
 		if (!certificate.validatorsHash.equals(newValidatorsHash)) {
 			throw new Error('ValidatorsHash in certificate and the computed values do not match.');
 		}
@@ -362,7 +360,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			params.sendingChainID,
 			params.certificate,
 			blsWeights,
-			params.newCertificateThreshold,
+			params.certificateThreshold,
 		);
 
 		if (!verifySignature) {
@@ -507,6 +505,53 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		this.events
 			.get(CcmSendSuccessEvent)
 			.log(context, ccm.sendingChainID, ccm.receivingChainID, ccmID, { ccmID });
+	}
+
+	public async verifyPartnerChainOutboxRoot(
+		context: ImmutableMethodContext,
+		params: CrossChainUpdateTransactionParams,
+	): Promise<void> {
+		const channel = await this.stores.get(ChannelDataStore).get(context, params.sendingChainID);
+		let { appendPath, size } = channel.inbox;
+		for (const ccm of params.inboxUpdate.crossChainMessages) {
+			const updatedMerkleTree = regularMerkleTree.calculateMerkleRoot({
+				appendPath,
+				size,
+				value: utils.hash(ccm),
+			});
+			appendPath = updatedMerkleTree.appendPath;
+			size = updatedMerkleTree.size;
+		}
+		const newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
+			size,
+			appendPath,
+			params.inboxUpdate.messageWitnessHashes,
+		);
+
+		if (params.certificate.length === 0) {
+			if (!newInboxRoot.equals(channel.partnerChainOutboxRoot)) {
+				throw new Error('Inbox root does not match partner chain outbox root.');
+			}
+			return;
+		}
+		const outboxRootStore = this.stores.get(OutboxRootStore);
+		const outboxKey = Buffer.concat([outboxRootStore.key, utils.hash(params.sendingChainID)]);
+		const proof = {
+			siblingHashes: params.inboxUpdate.outboxRootWitness.siblingHashes,
+			queries: [
+				{
+					key: outboxKey,
+					value: codec.encode(outboxRootSchema, { root: newInboxRoot }),
+					bitmap: params.inboxUpdate.outboxRootWitness.bitmap,
+				},
+			],
+		};
+		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
+		const smt = new SparseMerkleTree();
+		const valid = await smt.verify(certificate.stateRoot, [outboxKey], proof);
+		if (!valid) {
+			throw new Error('Invalid inclusion proof for inbox update.');
+		}
 	}
 
 	// Different in mainchain and sidechain so to be implemented in each module store separately

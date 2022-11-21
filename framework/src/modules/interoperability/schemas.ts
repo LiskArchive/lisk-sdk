@@ -203,13 +203,15 @@ export const crossChainUpdateTransactionParams = {
 		'sendingChainID',
 		'certificate',
 		'activeValidatorsUpdate',
-		'newCertificateThreshold',
+		'certificateThreshold',
 		'inboxUpdate',
 	],
 	properties: {
 		sendingChainID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 		certificate: {
 			dataType: 'bytes',
@@ -235,7 +237,7 @@ export const crossChainUpdateTransactionParams = {
 				},
 			},
 		},
-		newCertificateThreshold: {
+		certificateThreshold: {
 			dataType: 'uint64',
 			fieldNumber: 4,
 		},

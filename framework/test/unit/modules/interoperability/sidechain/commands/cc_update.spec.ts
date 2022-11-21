@@ -203,7 +203,7 @@ describe('CrossChainUpdateCommand', () => {
 			activeValidatorsUpdate: sortedActiveValidatorsUpdate,
 			certificate: encodedDefaultCertificate,
 			inboxUpdate: { ...defaultInboxUpdateValue },
-			newCertificateThreshold: defaultNewCertificateThreshold,
+			certificateThreshold: defaultNewCertificateThreshold,
 			sendingChainID: defaultSendingChainID,
 		};
 

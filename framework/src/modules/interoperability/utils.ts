@@ -382,15 +382,12 @@ export const checkValidatorsHashWithCertificate = (
 	txParams: CrossChainUpdateTransactionParams,
 	partnerValidators: ChainValidators,
 ): VerificationResult => {
-	if (
-		txParams.activeValidatorsUpdate.length !== 0 ||
-		txParams.newCertificateThreshold > BigInt(0)
-	) {
+	if (txParams.activeValidatorsUpdate.length !== 0 || txParams.certificateThreshold > BigInt(0)) {
 		if (txParams.certificate.equals(EMPTY_BYTES)) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(
-					'Certificate cannot be empty when activeValidatorsUpdate or newCertificateThreshold has a non-empty value.',
+					'Certificate cannot be empty when activeValidatorsUpdate or certificateThreshold has a non-empty value.',
 				),
 			};
 		}
@@ -404,7 +401,7 @@ export const checkValidatorsHashWithCertificate = (
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(
-					'Certificate should have all required values when activeValidatorsUpdate or newCertificateThreshold has a non-empty value.',
+					'Certificate should have all required values when activeValidatorsUpdate or certificateThreshold has a non-empty value.',
 				),
 			};
 		}
@@ -416,7 +413,7 @@ export const checkValidatorsHashWithCertificate = (
 
 		const validatorsHash = computeValidatorsHash(
 			newActiveValidators,
-			txParams.newCertificateThreshold || partnerValidators.certificateThreshold,
+			txParams.certificateThreshold || partnerValidators.certificateThreshold,
 		);
 
 		if (!decodedCertificate.validatorsHash.equals(validatorsHash)) {
@@ -448,8 +445,8 @@ export const commonCCUExecutelogic = async (args: CommonExecutionLogicArgs) => {
 		context.params.activeValidatorsUpdate,
 	);
 	partnerValidators.activeValidators = newActiveValidators;
-	if (context.params.newCertificateThreshold !== BigInt(0)) {
-		partnerValidators.certificateThreshold = context.params.newCertificateThreshold;
+	if (context.params.certificateThreshold !== BigInt(0)) {
+		partnerValidators.certificateThreshold = context.params.certificateThreshold;
 	}
 	await partnerValidatorStore.set(context, chainIDBuffer, partnerValidators);
 	if (!context.params.certificate.equals(EMPTY_BYTES)) {
