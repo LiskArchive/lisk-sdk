@@ -18,6 +18,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { Transaction } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { MerkleTree, regularMerkleTree } from '@liskhq/lisk-tree';
+import { Proof } from '@liskhq/lisk-tree/dist-node/merkle_tree/types';
 import { CommandExecuteContext, MainchainInteroperabilityModule } from '../../../../../../src';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { BaseCCMethod } from '../../../../../../src/modules/interoperability/base_cc_method';
@@ -73,6 +74,25 @@ const createCommandVerifyContext = (
 	}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
 };
 
+const generateProof = async (ccms: Buffer[]): Promise<Proof> => {
+	const LEAF_PREFIX = Buffer.from('00', 'hex');
+
+	const merkleTree = new MerkleTree();
+	await merkleTree.init(ccms);
+
+	const queryHashes: Buffer[] = [];
+	for (const data of ccms) {
+		const leafValueWithoutNodeIndex = Buffer.concat(
+			[LEAF_PREFIX, data],
+			LEAF_PREFIX.length + data.length,
+		);
+		const leafHash = utils.hash(leafValueWithoutNodeIndex);
+		queryHashes.push(leafHash);
+	}
+
+	return merkleTree.generateProof(queryHashes);
+};
+
 describe('Mainchain MessageRecoveryCommand', () => {
 	const interopModule = new MainchainInteroperabilityModule();
 
@@ -92,8 +112,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 	});
 
 	describe('verify', () => {
-		const LEAF_PREFIX = Buffer.from('00', 'hex');
-
+		Buffer.from('00', 'hex');
 		// let stateStore: PrefixedStateReadWriter;
 		let commandVerifyContext: CommandVerifyContext<MessageRecoveryParams>;
 		let transaction: Transaction;
@@ -106,8 +125,6 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		let hashedCCMs: Buffer[];
 		let ccmsEncoded: Buffer[];
 		let outboxRoot: Buffer;
-		let queryHashes: Buffer[];
-		let merkleTree: MerkleTree;
 		let generatedProof: any;
 
 		beforeEach(async () => {
@@ -134,18 +151,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				},
 			];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
-			merkleTree = new MerkleTree();
-			await merkleTree.init(ccmsEncoded);
-			queryHashes = [];
-			for (const data of ccmsEncoded) {
-				const leafValueWithoutNodeIndex = Buffer.concat(
-					[LEAF_PREFIX, data],
-					LEAF_PREFIX.length + data.length,
-				);
-				const leafHash = utils.hash(leafValueWithoutNodeIndex);
-				queryHashes.push(leafHash);
-			}
-			generatedProof = await merkleTree.generateProof(queryHashes);
+			generatedProof = await generateProof(ccmsEncoded);
 			terminatedChainOutboxSize = generatedProof.size;
 			proof = {
 				size: terminatedChainOutboxSize,
@@ -363,18 +369,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				},
 			];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
-			merkleTree = new MerkleTree();
-			await merkleTree.init(ccmsEncoded);
-			queryHashes = [];
-			for (const data of ccmsEncoded) {
-				const leafValueWithoutNodeIndex = Buffer.concat(
-					[LEAF_PREFIX, data],
-					LEAF_PREFIX.length + data.length,
-				);
-				const leafHash = utils.hash(leafValueWithoutNodeIndex);
-				queryHashes.push(leafHash);
-			}
-			generatedProof = await merkleTree.generateProof(queryHashes);
+			generatedProof = await generateProof(ccmsEncoded);
 			terminatedChainOutboxSize = generatedProof.size;
 			proof = {
 				size: terminatedChainOutboxSize,
