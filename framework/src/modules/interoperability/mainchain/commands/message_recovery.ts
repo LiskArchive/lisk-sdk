@@ -55,15 +55,13 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 		try {
 			terminatedOutboxAccount = await this.stores.get(TerminatedOutboxStore).get(context, chainID);
 		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
+			if (error instanceof NotFoundError) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error('Terminated outbox account does not exist.'),
+				};
 			}
-		}
-		if (!terminatedOutboxAccount) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Terminated outbox account does not exist.'),
-			};
+			throw error;
 		}
 
 		// Check that the idxs are sorted in ascending order

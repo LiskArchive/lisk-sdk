@@ -578,8 +578,6 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				});
 			}
 
-			chainID = transactionParams.chainID;
-
 			interopModule.stores.get(TerminatedOutboxStore).get = terminatedOutboxAccountMock.get;
 			terminatedOutboxAccountMock.get.mockResolvedValue({
 				outboxRoot: utils.getRandomBytes(32),
@@ -591,6 +589,8 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 
 		it('should proceed without error if the sending chain is the mainchain', async () => {
+			command['_applyRecovery'] = jest.fn();
+
 			ccms = [
 				{
 					nonce: BigInt(0),
@@ -606,9 +606,26 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 			commandExecuteContext = createCommandExecuteContext(ccms);
 			await expect(command.execute(commandExecuteContext)).resolves.toBeUndefined();
+
+			for (const crossChainMessage of commandExecuteContext.params.crossChainMessages) {
+				const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
+				const ctx: CrossChainMessageContext = {
+					...commandExecuteContext,
+					ccm,
+				};
+
+				expect(command['_applyRecovery']).toHaveBeenCalledWith(ctx);
+			}
+
+			const terminatedOutboxStore = command['stores'].get(TerminatedOutboxStore);
+			jest.spyOn(terminatedOutboxStore, 'set');
+
+			expect(terminatedOutboxStore.set).toHaveBeenCalledTimes(1);
 		});
 
 		it('should proceed without error if the sending chain is not the mainchain', async () => {
+			command['_forwardRecovery'] = jest.fn();
+
 			ccms = [
 				{
 					nonce: BigInt(0),
@@ -624,6 +641,21 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 			commandExecuteContext = createCommandExecuteContext(ccms);
 			await expect(command.execute(commandExecuteContext)).resolves.toBeUndefined();
+
+			for (const crossChainMessage of commandExecuteContext.params.crossChainMessages) {
+				const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
+				const ctx: CrossChainMessageContext = {
+					...commandExecuteContext,
+					ccm,
+				};
+
+				expect(command['_forwardRecovery']).toHaveBeenCalledWith(ctx);
+			}
+
+			const terminatedOutboxStore = command['stores'].get(TerminatedOutboxStore);
+			jest.spyOn(terminatedOutboxStore, 'set');
+
+			expect(terminatedOutboxStore.set).toHaveBeenCalledTimes(1);
 		});
 
 		// TODO: Fix in #7727
