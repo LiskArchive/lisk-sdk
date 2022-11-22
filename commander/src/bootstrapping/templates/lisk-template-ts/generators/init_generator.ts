@@ -21,7 +21,7 @@ import * as fs from 'fs-extra';
 import * as Generator from 'yeoman-generator';
 import { isHexString } from '@liskhq/lisk-validator';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
-import { generateGenesisBlockDefaultDPoSAssets } from '../../../../utils/genesis_creation';
+import { generateGenesisBlockDefaultPoSAssets } from '../../../../utils/genesis_creation';
 
 interface InitPrompts {
 	name: string;
@@ -126,7 +126,7 @@ export default class InitGenerator extends Generator {
 		const { keys } = JSON.parse(
 			fs.readFileSync(`${this.destinationPath('config/default/dev-validators.json')}`, 'utf8'),
 		) as Record<string, unknown>;
-		const { genesisAssets } = generateGenesisBlockDefaultDPoSAssets({
+		const { genesisAssets } = generateGenesisBlockDefaultPoSAssets({
 			chainID: this.answers.chainID,
 			keysList: keys as never,
 			numberOfValidators: 101,

@@ -1,0 +1,1566 @@
+{
+	"title": "BFT processing generation",
+	"summary": "Generate status of pre-votes, pre-commits, finalized height and pre-voted height  as per BFT specification",
+	"config": {
+		"activeValidators": 7,
+		"finalizedHeight": 0
+	},
+	"runner": "bft_processing",
+	"handler": "7_validators_partial_switch",
+	"testCases": [
+		{
+			"description": "When block with height 1 is forged",
+			"input": {
+				"validatorName": "D1",
+				"blockHeader": {
+					"id": "7748076420210162913",
+					"height": 1,
+					"maxHeightPreviouslyForged": 0,
+					"generatorPublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 0
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 0,
+				"preVotes": {
+					"1": 1
+				},
+				"preCommits": {}
+			}
+		},
+		{
+			"description": "When block with height 2 is forged",
+			"input": {
+				"validatorName": "D2",
+				"blockHeader": {
+					"id": "15308683162207262446",
+					"height": 2,
+					"maxHeightPreviouslyForged": 0,
+					"generatorPublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 0
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 0,
+				"preVotes": {
+					"1": 2,
+					"2": 1
+				},
+				"preCommits": {}
+			}
+		},
+		{
+			"description": "When block with height 3 is forged",
+			"input": {
+				"validatorName": "D3",
+				"blockHeader": {
+					"id": "5622533601426856843",
+					"height": 3,
+					"maxHeightPreviouslyForged": 0,
+					"generatorPublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 0
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 0,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1
+				},
+				"preCommits": {}
+			}
+		},
+		{
+			"description": "When block with height 4 is forged",
+			"input": {
+				"validatorName": "D4",
+				"blockHeader": {
+					"id": "5414021058608832454",
+					"height": 4,
+					"maxHeightPreviouslyForged": 0,
+					"generatorPublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 0
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 0,
+				"preVotes": {
+					"1": 4,
+					"2": 3,
+					"3": 2,
+					"4": 1
+				},
+				"preCommits": {}
+			}
+		},
+		{
+			"description": "When block with height 5 is forged",
+			"input": {
+				"validatorName": "D5",
+				"blockHeader": {
+					"id": "17234451680913495083",
+					"height": 5,
+					"maxHeightPreviouslyForged": 0,
+					"generatorPublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 0
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 1,
+				"preVotes": {
+					"1": 5,
+					"2": 4,
+					"3": 3,
+					"4": 2,
+					"5": 1
+				},
+				"preCommits": {}
+			}
+		},
+		{
+			"description": "When block with height 6 is forged",
+			"input": {
+				"validatorName": "D6",
+				"blockHeader": {
+					"id": "16714758248282885559",
+					"height": 6,
+					"maxHeightPreviouslyForged": 0,
+					"generatorPublicKey": "a5e64124704630218f66b2f27c913e2d37a6ae57cc717b08b829d62cbc4d79fb",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 1
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 2,
+				"preVotes": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				},
+				"preCommits": {
+					"1": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 7 is forged",
+			"input": {
+				"validatorName": "D7",
+				"blockHeader": {
+					"id": "8719647946811673230",
+					"height": 7,
+					"maxHeightPreviouslyForged": 0,
+					"generatorPublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 2
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 3,
+				"preVotes": {
+					"1": 7,
+					"2": 6,
+					"3": 5,
+					"4": 4,
+					"5": 3,
+					"6": 2,
+					"7": 1
+				},
+				"preCommits": {
+					"1": 2,
+					"2": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 8 is forged",
+			"input": {
+				"validatorName": "D2",
+				"blockHeader": {
+					"id": "3198191471355371895",
+					"height": 8,
+					"maxHeightPreviouslyForged": 2,
+					"generatorPublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 3
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 4,
+				"preVotes": {
+					"1": 7,
+					"2": 6,
+					"3": 6,
+					"4": 5,
+					"5": 4,
+					"6": 3,
+					"7": 2,
+					"8": 1
+				},
+				"preCommits": {
+					"1": 3,
+					"2": 2,
+					"3": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 9 is forged",
+			"input": {
+				"validatorName": "D3",
+				"blockHeader": {
+					"id": "1826242805484023040",
+					"height": 9,
+					"maxHeightPreviouslyForged": 3,
+					"generatorPublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 4
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 5,
+				"preVotes": {
+					"1": 7,
+					"2": 6,
+					"3": 6,
+					"4": 6,
+					"5": 5,
+					"6": 4,
+					"7": 3,
+					"8": 2,
+					"9": 1
+				},
+				"preCommits": {
+					"1": 4,
+					"2": 3,
+					"3": 2,
+					"4": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 10 is forged",
+			"input": {
+				"validatorName": "D1",
+				"blockHeader": {
+					"id": "5351644240885712040",
+					"height": 10,
+					"maxHeightPreviouslyForged": 1,
+					"generatorPublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 5
+				}
+			},
+			"output": {
+				"finalizedHeight": 1,
+				"preVotedConfirmedHeight": 6,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 6,
+					"6": 5,
+					"7": 4,
+					"8": 3,
+					"9": 2,
+					"10": 1
+				},
+				"preCommits": {
+					"1": 5,
+					"2": 4,
+					"3": 3,
+					"4": 2,
+					"5": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 11 is forged",
+			"input": {
+				"validatorName": "D4",
+				"blockHeader": {
+					"id": "5748892369479747538",
+					"height": 11,
+					"maxHeightPreviouslyForged": 4,
+					"generatorPublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 6
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 12 is forged",
+			"input": {
+				"validatorName": "D5",
+				"blockHeader": {
+					"id": "7733195345837784852",
+					"height": 12,
+					"maxHeightPreviouslyForged": 9,
+					"generatorPublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 2,
+					"12": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 13 is forged",
+			"input": {
+				"validatorName": "D7",
+				"blockHeader": {
+					"id": "4601451072787876934",
+					"height": 13,
+					"maxHeightPreviouslyForged": 10,
+					"generatorPublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 2,
+					"13": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 14 is forged",
+			"input": {
+				"validatorName": "D2",
+				"blockHeader": {
+					"id": "9594822875653870441",
+					"height": 14,
+					"maxHeightPreviouslyForged": 11,
+					"generatorPublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 2,
+					"14": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 15 is forged",
+			"input": {
+				"validatorName": "D7",
+				"blockHeader": {
+					"id": "16585062417031443062",
+					"height": 15,
+					"maxHeightPreviouslyForged": 29,
+					"generatorPublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 2,
+					"14": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 16 is forged",
+			"input": {
+				"validatorName": "D5",
+				"blockHeader": {
+					"id": "12789931371912649502",
+					"height": 16,
+					"maxHeightPreviouslyForged": 12,
+					"generatorPublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 1,
+					"16": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 17 is forged",
+			"input": {
+				"validatorName": "D3",
+				"blockHeader": {
+					"id": "4981918036555779351",
+					"height": 17,
+					"maxHeightPreviouslyForged": 14,
+					"generatorPublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 2,
+					"16": 2,
+					"17": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 18 is forged",
+			"input": {
+				"validatorName": "D4",
+				"blockHeader": {
+					"id": "5677167347966923126",
+					"height": 18,
+					"maxHeightPreviouslyForged": 15,
+					"generatorPublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 2,
+					"16": 3,
+					"17": 2,
+					"18": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 19 is forged",
+			"input": {
+				"validatorName": "D1",
+				"blockHeader": {
+					"id": "10664789664901441495",
+					"height": 19,
+					"maxHeightPreviouslyForged": 16,
+					"generatorPublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 2,
+					"16": 3,
+					"17": 3,
+					"18": 2,
+					"19": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 20 is forged",
+			"input": {
+				"validatorName": "D2",
+				"blockHeader": {
+					"id": "17711031119314540266",
+					"height": 20,
+					"maxHeightPreviouslyForged": 17,
+					"generatorPublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 2,
+					"16": 3,
+					"17": 3,
+					"18": 3,
+					"19": 2,
+					"20": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 21 is forged",
+			"input": {
+				"validatorName": "D5",
+				"blockHeader": {
+					"id": "8019615789267006368",
+					"height": 21,
+					"maxHeightPreviouslyForged": 18,
+					"generatorPublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 2,
+					"16": 3,
+					"17": 3,
+					"18": 3,
+					"19": 3,
+					"20": 2,
+					"21": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 22 is forged",
+			"input": {
+				"validatorName": "D1",
+				"blockHeader": {
+					"id": "8673720435704263435",
+					"height": 22,
+					"maxHeightPreviouslyForged": 19,
+					"generatorPublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 2,
+					"16": 3,
+					"17": 3,
+					"18": 3,
+					"19": 3,
+					"20": 3,
+					"21": 2,
+					"22": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 23 is forged",
+			"input": {
+				"validatorName": "D2",
+				"blockHeader": {
+					"id": "6007699706281844106",
+					"height": 23,
+					"maxHeightPreviouslyForged": 20,
+					"generatorPublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 2,
+					"16": 3,
+					"17": 3,
+					"18": 3,
+					"19": 3,
+					"20": 3,
+					"21": 3,
+					"22": 2,
+					"23": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 24 is forged",
+			"input": {
+				"validatorName": "D3",
+				"blockHeader": {
+					"id": "13994197425134364572",
+					"height": 24,
+					"maxHeightPreviouslyForged": 21,
+					"generatorPublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 2,
+					"16": 3,
+					"17": 3,
+					"18": 3,
+					"19": 3,
+					"20": 3,
+					"21": 3,
+					"22": 3,
+					"23": 2,
+					"24": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 25 is forged",
+			"input": {
+				"validatorName": "D4",
+				"blockHeader": {
+					"id": "13233097926675734316",
+					"height": 25,
+					"maxHeightPreviouslyForged": 22,
+					"generatorPublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 2,
+					"16": 3,
+					"17": 3,
+					"18": 3,
+					"19": 3,
+					"20": 3,
+					"21": 3,
+					"22": 3,
+					"23": 3,
+					"24": 2,
+					"25": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 26 is forged",
+			"input": {
+				"validatorName": "D5",
+				"blockHeader": {
+					"id": "6889463652104827991",
+					"height": 26,
+					"maxHeightPreviouslyForged": 23,
+					"generatorPublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 2,
+					"16": 3,
+					"17": 3,
+					"18": 3,
+					"19": 3,
+					"20": 3,
+					"21": 3,
+					"22": 3,
+					"23": 3,
+					"24": 3,
+					"25": 2,
+					"26": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 27 is forged",
+			"input": {
+				"validatorName": "D7",
+				"blockHeader": {
+					"id": "7423746163586646358",
+					"height": 27,
+					"maxHeightPreviouslyForged": 29,
+					"generatorPublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 2,
+					"16": 3,
+					"17": 3,
+					"18": 3,
+					"19": 3,
+					"20": 3,
+					"21": 3,
+					"22": 3,
+					"23": 3,
+					"24": 3,
+					"25": 2,
+					"26": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 28 is forged",
+			"input": {
+				"validatorName": "D1",
+				"blockHeader": {
+					"id": "6476623794736544246",
+					"height": 28,
+					"maxHeightPreviouslyForged": 25,
+					"generatorPublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 2,
+					"16": 3,
+					"17": 3,
+					"18": 3,
+					"19": 3,
+					"20": 3,
+					"21": 3,
+					"22": 3,
+					"23": 3,
+					"24": 3,
+					"25": 2,
+					"26": 2,
+					"27": 1,
+					"28": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 29 is forged",
+			"input": {
+				"validatorName": "D7",
+				"blockHeader": {
+					"id": "3824500196583291025",
+					"height": 29,
+					"maxHeightPreviouslyForged": 29,
+					"generatorPublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 2,
+					"16": 3,
+					"17": 3,
+					"18": 3,
+					"19": 3,
+					"20": 3,
+					"21": 3,
+					"22": 3,
+					"23": 3,
+					"24": 3,
+					"25": 2,
+					"26": 2,
+					"27": 1,
+					"28": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 30 is forged",
+			"input": {
+				"validatorName": "D5",
+				"blockHeader": {
+					"id": "7082861240554195963",
+					"height": 30,
+					"maxHeightPreviouslyForged": 29,
+					"generatorPublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 2,
+					"16": 3,
+					"17": 3,
+					"18": 3,
+					"19": 3,
+					"20": 3,
+					"21": 3,
+					"22": 3,
+					"23": 3,
+					"24": 3,
+					"25": 2,
+					"26": 2,
+					"27": 1,
+					"28": 1,
+					"30": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 31 is forged",
+			"input": {
+				"validatorName": "D2",
+				"blockHeader": {
+					"id": "16942035922560182651",
+					"height": 31,
+					"maxHeightPreviouslyForged": 29,
+					"generatorPublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 2,
+					"16": 3,
+					"17": 3,
+					"18": 3,
+					"19": 3,
+					"20": 3,
+					"21": 3,
+					"22": 3,
+					"23": 3,
+					"24": 3,
+					"25": 2,
+					"26": 2,
+					"27": 1,
+					"28": 1,
+					"30": 2,
+					"31": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 32 is forged",
+			"input": {
+				"validatorName": "D3",
+				"blockHeader": {
+					"id": "16329097976039504304",
+					"height": 32,
+					"maxHeightPreviouslyForged": 29,
+					"generatorPublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 2,
+					"16": 3,
+					"17": 3,
+					"18": 3,
+					"19": 3,
+					"20": 3,
+					"21": 3,
+					"22": 3,
+					"23": 3,
+					"24": 3,
+					"25": 2,
+					"26": 2,
+					"27": 1,
+					"28": 1,
+					"30": 3,
+					"31": 2,
+					"32": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 33 is forged",
+			"input": {
+				"validatorName": "D1",
+				"blockHeader": {
+					"id": "14335991531000451860",
+					"height": 33,
+					"maxHeightPreviouslyForged": 29,
+					"generatorPublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 2,
+					"15": 2,
+					"16": 3,
+					"17": 3,
+					"18": 3,
+					"19": 3,
+					"20": 3,
+					"21": 3,
+					"22": 3,
+					"23": 3,
+					"24": 3,
+					"25": 2,
+					"26": 2,
+					"27": 1,
+					"28": 1,
+					"30": 4,
+					"31": 3,
+					"32": 2,
+					"33": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 34 is forged",
+			"input": {
+				"validatorName": "D6",
+				"blockHeader": {
+					"id": "9720176785496629553",
+					"height": 34,
+					"maxHeightPreviouslyForged": 6,
+					"generatorPublicKey": "a5e64124704630218f66b2f27c913e2d37a6ae57cc717b08b829d62cbc4d79fb",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 30,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 3,
+					"15": 3,
+					"16": 4,
+					"17": 4,
+					"18": 4,
+					"19": 4,
+					"20": 4,
+					"21": 4,
+					"22": 4,
+					"23": 4,
+					"24": 4,
+					"25": 3,
+					"26": 3,
+					"27": 2,
+					"28": 2,
+					"29": 1,
+					"30": 5,
+					"31": 4,
+					"32": 3,
+					"33": 2,
+					"34": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 35 is forged",
+			"input": {
+				"validatorName": "D4",
+				"blockHeader": {
+					"id": "11462789541162015536",
+					"height": 35,
+					"maxHeightPreviouslyForged": 29,
+					"generatorPublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 30
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 31,
+				"preVotes": {
+					"1": 7,
+					"2": 7,
+					"3": 7,
+					"4": 7,
+					"5": 7,
+					"6": 6,
+					"7": 5,
+					"8": 4,
+					"9": 3,
+					"10": 3,
+					"11": 3,
+					"12": 3,
+					"13": 3,
+					"14": 3,
+					"15": 3,
+					"16": 4,
+					"17": 4,
+					"18": 4,
+					"19": 4,
+					"20": 4,
+					"21": 4,
+					"22": 4,
+					"23": 4,
+					"24": 4,
+					"25": 3,
+					"26": 3,
+					"27": 2,
+					"28": 2,
+					"29": 1,
+					"30": 6,
+					"31": 5,
+					"32": 4,
+					"33": 3,
+					"34": 2,
+					"35": 1
+				},
+				"preCommits": {
+					"1": 6,
+					"2": 5,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1,
+					"30": 1
+				}
+			}
+		}
+	]
+}

@@ -15,7 +15,7 @@
 import { testing, PartialApplicationConfig } from 'lisk-sdk';
 import { getForgerInfoByAddress, getForgerPlugin, waitTill } from '../../utils/application';
 import { getRandomAccount } from '../../utils/accounts';
-import { createTransferTransaction, createVoteTransaction } from '../../utils/transactions';
+import { createTransferTransaction, createStakeTransaction } from '../../utils/transactions';
 import { ForgerPlugin } from '../../../src';
 
 describe('Forger Info', () => {
@@ -91,14 +91,14 @@ describe('Forger Info', () => {
 			expect(forgerInfo).toMatchSnapshot();
 		});
 
-		describe('Vote transactions', () => {
-			it('should save forger info with votes received in new block', async () => {
+		describe('Stake transactions', () => {
+			it('should save forger info with stakes received in new block', async () => {
 				// Arrange
 				const forgerPluginInstance = getForgerPlugin(appEnv.application);
-				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
-				const transaction1 = createVoteTransaction({
+				const [forgingValidatorAddress] = forgerPluginInstance['_forgersList'].entries()[0];
+				const transaction1 = createStakeTransaction({
 					amount: '10',
-					recipientAddress: forgingDelegateAddress.toString('hex'),
+					recipientAddress: forgingValidatorAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
 					chainID,
@@ -113,28 +113,28 @@ describe('Forger Info', () => {
 
 				const forgerInfo = await getForgerInfoByAddress(
 					forgerPluginInstance,
-					forgingDelegateAddress.toString('binary'),
+					forgingValidatorAddress.toString('binary'),
 				);
 				// Assert
 				expect(forgerInfo).toMatchSnapshot();
-				expect(forgerInfo.votesReceived[0].amount).toEqual(BigInt(1000000000));
+				expect(forgerInfo.stakeReceived[0].amount).toEqual(BigInt(1000000000));
 			});
 
-			it('should update forger info with multiple votes received for same delegate in new block', async () => {
+			it('should update forger info with multiple stakes received for same validator in new block', async () => {
 				// Arrange
 				const forgerPluginInstance = getForgerPlugin(appEnv.application);
-				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
-				const transaction1 = createVoteTransaction({
+				const [forgingValidatorAddress] = forgerPluginInstance['_forgersList'].entries()[0];
+				const transaction1 = createStakeTransaction({
 					amount: '10',
-					recipientAddress: forgingDelegateAddress.toString('hex'),
+					recipientAddress: forgingValidatorAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
 					chainID,
 				});
 				accountNonce += 1;
-				const transaction2 = createVoteTransaction({
+				const transaction2 = createStakeTransaction({
 					amount: '50',
-					recipientAddress: forgingDelegateAddress.toString('hex'),
+					recipientAddress: forgingValidatorAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
 					chainID,
@@ -152,28 +152,28 @@ describe('Forger Info', () => {
 
 				const forgerInfo = await getForgerInfoByAddress(
 					forgerPluginInstance,
-					forgingDelegateAddress.toString('binary'),
+					forgingValidatorAddress.toString('binary'),
 				);
 				// Assert
 				expect(forgerInfo).toMatchSnapshot();
-				expect(forgerInfo.votesReceived[0].amount).toEqual(BigInt(7000000000));
+				expect(forgerInfo.stakeReceived[0].amount).toEqual(BigInt(7000000000));
 			});
 
-			it('should update forger info with upvote and downvote for same delegate in new block', async () => {
+			it('should update forger info with upvote and downvote for same validator in new block', async () => {
 				// Arrange
 				const forgerPluginInstance = getForgerPlugin(appEnv.application);
-				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
-				const transaction1 = createVoteTransaction({
+				const [forgingValidatorAddress] = forgerPluginInstance['_forgersList'].entries()[0];
+				const transaction1 = createStakeTransaction({
 					amount: '-50',
-					recipientAddress: forgingDelegateAddress.toString('hex'),
+					recipientAddress: forgingValidatorAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
 					chainID,
 				});
 				accountNonce += 1;
-				const transaction2 = createVoteTransaction({
+				const transaction2 = createStakeTransaction({
 					amount: '+10',
-					recipientAddress: forgingDelegateAddress.toString('hex'),
+					recipientAddress: forgingValidatorAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
 					chainID,
@@ -191,29 +191,29 @@ describe('Forger Info', () => {
 
 				const forgerInfo = await getForgerInfoByAddress(
 					forgerPluginInstance,
-					forgingDelegateAddress.toString('binary'),
+					forgingValidatorAddress.toString('binary'),
 				);
 				// Assert
 				expect(forgerInfo).toMatchSnapshot();
-				expect(forgerInfo.votesReceived[0].amount).toEqual(BigInt(3000000000));
+				expect(forgerInfo.stakeReceived[0].amount).toEqual(BigInt(3000000000));
 			});
 
-			it('should update forger info with voters info and remove when amount becomes zero', async () => {
+			it('should update forger info with stakers info and remove when amount becomes zero', async () => {
 				// Arrange
 				const forgerPluginInstance = getForgerPlugin(appEnv.application);
-				const [forgingDelegateAddress1] = forgerPluginInstance['_forgersList'].entries()[0];
-				const [forgingDelegateAddress2] = forgerPluginInstance['_forgersList'].entries()[1];
-				const transaction1 = createVoteTransaction({
+				const [forgingValidatorAddress1] = forgerPluginInstance['_forgersList'].entries()[0];
+				const [forgingValidatorAddress2] = forgerPluginInstance['_forgersList'].entries()[1];
+				const transaction1 = createStakeTransaction({
 					amount: '-30',
-					recipientAddress: forgingDelegateAddress1.toString('hex'),
+					recipientAddress: forgingValidatorAddress1.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
 					chainID,
 				});
 				accountNonce += 1;
-				const transaction2 = createVoteTransaction({
+				const transaction2 = createStakeTransaction({
 					amount: '20',
-					recipientAddress: forgingDelegateAddress2.toString('hex'),
+					recipientAddress: forgingValidatorAddress2.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
 					chainID,
@@ -231,17 +231,17 @@ describe('Forger Info', () => {
 
 				const forgerInfo1 = await getForgerInfoByAddress(
 					forgerPluginInstance,
-					forgingDelegateAddress1.toString('binary'),
+					forgingValidatorAddress1.toString('binary'),
 				);
 				const forgerInfo2 = await getForgerInfoByAddress(
 					forgerPluginInstance,
-					forgingDelegateAddress2.toString('binary'),
+					forgingValidatorAddress2.toString('binary'),
 				);
 				// Assert
 				expect(forgerInfo1).toMatchSnapshot();
-				expect(forgerInfo1.votesReceived).toBeEmpty();
+				expect(forgerInfo1.stakeReceived).toBeEmpty();
 				expect(forgerInfo2).toMatchSnapshot();
-				expect(forgerInfo2.votesReceived[0].amount).toEqual(BigInt(2000000000));
+				expect(forgerInfo2.stakeReceived[0].amount).toEqual(BigInt(2000000000));
 			});
 		});
 	});

@@ -126,14 +126,14 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		contradictingBlock: chain.BlockHeader,
 		decodedBlockHeader: chain.BlockHeader,
 	): Promise<string> {
-		// ModuleID:13 (DPoS), CommandID:3 (PoMCommand)
-		const dposMeta = this.apiClient.metadata.find(
+		// ModuleID:13 (PoS), CommandID:3 (PoMCommand)
+		const posMeta = this.apiClient.metadata.find(
 			m => m.id === Buffer.from([0, 0, 0, 13]).toString('hex'),
 		);
-		if (!dposMeta) {
-			throw new Error('DPoS module is not registered in the application.');
+		if (!posMeta) {
+			throw new Error('PoS module is not registered in the application.');
 		}
-		const pomParamsInfo = dposMeta.commands.find(
+		const pomParamsInfo = posMeta.commands.find(
 			m => m.id === Buffer.from([0, 0, 0, 3]).toString('hex'),
 		);
 		if (!pomParamsInfo || !pomParamsInfo.params) {
@@ -159,7 +159,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		const encodedParams = codec.encode(pomParamsInfo.params, pomTransactionParams);
 
 		const tx = new Transaction({
-			module: dposMeta.name,
+			module: posMeta.name,
 			command: pomParamsInfo.name,
 			nonce: BigInt(authAccount.nonce),
 			senderPublicKey:

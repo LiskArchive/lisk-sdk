@@ -13,13 +13,16 @@
  */
 
 import { BlockAssets, MethodContext, ImmutableMethodContext } from '../../state_machine';
+import { JSONObject } from '../../types';
 
 export interface ModuleConfig {
-	tokenID: string;
-	brackets: ReadonlyArray<string>;
+	tokenID: Buffer;
+	brackets: ReadonlyArray<bigint>;
 	offset: number;
 	distance: number;
 }
+
+export type ModuleConfigJSON = JSONObject<ModuleConfig>;
 
 export interface TokenMethod {
 	mint: (
@@ -44,27 +47,4 @@ export interface BFTMethod {
 
 export interface DefaultReward {
 	reward: string;
-}
-
-export interface EndpointInitArgs {
-	config: {
-		brackets: ReadonlyArray<bigint>;
-		offset: number;
-		distance: number;
-	};
-}
-
-export interface MethodInitArgs {
-	config: {
-		brackets: ReadonlyArray<bigint>;
-		offset: number;
-		distance: number;
-	};
-}
-
-export interface CalculateDefaultRewardArgs {
-	brackets: ReadonlyArray<bigint>;
-	offset: number;
-	distance: number;
-	height: number;
 }

@@ -21,7 +21,7 @@ import * as transactions from '@liskhq/lisk-transactions';
 
 import * as appUtils from '../../../../src/utils/application';
 import * as readerUtils from '../../../../src/utils/reader';
-import { tokenTransferParamsSchema, dposVoteParamsSchema } from '../../../helpers/transactions';
+import { tokenTransferParamsSchema, posVoteParamsSchema } from '../../../helpers/transactions';
 import { CreateCommand } from '../../../../src/bootstrapping/commands/transaction/create';
 import { getConfig } from '../../../helpers/config';
 import { PromiseResolvedType } from '../../../../src/types';
@@ -32,9 +32,9 @@ describe('transaction:create command', () => {
 	const transferParams =
 		'{"tokenID": "0000000000000000","amount":100,"recipientAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","data":"send token", "accountInitializationFee": "5000000"}';
 	const voteParams =
-		'{"votes":[{"delegateAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","amount":100},{"delegateAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","amount":-50}]}';
+		'{"stakes":[{"validatorAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","amount":100},{"validatorAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","amount":-50}]}';
 	const unVoteParams =
-		'{"votes":[{"delegateAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","amount":-50}]}';
+		'{"stakes":[{"validatorAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","amount":-50}]}';
 	const { publicKey } = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 	const senderPublicKey = publicKey.toString('hex');
 	const mockEncodedTransaction = Buffer.from('encoded transaction');
@@ -94,11 +94,11 @@ describe('transaction:create command', () => {
 					],
 				},
 				{
-					name: 'dpos',
+					name: 'pos',
 					commands: [
 						{
-							name: 'voteDelegate',
-							params: dposVoteParamsSchema,
+							name: 'stake',
+							params: posVoteParamsSchema,
 						},
 					],
 				},
@@ -338,12 +338,12 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create dpos voteDelegate 100000000 --params=${voteParams} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create pos stake 100000000 --params=${voteParams} --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
 						[
-							'dpos',
-							'voteDelegate',
+							'pos',
+							'stake',
 							'100000000',
 							'--offline',
 							`--params=${voteParams}`,
@@ -360,12 +360,12 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create dpos voteDelegate 100000000 --params=${unVoteParams} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create pos stake 100000000 --params=${unVoteParams} --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
 						[
-							'dpos',
-							'voteDelegate',
+							'pos',
+							'stake',
 							'100000000',
 							'--offline',
 							`--params=${unVoteParams}`,
@@ -600,16 +600,10 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create dpos voteDelegate 100000000 --params=${voteParams} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create pos stake 100000000 --params=${voteParams} --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
-						[
-							'dpos',
-							'voteDelegate',
-							'100000000',
-							`--params=${voteParams}`,
-							`--passphrase=${passphrase}`,
-						],
+						['pos', 'stake', '100000000', `--params=${voteParams}`, `--passphrase=${passphrase}`],
 						config,
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
@@ -619,16 +613,10 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create dpos voteDelegate 100000000 --params=${unVoteParams} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create pos stake 100000000 --params=${unVoteParams} --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
-						[
-							'dpos',
-							'voteDelegate',
-							'100000000',
-							`--params=${unVoteParams}`,
-							`--passphrase=${passphrase}`,
-						],
+						['pos', 'stake', '100000000', `--params=${unVoteParams}`, `--passphrase=${passphrase}`],
 						config,
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);

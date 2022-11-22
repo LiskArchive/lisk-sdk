@@ -1,6 +1,6 @@
 # Multisignature Transaction Signing and Serialisation
 
-A set of test generators for updated vote transaction transactions by LIP-0023
+A set of test generators for updated stake transaction transactions by LIP-0023
 
 ### Format
 
@@ -9,7 +9,7 @@ A set of test generators for updated vote transaction transactions by LIP-0023
 - account: sender account
 - transaction: raw transaction
 - network identifier: network identifier used
-- delegates: accounts which are registered as delegate
+- validators: accounts which are registered as validator
 
 #### Output
 

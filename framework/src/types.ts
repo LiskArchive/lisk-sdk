@@ -31,7 +31,7 @@ export interface PluginOptions extends Record<string, unknown> {
 	readonly loadAsChildProcess?: boolean;
 }
 
-export interface DelegateConfig {
+export interface ValidatorConfig {
 	readonly address: string;
 	readonly encryptedPassphrase: string;
 	readonly hashOnion: {

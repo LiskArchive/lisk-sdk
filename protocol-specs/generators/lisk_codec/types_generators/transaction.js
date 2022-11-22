@@ -42,20 +42,20 @@ const voteAssetSchema = {
 	$id: '/voteAssetSchema',
 	type: 'object',
 	properties: {
-		votes: {
+		stakes: {
 			type: 'array',
 			fieldNumber: 1,
 			items: {
 				type: 'object',
 				properties: {
-					delegateAddress: { dataType: 'bytes', fieldNumber: 1 },
+					validatorAddress: { dataType: 'bytes', fieldNumber: 1 },
 					amount: { dataType: 'sint64', fieldNumber: 2 },
 				},
-				required: ['delegateAddress', 'amount'],
+				required: ['validatorAddress', 'amount'],
 			},
 		},
 	},
-	required: ['votes'],
+	required: ['stakes'],
 };
 
 const multisigAssetSchema = {
@@ -92,13 +92,13 @@ const validBaseTransaction = {
 };
 
 const validVoteAsset = {
-	votes: [
+	stakes: [
 		{
-			delegateAddress: Buffer.from('cd32c73e9851c7137980063b8af64aa5a31651f8', 'hex'),
+			validatorAddress: Buffer.from('cd32c73e9851c7137980063b8af64aa5a31651f8', 'hex'),
 			amount: '-12000000000',
 		},
 		{
-			delegateAddress: Buffer.from('9d86ad24a3f030e5522b6598115bb4d70c1692c9', 'hex'),
+			validatorAddress: Buffer.from('9d86ad24a3f030e5522b6598115bb4d70c1692c9', 'hex'),
 			amount: '456000000000',
 		},
 	],
@@ -140,7 +140,7 @@ module.exports = {
 			output: { value: validBaseTransactionEncoded },
 		},
 		{
-			description: 'Encoding of valid vote asset',
+			description: 'Encoding of valid stake asset',
 			input: { object: validVoteAsset, schema: voteAssetSchema },
 			output: { value: validVoteTransactionEncoded },
 		},
@@ -163,7 +163,7 @@ module.exports = {
 			output: { object: validBaseTransaction },
 		},
 		{
-			description: 'Decoding of valid vote asset',
+			description: 'Decoding of valid stake asset',
 			input: { value: validVoteTransactionEncoded, schema: voteAssetSchema },
 			output: { object: validVoteAsset },
 		},
