@@ -81,7 +81,6 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 	public async execute(context: CommandExecuteContext<MessageRecoveryParams>): Promise<void> {
 		const { params } = context;
 		// Set CCM status to recovered and assign fee to trs sender.
-		// const crossChainMessages = params.crossChainMessages.map(ccmBytes => codec.decode<CCM>(ccmSchema, ccmBytes))
 		const recoveredCCMs: Buffer[] = [];
 		for (const crossChainMessage of params.crossChainMessages) {
 			const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
