@@ -59,6 +59,20 @@ import {
 } from '../../../../../../src/modules/interoperability/events/ccm_processed';
 import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
 
+const createCommandVerifyContext = (
+	inputTx: Transaction,
+	transactionParams: MessageRecoveryParams,
+) => {
+	const transaction = new Transaction({
+		...inputTx,
+		params: codec.encode(messageRecoveryParamsSchema, transactionParams),
+	});
+
+	return createTransactionContext({
+		transaction,
+	}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
+};
+
 describe('Mainchain MessageRecoveryCommand', () => {
 	const interopModule = new MainchainInteroperabilityModule();
 
@@ -185,19 +199,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 		it('should return error if idxs are not sorted in ascending order', async () => {
 			transactionParams.idxs = [3, 1, 2, 0];
-			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
-			transaction = new Transaction({
-				module: MODULE_NAME_INTEROPERABILITY,
-				command: COMMAND_NAME_MESSAGE_RECOVERY,
-				fee: BigInt(100000000),
-				nonce: BigInt(0),
-				params: encodedTransactionParams,
-				senderPublicKey: utils.getRandomBytes(32),
-				signatures: [],
-			});
-			commandVerifyContext = createTransactionContext({
-				transaction,
-			}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
 			await interopModule.stores
 				.get(TerminatedOutboxStore)
@@ -217,19 +219,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 		it('should return error if cross-chain message is not pending', async () => {
 			transactionParams.idxs = [0];
-			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
-			transaction = new Transaction({
-				module: MODULE_NAME_INTEROPERABILITY,
-				command: COMMAND_NAME_MESSAGE_RECOVERY,
-				fee: BigInt(100000000),
-				nonce: BigInt(0),
-				params: encodedTransactionParams,
-				senderPublicKey: utils.getRandomBytes(32),
-				signatures: [],
-			});
-			commandVerifyContext = createTransactionContext({
-				transaction,
-			}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
 			await interopModule.stores
 				.get(TerminatedOutboxStore)
@@ -262,19 +252,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			transactionParams.crossChainMessages = [...ccmsEncoded];
 			transactionParams.idxs = [11, 12, 13];
 
-			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
-			transaction = new Transaction({
-				module: MODULE_NAME_INTEROPERABILITY,
-				command: COMMAND_NAME_MESSAGE_RECOVERY,
-				fee: BigInt(100000000),
-				nonce: BigInt(0),
-				params: encodedTransactionParams,
-				senderPublicKey: utils.getRandomBytes(32),
-				signatures: [],
-			});
-			commandVerifyContext = createTransactionContext({
-				transaction,
-			}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
 			await interopModule.stores
 				.get(TerminatedOutboxStore)
@@ -307,19 +285,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			transactionParams.crossChainMessages = [...ccmsEncoded];
 			transactionParams.idxs = [11, 12, 13];
 
-			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
-			transaction = new Transaction({
-				module: MODULE_NAME_INTEROPERABILITY,
-				command: COMMAND_NAME_MESSAGE_RECOVERY,
-				fee: BigInt(100000000),
-				nonce: BigInt(0),
-				params: encodedTransactionParams,
-				senderPublicKey: utils.getRandomBytes(32),
-				signatures: [],
-			});
-			commandVerifyContext = createTransactionContext({
-				transaction,
-			}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
 			await interopModule.stores
 				.get(TerminatedOutboxStore)
@@ -357,19 +323,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			transactionParams.idxs = [11, 12, 13];
 			transactionParams.chainID = chainID;
 
-			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
-			transaction = new Transaction({
-				module: MODULE_NAME_INTEROPERABILITY,
-				command: COMMAND_NAME_MESSAGE_RECOVERY,
-				fee: BigInt(100000000),
-				nonce: BigInt(0),
-				params: encodedTransactionParams,
-				senderPublicKey: utils.getRandomBytes(32),
-				signatures: [],
-			});
-			commandVerifyContext = createTransactionContext({
-				transaction,
-			}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
 			await interopModule.stores
 				.get(TerminatedOutboxStore)
@@ -435,19 +389,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				idxs: proof.indexes,
 				siblingHashes: proof.siblingHashes,
 			};
-			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
-			transaction = new Transaction({
-				module: MODULE_NAME_INTEROPERABILITY,
-				command: COMMAND_NAME_MESSAGE_RECOVERY,
-				fee: BigInt(100000000),
-				nonce: BigInt(0),
-				params: encodedTransactionParams,
-				senderPublicKey: utils.getRandomBytes(32),
-				signatures: [],
-			});
-			commandVerifyContext = createTransactionContext({
-				transaction,
-			}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 			await interopModule.stores
 				.get(TerminatedOutboxStore)
 				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
@@ -480,19 +422,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			transactionParams.idxs = [11, 12, 13];
 			transactionParams.chainID = chainID;
 
-			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
-			transaction = new Transaction({
-				module: MODULE_NAME_INTEROPERABILITY,
-				command: COMMAND_NAME_MESSAGE_RECOVERY,
-				fee: BigInt(100000000),
-				nonce: BigInt(0),
-				params: encodedTransactionParams,
-				senderPublicKey: utils.getRandomBytes(32),
-				signatures: [],
-			});
-			commandVerifyContext = createTransactionContext({
-				transaction,
-			}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
 			await interopModule.stores
 				.get(TerminatedOutboxStore)
