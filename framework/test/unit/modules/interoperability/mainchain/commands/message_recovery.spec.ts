@@ -13,7 +13,6 @@
  */
 /* eslint-disable max-classes-per-file */
 
-import { when } from 'jest-when';
 import { codec } from '@liskhq/lisk-codec';
 import { Transaction } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
@@ -625,18 +624,6 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 			commandExecuteContext = createCommandExecuteContext(ccms);
 			await expect(command.execute(commandExecuteContext)).resolves.toBeUndefined();
-		});
-
-		it('should throw when terminated chain outbox does not exist', async () => {
-			// Assign & Arrange
-			const { chainID } = transactionParams;
-
-			when(terminatedOutboxAccountMock.get).calledWith(chainID).mockResolvedValue(false);
-
-			// Assert
-			await expect(command.execute(commandExecuteContext)).rejects.toThrow(
-				'Terminated outbox account does not exist',
-			);
 		});
 
 		// TODO: Fix in #7727

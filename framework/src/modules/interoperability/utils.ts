@@ -25,14 +25,12 @@ import {
 	CrossChainUpdateTransactionParams,
 	ChainValidators,
 	InboxUpdate,
-	MessageRecoveryParams,
 } from './types';
 import {
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
 	MAX_CCM_SIZE,
 	SMT_KEY_LENGTH,
-	CCMStatusCode,
 	CHAIN_ID_LENGTH,
 } from './constants';
 import {
@@ -50,7 +48,6 @@ import { OutboxRootStore } from './stores/outbox_root';
 import { ChannelDataStore } from './stores/channel_data';
 import { ChainValidatorsStore, calculateNewActiveValidators } from './stores/chain_validators';
 import { ChainAccountStore, ChainStatus } from './stores/chain_account';
-import { TerminatedOutboxAccount } from './stores/terminated_outbox';
 
 interface CommonExecutionLogicArgs {
 	stores: NamedRegistry;
@@ -128,94 +125,6 @@ export const computeValidatorsHash = (
 
 export const sortValidatorsByBLSKey = (validators: ActiveValidators[]) =>
 	validators.sort((a, b) => a.blsKey.compare(b.blsKey));
-
-export const verifyMessageRecovery = (
-	params: MessageRecoveryParams,
-	terminatedChainOutboxAccount?: TerminatedOutboxAccount,
-) => {
-	if (!terminatedChainOutboxAccount) {
-		return {
-			status: VerifyStatus.FAIL,
-			error: new Error('Terminated outbox account does not exist.'),
-		};
-	}
-
-	const { idxs, crossChainMessages, siblingHashes } = params;
-
-	// Check that the idxs are sorted in ascending order
-	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#sort_returns_the_reference_to_the_same_array
-	// CAUTION! `sort` modifies original array
-	const sortedIdxs = [...idxs].sort((a, b) => a - b);
-	const isSame =
-		params.idxs.length === sortedIdxs.length &&
-		params.idxs.every((element, index) => element === sortedIdxs[index]);
-	if (!isSame) {
-		return {
-			status: VerifyStatus.FAIL,
-			error: new Error('Cross-chain message indexes are not sorted in ascending order.'),
-		};
-	}
-
-	// Check that the CCMs are still pending.
-	for (const index of idxs) {
-		if (index < terminatedChainOutboxAccount.partnerChainInboxSize) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Cross-chain message is not pending.'),
-			};
-		}
-	}
-
-	// Process basic checks for all CCMs.
-	// Verify general format. Past this point, we can access ccm root properties.
-	const deserializedCCMs = crossChainMessages.map(serializedCcm =>
-		codec.decode<CCMsg>(ccmSchema, serializedCcm),
-	);
-
-	for (const ccm of deserializedCCMs) {
-		validateFormat(ccm);
-
-		if (ccm.status !== CCMStatusCode.OK) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Cross-chain message status is not valid.'),
-			};
-		}
-
-		// The receiving chain must be the terminated chain.
-		if (!ccm.receivingChainID.equals(params.chainID)) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Cross-chain message receiving chain ID is not valid.'),
-			};
-		}
-	}
-
-	// Check the inclusion proof against the sidechain outbox root.
-	const proof = {
-		size: terminatedChainOutboxAccount.outboxSize,
-		idxs,
-		siblingHashes,
-	};
-
-	// Convert each CCM byte to sha256 hash
-	const hashedCCMs = crossChainMessages.map(ccm => utils.hash(ccm));
-	const isVerified = regularMerkleTree.verifyDataBlock(
-		hashedCCMs,
-		proof,
-		terminatedChainOutboxAccount.outboxRoot,
-	);
-	if (!isVerified) {
-		return {
-			status: VerifyStatus.FAIL,
-			error: new Error('Message recovery proof of inclusion is not valid.'),
-		};
-	}
-
-	return {
-		status: VerifyStatus.OK,
-	};
-};
 
 export const swapReceivingAndSendingChainIDs = (ccm: CCMsg) => ({
 	...ccm,

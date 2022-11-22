@@ -25,7 +25,7 @@ import {
 import { CCMsg, CrossChainMessageContext, MessageRecoveryParams } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
-import { verifyMessageRecovery } from '../../utils';
+import { validateFormat } from '../../utils';
 import { CCMStatusCode, COMMAND_NAME_MESSAGE_RECOVERY, CHAIN_ID_MAINCHAIN } from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from '../../stores/terminated_outbox';
@@ -48,24 +48,72 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 		context: CommandVerifyContext<MessageRecoveryParams>,
 	): Promise<VerificationResult> {
 		const {
-			params: { chainID, crossChainMessages },
+			params: { chainID, crossChainMessages, idxs, siblingHashes },
 		} = context;
-		let terminatedChainOutboxAccount: TerminatedOutboxAccount;
+		let terminatedOutboxAccount: TerminatedOutboxAccount | undefined;
 
 		try {
-			terminatedChainOutboxAccount = await this.stores
-				.get(TerminatedOutboxStore)
-				.get(context, chainID);
+			terminatedOutboxAccount = await this.stores.get(TerminatedOutboxStore).get(context, chainID);
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
 			}
-			return verifyMessageRecovery(context.params);
+		}
+		if (!terminatedOutboxAccount) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Terminated outbox account does not exist.'),
+			};
 		}
 
-		const deserializedCCMs = crossChainMessages.map(ccm => codec.decode<CCMsg>(ccmSchema, ccm));
+		// Check that the idxs are sorted in ascending order
+		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#sort_returns_the_reference_to_the_same_array
+		// CAUTION! `sort` modifies original array
+		const sortedIdxs = [...idxs].sort((a, b) => a - b);
+		const isSame =
+			idxs.length === sortedIdxs.length &&
+			idxs.every((element, index) => element === sortedIdxs[index]);
+		if (!isSame) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Cross-chain message indexes are not sorted in ascending order.'),
+			};
+		}
+
+		// Check that the CCMs are still pending.
+		for (const index of idxs) {
+			if (index < terminatedOutboxAccount.partnerChainInboxSize) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error('Cross-chain message is not pending.'),
+				};
+			}
+		}
+
+		// Process basic checks for all CCMs.
+		// Verify general format. Past this point, we can access ccm root properties.
+		const deserializedCCMs = crossChainMessages.map(serializedCcm =>
+			codec.decode<CCMsg>(ccmSchema, serializedCcm),
+		);
 
 		for (const ccm of deserializedCCMs) {
+			validateFormat(ccm);
+
+			if (ccm.status !== CCMStatusCode.OK) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error('Cross-chain message status is not valid.'),
+				};
+			}
+
+			// The receiving chain must be the terminated chain.
+			if (!ccm.receivingChainID.equals(chainID)) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error('Cross-chain message receiving chain ID is not valid.'),
+				};
+			}
+
 			// The sending chain must be live.
 			const isLive = await this.internalMethod.isLive(context, ccm.sendingChainID, Date.now());
 			if (!isLive) {
@@ -76,7 +124,30 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			}
 		}
 
-		return verifyMessageRecovery(context.params, terminatedChainOutboxAccount);
+		// Check the inclusion proof against the sidechain outbox root.
+		const proof = {
+			size: terminatedOutboxAccount.outboxSize,
+			idxs,
+			siblingHashes,
+		};
+
+		// Convert each CCM byte to sha256 hash
+		const hashedCCMs = crossChainMessages.map(ccm => utils.hash(ccm));
+		const isVerified = regularMerkleTree.verifyDataBlock(
+			hashedCCMs,
+			proof,
+			terminatedOutboxAccount.outboxRoot,
+		);
+		if (!isVerified) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Message recovery proof of inclusion is not valid.'),
+			};
+		}
+
+		return {
+			status: VerifyStatus.OK,
+		};
 	}
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#execution-1
@@ -106,12 +177,11 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			}
 		}
 
-		const terminatedOutboxAccount = await this.stores
-			.get(TerminatedOutboxStore)
-			.get(context, context.params.chainID);
-		if (!terminatedOutboxAccount) {
-			throw new Error('Terminated outbox account does not exist.');
-		}
+		const terminatedOutboxSubstore = this.stores.get(TerminatedOutboxStore);
+		const terminatedOutboxAccount = await terminatedOutboxSubstore.get(
+			context,
+			context.params.chainID,
+		);
 
 		// Update sidechain outbox root.
 		const proof = {
@@ -124,6 +194,8 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			recoveredCCMs.map(ccm => utils.hash(ccm)),
 			proof,
 		);
+
+		await terminatedOutboxSubstore.set(context, context.params.chainID, terminatedOutboxAccount);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
