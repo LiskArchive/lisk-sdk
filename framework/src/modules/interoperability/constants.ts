@@ -56,6 +56,7 @@ export const MAX_MODULE_NAME_LENGTH = 32;
 export const MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH = 1;
 export const MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH = 32;
 export const CHAIN_ID_LENGTH = 4;
+export const MODULE_ID_LENGTH = 4;
 
 // Cross chain commands
 export const CROSS_CHAIN_COMMAND_NAME_REGISTRATION = 'registration';
