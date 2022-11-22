@@ -605,19 +605,6 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			);
 		});
 
-		/* it('should not add CCM to outbox when sending chain of the CCM does not exist', async () => {
-			// Assign & Arrange & Act
-			chainAccountStoreMock.has.mockResolvedValue(false);
-
-			await command.execute(commandExecuteContext);
-
-			// Assert
-			expect.assertions(ccms.length);
-			for (const _ of ccms) {
-				expect(command['internalMethod'].addToOutbox).not.toHaveBeenCalled();
-			}
-		}); */
-
 		// TODO: Fix in #7727
 		// eslint-disable-next-line jest/no-disabled-tests
 		it.skip('should execute referenced logic in CCM if ownChainAccountID equals to sendingChainID of the CCM', async () => {
