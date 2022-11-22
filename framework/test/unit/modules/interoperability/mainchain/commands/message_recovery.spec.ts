@@ -112,7 +112,6 @@ describe('Mainchain MessageRecoveryCommand', () => {
 	});
 
 	describe('verify', () => {
-		Buffer.from('00', 'hex');
 		// let stateStore: PrefixedStateReadWriter;
 		let commandVerifyContext: CommandVerifyContext<MessageRecoveryParams>;
 		let transaction: Transaction;
