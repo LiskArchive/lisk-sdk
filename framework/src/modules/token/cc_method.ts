@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { BaseCCMethod } from '../interoperability/base_cc_method';
-import { CrossChainMessageContext, RecoverCCMsgMethodContext } from '../interoperability/types';
+import { CrossChainMessageContext, RecoverContext } from '../interoperability/types';
 import {
 	ADDRESS_LENGTH,
 	CHAIN_ID_LENGTH,
@@ -198,14 +198,14 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 		}
 	}
 
-	public async recover(ctx: RecoverCCMsgMethodContext): Promise<void> {
+	public async recover(ctx: RecoverContext): Promise<void> {
 		const methodContext = ctx.getMethodContext();
 		const userStore = this.stores.get(UserStore);
 		const address = ctx.storeKey.slice(0, ADDRESS_LENGTH);
 		let account: UserStoreData;
 
 		if (
-			!ctx.storePrefix.equals(userStore.subStorePrefix) ||
+			!ctx.substorePrefix.equals(userStore.subStorePrefix) ||
 			ctx.storeKey.length !== ADDRESS_LENGTH + TOKEN_ID_LENGTH
 		) {
 			this.events
