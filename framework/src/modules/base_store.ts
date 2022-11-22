@@ -24,6 +24,13 @@ export interface StoreGetter {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 }
 
+export const computeStorePrefix = (name: string): Buffer => {
+	const prefix = utils.hash(Buffer.from(name, 'utf-8')).slice(0, 4);
+	// eslint-disable-next-line no-bitwise
+	prefix[0] &= 0x7f;
+	return prefix;
+};
+
 export abstract class BaseStore<T> {
 	private readonly _version: number;
 	private readonly _storePrefix: Buffer;
@@ -50,9 +57,7 @@ export abstract class BaseStore<T> {
 
 	public constructor(moduleName: string, version = 0) {
 		this._version = version;
-		this._storePrefix = utils.hash(Buffer.from(moduleName, 'utf-8')).slice(0, 4);
-		// eslint-disable-next-line no-bitwise
-		this._storePrefix[0] &= 0x7f;
+		this._storePrefix = computeStorePrefix(moduleName);
 		const versionBuffer = Buffer.alloc(2);
 		versionBuffer.writeUInt16BE(this._version, 0);
 		this._subStorePrefix = utils
