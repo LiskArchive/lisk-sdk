@@ -535,38 +535,18 @@ describe('TokenInteroperableMethod', () => {
 		it('should reject if store prefix is not store prefix user', async () => {
 			await expect(
 				tokenInteropMethod.recover({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(-3),
-						status: CCM_STATUS_OK,
-						params: utils.getRandomBytes(30),
-					},
 					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
 					module: tokenModule.name,
 					storeKey: Buffer.concat([defaultAddress, defaultTokenID]),
-					storePrefix: Buffer.from([0, 0]),
+					substorePrefix: Buffer.from([0, 0]),
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultAccount.availableBalance * BigInt(2),
 						lockedBalances: [{ module: 'dpos', amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
-					header: {
-						timestamp: Date.now(),
-						height: 10,
-					},
 					stateStore,
-					transaction: {
-						fee,
-						senderAddress: defaultAddress,
-					},
 				}),
 			).rejects.toThrow('Invalid arguments.');
 			checkEventResult(
@@ -579,38 +559,18 @@ describe('TokenInteroperableMethod', () => {
 		it('should reject if store key is not 28 bytes', async () => {
 			await expect(
 				tokenInteropMethod.recover({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(-3),
-						status: CCM_STATUS_OK,
-						params: utils.getRandomBytes(30),
-					},
 					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
 					module: tokenModule.name,
 					storeKey: Buffer.concat([defaultAddress, defaultTokenID, Buffer.alloc(20)]),
-					storePrefix: userStore.subStorePrefix,
+					substorePrefix: userStore.subStorePrefix,
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultAccount.availableBalance * BigInt(2),
 						lockedBalances: [{ module: 'pos', amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
-					header: {
-						timestamp: Date.now(),
-						height: 10,
-					},
 					stateStore,
-					transaction: {
-						fee,
-						senderAddress: defaultAddress,
-					},
 				}),
 			).rejects.toThrow('Invalid arguments.');
 			checkEventResult(
@@ -623,35 +583,15 @@ describe('TokenInteroperableMethod', () => {
 		it('should reject if store value cannot be decoded', async () => {
 			await expect(
 				tokenInteropMethod.recover({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(-3),
-						status: CCM_STATUS_OK,
-						params: utils.getRandomBytes(30),
-					},
 					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
 					module: tokenModule.name,
 					storeKey: Buffer.concat([defaultAddress, defaultTokenID]),
-					storePrefix: userStore.subStorePrefix,
+					substorePrefix: userStore.subStorePrefix,
 					storeValue: utils.getRandomBytes(32),
 					terminatedChainID: sendingChainID,
-					header: {
-						timestamp: Date.now(),
-						height: 10,
-					},
 					stateStore,
-					transaction: {
-						fee,
-						senderAddress: defaultAddress,
-					},
 				}),
 			).rejects.toThrow('Invalid arguments.');
 			checkEventResult(
@@ -667,38 +607,18 @@ describe('TokenInteroperableMethod', () => {
 				.mockResolvedValue(defaultForeignTokenID);
 			await expect(
 				tokenInteropMethod.recover({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(-3),
-						status: CCM_STATUS_OK,
-						params: utils.getRandomBytes(30),
-					},
 					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
+					substorePrefix: userStore.subStorePrefix,
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
 					module: tokenModule.name,
 					storeKey: Buffer.concat([defaultAddress, defaultForeignTokenID]),
-					storePrefix: userStore.subStorePrefix,
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultAccount.availableBalance * BigInt(2),
 						lockedBalances: [{ module: 'pos', amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
-					header: {
-						timestamp: Date.now(),
-						height: 10,
-					},
 					stateStore,
-					transaction: {
-						fee,
-						senderAddress: defaultAddress,
-					},
 				}),
 			).rejects.toThrow('Insufficient escrow amount.');
 			checkEventResult(
@@ -712,38 +632,18 @@ describe('TokenInteroperableMethod', () => {
 			const recipient = utils.getRandomBytes(20);
 			await expect(
 				tokenInteropMethod.recover({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(-3),
-						status: CCM_STATUS_OK,
-						params: utils.getRandomBytes(30),
-					},
 					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
 					module: tokenModule.name,
 					storeKey: Buffer.concat([recipient, defaultTokenID]),
-					storePrefix: userStore.subStorePrefix,
+					substorePrefix: userStore.subStorePrefix,
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultEscrowAmount,
 						lockedBalances: [{ module: 'pos', amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
-					header: {
-						timestamp: Date.now(),
-						height: 10,
-					},
 					stateStore,
-					transaction: {
-						fee,
-						senderAddress: defaultAddress,
-					},
 				}),
 			).rejects.toThrow('Insufficient escrow amount.');
 			checkEventResult(
@@ -761,35 +661,15 @@ describe('TokenInteroperableMethod', () => {
 			});
 			await expect(
 				tokenInteropMethod.recover({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(-3),
-						status: CCM_STATUS_OK,
-						params: utils.getRandomBytes(30),
-					},
 					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
 					module: tokenModule.name,
 					storeKey: Buffer.concat([recipient, defaultTokenID]),
-					storePrefix: userStore.subStorePrefix,
+					substorePrefix: userStore.subStorePrefix,
 					storeValue: codec.encode(userStoreSchema, defaultAccount),
 					terminatedChainID: sendingChainID,
-					header: {
-						timestamp: Date.now(),
-						height: 10,
-					},
 					stateStore,
-					transaction: {
-						fee,
-						senderAddress: defaultAddress,
-					},
 				}),
 			).resolves.toBeUndefined();
 
@@ -813,35 +693,15 @@ describe('TokenInteroperableMethod', () => {
 			});
 			await expect(
 				tokenInteropMethod.recover({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee: BigInt(-3),
-						status: CCM_STATUS_OK,
-						params: utils.getRandomBytes(30),
-					},
 					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
 					module: tokenModule.name,
 					storeKey: Buffer.concat([recipient, defaultTokenID]),
-					storePrefix: userStore.subStorePrefix,
+					substorePrefix: userStore.subStorePrefix,
 					storeValue: codec.encode(userStoreSchema, defaultAccount),
 					terminatedChainID: sendingChainID,
-					header: {
-						timestamp: Date.now(),
-						height: 10,
-					},
 					stateStore,
-					transaction: {
-						fee,
-						senderAddress: defaultAddress,
-					},
 				}),
 			).resolves.toBeUndefined();
 
