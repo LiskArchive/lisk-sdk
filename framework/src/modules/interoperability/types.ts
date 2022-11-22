@@ -91,6 +91,7 @@ export interface CrossChainMessageContext extends ImmutableCrossChainMessageCont
 	getMethodContext: () => MethodContext;
 	getStore: StoreCallback;
 	stateStore: StateStore;
+	contextStore: Map<string, unknown>;
 	eventQueue: EventQueue;
 }
 export interface CCCommandExecuteContext<T> extends CrossChainMessageContext {

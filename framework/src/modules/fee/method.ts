@@ -12,6 +12,51 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { getContextStoreBigInt, getContextStoreBool, MethodContext } from '../../state_machine';
 import { BaseMethod } from '../base_method';
+import { CONTEXT_STORE_KEY_CCM_PROCESSING } from '../interoperability/constants';
+import { CONTEXT_STORE_KEY_AVAILABLE_CCM_FEE, CONTEXT_STORE_KEY_AVAILABLE_FEE } from './constants';
+import { InsufficientFeeEvent } from './events/insufficient_fee';
+import { ModuleConfig } from './types';
 
-export class FeeMethod extends BaseMethod {}
+export class FeeMethod extends BaseMethod {
+	private _config!: ModuleConfig;
+
+	public init(config: ModuleConfig) {
+		this._config = config;
+	}
+
+	public getFeeTokenID(): Buffer {
+		return this._config.feeTokenID;
+	}
+
+	public payFee(methodContext: MethodContext, amount: bigint): void {
+		const isCCMProcessing = getContextStoreBool(
+			methodContext.contextStore,
+			CONTEXT_STORE_KEY_CCM_PROCESSING,
+		);
+		if (isCCMProcessing) {
+			const availableFee = getContextStoreBigInt(
+				methodContext.contextStore,
+				CONTEXT_STORE_KEY_AVAILABLE_CCM_FEE,
+			);
+			if (availableFee < amount) {
+				this.events.get(InsufficientFeeEvent).error(methodContext);
+				methodContext.contextStore.delete(CONTEXT_STORE_KEY_AVAILABLE_CCM_FEE);
+				throw new Error('Cross-chain message ran out of fee.');
+			}
+			methodContext.contextStore.set(CONTEXT_STORE_KEY_AVAILABLE_CCM_FEE, availableFee - amount);
+			return;
+		}
+		const availableFee = getContextStoreBigInt(
+			methodContext.contextStore,
+			CONTEXT_STORE_KEY_AVAILABLE_FEE,
+		);
+		if (availableFee < amount) {
+			this.events.get(InsufficientFeeEvent).error(methodContext);
+			methodContext.contextStore.delete(CONTEXT_STORE_KEY_AVAILABLE_FEE);
+			throw new Error('Transaction ran out of fee.');
+		}
+		methodContext.contextStore.set(CONTEXT_STORE_KEY_AVAILABLE_FEE, availableFee - amount);
+	}
+}

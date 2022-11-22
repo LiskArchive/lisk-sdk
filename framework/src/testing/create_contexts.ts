@@ -146,7 +146,11 @@ export const createBlockGenerateContext = (params: {
 		chainID: params.chainID ?? utils.getRandomBytes(32),
 		getMethodContext:
 			params.getMethodContext ??
-			(() => ({ getStore, eventQueue: new EventQueue(params.header ? params.header.height : 0) })),
+			(() => ({
+				getStore,
+				eventQueue: new EventQueue(params.header ? params.header.height : 0),
+				contextStore: new Map<string, unknown>(),
+			})),
 		getStore: params.getStore ?? getStore,
 		getFinalizedHeight: () => params.finalizedHeight ?? 0,
 		header,
@@ -255,6 +259,7 @@ export const createCrossChainMessageContext = (params: {
 			status: 0,
 			params: Buffer.alloc(0),
 		},
+		contextStore,
 		chainID,
 		eventQueue,
 		getMethodContext: () => createMethodContext({ eventQueue, stateStore, contextStore }),

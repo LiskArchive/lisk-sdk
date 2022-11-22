@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Lisk Foundation
+ * Copyright © 2022 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const defaultConfig = {
-	minFeePerByte: 1000,
-};
+import { BaseEvent, EventQueuer } from '../../base_event';
 
-export const CONTEXT_STORE_KEY_AVAILABLE_FEE = 'CONTEXT_STORE_MIN_FEE_KEY';
-export const CONTEXT_STORE_KEY_AVAILABLE_CCM_FEE = 'CONTEXT_STORE_KEY_AVAILABLE_CCM_FEE';
-export const HASH_LENGTH = 32;
+export class InsufficientFeeEvent extends BaseEvent<undefined> {
+	public error(ctx: EventQueuer): void {
+		this.add(ctx, undefined, [], true);
+	}
+}

@@ -52,6 +52,7 @@ export interface ImmutableMethodContext {
 export interface MethodContext {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	eventQueue: EventQueue;
+	contextStore: Map<string, unknown>;
 }
 
 export enum VerifyStatus {

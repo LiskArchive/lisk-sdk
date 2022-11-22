@@ -15,9 +15,10 @@
 import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { defaultConfig } from './constants';
-import { ModuleConfig, TokenMethod } from './types';
+import { CONTEXT_STORE_KEY_AVAILABLE_FEE, defaultConfig } from './constants';
+import { ModuleConfigJSON, TokenMethod } from './types';
 import {
+	getContextStoreBigInt,
 	TransactionExecuteContext,
 	TransactionVerifyContext,
 	VerificationResult,
@@ -25,7 +26,14 @@ import {
 } from '../../state_machine';
 import { FeeMethod } from './method';
 import { FeeEndpoint } from './endpoint';
-import { configSchema } from './schemas';
+import {
+	configSchema,
+	getFeeTokenIDResponseSchema,
+	getMinFeePerByteResponseSchema,
+} from './schemas';
+import { GeneratorFeeProcessedEvent } from './events/generator_fee_processed';
+import { RelayerFeeProcessedEvent } from './events/relayer_fee_processed';
+import { InsufficientFeeEvent } from './events/insufficient_fee';
 
 export class FeeModule extends BaseModule {
 	public method = new FeeMethod(this.stores, this.events);
@@ -35,39 +43,65 @@ export class FeeModule extends BaseModule {
 	private _minFeePerByte!: number;
 	private _tokenID!: Buffer;
 
+	public constructor() {
+		super();
+		this.events.register(GeneratorFeeProcessedEvent, new GeneratorFeeProcessedEvent(this.name));
+		this.events.register(RelayerFeeProcessedEvent, new RelayerFeeProcessedEvent(this.name));
+		this.events.register(InsufficientFeeEvent, new InsufficientFeeEvent(this.name));
+	}
+
 	public addDependencies(tokenMethod: TokenMethod) {
 		this._tokenMethod = tokenMethod;
 	}
 
 	public metadata(): ModuleMetadata {
 		return {
-			endpoints: [],
+			endpoints: [
+				{
+					name: this.endpoint.getMinFeePerByte.name,
+					response: getMinFeePerByteResponseSchema,
+				},
+				{
+					name: this.endpoint.getFeeTokenID.name,
+					response: getFeeTokenIDResponseSchema,
+				},
+			],
 			commands: [],
-			events: [],
+			events: this.events.values().map(v => ({
+				name: v.name,
+				data: v.schema,
+			})),
 			assets: [],
 		};
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs): Promise<void> {
-		const { moduleConfig } = args;
-		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
-		validator.validate<ModuleConfig>(configSchema, config);
+		const defaultFeeTokenID = `${args.genesisConfig.chainID}${Buffer.alloc(4).toString('hex')}`;
+		const config = objects.mergeDeep(
+			{},
+			{ ...defaultConfig, feeTokenID: defaultFeeTokenID },
+			args.moduleConfig,
+		);
+		validator.validate<ModuleConfigJSON>(configSchema, config);
 
-		this._tokenID = Buffer.from(config.feeTokenID, 'hex');
-		this._minFeePerByte = config.minFeePerByte;
+		const moduleConfig = {
+			...config,
+			feeTokenID: Buffer.from(config.feeTokenID, 'hex'),
+		};
+		this.method.init(moduleConfig);
+
+		this._tokenID = moduleConfig.feeTokenID;
+		this._minFeePerByte = moduleConfig.minFeePerByte;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
 		const { getMethodContext, transaction } = context;
-		const minFee = BigInt(this._minFeePerByte * transaction.getBytes().length);
+		const minFee = BigInt(this._minFeePerByte) * BigInt(transaction.getBytes().length);
 
 		if (transaction.fee < minFee) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error(`Insufficient transaction fee. Minimum required fee is ${minFee}.`),
-			};
+			throw new Error(`Insufficient transaction fee. Minimum required fee is ${minFee}.`);
 		}
 
 		const balance = await this._tokenMethod.getAvailableBalance(
@@ -76,43 +110,60 @@ export class FeeModule extends BaseModule {
 			this._tokenID,
 		);
 		if (transaction.fee > balance) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Insufficient balance.'),
-			};
+			throw new Error(`Insufficient balance.`);
 		}
 
 		return { status: VerifyStatus.OK };
 	}
 
 	public async beforeCommandExecute(context: TransactionExecuteContext): Promise<void> {
-		const {
-			header: { generatorAddress },
-			transaction: { senderAddress },
-		} = context;
-		const minFee = BigInt(this._minFeePerByte * context.transaction.getBytes().length);
+		const { transaction } = context;
 		const methodContext = context.getMethodContext();
-
-		const isNative = this._tokenMethod.isNativeToken(this._tokenID);
-		if (isNative) {
-			await this._tokenMethod.burn(methodContext, senderAddress, this._tokenID, minFee);
-			await this._tokenMethod.transfer(
-				methodContext,
-				senderAddress,
-				generatorAddress,
-				this._tokenID,
-				context.transaction.fee - minFee,
-			);
-
-			return;
-		}
-
-		await this._tokenMethod.transfer(
+		await this._tokenMethod.lock(
 			methodContext,
-			senderAddress,
-			generatorAddress,
+			transaction.senderAddress,
+			this.name,
 			this._tokenID,
-			context.transaction.fee,
+			transaction.fee,
 		);
+		const minFee = BigInt(this._minFeePerByte * context.transaction.getBytes().length);
+
+		context.contextStore.set(CONTEXT_STORE_KEY_AVAILABLE_FEE, transaction.fee - minFee);
+	}
+
+	public async afterCommandExecute(context: TransactionExecuteContext): Promise<void> {
+		const { header, transaction } = context;
+		await this._tokenMethod.unlock(
+			context.getMethodContext(),
+			transaction.senderAddress,
+			this.name,
+			this._tokenID,
+			transaction.fee,
+		);
+		const availableFee = getContextStoreBigInt(
+			context.contextStore,
+			CONTEXT_STORE_KEY_AVAILABLE_FEE,
+		);
+		await this._tokenMethod.burn(
+			context.getMethodContext(),
+			transaction.senderAddress,
+			this._tokenID,
+			transaction.fee - availableFee,
+		);
+		await this._tokenMethod.transfer(
+			context.getMethodContext(),
+			transaction.senderAddress,
+			header.generatorAddress,
+			this._tokenID,
+			availableFee,
+		);
+
+		this.events.get(GeneratorFeeProcessedEvent).log(context, {
+			burntAmount: transaction.fee - availableFee,
+			generatorAddress: header.generatorAddress,
+			generatorAmount: availableFee,
+			senderAddress: transaction.senderAddress,
+		});
+		context.contextStore.delete(CONTEXT_STORE_KEY_AVAILABLE_FEE);
 	}
 }
