@@ -88,6 +88,7 @@ export const COMMAND_NAME_MAINCHAIN_REG = 'mainchainRegistration';
 export const COMMAND_NAME_STATE_RECOVERY = 'stateRecovery';
 export const COMMAND_NAME_MESSAGE_RECOVERY = 'messageRecovery';
 export const COMMAND_NAME_STATE_RECOVERY_INIT = 'stateRecoveryInitialization';
+export const COMMAND_NAME_LIVENESS_TERMINATION = 'terminateSidechainForLiveness';
 
 // Events
 export const EVENT_NAME_CHAIN_ACCOUNT_UPDATED = 'chainAccountUpdated';
