@@ -64,19 +64,3 @@ export const getDefaultRewardAtHeightResponseSchema = {
 		},
 	},
 };
-
-export const rewardMintedDataSchema = {
-	$id: '/reward/rewardMintedData',
-	type: 'object',
-	required: ['amount', 'reduction'],
-	properties: {
-		amount: {
-			dataType: 'uint64',
-			fieldNumber: 1,
-		},
-		reduction: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-	},
-};

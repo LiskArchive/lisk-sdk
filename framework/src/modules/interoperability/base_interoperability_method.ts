@@ -12,29 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec } from '@liskhq/lisk-codec';
-import { utils } from '@liskhq/lisk-cryptography';
 import { BaseMethod } from '../base_method';
-import { BaseInteroperableMethod } from './base_interoperable_method';
+import { BaseCCMethod } from './base_cc_method';
 import { NamedRegistry } from '../named_registry';
-import { ImmutableMethodContext, MethodContext, NotFoundError } from '../../state_machine';
-import { ChainAccount, ChainAccountStore, ChainStatus } from './stores/chain_account';
+import { ImmutableMethodContext, MethodContext } from '../../state_machine';
+import { ChainAccount, ChainAccountStore } from './stores/chain_account';
 import { CCMsg, TerminateChainContext } from './types';
-import { StoreGetter, ImmutableStoreGetter } from '../base_store';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import {
 	EMPTY_BYTES,
-	CHAIN_ID_MAINCHAIN,
 	MAINCHAIN_ID_BUFFER,
+	MAX_RESERVED_ERROR_STATUS,
 	EMPTY_FEE_ADDRESS,
 	MODULE_NAME_INTEROPERABILITY,
 	CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
 	CCMStatusCode,
 } from './constants';
-import { CCMSentFailedCode, CcmSentFailedEvent } from './events/ccm_send_fail';
-import { CcmSendSuccessEvent } from './events/ccm_send_success';
-import { ccmSchema } from './schemas';
-import { validateFormat } from './utils';
 import { TokenMethod } from '../token';
 import { OwnChainAccountStore } from './stores/own_chain_account';
 import { ChannelDataStore } from './stores/channel_data';
@@ -44,7 +37,6 @@ import { TerminatedOutboxStore } from './stores/terminated_outbox';
 export abstract class BaseInteroperabilityMethod<
 	T extends BaseInteroperabilityInternalMethod
 > extends BaseMethod {
-	protected readonly interoperableCCMethods = new Map<string, BaseInteroperableMethod>();
 	protected _tokenMethod!: TokenMethod & {
 		payMessageFee: (
 			context: MethodContext,
@@ -53,17 +45,14 @@ export abstract class BaseInteroperabilityMethod<
 			receivingChainID: Buffer,
 		) => Promise<void>;
 	};
-	protected abstract getInteroperabilityInternalMethod: (
-		context: StoreGetter | ImmutableStoreGetter,
-	) => T;
 
 	public constructor(
 		stores: NamedRegistry,
 		events: NamedRegistry,
-		interoperableCCMethods: Map<string, BaseInteroperableMethod>,
+		protected readonly interoperableCCMethods = new Map<string, BaseCCMethod>(),
+		protected internalMethod: T,
 	) {
 		super(stores, events);
-		this.interoperableCCMethods = interoperableCCMethods;
 	}
 
 	public addDependencies(
@@ -125,137 +114,36 @@ export abstract class BaseInteroperabilityMethod<
 		params: Buffer,
 		timestamp?: number,
 	): Promise<void> {
-		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
-		const ccm = {
+		await this.internalMethod.sendInternal(
+			context,
+			sendingAddress,
 			module,
 			crossChainCommand,
+			receivingChainID,
 			fee,
-			nonce: ownChainAccount.nonce,
-			params,
-			receivingChainID,
-			sendingChainID: ownChainAccount.chainID,
 			status,
-		};
-		// Not possible to send messages to the own chain.
-		if (receivingChainID.equals(ownChainAccount.chainID)) {
-			this.events.get(CcmSentFailedEvent).log(
-				context,
-				{
-					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSentFailedCode.INVALID_RECEIVING_CHAIN,
-				},
-				true,
-			);
-			throw new Error('Sending chain cannot be the receiving chain.');
-		}
-
-		// Validate ccm size.
-		try {
-			validateFormat(ccm);
-		} catch (error) {
-			this.events.get(CcmSentFailedEvent).log(
-				context,
-				{
-					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSentFailedCode.INVALID_FORMAT,
-				},
-				true,
-			);
-
-			throw new Error('Invalid CCM format.');
-		}
-		// From now on, we can assume that the ccm is valid.
-
-		// receivingChainID must correspond to a live chain.
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
-		const isReceivingChainLive = await interoperabilityInternalMethod.isLive(
-			receivingChainID,
-			timestamp ?? Date.now(),
+			params,
+			timestamp,
 		);
-		if (!isReceivingChainLive) {
-			this.events.get(CcmSentFailedEvent).log(
-				context,
-				{
-					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSentFailedCode.CHANNEL_UNAVAILABLE,
-				},
-				true,
-			);
-
-			throw new Error('Receiving chain is not live.');
-		}
-
-		let receivingChainAccount: ChainAccount | undefined;
-		try {
-			receivingChainAccount = await this.stores
-				.get(ChainAccountStore)
-				.get(context, receivingChainID);
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
-		}
-		let partnerChainID: Buffer;
-		// Processing on the mainchain.
-		if (ownChainAccount.chainID.equals(CHAIN_ID_MAINCHAIN)) {
-			partnerChainID = receivingChainID;
-		} else {
-			// Processing on a sidechain.
-			// eslint-disable-next-line no-lonely-if
-			if (!receivingChainAccount) {
-				partnerChainID = CHAIN_ID_MAINCHAIN;
-			} else {
-				partnerChainID = receivingChainID;
-			}
-		}
-
-		// partnerChainID must correspond to an active chain (in this case, not registered).
-		if (receivingChainAccount && receivingChainAccount.status !== ChainStatus.ACTIVE) {
-			this.events.get(CcmSentFailedEvent).log(
-				context,
-				{
-					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSentFailedCode.CHANNEL_UNAVAILABLE,
-				},
-				true,
-			);
-
-			throw new Error('Receiving chain is not active.');
-		}
-
-		// Pay message fee.
-		if (fee > 0) {
-			try {
-				// eslint-disable-next-line no-lonely-if
-				await this._tokenMethod.payMessageFee(context, sendingAddress, fee, partnerChainID);
-			} catch (error) {
-				this.events.get(CcmSentFailedEvent).log(
-					context,
-					{
-						ccm: { ...ccm, params: EMPTY_BYTES },
-						code: CCMSentFailedCode.MESSAGE_FEE_EXCEPTION,
-					},
-					true,
-				);
-
-				throw new Error('Failed to pay message fee.');
-			}
-		}
-
-		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
-		await interoperabilityInternalMethod.addToOutbox(partnerChainID, ccm);
-		ownChainAccount.nonce += BigInt(1);
-		await this.stores.get(OwnChainAccountStore).set(context, EMPTY_BYTES, ownChainAccount);
-
-		// Emit CCM Processed Event.
-		this.events
-			.get(CcmSendSuccessEvent)
-			.log(context, ccm.sendingChainID, ccm.receivingChainID, ccmID, { ccmID });
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async error(_methodContext: MethodContext, _ccm: CCMsg, _code: number): Promise<void> {
-		throw new Error('Need to be implemented');
+	public async error(context: MethodContext, ccm: CCMsg, errorStatus: number): Promise<void> {
+		// Error codes from 0 to MAX_RESERVED_ERROR_STATUS (included) are reserved to the Interoperability module.
+		if (errorStatus <= 0 && errorStatus <= MAX_RESERVED_ERROR_STATUS) {
+			throw new Error('Invalid error status.');
+		}
+
+		await this.send(
+			context,
+			EMPTY_FEE_ADDRESS,
+			ccm.module,
+			ccm.crossChainCommand,
+			ccm.sendingChainID,
+			BigInt(0),
+			errorStatus,
+			ccm.params,
+		);
 	}
 
 	public async terminateChain(context: TerminateChainContext, chainID: Buffer): Promise<void> {
@@ -263,22 +151,17 @@ export abstract class BaseInteroperabilityMethod<
 			return;
 		}
 
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
-		await interoperabilityInternalMethod.sendInternal({
-			module: MODULE_NAME_INTEROPERABILITY,
-			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
-			receivingChainID: chainID,
-			fee: BigInt(0),
-			status: CCMStatusCode.OK,
-			params: EMPTY_BYTES,
-			eventQueue: context.eventQueue,
-			feeAddress: EMPTY_FEE_ADDRESS,
-			getMethodContext: context.getMethodContext,
-			getStore: context.getStore,
-			logger: context.logger,
-			chainID: context.chainID,
-		});
+		await this.internalMethod.sendInternal(
+			context,
+			EMPTY_FEE_ADDRESS,
+			MODULE_NAME_INTEROPERABILITY,
+			CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
+			chainID,
+			BigInt(0),
+			CCMStatusCode.OK,
+			EMPTY_BYTES,
+		);
 
-		await interoperabilityInternalMethod.createTerminatedStateAccount(context, chainID);
+		await this.internalMethod.createTerminatedStateAccount(context, chainID);
 	}
 }

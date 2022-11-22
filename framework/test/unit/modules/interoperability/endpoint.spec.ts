@@ -151,7 +151,7 @@ describe('Test interoperability endpoint', () => {
 	const terminatedStateAccountJSON: TerminatedStateAccountJSON = {
 		stateRoot: terminateStateAccount.stateRoot.toString('hex'),
 		initialized: terminateStateAccount.initialized,
-		mainchainStateRoot: terminateStateAccount.mainchainStateRoot?.toString('hex'),
+		mainchainStateRoot: terminateStateAccount.mainchainStateRoot.toString('hex'),
 	};
 
 	const terminatedOutboxAccount: TerminatedOutboxAccount = {
@@ -189,6 +189,7 @@ describe('Test interoperability endpoint', () => {
 			chainID: Buffer.alloc(0),
 			params: {},
 			logger: {} as any,
+			header: { aggregateCommit: { height: 10 }, height: 12, timestamp: Date.now() },
 		};
 		testInteroperabilityEndpoint = new TestEndpoint(interopMod.stores, interopMod.offchainStores);
 

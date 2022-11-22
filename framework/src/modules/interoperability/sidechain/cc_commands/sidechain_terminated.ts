@@ -12,78 +12,46 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec } from '@liskhq/lisk-codec';
-import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
-import { CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED, MAINCHAIN_ID } from '../../constants';
-import { createCCMsgBeforeSendContext } from '../../context';
+import { CCMStatusCode, CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED } from '../../constants';
 import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
-import { TerminatedStateStore } from '../../stores/terminated_state';
-import { CrossChainMessageContext } from '../../types';
-import { getIDAsKeyForStore } from '../../utils';
-import { SidechainInteroperabilityInternalMethod } from '../store';
+import { CCCommandExecuteContext, ImmutableCrossChainMessageContext } from '../../types';
+import { getMainchainID } from '../../utils';
+import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 
 interface CCMSidechainTerminatedParams {
 	chainID: Buffer;
 	stateRoot: Buffer;
 }
 
-export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityCCCommand {
+export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityCCCommand<SidechainInteroperabilityInternalMethod> {
 	public schema = sidechainTerminatedCCMParamsSchema;
 
 	public get name(): string {
 		return CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED;
 	}
 
-	public async execute(context: CrossChainMessageContext): Promise<void> {
-		const { ccm } = context;
-		if (!ccm) {
-			throw new Error('CCM to execute sidechain terminated cross chain command is missing.');
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async verify(ctx: ImmutableCrossChainMessageContext): Promise<void> {
+		if (ctx.ccm.status !== CCMStatusCode.OK) {
+			throw new Error('Sidechain terminated message must have status OK.');
 		}
-		const ccmSidechainTerminatedParams = codec.decode<CCMSidechainTerminatedParams>(
-			sidechainTerminatedCCMParamsSchema,
-			ccm.params,
-		);
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
-
-		if (ccm.sendingChainID.equals(getIDAsKeyForStore(MAINCHAIN_ID))) {
-			const isTerminated = await this.stores
-				.get(TerminatedStateStore)
-				.get(context, ccmSidechainTerminatedParams.chainID);
-
-			if (isTerminated) {
-				return;
-			}
-			await interoperabilityInternalMethod.createTerminatedStateAccount(
-				context,
-				ccmSidechainTerminatedParams.chainID,
-				ccmSidechainTerminatedParams.stateRoot,
-			);
-		} else {
-			const beforeSendContext = createCCMsgBeforeSendContext({
-				ccm,
-				eventQueue: context.eventQueue,
-				getMethodContext: context.getMethodContext,
-				getStore: context.getStore,
-				logger: context.logger,
-				chainID: context.chainID,
-				feeAddress: context.transaction.senderAddress,
-			});
-			await interoperabilityInternalMethod.terminateChainInternal(
-				ccm.sendingChainID,
-				beforeSendContext,
-			);
+		if (!ctx.ccm.sendingChainID.equals(getMainchainID(ctx.chainID))) {
+			throw new Error('Sidechain terminated message must be sent from the mainchain.');
 		}
 	}
 
-	protected getInteroperabilityInternalMethod(
-		context: StoreGetter | ImmutableStoreGetter,
-	): SidechainInteroperabilityInternalMethod {
-		return new SidechainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
+	public async execute(
+		context: CCCommandExecuteContext<CCMSidechainTerminatedParams>,
+	): Promise<void> {
+		const isLive = await this.internalMethods.isLive(context, context.params.chainID);
+		if (!isLive) {
+			return;
+		}
+		await this.internalMethods.createTerminatedStateAccount(
 			context,
-			this.interoperableCCMethods,
+			context.params.chainID,
+			context.params.stateRoot,
 		);
 	}
 }

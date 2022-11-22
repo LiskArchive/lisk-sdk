@@ -46,7 +46,6 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { BlockHeader, EventQueue } from '../../../../../../src/state_machine';
-import { SidechainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/sidechain/store';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
 import { CROSS_CHAIN_COMMAND_NAME_FORWARD } from '../../../../../../src/modules/token/constants';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
@@ -143,6 +142,7 @@ describe('CrossChainUpdateCommand', () => {
 			interopMod.events,
 			new Map(),
 			new Map(),
+			interopMod['internalMethod'],
 		);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		activeValidatorsUpdate = [
@@ -203,7 +203,7 @@ describe('CrossChainUpdateCommand', () => {
 			activeValidatorsUpdate: sortedActiveValidatorsUpdate,
 			certificate: encodedDefaultCertificate,
 			inboxUpdate: { ...defaultInboxUpdateValue },
-			newCertificateThreshold: defaultNewCertificateThreshold,
+			certificateThreshold: defaultNewCertificateThreshold,
 			sendingChainID: defaultSendingChainID,
 		};
 
@@ -232,7 +232,7 @@ describe('CrossChainUpdateCommand', () => {
 			.spyOn(interopUtils, 'checkInboxUpdateValidity')
 			.mockReturnValue({ status: VerifyStatus.OK });
 
-		jest.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'isLive').mockResolvedValue(true);
+		jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(true);
 
 		jest.spyOn(interopUtils, 'computeValidatorsHash').mockReturnValue(validatorsHash);
 		jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
@@ -241,6 +241,7 @@ describe('CrossChainUpdateCommand', () => {
 	describe('verify', () => {
 		beforeEach(() => {
 			verifyContext = {
+				header: { height: 20, timestamp: 10000 },
 				getMethodContext: () => createTransientMethodContext({ stateStore }),
 				getStore: createStoreGetter(stateStore).getStore,
 				stateStore,
@@ -249,14 +250,13 @@ describe('CrossChainUpdateCommand', () => {
 				params,
 				transaction: defaultTransaction as any,
 			};
-			jest
-				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'isLive')
-				.mockResolvedValue(true);
+			jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(true);
 			sidechainCCUUpdateCommand = new SidechainCCUpdateCommand(
 				interopMod.stores,
 				interopMod.events,
 				new Map(),
 				new Map(),
+				interopMod['internalMethod'],
 			);
 		});
 
@@ -283,9 +283,7 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should return error when chain is active but not live', async () => {
-			jest
-				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'isLive')
-				.mockResolvedValue(false);
+			jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(false);
 			const { status, error } = await sidechainCCUUpdateCommand.verify(verifyContext);
 
 			expect(status).toEqual(VerifyStatus.FAIL);
@@ -349,16 +347,14 @@ describe('CrossChainUpdateCommand', () => {
 			).rejects.toThrow('Keys are not sorted lexicographic order.');
 		});
 
-		it('should return VerifyStatus.FAIL when verifyCertificateSignature fails', async () => {
-			jest.spyOn(interopUtils, 'verifyCertificateSignature').mockReturnValue({
-				status: VerifyStatus.FAIL,
-				error: new Error('Certificate is invalid due to invalid signature.'),
-			});
+		it('should reject when verifyCertificateSignature fails', async () => {
+			jest
+				.spyOn(interopMod['internalMethod'], 'verifyCertificateSignature')
+				.mockRejectedValue(new Error('Certificate is invalid due to invalid signature.'));
 
-			const { status, error } = await sidechainCCUUpdateCommand.verify(verifyContext);
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toContain('Certificate is invalid due to invalid signature.');
+			await expect(sidechainCCUUpdateCommand.verify(verifyContext)).rejects.toThrow(
+				'Certificate is invalid due to invalid signature',
+			);
 		});
 
 		it('should return error checkInboxUpdateValidity fails', async () => {
@@ -412,10 +408,6 @@ describe('CrossChainUpdateCommand', () => {
 				assets: new BlockAssets(),
 				eventQueue: new EventQueue(0),
 				header: blockHeader as BlockHeader,
-				certificateThreshold: BigInt(0),
-				currentValidators: [],
-				impliesMaxPrevote: true,
-				maxHeightCertified: 0,
 			};
 
 			await partnerValidatorStore.set(
@@ -429,6 +421,7 @@ describe('CrossChainUpdateCommand', () => {
 				interopMod.events,
 				new Map(),
 				new Map(),
+				interopMod['internalMethod'],
 			);
 		});
 
@@ -464,7 +457,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(interopUtils, 'computeValidatorsHash')
 				.mockReturnValue(defaultCertificateValues.validatorsHash);
 			const terminateChainInternalMock = jest
-				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'terminateChainInternal')
+				.spyOn(interopMod['internalMethod'], 'terminateChainInternal')
 				.mockResolvedValue({} as never);
 			const invalidCCMContext = {
 				...executeContext,
@@ -488,7 +481,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(interopUtils, 'computeValidatorsHash')
 				.mockReturnValue(defaultCertificateValues.validatorsHash);
 			const terminateChainInternalMock = jest
-				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'terminateChainInternal')
+				.spyOn(interopMod['internalMethod'], 'terminateChainInternal')
 				.mockResolvedValue({} as never);
 
 			await expect(sidechainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
@@ -511,7 +504,7 @@ describe('CrossChainUpdateCommand', () => {
 				.mockReturnValue(defaultCertificateValues.validatorsHash);
 			jest.spyOn(interopUtils, 'commonCCUExecutelogic').mockReturnValue({} as never);
 			const terminateChainInternalMock = jest
-				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'terminateChainInternal')
+				.spyOn(interopMod['internalMethod'], 'terminateChainInternal')
 				.mockResolvedValue({} as never);
 
 			const invalidCCMContext = {
@@ -543,7 +536,7 @@ describe('CrossChainUpdateCommand', () => {
 			jest.spyOn(interopUtils, 'commonCCUExecutelogic').mockReturnValue({} as never);
 
 			const terminateChainInternalMock = jest
-				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'terminateChainInternal')
+				.spyOn(interopMod['internalMethod'], 'terminateChainInternal')
 				.mockResolvedValue({} as never);
 
 			const invalidCCMContext = {
@@ -559,8 +552,8 @@ describe('CrossChainUpdateCommand', () => {
 			await expect(sidechainCCUUpdateCommand.execute(invalidCCMContext)).resolves.toBeUndefined();
 			expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 			expect(terminateChainInternalMock).toHaveBeenCalledWith(
+				expect.anything(),
 				invalidCCM.sendingChainID,
-				expect.any(Object),
 			);
 		});
 
@@ -584,7 +577,7 @@ describe('CrossChainUpdateCommand', () => {
 				.mockReturnValue({} as never);
 
 			const appendToInboxTreeMock = jest
-				.spyOn(SidechainInteroperabilityInternalMethod.prototype, 'appendToInboxTree')
+				.spyOn(interopMod['internalMethod'], 'appendToInboxTree')
 				.mockResolvedValue({} as never);
 			const applyMock = jest
 				.spyOn(sidechainCCUUpdateCommand, 'apply' as never)

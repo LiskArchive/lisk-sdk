@@ -22,7 +22,7 @@ import {
 	MainchainInteroperabilityModule,
 } from '../../../../../../src';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
-import { BaseInteroperableMethod } from '../../../../../../src/modules/interoperability/base_interoperable_method';
+import { BaseCCMethod } from '../../../../../../src/modules/interoperability/base_cc_method';
 import {
 	COMMAND_NAME_STATE_RECOVERY,
 	MODULE_NAME_INTEROPERABILITY,
@@ -47,7 +47,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 	let stateRecoveryCommand: StateRecoveryCommand;
 	let commandVerifyContext: CommandVerifyContext<StateRecoveryParams>;
 	let commandExecuteContext: CommandExecuteContext<StateRecoveryParams>;
-	let interoperableCCMethods: Map<string, BaseInteroperableMethod>;
+	let interoperableCCMethods: Map<string, BaseCCMethod>;
 	let interoperableMethod: any;
 	let ccCommands: Map<string, BaseCCCommand[]>;
 	let transaction: Transaction;
@@ -71,6 +71,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 			interopMod.events,
 			interoperableCCMethods,
 			ccCommands,
+			interopMod['internalMethod'],
 		);
 		transactionParams = {
 			chainID: utils.intToBuffer(3, 4),

@@ -31,7 +31,9 @@ import {
 import { TransferCommand } from '../../../src/modules/token/commands/transfer';
 import { transferParamsSchema } from '../../../src/modules/token/schemas';
 
-export const DEFAULT_TOKEN_ID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
+export const DEFAULT_LOCAL_ID = Buffer.from([0, 0, 0, 0]);
+
+export const defaultTokenID = (chainID: Buffer) => Buffer.concat([chainID, DEFAULT_LOCAL_ID]);
 
 export const createTransferTransaction = (input: {
 	recipientAddress: Buffer;
@@ -42,10 +44,11 @@ export const createTransferTransaction = (input: {
 	fee?: bigint;
 }): Transaction => {
 	const encodedParams = codec.encode(transferParamsSchema, {
-		tokenID: DEFAULT_TOKEN_ID,
+		tokenID: defaultTokenID(input.chainID),
 		recipientAddress: input.recipientAddress,
 		amount: input.amount ?? BigInt('10000000000'),
 		data: '',
+		accountInitializationFee: BigInt(5000000),
 	});
 
 	const publicKey = ed.getPublicKeyFromPrivateKey(input.privateKey);
@@ -205,10 +208,11 @@ export const createMultisignatureTransferTransaction = (input: {
 	const mod = new TokenModule();
 	const command = new TransferCommand(mod.stores, mod.events);
 	const params = {
-		tokenID: DEFAULT_TOKEN_ID,
+		tokenID: defaultTokenID(input.chainID),
 		recipientAddress: input.recipientAddress,
 		amount: BigInt('10000000000'),
 		data: '',
+		accountInitializationFee: BigInt(5000000),
 	};
 	const encodedAsset = codec.encode(command.schema, params);
 	const transaction = input.privateKeys.reduce<Record<string, unknown>>(

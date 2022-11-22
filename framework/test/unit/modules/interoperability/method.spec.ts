@@ -12,14 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
+import {address, utils} from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import {
-	ImmutableStoreGetter,
-	MainchainInteroperabilityModule,
-	StoreGetter,
-	TokenMethod,
-} from '../../../../src';
+import { MainchainInteroperabilityModule, TokenMethod } from '../../../../src';
 import { BaseInteroperabilityMethod } from '../../../../src/modules/interoperability/base_interoperability_method';
 import {
 	CCMStatusCode,
@@ -34,14 +29,13 @@ import {
 	CcmSentFailedEvent,
 } from '../../../../src/modules/interoperability/events/ccm_send_fail';
 import { CcmSendSuccessEvent } from '../../../../src/modules/interoperability/events/ccm_send_success';
-import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/store';
+import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
 import { ccmSchema } from '../../../../src/modules/interoperability/schemas';
 import {
 	ChainAccountStore,
 	ChainStatus,
 } from '../../../../src/modules/interoperability/stores/chain_account';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
-import { NamedRegistry } from '../../../../src/modules/named_registry';
 import { EventQueue, MethodContext } from '../../../../src/state_machine';
 import { createTransientMethodContext } from '../../../../src/testing';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
@@ -50,21 +44,24 @@ import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/
 import { TerminateChainContext } from '../../../../src/modules/interoperability/types';
 import { CHAIN_ID_LENGTH } from '../../../../src/modules/token/constants';
 import { loggerMock } from '../../../../src/testing/mocks';
+import {PrefixedStateReadWriter} from "../../../../src/state_machine/prefixed_state_read_writer";
 
 class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {
-	protected getInteroperabilityInternalMethod = (
-		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityInternalMethod =>
+	protected getInteroperabilityInternalMethod = (): MainchainInteroperabilityInternalMethod =>
 		new MainchainInteroperabilityInternalMethod(
 			this.stores,
 			this.events,
-			context,
 			this.interoperableCCMethods,
 		);
 }
 
 describe('Sample Method', () => {
 	const interopMod = new MainchainInteroperabilityModule();
+	const defaultPublicKey = Buffer.from(
+		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+		'hex',
+	);
+	const defaultAddress = address.getAddressFromPublicKey(defaultPublicKey);
 	const chainID = utils.intToBuffer(1, 4);
 	const interoperableCCMethods = new Map();
 	const chainAccountStoreMock = {
@@ -92,8 +89,8 @@ describe('Sample Method', () => {
 		set: jest.fn(),
 		has: jest.fn(),
 	};
+	let stateStore: PrefixedStateReadWriter;
 	let sampleInteroperabilityMethod: SampleInteroperabilityMethod;
-	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
 	let methodContext: MethodContext;
 	let terminateChainContext: TerminateChainContext;
 	let tokenMethodMock: TokenMethod;
@@ -108,6 +105,15 @@ describe('Sample Method', () => {
 			chainID,
 			logger: loggerMock,
 			getMethodContext: jest.fn() as any,
+			transaction: {
+				senderAddress: defaultAddress,
+				fee: BigInt(0),
+			},
+			header: {
+				height: 0,
+				timestamp: 0,
+			},
+			stateStore,
 		};
 		tokenMethodMock = {
 			payMessageFee: jest.fn(),
@@ -120,23 +126,14 @@ describe('Sample Method', () => {
 		} as any;
 		interopMod.events.register(CcmSentFailedEvent, ccmSendFailEventMock);
 		interopMod.events.register(CcmSendSuccessEvent, ccmSendSuccessEventMock);
+		interopMod['internalMethod']['_tokenMethod'] = tokenMethodMock as any;
 		sampleInteroperabilityMethod = new SampleInteroperabilityMethod(
 			interopMod.stores,
 			interopMod.events,
 			interoperableCCMethods,
+			interopMod['internalMethod'],
 		);
 		sampleInteroperabilityMethod.addDependencies(tokenMethodMock as any);
-		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
-			interopMod.stores,
-			new NamedRegistry(),
-			methodContext,
-			interoperableCCMethods,
-		);
-		mainchainInteroperabilityInternalMethod.sendInternal = jest.fn();
-		mainchainInteroperabilityInternalMethod.createTerminatedStateAccount = jest.fn();
-		jest
-			.spyOn(sampleInteroperabilityMethod as any, 'getInteroperabilityInternalMethod')
-			.mockReturnValue(mainchainInteroperabilityInternalMethod);
 
 		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
 		interopMod.stores.register(ChannelDataStore, channelStoreMock as never);
@@ -225,7 +222,7 @@ describe('Sample Method', () => {
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountSidechain);
-			jest.spyOn(mainchainInteroperabilityInternalMethod, 'isLive').mockResolvedValue(true);
+			jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(true);
 		});
 
 		it('should throw error and emit event when invalid ccm format', async () => {
@@ -262,7 +259,7 @@ describe('Sample Method', () => {
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountSidechain);
-			jest.spyOn(mainchainInteroperabilityInternalMethod, 'isLive').mockResolvedValue(false);
+			jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(false);
 
 			// Act & Assert
 			await expect(
@@ -374,9 +371,11 @@ describe('Sample Method', () => {
 			jest
 				.spyOn(interopMod.stores.get(ChainAccountStore), 'get')
 				.mockResolvedValue(receivingChainAccount);
-			jest
-				.spyOn(sampleInteroperabilityMethod['_tokenMethod'], 'payMessageFee')
-				.mockRejectedValue(new Error('payMessageFee error'));
+
+			(tokenMethodMock as any).payMessageFee.mockRejectedValue(new Error('payMessageFee error'));
+			// jest
+			// 	.spyOn(tokenMethodMock, 'payMessageFee')
+			// 	.mockRejectedValue(new Error('payMessageFee error'));
 			// Act & Assert
 			await expect(
 				sampleInteroperabilityMethod.send(
@@ -412,14 +411,14 @@ describe('Sample Method', () => {
 
 			const receivingChainAccount = getReceivingChainAccountByStatus(ChainStatus.ACTIVE);
 
+			(tokenMethodMock as any).payMessageFee.mockResolvedValue();
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountMainchain);
-			jest.spyOn(mainchainInteroperabilityInternalMethod, 'addToOutbox').mockResolvedValue();
+			jest.spyOn(interopMod['internalMethod'], 'addToOutbox').mockResolvedValue();
 			jest
 				.spyOn(interopMod.stores.get(ChainAccountStore), 'get')
 				.mockResolvedValue(receivingChainAccount);
-			jest.spyOn(sampleInteroperabilityMethod['_tokenMethod'], 'payMessageFee').mockResolvedValue();
 
 			interopMod.stores.get(OwnChainAccountStore).set = ownChainAccountStoreMock.set;
 			const ccmID = utils.hash(codec.encode(ccmSchema, ccmOnMainchain));
@@ -489,7 +488,12 @@ describe('Sample Method', () => {
 			},
 			status: ChainStatus.TERMINATED,
 		};
-		beforeEach(() => {});
+		const sendInternalMock = jest.fn();
+		interopMod['internalMethod'].sendInternal = sendInternalMock;
+
+		beforeEach(() => {
+
+		});
 		it('should do nothing if chain was already terminated', async () => {
 			jest
 				.spyOn(sampleInteroperabilityMethod as any, 'getTerminatedStateAccount')
@@ -500,7 +504,7 @@ describe('Sample Method', () => {
 				});
 			await sampleInteroperabilityMethod.terminateChain(terminateChainContext, chainID);
 
-			expect(mainchainInteroperabilityInternalMethod.sendInternal).not.toHaveBeenCalled();
+			expect(sendInternalMock).not.toHaveBeenCalled();
 		});
 
 		it('should process with input chainID', async () => {
@@ -509,7 +513,7 @@ describe('Sample Method', () => {
 				.mockResolvedValue(null);
 
 			await sampleInteroperabilityMethod.terminateChain(terminateChainContext, chainID);
-			expect(mainchainInteroperabilityInternalMethod.sendInternal).toHaveBeenCalledTimes(1);
+			expect(sendInternalMock).toHaveBeenCalledTimes(1);
 		});
 	});
 });

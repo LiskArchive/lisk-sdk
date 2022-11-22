@@ -69,12 +69,7 @@ import {
 } from './types';
 import { getOrDefaultLastGeneratedInfo, setLastGeneratedInfo } from './generated_info';
 import { CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED } from '../consensus/constants';
-import {
-	ABI,
-	TransactionExecutionResult,
-	TransactionVerifyResult,
-	Consensus as ConsensusParams,
-} from '../../abi';
+import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../abi';
 import { BFTModule } from '../bft';
 import { isEmptyConsensusUpdate } from '../consensus';
 import { getPathFromDataPath } from '../../utils/path';
@@ -312,6 +307,7 @@ export class Generator {
 			const { result: verifyResult } = await this._abi.verifyTransaction({
 				contextID: Buffer.alloc(0),
 				transaction,
+				header: this._chain.lastBlock.header.toObject(),
 			});
 			if (verifyResult !== TransactionVerifyResult.OK) {
 				throw new Error('Transaction is not valid');
@@ -429,12 +425,12 @@ export class Generator {
 
 		const MS_IN_A_SEC = 1000;
 		const currentTime = Math.floor(new Date().getTime() / MS_IN_A_SEC);
-		const currentSlot = this._consensus.getSlotNumber(currentTime);
+		const currentSlot = this._bft.method.getSlotNumber(currentTime);
 
-		const currentSlotTime = this._consensus.getSlotTime(currentSlot);
+		const currentSlotTime = this._bft.method.getSlotTime(currentSlot);
 
 		const waitThreshold = this._blockTime / 5;
-		const lastBlockSlot = this._consensus.getSlotNumber(this._chain.lastBlock.header.timestamp);
+		const lastBlockSlot = this._bft.method.getSlotNumber(this._chain.lastBlock.header.timestamp);
 
 		if (currentSlot === lastBlockSlot) {
 			this._logger.trace({ slot: currentSlot }, 'Block already generated for the current slot');
@@ -443,12 +439,12 @@ export class Generator {
 
 		const nextHeight = this._chain.lastBlock.header.height + 1;
 
-		const generator = await this._consensus.getGeneratorAtTimestamp(
+		const generator = await this._bft.method.getGeneratorAtTimestamp(
 			stateStore,
 			nextHeight,
 			currentTime,
 		);
-		const validatorKeypair = this._keypairs.get(generator);
+		const validatorKeypair = this._keypairs.get(generator.address);
 
 		if (validatorKeypair === undefined) {
 			this._logger.debug({ currentSlot }, 'Waiting for delegate slot');
@@ -471,7 +467,7 @@ export class Generator {
 		}
 		const generatedBlock = await this._generateBlock({
 			height: nextHeight,
-			generatorAddress: generator,
+			generatorAddress: generator.address,
 			privateKey: validatorKeypair.privateKey,
 			timestamp: currentTime,
 		});
@@ -479,7 +475,7 @@ export class Generator {
 			{
 				id: generatedBlock.header.id,
 				height: generatedBlock.header.height,
-				generatorAddress: addressUtil.getLisk32AddressFromAddress(generator),
+				generatorAddress: addressUtil.getLisk32AddressFromAddress(generator.address),
 			},
 			'Generated new block',
 		);
@@ -498,6 +494,11 @@ export class Generator {
 			generatorAddress,
 		);
 		const aggregateCommit = await this._consensus.getAggregateCommit(stateStore);
+		const impliesMaxPrevotes = await this._bft.method.impliesMaximalPrevotes(stateStore, {
+			height,
+			maxHeightGenerated,
+			generatorAddress,
+		});
 
 		const blockHeader = new BlockHeader({
 			generatorAddress,
@@ -506,6 +507,7 @@ export class Generator {
 			version: BLOCK_VERSION,
 			maxHeightPrevoted,
 			maxHeightGenerated,
+			impliesMaxPrevotes,
 			aggregateCommit,
 			assetRoot: Buffer.alloc(0),
 			stateRoot: Buffer.alloc(0),
@@ -529,11 +531,9 @@ export class Generator {
 		const blockAssets = new BlockAssets(assets);
 
 		await this._bft.beforeTransactionsExecute(stateStore, blockHeader);
-		const consensus = await this._consensus.getConsensusParams(stateStore, blockHeader);
 		const { events: beforeTxsEvents } = await this._abi.beforeTransactionsExecute({
 			contextID,
 			assets: blockAssets.getAll(),
-			consensus,
 		});
 		blockEvents.push(...beforeTxsEvents.map(e => new Event(e)));
 		if (input.transactions) {
@@ -541,7 +541,6 @@ export class Generator {
 				contextID,
 				blockHeader,
 				blockAssets,
-				consensus,
 				input.transactions,
 			);
 			blockEvents.push(...txEvents);
@@ -550,21 +549,16 @@ export class Generator {
 			const {
 				transactions: executedTxs,
 				events: txEvents,
-			} = await this._forgingStrategy.getTransactionsForBlock(
-				contextID,
-				blockHeader,
-				blockAssets,
-				consensus,
-			);
+			} = await this._forgingStrategy.getTransactionsForBlock(contextID, blockHeader, blockAssets);
 			blockEvents.push(...txEvents);
 			transactions = executedTxs;
 		}
 		const afterResult = await this._abi.afterTransactionsExecute({
 			contextID,
 			assets: blockAssets.getAll(),
-			consensus,
 			transactions: transactions.map(tx => tx.toObject()),
 		});
+		blockEvents.push(...afterResult.events.map(e => new Event(e)));
 		if (
 			!isEmptyConsensusUpdate(
 				afterResult.preCommitThreshold,
@@ -572,14 +566,12 @@ export class Generator {
 				afterResult.nextValidators,
 			)
 		) {
-			const activeValidators = afterResult.nextValidators.filter(v => v.bftWeight > BigInt(0));
 			await this._bft.method.setBFTParameters(
 				stateStore,
 				afterResult.preCommitThreshold,
 				afterResult.certificateThreshold,
-				activeValidators,
+				afterResult.nextValidators,
 			);
-			await this._bft.method.setGeneratorKeys(stateStore, afterResult.nextValidators);
 		}
 
 		stateStore.finalize(new Batch());
@@ -593,7 +585,9 @@ export class Generator {
 
 		// Add event root calculation
 		const keypairs = [];
-		for (const e of blockEvents) {
+		for (let index = 0; index < blockEvents.length; index += 1) {
+			const e = blockEvents[index];
+			e.setIndex(index);
 			const pairs = e.keyPair();
 			for (const pair of pairs) {
 				keypairs.push(pair);
@@ -708,7 +702,6 @@ export class Generator {
 		contextID: Buffer,
 		header: BlockHeader,
 		assets: BlockAssets,
-		consensus: ConsensusParams,
 		transactions: Transaction[],
 	): Promise<{ transactions: Transaction[]; events: Event[] }> {
 		const executedTransactions = [];
@@ -718,6 +711,7 @@ export class Generator {
 				const { result: verifyResult } = await this._abi.verifyTransaction({
 					contextID,
 					transaction,
+					header: header.toObject(),
 				});
 				if (verifyResult !== TransactionVerifyResult.OK) {
 					throw new Error('Transaction is not valid');
@@ -726,7 +720,6 @@ export class Generator {
 					contextID,
 					header: header.toObject(),
 					transaction,
-					consensus,
 					assets: assets.getAll(),
 					dryRun: false,
 				});

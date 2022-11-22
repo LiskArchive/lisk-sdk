@@ -20,7 +20,7 @@ import { when } from 'jest-when';
 import { CCMsg, MessageRecoveryParams } from '../../../../../../src/modules/interoperability/types';
 import { SidechainMessageRecoveryCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/message_recovery';
 import { CommandExecuteContext, SidechainInteroperabilityModule } from '../../../../../../src';
-import { BaseInteroperableMethod } from '../../../../../../src/modules/interoperability/base_interoperable_method';
+import { BaseCCMethod } from '../../../../../../src/modules/interoperability/base_cc_method';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { TransactionContext } from '../../../../../../src/state_machine';
 import {
@@ -85,7 +85,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 	let messageRecoveryCommand: SidechainMessageRecoveryCommand;
 	let commandExecuteContext: CommandExecuteContext<MessageRecoveryParams>;
-	let interoperableCCMethods: Map<string, BaseInteroperableMethod>;
+	let interoperableCCMethods: Map<string, BaseCCMethod>;
 	let ccCommands: Map<string, BaseCCCommand[]>;
 	let transaction: Transaction;
 	let transactionParams: MessageRecoveryParams;
@@ -102,6 +102,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 			interopMod.events,
 			interoperableCCMethods,
 			ccCommands,
+			interopMod['internalMethod'],
 		);
 
 		ccms = [
@@ -129,7 +130,6 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 		commandExecuteContext = createCommandExecuteContext(ccms);
 
-		jest.spyOn(messageRecoveryCommand, 'getInteroperabilityInternalMethod' as any);
 		jest.spyOn(regularMerkleTree, 'calculateRootFromUpdateData').mockReturnValue(Buffer.alloc(32));
 
 		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
@@ -266,7 +266,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 				throw new Error('beforeRecoverCCM Error');
 			}),
 			name: MODULE_NAME_INTEROPERABILITY,
-		} as unknown) as BaseInteroperableMethod;
+		} as unknown) as BaseCCMethod;
 
 		interoperableCCMethods.set(MODULE_NAME_INTEROPERABILITY, method);
 

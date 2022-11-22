@@ -159,14 +159,18 @@ export const isCurrentlyPunished = (height: number, pomHeights: ReadonlyArray<nu
 	return false;
 };
 
+export const getWaitTime = (senderAddress: Buffer, delegateAddress: Buffer): number =>
+	delegateAddress.equals(senderAddress) ? WAIT_TIME_SELF_VOTE : WAIT_TIME_VOTE;
+
+export const getPunishTime = (senderAddress: Buffer, delegateAddress: Buffer): number =>
+	delegateAddress.equals(senderAddress) ? PUNISHMENT_PERIOD : VOTER_PUNISH_TIME;
+
 export const hasWaited = (
 	unlockingObject: UnlockingObject,
 	senderAddress: Buffer,
 	height: number,
 ) => {
-	const delayedAvailability = unlockingObject.delegateAddress.equals(senderAddress)
-		? WAIT_TIME_SELF_VOTE
-		: WAIT_TIME_VOTE;
+	const delayedAvailability = getWaitTime(senderAddress, unlockingObject.delegateAddress);
 
 	return !(height - unlockingObject.unvoteHeight < delayedAvailability);
 };
@@ -182,22 +186,14 @@ export const isPunished = (
 	}
 
 	const lastPomHeight = pomHeights[pomHeights.length - 1];
-
-	// If self-vote
-	if (unlockingObject.delegateAddress.equals(senderAddress)) {
-		return (
-			height - lastPomHeight < PUNISHMENT_PERIOD &&
-			lastPomHeight < unlockingObject.unvoteHeight + WAIT_TIME_SELF_VOTE
-		);
-	}
-
+	const waitTime = getWaitTime(senderAddress, unlockingObject.delegateAddress);
+	const punishTime = getPunishTime(senderAddress, unlockingObject.delegateAddress);
 	return (
-		height - lastPomHeight < VOTER_PUNISH_TIME &&
-		lastPomHeight < unlockingObject.unvoteHeight + WAIT_TIME_VOTE
+		height - lastPomHeight < punishTime && lastPomHeight < unlockingObject.unvoteHeight + waitTime
 	);
 };
 
-export const lastHeightOfRound = (height: number, genesisHeight: number, roundLength: number) => {
+const lastHeightOfRound = (height: number, genesisHeight: number, roundLength: number) => {
 	const roundNumber = Math.ceil((height - genesisHeight) / roundLength);
 
 	return roundNumber * roundLength + genesisHeight;

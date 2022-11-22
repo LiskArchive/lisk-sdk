@@ -16,7 +16,7 @@ import { utils as cryptoUtils } from '@liskhq/lisk-cryptography';
 import { StoreGetter } from '../../../../../src';
 import {
 	ChainValidatorsStore,
-	updateActiveValidators,
+	calculateNewActiveValidators,
 } from '../../../../../src/modules/interoperability/stores/chain_validators';
 import * as chainValidators from '../../../../../src/modules/interoperability/stores/chain_validators';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
@@ -42,21 +42,21 @@ describe('ChainValidatorsStore', () => {
 		});
 	});
 
-	describe('updateActiveValidators', () => {
+	describe('calculateNewActiveValidators', () => {
 		const validator1 = {
-			blsKey: cryptoUtils.getRandomBytes(48),
+			blsKey: Buffer.from([0, 0, 0, 2]),
 			bftWeight: BigInt(1),
 		};
 		const validator2 = {
-			blsKey: cryptoUtils.getRandomBytes(48),
+			blsKey: Buffer.from([0, 0, 0, 1]),
 			bftWeight: BigInt(2),
 		};
 		const activeValidators = [validator1, validator2];
 
 		it('should update the existing validator bftWeight with the updated one', () => {
-			const activeValidatorsUpdate = [validator1, { ...validator2, bftWeight: BigInt(3) }];
+			const activeValidatorsUpdate = [{ ...validator2, bftWeight: BigInt(3) }, validator1];
 
-			expect(updateActiveValidators(activeValidators, activeValidatorsUpdate)).toEqual(
+			expect(calculateNewActiveValidators(activeValidators, activeValidatorsUpdate)).toEqual(
 				activeValidatorsUpdate,
 			);
 		});
@@ -71,7 +71,7 @@ describe('ChainValidatorsStore', () => {
 			// Should be in lexicographical order
 			activeValidatorsUpdate.sort((v1, v2) => v1.blsKey.compare(v2.blsKey));
 
-			expect(updateActiveValidators(activeValidators, activeValidatorsUpdate)).toEqual(
+			expect(calculateNewActiveValidators(activeValidators, activeValidatorsUpdate)).toEqual(
 				activeValidatorsUpdate,
 			);
 		});
@@ -85,7 +85,7 @@ describe('ChainValidatorsStore', () => {
 				validator2,
 				{ ...validator3, bftWeight: BigInt(0) },
 			];
-			const updatedValidators = updateActiveValidators(
+			const updatedValidators = calculateNewActiveValidators(
 				activeValidatorsLocal,
 				activeValidatorsUpdate,
 			);
@@ -101,7 +101,7 @@ describe('ChainValidatorsStore', () => {
 				bftWeight: BigInt(1),
 				blsKey: cryptoUtils.getRandomBytes(48),
 			}));
-			jest.spyOn(chainValidators, 'updateActiveValidators').mockReturnValue(newValidators);
+			jest.spyOn(chainValidators, 'calculateNewActiveValidators').mockReturnValue(newValidators);
 			await chainValidatorsStore.updateValidators(context, chainID, {
 				certificateThreshold: BigInt(65),
 				activeValidators: newValidators,

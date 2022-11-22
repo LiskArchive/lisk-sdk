@@ -27,7 +27,7 @@ import {
 	PomTransactionParams,
 } from '../../../../../src/modules/dpos_v2/types';
 import { VerifyStatus } from '../../../../../src/state_machine/types';
-import { DEFAULT_TOKEN_ID } from '../../../../utils/mocks/transaction';
+import { DEFAULT_LOCAL_ID } from '../../../../utils/mocks/transaction';
 import * as bftUtil from '../../../../../src/engine/bft/utils';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
@@ -82,8 +82,9 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		mockValidatorsMethod = {
 			setValidatorGeneratorKey: jest.fn(),
 			registerValidatorKeys: jest.fn(),
-			getValidatorAccount: jest.fn().mockResolvedValue({ generatorKey: publicKey }),
+			getValidatorKeys: jest.fn().mockResolvedValue({ generatorKey: publicKey }),
 			getGeneratorsBetweenTimestamps: jest.fn(),
+			setValidatorsParams: jest.fn(),
 		};
 		pomCommand.addDependencies({
 			tokenMethod: mockTokenMethod,
@@ -110,7 +111,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		header2 = fakeBlockHeader2 as BlockHeader;
 
 		pomCommand.init({
-			tokenIDDPoS: DEFAULT_TOKEN_ID,
+			tokenIDDPoS: DEFAULT_LOCAL_ID,
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		transaction = new Transaction({
@@ -571,7 +572,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
 			when(pomCommand['_tokenMethod'].getAvailableBalance as any)
-				.calledWith(expect.anything(), delegate1Address, DEFAULT_TOKEN_ID)
+				.calledWith(expect.anything(), delegate1Address, DEFAULT_LOCAL_ID)
 				.mockResolvedValue(remainingBalance as never);
 
 			await pomCommand.execute(context);
@@ -580,7 +581,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				expect.anything(),
 				delegate1Address,
 				context.transaction.senderAddress,
-				DEFAULT_TOKEN_ID,
+				DEFAULT_LOCAL_ID,
 				reportPunishmentReward,
 			);
 		});
@@ -603,7 +604,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
 			when(pomCommand['_tokenMethod'].getAvailableBalance as any)
-				.calledWith(expect.anything(), delegate1Address, DEFAULT_TOKEN_ID)
+				.calledWith(expect.anything(), delegate1Address, DEFAULT_LOCAL_ID)
 				.mockResolvedValue(remainingBalance as never);
 
 			await pomCommand.execute(context);
@@ -613,7 +614,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				expect.anything(),
 				delegate1Address,
 				context.transaction.senderAddress,
-				DEFAULT_TOKEN_ID,
+				DEFAULT_LOCAL_ID,
 				BigInt(0),
 			);
 		});
@@ -636,7 +637,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
 			when(pomCommand['_tokenMethod'].getAvailableBalance as any)
-				.calledWith(expect.anything(), delegate1Address, DEFAULT_TOKEN_ID)
+				.calledWith(expect.anything(), delegate1Address, DEFAULT_LOCAL_ID)
 				.mockResolvedValue(remainingBalance as never);
 
 			await pomCommand.execute(context);
@@ -645,7 +646,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				expect.anything(),
 				delegate1Address,
 				context.transaction.senderAddress,
-				DEFAULT_TOKEN_ID,
+				DEFAULT_LOCAL_ID,
 				remainingBalance,
 			);
 		});

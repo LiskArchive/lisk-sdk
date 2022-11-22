@@ -15,7 +15,7 @@
 import { sparseMerkleTree } from '@liskhq/lisk-tree';
 import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { MainchainInteroperabilityInternalMethod } from '../store';
+import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { EMPTY_HASH } from '../../constants';
 import { stateRecoveryParamsSchema } from '../../schemas';
@@ -28,9 +28,8 @@ import {
 } from '../../../../state_machine';
 import { createRecoverCCMsgMethodContext } from '../../../../testing';
 import { TerminatedStateStore } from '../../stores/terminated_state';
-import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 
-export class StateRecoveryCommand extends BaseInteroperabilityCommand {
+export class StateRecoveryCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = stateRecoveryParamsSchema;
 
 	public async verify(
@@ -145,16 +144,5 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 			...terminatedStateAccount,
 			stateRoot: root,
 		});
-	}
-
-	protected getInteroperabilityInternalMethod(
-		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityInternalMethod {
-		return new MainchainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			context,
-			this.interoperableCCMethods,
-		);
 	}
 }

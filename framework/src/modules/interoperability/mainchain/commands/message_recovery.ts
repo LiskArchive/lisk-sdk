@@ -21,19 +21,23 @@ import {
 	CommandVerifyContext,
 	VerificationResult,
 } from '../../../../state_machine/types';
-import { CCMsg, MessageRecoveryParams } from '../../types';
+import { CCMsg, CrossChainMessageContext, MessageRecoveryParams } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
-import { MainchainInteroperabilityInternalMethod } from '../store';
+import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 import { verifyMessageRecovery, swapReceivingAndSendingChainIDs } from '../../utils';
-import { CCMStatusCode, EMPTY_BYTES, EMPTY_FEE_ADDRESS } from '../../constants';
+import { EMPTY_BYTES, CCMStatusCode } from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
-import { BaseInteroperableMethod } from '../../base_interoperable_method';
+import { BaseCCMethod } from '../../base_cc_method';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from '../../stores/terminated_outbox';
-import { StoreGetter, ImmutableStoreGetter } from '../../../base_store';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { ChainAccountStore, ChainStatus } from '../../stores/chain_account';
+import {
+	CCMProcessedCode,
+	CcmProcessedEvent,
+	CCMProcessedResult,
+} from '../../events/ccm_processed';
 
-export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand {
+export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = messageRecoveryParamsSchema;
 
 	public get name(): string {
@@ -47,13 +51,12 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			params: { chainID, idxs, crossChainMessages, siblingHashes },
 		} = context;
 		const chainIdAsBuffer = chainID;
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 		let terminatedChainOutboxAccount: TerminatedOutboxAccount | undefined;
 
 		try {
-			terminatedChainOutboxAccount = await interoperabilityInternalMethod.getTerminatedOutboxAccount(
-				chainIdAsBuffer,
-			);
+			terminatedChainOutboxAccount = await this.stores
+				.get(TerminatedOutboxStore)
+				.get(context, chainIdAsBuffer);
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -67,7 +70,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 	}
 
 	public async execute(context: CommandExecuteContext<MessageRecoveryParams>): Promise<void> {
-		const { transaction, params, getMethodContext, logger, chainID, getStore } = context;
+		const { params } = context;
 
 		const chainIdAsBuffer = params.chainID;
 
@@ -78,18 +81,9 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 		for (const ccm of deserializedCCMs) {
 			const methodsWithBeforeRecoverCCM = [...this.interoperableCCMethods.values()].filter(method =>
 				Reflect.has(method, 'beforeRecoverCCM'),
-			) as Pick<Required<BaseInteroperableMethod>, 'beforeRecoverCCM'>[];
+			) as Pick<Required<BaseCCMethod>, 'beforeRecoverCCM'>[];
 			for (const method of methodsWithBeforeRecoverCCM) {
-				await method.beforeRecoverCCM({
-					ccm,
-					trsSender: transaction.senderAddress,
-					eventQueue: context.eventQueue,
-					getMethodContext,
-					logger,
-					chainID,
-					getStore,
-					feeAddress: EMPTY_FEE_ADDRESS,
-				});
+				await method.beforeRecoverCCM({ ...context, ccm });
 			}
 
 			const recoveryCCM: CCMsg = {
@@ -100,8 +94,6 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			const encodedUpdatedCCM = codec.encode(ccmSchema, recoveryCCM);
 			updatedCCMs.push(encodedUpdatedCCM);
 		}
-
-		const interoperabilityInternalMethod = this.getInteroperabilityInternalMethod(context);
 
 		const doesTerminatedOutboxAccountExist = await this.stores
 			.get(TerminatedOutboxStore)
@@ -148,25 +140,13 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 					continue;
 				}
 
-				// TODO: Fix in #7727
-				// const ccCommandExecuteContext = createCCCommandExecuteContext({
-				// 	ccm: newCcm,
-				// 	ccmSize: getCCMSize(ccm),
-				// 	eventQueue: context.eventQueue,
-				// 	feeAddress: EMPTY_FEE_ADDRESS,
-				// 	getMethodContext,
-				// 	getStore,
-				// 	logger,
-				// 	chainID,
-				// });
-
-				// await ccCommand.execute(ccCommandExecuteContext);
+				await ccCommand.execute({ ...context, ccm: newCcm });
 				continue;
 			}
 
 			const ccmChainId = newCcm.receivingChainID;
 			const chainAccountExist = await this.stores.get(ChainAccountStore).has(context, ccmChainId);
-			const isLive = await interoperabilityInternalMethod.isLive(ccmChainId, Date.now());
+			const isLive = await this.internalMethod.isLive(context, ccmChainId, Date.now());
 
 			if (!chainAccountExist || !isLive) {
 				continue;
@@ -178,18 +158,237 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 				continue;
 			}
 
-			await interoperabilityInternalMethod.addToOutbox(ccmChainId, newCcm);
+			await this.internalMethod.addToOutbox(context, ccmChainId, newCcm);
 		}
 	}
 
-	protected getInteroperabilityInternalMethod(
-		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityInternalMethod {
-		return new MainchainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			context,
-			this.interoperableCCMethods,
-		);
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-expect-error
+	private async _applyRecovery(context: CrossChainMessageContext): Promise<void> {
+		const { logger } = context;
+		const ccmID = utils.hash(codec.encode(ccmSchema, context.ccm));
+		const ccm: CCMsg = {
+			...context.ccm,
+			status: CCMStatusCode.RECOVERED,
+			sendingChainID: context.ccm.receivingChainID,
+			receivingChainID: context.ccm.sendingChainID,
+		};
+
+		try {
+			for (const [module, method] of this.interoperableCCMethods.entries()) {
+				if (method.verifyCrossChainMessage) {
+					logger.debug(
+						{
+							moduleName: module,
+							commandName: ccm.crossChainCommand,
+							ccmID: ccmID.toString('hex'),
+						},
+						'Execute verifyCrossChainMessage',
+					);
+					await method.verifyCrossChainMessage(context);
+				}
+			}
+		} catch (error) {
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+				result: CCMProcessedResult.DISCARDED,
+			});
+			return;
+		}
+		const commands = this.ccCommands.get(ccm.module);
+		if (!commands) {
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.MODULE_NOT_SUPPORTED,
+				result: CCMProcessedResult.DISCARDED,
+			});
+			return;
+		}
+		const command = commands.find(com => com.name === ccm.crossChainCommand);
+		if (!command) {
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
+				result: CCMProcessedResult.DISCARDED,
+			});
+			return;
+		}
+		if (command.verify) {
+			try {
+				await command.verify(context);
+			} catch (error) {
+				logger.debug(
+					{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+					'Fail to verify cross chain command.',
+				);
+				this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+					ccmID,
+					code: CCMProcessedCode.INVALID_CCM_VERIFY_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+				});
+				return;
+			}
+		}
+		const baseEventSnapshotID = context.eventQueue.createSnapshot();
+		const baseStateSnapshotID = context.stateStore.createSnapshot();
+
+		try {
+			for (const [module, method] of this.interoperableCCMethods.entries()) {
+				if (method.beforeCrossChainCommandExecute) {
+					logger.debug(
+						{
+							moduleName: module,
+							commandName: ccm.crossChainCommand,
+							ccmID: ccmID.toString('hex'),
+						},
+						'Execute beforeCrossChainCommandExecute',
+					);
+					await method.beforeCrossChainCommandExecute(context);
+				}
+			}
+		} catch (error) {
+			context.eventQueue.restoreSnapshot(baseEventSnapshotID);
+			context.stateStore.restoreSnapshot(baseStateSnapshotID);
+			logger.debug(
+				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+				'Fail to execute beforeCrossChainCommandExecute.',
+			);
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
+				result: CCMProcessedResult.DISCARDED,
+			});
+			return;
+		}
+
+		const execEventSnapshotID = context.eventQueue.createSnapshot();
+		const execStateSnapshotID = context.stateStore.createSnapshot();
+
+		try {
+			const params = command.schema ? codec.decode(command.schema, ccm.params) : {};
+			await command.execute({ ...context, params });
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.SUCCESS,
+				result: CCMProcessedResult.APPLIED,
+			});
+		} catch (error) {
+			context.eventQueue.restoreSnapshot(execEventSnapshotID);
+			context.stateStore.restoreSnapshot(execStateSnapshotID);
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.FAILED_CCM,
+				result: CCMProcessedResult.DISCARDED,
+			});
+		}
+
+		try {
+			for (const [module, method] of this.interoperableCCMethods.entries()) {
+				if (method.afterCrossChainCommandExecute) {
+					logger.debug(
+						{
+							moduleName: module,
+							commandName: ccm.crossChainCommand,
+							ccmID: ccmID.toString('hex'),
+						},
+						'Execute afterCrossChainCommandExecute',
+					);
+					await method.afterCrossChainCommandExecute(context);
+				}
+			}
+		} catch (error) {
+			context.eventQueue.restoreSnapshot(baseEventSnapshotID);
+			context.stateStore.restoreSnapshot(baseStateSnapshotID);
+			logger.debug(
+				{ err: error as Error, moduleName: module, commandName: ccm.crossChainCommand },
+				'Fail to execute afterCrossChainCommandExecute',
+			);
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
+				result: CCMProcessedResult.DISCARDED,
+			});
+		}
+	}
+
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-expect-error
+	private async _forwardRecovery(context: CrossChainMessageContext): Promise<void> {
+		const { logger } = context;
+		const ccmID = utils.hash(codec.encode(ccmSchema, context.ccm));
+		const ccm: CCMsg = {
+			...context.ccm,
+			status: CCMStatusCode.RECOVERED,
+			sendingChainID: context.ccm.receivingChainID,
+			receivingChainID: context.ccm.sendingChainID,
+		};
+
+		try {
+			for (const [module, method] of this.interoperableCCMethods.entries()) {
+				if (method.verifyCrossChainMessage) {
+					logger.debug(
+						{
+							moduleName: module,
+							commandName: ccm.crossChainCommand,
+							ccmID: ccmID.toString('hex'),
+						},
+						'Execute verifyCrossChainMessage',
+					);
+					await method.verifyCrossChainMessage(context);
+				}
+			}
+		} catch (error) {
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+				result: CCMProcessedResult.DISCARDED,
+			});
+			logger.debug(
+				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+				'Fail to execute verifyCrossChainMessage.',
+			);
+			return;
+		}
+		const baseEventSnapshotID = context.eventQueue.createSnapshot();
+		const baseStateSnapshotID = context.stateStore.createSnapshot();
+
+		try {
+			for (const [module, method] of this.interoperableCCMethods.entries()) {
+				if (method.beforeCrossChainMessageForwarding) {
+					logger.debug(
+						{
+							moduleName: module,
+							commandName: ccm.crossChainCommand,
+							ccmID: ccmID.toString('hex'),
+						},
+						'Execute beforeCrossChainMessageForwarding',
+					);
+					await method.beforeCrossChainMessageForwarding(context);
+				}
+			}
+		} catch (error) {
+			context.eventQueue.restoreSnapshot(baseEventSnapshotID);
+			context.stateStore.restoreSnapshot(baseStateSnapshotID);
+			logger.debug(
+				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+				'Fail to execute beforeCrossChainMessageForwarding.',
+			);
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
+				result: CCMProcessedResult.DISCARDED,
+			});
+			return;
+		}
+
+		await this.internalMethod.addToOutbox(context, ccm.receivingChainID, ccm);
+		const recoveredCCMID = utils.hash(codec.encode(ccmSchema, ccm));
+
+		this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+			ccmID: recoveredCCMID,
+			code: CCMProcessedCode.SUCCESS,
+			result: CCMProcessedResult.FORWARDED,
+		});
 	}
 }

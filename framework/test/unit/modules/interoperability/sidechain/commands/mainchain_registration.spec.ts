@@ -26,14 +26,11 @@ import {
 	EMPTY_HASH,
 	EVENT_NAME_CCM_SEND_SUCCESS,
 	EVENT_NAME_CHAIN_ACCOUNT_UPDATED,
-	MAINCHAIN_ID_BUFFER,
 	MAINCHAIN_NAME,
-	MAX_UINT32,
 	MODULE_NAME_INTEROPERABILITY,
 	NUMBER_MAINCHAIN_VALIDATORS,
 	TAG_CHAIN_REG_MESSAGE,
 	THRESHOLD_MAINCHAIN,
-	TOKEN_ID_LSK_MAINCHAIN,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	ccmSchema,
@@ -44,6 +41,7 @@ import {
 import {
 	ActiveValidators,
 	MainchainRegistrationParams,
+	ValidatorsMethod,
 } from '../../../../../../src/modules/interoperability/types';
 import {
 	VerifyStatus,
@@ -76,14 +74,17 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 
 describe('Mainchain registration command', () => {
 	const interopMod = new SidechainInteroperabilityModule();
-
+	interopMod['internalMethod'] = { addToOutbox: jest.fn() } as any;
 	const unsortedMainchainValidators: ActiveValidators[] = [];
 	for (let i = 0; i < NUMBER_MAINCHAIN_VALIDATORS; i += 1) {
 		unsortedMainchainValidators.push({ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) });
 	}
+	const ownChainID = Buffer.from([0, 1, 0, 0]);
+	const mainchainID = Buffer.from([0, 0, 0, 0]);
+	const mainchainTokenID = Buffer.concat([mainchainID, Buffer.alloc(4)]);
 	const mainchainValidators = sortValidatorsByBLSKey(unsortedMainchainValidators);
 	const transactionParams: MainchainRegistrationParams = {
-		ownChainID: utils.intToBuffer(11, 4),
+		ownChainID,
 		ownName: 'testchain',
 		mainchainValidators,
 		aggregationBits: Buffer.alloc(0),
@@ -104,6 +105,7 @@ describe('Mainchain registration command', () => {
 	let verifyContext: CommandVerifyContext<MainchainRegistrationParams>;
 	let ownChainAccountSubstore: OwnChainAccountStore;
 	let stateStore: PrefixedStateReadWriter;
+	let validatorsMethod: ValidatorsMethod;
 
 	beforeEach(() => {
 		mainchainRegistrationCommand = new MainchainRegistrationCommand(
@@ -111,7 +113,13 @@ describe('Mainchain registration command', () => {
 			interopMod.events,
 			new Map(),
 			new Map(),
+			interopMod['internalMethod'],
 		);
+		validatorsMethod = {
+			getValidatorKeys: jest.fn(),
+			getValidatorsParams: jest.fn(),
+		};
+		mainchainRegistrationCommand.addDependencies(validatorsMethod);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		ownChainAccountSubstore = interopMod.stores.get(OwnChainAccountStore);
 	});
@@ -123,10 +131,9 @@ describe('Mainchain registration command', () => {
 				name: 'testchain',
 				nonce: BigInt(0),
 			});
-			verifyContext = createTransactionContext({
-				transaction,
+			(validatorsMethod.getValidatorsParams as jest.Mock).mockResolvedValue({
 				certificateThreshold: BigInt(40),
-				currentValidators: [
+				validators: [
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(10),
@@ -140,6 +147,10 @@ describe('Mainchain registration command', () => {
 						blsKey: utils.getRandomBytes(48),
 					},
 				],
+			});
+			verifyContext = createTransactionContext({
+				chainID: ownChainID,
+				transaction,
 				stateStore,
 			}).createCommandVerifyContext<MainchainRegistrationParams>(mainchainRegParams);
 		});
@@ -149,14 +160,12 @@ describe('Mainchain registration command', () => {
 			expect(result.status).toBe(VerifyStatus.OK);
 		});
 
-		it('should return error if own chain id is greater than maximum uint32 number', async () => {
-			verifyContext.params.ownChainID = utils.intToBuffer(MAX_UINT32 + 1, 5);
+		it('should return error if own chain id is greater than 4 bytes', async () => {
+			verifyContext.params.ownChainID = utils.getRandomBytes(5);
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				`Own chain id cannot be greater than maximum uint32 number.`,
-			);
+			expect(result.error?.message).toInclude(`Property '.ownChainID' maxLength exceeded`);
 		});
 
 		it('should return error if bls key is not 48 bytes', async () => {
@@ -176,7 +185,7 @@ describe('Mainchain registration command', () => {
 		});
 
 		it('should return error if own chain id does not match own chain account id', async () => {
-			verifyContext.params.ownChainID = utils.intToBuffer(10, 4);
+			verifyContext.params.ownChainID = Buffer.from([0, 9, 9, 9]);
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
@@ -226,17 +235,17 @@ describe('Mainchain registration command', () => {
 		});
 
 		it('should return error if invalid bft weight', async () => {
-			verifyContext.params.mainchainValidators[0].bftWeight = BigInt(5);
+			verifyContext.params.mainchainValidators[0].bftWeight = BigInt(0);
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Validator bft weight must be equal to 1');
+			expect(result.error?.message).toInclude('Validator bft weight must be positive integer');
 		});
 	});
 
 	describe('execute', () => {
 		const params = {
-			ownChainID: utils.intToBuffer(11, 4),
+			ownChainID,
 			ownName: 'testchain',
 			mainchainValidators,
 			aggregationBits: Buffer.alloc(0),
@@ -293,12 +302,15 @@ describe('Mainchain registration command', () => {
 			jest.spyOn(ownChainAccountSubstore, 'set');
 			jest.spyOn(chainAccountUpdatedEvent, 'log');
 			jest.spyOn(ccmSendSuccessEvent, 'log');
-			jest.spyOn(invalidRegistrationSignatureEvent, 'log');
+			jest.spyOn(invalidRegistrationSignatureEvent, 'error');
 			jest.spyOn(crypto.bls, 'verifyWeightedAggSig').mockReturnValue(true);
 
-			context = createTransactionContext({
+			(validatorsMethod.getValidatorsParams as jest.Mock).mockResolvedValue({
 				certificateThreshold: BigInt(40),
-				currentValidators: validatorAccounts,
+				validators: validatorAccounts,
+			});
+			context = createTransactionContext({
+				chainID: ownChainID,
 				transaction,
 			}).createCommandExecuteContext(mainchainRegParams);
 		});
@@ -339,7 +351,7 @@ describe('Mainchain registration command', () => {
 			await expect(mainchainRegistrationCommand.execute(context)).rejects.toThrow(
 				'Invalid signature property.',
 			);
-			expect(invalidRegistrationSignatureEvent.log).toHaveBeenCalledWith(
+			expect(invalidRegistrationSignatureEvent.error).toHaveBeenCalledWith(
 				expect.anything(),
 				params.ownChainID,
 			);
@@ -352,7 +364,7 @@ describe('Mainchain registration command', () => {
 			// Assert
 			expect(chainDataSubstore.set).toHaveBeenCalledWith(
 				expect.anything(),
-				MAINCHAIN_ID_BUFFER,
+				mainchainID,
 				chainAccount,
 			);
 		});
@@ -363,7 +375,7 @@ describe('Mainchain registration command', () => {
 				inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				partnerChainOutboxRoot: EMPTY_HASH,
-				messageFeeTokenID: TOKEN_ID_LSK_MAINCHAIN,
+				messageFeeTokenID: mainchainTokenID,
 			};
 
 			// Act
@@ -372,7 +384,7 @@ describe('Mainchain registration command', () => {
 			// Assert
 			expect(channelDataSubstore.set).toHaveBeenCalledWith(
 				expect.anything(),
-				MAINCHAIN_ID_BUFFER,
+				mainchainID,
 				expectedValue,
 			);
 		});
@@ -388,7 +400,7 @@ describe('Mainchain registration command', () => {
 			await mainchainRegistrationCommand.execute(context);
 			expect(chainValidatorsSubstore.set).toHaveBeenCalledWith(
 				expect.anything(),
-				MAINCHAIN_ID_BUFFER,
+				mainchainID,
 				expectedValue,
 			);
 		});
@@ -403,14 +415,14 @@ describe('Mainchain registration command', () => {
 			// Assert
 			expect(outboxRootSubstore.set).toHaveBeenCalledWith(
 				expect.anything(),
-				MAINCHAIN_ID_BUFFER,
+				mainchainID,
 				expectedValue,
 			);
 		});
 
 		it('should add an entry to own chain account substore', async () => {
 			// Arrange
-			const expectedValue = { name: params.ownName, chainID: params.ownChainID, nonce: BigInt(0) };
+			const expectedValue = { name: params.ownName, chainID: params.ownChainID, nonce: BigInt(1) };
 
 			// Act
 			await mainchainRegistrationCommand.execute(context);
@@ -440,28 +452,23 @@ describe('Mainchain registration command', () => {
 			// Assert
 			expect(chainAccountUpdatedEvent.log).toHaveBeenCalledWith(
 				expect.anything(),
-				MAINCHAIN_ID_BUFFER,
+				mainchainID,
 				mainchainAccount,
 			);
 		});
 
 		it('should call addToOutbox with an appropriate ccm', async () => {
 			// Arrange
-			const interopStore = { addToOutbox: jest.fn() };
-			mainchainRegistrationCommand['getInteroperabilityInternalMethod'] = jest
-				.fn()
-				.mockReturnValue(interopStore);
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
-				chainID: MAINCHAIN_ID_BUFFER,
 				name: MAINCHAIN_NAME,
-				messageFeeTokenID: TOKEN_ID_LSK_MAINCHAIN,
+				messageFeeTokenID: mainchainTokenID,
 			});
 			const ccm = {
 				nonce: BigInt(0),
 				module: MODULE_NAME_INTEROPERABILITY,
 				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 				sendingChainID: params.ownChainID,
-				receivingChainID: MAINCHAIN_ID_BUFFER,
+				receivingChainID: mainchainID,
 				fee: BigInt(0),
 				status: CCMStatusCode.OK,
 				params: encodedParams,
@@ -471,7 +478,11 @@ describe('Mainchain registration command', () => {
 			await mainchainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(interopStore.addToOutbox).toHaveBeenCalledWith(MAINCHAIN_ID_BUFFER, ccm);
+			expect(interopMod['internalMethod'].addToOutbox).toHaveBeenCalledWith(
+				expect.anything(),
+				mainchainID,
+				ccm,
+			);
 		});
 
 		it('should update nonce in own chain acount substore', async () => {
@@ -491,9 +502,8 @@ describe('Mainchain registration command', () => {
 
 		it(`should emit ${EVENT_NAME_CCM_SEND_SUCCESS} event`, async () => {
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
-				chainID: MAINCHAIN_ID_BUFFER,
 				name: MAINCHAIN_NAME,
-				messageFeeTokenID: TOKEN_ID_LSK_MAINCHAIN,
+				messageFeeTokenID: mainchainTokenID,
 			});
 			const ownChainAccount = {
 				name: params.ownName,
@@ -505,7 +515,7 @@ describe('Mainchain registration command', () => {
 				module: MODULE_NAME_INTEROPERABILITY,
 				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 				sendingChainID: ownChainAccount.chainID,
-				receivingChainID: MAINCHAIN_ID_BUFFER,
+				receivingChainID: mainchainID,
 				fee: BigInt(0),
 				status: CCMStatusCode.OK,
 				params: encodedParams,
@@ -519,8 +529,8 @@ describe('Mainchain registration command', () => {
 			expect(ccmSendSuccessEvent.log).toHaveBeenCalledWith(
 				expect.anything(),
 				ownChainAccount.chainID,
-				MAINCHAIN_ID_BUFFER,
-				ccmID,
+				mainchainID,
+				expect.anything(),
 				{
 					ccmID,
 				},

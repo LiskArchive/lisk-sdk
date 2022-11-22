@@ -12,15 +12,24 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
+import { Schema } from '@liskhq/lisk-codec';
 import { ModuleEndpointContext } from '../../types';
 import { VerifyStatus } from '../../state_machine';
 import { BaseEndpoint } from '../base_endpoint';
-import { AuthAccountJSON, ImmutableStoreCallback, VerifyEndpointResultJSON } from './types';
+import {
+	AuthAccountJSON,
+	ImmutableStoreCallback,
+	VerifyEndpointResultJSON,
+	KeySignaturePair,
+	SortedMultisignatureGroup,
+} from './types';
 import { getTransactionFromParameter, verifyNonceStrict, verifySignatures } from './utils';
 import { AuthAccountStore } from './stores/auth_account';
 import { NamedRegistry } from '../named_registry';
+import { multisigRegMsgSchema, sortMultisignatureGroupSchema } from './schemas';
 
 export class AuthEndpoint extends BaseEndpoint {
 	public constructor(_moduleName: string, stores: NamedRegistry, offchainStores: NamedRegistry) {
@@ -99,6 +108,41 @@ export class AuthEndpoint extends BaseEndpoint {
 
 		const verificationResult = verifyNonceStrict(transaction, account).status;
 		return { verified: verificationResult === VerifyStatus.OK };
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async getMultiSigRegMsgSchema(
+		_context: ModuleEndpointContext,
+	): Promise<{ schema: Schema }> {
+		return { schema: multisigRegMsgSchema };
+	}
+
+	public sortMultisignatureGroup(context: ModuleEndpointContext): SortedMultisignatureGroup {
+		validator.validate(sortMultisignatureGroupSchema, context.params);
+
+		const mandatory = context.params.mandatory as KeySignaturePair[];
+		const optional = context.params.optional as KeySignaturePair[];
+
+		const compareStrings = (a: string, b: string) => (a < b ? -1 : 1);
+
+		const sortedMandatory = mandatory
+			.slice()
+			.sort((keySignaturePairA, keySignaturePairB) =>
+				compareStrings(keySignaturePairA.publicKey, keySignaturePairB.publicKey),
+			);
+		const sortedOptional = optional
+			.slice()
+			.sort((keySignaturePairA, keySignaturePairB) =>
+				compareStrings(keySignaturePairA.publicKey, keySignaturePairB.publicKey),
+			);
+
+		return {
+			mandatoryKeys: sortedMandatory.map(keySignaturePair => keySignaturePair.publicKey),
+			optionalKeys: sortedOptional.map(keySignaturePair => keySignaturePair.publicKey),
+			signatures: sortedMandatory
+				.map(keySignaturePair => keySignaturePair.signature)
+				.concat(sortedOptional.map(keySignaturePair => keySignaturePair.signature)),
+		};
 	}
 
 	private async _isMultisignatureAccount(

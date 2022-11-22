@@ -11,9 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { dataStructures } from '@liskhq/lisk-utils';
 import { BaseStore, StoreGetter } from '../../base_store';
 import { ActiveValidator } from '../types';
-import { BLS_PUBLIC_KEY_LENGTH } from '../constants';
+import { BLS_PUBLIC_KEY_LENGTH, MAX_NUM_VALIDATORS } from '../constants';
 
 export interface ChainValidators {
 	activeValidators: ActiveValidator[];
@@ -29,6 +30,8 @@ export const chainValidatorsSchema = {
 		activeValidators: {
 			type: 'array',
 			fieldNumber: 1,
+			minItems: 1,
+			maxItems: MAX_NUM_VALIDATORS,
 			items: {
 				type: 'object',
 				required: ['blsKey', 'bftWeight'],
@@ -54,28 +57,29 @@ export const chainValidatorsSchema = {
 };
 
 // TODO: Fix with #7742 - In order to avoid circular dependency temporally, move to this file
-export const updateActiveValidators = (
+export const calculateNewActiveValidators = (
 	activeValidators: ActiveValidator[],
 	activeValidatorsUpdate: ActiveValidator[],
 ): ActiveValidator[] => {
+	const originalValidatorMap = new dataStructures.BufferMap<ActiveValidator>();
+	for (const validator of activeValidators) {
+		originalValidatorMap.set(validator.blsKey, validator);
+	}
 	for (const updatedValidator of activeValidatorsUpdate) {
-		const currentValidator = activeValidators.find(v => v.blsKey.equals(updatedValidator.blsKey));
-		if (currentValidator) {
-			currentValidator.bftWeight = updatedValidator.bftWeight;
-		} else {
-			activeValidators.push(updatedValidator);
-			activeValidators.sort((v1, v2) => v1.blsKey.compare(v2.blsKey));
+		const originalValidator = originalValidatorMap.get(updatedValidator.blsKey);
+		if (!originalValidator) {
+			originalValidatorMap.set(updatedValidator.blsKey, updatedValidator);
+			continue;
 		}
+		originalValidator.bftWeight = updatedValidator.bftWeight;
 	}
 
-	for (const currentValidator of activeValidators) {
-		if (currentValidator.bftWeight === BigInt(0)) {
-			const index = activeValidators.findIndex(v => v.blsKey.equals(currentValidator.blsKey));
-			activeValidators.splice(index, 1);
-		}
-	}
+	const updatedValidators = originalValidatorMap
+		.values()
+		.filter(validator => validator.bftWeight > BigInt(0));
+	updatedValidators.sort((a, b) => a.blsKey.compare(b.blsKey));
 
-	return activeValidators;
+	return updatedValidators;
 };
 
 export class ChainValidatorsStore extends BaseStore<ChainValidators> {
@@ -89,7 +93,7 @@ export class ChainValidatorsStore extends BaseStore<ChainValidators> {
 		const currentValidators = await this.get(context, chainID);
 
 		currentValidators.certificateThreshold = chainValidators.certificateThreshold;
-		currentValidators.activeValidators = updateActiveValidators(
+		currentValidators.activeValidators = calculateNewActiveValidators(
 			currentValidators.activeValidators,
 			chainValidators.activeValidators,
 		);
