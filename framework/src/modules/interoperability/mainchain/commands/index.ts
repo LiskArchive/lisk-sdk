@@ -15,3 +15,4 @@
 export { MainchainCCUpdateCommand } from './cc_update';
 export { SidechainRegistrationCommand } from './sidechain_registration';
 export { MainchainMessageRecoveryCommand } from './message_recovery';
+export { TerminateSidechainForLivenessCommand } from './terminate_sidechain_for_liveness';

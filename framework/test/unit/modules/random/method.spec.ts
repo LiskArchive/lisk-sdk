@@ -22,9 +22,9 @@ import { blockHeaderAssetRandomModule } from '../../../../src/modules/random/sch
 import { bitwiseXOR } from '../../../../src/modules/random/utils';
 import { MethodContext } from '../../../../src/state_machine';
 import { createTransientMethodContext } from '../../../../src/testing';
-import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
-import { testCases } from './dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';
-import * as randomSeedsMultipleRounds from '../../../fixtures/dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';
+import * as genesisValidators from '../../../fixtures/genesis_validators.json';
+import { testCases } from './pos_random_seed_generation/pos_random_seed_generation_other_rounds.json';
+import * as randomSeedsMultipleRounds from '../../../fixtures/pos_random_seed_generation/pos_random_seed_generation_other_rounds.json';
 import { RandomModule } from '../../../../src/modules/random';
 import {
 	ValidatorRevealsStore,
@@ -43,8 +43,8 @@ describe('RandomModuleMethod', () => {
 	const emptyBytes = Buffer.alloc(0);
 
 	describe('isSeedRevealValid', () => {
-		const twoRoundsDelegates: ValidatorSeedReveal[] = [];
-		const twoRoundsDelegatesHashes: { [key: string]: Buffer[] } = {};
+		const twoRoundsValidators: ValidatorSeedReveal[] = [];
+		const twoRoundsValidatorsHashes: { [key: string]: Buffer[] } = {};
 
 		for (const generator of testCases[0].input.blocks) {
 			const generatorAddress = cryptography.address.getAddressFromPublicKey(
@@ -52,17 +52,17 @@ describe('RandomModuleMethod', () => {
 			);
 			const seedReveal = Buffer.from(generator.asset.seedReveal, 'hex');
 
-			twoRoundsDelegates.push({
+			twoRoundsValidators.push({
 				generatorAddress,
 				seedReveal,
 				height: generator.height,
 				valid: true,
 			});
 
-			if (!twoRoundsDelegatesHashes[generatorAddress.toString('hex')]) {
-				twoRoundsDelegatesHashes[generatorAddress.toString('hex')] = [];
+			if (!twoRoundsValidatorsHashes[generatorAddress.toString('hex')]) {
+				twoRoundsValidatorsHashes[generatorAddress.toString('hex')] = [];
 			}
-			twoRoundsDelegatesHashes[generatorAddress.toString('hex')].push(seedReveal);
+			twoRoundsValidatorsHashes[generatorAddress.toString('hex')].push(seedReveal);
 		}
 
 		beforeEach(async () => {
@@ -70,13 +70,13 @@ describe('RandomModuleMethod', () => {
 			context = createTransientMethodContext({});
 			randomStore = randomModule.stores.get(ValidatorRevealsStore);
 			await randomStore.set(context, emptyBytes, {
-				validatorReveals: twoRoundsDelegates.slice(0, 103),
+				validatorReveals: twoRoundsValidators.slice(0, 103),
 			});
 		});
 
 		it('should throw error when asset is undefined', async () => {
 			// Arrange
-			const delegateAddress = cryptography.address.getAddressFromPublicKey(
+			const validatorAddress = cryptography.address.getAddressFromPublicKey(
 				Buffer.from(testCases[0].input.blocks[0].generatorPublicKey, 'hex'),
 			);
 
@@ -87,12 +87,12 @@ describe('RandomModuleMethod', () => {
 
 			// Act & Assert
 			await expect(
-				randomMethod.isSeedRevealValid(context, delegateAddress, new BlockAssets([blockAsset])),
+				randomMethod.isSeedRevealValid(context, validatorAddress, new BlockAssets([blockAsset])),
 			).rejects.toThrow('Block asset is missing.');
 		});
 
 		it('should return true for a valid seed reveal', async () => {
-			for (const [address, hashes] of Object.entries(twoRoundsDelegatesHashes)) {
+			for (const [address, hashes] of Object.entries(twoRoundsValidatorsHashes)) {
 				// Arrange
 				const blockAsset: BlockAsset = {
 					module: randomModule.name,
@@ -112,7 +112,7 @@ describe('RandomModuleMethod', () => {
 		it('should return true if no last seed reveal found', async () => {
 			// Arrange
 			await randomStore.set(context, emptyBytes, { validatorReveals: [] });
-			for (const [address, hashes] of Object.entries(twoRoundsDelegatesHashes)) {
+			for (const [address, hashes] of Object.entries(twoRoundsValidatorsHashes)) {
 				const blockAsset: BlockAsset = {
 					module: randomModule.name,
 					data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[1] }),
@@ -129,8 +129,8 @@ describe('RandomModuleMethod', () => {
 		});
 
 		it('should return false for an invalid seed reveal when last seed is not hash of the given reveal', async () => {
-			await randomStore.set(context, emptyBytes, { validatorReveals: twoRoundsDelegates });
-			for (const [address, hashes] of Object.entries(twoRoundsDelegatesHashes)) {
+			await randomStore.set(context, emptyBytes, { validatorReveals: twoRoundsValidators });
+			for (const [address, hashes] of Object.entries(twoRoundsValidatorsHashes)) {
 				// Arrange
 				const blockAsset: BlockAsset = {
 					module: randomModule.name,
@@ -151,38 +151,38 @@ describe('RandomModuleMethod', () => {
 	describe('getRandomBytes', () => {
 		const validatorsData = [
 			{
-				generatorAddress: Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
-				seedReveal: Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[1], 'hex'),
+				generatorAddress: Buffer.from(genesisValidators.validators[0].address, 'hex'),
+				seedReveal: Buffer.from(genesisValidators.validators[0].hashOnion.hashes[1], 'hex'),
 				height: 11,
 				valid: true,
 			},
 			{
-				generatorAddress: Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
-				seedReveal: Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[2], 'hex'),
+				generatorAddress: Buffer.from(genesisValidators.validators[0].address, 'hex'),
+				seedReveal: Buffer.from(genesisValidators.validators[0].hashOnion.hashes[2], 'hex'),
 				height: 13,
 				valid: true,
 			},
 			{
-				generatorAddress: Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
-				seedReveal: Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[3], 'hex'),
+				generatorAddress: Buffer.from(genesisValidators.validators[0].address, 'hex'),
+				seedReveal: Buffer.from(genesisValidators.validators[0].hashOnion.hashes[3], 'hex'),
 				height: 17,
 				valid: true,
 			},
 			{
-				generatorAddress: Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
-				seedReveal: Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[4], 'hex'),
+				generatorAddress: Buffer.from(genesisValidators.validators[0].address, 'hex'),
+				seedReveal: Buffer.from(genesisValidators.validators[0].hashOnion.hashes[4], 'hex'),
 				height: 19,
 				valid: true,
 			},
 			{
-				generatorAddress: Buffer.from(genesisDelegates.delegates[1].address, 'hex'),
-				seedReveal: Buffer.from(genesisDelegates.delegates[1].hashOnion.hashes[1], 'hex'),
+				generatorAddress: Buffer.from(genesisValidators.validators[1].address, 'hex'),
+				seedReveal: Buffer.from(genesisValidators.validators[1].hashOnion.hashes[1], 'hex'),
 				height: 14,
 				valid: true,
 			},
 			{
-				generatorAddress: Buffer.from(genesisDelegates.delegates[2].address, 'hex'),
-				seedReveal: Buffer.from(genesisDelegates.delegates[2].hashOnion.hashes[1], 'hex'),
+				generatorAddress: Buffer.from(genesisValidators.validators[2].address, 'hex'),
+				seedReveal: Buffer.from(genesisValidators.validators[2].hashOnion.hashes[1], 'hex'),
 				height: 15,
 				valid: false,
 			},
@@ -222,8 +222,8 @@ describe('RandomModuleMethod', () => {
 			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
 			const hashesExpected = [
-				Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[1], 'hex'),
-				Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[2], 'hex'),
+				Buffer.from(genesisValidators.validators[0].hashOnion.hashes[1], 'hex'),
+				Buffer.from(genesisValidators.validators[0].hashOnion.hashes[2], 'hex'),
 			];
 			// Do XOR of randomSeed with hashes of seed reveal with height >= randomStoreValidator.height >= height + numberOfSeeds
 			const xorExpected = bitwiseXOR([
@@ -243,9 +243,9 @@ describe('RandomModuleMethod', () => {
 			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
 			const hashesExpected = [
-				Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[1], 'hex'),
-				Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[2], 'hex'),
-				Buffer.from(genesisDelegates.delegates[1].hashOnion.hashes[1], 'hex'),
+				Buffer.from(genesisValidators.validators[0].hashOnion.hashes[1], 'hex'),
+				Buffer.from(genesisValidators.validators[0].hashOnion.hashes[2], 'hex'),
+				Buffer.from(genesisValidators.validators[1].hashOnion.hashes[1], 'hex'),
 			];
 			// Do XOR of randomSeed with hashes of seed reveal with height >= randomStoreValidator.height >= height + numberOfSeeds
 			const xorExpected = bitwiseXOR([
@@ -265,9 +265,9 @@ describe('RandomModuleMethod', () => {
 			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
 			const hashesExpected = [
-				Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[1], 'hex'),
-				Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[2], 'hex'),
-				Buffer.from(genesisDelegates.delegates[1].hashOnion.hashes[1], 'hex'),
+				Buffer.from(genesisValidators.validators[0].hashOnion.hashes[1], 'hex'),
+				Buffer.from(genesisValidators.validators[0].hashOnion.hashes[2], 'hex'),
+				Buffer.from(genesisValidators.validators[1].hashOnion.hashes[1], 'hex'),
 			];
 			// Do XOR of randomSeed with hashes of seed reveal with height >= randomStoreValidator.height >= height + numberOfSeeds
 			const xorExpected = bitwiseXOR([
@@ -287,7 +287,7 @@ describe('RandomModuleMethod', () => {
 			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
 			const hashesExpected = [
-				Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[1], 'hex'),
+				Buffer.from(genesisValidators.validators[0].hashOnion.hashes[1], 'hex'),
 			];
 			// Do XOR of randomSeed with hashes of seed reveal with height >= randomStoreValidator.height >= height + numberOfSeeds
 			const xorExpected = bitwiseXOR([randomSeed, hashesExpected[0]]);

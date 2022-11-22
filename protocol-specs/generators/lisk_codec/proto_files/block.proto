@@ -29,12 +29,12 @@ message BaseTransaction {
 }
 
 message Vote {
-		required bytes delegateAddress = 1;
+		required bytes validatorAddress = 1;
 		required sint64 amount = 2;
 }
 
 message VoteTransaction {
-	repeated Vote votes = 1;
+	repeated Vote stakes = 1;
 }
 
 message MultisigTransaction {
@@ -54,29 +54,29 @@ message Keys {
 	repeated bytes optionalKeys = 3;
 }
 
-message Delegate {
+message Validator {
 	required string username = 1;
 	repeated uint32 pomHeights = 2 [packed=true];
 	required uint32 consecutiveMissedBlocks = 3;
 	required uint32 lastForgedHeight = 4;
 	required bool isBanned = 5;
-	required uint64 totalVotesReceived = 6;
+	required uint64 totalStakeReceived = 6;
 }
 
 message SentVotes {
-	required bytes delegateAddress = 1;
+	required bytes validatorAddress = 1;
 	required uint64 amount = 2;
 }
 
 message Unlocking {
-	required bytes delegateAddress = 1;
+	required bytes validatorAddress = 1;
 	required uint64 amount = 2;
-	required uint32 unvoteHeight = 3;
+	required uint32 unstakeHeight = 3;
 }
 
 message Asset {
-	required Delegate delegate = 1;
-	repeated SentVotes sentVotes = 2;
+	required Validator validator = 1;
+	repeated SentVotes sentStakes = 2;
 	repeated Unlocking unlocking = 3;
 }
 
@@ -91,6 +91,6 @@ message GenesisAccount {
 
 message GenesisBlockAsset {
 	repeated GenesisAccount accounts = 1;
-	repeated bytes initDelegates = 2;
+	repeated bytes initValidators = 2;
 	required uint32 initRounds = 3;
 }

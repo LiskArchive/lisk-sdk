@@ -35,7 +35,7 @@ const diff = {
 			],
 		},
 	],
-	created: ['chain:delegates', 'consensus:bft'],
+	created: ['chain:validators', 'consensus:bft'],
 };
 const diffSchema = {
 	$id: '/state/diff',
@@ -93,7 +93,7 @@ const diffString = {
 			value: ['diff5', 'diff6', 'diff7', 'diff5'],
 		},
 	],
-	created: ['chain:delegates', 'consensus:bft'],
+	created: ['chain:validators', 'consensus:bft'],
 };
 const diffStringSchema = {
 	$id: '/state/diffString',

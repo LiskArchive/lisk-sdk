@@ -1,0 +1,151 @@
+{
+	"name": "pos-mainchain",
+	"private": true,
+	"version": "0.1.0",
+	"description": "Lisk-SDK Application",
+	"author": "Lisk Foundation &lt;admin@lisk.com&gt;, lightcurve GmbH &lt;admin@lightcurve.io&gt;",
+	"license": "Apache-2.0",
+	"keywords": [
+		"blockchain",
+		"lisk",
+		"nodejs",
+		"javascript",
+		"typescript"
+	],
+	"homepage": "",
+	"repository": {},
+	"engines": {
+		"node": ">=16.14.1 <=16",
+		"npm": ">=8.1.0"
+	},
+	"main": "dist/index.js",
+	"scripts": {
+		"lint": "eslint --ext .js,.ts .",
+		"lint:fix": "eslint --fix --ext .js,.ts .",
+		"format": "prettier --write '**/*'",
+		"prepack": "oclif manifest && oclif readme --multi --dir=docs/commands && npm shrinkwrap && npm prune --production && npm shrinkwrap",
+		"prebuild": "if test -d dist; then rm -r dist; fi; rm -f tsconfig.tsbuildinfo; rm -f npm-shrinkwrap.json",
+		"start": "echo Run \"./bin/run start\" to start the app",
+		"build": "tsc",
+		"test": "jest --passWithNoTests",
+		"test:coverage": "jest --passWithNoTests --coverage=true --coverage-reporters=text",
+		"test:ci": "jest --passWithNoTests --coverage=true --coverage-reporters=json --verbose",
+		"version": "oclif readme --multi --dir=docs/commands && git add README.md docs",
+		"prepublishOnly": "npm ci && npm run lint && npm run build"
+	},
+	"bin": {
+		"pos-mainchain": "./bin/run"
+	},
+	"lisk": {
+		"addressPrefix": "lsk"
+	},
+	"oclif": {
+		"bin": "pos-mainchain",
+		"commands": "./dist/commands",
+		"plugins": [
+			"@oclif/plugin-help",
+			"@oclif/plugin-autocomplete",
+			"@oclif/plugin-version"
+		],
+		"additionalHelpFlags": [
+			"-h"
+		],
+		"additionalVersionFlags": [
+			"-v"
+		],
+		"topicSeparator": " ",
+		"topics": {
+			"account": {
+				"description": "Commands relating to pos-mainchain accounts."
+			},
+			"block": {
+				"description": "Commands relating to pos-mainchain blocks."
+			},
+			"blockchain": {
+				"description": "Commands relating to pos-mainchain blockchain data."
+			},
+			"console": {
+				"description": "pos-mainchain interactive REPL session to run commands."
+			},
+			"config": {
+				"description": "Commands relating to pos-mainchain node configuration."
+			},
+			"keys": {
+				"description": "Commands relating to account, generator and bls keys."
+			},
+			"generator": {
+				"description": "Commands relating to pos-mainchain forging and generator-info data."
+			},
+			"hash-onion": {
+				"description": "Create hash onions to be used by the forger."
+			},
+			"system": {
+				"description": "Commands relating to pos-mainchain node."
+			},
+			"passphrase": {
+				"description": "Commands relating to pos-mainchain passphrases."
+			},
+			"sdk": {
+				"description": "Commands relating to Lisk SDK development."
+			},
+			"transaction": {
+				"description": "Commands relating to pos-mainchain transactions."
+			}
+		}
+	},
+	"files": [
+		"/bin",
+		"/npm-shrinkwrap.json",
+		"/oclif.manifest.json",
+		"/dist",
+		"/config",
+		"/docs"
+	],
+	"husky": {
+		"hooks": {
+			"pre-commit": "lint-staged"
+		}
+	},
+	"dependencies": {
+		"@liskhq/lisk-framework-dashboard-plugin": "^0.2.0-alpha.0",
+		"@liskhq/lisk-framework-faucet-plugin": "^0.2.0-alpha.0",
+		"@liskhq/lisk-framework-forger-plugin": "^0.3.0-alpha.0",
+		"@liskhq/lisk-framework-monitor-plugin": "^0.3.0-alpha.0",
+		"@liskhq/lisk-framework-report-misbehavior-plugin": "^0.3.0-alpha.0",
+		"@oclif/core": "1.16.1",
+		"@oclif/plugin-autocomplete": "1.3.0",
+		"@oclif/plugin-help": "5.1.12",
+		"@oclif/plugin-version": "1.1.2",
+		"axios": "0.21.2",
+		"fs-extra": "9.1.0",
+		"inquirer": "8.0.0",
+		"lisk-commander": "^6.0.0-alpha.0",
+		"lisk-sdk": "^6.0.0-alpha.0",
+		"tar": "6.1.11",
+		"tslib": "1.14.1"
+	},
+	"devDependencies": {
+		"@types/fs-extra": "9.0.1",
+		"@types/jest": "26.0.21",
+		"@types/jest-when": "2.7.2",
+		"@types/node": "12.20.6",
+		"@types/tar": "6.1.3",
+		"@typescript-eslint/eslint-plugin": "4.19.0",
+		"@typescript-eslint/parser": "4.19.0",
+		"eslint": "7.22.0",
+		"eslint-config-lisk-base": "2.0.1",
+		"eslint-plugin-import": "2.22.1",
+		"eslint-plugin-jest": "24.3.2",
+		"globby": "10.0.2",
+		"husky": "4.2.5",
+		"jest": "26.6.3",
+		"jest-extended": "0.11.5",
+		"jest-when": "3.2.1",
+		"oclif": "3.2.12",
+		"lint-staged": "10.2.11",
+		"prettier": "2.2.1",
+		"ts-jest": "26.5.4",
+		"ts-node": "9.1.1",
+		"typescript": "4.2.3"
+	}
+}

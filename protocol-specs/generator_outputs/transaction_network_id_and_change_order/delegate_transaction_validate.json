@@ -1,14 +1,14 @@
 {
-	"title": "Valid delegate transaction",
-	"summary": "A valid delegate transaction",
+	"title": "Valid validator transaction",
+	"summary": "A valid validator transaction",
 	"config": {
 		"network": "devnet"
 	},
 	"runner": "transaction_network_id_and_change_order",
-	"handler": "delegate_transaction_validate",
+	"handler": "validator_transaction_validate",
 	"testCases": [
 		{
-			"description": "A valid delegate transaction",
+			"description": "A valid validator transaction",
 			"input": {
 				"account": {
 					"passphrase": "wear protect skill sentence lift enter wild sting lottery power floor neglect",

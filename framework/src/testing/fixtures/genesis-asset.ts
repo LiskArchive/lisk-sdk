@@ -14,7 +14,7 @@
  */
 
 import { address } from '@liskhq/lisk-cryptography';
-import { genesisStoreSchema } from '../../modules/dpos_v2/schemas';
+import { genesisStoreSchema } from '../../modules/pos/schemas';
 import { genesisTokenStoreSchema } from '../../modules/token';
 import * as accounts from './keys_fixture.json';
 
@@ -46,7 +46,7 @@ export const blockAssetsJSON = [
 		schema: genesisTokenStoreSchema,
 	},
 	{
-		module: 'dpos',
+		module: 'pos',
 		data: {
 			validators: accounts.keys.map((account, i) => ({
 				address: account.address,
@@ -58,12 +58,14 @@ export const blockAssetsJSON = [
 				isBanned: false,
 				pomHeights: [],
 				consecutiveMissedBlocks: 0,
+				commission: 0,
+				lastCommissionIncreaseHeight: 0,
+				sharingCoefficients: [],
 			})),
-			voters: [],
-			snapshots: [],
+			stakers: [],
 			genesisData: {
 				initRounds: 3,
-				initDelegates: accounts.keys.slice(0, 101).map(account => account.address),
+				initValidators: accounts.keys.slice(0, 101).map(account => account.address),
 			},
 		},
 		schema: genesisStoreSchema,

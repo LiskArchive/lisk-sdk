@@ -39,7 +39,7 @@ describe('bft module', () => {
 	});
 
 	describe('initGenesisState', () => {
-		it('should initialize vote store', async () => {
+		it('should initialize stake store', async () => {
 			const stateStore = new StateStore(new InMemoryDatabase());
 			const genesisHeight = 20;
 

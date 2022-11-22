@@ -237,7 +237,7 @@ describe('BFT votes', () => {
 			expect(paramsCache.getParameters).not.toHaveBeenCalled();
 		});
 
-		it('should not vote on blocks if generator is not in the validators', async () => {
+		it('should not stake on blocks if generator is not in the validators', async () => {
 			jest.spyOn(paramsCache, 'getParameters');
 			insertBlockBFTInfo(
 				bftVotes,

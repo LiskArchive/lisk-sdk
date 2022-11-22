@@ -41,7 +41,7 @@ export const areDistinctHeadersContradicting = (b1: BFTHeader, b2: BFTHeader): b
 	) {
 		[earlierBlock, laterBlock] = [laterBlock, earlierBlock];
 	}
-	// Blocks by different delegates are never contradicting
+	// Blocks by different validators are never contradicting
 	if (!earlierBlock.generatorAddress.equals(laterBlock.generatorAddress)) {
 		return false;
 	}

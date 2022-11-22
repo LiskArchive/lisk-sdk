@@ -5,6 +5,6 @@ Object {
   "totalProducedBlocks": 1,
   "totalReceivedFees": 29858000n,
   "totalReceivedRewards": 0n,
-  "votesReceived": Array [],
+  "stakeReceived": Array [],
 }
 `;

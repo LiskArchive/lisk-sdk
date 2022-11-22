@@ -12,7 +12,7 @@
 			"input": {
 				"value": "0801",
 				"schema": {
-					"$id": "object5",
+					"$id": "/object5",
 					"type": "object",
 					"properties": {
 						"state": {
@@ -33,7 +33,7 @@
 			"input": {
 				"value": "0800",
 				"schema": {
-					"$id": "object5",
+					"$id": "/object5",
 					"type": "object",
 					"properties": {
 						"state": {

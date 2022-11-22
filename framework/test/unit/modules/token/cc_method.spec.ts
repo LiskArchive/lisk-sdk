@@ -52,7 +52,7 @@ describe('TokenInteroperableMethod', () => {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
-				module: 'dpos',
+				module: 'pos',
 				amount: BigInt(100000000),
 			},
 		],
@@ -567,7 +567,7 @@ describe('TokenInteroperableMethod', () => {
 					substorePrefix: userStore.subStorePrefix,
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultAccount.availableBalance * BigInt(2),
-						lockedBalances: [{ module: 'dpos', amount: BigInt(20) }],
+						lockedBalances: [{ module: 'pos', amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
 					stateStore,
@@ -615,7 +615,7 @@ describe('TokenInteroperableMethod', () => {
 					storeKey: Buffer.concat([defaultAddress, defaultForeignTokenID]),
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultAccount.availableBalance * BigInt(2),
-						lockedBalances: [{ module: 'dpos', amount: BigInt(20) }],
+						lockedBalances: [{ module: 'pos', amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
 					stateStore,
@@ -640,7 +640,7 @@ describe('TokenInteroperableMethod', () => {
 					substorePrefix: userStore.subStorePrefix,
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultEscrowAmount,
-						lockedBalances: [{ module: 'dpos', amount: BigInt(20) }],
+						lockedBalances: [{ module: 'pos', amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
 					stateStore,
