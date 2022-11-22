@@ -308,6 +308,40 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			);
 		});
 
+		it('should return error if cross-chain message sending chain is not live', async () => {
+			command['internalMethod'].isLive = jest.fn().mockResolvedValue(false);
+			ccms = [
+				{
+					nonce: BigInt(0),
+					module: MODULE_NAME_INTEROPERABILITY,
+					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					sendingChainID: utils.intToBuffer(2, 4),
+					receivingChainID: utils.intToBuffer(3, 4),
+					fee: BigInt(1),
+					status: CCMStatusCode.OK,
+					params: Buffer.alloc(0),
+				},
+			];
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
+			transactionParams.idxs = [11, 12, 13];
+
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				});
+
+			const result = await command.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Cross-chain message sending chain is not live.`);
+		});
+
 		it('should return error if message recovery proof of inclusion is not valid', async () => {
 			jest.spyOn(regularMerkleTree, 'verifyDataBlock').mockReturnValue(false);
 
