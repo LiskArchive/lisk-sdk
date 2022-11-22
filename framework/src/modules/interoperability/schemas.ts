@@ -285,6 +285,7 @@ export const crossChainUpdateTransactionParams = {
 	},
 };
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#parameters-1
 export const messageRecoveryParamsSchema = {
 	$id: '/modules/interoperability/mainchain/messageRecovery',
 	type: 'object',

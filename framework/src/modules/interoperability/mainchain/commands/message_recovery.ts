@@ -35,6 +35,7 @@ import {
 	CCMProcessedResult,
 } from '../../events/ccm_processed';
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#message-recovery-command
 export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = messageRecoveryParamsSchema;
 
@@ -42,6 +43,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 		return COMMAND_NAME_MESSAGE_RECOVERY;
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#verification-1
 	public async verify(
 		context: CommandVerifyContext<MessageRecoveryParams>,
 	): Promise<VerificationResult> {
