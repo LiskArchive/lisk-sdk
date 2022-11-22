@@ -488,10 +488,12 @@ describe('Sample Method', () => {
 			},
 			status: ChainStatus.TERMINATED,
 		};
-		const sendInternalMock = jest.fn();
-		interopMod['internalMethod'].sendInternal = sendInternalMock;
 
-		beforeEach(() => {});
+		beforeEach(() => {
+			interopMod['internalMethod'].sendInternal = jest.fn();
+			interopMod['internalMethod'].createTerminatedStateAccount = jest.fn();
+		});
+
 		it('should do nothing if chain was already terminated', async () => {
 			jest
 				.spyOn(sampleInteroperabilityMethod as any, 'getTerminatedStateAccount')
@@ -502,7 +504,7 @@ describe('Sample Method', () => {
 				});
 			await sampleInteroperabilityMethod.terminateChain(terminateChainContext, chainID);
 
-			expect(sendInternalMock).not.toHaveBeenCalled();
+			expect(interopMod['internalMethod'].sendInternal).not.toHaveBeenCalled();
 		});
 
 		it('should process with input chainID', async () => {
@@ -511,7 +513,8 @@ describe('Sample Method', () => {
 				.mockResolvedValue(null);
 
 			await sampleInteroperabilityMethod.terminateChain(terminateChainContext, chainID);
-			expect(sendInternalMock).toHaveBeenCalledTimes(1);
+			expect(interopMod['internalMethod'].sendInternal).toHaveBeenCalledTimes(1);
+			expect(interopMod['internalMethod'].createTerminatedStateAccount).toHaveBeenCalledTimes(1);
 		});
 	});
 });
