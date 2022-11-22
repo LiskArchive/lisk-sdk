@@ -44,6 +44,7 @@ import { CcmSendSuccessEvent } from '../events/ccm_send_success';
 import { TerminatedStateCreatedEvent } from '../events/terminated_state_created';
 import { TerminatedOutboxCreatedEvent } from '../events/terminated_outbox_created';
 import { MainchainInteroperabilityInternalMethod } from './internal_method';
+import { MessageRecoveryInitializationCommand } from './commands/message_recovery_initialization';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
@@ -70,8 +71,19 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.internalMethod,
 	);
 
+	private readonly _messageRecoveryInitializationCommand = new MessageRecoveryInitializationCommand(
+		this.stores,
+		this.events,
+		this.interoperableCCMethods,
+		this.interoperableCCCommands,
+		this.internalMethod,
+	);
+
 	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public commands = [this._sidechainRegistrationCommand];
+	public commands = [
+		this._sidechainRegistrationCommand,
+		this._messageRecoveryInitializationCommand,
+	];
 
 	public constructor() {
 		super();

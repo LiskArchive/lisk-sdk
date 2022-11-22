@@ -108,7 +108,7 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand<Sidech
 		// If params contains a non-empty activeValidatorsUpdate
 		if (
 			txParams.activeValidatorsUpdate.length > 0 ||
-			partnerValidators.certificateThreshold !== txParams.newCertificateThreshold
+			partnerValidators.certificateThreshold !== txParams.certificateThreshold
 		) {
 			await this.internalMethod.verifyValidatorsUpdate(context.getMethodContext(), txParams);
 		}
