@@ -14,6 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
+import { CommandExecuteContext, CommandVerifyContext } from '../../state_machine';
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import { BaseInteroperabilityMethod } from './base_interoperability_method';
@@ -21,9 +22,16 @@ import { CCMStatusCode, MIN_RETURN_FEE } from './constants';
 import { CCMProcessedCode, CcmProcessedEvent, CCMProcessedResult } from './events/ccm_processed';
 import { CcmSendSuccessEvent } from './events/ccm_send_success';
 import { ccmSchema, crossChainUpdateTransactionParams } from './schemas';
-import { CrossChainMessageContext, TokenMethod } from './types';
-import { ChainAccountStore } from './stores/chain_account';
-import { getMainchainID } from './utils';
+import {
+	CCMsg,
+	CrossChainMessageContext,
+	CrossChainUpdateTransactionParams,
+	TokenMethod,
+} from './types';
+import { ChainAccountStore, ChainStatus } from './stores/chain_account';
+import { getMainchainID, isInboxUpdateEmpty, validateFormat } from './utils';
+import { ChainValidatorsStore } from './stores/chain_validators';
+import { ChannelDataStore } from './stores/channel_data';
 
 export abstract class BaseCrossChainUpdateCommand<
 	T extends BaseInteroperabilityInternalMethod
@@ -36,6 +44,108 @@ export abstract class BaseCrossChainUpdateCommand<
 	public init(interopsMethod: BaseInteroperabilityMethod<T>, tokenMethod: TokenMethod) {
 		this._tokenMethod = tokenMethod;
 		this._interopsMethod = interopsMethod;
+	}
+
+	protected async verifyCommon(context: CommandVerifyContext<CrossChainUpdateTransactionParams>) {
+		const { params } = context;
+		const sendingChainAccount = await this.stores
+			.get(ChainAccountStore)
+			.get(context, params.sendingChainID);
+		if (sendingChainAccount.status === ChainStatus.REGISTERED && params.certificate.length === 0) {
+			throw new Error('The first CCU must contain a non-empty certificate.');
+		}
+		if (params.certificate.length > 0) {
+			await this.internalMethod.verifyCertificate(context, params, context.header.timestamp);
+		}
+		const sendingChainValidators = await this.stores
+			.get(ChainValidatorsStore)
+			.get(context, params.sendingChainID);
+		if (
+			params.activeValidatorsUpdate.length > 0 ||
+			params.certificateThreshold !== sendingChainValidators.certificateThreshold
+		) {
+			await this.internalMethod.verifyValidatorsUpdate(context, params);
+		}
+
+		if (!isInboxUpdateEmpty(params.inboxUpdate)) {
+			await this.internalMethod.verifyPartnerChainOutboxRoot(context, params);
+		}
+	}
+
+	protected async executeCommon(
+		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
+		isMainchain: boolean,
+	): Promise<[CCMsg[], boolean]> {
+		const { params, transaction } = context;
+		await this.internalMethod.verifyCertificateSignature(context, params);
+
+		if (!isInboxUpdateEmpty(params.inboxUpdate)) {
+			// Initialize the relayer account for the message fee token.
+			// This is necessary to ensure that the relayer can receive the CCM fees
+			// If the account already exists, nothing is done.
+			const messageFeeTokenID = await this._interopsMethod.getMessageFeeTokenID(
+				context,
+				params.sendingChainID,
+			);
+			// FIXME: When updating fee logic, the fix value should be removed.
+			await this._tokenMethod.initializeUserAccount(
+				context,
+				transaction.senderAddress,
+				messageFeeTokenID,
+				transaction.senderAddress,
+				BigInt(500000000),
+			);
+		}
+
+		const decodedCCMs = [];
+		for (const ccmBytes of params.inboxUpdate.crossChainMessages) {
+			try {
+				const ccm = codec.decode<CCMsg>(ccmSchema, ccmBytes);
+				validateFormat(ccm);
+				decodedCCMs.push(ccm);
+				if (!ccm.sendingChainID.equals(params.sendingChainID)) {
+					throw new Error('CCM is not from the sending chain.');
+				}
+				if (ccm.sendingChainID.equals(ccm.receivingChainID)) {
+					throw new Error('Sending and receiving chains must differ.');
+				}
+				if (isMainchain && ccm.status === CCMStatusCode.CHANNEL_UNAVAILABLE) {
+					throw new Error('CCM status channel unavailable can only be set on the mainchain.');
+				}
+			} catch (error) {
+				await this.internalMethod.terminateChainInternal(context, params.sendingChainID);
+				const ccmID = utils.hash(ccmBytes);
+				this.events.get(CcmProcessedEvent).log(context, params.sendingChainID, context.chainID, {
+					ccmID,
+					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+				});
+				return [[], false];
+			}
+		}
+
+		const sendingChainValidators = await this.stores
+			.get(ChainValidatorsStore)
+			.get(context, params.sendingChainID);
+		if (
+			params.activeValidatorsUpdate.length > 0 ||
+			params.certificateThreshold !== sendingChainValidators.certificateThreshold
+		) {
+			await this.internalMethod.updateValidators(context, params);
+		}
+		if (params.certificate.length > 0) {
+			await this.internalMethod.updateCertificate(context, params);
+		}
+		if (!isInboxUpdateEmpty(params.inboxUpdate)) {
+			await this.stores
+				.get(ChannelDataStore)
+				.updatePartnerChainOutboxRoot(
+					context,
+					params.sendingChainID,
+					params.inboxUpdate.messageWitnessHashes,
+				);
+		}
+		return [decodedCCMs, true];
 	}
 
 	protected async apply(context: CrossChainMessageContext): Promise<void> {

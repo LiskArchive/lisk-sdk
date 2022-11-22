@@ -43,10 +43,8 @@ import {
 	sidechainTerminatedCCMParamsSchema,
 } from '../../schemas';
 import { ChainAccount, ChainAccountStore, ChainStatus } from '../../stores/chain_account';
-import { ChainValidatorsStore } from '../../stores/chain_validators';
-import { ChannelDataStore } from '../../stores/channel_data';
-import { CCMsg, CrossChainMessageContext, CrossChainUpdateTransactionParams } from '../../types';
-import { getMainchainID, isInboxUpdateEmpty, validateFormat } from '../../utils';
+import { CrossChainMessageContext, CrossChainUpdateTransactionParams } from '../../types';
+import { getMainchainID, isInboxUpdateEmpty } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
 export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
@@ -76,25 +74,7 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<Mainch
 			this._verifyLivenessConditionForRegisteredChains(context);
 		}
 
-		if (sendingChainAccount.status === ChainStatus.REGISTERED && params.certificate.length === 0) {
-			throw new Error('The first CCU must contain a non-empty certificate.');
-		}
-		if (params.certificate.length > 0) {
-			await this.internalMethod.verifyCertificate(context, params, context.header.timestamp);
-		}
-		const sendingChainValidators = await this.stores
-			.get(ChainValidatorsStore)
-			.get(context, params.sendingChainID);
-		if (
-			params.activeValidatorsUpdate.length > 0 ||
-			params.certificateThreshold !== sendingChainValidators.certificateThreshold
-		) {
-			await this.internalMethod.verifyValidatorsUpdate(context, params);
-		}
-
-		if (!isInboxUpdateEmpty(params.inboxUpdate)) {
-			await this.internalMethod.verifyPartnerChainOutboxRoot(context, params);
-		}
+		await this.verifyCommon(context);
 
 		return {
 			status: VerifyStatus.OK,
@@ -104,76 +84,11 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<Mainch
 	public async execute(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 	): Promise<void> {
-		const { params, transaction } = context;
-
-		await this.internalMethod.verifyCertificateSignature(context, params);
-
-		if (!isInboxUpdateEmpty(params.inboxUpdate)) {
-			// Initialize the relayer account for the message fee token.
-			// This is necessary to ensure that the relayer can receive the CCM fees
-			// If the account already exists, nothing is done.
-			const messageFeeTokenID = await this._interopsMethod.getMessageFeeTokenID(
-				context,
-				params.sendingChainID,
-			);
-			// FIXME: When updating fee logic, the fix value should be removed.
-			await this._tokenMethod.initializeUserAccount(
-				context,
-				transaction.senderAddress,
-				messageFeeTokenID,
-				transaction.senderAddress,
-				BigInt(500000000),
-			);
+		const [decodedCCMs, ok] = await this.executeCommon(context, true);
+		if (!ok) {
+			return;
 		}
-
-		const decodedCCMs = [];
-		for (const ccmBytes of params.inboxUpdate.crossChainMessages) {
-			try {
-				const ccm = codec.decode<CCMsg>(ccmSchema, ccmBytes);
-				validateFormat(ccm);
-				decodedCCMs.push(ccm);
-				if (!ccm.sendingChainID.equals(params.sendingChainID)) {
-					throw new Error('CCM is not from the sending chain.');
-				}
-				if (ccm.sendingChainID.equals(ccm.receivingChainID)) {
-					throw new Error('Sending and receiving chains must differ.');
-				}
-				if (ccm.status === CCMStatusCode.CHANNEL_UNAVAILABLE) {
-					throw new Error('CCM status channel unavailable can only be set on the mainchain.');
-				}
-			} catch (error) {
-				await this.internalMethod.terminateChainInternal(context, params.sendingChainID);
-				const ccmID = utils.hash(ccmBytes);
-				this.events.get(CcmProcessedEvent).log(context, params.sendingChainID, context.chainID, {
-					ccmID,
-					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
-					result: CCMProcessedResult.DISCARDED,
-				});
-				return;
-			}
-		}
-
-		const sendingChainValidators = await this.stores
-			.get(ChainValidatorsStore)
-			.get(context, params.sendingChainID);
-		if (
-			params.activeValidatorsUpdate.length > 0 ||
-			params.certificateThreshold !== sendingChainValidators.certificateThreshold
-		) {
-			await this.internalMethod.updateValidators(context, params);
-		}
-		if (params.certificate.length > 0) {
-			await this.internalMethod.updateCertificate(context, params);
-		}
-		if (!isInboxUpdateEmpty(params.inboxUpdate)) {
-			await this.stores
-				.get(ChannelDataStore)
-				.updatePartnerChainOutboxRoot(
-					context,
-					params.sendingChainID,
-					params.inboxUpdate.messageWitnessHashes,
-				);
-		}
+		const { params } = context;
 
 		for (let i = 0; i < decodedCCMs.length; i += 1) {
 			const ccm = decodedCCMs[i];
