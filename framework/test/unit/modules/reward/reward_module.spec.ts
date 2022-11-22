@@ -23,7 +23,7 @@ import { RewardMintedEvent } from '../../../../src/modules/reward/events/reward_
 
 describe('RewardModule', () => {
 	const genesisConfig: any = {};
-	const moduleConfig: any = {
+	const moduleConfig = {
 		distance: 3000000,
 		offset: 2160,
 		brackets: [
@@ -53,7 +53,11 @@ describe('RewardModule', () => {
 			rewardModule = new RewardModule();
 			await expect(rewardModule.init({ genesisConfig: {} as any, moduleConfig: {} })).toResolve();
 
-			expect(rewardModule['_moduleConfig']).toEqual({ ...moduleConfig });
+			expect(rewardModule['_moduleConfig']).toEqual({
+				...moduleConfig,
+				brackets: moduleConfig.brackets.map(b => BigInt(b)),
+				tokenID: Buffer.from(moduleConfig.tokenID, 'hex'),
+			});
 		});
 
 		it('should initialize config with given value', async () => {

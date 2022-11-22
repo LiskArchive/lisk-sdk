@@ -149,7 +149,7 @@ describe('fast_chain_switching_mechanism', () => {
 				blockExecutor.getCurrentValidators.mockResolvedValue([
 					{
 						address: address.getAddressFromPublicKey(defaultGenerator.publicKey),
-						voteWeight: BigInt(0),
+						validatorWeight: BigInt(0),
 					},
 				]);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
@@ -419,7 +419,7 @@ describe('fast_chain_switching_mechanism', () => {
 				);
 			});
 
-			it('should abort the syncing mechanism if the difference in height between the common block and the received block is > delegatesPerRound*2', async () => {
+			it('should abort the syncing mechanism if the difference in height between the common block and the received block is > validatorsPerRound*2', async () => {
 				// Arrange
 				const storageReturnValue = [
 					{
@@ -450,7 +450,7 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue(highestCommonBlock as never);
 
 				// Act
-				// the difference in height between the common block and the received block is > delegatesPerRound*2
+				// the difference in height between the common block and the received block is > validatorsPerRound*2
 				const receivedBlock = await createValidDefaultBlock({
 					header: {
 						height: highestCommonBlock.height + numberOfValidators * 2 + 1,
@@ -470,12 +470,12 @@ describe('fast_chain_switching_mechanism', () => {
 				);
 			});
 
-			it('should abort the syncing mechanism if the difference in height between the common block and the last block is > delegatesPerRound*2', async () => {
+			it('should abort the syncing mechanism if the difference in height between the common block and the last block is > validatorsPerRound*2', async () => {
 				// Arrange
 				const highestCommonBlock = createFakeBlockHeader({
 					height: lastBlock.header.height + 1,
 				});
-				// Difference in height between the common block and the last block is > delegatesPerRound*2
+				// Difference in height between the common block and the last block is > validatorsPerRound*2
 				lastBlock = await createValidDefaultBlock({
 					header: {
 						height: highestCommonBlock.height + numberOfValidators * 2 + 1,

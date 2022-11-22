@@ -447,7 +447,7 @@ export class Generator {
 		const validatorKeypair = this._keypairs.get(generator.address);
 
 		if (validatorKeypair === undefined) {
-			this._logger.debug({ currentSlot }, 'Waiting for delegate slot');
+			this._logger.debug({ currentSlot }, 'Waiting for validator slot');
 			return;
 		}
 

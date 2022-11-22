@@ -44,7 +44,7 @@ describe('token endpoint', () => {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
-				module: 'dpos',
+				module: 'pos',
 				amount: BigInt(100000000),
 			},
 		],

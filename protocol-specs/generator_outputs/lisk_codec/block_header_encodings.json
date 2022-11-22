@@ -22,7 +22,7 @@
 					"signature": "8331b5123cac056e2ec8361c56e642db0ca0e13abe33696d23d4d00ad6de844919296e87abe8e172f67fd882b4c0b1c1804b7d9075ecf975cf2631d8d7efef0c"
 				},
 				"schema": {
-					"$id": "blockHeaderSchema",
+					"$id": "/blockHeaderSchema",
 					"type": "object",
 					"properties": {
 						"version": {
@@ -93,7 +93,7 @@
 					"signature": "1e65032943af975c3cdef94b1fce639645bddb29265321e0277a0f48143ef7f6f6daa1046234a09cc593969ff04d8d082edd15a4a9b90a7b8865fcd9dac44300"
 				},
 				"schema": {
-					"$id": "blockHeaderSchema",
+					"$id": "/blockHeaderSchema",
 					"type": "object",
 					"properties": {
 						"version": {

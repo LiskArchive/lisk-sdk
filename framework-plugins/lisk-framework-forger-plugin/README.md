@@ -1,6 +1,6 @@
 # @liskhq/lisk-framework-forger-plugin
 
-@liskhq/lisk-framework-forger-plugin is a plugin for lisk-framework that monitors configured delegates forging activity and voters information.
+@liskhq/lisk-framework-forger-plugin is a plugin for lisk-framework that monitors configured validators forging activity and stakers information.
 
 ## Installation
 

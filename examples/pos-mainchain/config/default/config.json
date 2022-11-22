@@ -1,0 +1,45 @@
+{
+	"system": {
+		"dataPath": "~/.lisk/pos-mainchain"
+	},
+	"rpc": {
+		"modes": ["ipc"]
+	},
+	"genesis": {
+		"block": {
+			"fromFile": "./config/genesis_block.blob"
+		},
+		"blockTime": 10,
+		"bftBatchSize": 103,
+		"chainID": "00000000",
+		"maxTransactionsSize": 15360
+	},
+	"generator": {
+		"keys": {
+			"fromFile": "./config/dev-validators.json"
+		}
+	},
+	"network": {
+		"version": "1.0",
+		"seedPeers": [
+			{
+				"ip": "127.0.0.1",
+				"port": 7667
+			}
+		],
+		"port": 7667
+	},
+	"transactionPool": {
+		"maxTransactions": 4096,
+		"maxTransactionsPerAccount": 64,
+		"transactionExpiryTime": 10800000,
+		"minEntranceFeePriority": "0",
+		"minReplacementFeeDifference": "10"
+	},
+	"modules": {},
+	"plugins": {
+		"reportMisbehavior": {
+			"encryptedPassphrase": "iterations=10&cipherText=5dea8b928a3ea2481ebc02499ae77679b7552189181ff189d4aa1f8d89e8d07bf31f7ebd1c66b620769f878629e1b90499506a6f752bf3323799e3a54600f8db02f504c44d&iv=37e0b1753b76a90ed0b8c319&salt=963c5b91d3f7ba02a9d001eed49b5836&tag=c3e30e8f3440ba3f5b6d9fbaccc8918d&version=1"
+		}
+	}
+}

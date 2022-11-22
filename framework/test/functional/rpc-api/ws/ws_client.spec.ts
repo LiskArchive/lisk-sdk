@@ -109,17 +109,17 @@ describe('method client ws mode', () => {
 	});
 
 	describe('module actions', () => {
-		it('should return all the delegates', async () => {
+		it('should return all the validators', async () => {
 			// Act
-			const delegates = await client.invoke('dpos:getAllDelegates');
+			const validators = await client.invoke('pos:getAllValidators');
 			// Assert
-			expect(delegates).toHaveLength(103);
+			expect(validators).toHaveLength(103);
 		});
 
 		it('should throw an error on invalid action', async () => {
 			// Assert
-			await expect(client.invoke('token:getAllDelegates')).rejects.toThrow(
-				"Action 'token:getAllDelegates' is not registered to bus",
+			await expect(client.invoke('token:getAllValidators')).rejects.toThrow(
+				"Action 'token:getAllValidators' is not registered to bus",
 			);
 		});
 	});

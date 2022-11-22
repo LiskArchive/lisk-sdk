@@ -21,18 +21,18 @@ import {
 	REWARD_REDUCTION_MAX_PREVOTES,
 	REWARD_REDUCTION_SEED_REVEAL,
 } from './constants';
-import { MethodInitArgs, RandomMethod } from './types';
+import { ModuleConfig, RandomMethod } from './types';
+
+interface MethodInitArgs {
+	config: ModuleConfig;
+}
 
 export class RewardMethod extends BaseMethod {
 	private _randomMethod!: RandomMethod;
-	private _brackets!: ReadonlyArray<bigint>;
-	private _offset!: number;
-	private _distance!: number;
+	private _config!: ModuleConfig;
 
 	public init(args: MethodInitArgs) {
-		this._brackets = args.config.brackets;
-		this._offset = args.config.offset;
-		this._distance = args.config.distance;
+		this._config = args.config;
 	}
 
 	public addDependencies(randomMethod: RandomMethod): void {
@@ -44,12 +44,7 @@ export class RewardMethod extends BaseMethod {
 		header: BlockHeader,
 		assets: BlockAssets,
 	): Promise<[bigint, number]> {
-		const defaultReward = calculateDefaultReward({
-			height: header.height,
-			brackets: this._brackets,
-			distance: this._distance,
-			offset: this._offset,
-		});
+		const defaultReward = calculateDefaultReward(this._config, header.height);
 		if (defaultReward === BigInt(0)) {
 			return [defaultReward, REWARD_NO_REDUCTION];
 		}

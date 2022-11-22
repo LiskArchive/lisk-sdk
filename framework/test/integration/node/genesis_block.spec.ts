@@ -59,7 +59,7 @@ describe('genesis block', () => {
 					tokenAsset as Buffer,
 				);
 
-				// Get delegate accounts in genesis block from the database
+				// Get validator accounts in genesis block from the database
 				expect.assertions(decoded.userSubstore.length);
 				for (const data of decoded.userSubstore) {
 					const balance = await processEnv.invoke<{ availableBalance: string }>(
@@ -73,7 +73,7 @@ describe('genesis block', () => {
 				}
 			});
 
-			it('should have correct delegate list', async () => {
+			it('should have correct validator list', async () => {
 				const validators = await processEnv.invoke<{
 					list: { address: string; nextAllocatedTime: number }[];
 				}>('chain_getGeneratorList', {});

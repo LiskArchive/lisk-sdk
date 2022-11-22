@@ -55,7 +55,7 @@ A string type value explaining in detail purpose and value of the spec
 
 ## runner
 
-A string identifier to point to a protocol spec name e.g. dpos, bft
+A string identifier to point to a protocol spec name e.g. pos, bft
 
 `runner`
 

@@ -21,7 +21,7 @@ const senderAccount = {
 	address: '5059876081639179984L',
 	publicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 	username: null,
-	isDelegate: false,
+	isValidator: false,
 	nonce: '103',
 	balance: 9897000000000000,
 	fees: '0',

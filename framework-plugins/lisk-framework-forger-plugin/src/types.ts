@@ -21,10 +21,10 @@ export interface ForgerInfo {
 	totalProducedBlocks: number;
 	totalReceivedFees: bigint;
 	totalReceivedRewards: bigint;
-	votesReceived: Voters[];
+	stakeReceived: Stakers[];
 }
 
-export interface Voters {
+export interface Stakers {
 	address: Buffer;
 	amount: bigint;
 }
@@ -33,11 +33,11 @@ export interface ForgetSyncInfo {
 	syncUptoHeight: number;
 }
 
-export interface DPoSAccountJSON {
-	dpos: {
-		delegate: {
+export interface PoSAccountJSON {
+	pos: {
+		validator: {
 			username: string;
-			totalVotesReceived: string;
+			totalStakeReceived: string;
 			consecutiveMissedBlocks: number;
 		};
 	};

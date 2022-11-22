@@ -12,20 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { CalculateDefaultRewardArgs } from './types';
+import { ModuleConfig } from './types';
 
-export const calculateDefaultReward = (args: CalculateDefaultRewardArgs): bigint => {
-	const { height, distance, offset, brackets } = args;
-
-	if (height < offset) {
+export const calculateDefaultReward = (config: ModuleConfig, height: number): bigint => {
+	if (height < config.offset) {
 		return BigInt(0);
 	}
 
-	const rewardDistance = Math.floor(distance);
-	const location = Math.trunc((height - offset) / rewardDistance);
-	const lastBracket = brackets[brackets.length - 1];
+	const rewardDistance = Math.floor(config.distance);
+	const location = Math.trunc((height - config.offset) / rewardDistance);
+	const lastBracket = config.brackets[config.brackets.length - 1];
 
-	const bracket = location > brackets.length - 1 ? brackets.lastIndexOf(lastBracket) : location;
+	const bracket =
+		location > config.brackets.length - 1 ? config.brackets.lastIndexOf(lastBracket) : location;
 
-	return brackets[bracket];
+	return config.brackets[bracket];
 };
