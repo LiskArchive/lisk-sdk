@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {address, utils} from '@liskhq/lisk-cryptography';
+import { address, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { MainchainInteroperabilityModule, TokenMethod } from '../../../../src';
 import { BaseInteroperabilityMethod } from '../../../../src/modules/interoperability/base_interoperability_method';
@@ -44,7 +44,7 @@ import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/
 import { TerminateChainContext } from '../../../../src/modules/interoperability/types';
 import { CHAIN_ID_LENGTH } from '../../../../src/modules/token/constants';
 import { loggerMock } from '../../../../src/testing/mocks';
-import {PrefixedStateReadWriter} from "../../../../src/state_machine/prefixed_state_read_writer";
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 
 class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {
 	protected getInteroperabilityInternalMethod = (): MainchainInteroperabilityInternalMethod =>
@@ -491,9 +491,7 @@ describe('Sample Method', () => {
 		const sendInternalMock = jest.fn();
 		interopMod['internalMethod'].sendInternal = sendInternalMock;
 
-		beforeEach(() => {
-
-		});
+		beforeEach(() => {});
 		it('should do nothing if chain was already terminated', async () => {
 			jest
 				.spyOn(sampleInteroperabilityMethod as any, 'getTerminatedStateAccount')
