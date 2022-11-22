@@ -42,7 +42,7 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 		context: CommandVerifyContext<MessageRecoveryParams>,
 	): Promise<VerificationResult> {
 		const {
-			params: { chainID, idxs, crossChainMessages, siblingHashes },
+			params: { chainID },
 		} = context;
 		const chainIdAsBuffer = chainID;
 		let terminatedChainOutboxAccount: TerminatedOutboxAccount;
@@ -55,13 +55,10 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			if (!(error instanceof NotFoundError)) {
 				throw error;
 			}
-			return verifyMessageRecovery({ idxs, crossChainMessages, siblingHashes });
+			return verifyMessageRecovery(context.params);
 		}
 
-		return verifyMessageRecovery(
-			{ idxs, crossChainMessages, siblingHashes },
-			terminatedChainOutboxAccount,
-		);
+		return verifyMessageRecovery(context.params, terminatedChainOutboxAccount);
 	}
 
 	public async execute(context: CommandExecuteContext<MessageRecoveryParams>): Promise<void> {
