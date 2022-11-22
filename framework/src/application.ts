@@ -43,17 +43,19 @@ import { ValidatorsMethod, ValidatorsModule } from './modules/validators';
 import { TokenModule, TokenMethod } from './modules/token';
 import { AuthModule, AuthMethod } from './modules/auth';
 import { FeeModule, FeeMethod } from './modules/fee';
-import { RewardModule, RewardMethod } from './modules/reward';
 import { RandomModule, RandomMethod } from './modules/random';
-import { DPoSModule, DPoSMethod } from './modules/dpos_v2';
+import { PoSModule, PoSMethod } from './modules/pos';
 import { generateGenesisBlock, GenesisBlockGenerateInput } from './genesis_block';
 import { StateMachine } from './state_machine';
 import { ABIHandler, EVENT_ENGINE_READY } from './abi_handler/abi_handler';
 import { ABIServer } from './abi_handler/abi_server';
-import { SidechainInteroperabilityModule } from './modules/interoperability/sidechain/module';
-import { MainchainInteroperabilityModule } from './modules/interoperability/mainchain/module';
-import { SidechainInteroperabilityMethod } from './modules/interoperability/sidechain/method';
-import { MainchainInteroperabilityMethod } from './modules/interoperability/mainchain/method';
+import {
+	SidechainInteroperabilityModule,
+	MainchainInteroperabilityModule,
+	SidechainInteroperabilityMethod,
+	MainchainInteroperabilityMethod,
+} from './modules/interoperability';
+import { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_rewards';
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -109,8 +111,8 @@ interface DefaultApplication {
 		token: TokenMethod;
 		fee: FeeMethod;
 		random: RandomMethod;
-		reward: RewardMethod;
-		dpos: DPoSMethod;
+		reward: DynamicRewardMethod;
+		pos: PoSMethod;
 		interoperability: SidechainInteroperabilityMethod | MainchainInteroperabilityMethod;
 	};
 }
@@ -164,10 +166,10 @@ export class Application {
 		const authModule = new AuthModule();
 		const tokenModule = new TokenModule();
 		const feeModule = new FeeModule();
-		const rewardModule = new RewardModule();
+		const rewardModule = new DynamicRewardModule();
 		const randomModule = new RandomModule();
 		const validatorModule = new ValidatorsModule();
-		const dposModule = new DPoSModule();
+		const posModule = new PoSModule();
 		let interoperabilityModule;
 		if (mainchain) {
 			interoperabilityModule = new MainchainInteroperabilityModule();
@@ -179,8 +181,13 @@ export class Application {
 
 		// resolve dependencies
 		feeModule.addDependencies(tokenModule.method);
-		rewardModule.addDependencies(tokenModule.method, randomModule.method);
-		dposModule.addDependencies(randomModule.method, validatorModule.method, tokenModule.method);
+		rewardModule.addDependencies(
+			tokenModule.method,
+			randomModule.method,
+			validatorModule.method,
+			posModule.method,
+		);
+		posModule.addDependencies(randomModule.method, validatorModule.method, tokenModule.method);
 		tokenModule.addDependencies(interoperabilityModule.method);
 
 		// resolve interoperability dependencies
@@ -193,7 +200,7 @@ export class Application {
 		application._registerModule(feeModule);
 		application._registerModule(rewardModule);
 		application._registerModule(randomModule);
-		application._registerModule(dposModule);
+		application._registerModule(posModule);
 		application._registerModule(interoperabilityModule);
 
 		return {
@@ -203,7 +210,7 @@ export class Application {
 				token: tokenModule.method,
 				auth: authModule.method,
 				fee: feeModule.method,
-				dpos: dposModule.method,
+				pos: posModule.method,
 				random: randomModule.method,
 				reward: rewardModule.method,
 				interoperability: interoperabilityModule.method,

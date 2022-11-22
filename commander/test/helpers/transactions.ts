@@ -175,21 +175,21 @@ export const keysRegisterParamsSchema = {
 	},
 	required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
 };
-export const dposVoteParamsSchema = {
-	$id: '/dpos/command/voteDelegateParams',
+export const posVoteParamsSchema = {
+	$id: '/pos/command/stakeParams',
 	type: 'object',
-	required: ['votes'],
+	required: ['stakes'],
 	properties: {
-		votes: {
+		stakes: {
 			type: 'array',
 			fieldNumber: 1,
 			minItems: 1,
 			maxItems: 20,
 			items: {
 				type: 'object',
-				required: ['delegateAddress', 'amount'],
+				required: ['validatorAddress', 'amount'],
 				properties: {
-					delegateAddress: {
+					validatorAddress: {
 						dataType: 'bytes',
 						fieldNumber: 1,
 						format: 'lisk32',

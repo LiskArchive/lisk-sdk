@@ -28,7 +28,7 @@ const senderAccount = {
 	publicKey: Buffer.from('8c3d81b1555fbe4692adfa1026ee21c043633b9369924cf2790e2e0fc6b47a66', 'hex'),
 	address: Buffer.from('67aeac2f0dcaae0b7790777a3b4ba296c427dbeb', 'hex'),
 };
-const delegateAccounts = [
+const validatorAccounts = [
 	{
 		passphrase: 'vivid phrase noble marble puzzle result pony dream loud deliver catch liquid',
 		publicKey: Buffer.from(
@@ -194,23 +194,23 @@ const delegateAccounts = [
 ];
 
 const assetSchema = {
-	$id: '/protocolSpec/assets/vote',
+	$id: '/protocolSpec/assets/stake',
 	type: 'object',
 	properties: {
-		votes: {
+		stakes: {
 			type: 'array',
 			items: {
 				type: 'object',
 				properties: {
-					delegateAddress: { dataType: 'bytes', fieldNumber: 1 },
+					validatorAddress: { dataType: 'bytes', fieldNumber: 1 },
 					amount: { dataType: 'sint64', fieldNumber: 2 },
 				},
-				required: ['delegateAddress', 'amount'],
+				required: ['validatorAddress', 'amount'],
 			},
 			fieldNumber: 1,
 		},
 	},
-	required: ['votes'],
+	required: ['stakes'],
 };
 
 const getAssetBytes = asset => codec.encode(assetSchema, asset);
@@ -234,7 +234,7 @@ const encode = tx => {
 	return codec.encode(baseTransactionSchema, txWithAssetBytes);
 };
 
-const generateValidUpvoteTransaction = () => {
+const generateValidUpstakeTransaction = () => {
 	const unsignedTransaction = {
 		moduleID: 5,
 		assetID: 1,
@@ -242,45 +242,45 @@ const generateValidUpvoteTransaction = () => {
 		nonce: BigInt('1'),
 		senderPublicKey: senderAccount.publicKey,
 		asset: {
-			votes: [
+			stakes: [
 				{
-					delegateAddress: delegateAccounts[0].address,
+					validatorAddress: validatorAccounts[0].address,
 					amount: BigInt('1000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[1].address,
+					validatorAddress: validatorAccounts[1].address,
 					amount: BigInt('50000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[2].address,
+					validatorAddress: validatorAccounts[2].address,
 					amount: BigInt('320000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[3].address,
+					validatorAddress: validatorAccounts[3].address,
 					amount: BigInt('420000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[4].address,
+					validatorAddress: validatorAccounts[4].address,
 					amount: BigInt('520000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[5].address,
+					validatorAddress: validatorAccounts[5].address,
 					amount: BigInt('620000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[6].address,
+					validatorAddress: validatorAccounts[6].address,
 					amount: BigInt('820000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[7].address,
+					validatorAddress: validatorAccounts[7].address,
 					amount: BigInt('920000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[8].address,
+					validatorAddress: validatorAccounts[8].address,
 					amount: BigInt('140000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[9].address,
+					validatorAddress: validatorAccounts[9].address,
 					amount: BigInt('130000000000'),
 				},
 			],
@@ -304,7 +304,7 @@ const generateValidUpvoteTransaction = () => {
 				publicKey: senderAccount.publicKey,
 			},
 			chainID,
-			delegates: delegateAccounts.map(d => ({
+			validators: validatorAccounts.map(d => ({
 				...d,
 				address: d.address,
 				publicKey: d.publicKey,
@@ -316,52 +316,52 @@ const generateValidUpvoteTransaction = () => {
 	};
 };
 
-const generateValidDownvoteTransaction = () => {
+const generateValidDownstakeTransaction = () => {
 	const unsignedTransaction = {
 		type: 13,
 		fee: BigInt('1500000000'),
 		nonce: BigInt('2'),
 		senderPublicKey: senderAccount.publicKey,
 		asset: {
-			votes: [
+			stakes: [
 				{
-					delegateAddress: delegateAccounts[0].address,
+					validatorAddress: validatorAccounts[0].address,
 					amount: BigInt('-10000000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[1].address,
+					validatorAddress: validatorAccounts[1].address,
 					amount: BigInt('-20030000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[2].address,
+					validatorAddress: validatorAccounts[2].address,
 					amount: BigInt('-30030000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[3].address,
+					validatorAddress: validatorAccounts[3].address,
 					amount: BigInt('-40030000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[4].address,
+					validatorAddress: validatorAccounts[4].address,
 					amount: BigInt('-50200000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[5].address,
+					validatorAddress: validatorAccounts[5].address,
 					amount: BigInt('-40030000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[6].address,
+					validatorAddress: validatorAccounts[6].address,
 					amount: BigInt('-40030000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[7].address,
+					validatorAddress: validatorAccounts[7].address,
 					amount: BigInt('-50000000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[8].address,
+					validatorAddress: validatorAccounts[8].address,
 					amount: BigInt('-50000000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[9].address,
+					validatorAddress: validatorAccounts[9].address,
 					amount: BigInt('-10000000000000'),
 				},
 			],
@@ -386,7 +386,7 @@ const generateValidDownvoteTransaction = () => {
 				publicKey: senderAccount.publicKey,
 			},
 			chainID,
-			delegates: delegateAccounts.map(d => ({
+			validators: validatorAccounts.map(d => ({
 				...d,
 				address: d.address,
 				publicKey: d.publicKey,
@@ -398,92 +398,92 @@ const generateValidDownvoteTransaction = () => {
 	};
 };
 
-const generateValidUpvoteAndDownvoteVoteTransaction = () => {
+const generateValidUpstakeAndDownstakeVoteTransaction = () => {
 	const unsignedTransaction = {
 		type: 13,
 		fee: BigInt('1500000000'),
 		nonce: BigInt('2'),
 		senderPublicKey: senderAccount.publicKey,
 		asset: {
-			votes: [
+			stakes: [
 				{
-					delegateAddress: delegateAccounts[0].address,
+					validatorAddress: validatorAccounts[0].address,
 					amount: BigInt('-10000000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[1].address,
+					validatorAddress: validatorAccounts[1].address,
 					amount: BigInt('1000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[2].address,
+					validatorAddress: validatorAccounts[2].address,
 					amount: BigInt('140000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[3].address,
+					validatorAddress: validatorAccounts[3].address,
 					amount: BigInt('-20030000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[4].address,
+					validatorAddress: validatorAccounts[4].address,
 					amount: BigInt('-30030000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[5].address,
+					validatorAddress: validatorAccounts[5].address,
 					amount: BigInt('50000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[6].address,
+					validatorAddress: validatorAccounts[6].address,
 					amount: BigInt('-40030000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[7].address,
+					validatorAddress: validatorAccounts[7].address,
 					amount: BigInt('-50200000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[8].address,
+					validatorAddress: validatorAccounts[8].address,
 					amount: BigInt('520000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[9].address,
+					validatorAddress: validatorAccounts[9].address,
 					amount: BigInt('420000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[10].address,
+					validatorAddress: validatorAccounts[10].address,
 					amount: BigInt('-40030000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[11].address,
+					validatorAddress: validatorAccounts[11].address,
 					amount: BigInt('-40030000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[12].address,
+					validatorAddress: validatorAccounts[12].address,
 					amount: BigInt('920000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[13].address,
+					validatorAddress: validatorAccounts[13].address,
 					amount: BigInt('-50000000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[14].address,
+					validatorAddress: validatorAccounts[14].address,
 					amount: BigInt('620000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[15].address,
+					validatorAddress: validatorAccounts[15].address,
 					amount: BigInt('-50000000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[16].address,
+					validatorAddress: validatorAccounts[16].address,
 					amount: BigInt('320000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[17].address,
+					validatorAddress: validatorAccounts[17].address,
 					amount: BigInt('820000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[18].address,
+					validatorAddress: validatorAccounts[18].address,
 					amount: BigInt('130000000000'),
 				},
 				{
-					delegateAddress: delegateAccounts[19].address,
+					validatorAddress: validatorAccounts[19].address,
 					amount: BigInt('-50000000000000'),
 				},
 			],
@@ -508,7 +508,7 @@ const generateValidUpvoteAndDownvoteVoteTransaction = () => {
 				publicKey: senderAccount.publicKey,
 			},
 			chainID,
-			delegates: delegateAccounts.map(d => ({
+			validators: validatorAccounts.map(d => ({
 				...d,
 				address: d.address,
 				publicKey: d.publicKey,
@@ -520,19 +520,19 @@ const generateValidUpvoteAndDownvoteVoteTransaction = () => {
 	};
 };
 
-const validUpvoteSuite = () => ({
-	title: 'Valid vote transaction',
-	summary: 'Cases of valid vote transaction with upvote, downvote and mixture of both',
+const validUpstakeSuite = () => ({
+	title: 'Valid stake transaction',
+	summary: 'Cases of valid stake transaction with upvote, downvote and mixture of both',
 	config: {
 		network: 'devnet',
 	},
 	runner: 'vote_transaction',
 	handler: 'vote_transaction_10_upvotes',
 	testCases: [
-		generateValidUpvoteTransaction(),
-		generateValidDownvoteTransaction(),
-		generateValidUpvoteAndDownvoteVoteTransaction(),
+		generateValidUpstakeTransaction(),
+		generateValidDownstakeTransaction(),
+		generateValidUpstakeAndDownstakeVoteTransaction(),
 	],
 });
 
-module.exports = BaseGenerator.runGenerator('vote_transaction', [validUpvoteSuite]);
+module.exports = BaseGenerator.runGenerator('vote_transaction', [validUpstakeSuite]);

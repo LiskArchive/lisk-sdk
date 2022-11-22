@@ -16,11 +16,11 @@
 // import { createApplication, closeApplication, waitNBlocks } from '../utils/application';
 // import { Application } from '../../../src';
 
-// describe('Delegate related actions', () => {
+// describe('Validator related actions', () => {
 // 	let app: Application;
 
 // 	beforeAll(async () => {
-// 		app = await createApplication('actions-delegate');
+// 		app = await createApplication('actions-validator');
 // 		await waitNBlocks(app, 1);
 // 	});
 
@@ -28,16 +28,16 @@
 // 		await closeApplication(app);
 // 	});
 
-// 	describe('getAllDelegates', () => {
-// 		it('should return list of delegates', async () => {
-// 			const delegates = await app['_channel'].invoke<{ [key: string]: string }[]>(
-// 				'dpos:getAllDelegates',
+// 	describe('getAllValidators', () => {
+// 		it('should return list of validators', async () => {
+// 			const validators = await app['_channel'].invoke<{ [key: string]: string }[]>(
+// 				'pos:getAllValidators',
 // 			);
-// 			expect(delegates).toBeArray();
-// 			expect(delegates).toHaveLength(103);
-// 			delegates.map(delegate => {
-// 				expect(delegate.username).toBeString();
-// 				return expect(delegate.address).toBeString();
+// 			expect(validators).toBeArray();
+// 			expect(validators).toHaveLength(103);
+// 			validators.map(validator => {
+// 				expect(validator.username).toBeString();
+// 				return expect(validator.address).toBeString();
 // 			});
 // 		});
 // 	});

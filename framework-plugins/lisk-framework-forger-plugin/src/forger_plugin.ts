@@ -29,7 +29,7 @@ import {
 	setForgerInfo,
 	setForgerSyncInfo,
 } from './db';
-import { Forger, Voters } from './types';
+import { Forger, Stakers } from './types';
 import { Endpoint } from './endpoint';
 
 const { Block } = chain;
@@ -38,18 +38,18 @@ type BlockJSON = chain.BlockJSON;
 type TransactionJSON = chain.TransactionJSON;
 
 const BLOCKS_BATCH_TO_SYNC = 1000;
-const MODULE_DPOS = 'dpos';
-const COMMAND_VOTE = 'vote';
+const MODULE_POS = 'pos';
+const COMMAND_STAKE = 'stake';
 
 interface Data {
 	readonly blockHeader: BlockHeaderJSON;
 }
 
-interface VotesParams {
-	readonly votes: Array<Readonly<Vote>>;
+interface StakesParams {
+	readonly stakes: Array<Readonly<Stake>>;
 }
-interface Vote {
-	delegateAddress: string;
+interface Stake {
+	validatorAddress: string;
 	amount: string;
 }
 
@@ -70,8 +70,8 @@ interface MissedBlocksByAddress {
 	[key: string]: number;
 }
 
-interface ForgerReceivedVotes {
-	[key: string]: Voters;
+interface ForgerReceivedStakes {
+	[key: string]: Stakers;
 }
 
 const getBinaryAddress = (hexAddressStr: string) =>
@@ -254,7 +254,7 @@ export class ForgerPlugin extends BasePlugin {
 			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
 
-		await this._addVotesReceived(transactions);
+		await this._addStakesReceived(transactions);
 		await this._updateMissedBlock(header, transactions);
 	}
 
@@ -268,37 +268,37 @@ export class ForgerPlugin extends BasePlugin {
 			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
 
-		await this._revertVotesReceived(transactions);
+		await this._revertStakesReceived(transactions);
 	}
 
-	private _getForgerReceivedVotes(
+	private _getForgerReceivedStakes(
 		transactions: ReadonlyArray<TransactionJSON>,
-	): ForgerReceivedVotes {
-		const forgerReceivedVotes: ForgerReceivedVotes = {};
+	): ForgerReceivedStakes {
+		const forgerReceivedStakes: ForgerReceivedStakes = {};
 
-		const dposModuleMeta = this.apiClient.metadata.find(c => c.name === MODULE_DPOS);
-		if (!dposModuleMeta) {
-			throw new Error('DPoS votes command is not registered.');
+		const posModuleMeta = this.apiClient.metadata.find(c => c.name === MODULE_POS);
+		if (!posModuleMeta) {
+			throw new Error('PoS stakes command is not registered.');
 		}
-		const voteCommandMeta = dposModuleMeta.commands.find(c => c.name === COMMAND_VOTE);
+		const voteCommandMeta = posModuleMeta.commands.find(c => c.name === COMMAND_STAKE);
 		if (!voteCommandMeta || !voteCommandMeta.params) {
-			throw new Error('DPoS votes command is not registered.');
+			throw new Error('PoS stakes command is not registered.');
 		}
 
 		for (const trx of transactions) {
-			if (trx.module === MODULE_DPOS && trx.command === COMMAND_VOTE) {
-				const params = codec.decode<VotesParams>(
+			if (trx.module === MODULE_POS && trx.command === COMMAND_STAKE) {
+				const params = codec.decode<StakesParams>(
 					voteCommandMeta.params,
 					Buffer.from(trx.params, 'hex'),
 				);
-				params.votes.reduce((acc: ForgerReceivedVotes, curr) => {
+				params.stakes.reduce((acc: ForgerReceivedStakes, curr) => {
 					if (
-						this._forgersList.has(getAddressBuffer(curr.delegateAddress)) &&
-						acc[curr.delegateAddress]
+						this._forgersList.has(getAddressBuffer(curr.validatorAddress)) &&
+						acc[curr.validatorAddress]
 					) {
-						acc[curr.delegateAddress].amount += BigInt(curr.amount);
+						acc[curr.validatorAddress].amount += BigInt(curr.amount);
 					} else {
-						acc[curr.delegateAddress] = {
+						acc[curr.validatorAddress] = {
 							address: cryptography.address.getAddressFromPublicKey(
 								Buffer.from(trx.senderPublicKey, 'hex'),
 							),
@@ -306,57 +306,57 @@ export class ForgerPlugin extends BasePlugin {
 						};
 					}
 					return acc;
-				}, forgerReceivedVotes);
+				}, forgerReceivedStakes);
 			}
 		}
 
-		return forgerReceivedVotes;
+		return forgerReceivedStakes;
 	}
 
-	private async _addVotesReceived(transactions: ReadonlyArray<TransactionJSON>): Promise<void> {
-		const forgerReceivedVotes = this._getForgerReceivedVotes(transactions);
+	private async _addStakesReceived(transactions: ReadonlyArray<TransactionJSON>): Promise<void> {
+		const forgerReceivedStakes = this._getForgerReceivedStakes(transactions);
 
-		for (const [delegateAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
+		for (const [validatorAddress, stakeReceived] of Object.entries(forgerReceivedStakes)) {
 			const forgerInfo = await getForgerInfo(
 				this._forgerPluginDB,
-				getBinaryAddress(delegateAddress),
+				getBinaryAddress(validatorAddress),
 			);
 
-			const voterIndex = forgerInfo.votesReceived.findIndex(aVote =>
-				aVote.address.equals(votesReceived.address),
+			const stakerIndex = forgerInfo.stakeReceived.findIndex(aStake =>
+				aStake.address.equals(stakeReceived.address),
 			);
-			if (voterIndex === -1) {
-				forgerInfo.votesReceived.push(votesReceived);
+			if (stakerIndex === -1) {
+				forgerInfo.stakeReceived.push(stakeReceived);
 			} else {
-				forgerInfo.votesReceived[voterIndex].amount += votesReceived.amount;
-				// Remove voter when amount becomes zero
-				if (forgerInfo.votesReceived[voterIndex].amount === BigInt(0)) {
-					forgerInfo.votesReceived.splice(voterIndex, 1);
+				forgerInfo.stakeReceived[stakerIndex].amount += stakeReceived.amount;
+				// Remove staker when amount becomes zero
+				if (forgerInfo.stakeReceived[stakerIndex].amount === BigInt(0)) {
+					forgerInfo.stakeReceived.splice(stakerIndex, 1);
 				}
 			}
-			await setForgerInfo(this._forgerPluginDB, getBinaryAddress(delegateAddress), forgerInfo);
+			await setForgerInfo(this._forgerPluginDB, getBinaryAddress(validatorAddress), forgerInfo);
 		}
 	}
 
-	private async _revertVotesReceived(transactions: ReadonlyArray<TransactionJSON>): Promise<void> {
-		const forgerReceivedVotes = this._getForgerReceivedVotes(transactions);
+	private async _revertStakesReceived(transactions: ReadonlyArray<TransactionJSON>): Promise<void> {
+		const forgerReceivedStakes = this._getForgerReceivedStakes(transactions);
 
-		for (const [delegateAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
+		for (const [validatorAddress, stakeReceived] of Object.entries(forgerReceivedStakes)) {
 			const forgerInfo = await getForgerInfo(
 				this._forgerPluginDB,
-				getBinaryAddress(delegateAddress),
+				getBinaryAddress(validatorAddress),
 			);
-			const voterIndex = forgerInfo.votesReceived.findIndex(aVote =>
-				aVote.address.equals(votesReceived.address),
+			const stakerIndex = forgerInfo.stakeReceived.findIndex(aStake =>
+				aStake.address.equals(stakeReceived.address),
 			);
 
-			if (voterIndex !== -1) {
-				forgerInfo.votesReceived[voterIndex].amount -= BigInt(votesReceived.amount);
-				// Remove voter when amount becomes zero
-				if (forgerInfo.votesReceived[voterIndex].amount === BigInt(0)) {
-					forgerInfo.votesReceived.splice(voterIndex, 1);
+			if (stakerIndex !== -1) {
+				forgerInfo.stakeReceived[stakerIndex].amount -= BigInt(stakeReceived.amount);
+				// Remove staker when amount becomes zero
+				if (forgerInfo.stakeReceived[stakerIndex].amount === BigInt(0)) {
+					forgerInfo.stakeReceived.splice(stakerIndex, 1);
 				}
-				await setForgerInfo(this._forgerPluginDB, getBinaryAddress(delegateAddress), forgerInfo);
+				await setForgerInfo(this._forgerPluginDB, getBinaryAddress(validatorAddress), forgerInfo);
 			}
 		}
 	}

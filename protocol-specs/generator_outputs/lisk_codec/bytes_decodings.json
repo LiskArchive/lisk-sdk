@@ -12,7 +12,7 @@
 			"input": {
 				"value": "0a14e11a11364738225813f86ea85214400e5db08d6e",
 				"schema": {
-					"$id": "object9",
+					"$id": "/object9",
 					"type": "object",
 					"properties": {
 						"address": {
@@ -33,7 +33,7 @@
 			"input": {
 				"value": "0a00",
 				"schema": {
-					"$id": "object9",
+					"$id": "/object9",
 					"type": "object",
 					"properties": {
 						"address": {

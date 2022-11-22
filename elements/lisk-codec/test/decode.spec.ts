@@ -85,7 +85,7 @@ describe('decode', () => {
 		it.each(buildTestCases(blockTestCases))('%s', ({ input, output }) => {
 			const object = {
 				header: Buffer.from(output.object.header, 'hex'),
-				transactions: output.object.transactions.map(p => Buffer.from(p, 'hex')),
+				payload: output.object.payload.map(p => Buffer.from(p, 'hex')),
 			};
 
 			const result = codec.decode(input.schema, Buffer.from(input.value, 'hex'));
@@ -340,7 +340,7 @@ describe('decode', () => {
 		it.each(buildTestCases(genesisBlockTestCases))('%s', ({ input, output }) => {
 			const object = {
 				...output.object,
-				initDelegates: output.object.initDelegates.map(d => Buffer.from(d, 'hex')),
+				initValidators: output.object.initValidators.map(d => Buffer.from(d, 'hex')),
 				accounts: output.object.accounts.map(a => getAccountFromJSON(a)),
 			};
 
@@ -473,15 +473,15 @@ describe('decode', () => {
 			expect(result).toEqual(object);
 		});
 
-		// vote asset
+		// stake asset
 		it(transactionTestCases[1].description, () => {
 			const testCase = transactionTestCases[1];
 			const output = testCase.output as any;
 
 			const object = {
 				...output.object,
-				votes: output.object.votes.map((v: any) => ({
-					delegateAddress: Buffer.from(v.delegateAddress, 'hex'),
+				stakes: output.object.stakes.map((v: any) => ({
+					validatorAddress: Buffer.from(v.validatorAddress, 'hex'),
 					amount: BigInt(v.amount),
 				})),
 			};

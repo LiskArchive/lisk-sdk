@@ -16,7 +16,7 @@ import { utils, address } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { BlockAssets, StateStore } from '@liskhq/lisk-chain';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
-import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
+import * as genesisValidators from '../../../fixtures/genesis_validators.json';
 import { RandomModule } from '../../../../src/modules/random';
 import {
 	UsedHashOnionStoreObject,
@@ -37,10 +37,10 @@ import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_
 import { ValidatorRevealsStore } from '../../../../src/modules/random/stores/validator_reveals';
 import { HashOnionStore } from '../../../../src/modules/random/stores/hash_onion';
 
-const convertDelegateFixture = (delegates: typeof genesisDelegates.delegates) =>
-	delegates.map(delegate => ({
-		address: delegate.address,
-		hashOnion: delegate.hashOnion,
+const convertValidatorFixture = (validators: typeof genesisValidators.validators) =>
+	validators.map(validator => ({
+		address: validator.address,
+		hashOnion: validator.hashOnion,
 	}));
 
 describe('RandomModule', () => {
@@ -57,15 +57,15 @@ describe('RandomModule', () => {
 		const db = new InMemoryDatabase();
 		const hashOnionStore = randomModule.offchainStores.get(HashOnionStore);
 		offchainStore = new StateStore(db);
-		for (const delegate of genesisDelegates.delegates) {
+		for (const validator of genesisValidators.validators) {
 			await hashOnionStore.set(
 				// eslint-disable-next-line no-loop-func
 				{ getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2) },
-				address.getAddressFromLisk32Address(delegate.address),
+				address.getAddressFromLisk32Address(validator.address),
 				{
-					count: delegate.hashOnion.count,
-					distance: delegate.hashOnion.distance,
-					hashes: delegate.hashOnion.hashes.map(h => Buffer.from(h, 'hex')),
+					count: validator.hashOnion.count,
+					distance: validator.hashOnion.distance,
+					hashes: validator.hashOnion.hashes.map(h => Buffer.from(h, 'hex')),
 				},
 			);
 		}
@@ -94,7 +94,7 @@ describe('RandomModule', () => {
 	});
 
 	describe('insertAssets', () => {
-		const targetDelegate = genesisDelegates.delegates[0];
+		const targetValidator = genesisValidators.validators[0];
 
 		const defaultUsedHashOnion: UsedHashOnionStoreObject = {
 			usedHashOnions: [
@@ -126,7 +126,7 @@ describe('RandomModule', () => {
 			],
 		};
 
-		const targetDelegateAddress = address.getAddressFromLisk32Address(targetDelegate.address);
+		const targetValidatorAddress = address.getAddressFromLisk32Address(targetValidator.address);
 
 		it('should assign seed reveal to block header asset', async () => {
 			// Arrange
@@ -138,17 +138,17 @@ describe('RandomModule', () => {
 				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				// getOffchainStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: targetDelegateAddress } as any,
+				header: { height: 15, generatorAddress: targetValidatorAddress } as any,
 			});
 
 			await randomModule.offchainStores
 				.get(UsedHashOnionsStore)
-				.set(blockGenerateContext, targetDelegateAddress, defaultUsedHashOnion);
+				.set(blockGenerateContext, targetValidatorAddress, defaultUsedHashOnion);
 
-			const seed = targetDelegate.hashOnion.hashes[1];
+			const seed = targetValidator.hashOnion.hashes[1];
 			const hashes = utils.hashOnion(
 				Buffer.from(seed, 'hex'),
-				targetDelegate.hashOnion.distance,
+				targetValidator.hashOnion.distance,
 				1,
 			);
 
@@ -168,7 +168,7 @@ describe('RandomModule', () => {
 			await expect(
 				randomModule.offchainStores
 					.get(UsedHashOnionsStore)
-					.get(blockGenerateContext, targetDelegateAddress),
+					.get(blockGenerateContext, targetValidatorAddress),
 			).resolves.toEqual(defaultUsedHashOnionUpdated);
 		});
 
@@ -182,17 +182,17 @@ describe('RandomModule', () => {
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
 				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: targetDelegateAddress } as any,
+				header: { height: 15, generatorAddress: targetValidatorAddress } as any,
 			});
 
 			await randomModule.offchainStores
 				.get(UsedHashOnionsStore)
-				.set(blockGenerateContext, targetDelegateAddress, defaultUsedHashOnion);
+				.set(blockGenerateContext, targetValidatorAddress, defaultUsedHashOnion);
 
-			const seed = targetDelegate.hashOnion.hashes[1];
+			const seed = targetValidator.hashOnion.hashes[1];
 			const hashes = utils.hashOnion(
 				Buffer.from(seed, 'hex'),
-				targetDelegate.hashOnion.distance,
+				targetValidator.hashOnion.distance,
 				1,
 			);
 
@@ -212,7 +212,7 @@ describe('RandomModule', () => {
 			await expect(
 				randomModule.offchainStores
 					.get(UsedHashOnionsStore)
-					.get(blockGenerateContext, targetDelegateAddress),
+					.get(blockGenerateContext, targetValidatorAddress),
 			).resolves.toEqual(defaultUsedHashOnionUpdated);
 		});
 
@@ -242,16 +242,16 @@ describe('RandomModule', () => {
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
 				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: targetDelegateAddress } as any,
+				header: { height: 15, generatorAddress: targetValidatorAddress } as any,
 			});
 			await randomModule.offchainStores
 				.get(UsedHashOnionsStore)
-				.set(blockGenerateContext, targetDelegateAddress, usedHashOnionInput);
+				.set(blockGenerateContext, targetValidatorAddress, usedHashOnionInput);
 
-			const seed = targetDelegate.hashOnion.hashes[1];
+			const seed = targetValidator.hashOnion.hashes[1];
 			const hashes = utils.hashOnion(
 				Buffer.from(seed, 'hex'),
-				targetDelegate.hashOnion.distance,
+				targetValidator.hashOnion.distance,
 				1,
 			);
 
@@ -271,7 +271,7 @@ describe('RandomModule', () => {
 			await expect(
 				randomModule.offchainStores
 					.get(UsedHashOnionsStore)
-					.get(blockGenerateContext, targetDelegateAddress),
+					.get(blockGenerateContext, targetValidatorAddress),
 			).resolves.toEqual(defaultUsedHashOnionUpdated);
 		});
 
@@ -285,20 +285,20 @@ describe('RandomModule', () => {
 				chainID: defaultChainID,
 				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: targetDelegateAddress } as any,
+				header: { height: 15, generatorAddress: targetValidatorAddress } as any,
 				finalizedHeight,
 			});
 
-			const seed = targetDelegate.hashOnion.hashes[1];
+			const seed = targetValidator.hashOnion.hashes[1];
 			const hashes = utils.hashOnion(
 				Buffer.from(seed, 'hex'),
-				targetDelegate.hashOnion.distance,
+				targetValidator.hashOnion.distance,
 				1,
 			);
 
 			await randomModule.offchainStores
 				.get(UsedHashOnionsStore)
-				.set(blockGenerateContext, targetDelegateAddress, defaultUsedHashOnion);
+				.set(blockGenerateContext, targetValidatorAddress, defaultUsedHashOnion);
 
 			// Act
 			await randomModule.init({
@@ -317,7 +317,7 @@ describe('RandomModule', () => {
 			await expect(
 				randomModule.offchainStores
 					.get(UsedHashOnionsStore)
-					.get(blockGenerateContext, targetDelegateAddress),
+					.get(blockGenerateContext, targetValidatorAddress),
 			).resolves.toEqual({
 				usedHashOnions: defaultUsedHashOnionUpdated.usedHashOnions.filter(
 					u => u.height > finalizedHeight,
@@ -327,9 +327,9 @@ describe('RandomModule', () => {
 
 		it('should use random seedReveal when all seedReveal are used', async () => {
 			// Arrange
-			const forgingDelegates = convertDelegateFixture(genesisDelegates.delegates);
-			const maxCount = (forgingDelegates as any).find(
-				(d: { address: string }) => d.address === targetDelegate.address,
+			const forgingValidators = convertValidatorFixture(genesisValidators.validators);
+			const maxCount = (forgingValidators as any).find(
+				(d: { address: string }) => d.address === targetValidator.address,
 			).hashOnion.count;
 
 			const usedHashOnionInput: UsedHashOnionStoreObject = {
@@ -365,11 +365,11 @@ describe('RandomModule', () => {
 				chainID: defaultChainID,
 				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: targetDelegateAddress } as any,
+				header: { height: 15, generatorAddress: targetValidatorAddress } as any,
 			});
 			await randomModule.offchainStores
 				.get(UsedHashOnionsStore)
-				.set(blockGenerateContext, targetDelegateAddress, usedHashOnionInput);
+				.set(blockGenerateContext, targetValidatorAddress, usedHashOnionInput);
 
 			// Act
 			await randomModule.init({
@@ -383,7 +383,7 @@ describe('RandomModule', () => {
 			await expect(
 				randomModule.offchainStores
 					.get(UsedHashOnionsStore)
-					.get(blockGenerateContext, targetDelegateAddress),
+					.get(blockGenerateContext, targetValidatorAddress),
 			).resolves.toEqual(usedHashOnionOutput);
 			expect(blockGenerateContext.logger.warn).toHaveBeenCalledWith(
 				'All of the hash onion has been used already. Please update to the new hash onion.',
@@ -405,7 +405,7 @@ describe('RandomModule', () => {
 				getStore: jest.fn() as any,
 				header: {
 					height: 15,
-					generatorAddress: address.getAddressFromLisk32Address(targetDelegate.address),
+					generatorAddress: address.getAddressFromLisk32Address(targetValidator.address),
 				} as any,
 			});
 
@@ -418,7 +418,7 @@ describe('RandomModule', () => {
 			const usedHashOnionStore = randomModule.offchainStores.get(UsedHashOnionsStore);
 			await usedHashOnionStore.set(
 				blockGenerateContext,
-				Buffer.from(targetDelegate.address, 'hex'),
+				Buffer.from(targetValidator.address, 'hex'),
 				{ usedHashOnions: [] },
 			);
 

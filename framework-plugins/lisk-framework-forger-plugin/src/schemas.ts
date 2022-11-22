@@ -28,7 +28,7 @@ export const forgerInfoSchema = {
 			dataType: 'uint64',
 			fieldNumber: 3,
 		},
-		votesReceived: {
+		stakeReceived: {
 			type: 'array',
 			fieldNumber: 4,
 			items: {
@@ -47,7 +47,7 @@ export const forgerInfoSchema = {
 			required: ['address', 'amount'],
 		},
 	},
-	required: ['totalProducedBlocks', 'totalReceivedFees', 'totalReceivedRewards', 'votesReceived'],
+	required: ['totalProducedBlocks', 'totalReceivedFees', 'totalReceivedRewards', 'stakeReceived'],
 };
 
 export const forgerSyncSchema = {
@@ -62,20 +62,20 @@ export const forgerSyncSchema = {
 	},
 };
 
-export const dposVoteParamsSchema = {
-	$id: '/forger/dpos/vote',
+export const posStakeParamsSchema = {
+	$id: '/forger/pos/stake',
 	type: 'object',
-	required: ['votes'],
+	required: ['stakes'],
 	properties: {
-		votes: {
+		stakes: {
 			type: 'array',
 			minItems: 1,
 			maxItems: 20,
 			items: {
 				type: 'object',
-				required: ['delegateAddress', 'amount'],
+				required: ['validatorAddress', 'amount'],
 				properties: {
-					delegateAddress: {
+					validatorAddress: {
 						dataType: 'bytes',
 						fieldNumber: 1,
 						minLength: 20,

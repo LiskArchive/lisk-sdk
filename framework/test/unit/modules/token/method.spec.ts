@@ -55,7 +55,7 @@ describe('token module', () => {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
-				module: 'dpos',
+				module: 'pos',
 				amount: BigInt(100000000),
 			},
 		],
@@ -182,7 +182,7 @@ describe('token module', () => {
 
 		it('should return balance if data exists', async () => {
 			await expect(
-				method.getLockedAmount(methodContext, defaultAddress, defaultTokenID, 'dpos'),
+				method.getLockedAmount(methodContext, defaultAddress, defaultTokenID, 'pos'),
 			).resolves.toEqual(defaultAccount.lockedBalances[0].amount);
 		});
 	});
@@ -938,7 +938,7 @@ describe('token module', () => {
 				method.lock(
 					methodContext,
 					utils.getRandomBytes(20),
-					'dpos',
+					'pos',
 					defaultTokenID,
 					defaultAccount.availableBalance + BigInt(1),
 				),
@@ -955,7 +955,7 @@ describe('token module', () => {
 				method.lock(
 					methodContext,
 					defaultAddress,
-					'dpos',
+					'pos',
 					defaultTokenID,
 					defaultAccount.availableBalance + BigInt(1),
 				),
@@ -998,7 +998,7 @@ describe('token module', () => {
 				methodContext,
 				userStore.getKey(defaultAddress, defaultTokenID),
 			);
-			expect(lockedBalances[0].module).toEqual('dpos');
+			expect(lockedBalances[0].module).toEqual('pos');
 			checkEventResult(methodContext.eventQueue, LockEvent, TokenEventResult.SUCCESSFUL);
 		});
 	});
@@ -1006,7 +1006,7 @@ describe('token module', () => {
 	describe('unlock', () => {
 		it('should reject if address does not exist', async () => {
 			await expect(
-				method.unlock(methodContext, utils.getRandomBytes(20), 'dpos', defaultTokenID, BigInt(10)),
+				method.unlock(methodContext, utils.getRandomBytes(20), 'pos', defaultTokenID, BigInt(10)),
 			).rejects.toThrow('does not exist');
 			checkEventResult(
 				methodContext.eventQueue,
@@ -1031,7 +1031,7 @@ describe('token module', () => {
 				method.unlock(
 					methodContext,
 					defaultAddress,
-					'dpos',
+					'pos',
 					defaultTokenID,
 					defaultAccount.lockedBalances[0].amount + BigInt(1),
 				),
@@ -1048,7 +1048,7 @@ describe('token module', () => {
 				method.unlock(
 					methodContext,
 					defaultAddress,
-					'dpos',
+					'pos',
 					defaultTokenID,
 					defaultAccount.lockedBalances[0].amount - BigInt(1),
 				),
@@ -1067,7 +1067,7 @@ describe('token module', () => {
 				method.unlock(
 					methodContext,
 					defaultAddress,
-					'dpos',
+					'pos',
 					defaultTokenID,
 					defaultAccount.lockedBalances[0].amount,
 				),

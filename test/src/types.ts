@@ -13,8 +13,8 @@
  *
  */
 
-import * as passphrase from '../../examples/dpos-mainchain/config/default/passphrase.json';
-import * as validators from '../../examples/dpos-mainchain/config/default/dev-validators.json';
+import * as passphrase from '../../examples/pos-mainchain/config/default/passphrase.json';
+import * as validators from '../../examples/pos-mainchain/config/default/dev-validators.json';
 
 export type PassphraseFixture = typeof passphrase;
 export type ValidatorsFixture = typeof validators;

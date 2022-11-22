@@ -1,0 +1,396 @@
+{
+	"title": "BFT processing generation",
+	"summary": "Generate status of pre-votes, pre-commits, finalized height and pre-voted height  as per BFT specification",
+	"config": {
+		"activeValidators": 4,
+		"finalizedHeight": 0
+	},
+	"runner": "bft_processing",
+	"handler": "4_validators_simple",
+	"testCases": [
+		{
+			"description": "When block with height 1 is forged",
+			"input": {
+				"validatorName": "D1",
+				"blockHeader": {
+					"id": "7748076420210162913",
+					"height": 1,
+					"maxHeightPreviouslyForged": 0,
+					"generatorPublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 0
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 0,
+				"preVotes": {
+					"1": 1
+				},
+				"preCommits": {}
+			}
+		},
+		{
+			"description": "When block with height 2 is forged",
+			"input": {
+				"validatorName": "D2",
+				"blockHeader": {
+					"id": "15308683162207262446",
+					"height": 2,
+					"maxHeightPreviouslyForged": 0,
+					"generatorPublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 0
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 0,
+				"preVotes": {
+					"1": 2,
+					"2": 1
+				},
+				"preCommits": {}
+			}
+		},
+		{
+			"description": "When block with height 3 is forged",
+			"input": {
+				"validatorName": "D3",
+				"blockHeader": {
+					"id": "5622533601426856843",
+					"height": 3,
+					"maxHeightPreviouslyForged": 0,
+					"generatorPublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 0
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 1,
+				"preVotes": {
+					"1": 3,
+					"2": 2,
+					"3": 1
+				},
+				"preCommits": {}
+			}
+		},
+		{
+			"description": "When block with height 4 is forged",
+			"input": {
+				"validatorName": "D4",
+				"blockHeader": {
+					"id": "5414021058608832454",
+					"height": 4,
+					"maxHeightPreviouslyForged": 0,
+					"generatorPublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 1
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 2,
+				"preVotes": {
+					"1": 4,
+					"2": 3,
+					"3": 2,
+					"4": 1
+				},
+				"preCommits": {
+					"1": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 5 is forged",
+			"input": {
+				"validatorName": "D1",
+				"blockHeader": {
+					"id": "17234451680913495083",
+					"height": 5,
+					"maxHeightPreviouslyForged": 1,
+					"generatorPublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 2
+				}
+			},
+			"output": {
+				"finalizedHeight": 0,
+				"preVotedConfirmedHeight": 3,
+				"preVotes": {
+					"1": 4,
+					"2": 4,
+					"3": 3,
+					"4": 2,
+					"5": 1
+				},
+				"preCommits": {
+					"1": 2,
+					"2": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 6 is forged",
+			"input": {
+				"validatorName": "D2",
+				"blockHeader": {
+					"id": "16714758248282885559",
+					"height": 6,
+					"maxHeightPreviouslyForged": 2,
+					"generatorPublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 3
+				}
+			},
+			"output": {
+				"finalizedHeight": 1,
+				"preVotedConfirmedHeight": 4,
+				"preVotes": {
+					"1": 4,
+					"2": 4,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				},
+				"preCommits": {
+					"1": 3,
+					"2": 2,
+					"3": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 7 is forged",
+			"input": {
+				"validatorName": "D3",
+				"blockHeader": {
+					"id": "8719647946811673230",
+					"height": 7,
+					"maxHeightPreviouslyForged": 3,
+					"generatorPublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 4
+				}
+			},
+			"output": {
+				"finalizedHeight": 2,
+				"preVotedConfirmedHeight": 5,
+				"preVotes": {
+					"1": 4,
+					"2": 4,
+					"3": 4,
+					"4": 4,
+					"5": 3,
+					"6": 2,
+					"7": 1
+				},
+				"preCommits": {
+					"1": 4,
+					"2": 3,
+					"3": 2,
+					"4": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 8 is forged",
+			"input": {
+				"validatorName": "D4",
+				"blockHeader": {
+					"id": "3198191471355371895",
+					"height": 8,
+					"maxHeightPreviouslyForged": 4,
+					"generatorPublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 5
+				}
+			},
+			"output": {
+				"finalizedHeight": 3,
+				"preVotedConfirmedHeight": 6,
+				"preVotes": {
+					"1": 4,
+					"2": 4,
+					"3": 4,
+					"4": 4,
+					"5": 4,
+					"6": 3,
+					"7": 2,
+					"8": 1
+				},
+				"preCommits": {
+					"1": 4,
+					"2": 4,
+					"3": 3,
+					"4": 2,
+					"5": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 9 is forged",
+			"input": {
+				"validatorName": "D1",
+				"blockHeader": {
+					"id": "1826242805484023040",
+					"height": 9,
+					"maxHeightPreviouslyForged": 5,
+					"generatorPublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 6
+				}
+			},
+			"output": {
+				"finalizedHeight": 4,
+				"preVotedConfirmedHeight": 7,
+				"preVotes": {
+					"1": 4,
+					"2": 4,
+					"3": 4,
+					"4": 4,
+					"5": 4,
+					"6": 4,
+					"7": 3,
+					"8": 2,
+					"9": 1
+				},
+				"preCommits": {
+					"1": 4,
+					"2": 4,
+					"3": 4,
+					"4": 3,
+					"5": 2,
+					"6": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 10 is forged",
+			"input": {
+				"validatorName": "D2",
+				"blockHeader": {
+					"id": "5351644240885712040",
+					"height": 10,
+					"maxHeightPreviouslyForged": 6,
+					"generatorPublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 7
+				}
+			},
+			"output": {
+				"finalizedHeight": 5,
+				"preVotedConfirmedHeight": 8,
+				"preVotes": {
+					"1": 4,
+					"2": 4,
+					"3": 4,
+					"4": 4,
+					"5": 4,
+					"6": 4,
+					"7": 4,
+					"8": 3,
+					"9": 2,
+					"10": 1
+				},
+				"preCommits": {
+					"1": 4,
+					"2": 4,
+					"3": 4,
+					"4": 4,
+					"5": 3,
+					"6": 2,
+					"7": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 11 is forged",
+			"input": {
+				"validatorName": "D3",
+				"blockHeader": {
+					"id": "5748892369479747538",
+					"height": 11,
+					"maxHeightPreviouslyForged": 7,
+					"generatorPublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 8
+				}
+			},
+			"output": {
+				"finalizedHeight": 6,
+				"preVotedConfirmedHeight": 9,
+				"preVotes": {
+					"1": 4,
+					"2": 4,
+					"3": 4,
+					"4": 4,
+					"5": 4,
+					"6": 4,
+					"7": 4,
+					"8": 4,
+					"9": 3,
+					"10": 2,
+					"11": 1
+				},
+				"preCommits": {
+					"1": 4,
+					"2": 4,
+					"3": 4,
+					"4": 4,
+					"5": 4,
+					"6": 3,
+					"7": 2,
+					"8": 1
+				}
+			}
+		},
+		{
+			"description": "When block with height 12 is forged",
+			"input": {
+				"validatorName": "D4",
+				"blockHeader": {
+					"id": "7733195345837784852",
+					"height": 12,
+					"maxHeightPreviouslyForged": 8,
+					"generatorPublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"validatorMinHeightActive": 1,
+					"maxHeightPrevoted": 9
+				}
+			},
+			"output": {
+				"finalizedHeight": 7,
+				"preVotedConfirmedHeight": 10,
+				"preVotes": {
+					"1": 4,
+					"2": 4,
+					"3": 4,
+					"4": 4,
+					"5": 4,
+					"6": 4,
+					"7": 4,
+					"8": 4,
+					"9": 4,
+					"10": 3,
+					"11": 2,
+					"12": 1
+				},
+				"preCommits": {
+					"1": 4,
+					"2": 4,
+					"3": 4,
+					"4": 4,
+					"5": 4,
+					"6": 4,
+					"7": 3,
+					"8": 2,
+					"9": 1
+				}
+			}
+		}
+	]
+}

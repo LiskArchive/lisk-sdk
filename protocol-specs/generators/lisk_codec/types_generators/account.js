@@ -49,7 +49,7 @@ const accountSchema = {
 			type: 'object',
 			fieldNumber: 6,
 			properties: {
-				delegate: {
+				validator: {
 					type: 'object',
 					fieldNumber: 1,
 					properties: {
@@ -62,7 +62,7 @@ const accountSchema = {
 						consecutiveMissedBlocks: { dataType: 'uint32', fieldNumber: 3 },
 						lastForgedHeight: { dataType: 'uint32', fieldNumber: 4 },
 						isBanned: { dataType: 'boolean', fieldNumber: 5 },
-						totalVotesReceived: { dataType: 'uint64', fieldNumber: 6 },
+						totalStakeReceived: { dataType: 'uint64', fieldNumber: 6 },
 					},
 					required: [
 						'username',
@@ -70,19 +70,19 @@ const accountSchema = {
 						'consecutiveMissedBlocks',
 						'lastForgedHeight',
 						'isBanned',
-						'totalVotesReceived',
+						'totalStakeReceived',
 					],
 				},
-				sentVotes: {
+				sentStakes: {
 					type: 'array',
 					fieldNumber: 2,
 					items: {
 						type: 'object',
 						properties: {
-							delegateAddress: { dataType: 'bytes', fieldNumber: 1 },
+							validatorAddress: { dataType: 'bytes', fieldNumber: 1 },
 							amount: { dataType: 'uint64', fieldNumber: 2 },
 						},
-						required: ['delegateAddress', 'amount'],
+						required: ['validatorAddress', 'amount'],
 					},
 				},
 				unlocking: {
@@ -91,11 +91,11 @@ const accountSchema = {
 					items: {
 						type: 'object',
 						properties: {
-							delegateAddress: { dataType: 'bytes', fieldNumber: 1 },
+							validatorAddress: { dataType: 'bytes', fieldNumber: 1 },
 							amount: { dataType: 'uint64', fieldNumber: 2 },
-							unvoteHeight: { dataType: 'uint32', fieldNumber: 3 },
+							unstakeHeight: { dataType: 'uint32', fieldNumber: 3 },
 						},
-						required: ['delegateAddress', 'amount', 'unvoteHeight'],
+						required: ['validatorAddress', 'amount', 'unstakeHeight'],
 					},
 				},
 			},
@@ -118,24 +118,24 @@ const validAccount1 = {
 		optionalKeys: [],
 	},
 	asset: {
-		delegate: {
+		validator: {
 			username: 'Catullo',
 			pomHeights: [85],
 			consecutiveMissedBlocks: 32,
 			lastForgedHeight: 64,
 			isBanned: false,
-			totalVotesReceived: '300000000',
+			totalStakeReceived: '300000000',
 		},
-		sentVotes: [
+		sentStakes: [
 			{
-				delegateAddress: Buffer.from(
+				validatorAddress: Buffer.from(
 					'cd32c73e9851c7137980063b8af64aa5a31651f8dcad258b682d2ddf091029e4',
 					'hex',
 				),
 				amount: '100000000',
 			},
 			{
-				delegateAddress: Buffer.from(
+				validatorAddress: Buffer.from(
 					'9d86ad24a3f030e5522b6598115bb4d70c1692c9d8995ddfccb377379a2d86c6',
 					'hex',
 				),
@@ -144,12 +144,12 @@ const validAccount1 = {
 		],
 		unlocking: [
 			{
-				delegateAddress: Buffer.from(
+				validatorAddress: Buffer.from(
 					'655e665765e3c42712d9a425b5b720d10457a5e45de0d4420e7c53ad73b02ef5',
 					'hex',
 				),
 				amount: '400000000',
-				unvoteHeight: 128,
+				unstakeHeight: 128,
 			},
 		],
 	},
@@ -166,15 +166,15 @@ const validAccount2 = {
 		optionalKeys: [],
 	},
 	asset: {
-		delegate: {
+		validator: {
 			username: '',
 			pomHeights: [],
 			consecutiveMissedBlocks: 0,
 			lastForgedHeight: 0,
 			isBanned: false,
-			totalVotesReceived: '0',
+			totalStakeReceived: '0',
 		},
-		sentVotes: [],
+		sentStakes: [],
 		unlocking: [],
 	},
 };
