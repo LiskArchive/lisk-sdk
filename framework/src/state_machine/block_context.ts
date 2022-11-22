@@ -30,6 +30,7 @@ import {
 export interface ContextParams {
 	chainID: Buffer;
 	stateStore: PrefixedStateReadWriter;
+	contextStore: Map<string, unknown>;
 	header: BlockHeader;
 	assets: BlockAssets;
 	logger: Logger;
@@ -44,6 +45,7 @@ export class BlockContext {
 	private readonly _eventQueue: EventQueue;
 	private readonly _header: BlockHeader;
 	private readonly _assets: BlockAssets;
+	private readonly _contextStore: Map<string, unknown>;
 	private _transactions?: ReadonlyArray<Transaction>;
 	private _nextValidators?: {
 		precommitThreshold: bigint;
@@ -59,6 +61,7 @@ export class BlockContext {
 		this._header = params.header;
 		this._assets = params.assets;
 		this._transactions = params.transactions;
+		this._contextStore = params.contextStore;
 	}
 
 	public get transactions(): ReadonlyArray<Transaction> {
@@ -78,6 +81,7 @@ export class BlockContext {
 			chainID: this._chainID,
 			getMethodContext: () => createImmutableMethodContext(this._stateStore),
 			stateStore: this._stateStore,
+			contextStore: this._contextStore,
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
@@ -92,8 +96,13 @@ export class BlockContext {
 			chainID: this._chainID,
 			eventQueue: childQueue,
 			stateStore: this._stateStore,
+			contextStore: this._contextStore,
 			getMethodContext: () =>
-				createMethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
+				createMethodContext({
+					stateStore: this._stateStore,
+					eventQueue: childQueue,
+					contextStore: this._contextStore,
+				}),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
@@ -110,9 +119,14 @@ export class BlockContext {
 			logger: this._logger,
 			chainID: this._chainID,
 			eventQueue: childQueue,
+			contextStore: this._contextStore,
 			stateStore: this._stateStore,
 			getMethodContext: () =>
-				createMethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
+				createMethodContext({
+					stateStore: this._stateStore,
+					eventQueue: childQueue,
+					contextStore: this._contextStore,
+				}),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
@@ -140,6 +154,7 @@ export class BlockContext {
 			chainID: this._chainID,
 			logger: this._logger,
 			stateStore: this._stateStore,
+			contextStore: this._contextStore,
 			transaction: tx,
 			eventQueue: this._eventQueue,
 			header: this._header,

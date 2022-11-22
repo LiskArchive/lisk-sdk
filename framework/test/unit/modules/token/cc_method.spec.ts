@@ -96,6 +96,7 @@ describe('TokenInteroperableMethod', () => {
 		methodContext = createMethodContext({
 			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
 			eventQueue: new EventQueue(0).getChildQueue(Buffer.from([0])),
+			contextStore: new Map<string, unknown>(),
 		});
 		userStore = tokenModule.stores.get(UserStore);
 		await userStore.save(methodContext, defaultAddress, defaultTokenID, defaultAccount);

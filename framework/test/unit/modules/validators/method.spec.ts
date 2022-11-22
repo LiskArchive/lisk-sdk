@@ -81,7 +81,11 @@ describe('ValidatorsModuleMethod', () => {
 		blsKeysSubStore = validatorsModule.stores.get(BLSKeyStore);
 		genesisDataSubStore = validatorsModule.stores.get(GenesisStore);
 		validatorsParamsSubStore = validatorsModule.stores.get(ValidatorsParamsStore);
-		methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue(0) });
+		methodContext = new MethodContext({
+			stateStore,
+			eventQueue: new EventQueue(0),
+			contextStore: new Map<string, unknown>(),
+		});
 	});
 
 	describe('registerValidatorKeys', () => {

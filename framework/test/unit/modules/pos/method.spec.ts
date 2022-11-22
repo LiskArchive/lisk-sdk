@@ -76,7 +76,11 @@ describe('PoSMethod', () => {
 		stakerSubStore = pos.stores.get(StakerStore);
 		validatorSubStore = pos.stores.get(ValidatorStore);
 		nameSubStore = pos.stores.get(NameStore);
-		methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue(0) });
+		methodContext = new MethodContext({
+			stateStore,
+			eventQueue: new EventQueue(0),
+			contextStore: new Map<string, unknown>(),
+		});
 	});
 
 	describe('isNameAvailable', () => {
