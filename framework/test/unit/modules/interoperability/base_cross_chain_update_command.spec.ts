@@ -52,7 +52,6 @@ import {
 	crossChainUpdateTransactionParams,
 } from '../../../../src/modules/interoperability/schemas';
 import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
-import { CROSS_CHAIN_COMMAND_NAME_FORWARD } from '../../../../src/modules/token/constants';
 import {
 	ChainAccountStore,
 	ChainStatus,
@@ -63,6 +62,7 @@ import { ChannelDataStore } from '../../../../src/modules/interoperability/store
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
 import { getMainchainID } from '../../../../src/modules/interoperability/utils';
 import { BaseInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/base_interoperability_internal_methods';
+import { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../../../../src/modules/token/constants';
 
 class CrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -123,7 +123,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: CCMStatusCode.OK,
 				},
 				{
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 					fee: BigInt(0),
 					module: MODULE_NAME_INTEROPERABILITY,
 					nonce: BigInt(1),
@@ -402,8 +402,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 				expect.anything(),
 				executeContext.transaction.senderAddress,
 				messageFeeTokenID,
-				expect.anything(),
-				expect.anything(),
 			);
 		});
 

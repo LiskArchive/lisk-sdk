@@ -142,7 +142,7 @@ describe('Sidechain registration command', () => {
 		tokenMethod = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
 		jest.spyOn(tokenMethod, 'getAvailableBalance').mockResolvedValue(REGISTRATION_FEE);
 		jest.spyOn(tokenMethod, 'burn').mockResolvedValue();
-		sidechainRegistrationCommand.addDependencies(tokenMethod);
+		sidechainRegistrationCommand.addDependencies(tokenMethod, { payFee: jest.fn() });
 
 		// Initialize stores
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -417,17 +417,6 @@ describe('Sidechain registration command', () => {
 			expect(result.error?.message).toInclude('Certificate threshold above maximum bft weight');
 		});
 
-		it(`should return error if sidechainRegistrationFee is not equal ${REGISTRATION_FEE}`, async () => {
-			verifyContext.params.sidechainRegistrationFee = BigInt(9);
-
-			const result = await sidechainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				`Sidechain registration fee must be equal to ${REGISTRATION_FEE}`,
-			);
-		});
-
 		it(`should return error if available balance < ${REGISTRATION_FEE}`, async () => {
 			const insufficientBalance = BigInt(0);
 			jest.spyOn(tokenMethod, 'getAvailableBalance').mockResolvedValue(insufficientBalance);
@@ -587,6 +576,17 @@ describe('Sidechain registration command', () => {
 				expect.anything(),
 				newChainID,
 				sidechainAccount,
+			);
+		});
+
+		it('should pay fee', async () => {
+			// Act
+			await sidechainRegistrationCommand.execute(context);
+
+			// Assert
+			expect(sidechainRegistrationCommand['_feeMethod'].payFee).toHaveBeenCalledWith(
+				expect.anything(),
+				REGISTRATION_FEE,
 			);
 		});
 

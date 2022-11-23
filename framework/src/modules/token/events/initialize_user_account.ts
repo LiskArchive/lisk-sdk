@@ -17,14 +17,13 @@ import { TOKEN_ID_LENGTH, TokenEventResult, TokenErrorEventResult } from '../con
 export interface InitializeUserAccountEventData {
 	address: Buffer;
 	tokenID: Buffer;
-	initPayingAddress: Buffer;
 	initializationFee: bigint;
 }
 
 export const initializeUserAccountEventSchema = {
 	$id: '/token/events/initializeUserAccount',
 	type: 'object',
-	required: ['address', 'tokenID', 'initPayingAddress', 'initializationFee', 'result'],
+	required: ['address', 'tokenID', 'initializationFee', 'result'],
 	properties: {
 		address: {
 			dataType: 'bytes',
@@ -37,18 +36,13 @@ export const initializeUserAccountEventSchema = {
 			maxLength: TOKEN_ID_LENGTH,
 			fieldNumber: 2,
 		},
-		initPayingAddress: {
-			dataType: 'bytes',
-			format: 'lisk32',
-			fieldNumber: 3,
-		},
 		initializationFee: {
 			dataType: 'uint64',
-			fieldNumber: 4,
+			fieldNumber: 3,
 		},
 		result: {
 			dataType: 'uint32',
-			fieldNumber: 5,
+			fieldNumber: 4,
 		},
 	},
 };

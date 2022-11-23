@@ -267,7 +267,6 @@ export interface SidechainRegistrationParams {
 	chainID: Buffer;
 	initValidators: RegistrationParametersValidator[];
 	certificateThreshold: bigint;
-	sidechainRegistrationFee: bigint;
 }
 
 export interface MainchainRegistrationParams {
@@ -399,7 +398,9 @@ export interface TokenMethod {
 		methodContext: MethodContext,
 		address: Buffer,
 		tokenID: Buffer,
-		initPayingAddress: Buffer,
-		initializationFee: bigint,
 	): Promise<void>;
+}
+
+export interface FeeMethod {
+	payFee(methodContext: MethodContext, amount: bigint): void;
 }

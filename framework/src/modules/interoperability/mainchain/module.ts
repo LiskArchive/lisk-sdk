@@ -45,6 +45,7 @@ import { TerminatedStateCreatedEvent } from '../events/terminated_state_created'
 import { TerminatedOutboxCreatedEvent } from '../events/terminated_outbox_created';
 import { MainchainInteroperabilityInternalMethod } from './internal_method';
 import { MessageRecoveryInitializationCommand } from './commands/message_recovery_initialization';
+import { FeeMethod } from '../types';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
@@ -100,8 +101,8 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.events.register(TerminatedOutboxCreatedEvent, new TerminatedOutboxCreatedEvent(this.name));
 	}
 
-	public addDependencies(tokenMethod: TokenMethod) {
-		this._sidechainRegistrationCommand.addDependencies(tokenMethod);
+	public addDependencies(tokenMethod: TokenMethod, feeMethod: FeeMethod) {
+		this._sidechainRegistrationCommand.addDependencies(tokenMethod, feeMethod);
 	}
 
 	public metadata(): ModuleMetadata {

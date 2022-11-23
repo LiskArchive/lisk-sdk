@@ -173,31 +173,37 @@ export class Application {
 		let interoperabilityModule;
 		if (mainchain) {
 			interoperabilityModule = new MainchainInteroperabilityModule();
-			interoperabilityModule.addDependencies(tokenModule.method);
+			interoperabilityModule.addDependencies(tokenModule.method, feeModule.method);
 		} else {
 			interoperabilityModule = new SidechainInteroperabilityModule();
 			interoperabilityModule.addDependencies(validatorModule.method);
 		}
 
 		// resolve dependencies
-		feeModule.addDependencies(tokenModule.method);
+		feeModule.addDependencies(tokenModule.method, interoperabilityModule.method);
 		rewardModule.addDependencies(
 			tokenModule.method,
 			randomModule.method,
 			validatorModule.method,
 			posModule.method,
 		);
-		posModule.addDependencies(randomModule.method, validatorModule.method, tokenModule.method);
-		tokenModule.addDependencies(interoperabilityModule.method);
+		posModule.addDependencies(
+			randomModule.method,
+			validatorModule.method,
+			tokenModule.method,
+			feeModule.method,
+		);
+		tokenModule.addDependencies(interoperabilityModule.method, feeModule.method);
 
 		// resolve interoperability dependencies
 		interoperabilityModule.registerInteroperableModule(tokenModule);
+		interoperabilityModule.registerInteroperableModule(feeModule);
 
 		// register modules
+		application._registerModule(feeModule); // fee should be registered first to call beforeTransactionsExecute first
 		application._registerModule(authModule);
 		application._registerModule(validatorModule);
 		application._registerModule(tokenModule);
-		application._registerModule(feeModule);
 		application._registerModule(rewardModule);
 		application._registerModule(randomModule);
 		application._registerModule(posModule);

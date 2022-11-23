@@ -42,6 +42,7 @@ describe('state_machine', () => {
 	const logger = {} as Logger;
 	const assets = new BlockAssets();
 	let stateStore: PrefixedStateReadWriter;
+	let contextStore: Map<string, unknown>;
 	let eventQueue: EventQueue;
 	const chainID = Buffer.from('10000000', 'utf8');
 	const transaction = {
@@ -59,6 +60,7 @@ describe('state_machine', () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		eventQueue = new EventQueue(0);
 		stateMachine = new StateMachine();
+		contextStore = new Map();
 		mod = new CustomModule0();
 		stateMachine.registerModule(mod);
 		await stateMachine.init(loggerMock, {} as any);
@@ -114,6 +116,7 @@ describe('state_machine', () => {
 				eventQueue,
 				logger,
 				stateStore,
+				contextStore,
 				header,
 				chainID,
 				transaction,
@@ -124,6 +127,7 @@ describe('state_machine', () => {
 				logger,
 				transaction,
 				stateStore,
+				contextStore,
 				header,
 				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),
@@ -137,6 +141,7 @@ describe('state_machine', () => {
 				eventQueue,
 				logger,
 				stateStore,
+				contextStore,
 				header,
 				chainID,
 				transaction,
@@ -153,6 +158,7 @@ describe('state_machine', () => {
 				eventQueue,
 				logger,
 				stateStore,
+				contextStore,
 				header,
 				assets,
 				chainID,
@@ -166,6 +172,7 @@ describe('state_machine', () => {
 				header,
 				assets,
 				stateStore,
+				contextStore,
 				eventQueue: expect.any(Object),
 				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),
@@ -179,6 +186,7 @@ describe('state_machine', () => {
 				eventQueue,
 				logger,
 				stateStore,
+				contextStore,
 				header,
 				assets,
 				chainID,
@@ -231,6 +239,7 @@ describe('state_machine', () => {
 				eventQueue,
 				logger,
 				stateStore,
+				contextStore,
 				header,
 				assets,
 				chainID,
@@ -247,6 +256,7 @@ describe('state_machine', () => {
 				eventQueue,
 				logger,
 				stateStore,
+				contextStore,
 				header,
 				assets,
 				chainID,
@@ -259,6 +269,7 @@ describe('state_machine', () => {
 				header,
 				assets,
 				stateStore,
+				contextStore,
 				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),
 			});
@@ -273,6 +284,7 @@ describe('state_machine', () => {
 				eventQueue,
 				logger,
 				stateStore,
+				contextStore,
 				header,
 				assets,
 				chainID,
@@ -285,6 +297,7 @@ describe('state_machine', () => {
 				header,
 				assets,
 				stateStore,
+				contextStore,
 				eventQueue: expect.any(Object),
 				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),
@@ -298,6 +311,7 @@ describe('state_machine', () => {
 				eventQueue,
 				logger,
 				stateStore,
+				contextStore,
 				header,
 				assets,
 				chainID,
@@ -317,6 +331,7 @@ describe('state_machine', () => {
 				eventQueue,
 				logger,
 				stateStore,
+				contextStore,
 				header,
 				assets,
 				chainID,
@@ -329,6 +344,7 @@ describe('state_machine', () => {
 				header,
 				assets,
 				stateStore,
+				contextStore,
 				eventQueue: expect.any(Object),
 				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),
@@ -344,6 +360,7 @@ describe('state_machine', () => {
 				eventQueue,
 				logger,
 				stateStore,
+				contextStore,
 				header,
 				assets,
 				chainID,
@@ -363,6 +380,7 @@ describe('state_machine', () => {
 				eventQueue,
 				logger,
 				stateStore,
+				contextStore,
 				header,
 				assets,
 				chainID,
@@ -375,6 +393,7 @@ describe('state_machine', () => {
 				header,
 				assets,
 				stateStore,
+				contextStore,
 				eventQueue: expect.any(Object),
 				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),
@@ -386,6 +405,7 @@ describe('state_machine', () => {
 				header,
 				assets,
 				stateStore,
+				contextStore,
 				eventQueue: expect.any(Object),
 				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),

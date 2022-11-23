@@ -36,6 +36,7 @@ import { TokenIDSupportRemovedEvent } from '../../../../src/modules/token/events
 import { TransferEvent } from '../../../../src/modules/token/events/transfer';
 import { TransferCrossChainEvent } from '../../../../src/modules/token/events/transfer_cross_chain';
 import { UnlockEvent } from '../../../../src/modules/token/events/unlock';
+import { InternalMethod } from '../../../../src/modules/token/internal_method';
 import { crossChainTransferMessageParams } from '../../../../src/modules/token/schemas';
 import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
 import { SupplyStore } from '../../../../src/modules/token/stores/supply';
@@ -87,12 +88,15 @@ describe('token module', () => {
 
 	beforeEach(async () => {
 		method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
-		method.init({
+		const internalMethod = new InternalMethod(tokenModule.stores, tokenModule.events);
+		const config = {
 			ownChainID: Buffer.from([0, 0, 0, 1]),
 			escrowAccountInitializationFee: defaultEscrowAccountInitFee,
 			userAccountInitializationFee: defaultUserAccountInitFee,
-			feeTokenID: defaultTokenID,
-		});
+		};
+		method.init(config);
+		internalMethod.init(config);
+		internalMethod.addDependencies({ payFee: jest.fn() });
 		await tokenModule.init({
 			genesisConfig: {
 				chainID: '00000001',
@@ -101,10 +105,13 @@ describe('token module', () => {
 				accountInitializationFee: USER_SUBSTORE_INITIALIZATION_FEE,
 			},
 		});
-		method.addDependencies({
-			send: jest.fn().mockResolvedValue(true),
-			getMessageFeeTokenID: jest.fn().mockResolvedValue(defaultTokenID),
-		} as never);
+		method.addDependencies(
+			{
+				send: jest.fn().mockResolvedValue(true),
+				getMessageFeeTokenID: jest.fn().mockResolvedValue(defaultTokenID),
+			} as never,
+			internalMethod,
+		);
 		methodContext = createMethodContext({
 			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
 			eventQueue: new EventQueue(0).getChildQueue(Buffer.from([0])),
@@ -221,29 +228,31 @@ describe('token module', () => {
 	});
 
 	describe('initializeToken', () => {
-		it('should reject if there is no available local ID', async () => {
-			const supplyStore = tokenModule.stores.get(SupplyStore);
-			await supplyStore.set(methodContext, Buffer.concat([ownChainID, Buffer.alloc(4, 255)]), {
-				totalSupply: defaultTotalSupply,
-			});
-			await expect(method.initializeToken(methodContext)).rejects.toThrow('No available token ID');
+		const tokenID = Buffer.concat([ownChainID, Buffer.alloc(4, 255)]);
+
+		it('should reject if token is not native', async () => {
+			await expect(
+				method.initializeToken(methodContext, Buffer.from([2, 0, 0, 0, 0, 0, 0, 0])),
+			).rejects.toThrow('Only native token can be initialized');
 		});
 
-		it('should return next tokenID', async () => {
-			await expect(method.initializeToken(methodContext)).resolves.toEqual(
-				Buffer.concat([ownChainID, Buffer.from([0, 0, 0, 1])]),
+		it('should reject if there is no available local ID', async () => {
+			const supplyStore = tokenModule.stores.get(SupplyStore);
+			await supplyStore.set(methodContext, tokenID, {
+				totalSupply: defaultTotalSupply,
+			});
+			await expect(method.initializeToken(methodContext, tokenID)).rejects.toThrow(
+				'The specified token ID is not available',
 			);
 		});
 
 		it('log initialize token event', async () => {
-			await method.initializeToken(methodContext);
+			await method.initializeToken(methodContext, tokenID);
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
-			expect(
-				codec.decode<Record<string, unknown>>(
-					new InitializeTokenEvent('token').schema,
-					methodContext.eventQueue.getEvents()[0].toObject().data,
-				).tokenID,
-			).toEqual(Buffer.concat([ownChainID, Buffer.from([0, 0, 0, 1])]));
+			checkEventResult(methodContext.eventQueue, InitializeTokenEvent, TokenEventResult.SUCCESSFUL);
+			await expect(
+				tokenModule.stores.get(SupplyStore).has(methodContext, tokenID),
+			).resolves.toBeTrue();
 		});
 	});
 
@@ -292,15 +301,22 @@ describe('token module', () => {
 			);
 		});
 
-		it('should reject if receiving address does not exist', async () => {
+		it('should initialize account if account does not exist', async () => {
 			await expect(
 				method.mint(methodContext, utils.getRandomBytes(20), defaultTokenID, BigInt(100)),
-			).rejects.toThrow('does not exist');
+			).resolves.toBeUndefined();
+			expect(method['_internalMethod']['_feeMethod'].payFee).toHaveBeenCalledWith(
+				expect.anything(),
+				method['_config'].userAccountInitializationFee,
+			);
 			checkEventResult(
 				methodContext.eventQueue,
-				MintEvent,
-				TokenEventResult.FAIL_RECIPIENT_NOT_INITIALIZED,
+				InitializeUserAccountEvent,
+				TokenEventResult.SUCCESSFUL,
+				2,
+				0,
 			);
+			checkEventResult(methodContext.eventQueue, MintEvent, TokenEventResult.SUCCESSFUL, 2, 1);
 		});
 
 		it('should update recipient balance and total supply', async () => {
@@ -387,36 +403,12 @@ describe('token module', () => {
 	describe('initializeUserAccount', () => {
 		it('should do nothing if account is already initialized', async () => {
 			await expect(
-				method.initializeUserAccount(
-					methodContext,
-					defaultAddress,
-					defaultTokenID,
-					defaultAddress,
-					defaultUserAccountInitFee,
-				),
+				method.initializeUserAccount(methodContext, defaultAddress, defaultTokenID),
 			).resolves.toBeUndefined();
 			expect(methodContext.eventQueue.getEvents()).toBeEmpty();
 		});
 
-		it('should reject if inititialization fee is not matching the config', async () => {
-			const newAddress = utils.getRandomBytes(20);
-			await expect(
-				method.initializeUserAccount(
-					methodContext,
-					newAddress,
-					defaultTokenID,
-					defaultAddress,
-					BigInt(100),
-				),
-			).rejects.toThrow('Invalid initialization fee');
-			checkEventResult(
-				methodContext.eventQueue,
-				InitializeUserAccountEvent,
-				TokenEventResult.INVALID_INITIALIZATION_FEE_VALUE,
-			);
-		});
-
-		it('should reject if address does not have balance for inititialization fee', async () => {
+		it('should reject if payFee fails', async () => {
 			const newAddress = utils.getRandomBytes(20);
 			const feePayingAddress = utils.getRandomBytes(20);
 			const userStore = tokenModule.stores.get(UserStore);
@@ -426,82 +418,32 @@ describe('token module', () => {
 				defaultTokenID,
 				BigInt(4000000),
 			);
+			(method['_internalMethod']['_feeMethod'].payFee as jest.Mock).mockImplementation(() => {
+				throw new Error('Insufficient fee');
+			});
 
 			await expect(
-				method.initializeUserAccount(
-					methodContext,
-					newAddress,
-					defaultTokenID,
-					feePayingAddress,
-					defaultUserAccountInitFee,
-				),
-			).rejects.toThrow('Insufficient balance');
-			checkEventResult(
-				methodContext.eventQueue,
-				InitializeUserAccountEvent,
-				TokenEventResult.FAIL_INSUFFICIENT_BALANCE,
-			);
+				method.initializeUserAccount(methodContext, newAddress, defaultTokenID),
+			).rejects.toThrow('Insufficient fee');
 		});
 
-		it('should burn fee, create new account when initializing non default token', async () => {
+		it('create new account', async () => {
 			const newAddress = utils.getRandomBytes(20);
 
 			await expect(
-				method.initializeUserAccount(
-					methodContext,
-					newAddress,
-					defaultForeignTokenID,
-					defaultAddress,
-					defaultUserAccountInitFee,
-				),
+				method.initializeUserAccount(methodContext, newAddress, defaultForeignTokenID),
 			).resolves.toBeUndefined();
-			await expect(
-				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
-			).resolves.toEqual(defaultAccount.availableBalance - defaultUserAccountInitFee);
-			const supplyStore = tokenModule.stores.get(SupplyStore);
-			const { totalSupply } = await supplyStore.get(methodContext, defaultTokenID);
-			expect(totalSupply).toEqual(defaultTotalSupply - defaultUserAccountInitFee);
+			expect(method['_internalMethod']['_feeMethod'].payFee).toHaveBeenCalledWith(
+				expect.anything(),
+				method['_config'].userAccountInitializationFee,
+			);
 			await expect(
 				method.userAccountExists(methodContext, newAddress, defaultForeignTokenID),
 			).resolves.toBeTrue();
-			checkEventResult(methodContext.eventQueue, BurnEvent, TokenEventResult.SUCCESSFUL, 2, 0);
 			checkEventResult(
 				methodContext.eventQueue,
 				InitializeUserAccountEvent,
 				TokenEventResult.SUCCESSFUL,
-				2,
-				1,
-			);
-		});
-
-		it('should burn fee, create new account', async () => {
-			const newAddress = utils.getRandomBytes(20);
-
-			await expect(
-				method.initializeUserAccount(
-					methodContext,
-					newAddress,
-					defaultTokenID,
-					defaultAddress,
-					defaultUserAccountInitFee,
-				),
-			).resolves.toBeUndefined();
-			await expect(
-				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
-			).resolves.toEqual(defaultAccount.availableBalance - defaultUserAccountInitFee);
-			const supplyStore = tokenModule.stores.get(SupplyStore);
-			const { totalSupply } = await supplyStore.get(methodContext, defaultTokenID);
-			expect(totalSupply).toEqual(defaultTotalSupply - defaultUserAccountInitFee);
-			await expect(
-				method.userAccountExists(methodContext, newAddress, defaultTokenID),
-			).resolves.toBeTrue();
-			checkEventResult(methodContext.eventQueue, BurnEvent, TokenEventResult.SUCCESSFUL, 2, 0);
-			checkEventResult(
-				methodContext.eventQueue,
-				InitializeUserAccountEvent,
-				TokenEventResult.SUCCESSFUL,
-				2,
-				1,
 			);
 		});
 	});
@@ -513,28 +455,9 @@ describe('token module', () => {
 					methodContext,
 					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 					defaultTokenID,
-					defaultAddress,
-					defaultEscrowAccountInitFee,
 				),
 			).resolves.toBeUndefined();
 			expect(methodContext.eventQueue.getEvents()).toBeEmpty();
-		});
-
-		it('should reject if inititialization fee is not matching the config', async () => {
-			await expect(
-				method.initializeEscrowAccount(
-					methodContext,
-					Buffer.from([0, 0, 0, 4]),
-					defaultTokenID,
-					defaultAddress,
-					BigInt(100),
-				),
-			).rejects.toThrow('Invalid initialization fee');
-			checkEventResult(
-				methodContext.eventQueue,
-				InitializeEscrowAccountEvent,
-				TokenEventResult.INVALID_INITIALIZATION_FEE_VALUE,
-			);
 		});
 
 		it('should reject if token id is not native', async () => {
@@ -543,13 +466,14 @@ describe('token module', () => {
 					methodContext,
 					Buffer.from([0, 0, 0, 4]),
 					defaultForeignTokenID,
-					defaultAddress,
-					BigInt(100),
 				),
 			).rejects.toThrow('is not native token');
 		});
 
 		it('should reject if address does not have balance for inititialization fee', async () => {
+			(method['_internalMethod']['_feeMethod'].payFee as jest.Mock).mockImplementation(() => {
+				throw new Error('Insufficient fee');
+			});
 			const feePayingAddress = utils.getRandomBytes(20);
 			const userStore = tokenModule.stores.get(UserStore);
 			await userStore.addAvailableBalanceWithCreate(
@@ -560,54 +484,32 @@ describe('token module', () => {
 			);
 
 			await expect(
-				method.initializeEscrowAccount(
-					methodContext,
-					Buffer.from([0, 0, 0, 4]),
-					defaultTokenID,
-					feePayingAddress,
-					defaultEscrowAccountInitFee,
-				),
-			).rejects.toThrow('Insufficient balance');
-			checkEventResult(
-				methodContext.eventQueue,
-				InitializeEscrowAccountEvent,
-				TokenEventResult.FAIL_INSUFFICIENT_BALANCE,
-			);
+				method.initializeEscrowAccount(methodContext, Buffer.from([0, 0, 0, 4]), defaultTokenID),
+			).rejects.toThrow('Insufficient fee');
 		});
 
-		it('should burn fee, create new account', async () => {
+		it('should create new account', async () => {
 			await expect(
-				method.initializeEscrowAccount(
-					methodContext,
-					Buffer.from([0, 0, 0, 4]),
-					defaultTokenID,
-					defaultAddress,
-					defaultEscrowAccountInitFee,
-				),
+				method.initializeEscrowAccount(methodContext, Buffer.from([0, 0, 0, 4]), defaultTokenID),
 			).resolves.toBeUndefined();
-			await expect(
-				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
-			).resolves.toEqual(defaultAccount.availableBalance - defaultUserAccountInitFee);
-			const supplyStore = tokenModule.stores.get(SupplyStore);
-			const { totalSupply } = await supplyStore.get(methodContext, defaultTokenID);
-			expect(totalSupply).toEqual(defaultTotalSupply - defaultEscrowAccountInitFee);
 			const escrowStore = tokenModule.stores.get(EscrowStore);
 			await expect(
 				escrowStore.has(methodContext, Buffer.concat([Buffer.from([0, 0, 0, 4]), defaultTokenID])),
 			).resolves.toBeTrue();
-			checkEventResult(methodContext.eventQueue, BurnEvent, TokenEventResult.SUCCESSFUL, 2);
+			expect(method['_internalMethod']['_feeMethod'].payFee).toHaveBeenCalledWith(
+				expect.anything(),
+				method['_config'].escrowAccountInitializationFee,
+			);
 			checkEventResult(
 				methodContext.eventQueue,
 				InitializeEscrowAccountEvent,
 				TokenEventResult.SUCCESSFUL,
-				2,
-				1,
 			);
 		});
 	});
 
 	describe('transfer', () => {
-		it('should reject and add eventif sender address does not exist', async () => {
+		it('should reject and add event if sender address does not exist', async () => {
 			const newAddress = utils.getRandomBytes(20);
 			await expect(
 				method.transfer(methodContext, newAddress, defaultAddress, defaultTokenID, BigInt(100)),
@@ -645,7 +547,7 @@ describe('token module', () => {
 			);
 		});
 
-		it('should reject if recipient address is not initialized', async () => {
+		it('should intialize recipient address is not initialized', async () => {
 			const newAddress = utils.getRandomBytes(20);
 			await expect(
 				method.transfer(
@@ -655,12 +557,19 @@ describe('token module', () => {
 					defaultTokenID,
 					defaultAccount.availableBalance,
 				),
-			).rejects.toThrow('does not have an account for the specified token');
+			).resolves.toBeUndefined();
+			expect(method['_internalMethod']['_feeMethod'].payFee).toHaveBeenCalledWith(
+				expect.anything(),
+				method['_config'].userAccountInitializationFee,
+			);
 			checkEventResult(
 				methodContext.eventQueue,
-				TransferEvent,
-				TokenEventResult.FAIL_RECIPIENT_NOT_INITIALIZED,
+				InitializeUserAccountEvent,
+				TokenEventResult.SUCCESSFUL,
+				2,
+				0,
 			);
+			checkEventResult(methodContext.eventQueue, TransferEvent, TokenEventResult.SUCCESSFUL, 2, 1);
 		});
 
 		it('should debit from sender, credit recipient', async () => {
@@ -708,7 +617,7 @@ describe('token module', () => {
 			);
 		});
 
-		it('should reject when token is native and escrow account is not initialized', async () => {
+		it('should initialize escrow account when token is native and escrow account is not initialized', async () => {
 			await expect(
 				method.transferCrossChain(
 					methodContext,
@@ -720,11 +629,24 @@ describe('token module', () => {
 					BigInt('10000'),
 					'data',
 				),
-			).rejects.toThrow('Escrow account for receiving chain ');
+			).resolves.toBeUndefined();
+			expect(method['_internalMethod']['_feeMethod'].payFee).toHaveBeenCalledWith(
+				expect.anything(),
+				method['_config'].escrowAccountInitializationFee,
+			);
+			checkEventResult(
+				methodContext.eventQueue,
+				InitializeEscrowAccountEvent,
+				TokenEventResult.SUCCESSFUL,
+				2,
+				0,
+			);
 			checkEventResult(
 				methodContext.eventQueue,
 				TransferCrossChainEvent,
-				TokenEventResult.ESCROW_NOT_INITIALIZED,
+				TokenEventResult.SUCCESSFUL,
+				2,
+				1,
 			);
 		});
 
@@ -1023,7 +945,7 @@ describe('token module', () => {
 			checkEventResult(
 				methodContext.eventQueue,
 				UnlockEvent,
-				TokenEventResult.FAIL_INSUFFICIENT_BALANCE,
+				TokenEventResult.INSUFFICIENT_LOCKED_AMOUNT,
 			);
 		});
 
@@ -1040,7 +962,7 @@ describe('token module', () => {
 			checkEventResult(
 				methodContext.eventQueue,
 				UnlockEvent,
-				TokenEventResult.FAIL_INSUFFICIENT_BALANCE,
+				TokenEventResult.INSUFFICIENT_LOCKED_AMOUNT,
 			);
 		});
 

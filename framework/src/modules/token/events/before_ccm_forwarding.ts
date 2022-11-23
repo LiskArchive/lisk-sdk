@@ -16,46 +16,34 @@ import {
 	TOKEN_ID_LENGTH,
 	TokenEventResult,
 	TokenErrorEventResult,
-	CHAIN_ID_LENGTH,
+	HASH_LENGTH,
 } from '../constants';
 
 export interface BeforeCCMForwardingEventData {
-	sendingChainID: Buffer;
-	receivingChainID: Buffer;
+	ccmID: Buffer;
 	messageFeeTokenID: Buffer;
-	messageFee: bigint;
 }
 
 export const beforeCCMForwardingEventSchema = {
 	$id: '/token/events/beforeCCMForwarding',
 	type: 'object',
-	required: ['sendingChainID', 'receivingChainID', 'messageFeeTokenID', 'messageFee', 'result'],
+	required: ['ccmID', 'messageFeeTokenID', 'result'],
 	properties: {
-		sendingChainID: {
+		ccmID: {
 			dataType: 'bytes',
-			minLength: CHAIN_ID_LENGTH,
-			maxLength: CHAIN_ID_LENGTH,
+			minLength: HASH_LENGTH,
+			maxLength: HASH_LENGTH,
 			fieldNumber: 1,
-		},
-		receivingChainID: {
-			dataType: 'bytes',
-			minLength: CHAIN_ID_LENGTH,
-			maxLength: CHAIN_ID_LENGTH,
-			fieldNumber: 2,
 		},
 		messageFeeTokenID: {
 			dataType: 'bytes',
 			minLength: TOKEN_ID_LENGTH,
 			maxLength: TOKEN_ID_LENGTH,
-			fieldNumber: 3,
-		},
-		messageFee: {
-			dataType: 'uint64',
-			fieldNumber: 4,
+			fieldNumber: 2,
 		},
 		result: {
 			dataType: 'uint32',
-			fieldNumber: 5,
+			fieldNumber: 3,
 		},
 	},
 };
@@ -65,18 +53,25 @@ export class BeforeCCMForwardingEvent extends BaseEvent<
 > {
 	public schema = beforeCCMForwardingEventSchema;
 
-	public log(ctx: EventQueuer, data: BeforeCCMForwardingEventData): void {
+	public log(
+		ctx: EventQueuer,
+		sendingChainID: Buffer,
+		receivingChainID: Buffer,
+		data: BeforeCCMForwardingEventData,
+	): void {
 		this.add(ctx, { ...data, result: TokenEventResult.SUCCESSFUL }, [
-			data.sendingChainID,
-			data.receivingChainID,
+			sendingChainID,
+			receivingChainID,
 		]);
 	}
 
 	public error(
 		ctx: EventQueuer,
+		sendingChainID: Buffer,
+		receivingChainID: Buffer,
 		data: BeforeCCMForwardingEventData,
 		result: TokenErrorEventResult,
 	): void {
-		this.add(ctx, { ...data, result }, [data.sendingChainID, data.receivingChainID], true);
+		this.add(ctx, { ...data, result }, [sendingChainID, receivingChainID], true);
 	}
 }

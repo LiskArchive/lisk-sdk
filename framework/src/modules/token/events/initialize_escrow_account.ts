@@ -22,14 +22,13 @@ import {
 export interface InitializeEscrowAccountEventData {
 	chainID: Buffer;
 	tokenID: Buffer;
-	initPayingAddress: Buffer;
 	initializationFee: bigint;
 }
 
 export const initializeEscrowAccountEventSchema = {
 	$id: '/token/events/initializeEscrowAccount',
 	type: 'object',
-	required: ['chainID', 'tokenID', 'initPayingAddress', 'initializationFee', 'result'],
+	required: ['chainID', 'tokenID', 'initializationFee', 'result'],
 	properties: {
 		chainID: {
 			dataType: 'bytes',
@@ -43,18 +42,13 @@ export const initializeEscrowAccountEventSchema = {
 			maxLength: TOKEN_ID_LENGTH,
 			fieldNumber: 2,
 		},
-		initPayingAddress: {
-			dataType: 'bytes',
-			format: 'lisk32',
-			fieldNumber: 3,
-		},
 		initializationFee: {
 			dataType: 'uint64',
-			fieldNumber: 4,
+			fieldNumber: 3,
 		},
 		result: {
 			dataType: 'uint32',
-			fieldNumber: 5,
+			fieldNumber: 4,
 		},
 	},
 };

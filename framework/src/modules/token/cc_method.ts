@@ -13,6 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { utils } from '@liskhq/lisk-cryptography';
 import { BaseCCMethod } from '../interoperability/base_cc_method';
 import { CrossChainMessageContext, RecoverContext } from '../interoperability/types';
 import {
@@ -38,6 +39,7 @@ import { EMPTY_BYTES } from '../interoperability/constants';
 import { BeforeCCMForwardingEvent } from './events/before_ccm_forwarding';
 import { MODULE_NAME_TOKEN } from '../interoperability/cc_methods';
 import { splitTokenID } from './utils';
+import { ccmSchema } from '../interoperability/schemas';
 
 export class TokenInteroperableMethod extends BaseCCMethod {
 	private _ownChainID!: Buffer;
@@ -62,6 +64,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 			methodContext,
 			ccm.sendingChainID,
 		);
+		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
 		const [chainID] = splitTokenID(tokenID);
 		const userStore = this.stores.get(UserStore);
 
@@ -74,10 +77,8 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 				this.events.get(BeforeCCCExecutionEvent).error(
 					methodContext,
 					{
-						sendingChainID: ccm.sendingChainID,
-						receivingChainID: ccm.receivingChainID,
+						ccmID,
 						messageFeeTokenID: tokenID,
-						messageFee: ccm.fee,
 						relayerAddress,
 					},
 					TokenEventResult.FAIL_INSUFFICIENT_BALANCE,
@@ -93,10 +94,8 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 		await userStore.addAvailableBalance(methodContext, relayerAddress, tokenID, ccm.fee);
 
 		this.events.get(BeforeCCCExecutionEvent).log(methodContext, {
-			sendingChainID: ccm.sendingChainID,
-			receivingChainID: ccm.receivingChainID,
+			ccmID,
 			messageFeeTokenID: tokenID,
-			messageFee: ccm.fee,
 			relayerAddress,
 		});
 	}
@@ -108,6 +107,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 			methodContext,
 			ccm.sendingChainID,
 		);
+		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
 		const [chainID] = splitTokenID(tokenID);
 
 		const escrowStore = this.stores.get(EscrowStore);
@@ -116,11 +116,11 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 		if (escrowAccount.amount < ccm.fee) {
 			this.events.get(BeforeCCMForwardingEvent).error(
 				methodContext,
+				ccm.sendingChainID,
+				ccm.receivingChainID,
 				{
-					sendingChainID: ccm.sendingChainID,
-					receivingChainID: ccm.receivingChainID,
+					ccmID,
 					messageFeeTokenID: tokenID,
-					messageFee: ccm.fee,
 				},
 				TokenEventResult.FAIL_INSUFFICIENT_BALANCE,
 			);
@@ -146,11 +146,11 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 			if (updatedEscrowAccount.amount < decodedParams.amount) {
 				this.events.get(BeforeCCMForwardingEvent).error(
 					methodContext,
+					ccm.sendingChainID,
+					ccm.receivingChainID,
 					{
-						sendingChainID: ccm.sendingChainID,
-						receivingChainID: ccm.receivingChainID,
+						ccmID,
 						messageFeeTokenID: tokenID,
-						messageFee: ccm.fee,
 					},
 					TokenEventResult.INSUFFICIENT_ESCROW_BALANCE,
 				);
@@ -168,12 +168,12 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 				decodedParams.amount,
 			);
 
-			this.events.get(BeforeCCMForwardingEvent).log(methodContext, {
-				sendingChainID: ccm.sendingChainID,
-				receivingChainID: ccm.receivingChainID,
-				messageFeeTokenID: tokenID,
-				messageFee: ccm.fee,
-			});
+			this.events
+				.get(BeforeCCMForwardingEvent)
+				.log(methodContext, ccm.sendingChainID, ccm.receivingChainID, {
+					ccmID,
+					messageFeeTokenID: tokenID,
+				});
 		}
 	}
 

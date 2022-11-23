@@ -225,7 +225,6 @@ describe('PoSMethod', () => {
 			numberActiveValidators: 101,
 			numberStandbyValidators: 2,
 			posTokenID: Buffer.from('0000000000000000', 'hex'),
-			tokenIDFee: Buffer.from('0000000000000000', 'hex'),
 			validatorRegistrationFee: BigInt(10) * BigInt(10) ** BigInt(8),
 			maxBFTWeightCap: 500,
 			commissionIncreasePeriod: COMMISSION_INCREASE_PERIOD,

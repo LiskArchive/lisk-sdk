@@ -27,7 +27,7 @@ import {
 	CCMStatusCode,
 } from '../../constants';
 import { ccmSchema, registrationCCMParamsSchema, sidechainRegParams } from '../../schemas';
-import { SidechainRegistrationParams } from '../../types';
+import { FeeMethod, SidechainRegistrationParams } from '../../types';
 import { computeValidatorsHash, getMainchainTokenID, isValidName } from '../../utils';
 import {
 	CommandVerifyContext,
@@ -48,9 +48,11 @@ import { CcmSendSuccessEvent } from '../../events/ccm_send_success';
 export class SidechainRegistrationCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = sidechainRegParams;
 	private _tokenMethod!: TokenMethod;
+	private _feeMethod!: FeeMethod;
 
-	public addDependencies(tokenMethod: TokenMethod) {
+	public addDependencies(tokenMethod: TokenMethod, feeMethod: FeeMethod) {
 		this._tokenMethod = tokenMethod;
+		this._feeMethod = feeMethod;
 	}
 
 	public async verify(
@@ -58,7 +60,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand<Ma
 	): Promise<VerificationResult> {
 		const {
 			transaction: { senderAddress },
-			params: { certificateThreshold, initValidators, chainID, name, sidechainRegistrationFee },
+			params: { certificateThreshold, initValidators, chainID, name },
 		} = context;
 
 		try {
@@ -159,14 +161,6 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand<Ma
 			};
 		}
 
-		// sidechainRegistrationFee must be valid
-		if (sidechainRegistrationFee !== REGISTRATION_FEE) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error(`Sidechain registration fee must be equal to ${REGISTRATION_FEE}`),
-			};
-		}
-
 		// Sender must have enough balance to pay for extra command fee.
 		const availableBalance = await this._tokenMethod.getAvailableBalance(
 			context.getMethodContext(),
@@ -240,6 +234,8 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand<Ma
 
 		// Emit chain account updated event.
 		this.events.get(ChainAccountUpdatedEvent).log(methodContext, chainID, sidechainAccount);
+
+		this._feeMethod.payFee(context.getMethodContext(), REGISTRATION_FEE);
 
 		// Send registration CCM to the sidechain.
 		const encodedParams = codec.encode(registrationCCMParamsSchema, {

@@ -27,6 +27,7 @@ import {
 import { BaseCrossChainUpdateCommand } from '../../base_cross_chain_update_command';
 import {
 	CCMStatusCode,
+	CONTEXT_STORE_KEY_CCM_PROCESSING,
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_FEE_ADDRESS,
 	LIVENESS_LIMIT,
@@ -90,20 +91,25 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<Mainch
 		}
 		const { params } = context;
 
-		for (let i = 0; i < decodedCCMs.length; i += 1) {
-			const ccm = decodedCCMs[i];
-			const ccmBytes = params.inboxUpdate.crossChainMessages[i];
-			const ccmContext = {
-				...context,
-				ccm,
-			};
+		try {
+			context.contextStore.set(CONTEXT_STORE_KEY_CCM_PROCESSING, true);
+			for (let i = 0; i < decodedCCMs.length; i += 1) {
+				const ccm = decodedCCMs[i];
+				const ccmBytes = params.inboxUpdate.crossChainMessages[i];
+				const ccmContext = {
+					...context,
+					ccm,
+				};
 
-			if (ccm.receivingChainID.equals(getMainchainID(context.chainID))) {
-				await this.apply(ccmContext);
-			} else {
-				await this._forward(ccmContext);
+				if (ccm.receivingChainID.equals(getMainchainID(context.chainID))) {
+					await this.apply(ccmContext);
+				} else {
+					await this._forward(ccmContext);
+				}
+				await this.internalMethod.appendToInboxTree(context, params.sendingChainID, ccmBytes);
 			}
-			await this.internalMethod.appendToInboxTree(context, params.sendingChainID, ccmBytes);
+		} finally {
+			context.contextStore.delete(CONTEXT_STORE_KEY_CCM_PROCESSING);
 		}
 	}
 

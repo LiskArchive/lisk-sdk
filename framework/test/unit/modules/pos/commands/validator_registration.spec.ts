@@ -20,8 +20,8 @@ import { RegisterValidatorCommand } from '../../../../../src/modules/pos/command
 import { validatorRegistrationCommandParamsSchema } from '../../../../../src/modules/pos/schemas';
 import {
 	ValidatorRegistrationParams,
-	TokenMethod,
 	ValidatorsMethod,
+	FeeMethod,
 } from '../../../../../src/modules/pos/types';
 import { EventQueue, VerifyStatus } from '../../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
@@ -30,11 +30,7 @@ import { ValidatorStore } from '../../../../../src/modules/pos/stores/validator'
 import { NameStore } from '../../../../../src/modules/pos/stores/name';
 import { PoSModule } from '../../../../../src';
 import { createStoreGetter } from '../../../../../src/testing/utils';
-import {
-	COMMISSION,
-	VALIDATOR_REGISTRATION_FEE,
-	TOKEN_ID_FEE,
-} from '../../../../../src/modules/pos/constants';
+import { COMMISSION, VALIDATOR_REGISTRATION_FEE } from '../../../../../src/modules/pos/constants';
 import { ValidatorRegisteredEvent } from '../../../../../src/modules/pos/events/validator_registered';
 
 describe('Validator registration command', () => {
@@ -44,8 +40,8 @@ describe('Validator registration command', () => {
 	let stateStore: PrefixedStateReadWriter;
 	let validatorSubstore: ValidatorStore;
 	let nameSubstore: NameStore;
-	let mockTokenMethod: TokenMethod;
 	let mockValidatorsMethod: ValidatorsMethod;
+	let mockFeeMethod: FeeMethod;
 
 	const transactionParams = {
 		name: 'gojosatoru',
@@ -76,7 +72,7 @@ describe('Validator registration command', () => {
 		command: 'registerValidator',
 		senderPublicKey: publicKey,
 		nonce: BigInt(0),
-		fee: BigInt(100000000),
+		fee: BigInt(1000000000),
 		params: encodedTransactionParams,
 		signatures: [publicKey],
 	});
@@ -108,17 +104,8 @@ describe('Validator registration command', () => {
 	beforeEach(() => {
 		validatorRegistrationCommand = new RegisterValidatorCommand(pos.stores, pos.events);
 		validatorRegistrationCommand.init({
-			tokenIDFee: TOKEN_ID_FEE,
 			validatorRegistrationFee: VALIDATOR_REGISTRATION_FEE,
 		});
-		mockTokenMethod = {
-			lock: jest.fn(),
-			unlock: jest.fn(),
-			getAvailableBalance: jest.fn(),
-			burn: jest.fn(),
-			transfer: jest.fn(),
-			getLockedAmount: jest.fn(),
-		};
 		mockValidatorsMethod = {
 			setValidatorGeneratorKey: jest.fn(),
 			registerValidatorKeys: jest.fn().mockResolvedValue(true),
@@ -126,7 +113,10 @@ describe('Validator registration command', () => {
 			getGeneratorsBetweenTimestamps: jest.fn(),
 			setValidatorsParams: jest.fn(),
 		};
-		validatorRegistrationCommand.addDependencies(mockTokenMethod, mockValidatorsMethod);
+		mockFeeMethod = {
+			payFee: jest.fn(),
+		};
+		validatorRegistrationCommand.addDependencies(mockValidatorsMethod, mockFeeMethod);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		validatorSubstore = pos.stores.get(ValidatorStore);
 		nameSubstore = pos.stores.get(NameStore);
@@ -308,67 +298,20 @@ describe('Validator registration command', () => {
 			);
 		});
 
-		it('should return error if validator registration fee is different from what is required in config', async () => {
-			const invalidTransactionParams = {
-				...transactionParams,
-				validatorRegistrationFee: BigInt(0),
-			};
-
-			const encodedInvalidTransactionParams = codec.encode(
-				validatorRegistrationCommandParamsSchema,
-				invalidTransactionParams,
-			);
-			const invalidTransaction = new Transaction({
-				module: 'pos',
-				command: 'registerValidator',
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: encodedInvalidTransactionParams,
-				signatures: [publicKey],
-			});
-
-			await validatorSubstore.set(
-				createStoreGetter(stateStore),
-				invalidTransaction.senderAddress,
-				defaultValidatorInfo,
-			);
-			const context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction: invalidTransaction,
-					chainID,
-				})
-				.createCommandVerifyContext<ValidatorRegistrationParams>(
-					validatorRegistrationCommandParamsSchema,
-				);
-
-			const result = await validatorRegistrationCommand.verify(context);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Invalid validator registration fee.');
-		});
-
-		it('should return error if account does not have enough balance for the registration fee', async () => {
-			mockTokenMethod.getAvailableBalance = jest
-				.fn()
-				.mockResolvedValue(VALIDATOR_REGISTRATION_FEE - BigInt(1));
+		it('should return error if transaction does not have enough balance for the registration fee', async () => {
 			validatorRegistrationCommand = new RegisterValidatorCommand(pos.stores, pos.events);
 			validatorRegistrationCommand.init({
-				tokenIDFee: TOKEN_ID_FEE,
 				validatorRegistrationFee: VALIDATOR_REGISTRATION_FEE,
 			});
-			validatorRegistrationCommand.addDependencies(mockTokenMethod, mockValidatorsMethod);
+			validatorRegistrationCommand.addDependencies(mockValidatorsMethod, mockFeeMethod);
 
-			await validatorSubstore.set(
-				createStoreGetter(stateStore),
-				transaction.senderAddress,
-				defaultValidatorInfo,
-			);
 			const context = testing
 				.createTransactionContext({
 					stateStore,
-					transaction,
+					transaction: new Transaction({
+						...transaction.toObject(),
+						fee: validatorRegistrationCommand['_validatorRegistrationFee'] - BigInt(1),
+					}),
 					chainID,
 				})
 				.createCommandVerifyContext<ValidatorRegistrationParams>(
@@ -378,9 +321,7 @@ describe('Validator registration command', () => {
 			const result = await validatorRegistrationCommand.verify(context);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				'Not sufficient amount for validator registration fee.',
-			);
+			expect(result.error?.message).toInclude('Insufficient transaction fee.');
 		});
 	});
 
@@ -402,6 +343,23 @@ describe('Validator registration command', () => {
 				context.params.blsKey,
 				context.params.generatorKey,
 				context.params.proofOfPossession,
+			);
+		});
+
+		it('should call fee Method payFee', async () => {
+			const context = testing
+				.createTransactionContext({
+					transaction,
+					chainID,
+				})
+				.createCommandExecuteContext<ValidatorRegistrationParams>(
+					validatorRegistrationCommandParamsSchema,
+				);
+			await validatorRegistrationCommand.execute(context);
+
+			expect(mockFeeMethod.payFee).toHaveBeenCalledWith(
+				expect.anything(),
+				validatorRegistrationCommand['_validatorRegistrationFee'],
 			);
 		});
 

@@ -196,7 +196,6 @@ describe('transaction:sign command', () => {
 							amount: '100',
 							data: 'send token',
 							recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
-							accountInitializationFee: BigInt(5000000).toString(),
 						},
 						command: 'transfer',
 						fee: '100000000',
@@ -233,7 +232,6 @@ describe('transaction:sign command', () => {
 				numberOfSignatures: messageForRegistration.numberOfSignatures,
 				mandatoryKeys: messageForRegistration.mandatoryKeys,
 				optionalKeys: messageForRegistration.optionalKeys,
-				accountInitializationFee: BigInt(5000000),
 				signatures: [] as Buffer[],
 			};
 
@@ -466,7 +464,6 @@ describe('transaction:sign command', () => {
 								amount: '100',
 								data: 'send token',
 								recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
-								accountInitializationFee: BigInt(5000000).toString(),
 							},
 							command: 'transfer',
 							fee: '100000000',
@@ -805,7 +802,6 @@ describe('transaction:sign command', () => {
 								amount: '100',
 								data: 'send token',
 								recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
-								accountInitializationFee: BigInt(5000000).toString(),
 							},
 							command: 'transfer',
 							fee: '100000000',

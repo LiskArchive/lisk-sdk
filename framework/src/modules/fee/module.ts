@@ -14,9 +14,9 @@
 
 import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
-import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
+import { ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { CONTEXT_STORE_KEY_AVAILABLE_FEE, defaultConfig } from './constants';
-import { ModuleConfigJSON, TokenMethod } from './types';
+import { InteroperabilityMethod, ModuleConfigJSON, TokenMethod } from './types';
 import {
 	getContextStoreBigInt,
 	TransactionExecuteContext,
@@ -34,9 +34,12 @@ import {
 import { GeneratorFeeProcessedEvent } from './events/generator_fee_processed';
 import { RelayerFeeProcessedEvent } from './events/relayer_fee_processed';
 import { InsufficientFeeEvent } from './events/insufficient_fee';
+import { FeeInteroperableMethod } from './cc_method';
+import { BaseInteroperableModule } from '../interoperability/base_interoperable_module';
 
-export class FeeModule extends BaseModule {
+export class FeeModule extends BaseInteroperableModule {
 	public method = new FeeMethod(this.stores, this.events);
+	public crossChainMethod = new FeeInteroperableMethod(this.stores, this.events, this.name);
 	public configSchema = configSchema;
 	public endpoint = new FeeEndpoint(this.stores, this.offchainStores);
 	private _tokenMethod!: TokenMethod;
@@ -50,8 +53,9 @@ export class FeeModule extends BaseModule {
 		this.events.register(InsufficientFeeEvent, new InsufficientFeeEvent(this.name));
 	}
 
-	public addDependencies(tokenMethod: TokenMethod) {
+	public addDependencies(tokenMethod: TokenMethod, interopMethod: InteroperabilityMethod) {
 		this._tokenMethod = tokenMethod;
+		this.crossChainMethod.addDependencies(interopMethod, tokenMethod);
 	}
 
 	public metadata(): ModuleMetadata {

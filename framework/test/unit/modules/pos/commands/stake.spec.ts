@@ -70,7 +70,6 @@ describe('StakeCommand', () => {
 		numberActiveValidators: 101,
 		numberStandbyValidators: 2,
 		posTokenID: '0000000000000000',
-		tokenIDFee: '0000000000000000',
 		validatorRegistrationFee: (BigInt(10) * BigInt(10) ** BigInt(8)).toString(),
 		maxBFTWeightCap: 500,
 	};

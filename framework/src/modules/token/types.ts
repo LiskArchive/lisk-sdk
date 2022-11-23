@@ -21,7 +21,6 @@ export type TokenID = Buffer;
 export interface ModuleConfig {
 	userAccountInitializationFee: bigint;
 	escrowAccountInitializationFee: bigint;
-	feeTokenID: Buffer;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
@@ -67,4 +66,8 @@ export interface InteroperabilityMethod {
 	terminateChain(methodContext: MethodContext, chainID: Buffer): Promise<void>;
 	getChannel(methodContext: MethodContext, chainID: Buffer): Promise<ChannelData>;
 	getMessageFeeTokenID(methodContext: ImmutableMethodContext, chainID: Buffer): Promise<Buffer>;
+}
+
+export interface FeeMethod {
+	payFee(methodContext: MethodContext, amount: bigint): void;
 }

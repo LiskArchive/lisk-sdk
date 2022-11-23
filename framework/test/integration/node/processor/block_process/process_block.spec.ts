@@ -24,6 +24,7 @@ import {
 	defaultTokenID,
 } from '../../../../utils/mocks/transaction';
 import { getGeneratorPrivateKeyFromDefaultConfig } from '../../../../../src/testing/fixtures';
+import { defaultConfig } from '../../../../../src/modules/token/constants';
 
 describe('Process block', () => {
 	let processEnv: testing.BlockProcessingEnv;
@@ -65,6 +66,7 @@ describe('Process block', () => {
 					recipientAddress: account.address,
 					amount,
 					chainID,
+					fee: BigInt(defaultConfig.userAccountInitializationFee) + BigInt(20000000),
 					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				newBlock = await processEnv.createBlock([transaction]);
@@ -76,7 +78,7 @@ describe('Process block', () => {
 					address: genesis.address,
 					tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 				});
-				const expected = originalBalance - transaction.fee - amount - BigInt(5000000);
+				const expected = originalBalance - transaction.fee - amount;
 				expect(balance.availableBalance).toEqual(expected.toString());
 			});
 
