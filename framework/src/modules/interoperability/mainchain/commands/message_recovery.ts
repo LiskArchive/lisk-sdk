@@ -90,11 +90,8 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 
 		// Process basic checks for all CCMs.
 		// Verify general format. Past this point, we can access ccm root properties.
-		const deserializedCCMs = crossChainMessages.map(serializedCcm =>
-			codec.decode<CCMsg>(ccmSchema, serializedCcm),
-		);
-
-		for (const ccm of deserializedCCMs) {
+		for (const crossChainMessage of crossChainMessages) {
+			const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
 			validateFormat(ccm);
 
 			if (ccm.status !== CCMStatusCode.OK) {
