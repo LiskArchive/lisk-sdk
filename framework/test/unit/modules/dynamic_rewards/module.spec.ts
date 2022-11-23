@@ -59,7 +59,6 @@ describe('DynamicRewardModule', () => {
 	beforeEach(async () => {
 		rewardModule = new DynamicRewardModule();
 		await rewardModule.init({
-			generatorConfig: {},
 			genesisConfig: { chainID: '00000000' } as any,
 			moduleConfig: {},
 		});
@@ -85,7 +84,6 @@ describe('DynamicRewardModule', () => {
 				rewardModule.init({
 					genesisConfig: { chainID: '00000000' } as any,
 					moduleConfig: {},
-					generatorConfig: {},
 				}),
 			).toResolve();
 
@@ -102,7 +100,6 @@ describe('DynamicRewardModule', () => {
 				rewardModule.init({
 					genesisConfig: { chainID: '00000000' } as any,
 					moduleConfig: { offset: 1000 },
-					generatorConfig: {},
 				}),
 			).toResolve();
 
@@ -117,7 +114,6 @@ describe('DynamicRewardModule', () => {
 					moduleConfig: {
 						tokenID: '00000000000000000',
 					},
-					generatorConfig: {},
 				});
 			} catch (error: any) {
 				// eslint-disable-next-line jest/no-try-expect

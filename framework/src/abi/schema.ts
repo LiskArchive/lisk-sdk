@@ -358,6 +358,10 @@ export const verifyTransactionResponseSchema = {
 			fieldNumber: 1,
 			dataType: 'sint32',
 		},
+		errorMessage: {
+			fieldNumber: 2,
+			dataType: 'string',
+		},
 	},
 };
 

@@ -26,7 +26,7 @@ import {
 	PostTransactionResponse,
 } from '../generator/schemas';
 import { RequestContext } from '../rpc/rpc_server';
-import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../abi';
+import { ABI, TransactionVerifyResult } from '../../abi';
 
 interface EndpointArgs {
 	abi: ABI;
@@ -56,13 +56,13 @@ export class TxpoolEndpoint {
 		const req = ctx.params;
 		const transaction = Transaction.fromBytes(Buffer.from(req.transaction, 'hex'));
 
-		const { result } = await this._abi.verifyTransaction({
+		const { result, errorMessage } = await this._abi.verifyTransaction({
 			contextID: Buffer.alloc(0),
 			transaction: transaction.toObject(),
 			header: this._chain.lastBlock.header.toObject(),
 		});
 		if (result === TransactionVerifyResult.INVALID) {
-			throw new InvalidTransactionError('Transaction verification failed.', transaction.id);
+			throw new InvalidTransactionError(errorMessage, transaction.id);
 		}
 		if (this._pool.contains(transaction.id)) {
 			return {
@@ -108,15 +108,16 @@ export class TxpoolEndpoint {
 		const header = this._chain.lastBlock.header.toObject();
 
 		if (!req.skipVerify) {
-			const { result } = await this._abi.verifyTransaction({
+			const { result, errorMessage } = await this._abi.verifyTransaction({
 				contextID: Buffer.alloc(0),
 				transaction: transaction.toObject(),
 				header,
 			});
 			if (result === TransactionVerifyResult.INVALID) {
 				return {
-					success: false,
+					result: TransactionVerifyResult.INVALID,
 					events: [],
+					errorMessage,
 				};
 			}
 		}
@@ -130,7 +131,7 @@ export class TxpoolEndpoint {
 		});
 
 		return {
-			success: response.result === TransactionExecutionResult.OK,
+			result: response.result,
 			events: response.events.map(e => new Event(e).toJSON()),
 		};
 	}
