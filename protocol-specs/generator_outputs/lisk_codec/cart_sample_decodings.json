@@ -12,7 +12,7 @@
 			"input": {
 				"value": "08d2091080acb8f6051864221c089edbb10210d7041801221008d70410061a09537461746520546178221c089eeda50410bf0c1801221008bf0c10071a09537461746520546178",
 				"schema": {
-					"$id": "cart_sample",
+					"$id": "/cartSample",
 					"type": "object",
 					"properties": {
 						"orderId": {

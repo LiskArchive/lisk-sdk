@@ -190,7 +190,7 @@ describe('generator', () => {
 				}
 			});
 
-			it('should load all 101 delegates', async () => {
+			it('should load all 101 validators', async () => {
 				await generator.init({
 					blockchainDB,
 					generatorDB,

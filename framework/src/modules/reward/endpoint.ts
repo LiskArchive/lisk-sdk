@@ -15,17 +15,13 @@
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { calculateDefaultReward } from './calculate_reward';
-import { DefaultReward, EndpointInitArgs } from './types';
+import { DefaultReward, ModuleConfig } from './types';
 
 export class RewardEndpoint extends BaseEndpoint {
-	private _brackets!: ReadonlyArray<bigint>;
-	private _offset!: number;
-	private _distance!: number;
+	protected _config!: ModuleConfig;
 
-	public init(args: EndpointInitArgs) {
-		this._brackets = args.config.brackets;
-		this._offset = args.config.offset;
-		this._distance = args.config.distance;
+	public init(config: ModuleConfig) {
+		this._config = config;
 	}
 
 	public getDefaultRewardAtHeight(ctx: ModuleEndpointContext): DefaultReward {
@@ -39,12 +35,7 @@ export class RewardEndpoint extends BaseEndpoint {
 			throw new Error('Parameter height cannot be smaller than 0.');
 		}
 
-		const reward = calculateDefaultReward({
-			height,
-			brackets: this._brackets,
-			distance: this._distance,
-			offset: this._offset,
-		});
+		const reward = calculateDefaultReward(this._config, height);
 
 		return { reward: reward.toString() };
 	}

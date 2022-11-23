@@ -22,7 +22,7 @@ const { GenesisBlockAsset } = prepareProtobuffersBlock();
 const genesisBlockAssetSchema = {
 	$id: '/genesisBlockAssetSchema',
 	type: 'object',
-	required: ['accounts', 'initDelegates', 'initRounds'],
+	required: ['accounts', 'initValidators', 'initRounds'],
 	properties: {
 		accounts: {
 			type: 'array',
@@ -55,7 +55,7 @@ const genesisBlockAssetSchema = {
 						fieldNumber: 6,
 						type: 'object',
 						properties: {
-							delegate: {
+							validator: {
 								type: 'object',
 								fieldNumber: 1,
 								properties: {
@@ -71,7 +71,7 @@ const genesisBlockAssetSchema = {
 									},
 									lastForgedHeight: { dataType: 'uint32', fieldNumber: 4 },
 									isBanned: { dataType: 'boolean', fieldNumber: 5 },
-									totalVotesReceived: { dataType: 'uint64', fieldNumber: 6 },
+									totalStakeReceived: { dataType: 'uint64', fieldNumber: 6 },
 								},
 								required: [
 									'username',
@@ -79,19 +79,19 @@ const genesisBlockAssetSchema = {
 									'consecutiveMissedBlocks',
 									'lastForgedHeight',
 									'isBanned',
-									'totalVotesReceived',
+									'totalStakeReceived',
 								],
 							},
-							sentVotes: {
+							sentStakes: {
 								type: 'array',
 								fieldNumber: 2,
 								items: {
 									type: 'object',
 									properties: {
-										delegateAddress: { dataType: 'bytes', fieldNumber: 1 },
+										validatorAddress: { dataType: 'bytes', fieldNumber: 1 },
 										amount: { dataType: 'uint64', fieldNumber: 2 },
 									},
-									required: ['delegateAddress', 'amount'],
+									required: ['validatorAddress', 'amount'],
 								},
 							},
 							unlocking: {
@@ -100,11 +100,11 @@ const genesisBlockAssetSchema = {
 								items: {
 									type: 'object',
 									properties: {
-										delegateAddress: { dataType: 'bytes', fieldNumber: 1 },
+										validatorAddress: { dataType: 'bytes', fieldNumber: 1 },
 										amount: { dataType: 'uint64', fieldNumber: 2 },
-										unvoteHeight: { dataType: 'uint32', fieldNumber: 3 },
+										unstakeHeight: { dataType: 'uint32', fieldNumber: 3 },
 									},
-									required: ['delegateAddress', 'amount', 'unvoteHeight'],
+									required: ['validatorAddress', 'amount', 'unstakeHeight'],
 								},
 							},
 						},
@@ -114,7 +114,7 @@ const genesisBlockAssetSchema = {
 			},
 			fieldNumber: 1,
 		},
-		initDelegates: {
+		initValidators: {
 			type: 'array',
 			items: { dataType: 'bytes' },
 			fieldNumber: 2,
@@ -124,7 +124,7 @@ const genesisBlockAssetSchema = {
 };
 
 const validGenesisBlockAsset1 = {
-	initDelegates: [
+	initValidators: [
 		Buffer.from('03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f', 'hex'),
 		Buffer.from('0903f4c5cb599a7928aef27e314e98291d1e3888', 'hex'),
 		Buffer.from('0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf', 'hex'),
@@ -145,17 +145,17 @@ const validGenesisBlockAsset1 = {
 				numberOfSignatures: 0,
 			},
 			asset: {
-				delegate: {
+				validator: {
 					username: 'genesis_34',
 					pomHeights: [],
 					consecutiveMissedBlocks: 0,
 					lastForgedHeight: 0,
 					isBanned: false,
-					totalVotesReceived: '1000000000000',
+					totalStakeReceived: '1000000000000',
 				},
-				sentVotes: [
+				sentStakes: [
 					{
-						delegateAddress: Buffer.from('03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f', 'hex'),
+						validatorAddress: Buffer.from('03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f', 'hex'),
 						amount: '1000000000000',
 					},
 				],
@@ -176,15 +176,15 @@ const validGenesisBlockAsset1 = {
 				numberOfSignatures: 0,
 			},
 			asset: {
-				delegate: {
+				validator: {
 					username: 'genesis_74',
 					pomHeights: [],
 					consecutiveMissedBlocks: 0,
 					lastForgedHeight: 0,
 					isBanned: false,
-					totalVotesReceived: '1000000000000',
+					totalStakeReceived: '1000000000000',
 				},
-				sentVotes: [],
+				sentStakes: [],
 				unlocking: [],
 			},
 		},
@@ -202,17 +202,17 @@ const validGenesisBlockAsset1 = {
 				numberOfSignatures: 0,
 			},
 			asset: {
-				delegate: {
+				validator: {
 					username: 'genesis_98',
 					pomHeights: [],
 					consecutiveMissedBlocks: 0,
 					lastForgedHeight: 0,
 					isBanned: false,
-					totalVotesReceived: '1000000000000',
+					totalStakeReceived: '1000000000000',
 				},
-				sentVotes: [
+				sentStakes: [
 					{
-						delegateAddress: Buffer.from('0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf', 'hex'),
+						validatorAddress: Buffer.from('0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf', 'hex'),
 						amount: '1000000000000',
 					},
 				],

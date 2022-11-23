@@ -466,6 +466,8 @@ export const stateRecoveryParamsSchema = {
 		chainID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 		module: {
 			dataType: 'string',
@@ -477,8 +479,8 @@ export const stateRecoveryParamsSchema = {
 			items: {
 				type: 'object',
 				properties: {
-					storePrefix: {
-						dataType: 'uint32',
+					substorePrefix: {
+						dataType: 'bytes',
 						fieldNumber: 1,
 					},
 					storeKey: {
@@ -494,7 +496,7 @@ export const stateRecoveryParamsSchema = {
 						fieldNumber: 4,
 					},
 				},
-				required: ['storePrefix', 'storeKey', 'storeValue', 'bitmap'],
+				required: ['substorePrefix', 'storeKey', 'storeValue', 'bitmap'],
 			},
 		},
 		siblingHashes: {
@@ -535,6 +537,20 @@ export const stateRecoveryInitParamsSchema = {
 				maxLength: HASH_LENGTH,
 			},
 			fieldNumber: 4,
+		},
+	},
+};
+
+export const terminateSidechainForLivenessParamsSchema = {
+	$id: '/modules/interoperability/mainchain/terminateSidechainForLiveness',
+	type: 'object',
+	required: ['chainID'],
+	properties: {
+		chainID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 	},
 };

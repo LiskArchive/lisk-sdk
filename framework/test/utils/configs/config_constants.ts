@@ -14,7 +14,7 @@
 
 export const constantsConfig = (overriddenConfigProperties = {}) => ({
 	blockTime: 10,
-	delegateListRoundOffset: 2,
+	validatorListRoundOffset: 2,
 	chainID: '10000000',
 	rewards: {
 		milestones: [
@@ -31,8 +31,8 @@ export const constantsConfig = (overriddenConfigProperties = {}) => ({
 	bftBatchSize: 103,
 	minRemainingBalance: '5000000',
 	minFeePerByte: 1000,
-	activeDelegates: 101,
-	standbyDelegates: 2,
+	activeValidators: 101,
+	standbyValidators: 2,
 	maxTransactionsSize: 15 * 1024,
 	modules: {},
 	...overriddenConfigProperties,

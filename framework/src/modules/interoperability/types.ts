@@ -96,10 +96,14 @@ export interface CrossChainMessageContext extends ImmutableCrossChainMessageCont
 export interface CCCommandExecuteContext<T> extends CrossChainMessageContext {
 	params: T;
 }
-export interface RecoverCCMsgMethodContext extends CrossChainMessageContext {
+export interface RecoverContext {
+	getMethodContext: () => MethodContext;
+	getStore: StoreCallback;
+	stateStore: StateStore;
+	eventQueue: EventQueue;
 	terminatedChainID: Buffer;
 	module: string;
-	storePrefix: Buffer;
+	substorePrefix: Buffer;
 	storeKey: Buffer;
 	storeValue: Buffer;
 }
@@ -308,7 +312,7 @@ export interface MessageRecoveryVerificationParams {
 }
 
 export interface StoreEntry {
-	storePrefix: Buffer;
+	substorePrefix: Buffer;
 	storeKey: Buffer;
 	storeValue: Buffer;
 	bitmap: Buffer;
@@ -326,6 +330,10 @@ export interface StateRecoveryInitParams {
 	sidechainAccount: Buffer;
 	bitmap: Buffer;
 	siblingHashes: Buffer[];
+}
+
+export interface TerminateSidehchainForLivenessParams {
+	chainID: Buffer;
 }
 
 export interface CrossChainUpdateTransactionParams {

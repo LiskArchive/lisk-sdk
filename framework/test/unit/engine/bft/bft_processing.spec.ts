@@ -23,20 +23,20 @@ import {
 	STORE_PREFIX_BFT_VOTES,
 } from '../../../../src/engine/bft/constants';
 import { bftParametersSchema, BFTVotes, bftVotesSchema } from '../../../../src/engine/bft/schemas';
-import * as scenario4DelegatesMissedSlots from './bft_processing/4_delegates_missed_slots.json';
-import * as scenario4DelegatesSimple from './bft_processing/4_delegates_simple.json';
-import * as scenario5DelegatesSwitchedCompletely from './bft_processing/5_delegates_switched_completely.json';
-import * as scenario7DelegatesPartialSwitch from './bft_processing/7_delegates_partial_switch.json';
-import * as scenario11DelegatesPartialSwitch from './bft_processing/11_delegates_partial_switch.json';
+import * as scenario4ValidatorsMissedSlots from './bft_processing/4_validators_missed_slots.json';
+import * as scenario4ValidatorsSimple from './bft_processing/4_validators_simple.json';
+import * as scenario5ValidatorsSwitchedCompletely from './bft_processing/5_validators_switched_completely.json';
+import * as scenario7ValidatorsPartialSwitch from './bft_processing/7_validators_partial_switch.json';
+import * as scenario11ValidatorsPartialSwitch from './bft_processing/11_validators_partial_switch.json';
 import { Validator } from '../../../../src/abi';
 
 describe('BFT processing', () => {
 	const bftScenarios = [
-		scenario4DelegatesMissedSlots,
-		scenario4DelegatesSimple,
-		scenario5DelegatesSwitchedCompletely,
-		scenario7DelegatesPartialSwitch,
-		scenario11DelegatesPartialSwitch,
+		scenario4ValidatorsMissedSlots,
+		scenario4ValidatorsSimple,
+		scenario5ValidatorsSwitchedCompletely,
+		scenario7ValidatorsPartialSwitch,
+		scenario11ValidatorsPartialSwitch,
 	];
 
 	for (const scenario of bftScenarios) {
@@ -48,7 +48,7 @@ describe('BFT processing', () => {
 
 			beforeAll(async () => {
 				bftModule = new BFTModule();
-				await bftModule.init(scenario.config.activeDelegates, 0, 10);
+				await bftModule.init(scenario.config.activeValidators, 0, 10);
 				db = new InMemoryDatabase();
 				stateStore = new StateStore(db);
 
@@ -56,7 +56,7 @@ describe('BFT processing', () => {
 					MODULE_STORE_PREFIX_BFT,
 					STORE_PREFIX_BFT_PARAMETERS,
 				);
-				const threshold = Math.floor((scenario.config.activeDelegates * 2) / 3) + 1;
+				const threshold = Math.floor((scenario.config.activeValidators * 2) / 3) + 1;
 				const validators: (Validator & { minHeightActive: number })[] = [];
 				for (const testCase of scenario.testCases) {
 					const generatorAddress = address.getAddressFromPublicKey(
@@ -65,7 +65,7 @@ describe('BFT processing', () => {
 					if (validators.find(v => v.address.equals(generatorAddress)) === undefined) {
 						validators.push({
 							address: generatorAddress,
-							minHeightActive: testCase.input.blockHeader.delegateMinHeightActive,
+							minHeightActive: testCase.input.blockHeader.validatorMinHeightActive,
 							bftWeight: BigInt(1),
 							generatorKey: Buffer.from(testCase.input.blockHeader.generatorPublicKey, 'hex'),
 							blsKey: utils.getRandomBytes(42),
@@ -102,7 +102,7 @@ describe('BFT processing', () => {
 			});
 
 			for (const testCase of scenario.testCases) {
-				it(`should have accurate information when ${testCase.input.delegateName} forge block at height = ${testCase.input.blockHeader.height}`, async () => {
+				it(`should have accurate information when ${testCase.input.validatorName} forge block at height = ${testCase.input.blockHeader.height}`, async () => {
 					// Arrange
 					const generatorAddress = address.getAddressFromPublicKey(
 						Buffer.from(testCase.input.blockHeader.generatorPublicKey, 'hex'),
@@ -136,7 +136,7 @@ describe('BFT processing', () => {
 						if (v.address.equals(generatorAddress)) {
 							return {
 								...v,
-								minActiveHeight: testCase.input.blockHeader.delegateMinHeightActive,
+								minActiveHeight: testCase.input.blockHeader.validatorMinHeightActive,
 							};
 						}
 						return v;
