@@ -78,7 +78,6 @@ export {
 	SidechainCCUpdateCommand,
 	SidechainInteroperabilityMethod,
 	SidechainInteroperabilityModule,
-	SidechainMessageRecoveryCommand,
 	SidechainRegistrationCommand,
 } from './modules/interoperability';
 export { RewardMethod, RewardModule } from './modules/reward';
