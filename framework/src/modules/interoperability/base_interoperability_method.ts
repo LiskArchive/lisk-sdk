@@ -17,19 +17,22 @@ import { BaseCCMethod } from './base_cc_method';
 import { NamedRegistry } from '../named_registry';
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import { ChainAccount, ChainAccountStore } from './stores/chain_account';
+import { CCMsg, TerminateChainContext } from './types';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import {
 	EMPTY_BYTES,
 	MAINCHAIN_ID_BUFFER,
 	MAX_RESERVED_ERROR_STATUS,
 	EMPTY_FEE_ADDRESS,
+	MODULE_NAME_INTEROPERABILITY,
+	CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
+	CCMStatusCode,
 } from './constants';
 import { TokenMethod } from '../token';
 import { OwnChainAccountStore } from './stores/own_chain_account';
 import { ChannelDataStore } from './stores/channel_data';
 import { TerminatedStateStore } from './stores/terminated_state';
 import { TerminatedOutboxStore } from './stores/terminated_outbox';
-import { CCMsg } from './types';
 
 export abstract class BaseInteroperabilityMethod<
 	T extends BaseInteroperabilityInternalMethod
@@ -143,8 +146,23 @@ export abstract class BaseInteroperabilityMethod<
 		);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async terminateChain(_methodContext: MethodContext, _chainID: Buffer): Promise<void> {
-		throw new Error('Need to be implemented');
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#terminatechain
+	public async terminateChain(context: TerminateChainContext, chainID: Buffer): Promise<void> {
+		if (await this.getTerminatedStateAccount(context, chainID)) {
+			return;
+		}
+
+		await this.internalMethod.sendInternal(
+			context,
+			EMPTY_FEE_ADDRESS,
+			MODULE_NAME_INTEROPERABILITY,
+			CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
+			chainID,
+			BigInt(0),
+			CCMStatusCode.OK,
+			EMPTY_BYTES,
+		);
+
+		await this.internalMethod.createTerminatedStateAccount(context, chainID);
 	}
 }
