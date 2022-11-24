@@ -623,6 +623,13 @@ export class TokenMethod extends BaseMethod {
 		}
 	}
 
+	public async isTokenSupported(
+		methodContext: ImmutableMethodContext,
+		tokenID: Buffer,
+	): Promise<boolean> {
+		return this.stores.get(SupportedTokensStore).isSupported(methodContext, tokenID);
+	}
+
 	public async supportAllTokens(methodContext: MethodContext): Promise<void> {
 		await this.stores.get(SupportedTokensStore).supportAll(methodContext);
 		this.events.get(AllTokensSupportedEvent).log(methodContext);
