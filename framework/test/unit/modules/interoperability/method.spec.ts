@@ -19,10 +19,13 @@ import { BaseInteroperabilityMethod } from '../../../../src/modules/interoperabi
 import {
 	CCMStatusCode,
 	CHAIN_ID_MAINCHAIN,
+	CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
 	EMPTY_BYTES,
+	EMPTY_FEE_ADDRESS,
 	HASH_LENGTH,
 	MAINCHAIN_ID_BUFFER,
 	MAX_CCM_SIZE,
+	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../src/modules/interoperability/constants';
 import {
 	CCMSentFailedCode,
@@ -512,8 +515,20 @@ describe('Sample Method', () => {
 
 			await sampleInteroperabilityMethod.terminateChain(terminateChainContext, chainID);
 
-			expect(interopMod['internalMethod'].sendInternal).toHaveBeenCalled();
-			expect(interopMod['internalMethod'].createTerminatedStateAccount).toHaveBeenCalled();
+			expect(interopMod['internalMethod'].sendInternal).toHaveBeenCalledWith(
+				terminateChainContext,
+				EMPTY_FEE_ADDRESS,
+				MODULE_NAME_INTEROPERABILITY,
+				CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
+				chainID,
+				BigInt(0),
+				CCMStatusCode.OK,
+				EMPTY_BYTES,
+			);
+			expect(interopMod['internalMethod'].createTerminatedStateAccount).toHaveBeenCalledWith(
+				terminateChainContext,
+				chainID,
+			);
 		});
 	});
 });
