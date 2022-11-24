@@ -98,6 +98,9 @@ export class WSServer {
 
 	public stop(): void {
 		if (this.server) {
+			for (const cli of this.server.clients) {
+				cli.terminate();
+			}
 			this.server.close();
 		}
 	}
@@ -126,10 +129,10 @@ export class WSServer {
 		socket.isAlive = true;
 		// eslint-disable-next-line no-param-reassign
 		socket.id = utils.getRandomBytes(20).toString('hex');
-		socket.on('message', (message: string) => {
+		socket.on('message', (message: string, isBytes: boolean) => {
 			// Read the message, and if it's subscription message, handle here
 			try {
-				const parsedMessage = JSON.parse(message) as RequestObject;
+				const parsedMessage = JSON.parse(isBytes ? message.toString() : message) as RequestObject;
 				if (parsedMessage.method === 'subscribe') {
 					this._handleSubscription(socket, parsedMessage);
 					return;

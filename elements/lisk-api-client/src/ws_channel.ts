@@ -16,7 +16,7 @@
 import * as WebSocket from 'isomorphic-ws';
 import { EventEmitter } from 'events';
 import { JSONRPCMessage, EventCallback, Defer } from './types';
-import { convertRPCError, timeout, defer, messageIsNotification } from './utils';
+import { convertRPCError, defer, messageIsNotification, promiseWithTimeout } from './utils';
 
 const CONNECTION_TIMEOUT = 2000;
 const RESPONSE_TIMEOUT = 3000;
@@ -63,11 +63,11 @@ export class WSChannel {
 		});
 
 		try {
-			await Promise.race([
-				connectHandler,
-				errorHandler,
-				timeout(CONNECTION_TIMEOUT, `Could not connect in ${CONNECTION_TIMEOUT}ms`),
-			]);
+			await promiseWithTimeout(
+				[connectHandler, errorHandler],
+				CONNECTION_TIMEOUT,
+				`Could not connect in ${CONNECTION_TIMEOUT}ms`,
+			);
 		} catch (err) {
 			this._ws.close();
 
@@ -100,10 +100,11 @@ export class WSChannel {
 		});
 
 		this._ws.close();
-		await Promise.race([
-			closeHandler,
-			timeout(CONNECTION_TIMEOUT, `Could not disconnect in ${CONNECTION_TIMEOUT}ms`),
-		]);
+		await promiseWithTimeout(
+			[closeHandler],
+			CONNECTION_TIMEOUT,
+			`Could not disconnect in ${CONNECTION_TIMEOUT}ms`,
+		);
 	}
 
 	public async invoke<T = Record<string, unknown>>(
@@ -126,11 +127,11 @@ export class WSChannel {
 		const response = defer<T>();
 		this._pendingRequests[this._requestCounter] = response as Defer<unknown>;
 		this._requestCounter += 1;
-
-		return Promise.race<T>([
-			response.promise,
-			timeout<T>(RESPONSE_TIMEOUT, `Response not received in ${RESPONSE_TIMEOUT}ms`),
-		]);
+		return promiseWithTimeout(
+			[response.promise],
+			RESPONSE_TIMEOUT,
+			`Response not received in ${RESPONSE_TIMEOUT}ms`,
+		);
 	}
 
 	public subscribe<T = Record<string, unknown>>(eventName: string, cb: EventCallback<T>): void {
