@@ -25,7 +25,7 @@ import {
 	MAX_RESERVED_ERROR_STATUS,
 	EMPTY_FEE_ADDRESS,
 	MODULE_NAME_INTEROPERABILITY,
-	CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
+	CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
 	CCMStatusCode,
 } from './constants';
 import { TokenMethod } from '../token';
@@ -146,6 +146,7 @@ export abstract class BaseInteroperabilityMethod<
 		);
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#terminatechain
 	public async terminateChain(context: TerminateChainContext, chainID: Buffer): Promise<void> {
 		if (await this.getTerminatedStateAccount(context, chainID)) {
 			return;
@@ -155,7 +156,7 @@ export abstract class BaseInteroperabilityMethod<
 			context,
 			EMPTY_FEE_ADDRESS,
 			MODULE_NAME_INTEROPERABILITY,
-			CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
+			CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
 			chainID,
 			BigInt(0),
 			CCMStatusCode.OK,

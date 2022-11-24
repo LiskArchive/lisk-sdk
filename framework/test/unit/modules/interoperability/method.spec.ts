@@ -102,12 +102,12 @@ describe('Sample Method', () => {
 		methodContext = createTransientMethodContext({ eventQueue: defaultEventQueue });
 		terminateChainContext = {
 			...methodContext,
-			chainID,
+			getMethodContext: jest.fn(),
 			logger: loggerMock,
-			getMethodContext: jest.fn() as any,
+			chainID,
 			transaction: {
-				senderAddress: defaultAddress,
 				fee: BigInt(0),
+				senderAddress: defaultAddress,
 			},
 			header: {
 				height: 0,
@@ -495,13 +495,11 @@ describe('Sample Method', () => {
 		});
 
 		it('should do nothing if chain was already terminated', async () => {
-			jest
-				.spyOn(sampleInteroperabilityMethod as any, 'getTerminatedStateAccount')
-				.mockResolvedValue({
-					stateRoot: sidechainChainAccount.lastCertificate.stateRoot,
-					mainchainStateRoot: Buffer.alloc(HASH_LENGTH),
-					initialized: true,
-				});
+			jest.spyOn(sampleInteroperabilityMethod, 'getTerminatedStateAccount').mockResolvedValue({
+				stateRoot: sidechainChainAccount.lastCertificate.stateRoot,
+				mainchainStateRoot: Buffer.alloc(HASH_LENGTH),
+				initialized: true,
+			});
 			await sampleInteroperabilityMethod.terminateChain(terminateChainContext, chainID);
 
 			expect(interopMod['internalMethod'].sendInternal).not.toHaveBeenCalled();
@@ -510,11 +508,12 @@ describe('Sample Method', () => {
 		it('should process with input chainID', async () => {
 			jest
 				.spyOn(sampleInteroperabilityMethod as any, 'getTerminatedStateAccount')
-				.mockResolvedValue(null);
+				.mockResolvedValue(undefined);
 
 			await sampleInteroperabilityMethod.terminateChain(terminateChainContext, chainID);
-			expect(interopMod['internalMethod'].sendInternal).toHaveBeenCalledTimes(1);
-			expect(interopMod['internalMethod'].createTerminatedStateAccount).toHaveBeenCalledTimes(1);
+
+			expect(interopMod['internalMethod'].sendInternal).toHaveBeenCalled();
+			expect(interopMod['internalMethod'].createTerminatedStateAccount).toHaveBeenCalled();
 		});
 	});
 });
