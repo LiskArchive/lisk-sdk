@@ -19,17 +19,15 @@ import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { objects } from '@liskhq/lisk-utils';
 import {
 	EMPTY_BYTES,
-	MAINCHAIN_ID,
 	EMPTY_FEE_ADDRESS,
 	CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
 	MODULE_NAME_INTEROPERABILITY,
-	CHAIN_ID_MAINCHAIN,
 	MESSAGE_TAG_CERTIFICATE,
 	EMPTY_HASH,
 } from './constants';
 import { ccmSchema } from './schemas';
 import { CCMsg, CrossChainUpdateTransactionParams, ChainAccount } from './types';
-import { computeValidatorsHash, getIDAsKeyForStore, validateFormat } from './utils';
+import { computeValidatorsHash, getMainchainID, validateFormat } from './utils';
 import { NamedRegistry } from '../named_registry';
 import { OwnChainAccountStore } from './stores/own_chain_account';
 import { ChannelDataStore } from './stores/channel_data';
@@ -199,12 +197,13 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		} else {
 			// Processing on the mainchain
 			const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
-			if (ownChainAccount.chainID.equals(getIDAsKeyForStore(MAINCHAIN_ID))) {
+			const mainchainID = getMainchainID(ownChainAccount.chainID);
+			if (ownChainAccount.chainID.equals(mainchainID)) {
 				// If the account does not exist on the mainchain, the input chainID is invalid.
 				throw new Error('Chain to be terminated is not valid.');
 			}
 
-			const mainchainAccount = await chainSubstore.get(context, getIDAsKeyForStore(MAINCHAIN_ID));
+			const mainchainAccount = await chainSubstore.get(context, mainchainID);
 			// State root is not available, set it to empty bytes temporarily.
 			// This should only happen on a sidechain.
 			terminatedState = {
@@ -449,15 +448,16 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 				throw error;
 			}
 		}
+		const mainchainID = getMainchainID(ownChainAccount.chainID);
 		let partnerChainID: Buffer;
 		// Processing on the mainchain.
-		if (ownChainAccount.chainID.equals(CHAIN_ID_MAINCHAIN)) {
+		if (ownChainAccount.chainID.equals(mainchainID)) {
 			partnerChainID = receivingChainID;
 		} else {
 			// Processing on a sidechain.
 			// eslint-disable-next-line no-lonely-if
 			if (!receivingChainAccount) {
-				partnerChainID = CHAIN_ID_MAINCHAIN;
+				partnerChainID = mainchainID;
 			} else {
 				partnerChainID = receivingChainID;
 			}

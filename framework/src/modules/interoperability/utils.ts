@@ -60,9 +60,6 @@ interface CommonExecutionLogicArgs {
 	chainIDBuffer: Buffer;
 }
 
-// Returns the big endian uint32 serialization of an integer x, with 0 <= x < 2^32 which is 4 bytes long.
-export const getIDAsKeyForStore = (id: number) => utils.intToBuffer(id, 4);
-
 export const validateFormat = (ccm: CCMsg) => {
 	validator.validate(ccmSchema, ccm);
 

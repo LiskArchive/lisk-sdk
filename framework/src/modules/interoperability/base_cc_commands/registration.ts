@@ -13,12 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import {
-	CCMStatusCode,
-	MAINCHAIN_ID_BUFFER,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-	EMPTY_BYTES,
-} from '../constants';
+import { CCMStatusCode, CROSS_CHAIN_COMMAND_NAME_REGISTRATION, EMPTY_BYTES } from '../constants';
 import { registrationCCMParamsSchema } from '../schemas';
 import {
 	CCMRegistrationParams,
@@ -31,6 +26,7 @@ import { OwnChainAccountStore } from '../stores/own_chain_account';
 import { ChannelDataStore } from '../stores/channel_data';
 import { ChainAccountStore, ChainStatus } from '../stores/chain_account';
 import { BaseInteroperabilityInternalMethod } from '../base_interoperability_internal_methods';
+import { getMainchainID } from '../utils';
 
 export abstract class BaseCCRegistrationCommand<
 	T extends BaseInteroperabilityInternalMethod
@@ -70,11 +66,12 @@ export abstract class BaseCCRegistrationCommand<
 				'Registration message must contain the same message fee token ID as the chain account.',
 			);
 		}
-		if (ownChainAccount.chainID.equals(MAINCHAIN_ID_BUFFER)) {
+		const mainchainID = getMainchainID(ctx.chainID);
+		if (ownChainAccount.chainID.equals(mainchainID)) {
 			if (ccm.nonce !== BigInt(0)) {
 				throw new Error('Registration message must have nonce 0.');
 			}
-		} else if (!ccm.sendingChainID.equals(MAINCHAIN_ID_BUFFER)) {
+		} else if (!ccm.sendingChainID.equals(mainchainID)) {
 			throw new Error('Registration message must be sent from the mainchain.');
 		}
 	}

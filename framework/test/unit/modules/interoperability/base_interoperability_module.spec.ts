@@ -22,7 +22,6 @@ import {
 	CHAIN_ID_LENGTH,
 	EMPTY_HASH,
 	HASH_LENGTH,
-	MAINCHAIN_ID_BUFFER,
 	MAX_NUM_VALIDATORS,
 	MAX_UINT64,
 	MODULE_NAME_INTEROPERABILITY,
@@ -80,7 +79,7 @@ describe('BaseInteroperabilityModule', () => {
 		};
 		const ownChainAccount = {
 			name: 'mainchain',
-			chainID: MAINCHAIN_ID_BUFFER,
+			chainID: mainchainID,
 			nonce: BigInt('0'),
 		};
 		const channelData = {

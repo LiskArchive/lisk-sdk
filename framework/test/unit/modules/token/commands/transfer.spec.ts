@@ -18,10 +18,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { TokenModule, VerifyStatus } from '../../../../../src';
 import { TokenMethod } from '../../../../../src/modules/token/method';
 import { TransferCommand } from '../../../../../src/modules/token/commands/transfer';
-import {
-	TOKEN_ID_LSK,
-	USER_SUBSTORE_INITIALIZATION_FEE,
-} from '../../../../../src/modules/token/constants';
+import { USER_SUBSTORE_INITIALIZATION_FEE } from '../../../../../src/modules/token/constants';
 import { transferParamsSchema } from '../../../../../src/modules/token/schemas';
 import { UserStore } from '../../../../../src/modules/token/stores/user';
 import { createTransactionContext } from '../../../../../src/testing';
@@ -39,7 +36,7 @@ interface Params {
 }
 
 describe('Transfer command', () => {
-	const feeTokenID = TOKEN_ID_LSK;
+	const feeTokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 	const tokenModule = new TokenModule();
 	const ownChainID = Buffer.from([0, 0, 0, 1]);
 	const defaultUserAccountInitFee = BigInt('50000000');
@@ -272,7 +269,7 @@ describe('Transfer command', () => {
 					nonce: BigInt(0),
 					senderPublicKey: utils.getRandomBytes(32),
 					params: codec.encode(transferParamsSchema, {
-						tokenID: TOKEN_ID_LSK,
+						tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 						amount: BigInt(100000000),
 						recipientAddress: utils.getRandomBytes(20),
 						data: '1'.repeat(64),
