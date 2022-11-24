@@ -392,6 +392,7 @@ export class ABIHandler implements ABI {
 
 		return {
 			result: result.status,
+			errorMessage: result.error?.message ?? '',
 		};
 	}
 

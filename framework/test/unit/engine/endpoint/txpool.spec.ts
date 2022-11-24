@@ -22,6 +22,7 @@ import { Broadcaster } from '../../../../src/engine/generator/broadcaster';
 import { InvalidTransactionError } from '../../../../src/engine/generator/errors';
 import { fakeLogger } from '../../../utils/mocks';
 import { TxpoolEndpoint } from '../../../../src/engine/endpoint/txpool';
+import { VerifyStatus } from '../../../../src';
 
 describe('generator endpoint', () => {
 	const logger: Logger = fakeLogger;
@@ -234,8 +235,9 @@ describe('generator endpoint', () => {
 						chainID,
 					}),
 				).resolves.toEqual({
-					success: false,
+					result: TransactionVerifyResult.INVALID,
 					events: [],
+					errorMessage: undefined,
 				});
 			});
 		});
@@ -255,7 +257,7 @@ describe('generator endpoint', () => {
 						chainID,
 					}),
 				).resolves.toEqual({
-					success: false,
+					result: TransactionVerifyResult.INVALID,
 					events: eventsJson,
 				});
 			});
@@ -276,7 +278,7 @@ describe('generator endpoint', () => {
 						chainID,
 					}),
 				).resolves.toEqual({
-					success: false,
+					result: TransactionExecutionResult.FAIL,
 					events: eventsJson,
 				});
 			});
@@ -321,7 +323,7 @@ describe('generator endpoint', () => {
 						chainID,
 					}),
 				).resolves.toEqual({
-					success: true,
+					result: VerifyStatus.OK,
 					events: eventsJson,
 				});
 			});

@@ -172,6 +172,7 @@ export interface VerifyTransactionRequest {
 
 export interface VerifyTransactionResponse {
 	result: number;
+	errorMessage: string;
 }
 
 export interface ExecuteTransactionRequest {

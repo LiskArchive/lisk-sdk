@@ -594,6 +594,7 @@ describe('consensus', () => {
 			});
 			jest.spyOn(abi, 'verifyTransaction').mockResolvedValue({
 				result: TransactionVerifyResult.OK,
+				errorMessage: '',
 			});
 		});
 

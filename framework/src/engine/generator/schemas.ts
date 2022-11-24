@@ -256,8 +256,9 @@ export interface DryRunTransactionRequest {
 }
 
 export interface DryRunTransactionResponse {
-	success: boolean;
+	result: number;
 	events: EventJSON[];
+	errorMessage?: string;
 }
 
 export const dryRunTransactionRequestSchema = {
