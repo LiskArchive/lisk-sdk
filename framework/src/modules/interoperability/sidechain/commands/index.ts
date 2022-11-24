@@ -14,4 +14,3 @@
 
 export { SidechainCCUpdateCommand } from './cc_update';
 export { MainchainRegistrationCommand } from './mainchain_registration';
-export { SidechainMessageRecoveryCommand } from './message_recovery';

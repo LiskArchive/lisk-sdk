@@ -285,6 +285,7 @@ export const crossChainUpdateTransactionParams = {
 	},
 };
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#parameters-1
 export const messageRecoveryParamsSchema = {
 	$id: '/modules/interoperability/mainchain/messageRecovery',
 	type: 'object',
@@ -292,6 +293,8 @@ export const messageRecoveryParamsSchema = {
 	properties: {
 		chainID: {
 			dataType: 'bytes',
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 			fieldNumber: 1,
 		},
 		crossChainMessages: {
@@ -313,6 +316,8 @@ export const messageRecoveryParamsSchema = {
 			type: 'array',
 			items: {
 				dataType: 'bytes',
+				minLength: HASH_LENGTH,
+				maxLength: HASH_LENGTH,
 			},
 			fieldNumber: 4,
 		},
