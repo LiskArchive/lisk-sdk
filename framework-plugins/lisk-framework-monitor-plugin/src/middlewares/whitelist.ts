@@ -32,7 +32,7 @@ const checkIpInList = (list: ReadonlyArray<string>, addr: string): boolean => {
 			}
 		} catch (err) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-			console.error('CheckIpInList:', err.toString());
+			console.error('CheckIpInList:', (err as Error).toString());
 		}
 	}
 	return false;

@@ -325,7 +325,11 @@ export class PeerServer extends EventEmitter {
 
 			return validPeerInfo;
 		} catch (error) {
-			this._disconnectSocketDueToFailedHandshake(socket, INCOMPATIBLE_PEER_INFO_CODE, error);
+			this._disconnectSocketDueToFailedHandshake(
+				socket,
+				INCOMPATIBLE_PEER_INFO_CODE,
+				error instanceof Error ? error.message : '',
+			);
 
 			return undefined;
 		}

@@ -15,15 +15,15 @@
 'use strict';
 
 module.exports = {
-	globals: {
-		'ts-jest': {
-			tsconfig: '<rootDir>/tsconfig.json',
-		},
-	},
 	verbose: false,
 	testMatch: ['<rootDir>/src/main.spec.ts'],
 	transform: {
-		'^.+\\.(ts|tsx)$': 'ts-jest',
+		'^.+\\.(ts|tsx)$': [
+			'ts-jest',
+			{
+				tsconfig: '<rootDir>/tsconfig.json',
+			},
+		],
 	},
 	/**
 			coverageThreshold: {

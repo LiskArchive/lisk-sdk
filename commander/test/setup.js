@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-/* eslint-disable @typescript-eslint/no-var-requires */
-require('jest-extended');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const matchers = require('jest-extended');
 
-process.env.NODE_ENV = 'test';
+expect.extend(matchers);

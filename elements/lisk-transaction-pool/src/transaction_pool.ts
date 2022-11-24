@@ -207,7 +207,7 @@ export class TransactionPool {
 			await this._applyFunction([incomingTx]);
 			txStatus = TransactionStatus.PROCESSABLE;
 		} catch (err) {
-			txStatus = this._getStatus(err);
+			txStatus = this._getStatus(err as TransactionFailedResponse);
 			// If applyTransaction fails for the transaction then throw error
 			if (txStatus === TransactionStatus.INVALID) {
 				return {
@@ -415,7 +415,7 @@ export class TransactionPool {
 			try {
 				await this._applyFunction(allTransactions);
 			} catch (error) {
-				const failedStatus = this._getStatus(error);
+				const failedStatus = this._getStatus(error as TransactionFailedResponse);
 				firstInvalidTransaction = {
 					id: (error as TransactionFailedResponse).id,
 					status: failedStatus,

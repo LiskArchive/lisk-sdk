@@ -57,8 +57,8 @@ const mappers: mappersInterface = {
 	fromJSON: {
 		uint32: value => value as number,
 		sint32: value => value as number,
-		uint64: value => BigInt(value),
-		sint64: value => BigInt(value),
+		uint64: value => BigInt(value as string),
+		sint64: value => BigInt(value as string),
 		string: value => value as string,
 		bytes: (value, format?: string) => {
 			if (!format || format === 'hex') {
