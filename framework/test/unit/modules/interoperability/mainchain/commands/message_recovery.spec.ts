@@ -26,7 +26,6 @@ import {
 	COMMAND_NAME_MESSAGE_RECOVERY,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	MODULE_NAME_INTEROPERABILITY,
-	CHAIN_ID_MAINCHAIN,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainMessageRecoveryCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/message_recovery';
 import {
@@ -43,7 +42,10 @@ import {
 	createCrossChainMessageContext,
 	createTransactionContext,
 } from '../../../../../../src/testing';
-import { swapReceivingAndSendingChainIDs } from '../../../../../../src/modules/interoperability/utils';
+import {
+	getMainchainID,
+	swapReceivingAndSendingChainIDs,
+} from '../../../../../../src/modules/interoperability/utils';
 import { TransactionContext } from '../../../../../../src/state_machine';
 import { TerminatedOutboxStore } from '../../../../../../src/modules/interoperability/stores/terminated_outbox';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
@@ -488,6 +490,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			});
 
 			transactionContext = createTransactionContext({
+				chainID: getMainchainID(utils.intToBuffer(3, 4)),
 				transaction,
 			});
 
@@ -596,7 +599,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 					nonce: BigInt(0),
 					module: MODULE_NAME_INTEROPERABILITY,
 					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-					sendingChainID: CHAIN_ID_MAINCHAIN,
+					sendingChainID: getMainchainID(utils.intToBuffer(3, 4)),
 					receivingChainID: utils.intToBuffer(3, 4),
 					fee: BigInt(1),
 					status: 1,

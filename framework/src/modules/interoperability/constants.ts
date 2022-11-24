@@ -17,19 +17,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 export const MODULE_NAME_INTEROPERABILITY = 'interoperability';
 
 // General constants
-// TODO: Remove after issue https://github.com/LiskHQ/lisk-sdk/issues/7555
-export const MAINCHAIN_ID = 1;
-// TODO: Remove after issue https://github.com/LiskHQ/lisk-sdk/issues/7555
-export const MAINCHAIN_ID_BUFFER = utils.intToBuffer(MAINCHAIN_ID, 4);
-export const CHAIN_ID_MAINCHAIN = Buffer.from('00000000', 'hex');
-// TODO: To be updated after token module update
-export const TOKEN_ID_LSK = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
-export const TOKEN_ID_LSK_MAINCHAIN = Buffer.from('0000000000000000', 'hex');
 export const MAINCHAIN_NAME = 'lisk-mainchain';
-export const MAINCHAIN_NETWORK_ID = Buffer.from(
-	'03693f3126b9d0df3096c4ebd59e5c42af4a7f0e313cd7c96a07b6e9f8f54924',
-	'hex',
-); // TBD
 export const MAX_RESERVED_ERROR_STATUS = 63;
 export const BLS_PUBLIC_KEY_LENGTH = 48;
 export const BLS_SIGNATURE_LENGTH = 96;
@@ -56,7 +44,6 @@ export const MAX_MODULE_NAME_LENGTH = 32;
 export const MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH = 1;
 export const MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH = 32;
 export const CHAIN_ID_LENGTH = 4;
-export const MODULE_ID_LENGTH = 4;
 
 // Cross chain command names
 export const CROSS_CHAIN_COMMAND_NAME_REGISTRATION = 'registration';

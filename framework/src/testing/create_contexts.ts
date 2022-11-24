@@ -41,7 +41,6 @@ import { SubStore, StateStore as IStateStore } from '../state_machine/types';
 import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from './in_memory_prefixed_state';
 import { CCMsg, CrossChainMessageContext, RecoverContext } from '../modules/interoperability/types';
-import { getIDAsKeyForStore } from './utils';
 
 const createTestHeader = () =>
 	new BlockHeader({
@@ -253,8 +252,8 @@ export const createCrossChainMessageContext = (params: {
 			nonce: BigInt(0),
 			module: 'token',
 			crossChainCommand: 'crossChainTransfer',
-			sendingChainID: getIDAsKeyForStore(2),
-			receivingChainID: getIDAsKeyForStore(3),
+			sendingChainID: Buffer.from([0, 0, 0, 2]),
+			receivingChainID: Buffer.from([0, 0, 0, 3]),
 			fee: BigInt(20000),
 			status: 0,
 			params: Buffer.alloc(0),

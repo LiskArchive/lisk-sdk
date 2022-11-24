@@ -21,8 +21,6 @@ import {
 	BLS_PUBLIC_KEY_LENGTH,
 	EMPTY_HASH,
 	HASH_LENGTH,
-	MAINCHAIN_ID,
-	MAINCHAIN_ID_BUFFER,
 	MESSAGE_TAG_CERTIFICATE,
 } from '../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
@@ -245,7 +243,7 @@ describe('Base interoperability internal method', () => {
 		const stateRoot = Buffer.from('888d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex');
 		const ownChainAccountMainchain = {
 			name: 'mainchain',
-			chainID: MAINCHAIN_ID_BUFFER,
+			chainID: utils.getMainchainID(chainId),
 			nonce: BigInt('0'),
 		};
 
@@ -346,7 +344,7 @@ describe('Base interoperability internal method', () => {
 				.mockResolvedValue(ownChainAccount1);
 			await chainDataSubstore.set(
 				createStoreGetter(crossChainMessageContext.stateStore as any),
-				utils.getIDAsKeyForStore(MAINCHAIN_ID),
+				utils.getMainchainID(ownChainAccount1.chainID),
 				chainAccount,
 			);
 			await mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(

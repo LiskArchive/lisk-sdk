@@ -44,7 +44,6 @@ import {
 	checkValidCertificateLiveness,
 	commonCCUExecutelogic,
 	computeValidatorsHash,
-	getIDAsKeyForStore,
 	validateFormat,
 	verifyLivenessConditionForRegisteredChains,
 } from '../../../../src/modules/interoperability/utils';
@@ -733,7 +732,7 @@ describe('Utils', () => {
 	});
 
 	describe('commonCCUExecutelogic', () => {
-		const chainIDBuffer = getIDAsKeyForStore(1);
+		const chainIDBuffer = Buffer.from([0, 0, 0, 1]);
 		const defaultCalculatedRootFromRightWitness = cryptography.utils.getRandomBytes(20);
 		let activeValidatorsUpdate: any;
 		let inboxUpdate: InboxUpdate;
