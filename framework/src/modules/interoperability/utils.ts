@@ -21,7 +21,6 @@ import {
 	ActiveValidators,
 	CCMsg,
 	ChainAccount,
-	MessageRecoveryVerificationParams,
 	ChannelData,
 	CrossChainUpdateTransactionParams,
 	ChainValidators,
@@ -32,7 +31,6 @@ import {
 	LIVENESS_LIMIT,
 	MAX_CCM_SIZE,
 	SMT_KEY_LENGTH,
-	CCMStatusCode,
 	CHAIN_ID_LENGTH,
 } from './constants';
 import {
@@ -50,7 +48,6 @@ import { OutboxRootStore } from './stores/outbox_root';
 import { ChannelDataStore } from './stores/channel_data';
 import { ChainValidatorsStore, calculateNewActiveValidators } from './stores/chain_validators';
 import { ChainAccountStore, ChainStatus } from './stores/chain_account';
-import { TerminatedOutboxAccount } from './stores/terminated_outbox';
 
 interface CommonExecutionLogicArgs {
 	stores: NamedRegistry;
@@ -129,61 +126,6 @@ export const computeValidatorsHash = (
 export const sortValidatorsByBLSKey = (validators: ActiveValidators[]) =>
 	validators.sort((a, b) => a.blsKey.compare(b.blsKey));
 
-export const verifyMessageRecovery = (
-	params: MessageRecoveryVerificationParams,
-	terminatedChainOutboxAccount?: TerminatedOutboxAccount,
-) => {
-	if (!terminatedChainOutboxAccount) {
-		return {
-			status: VerifyStatus.FAIL,
-			error: new Error('Terminated outbox account does not exist'),
-		};
-	}
-
-	const { idxs, crossChainMessages, siblingHashes } = params;
-	for (const index of idxs) {
-		if (index < terminatedChainOutboxAccount.partnerChainInboxSize) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Cross chain messages are still pending'),
-			};
-		}
-	}
-
-	const deserializedCCMs = crossChainMessages.map(serializedCcm =>
-		codec.decode<CCMsg>(ccmSchema, serializedCcm),
-	);
-	for (const ccm of deserializedCCMs) {
-		if (ccm.status !== CCMStatusCode.OK) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Cross chain message that needs to be recovered is not valid'),
-			};
-		}
-	}
-
-	const proof = {
-		size: terminatedChainOutboxAccount.outboxSize,
-		idxs,
-		siblingHashes,
-	};
-	const hashedCCMs = crossChainMessages.map(ccm => utils.hash(ccm));
-	const isVerified = regularMerkleTree.verifyDataBlock(
-		hashedCCMs,
-		proof,
-		terminatedChainOutboxAccount.outboxRoot,
-	);
-	if (!isVerified) {
-		return {
-			status: VerifyStatus.FAIL,
-			error: new Error('The sidechain outbox root is not valid'),
-		};
-	}
-
-	return {
-		status: VerifyStatus.OK,
-	};
-};
 export const swapReceivingAndSendingChainIDs = (ccm: CCMsg) => ({
 	...ccm,
 	receivingChainID: ccm.sendingChainID,

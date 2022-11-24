@@ -58,10 +58,13 @@ export const MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH = 32;
 export const CHAIN_ID_LENGTH = 4;
 export const MODULE_ID_LENGTH = 4;
 
-// Cross chain commands
+// Cross chain command names
 export const CROSS_CHAIN_COMMAND_NAME_REGISTRATION = 'registration';
 export const CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED = 'channelTerminated';
 export const CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED = 'sidechainTerminated';
+
+// Cross chain commands
+export const CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED = 'channelTerminated';
 
 export const enum CCMStatusCode {
 	// Value of status of a new CCM which is not a response due do an error
