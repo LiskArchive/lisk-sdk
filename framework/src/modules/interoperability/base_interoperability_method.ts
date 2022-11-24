@@ -17,7 +17,7 @@ import { BaseCCMethod } from './base_cc_method';
 import { NamedRegistry } from '../named_registry';
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import { ChainAccount, ChainAccountStore } from './stores/chain_account';
-import { CCMsg, TerminateChainContext } from './types';
+import { CCMsg } from './types';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import {
 	EMPTY_BYTES,
@@ -147,7 +147,7 @@ export abstract class BaseInteroperabilityMethod<
 	}
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#terminatechain
-	public async terminateChain(context: TerminateChainContext, chainID: Buffer): Promise<void> {
+	public async terminateChain(context: MethodContext, chainID: Buffer): Promise<void> {
 		if (await this.getTerminatedStateAccount(context, chainID)) {
 			return;
 		}

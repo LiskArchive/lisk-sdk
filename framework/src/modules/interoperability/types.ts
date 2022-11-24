@@ -128,17 +128,6 @@ export interface SendInternalContext {
 	stateStore: StateStore;
 }
 
-export interface TerminateChainContext {
-	getMethodContext: () => MethodContext;
-	getStore: StoreCallback;
-	logger: Logger;
-	chainID: Buffer;
-	eventQueue: EventQueue;
-	transaction: { fee: bigint; senderAddress: Buffer };
-	header: { height: number; timestamp: number };
-	stateStore: StateStore;
-}
-
 export interface CCMApplyContext {
 	getMethodContext: () => MethodContext;
 	getStore: StoreCallback;
