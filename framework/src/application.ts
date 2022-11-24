@@ -276,9 +276,11 @@ export class Application {
 		await this._validatePidFile();
 
 		// Initialize database instances
-		const { data: dbFolder, config, sockets: socketsPath } = systemDirs(
-			this.config.system.dataPath,
-		);
+		const {
+			data: dbFolder,
+			config,
+			sockets: socketsPath,
+		} = systemDirs(this.config.system.dataPath);
 		this.logger.debug({ dbFolder }, 'Create module.db database instance.');
 		this._moduleDB = new Database(path.join(dbFolder, 'module.db'));
 		this.logger.debug({ dbFolder }, 'Create state.db database instance.');

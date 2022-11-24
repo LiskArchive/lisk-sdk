@@ -77,13 +77,8 @@ export const sanitizeInitialPeerInfo = (peerInfo: ProtocolPeerInfo): SanitizedPe
 });
 
 export const sanitizeEnhancedPeerInfo = (peerInfo: P2PEnhancedPeerInfo): P2PPeerInfo => {
-	const {
-		dateAdded,
-		numOfConnectionFailures,
-		sourceAddress,
-		bucketId,
-		...sharedPeerInfo
-	} = peerInfo;
+	const { dateAdded, numOfConnectionFailures, sourceAddress, bucketId, ...sharedPeerInfo } =
+		peerInfo;
 
 	return sharedPeerInfo;
 };

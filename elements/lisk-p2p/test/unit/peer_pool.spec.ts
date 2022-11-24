@@ -871,10 +871,14 @@ describe('peerPool', () => {
 					peerKind: PeerKind.NONE,
 				},
 			}));
-			(peerPool as any)._peerPoolConfig.netgroupProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_NETGROUP;
-			(peerPool as any)._peerPoolConfig.latencyProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_LATENCY;
-			(peerPool as any)._peerPoolConfig.productivityProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_USEFULNESS;
-			(peerPool as any)._peerPoolConfig.longevityProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_LONGEVITY;
+			(peerPool as any)._peerPoolConfig.netgroupProtectionRatio =
+				DEFAULT_PEER_PROTECTION_FOR_NETGROUP;
+			(peerPool as any)._peerPoolConfig.latencyProtectionRatio =
+				DEFAULT_PEER_PROTECTION_FOR_LATENCY;
+			(peerPool as any)._peerPoolConfig.productivityProtectionRatio =
+				DEFAULT_PEER_PROTECTION_FOR_USEFULNESS;
+			(peerPool as any)._peerPoolConfig.longevityProtectionRatio =
+				DEFAULT_PEER_PROTECTION_FOR_LONGEVITY;
 
 			getPeersStub = jest.spyOn(peerPool, 'getPeers').mockReturnValue(originalPeers as Peer[]);
 		});

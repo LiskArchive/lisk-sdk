@@ -13,7 +13,7 @@
  */
 
 export const buildTestCases = <
-	T extends { title?: string; description: string } | { title: string; description?: string }
+	T extends { title?: string; description: string } | { title: string; description?: string },
 >(
 	testCases: T[],
 ): T[] =>

@@ -96,9 +96,7 @@ const findObjectByPath = (message: SchemaProps, pathArr: string[]): SchemaProps 
 const isObject = (item: unknown): boolean =>
 	typeof item === 'object' && item !== null && !Array.isArray(item) && !Buffer.isBuffer(item);
 
-export const iterator = function iterator(
-	this: IteratableGenericObject,
-): {
+export const iterator = function iterator(this: IteratableGenericObject): {
 	next: () => {
 		done: boolean;
 		value: IteratorReturnValue;
@@ -135,7 +133,7 @@ export const recursiveTypeCast = (
 			recursiveTypeCast(mode, value, schema, dataPath);
 			dataPath.pop();
 
-			delete (value as IteratableGenericObject)[(Symbol.iterator as unknown) as string];
+			delete (value as IteratableGenericObject)[Symbol.iterator as unknown as string];
 		} else if (Array.isArray(value)) {
 			dataPath.push(key);
 			const schemaProp = findObjectByPath(schema, dataPath);
@@ -176,14 +174,14 @@ export const recursiveTypeCast = (
 				continue;
 			}
 
-			object[key] = mappers[mode][(schemaProp.dataType as unknown) as string](
+			object[key] = mappers[mode][schemaProp.dataType as unknown as string](
 				value,
 				schemaProp.format,
 			);
 
-			delete object[(Symbol.iterator as unknown) as string];
+			delete object[Symbol.iterator as unknown as string];
 			dataPath.pop();
 		}
 	}
-	delete object[(Symbol.iterator as unknown) as string];
+	delete object[Symbol.iterator as unknown as string];
 };

@@ -243,9 +243,9 @@ export class TransactionPool {
 			);
 		}
 		// Add the PROCESSABLE, UNPROCESSABLE transaction to _transactionList and set PROCESSABLE as true
-		const { added, removedID, reason } = (this._transactionList.get(
-			incomingTxAddress,
-		) as TransactionList).add(incomingTx, txStatus === TransactionStatus.PROCESSABLE);
+		const { added, removedID, reason } = (
+			this._transactionList.get(incomingTxAddress) as TransactionList
+		).add(incomingTx, txStatus === TransactionStatus.PROCESSABLE);
 
 		if (!added) {
 			return {

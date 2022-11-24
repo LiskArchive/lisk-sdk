@@ -158,9 +158,7 @@ export class TokenEndpoint extends BaseEndpoint {
 		return { supported: await supportedTokensStore.isSupported(context, tokenID) };
 	}
 
-	public async getEscrowedAmounts(
-		context: ModuleEndpointContext,
-	): Promise<{
+	public async getEscrowedAmounts(context: ModuleEndpointContext): Promise<{
 		escrowedAmounts: JSONObject<EscrowStoreData & { escrowChainID: Buffer; tokenID: Buffer }>[];
 	}> {
 		const escrowStore = this.stores.get(EscrowStore);

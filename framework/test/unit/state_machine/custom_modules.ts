@@ -45,9 +45,9 @@ export class CustomCommand0 extends BaseCommand {
 
 export class CustomModule0 extends BaseModule {
 	public commands = [new CustomCommand0(this.stores, this.events)];
-	public method = ({
+	public method = {
 		testing: jest.fn(),
-	} as unknown) as BaseMethod;
+	} as unknown as BaseMethod;
 	public endpoint: BaseEndpoint = {} as BaseEndpoint;
 
 	public get name() {

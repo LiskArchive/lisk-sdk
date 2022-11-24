@@ -24,7 +24,7 @@ export const waitForBlock = async (client: apiClient.APIClient, height: number) 
 	let currentBlockHeader: { height: number };
 
 	client.subscribe('chain_newBlock', block => {
-		currentBlockHeader = ((block as unknown) as NewBlockEvent).blockHeader;
+		currentBlockHeader = (block as unknown as NewBlockEvent).blockHeader;
 	});
 
 	await new Promise<void>(resolve => {
@@ -42,7 +42,7 @@ export const getLastBlock = async (client: apiClient.APIClient) =>
 export const waitForTransaction = async (client: apiClient.APIClient, txID: string) =>
 	new Promise<void>(resolve => {
 		client.subscribe('chain_newBlock', async block => {
-			const currentBlockHeader = ((block as unknown) as NewBlockEvent).blockHeader;
+			const currentBlockHeader = (block as unknown as NewBlockEvent).blockHeader;
 			const transactions = await client.invoke<{ id: string }[]>('chain_getTransactionsByHeight', {
 				height: currentBlockHeader.height,
 			});

@@ -37,7 +37,7 @@ const createMockPlugin = ({
 	loadStub?: any;
 	unloadStub?: any;
 }): BasePlugin => {
-	return ({
+	return {
 		name,
 		load: loadStub ?? jest.fn(),
 		init: initStub ?? jest.fn(),
@@ -45,7 +45,7 @@ const createMockPlugin = ({
 		configSchema: {},
 		events: [],
 		endpoint: {},
-	} as unknown) as BasePlugin;
+	} as unknown as BasePlugin;
 };
 
 describe('Controller Class', () => {
@@ -101,8 +101,8 @@ describe('Controller Class', () => {
 	};
 
 	const initParams = {
-		stateDB: (new InMemoryDatabase() as unknown) as StateDB,
-		moduleDB: (new InMemoryDatabase() as unknown) as Database,
+		stateDB: new InMemoryDatabase() as unknown as StateDB,
+		moduleDB: new InMemoryDatabase() as unknown as Database,
 		logger: loggerMock,
 		events: ['app_start', 'app_blockNew'],
 		endpoints: {
@@ -133,7 +133,7 @@ describe('Controller Class', () => {
 		controller.registerPlugin(childProcessPlugin, { loadAsChildProcess: true });
 		jest
 			.spyOn(childProcess, 'fork')
-			.mockReturnValue((childProcessMock as unknown) as childProcess.ChildProcess);
+			.mockReturnValue(childProcessMock as unknown as childProcess.ChildProcess);
 		jest.spyOn(os, 'homedir').mockReturnValue('/user');
 		controller.init(initParams);
 	});

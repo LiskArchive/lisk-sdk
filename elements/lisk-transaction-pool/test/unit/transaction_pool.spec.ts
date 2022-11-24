@@ -165,9 +165,11 @@ describe('TransactionPool class', () => {
 				.get(cryptoAddress.getAddressFromPublicKey(senderPublicKeys[1]))
 				.promote([txs[3]]);
 			// Force to make it unprocessable
-			(transactionPool['_transactionList'].get(
-				cryptoAddress.getAddressFromPublicKey(senderPublicKeys[2]),
-			) as TransactionList)['_demoteAfter'](BigInt(0));
+			(
+				transactionPool['_transactionList'].get(
+					cryptoAddress.getAddressFromPublicKey(senderPublicKeys[2]),
+				) as TransactionList
+			)['_demoteAfter'](BigInt(0));
 		});
 
 		it('should return copy of processable transactions list', () => {

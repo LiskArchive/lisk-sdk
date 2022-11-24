@@ -18,7 +18,7 @@ import { BaseInteroperabilityInternalMethod } from './base_interoperability_inte
 import { BaseCCMethod } from './base_cc_method';
 
 export abstract class BaseInteroperabilityCCCommand<
-	T extends BaseInteroperabilityInternalMethod
+	T extends BaseInteroperabilityInternalMethod,
 > extends BaseCCCommand {
 	public constructor(
 		protected stores: NamedRegistry,

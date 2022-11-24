@@ -54,7 +54,7 @@ describe('Update generator key command', () => {
 
 	beforeEach(async () => {
 		updateGeneratorCommand = new UpdateGeneratorKeyCommand(pos.stores, pos.events);
-		updateGeneratorCommand.addDependencies((mockValidatorsMethod as unknown) as ValidatorsMethod);
+		updateGeneratorCommand.addDependencies(mockValidatorsMethod as unknown as ValidatorsMethod);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		validatorSubstore = pos.stores.get(ValidatorStore);
 		await validatorSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {

@@ -90,7 +90,7 @@ describe('base_plugin', () => {
 					plugin.init({
 						appConfig: {
 							...testing.fixtures.defaultConfig,
-							genesis: ({} as unknown) as GenesisConfig,
+							genesis: {} as unknown as GenesisConfig,
 						},
 						logger: fakeLogger,
 						config: {

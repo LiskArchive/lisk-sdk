@@ -48,7 +48,7 @@ describe('p2p endpoint', () => {
 	beforeEach(async () => {
 		lastBlock = await createValidDefaultBlock({ header: { height: 2 } });
 		const nextBlock = await createValidDefaultBlock({ header: { height: 3 } });
-		chain = ({
+		chain = {
 			dataAccess: {
 				decode: jest.fn(),
 				encode: jest.fn().mockReturnValue(lastBlock.getBytes()),
@@ -58,15 +58,15 @@ describe('p2p endpoint', () => {
 				encodeBlockHeader: jest.fn().mockReturnValue(lastBlock.header.getBytes()),
 			},
 			lastBlock,
-		} as unknown) as Chain;
-		network = ({
+		} as unknown as Chain;
+		network = {
 			applyPenaltyOnPeer: jest.fn(),
-		} as unknown) as Network;
-		commitPool = ({
+		} as unknown as Network;
+		commitPool = {
 			validateCommit: jest.fn(),
 			addCommit: jest.fn(),
-		} as unknown) as CommitPool;
-		db = (new InMemoryDatabase() as unknown) as Database;
+		} as unknown as CommitPool;
+		db = new InMemoryDatabase() as unknown as Database;
 		endpoint = new NetworkEndpoint({
 			chain,
 			logger: loggerMock,

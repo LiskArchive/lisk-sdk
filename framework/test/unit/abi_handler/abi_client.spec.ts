@@ -39,8 +39,8 @@ describe('ABI client', () => {
 		abiHandler = new ABIHandler({
 			logger: fakeLogger,
 			channel: channelMock,
-			stateDB: (new InMemoryDatabase() as unknown) as StateDB,
-			moduleDB: (new InMemoryDatabase() as unknown) as Database,
+			stateDB: new InMemoryDatabase() as unknown as StateDB,
+			moduleDB: new InMemoryDatabase() as unknown as Database,
 			stateMachine,
 			modules: [mod],
 			config: {

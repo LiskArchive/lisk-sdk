@@ -28,7 +28,7 @@ describe('Legacy storage', () => {
 
 	beforeAll(() => {
 		db = new InMemoryDatabase();
-		storage = new Storage((db as unknown) as Database);
+		storage = new Storage(db as unknown as Database);
 	});
 
 	beforeEach(async () => {

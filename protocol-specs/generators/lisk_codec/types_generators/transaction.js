@@ -17,11 +17,8 @@ const protobuf = require('protobufjs');
 const prepareProtobuffersBaseTransaction = () =>
 	protobuf.loadSync('./generators/lisk_codec/proto_files/block.proto');
 
-const {
-	BaseTransaction,
-	VoteTransaction,
-	MultisigTransaction,
-} = prepareProtobuffersBaseTransaction();
+const { BaseTransaction, VoteTransaction, MultisigTransaction } =
+	prepareProtobuffersBaseTransaction();
 
 const baseTransactionSchema = {
 	$id: '/baseTransactionSchema',

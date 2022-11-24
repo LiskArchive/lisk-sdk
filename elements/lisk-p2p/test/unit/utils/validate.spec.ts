@@ -89,7 +89,7 @@ describe('utils/validate', () => {
 				expect(
 					validatePeerInfo.bind(
 						null,
-						sanitizeIncomingPeerInfo((peerInvalid as unknown) as ProtocolPeerInfo),
+						sanitizeIncomingPeerInfo(peerInvalid as unknown as ProtocolPeerInfo),
 						10000,
 					),
 				).toThrow('Invalid peer ipAddress or port');

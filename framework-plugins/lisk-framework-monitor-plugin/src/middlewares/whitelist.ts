@@ -38,17 +38,13 @@ const checkIpInList = (list: ReadonlyArray<string>, addr: string): boolean => {
 	return false;
 };
 
-export const whiteListMiddleware = ({
-	whiteList,
-}: { whiteList: ReadonlyArray<string> } = defualtOption) => (
-	req: Request,
-	_res: Response,
-	next: NextFunction,
-): void => {
-	if (whiteList.length === 0 || checkIpInList(whiteList, req.ip)) {
-		next();
-		return;
-	}
+export const whiteListMiddleware =
+	({ whiteList }: { whiteList: ReadonlyArray<string> } = defualtOption) =>
+	(req: Request, _res: Response, next: NextFunction): void => {
+		if (whiteList.length === 0 || checkIpInList(whiteList, req.ip)) {
+			next();
+			return;
+		}
 
-	next(new ErrorWithStatus('Access Denied', 401));
-};
+		next(new ErrorWithStatus('Access Denied', 401));
+	};

@@ -263,9 +263,8 @@ describe('Transfer command', () => {
 				}),
 			});
 
-			const commandExecuteContext = context.createCommandExecuteContext<Params>(
-				transferParamsSchema,
-			);
+			const commandExecuteContext =
+				context.createCommandExecuteContext<Params>(transferParamsSchema);
 
 			jest.spyOn(command['_method'], 'burn').mockImplementation(async () => Promise.resolve());
 
@@ -330,9 +329,8 @@ describe('Transfer command', () => {
 				}),
 			});
 
-			const commandExecuteContext = context.createCommandExecuteContext<Params>(
-				transferParamsSchema,
-			);
+			const commandExecuteContext =
+				context.createCommandExecuteContext<Params>(transferParamsSchema);
 
 			jest.spyOn(command['_method'], 'burn').mockImplementation(async () => Promise.resolve());
 
@@ -394,9 +392,8 @@ describe('Transfer command', () => {
 				}),
 			});
 
-			const commandExecuteContext = context.createCommandExecuteContext<Params>(
-				transferParamsSchema,
-			);
+			const commandExecuteContext =
+				context.createCommandExecuteContext<Params>(transferParamsSchema);
 
 			jest.spyOn(command['_method'], 'burn').mockImplementation(async () => Promise.resolve());
 
