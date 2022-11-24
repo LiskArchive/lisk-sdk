@@ -18,7 +18,6 @@ import { MainchainInteroperabilityModule } from '../../../../../src';
 import {
 	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 	HASH_LENGTH,
 } from '../../../../../src/modules/interoperability/constants';
@@ -54,7 +53,7 @@ describe('BaseCCRegistrationCommand', () => {
 
 	const ownChainAccountMainchain = {
 		name: 'mainchain',
-		chainID: MAINCHAIN_ID_BUFFER,
+		chainID: Buffer.from([0, 0, 0, 0]),
 		nonce: BigInt(0),
 	};
 
@@ -108,7 +107,7 @@ describe('BaseCCRegistrationCommand', () => {
 		module: obj.module ?? MODULE_NAME_INTEROPERABILITY,
 		nonce: obj.nonce ?? BigInt(0),
 		params: obj.params ?? encodedRegistrationParams,
-		receivingChainID: obj.receivingChainID ?? MAINCHAIN_ID_BUFFER,
+		receivingChainID: obj.receivingChainID ?? Buffer.from([0, 0, 0, 0]),
 		sendingChainID: obj.sendingChainID ?? sidechainIDBuffer,
 		status: obj.status ?? CCMStatusCode.OK,
 	});
@@ -213,7 +212,7 @@ describe('BaseCCRegistrationCommand', () => {
 			);
 		});
 
-		it('should fail if chainID is Sidechain and sendingChainID !== CHAIN_ID_MAINCHAIN', async () => {
+		it('should fail if chainID is Sidechain and sendingChainID !== mainchainID', async () => {
 			sampleExecuteContext = createContext(
 				buildCCM({
 					receivingChainID: sidechainIDBuffer,

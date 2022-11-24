@@ -243,8 +243,6 @@ export const getPunishmentPeriod = (
 	return remainingBlocks < 0 ? 0 : remainingBlocks;
 };
 
-export const getIDAsKeyForStore = (id: number) => utils.intToBuffer(id, 4);
-
 export function getModuleConfig(config: ModuleConfigJSON): ModuleConfig {
 	return {
 		...config,

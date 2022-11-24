@@ -16,12 +16,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { MainchainInteroperabilityModule } from '../../../../../src';
 import { StoreGetter } from '../../../../../src/modules/base_store';
-import {
-	MAINCHAIN_ID,
-	LIVENESS_LIMIT,
-	MAINCHAIN_ID_BUFFER,
-	EMPTY_BYTES,
-} from '../../../../../src/modules/interoperability/constants';
+import { LIVENESS_LIMIT, EMPTY_BYTES } from '../../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityInternalMethod } from '../../../../../src/modules/interoperability/mainchain/internal_method';
 import {
 	ChainAccountStore,
@@ -38,7 +33,7 @@ describe('Mainchain interoperability internal method', () => {
 		get: jest.fn(),
 		set: jest.fn(),
 	};
-	const chainID = Buffer.from(MAINCHAIN_ID.toString(16), 'hex');
+	const chainID = Buffer.from([0, 0, 0, 1]);
 	const timestamp = 2592000 * 100;
 	let chainAccount: any;
 	let ownChainAccount: any;
@@ -62,7 +57,7 @@ describe('Mainchain interoperability internal method', () => {
 
 		ownChainAccount = {
 			name: 'mainchain',
-			chainID: MAINCHAIN_ID_BUFFER,
+			chainID: Buffer.from([0, 0, 0, 0]),
 			nonce: BigInt('0'),
 		};
 

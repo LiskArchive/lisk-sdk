@@ -18,12 +18,11 @@ import { MainchainInteroperabilityModule, TokenMethod } from '../../../../src';
 import { BaseInteroperabilityMethod } from '../../../../src/modules/interoperability/base_interoperability_method';
 import {
 	CCMStatusCode,
-	CHAIN_ID_MAINCHAIN,
+	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
 	EMPTY_BYTES,
 	EMPTY_FEE_ADDRESS,
 	HASH_LENGTH,
-	MAINCHAIN_ID_BUFFER,
 	MAX_CCM_SIZE,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../src/modules/interoperability/constants';
@@ -44,10 +43,10 @@ import { createTransientMethodContext } from '../../../../src/testing';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
-import { TerminateChainContext } from '../../../../src/modules/interoperability/types';
-import { CHAIN_ID_LENGTH } from '../../../../src/modules/token/constants';
-import { loggerMock } from '../../../../src/testing/mocks';
+import { getMainchainID } from '../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import { TerminateChainContext } from '../../../../src/modules/interoperability/types';
+import { loggerMock } from '../../../../src/testing/mocks';
 
 class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {
 	protected getInteroperabilityInternalMethod = (): MainchainInteroperabilityInternalMethod =>
@@ -195,7 +194,7 @@ describe('Sample Method', () => {
 
 		const ownChainAccountMainchain = {
 			name: 'mychain',
-			chainID: CHAIN_ID_MAINCHAIN,
+			chainID: getMainchainID(ownChainAccountSidechain.chainID),
 			nonce: BigInt(0),
 		};
 
@@ -466,9 +465,12 @@ describe('Sample Method', () => {
 			} as never);
 		});
 
-		it('should assign chainID as MAINCHAIN_ID_BUFFER if chainAccount not found', async () => {
+		it('should assign chainID as mainchain ID if chainAccount not found', async () => {
 			await sampleInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
-			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), MAINCHAIN_ID_BUFFER);
+			expect(channelStoreMock.get).toHaveBeenCalledWith(
+				expect.anything(),
+				getMainchainID(newChainID),
+			);
 		});
 
 		it('should process with input chainID', async () => {

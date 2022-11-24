@@ -25,8 +25,8 @@ import {
 import { CCMsg, CrossChainMessageContext, MessageRecoveryParams } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
-import { validateFormat } from '../../utils';
-import { CCMStatusCode, COMMAND_NAME_MESSAGE_RECOVERY, CHAIN_ID_MAINCHAIN } from '../../constants';
+import { getMainchainID, validateFormat } from '../../utils';
+import { CCMStatusCode, COMMAND_NAME_MESSAGE_RECOVERY } from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from '../../stores/terminated_outbox';
 import {
@@ -158,7 +158,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			};
 			// If the sending chain is the mainchain, recover the CCM.
 			// This function never raises an error.
-			if (ccm.sendingChainID.equals(CHAIN_ID_MAINCHAIN)) {
+			if (ccm.sendingChainID.equals(getMainchainID(context.chainID))) {
 				await this._applyRecovery(ctx);
 			} else {
 				// If the sending chain is not the mainchain, forward the CCM.

@@ -21,7 +21,6 @@ import { CCMsg, TerminateChainContext } from './types';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import {
 	EMPTY_BYTES,
-	MAINCHAIN_ID_BUFFER,
 	MAX_RESERVED_ERROR_STATUS,
 	EMPTY_FEE_ADDRESS,
 	MODULE_NAME_INTEROPERABILITY,
@@ -33,6 +32,7 @@ import { OwnChainAccountStore } from './stores/own_chain_account';
 import { ChannelDataStore } from './stores/channel_data';
 import { TerminatedStateStore } from './stores/terminated_state';
 import { TerminatedOutboxStore } from './stores/terminated_outbox';
+import { getMainchainID } from './utils';
 
 export abstract class BaseInteroperabilityMethod<
 	T extends BaseInteroperabilityInternalMethod
@@ -97,7 +97,7 @@ export abstract class BaseInteroperabilityMethod<
 		chainID: Buffer,
 	): Promise<Buffer> {
 		const updatedChainID = !(await this.stores.get(ChainAccountStore).has(context, chainID))
-			? MAINCHAIN_ID_BUFFER
+			? getMainchainID(chainID)
 			: chainID;
 		return (await this.getChannel(context, updatedChainID)).messageFeeTokenID;
 	}

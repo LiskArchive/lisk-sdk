@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
-import { CHAIN_ID_LENGTH, TOKEN_ID_LENGTH, TOKEN_ID_LSK } from './constants';
+import { CHAIN_ID_LENGTH, TOKEN_ID_LENGTH } from './constants';
 import { TokenID } from './types';
 
 export const splitTokenID = (tokenID: TokenID): [Buffer, Buffer] => {
@@ -25,19 +24,3 @@ export const splitTokenID = (tokenID: TokenID): [Buffer, Buffer] => {
 
 	return [chainID, localID];
 };
-
-export const tokenSupported = (supportedTokenIDs: Buffer[], tokenID: Buffer): boolean => {
-	if (!supportedTokenIDs.length) {
-		return true;
-	}
-	if (tokenID.equals(TOKEN_ID_LSK)) {
-		return true;
-	}
-
-	if (supportedTokenIDs.some(id => id.equals(tokenID))) {
-		return true;
-	}
-	return false;
-};
-
-export const getIDAsKeyForStore = (id: number) => utils.intToBuffer(id, 4);
