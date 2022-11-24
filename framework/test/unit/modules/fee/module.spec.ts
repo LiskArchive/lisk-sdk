@@ -41,13 +41,16 @@ describe('FeeModule', () => {
 		moduleConfig = {};
 		feeModule = new FeeModule();
 		await feeModule.init({ genesisConfig, moduleConfig });
-		feeModule.addDependencies({
-			burn: jest.fn(),
-			lock: jest.fn(),
-			unlock: jest.fn(),
-			transfer: jest.fn(),
-			getAvailableBalance: jest.fn(),
-		} as any);
+		feeModule.addDependencies(
+			{
+				burn: jest.fn(),
+				lock: jest.fn(),
+				unlock: jest.fn(),
+				transfer: jest.fn(),
+				getAvailableBalance: jest.fn(),
+			} as any,
+			{} as any,
+		);
 	});
 
 	describe('init', () => {
