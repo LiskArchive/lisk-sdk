@@ -123,6 +123,8 @@ export class FeeModule extends BaseInteroperableModule {
 	public async beforeCommandExecute(context: TransactionExecuteContext): Promise<void> {
 		const { transaction } = context;
 		const methodContext = context.getMethodContext();
+		// The Token module beforeCrossChainCommandExecute needs to be called first
+		// to ensure that the relayer has enough funds
 		await this._tokenMethod.lock(
 			methodContext,
 			transaction.senderAddress,

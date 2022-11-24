@@ -167,15 +167,7 @@ export const transferParamsSchema = {
 export const crossChainTransferParamsSchema = {
 	$id: '/lisk/ccTransferParams',
 	type: 'object',
-	required: [
-		'tokenID',
-		'amount',
-		'receivingChainID',
-		'recipientAddress',
-		'data',
-		'messageFee',
-		'escrowInitializationFee',
-	],
+	required: ['tokenID', 'amount', 'receivingChainID', 'recipientAddress', 'data', 'messageFee'],
 	properties: {
 		tokenID: {
 			dataType: 'bytes',
@@ -207,10 +199,6 @@ export const crossChainTransferParamsSchema = {
 		messageFee: {
 			dataType: 'uint64',
 			fieldNumber: 6,
-		},
-		escrowInitializationFee: {
-			dataType: 'uint64',
-			fieldNumber: 7,
 		},
 	},
 };

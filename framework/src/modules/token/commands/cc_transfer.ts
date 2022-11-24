@@ -40,7 +40,6 @@ interface Params {
 	recipientAddress: Buffer;
 	data: string;
 	messageFee: bigint;
-	escrowInitializationFee: bigint;
 }
 
 export class CrossChainTransferCommand extends BaseCommand {
@@ -48,8 +47,6 @@ export class CrossChainTransferCommand extends BaseCommand {
 	private _moduleName!: string;
 	private _method!: TokenMethod;
 	private _interoperabilityMethod!: InteroperabilityMethod;
-	private _escrowFeeTokenID!: Buffer;
-	private _escrowInitializationFee!: bigint;
 	private _ownChainID!: Buffer;
 	private _internalMethod!: InternalMethod;
 
@@ -58,15 +55,11 @@ export class CrossChainTransferCommand extends BaseCommand {
 		method: TokenMethod;
 		interoperabilityMethod: InteroperabilityMethod;
 		internalMethod: InternalMethod;
-		escrowFeeTokenID: Buffer;
-		escrowInitializationFee: bigint;
 		ownChainID: Buffer;
 	}) {
 		this._moduleName = args.moduleName;
 		this._method = args.method;
 		this._interoperabilityMethod = args.interoperabilityMethod;
-		this._escrowFeeTokenID = args.escrowFeeTokenID;
-		this._escrowInitializationFee = args.escrowInitializationFee;
 		this._ownChainID = args.ownChainID;
 		this._internalMethod = args.internalMethod;
 	}
@@ -92,18 +85,7 @@ export class CrossChainTransferCommand extends BaseCommand {
 				);
 			}
 
-			const escrowStore = this.stores.get(EscrowStore);
-			const escrowAccountKey = escrowStore.getKey(params.receivingChainID, params.tokenID);
-			const escrowAccoutExists = await escrowStore.has(context, escrowAccountKey);
 			const balanceCheck = new dataStructures.BufferMap<bigint>();
-
-			if (tokenChainID.equals(this._ownChainID) && !escrowAccoutExists) {
-				if (params.escrowInitializationFee !== this._escrowInitializationFee) {
-					throw new Error('Invalid escrow initialization fee.');
-				}
-				balanceCheck.set(this._escrowFeeTokenID, this._escrowInitializationFee);
-			}
-
 			balanceCheck.set(
 				params.tokenID,
 				(balanceCheck.get(params.tokenID) ?? BigInt(0)) + params.amount,
