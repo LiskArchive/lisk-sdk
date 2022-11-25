@@ -71,7 +71,10 @@ describe('endpoint:invoke command', () => {
 		);
 
 		expect(invokeMock).toHaveBeenCalledTimes(1);
-		expect(invokeMock).toHaveBeenCalledWith('consensus_getBFTParameters', JSON.parse('{"height": 2}'));
+		expect(invokeMock).toHaveBeenCalledWith(
+			'consensus_getBFTParameters',
+			JSON.parse('{"height": 2}'),
+		);
 	});
 
 	it('should call printJSON with the result of client.invoke', async () => {
@@ -81,6 +84,8 @@ describe('endpoint:invoke command', () => {
 		);
 
 		expect(BaseIPCClientCommand.prototype.printJSON).toHaveBeenCalledTimes(1);
-		expect(BaseIPCClientCommand.prototype.printJSON).toHaveBeenLastCalledWith(invokeMockResolvedValue);
+		expect(BaseIPCClientCommand.prototype.printJSON).toHaveBeenLastCalledWith(
+			invokeMockResolvedValue,
+		);
 	});
 });

@@ -70,7 +70,9 @@ export class IPCChannel extends BaseChannel {
 			for await (const [_event, eventData] of this._subSocket) {
 				// Listen to events and emit on local emitter
 
-				const eventDataJSON = Event.fromJSONRPCNotification(JSON.parse(eventData.toString()) as JSONRPC.NotificationRequest);
+				const eventDataJSON = Event.fromJSONRPCNotification(
+					JSON.parse(eventData.toString()) as JSONRPC.NotificationRequest,
+				);
 				this._emitter.emit(eventDataJSON.key(), eventDataJSON.toJSONRPCNotification());
 			}
 		};
@@ -82,7 +84,9 @@ export class IPCChannel extends BaseChannel {
 		const listenToRPC = async (): Promise<void> => {
 			for await (const [sender, event, eventData] of this._rpcServer) {
 				if (event.toString() === IPC_EVENTS.RPC_EVENT) {
-					const request = Request.fromJSONRPCRequest(JSON.parse(eventData.toString()) as JSONRPC.RequestObject);
+					const request = Request.fromJSONRPCRequest(
+						JSON.parse(eventData.toString()) as JSONRPC.RequestObject,
+					);
 					if (request.namespace === this.namespace) {
 						this.invoke({
 							methodName: request.key(),

@@ -7,5 +7,5 @@ module.exports = {
 	},
 	rules: {
 		'@typescript-eslint/member-ordering': 'off',
-	}
+	},
 };

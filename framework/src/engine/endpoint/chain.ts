@@ -154,7 +154,9 @@ export class ChainEndpoint {
 		const transactions = [];
 		try {
 			for (const id of ids) {
-				const transaction = await this._chain.dataAccess.getTransactionByID(Buffer.from(id as string, 'hex'));
+				const transaction = await this._chain.dataAccess.getTransactionByID(
+					Buffer.from(id as string, 'hex'),
+				);
 				transactions.push(transaction);
 			}
 		} catch (error) {

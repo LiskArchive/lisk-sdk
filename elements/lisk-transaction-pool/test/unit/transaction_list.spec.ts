@@ -331,9 +331,7 @@ describe('TransactionList class', () => {
 					const { added, reason } = transactionList.add(adding);
 					// Assert
 					expect(added).toBe(false);
-					expect(reason).toBe(
-						'Incoming transaction exceeds maximum transaction limit per account',
-					);
+					expect(reason).toBe('Incoming transaction exceeds maximum transaction limit per account');
 					expect(transactionList.size).toBe(10);
 				});
 			});

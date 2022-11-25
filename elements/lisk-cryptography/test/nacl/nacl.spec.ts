@@ -94,9 +94,7 @@ describe('nacl', () => {
 				});
 
 				it('should create a publicKey of type uint8array', () => {
-					expect(Object.prototype.toString.call(signedKeys.publicKey)).toBe(
-						'[object Uint8Array]',
-					);
+					expect(Object.prototype.toString.call(signedKeys.publicKey)).toBe('[object Uint8Array]');
 				});
 
 				it('should create a privateKey', () => {
@@ -104,9 +102,7 @@ describe('nacl', () => {
 				});
 
 				it('should create a privateKey of type uint8array', () => {
-					expect(Object.prototype.toString.call(signedKeys.privateKey)).toBe(
-						'[object Uint8Array]',
-					);
+					expect(Object.prototype.toString.call(signedKeys.privateKey)).toBe('[object Uint8Array]');
 				});
 			});
 

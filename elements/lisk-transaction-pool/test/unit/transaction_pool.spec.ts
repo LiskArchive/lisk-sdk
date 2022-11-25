@@ -900,16 +900,10 @@ describe('TransactionPool class', () => {
 
 			jest.advanceTimersByTime(2);
 			// Assert
-			expect(
-				transactionPool['_allTransactions'].get(transactionsFromSender1[0].id),
-			).toBeDefined();
+			expect(transactionPool['_allTransactions'].get(transactionsFromSender1[0].id)).toBeDefined();
 			// Unprocessable trx should not be removed
-			expect(
-				transactionPool['_allTransactions'].get(transactionsFromSender1[1].id),
-			).toBeDefined();
-			expect(
-				transactionPool['_allTransactions'].get(transactionsFromSender1[2].id),
-			).toBeDefined();
+			expect(transactionPool['_allTransactions'].get(transactionsFromSender1[1].id)).toBeDefined();
+			expect(transactionPool['_allTransactions'].get(transactionsFromSender1[2].id)).toBeDefined();
 			// Unprocessable trx should not be promoted
 			expect(
 				transactionPool

@@ -408,8 +408,8 @@ export class PeerServer extends EventEmitter {
 			const {
 				address: peerIpAddress,
 				port,
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			}: { address: string; port: number} = ws._socket._peername;
+			}: // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			{ address: string; port: number } = ws._socket._peername;
 
 			const peerId = constructPeerId(peerIpAddress, port);
 
