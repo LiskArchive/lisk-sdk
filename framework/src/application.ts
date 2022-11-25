@@ -176,7 +176,7 @@ export class Application {
 			interoperabilityModule.addDependencies(tokenModule.method, feeModule.method);
 		} else {
 			interoperabilityModule = new SidechainInteroperabilityModule();
-			interoperabilityModule.addDependencies(validatorModule.method);
+			interoperabilityModule.addDependencies(validatorModule.method, tokenModule.method);
 		}
 
 		// resolve dependencies
