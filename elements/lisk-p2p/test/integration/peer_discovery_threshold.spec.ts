@@ -71,6 +71,6 @@ describe('Peer discovery threshold', () => {
 		expect(
 			listOfPeers.length >= MINIMUM_PEER_DISCOVERY_THRESHOLD &&
 				listOfPeers.length <= MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
-		).toEqual(true);
+		).toBe(true);
 	});
 });

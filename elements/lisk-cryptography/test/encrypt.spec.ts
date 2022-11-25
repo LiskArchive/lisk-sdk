@@ -89,7 +89,7 @@ describe('encrypt', () => {
 		});
 
 		it('should output the nonce', () => {
-			expect(encryptedMessage).not.toBeUndefined();
+			expect(encryptedMessage).toBeDefined();
 			expect(encryptedMessage).toHaveProperty('nonce');
 			expect(regHexadecimal.test(encryptedMessage.nonce)).toBe(true);
 		});

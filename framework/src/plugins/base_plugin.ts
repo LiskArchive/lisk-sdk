@@ -41,7 +41,7 @@ export const getPluginExportPath = (pluginInstance: BasePlugin): string | undefi
 		/* Plugin nodeModulePath is not an npm package */
 	}
 
-	if (!plugin || !plugin[pluginInstance.constructor.name]) {
+	if (!plugin?.[pluginInstance.constructor.name]) {
 		return undefined;
 	}
 

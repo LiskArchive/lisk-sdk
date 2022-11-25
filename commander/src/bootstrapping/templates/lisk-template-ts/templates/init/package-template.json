@@ -13,7 +13,7 @@
 	},
 	"main": "dist/index.js",
 	"scripts": {
-		"lint": "eslint --ext .js,.ts .",
+		"lint": "eslint --ext .ts .",
 		"lint:fix": "eslint --fix --ext .js,.ts .",
 		"format": "prettier --write '**/*'",
 		"prepack": "oclif manifest && oclif readme --multi --dir=docs/commands && npm shrinkwrap && npm prune --production && npm shrinkwrap",

@@ -98,7 +98,7 @@ const registerProcessHooks = (app: Application): void => {
 	});
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	process.once('exit' as any, (code: number) => {
+	process.once('exit', (code: number) => {
 		handleShutdown(code, 'process.exit').catch((error: Error) => app.logger.error({ error }));
 	});
 };
@@ -229,7 +229,7 @@ export class Application {
 		plugin: BasePlugin<any>,
 		options: PluginConfig = { loadAsChildProcess: false },
 	): void {
-		this._controller.registerPlugin(plugin, options);
+		this._controller.registerPlugin(plugin as BasePlugin, options);
 	}
 
 	public registerModule(Module: BaseModule): void {

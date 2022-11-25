@@ -1,11 +1,7 @@
 module.exports = {
-	root: true,
-	extends: ['lisk-base/ts'],
+	extends: '../.eslintrc.js',
 	parserOptions: {
 		project: './tsconfig.json',
 		tsconfigRootDir: __dirname,
 	},
-	rules: {
-		'@typescript-eslint/member-ordering': 'off',
-	}
 };

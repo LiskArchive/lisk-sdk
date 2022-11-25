@@ -235,7 +235,7 @@ export class ABIHandler implements ABI {
 	}
 
 	public async initGenesisState(req: InitGenesisStateRequest): Promise<InitGenesisStateResponse> {
-		if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
+		if (!this._executionContext?.id.equals(req.contextID)) {
 			throw new Error(
 				`Invalid context id ${req.contextID.toString(
 					'hex',
@@ -269,7 +269,7 @@ export class ABIHandler implements ABI {
 	}
 
 	public async insertAssets(req: InsertAssetsRequest): Promise<InsertAssetsResponse> {
-		if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
+		if (!this._executionContext?.id.equals(req.contextID)) {
 			throw new Error(
 				`Invalid context id ${req.contextID.toString(
 					'hex',
@@ -293,7 +293,7 @@ export class ABIHandler implements ABI {
 
 	public async verifyAssets(req: VerifyAssetsRequest): Promise<VerifyAssetsResponse> {
 		// Remove genesis block from memory
-		if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
+		if (!this._executionContext?.id.equals(req.contextID)) {
 			throw new Error(
 				`Invalid context id ${req.contextID.toString(
 					'hex',
@@ -319,7 +319,7 @@ export class ABIHandler implements ABI {
 	public async beforeTransactionsExecute(
 		req: BeforeTransactionsExecuteRequest,
 	): Promise<BeforeTransactionsExecuteResponse> {
-		if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
+		if (!this._executionContext?.id.equals(req.contextID)) {
 			throw new Error(
 				`Invalid context id ${req.contextID.toString(
 					'hex',
@@ -346,7 +346,7 @@ export class ABIHandler implements ABI {
 	public async afterTransactionsExecute(
 		req: AfterTransactionsExecuteRequest,
 	): Promise<AfterTransactionsExecuteResponse> {
-		if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
+		if (!this._executionContext?.id.equals(req.contextID)) {
 			throw new Error(
 				`Invalid context id ${req.contextID.toString(
 					'hex',
@@ -380,7 +380,7 @@ export class ABIHandler implements ABI {
 		let stateStore: PrefixedStateReadWriter;
 		let contextStore: Map<string, unknown>;
 		let header: BlockHeader;
-		if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
+		if (!this._executionContext?.id.equals(req.contextID)) {
 			stateStore = new PrefixedStateReadWriter(this._stateDB.newReadWriter());
 			contextStore = new Map<string, unknown>();
 			header = new BlockHeader(req.header);
@@ -413,7 +413,7 @@ export class ABIHandler implements ABI {
 		let contextStore: Map<string, unknown>;
 		let header: BlockHeader;
 		if (!req.dryRun) {
-			if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
+			if (!this._executionContext?.id.equals(req.contextID)) {
 				throw new Error(
 					`Invalid context id ${req.contextID.toString(
 						'hex',
@@ -446,7 +446,7 @@ export class ABIHandler implements ABI {
 	}
 
 	public async commit(req: CommitRequest): Promise<CommitResponse> {
-		if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
+		if (!this._executionContext?.id.equals(req.contextID)) {
 			throw new Error(
 				`Invalid context id ${req.contextID.toString(
 					'hex',
@@ -478,7 +478,7 @@ export class ABIHandler implements ABI {
 
 	// TODO: Logic should be re-written with https://github.com/LiskHQ/lisk-sdk/issues/7128
 	public async revert(req: RevertRequest): Promise<RevertResponse> {
-		if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
+		if (!this._executionContext?.id.equals(req.contextID)) {
 			throw new Error(
 				`Invalid context id ${req.contextID.toString(
 					'hex',

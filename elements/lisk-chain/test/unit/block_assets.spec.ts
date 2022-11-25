@@ -37,7 +37,7 @@ describe('block assets', () => {
 	describe('sort', () => {
 		it('should sort the assets in ascending order by module', () => {
 			assets.sort();
-			expect(assets['_assets'][0].module).toEqual('auth');
+			expect(assets['_assets'][0].module).toBe('auth');
 		});
 	});
 

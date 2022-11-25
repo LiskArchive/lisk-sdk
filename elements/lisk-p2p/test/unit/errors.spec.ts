@@ -43,7 +43,7 @@ describe('errors', () => {
 		});
 
 		it('should set error name to `PeerInboundHandshakeError`', () => {
-			expect(peerTransportError.name).toEqual('PeerInboundHandshakeError');
+			expect(peerTransportError.name).toBe('PeerInboundHandshakeError');
 		});
 
 		it('should set error property remoteAddress when passed as an argument', () => {
@@ -65,7 +65,7 @@ describe('errors', () => {
 		});
 
 		it('should set error name to `RPCResponseError`', () => {
-			expect(rpcGetPeersFailed.name).toEqual('RPCResponseError');
+			expect(rpcGetPeersFailed.name).toBe('RPCResponseError');
 		});
 
 		it('should set error property peer Id when passed as an argument', () => {
@@ -89,7 +89,7 @@ describe('errors', () => {
 		});
 
 		it('should set error name to `InvalidPeerInfoError`', () => {
-			expect(invalidPeer.name).toEqual('InvalidPeerInfoError');
+			expect(invalidPeer.name).toBe('InvalidPeerInfoError');
 		});
 
 		it('should set error message when passed an argument', () => {
@@ -115,7 +115,7 @@ describe('errors', () => {
 		});
 
 		it('should set error name to `ExistingPeerError`', () => {
-			expect(existingPeer.name).toEqual('ExistingPeerError');
+			expect(existingPeer.name).toBe('ExistingPeerError');
 		});
 
 		it(`should set error message to ${existingPeerErrorMessagge}`, () => {
@@ -140,7 +140,7 @@ describe('errors', () => {
 		});
 
 		it('should set error name to `InvalidNodeInfoError`', () => {
-			expect(invalidNodeInfo.name).toEqual('InvalidNodeInfoError');
+			expect(invalidNodeInfo.name).toBe('InvalidNodeInfoError');
 		});
 
 		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -162,7 +162,7 @@ describe('errors', () => {
 		});
 
 		it('should set error name to `InvalidRPCResponseError`', () => {
-			expect(invalidRPCResponse.name).toEqual('InvalidRPCResponseError');
+			expect(invalidRPCResponse.name).toBe('InvalidRPCResponseError');
 		});
 
 		it('should set error message when passed an argument', () => {
@@ -183,7 +183,7 @@ describe('errors', () => {
 		});
 
 		it('should set error name to `InvalidProtocolMessageError`', () => {
-			expect(invalidProtocolMessageError.name).toEqual('InvalidProtocolMessageError');
+			expect(invalidProtocolMessageError.name).toBe('InvalidProtocolMessageError');
 		});
 
 		it('should set error message when passed an argument', () => {
@@ -204,7 +204,7 @@ describe('errors', () => {
 		});
 
 		it('should set error name to `InvalidRPCRequestError`', () => {
-			expect(invalidRPCRequestError.name).toEqual('InvalidRPCRequestError');
+			expect(invalidRPCRequestError.name).toBe('InvalidRPCRequestError');
 		});
 
 		it('should set error message when passed an argument', () => {
@@ -225,7 +225,7 @@ describe('errors', () => {
 		});
 
 		it('should set error name to `RPCResponseAlreadySentError`', () => {
-			expect(rpcResponseAlreadySentError.name).toEqual('ResponseAlreadySentError');
+			expect(rpcResponseAlreadySentError.name).toBe('ResponseAlreadySentError');
 		});
 
 		it('should set error message when passed an argument', () => {
@@ -251,11 +251,11 @@ describe('errors', () => {
 		});
 
 		it('should set error name to `RequestFailError`', () => {
-			expect(requestFailError.name).toEqual('RequestFailError');
+			expect(requestFailError.name).toBe('RequestFailError');
 		});
 
 		it('should set error message when passed an argument', () => {
-			expect(requestFailError.message).toEqual(
+			expect(requestFailError.message).toBe(
 				`${defaultMessage}: Peer Id: ${peerId}: Peer Version: ${peerVersion}`,
 			);
 		});

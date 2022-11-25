@@ -294,13 +294,13 @@ describe('utils', () => {
 
 	describe('getOverlappingStr', () => {
 		it('returns valid overlapping strings', () => {
-			expect(getOverlappingStr('12356', '123456')).toEqual('123');
-			expect(getOverlappingStr('1010110', '1010010')).toEqual('1010');
+			expect(getOverlappingStr('12356', '123456')).toBe('123');
+			expect(getOverlappingStr('1010110', '1010010')).toBe('1010');
 		});
 
 		it('returns empty string if no overlapping strings found', () => {
-			expect(getOverlappingStr('12356', '2356')).toEqual('');
-			expect(getOverlappingStr('0110011', '110011')).toEqual('');
+			expect(getOverlappingStr('12356', '2356')).toBe('');
+			expect(getOverlappingStr('0110011', '110011')).toBe('');
 		});
 	});
 
@@ -479,9 +479,9 @@ describe('utils', () => {
 		const branchDataBuffer = branchData(sampleKey, sampleValue);
 
 		it('Should return true when a leaf node data is passed', () =>
-			expect(isLeaf(leafDataBuffer)).toEqual(true));
+			expect(isLeaf(leafDataBuffer)).toBe(true));
 		it('Should return false when a branch node data is passed', () =>
-			expect(isLeaf(branchDataBuffer)).toEqual(false));
+			expect(isLeaf(branchDataBuffer)).toBe(false));
 	});
 
 	describe('parseLeaf', () => {

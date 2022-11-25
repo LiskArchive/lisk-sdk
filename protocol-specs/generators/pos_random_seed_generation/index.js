@@ -17,7 +17,7 @@
 const { utils } = require('@liskhq/lisk-cryptography');
 
 const BaseGenerator = require('../base_generator');
-const { list: sampleValidatorList } = require('./forger_list');
+const { list: sampleValidatorList } = require('./forger_list.json');
 
 const activeValidators = 101;
 const standByValidators = 2;

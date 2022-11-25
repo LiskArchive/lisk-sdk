@@ -232,7 +232,6 @@ describe('peerPool', () => {
 			try {
 				await peerPool.request(requestPacket);
 			} catch (e) {
-				// eslint-disable-next-line jest/no-try-expect
 				expect(peerPool.getAllConnectedPeerInfos).toHaveBeenCalled();
 			}
 		});
@@ -310,7 +309,6 @@ describe('peerPool', () => {
 			try {
 				peerPool.send(1 as any);
 			} catch (error) {
-				// eslint-disable-next-line jest/no-try-expect
 				expect(peerPool.emit).toHaveBeenCalled();
 			}
 		});

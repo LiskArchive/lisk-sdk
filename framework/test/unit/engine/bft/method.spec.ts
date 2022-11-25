@@ -603,7 +603,7 @@ describe('BFT Method', () => {
 		});
 
 		it('should return the next height strictly higher than the input where BFT parameter exists', async () => {
-			await expect(bftMethod.getNextHeightBFTParameters(stateStore, 20)).resolves.toEqual(30);
+			await expect(bftMethod.getNextHeightBFTParameters(stateStore, 20)).resolves.toBe(30);
 		});
 
 		it('should throw when the next height strictly higher than the input BFT parameters does not exist', async () => {

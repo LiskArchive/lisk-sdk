@@ -281,7 +281,7 @@ export class ForgerPlugin extends BasePlugin {
 			throw new Error('PoS stakes command is not registered.');
 		}
 		const voteCommandMeta = posModuleMeta.commands.find(c => c.name === COMMAND_STAKE);
-		if (!voteCommandMeta || !voteCommandMeta.params) {
+		if (!voteCommandMeta?.params) {
 			throw new Error('PoS stakes command is not registered.');
 		}
 

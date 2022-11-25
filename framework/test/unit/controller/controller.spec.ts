@@ -145,8 +145,8 @@ describe('Controller Class', () => {
 			expect(controller['_inMemoryPlugins']).toEqual({});
 			expect(controller['_childProcesses']).toEqual({});
 			expect(controller['_bus']).toBeInstanceOf(Bus);
-			expect(controller['_logger']).not.toBeUndefined();
-			expect(controller['_internalIPCServer']).not.toBeUndefined();
+			expect(controller['_logger']).toBeDefined();
+			expect(controller['_internalIPCServer']).toBeDefined();
 		});
 	});
 

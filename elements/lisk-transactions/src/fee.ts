@@ -34,7 +34,7 @@ const computeTransactionMinFee = (
 		options?.numberOfSignatures ?? DEFAULT_NUMBER_OF_SIGNATURES,
 	).fill(Buffer.alloc(DEFAULT_SIGNATURE_BYTE_SIZE));
 	if (options?.numberOfEmptySignatures) {
-		mockSignatures.push(...new Array(options.numberOfEmptySignatures).fill(Buffer.alloc(0)));
+		mockSignatures.push(...new Array<Buffer>(options.numberOfEmptySignatures).fill(Buffer.alloc(0)));
 	}
 	const size = getBytes(
 		{

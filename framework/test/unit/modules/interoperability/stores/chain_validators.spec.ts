@@ -91,7 +91,7 @@ describe('ChainValidatorsStore', () => {
 			);
 
 			const validator3Exists = updatedValidators.some(v => v.blsKey.equals(validator3.blsKey));
-			expect(validator3Exists).toEqual(false);
+			expect(validator3Exists).toBe(false);
 		});
 	});
 

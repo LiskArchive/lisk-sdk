@@ -56,7 +56,7 @@ describe('p2pRequest', () => {
 
 	describe('#procedure', () => {
 		it('should have a procedure property which is set to the value specified in the constructor', () =>
-			expect(request.procedure).toEqual('foo'));
+			expect(request.procedure).toBe('foo'));
 	});
 
 	describe('#data', () => {
@@ -66,17 +66,17 @@ describe('p2pRequest', () => {
 
 	describe('#rate', () => {
 		it('should have a rate property which is set to the value specified in the constructor', () =>
-			expect(request.rate).toEqual(0));
+			expect(request.rate).toBe(0));
 	});
 
 	describe('#peerId', () => {
 		it('should have a peerId property which is set to the value specified in the constructor', () =>
-			expect(request.peerId).toEqual('abc123'));
+			expect(request.peerId).toBe('abc123'));
 	});
 
 	describe('#wasResponseSent', () => {
 		it('should have a wasResponseSent property which is false', () =>
-			expect(request.wasResponseSent).toEqual(false));
+			expect(request.wasResponseSent).toBe(false));
 	});
 
 	describe('#end', () => {

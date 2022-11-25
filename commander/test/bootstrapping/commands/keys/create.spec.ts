@@ -145,7 +145,7 @@ describe('keys:create command', () => {
 			expect(loggedData).toMatchObject({
 				keys: defaultKeys,
 			});
-			expect(loggedData.keys[0].encrypted).not.toBeUndefined();
+			expect(loggedData.keys[0].encrypted).toBeDefined();
 			expect(loggedData.keys[0].encrypted).toHaveProperty('ciphertext');
 			expect(loggedData.keys[0].encrypted).toHaveProperty('mac');
 			expect(loggedData.keys[0].encrypted).toHaveProperty('cipherparams');

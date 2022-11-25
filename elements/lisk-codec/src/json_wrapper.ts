@@ -37,8 +37,8 @@ const mappers: mappersInterface = {
 	toJSON: {
 		uint32: value => value as number,
 		sint32: value => value as number,
-		uint64: value => (value as BigInt).toString(),
-		sint64: value => (value as BigInt).toString(),
+		uint64: value => (value as bigint).toString(),
+		sint64: value => (value as bigint).toString(),
 		string: value => value as string,
 		bytes: (value, format?: string) => {
 			if (!format || format === 'hex') {
@@ -130,7 +130,7 @@ export const recursiveTypeCast = (
 			dataPath.push(key);
 
 			(value as IteratableGenericObject)[Symbol.iterator] = iterator;
-			recursiveTypeCast(mode, value, schema, dataPath);
+			recursiveTypeCast(mode, value as IteratableGenericObject, schema, dataPath);
 			dataPath.pop();
 
 			delete (value as IteratableGenericObject)[Symbol.iterator as unknown as string];
@@ -143,7 +143,7 @@ export const recursiveTypeCast = (
 					const arrayObject = value[i];
 
 					(arrayObject as IteratableGenericObject)[Symbol.iterator] = iterator;
-					recursiveTypeCast(mode, arrayObject, schema, dataPath);
+					recursiveTypeCast(mode, arrayObject as IteratableGenericObject, schema, dataPath);
 
 					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 					delete arrayObject[Symbol.iterator];
@@ -158,7 +158,7 @@ export const recursiveTypeCast = (
 
 					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
 					(object[key] as any)[i] = mappers[mode][schemaProp.items.dataType](
-						value[i],
+						(value as BaseTypes[])[i],
 						schemaProp.items.format,
 					);
 				}
@@ -175,7 +175,7 @@ export const recursiveTypeCast = (
 			}
 
 			object[key] = mappers[mode][schemaProp.dataType as unknown as string](
-				value,
+				value as BaseTypes,
 				schemaProp.format,
 			);
 

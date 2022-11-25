@@ -60,8 +60,8 @@ describe('endpoint:invoke command', () => {
 	it('should call invoke with the provided action', async () => {
 		await InvokeCommand.run(['consensus_getBFTParameters', '-d  ~/.lisk/pos-mainchain'], config);
 
-		expect(invokeMock).toBeCalledTimes(1);
-		expect(invokeMock).toBeCalledWith('consensus_getBFTParameters');
+		expect(invokeMock).toHaveBeenCalledTimes(1);
+		expect(invokeMock).toHaveBeenCalledWith('consensus_getBFTParameters');
 	});
 
 	it('should call invoke the provided action with parameters if provided', async () => {
@@ -70,8 +70,8 @@ describe('endpoint:invoke command', () => {
 			config,
 		);
 
-		expect(invokeMock).toBeCalledTimes(1);
-		expect(invokeMock).toBeCalledWith('consensus_getBFTParameters', JSON.parse('{"height": 2}'));
+		expect(invokeMock).toHaveBeenCalledTimes(1);
+		expect(invokeMock).toHaveBeenCalledWith('consensus_getBFTParameters', JSON.parse('{"height": 2}'));
 	});
 
 	it('should call printJSON with the result of client.invoke', async () => {
@@ -80,7 +80,7 @@ describe('endpoint:invoke command', () => {
 			config,
 		);
 
-		expect(BaseIPCClientCommand.prototype.printJSON).toBeCalledTimes(1);
-		expect(BaseIPCClientCommand.prototype.printJSON).lastCalledWith(invokeMockResolvedValue);
+		expect(BaseIPCClientCommand.prototype.printJSON).toHaveBeenCalledTimes(1);
+		expect(BaseIPCClientCommand.prototype.printJSON).toHaveBeenLastCalledWith(invokeMockResolvedValue);
 	});
 });

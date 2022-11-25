@@ -44,7 +44,7 @@ describe('RPC server', () => {
 				host: '0.0.0.0',
 				port: 7887,
 			});
-			expect(rpcServer['_ipcServer']).not.toBeUndefined();
+			expect(rpcServer['_ipcServer']).toBeDefined();
 		});
 
 		it('should create WS server if ws is enabled', () => {
@@ -53,7 +53,7 @@ describe('RPC server', () => {
 				host: '0.0.0.0',
 				port: 7887,
 			});
-			expect(rpcServer['_wsServer']).not.toBeUndefined();
+			expect(rpcServer['_wsServer']).toBeDefined();
 		});
 
 		it('should create HTTP server if http is enabled', () => {
@@ -62,7 +62,7 @@ describe('RPC server', () => {
 				host: '0.0.0.0',
 				port: 7887,
 			});
-			expect(rpcServer['_httpServer']).not.toBeUndefined();
+			expect(rpcServer['_httpServer']).toBeDefined();
 		});
 	});
 

@@ -38,26 +38,26 @@ describe('BufferSet', () => {
 		it('should delete the data using the key', () => {
 			set.add(Buffer.from('123'));
 			set.delete(Buffer.from('123'));
-			expect(set.size).toEqual(0);
+			expect(set.size).toBe(0);
 		});
 
 		it('should not delete if the data does not exist', () => {
 			set.add(Buffer.from('123'));
 			set.delete(Buffer.from('123'));
-			expect(set.size).toEqual(0);
+			expect(set.size).toBe(0);
 		});
 	});
 
 	describe('add', () => {
 		it('should add to the data if it does not exist', () => {
 			set.add(Buffer.from('123'));
-			expect(set.size).toEqual(1);
+			expect(set.size).toBe(1);
 		});
 
 		it('should not add the data if it exists', () => {
 			set.add(Buffer.from('123'));
 			set.add(Buffer.from('123'));
-			expect(set.size).toEqual(1);
+			expect(set.size).toBe(1);
 		});
 	});
 
@@ -78,7 +78,7 @@ describe('BufferSet', () => {
 			set.add(Buffer.from('123'));
 			set.add(Buffer.from('123'));
 			set.add(Buffer.from('456'));
-			expect(set.size).toEqual(2);
+			expect(set.size).toBe(2);
 		});
 	});
 
