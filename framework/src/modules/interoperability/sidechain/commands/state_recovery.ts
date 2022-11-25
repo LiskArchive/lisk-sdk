@@ -12,6 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseStateRecoveryCommand } from '../../base_state_recovery';
-import { MainchainInteroperabilityInternalMethod } from '../internal_method';
+import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 
-export class StateRecoveryCommand extends BaseStateRecoveryCommand<MainchainInteroperabilityInternalMethod> {}
+export class StateRecoveryCommand extends BaseStateRecoveryCommand<SidechainInteroperabilityInternalMethod> {}

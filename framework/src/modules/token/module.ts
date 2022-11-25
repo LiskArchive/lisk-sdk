@@ -76,6 +76,7 @@ export class TokenModule extends BaseInteroperableModule {
 	public endpoint = new TokenEndpoint(this.stores, this.offchainStores);
 	public crossChainMethod = new TokenInteroperableMethod(this.stores, this.events);
 	public crossChainTransferCommand = new CrossChainTransferMessageCommand(this.stores, this.events);
+	public crossChainCommand = [this.crossChainTransferCommand];
 
 	private _ownChainID!: Buffer;
 	private readonly _transferCommand = new TransferCommand(this.stores, this.events);

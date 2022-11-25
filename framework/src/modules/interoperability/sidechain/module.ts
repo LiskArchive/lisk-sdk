@@ -11,8 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { genesisAuthStoreSchema } from '../../auth/schemas';
 import { ModuleInitArgs, ModuleMetadata } from '../../base_module';
 import { BaseInteroperabilityModule } from '../base_interoperability_module';
 import { SidechainInteroperabilityMethod } from './method';
@@ -24,6 +22,7 @@ import {
 	getChannelRequestSchema,
 	getTerminatedStateAccountRequestSchema,
 	getTerminatedOutboxAccountRequestSchema,
+	genesisInteroperabilitySchema,
 } from '../schemas';
 import {
 	chainAccountSchema,
@@ -41,8 +40,12 @@ import { CcmProcessedEvent } from '../events/ccm_processed';
 import { InvalidRegistrationSignatureEvent } from '../events/invalid_registration_signature';
 import { CcmSendSuccessEvent } from '../events/ccm_send_success';
 import { BaseCCMethod } from '../base_cc_method';
-import { ValidatorsMethod } from '../types';
+import { TokenMethod, ValidatorsMethod } from '../types';
 import { SidechainInteroperabilityInternalMethod } from './internal_method';
+import { SidechainCCUpdateCommand } from './commands';
+import { StateRecoveryInitializationCommand } from './commands/state_recovery_init';
+import { StateRecoveryCommand } from './commands/state_recovery';
+import { SidechainCCChannelTerminatedCommand, SidechainCCRegistrationCommand } from './cc_commands';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod: BaseCCMethod = new SidechainCCMethod(this.stores, this.events);
@@ -68,9 +71,50 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.interoperableCCCommands,
 		this.internalMethod,
 	);
+	private readonly _crossChainUpdateCommand = new SidechainCCUpdateCommand(
+		this.stores,
+		this.events,
+		this.interoperableCCMethods,
+		this.interoperableCCCommands,
+		this.internalMethod,
+	);
+	private readonly _stateRecoveryInitCommand = new StateRecoveryInitializationCommand(
+		this.stores,
+		this.events,
+		this.interoperableCCMethods,
+		this.interoperableCCCommands,
+		this.internalMethod,
+	);
+	private readonly _stateRecoveryCommand = new StateRecoveryCommand(
+		this.stores,
+		this.events,
+		this.interoperableCCMethods,
+		this.interoperableCCCommands,
+		this.internalMethod,
+	);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public commands = [this._mainchainRegistrationCommand];
+	public commands = [
+		this._mainchainRegistrationCommand,
+		this._crossChainUpdateCommand,
+		this._stateRecoveryInitCommand,
+		this._stateRecoveryCommand,
+	];
+	// eslint-disable-next-line @typescript-eslint/member-ordering
+	public crossChainCommand = [
+		new SidechainCCRegistrationCommand(
+			this.stores,
+			this.events,
+			this.interoperableCCMethods,
+			this.internalMethod,
+		),
+		new SidechainCCChannelTerminatedCommand(
+			this.stores,
+			this.events,
+			this.interoperableCCMethods,
+			this.internalMethod,
+		),
+	];
 
 	private _validatorsMethod!: ValidatorsMethod;
 
@@ -90,8 +134,9 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		);
 	}
 
-	public addDependencies(validatorsMethod: ValidatorsMethod) {
+	public addDependencies(validatorsMethod: ValidatorsMethod, tokenMethod: TokenMethod) {
 		this._validatorsMethod = validatorsMethod;
+		this._crossChainUpdateCommand.init(this.method, tokenMethod);
 	}
 
 	public metadata(): ModuleMetadata {
@@ -131,11 +176,14 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 				name: command.name,
 				params: command.schema,
 			})),
-			events: [],
+			events: this.events.values().map(v => ({
+				name: v.name,
+				data: v.schema,
+			})),
 			assets: [
 				{
 					version: 0,
-					data: genesisAuthStoreSchema,
+					data: genesisInteroperabilitySchema,
 				},
 			],
 		};
