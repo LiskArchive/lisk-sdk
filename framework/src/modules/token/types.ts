@@ -13,7 +13,7 @@
  */
 
 import { MethodContext, ImmutableMethodContext } from '../../state_machine';
-import { CCMsg } from '../interoperability/types';
+import { CCMsg, ChannelData, OwnChainAccount } from '../interoperability/types';
 import { JSONObject } from '../../types';
 
 export type TokenID = Buffer;
@@ -21,7 +21,6 @@ export type TokenID = Buffer;
 export interface ModuleConfig {
 	userAccountInitializationFee: bigint;
 	escrowAccountInitializationFee: bigint;
-	feeTokenID: Buffer;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
@@ -52,7 +51,7 @@ export interface GenesisTokenStore {
 }
 
 export interface InteroperabilityMethod {
-	getOwnChainAccount(methodContext: ImmutableMethodContext): Promise<{ id: Buffer }>;
+	getOwnChainAccount(methodContext: ImmutableMethodContext): Promise<OwnChainAccount>;
 	send(
 		methodContext: MethodContext,
 		feeAddress: Buffer,
@@ -62,12 +61,13 @@ export interface InteroperabilityMethod {
 		fee: bigint,
 		status: number,
 		parameters: Buffer,
-	): Promise<boolean>;
+	): Promise<void>;
 	error(methodContext: MethodContext, ccm: CCMsg, code: number): Promise<void>;
 	terminateChain(methodContext: MethodContext, chainID: Buffer): Promise<void>;
-	getChannel(
-		methodContext: MethodContext,
-		chainID: Buffer,
-	): Promise<{ messageFeeTokenID: { chainID: Buffer; localID: Buffer } }>;
+	getChannel(methodContext: MethodContext, chainID: Buffer): Promise<ChannelData>;
 	getMessageFeeTokenID(methodContext: ImmutableMethodContext, chainID: Buffer): Promise<Buffer>;
+}
+
+export interface FeeMethod {
+	payFee(methodContext: MethodContext, amount: bigint): void;
 }

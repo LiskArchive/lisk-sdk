@@ -24,8 +24,6 @@ import {
 	getTerminatedStateAccountRequestSchema,
 	getTerminatedOutboxAccountRequestSchema,
 } from '../schemas';
-import { GenesisBlockExecuteContext } from '../../../state_machine';
-import { initGenesisStateUtil } from '../utils';
 import {
 	chainAccountSchema,
 	allChainAccountsSchema,
@@ -42,29 +40,51 @@ import { ChainAccountUpdatedEvent } from '../events/chain_account_updated';
 import { RegisteredNamesStore } from '../stores/registered_names';
 import { OutboxRootStore } from '../stores/outbox_root';
 import { ChainValidatorsStore } from '../stores/chain_validators';
+import { CcmSendSuccessEvent } from '../events/ccm_send_success';
+import { TerminatedStateCreatedEvent } from '../events/terminated_state_created';
+import { TerminatedOutboxCreatedEvent } from '../events/terminated_outbox_created';
+import { MainchainInteroperabilityInternalMethod } from './internal_method';
+import { MessageRecoveryInitializationCommand } from './commands/message_recovery_initialization';
+import { FeeMethod } from '../types';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
-	public method = new MainchainInteroperabilityMethod(
+	protected internalMethod = new MainchainInteroperabilityInternalMethod(
 		this.stores,
 		this.events,
 		this.interoperableCCMethods,
 	);
-	public endpoint = new MainchainInteroperabilityEndpoint(
+	// eslint-disable-next-line @typescript-eslint/member-ordering
+	public method = new MainchainInteroperabilityMethod(
 		this.stores,
-		this.offchainStores,
+		this.events,
 		this.interoperableCCMethods,
+		this.internalMethod,
 	);
+	// eslint-disable-next-line @typescript-eslint/member-ordering
+	public endpoint = new MainchainInteroperabilityEndpoint(this.stores, this.offchainStores);
 
 	private readonly _sidechainRegistrationCommand = new SidechainRegistrationCommand(
 		this.stores,
 		this.events,
 		this.interoperableCCMethods,
 		this.interoperableCCCommands,
+		this.internalMethod,
+	);
+
+	private readonly _messageRecoveryInitializationCommand = new MessageRecoveryInitializationCommand(
+		this.stores,
+		this.events,
+		this.interoperableCCMethods,
+		this.interoperableCCCommands,
+		this.internalMethod,
 	);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public commands = [this._sidechainRegistrationCommand];
+	public commands = [
+		this._sidechainRegistrationCommand,
+		this._messageRecoveryInitializationCommand,
+	];
 
 	public constructor() {
 		super();
@@ -76,10 +96,13 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.stores.register(ChainValidatorsStore, new ChainValidatorsStore(this.name));
 		this.events.register(ChainAccountUpdatedEvent, new ChainAccountUpdatedEvent(this.name));
 		this.events.register(CcmProcessedEvent, new CcmProcessedEvent(this.name));
+		this.events.register(CcmSendSuccessEvent, new CcmSendSuccessEvent(this.name));
+		this.events.register(TerminatedStateCreatedEvent, new TerminatedStateCreatedEvent(this.name));
+		this.events.register(TerminatedOutboxCreatedEvent, new TerminatedOutboxCreatedEvent(this.name));
 	}
 
-	public addDependencies(tokenMethod: TokenMethod) {
-		this._sidechainRegistrationCommand.addDependencies(tokenMethod);
+	public addDependencies(tokenMethod: TokenMethod, feeMethod: FeeMethod) {
+		this._sidechainRegistrationCommand.addDependencies(tokenMethod, feeMethod);
 	}
 
 	public metadata(): ModuleMetadata {
@@ -127,9 +150,5 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				},
 			],
 		};
-	}
-
-	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
-		await initGenesisStateUtil(context, this.stores);
 	}
 }

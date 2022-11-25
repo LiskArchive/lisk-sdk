@@ -145,7 +145,6 @@ export class PoSEndpoint extends BaseEndpoint {
 			numberActiveValidators: this._moduleConfig.numberActiveValidators,
 			numberStandbyValidators: this._moduleConfig.numberStandbyValidators,
 			posTokenID: this._moduleConfig.posTokenID.toString('hex'),
-			tokenIDFee: this._moduleConfig.tokenIDFee.toString('hex'),
 			validatorRegistrationFee: this._moduleConfig.validatorRegistrationFee.toString(),
 			maxBFTWeightCap: this._moduleConfig.maxBFTWeightCap,
 			commissionIncreasePeriod: this._moduleConfig.commissionIncreasePeriod,

@@ -70,7 +70,6 @@ describe('PoS module', () => {
 		numberActiveValidators: 101,
 		numberStandbyValidators: 2,
 		posTokenID: '0000000000000000',
-		tokenIDFee: '0000000000000000',
 		validatorRegistrationFee: (BigInt(10) * BigInt(10) ** BigInt(8)).toString(),
 		maxBFTWeightCap: 500,
 		commissionIncreasePeriod: COMMISSION_INCREASE_PERIOD,
@@ -107,7 +106,6 @@ describe('PoS module', () => {
 				...defaultConfig,
 				minWeightStandby: BigInt(defaultConfig.minWeightStandby),
 				posTokenID: Buffer.alloc(TOKEN_ID_LENGTH),
-				tokenIDFee: Buffer.from(defaultConfig.tokenIDFee, 'hex'),
 				validatorRegistrationFee: BigInt(defaultConfig.validatorRegistrationFee),
 			});
 		});
@@ -151,7 +149,10 @@ describe('PoS module', () => {
 				transfer: jest.fn(),
 				getLockedAmount: jest.fn().mockResolvedValue(BigInt(101000000000)),
 			};
-			pos.addDependencies(randomMethod, validatorMethod, tokenMethod);
+			const feeMethod = {
+				payFee: jest.fn(),
+			};
+			pos.addDependencies(randomMethod, validatorMethod, tokenMethod, feeMethod);
 
 			await pos.init({
 				genesisConfig: {} as GenesisConfig,
@@ -500,7 +501,11 @@ describe('PoS module', () => {
 							getLockedAmount: jest.fn(),
 						};
 
-						pos.addDependencies(randomMethod, validatorMethod, tokenMethod);
+						const feeMethod = {
+							payFee: jest.fn(),
+						};
+
+						pos.addDependencies(randomMethod, validatorMethod, tokenMethod, feeMethod);
 
 						await pos['_updateValidators'](context);
 
@@ -575,7 +580,11 @@ describe('PoS module', () => {
 					getLockedAmount: jest.fn(),
 				};
 
-				pos.addDependencies(randomMethod, validatorMethod, tokenMethod);
+				const feeMethod = {
+					payFee: jest.fn(),
+				};
+
+				pos.addDependencies(randomMethod, validatorMethod, tokenMethod, feeMethod);
 
 				await pos['_updateValidators'](blockContext.getBlockAfterExecuteContext());
 			});
@@ -613,6 +622,7 @@ describe('PoS module', () => {
 	describe('_updateProductivity', () => {
 		const randomMethod: any = {};
 		const tokenMethod: any = {};
+		const feeMethod: any = {};
 
 		let validatorsMethod: any;
 		let stateStore: PrefixedStateReadWriter;
@@ -635,7 +645,7 @@ describe('PoS module', () => {
 				getGeneratorsBetweenTimestamps: jest.fn(),
 			};
 
-			pos.addDependencies(randomMethod, validatorsMethod, tokenMethod);
+			pos.addDependencies(randomMethod, validatorsMethod, tokenMethod, feeMethod);
 
 			validatorData = Array(103)
 				.fill({})
@@ -1224,6 +1234,7 @@ describe('PoS module', () => {
 		const randomMethod: any = {};
 		const tokenMethod: any = {};
 		const validatorsMethod: any = {};
+		const feeMethod: any = {};
 
 		let stateStore: PrefixedStateReadWriter;
 		let height: number;
@@ -1240,7 +1251,7 @@ describe('PoS module', () => {
 				} as GenesisConfig,
 				moduleConfig: defaultConfig,
 			});
-			pos.addDependencies(randomMethod, validatorsMethod, tokenMethod);
+			pos.addDependencies(randomMethod, validatorsMethod, tokenMethod, feeMethod);
 
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 

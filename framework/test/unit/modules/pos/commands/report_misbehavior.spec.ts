@@ -81,7 +81,6 @@ describe('ReportMisbehaviorCommand', () => {
 			...defaultConfig,
 			minWeightStandby: BigInt(defaultConfig.minWeightStandby),
 			posTokenID: Buffer.alloc(8),
-			tokenIDFee: Buffer.alloc(8),
 			validatorRegistrationFee: BigInt(defaultConfig.validatorRegistrationFee),
 		});
 		pomCommand = new ReportMisbehaviorCommand(pos.stores, pos.events);

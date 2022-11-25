@@ -24,7 +24,7 @@ import {
 export const validatorRegistrationCommandParamsSchema = {
 	$id: '/pos/command/registerValidatorParams',
 	type: 'object',
-	required: ['name', 'blsKey', 'proofOfPossession', 'generatorKey', 'validatorRegistrationFee'],
+	required: ['name', 'blsKey', 'proofOfPossession', 'generatorKey'],
 	properties: {
 		name: {
 			dataType: 'string',
@@ -47,10 +47,6 @@ export const validatorRegistrationCommandParamsSchema = {
 			minLength: ED25519_PUBLIC_KEY_LENGTH,
 			maxLength: ED25519_PUBLIC_KEY_LENGTH,
 			fieldNumber: 4,
-		},
-		validatorRegistrationFee: {
-			dataType: 'uint64',
-			fieldNumber: 5,
 		},
 	},
 };
@@ -179,10 +175,6 @@ export const configSchema = {
 			type: 'string',
 			format: 'hex',
 		},
-		tokenIDFee: {
-			type: 'string',
-			format: 'hex',
-		},
 		validatorRegistrationFee: {
 			type: 'string',
 			format: 'uint64',
@@ -215,7 +207,6 @@ export const configSchema = {
 		'numberActiveValidators',
 		'numberStandbyValidators',
 		'posTokenID',
-		'tokenIDFee',
 		'validatorRegistrationFee',
 		'maxBFTWeightCap',
 	],

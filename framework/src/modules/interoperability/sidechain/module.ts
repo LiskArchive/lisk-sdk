@@ -15,7 +15,6 @@
 import { genesisAuthStoreSchema } from '../../auth/schemas';
 import { ModuleInitArgs, ModuleMetadata } from '../../base_module';
 import { BaseInteroperabilityModule } from '../base_interoperability_module';
-import { BaseInteroperableMethod } from '../base_interoperable_method';
 import { SidechainInteroperabilityMethod } from './method';
 import { SidechainCCMethod } from './cc_method';
 import { MainchainRegistrationCommand } from './commands/mainchain_registration';
@@ -26,8 +25,6 @@ import {
 	getTerminatedStateAccountRequestSchema,
 	getTerminatedOutboxAccountRequestSchema,
 } from '../schemas';
-import { GenesisBlockExecuteContext } from '../../../state_machine';
-import { initGenesisStateUtil } from '../utils';
 import {
 	chainAccountSchema,
 	allChainAccountsSchema,
@@ -42,29 +39,34 @@ import { ChainValidatorsStore } from '../stores/chain_validators';
 import { ChainAccountUpdatedEvent } from '../events/chain_account_updated';
 import { CcmProcessedEvent } from '../events/ccm_processed';
 import { InvalidRegistrationSignatureEvent } from '../events/invalid_registration_signature';
+import { CcmSendSuccessEvent } from '../events/ccm_send_success';
+import { BaseCCMethod } from '../base_cc_method';
 import { ValidatorsMethod } from '../types';
+import { SidechainInteroperabilityInternalMethod } from './internal_method';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
-	public crossChainMethod: BaseInteroperableMethod = new SidechainCCMethod(
+	public crossChainMethod: BaseCCMethod = new SidechainCCMethod(this.stores, this.events);
+	protected internalMethod = new SidechainInteroperabilityInternalMethod(
 		this.stores,
 		this.events,
+		this.interoperableCCMethods,
 	);
+	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public method = new SidechainInteroperabilityMethod(
 		this.stores,
 		this.events,
 		this.interoperableCCMethods,
+		this.internalMethod,
 	);
-	public endpoint = new SidechainInteroperabilityEndpoint(
-		this.stores,
-		this.offchainStores,
-		this.interoperableCCMethods,
-	);
+	// eslint-disable-next-line @typescript-eslint/member-ordering
+	public endpoint = new SidechainInteroperabilityEndpoint(this.stores, this.offchainStores);
 
 	private readonly _mainchainRegistrationCommand = new MainchainRegistrationCommand(
 		this.stores,
 		this.events,
 		this.interoperableCCMethods,
 		this.interoperableCCCommands,
+		this.internalMethod,
 	);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
@@ -81,6 +83,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.stores.register(ChainValidatorsStore, new ChainValidatorsStore(this.name));
 		this.events.register(ChainAccountUpdatedEvent, new ChainAccountUpdatedEvent(this.name));
 		this.events.register(CcmProcessedEvent, new CcmProcessedEvent(this.name));
+		this.events.register(CcmSendSuccessEvent, new CcmSendSuccessEvent(this.name));
 		this.events.register(
 			InvalidRegistrationSignatureEvent,
 			new InvalidRegistrationSignatureEvent(this.name),
@@ -136,10 +139,6 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 				},
 			],
 		};
-	}
-
-	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
-		await initGenesisStateUtil(context, this.stores);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

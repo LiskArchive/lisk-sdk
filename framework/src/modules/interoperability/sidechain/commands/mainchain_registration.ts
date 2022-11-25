@@ -16,18 +16,14 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils, bls } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import {
-	CCM_STATUS_OK,
-	CHAIN_REGISTERED,
 	EMPTY_HASH,
-	MAINCHAIN_ID_BUFFER,
 	MAINCHAIN_NAME,
 	MODULE_NAME_INTEROPERABILITY,
 	TAG_CHAIN_REG_MESSAGE,
 	THRESHOLD_MAINCHAIN,
-	TOKEN_ID_LSK_MAINCHAIN,
 	EMPTY_BYTES,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
-	CCM_SENT_STATUS_SUCCESS,
+	CCMStatusCode,
 } from '../../constants';
 import {
 	ccmSchema,
@@ -42,20 +38,25 @@ import {
 	VerifyStatus,
 } from '../../../../state_machine';
 import { MainchainRegistrationParams, ActiveValidators, ValidatorsMethod } from '../../types';
-import { computeValidatorsHash, isValidName, sortValidatorsByBLSKey } from '../../utils';
+import {
+	computeValidatorsHash,
+	getMainchainID,
+	getMainchainTokenID,
+	isValidName,
+	sortValidatorsByBLSKey,
+} from '../../utils';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
-import { SidechainInteroperabilityStore } from '../store';
-import { ChainAccountStore } from '../../stores/chain_account';
+import { ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 import { ChannelDataStore } from '../../stores/channel_data';
 import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { OutboxRootStore } from '../../stores/outbox_root';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
-import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { ChainAccountUpdatedEvent } from '../../events/chain_account_updated';
-import { CcmProcessedEvent } from '../../events/ccm_processed';
 import { InvalidRegistrationSignatureEvent } from '../../events/invalid_registration_signature';
+import { CcmSendSuccessEvent } from '../../events/ccm_send_success';
+import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 
-export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
+export class MainchainRegistrationCommand extends BaseInteroperabilityCommand<SidechainInteroperabilityInternalMethod> {
 	public schema = mainchainRegParams;
 
 	private _validatorsMethod!: ValidatorsMethod;
@@ -70,15 +71,8 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 	): Promise<VerificationResult> {
 		const { ownName, mainchainValidators, ownChainID } = context.params;
 
-		if (ownChainID.length > 4) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error(`Own chain id cannot be greater than maximum uint32 number.`),
-			};
-		}
-
 		try {
-			validator.validate(mainchainRegParams, context.params);
+			validator.validate<MainchainRegistrationParams>(mainchainRegParams, context.params);
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -86,9 +80,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
-		if (!ownChainID.equals(ownChainAccount.id)) {
+		if (!ownChainID.equals(context.chainID)) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(`Invalid ownChainID property.`),
@@ -113,14 +105,14 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			) {
 				return {
 					status: VerifyStatus.FAIL,
-					error: new Error('Validators blsKeys must be unique and lexicographically ordered'),
+					error: new Error('Validators blsKeys must be unique and lexicographically ordered.'),
 				};
 			}
 
-			if (currentValidator.bftWeight !== BigInt(1)) {
+			if (currentValidator.bftWeight <= 0) {
 				return {
 					status: VerifyStatus.FAIL,
-					error: new Error('Validator bft weight must be equal to 1'),
+					error: new Error('Validator bft weight must be positive integer.'),
 				};
 			}
 		}
@@ -168,10 +160,12 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			)
 		) {
 			// emit persistent event with empty data
-			this.events.get(InvalidRegistrationSignatureEvent).log(context, ownChainID);
+			this.events.get(InvalidRegistrationSignatureEvent).error(context, ownChainID);
 			throw new Error('Invalid signature property.');
 		}
 
+		const mainchainID = getMainchainID(context.chainID);
+		const mainchainTokenID = getMainchainTokenID(context.chainID);
 		const chainSubstore = this.stores.get(ChainAccountStore);
 		const mainchainAccount = {
 			name: MAINCHAIN_NAME,
@@ -181,71 +175,61 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 				stateRoot: EMPTY_HASH,
 				validatorsHash: computeValidatorsHash(mainchainValidators, BigInt(THRESHOLD_MAINCHAIN)),
 			},
-			status: CHAIN_REGISTERED,
+			status: ChainStatus.REGISTERED,
 		};
-		await chainSubstore.set(context, MAINCHAIN_ID_BUFFER, mainchainAccount);
+		await chainSubstore.set(context, mainchainID, mainchainAccount);
 
 		const channelSubstore = this.stores.get(ChannelDataStore);
-		await channelSubstore.set(context, MAINCHAIN_ID_BUFFER, {
+		await channelSubstore.set(context, mainchainID, {
 			inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 			outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 			partnerChainOutboxRoot: EMPTY_HASH,
-			messageFeeTokenID: TOKEN_ID_LSK_MAINCHAIN,
+			messageFeeTokenID: mainchainTokenID,
 		});
 
 		const chainValidatorsSubstore = this.stores.get(ChainValidatorsStore);
-		await chainValidatorsSubstore.set(context, MAINCHAIN_ID_BUFFER, {
+		await chainValidatorsSubstore.set(context, mainchainID, {
 			activeValidators: mainchainValidators,
 			certificateThreshold: BigInt(THRESHOLD_MAINCHAIN),
 		});
 
 		const outboxRootSubstore = this.stores.get(OutboxRootStore);
-		await outboxRootSubstore.set(context, MAINCHAIN_ID_BUFFER, { root: EMPTY_HASH });
+		await outboxRootSubstore.set(context, mainchainID, { root: EMPTY_HASH });
 
-		const ownChainAccountSubstore = this.stores.get(OwnChainAccountStore);
-		await ownChainAccountSubstore.set(context, EMPTY_BYTES, {
-			name: ownName,
-			id: ownChainID,
-			nonce: BigInt(0),
-		});
-		this.events
-			.get(ChainAccountUpdatedEvent)
-			.log(methodContext, MAINCHAIN_ID_BUFFER, mainchainAccount);
+		this.events.get(ChainAccountUpdatedEvent).log(methodContext, mainchainID, mainchainAccount);
 
 		const encodedParams = codec.encode(registrationCCMParamsSchema, {
-			chainID: MAINCHAIN_ID_BUFFER,
 			name: MAINCHAIN_NAME,
-			messageFeeTokenID: TOKEN_ID_LSK_MAINCHAIN,
+			messageFeeTokenID: mainchainTokenID,
 		});
 
-		const ownChainAccount = await ownChainAccountSubstore.get(context, EMPTY_BYTES);
+		const ownChainAccount = {
+			name: ownName,
+			chainID: ownChainID,
+			nonce: BigInt(0),
+		};
 
 		const ccm = {
 			nonce: ownChainAccount.nonce,
 			module: MODULE_NAME_INTEROPERABILITY,
 			crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
-			sendingChainID: ownChainAccount.id,
-			receivingChainID: MAINCHAIN_ID_BUFFER,
+			sendingChainID: ownChainAccount.chainID,
+			receivingChainID: mainchainID,
 			fee: BigInt(0),
-			status: CCM_STATUS_OK,
+			status: CCMStatusCode.OK,
 			params: encodedParams,
 		};
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-		await interoperabilityStore.addToOutbox(MAINCHAIN_ID_BUFFER, ccm);
+		await this.internalMethod.addToOutbox(context, mainchainID, ccm);
 
 		ownChainAccount.nonce += BigInt(1);
-		await ownChainAccountSubstore.set(context, EMPTY_BYTES, ownChainAccount);
+		await this.stores.get(OwnChainAccountStore).set(context, EMPTY_BYTES, ownChainAccount);
 
 		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
-		this.events.get(CcmProcessedEvent).log(methodContext, ownChainAccount.id, MAINCHAIN_ID_BUFFER, {
-			ccmID,
-			status: CCM_SENT_STATUS_SUCCESS,
-		});
-	}
 
-	protected getInteroperabilityStore(
-		context: StoreGetter | ImmutableStoreGetter,
-	): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
+		this.events
+			.get(CcmSendSuccessEvent)
+			.log(methodContext, ownChainAccount.chainID, mainchainID, ccmID, {
+				ccmID,
+			});
 	}
 }

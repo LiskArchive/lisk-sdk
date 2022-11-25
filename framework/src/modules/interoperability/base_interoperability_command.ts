@@ -13,28 +13,21 @@
  */
 
 import { BaseCommand } from '../base_command';
-import { ImmutableStoreGetter, StoreGetter } from '../base_store';
 import { NamedRegistry } from '../named_registry';
 import { BaseCCCommand } from './base_cc_command';
-import { BaseInteroperabilityStore } from './base_interoperability_store';
-import { BaseInteroperableMethod } from './base_interoperable_method';
+import { BaseCCMethod } from './base_cc_method';
+import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 
-export abstract class BaseInteroperabilityCommand extends BaseCommand {
-	protected readonly interoperableCCMethods = new Map<string, BaseInteroperableMethod>();
-	protected readonly ccCommands = new Map<string, BaseCCCommand[]>();
-
+export abstract class BaseInteroperabilityCommand<
+	T extends BaseInteroperabilityInternalMethod
+> extends BaseCommand {
 	public constructor(
 		stores: NamedRegistry,
 		events: NamedRegistry,
-		interoperableCCMethods: Map<string, BaseInteroperableMethod>,
-		ccCommands: Map<string, BaseCCCommand[]>,
+		protected readonly interoperableCCMethods = new Map<string, BaseCCMethod>(),
+		protected readonly ccCommands = new Map<string, BaseCCCommand[]>(),
+		protected internalMethod: T,
 	) {
 		super(stores, events);
-		this.interoperableCCMethods = interoperableCCMethods;
-		this.ccCommands = ccCommands;
 	}
-
-	protected abstract getInteroperabilityStore(
-		context: StoreGetter | ImmutableStoreGetter,
-	): BaseInteroperabilityStore;
 }

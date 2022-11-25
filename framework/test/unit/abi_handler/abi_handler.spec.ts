@@ -28,7 +28,6 @@ import { TransactionExecutionResult, TransactionVerifyResult } from '../../../sr
 import { AuthModule } from '../../../src/modules/auth';
 import { InMemoryPrefixedStateDB } from '../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../src/state_machine/prefixed_state_read_writer';
-import { USER_SUBSTORE_INITIALIZATION_FEE } from '../../../src/modules/token/constants';
 
 describe('abi handler', () => {
 	let abiHandler: ABIHandler;
@@ -449,7 +448,6 @@ describe('abi handler', () => {
 					amount: BigInt(0),
 					recipientAddress: Buffer.alloc(20, 2),
 					data: '',
-					accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 				}),
 				senderPublicKey: utils.getRandomBytes(32),
 				signatures: [utils.getRandomBytes(64)],
@@ -489,7 +487,6 @@ describe('abi handler', () => {
 					amount: BigInt(0),
 					recipientAddress: Buffer.alloc(20, 2),
 					data: '',
-					accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 				}),
 				senderPublicKey: utils.getRandomBytes(32),
 				signatures: [utils.getRandomBytes(64)],

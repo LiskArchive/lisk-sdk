@@ -52,6 +52,7 @@ import { generateGenesisBlock } from '../genesis_block';
 import { systemDirs } from '../system_dirs';
 import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
 import { createLogger } from '../logger';
+import { MainchainInteroperabilityModule } from '../modules/interoperability';
 
 type Options = {
 	genesis?: GenesisConfig;
@@ -177,6 +178,7 @@ export const getBlockProcessingEnv = async (
 	const rewardModule = new RewardModule();
 	const randomModule = new RandomModule();
 	const posModule = new PoSModule();
+	const interopModule = new MainchainInteroperabilityModule();
 	const modules = [
 		validatorsModule,
 		authModule,
@@ -190,15 +192,21 @@ export const getBlockProcessingEnv = async (
 	const logger = createLogger({ name: 'blockProcessingEnv', logLevel: params.logLevel ?? 'none' });
 
 	// resolve dependencies
-	feeModule.addDependencies(tokenModule.method);
+	tokenModule.addDependencies(interopModule.method, feeModule.method);
+	feeModule.addDependencies(tokenModule.method, interopModule.method);
 	rewardModule.addDependencies(tokenModule.method, randomModule.method);
-	posModule.addDependencies(randomModule.method, validatorsModule.method, tokenModule.method);
+	posModule.addDependencies(
+		randomModule.method,
+		validatorsModule.method,
+		tokenModule.method,
+		feeModule.method,
+	);
 
 	// register modules
+	stateMachine.registerModule(feeModule);
 	stateMachine.registerModule(authModule);
 	stateMachine.registerModule(validatorsModule);
 	stateMachine.registerModule(tokenModule);
-	stateMachine.registerModule(feeModule);
 	stateMachine.registerModule(rewardModule);
 	stateMachine.registerModule(randomModule);
 	stateMachine.registerModule(posModule);

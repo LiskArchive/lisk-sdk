@@ -26,7 +26,6 @@ export const BASE_STAKE_AMOUNT = BigInt(10) * BigInt(10) ** BigInt(8);
 export const MAX_NUMBER_SENT_STAKES = 10;
 export const MAX_NUMBER_PENDING_UNLOCKS = 20;
 export const TOKEN_ID_POS = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
-export const TOKEN_ID_FEE = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 export const VALIDATOR_REGISTRATION_FEE = BigInt(10) * BigInt(10) ** BigInt(8);
 export const MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE = 260000;
 export const POM_LIMIT_BANNED = 5;
@@ -62,7 +61,6 @@ export const defaultConfig = {
 	minWeightStandby: '100000000000',
 	numberActiveValidators: 101,
 	numberStandbyValidators: 2,
-	tokenIDFee: TOKEN_ID_FEE.toString('hex'),
 	validatorRegistrationFee: VALIDATOR_REGISTRATION_FEE.toString(),
 	maxBFTWeightCap: 500,
 	commissionIncreasePeriod: COMMISSION_INCREASE_PERIOD,

@@ -11,7 +11,16 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseStore } from '../../base_store';
+import { utils } from '@liskhq/lisk-cryptography';
+import { BaseStore, ImmutableStoreGetter } from '../../base_store';
+import { HASH_LENGTH, MAX_UINT32 } from '../constants';
+
+// Chain status
+export const enum ChainStatus {
+	REGISTERED = 0,
+	ACTIVE = 1,
+	TERMINATED = 2,
+}
 
 export interface LastCertificate {
 	height: number;
@@ -30,7 +39,7 @@ export interface LastCertificateJSON {
 export interface ChainAccount {
 	name: string;
 	lastCertificate: LastCertificate;
-	status: number;
+	status: ChainStatus;
 }
 
 const chainAccountJSONSchema = {
@@ -56,10 +65,14 @@ const chainAccountJSONSchema = {
 				},
 				stateRoot: {
 					dataType: 'bytes',
+					minLength: HASH_LENGTH,
+					maxLength: HASH_LENGTH,
 					fieldNumber: 3,
 				},
 				validatorsHash: {
 					dataType: 'bytes',
+					minLength: HASH_LENGTH,
+					maxLength: HASH_LENGTH,
 					fieldNumber: 4,
 				},
 			},
@@ -70,6 +83,8 @@ const chainAccountJSONSchema = {
 		},
 	},
 };
+
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#chain-data-substore
 export const chainAccountSchema = {
 	$id: '/modules/interoperability/chainAccount',
 	...chainAccountJSONSchema,
@@ -89,4 +104,19 @@ export const allChainAccountsSchema = {
 
 export class ChainAccountStore extends BaseStore<ChainAccount> {
 	public schema = chainAccountSchema;
+
+	public async getAllAccounts(
+		context: ImmutableStoreGetter,
+		startChainID: Buffer,
+	): Promise<ChainAccount[]> {
+		const endBuf = utils.intToBuffer(MAX_UINT32, 4);
+		const chainAccounts = await this.iterate(context, {
+			gte: startChainID,
+			lte: endBuf,
+		});
+
+		return Promise.all(
+			chainAccounts.map(async chainAccount => this.get(context, chainAccount.key)),
+		);
+	}
 }

@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 import { BaseStore } from '../../base_store';
 
 export interface BlockRewardsData {

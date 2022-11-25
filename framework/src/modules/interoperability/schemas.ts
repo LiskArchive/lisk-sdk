@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { CHAIN_ID_LENGTH } from '../token/constants';
+import { CHAIN_ID_LENGTH, TOKEN_ID_LENGTH } from '../token/constants';
 import {
 	MAX_LENGTH_NAME,
 	NUMBER_MAINCHAIN_VALIDATORS,
@@ -21,59 +21,74 @@ import {
 	MAX_CHAIN_NAME_LENGTH,
 	BLS_PUBLIC_KEY_LENGTH,
 	BLS_SIGNATURE_LENGTH,
+	MAX_MODULE_NAME_LENGTH,
+	MIN_MODULE_NAME_LENGTH,
+	MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH,
+	MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH,
+	HASH_LENGTH,
 } from './constants';
 import { chainAccountSchema } from './stores/chain_account';
 import { chainValidatorsSchema } from './stores/chain_validators';
 import { channelSchema } from './stores/channel_data';
 import { outboxRootSchema } from './stores/outbox_root';
 import { ownChainAccountSchema } from './stores/own_chain_account';
+import { chainIDSchema } from './stores/registered_names';
 import { terminatedOutboxSchema } from './stores/terminated_outbox';
 import { terminatedStateSchema } from './stores/terminated_state';
 
+// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#cross-chain-message-schema
 export const ccmSchema = {
 	$id: '/modules/interoperability/ccm',
 	type: 'object',
 	required: [
-		'nonce',
 		'module',
 		'crossChainCommand',
+		'nonce',
+		'fee',
 		'sendingChainID',
 		'receivingChainID',
-		'fee',
-		'status',
 		'params',
+		'status',
 	],
 	properties: {
-		nonce: {
-			dataType: 'uint64',
-			fieldNumber: 1,
-		},
 		module: {
 			dataType: 'string',
-			fieldNumber: 2,
+			minLength: MIN_MODULE_NAME_LENGTH,
+			maxLength: MAX_MODULE_NAME_LENGTH,
+			fieldNumber: 1,
 		},
 		crossChainCommand: {
 			dataType: 'string',
+			minLength: MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH,
+			maxLength: MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH,
+			fieldNumber: 2,
+		},
+		nonce: {
+			dataType: 'uint64',
 			fieldNumber: 3,
-		},
-		sendingChainID: {
-			dataType: 'bytes',
-			fieldNumber: 4,
-		},
-		receivingChainID: {
-			dataType: 'bytes',
-			fieldNumber: 5,
 		},
 		fee: {
 			dataType: 'uint64',
-			fieldNumber: 6,
+			fieldNumber: 4,
 		},
-		status: {
-			dataType: 'uint32',
-			fieldNumber: 7,
+		sendingChainID: {
+			dataType: 'bytes',
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
+			fieldNumber: 5,
+		},
+		receivingChainID: {
+			dataType: 'bytes',
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
+			fieldNumber: 6,
 		},
 		params: {
 			dataType: 'bytes',
+			fieldNumber: 7,
+		},
+		status: {
+			dataType: 'uint32',
 			fieldNumber: 8,
 		},
 	},
@@ -122,10 +137,6 @@ export const sidechainRegParams = {
 			dataType: 'uint64',
 			fieldNumber: 4,
 		},
-		sidechainRegistrationFee: {
-			dataType: 'uint64',
-			fieldNumber: 5,
-		},
 	},
 };
 
@@ -144,7 +155,7 @@ export const mainchainRegParams = {
 			dataType: 'string',
 			fieldNumber: 2,
 			minLength: MIN_CHAIN_NAME_LENGTH,
-			maxLength: MAX_LENGTH_NAME,
+			maxLength: MAX_CHAIN_NAME_LENGTH,
 		},
 		mainchainValidators: {
 			type: 'array',
@@ -188,13 +199,15 @@ export const crossChainUpdateTransactionParams = {
 		'sendingChainID',
 		'certificate',
 		'activeValidatorsUpdate',
-		'newCertificateThreshold',
+		'certificateThreshold',
 		'inboxUpdate',
 	],
 	properties: {
 		sendingChainID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 		certificate: {
 			dataType: 'bytes',
@@ -220,34 +233,27 @@ export const crossChainUpdateTransactionParams = {
 				},
 			},
 		},
-		newCertificateThreshold: {
+		certificateThreshold: {
 			dataType: 'uint64',
 			fieldNumber: 4,
 		},
 		inboxUpdate: {
 			type: 'object',
 			fieldNumber: 5,
-			required: ['crossChainMessages', 'messageWitness', 'outboxRootWitness'],
+			required: ['crossChainMessages', 'messageWitnessHashes', 'outboxRootWitness'],
 			properties: {
 				crossChainMessages: {
 					type: 'array',
 					fieldNumber: 1,
 					items: { dataType: 'bytes' },
 				},
-				messageWitness: {
-					type: 'object',
+				messageWitnessHashes: {
+					type: 'array',
 					fieldNumber: 2,
-					required: ['partnerChainOutboxSize', 'siblingHashes'],
-					properties: {
-						partnerChainOutboxSize: {
-							dataType: 'uint64',
-							fieldNumber: 1,
-						},
-						siblingHashes: {
-							type: 'array',
-							fieldNumber: 2,
-							items: { dataType: 'bytes' },
-						},
+					items: {
+						dataType: 'bytes',
+						minLength: HASH_LENGTH,
+						maxLength: HASH_LENGTH,
 					},
 				},
 				outboxRootWitness: {
@@ -262,7 +268,11 @@ export const crossChainUpdateTransactionParams = {
 						siblingHashes: {
 							type: 'array',
 							fieldNumber: 2,
-							items: { dataType: 'bytes' },
+							items: {
+								dataType: 'bytes',
+								minLength: HASH_LENGTH,
+								maxLength: HASH_LENGTH,
+							},
 						},
 					},
 				},
@@ -271,6 +281,7 @@ export const crossChainUpdateTransactionParams = {
 	},
 };
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#parameters-1
 export const messageRecoveryParamsSchema = {
 	$id: '/modules/interoperability/mainchain/messageRecovery',
 	type: 'object',
@@ -278,6 +289,8 @@ export const messageRecoveryParamsSchema = {
 	properties: {
 		chainID: {
 			dataType: 'bytes',
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 			fieldNumber: 1,
 		},
 		crossChainMessages: {
@@ -299,6 +312,39 @@ export const messageRecoveryParamsSchema = {
 			type: 'array',
 			items: {
 				dataType: 'bytes',
+				minLength: HASH_LENGTH,
+				maxLength: HASH_LENGTH,
+			},
+			fieldNumber: 4,
+		},
+	},
+};
+
+export const messageRecoveryInitializationParamsSchema = {
+	$id: '/modules/interoperability/mainchain/messageRecoveryInitialization',
+	type: 'object',
+	required: ['chainID', 'channel', 'bitmap', 'siblingHashes'],
+	properties: {
+		chainID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
+		},
+		channel: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+		bitmap: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		siblingHashes: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: HASH_LENGTH,
+				maxLength: HASH_LENGTH,
 			},
 			fieldNumber: 4,
 		},
@@ -306,41 +352,23 @@ export const messageRecoveryParamsSchema = {
 };
 
 // Cross chain commands schemas
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#parameters-2
 export const registrationCCMParamsSchema = {
 	$id: '/modules/interoperability/ccCommand/registration',
 	type: 'object',
-	required: ['chainID', 'name', 'messageFeeTokenID'],
+	required: ['name', 'messageFeeTokenID'],
 	properties: {
-		chainID: {
-			dataType: 'bytes',
-			fieldNumber: 1,
-		},
 		name: {
 			dataType: 'string',
-			fieldNumber: 2,
+			fieldNumber: 1,
 		},
 		messageFeeTokenID: {
-			type: 'object',
-			fieldNumber: 3,
-			required: ['chainID', 'localID'],
-			properties: {
-				chainID: {
-					dataType: 'bytes',
-					fieldNumber: 1,
-				},
-				localID: {
-					dataType: 'bytes',
-					fieldNumber: 2,
-				},
-			},
+			dataType: 'bytes',
+			minLength: TOKEN_ID_LENGTH,
+			maxLength: TOKEN_ID_LENGTH,
+			fieldNumber: 2,
 		},
 	},
-};
-
-export const channelTerminatedCCMParamsSchema = {
-	$id: '/modules/interoperability/ccCommand/channelTerminated',
-	type: 'object',
-	properties: {},
 };
 
 export const sidechainTerminatedCCMParamsSchema = {
@@ -351,22 +379,14 @@ export const sidechainTerminatedCCMParamsSchema = {
 		chainID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 		stateRoot: {
 			dataType: 'bytes',
 			fieldNumber: 2,
-		},
-	},
-};
-
-export const chainIDSchema = {
-	$id: '/modules/interoperability/chainId',
-	type: 'object',
-	required: ['id'],
-	properties: {
-		id: {
-			dataType: 'bytes',
-			fieldNumber: 1,
+			minLength: HASH_LENGTH,
+			maxLength: HASH_LENGTH,
 		},
 	},
 };
@@ -442,6 +462,8 @@ export const stateRecoveryParamsSchema = {
 		chainID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 		module: {
 			dataType: 'string',
@@ -453,8 +475,8 @@ export const stateRecoveryParamsSchema = {
 			items: {
 				type: 'object',
 				properties: {
-					storePrefix: {
-						dataType: 'uint32',
+					substorePrefix: {
+						dataType: 'bytes',
 						fieldNumber: 1,
 					},
 					storeKey: {
@@ -470,7 +492,7 @@ export const stateRecoveryParamsSchema = {
 						fieldNumber: 4,
 					},
 				},
-				required: ['storePrefix', 'storeKey', 'storeValue', 'bitmap'],
+				required: ['substorePrefix', 'storeKey', 'storeValue', 'bitmap'],
 			},
 		},
 		siblingHashes: {
@@ -483,16 +505,19 @@ export const stateRecoveryParamsSchema = {
 	},
 };
 
-export const stateRecoveryInitParams = {
+// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#parameters-3
+export const stateRecoveryInitParamsSchema = {
 	$id: '/modules/interoperability/mainchain/stateRecoveryInitialization',
 	type: 'object',
-	required: ['chainID', 'sidechainChainAccount', 'bitmap', 'siblingHashes'],
+	required: ['chainID', 'sidechainAccount', 'bitmap', 'siblingHashes'],
 	properties: {
 		chainID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
-		sidechainChainAccount: {
+		sidechainAccount: {
 			dataType: 'bytes',
 			fieldNumber: 2,
 		},
@@ -504,8 +529,24 @@ export const stateRecoveryInitParams = {
 			type: 'array',
 			items: {
 				dataType: 'bytes',
+				minLength: HASH_LENGTH,
+				maxLength: HASH_LENGTH,
 			},
 			fieldNumber: 4,
+		},
+	},
+};
+
+export const terminateSidechainForLivenessParamsSchema = {
+	$id: '/modules/interoperability/mainchain/terminateSidechainForLiveness',
+	type: 'object',
+	required: ['chainID'],
+	properties: {
+		chainID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 	},
 };
@@ -540,7 +581,7 @@ export const getTerminatedStateAccountRequestSchema = getChainAccountRequestSche
 
 export const getTerminatedOutboxAccountRequestSchema = getChainAccountRequestSchema;
 
-export const genesisInteroperabilityStoreSchema = {
+export const genesisInteroperabilitySchema = {
 	$id: '/interoperability/module/genesis',
 	type: 'object',
 	required: [
@@ -620,8 +661,8 @@ export const genesisInteroperabilityStoreSchema = {
 						fieldNumber: 1,
 					},
 					storeValue: {
-						...chainValidatorsSchema,
 						fieldNumber: 2,
+						...chainValidatorsSchema,
 					},
 				},
 			},

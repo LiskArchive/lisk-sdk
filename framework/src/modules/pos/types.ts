@@ -34,7 +34,6 @@ export interface ModuleConfig {
 	numberActiveValidators: number;
 	numberStandbyValidators: number;
 	posTokenID: TokenID;
-	tokenIDFee: Buffer;
 	validatorRegistrationFee: bigint;
 	maxBFTWeightCap: number;
 	commissionIncreasePeriod: number;
@@ -120,6 +119,10 @@ export interface TokenMethod {
 	): Promise<bigint>;
 }
 
+export interface FeeMethod {
+	payFee(methodContext: MethodContext, amount: bigint): void;
+}
+
 export interface UnlockingObject {
 	readonly validatorAddress: Buffer;
 	readonly amount: bigint;
@@ -135,7 +138,6 @@ export interface ValidatorRegistrationParams {
 	blsKey: Buffer;
 	proofOfPossession: Buffer;
 	generatorKey: Buffer;
-	validatorRegistrationFee: bigint;
 }
 
 export interface StakeSharingCoefficient {

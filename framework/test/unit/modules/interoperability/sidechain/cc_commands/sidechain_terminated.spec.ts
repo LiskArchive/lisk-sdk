@@ -15,39 +15,21 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import {
+	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { SidechainCCSidechainTerminatedCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands';
-import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
 import { sidechainTerminatedCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
-import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
-import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
+import { CrossChainMessageContext } from '../../../../../../src/modules/interoperability/types';
+import { createCrossChainMessageContext } from '../../../../../../src/testing';
 import { SidechainInteroperabilityModule } from '../../../../../../src';
+import { SidechainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/sidechain/internal_method';
 
 describe('SidechainCCSidechainTerminatedCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
 
-	const terminateChainInternalMock = jest.fn();
-	const hasTerminatedStateAccountMock = jest.fn();
-	const createTerminatedStateAccountMock = jest.fn();
-
-	const ccMethodMod1 = {
-		beforeSendCCM: jest.fn(),
-		beforeApplyCCM: jest.fn(),
-	};
-
-	const ccMethodMod2 = {
-		beforeSendCCM: jest.fn(),
-		beforeApplyCCM: jest.fn(),
-	};
-
-	const ccMethodsMap = new Map();
-	ccMethodsMap.set(1, ccMethodMod1);
-	ccMethodsMap.set(2, ccMethodMod2);
-
-	const chainID = utils.getRandomBytes(32);
+	const chainID = Buffer.from([0, 0, 1, 0]);
 
 	const ccmSidechainTerminatedParams = {
 		chainID: utils.intToBuffer(5, 4),
@@ -63,77 +45,113 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 		nonce: BigInt(0),
 		module: MODULE_NAME_INTEROPERABILITY,
 		crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-		sendingChainID: MAINCHAIN_ID_BUFFER,
+		sendingChainID: Buffer.from([0, 0, 0, 0]),
 		receivingChainID: utils.intToBuffer(1, 4),
 		fee: BigInt(20000),
-		status: 0,
+		status: CCMStatusCode.OK,
 		params: encodedSidechainTerminatedParams,
 	};
-	const ccmNew = {
-		...ccm,
-		sendingChainID: utils.intToBuffer(2, 4),
-	};
-	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
-		ccm,
-		chainID,
-	});
-	const sampleExecuteContextNew: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
-		ccm: ccmNew,
-		chainID,
-	});
 
-	let mainchainInteroperabilityStore: SidechainInteroperabilityStore;
 	let ccSidechainTerminatedCommand: SidechainCCSidechainTerminatedCommand;
+	let context: CrossChainMessageContext;
 
 	beforeEach(() => {
-		mainchainInteroperabilityStore = new SidechainInteroperabilityStore(
-			interopMod.stores,
-			sampleExecuteContext,
-			ccMethodsMap,
-		);
-		mainchainInteroperabilityStore.terminateChainInternal = terminateChainInternalMock;
-		mainchainInteroperabilityStore.hasTerminatedStateAccount = hasTerminatedStateAccountMock;
-		mainchainInteroperabilityStore.createTerminatedStateAccount = createTerminatedStateAccountMock;
+		context = createCrossChainMessageContext({
+			ccm: { ...ccm },
+			chainID,
+		});
 
 		ccSidechainTerminatedCommand = new SidechainCCSidechainTerminatedCommand(
 			interopMod.stores,
 			interopMod.events,
-			ccMethodsMap,
+			new Map(),
+			new SidechainInteroperabilityInternalMethod(interopMod.stores, interopMod.events, new Map()),
 		);
-		(ccSidechainTerminatedCommand as any)['getInteroperabilityStore'] = jest
-			.fn()
-			.mockReturnValue(mainchainInteroperabilityStore);
+
+		jest.spyOn(ccSidechainTerminatedCommand['internalMethods'], 'isLive');
+		jest
+			.spyOn(ccSidechainTerminatedCommand['internalMethods'], 'createTerminatedStateAccount')
+			.mockResolvedValue();
 	});
 
-	it('should call terminateChainInternal when sendingChainID !== MAINCHAIN_ID', async () => {
-		await ccSidechainTerminatedCommand.execute(sampleExecuteContextNew);
+	describe('verify', () => {
+		it('should reject when the ccm status is not OK', async () => {
+			await expect(
+				ccSidechainTerminatedCommand.verify(
+					createCrossChainMessageContext({
+						ccm: { ...ccm, status: CCMStatusCode.FAILED_CCM },
+						chainID,
+					}),
+				),
+			).rejects.toThrow('Sidechain terminated message must have status OK');
+		});
 
-		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
-		expect(terminateChainInternalMock).toHaveBeenCalledWith(
-			ccmNew.sendingChainID,
-			expect.objectContaining({
-				ccm: ccmNew,
-				chainID,
-			}),
-		);
+		it('should reject when the sending chainID is not mainchain', async () => {
+			await expect(
+				ccSidechainTerminatedCommand.verify(
+					createCrossChainMessageContext({
+						ccm: { ...ccm, sendingChainID: Buffer.from([1, 0, 1, 0]) },
+						chainID,
+					}),
+				),
+			).rejects.toThrow('Sidechain terminated message must be sent from the mainchain');
+		});
+
+		it('should resolve when data is valid', async () => {
+			await expect(
+				ccSidechainTerminatedCommand.verify(
+					createCrossChainMessageContext({
+						ccm,
+						chainID,
+					}),
+				),
+			).resolves.toBeUndefined();
+		});
 	});
 
-	it('should return without creating a entry for the chainID in the terminated account substore when entry already exists and sendingChainID === MAINCHAIN_ID', async () => {
-		hasTerminatedStateAccountMock.mockResolvedValueOnce(true);
-		await ccSidechainTerminatedCommand.execute(sampleExecuteContext);
+	describe('execute', () => {
+		it('should not create terminatedStateAccount when chain is not live', async () => {
+			jest
+				.spyOn(ccSidechainTerminatedCommand['internalMethods'], 'isLive')
+				.mockResolvedValue(false);
 
-		expect(terminateChainInternalMock).toHaveBeenCalledTimes(0);
-		expect(createTerminatedStateAccountMock).toHaveBeenCalledTimes(0);
-	});
+			await expect(
+				ccSidechainTerminatedCommand.execute({
+					...context,
+					params: ccmSidechainTerminatedParams,
+				}),
+			).resolves.toBeUndefined();
 
-	it('should create an entry for the chainID in the terminated account substore when an entry does not exist and sendingChainID === MAINCHAIN_ID', async () => {
-		hasTerminatedStateAccountMock.mockResolvedValueOnce(false);
-		await ccSidechainTerminatedCommand.execute(sampleExecuteContext);
+			expect(ccSidechainTerminatedCommand['internalMethods'].isLive).toHaveBeenCalledWith(
+				expect.anything(),
+				ccmSidechainTerminatedParams.chainID,
+			);
+			expect(
+				ccSidechainTerminatedCommand['internalMethods'].createTerminatedStateAccount,
+			).not.toHaveBeenCalled();
+		});
 
-		expect(createTerminatedStateAccountMock).toHaveBeenCalledTimes(1);
-		expect(createTerminatedStateAccountMock).toHaveBeenCalledWith(
-			ccmSidechainTerminatedParams.chainID,
-			ccmSidechainTerminatedParams.stateRoot,
-		);
+		it('should create terminatedStateAccount when chain is live', async () => {
+			jest.spyOn(ccSidechainTerminatedCommand['internalMethods'], 'isLive').mockResolvedValue(true);
+
+			await expect(
+				ccSidechainTerminatedCommand.execute({
+					...context,
+					params: ccmSidechainTerminatedParams,
+				}),
+			).resolves.toBeUndefined();
+
+			expect(ccSidechainTerminatedCommand['internalMethods'].isLive).toHaveBeenCalledWith(
+				expect.anything(),
+				ccmSidechainTerminatedParams.chainID,
+			);
+			expect(
+				ccSidechainTerminatedCommand['internalMethods'].createTerminatedStateAccount,
+			).toHaveBeenCalledWith(
+				expect.anything(),
+				ccmSidechainTerminatedParams.chainID,
+				ccmSidechainTerminatedParams.stateRoot,
+			);
+		});
 	});
 });

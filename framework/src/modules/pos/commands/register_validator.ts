@@ -20,28 +20,26 @@ import {
 	CommandExecuteContext,
 } from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
-import { COMMISSION, TOKEN_ID_FEE } from '../constants';
+import { COMMISSION } from '../constants';
 import { ValidatorRegisteredEvent } from '../events/validator_registered';
 import { validatorRegistrationCommandParamsSchema } from '../schemas';
 import { ValidatorStore } from '../stores/validator';
 import { NameStore } from '../stores/name';
-import { ValidatorRegistrationParams, TokenMethod, ValidatorsMethod } from '../types';
+import { ValidatorRegistrationParams, ValidatorsMethod, FeeMethod } from '../types';
 import { isUsername } from '../utils';
 
 export class RegisterValidatorCommand extends BaseCommand {
 	public schema = validatorRegistrationCommandParamsSchema;
 	private _validatorsMethod!: ValidatorsMethod;
-	private _tokenMethod!: TokenMethod;
-	private _tokenIDFee!: Buffer;
+	private _feeMethod!: FeeMethod;
 	private _validatorRegistrationFee!: bigint;
 
-	public addDependencies(tokenMethod: TokenMethod, validatorsMethod: ValidatorsMethod) {
-		this._tokenMethod = tokenMethod;
+	public addDependencies(validatorsMethod: ValidatorsMethod, feeMethod: FeeMethod) {
 		this._validatorsMethod = validatorsMethod;
+		this._feeMethod = feeMethod;
 	}
 
-	public init(args: { tokenIDFee: Buffer; validatorRegistrationFee: bigint }) {
-		this._tokenIDFee = args.tokenIDFee;
+	public init(args: { validatorRegistrationFee: bigint }) {
 		this._validatorRegistrationFee = args.validatorRegistrationFee;
 	}
 
@@ -56,25 +54,6 @@ export class RegisterValidatorCommand extends BaseCommand {
 			return {
 				status: VerifyStatus.FAIL,
 				error: err as Error,
-			};
-		}
-
-		if (context.params.validatorRegistrationFee !== this._validatorRegistrationFee) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Invalid validator registration fee.'),
-			};
-		}
-
-		const balance = await this._tokenMethod.getAvailableBalance(
-			context,
-			transaction.senderAddress,
-			TOKEN_ID_FEE,
-		);
-		if (balance < this._validatorRegistrationFee) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Not sufficient amount for validator registration fee.'),
 			};
 		}
 
@@ -103,6 +82,13 @@ export class RegisterValidatorCommand extends BaseCommand {
 			};
 		}
 
+		if (transaction.fee < this._validatorRegistrationFee) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Insufficient transaction fee.'),
+			};
+		}
+
 		return {
 			status: VerifyStatus.OK,
 		};
@@ -111,7 +97,7 @@ export class RegisterValidatorCommand extends BaseCommand {
 	public async execute(context: CommandExecuteContext<ValidatorRegistrationParams>): Promise<void> {
 		const {
 			transaction,
-			params: { name, blsKey, generatorKey, proofOfPossession, validatorRegistrationFee },
+			params: { name, blsKey, generatorKey, proofOfPossession },
 			header: { height },
 		} = context;
 		const methodContext = context.getMethodContext();
@@ -128,12 +114,7 @@ export class RegisterValidatorCommand extends BaseCommand {
 			throw new Error('Failed to register validator keys');
 		}
 
-		await this._tokenMethod.burn(
-			context,
-			transaction.senderAddress,
-			this._tokenIDFee,
-			validatorRegistrationFee,
-		);
+		this._feeMethod.payFee(context, this._validatorRegistrationFee);
 
 		const validatorSubstore = this.stores.get(ValidatorStore);
 		await validatorSubstore.set(context, transaction.senderAddress, {

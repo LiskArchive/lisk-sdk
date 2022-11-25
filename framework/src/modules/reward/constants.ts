@@ -12,14 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
-
 export const MODULE_ID_REWARD = 10;
-export const TOKEN_ID_LSK_MAINCHAIN = {
-	chainID: utils.intToBuffer(0, 4),
-	localID: utils.intToBuffer(0, 4),
-};
-
 export const REWARD_NO_REDUCTION = 0;
 export const REWARD_REDUCTION_SEED_REVEAL = 1;
 export const REWARD_REDUCTION_MAX_PREVOTES = 2;

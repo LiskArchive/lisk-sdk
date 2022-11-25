@@ -18,20 +18,17 @@ import { codec } from '@liskhq/lisk-codec';
 import * as testing from '../../../../../../src/testing';
 import { SidechainRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/sidechain_registration';
 import {
-	CCM_STATUS_OK,
 	EMPTY_HASH,
 	MAX_UINT64,
 	MAX_NUM_VALIDATORS,
-	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 	COMMAND_NAME_SIDECHAIN_REG,
 	REGISTRATION_FEE,
 	MAX_CHAIN_NAME_LENGTH,
 	EVENT_NAME_CHAIN_ACCOUNT_UPDATED,
-	EVENT_NAME_CCM_PROCESSED,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
-	CCM_SENT_STATUS_SUCCESS,
-	CHAIN_REGISTERED,
+	EVENT_NAME_CCM_SEND_SUCCESS,
+	CCMStatusCode,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	ccmSchema,
@@ -44,7 +41,10 @@ import {
 	CommandVerifyContext,
 	VerifyStatus,
 } from '../../../../../../src/state_machine';
-import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
+import {
+	computeValidatorsHash,
+	getMainchainTokenID,
+} from '../../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
 import { MainchainInteroperabilityModule, TokenMethod, TokenModule } from '../../../../../../src';
@@ -55,17 +55,18 @@ import { OutboxRootStore } from '../../../../../../src/modules/interoperability/
 import {
 	ChainAccount,
 	ChainAccountStore,
+	ChainStatus,
 } from '../../../../../../src/modules/interoperability/stores/chain_account';
 import { ChainValidatorsStore } from '../../../../../../src/modules/interoperability/stores/chain_validators';
 import { createTransactionContext } from '../../../../../../src/testing';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
-import { EMPTY_BYTES, TOKEN_ID_LSK } from '../../../../../../src/modules/token/constants';
-import { CcmProcessedEvent } from '../../../../../../src/modules/interoperability/events/ccm_processed';
+import { EMPTY_BYTES } from '../../../../../../src/modules/token/constants';
 import { ChainAccountUpdatedEvent } from '../../../../../../src/modules/interoperability/events/chain_account_updated';
+import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
 
 describe('Sidechain registration command', () => {
 	const interopMod = new MainchainInteroperabilityModule();
-	const chainID = MAINCHAIN_ID_BUFFER;
+	const chainID = Buffer.from([0, 0, 0, 0]);
 	const newChainID = utils.intToBuffer(2, 4);
 	const existingChainID = utils.intToBuffer(1, 4);
 	const transactionParams = {
@@ -127,8 +128,6 @@ describe('Sidechain registration command', () => {
 	let registeredNamesSubstore: RegisteredNamesStore;
 	let verifyContext: CommandVerifyContext<SidechainRegistrationParams>;
 	let tokenMethod: TokenMethod;
-	let chainAccountUpdatedEvent: ChainAccountUpdatedEvent;
-	let ccmProcessedEvent: CcmProcessedEvent;
 
 	beforeEach(async () => {
 		sidechainRegistrationCommand = new SidechainRegistrationCommand(
@@ -136,13 +135,14 @@ describe('Sidechain registration command', () => {
 			interopMod.events,
 			new Map(),
 			new Map(),
+			interopMod['internalMethod'],
 		);
 
 		// Set up dependencies
 		tokenMethod = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
 		jest.spyOn(tokenMethod, 'getAvailableBalance').mockResolvedValue(REGISTRATION_FEE);
 		jest.spyOn(tokenMethod, 'burn').mockResolvedValue();
-		sidechainRegistrationCommand.addDependencies(tokenMethod);
+		sidechainRegistrationCommand.addDependencies(tokenMethod, { payFee: jest.fn() });
 
 		// Initialize stores
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -156,7 +156,7 @@ describe('Sidechain registration command', () => {
 		ownChainAccountSubstore = interopMod.stores.get(OwnChainAccountStore);
 		await ownChainAccountSubstore.set(createStoreGetter(stateStore), EMPTY_BYTES, {
 			name: 'lisk',
-			id: chainID,
+			chainID,
 			nonce: BigInt(0),
 		});
 		await chainAccountSubstore.set(createStoreGetter(stateStore), existingChainID, chainAccount);
@@ -168,10 +168,6 @@ describe('Sidechain registration command', () => {
 		jest.spyOn(registeredNamesSubstore, 'set');
 		jest.spyOn(chainAccountSubstore, 'set');
 		jest.spyOn(ownChainAccountSubstore, 'set');
-		chainAccountUpdatedEvent = interopMod.events.get(ChainAccountUpdatedEvent);
-		ccmProcessedEvent = interopMod.events.get(CcmProcessedEvent);
-		jest.spyOn(chainAccountUpdatedEvent, 'log');
-		jest.spyOn(ccmProcessedEvent, 'log');
 	});
 
 	describe('verify', () => {
@@ -214,7 +210,7 @@ describe('Sidechain registration command', () => {
 			await nameSubstore.set(
 				createStoreGetter(stateStore),
 				Buffer.from(transactionParams.name, 'utf8'),
-				{ id: utils.intToBuffer(0, 4) },
+				{ chainID: utils.intToBuffer(0, 4) },
 			);
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
@@ -421,17 +417,6 @@ describe('Sidechain registration command', () => {
 			expect(result.error?.message).toInclude('Certificate threshold above maximum bft weight');
 		});
 
-		it(`should return error if sidechainRegistrationFee is not equal ${REGISTRATION_FEE}`, async () => {
-			verifyContext.params.sidechainRegistrationFee = BigInt(9);
-
-			const result = await sidechainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				`Sidechain registration fee must be equal to ${REGISTRATION_FEE}`,
-			);
-		});
-
 		it(`should return error if available balance < ${REGISTRATION_FEE}`, async () => {
 			const insufficientBalance = BigInt(0);
 			jest.spyOn(tokenMethod, 'getAvailableBalance').mockResolvedValue(insufficientBalance);
@@ -447,8 +432,14 @@ describe('Sidechain registration command', () => {
 
 	describe('execute', () => {
 		let context: CommandExecuteContext<SidechainRegistrationParams>;
+		let chainAccountUpdatedEvent: ChainAccountUpdatedEvent;
+		let ccmSendSuccessEvent: CcmSendSuccessEvent;
 
 		beforeEach(() => {
+			chainAccountUpdatedEvent = interopMod.events.get(ChainAccountUpdatedEvent);
+			ccmSendSuccessEvent = interopMod.events.get(CcmSendSuccessEvent);
+			jest.spyOn(chainAccountUpdatedEvent, 'log');
+			jest.spyOn(ccmSendSuccessEvent, 'log');
 			context = createTransactionContext({
 				transaction,
 				stateStore,
@@ -469,7 +460,7 @@ describe('Sidechain registration command', () => {
 						transactionParams.certificateThreshold,
 					),
 				},
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 			};
 
 			// Act
@@ -489,7 +480,7 @@ describe('Sidechain registration command', () => {
 				inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				partnerChainOutboxRoot: EMPTY_HASH,
-				messageFeeTokenID: { chainID: utils.intToBuffer(1, 4), localID: utils.intToBuffer(0, 4) },
+				messageFeeTokenID: getMainchainTokenID(chainID),
 			};
 
 			// Act
@@ -536,7 +527,7 @@ describe('Sidechain registration command', () => {
 
 		it('should add an entry to registered names substore', async () => {
 			// Arrange
-			const expectedValue = { id: newChainID };
+			const expectedValue = { chainID: newChainID };
 
 			// Act
 			await sidechainRegistrationCommand.execute(context);
@@ -557,7 +548,7 @@ describe('Sidechain registration command', () => {
 			expect(tokenMethod.burn).toHaveBeenCalledWith(
 				expect.anything(),
 				transaction.senderAddress,
-				TOKEN_ID_LSK,
+				getMainchainTokenID(chainID),
 				REGISTRATION_FEE,
 			);
 		});
@@ -574,7 +565,7 @@ describe('Sidechain registration command', () => {
 						transactionParams.certificateThreshold,
 					),
 				},
-				status: CHAIN_REGISTERED,
+				status: ChainStatus.REGISTERED,
 			};
 
 			// Act
@@ -588,9 +579,20 @@ describe('Sidechain registration command', () => {
 			);
 		});
 
+		it('should pay fee', async () => {
+			// Act
+			await sidechainRegistrationCommand.execute(context);
+
+			// Assert
+			expect(sidechainRegistrationCommand['_feeMethod'].payFee).toHaveBeenCalledWith(
+				expect.anything(),
+				REGISTRATION_FEE,
+			);
+		});
+
 		it('should update nonce in own chain acount substore', async () => {
 			// Arrange
-			const expectedValue = { name: 'lisk', id: chainID, nonce: BigInt(1) };
+			const expectedValue = { name: 'lisk', chainID, nonce: BigInt(1) };
 
 			// Act
 			await sidechainRegistrationCommand.execute(context);
@@ -603,11 +605,10 @@ describe('Sidechain registration command', () => {
 			);
 		});
 
-		it(`should emit ${EVENT_NAME_CCM_PROCESSED} event`, async () => {
+		it(`should emit ${EVENT_NAME_CCM_SEND_SUCCESS} event`, async () => {
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
 				name: transactionParams.name,
-				chainID: transactionParams.chainID,
-				messageFeeTokenID: { chainID: utils.intToBuffer(1, 4), localID: utils.intToBuffer(0, 4) },
+				messageFeeTokenID: getMainchainTokenID(chainID),
 			});
 			const ccm = {
 				nonce: BigInt(0),
@@ -616,19 +617,25 @@ describe('Sidechain registration command', () => {
 				sendingChainID: chainID,
 				receivingChainID: newChainID,
 				fee: BigInt(0),
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 				params: encodedParams,
 			};
+
 			const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
 
 			// Act
 			await sidechainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(ccmProcessedEvent.log).toHaveBeenCalledWith(expect.anything(), chainID, newChainID, {
+			expect(ccmSendSuccessEvent.log).toHaveBeenCalledWith(
+				expect.anything(),
+				chainID,
+				newChainID,
 				ccmID,
-				status: CCM_SENT_STATUS_SUCCESS,
-			});
+				{
+					ccmID,
+				},
+			);
 		});
 	});
 });

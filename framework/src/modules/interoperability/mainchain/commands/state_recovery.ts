@@ -15,29 +15,29 @@
 import { sparseMerkleTree } from '@liskhq/lisk-tree';
 import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { MainchainInteroperabilityStore } from '../store';
+import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
-import { EMPTY_HASH } from '../../constants';
+import { EMPTY_BYTES, EMPTY_HASH, MODULE_NAME_INTEROPERABILITY } from '../../constants';
 import { stateRecoveryParamsSchema } from '../../schemas';
-import { StateRecoveryParams } from '../../types';
+import { RecoverContext, StateRecoveryParams } from '../../types';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
 	VerificationResult,
 	VerifyStatus,
 } from '../../../../state_machine';
-import { createRecoverCCMsgMethodContext } from '../../../../testing';
 import { TerminatedStateStore } from '../../stores/terminated_state';
-import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
+import { computeStorePrefix } from '../../../base_store';
+import { BaseCCMethod } from '../../base_cc_method';
 
-export class StateRecoveryCommand extends BaseInteroperabilityCommand {
+export class StateRecoveryCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = stateRecoveryParamsSchema;
 
 	public async verify(
 		context: CommandVerifyContext<StateRecoveryParams>,
 	): Promise<VerificationResult> {
 		const {
-			params: { chainID, storeEntries, siblingHashes },
+			params: { chainID, storeEntries, siblingHashes, module },
 		} = context;
 
 		try {
@@ -55,7 +55,7 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 		if (!terminatedStateAccountExists) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('The terminated account does not exist'),
+				error: new Error('The terminated state does not exist.'),
 			};
 		}
 
@@ -64,7 +64,30 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 		if (!terminatedStateAccount.initialized) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('The terminated account is not initialized'),
+				error: new Error('The terminated state is not initialized.'),
+			};
+		}
+
+		if (module === MODULE_NAME_INTEROPERABILITY) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Interoperability module cannot be recovered.'),
+			};
+		}
+
+		const moduleMethod = this.interoperableCCMethods.get(module);
+
+		if (!moduleMethod) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Module is not registered on the chain.'),
+			};
+		}
+
+		if (!moduleMethod.recover) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Module is not recoverable.'),
 			};
 		}
 
@@ -72,10 +95,18 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 		const queryKeys = [];
 		const storeQueries = [];
 
+		const storePrefix = computeStorePrefix(module);
+
 		for (const entry of storeEntries) {
+			if (entry.storeValue.equals(EMPTY_BYTES)) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error('Recovered store value cannot be empty.'),
+				};
+			}
 			queryKeys.push(entry.storeKey);
 			storeQueries.push({
-				key: entry.storeKey,
+				key: Buffer.from([...storePrefix, ...entry.substorePrefix, ...entry.storeKey]),
 				value: utils.hash(entry.storeValue),
 				bitmap: entry.bitmap,
 			});
@@ -92,7 +123,7 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 		if (!verified) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Failed to verify proof of inclusion'),
+				error: new Error('State recovery proof of inclusion is not valid.'),
 			};
 		}
 
@@ -103,33 +134,32 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 
 	public async execute(context: CommandExecuteContext<StateRecoveryParams>): Promise<void> {
 		const {
-			transaction,
 			params: { chainID, storeEntries, module, siblingHashes },
 		} = context;
 		const storeQueries = [];
 
-		// The recover function corresponding to the module applies the recovery logic
-		const moduleMethod = this.interoperableCCMethods.get(module);
-		if (!moduleMethod || !moduleMethod.recover) {
-			throw new Error('Recovery not available for module');
-		}
+		// Casting for type issue. `recover` already verified to exist in module for verify
+		const moduleMethod = this.interoperableCCMethods.get(module) as BaseCCMethod & {
+			recover: (ctx: RecoverContext) => Promise<void>;
+		};
+		const storePrefix = computeStorePrefix(module);
 
 		for (const entry of storeEntries) {
-			const recoverContext = createRecoverCCMsgMethodContext({
-				terminatedChainID: chainID,
-				module,
-				storePrefix: entry.storePrefix,
-				storeKey: entry.storeKey,
-				storeValue: entry.storeValue,
-				feeAddress: transaction.senderAddress,
-			});
 			try {
-				await moduleMethod.recover(recoverContext);
+				await moduleMethod.recover({
+					...context,
+					module,
+					terminatedChainID: chainID,
+					substorePrefix: storePrefix,
+					storeKey: entry.storeKey,
+					storeValue: entry.storeValue,
+				});
 			} catch (err) {
-				throw new Error('Recovery failed');
+				throw new Error(`Recovery failed for module: ${module}`);
 			}
+
 			storeQueries.push({
-				key: entry.storeKey,
+				key: Buffer.from([...storePrefix, ...entry.substorePrefix, ...entry.storeKey]),
 				value: EMPTY_HASH,
 				bitmap: entry.bitmap,
 			});
@@ -145,11 +175,5 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 			...terminatedStateAccount,
 			stateRoot: root,
 		});
-	}
-
-	protected getInteroperabilityStore(
-		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
 	}
 }

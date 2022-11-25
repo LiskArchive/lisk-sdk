@@ -61,6 +61,7 @@ import {
 	GenesisStore,
 	ModuleConfigJSON,
 	ModuleConfig,
+	FeeMethod,
 } from './types';
 import { Rounds } from './rounds';
 import {
@@ -126,6 +127,7 @@ export class PoSModule extends BaseModule {
 	private _randomMethod!: RandomMethod;
 	private _validatorsMethod!: ValidatorsMethod;
 	private _tokenMethod!: TokenMethod;
+	private _feeMethod!: FeeMethod;
 	private _moduleConfig!: ModuleConfig;
 
 	public constructor() {
@@ -153,12 +155,14 @@ export class PoSModule extends BaseModule {
 		randomMethod: RandomMethod,
 		validatorsMethod: ValidatorsMethod,
 		tokenMethod: TokenMethod,
+		feeMethod: FeeMethod,
 	) {
 		this._randomMethod = randomMethod;
 		this._validatorsMethod = validatorsMethod;
 		this._tokenMethod = tokenMethod;
+		this._feeMethod = feeMethod;
 
-		this._registerValidatorCommand.addDependencies(this._tokenMethod, this._validatorsMethod);
+		this._registerValidatorCommand.addDependencies(this._validatorsMethod, this._feeMethod);
 		this._reportMisbehaviorCommand.addDependencies({
 			tokenMethod: this._tokenMethod,
 			validatorsMethod: this._validatorsMethod,
@@ -270,7 +274,6 @@ export class PoSModule extends BaseModule {
 			factorSelfStakes: this._moduleConfig.factorSelfStakes,
 		});
 		this._registerValidatorCommand.init({
-			tokenIDFee: this._moduleConfig.tokenIDFee,
 			validatorRegistrationFee: this._moduleConfig.validatorRegistrationFee,
 		});
 		this._unlockCommand.init({

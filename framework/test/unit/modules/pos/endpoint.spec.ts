@@ -118,7 +118,6 @@ describe('PosModuleEndpoint', () => {
 		...defaultConfig,
 		minWeightStandby: BigInt(defaultConfig.minWeightStandby),
 		posTokenID: Buffer.from('1000000000000002', 'hex'),
-		tokenIDFee: Buffer.from(defaultConfig.tokenIDFee, 'hex'),
 		validatorRegistrationFee: BigInt(defaultConfig.validatorRegistrationFee),
 	};
 

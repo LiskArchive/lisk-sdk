@@ -29,6 +29,11 @@ export {
 	EVENT_MAX_EVENT_SIZE_BYTES,
 	MAX_EVENTS_PER_BLOCK,
 	EVENT_KEY_LENGTH,
+	NAME_REGEX,
+	MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH,
+	MAX_MODULE_NAME_LENGTH,
+	MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH,
+	MIN_MODULE_NAME_LENGTH,
 } from './constants';
 export * from './db_keys';
 export type { RawBlock } from './types';

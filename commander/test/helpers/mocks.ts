@@ -53,7 +53,6 @@ export const mockJSONTransaction = {
 		amount: '100',
 		data: 'send token',
 		recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
-		accountInitializationFee: BigInt(5000000),
 	},
 	command: 'transfer',
 	fee: '100000000',
