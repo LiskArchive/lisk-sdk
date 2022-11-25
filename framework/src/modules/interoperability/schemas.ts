@@ -137,10 +137,6 @@ export const sidechainRegParams = {
 			dataType: 'uint64',
 			fieldNumber: 4,
 		},
-		sidechainRegistrationFee: {
-			dataType: 'uint64',
-			fieldNumber: 5,
-		},
 	},
 };
 

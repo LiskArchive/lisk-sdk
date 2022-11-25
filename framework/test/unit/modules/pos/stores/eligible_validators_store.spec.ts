@@ -61,7 +61,6 @@ describe('EligibleValidatorsStore', () => {
 		eligibleValidatorsStore = new EligibleValidatorsStore('pos');
 		eligibleValidatorsStore.init({
 			...defaultConfig,
-			tokenIDFee: Buffer.from(defaultConfig.tokenIDFee, 'hex'),
 			minWeightStandby: BigInt(defaultConfig.minWeightStandby),
 			posTokenID: Buffer.alloc(TOKEN_ID_LENGTH),
 			validatorRegistrationFee: BigInt(defaultConfig.validatorRegistrationFee),

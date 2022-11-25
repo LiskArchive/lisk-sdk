@@ -13,31 +13,44 @@
  */
 
 import { Transaction } from '@liskhq/lisk-chain';
-import { address, utils } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { FeeModule } from '../../../../src/modules/fee';
-import { VerifyStatus } from '../../../../src/state_machine';
+import { CONTEXT_STORE_KEY_AVAILABLE_FEE } from '../../../../src/modules/fee/constants';
+import { TransactionExecuteContext, VerifyStatus } from '../../../../src/state_machine';
 import { createTransactionContext } from '../../../../src/testing';
 
 describe('FeeModule', () => {
+	const defaultTransaction = new Transaction({
+		module: 'token',
+		command: 'transfer',
+		fee: BigInt(1000000000),
+		nonce: BigInt(0),
+		senderPublicKey: utils.getRandomBytes(32),
+		signatures: [utils.getRandomBytes(20)],
+		params: utils.getRandomBytes(32),
+	});
+
 	let feeModule!: FeeModule;
 	let genesisConfig: any;
 	let moduleConfig: any;
 
 	beforeEach(async () => {
 		genesisConfig = {
-			minFeePerByte: 1000,
+			chainID: Buffer.alloc(4).toString('hex'),
 		};
-		moduleConfig = {
-			feeTokenID: { chainID: utils.intToBuffer(0, 4), localID: utils.intToBuffer(0, 4) },
-		};
+		moduleConfig = {};
 		feeModule = new FeeModule();
 		await feeModule.init({ genesisConfig, moduleConfig });
-		feeModule.addDependencies({
-			burn: jest.fn(),
-			transfer: jest.fn(),
-			isNativeToken: jest.fn(),
-			getAvailableBalance: jest.fn(),
-		} as any);
+		feeModule.addDependencies(
+			{
+				burn: jest.fn(),
+				lock: jest.fn(),
+				unlock: jest.fn(),
+				transfer: jest.fn(),
+				getAvailableBalance: jest.fn(),
+			} as any,
+			{} as any,
+		);
 	});
 
 	describe('init', () => {
@@ -99,75 +112,85 @@ describe('FeeModule', () => {
 				signatures: [utils.getRandomBytes(20)],
 				params: utils.getRandomBytes(32),
 			});
-			const result = await feeModule.verifyTransaction({ transaction } as any);
 			const expectedMinFee = BigInt(feeModule['_minFeePerByte'] * transaction.getBytes().length);
-
-			expect(result.status).toEqual(VerifyStatus.FAIL);
-			expect(result.error).toEqual(
-				new Error(`Insufficient transaction fee. Minimum required fee is ${expectedMinFee}.`),
+			await expect(feeModule.verifyTransaction({ transaction } as any)).rejects.toThrow(
+				`Insufficient transaction fee. Minimum required fee is ${expectedMinFee}.`,
 			);
 		});
 	});
 
 	describe('beforeCommandExecute', () => {
-		it('should transfer transaction fee minus min fee to generator and burn min fee when native token', async () => {
-			jest.spyOn(feeModule['_tokenMethod'], 'isNativeToken').mockReturnValue(true);
-
-			const transaction = new Transaction({
-				module: 'token',
-				command: 'transfer',
-				fee: BigInt(1000000000),
-				nonce: BigInt(0),
-				senderPublicKey: utils.getRandomBytes(32),
-				signatures: [utils.getRandomBytes(20)],
-				params: utils.getRandomBytes(32),
-			});
-			const context = createTransactionContext({ transaction });
+		it('should lock transaction fee from sender', async () => {
+			const context = createTransactionContext({ transaction: defaultTransaction });
 			const transactionExecuteContext = context.createTransactionExecuteContext();
-			const senderAddress = address.getAddressFromPublicKey(context.transaction.senderPublicKey);
-			const minFee = BigInt(feeModule['_minFeePerByte'] * transaction.getBytes().length);
 			await feeModule.beforeCommandExecute(transactionExecuteContext);
 
-			expect(feeModule['_tokenMethod'].burn).toHaveBeenCalledWith(
+			expect(feeModule['_tokenMethod'].lock).toHaveBeenCalledWith(
 				expect.anything(),
-				senderAddress,
+				transactionExecuteContext.transaction.senderAddress,
+				feeModule.name,
 				feeModule['_tokenID'],
-				minFee,
-			);
-			expect(feeModule['_tokenMethod'].transfer).toHaveBeenCalledWith(
-				expect.anything(),
-				senderAddress,
-				transactionExecuteContext.header.generatorAddress,
-				feeModule['_tokenID'],
-				transaction.fee - minFee,
+				defaultTransaction.fee,
 			);
 		});
 
-		it('should transfer transaction fee to generator and not burn min fee when non-native token', async () => {
-			jest.spyOn(feeModule['_tokenMethod'], 'isNativeToken').mockReturnValue(false);
-			const transaction = new Transaction({
-				module: 'token',
-				command: 'transfer',
-				fee: BigInt(1000000000),
-				nonce: BigInt(0),
-				senderPublicKey: utils.getRandomBytes(32),
-				signatures: [utils.getRandomBytes(20)],
-				params: utils.getRandomBytes(32),
-			});
-			const context = createTransactionContext({ transaction });
+		it('should set avilable fee to context store', async () => {
+			const context = createTransactionContext({ transaction: defaultTransaction });
 			const transactionExecuteContext = context.createTransactionExecuteContext();
-			const senderAddress = address.getAddressFromPublicKey(context.transaction.senderPublicKey);
 
 			await feeModule.beforeCommandExecute(transactionExecuteContext);
 
-			expect(feeModule['_tokenMethod'].burn).not.toHaveBeenCalled();
+			const minFee = BigInt(feeModule['_minFeePerByte'] * defaultTransaction.getBytes().length);
+
+			expect(transactionExecuteContext.contextStore.get(CONTEXT_STORE_KEY_AVAILABLE_FEE)).toEqual(
+				defaultTransaction.fee - minFee,
+			);
+		});
+	});
+
+	describe('afterCommandExecute', () => {
+		let context: TransactionExecuteContext;
+		const availableFee = defaultTransaction.fee - BigInt(10000);
+
+		beforeEach(async () => {
+			context = createTransactionContext({
+				transaction: defaultTransaction,
+			}).createCommandExecuteContext();
+			context.contextStore.set(CONTEXT_STORE_KEY_AVAILABLE_FEE, availableFee);
+			await feeModule.afterCommandExecute(context);
+		});
+
+		it('should unlock transaction fee from sender', () => {
+			expect(feeModule['_tokenMethod'].unlock).toHaveBeenCalledWith(
+				expect.anything(),
+				context.transaction.senderAddress,
+				feeModule.name,
+				feeModule['_tokenID'],
+				defaultTransaction.fee,
+			);
+		});
+
+		it('should burn the used fee', () => {
+			expect(feeModule['_tokenMethod'].burn).toHaveBeenCalledWith(
+				expect.anything(),
+				context.transaction.senderAddress,
+				feeModule['_tokenID'],
+				defaultTransaction.fee - availableFee,
+			);
+		});
+
+		it('should transfer remaining fee to block generator', () => {
 			expect(feeModule['_tokenMethod'].transfer).toHaveBeenCalledWith(
 				expect.anything(),
-				senderAddress,
-				transactionExecuteContext.header.generatorAddress,
+				context.transaction.senderAddress,
+				context.header.generatorAddress,
 				feeModule['_tokenID'],
-				transaction.fee,
+				availableFee,
 			);
+		});
+
+		it('should reset the context store', () => {
+			expect(context.contextStore.get(CONTEXT_STORE_KEY_AVAILABLE_FEE)).toBeUndefined();
 		});
 	});
 });

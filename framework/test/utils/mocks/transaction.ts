@@ -49,7 +49,6 @@ export const createTransferTransaction = (input: {
 		recipientAddress: input.recipientAddress,
 		amount: input.amount ?? BigInt('10000000000'),
 		data: '',
-		accountInitializationFee: BigInt(5000000),
 	});
 
 	const publicKey = ed.getPublicKeyFromPrivateKey(input.privateKey);
@@ -214,7 +213,6 @@ export const createMultisignatureTransferTransaction = (input: {
 		recipientAddress: input.recipientAddress,
 		amount: BigInt('10000000000'),
 		data: '',
-		accountInitializationFee: BigInt(5000000),
 	};
 	const encodedAsset = codec.encode(command.schema, params);
 	const transaction = input.privateKeys.reduce<Record<string, unknown>>(

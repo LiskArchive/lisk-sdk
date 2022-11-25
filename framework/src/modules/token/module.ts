@@ -34,9 +34,14 @@ import {
 } from './schemas';
 import { TokenMethod } from './method';
 import { TokenEndpoint } from './endpoint';
-import { GenesisTokenStore, InteroperabilityMethod, ModuleConfig, ModuleConfigJSON } from './types';
+import {
+	FeeMethod,
+	GenesisTokenStore,
+	InteroperabilityMethod,
+	ModuleConfig,
+	ModuleConfigJSON,
+} from './types';
 import { splitTokenID } from './utils';
-import { CCTransferCommand } from './commands/cc_transfer';
 import { BaseInteroperableModule } from '../interoperability/base_interoperable_module';
 import { TokenInteroperableMethod } from './cc_method';
 import { UserStore } from './stores/user';
@@ -62,21 +67,20 @@ import { AllTokensFromChainSupportedEvent } from './events/all_tokens_from_chain
 import { AllTokensFromChainSupportRemovedEvent } from './events/all_tokens_from_chain_supported_removed';
 import { TokenIDSupportedEvent } from './events/token_id_supported';
 import { TokenIDSupportRemovedEvent } from './events/token_id_supported_removed';
-import { CrossChainTransferCommand } from './cc_commands/cc_transfer';
+import { CrossChainTransferCommand as CrossChainTransferMessageCommand } from './cc_commands/cc_transfer';
+import { CrossChainTransferCommand } from './commands/cc_transfer';
+import { InternalMethod } from './internal_method';
 
 export class TokenModule extends BaseInteroperableModule {
 	public method = new TokenMethod(this.stores, this.events, this.name);
 	public endpoint = new TokenEndpoint(this.stores, this.offchainStores);
 	public crossChainMethod = new TokenInteroperableMethod(this.stores, this.events);
-	public crossChainTransferCommand = new CrossChainTransferCommand(
-		this.stores,
-		this.events,
-		this.method,
-	);
+	public crossChainTransferCommand = new CrossChainTransferMessageCommand(this.stores, this.events);
 
 	private _ownChainID!: Buffer;
 	private readonly _transferCommand = new TransferCommand(this.stores, this.events);
-	private readonly _ccTransferCommand = new CCTransferCommand(this.stores, this.events);
+	private readonly _ccTransferCommand = new CrossChainTransferCommand(this.stores, this.events);
+	private readonly _internalMethod = new InternalMethod(this.stores, this.events);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [this._transferCommand, this._ccTransferCommand];
@@ -114,8 +118,9 @@ export class TokenModule extends BaseInteroperableModule {
 		this.events.register(TokenIDSupportRemovedEvent, new TokenIDSupportRemovedEvent(this.name));
 	}
 
-	public addDependencies(interoperabilityMethod: InteroperabilityMethod) {
-		this.method.addDependencies(interoperabilityMethod);
+	public addDependencies(interoperabilityMethod: InteroperabilityMethod, feeMethod: FeeMethod) {
+		this.method.addDependencies(interoperabilityMethod, this._internalMethod);
+		this._internalMethod.addDependencies(feeMethod);
 	}
 
 	public metadata(): ModuleMetadata {
@@ -171,30 +176,28 @@ export class TokenModule extends BaseInteroperableModule {
 		const { moduleConfig, genesisConfig } = args;
 		this._ownChainID = Buffer.from(genesisConfig.chainID, 'hex');
 
-		const rawConfig = objects.mergeDeep(
-			{},
-			defaultConfig,
-			{ feeTokenID: Buffer.concat([this._ownChainID, Buffer.alloc(4, 0)]).toString('hex') },
-			moduleConfig,
-		) as ModuleConfigJSON;
+		const rawConfig = objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfigJSON;
 		validator.validate(configSchema, rawConfig);
 
 		const config: ModuleConfig = {
 			userAccountInitializationFee: BigInt(rawConfig.userAccountInitializationFee),
 			escrowAccountInitializationFee: BigInt(rawConfig.escrowAccountInitializationFee),
-			feeTokenID: Buffer.from(rawConfig.feeTokenID, 'hex'),
 		};
 
+		this._internalMethod.init(config);
 		this.stores.get(SupportedTokensStore).registerOwnChainID(this._ownChainID);
-		this.crossChainTransferCommand.init({ ownChainID: this._ownChainID });
+		this.crossChainTransferCommand.init({
+			ownChainID: this._ownChainID,
+			internalMethod: this._internalMethod,
+			tokenMethod: this.method,
+		});
 
 		this.method.init({ ...config, ownChainID: this._ownChainID });
 		this.crossChainMethod.init(this._ownChainID);
 		this.endpoint.init(config);
 		this._transferCommand.init({
 			method: this.method,
-			accountInitializationFee: config.userAccountInitializationFee,
-			feeTokenID: config.feeTokenID,
+			internalMethod: this._internalMethod,
 		});
 	}
 

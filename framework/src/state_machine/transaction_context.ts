@@ -30,6 +30,7 @@ import {
 interface ContextParams {
 	chainID: Buffer;
 	stateStore: PrefixedStateReadWriter;
+	contextStore: Map<string, unknown>;
 	logger: Logger;
 	eventQueue: EventQueue;
 	transaction: Transaction;
@@ -39,6 +40,7 @@ interface ContextParams {
 
 export class TransactionContext {
 	private readonly _stateStore: PrefixedStateReadWriter;
+	private readonly _contextStore: Map<string, unknown>;
 	private readonly _chainID: Buffer;
 	private readonly _logger: Logger;
 	private readonly _eventQueue: EventQueue;
@@ -48,6 +50,7 @@ export class TransactionContext {
 
 	public constructor(params: ContextParams) {
 		this._stateStore = params.stateStore;
+		this._contextStore = params.contextStore;
 		this._logger = params.logger;
 		this._header = params.header;
 		this._eventQueue = params.eventQueue;
@@ -62,6 +65,7 @@ export class TransactionContext {
 			chainID: this._chainID,
 			stateStore: this._stateStore,
 			header: { height: this._header.height, timestamp: this._header.timestamp },
+			contextStore: this._contextStore,
 			getMethodContext: () => createImmutableMethodContext(this._stateStore),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
@@ -79,8 +83,13 @@ export class TransactionContext {
 			chainID: this._chainID,
 			eventQueue: childQueue,
 			stateStore: this._stateStore,
+			contextStore: this._contextStore,
 			getMethodContext: () =>
-				createMethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
+				createMethodContext({
+					stateStore: this._stateStore,
+					eventQueue: childQueue,
+					contextStore: this._contextStore,
+				}),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
@@ -94,12 +103,17 @@ export class TransactionContext {
 			logger: this._logger,
 			chainID: this._chainID,
 			stateStore: this._stateStore,
+			contextStore: this._contextStore,
 			header: {
 				height: this._header.height,
 				timestamp: this._header.timestamp,
 			},
 			getMethodContext: () =>
-				createMethodContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
+				createMethodContext({
+					stateStore: this._stateStore,
+					eventQueue: this._eventQueue,
+					contextStore: this._contextStore,
+				}),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			transaction: this._transaction,
@@ -124,8 +138,13 @@ export class TransactionContext {
 			chainID: this._chainID,
 			eventQueue: this._eventQueue,
 			stateStore: this._stateStore,
+			contextStore: this._contextStore,
 			getMethodContext: () =>
-				createMethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
+				createMethodContext({
+					stateStore: this._stateStore,
+					eventQueue: childQueue,
+					contextStore: this._contextStore,
+				}),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,

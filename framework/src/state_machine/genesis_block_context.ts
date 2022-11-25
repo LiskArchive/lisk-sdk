@@ -30,6 +30,7 @@ export interface ContextParams {
 
 export class GenesisBlockContext {
 	private readonly _stateStore: PrefixedStateReadWriter;
+	private readonly _contextStore: Map<string, unknown>;
 	private readonly _logger: Logger;
 	private readonly _header: BlockHeader;
 	private readonly _assets: BlockAssets;
@@ -48,6 +49,7 @@ export class GenesisBlockContext {
 		this._header = params.header;
 		this._assets = params.assets;
 		this._chainID = params.chainID;
+		this._contextStore = new Map<string, unknown>();
 	}
 
 	public createInitGenesisStateContext(): GenesisBlockExecuteContext {
@@ -55,7 +57,11 @@ export class GenesisBlockContext {
 		return {
 			eventQueue: childQueue,
 			getMethodContext: () =>
-				new MethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
+				new MethodContext({
+					stateStore: this._stateStore,
+					eventQueue: childQueue,
+					contextStore: this._contextStore,
+				}),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			stateStore: this._stateStore,
@@ -85,7 +91,11 @@ export class GenesisBlockContext {
 		return {
 			eventQueue: childQueue,
 			getMethodContext: () =>
-				new MethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
+				new MethodContext({
+					stateStore: this._stateStore,
+					eventQueue: childQueue,
+					contextStore: this._contextStore,
+				}),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			stateStore: this._stateStore,

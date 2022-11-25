@@ -18,40 +18,31 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { TokenModule, VerifyStatus } from '../../../../../src';
 import { TokenMethod } from '../../../../../src/modules/token/method';
 import { TransferCommand } from '../../../../../src/modules/token/commands/transfer';
-import { USER_SUBSTORE_INITIALIZATION_FEE } from '../../../../../src/modules/token/constants';
 import { transferParamsSchema } from '../../../../../src/modules/token/schemas';
 import { UserStore } from '../../../../../src/modules/token/stores/user';
 import { createTransactionContext } from '../../../../../src/testing';
-import { TokenID } from '../../../../../src/modules/token/types';
+import { InteroperabilityMethod, TokenID } from '../../../../../src/modules/token/types';
 import { EventQueue } from '../../../../../src/state_machine';
 import { InitializeUserAccountEvent } from '../../../../../src/modules/token/events/initialize_user_account';
 import { TransferEvent } from '../../../../../src/modules/token/events/transfer';
+import { InternalMethod } from '../../../../../src/modules/token/internal_method';
 
 interface Params {
 	tokenID: TokenID;
 	amount: bigint;
 	recipientAddress: Buffer;
 	data: string;
-	accountInitializationFee: bigint;
 }
 
 describe('Transfer command', () => {
-	const feeTokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 	const tokenModule = new TokenModule();
 	const ownChainID = Buffer.from([0, 0, 0, 1]);
 	const defaultUserAccountInitFee = BigInt('50000000');
 	const defaultEscrowAccountInitFee = BigInt('50000000');
 
-	const defaultTokenID = Buffer.concat([ownChainID, Buffer.alloc(4)]);
 	const method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
 	let command: TransferCommand;
-	let interopMethod: {
-		getOwnChainAccount: jest.Mock;
-		send: jest.Mock;
-		error: jest.Mock;
-		terminateChain: jest.Mock;
-		getChannel: jest.Mock;
-	};
+	let interopMethod: InteroperabilityMethod;
 
 	const checkEventResult = (
 		eventQueue: EventQueue,
@@ -72,6 +63,7 @@ describe('Transfer command', () => {
 	};
 
 	beforeEach(() => {
+		const internalMethod = new InternalMethod(tokenModule.stores, tokenModule.events);
 		command = new TransferCommand(tokenModule.stores, tokenModule.events);
 		interopMethod = {
 			getOwnChainAccount: jest.fn().mockResolvedValue({ chainID: Buffer.from([0, 0, 0, 1]) }),
@@ -79,20 +71,24 @@ describe('Transfer command', () => {
 			error: jest.fn(),
 			terminateChain: jest.fn(),
 			getChannel: jest.fn(),
+			getMessageFeeTokenID: jest.fn(),
 		};
-		method.addDependencies(interopMethod as never);
+		internalMethod.addDependencies({ payFee: jest.fn() });
+		method.addDependencies(interopMethod, internalMethod);
 
-		method.init({
-			ownChainID: Buffer.from([0, 0, 0, 1]),
+		internalMethod.init({
 			escrowAccountInitializationFee: defaultEscrowAccountInitFee,
 			userAccountInitializationFee: defaultUserAccountInitFee,
-			feeTokenID: defaultTokenID,
+		});
+		method.init({
+			ownChainID,
+			escrowAccountInitializationFee: defaultEscrowAccountInitFee,
+			userAccountInitializationFee: defaultUserAccountInitFee,
 		});
 
 		command.init({
 			method,
-			accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
-			feeTokenID,
+			internalMethod,
 		});
 	});
 
@@ -110,15 +106,13 @@ describe('Transfer command', () => {
 						amount: BigInt(100000000),
 						recipientAddress: utils.getRandomBytes(20),
 						data: '',
-						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
-			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
-
-			expect(result.status).toEqual(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(".tokenID' minLength not satisfied");
+			await expect(
+				command.verify(context.createCommandVerifyContext(transferParamsSchema)),
+			).rejects.toThrow(".tokenID' minLength not satisfied");
 		});
 
 		it('should fail when recipientAddress is not 20 btyes', async () => {
@@ -134,15 +128,14 @@ describe('Transfer command', () => {
 						amount: BigInt(100000000),
 						recipientAddress: utils.getRandomBytes(30),
 						data: '',
-						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
-			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
 
-			expect(result.status).toEqual(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(".recipientAddress' address length invalid");
+			await expect(
+				command.verify(context.createCommandVerifyContext(transferParamsSchema)),
+			).rejects.toThrow(".recipientAddress' address length invalid");
 		});
 
 		it('should fail when data is more than 64 characters', async () => {
@@ -158,15 +151,14 @@ describe('Transfer command', () => {
 						amount: BigInt(100000000),
 						recipientAddress: utils.getRandomBytes(20),
 						data: '1'.repeat(65),
-						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
-			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
 
-			expect(result.status).toEqual(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(".data' must NOT have more than 64 characters");
+			await expect(
+				command.verify(context.createCommandVerifyContext(transferParamsSchema)),
+			).rejects.toThrow(".data' must NOT have more than 64 characters");
 		});
 
 		it('should success when all parameters are valid', async () => {
@@ -186,99 +178,12 @@ describe('Transfer command', () => {
 						amount: BigInt(100000000),
 						recipientAddress: utils.getRandomBytes(20),
 						data: '1'.repeat(64),
-						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
 			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
 
-			expect(result.status).toEqual(VerifyStatus.OK);
-		});
-
-		it('should fail for non existent account when initialization fee is not what is configured in init', async () => {
-			const context = createTransactionContext({
-				transaction: new Transaction({
-					module: 'token',
-					command: 'transfer',
-					fee: BigInt(5000000),
-					nonce: BigInt(0),
-					senderPublicKey: utils.getRandomBytes(32),
-					params: codec.encode(transferParamsSchema, {
-						tokenID: Buffer.from('0000000100000000', 'hex'),
-						amount: BigInt(100000000),
-						recipientAddress: utils.getRandomBytes(20),
-						data: '1'.repeat(64),
-						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE) - BigInt(1),
-					}),
-					signatures: [utils.getRandomBytes(64)],
-				}),
-			});
-			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
-			expect(result.status).toEqual(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Invalid account initialization fee.');
-		});
-
-		it('should fail if token balance for feeTokenID is less than the sum of configured initialzation fee and transaction amount', async () => {
-			const amount = BigInt(100000000);
-
-			const availableBalance = amount + BigInt(USER_SUBSTORE_INITIALIZATION_FEE) - BigInt(1);
-
-			jest
-				.spyOn(command['_method'], 'getAvailableBalance')
-				.mockResolvedValue(amount + BigInt(USER_SUBSTORE_INITIALIZATION_FEE) - BigInt(1));
-
-			const context = createTransactionContext({
-				transaction: new Transaction({
-					module: 'token',
-					command: 'transfer',
-					fee: BigInt(5000000),
-					nonce: BigInt(0),
-					senderPublicKey: utils.getRandomBytes(32),
-					params: codec.encode(transferParamsSchema, {
-						tokenID: feeTokenID,
-						amount,
-						recipientAddress: utils.getRandomBytes(20),
-						data: '1'.repeat(64),
-						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
-					}),
-					signatures: [utils.getRandomBytes(64)],
-				}),
-			});
-			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
-			expect(result.status).toEqual(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				`balance ${availableBalance} is not sufficient for ${
-					amount + BigInt(USER_SUBSTORE_INITIALIZATION_FEE)
-				}`,
-			);
-		});
-
-		it('should pass if token balance is at least the sum of configured initialization fee and transaction amount when feeTokenID and sending tokenID are the same', async () => {
-			const amount = BigInt(100000000);
-
-			jest
-				.spyOn(command['_method'], 'getAvailableBalance')
-				.mockResolvedValue(amount + BigInt(USER_SUBSTORE_INITIALIZATION_FEE));
-
-			const context = createTransactionContext({
-				transaction: new Transaction({
-					module: 'token',
-					command: 'transfer',
-					fee: BigInt(5000000),
-					nonce: BigInt(0),
-					senderPublicKey: utils.getRandomBytes(32),
-					params: codec.encode(transferParamsSchema, {
-						tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
-						amount: BigInt(100000000),
-						recipientAddress: utils.getRandomBytes(20),
-						data: '1'.repeat(64),
-						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
-					}),
-					signatures: [utils.getRandomBytes(64)],
-				}),
-			});
-			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
 			expect(result.status).toEqual(VerifyStatus.OK);
 		});
 
@@ -300,16 +205,13 @@ describe('Transfer command', () => {
 						amount: BigInt(100000000),
 						recipientAddress: utils.getRandomBytes(20),
 						data: '1'.repeat(64),
-						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
-			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
-			expect(result.status).toEqual(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				`balance ${availableBalance} is not sufficient for ${amount}`,
-			);
+			await expect(
+				command.verify(context.createCommandVerifyContext(transferParamsSchema)),
+			).rejects.toThrow(`balance ${availableBalance} is not sufficient for ${amount}`);
 		});
 
 		it('should pass if balance for the provided tokenID is sufficient', async () => {
@@ -328,7 +230,6 @@ describe('Transfer command', () => {
 						amount,
 						recipientAddress: utils.getRandomBytes(20),
 						data: '1'.repeat(64),
-						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
@@ -357,7 +258,6 @@ describe('Transfer command', () => {
 						amount,
 						recipientAddress,
 						data: '1'.repeat(64),
-						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
@@ -388,13 +288,15 @@ describe('Transfer command', () => {
 			expect(senderAccount.availableBalance.toString()).toEqual(BigInt(5).toString());
 			expect(recipientAccount.availableBalance.toString()).toEqual(BigInt(5).toString());
 
-			expect(command['_method'].burn).toHaveBeenCalledTimes(1);
+			expect(command['_internalMethod']['_feeMethod'].payFee).toHaveBeenCalledWith(
+				expect.anything(),
+				defaultUserAccountInitFee,
+			);
 
 			checkEventResult(commandExecuteContext.eventQueue, 2, InitializeUserAccountEvent, 0, {
 				address: recipientAddress,
 				tokenID,
-				initPayingAddress: context.transaction.senderAddress,
-				initializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
+				initializationFee: defaultUserAccountInitFee,
 			});
 
 			checkEventResult(commandExecuteContext.eventQueue, 2, TransferEvent, 1, {
@@ -423,7 +325,6 @@ describe('Transfer command', () => {
 						amount,
 						recipientAddress,
 						data: '1'.repeat(64),
-						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
@@ -488,7 +389,6 @@ describe('Transfer command', () => {
 						amount,
 						recipientAddress,
 						data: '1'.repeat(64),
-						accountInitializationFee: BigInt(USER_SUBSTORE_INITIALIZATION_FEE),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),

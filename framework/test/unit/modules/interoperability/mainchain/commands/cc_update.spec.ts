@@ -49,7 +49,6 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
-import { CROSS_CHAIN_COMMAND_NAME_FORWARD } from '../../../../../../src/modules/token/constants';
 import {
 	ChainAccountStore,
 	ChainStatus,
@@ -71,6 +70,7 @@ import {
 	CCMProcessedResult,
 } from '../../../../../../src/modules/interoperability/events/ccm_processed';
 import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/internal_method';
+import { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../../../../../../src/modules/token/constants';
 
 describe('CrossChainUpdateCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -113,7 +113,7 @@ describe('CrossChainUpdateCommand', () => {
 			status: CCMStatusCode.OK,
 		},
 		{
-			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 			fee: BigInt(0),
 			module: MODULE_NAME_INTEROPERABILITY,
 			nonce: BigInt(1),

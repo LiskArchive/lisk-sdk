@@ -41,3 +41,10 @@ export {
 } from './types';
 
 export { StateMachine } from './state_machine';
+
+export {
+	getContextStoreBigInt,
+	getContextStoreBool,
+	getContextStoreNumber,
+	getContextStoreString,
+} from './utils';

@@ -91,6 +91,7 @@ export interface CrossChainMessageContext extends ImmutableCrossChainMessageCont
 	getMethodContext: () => MethodContext;
 	getStore: StoreCallback;
 	stateStore: StateStore;
+	contextStore: Map<string, unknown>;
 	eventQueue: EventQueue;
 }
 export interface CCCommandExecuteContext<T> extends CrossChainMessageContext {
@@ -122,17 +123,6 @@ export interface SendInternalContext {
 	chainID: Buffer;
 	eventQueue: EventQueue;
 	feeAddress: Buffer;
-	transaction: { fee: bigint; senderAddress: Buffer };
-	header: { height: number; timestamp: number };
-	stateStore: StateStore;
-}
-
-export interface TerminateChainContext {
-	getMethodContext: () => MethodContext;
-	getStore: StoreCallback;
-	logger: Logger;
-	chainID: Buffer;
-	eventQueue: EventQueue;
 	transaction: { fee: bigint; senderAddress: Buffer };
 	header: { height: number; timestamp: number };
 	stateStore: StateStore;
@@ -266,7 +256,6 @@ export interface SidechainRegistrationParams {
 	chainID: Buffer;
 	initValidators: RegistrationParametersValidator[];
 	certificateThreshold: bigint;
-	sidechainRegistrationFee: bigint;
 }
 
 export interface MainchainRegistrationParams {
@@ -398,7 +387,9 @@ export interface TokenMethod {
 		methodContext: MethodContext,
 		address: Buffer,
 		tokenID: Buffer,
-		initPayingAddress: Buffer,
-		initializationFee: bigint,
 	): Promise<void>;
+}
+
+export interface FeeMethod {
+	payFee(methodContext: MethodContext, amount: bigint): void;
 }

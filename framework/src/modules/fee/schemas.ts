@@ -23,3 +23,27 @@ export const configSchema = {
 	},
 	required: ['feeTokenID'],
 };
+
+export const getMinFeePerByteResponseSchema = {
+	$id: '/fee/endpoint/getMinFeePerByteResponse',
+	type: 'object',
+	properties: {
+		minFeePerByte: {
+			type: 'integer',
+			format: 'uint32',
+		},
+	},
+	required: ['minFeePerByte'],
+};
+
+export const getFeeTokenIDResponseSchema = {
+	$id: '/fee/endpoint/getFeeTokenIDResponseSchema',
+	type: 'object',
+	properties: {
+		feeTokenID: {
+			type: 'string',
+			format: 'hex',
+		},
+	},
+	required: ['feeTokenID'],
+};

@@ -22,6 +22,7 @@ import {
 	createValidatorStakeTransaction,
 } from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
+import { defaultConfig } from '../../../../src/modules/token/constants';
 
 describe('Transaction order', () => {
 	let processEnv: testing.BlockProcessingEnv;
@@ -56,6 +57,7 @@ describe('Transaction order', () => {
 					recipientAddress: accountWithoutBalance.address,
 					amount: BigInt('10000000000'),
 					chainID,
+					fee: BigInt(defaultConfig.userAccountInitializationFee) + BigInt('50000000'),
 					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				const returningTx = createTransferTransaction({
@@ -184,7 +186,7 @@ describe('Transaction order', () => {
 				const multiSignatureMembers = [nodeUtils.createAccount(), nodeUtils.createAccount()];
 				const fundingTx = createTransferTransaction({
 					nonce: BigInt(authData.nonce),
-					fee: BigInt('200000'),
+					fee: BigInt('200000') + BigInt(defaultConfig.userAccountInitializationFee),
 					recipientAddress: newAccount.address,
 					amount: BigInt('100000000000'),
 					chainID,
@@ -232,7 +234,7 @@ describe('Transaction order', () => {
 				const accountWithoutBalance = nodeUtils.createAccount();
 				const fundingTx = createTransferTransaction({
 					nonce: BigInt(authData.nonce),
-					fee: BigInt('200000'),
+					fee: BigInt('200000') + BigInt(defaultConfig.userAccountInitializationFee),
 					recipientAddress: accountWithoutBalance.address,
 					amount: BigInt('14000000000'),
 					chainID,

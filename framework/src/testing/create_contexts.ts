@@ -89,6 +89,7 @@ export const createGenesisBlockContext = (params: {
 
 export const createBlockContext = (params: {
 	stateStore?: PrefixedStateReadWriter;
+	contextStore?: Map<string, unknown>;
 	eventQueue?: EventQueue;
 	chainID?: Buffer;
 	logger?: Logger;
@@ -99,10 +100,12 @@ export const createBlockContext = (params: {
 	const logger = params.logger ?? loggerMock;
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const contextStore = params.contextStore ?? new Map<string, unknown>();
 	const eventQueue = params.eventQueue ?? new EventQueue(params.header ? params.header.height : 0);
 	const header = params.header ?? createTestHeader();
 	const ctx = new BlockContext({
 		stateStore,
+		contextStore,
 		logger,
 		eventQueue,
 		transactions: params.transactions ?? [],
@@ -129,18 +132,24 @@ export const createBlockGenerateContext = (params: {
 		generatorStore.getStore(moduleID, subStorePrefix);
 	const header = params.header ?? createTestHeader();
 	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const contextStore = new Map<string, unknown>();
 	const getStore = (moduleID: Buffer, storePrefix: Buffer) =>
 		stateStore.getStore(moduleID, storePrefix);
 
 	const ctx: InsertAssetContext = {
 		stateStore,
+		contextStore,
 		assets: params.assets ?? new BlockAssets([]),
 		getOffchainStore: params.getOffchainStore ?? getOffchainStore,
 		logger: params.logger ?? loggerMock,
 		chainID: params.chainID ?? utils.getRandomBytes(32),
 		getMethodContext:
 			params.getMethodContext ??
-			(() => ({ getStore, eventQueue: new EventQueue(params.header ? params.header.height : 0) })),
+			(() => ({
+				getStore,
+				eventQueue: new EventQueue(params.header ? params.header.height : 0),
+				contextStore: new Map<string, unknown>(),
+			})),
 		getStore: params.getStore ?? getStore,
 		getFinalizedHeight: () => params.finalizedHeight ?? 0,
 		header,
@@ -151,6 +160,7 @@ export const createBlockGenerateContext = (params: {
 
 export const createTransactionContext = (params: {
 	stateStore?: PrefixedStateReadWriter;
+	contextStore?: Map<string, unknown>;
 	eventQueue?: EventQueue;
 	logger?: Logger;
 	header?: BlockHeader;
@@ -161,10 +171,12 @@ export const createTransactionContext = (params: {
 	const logger = params.logger ?? loggerMock;
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const contextStore = params.contextStore ?? new Map<string, unknown>();
 	const eventQueue = params.eventQueue ?? new EventQueue(params.header ? params.header.height : 0);
 	const header = params.header ?? createTestHeader();
 	const ctx = new TransactionContext({
 		stateStore,
+		contextStore,
 		logger,
 		eventQueue,
 		header,
@@ -177,12 +189,14 @@ export const createTransactionContext = (params: {
 
 export const createTransientMethodContext = (params: {
 	stateStore?: PrefixedStateReadWriter;
+	contextStore?: Map<string, unknown>;
 	eventQueue?: EventQueue;
 }): MethodContext => {
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const contextStore = params.contextStore ?? new Map<string, unknown>();
 	const eventQueue = params.eventQueue ?? new EventQueue(0);
-	const ctx = createMethodContext({ stateStore, eventQueue });
+	const ctx = createMethodContext({ stateStore, eventQueue, contextStore });
 	return ctx;
 };
 
@@ -221,10 +235,12 @@ export const createCrossChainMessageContext = (params: {
 	header?: { timestamp: number; height: number };
 	transaction?: { senderAddress: Buffer; fee: bigint };
 	stateStore?: IStateStore;
+	contextStore?: Map<string, unknown>;
 	eventQueue?: EventQueue;
 }): CrossChainMessageContext => {
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const contextStore = params.contextStore ?? new Map<string, unknown>();
 	const logger = params.logger ?? loggerMock;
 	const chainID = params.chainID ?? Buffer.alloc(0);
 	const eventQueue = params.eventQueue ?? new EventQueue(0);
@@ -242,9 +258,10 @@ export const createCrossChainMessageContext = (params: {
 			status: 0,
 			params: Buffer.alloc(0),
 		},
+		contextStore,
 		chainID,
 		eventQueue,
-		getMethodContext: () => createMethodContext({ eventQueue, stateStore }),
+		getMethodContext: () => createMethodContext({ eventQueue, stateStore, contextStore }),
 		getStore,
 		logger,
 		stateStore,

@@ -43,7 +43,6 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
-import { CROSS_CHAIN_COMMAND_NAME_FORWARD } from '../../../../../../src/modules/token/constants';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import {
 	ChainAccountStore,
@@ -54,6 +53,7 @@ import { ChainValidatorsStore } from '../../../../../../src/modules/interoperabi
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
 import { createTransactionContext } from '../../../../../../src/testing';
+import { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../../../../../../src/modules/token/constants';
 
 describe('CrossChainUpdateCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
@@ -95,7 +95,7 @@ describe('CrossChainUpdateCommand', () => {
 			status: CCMStatusCode.OK,
 		},
 		{
-			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 			fee: BigInt(0),
 			module: MODULE_NAME_INTEROPERABILITY,
 			nonce: BigInt(1),

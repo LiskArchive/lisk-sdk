@@ -112,7 +112,7 @@ export const tokenTransferParamsSchema = {
 	$id: '/lisk/transferCommand',
 	title: 'Transfer transaction command',
 	type: 'object',
-	required: ['tokenID', 'amount', 'recipientAddress', 'data', 'accountInitializationFee'],
+	required: ['tokenID', 'amount', 'recipientAddress', 'data'],
 	properties: {
 		tokenID: {
 			dataType: 'bytes',
@@ -132,10 +132,6 @@ export const tokenTransferParamsSchema = {
 			fieldNumber: 4,
 			minLength: 0,
 			maxLength: 64,
-		},
-		accountInitializationFee: {
-			dataType: 'uint64',
-			fieldNumber: 5,
 		},
 	},
 };
@@ -236,7 +232,6 @@ export const createTransferTransaction = ({
 				amount: BigInt(transactions.convertLSKToBeddows(amount)),
 				recipientAddress: cryptography.address.getAddressFromLisk32Address(recipientAddress),
 				data: '',
-				accountInitializationFee: BigInt(5000000),
 			},
 		},
 		chainID,

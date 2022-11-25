@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { address, utils } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { MainchainInteroperabilityModule, TokenMethod } from '../../../../src';
 import { BaseInteroperabilityMethod } from '../../../../src/modules/interoperability/base_interoperability_method';
@@ -44,9 +44,6 @@ import { ChannelDataStore } from '../../../../src/modules/interoperability/store
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
 import { getMainchainID } from '../../../../src/modules/interoperability/utils';
-import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
-import { TerminateChainContext } from '../../../../src/modules/interoperability/types';
-import { loggerMock } from '../../../../src/testing/mocks';
 
 class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {
 	protected getInteroperabilityInternalMethod = (): MainchainInteroperabilityInternalMethod =>
@@ -59,11 +56,6 @@ class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainI
 
 describe('Sample Method', () => {
 	const interopMod = new MainchainInteroperabilityModule();
-	const defaultPublicKey = Buffer.from(
-		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-		'hex',
-	);
-	const defaultAddress = address.getAddressFromPublicKey(defaultPublicKey);
 	const chainID = utils.intToBuffer(1, 4);
 	const interoperableCCMethods = new Map();
 	const chainAccountStoreMock = {
@@ -91,10 +83,8 @@ describe('Sample Method', () => {
 		set: jest.fn(),
 		has: jest.fn(),
 	};
-	let stateStore: PrefixedStateReadWriter;
 	let sampleInteroperabilityMethod: SampleInteroperabilityMethod;
 	let methodContext: MethodContext;
-	let terminateChainContext: TerminateChainContext;
 	let tokenMethodMock: TokenMethod;
 	let ccmSendFailEventMock: CcmSentFailedEvent;
 	let ccmSendSuccessEventMock: CcmSendSuccessEvent;
@@ -102,21 +92,6 @@ describe('Sample Method', () => {
 	beforeEach(() => {
 		const defaultEventQueue = new EventQueue(0, [], [utils.hash(utils.getRandomBytes(32))]);
 		methodContext = createTransientMethodContext({ eventQueue: defaultEventQueue });
-		terminateChainContext = {
-			...methodContext,
-			getMethodContext: jest.fn(),
-			logger: loggerMock,
-			chainID,
-			transaction: {
-				fee: BigInt(0),
-				senderAddress: defaultAddress,
-			},
-			header: {
-				height: 0,
-				timestamp: 0,
-			},
-			stateStore,
-		};
 		tokenMethodMock = {
 			payMessageFee: jest.fn(),
 		} as any;
@@ -505,7 +480,7 @@ describe('Sample Method', () => {
 				mainchainStateRoot: Buffer.alloc(HASH_LENGTH),
 				initialized: true,
 			});
-			await sampleInteroperabilityMethod.terminateChain(terminateChainContext, chainID);
+			await sampleInteroperabilityMethod.terminateChain(methodContext, chainID);
 
 			expect(interopMod['internalMethod'].sendInternal).not.toHaveBeenCalled();
 		});
@@ -515,10 +490,10 @@ describe('Sample Method', () => {
 				.spyOn(sampleInteroperabilityMethod as any, 'getTerminatedStateAccount')
 				.mockResolvedValue(undefined);
 
-			await sampleInteroperabilityMethod.terminateChain(terminateChainContext, chainID);
+			await sampleInteroperabilityMethod.terminateChain(methodContext, chainID);
 
 			expect(interopMod['internalMethod'].sendInternal).toHaveBeenCalledWith(
-				terminateChainContext,
+				methodContext,
 				EMPTY_FEE_ADDRESS,
 				MODULE_NAME_INTEROPERABILITY,
 				CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
@@ -528,7 +503,7 @@ describe('Sample Method', () => {
 				EMPTY_BYTES,
 			);
 			expect(interopMod['internalMethod'].createTerminatedStateAccount).toHaveBeenCalledWith(
-				terminateChainContext,
+				methodContext,
 				chainID,
 			);
 		});

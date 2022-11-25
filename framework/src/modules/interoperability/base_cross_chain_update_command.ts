@@ -87,13 +87,10 @@ export abstract class BaseCrossChainUpdateCommand<
 				context,
 				params.sendingChainID,
 			);
-			// FIXME: When updating fee logic, the fix value should be removed.
 			await this._tokenMethod.initializeUserAccount(
 				context,
 				transaction.senderAddress,
 				messageFeeTokenID,
-				transaction.senderAddress,
-				BigInt(500000000),
 			);
 		}
 

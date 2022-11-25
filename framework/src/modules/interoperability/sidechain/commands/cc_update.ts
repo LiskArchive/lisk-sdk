@@ -20,6 +20,7 @@ import {
 	VerifyStatus,
 } from '../../../../state_machine';
 import { BaseCrossChainUpdateCommand } from '../../base_cross_chain_update_command';
+import { CONTEXT_STORE_KEY_CCM_PROCESSING } from '../../constants';
 import { crossChainUpdateTransactionParams } from '../../schemas';
 import { CrossChainUpdateTransactionParams } from '../../types';
 import { getMainchainID } from '../../utils';
@@ -59,16 +60,21 @@ export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand<Sidech
 		}
 		const { params } = context;
 
-		for (let i = 0; i < decodedCCMs.length; i += 1) {
-			const ccm = decodedCCMs[i];
-			const ccmBytes = params.inboxUpdate.crossChainMessages[i];
-			const ccmContext = {
-				...context,
-				ccm,
-			};
+		try {
+			context.contextStore.set(CONTEXT_STORE_KEY_CCM_PROCESSING, true);
+			for (let i = 0; i < decodedCCMs.length; i += 1) {
+				const ccm = decodedCCMs[i];
+				const ccmBytes = params.inboxUpdate.crossChainMessages[i];
+				const ccmContext = {
+					...context,
+					ccm,
+				};
 
-			await this.apply(ccmContext);
-			await this.internalMethod.appendToInboxTree(context, params.sendingChainID, ccmBytes);
+				await this.apply(ccmContext);
+				await this.internalMethod.appendToInboxTree(context, params.sendingChainID, ccmBytes);
+			}
+		} finally {
+			context.contextStore.delete(CONTEXT_STORE_KEY_CCM_PROCESSING);
 		}
 	}
 }

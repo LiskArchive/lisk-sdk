@@ -52,6 +52,7 @@ export interface ImmutableMethodContext {
 export interface MethodContext {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	eventQueue: EventQueue;
+	contextStore: Map<string, unknown>;
 }
 
 export enum VerifyStatus {
@@ -95,6 +96,7 @@ export interface TransactionVerifyContext {
 	header: { timestamp: number; height: number };
 	transaction: Transaction;
 	stateStore: ImmutableStateStore;
+	contextStore: Map<string, unknown>;
 	getMethodContext: () => ImmutableMethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
@@ -108,6 +110,7 @@ export interface CommandVerifyContext<T = undefined> {
 	getMethodContext: () => ImmutableMethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	stateStore: ImmutableStateStore;
+	contextStore: Map<string, unknown>;
 }
 
 export interface CommandExecuteContext<T = undefined> {
@@ -115,6 +118,7 @@ export interface CommandExecuteContext<T = undefined> {
 	chainID: Buffer;
 	eventQueue: EventQueue;
 	stateStore: StateStore;
+	contextStore: Map<string, unknown>;
 	header: BlockHeader;
 	assets: BlockAssets;
 	transaction: Transaction; // without decoding params
@@ -144,6 +148,7 @@ export interface TransactionExecuteContext {
 	chainID: Buffer;
 	eventQueue: EventQueue;
 	stateStore: StateStore;
+	contextStore: Map<string, unknown>;
 	getMethodContext: () => MethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	header: BlockHeader;
@@ -155,6 +160,7 @@ export interface BlockVerifyContext {
 	logger: Logger;
 	chainID: Buffer;
 	stateStore: ImmutableStateStore;
+	contextStore: Map<string, unknown>;
 	getMethodContext: () => ImmutableMethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	header: BlockHeader;
@@ -168,6 +174,7 @@ export interface BlockExecuteContext {
 	stateStore: StateStore;
 	getMethodContext: () => MethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
+	contextStore: Map<string, unknown>;
 	header: BlockHeader;
 	assets: BlockAssets;
 }
@@ -197,6 +204,7 @@ export interface InsertAssetContext {
 	chainID: Buffer;
 	getMethodContext: () => MethodContext;
 	stateStore: ImmutableStateStore;
+	contextStore: Map<string, unknown>;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	header: BlockHeader;
 	assets: WritableBlockAssets;

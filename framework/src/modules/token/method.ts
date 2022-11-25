@@ -23,7 +23,6 @@ import {
 	LOCAL_ID_LENGTH,
 	TokenEventResult,
 	MAX_DATA_LENGTH,
-	CHAIN_ID_LENGTH,
 } from './constants';
 import { crossChainTransferMessageParams, UserStoreData } from './schemas';
 import { InteroperabilityMethod, ModuleConfig } from './types';
@@ -36,8 +35,6 @@ import { TransferEvent } from './events/transfer';
 import { InitializeTokenEvent } from './events/initialize_token';
 import { MintEvent } from './events/mint';
 import { BurnEvent } from './events/burn';
-import { InitializeUserAccountEvent } from './events/initialize_user_account';
-import { InitializeEscrowAccountEvent } from './events/initialize_escrow_account';
 import { LockEvent } from './events/lock';
 import { UnlockEvent } from './events/unlock';
 import { TransferCrossChainEvent } from './events/transfer_cross_chain';
@@ -48,6 +45,7 @@ import { TokenIDSupportedEvent } from './events/token_id_supported';
 import { AllTokensFromChainSupportedEvent } from './events/all_tokens_from_chain_supported';
 import { AllTokensFromChainSupportRemovedEvent } from './events/all_tokens_from_chain_supported_removed';
 import { TokenIDSupportRemovedEvent } from './events/token_id_supported_removed';
+import { InternalMethod } from './internal_method';
 
 interface MethodConfig extends ModuleConfig {
 	ownChainID: Buffer;
@@ -57,6 +55,7 @@ export class TokenMethod extends BaseMethod {
 	private readonly _moduleName: string;
 	private _config!: MethodConfig;
 	private _interoperabilityMethod!: InteroperabilityMethod;
+	private _internalMethod!: InternalMethod;
 
 	public constructor(stores: NamedRegistry, events: NamedRegistry, moduleName: string) {
 		super(stores, events);
@@ -67,8 +66,12 @@ export class TokenMethod extends BaseMethod {
 		this._config = config;
 	}
 
-	public addDependencies(interoperabilityMethod: InteroperabilityMethod) {
+	public addDependencies(
+		interoperabilityMethod: InteroperabilityMethod,
+		internalMethod: InternalMethod,
+	) {
 		this._interoperabilityMethod = interoperabilityMethod;
+		this._internalMethod = internalMethod;
 	}
 
 	public isNativeToken(tokenID: Buffer): boolean {
@@ -142,15 +145,31 @@ export class TokenMethod extends BaseMethod {
 		return escrowAccount.amount;
 	}
 
-	public async initializeToken(methodContext: MethodContext): Promise<Buffer> {
-		const supplyStore = this.stores.get(SupplyStore);
-		const nextTokenID = await this._getNextTokenID(methodContext);
+	public async isTokenIDAvailable(
+		methodContext: ImmutableMethodContext,
+		tokenID: Buffer,
+	): Promise<boolean> {
+		const exist = await this.stores.get(SupplyStore).has(methodContext, tokenID);
+		return !exist;
+	}
 
-		await supplyStore.set(methodContext, nextTokenID, { totalSupply: BigInt(0) });
+	public async initializeToken(methodContext: MethodContext, tokenID: Buffer): Promise<void> {
+		if (!this.isNativeToken(tokenID)) {
+			this.events
+				.get(InitializeTokenEvent)
+				.error(methodContext, { tokenID }, TokenEventResult.TOKEN_ID_NOT_NATIVE);
+			throw new Error('Only native token can be initialized.');
+		}
+		const available = await this.isTokenIDAvailable(methodContext, tokenID);
+		if (!available) {
+			this.events
+				.get(InitializeTokenEvent)
+				.error(methodContext, { tokenID }, TokenEventResult.TOKEN_ID_NOT_AVAILABLE);
+			throw new Error('The specified token ID is not available.');
+		}
+		await this.stores.get(SupplyStore).set(methodContext, tokenID, { totalSupply: BigInt(0) });
 
-		this.events.get(InitializeTokenEvent).log(methodContext, { tokenID: nextTokenID });
-
-		return nextTokenID;
+		this.events.get(InitializeTokenEvent).log(methodContext, { tokenID });
 	}
 
 	public async mint(
@@ -208,18 +227,14 @@ export class TokenMethod extends BaseMethod {
 		}
 
 		const userStore = this.stores.get(UserStore);
-		try {
-			const userAccount = await userStore.get(methodContext, userStore.getKey(address, tokenID));
-			userAccount.availableBalance += amount;
-			await userStore.save(methodContext, address, tokenID, userAccount);
-		} catch (error) {
-			if (error instanceof NotFoundError) {
-				this.events
-					.get(MintEvent)
-					.error(methodContext, eventData, TokenEventResult.FAIL_RECIPIENT_NOT_INITIALIZED);
-			}
-			throw error;
+		const userKey = userStore.getKey(address, tokenID);
+		const userExist = await userStore.has(methodContext, userKey);
+		if (!userExist) {
+			await this._internalMethod.initializeUserAccount(methodContext, address, tokenID);
 		}
+		const userAccount = await userStore.get(methodContext, userStore.getKey(address, tokenID));
+		userAccount.availableBalance += amount;
+		await userStore.save(methodContext, address, tokenID, userAccount);
 
 		supply.totalSupply += amount;
 		await supplyStore.set(methodContext, tokenID, supply);
@@ -278,71 +293,22 @@ export class TokenMethod extends BaseMethod {
 		methodContext: MethodContext,
 		address: Buffer,
 		tokenID: Buffer,
-		initPayingAddress: Buffer,
-		initializationFee: bigint,
 	): Promise<void> {
-		const userStore = this.stores.get(UserStore);
-
 		const userAccountExist = await this.userAccountExists(methodContext, address, tokenID);
 		if (userAccountExist) {
 			return;
 		}
-		const eventData = {
-			address,
-			tokenID,
-			initPayingAddress,
-			initializationFee,
-		};
-		if (initializationFee !== this._config.userAccountInitializationFee) {
-			this.events
-				.get(InitializeUserAccountEvent)
-				.error(methodContext, eventData, TokenEventResult.INVALID_INITIALIZATION_FEE_VALUE);
-			throw new Error(
-				`Invalid initialization fee ${initializationFee.toString()}. Expected: ${this._config.userAccountInitializationFee.toString()}.`,
-			);
-		}
-
-		const availableBanace = await this.getAvailableBalance(
-			methodContext,
-			initPayingAddress,
-			this._config.feeTokenID,
-		);
-		if (availableBanace < initializationFee) {
-			this.events
-				.get(InitializeUserAccountEvent)
-				.error(methodContext, eventData, TokenEventResult.FAIL_INSUFFICIENT_BALANCE);
-			throw new Error(
-				`Insufficient balance ${availableBanace.toString()} to pay for initialization fee ${initializationFee.toString()}`,
-			);
-		}
-
-		await this.burn(methodContext, initPayingAddress, this._config.feeTokenID, initializationFee);
-
-		await userStore.createDefaultAccount(methodContext, address, tokenID);
-		this.events.get(InitializeUserAccountEvent).log(methodContext, {
-			address,
-			tokenID,
-			initPayingAddress,
-			initializationFee: this._config.userAccountInitializationFee,
-		});
+		await this._internalMethod.initializeUserAccount(methodContext, address, tokenID);
 	}
 
 	public async initializeEscrowAccount(
 		methodContext: MethodContext,
 		chainID: Buffer,
 		tokenID: Buffer,
-		initPayingAddress: Buffer,
-		initializationFee: bigint,
 	): Promise<void> {
 		if (!this.isNativeToken(tokenID)) {
 			throw new Error(`TokenID ${tokenID.toString('hex')} is not native token.`);
 		}
-		const eventData = {
-			chainID,
-			tokenID,
-			initPayingAddress,
-			initializationFee,
-		};
 
 		const escrowStore = this.stores.get(EscrowStore);
 		const escrowAccountExist = await escrowStore.has(
@@ -352,40 +318,7 @@ export class TokenMethod extends BaseMethod {
 		if (escrowAccountExist) {
 			return;
 		}
-
-		if (initializationFee !== this._config.escrowAccountInitializationFee) {
-			this.events
-				.get(InitializeEscrowAccountEvent)
-				.error(methodContext, eventData, TokenEventResult.INVALID_INITIALIZATION_FEE_VALUE);
-			throw new Error(
-				`Invalid initialization fee ${initializationFee.toString()}. Expected: ${this._config.escrowAccountInitializationFee.toString()}.`,
-			);
-		}
-
-		const availableBanace = await this.getAvailableBalance(
-			methodContext,
-			initPayingAddress,
-			this._config.feeTokenID,
-		);
-		if (availableBanace < initializationFee) {
-			this.events
-				.get(InitializeEscrowAccountEvent)
-				.error(methodContext, eventData, TokenEventResult.FAIL_INSUFFICIENT_BALANCE);
-			throw new Error(
-				`Insufficient balance ${availableBanace.toString()} to pay for initialization fee ${initializationFee.toString()}`,
-			);
-		}
-
-		await this.burn(methodContext, initPayingAddress, this._config.feeTokenID, initializationFee);
-
-		await escrowStore.createDefaultAccount(methodContext, chainID, tokenID);
-
-		this.events.get(InitializeEscrowAccountEvent).log(methodContext, {
-			chainID,
-			tokenID,
-			initPayingAddress,
-			initializationFee: this._config.userAccountInitializationFee,
-		});
+		await this._internalMethod.initializeEscrowAccount(methodContext, chainID, tokenID);
 	}
 
 	public async transfer(
@@ -423,32 +356,20 @@ export class TokenMethod extends BaseMethod {
 			}
 			throw error;
 		}
-		let recipientAccount: UserStoreData;
-		try {
-			recipientAccount = await userStore.get(
-				methodContext,
-				userStore.getKey(recipientAddress, tokenID),
-			);
-		} catch (error) {
-			if (error instanceof NotFoundError) {
-				this.events
-					.get(TransferEvent)
-					.error(methodContext, eventData, TokenEventResult.FAIL_RECIPIENT_NOT_INITIALIZED);
-				throw new Error(
-					`Recipient ${cryptoAddress.getLisk32AddressFromAddress(
-						recipientAddress,
-					)} does not have an account for the specified token ${tokenID.toString('hex')}`,
-				);
-			}
-			throw error;
+		const recipientExist = await userStore.has(
+			methodContext,
+			userStore.getKey(recipientAddress, tokenID),
+		);
+		if (!recipientExist) {
+			await this._internalMethod.initializeUserAccount(methodContext, recipientAddress, tokenID);
 		}
-
-		senderAccount.availableBalance -= amount;
-		await userStore.save(methodContext, senderAddress, tokenID, senderAccount);
-		recipientAccount.availableBalance += amount;
-		await userStore.save(methodContext, recipientAddress, tokenID, recipientAccount);
-
-		this.events.get(TransferEvent).log(methodContext, eventData);
+		await this._internalMethod.transfer(
+			methodContext,
+			senderAddress,
+			recipientAddress,
+			tokenID,
+			amount,
+		);
 	}
 
 	public async transferCrossChain(
@@ -475,23 +396,6 @@ export class TokenMethod extends BaseMethod {
 				.get(TransferCrossChainEvent)
 				.error(methodContext, eventData, TokenEventResult.DATA_TOO_LONG);
 			throw new Error(`Maximum data allowed is ${MAX_DATA_LENGTH}, but received ${data.length}`);
-		}
-		const escrowStore = this.stores.get(EscrowStore);
-		if (this.isNativeToken(tokenID)) {
-			const escrowExist = await escrowStore.has(
-				methodContext,
-				escrowStore.getKey(receivingChainID, tokenID),
-			);
-			if (!escrowExist) {
-				this.events
-					.get(TransferCrossChainEvent)
-					.error(methodContext, eventData, TokenEventResult.ESCROW_NOT_INITIALIZED);
-				throw new Error(
-					`Escrow account for receiving chain ${receivingChainID.toString(
-						'hex',
-					)} token ${tokenID.toString('hex')} is not initialized.`,
-				);
-			}
 		}
 
 		const balanceChecks = new dataStructures.BufferMap<bigint>();
@@ -536,6 +440,21 @@ export class TokenMethod extends BaseMethod {
 					'hex',
 				)}. Token must be native to either the sending, the receiving chain or the mainchain.`,
 			);
+		}
+
+		const escrowStore = this.stores.get(EscrowStore);
+		if (this.isNativeToken(tokenID)) {
+			const escrowExist = await escrowStore.has(
+				methodContext,
+				escrowStore.getKey(receivingChainID, tokenID),
+			);
+			if (!escrowExist) {
+				await this._internalMethod.initializeEscrowAccount(
+					methodContext,
+					receivingChainID,
+					tokenID,
+				);
+			}
 		}
 
 		await this.stores
@@ -647,7 +566,7 @@ export class TokenMethod extends BaseMethod {
 		if (existingIndex < 0) {
 			this.events
 				.get(UnlockEvent)
-				.error(methodContext, eventData, TokenEventResult.FAIL_INSUFFICIENT_BALANCE);
+				.error(methodContext, eventData, TokenEventResult.INSUFFICIENT_LOCKED_AMOUNT);
 			throw new Error(
 				`Address ${cryptoAddress.getLisk32AddressFromAddress(
 					address,
@@ -657,7 +576,7 @@ export class TokenMethod extends BaseMethod {
 		if (account.lockedBalances[existingIndex].amount < amount) {
 			this.events
 				.get(UnlockEvent)
-				.error(methodContext, eventData, TokenEventResult.FAIL_INSUFFICIENT_BALANCE);
+				.error(methodContext, eventData, TokenEventResult.INSUFFICIENT_LOCKED_AMOUNT);
 			throw new Error(
 				`Address ${cryptoAddress.getLisk32AddressFromAddress(
 					address,
@@ -704,6 +623,13 @@ export class TokenMethod extends BaseMethod {
 		}
 	}
 
+	public async isTokenSupported(
+		methodContext: ImmutableMethodContext,
+		tokenID: Buffer,
+	): Promise<boolean> {
+		return this.stores.get(SupportedTokensStore).isSupported(methodContext, tokenID);
+	}
+
 	public async supportAllTokens(methodContext: MethodContext): Promise<void> {
 		await this.stores.get(SupportedTokensStore).supportAll(methodContext);
 		this.events.get(AllTokensSupportedEvent).log(methodContext);
@@ -738,32 +664,5 @@ export class TokenMethod extends BaseMethod {
 	public async removeSupportTokenID(methodContext: MethodContext, tokenID: Buffer): Promise<void> {
 		await this.stores.get(SupportedTokensStore).removeSupportForToken(methodContext, tokenID);
 		this.events.get(TokenIDSupportRemovedEvent).log(methodContext, tokenID);
-	}
-
-	private async _getNextTokenID(context: MethodContext): Promise<Buffer> {
-		const supplyStore = this.stores.get(SupplyStore);
-		const allSupplies = await supplyStore.getAll(context);
-		if (allSupplies.length === 0) {
-			return Buffer.concat([this._config.ownChainID, Buffer.alloc(LOCAL_ID_LENGTH, 0)]);
-		}
-		const maxLocalID = allSupplies.reduce((prev, curr) => {
-			const currentID = curr.key.slice(CHAIN_ID_LENGTH).readUInt32BE(0);
-			if (currentID > prev) {
-				return currentID;
-			}
-			return prev;
-		}, 0);
-
-		if (maxLocalID === 2 ** (8 * LOCAL_ID_LENGTH) - 1) {
-			this.events
-				.get(InitializeTokenEvent)
-				.error(context, { tokenID: Buffer.alloc(0) }, TokenEventResult.MAX_AVAILABLE_ID_REACHED);
-			throw new Error('No available token ID');
-		}
-
-		const nextLocalID = Buffer.alloc(4);
-		nextLocalID.writeUInt32BE(maxLocalID + 1, 0);
-		const nextTokenID = Buffer.concat([this._config.ownChainID, nextLocalID]);
-		return nextTokenID;
 	}
 }

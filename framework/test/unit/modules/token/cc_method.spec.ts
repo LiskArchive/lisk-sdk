@@ -18,7 +18,6 @@ import { TokenModule } from '../../../../src/modules/token';
 import {
 	CCM_STATUS_OK,
 	CHAIN_ID_LENGTH,
-	CROSS_CHAIN_COMMAND_NAME_FORWARD,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	TokenEventResult,
 } from '../../../../src/modules/token/constants';
@@ -37,6 +36,7 @@ import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
 import { BeforeCCCExecutionEvent } from '../../../../src/modules/token/events/before_ccc_execution';
 import { BeforeCCMForwardingEvent } from '../../../../src/modules/token/events/before_ccm_forwarding';
 import { RecoverEvent } from '../../../../src/modules/token/events/recover';
+import { CROSS_CHAIN_COMMAND_NAME_REGISTRATION } from '../../../../src/modules/interoperability/constants';
 
 describe('TokenInteroperableMethod', () => {
 	const tokenModule = new TokenModule();
@@ -64,6 +64,7 @@ describe('TokenInteroperableMethod', () => {
 
 	let tokenInteropMethod: TokenInteroperableMethod;
 	let stateStore: PrefixedStateReadWriter;
+	let contextStore: Map<string, unknown>;
 	let methodContext: MethodContext;
 	let userStore: UserStore;
 	let escrowStore: EscrowStore;
@@ -96,6 +97,7 @@ describe('TokenInteroperableMethod', () => {
 		methodContext = createMethodContext({
 			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
 			eventQueue: new EventQueue(0).getChildQueue(Buffer.from([0])),
+			contextStore: new Map<string, unknown>(),
 		});
 		userStore = tokenModule.stores.get(UserStore);
 		await userStore.save(methodContext, defaultAddress, defaultTokenID, defaultAccount);
@@ -127,7 +129,7 @@ describe('TokenInteroperableMethod', () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainCommandExecution({
 					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
@@ -146,6 +148,7 @@ describe('TokenInteroperableMethod', () => {
 						height: 10,
 					},
 					stateStore,
+					contextStore,
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
@@ -168,7 +171,7 @@ describe('TokenInteroperableMethod', () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainCommandExecution({
 					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
@@ -187,6 +190,7 @@ describe('TokenInteroperableMethod', () => {
 						height: 10,
 					},
 					stateStore,
+					contextStore,
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
@@ -204,7 +208,7 @@ describe('TokenInteroperableMethod', () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainCommandExecution({
 					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
@@ -223,6 +227,7 @@ describe('TokenInteroperableMethod', () => {
 						height: 10,
 					},
 					stateStore,
+					contextStore,
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
@@ -252,7 +257,7 @@ describe('TokenInteroperableMethod', () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainMessageForwarding({
 					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
@@ -271,6 +276,7 @@ describe('TokenInteroperableMethod', () => {
 						height: 10,
 					},
 					stateStore,
+					contextStore,
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
@@ -284,11 +290,11 @@ describe('TokenInteroperableMethod', () => {
 			);
 		});
 
-		it('should deduct escrow account for fee and credit to receving chain escrow account if ccm command is forward', async () => {
+		it('should deduct escrow account for fee and credit to receving chain escrow account if ccm command is not transfer', async () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainMessageForwarding({
 					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
@@ -315,6 +321,7 @@ describe('TokenInteroperableMethod', () => {
 						height: 10,
 					},
 					stateStore,
+					contextStore,
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
@@ -324,12 +331,12 @@ describe('TokenInteroperableMethod', () => {
 
 			const { amount } = await escrowStore.get(
 				methodContext,
-				userStore.getKey(sendingChainID, defaultTokenID),
+				escrowStore.getKey(sendingChainID, defaultTokenID),
 			);
 			expect(amount).toEqual(defaultEscrowAmount - fee);
 			const { amount: receiver } = await escrowStore.get(
 				methodContext,
-				userStore.getKey(Buffer.from([0, 0, 0, 1]), defaultTokenID),
+				escrowStore.getKey(Buffer.from([0, 0, 0, 1]), defaultTokenID),
 			);
 			expect(receiver).toEqual(fee);
 		});
@@ -365,6 +372,7 @@ describe('TokenInteroperableMethod', () => {
 						height: 10,
 					},
 					stateStore,
+					contextStore,
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
@@ -409,6 +417,7 @@ describe('TokenInteroperableMethod', () => {
 						height: 10,
 					},
 					stateStore,
+					contextStore,
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
@@ -438,7 +447,7 @@ describe('TokenInteroperableMethod', () => {
 			await expect(
 				tokenInteropMethod.verifyCrossChainMessage({
 					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
@@ -457,6 +466,7 @@ describe('TokenInteroperableMethod', () => {
 						height: 10,
 					},
 					stateStore,
+					contextStore,
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
@@ -469,7 +479,7 @@ describe('TokenInteroperableMethod', () => {
 			await expect(
 				tokenInteropMethod.verifyCrossChainMessage({
 					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
@@ -488,6 +498,7 @@ describe('TokenInteroperableMethod', () => {
 						height: 10,
 					},
 					stateStore,
+					contextStore,
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
@@ -503,7 +514,7 @@ describe('TokenInteroperableMethod', () => {
 			await expect(
 				tokenInteropMethod.verifyCrossChainMessage({
 					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
@@ -522,6 +533,7 @@ describe('TokenInteroperableMethod', () => {
 						height: 10,
 					},
 					stateStore,
+					contextStore,
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,

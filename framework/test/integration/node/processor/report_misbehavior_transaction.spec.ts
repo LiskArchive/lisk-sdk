@@ -21,6 +21,7 @@ import {
 } from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
 import { Keys } from '../../../../src/testing/fixtures';
+import { defaultConfig } from '../../../../src/modules/token/constants';
 
 describe('Transaction order', () => {
 	let processEnv: testing.BlockProcessingEnv;
@@ -50,7 +51,7 @@ describe('Transaction order', () => {
 			amount: BigInt('10000000000'),
 			chainID,
 			privateKey: Buffer.from(genesis.privateKey, 'hex'),
-			fee: BigInt(170000), // minFee not to give fee for generator
+			fee: BigInt(166000) + BigInt(defaultConfig.userAccountInitializationFee), // minFee not to give fee for generator
 		});
 		newBlock = await processEnv.createBlock([transaction]);
 

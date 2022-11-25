@@ -58,7 +58,6 @@ describe('utils', () => {
 				...defaultConfig,
 				minWeightStandby: BigInt(defaultConfig.minWeightStandby),
 				posTokenID: Buffer.alloc(TOKEN_ID_LENGTH),
-				tokenIDFee: Buffer.from(defaultConfig.tokenIDFee, 'hex'),
 				validatorRegistrationFee: BigInt(defaultConfig.validatorRegistrationFee),
 			};
 

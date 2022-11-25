@@ -84,3 +84,5 @@ export const COMMAND_NAME_LIVENESS_TERMINATION = 'terminateSidechainForLiveness'
 export const EVENT_NAME_CHAIN_ACCOUNT_UPDATED = 'chainAccountUpdated';
 export const EVENT_NAME_CCM_PROCESSED = 'ccmProcessed';
 export const EVENT_NAME_CCM_SEND_SUCCESS = 'ccmSendSucess';
+
+export const CONTEXT_STORE_KEY_CCM_PROCESSING = 'CONTEXT_STORE_KEY_CCM_PROCESSING';

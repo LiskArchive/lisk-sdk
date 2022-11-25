@@ -14,94 +14,51 @@
 
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { dataStructures } from '@liskhq/lisk-utils';
 import { BaseCommand } from '../../base_command';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
-	MethodContext,
 	VerificationResult,
 	VerifyStatus,
 } from '../../../state_machine';
 import { TokenMethod } from '../method';
 import { transferParamsSchema } from '../schemas';
 import { UserStore } from '../stores/user';
-import { InitializeUserAccountEvent } from '../events/initialize_user_account';
 import { TokenID } from '../types';
-import { TransferEvent } from '../events/transfer';
+import { InternalMethod } from '../internal_method';
 
 interface Params {
 	tokenID: TokenID;
 	amount: bigint;
 	recipientAddress: Buffer;
 	data: string;
-	accountInitializationFee: bigint;
 }
 
 export class TransferCommand extends BaseCommand {
 	public schema = transferParamsSchema;
 	private _method!: TokenMethod;
-	private _accountInitializationFee!: bigint;
-	private _feeTokenID!: TokenID;
+	private _internalMethod!: InternalMethod;
 
-	public init(args: {
-		method: TokenMethod;
-		feeTokenID: TokenID;
-		accountInitializationFee: bigint;
-	}) {
+	public init(args: { method: TokenMethod; internalMethod: InternalMethod }) {
 		this._method = args.method;
-		this._feeTokenID = args.feeTokenID;
-		this._accountInitializationFee = args.accountInitializationFee;
+		this._internalMethod = args.internalMethod;
 	}
 
 	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
 		const { params } = context;
 
-		try {
-			validator.validate(transferParamsSchema, params);
-
-			const userStore = this.stores.get(UserStore);
-
-			const balanceCheck = new dataStructures.BufferMap<bigint>();
-
-			const userAccountExists = await userStore.has(
-				context,
-				userStore.getKey(params.recipientAddress, params.tokenID),
-			);
-
-			if (!userAccountExists) {
-				if (params.accountInitializationFee !== this._accountInitializationFee) {
-					throw new Error('Invalid account initialization fee.');
-				}
-
-				balanceCheck.set(this._feeTokenID, this._accountInitializationFee);
-			}
-
-			balanceCheck.set(
-				params.tokenID,
-				(balanceCheck.get(params.tokenID) ?? BigInt(0)) + params.amount,
-			);
-
-			for (const [tokenID, amount] of balanceCheck.entries()) {
-				const availableBalance = await this._method.getAvailableBalance(
-					context.getMethodContext(),
+		validator.validate<Params>(transferParamsSchema, params);
+		const availableBalance = await this._method.getAvailableBalance(
+			context.getMethodContext(),
+			context.transaction.senderAddress,
+			params.tokenID,
+		);
+		if (availableBalance < params.amount) {
+			throw new Error(
+				`${cryptography.address.getLisk32AddressFromAddress(
 					context.transaction.senderAddress,
-					tokenID,
-				);
-
-				if (availableBalance < amount) {
-					throw new Error(
-						`${cryptography.address.getLisk32AddressFromAddress(
-							context.transaction.senderAddress,
-						)} balance ${availableBalance.toString()} is not sufficient for ${amount.toString()}.`,
-					);
-				}
-			}
-		} catch (err) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: err as Error,
-			};
+				)} balance ${availableBalance.toString()} is not sufficient for ${params.amount.toString()}.`,
+			);
 		}
 		return {
 			status: VerifyStatus.OK,
@@ -118,62 +75,19 @@ export class TransferCommand extends BaseCommand {
 		const recipientAccountExists = await userStore.has(context, recipientAccountKey);
 
 		if (!recipientAccountExists) {
-			await this._intializeUserStore(
-				context,
+			await this._internalMethod.initializeUserAccount(
+				context.getMethodContext(),
 				params.recipientAddress,
 				params.tokenID,
-				context.transaction.senderAddress,
 			);
 		}
 
-		const senderAccountKey = userStore.getKey(context.transaction.senderAddress, params.tokenID);
-		const senderAccount = await userStore.get(context, senderAccountKey);
-		if (senderAccount.availableBalance < params.amount) {
-			throw new Error(
-				`${cryptography.address.getLisk32AddressFromAddress(
-					context.transaction.senderAddress,
-				)} balance ${senderAccount.availableBalance.toString()} is not sufficient for ${params.amount.toString()}.`,
-			);
-		}
-
-		senderAccount.availableBalance -= params.amount;
-		await userStore.save(context, context.transaction.senderAddress, params.tokenID, senderAccount);
-
-		const recipientAccount = await userStore.get(context, recipientAccountKey);
-		recipientAccount.availableBalance += params.amount;
-		await userStore.save(context, params.recipientAddress, params.tokenID, recipientAccount);
-
-		this.events.get(TransferEvent).log(context, {
-			senderAddress: context.transaction.senderAddress,
-			recipientAddress: params.recipientAddress,
-			tokenID: params.tokenID,
-			amount: params.amount,
-		});
-	}
-
-	private async _intializeUserStore(
-		methodContext: MethodContext,
-		address: Buffer,
-		tokenID: TokenID,
-		initPayingAddress: Buffer,
-	) {
-		const userStore = this.stores.get(UserStore);
-
-		await userStore.addAvailableBalanceWithCreate(methodContext, address, tokenID, BigInt(0));
-
-		await this._method.burn(
-			methodContext,
-			initPayingAddress,
-			this._feeTokenID,
-			this._accountInitializationFee,
+		await this._internalMethod.transfer(
+			context.getMethodContext(),
+			context.transaction.senderAddress,
+			params.recipientAddress,
+			params.tokenID,
+			params.amount,
 		);
-
-		const initializeUserAccountEvent = this.events.get(InitializeUserAccountEvent);
-		initializeUserAccountEvent.log(methodContext, {
-			address,
-			tokenID,
-			initPayingAddress,
-			initializationFee: this._accountInitializationFee,
-		});
 	}
 }

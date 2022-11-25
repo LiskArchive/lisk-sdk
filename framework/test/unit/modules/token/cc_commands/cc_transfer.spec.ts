@@ -20,7 +20,7 @@ import {
 	CCM_STATUS_OK,
 	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-	FEE_CCM_INIT_USER_STORE,
+	defaultConfig,
 	TokenEventResult,
 } from '../../../../../src/modules/token/constants';
 import { crossChainTransferMessageParams } from '../../../../../src/modules/token/schemas';
@@ -36,9 +36,12 @@ import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_pr
 import { fakeLogger } from '../../../../utils/mocks';
 import { ccmTransferEventSchema } from '../../../../../src/modules/token/events/ccm_transfer';
 import { SupplyStore } from '../../../../../src/modules/token/stores/supply';
+import { InternalMethod } from '../../../../../src/modules/token/internal_method';
+import { InteroperabilityMethod } from '../../../../../src/modules/token/types';
 
 describe('CrossChain Transfer Command', () => {
 	const tokenModule = new TokenModule();
+	const internalMethod = new InternalMethod(tokenModule.stores, tokenModule.events);
 	const defaultAddress = utils.getRandomBytes(20);
 	const randomAddress = utils.getRandomBytes(20);
 	const ownChainID = Buffer.from([0, 0, 0, 1]);
@@ -60,13 +63,7 @@ describe('CrossChain Transfer Command', () => {
 
 	let command: CrossChainTransferCommand;
 	let method: TokenMethod;
-	let interopMethod: {
-		getOwnChainAccount: jest.Mock;
-		send: jest.Mock;
-		error: jest.Mock;
-		terminateChain: jest.Mock;
-		getChannel: jest.Mock;
-	};
+	let interopMethod: InteroperabilityMethod;
 	let stateStore: PrefixedStateReadWriter;
 	let methodContext: MethodContext;
 	let escrowStore: EscrowStore;
@@ -74,23 +71,29 @@ describe('CrossChain Transfer Command', () => {
 
 	beforeEach(async () => {
 		method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
-		command = new CrossChainTransferCommand(tokenModule.stores, tokenModule.events, method);
+		command = new CrossChainTransferCommand(tokenModule.stores, tokenModule.events);
 		interopMethod = {
 			getOwnChainAccount: jest.fn().mockResolvedValue({ chainID: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn(),
 			error: jest.fn(),
 			terminateChain: jest.fn(),
 			getChannel: jest.fn(),
+			getMessageFeeTokenID: jest.fn(),
 		};
-		method.addDependencies(interopMethod as never);
-		method.init({
+		const config = {
 			ownChainID,
 			escrowAccountInitializationFee: BigInt(50000000),
 			userAccountInitializationFee: BigInt(50000000),
-			feeTokenID: defaultTokenID,
-		});
+		};
+		internalMethod.addDependencies({ payFee: jest.fn() });
+
+		method.addDependencies(interopMethod, internalMethod);
+		internalMethod.init(config);
+		method.init(config);
 		command.init({
 			ownChainID,
+			internalMethod,
+			tokenMethod: method,
 		});
 
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -98,6 +101,7 @@ describe('CrossChain Transfer Command', () => {
 		methodContext = createMethodContext({
 			stateStore,
 			eventQueue: new EventQueue(0),
+			contextStore: new Map(),
 		});
 		userStore = tokenModule.stores.get(UserStore);
 		await userStore.save(methodContext, defaultAddress, defaultTokenID, defaultAccount);
@@ -154,6 +158,7 @@ describe('CrossChain Transfer Command', () => {
 					timestamp: 0,
 				},
 				stateStore,
+				contextStore: new Map(),
 				getMethodContext: () => methodContext,
 				eventQueue: new EventQueue(0),
 				ccmSize: BigInt(30),
@@ -201,6 +206,7 @@ describe('CrossChain Transfer Command', () => {
 					timestamp: 0,
 				},
 				stateStore,
+				contextStore: new Map(),
 				getMethodContext: () => methodContext,
 				eventQueue: new EventQueue(0),
 				ccmSize: BigInt(30),
@@ -248,6 +254,7 @@ describe('CrossChain Transfer Command', () => {
 					timestamp: 0,
 				},
 				stateStore,
+				contextStore: new Map(),
 				getMethodContext: () => methodContext,
 				eventQueue: new EventQueue(0),
 				ccmSize: BigInt(30),
@@ -294,6 +301,7 @@ describe('CrossChain Transfer Command', () => {
 					timestamp: 0,
 				},
 				stateStore,
+				contextStore: new Map(),
 				getMethodContext: () => methodContext,
 				eventQueue: new EventQueue(0),
 				ccmSize: BigInt(30),
@@ -341,6 +349,7 @@ describe('CrossChain Transfer Command', () => {
 					timestamp: 0,
 				},
 				stateStore,
+				contextStore: new Map(),
 				getMethodContext: () => methodContext,
 				eventQueue: new EventQueue(0),
 				ccmSize: BigInt(30),
@@ -380,6 +389,7 @@ describe('CrossChain Transfer Command', () => {
 					timestamp: 0,
 				},
 				stateStore,
+				contextStore: new Map(),
 				getMethodContext: () => methodContext,
 				eventQueue: new EventQueue(0),
 				ccmSize: BigInt(30),
@@ -427,6 +437,7 @@ describe('CrossChain Transfer Command', () => {
 					timestamp: 0,
 				},
 				stateStore,
+				contextStore: new Map(),
 				getMethodContext: () => methodContext,
 				eventQueue: new EventQueue(0),
 				ccmSize: BigInt(30),
@@ -486,6 +497,7 @@ describe('CrossChain Transfer Command', () => {
 					timestamp: 0,
 				},
 				stateStore,
+				contextStore: new Map(),
 				getMethodContext: () => methodContext,
 				eventQueue: new EventQueue(0),
 				ccmSize: BigInt(30),
@@ -501,7 +513,7 @@ describe('CrossChain Transfer Command', () => {
 			).resolves.toEqual(true);
 		});
 
-		it('should reject if ccm fee is not sufficient when recipient user store does not exist', async () => {
+		it("should initialize account when recipient user store doesn't exist", async () => {
 			// Arrange
 			const params = codec.encode(crossChainTransferMessageParams, {
 				tokenID: defaultTokenID,
@@ -517,7 +529,7 @@ describe('CrossChain Transfer Command', () => {
 				nonce: BigInt(1),
 				sendingChainID: Buffer.from([3, 0, 0, 0]),
 				receivingChainID: Buffer.from([0, 0, 0, 1]),
-				fee,
+				fee: BigInt(defaultConfig.userAccountInitializationFee) + BigInt(1),
 				status: CCM_STATUS_OK,
 				params,
 			};
@@ -534,53 +546,7 @@ describe('CrossChain Transfer Command', () => {
 					timestamp: 0,
 				},
 				stateStore,
-				getMethodContext: () => methodContext,
-				eventQueue: new EventQueue(0),
-				ccmSize: BigInt(30),
-				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-				logger: fakeLogger,
-				chainID: utils.getRandomBytes(32),
-			};
-
-			// Act & Assert
-			await expect(command.execute(ctx)).rejects.toThrow(
-				'Insufficient fee to initialize user account.',
-			);
-		});
-
-		it("should burn the initialization fee from relayer when recipient user store doesn't exist", async () => {
-			// Arrange
-			const params = codec.encode(crossChainTransferMessageParams, {
-				tokenID: defaultTokenID,
-				amount: defaultAmount,
-				senderAddress: defaultAddress,
-				recipientAddress: randomAddress,
-				data: 'ddd',
-			});
-
-			const ccm = {
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-				module: tokenModule.name,
-				nonce: BigInt(1),
-				sendingChainID: Buffer.from([3, 0, 0, 0]),
-				receivingChainID: Buffer.from([0, 0, 0, 1]),
-				fee: FEE_CCM_INIT_USER_STORE + BigInt(1),
-				status: CCM_STATUS_OK,
-				params,
-			};
-
-			const ctx = {
-				ccm,
-				feeAddress: defaultAddress,
-				transaction: {
-					senderAddress: defaultAddress,
-					fee: BigInt(0),
-				},
-				header: {
-					height: 0,
-					timestamp: 0,
-				},
-				stateStore,
+				contextStore: new Map(),
 				getMethodContext: () => methodContext,
 				eventQueue: new EventQueue(0),
 				ccmSize: BigInt(30),
@@ -636,6 +602,7 @@ describe('CrossChain Transfer Command', () => {
 					timestamp: 0,
 				},
 				stateStore,
+				contextStore: new Map(),
 				getMethodContext: () => methodContext,
 				eventQueue: new EventQueue(0),
 				ccmSize: BigInt(30),
@@ -695,6 +662,7 @@ describe('CrossChain Transfer Command', () => {
 					timestamp: 0,
 				},
 				stateStore,
+				contextStore: new Map(),
 				getMethodContext: () => methodContext,
 				eventQueue: new EventQueue(0),
 				ccmSize: BigInt(30),
@@ -760,6 +728,7 @@ describe('CrossChain Transfer Command', () => {
 					timestamp: 0,
 				},
 				stateStore,
+				contextStore: new Map(),
 				getMethodContext: () => methodContext,
 				eventQueue: new EventQueue(0),
 				ccmSize: BigInt(30),
