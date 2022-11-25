@@ -62,10 +62,10 @@
 		"jest-extended": "3.2.0",
 		"jest-when": "3.5.2",
 		"prettier": "2.8.0",
-		"source-map-support": "0.5.19",
+		"source-map-support": "0.5.21",
 		"ts-jest": "29.0.3",
 		"ts-node": "10.9.1",
-		"tsconfig-paths": "3.9.0",
+		"tsconfig-paths": "4.1.0",
 		"typescript": "4.9.3"
 	}
 }
