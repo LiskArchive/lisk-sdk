@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`genesis block given the application has not been initialized when chain module is bootstrapped should have correct validator list 1`] = `
-Array [
+[
   "lskzbfnydosaoobnohtwxaf6ukw6uux7kjw4n9x9z",
   "lskz3efmer9ue4m79zdfysmkc2juywap4sq3x4x8v",
   "lskzehue2gvhoj2mmxcf346tr6ugzcyrogot4dsw7",

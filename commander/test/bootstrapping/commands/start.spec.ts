@@ -60,7 +60,12 @@ describe('start', () => {
 				run: async () => Promise.resolve(),
 			},
 		} as unknown as Application);
-		jest.spyOn(fs, 'readJSON');
+		jest.spyOn(fs, 'readJSON').mockResolvedValue({
+			system: {
+				logLevel: 'error',
+			},
+			plugins: {},
+		} as never);
 		when(fs.readJSON as jest.Mock)
 			.calledWith('~/.lisk/lisk-core/config/default/config.json')
 			.mockResolvedValue({
