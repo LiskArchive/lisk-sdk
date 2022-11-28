@@ -57,19 +57,19 @@ describe('engine', () => {
 		jest
 			.spyOn(BFTMethod.prototype, 'getBFTHeights')
 			.mockResolvedValue({ maxHeightPrecommitted: 0 } as never);
-		jest.spyOn(Network.prototype, 'init');
-		jest.spyOn(Network.prototype, 'start');
-		jest.spyOn(Network.prototype, 'stop');
+		jest.spyOn(Network.prototype, 'init').mockResolvedValue();
+		jest.spyOn(Network.prototype, 'start').mockResolvedValue();
+		jest.spyOn(Network.prototype, 'stop').mockResolvedValue();
 		jest.spyOn(LegacyChainHandler.prototype, 'init');
-		jest.spyOn(LegacyChainHandler.prototype, 'sync');
+		jest.spyOn(LegacyChainHandler.prototype, 'sync').mockResolvedValue();
 		jest.spyOn(Consensus.prototype, 'init');
-		jest.spyOn(Consensus.prototype, 'start');
+		jest.spyOn(Consensus.prototype, 'start').mockResolvedValue();
 		jest.spyOn(Consensus.prototype, 'stop');
-		jest.spyOn(Generator.prototype, 'start');
-		jest.spyOn(Generator.prototype, 'stop');
+		jest.spyOn(Generator.prototype, 'start').mockResolvedValue();
+		jest.spyOn(Generator.prototype, 'stop').mockResolvedValue();
 		jest.spyOn(RPCServer.prototype, 'init');
-		jest.spyOn(RPCServer.prototype, 'start');
-		jest.spyOn(RPCServer.prototype, 'stop');
+		jest.spyOn(RPCServer.prototype, 'start').mockResolvedValue();
+		jest.spyOn(RPCServer.prototype, 'stop').mockReturnValue();
 		jest.spyOn(RPCServer.prototype, 'registerEndpoint');
 		jest.spyOn(RPCServer.prototype, 'registerNotFoundEndpoint');
 		jest.spyOn(Generator.prototype, 'init').mockResolvedValue(); // init tested via generator.spec
@@ -152,7 +152,7 @@ describe('engine', () => {
 		});
 
 		it('should register consensus event handler', () => {
-			expect(engine['_consensus'].events.eventNames()).toHaveLength(6);
+			expect(engine['_consensus'].events.eventNames()).toHaveLength(5);
 			expect(engine['_consensus'].events.eventNames()).toContain(CONSENSUS_EVENT_BLOCK_DELETE);
 			expect(engine['_consensus'].events.eventNames()).toContain(CONSENSUS_EVENT_BLOCK_NEW);
 			expect(engine['_consensus'].events.eventNames()).toContain(CONSENSUS_EVENT_FORK_DETECTED);
