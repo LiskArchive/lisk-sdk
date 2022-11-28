@@ -36,7 +36,7 @@
 		"prebuild": "rm -r dist-node/* || mkdir dist-node || true",
 		"build": "tsc && npm run copy-static-files",
 		"test:unit": "jest --config=./test/unit/jest.config.js --coverage=true --coverage-reporters=json --verbose",
-		"test:integration": "jest --config=./test/integration/jest.config.js",
+		"test:integration": "jest --config=./test/integration/jest.config.js --force-exit",
 		"test:functional": "jest --config=./test/functional/jest.config.js --runInBand"
 	},
 	"dependencies": {

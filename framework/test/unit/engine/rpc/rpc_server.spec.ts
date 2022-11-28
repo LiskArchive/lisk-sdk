@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as os from 'os';
+import { WSServer } from '../../../../src/controller/ws/ws_server';
 import { RPCServer } from '../../../../src/engine/rpc/rpc_server';
 import { fakeLogger } from '../../../utils/mocks';
 
@@ -36,6 +37,10 @@ jest.mock('zeromq', () => {
 describe('RPC server', () => {
 	let rpcServer: RPCServer;
 	const dataPath = os.tmpdir();
+
+	beforeEach(() => {
+		jest.spyOn(WSServer.prototype, 'start').mockResolvedValue({} as never);
+	});
 
 	describe('constructor', () => {
 		it('should create IPC server if ipc is enabled', () => {
