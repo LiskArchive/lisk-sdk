@@ -5,7 +5,7 @@ exports[`config/unit/jest.config.js unit test config must match to the snapshot.
   "clearMocks": true,
   "collectCoverage": false,
   "collectCoverageFrom": [
-    "src/**/*.(js|ts)",
+    "src/**/*.ts",
   ],
   "coverageDirectory": ".coverage/unit",
   "coverageReporters": [

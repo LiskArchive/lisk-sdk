@@ -29,7 +29,7 @@
 		"lint:fix": "eslint --fix --ext .js,.ts .",
 		"test": "npm run test:unit",
 		"test:coverage": "jest --config=./test/unit/jest.config.js --coverage=true --coverage-reporters=text",
-		"test:ci": "jest --runInBand --forceExit --coverage=true --coverage-reporters=json --verbose",
+		"test:ci": "jest  --config=./test/unit/jest.config.js --forceExit --coverage=true --coverage-reporters=json --verbose",
 		"test:unit": "jest --config=./test/unit/jest.config.js",
 		"test:integration": "jest --config=./test/integration/jest.config.js --runInBand",
 		"test:functional": "jest --config=./test/functional/jest.config.js --runInBand",
