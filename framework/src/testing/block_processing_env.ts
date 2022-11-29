@@ -45,13 +45,14 @@ import { AuthModule } from '../modules/auth';
 import { FeeModule } from '../modules/fee';
 import { RewardModule } from '../modules/reward';
 import { RandomModule } from '../modules/random';
-import { DPoSModule } from '../modules/dpos_v2';
+import { PoSModule } from '../modules/pos';
 import { Generator } from '../engine/generator';
 import { ABIHandler } from '../abi_handler/abi_handler';
 import { generateGenesisBlock } from '../genesis_block';
 import { systemDirs } from '../system_dirs';
 import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
 import { createLogger } from '../logger';
+import { MainchainInteroperabilityModule } from '../modules/interoperability';
 
 type Options = {
 	genesis?: GenesisConfig;
@@ -62,7 +63,7 @@ type Options = {
 interface BlockProcessingParams {
 	modules?: BaseModule[];
 	options?: Options;
-	initDelegates?: Buffer[];
+	initValidators?: Buffer[];
 	logLevel?: string;
 }
 
@@ -176,7 +177,8 @@ export const getBlockProcessingEnv = async (
 	const feeModule = new FeeModule();
 	const rewardModule = new RewardModule();
 	const randomModule = new RandomModule();
-	const dposModule = new DPoSModule();
+	const posModule = new PoSModule();
+	const interopModule = new MainchainInteroperabilityModule();
 	const modules = [
 		validatorsModule,
 		authModule,
@@ -184,24 +186,30 @@ export const getBlockProcessingEnv = async (
 		feeModule,
 		rewardModule,
 		randomModule,
-		dposModule,
+		posModule,
 	];
 	const stateMachine = new StateMachine();
 	const logger = createLogger({ name: 'blockProcessingEnv', logLevel: params.logLevel ?? 'none' });
 
 	// resolve dependencies
-	feeModule.addDependencies(tokenModule.method);
+	tokenModule.addDependencies(interopModule.method, feeModule.method);
+	feeModule.addDependencies(tokenModule.method, interopModule.method);
 	rewardModule.addDependencies(tokenModule.method, randomModule.method);
-	dposModule.addDependencies(randomModule.method, validatorsModule.method, tokenModule.method);
+	posModule.addDependencies(
+		randomModule.method,
+		validatorsModule.method,
+		tokenModule.method,
+		feeModule.method,
+	);
 
 	// register modules
+	stateMachine.registerModule(feeModule);
 	stateMachine.registerModule(authModule);
 	stateMachine.registerModule(validatorsModule);
 	stateMachine.registerModule(tokenModule);
-	stateMachine.registerModule(feeModule);
 	stateMachine.registerModule(rewardModule);
 	stateMachine.registerModule(randomModule);
-	stateMachine.registerModule(dposModule);
+	stateMachine.registerModule(posModule);
 	const blockAssets = blockAssetsJSON.map(asset => ({
 		...asset,
 		data: codec.fromJSON<Record<string, unknown>>(asset.schema, asset.data),

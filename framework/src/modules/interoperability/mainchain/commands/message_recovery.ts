@@ -20,168 +20,404 @@ import {
 	CommandExecuteContext,
 	CommandVerifyContext,
 	VerificationResult,
+	VerifyStatus,
 } from '../../../../state_machine/types';
-import { CCMsg, MessageRecoveryParams } from '../../types';
+import { CCMsg, CrossChainMessageContext, MessageRecoveryParams } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
-import { MainchainInteroperabilityStore } from '../store';
-import { verifyMessageRecovery, swapReceivingAndSendingChainIDs, getCCMSize } from '../../utils';
-import { CCM_STATUS_RECOVERED, CHAIN_ACTIVE, EMPTY_FEE_ADDRESS } from '../../constants';
+import { MainchainInteroperabilityInternalMethod } from '../internal_method';
+import { getMainchainID, validateFormat } from '../../utils';
+import { CCMStatusCode, COMMAND_NAME_MESSAGE_RECOVERY } from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
-import { BaseInteroperableMethod } from '../../base_interoperable_method';
-import { createCCCommandExecuteContext } from '../../context';
-import { TerminatedOutboxAccount } from '../../stores/terminated_outbox';
-import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
+import { TerminatedOutboxAccount, TerminatedOutboxStore } from '../../stores/terminated_outbox';
+import {
+	CCMProcessedCode,
+	CcmProcessedEvent,
+	CCMProcessedResult,
+} from '../../events/ccm_processed';
 
-export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand {
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#message-recovery-command
+export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = messageRecoveryParamsSchema;
 
 	public get name(): string {
-		return 'messageRecovery';
+		return COMMAND_NAME_MESSAGE_RECOVERY;
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#verification-1
 	public async verify(
 		context: CommandVerifyContext<MessageRecoveryParams>,
 	): Promise<VerificationResult> {
 		const {
-			params: { chainID, idxs, crossChainMessages, siblingHashes },
+			params: { chainID, crossChainMessages, idxs, siblingHashes },
 		} = context;
-		const chainIdAsBuffer = chainID;
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-		let terminatedChainOutboxAccount: TerminatedOutboxAccount | undefined;
+		let terminatedOutboxAccount: TerminatedOutboxAccount | undefined;
 
 		try {
-			terminatedChainOutboxAccount = await interoperabilityStore.getTerminatedOutboxAccount(
-				chainIdAsBuffer,
-			);
+			terminatedOutboxAccount = await this.stores.get(TerminatedOutboxStore).get(context, chainID);
 		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
+			if (error instanceof NotFoundError) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error('Terminated outbox account does not exist.'),
+				};
+			}
+			throw error;
+		}
+
+		// Check that the idxs are sorted in ascending order
+		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#sort_returns_the_reference_to_the_same_array
+		// CAUTION! `sort` modifies original array
+		const sortedIdxs = [...idxs].sort((a, b) => a - b);
+		const isSame =
+			idxs.length === sortedIdxs.length &&
+			idxs.every((element, index) => element === sortedIdxs[index]);
+		if (!isSame) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Cross-chain message indexes are not sorted in ascending order.'),
+			};
+		}
+
+		// Check that the CCMs are still pending.
+		for (const index of idxs) {
+			if (index < terminatedOutboxAccount.partnerChainInboxSize) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error('Cross-chain message is not pending.'),
+				};
 			}
 		}
 
-		return verifyMessageRecovery(
-			{ idxs, crossChainMessages, siblingHashes },
-			terminatedChainOutboxAccount,
+		// Process basic checks for all CCMs.
+		// Verify general format. Past this point, we can access ccm root properties.
+		for (const crossChainMessage of crossChainMessages) {
+			const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
+			validateFormat(ccm);
+
+			if (ccm.status !== CCMStatusCode.OK) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error('Cross-chain message status is not valid.'),
+				};
+			}
+
+			// The receiving chain must be the terminated chain.
+			if (!ccm.receivingChainID.equals(chainID)) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error('Cross-chain message receiving chain ID is not valid.'),
+				};
+			}
+
+			// The sending chain must be live.
+			const isLive = await this.internalMethod.isLive(context, ccm.sendingChainID, Date.now());
+			if (!isLive) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error('Cross-chain message sending chain is not live.'),
+				};
+			}
+		}
+
+		// Check the inclusion proof against the sidechain outbox root.
+		const proof = {
+			size: terminatedOutboxAccount.outboxSize,
+			idxs,
+			siblingHashes,
+		};
+
+		// Convert each CCM byte to sha256 hash
+		const hashedCCMs = crossChainMessages.map(ccm => utils.hash(ccm));
+		const isVerified = regularMerkleTree.verifyDataBlock(
+			hashedCCMs,
+			proof,
+			terminatedOutboxAccount.outboxRoot,
 		);
+		if (!isVerified) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Message recovery proof of inclusion is not valid.'),
+			};
+		}
+
+		return {
+			status: VerifyStatus.OK,
+		};
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#execution-1
 	public async execute(context: CommandExecuteContext<MessageRecoveryParams>): Promise<void> {
-		const { transaction, params, getMethodContext, logger, chainID, getStore } = context;
-
-		const chainIdAsBuffer = params.chainID;
-
-		const updatedCCMs: Buffer[] = [];
-		const deserializedCCMs = params.crossChainMessages.map(serializedCCMsg =>
-			codec.decode<CCMsg>(ccmSchema, serializedCCMsg),
-		);
-		for (const ccm of deserializedCCMs) {
-			const methodsWithBeforeRecoverCCM = [...this.interoperableCCMethods.values()].filter(method =>
-				Reflect.has(method, 'beforeRecoverCCM'),
-			) as Pick<Required<BaseInteroperableMethod>, 'beforeRecoverCCM'>[];
-			for (const method of methodsWithBeforeRecoverCCM) {
-				await method.beforeRecoverCCM({
-					ccm,
-					trsSender: transaction.senderAddress,
-					eventQueue: context.eventQueue,
-					getMethodContext,
-					logger,
-					chainID,
-					getStore,
-					feeAddress: EMPTY_FEE_ADDRESS,
-				});
-			}
-
-			const recoveryCCM: CCMsg = {
-				...ccm,
-				fee: BigInt(0),
-				status: CCM_STATUS_RECOVERED,
+		const { params } = context;
+		// Set CCM status to recovered and assign fee to trs sender.
+		const recoveredCCMs: Buffer[] = [];
+		for (const crossChainMessage of params.crossChainMessages) {
+			const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
+			const ctx: CrossChainMessageContext = {
+				...context,
+				ccm,
 			};
-			const encodedUpdatedCCM = codec.encode(ccmSchema, recoveryCCM);
-			updatedCCMs.push(encodedUpdatedCCM);
+			// If the sending chain is the mainchain, recover the CCM.
+			// This function never raises an error.
+			if (ccm.sendingChainID.equals(getMainchainID(context.chainID))) {
+				await this._applyRecovery(ctx);
+			} else {
+				// If the sending chain is not the mainchain, forward the CCM.
+				// This function never raises an error.
+				await this._forwardRecovery(ctx);
+
+				// Append the recovered CCM to the list of recovered CCMs.
+				// Notice that the ccm has been mutated in the applyRecovery and forwardRecovery functions
+				// as the status is set to CCM_STATUS_CODE_RECOVERED (so that it cannot be recovered again).
+				recoveredCCMs.push(codec.encode(ccmSchema, ccm));
+			}
 		}
 
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-
-		const doesTerminatedOutboxAccountExist = await interoperabilityStore.terminatedOutboxAccountExist(
-			chainIdAsBuffer,
+		const terminatedOutboxSubstore = this.stores.get(TerminatedOutboxStore);
+		const terminatedOutboxAccount = await terminatedOutboxSubstore.get(
+			context,
+			context.params.chainID,
 		);
 
-		if (!doesTerminatedOutboxAccountExist) {
-			throw new Error('Terminated outbox account does not exist.');
-		}
-
-		const terminatedChainOutboxAccount = await interoperabilityStore.getTerminatedOutboxAccount(
-			chainIdAsBuffer,
-		);
-		const terminatedChainOutboxSize = terminatedChainOutboxAccount.outboxSize;
-
+		// Update sidechain outbox root.
 		const proof = {
-			size: terminatedChainOutboxSize,
+			size: terminatedOutboxAccount.outboxSize,
 			indexes: params.idxs,
 			siblingHashes: params.siblingHashes,
 		};
 
-		const hashedUpdatedCCMs = updatedCCMs.map(ccm => utils.hash(ccm));
+		terminatedOutboxAccount.outboxRoot = regularMerkleTree.calculateRootFromUpdateData(
+			recoveredCCMs.map(ccm => utils.hash(ccm)),
+			proof,
+		);
 
-		const outboxRoot = regularMerkleTree.calculateRootFromUpdateData(hashedUpdatedCCMs, proof);
+		await terminatedOutboxSubstore.set(context, context.params.chainID, terminatedOutboxAccount);
+	}
 
-		await interoperabilityStore.setTerminatedOutboxAccount(chainIdAsBuffer, {
-			outboxRoot,
-		});
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	private async _applyRecovery(context: CrossChainMessageContext): Promise<void> {
+		const { logger } = context;
+		const ccmID = utils.hash(codec.encode(ccmSchema, context.ccm));
+		const ccm: CCMsg = {
+			...context.ccm,
+			status: CCMStatusCode.RECOVERED,
+			sendingChainID: context.ccm.receivingChainID,
+			receivingChainID: context.ccm.sendingChainID,
+		};
 
-		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
-		for (const ccm of deserializedCCMs) {
-			const newCcm = swapReceivingAndSendingChainIDs(ccm);
-
-			if (ownChainAccount.id.equals(ccm.receivingChainID)) {
-				const ccCommands = this.ccCommands.get(newCcm.module);
-
-				if (!ccCommands) {
-					continue;
+		try {
+			for (const [module, method] of this.interoperableCCMethods.entries()) {
+				if (method.verifyCrossChainMessage) {
+					logger.debug(
+						{
+							moduleName: module,
+							commandName: ccm.crossChainCommand,
+							ccmID: ccmID.toString('hex'),
+						},
+						'Execute verifyCrossChainMessage',
+					);
+					await method.verifyCrossChainMessage(context);
 				}
-
-				const ccCommand = ccCommands.find(command => command.name === newCcm.crossChainCommand);
-
-				if (!ccCommand) {
-					continue;
-				}
-
-				const ccCommandExecuteContext = createCCCommandExecuteContext({
-					ccm: newCcm,
-					ccmSize: getCCMSize(ccm),
-					eventQueue: context.eventQueue,
-					feeAddress: EMPTY_FEE_ADDRESS,
-					getMethodContext,
-					getStore,
-					logger,
-					chainID,
+			}
+		} catch (error) {
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+				result: CCMProcessedResult.DISCARDED,
+			});
+			return;
+		}
+		const commands = this.ccCommands.get(ccm.module);
+		if (!commands) {
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.MODULE_NOT_SUPPORTED,
+				result: CCMProcessedResult.DISCARDED,
+			});
+			return;
+		}
+		const command = commands.find(com => com.name === ccm.crossChainCommand);
+		if (!command) {
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
+				result: CCMProcessedResult.DISCARDED,
+			});
+			return;
+		}
+		if (command.verify) {
+			try {
+				await command.verify(context);
+			} catch (error) {
+				logger.debug(
+					{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+					'Fail to verify cross chain command.',
+				);
+				this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+					ccmID,
+					code: CCMProcessedCode.INVALID_CCM_VERIFY_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
 				});
-
-				await ccCommand.execute(ccCommandExecuteContext);
-				continue;
+				return;
 			}
+		}
+		const baseEventSnapshotID = context.eventQueue.createSnapshot();
+		const baseStateSnapshotID = context.stateStore.createSnapshot();
 
-			const ccmChainIdAsBuffer = newCcm.receivingChainID;
-			const chainAccountExist = await interoperabilityStore.chainAccountExist(ccmChainIdAsBuffer);
-			const isLive = await interoperabilityStore.isLive(ccmChainIdAsBuffer, Date.now());
-
-			if (!chainAccountExist || !isLive) {
-				continue;
+		try {
+			for (const [module, method] of this.interoperableCCMethods.entries()) {
+				if (method.beforeCrossChainCommandExecute) {
+					logger.debug(
+						{
+							moduleName: module,
+							commandName: ccm.crossChainCommand,
+							ccmID: ccmID.toString('hex'),
+						},
+						'Execute beforeCrossChainCommandExecute',
+					);
+					await method.beforeCrossChainCommandExecute(context);
+				}
 			}
+		} catch (error) {
+			context.eventQueue.restoreSnapshot(baseEventSnapshotID);
+			context.stateStore.restoreSnapshot(baseStateSnapshotID);
+			logger.debug(
+				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+				'Fail to execute beforeCrossChainCommandExecute.',
+			);
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
+				result: CCMProcessedResult.DISCARDED,
+			});
+			return;
+		}
 
-			const chainAccount = await interoperabilityStore.getChainAccount(ccmChainIdAsBuffer);
+		const execEventSnapshotID = context.eventQueue.createSnapshot();
+		const execStateSnapshotID = context.stateStore.createSnapshot();
 
-			if (chainAccount.status !== CHAIN_ACTIVE) {
-				continue;
+		try {
+			const params = command.schema ? codec.decode(command.schema, ccm.params) : {};
+			await command.execute({ ...context, params });
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.SUCCESS,
+				result: CCMProcessedResult.APPLIED,
+			});
+		} catch (error) {
+			context.eventQueue.restoreSnapshot(execEventSnapshotID);
+			context.stateStore.restoreSnapshot(execStateSnapshotID);
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.FAILED_CCM,
+				result: CCMProcessedResult.DISCARDED,
+			});
+		}
+
+		try {
+			for (const [module, method] of this.interoperableCCMethods.entries()) {
+				if (method.afterCrossChainCommandExecute) {
+					logger.debug(
+						{
+							moduleName: module,
+							commandName: ccm.crossChainCommand,
+							ccmID: ccmID.toString('hex'),
+						},
+						'Execute afterCrossChainCommandExecute',
+					);
+					await method.afterCrossChainCommandExecute(context);
+				}
 			}
-
-			await interoperabilityStore.addToOutbox(ccmChainIdAsBuffer, newCcm);
+		} catch (error) {
+			context.eventQueue.restoreSnapshot(baseEventSnapshotID);
+			context.stateStore.restoreSnapshot(baseStateSnapshotID);
+			logger.debug(
+				{ err: error as Error, moduleName: module, commandName: ccm.crossChainCommand },
+				'Fail to execute afterCrossChainCommandExecute',
+			);
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
+				result: CCMProcessedResult.DISCARDED,
+			});
 		}
 	}
 
-	protected getInteroperabilityStore(
-		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	private async _forwardRecovery(context: CrossChainMessageContext): Promise<void> {
+		const { logger } = context;
+		const ccmID = utils.hash(codec.encode(ccmSchema, context.ccm));
+		const ccm: CCMsg = {
+			...context.ccm,
+			status: CCMStatusCode.RECOVERED,
+			sendingChainID: context.ccm.receivingChainID,
+			receivingChainID: context.ccm.sendingChainID,
+		};
+
+		try {
+			for (const [module, method] of this.interoperableCCMethods.entries()) {
+				if (method.verifyCrossChainMessage) {
+					logger.debug(
+						{
+							moduleName: module,
+							commandName: ccm.crossChainCommand,
+							ccmID: ccmID.toString('hex'),
+						},
+						'Execute verifyCrossChainMessage',
+					);
+					await method.verifyCrossChainMessage(context);
+				}
+			}
+		} catch (error) {
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+				result: CCMProcessedResult.DISCARDED,
+			});
+			logger.debug(
+				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+				'Fail to execute verifyCrossChainMessage.',
+			);
+			return;
+		}
+		const baseEventSnapshotID = context.eventQueue.createSnapshot();
+		const baseStateSnapshotID = context.stateStore.createSnapshot();
+
+		try {
+			for (const [module, method] of this.interoperableCCMethods.entries()) {
+				if (method.beforeCrossChainMessageForwarding) {
+					logger.debug(
+						{
+							moduleName: module,
+							commandName: ccm.crossChainCommand,
+							ccmID: ccmID.toString('hex'),
+						},
+						'Execute beforeCrossChainMessageForwarding',
+					);
+					await method.beforeCrossChainMessageForwarding(context);
+				}
+			}
+		} catch (error) {
+			context.eventQueue.restoreSnapshot(baseEventSnapshotID);
+			context.stateStore.restoreSnapshot(baseStateSnapshotID);
+			logger.debug(
+				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+				'Fail to execute beforeCrossChainMessageForwarding.',
+			);
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
+				result: CCMProcessedResult.DISCARDED,
+			});
+			return;
+		}
+
+		await this.internalMethod.addToOutbox(context, ccm.receivingChainID, ccm);
+		const recoveredCCMID = utils.hash(codec.encode(ccmSchema, ccm));
+
+		this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+			ccmID: recoveredCCMID,
+			code: CCMProcessedCode.SUCCESS,
+			result: CCMProcessedResult.FORWARDED,
+		});
 	}
 }

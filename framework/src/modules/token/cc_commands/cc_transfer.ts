@@ -15,42 +15,39 @@ import { codec } from '@liskhq/lisk-codec';
 import { validator } from '@liskhq/lisk-validator';
 // import { NotFoundError } from '@liskhq/lisk-db';
 import { BaseCCCommand } from '../../interoperability/base_cc_command';
-import { CCCommandExecuteContext } from '../../interoperability/types';
-import { NamedRegistry } from '../../named_registry';
+import { CrossChainMessageContext } from '../../interoperability/types';
 import { TokenMethod } from '../method';
-import {
-	CCM_STATUS_OK,
-	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-	FEE_CCM_INIT_USER_STORE,
-	TokenEventResult,
-} from '../constants';
+import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_NAME_TRANSFER, TokenEventResult } from '../constants';
 import { CCTransferMessageParams, crossChainTransferMessageParams } from '../schemas';
 import { splitTokenID } from '../utils';
 import { SupportedTokensStore } from '../stores/supported_tokens';
 import { CcmTransferEvent } from '../events/ccm_transfer';
 import { UserStore } from '../stores/user';
 import { EscrowStore } from '../stores/escrow';
+import { InternalMethod } from '../internal_method';
 
 export class CrossChainTransferCommand extends BaseCCCommand {
 	public schema = crossChainTransferMessageParams;
 
-	private readonly _tokenMethod: TokenMethod;
+	private _tokenMethod!: TokenMethod;
+	private _internalMethod!: InternalMethod;
 	private _ownChainID!: Buffer;
-
-	public constructor(stores: NamedRegistry, events: NamedRegistry, tokenMethod: TokenMethod) {
-		super(stores, events);
-		this._tokenMethod = tokenMethod;
-	}
 
 	public get name(): string {
 		return CROSS_CHAIN_COMMAND_NAME_TRANSFER;
 	}
 
-	public init(args: { ownChainID: Buffer }): void {
+	public init(args: {
+		ownChainID: Buffer;
+		tokenMethod: TokenMethod;
+		internalMethod: InternalMethod;
+	}): void {
 		this._ownChainID = args.ownChainID;
+		this._tokenMethod = args.tokenMethod;
+		this._internalMethod = args.internalMethod;
 	}
 
-	public async verify(ctx: CCCommandExecuteContext): Promise<void> {
+	public async verify(ctx: CrossChainMessageContext): Promise<void> {
 		const { ccm } = ctx;
 		const methodContext = ctx.getMethodContext();
 		const ownChainID = this._ownChainID;
@@ -87,11 +84,11 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 		}
 	}
 
-	public async execute(ctx: CCCommandExecuteContext): Promise<void> {
-		const { ccm, feeAddress } = ctx;
+	public async execute(ctx: CrossChainMessageContext): Promise<void> {
+		const { ccm } = ctx;
 		const ownChainID = this._ownChainID;
 		const methodContext = ctx.getMethodContext();
-		const { sendingChainID, status, fee, receivingChainID } = ccm;
+		const { sendingChainID, status, receivingChainID } = ccm;
 		let recipientAddress: Buffer;
 		const params = codec.decode<CCTransferMessageParams>(
 			crossChainTransferMessageParams,
@@ -132,14 +129,11 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 		);
 
 		if (!recipientExist) {
-			if (fee < FEE_CCM_INIT_USER_STORE) {
-				throw new Error('Insufficient fee to initialize user account.');
-			}
-
-			// should replace feeAddress with trsSender address
-			await this._tokenMethod.burn(methodContext, feeAddress, tokenID, amount);
-
-			await userStore.createDefaultAccount(methodContext, recipientAddress, tokenID);
+			await this._internalMethod.initializeUserAccount(
+				ctx.getMethodContext(),
+				recipientAddress,
+				tokenID,
+			);
 		}
 
 		if (tokenChainID.equals(ownChainID)) {

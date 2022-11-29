@@ -35,13 +35,12 @@ export const sampleTokenTestScenario = (fixtures: Fixtures) =>
 				{
 					module: 'token',
 					command: 'transfer',
-					fee: '10000000',
+					fee: '100000000',
 					params: {
 						amount: '100000000',
 						recipientAddress: target.address,
 						data: '',
 						tokenID: Buffer.alloc(8, 0).toString('hex'),
-						accountInitializationFee: BigInt(5000000),
 					},
 				},
 				fixtures.validators.keys[0].privateKey,

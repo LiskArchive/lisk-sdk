@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+/* eslint-disable jest/expect-expect */
 
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
@@ -22,7 +23,7 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../../../src';
-import { CCTransferCommand } from '../../../../../src/modules/token/commands/cc_transfer';
+import { CrossChainTransferCommand } from '../../../../../src/modules/token/commands/cc_transfer';
 import {
 	CCM_STATUS_OK,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
@@ -34,6 +35,7 @@ import { UserStore } from '../../../../../src/modules/token/stores/user';
 import { createTransactionContext } from '../../../../../src/testing';
 import { InitializeEscrowAccountEvent } from '../../../../../src/modules/token/events/initialize_escrow_account';
 import { TransferCrossChainEvent } from '../../../../../src/modules/token/events/transfer_cross_chain';
+import { InternalMethod } from '../../../../../src/modules/token/internal_method';
 
 interface Params {
 	tokenID: Buffer;
@@ -42,18 +44,17 @@ interface Params {
 	recipientAddress: Buffer;
 	data: string;
 	messageFee: bigint;
-	escrowInitializationFee: bigint;
 }
 
 describe('CCTransfer command', () => {
-	let command: CCTransferCommand;
+	let command: CrossChainTransferCommand;
 	const module = new TokenModule();
 	const method = new TokenMethod(module.stores, module.events, module.name);
+	const internalMethod = new InternalMethod(module.stores, module.events);
 
 	const defaultOwnChainID = Buffer.from([0, 0, 0, 1]);
 	const defaultReceivingChainID = Buffer.from([0, 0, 1, 0]);
 	const defaultTokenID = Buffer.concat([defaultOwnChainID, Buffer.alloc(4)]);
-	const defaultEscrowFeeTokenId = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 	const defaultUserAccountInitializationFee = BigInt('50000000');
 	const defaultEscrowAccountInitializationFee = BigInt('50000000');
 
@@ -114,8 +115,8 @@ describe('CCTransfer command', () => {
 		getMessageFeeTokenID: jest.Mock;
 	};
 
-	beforeAll(() => {
-		command = new CCTransferCommand(module.stores, module.events);
+	beforeEach(() => {
+		command = new CrossChainTransferCommand(module.stores, module.events);
 
 		interoperabilityMethod = {
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
@@ -125,24 +126,31 @@ describe('CCTransfer command', () => {
 			getChannel: jest.fn(),
 			getMessageFeeTokenID: jest.fn(),
 		};
+		internalMethod.addDependencies({
+			payFee: jest.fn(),
+		});
+		internalMethod.init({
+			escrowAccountInitializationFee: defaultEscrowAccountInitializationFee,
+			userAccountInitializationFee: defaultUserAccountInitializationFee,
+		});
 
-		method.addDependencies(interoperabilityMethod as never);
+		method.addDependencies(interoperabilityMethod, internalMethod);
 
 		method.init({
 			ownChainID: defaultOwnChainID,
 			escrowAccountInitializationFee: defaultEscrowAccountInitializationFee,
 			userAccountInitializationFee: defaultUserAccountInitializationFee,
-			feeTokenID: defaultTokenID,
 		});
 
 		command.init({
 			moduleName: module.name,
 			method,
 			interoperabilityMethod,
-			escrowFeeTokenID: defaultEscrowFeeTokenId,
-			escrowInitializationFee: defaultEscrowAccountInitializationFee,
+			internalMethod,
 			ownChainID: defaultOwnChainID,
 		});
+
+		jest.spyOn(command['_internalMethod'], 'initializeEscrowAccount');
 	});
 
 	describe('verify', () => {
@@ -159,7 +167,6 @@ describe('CCTransfer command', () => {
 				recipientAddress: utils.getRandomBytes(20),
 				data: '1'.repeat(64),
 				messageFee: BigInt(1000),
-				escrowInitializationFee: defaultEscrowAccountInitializationFee,
 			};
 		});
 
@@ -252,206 +259,6 @@ describe('CCTransfer command', () => {
 				),
 				'Token must be native to either the sending or the receiving chain or the mainchain.',
 			);
-		});
-
-		it('should fail for non existent account if escrow initialization fee is not what is configured in init', async () => {
-			const invalidEscrowInitializationFee = createTransactionContextWithOverridingParams({
-				escrowInitializationFee: BigInt(50),
-			});
-
-			expectSchemaValidationError(
-				await command.verify(
-					invalidEscrowInitializationFee.createCommandVerifyContext(crossChainTransferParamsSchema),
-				),
-				'Invalid escrow initialization fee.',
-			);
-		});
-
-		describe('when chainID of the tokenID is equal to ownChainID, receivingChainID or mainChainID and escrowAccount does not exist', () => {
-			describe('when params.tokenID is equal to configured escrowFeeTokenID and messageFeeTokenID', () => {
-				it('should fail when sender balance is less than the sum of twice of the amount and escrowInitializationFee', async () => {
-					const userStore = module.stores.get(UserStore);
-					const commonTokenID = Buffer.concat([defaultOwnChainID, Buffer.from([0, 0, 0, 0])]);
-					const amount = BigInt(50);
-					const senderBalance =
-						defaultEscrowAccountInitializationFee + amount * BigInt(2) - BigInt(1);
-
-					command['_escrowFeeTokenID'] = commonTokenID;
-
-					const insufficientBalanceContext = createTransactionContextWithOverridingParams({
-						amount,
-						tokenID: commonTokenID,
-					});
-
-					jest
-						.spyOn(interoperabilityMethod, 'getMessageFeeTokenID')
-						.mockResolvedValue(commonTokenID);
-
-					await userStore.save(
-						insufficientBalanceContext.createCommandExecuteContext<Params>(
-							crossChainTransferParamsSchema,
-						),
-						insufficientBalanceContext.transaction.senderAddress,
-						commonTokenID,
-						{
-							availableBalance: senderBalance,
-							lockedBalances: [],
-						},
-					);
-
-					expectSchemaValidationError(
-						await command.verify(
-							insufficientBalanceContext.createCommandVerifyContext(crossChainTransferParamsSchema),
-						),
-						createInsufficientBalanceError(
-							insufficientBalanceContext.transaction.senderAddress,
-							senderBalance,
-							commonTokenID,
-							amount * BigInt(2) + defaultEscrowAccountInitializationFee,
-						),
-					);
-				});
-
-				it('should pass when sender balance is sufficient for the sum of twice of the amount and escrowInitializationFee', async () => {
-					const userStore = module.stores.get(UserStore);
-					const commonTokenID = Buffer.concat([defaultOwnChainID, Buffer.from([0, 0, 0, 0])]);
-					const amount = BigInt(50);
-					const senderBalance = defaultEscrowAccountInitializationFee + amount * BigInt(2);
-
-					command['_escrowFeeTokenID'] = commonTokenID;
-
-					const sufficientBalanceContext = createTransactionContextWithOverridingParams({
-						amount,
-						tokenID: commonTokenID,
-					});
-
-					jest
-						.spyOn(interoperabilityMethod, 'getMessageFeeTokenID')
-						.mockResolvedValue(commonTokenID);
-
-					await userStore.save(
-						sufficientBalanceContext.createCommandExecuteContext<Params>(
-							crossChainTransferParamsSchema,
-						),
-						sufficientBalanceContext.transaction.senderAddress,
-						commonTokenID,
-						{
-							availableBalance: senderBalance,
-							lockedBalances: [],
-						},
-					);
-
-					const verificationResult = await command.verify(
-						sufficientBalanceContext.createCommandVerifyContext(crossChainTransferParamsSchema),
-					);
-
-					expect(verificationResult.status).toBe(VerifyStatus.OK);
-				});
-			});
-
-			describe('when params.tokenID is equal to configured escrowFeeTokenID', () => {
-				it('should fail when sender balance is less than the sum of amount and escrowInitializationFee', async () => {
-					const userStore = module.stores.get(UserStore);
-					const commonTokenID = Buffer.concat([defaultOwnChainID, Buffer.from([0, 0, 0, 0])]);
-					const amount = BigInt(50);
-					const senderBalance = defaultEscrowAccountInitializationFee + amount - BigInt(1);
-
-					command['_escrowFeeTokenID'] = commonTokenID;
-
-					const insufficientBalanceContext = createTransactionContextWithOverridingParams({
-						amount,
-						tokenID: commonTokenID,
-					});
-
-					jest
-						.spyOn(interoperabilityMethod, 'getMessageFeeTokenID')
-						.mockResolvedValue(defaultEscrowFeeTokenId);
-
-					await userStore.save(
-						insufficientBalanceContext.createCommandExecuteContext<Params>(
-							crossChainTransferParamsSchema,
-						),
-						insufficientBalanceContext.transaction.senderAddress,
-						commonTokenID,
-						{
-							availableBalance: senderBalance,
-							lockedBalances: [],
-						},
-					);
-
-					await userStore.save(
-						insufficientBalanceContext.createCommandExecuteContext<Params>(
-							crossChainTransferParamsSchema,
-						),
-						insufficientBalanceContext.transaction.senderAddress,
-						defaultEscrowFeeTokenId,
-						{
-							availableBalance: amount,
-							lockedBalances: [],
-						},
-					);
-
-					expectSchemaValidationError(
-						await command.verify(
-							insufficientBalanceContext.createCommandVerifyContext(crossChainTransferParamsSchema),
-						),
-						createInsufficientBalanceError(
-							insufficientBalanceContext.transaction.senderAddress,
-							senderBalance,
-							commonTokenID,
-							amount + defaultEscrowAccountInitializationFee,
-						),
-					);
-				});
-
-				it('should pass when sender has sufficient balance; amount and escrowInitializationFee for params.tokenID and amount for messageFeeTokenID ', async () => {
-					const userStore = module.stores.get(UserStore);
-					const commonTokenID = Buffer.concat([defaultOwnChainID, Buffer.from([0, 0, 0, 0])]);
-					const amount = BigInt(50);
-					const senderBalance = defaultEscrowAccountInitializationFee + amount;
-
-					command['_escrowFeeTokenID'] = commonTokenID;
-
-					const sufficientBalanceContext = createTransactionContextWithOverridingParams({
-						amount,
-						tokenID: commonTokenID,
-					});
-
-					jest
-						.spyOn(interoperabilityMethod, 'getMessageFeeTokenID')
-						.mockResolvedValue(defaultEscrowFeeTokenId);
-
-					await userStore.save(
-						sufficientBalanceContext.createCommandExecuteContext<Params>(
-							crossChainTransferParamsSchema,
-						),
-						sufficientBalanceContext.transaction.senderAddress,
-						commonTokenID,
-						{
-							availableBalance: senderBalance,
-							lockedBalances: [],
-						},
-					);
-
-					await userStore.save(
-						sufficientBalanceContext.createCommandExecuteContext<Params>(
-							crossChainTransferParamsSchema,
-						),
-						sufficientBalanceContext.transaction.senderAddress,
-						defaultEscrowFeeTokenId,
-						{
-							availableBalance: amount,
-							lockedBalances: [],
-						},
-					);
-
-					const verificationResult = await command.verify(
-						sufficientBalanceContext.createCommandVerifyContext(crossChainTransferParamsSchema),
-					);
-
-					expect(verificationResult.status).toBe(VerifyStatus.OK);
-				});
-			});
 		});
 
 		it('should fail when sender balance is insufficient for params.tokenID', async () => {
@@ -572,12 +379,11 @@ describe('CCTransfer command', () => {
 				recipientAddress: utils.getRandomBytes(20),
 				data: '1'.repeat(64),
 				messageFee: BigInt(1000),
-				escrowInitializationFee: defaultEscrowAccountInitializationFee,
 			};
 		});
 
 		describe('when chainID of tokenID is equal to ownChainID and escrowAccount does not exist', () => {
-			it('should create escrowAccount for receivingChainID and tokenID, burn the escrowInitializationFee for sender address and logs InitializeEscrowAccountEvent and TransferCrossChainEvent and call InteroperabilityMethod#send', async () => {
+			it('should create escrowAccount for receivingChainID and tokenID and logs InitializeEscrowAccountEvent and TransferCrossChainEvent and call InteroperabilityMethod#send', async () => {
 				const userStore = module.stores.get(UserStore);
 				const escrowStore = module.stores.get(EscrowStore);
 
@@ -585,16 +391,12 @@ describe('CCTransfer command', () => {
 				const amount = BigInt(50);
 				const senderBalance = defaultEscrowAccountInitializationFee + amount * BigInt(2);
 
-				command['_escrowFeeTokenID'] = commonTokenID;
-
 				const context = createTransactionContextWithOverridingParams({
 					amount,
 					tokenID: commonTokenID,
 				});
 
 				jest.spyOn(interoperabilityMethod, 'getMessageFeeTokenID').mockResolvedValue(commonTokenID);
-
-				jest.spyOn(method, 'burn').mockImplementation(async () => Promise.resolve());
 
 				await userStore.save(
 					context.createCommandExecuteContext<Params>(crossChainTransferParamsSchema),
@@ -619,19 +421,16 @@ describe('CCTransfer command', () => {
 
 				expect(escrowAccount.amount).toBe(BigInt(0));
 
-				expect(method.burn).toBeCalledTimes(1);
-				expect(method.burn).toHaveBeenCalledWith(
-					commandExecuteContext.getMethodContext(),
-					commandExecuteContext.transaction.senderAddress,
-					commonTokenID,
-					defaultEscrowAccountInitializationFee,
+				expect(command['_internalMethod'].initializeEscrowAccount).toHaveBeenCalledWith(
+					expect.anything(),
+					validParams.receivingChainID,
+					validParams.tokenID,
 				);
 
 				checkEventResult(commandExecuteContext.eventQueue, 2, InitializeEscrowAccountEvent, 0, {
 					chainID: validParams.receivingChainID,
 					tokenID: commonTokenID,
-					initPayingAddress: context.transaction.senderAddress,
-					initializationFee: command['_escrowInitializationFee'],
+					initializationFee: defaultEscrowAccountInitializationFee,
 				});
 
 				checkEventResult(commandExecuteContext.eventQueue, 2, TransferCrossChainEvent, 1, {
@@ -667,16 +466,12 @@ describe('CCTransfer command', () => {
 			const amount = BigInt(50);
 			const senderBalance = defaultEscrowAccountInitializationFee + amount * BigInt(2);
 
-			command['_escrowFeeTokenID'] = commonTokenID;
-
 			const context = createTransactionContextWithOverridingParams({
 				amount,
 				tokenID: commonTokenID,
 			});
 
 			jest.spyOn(interoperabilityMethod, 'getMessageFeeTokenID').mockResolvedValue(commonTokenID);
-
-			jest.spyOn(method, 'burn').mockImplementation(async () => Promise.resolve());
 
 			await userStore.save(
 				context.createCommandExecuteContext<Params>(crossChainTransferParamsSchema),
@@ -694,7 +489,7 @@ describe('CCTransfer command', () => {
 
 			await command.execute(commandExecuteContext);
 
-			expect(method.burn).toBeCalledTimes(0);
+			expect(command['_internalMethod'].initializeEscrowAccount).not.toHaveBeenCalled();
 
 			checkEventResult(commandExecuteContext.eventQueue, 1, TransferCrossChainEvent, 0, {
 				senderAddress: commandExecuteContext.transaction.senderAddress,
@@ -727,8 +522,6 @@ describe('CCTransfer command', () => {
 			const commonTokenID = Buffer.concat([Buffer.from([0, 0, 0, 0, 0, 0, 0, 0])]);
 			const amount = BigInt(50);
 			const senderBalance = amount - BigInt(1);
-
-			command['_escrowFeeTokenID'] = commonTokenID;
 
 			const context = createTransactionContextWithOverridingParams({
 				amount,

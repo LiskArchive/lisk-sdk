@@ -49,7 +49,7 @@ describe('endpoint:invoke command', () => {
 				[
 					'consensus_getBFTParameters',
 					'{"height": 2}',
-					'-d  ~/.lisk/dpos-mainchain',
+					'-d  ~/.lisk/pos-mainchain',
 					'-f ./input.json',
 				],
 				config,
@@ -58,7 +58,7 @@ describe('endpoint:invoke command', () => {
 	});
 
 	it('should call invoke with the provided action', async () => {
-		await InvokeCommand.run(['consensus_getBFTParameters', '-d  ~/.lisk/dpos-mainchain'], config);
+		await InvokeCommand.run(['consensus_getBFTParameters', '-d  ~/.lisk/pos-mainchain'], config);
 
 		expect(invokeMock).toBeCalledTimes(1);
 		expect(invokeMock).toBeCalledWith('consensus_getBFTParameters');
@@ -66,7 +66,7 @@ describe('endpoint:invoke command', () => {
 
 	it('should call invoke the provided action with parameters if provided', async () => {
 		await InvokeCommand.run(
-			['consensus_getBFTParameters', '{"height": 2}', '-d  ~/.lisk/dpos-mainchain'],
+			['consensus_getBFTParameters', '{"height": 2}', '-d  ~/.lisk/pos-mainchain'],
 			config,
 		);
 
@@ -76,7 +76,7 @@ describe('endpoint:invoke command', () => {
 
 	it('should call printJSON with the result of client.invoke', async () => {
 		await InvokeCommand.run(
-			['consensus_getBFTParameters', '{"height": 2}', '-d  ~/.lisk/dpos-mainchain'],
+			['consensus_getBFTParameters', '{"height": 2}', '-d  ~/.lisk/pos-mainchain'],
 			config,
 		);
 

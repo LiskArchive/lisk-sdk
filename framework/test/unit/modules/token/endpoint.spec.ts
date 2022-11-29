@@ -30,6 +30,7 @@ import {
 } from '../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { ModuleConfig } from '../../../../src/modules/token/types';
+import { InternalMethod } from '../../../../src/modules/token/internal_method';
 
 describe('token endpoint', () => {
 	const tokenModule = new TokenModule();
@@ -44,7 +45,7 @@ describe('token endpoint', () => {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
-				module: 'dpos',
+				module: 'pos',
 				amount: BigInt(100000000),
 			},
 		],
@@ -63,20 +64,24 @@ describe('token endpoint', () => {
 
 	beforeEach(async () => {
 		const method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
+		const internalMethod = new InternalMethod(tokenModule.stores, tokenModule.events);
 		endpoint = new TokenEndpoint(tokenModule.stores, tokenModule.offchainStores);
 		const config: ModuleConfig = {
 			userAccountInitializationFee: USER_SUBSTORE_INITIALIZATION_FEE,
 			escrowAccountInitializationFee: ESCROW_SUBSTORE_INITIALIZATION_FEE,
-			feeTokenID: nativeTokenID,
 		};
 		method.init(Object.assign(config, { ownChainID: Buffer.from([0, 0, 0, 1]) }));
-		method.addDependencies({
-			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
-			send: jest.fn().mockResolvedValue(true),
-			error: jest.fn(),
-			terminateChain: jest.fn(),
-			getChannel: jest.fn(),
-		} as never);
+		method.addDependencies(
+			{
+				getOwnChainAccount: jest.fn().mockResolvedValue({ chainID: Buffer.from([0, 0, 0, 1]) }),
+				send: jest.fn().mockResolvedValue(true),
+				error: jest.fn(),
+				terminateChain: jest.fn(),
+				getChannel: jest.fn(),
+				getMessageFeeTokenID: jest.fn(),
+			},
+			internalMethod,
+		);
 		endpoint.init(config);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		methodContext = createTransientMethodContext({ stateStore });

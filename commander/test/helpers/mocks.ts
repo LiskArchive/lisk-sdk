@@ -17,7 +17,7 @@ import { codec, Schema } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { transactionSchema } from 'lisk-framework';
 import {
-	dposVoteParamsSchema,
+	posVoteParamsSchema,
 	registerMultisignatureParamsSchema,
 	tokenTransferParamsSchema,
 } from './transactions';
@@ -40,9 +40,9 @@ export const mockCommands: CommandInfo[] = [
 		schema: registerMultisignatureParamsSchema,
 	},
 	{
-		module: 'dpos',
-		command: 'voteDelegate',
-		schema: dposVoteParamsSchema,
+		module: 'pos',
+		command: 'stake',
+		schema: posVoteParamsSchema,
 	},
 ];
 
@@ -53,7 +53,6 @@ export const mockJSONTransaction = {
 		amount: '100',
 		data: 'send token',
 		recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
-		accountInitializationFee: BigInt(5000000),
 	},
 	command: 'transfer',
 	fee: '100000000',
@@ -99,12 +98,12 @@ export const createIPCClientMock = (
 		},
 		{
 			id: utils.intToBuffer(13, 4).toString('hex'),
-			name: 'dpos',
+			name: 'pos',
 			commands: [
 				{
 					id: utils.intToBuffer(1, 4).toString('hex'),
-					name: 'voteDelegate',
-					params: dposVoteParamsSchema,
+					name: 'stake',
+					params: posVoteParamsSchema,
 				},
 			],
 		},

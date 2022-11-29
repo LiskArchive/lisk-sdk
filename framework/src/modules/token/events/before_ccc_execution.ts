@@ -16,59 +16,40 @@ import {
 	TOKEN_ID_LENGTH,
 	TokenEventResult,
 	TokenErrorEventResult,
-	CHAIN_ID_LENGTH,
+	HASH_LENGTH,
 } from '../constants';
 
 export interface BeforeCCCExecutionEventData {
-	sendingChainID: Buffer;
-	receivingChainID: Buffer;
+	ccmID: Buffer;
 	messageFeeTokenID: Buffer;
-	messageFee: bigint;
 	relayerAddress: Buffer;
 }
 
 export const beforeCCCExecutionEventSchema = {
 	$id: '/token/events/beforeCCCExecution',
 	type: 'object',
-	required: [
-		'sendingChainID',
-		'receivingChainID',
-		'messageFeeTokenID',
-		'messageFee',
-		'relayerAddress',
-		'result',
-	],
+	required: ['ccmID', 'messageFeeTokenID', 'relayerAddress', 'result'],
 	properties: {
-		sendingChainID: {
+		ccmID: {
 			dataType: 'bytes',
-			minLength: CHAIN_ID_LENGTH,
-			maxLength: CHAIN_ID_LENGTH,
+			minLength: HASH_LENGTH,
+			maxLength: HASH_LENGTH,
 			fieldNumber: 1,
-		},
-		receivingChainID: {
-			dataType: 'bytes',
-			minLength: CHAIN_ID_LENGTH,
-			maxLength: CHAIN_ID_LENGTH,
-			fieldNumber: 2,
 		},
 		messageFeeTokenID: {
 			dataType: 'bytes',
 			minLength: TOKEN_ID_LENGTH,
 			maxLength: TOKEN_ID_LENGTH,
-			fieldNumber: 3,
-		},
-		messageFee: {
-			dataType: 'uint64',
-			fieldNumber: 4,
+			fieldNumber: 2,
 		},
 		relayerAddress: {
 			dataType: 'bytes',
 			format: 'lisk32',
-			fieldNumber: 5,
+			fieldNumber: 3,
 		},
 		result: {
 			dataType: 'uint32',
-			fieldNumber: 6,
+			fieldNumber: 4,
 		},
 	},
 };

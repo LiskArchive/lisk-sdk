@@ -16,32 +16,26 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as merkleTree from '@liskhq/lisk-tree';
-import { BlockAssets } from '@liskhq/lisk-chain';
 import { MainchainInteroperabilityModule, VerifyStatus } from '../../../../src';
 import {
-	CCM_STATUS_OK,
-	CHAIN_REGISTERED,
-	CHAIN_TERMINATED,
+	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_BYTES,
+	HASH_LENGTH,
 	LIVENESS_LIMIT,
-	MAINCHAIN_ID_BUFFER,
-	MAX_NUM_VALIDATORS,
-	MAX_UINT64,
+	MAX_CCM_SIZE,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../src/modules/interoperability/constants';
-import {
-	ccmSchema,
-	genesisInteroperabilityStoreSchema,
-} from '../../../../src/modules/interoperability/schemas';
+import { ccmSchema } from '../../../../src/modules/interoperability/schemas';
 import {
 	ChainAccount,
 	ChannelData,
 	CrossChainUpdateTransactionParams,
 	InboxUpdate,
+	CCMsg,
 } from '../../../../src/modules/interoperability/types';
 import {
-	checkActiveValidatorsUpdate,
 	checkCertificateTimestamp,
 	checkCertificateValidity,
 	checkInboxUpdateValidity,
@@ -50,25 +44,19 @@ import {
 	checkValidCertificateLiveness,
 	commonCCUExecutelogic,
 	computeValidatorsHash,
-	getIDAsKeyForStore,
-	initGenesisStateUtil,
-	updateActiveValidators,
-	verifyCertificateSignature,
+	validateFormat,
+	verifyLivenessConditionForRegisteredChains,
 } from '../../../../src/modules/interoperability/utils';
 import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
 import { Certificate } from '../../../../src/engine/consensus/certificate_generation/types';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
-import { createGenesisBlockContext } from '../../../../src/testing';
-import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
-import { RegisteredNamesStore } from '../../../../src/modules/interoperability/stores/registered_names';
+import {
+	ChainAccountStore,
+	ChainStatus,
+} from '../../../../src/modules/interoperability/stores/chain_account';
 import { ChainValidatorsStore } from '../../../../src/modules/interoperability/stores/chain_validators';
-import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
-import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
-import { OutboxRootStore } from '../../../../src/modules/interoperability/stores/outbox_root';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
-import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
-import { createStoreGetter } from '../../../../src/testing/utils';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -83,62 +71,9 @@ describe('Utils', () => {
 		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
 	];
 
-	describe('updateActiveValidators', () => {
-		const validator1 = {
-			blsKey: cryptography.utils.getRandomBytes(48),
-			bftWeight: BigInt(1),
-		};
-		const validator2 = {
-			blsKey: cryptography.utils.getRandomBytes(48),
-			bftWeight: BigInt(2),
-		};
-		const activeValidators = [validator1, validator2];
-
-		it('should update the existing validator bftWeight with the updated one', () => {
-			const activeValidatorsUpdate = [validator1, { ...validator2, bftWeight: BigInt(3) }];
-
-			expect(updateActiveValidators(activeValidators, activeValidatorsUpdate)).toEqual(
-				activeValidatorsUpdate,
-			);
-		});
-
-		it('should add a validator with its bftWeight in lexicographical order', () => {
-			const activeValidatorsUpdate = [
-				validator1,
-				validator2,
-				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
-			];
-
-			// Should be in lexicographical order
-			activeValidatorsUpdate.sort((v1, v2) => v1.blsKey.compare(v2.blsKey));
-
-			expect(updateActiveValidators(activeValidators, activeValidatorsUpdate)).toEqual(
-				activeValidatorsUpdate,
-			);
-		});
-
-		it('should remove a validator when its bftWeight=0', () => {
-			const activeValidatorsLocal = [...activeValidators];
-			const validator3 = { blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) };
-			activeValidatorsLocal.push(validator3);
-			const activeValidatorsUpdate = [
-				validator1,
-				validator2,
-				{ ...validator3, bftWeight: BigInt(0) },
-			];
-			const updatedValidators = updateActiveValidators(
-				activeValidatorsLocal,
-				activeValidatorsUpdate,
-			);
-
-			const validator3Exists = updatedValidators.some(v => v.blsKey.equals(validator3.blsKey));
-			expect(validator3Exists).toEqual(false);
-		});
-	});
-
 	describe('checkLivenessRequirementFirstCCU', () => {
 		const partnerChainAccount = {
-			status: CHAIN_REGISTERED,
+			status: ChainStatus.REGISTERED,
 		};
 
 		const txParamsEmptyCertificate = {
@@ -150,7 +85,7 @@ describe('Utils', () => {
 			certificate: cryptography.utils.getRandomBytes(32),
 		};
 
-		it(`should return VerifyStatus.FAIL status when chain status ${CHAIN_REGISTERED} && certificate is empty`, () => {
+		it(`should return VerifyStatus.FAIL status when chain status ${ChainStatus.REGISTERED} && certificate is empty`, () => {
 			const result = checkLivenessRequirementFirstCCU(
 				partnerChainAccount as ChainAccount,
 				txParamsEmptyCertificate as CrossChainUpdateTransactionParams,
@@ -158,7 +93,7 @@ describe('Utils', () => {
 			expect(result.status).toEqual(VerifyStatus.FAIL);
 		});
 
-		it(`should return status VerifyStatus.OK status when chain status ${CHAIN_REGISTERED} && certificate is non-empty`, () => {
+		it(`should return status VerifyStatus.OK status when chain status ${ChainStatus.REGISTERED} && certificate is non-empty`, () => {
 			const result = checkLivenessRequirementFirstCCU(
 				partnerChainAccount as ChainAccount,
 				txParamsNonEmptyCertificate as CrossChainUpdateTransactionParams,
@@ -239,77 +174,10 @@ describe('Utils', () => {
 		});
 	});
 
-	describe('checkActiveValidatorsUpdate', () => {
-		const activeValidatorsUpdate = [...defaultActiveValidatorsUpdate].sort((v1, v2) =>
-			v2.blsKey.compare(v1.blsKey),
-		);
-		const sortedValidatorsList = [...defaultActiveValidatorsUpdate].sort((v1, v2) =>
-			v1.blsKey.compare(v2.blsKey),
-		);
-
-		const txParams = {
-			activeValidatorsUpdate,
-			newCertificateThreshold: BigInt(10),
-			certificate: Buffer.alloc(2),
-			sendingChainID: utils.intToBuffer(2, 4),
-			inboxUpdate: {},
-		};
-
-		const txParamsWithEmptyCertificate = {
-			activeValidatorsUpdate,
-			newCertificateThreshold: BigInt(10),
-			certificate: EMPTY_BYTES,
-			sendingChainID: utils.intToBuffer(2, 4),
-			inboxUpdate: {},
-		};
-
-		const txParamsSortedValidators = {
-			activeValidatorsUpdate: sortedValidatorsList,
-			newCertificateThreshold: BigInt(10),
-			certificate: Buffer.alloc(2),
-			sendingChainID: utils.intToBuffer(2, 4),
-			inboxUpdate: {},
-		};
-
-		it('should return VerifyStatus.FAIL when certificate is empty', () => {
-			const { status, error } = checkActiveValidatorsUpdate(
-				txParamsWithEmptyCertificate as CrossChainUpdateTransactionParams,
-			);
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toEqual(
-				'Certificate cannot be empty when activeValidatorsUpdate is non-empty or newCertificateThreshold > 0.',
-			);
-		});
-
-		it('should return VerifyStatus.FAIL when validators blsKeys are not unique and lexicographically ordered', () => {
-			const { status, error } = checkActiveValidatorsUpdate(
-				txParams as CrossChainUpdateTransactionParams,
-			);
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toEqual(
-				'Validators blsKeys must be unique and lexicographically ordered.',
-			);
-		});
-
-		it('should return VerifyStatus.OK', () => {
-			const { status, error } = checkActiveValidatorsUpdate(
-				txParamsSortedValidators as CrossChainUpdateTransactionParams,
-			);
-
-			expect(status).toEqual(VerifyStatus.OK);
-			expect(error).toBeUndefined();
-		});
-	});
-
 	describe('checkValidCertificateLiveness', () => {
 		const inboxUpdate = {
 			crossChainMessages: [Buffer.alloc(1)],
-			messageWitness: {
-				partnerChainOutboxSize: BigInt(2),
-				siblingHashes: [Buffer.alloc(1)],
-			},
+			messageWitnessHashes: [Buffer.alloc(1)],
 			outboxRootWitness: {
 				bitmap: Buffer.alloc(1),
 				siblingHashes: [Buffer.alloc(1)],
@@ -317,10 +185,7 @@ describe('Utils', () => {
 		} as InboxUpdate;
 		const inboxUpdateEmpty = {
 			crossChainMessages: [],
-			messageWitness: {
-				partnerChainOutboxSize: BigInt(0),
-				siblingHashes: [],
-			},
+			messageWitnessHashes: [],
 			outboxRootWitness: {
 				bitmap: Buffer.alloc(1),
 				siblingHashes: [],
@@ -358,71 +223,6 @@ describe('Utils', () => {
 
 		it('should pass successfully', () => {
 			expect(checkValidCertificateLiveness(txParams, header, certificate)).toBeUndefined();
-		});
-	});
-
-	describe('verifyCertificateSignature', () => {
-		const activeValidatorsUpdate = [...defaultActiveValidatorsUpdate];
-		const ceritificate: Certificate = {
-			blockID: cryptography.utils.getRandomBytes(20),
-			height: 21,
-			timestamp: Math.floor(Date.now() / 1000),
-			stateRoot: cryptography.utils.getRandomBytes(38),
-			validatorsHash: cryptography.utils.getRandomBytes(48),
-			aggregationBits: cryptography.utils.getRandomBytes(38),
-			signature: cryptography.utils.getRandomBytes(32),
-		};
-		const encodedCertificate = codec.encode(certificateSchema, ceritificate);
-		const txParams: any = {
-			certificate: encodedCertificate,
-		};
-		const txParamsWithEmptyCertificate: any = {
-			certificate: Buffer.alloc(0),
-		};
-		const partnerValidators: any = {
-			activeValidators: activeValidatorsUpdate,
-			certificateThreshold: 10,
-		};
-		const partnerChainId = MAINCHAIN_ID_BUFFER;
-
-		it('should return VerifyStatus.OK if certificate is empty', () => {
-			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
-			const { status, error } = verifyCertificateSignature(
-				txParamsWithEmptyCertificate,
-				partnerValidators,
-				partnerChainId,
-			);
-
-			expect(status).toEqual(VerifyStatus.OK);
-			expect(error?.message).toBeUndefined();
-			expect(cryptography.bls.verifyWeightedAggSig).not.toHaveBeenCalled();
-		});
-
-		it('should return VerifyStatus.FAIL when certificate signature verification fails', () => {
-			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(false);
-			const { status, error } = verifyCertificateSignature(
-				txParams,
-				partnerValidators,
-				partnerChainId,
-			);
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toEqual('Certificate is invalid due to invalid signature.');
-			expect(cryptography.bls.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
-		});
-
-		it('should return VerifyStatus.OK when certificate signature verification passes', () => {
-			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
-
-			const { status, error } = verifyCertificateSignature(
-				txParams,
-				partnerValidators,
-				partnerChainId,
-			);
-
-			expect(status).toEqual(VerifyStatus.OK);
-			expect(error).toBeUndefined();
-			expect(cryptography.bls.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -473,6 +273,7 @@ describe('Utils', () => {
 				bftWeight: v.bftWeight + BigInt(1),
 			})),
 		};
+		activeValidatorsUpdate.sort((a, b) => a.blsKey.compare(b.blsKey));
 		const validatorsHash = computeValidatorsHash(
 			activeValidatorsUpdate,
 			partnerValidators.certificateThreshold,
@@ -493,7 +294,7 @@ describe('Utils', () => {
 		const txParams: any = {
 			certificate: encodedCertificate,
 			activeValidatorsUpdate,
-			newCertificateThreshold: BigInt(10),
+			certificateThreshold: BigInt(10),
 		};
 
 		it('should return VerifyStatus.FAIL when certificate is empty', () => {
@@ -505,7 +306,7 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toEqual(
-				'Certificate cannot be empty when activeValidatorsUpdate or newCertificateThreshold has a non-empty value.',
+				'Certificate cannot be empty when activeValidatorsUpdate or certificateThreshold has a non-empty value.',
 			);
 		});
 
@@ -518,7 +319,7 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toEqual(
-				'Certificate should have all required values when activeValidatorsUpdate or newCertificateThreshold has a non-empty value.',
+				'Certificate should have all required values when activeValidatorsUpdate or certificateThreshold has a non-empty value.',
 			);
 		});
 
@@ -558,11 +359,11 @@ describe('Utils', () => {
 			expect(error).toBeUndefined();
 		});
 
-		it('should return VerifyStatus.OK when activeValidatorsUpdate.length === 0 and newCertificateThreshold === 0', () => {
+		it('should return VerifyStatus.OK when activeValidatorsUpdate.length === 0 and certificateThreshold === 0', () => {
 			const ineligibleTxParams = {
 				...txParams,
 				activeValidatorsUpdate: [],
-				newCertificateThreshold: BigInt(0),
+				certificateThreshold: BigInt(0),
 			};
 			const { status, error } = checkValidatorsHashWithCertificate(
 				ineligibleTxParams,
@@ -573,9 +374,9 @@ describe('Utils', () => {
 			expect(error).toBeUndefined();
 		});
 
-		it('should return VerifyStatus.OK when newCertificateThreshold === 0 but activeValidatorsUpdate.length > 0', () => {
+		it('should return VerifyStatus.OK when certificateThreshold === 0 but activeValidatorsUpdate.length > 0', () => {
 			const { status, error } = checkValidatorsHashWithCertificate(
-				{ ...txParams, newCertificateThreshold: BigInt(0) },
+				{ ...txParams, certificateThreshold: BigInt(0) },
 				partnerValidators,
 			);
 
@@ -583,7 +384,7 @@ describe('Utils', () => {
 			expect(error).toBeUndefined();
 		});
 
-		it('should return VerifyStatus.OK when newCertificateThreshold > 0 but activeValidatorsUpdate.length === 0', () => {
+		it('should return VerifyStatus.OK when certificateThreshold > 0 but activeValidatorsUpdate.length === 0', () => {
 			const { status, error } = checkValidatorsHashWithCertificate(
 				{ ...txParams, activeValidatorsUpdate: [] },
 				partnerValidators,
@@ -597,7 +398,7 @@ describe('Utils', () => {
 	describe('checkInboxUpdateValidity', () => {
 		const activeValidatorsUpdate = [...defaultActiveValidatorsUpdate];
 
-		const partnerChainOutboxRoot = cryptography.utils.getRandomBytes(32);
+		const partnerChainOutboxRoot = cryptography.utils.getRandomBytes(HASH_LENGTH);
 		const inboxTree = {
 			root: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
 			appendPath: [
@@ -614,10 +415,7 @@ describe('Utils', () => {
 		};
 		const partnerChannelData: ChannelData = {
 			inbox: inboxTree,
-			messageFeeTokenID: {
-				chainID: utils.intToBuffer(1, 4),
-				localID: utils.intToBuffer(0, 4),
-			},
+			messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
 			outbox: outboxTree,
 			partnerChainOutboxRoot,
 		};
@@ -633,7 +431,7 @@ describe('Utils', () => {
 				params: Buffer.alloc(2),
 				receivingChainID: utils.intToBuffer(2, 4),
 				sendingChainID: defaultSendingChainID,
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 			},
 			{
 				crossChainCommandID: utils.intToBuffer(2, 4),
@@ -643,7 +441,7 @@ describe('Utils', () => {
 				params: Buffer.alloc(2),
 				receivingChainID: utils.intToBuffer(3, 4),
 				sendingChainID: defaultSendingChainID,
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 			},
 		];
 
@@ -656,7 +454,7 @@ describe('Utils', () => {
 				params: Buffer.alloc(4),
 				receivingChainID: utils.intToBuffer(90, 4),
 				sendingChainID: defaultSendingChainID,
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 			},
 			{
 				crossChainCommandID: utils.intToBuffer(2, 4),
@@ -666,7 +464,7 @@ describe('Utils', () => {
 				params: Buffer.alloc(4),
 				receivingChainID: utils.intToBuffer(70, 4),
 				sendingChainID: defaultSendingChainID,
-				status: CCM_STATUS_OK,
+				status: CCMStatusCode.OK,
 			},
 		];
 		const defaultCCMsEncoded = defaultCCMs.map(ccm => codec.encode(ccmSchema, ccm));
@@ -674,10 +472,7 @@ describe('Utils', () => {
 
 		const inboxUpdateEmpty = {
 			crossChainMessages: [],
-			messageWitness: {
-				partnerChainOutboxSize: BigInt(0),
-				siblingHashes: [],
-			},
+			messageWitnessHashes: [],
 			outboxRootWitness: {
 				bitmap: Buffer.alloc(0),
 				siblingHashes: [],
@@ -685,10 +480,7 @@ describe('Utils', () => {
 		};
 		const inboxUpdate = {
 			crossChainMessages: inboxUpdateCCMsEncoded,
-			messageWitness: {
-				partnerChainOutboxSize: BigInt(1),
-				siblingHashes: [cryptography.utils.getRandomBytes(32)],
-			},
+			messageWitnessHashes: [cryptography.utils.getRandomBytes(32)],
 			outboxRootWitness: {
 				bitmap: cryptography.utils.getRandomBytes(32),
 				siblingHashes: [cryptography.utils.getRandomBytes(32)],
@@ -708,7 +500,7 @@ describe('Utils', () => {
 		const txParams: CrossChainUpdateTransactionParams = {
 			certificate: encodedCertificate,
 			activeValidatorsUpdate,
-			newCertificateThreshold: BigInt(10),
+			certificateThreshold: BigInt(10),
 			inboxUpdate,
 			sendingChainID: utils.intToBuffer(2, 4),
 		};
@@ -743,7 +535,7 @@ describe('Utils', () => {
 		});
 
 		describe('Non-empty certificate and inboxUpdate', () => {
-			it('should update inboxRoot when when messageWitness is non-empty', () => {
+			it('should update inboxRoot when messageWitnessHashes is non-empty', () => {
 				const smtVerifySpy = jest
 					.spyOn(merkleTree.sparseMerkleTree, 'verify')
 					.mockReturnValue({} as never);
@@ -757,7 +549,7 @@ describe('Utils', () => {
 				expect(smtVerifySpy).toHaveBeenCalled();
 			});
 
-			it('should not call calculateRootFromRightWitness when messageWitness is empty', () => {
+			it('should not call calculateRootFromRightWitness when messageWitnessHashes is empty', () => {
 				const calculateRootFromRightWitnessSpy = jest.spyOn(
 					merkleTree.regularMerkleTree,
 					'calculateRootFromRightWitness',
@@ -768,10 +560,7 @@ describe('Utils', () => {
 
 				const inboxUpdateMessageWitnessEmpty = {
 					crossChainMessages: inboxUpdateCCMsEncoded,
-					messageWitness: {
-						partnerChainOutboxSize: BigInt(0),
-						siblingHashes: [],
-					},
+					messageWitnessHashes: [],
 					outboxRootWitness: {
 						bitmap: cryptography.utils.getRandomBytes(32),
 						siblingHashes: [cryptography.utils.getRandomBytes(32)],
@@ -781,7 +570,7 @@ describe('Utils', () => {
 				const txParamsEmptyMessageWitness: CrossChainUpdateTransactionParams = {
 					certificate: encodedCertificate,
 					activeValidatorsUpdate,
-					newCertificateThreshold: BigInt(10),
+					certificateThreshold: BigInt(10),
 					inboxUpdate: inboxUpdateMessageWitnessEmpty,
 					sendingChainID: utils.intToBuffer(2, 4),
 				};
@@ -811,7 +600,7 @@ describe('Utils', () => {
 				);
 				expect(status).toEqual(VerifyStatus.FAIL);
 				expect(error?.message).toEqual(
-					'Failed at verifying state root when messageWitness and certificate are non-empty.',
+					'Failed at verifying state root when messageWitnessHashes and certificate are non-empty.',
 				);
 				expect(calculateRootFromRightWitnessSpy).toHaveBeenCalled();
 				expect(smtVerifySpy).toHaveBeenCalled();
@@ -851,7 +640,7 @@ describe('Utils', () => {
 				}),
 			};
 
-			it('should update newInboxRoot when messageWitness is non-empty', () => {
+			it('should update newInboxRoot when messageWitnessHashes is non-empty', () => {
 				const calculateRootFromRightWitnessSpy = jest
 					.spyOn(merkleTree.regularMerkleTree, 'calculateRootFromRightWitness')
 					.mockReturnValue(partnerChannelData.partnerChainOutboxRoot);
@@ -866,7 +655,7 @@ describe('Utils', () => {
 				expect(calculateRootFromRightWitnessSpy).toHaveBeenCalled();
 			});
 
-			it('should should not call calculateRootFromRightWitness when messageWitness is empty', () => {
+			it('should not call calculateRootFromRightWitness when messageWitnessHashes is empty', () => {
 				const txParamsEmptyMessageWitness = {
 					...txParams,
 					certificate: codec.encode(certificateSchema, {
@@ -880,7 +669,7 @@ describe('Utils', () => {
 					}),
 					inboxUpdate: {
 						...txParams.inboxUpdate,
-						messageWitness: { partnerChainOutboxSize: BigInt(0), siblingHashes: [] },
+						messageWitnessHashes: [],
 					},
 				};
 				const calculateRootFromRightWitnessSpy = jest.spyOn(
@@ -916,7 +705,7 @@ describe('Utils', () => {
 					}),
 					inboxUpdate: {
 						...txParams.inboxUpdate,
-						messageWitness: { partnerChainOutboxSize: BigInt(0), siblingHashes: [] },
+						messageWitnessHashes: [],
 					},
 				};
 				const calculateRootFromRightWitnessSpy = jest.spyOn(
@@ -934,7 +723,7 @@ describe('Utils', () => {
 				);
 				expect(status).toEqual(VerifyStatus.FAIL);
 				expect(error?.message).toEqual(
-					'Failed at verifying state root when messageWitness is non-empty and certificate is empty.',
+					'Failed at verifying state root when messageWitnessHashes is non-empty and certificate is empty.',
 				);
 				expect(calculateMerkleRootSpy).toHaveBeenCalledTimes(inboxUpdateCCMsEncoded.length);
 				expect(calculateRootFromRightWitnessSpy).not.toHaveBeenCalled();
@@ -943,7 +732,7 @@ describe('Utils', () => {
 	});
 
 	describe('commonCCUExecutelogic', () => {
-		const chainIDBuffer = getIDAsKeyForStore(1);
+		const chainIDBuffer = Buffer.from([0, 0, 0, 1]);
 		const defaultCalculatedRootFromRightWitness = cryptography.utils.getRandomBytes(20);
 		let activeValidatorsUpdate: any;
 		let inboxUpdate: InboxUpdate;
@@ -967,10 +756,7 @@ describe('Utils', () => {
 			];
 			inboxUpdate = {
 				crossChainMessages: [Buffer.alloc(1)],
-				messageWitness: {
-					partnerChainOutboxSize: BigInt(2),
-					siblingHashes: [Buffer.alloc(1)],
-				},
+				messageWitnessHashes: [Buffer.alloc(1)],
 				outboxRootWitness: {
 					bitmap: Buffer.alloc(1),
 					siblingHashes: [Buffer.alloc(1)],
@@ -995,14 +781,14 @@ describe('Utils', () => {
 			};
 			params = {
 				activeValidatorsUpdate,
-				newCertificateThreshold: BigInt(10),
+				certificateThreshold: BigInt(10),
 				certificate: Buffer.alloc(2),
 				inboxUpdate,
 			};
 			partnerChannelStoreMock = interopMod.stores.get(ChannelDataStore);
 
 			partnerChannelData = {
-				partnerChainOutboxRoot: Buffer.alloc(1),
+				partnerChainOutboxRoot: Buffer.alloc(HASH_LENGTH),
 				inbox: {
 					size: 2,
 					appendPath: [Buffer.alloc(1)],
@@ -1011,12 +797,9 @@ describe('Utils', () => {
 				outbox: {
 					size: 0,
 					appendPath: [],
-					root: Buffer.alloc(0),
+					root: Buffer.alloc(HASH_LENGTH),
 				},
-				messageFeeTokenID: {
-					chainID: Buffer.from([0, 0, 0, 0]),
-					localID: Buffer.from([0, 0, 0, 0]),
-				},
+				messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
 			};
 			const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			context = {
@@ -1039,7 +822,7 @@ describe('Utils', () => {
 			jest.spyOn(partnerChannelStoreMock, 'set');
 		});
 
-		it('should run successfully and return undefined when newCertificateThreshold is non-zero', async () => {
+		it('should run successfully and return undefined when certificateThreshold is non-zero', async () => {
 			await expect(
 				commonCCUExecutelogic({
 					stores: interopMod.stores,
@@ -1056,7 +839,7 @@ describe('Utils', () => {
 			expect(partnerChainStore.set).toHaveBeenCalledTimes(1);
 			expect(partnerChannelStoreMock.get).toHaveBeenCalledTimes(1);
 			expect(partnerChannelStoreMock.set).toHaveBeenCalledTimes(1);
-			expect(partnerValidators.certificateThreshold).toEqual(params.newCertificateThreshold);
+			expect(partnerValidators.certificateThreshold).toEqual(params.certificateThreshold);
 
 			const updatedPartnerChannelData = await partnerChannelStoreMock.get(context, chainIDBuffer);
 
@@ -1065,10 +848,10 @@ describe('Utils', () => {
 			);
 		});
 
-		it('should run successfully and return undefined when newCertificateThreshold is zero', async () => {
+		it('should run successfully and return undefined when certificateThreshold is zero', async () => {
 			const paramsWithThresholdZero = {
 				activeValidatorsUpdate,
-				newCertificateThreshold: BigInt(0),
+				certificateThreshold: BigInt(0),
 				certificate: Buffer.alloc(2),
 				inboxUpdate,
 			};
@@ -1102,7 +885,7 @@ describe('Utils', () => {
 		it('should run successfully and return undefined when certificate is empty', async () => {
 			const paramsWithEmptyCertificate = {
 				activeValidatorsUpdate,
-				newCertificateThreshold: params.newCertificateThreshold,
+				certificateThreshold: params.certificateThreshold,
 				certificate: EMPTY_BYTES,
 				inboxUpdate,
 			};
@@ -1134,17 +917,14 @@ describe('Utils', () => {
 			expect(calculateRootFromRightWitness).toHaveBeenCalled();
 		});
 
-		it('should run successfully and return undefined when messageWitness is empty', async () => {
+		it('should run successfully and return undefined when messageWitnessHashes is empty', async () => {
 			const paramsWithEmptyMessageWitness = {
 				activeValidatorsUpdate,
-				newCertificateThreshold: params.newCertificateThreshold,
+				certificateThreshold: params.certificateThreshold,
 				certificate: params.certificate,
 				inboxUpdate: {
 					...inboxUpdate,
-					messageWitness: {
-						partnerChainOutboxSize: BigInt(0),
-						siblingHashes: [],
-					},
+					messageWitnessHashes: [],
 				},
 			};
 			const contextWithEmptyMessageWitness: any = {
@@ -1179,951 +959,139 @@ describe('Utils', () => {
 		});
 	});
 
-	describe('initGenesisStateUtil', () => {
-		const { getRandomBytes } = cryptography.utils;
-		const timestamp = 2592000 * 100;
-		const chainAccount = {
-			name: 'account1',
-			chainID: Buffer.alloc(0),
-			lastCertificate: {
-				height: 567467,
-				timestamp: timestamp - 500000,
-				stateRoot: Buffer.alloc(0),
-				validatorsHash: Buffer.alloc(0),
-			},
-			status: 2739,
+	describe('validateFormat', () => {
+		const buildCCM = (obj: Partial<CCMsg>) => ({
+			crossChainCommand: obj.crossChainCommand ?? CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+			fee: obj.fee ?? BigInt(0),
+			module: obj.module ?? MODULE_NAME_INTEROPERABILITY,
+			nonce: obj.nonce ?? BigInt(1),
+			params: obj.params ?? Buffer.alloc(MAX_CCM_SIZE - 100),
+			receivingChainID: obj.receivingChainID ?? utils.intToBuffer(2, 4),
+			sendingChainID: obj.sendingChainID ?? cryptography.utils.intToBuffer(20, 4),
+			status: obj.status ?? CCMStatusCode.OK,
+		});
+
+		it('should throw if format does not fit ccmSchema', () => {
+			expect(() =>
+				validateFormat(
+					buildCCM({
+						module: '',
+					}),
+				),
+			).toThrow("Property '.module' must NOT have fewer than 1 characters");
+		});
+
+		it('should throw if module does not pass Regex', () => {
+			expect(() =>
+				validateFormat(
+					buildCCM({
+						module: '!@#$%',
+					}),
+				),
+			).toThrow('Cross-chain message module name must be alphanumeric.');
+		});
+
+		it('should throw if crossChainCommand does not pass Regex', () => {
+			expect(() =>
+				validateFormat(
+					buildCCM({
+						crossChainCommand: '!@#$$%',
+					}),
+				),
+			).toThrow('Cross-chain message crossChainCommand name must be alphanumeric.');
+		});
+
+		it('should throw if byteLength exceeds MAX_CCM_SIZE', () => {
+			expect(() =>
+				validateFormat(
+					buildCCM({
+						params: Buffer.alloc(MAX_CCM_SIZE + 100),
+					}),
+				),
+			).toThrow(`Cross-chain message size is larger than ${MAX_CCM_SIZE}.`);
+		});
+
+		it('should pass validateFormat check', () => {
+			expect(() => validateFormat(buildCCM({}))).not.toThrow();
+		});
+	});
+
+	describe('verifyLivenessConditionForRegisteredChains', () => {
+		const certificate = {
+			blockID: utils.getRandomBytes(20),
+			height: 23,
+			stateRoot: Buffer.alloc(2),
+			timestamp: 100000,
+			validatorsHash: utils.getRandomBytes(20),
+			aggregationBits: utils.getRandomBytes(1),
+			signature: utils.getRandomBytes(32),
 		};
-		const sidechainChainAccount = {
-			name: 'sidechain1',
-			chainID: getRandomBytes(32),
-			lastCertificate: {
-				height: 10,
-				stateRoot: utils.getRandomBytes(32),
-				timestamp: 100,
-				validatorsHash: utils.getRandomBytes(32),
-			},
-			status: CHAIN_TERMINATED,
-		};
-		const ownChainAccount = {
-			name: 'mainchain',
-			id: MAINCHAIN_ID_BUFFER,
-			nonce: BigInt('0'),
-		};
-		const channelData = {
-			inbox: {
-				appendPath: [Buffer.alloc(1), Buffer.alloc(1)],
-				root: cryptography.utils.getRandomBytes(38),
-				size: 18,
-			},
-			messageFeeTokenID: { chainID: utils.intToBuffer(1, 4), localID: utils.intToBuffer(0, 4) },
-			outbox: {
-				appendPath: [Buffer.alloc(1), Buffer.alloc(1)],
-				root: cryptography.utils.getRandomBytes(38),
-				size: 18,
-			},
-			partnerChainOutboxRoot: cryptography.utils.getRandomBytes(38),
-		};
-		const outboxRoot = { root: getRandomBytes(32) };
-		const validatorsHashInput = {
-			activeValidators: [
-				{
-					blsKey: Buffer.from(
-						'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-						'hex',
-					),
-					bftWeight: BigInt(10),
+		const ccuParams = {
+			activeValidatorsUpdate: [],
+			certificate: codec.encode(certificateSchema, certificate),
+			inboxUpdate: {
+				crossChainMessages: [utils.getRandomBytes(100)],
+				messageWitnessHashes: [],
+				outboxRootWitness: {
+					bitmap: Buffer.alloc(0),
+					siblingHashes: [],
 				},
-				{
-					blsKey: Buffer.from(
-						'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-						'hex',
-					),
-					bftWeight: BigInt(10),
-				},
-			],
-			certificateThreshold: BigInt(10),
-		};
-		const terminatedStateAccount = {
-			stateRoot: sidechainChainAccount.lastCertificate.stateRoot,
-			mainchainStateRoot: EMPTY_BYTES,
-			initialized: true,
-		};
-		const terminatedOutboxAccount = {
-			outboxRoot: getRandomBytes(32),
-			outboxSize: 1,
-			partnerChainInboxSize: 1,
-		};
-		const registeredNameId = { id: Buffer.from('77', 'hex') };
-		const registeredChainId = { id: Buffer.from('88', 'hex') };
-		const validData = {
-			outboxRootSubstore: [
-				{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: outboxRoot },
-				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: outboxRoot },
-			],
-			chainDataSubstore: [
-				{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: chainAccount },
-				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: chainAccount },
-			],
-			channelDataSubstore: [
-				{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: channelData },
-				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
-			],
-			chainValidatorsSubstore: [
-				{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: validatorsHashInput },
-				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
-			],
-			ownChainDataSubstore: [
-				{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: ownChainAccount },
-				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: ownChainAccount },
-			],
-			terminatedStateSubstore: [
-				{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: terminatedStateAccount },
-				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
-			],
-			terminatedOutboxSubstore: [
-				{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: terminatedOutboxAccount },
-				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedOutboxAccount },
-			],
-			registeredNamesSubstore: [
-				{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: registeredNameId },
-				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredNameId },
-			],
-			registeredChainIDsSubstore: [
-				{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: registeredChainId },
-				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredChainId },
-			],
+			},
+			certificateThreshold: BigInt(99),
+			sendingChainID: utils.getRandomBytes(4),
 		};
 
-		const invalidData = {
-			...validData,
-			outboxRootSubstore: [
-				{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: { root: getRandomBytes(37) } },
-				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: { root: getRandomBytes(5) } },
-			],
-		};
-
-		let channelDataSubstore: ChannelDataStore;
-		let outboxRootSubstore: OutboxRootStore;
-		let terminatedOutboxSubstore: TerminatedOutboxStore;
-		let stateStore: PrefixedStateReadWriter;
-		let chainDataSubstore: ChainAccountStore;
-		let terminatedStateSubstore: TerminatedStateStore;
-		let chainValidatorsSubstore: ChainValidatorsStore;
-		let ownChainDataSubstore: OwnChainAccountStore;
-		let registeredNamesSubstore: RegisteredNamesStore;
-
-		beforeEach(async () => {
-			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			ownChainDataSubstore = interopMod.stores.get(OwnChainAccountStore);
-			await ownChainDataSubstore.set(
-				createStoreGetter(stateStore),
-				MAINCHAIN_ID_BUFFER,
-				ownChainAccount,
-			);
-			channelDataSubstore = interopMod.stores.get(ChannelDataStore);
-			chainValidatorsSubstore = interopMod.stores.get(ChainValidatorsStore);
-			outboxRootSubstore = interopMod.stores.get(OutboxRootStore);
-			terminatedOutboxSubstore = interopMod.stores.get(TerminatedOutboxStore);
-			chainDataSubstore = interopMod.stores.get(ChainAccountStore);
-			terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
-			registeredNamesSubstore = interopMod.stores.get(RegisteredNamesStore);
-		});
-
-		it('should not throw error if asset does not exist', async () => {
-			const context = createGenesisBlockContext({ stateStore }).createInitGenesisStateContext();
-			jest.spyOn(context, 'getStore');
-
-			await expect(initGenesisStateUtil(context, interopMod.stores)).toResolve();
-			expect(context.getStore).not.toHaveBeenCalled();
-		});
-
-		it('should throw if the asset object is invalid', async () => {
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, invalidData);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if outbox root store key is duplicated', async () => {
-			const validData1 = {
-				...validData,
-				outboxRootSubstore: [
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: outboxRoot },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: outboxRoot },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if chain data store key is duplicated', async () => {
-			const validData1 = {
-				...validData,
-				chainDataSubstore: [
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: chainAccount },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: chainAccount },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if channel data store key is duplicated', async () => {
-			const validData1 = {
-				...validData,
-				channelDataSubstore: [
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if chain validators store key is duplicated', async () => {
-			const validData1 = {
-				...validData,
-				chainValidatorsSubstore: [
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if own chain store key is duplicated', async () => {
-			const validData1 = {
-				...validData,
-				ownChainDataSubstore: [
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: ownChainAccount },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: ownChainAccount },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if terminated state store key is duplicated', async () => {
-			const validData1 = {
-				...validData,
-				terminatedStateSubstore: [
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if terminated outbox store key is duplicated', async () => {
-			const validData1 = {
-				...validData,
-				terminatedOutboxSubstore: [
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedOutboxAccount },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedOutboxAccount },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if registered names store key is duplicated', async () => {
-			const validData1 = {
-				...validData,
-				registeredNamesSubstore: [
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredNameId },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredNameId },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if some store key in chain data substore is missing in outbox root substore and the corresponding chain account is not inactive', async () => {
-			const validData1 = {
-				...validData,
-				outboxRootSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: outboxRoot },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: outboxRoot },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if some store key in chain data substore is present in outbox root substore but the corresponding chain account is inactive', async () => {
-			const validData1 = {
-				...validData,
-				chainDataSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: { ...chainAccount, status: 2 } },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: chainAccount },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if some store key in chain data substore is missing in channel data substore', async () => {
-			const validData1 = {
-				...validData,
-				channelDataSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: channelData },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if some store key in chain data substore is missing in chain validators substore', async () => {
-			const validData1 = {
-				...validData,
-				chainValidatorsSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: validatorsHashInput },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if some store key in outbox data substore is missing in chain data substore', async () => {
-			const validData1 = {
-				...validData,
-				chainDataSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: chainAccount },
-					{ storeKey: Buffer.from([0, 0, 1, 1]), storeValue: chainAccount },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if some store key in channel data substore is missing in chain data substore', async () => {
-			const validData1 = {
-				...validData,
-				chainDataSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: chainAccount },
-					{ storeKey: Buffer.from([0, 0, 1, 1]), storeValue: chainAccount },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if some store key in chain validators substore is missing in chain data substore', async () => {
-			const validData1 = {
-				...validData,
-				chainDataSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: chainAccount },
-					{ storeKey: Buffer.from([0, 0, 1, 1]), storeValue: chainAccount },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if some store key in terminated outbox substore is missing in the terminated state substore', async () => {
-			const validData1 = {
-				...validData,
-				terminatedStateSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: terminatedStateAccount },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if some store key in terminated state substore is present in the terminated outbox substore but the property initialized is set to false', async () => {
-			const validData1 = {
-				...validData,
-				terminatedStateSubstore: [
+		it('should not throw if certificate is empty', () => {
+			expect(
+				verifyLivenessConditionForRegisteredChains(
 					{
-						storeKey: Buffer.from([0, 0, 0, 1]),
-						storeValue: { ...terminatedStateAccount, initialized: false },
+						...ccuParams,
+						certificate: Buffer.alloc(0),
 					},
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
+					10000,
+				),
+			).toBeUndefined();
 		});
 
-		it('should throw if some store key in terminated state substore has the property initialized set to false but stateRoot is not set to empty bytes and mainchainStateRoot not set to a 32-bytes value', async () => {
-			const validData1 = {
-				...validData,
-				terminatedStateSubstore: [
+		it('should not throw if inbox update is empty', () => {
+			expect(
+				verifyLivenessConditionForRegisteredChains(
 					{
-						storeKey: Buffer.from([0, 0, 0, 0]),
-						storeValue: { ...terminatedStateAccount, initialized: false },
-					},
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if some store key in terminated state substore has the property initialized set to true but mainchainStateRoot is not set to empty bytes and stateRoot not set to a 32-bytes value', async () => {
-			const validData1 = {
-				...validData,
-				terminatedStateSubstore: [
-					{
-						storeKey: Buffer.from([0, 0, 0, 1]),
-						storeValue: {
-							...terminatedStateAccount,
-							initialized: true,
-							mainchainStateRoot: getRandomBytes(32),
-							stateRoot: EMPTY_BYTES,
-						},
-					},
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if active validators have less than 1 element', async () => {
-			const validData1 = {
-				...validData,
-				chainValidatorsSubstore: [
-					{
-						storeKey: Buffer.from([0, 0, 0, 1]),
-						storeValue: { ...validatorsHashInput, activeValidators: [] },
-					},
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if active validators have more than MAX_NUM_VALIDATORS elements', async () => {
-			const validData1 = {
-				...validData,
-				chainValidatorsSubstore: [
-					{
-						storeKey: Buffer.from([0, 0, 0, 1]),
-						storeValue: {
-							...validatorsHashInput,
-							activeValidators: new Array(MAX_NUM_VALIDATORS + 1).fill(0),
-						},
-					},
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if active validators are not ordered lexicographically by blsKey', async () => {
-			const validData1 = {
-				...validData,
-				chainValidatorsSubstore: [
-					{
-						storeKey: Buffer.from([0, 0, 0, 1]),
-						storeValue: {
-							...validatorsHashInput,
-							activeValidators: [
-								{
-									blsKey: Buffer.from(
-										'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-										'hex',
-									),
-									bftWeight: BigInt(10),
-								},
-								{
-									blsKey: Buffer.from(
-										'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-										'hex',
-									),
-									bftWeight: BigInt(10),
-								},
-							],
-						},
-					},
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if some active validators have blsKey which is not 48 bytes', async () => {
-			const validData1 = {
-				...validData,
-				chainValidatorsSubstore: [
-					{
-						storeKey: Buffer.from([0, 0, 0, 1]),
-						storeValue: {
-							...validatorsHashInput,
-							activeValidators: [
-								{
-									blsKey: getRandomBytes(21),
-									bftWeight: BigInt(10),
-								},
-								{
-									blsKey: Buffer.from(
-										'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-										'hex',
-									),
-									bftWeight: BigInt(10),
-								},
-							],
-						},
-					},
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if some active validators have blsKey which is not pairwise distinct', async () => {
-			const validData1 = {
-				...validData,
-				chainValidatorsSubstore: [
-					{
-						storeKey: Buffer.from([0, 0, 0, 1]),
-						storeValue: {
-							...validatorsHashInput,
-							activeValidators: [
-								{
-									blsKey: Buffer.from(
-										'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-										'hex',
-									),
-									bftWeight: BigInt(10),
-								},
-								{
-									blsKey: Buffer.from(
-										'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-										'hex',
-									),
-									bftWeight: BigInt(10),
-								},
-							],
-						},
-					},
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if some active validators have bftWeight which is not a positive integer', async () => {
-			const validData1 = {
-				...validData,
-				chainValidatorsSubstore: [
-					{
-						storeKey: Buffer.from([0, 0, 0, 1]),
-						storeValue: {
-							...validatorsHashInput,
-							activeValidators: [
-								{
-									blsKey: Buffer.from(
-										'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-										'hex',
-									),
-									bftWeight: BigInt(-1),
-								},
-								{
-									blsKey: Buffer.from(
-										'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-										'hex',
-									),
-									bftWeight: BigInt(10),
-								},
-							],
-						},
-					},
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if total bft weight of active validators is greater than MAX_UINT64', async () => {
-			const validData1 = {
-				...validData,
-				chainValidatorsSubstore: [
-					{
-						storeKey: Buffer.from([0, 0, 0, 1]),
-						storeValue: {
-							...validatorsHashInput,
-							activeValidators: [
-								{
-									blsKey: Buffer.from(
-										'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-										'hex',
-									),
-									bftWeight: BigInt(MAX_UINT64),
-								},
-								{
-									blsKey: Buffer.from(
-										'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-										'hex',
-									),
-									bftWeight: BigInt(10),
-								},
-							],
-						},
-					},
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if total bft weight of active validators is less than the value check', async () => {
-			const validatorsHashInput1 = {
-				...validatorsHashInput,
-				activeValidators: [
-					{
-						blsKey: Buffer.from(
-							'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-							'hex',
-						),
-						bftWeight: BigInt(0),
-					},
-				],
-			};
-			const validData1 = {
-				...validData,
-				chainValidatorsSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: validatorsHashInput1 },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput1 },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if certificateThreshold is less than the value check', async () => {
-			const validData1 = {
-				...validData,
-				chainValidatorsSubstore: [
-					{
-						storeKey: Buffer.from([0, 0, 0, 1]),
-						storeValue: { ...validatorsHashInput, certificateThreshold: BigInt(1) },
-					},
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if a chain account for another sidechain is present but chain account for mainchain is not present', async () => {
-			const validData1 = {
-				...validData,
-				chainDataSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: chainAccount },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: chainAccount },
-				],
-				outboxRootSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: outboxRoot },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: outboxRoot },
-				],
-				channelDataSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: channelData },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
-				],
-				chainValidatorsSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: validatorsHashInput },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should throw if a chain account for another sidechain is present but chain account for ownchain is not present', async () => {
-			const validData1 = {
-				...validData,
-				chainDataSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: chainAccount },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: chainAccount },
-				],
-				outboxRootSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: outboxRoot },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: outboxRoot },
-				],
-				channelDataSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: channelData },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
-				],
-				chainValidatorsSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: validatorsHashInput },
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should not throw if some chain id corresponding to message fee token id of a channel is not 1 but is corresponding native token id of either chains', async () => {
-			const validData1 = {
-				...validData,
-				channelDataSubstore: [
-					{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: channelData },
-					{
-						storeKey: Buffer.from([0, 0, 1, 0]),
-						storeValue: {
-							...channelData,
-							messageFeeTokenID: {
-								chainID: Buffer.from([0, 0, 1, 0]),
-								localID: utils.intToBuffer(0, 4),
+						...ccuParams,
+						inboxUpdate: {
+							crossChainMessages: [],
+							messageWitnessHashes: [],
+							outboxRootWitness: {
+								bitmap: Buffer.alloc(0),
+								siblingHashes: [],
 							},
 						},
 					},
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).toResolve();
+					10000,
+				),
+			).toBeUndefined();
 		});
 
-		it('should throw if some chain id corresponding to message fee token id of a channel is neither 1 nor corresponding native token id of either chains', async () => {
-			const validData1 = {
-				...validData,
-				channelDataSubstore: [
+		it('should throw if certificate timestamp is older than half of liveness limit', () => {
+			expect(() =>
+				verifyLivenessConditionForRegisteredChains(
 					{
-						storeKey: Buffer.from([0, 0, 0, 1]),
-						storeValue: {
-							...channelData,
-							messageFeeTokenID: {
-								chainID: Buffer.from([0, 0, 2, 0]),
-								localID: utils.intToBuffer(0, 4),
-							},
-						},
+						...ccuParams,
 					},
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
+					certificate.timestamp + LIVENESS_LIMIT / 2 + 1,
+				),
+			).toThrow('The first CCU with a non-empty inbox update cannot contain a certificate older');
 		});
 
-		it('should throw if some chain id corresponding to message fee token id of a channel is 1 but corresponding local id is not 0', async () => {
-			const validData1 = {
-				...validData,
-				channelDataSubstore: [
+		it('should not throw if inbox update is not older than half of liveness limit', () => {
+			expect(
+				verifyLivenessConditionForRegisteredChains(
 					{
-						storeKey: Buffer.from([0, 0, 0, 1]),
-						storeValue: {
-							...channelData,
-							messageFeeTokenID: {
-								chainID: utils.intToBuffer(1, 4),
-								localID: utils.intToBuffer(2, 4),
-							},
-						},
+						...ccuParams,
 					},
-					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
-		});
-
-		it('should create all the corresponding entries in the interoperability module state for every substore for valid input', async () => {
-			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData);
-			const context = createGenesisBlockContext({
-				stateStore,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-
-			await expect(initGenesisStateUtil(context, interopMod.stores)).toResolve();
-
-			channelDataSubstore = interopMod.stores.get(ChannelDataStore);
-			chainValidatorsSubstore = interopMod.stores.get(ChainValidatorsStore);
-			outboxRootSubstore = interopMod.stores.get(OutboxRootStore);
-			terminatedOutboxSubstore = interopMod.stores.get(TerminatedOutboxStore);
-			chainDataSubstore = interopMod.stores.get(ChainAccountStore);
-			terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
-			registeredNamesSubstore = interopMod.stores.get(RegisteredNamesStore);
-			ownChainDataSubstore = interopMod.stores.get(OwnChainAccountStore);
-
-			for (const data of validData.chainDataSubstore) {
-				await expect(
-					chainDataSubstore.has(createStoreGetter(stateStore), data.storeKey),
-				).resolves.toBeTrue();
-			}
-			for (const data of validData.chainValidatorsSubstore) {
-				await expect(
-					chainValidatorsSubstore.has(createStoreGetter(stateStore), data.storeKey),
-				).resolves.toBeTrue();
-			}
-			for (const data of validData.outboxRootSubstore) {
-				await expect(
-					outboxRootSubstore.has(createStoreGetter(stateStore), data.storeKey),
-				).resolves.toBeTrue();
-			}
-			for (const data of validData.terminatedOutboxSubstore) {
-				await expect(
-					terminatedOutboxSubstore.has(createStoreGetter(stateStore), data.storeKey),
-				).resolves.toBeTrue();
-			}
-			for (const data of validData.channelDataSubstore) {
-				await expect(
-					channelDataSubstore.has(createStoreGetter(stateStore), data.storeKey),
-				).resolves.toBeTrue();
-			}
-			for (const data of validData.terminatedStateSubstore) {
-				await expect(
-					terminatedStateSubstore.has(createStoreGetter(stateStore), data.storeKey),
-				).resolves.toBeTrue();
-			}
-			for (const data of validData.registeredNamesSubstore) {
-				await expect(
-					registeredNamesSubstore.has(createStoreGetter(stateStore), data.storeKey),
-				).resolves.toBeTrue();
-			}
-			for (const data of validData.ownChainDataSubstore) {
-				await expect(
-					ownChainDataSubstore.has(createStoreGetter(stateStore), data.storeKey),
-				).resolves.toBeTrue();
-			}
+					certificate.timestamp + LIVENESS_LIMIT / 2,
+				),
+			).toBeUndefined();
 		});
 	});
 });

@@ -11,51 +11,110 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+/* eslint-disable max-classes-per-file */
 
-import { when } from 'jest-when';
 import { codec } from '@liskhq/lisk-codec';
 import { Transaction } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { MerkleTree, regularMerkleTree } from '@liskhq/lisk-tree';
+import { Proof } from '@liskhq/lisk-tree/dist-node/merkle_tree/types';
 import { CommandExecuteContext, MainchainInteroperabilityModule } from '../../../../../../src';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
-import { BaseInteroperableMethod } from '../../../../../../src/modules/interoperability/base_interoperable_method';
+import { BaseCCMethod } from '../../../../../../src/modules/interoperability/base_cc_method';
 import {
-	CHAIN_ACTIVE,
+	CCMStatusCode,
 	COMMAND_NAME_MESSAGE_RECOVERY,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainMessageRecoveryCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/message_recovery';
-import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
 import {
 	ccmSchema,
 	messageRecoveryParamsSchema,
 } from '../../../../../../src/modules/interoperability/schemas';
-import { CCMsg, MessageRecoveryParams } from '../../../../../../src/modules/interoperability/types';
+import {
+	CCMsg,
+	CrossChainMessageContext,
+	MessageRecoveryParams,
+} from '../../../../../../src/modules/interoperability/types';
 import { CommandVerifyContext, VerifyStatus } from '../../../../../../src/state_machine/types';
-import { createTransactionContext } from '../../../../../../src/testing';
-import { swapReceivingAndSendingChainIDs } from '../../../../../../src/modules/interoperability/utils';
+import {
+	createCrossChainMessageContext,
+	createTransactionContext,
+} from '../../../../../../src/testing';
+import {
+	getMainchainID,
+	swapReceivingAndSendingChainIDs,
+} from '../../../../../../src/modules/interoperability/utils';
 import { TransactionContext } from '../../../../../../src/state_machine';
-import { Mocked } from '../../../../../utils/types';
-import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
-import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
 import { TerminatedOutboxStore } from '../../../../../../src/modules/interoperability/stores/terminated_outbox';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
+import {
+	ChainAccountStore,
+	ChainStatus,
+} from '../../../../../../src/modules/interoperability/stores/chain_account';
+import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
+import {
+	CCMProcessedCode,
+	CcmProcessedEvent,
+	CCMProcessedResult,
+} from '../../../../../../src/modules/interoperability/events/ccm_processed';
+import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
+
+const createCommandVerifyContext = (
+	inputTx: Transaction,
+	transactionParams: MessageRecoveryParams,
+) => {
+	const transaction = new Transaction({
+		...inputTx,
+		params: codec.encode(messageRecoveryParamsSchema, transactionParams),
+	});
+
+	return createTransactionContext({
+		transaction,
+	}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
+};
+
+const generateProof = async (ccms: Buffer[]): Promise<Proof> => {
+	const LEAF_PREFIX = Buffer.from('00', 'hex');
+
+	const merkleTree = new MerkleTree();
+	await merkleTree.init(ccms);
+
+	const queryHashes: Buffer[] = [];
+	for (const data of ccms) {
+		const leafValueWithoutNodeIndex = Buffer.concat(
+			[LEAF_PREFIX, data],
+			LEAF_PREFIX.length + data.length,
+		);
+		const leafHash = utils.hash(leafValueWithoutNodeIndex);
+		queryHashes.push(leafHash);
+	}
+
+	return merkleTree.generateProof(queryHashes);
+};
 
 describe('Mainchain MessageRecoveryCommand', () => {
-	const interopMod = new MainchainInteroperabilityModule();
+	const interopModule = new MainchainInteroperabilityModule();
+
+	let command: MainchainMessageRecoveryCommand;
+
+	beforeEach(() => {
+		command = new MainchainMessageRecoveryCommand(
+			interopModule.stores,
+			interopModule.events,
+			new Map(),
+			new Map(),
+			{
+				addToOutbox: jest.fn(),
+				isLive: jest.fn().mockResolvedValue(true),
+			} as never,
+		);
+	});
 
 	describe('verify', () => {
-		const LEAF_PREFIX = Buffer.from('00', 'hex');
-
-		let stateStore: PrefixedStateReadWriter;
-		let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
-		let terminatedOutboxSubstore: TerminatedOutboxStore;
-		let messageRecoveryCommand: MainchainMessageRecoveryCommand;
+		// let stateStore: PrefixedStateReadWriter;
 		let commandVerifyContext: CommandVerifyContext<MessageRecoveryParams>;
-		let interoperableCCMethods: Map<string, BaseInteroperableMethod>;
-		let ccCommands: Map<string, BaseCCCommand[]>;
 		let transaction: Transaction;
 		let transactionParams: MessageRecoveryParams;
 		let encodedTransactionParams: Buffer;
@@ -66,28 +125,9 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		let hashedCCMs: Buffer[];
 		let ccmsEncoded: Buffer[];
 		let outboxRoot: Buffer;
-		let queryHashes: Buffer[];
-		let merkleTree: MerkleTree;
 		let generatedProof: any;
 
 		beforeEach(async () => {
-			interoperableCCMethods = new Map();
-			ccCommands = new Map();
-			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-
-			terminatedOutboxSubstore = interopMod.stores.get(TerminatedOutboxStore);
-			mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
-				interopMod.stores,
-				createStoreGetter(stateStore),
-				new Map(),
-			);
-			messageRecoveryCommand = new MainchainMessageRecoveryCommand(
-				interopMod.stores,
-				interopMod.events,
-				interoperableCCMethods,
-				ccCommands,
-			);
-
 			ccms = [
 				{
 					nonce: BigInt(0),
@@ -111,18 +151,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				},
 			];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
-			merkleTree = new MerkleTree();
-			await merkleTree.init(ccmsEncoded);
-			queryHashes = [];
-			for (const data of ccmsEncoded) {
-				const leafValueWithoutNodeIndex = Buffer.concat(
-					[LEAF_PREFIX, data],
-					LEAF_PREFIX.length + data.length,
-				);
-				const leafHash = utils.hash(leafValueWithoutNodeIndex);
-				queryHashes.push(leafHash);
-			}
-			generatedProof = await merkleTree.generateProof(queryHashes);
+			generatedProof = await generateProof(ccmsEncoded);
 			terminatedChainOutboxSize = generatedProof.size;
 			proof = {
 				size: terminatedChainOutboxSize,
@@ -153,57 +182,201 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				transaction,
 			}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
 
-			jest
-				.spyOn(messageRecoveryCommand, 'getInteroperabilityStore' as any)
-				.mockImplementation(() => mainchainInteroperabilityStore);
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				});
 
-			await terminatedOutboxSubstore.set(createStoreGetter(stateStore), chainID, {
-				outboxRoot,
-				outboxSize: terminatedChainOutboxSize,
-				partnerChainInboxSize: 1,
-			});
-		});
-
-		it('should return error if the sidechain outbox root is not valid', async () => {
-			await terminatedOutboxSubstore.set(createStoreGetter(stateStore), chainID, {
-				outboxRoot: utils.getRandomBytes(32),
-				outboxSize: terminatedChainOutboxSize,
-				partnerChainInboxSize: 1,
-			});
-			const result = await messageRecoveryCommand.verify(commandVerifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(`The sidechain outbox root is not valid`);
+			jest.spyOn(regularMerkleTree, 'verifyDataBlock').mockReturnValue(true);
 		});
 
 		it('should return error if terminated outbox account does not exist', async () => {
-			await terminatedOutboxSubstore.del(createStoreGetter(stateStore), chainID);
-			const result = await messageRecoveryCommand.verify(commandVerifyContext);
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.del(createStoreGetter(commandVerifyContext.stateStore as any), chainID);
+			const result = await command.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(`Terminated outbox account does not exist`);
+			expect(result.error?.message).toInclude(`Terminated outbox account does not exist.`);
 		});
 
-		it('should return error if cross chain messages are still pending', async () => {
-			transactionParams.idxs = [0];
-			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
-			transaction = new Transaction({
-				module: MODULE_NAME_INTEROPERABILITY,
-				command: COMMAND_NAME_MESSAGE_RECOVERY,
-				fee: BigInt(100000000),
-				nonce: BigInt(0),
-				params: encodedTransactionParams,
-				senderPublicKey: utils.getRandomBytes(32),
-				signatures: [],
-			});
-			commandVerifyContext = createTransactionContext({
-				transaction,
-			}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
+		it('should return error if idxs are not sorted in ascending order', async () => {
+			transactionParams.idxs = [3, 1, 2, 0];
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
-			const result = await messageRecoveryCommand.verify(commandVerifyContext);
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				});
+
+			const result = await command.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(`Cross chain messages are still pending`);
+			expect(result.error?.message).toInclude(
+				`Cross-chain message indexes are not sorted in ascending order.`,
+			);
+		});
+
+		it('should return error if cross-chain message is not pending', async () => {
+			transactionParams.idxs = [0];
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				});
+
+			const result = await command.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Cross-chain message is not pending.`);
+		});
+
+		it('should return error if ccm.status !== CCMStatusCode.OK', async () => {
+			ccms = [
+				{
+					nonce: BigInt(0),
+					module: MODULE_NAME_INTEROPERABILITY,
+					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					sendingChainID: utils.intToBuffer(2, 4),
+					receivingChainID: utils.intToBuffer(3, 4),
+					fee: BigInt(1),
+					status: CCMStatusCode.FAILED_CCM,
+					params: Buffer.alloc(0),
+				},
+			];
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
+			transactionParams.idxs = [11, 12, 13];
+
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				});
+
+			const result = await command.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Cross-chain message status is not valid.`);
+		});
+
+		it('should return error if cross-chain message receiving chain ID is not valid', async () => {
+			ccms = [
+				{
+					nonce: BigInt(0),
+					module: MODULE_NAME_INTEROPERABILITY,
+					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					sendingChainID: utils.intToBuffer(2, 4),
+					receivingChainID: utils.intToBuffer(2, 4),
+					fee: BigInt(1),
+					status: CCMStatusCode.OK,
+					params: Buffer.alloc(0),
+				},
+			];
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
+			transactionParams.idxs = [11, 12, 13];
+
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				});
+
+			const result = await command.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
+				`Cross-chain message receiving chain ID is not valid.`,
+			);
+		});
+
+		it('should return error if cross-chain message sending chain is not live', async () => {
+			command['internalMethod'].isLive = jest.fn().mockResolvedValue(false);
+			ccms = [
+				{
+					nonce: BigInt(0),
+					module: MODULE_NAME_INTEROPERABILITY,
+					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					sendingChainID: utils.intToBuffer(2, 4),
+					receivingChainID: utils.intToBuffer(3, 4),
+					fee: BigInt(1),
+					status: CCMStatusCode.OK,
+					params: Buffer.alloc(0),
+				},
+			];
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
+			transactionParams.idxs = [11, 12, 13];
+
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				});
+
+			const result = await command.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Cross-chain message sending chain is not live.`);
+		});
+
+		it('should return error if message recovery proof of inclusion is not valid', async () => {
+			jest.spyOn(regularMerkleTree, 'verifyDataBlock').mockReturnValue(false);
+
+			ccms = [
+				{
+					nonce: BigInt(0),
+					module: MODULE_NAME_INTEROPERABILITY,
+					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					sendingChainID: utils.intToBuffer(2, 4),
+					receivingChainID: chainID,
+					fee: BigInt(1),
+					status: CCMStatusCode.OK,
+					params: Buffer.alloc(0),
+				},
+			];
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
+			transactionParams.idxs = [11, 12, 13];
+			transactionParams.chainID = chainID;
+
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				});
+
+			const result = await command.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Message recovery proof of inclusion is not valid.`);
 		});
 
 		it('should return error if cross chain message that needs to be recovered is not valid', async () => {
@@ -223,25 +396,14 @@ describe('Mainchain MessageRecoveryCommand', () => {
 					module: MODULE_NAME_INTEROPERABILITY,
 					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 					sendingChainID: utils.intToBuffer(4, 4),
-					receivingChainID: utils.intToBuffer(5, 4),
+					receivingChainID: utils.intToBuffer(3, 4),
 					fee: BigInt(2),
 					status: 0,
 					params: Buffer.alloc(0),
 				},
 			];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
-			merkleTree = new MerkleTree();
-			await merkleTree.init(ccmsEncoded);
-			queryHashes = [];
-			for (const data of ccmsEncoded) {
-				const leafValueWithoutNodeIndex = Buffer.concat(
-					[LEAF_PREFIX, data],
-					LEAF_PREFIX.length + data.length,
-				);
-				const leafHash = utils.hash(leafValueWithoutNodeIndex);
-				queryHashes.push(leafHash);
-			}
-			generatedProof = await merkleTree.generateProof(queryHashes);
+			generatedProof = await generateProof(ccmsEncoded);
 			terminatedChainOutboxSize = generatedProof.size;
 			proof = {
 				size: terminatedChainOutboxSize,
@@ -256,36 +418,50 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				idxs: proof.indexes,
 				siblingHashes: proof.siblingHashes,
 			};
-			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
-			transaction = new Transaction({
-				module: MODULE_NAME_INTEROPERABILITY,
-				command: COMMAND_NAME_MESSAGE_RECOVERY,
-				fee: BigInt(100000000),
-				nonce: BigInt(0),
-				params: encodedTransactionParams,
-				senderPublicKey: utils.getRandomBytes(32),
-				signatures: [],
-			});
-			commandVerifyContext = createTransactionContext({
-				transaction,
-			}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
-			await terminatedOutboxSubstore.set(createStoreGetter(stateStore), chainID, {
-				outboxRoot,
-				outboxSize: terminatedChainOutboxSize,
-				partnerChainInboxSize: 1,
-			});
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				});
 
-			const result = await messageRecoveryCommand.verify(commandVerifyContext);
+			const result = await command.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				`Cross chain message that needs to be recovered is not valid`,
-			);
+			expect(result.error?.message).toInclude(`Cross-chain message status is not valid.`);
 		});
 
 		it('should return status OK for valid params', async () => {
-			const result = await messageRecoveryCommand.verify(commandVerifyContext);
+			ccms = [
+				{
+					nonce: BigInt(0),
+					module: MODULE_NAME_INTEROPERABILITY,
+					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					sendingChainID: utils.intToBuffer(2, 4),
+					receivingChainID: chainID,
+					fee: BigInt(1),
+					status: CCMStatusCode.OK,
+					params: Buffer.alloc(0),
+				},
+			];
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
+			transactionParams.idxs = [11, 12, 13];
+			transactionParams.chainID = chainID;
 
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				});
+
+			const result = await command.verify(commandVerifyContext);
 			expect(result.status).toBe(VerifyStatus.OK);
 		});
 	});
@@ -314,6 +490,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			});
 
 			transactionContext = createTransactionContext({
+				chainID: getMainchainID(utils.intToBuffer(3, 4)),
 				transaction,
 			});
 
@@ -324,40 +501,29 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			return commandExecuteContext;
 		};
 
-		type StoreMock = Mocked<
-			MainchainInteroperabilityStore,
-			| 'isLive'
-			| 'addToOutbox'
-			| 'getChainAccount'
-			| 'setTerminatedOutboxAccount'
-			| 'getTerminatedOutboxAccount'
-			| 'chainAccountExist'
-			| 'terminatedOutboxAccountExist'
-			| 'getOwnChainAccount'
-		>;
-
-		let messageRecoveryCommand: MainchainMessageRecoveryCommand;
+		const chainAccountStoreMock = {
+			get: jest.fn(),
+			set: jest.fn(),
+			has: jest.fn(),
+		};
+		const ownChainAccountStoreMock = {
+			get: jest.fn(),
+			set: jest.fn(),
+			has: jest.fn(),
+		};
+		const terminatedOutboxAccountMock = {
+			get: jest.fn(),
+			set: jest.fn(),
+			has: jest.fn(),
+		};
 		let commandExecuteContext: CommandExecuteContext<MessageRecoveryParams>;
-		let interoperableCCMethods: Map<string, BaseInteroperableMethod>;
-		let ccCommands: Map<string, BaseCCCommand[]>;
 		let transaction: Transaction;
 		let transactionParams: MessageRecoveryParams;
 		let encodedTransactionParams: Buffer;
 		let transactionContext: TransactionContext;
-		let storeMock: StoreMock;
 		let ccms: CCMsg[];
 
 		beforeEach(() => {
-			interoperableCCMethods = new Map();
-			ccCommands = new Map();
-
-			messageRecoveryCommand = new MainchainMessageRecoveryCommand(
-				interopMod.stores,
-				interopMod.events,
-				interoperableCCMethods,
-				ccCommands,
-			);
-
 			ccms = [
 				{
 					nonce: BigInt(0),
@@ -383,174 +549,121 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 			commandExecuteContext = createCommandExecuteContext(ccms);
 
-			storeMock = {
-				addToOutbox: jest.fn(),
-				getChainAccount: jest.fn(),
-				getTerminatedOutboxAccount: jest.fn(),
-				setTerminatedOutboxAccount: jest.fn(),
-				chainAccountExist: jest.fn().mockResolvedValue(true),
-				isLive: jest.fn().mockResolvedValue(true),
-				terminatedOutboxAccountExist: jest.fn().mockResolvedValue(true),
-				getOwnChainAccount: jest.fn(),
-			};
-
-			storeMock.getOwnChainAccount.mockResolvedValue({
+			interopModule.stores.get(OwnChainAccountStore).get = ownChainAccountStoreMock.get;
+			ownChainAccountStoreMock.get.mockResolvedValue({
 				name: `mainchain`,
-				id: utils.intToBuffer(0, 4),
+				chainID: utils.intToBuffer(0, 4),
 				nonce: BigInt(0),
 			});
 
-			jest
-				.spyOn(messageRecoveryCommand, 'getInteroperabilityStore' as any)
-				.mockImplementation(() => storeMock);
 			jest
 				.spyOn(regularMerkleTree, 'calculateRootFromUpdateData')
 				.mockReturnValue(Buffer.alloc(32));
 
 			let chainID;
+
+			interopModule.stores.register(ChainAccountStore, chainAccountStoreMock as never);
+			interopModule.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
+			interopModule.stores.register(TerminatedOutboxStore, terminatedOutboxAccountMock as never);
+
 			for (const ccm of ccms) {
 				chainID = ccm.sendingChainID;
 
-				when(storeMock.getChainAccount)
-					.calledWith(chainID)
-					.mockResolvedValue({
-						name: `chain${chainID.toString('hex')}`,
-						status: CHAIN_ACTIVE,
-						lastCertificate: {
-							height: 1,
-							timestamp: 10,
-							stateRoot: Buffer.alloc(0),
-							validatorsHash: Buffer.alloc(0),
-						},
-					});
-			}
-
-			chainID = transactionParams.chainID;
-
-			when(storeMock.getTerminatedOutboxAccount)
-				.calledWith(chainID)
-				.mockResolvedValue({
-					outboxRoot: utils.getRandomBytes(32),
-					outboxSize: 1,
-					partnerChainInboxSize: 1,
+				chainAccountStoreMock.get.mockResolvedValue({
+					name: `chain${chainID.toString('hex')}`,
+					status: ChainStatus.ACTIVE,
+					lastCertificate: {
+						height: 1,
+						timestamp: 10,
+						stateRoot: Buffer.alloc(0),
+						validatorsHash: Buffer.alloc(0),
+					},
 				});
+			}
+
+			interopModule.stores.get(TerminatedOutboxStore).get = terminatedOutboxAccountMock.get;
+			terminatedOutboxAccountMock.get.mockResolvedValue({
+				outboxRoot: utils.getRandomBytes(32),
+				outboxSize: 1,
+				partnerChainInboxSize: 1,
+			});
+
+			terminatedOutboxAccountMock.has.mockResolvedValue(true);
 		});
 
-		it('should successfully process recovery transaction', async () => {
-			// Act
-			await messageRecoveryCommand.execute(commandExecuteContext);
-			expect.assertions(ccms.length + 1);
+		it('should proceed without error if the sending chain is the mainchain', async () => {
+			command['_applyRecovery'] = jest.fn();
 
-			{
-				// Arrange
-				const { chainID } = transactionParams;
-				const outboxRoot = Buffer.alloc(32);
+			ccms = [
+				{
+					nonce: BigInt(0),
+					module: MODULE_NAME_INTEROPERABILITY,
+					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					sendingChainID: getMainchainID(utils.intToBuffer(3, 4)),
+					receivingChainID: utils.intToBuffer(3, 4),
+					fee: BigInt(1),
+					status: 1,
+					params: Buffer.alloc(0),
+				},
+			];
 
-				// Assert
-				expect(storeMock.setTerminatedOutboxAccount).toHaveBeenCalledWith(
-					chainID,
-					expect.objectContaining({
-						outboxRoot,
-					}),
-				);
+			commandExecuteContext = createCommandExecuteContext(ccms);
+			await expect(command.execute(commandExecuteContext)).resolves.toBeUndefined();
+
+			for (const crossChainMessage of commandExecuteContext.params.crossChainMessages) {
+				const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
+				const ctx: CrossChainMessageContext = {
+					...commandExecuteContext,
+					ccm,
+				};
+
+				expect(command['_applyRecovery']).toHaveBeenCalledWith(ctx);
 			}
 
-			for (const ccm of ccms) {
-				// Assign
-				const chainID = ccm.sendingChainID;
-				// Assert
-				expect(storeMock.addToOutbox).toHaveBeenCalledWith(
-					chainID,
-					swapReceivingAndSendingChainIDs(ccm),
-				);
-			}
+			const terminatedOutboxStore = command['stores'].get(TerminatedOutboxStore);
+			jest.spyOn(terminatedOutboxStore, 'set');
+
+			expect(terminatedOutboxStore.set).toHaveBeenCalledTimes(1);
 		});
 
-		it('should throw when beforeRecoverCCM of ccMethods of the ccm fails', async () => {
-			// Assign & Arrange
-			const method = ({
-				beforeRecoverCCM: jest.fn(() => {
-					throw new Error('beforeRecoverCCM Error');
-				}),
-				MODULE_NAME_INTEROPERABILITY,
-			} as unknown) as BaseInteroperableMethod;
+		it('should proceed without error if the sending chain is not the mainchain', async () => {
+			command['_forwardRecovery'] = jest.fn();
 
-			interoperableCCMethods.set(MODULE_NAME_INTEROPERABILITY, method);
+			ccms = [
+				{
+					nonce: BigInt(0),
+					module: MODULE_NAME_INTEROPERABILITY,
+					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					sendingChainID: Buffer.from('abc', 'hex'),
+					receivingChainID: utils.intToBuffer(3, 4),
+					fee: BigInt(1),
+					status: 1,
+					params: Buffer.alloc(0),
+				},
+			];
 
-			// Assert
-			await expect(messageRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
-				'beforeRecoverCCM Error',
-			);
+			commandExecuteContext = createCommandExecuteContext(ccms);
+			await expect(command.execute(commandExecuteContext)).resolves.toBeUndefined();
+
+			for (const crossChainMessage of commandExecuteContext.params.crossChainMessages) {
+				const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
+				const ctx: CrossChainMessageContext = {
+					...commandExecuteContext,
+					ccm,
+				};
+
+				expect(command['_forwardRecovery']).toHaveBeenCalledWith(ctx);
+			}
+
+			const terminatedOutboxStore = command['stores'].get(TerminatedOutboxStore);
+			jest.spyOn(terminatedOutboxStore, 'set');
+
+			expect(terminatedOutboxStore.set).toHaveBeenCalledTimes(1);
 		});
 
-		it('should throw when terminated chain outbox does not exist', async () => {
-			// Assign & Arrange
-			const { chainID } = transactionParams;
-
-			when(storeMock.terminatedOutboxAccountExist).calledWith(chainID).mockResolvedValue(false);
-
-			// Assert
-			await expect(messageRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
-				'Terminated outbox account does not exist',
-			);
-		});
-
-		it('should not add CCM to outbox when sending chain of the CCM does not exist', async () => {
-			// Assign & Arrange & Act
-			for (const ccm of ccms) {
-				const chainID = ccm.sendingChainID;
-
-				when(storeMock.chainAccountExist).calledWith(chainID).mockResolvedValue(false);
-			}
-
-			await messageRecoveryCommand.execute(commandExecuteContext);
-
-			// Assert
-			expect.assertions(ccms.length);
-			for (const _ of ccms) {
-				expect(storeMock.addToOutbox).not.toHaveBeenCalled();
-			}
-		});
-
-		it('should not add CCM to outbox when sending chain of the CCM is not live', async () => {
-			// Assign & Arrange & Act
-			for (const ccm of ccms) {
-				const chainID = ccm.sendingChainID;
-
-				when(storeMock.isLive).calledWith(chainID).mockResolvedValue(false);
-			}
-
-			await messageRecoveryCommand.execute(commandExecuteContext);
-
-			// Assert
-			expect.assertions(ccms.length);
-			for (const _ of ccms) {
-				expect(storeMock.addToOutbox).not.toHaveBeenCalled();
-			}
-		});
-
-		it('should not add CCM to outbox when sending chain of the CCM is not active', async () => {
-			// Assign & Arrange & Act
-			for (const ccm of ccms) {
-				const chainID = ccm.sendingChainID;
-
-				when(storeMock.getChainAccount)
-					.calledWith(chainID)
-					.mockResolvedValue({
-						status: -1,
-					} as any);
-			}
-
-			await messageRecoveryCommand.execute(commandExecuteContext);
-
-			// Assert
-			expect.assertions(ccms.length);
-			for (const _ of ccms) {
-				expect(storeMock.addToOutbox).not.toHaveBeenCalled();
-			}
-		});
-
-		it('should execute referenced logic in CCM if ownChainAccountID equals to sendingChainID of the CCM', async () => {
+		// TODO: Fix in #7727
+		// eslint-disable-next-line jest/no-disabled-tests
+		it.skip('should execute referenced logic in CCM if ownChainAccountID equals to sendingChainID of the CCM', async () => {
 			// Arrange & Assign
 			commandExecuteContext = createCommandExecuteContext(
 				ccms.map(ccm => ({
@@ -560,7 +673,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			);
 
 			for (const ccm of ccms) {
-				ccCommands.set(ccm.module, ([
+				command['ccCommands'].set(ccm.module, ([
 					{
 						name: ccm.crossChainCommand,
 						execute: jest.fn(),
@@ -571,68 +684,373 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			const ccmsWithSwappedChainIds = ccms.map(swapReceivingAndSendingChainIDs);
 
 			// Act
-			await messageRecoveryCommand.execute(commandExecuteContext);
+			await command.execute(commandExecuteContext);
 
 			// Assert
 			expect.assertions(ccms.length);
 			for (const ccm of ccmsWithSwappedChainIds) {
-				const commands = ccCommands.get(ccm.module) as BaseCCCommand[];
-				const command = commands.find(cmd => cmd.name === ccm.crossChainCommand) as BaseCCCommand;
-				expect(command.execute).toHaveBeenCalled();
+				const commands = command['ccCommands'].get(ccm.module) as BaseCCCommand[];
+				const ccCommand = commands.find(cmd => cmd.name === ccm.crossChainCommand) as BaseCCCommand;
+				expect(ccCommand.execute).toHaveBeenCalled();
 			}
 		});
+	});
 
-		it("should skip CCM's proccessing when there is no crossChainCommand associated with a module to execute", async () => {
-			// Arrange & Assign
-			commandExecuteContext = createCommandExecuteContext(
-				ccms.map(ccm => ({
-					...ccm,
-					receivingChainID: utils.intToBuffer(0, 4),
-				})),
+	describe('_applyRecovery', () => {
+		const defaultCCM = {
+			nonce: BigInt(0),
+			module: 'token',
+			crossChainCommand: 'crossChainTransfer',
+			sendingChainID: Buffer.from([0, 0, 2, 0]),
+			receivingChainID: Buffer.from([0, 0, 3, 0]),
+			fee: BigInt(20000),
+			status: 0,
+			params: Buffer.alloc(0),
+		};
+
+		let context: CrossChainMessageContext;
+
+		beforeEach(() => {
+			command['interoperableCCMethods'].set(
+				'token',
+				new (class TokenMethod extends BaseCCMethod {
+					public verifyCrossChainMessage = jest.fn();
+					public beforeCrossChainCommandExecute = jest.fn();
+					public afterCrossChainCommandExecute = jest.fn();
+				})(interopModule.stores, interopModule.events),
 			);
-
-			for (const ccm of ccms) {
-				ccCommands.set(ccm.module, ([
-					{
-						ID: utils.intToBuffer(500, 4),
-						execute: jest.fn(),
-					},
-				] as unknown) as BaseCCCommand[]);
-			}
-
-			BaseCCCommand.prototype.execute = jest.fn();
-
-			// Act
-			await messageRecoveryCommand.execute(commandExecuteContext);
-
-			// Assert
-			expect.assertions(ccms.length * 2);
-			for (const _ of ccms) {
-				expect(BaseCCCommand.prototype.execute).not.toHaveBeenCalled();
-				expect(storeMock.addToOutbox).not.toHaveBeenCalled();
-			}
+			command['ccCommands'].set('token', [
+				new (class CrossChainTransfer extends BaseCCCommand {
+					public verify = jest.fn();
+					public execute = jest.fn();
+				})(interopModule.stores, interopModule.events),
+			]);
+			jest.spyOn(command['events'].get(CcmProcessedEvent), 'log');
+			jest.spyOn(command['events'].get(CcmSendSuccessEvent), 'log');
+			context = createCrossChainMessageContext({
+				ccm: defaultCCM,
+			});
 		});
 
-		it("should skip CCM's proccessing when there are no ccCommands to execute", async () => {
-			// Assign
-			commandExecuteContext = createCommandExecuteContext(
-				ccms.map(ccm => ({
-					...ccm,
-					receivingChainID: utils.intToBuffer(0, 4),
-				})),
+		it('should log event when verifyCrossChainMessage fails', async () => {
+			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
+				.verifyCrossChainMessage as jest.Mock).mockRejectedValue('error');
+			await expect(command['_applyRecovery'](context)).resolves.toBeUndefined();
+
+			expect(context.eventQueue.getEvents()).toHaveLength(1);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.receivingChainID,
+				context.ccm.sendingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+				},
 			);
+		});
 
-			BaseCCCommand.prototype.execute = jest.fn();
+		it('should log event if the module is not registered', async () => {
+			context = createCrossChainMessageContext({
+				ccm: {
+					...defaultCCM,
+					module: 'nonExisting',
+				},
+			});
 
-			// Act
-			await messageRecoveryCommand.execute(commandExecuteContext);
+			await expect(command['_applyRecovery'](context)).resolves.toBeUndefined();
 
-			// Assert
-			expect.assertions(ccms.length * 2);
-			for (const _ of ccms) {
-				expect(BaseCCCommand.prototype.execute).not.toHaveBeenCalled();
-				expect(storeMock.addToOutbox).not.toHaveBeenCalled();
-			}
+			expect(context.eventQueue.getEvents()).toHaveLength(1);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.receivingChainID,
+				context.ccm.sendingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCMProcessedCode.MODULE_NOT_SUPPORTED,
+					result: CCMProcessedResult.DISCARDED,
+				},
+			);
+		});
+
+		it('should log event if the command is not registered', async () => {
+			context = createCrossChainMessageContext({
+				ccm: {
+					...defaultCCM,
+					crossChainCommand: 'nonExisting',
+				},
+			});
+
+			await expect(command['_applyRecovery'](context)).resolves.toBeUndefined();
+
+			expect(context.eventQueue.getEvents()).toHaveLength(1);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.receivingChainID,
+				context.ccm.sendingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCMProcessedCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
+					result: CCMProcessedResult.DISCARDED,
+				},
+			);
+		});
+
+		it('should log event when command verify fails', async () => {
+			(((command['ccCommands'].get(defaultCCM.module) as BaseCCCommand[]).find(
+				com => com.name === defaultCCM.crossChainCommand,
+			) as BaseCCCommand).verify as jest.Mock).mockRejectedValue('error');
+
+			await expect(command['_applyRecovery'](context)).resolves.toBeUndefined();
+
+			expect(context.eventQueue.getEvents()).toHaveLength(1);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.receivingChainID,
+				context.ccm.sendingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCMProcessedCode.INVALID_CCM_VERIFY_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+				},
+			);
+		});
+
+		it('should log event when command beforeCrossChainCommandExecute fails', async () => {
+			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
+				.beforeCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
+
+			await expect(command['_applyRecovery'](context)).resolves.toBeUndefined();
+
+			expect(context.eventQueue.getEvents()).toHaveLength(1);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.receivingChainID,
+				context.ccm.sendingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+				},
+			);
+		});
+
+		it('should revert to the original state/event when command beforeCrossChainCommandExecute fails', async () => {
+			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
+				.beforeCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
+			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
+			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);
+			jest.spyOn(context.eventQueue, 'restoreSnapshot');
+			jest.spyOn(context.stateStore, 'restoreSnapshot');
+
+			await expect(command['_applyRecovery'](context)).resolves.toBeUndefined();
+
+			expect(context.eventQueue.restoreSnapshot).toHaveBeenCalledWith(99);
+			expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(10);
+		});
+
+		it('should log event and restore the state/event before calling execute when execute fails', async () => {
+			(((command['ccCommands'].get(defaultCCM.module) as BaseCCCommand[]).find(
+				com => com.name === defaultCCM.crossChainCommand,
+			) as BaseCCCommand).execute as jest.Mock).mockRejectedValue('error');
+			let eventQueueCount = 0;
+			let stateStoreCount = 0;
+			jest.spyOn(context.eventQueue, 'createSnapshot').mockImplementation(() => {
+				eventQueueCount += 1;
+				return eventQueueCount;
+			});
+			jest.spyOn(context.stateStore, 'createSnapshot').mockImplementation(() => {
+				stateStoreCount += 1;
+				return stateStoreCount;
+			});
+			jest.spyOn(context.eventQueue, 'restoreSnapshot');
+			jest.spyOn(context.stateStore, 'restoreSnapshot');
+
+			await expect(command['_applyRecovery'](context)).resolves.toBeUndefined();
+
+			expect(context.eventQueue.restoreSnapshot).toHaveBeenCalledWith(2);
+			expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(2);
+			expect(
+				(command['interoperableCCMethods'].get('token') as BaseCCMethod)
+					.afterCrossChainCommandExecute as jest.Mock,
+			).toHaveBeenCalledTimes(1);
+		});
+
+		it('should log event when command afterCrossChainCommandExecute fails', async () => {
+			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
+				.afterCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
+
+			await expect(command['_applyRecovery'](context)).resolves.toBeUndefined();
+
+			expect(context.eventQueue.getEvents()).toHaveLength(1);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.receivingChainID,
+				context.ccm.sendingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCMProcessedCode.INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+				},
+			);
+		});
+
+		it('should restore the original state/event when command afterCrossChainCommandExecute fails', async () => {
+			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
+				.afterCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
+			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
+			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);
+			jest.spyOn(context.eventQueue, 'restoreSnapshot');
+			jest.spyOn(context.stateStore, 'restoreSnapshot');
+
+			await expect(command['_applyRecovery'](context)).resolves.toBeUndefined();
+
+			expect(context.eventQueue.restoreSnapshot).toHaveBeenCalledWith(99);
+			expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(10);
+		});
+
+		it('should log success event when all the hooks pass', async () => {
+			const ccMethod = command['interoperableCCMethods'].get('token');
+			const ccCommand = command['ccCommands']
+				.get(defaultCCM.module)
+				?.find(com => com.name === defaultCCM.crossChainCommand);
+
+			await expect(command['_applyRecovery'](context)).resolves.toBeUndefined();
+
+			expect(ccMethod?.verifyCrossChainMessage).toHaveBeenCalledTimes(1);
+			expect(ccMethod?.beforeCrossChainCommandExecute).toHaveBeenCalledTimes(1);
+			expect(ccMethod?.afterCrossChainCommandExecute).toHaveBeenCalledTimes(1);
+			expect(ccCommand?.verify).toHaveBeenCalledTimes(1);
+			expect(ccCommand?.execute).toHaveBeenCalledTimes(1);
+
+			expect(context.eventQueue.getEvents()).toHaveLength(1);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.receivingChainID,
+				context.ccm.sendingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCMProcessedCode.SUCCESS,
+					result: CCMProcessedResult.APPLIED,
+				},
+			);
+		});
+	});
+
+	describe('_forwardRecovery', () => {
+		const defaultCCM = {
+			nonce: BigInt(0),
+			module: 'token',
+			crossChainCommand: 'crossChainTransfer',
+			sendingChainID: Buffer.from([0, 0, 2, 0]),
+			receivingChainID: Buffer.from([0, 0, 3, 0]),
+			fee: BigInt(20000),
+			status: 0,
+			params: Buffer.alloc(0),
+		};
+		let context: CrossChainMessageContext;
+
+		beforeEach(() => {
+			command['interoperableCCMethods'].set(
+				'token',
+				new (class TokenMethod extends BaseCCMethod {
+					public verifyCrossChainMessage = jest.fn();
+					public beforeCrossChainMessageForwarding = jest.fn();
+				})(interopModule.stores, interopModule.events),
+			);
+			command['ccCommands'].set('token', [
+				new (class CrossChainTransfer extends BaseCCCommand {
+					public schema = { $id: 'test/ccu', properties: {}, type: 'object' };
+					public verify = jest.fn();
+					public execute = jest.fn();
+				})(interopModule.stores, interopModule.events),
+			]);
+			jest.spyOn(command['events'].get(CcmProcessedEvent), 'log');
+			jest.spyOn(command['events'].get(CcmSendSuccessEvent), 'log');
+			context = createCrossChainMessageContext({
+				ccm: defaultCCM,
+			});
+		});
+
+		it('should log event when verifyCrossChainMessage fails', async () => {
+			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
+				.verifyCrossChainMessage as jest.Mock).mockRejectedValue('error');
+			await expect(command['_forwardRecovery'](context)).resolves.toBeUndefined();
+
+			expect(context.eventQueue.getEvents()).toHaveLength(1);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.receivingChainID,
+				context.ccm.sendingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+				},
+			);
+		});
+
+		it('should log event when command beforeCrossChainMessageForwarding fails', async () => {
+			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
+				.beforeCrossChainMessageForwarding as jest.Mock).mockRejectedValue('error');
+
+			await expect(command['_forwardRecovery'](context)).resolves.toBeUndefined();
+
+			expect(context.eventQueue.getEvents()).toHaveLength(1);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.receivingChainID,
+				context.ccm.sendingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+				},
+			);
+		});
+
+		it('should revert to the original state/event when command beforeCrossChainMessageForwarding fails', async () => {
+			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
+				.beforeCrossChainMessageForwarding as jest.Mock).mockRejectedValue('error');
+			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
+			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);
+			jest.spyOn(context.eventQueue, 'restoreSnapshot');
+			jest.spyOn(context.stateStore, 'restoreSnapshot');
+
+			await expect(command['_forwardRecovery'](context)).resolves.toBeUndefined();
+
+			expect(context.eventQueue.restoreSnapshot).toHaveBeenCalledWith(99);
+			expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(10);
+		});
+
+		it('should add to outbox and log success', async () => {
+			const ccMethod = command['interoperableCCMethods'].get('token');
+
+			await expect(command['_forwardRecovery'](context)).resolves.toBeUndefined();
+
+			expect(ccMethod?.verifyCrossChainMessage).toHaveBeenCalledTimes(1);
+			expect(ccMethod?.beforeCrossChainMessageForwarding).toHaveBeenCalledTimes(1);
+
+			expect(command['internalMethod'].addToOutbox).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.sendingChainID,
+				expect.objectContaining({
+					sendingChainID: context.ccm.receivingChainID,
+					receivingChainID: context.ccm.sendingChainID,
+					status: CCMStatusCode.RECOVERED,
+				}),
+			);
+			expect(context.eventQueue.getEvents()).toHaveLength(1);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.receivingChainID,
+				context.ccm.sendingChainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCMProcessedCode.SUCCESS,
+					result: CCMProcessedResult.FORWARDED,
+				},
+			);
 		});
 	});
 });

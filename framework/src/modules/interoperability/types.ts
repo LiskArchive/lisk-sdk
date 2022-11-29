@@ -12,15 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Transaction } from '@liskhq/lisk-chain';
 import { Logger } from '../../logger';
 import { MethodContext, EventQueue } from '../../state_machine';
 import {
+	BlockHeader,
 	ImmutableMethodContext,
+	ImmutableStateStore,
 	ImmutableSubStore,
+	StateStore,
 	SubStore,
 	Validator,
 } from '../../state_machine/types';
 import { OutboxRoot } from './stores/outbox_root';
+import { ChainID } from './stores/registered_names';
 import { TerminatedOutboxAccount } from './stores/terminated_outbox';
 import { TerminatedStateAccount } from './stores/terminated_state';
 
@@ -42,9 +47,9 @@ export interface ActiveValidator {
 	bftWeight: bigint;
 }
 
-export interface MsgWitness {
-	partnerChainOutboxSize: bigint;
-	siblingHashes: Buffer[];
+export interface ActiveValidatorJSON {
+	blsKey: string;
+	bftWeight: string;
 }
 
 export interface OutboxRootWitness {
@@ -54,7 +59,7 @@ export interface OutboxRootWitness {
 
 export interface InboxUpdate {
 	crossChainMessages: Buffer[];
-	messageWitness: MsgWitness;
+	messageWitnessHashes: Buffer[];
 	outboxRootWitness: OutboxRootWitness;
 }
 
@@ -62,37 +67,44 @@ export interface CCUpdateParams {
 	sendingChainID: Buffer;
 	certificate: Buffer;
 	activeValidatorsUpdate: ActiveValidator[];
-	newCertificateThreshold: bigint;
+	certificateThreshold: bigint;
 	inboxUpdate: InboxUpdate;
 }
-
-export interface CCMethodContext {
-	getMethodContext: () => MethodContext;
-	getStore: StoreCallback;
+export interface ImmutableCrossChainMessageContext {
+	getMethodContext: () => ImmutableMethodContext;
+	getStore: ImmutableStoreCallback;
+	stateStore: ImmutableStateStore;
 	logger: Logger;
 	chainID: Buffer;
-	eventQueue: EventQueue;
-	feeAddress: Buffer;
+	header: {
+		timestamp: number;
+		height: number;
+	};
+	transaction: {
+		senderAddress: Buffer;
+		fee: bigint;
+	};
 	ccm: CCMsg;
 }
 
-export interface BeforeApplyCCMsgMethodContext extends CCMethodContext {
-	ccu: CCUpdateParams;
-	trsSender: Buffer;
+export interface CrossChainMessageContext extends ImmutableCrossChainMessageContext {
+	getMethodContext: () => MethodContext;
+	getStore: StoreCallback;
+	stateStore: StateStore;
+	contextStore: Map<string, unknown>;
+	eventQueue: EventQueue;
 }
-
-export interface BeforeSendCCMsgMethodContext extends CCMethodContext {
-	feeAddress: Buffer;
+export interface CCCommandExecuteContext<T> extends CrossChainMessageContext {
+	params: T;
 }
-
-export interface BeforeRecoverCCMsgMethodContext extends CCMethodContext {
-	trsSender: Buffer;
-}
-
-export interface RecoverCCMsgMethodContext extends CCMethodContext {
+export interface RecoverContext {
+	getMethodContext: () => MethodContext;
+	getStore: StoreCallback;
+	stateStore: StateStore;
+	eventQueue: EventQueue;
 	terminatedChainID: Buffer;
 	module: string;
-	storePrefix: Buffer;
+	substorePrefix: Buffer;
 	storeKey: Buffer;
 	storeValue: Buffer;
 }
@@ -111,14 +123,9 @@ export interface SendInternalContext {
 	chainID: Buffer;
 	eventQueue: EventQueue;
 	feeAddress: Buffer;
-}
-
-export interface TerminateChainContext {
-	getMethodContext: () => MethodContext;
-	getStore: StoreCallback;
-	logger: Logger;
-	chainID: Buffer;
-	eventQueue: EventQueue;
+	transaction: { fee: bigint; senderAddress: Buffer };
+	header: { height: number; timestamp: number };
+	stateStore: StateStore;
 }
 
 export interface CCMApplyContext {
@@ -127,11 +134,15 @@ export interface CCMApplyContext {
 	logger: Logger;
 	chainID: Buffer;
 	eventQueue: EventQueue;
-	feeAddress: Buffer;
+	blockHeader: {
+		timestamp: number;
+		height: number;
+	};
+	transaction: {
+		senderAddress: Buffer;
+		fee: bigint;
+	};
 	ccm: CCMsg;
-	ccu: CCUpdateParams;
-	trsSender: Buffer;
-	ccmSize: bigint;
 }
 
 export interface CCMForwardContext {
@@ -143,6 +154,23 @@ export interface CCMForwardContext {
 	feeAddress: Buffer;
 	ccm: CCMsg;
 	ccu: CCUpdateParams;
+	transaction: Transaction;
+	header: BlockHeader;
+}
+
+export interface CCMBounceContext {
+	eventQueue: EventQueue;
+	ccm: CCMsg;
+	newCCMStatus: number;
+	ccmProcessedEventCode: number;
+}
+
+export interface CreateTerminatedOutboxAccountContext {
+	eventQueue: EventQueue;
+}
+
+export interface CreateTerminatedStateAccountContext {
+	eventQueue: EventQueue;
 }
 
 export interface LastCertificate {
@@ -173,73 +201,44 @@ export interface ChainAccountJSON {
 
 export interface OwnChainAccount {
 	name: string;
-	id: Buffer;
+	chainID: Buffer;
 	nonce: bigint;
 }
 
 export interface OwnChainAccountJSON {
 	name: string;
-	id: string;
+	chainID: string;
 	nonce: string;
 }
 
-export interface Inbox {
+type InboxOutbox = {
 	appendPath: Buffer[];
 	size: number;
 	root: Buffer;
-}
+};
+export type Inbox = InboxOutbox;
+export type Outbox = InboxOutbox;
 
-export interface InboxJSON {
+type InboxOutboxJSON = {
 	appendPath: string[];
 	size: number;
 	root: string;
-}
-
-export interface Outbox {
-	appendPath: Buffer[];
-	size: number;
-	root: Buffer;
-}
-
-export interface OutboxJSON {
-	appendPath: string[];
-	size: number;
-	root: string;
-}
-
-export interface MessageFeeTokenID {
-	chainID: Buffer;
-	localID: Buffer;
-}
-
-export interface MessageFeeTokenIDJSON {
-	chainID: string;
-	localID: string;
-}
+};
+export type InboxJSON = InboxOutboxJSON;
+export type OutboxJSON = InboxOutboxJSON;
 
 export interface ChannelData {
 	inbox: Inbox;
 	outbox: Outbox;
 	partnerChainOutboxRoot: Buffer;
-	messageFeeTokenID: MessageFeeTokenID;
+	messageFeeTokenID: Buffer;
 }
 
 export interface ChannelDataJSON {
 	inbox: InboxJSON;
 	outbox: OutboxJSON;
 	partnerChainOutboxRoot: string;
-	messageFeeTokenID: MessageFeeTokenIDJSON;
-}
-
-export interface CCCommandExecuteContext {
-	logger: Logger;
-	chainID: Buffer;
-	eventQueue: EventQueue;
-	ccm: CCMsg;
-	ccmSize: bigint;
-	getMethodContext: () => MethodContext;
-	getStore: StoreCallback;
-	feeAddress: Buffer;
+	messageFeeTokenID: string;
 }
 
 export interface ActiveValidators {
@@ -257,7 +256,6 @@ export interface SidechainRegistrationParams {
 	chainID: Buffer;
 	initValidators: RegistrationParametersValidator[];
 	certificateThreshold: bigint;
-	sidechainRegistrationFee: bigint;
 }
 
 export interface MainchainRegistrationParams {
@@ -303,7 +301,7 @@ export interface MessageRecoveryVerificationParams {
 }
 
 export interface StoreEntry {
-	storePrefix: Buffer;
+	substorePrefix: Buffer;
 	storeKey: Buffer;
 	storeValue: Buffer;
 	bitmap: Buffer;
@@ -318,16 +316,20 @@ export interface StateRecoveryParams {
 
 export interface StateRecoveryInitParams {
 	chainID: Buffer;
-	sidechainChainAccount: Buffer;
+	sidechainAccount: Buffer;
 	bitmap: Buffer;
 	siblingHashes: Buffer[];
+}
+
+export interface TerminateSidehchainForLivenessParams {
+	chainID: Buffer;
 }
 
 export interface CrossChainUpdateTransactionParams {
 	sendingChainID: Buffer;
 	certificate: Buffer;
 	activeValidatorsUpdate: ActiveValidator[];
-	newCertificateThreshold: bigint;
+	certificateThreshold: bigint;
 	inboxUpdate: InboxUpdate;
 }
 
@@ -336,11 +338,12 @@ export interface ChainValidators {
 	certificateThreshold: bigint;
 }
 
-export interface ChainID {
-	id: Buffer;
+export interface ChainValidatorsJSON {
+	activeValidators: ActiveValidatorJSON[];
+	certificateThreshold: string;
 }
 
-export interface GenesisInteroperabilityStore {
+export interface GenesisInteroperability {
 	outboxRootSubstore: {
 		storeKey: Buffer;
 		storeValue: OutboxRoot;
@@ -373,8 +376,20 @@ export interface GenesisInteroperabilityStore {
 		storeKey: Buffer;
 		storeValue: ChainID;
 	}[];
-	registeredNetworkIDsSubstore: {
-		storeKey: Buffer;
-		storeValue: ChainID;
-	}[];
+}
+
+export interface CCMRegistrationParams {
+	name: string;
+	messageFeeTokenID: Buffer;
+}
+export interface TokenMethod {
+	initializeUserAccount(
+		methodContext: MethodContext,
+		address: Buffer,
+		tokenID: Buffer,
+	): Promise<void>;
+}
+
+export interface FeeMethod {
+	payFee(methodContext: MethodContext, amount: bigint): void;
 }

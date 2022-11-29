@@ -13,7 +13,7 @@
 				"value": "0a09030104010509020605",
 				"schema": {
 					"type": "object",
-					"$id": "array-schema-uint32",
+					"$id": "/arraySchemaUint32",
 					"properties": {
 						"list": {
 							"type": "array",
@@ -37,7 +37,7 @@
 				"value": "0a06010100010000",
 				"schema": {
 					"type": "object",
-					"$id": "array-schema-boolean",
+					"$id": "/arraySchemaBoolean",
 					"properties": {
 						"list": {
 							"type": "array",
@@ -61,7 +61,7 @@
 				"value": "0a046c69736b0a000a07676f676f676f67",
 				"schema": {
 					"type": "object",
-					"$id": "array-schema-string",
+					"$id": "/arraySchemaString",
 					"properties": {
 						"list": {
 							"type": "array",
@@ -85,7 +85,7 @@
 				"value": "0a2e0a286531316131313336343733383232353831336638366561383532313434303065356462303864366510a08d060a2e0a286161326131313336343733383232353831336638366561383532313434303065356462303866666610e0a712",
 				"schema": {
 					"type": "object",
-					"$id": "array-schema-object",
+					"$id": "/arraySchemaObject",
 					"properties": {
 						"list": {
 							"type": "array",
@@ -128,7 +128,7 @@
 				"value": "",
 				"schema": {
 					"type": "object",
-					"$id": "array-schema-uint32",
+					"$id": "/arraySchemaUint32",
 					"properties": {
 						"list": {
 							"type": "array",

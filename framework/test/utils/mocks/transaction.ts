@@ -23,11 +23,12 @@ import {
 	multisigRegMsgSchema,
 	registerMultisignatureParamsSchema,
 } from '../../../src/modules/auth/schemas';
+import { VALIDATOR_REGISTRATION_FEE } from '../../../src/modules/pos/constants';
 import {
-	delegateRegistrationCommandParamsSchema,
+	validatorRegistrationCommandParamsSchema,
 	pomCommandParamsSchema,
-	voteCommandParamsSchema,
-} from '../../../src/modules/dpos_v2/schemas';
+	stakeCommandParamsSchema,
+} from '../../../src/modules/pos/schemas';
 import { TransferCommand } from '../../../src/modules/token/commands/transfer';
 import { transferParamsSchema } from '../../../src/modules/token/schemas';
 
@@ -48,7 +49,6 @@ export const createTransferTransaction = (input: {
 		recipientAddress: input.recipientAddress,
 		amount: input.amount ?? BigInt('10000000000'),
 		data: '',
-		accountInitializationFee: BigInt(5000000),
 	});
 
 	const publicKey = ed.getPublicKeyFromPrivateKey(input.privateKey);
@@ -68,7 +68,7 @@ export const createTransferTransaction = (input: {
 	return tx;
 };
 
-export const createDelegateRegisterTransaction = (input: {
+export const createValidatorRegisterTransaction = (input: {
 	nonce: bigint;
 	chainID: Buffer;
 	privateKey: Buffer;
@@ -79,16 +79,17 @@ export const createDelegateRegisterTransaction = (input: {
 	fee?: bigint;
 }): Transaction => {
 	const publicKey = ed.getPublicKeyFromPrivateKey(input.privateKey);
-	const encodedAsset = codec.encode(delegateRegistrationCommandParamsSchema, {
+	const encodedAsset = codec.encode(validatorRegistrationCommandParamsSchema, {
 		name: input.username,
 		generatorKey: input.generatorKey,
 		blsKey: input.blsKey,
 		proofOfPossession: input.blsProofOfPossession,
+		validatorRegistrationFee: VALIDATOR_REGISTRATION_FEE,
 	});
 
 	const tx = new Transaction({
-		module: 'dpos',
-		command: 'registerDelegate',
+		module: 'pos',
+		command: 'registerValidator',
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('2500000000'),
@@ -101,21 +102,21 @@ export const createDelegateRegisterTransaction = (input: {
 	return tx;
 };
 
-export const createDelegateVoteTransaction = (input: {
+export const createValidatorStakeTransaction = (input: {
 	nonce: bigint;
 	chainID: Buffer;
 	privateKey: Buffer;
 	fee?: bigint;
-	votes: { delegateAddress: Buffer; amount: bigint }[];
+	stakes: { validatorAddress: Buffer; amount: bigint }[];
 }): Transaction => {
-	const encodedAsset = codec.encode(voteCommandParamsSchema, {
-		votes: input.votes,
+	const encodedAsset = codec.encode(stakeCommandParamsSchema, {
+		stakes: input.stakes,
 	});
 	const publicKey = ed.getPublicKeyFromPrivateKey(input.privateKey);
 
 	const tx = new Transaction({
-		module: 'dpos',
-		command: 'voteDelegate',
+		module: 'pos',
+		command: 'stake',
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('100000000'),
@@ -212,7 +213,6 @@ export const createMultisignatureTransferTransaction = (input: {
 		recipientAddress: input.recipientAddress,
 		amount: BigInt('10000000000'),
 		data: '',
-		accountInitializationFee: BigInt(5000000),
 	};
 	const encodedAsset = codec.encode(command.schema, params);
 	const transaction = input.privateKeys.reduce<Record<string, unknown>>(
@@ -258,8 +258,8 @@ export const createReportMisbehaviorTransaction = (input: {
 	const publicKey = ed.getPublicKeyFromPrivateKey(input.privateKey);
 
 	const tx = new Transaction({
-		module: 'dpos',
-		command: 'reportDelegateMisbehavior',
+		module: 'pos',
+		command: 'reportMisbehavior',
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('50000000'),

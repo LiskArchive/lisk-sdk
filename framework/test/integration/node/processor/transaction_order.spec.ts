@@ -16,12 +16,13 @@ import { address } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../utils';
 import {
 	createTransferTransaction,
-	createDelegateRegisterTransaction,
+	createValidatorRegisterTransaction,
 	createMultiSignRegisterTransaction,
 	createMultisignatureTransferTransaction,
-	createDelegateVoteTransaction,
+	createValidatorStakeTransaction,
 } from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
+import { defaultConfig } from '../../../../src/modules/token/constants';
 
 describe('Transaction order', () => {
 	let processEnv: testing.BlockProcessingEnv;
@@ -56,6 +57,7 @@ describe('Transaction order', () => {
 					recipientAddress: accountWithoutBalance.address,
 					amount: BigInt('10000000000'),
 					chainID,
+					fee: BigInt(defaultConfig.userAccountInitializationFee) + BigInt('50000000'),
 					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				const returningTx = createTransferTransaction({
@@ -76,7 +78,7 @@ describe('Transaction order', () => {
 			});
 		});
 
-		describe('when account register as delegate and make self vote', () => {
+		describe('when account register as validator and make self stake', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
@@ -92,29 +94,29 @@ describe('Transaction order', () => {
 					chainID,
 					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
-				const registerDelegateTx = createDelegateRegisterTransaction({
+				const registerValidatorTx = createValidatorRegisterTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('1100000000'),
-					username: 'new_delegate',
+					username: 'new_validator',
 					chainID,
 					blsKey: newAccount.blsPublicKey,
 					blsProofOfPossession: newAccount.blsPoP,
 					generatorKey: newAccount.publicKey,
 					privateKey: newAccount.privateKey,
 				});
-				const selfVoteTx = createDelegateVoteTransaction({
+				const selfVoteTx = createValidatorStakeTransaction({
 					nonce: BigInt('1'),
 					fee: BigInt('100000000'),
-					votes: [
+					stakes: [
 						{
-							delegateAddress: newAccount.address,
+							validatorAddress: newAccount.address,
 							amount: BigInt('1000000000'),
 						},
 					],
 					chainID,
 					privateKey: newAccount.privateKey,
 				});
-				newBlock = await processEnv.createBlock([fundingTx, registerDelegateTx, selfVoteTx]);
+				newBlock = await processEnv.createBlock([fundingTx, registerValidatorTx, selfVoteTx]);
 				await processEnv.process(newBlock);
 			});
 
@@ -184,7 +186,7 @@ describe('Transaction order', () => {
 				const multiSignatureMembers = [nodeUtils.createAccount(), nodeUtils.createAccount()];
 				const fundingTx = createTransferTransaction({
 					nonce: BigInt(authData.nonce),
-					fee: BigInt('200000'),
+					fee: BigInt('200000') + BigInt(defaultConfig.userAccountInitializationFee),
 					recipientAddress: newAccount.address,
 					amount: BigInt('100000000000'),
 					chainID,
@@ -232,7 +234,7 @@ describe('Transaction order', () => {
 				const accountWithoutBalance = nodeUtils.createAccount();
 				const fundingTx = createTransferTransaction({
 					nonce: BigInt(authData.nonce),
-					fee: BigInt('200000'),
+					fee: BigInt('200000') + BigInt(defaultConfig.userAccountInitializationFee),
 					recipientAddress: accountWithoutBalance.address,
 					amount: BigInt('14000000000'),
 					chainID,

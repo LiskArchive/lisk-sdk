@@ -13,7 +13,8 @@
  */
 import { NotFoundError } from '@liskhq/lisk-db';
 import { BaseStore, ImmutableStoreGetter, StoreGetter } from '../../base_store';
-import { CHAIN_ID_LENGTH, CHAIN_ID_LSK, LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from '../constants';
+import { getMainchainID } from '../../interoperability/utils';
+import { CHAIN_ID_LENGTH, LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from '../constants';
 import { splitTokenID } from '../utils';
 
 export interface SupportedTokensStoreData {
@@ -193,6 +194,7 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 		if (chainID.equals(this._ownChainID)) {
 			return true;
 		}
-		return chainID[0] === this._ownChainID[0] && chainID.slice(1).equals(CHAIN_ID_LSK.slice(1));
+
+		return chainID[0] === this._ownChainID[0] && getMainchainID(chainID).equals(chainID);
 	}
 }

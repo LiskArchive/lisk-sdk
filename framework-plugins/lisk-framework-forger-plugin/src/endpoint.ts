@@ -21,11 +21,11 @@ import {
 import { getForgerInfo } from './db';
 import { Forger } from './types';
 
-interface Voter {
+interface Staker {
 	readonly address: string;
 	readonly username: string;
-	readonly totalVotesReceived: string;
-	readonly voters: {
+	readonly totalStakeReceived: string;
+	readonly stakers: {
 		readonly address: string;
 		readonly amount: string;
 	}[];
@@ -36,14 +36,14 @@ interface ForgerInfo extends Forger {
 	readonly totalReceivedFees: string;
 	readonly totalReceivedRewards: string;
 	readonly totalProducedBlocks: number;
-	readonly totalVotesReceived: string;
+	readonly totalStakeReceived: string;
 	readonly consecutiveMissedBlocks: number;
 }
 
-interface Delegate {
+interface Validator {
 	name: string;
-	totalVotesReceived: string;
-	selfVotes: string;
+	totalStakeReceived: string;
+	selfStake: string;
 	lastGeneratedHeight: number;
 	isBanned: boolean;
 	pomHeights: ReadonlyArray<number>;
@@ -59,20 +59,20 @@ export class Endpoint extends BasePluginEndpoint {
 		this._client = apiClient;
 	}
 
-	public async getVoters(_context: PluginEndpointContext): Promise<Voter[]> {
+	public async getStakers(_context: PluginEndpointContext): Promise<Staker[]> {
 		const forgersList = await this._client.invoke<Forger[]>('app_getForgingStatus');
 		const forgerAccounts = [];
-		for (const delegate of forgersList) {
-			const res = await this._client.invoke<Delegate>('dpos_getDelegate', {
-				address: delegate.address,
+		for (const validator of forgersList) {
+			const res = await this._client.invoke<Validator>('pos_getValidator', {
+				address: validator.address,
 			});
 			forgerAccounts.push({
 				...res,
-				address: delegate.address,
+				address: validator.address,
 			});
 		}
 
-		const result: Voter[] = [];
+		const result: Staker[] = [];
 		for (const account of forgerAccounts) {
 			const forgerInfo = await getForgerInfo(
 				this._db,
@@ -82,10 +82,10 @@ export class Endpoint extends BasePluginEndpoint {
 			result.push({
 				address: account.address,
 				username: account.name,
-				totalVotesReceived: account.totalVotesReceived,
-				voters: forgerInfo.votesReceived.map(vote => ({
-					address: cryptography.address.getLisk32AddressFromAddress(vote.address),
-					amount: vote.amount.toString(),
+				totalStakeReceived: account.totalStakeReceived,
+				stakers: forgerInfo.stakeReceived.map(stake => ({
+					address: cryptography.address.getLisk32AddressFromAddress(stake.address),
+					amount: stake.amount.toString(),
 				})),
 			});
 		}
@@ -96,13 +96,13 @@ export class Endpoint extends BasePluginEndpoint {
 	public async getForgingInfo(_context: PluginEndpointContext): Promise<ForgerInfo[]> {
 		const forgersList = await this._client.invoke<ReadonlyArray<Forger>>('app_getForgingStatus');
 		const forgerAccounts = [];
-		for (const delegate of forgersList) {
-			const res = await this._client.invoke<Delegate>('dpos_getDelegate', {
-				address: delegate.address,
+		for (const validator of forgersList) {
+			const res = await this._client.invoke<Validator>('pos_getValidator', {
+				address: validator.address,
 			});
 			forgerAccounts.push({
 				...res,
-				address: delegate.address,
+				address: validator.address,
 			});
 		}
 		const data: ForgerInfo[] = [];
@@ -118,7 +118,7 @@ export class Endpoint extends BasePluginEndpoint {
 					totalReceivedFees: forgerInfo.totalReceivedFees.toString(),
 					totalReceivedRewards: forgerInfo.totalReceivedRewards.toString(),
 					totalProducedBlocks: forgerInfo.totalProducedBlocks,
-					totalVotesReceived: forgerAccount.totalVotesReceived,
+					totalStakeReceived: forgerAccount.totalStakeReceived,
 					consecutiveMissedBlocks: forgerAccount.consecutiveMissedBlocks,
 				});
 			}

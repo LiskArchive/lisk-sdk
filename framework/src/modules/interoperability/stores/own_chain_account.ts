@@ -12,24 +12,28 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseStore } from '../../base_store';
+import { CHAIN_ID_LENGTH } from '../../token/constants';
 
 export interface OwnChainAccount {
 	name: string;
-	id: Buffer;
+	chainID: Buffer;
 	nonce: bigint;
 }
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#own-chain-data
 export const ownChainAccountSchema = {
 	$id: '/modules/interoperability/ownChainAccount',
 	type: 'object',
-	required: ['name', 'id', 'nonce'],
+	required: ['name', 'chainID', 'nonce'],
 	properties: {
 		name: {
 			dataType: 'string',
 			fieldNumber: 1,
 		},
-		id: {
+		chainID: {
 			dataType: 'bytes',
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 			fieldNumber: 2,
 		},
 		nonce: {

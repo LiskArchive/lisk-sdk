@@ -15,7 +15,7 @@
 import { BaseEvent, EventQueuer } from '../../base_event';
 
 export class InvalidRegistrationSignatureEvent extends BaseEvent<undefined> {
-	public log(ctx: EventQueuer, chainID: Buffer): void {
+	public error(ctx: EventQueuer, chainID: Buffer): void {
 		this.add(ctx, undefined, [chainID], true);
 	}
 }

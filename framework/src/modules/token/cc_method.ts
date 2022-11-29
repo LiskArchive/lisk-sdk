@@ -13,14 +13,9 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import * as crypto from '@liskhq/lisk-cryptography';
-import { BaseInteroperableMethod } from '../interoperability/base_interoperable_method';
-import {
-	BeforeApplyCCMsgMethodContext,
-	BeforeRecoverCCMsgMethodContext,
-	BeforeSendCCMsgMethodContext,
-	RecoverCCMsgMethodContext,
-} from '../interoperability/types';
+import { utils } from '@liskhq/lisk-cryptography';
+import { BaseCCMethod } from '../interoperability/base_cc_method';
+import { CrossChainMessageContext, RecoverContext } from '../interoperability/types';
 import {
 	ADDRESS_LENGTH,
 	CHAIN_ID_LENGTH,
@@ -44,8 +39,9 @@ import { EMPTY_BYTES } from '../interoperability/constants';
 import { BeforeCCMForwardingEvent } from './events/before_ccm_forwarding';
 import { MODULE_NAME_TOKEN } from '../interoperability/cc_methods';
 import { splitTokenID } from './utils';
+import { ccmSchema } from '../interoperability/schemas';
 
-export class TokenInteroperableMethod extends BaseInteroperableMethod {
+export class TokenInteroperableMethod extends BaseCCMethod {
 	private _ownChainID!: Buffer;
 
 	private _interopMethod!: InteroperabilityMethod;
@@ -58,14 +54,17 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 		this._interopMethod = interoperabilityMethod;
 	}
 
-	public async beforeCrossChainCommandExecution(ctx: BeforeApplyCCMsgMethodContext): Promise<void> {
-		const { trsSender, ccm } = ctx;
+	public async beforeCrossChainCommandExecution(ctx: CrossChainMessageContext): Promise<void> {
+		const {
+			transaction: { senderAddress: relayerAddress },
+			ccm,
+		} = ctx;
 		const methodContext = ctx.getMethodContext();
-		const relayerAddress = crypto.address.getAddressFromPublicKey(trsSender);
 		const tokenID = await this._interopMethod.getMessageFeeTokenID(
 			methodContext,
 			ccm.sendingChainID,
 		);
+		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
 		const [chainID] = splitTokenID(tokenID);
 		const userStore = this.stores.get(UserStore);
 
@@ -78,10 +77,8 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 				this.events.get(BeforeCCCExecutionEvent).error(
 					methodContext,
 					{
-						sendingChainID: ccm.sendingChainID,
-						receivingChainID: ccm.receivingChainID,
+						ccmID,
 						messageFeeTokenID: tokenID,
-						messageFee: ccm.fee,
 						relayerAddress,
 					},
 					TokenEventResult.FAIL_INSUFFICIENT_BALANCE,
@@ -97,23 +94,20 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 		await userStore.addAvailableBalance(methodContext, relayerAddress, tokenID, ccm.fee);
 
 		this.events.get(BeforeCCCExecutionEvent).log(methodContext, {
-			sendingChainID: ccm.sendingChainID,
-			receivingChainID: ccm.receivingChainID,
+			ccmID,
 			messageFeeTokenID: tokenID,
-			messageFee: ccm.fee,
 			relayerAddress,
 		});
 	}
 
-	public async beforeCrossChainMessageForwarding(
-		ctx: BeforeRecoverCCMsgMethodContext,
-	): Promise<void> {
+	public async beforeCrossChainMessageForwarding(ctx: CrossChainMessageContext): Promise<void> {
 		const { ccm } = ctx;
 		const methodContext = ctx.getMethodContext();
 		const tokenID = await this._interopMethod.getMessageFeeTokenID(
 			methodContext,
 			ccm.sendingChainID,
 		);
+		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
 		const [chainID] = splitTokenID(tokenID);
 
 		const escrowStore = this.stores.get(EscrowStore);
@@ -122,11 +116,11 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 		if (escrowAccount.amount < ccm.fee) {
 			this.events.get(BeforeCCMForwardingEvent).error(
 				methodContext,
+				ccm.sendingChainID,
+				ccm.receivingChainID,
 				{
-					sendingChainID: ccm.sendingChainID,
-					receivingChainID: ccm.receivingChainID,
+					ccmID,
 					messageFeeTokenID: tokenID,
-					messageFee: ccm.fee,
 				},
 				TokenEventResult.FAIL_INSUFFICIENT_BALANCE,
 			);
@@ -152,11 +146,11 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 			if (updatedEscrowAccount.amount < decodedParams.amount) {
 				this.events.get(BeforeCCMForwardingEvent).error(
 					methodContext,
+					ccm.sendingChainID,
+					ccm.receivingChainID,
 					{
-						sendingChainID: ccm.sendingChainID,
-						receivingChainID: ccm.receivingChainID,
+						ccmID,
 						messageFeeTokenID: tokenID,
-						messageFee: ccm.fee,
 					},
 					TokenEventResult.INSUFFICIENT_ESCROW_BALANCE,
 				);
@@ -174,16 +168,16 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 				decodedParams.amount,
 			);
 
-			this.events.get(BeforeCCMForwardingEvent).log(methodContext, {
-				sendingChainID: ccm.sendingChainID,
-				receivingChainID: ccm.receivingChainID,
-				messageFeeTokenID: tokenID,
-				messageFee: ccm.fee,
-			});
+			this.events
+				.get(BeforeCCMForwardingEvent)
+				.log(methodContext, ccm.sendingChainID, ccm.receivingChainID, {
+					ccmID,
+					messageFeeTokenID: tokenID,
+				});
 		}
 	}
 
-	public async verifyCrossChainMessage(ctx: BeforeSendCCMsgMethodContext): Promise<void> {
+	public async verifyCrossChainMessage(ctx: CrossChainMessageContext): Promise<void> {
 		const { ccm } = ctx;
 		const methodContext = ctx.getMethodContext();
 		const tokenID = await this._interopMethod.getMessageFeeTokenID(
@@ -204,14 +198,14 @@ export class TokenInteroperableMethod extends BaseInteroperableMethod {
 		}
 	}
 
-	public async recover(ctx: RecoverCCMsgMethodContext): Promise<void> {
+	public async recover(ctx: RecoverContext): Promise<void> {
 		const methodContext = ctx.getMethodContext();
 		const userStore = this.stores.get(UserStore);
 		const address = ctx.storeKey.slice(0, ADDRESS_LENGTH);
 		let account: UserStoreData;
 
 		if (
-			!ctx.storePrefix.equals(userStore.subStorePrefix) ||
+			!ctx.substorePrefix.equals(userStore.subStorePrefix) ||
 			ctx.storeKey.length !== ADDRESS_LENGTH + TOKEN_ID_LENGTH
 		) {
 			this.events

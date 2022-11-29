@@ -107,14 +107,14 @@ export const restoreBlocksUponStartup = async (
 
 export const computeBlockHeightsList = (
 	finalizedHeight: number,
-	activeDelegates: number,
+	activeValidators: number,
 	listSizeLimit: number,
 	currentRound: number,
 ): number[] => {
-	const startingHeight = Math.max((currentRound - 1) * activeDelegates, 0);
+	const startingHeight = Math.max((currentRound - 1) * activeValidators, 0);
 	const heightList = new Array(listSizeLimit)
 		.fill(0)
-		.map((_, i) => startingHeight - i * activeDelegates)
+		.map((_, i) => startingHeight - i * activeValidators)
 		.filter(height => height >= 0);
 	const heightListAfterFinalized = heightList.filter(height => height > finalizedHeight);
 	return heightList.length !== heightListAfterFinalized.length

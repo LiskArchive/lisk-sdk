@@ -12,30 +12,36 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseStore } from '../../base_store';
+import { HASH_LENGTH } from '../constants';
 
 export interface TerminatedStateAccount {
 	stateRoot: Buffer;
-	mainchainStateRoot?: Buffer;
+	mainchainStateRoot: Buffer;
 	initialized?: boolean;
 }
 
 export interface TerminatedStateAccountJSON {
 	stateRoot: string;
-	mainchainStateRoot?: string;
+	mainchainStateRoot: string;
 	initialized?: boolean;
 }
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#terminated-state-substore
 export const terminatedStateSchema = {
 	$id: '/modules/interoperability/terminatedState',
 	type: 'object',
-	required: ['stateRoot'],
+	required: ['stateRoot', 'mainchainStateRoot', 'initialized'],
 	properties: {
 		stateRoot: {
 			dataType: 'bytes',
+			minLength: HASH_LENGTH,
+			maxLength: HASH_LENGTH,
 			fieldNumber: 1,
 		},
 		mainchainStateRoot: {
 			dataType: 'bytes',
+			minLength: HASH_LENGTH,
+			maxLength: HASH_LENGTH,
 			fieldNumber: 2,
 		},
 		initialized: {

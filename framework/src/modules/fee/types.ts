@@ -13,13 +13,17 @@
  */
 
 import { MethodContext, ImmutableMethodContext } from '../../state_machine/types';
+import { JSONObject } from '../../types';
 
 export type FeeTokenID = Buffer;
 
 export interface ModuleConfig {
-	feeTokenID: string;
+	feeTokenID: Buffer;
 	minFeePerByte: number;
 }
+
+export type ModuleConfigJSON = JSONObject<ModuleConfig>;
+
 export interface TokenMethod {
 	transfer: (
 		methodContext: MethodContext,
@@ -28,7 +32,6 @@ export interface TokenMethod {
 		id: Buffer,
 		amount: bigint,
 	) => Promise<void>;
-	isNativeToken: (id: FeeTokenID) => boolean;
 	burn: (
 		methodContext: MethodContext,
 		senderAddress: Buffer,
@@ -40,4 +43,30 @@ export interface TokenMethod {
 		address: Buffer,
 		tokenID: Buffer,
 	): Promise<bigint>;
+	lock(
+		methodContext: MethodContext,
+		address: Buffer,
+		module: string,
+		tokenID: Buffer,
+		amount: bigint,
+	): Promise<void>;
+	unlock(
+		methodContext: MethodContext,
+		address: Buffer,
+		module: string,
+		tokenID: Buffer,
+		amount: bigint,
+	): Promise<void>;
+}
+
+export interface GetFeeTokenIDResponse {
+	tokenID: string;
+}
+
+export interface GetMinFeePerByteResponse {
+	minFeePerByte: number;
+}
+
+export interface InteroperabilityMethod {
+	getMessageFeeTokenID(methodContext: ImmutableMethodContext, chainID: Buffer): Promise<Buffer>;
 }

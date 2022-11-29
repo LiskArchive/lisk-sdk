@@ -13,133 +13,69 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { certificateSchema } from '../../../../engine/consensus/certificate_generation/schema';
 import { Certificate } from '../../../../engine/consensus/certificate_generation/types';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
+	NotFoundError,
 	VerificationResult,
 	VerifyStatus,
 } from '../../../../state_machine';
-import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
-import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
+import { BaseCrossChainUpdateCommand } from '../../base_cross_chain_update_command';
 import {
-	CHAIN_ACTIVE,
-	CHAIN_REGISTERED,
-	CHAIN_TERMINATED,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-	MAINCHAIN_ID_BUFFER,
+	CCMStatusCode,
+	CONTEXT_STORE_KEY_CCM_PROCESSING,
+	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+	EMPTY_FEE_ADDRESS,
+	LIVENESS_LIMIT,
+	MODULE_NAME_INTEROPERABILITY,
 } from '../../constants';
-import { ccmSchema, crossChainUpdateTransactionParams } from '../../schemas';
-import { ChainAccountStore } from '../../stores/chain_account';
-import { ChainValidatorsStore } from '../../stores/chain_validators';
-import { ChannelDataStore } from '../../stores/channel_data';
-import { CCMsg, CrossChainUpdateTransactionParams, TerminateChainContext } from '../../types';
 import {
-	checkActiveValidatorsUpdate,
-	checkCertificateTimestamp,
-	checkCertificateValidity,
-	checkInboxUpdateValidity,
-	checkLivenessRequirementFirstCCU,
-	checkValidatorsHashWithCertificate,
-	checkValidCertificateLiveness,
-	commonCCUExecutelogic,
-	getCCMSize,
-	isInboxUpdateEmpty,
-	validateFormat,
-	verifyCertificateSignature,
-} from '../../utils';
-import { MainchainInteroperabilityStore } from '../store';
+	CCMProcessedCode,
+	CcmProcessedEvent,
+	CCMProcessedResult,
+} from '../../events/ccm_processed';
+import {
+	ccmSchema,
+	crossChainUpdateTransactionParams,
+	sidechainTerminatedCCMParamsSchema,
+} from '../../schemas';
+import { ChainAccount, ChainAccountStore, ChainStatus } from '../../stores/chain_account';
+import { CrossChainMessageContext, CrossChainUpdateTransactionParams } from '../../types';
+import { getMainchainID, isInboxUpdateEmpty } from '../../utils';
+import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
-export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
-	public schema = crossChainUpdateTransactionParams;
-
+export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
-		const { params: txParams } = context;
-
-		try {
-			validator.validate(crossChainUpdateTransactionParams, context.params);
-		} catch (err) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: err as Error,
-			};
-		}
-
-		const partnerChainStore = this.stores.get(ChainAccountStore);
-		const partnerChainAccount = await partnerChainStore.get(context, txParams.sendingChainID);
-
-		// Section: Liveness of Partner Chain
-		if (partnerChainAccount.status === CHAIN_TERMINATED) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error(
-					`Sending partner chain ${txParams.sendingChainID.readInt32BE(0)} is terminated.`,
-				),
-			};
-		}
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-		if (partnerChainAccount.status === CHAIN_ACTIVE) {
-			const isChainLive = await interoperabilityStore.isLive(txParams.sendingChainID, Date.now());
-			if (!isChainLive) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error(
-						`Sending partner chain ${txParams.sendingChainID.readInt32BE(0)} is not live.`,
-					),
-				};
-			}
-		}
-
-		// Section: Liveness Requirement for the First CCU
-		const livenessRequirementFirstCCU = checkLivenessRequirementFirstCCU(
-			partnerChainAccount,
-			txParams,
+		const { params } = context;
+		validator.validate<CrossChainUpdateTransactionParams>(
+			crossChainUpdateTransactionParams,
+			context.params,
 		);
-		if (livenessRequirementFirstCCU.error) {
-			return livenessRequirementFirstCCU;
-		}
-		// Section: Certificate and Validators Update Validity
-		const certificateValidity = checkCertificateValidity(partnerChainAccount, txParams.certificate);
 
-		if (certificateValidity.error) {
-			return certificateValidity;
-		}
-
-		const partnerValidatorStore = this.stores.get(ChainValidatorsStore);
-		const partnerValidators = await partnerValidatorStore.get(context, txParams.sendingChainID);
-		// If params contains a non-empty activeValidatorsUpdate and non-empty certificate
-		const validatorsHashValidity = checkValidatorsHashWithCertificate(txParams, partnerValidators);
-		if (validatorsHashValidity.error) {
-			return validatorsHashValidity;
-		}
-
-		// If params contains a non-empty activeValidatorsUpdate
-		const activeValidatorsValidity = checkActiveValidatorsUpdate(txParams);
-		if (activeValidatorsValidity.error) {
-			return activeValidatorsValidity;
-		}
-
-		// When certificate is non-empty
-		const verifyCertificateSignatureResult = verifyCertificateSignature(
-			txParams,
-			partnerValidators,
-			txParams.sendingChainID,
+		const isLive = await this.internalMethod.isLive(
+			context,
+			params.sendingChainID,
+			context.header.timestamp,
 		);
-		if (verifyCertificateSignatureResult.error) {
-			return verifyCertificateSignatureResult;
+		if (!isLive) {
+			throw new Error('The sending chain is not live.');
 		}
 
-		const partnerChannelStore = this.stores.get(ChannelDataStore);
-		const partnerChannelData = await partnerChannelStore.get(context, txParams.sendingChainID);
-		// Section: InboxUpdate Validity
-		const inboxUpdateValidity = checkInboxUpdateValidity(this.stores, txParams, partnerChannelData);
-		if (inboxUpdateValidity.error) {
-			return inboxUpdateValidity;
+		const sendingChainAccount = await this.stores
+			.get(ChainAccountStore)
+			.get(context, params.sendingChainID);
+
+		if (sendingChainAccount.status === ChainStatus.REGISTERED) {
+			this._verifyLivenessConditionForRegisteredChains(context);
 		}
+
+		await this.verifyCommon(context);
 
 		return {
 			status: VerifyStatus.OK,
@@ -149,130 +85,151 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 	public async execute(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 	): Promise<void> {
-		const { header, params: txParams } = context;
-		const chainIDBuffer = txParams.sendingChainID;
-		const partnerChainStore = this.stores.get(ChainAccountStore);
-		const partnerChainAccount = await partnerChainStore.get(context, chainIDBuffer);
+		const [decodedCCMs, ok] = await this.executeCommon(context, true);
+		if (!ok) {
+			return;
+		}
+		const { params } = context;
 
-		const decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
-
-		// if the CCU also contains a non-empty inboxUpdate, check the validity of certificate with liveness check
-		checkValidCertificateLiveness(txParams, header, decodedCertificate);
-
-		const partnerValidatorStore = this.stores.get(ChainValidatorsStore);
-		const partnerValidators = await partnerValidatorStore.get(context, chainIDBuffer);
-
-		// Certificate timestamp Validity
-		checkCertificateTimestamp(txParams, decodedCertificate, header);
-
-		// CCM execution
-		const terminateChainContext: TerminateChainContext = {
-			eventQueue: context.eventQueue,
-			getMethodContext: context.getMethodContext,
-			getStore: context.getStore,
-			logger: context.logger,
-			chainID: context.chainID,
-		};
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-		let decodedCCMs;
 		try {
-			decodedCCMs = txParams.inboxUpdate.crossChainMessages.map(ccm => ({
-				serialized: ccm,
-				deserialized: codec.decode<CCMsg>(ccmSchema, ccm),
-			}));
-		} catch (err) {
-			await interoperabilityStore.terminateChainInternal(
-				txParams.sendingChainID,
-				terminateChainContext,
-			);
+			context.contextStore.set(CONTEXT_STORE_KEY_CCM_PROCESSING, true);
+			for (let i = 0; i < decodedCCMs.length; i += 1) {
+				const ccm = decodedCCMs[i];
+				const ccmBytes = params.inboxUpdate.crossChainMessages[i];
+				const ccmContext = {
+					...context,
+					ccm,
+				};
 
-			throw err;
+				if (ccm.receivingChainID.equals(getMainchainID(context.chainID))) {
+					await this.apply(ccmContext);
+				} else {
+					await this._forward(ccmContext);
+				}
+				await this.internalMethod.appendToInboxTree(context, params.sendingChainID, ccmBytes);
+			}
+		} finally {
+			context.contextStore.delete(CONTEXT_STORE_KEY_CCM_PROCESSING);
 		}
-		if (
-			partnerChainAccount.status === CHAIN_REGISTERED &&
-			!isInboxUpdateEmpty(txParams.inboxUpdate)
-		) {
-			// If the first CCM in inboxUpdate is a registration CCM
-			if (
-				decodedCCMs[0].deserialized.crossChainCommand === CROSS_CHAIN_COMMAND_NAME_REGISTRATION &&
-				decodedCCMs[0].deserialized.receivingChainID.equals(MAINCHAIN_ID_BUFFER)
-			) {
-				partnerChainAccount.status = CHAIN_ACTIVE;
-			} else {
-				await interoperabilityStore.terminateChainInternal(
-					txParams.sendingChainID,
-					terminateChainContext,
-				);
+	}
 
-				return; // Exit CCU processing
-			}
+	private async _forward(context: CrossChainMessageContext): Promise<void> {
+		const { ccm, logger } = context;
+		const encodedCCM = codec.encode(ccmSchema, ccm);
+		const ccmID = utils.hash(encodedCCM);
+
+		const valid = await this.verifyCCM(context, ccmID);
+		if (!valid) {
+			return;
 		}
-
-		for (const ccm of decodedCCMs) {
-			if (!txParams.sendingChainID.equals(ccm.deserialized.sendingChainID)) {
-				await interoperabilityStore.terminateChainInternal(
-					txParams.sendingChainID,
-					terminateChainContext,
+		let receivingChainAccount: ChainAccount;
+		try {
+			receivingChainAccount = await this.stores
+				.get(ChainAccountStore)
+				.get(context, ccm.receivingChainID);
+			if (receivingChainAccount.status === ChainStatus.REGISTERED) {
+				await this.bounce(
+					context,
+					ccmID,
+					encodedCCM.length,
+					CCMStatusCode.CHANNEL_UNAVAILABLE,
+					CCMProcessedCode.CHANNEL_UNAVAILABLE,
 				);
-
-				continue;
+				return;
 			}
-			try {
-				validateFormat(ccm.deserialized);
-			} catch (error) {
-				await interoperabilityStore.terminateChainInternal(
-					txParams.sendingChainID,
-					terminateChainContext,
+		} catch (error) {
+			if (error instanceof NotFoundError) {
+				await this.bounce(
+					context,
+					ccmID,
+					encodedCCM.length,
+					CCMStatusCode.CHANNEL_UNAVAILABLE,
+					CCMProcessedCode.CHANNEL_UNAVAILABLE,
 				);
-
-				continue;
+				return;
 			}
-			await interoperabilityStore.appendToInboxTree(txParams.sendingChainID, ccm.serialized);
-			if (!ccm.deserialized.receivingChainID.equals(MAINCHAIN_ID_BUFFER)) {
-				await interoperabilityStore.forward({
-					ccm: ccm.deserialized,
-					ccu: txParams,
-					eventQueue: context.eventQueue,
-					feeAddress: context.transaction.senderAddress,
-					getMethodContext: context.getMethodContext,
-					getStore: context.getStore,
-					logger: context.logger,
-					chainID: context.chainID,
-				});
-			} else {
-				await interoperabilityStore.apply(
-					{
-						ccm: ccm.deserialized,
-						ccu: txParams,
-						ccmSize: getCCMSize(ccm.deserialized),
-						eventQueue: context.eventQueue,
-						feeAddress: context.transaction.senderAddress,
-						getMethodContext: context.getMethodContext,
-						getStore: context.getStore,
-						logger: context.logger,
-						chainID: context.chainID,
-						trsSender: context.transaction.senderAddress,
-					},
-					this.ccCommands,
-				);
-			}
+			throw error;
 		}
-		// Common ccu execution logic
-		await commonCCUExecutelogic({
-			stores: this.stores,
-			certificate: decodedCertificate,
-			chainIDBuffer,
+		const isLive = await this.internalMethod.isLive(
 			context,
-			partnerChainAccount,
-			partnerChainStore,
-			partnerValidatorStore,
-			partnerValidators,
+			ccm.receivingChainID,
+			context.header.timestamp,
+		);
+		if (!isLive) {
+			await this.internalMethod.terminateChainInternal(context, ccm.receivingChainID);
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.CHANNEL_UNAVAILABLE,
+				result: CCMProcessedResult.DISCARDED,
+			});
+			await this.internalMethod.sendInternal(
+				context,
+				EMPTY_FEE_ADDRESS,
+				MODULE_NAME_INTEROPERABILITY,
+				CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+				ccm.sendingChainID,
+				BigInt(0),
+				CCMStatusCode.OK,
+				codec.encode(sidechainTerminatedCCMParamsSchema, {
+					chainID: ccm.receivingChainID,
+					stateRoot: receivingChainAccount.lastCertificate.stateRoot,
+				}),
+			);
+			return;
+		}
+		const stateSnapshotID = context.stateStore.createSnapshot();
+		const eventSnapshotID = context.eventQueue.createSnapshot();
+
+		try {
+			for (const [module, method] of this.interoperableCCMethods.entries()) {
+				if (method.beforeCrossChainMessageForwarding) {
+					logger.debug(
+						{
+							moduleName: module,
+							commandName: ccm.crossChainCommand,
+							ccmID: ccmID.toString('hex'),
+						},
+						'Execute beforeCrossChainCommandExecute',
+					);
+					await method.beforeCrossChainMessageForwarding(context);
+				}
+			}
+		} catch (error) {
+			context.eventQueue.restoreSnapshot(eventSnapshotID);
+			context.stateStore.restoreSnapshot(stateSnapshotID);
+			logger.info(
+				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+				'Fail to execute beforeCrossChainCommandExecute.',
+			);
+			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccmID,
+				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
+				result: CCMProcessedResult.DISCARDED,
+			});
+			return;
+		}
+		await this.internalMethod.addToOutbox(context, ccm.receivingChainID, ccm);
+		this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+			ccmID,
+			code: CCMProcessedCode.SUCCESS,
+			result: CCMProcessedResult.FORWARDED,
 		});
 	}
 
-	protected getInteroperabilityStore(
-		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
+	private _verifyLivenessConditionForRegisteredChains(
+		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
+	): void {
+		if (context.params.certificate.length === 0 || isInboxUpdateEmpty(context.params.inboxUpdate)) {
+			return;
+		}
+		const certificate = codec.decode<Certificate>(certificateSchema, context.params.certificate);
+		if (context.header.timestamp - certificate.timestamp > LIVENESS_LIMIT / 2) {
+			throw new Error(
+				`The first CCU with a non-empty inbox update cannot contain a certificate older than ${
+					LIVENESS_LIMIT / 2
+				} seconds.`,
+			);
+		}
 	}
 }

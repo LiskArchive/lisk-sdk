@@ -82,6 +82,7 @@ interface ExecutionContext {
 	id: Buffer;
 	header: BlockHeader;
 	stateStore: PrefixedStateReadWriter;
+	contextStore: Map<string, unknown>;
 	moduleStore: StateStore;
 }
 
@@ -224,6 +225,7 @@ export class ABIHandler implements ABI {
 			id,
 			header: new BlockHeader(req.header),
 			stateStore: new PrefixedStateReadWriter(this._stateDB.newReadWriter()),
+			contextStore: new Map<string, unknown>(),
 			moduleStore: new StateStore(this._moduleDB),
 		};
 		return {
@@ -277,6 +279,7 @@ export class ABIHandler implements ABI {
 			header: this._executionContext.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
+			contextStore: this._executionContext.contextStore,
 			chainID: this.chainID,
 			generatorStore: this._executionContext.moduleStore,
 			finalizedHeight: req.finalizedHeight,
@@ -300,6 +303,7 @@ export class ABIHandler implements ABI {
 			header: this._executionContext.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
+			contextStore: this._executionContext.contextStore,
 			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
 			eventQueue: new EventQueue(this._executionContext.header.height),
@@ -325,6 +329,7 @@ export class ABIHandler implements ABI {
 			header: this._executionContext.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
+			contextStore: this._executionContext.contextStore,
 			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
 			eventQueue: new EventQueue(this._executionContext.header.height),
@@ -352,6 +357,7 @@ export class ABIHandler implements ABI {
 			header: this._executionContext.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
+			contextStore: this._executionContext.contextStore,
 			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
 			eventQueue: new EventQueue(this._executionContext.header.height),
@@ -371,12 +377,15 @@ export class ABIHandler implements ABI {
 		req: VerifyTransactionRequest,
 	): Promise<VerifyTransactionResponse> {
 		let stateStore: PrefixedStateReadWriter;
+		let contextStore: Map<string, unknown>;
 		let header: BlockHeader;
 		if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
 			stateStore = new PrefixedStateReadWriter(this._stateDB.newReadWriter());
+			contextStore = new Map<string, unknown>();
 			header = new BlockHeader(req.header);
 		} else {
 			stateStore = this._executionContext.stateStore;
+			contextStore = this._executionContext.contextStore;
 			header = this._executionContext.header;
 		}
 		const context = new TransactionContext({
@@ -384,6 +393,7 @@ export class ABIHandler implements ABI {
 			logger: this._logger,
 			transaction: new Transaction(req.transaction),
 			stateStore,
+			contextStore,
 			chainID: this.chainID,
 			header,
 		});
@@ -391,6 +401,7 @@ export class ABIHandler implements ABI {
 
 		return {
 			result: result.status,
+			errorMessage: result.error?.message ?? '',
 		};
 	}
 
@@ -398,6 +409,7 @@ export class ABIHandler implements ABI {
 		req: ExecuteTransactionRequest,
 	): Promise<ExecuteTransactionResponse> {
 		let stateStore: PrefixedStateReadWriter;
+		let contextStore: Map<string, unknown>;
 		let header: BlockHeader;
 		if (!req.dryRun) {
 			if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
@@ -408,9 +420,11 @@ export class ABIHandler implements ABI {
 				);
 			}
 			stateStore = this._executionContext.stateStore;
+			contextStore = this._executionContext.contextStore;
 			header = this._executionContext.header;
 		} else {
 			stateStore = new PrefixedStateReadWriter(this._stateDB.newReadWriter());
+			contextStore = new Map<string, unknown>();
 			header = new BlockHeader(req.header);
 		}
 		const context = new TransactionContext({
@@ -418,6 +432,7 @@ export class ABIHandler implements ABI {
 			logger: this._logger,
 			transaction: new Transaction(req.transaction),
 			stateStore,
+			contextStore,
 			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
 			header,

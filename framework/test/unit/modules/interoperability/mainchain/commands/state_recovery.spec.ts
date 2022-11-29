@@ -22,11 +22,8 @@ import {
 	MainchainInteroperabilityModule,
 } from '../../../../../../src';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
-import { BaseInteroperableMethod } from '../../../../../../src/modules/interoperability/base_interoperable_method';
-import {
-	COMMAND_NAME_STATE_RECOVERY,
-	MODULE_NAME_INTEROPERABILITY,
-} from '../../../../../../src/modules/interoperability/constants';
+import { BaseCCMethod } from '../../../../../../src/modules/interoperability/base_cc_method';
+import { COMMAND_NAME_STATE_RECOVERY } from '../../../../../../src/modules/interoperability/constants';
 import { StateRecoveryCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/state_recovery';
 import { stateRecoveryParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import {
@@ -42,12 +39,12 @@ import { createStoreGetter } from '../../../../../../src/testing/utils';
 
 describe('Mainchain StateRecoveryCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
-
+	const module = 'module';
 	let chainIDAsBuffer: Buffer;
 	let stateRecoveryCommand: StateRecoveryCommand;
 	let commandVerifyContext: CommandVerifyContext<StateRecoveryParams>;
 	let commandExecuteContext: CommandExecuteContext<StateRecoveryParams>;
-	let interoperableCCMethods: Map<string, BaseInteroperableMethod>;
+	let interoperableCCMethods: Map<string, BaseCCMethod>;
 	let interoperableMethod: any;
 	let ccCommands: Map<string, BaseCCCommand[]>;
 	let transaction: Transaction;
@@ -61,23 +58,24 @@ describe('Mainchain StateRecoveryCommand', () => {
 	beforeEach(async () => {
 		interoperableCCMethods = new Map();
 		interoperableMethod = {
-			module: MODULE_NAME_INTEROPERABILITY,
+			module,
 			recover: jest.fn(),
 		};
-		interoperableCCMethods.set(MODULE_NAME_INTEROPERABILITY, interoperableMethod);
+		interoperableCCMethods.set('module', interoperableMethod);
 		ccCommands = new Map();
 		stateRecoveryCommand = new StateRecoveryCommand(
 			interopMod.stores,
 			interopMod.events,
 			interoperableCCMethods,
 			ccCommands,
+			interopMod['internalMethod'],
 		);
 		transactionParams = {
 			chainID: utils.intToBuffer(3, 4),
-			module: MODULE_NAME_INTEROPERABILITY,
+			module,
 			storeEntries: [
 				{
-					storePrefix: Buffer.from([1]),
+					substorePrefix: Buffer.from([1]),
 					storeKey: utils.getRandomBytes(32),
 					storeValue: utils.getRandomBytes(32),
 					bitmap: utils.getRandomBytes(32),
@@ -88,7 +86,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 		chainIDAsBuffer = transactionParams.chainID;
 		encodedTransactionParams = codec.encode(stateRecoveryParamsSchema, transactionParams);
 		transaction = new Transaction({
-			module: MODULE_NAME_INTEROPERABILITY,
+			module,
 			command: COMMAND_NAME_STATE_RECOVERY,
 			fee: BigInt(100000000),
 			nonce: BigInt(0),
@@ -131,15 +129,15 @@ describe('Mainchain StateRecoveryCommand', () => {
 			expect(result.status).toBe(VerifyStatus.OK);
 		});
 
-		it('should return error if terminated state account does not exist', async () => {
+		it('should return error if terminated state does not exist', async () => {
 			await terminatedStateSubstore.del(createStoreGetter(stateStore), chainIDAsBuffer);
 			const result = await stateRecoveryCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('The terminated account does not exist');
+			expect(result.error?.message).toInclude('The terminated state does not exist.');
 		});
 
-		it('should return error if terminated state account is not initialized', async () => {
+		it('should return error if terminated state is not initialized', async () => {
 			await terminatedStateSubstore.set(createStoreGetter(stateStore), chainIDAsBuffer, {
 				...terminatedStateAccount,
 				initialized: false,
@@ -147,7 +145,46 @@ describe('Mainchain StateRecoveryCommand', () => {
 			const result = await stateRecoveryCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('The terminated account is not initialized');
+			expect(result.error?.message).toInclude('The terminated state is not initialized.');
+		});
+
+		it('should return error if module is interoperability module', async () => {
+			commandVerifyContext.params.module = 'interoperability';
+			const result = await stateRecoveryCommand.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude('Interoperability module cannot be recovered.');
+		});
+
+		it('should return error if module not registered on chain', async () => {
+			interoperableCCMethods.delete(module);
+			const result = await stateRecoveryCommand.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude('Module is not registered on the chain.');
+		});
+
+		it('should return error if module not recoverable', async () => {
+			const moduleMethod = interoperableCCMethods.get(module) as BaseCCMethod;
+			moduleMethod.recover = undefined;
+			const result = await stateRecoveryCommand.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude('Module is not recoverable.');
+		});
+
+		it('should return error if recovered store value is empty', async () => {
+			commandVerifyContext.params.storeEntries[0] = {
+				substorePrefix: Buffer.alloc(0),
+				storeKey: Buffer.alloc(0),
+				storeValue: Buffer.alloc(0),
+				bitmap: Buffer.alloc(0),
+			};
+
+			const result = await stateRecoveryCommand.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude('Recovered store value cannot be empty.');
 		});
 
 		it('should return error if proof of inclusion is not verified', async () => {
@@ -156,7 +193,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 			const result = await stateRecoveryCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Failed to verify proof of inclusion');
+			expect(result.error?.message).toInclude('State recovery proof of inclusion is not valid.');
 		});
 	});
 
@@ -166,10 +203,10 @@ describe('Mainchain StateRecoveryCommand', () => {
 		});
 
 		it('should throw error if recovery not available for module', async () => {
-			interoperableCCMethods.delete(MODULE_NAME_INTEROPERABILITY);
+			interoperableCCMethods.delete('module');
 
 			await expect(stateRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
-				'Recovery not available for module',
+				`Recovery failed for module: ${module}`,
 			);
 		});
 
@@ -177,7 +214,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 			interoperableMethod.recover = jest.fn().mockRejectedValue(new Error('error'));
 
 			await expect(stateRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
-				'Recovery failed',
+				`Recovery failed for module: ${module}`,
 			);
 		});
 

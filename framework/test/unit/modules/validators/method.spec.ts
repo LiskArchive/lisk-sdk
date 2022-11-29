@@ -21,7 +21,7 @@ import {
 	INVALID_BLS_KEY,
 	KeyRegResult,
 } from '../../../../src/modules/validators/constants';
-import * as generatorList from '../../../fixtures/config/devnet/delegates_for_first_round.json';
+import * as generatorList from '../../../fixtures/config/devnet/validators_for_first_round.json';
 import {
 	MethodContext,
 	createNewMethodContext,
@@ -81,7 +81,11 @@ describe('ValidatorsModuleMethod', () => {
 		blsKeysSubStore = validatorsModule.stores.get(BLSKeyStore);
 		genesisDataSubStore = validatorsModule.stores.get(GenesisStore);
 		validatorsParamsSubStore = validatorsModule.stores.get(ValidatorsParamsStore);
-		methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue(0) });
+		methodContext = new MethodContext({
+			stateStore,
+			eventQueue: new EventQueue(0),
+			contextStore: new Map<string, unknown>(),
+		});
 	});
 
 	describe('registerValidatorKeys', () => {

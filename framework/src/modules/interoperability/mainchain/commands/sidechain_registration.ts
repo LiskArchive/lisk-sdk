@@ -15,47 +15,44 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { MainchainInteroperabilityStore } from '../store';
+import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
-	CHAIN_REGISTERED,
 	EMPTY_HASH,
 	MAX_UINT64,
-	CCM_STATUS_OK,
-	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 	REGISTRATION_FEE,
-	TOKEN_ID_LSK,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	EMPTY_BYTES,
-	CCM_SENT_STATUS_SUCCESS,
+	CCMStatusCode,
 } from '../../constants';
 import { ccmSchema, registrationCCMParamsSchema, sidechainRegParams } from '../../schemas';
-import { SidechainRegistrationParams } from '../../types';
-import { computeValidatorsHash, isValidName } from '../../utils';
+import { FeeMethod, SidechainRegistrationParams } from '../../types';
+import { computeValidatorsHash, getMainchainTokenID, isValidName } from '../../utils';
 import {
 	CommandVerifyContext,
 	VerificationResult,
 	VerifyStatus,
 	CommandExecuteContext,
 } from '../../../../state_machine';
-import { ChainAccountStore } from '../../stores/chain_account';
+import { ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 import { ChannelDataStore } from '../../stores/channel_data';
 import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { OutboxRootStore } from '../../stores/outbox_root';
 import { RegisteredNamesStore } from '../../stores/registered_names';
-import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { TokenMethod } from '../../../token';
 import { ChainAccountUpdatedEvent } from '../../events/chain_account_updated';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
-import { CcmProcessedEvent } from '../../events/ccm_processed';
+import { CcmSendSuccessEvent } from '../../events/ccm_send_success';
 
-export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
+export class SidechainRegistrationCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = sidechainRegParams;
 	private _tokenMethod!: TokenMethod;
+	private _feeMethod!: FeeMethod;
 
-	public addDependencies(tokenMethod: TokenMethod) {
+	public addDependencies(tokenMethod: TokenMethod, feeMethod: FeeMethod) {
 		this._tokenMethod = tokenMethod;
+		this._feeMethod = feeMethod;
 	}
 
 	public async verify(
@@ -63,11 +60,11 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 	): Promise<VerificationResult> {
 		const {
 			transaction: { senderAddress },
-			params: { certificateThreshold, initValidators, chainID, name, sidechainRegistrationFee },
+			params: { certificateThreshold, initValidators, chainID, name },
 		} = context;
 
 		try {
-			validator.validate(sidechainRegParams, context.params);
+			validator.validate<SidechainRegistrationParams>(sidechainRegParams, context.params);
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -108,7 +105,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		}
 
 		// Check that the first byte of the chainID matches.
-		if (chainID[0] !== MAINCHAIN_ID_BUFFER[0]) {
+		if (chainID[0] !== context.chainID[0]) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Chain ID does not match the mainchain network.'),
@@ -164,19 +161,11 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		// sidechainRegistrationFee must be valid
-		if (sidechainRegistrationFee !== REGISTRATION_FEE) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error(`Sidechain registration fee must be equal to ${REGISTRATION_FEE}`),
-			};
-		}
-
 		// Sender must have enough balance to pay for extra command fee.
 		const availableBalance = await this._tokenMethod.getAvailableBalance(
 			context.getMethodContext(),
 			senderAddress,
-			TOKEN_ID_LSK,
+			getMainchainTokenID(context.chainID),
 		);
 		if (availableBalance < REGISTRATION_FEE) {
 			return {
@@ -210,22 +199,19 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 				stateRoot: EMPTY_HASH,
 				validatorsHash: computeValidatorsHash(initValidators, certificateThreshold),
 			},
-			status: CHAIN_REGISTERED,
+			status: ChainStatus.REGISTERED,
 		};
 
 		await chainSubstore.set(context, chainID, sidechainAccount);
 
 		// Add an entry in the channel substore
-		const messageFeeTokenID = {
-			chainID: utils.intToBuffer(1, 4),
-			localID: utils.intToBuffer(0, 4),
-		};
+		const mainchainTokenID = getMainchainTokenID(context.chainID);
 		const channelSubstore = this.stores.get(ChannelDataStore);
 		await channelSubstore.set(context, chainID, {
 			inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 			outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 			partnerChainOutboxRoot: EMPTY_HASH,
-			messageFeeTokenID,
+			messageFeeTokenID: mainchainTokenID,
 		});
 
 		// Add an entry in the validators substore
@@ -241,19 +227,20 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 
 		// Add an entry in the registered names substore
 		const registeredNamesSubstore = this.stores.get(RegisteredNamesStore);
-		await registeredNamesSubstore.set(context, Buffer.from(name, 'utf-8'), { id: chainID });
+		await registeredNamesSubstore.set(context, Buffer.from(name, 'utf-8'), { chainID });
 
 		// Burn the registration fee
-		await this._tokenMethod.burn(methodContext, senderAddress, TOKEN_ID_LSK, REGISTRATION_FEE);
+		await this._tokenMethod.burn(methodContext, senderAddress, mainchainTokenID, REGISTRATION_FEE);
 
 		// Emit chain account updated event.
 		this.events.get(ChainAccountUpdatedEvent).log(methodContext, chainID, sidechainAccount);
 
+		this._feeMethod.payFee(context.getMethodContext(), REGISTRATION_FEE);
+
 		// Send registration CCM to the sidechain.
 		const encodedParams = codec.encode(registrationCCMParamsSchema, {
-			chainID,
 			name,
-			messageFeeTokenID,
+			messageFeeTokenID: mainchainTokenID,
 		});
 
 		const ownChainAccountSubstore = this.stores.get(OwnChainAccountStore);
@@ -263,30 +250,23 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			nonce: ownChainAccount.nonce,
 			module: MODULE_NAME_INTEROPERABILITY,
 			crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
-			sendingChainID: ownChainAccount.id,
+			sendingChainID: ownChainAccount.chainID,
 			receivingChainID: chainID,
 			fee: BigInt(0),
-			status: CCM_STATUS_OK,
+			status: CCMStatusCode.OK,
 			params: encodedParams,
 		};
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-		await interoperabilityStore.addToOutbox(chainID, ccm);
 
+		await this.internalMethod.addToOutbox(context, chainID, ccm);
 		// Update own chain account nonce
 		ownChainAccount.nonce += BigInt(1);
 		await ownChainAccountSubstore.set(context, EMPTY_BYTES, ownChainAccount);
 
-		// Emit CCM processed event.
 		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
-		this.events.get(CcmProcessedEvent).log(methodContext, ownChainAccount.id, chainID, {
-			ccmID,
-			status: CCM_SENT_STATUS_SUCCESS,
-		});
-	}
-
-	protected getInteroperabilityStore(
-		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
+		this.events
+			.get(CcmSendSuccessEvent)
+			.log(methodContext, ownChainAccount.chainID, chainID, ccmID, {
+				ccmID,
+			});
 	}
 }

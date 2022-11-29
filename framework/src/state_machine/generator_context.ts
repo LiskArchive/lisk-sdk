@@ -22,6 +22,7 @@ import { InsertAssetContext } from './types';
 interface GenerationContextArgs {
 	logger: Logger;
 	stateStore: PrefixedStateReadWriter;
+	contextStore: Map<string, unknown>;
 	header: BlockHeader;
 	generatorStore: StateStore;
 	chainID: Buffer;
@@ -32,6 +33,7 @@ export class GenerationContext {
 	private readonly _logger: Logger;
 	private readonly _chainID: Buffer;
 	private readonly _stateStore: PrefixedStateReadWriter;
+	private readonly _contextStore: Map<string, unknown>;
 	private readonly _header: BlockHeader;
 	private readonly _assets: BlockAssets;
 	private readonly _generatorStore: StateStore;
@@ -42,6 +44,7 @@ export class GenerationContext {
 		this._chainID = args.chainID;
 		this._header = args.header;
 		this._stateStore = args.stateStore;
+		this._contextStore = args.contextStore;
 		this._generatorStore = args.generatorStore;
 		this._assets = new BlockAssets();
 		this._finalizedHeight = args.finalizedHeight;
@@ -58,9 +61,12 @@ export class GenerationContext {
 				createMethodContext({
 					stateStore: this._stateStore,
 					eventQueue: new EventQueue(this._header.height),
+					contextStore: this._contextStore,
 				}),
+			contextStore: this._contextStore,
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
+			stateStore: this._stateStore,
 			getOffchainStore: (moduleID: Buffer, subStorePrefix: Buffer) =>
 				this._generatorStore.getStore(moduleID, subStorePrefix.readUInt16BE(0)),
 			header: this._header,

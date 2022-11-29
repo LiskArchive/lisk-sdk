@@ -22,17 +22,16 @@ import {
 	CommandVerifyContext,
 	VerificationResult,
 	VerifyStatus,
-	MethodContext,
 } from '../../../state_machine';
 import { TokenMethod } from '../method';
 import { crossChainTransferParamsSchema } from '../schemas';
-import { InteroperabilityMethod, TokenID } from '../types';
+import { InteroperabilityMethod } from '../types';
 import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../constants';
 import { splitTokenID } from '../utils';
 import { EscrowStore } from '../stores/escrow';
-import { InitializeEscrowAccountEvent } from '../events/initialize_escrow_account';
 import { UserStore } from '../stores/user';
 import { TransferCrossChainEvent } from '../events/transfer_cross_chain';
+import { InternalMethod } from '../internal_method';
 
 interface Params {
 	tokenID: Buffer;
@@ -41,36 +40,28 @@ interface Params {
 	recipientAddress: Buffer;
 	data: string;
 	messageFee: bigint;
-	escrowInitializationFee: bigint;
 }
 
-export class CCTransferCommand extends BaseCommand {
+export class CrossChainTransferCommand extends BaseCommand {
 	public schema = crossChainTransferParamsSchema;
 	private _moduleName!: string;
 	private _method!: TokenMethod;
 	private _interoperabilityMethod!: InteroperabilityMethod;
-	private _escrowFeeTokenID!: Buffer;
-	private _escrowInitializationFee!: bigint;
 	private _ownChainID!: Buffer;
+	private _internalMethod!: InternalMethod;
 
 	public init(args: {
 		moduleName: string;
 		method: TokenMethod;
 		interoperabilityMethod: InteroperabilityMethod;
-		escrowFeeTokenID: Buffer;
-		escrowInitializationFee: bigint;
+		internalMethod: InternalMethod;
 		ownChainID: Buffer;
 	}) {
 		this._moduleName = args.moduleName;
 		this._method = args.method;
 		this._interoperabilityMethod = args.interoperabilityMethod;
-		this._escrowFeeTokenID = args.escrowFeeTokenID;
-		this._escrowInitializationFee = args.escrowInitializationFee;
 		this._ownChainID = args.ownChainID;
-	}
-
-	public get name() {
-		return 'crossChaintransfer';
+		this._internalMethod = args.internalMethod;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -94,18 +85,7 @@ export class CCTransferCommand extends BaseCommand {
 				);
 			}
 
-			const escrowStore = this.stores.get(EscrowStore);
-			const escrowAccountKey = escrowStore.getKey(params.receivingChainID, params.tokenID);
-			const escrowAccoutExists = await escrowStore.has(context, escrowAccountKey);
 			const balanceCheck = new dataStructures.BufferMap<bigint>();
-
-			if (tokenChainID.equals(this._ownChainID) && !escrowAccoutExists) {
-				if (params.escrowInitializationFee !== this._escrowInitializationFee) {
-					throw new Error('Invalid escrow initialization fee.');
-				}
-				balanceCheck.set(this._escrowFeeTokenID, this._escrowInitializationFee);
-			}
-
 			balanceCheck.set(
 				params.tokenID,
 				(balanceCheck.get(params.tokenID) ?? BigInt(0)) + params.amount,
@@ -162,11 +142,10 @@ export class CCTransferCommand extends BaseCommand {
 		const escrowAccoutExists = await escrowStore.has(context, escrowAccountKey);
 
 		if (tokenChainID.equals(this._ownChainID) && !escrowAccoutExists) {
-			await this._initializeEscrowStoreInternal(
+			await this._internalMethod.initializeEscrowAccount(
 				context.getMethodContext(),
 				params.receivingChainID,
 				params.tokenID,
-				senderAddress,
 			);
 		}
 
@@ -205,30 +184,5 @@ export class CCTransferCommand extends BaseCommand {
 			CCM_STATUS_OK,
 			codec.encode(this.schema, params),
 		);
-	}
-
-	private async _initializeEscrowStoreInternal(
-		methodContext: MethodContext,
-		chainID: Buffer,
-		tokenID: TokenID,
-		initPayingAddress: Buffer,
-	) {
-		await this._method.burn(
-			methodContext,
-			initPayingAddress,
-			this._escrowFeeTokenID,
-			this._escrowInitializationFee,
-		);
-
-		const escrowStore = this.stores.get(EscrowStore);
-		await escrowStore.createDefaultAccount(methodContext, chainID, tokenID);
-
-		const initializeEscrowAccountEvent = this.events.get(InitializeEscrowAccountEvent);
-		initializeEscrowAccountEvent.log(methodContext, {
-			chainID,
-			tokenID,
-			initPayingAddress,
-			initializationFee: this._escrowInitializationFee,
-		});
 	}
 }

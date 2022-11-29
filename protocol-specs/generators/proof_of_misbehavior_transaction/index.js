@@ -161,7 +161,7 @@ const accounts = {
 		passphrase:
 			'actress route auction pudding shiver crater forum liquid blouse imitate seven front',
 		balance: BigInt('10000000000000000'),
-		delegateName: 'genesis_100',
+		validatorName: 'genesis_100',
 	},
 };
 

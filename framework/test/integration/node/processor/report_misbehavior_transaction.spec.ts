@@ -21,6 +21,7 @@ import {
 } from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
 import { Keys } from '../../../../src/testing/fixtures';
+import { defaultConfig } from '../../../../src/modules/token/constants';
 
 describe('Transaction order', () => {
 	let processEnv: testing.BlockProcessingEnv;
@@ -50,7 +51,7 @@ describe('Transaction order', () => {
 			amount: BigInt('10000000000'),
 			chainID,
 			privateKey: Buffer.from(genesis.privateKey, 'hex'),
-			fee: BigInt(170000), // minFee not to give fee for generator
+			fee: BigInt(166000) + BigInt(defaultConfig.userAccountInitializationFee), // minFee not to give fee for generator
 		});
 		newBlock = await processEnv.createBlock([transaction]);
 
@@ -61,7 +62,7 @@ describe('Transaction order', () => {
 		processEnv.cleanup({ databasePath });
 	});
 
-	describe('when report misbehavior transaction is submitted against the delegate', () => {
+	describe('when report misbehavior transaction is submitted against the validator', () => {
 		it('should accept the block with transaction', async () => {
 			// get last block
 			const { header } = processEnv.getLastBlock();
@@ -90,13 +91,13 @@ describe('Transaction order', () => {
 			const nextBlock = await processEnv.createBlock([tx]);
 
 			await processEnv.process(nextBlock);
-			const updatedDelegate = await processEnv.invoke<{ pomHeights: number[] }>(
-				'dpos_getDelegate',
+			const updatedValidator = await processEnv.invoke<{ pomHeights: number[] }>(
+				'pos_getValidator',
 				{
 					address: blockGenerator.address,
 				},
 			);
-			expect(updatedDelegate.pomHeights).toHaveLength(1);
+			expect(updatedValidator.pomHeights).toHaveLength(1);
 			const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
 				address: blockGenerator.address,
 				tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),

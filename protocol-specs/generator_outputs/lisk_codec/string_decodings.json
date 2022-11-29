@@ -12,7 +12,7 @@
 			"input": {
 				"value": "0a12436865636b6f7574204c69736b2053444b21",
 				"schema": {
-					"$id": "string-schema",
+					"$id": "/stringSchema",
 					"type": "object",
 					"properties": {
 						"data": {
@@ -33,7 +33,7 @@
 			"input": {
 				"value": "0a00",
 				"schema": {
-					"$id": "string-schema",
+					"$id": "/stringSchema",
 					"type": "object",
 					"properties": {
 						"data": {
@@ -54,7 +54,7 @@
 			"input": {
 				"value": "0a2ee282ac2ec6922ee280b02ec5922ec2a32ec2a92ec2ae2ec2b52ec3862ec3bc2ec3bd2ec3b82ec3872ec2a52ec39f",
 				"schema": {
-					"$id": "string-schema",
+					"$id": "/stringSchema",
 					"type": "object",
 					"properties": {
 						"data": {

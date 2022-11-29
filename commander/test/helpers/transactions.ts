@@ -112,7 +112,7 @@ export const tokenTransferParamsSchema = {
 	$id: '/lisk/transferCommand',
 	title: 'Transfer transaction command',
 	type: 'object',
-	required: ['tokenID', 'amount', 'recipientAddress', 'data', 'accountInitializationFee'],
+	required: ['tokenID', 'amount', 'recipientAddress', 'data'],
 	properties: {
 		tokenID: {
 			dataType: 'bytes',
@@ -132,10 +132,6 @@ export const tokenTransferParamsSchema = {
 			fieldNumber: 4,
 			minLength: 0,
 			maxLength: 64,
-		},
-		accountInitializationFee: {
-			dataType: 'uint64',
-			fieldNumber: 5,
 		},
 	},
 };
@@ -175,21 +171,21 @@ export const keysRegisterParamsSchema = {
 	},
 	required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
 };
-export const dposVoteParamsSchema = {
-	$id: '/dpos/command/voteDelegateParams',
+export const posVoteParamsSchema = {
+	$id: '/pos/command/stakeParams',
 	type: 'object',
-	required: ['votes'],
+	required: ['stakes'],
 	properties: {
-		votes: {
+		stakes: {
 			type: 'array',
 			fieldNumber: 1,
 			minItems: 1,
 			maxItems: 20,
 			items: {
 				type: 'object',
-				required: ['delegateAddress', 'amount'],
+				required: ['validatorAddress', 'amount'],
 				properties: {
-					delegateAddress: {
+					validatorAddress: {
 						dataType: 'bytes',
 						fieldNumber: 1,
 						format: 'lisk32',
@@ -236,7 +232,6 @@ export const createTransferTransaction = ({
 				amount: BigInt(transactions.convertLSKToBeddows(amount)),
 				recipientAddress: cryptography.address.getAddressFromLisk32Address(recipientAddress),
 				data: '',
-				accountInitializationFee: BigInt(5000000),
 			},
 		},
 		chainID,

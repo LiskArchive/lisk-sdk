@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { genesisAuthStoreSchema } from '../../auth/schemas';
 import { ModuleMetadata } from '../../base_module';
 import { BaseInteroperabilityModule } from '../base_interoperability_module';
 import { MainchainInteroperabilityMethod } from './method';
@@ -23,9 +22,8 @@ import {
 	getChannelRequestSchema,
 	getTerminatedStateAccountRequestSchema,
 	getTerminatedOutboxAccountRequestSchema,
+	genesisInteroperabilitySchema,
 } from '../schemas';
-import { GenesisBlockExecuteContext } from '../../../state_machine';
-import { initGenesisStateUtil } from '../utils';
 import {
 	chainAccountSchema,
 	allChainAccountsSchema,
@@ -36,35 +34,111 @@ import { ownChainAccountSchema, OwnChainAccountStore } from '../stores/own_chain
 import { terminatedStateSchema } from '../stores/terminated_state';
 import { terminatedOutboxSchema } from '../stores/terminated_outbox';
 import { TokenMethod } from '../../token';
-import { SidechainRegistrationCommand } from './commands';
+import {
+	MainchainCCUpdateCommand,
+	MainchainMessageRecoveryCommand,
+	SidechainRegistrationCommand,
+	TerminateSidechainForLivenessCommand,
+} from './commands';
 import { CcmProcessedEvent } from '../events/ccm_processed';
 import { ChainAccountUpdatedEvent } from '../events/chain_account_updated';
 import { RegisteredNamesStore } from '../stores/registered_names';
 import { OutboxRootStore } from '../stores/outbox_root';
 import { ChainValidatorsStore } from '../stores/chain_validators';
+import { CcmSendSuccessEvent } from '../events/ccm_send_success';
+import { TerminatedStateCreatedEvent } from '../events/terminated_state_created';
+import { TerminatedOutboxCreatedEvent } from '../events/terminated_outbox_created';
+import { MainchainInteroperabilityInternalMethod } from './internal_method';
+import { MessageRecoveryInitializationCommand } from './commands/message_recovery_initialization';
+import { FeeMethod } from '../types';
+import { MainchainCCChannelTerminatedCommand, MainchainCCRegistrationCommand } from './cc_commands';
+import { StateRecoveryCommand } from './commands/state_recovery';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
-	public method = new MainchainInteroperabilityMethod(
+	protected internalMethod = new MainchainInteroperabilityInternalMethod(
 		this.stores,
 		this.events,
 		this.interoperableCCMethods,
 	);
-	public endpoint = new MainchainInteroperabilityEndpoint(
+	// eslint-disable-next-line @typescript-eslint/member-ordering
+	public method = new MainchainInteroperabilityMethod(
 		this.stores,
-		this.offchainStores,
+		this.events,
 		this.interoperableCCMethods,
+		this.internalMethod,
 	);
+	// eslint-disable-next-line @typescript-eslint/member-ordering
+	public endpoint = new MainchainInteroperabilityEndpoint(this.stores, this.offchainStores);
 
 	private readonly _sidechainRegistrationCommand = new SidechainRegistrationCommand(
 		this.stores,
 		this.events,
 		this.interoperableCCMethods,
 		this.interoperableCCCommands,
+		this.internalMethod,
+	);
+
+	private readonly _messageRecoveryInitializationCommand = new MessageRecoveryInitializationCommand(
+		this.stores,
+		this.events,
+		this.interoperableCCMethods,
+		this.interoperableCCCommands,
+		this.internalMethod,
+	);
+	private readonly _crossChainUpdateCommand = new MainchainCCUpdateCommand(
+		this.stores,
+		this.events,
+		this.interoperableCCMethods,
+		this.interoperableCCCommands,
+		this.internalMethod,
+	);
+	private readonly _messageRecoveryCommand = new MainchainMessageRecoveryCommand(
+		this.stores,
+		this.events,
+		this.interoperableCCMethods,
+		this.interoperableCCCommands,
+		this.internalMethod,
+	);
+	private readonly _stateRecoveryCommand = new StateRecoveryCommand(
+		this.stores,
+		this.events,
+		this.interoperableCCMethods,
+		this.interoperableCCCommands,
+		this.internalMethod,
+	);
+	private readonly _terminateSidechainForLivenessCommand = new TerminateSidechainForLivenessCommand(
+		this.stores,
+		this.events,
+		this.interoperableCCMethods,
+		this.interoperableCCCommands,
+		this.internalMethod,
 	);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public commands = [this._sidechainRegistrationCommand];
+	public commands = [
+		this._crossChainUpdateCommand,
+		this._messageRecoveryInitializationCommand,
+		this._messageRecoveryCommand,
+		this._sidechainRegistrationCommand,
+		this._stateRecoveryCommand,
+		this._terminateSidechainForLivenessCommand,
+	];
+	// eslint-disable-next-line @typescript-eslint/member-ordering
+	public crossChainCommand = [
+		new MainchainCCRegistrationCommand(
+			this.stores,
+			this.events,
+			this.interoperableCCMethods,
+			this.internalMethod,
+		),
+		new MainchainCCChannelTerminatedCommand(
+			this.stores,
+			this.events,
+			this.interoperableCCMethods,
+			this.internalMethod,
+		),
+	];
 
 	public constructor() {
 		super();
@@ -76,10 +150,14 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.stores.register(ChainValidatorsStore, new ChainValidatorsStore(this.name));
 		this.events.register(ChainAccountUpdatedEvent, new ChainAccountUpdatedEvent(this.name));
 		this.events.register(CcmProcessedEvent, new CcmProcessedEvent(this.name));
+		this.events.register(CcmSendSuccessEvent, new CcmSendSuccessEvent(this.name));
+		this.events.register(TerminatedStateCreatedEvent, new TerminatedStateCreatedEvent(this.name));
+		this.events.register(TerminatedOutboxCreatedEvent, new TerminatedOutboxCreatedEvent(this.name));
 	}
 
-	public addDependencies(tokenMethod: TokenMethod) {
-		this._sidechainRegistrationCommand.addDependencies(tokenMethod);
+	public addDependencies(tokenMethod: TokenMethod, feeMethod: FeeMethod) {
+		this._sidechainRegistrationCommand.addDependencies(tokenMethod, feeMethod);
+		this._crossChainUpdateCommand.init(this.method, tokenMethod);
 	}
 
 	public metadata(): ModuleMetadata {
@@ -119,17 +197,16 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				name: command.name,
 				params: command.schema,
 			})),
-			events: [],
+			events: this.events.values().map(v => ({
+				name: v.name,
+				data: v.schema,
+			})),
 			assets: [
 				{
 					version: 0,
-					data: genesisAuthStoreSchema,
+					data: genesisInteroperabilitySchema,
 				},
 			],
 		};
-	}
-
-	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
-		await initGenesisStateUtil(context, this.stores);
 	}
 }

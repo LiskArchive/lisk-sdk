@@ -14,7 +14,7 @@
 
 ## Sapphire phase [<img src="https://lisk.com/sites/default/files/2021-05/ico-sapphire.png" style="width:24px;vertical-align:middle">](https://lisk.com/roadmap)
 
-We have completed [Emerald phase](https://lisk.com/roadmap)[<img src="https://lisk.com/sites/default/files/2021-05/ico-emerald.png" style="width:20px;vertical-align:middle">](https://lisk.com/roadmap) that encapsulates improvement in the key areas of network security and reliability, economics, consensus and longevity. Specifically a new address system, new fee system and and an upgraded consensus algorithm for an improved version of DPoS were successfully completed. During the Emerald phase all protocol improvements in the form of 36 Lisk Improvement Proposals (LIPs) were researched, published and implemented in Lisk SDK.
+We have completed [Emerald phase](https://lisk.com/roadmap)[<img src="https://lisk.com/sites/default/files/2021-05/ico-emerald.png" style="width:20px;vertical-align:middle">](https://lisk.com/roadmap) that encapsulates improvement in the key areas of network security and reliability, economics, consensus and longevity. Specifically a new address system, new fee system and and an upgraded consensus algorithm for an improved version of PoS were successfully completed. During the Emerald phase all protocol improvements in the form of 36 Lisk Improvement Proposals (LIPs) were researched, published and implemented in Lisk SDK.
 
 We are currently working on [Sapphire phase](https://lisk.com/roadmap)[<img src="https://lisk.com/sites/default/files/2021-05/ico-sapphire.png" style="width:20px;vertical-align:middle">](https://lisk.com/roadmap) that brings the [Lisk interoperability solution](https://lisk.com/blog/research/lisk-interoperability-solution-published). All related Lisk Improvement Proposals (LIPs) are published and implementation is currently being actively developed. It consists of 8 roadmap objectives,
 
@@ -110,9 +110,9 @@ const { app } = Application.defaultApplication(genesisBlockDevnet, {
       blockTime: 5,
       maxTransactionsSize: 100 * 1024,
       minRemainingBalance: "5000000",
-	  activeDelegates: 101,
-	  standbyDelegates: 2,
-	  delegateListRoundOffset: 2
+	  activeValidators: 101,
+	  standbyValidators: 2,
+	  validatorListRoundOffset: 2
     },
     ...
 });
