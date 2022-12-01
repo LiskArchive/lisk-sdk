@@ -99,6 +99,7 @@ export {
 	LIVENESS_LIMIT,
 	MESSAGE_TAG_CERTIFICATE,
 	ChainStatus,
+	ccmSchema,
 } from './modules/interoperability';
 export { RewardMethod, RewardModule } from './modules/reward';
 export { FeeMethod, FeeModule } from './modules/fee';

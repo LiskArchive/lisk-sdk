@@ -35,5 +35,7 @@ export {
 	ActiveValidator,
 	OutboxRootWitness,
 } from './types';
+// Common
 export { LIVENESS_LIMIT, MESSAGE_TAG_CERTIFICATE } from './constants';
 export { ChainStatus } from './stores/chain_account';
+export { ccmSchema } from './schemas';
