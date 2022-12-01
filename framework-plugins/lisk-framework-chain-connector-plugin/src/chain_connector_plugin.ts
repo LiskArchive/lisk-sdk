@@ -32,11 +32,12 @@ import {
 	ActiveValidator,
 	certificateSchema,
 	cryptography,
+	ccmSchema,
 } from 'lisk-sdk';
 import { CCM_BASED_CCU_FREQUENCY, EMPTY_BYTES, LIVENESS_BASED_CCU_FREQUENCY } from './constants';
 import { getChainConnectorInfo, getDBInstance, setChainConnectorInfo } from './db';
 import { Endpoint } from './endpoint';
-import { chainConnectorInfoSchema, configSchema, ccmSchema } from './schemas';
+import { chainConnectorInfoSchema, configSchema } from './schemas';
 import {
 	ChainConnectorInfo,
 	ChainConnectorPluginConfig,

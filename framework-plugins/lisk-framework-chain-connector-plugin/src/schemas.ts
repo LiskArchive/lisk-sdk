@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { chain, aggregateCommitSchema } from 'lisk-sdk';
+import { chain, aggregateCommitSchema, ccmSchema } from 'lisk-sdk';
 
 export const configSchema = {
 	$id: '#/plugins/chainConnector/config',
@@ -62,59 +62,6 @@ export const validatorsDataSchema = {
 		},
 		certificateThreshold: { dataType: 'uint64', fieldNumber: 2 },
 		validatorsHash: { dataType: 'bytes', fieldNumber: 3 },
-	},
-};
-
-export const ccmSchema = {
-	$id: '/modules/interoperability/ccm',
-	type: 'object',
-	required: [
-		'nonce',
-		'moduleID',
-		'crossChainCommandID',
-		'sendingChainID',
-		'receivingChainID',
-		'fee',
-		'status',
-		'params',
-	],
-	properties: {
-		nonce: {
-			dataType: 'uint64',
-			fieldNumber: 1,
-		},
-		moduleID: {
-			dataType: 'bytes',
-			fieldNumber: 2,
-		},
-		crossChainCommandID: {
-			dataType: 'bytes',
-			fieldNumber: 3,
-		},
-		sendingChainID: {
-			dataType: 'bytes',
-			fieldNumber: 4,
-		},
-		receivingChainID: {
-			dataType: 'bytes',
-			fieldNumber: 5,
-		},
-		fee: {
-			dataType: 'uint64',
-			fieldNumber: 6,
-		},
-		status: {
-			dataType: 'uint32',
-			fieldNumber: 7,
-		},
-		params: {
-			dataType: 'bytes',
-			fieldNumber: 8,
-		},
-		id: {
-			dataType: 'bytes',
-			fieldNumber: 9,
-		},
 	},
 };
 
