@@ -673,12 +673,12 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			);
 
 			for (const ccm of ccms) {
-				command['ccCommands'].set(ccm.module, ([
+				command['ccCommands'].set(ccm.module, [
 					{
 						name: ccm.crossChainCommand,
 						execute: jest.fn(),
 					},
-				] as unknown) as BaseCCCommand[]);
+				] as unknown as BaseCCCommand[]);
 			}
 
 			const ccmsWithSwappedChainIds = ccms.map(swapReceivingAndSendingChainIDs);
@@ -733,8 +733,10 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 
 		it('should log event when verifyCrossChainMessage fails', async () => {
-			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
-				.verifyCrossChainMessage as jest.Mock).mockRejectedValue('error');
+			(
+				(command['interoperableCCMethods'].get('token') as BaseCCMethod)
+					.verifyCrossChainMessage as jest.Mock
+			).mockRejectedValue('error');
 			await expect(command['_applyRecovery'](context)).resolves.toBeUndefined();
 
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
@@ -797,9 +799,13 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 
 		it('should log event when command verify fails', async () => {
-			(((command['ccCommands'].get(defaultCCM.module) as BaseCCCommand[]).find(
-				com => com.name === defaultCCM.crossChainCommand,
-			) as BaseCCCommand).verify as jest.Mock).mockRejectedValue('error');
+			(
+				(
+					(command['ccCommands'].get(defaultCCM.module) as BaseCCCommand[]).find(
+						com => com.name === defaultCCM.crossChainCommand,
+					) as BaseCCCommand
+				).verify as jest.Mock
+			).mockRejectedValue('error');
 
 			await expect(command['_applyRecovery'](context)).resolves.toBeUndefined();
 
@@ -817,8 +823,10 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 
 		it('should log event when command beforeCrossChainCommandExecute fails', async () => {
-			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
-				.beforeCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
+			(
+				(command['interoperableCCMethods'].get('token') as BaseCCMethod)
+					.beforeCrossChainCommandExecute as jest.Mock
+			).mockRejectedValue('error');
 
 			await expect(command['_applyRecovery'](context)).resolves.toBeUndefined();
 
@@ -836,8 +844,10 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 
 		it('should revert to the original state/event when command beforeCrossChainCommandExecute fails', async () => {
-			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
-				.beforeCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
+			(
+				(command['interoperableCCMethods'].get('token') as BaseCCMethod)
+					.beforeCrossChainCommandExecute as jest.Mock
+			).mockRejectedValue('error');
 			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
 			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);
 			jest.spyOn(context.eventQueue, 'restoreSnapshot');
@@ -850,9 +860,13 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 
 		it('should log event and restore the state/event before calling execute when execute fails', async () => {
-			(((command['ccCommands'].get(defaultCCM.module) as BaseCCCommand[]).find(
-				com => com.name === defaultCCM.crossChainCommand,
-			) as BaseCCCommand).execute as jest.Mock).mockRejectedValue('error');
+			(
+				(
+					(command['ccCommands'].get(defaultCCM.module) as BaseCCCommand[]).find(
+						com => com.name === defaultCCM.crossChainCommand,
+					) as BaseCCCommand
+				).execute as jest.Mock
+			).mockRejectedValue('error');
 			let eventQueueCount = 0;
 			let stateStoreCount = 0;
 			jest.spyOn(context.eventQueue, 'createSnapshot').mockImplementation(() => {
@@ -877,8 +891,10 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 
 		it('should log event when command afterCrossChainCommandExecute fails', async () => {
-			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
-				.afterCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
+			(
+				(command['interoperableCCMethods'].get('token') as BaseCCMethod)
+					.afterCrossChainCommandExecute as jest.Mock
+			).mockRejectedValue('error');
 
 			await expect(command['_applyRecovery'](context)).resolves.toBeUndefined();
 
@@ -896,8 +912,10 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 
 		it('should restore the original state/event when command afterCrossChainCommandExecute fails', async () => {
-			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
-				.afterCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
+			(
+				(command['interoperableCCMethods'].get('token') as BaseCCMethod)
+					.afterCrossChainCommandExecute as jest.Mock
+			).mockRejectedValue('error');
 			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
 			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);
 			jest.spyOn(context.eventQueue, 'restoreSnapshot');
@@ -973,8 +991,10 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 
 		it('should log event when verifyCrossChainMessage fails', async () => {
-			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
-				.verifyCrossChainMessage as jest.Mock).mockRejectedValue('error');
+			(
+				(command['interoperableCCMethods'].get('token') as BaseCCMethod)
+					.verifyCrossChainMessage as jest.Mock
+			).mockRejectedValue('error');
 			await expect(command['_forwardRecovery'](context)).resolves.toBeUndefined();
 
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
@@ -991,8 +1011,10 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 
 		it('should log event when command beforeCrossChainMessageForwarding fails', async () => {
-			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
-				.beforeCrossChainMessageForwarding as jest.Mock).mockRejectedValue('error');
+			(
+				(command['interoperableCCMethods'].get('token') as BaseCCMethod)
+					.beforeCrossChainMessageForwarding as jest.Mock
+			).mockRejectedValue('error');
 
 			await expect(command['_forwardRecovery'](context)).resolves.toBeUndefined();
 
@@ -1010,8 +1032,10 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 
 		it('should revert to the original state/event when command beforeCrossChainMessageForwarding fails', async () => {
-			((command['interoperableCCMethods'].get('token') as BaseCCMethod)
-				.beforeCrossChainMessageForwarding as jest.Mock).mockRejectedValue('error');
+			(
+				(command['interoperableCCMethods'].get('token') as BaseCCMethod)
+					.beforeCrossChainMessageForwarding as jest.Mock
+			).mockRejectedValue('error');
 			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
 			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);
 			jest.spyOn(context.eventQueue, 'restoreSnapshot');

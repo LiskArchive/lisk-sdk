@@ -86,7 +86,7 @@ export abstract class ImportCommand extends BaseIPCClientCommand {
 			this.error('APIClient is not initialized.');
 		}
 
-		const fileData = (fs.readJSONSync(flags['file-path']) as unknown) as KeysWithInfo;
+		const fileData = fs.readJSONSync(flags['file-path']) as unknown as KeysWithInfo;
 
 		for (const info of fileData.generatorInfo) {
 			await this._client.invoke('generator_setStatus', info);

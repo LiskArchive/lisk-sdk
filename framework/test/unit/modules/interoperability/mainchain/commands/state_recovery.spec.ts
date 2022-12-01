@@ -113,12 +113,12 @@ describe('Mainchain StateRecoveryCommand', () => {
 			transaction,
 			stateStore,
 		});
-		commandVerifyContext = transactionContext.createCommandVerifyContext<StateRecoveryParams>(
-			stateRecoveryParamsSchema,
-		);
-		commandExecuteContext = transactionContext.createCommandExecuteContext<StateRecoveryParams>(
-			stateRecoveryParamsSchema,
-		);
+		commandVerifyContext =
+			transactionContext.createCommandVerifyContext<StateRecoveryParams>(stateRecoveryParamsSchema);
+		commandExecuteContext =
+			transactionContext.createCommandExecuteContext<StateRecoveryParams>(
+				stateRecoveryParamsSchema,
+			);
 		jest.spyOn(sparseMerkleTree, 'verify').mockReturnValue(true);
 		jest.spyOn(sparseMerkleTree, 'calculateRoot').mockReturnValue(utils.getRandomBytes(32));
 	});

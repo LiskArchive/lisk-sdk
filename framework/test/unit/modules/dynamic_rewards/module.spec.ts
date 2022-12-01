@@ -103,7 +103,7 @@ describe('DynamicRewardModule', () => {
 				}),
 			).toResolve();
 
-			expect(rewardModule['_moduleConfig'].offset).toEqual(1000);
+			expect(rewardModule['_moduleConfig'].offset).toBe(1000);
 		});
 
 		it('should not initialize config with invalid value for tokenID', async () => {
@@ -116,7 +116,6 @@ describe('DynamicRewardModule', () => {
 					},
 				});
 			} catch (error: any) {
-				// eslint-disable-next-line jest/no-try-expect
 				expect(error.message).toInclude("Property '.tokenID' must NOT have more than 16 character");
 			}
 		});
@@ -142,7 +141,7 @@ describe('DynamicRewardModule', () => {
 				.get(EndOfRoundTimestampStore)
 				.get(blockExecuteContext, EMPTY_BYTES);
 
-			expect(timestamp).toEqual(1234);
+			expect(timestamp).toBe(1234);
 		});
 	});
 

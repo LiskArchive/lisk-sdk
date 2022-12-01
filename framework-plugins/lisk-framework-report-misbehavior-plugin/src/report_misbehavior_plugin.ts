@@ -136,7 +136,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		const pomParamsInfo = posMeta.commands.find(
 			m => m.id === Buffer.from([0, 0, 0, 3]).toString('hex'),
 		);
-		if (!pomParamsInfo || !pomParamsInfo.params) {
+		if (!pomParamsInfo?.params) {
 			throw new Error('PoM params schema is not registered in the application.');
 		}
 

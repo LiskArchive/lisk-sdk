@@ -1,10 +1,4 @@
 node_modules
-dapps
-logs/*.log
-npm-debug.log
-release
-ssl
-stacktrace*
-tmp
 index.d.ts
 dist-node
+.eslintrc.js

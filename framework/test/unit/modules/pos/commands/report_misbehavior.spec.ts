@@ -160,7 +160,7 @@ describe('ReportMisbehaviorCommand', () => {
 
 	describe('constructor', () => {
 		it('should have valid name', () => {
-			expect(pomCommand.name).toEqual('reportMisbehavior');
+			expect(pomCommand.name).toBe('reportMisbehavior');
 		});
 
 		it('should have valid schema', () => {
@@ -740,7 +740,7 @@ describe('ReportMisbehaviorCommand', () => {
 
 			const events = context.eventQueue.getEvents();
 			expect(events).toHaveLength(2);
-			expect(events[1].toObject().name).toEqual('validatorBanned');
+			expect(events[1].toObject().name).toBe('validatorBanned');
 		});
 
 		it('should emit a ValidatorPunishedEvent', async () => {
@@ -762,7 +762,7 @@ describe('ReportMisbehaviorCommand', () => {
 
 			const events = context.eventQueue.getEvents();
 			expect(events).toHaveLength(1);
-			expect(events[0].toObject().name).toEqual('validatorPunished');
+			expect(events[0].toObject().name).toBe('validatorPunished');
 		});
 
 		it('should not return balance if sender and validator account are same', async () => {

@@ -35,7 +35,7 @@ import { TerminatedOutboxStore } from './stores/terminated_outbox';
 import { getMainchainID } from './utils';
 
 export abstract class BaseInteroperabilityMethod<
-	T extends BaseInteroperabilityInternalMethod
+	T extends BaseInteroperabilityInternalMethod,
 > extends BaseMethod {
 	protected _tokenMethod!: TokenMethod & {
 		payMessageFee: (

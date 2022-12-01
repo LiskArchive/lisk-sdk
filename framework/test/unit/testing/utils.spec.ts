@@ -33,7 +33,7 @@ describe('utils', () => {
 		});
 
 		it('should timeout', async () => {
-			// eslint-disable-next-line @typescript-eslint/require-await
+			// eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-misused-promises
 			apiClient.subscribe = jest.fn(async () => setTimeout(() => undefined, 2));
 			await expect(waitUntilBlockHeight({ apiClient, height: 1, timeout: 1 })).rejects.toThrow(
 				"'waitUntilBlockHeight' timed out after 1 ms",

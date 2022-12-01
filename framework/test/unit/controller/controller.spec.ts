@@ -37,7 +37,7 @@ const createMockPlugin = ({
 	loadStub?: any;
 	unloadStub?: any;
 }): BasePlugin => {
-	return ({
+	return {
 		name,
 		load: loadStub ?? jest.fn(),
 		init: initStub ?? jest.fn(),
@@ -45,7 +45,7 @@ const createMockPlugin = ({
 		configSchema: {},
 		events: [],
 		endpoint: {},
-	} as unknown) as BasePlugin;
+	} as unknown as BasePlugin;
 };
 
 describe('Controller Class', () => {
@@ -65,7 +65,9 @@ describe('Controller Class', () => {
 	};
 	const childProcessMock = {
 		send: jest.fn(),
-		on: jest.fn(),
+		on: jest.fn().mockImplementation((_name, cb) => {
+			cb({ action: 'loaded' });
+		}),
 		kill: jest.fn(),
 		connected: true,
 	};
@@ -101,8 +103,8 @@ describe('Controller Class', () => {
 	};
 
 	const initParams = {
-		stateDB: (new InMemoryDatabase() as unknown) as StateDB,
-		moduleDB: (new InMemoryDatabase() as unknown) as Database,
+		stateDB: new InMemoryDatabase() as unknown as StateDB,
+		moduleDB: new InMemoryDatabase() as unknown as Database,
 		logger: loggerMock,
 		events: ['app_start', 'app_blockNew'],
 		endpoints: {
@@ -133,7 +135,7 @@ describe('Controller Class', () => {
 		controller.registerPlugin(childProcessPlugin, { loadAsChildProcess: true });
 		jest
 			.spyOn(childProcess, 'fork')
-			.mockReturnValue((childProcessMock as unknown) as childProcess.ChildProcess);
+			.mockReturnValue(childProcessMock as unknown as childProcess.ChildProcess);
 		jest.spyOn(os, 'homedir').mockReturnValue('/user');
 		controller.init(initParams);
 	});
@@ -145,8 +147,8 @@ describe('Controller Class', () => {
 			expect(controller['_inMemoryPlugins']).toEqual({});
 			expect(controller['_childProcesses']).toEqual({});
 			expect(controller['_bus']).toBeInstanceOf(Bus);
-			expect(controller['_logger']).not.toBeUndefined();
-			expect(controller['_internalIPCServer']).not.toBeUndefined();
+			expect(controller['_logger']).toBeDefined();
+			expect(controller['_internalIPCServer']).toBeDefined();
 		});
 	});
 
@@ -161,7 +163,6 @@ describe('Controller Class', () => {
 			jest.spyOn(controller['_channel'] as InMemoryChannel, 'registerToBus');
 
 			// To avoid waiting for events
-			jest.spyOn(Promise, 'race').mockResolvedValue(true);
 			await controller.start();
 		});
 
@@ -233,20 +234,20 @@ describe('Controller Class', () => {
 	describe('#stop', () => {
 		beforeEach(async () => {
 			jest.spyOn(controller['_bus'], 'publish').mockResolvedValue(undefined as never);
-			jest.spyOn(Promise, 'race').mockResolvedValue(true);
 			jest.spyOn(InMemoryChannel.prototype, 'publish');
 			await controller.start();
 			childProcessMock.connected = true;
-			await controller.stop();
 		});
 
 		describe('unload in-memory plugins', () => {
-			it('should unload in-memory plugins in sequence', () => {
+			it('should unload in-memory plugins in sequence', async () => {
+				await controller.stop();
 				// Assert
 				expect(inMemoryPlugin.unload).toHaveBeenCalled();
 			});
 
-			it('should unload all plugins if plugins argument was not provided', () => {
+			it('should unload all plugins if plugins argument was not provided', async () => {
+				await controller.stop();
 				// Assert
 				expect(controller['_inMemoryPlugins']).toEqual({});
 			});
@@ -255,7 +256,7 @@ describe('Controller Class', () => {
 		describe('unload child-process plugins', () => {
 			it('should kill child process if its not connected', async () => {
 				// Arrange
-				childProcessMock.connected = false;
+				(controller['_childProcesses']['plugin2'] as any).connected = false;
 
 				// Act && Assert
 				await expect(controller['_unloadPlugins']()).rejects.toThrow('Unload Plugins failed');
@@ -263,7 +264,8 @@ describe('Controller Class', () => {
 				expect(childProcessMock.kill).toHaveBeenCalledWith('SIGTERM');
 			});
 
-			it('should send "unload" action to child process', () => {
+			it('should send "unload" action to child process', async () => {
+				await controller.stop();
 				// Assert
 				expect(childProcessMock.send).toHaveBeenCalledWith({
 					action: 'unload',

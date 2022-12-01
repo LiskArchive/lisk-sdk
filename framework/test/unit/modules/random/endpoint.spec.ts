@@ -355,15 +355,15 @@ describe('RandomModuleEndpoint', () => {
 			});
 
 			// Assert
-			expect(hasHashOnion.hasSeed).toEqual(false);
-			expect(hasHashOnion.remaining).toEqual(0);
+			expect(hasHashOnion.hasSeed).toBe(false);
+			expect(hasHashOnion.remaining).toBe(0);
 		});
 
 		it('should return hasHashOnion true with valid remaining', async () => {
 			const hasHashOnion = await randomEndpoint.hasHashOnion({ ...context, params: { address } });
 
 			// Assert
-			expect(hasHashOnion.hasSeed).toEqual(true);
+			expect(hasHashOnion.hasSeed).toBe(true);
 			expect(hasHashOnion.remaining).toEqual(1000 - 20);
 		});
 
@@ -374,8 +374,8 @@ describe('RandomModuleEndpoint', () => {
 			});
 
 			// Assert
-			expect(hasHashOnion.hasSeed).toEqual(true);
-			expect(hasHashOnion.remaining).toEqual(1000);
+			expect(hasHashOnion.hasSeed).toBe(true);
+			expect(hasHashOnion.remaining).toBe(1000);
 		});
 	});
 

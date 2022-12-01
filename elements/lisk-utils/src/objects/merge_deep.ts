@@ -32,6 +32,7 @@ export const mergeDeep = (dest: KVPair, ...srcs: KVPair[]): KVPair => {
 				if (!result[key]) {
 					result[key] = {};
 				}
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				mergeDeep(result[key], src[key]);
 			} else if (src[key] !== undefined && src[key] !== null) {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

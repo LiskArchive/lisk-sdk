@@ -293,15 +293,15 @@ describe('utils', () => {
 			});
 
 			it('should return a valid tag', () => {
-				expect(createMessageTag('TX')).toEqual('LSK_TX_');
+				expect(createMessageTag('TX')).toBe('LSK_TX_');
 			});
 
 			it('should return a valid tag with version of number type', () => {
-				expect(createMessageTag('TX', 1)).toEqual('LSK_TX:1_');
+				expect(createMessageTag('TX', 1)).toBe('LSK_TX:1_');
 			});
 
 			it('should return a valid tag with version of string type', () => {
-				expect(createMessageTag('TX', 'v2')).toEqual('LSK_TX:v2_');
+				expect(createMessageTag('TX', 'v2')).toBe('LSK_TX:v2_');
 			});
 		});
 

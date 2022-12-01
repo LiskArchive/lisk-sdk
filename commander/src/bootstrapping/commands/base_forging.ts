@@ -62,6 +62,7 @@ export abstract class BaseForgingCommand extends BaseIPCClientCommand {
 		if (flags.password) {
 			password = flags.password;
 		} else {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const answers = await inquirer.prompt([
 				{
 					type: 'password',

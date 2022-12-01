@@ -1,42 +1,42 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`transaction Transaction create when called with a valid transaction should return created tx 1`] = `
-Array [
+[
   "d27e0d4c1504e47d06e85c510946fda57c12279da70e2bb1f3b2bc3760127368c03bbf443e562543e9827beb433e97614dff59fbfca5c5776b2fc6f237b77009",
 ]
 `;
 
 exports[`transaction Transaction create when called with multi-signature account in input should return created tx 1`] = `
-Array [
+[
   "d27e0d4c1504e47d06e85c510946fda57c12279da70e2bb1f3b2bc3760127368c03bbf443e562543e9827beb433e97614dff59fbfca5c5776b2fc6f237b77009",
   "",
 ]
 `;
 
 exports[`transaction Transaction create when called with nonce equal to zero in input should return created tx 1`] = `
-Array [
+[
   "03430d5cedeab0db30c2b32e60920d74da02e0aafde8f786ac7153deb9cf78ba6ffc955f911ff66ce690c47206a23fa53c2e1ee3e1f4850ff8c37a8fe1a6d50c",
 ]
 `;
 
 exports[`transaction Transaction create when called with optional keys in input should return created tx 1`] = `
-Array [
+[
   "d27e0d4c1504e47d06e85c510946fda57c12279da70e2bb1f3b2bc3760127368c03bbf443e562543e9827beb433e97614dff59fbfca5c5776b2fc6f237b77009",
 ]
 `;
 
 exports[`transaction Transaction create when called without sender public key in input should return created tx 1`] = `
-Array [
+[
   "d27e0d4c1504e47d06e85c510946fda57c12279da70e2bb1f3b2bc3760127368c03bbf443e562543e9827beb433e97614dff59fbfca5c5776b2fc6f237b77009",
 ]
 `;
 
 exports[`transaction Transaction decode transaction from input as buffer should return decoded transaction 1`] = `
-Object {
+{
   "command": "transfer",
   "fee": 10000000n,
-  "id": Object {
-    "data": Array [
+  "id": {
+    "data": [
       116,
       198,
       128,
@@ -74,11 +74,11 @@ Object {
   },
   "module": "token",
   "nonce": 54n,
-  "params": Object {
+  "params": {
     "amount": 10000000n,
     "data": "",
-    "recipientAddress": Object {
-      "data": Array [
+    "recipientAddress": {
+      "data": [
         101,
         64,
         135,
@@ -103,8 +103,8 @@ Object {
       "type": "Buffer",
     },
   },
-  "senderPublicKey": Object {
-    "data": Array [
+  "senderPublicKey": {
+    "data": [
       221,
       79,
       242,
@@ -140,9 +140,9 @@ Object {
     ],
     "type": "Buffer",
   },
-  "signatures": Array [
-    Object {
-      "data": Array [
+  "signatures": [
+    {
+      "data": [
         121,
         203,
         41,
@@ -215,11 +215,11 @@ Object {
 `;
 
 exports[`transaction Transaction decode transaction from input as hex should return decoded transaction 1`] = `
-Object {
+{
   "command": "transfer",
   "fee": 10000000n,
-  "id": Object {
-    "data": Array [
+  "id": {
+    "data": [
       116,
       198,
       128,
@@ -257,11 +257,11 @@ Object {
   },
   "module": "token",
   "nonce": 54n,
-  "params": Object {
+  "params": {
     "amount": 10000000n,
     "data": "",
-    "recipientAddress": Object {
-      "data": Array [
+    "recipientAddress": {
+      "data": [
         101,
         64,
         135,
@@ -286,8 +286,8 @@ Object {
       "type": "Buffer",
     },
   },
-  "senderPublicKey": Object {
-    "data": Array [
+  "senderPublicKey": {
+    "data": [
       221,
       79,
       242,
@@ -323,9 +323,9 @@ Object {
     ],
     "type": "Buffer",
   },
-  "signatures": Array [
-    Object {
-      "data": Array [
+  "signatures": [
+    {
+      "data": [
         121,
         203,
         41,
@@ -398,14 +398,14 @@ Object {
 `;
 
 exports[`transaction Transaction sign when called with multi-signature account in input should return created tx 1`] = `
-Array [
+[
   "d27e0d4c1504e47d06e85c510946fda57c12279da70e2bb1f3b2bc3760127368c03bbf443e562543e9827beb433e97614dff59fbfca5c5776b2fc6f237b77009",
   "746711c65d963b1fe8c6e40d64100548fb1080a943c2b53ac8466570f96c4687478a9307b45ad0172da134aa1eb9c44e2f11b3f08e790bdfd9247f3f89526508",
 ]
 `;
 
 exports[`transaction Transaction sign when called with optional keys in input should return created tx 1`] = `
-Array [
+[
   "d27e0d4c1504e47d06e85c510946fda57c12279da70e2bb1f3b2bc3760127368c03bbf443e562543e9827beb433e97614dff59fbfca5c5776b2fc6f237b77009",
   "746711c65d963b1fe8c6e40d64100548fb1080a943c2b53ac8466570f96c4687478a9307b45ad0172da134aa1eb9c44e2f11b3f08e790bdfd9247f3f89526508",
 ]

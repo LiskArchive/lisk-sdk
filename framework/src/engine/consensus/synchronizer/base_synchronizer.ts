@@ -55,7 +55,7 @@ export abstract class BaseSynchronizer {
 			data: Buffer | undefined;
 		};
 
-		if (!data || !data.length) {
+		if (!data?.length) {
 			throw new ApplyPenaltyAndRestartError(peerId, 'Peer did not provide its last block');
 		}
 		return Block.fromBytes(data);
@@ -102,7 +102,7 @@ export abstract class BaseSynchronizer {
 			data: Buffer;
 		}; // Note that the block matching lastFetchedID is not returned but only higher blocks.
 
-		if (!data || !data.length) {
+		if (!data?.length) {
 			throw new Error(`Peer ${peerId} did not respond with block`);
 		}
 		const decodedData = codec.decode<{ blocks: Buffer[] }>(getBlocksFromIdResponseSchema, data);

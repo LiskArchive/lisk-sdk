@@ -90,7 +90,7 @@ describe('base_plugin', () => {
 					plugin.init({
 						appConfig: {
 							...testing.fixtures.defaultConfig,
-							genesis: ({} as unknown) as GenesisConfig,
+							genesis: {} as unknown as GenesisConfig,
 						},
 						logger: fakeLogger,
 						config: {
@@ -129,7 +129,7 @@ describe('base_plugin', () => {
 				{ virtual: true },
 			);
 
-			expect(getPluginExportPath(new MyPlugin2())).toEqual('my_plugin');
+			expect(getPluginExportPath(new MyPlugin2())).toBe('my_plugin');
 		});
 
 		it('should return undefined if exported class is not the same from npm package', () => {

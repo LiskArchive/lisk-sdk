@@ -80,7 +80,7 @@ describe('RandomModule', () => {
 				}),
 			).toResolve();
 
-			expect(randomModule['_maxLengthReveals']).toEqual(206);
+			expect(randomModule['_maxLengthReveals']).toBe(206);
 		});
 
 		it('should assign config values', async () => {
@@ -89,7 +89,7 @@ describe('RandomModule', () => {
 				moduleConfig: { maxLengthReveals: 20 },
 			});
 
-			expect(randomModule['_maxLengthReveals']).toEqual(20);
+			expect(randomModule['_maxLengthReveals']).toBe(20);
 		});
 	});
 
@@ -488,7 +488,6 @@ describe('RandomModule', () => {
 			try {
 				await randomModule.verifyAssets(context.getBlockVerifyExecuteContext());
 			} catch (error: any) {
-				// eslint-disable-next-line jest/no-try-expect
 				expect(error?.message).toInclude(`Property '.seedReveal' minLength not satisfied`);
 			}
 		});
@@ -627,7 +626,7 @@ describe('RandomModule', () => {
 				EMPTY_KEY,
 			);
 			expect(updatedValidatorReveals).toHaveLength(6);
-			expect(updatedValidatorReveals[5].height).toEqual(7);
+			expect(updatedValidatorReveals[5].height).toBe(7);
 		});
 
 		it('should set seed reveal validity to be true if validator provides valid seed reveal', async () => {

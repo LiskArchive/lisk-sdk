@@ -1,35 +1,35 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`config/unit/jest.config.js unit test config must match to the snapshot. 1`] = `
-Object {
+{
   "clearMocks": true,
   "collectCoverage": false,
-  "collectCoverageFrom": Array [
+  "collectCoverageFrom": [
     "src/**/*.(js|ts)",
   ],
   "coverageDirectory": ".coverage/unit",
-  "coverageReporters": Array [
+  "coverageReporters": [
     "json",
   ],
-  "globals": Object {
-    "ts-jest": Object {
-      "tsconfig": "<rootDir>/test/tsconfig.json",
-    },
-  },
   "resetModules": true,
   "restoreMocks": true,
   "rootDir": "../../",
-  "setupFilesAfterEnv": Array [
+  "setupFilesAfterEnv": [
     "<rootDir>/test/config/setup.js",
   ],
-  "testMatch": Array [
+  "testMatch": [
     "<rootDir>/test/unit/**/*.(spec|test).(js|ts)",
   ],
-  "testPathIgnorePatterns": Array [
+  "testPathIgnorePatterns": [
     "/node_modules",
   ],
-  "transform": Object {
-    "^.+\\\\.(ts|tsx)$": "ts-jest",
+  "transform": {
+    "^.+\\.(ts|tsx)$": [
+      "ts-jest",
+      {
+        "tsconfig": "<rootDir>/test/tsconfig.json",
+      },
+    ],
   },
   "verbose": false,
 }

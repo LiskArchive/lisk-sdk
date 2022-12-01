@@ -137,10 +137,10 @@ describe('genesis block', () => {
 					bft: consensus['_bft'],
 					chain,
 					genesisConfig: consensus['_genesisConfig'],
-					network: ({
+					network: {
 						registerEndpoint: () => {},
 						registerHandler: () => {},
-					} as unknown) as Network,
+					} as unknown as Network,
 				});
 				chain.init({
 					db: processEnv.getBlockchainDB(),

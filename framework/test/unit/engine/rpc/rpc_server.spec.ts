@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as os from 'os';
+import { WSServer } from '../../../../src/controller/ws/ws_server';
 import { RPCServer } from '../../../../src/engine/rpc/rpc_server';
 import { fakeLogger } from '../../../utils/mocks';
 
@@ -37,6 +38,10 @@ describe('RPC server', () => {
 	let rpcServer: RPCServer;
 	const dataPath = os.tmpdir();
 
+	beforeEach(() => {
+		jest.spyOn(WSServer.prototype, 'start').mockResolvedValue({} as never);
+	});
+
 	describe('constructor', () => {
 		it('should create IPC server if ipc is enabled', () => {
 			rpcServer = new RPCServer(dataPath, {
@@ -44,7 +49,7 @@ describe('RPC server', () => {
 				host: '0.0.0.0',
 				port: 7887,
 			});
-			expect(rpcServer['_ipcServer']).not.toBeUndefined();
+			expect(rpcServer['_ipcServer']).toBeDefined();
 		});
 
 		it('should create WS server if ws is enabled', () => {
@@ -53,7 +58,7 @@ describe('RPC server', () => {
 				host: '0.0.0.0',
 				port: 7887,
 			});
-			expect(rpcServer['_wsServer']).not.toBeUndefined();
+			expect(rpcServer['_wsServer']).toBeDefined();
 		});
 
 		it('should create HTTP server if http is enabled', () => {
@@ -62,7 +67,7 @@ describe('RPC server', () => {
 				host: '0.0.0.0',
 				port: 7887,
 			});
-			expect(rpcServer['_httpServer']).not.toBeUndefined();
+			expect(rpcServer['_httpServer']).toBeDefined();
 		});
 	});
 

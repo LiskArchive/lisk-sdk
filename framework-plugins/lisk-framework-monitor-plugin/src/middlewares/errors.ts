@@ -25,33 +25,35 @@ interface ErrorWithDetails extends Error {
 	errors: Error[];
 }
 
-export const errorMiddleware = () => (
-	err: Error | Error[] | ErrorWithDetails,
-	_req: Request,
-	res: Response,
-	_next: NextFunction,
-): void => {
-	let errors;
-	let responseCode = 500;
+export const errorMiddleware =
+	() =>
+	(
+		err: Error | Error[] | ErrorWithDetails,
+		_req: Request,
+		res: Response,
+		_next: NextFunction,
+	): void => {
+		let errors;
+		let responseCode = 500;
 
-	if (Array.isArray(err)) {
-		errors = err;
-	} else if ((err as ErrorWithDetails).errors) {
-		errors = (err as ErrorWithDetails).errors;
-	} else {
-		errors = [err];
-	}
+		if (Array.isArray(err)) {
+			errors = err;
+		} else if ((err as ErrorWithDetails).errors) {
+			errors = (err as ErrorWithDetails).errors;
+		} else {
+			errors = [err];
+		}
 
-	for (const error of errors) {
-		// Include message property in response
-		Object.defineProperty(error, 'message', { enumerable: true });
-	}
+		for (const error of errors) {
+			// Include message property in response
+			Object.defineProperty(error, 'message', { enumerable: true });
+		}
 
-	if (err instanceof ErrorWithStatus) {
-		const { statusCode, ...message } = err;
-		errors = message;
-		responseCode = statusCode;
-	}
+		if (err instanceof ErrorWithStatus) {
+			const { statusCode, ...message } = err;
+			errors = message;
+			responseCode = statusCode;
+		}
 
-	res.status(responseCode).send({ errors });
-};
+		res.status(responseCode).send({ errors });
+	};

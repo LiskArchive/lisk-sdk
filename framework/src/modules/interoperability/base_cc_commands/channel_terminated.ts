@@ -19,7 +19,7 @@ import { BaseInteroperabilityInternalMethod } from '../base_interoperability_int
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#channel-terminated-message-1
 export abstract class BaseCCChannelTerminatedCommand<
-	T extends BaseInteroperabilityInternalMethod
+	T extends BaseInteroperabilityInternalMethod,
 > extends BaseInteroperabilityCCCommand<T> {
 	public get name(): string {
 		return CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED;

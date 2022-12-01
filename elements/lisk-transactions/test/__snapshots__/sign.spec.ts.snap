@@ -1,8 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`sign getSigningBytes should return transaction bytes for given params 1`] = `
-Object {
-  "data": Array [
+{
+  "data": [
     10,
     5,
     116,
@@ -102,11 +102,11 @@ Object {
 `;
 
 exports[`sign signTransactionWithPrivateKey should return signed transaction for given params schema 1`] = `
-Object {
+{
   "command": "transfer",
   "fee": 10000000n,
-  "id": Object {
-    "data": Array [
+  "id": {
+    "data": [
       150,
       136,
       147,
@@ -144,11 +144,11 @@ Object {
   },
   "module": "token",
   "nonce": 1n,
-  "params": Object {
+  "params": {
     "amount": 4008489300000000n,
     "data": "",
-    "recipientAddress": Object {
-      "data": Array [
+    "recipientAddress": {
+      "data": [
         58,
         151,
         31,
@@ -173,8 +173,8 @@ Object {
       "type": "Buffer",
     },
   },
-  "senderPublicKey": Object {
-    "data": Array [
+  "senderPublicKey": {
+    "data": [
       241,
       185,
       244,
@@ -210,9 +210,9 @@ Object {
     ],
     "type": "Buffer",
   },
-  "signatures": Array [
-    Object {
-      "data": Array [
+  "signatures": [
+    {
+      "data": [
         207,
         181,
         40,
@@ -285,15 +285,15 @@ Object {
 `;
 
 exports[`sign when running scenario "multisignature_registration_transaction" Both mandatory and optional member group should have correct signatures 1`] = `
-Object {
+{
   "command": "registerMultisignature",
   "fee": 1500000000n,
   "module": "auth",
   "nonce": 1n,
-  "params": Object {
-    "mandatoryKeys": Array [
-      Object {
-        "data": Array [
+  "params": {
+    "mandatoryKeys": [
+      {
+        "data": [
           74,
           103,
           100,
@@ -329,8 +329,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           241,
           185,
           244,
@@ -368,9 +368,9 @@ Object {
       },
     ],
     "numberOfSignatures": 4,
-    "optionalKeys": Array [
-      Object {
-        "data": Array [
+    "optionalKeys": [
+      {
+        "data": [
           87,
           223,
           92,
@@ -406,8 +406,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           250,
           64,
           107,
@@ -444,9 +444,9 @@ Object {
         "type": "Buffer",
       },
     ],
-    "signatures": Array [
-      Object {
-        "data": Array [
+    "signatures": [
+      {
+        "data": [
           81,
           119,
           101,
@@ -514,8 +514,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           92,
           134,
           130,
@@ -583,8 +583,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           196,
           109,
           66,
@@ -652,8 +652,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           163,
           27,
           233,
@@ -723,8 +723,8 @@ Object {
       },
     ],
   },
-  "senderPublicKey": Object {
-    "data": Array [
+  "senderPublicKey": {
+    "data": [
       11,
       33,
       31,
@@ -760,9 +760,9 @@ Object {
     ],
     "type": "Buffer",
   },
-  "signatures": Array [
-    Object {
-      "data": Array [
+  "signatures": [
+    {
+      "data": [
         239,
         149,
         165,
@@ -835,15 +835,15 @@ Object {
 `;
 
 exports[`sign when running scenario "multisignature_registration_transaction" Only mandatory members should have correct signatures 1`] = `
-Object {
+{
   "command": "registerMultisignature",
   "fee": 1500000000n,
   "module": "auth",
   "nonce": 1n,
-  "params": Object {
-    "mandatoryKeys": Array [
-      Object {
-        "data": Array [
+  "params": {
+    "mandatoryKeys": [
+      {
+        "data": [
           74,
           103,
           100,
@@ -879,8 +879,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           241,
           185,
           244,
@@ -918,10 +918,10 @@ Object {
       },
     ],
     "numberOfSignatures": 2,
-    "optionalKeys": Array [],
-    "signatures": Array [
-      Object {
-        "data": Array [
+    "optionalKeys": [],
+    "signatures": [
+      {
+        "data": [
           211,
           0,
           42,
@@ -989,8 +989,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           245,
           4,
           251,
@@ -1060,8 +1060,8 @@ Object {
       },
     ],
   },
-  "senderPublicKey": Object {
-    "data": Array [
+  "senderPublicKey": {
+    "data": [
       11,
       33,
       31,
@@ -1097,9 +1097,9 @@ Object {
     ],
     "type": "Buffer",
   },
-  "signatures": Array [
-    Object {
-      "data": Array [
+  "signatures": [
+    {
+      "data": [
         111,
         250,
         27,
@@ -1172,17 +1172,17 @@ Object {
 `;
 
 exports[`sign when running scenario "multisignature_registration_transaction" Only optional members should have correct signatures 1`] = `
-Object {
+{
   "command": "registerMultisignature",
   "fee": 1500000000n,
   "module": "auth",
   "nonce": 1n,
-  "params": Object {
-    "mandatoryKeys": Array [],
+  "params": {
+    "mandatoryKeys": [],
     "numberOfSignatures": 1,
-    "optionalKeys": Array [
-      Object {
-        "data": Array [
+    "optionalKeys": [
+      {
+        "data": [
           87,
           223,
           92,
@@ -1218,8 +1218,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           250,
           64,
           107,
@@ -1256,9 +1256,9 @@ Object {
         "type": "Buffer",
       },
     ],
-    "signatures": Array [
-      Object {
-        "data": Array [
+    "signatures": [
+      {
+        "data": [
           88,
           183,
           45,
@@ -1326,8 +1326,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           250,
           91,
           158,
@@ -1397,8 +1397,8 @@ Object {
       },
     ],
   },
-  "senderPublicKey": Object {
-    "data": Array [
+  "senderPublicKey": {
+    "data": [
       11,
       33,
       31,
@@ -1434,9 +1434,9 @@ Object {
     ],
     "type": "Buffer",
   },
-  "signatures": Array [
-    Object {
-      "data": Array [
+  "signatures": [
+    {
+      "data": [
         18,
         174,
         20,
@@ -1509,15 +1509,15 @@ Object {
 `;
 
 exports[`sign when running scenario "multisignature_registration_transaction" Second signature case should have correct signatures 1`] = `
-Object {
+{
   "command": "registerMultisignature",
   "fee": 1500000000n,
   "module": "auth",
   "nonce": 1n,
-  "params": Object {
-    "mandatoryKeys": Array [
-      Object {
-        "data": Array [
+  "params": {
+    "mandatoryKeys": [
+      {
+        "data": [
           11,
           33,
           31,
@@ -1553,8 +1553,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           255,
           48,
           239,
@@ -1592,10 +1592,10 @@ Object {
       },
     ],
     "numberOfSignatures": 2,
-    "optionalKeys": Array [],
-    "signatures": Array [
-      Object {
-        "data": Array [
+    "optionalKeys": [],
+    "signatures": [
+      {
+        "data": [
           104,
           108,
           90,
@@ -1663,8 +1663,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           12,
           16,
           202,
@@ -1734,8 +1734,8 @@ Object {
       },
     ],
   },
-  "senderPublicKey": Object {
-    "data": Array [
+  "senderPublicKey": {
+    "data": [
       11,
       33,
       31,
@@ -1771,9 +1771,9 @@ Object {
     ],
     "type": "Buffer",
   },
-  "signatures": Array [
-    Object {
-      "data": Array [
+  "signatures": [
+    {
+      "data": [
         26,
         58,
         174,
@@ -1846,15 +1846,15 @@ Object {
 `;
 
 exports[`sign when running scenario "multisignature_registration_transaction" Sender is a member of the group should have correct signatures 1`] = `
-Object {
+{
   "command": "registerMultisignature",
   "fee": 1500000000n,
   "module": "auth",
   "nonce": 1n,
-  "params": Object {
-    "mandatoryKeys": Array [
-      Object {
-        "data": Array [
+  "params": {
+    "mandatoryKeys": [
+      {
+        "data": [
           11,
           33,
           31,
@@ -1890,8 +1890,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           74,
           103,
           100,
@@ -1927,8 +1927,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           241,
           185,
           244,
@@ -1966,9 +1966,9 @@ Object {
       },
     ],
     "numberOfSignatures": 4,
-    "optionalKeys": Array [
-      Object {
-        "data": Array [
+    "optionalKeys": [
+      {
+        "data": [
           87,
           223,
           92,
@@ -2004,8 +2004,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           250,
           64,
           107,
@@ -2042,9 +2042,9 @@ Object {
         "type": "Buffer",
       },
     ],
-    "signatures": Array [
-      Object {
-        "data": Array [
+    "signatures": [
+      {
+        "data": [
           128,
           186,
           47,
@@ -2112,8 +2112,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           50,
           12,
           45,
@@ -2181,8 +2181,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           20,
           109,
           193,
@@ -2250,8 +2250,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           111,
           105,
           105,
@@ -2319,8 +2319,8 @@ Object {
         ],
         "type": "Buffer",
       },
-      Object {
-        "data": Array [
+      {
+        "data": [
           22,
           192,
           250,
@@ -2390,8 +2390,8 @@ Object {
       },
     ],
   },
-  "senderPublicKey": Object {
-    "data": Array [
+  "senderPublicKey": {
+    "data": [
       11,
       33,
       31,
@@ -2427,9 +2427,9 @@ Object {
     ],
     "type": "Buffer",
   },
-  "signatures": Array [
-    Object {
-      "data": Array [
+  "signatures": [
+    {
+      "data": [
         16,
         122,
         171,
