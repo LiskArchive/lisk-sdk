@@ -89,18 +89,15 @@ export {
 	ChannelDataJSON,
 	Inbox,
 	InboxJSON,
-	MessageFeeTokenID,
-	MessageFeeTokenIDJSON,
 	Outbox,
 	OutboxJSON,
 	InboxUpdate,
 	CrossChainUpdateTransactionParams,
 	ActiveValidator,
 	OutboxRootWitness,
-	CHAIN_ACTIVE,
-	CHAIN_TERMINATED,
 	LIVENESS_LIMIT,
 	MESSAGE_TAG_CERTIFICATE,
+	ChainStatus,
 } from './modules/interoperability';
 export { RewardMethod, RewardModule } from './modules/reward';
 export { FeeMethod, FeeModule } from './modules/fee';
