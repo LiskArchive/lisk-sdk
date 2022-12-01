@@ -18,7 +18,7 @@ import { homedir } from 'os';
 import { EventEmitter } from 'events';
 import { Subscriber, Dealer } from 'zeromq';
 import { Channel, EventCallback, Defer, JSONRPCMessage, JSONRPCResponse } from './types';
-import { convertRPCError, defer, timeout as createTimeout } from './utils';
+import { convertRPCError, defer, promiseWithTimeout } from './utils';
 
 const CONNECTION_TIME_OUT = 2000;
 const RESPONSE_TIMEOUT = 3000;
@@ -122,10 +122,11 @@ export class IPCChannel implements Channel {
 		const response = defer<T>();
 		this._pendingRequests[action.id] = response as Defer<unknown>;
 
-		return Promise.race<T>([
-			response.promise,
-			createTimeout<T>(RESPONSE_TIMEOUT, `Response not received in ${RESPONSE_TIMEOUT}ms`),
-		]);
+		return promiseWithTimeout(
+			[response.promise],
+			RESPONSE_TIMEOUT,
+			`Response not received in ${RESPONSE_TIMEOUT}ms`,
+		);
 	}
 
 	public subscribe<T = Record<string, unknown>>(eventName: string, cb: EventCallback<T>): void {
