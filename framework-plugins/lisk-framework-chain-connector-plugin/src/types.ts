@@ -37,7 +37,7 @@ export interface Validator {
 }
 
 export interface ValidatorsData {
-	certificateThreshold: bigint;
+	certificateThreshold: BigInt;
 	validators: Validator[];
 	validatorsHash: Buffer;
 }
