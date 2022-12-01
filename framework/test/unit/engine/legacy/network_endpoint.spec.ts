@@ -35,10 +35,10 @@ describe('Legacy P2P network endpoint', () => {
 	let endpoint: LegacyNetworkEndpoint;
 
 	beforeEach(() => {
-		network = ({
+		network = {
 			applyPenaltyOnPeer: jest.fn(),
-		} as unknown) as Network;
-		db = (new InMemoryDatabase() as unknown) as Database;
+		} as unknown as Network;
+		db = new InMemoryDatabase() as unknown as Database;
 
 		endpoint = new LegacyNetworkEndpoint({
 			logger: loggerMock,

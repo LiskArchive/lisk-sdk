@@ -1,9 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`FaucetPlugin configSchema should return valid config schema with default options 1`] = `
-Object {
+{
   "$id": "#/plugins/liskFaucet/config",
-  "default": Object {
+  "default": {
     "amount": "100",
     "applicationUrl": "ws://localhost:8080/ws",
     "fee": "0.1",
@@ -11,53 +11,53 @@ Object {
     "port": 4004,
     "tokenPrefix": "lsk",
   },
-  "properties": Object {
-    "amount": Object {
+  "properties": {
+    "amount": {
       "description": "Number of tokens to fund an account per request",
       "type": "string",
     },
-    "applicationUrl": Object {
+    "applicationUrl": {
       "description": "URL to connect",
       "format": "uri",
       "type": "string",
     },
-    "captchaSecretkey": Object {
+    "captchaSecretkey": {
       "description": "The re-captcha secret key",
       "type": "string",
     },
-    "captchaSitekey": Object {
+    "captchaSitekey": {
       "description": "The re-captcha site key",
       "type": "string",
     },
-    "encryptedPassphrase": Object {
+    "encryptedPassphrase": {
       "description": "Encrypted passphrase of the genesis account",
       "format": "encryptedPassphrase",
       "type": "string",
     },
-    "fee": Object {
+    "fee": {
       "description": "The transaction fee used to faucet an account",
       "type": "string",
     },
-    "host": Object {
+    "host": {
       "format": "ip",
       "type": "string",
     },
-    "logoURL": Object {
+    "logoURL": {
       "description": "The URL of the logo used on the UI",
       "format": "uri",
       "type": "string",
     },
-    "port": Object {
+    "port": {
       "maximum": 65535,
       "minimum": 1,
       "type": "integer",
     },
-    "tokenPrefix": Object {
+    "tokenPrefix": {
       "description": "The token prefix associated with your application",
       "type": "string",
     },
   },
-  "required": Array [
+  "required": [
     "encryptedPassphrase",
     "captchaSecretkey",
     "captchaSitekey",
@@ -67,7 +67,7 @@ Object {
 `;
 
 exports[`FaucetPlugin init should load default config 1`] = `
-Object {
+{
   "amount": "100",
   "applicationUrl": "ws://localhost:8080/ws",
   "captchaSecretkey": "123",

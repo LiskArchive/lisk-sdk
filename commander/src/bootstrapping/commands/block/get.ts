@@ -52,7 +52,7 @@ export abstract class GetCommand extends BaseIPCClientCommand {
 				block = await this._client.block.get(Buffer.from(input, 'hex'));
 			}
 
-			this.printJSON((block as unknown) as Record<string, unknown>);
+			this.printJSON(block as unknown as Record<string, unknown>);
 		} catch (errors) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const errorMessage = Array.isArray(errors)

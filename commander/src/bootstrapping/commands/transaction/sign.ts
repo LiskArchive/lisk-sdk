@@ -201,7 +201,7 @@ const signTransactionOnline = async (
 	});
 	let authAccount: AuthAccount;
 	if (account.mandatoryKeys.length === 0 && account.optionalKeys.length === 0) {
-		authAccount = (transactionObject.params as unknown) as AuthAccount;
+		authAccount = transactionObject.params as unknown as AuthAccount;
 	} else {
 		authAccount = account;
 	}

@@ -93,7 +93,7 @@ describe('nacl index.js', () => {
 			// eslint-disable-next-line global-require
 			require('../../src/nacl');
 			// Assert
-			expect(process.env.NACL_FAST).not.toEqual('disable');
+			expect(process.env.NACL_FAST).not.toBe('disable');
 		});
 
 		it('should load nacl slow if process.env.NACL_FAST is set to disable', () => {

@@ -39,18 +39,18 @@ describe('Min heap', () => {
 
 	describe('push', () => {
 		it('should insert into correct order', () => {
-			expect(heap.peek()?.key).toEqual(0);
-			expect(heap.peek()?.value).toEqual('d');
+			expect(heap.peek()?.key).toBe(0);
+			expect(heap.peek()?.value).toBe('d');
 		});
 	});
 
 	describe('pop', () => {
 		it('should remove minimal key', () => {
 			const root = heap.pop();
-			expect(heap.count).toEqual(3);
+			expect(heap.count).toBe(3);
 
-			expect(root?.key).toEqual(0);
-			expect(root?.value).toEqual('d');
+			expect(root?.key).toBe(0);
+			expect(root?.value).toBe('d');
 		});
 
 		it('should pop in correct order', () => {
@@ -59,11 +59,11 @@ describe('Min heap', () => {
 			nodes.push(heap.pop());
 			nodes.push(heap.pop());
 			nodes.push(heap.pop());
-			expect(nodes[0]?.key).toEqual(0);
-			expect(nodes[1]?.key).toEqual(1);
-			expect(nodes[2]?.key).toEqual(2);
-			expect(nodes[3]?.key).toEqual(5);
-			expect(heap.count).toEqual(0);
+			expect(nodes[0]?.key).toBe(0);
+			expect(nodes[1]?.key).toBe(1);
+			expect(nodes[2]?.key).toBe(2);
+			expect(nodes[3]?.key).toBe(5);
+			expect(heap.count).toBe(0);
 		});
 
 		it('should not throw error when over remove', () => {
@@ -72,7 +72,7 @@ describe('Min heap', () => {
 			heap.pop();
 			heap.pop();
 			heap.pop();
-			expect(heap.count).toEqual(0);
+			expect(heap.count).toBe(0);
 			expect(heap.keys).toEqual([]);
 			expect(heap.values).toEqual([]);
 		});
@@ -80,8 +80,8 @@ describe('Min heap', () => {
 
 	describe('peek', () => {
 		it('should return root node', () => {
-			expect(heap.peek()?.key).toEqual(0);
-			expect(heap.peek()?.value).toEqual('d');
+			expect(heap.peek()?.key).toBe(0);
+			expect(heap.peek()?.value).toBe('d');
 		});
 	});
 
@@ -96,7 +96,7 @@ describe('Min heap', () => {
 	describe('clear', () => {
 		it('should clear all the instance', () => {
 			heap.clear();
-			expect(heap.count).toEqual(0);
+			expect(heap.count).toBe(0);
 		});
 	});
 });

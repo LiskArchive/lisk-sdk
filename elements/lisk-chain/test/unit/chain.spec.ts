@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* eslint-disable jest/no-try-expect */
 
 import { NotFoundError, Batch, Database, InMemoryDatabase } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';

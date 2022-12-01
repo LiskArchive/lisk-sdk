@@ -42,7 +42,7 @@ export const getAllFiles = (
 };
 
 export const loadSpecFile = <T = Record<string, unknown>>(filePath: string) =>
-	(yml.load(fs.readFileSync(filePath, 'utf8')) as unknown) as T;
+	yml.load(fs.readFileSync(filePath, 'utf8')) as unknown as T;
 
 export const hexToBuffer = (str: string | null): Buffer =>
 	str ? Buffer.from(str.substr(2), 'hex') : EMPTY_BUFFER;

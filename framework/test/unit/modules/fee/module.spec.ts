@@ -62,7 +62,7 @@ describe('FeeModule', () => {
 		});
 
 		it('should set the minFeePerByte property', () => {
-			expect(feeModule['_minFeePerByte']).toEqual(1000);
+			expect(feeModule['_minFeePerByte']).toBe(1000);
 		});
 	});
 

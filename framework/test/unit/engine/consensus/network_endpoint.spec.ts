@@ -16,6 +16,11 @@ import { InMemoryDatabase, Database } from '@liskhq/lisk-db';
 import { Block, Chain } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
+import { SingleCommit } from '.../../../src/engine/consensus//certificate_generation/types';
+import {
+	computeCertificateFromBlockHeader,
+	signCertificate,
+} from '.../../../src/engine/consensus//certificate_generation/utils';
 import { NetworkEndpoint } from '../../../../src/engine/consensus/network_endpoint';
 import {
 	getBlocksFromIdRequestSchema,
@@ -27,11 +32,6 @@ import { Network } from '../../../../src/engine/network';
 import { loggerMock } from '../../../../src/testing/mocks';
 import { createValidDefaultBlock } from '../../../fixtures';
 import { CommitPool } from '../../../../src/engine/consensus/certificate_generation/commit_pool';
-import { SingleCommit } from '.../../../src/engine/consensus//certificate_generation/types';
-import {
-	computeCertificateFromBlockHeader,
-	signCertificate,
-} from '.../../../src/engine/consensus//certificate_generation/utils';
 import { createFakeBlockHeader } from '../../../../src/testing/create_block';
 
 describe('p2p endpoint', () => {
@@ -48,7 +48,7 @@ describe('p2p endpoint', () => {
 	beforeEach(async () => {
 		lastBlock = await createValidDefaultBlock({ header: { height: 2 } });
 		const nextBlock = await createValidDefaultBlock({ header: { height: 3 } });
-		chain = ({
+		chain = {
 			dataAccess: {
 				decode: jest.fn(),
 				encode: jest.fn().mockReturnValue(lastBlock.getBytes()),
@@ -58,15 +58,15 @@ describe('p2p endpoint', () => {
 				encodeBlockHeader: jest.fn().mockReturnValue(lastBlock.header.getBytes()),
 			},
 			lastBlock,
-		} as unknown) as Chain;
-		network = ({
+		} as unknown as Chain;
+		network = {
 			applyPenaltyOnPeer: jest.fn(),
-		} as unknown) as Network;
-		commitPool = ({
+		} as unknown as Network;
+		commitPool = {
 			validateCommit: jest.fn(),
 			addCommit: jest.fn(),
-		} as unknown) as CommitPool;
-		db = (new InMemoryDatabase() as unknown) as Database;
+		} as unknown as CommitPool;
+		db = new InMemoryDatabase() as unknown as Database;
 		endpoint = new NetworkEndpoint({
 			chain,
 			logger: loggerMock,

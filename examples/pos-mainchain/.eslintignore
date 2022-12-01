@@ -10,3 +10,4 @@ tmp
 build
 scripts
 config
+test/_setup.js

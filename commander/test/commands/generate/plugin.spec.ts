@@ -64,9 +64,10 @@ describe('generate:plugin command', () => {
 
 			await expect(PluginCommand.run(['httpPlugin'], config)).resolves.toBeNull();
 			expect(BaseBootstrapCommand.prototype['_isLiskAppDir']).toHaveBeenCalledWith('/my/dir');
-			expect(
-				BaseBootstrapCommand.prototype['_runBootstrapCommand'],
-			).toHaveBeenCalledWith('lisk:generate:plugin', { name: 'httpPlugin' });
+			expect(BaseBootstrapCommand.prototype['_runBootstrapCommand']).toHaveBeenCalledWith(
+				'lisk:generate:plugin',
+				{ name: 'httpPlugin' },
+			);
 		});
 
 		it('should not throw error if cwd is not lisk app directory and --standalone was provided', async () => {

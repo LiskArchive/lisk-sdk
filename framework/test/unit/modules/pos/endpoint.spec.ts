@@ -579,7 +579,7 @@ describe('PosModuleEndpoint', () => {
 					},
 				}),
 			);
-			expect(resp.reward).toEqual('5000');
+			expect(resp.reward).toBe('5000');
 		});
 
 		it('should return amount without the amount locked for stakes with token ID requested is the governance token ID', async () => {

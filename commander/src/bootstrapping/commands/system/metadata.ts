@@ -29,7 +29,7 @@ export abstract class MetadataCommand extends BaseIPCClientCommand {
 		}
 		try {
 			const metadataInfo = await this._client.invoke('system_getMetadata');
-			this.printJSON((metadataInfo as unknown) as Record<string, unknown>);
+			this.printJSON(metadataInfo as unknown as Record<string, unknown>);
 		} catch (errors) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const errorMessage = Array.isArray(errors)

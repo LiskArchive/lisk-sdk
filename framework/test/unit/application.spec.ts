@@ -124,8 +124,8 @@ describe('Application', () => {
 
 			// Assert
 			expect(app.config).toMatchSnapshot();
-			expect(app['_stateMachine']).not.toBeUndefined();
-			expect(app['_controller']).not.toBeUndefined();
+			expect(app['_stateMachine']).toBeDefined();
+			expect(app['_controller']).toBeDefined();
 		});
 
 		it('should not initialize logger', () => {

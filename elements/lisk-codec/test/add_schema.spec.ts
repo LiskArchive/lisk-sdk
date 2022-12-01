@@ -23,8 +23,8 @@ describe('addSchema', () => {
 	it('should add schema and keep it in cache', () => {
 		const object = {
 			...objectFixtureInput.object,
-			balance: BigInt((objectFixtureInput.object.balance as unknown) as string),
-			address: Buffer.from((objectFixtureInput.object.address as unknown) as string, 'hex'),
+			balance: BigInt(objectFixtureInput.object.balance as unknown as string),
+			address: Buffer.from(objectFixtureInput.object.address as unknown as string, 'hex'),
 		};
 
 		codec.encode(objectFixtureInput.schema, object);

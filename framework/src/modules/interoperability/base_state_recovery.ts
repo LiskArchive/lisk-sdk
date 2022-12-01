@@ -31,7 +31,7 @@ import { BaseCCMethod } from './base_cc_method';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 
 export class BaseStateRecoveryCommand<
-	T extends BaseInteroperabilityInternalMethod
+	T extends BaseInteroperabilityInternalMethod,
 > extends BaseInteroperabilityCommand<T> {
 	public schema = stateRecoveryParamsSchema;
 

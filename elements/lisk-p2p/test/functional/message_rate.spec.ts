@@ -241,7 +241,7 @@ describe('Message rate limit', () => {
 			await wait(10);
 
 			// Assert
-			expect(targetNode['_peerBook'].triedPeers[0].internalState?.reputation).toEqual(100);
+			expect(targetNode['_peerBook'].triedPeers[0].internalState?.reputation).toBe(100);
 		});
 
 		it('should add a ban score of peer when it sends postNodeInfo messages more than 4 within 10 seconds', async () => {
@@ -258,7 +258,7 @@ describe('Message rate limit', () => {
 			await wait(10);
 
 			// Assert
-			expect(targetNode['_peerBook'].triedPeers[0].internalState?.reputation).toEqual(90);
+			expect(targetNode['_peerBook'].triedPeers[0].internalState?.reputation).toBe(90);
 		});
 
 		it('should ban a peer when it sends postNodeInfo messages more than 4 + 10 times within 10 seconds', async () => {

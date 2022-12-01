@@ -61,7 +61,7 @@ export class InvokeCommand extends BaseIPCClientCommand {
 				response = await this._client.invoke(args.endpoint, endpointArguments);
 			}
 
-			this.printJSON((response as unknown) as Record<string, unknown>);
+			this.printJSON(response as unknown as Record<string, unknown>);
 		} catch (error) {
 			this.error((error as Error).message);
 		}

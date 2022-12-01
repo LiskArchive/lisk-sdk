@@ -61,7 +61,7 @@ describe('fee', () => {
 			const minFee = computeMinFee(validTransaction, validParamsSchema);
 
 			// Assert
-			expect(minFee).not.toBeUndefined();
+			expect(minFee).toBeDefined();
 			expect(minFee).toMatchSnapshot();
 		});
 
@@ -71,7 +71,7 @@ describe('fee', () => {
 			const minFee = computeMinFee(validTransaction, validParamsSchema, options);
 
 			// Assert
-			expect(minFee).not.toBeUndefined();
+			expect(minFee).toBeDefined();
 			expect(minFee).toMatchSnapshot();
 		});
 
@@ -81,7 +81,7 @@ describe('fee', () => {
 			const minFee = computeMinFee(validTransaction, validParamsSchema, options);
 
 			// Assert
-			expect(minFee).not.toBeUndefined();
+			expect(minFee).toBeDefined();
 			expect(minFee).toMatchSnapshot();
 		});
 
@@ -138,7 +138,7 @@ describe('fee', () => {
 			);
 
 			// Assert
-			expect(minFee).not.toBeUndefined();
+			expect(minFee).toBeDefined();
 			expect(minFee).toMatchSnapshot();
 		});
 	});

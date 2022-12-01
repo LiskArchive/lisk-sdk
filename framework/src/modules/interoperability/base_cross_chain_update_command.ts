@@ -34,7 +34,7 @@ import { ChainValidatorsStore } from './stores/chain_validators';
 import { ChannelDataStore } from './stores/channel_data';
 
 export abstract class BaseCrossChainUpdateCommand<
-	T extends BaseInteroperabilityInternalMethod
+	T extends BaseInteroperabilityInternalMethod,
 > extends BaseInteroperabilityCommand<T> {
 	public schema = crossChainUpdateTransactionParams;
 

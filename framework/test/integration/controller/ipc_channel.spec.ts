@@ -49,17 +49,17 @@ describe.skip('IPCChannel', () => {
 		namespace: 'alphaName',
 		logger,
 		events: ['alpha1', 'alpha2'],
-		endpoints: ({
+		endpoints: {
 			multiplyByTwo: (params: any) => params.val * 2,
 			multiplyByThree: (params: any) => params.val * 3,
-		} as unknown) as EndpointHandlers,
+		} as unknown as EndpointHandlers,
 	};
 
 	const beta = {
 		namespace: 'betaName',
 		logger,
 		events: ['beta1', 'beta2', 'beta3'],
-		endpoints: ({
+		endpoints: {
 			divideByTwo: (params: any) => params.val / 2,
 			divideByThree: (params: any) => params.val / 3,
 			withError: (params: any) => {
@@ -68,7 +68,7 @@ describe.skip('IPCChannel', () => {
 				}
 				return 0;
 			},
-		} as unknown) as EndpointHandlers,
+		} as unknown as EndpointHandlers,
 	};
 
 	describe('after registering itself to the bus', () => {

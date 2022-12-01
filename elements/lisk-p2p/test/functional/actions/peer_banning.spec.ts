@@ -91,7 +91,7 @@ describe('Peer banning mechanism', () => {
 		});
 
 		it(`should fire ${EVENT_BAN_PEER} event with peerId`, () => {
-			expect(collectedEvents.get('EVENT_BAN_PEER')).toEqual(`${badPeer.ipAddress}:${badPeer.port}`);
+			expect(collectedEvents.get('EVENT_BAN_PEER')).toBe(`${badPeer.ipAddress}:${badPeer.port}`);
 		});
 
 		it('should add Peer IP address into PeerBook BannedIPs', () => {

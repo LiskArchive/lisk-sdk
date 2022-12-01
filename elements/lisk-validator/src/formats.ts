@@ -54,7 +54,8 @@ export const encryptedPassphrase = isEncryptedPassphrase;
 export const ip = isIP;
 
 export const ipOrFQDN = (data: string): boolean => {
-	const hostnameRegex = /^[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?(\.[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?)*$/;
+	const hostnameRegex =
+		/^[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?(\.[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?)*$/;
 	return isIPV4(data) || hostnameRegex.test(data);
 };
 

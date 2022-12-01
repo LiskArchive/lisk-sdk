@@ -531,7 +531,7 @@ describe('generator', () => {
 				height: 2,
 			});
 
-			expect(block.header.impliesMaxPrevotes).toEqual(true);
+			expect(block.header.impliesMaxPrevotes).toBe(true);
 		});
 
 		it('should assign assetRoot to the block', async () => {

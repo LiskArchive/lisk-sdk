@@ -182,9 +182,10 @@ describe('Liveness termination command', () => {
 				transaction,
 			});
 
-			commandExecuteContext = transactionContext.createCommandExecuteContext<TerminateSidehchainForLivenessParams>(
-				terminateSidechainForLivenessParamsSchema,
-			);
+			commandExecuteContext =
+				transactionContext.createCommandExecuteContext<TerminateSidehchainForLivenessParams>(
+					terminateSidechainForLivenessParamsSchema,
+				);
 			jest.spyOn(interopMod['internalMethod'], 'terminateChainInternal').mockResolvedValue();
 		});
 

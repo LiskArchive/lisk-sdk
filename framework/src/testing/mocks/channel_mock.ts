@@ -15,7 +15,7 @@
 
 import { BaseChannel } from '../../controller/channels';
 
-export const channelMock = ({
+export const channelMock = {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	publish: (_name: string, _data?: Record<string, unknown>): void => {},
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -32,5 +32,5 @@ export const channelMock = ({
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	subscribe: (_event: string): void => {},
 	invoke: async <T = unknown>(_name: string, _params?: Record<string, unknown>): Promise<T> =>
-		Promise.resolve(({} as unknown) as T),
-} as unknown) as BaseChannel;
+		Promise.resolve({} as unknown as T),
+} as unknown as BaseChannel;

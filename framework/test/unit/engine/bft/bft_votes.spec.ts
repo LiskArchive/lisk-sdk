@@ -109,7 +109,7 @@ describe('BFT votes', () => {
 			);
 
 			expect(bftVotes.blockBFTInfos).toHaveLength(5);
-			expect(bftVotes.blockBFTInfos[0].height).toEqual(152);
+			expect(bftVotes.blockBFTInfos[0].height).toBe(152);
 		});
 
 		it('should not increase the size of bftBlockInfo if exceeds bftBlockInfo', () => {
@@ -124,7 +124,7 @@ describe('BFT votes', () => {
 			);
 
 			expect(bftVotes.blockBFTInfos).toHaveLength(3);
-			expect(bftVotes.blockBFTInfos[0].height).toEqual(152);
+			expect(bftVotes.blockBFTInfos[0].height).toBe(152);
 		});
 
 		it('should add to the bftBlockInfo if there is a space', () => {
@@ -139,7 +139,7 @@ describe('BFT votes', () => {
 			);
 
 			expect(bftVotes.blockBFTInfos).toHaveLength(5);
-			expect(bftVotes.blockBFTInfos[0].height).toEqual(152);
+			expect(bftVotes.blockBFTInfos[0].height).toBe(152);
 		});
 	});
 
@@ -154,7 +154,7 @@ describe('BFT votes', () => {
 				}),
 				5,
 			);
-			expect(getHeightNotPrevoted(bftVotes)).toEqual(149);
+			expect(getHeightNotPrevoted(bftVotes)).toBe(149);
 		});
 
 		it('should return the maxHeight generated when the latest block has smaller maxHeightGenerated', () => {
@@ -167,7 +167,7 @@ describe('BFT votes', () => {
 				}),
 				5,
 			);
-			expect(getHeightNotPrevoted(bftVotes)).toEqual(149);
+			expect(getHeightNotPrevoted(bftVotes)).toBe(149);
 		});
 
 		it('should return the (minimum height - 1) when the generator earliest forged is out of BFT range', () => {
@@ -180,7 +180,7 @@ describe('BFT votes', () => {
 				}),
 				5,
 			);
-			expect(getHeightNotPrevoted(bftVotes)).toEqual(147);
+			expect(getHeightNotPrevoted(bftVotes)).toBe(147);
 		});
 	});
 
@@ -274,7 +274,7 @@ describe('BFT votes', () => {
 			expect(
 				bftVotes.activeValidatorsVoteInfo.find(a => a.address.equals(accounts[0]))
 					?.largestHeightPrecommit,
-			).toEqual(149);
+			).toBe(149);
 		});
 
 		it('should update largestHeightPrecommit for the account which made highest precommit', async () => {
@@ -292,15 +292,15 @@ describe('BFT votes', () => {
 			expect(
 				bftVotes.activeValidatorsVoteInfo.find(a => a.address.equals(accounts[0]))
 					?.largestHeightPrecommit,
-			).toEqual(149);
+			).toBe(149);
 			expect(
 				bftVotes.activeValidatorsVoteInfo.find(a => a.address.equals(accounts[1]))
 					?.largestHeightPrecommit,
-			).toEqual(0);
+			).toBe(0);
 			expect(
 				bftVotes.activeValidatorsVoteInfo.find(a => a.address.equals(accounts[2]))
 					?.largestHeightPrecommit,
-			).toEqual(0);
+			).toBe(0);
 		});
 
 		it('should not increment the prevote where already prevoted', async () => {
@@ -372,7 +372,7 @@ describe('BFT votes', () => {
 			);
 			paramsCache = new BFTParametersCache(paramsStore);
 			await expect(updateMaxHeightPrevoted(bftVotes, paramsCache)).toResolve();
-			expect(bftVotes.maxHeightPrevoted).toEqual(149);
+			expect(bftVotes.maxHeightPrevoted).toBe(149);
 		});
 
 		it('should not update maxHeightPrevoted if no block info exceeds threshold', async () => {
@@ -410,7 +410,7 @@ describe('BFT votes', () => {
 			);
 			paramsCache = new BFTParametersCache(paramsStore);
 			await expect(updateMaxHeightPrevoted(bftVotes, paramsCache)).toResolve();
-			expect(bftVotes.maxHeightPrevoted).toEqual(103);
+			expect(bftVotes.maxHeightPrevoted).toBe(103);
 		});
 	});
 
@@ -452,7 +452,7 @@ describe('BFT votes', () => {
 			);
 			paramsCache = new BFTParametersCache(paramsStore);
 			await expect(updateMaxHeightPrecommitted(bftVotes, paramsCache)).toResolve();
-			expect(bftVotes.maxHeightPrecommitted).toEqual(148);
+			expect(bftVotes.maxHeightPrecommitted).toBe(148);
 		});
 
 		it('should not update maxHeightPrevoted if no block info exceeds threshold', async () => {
@@ -490,7 +490,7 @@ describe('BFT votes', () => {
 			);
 			paramsCache = new BFTParametersCache(paramsStore);
 			await expect(updateMaxHeightPrecommitted(bftVotes, paramsCache)).toResolve();
-			expect(bftVotes.maxHeightPrecommitted).toEqual(56);
+			expect(bftVotes.maxHeightPrecommitted).toBe(56);
 		});
 	});
 
@@ -508,7 +508,7 @@ describe('BFT votes', () => {
 				}),
 			);
 
-			expect(bftVotes.maxHeightCertified).toEqual(10);
+			expect(bftVotes.maxHeightCertified).toBe(10);
 		});
 
 		it('should not update maxHeightCertified when aggregateCommit is empty', () => {
@@ -524,7 +524,7 @@ describe('BFT votes', () => {
 				}),
 			);
 
-			expect(bftVotes.maxHeightCertified).toEqual(5);
+			expect(bftVotes.maxHeightCertified).toBe(5);
 		});
 	});
 });

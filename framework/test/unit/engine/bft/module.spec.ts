@@ -34,7 +34,7 @@ describe('bft module', () => {
 		it('should initialize config with given value', async () => {
 			await expect(bftModule.init(20, 0, 10)).toResolve();
 
-			expect(bftModule['_batchSize']).toEqual(20);
+			expect(bftModule['_batchSize']).toBe(20);
 		});
 	});
 
