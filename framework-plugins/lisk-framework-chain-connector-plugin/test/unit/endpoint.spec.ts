@@ -54,6 +54,10 @@ describe('getSentCCUs', () => {
 			},
 		},
 		modules: {},
+		legacy: {
+			brackets: [],
+			sync: false,
+		},
 	};
 
 	const validators = [
