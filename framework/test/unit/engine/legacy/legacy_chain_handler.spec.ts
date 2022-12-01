@@ -14,9 +14,6 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { Database } from '@liskhq/lisk-db';
-import * as path from 'path';
-import * as fs from 'fs';
 import { codec } from '@liskhq/lisk-codec';
 import { LegacyConfig } from '../../../../src';
 import { LegacyChainHandler } from '../../../../src/engine/legacy/legacy_chain_handler';
@@ -35,8 +32,6 @@ describe('Legacy Chain Handler', () => {
 	let legacyConfig: LegacyConfig;
 	let peers: Peer[];
 	let network: Network;
-	const dir = path.join(__dirname, 'legacy.db');
-	const db = new Database(dir);
 	let legacyBlock16270316: LegacyBlock;
 
 	beforeEach(async () => {
@@ -77,7 +72,9 @@ describe('Legacy Chain Handler', () => {
 		network.applyNodeInfo = jest.fn();
 
 		legacyChainHandler = new LegacyChainHandler({ legacyConfig, network });
-		await legacyChainHandler.init({ db });
+		await legacyChainHandler.init({
+			db: { get: jest.fn(), write: jest.fn(), set: jest.fn() } as never,
+		});
 
 		jest.spyOn(legacyChainHandler['_network'], 'getConnectedPeers').mockImplementation(() => {
 			return peers as any;
@@ -118,11 +115,6 @@ describe('Legacy Chain Handler', () => {
 			.mockReturnValueOnce({
 				data: [],
 			} as any);
-	});
-
-	afterAll(() => {
-		db.close();
-		fs.rmdirSync(dir, { recursive: true });
 	});
 
 	describe('constructor', () => {

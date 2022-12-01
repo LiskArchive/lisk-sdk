@@ -252,9 +252,7 @@ export class Transaction {
 		return this.toJSON(signedTx);
 	}
 
-	public async send(
-		transaction: DecodedTransactionJSON,
-	): Promise<{
+	public async send(transaction: DecodedTransactionJSON): Promise<{
 		transactionId: string;
 	}> {
 		const decodedTx = this.fromJSON(transaction);

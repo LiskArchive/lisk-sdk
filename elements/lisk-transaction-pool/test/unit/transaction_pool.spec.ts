@@ -35,8 +35,8 @@ describe('TransactionPool class', () => {
 	describe('constructor', () => {
 		describe('when only applyTransaction is given', () => {
 			it('should set default values', () => {
-				expect((transactionPool as any)._maxTransactions).toEqual(4096);
-				expect((transactionPool as any)._maxTransactionsPerAccount).toEqual(64);
+				expect((transactionPool as any)._maxTransactions).toBe(4096);
+				expect((transactionPool as any)._maxTransactionsPerAccount).toBe(64);
 				expect((transactionPool as any)._minEntranceFeePriority).toEqual(BigInt(0));
 				expect((transactionPool as any)._minReplacementFeeDifference).toEqual(BigInt(10));
 				expect((transactionPool as any)._transactionExpiryTime).toEqual(3 * 60 * 60 * 1000);
@@ -55,8 +55,8 @@ describe('TransactionPool class', () => {
 					maxPayloadLength: 15360,
 				});
 
-				expect((transactionPool as any)._maxTransactions).toEqual(2048);
-				expect((transactionPool as any)._maxTransactionsPerAccount).toEqual(32);
+				expect((transactionPool as any)._maxTransactions).toBe(2048);
+				expect((transactionPool as any)._maxTransactionsPerAccount).toBe(32);
 				expect((transactionPool as any)._minEntranceFeePriority).toEqual(BigInt(10));
 				expect((transactionPool as any)._minReplacementFeeDifference).toEqual(BigInt(100));
 				expect((transactionPool as any)._transactionExpiryTime).toEqual(60 * 60 * 1000);
@@ -165,9 +165,11 @@ describe('TransactionPool class', () => {
 				.get(cryptoAddress.getAddressFromPublicKey(senderPublicKeys[1]))
 				.promote([txs[3]]);
 			// Force to make it unprocessable
-			(transactionPool['_transactionList'].get(
-				cryptoAddress.getAddressFromPublicKey(senderPublicKeys[2]),
-			) as TransactionList)['_demoteAfter'](BigInt(0));
+			(
+				transactionPool['_transactionList'].get(
+					cryptoAddress.getAddressFromPublicKey(senderPublicKeys[2]),
+				) as TransactionList
+			)['_demoteAfter'](BigInt(0));
 		});
 
 		it('should return copy of processable transactions list', () => {
@@ -180,9 +182,9 @@ describe('TransactionPool class', () => {
 			);
 
 			expect(transactionFromSender0).toHaveLength(1);
-			expect((transactionFromSender0 as Transaction[])[0].nonce.toString()).toEqual('1');
+			expect((transactionFromSender0 as Transaction[])[0].nonce.toString()).toBe('1');
 			expect(transactionFromSender1).toHaveLength(1);
-			expect((transactionFromSender1 as Transaction[])[0].nonce.toString()).toEqual('1');
+			expect((transactionFromSender1 as Transaction[])[0].nonce.toString()).toBe('1');
 			// Check if it is a copy
 			processableTransactions.delete(cryptoAddress.getAddressFromPublicKey(senderPublicKeys[0]));
 			(processableTransactions as any).get(
@@ -193,7 +195,7 @@ describe('TransactionPool class', () => {
 				(transactionPool as any)._transactionList.get(
 					cryptoAddress.getAddressFromPublicKey(senderPublicKeys[0]),
 				),
-			).not.toBeUndefined();
+			).toBeDefined();
 			expect(
 				transactionPool
 					.getProcessableTransactions()
@@ -241,7 +243,7 @@ describe('TransactionPool class', () => {
 
 			// Arrange & Assert
 			expect(status).toEqual(Status.OK);
-			expect(transactionPool['_allTransactions'].has(Buffer.from('1'))).toEqual(true);
+			expect(transactionPool['_allTransactions'].has(Buffer.from('1'))).toBe(true);
 
 			const originalTrxObj =
 				transactionPool['_transactionList']
@@ -267,7 +269,7 @@ describe('TransactionPool class', () => {
 
 			// Assert
 			expect(status).toEqual(Status.OK);
-			expect(transactionPool['_allTransactions'].has(Buffer.from('1'))).toEqual(true);
+			expect(transactionPool['_allTransactions'].has(Buffer.from('1'))).toBe(true);
 
 			const originalTrxObj =
 				transactionPool['_transactionList']
@@ -309,7 +311,7 @@ describe('TransactionPool class', () => {
 			// Assert
 			expect(transactionPool['_getStatus']).toHaveReturnedWith(TransactionStatus.INVALID);
 			expect(result.status).toEqual(Status.FAIL);
-			expect(result.error?.message).toEqual('Invalid transaction');
+			expect(result.error?.message).toBe('Invalid transaction');
 		});
 
 		it('should throw when a transaction is invalid but not include higher nonce error', async () => {
@@ -325,7 +327,7 @@ describe('TransactionPool class', () => {
 			// Assert
 			expect(transactionPool['_getStatus']).toHaveReturnedWith(TransactionStatus.INVALID);
 			expect(result.status).toEqual(Status.FAIL);
-			expect(result.error?.message).toEqual('Invalid transaction');
+			expect(result.error?.message).toBe('Invalid transaction');
 		});
 
 		it('should reject a transaction with lower fee than minEntranceFee', async () => {
@@ -629,7 +631,7 @@ describe('TransactionPool class', () => {
 				senderPublicKey: generateRandomPublicKeys()[0],
 			} as Transaction;
 			const removeStatus = transactionPool.remove(nonExistentTrx);
-			expect(removeStatus).toEqual(false);
+			expect(removeStatus).toBe(false);
 		});
 
 		it('should remove the transaction from _allTransactions, _transactionList and _feePriorityQueue', () => {
@@ -642,7 +644,7 @@ describe('TransactionPool class', () => {
 
 			// Remove the above transaction
 			const removeStatus = transactionPool.remove(tx);
-			expect(removeStatus).toEqual(true);
+			expect(removeStatus).toBe(true);
 			expect(transactionPool.getAll()).toHaveLength(1);
 			expect(
 				transactionPool['_transactionList']
@@ -898,16 +900,10 @@ describe('TransactionPool class', () => {
 
 			jest.advanceTimersByTime(2);
 			// Assert
-			expect(
-				transactionPool['_allTransactions'].get(transactionsFromSender1[0].id),
-			).not.toBeUndefined();
+			expect(transactionPool['_allTransactions'].get(transactionsFromSender1[0].id)).toBeDefined();
 			// Unprocessable trx should not be removed
-			expect(
-				transactionPool['_allTransactions'].get(transactionsFromSender1[1].id),
-			).not.toBeUndefined();
-			expect(
-				transactionPool['_allTransactions'].get(transactionsFromSender1[2].id),
-			).not.toBeUndefined();
+			expect(transactionPool['_allTransactions'].get(transactionsFromSender1[1].id)).toBeDefined();
+			expect(transactionPool['_allTransactions'].get(transactionsFromSender1[2].id)).toBeDefined();
 			// Unprocessable trx should not be promoted
 			expect(
 				transactionPool

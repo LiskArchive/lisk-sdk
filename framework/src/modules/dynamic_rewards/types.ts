@@ -46,9 +46,7 @@ export interface ValidatorsMethod {
 		startTimestamp: number,
 		endTimestamp: number,
 	): Promise<Record<string, number>>;
-	getValidatorsParams(
-		methodContext: ImmutableMethodContext,
-	): Promise<{
+	getValidatorsParams(methodContext: ImmutableMethodContext): Promise<{
 		preCommitThreshold: bigint;
 		certificateThreshold: bigint;
 		validators: Validator[];

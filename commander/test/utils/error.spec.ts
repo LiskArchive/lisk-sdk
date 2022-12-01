@@ -30,7 +30,7 @@ describe('error utils', () => {
 		});
 
 		it('the error should have the name "FileSystemError"', () => {
-			return expect(error.name).toEqual('FileSystemError');
+			return expect(error.name).toBe('FileSystemError');
 		});
 
 		it('the error should be an instance of Node’s built-in Error', () => {
@@ -49,7 +49,7 @@ describe('error utils', () => {
 		});
 
 		it('the error should have the name "ValidationError"', () => {
-			return expect(error.name).toEqual('ValidationError');
+			return expect(error.name).toBe('ValidationError');
 		});
 
 		it('the error should be an instance of Node’s built-in Error', () => {

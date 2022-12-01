@@ -52,7 +52,7 @@ describe('Legacy endpoint', () => {
 			expect(block.header.generatorPublicKey).toEqual(
 				bufferToHex(blockFixtures[0].header.generatorPublicKey),
 			);
-			expect(BigInt(block.header.reward)).toEqual(blockFixtures[0].header.reward);
+			expect(BigInt(block.header.reward as number)).toEqual(blockFixtures[0].header.reward);
 			expect(block.header.asset).toEqual(bufferToHex(blockFixtures[0].header.asset));
 			expect(block.header.signature).toEqual(bufferToHex(blockFixtures[0].header.signature));
 

@@ -81,18 +81,18 @@ export abstract class BaseChannel {
 	// Listen to any event happening in the application
 	// Specified as moduleName_eventName
 	// If its related to your own moduleName specify as :eventName
-	abstract subscribe(eventName: string, cb: EventCallback): void;
-	abstract unsubscribe(eventName: string, cb: EventCallback): void;
+	public abstract subscribe(eventName: string, cb: EventCallback): void;
+	public abstract unsubscribe(eventName: string, cb: EventCallback): void;
 
 	// Publish the event on the channel
 	// Specified as moduleName_eventName
 	// If its related to your own moduleName specify as :eventName
-	abstract publish(eventName: string, data?: Record<string, unknown>): void;
+	public abstract publish(eventName: string, data?: Record<string, unknown>): void;
 
 	// Call action of any moduleName through controller
 	// Specified as moduleName_actionName
-	abstract invoke<T>(req: InvokeRequest): Promise<T>;
+	public abstract invoke<T>(req: InvokeRequest): Promise<T>;
 
-	abstract registerToBus(arg: unknown): Promise<void>;
-	abstract once(eventName: string, cb: EventCallback): void;
+	public abstract registerToBus(arg: unknown): Promise<void>;
+	public abstract once(eventName: string, cb: EventCallback): void;
 }

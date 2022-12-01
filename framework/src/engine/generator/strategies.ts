@@ -80,16 +80,14 @@ export class HighFeeGenerationStrategy {
 				if (verifyResult !== TransactionVerifyResult.OK) {
 					throw new Error('Transaction is not valid');
 				}
-				const {
-					events: executedEvents,
-					result: executeResult,
-				} = await this._abi.executeTransaction({
-					contextID,
-					header: header.toObject(),
-					transaction: lowestNonceHighestFeeTrx.toObject(),
-					assets: assets.getAll(),
-					dryRun: false,
-				});
+				const { events: executedEvents, result: executeResult } =
+					await this._abi.executeTransaction({
+						contextID,
+						header: header.toObject(),
+						transaction: lowestNonceHighestFeeTrx.toObject(),
+						assets: assets.getAll(),
+						dryRun: false,
+					});
 				if (executeResult === TransactionExecutionResult.INVALID) {
 					this._pool.remove(lowestNonceHighestFeeTrx);
 					throw new Error('Transaction is not valid');

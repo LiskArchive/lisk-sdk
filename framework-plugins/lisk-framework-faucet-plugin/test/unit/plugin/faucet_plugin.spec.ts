@@ -81,7 +81,7 @@ describe('FaucetPlugin', () => {
 				logger,
 			});
 
-			expect(plugin.config.tokenPrefix).toEqual('myToken');
+			expect(plugin.config.tokenPrefix).toBe('myToken');
 		});
 
 		it('should load custom config values', async () => {

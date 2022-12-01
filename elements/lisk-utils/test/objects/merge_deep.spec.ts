@@ -21,10 +21,10 @@ describe('mergeDeep', () => {
 			{ a: 3, d: 'string', e: { nested: BigInt(4) } },
 		) as any;
 
-		expect(result.a).toEqual(3);
-		expect(result.b).toEqual(true);
+		expect(result.a).toBe(3);
+		expect(result.b).toBe(true);
 		expect(result.c).toEqual(Buffer.from('123'));
-		expect(result.d).toEqual('string');
+		expect(result.d).toBe('string');
 		expect(result.e).toEqual({ nested: BigInt(4) });
 	});
 
@@ -37,7 +37,7 @@ describe('mergeDeep', () => {
 		}) as any;
 
 		expect(before.a).toBeUndefined();
-		expect(result.b).toEqual(true);
+		expect(result.b).toBe(true);
 		expect(result.c).toEqual(Buffer.from('123'));
 	});
 
@@ -48,11 +48,11 @@ describe('mergeDeep', () => {
 			{ a: 3, d: 'string', e: { nested: BigInt(4) }, f: undefined },
 		) as any;
 
-		expect(result.a).toEqual(3);
-		expect(result.b).toEqual(true);
+		expect(result.a).toBe(3);
+		expect(result.b).toBe(true);
 		expect(result.c).toEqual(Buffer.from('123'));
-		expect(result.d).toEqual('string');
+		expect(result.d).toBe('string');
 		expect(result.e).toEqual({ nested: BigInt(4) });
-		expect(result.f).toEqual(99);
+		expect(result.f).toBe(99);
 	});
 });

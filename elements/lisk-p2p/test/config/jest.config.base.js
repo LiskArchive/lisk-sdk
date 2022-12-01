@@ -18,15 +18,15 @@ module.exports = {
 	collectCoverage: false,
 	coverageReporters: ['json'],
 	rootDir: '../../',
-	globals: {
-		'ts-jest': {
-			tsconfig: './test/tsconfig.json',
-		},
-	},
 	setupFilesAfterEnv: ['<rootDir>/test/config/setup.js'],
 	collectCoverageFrom: ['<rootDir>/src/**'],
 	transform: {
-		'^.+\\.(ts|tsx)$': 'ts-jest',
+		'^.+\\.(ts|tsx)$': [
+			'ts-jest',
+			{
+				tsconfig: '<rootDir>/test/tsconfig.json',
+			},
+		],
 	},
 	/**
 	 * restoreMocks [boolean]

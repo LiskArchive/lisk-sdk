@@ -129,11 +129,8 @@ const MainPage: React.FC = () => {
 	const [confirmedTransactions, setConfirmedTransactions, confirmedTransactionsRef] = useRefState<
 		Transaction[]
 	>([]);
-	const [
-		unconfirmedTransactions,
-		setUnconfirmedTransactions,
-		unconfirmedTransactionsRef,
-	] = useRefState<Transaction[]>([]);
+	const [unconfirmedTransactions, setUnconfirmedTransactions, unconfirmedTransactionsRef] =
+		useRefState<Transaction[]>([]);
 	const [events, setEvents] = React.useState<string[]>([]);
 	const [eventsData, setEventsData, eventsDataRef] = useRefState<EventData[]>([]);
 	const [eventSubscriptionList, setEventSubscriptionList, eventSubscriptionListRef] = useRefState<
@@ -224,7 +221,7 @@ const MainPage: React.FC = () => {
 	};
 
 	const generateNewAccount = () => {
-		const accountPassphrase = (passphrase.Mnemonic.generateMnemonic() as unknown) as string;
+		const accountPassphrase = passphrase.Mnemonic.generateMnemonic() as unknown as string;
 		const keys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(accountPassphrase);
 		const address = cryptography.address.getAddressFromPublicKey(keys.publicKey);
 		const lisk32Address = cryptography.address.getLisk32AddressFromAddress(address);

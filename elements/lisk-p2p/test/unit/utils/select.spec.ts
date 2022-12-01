@@ -494,8 +494,8 @@ describe('peer selector', () => {
 					}
 				}
 
-				expect(triedCount).toEqual(25);
-				expect(newCount).toEqual(25);
+				expect(triedCount).toBe(25);
+				expect(newCount).toBe(25);
 			});
 
 			it('should return only new peer list', () => {
@@ -524,8 +524,8 @@ describe('peer selector', () => {
 					}
 				}
 
-				expect(triedCount).toEqual(0);
-				expect(newCount).toEqual(50);
+				expect(triedCount).toBe(0);
+				expect(newCount).toBe(50);
 			});
 		});
 

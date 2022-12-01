@@ -125,10 +125,10 @@ export class Transaction {
 	}
 
 	public getSigningBytes(): Buffer {
-		const transactionBytes = codec.encode(transactionSchema, ({
+		const transactionBytes = codec.encode(transactionSchema, {
 			...this,
 			signatures: [],
-		} as unknown) as Record<string, unknown>);
+		} as unknown as Record<string, unknown>);
 
 		return transactionBytes;
 	}

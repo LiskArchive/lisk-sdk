@@ -118,7 +118,7 @@ describe('bft utils', () => {
 			expect(bftProps.generatorAddress).toEqual(header.generatorAddress);
 			expect(bftProps.maxHeightGenerated).toEqual(header.maxHeightGenerated);
 			expect(bftProps.maxHeightPrevoted).toEqual(header.maxHeightPrevoted);
-			expect(bftProps.maxHeightPrevoted).toEqual(0);
+			expect(bftProps.maxHeightPrevoted).toBe(0);
 			expect(bftProps.precommitWeight).toEqual(BigInt(0));
 		});
 	});

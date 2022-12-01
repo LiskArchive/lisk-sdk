@@ -13,6 +13,7 @@
  *
  */
 
-require('jest-extended');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const matchers = require('jest-extended');
 
-process.env.NODE_ENV = 'test';
+expect.extend(matchers);

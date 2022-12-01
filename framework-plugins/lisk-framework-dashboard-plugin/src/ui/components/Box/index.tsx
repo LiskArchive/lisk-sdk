@@ -32,22 +32,8 @@ interface BoxProp extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const Box: React.FC<BoxProp> = props => {
-	const {
-		mt,
-		mb,
-		ml,
-		mr,
-		pt,
-		pb,
-		pl,
-		pr,
-		textAlign,
-		showDown,
-		showUp,
-		hideUp,
-		hideDown,
-		...rest
-	} = props;
+	const { mt, mb, ml, mr, pt, pb, pl, pr, textAlign, showDown, showUp, hideUp, hideDown, ...rest } =
+		props;
 
 	if ([mt, mb, ml, mr, pt, pb, pl, pr].filter(Boolean).some(i => (i as number) < 1)) {
 		throw new Error('Box margin, padding values can not be less than 1');

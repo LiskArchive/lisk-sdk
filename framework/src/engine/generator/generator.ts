@@ -394,9 +394,9 @@ export class Generator {
 	private async _getUnconfirmedTransactionsFromNetwork(): Promise<void> {
 		this._logger.info('Loading transactions from the network');
 
-		const { data } = ((await this._network.request({
+		const { data } = (await this._network.request({
 			procedure: NETWORK_RPC_GET_TRANSACTIONS,
-		})) as unknown) as {
+		})) as unknown as {
 			data: Buffer;
 		};
 		const transactionResponse = codec.decode<GetTransactionResponse>(
@@ -546,10 +546,8 @@ export class Generator {
 			blockEvents.push(...txEvents);
 			transactions = executedTxs;
 		} else {
-			const {
-				transactions: executedTxs,
-				events: txEvents,
-			} = await this._forgingStrategy.getTransactionsForBlock(contextID, blockHeader, blockAssets);
+			const { transactions: executedTxs, events: txEvents } =
+				await this._forgingStrategy.getTransactionsForBlock(contextID, blockHeader, blockAssets);
 			blockEvents.push(...txEvents);
 			transactions = executedTxs;
 		}

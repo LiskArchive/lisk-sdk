@@ -203,7 +203,7 @@ export class ABIServer {
 						},
 						result:
 							Object.keys(handler.response.properties).length > 0
-								? codec.encode(handler.response, resp)
+								? codec.encode(handler.response, resp as Record<string, unknown>)
 								: Buffer.alloc(0),
 					}),
 				]);

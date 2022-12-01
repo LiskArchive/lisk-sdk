@@ -52,9 +52,9 @@ describe('network', () => {
 						nonce: 'nonce1',
 					},
 				];
-				network['_p2p'] = ({
+				network['_p2p'] = {
 					getConnectedPeers: jest.fn().mockReturnValue(expected),
-				} as unknown) as P2P;
+				} as unknown as P2P;
 
 				const peers = network.getConnectedPeers();
 
@@ -80,9 +80,9 @@ describe('network', () => {
 						},
 					},
 				];
-				network['_p2p'] = ({
+				network['_p2p'] = {
 					getConnectedPeers: jest.fn().mockReturnValue(expected),
-				} as unknown) as P2P;
+				} as unknown as P2P;
 
 				const peers = network.getConnectedPeers();
 
@@ -111,9 +111,9 @@ describe('network', () => {
 						nonce: 'nonce1',
 					},
 				];
-				network['_p2p'] = ({
+				network['_p2p'] = {
 					getDisconnectedPeers: jest.fn().mockReturnValue(expected),
-				} as unknown) as P2P;
+				} as unknown as P2P;
 
 				const peers = network.getDisconnectedPeers();
 
@@ -139,9 +139,9 @@ describe('network', () => {
 						},
 					},
 				];
-				network['_p2p'] = ({
+				network['_p2p'] = {
 					getDisconnectedPeers: jest.fn().mockReturnValue(expected),
-				} as unknown) as P2P;
+				} as unknown as P2P;
 
 				const peers = network.getDisconnectedPeers();
 

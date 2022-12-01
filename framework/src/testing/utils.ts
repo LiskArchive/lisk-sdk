@@ -34,7 +34,7 @@ export const waitUntilBlockHeight = async ({
 		}
 
 		apiClient.subscribe(EVENT_CHAIN_BLOCK_NEW, data => {
-			const { block } = (data as unknown) as Data;
+			const { block } = data as unknown as Data;
 			const { header } = apiClient.block.decode(block);
 
 			if (header.height >= height) {

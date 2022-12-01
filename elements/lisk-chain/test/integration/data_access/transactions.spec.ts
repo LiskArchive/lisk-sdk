@@ -56,7 +56,6 @@ describe('dataAccess.transactions', () => {
 			try {
 				await dataAccess.getTransactionByID(Buffer.from('randomId'));
 			} catch (error) {
-				// eslint-disable-next-line jest/no-try-expect
 				expect(error).toBeInstanceOf(NotFoundError);
 			}
 		});

@@ -161,7 +161,7 @@ describe('UsedHashOnionStore', () => {
 				filteredUsedHashOnions.usedHashOnions,
 			);
 
-			expect(usedHashOnionStore['_filterUsedHashOnions']).toBeCalledTimes(1);
+			expect(usedHashOnionStore['_filterUsedHashOnions']).toHaveBeenCalledTimes(1);
 			expect(usedHashOnionStore['_filterUsedHashOnions']).toHaveBeenCalledWith(
 				filteredUsedHashOnions.usedHashOnions,
 				6,

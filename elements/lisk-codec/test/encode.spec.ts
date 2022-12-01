@@ -81,7 +81,7 @@ describe('encode', () => {
 
 			const result = codec.encode(schema, { list: [] });
 
-			expect(result.toString('hex')).toEqual('');
+			expect(result.toString('hex')).toBe('');
 		});
 	});
 

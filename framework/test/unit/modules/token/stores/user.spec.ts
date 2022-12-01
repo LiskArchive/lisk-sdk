@@ -89,8 +89,8 @@ describe('UserStore', () => {
 
 			expect(setValue.availableBalance).toEqual(BigInt(100));
 			expect(setValue.lockedBalances).toHaveLength(2);
-			expect(setValue.lockedBalances[0].module).toEqual('chain');
-			expect(setValue.lockedBalances[1].module).toEqual('pos');
+			expect(setValue.lockedBalances[0].module).toBe('chain');
+			expect(setValue.lockedBalances[1].module).toBe('pos');
 		});
 
 		it('should removed zero locked balance element', async () => {
@@ -107,8 +107,8 @@ describe('UserStore', () => {
 
 			expect(setValue.availableBalance).toEqual(BigInt(100));
 			expect(setValue.lockedBalances).toHaveLength(2);
-			expect(setValue.lockedBalances[0].module).toEqual('chain');
-			expect(setValue.lockedBalances[1].module).toEqual('pos');
+			expect(setValue.lockedBalances[0].module).toBe('chain');
+			expect(setValue.lockedBalances[1].module).toBe('pos');
 		});
 	});
 

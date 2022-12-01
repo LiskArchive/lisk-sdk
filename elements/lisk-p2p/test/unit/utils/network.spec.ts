@@ -40,7 +40,7 @@ describe('utils/network', () => {
 	describe('#getIPGroup', () => {
 		it('should return first group when passing 0 in second argument', () => {
 			const byte = getIPGroup(IPv4Address, 0);
-			return expect(byte).toEqual(1);
+			return expect(byte).toBe(1);
 		});
 
 		it('should throw an error for second argument greater than 3', () => {

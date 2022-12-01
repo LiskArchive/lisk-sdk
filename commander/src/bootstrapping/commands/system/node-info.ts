@@ -29,7 +29,7 @@ export abstract class InfoCommand extends BaseIPCClientCommand {
 		}
 		try {
 			const nodeInfo = await this._client.node.getNodeInfo();
-			this.printJSON((nodeInfo as unknown) as Record<string, unknown>);
+			this.printJSON(nodeInfo as unknown as Record<string, unknown>);
 		} catch (errors) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const errorMessage = Array.isArray(errors)

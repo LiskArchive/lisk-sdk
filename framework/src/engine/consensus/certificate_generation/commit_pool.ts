@@ -328,10 +328,8 @@ export class CommitPool {
 			let aggregateBFTWeight = BigInt(0);
 
 			// Assume BFT parameters exist for next height
-			const {
-				validators: bftParamValidators,
-				certificateThreshold,
-			} = await this._bftMethod.getBFTParameters(methodContext, nextHeight);
+			const { validators: bftParamValidators, certificateThreshold } =
+				await this._bftMethod.getBFTParameters(methodContext, nextHeight);
 
 			for (const matchingAddress of nextValidators) {
 				const bftParamsValidatorInfo = bftParamValidators.find(bftParamValidator =>

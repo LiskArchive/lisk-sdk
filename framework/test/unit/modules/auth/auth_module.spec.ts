@@ -214,12 +214,12 @@ describe('AuthModule', () => {
 							storeKey: utils.getRandomBytes(20),
 							storeValue: {
 								numberOfSignatures: 36,
-								mandatoryKeys: Array.from({ length: 33 }, () =>
-									utils.getRandomBytes(32),
-								).sort((a, b) => b.compare(a)),
-								optionalKeys: Array.from({ length: 33 }, () =>
-									utils.getRandomBytes(32),
-								).sort((a, b) => b.compare(a)),
+								mandatoryKeys: Array.from({ length: 33 }, () => utils.getRandomBytes(32)).sort(
+									(a, b) => b.compare(a),
+								),
+								optionalKeys: Array.from({ length: 33 }, () => utils.getRandomBytes(32)).sort(
+									(a, b) => b.compare(a),
+								),
 								nonce: BigInt(1),
 							},
 						},

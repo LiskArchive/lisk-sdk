@@ -305,7 +305,7 @@ describe('generator endpoint', () => {
 				}),
 			).toResolve();
 
-			expect(abi.verifyTransaction).toBeCalledTimes(0);
+			expect(abi.verifyTransaction).toHaveBeenCalledTimes(0);
 		});
 
 		describe('when both verification is success & execution returns OK', () => {

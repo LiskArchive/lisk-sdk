@@ -3,3 +3,4 @@ jest.config.js
 types
 benchmark
 .eslintrc.js
+test/_setup.js
