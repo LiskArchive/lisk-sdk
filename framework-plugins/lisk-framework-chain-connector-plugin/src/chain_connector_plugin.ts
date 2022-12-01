@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { ChainStatus } from 'lisk-sdk';
 import {
 	BasePlugin,
 	PluginInitContext,
