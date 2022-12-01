@@ -30,16 +30,10 @@ export {
 	InboxJSON,
 	Outbox,
 	OutboxJSON,
-	MessageFeeTokenID,
-	MessageFeeTokenIDJSON,
 	InboxUpdate,
 	CrossChainUpdateTransactionParams,
 	ActiveValidator,
 	OutboxRootWitness,
 } from './types';
-export {
-	CHAIN_TERMINATED,
-	LIVENESS_LIMIT,
-	MESSAGE_TAG_CERTIFICATE,
-	CHAIN_ACTIVE,
-} from './constants';
+export { LIVENESS_LIMIT, MESSAGE_TAG_CERTIFICATE } from './constants';
+export { ChainStatus } from './stores/chain_account';

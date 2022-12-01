@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BFTValidator } from 'lisk-sdk';
+import { Validator } from '../../src/types';
 import { getActiveValidatorsDiff } from '../../src/utils';
 
 describe('getActiveValidatorsDiff', () => {
 	it('should aggregate new validators not existing in existing validators', () => {
-		const currentValidators: BFTValidator[] = [
+		const currentValidators: Validator[] = [
 			{
 				blsKey: Buffer.from('02', 'hex'),
 				bftWeight: BigInt(20),
@@ -25,7 +25,7 @@ describe('getActiveValidatorsDiff', () => {
 			},
 		];
 
-		const newValidators: BFTValidator[] = [
+		const newValidators: Validator[] = [
 			{
 				blsKey: Buffer.from('02', 'hex'),
 				bftWeight: BigInt(20),
@@ -43,7 +43,7 @@ describe('getActiveValidatorsDiff', () => {
 			},
 		];
 
-		const expectedValidators: BFTValidator[] = [
+		const expectedValidators: Validator[] = [
 			{
 				blsKey: Buffer.from('03', 'hex'),
 				bftWeight: BigInt(30),
@@ -62,7 +62,7 @@ describe('getActiveValidatorsDiff', () => {
 	});
 
 	it('should aggregate existing validators having blsKey not existing in new validators with bftWeight set to 0 and aggregating the new validator as well', () => {
-		const currentValidators: BFTValidator[] = [
+		const currentValidators: Validator[] = [
 			{
 				blsKey: Buffer.from('01', 'hex'),
 				bftWeight: BigInt(10),
@@ -75,7 +75,7 @@ describe('getActiveValidatorsDiff', () => {
 			},
 		];
 
-		const newValidators: BFTValidator[] = [
+		const newValidators: Validator[] = [
 			{
 				blsKey: Buffer.from('02', 'hex'),
 				bftWeight: BigInt(10),
@@ -83,7 +83,7 @@ describe('getActiveValidatorsDiff', () => {
 			},
 		];
 
-		const expectedValidators: BFTValidator[] = [
+		const expectedValidators: Validator[] = [
 			{
 				blsKey: Buffer.from('02', 'hex'),
 				bftWeight: BigInt(10),

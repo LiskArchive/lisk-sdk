@@ -15,7 +15,6 @@
 import {
 	Transaction,
 	chain,
-	BFTValidator,
 	AggregateCommit,
 	CCMsg,
 	ActiveValidator,
@@ -32,9 +31,15 @@ export interface ChainConnectorPluginConfig {
 export type SentCCUs = Transaction[];
 export type SentCCUsJSON = chain.TransactionJSON[];
 
+export interface Validator {
+	address: Buffer;
+	bftWeight: bigint;
+	blsKey: Buffer;
+}
+
 export interface ValidatorsData {
 	certificateThreshold: BigInt;
-	validators: BFTValidator[];
+	validators: Validator[];
 	validatorsHash: Buffer;
 }
 

@@ -24,9 +24,8 @@ import {
 	ApplicationConfigForPlugin,
 	GenesisConfig,
 	LIVENESS_LIMIT,
-	CHAIN_TERMINATED,
 	ChainAccount,
-	CHAIN_ACTIVE,
+	ChainStatus,
 	codec,
 } from 'lisk-sdk';
 import { when } from 'jest-when';
@@ -66,6 +65,10 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 		},
 	},
 	modules: {},
+	legacy: {
+		brackets: [],
+		sync: false,
+	},
 };
 
 describe('ChainConnectorPlugin', () => {
@@ -322,6 +325,7 @@ describe('ChainConnectorPlugin', () => {
 					'82743907d3beb8565638a5d82a8891a7142abfa5b6e3328ed7259efc7a66acd71617eef2ec50191d42027f8bfefa361f087b714981641231d312347393d20f01',
 					'hex',
 				),
+				impliesMaxPrevotes: true,
 				id: Buffer.from('f04938e16d894bcbbe71efcc2ef053ee5d149a4ecca099137398d70876afc164'),
 			},
 			transactions: [],
@@ -691,7 +695,7 @@ describe('ChainConnectorPlugin', () => {
 			const certificateBytes = Buffer.from('10');
 			const certificate = { height: 5 } as Certificate;
 			const blockHeader = {} as chain.BlockHeader;
-			const chainAccount = { status: CHAIN_TERMINATED } as ChainAccount;
+			const chainAccount = { status: ChainStatus.TERMINATED } as ChainAccount;
 			const sendingChainID = Buffer.from('01');
 
 			const result = await chainConnectorPlugin['_validateCertificate'](
@@ -709,7 +713,10 @@ describe('ChainConnectorPlugin', () => {
 			const certificateBytes = Buffer.from('10');
 			const certificate = { height: 5 } as Certificate;
 			const blockHeader = {} as chain.BlockHeader;
-			const chainAccout = { status: CHAIN_ACTIVE, lastCertificate: { height: 5 } } as ChainAccount;
+			const chainAccout = {
+				status: ChainStatus.ACTIVE,
+				lastCertificate: { height: 5 },
+			} as ChainAccount;
 			const sendingChainID = Buffer.from('01');
 
 			const result = await chainConnectorPlugin['_validateCertificate'](
@@ -731,7 +738,10 @@ describe('ChainConnectorPlugin', () => {
 			const certificateBytes = Buffer.from('10');
 			const certificate = { height: 5 } as Certificate;
 			const blockHeader = {} as chain.BlockHeader;
-			const chainAccount = { status: CHAIN_ACTIVE, lastCertificate: { height: 4 } } as ChainAccount;
+			const chainAccount = {
+				status: ChainStatus.ACTIVE,
+				lastCertificate: { height: 4 },
+			} as ChainAccount;
 			const sendingChainID = Buffer.from('01');
 
 			const result = await chainConnectorPlugin['_validateCertificate'](
@@ -753,7 +763,10 @@ describe('ChainConnectorPlugin', () => {
 			const certificateBytes = Buffer.from('10');
 			const certificate = { height: 5 } as Certificate;
 			const blockHeader = {} as chain.BlockHeader;
-			const chainAccount = { status: CHAIN_ACTIVE, lastCertificate: { height: 4 } } as ChainAccount;
+			const chainAccount = {
+				status: ChainStatus.ACTIVE,
+				lastCertificate: { height: 4 },
+			} as ChainAccount;
 			const sendingChainID = Buffer.from('01');
 
 			const result = await chainConnectorPlugin['_validateCertificate'](

@@ -14,17 +14,14 @@
 
 import {
 	AggregateCommit,
-	BFTValidator,
 	ChannelData,
 	ChannelDataJSON,
 	Inbox,
 	InboxJSON,
-	MessageFeeTokenID,
-	MessageFeeTokenIDJSON,
 	Outbox,
 	OutboxJSON,
 } from 'lisk-sdk';
-import { ValidatorsData } from './types';
+import { Validator, ValidatorsData } from './types';
 
 export const aggregateCommitToJSON = (aggregateCommit: AggregateCommit) => ({
 	height: aggregateCommit.height,
@@ -63,13 +60,8 @@ export const channelDataToJSON = (channelData: ChannelData) => {
 		size: outbox.size,
 	};
 
-	const messageFeeTokenIDJSON: MessageFeeTokenIDJSON = {
-		chainID: messageFeeTokenID.chainID.toString('hex'),
-		localID: messageFeeTokenID.localID.toString('hex'),
-	};
-
 	return {
-		messageFeeTokenID: messageFeeTokenIDJSON,
+		messageFeeTokenID,
 		outbox: outboxJSON,
 		inbox: inboxJSON,
 		partnerChainOutboxRoot: partnerChainOutboxRoot.toString('hex'),
@@ -91,13 +83,8 @@ export const channelDataJSONToObj = (channelData: ChannelDataJSON): ChannelData 
 		size: outbox.size,
 	};
 
-	const messageFeeTokenIDJSON: MessageFeeTokenID = {
-		chainID: Buffer.from(messageFeeTokenID.chainID, 'hex'),
-		localID: Buffer.from(messageFeeTokenID.localID, 'hex'),
-	};
-
 	return {
-		messageFeeTokenID: messageFeeTokenIDJSON,
+		messageFeeTokenID: Buffer.from(messageFeeTokenID, 'hex'),
 		outbox: outboxJSON,
 		inbox: inboxJSON,
 		partnerChainOutboxRoot: Buffer.from(partnerChainOutboxRoot, 'hex'),
@@ -105,10 +92,10 @@ export const channelDataJSONToObj = (channelData: ChannelDataJSON): ChannelData 
 };
 
 export const getActiveValidatorsDiff = (
-	currentValidators: BFTValidator[],
-	newValidators: BFTValidator[],
-): BFTValidator[] => {
-	const activeValidatorsUpdate: BFTValidator[] = [];
+	currentValidators: Validator[],
+	newValidators: Validator[],
+): Validator[] => {
+	const activeValidatorsUpdate: Validator[] = [];
 
 	for (const newValidator of newValidators) {
 		const existingValidator = currentValidators.find(
