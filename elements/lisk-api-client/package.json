@@ -39,7 +39,7 @@
 		"@liskhq/lisk-cryptography": "^4.0.0-alpha.4",
 		"@liskhq/lisk-transactions": "^6.0.0-alpha.5",
 		"@liskhq/lisk-validator": "^0.7.0-alpha.4",
-		"isomorphic-ws": "5.0.0",
+		"isomorphic-ws": "4.0.1",
 		"ws": "8.11.0",
 		"zeromq": "6.0.0-beta.6"
 	},

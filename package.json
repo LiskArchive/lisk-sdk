@@ -62,6 +62,7 @@
 		"eslint-config-lisk-base": "2.0.1",
 		"eslint-plugin-import": "2.26.0",
 		"eslint-plugin-jest": "27.1.6",
+		"events": "^3.1.0",
 		"husky": "8.0.2",
 		"istanbul-lib-coverage": "3.0.0",
 		"istanbul-lib-report": "3.0.0",
