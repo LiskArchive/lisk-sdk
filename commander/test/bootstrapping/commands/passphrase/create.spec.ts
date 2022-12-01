@@ -45,7 +45,7 @@ describe('passphrase:create command', () => {
 			const loggedData = JSON.parse(stdout[0]);
 
 			expect(Mnemonic.generateMnemonic).toHaveBeenCalledTimes(1);
-			expect(loggedData.passphrase).not.toBeUndefined();
+			expect(loggedData.passphrase).toBeDefined();
 			expect(consoleWarnSpy).toHaveBeenCalledTimes(0);
 		});
 	});
