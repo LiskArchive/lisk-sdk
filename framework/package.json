@@ -55,7 +55,7 @@
 		"bunyan": "1.8.15",
 		"debug": "4.3.4",
 		"eventemitter2": "6.4.9",
-		"fs-extra": "10.1.0",
+		"fs-extra": "11.1.0",
 		"ps-list": "7.2.0",
 		"sodium-native": "3.2.1",
 		"ws": "8.11.0",
