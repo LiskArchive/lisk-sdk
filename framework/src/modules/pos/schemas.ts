@@ -594,7 +594,7 @@ export const getLockedRewardResponseSchema = {
 	type: 'object',
 	required: ['reward'],
 	properties: {
-		rewards: {
+		reward: {
 			type: 'string',
 			format: 'uint64',
 		},
