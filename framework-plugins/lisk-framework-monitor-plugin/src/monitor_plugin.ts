@@ -104,16 +104,16 @@ export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
 
 	private _subscribeToEvents(): void {
 		this.apiClient.subscribe('network_newBlock', (data?: Record<string, unknown>) => {
-			const { blockHeader } = (data as unknown) as BlockData;
+			const { blockHeader } = data as unknown as BlockData;
 			this._handlePostBlock(blockHeader);
 		});
 		this.apiClient.subscribe('network_newTransaction', (data?: Record<string, unknown>) => {
-			const { transactionIds } = (data as unknown) as { transactionIds: string[] };
+			const { transactionIds } = data as unknown as { transactionIds: string[] };
 			this._handlePostTransactionAnnounce({ transactionIds });
 		});
 
 		this.apiClient.subscribe('chain_forked', (data?: Record<string, unknown>) => {
-			const { blockHeader } = (data as unknown) as BlockData;
+			const { blockHeader } = data as unknown as BlockData;
 			this._handleFork(blockHeader);
 		});
 	}

@@ -89,7 +89,7 @@ describe('encrypt', () => {
 		});
 
 		it('should output the nonce', () => {
-			expect(encryptedMessage).not.toBeUndefined();
+			expect(encryptedMessage).toBeDefined();
 			expect(encryptedMessage).toHaveProperty('nonce');
 			expect(regHexadecimal.test(encryptedMessage.nonce)).toBe(true);
 		});
@@ -383,8 +383,7 @@ describe('encrypt', () => {
 				version: '1',
 				ciphertext:
 					'c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
-				mac:
-					'ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
+				mac: 'ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
 				kdf: 'PBKDF2',
 				kdfparams: {
 					salt: 'e8c7dae4c893e458e0ebb8bff9a36d84',
@@ -407,8 +406,7 @@ describe('encrypt', () => {
 				version: '1',
 				ciphertext:
 					'c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
-				mac:
-					'ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
+				mac: 'ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
 				kdf: 'PBKDF2',
 				kdfparams: {
 					salt: 'e8c7dae4c893e458e0ebb8bff9a36d84',
@@ -459,8 +457,7 @@ describe('encrypt', () => {
 				version: '1',
 				ciphertext:
 					'c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
-				mac:
-					'ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
+				mac: 'ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
 				kdf: 'PBKDF2',
 				kdfparams: {
 					salt: 'e8c7dae4c893e458e0ebb8bff9a36d84',
@@ -484,8 +481,7 @@ describe('encrypt', () => {
 				version: '1',
 				ciphertext:
 					'c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
-				mac:
-					'ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
+				mac: 'ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
 				kdf: 'PBKDF2',
 				kdfparams: {
 					salt: 'e8c7dae4c893e458e0ebb8bff9a36d84',

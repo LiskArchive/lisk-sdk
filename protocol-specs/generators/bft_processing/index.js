@@ -111,15 +111,17 @@ const bftFinalityStepsGenerator = ({ activeValidators, filePath }) => {
 	return steps;
 };
 
-const bftFinalityTestSuiteGenerator = ({ activeValidators, title, filePath }) => () => ({
-	title: 'BFT processing generation',
-	summary:
-		'Generate status of pre-votes, pre-commits, finalized height and pre-voted height  as per BFT specification',
-	config: { activeValidators, finalizedHeight: 0 },
-	runner: 'bft_processing',
-	handler: title,
-	testCases: bftFinalityStepsGenerator({ activeValidators, filePath }),
-});
+const bftFinalityTestSuiteGenerator =
+	({ activeValidators, title, filePath }) =>
+	() => ({
+		title: 'BFT processing generation',
+		summary:
+			'Generate status of pre-votes, pre-commits, finalized height and pre-voted height  as per BFT specification',
+		config: { activeValidators, finalizedHeight: 0 },
+		runner: 'bft_processing',
+		handler: title,
+		testCases: bftFinalityStepsGenerator({ activeValidators, filePath }),
+	});
 
 /**
  *	This will generate a test step where we have invalid header attribute passed
@@ -298,20 +300,22 @@ const invalidLowerMaxHeightPrevoted = activeValidators => {
 	};
 };
 
-const bftInvalidBlockHeaderTestSuiteGenerator = ({ activeValidators }) => () => ({
-	title: 'BFT processing generation',
-	summary: 'Generate set of invalid blocks headers for BFT',
-	config: { activeValidators, finalizedHeight: 0 },
-	runner: 'bft_processing',
-	handler: 'bft_invalid_block_headers',
-	testCases: [
-		invalidMaxHeightPrevoted(activeValidators),
-		invalidSameHeightBlock(activeValidators),
-		invalidLowerHeightBlock(activeValidators),
-		invalidPreviouslyForgedHeight(activeValidators),
-		invalidLowerMaxHeightPrevoted(activeValidators),
-	],
-});
+const bftInvalidBlockHeaderTestSuiteGenerator =
+	({ activeValidators }) =>
+	() => ({
+		title: 'BFT processing generation',
+		summary: 'Generate set of invalid blocks headers for BFT',
+		config: { activeValidators, finalizedHeight: 0 },
+		runner: 'bft_processing',
+		handler: 'bft_invalid_block_headers',
+		testCases: [
+			invalidMaxHeightPrevoted(activeValidators),
+			invalidSameHeightBlock(activeValidators),
+			invalidLowerHeightBlock(activeValidators),
+			invalidPreviouslyForgedHeight(activeValidators),
+			invalidLowerMaxHeightPrevoted(activeValidators),
+		],
+	});
 
 const FORK_STATUS_IDENTICAL_BLOCK = 1;
 const FORK_STATUS_VALID_BLOCK = 2;

@@ -164,12 +164,12 @@ describe('getNetworkStats', () => {
 		// Incoming
 		expect(inboundCount).toEqual(firstNodeStats.incoming.count);
 		expect(firstNodeStats.incoming.connects).toEqual(networkStats.incoming.connects);
-		expect(firstNodeStats.incoming.disconnects).toEqual(0);
+		expect(firstNodeStats.incoming.disconnects).toBe(0);
 
 		// Outgoing
 		expect(outboundCount).toEqual(firstNodeStats.outgoing.count);
 		expect(firstNodeStats.outgoing.connects).toEqual(networkStats.outgoing.connects);
-		expect(firstNodeStats.outgoing.disconnects).toEqual(0);
+		expect(firstNodeStats.outgoing.disconnects).toBe(0);
 
 		// Banning
 		expect(firstNodeStats.banning.count).toEqual(networkStats.banning.count);
@@ -188,6 +188,6 @@ describe('getNetworkStats', () => {
 		await wait(50);
 
 		// Should capture incoming disconnect count
-		expect(firstNode.getNetworkStats().incoming.disconnects).toEqual(1);
+		expect(firstNode.getNetworkStats().incoming.disconnects).toBe(1);
 	});
 });

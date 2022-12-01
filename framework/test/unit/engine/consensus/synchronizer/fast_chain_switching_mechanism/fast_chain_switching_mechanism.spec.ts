@@ -142,7 +142,7 @@ describe('fast_chain_switching_mechanism', () => {
 					} as Block,
 					'peer-id',
 				);
-				expect(isValid).toEqual(true);
+				expect(isValid).toBe(true);
 			});
 
 			it('should return true when the receivedBlock is not from consensus participant', async () => {
@@ -161,7 +161,7 @@ describe('fast_chain_switching_mechanism', () => {
 					} as Block,
 					'peer-id',
 				);
-				expect(isValid).toEqual(false);
+				expect(isValid).toBe(false);
 			});
 
 			it('should return true when the receivedBlock is not current validator', async () => {
@@ -177,7 +177,7 @@ describe('fast_chain_switching_mechanism', () => {
 					} as Block,
 					'peer-id',
 				);
-				expect(isValid).toEqual(false);
+				expect(isValid).toBe(false);
 			});
 		});
 
@@ -198,7 +198,7 @@ describe('fast_chain_switching_mechanism', () => {
 					} as Block,
 					'peer-id',
 				);
-				expect(isValid).toEqual(false);
+				expect(isValid).toBe(false);
 			});
 		});
 	});

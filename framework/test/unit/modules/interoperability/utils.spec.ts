@@ -148,7 +148,7 @@ describe('Utils', () => {
 			);
 
 			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toEqual('Certificate is missing required values.');
+			expect(error?.message).toBe('Certificate is missing required values.');
 		});
 
 		it('should return VerifyStatus.FAIL when certificate height is less than or equal to last certificate height', () => {
@@ -158,7 +158,7 @@ describe('Utils', () => {
 			);
 
 			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toEqual(
+			expect(error?.message).toBe(
 				'Certificate height should be greater than last certificate height.',
 			);
 		});
@@ -305,7 +305,7 @@ describe('Utils', () => {
 			);
 
 			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toEqual(
+			expect(error?.message).toBe(
 				'Certificate cannot be empty when activeValidatorsUpdate or certificateThreshold has a non-empty value.',
 			);
 		});
@@ -318,7 +318,7 @@ describe('Utils', () => {
 			);
 
 			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toEqual(
+			expect(error?.message).toBe(
 				'Certificate should have all required values when activeValidatorsUpdate or certificateThreshold has a non-empty value.',
 			);
 		});
@@ -345,7 +345,7 @@ describe('Utils', () => {
 			);
 
 			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toEqual('Validators hash given in the certificate is incorrect.');
+			expect(error?.message).toBe('Validators hash given in the certificate is incorrect.');
 		});
 
 		it('should return VerifyStatus.OK when validators hash is correct', () => {
@@ -599,7 +599,7 @@ describe('Utils', () => {
 					partnerChannelData,
 				);
 				expect(status).toEqual(VerifyStatus.FAIL);
-				expect(error?.message).toEqual(
+				expect(error?.message).toBe(
 					'Failed at verifying state root when messageWitnessHashes and certificate are non-empty.',
 				);
 				expect(calculateRootFromRightWitnessSpy).toHaveBeenCalled();
@@ -722,7 +722,7 @@ describe('Utils', () => {
 					partnerChannelData,
 				);
 				expect(status).toEqual(VerifyStatus.FAIL);
-				expect(error?.message).toEqual(
+				expect(error?.message).toBe(
 					'Failed at verifying state root when messageWitnessHashes is non-empty and certificate is empty.',
 				);
 				expect(calculateMerkleRootSpy).toHaveBeenCalledTimes(inboxUpdateCCMsEncoded.length);
@@ -907,7 +907,7 @@ describe('Utils', () => {
 			expect(partnerChainStore.set).not.toHaveBeenCalled();
 			expect(partnerChannelStoreMock.get).toHaveBeenCalledTimes(1);
 			expect(partnerChannelStoreMock.set).toHaveBeenCalledTimes(1);
-			expect(partnerChainAccount.lastCertificate.height).toEqual(5); // original partnerValidator value unchange
+			expect(partnerChainAccount.lastCertificate.height).toBe(5); // original partnerValidator value unchange
 
 			const updatedPartnerChannelData = await partnerChannelStoreMock.get(context, chainIDBuffer);
 

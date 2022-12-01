@@ -47,7 +47,7 @@ import {
 } from '../../../../src/engine/consensus/constants';
 
 describe('consensus', () => {
-	const genesis = (genesisBlock() as unknown) as Block;
+	const genesis = genesisBlock() as unknown as Block;
 	let consensus: Consensus;
 	let chain: Chain;
 	let network: Network;
@@ -58,7 +58,7 @@ describe('consensus', () => {
 
 	beforeEach(async () => {
 		const lastBlock = await createValidDefaultBlock({ header: { height: 1 } });
-		chain = ({
+		chain = {
 			genesisBlockExist: jest.fn().mockResolvedValue(true),
 			newStateStore: jest.fn().mockResolvedValue({}),
 			applyGenesisBlock: jest.fn(),
@@ -71,14 +71,14 @@ describe('consensus', () => {
 			validateBlock: jest.fn(),
 			validateTransaction: jest.fn(),
 			removeBlock: jest.fn(),
-		} as unknown) as Chain;
-		network = ({
+		} as unknown as Chain;
+		network = {
 			registerEndpoint: jest.fn(),
 			registerHandler: jest.fn(),
 			applyPenaltyOnPeer: jest.fn(),
 			send: jest.fn(),
 			applyNodeInfo: jest.fn(),
-		} as unknown) as Network;
+		} as unknown as Network;
 		bft = {
 			init: jest.fn(),
 			initGenesisState: jest.fn(),

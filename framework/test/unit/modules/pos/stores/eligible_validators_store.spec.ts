@@ -82,8 +82,8 @@ describe('EligibleValidatorsStore', () => {
 			const returnedValue = await eligibleValidatorsStore.getTop(context, 2);
 
 			expect(returnedValue).toHaveLength(2);
-			expect(returnedValue[0].value.lastPomHeight).toEqual(978);
-			expect(returnedValue[1].value.lastPomHeight).toEqual(478);
+			expect(returnedValue[0].value.lastPomHeight).toBe(978);
+			expect(returnedValue[1].value.lastPomHeight).toBe(478);
 		});
 	});
 
@@ -92,8 +92,8 @@ describe('EligibleValidatorsStore', () => {
 			const returnedValue = await eligibleValidatorsStore.getAll(context);
 
 			expect(returnedValue).toHaveLength(3);
-			expect(returnedValue[0].value.lastPomHeight).toEqual(978);
-			expect(returnedValue[2].value.lastPomHeight).toEqual(278);
+			expect(returnedValue[0].value.lastPomHeight).toBe(978);
+			expect(returnedValue[2].value.lastPomHeight).toBe(278);
 		});
 	});
 

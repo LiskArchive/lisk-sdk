@@ -101,7 +101,7 @@ describe.skip('IPC Channel', () => {
 					params: 'myData',
 				}),
 			]);
-			await expect(p).resolves.toEqual('myData');
+			await expect(p).resolves.toBe('myData');
 			await client.disconnect();
 		});
 

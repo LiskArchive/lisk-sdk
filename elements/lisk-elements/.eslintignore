@@ -1,3 +1,5 @@
 dist-node
 jest.config.js
 .eslintrc.js
+test/_setup.js
+

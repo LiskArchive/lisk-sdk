@@ -66,7 +66,7 @@ describe('_handleFork', () => {
 		const monitorInstance = monitorPluginInstance as any;
 		monitorInstance._handleFork(mockHeader.toJSON());
 
-		expect(monitorInstance._state.forks.forkEventCount).toEqual(1);
+		expect(monitorInstance._state.forks.forkEventCount).toBe(1);
 	});
 
 	it('should add new block headers for each fork event', () => {

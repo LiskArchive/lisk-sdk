@@ -48,7 +48,7 @@ describe('config:show command', () => {
 	describe('config:show', () => {
 		it('should get the config from default path', async () => {
 			await ShowCommand.run([], config);
-			expect(JSON.parse(stdout[0]).network.port).toEqual(3000);
+			expect(JSON.parse(stdout[0]).network.port).toBe(3000);
 		});
 	});
 
@@ -79,7 +79,7 @@ describe('config:show command', () => {
 				.calledWith(configPath)
 				.mockResolvedValue(customConfig);
 			await ShowCommand.run(['-c', configPath], config);
-			expect(JSON.parse(stdout[0]).network.port).toEqual(9999);
+			expect(JSON.parse(stdout[0]).network.port).toBe(9999);
 		});
 	});
 });

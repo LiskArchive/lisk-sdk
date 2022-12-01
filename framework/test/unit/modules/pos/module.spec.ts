@@ -118,7 +118,7 @@ describe('PoS module', () => {
 				}),
 			).toResolve();
 
-			expect(pos['_moduleConfig'].maxLengthName).toEqual(50);
+			expect(pos['_moduleConfig'].maxLengthName).toBe(50);
 		});
 	});
 

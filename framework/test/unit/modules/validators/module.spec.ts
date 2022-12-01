@@ -34,7 +34,7 @@ describe('ValidatorsModule', () => {
 				validatorsModule.init({ genesisConfig: {} as any, moduleConfig: {} }),
 			).toResolve();
 
-			expect(validatorsModule['_blockTime']).toEqual(10);
+			expect(validatorsModule['_blockTime']).toBe(10);
 		});
 
 		it('should initialize config with given value', async () => {
@@ -45,7 +45,7 @@ describe('ValidatorsModule', () => {
 				}),
 			).toResolve();
 
-			expect(validatorsModule['_blockTime']).toEqual(3);
+			expect(validatorsModule['_blockTime']).toBe(3);
 		});
 	});
 

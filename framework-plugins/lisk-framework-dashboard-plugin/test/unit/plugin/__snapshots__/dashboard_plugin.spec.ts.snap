@@ -3,35 +3,35 @@
 exports[`DashboardPlugin constructor should load default config 1`] = `undefined`;
 
 exports[`DashboardPlugin defaults should return valid config schema with default options 1`] = `
-Object {
+{
   "$id": "#/plugins/liskDashboard/config",
-  "default": Object {
+  "default": {
     "applicationName": "Lisk",
     "applicationUrl": "ws://localhost:8080/ws",
     "host": "127.0.0.1",
     "port": 4005,
   },
-  "properties": Object {
-    "applicationName": Object {
+  "properties": {
+    "applicationName": {
       "description": "Application name to be shown near Logo",
       "type": "string",
     },
-    "applicationUrl": Object {
+    "applicationUrl": {
       "description": "URL to connect",
       "format": "uri",
       "type": "string",
     },
-    "host": Object {
+    "host": {
       "format": "ip",
       "type": "string",
     },
-    "port": Object {
+    "port": {
       "maximum": 65535,
       "minimum": 1,
       "type": "integer",
     },
   },
-  "required": Array [],
+  "required": [],
   "type": "object",
 }
 `;

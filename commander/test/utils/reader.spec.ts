@@ -194,8 +194,8 @@ describe('reader', () => {
 				const result = readParamsFile(filePath);
 
 				expect(JSON.parse(result)).toEqual(fileData);
-				expect(JSON.parse(result).amount).toEqual(100000000);
-				expect(JSON.parse(result).recipientAddress).toEqual(
+				expect(JSON.parse(result).amount).toBe(100000000);
+				expect(JSON.parse(result).recipientAddress).toBe(
 					'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
 				);
 			});

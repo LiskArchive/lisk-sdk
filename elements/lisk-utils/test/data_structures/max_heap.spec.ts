@@ -27,20 +27,20 @@ describe('Min heap', () => {
 
 	describe('push', () => {
 		it('should insert into correct order', () => {
-			expect(heap.peek()?.key).toEqual(5);
+			expect(heap.peek()?.key).toBe(5);
 		});
 
 		it('should have correct count', () => {
-			expect(heap.count).toEqual(4);
+			expect(heap.count).toBe(4);
 		});
 	});
 
 	describe('pop', () => {
 		it('should pop minimal values', () => {
 			const root = heap.pop();
-			expect(heap.count).toEqual(3);
-			expect(root?.key).toEqual(5);
-			expect(root?.value).toEqual('b');
+			expect(heap.count).toBe(3);
+			expect(root?.key).toBe(5);
+			expect(root?.value).toBe('b');
 		});
 
 		it('should pop in correct order', () => {
@@ -49,25 +49,25 @@ describe('Min heap', () => {
 			nodes.push(heap.pop());
 			nodes.push(heap.pop());
 			nodes.push(heap.pop());
-			expect(nodes[0]?.key).toEqual(5);
-			expect(nodes[1]?.key).toEqual(2);
-			expect(nodes[2]?.key).toEqual(1);
-			expect(nodes[3]?.key).toEqual(0);
-			expect(heap.count).toEqual(0);
+			expect(nodes[0]?.key).toBe(5);
+			expect(nodes[1]?.key).toBe(2);
+			expect(nodes[2]?.key).toBe(1);
+			expect(nodes[3]?.key).toBe(0);
+			expect(heap.count).toBe(0);
 		});
 
 		it('should remove minimal values', () => {
 			const root = heap.pop();
-			expect(heap.count).toEqual(3);
-			expect(root?.key).toEqual(5);
-			expect(root?.value).toEqual('b');
+			expect(heap.count).toBe(3);
+			expect(root?.key).toBe(5);
+			expect(root?.value).toBe('b');
 		});
 	});
 
 	describe('peek', () => {
 		it('should return root values', () => {
-			expect(heap.peek()?.key).toEqual(5);
-			expect(heap.peek()?.value).toEqual('b');
+			expect(heap.peek()?.key).toBe(5);
+			expect(heap.peek()?.value).toBe('b');
 		});
 
 		it('should not remove the root values', () => {

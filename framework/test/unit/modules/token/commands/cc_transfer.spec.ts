@@ -78,9 +78,9 @@ describe('CCTransfer command', () => {
 
 	const createInsufficientBalanceError = (
 		senderAddress: Buffer,
-		availableBalance: BigInt,
+		availableBalance: bigint,
 		tokenID: Buffer,
-		amount: BigInt,
+		amount: bigint,
 	) =>
 		`${cryptography.address.getLisk32AddressFromAddress(
 			senderAddress,

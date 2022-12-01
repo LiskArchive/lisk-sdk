@@ -190,7 +190,7 @@ describe('StakeCommand', () => {
 
 	describe('constructor', () => {
 		it('should have valid name', () => {
-			expect(command.name).toEqual('stake');
+			expect(command.name).toBe('stake');
 		});
 
 		it('should have valid schema', () => {

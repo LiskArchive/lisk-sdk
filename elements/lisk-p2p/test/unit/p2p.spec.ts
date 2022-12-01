@@ -148,13 +148,13 @@ describe('p2p', () => {
 			expect(p2pNodeWithoutPeers.getNetworkStats().incoming).toEqual(connectStats);
 			expect(p2pNodeWithoutPeers.getNetworkStats().outgoing).toEqual(connectStats);
 			expect(p2pNodeWithoutPeers.getNetworkStats().banning).toEqual(banningStats);
-			expect(p2pNodeWithoutPeers.getNetworkStats().totalConnectedPeers).toEqual(0);
-			expect(p2pNodeWithoutPeers.getNetworkStats().totalDisconnectedPeers).toEqual(0);
+			expect(p2pNodeWithoutPeers.getNetworkStats().totalConnectedPeers).toBe(0);
+			expect(p2pNodeWithoutPeers.getNetworkStats().totalDisconnectedPeers).toBe(0);
 			expect(p2pNodeWithoutPeers.getNetworkStats().totalMessagesReceived).toEqual({});
 			expect(p2pNodeWithoutPeers.getNetworkStats().totalRequestsReceived).toEqual({});
-			expect(p2pNodeWithoutPeers.getNetworkStats().totalErrors).toEqual(0);
-			expect(p2pNodeWithoutPeers.getNetworkStats().totalPeersDiscovered).toEqual(0);
-			expect(p2pNodeWithoutPeers.getNetworkStats().totalRemovedPeers).toEqual(0);
+			expect(p2pNodeWithoutPeers.getNetworkStats().totalErrors).toBe(0);
+			expect(p2pNodeWithoutPeers.getNetworkStats().totalPeersDiscovered).toBe(0);
+			expect(p2pNodeWithoutPeers.getNetworkStats().totalRemovedPeers).toBe(0);
 		});
 	});
 

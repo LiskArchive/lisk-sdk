@@ -151,7 +151,6 @@ describe('dataAccess.blocks', () => {
 			try {
 				await storage.getBlockHeaderByID(Buffer.from('randomId'));
 			} catch (error) {
-				// eslint-disable-next-line jest/no-try-expect
 				expect(error).toBeInstanceOf(NotFoundError);
 			}
 		});
@@ -301,7 +300,6 @@ describe('dataAccess.blocks', () => {
 			try {
 				await dataAccess.getBlockByID(Buffer.from('randomId'));
 			} catch (error) {
-				// eslint-disable-next-line jest/no-try-expect
 				expect(error).toBeInstanceOf(NotFoundError);
 			}
 		});
@@ -321,7 +319,6 @@ describe('dataAccess.blocks', () => {
 			try {
 				await dataAccess.getBlockByHeight(500);
 			} catch (error) {
-				// eslint-disable-next-line jest/no-try-expect
 				expect(error).toBeInstanceOf(NotFoundError);
 			}
 		});

@@ -129,7 +129,7 @@ export class LegacyChainHandler {
 	 */
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public async syncBlocks(bracket: LegacyBlockBracket, legacyBlock: LegacyBlock): Promise<void> {
-		const connectedPeers = (this._network.getConnectedPeers() as unknown) as Peer[];
+		const connectedPeers = this._network.getConnectedPeers() as unknown as Peer[];
 		const peersWithLegacyInfo = connectedPeers.filter(
 			peer =>
 				!!(peer.options as { legacy: Buffer[] }).legacy.find(snapshotBlockID =>

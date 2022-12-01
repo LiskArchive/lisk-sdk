@@ -377,7 +377,7 @@ describe('validation', () => {
 		});
 
 		it('should return false when a bigint was provided below the limit "BigInt(-92233720368547758102)"', () => {
-			return expect(isSInt64(BigInt(-92233720368547758102))).toBeFalse();
+			return expect(isSInt64(BigInt('-92233720368547758102'))).toBeFalse();
 		});
 
 		it('should return true when a valid bigint was provided', () => {

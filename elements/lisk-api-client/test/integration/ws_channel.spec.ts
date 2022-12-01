@@ -38,7 +38,7 @@ describe('WSChannel', () => {
 
 			try {
 				await expect(channel.connect()).resolves.toBeUndefined();
-				expect(server.clients.size).toEqual(1);
+				expect(server.clients.size).toBe(1);
 				expect([...server.clients][0].readyState).toEqual(WebSocket.OPEN);
 			} finally {
 				await closeServer(server);
@@ -65,7 +65,7 @@ describe('WSChannel', () => {
 
 			try {
 				await expect(channel.connect()).rejects.toThrow('Could not connect in 2000ms');
-				expect(server.clients.size).toEqual(0);
+				expect(server.clients.size).toBe(0);
 			} finally {
 				await closeServer(server);
 				await closeServer(http);
@@ -90,7 +90,7 @@ describe('WSChannel', () => {
 			try {
 				await expect(channel.disconnect()).resolves.toBeUndefined();
 				// WebSocket.Server.channels are not cleaned immediately
-				expect(server.clients.size).toEqual(1);
+				expect(server.clients.size).toBe(1);
 				expect([...server.clients][0].readyState).toEqual(WebSocket.CLOSING);
 			} finally {
 				await closeServer(server);

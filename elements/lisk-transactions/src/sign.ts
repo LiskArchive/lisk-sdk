@@ -42,7 +42,7 @@ export const getSigningBytes = (
 
 		return transactionBytes;
 	}
-	const paramsBytes = codec.encode((paramsSchema as unknown) as Schema, transactionObject.params);
+	const paramsBytes = codec.encode(paramsSchema as unknown as Schema, transactionObject.params);
 	const transactionBytes = codec.encode(baseTransactionSchema, {
 		...transactionObject,
 		params: paramsBytes,
@@ -64,7 +64,7 @@ export const getBytes = (
 
 		return transactionBytes;
 	}
-	const paramsBytes = codec.encode((paramsSchema as unknown) as Schema, transactionObject.params);
+	const paramsBytes = codec.encode(paramsSchema as unknown as Schema, transactionObject.params);
 	const transactionBytes = codec.encode(baseTransactionSchema, {
 		...transactionObject,
 		params: paramsBytes,
@@ -186,9 +186,8 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 	if (optionalKeyIndex !== -1) {
 		const signatureOffset = includeSenderSignature ? 1 : 0;
 		// eslint-disable-next-line no-param-reassign
-		transactionObject.signatures[
-			keys.mandatoryKeys.length + optionalKeyIndex + signatureOffset
-		] = signature;
+		transactionObject.signatures[keys.mandatoryKeys.length + optionalKeyIndex + signatureOffset] =
+			signature;
 	}
 
 	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);

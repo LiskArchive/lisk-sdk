@@ -56,7 +56,7 @@ describe.skip('P2P.request', () => {
 
 		// Assert
 		expect(response.data).toBeInstanceOf(Buffer);
-		expect(response.peerId).toEqual('127.0.0.1:5001');
+		expect(response.peerId).toBe('127.0.0.1:5001');
 		expect(parsedData).toMatchObject({
 			nodePort: 5000,
 			requestData: data.toString(DEFAULT_MESSAGE_ENCODING_FORMAT),

@@ -20,6 +20,7 @@ export class FrameworkError extends Error {
 	public code = 'ERR_FRAMEWORK';
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public constructor(...args: any[]) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		super(...args);
 		this.name = this.constructor.name;
 		Error.captureStackTrace(this, FrameworkError);

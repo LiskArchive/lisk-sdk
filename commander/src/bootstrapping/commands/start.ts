@@ -118,13 +118,13 @@ export abstract class StartCommand extends Command {
 		}
 
 		// Read network genesis block and config from the folder
-		const { basePath: destBasePath, configFilePath, genesisBlockFilePath } = getConfigFilesPath(
-			dataPath,
-		);
 		const {
-			basePath: srcBasePath,
-			genesisBlockFilePath: srcGenesisBlockPath,
-		} = getNetworkConfigFilesPath(this.getApplicationConfigDir(), flags.network, true);
+			basePath: destBasePath,
+			configFilePath,
+			genesisBlockFilePath,
+		} = getConfigFilesPath(dataPath);
+		const { basePath: srcBasePath, genesisBlockFilePath: srcGenesisBlockPath } =
+			getNetworkConfigFilesPath(this.getApplicationConfigDir(), flags.network, true);
 
 		// If genesis block file exist, do not copy unless overwrite-config is specified
 		if (fs.existsSync(genesisBlockFilePath)) {

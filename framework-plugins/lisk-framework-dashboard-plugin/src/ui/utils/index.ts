@@ -48,7 +48,7 @@ export const updateStatesOnNewBlock = (
 	newBlocks.sort(sortByBlockHeight);
 
 	for (const trs of newBlock.transactions) {
-		confirmedTransactions.unshift((trs as unknown) as Transaction);
+		confirmedTransactions.unshift(trs as unknown as Transaction);
 	}
 	const confirmedTransactionsIds = confirmedTransactions.map(t => t.id);
 	const newUnconfirmedTransactions = unconfirmedTransactions

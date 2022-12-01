@@ -73,7 +73,7 @@ describe('nacl', () => {
 				});
 
 				it('should return an uint8array', () => {
-					expect(Object.prototype.toString.call(randomBuffer)).toEqual('[object Uint8Array]');
+					expect(Object.prototype.toString.call(randomBuffer)).toBe('[object Uint8Array]');
 				});
 
 				it('should return an uint8array of size 24', () => {
@@ -94,9 +94,7 @@ describe('nacl', () => {
 				});
 
 				it('should create a publicKey of type uint8array', () => {
-					expect(Object.prototype.toString.call(signedKeys.publicKey)).toEqual(
-						'[object Uint8Array]',
-					);
+					expect(Object.prototype.toString.call(signedKeys.publicKey)).toBe('[object Uint8Array]');
 				});
 
 				it('should create a privateKey', () => {
@@ -104,9 +102,7 @@ describe('nacl', () => {
 				});
 
 				it('should create a privateKey of type uint8array', () => {
-					expect(Object.prototype.toString.call(signedKeys.privateKey)).toEqual(
-						'[object Uint8Array]',
-					);
+					expect(Object.prototype.toString.call(signedKeys.privateKey)).toBe('[object Uint8Array]');
 				});
 			});
 
@@ -129,7 +125,7 @@ describe('nacl', () => {
 				});
 
 				it('should create a publicKey of type uint8array', () => {
-					expect(Object.prototype.toString.call(publicKey)).toEqual('[object Uint8Array]');
+					expect(Object.prototype.toString.call(publicKey)).toBe('[object Uint8Array]');
 				});
 			});
 
@@ -149,7 +145,7 @@ describe('nacl', () => {
 				});
 
 				it('should create a signature of type uint8array', () => {
-					expect(Object.prototype.toString.call(signatureBytes)).toEqual('[object Uint8Array]');
+					expect(Object.prototype.toString.call(signatureBytes)).toBe('[object Uint8Array]');
 				});
 			});
 

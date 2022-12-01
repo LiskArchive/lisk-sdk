@@ -105,7 +105,7 @@ describe('RandomModuleMethod', () => {
 					new BlockAssets([blockAsset]),
 				);
 				// Assert
-				expect(isValid).toEqual(true);
+				expect(isValid).toBe(true);
 			}
 		});
 
@@ -124,7 +124,7 @@ describe('RandomModuleMethod', () => {
 					new BlockAssets([blockAsset]),
 				);
 				// Assert
-				expect(isValid).toEqual(true);
+				expect(isValid).toBe(true);
 			}
 		});
 
@@ -143,7 +143,7 @@ describe('RandomModuleMethod', () => {
 					new BlockAssets([blockAsset]),
 				);
 				// Assert
-				expect(isValid).toEqual(false);
+				expect(isValid).toBe(false);
 			}
 		});
 	});
