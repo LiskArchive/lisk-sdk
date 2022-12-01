@@ -43,8 +43,8 @@ import {
 	getValidatorRequestSchema,
 	getValidatorResponseSchema,
 	getPoSTokenIDResponseSchema,
-	getLockedRewardsRequestSchema,
-	getLockedRewardsResponseSchema,
+	getLockedRewardRequestSchema,
+	getLockedRewardResponseSchema,
 	getLockedStakedAmountRequestSchema,
 	getLockedStakedAmountResponseSchema,
 	getPendingUnlocksRequestSchema,
@@ -216,9 +216,9 @@ export class PoSModule extends BaseModule {
 					response: getClaimableRewardsResponseSchema,
 				},
 				{
-					name: this.endpoint.getLockedRewards.name,
-					request: getLockedRewardsRequestSchema,
-					response: getLockedRewardsResponseSchema,
+					name: this.endpoint.getLockedReward.name,
+					request: getLockedRewardRequestSchema,
+					response: getLockedRewardResponseSchema,
 				},
 				{
 					name: this.endpoint.getLockedStakedAmount.name,

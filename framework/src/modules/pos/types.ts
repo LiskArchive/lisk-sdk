@@ -295,12 +295,12 @@ export interface GetValidatorsByStakeResponse {
 	validators: (ValidatorAccountJSON & { address: string })[];
 }
 
-export interface GetLockedRewardsRequest {
+export interface GetLockedRewardRequest {
 	address: string;
 	tokenID: string;
 }
 
-export interface GetLockedRewardsResponse {
+export interface GetLockedRewardResponse {
 	reward: string;
 }
 

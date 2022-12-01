@@ -25,8 +25,8 @@ import {
 	GetClaimableRewardsRequest,
 	ClaimableReward,
 	GetPoSTokenIDResponse,
-	GetLockedRewardsRequest,
-	GetLockedRewardsResponse,
+	GetLockedRewardRequest,
+	GetLockedRewardResponse,
 	GetUnlockHeightResponse,
 	GetValidatorsByStakeRequest,
 	GetValidatorsByStakeResponse,
@@ -42,7 +42,7 @@ import { EMPTY_KEY } from './constants';
 import { EligibleValidatorsStore } from './stores/eligible_validators';
 import {
 	getClaimableRewardsRequestSchema,
-	getLockedRewardsRequestSchema,
+	getLockedRewardRequestSchema,
 	getLockedStakedAmountRequestSchema,
 	getValidatorsByStakeRequestSchema,
 } from './schemas';
@@ -238,8 +238,8 @@ export class PoSEndpoint extends BaseEndpoint {
 		return { validators: response };
 	}
 
-	public async getLockedRewards(ctx: ModuleEndpointContext): Promise<GetLockedRewardsResponse> {
-		validator.validate<GetLockedRewardsRequest>(getLockedRewardsRequestSchema, ctx.params);
+	public async getLockedReward(ctx: ModuleEndpointContext): Promise<GetLockedRewardResponse> {
+		validator.validate<GetLockedRewardRequest>(getLockedRewardRequestSchema, ctx.params);
 
 		const tokenID = Buffer.from(ctx.params.tokenID, 'hex');
 		const address = cryptoAddress.getAddressFromLisk32Address(ctx.params.address);
