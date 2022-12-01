@@ -573,8 +573,8 @@ export const getValidatorsByStakeResponseSchema = {
 	},
 };
 
-export const getLockedRewardsRequestSchema = {
-	$id: 'modules/pos/endpoint/getLockedRewardsRequest',
+export const getLockedRewardRequestSchema = {
+	$id: 'modules/pos/endpoint/getLockedRewardRequest',
 	type: 'object',
 	required: ['address', 'tokenID'],
 	properties: {
@@ -589,10 +589,10 @@ export const getLockedRewardsRequestSchema = {
 	},
 };
 
-export const getLockedRewardsResponseSchema = {
-	$id: 'modules/pos/endpoint/getLockedRewardsResponse',
+export const getLockedRewardResponseSchema = {
+	$id: 'modules/pos/endpoint/getLockedRewardResponse',
 	type: 'object',
-	required: ['rewards'],
+	required: ['reward'],
 	properties: {
 		rewards: {
 			type: 'string',
