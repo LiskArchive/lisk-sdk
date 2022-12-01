@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { ChainStatus } from 'lisk-sdk';
 import {
 	BasePlugin,
 	PluginInitContext,
@@ -24,11 +25,8 @@ import {
 	codec,
 	chain,
 	BFTParameters,
-	CHAIN_ACTIVE,
-	CHAIN_TERMINATED,
 	LIVENESS_LIMIT,
 	ChainAccount,
-	BFTValidator,
 	OutboxRootWitness,
 	MESSAGE_TAG_CERTIFICATE,
 	ActiveValidator,
@@ -230,7 +228,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		certificate: Certificate,
 		newCertificateThreshold: bigint,
 	): Promise<CrossChainUpdateTransactionParams | undefined> {
-		let activeBFTValidatorsUpdate: BFTValidator[];
+		let activeBFTValidatorsUpdate: ActiveValidator[];
 		let activeValidatorsUpdate: ActiveValidator[] = [];
 		let certificateThreshold = newCertificateThreshold;
 
@@ -460,7 +458,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			message: 'Certificate validation failed.',
 		};
 
-		if (chainAccount.status === CHAIN_TERMINATED) {
+		if (chainAccount.status === ChainStatus.TERMINATED) {
 			result.message = 'Sending chain is terminated.';
 			return result;
 		}
@@ -483,7 +481,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			return result;
 		}
 
-		if (chainAccount.status === CHAIN_ACTIVE) {
+		if (chainAccount.status === ChainStatus.ACTIVE) {
 			result.status = true;
 
 			return result;
