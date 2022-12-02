@@ -31,6 +31,15 @@ export interface ValidatorAccount {
 
 export type ValidatorAccountJSON = JSONObject<ValidatorAccount>;
 
+export type punishmentPeriod = {
+	start: number;
+	end: number;
+};
+
+export type ValidatorAccountEndpoint = JSONObject<ValidatorAccount> & { address: string } & {
+	punishmentPeriods: punishmentPeriod[];
+};
+
 export const validatorStoreSchema = {
 	$id: '/pos/validator',
 	type: 'object',
