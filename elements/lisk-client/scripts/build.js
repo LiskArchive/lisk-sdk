@@ -16,7 +16,7 @@
 const browserify = require('browserify');
 const fs = require('fs');
 
-const bundle = () => {
+const bundle = async () => {
 	const browserDir = './dist-browser';
 	if (!fs.existsSync(browserDir)) {
 		fs.mkdirSync(browserDir);
@@ -79,17 +79,24 @@ const bundle = () => {
 		standalone: 'lisk',
 	});
 
-	b.bundle()
-		.on('end', () => {
-			fs.copyFileSync('./package.json.bak', './package.json');
-			fs.rmSync('./package.json.bak');
-		})
-		.on('error', console.error)
-		.pipe(fs.createWriteStream('./dist-browser/index.js'));
+	await new Promise((resolve, reject) => {
+		b.bundle()
+			.on('end', () => {
+				fs.copyFileSync('./package.json.bak', './package.json');
+				fs.rmSync('./package.json.bak');
+				resolve();
+			})
+			.on('error', err => {
+				reject(err);
+			})
+			.pipe(fs.createWriteStream('./dist-browser/index.js'));
+
+		if (process.env.NODE_ENV) {
+			b.on('update', bundle);
+		}
+	});
 };
 
-if (process.env.NODE_ENV) {
-	b.on('update', bundle);
-}
-
-bundle();
+(async () => {
+	await bundle();
+})();

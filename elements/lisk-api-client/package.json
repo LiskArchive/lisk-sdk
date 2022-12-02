@@ -40,14 +40,14 @@
 		"@liskhq/lisk-transactions": "^6.0.0-alpha.5",
 		"@liskhq/lisk-validator": "^0.7.0-alpha.4",
 		"isomorphic-ws": "4.0.1",
-		"ws": "7.4.6",
+		"ws": "8.11.0",
 		"zeromq": "6.0.0-beta.6"
 	},
 	"devDependencies": {
 		"@liskhq/lisk-chain": "^0.4.0-alpha.7",
 		"@types/jest": "29.2.3",
 		"@types/jest-when": "3.5.2",
-		"@types/node": "12.20.6",
+		"@types/node": "16.18.3",
 		"@typescript-eslint/eslint-plugin": "5.44.0",
 		"@typescript-eslint/parser": "5.44.0",
 		"eslint": "8.28.0",

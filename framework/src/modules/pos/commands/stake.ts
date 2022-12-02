@@ -243,7 +243,7 @@ export class StakeCommand extends BaseCommand {
 				stakerData.pendingUnlocks.push({
 					validatorAddress: stake.validatorAddress,
 					amount: BigInt(-1) * stake.amount,
-					unstakeHeight: height + 1,
+					unstakeHeight: height,
 				});
 
 				// Sort account.unlocking

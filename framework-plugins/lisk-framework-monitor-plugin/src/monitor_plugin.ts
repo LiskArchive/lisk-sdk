@@ -16,7 +16,7 @@ import { BasePlugin, PluginInitContext } from 'lisk-sdk';
 import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
-import * as rateLimit from 'express-rate-limit';
+import { rateLimit } from 'express-rate-limit';
 import * as middlewares from './middlewares';
 import { MonitorPluginConfig, SharedState } from './types';
 import * as controllers from './controllers';
@@ -98,6 +98,7 @@ export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
 	private _registerControllers(): void {
 		this._app.get(
 			'/api/prometheus/metrics',
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
 			controllers.prometheusExport.getData(this.apiClient, this._state),
 		);
 	}
