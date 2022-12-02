@@ -449,7 +449,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * @link https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
 	 */
 	private _computeBestPeer(): Peer {
-		const peers = (this._network.getConnectedPeers() as unknown) as Peer[];
+		const peers = this._network.getConnectedPeers() as unknown as Peer[];
 
 		if (!peers.length) {
 			throw new Error('List of connected peers is empty');

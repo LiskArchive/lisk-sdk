@@ -41,17 +41,17 @@ describe.skip('IPCChannelWithoutBus', () => {
 		namespace: 'alphaName',
 		logger,
 		events: ['alpha1', 'alpha2'],
-		endpoints: ({
+		endpoints: {
 			multiplyByTwo: (params: any) => params.val * 2,
 			multiplyByThree: (params: any) => params.val * 3,
-		} as unknown) as EndpointHandlers,
+		} as unknown as EndpointHandlers,
 	};
 
 	const beta = {
 		namespace: 'betaName',
 		logger,
 		events: ['beta1', 'beta2'],
-		endpoints: ({
+		endpoints: {
 			divideByTwo: (params: any) => params.val / 2,
 			divideByThree: (params: any) => params.val / 3,
 			withError: (params: any) => {
@@ -60,7 +60,7 @@ describe.skip('IPCChannelWithoutBus', () => {
 				}
 				return 0;
 			},
-		} as unknown) as EndpointHandlers,
+		} as unknown as EndpointHandlers,
 	};
 
 	describe('Communication without registering to bus', () => {

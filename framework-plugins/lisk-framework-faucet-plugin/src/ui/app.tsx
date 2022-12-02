@@ -145,7 +145,7 @@ export const App: React.FC = () => {
 			updateShowSuccessDialog(true);
 		} catch (error) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			updateErrorMsg(error?.message ?? 'Fail to connect to server');
+			updateErrorMsg((error as Error)?.message ?? 'Fail to connect to server');
 		}
 	};
 	return (

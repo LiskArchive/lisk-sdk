@@ -78,9 +78,9 @@ export class EncryptCommand extends Command {
 		const { flags } = await this.parse(EncryptCommand);
 		const password = flags.password ?? (await getPasswordFromPrompt('password', true));
 
-		const keysWithoutEncryption = (fs.readJSONSync(
+		const keysWithoutEncryption = fs.readJSONSync(
 			flags['file-path'],
-		) as unknown) as KeysWithoutEncryption;
+		) as unknown as KeysWithoutEncryption;
 
 		const keys = [];
 		for (const keyWithoutEncryption of keysWithoutEncryption.keys) {

@@ -41,7 +41,7 @@ describe('base_bootstrap_command command', () => {
 	describe('_isLiskAppDir', () => {
 		it('should to check .liskrc.json file', async () => {
 			jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-			new MyCommand([], (config as unknown) as Config)['_isLiskAppDir']('/my/dir');
+			new MyCommand([], config as unknown as Config)['_isLiskAppDir']('/my/dir');
 
 			expect(fs.existsSync).toHaveBeenCalledWith('/my/dir/.liskrc.json');
 		});

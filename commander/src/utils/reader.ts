@@ -185,12 +185,12 @@ export const readFileSource = async (source?: string): Promise<string> => {
 		return getDataFromFile(filePath);
 	} catch (error) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const { message } = error;
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
+		const { message } = error as Error;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access, @typescript-eslint/prefer-regexp-exec
 		if (message.match(/ENOENT/)) {
 			throw new FileSystemError(getFileDoesNotExistError(filePath));
 		}
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access, @typescript-eslint/prefer-regexp-exec
 		if (message.match(/EACCES/)) {
 			throw new FileSystemError(getFileUnreadableError(filePath));
 		}
@@ -339,6 +339,7 @@ export const getParamsFromPrompt = async (
 	const questions = prepareQuestions(assetSchema);
 	let isTypeConfirm = false;
 	// Prompt user with prepared questions
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	const result = await inquirer.prompt(questions).then(async answer => {
 		const inquirerResult = answer as { [key: string]: string };
 		isTypeConfirm = typeof inquirerResult.askAgain === 'boolean';

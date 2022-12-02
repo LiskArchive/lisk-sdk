@@ -78,7 +78,7 @@ export abstract class ImportCommand extends BaseIPCClientCommand {
 			this.error('APIClient is not initialized.');
 		}
 
-		const fileData = (fs.readJSONSync(flags['file-path']) as unknown) as Keys;
+		const fileData = fs.readJSONSync(flags['file-path']) as unknown as Keys;
 		const keys = fileData.keys.map(k => {
 			let type: 'encrypted' | 'plain';
 			let returnData;

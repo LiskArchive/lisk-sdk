@@ -55,8 +55,8 @@ describe('ChainAccountStore', () => {
 			const chainAccounts = await chainAccountStore.getAllAccounts(context, chainIDs[1]);
 
 			expect(chainAccounts).toHaveLength(2);
-			expect(chainAccounts[0].name).toEqual('chain2');
-			expect(chainAccounts[1].name).toEqual('chain3');
+			expect(chainAccounts[0].name).toBe('chain2');
+			expect(chainAccounts[1].name).toBe('chain3');
 		});
 	});
 });

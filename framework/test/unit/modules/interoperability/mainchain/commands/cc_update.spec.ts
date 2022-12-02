@@ -506,8 +506,9 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should terminate the chain and log event when verifyCrossChainMessage fails', async () => {
-			((ccMethods.get('token') as BaseCCMethod)
-				.verifyCrossChainMessage as jest.Mock).mockRejectedValue('error');
+			(
+				(ccMethods.get('token') as BaseCCMethod).verifyCrossChainMessage as jest.Mock
+			).mockRejectedValue('error');
 
 			const terminateChainInternalMock = jest.fn();
 			interopMod['internalMethod'].terminateChainInternal = terminateChainInternalMock;
@@ -615,8 +616,9 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should revert the state and terminate the sending chain if beforeCrossChainMessageForwarding fails', async () => {
-			((ccMethods.get('token') as BaseCCMethod)
-				.beforeCrossChainMessageForwarding as jest.Mock).mockRejectedValue('error');
+			(
+				(ccMethods.get('token') as BaseCCMethod).beforeCrossChainMessageForwarding as jest.Mock
+			).mockRejectedValue('error');
 			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
 			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);
 			jest.spyOn(context.eventQueue, 'restoreSnapshot');

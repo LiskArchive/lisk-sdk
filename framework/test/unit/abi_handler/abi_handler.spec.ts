@@ -159,7 +159,7 @@ describe('abi handler', () => {
 				header: createFakeBlockHeader().toObject(),
 			});
 			expect(resp.contextID).toHaveLength(32);
-			expect(abiHandler['_executionContext']).not.toBeUndefined();
+			expect(abiHandler['_executionContext']).toBeDefined();
 			expect(abiHandler['_executionContext']?.stateStore).toBeInstanceOf(PrefixedStateReadWriter);
 		});
 	});
@@ -274,7 +274,7 @@ describe('abi handler', () => {
 			});
 			expect(abiHandler['_stateMachine'].verifyAssets).toHaveBeenCalledTimes(1);
 
-			expect(resp).not.toBeUndefined();
+			expect(resp).toBeDefined();
 		});
 	});
 
@@ -420,7 +420,7 @@ describe('abi handler', () => {
 				.calls[0][0]['_stateStore'];
 			const usedHeader = (abiHandler['_stateMachine'].verifyTransaction as jest.Mock).mock
 				.calls[0][0]['_header'];
-			expect(usedHeader.height).toEqual(10);
+			expect(usedHeader.height).toBe(10);
 			// Expect used state store does not have previous information
 			await expect(usedStateStore.has(key)).resolves.toBeFalse();
 			expect(resp.result).toEqual(TransactionVerifyResult.INVALID);
@@ -577,7 +577,7 @@ describe('abi handler', () => {
 			await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
 			});
-			expect(abiHandler['_executionContext']).not.toBeUndefined();
+			expect(abiHandler['_executionContext']).toBeDefined();
 			await abiHandler.clear({});
 
 			expect(abiHandler['_executionContext']).toBeUndefined();
@@ -601,8 +601,8 @@ describe('abi handler', () => {
 			expect(resp.data).toBeInstanceOf(Buffer);
 			const body = JSON.parse(resp.data.toString('utf-8'));
 			expect(body.modules).toHaveLength(2);
-			expect(body.modules[0].name).toEqual('auth');
-			expect(body.modules[1].name).toEqual('token');
+			expect(body.modules[0].name).toBe('auth');
+			expect(body.modules[1].name).toBe('token');
 			expect(body.modules[0].name.localeCompare(body.modules[1].name, 'en')).toBeLessThan(0);
 		});
 	});

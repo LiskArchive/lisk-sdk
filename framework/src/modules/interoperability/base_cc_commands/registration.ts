@@ -29,7 +29,7 @@ import { BaseInteroperabilityInternalMethod } from '../base_interoperability_int
 import { getMainchainID } from '../utils';
 
 export abstract class BaseCCRegistrationCommand<
-	T extends BaseInteroperabilityInternalMethod
+	T extends BaseInteroperabilityInternalMethod,
 > extends BaseInteroperabilityCCCommand<T> {
 	public schema = registrationCCMParamsSchema;
 

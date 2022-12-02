@@ -31,12 +31,6 @@
 			"sdk",
 			"protocol-specs",
 			"test"
-		],
-		"nohoist": [
-			"**@types/mocha",
-			"**@types/jest",
-			"**jest-extended",
-			"**@types/jest-when"
 		]
 	},
 	"scripts": {
@@ -48,7 +42,7 @@
 		"lint": "lerna run lint",
 		"lint:fix": "lerna run lint:fix",
 		"test": "lerna run test",
-		"test:elements": "lerna run test --ignore=lisk-commander --ignore=lisk-framework --ignore=lisk-sdk --ignore=@liskhq/lisk-framework*",
+		"test:elements": "lerna run test --ignore=lisk-commander --ignore=lisk-framework --ignore=lisk-sdk --ignore=@liskhq/lisk-framework* --ignore=lisk-sdk-test",
 		"test:framework": "lerna run test --scope=lisk-framework",
 		"test:framework-plugins": "lerna run test --scope=@liskhq/lisk-framework-*",
 		"test:commander": "lerna run test --scope=lisk-commander",
@@ -58,24 +52,32 @@
 		"postinstall": "husky install"
 	},
 	"devDependencies": {
-		"@parcel/packager-raw-url": "2.7.0",
-		"@parcel/transformer-sass": "2.7.0",
-		"@parcel/transformer-webmanifest": "2.7.0",
-		"@types/node": "12.20.6",
-		"@typescript-eslint/eslint-plugin": "4.19.0",
-		"@typescript-eslint/parser": "4.19.0",
-		"eslint": "7.22.0",
+		"@parcel/packager-raw-url": "2.8.0",
+		"@parcel/transformer-sass": "2.8.0",
+		"@parcel/transformer-webmanifest": "2.8.0",
+		"@types/node": "16.18.3",
+		"@typescript-eslint/eslint-plugin": "5.44.0",
+		"@typescript-eslint/parser": "5.44.0",
+		"eslint": "8.28.0",
 		"eslint-config-lisk-base": "2.0.1",
-		"eslint-plugin-import": "2.22.1",
-		"eslint-plugin-jest": "24.3.2",
-		"husky": "7.0.1",
+		"eslint-plugin-import": "2.26.0",
+		"eslint-plugin-jest": "27.1.6",
+		"events": "^3.1.0",
+		"husky": "8.0.2",
 		"istanbul-lib-coverage": "3.0.0",
 		"istanbul-lib-report": "3.0.0",
 		"istanbul-reports": "3.0.0",
-		"lerna": "4.0.0",
-		"lint-staged": "11.1.2",
-		"prettier": "2.2.1",
-		"typescript": "4.2.3",
-		"yarn": "1.22.10"
+		"lerna": "6.0.3",
+		"lint-staged": "13.0.3",
+		"path-browserify": "^1.0.0",
+		"prettier": "2.8.0",
+		"stream-browserify": "3.0.0",
+		"typescript": "4.9.3",
+		"yarn": "1.22.19"
+	},
+	"resolutions": {
+		"@types/express-serve-static-core": "4.17.31",
+		"@types/serve-static": "1.15.0",
+		"@types/express": "4.17.14"
 	}
 }

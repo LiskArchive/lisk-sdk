@@ -12,18 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 module.exports = {
-	globals: {
-		'ts-jest': {
-			tsconfig: '<rootDir>/test/tsconfig.json',
-		},
-	},
 	verbose: false,
 	collectCoverage: false,
 	coverageReporters: ['json'],
 	rootDir: '../../',
 	setupFilesAfterEnv: ['<rootDir>/test/config/setup.js'],
 	transform: {
-		'^.+\\.(ts|tsx)$': 'ts-jest',
+		'^.+\\.(ts|tsx)$': [
+			'ts-jest',
+			{
+				tsconfig: '<rootDir>/test/tsconfig.json',
+			},
+		],
 	},
 	/**
 		coverageThreshold: {

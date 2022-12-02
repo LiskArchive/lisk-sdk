@@ -58,7 +58,9 @@ describe('Lisk SDK functional test', () => {
 
 	afterAll(async () => {
 		await client.disconnect();
-		process.kill(appProcess.pid, 'SIGTERM');
+		if (appProcess.pid) {
+			process.kill(appProcess.pid, 'SIGTERM');
+		}
 	});
 
 	describe('all functional tests', () => {

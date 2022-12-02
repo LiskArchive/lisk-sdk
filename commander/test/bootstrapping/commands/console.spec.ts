@@ -33,7 +33,7 @@ describe('hash-onion command', () => {
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest
 			.spyOn(repl, 'start')
-			.mockReturnValue(({ context: {}, on: jest.fn() } as unknown) as repl.REPLServer);
+			.mockReturnValue({ context: {}, on: jest.fn() } as unknown as repl.REPLServer);
 	});
 
 	describe('console', () => {

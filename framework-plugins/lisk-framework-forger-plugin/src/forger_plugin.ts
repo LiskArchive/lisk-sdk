@@ -203,7 +203,7 @@ export class ForgerPlugin extends BasePlugin {
 	private _subscribeToChannel(): void {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this.apiClient.subscribe('chain_newBlock', async (data?: Record<string, unknown>) => {
-			const { blockHeader } = (data as unknown) as Data;
+			const { blockHeader } = data as unknown as Data;
 			const transactions = await this.apiClient.invoke<TransactionJSON[]>(
 				'chain_getTransactionsByHeight',
 				{ height: blockHeader.height },
@@ -222,7 +222,7 @@ export class ForgerPlugin extends BasePlugin {
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this.apiClient.subscribe('chain_deleteBlock', async (data?: Record<string, unknown>) => {
-			const { blockHeader } = (data as unknown) as Data;
+			const { blockHeader } = data as unknown as Data;
 			const transactions = await this.apiClient.invoke<TransactionJSON[]>(
 				'chain_getTransactionsByHeight',
 				{ height: blockHeader.height },
@@ -281,7 +281,7 @@ export class ForgerPlugin extends BasePlugin {
 			throw new Error('PoS stakes command is not registered.');
 		}
 		const voteCommandMeta = posModuleMeta.commands.find(c => c.name === COMMAND_STAKE);
-		if (!voteCommandMeta || !voteCommandMeta.params) {
+		if (!voteCommandMeta?.params) {
 			throw new Error('PoS stakes command is not registered.');
 		}
 

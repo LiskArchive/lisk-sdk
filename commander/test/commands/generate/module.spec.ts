@@ -58,9 +58,10 @@ describe('generate:module command', () => {
 
 			await expect(ModuleCommand.run(['nft'], config)).resolves.toBeNull();
 			expect(BaseBootstrapCommand.prototype['_isLiskAppDir']).toHaveBeenCalledWith('/my/dir');
-			expect(
-				BaseBootstrapCommand.prototype['_runBootstrapCommand'],
-			).toHaveBeenCalledWith('lisk:generate:module', { moduleName: 'nft' });
+			expect(BaseBootstrapCommand.prototype['_runBootstrapCommand']).toHaveBeenCalledWith(
+				'lisk:generate:module',
+				{ moduleName: 'nft' },
+			);
 		});
 	});
 });

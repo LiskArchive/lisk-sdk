@@ -190,7 +190,7 @@ describe('StakeCommand', () => {
 
 	describe('constructor', () => {
 		it('should have valid name', () => {
-			expect(command.name).toEqual('stake');
+			expect(command.name).toBe('stake');
 		});
 
 		it('should have valid schema', () => {
@@ -927,12 +927,12 @@ describe('StakeCommand', () => {
 						{
 							validatorAddress: validatorAddress1,
 							amount: validator1StakeAmount,
-							unstakeHeight: lastBlockHeight + 1,
+							unstakeHeight: lastBlockHeight,
 						},
 						{
 							validatorAddress: validatorAddress2,
 							amount: validator2StakeAmount,
-							unstakeHeight: lastBlockHeight + 1,
+							unstakeHeight: lastBlockHeight,
 						},
 					].sort((a, b) => a.validatorAddress.compare(b.validatorAddress)),
 				);
@@ -1206,7 +1206,7 @@ describe('StakeCommand', () => {
 					{
 						validatorAddress: validatorAddress2,
 						amount: BigInt(-1) * negativeStakeValidator2,
-						unstakeHeight: lastBlockHeight + 1,
+						unstakeHeight: lastBlockHeight,
 					},
 				]);
 			});
@@ -1792,7 +1792,7 @@ describe('StakeCommand', () => {
 					{
 						validatorAddress: senderAddress,
 						amount: senderStakeAmountNegative,
-						unstakeHeight: lastBlockHeight + 1,
+						unstakeHeight: lastBlockHeight,
 					},
 				]);
 			});
@@ -1903,7 +1903,7 @@ describe('StakeCommand', () => {
 					{
 						validatorAddress,
 						amount: senderStakeAmountNegative,
-						unstakeHeight: lastBlockHeight + 1,
+						unstakeHeight: lastBlockHeight,
 					},
 				]);
 			});

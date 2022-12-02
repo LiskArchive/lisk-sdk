@@ -157,7 +157,7 @@ describe('peer/base', () => {
 	});
 
 	describe('#latency', () => {
-		it('should get latency property', () => expect(defaultPeer.internalState.latency).toEqual(0));
+		it('should get latency property', () => expect(defaultPeer.internalState.latency).toBe(0));
 	});
 
 	describe('#connectTime', () => {
@@ -167,7 +167,7 @@ describe('peer/base', () => {
 
 	describe('#responseRate', () => {
 		it('should get responseRate property', () =>
-			expect(defaultPeer.internalState.productivity.responseRate).toEqual(0));
+			expect(defaultPeer.internalState.productivity.responseRate).toBe(0));
 	});
 
 	describe('#productivity', () => {
@@ -185,11 +185,11 @@ describe('peer/base', () => {
 
 	describe('#wsMessageRate', () => {
 		it('should get wsMessageRate property', () =>
-			expect(defaultPeer.internalState.wsMessageRate).toEqual(0));
+			expect(defaultPeer.internalState.wsMessageRate).toBe(0));
 	});
 
 	describe('#state', () => {
-		it('should get state property', () => expect(defaultPeer.state).toEqual('closed'));
+		it('should get state property', () => expect(defaultPeer.state).toBe('closed'));
 	});
 
 	describe('#peerInfo', () => {
@@ -340,9 +340,7 @@ describe('peer/base', () => {
 					expect('never').toBe('called');
 				} catch (e) {
 					// Assert
-					// eslint-disable-next-line jest/no-try-expect
 					expect(defaultPeer.emit).toHaveBeenCalledTimes(1);
-					// eslint-disable-next-line jest/no-try-expect
 					expect((defaultPeer as any).emit).toHaveBeenCalledWith(
 						EVENT_FAILED_TO_FETCH_PEERS,
 						EVENT_FAILED_TO_FETCH_PEERS,
@@ -433,9 +431,7 @@ describe('peer/base', () => {
 				try {
 					await defaultPeer.fetchPeers();
 				} catch (e) {
-					// eslint-disable-next-line jest/no-try-expect
 					expect(defaultPeer.applyPenalty).toHaveBeenCalledTimes(1);
-					// eslint-disable-next-line jest/no-try-expect
 					expect(defaultPeer.applyPenalty).toHaveBeenCalledWith(100);
 				}
 			});
@@ -468,9 +464,7 @@ describe('peer/base', () => {
 				try {
 					await defaultPeer.fetchPeers();
 				} catch (e) {
-					// eslint-disable-next-line jest/no-try-expect
 					expect(defaultPeer.applyPenalty).toHaveBeenCalledTimes(1);
-					// eslint-disable-next-line jest/no-try-expect
 					expect(defaultPeer.applyPenalty).toHaveBeenCalledWith(100);
 				}
 			});
@@ -548,9 +542,7 @@ describe('peer/base', () => {
 					await defaultPeer.fetchAndUpdateStatus();
 					expect('never').toBe('called');
 				} catch (e) {
-					// eslint-disable-next-line jest/no-try-expect
 					expect((defaultPeer as any).emit).toHaveBeenCalledTimes(1);
-					// eslint-disable-next-line jest/no-try-expect
 					expect((defaultPeer as any).emit).toHaveBeenCalledWith(
 						EVENT_FAILED_TO_FETCH_PEER_INFO,
 						EVENT_FAILED_TO_FETCH_PEER_INFO,
@@ -566,8 +558,7 @@ describe('peer/base', () => {
 		describe('when request() succeeds', () => {
 			describe('when nodeInfo contains malformed information', () => {
 				const invalidData = {
-					data:
-						'0b4bfc826a027f228c21da9e4ce2eef156f0742719b6b2466ec706b15441025f638f748b22adfab873561587be7285be3e3888cd9acdce226e342cf196fbc2c5',
+					data: '0b4bfc826a027f228c21da9e4ce2eef156f0742719b6b2466ec706b15441025f638f748b22adfab873561587be7285be3e3888cd9acdce226e342cf196fbc2c5',
 				};
 				beforeEach(() => {
 					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue(invalidData);
@@ -580,9 +571,7 @@ describe('peer/base', () => {
 					try {
 						await defaultPeer.fetchAndUpdateStatus();
 					} catch (error) {
-						// eslint-disable-next-line jest/no-try-expect
 						expect(defaultPeer.applyPenalty).toHaveBeenCalledTimes(1);
-						// eslint-disable-next-line jest/no-try-expect
 						expect(defaultPeer.applyPenalty).toHaveBeenCalledWith(100);
 					}
 				});
@@ -610,9 +599,7 @@ describe('peer/base', () => {
 						await defaultPeer.fetchAndUpdateStatus();
 						expect('never').toBe('called');
 					} catch (error) {
-						// eslint-disable-next-line jest/no-try-expect
 						expect((defaultPeer as any).emit).toHaveBeenCalledTimes(1);
-						// eslint-disable-next-line jest/no-try-expect
 						expect((defaultPeer as any).emit).toHaveBeenCalledWith(
 							EVENT_FAILED_PEER_INFO_UPDATE,
 							expect.any(Error),

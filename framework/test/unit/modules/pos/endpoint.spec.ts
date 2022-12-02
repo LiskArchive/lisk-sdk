@@ -536,7 +536,7 @@ describe('PosModuleEndpoint', () => {
 		});
 	});
 
-	describe('getLockedRewards', () => {
+	describe('getLockedReward', () => {
 		beforeEach(async () => {
 			const context = createStoreGetter(stateStore);
 			await stakerSubStore.set(context, address, {
@@ -552,7 +552,7 @@ describe('PosModuleEndpoint', () => {
 
 		it('should reject with invalid params', async () => {
 			await expect(
-				posEndpoint.getLockedRewards(
+				posEndpoint.getLockedReward(
 					createTransientModuleEndpointContext({ stateStore, params: { limit: true } }),
 				),
 			).rejects.toThrow('Lisk validator found 2 error[s]:');
@@ -560,7 +560,7 @@ describe('PosModuleEndpoint', () => {
 
 		it('should reject with invalid token ID params', async () => {
 			await expect(
-				posEndpoint.getLockedRewards(
+				posEndpoint.getLockedReward(
 					createTransientModuleEndpointContext({
 						stateStore,
 						params: { address: cryptoAddress.getLisk32AddressFromAddress(address), tokenID: 123 },
@@ -570,7 +570,7 @@ describe('PosModuleEndpoint', () => {
 		});
 
 		it('should return full amount when token ID requested is not governance tokenID', async () => {
-			const resp = await posEndpoint.getLockedRewards(
+			const resp = await posEndpoint.getLockedReward(
 				createTransientModuleEndpointContext({
 					stateStore,
 					params: {
@@ -579,11 +579,11 @@ describe('PosModuleEndpoint', () => {
 					},
 				}),
 			);
-			expect(resp.reward).toEqual('5000');
+			expect(resp.reward).toBe('5000');
 		});
 
 		it('should return amount without the amount locked for stakes with token ID requested is the governance token ID', async () => {
-			const resp = await posEndpoint.getLockedRewards(
+			const resp = await posEndpoint.getLockedReward(
 				createTransientModuleEndpointContext({
 					stateStore,
 					params: {

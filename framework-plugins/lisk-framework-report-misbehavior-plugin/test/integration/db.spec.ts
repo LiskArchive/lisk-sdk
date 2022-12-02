@@ -108,7 +108,7 @@ describe('db', () => {
 				decodedBlockHeader1,
 				reportMisbehaviorPlugin['apiClient'],
 			);
-			expect(result).not.toBeUndefined();
+			expect(result).toBeDefined();
 
 			expect(result?.getBytes().toString('hex')).toEqual(blockHeader1.toString('hex'));
 		});

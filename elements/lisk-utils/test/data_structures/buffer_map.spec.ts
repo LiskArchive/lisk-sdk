@@ -29,7 +29,7 @@ describe('BufferMap', () => {
 		it('should return value if exist', () => {
 			map.set(Buffer.from('key'), 3);
 			const result = map.get(Buffer.from('key'));
-			expect(result).toEqual(3);
+			expect(result).toBe(3);
 		});
 	});
 
@@ -49,14 +49,14 @@ describe('BufferMap', () => {
 		it('should add to the data if it does not exist', () => {
 			map.set(Buffer.from('key'), 3);
 			const result = map.get(Buffer.from('key'));
-			expect(result).toEqual(3);
+			expect(result).toBe(3);
 		});
 
 		it('should update the data if it exists', () => {
 			map.set(Buffer.from('key'), 3);
 			map.set(Buffer.from('key'), 100);
 			const result = map.get(Buffer.from('key'));
-			expect(result).toEqual(100);
+			expect(result).toBe(100);
 		});
 	});
 
@@ -81,7 +81,7 @@ describe('BufferMap', () => {
 			clonedMap.set(Buffer.from('key'), 99);
 
 			const result = map.get(Buffer.from('key'));
-			expect(result).toEqual(3);
+			expect(result).toBe(3);
 		});
 	});
 

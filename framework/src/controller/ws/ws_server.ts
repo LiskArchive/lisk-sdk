@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { utils } from '@liskhq/lisk-cryptography';
+import { IncomingMessage } from 'http';
+import { Socket } from 'net';
 import * as WebSocket from 'ws';
 import { Logger } from '../../logger';
 import { NotificationRequest, RequestObject } from '../jsonrpc';
@@ -50,7 +52,7 @@ export class WSServer {
 			this.server = new WebSocket.Server({
 				noServer: true,
 			});
-			httpServer.on('upgrade', (request, socket, head) => {
+			httpServer.on('upgrade', (request: IncomingMessage, socket: Socket, head: Buffer) => {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 				if (request.url === this._path) {
 					this.server.handleUpgrade(request, socket, head, ws => {
@@ -96,6 +98,9 @@ export class WSServer {
 
 	public stop(): void {
 		if (this.server) {
+			for (const cli of this.server.clients) {
+				cli.terminate();
+			}
 			this.server.close();
 		}
 	}
@@ -124,10 +129,10 @@ export class WSServer {
 		socket.isAlive = true;
 		// eslint-disable-next-line no-param-reassign
 		socket.id = utils.getRandomBytes(20).toString('hex');
-		socket.on('message', (message: string) => {
+		socket.on('message', (message: string, isBytes: boolean) => {
 			// Read the message, and if it's subscription message, handle here
 			try {
-				const parsedMessage = JSON.parse(message) as RequestObject;
+				const parsedMessage = JSON.parse(isBytes ? message.toString() : message) as RequestObject;
 				if (parsedMessage.method === 'subscribe') {
 					this._handleSubscription(socket, parsedMessage);
 					return;
@@ -179,7 +184,7 @@ export class WSServer {
 			this._subscriptions[socket.id] = new Set<string>();
 		}
 		for (const eventName of params.topics) {
-			this._subscriptions[socket.id].add(eventName);
+			this._subscriptions[socket.id].add(eventName as string);
 		}
 	}
 
@@ -192,7 +197,7 @@ export class WSServer {
 			return;
 		}
 		for (const eventName of params.topics) {
-			this._subscriptions[socket.id].delete(eventName);
+			this._subscriptions[socket.id].delete(eventName as string);
 		}
 	}
 }

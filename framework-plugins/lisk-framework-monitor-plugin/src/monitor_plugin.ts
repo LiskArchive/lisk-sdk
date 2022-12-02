@@ -16,7 +16,7 @@ import { BasePlugin, PluginInitContext } from 'lisk-sdk';
 import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
-import * as rateLimit from 'express-rate-limit';
+import { rateLimit } from 'express-rate-limit';
 import * as middlewares from './middlewares';
 import { MonitorPluginConfig, SharedState } from './types';
 import * as controllers from './controllers';
@@ -98,22 +98,23 @@ export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
 	private _registerControllers(): void {
 		this._app.get(
 			'/api/prometheus/metrics',
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
 			controllers.prometheusExport.getData(this.apiClient, this._state),
 		);
 	}
 
 	private _subscribeToEvents(): void {
 		this.apiClient.subscribe('network_newBlock', (data?: Record<string, unknown>) => {
-			const { blockHeader } = (data as unknown) as BlockData;
+			const { blockHeader } = data as unknown as BlockData;
 			this._handlePostBlock(blockHeader);
 		});
 		this.apiClient.subscribe('network_newTransaction', (data?: Record<string, unknown>) => {
-			const { transactionIds } = (data as unknown) as { transactionIds: string[] };
+			const { transactionIds } = data as unknown as { transactionIds: string[] };
 			this._handlePostTransactionAnnounce({ transactionIds });
 		});
 
 		this.apiClient.subscribe('chain_forked', (data?: Record<string, unknown>) => {
-			const { blockHeader } = (data as unknown) as BlockData;
+			const { blockHeader } = data as unknown as BlockData;
 			this._handleFork(blockHeader);
 		});
 	}

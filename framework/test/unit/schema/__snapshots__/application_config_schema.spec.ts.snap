@@ -1,46 +1,46 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`schema/application_config_schema.js application config schema must match to the snapshot. 1`] = `
-Object {
+{
   "$id": "#/config",
   "additionalProperties": false,
-  "default": Object {
-    "generator": Object {
-      "keys": Object {},
+  "default": {
+    "generator": {
+      "keys": {},
     },
-    "genesis": Object {
+    "genesis": {
       "bftBatchSize": 103,
-      "block": Object {
+      "block": {
         "fromFile": "./config/genesis_block.blob",
       },
       "blockTime": 10,
       "maxTransactionsSize": 15360,
     },
-    "legacy": Object {
-      "brackets": Array [],
+    "legacy": {
+      "brackets": [],
       "sync": false,
     },
-    "modules": Object {},
-    "network": Object {
+    "modules": {},
+    "network": {
       "port": 7667,
-      "seedPeers": Array [],
+      "seedPeers": [],
       "version": "1.0",
     },
-    "plugins": Object {},
-    "rpc": Object {
+    "plugins": {},
+    "rpc": {
       "host": "127.0.0.1",
-      "modes": Array [
+      "modes": [
         "ipc",
       ],
       "port": 7887,
     },
-    "system": Object {
+    "system": {
       "dataPath": "~/.lisk/beta-sdk-app",
       "keepEventsForHeights": 300,
       "logLevel": "info",
       "version": "0.1.0",
     },
-    "transactionPool": Object {
+    "transactionPool": {
       "maxTransactions": 4096,
       "maxTransactionsPerAccount": 64,
       "minEntranceFeePriority": "0",
@@ -48,12 +48,12 @@ Object {
       "transactionExpiryTime": 10800000,
     },
   },
-  "properties": Object {
-    "generator": Object {
-      "properties": Object {
-        "keys": Object {
-          "properties": Object {
-            "fromFile": Object {
+  "properties": {
+    "generator": {
+      "properties": {
+        "keys": {
+          "properties": {
+            "fromFile": {
               "description": "Path to a file which stores keys",
               "type": "string",
             },
@@ -61,70 +61,70 @@ Object {
           "type": "object",
         },
       },
-      "required": Array [
+      "required": [
         "keys",
       ],
       "type": "object",
     },
-    "genesis": Object {
+    "genesis": {
       "additionalProperties": false,
-      "properties": Object {
-        "bftBatchSize": Object {
+      "properties": {
+        "bftBatchSize": {
           "description": "The length of a round",
           "minimum": 1,
           "type": "number",
         },
-        "block": Object {
-          "oneOf": Array [
-            Object {
-              "properties": Object {
-                "blob": Object {
+        "block": {
+          "oneOf": [
+            {
+              "properties": {
+                "blob": {
                   "format": "hex",
                   "type": "string",
                 },
-                "fromFile": Object {
+                "fromFile": {
                   "type": "string",
                 },
               },
-              "required": Array [
+              "required": [
                 "fromFile",
               ],
             },
-            Object {
-              "properties": Object {
-                "blob": Object {
+            {
+              "properties": {
+                "blob": {
                   "format": "hex",
                   "type": "string",
                 },
-                "fromFile": Object {
+                "fromFile": {
                   "type": "string",
                 },
               },
-              "required": Array [
+              "required": [
                 "blob",
               ],
             },
           ],
           "type": "object",
         },
-        "blockTime": Object {
+        "blockTime": {
           "description": "Slot time interval in seconds",
           "minimum": 2,
           "type": "number",
         },
-        "chainID": Object {
+        "chainID": {
           "description": "The unique name of the chain as a string encoded in Hex format",
           "format": "hex",
           "type": "string",
         },
-        "maxTransactionsSize": Object {
+        "maxTransactionsSize": {
           "description": "Maximum number of transactions allowed per block",
           "maximum": 30720,
           "minimum": 10240,
           "type": "integer",
         },
       },
-      "required": Array [
+      "required": [
         "block",
         "blockTime",
         "bftBatchSize",
@@ -133,25 +133,25 @@ Object {
       ],
       "type": "object",
     },
-    "legacy": Object {
-      "properties": Object {
-        "brackets": Object {
-          "items": Object {
-            "properties": Object {
-              "snapshotBlockID": Object {
+    "legacy": {
+      "properties": {
+        "brackets": {
+          "items": {
+            "properties": {
+              "snapshotBlockID": {
                 "format": "hex",
                 "type": "string",
               },
-              "snapshotHeight": Object {
+              "snapshotHeight": {
                 "minimum": 0,
                 "type": "number",
               },
-              "startHeight": Object {
+              "startHeight": {
                 "minimum": 0,
                 "type": "number",
               },
             },
-            "required": Array [
+            "required": [
               "startHeight",
               "snapshotHeight",
               "snapshotBlockID",
@@ -160,44 +160,44 @@ Object {
           },
           "type": "array",
         },
-        "sync": Object {
+        "sync": {
           "type": "boolean",
         },
       },
-      "required": Array [
+      "required": [
         "brackets",
       ],
       "type": "object",
     },
-    "modules": Object {
-      "additionalProperties": Object {
+    "modules": {
+      "additionalProperties": {
         "type": "object",
       },
-      "propertyNames": Object {
+      "propertyNames": {
         "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
       },
       "type": "object",
     },
-    "network": Object {
-      "properties": Object {
-        "advertiseAddress": Object {
+    "network": {
+      "properties": {
+        "advertiseAddress": {
           "type": "boolean",
         },
-        "blacklistedIPs": Object {
-          "items": Object {
+        "blacklistedIPs": {
+          "items": {
             "format": "ip",
             "type": "string",
           },
           "type": "array",
         },
-        "fixedPeers": Object {
-          "items": Object {
-            "properties": Object {
-              "ip": Object {
+        "fixedPeers": {
+          "items": {
+            "properties": {
+              "ip": {
                 "format": "ip",
                 "type": "string",
               },
-              "port": Object {
+              "port": {
                 "maximum": 65535,
                 "minimum": 1,
                 "type": "integer",
@@ -208,29 +208,29 @@ Object {
           "maximum": 4,
           "type": "array",
         },
-        "host": Object {
+        "host": {
           "format": "ip",
           "type": "string",
         },
-        "maxInboundConnections": Object {
+        "maxInboundConnections": {
           "type": "integer",
         },
-        "maxOutboundConnections": Object {
+        "maxOutboundConnections": {
           "type": "integer",
         },
-        "port": Object {
+        "port": {
           "maximum": 65535,
           "minimum": 1,
           "type": "integer",
         },
-        "seedPeers": Object {
-          "items": Object {
-            "properties": Object {
-              "ip": Object {
+        "seedPeers": {
+          "items": {
+            "properties": {
+              "ip": {
                 "format": "ipOrFQDN",
                 "type": "string",
               },
-              "port": Object {
+              "port": {
                 "maximum": 65535,
                 "minimum": 1,
                 "type": "integer",
@@ -240,18 +240,18 @@ Object {
           },
           "type": "array",
         },
-        "version": Object {
+        "version": {
           "format": "networkVersion",
           "type": "string",
         },
-        "whitelistedPeers": Object {
-          "items": Object {
-            "properties": Object {
-              "ip": Object {
+        "whitelistedPeers": {
+          "items": {
+            "properties": {
+              "ip": {
                 "format": "ip",
                 "type": "string",
               },
-              "port": Object {
+              "port": {
                 "maximum": 65535,
                 "minimum": 1,
                 "type": "integer",
@@ -261,27 +261,27 @@ Object {
           },
           "type": "array",
         },
-        "wsMaxPayload": Object {
+        "wsMaxPayload": {
           "maximum": 3048576,
           "type": "integer",
         },
       },
-      "required": Array [
+      "required": [
         "seedPeers",
       ],
       "type": "object",
     },
-    "plugins": Object {
+    "plugins": {
       "type": "object",
     },
-    "rpc": Object {
-      "properties": Object {
-        "host": Object {
+    "rpc": {
+      "properties": {
+        "host": {
           "type": "string",
         },
-        "modes": Object {
-          "items": Object {
-            "enum": Array [
+        "modes": {
+          "items": {
+            "enum": [
               "ipc",
               "ws",
               "http",
@@ -291,29 +291,29 @@ Object {
           "type": "array",
           "uniqueItems": true,
         },
-        "port": Object {
+        "port": {
           "maximum": 65535,
           "minimum": 1024,
           "type": "number",
         },
       },
-      "required": Array [
+      "required": [
         "modes",
         "host",
         "port",
       ],
       "type": "object",
     },
-    "system": Object {
-      "properties": Object {
-        "dataPath": Object {
+    "system": {
+      "properties": {
+        "dataPath": {
           "type": "string",
         },
-        "keepEventsForHeights": Object {
+        "keepEventsForHeights": {
           "type": "integer",
         },
-        "logLevel": Object {
-          "enum": Array [
+        "logLevel": {
+          "enum": [
             "trace",
             "debug",
             "info",
@@ -324,12 +324,12 @@ Object {
           ],
           "type": "string",
         },
-        "version": Object {
+        "version": {
           "format": "version",
           "type": "string",
         },
       },
-      "required": Array [
+      "required": [
         "version",
         "dataPath",
         "logLevel",
@@ -337,25 +337,25 @@ Object {
       ],
       "type": "object",
     },
-    "transactionPool": Object {
-      "properties": Object {
-        "maxTransactions": Object {
+    "transactionPool": {
+      "properties": {
+        "maxTransactions": {
           "minimum": 1,
           "type": "integer",
         },
-        "maxTransactionsPerAccount": Object {
+        "maxTransactionsPerAccount": {
           "minimum": 1,
           "type": "integer",
         },
-        "minEntranceFeePriority": Object {
+        "minEntranceFeePriority": {
           "format": "uint64",
           "type": "string",
         },
-        "minReplacementFeeDifference": Object {
+        "minReplacementFeeDifference": {
           "format": "uint64",
           "type": "string",
         },
-        "transactionExpiryTime": Object {
+        "transactionExpiryTime": {
           "minimum": 60000,
           "type": "integer",
         },
@@ -363,7 +363,7 @@ Object {
       "type": "object",
     },
   },
-  "required": Array [
+  "required": [
     "system",
     "rpc",
     "network",

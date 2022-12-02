@@ -183,11 +183,6 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 		const authSubstore = this.stores.get(AuthAccountStore);
 		const senderAccount = await authSubstore.get(context, transaction.senderAddress);
 
-		// Check if multisignatures already exists on account
-		if (senderAccount.numberOfSignatures > 0) {
-			throw new Error('Register multisignature only allowed once per account.');
-		}
-
 		senderAccount.mandatoryKeys = params.mandatoryKeys;
 		senderAccount.optionalKeys = params.optionalKeys;
 		senderAccount.numberOfSignatures = params.numberOfSignatures;

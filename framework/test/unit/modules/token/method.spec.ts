@@ -154,13 +154,13 @@ describe('token module', () => {
 		it('should return zero if data does not exist', async () => {
 			await expect(
 				method.userAccountExists(methodContext, utils.getRandomBytes(20), defaultTokenID),
-			).resolves.toEqual(false);
+			).resolves.toBe(false);
 		});
 
 		it('should return balance if data exists', async () => {
 			await expect(
 				method.userAccountExists(methodContext, defaultAddress, defaultTokenID),
-			).resolves.toEqual(true);
+			).resolves.toBe(true);
 		});
 	});
 
@@ -921,7 +921,7 @@ describe('token module', () => {
 				methodContext,
 				userStore.getKey(defaultAddress, defaultTokenID),
 			);
-			expect(lockedBalances[0].module).toEqual('pos');
+			expect(lockedBalances[0].module).toBe('pos');
 			checkEventResult(methodContext.eventQueue, LockEvent, TokenEventResult.SUCCESSFUL);
 		});
 	});

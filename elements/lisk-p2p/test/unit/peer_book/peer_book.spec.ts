@@ -85,7 +85,7 @@ describe('peerBook', () => {
 			expect(peerBook.fixedPeers).toHaveLength(10);
 			expect(peerBook.whitelistedPeers).toHaveLength(10);
 			expect(peerBook.bannedIPs).toEqual(expect.any(Set));
-			expect(peerBook.bannedIPs.size).toEqual(1);
+			expect(peerBook.bannedIPs.size).toBe(1);
 		});
 
 		it('should update PeerKind', () => {
@@ -114,9 +114,9 @@ describe('peerBook', () => {
 				}
 			});
 
-			expect(fixedPeerCount).toEqual(10);
-			expect(whitelistedPeerCount).toEqual(10);
-			expect(seedPeerCount).toEqual(10);
+			expect(fixedPeerCount).toBe(10);
+			expect(whitelistedPeerCount).toBe(10);
+			expect(seedPeerCount).toBe(10);
 		});
 	});
 
@@ -506,7 +506,7 @@ describe('peerBook', () => {
 				jest.advanceTimersByTime(DEFAULT_BAN_TIME);
 
 				// Assert
-				expect(peerBook.bannedIPs.size).toEqual(0);
+				expect(peerBook.bannedIPs.size).toBe(0);
 			});
 
 			it('should not able to ban Whitelisted ,FixedPeer', () => {
@@ -515,14 +515,14 @@ describe('peerBook', () => {
 				peerBook.addBannedPeer(whitelisted[0].peerId, DEFAULT_BAN_TIME);
 
 				// Assert
-				expect(peerBook.bannedIPs.size).toEqual(0);
+				expect(peerBook.bannedIPs.size).toBe(0);
 			});
 
 			it('should able to SeedPeer', () => {
 				// Act
 				peerBook.addBannedPeer(seedPeers[0].peerId, DEFAULT_BAN_TIME);
 				// Assert
-				expect(peerBook.bannedIPs.size).toEqual(1);
+				expect(peerBook.bannedIPs.size).toBe(1);
 			});
 
 			it('should not able to ban same IP multiple times', () => {

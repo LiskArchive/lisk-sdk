@@ -201,7 +201,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			})(interopsModuleule.stores, interopsModuleule.events),
 		]);
 
-		internalMethod = ({
+		internalMethod = {
 			isLive: jest.fn().mockResolvedValue(true),
 			addToOutbox: jest.fn(),
 			terminateChainInternal: jest.fn(),
@@ -211,7 +211,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			verifyPartnerChainOutboxRoot: jest.fn(),
 			updateValidators: jest.fn(),
 			updateCertificate: jest.fn(),
-		} as unknown) as BaseInteroperabilityInternalMethod;
+		} as unknown as BaseInteroperabilityInternalMethod;
 		command = new CrossChainUpdateCommand(
 			interopsModuleule.stores,
 			interopsModuleule.events,
@@ -768,8 +768,9 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should terminate the chain and log event when verifyCrossChainMessage fails', async () => {
-			((ccMethods.get('token') as BaseCCMethod)
-				.verifyCrossChainMessage as jest.Mock).mockRejectedValue('error');
+			(
+				(ccMethods.get('token') as BaseCCMethod).verifyCrossChainMessage as jest.Mock
+			).mockRejectedValue('error');
 			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
@@ -818,9 +819,13 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should terminate the chain and log event when command verify fails', async () => {
-			(((ccCommands.get(defaultCCM.module) as BaseCCCommand[]).find(
-				com => com.name === defaultCCM.crossChainCommand,
-			) as BaseCCCommand).verify as jest.Mock).mockRejectedValue('error');
+			(
+				(
+					(ccCommands.get(defaultCCM.module) as BaseCCCommand[]).find(
+						com => com.name === defaultCCM.crossChainCommand,
+					) as BaseCCCommand
+				).verify as jest.Mock
+			).mockRejectedValue('error');
 
 			await expect(command['apply'](context)).resolves.toBeUndefined();
 
@@ -842,8 +847,9 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should terminate the chain and log event when command beforeCrossChainCommandExecute fails', async () => {
-			((ccMethods.get('token') as BaseCCMethod)
-				.beforeCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
+			(
+				(ccMethods.get('token') as BaseCCMethod).beforeCrossChainCommandExecute as jest.Mock
+			).mockRejectedValue('error');
 
 			await expect(command['apply'](context)).resolves.toBeUndefined();
 
@@ -865,8 +871,9 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should revert to the original state/event when command beforeCrossChainCommandExecute fails', async () => {
-			((ccMethods.get('token') as BaseCCMethod)
-				.beforeCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
+			(
+				(ccMethods.get('token') as BaseCCMethod).beforeCrossChainCommandExecute as jest.Mock
+			).mockRejectedValue('error');
 			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
 			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);
 			jest.spyOn(context.eventQueue, 'restoreSnapshot');
@@ -879,9 +886,13 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should bounce, log event and restore the state/event before calling execute when execute fails', async () => {
-			(((ccCommands.get(defaultCCM.module) as BaseCCCommand[]).find(
-				com => com.name === defaultCCM.crossChainCommand,
-			) as BaseCCCommand).execute as jest.Mock).mockRejectedValue('error');
+			(
+				(
+					(ccCommands.get(defaultCCM.module) as BaseCCCommand[]).find(
+						com => com.name === defaultCCM.crossChainCommand,
+					) as BaseCCCommand
+				).execute as jest.Mock
+			).mockRejectedValue('error');
 			jest.spyOn(command, 'bounce' as never).mockResolvedValue(undefined as never);
 			let eventQueueCount = 0;
 			let stateStoreCount = 0;
@@ -907,8 +918,9 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should terminate the chain and log event when command afterCrossChainCommandExecute fails', async () => {
-			((ccMethods.get('token') as BaseCCMethod)
-				.afterCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
+			(
+				(ccMethods.get('token') as BaseCCMethod).afterCrossChainCommandExecute as jest.Mock
+			).mockRejectedValue('error');
 
 			await expect(command['apply'](context)).resolves.toBeUndefined();
 
@@ -930,8 +942,9 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should restore the original state/event when command afterCrossChainCommandExecute fails', async () => {
-			((ccMethods.get('token') as BaseCCMethod)
-				.afterCrossChainCommandExecute as jest.Mock).mockRejectedValue('error');
+			(
+				(ccMethods.get('token') as BaseCCMethod).afterCrossChainCommandExecute as jest.Mock
+			).mockRejectedValue('error');
 			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
 			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);
 			jest.spyOn(context.eventQueue, 'restoreSnapshot');

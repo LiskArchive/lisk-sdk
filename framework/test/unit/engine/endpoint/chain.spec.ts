@@ -47,7 +47,7 @@ describe('Chain endpoint', () => {
 		});
 		db = new InMemoryDatabase();
 		// For this test we will use only in-memory database
-		endpoint.init((db as unknown) as Database);
+		endpoint.init(db as unknown as Database);
 	});
 
 	describe('getEvents', () => {

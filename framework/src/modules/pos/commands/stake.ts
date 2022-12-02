@@ -14,6 +14,7 @@
 
 import { dataStructures } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
+import { LiskErrorObject } from '@liskhq/lisk-validator/dist-node/types';
 import { AggregateValidationError, ValidationError } from '../../../errors';
 import {
 	CommandVerifyContext,
@@ -69,7 +70,7 @@ export class StakeCommand extends BaseCommand {
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new AggregateValidationError('Parameter is not valid.', err),
+				error: new AggregateValidationError('Parameter is not valid.', err as LiskErrorObject[]),
 			};
 		}
 
@@ -242,7 +243,7 @@ export class StakeCommand extends BaseCommand {
 				stakerData.pendingUnlocks.push({
 					validatorAddress: stake.validatorAddress,
 					amount: BigInt(-1) * stake.amount,
-					unstakeHeight: height + 1,
+					unstakeHeight: height,
 				});
 
 				// Sort account.unlocking
