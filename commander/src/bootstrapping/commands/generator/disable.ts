@@ -13,10 +13,10 @@
  *
  */
 
-import { BaseForgingCommand } from '../base_forging';
+import { BaseGeneratorCommand } from '../base_generator';
 
-export abstract class DisableCommand extends BaseForgingCommand {
-	static description = 'Disable forging for given validator address.';
+export abstract class DisableCommand extends BaseGeneratorCommand {
+	static description = 'Disable block generation for given validator address.';
 
 	static examples = [
 		'generator:disable lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz',
@@ -25,13 +25,29 @@ export abstract class DisableCommand extends BaseForgingCommand {
 	];
 
 	static flags = {
-		...BaseForgingCommand.flags,
+		...BaseGeneratorCommand.flags,
 	};
 
-	static args = [...BaseForgingCommand.args];
+	static args = [...BaseGeneratorCommand.args];
 
-	async init(): Promise<void> {
-		await super.init();
-		this.forging = false;
+	async run(): Promise<void> {
+		const { args, flags } = await this.parse(DisableCommand);
+		const { address } = args as { address: string };
+
+		const password = await this.getPassword(flags);
+
+		if (!this._client) {
+			this.error('APIClient is not initialized.');
+		}
+
+		await this._client.invoke('generator_updateStatus', {
+			address,
+			password,
+			enable: false,
+			height: 0,
+			maxHeightGenerated: 0,
+			maxHeightPrevoted: 0,
+		});
+		this.log('Disabled block generation');
 	}
 }

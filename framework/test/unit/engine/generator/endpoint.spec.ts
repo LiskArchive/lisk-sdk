@@ -25,7 +25,7 @@ import {
 	GENERATOR_STORE_INFO_PREFIX,
 	GENERATOR_STORE_KEY_PREFIX,
 } from '../../../../src/engine/generator/constants';
-import { PlainGeneratorKeyData, Consensus } from '../../../../src/engine/generator/types';
+import { PlainGeneratorKeyData, Consensus, Keypair } from '../../../../src/engine/generator/types';
 import { Endpoint } from '../../../../src/engine/generator/endpoint';
 import {
 	encryptedMessageSchema,
@@ -91,7 +91,7 @@ describe('generator endpoint', () => {
 		endpoint = new Endpoint({
 			abi,
 			consensus,
-			keypair: new dataStructures.BufferMap<PlainGeneratorKeyData>(),
+			keypair: new dataStructures.BufferMap<Keypair>(),
 			blockTime,
 			chain,
 		});
@@ -185,10 +185,9 @@ describe('generator endpoint', () => {
 
 		it('should delete the keypair if disabling', async () => {
 			endpoint['_keypairs'].set(defaultEncryptedKeys.address, {
-				generatorKey: Buffer.alloc(0),
-				generatorPrivateKey: Buffer.alloc(0),
-				blsKey: Buffer.alloc(0),
-				blsPrivateKey: Buffer.alloc(0),
+				publicKey: Buffer.alloc(0),
+				privateKey: Buffer.alloc(0),
+				blsSecretKey: Buffer.alloc(0),
 			});
 			await expect(
 				endpoint.updateStatus({
@@ -553,6 +552,26 @@ describe('generator endpoint', () => {
 			await expect(
 				db.has(Buffer.concat([GENERATOR_STORE_KEY_PREFIX, defaultEncryptedKeys.address])),
 			).resolves.toBeTrue();
+		});
+
+		it('should delete in-memory keypairs when new keys are set', async () => {
+			endpoint['_keypairs'].set(defaultEncryptedKeys.address, {
+				blsSecretKey: Buffer.alloc(0),
+				privateKey: Buffer.alloc(0),
+				publicKey: Buffer.alloc(0),
+			});
+			await expect(
+				endpoint.setKeys({
+					logger,
+					params: {
+						address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
+						type: 'encrypted',
+						data: defaultEncryptedKeys.data,
+					},
+					chainID,
+				}),
+			).resolves.toBeUndefined();
+			expect(endpoint['_keypairs'].has(defaultEncryptedKeys.address)).toBeFalse();
 		});
 	});
 

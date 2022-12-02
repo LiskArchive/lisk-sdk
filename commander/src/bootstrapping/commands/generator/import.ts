@@ -51,7 +51,7 @@ interface KeysWithInfo {
 			encrypted?: EncryptedMessageObject;
 		},
 	];
-	generatorInfo: [
+	generatorInfo?: [
 		{
 			address: string;
 			height: number;
@@ -88,7 +88,7 @@ export abstract class ImportCommand extends BaseIPCClientCommand {
 
 		const fileData = fs.readJSONSync(flags['file-path']) as unknown as KeysWithInfo;
 
-		for (const info of fileData.generatorInfo) {
+		for (const info of fileData.generatorInfo ?? []) {
 			await this._client.invoke('generator_setStatus', info);
 		}
 	}

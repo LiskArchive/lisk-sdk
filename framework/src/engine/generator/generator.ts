@@ -136,7 +136,7 @@ export class Generator {
 
 		this._endpoint = new Endpoint({
 			abi: this._abi,
-			keypair: new dataStructures.BufferMap<PlainGeneratorKeyData>(),
+			keypair: this._keypairs,
 			consensus: this._consensus,
 			blockTime: this._blockTime,
 			chain: this._chain,
