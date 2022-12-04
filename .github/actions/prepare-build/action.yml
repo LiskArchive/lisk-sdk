@@ -17,7 +17,6 @@ runs:
         key: cache-nx-${{ hashFiles('yarn.lock') }}-${{ inputs.cache-key }}-${{ github.sha }}
         restore-keys: |
           cache-nx-${{ hashFiles('yarn.lock') }}-${{ inputs.cache-key }}-${{ github.sha }}
-          cache-nx-${{ hashFiles('yarn.lock') }}-${{ inputs.cache-key }}
     - name: Build
       shell: bash
       run: yarn build
