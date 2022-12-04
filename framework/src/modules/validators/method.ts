@@ -20,7 +20,6 @@ import { GeneratorKeyRegistrationEvent } from './events/generator_key_registrati
 import { ValidatorKeys, ValidatorKeysStore } from './stores/validator_keys';
 import { BLSKeyStore } from './stores/bls_keys';
 import { BLSKeyRegistrationEvent } from './events/bls_key_registration';
-import { GenesisData, GenesisStore } from './stores/genesis';
 import { ValidatorsParams, ValidatorsParamsStore } from './stores/validators_params';
 import { NextValidatorsSetter, Validator } from '../../state_machine/types';
 
@@ -153,11 +152,6 @@ export class ValidatorsMethod extends BaseMethod {
 		return validatorsSubStore.get(methodContext, address);
 	}
 
-	public async getGenesisData(methodContext: ImmutableMethodContext): Promise<GenesisData> {
-		const genesisDataSubStore = this.stores.get(GenesisStore);
-		return genesisDataSubStore.get(methodContext, EMPTY_KEY);
-	}
-
 	public async setValidatorBLSKey(
 		methodContext: MethodContext,
 		validatorAddress: Buffer,
@@ -266,15 +260,9 @@ export class ValidatorsMethod extends BaseMethod {
 		}
 
 		const result: Record<string, number> = {};
-		const genesisData = await this.getGenesisData(methodContext);
 
-		if (startTimestamp < genesisData.timestamp) {
-			throw new Error('Input timestamp must be greater than genesis timestamp.');
-		}
-
-		const startSlotNumber =
-			Math.floor((startTimestamp - genesisData.timestamp) / this._blockTime) + 1;
-		const endSlotNumber = Math.floor((endTimestamp - genesisData.timestamp) / this._blockTime) - 1;
+		const startSlotNumber = Math.floor(startTimestamp / this._blockTime) + 1;
+		const endSlotNumber = Math.floor(endTimestamp / this._blockTime) - 1;
 
 		if (startSlotNumber > endSlotNumber) {
 			return {};

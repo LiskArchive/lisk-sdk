@@ -48,7 +48,7 @@ describe('BFT processing', () => {
 
 			beforeAll(async () => {
 				bftModule = new BFTModule();
-				await bftModule.init(scenario.config.activeValidators, 0, 10);
+				await bftModule.init(scenario.config.activeValidators, 10);
 				db = new InMemoryDatabase();
 				stateStore = new StateStore(db);
 

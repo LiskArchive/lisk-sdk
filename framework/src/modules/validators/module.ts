@@ -15,12 +15,10 @@
 import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { defaultConfig, EMPTY_KEY } from './constants';
-import { GenesisBlockExecuteContext } from '../../state_machine';
+import { defaultConfig } from './constants';
 import { ValidatorsMethod } from './method';
 import { ValidatorsEndpoint } from './endpoint';
 import { configSchema, validateBLSKeyRequestSchema, validateBLSKeyResponseSchema } from './schemas';
-import { GenesisStore } from './stores/genesis';
 import { ValidatorKeysStore } from './stores/validator_keys';
 import { BLSKeyStore } from './stores/bls_keys';
 import { GeneratorKeyRegistrationEvent } from './events/generator_key_registration';
@@ -34,7 +32,6 @@ export class ValidatorsModule extends BaseModule {
 
 	public constructor() {
 		super();
-		this.stores.register(GenesisStore, new GenesisStore(this.name));
 		this.stores.register(ValidatorKeysStore, new ValidatorKeysStore(this.name));
 		this.stores.register(BLSKeyStore, new BLSKeyStore(this.name));
 		this.stores.register(ValidatorsParamsStore, new ValidatorsParamsStore(this.name));
@@ -75,10 +72,5 @@ export class ValidatorsModule extends BaseModule {
 				blockTime: this._blockTime,
 			},
 		});
-	}
-
-	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
-		const genesisDataSubStore = this.stores.get(GenesisStore);
-		await genesisDataSubStore.set(context, EMPTY_KEY, { timestamp: context.header.timestamp });
 	}
 }
