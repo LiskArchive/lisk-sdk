@@ -32,7 +32,7 @@ export abstract class BaseGeneratorCommand extends BaseIPCClientCommand {
 	};
 
 	protected async getPassword(
-		parsedFlags: Awaited<ReturnType<typeof this.parse>>['flags'],
+		parsedFlags: Awaited<ReturnType<typeof BaseGeneratorCommand.prototype.parse>>['flags'],
 	): Promise<string> {
 		if (parsedFlags.password) {
 			return parsedFlags.password as string;
