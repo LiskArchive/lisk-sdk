@@ -301,7 +301,7 @@ export const parseEncryptedMessage = (encryptedMessage: string): EncryptedMessag
 		typeof tag !== 'string' ||
 		typeof salt !== 'string' ||
 		typeof version !== 'string' ||
-		(typeof mac !== 'string' && typeof mac !== 'undefined') ||
+		typeof mac !== 'string' ||
 		(typeof iterations !== 'string' && typeof iterations !== 'undefined') ||
 		(typeof parallelism !== 'string' && typeof parallelism !== 'undefined') ||
 		(typeof memorySize !== 'string' && typeof memorySize !== 'undefined')

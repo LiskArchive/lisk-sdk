@@ -513,29 +513,5 @@ describe('Register Multisignature command', () => {
 				},
 			);
 		});
-
-		it('should throw error when account is already multisignature', async () => {
-			await authStore.set(
-				{
-					getStore: (storePrefix: Buffer, substorePrefix: Buffer) =>
-						stateStore.getStore(storePrefix, substorePrefix),
-				},
-				transaction.senderAddress,
-				{ ...decodedParams, nonce: BigInt(0) },
-			);
-			const context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction,
-					chainID,
-				})
-				.createCommandExecuteContext<RegisterMultisignatureParams>(
-					registerMultisignatureParamsSchema,
-				);
-
-			await expect(registerMultisignatureCommand.execute(context)).rejects.toThrow(
-				'Register multisignature only allowed once per account.',
-			);
-		});
 	});
 });

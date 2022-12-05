@@ -14,18 +14,23 @@
 
 import { createServer, Server } from 'http';
 import * as WebSocket from 'isomorphic-ws';
+import { Socket } from 'net';
 import { WSChannel } from '../../src/ws_channel';
 
 jest.unmock('isomorphic-ws');
 
 const closeServer = async (server: WebSocket.Server | Server): Promise<void> => {
-	return new Promise((resolve, reject) => {
-		server.close(error => {
-			if (error) {
-				return reject(error);
+	if (server instanceof WebSocket.Server) {
+		for (const cli of server.clients) {
+			cli.terminate();
+		}
+	}
+	await new Promise((resolve, reject) => {
+		server.close(err => {
+			if (err) {
+				reject(err);
 			}
-
-			return resolve();
+			resolve(undefined);
 		});
 	});
 };
@@ -34,12 +39,19 @@ describe('WSChannel', () => {
 	describe('connect', () => {
 		it('should be connect to ws server', async () => {
 			const server = new WebSocket.Server({ path: '/my-path', port: 65535 });
+			await new Promise(resolve => {
+				server.on('listening', () => {
+					resolve(undefined);
+				});
+			});
 			const channel = new WSChannel('ws://localhost:65535/my-path');
 
 			try {
 				await expect(channel.connect()).resolves.toBeUndefined();
 				expect(server.clients.size).toBe(1);
 				expect([...server.clients][0].readyState).toEqual(WebSocket.OPEN);
+			} catch (err) {
+				console.error(err);
 			} finally {
 				await closeServer(server);
 			}
@@ -53,7 +65,7 @@ describe('WSChannel', () => {
 			// https://github.com/websockets/ws/issues/377#issuecomment-462152231
 			http.on('upgrade', (request, socket, head) => {
 				setTimeout(() => {
-					server.handleUpgrade(request, socket, head, ws => {
+					server.handleUpgrade(request, socket as Socket, head, ws => {
 						server.emit('connection', ws, request);
 					});
 				}, 3000);
@@ -67,8 +79,8 @@ describe('WSChannel', () => {
 				await expect(channel.connect()).rejects.toThrow('Could not connect in 2000ms');
 				expect(server.clients.size).toBe(0);
 			} finally {
-				await closeServer(server);
 				await closeServer(http);
+				await closeServer(server);
 			}
 			expect.assertions(2);
 		}, 5000);

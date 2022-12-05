@@ -18,13 +18,28 @@ import { JSONRPCError, JSONRPCMessage, JSONRPCNotification } from './types';
 export const convertRPCError = (error: JSONRPCError): Error =>
 	new Error(typeof error.data === 'string' ? error.data : error.message);
 
-export const timeout = async <T = void>(ms: number, message?: string): Promise<T> =>
-	new Promise((_, reject) => {
-		const id = setTimeout(() => {
-			clearTimeout(id);
-			reject(new Error(message ?? `Timed out in ${ms}ms.`));
-		}, ms);
-	});
+export const promiseWithTimeout = async <T = void>(
+	promises: Promise<T>[],
+	ms: number,
+	message?: string,
+): Promise<T> => {
+	let timeout: NodeJS.Timeout | undefined;
+	try {
+		const result = await Promise.race([
+			...promises,
+			new Promise((_, reject) => {
+				timeout = setTimeout(() => {
+					reject(new Error(message ?? `Timed out in ${ms}ms.`));
+				}, ms);
+			}),
+		]);
+		return result as T;
+	} finally {
+		if (timeout) {
+			clearTimeout(timeout);
+		}
+	}
+};
 
 interface Defer<T> {
 	promise: Promise<T>;
