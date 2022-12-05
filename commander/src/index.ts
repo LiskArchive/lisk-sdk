@@ -39,6 +39,7 @@ export { NodeInfoCommand, NodeMetadataCommand } from './bootstrapping/commands/s
 export {
 	PassphraseDecryptCommand,
 	PassphraseEncryptCommand,
+	PassphraseCreateCommand,
 } from './bootstrapping/commands/passphrase';
 export {
 	TransactionCreateCommand,

@@ -24,8 +24,8 @@ export class RewardEndpoint extends BaseEndpoint {
 		this._config = config;
 	}
 
-	public getDefaultRewardAtHeight(ctx: ModuleEndpointContext): DefaultReward {
-		const { height } = ctx.params;
+	public getDefaultRewardAtHeight(context: ModuleEndpointContext): DefaultReward {
+		const { height } = context.params;
 
 		if (typeof height !== 'number') {
 			throw new Error('Parameter height must be a number.');
@@ -38,5 +38,9 @@ export class RewardEndpoint extends BaseEndpoint {
 		const reward = calculateDefaultReward(this._config, height);
 
 		return { reward: reward.toString() };
+	}
+
+	public getRewardTokenID(): string {
+		return this._config.tokenID.toString('hex');
 	}
 }
