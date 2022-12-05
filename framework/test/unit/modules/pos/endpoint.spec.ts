@@ -201,6 +201,7 @@ describe('PosModuleEndpoint', () => {
 							coefficient: validatorCoefficient2.toString('hex'),
 						},
 					],
+					punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
 				};
 
 				expect(validatorDataReturned).toStrictEqual(validatorDataJSON);
@@ -503,6 +504,7 @@ describe('PosModuleEndpoint', () => {
 					tokenID: co.tokenID.toString('hex'),
 					coefficient: co.coefficient.toString('hex'),
 				})),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
 			});
 		});
 
@@ -521,6 +523,7 @@ describe('PosModuleEndpoint', () => {
 					tokenID: co.tokenID.toString('hex'),
 					coefficient: co.coefficient.toString('hex'),
 				})),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
 			});
 			expect(resp.validators[1]).toEqual({
 				...validatorData,
@@ -532,6 +535,7 @@ describe('PosModuleEndpoint', () => {
 					tokenID: co.tokenID.toString('hex'),
 					coefficient: co.coefficient.toString('hex'),
 				})),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
 			});
 		});
 	});
