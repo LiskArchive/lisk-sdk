@@ -19,7 +19,13 @@ import { validator } from '@liskhq/lisk-validator';
 import { dataStructures, math } from '@liskhq/lisk-utils';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
-import { ValidatorAccountJSON, ValidatorStore, validatorStoreSchema } from './stores/validator';
+import {
+	punishmentPeriod,
+	ValidatorAccountEndpoint,
+	ValidatorAccountJSON,
+	ValidatorStore,
+	validatorStoreSchema,
+} from './stores/validator';
 import { StakerStore, stakerStoreSchema } from './stores/staker';
 import {
 	GetClaimableRewardsRequest,
@@ -29,7 +35,6 @@ import {
 	GetLockedRewardResponse,
 	GetUnlockHeightResponse,
 	GetValidatorsByStakeRequest,
-	GetValidatorsByStakeResponse,
 	ModuleConfig,
 	ModuleConfigJSON,
 	TokenMethod,
@@ -38,7 +43,7 @@ import {
 } from './types';
 import { getPunishTime, getWaitTime, isCertificateGenerated, calculateStakeRewards } from './utils';
 import { GenesisDataStore } from './stores/genesis';
-import { EMPTY_KEY } from './constants';
+import { EMPTY_KEY, PUNISHMENT_PERIOD } from './constants';
 import { EligibleValidatorsStore } from './stores/eligible_validators';
 import {
 	getClaimableRewardsRequestSchema,
@@ -76,29 +81,29 @@ export class PoSEndpoint extends BaseEndpoint {
 		return codec.toJSON(stakerStoreSchema, stakerData);
 	}
 
-	public async getValidator(
-		ctx: ModuleEndpointContext,
-	): Promise<ValidatorAccountJSON & { address: string }> {
+	public async getValidator(ctx: ModuleEndpointContext): Promise<ValidatorAccountEndpoint> {
 		const validatorSubStore = this.stores.get(ValidatorStore);
 		const { address } = ctx.params;
 		if (typeof address !== 'string') {
 			throw new Error('Parameter address must be a string.');
 		}
 		cryptoAddress.validateLisk32Address(address);
-		const validatorData = await validatorSubStore.get(
+
+		const validatorAccount = await validatorSubStore.get(
 			ctx,
 			cryptoAddress.getAddressFromLisk32Address(address),
 		);
 
 		return {
-			...codec.toJSON<ValidatorAccountJSON>(validatorStoreSchema, validatorData),
+			...codec.toJSON<ValidatorAccountJSON>(validatorStoreSchema, validatorAccount),
 			address,
+			punishmentPeriods: this._calculatePunishmentPeriods(validatorAccount.pomHeights),
 		};
 	}
 
 	public async getAllValidators(
 		ctx: ModuleEndpointContext,
-	): Promise<{ validators: (ValidatorAccountJSON & { address: string })[] }> {
+	): Promise<{ validators: ValidatorAccountEndpoint[] }> {
 		const validatorSubStore = this.stores.get(ValidatorStore);
 		const startBuf = Buffer.alloc(20);
 		const endBuf = Buffer.alloc(20, 255);
@@ -106,12 +111,13 @@ export class PoSEndpoint extends BaseEndpoint {
 
 		const response = [];
 		for (const data of storeData) {
-			const validatorData = await validatorSubStore.get(ctx, data.key);
-			const validatorJSON = {
-				...codec.toJSON<ValidatorAccountJSON>(validatorStoreSchema, validatorData),
+			const validatorAccount = await validatorSubStore.get(ctx, data.key);
+			const validatorAccountJSON = {
+				...codec.toJSON<ValidatorAccountJSON>(validatorStoreSchema, validatorAccount),
 				address: cryptoAddress.getLisk32AddressFromAddress(data.key),
+				punishmentPeriods: this._calculatePunishmentPeriods(validatorAccount.pomHeights),
 			};
-			response.push(validatorJSON);
+			response.push(validatorAccountJSON);
 		}
 
 		return { validators: response };
@@ -214,7 +220,7 @@ export class PoSEndpoint extends BaseEndpoint {
 
 	public async getValidatorsByStake(
 		ctx: ModuleEndpointContext,
-	): Promise<GetValidatorsByStakeResponse> {
+	): Promise<{ validators: ValidatorAccountEndpoint[] }> {
 		validator.validate<GetValidatorsByStakeRequest>(getValidatorsByStakeRequestSchema, ctx.params);
 
 		const eligibleValidatorStore = this.stores.get(EligibleValidatorsStore);
@@ -227,12 +233,13 @@ export class PoSEndpoint extends BaseEndpoint {
 		);
 		for (const { key } of validatorsList) {
 			const [address] = eligibleValidatorStore.splitKey(key);
-			const validatorData = await validatorSubStore.get(ctx, address);
-			const validatorJSON = {
-				...codec.toJSON<ValidatorAccountJSON>(validatorStoreSchema, validatorData),
+			const validatorAccount = await validatorSubStore.get(ctx, address);
+			const validatorAccountJSON = {
+				...codec.toJSON<ValidatorAccountJSON>(validatorStoreSchema, validatorAccount),
 				address: cryptoAddress.getLisk32AddressFromAddress(address),
+				punishmentPeriods: this._calculatePunishmentPeriods(validatorAccount.pomHeights),
 			};
-			response.push(validatorJSON);
+			response.push(validatorAccountJSON);
 		}
 
 		return { validators: response };
@@ -281,11 +288,11 @@ export class PoSEndpoint extends BaseEndpoint {
 			if (stake.validatorAddress.equals(address)) {
 				continue;
 			}
-			const validatorData = await this.stores
+			const validatorAccount = await this.stores
 				.get(ValidatorStore)
 				.get(context, stake.validatorAddress);
 
-			for (const validatorSharingCoefficient of validatorData.sharingCoefficients) {
+			for (const validatorSharingCoefficient of validatorAccount.sharingCoefficients) {
 				const stakeSharingConefficient = stake.stakeSharingCoefficients.find(sc =>
 					sc.tokenID.equals(validatorSharingCoefficient.tokenID),
 				) ?? {
@@ -332,12 +339,12 @@ export class PoSEndpoint extends BaseEndpoint {
 		unstakeHeight: number,
 	): Promise<number> {
 		const validatorSubStore = this.stores.get(ValidatorStore);
-		const validatorData = await validatorSubStore.get(ctx, validatorAddress);
+		const validatorAccount = await validatorSubStore.get(ctx, validatorAddress);
 		const waitTime = getWaitTime(callerAddress, validatorAddress) + unstakeHeight;
-		if (!validatorData.pomHeights.length) {
+		if (!validatorAccount.pomHeights.length) {
 			return waitTime;
 		}
-		const lastPomHeight = validatorData.pomHeights[validatorData.pomHeights.length - 1];
+		const lastPomHeight = validatorAccount.pomHeights[validatorAccount.pomHeights.length - 1];
 		// if last pom height is greater than unstake height + wait time, the validator is not punished
 		if (lastPomHeight >= unstakeHeight + waitTime) {
 			return waitTime;
@@ -346,5 +353,18 @@ export class PoSEndpoint extends BaseEndpoint {
 			getPunishTime(callerAddress, validatorAddress) + lastPomHeight,
 			getWaitTime(callerAddress, validatorAddress) + unstakeHeight,
 		);
+	}
+
+	private _calculatePunishmentPeriods(pomHeights: number[], period = PUNISHMENT_PERIOD) {
+		const result: punishmentPeriod[] = [];
+
+		for (const pomHeight of pomHeights) {
+			result.push({
+				start: pomHeight,
+				end: pomHeight + period,
+			});
+		}
+
+		return result;
 	}
 }
