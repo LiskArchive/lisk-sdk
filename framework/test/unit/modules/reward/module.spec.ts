@@ -51,7 +51,9 @@ describe('RewardModule', () => {
 	describe('init', () => {
 		it('should initialize config with default value when module config is empty', async () => {
 			rewardModule = new RewardModule();
-			await expect(rewardModule.init({ genesisConfig: {} as any, moduleConfig: {} })).toResolve();
+			await expect(
+				rewardModule.init({ genesisConfig: { chainID: '00000000' } as any, moduleConfig: {} }),
+			).toResolve();
 
 			expect(rewardModule['_moduleConfig']).toEqual({
 				...moduleConfig,
@@ -64,7 +66,7 @@ describe('RewardModule', () => {
 			rewardModule = new RewardModule();
 			await expect(
 				rewardModule.init({
-					genesisConfig: {} as any,
+					genesisConfig: { chainID: '00000000' } as any,
 					moduleConfig: { offset: 1000 },
 				}),
 			).toResolve();

@@ -96,4 +96,8 @@ describe('RewardModuleEndpoint', () => {
 			),
 		).toThrow('Parameter height cannot be smaller than 0.');
 	});
+
+	it('should return reward token ID', () => {
+		expect(rewardModule.endpoint.getRewardTokenID()).toBe(moduleConfig.tokenID);
+	});
 });
