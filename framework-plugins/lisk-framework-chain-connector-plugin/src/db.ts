@@ -13,18 +13,24 @@
  */
 
 import * as createDebug from 'debug';
-import { codec, db as liskDB } from 'lisk-sdk';
+import { codec, db as liskDB, chain } from 'lisk-sdk';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
-import { EMPTY_BYTES } from './constants';
-import { chainConnectorInfoSchema } from './schemas';
-import { ChainConnectorInfo } from './types';
+import { DB_KEY_CROSS_CHAIN_MESSAGES, EMPTY_BYTES } from './constants';
+import { chainConnectorInfoSchema, crossChainMessagesSchema } from './schemas';
+import { ChainConnectorInfo, CrossChainMessages } from './types';
 
 const debug = createDebug('plugin:forger:db');
 
 const { Database } = liskDB;
 type KVStore = liskDB.Database;
+
+const uint32BE = (val: number): Buffer => {
+	const result = Buffer.alloc(4);
+	result.writeUInt32BE(val, 0);
+	return result;
+};
 
 export const getDBInstance = async (
 	dataPath: string,
@@ -57,4 +63,29 @@ export const setChainConnectorInfo = async (
 ): Promise<void> => {
 	const encodedInfo = codec.encode(chainConnectorInfoSchema, chainConnectorInfo);
 	await db.set(EMPTY_BYTES, encodedInfo);
+};
+
+export const getCrossChainMessages = async (
+	db: KVStore,
+	height: number,
+): Promise<CrossChainMessages> => {
+	try {
+		const concatedDBKey = chain.concatDBKeys(DB_KEY_CROSS_CHAIN_MESSAGES, uint32BE(height));
+		const encodedInfo = await db.get(concatedDBKey);
+		return codec.decode<CrossChainMessages>(crossChainMessagesSchema, encodedInfo);
+	} catch (error) {
+		return {
+			crossChainMessages: [],
+		};
+	}
+};
+
+export const setCrossChainMessages = async (
+	db: KVStore,
+	height: number,
+	ccms: CrossChainMessages,
+): Promise<void> => {
+	const concatedDBKey = chain.concatDBKeys(DB_KEY_CROSS_CHAIN_MESSAGES, uint32BE(height));
+	const encodedInfo = codec.encode(crossChainMessagesSchema, ccms);
+	await db.set(concatedDBKey, encodedInfo);
 };
