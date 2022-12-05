@@ -67,13 +67,14 @@ export class RewardModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs): Promise<void> {
 		const { moduleConfig } = args;
-		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
+		const tokenID = `${args.genesisConfig.chainID}${Buffer.alloc(4).toString('hex')}`;
+		const config = objects.mergeDeep({}, { ...defaultConfig, tokenID }, moduleConfig);
 		validator.validate<ModuleConfigJSON>(configSchema, config);
 
 		this._moduleConfig = {
 			...config,
-			brackets: config.brackets.map(bracket => BigInt(bracket)),
 			tokenID: Buffer.from(config.tokenID, 'hex'),
+			brackets: config.brackets.map(bracket => BigInt(bracket)),
 		};
 
 		this.method.init({

@@ -90,7 +90,7 @@ describe('DynamicRewardModule', () => {
 			expect(rewardModule['_moduleConfig']).toEqual({
 				...defaultConfig,
 				brackets: defaultConfig.brackets.map(b => BigInt(b)),
-				tokenID: Buffer.from(defaultConfig.tokenID, 'hex'),
+				tokenID: Buffer.from('0000000000000000', 'hex'),
 			});
 		});
 
