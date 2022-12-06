@@ -48,7 +48,7 @@ export abstract class EnableCommand extends BaseGeneratorCommand {
 			description: 'Validators largest prevoted height for a block.',
 		}),
 		'use-status-value': Flags.boolean({
-			description: 'use status value from the connected node',
+			description: 'Use status value from the connected node',
 		}),
 	};
 
