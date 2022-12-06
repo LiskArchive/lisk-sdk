@@ -34,19 +34,23 @@
 		]
 	},
 	"scripts": {
-		"bootstrap": "lerna bootstrap",
 		"clean": "lerna run clean",
 		"clean:node_modules": "lerna clean --yes",
 		"clean:full": "npm run clean:node_modules && rm -rf node_modules && yarn && yarn build",
-		"format": "lerna run format",
-		"lint": "lerna run lint",
-		"lint:fix": "lerna run lint:fix",
-		"test": "lerna run test",
+		"format": "nx run-many --target=format",
+		"format:since": "nx affected --target=format",
+		"lint": "nx run-many --target=lint",
+		"lint:since": "nx affected --target=lint",
+		"lint:fix": "nx run-many --target=lint:fix",
+		"test": "nx run-many --target=test",
+		"test:ci": "nx run-many --target=test:ci",
+		"test:since": "nx affected --target=test",
 		"test:elements": "lerna run test --ignore=lisk-commander --ignore=lisk-framework --ignore=lisk-sdk --ignore=@liskhq/lisk-framework* --ignore=lisk-sdk-test",
 		"test:framework": "lerna run test --scope=lisk-framework",
 		"test:framework-plugins": "lerna run test --scope=@liskhq/lisk-framework-*",
 		"test:commander": "lerna run test --scope=lisk-commander",
-		"build": "lerna run build",
+		"build": "nx run-many --target=build",
+		"build:since": "nx affected --target=build",
 		"init": "./scripts/init.sh",
 		"prepare": "husky install",
 		"postinstall": "husky install"
@@ -73,7 +77,8 @@
 		"prettier": "2.8.0",
 		"stream-browserify": "3.0.0",
 		"typescript": "4.9.3",
-		"yarn": "1.22.19"
+		"yarn": "1.22.19",
+		"nx": "15.2.1"
 	},
 	"resolutions": {
 		"@types/express-serve-static-core": "4.17.31",

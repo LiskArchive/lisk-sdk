@@ -19,7 +19,6 @@ export const REWARD_REDUCTION_MAX_PREVOTES = 2;
 export const REWARD_REDUCTION_FACTOR_BFT = BigInt(4);
 
 export const defaultConfig = {
-	tokenID: '0000000000000000',
 	offset: 2160,
 	distance: 3000000,
 	brackets: ['500000000', '400000000', '300000000', '200000000', '100000000'],

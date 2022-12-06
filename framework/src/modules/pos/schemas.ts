@@ -423,6 +423,7 @@ const validatorJSONSchema = {
 		'lastGeneratedHeight',
 		'isBanned',
 		'pomHeights',
+		'punishmentPeriods',
 		'consecutiveMissedBlocks',
 	],
 	properties: {
@@ -451,6 +452,23 @@ const validatorJSONSchema = {
 		pomHeights: {
 			type: 'array',
 			items: { type: 'integer', format: 'uint32' },
+		},
+		punishmentPeriods: {
+			type: 'array',
+			items: {
+				type: 'object',
+				required: ['start', 'end'],
+				properties: {
+					start: {
+						type: 'integer',
+						format: 'uint32',
+					},
+					end: {
+						type: 'integer',
+						format: 'uint32',
+					},
+				},
+			},
 		},
 		consecutiveMissedBlocks: {
 			type: 'integer',

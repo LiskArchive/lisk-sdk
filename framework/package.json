@@ -31,6 +31,7 @@
 		"lint:fix": "eslint --fix --ext .js,.ts .",
 		"format": "prettier --write '**/*'",
 		"test": "jest --config=./test/unit/jest.config.js",
+		"test:ci": "jest --config=./test/unit/jest.config.js --coverage=true --coverage-reporters=json --verbose",
 		"test:coverage": "jest --config=./test/unit/jest.config.js --coverage=true --coverage-reporters=text",
 		"copy-static-files": "copyfiles -u 1 src/**/*.d.ts ./dist-node",
 		"prebuild": "rm -r dist-node/* || mkdir dist-node || true",

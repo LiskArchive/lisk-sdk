@@ -1,0 +1,43 @@
+{
+	"tasksRunnerOptions": {
+		"default": {
+			"runner": "nx/tasks-runners/default",
+			"options": {
+				"cacheableOperations": [
+					"format",
+					"lint",
+					"lint:fix",
+					"build",
+					"test",
+					"test:coverage",
+					"test:ci"
+				]
+			}
+		}
+	},
+	"targetDefaults": {
+		"lint": {
+			"dependsOn": ["^lint"]
+		},
+		"lint:fix": {
+			"dependsOn": ["^lint:fix"]
+		},
+		"build": {
+			"dependsOn": ["^build"],
+			"outputs": ["{projectRoot}/dist-node"]
+		},
+		"test": {
+			"dependsOn": ["^test"]
+		},
+		"test:coverage": {
+			"dependsOn": ["^test:coverage"]
+		},
+		"test:ci": {
+			"dependsOn": ["^test:ci"]
+		},
+		"test:unit": {
+			"dependsOn": ["^test:unit"]
+		}
+	},
+	"defaultBase": "development"
+}
