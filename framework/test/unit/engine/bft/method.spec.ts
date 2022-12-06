@@ -43,7 +43,7 @@ describe('BFT Method', () => {
 	beforeEach(() => {
 		bftMethod = new BFTMethod();
 		validatorsMethod = { getValidatorKeys: jest.fn() };
-		bftMethod.init(103, 0, 10);
+		bftMethod.init(103, 10);
 	});
 
 	describe('areHeadersContradicting', () => {

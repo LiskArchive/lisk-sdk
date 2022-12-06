@@ -166,11 +166,7 @@ export class Consensus {
 			blockExecutor,
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
 		});
-		await this._bft.init(
-			this._genesisConfig.bftBatchSize,
-			args.genesisBlock.header.timestamp,
-			this._genesisConfig.blockTime,
-		);
+		await this._bft.init(this._genesisConfig.bftBatchSize, this._genesisConfig.blockTime);
 
 		this._network.registerEndpoint(NETWORK_LEGACY_GET_BLOCKS_FROM_ID, async ({ data, peerId }) =>
 			this._legacyEndpoint.handleRPCGetLegacyBlocksFromID(data, peerId),

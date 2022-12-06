@@ -34,7 +34,6 @@ import {
 	ValidatorKeysStore,
 } from '../../../../src/modules/validators/stores/validator_keys';
 import { BLSKeyStore } from '../../../../src/modules/validators/stores/bls_keys';
-import { GenesisStore } from '../../../../src/modules/validators/stores/genesis';
 import {
 	generatorKeyRegDataSchema,
 	GeneratorKeyRegistrationEvent,
@@ -52,15 +51,14 @@ describe('ValidatorsModuleMethod', () => {
 	let stateStore: PrefixedStateReadWriter;
 	let validatorsSubStore: ValidatorKeysStore;
 	let blsKeysSubStore: BLSKeyStore;
-	let genesisDataSubStore: GenesisStore;
 	let validatorsParamsSubStore: ValidatorsParamsStore;
+	const blockTime = 10;
 	const genesisConfig: any = {};
 	const moduleConfig: any = {
-		blockTime: 10,
+		blockTime,
 	};
 	const address = utils.getRandomBytes(48);
 	const generatorKey = utils.getRandomBytes(48);
-	const genesisTimestamp = 1610643809;
 	const proofOfPossession = Buffer.from(
 		'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26',
 		'hex',
@@ -79,7 +77,6 @@ describe('ValidatorsModuleMethod', () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		validatorsSubStore = validatorsModule.stores.get(ValidatorKeysStore);
 		blsKeysSubStore = validatorsModule.stores.get(BLSKeyStore);
-		genesisDataSubStore = validatorsModule.stores.get(GenesisStore);
 		validatorsParamsSubStore = validatorsModule.stores.get(ValidatorsParamsStore);
 		methodContext = new MethodContext({
 			stateStore,
@@ -429,7 +426,6 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should be able to return if input timestamps are valid', async () => {
-			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 			await validatorsParamsSubStore.set(methodContext, EMPTY_KEY, {
 				certificateThreshold: BigInt(68),
 				preCommitThreshold: BigInt(68),
@@ -442,25 +438,18 @@ describe('ValidatorsModuleMethod', () => {
 			});
 
 			await expect(
-				validatorsModule.method.getGeneratorsBetweenTimestamps(
-					methodContext,
-					genesisTimestamp + 5,
-					genesisTimestamp + 1834,
-				),
+				validatorsModule.method.getGeneratorsBetweenTimestamps(methodContext, 5, 1834),
 			).resolves.toBeObject();
 		});
 
 		it('should be able to return generators with at least one generator assigned more than one slot if input timestamps are valid and difference between input timestamps is greater than one round', async () => {
-			const blockTime = 10;
 			const validatorsPerRound = 101;
 			const timePerRound = validatorsPerRound * blockTime;
 
-			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
-
 			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
 				methodContext,
-				genesisTimestamp,
-				genesisTimestamp + timePerRound + 2 * blockTime + 1,
+				0,
+				timePerRound + 2 * blockTime + 1,
 			);
 			let genWithCountGreaterThanOne = 0;
 			for (const generatorAddress of Object.keys(result)) {
@@ -473,16 +462,13 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should be able to return with all generators assigned at least 2 slots and at least one generator assigned more than 2 slots if input timestamps are valid and difference between input timestamps is greater than 2 rounds', async () => {
-			const blockTime = 10;
 			const validatorsPerRound = 101;
 			const timePerRound = validatorsPerRound * blockTime;
 
-			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
-
 			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
 				methodContext,
-				genesisTimestamp,
-				genesisTimestamp + timePerRound * 2 + 2 * blockTime + 1,
+				0,
+				timePerRound * 2 + 2 * blockTime + 1,
 			);
 
 			let genWithCountGreaterThanOne = 0;
@@ -504,88 +490,50 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is zero', async () => {
-			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
-
 			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
 				methodContext,
-				genesisTimestamp,
-				genesisTimestamp,
+				100,
+				100,
 			);
 
 			expect(Object.keys(result)).toHaveLength(0);
 		});
 
 		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is less than block time ', async () => {
-			const blockTime = 10;
-
-			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
-
 			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
 				methodContext,
-				genesisTimestamp,
-				genesisTimestamp + blockTime - 1,
+				0,
+				blockTime - 1,
 			);
 
 			expect(Object.keys(result)).toHaveLength(0);
 		});
 
 		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is equal to block time ', async () => {
-			const blockTime = 10;
-
-			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
-
 			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
 				methodContext,
-				genesisTimestamp,
-				genesisTimestamp + blockTime,
+				0,
+				blockTime,
 			);
 
 			expect(Object.keys(result)).toHaveLength(0);
 		});
 
-		it('should throw if input timestamps are invalid', async () => {
+		it('should throw error if the end timestamp is less than the start timestamp', async () => {
 			await expect(
-				validatorsModule.method.getGeneratorsBetweenTimestamps(
-					methodContext,
-					genesisTimestamp + 10,
-					genesisTimestamp + 1,
-				),
+				validatorsModule.method.getGeneratorsBetweenTimestamps(methodContext, 10, 1),
 			).rejects.toThrow('End timestamp must be greater than start timestamp.');
 		});
 
-		it('should throw if input timestamp is less than genesis timestamp', async () => {
-			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
-
-			await expect(
-				validatorsModule.method.getGeneratorsBetweenTimestamps(
-					methodContext,
-					genesisTimestamp - 100,
-					genesisTimestamp + 1,
-				),
-			).rejects.toThrow('Input timestamp must be greater than genesis timestamp.');
-		});
-
 		it('should return empty result when startSlotNumber is lower than endSlotNumber but in the same block slot', async () => {
-			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
-
 			await expect(
-				validatorsModule.method.getGeneratorsBetweenTimestamps(
-					methodContext,
-					genesisTimestamp + 2,
-					genesisTimestamp + 3,
-				),
+				validatorsModule.method.getGeneratorsBetweenTimestamps(methodContext, 2, 3),
 			).resolves.toEqual({});
 		});
 
 		it('should return empty result when startSlotNumber equals endSlotNumber but in the same block slot', async () => {
-			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
-
 			await expect(
-				validatorsModule.method.getGeneratorsBetweenTimestamps(
-					methodContext,
-					genesisTimestamp + 2,
-					genesisTimestamp + 2,
-				),
+				validatorsModule.method.getGeneratorsBetweenTimestamps(methodContext, 2, 2),
 			).resolves.toEqual({});
 		});
 	});

@@ -38,9 +38,9 @@ export class BFTModule {
 	private _maxLengthBlockBFTInfos!: number;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async init(batchSize: number, genesisTimestamp: number, blockTime: number): Promise<void> {
+	public async init(batchSize: number, blockTime: number): Promise<void> {
 		this._batchSize = batchSize;
-		this.method.init(this._batchSize, genesisTimestamp, blockTime);
+		this.method.init(this._batchSize, blockTime);
 		this._maxLengthBlockBFTInfos = 3 * this._batchSize;
 	}
 
