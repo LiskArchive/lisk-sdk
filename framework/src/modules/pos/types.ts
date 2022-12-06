@@ -291,10 +291,6 @@ export interface GetValidatorsByStakeRequest {
 	limit?: number;
 }
 
-export interface GetValidatorsByStakeResponse {
-	validators: (ValidatorAccountJSON & { address: string })[];
-}
-
 export interface GetLockedRewardRequest {
 	address: string;
 	tokenID: string;
