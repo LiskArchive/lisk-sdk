@@ -179,6 +179,10 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 					data: genesisInteroperabilitySchema,
 				},
 			],
+			stores: this.stores.values().map(v => ({
+				key: v.key.toString('hex'),
+				data: v.schema,
+			})),
 		};
 	}
 
