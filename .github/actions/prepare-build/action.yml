@@ -1,0 +1,22 @@
+name: 'Prepare: Build and cache packages'
+description: 'Prepares the repo for a job by building dependencies'
+inputs:
+  cache-key:
+    description: 'Key of the cache to use'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/cache@v3
+      id: nx-cache
+      with:
+        path: |
+          node_modules
+          **/node_modules/**
+        key: cache-nx-${{ hashFiles('yarn.lock') }}-${{ inputs.cache-key }}-${{ github.sha }}
+        restore-keys: |
+          cache-nx-${{ hashFiles('yarn.lock') }}-${{ inputs.cache-key }}-${{ github.sha }}
+    - name: Build
+      shell: bash
+      run: yarn build

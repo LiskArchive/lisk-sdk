@@ -8,5 +8,5 @@ module.exports = {
 	rules: {
 		'@typescript-eslint/member-ordering': 'off',
 		'@typescript-eslint/no-unsafe-argument': ['warn'],
-	}
+	},
 };
