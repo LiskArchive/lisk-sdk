@@ -52,9 +52,10 @@ describe('ValidatorsModuleMethod', () => {
 	let validatorsSubStore: ValidatorKeysStore;
 	let blsKeysSubStore: BLSKeyStore;
 	let validatorsParamsSubStore: ValidatorsParamsStore;
+	const blockTime = 10;
 	const genesisConfig: any = {};
 	const moduleConfig: any = {
-		blockTime: 10,
+		blockTime,
 	};
 	const address = utils.getRandomBytes(48);
 	const generatorKey = utils.getRandomBytes(48);
@@ -442,7 +443,6 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should be able to return generators with at least one generator assigned more than one slot if input timestamps are valid and difference between input timestamps is greater than one round', async () => {
-			const blockTime = 10;
 			const validatorsPerRound = 101;
 			const timePerRound = validatorsPerRound * blockTime;
 
@@ -462,7 +462,6 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should be able to return with all generators assigned at least 2 slots and at least one generator assigned more than 2 slots if input timestamps are valid and difference between input timestamps is greater than 2 rounds', async () => {
-			const blockTime = 10;
 			const validatorsPerRound = 101;
 			const timePerRound = validatorsPerRound * blockTime;
 
@@ -501,8 +500,6 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is less than block time ', async () => {
-			const blockTime = 10;
-
 			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
 				methodContext,
 				0,
@@ -513,8 +510,6 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is equal to block time ', async () => {
-			const blockTime = 10;
-
 			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
 				methodContext,
 				0,
@@ -524,7 +519,7 @@ describe('ValidatorsModuleMethod', () => {
 			expect(Object.keys(result)).toHaveLength(0);
 		});
 
-		it('should throw if input timestamps are invalid', async () => {
+		it('should throw error if the end timestamp is less than the start timestamp', async () => {
 			await expect(
 				validatorsModule.method.getGeneratorsBetweenTimestamps(methodContext, 10, 1),
 			).rejects.toThrow('End timestamp must be greater than start timestamp.');

@@ -38,6 +38,7 @@ describe('BFT processing', () => {
 		scenario7ValidatorsPartialSwitch,
 		scenario11ValidatorsPartialSwitch,
 	];
+	const blockTime = 10;
 
 	for (const scenario of bftScenarios) {
 		// eslint-disable-next-line no-loop-func
@@ -48,7 +49,7 @@ describe('BFT processing', () => {
 
 			beforeAll(async () => {
 				bftModule = new BFTModule();
-				await bftModule.init(scenario.config.activeValidators, 10);
+				await bftModule.init(scenario.config.activeValidators, blockTime);
 				db = new InMemoryDatabase();
 				stateStore = new StateStore(db);
 
