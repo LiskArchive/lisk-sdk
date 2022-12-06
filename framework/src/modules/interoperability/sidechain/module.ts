@@ -141,6 +141,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 
 	public metadata(): ModuleMetadata {
 		return {
+			...this.baseMetadata(),
 			endpoints: [
 				{
 					name: this.endpoint.getChainAccount.name,
@@ -172,24 +173,12 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 					response: terminatedOutboxSchema,
 				},
 			],
-			commands: this.commands.map(command => ({
-				name: command.name,
-				params: command.schema,
-			})),
-			events: this.events.values().map(v => ({
-				name: v.name,
-				data: v.schema,
-			})),
 			assets: [
 				{
 					version: 0,
 					data: genesisInteroperabilitySchema,
 				},
 			],
-			stores: this.stores.values().map(v => ({
-				key: v.key.toString('hex'),
-				data: v.schema,
-			})),
 		};
 	}
 
