@@ -87,6 +87,7 @@ export class DynamicRewardModule extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
+			...this.baseMetadata(),
 			endpoints: [
 				{
 					name: this.endpoint.getDefaultRewardAtHeight.name,
@@ -94,12 +95,6 @@ export class DynamicRewardModule extends BaseModule {
 					response: getDefaultRewardAtHeightResponseSchema,
 				},
 			],
-			commands: [],
-			events: this.events.values().map(v => ({
-				name: v.name,
-				data: v.schema,
-			})),
-			assets: [],
 		};
 	}
 

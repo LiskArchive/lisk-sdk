@@ -162,6 +162,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 
 	public metadata(): ModuleMetadata {
 		return {
+			...this.baseMetadata(),
 			endpoints: [
 				{
 					name: this.endpoint.getChainAccount.name,
@@ -193,14 +194,6 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 					response: terminatedOutboxSchema,
 				},
 			],
-			commands: this.commands.map(command => ({
-				name: command.name,
-				params: command.schema,
-			})),
-			events: this.events.values().map(v => ({
-				name: v.name,
-				data: v.schema,
-			})),
 			assets: [
 				{
 					version: 0,
