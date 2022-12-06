@@ -45,16 +45,14 @@ export interface BlockHeaderAsset {
 
 export class BFTMethod {
 	private _batchSize!: number;
-	private _genesisTimestamp!: number;
 	private _blockTime!: number;
 
 	public blockTime(): number {
 		return this._blockTime;
 	}
 
-	public init(batchSize: number, genesisTimestamp: number, blockTime: number) {
+	public init(batchSize: number, blockTime: number) {
 		this._batchSize = batchSize;
-		this._genesisTimestamp = genesisTimestamp;
 		this._blockTime = blockTime;
 	}
 
@@ -240,15 +238,11 @@ export class BFTMethod {
 	}
 
 	public getSlotNumber(timestamp: number): number {
-		const elapsedTime = timestamp - this._genesisTimestamp;
-
-		return Math.floor(elapsedTime / this._blockTime);
+		return Math.floor(timestamp / this._blockTime);
 	}
 
 	public getSlotTime(slot: number): number {
-		const slotGenesisTimeOffset = slot * this._blockTime;
-
-		return this._genesisTimestamp + slotGenesisTimeOffset;
+		return slot * this._blockTime;
 	}
 
 	public isWithinTimeslot(slot: number, timestamp: number): boolean {
