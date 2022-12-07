@@ -127,12 +127,12 @@ describe('Register Multisignature command', () => {
 			expect(result.error?.message).toInclude('must NOT have more than 64 items');
 		});
 
-		it('should return error if params mandatory keys contains items with length bigger than 32', async () => {
+		it('should return error if params mandatory keys contains items with length bigger than 32 bytes', async () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
-				numberOfSignatures: 3,
+				numberOfSignatures: 2,
 				mandatoryKeys: [utils.getRandomBytes(32), utils.getRandomBytes(64)],
 				optionalKeys: [],
-				signatures: [utils.getRandomBytes(64)],
+				signatures: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -147,12 +147,12 @@ describe('Register Multisignature command', () => {
 			expect(result.error?.message).toInclude("Property '.mandatoryKeys.1' maxLength exceeded");
 		});
 
-		it('should return error if params mandatory keys contains items with length smaller than 32', async () => {
+		it('should return error if params mandatory keys contains items with length smaller than 32 bytes', async () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
-				numberOfSignatures: 3,
+				numberOfSignatures: 2,
 				mandatoryKeys: [utils.getRandomBytes(10), utils.getRandomBytes(32)],
-				optionalKeys: [utils.getRandomBytes(10), utils.getRandomBytes(32)],
-				signatures: [utils.getRandomBytes(64)],
+				optionalKeys: [],
+				signatures: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -166,11 +166,11 @@ describe('Register Multisignature command', () => {
 			expect(result.error?.message).toInclude('minLength not satisfied');
 		});
 
-		it('should return error if params optional keys contains items with length bigger than 32', async () => {
+		it('should return error if params optional keys contains items with length bigger than 32 bytes', async () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
-				numberOfSignatures: 2,
+				numberOfSignatures: 1,
 				mandatoryKeys: [],
-				optionalKeys: [...Array(1).keys()].map(() => utils.getRandomBytes(64)),
+				optionalKeys: [utils.getRandomBytes(64)],
 				signatures: [utils.getRandomBytes(64)],
 			});
 			const context = testing
@@ -185,11 +185,11 @@ describe('Register Multisignature command', () => {
 			expect(result.error?.message).toInclude('maxLength exceeded');
 		});
 
-		it('should return error if params optional keys contains items with length smaller than 32', async () => {
+		it('should return error if params optional keys contains items with length smaller than 32 bytes', async () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
-				numberOfSignatures: 2,
+				numberOfSignatures: 1,
 				mandatoryKeys: [],
-				optionalKeys: [...Array(1).keys()].map(() => utils.getRandomBytes(31)),
+				optionalKeys: [utils.getRandomBytes(31)],
 				signatures: [utils.getRandomBytes(64)],
 			});
 			const context = testing
@@ -446,7 +446,9 @@ describe('Register Multisignature command', () => {
 			await expect(registerMultisignatureCommand.execute(context)).resolves.toBeUndefined();
 			const updatedStore = authModule.stores.get(AuthAccountStore);
 			const updatedData = await updatedStore.get(context, transaction.senderAddress);
+			expect(updatedData.numberOfSignatures).toBe(decodedParams.numberOfSignatures);
 			expect(updatedData.mandatoryKeys).toEqual(decodedParams.mandatoryKeys);
+			expect(updatedData.optionalKeys).toEqual(decodedParams.optionalKeys);
 			expect(authModule.events.get(MultisignatureRegistrationEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
 				transaction.senderAddress,

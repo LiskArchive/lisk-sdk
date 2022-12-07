@@ -1140,11 +1140,13 @@ describe('AuthModule', () => {
 				.createTransactionExecuteContext();
 			const authStore1 = authModule.stores.get(AuthAccountStore);
 			const address = cryptoAddress.getAddressFromPublicKey(validTestTransaction.senderPublicKey);
+			const mandatoryKeys = [utils.getRandomBytes(64), utils.getRandomBytes(64)];
+			const optionalKeys = [utils.getRandomBytes(64), utils.getRandomBytes(64)];
 			const authAccount1 = {
 				nonce: validTestTransaction.nonce,
-				numberOfSignatures: 5,
-				mandatoryKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
-				optionalKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
+				numberOfSignatures: 4,
+				mandatoryKeys,
+				optionalKeys,
 			};
 			await authStore1.set(context, address, authAccount1);
 
@@ -1154,6 +1156,9 @@ describe('AuthModule', () => {
 			const authAccount = await authStore.get(context, context.transaction.senderAddress);
 
 			expect(authAccount.nonce).toBe(BigInt(2));
+			expect(authAccount.numberOfSignatures).toBe(4);
+			expect(authAccount.mandatoryKeys).toEqual(mandatoryKeys);
+			expect(authAccount.optionalKeys).toEqual(optionalKeys);
 		});
 	});
 });
