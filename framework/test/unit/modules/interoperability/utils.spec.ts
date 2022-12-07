@@ -16,6 +16,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as merkleTree from '@liskhq/lisk-tree';
+import { SparseMerkleTree } from '@liskhq/lisk-db';
 import { MainchainInteroperabilityModule, VerifyStatus } from '../../../../src';
 import {
 	CCMStatusCode,
@@ -523,9 +524,9 @@ describe('Utils', () => {
 			partnerChannelData.partnerChainOutboxRoot = newInboxRoot;
 		});
 
-		it('should return VerifyStatus.OK when inboxUpdate is empty', () => {
+		it('should return VerifyStatus.OK when inboxUpdate is empty', async () => {
 			const txParamsEmptyInboxUpdate = { ...txParams, inboxUpdate: inboxUpdateEmpty };
-			const { status, error } = checkInboxUpdateValidity(
+			const { status, error } = await checkInboxUpdateValidity(
 				interopMod.stores,
 				txParamsEmptyInboxUpdate,
 				partnerChannelData,
@@ -535,11 +536,11 @@ describe('Utils', () => {
 		});
 
 		describe('Non-empty certificate and inboxUpdate', () => {
-			it('should update inboxRoot when messageWitnessHashes is non-empty', () => {
+			it('should update inboxRoot when messageWitnessHashes is non-empty', async () => {
 				const smtVerifySpy = jest
-					.spyOn(merkleTree.sparseMerkleTree, 'verify')
-					.mockReturnValue({} as never);
-				const { status, error } = checkInboxUpdateValidity(
+					.spyOn(SparseMerkleTree.prototype, 'verify')
+					.mockResolvedValue({} as never);
+				const { status, error } = await checkInboxUpdateValidity(
 					interopMod.stores,
 					txParams,
 					partnerChannelData,
@@ -549,14 +550,14 @@ describe('Utils', () => {
 				expect(smtVerifySpy).toHaveBeenCalled();
 			});
 
-			it('should not call calculateRootFromRightWitness when messageWitnessHashes is empty', () => {
+			it('should not call calculateRootFromRightWitness when messageWitnessHashes is empty', async () => {
 				const calculateRootFromRightWitnessSpy = jest.spyOn(
 					merkleTree.regularMerkleTree,
 					'calculateRootFromRightWitness',
 				);
 				const smtVerifySpy = jest
-					.spyOn(merkleTree.sparseMerkleTree, 'verify')
-					.mockReturnValue(true);
+					.spyOn(SparseMerkleTree.prototype, 'verify')
+					.mockResolvedValue(true);
 
 				const inboxUpdateMessageWitnessEmpty = {
 					crossChainMessages: inboxUpdateCCMsEncoded,
@@ -574,7 +575,7 @@ describe('Utils', () => {
 					inboxUpdate: inboxUpdateMessageWitnessEmpty,
 					sendingChainID: utils.intToBuffer(2, 4),
 				};
-				const { status, error } = checkInboxUpdateValidity(
+				const { status, error } = await checkInboxUpdateValidity(
 					interopMod.stores,
 					txParamsEmptyMessageWitness,
 					partnerChannelData,
@@ -585,15 +586,15 @@ describe('Utils', () => {
 				expect(smtVerifySpy).toHaveBeenCalled();
 			});
 
-			it('should return VerifyStatus.FAIL if outboxWitness fails SMT.verify', () => {
+			it('should return VerifyStatus.FAIL if outboxWitness fails SMT.verify', async () => {
 				const calculateRootFromRightWitnessSpy = jest
 					.spyOn(merkleTree.regularMerkleTree, 'calculateRootFromRightWitness')
 					.mockReturnValue({} as never);
 				const smtVerifySpy = jest
-					.spyOn(merkleTree.sparseMerkleTree, 'verify')
-					.mockReturnValue(false);
+					.spyOn(SparseMerkleTree.prototype, 'verify')
+					.mockResolvedValue(false);
 
-				const { status, error } = checkInboxUpdateValidity(
+				const { status, error } = await checkInboxUpdateValidity(
 					interopMod.stores,
 					txParams,
 					partnerChannelData,
@@ -606,15 +607,15 @@ describe('Utils', () => {
 				expect(smtVerifySpy).toHaveBeenCalled();
 			});
 
-			it('should return VerifyStatus.OK on SMT.verify true for non-empty certificate and inboxUpdate', () => {
+			it('should return VerifyStatus.OK on SMT.verify true for non-empty certificate and inboxUpdate', async () => {
 				const calculateRootFromRightWitnessSpy = jest
 					.spyOn(merkleTree.regularMerkleTree, 'calculateRootFromRightWitness')
 					.mockReturnValue({} as never);
 				const smtVerifySpy = jest
-					.spyOn(merkleTree.sparseMerkleTree, 'verify')
-					.mockReturnValue(true);
+					.spyOn(SparseMerkleTree.prototype, 'verify')
+					.mockResolvedValue(true);
 
-				const { status, error } = checkInboxUpdateValidity(
+				const { status, error } = await checkInboxUpdateValidity(
 					interopMod.stores,
 					txParams,
 					partnerChannelData,
@@ -640,12 +641,12 @@ describe('Utils', () => {
 				}),
 			};
 
-			it('should update newInboxRoot when messageWitnessHashes is non-empty', () => {
+			it('should update newInboxRoot when messageWitnessHashes is non-empty', async () => {
 				const calculateRootFromRightWitnessSpy = jest
 					.spyOn(merkleTree.regularMerkleTree, 'calculateRootFromRightWitness')
 					.mockReturnValue(partnerChannelData.partnerChainOutboxRoot);
 
-				const { status, error } = checkInboxUpdateValidity(
+				const { status, error } = await checkInboxUpdateValidity(
 					interopMod.stores,
 					txParamsWithEmptyCertificate,
 					partnerChannelData,
@@ -655,7 +656,7 @@ describe('Utils', () => {
 				expect(calculateRootFromRightWitnessSpy).toHaveBeenCalled();
 			});
 
-			it('should not call calculateRootFromRightWitness when messageWitnessHashes is empty', () => {
+			it('should not call calculateRootFromRightWitness when messageWitnessHashes is empty', async () => {
 				const txParamsEmptyMessageWitness = {
 					...txParams,
 					certificate: codec.encode(certificateSchema, {
@@ -680,7 +681,7 @@ describe('Utils', () => {
 					.spyOn(merkleTree.regularMerkleTree, 'calculateMerkleRoot')
 					.mockReturnValue({ root: partnerChannelData.partnerChainOutboxRoot } as never);
 
-				const { status, error } = checkInboxUpdateValidity(
+				const { status, error } = await checkInboxUpdateValidity(
 					interopMod.stores,
 					txParamsEmptyMessageWitness,
 					partnerChannelData,
@@ -691,7 +692,7 @@ describe('Utils', () => {
 				expect(calculateRootFromRightWitnessSpy).not.toHaveBeenCalled();
 			});
 
-			it('should return VerifyStatus.FAIL when calculated newInboxRoot is not equal to partnerChainOutboxRoot', () => {
+			it('should return VerifyStatus.FAIL when calculated newInboxRoot is not equal to partnerChainOutboxRoot', async () => {
 				const txParamsEmptyMessageWitness = {
 					...txParams,
 					certificate: codec.encode(certificateSchema, {
@@ -716,7 +717,7 @@ describe('Utils', () => {
 					.spyOn(merkleTree.regularMerkleTree, 'calculateMerkleRoot')
 					.mockReturnValue({ root: cryptography.utils.getRandomBytes(32) } as never);
 
-				const { status, error } = checkInboxUpdateValidity(
+				const { status, error } = await checkInboxUpdateValidity(
 					interopMod.stores,
 					txParamsEmptyMessageWitness,
 					partnerChannelData,

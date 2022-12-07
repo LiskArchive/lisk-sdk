@@ -15,7 +15,7 @@
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { sparseMerkleTree } from '@liskhq/lisk-tree';
+import { SparseMerkleTree } from '@liskhq/lisk-db';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -119,8 +119,10 @@ describe('Mainchain StateRecoveryCommand', () => {
 			transactionContext.createCommandExecuteContext<StateRecoveryParams>(
 				stateRecoveryParamsSchema,
 			);
-		jest.spyOn(sparseMerkleTree, 'verify').mockReturnValue(true);
-		jest.spyOn(sparseMerkleTree, 'calculateRoot').mockReturnValue(utils.getRandomBytes(32));
+		jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(true);
+		jest
+			.spyOn(SparseMerkleTree.prototype, 'calculateRoot')
+			.mockResolvedValue(utils.getRandomBytes(32));
 	});
 
 	describe('verify', () => {
@@ -188,7 +190,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 		});
 
 		it('should return error if proof of inclusion is not verified', async () => {
-			jest.spyOn(sparseMerkleTree, 'verify').mockReturnValue(false);
+			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
 
 			const result = await stateRecoveryCommand.verify(commandVerifyContext);
 
@@ -220,7 +222,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 
 		it('should set root value for terminated state substore', async () => {
 			const newStateRoot = utils.getRandomBytes(32);
-			jest.spyOn(sparseMerkleTree, 'calculateRoot').mockReturnValue(newStateRoot);
+			jest.spyOn(SparseMerkleTree.prototype, 'calculateRoot').mockResolvedValue(newStateRoot);
 
 			await stateRecoveryCommand.execute(commandExecuteContext);
 

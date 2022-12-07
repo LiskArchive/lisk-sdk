@@ -12,11 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { regularMerkleTree, sparseMerkleTree } from '@liskhq/lisk-tree';
+import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { NAME_REGEX } from '@liskhq/lisk-chain';
+import { SparseMerkleTree } from '@liskhq/lisk-db';
 import {
 	ActiveValidators,
 	CCMsg,
@@ -26,13 +27,7 @@ import {
 	ChainValidators,
 	InboxUpdate,
 } from './types';
-import {
-	EMPTY_BYTES,
-	LIVENESS_LIMIT,
-	MAX_CCM_SIZE,
-	SMT_KEY_LENGTH,
-	CHAIN_ID_LENGTH,
-} from './constants';
+import { EMPTY_BYTES, LIVENESS_LIMIT, MAX_CCM_SIZE, CHAIN_ID_LENGTH } from './constants';
 import {
 	ccmSchema,
 	sidechainTerminatedCCMParamsSchema,
@@ -195,11 +190,11 @@ export const checkCertificateValidity = (
 	};
 };
 
-export const checkInboxUpdateValidity = (
+export const checkInboxUpdateValidity = async (
 	stores: NamedRegistry,
 	txParams: CrossChainUpdateTransactionParams,
 	partnerChannelData: ChannelData,
-): VerificationResult => {
+): Promise<VerificationResult> => {
 	// If inboxUpdate is empty then return success
 	if (isInboxUpdateEmpty(txParams.inboxUpdate)) {
 		return {
@@ -246,11 +241,11 @@ export const checkInboxUpdateValidity = (
 			],
 		};
 		const querykeys = [outboxKey];
-		const isSMTRootValid = sparseMerkleTree.verify(
+		const sparseMerkleTree = new SparseMerkleTree();
+		const isSMTRootValid = await sparseMerkleTree.verify(
+			decodedCertificate.stateRoot,
 			querykeys,
 			proof,
-			decodedCertificate.stateRoot,
-			SMT_KEY_LENGTH,
 		);
 		if (!isSMTRootValid) {
 			return {

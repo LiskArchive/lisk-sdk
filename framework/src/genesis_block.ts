@@ -13,11 +13,10 @@
  */
 import * as os from 'os';
 import * as path from 'path';
-import { Block, BlockAssets, BlockHeader, EVENT_KEY_LENGTH, SMTStore } from '@liskhq/lisk-chain';
+import { Block, BlockAssets, BlockHeader, EVENT_KEY_LENGTH } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { InMemoryDatabase, StateDB } from '@liskhq/lisk-db';
-import { SparseMerkleTree } from '@liskhq/lisk-tree';
+import { SparseMerkleTree, StateDB } from '@liskhq/lisk-db';
 import { Logger } from './logger';
 import { computeValidatorsHash } from './engine';
 import { EventQueue, GenesisBlockContext, StateMachine } from './state_machine';
@@ -101,18 +100,16 @@ export const generateGenesisBlock = async (
 	header.stateRoot = stateRoot;
 
 	const blockEvents = blockCtx.eventQueue.getEvents();
-	const eventSmtStore = new SMTStore(new InMemoryDatabase());
-	const eventSMT = new SparseMerkleTree({
-		db: eventSmtStore,
-		keyLength: EVENT_KEY_LENGTH,
-	});
+	const eventSMT = new SparseMerkleTree(EVENT_KEY_LENGTH);
+	const data = [];
+
 	for (const e of blockEvents) {
 		const pairs = e.keyPair();
 		for (const pair of pairs) {
-			await eventSMT.update(pair.key, pair.value);
+			data.push(pair);
 		}
 	}
-	header.eventRoot = eventSMT.rootHash;
+	header.eventRoot = await eventSMT.update(Buffer.alloc(0), data);
 	header.validatorsHash = computeValidatorsHash(
 		blockCtx.nextValidators.validators,
 		blockCtx.nextValidators.certificateThreshold,
