@@ -182,20 +182,25 @@ export class AuthModule extends BaseModule {
 
 	public async beforeCommandExecute(context: TransactionExecuteContext): Promise<void> {
 		const { transaction } = context;
-		const store = this.stores.get(AuthAccountStore);
-		const senderExist = await store.has(context, transaction.senderAddress);
-		if (!senderExist) {
-			await store.set(context, context.transaction.senderAddress, {
+		const authAccountStore = this.stores.get(AuthAccountStore);
+		let senderAccount: AuthAccount;
+
+		try {
+			senderAccount = await authAccountStore.get(context, transaction.senderAddress);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			senderAccount = {
 				nonce: BigInt(0),
 				numberOfSignatures: 0,
 				mandatoryKeys: [],
 				optionalKeys: [],
-			});
+			};
 		}
 
-		const senderAccount = await store.get(context, transaction.senderAddress);
 		senderAccount.nonce += BigInt(1);
-		await store.set(context, transaction.senderAddress, {
+		await authAccountStore.set(context, transaction.senderAddress, {
 			nonce: senderAccount.nonce,
 			numberOfSignatures: senderAccount.numberOfSignatures,
 			mandatoryKeys: senderAccount.mandatoryKeys,
