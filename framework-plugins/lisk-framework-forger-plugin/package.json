@@ -33,6 +33,7 @@
 		"prebuild": "rm -r dist-node/* || mkdir dist-node || true",
 		"build": "tsc",
 		"test:unit": "jest --config=./test/unit/jest.config.js --coverage=true --coverage-reporters=json --verbose",
+		"test:ci": "jest --config=./test/unit/jest.config.js --coverage=true --coverage-reporters=json",
 		"test:functional": "jest --config=./test/functional/jest.config.js --runInBand",
 		"build:check": "node -e \"require('./dist-node')\""
 	},

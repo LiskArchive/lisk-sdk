@@ -30,6 +30,7 @@
 		"test:coverage": "jest --config=./test/unit/jest.config.js  --coverage=true --coverage-reporters=text",
 		"test:watch": "npm test -- --watch",
 		"test:unit": "jest --config=./test/unit/jest.config.js --coverage=true --coverage-reporters=json --verbose",
+		"test:ci": "jest --config=./test/unit/jest.config.js --coverage=true --coverage-reporters=json",
 		"test:integration": "jest --config=./test/integration/jest.config.js --runInBand",
 		"test:functional": "jest --config=./test/functional/jest.config.js --runInBand",
 		"prebuild": "rm -r dist-node/* || mkdir dist-node || true",
