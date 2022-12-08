@@ -496,7 +496,8 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			}
 		}
 
-		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
+		const encodedCCM = codec.encode(ccmSchema, ccm);
+		const ccmID = utils.hash(encodedCCM);
 		await this.addToOutbox(context, partnerChainID, ccm);
 		ownChainAccount.nonce += BigInt(1);
 		await this.stores.get(OwnChainAccountStore).set(context, EMPTY_BYTES, ownChainAccount);
@@ -504,7 +505,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		// Emit CCM Processed Event.
 		this.events
 			.get(CcmSendSuccessEvent)
-			.log(context, ccm.sendingChainID, ccm.receivingChainID, ccmID, { ccmID });
+			.log(context, ccm.sendingChainID, ccm.receivingChainID, ccmID, { ccm });
 	}
 
 	public async verifyPartnerChainOutboxRoot(

@@ -111,11 +111,20 @@ export abstract class BaseCrossChainUpdateCommand<
 				}
 			} catch (error) {
 				await this.internalMethod.terminateChainInternal(context, params.sendingChainID);
-				const ccmID = utils.hash(ccmBytes);
 				this.events.get(CcmProcessedEvent).log(context, params.sendingChainID, context.chainID, {
-					ccmID,
 					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
+					// When failing decode, add event with zero values
+					ccm: {
+						crossChainCommand: '',
+						fee: BigInt(0),
+						module: '',
+						nonce: BigInt(0),
+						params: Buffer.alloc(0),
+						receivingChainID: Buffer.alloc(0),
+						sendingChainID: Buffer.alloc(0),
+						status: 0,
+					},
 				});
 				return [[], false];
 			}
@@ -157,7 +166,6 @@ export abstract class BaseCrossChainUpdateCommand<
 		if (!commands) {
 			await this.bounce(
 				context,
-				ccmID,
 				encodedCCM.length,
 				CCMStatusCode.MODULE_NOT_SUPPORTED,
 				CCMProcessedCode.MODULE_NOT_SUPPORTED,
@@ -168,7 +176,6 @@ export abstract class BaseCrossChainUpdateCommand<
 		if (!command) {
 			await this.bounce(
 				context,
-				ccmID,
 				encodedCCM.length,
 				CCMStatusCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
 				CCMProcessedCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
@@ -185,9 +192,9 @@ export abstract class BaseCrossChainUpdateCommand<
 				);
 				await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
 				this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-					ccmID,
 					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
+					ccm,
 				});
 				return;
 			}
@@ -218,9 +225,9 @@ export abstract class BaseCrossChainUpdateCommand<
 			);
 			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccmID,
 				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
 				result: CCMProcessedResult.DISCARDED,
+				ccm,
 			});
 			return;
 		}
@@ -232,16 +239,15 @@ export abstract class BaseCrossChainUpdateCommand<
 			const params = command.schema ? codec.decode(command.schema, context.ccm.params) : {};
 			await command.execute({ ...context, params });
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccmID,
 				code: CCMProcessedCode.SUCCESS,
 				result: CCMProcessedResult.APPLIED,
+				ccm,
 			});
 		} catch (error) {
 			context.eventQueue.restoreSnapshot(execEventSnapshotID);
 			context.stateStore.restoreSnapshot(execStateSnapshotID);
 			await this.bounce(
 				context,
-				ccmID,
 				encodedCCM.length,
 				CCMStatusCode.FAILED_CCM,
 				CCMProcessedCode.FAILED_CCM,
@@ -271,16 +277,15 @@ export abstract class BaseCrossChainUpdateCommand<
 			);
 			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccmID,
 				code: CCMProcessedCode.INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
 				result: CCMProcessedResult.DISCARDED,
+				ccm,
 			});
 		}
 	}
 
 	protected async bounce(
 		context: CrossChainMessageContext,
-		ccmID: Buffer,
 		ccmSize: number,
 		ccmStatusCode: CCMStatusCode,
 		ccmProcessedCode: CCMProcessedCode,
@@ -289,14 +294,14 @@ export abstract class BaseCrossChainUpdateCommand<
 		const minFee = MIN_RETURN_FEE * BigInt(ccmSize);
 		if (ccm.status !== CCMStatusCode.OK || ccm.fee < minFee) {
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccmID,
 				code: ccmProcessedCode,
 				result: CCMProcessedResult.DISCARDED,
+				ccm,
 			});
 			return;
 		}
 		this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-			ccmID,
+			ccm,
 			code: ccmProcessedCode,
 			result: CCMProcessedResult.BOUNCED,
 		});
@@ -322,7 +327,7 @@ export abstract class BaseCrossChainUpdateCommand<
 		this.events
 			.get(CcmSendSuccessEvent)
 			.log(context, bouncedCCM.sendingChainID, bouncedCCM.receivingChainID, newCCMID, {
-				ccmID: newCCMID,
+				ccm: bouncedCCM,
 			});
 	}
 
@@ -347,9 +352,9 @@ export abstract class BaseCrossChainUpdateCommand<
 			);
 			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccmID,
 				code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
 				result: CCMProcessedResult.DISCARDED,
+				ccm,
 			});
 			return false;
 		}

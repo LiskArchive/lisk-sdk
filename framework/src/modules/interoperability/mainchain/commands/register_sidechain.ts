@@ -262,11 +262,12 @@ export class RegisterSidechainCommand extends BaseInteroperabilityCommand<Mainch
 		ownChainAccount.nonce += BigInt(1);
 		await ownChainAccountSubstore.set(context, EMPTY_BYTES, ownChainAccount);
 
-		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
+		const encodedCCM = codec.encode(ccmSchema, ccm);
+		const ccmID = utils.hash(encodedCCM);
 		this.events
 			.get(CcmSendSuccessEvent)
 			.log(methodContext, ownChainAccount.chainID, chainID, ccmID, {
-				ccmID,
+				ccm,
 			});
 	}
 }

@@ -13,22 +13,25 @@
  */
 
 import { BaseEvent, EventQueuer } from '../../base_event';
-import { HASH_LENGTH } from '../constants';
+import { ccmSchema } from '../schemas';
+import { CCMsg } from '../types';
 
 export interface CcmSendSuccessEventData {
-	ccmID: Buffer;
+	ccm: CCMsg;
 }
 
 export const ccmSendSuccessDataSchema = {
 	$id: '/interoperability/events/ccmSendSuccess',
 	type: 'object',
-	required: ['ccmID'],
+	required: ['ccm'],
 	properties: {
-		ccmID: {
-			dataType: 'bytes',
+		ccm: {
 			fieldNumber: 1,
-			minLength: HASH_LENGTH,
-			maxLength: HASH_LENGTH,
+			type: ccmSchema.type,
+			required: [...ccmSchema.required],
+			properties: {
+				...ccmSchema.properties,
+			},
 		},
 	},
 };
