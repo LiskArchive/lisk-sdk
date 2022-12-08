@@ -61,7 +61,6 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 			};
 		}
 
-		// Check if key count is less than number of required signatures
 		if (mandatoryKeys.length + optionalKeys.length < numberOfSignatures) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -71,7 +70,6 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 			};
 		}
 
-		// Check if key count is out of bounds
 		if (
 			mandatoryKeys.length + optionalKeys.length > MAX_NUMBER_OF_SIGNATURES ||
 			mandatoryKeys.length + optionalKeys.length < 1
@@ -84,7 +82,6 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 			};
 		}
 
-		// The numberOfSignatures needs to be equal or bigger than number of mandatoryKeys
 		if (mandatoryKeys.length > numberOfSignatures) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -94,7 +91,6 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 			};
 		}
 
-		// Check if keys are repeated between mandatory and optional key sets
 		const repeatedKeys = mandatoryKeys.filter(
 			value => optionalKeys.find(optional => optional.equals(value)) !== undefined,
 		);
@@ -107,7 +103,6 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 			};
 		}
 
-		// Check if the length of mandatory and optional keys is equal to the length of signatures
 		if (mandatoryKeys.length + optionalKeys.length !== signatures.length) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -117,9 +112,7 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 			};
 		}
 
-		// Check keys are sorted lexicographically
 		const sortedMandatoryKeys = [...mandatoryKeys].sort((a, b) => a.compare(b));
-		const sortedOptionalKeys = [...optionalKeys].sort((a, b) => a.compare(b));
 		for (let i = 0; i < sortedMandatoryKeys.length; i += 1) {
 			if (!mandatoryKeys[i].equals(sortedMandatoryKeys[i])) {
 				return {
@@ -129,6 +122,7 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 			}
 		}
 
+		const sortedOptionalKeys = [...optionalKeys].sort((a, b) => a.compare(b));
 		for (let i = 0; i < sortedOptionalKeys.length; i += 1) {
 			if (!optionalKeys[i].equals(sortedOptionalKeys[i])) {
 				return {
