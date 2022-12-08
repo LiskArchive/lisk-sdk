@@ -11,7 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseStore } from '../../base_store';
+import { NotFoundError } from '@liskhq/lisk-db';
+import { BaseStore, ImmutableStoreGetter } from '../../base_store';
 import { ED25519_PUBLIC_KEY_LENGTH, MAX_NUMBER_OF_SIGNATURES } from '../constants';
 
 export interface AuthAccount {
@@ -63,4 +64,22 @@ export const authAccountSchema = {
 
 export class AuthAccountStore extends BaseStore<AuthAccount> {
 	public schema = authAccountSchema;
+
+	public async getOrDefault(context: ImmutableStoreGetter, address: Buffer) {
+		try {
+			const authAccount = await this.get(context, address);
+			return authAccount;
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+
+			return {
+				nonce: BigInt(0),
+				numberOfSignatures: 0,
+				mandatoryKeys: [],
+				optionalKeys: [],
+			};
+		}
+	}
 }

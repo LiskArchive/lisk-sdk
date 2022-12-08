@@ -83,7 +83,7 @@ describe('AuthEndpoint', () => {
 	});
 
 	describe('getAuthAccount', () => {
-		it('should get an auth account successfuly', async () => {
+		it('should get an auth account successfully', async () => {
 			// Arrange
 			const context = createTransientModuleEndpointContext({
 				params: {
@@ -150,7 +150,7 @@ describe('AuthEndpoint', () => {
 		});
 	});
 
-	describe('verifyTransaction', () => {
+	describe('isValidSignature', () => {
 		it('should verify the transaction with single signature', async () => {
 			// Arrange
 			const transaction = new Transaction({
