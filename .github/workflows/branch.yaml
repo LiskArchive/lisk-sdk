@@ -1,0 +1,30 @@
+name: "Branch"
+
+on:
+  push:
+    branches: [ "development", feature/*, hotfix/*, main, release/*, add_code_ql_dependency ]
+
+jobs:
+  code-cov-canary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install
+        uses: ./.github/actions/prepare-install
+      - name: Build
+        uses: ./.github/actions/prepare-build
+        with:
+          cache-key: ${{ github.ref }}
+      - run: yarn test:ci
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage-final.json
+          gcov: false
+          name: codecov-umbrella
+      - name: Prepare registry token
+        run: echo "registry=https://npm.lisk.com/\n//npm.lisk.com/:_authToken=${{ secrets.NPM_TOKEN }}" >~/.npmrc
+      - name: Publish
+        run: npx lerna publish --canary --preid canary --registry https://npm.lisk.com --yes
