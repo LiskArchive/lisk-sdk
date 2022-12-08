@@ -83,6 +83,16 @@ describe('BaseCrossChainUpdateCommand', () => {
 		senderPublicKey,
 		signatures: [],
 	};
+	const zeroValueCCM = {
+		crossChainCommand: '',
+		fee: BigInt(0),
+		module: '',
+		nonce: BigInt(0),
+		params: Buffer.alloc(0),
+		receivingChainID: Buffer.alloc(0),
+		sendingChainID: Buffer.alloc(0),
+		status: 0,
+	};
 	const defaultSendingChainID = Buffer.from([0, 0, 2, 0]);
 	const params = {
 		activeValidatorsUpdate: [
@@ -470,7 +480,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				params.sendingChainID,
 				chainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: zeroValueCCM,
 					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -516,7 +526,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				params.sendingChainID,
 				chainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: zeroValueCCM,
 					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -562,7 +572,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				params.sendingChainID,
 				chainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: zeroValueCCM,
 					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -608,7 +618,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				params.sendingChainID,
 				chainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: zeroValueCCM,
 					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -760,7 +770,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				context.ccm.sendingChainID,
 				context.ccm.receivingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: context.ccm,
 					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -783,7 +793,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				context.ccm.sendingChainID,
 				context.ccm.receivingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: context.ccm,
 					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -839,7 +849,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				context.ccm.sendingChainID,
 				context.ccm.receivingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: context.ccm,
 					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -863,7 +873,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				context.ccm.sendingChainID,
 				context.ccm.receivingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: context.ccm,
 					code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -934,7 +944,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				context.ccm.sendingChainID,
 				context.ccm.receivingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: context.ccm,
 					code: CCMProcessedCode.INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -984,7 +994,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			});
 
 			await expect(
-				command['bounce'](context, utils.getRandomBytes(32), 100, ccmStatus, ccmProcessedEventCode),
+				command['bounce'](context, 100, ccmStatus, ccmProcessedEventCode),
 			).resolves.toBeUndefined();
 
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
@@ -993,7 +1003,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				context.ccm.sendingChainID,
 				context.ccm.receivingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: context.ccm,
 					code: ccmProcessedEventCode,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -1010,7 +1020,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			});
 
 			await expect(
-				command['bounce'](context, utils.getRandomBytes(32), 100, ccmStatus, ccmProcessedEventCode),
+				command['bounce'](context, 100, ccmStatus, ccmProcessedEventCode),
 			).resolves.toBeUndefined();
 
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
@@ -1019,7 +1029,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				context.ccm.sendingChainID,
 				context.ccm.receivingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: context.ccm,
 					code: ccmProcessedEventCode,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -1039,7 +1049,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			});
 
 			await expect(
-				command['bounce'](context, utils.getRandomBytes(32), 100, ccmStatus, ccmProcessedEventCode),
+				command['bounce'](context, 100, ccmStatus, ccmProcessedEventCode),
 			).resolves.toBeUndefined();
 
 			expect(internalMethod.addToOutbox).toHaveBeenCalledWith(
@@ -1068,7 +1078,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			});
 
 			await expect(
-				command['bounce'](context, utils.getRandomBytes(32), 100, ccmStatus, ccmProcessedEventCode),
+				command['bounce'](context, 100, ccmStatus, ccmProcessedEventCode),
 			).resolves.toBeUndefined();
 
 			expect(internalMethod.addToOutbox).toHaveBeenCalledWith(
@@ -1094,7 +1104,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			});
 
 			await expect(
-				command['bounce'](context, utils.getRandomBytes(32), 100, ccmStatus, ccmProcessedEventCode),
+				command['bounce'](context, 100, ccmStatus, ccmProcessedEventCode),
 			).resolves.toBeUndefined();
 
 			expect(context.eventQueue.getEvents()).toHaveLength(2);
@@ -1103,7 +1113,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				context.ccm.sendingChainID,
 				context.ccm.receivingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: context.ccm,
 					code: ccmProcessedEventCode,
 					result: CCMProcessedResult.BOUNCED,
 				},
@@ -1114,7 +1124,13 @@ describe('BaseCrossChainUpdateCommand', () => {
 				context.ccm.sendingChainID,
 				expect.any(Buffer),
 				{
-					ccmID: expect.any(Buffer),
+					ccm: {
+						...defaultCCM,
+						status: ccmStatus,
+						sendingChainID: defaultCCM.receivingChainID,
+						receivingChainID: defaultCCM.sendingChainID,
+						fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
+					},
 				},
 			);
 		});

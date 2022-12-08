@@ -633,7 +633,7 @@ describe('Sidechain registration command', () => {
 				newChainID,
 				ccmID,
 				{
-					ccmID,
+					ccm,
 				},
 			);
 		});

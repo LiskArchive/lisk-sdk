@@ -224,12 +224,12 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand<Si
 		ownChainAccount.nonce += BigInt(1);
 		await this.stores.get(OwnChainAccountStore).set(context, EMPTY_BYTES, ownChainAccount);
 
-		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
-
+		const encodedCCM = codec.encode(ccmSchema, ccm);
+		const ccmID = utils.hash(encodedCCM);
 		this.events
 			.get(CcmSendSuccessEvent)
 			.log(methodContext, ownChainAccount.chainID, mainchainID, ccmID, {
-				ccmID,
+				ccm,
 			});
 	}
 }
