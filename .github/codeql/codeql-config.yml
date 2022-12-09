@@ -1,0 +1,4 @@
+paths-ignore:
+  - ./protocol-specs
+  - ./scripts
+  - ./templates

@@ -24,7 +24,7 @@
 		"test:watch": "npm test -- --watch",
 		"prebuild": "rm -r dist-node/* || mkdir dist-node || true",
 		"build": "tsc",
-		"test:unit": "jest --config=./test/unit/jest.config.js --coverage=true --coverage-reporters=json --verbose",
+		"test:unit": "jest --config=./test/unit/jest.config.js --coverage=true --coverage-reporters=json",
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {

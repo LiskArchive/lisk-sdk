@@ -44,7 +44,7 @@
 		"cypress:patch": "bash cypress/scripts/patch_buffer_package.sh",
 		"cypress:install": "npx cypress install && npx cypress verify",
 		"test:coverage": "jest --coverage=true --coverage-reporters=text",
-		"test:ci": "npx start-server-and-test start:ws_server http://localhost:8990 'jest --coverage=true --coverage-reporters=json --verbose'",
+		"test:ci": "npx start-server-and-test start:ws_server http://localhost:8990 'jest --coverage=true --coverage-reporters=json'",
 		"test:watch": "npm test -- --watch",
 		"test:node": "npm run build:check",
 		"prebuild:node": "rm -r dist-node/* || mkdir dist-node || true",

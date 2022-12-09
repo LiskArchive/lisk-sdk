@@ -41,7 +41,7 @@
 		"build": "tsc",
 		"test": "jest",
 		"test:coverage": "jest --coverage=true --coverage-reporters=text",
-		"test:ci": "jest --coverage=true --coverage-reporters=json --verbose",
+		"test:ci": "jest --coverage=true --coverage-reporters=json",
 		"postbuild": "copyfiles -u 1 -a 'src/bootstrapping/templates/lisk-template-ts/templates/**/*' dist/",
 		"prepack": "oclif manifest"
 	},
