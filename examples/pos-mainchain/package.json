@@ -29,7 +29,7 @@
 		"build": "tsc",
 		"test": "jest --passWithNoTests",
 		"test:coverage": "jest --passWithNoTests --coverage=true --coverage-reporters=text",
-		"test:ci": "jest --passWithNoTests --coverage=true --coverage-reporters=json --verbose",
+		"test:ci": "jest --passWithNoTests --coverage=true --coverage-reporters=json",
 		"version": "oclif readme --multi --dir=docs/commands && git add README.md docs",
 		"prepublishOnly": "npm ci && npm run lint && npm run build"
 	},

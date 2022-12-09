@@ -31,6 +31,7 @@
 		"test:coverage": "jest --config=./test/unit/jest.config.js  --coverage=true --coverage-reporters=text",
 		"test:watch": "npm test -- --watch",
 		"test:unit": "jest --config=./test/unit/jest.config.js --coverage=true --coverage-reporters=json --verbose",
+		"test:ci": "jest --config=./test/unit/jest.config.js --coverage=true --coverage-reporters=json",
 		"prebuild": "rm -r dist-node/* || mkdir dist-node || true",
 		"build": "npm run build:node && npm run build:web",
 		"build:node": "tsc",
