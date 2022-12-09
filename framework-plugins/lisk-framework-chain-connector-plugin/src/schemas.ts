@@ -102,7 +102,7 @@ export const chainConnectorInfoSchema = {
 };
 
 export const crossChainMessagesSchema = {
-	$id: '#/plugins/chainConnector/crossChainMessages',
+	$id: '/lisk/plugins/chainConnector/crossChainMessages',
 	type: 'object',
 	required: ['crossChainMessages'],
 	properties: {
