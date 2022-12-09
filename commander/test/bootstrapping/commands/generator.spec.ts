@@ -48,7 +48,7 @@ describe('generator enable/disable', () => {
 			await expect(EnableCommand.run([], config)).rejects.toThrow('Missing 1 required arg');
 		});
 
-		it('should throw an error when height, maxHeightGenerated and maxHeightPrevoted arg is not provided', async () => {
+		it('should throw an error when height, max-height-generated and max-height-prevoted arg is not provided', async () => {
 			await expect(
 				EnableCommand.run(['myAddress', '--password=my-password'], config),
 			).rejects.toThrow(
@@ -56,7 +56,7 @@ describe('generator enable/disable', () => {
 			);
 		});
 
-		it('should throw an error when arg maxHeightGenerated and maxHeightPrevoted  is not provided', async () => {
+		it('should throw an error when arg max-height-generated and max-height-prevoted is not provided', async () => {
 			await expect(
 				EnableCommand.run(['myAddress', '--height=10', '--password=my-password'], config),
 			).rejects.toThrow(

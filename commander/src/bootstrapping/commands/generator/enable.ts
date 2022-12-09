@@ -16,8 +16,8 @@
 import { Flags } from '@oclif/core';
 import { BaseGeneratorCommand } from '../base_generator';
 
-const isPositiveNumber = (value: number | undefined | null): boolean =>
-	value !== null && value !== undefined && value >= 0;
+const isUInt = (value: unknown): boolean =>
+	typeof value === 'number' && Number.isInteger(value) && value >= 0;
 
 interface Status {
 	readonly address: string;
@@ -71,9 +71,7 @@ export abstract class EnableCommand extends BaseGeneratorCommand {
 
 		if (
 			!useStatusValue &&
-			(!isPositiveNumber(height) ||
-				!isPositiveNumber(maxHeightGenerated) ||
-				!isPositiveNumber(maxHeightPrevoted))
+			(!isUInt(height) || !isUInt(maxHeightGenerated) || !isUInt(maxHeightPrevoted))
 		) {
 			throw new Error(
 				'The height, max-height-generated and max-height-prevoted values must be greater than or equal to 0',
