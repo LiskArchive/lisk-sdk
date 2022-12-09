@@ -48,6 +48,6 @@ export abstract class DisableCommand extends BaseGeneratorCommand {
 			maxHeightGenerated: 0,
 			maxHeightPrevoted: 0,
 		});
-		this.log('Disabled block generation');
+		this.log(`Disabled block generation for ${address}`);
 	}
 }

@@ -52,7 +52,7 @@ describe('generator enable/disable', () => {
 			await expect(
 				EnableCommand.run(['myAddress', '--password=my-password'], config),
 			).rejects.toThrow(
-				'The maxHeightGenerated and maxHeightPrevoted parameter value must be greater than or equal to 0',
+				'The height, max-height-generated and max-height-prevoted values must be greater than or equal to 0',
 			);
 		});
 
@@ -60,8 +60,17 @@ describe('generator enable/disable', () => {
 			await expect(
 				EnableCommand.run(['myAddress', '--height=10', '--password=my-password'], config),
 			).rejects.toThrow(
-				'The maxHeightGenerated and maxHeightPrevoted parameter value must be greater than or equal to 0',
+				'The height, max-height-generated and max-height-prevoted values must be greater than or equal to 0',
 			);
+		});
+
+		it('should throw an error when arg height and use-status-value is provided together', async () => {
+			await expect(
+				EnableCommand.run(
+					['myAddress', '--height=10', '--use-status-value', '--password=my-password'],
+					config,
+				),
+			).rejects.toThrow('--use-status-value=true cannot also be provided when using --height');
 		});
 
 		describe('when invoked with password', () => {
@@ -83,6 +92,34 @@ describe('generator enable/disable', () => {
 					height: 10,
 					maxHeightGenerated: 10,
 					maxHeightPrevoted: 1,
+				});
+			});
+
+			it('should invoke action with given address and password with the response of generator status when --use-status-value is specified', async () => {
+				when(invokeMock)
+					.calledWith('generator_getStatus')
+					.mockResolvedValue({
+						status: [
+							{
+								address: 'myAddress',
+								height: 210,
+								maxHeightGenerated: 11,
+								maxHeightPrevoted: 12,
+							},
+						],
+					});
+
+				await EnableCommand.run(
+					['myAddress', '--use-status-value', '--password=my-password'],
+					config,
+				);
+				expect(invokeMock).toHaveBeenCalledWith('generator_updateStatus', {
+					address: 'myAddress',
+					enable: true,
+					password: 'my-password',
+					height: 210,
+					maxHeightGenerated: 11,
+					maxHeightPrevoted: 12,
 				});
 			});
 		});
@@ -165,7 +202,7 @@ describe('generator enable/disable', () => {
 			it('should log the error returned', async () => {
 				when(invokeMock)
 					.calledWith('generator_updateStatus', {
-						address: 'myFailedenableAddress',
+						address: 'myFailedEnabledAddress',
 						enable: true,
 						password: 'my-password',
 						height: 10,
@@ -176,7 +213,7 @@ describe('generator enable/disable', () => {
 				await expect(
 					EnableCommand.run(
 						[
-							'myFailedenableAddress',
+							'myFailedEnabledAddress',
 							'--height=10',
 							'--max-height-generated=10',
 							'--max-height-prevoted=1',

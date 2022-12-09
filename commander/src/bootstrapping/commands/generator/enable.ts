@@ -16,8 +16,8 @@
 import { Flags } from '@oclif/core';
 import { BaseGeneratorCommand } from '../base_generator';
 
-const isLessThanZero = (value: number | undefined | null): boolean =>
-	value === null || value === undefined || value < 0;
+const isPositiveNumber = (value: number | undefined | null): boolean =>
+	value !== null && value !== undefined && value >= 0;
 
 interface Status {
 	readonly address: string;
@@ -40,15 +40,19 @@ export abstract class EnableCommand extends BaseGeneratorCommand {
 		...BaseGeneratorCommand.flags,
 		height: Flags.integer({
 			description: 'Last generated block height.',
+			exclusive: ['use-status-value'],
 		}),
 		'max-height-generated': Flags.integer({
-			description: 'Validators largest previously generated height.',
+			description: "Validator's largest previously generated height.",
+			exclusive: ['use-status-value'],
 		}),
 		'max-height-prevoted': Flags.integer({
-			description: 'Validators largest prevoted height for a block.',
+			description: "Validator's largest prevoted height for a block.",
+			exclusive: ['use-status-value'],
 		}),
 		'use-status-value': Flags.boolean({
 			description: 'Use status value from the connected node',
+			exclusive: ['height', 'max-height-generated', 'max-height-prevoted'],
 		}),
 	};
 
@@ -67,12 +71,12 @@ export abstract class EnableCommand extends BaseGeneratorCommand {
 
 		if (
 			!useStatusValue &&
-			(isLessThanZero(height) ||
-				isLessThanZero(maxHeightGenerated) ||
-				isLessThanZero(maxHeightPrevoted))
+			(!isPositiveNumber(height) ||
+				!isPositiveNumber(maxHeightGenerated) ||
+				!isPositiveNumber(maxHeightPrevoted))
 		) {
 			throw new Error(
-				'The maxHeightGenerated and maxHeightPrevoted parameter value must be greater than or equal to 0',
+				'The height, max-height-generated and max-height-prevoted values must be greater than or equal to 0',
 			);
 		}
 
