@@ -99,25 +99,27 @@ describe('Chain endpoint', () => {
 	});
 
 	describe('proveEvents', () => {
+		const events = [
+			new Event({
+				index: 0,
+				module: 'transfer',
+				topics: [utils.getRandomBytes(32), utils.getRandomBytes(32)],
+				name: 'Transfer Event Name',
+				height: 12,
+				data: utils.getRandomBytes(32),
+			}),
+			new Event({
+				index: 1,
+				module: 'transfer',
+				topics: [utils.getRandomBytes(32)],
+				name: 'Transfer Event Name',
+				height: 12,
+				data: utils.getRandomBytes(32),
+			}),
+		];
+
 		beforeEach(() => {
-			jest.spyOn(endpoint['_chain'].dataAccess, 'getEvents').mockResolvedValue([
-				new Event({
-					index: 0,
-					module: 'transfer',
-					topics: [utils.getRandomBytes(32)],
-					name: 'Transfer Event Name',
-					height: 12,
-					data: utils.getRandomBytes(32),
-				}),
-				new Event({
-					index: 1,
-					module: 'transfer',
-					topics: [utils.getRandomBytes(32)],
-					name: 'Transfer Event Name',
-					height: 12,
-					data: utils.getRandomBytes(32),
-				}),
-			]);
+			jest.spyOn(endpoint['_chain'].dataAccess, 'getEvents').mockResolvedValue(events);
 		});
 
 		it('should reject if height is not number', async () => {
@@ -139,13 +141,14 @@ describe('Chain endpoint', () => {
 		});
 
 		it('should return proof', async () => {
-			const randomQuery = '453c17c88e72841d5f6974711d947ffde52290daa4e906aeea460ef7871efa93';
+			const query = events[0].keyPair()[0].key.toString('hex');
+			const nonExisting = utils.getRandomBytes(12).toString('hex');
 			const resp = await endpoint.proveEvents(
-				createRequestContext({ height: 0, queries: [randomQuery] }),
+				createRequestContext({ height: 12, queries: [query, nonExisting] }),
 			);
 
-			expect(resp.queries).toHaveLength(1);
-			expect(resp.siblingHashes).toHaveLength(1);
+			expect(resp.queries).toHaveLength(2);
+			expect(resp.siblingHashes.length).toBeGreaterThanOrEqual(1);
 		});
 	});
 

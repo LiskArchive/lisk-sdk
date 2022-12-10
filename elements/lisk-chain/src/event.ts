@@ -70,7 +70,7 @@ export class Event {
 
 	public keyPair(): { key: Buffer; value: Buffer }[] {
 		const result = [];
-		const value = this.getBytes();
+		const value = utils.hash(this.getBytes());
 		for (let i = 0; i < this._topics.length; i += 1) {
 			// eslint-disable-next-line no-bitwise
 			const indexBit = (this._index << EVENT_TOPIC_INDEX_LENGTH_BITS) + i;

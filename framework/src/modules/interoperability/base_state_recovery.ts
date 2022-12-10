@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { sparseMerkleTree } from '@liskhq/lisk-tree';
+import { SparseMerkleTree } from '@liskhq/lisk-db';
 import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
@@ -115,12 +115,8 @@ export class BaseStateRecoveryCommand<
 		}
 
 		const proofOfInclusionStores = { siblingHashes, queries: storeQueries };
-		const verified = sparseMerkleTree.verify(
-			queryKeys,
-			proofOfInclusionStores,
-			stateRoot,
-			queryKeys.length,
-		);
+		const sparseMerkleTree = new SparseMerkleTree();
+		const verified = await sparseMerkleTree.verify(stateRoot, queryKeys, proofOfInclusionStores);
 
 		if (!verified) {
 			return {
@@ -167,7 +163,11 @@ export class BaseStateRecoveryCommand<
 			});
 		}
 
-		const root = sparseMerkleTree.calculateRoot(siblingHashes, storeQueries, storeEntries.length);
+		const sparseMerkleTree = new SparseMerkleTree();
+		const root = await sparseMerkleTree.calculateRoot({
+			queries: storeQueries,
+			siblingHashes,
+		});
 
 		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
 

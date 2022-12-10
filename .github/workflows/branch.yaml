@@ -2,7 +2,7 @@ name: "Branch"
 
 on:
   push:
-    branches: [ "development", feature/*, hotfix/*, main, release/*, add_code_ql_dependency ]
+    branches: [ "development", feature/*, hotfix/*, main, release/* ]
 
 jobs:
   code-cov-canary:
@@ -24,7 +24,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage-final.json
-          gcov: false
           name: codecov-umbrella
       - run: npm config set //npm.lisk.com/:_authToken=$NPM_TOKEN
         env:
