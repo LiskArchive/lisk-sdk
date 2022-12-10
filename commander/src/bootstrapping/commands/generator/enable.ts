@@ -16,9 +16,6 @@
 import { Flags } from '@oclif/core';
 import { BaseGeneratorCommand } from '../base_generator';
 
-const isUInt = (value: unknown): boolean =>
-	typeof value === 'number' && Number.isInteger(value) && value >= 0;
-
 interface Status {
 	readonly address: string;
 	readonly height: number;
@@ -41,14 +38,20 @@ export abstract class EnableCommand extends BaseGeneratorCommand {
 		height: Flags.integer({
 			description: 'Last generated block height.',
 			exclusive: ['use-status-value'],
+			dependsOn: ['max-height-generated', 'max-height-prevoted'],
+			min: 0,
 		}),
 		'max-height-generated': Flags.integer({
 			description: "Validator's largest previously generated height.",
 			exclusive: ['use-status-value'],
+			dependsOn: ['height', 'max-height-prevoted'],
+			min: 0,
 		}),
 		'max-height-prevoted': Flags.integer({
 			description: "Validator's largest prevoted height for a block.",
 			exclusive: ['use-status-value'],
+			dependsOn: ['max-height-generated', 'height'],
+			min: 0,
 		}),
 		'use-status-value': Flags.boolean({
 			description: 'Use status value from the connected node',
@@ -69,13 +72,8 @@ export abstract class EnableCommand extends BaseGeneratorCommand {
 			'max-height-prevoted': maxHeightPrevoted,
 		} = flags;
 
-		if (
-			!useStatusValue &&
-			(!isUInt(height) || !isUInt(maxHeightGenerated) || !isUInt(maxHeightPrevoted))
-		) {
-			throw new Error(
-				'The height, max-height-generated and max-height-prevoted values must be greater than or equal to 0',
-			);
+		if (!useStatusValue && height === undefined) {
+			throw new Error('--use-status-value flag or heights flags must be specified.');
 		}
 
 		const password = await this.getPassword(flags);

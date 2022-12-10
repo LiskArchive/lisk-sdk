@@ -51,17 +51,60 @@ describe('generator enable/disable', () => {
 		it('should throw an error when height, max-height-generated and max-height-prevoted arg is not provided', async () => {
 			await expect(
 				EnableCommand.run(['myAddress', '--password=my-password'], config),
-			).rejects.toThrow(
-				'The height, max-height-generated and max-height-prevoted values must be greater than or equal to 0',
-			);
+			).rejects.toThrow('--use-status-value flag or heights flags must be specified.');
 		});
 
 		it('should throw an error when arg max-height-generated and max-height-prevoted is not provided', async () => {
 			await expect(
 				EnableCommand.run(['myAddress', '--height=10', '--password=my-password'], config),
 			).rejects.toThrow(
-				'The height, max-height-generated and max-height-prevoted values must be greater than or equal to 0',
+				'All of the following must be provided when using --height: --max-height-generated, --max-height-prevoted',
 			);
+		});
+
+		it('should throw an error when flag height is negative', async () => {
+			await expect(
+				EnableCommand.run(
+					[
+						'myAddress',
+						'--height=-10',
+						'--max-height-generated=10',
+						'--max-height-prevoted=1',
+						'--password=my-password',
+					],
+					config,
+				),
+			).rejects.toThrow('Expected an integer greater than or equal to 0 but received: -10');
+		});
+
+		it('should throw an error when flag max-height-generated is negative', async () => {
+			await expect(
+				EnableCommand.run(
+					[
+						'myAddress',
+						'--height=10',
+						'--max-height-generated=-20',
+						'--max-height-prevoted=1',
+						'--password=my-password',
+					],
+					config,
+				),
+			).rejects.toThrow('Expected an integer greater than or equal to 0 but received: -20');
+		});
+
+		it('should throw an error when flag max-height-prevoted is negative', async () => {
+			await expect(
+				EnableCommand.run(
+					[
+						'myAddress',
+						'--height=10',
+						'--max-height-generated=10',
+						'--max-height-prevoted=-1',
+						'--password=my-password',
+					],
+					config,
+				),
+			).rejects.toThrow('Expected an integer greater than or equal to 0 but received: -1');
 		});
 
 		it('should throw an error when arg height and use-status-value is provided together', async () => {
