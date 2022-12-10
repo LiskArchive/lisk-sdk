@@ -48,14 +48,14 @@ import {
 	updateStatusRequestSchema,
 	UpdateStatusResponse,
 } from './schemas';
-import { Consensus, GeneratorKeys, PlainGeneratorKeyData } from './types';
+import { Consensus, GeneratorKeys, Keypair, PlainGeneratorKeyData } from './types';
 import { RequestContext } from '../rpc/rpc_server';
 import { ABI } from '../../abi';
 import { JSONObject } from '../../types';
 import { NotFoundError } from './errors';
 
 interface EndpointArgs {
-	keypair: dataStructures.BufferMap<PlainGeneratorKeyData>;
+	keypair: dataStructures.BufferMap<Keypair>;
 	consensus: Consensus;
 	chain: Chain;
 	blockTime: number;
@@ -69,7 +69,7 @@ interface EndpointInit {
 export class Endpoint {
 	[key: string]: unknown;
 
-	private readonly _keypairs: dataStructures.BufferMap<PlainGeneratorKeyData>;
+	private readonly _keypairs: dataStructures.BufferMap<Keypair>;
 	private readonly _consensus: Consensus;
 	private readonly _chain: Chain;
 	private readonly _blockTime: number;
@@ -187,7 +187,11 @@ export class Endpoint {
 		}
 
 		// Enable validator to forge by adding keypairs corresponding to address
-		this._keypairs.set(address, decryptedKeys);
+		this._keypairs.set(address, {
+			blsSecretKey: decryptedKeys.blsPrivateKey,
+			privateKey: decryptedKeys.generatorPrivateKey,
+			publicKey: decryptedKeys.generatorKey,
+		});
 		ctx.logger.info(`Block generation enabled on address: ${req.address}`);
 
 		return {
@@ -233,15 +237,16 @@ export class Endpoint {
 		validator.validate<SetKeysRequest>(setKeysRequestSchema, ctx.params);
 
 		let generatorKeys: GeneratorKeys;
+		const address = cryptoAddress.getAddressFromLisk32Address(ctx.params.address);
 		if (ctx.params.type === 'plain') {
 			generatorKeys = {
-				address: cryptoAddress.getAddressFromLisk32Address(ctx.params.address),
+				address,
 				type: ctx.params.type,
 				data: codec.fromJSON<PlainGeneratorKeyData>(plainGeneratorKeysSchema, ctx.params.data),
 			};
 		} else {
 			generatorKeys = {
-				address: cryptoAddress.getAddressFromLisk32Address(ctx.params.address),
+				address,
 				type: ctx.params.type,
 				data: codec.fromJSON<encrypt.EncryptedMessageObject>(
 					encryptedMessageSchema,
@@ -259,6 +264,8 @@ export class Endpoint {
 		);
 		generatorStore.finalize(batch);
 		await this._generatorDB.write(batch);
+		ctx.logger.info(`Setting key for ${ctx.params.address}`);
+		this._keypairs.delete(address);
 	}
 
 	public async getAllKeys(_ctx: RequestContext): Promise<{ keys: JSONObject<GeneratorKeys>[] }> {
