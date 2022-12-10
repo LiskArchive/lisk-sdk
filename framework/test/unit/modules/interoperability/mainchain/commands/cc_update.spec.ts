@@ -257,7 +257,7 @@ describe('CrossChainUpdateCommand', () => {
 
 		jest
 			.spyOn(interopUtils, 'checkInboxUpdateValidity')
-			.mockReturnValue({ status: VerifyStatus.OK });
+			.mockResolvedValue({ status: VerifyStatus.OK });
 
 		jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(true);
 		jest.spyOn(interopUtils, 'computeValidatorsHash').mockReturnValue(validatorsHash);

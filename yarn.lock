@@ -1811,10 +1811,10 @@
     "@liskhq/lisk-utils" "^0.3.0-alpha.0"
     "@liskhq/lisk-validator" "^0.7.0-alpha.4"
 
-"@liskhq/lisk-db@0.3.0-debug.20-94522fbd51ec040e1040cdccd1b0572d805a2825":
-  version "0.3.0-debug.20-94522fbd51ec040e1040cdccd1b0572d805a2825"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-db/-/lisk-db-0.3.0-debug.20-94522fbd51ec040e1040cdccd1b0572d805a2825.tgz#14f84d896ba973275cb5913f27566ffc0b6a911f"
-  integrity sha512-5EEMVPLNtBwpVxcxM45kgbIE/Q3rsgik7zMld1tkMHi/WjugzoPCC/lPe1MzGnEZpbSZ4kddmNQtxSnj3nlrhQ==
+"@liskhq/lisk-db@0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@liskhq/lisk-db/-/lisk-db-0.3.1.tgz#c1f2be045fdc67924a407aa7753670bd13b69c75"
+  integrity sha512-F8j2vgrAm2Oa9wGFdzaczifmqScQYojwzjvFe7NIlOB7odK/1xdUC4cff2SdhFulu+Ht7L53Ptouc7mHII8AEw==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.9"
     "@types/node" "^16"

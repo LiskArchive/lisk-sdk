@@ -18,13 +18,11 @@ import {
 	Chain,
 	EventAttr,
 	EVENT_KEY_LENGTH,
-	SMTStore,
 	StateStore,
 	TransactionJSON,
 } from '@liskhq/lisk-chain';
-import { InMemoryDatabase, Database, NotFoundError } from '@liskhq/lisk-db';
+import { Database, NotFoundError, Proof, SparseMerkleTree } from '@liskhq/lisk-db';
 import { isHexString, validator } from '@liskhq/lisk-validator';
-import { SparseMerkleTree, SMTProof } from '@liskhq/lisk-tree';
 import { address } from '@liskhq/lisk-cryptography';
 import { JSONObject } from '../../types';
 import { RequestContext } from '../rpc/rpc_server';
@@ -199,25 +197,23 @@ export class ChainEndpoint {
 		return events.map(e => e.toJSON());
 	}
 
-	public async proveEvents(context: RequestContext): Promise<JSONObject<SMTProof>> {
+	public async proveEvents(context: RequestContext): Promise<JSONObject<Proof>> {
 		validator.validate(proveEventsRequestSchema, context.params);
 
 		const { height, queries } = context.params as { height: number; queries: string[] };
 		const queryBytes = queries.map(q => Buffer.from(q, 'hex'));
 		const events = await this._chain.dataAccess.getEvents(height);
 
-		const eventSmtStore = new SMTStore(new InMemoryDatabase());
-		const eventSMT = new SparseMerkleTree({
-			db: eventSmtStore,
-			keyLength: EVENT_KEY_LENGTH,
-		});
+		const eventSMT = new SparseMerkleTree(EVENT_KEY_LENGTH);
+		const data = [];
 		for (const e of events) {
 			const pairs = e.keyPair();
 			for (const pair of pairs) {
-				await eventSMT.update(pair.key, pair.value);
+				data.push(pair);
 			}
 		}
-		const proof = await eventSMT.generateMultiProof(queryBytes);
+		const root = await eventSMT.update(Buffer.alloc(0), data);
+		const proof = await eventSMT.prove(root, queryBytes);
 		return {
 			queries: proof.queries.map(q => ({
 				bitmap: q.bitmap.toString('hex'),
