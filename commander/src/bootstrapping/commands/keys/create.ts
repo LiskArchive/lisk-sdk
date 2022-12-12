@@ -50,7 +50,7 @@ export class CreateCommand extends Command {
 	static examples = [
 		'keys:create',
 		'keys:create --passphrase your-passphrase',
-		'keys:create --passphrase your-passphrase --no-encrypt true',
+		'keys:create --passphrase your-passphrase --no-encrypt',
 		'keys:create --passphrase your-passphrase --password your-password',
 		'keys:create --passphrase your-passphrase --password your-password --count 2',
 		'keys:create --passphrase your-passphrase --no-encrypt --count 2 --offset 1',
