@@ -39,7 +39,6 @@ import {
 	CCMProcessedResult,
 } from '../../events/ccm_processed';
 import {
-	ccmSchema,
 	crossChainUpdateTransactionParams,
 	sidechainTerminatedCCMParamsSchema,
 } from '../../schemas';
@@ -117,7 +116,7 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<Mainch
 
 	private async _forward(context: CrossChainMessageContext): Promise<void> {
 		const { ccm, logger } = context;
-		const { id: ccmID, encodedCCM } = getEncodedCCMAndID(ccm);
+		const { ccmID, encodedCCM } = getEncodedCCMAndID(ccm);
 
 		const valid = await this.verifyCCM(context, ccmID);
 		if (!valid) {

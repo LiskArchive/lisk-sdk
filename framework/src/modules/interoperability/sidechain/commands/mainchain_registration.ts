@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { utils, bls } from '@liskhq/lisk-cryptography';
+import { bls } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import {
 	EMPTY_HASH,
@@ -26,7 +26,6 @@ import {
 	CCMStatusCode,
 } from '../../constants';
 import {
-	ccmSchema,
 	mainchainRegParams,
 	registrationCCMParamsSchema,
 	registrationSignatureMessageSchema,
@@ -225,7 +224,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand<Si
 		ownChainAccount.nonce += BigInt(1);
 		await this.stores.get(OwnChainAccountStore).set(context, EMPTY_BYTES, ownChainAccount);
 
-		const { id: ccmID } = getEncodedCCMAndID(ccm);
+		const { ccmID } = getEncodedCCMAndID(ccm);
 		this.events
 			.get(CcmSendSuccessEvent)
 			.log(methodContext, ownChainAccount.chainID, mainchainID, ccmID, {
