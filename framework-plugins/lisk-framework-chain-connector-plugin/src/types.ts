@@ -50,6 +50,10 @@ export interface ChainConnectorInfo {
 	crossChainMessages: CCMsg[];
 }
 
+export interface CrossChainMessages {
+	crossChainMessages: CCMsg[];
+}
+
 export interface AggregateCommitJSON {
 	readonly height: number;
 	readonly aggregationBits: string;

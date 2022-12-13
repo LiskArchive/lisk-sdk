@@ -100,3 +100,18 @@ export const chainConnectorInfoSchema = {
 	},
 	required: ['blockHeaders', 'aggregateCommits', 'validatorsHashPreimage', 'crossChainMessages'],
 };
+
+export const crossChainMessagesSchema = {
+	$id: '/lisk/plugins/chainConnector/crossChainMessages',
+	type: 'object',
+	required: ['crossChainMessages'],
+	properties: {
+		crossChainMessages: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				...ccmSchema,
+			},
+		},
+	},
+};
