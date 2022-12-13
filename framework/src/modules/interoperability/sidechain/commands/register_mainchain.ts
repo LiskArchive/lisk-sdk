@@ -40,6 +40,7 @@ import {
 import { MainchainRegistrationParams, ActiveValidators, ValidatorsMethod } from '../../types';
 import {
 	computeValidatorsHash,
+	getEncodedCCMAndID,
 	getMainchainID,
 	getMainchainTokenID,
 	isValidName,
@@ -224,8 +225,7 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 		ownChainAccount.nonce += BigInt(1);
 		await this.stores.get(OwnChainAccountStore).set(context, EMPTY_BYTES, ownChainAccount);
 
-		const encodedCCM = codec.encode(ccmSchema, ccm);
-		const ccmID = utils.hash(encodedCCM);
+		const { id: ccmID } = getEncodedCCMAndID(ccm);
 		this.events
 			.get(CcmSendSuccessEvent)
 			.log(methodContext, ownChainAccount.chainID, mainchainID, ccmID, {
