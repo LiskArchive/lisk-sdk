@@ -28,7 +28,12 @@ import {
 } from '../../constants';
 import { ccmSchema, registrationCCMParamsSchema, sidechainRegParams } from '../../schemas';
 import { FeeMethod, SidechainRegistrationParams } from '../../types';
-import { computeValidatorsHash, getMainchainTokenID, isValidName } from '../../utils';
+import {
+	computeValidatorsHash,
+	getEncodedCCMAndID,
+	getMainchainTokenID,
+	isValidName,
+} from '../../utils';
 import {
 	CommandVerifyContext,
 	VerificationResult,
@@ -262,8 +267,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand<Ma
 		ownChainAccount.nonce += BigInt(1);
 		await ownChainAccountSubstore.set(context, EMPTY_BYTES, ownChainAccount);
 
-		const encodedCCM = codec.encode(ccmSchema, ccm);
-		const ccmID = utils.hash(encodedCCM);
+		const { id: ccmID } = getEncodedCCMAndID(ccm);
 		this.events
 			.get(CcmSendSuccessEvent)
 			.log(methodContext, ownChainAccount.chainID, chainID, ccmID, {

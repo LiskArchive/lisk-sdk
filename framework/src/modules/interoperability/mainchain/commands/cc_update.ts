@@ -45,7 +45,7 @@ import {
 } from '../../schemas';
 import { ChainAccount, ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 import { CrossChainMessageContext, CrossChainUpdateTransactionParams } from '../../types';
-import { getMainchainID, isInboxUpdateEmpty } from '../../utils';
+import { getEncodedCCMAndID, getMainchainID, isInboxUpdateEmpty } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
 export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
@@ -117,8 +117,7 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<Mainch
 
 	private async _forward(context: CrossChainMessageContext): Promise<void> {
 		const { ccm, logger } = context;
-		const encodedCCM = codec.encode(ccmSchema, ccm);
-		const ccmID = utils.hash(encodedCCM);
+		const { id: ccmID, encodedCCM } = getEncodedCCMAndID(ccm);
 
 		const valid = await this.verifyCCM(context, ccmID);
 		if (!valid) {
