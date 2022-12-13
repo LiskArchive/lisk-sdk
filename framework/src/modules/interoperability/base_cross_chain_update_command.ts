@@ -18,7 +18,7 @@ import { CommandExecuteContext, CommandVerifyContext } from '../../state_machine
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import { BaseInteroperabilityMethod } from './base_interoperability_method';
-import { CCMStatusCode, MIN_RETURN_FEE } from './constants';
+import { CCMStatusCode, EMPTY_BYTES, MIN_RETURN_FEE } from './constants';
 import { CCMProcessedCode, CcmProcessedEvent, CCMProcessedResult } from './events/ccm_processed';
 import { CcmSendSuccessEvent } from './events/ccm_send_success';
 import { ccmSchema, crossChainUpdateTransactionParams } from './schemas';
@@ -29,7 +29,7 @@ import {
 	TokenMethod,
 } from './types';
 import { ChainAccountStore, ChainStatus } from './stores/chain_account';
-import { getMainchainID, isInboxUpdateEmpty, validateFormat } from './utils';
+import { getEncodedCCMAndID, getMainchainID, isInboxUpdateEmpty, validateFormat } from './utils';
 import { ChainValidatorsStore } from './stores/chain_validators';
 import { ChannelDataStore } from './stores/channel_data';
 
@@ -120,9 +120,9 @@ export abstract class BaseCrossChainUpdateCommand<
 						fee: BigInt(0),
 						module: '',
 						nonce: BigInt(0),
-						params: Buffer.alloc(0),
-						receivingChainID: Buffer.alloc(0),
-						sendingChainID: Buffer.alloc(0),
+						params: EMPTY_BYTES,
+						receivingChainID: EMPTY_BYTES,
+						sendingChainID: EMPTY_BYTES,
 						status: 0,
 					},
 				});
@@ -156,8 +156,7 @@ export abstract class BaseCrossChainUpdateCommand<
 
 	protected async apply(context: CrossChainMessageContext): Promise<void> {
 		const { ccm, logger } = context;
-		const encodedCCM = codec.encode(ccmSchema, ccm);
-		const ccmID = utils.hash(encodedCCM);
+		const { id: ccmID, encodedCCM } = getEncodedCCMAndID(ccm);
 		const valid = await this.verifyCCM(context, ccmID);
 		if (!valid) {
 			return;

@@ -13,7 +13,6 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { utils } from '@liskhq/lisk-cryptography';
 import { BaseCCMethod } from '../interoperability/base_cc_method';
 import { CrossChainMessageContext, RecoverContext } from '../interoperability/types';
 import {
@@ -39,7 +38,7 @@ import { EMPTY_BYTES } from '../interoperability/constants';
 import { BeforeCCMForwardingEvent } from './events/before_ccm_forwarding';
 import { MODULE_NAME_TOKEN } from '../interoperability/cc_methods';
 import { splitTokenID } from './utils';
-import { ccmSchema } from '../interoperability/schemas';
+import { getEncodedCCMAndID } from '../interoperability/utils';
 
 export class TokenInteroperableMethod extends BaseCCMethod {
 	private _ownChainID!: Buffer;
@@ -64,7 +63,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 			methodContext,
 			ccm.sendingChainID,
 		);
-		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
+		const { id: ccmID } = getEncodedCCMAndID(ccm);
 		const [chainID] = splitTokenID(tokenID);
 		const userStore = this.stores.get(UserStore);
 
@@ -107,7 +106,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 			methodContext,
 			ccm.sendingChainID,
 		);
-		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
+		const { id: ccmID } = getEncodedCCMAndID(ccm);
 		const [chainID] = splitTokenID(tokenID);
 
 		const escrowStore = this.stores.get(EscrowStore);

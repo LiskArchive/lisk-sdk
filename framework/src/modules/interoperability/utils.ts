@@ -444,3 +444,8 @@ export const getMainchainTokenID = (chainID: Buffer): Buffer => {
 	// 3 bytes for remaining chainID bytes
 	return Buffer.concat([networkID, Buffer.alloc(7, 0)]);
 };
+
+export const getEncodedCCMAndID = (ccm: CCMsg) => {
+	const encodedCCM = codec.encode(ccmSchema, ccm);
+	return { id: utils.hash(encodedCCM), encodedCCM };
+};
