@@ -25,7 +25,7 @@ import {
 import { CCMsg, CrossChainMessageContext, MessageRecoveryParams } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
-import { getMainchainID, validateFormat } from '../../utils';
+import { getMainchainID, validateFormat, getEncodedCCMAndID } from '../../utils';
 import { CCMStatusCode } from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from '../../stores/terminated_outbox';
@@ -194,8 +194,7 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	private async _applyRecovery(context: CrossChainMessageContext): Promise<void> {
 		const { logger } = context;
-		const encodedCCM = codec.encode(ccmSchema, context.ccm);
-		const ccmID = utils.hash(encodedCCM);
+		const { ccmID } = getEncodedCCMAndID(context.ccm);
 		const recoveredCCM: CCMsg = {
 			...context.ccm,
 			status: CCMStatusCode.RECOVERED,

@@ -77,7 +77,7 @@ export class FeeInteroperableMethod extends BaseCCMethod {
 			messageTokenID,
 			burntAmount,
 		);
-		const { id: ccmID } = getEncodedCCMAndID(ctx.ccm);
+		const { ccmID } = getEncodedCCMAndID(ctx.ccm);
 
 		this.events.get(RelayerFeeProcessedEvent).log(ctx, {
 			burntAmount,

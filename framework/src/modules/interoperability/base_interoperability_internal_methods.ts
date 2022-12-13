@@ -496,7 +496,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			}
 		}
 
-		const { id: ccmID } = getEncodedCCMAndID(ccm);
+		const { ccmID } = getEncodedCCMAndID(ccm);
 		await this.addToOutbox(context, partnerChainID, ccm);
 		ownChainAccount.nonce += BigInt(1);
 		await this.stores.get(OwnChainAccountStore).set(context, EMPTY_BYTES, ownChainAccount);

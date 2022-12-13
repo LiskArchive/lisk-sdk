@@ -31,6 +31,7 @@ import {
 	HASH_LENGTH,
 	MIN_RETURN_FEE,
 	MODULE_NAME_INTEROPERABILITY,
+	EMPTY_BYTES,
 } from '../../../../src/modules/interoperability/constants';
 import {
 	CCMProcessedCode,
@@ -88,9 +89,9 @@ describe('BaseCrossChainUpdateCommand', () => {
 		fee: BigInt(0),
 		module: '',
 		nonce: BigInt(0),
-		params: Buffer.alloc(0),
-		receivingChainID: Buffer.alloc(0),
-		sendingChainID: Buffer.alloc(0),
+		params: EMPTY_BYTES,
+		receivingChainID: EMPTY_BYTES,
+		sendingChainID: EMPTY_BYTES,
 		status: 0,
 	};
 	const defaultSendingChainID = Buffer.from([0, 0, 2, 0]);
