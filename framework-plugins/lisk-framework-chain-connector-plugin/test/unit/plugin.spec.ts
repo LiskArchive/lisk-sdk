@@ -117,8 +117,8 @@ describe('ChainConnectorPlugin', () => {
 				},
 				appConfig: appConfigForPlugin,
 			});
-			expect(chainConnectorPlugin['_ccuFrequency'].ccm).toEqual(100);
-			expect(chainConnectorPlugin['_ccuFrequency'].liveness).toEqual(300000);
+			expect(chainConnectorPlugin['_ccuFrequency'].ccm).toBe(100);
+			expect(chainConnectorPlugin['_ccuFrequency'].liveness).toBe(300000);
 		});
 	});
 
@@ -164,7 +164,7 @@ describe('ChainConnectorPlugin', () => {
 
 			await chainConnectorPlugin.load();
 
-			expect(chainConnectorPlugin['_mainchainAPIClient']).not.toBeUndefined();
+			expect(chainConnectorPlugin['_mainchainAPIClient']).toBeDefined();
 			expect(chainConnectorPlugin['_sidechainAPIClient']).toBe(chainConnectorPlugin['_apiClient']);
 		});
 
@@ -181,8 +181,8 @@ describe('ChainConnectorPlugin', () => {
 			});
 			await chainConnectorPlugin.load();
 
-			expect(chainConnectorPlugin['_mainchainAPIClient']).not.toBeUndefined();
-			expect(chainConnectorPlugin['_sidechainAPIClient']).not.toBeUndefined();
+			expect(chainConnectorPlugin['_mainchainAPIClient']).toBeDefined();
+			expect(chainConnectorPlugin['_sidechainAPIClient']).toBeDefined();
 		});
 
 		it('should initialize _chainConnectorDB', async () => {
@@ -1011,9 +1011,10 @@ describe('ChainConnectorPlugin', () => {
 			);
 
 			expect(chainConnectorPlugin['_mainchainAPIClient'].invoke).toHaveBeenCalledTimes(1);
-			expect(
-				chainConnectorPlugin['_mainchainAPIClient'].invoke,
-			).toHaveBeenCalledWith('interoperability_getChainAccount', { chainID: sendingChainID });
+			expect(chainConnectorPlugin['_mainchainAPIClient'].invoke).toHaveBeenCalledWith(
+				'interoperability_getChainAccount',
+				{ chainID: sendingChainID },
+			);
 		});
 
 		it('should call _validateCertificate', async () => {

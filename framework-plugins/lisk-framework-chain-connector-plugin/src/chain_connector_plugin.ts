@@ -299,7 +299,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	}
 
 	private async _newBlockhandler(data?: Record<string, unknown>) {
-		const { blockHeader: receivedBlock } = (data as unknown) as Data;
+		const { blockHeader: receivedBlock } = data as unknown as Data;
 		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock);
 		const {
 			blockHeaders: savedBlockHeaders,
