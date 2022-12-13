@@ -63,7 +63,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 			methodContext,
 			ccm.sendingChainID,
 		);
-		const { id: ccmID } = getEncodedCCMAndID(ccm);
+		const { ccmID } = getEncodedCCMAndID(ccm);
 		const [chainID] = splitTokenID(tokenID);
 		const userStore = this.stores.get(UserStore);
 
@@ -106,7 +106,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 			methodContext,
 			ccm.sendingChainID,
 		);
-		const { id: ccmID } = getEncodedCCMAndID(ccm);
+		const { ccmID } = getEncodedCCMAndID(ccm);
 		const [chainID] = splitTokenID(tokenID);
 
 		const escrowStore = this.stores.get(EscrowStore);

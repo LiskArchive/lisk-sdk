@@ -156,7 +156,7 @@ export abstract class BaseCrossChainUpdateCommand<
 
 	protected async apply(context: CrossChainMessageContext): Promise<void> {
 		const { ccm, logger } = context;
-		const { id: ccmID, encodedCCM } = getEncodedCCMAndID(ccm);
+		const { ccmID, encodedCCM } = getEncodedCCMAndID(ccm);
 		const valid = await this.verifyCCM(context, ccmID);
 		if (!valid) {
 			return;
@@ -300,9 +300,9 @@ export abstract class BaseCrossChainUpdateCommand<
 			return;
 		}
 		this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-			ccm,
 			code: ccmProcessedCode,
 			result: CCMProcessedResult.BOUNCED,
+			ccm,
 		});
 		const bouncedCCM = {
 			...ccm,
