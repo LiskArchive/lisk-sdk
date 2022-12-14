@@ -22,6 +22,7 @@ import {
 	TransactionExecuteContext,
 	TransactionVerifyContext,
 	VerificationResult,
+	VerifyStatus,
 } from '../../state_machine';
 import { AuthMethod } from './method';
 import { MAX_NUMBER_OF_SIGNATURES } from './constants';
@@ -33,6 +34,7 @@ import { authAccountSchema, AuthAccountStore } from './stores/auth_account';
 import { MultisignatureRegistrationEvent } from './events/multisignature_registration';
 import { RegisterMultisignatureCommand } from './commands/register_multisignature';
 import { InvalidSignatureEvent } from './events/invalid_signature';
+import { InvalidNonceError } from './errors';
 
 export class AuthModule extends BaseModule {
 	public method = new AuthMethod(this.stores, this.events);
@@ -148,6 +150,14 @@ export class AuthModule extends BaseModule {
 
 		// Verify nonce of the transaction, it can be FAILED, PENDING or OK
 		const nonceStatus = verifyNonce(transaction, senderAccount);
+
+		if (nonceStatus.status === VerifyStatus.FAIL) {
+			throw new InvalidNonceError(
+				`Transaction with id:${transaction.id.toString('hex')} nonce is lower than account nonce.`,
+				transaction.nonce,
+				senderAccount.nonce,
+			);
+		}
 
 		const isMultisignatureAccount = await this._isMultisignatureAccount(
 			context.getStore,

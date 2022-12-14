@@ -9,7 +9,6 @@ import {
 	MESSAGE_TAG_MULTISIG_REG,
 } from '../../../../src/modules/auth/constants';
 import { AuthEndpoint } from '../../../../src/modules/auth/endpoint';
-import { InvalidNonceError } from '../../../../src/modules/auth/errors';
 import {
 	multisigRegMsgSchema,
 	registerMultisignatureParamsSchema,
@@ -436,8 +435,6 @@ describe('AuthEndpoint', () => {
 
 		it('should fail to verify greater transaction nonce than account nonce', async () => {
 			// Arrange
-			const accountNonce = BigInt(2);
-
 			const transaction = new Transaction({
 				module: 'token',
 				command: 'transfer',
@@ -465,22 +462,15 @@ describe('AuthEndpoint', () => {
 					numberOfSignatures: 0,
 				});
 
+			// Act
+			const isValidNonceResponse = (await authEndpoint.isValidNonce(context)).verified;
+
 			// Assert
-			return expect(authEndpoint.isValidNonce(context)).rejects.toThrow(
-				new InvalidNonceError(
-					`Transaction with id:${transaction.id.toString(
-						'hex',
-					)} nonce is not equal to account nonce.`,
-					transaction.nonce,
-					accountNonce,
-				),
-			);
+			expect(isValidNonceResponse).toBeFalse();
 		});
 
 		it('should fail to verify lower transaction nonce than account nonce', async () => {
 			// Arrange
-			const accountNonce = BigInt(2);
-
 			const transaction = new Transaction({
 				module: 'token',
 				command: 'transfer',
@@ -504,20 +494,15 @@ describe('AuthEndpoint', () => {
 				.mockReturnValue({
 					mandatoryKeys: [],
 					optionalKeys: [],
-					nonce: accountNonce,
+					nonce: BigInt(2),
 					numberOfSignatures: 0,
 				});
 
+			// Act
+			const isValidNonceResponse = (await authEndpoint.isValidNonce(context)).verified;
+
 			// Assert
-			return expect(authEndpoint.isValidNonce(context)).rejects.toThrow(
-				new InvalidNonceError(
-					`Transaction with id:${transaction.id.toString(
-						'hex',
-					)} nonce is not equal to account nonce.`,
-					transaction.nonce,
-					accountNonce,
-				),
-			);
+			expect(isValidNonceResponse).toBeFalse();
 		});
 	});
 
