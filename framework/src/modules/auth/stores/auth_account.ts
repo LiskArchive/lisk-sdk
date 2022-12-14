@@ -82,4 +82,20 @@ export class AuthAccountStore extends BaseStore<AuthAccount> {
 			};
 		}
 	}
+
+	public async isMultisignatureAccount(
+		context: ImmutableStoreGetter,
+		address: Buffer,
+	): Promise<boolean> {
+		try {
+			const authAccount = await this.get(context, address);
+
+			return authAccount.numberOfSignatures !== 0;
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			return false;
+		}
+	}
 }

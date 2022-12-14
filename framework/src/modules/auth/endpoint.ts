@@ -13,7 +13,6 @@
  */
 
 import { validator } from '@liskhq/lisk-validator';
-import { NotFoundError } from '@liskhq/lisk-chain';
 import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { Schema } from '@liskhq/lisk-codec';
 import { ModuleEndpointContext } from '../../types';
@@ -21,7 +20,6 @@ import { VerifyStatus } from '../../state_machine';
 import { BaseEndpoint } from '../base_endpoint';
 import {
 	AuthAccountJSON,
-	ImmutableStoreCallback,
 	VerifyEndpointResultJSON,
 	KeySignaturePair,
 	SortedMultisignatureGroup,
@@ -74,11 +72,11 @@ export class AuthEndpoint extends BaseEndpoint {
 
 		const accountAddress = cryptoAddress.getAddressFromPublicKey(transaction.senderPublicKey);
 
-		const store = this.stores.get(AuthAccountStore);
-		const account = await store.get(context, accountAddress);
+		const authAccountStore = this.stores.get(AuthAccountStore);
+		const account = await authAccountStore.get(context, accountAddress);
 
-		const isMultisignatureAccount = await this._isMultisignatureAccount(
-			context.getStore,
+		const isMultisignatureAccount = await authAccountStore.isMultisignatureAccount(
+			context,
 			accountAddress,
 		);
 
@@ -139,22 +137,5 @@ export class AuthEndpoint extends BaseEndpoint {
 				.map(keySignaturePair => keySignaturePair.signature)
 				.concat(sortedOptional.map(keySignaturePair => keySignaturePair.signature)),
 		};
-	}
-
-	private async _isMultisignatureAccount(
-		getStore: ImmutableStoreCallback,
-		address: Buffer,
-	): Promise<boolean> {
-		const authSubstore = this.stores.get(AuthAccountStore);
-		try {
-			const authAccount = await authSubstore.get({ getStore }, address);
-
-			return authAccount.numberOfSignatures !== 0;
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
-			return false;
-		}
 	}
 }

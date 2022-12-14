@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { NotFoundError } from '@liskhq/lisk-chain';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
 import { validator } from '@liskhq/lisk-validator';
@@ -28,7 +27,7 @@ import { AuthMethod } from './method';
 import { MAX_NUMBER_OF_SIGNATURES } from './constants';
 import { AuthEndpoint } from './endpoint';
 import { configSchema, genesisAuthStoreSchema } from './schemas';
-import { GenesisAuthStore, ImmutableStoreCallback } from './types';
+import { GenesisAuthStore } from './types';
 import { verifyNonce, verifySignatures } from './utils';
 import { authAccountSchema, AuthAccountStore } from './stores/auth_account';
 import { MultisignatureRegistrationEvent } from './events/multisignature_registration';
@@ -159,8 +158,8 @@ export class AuthModule extends BaseModule {
 			);
 		}
 
-		const isMultisignatureAccount = await this._isMultisignatureAccount(
-			context.getStore,
+		const isMultisignatureAccount = await authAccountStore.isMultisignatureAccount(
+			context,
 			transaction.senderAddress,
 		);
 		verifySignatures(
@@ -186,22 +185,5 @@ export class AuthModule extends BaseModule {
 			mandatoryKeys: senderAccount.mandatoryKeys,
 			optionalKeys: senderAccount.optionalKeys,
 		});
-	}
-
-	private async _isMultisignatureAccount(
-		getStore: ImmutableStoreCallback,
-		address: Buffer,
-	): Promise<boolean> {
-		const authSubstore = this.stores.get(AuthAccountStore);
-		try {
-			const authAccount = await authSubstore.get({ getStore }, address);
-
-			return authAccount.numberOfSignatures !== 0;
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
-			return false;
-		}
 	}
 }
