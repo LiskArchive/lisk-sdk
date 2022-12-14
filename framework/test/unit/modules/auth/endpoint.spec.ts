@@ -151,7 +151,7 @@ describe('AuthEndpoint', () => {
 	});
 
 	describe('isValidSignature', () => {
-		it('should verify the transaction with single signature', async () => {
+		it('should verify the transaction from a single-signature account that contains one signature', async () => {
 			// Arrange
 			const transaction = new Transaction({
 				module: 'token',
@@ -170,14 +170,10 @@ describe('AuthEndpoint', () => {
 				existingPrivateKey,
 			);
 
-			(transaction.signatures as any).push(signature);
-
-			const transactionAsString = transaction.getBytes().toString('hex');
+			transaction.signatures.push(signature);
 
 			const context = createTransientModuleEndpointContext({
-				params: {
-					transaction: transactionAsString,
-				},
+				params: { transaction: transaction.getBytes().toString('hex') },
 				chainID,
 			});
 
@@ -190,10 +186,46 @@ describe('AuthEndpoint', () => {
 					numberOfSignatures: 0,
 				});
 
-			// Assert
+			// Act
 			const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
 				.verified;
+
+			// Assert
 			expect(receivedSignatureVerificationResult).toBeTrue();
+		});
+
+		it('should report invalid signature in a transaction from a single-signature account', async () => {
+			// Arrange
+			const transaction = new Transaction({
+				module: 'token',
+				command: 'transfer',
+				nonce: BigInt('0'),
+				fee: BigInt('100000000'),
+				senderPublicKey: existingSenderPublicKey,
+				params: utils.getRandomBytes(100),
+				signatures: [utils.getRandomBytes(64)],
+			});
+
+			const context = createTransientModuleEndpointContext({
+				params: { transaction: transaction.getBytes().toString('hex') },
+				chainID,
+			});
+
+			when(authAccountStore.get as jest.Mock)
+				.calledWith(expect.anything(), existingAddress)
+				.mockReturnValue({
+					mandatoryKeys: [],
+					optionalKeys: [],
+					nonce: BigInt(0),
+					numberOfSignatures: 0,
+				});
+
+			// Act
+			const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
+				.verified;
+
+			// Assert
+			expect(receivedSignatureVerificationResult).toBeFalse();
 		});
 
 		it('should verify the transaction with multi-signature', async () => {

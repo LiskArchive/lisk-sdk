@@ -197,7 +197,6 @@ export const verifySignatures = (
 	} else {
 		verifySingleSignatureTransaction(TAG_TRANSACTION, transaction, transactionBytes, chainID);
 	}
-	return { verified: true };
 };
 
 export const verifyNonceStrict = (

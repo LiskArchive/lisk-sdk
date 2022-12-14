@@ -67,6 +67,11 @@ export class AuthEndpoint extends BaseEndpoint {
 		}
 	}
 
+	/**
+	 * Validates signatures of the provided transaction, including transactions from multisignature accounts.
+	 *
+	 * https://github.com/LiskHQ/lips/blob/main/proposals/lip-0041.md#isvalidsignature
+	 */
 	public async isValidSignature(context: ModuleEndpointContext): Promise<VerifyEndpointResultJSON> {
 		const {
 			params: { transaction: transactionParameter },
@@ -86,13 +91,13 @@ export class AuthEndpoint extends BaseEndpoint {
 			accountAddress,
 		);
 
-		return verifySignatures(
-			transaction,
-			transactionBytes,
-			chainID,
-			account,
-			isMultisignatureAccount,
-		);
+		try {
+			verifySignatures(transaction, transactionBytes, chainID, account, isMultisignatureAccount);
+		} catch (error) {
+			return { verified: false };
+		}
+
+		return { verified: true };
 	}
 
 	public async isValidNonce(context: ModuleEndpointContext): Promise<VerifyEndpointResultJSON> {
