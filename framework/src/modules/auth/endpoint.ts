@@ -97,8 +97,8 @@ export class AuthEndpoint extends BaseEndpoint {
 		const transaction = getTransactionFromParameter(transactionParameter);
 		const accountAddress = cryptoAddress.getAddressFromPublicKey(transaction.senderPublicKey);
 
-		const store = this.stores.get(AuthAccountStore);
-		const account = await store.get(context, accountAddress);
+		const authAccountStore = this.stores.get(AuthAccountStore);
+		const account = await authAccountStore.get(context, accountAddress);
 
 		const verificationResult = verifyNonce(transaction, account).status;
 		return { verified: verificationResult === VerifyStatus.OK };
