@@ -37,6 +37,7 @@ import {
 	ChainStatus,
 	Schema,
 	OwnChainAccountJSON,
+	Transaction,
 } from 'lisk-sdk';
 import {
 	CCU_FREQUENCY,
@@ -47,7 +48,7 @@ import {
 } from './constants';
 import { ChainConnectorStore, getDBInstance } from './db';
 import { Endpoint } from './endpoint';
-import { configSchema } from './schemas';
+import { configSchema, crossChainUpdateTransactionParams } from './schemas';
 import {
 	ChainConnectorPluginConfig,
 	SentCCUs,
@@ -58,6 +59,8 @@ import {
 	CrossChainMessagesFromEvents,
 } from './types';
 import { getActiveValidatorsDiff } from './utils';
+
+const { address, ed, encrypt } = cryptography;
 
 interface Data {
 	readonly blockHeader: chain.BlockHeaderJSON;
@@ -93,6 +96,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _mainchainAPIClient!: apiClient.APIClient;
 	private _sidechainAPIClient!: apiClient.APIClient;
 	private readonly _sentCCUs: SentCCUs = [];
+	private _privateKey!: Buffer;
 
 	public get nodeModulePath(): string {
 		return __filename;
@@ -103,6 +107,13 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		await super.init(context);
 		this.endpoint.init(this._sentCCUs);
 		this._ccuFrequency = this.config.ccuFrequency ?? CCU_FREQUENCY;
+		this._privateKey = Buffer.from(
+			await encrypt.decryptMessageWithPassword(
+				this.config.encryptedPrivateKey as any,
+				this.config.password,
+				'utf-8',
+			),
+		);
 	}
 
 	public async load(): Promise<void> {
@@ -441,7 +452,20 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				await this._sidechainChainConnectorStore.getCrossChainMessages(),
 				certificate,
 			);
-			await this._createCCU();
+			const { chainID } = await this.apiClient.invoke<{ chainID: string }>('system_getNodeInfo');
+			await this._createCCU(
+				codec.encode(
+					crossChainUpdateTransactionParams,
+					this.calculateCCUParams(
+						Buffer.from(chainID, 'hex'),
+						(await this.getNextCertificateFromAggregateCommits(
+							this._lastCertifiedHeight,
+							aggregateCommits,
+						)) as Certificate,
+						bftParameters?.certificateThreshold,
+					),
+				),
+			);
 			// if the transaction is successfully submitted then update the last certfied height and do the cleanup
 			// TODO: also check if the state is growing, delete everything from the inMemory state if it goes beyond last 3 rounds
 			await this._cleanup();
@@ -710,6 +734,46 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		await this._sidechainChainConnectorStore.setCrossChainMessages(crossChainMessages);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	private async _createCCU() {}
+	private async _createCCU(
+		ccuParams: Buffer,
+		activeApiClient = this.apiClient,
+		privateKey = this._privateKey, // <- can reuse createCCU by choosing mainchain/sidechain privKey
+	): Promise<void> {
+		const authAccount = await activeApiClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
+			address: address.getAddressFromPublicKey(privateKey).toString('hex'),
+		});
+
+		const tx = new Transaction({
+			module: MODULE_NAME_INTEROPERABILITY,
+			command: 'ccuCrosschainUpdate',
+			nonce: BigInt(authAccount.nonce),
+			senderPublicKey: ed.getPublicKeyFromPrivateKey(Buffer.from(this.config.encryptedPrivateKey)),
+			fee: BigInt(this.config.ccuFee),
+			params: ccuParams,
+			signatures: [],
+		});
+
+		try {
+			const { chainID } = await activeApiClient.invoke<{ chainID: string }>('system_getNodeInfo');
+
+			tx.signatures.push(
+				ed.signData(
+					chain.TAG_TRANSACTION,
+					Buffer.from(chainID, 'hex'),
+					tx.getSigningBytes(),
+					privateKey,
+				),
+			);
+
+			const result = await activeApiClient.invoke<{
+				transactionId?: string;
+			}>('txpool_postTransaction', {
+				transaction: tx.getBytes().toString('hex'),
+			});
+
+			this.logger.debug('Sent CCU transaction', result.transactionId);
+		} catch (error) {
+			this.logger.error(error);
+		}
+	}
 }

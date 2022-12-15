@@ -22,6 +22,9 @@ export interface ChainConnectorPluginConfig {
 	mainchainIPCPath: string;
 	sidechainIPCPath: string;
 	ccuFrequency: number;
+	encryptedPrivateKey: string;
+	password: string;
+	ccuFee: string;
 }
 
 export type SentCCUs = Transaction[];
