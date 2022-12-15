@@ -12,15 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { removeSync } from 'fs-extra';
 import {
 	ApplicationConfigForPlugin,
 	GenesisConfig,
 	testing,
 	cryptography,
 	apiClient,
+	db,
 } from 'lisk-sdk';
 import { ChainConnectorPlugin } from '../../src/chain_connector_plugin';
-import * as db from '../../src/db';
+import * as chainConnectorDB from '../../src/db';
 
 describe('getSentCCUs', () => {
 	const appConfigForPlugin: ApplicationConfigForPlugin = {
@@ -94,23 +96,46 @@ describe('getSentCCUs', () => {
 		aggregationBits: Buffer.alloc(0).toString('hex'),
 		certificateSignature: Buffer.alloc(0).toString('hex'),
 	};
-	const chainConnectorInfo = {
-		blockHeaders: [testing.createFakeBlockHeader()],
-		aggregateCommits: [aggregateCommit],
-		validatorsHashPreimage: [validatorsData],
-	};
 	let chainConnectorPlugin: ChainConnectorPlugin;
 
 	beforeEach(async () => {
 		chainConnectorPlugin = new ChainConnectorPlugin();
-		jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({} as never);
+		const sidechainAPIClientMock = {
+			subscribe: jest.fn(),
+		};
+		jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
+		jest
+			.spyOn(chainConnectorDB, 'getDBInstance')
+			.mockResolvedValue(new db.InMemoryDatabase() as never);
 
 		await chainConnectorPlugin.init({
 			config: { mainchainIPCPath: '~/.lisk/mainchain' },
 			appConfig: appConfigForPlugin,
 			logger: testing.mocks.loggerMock,
 		});
-		jest.spyOn(db, 'getChainConnectorInfo').mockReturnValue(chainConnectorInfo as never);
+		(chainConnectorPlugin as any)['_sidechainAPIClient'] = sidechainAPIClientMock;
+		await chainConnectorPlugin.load();
+		await chainConnectorPlugin['_sidechainChainConnectorDB'].setAggregateCommits([aggregateCommit]);
+		await chainConnectorPlugin['_sidechainChainConnectorDB'].setValidatorsHashPreImage([
+			validatorsData,
+		]);
+	});
+
+	afterEach(async () => {
+		(chainConnectorPlugin as any)['_sidechainAPIClient'] = {
+			disconnect: jest.fn(),
+		};
+		(chainConnectorPlugin as any)['_mainchainAPIClient'] = {
+			disconnect: jest.fn(),
+		};
+
+		await chainConnectorPlugin['_sidechainChainConnectorDB']['_db'].clear();
+	});
+
+	afterAll(() => {
+		chainConnectorPlugin['_sidechainChainConnectorDB']['_db'].close();
+
+		removeSync(chainConnectorPlugin['dataPath']);
 	});
 
 	describe('getSentCCUs', () => {

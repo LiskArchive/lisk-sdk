@@ -12,16 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as createDebug from 'debug';
-import { codec, db as liskDB, cryptography, chain } from 'lisk-sdk';
+import { codec, db as liskDB, AggregateCommit, chain } from 'lisk-sdk';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
-import { DB_KEY_CROSS_CHAIN_MESSAGES, EMPTY_BYTES } from './constants';
-import { chainConnectorInfoSchema, crossChainMessagesSchema } from './schemas';
-import { ChainConnectorInfo, CrossChainMessages } from './types';
-
-const debug = createDebug('plugin:forger:db');
+import {
+	DB_KEY_AGGREGATE_COMMITS,
+	DB_KEY_BLOCK_HEADERS,
+	DB_KEY_CROSS_CHAIN_MESSAGES,
+	DB_KEY_VALIDATORS_PREIMAGE,
+} from './constants';
+import {
+	aggregateCommitsInfoSchema,
+	blockHeadersInfoSchema,
+	ccmsFromEventsSchema,
+	validatorsHashPreimageInfoSchema,
+} from './schemas';
+import { CrossChainMessagesFromEvents, ValidatorsData } from './types';
 
 const { Database } = liskDB;
 type KVStore = liskDB.Database;
@@ -36,59 +43,126 @@ export const getDBInstance = async (
 	return new Database(dirPath);
 };
 
-export const getChainConnectorInfo = async (db: KVStore): Promise<ChainConnectorInfo> => {
-	try {
-		const encodedInfo = await db.get(EMPTY_BYTES);
-		return codec.decode<ChainConnectorInfo>(chainConnectorInfoSchema, encodedInfo);
-	} catch (error) {
-		debug('Chain connector info does not exist.');
-		return {
-			blockHeaders: [],
-			aggregateCommits: [],
-			validatorsHashPreimage: [],
-			crossChainMessages: [],
-		};
+export class ChainConnectorStore {
+	private readonly _db: KVStore;
+	public constructor(db: KVStore, private readonly _chainType: Buffer) {
+		this._db = db;
 	}
-};
 
-export const setChainConnectorInfo = async (
-	db: KVStore,
-	chainConnectorInfo: ChainConnectorInfo,
-): Promise<void> => {
-	const encodedInfo = codec.encode(chainConnectorInfoSchema, chainConnectorInfo);
-	await db.set(EMPTY_BYTES, encodedInfo);
-};
+	public close() {
+		this._db.close();
+	}
 
-export const getCrossChainMessages = async (
-	db: KVStore,
-	height: number,
-): Promise<CrossChainMessages> => {
-	try {
-		const concatedDBKey = Buffer.concat([
-			DB_KEY_CROSS_CHAIN_MESSAGES,
-			cryptography.utils.intToBuffer(height, 4),
-		]);
-		const encodedInfo = await db.get(concatedDBKey);
-		return codec.decode<CrossChainMessages>(crossChainMessagesSchema, encodedInfo);
-	} catch (error) {
-		if (!(error instanceof chain.NotFoundError)) {
-			throw error;
+	public async getBlockHeaders(): Promise<chain.BlockHeaderAttrs[]> {
+		const dbKey = Buffer.concat([this._chainType, DB_KEY_BLOCK_HEADERS]);
+		try {
+			const encodedInfo = await this._db.get(dbKey);
+
+			return codec.decode<{ blockHeaders: chain.BlockHeaderAttrs[] }>(
+				blockHeadersInfoSchema,
+				encodedInfo,
+			).blockHeaders;
+		} catch (error) {
+			if (!(error instanceof liskDB.NotFoundError)) {
+				throw error;
+			}
+
+			// Set initial value
+			const encodedInitialData = codec.encode(blockHeadersInfoSchema, { blockHeaders: [] });
+			await this._db.set(dbKey, encodedInitialData);
+
+			return [];
 		}
-		return {
-			crossChainMessages: [],
-		};
 	}
-};
 
-export const setCrossChainMessages = async (
-	db: KVStore,
-	height: number,
-	ccms: CrossChainMessages,
-): Promise<void> => {
-	const concatedDBKey = Buffer.concat([
-		DB_KEY_CROSS_CHAIN_MESSAGES,
-		cryptography.utils.intToBuffer(height, 4),
-	]);
-	const encodedInfo = codec.encode(crossChainMessagesSchema, ccms);
-	await db.set(concatedDBKey, encodedInfo);
-};
+	public async setBlockHeaders(blockHeaders: chain.BlockHeaderAttrs[]) {
+		const concatedDBKey = Buffer.concat([this._chainType, DB_KEY_BLOCK_HEADERS]);
+		const encodedInfo = codec.encode(blockHeadersInfoSchema, { blockHeaders });
+
+		await this._db.set(concatedDBKey, encodedInfo);
+	}
+
+	public async getAggregateCommits(): Promise<AggregateCommit[]> {
+		const dbKey = Buffer.concat([this._chainType, DB_KEY_AGGREGATE_COMMITS]);
+		try {
+			const encodedInfo = await this._db.get(dbKey);
+
+			return codec.decode<{ aggregateCommits: AggregateCommit[] }>(
+				aggregateCommitsInfoSchema,
+				encodedInfo,
+			).aggregateCommits;
+		} catch (error) {
+			if (!(error instanceof liskDB.NotFoundError)) {
+				throw error;
+			}
+			// Set initial value
+			const encodedInitialData = codec.encode(aggregateCommitsInfoSchema, { aggregateCommits: [] });
+			await this._db.set(dbKey, encodedInitialData);
+
+			return [];
+		}
+	}
+
+	public async setAggregateCommits(aggregateCommits: AggregateCommit[]) {
+		const concatedDBKey = Buffer.concat([this._chainType, DB_KEY_AGGREGATE_COMMITS]);
+		const encodedInfo = codec.encode(aggregateCommitsInfoSchema, { aggregateCommits });
+		await this._db.set(concatedDBKey, encodedInfo);
+	}
+
+	public async getValidatorsHashPreImage(): Promise<ValidatorsData[]> {
+		const dbKey = Buffer.concat([this._chainType, DB_KEY_VALIDATORS_PREIMAGE]);
+		try {
+			const encodedInfo = await this._db.get(dbKey);
+
+			return codec.decode<{ validatorsHashPreimage: ValidatorsData[] }>(
+				validatorsHashPreimageInfoSchema,
+				encodedInfo,
+			).validatorsHashPreimage;
+		} catch (error) {
+			if (!(error instanceof liskDB.NotFoundError)) {
+				throw error;
+			}
+			// Set initial value
+			const encodedInitialData = codec.encode(validatorsHashPreimageInfoSchema, {
+				validatorsHashPreimage: [],
+			});
+			await this._db.set(dbKey, encodedInitialData);
+
+			return [];
+		}
+	}
+
+	public async setValidatorsHashPreImage(validatorsHashInput: ValidatorsData[]) {
+		const concatedDBKey = Buffer.concat([this._chainType, DB_KEY_VALIDATORS_PREIMAGE]);
+		const encodedInfo = codec.encode(validatorsHashPreimageInfoSchema, {
+			validatorsHashPreimage: validatorsHashInput,
+		});
+		await this._db.set(concatedDBKey, encodedInfo);
+	}
+
+	public async getCrossChainMessages(): Promise<CrossChainMessagesFromEvents[]> {
+		const dbKey = Buffer.concat([this._chainType, DB_KEY_CROSS_CHAIN_MESSAGES]);
+		try {
+			const encodedInfo = await this._db.get(dbKey);
+			return codec.decode<{ ccmsFromEvents: CrossChainMessagesFromEvents[] }>(
+				ccmsFromEventsSchema,
+				encodedInfo,
+			).ccmsFromEvents;
+		} catch (error) {
+			if (!(error instanceof liskDB.NotFoundError)) {
+				throw error;
+			}
+			// Set initial value
+			const encodedInitialData = codec.encode(ccmsFromEventsSchema, { ccmsFromEvents: [] });
+			await this._db.set(dbKey, encodedInitialData);
+
+			return [];
+		}
+	}
+
+	public async setCrossChainMessages(ccms: CrossChainMessagesFromEvents[]) {
+		const concatedDBKey = Buffer.concat([this._chainType, DB_KEY_CROSS_CHAIN_MESSAGES]);
+		const encodedInfo = codec.encode(ccmsFromEventsSchema, { ccmsFromEvents: ccms });
+		await this._db.set(concatedDBKey, encodedInfo);
+	}
+}

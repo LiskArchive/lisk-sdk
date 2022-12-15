@@ -12,18 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BasePluginEndpoint, PluginEndpointContext, db as liskDB } from 'lisk-sdk';
-import { getChainConnectorInfo } from './db';
+import { BasePluginEndpoint, PluginEndpointContext } from 'lisk-sdk';
+import { ChainConnectorStore } from './db';
 import { AggregateCommitJSON, SentCCUs, SentCCUsJSON, ValidatorsDataJSON } from './types';
 import { aggregateCommitToJSON, validatorsHashPreimagetoJSON } from './utils';
 
 export class Endpoint extends BasePluginEndpoint {
-	private _db!: liskDB.Database;
+	private _chainConnectorDB!: ChainConnectorStore;
 	private _sentCCUs!: SentCCUs;
 
-	public init(db: liskDB.Database, sentCCUs: SentCCUs) {
-		this._db = db;
+	public init(sentCCUs: SentCCUs) {
 		this._sentCCUs = sentCCUs;
+	}
+
+	public load(db: ChainConnectorStore) {
+		this._chainConnectorDB = db;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -34,16 +37,14 @@ export class Endpoint extends BasePluginEndpoint {
 	public async getAggregateCommits(
 		_context: PluginEndpointContext,
 	): Promise<AggregateCommitJSON[]> {
-		const chainConnectorInfo = await getChainConnectorInfo(this._db);
-		return chainConnectorInfo.aggregateCommits.map(aggregateCommit =>
-			aggregateCommitToJSON(aggregateCommit),
-		);
+		const aggregateCommits = await this._chainConnectorDB.getAggregateCommits();
+		return aggregateCommits.map(aggregateCommit => aggregateCommitToJSON(aggregateCommit));
 	}
 
 	public async getValidatorsInfoFromPreimage(
 		_context: PluginEndpointContext,
 	): Promise<ValidatorsDataJSON[]> {
-		const chainConnectorInfo = await getChainConnectorInfo(this._db);
-		return validatorsHashPreimagetoJSON(chainConnectorInfo.validatorsHashPreimage);
+		const validatorsHashPreimages = await this._chainConnectorDB.getValidatorsHashPreImage();
+		return validatorsHashPreimagetoJSON(validatorsHashPreimages);
 	}
 }

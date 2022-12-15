@@ -15,7 +15,7 @@
 import { chain, aggregateCommitSchema, ccmSchema } from 'lisk-sdk';
 
 export const configSchema = {
-	$id: '#/plugins/chainConnector/config',
+	$id: '/lisk/plugins/chainConnector/config',
 	type: 'object',
 	properties: {
 		mainchainIPCPath: {
@@ -43,7 +43,7 @@ export const configSchema = {
 };
 
 export const validatorsDataSchema = {
-	$id: '/modules/bft/validatorsHashInput',
+	$id: '/lisk/plugins/chainConnector/validatorsHashInput',
 	type: 'object',
 	required: ['validators', 'certificateThreshold'],
 	properties: {
@@ -65,8 +65,8 @@ export const validatorsDataSchema = {
 	},
 };
 
-export const chainConnectorInfoSchema = {
-	$id: '#/plugins/chainConnector/info',
+export const blockHeadersInfoSchema = {
+	$id: '/lisk/plugins/chainConnector/blockHeader',
 	type: 'object',
 	properties: {
 		blockHeaders: {
@@ -76,54 +76,73 @@ export const chainConnectorInfoSchema = {
 				...chain.blockHeaderSchema,
 			},
 		},
+	},
+};
+
+export const aggregateCommitsInfoSchema = {
+	$id: '/lisk/plugins/chainConnector/aggregateCommits',
+	type: 'object',
+	properties: {
 		aggregateCommits: {
 			type: 'array',
-			fieldNumber: 2,
+			fieldNumber: 1,
 			items: {
 				...aggregateCommitSchema,
 			},
 		},
+	},
+};
+
+export const validatorsHashPreimageInfoSchema = {
+	$id: '/lisk/plugins/chainConnector/validatorsHashPreimage',
+	type: 'object',
+	properties: {
 		validatorsHashPreimage: {
 			type: 'array',
-			fieldNumber: 3,
+			fieldNumber: 1,
 			items: {
 				...validatorsDataSchema,
 			},
 		},
-		crossChainMessages: {
-			type: 'array',
-			fieldNumber: 4,
-			items: {
-				type: 'object',
-				required: ['ccm', 'height'],
-				properties: {
-					ccm: {
-						type: 'object',
-						required: [...ccmSchema.required],
-						properties: { ...ccmSchema.properties },
-						fieldNumber: 1,
-					},
-					height: {
-						dataType: 'uint32',
-						fieldNumber: 2,
-					},
-				},
-			},
-		},
 	},
-	required: ['blockHeaders', 'aggregateCommits', 'validatorsHashPreimage', 'crossChainMessages'],
 };
 
-export const crossChainMessagesSchema = {
-	$id: '/lisk/plugins/chainConnector/crossChainMessages',
+export const ccmsFromEventsSchema = {
+	$id: '/lisk/plugins/chainConnector/ccmsFromEvents',
 	type: 'object',
-	required: ['crossChainMessages'],
 	properties: {
-		crossChainMessages: {
+		ccmsFromEvents: {
 			type: 'array',
 			fieldNumber: 1,
 			items: {
-				...ccmSchema,
+				type: 'object',
+				properties: {
+					ccms: {
+						type: 'array',
+						fieldNumber: 1,
+						items: {
+							...ccmSchema,
+						},
+					},
+					height: { dataType: 'uint32', fieldNumber: 2 },
+					inclusionProof: {
+						type: 'object',
+						fieldNumber: 3,
+						properties: {
+							siblingHashes: {
+								type: 'array',
+								fieldNumber: 1,
+								items: {
+									dataType: 'bytes',
+								},
+							},
+							bitmap: {
+								dataType: 'bytes',
+								fieldNumber: 2,
+							},
+						},
+					},
+				},
 			},
 		},
 	},
