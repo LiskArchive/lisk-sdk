@@ -145,3 +145,88 @@ export const ccmsFromEventsSchema = {
 		},
 	},
 };
+
+export declare const crossChainUpdateTransactionParams: {
+	$id: string;
+	type: string;
+	required: string[];
+	properties: {
+		sendingChainID: {
+			dataType: string;
+			fieldNumber: number;
+			minLength: number;
+			maxLength: number;
+		};
+		certificate: {
+			dataType: string;
+			fieldNumber: number;
+		};
+		activeValidatorsUpdate: {
+			type: string;
+			fieldNumber: number;
+			items: {
+				type: string;
+				required: string[];
+				properties: {
+					blsKey: {
+						dataType: string;
+						fieldNumber: number;
+						minLength: number;
+						maxLength: number;
+					};
+					bftWeight: {
+						dataType: string;
+						fieldNumber: number;
+					};
+				};
+			};
+		};
+		certificateThreshold: {
+			dataType: string;
+			fieldNumber: number;
+		};
+		inboxUpdate: {
+			type: string;
+			fieldNumber: number;
+			required: string[];
+			properties: {
+				crossChainMessages: {
+					type: string;
+					fieldNumber: number;
+					items: {
+						dataType: string;
+					};
+				};
+				messageWitnessHashes: {
+					type: string;
+					fieldNumber: number;
+					items: {
+						dataType: string;
+						minLength: number;
+						maxLength: number;
+					};
+				};
+				outboxRootWitness: {
+					type: string;
+					fieldNumber: number;
+					required: string[];
+					properties: {
+						bitmap: {
+							dataType: string;
+							fieldNumber: number;
+						};
+						siblingHashes: {
+							type: string;
+							fieldNumber: number;
+							items: {
+								dataType: string;
+								minLength: number;
+								maxLength: number;
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
