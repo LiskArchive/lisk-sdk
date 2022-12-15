@@ -55,8 +55,10 @@ export interface ChainConnectorInfo {
 	crossChainMessages: CcmWithHeight[];
 }
 
-export interface CrossChainMessages {
-	crossChainMessages: CCMsg[];
+export interface CrossChainMessagesFromEvents {
+	ccms: CCMsg[];
+	height: number;
+	inclusionProof: OutboxRootWitness;
 }
 
 export interface AggregateCommitJSON {
