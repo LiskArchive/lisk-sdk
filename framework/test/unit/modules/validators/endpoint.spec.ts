@@ -31,6 +31,8 @@ describe('ValidatorsModuleEndpoint', () => {
 	const validatorAddress = utils.getRandomBytes(20);
 	const blsKey = utils.getRandomBytes(48);
 	const generatorKey = utils.getRandomBytes(32);
+	const validProof =
+		'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26';
 
 	beforeAll(() => {
 		validatorsModule = new ValidatorsModule();
@@ -74,8 +76,7 @@ describe('ValidatorsModuleEndpoint', () => {
 				const context = createTransientModuleEndpointContext({
 					stateStore,
 					params: {
-						proofOfPossession:
-							'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26',
+						proofOfPossession: validProof,
 						blsKey:
 							'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81',
 					},
@@ -104,8 +105,6 @@ describe('ValidatorsModuleEndpoint', () => {
 
 			it('should resolve with false when bls key length is less than 48 bytes and proof of possession has valid length', async () => {
 				const invalidPk = utils.getRandomBytes(47).toString('hex');
-				const validProof =
-					'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26';
 				const context = createTransientModuleEndpointContext({
 					stateStore,
 					params: {
@@ -120,8 +119,6 @@ describe('ValidatorsModuleEndpoint', () => {
 
 			it('should resolve with false when bls key length is greater than 48 bytes and proof of possession has valid length', async () => {
 				const invalidPk = utils.getRandomBytes(49).toString('hex');
-				const validProof =
-					'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26';
 				const context = createTransientModuleEndpointContext({
 					stateStore,
 					params: {
