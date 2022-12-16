@@ -136,4 +136,14 @@ export class PoSMethod extends BaseMethod {
 			.get(methodContext, EMPTY_KEY);
 		return (height - genesisHeight) % this._config.roundLength === 0;
 	}
+
+	public async unbanValidator(methodContext: MethodContext, address: Buffer): Promise<void> {
+		const validatorSubStore = this.stores.get(ValidatorStore);
+		const validator = await validatorSubStore.get(methodContext, address);
+		if (!validator.isBanned) {
+			return;
+		}
+		validator.isBanned = false;
+		await validatorSubStore.set(methodContext, address, validator);
+	}
 }
