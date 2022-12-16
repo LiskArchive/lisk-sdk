@@ -26,7 +26,7 @@ import {
 	KeySignaturePair,
 	SortedMultisignatureGroup,
 } from './types';
-import { getTransactionFromParameter, verifyNonceStrict, verifySignatures } from './utils';
+import { getTransactionFromParameter, verifyNonce, verifySignatures } from './utils';
 import { AuthAccountStore } from './stores/auth_account';
 import { NamedRegistry } from '../named_registry';
 import { multisigRegMsgSchema, sortMultisignatureGroupSchema } from './schemas';
@@ -48,25 +48,21 @@ export class AuthEndpoint extends BaseEndpoint {
 
 		const accountAddress = cryptoAddress.getAddressFromLisk32Address(address);
 		const store = this.stores.get(AuthAccountStore);
+		const authAccount = await store.getOrDefault(context, accountAddress);
 
-		try {
-			const authAccount = await store.get(context, accountAddress);
-
-			return {
-				nonce: authAccount.nonce.toString(),
-				numberOfSignatures: authAccount.numberOfSignatures,
-				mandatoryKeys: authAccount.mandatoryKeys.map(key => key.toString('hex')),
-				optionalKeys: authAccount.optionalKeys.map(key => key.toString('hex')),
-			};
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
-
-			return { nonce: '0', numberOfSignatures: 0, mandatoryKeys: [], optionalKeys: [] };
-		}
+		return {
+			nonce: authAccount.nonce.toString(),
+			numberOfSignatures: authAccount.numberOfSignatures,
+			mandatoryKeys: authAccount.mandatoryKeys.map(key => key.toString('hex')),
+			optionalKeys: authAccount.optionalKeys.map(key => key.toString('hex')),
+		};
 	}
 
+	/**
+	 * Validates signatures of the provided transaction, including transactions from multisignature accounts.
+	 *
+	 * https://github.com/LiskHQ/lips/blob/main/proposals/lip-0041.md#isvalidsignature
+	 */
 	public async isValidSignature(context: ModuleEndpointContext): Promise<VerifyEndpointResultJSON> {
 		const {
 			params: { transaction: transactionParameter },
@@ -86,13 +82,13 @@ export class AuthEndpoint extends BaseEndpoint {
 			accountAddress,
 		);
 
-		return verifySignatures(
-			transaction,
-			transactionBytes,
-			chainID,
-			account,
-			isMultisignatureAccount,
-		);
+		try {
+			verifySignatures(transaction, transactionBytes, chainID, account, isMultisignatureAccount);
+		} catch (error) {
+			return { verified: false };
+		}
+
+		return { verified: true };
 	}
 
 	public async isValidNonce(context: ModuleEndpointContext): Promise<VerifyEndpointResultJSON> {
@@ -106,7 +102,7 @@ export class AuthEndpoint extends BaseEndpoint {
 		const store = this.stores.get(AuthAccountStore);
 		const account = await store.get(context, accountAddress);
 
-		const verificationResult = verifyNonceStrict(transaction, account).status;
+		const verificationResult = verifyNonce(transaction, account).status;
 		return { verified: verificationResult === VerifyStatus.OK };
 	}
 

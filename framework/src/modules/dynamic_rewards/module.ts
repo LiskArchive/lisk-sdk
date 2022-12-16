@@ -15,7 +15,12 @@
 import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { DECIMAL_PERCENT_FACTOR, defaultConfig, EMPTY_BYTES } from './constants';
+import {
+	CONTEXT_STORE_KEY_BLOCK_REWARD,
+	DECIMAL_PERCENT_FACTOR,
+	defaultConfig,
+	EMPTY_BYTES,
+} from './constants';
 import {
 	REWARD_NO_REDUCTION,
 	REWARD_REDUCTION_FACTOR_BFT,
@@ -30,7 +35,12 @@ import {
 	TokenMethod,
 	ValidatorsMethod,
 } from './types';
-import { BlockAfterExecuteContext, BlockHeader, ImmutableMethodContext } from '../../state_machine';
+import {
+	BlockAfterExecuteContext,
+	BlockHeader,
+	getContextStoreBigInt,
+	ImmutableMethodContext,
+} from '../../state_machine';
 import { DynamicRewardMethod } from './method';
 import { DynamicRewardEndpoint } from './endpoint';
 import { configSchema } from './schemas';
@@ -42,7 +52,6 @@ import {
 	GenesisBlockExecuteContext,
 } from '../../state_machine/types';
 import { calculateDefaultReward } from '../reward/calculate_reward';
-import { BlockRewardsDataStore } from './stores/block_rewards';
 import {
 	getDefaultRewardAtHeightRequestSchema,
 	getDefaultRewardAtHeightResponseSchema,
@@ -61,7 +70,6 @@ export class DynamicRewardModule extends BaseModule {
 	public constructor() {
 		super();
 		this.stores.register(EndOfRoundTimestampStore, new EndOfRoundTimestampStore(this.name));
-		this.stores.register(BlockRewardsDataStore, new BlockRewardsDataStore(this.name));
 		this.events.register(RewardMintedEvent, new RewardMintedEvent(this.name));
 	}
 
@@ -130,16 +138,14 @@ export class DynamicRewardModule extends BaseModule {
 			context.getMethodContext(),
 			context.header,
 		);
-
-		await this.stores
-			.get(BlockRewardsDataStore)
-			.set(context, EMPTY_BYTES, { reward: defaultReward });
+		context.contextStore.set(CONTEXT_STORE_KEY_BLOCK_REWARD, defaultReward);
 	}
 
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
-		const { reward: defaultReward } = await this.stores
-			.get(BlockRewardsDataStore)
-			.get(context, EMPTY_BYTES);
+		const defaultReward = getContextStoreBigInt(
+			context.contextStore,
+			CONTEXT_STORE_KEY_BLOCK_REWARD,
+		);
 		const [blockReward, reduction] = await this._getBlockRewardDeduction(
 			context.getMethodContext(),
 			context.header,

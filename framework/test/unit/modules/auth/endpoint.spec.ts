@@ -9,7 +9,6 @@ import {
 	MESSAGE_TAG_MULTISIG_REG,
 } from '../../../../src/modules/auth/constants';
 import { AuthEndpoint } from '../../../../src/modules/auth/endpoint';
-import { InvalidNonceError } from '../../../../src/modules/auth/errors';
 import {
 	multisigRegMsgSchema,
 	registerMultisignatureParamsSchema,
@@ -151,7 +150,7 @@ describe('AuthEndpoint', () => {
 	});
 
 	describe('isValidSignature', () => {
-		it('should verify the transaction with single signature', async () => {
+		it('should verify the transaction from a single-signature account that contains one signature', async () => {
 			// Arrange
 			const transaction = new Transaction({
 				module: 'token',
@@ -170,14 +169,10 @@ describe('AuthEndpoint', () => {
 				existingPrivateKey,
 			);
 
-			(transaction.signatures as any).push(signature);
-
-			const transactionAsString = transaction.getBytes().toString('hex');
+			transaction.signatures.push(signature);
 
 			const context = createTransientModuleEndpointContext({
-				params: {
-					transaction: transactionAsString,
-				},
+				params: { transaction: transaction.getBytes().toString('hex') },
 				chainID,
 			});
 
@@ -190,10 +185,46 @@ describe('AuthEndpoint', () => {
 					numberOfSignatures: 0,
 				});
 
-			// Assert
+			// Act
 			const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
 				.verified;
+
+			// Assert
 			expect(receivedSignatureVerificationResult).toBeTrue();
+		});
+
+		it('should report invalid signature in a transaction from a single-signature account', async () => {
+			// Arrange
+			const transaction = new Transaction({
+				module: 'token',
+				command: 'transfer',
+				nonce: BigInt('0'),
+				fee: BigInt('100000000'),
+				senderPublicKey: existingSenderPublicKey,
+				params: utils.getRandomBytes(100),
+				signatures: [utils.getRandomBytes(64)],
+			});
+
+			const context = createTransientModuleEndpointContext({
+				params: { transaction: transaction.getBytes().toString('hex') },
+				chainID,
+			});
+
+			when(authAccountStore.get as jest.Mock)
+				.calledWith(expect.anything(), existingAddress)
+				.mockReturnValue({
+					mandatoryKeys: [],
+					optionalKeys: [],
+					nonce: BigInt(0),
+					numberOfSignatures: 0,
+				});
+
+			// Act
+			const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
+				.verified;
+
+			// Assert
+			expect(receivedSignatureVerificationResult).toBeFalse();
 		});
 
 		it('should verify the transaction with multi-signature', async () => {
@@ -404,8 +435,6 @@ describe('AuthEndpoint', () => {
 
 		it('should fail to verify greater transaction nonce than account nonce', async () => {
 			// Arrange
-			const accountNonce = BigInt(2);
-
 			const transaction = new Transaction({
 				module: 'token',
 				command: 'transfer',
@@ -433,22 +462,15 @@ describe('AuthEndpoint', () => {
 					numberOfSignatures: 0,
 				});
 
+			// Act
+			const isValidNonceResponse = (await authEndpoint.isValidNonce(context)).verified;
+
 			// Assert
-			return expect(authEndpoint.isValidNonce(context)).rejects.toThrow(
-				new InvalidNonceError(
-					`Transaction with id:${transaction.id.toString(
-						'hex',
-					)} nonce is not equal to account nonce.`,
-					transaction.nonce,
-					accountNonce,
-				),
-			);
+			expect(isValidNonceResponse).toBeFalse();
 		});
 
 		it('should fail to verify lower transaction nonce than account nonce', async () => {
 			// Arrange
-			const accountNonce = BigInt(2);
-
 			const transaction = new Transaction({
 				module: 'token',
 				command: 'transfer',
@@ -472,20 +494,15 @@ describe('AuthEndpoint', () => {
 				.mockReturnValue({
 					mandatoryKeys: [],
 					optionalKeys: [],
-					nonce: accountNonce,
+					nonce: BigInt(2),
 					numberOfSignatures: 0,
 				});
 
+			// Act
+			const isValidNonceResponse = (await authEndpoint.isValidNonce(context)).verified;
+
 			// Assert
-			return expect(authEndpoint.isValidNonce(context)).rejects.toThrow(
-				new InvalidNonceError(
-					`Transaction with id:${transaction.id.toString(
-						'hex',
-					)} nonce is not equal to account nonce.`,
-					transaction.nonce,
-					accountNonce,
-				),
-			);
+			expect(isValidNonceResponse).toBeFalse();
 		});
 	});
 

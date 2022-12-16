@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { NotFoundError } from '@liskhq/lisk-chain';
 import { BaseMethod } from '../base_method';
 import { ImmutableMethodContext } from '../../state_machine';
 import { AuthAccount, AuthAccountStore } from './stores/auth_account';
@@ -22,17 +21,8 @@ export class AuthMethod extends BaseMethod {
 		methodContext: ImmutableMethodContext,
 		address: Buffer,
 	): Promise<AuthAccount> {
-		const authDataStore = this.stores.get(AuthAccountStore);
-		try {
-			const authData = await authDataStore.get(methodContext, address);
+		const authAccountStore = this.stores.get(AuthAccountStore);
 
-			return authData;
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
-
-			return { nonce: BigInt(0), numberOfSignatures: 0, mandatoryKeys: [], optionalKeys: [] };
-		}
+		return authAccountStore.getOrDefault(methodContext, address);
 	}
 }
