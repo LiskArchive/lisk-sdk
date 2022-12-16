@@ -295,7 +295,7 @@ describe('ChainConnectorPlugin', () => {
 					module: MODULE_NAME_INTEROPERABILITY,
 					topics: [cryptography.utils.getRandomBytes(32)],
 					name: CCM_SEND_SUCCESS,
-					height: 11,
+					height: 1,
 					data: codec.encode(ccmSchema, { ...ccm, nonce: BigInt(1) } as CCMsg),
 				}),
 				new chain.Event({
@@ -303,7 +303,7 @@ describe('ChainConnectorPlugin', () => {
 					module: MODULE_NAME_INTEROPERABILITY,
 					topics: [cryptography.utils.getRandomBytes(32)],
 					name: CCM_SEND_SUCCESS,
-					height: 12,
+					height: 1,
 					data: codec.encode(ccmSchema, { ...ccm, nonce: BigInt(2) } as CCMsg),
 				}),
 			];
@@ -329,6 +329,50 @@ describe('ChainConnectorPlugin', () => {
 				appConfig: appConfigForPlugin,
 			});
 
+			when(sidechainAPIClientMock.invoke)
+				.calledWith('system_getMetadata')
+				.mockResolvedValue({
+					modules: [
+						{
+							name: 'interoperability',
+							stores: [
+								{
+									key: '03ed0d25f0ba',
+									data: {
+										$id: '/modules/interoperability/outbox',
+									},
+								},
+							],
+						},
+					],
+				});
+
+			const sampleProof = {
+				proof: {
+					siblingHashes: [Buffer.alloc(0)],
+					queries: [
+						{
+							key: Buffer.alloc(0),
+							value: Buffer.alloc(0),
+							bitmap: Buffer.alloc(0),
+						},
+					],
+				},
+			};
+			when(sidechainAPIClientMock.invoke)
+				.calledWith('state_prove', {
+					queries: [
+						Buffer.concat([Buffer.from('03ed0d25f0ba', 'hex'), Buffer.from('10000000', 'hex')]),
+					],
+				})
+				.mockResolvedValue(sampleProof);
+
+			when(sidechainAPIClientMock.invoke)
+				.calledWith('interoperability_ownChainAccount')
+				.mockResolvedValue({
+					chainID: '10000000',
+				});
+
 			await chainConnectorPlugin.load();
 			await (chainConnectorPlugin as any)['_newBlockHandler']({
 				blockHeader: block.header.toJSON(),
@@ -342,9 +386,22 @@ describe('ChainConnectorPlugin', () => {
 			expect((chainConnectorPlugin as any)['_createCCU']).toHaveBeenCalled();
 			expect((chainConnectorPlugin as any)['_cleanup']).toHaveBeenCalled();
 
-			expect((chainConnectorPlugin as any)['_chainConnectorState'].crossChainMessages).toHaveLength(
-				2,
-			);
+			const savedCCMs = await chainConnectorPlugin[
+				'_sidechainChainConnectorDB'
+			].getCrossChainMessages();
+			expect(savedCCMs).toEqual([
+				{
+					ccms: [
+						{ ...ccm, nonce: BigInt(1) },
+						{ ...ccm, nonce: BigInt(2) },
+					],
+					height: 1,
+					inclusionProof: {
+						bitmap: sampleProof.proof.queries[0].bitmap,
+						siblingHashes: sampleProof.proof.siblingHashes,
+					},
+				},
+			]);
 		});
 	});
 
