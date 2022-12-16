@@ -182,6 +182,7 @@ export class PoSModule extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
+			...this.baseMetadata(),
 			endpoints: [
 				{
 					name: this.endpoint.getAllValidators.name,
@@ -234,17 +235,6 @@ export class PoSModule extends BaseModule {
 					name: this.endpoint.getPendingUnlocks.name,
 					request: getPendingUnlocksRequestSchema,
 					response: getPendingUnlocksResponseSchema,
-				},
-			],
-			commands: this.commands.map(command => ({
-				name: command.name,
-				params: command.schema,
-			})),
-			events: [],
-			assets: [
-				{
-					version: 0,
-					data: genesisStoreSchema,
 				},
 			],
 		};
