@@ -22,6 +22,7 @@ import {
 	TransactionExecuteContext,
 	TransactionVerifyContext,
 	VerificationResult,
+	VerifyStatus,
 } from '../../state_machine';
 import { AuthMethod } from './method';
 import { MAX_NUMBER_OF_SIGNATURES } from './constants';
@@ -29,10 +30,11 @@ import { AuthEndpoint } from './endpoint';
 import { configSchema, genesisAuthStoreSchema } from './schemas';
 import { GenesisAuthStore, ImmutableStoreCallback } from './types';
 import { verifyNonce, verifySignatures } from './utils';
-import { AuthAccount, authAccountSchema, AuthAccountStore } from './stores/auth_account';
+import { authAccountSchema, AuthAccountStore } from './stores/auth_account';
 import { MultisignatureRegistrationEvent } from './events/multisignature_registration';
 import { RegisterMultisignatureCommand } from './commands/register_multisignature';
 import { InvalidSignatureEvent } from './events/invalid_signature';
+import { InvalidNonceError } from './errors';
 
 export class AuthModule extends BaseModule {
 	public method = new AuthMethod(this.stores, this.events);
@@ -143,27 +145,19 @@ export class AuthModule extends BaseModule {
 
 	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
 		const { transaction, chainID } = context;
-		const store = this.stores.get(AuthAccountStore);
-
-		let senderAccount: AuthAccount;
-
-		// First transaction will not have nonce
-		try {
-			senderAccount = await store.get(context, transaction.senderAddress);
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
-			senderAccount = {
-				nonce: BigInt(0),
-				numberOfSignatures: 0,
-				mandatoryKeys: [],
-				optionalKeys: [],
-			};
-		}
+		const authAccountStore = this.stores.get(AuthAccountStore);
+		const senderAccount = await authAccountStore.getOrDefault(context, transaction.senderAddress);
 
 		// Verify nonce of the transaction, it can be FAILED, PENDING or OK
 		const nonceStatus = verifyNonce(transaction, senderAccount);
+
+		if (nonceStatus.status === VerifyStatus.FAIL) {
+			throw new InvalidNonceError(
+				`Transaction with id:${transaction.id.toString('hex')} nonce is lower than account nonce.`,
+				transaction.nonce,
+				senderAccount.nonce,
+			);
+		}
 
 		const isMultisignatureAccount = await this._isMultisignatureAccount(
 			context.getStore,
