@@ -94,7 +94,20 @@ export const chainConnectorInfoSchema = {
 			type: 'array',
 			fieldNumber: 4,
 			items: {
-				...ccmSchema,
+				type: 'object',
+				required: ['ccm', 'height'],
+				properties: {
+					ccm: {
+						type: 'object',
+						required: [...ccmSchema.required],
+						properties: { ...ccmSchema.properties },
+						fieldNumber: 1,
+					},
+					height: {
+						dataType: 'uint32',
+						fieldNumber: 2,
+					},
+				},
 			},
 		},
 	},
