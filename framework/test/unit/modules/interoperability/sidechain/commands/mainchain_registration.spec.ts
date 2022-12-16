@@ -33,7 +33,6 @@ import {
 	THRESHOLD_MAINCHAIN,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
-	ccmSchema,
 	mainchainRegParams,
 	registrationCCMParamsSchema,
 	registrationSignatureMessageSchema,
@@ -520,7 +519,6 @@ describe('Mainchain registration command', () => {
 				status: CCMStatusCode.OK,
 				params: encodedParams,
 			};
-			const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
 
 			// Act
 			await mainchainRegistrationCommand.execute(context);
@@ -532,7 +530,7 @@ describe('Mainchain registration command', () => {
 				mainchainID,
 				expect.anything(),
 				{
-					ccmID,
+					ccm,
 				},
 			);
 		});

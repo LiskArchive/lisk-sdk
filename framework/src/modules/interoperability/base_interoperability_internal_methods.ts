@@ -27,7 +27,7 @@ import {
 } from './constants';
 import { ccmSchema } from './schemas';
 import { CCMsg, CrossChainUpdateTransactionParams, ChainAccount } from './types';
-import { computeValidatorsHash, getMainchainID, validateFormat } from './utils';
+import { computeValidatorsHash, getEncodedCCMAndID, getMainchainID, validateFormat } from './utils';
 import { NamedRegistry } from '../named_registry';
 import { OwnChainAccountStore } from './stores/own_chain_account';
 import { ChannelDataStore } from './stores/channel_data';
@@ -496,7 +496,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			}
 		}
 
-		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
+		const { ccmID } = getEncodedCCMAndID(ccm);
 		await this.addToOutbox(context, partnerChainID, ccm);
 		ownChainAccount.nonce += BigInt(1);
 		await this.stores.get(OwnChainAccountStore).set(context, EMPTY_BYTES, ownChainAccount);
@@ -504,7 +504,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		// Emit CCM Processed Event.
 		this.events
 			.get(CcmSendSuccessEvent)
-			.log(context, ccm.sendingChainID, ccm.receivingChainID, ccmID, { ccmID });
+			.log(context, ccm.sendingChainID, ccm.receivingChainID, ccmID, { ccm });
 	}
 
 	public async verifyPartnerChainOutboxRoot(

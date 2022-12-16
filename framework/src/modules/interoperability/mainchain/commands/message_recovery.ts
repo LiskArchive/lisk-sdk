@@ -25,7 +25,7 @@ import {
 import { CCMsg, CrossChainMessageContext, MessageRecoveryParams } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
-import { getMainchainID, validateFormat } from '../../utils';
+import { getMainchainID, validateFormat, getEncodedCCMAndID } from '../../utils';
 import { CCMStatusCode, COMMAND_NAME_MESSAGE_RECOVERY } from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from '../../stores/terminated_outbox';
@@ -151,10 +151,12 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 		// Set CCM status to recovered and assign fee to trs sender.
 		const recoveredCCMs: Buffer[] = [];
 		for (const crossChainMessage of params.crossChainMessages) {
+			const ccmID = utils.hash(crossChainMessage);
 			const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
 			const ctx: CrossChainMessageContext = {
 				...context,
 				ccm,
+				eventQueue: context.eventQueue.getChildQueue(ccmID),
 			};
 			// If the sending chain is the mainchain, recover the CCM.
 			// This function never raises an error.
@@ -196,8 +198,8 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	private async _applyRecovery(context: CrossChainMessageContext): Promise<void> {
 		const { logger } = context;
-		const ccmID = utils.hash(codec.encode(ccmSchema, context.ccm));
-		const ccm: CCMsg = {
+		const { ccmID } = getEncodedCCMAndID(context.ccm);
+		const recoveredCCM: CCMsg = {
 			...context.ccm,
 			status: CCMStatusCode.RECOVERED,
 			sendingChainID: context.ccm.receivingChainID,
@@ -210,7 +212,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 					logger.debug(
 						{
 							moduleName: module,
-							commandName: ccm.crossChainCommand,
+							commandName: recoveredCCM.crossChainCommand,
 							ccmID: ccmID.toString('hex'),
 						},
 						'Execute verifyCrossChainMessage',
@@ -219,29 +221,35 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 				}
 			}
 		} catch (error) {
-			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccmID,
-				code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
-				result: CCMProcessedResult.DISCARDED,
-			});
+			this.events
+				.get(CcmProcessedEvent)
+				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
+					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+					ccm: recoveredCCM,
+				});
 			return;
 		}
-		const commands = this.ccCommands.get(ccm.module);
+		const commands = this.ccCommands.get(recoveredCCM.module);
 		if (!commands) {
-			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccmID,
-				code: CCMProcessedCode.MODULE_NOT_SUPPORTED,
-				result: CCMProcessedResult.DISCARDED,
-			});
+			this.events
+				.get(CcmProcessedEvent)
+				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
+					code: CCMProcessedCode.MODULE_NOT_SUPPORTED,
+					result: CCMProcessedResult.DISCARDED,
+					ccm: recoveredCCM,
+				});
 			return;
 		}
-		const command = commands.find(com => com.name === ccm.crossChainCommand);
+		const command = commands.find(com => com.name === recoveredCCM.crossChainCommand);
 		if (!command) {
-			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccmID,
-				code: CCMProcessedCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
-				result: CCMProcessedResult.DISCARDED,
-			});
+			this.events
+				.get(CcmProcessedEvent)
+				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
+					code: CCMProcessedCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
+					result: CCMProcessedResult.DISCARDED,
+					ccm: recoveredCCM,
+				});
 			return;
 		}
 		if (command.verify) {
@@ -249,14 +257,20 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 				await command.verify(context);
 			} catch (error) {
 				logger.debug(
-					{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+					{
+						err: error as Error,
+						moduleName: recoveredCCM.module,
+						commandName: recoveredCCM.crossChainCommand,
+					},
 					'Fail to verify cross chain command.',
 				);
-				this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-					ccmID,
-					code: CCMProcessedCode.INVALID_CCM_VERIFY_EXCEPTION,
-					result: CCMProcessedResult.DISCARDED,
-				});
+				this.events
+					.get(CcmProcessedEvent)
+					.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
+						code: CCMProcessedCode.INVALID_CCM_VERIFY_EXCEPTION,
+						result: CCMProcessedResult.DISCARDED,
+						ccm: recoveredCCM,
+					});
 				return;
 			}
 		}
@@ -269,7 +283,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 					logger.debug(
 						{
 							moduleName: module,
-							commandName: ccm.crossChainCommand,
+							commandName: recoveredCCM.crossChainCommand,
 							ccmID: ccmID.toString('hex'),
 						},
 						'Execute beforeCrossChainCommandExecute',
@@ -281,14 +295,20 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			context.eventQueue.restoreSnapshot(baseEventSnapshotID);
 			context.stateStore.restoreSnapshot(baseStateSnapshotID);
 			logger.debug(
-				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+				{
+					err: error as Error,
+					moduleName: recoveredCCM.module,
+					commandName: recoveredCCM.crossChainCommand,
+				},
 				'Fail to execute beforeCrossChainCommandExecute.',
 			);
-			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccmID,
-				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
-				result: CCMProcessedResult.DISCARDED,
-			});
+			this.events
+				.get(CcmProcessedEvent)
+				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
+					code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+					ccm: recoveredCCM,
+				});
 			return;
 		}
 
@@ -296,21 +316,25 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 		const execStateSnapshotID = context.stateStore.createSnapshot();
 
 		try {
-			const params = command.schema ? codec.decode(command.schema, ccm.params) : {};
+			const params = command.schema ? codec.decode(command.schema, recoveredCCM.params) : {};
 			await command.execute({ ...context, params });
-			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccmID,
-				code: CCMProcessedCode.SUCCESS,
-				result: CCMProcessedResult.APPLIED,
-			});
+			this.events
+				.get(CcmProcessedEvent)
+				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
+					code: CCMProcessedCode.SUCCESS,
+					result: CCMProcessedResult.APPLIED,
+					ccm: recoveredCCM,
+				});
 		} catch (error) {
 			context.eventQueue.restoreSnapshot(execEventSnapshotID);
 			context.stateStore.restoreSnapshot(execStateSnapshotID);
-			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccmID,
-				code: CCMProcessedCode.FAILED_CCM,
-				result: CCMProcessedResult.DISCARDED,
-			});
+			this.events
+				.get(CcmProcessedEvent)
+				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
+					code: CCMProcessedCode.FAILED_CCM,
+					result: CCMProcessedResult.DISCARDED,
+					ccm: recoveredCCM,
+				});
 		}
 
 		try {
@@ -319,7 +343,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 					logger.debug(
 						{
 							moduleName: module,
-							commandName: ccm.crossChainCommand,
+							commandName: recoveredCCM.crossChainCommand,
 							ccmID: ccmID.toString('hex'),
 						},
 						'Execute afterCrossChainCommandExecute',
@@ -331,22 +355,25 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			context.eventQueue.restoreSnapshot(baseEventSnapshotID);
 			context.stateStore.restoreSnapshot(baseStateSnapshotID);
 			logger.debug(
-				{ err: error as Error, moduleName: module, commandName: ccm.crossChainCommand },
+				{ err: error as Error, moduleName: module, commandName: recoveredCCM.crossChainCommand },
 				'Fail to execute afterCrossChainCommandExecute',
 			);
-			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccmID,
-				code: CCMProcessedCode.INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
-				result: CCMProcessedResult.DISCARDED,
-			});
+			this.events
+				.get(CcmProcessedEvent)
+				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
+					code: CCMProcessedCode.INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+					ccm: recoveredCCM,
+				});
 		}
 	}
 
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	private async _forwardRecovery(context: CrossChainMessageContext): Promise<void> {
 		const { logger } = context;
-		const ccmID = utils.hash(codec.encode(ccmSchema, context.ccm));
-		const ccm: CCMsg = {
+		const encodedCCM = codec.encode(ccmSchema, context.ccm);
+		const ccmID = utils.hash(encodedCCM);
+		const recoveredCCM: CCMsg = {
 			...context.ccm,
 			status: CCMStatusCode.RECOVERED,
 			sendingChainID: context.ccm.receivingChainID,
@@ -359,7 +386,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 					logger.debug(
 						{
 							moduleName: module,
-							commandName: ccm.crossChainCommand,
+							commandName: recoveredCCM.crossChainCommand,
 							ccmID: ccmID.toString('hex'),
 						},
 						'Execute verifyCrossChainMessage',
@@ -368,13 +395,19 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 				}
 			}
 		} catch (error) {
-			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccmID,
-				code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
-				result: CCMProcessedResult.DISCARDED,
-			});
+			this.events
+				.get(CcmProcessedEvent)
+				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
+					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+					ccm: recoveredCCM,
+				});
 			logger.debug(
-				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+				{
+					err: error as Error,
+					moduleName: recoveredCCM.module,
+					commandName: recoveredCCM.crossChainCommand,
+				},
 				'Fail to execute verifyCrossChainMessage.',
 			);
 			return;
@@ -388,7 +421,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 					logger.debug(
 						{
 							moduleName: module,
-							commandName: ccm.crossChainCommand,
+							commandName: recoveredCCM.crossChainCommand,
 							ccmID: ccmID.toString('hex'),
 						},
 						'Execute beforeCrossChainMessageForwarding',
@@ -400,24 +433,31 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			context.eventQueue.restoreSnapshot(baseEventSnapshotID);
 			context.stateStore.restoreSnapshot(baseStateSnapshotID);
 			logger.debug(
-				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+				{
+					err: error as Error,
+					moduleName: recoveredCCM.module,
+					commandName: recoveredCCM.crossChainCommand,
+				},
 				'Fail to execute beforeCrossChainMessageForwarding.',
 			);
-			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccmID,
-				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
-				result: CCMProcessedResult.DISCARDED,
-			});
+			this.events
+				.get(CcmProcessedEvent)
+				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
+					code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+					ccm: recoveredCCM,
+				});
 			return;
 		}
 
-		await this.internalMethod.addToOutbox(context, ccm.receivingChainID, ccm);
-		const recoveredCCMID = utils.hash(codec.encode(ccmSchema, ccm));
+		await this.internalMethod.addToOutbox(context, recoveredCCM.receivingChainID, recoveredCCM);
 
-		this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-			ccmID: recoveredCCMID,
-			code: CCMProcessedCode.SUCCESS,
-			result: CCMProcessedResult.FORWARDED,
-		});
+		this.events
+			.get(CcmProcessedEvent)
+			.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
+				code: CCMProcessedCode.SUCCESS,
+				result: CCMProcessedResult.FORWARDED,
+				ccm: recoveredCCM,
+			});
 	}
 }

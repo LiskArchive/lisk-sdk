@@ -13,7 +13,6 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
@@ -26,9 +25,14 @@ import {
 	EMPTY_BYTES,
 	CCMStatusCode,
 } from '../../constants';
-import { ccmSchema, registrationCCMParamsSchema, sidechainRegParams } from '../../schemas';
+import { registrationCCMParamsSchema, sidechainRegParams } from '../../schemas';
 import { FeeMethod, SidechainRegistrationParams } from '../../types';
-import { computeValidatorsHash, getMainchainTokenID, isValidName } from '../../utils';
+import {
+	computeValidatorsHash,
+	getEncodedCCMAndID,
+	getMainchainTokenID,
+	isValidName,
+} from '../../utils';
 import {
 	CommandVerifyContext,
 	VerificationResult,
@@ -262,11 +266,11 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand<Ma
 		ownChainAccount.nonce += BigInt(1);
 		await ownChainAccountSubstore.set(context, EMPTY_BYTES, ownChainAccount);
 
-		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
+		const { ccmID } = getEncodedCCMAndID(ccm);
 		this.events
 			.get(CcmSendSuccessEvent)
 			.log(methodContext, ownChainAccount.chainID, chainID, ccmID, {
-				ccmID,
+				ccm,
 			});
 	}
 }

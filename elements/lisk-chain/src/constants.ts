@@ -44,10 +44,11 @@ export const MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH = 32;
 
 export const SMT_PREFIX_SIZE = 6;
 
+// LIP https://github.com/LiskHQ/lips/blob/main/proposals/lip-0065.md#constants
 export const EVENT_TOPIC_HASH_LENGTH_BYTES = 8;
 export const EVENT_INDEX_LENGTH_BITS = 30;
 export const EVENT_TOPIC_INDEX_LENGTH_BITS = 2;
-export const EVENT_MAX_EVENT_SIZE_BYTES = 1024;
+export const EVENT_MAX_EVENT_SIZE_BYTES = 10 * 1024;
 
 export const TRANSACTION_MAX_PARAMS_SIZE = 14 * 1024;
 

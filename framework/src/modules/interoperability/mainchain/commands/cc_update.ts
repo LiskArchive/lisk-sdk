@@ -39,13 +39,12 @@ import {
 	CCMProcessedResult,
 } from '../../events/ccm_processed';
 import {
-	ccmSchema,
 	crossChainUpdateTransactionParams,
 	sidechainTerminatedCCMParamsSchema,
 } from '../../schemas';
 import { ChainAccount, ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 import { CrossChainMessageContext, CrossChainUpdateTransactionParams } from '../../types';
-import { getMainchainID, isInboxUpdateEmpty } from '../../utils';
+import { getEncodedCCMAndID, getMainchainID, isInboxUpdateEmpty } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
 export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
@@ -96,9 +95,11 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<Mainch
 			for (let i = 0; i < decodedCCMs.length; i += 1) {
 				const ccm = decodedCCMs[i];
 				const ccmBytes = params.inboxUpdate.crossChainMessages[i];
+				const ccmID = utils.hash(ccmBytes);
 				const ccmContext = {
 					...context,
 					ccm,
+					eventQueue: context.eventQueue.getChildQueue(ccmID),
 				};
 
 				if (ccm.receivingChainID.equals(getMainchainID(context.chainID))) {
@@ -115,8 +116,7 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<Mainch
 
 	private async _forward(context: CrossChainMessageContext): Promise<void> {
 		const { ccm, logger } = context;
-		const encodedCCM = codec.encode(ccmSchema, ccm);
-		const ccmID = utils.hash(encodedCCM);
+		const { ccmID, encodedCCM } = getEncodedCCMAndID(ccm);
 
 		const valid = await this.verifyCCM(context, ccmID);
 		if (!valid) {
@@ -130,7 +130,6 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<Mainch
 			if (receivingChainAccount.status === ChainStatus.REGISTERED) {
 				await this.bounce(
 					context,
-					ccmID,
 					encodedCCM.length,
 					CCMStatusCode.CHANNEL_UNAVAILABLE,
 					CCMProcessedCode.CHANNEL_UNAVAILABLE,
@@ -141,7 +140,6 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<Mainch
 			if (error instanceof NotFoundError) {
 				await this.bounce(
 					context,
-					ccmID,
 					encodedCCM.length,
 					CCMStatusCode.CHANNEL_UNAVAILABLE,
 					CCMProcessedCode.CHANNEL_UNAVAILABLE,
@@ -158,9 +156,9 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<Mainch
 		if (!isLive) {
 			await this.internalMethod.terminateChainInternal(context, ccm.receivingChainID);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccmID,
 				code: CCMProcessedCode.CHANNEL_UNAVAILABLE,
 				result: CCMProcessedResult.DISCARDED,
+				ccm,
 			});
 			await this.internalMethod.sendInternal(
 				context,
@@ -203,17 +201,17 @@ export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<Mainch
 			);
 			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccmID,
 				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
 				result: CCMProcessedResult.DISCARDED,
+				ccm,
 			});
 			return;
 		}
 		await this.internalMethod.addToOutbox(context, ccm.receivingChainID, ccm);
 		this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-			ccmID,
 			code: CCMProcessedCode.SUCCESS,
 			result: CCMProcessedResult.FORWARDED,
+			ccm,
 		});
 	}
 
