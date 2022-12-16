@@ -29,7 +29,7 @@ import { AuthEndpoint } from './endpoint';
 import { configSchema, genesisAuthStoreSchema } from './schemas';
 import { GenesisAuthStore, ImmutableStoreCallback } from './types';
 import { verifyNonce, verifySignatures } from './utils';
-import { AuthAccount, authAccountSchema, AuthAccountStore } from './stores/auth_account';
+import { authAccountSchema, AuthAccountStore } from './stores/auth_account';
 import { MultisignatureRegistrationEvent } from './events/multisignature_registration';
 import { RegisterMultisignatureCommand } from './commands/register_multisignature';
 import { InvalidSignatureEvent } from './events/invalid_signature';
@@ -143,24 +143,8 @@ export class AuthModule extends BaseModule {
 
 	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
 		const { transaction, chainID } = context;
-		const store = this.stores.get(AuthAccountStore);
-
-		let senderAccount: AuthAccount;
-
-		// First transaction will not have nonce
-		try {
-			senderAccount = await store.get(context, transaction.senderAddress);
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
-			senderAccount = {
-				nonce: BigInt(0),
-				numberOfSignatures: 0,
-				mandatoryKeys: [],
-				optionalKeys: [],
-			};
-		}
+		const authAccountStore = this.stores.get(AuthAccountStore);
+		const senderAccount = await authAccountStore.getOrDefault(context, transaction.senderAddress);
 
 		// Verify nonce of the transaction, it can be FAILED, PENDING or OK
 		const nonceStatus = verifyNonce(transaction, senderAccount);
