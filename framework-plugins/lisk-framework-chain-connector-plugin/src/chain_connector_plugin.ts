@@ -11,8 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { ChainStatus } from 'lisk-sdk';
 import {
 	BasePlugin,
 	PluginInitContext,
@@ -33,8 +31,17 @@ import {
 	certificateSchema,
 	cryptography,
 	ccmSchema,
+	CCMsg,
+	JSONObject,
+	ChainStatus,
 } from 'lisk-sdk';
-import { CCM_BASED_CCU_FREQUENCY, EMPTY_BYTES, LIVENESS_BASED_CCU_FREQUENCY } from './constants';
+import {
+	CCM_BASED_CCU_FREQUENCY,
+	EMPTY_BYTES,
+	LIVENESS_BASED_CCU_FREQUENCY,
+	MODULE_NAME_INTEROPERABILITY,
+	CCM_SEND_SUCCESS,
+} from './constants';
 import { getChainConnectorInfo, getDBInstance, setChainConnectorInfo } from './db';
 import { Endpoint } from './endpoint';
 import { chainConnectorInfoSchema, configSchema } from './schemas';
@@ -124,11 +131,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		// TODO: CCM should be collected and stored via events
 		if (this._sidechainAPIClient) {
 			this._sidechainAPIClient.subscribe('chain_newBlock', async (data?: Record<string, unknown>) =>
-				this._newBlockhandler(data),
-			);
-			this._sidechainAPIClient.subscribe(
-				'network_newBlock',
-				async (data?: Record<string, unknown>) => this._newBlockhandler(data),
+				this._newBlockHandler(data),
 			);
 		}
 	}
@@ -298,8 +301,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		};
 	}
 
-	private async _newBlockhandler(data?: Record<string, unknown>) {
-		const { blockHeader: receivedBlock } = (data as unknown) as Data;
+	private async _newBlockHandler(data?: Record<string, unknown>) {
+		const { blockHeader: receivedBlock } = data as unknown as Data;
 		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock);
 		const {
 			blockHeaders: savedBlockHeaders,
@@ -320,6 +323,24 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			'consensus_getBFTParameters',
 			{ height: newBlockHeader.height },
 		);
+
+		const events = await this._sidechainAPIClient.invoke<JSONObject<chain.EventAttr[]>>(
+			'chain_getEvents',
+			{ height: newBlockHeader.height },
+		);
+		if (events && events.length > 0) {
+			const ccmSendSuccessEvents = events.filter(
+				eventAttr =>
+					eventAttr.name === CCM_SEND_SUCCESS && eventAttr.module === MODULE_NAME_INTEROPERABILITY,
+			);
+
+			this._chainConnectorState.crossChainMessages.push(
+				...ccmSendSuccessEvents.map(e => ({
+					height: e.height,
+					ccm: codec.decode<CCMsg>(ccmSchema, Buffer.from(e.data, 'hex')),
+				})),
+			);
+		}
 
 		const indexValidatorsData = savedValidatorsHashPreimage.findIndex(v =>
 			v.validatorsHash.equals(bftParameters?.validatorsHash),
@@ -358,7 +379,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			await this._createCCU();
 			// if the transaction is successfully submitted then update the last certfied height and do the cleanup
 			// TODO: also check if the state is growing, delete everything from the inMemory state if it goes beyond last 3 rounds
-			await this._cleanup();
+			this._cleanup();
 		}
 	}
 
@@ -411,11 +432,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			}
 		}
 
-		if (aggregateBFTWeight >= lastCertificateThreshold) {
-			return true;
-		}
-
-		return false;
+		return aggregateBFTWeight >= lastCertificateThreshold;
 	}
 
 	private async _calculateInboxUpdate(sendingChainID: Buffer): Promise<InboxUpdate> {
@@ -435,13 +452,11 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			siblingHashes: stateProveResponse.proof.siblingHashes,
 		};
 
-		const inboxUpdate: InboxUpdate = {
+		return {
 			crossChainMessages: serialzedCCMs,
 			messageWitnessHashes: [],
 			outboxRootWitness: inclusionProofOutboxRoot,
 		};
-
-		return inboxUpdate;
 	}
 
 	private async _validateCertificate(
@@ -552,7 +567,12 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	private async _cleanup() {}
+	private _cleanup() {
+		this._chainConnectorState.crossChainMessages =
+			this._chainConnectorState.crossChainMessages.filter(
+				ccmWithHeight => ccmWithHeight.height < this._lastCertifiedHeight,
+			);
+	}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	private async _createCCU() {}

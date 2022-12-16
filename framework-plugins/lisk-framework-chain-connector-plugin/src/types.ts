@@ -43,10 +43,19 @@ export interface ValidatorsData {
 	validatorsHash: Buffer;
 }
 
+interface CcmWithHeight {
+	ccm: CCMsg;
+	height: number;
+}
+
 export interface ChainConnectorInfo {
 	blockHeaders: chain.BlockHeader[];
 	aggregateCommits: AggregateCommit[];
 	validatorsHashPreimage: ValidatorsData[];
+	crossChainMessages: CcmWithHeight[];
+}
+
+export interface CrossChainMessages {
 	crossChainMessages: CCMsg[];
 }
 
