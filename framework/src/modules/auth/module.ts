@@ -26,7 +26,16 @@ import {
 import { AuthMethod } from './method';
 import { MAX_NUMBER_OF_SIGNATURES } from './constants';
 import { AuthEndpoint } from './endpoint';
-import { configSchema, genesisAuthStoreSchema } from './schemas';
+import {
+	addressRequestSchema,
+	configSchema,
+	genesisAuthStoreSchema,
+	multisigRegMsgSchema,
+	sortMultisignatureGroupResponseSchema,
+	sortMultisignatureGroupSchema,
+	transactionRequestSchema,
+	verifyResultSchema,
+} from './schemas';
 import { GenesisAuthStore, ImmutableStoreCallback } from './types';
 import { verifyNonce, verifySignatures } from './utils';
 import { AuthAccount, authAccountSchema, AuthAccountStore } from './stores/auth_account';
@@ -52,15 +61,33 @@ export class AuthModule extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
-			endpoints: [],
-			commands: this.commands.map(command => ({
-				name: command.name,
-				params: command.schema,
-			})),
-			events: this.events.values().map(v => ({
-				name: v.name,
-				data: v.schema,
-			})),
+			...this.baseMetadata(),
+			endpoints: [
+				{
+					name: this.endpoint.getAuthAccount.name,
+					request: addressRequestSchema,
+					response: authAccountSchema,
+				},
+				{
+					name: this.endpoint.isValidNonce.name,
+					request: transactionRequestSchema,
+					response: verifyResultSchema,
+				},
+				{
+					name: this.endpoint.isValidSignature.name,
+					request: transactionRequestSchema,
+					response: verifyResultSchema,
+				},
+				{
+					name: this.endpoint.getMultiSigRegMsgSchema.name,
+					response: multisigRegMsgSchema,
+				},
+				{
+					name: this.endpoint.sortMultisignatureGroup.name,
+					request: sortMultisignatureGroupSchema,
+					response: sortMultisignatureGroupResponseSchema,
+				},
+			],
 			assets: [
 				{
 					version: 0,
