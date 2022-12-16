@@ -345,4 +345,27 @@ describe('PoSMethod', () => {
 			);
 		});
 	});
+
+	describe('unbanValidator', () => {
+		it('should unban validator if the validator is banned', async () => {
+			const bannedValidator = { ...validatorData, isBanned: true };
+			await validatorSubStore.set(createStoreGetter(stateStore), address, bannedValidator);
+
+			await expect(posMethod.unbanValidator(methodContext, address)).resolves.toBeUndefined();
+
+			const validatorDataReturned = await validatorSubStore.get(methodContext, address);
+
+			expect(validatorDataReturned.isBanned).toBeFalse();
+		});
+
+		it('should resolve without changing status if the validator is already not banned', async () => {
+			await validatorSubStore.set(createStoreGetter(stateStore), address, validatorData);
+
+			await expect(posMethod.unbanValidator(methodContext, address)).resolves.toBeUndefined();
+
+			const validatorDataReturned = await validatorSubStore.get(methodContext, address);
+
+			expect(validatorDataReturned.isBanned).toBeFalse();
+		});
+	});
 });

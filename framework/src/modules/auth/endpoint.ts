@@ -26,7 +26,7 @@ import {
 	KeySignaturePair,
 	SortedMultisignatureGroup,
 } from './types';
-import { getTransactionFromParameter, verifyNonceStrict, verifySignatures } from './utils';
+import { getTransactionFromParameter, verifyNonce, verifySignatures } from './utils';
 import { AuthAccountStore } from './stores/auth_account';
 import { NamedRegistry } from '../named_registry';
 import { multisigRegMsgSchema, sortMultisignatureGroupSchema } from './schemas';
@@ -48,23 +48,14 @@ export class AuthEndpoint extends BaseEndpoint {
 
 		const accountAddress = cryptoAddress.getAddressFromLisk32Address(address);
 		const store = this.stores.get(AuthAccountStore);
+		const authAccount = await store.getOrDefault(context, accountAddress);
 
-		try {
-			const authAccount = await store.get(context, accountAddress);
-
-			return {
-				nonce: authAccount.nonce.toString(),
-				numberOfSignatures: authAccount.numberOfSignatures,
-				mandatoryKeys: authAccount.mandatoryKeys.map(key => key.toString('hex')),
-				optionalKeys: authAccount.optionalKeys.map(key => key.toString('hex')),
-			};
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
-
-			return { nonce: '0', numberOfSignatures: 0, mandatoryKeys: [], optionalKeys: [] };
-		}
+		return {
+			nonce: authAccount.nonce.toString(),
+			numberOfSignatures: authAccount.numberOfSignatures,
+			mandatoryKeys: authAccount.mandatoryKeys.map(key => key.toString('hex')),
+			optionalKeys: authAccount.optionalKeys.map(key => key.toString('hex')),
+		};
 	}
 
 	/**
@@ -111,7 +102,7 @@ export class AuthEndpoint extends BaseEndpoint {
 		const store = this.stores.get(AuthAccountStore);
 		const account = await store.get(context, accountAddress);
 
-		const verificationResult = verifyNonceStrict(transaction, account).status;
+		const verificationResult = verifyNonce(transaction, account).status;
 		return { verified: verificationResult === VerifyStatus.OK };
 	}
 

@@ -28,6 +28,7 @@ import {
 	ValidatorsMethod,
 } from '../../../../src/modules/dynamic_rewards/types';
 import {
+	CONTEXT_STORE_KEY_BLOCK_REWARD,
 	DECIMAL_PERCENT_FACTOR,
 	defaultConfig,
 	EMPTY_BYTES,
@@ -39,7 +40,6 @@ import {
 } from '../../../../src';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { EndOfRoundTimestampStore } from '../../../../src/modules/dynamic_rewards/stores/end_of_round_timestamp';
-import { BlockRewardsDataStore } from '../../../../src/modules/dynamic_rewards/stores/block_rewards';
 import {
 	REWARD_NO_REDUCTION,
 	REWARD_REDUCTION_MAX_PREVOTES,
@@ -199,11 +199,9 @@ describe('DynamicRewardModule', () => {
 
 			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 
-			const { reward } = await rewardModule.stores
-				.get(BlockRewardsDataStore)
-				.get(blockExecuteContext, EMPTY_BYTES);
-
-			expect(reward).toEqual(minimumReward);
+			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_BLOCK_REWARD)).toEqual(
+				minimumReward,
+			);
 		});
 
 		it('should store reward based on ratio when BFTWeight is positive', async () => {
@@ -219,12 +217,10 @@ describe('DynamicRewardModule', () => {
 
 			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 
-			const { reward } = await rewardModule.stores
-				.get(BlockRewardsDataStore)
-				.get(blockExecuteContext, EMPTY_BYTES);
-
 			// generatorAddress has 20% of total weight
-			expect(reward).toEqual(minimumReward + ratioReward / BigInt(5));
+			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_BLOCK_REWARD)).toEqual(
+				minimumReward + ratioReward / BigInt(5),
+			);
 		});
 
 		it('should store default reward when weight is zero', async () => {
@@ -249,11 +245,9 @@ describe('DynamicRewardModule', () => {
 
 			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 
-			const { reward } = await rewardModule.stores
-				.get(BlockRewardsDataStore)
-				.get(blockExecuteContext, EMPTY_BYTES);
-
-			expect(reward).toEqual(BigInt(defaultConfig.brackets[0]));
+			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_BLOCK_REWARD)).toEqual(
+				BigInt(defaultConfig.brackets[0]),
+			);
 		});
 	});
 
@@ -271,9 +265,7 @@ describe('DynamicRewardModule', () => {
 				stateStore,
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
-			await rewardModule.stores
-				.get(BlockRewardsDataStore)
-				.set(blockExecuteContext, EMPTY_BYTES, { reward: defaultReward });
+			blockExecuteContext.contextStore.set(CONTEXT_STORE_KEY_BLOCK_REWARD, defaultReward);
 		});
 
 		it('should return zero reward with seed reveal reduction when seed reveal is invalid', async () => {
@@ -297,6 +289,7 @@ describe('DynamicRewardModule', () => {
 				stateStore,
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
+			blockExecuteContext.contextStore.set(CONTEXT_STORE_KEY_BLOCK_REWARD, defaultReward);
 
 			await rewardModule.afterTransactionsExecute(blockExecuteContext);
 
@@ -367,6 +360,7 @@ describe('DynamicRewardModule', () => {
 				stateStore,
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
+			blockExecuteContext.contextStore.set(CONTEXT_STORE_KEY_BLOCK_REWARD, defaultReward);
 
 			(posMethod.isEndOfRound as jest.Mock).mockResolvedValue(true);
 
