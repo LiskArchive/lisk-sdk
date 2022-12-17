@@ -181,10 +181,8 @@ export const verifySignatures = (
 	transactionBytes: Buffer,
 	chainID: Buffer,
 	account: AuthAccount,
-	isMultisignatureAccount: boolean,
 ) => {
-	// Verify multi signature registration transaction
-	if (isMultisignatureAccount) {
+	if (account.numberOfSignatures !== 0) {
 		verifyMultiSignatureTransaction(
 			TAG_TRANSACTION,
 			chainID,
