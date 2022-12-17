@@ -68,15 +68,12 @@ export class AuthEndpoint extends BaseEndpoint {
 		} = context;
 
 		const transaction = getTransactionFromParameter(transactionParameter);
-		const transactionBytes = transaction.getSigningBytes();
-
 		const accountAddress = cryptoAddress.getAddressFromPublicKey(transaction.senderPublicKey);
-
 		const authAccountStore = this.stores.get(AuthAccountStore);
 		const account = await authAccountStore.getOrDefault(context, accountAddress);
 
 		try {
-			verifySignatures(transaction, transactionBytes, chainID, account);
+			verifySignatures(transaction, chainID, account);
 		} catch (error) {
 			return { verified: false };
 		}

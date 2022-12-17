@@ -158,7 +158,7 @@ export class AuthModule extends BaseModule {
 			);
 		}
 
-		verifySignatures(transaction, transaction.getSigningBytes(), chainID, senderAccount);
+		verifySignatures(transaction, chainID, senderAccount);
 
 		return nonceStatus;
 	}

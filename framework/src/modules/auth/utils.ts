@@ -27,9 +27,15 @@ export const verifyMessageSig = (
 	transactionBytes: Buffer,
 	id: Buffer,
 ): void => {
-	const valid = ed.verifyData(TAG_TRANSACTION, chainID, transactionBytes, signature, publicKey);
+	const isSignatureValid = ed.verifyData(
+		TAG_TRANSACTION,
+		chainID,
+		transactionBytes,
+		signature,
+		publicKey,
+	);
 
-	if (!valid) {
+	if (!isSignatureValid) {
 		throw new Error(
 			`Failed to validate signature '${signature.toString(
 				'hex',
@@ -61,11 +67,11 @@ export const validateKeysSignatures = (
 export const verifyMultiSignatureTransaction = (
 	chainID: Buffer,
 	id: Buffer,
-	keys: Keys,
+	account: AuthAccount,
 	signatures: ReadonlyArray<Buffer>,
 	transactionBytes: Buffer,
 ): void => {
-	const { mandatoryKeys, optionalKeys, numberOfSignatures } = keys;
+	const { mandatoryKeys, optionalKeys, numberOfSignatures } = account;
 	const numMandatoryKeys = mandatoryKeys.length;
 	const numOptionalKeys = optionalKeys.length;
 	// Filter empty signature to compare against numberOfSignatures
@@ -149,7 +155,6 @@ export const verifyRegisterMultiSignatureTransaction = (
 
 export const verifySignatures = (
 	transaction: Transaction,
-	transactionBytes: Buffer,
 	chainID: Buffer,
 	account: AuthAccount,
 ) => {
@@ -159,7 +164,7 @@ export const verifySignatures = (
 			transaction.id,
 			account,
 			transaction.signatures,
-			transactionBytes,
+			transaction.getSigningBytes(),
 		);
 	} else {
 		if (transaction.signatures.length !== 1) {
@@ -172,7 +177,7 @@ export const verifySignatures = (
 			chainID,
 			transaction.senderPublicKey,
 			transaction.signatures[0],
-			transactionBytes,
+			transaction.getSigningBytes(),
 			transaction.id,
 		);
 	}
