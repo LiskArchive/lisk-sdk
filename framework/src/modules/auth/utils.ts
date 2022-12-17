@@ -20,7 +20,12 @@ import { VerificationResult, VerifyStatus } from '../../state_machine';
 import { Keys } from './types';
 import { AuthAccount } from './stores/auth_account';
 
-export const verifyMessageSig = (
+/**
+ * Verifies that the given `signature` corresponds to given `chainID`, `publicKey` and `transactionBytes`
+ *
+ * https://github.com/LiskHQ/lips/blob/main/proposals/lip-0041.md#transaction-verification
+ */
+export const verifySignature = (
 	chainID: Buffer,
 	publicKey: Buffer,
 	signature: Buffer,
@@ -44,19 +49,22 @@ export const verifyMessageSig = (
 	}
 };
 
-export const validateKeysSignatures = (
+export const verifyAllSignatures = (
 	chainID: Buffer,
 	keys: ReadonlyArray<Buffer>,
+	mandatoryKeysCount: number,
 	signatures: ReadonlyArray<Buffer>,
 	transactionBytes: Buffer,
 	id: Buffer,
 ): void => {
 	for (let i = 0; i < keys.length; i += 1) {
-		if (signatures[i].length === 0) {
-			throw new Error('Invalid signature. Empty buffer is not a valid signature.');
+		if (signatures[i].length !== 0) {
+			verifySignature(chainID, keys[i], signatures[i], transactionBytes, id);
 		}
-
-		verifyMessageSig(chainID, keys[i], signatures[i], transactionBytes, id);
+		// do not throw for missing optional signatures
+		else if (signatures[i].length === 0 && i < mandatoryKeysCount) {
+			throw new Error('Missing signature for a mandatory key.');
+		}
 	}
 };
 
@@ -71,40 +79,27 @@ export const verifyMultiSignatureTransaction = (
 	signatures: ReadonlyArray<Buffer>,
 	transactionBytes: Buffer,
 ): void => {
-	const { mandatoryKeys, optionalKeys, numberOfSignatures } = account;
-	const numMandatoryKeys = mandatoryKeys.length;
-	const numOptionalKeys = optionalKeys.length;
+	const keys = account.mandatoryKeys.concat(account.optionalKeys);
+	const mandatoryKeysCount = account.mandatoryKeys.length;
+
 	// Filter empty signature to compare against numberOfSignatures
 	const nonEmptySignaturesCount = signatures.filter(k => k.length !== 0).length;
 
 	// Check if signatures excluding empty string match required numberOfSignatures
-	if (
-		nonEmptySignaturesCount !== numberOfSignatures ||
-		signatures.length !== numMandatoryKeys + numOptionalKeys
-	) {
+	if (nonEmptySignaturesCount !== account.numberOfSignatures || signatures.length !== keys.length) {
 		throw new Error(
-			`Transaction signatures does not match required number of signatures: '${numberOfSignatures.toString()}' for transaction with id '${id.toString(
+			`Transaction signatures does not match required number of signatures: '${account.numberOfSignatures.toString()}' for transaction with id '${id.toString(
 				'hex',
 			)}'`,
 		);
 	}
 
-	validateKeysSignatures(chainID, mandatoryKeys, signatures, transactionBytes, id);
-
-	// Iterate through non empty optional keys for signature validity
-	for (let k = 0; k < numOptionalKeys; k += 1) {
-		// Get corresponding optional key signature starting from offset(end of mandatory keys)
-		const signature = signatures[numMandatoryKeys + k];
-		if (signature.length !== 0) {
-			verifyMessageSig(chainID, optionalKeys[k], signature, transactionBytes, id);
-		}
-	}
+	verifyAllSignatures(chainID, keys, mandatoryKeysCount, signatures, transactionBytes, id);
 };
 
 export const verifyRegisterMultiSignatureTransaction = (
 	transactionParamsSchema: Schema,
 	transaction: Transaction,
-	transactionBytes: Buffer,
 	chainID: Buffer,
 ): void => {
 	const { mandatoryKeys, optionalKeys } = codec.decode<Keys>(
@@ -125,30 +120,23 @@ export const verifyRegisterMultiSignatureTransaction = (
 		throw new Error('A valid signature is required for each registered key.');
 	}
 
-	// Verify first signature is from senderPublicKey
-	verifyMessageSig(
+	// Verify that the first signature is from senderPublicKey
+	verifySignature(
 		chainID,
 		transaction.senderPublicKey,
 		transaction.signatures[0],
-		transactionBytes,
+		transaction.getSigningBytes(),
 		transaction.id,
 	);
 
-	// Verify each mandatory key signed in order
-	validateKeysSignatures(
-		chainID,
-		mandatoryKeys,
-		transaction.signatures.slice(1, mandatoryKeys.length + 1),
-		transactionBytes,
-		transaction.id,
-	);
+	const keys = mandatoryKeys.concat(optionalKeys);
 
-	// Verify each optional key signed in order
-	validateKeysSignatures(
+	verifyAllSignatures(
 		chainID,
-		optionalKeys,
-		transaction.signatures.slice(mandatoryKeys.length + 1),
-		transactionBytes,
+		keys,
+		mandatoryKeys.length,
+		transaction.signatures.slice(1),
+		transaction.getSigningBytes(),
 		transaction.id,
 	);
 };
@@ -173,7 +161,7 @@ export const verifySignatures = (
 			);
 		}
 
-		verifyMessageSig(
+		verifySignature(
 			chainID,
 			transaction.senderPublicKey,
 			transaction.signatures[0],

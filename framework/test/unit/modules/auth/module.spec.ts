@@ -927,7 +927,7 @@ describe('AuthModule', () => {
 
 				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).rejects.toThrow(
-					new Error('Invalid signature. Empty buffer is not a valid signature.'),
+					new Error('Missing signature for a mandatory key.'),
 				);
 			});
 
