@@ -147,26 +147,6 @@ export const verifyRegisterMultiSignatureTransaction = (
 	);
 };
 
-export const verifySingleSignatureTransaction = (
-	transaction: Transaction,
-	transactionBytes: Buffer,
-	chainID: Buffer,
-): void => {
-	if (transaction.signatures.length !== 1) {
-		throw new Error(
-			`Transactions from a single signature account should have exactly one signature. Found ${transaction.signatures.length} signatures.`,
-		);
-	}
-
-	verifyMessageSig(
-		chainID,
-		transaction.senderPublicKey,
-		transaction.signatures[0],
-		transactionBytes,
-		transaction.id,
-	);
-};
-
 export const verifySignatures = (
 	transaction: Transaction,
 	transactionBytes: Buffer,
@@ -182,7 +162,19 @@ export const verifySignatures = (
 			transactionBytes,
 		);
 	} else {
-		verifySingleSignatureTransaction(transaction, transactionBytes, chainID);
+		if (transaction.signatures.length !== 1) {
+			throw new Error(
+				`Transactions from a single signature account should have exactly one signature. Found ${transaction.signatures.length} signatures.`,
+			);
+		}
+
+		verifyMessageSig(
+			chainID,
+			transaction.senderPublicKey,
+			transaction.signatures[0],
+			transactionBytes,
+			transaction.id,
+		);
 	}
 };
 
