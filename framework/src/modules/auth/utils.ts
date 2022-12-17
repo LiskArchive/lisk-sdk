@@ -21,14 +21,13 @@ import { Keys } from './types';
 import { AuthAccount } from './stores/auth_account';
 
 export const verifyMessageSig = (
-	tag: string,
 	chainID: Buffer,
 	publicKey: Buffer,
 	signature: Buffer,
 	transactionBytes: Buffer,
 	id: Buffer,
 ): void => {
-	const valid = ed.verifyData(tag, chainID, transactionBytes, signature, publicKey);
+	const valid = ed.verifyData(TAG_TRANSACTION, chainID, transactionBytes, signature, publicKey);
 
 	if (!valid) {
 		throw new Error(
@@ -40,7 +39,6 @@ export const verifyMessageSig = (
 };
 
 export const validateKeysSignatures = (
-	tag: string,
 	chainID: Buffer,
 	keys: ReadonlyArray<Buffer>,
 	signatures: ReadonlyArray<Buffer>,
@@ -52,7 +50,7 @@ export const validateKeysSignatures = (
 			throw new Error('Invalid signature. Empty buffer is not a valid signature.');
 		}
 
-		verifyMessageSig(tag, chainID, keys[i], signatures[i], transactionBytes, id);
+		verifyMessageSig(chainID, keys[i], signatures[i], transactionBytes, id);
 	}
 };
 
@@ -61,7 +59,6 @@ export const validateKeysSignatures = (
  * Current code is already in sync with LIP. No change needed.
  */
 export const verifyMultiSignatureTransaction = (
-	tag: string,
 	chainID: Buffer,
 	id: Buffer,
 	keys: Keys,
@@ -86,20 +83,19 @@ export const verifyMultiSignatureTransaction = (
 		);
 	}
 
-	validateKeysSignatures(tag, chainID, mandatoryKeys, signatures, transactionBytes, id);
+	validateKeysSignatures(chainID, mandatoryKeys, signatures, transactionBytes, id);
 
 	// Iterate through non empty optional keys for signature validity
 	for (let k = 0; k < numOptionalKeys; k += 1) {
 		// Get corresponding optional key signature starting from offset(end of mandatory keys)
 		const signature = signatures[numMandatoryKeys + k];
 		if (signature.length !== 0) {
-			verifyMessageSig(tag, chainID, optionalKeys[k], signature, transactionBytes, id);
+			verifyMessageSig(chainID, optionalKeys[k], signature, transactionBytes, id);
 		}
 	}
 };
 
 export const verifyRegisterMultiSignatureTransaction = (
-	tag: string,
 	transactionParamsSchema: Schema,
 	transaction: Transaction,
 	transactionBytes: Buffer,
@@ -125,7 +121,6 @@ export const verifyRegisterMultiSignatureTransaction = (
 
 	// Verify first signature is from senderPublicKey
 	verifyMessageSig(
-		tag,
 		chainID,
 		transaction.senderPublicKey,
 		transaction.signatures[0],
@@ -135,7 +130,6 @@ export const verifyRegisterMultiSignatureTransaction = (
 
 	// Verify each mandatory key signed in order
 	validateKeysSignatures(
-		tag,
 		chainID,
 		mandatoryKeys,
 		transaction.signatures.slice(1, mandatoryKeys.length + 1),
@@ -145,7 +139,6 @@ export const verifyRegisterMultiSignatureTransaction = (
 
 	// Verify each optional key signed in order
 	validateKeysSignatures(
-		tag,
 		chainID,
 		optionalKeys,
 		transaction.signatures.slice(mandatoryKeys.length + 1),
@@ -155,7 +148,6 @@ export const verifyRegisterMultiSignatureTransaction = (
 };
 
 export const verifySingleSignatureTransaction = (
-	tag: string,
 	transaction: Transaction,
 	transactionBytes: Buffer,
 	chainID: Buffer,
@@ -167,7 +159,6 @@ export const verifySingleSignatureTransaction = (
 	}
 
 	verifyMessageSig(
-		tag,
 		chainID,
 		transaction.senderPublicKey,
 		transaction.signatures[0],
@@ -184,7 +175,6 @@ export const verifySignatures = (
 ) => {
 	if (account.numberOfSignatures !== 0) {
 		verifyMultiSignatureTransaction(
-			TAG_TRANSACTION,
 			chainID,
 			transaction.id,
 			account,
@@ -192,7 +182,7 @@ export const verifySignatures = (
 			transactionBytes,
 		);
 	} else {
-		verifySingleSignatureTransaction(TAG_TRANSACTION, transaction, transactionBytes, chainID);
+		verifySingleSignatureTransaction(transaction, transactionBytes, chainID);
 	}
 };
 
