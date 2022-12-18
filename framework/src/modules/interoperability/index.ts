@@ -36,6 +36,8 @@ export {
 	OutboxRootWitness,
 	OwnChainAccount,
 	OwnChainAccountJSON,
+	LastCertificate,
+	LastCertificateJSON,
 } from './types';
 // Common
 export { LIVENESS_LIMIT, MESSAGE_TAG_CERTIFICATE } from './constants';

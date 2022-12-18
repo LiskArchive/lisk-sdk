@@ -13,6 +13,7 @@
  */
 
 import { removeSync } from 'fs-extra';
+import { when } from 'jest-when';
 import {
 	ApplicationConfigForPlugin,
 	GenesisConfig,
@@ -96,14 +97,29 @@ describe('getSentCCUs', () => {
 		aggregationBits: Buffer.alloc(0).toString('hex'),
 		certificateSignature: Buffer.alloc(0).toString('hex'),
 	};
+	const ownChainID = Buffer.from('10000000', 'hex');
 	let chainConnectorPlugin: ChainConnectorPlugin;
 
 	beforeEach(async () => {
 		chainConnectorPlugin = new ChainConnectorPlugin();
 		const sidechainAPIClientMock = {
 			subscribe: jest.fn(),
+			invoke: jest.fn(),
 		};
 		jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
+		when(sidechainAPIClientMock.invoke)
+			.calledWith('interoperability_getOwnChainAccount')
+			.mockResolvedValue({
+				chainID: ownChainID.toString('hex'),
+			});
+		when(sidechainAPIClientMock.invoke)
+			.calledWith('interoperability_getChainAccount', { chainID: ownChainID })
+			.mockResolvedValue({
+				height: 10,
+				stateRoot: cryptography.utils.getRandomBytes(32).toString('hex'),
+				timestamp: Date.now(),
+				validatorsHash: cryptography.utils.getRandomBytes(32).toString('hex'),
+			});
 		jest
 			.spyOn(chainConnectorDB, 'getDBInstance')
 			.mockResolvedValue(new db.InMemoryDatabase() as never);
