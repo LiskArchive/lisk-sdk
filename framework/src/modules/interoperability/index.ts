@@ -43,3 +43,9 @@ export {
 export { LIVENESS_LIMIT, MESSAGE_TAG_CERTIFICATE } from './constants';
 export { ChainStatus } from './stores/chain_account';
 export { ccmSchema } from './schemas';
+export {
+	CcmProcessedEventData,
+	CCMProcessedCode,
+	CCMProcessedResult,
+} from './events/ccm_processed';
+export { CcmSendSuccessEventData } from './events/ccm_send_success';

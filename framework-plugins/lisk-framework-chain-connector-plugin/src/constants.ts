@@ -16,6 +16,7 @@ export const EMPTY_BYTES = Buffer.alloc(0);
 export const MODULE_NAME_INTEROPERABILITY = 'interoperability';
 export const CROSS_CHAIN_COMMAND_NAME_TRANSFER = 'crossChainTransfer';
 export const CCM_SEND_SUCCESS = 'ccmSendSuccess';
+export const CCM_PROCESSED = 'ccmProcessed';
 
 export const DB_KEY_MAINCHAIN = Buffer.from([0]);
 export const DB_KEY_SIDECHAIN = Buffer.from([1]);
