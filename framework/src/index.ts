@@ -108,6 +108,10 @@ export {
 	OwnChainAccountJSON,
 	LastCertificate,
 	LastCertificateJSON,
+	CcmProcessedEventData,
+	CcmSendSuccessEventData,
+	CCMProcessedCode,
+	CCMProcessedResult,
 } from './modules/interoperability';
 export { RewardMethod, RewardModule } from './modules/reward';
 export { FeeMethod, FeeModule } from './modules/fee';
