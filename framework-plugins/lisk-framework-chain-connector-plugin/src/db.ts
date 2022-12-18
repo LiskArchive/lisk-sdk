@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec, db as liskDB, AggregateCommit, chain } from 'lisk-sdk';
+import { codec, db as liskDB, AggregateCommit } from 'lisk-sdk';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
@@ -28,7 +28,7 @@ import {
 	ccmsFromEventsSchema,
 	validatorsHashPreimageInfoSchema,
 } from './schemas';
-import { CrossChainMessagesFromEvents, ValidatorsData } from './types';
+import { BlockHeader, CrossChainMessagesFromEvents, ValidatorsData } from './types';
 
 const { Database } = liskDB;
 type KVStore = liskDB.Database;
@@ -53,15 +53,13 @@ export class ChainConnectorStore {
 		this._db.close();
 	}
 
-	public async getBlockHeaders(): Promise<chain.BlockHeaderAttrs[]> {
+	public async getBlockHeaders(): Promise<BlockHeader[]> {
 		const dbKey = Buffer.concat([this._chainType, DB_KEY_BLOCK_HEADERS]);
 		try {
 			const encodedInfo = await this._db.get(dbKey);
 
-			return codec.decode<{ blockHeaders: chain.BlockHeaderAttrs[] }>(
-				blockHeadersInfoSchema,
-				encodedInfo,
-			).blockHeaders;
+			return codec.decode<{ blockHeaders: BlockHeader[] }>(blockHeadersInfoSchema, encodedInfo)
+				.blockHeaders;
 		} catch (error) {
 			if (!(error instanceof liskDB.NotFoundError)) {
 				throw error;
@@ -75,7 +73,7 @@ export class ChainConnectorStore {
 		}
 	}
 
-	public async setBlockHeaders(blockHeaders: chain.BlockHeaderAttrs[]) {
+	public async setBlockHeaders(blockHeaders: BlockHeader[]) {
 		const concatedDBKey = Buffer.concat([this._chainType, DB_KEY_BLOCK_HEADERS]);
 		const encodedInfo = codec.encode(blockHeadersInfoSchema, { blockHeaders });
 

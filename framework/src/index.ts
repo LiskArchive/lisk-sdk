@@ -100,6 +100,8 @@ export {
 	MESSAGE_TAG_CERTIFICATE,
 	ChainStatus,
 	ccmSchema,
+	OwnChainAccount,
+	OwnChainAccountJSON,
 } from './modules/interoperability';
 export { RewardMethod, RewardModule } from './modules/reward';
 export { FeeMethod, FeeModule } from './modules/fee';

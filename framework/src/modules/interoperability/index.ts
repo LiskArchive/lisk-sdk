@@ -34,6 +34,8 @@ export {
 	CrossChainUpdateTransactionParams,
 	ActiveValidator,
 	OutboxRootWitness,
+	OwnChainAccount,
+	OwnChainAccountJSON,
 } from './types';
 // Common
 export { LIVENESS_LIMIT, MESSAGE_TAG_CERTIFICATE } from './constants';

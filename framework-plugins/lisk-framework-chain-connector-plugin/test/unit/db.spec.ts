@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { AggregateCommit, db, testing, cryptography, chain } from 'lisk-sdk';
+import { AggregateCommit, db, testing, cryptography } from 'lisk-sdk';
 import * as fs from 'fs-extra';
 import { homedir } from 'os';
 import { join } from 'path';
 import { ChainConnectorStore, getDBInstance } from '../../src/db';
 import { DB_KEY_SIDECHAIN } from '../../src/constants';
-import { CrossChainMessagesFromEvents, ValidatorsData } from '../../src/types';
+import { BlockHeader, CrossChainMessagesFromEvents, ValidatorsData } from '../../src/types';
 
 jest.mock('fs-extra');
 const mockedFsExtra = fs as jest.Mocked<typeof fs>;
@@ -53,7 +53,7 @@ describe('Plugins DB', () => {
 		let chainConnectorStore: ChainConnectorStore;
 
 		describe('constructor', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				chainConnectorStore = new ChainConnectorStore(
 					new db.InMemoryDatabase() as never,
 					DB_KEY_SIDECHAIN,
@@ -70,9 +70,9 @@ describe('Plugins DB', () => {
 		});
 
 		describe('blockHeaders', () => {
-			let sampleBlockHeaders: chain.BlockHeaderAttrs[];
+			let sampleBlockHeaders: BlockHeader[];
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				sampleBlockHeaders = [
 					testing.createFakeBlockHeader().toObject(),
 					testing.createFakeBlockHeader().toObject(),
@@ -103,7 +103,7 @@ describe('Plugins DB', () => {
 		describe('aggregatecommits', () => {
 			let sampleAggregateCommits: AggregateCommit[];
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				sampleAggregateCommits = [
 					{
 						aggregationBits: Buffer.alloc(1),
@@ -138,7 +138,7 @@ describe('Plugins DB', () => {
 		describe('validatorsHashPreimage', () => {
 			let sampleValidatorsData: ValidatorsData[];
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				sampleValidatorsData = [
 					{
 						certificateThreshold: BigInt(68),
@@ -195,7 +195,7 @@ describe('Plugins DB', () => {
 		describe('crossChainMessages', () => {
 			let sampleCrossChainMessages: CrossChainMessagesFromEvents[];
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				sampleCrossChainMessages = [
 					{
 						ccms: [

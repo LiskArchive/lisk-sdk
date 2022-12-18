@@ -12,14 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	Transaction,
-	chain,
-	AggregateCommit,
-	CCMsg,
-	ActiveValidator,
-	OutboxRootWitness,
-} from 'lisk-sdk';
+import { Transaction, chain, CCMsg, ActiveValidator, OutboxRootWitness } from 'lisk-sdk';
+
+export interface BlockHeader extends chain.BlockHeaderAttrs {
+	validatorsHash: Buffer;
+}
 
 export interface ChainConnectorPluginConfig {
 	mainchainIPCPath: string;
@@ -38,21 +35,9 @@ export interface Validator {
 }
 
 export interface ValidatorsData {
-	certificateThreshold: BigInt;
+	certificateThreshold: bigint;
 	validators: Validator[];
 	validatorsHash: Buffer;
-}
-
-interface CcmWithHeight {
-	ccm: CCMsg;
-	height: number;
-}
-
-export interface ChainConnectorInfo {
-	blockHeaders: chain.BlockHeader[];
-	aggregateCommits: AggregateCommit[];
-	validatorsHashPreimage: ValidatorsData[];
-	crossChainMessages: CcmWithHeight[];
 }
 
 export interface CrossChainMessagesFromEvents {

@@ -41,6 +41,7 @@ import {
 import * as plugins from '../../src/chain_connector_plugin';
 import * as dbApi from '../../src/db';
 import * as utils from '../../src/utils';
+import { BlockHeader, CrossChainUpdateTransactionParams } from '../../src/types';
 
 const appConfigForPlugin: ApplicationConfigForPlugin = {
 	system: {
@@ -653,6 +654,7 @@ describe('ChainConnectorPlugin', () => {
 						},
 						{
 							...block.header,
+							height: aggregateCommit.height - 1,
 						},
 					] as never);
 
@@ -724,9 +726,9 @@ describe('ChainConnectorPlugin', () => {
 		});
 
 		describe('deleteBlockHeaders', () => {
-			let block1: chain.BlockHeaderAttrs;
-			let block2: chain.BlockHeaderAttrs;
-			beforeEach(async () => {
+			let block1: BlockHeader;
+			let block2: BlockHeader;
+			beforeEach(() => {
 				block1 = testing.createFakeBlockHeader({ height: 5 }).toObject();
 				block2 = testing.createFakeBlockHeader({ height: 6 }).toObject();
 				chainConnectorInfoDBMock.getBlockHeaders.mockResolvedValue([block1, block2] as never);
@@ -838,7 +840,7 @@ describe('ChainConnectorPlugin', () => {
 		it('should not validate if chain is terminated', async () => {
 			const certificateBytes = Buffer.from('10');
 			const certificate = { height: 5 } as Certificate;
-			const blockHeader = {} as chain.BlockHeader;
+			const blockHeader = {} as BlockHeader;
 			const chainAccount = { status: ChainStatus.TERMINATED } as ChainAccount;
 			const sendingChainID = Buffer.from('01');
 
@@ -856,7 +858,7 @@ describe('ChainConnectorPlugin', () => {
 		it('should not validate if certificate height is not greater than height of last certificate', async () => {
 			const certificateBytes = Buffer.from('10');
 			const certificate = { height: 5 } as Certificate;
-			const blockHeader = {} as chain.BlockHeader;
+			const blockHeader = {} as BlockHeader;
 			const chainAccout = {
 				status: ChainStatus.ACTIVE,
 				lastCertificate: { height: 5 },
@@ -881,7 +883,7 @@ describe('ChainConnectorPlugin', () => {
 
 			const certificateBytes = Buffer.from('10');
 			const certificate = { height: 5 } as Certificate;
-			const blockHeader = {} as chain.BlockHeader;
+			const blockHeader = {} as BlockHeader;
 			const chainAccount = {
 				status: ChainStatus.ACTIVE,
 				lastCertificate: { height: 4 },
@@ -906,7 +908,7 @@ describe('ChainConnectorPlugin', () => {
 
 			const certificateBytes = Buffer.from('10');
 			const certificate = { height: 5 } as Certificate;
-			const blockHeader = {} as chain.BlockHeader;
+			const blockHeader = {} as BlockHeader;
 			const chainAccount = {
 				status: ChainStatus.ACTIVE,
 				lastCertificate: { height: 4 },
@@ -951,7 +953,7 @@ describe('ChainConnectorPlugin', () => {
 				aggregationBits: Buffer.from('10'),
 				signature: Buffer.from('10'),
 			} as Certificate;
-			const blockHeader = { validatorsHash: Buffer.from('10') } as chain.BlockHeader;
+			const blockHeader = { validatorsHash: Buffer.from('10') } as BlockHeader;
 			const sendingChainID = Buffer.from('01');
 
 			const chainAccount = {
@@ -997,7 +999,7 @@ describe('ChainConnectorPlugin', () => {
 				aggregationBits: Buffer.from('10'),
 				signature: Buffer.from('10'),
 			} as Certificate;
-			const blockHeader = { validatorsHash: Buffer.from('11') } as chain.BlockHeader;
+			const blockHeader = { validatorsHash: Buffer.from('11') } as BlockHeader;
 			const chainAccount = {
 				status: 0,
 				name: 'chain1',
@@ -1217,23 +1219,23 @@ describe('ChainConnectorPlugin', () => {
 			});
 
 			it('should return CCUTxParams with activeValidatorsUpdate set to []', async () => {
-				const ccuTxParams = await chainConnectorPlugin.calculateCCUParams(
+				const ccuTxParams = (await chainConnectorPlugin.calculateCCUParams(
 					sendingChainID,
 					certificate as never,
 					newCertificateThreshold,
-				);
+				)) as CrossChainUpdateTransactionParams;
 
-				expect(ccuTxParams!.activeValidatorsUpdate).toEqual([]);
+				expect(ccuTxParams.activeValidatorsUpdate).toEqual([]);
 			});
 
 			it('should return CCUTxParams with newCertificateThreshold set to provided newCertificateThreshold', async () => {
-				const ccuTxParams = await chainConnectorPlugin.calculateCCUParams(
+				const ccuTxParams = (await chainConnectorPlugin.calculateCCUParams(
 					sendingChainID,
 					certificate as never,
 					newCertificateThreshold,
-				);
+				)) as CrossChainUpdateTransactionParams;
 
-				expect(ccuTxParams!.certificateThreshold).toEqual(newCertificateThreshold);
+				expect(ccuTxParams.certificateThreshold).toEqual(newCertificateThreshold);
 			});
 		});
 
@@ -1246,13 +1248,13 @@ describe('ChainConnectorPlugin', () => {
 			});
 
 			it('should return CCUTxParams with newCertificate set to zero if validatorsHash of block header at certificate height is equal to that of last certificate', async () => {
-				const ccuTxParams = await chainConnectorPlugin.calculateCCUParams(
+				const ccuTxParams = (await chainConnectorPlugin.calculateCCUParams(
 					sendingChainID,
 					certificate as never,
 					newCertificateThreshold,
-				);
+				)) as CrossChainUpdateTransactionParams;
 
-				expect(ccuTxParams!.certificateThreshold).toEqual(BigInt(0));
+				expect(ccuTxParams.certificateThreshold).toEqual(BigInt(0));
 			});
 
 			it('should return CCUTxParams with newCertificateThreshold set to provided newCertificateThreshold if validatorsHash of block header at certificate height is not equal to that of last certificate', async () => {
@@ -1284,13 +1286,13 @@ describe('ChainConnectorPlugin', () => {
 						},
 					] as never);
 
-				const ccuTxParams = await chainConnectorPlugin.calculateCCUParams(
+				const ccuTxParams = (await chainConnectorPlugin.calculateCCUParams(
 					sendingChainID,
 					certificate as never,
 					newCertificateThreshold,
-				);
+				)) as CrossChainUpdateTransactionParams;
 
-				expect(ccuTxParams!.certificateThreshold).toEqual(newCertificateThreshold);
+				expect(ccuTxParams.certificateThreshold).toEqual(newCertificateThreshold);
 			});
 
 			it('should call getActiveValidatorsDiff', async () => {
