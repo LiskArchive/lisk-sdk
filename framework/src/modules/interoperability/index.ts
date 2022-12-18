@@ -36,6 +36,8 @@ export {
 	OutboxRootWitness,
 	OwnChainAccount,
 	OwnChainAccountJSON,
+	LastCertificate,
+	LastCertificateJSON,
 } from './types';
 // Common
 export {
