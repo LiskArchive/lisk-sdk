@@ -106,6 +106,8 @@ export {
 	ccmSchema,
 	OwnChainAccount,
 	OwnChainAccountJSON,
+	LastCertificate,
+	LastCertificateJSON,
 } from './modules/interoperability';
 export { RewardMethod, RewardModule } from './modules/reward';
 export { FeeMethod, FeeModule } from './modules/fee';

@@ -52,6 +52,116 @@ import {
 	ValidatorsData,
 } from '../../src/types';
 
+const appConfigForPlugin: ApplicationConfigForPlugin = {
+	system: {
+		keepEventsForHeights: -1,
+		dataPath: '~/.lisk',
+		logLevel: 'info',
+		version: '1.0.0',
+	},
+	rpc: {
+		modes: ['ipc'],
+		port: 8080,
+		host: '127.0.0.1',
+	},
+	network: {
+		seedPeers: [],
+		port: 5000,
+		version: '1.0.0',
+	},
+	transactionPool: {
+		maxTransactions: 4096,
+		maxTransactionsPerAccount: 64,
+		transactionExpiryTime: 3 * 60 * 60 * 1000,
+		minEntranceFeePriority: '0',
+		minReplacementFeeDifference: '10',
+	},
+	genesis: {} as GenesisConfig,
+	generator: {
+		keys: {
+			fromFile: '',
+		},
+	},
+	modules: {},
+	legacy: {
+		brackets: [],
+		sync: false,
+	},
+};
+
+const getTestBlock = async () => {
+	return testing.createBlock({
+		chainID: Buffer.from('00001111', 'hex'),
+		privateKey: Buffer.from(
+			'd4b1a8a6f91482c40ba1d5c054bd7595cc0230291244fc47869f51c21af657b9e142de105ecd851507f2627e991b54b2b71104b11b6660d0646b9fdbe415fd87',
+			'hex',
+		),
+		previousBlockID: cryptography.utils.getRandomBytes(20),
+		timestamp: Math.floor(Date.now() / 1000),
+	});
+};
+
+const getCCM = (n = 1): CCMsg => {
+	return {
+		nonce: BigInt(n),
+		module: MODULE_NAME_INTEROPERABILITY,
+		crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+		sendingChainID: Buffer.from([0, 0, 0, 3]),
+		receivingChainID: Buffer.from([0, 0, 0, 2]),
+		fee: BigInt(n),
+		status: 0,
+		params: Buffer.alloc(1000),
+	};
+};
+
+const getEventsJSON = (eventsCount: number, height = 1) => {
+	const someEvents = [];
+	let i = 0;
+	while (i < eventsCount) {
+		someEvents.push(
+			new chain.Event({
+				index: i,
+				module: MODULE_NAME_INTEROPERABILITY,
+				topics: [cryptography.utils.getRandomBytes(32)],
+				name: CCM_SEND_SUCCESS,
+				height,
+				data: codec.encode(ccmSchema, { ...getCCM(height + i) } as CCMsg),
+			}),
+		);
+		i += 1;
+	}
+	return someEvents.map(e => e.toJSON());
+};
+
+const getApiClientMocks = () => {
+	return {
+		disconnect: jest.fn().mockResolvedValue({} as never),
+		invoke: jest.fn(),
+		subscribe: jest.fn().mockResolvedValue({} as never),
+	};
+}
+const apiClientMocks = {
+	disconnect: jest.fn().mockResolvedValue({} as never),
+	invoke: jest.fn(),
+	subscribe: jest.fn().mockResolvedValue({} as never),
+};
+const ownChainID = Buffer.from('10000000', 'hex');
+
+const initChainConnectorPlugin = async (
+	chainConnectorPlugin: plugins.ChainConnectorPlugin,
+	ccuFrequency = CCU_FREQUENCY,
+) => {
+	await chainConnectorPlugin.init({
+		logger: testing.mocks.loggerMock,
+		config: {
+			mainchainIPCPath: '~/.lisk/mainchain',
+			sidechainIPCPath: '~/.list/sidechain',
+			ccuFrequency,
+		},
+		appConfig: appConfigForPlugin,
+	});
+};
+
 describe('ChainConnectorPlugin', () => {
 	const appConfigForPlugin: ApplicationConfigForPlugin = {
 		...testing.fixtures.defaultConfig,
@@ -200,13 +310,26 @@ describe('ChainConnectorPlugin', () => {
 
 	describe('load', () => {
 		beforeEach(() => {
-			(chainConnectorPlugin as any)['_mainchainAPIClient'] = getApiClientMocks();
-			(chainConnectorPlugin as any)['_sidechainAPIClient'] = getApiClientMocks();
+			(chainConnectorPlugin as any)['_mainchainAPIClient'] = apiClientMocks;
+			(chainConnectorPlugin as any)['_sidechainAPIClient'] = apiClientMocks;
+			when(apiClientMocks.invoke)
+				.calledWith('interoperability_getOwnChainAccount')
+				.mockResolvedValue({
+					chainID: ownChainID.toString('hex'),
+				});
+			when(apiClientMocks.invoke)
+				.calledWith('interoperability_getChainAccount', { chainID: ownChainID })
+				.mockResolvedValue({
+					height: 10,
+					stateRoot: cryptography.utils.getRandomBytes(32).toString('hex'),
+					timestamp: Date.now(),
+					validatorsHash: cryptography.utils.getRandomBytes(32).toString('hex'),
+				});
 		});
 
 		afterEach(async () => {
-			(chainConnectorPlugin as any)['_mainchainAPIClient'] = getApiClientMocks();
-			(chainConnectorPlugin as any)['_sidechainAPIClient'] = getApiClientMocks();
+			(chainConnectorPlugin as any)['_mainchainAPIClient'] = apiClientMocks;
+			(chainConnectorPlugin as any)['_sidechainAPIClient'] = apiClientMocks;
 			await chainConnectorPlugin.unload();
 		});
 
@@ -220,7 +343,7 @@ describe('ChainConnectorPlugin', () => {
 		});
 
 		it('should initialize api clients with sidechain', async () => {
-			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(getApiClientMocks() as never);
+			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(apiClientMocks as never);
 			await chainConnectorPlugin.init({
 				logger: testing.mocks.loggerMock,
 				config: defaultConfig,
@@ -233,7 +356,7 @@ describe('ChainConnectorPlugin', () => {
 		});
 
 		it('should initialize _chainConnectorDB', async () => {
-			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(getApiClientMocks() as never);
+			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(apiClientMocks as never);
 			await chainConnectorPlugin.init({
 				logger: testing.mocks.loggerMock,
 				config: defaultConfig,
@@ -394,7 +517,19 @@ describe('ChainConnectorPlugin', () => {
 			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorStoreMock;
 
 			(chainConnectorPlugin as any)['_sidechainAPIClient'] = sidechainAPIClientMock;
-			(chainConnectorPlugin as any)['_groupCCMsBySize'] = jest.fn().mockReturnValue([{}]);
+			when(sidechainAPIClientMock.invoke)
+				.calledWith('interoperability_getOwnChainAccount')
+				.mockResolvedValue({
+					chainID: ownChainID.toString('hex'),
+				});
+			when(sidechainAPIClientMock.invoke)
+				.calledWith('interoperability_getChainAccount', { chainID: ownChainID })
+				.mockResolvedValue({
+					height: 10,
+					stateRoot: cryptography.utils.getRandomBytes(32).toString('hex'),
+					timestamp: Date.now(),
+					validatorsHash: cryptography.utils.getRandomBytes(32).toString('hex'),
+				});
 			(chainConnectorPlugin as any)['_createCCU'] = jest.fn();
 			(chainConnectorPlugin as any)['_cleanup'] = jest.fn();
 			jest
@@ -423,8 +558,8 @@ describe('ChainConnectorPlugin', () => {
 		});
 
 		afterEach(async () => {
-			(chainConnectorPlugin as any)['_mainchainAPIClient'] = getApiClientMocks();
-			(chainConnectorPlugin as any)['_sidechainAPIClient'] = getApiClientMocks();
+			(chainConnectorPlugin as any)['_mainchainAPIClient'] = apiClientMocks;
+			(chainConnectorPlugin as any)['_sidechainAPIClient'] = apiClientMocks;
 			await chainConnectorPlugin.unload();
 		});
 
@@ -571,7 +706,7 @@ describe('ChainConnectorPlugin', () => {
 			});
 
 			// after filtering, we will have ccms only from heights 3 & 4, so total 25 (20 + 5)
-			chainConnectorPlugin['_lastCertifiedHeight'] = 2;
+			chainConnectorPlugin['_lastCertificate'] = { height: 2 };
 			const listOfCCMs = (chainConnectorPlugin as any)['_groupCCMsBySize'](ccmsFromEvents, {
 				height: 5,
 			} as Certificate);
@@ -684,6 +819,20 @@ describe('ChainConnectorPlugin', () => {
 				config: defaultConfig,
 				appConfig: appConfigForPlugin,
 			});
+
+			when(sidechainAPIClientMock.invoke)
+				.calledWith('interoperability_getOwnChainAccount')
+				.mockResolvedValue({
+					chainID: ownChainID.toString('hex'),
+				});
+			when(sidechainAPIClientMock.invoke)
+				.calledWith('interoperability_getChainAccount', { chainID: ownChainID })
+				.mockResolvedValue({
+					height: 10,
+					stateRoot: cryptography.utils.getRandomBytes(32).toString('hex'),
+					timestamp: Date.now(),
+					validatorsHash: cryptography.utils.getRandomBytes(32).toString('hex'),
+				});
 
 			await chainConnectorPlugin.load();
 			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorStoreMock;
@@ -900,10 +1049,29 @@ describe('ChainConnectorPlugin', () => {
 				appConfig: appConfigForPlugin,
 			});
 
+			when(sidechainAPIClientMock.invoke)
+				.calledWith('interoperability_getOwnChainAccount')
+				.mockResolvedValue({
+					chainID: ownChainID.toString('hex'),
+				});
+			when(sidechainAPIClientMock.invoke)
+				.calledWith('interoperability_getChainAccount', { chainID: ownChainID })
+				.mockResolvedValue({
+					height: 10,
+					stateRoot: cryptography.utils.getRandomBytes(32).toString('hex'),
+					timestamp: Date.now(),
+					validatorsHash: cryptography.utils.getRandomBytes(32).toString('hex'),
+				});
+
 			await chainConnectorPlugin.load();
 			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorStoreMock;
 
-			chainConnectorPlugin['_lastCertifiedHeight'] = 6;
+			chainConnectorPlugin['_lastCertificate'] = {
+				height: 6,
+				stateRoot: cryptography.utils.getRandomBytes(32),
+				timestamp: Date.now(),
+				validatorsHash: cryptography.utils.getRandomBytes(32),
+			};
 		});
 
 		describe('deleteBlockHeaders', () => {
@@ -975,8 +1143,8 @@ describe('ChainConnectorPlugin', () => {
 
 	describe('_verifyLiveness', () => {
 		beforeEach(() => {
-			(chainConnectorPlugin as any)['_mainchainAPIClient'] = getApiClientMocks();
-			(chainConnectorPlugin as any)['_sidechainAPIClient'] = getApiClientMocks();
+			(chainConnectorPlugin as any)['_mainchainAPIClient'] = apiClientMocks;
+			(chainConnectorPlugin as any)['_sidechainAPIClient'] = apiClientMocks;
 		});
 
 		it('should not validate if provided chain ID is not live', async () => {
