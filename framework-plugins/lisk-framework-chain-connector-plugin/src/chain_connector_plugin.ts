@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { CCMsg, ChainStatus } from 'lisk-sdk';
+import { ChainStatus, ccuParamsSchema } from 'lisk-sdk';
 import {
 	BasePlugin,
 	PluginInitContext,
@@ -28,21 +28,24 @@ import {
 	OutboxRootWitness,
 	MESSAGE_TAG_CERTIFICATE,
 	ActiveValidator,
-	certificateSchema,
 	cryptography,
 	ccmSchema,
 	JSONObject,
 	Schema,
 	OwnChainAccountJSON,
 	Transaction,
-	CrossChainUpdateTransactionParams,
 	InboxUpdate,
 	LastCertificate,
 	LastCertificateJSON,
 	CcmSendSuccessEventData,
 	CcmProcessedEventData,
 	CCMProcessedResult,
+	CCMsg,
+	tree,
+	CrossChainUpdateTransactionParams,
+	certificateSchema,
 } from 'lisk-sdk';
+import { calculateActiveValidatorsUpdate } from './active_validators_update';
 import { getNextCertificateFromAggregateCommits } from './certificate_generation';
 import {
 	CCU_FREQUENCY,
@@ -63,7 +66,6 @@ import {
 	BlockHeader,
 	CrossChainMessagesFromEvents,
 } from './types';
-import { getActiveValidatorsDiff } from './utils';
 
 const { address, ed, encrypt } = cryptography;
 
@@ -195,6 +197,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		if (this._ccuFrequency >= newBlockHeader.height - this._lastCertificate.height) {
 			// TODO: _createCCU needs to be implemented which will create and send the CCU transaction
 			await this._submitCCUs([]);
+			await this._calculateCCUParams();
 			// if the transaction is successfully submitted then update the last certfied height and do the cleanup
 			// TODO: also check if the state is growing, delete everything from the inMemory state if it goes beyond last 3 rounds
 			await this._cleanup();
@@ -350,12 +353,13 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		await this._sidechainChainConnectorStore.setValidatorsHashPreimage(validatorsHashPreimages);
 	}
 
-	public async createCCUParams() {
+	public async _calculateCCUParams(): Promise<void> {
 		const blockHeaders = await this._sidechainChainConnectorStore.getBlockHeaders();
 		const aggregateCommits = await this._sidechainChainConnectorStore.getAggregateCommits();
 		const validatorsHashPreimages =
 			await this._sidechainChainConnectorStore.getValidatorsHashPreimage();
 		const bftHeights = await this._sidechainAPIClient.invoke<BFTHeights>('consensus_getBFTHeights');
+		// Calculate certificate
 		const certificate = getNextCertificateFromAggregateCommits(
 			blockHeaders,
 			aggregateCommits,
@@ -367,7 +371,32 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			throw new Error('No certificate found in the ccu creation process.');
 		}
 		// Calculate activeValidatorsUpdate
+		let activeValidatorsUpdate: ActiveValidator[] = [];
+		let certificateThreshold = BigInt(0);
+		const blockHeader = blockHeaders.find(header => header.height === certificate.height);
+		if (!blockHeader) {
+			throw new Error('No block header found for the given certificate height.')
+		}
+		if (!this._lastCertificate.validatorsHash.equals(certificate.validatorsHash)) {
+			const validatorsUpdateResult = calculateActiveValidatorsUpdate(blockHeader, validatorsHashPreimages, this._lastCertificate);
+			activeValidatorsUpdate = validatorsUpdateResult.activeValidatorsUpdate;
+			certificateThreshold = validatorsUpdateResult.certificateThreshold;
+		}
 		// Calculate inboxUpdate
+		const inboxUpdates = await this._calculateInboxUpdate(blockHeader);
+
+		// Now create CCUs for all the inboxUpdates handling full or partial updates
+		for (const inboxUpdate of inboxUpdates) {
+			const serializedCertificate = codec.encode(certificateSchema, certificate);
+			const serializedCCUParams = codec.encode(ccuParamsSchema, {
+				sendingChainID: this._ownChainID,
+				activeValidatorsUpdate,
+				certificate: serializedCertificate,
+				certificateThreshold,
+				inboxUpdate
+			} as CrossChainUpdateTransactionParams)
+			await this._submitCCUs([serializedCCUParams]);
+		}
 	}
 
 	public async unload(): Promise<void> {
@@ -379,103 +408,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		this._sidechainChainConnectorStore.close();
 	}
 
-	public async calculateCCUParams(
-		sendingChainID: Buffer,
-		certificate: Certificate,
-		newCertificateThreshold: bigint,
-		crossChainMessages: CCMsg[] = [],
-	): Promise<CrossChainUpdateTransactionParams | undefined> {
-		let activeBFTValidatorsUpdate: ActiveValidator[];
-		let activeValidatorsUpdate: ActiveValidator[] = [];
-		let certificateThreshold = newCertificateThreshold;
-
-		const blockHeaders = await this._sidechainChainConnectorStore.getBlockHeaders();
-
-		const blockHeader = blockHeaders.find(header => header.height === certificate.height);
-
-		if (!blockHeader) {
-			throw new Error(
-				`No block header found for the given certificate height ${certificate.height}.`,
-			);
-		}
-
-		const chainAccount = await this._mainchainAPIClient.invoke<ChainAccount>(
-			'interoperability_getChainAccount',
-			{ chainID: sendingChainID },
-		);
-
-		const certificateBytes = codec.encode(certificateSchema, certificate);
-
-		const certificateValidationResult = await this._validateCertificate(
-			certificateBytes,
-			certificate,
-			blockHeader,
-			chainAccount,
-			sendingChainID,
-		);
-		if (!certificateValidationResult.status) {
-			this.logger.error(certificateValidationResult, 'Certificate validation failed');
-
-			return undefined;
-		}
-
-		if (!chainAccount.lastCertificate.validatorsHash.equals(certificate.validatorsHash)) {
-			const validatorsHashPreimage =
-				await this._sidechainChainConnectorStore.getValidatorsHashPreimage();
-
-			const validatorDataAtCertificate = validatorsHashPreimage.find(validatorsData =>
-				validatorsData.validatorsHash.equals(blockHeader.validatorsHash),
-			);
-
-			if (!validatorDataAtCertificate) {
-				throw new Error(
-					`No validators data for given validatorsHash at certificate height: ${certificate.height}.`,
-				);
-			}
-
-			const validatorDataAtLastCertificate = validatorsHashPreimage.find(validatorsData =>
-				validatorsData.validatorsHash.equals(chainAccount.lastCertificate.validatorsHash),
-			);
-
-			if (!validatorDataAtLastCertificate) {
-				throw new Error(
-					`No validators data for the given validatorsHash: ${chainAccount.lastCertificate.validatorsHash.toString(
-						'hex',
-					)} at last certified height: ${chainAccount.lastCertificate.height}.`,
-				);
-			}
-
-			if (
-				validatorDataAtCertificate.certificateThreshold ===
-				validatorDataAtLastCertificate.certificateThreshold
-			) {
-				certificateThreshold = BigInt(0);
-			}
-
-			activeBFTValidatorsUpdate = getActiveValidatorsDiff(
-				validatorDataAtLastCertificate.validators,
-				validatorDataAtCertificate.validators,
-			);
-
-			activeValidatorsUpdate = activeBFTValidatorsUpdate.map(
-				validator =>
-					({
-						blsKey: validator.blsKey,
-						bftWeight: validator.bftWeight,
-					} as ActiveValidator),
-			);
-		}
-
-		const inboxUpdate = await this._calculateInboxUpdate(sendingChainID);
-
-		return {
-			sendingChainID,
-			certificate: certificateBytes,
-			activeValidatorsUpdate,
-			certificateThreshold,
-			inboxUpdate,
-		};
-	}
 	private async _deleteBlockHandler(data?: Record<string, unknown>) {
 		const { blockHeader: receivedBlock } = data as unknown as Data;
 
@@ -565,31 +497,57 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		buildGroupsBySize(0);
 		return groupedCCMsBySize;
 	}
-
-	private async _calculateInboxUpdate(sendingChainID: Buffer): Promise<InboxUpdate> {
-		// TODO: Fetch as many CCMs as configured in _ccuFrequency.ccm, between lastCertificateHeight and certificateHeight - After #7569
+	
+	private async _calculateInboxUpdate(newBlockHeader: BlockHeader): Promise<InboxUpdate[]> {
 		const crossChainMessages = await this._sidechainChainConnectorStore.getCrossChainMessages();
-		const serializedCCMs = crossChainMessages.map(ccm => codec.encode(ccmSchema, ccm));
+		const ccmsListOfList = this._getListOfCCMs(crossChainMessages, newBlockHeader);
 
-		// TODO: should use the store prefix with sendingChainID after issue https://github.com/LiskHQ/lisk-sdk/issues/7631
-		const outboxKey = sendingChainID;
+		if (ccmsListOfList.length === 1) {
+			const ccmHashesList = ccmsListOfList[0].map(ccm => codec.encode(ccmSchema, ccm));
+			// Take the inclusion proof of the last ccm height
+			const inclusionProof = ccmsListOfList[0][ccmsListOfList[0].length - 1].inclusionProof;
 
-		const stateProveResponse = await this._sidechainAPIClient.invoke<ProveResponse>('state_prove', {
-			queries: [outboxKey],
-		});
-		const inclusionProofOutboxRoot: OutboxRootWitness = {
-			bitmap: stateProveResponse.proof.queries[0].bitmap,
-			siblingHashes: stateProveResponse.proof.siblingHashes,
-		};
+			return [{
+				crossChainMessages: ccmHashesList,
+				messageWitnessHashes: [],
+				outboxRootWitness: inclusionProof,
+			}];
+		}
 
-		return {
-			crossChainMessages: serializedCCMs,
-			messageWitnessHashes: [],
-			outboxRootWitness: inclusionProofOutboxRoot,
-		};
+		// Calculate list of inboxUpdates to be sent by multiple CCUs
+		const listOfInboxUpdates = [];
+		for (const subList of ccmsListOfList) {
+			const ccmHashesList = subList.map(ccm => codec.encode(ccmSchema, ccm));
+			// Take the inclusion proof of the last ccm height
+			const inclusionProof = subList[subList.length - 1].inclusionProof;
+
+			// Calculate message witnesses
+
+			const merkleTree = new tree.MerkleTree({ db: this._chainConnectorPluginDB });
+			for (const ccm of ccmHashesList) {
+					merkleTree.append(ccm);
+				}
+			const messageWitness = await merkleTree.generateRightWitness(ccmHashesList.length);
+
+			listOfInboxUpdates.push({
+				crossChainMessages: ccmHashesList,
+				messageWitnessHashes: messageWitness,
+				outboxRootWitness: inclusionProof,
+			});
+		}
+
+		return listOfInboxUpdates;
 	}
 
-	private async _validateCertificate(
+	//
+	private _getListOfCCMs(
+		_crossChainMessages: CrossChainMessagesFromEvents[],
+		_newBlockHeader: BlockHeader,
+	): { ccm: CCMsg, height: number, inclusionProof: OutboxRootWitness }[][] {
+		return [[]];
+	}
+
+	public async validateCertificate(
 		certificateBytes: Buffer,
 		certificate: Certificate,
 		blockHeader: BlockHeader,
