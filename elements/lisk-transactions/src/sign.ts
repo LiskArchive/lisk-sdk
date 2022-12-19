@@ -29,6 +29,7 @@ export interface MultiSignatureKeys {
  *
  *  @example
  *  ```ts
+ *  import { getSigningBytes } from '@liskhq/lisk-transactions';
  *  const txBytes = getSigningBytes(TransferTrx, transferParamsSchema);
  *  ```
  *
@@ -70,7 +71,8 @@ export const getSigningBytes = (
  *
  * @example
  *  ```ts
- *  const txBytes = getSigningBytes(TransferTrx, transferParamsSchema);
+ *  import { getBytes } from '@liskhq/lisk-transactions';
+ *  const txBytes = getBytes(TransferTrx, transferParamsSchema);
  *  ```
  *
  * @param transactionObject a decrypted transaction

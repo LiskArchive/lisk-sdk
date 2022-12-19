@@ -24,6 +24,6 @@ export {
 	signMultiSignatureTransactionWithPrivateKey,
 	signTransactionWithPrivateKey,
 } from './sign';
-export { validateTransaction, ValidationError } from './validate';
+export { validateTransaction } from './validate';
 export * from './constants';
 export { baseTransactionSchema } from './schema';

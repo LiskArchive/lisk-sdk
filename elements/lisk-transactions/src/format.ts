@@ -26,10 +26,13 @@ const getDecimalPlaces = (amount: string): number =>
  *
  *  @example
  *  ```ts
+ *  import { convertBeddowsToLSK } from '@liskhq/lisk-transactions';
  *  const lskAmount = convertBeddowsToLSK("150000000");
  *  ```
  *
  * @param beddowsAmount Amount in Beddows
+ *
+ * @returns Amount in LSK
  *
  * */
 export const convertBeddowsToLSK = (beddowsAmount?: string): string => {
@@ -61,11 +64,13 @@ export const convertBeddowsToLSK = (beddowsAmount?: string): string => {
  *
  *  @example
  *  ```ts
+ *  import { convertLSKToBeddows } from '@liskhq/lisk-transactions';
  *  const lskAmount = convertLSKToBeddows("15");
  *  ```
  *
  * @param lskAmount Amount in LSK
  *
+ * @returns Amount in Beddows
  * */
 export const convertLSKToBeddows = (lskAmount?: string): string => {
 	if (typeof lskAmount !== 'string') {

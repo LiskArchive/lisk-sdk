@@ -50,19 +50,23 @@ const computeTransactionMinFee = (
 };
 
 /**
- * Returns the minimum fee for a provided transaction.
+ * Computes the minimum fee for a provided transaction.
  *
  *  @example
  *  ```ts
+ *  import { computeMinFee } from '@liskhq/lisk-transactions';
  *  const minFee = computeMinFee(TransferTrx, transferParamsSchema, options);
  *  ```
  *
- * @param trx the transaction object
- * @param assetSchema Schema for the command parameters
+ * @param trx the {@link baseTransactionSchema | transaction}  object
+ * @param assetSchema Schema for the command parameters.
+ * The different schemas for parameters are described in the [Modules reference]().
  * @param options
  *
- * @see [Understand Blockchain / Transactions](https://liskhq.github.io/lisk-docs/understand-blockchain/blocks-txs.html#transactions)
- * @see The different schemas for parameters are described in the [Modules reference]()
+ * @returns Minimum fee for the provided transaction.
+ *
+ * @see [LIP 0013 - Replace static fee system by dynamic fee system](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0013.md)
+ * @see [LIP 0048 - Introduce Fee Module](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0048.md#minimum-fee-per-transaction)
  * */
 export const computeMinFee = (
 	trx: Record<string, unknown>,
