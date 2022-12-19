@@ -124,6 +124,10 @@ describe('ValidatorsModuleMethod', () => {
 					proofOfPossession,
 				),
 			).resolves.toBe(true);
+			const returnedAccount = await validatorsSubStore.get(methodContext, address);
+			const returnedAddress = await blsKeysSubStore.get(methodContext, blsKey);
+			expect(returnedAccount).toStrictEqual({ generatorKey, blsKey });
+			expect(returnedAddress).toStrictEqual({ address });
 			expect(methodContext.eventQueue.add).toHaveBeenNthCalledWith(
 				1,
 				MODULE_NAME_VALIDATORS,

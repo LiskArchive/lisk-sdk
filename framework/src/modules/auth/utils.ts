@@ -17,7 +17,6 @@ import { codec, Schema } from '@liskhq/lisk-codec';
 import { ed } from '@liskhq/lisk-cryptography';
 import { isHexString } from '@liskhq/lisk-validator';
 import { VerificationResult, VerifyStatus } from '../../state_machine';
-import { InvalidNonceError } from './errors';
 import { Keys } from './types';
 import { AuthAccount } from './stores/auth_account';
 
@@ -199,35 +198,13 @@ export const verifySignatures = (
 	}
 };
 
-export const verifyNonceStrict = (
-	transaction: Transaction,
-	senderAccount: AuthAccount,
-): VerificationResult => {
-	if (transaction.nonce !== senderAccount.nonce) {
-		throw new InvalidNonceError(
-			`Transaction with id:${transaction.id.toString('hex')} nonce is not equal to account nonce.`,
-			transaction.nonce,
-			senderAccount.nonce,
-		);
-	}
-
-	return {
-		status: VerifyStatus.OK,
-	};
-};
-
 export const verifyNonce = (
 	transaction: Transaction,
 	senderAccount: AuthAccount,
 ): VerificationResult => {
 	if (transaction.nonce < senderAccount.nonce) {
-		throw new InvalidNonceError(
-			`Transaction with id:${transaction.id.toString('hex')} nonce is lower than account nonce.`,
-			transaction.nonce,
-			senderAccount.nonce,
-		);
+		return { status: VerifyStatus.FAIL };
 	}
-
 	return {
 		status: transaction.nonce > senderAccount.nonce ? VerifyStatus.PENDING : VerifyStatus.OK,
 	};
