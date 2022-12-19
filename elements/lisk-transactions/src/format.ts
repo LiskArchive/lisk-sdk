@@ -20,6 +20,18 @@ const getDecimalPlaces = (amount: string): number =>
 	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	(amount.split('.')[1] || '').length;
 
+/**
+ * Converts a given amount of Beddows to LSK.
+ * 1 LSK = 10^8 Beddows.
+ *
+ *  @example
+ *  ```ts
+ *  const lskAmount = convertBeddowsToLSK("150000000");
+ *  ```
+ *
+ * @param beddowsAmount Amount in Beddows
+ *
+ * */
 export const convertBeddowsToLSK = (beddowsAmount?: string): string => {
 	if (typeof beddowsAmount !== 'string') {
 		throw new Error('Cannot convert non-string amount');
@@ -43,6 +55,18 @@ export const convertBeddowsToLSK = (beddowsAmount?: string): string => {
 	return res;
 };
 
+/**
+ * Converts a given amount of Beddows to LSK.
+ * 1 LSK = 10^8 Beddows.
+ *
+ *  @example
+ *  ```ts
+ *  const lskAmount = convertLSKToBeddows("15");
+ *  ```
+ *
+ * @param lskAmount Amount in LSK
+ *
+ * */
 export const convertLSKToBeddows = (lskAmount?: string): string => {
 	if (typeof lskAmount !== 'string') {
 		throw new Error('Cannot convert non-string amount');

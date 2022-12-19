@@ -19,12 +19,25 @@ import { validateTransaction } from './validate';
 import { baseTransactionSchema } from './schema';
 import { TAG_TRANSACTION } from './constants';
 
-interface MultiSignatureKeys {
+export interface MultiSignatureKeys {
 	readonly mandatoryKeys: Array<Buffer>;
 	readonly optionalKeys: Array<Buffer>;
 }
 
-// Validates transaction against schema and returns transaction bytes for signing
+/**
+ * Validates transaction against schema and returns transaction bytes for signing
+ *
+ *  @example
+ *  ```ts
+ *  const txBytes = getSigningBytes(TransferTrx, transferParamsSchema);
+ *  ```
+ *
+ * @param transactionObject a decrypted transaction
+ * @param paramsSchema parameter schema for the transaction
+ *
+ * @returns Returns the encrypted transaction, if the provided transaction is valid.
+ * If the transaction is invalid, it returns the validation errors.
+ */
 export const getSigningBytes = (
 	transactionObject: Record<string, unknown>,
 	paramsSchema?: object,
@@ -52,6 +65,19 @@ export const getSigningBytes = (
 	return transactionBytes;
 };
 
+/**
+ * Encrypts a given transaction object.
+ *
+ * @example
+ *  ```ts
+ *  const txBytes = getSigningBytes(TransferTrx, transferParamsSchema);
+ *  ```
+ *
+ * @param transactionObject a decrypted transaction
+ * @param paramsSchema parameter schema for the transaction
+ *
+ * @returns Returns the encrypted transaction.
+ */
 export const getBytes = (
 	transactionObject: Record<string, unknown>,
 	paramsSchema?: object,
@@ -73,6 +99,12 @@ export const getBytes = (
 	return transactionBytes;
 };
 
+/**
+ *
+ * @param transactionObject
+ * @param keys
+ * @param includeSenderSignature
+ */
 const sanitizeSignaturesArray = (
 	transactionObject: Record<string, unknown>,
 	keys: MultiSignatureKeys,

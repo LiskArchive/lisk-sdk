@@ -15,7 +15,7 @@
 
 import { getBytes } from './sign';
 
-interface Options {
+export interface Options {
 	readonly minFeePerByte?: number;
 	readonly numberOfSignatures?: number;
 	readonly numberOfEmptySignatures?: number;
@@ -49,6 +49,21 @@ const computeTransactionMinFee = (
 	return BigInt(size * (options?.minFeePerByte ?? DEFAULT_MIN_FEE_PER_BYTE));
 };
 
+/**
+ * Returns the minimum fee for a provided transaction.
+ *
+ *  @example
+ *  ```ts
+ *  const minFee = computeMinFee(TransferTrx, transferParamsSchema, options);
+ *  ```
+ *
+ * @param trx the transaction object
+ * @param assetSchema Schema for the command parameters
+ * @param options
+ *
+ * @see [Understand Blockchain / Transactions](https://liskhq.github.io/lisk-docs/understand-blockchain/blocks-txs.html#transactions)
+ * @see The different schemas for parameters are described in the [Modules reference]()
+ * */
 export const computeMinFee = (
 	trx: Record<string, unknown>,
 	assetSchema?: object,

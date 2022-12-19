@@ -13,9 +13,10 @@
  *
  */
 
-export { computeMinFee } from './fee';
+export { Options, computeMinFee } from './fee';
 export { convertBeddowsToLSK, convertLSKToBeddows } from './format';
 export {
+	MultiSignatureKeys,
 	getBytes,
 	getSigningBytes,
 	signTransaction,
@@ -23,5 +24,6 @@ export {
 	signMultiSignatureTransactionWithPrivateKey,
 	signTransactionWithPrivateKey,
 } from './sign';
-export { validateTransaction } from './validate';
+export { validateTransaction, ValidationError } from './validate';
 export * from './constants';
+export { baseTransactionSchema } from './schema';
