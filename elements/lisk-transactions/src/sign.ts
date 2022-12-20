@@ -101,12 +101,6 @@ export const getBytes = (
 	return transactionBytes;
 };
 
-/**
- *
- * @param transactionObject
- * @param keys
- * @param includeSenderSignature
- */
 const sanitizeSignaturesArray = (
 	transactionObject: Record<string, unknown>,
 	keys: MultiSignatureKeys,
@@ -126,6 +120,22 @@ const sanitizeSignaturesArray = (
 	}
 };
 
+/**
+ * Signs a given transaction.
+ *
+ * @example
+ *  ```ts
+ *  import { signTransactionWithPrivateKey } from '@liskhq/lisk-transactions';
+ *  const signedTransaction = signTransactionWithPrivateKey(unsignedTrx, chainID, privateKey, paramsSchema);
+ *  ```
+ *
+ * @param transactionObject The unsigned transaction object.
+ * @param chainID The chain ID of the chain to which the transaction belongs.
+ * @param privateKey The private key of the sender of the transaction.
+ * @param paramsSchema The schema for the `params` of the transaction.
+ *
+ * @returns The signed transaction.
+ */
 export const signTransactionWithPrivateKey = (
 	transactionObject: Record<string, unknown>,
 	chainID: Buffer,
@@ -157,8 +167,36 @@ export const signTransactionWithPrivateKey = (
 	return { ...transactionObject, id: utils.hash(getBytes(transactionObject, paramsSchema)) };
 };
 
+/**
+ * {@inheritDoc signTransactionWithPrivateKey}
+ *
+ * @example
+ *  ```ts
+ *  import { signTransaction } from '@liskhq/lisk-transactions';
+ *  const signedTransaction = signTransaction(unsignedTrx, chainID, privateKey, paramsSchema);
+ *  ```
+ */
 export const signTransaction = signTransactionWithPrivateKey;
 
+/**
+ * Signs a multi-signature transaction.
+ *
+ * @example
+ *  ```ts
+ *  import { signMultiSignatureTransactionWithPrivateKey } from '@liskhq/lisk-transactions';
+ *  const signedTransaction = signMultiSignatureTransactionWithPrivateKey(unsignedTrx, chainID, privateKey, keys, paramsSchema, true);
+ *  ```
+ *
+ * @param transactionObject The unsigned multi-signature transaction object.
+ * @param chainID The chain ID of the chain to which the transaction belongs.
+ * @param privateKey The private key of the sender of the transaction.
+ * @param keys Mandatory and optional keys to sign the transaction.
+ * @param paramsSchema The schema for the `params` of the transaction.
+ * @param includeSenderSignature `true` if the sender wants to add their signature to the transaction.
+ * `false`, if the sender signature should not be included.
+ *
+ * @returns The signed multi-signature transaction.
+ */
 export const signMultiSignatureTransactionWithPrivateKey = (
 	transactionObject: Record<string, unknown>,
 	chainID: Buffer,
@@ -229,4 +267,13 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 	return { ...transactionObject, id: utils.hash(getBytes(transactionObject, paramsSchema)) };
 };
 
+/**
+ * {@inheritDoc signMultiSignatureTransactionWithPrivateKey}
+ *
+ * @example
+ *  ```ts
+ *  import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
+ *  const signedTransaction = signMultiSignatureTransaction(unsignedTrx, chainID, privateKey, keys, paramsSchema, true);
+ *  ```
+ */
 export const signMultiSignatureTransaction = signMultiSignatureTransactionWithPrivateKey;

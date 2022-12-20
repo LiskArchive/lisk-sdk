@@ -16,6 +16,21 @@
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { baseTransactionSchema } from './schema';
 
+/**
+ * Validates a given transaction against their schema.
+ *
+ * @example
+ * ```ts
+ * import { validateTransaction } from '@liskhq/lisk-transactions';
+ * const validation = validateTransaction(transaction, paramsSchema);
+ * ```
+ *
+ * @param transactionObject The transaction to validate.
+ * @param paramsSchema The parameters schema for the transaction.
+ *
+ * @returns `undefined`, if the transaction is valid and no errors are found.
+ * Returns the Error, if any errors are discovered curing the validation.
+ */
 export const validateTransaction = (
 	transactionObject: Record<string, unknown>,
 	paramsSchema?: object,
