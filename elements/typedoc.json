@@ -14,7 +14,7 @@
 		"lisk-validator"
 	],
 	"skipErrorChecking": true,
-	"out": "./docs/",
+	"out": "../docs/typedoc/elements",
 	"name": "Lisk Elements",
 	"includeVersion": true
 }

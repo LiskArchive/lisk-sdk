@@ -73,12 +73,13 @@
 		"istanbul-reports": "3.0.0",
 		"lerna": "6.0.3",
 		"lint-staged": "13.0.3",
+		"nx": "15.2.1",
 		"path-browserify": "^1.0.0",
 		"prettier": "2.8.0",
 		"stream-browserify": "3.0.0",
+		"typedoc": "0.23.23",
 		"typescript": "4.9.3",
-		"yarn": "1.22.19",
-		"nx": "15.2.1"
+		"yarn": "1.22.19"
 	},
 	"resolutions": {
 		"@types/express-serve-static-core": "4.17.31",
