@@ -115,8 +115,10 @@ describe('getSentCCUs', () => {
 		});
 		(chainConnectorPlugin as any)['_sidechainAPIClient'] = sidechainAPIClientMock;
 		await chainConnectorPlugin.load();
-		await chainConnectorPlugin['_sidechainChainConnectorDB'].setAggregateCommits([aggregateCommit]);
-		await chainConnectorPlugin['_sidechainChainConnectorDB'].setValidatorsHashPreImage([
+		await chainConnectorPlugin['_sidechainChainConnectorStore'].setAggregateCommits([
+			aggregateCommit,
+		]);
+		await chainConnectorPlugin['_sidechainChainConnectorStore'].setValidatorsHashPreimage([
 			validatorsData,
 		]);
 	});
@@ -129,11 +131,11 @@ describe('getSentCCUs', () => {
 			disconnect: jest.fn(),
 		};
 
-		await chainConnectorPlugin['_sidechainChainConnectorDB']['_db'].clear();
+		await chainConnectorPlugin['_sidechainChainConnectorStore']['_db'].clear();
 	});
 
 	afterAll(() => {
-		chainConnectorPlugin['_sidechainChainConnectorDB']['_db'].close();
+		chainConnectorPlugin['_sidechainChainConnectorStore']['_db'].close();
 
 		removeSync(chainConnectorPlugin['dataPath']);
 	});

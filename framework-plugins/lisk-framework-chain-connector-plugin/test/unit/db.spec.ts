@@ -73,16 +73,12 @@ describe('Plugins DB', () => {
 			let sampleBlockHeaders: BlockHeader[];
 
 			beforeEach(() => {
-				sampleBlockHeaders = [
-					testing.createFakeBlockHeader().toObject(),
-					testing.createFakeBlockHeader().toObject(),
-					testing.createFakeBlockHeader().toObject(),
-					testing.createFakeBlockHeader().toObject(),
-				].map(b => {
-					const { id, ...block } = b;
+				sampleBlockHeaders = new Array(4).fill(0).map(() => {
+					const { id, ...block } = testing.createFakeBlockHeader().toObject();
 
 					return block;
 				});
+
 				chainConnectorStore = new ChainConnectorStore(
 					new db.InMemoryDatabase() as never,
 					DB_KEY_SIDECHAIN,
@@ -139,40 +135,23 @@ describe('Plugins DB', () => {
 			let sampleValidatorsData: ValidatorsData[];
 
 			beforeEach(() => {
-				sampleValidatorsData = [
-					{
-						certificateThreshold: BigInt(68),
-						validators: [
-							{
-								address: cryptography.utils.getRandomBytes(20),
-								bftWeight: BigInt(1),
-								blsKey: cryptography.utils.getRandomBytes(48),
-							},
-							{
-								address: cryptography.utils.getRandomBytes(20),
-								bftWeight: BigInt(1),
-								blsKey: cryptography.utils.getRandomBytes(48),
-							},
-						],
-						validatorsHash: cryptography.utils.getRandomBytes(54),
-					},
-					{
-						certificateThreshold: BigInt(68),
-						validators: [
-							{
-								address: cryptography.utils.getRandomBytes(20),
-								bftWeight: BigInt(1),
-								blsKey: cryptography.utils.getRandomBytes(48),
-							},
-							{
-								address: cryptography.utils.getRandomBytes(20),
-								bftWeight: BigInt(1),
-								blsKey: cryptography.utils.getRandomBytes(48),
-							},
-						],
-						validatorsHash: cryptography.utils.getRandomBytes(54),
-					},
-				];
+				sampleValidatorsData = new Array(2).fill(0).map(() => ({
+					certificateThreshold: BigInt(68),
+					validators: [
+						{
+							address: cryptography.utils.getRandomBytes(20),
+							bftWeight: BigInt(1),
+							blsKey: cryptography.utils.getRandomBytes(48),
+						},
+						{
+							address: cryptography.utils.getRandomBytes(20),
+							bftWeight: BigInt(1),
+							blsKey: cryptography.utils.getRandomBytes(48),
+						},
+					],
+					validatorsHash: cryptography.utils.getRandomBytes(54),
+				}));
+
 				chainConnectorStore = new ChainConnectorStore(
 					new db.InMemoryDatabase() as never,
 					DB_KEY_SIDECHAIN,
@@ -180,13 +159,13 @@ describe('Plugins DB', () => {
 			});
 
 			it('should return empty array when there is no record', async () => {
-				await expect(chainConnectorStore.getValidatorsHashPreImage()).resolves.toEqual([]);
+				await expect(chainConnectorStore.getValidatorsHashPreimage()).resolves.toEqual([]);
 			});
 
 			it('should return list of validatorsHashPreImage', async () => {
-				await chainConnectorStore.setValidatorsHashPreImage(sampleValidatorsData);
+				await chainConnectorStore.setValidatorsHashPreimage(sampleValidatorsData);
 
-				await expect(chainConnectorStore.getValidatorsHashPreImage()).resolves.toEqual(
+				await expect(chainConnectorStore.getValidatorsHashPreimage()).resolves.toEqual(
 					sampleValidatorsData,
 				);
 			});
