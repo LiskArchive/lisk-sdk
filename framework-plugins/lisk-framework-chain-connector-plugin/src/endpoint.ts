@@ -18,15 +18,15 @@ import { AggregateCommitJSON, SentCCUs, SentCCUsJSON, ValidatorsDataJSON } from 
 import { aggregateCommitToJSON, validatorsHashPreimagetoJSON } from './utils';
 
 export class Endpoint extends BasePluginEndpoint {
-	private _chainConnectorDB!: ChainConnectorStore;
+	private _chainConnectorStore!: ChainConnectorStore;
 	private _sentCCUs!: SentCCUs;
 
 	public init(sentCCUs: SentCCUs) {
 		this._sentCCUs = sentCCUs;
 	}
 
-	public load(db: ChainConnectorStore) {
-		this._chainConnectorDB = db;
+	public load(store: ChainConnectorStore) {
+		this._chainConnectorStore = store;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -37,14 +37,14 @@ export class Endpoint extends BasePluginEndpoint {
 	public async getAggregateCommits(
 		_context: PluginEndpointContext,
 	): Promise<AggregateCommitJSON[]> {
-		const aggregateCommits = await this._chainConnectorDB.getAggregateCommits();
+		const aggregateCommits = await this._chainConnectorStore.getAggregateCommits();
 		return aggregateCommits.map(aggregateCommit => aggregateCommitToJSON(aggregateCommit));
 	}
 
 	public async getValidatorsInfoFromPreimage(
 		_context: PluginEndpointContext,
 	): Promise<ValidatorsDataJSON[]> {
-		const validatorsHashPreimages = await this._chainConnectorDB.getValidatorsHashPreImage();
+		const validatorsHashPreimages = await this._chainConnectorStore.getValidatorsHashPreimage();
 		return validatorsHashPreimagetoJSON(validatorsHashPreimages);
 	}
 }
