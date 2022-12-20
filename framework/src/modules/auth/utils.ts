@@ -13,24 +13,32 @@
  */
 
 import { Transaction, TAG_TRANSACTION } from '@liskhq/lisk-chain';
-import { codec, Schema } from '@liskhq/lisk-codec';
 import { ed } from '@liskhq/lisk-cryptography';
 import { isHexString } from '@liskhq/lisk-validator';
 import { VerificationResult, VerifyStatus } from '../../state_machine';
-import { Keys } from './types';
 import { AuthAccount } from './stores/auth_account';
 
-export const verifyMessageSig = (
-	tag: string,
+/**
+ * Verifies that the given `signature` corresponds to given `chainID`, `publicKey` and `transactionBytes`
+ *
+ * https://github.com/LiskHQ/lips/blob/main/proposals/lip-0041.md#transaction-verification
+ */
+export const verifySignature = (
 	chainID: Buffer,
 	publicKey: Buffer,
 	signature: Buffer,
 	transactionBytes: Buffer,
 	id: Buffer,
 ): void => {
-	const valid = ed.verifyData(tag, chainID, transactionBytes, signature, publicKey);
+	const isSignatureValid = ed.verifyData(
+		TAG_TRANSACTION,
+		chainID,
+		transactionBytes,
+		signature,
+		publicKey,
+	);
 
-	if (!valid) {
+	if (!isSignatureValid) {
 		throw new Error(
 			`Failed to validate signature '${signature.toString(
 				'hex',
@@ -39,160 +47,70 @@ export const verifyMessageSig = (
 	}
 };
 
-export const validateKeysSignatures = (
-	tag: string,
-	chainID: Buffer,
-	keys: ReadonlyArray<Buffer>,
-	signatures: ReadonlyArray<Buffer>,
-	transactionBytes: Buffer,
-	id: Buffer,
-): void => {
-	for (let i = 0; i < keys.length; i += 1) {
-		if (signatures[i].length === 0) {
-			throw new Error('Invalid signature. Empty buffer is not a valid signature.');
-		}
-
-		verifyMessageSig(tag, chainID, keys[i], signatures[i], transactionBytes, id);
-	}
-};
-
 /**
  * https://github.com/LiskHQ/lips/blob/main/proposals/lip-0041.md#transaction-verification
  * Current code is already in sync with LIP. No change needed.
  */
 export const verifyMultiSignatureTransaction = (
-	tag: string,
 	chainID: Buffer,
 	id: Buffer,
-	keys: Keys,
+	account: AuthAccount,
 	signatures: ReadonlyArray<Buffer>,
 	transactionBytes: Buffer,
 ): void => {
-	const { mandatoryKeys, optionalKeys, numberOfSignatures } = keys;
-	const numMandatoryKeys = mandatoryKeys.length;
-	const numOptionalKeys = optionalKeys.length;
+	const keys = account.mandatoryKeys.concat(account.optionalKeys);
+	const mandatoryKeysCount = account.mandatoryKeys.length;
+
 	// Filter empty signature to compare against numberOfSignatures
 	const nonEmptySignaturesCount = signatures.filter(k => k.length !== 0).length;
 
 	// Check if signatures excluding empty string match required numberOfSignatures
-	if (
-		nonEmptySignaturesCount !== numberOfSignatures ||
-		signatures.length !== numMandatoryKeys + numOptionalKeys
-	) {
+	if (nonEmptySignaturesCount !== account.numberOfSignatures || signatures.length !== keys.length) {
 		throw new Error(
-			`Transaction signatures does not match required number of signatures: '${numberOfSignatures.toString()}' for transaction with id '${id.toString(
+			`Transaction signatures does not match required number of signatures: '${account.numberOfSignatures.toString()}' for transaction with id '${id.toString(
 				'hex',
 			)}'`,
 		);
 	}
 
-	validateKeysSignatures(tag, chainID, mandatoryKeys, signatures, transactionBytes, id);
-
-	// Iterate through non empty optional keys for signature validity
-	for (let k = 0; k < numOptionalKeys; k += 1) {
-		// Get corresponding optional key signature starting from offset(end of mandatory keys)
-		const signature = signatures[numMandatoryKeys + k];
-		if (signature.length !== 0) {
-			verifyMessageSig(tag, chainID, optionalKeys[k], signature, transactionBytes, id);
+	for (let i = 0; i < keys.length; i += 1) {
+		if (signatures[i].length !== 0) {
+			verifySignature(chainID, keys[i], signatures[i], transactionBytes, id);
+		}
+		// do not throw for missing optional signatures
+		else if (signatures[i].length === 0 && i < mandatoryKeysCount) {
+			throw new Error('Missing signature for a mandatory key.');
 		}
 	}
 };
 
-export const verifyRegisterMultiSignatureTransaction = (
-	tag: string,
-	transactionParamsSchema: Schema,
-	transaction: Transaction,
-	transactionBytes: Buffer,
-	chainID: Buffer,
-): void => {
-	const { mandatoryKeys, optionalKeys } = codec.decode<Keys>(
-		transactionParamsSchema,
-		transaction.params,
-	);
-
-	// For multisig registration we need all signatures to be present (including sender's one that's why we add 1 to the count)
-	const numberOfExpectedKeys = mandatoryKeys.length + optionalKeys.length + 1;
-	if (numberOfExpectedKeys !== transaction.signatures.length) {
-		throw new Error(
-			`There are missing signatures. Expected: ${numberOfExpectedKeys} signatures but got: ${transaction.signatures.length}.`,
-		);
-	}
-
-	// Check if empty signatures are present
-	if (!transaction.signatures.every((signature: Buffer) => signature.length > 0)) {
-		throw new Error('A valid signature is required for each registered key.');
-	}
-
-	// Verify first signature is from senderPublicKey
-	verifyMessageSig(
-		tag,
-		chainID,
-		transaction.senderPublicKey,
-		transaction.signatures[0],
-		transactionBytes,
-		transaction.id,
-	);
-
-	// Verify each mandatory key signed in order
-	validateKeysSignatures(
-		tag,
-		chainID,
-		mandatoryKeys,
-		transaction.signatures.slice(1, mandatoryKeys.length + 1),
-		transactionBytes,
-		transaction.id,
-	);
-
-	// Verify each optional key signed in order
-	validateKeysSignatures(
-		tag,
-		chainID,
-		optionalKeys,
-		transaction.signatures.slice(mandatoryKeys.length + 1),
-		transactionBytes,
-		transaction.id,
-	);
-};
-
-export const verifySingleSignatureTransaction = (
-	tag: string,
-	transaction: Transaction,
-	transactionBytes: Buffer,
-	chainID: Buffer,
-): void => {
-	if (transaction.signatures.length !== 1) {
-		throw new Error(
-			`Transactions from a single signature account should have exactly one signature. Found ${transaction.signatures.length} signatures.`,
-		);
-	}
-
-	verifyMessageSig(
-		tag,
-		chainID,
-		transaction.senderPublicKey,
-		transaction.signatures[0],
-		transactionBytes,
-		transaction.id,
-	);
-};
-
 export const verifySignatures = (
 	transaction: Transaction,
-	transactionBytes: Buffer,
 	chainID: Buffer,
 	account: AuthAccount,
 ) => {
 	if (account.numberOfSignatures !== 0) {
 		verifyMultiSignatureTransaction(
-			TAG_TRANSACTION,
 			chainID,
 			transaction.id,
 			account,
 			transaction.signatures,
-			transactionBytes,
+			transaction.getSigningBytes(),
 		);
 	} else {
-		verifySingleSignatureTransaction(TAG_TRANSACTION, transaction, transactionBytes, chainID);
+		if (transaction.signatures.length !== 1) {
+			throw new Error(
+				`Transactions from a single signature account should have exactly one signature. Found ${transaction.signatures.length} signatures.`,
+			);
+		}
+
+		verifySignature(
+			chainID,
+			transaction.senderPublicKey,
+			transaction.signatures[0],
+			transaction.getSigningBytes(),
+			transaction.id,
+		);
 	}
 };
 
