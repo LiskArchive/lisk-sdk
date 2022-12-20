@@ -20,13 +20,19 @@
 <ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
 <li class="tsd-signature tsd-anchor-link" id="getSigningBytes">get<wbr/>Signing<wbr/>Bytes<span class="tsd-signature-symbol">(</span>transactionObject<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span>, paramsSchema<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Buffer</span><a href="#getSigningBytes" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Validates transaction against schema and returns transaction bytes for signing</p>
+<div class="tsd-comment tsd-typography"><p>Validates transaction against schema and converts transaction to bytes for signing.</p>
 
 <h3>Example</h3><pre><code class="language-ts"><span class="hl-0"> </span><span class="hl-7">import</span><span class="hl-0"> { </span><span class="hl-5">getSigningBytes</span><span class="hl-0"> } </span><span class="hl-7">from</span><span class="hl-0"> </span><span class="hl-4">&#39;@liskhq/lisk-transactions&#39;</span><span class="hl-0">;</span><br/><span class="hl-0"> </span><span class="hl-1">const</span><span class="hl-0"> </span><span class="hl-2">txBytes</span><span class="hl-0"> = </span><span class="hl-3">getSigningBytes</span><span class="hl-0">(</span><span class="hl-5">TransferTrx</span><span class="hl-0">, </span><span class="hl-5">transferParamsSchema</span><span class="hl-0">);</span>
 </code></pre>
 
 <h3>Returns</h3><p>Returns the encrypted transaction, if the provided transaction is valid.
 If the transaction is invalid, it returns the validation errors.</p>
+
+<h3>See</h3><ul>
+<li><a href="https://github.com/LiskHQ/lips/blob/main/proposals/lip-0028.md">LIP 0028 - Define schema and use generic serialization for transactions</a></li>
+<li><a href="https://github.com/LiskHQ/lips/blob/main/proposals/lip-0068.md">LIP 0068 - Define new transaction schema</a></li>
+<li><a href="https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md">LIP 0062 - Use pre-hashing for signatures</a></li>
+</ul>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -41,7 +47,7 @@ If the transaction is invalid, it returns the validation errors.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Buffer</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/LiskHQ/lisk-sdk/blob/f077c6503d/elements/lisk-transactions/src/sign.ts#L42">elements/lisk-transactions/src/sign.ts:42</a></li></ul></aside></li></ul></section></div>
+<li>Defined in <a href="https://github.com/LiskHQ/lisk-sdk/blob/552b4a4f6f/elements/lisk-transactions/src/sign.ts#L49">elements/lisk-transactions/src/sign.ts:49</a></li></ul></aside></li></ul></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">

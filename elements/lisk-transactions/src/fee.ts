@@ -15,15 +15,22 @@
 
 import { getBytes } from './sign';
 
+/** Available option for {@link computeMinFee} */
 export interface Options {
+	/** Minimum fee per byte */
 	readonly minFeePerByte?: number;
+	/** Number of signatures included in the transaction. */
 	readonly numberOfSignatures?: number;
+	/** Number of empty signatures in the transaction. */
 	readonly numberOfEmptySignatures?: number;
 }
 
-const DEFAULT_MIN_FEE_PER_BYTE = 1000;
-const DEFAULT_NUMBER_OF_SIGNATURES = 1;
-const DEFAULT_SIGNATURE_BYTE_SIZE = 64;
+/** Default value for `minFeePerByte`. */
+export const DEFAULT_MIN_FEE_PER_BYTE = 1000;
+/** Default value for `numberOfSignatures`. */
+export const DEFAULT_NUMBER_OF_SIGNATURES = 1;
+/** Default byte size for transaction signatures. */
+export const DEFAULT_SIGNATURE_BYTE_SIZE = 64;
 
 const computeTransactionMinFee = (
 	trx: Record<string, unknown>,

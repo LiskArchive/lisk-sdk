@@ -30,6 +30,9 @@ import { baseTransactionSchema } from './schema';
  *
  * @returns `undefined`, if the transaction is valid and no errors are found.
  * Returns the Error, if any errors are discovered curing the validation.
+ *
+ * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
+ * @see {@link LiskValidator}
  */
 export const validateTransaction = (
 	transactionObject: Record<string, unknown>,
