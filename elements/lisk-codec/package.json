@@ -20,6 +20,12 @@
 		"node": ">=16.14.1 <=16",
 		"npm": ">=8.1.0"
 	},
+	"typedoc": {
+		"entryPoint": "./src/index.ts",
+		"readmeFile": "./README.md",
+		"displayName": "Lisk Codec",
+		"tsconfig": "./tsconfig.json"
+	},
 	"main": "dist-node/index.js",
 	"scripts": {
 		"clean": "./scripts/clean.sh",

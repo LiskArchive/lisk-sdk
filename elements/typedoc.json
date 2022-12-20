@@ -1,0 +1,20 @@
+{
+	"entryPointStrategy": "packages",
+	"entryPoints": [
+		"lisk-transactions",
+		"lisk-api-client",
+		"lisk-codec",
+		"lisk-cryptography",
+		"lisk-db",
+		"lisk-p2p",
+		"lisk-passphrase",
+		"lisk-transaction-pool",
+		"lisk-tree",
+		"lisk-utils",
+		"lisk-validator"
+	],
+	"skipErrorChecking": true,
+	"out": "./docs/",
+	"name": "Lisk Elements",
+	"includeVersion": true
+}
