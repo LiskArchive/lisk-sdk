@@ -21,8 +21,7 @@ export interface BlockHeader extends chain.BlockHeaderAttrs {
 export interface ChainConnectorPluginConfig {
 	mainchainIPCPath: string;
 	sidechainIPCPath: string;
-	ccmBasedFrequency: number;
-	livenessBasedFrequency: number;
+	ccuFrequency: number;
 }
 
 export type SentCCUs = Transaction[];

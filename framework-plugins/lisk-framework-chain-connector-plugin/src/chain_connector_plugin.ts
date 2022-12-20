@@ -39,7 +39,7 @@ import {
 	OwnChainAccountJSON,
 } from 'lisk-sdk';
 import {
-	LIVENESS_BASED_CCU_FREQUENCY,
+	CCU_FREQUENCY,
 	MODULE_NAME_INTEROPERABILITY,
 	CCM_SEND_SUCCESS,
 	DB_KEY_SIDECHAIN,
@@ -74,7 +74,7 @@ interface CertificateValidationResult {
 	livenessValidationResult?: LivenessValidationResult;
 	chainStatus: number;
 	certificate: Certificate;
-	header: BlockHeader;
+	blockHeader: BlockHeader;
 	hasValidBLSWeightedAggSig?: boolean;
 	message: string;
 }
@@ -85,7 +85,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	public endpoint = new Endpoint();
 	public configSchema = configSchema;
 	private _chainConnectorPluginDB!: liskDB.Database;
-	private _sidechainChainConnectorDB!: ChainConnectorStore;
+	private _sidechainChainConnectorStore!: ChainConnectorStore;
 	private _lastCertifiedHeight!: number;
 	private _ccuFrequency!: number;
 	private _mainchainAPIClient!: apiClient.APIClient;
@@ -100,16 +100,16 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	public async init(context: PluginInitContext): Promise<void> {
 		await super.init(context);
 		this.endpoint.init(this._sentCCUs);
-		this._ccuFrequency = this.config.livenessBasedFrequency ?? LIVENESS_BASED_CCU_FREQUENCY;
+		this._ccuFrequency = this.config.ccuFrequency ?? CCU_FREQUENCY;
 	}
 
 	public async load(): Promise<void> {
 		this._chainConnectorPluginDB = await getDBInstance(this.dataPath);
-		this._sidechainChainConnectorDB = new ChainConnectorStore(
+		this._sidechainChainConnectorStore = new ChainConnectorStore(
 			this._chainConnectorPluginDB,
 			DB_KEY_SIDECHAIN,
 		);
-		this.endpoint.load(this._sidechainChainConnectorDB);
+		this.endpoint.load(this._sidechainChainConnectorStore);
 
 		this._mainchainAPIClient = await apiClient.createIPCClient(this.config.mainchainIPCPath);
 		if (this.config.sidechainIPCPath) {
@@ -135,26 +135,30 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		lastCertifiedHeight: number,
 		aggregateCommits: AggregateCommit[],
 	): Promise<Certificate | undefined> {
-		const blockHeaders = await this._sidechainChainConnectorDB.getBlockHeaders();
+		const blockHeaders = await this._sidechainChainConnectorStore.getBlockHeaders();
 		const blockHeader = blockHeaders.find(header => header.height === lastCertifiedHeight);
 
 		if (!blockHeader) {
-			throw new Error('No blockHeader found for the last certified height.');
+			throw new Error(`No blockHeader found for lastCertifiedHeight: ${lastCertifiedHeight}`);
 		}
 
 		const validatorsHashPreimage =
-			await this._sidechainChainConnectorDB.getValidatorsHashPreImage();
-		const validatorData = validatorsHashPreimage.find(
-			data => data.validatorsHash === blockHeader?.validatorsHash,
+			await this._sidechainChainConnectorStore.getValidatorsHashPreimage();
+		const validatorsData = validatorsHashPreimage.find(
+			data => data.validatorsHash === blockHeader.validatorsHash,
 		);
 
-		if (!validatorData) {
-			throw new Error('No validatorsHash preimage data present for the given validatorsHash.');
+		if (!validatorsData) {
+			throw new Error(
+				`No Validators data found for the given validatorsHash: ${blockHeader.validatorsHash.toString(
+					'hex',
+				)}.`,
+			);
 		}
 
 		const blsKeyToBFTWeight: Record<string, bigint> = {};
 
-		for (const validator of validatorData.validators) {
+		for (const validator of validatorsData.validators) {
 			blsKeyToBFTWeight[validator.blsKey.toString('hex')] = validator.bftWeight;
 		}
 
@@ -167,7 +171,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				const valid = await this._checkChainOfTrust(
 					blockHeader.validatorsHash,
 					blsKeyToBFTWeight,
-					validatorData.certificateThreshold,
+					validatorsData.certificateThreshold,
 					aggregateCommits[height],
 				);
 
@@ -189,21 +193,21 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			await this._sidechainAPIClient.disconnect();
 		}
 
-		this._sidechainChainConnectorDB.close();
+		this._sidechainChainConnectorStore.close();
 	}
 
 	public async deleteBlockHeaders() {
-		const blockHeaders = await this._sidechainChainConnectorDB.getBlockHeaders();
+		const blockHeaders = await this._sidechainChainConnectorStore.getBlockHeaders();
 
-		await this._sidechainChainConnectorDB.setBlockHeaders(
+		await this._sidechainChainConnectorStore.setBlockHeaders(
 			blockHeaders.filter(blockHeader => blockHeader.height >= this._lastCertifiedHeight),
 		);
 	}
 
 	public async deleteAggregateCommits() {
-		const aggregateCommits = await this._sidechainChainConnectorDB.getAggregateCommits();
+		const aggregateCommits = await this._sidechainChainConnectorStore.getAggregateCommits();
 
-		await this._sidechainChainConnectorDB.setAggregateCommits(
+		await this._sidechainChainConnectorStore.setAggregateCommits(
 			aggregateCommits.filter(
 				aggregateCommit => aggregateCommit.height >= this._lastCertifiedHeight,
 			),
@@ -211,13 +215,12 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	}
 
 	public async deleteValidatorsHashPreimage() {
-		const validatorsHashPreimages =
-			await this._sidechainChainConnectorDB.getValidatorsHashPreImage();
+		const validatorsHashPreimage =
+			await this._sidechainChainConnectorStore.getValidatorsHashPreimage();
 
-		await this._sidechainChainConnectorDB.setValidatorsHashPreImage(
-			validatorsHashPreimages.filter(
-				validatorsHashPreimage =>
-					validatorsHashPreimage.certificateThreshold >= BigInt(this._lastCertifiedHeight),
+		await this._sidechainChainConnectorStore.setValidatorsHashPreimage(
+			validatorsHashPreimage.filter(
+				validatorsData => validatorsData.certificateThreshold >= BigInt(this._lastCertifiedHeight),
 			),
 		);
 	}
@@ -231,12 +234,14 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		let activeValidatorsUpdate: ActiveValidator[] = [];
 		let certificateThreshold = newCertificateThreshold;
 
-		const blockHeaders = await this._sidechainChainConnectorDB.getBlockHeaders();
+		const blockHeaders = await this._sidechainChainConnectorStore.getBlockHeaders();
 
 		const blockHeader = blockHeaders.find(header => header.height === certificate.height);
 
 		if (!blockHeader) {
-			throw new Error('No block header found for the given certifcate height.');
+			throw new Error(
+				`No block header found for the given certificate height ${certificate.height}.`,
+			);
 		}
 
 		const chainAccount = await this._mainchainAPIClient.invoke<ChainAccount>(
@@ -260,23 +265,29 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 
 		if (!chainAccount.lastCertificate.validatorsHash.equals(certificate.validatorsHash)) {
-			const validatorsHashPreimages =
-				await this._sidechainChainConnectorDB.getValidatorsHashPreImage();
+			const validatorsHashPreimage =
+				await this._sidechainChainConnectorStore.getValidatorsHashPreimage();
 
-			const validatorDataAtCertificate = validatorsHashPreimages.find(data =>
-				data.validatorsHash.equals(blockHeader.validatorsHash),
+			const validatorDataAtCertificate = validatorsHashPreimage.find(validatorsData =>
+				validatorsData.validatorsHash.equals(blockHeader.validatorsHash),
 			);
 
 			if (!validatorDataAtCertificate) {
-				throw new Error('No validators data at certificate height.');
+				throw new Error(
+					`No validators data for given validatorsHash at certificate height: ${certificate.height}.`,
+				);
 			}
 
-			const validatorDataAtLastCertificate = validatorsHashPreimages.find(data =>
-				data.validatorsHash.equals(chainAccount.lastCertificate.validatorsHash),
+			const validatorDataAtLastCertificate = validatorsHashPreimage.find(validatorsData =>
+				validatorsData.validatorsHash.equals(chainAccount.lastCertificate.validatorsHash),
 			);
 
 			if (!validatorDataAtLastCertificate) {
-				throw new Error('No validators data at last certified height.');
+				throw new Error(
+					`No validators data for the given validatorsHash: ${chainAccount.lastCertificate.validatorsHash.toString(
+						'hex',
+					)} at last certified height: ${chainAccount.lastCertificate.height}.`,
+				);
 			}
 
 			if (
@@ -314,16 +325,16 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private async _newBlockHandler(data?: Record<string, unknown>) {
 		const { blockHeader: receivedBlock } = data as unknown as Data;
 		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock).toObject();
-		const blockHeaders = await this._sidechainChainConnectorDB.getBlockHeaders();
-		const aggregateCommits = await this._sidechainChainConnectorDB.getAggregateCommits();
-		const validatorsHashPreimages =
-			await this._sidechainChainConnectorDB.getValidatorsHashPreImage();
+		const blockHeaders = await this._sidechainChainConnectorStore.getBlockHeaders();
+		const aggregateCommits = await this._sidechainChainConnectorStore.getAggregateCommits();
+		const validatorsHashPreimage =
+			await this._sidechainChainConnectorStore.getValidatorsHashPreimage();
 
-		const indexBlockHeader = blockHeaders.findIndex(
+		const blockHeaderIndex = blockHeaders.findIndex(
 			header => header.height === newBlockHeader.height,
 		);
-		if (indexBlockHeader > -1) {
-			blockHeaders[indexBlockHeader] = newBlockHeader;
+		if (blockHeaderIndex > -1) {
+			blockHeaders[blockHeaderIndex] = newBlockHeader;
 		} else {
 			blockHeaders.push(newBlockHeader);
 		}
@@ -373,27 +384,27 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				bitmap: stateProveResponse.proof.queries[0].bitmap,
 				siblingHashes: stateProveResponse.proof.siblingHashes,
 			};
-			const crossChainMessages = await this._sidechainChainConnectorDB.getCrossChainMessages();
+			const crossChainMessages = await this._sidechainChainConnectorStore.getCrossChainMessages();
 			crossChainMessages.push({
 				ccms: ccmsFromEvents,
 				height: newBlockHeader.height,
 				inclusionProof: inclusionProofOutboxRoot,
 			});
 
-			await this._sidechainChainConnectorDB.setCrossChainMessages(crossChainMessages);
+			await this._sidechainChainConnectorStore.setCrossChainMessages(crossChainMessages);
 		}
 
-		const indexValidatorsData = validatorsHashPreimages.findIndex(v =>
+		const validatorsDataIndex = validatorsHashPreimage.findIndex(v =>
 			v.validatorsHash.equals(bftParameters?.validatorsHash),
 		);
-		if (indexValidatorsData > -1) {
-			validatorsHashPreimages[indexValidatorsData] = {
+		if (validatorsDataIndex > -1) {
+			validatorsHashPreimage[validatorsDataIndex] = {
 				certificateThreshold: bftParameters?.certificateThreshold,
 				validators: bftParameters?.validators,
 				validatorsHash: bftParameters?.validatorsHash,
 			};
 		} else {
-			validatorsHashPreimages.push({
+			validatorsHashPreimage.push({
 				certificateThreshold: bftParameters?.certificateThreshold,
 				validators: bftParameters?.validators,
 				validatorsHash: bftParameters?.validatorsHash,
@@ -401,20 +412,20 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 
 		if (newBlockHeader.aggregateCommit) {
-			const indexAggregateCommit = aggregateCommits.findIndex(
+			const aggregateCommitIndex = aggregateCommits.findIndex(
 				commit => commit.height === newBlockHeader.aggregateCommit.height,
 			);
-			if (indexAggregateCommit > -1) {
-				aggregateCommits[indexAggregateCommit] = newBlockHeader.aggregateCommit;
+			if (aggregateCommitIndex > -1) {
+				aggregateCommits[aggregateCommitIndex] = newBlockHeader.aggregateCommit;
 			} else {
 				aggregateCommits.push(newBlockHeader.aggregateCommit);
 			}
 		}
 
 		// Save all the data
-		await this._sidechainChainConnectorDB.setBlockHeaders(blockHeaders);
-		await this._sidechainChainConnectorDB.setAggregateCommits(aggregateCommits);
-		await this._sidechainChainConnectorDB.setValidatorsHashPreImage(validatorsHashPreimages);
+		await this._sidechainChainConnectorStore.setBlockHeaders(blockHeaders);
+		await this._sidechainChainConnectorStore.setAggregateCommits(aggregateCommits);
+		await this._sidechainChainConnectorStore.setValidatorsHashPreimage(validatorsHashPreimage);
 
 		// When # of CCMs are there on the outbox to be sent or # of blocks passed from last certified height
 		if (this._ccuFrequency >= newBlockHeader.height - this._lastCertifiedHeight) {
@@ -429,8 +440,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private async _getCertificateFromAggregateCommit(
 		aggregateCommit: AggregateCommit,
 	): Promise<Certificate> {
-		const blockHeaders = await this._sidechainChainConnectorDB.getBlockHeaders();
-
+		const blockHeaders = await this._sidechainChainConnectorStore.getBlockHeaders();
+		// console.log(blockHeaders, aggregateCommit.height)
 		const blockHeader = blockHeaders.find(header => header.height === aggregateCommit.height);
 
 		if (!blockHeader) {
@@ -450,12 +461,16 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		lastCertificateThreshold: bigint,
 		aggregateCommit: AggregateCommit,
 	): Promise<boolean> {
-		const blockHeaders = await this._sidechainChainConnectorDB.getBlockHeaders();
+		const blockHeaders = await this._sidechainChainConnectorStore.getBlockHeaders();
 
 		const blockHeader = blockHeaders.find(header => header.height === aggregateCommit.height - 1);
 
 		if (!blockHeader) {
-			throw new Error('No Block header found for the given aggregate height.');
+			throw new Error(
+				`No Block header found for the given (aggregateCommit.height -1): ${
+					aggregateCommit.height - 1
+				}.`,
+			);
 		}
 
 		// Certificate signers and certificate threshold for aggregateCommit are those authenticated by the last certificate
@@ -465,9 +480,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 		let aggregateBFTWeight = BigInt(0);
 
-		const validatorsHashPreimages =
-			await this._sidechainChainConnectorDB.getValidatorsHashPreImage();
-		const validatorData = validatorsHashPreimages.find(
+		const validatorsHashPreimage =
+			await this._sidechainChainConnectorStore.getValidatorsHashPreimage();
+		const validatorData = validatorsHashPreimage.find(
 			data => data.validatorsHash === blockHeader.validatorsHash,
 		);
 
@@ -491,7 +506,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 	private async _calculateInboxUpdate(sendingChainID: Buffer): Promise<InboxUpdate> {
 		// TODO: Fetch as many CCMs as configured in _ccuFrequency.ccm, between lastCertificateHeight and certificateHeight - After #7569
-		const crossChainMessages = await this._sidechainChainConnectorDB.getCrossChainMessages();
+		const crossChainMessages = await this._sidechainChainConnectorStore.getCrossChainMessages();
 		const serialzedCCMs = crossChainMessages.map(ccm => codec.encode(ccmSchema, ccm));
 
 		// TODO: should use the store prefix with sendingChainID after issue https://github.com/LiskHQ/lisk-sdk/issues/7631
@@ -523,7 +538,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			status: false,
 			chainStatus: chainAccount.status,
 			certificate,
-			header: blockHeader,
+			blockHeader,
 			message: 'Certificate validation failed.',
 		};
 
@@ -556,9 +571,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			return result;
 		}
 
-		const validatorsHashPreimages =
-			await this._sidechainChainConnectorDB.getValidatorsHashPreImage();
-		const validatorData = validatorsHashPreimages.find(data =>
+		const validatorsHashPreimage =
+			await this._sidechainChainConnectorStore.getValidatorsHashPreimage();
+		const validatorData = validatorsHashPreimage.find(data =>
 			data.validatorsHash.equals(blockHeader.validatorsHash),
 		);
 
@@ -622,10 +637,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	private async _cleanup() {
-		const crossChainMessages = await this._sidechainChainConnectorDB.getCrossChainMessages();
+		const crossChainMessages = await this._sidechainChainConnectorStore.getCrossChainMessages();
 		const index = crossChainMessages.findIndex(ccm => ccm.height === this._lastCertifiedHeight);
 		crossChainMessages.splice(index, 1);
-		await this._sidechainChainConnectorDB.setCrossChainMessages(crossChainMessages);
+		await this._sidechainChainConnectorStore.setCrossChainMessages(crossChainMessages);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function

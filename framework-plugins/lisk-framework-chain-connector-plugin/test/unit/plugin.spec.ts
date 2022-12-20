@@ -33,7 +33,7 @@ import {
 } from 'lisk-sdk';
 import { when } from 'jest-when';
 import {
-	LIVENESS_BASED_CCU_FREQUENCY,
+	CCU_FREQUENCY,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	MODULE_NAME_INTEROPERABILITY,
 	CCM_SEND_SUCCESS,
@@ -108,21 +108,22 @@ describe('ChainConnectorPlugin', () => {
 		subscribe: jest.fn(),
 	};
 
-	const chainConnectorInfoDBMock = {
+	const chainConnectorInfoMock = {
 		setBlockHeaders: jest.fn(),
 		setAggregateCommits: jest.fn(),
 		setCrossChainMessages: jest.fn(),
-		setValidatorsHashPreImage: jest.fn(),
+		setValidatorsHashPreimage: jest.fn(),
 		getBlockHeaders: jest.fn(),
 		getAggregateCommits: jest.fn(),
 		getCrossChainMessages: jest.fn(),
-		getValidatorsHashPreImage: jest.fn(),
+		getValidatorsHashPreimage: jest.fn(),
+		close: jest.fn(),
 	};
 	beforeEach(() => {
 		chainConnectorPlugin = new plugins.ChainConnectorPlugin();
 
 		jest.spyOn(dbApi, 'getDBInstance').mockResolvedValue(new db.InMemoryDatabase() as never);
-		(chainConnectorPlugin as any)['_sidechainChainConnectorDB'] = chainConnectorInfoDBMock;
+		(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorInfoMock;
 	});
 
 	afterEach(() => {
@@ -141,7 +142,7 @@ describe('ChainConnectorPlugin', () => {
 				config: { mainchainIPCPath: '~/.lisk/mainchain' },
 				appConfig: appConfigForPlugin,
 			});
-			expect(chainConnectorPlugin['_ccuFrequency']).toEqual(LIVENESS_BASED_CCU_FREQUENCY);
+			expect(chainConnectorPlugin['_ccuFrequency']).toEqual(CCU_FREQUENCY);
 		});
 
 		it('should assign ccuFrequency properties to passed config values', async () => {
@@ -150,8 +151,7 @@ describe('ChainConnectorPlugin', () => {
 				config: {
 					mainchainIPCPath: '~/.lisk/mainchain',
 					sidechainIPCPath: '~/.list/sidechain',
-					ccmBasedFrequency: 100,
-					livenessBasedFrequency: 300000,
+					ccuFrequency: 300000,
 				},
 				appConfig: appConfigForPlugin,
 			});
@@ -220,6 +220,7 @@ describe('ChainConnectorPlugin', () => {
 
 	describe('_newBlockHandler', () => {
 		beforeEach(() => {
+			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorInfoMock;
 			(chainConnectorPlugin as any)['_sidechainAPIClient'] = sidechainAPIClientMock;
 			(chainConnectorPlugin as any)['_createCCU'] = jest.fn();
 			(chainConnectorPlugin as any)['_cleanup'] = jest.fn();
@@ -234,21 +235,13 @@ describe('ChainConnectorPlugin', () => {
 
 		it('should invoke "consensus_getBFTParameters" on _sidechainAPIClient', async () => {
 			const block = await getTestBlock();
-			when(chainConnectorPlugin['_sidechainChainConnectorDB'].getBlockHeaders)
-				.calledWith()
-				.mockResolvedValue([]);
+			when(chainConnectorInfoMock.getBlockHeaders).calledWith().mockResolvedValue([]);
 
-			when(chainConnectorPlugin['_sidechainChainConnectorDB'].getAggregateCommits)
-				.calledWith()
-				.mockResolvedValue([]);
+			when(chainConnectorInfoMock.getAggregateCommits).calledWith().mockResolvedValue([]);
 
-			when(chainConnectorPlugin['_sidechainChainConnectorDB'].getValidatorsHashPreImage)
-				.calledWith()
-				.mockResolvedValue([]);
+			when(chainConnectorInfoMock.getValidatorsHashPreimage).calledWith().mockResolvedValue([]);
 
-			when(chainConnectorPlugin['_sidechainChainConnectorDB'].getCrossChainMessages)
-				.calledWith()
-				.mockResolvedValue([]);
+			when(chainConnectorInfoMock.getCrossChainMessages).calledWith().mockResolvedValue([]);
 
 			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
 			when(sidechainAPIClientMock.invoke)
@@ -335,7 +328,7 @@ describe('ChainConnectorPlugin', () => {
 				.mockResolvedValue({
 					modules: [
 						{
-							name: 'interoperability',
+							name: MODULE_NAME_INTEROPERABILITY,
 							stores: [
 								{
 									key: '03ed0d25f0ba',
@@ -388,7 +381,7 @@ describe('ChainConnectorPlugin', () => {
 			expect((chainConnectorPlugin as any)['_cleanup']).toHaveBeenCalled();
 
 			const savedCCMs = await chainConnectorPlugin[
-				'_sidechainChainConnectorDB'
+				'_sidechainChainConnectorStore'
 			].getCrossChainMessages();
 			expect(savedCCMs).toEqual([
 				{
@@ -417,12 +410,7 @@ describe('ChainConnectorPlugin', () => {
 			certificateSignature: Buffer.alloc(0),
 		};
 
-		const aggregateCommits: AggregateCommit[] = [
-			aggregateCommit,
-			aggregateCommit,
-			aggregateCommit,
-			aggregateCommit,
-		];
+		const aggregateCommits: AggregateCommit[] = new Array(4).fill(0).map(() => aggregateCommit);
 
 		const block = {
 			header: {
@@ -499,9 +487,9 @@ describe('ChainConnectorPlugin', () => {
 			});
 
 			await chainConnectorPlugin.load();
+			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorInfoMock;
 
-			(chainConnectorPlugin as any)['_sidechainChainConnectorDB'] = chainConnectorInfoDBMock;
-			chainConnectorInfoDBMock.getBlockHeaders.mockResolvedValue([
+			chainConnectorInfoMock.getBlockHeaders.mockResolvedValue([
 				{
 					...block.header,
 					height: 1,
@@ -511,7 +499,7 @@ describe('ChainConnectorPlugin', () => {
 				},
 			] as never);
 
-			chainConnectorInfoDBMock.getValidatorsHashPreImage.mockResolvedValue([
+			chainConnectorInfoMock.getValidatorsHashPreimage.mockResolvedValue([
 				{
 					validatorsHash: block.header.validatorsHash,
 					validators: [
@@ -529,16 +517,13 @@ describe('ChainConnectorPlugin', () => {
 				await chainConnectorPlugin['_getCertificateFromAggregateCommit'](aggregateCommit);
 
 				expect(
-					chainConnectorPlugin['_sidechainChainConnectorDB']['getBlockHeaders'],
+					chainConnectorPlugin['_sidechainChainConnectorStore']['getBlockHeaders'],
 				).toHaveBeenCalledTimes(1);
 			});
 
 			it('should compute Certificate from BlockHeader', async () => {
 				const blockHeader: chain.BlockHeader = new chain.BlockHeader(block.header);
 				const expectedCertificate = computeCertificateFromBlockHeader(blockHeader);
-				// when(chainConnectorPlugin['_sidechainChainConnectorDB'].getBlockHeaders)
-				// 	.calledWith()
-				// 	.mockResolvedValue([blockHeader]);
 
 				expectedCertificate.aggregationBits = Buffer.alloc(0);
 				expectedCertificate.signature = Buffer.alloc(0);
@@ -575,7 +560,7 @@ describe('ChainConnectorPlugin', () => {
 				await chainConnectorPlugin.getNextCertificateFromAggregateCommits(2, aggregateCommits);
 
 				expect(
-					chainConnectorPlugin['_sidechainChainConnectorDB']['getBlockHeaders'],
+					chainConnectorPlugin['_sidechainChainConnectorStore']['getBlockHeaders'],
 				).toHaveBeenCalledTimes(1);
 			});
 
@@ -619,7 +604,7 @@ describe('ChainConnectorPlugin', () => {
 				);
 
 				expect(
-					chainConnectorPlugin['_sidechainChainConnectorDB']['getBlockHeaders'],
+					chainConnectorPlugin['_sidechainChainConnectorStore']['getBlockHeaders'],
 				).toHaveBeenCalledTimes(1);
 			});
 
@@ -646,7 +631,7 @@ describe('ChainConnectorPlugin', () => {
 				};
 
 				jest
-					.spyOn(chainConnectorPlugin['_sidechainChainConnectorDB'], 'getBlockHeaders')
+					.spyOn(chainConnectorPlugin['_sidechainChainConnectorStore'], 'getBlockHeaders')
 					.mockResolvedValue([
 						{
 							...block.header,
@@ -659,7 +644,7 @@ describe('ChainConnectorPlugin', () => {
 					] as never);
 
 				jest
-					.spyOn(chainConnectorPlugin['_sidechainChainConnectorDB'], 'getValidatorsHashPreImage')
+					.spyOn(chainConnectorPlugin['_sidechainChainConnectorStore'], 'getValidatorsHashPreimage')
 					.mockResolvedValue([
 						{
 							validatorsHash: block.header.validatorsHash,
@@ -720,7 +705,7 @@ describe('ChainConnectorPlugin', () => {
 			});
 
 			await chainConnectorPlugin.load();
-			(chainConnectorPlugin as any)['_sidechainChainConnectorDB'] = chainConnectorInfoDBMock;
+			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorInfoMock;
 
 			chainConnectorPlugin['_lastCertifiedHeight'] = 6;
 		});
@@ -731,22 +716,22 @@ describe('ChainConnectorPlugin', () => {
 			beforeEach(() => {
 				block1 = testing.createFakeBlockHeader({ height: 5 }).toObject();
 				block2 = testing.createFakeBlockHeader({ height: 6 }).toObject();
-				chainConnectorInfoDBMock.getBlockHeaders.mockResolvedValue([block1, block2] as never);
+				chainConnectorInfoMock.getBlockHeaders.mockResolvedValue([block1, block2] as never);
 			});
 
 			it('should delete block headers with height less than _lastCertifiedHeight', async () => {
 				await chainConnectorPlugin.deleteBlockHeaders();
 
-				expect(chainConnectorInfoDBMock.getBlockHeaders).toHaveBeenCalledTimes(1);
+				expect(chainConnectorInfoMock.getBlockHeaders).toHaveBeenCalledTimes(1);
 
-				expect(chainConnectorInfoDBMock.setBlockHeaders).toHaveBeenCalledWith([block2]);
+				expect(chainConnectorInfoMock.setBlockHeaders).toHaveBeenCalledWith([block2]);
 			});
 		});
 
 		describe('deleteAggregateCommits', () => {
 			beforeEach(() => {
 				jest
-					.spyOn(chainConnectorPlugin['_sidechainChainConnectorDB'], 'getAggregateCommits')
+					.spyOn(chainConnectorPlugin['_sidechainChainConnectorStore'], 'getAggregateCommits')
 					.mockResolvedValue([
 						{
 							height: 5,
@@ -758,11 +743,11 @@ describe('ChainConnectorPlugin', () => {
 				await chainConnectorPlugin.deleteAggregateCommits();
 
 				expect(
-					chainConnectorPlugin['_sidechainChainConnectorDB'].getAggregateCommits,
+					chainConnectorPlugin['_sidechainChainConnectorStore'].getAggregateCommits,
 				).toHaveBeenCalledTimes(1);
 
 				expect(
-					chainConnectorPlugin['_sidechainChainConnectorDB'].setAggregateCommits,
+					chainConnectorPlugin['_sidechainChainConnectorStore'].setAggregateCommits,
 				).toHaveBeenCalledWith([]);
 			});
 		});
@@ -770,7 +755,7 @@ describe('ChainConnectorPlugin', () => {
 		describe('deleteValidatorsHashPreimage', () => {
 			beforeEach(() => {
 				jest
-					.spyOn(chainConnectorPlugin['_sidechainChainConnectorDB'], 'getValidatorsHashPreImage')
+					.spyOn(chainConnectorPlugin['_sidechainChainConnectorStore'], 'getValidatorsHashPreimage')
 					.mockResolvedValue([
 						{
 							certificateThreshold: 5,
@@ -782,11 +767,11 @@ describe('ChainConnectorPlugin', () => {
 				await chainConnectorPlugin.deleteValidatorsHashPreimage();
 
 				expect(
-					chainConnectorPlugin['_sidechainChainConnectorDB'].getValidatorsHashPreImage,
+					chainConnectorPlugin['_sidechainChainConnectorStore'].getValidatorsHashPreimage,
 				).toHaveBeenCalledTimes(1);
 
 				expect(
-					chainConnectorPlugin['_sidechainChainConnectorDB'].setValidatorsHashPreImage,
+					chainConnectorPlugin['_sidechainChainConnectorStore'].setValidatorsHashPreimage,
 				).toHaveBeenCalledWith([]);
 			});
 		});
@@ -932,7 +917,7 @@ describe('ChainConnectorPlugin', () => {
 			});
 
 			jest
-				.spyOn(chainConnectorPlugin['_sidechainChainConnectorDB'], 'getValidatorsHashPreImage')
+				.spyOn(chainConnectorPlugin['_sidechainChainConnectorStore'], 'getValidatorsHashPreimage')
 				.mockResolvedValue([
 					{
 						validatorsHash: Buffer.from('10'),
@@ -978,7 +963,7 @@ describe('ChainConnectorPlugin', () => {
 				status: true,
 			});
 			jest
-				.spyOn(chainConnectorPlugin['_sidechainChainConnectorDB'], 'getValidatorsHashPreImage')
+				.spyOn(chainConnectorPlugin['_sidechainChainConnectorStore'], 'getValidatorsHashPreimage')
 				.mockResolvedValue([
 					{
 						validatorsHash: Buffer.from('10'),
@@ -1032,7 +1017,7 @@ describe('ChainConnectorPlugin', () => {
 		};
 
 		beforeEach(() => {
-			chainConnectorInfoDBMock.getCrossChainMessages.mockResolvedValue([
+			chainConnectorInfoMock.getCrossChainMessages.mockResolvedValue([
 				{ nonce: 5 },
 				{ nonce: 6 },
 				{ nonce: 7 },
@@ -1103,27 +1088,24 @@ describe('ChainConnectorPlugin', () => {
 		};
 
 		beforeEach(() => {
-			jest
-				.spyOn(chainConnectorPlugin['_sidechainChainConnectorDB'], 'getBlockHeaders')
-				.mockResolvedValue([
-					{
-						height: 5,
-						validatorsHash,
-					},
-					{
-						height: 6,
-						validatorsHash,
-					},
-				] as never);
+			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorInfoMock;
+			chainConnectorInfoMock.getBlockHeaders.mockResolvedValue([
+				{
+					height: 5,
+					validatorsHash,
+				},
+				{
+					height: 6,
+					validatorsHash,
+				},
+			] as never);
 
-			jest
-				.spyOn(chainConnectorPlugin['_sidechainChainConnectorDB'], 'getValidatorsHashPreImage')
-				.mockResolvedValue([
-					{
-						validatorsHash,
-						certificateThreshold: BigInt(0),
-					},
-				] as never);
+			chainConnectorInfoMock.getValidatorsHashPreimage.mockResolvedValue([
+				{
+					validatorsHash,
+					certificateThreshold: BigInt(0),
+				},
+			] as never);
 
 			chainConnectorPlugin['_mainchainAPIClient'] = sidechainAPIClientMock as never;
 			chainConnectorPlugin['_mainchainAPIClient'].invoke = jest
@@ -1259,7 +1241,7 @@ describe('ChainConnectorPlugin', () => {
 
 			it('should return CCUTxParams with newCertificateThreshold set to provided newCertificateThreshold if validatorsHash of block header at certificate height is not equal to that of last certificate', async () => {
 				jest
-					.spyOn(chainConnectorPlugin['_sidechainChainConnectorDB'], 'getBlockHeaders')
+					.spyOn(chainConnectorPlugin['_sidechainChainConnectorStore'], 'getBlockHeaders')
 					.mockResolvedValue([
 						{
 							height: 5,
@@ -1272,7 +1254,7 @@ describe('ChainConnectorPlugin', () => {
 					] as never);
 
 				jest
-					.spyOn(chainConnectorPlugin['_sidechainChainConnectorDB'], 'getValidatorsHashPreImage')
+					.spyOn(chainConnectorPlugin['_sidechainChainConnectorStore'], 'getValidatorsHashPreimage')
 					.mockResolvedValue([
 						{
 							validatorsHash: Buffer.from('05'),
@@ -1297,7 +1279,7 @@ describe('ChainConnectorPlugin', () => {
 
 			it('should call getActiveValidatorsDiff', async () => {
 				jest
-					.spyOn(chainConnectorPlugin['_sidechainChainConnectorDB'], 'getBlockHeaders')
+					.spyOn(chainConnectorPlugin['_sidechainChainConnectorStore'], 'getBlockHeaders')
 					.mockResolvedValue([
 						{
 							height: 5,
@@ -1310,7 +1292,7 @@ describe('ChainConnectorPlugin', () => {
 					] as never);
 
 				jest
-					.spyOn(chainConnectorPlugin['_sidechainChainConnectorDB'], 'getValidatorsHashPreImage')
+					.spyOn(chainConnectorPlugin['_sidechainChainConnectorStore'], 'getValidatorsHashPreimage')
 					.mockResolvedValue([
 						{
 							validatorsHash: Buffer.from('05'),

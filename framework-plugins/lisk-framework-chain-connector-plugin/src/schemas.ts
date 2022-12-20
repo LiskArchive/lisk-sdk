@@ -14,8 +14,10 @@
 
 import { chain, aggregateCommitSchema, ccmSchema } from 'lisk-sdk';
 
+const pluginSchemaIDPrefix = '/lisk/plugins/chainConnector';
+
 export const configSchema = {
-	$id: '/lisk/plugins/chainConnector/config',
+	$id: `${pluginSchemaIDPrefix}/config`,
 	type: 'object',
 	properties: {
 		mainchainIPCPath: {
@@ -26,11 +28,7 @@ export const configSchema = {
 			type: 'string',
 			description: 'The IPC path to a sidechain node',
 		},
-		ccmBasedFrequency: {
-			type: 'integer',
-			description: 'Number of Cross chain messages after which a CCU should be created',
-		},
-		livenessBasedFrequency: {
+		ccuFrequency: {
 			type: 'integer',
 			description: 'Number of blocks after which a CCU should be created',
 		},
@@ -43,7 +41,7 @@ export const configSchema = {
 };
 
 export const validatorsDataSchema = {
-	$id: '/lisk/plugins/chainConnector/validatorsHashInput',
+	$id: `${pluginSchemaIDPrefix}/validatorsHashInput`,
 	type: 'object',
 	required: ['validators', 'certificateThreshold'],
 	properties: {
@@ -66,7 +64,7 @@ export const validatorsDataSchema = {
 };
 
 export const blockHeadersInfoSchema = {
-	$id: '/lisk/plugins/chainConnector/blockHeader',
+	$id: `${pluginSchemaIDPrefix}/blockHeaders`,
 	type: 'object',
 	properties: {
 		blockHeaders: {
@@ -80,7 +78,7 @@ export const blockHeadersInfoSchema = {
 };
 
 export const aggregateCommitsInfoSchema = {
-	$id: '/lisk/plugins/chainConnector/aggregateCommits',
+	$id: `${pluginSchemaIDPrefix}/aggregateCommits`,
 	type: 'object',
 	properties: {
 		aggregateCommits: {
@@ -94,7 +92,7 @@ export const aggregateCommitsInfoSchema = {
 };
 
 export const validatorsHashPreimageInfoSchema = {
-	$id: '/lisk/plugins/chainConnector/validatorsHashPreimage',
+	$id: `${pluginSchemaIDPrefix}/validatorsHashPreimage`,
 	type: 'object',
 	properties: {
 		validatorsHashPreimage: {
@@ -108,7 +106,7 @@ export const validatorsHashPreimageInfoSchema = {
 };
 
 export const ccmsFromEventsSchema = {
-	$id: '/lisk/plugins/chainConnector/ccmsFromEvents',
+	$id: `${pluginSchemaIDPrefix}/ccmsFromEvents`,
 	type: 'object',
 	properties: {
 		ccmsFromEvents: {
