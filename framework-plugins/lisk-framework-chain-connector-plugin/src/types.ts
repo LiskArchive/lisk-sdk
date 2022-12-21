@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Transaction, chain, CCMsg, ActiveValidator, OutboxRootWitness } from 'lisk-sdk';
+import { Transaction, chain, CCMsg, ActiveValidator, OutboxRootWitness, Schema } from 'lisk-sdk';
 
 export interface BlockHeader extends chain.BlockHeaderAttrs {
 	validatorsHash: Buffer;
@@ -92,3 +92,11 @@ export interface QueryProof {
 export interface ProveResponse {
 	proof: Proof;
 }
+
+export type metadata = {
+	stores: { key: string; data: Schema }[];
+	events: { name: string; data: Schema }[];
+	name: string;
+};
+
+export type ModuleMetadata = [metadata];
