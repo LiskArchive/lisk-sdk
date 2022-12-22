@@ -1,8 +1,22 @@
+/*
+ * Copyright © 2022 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 import { CCMsg, BFTParameters, apiClient, OutboxRootWitness, AggregateCommit } from 'lisk-sdk';
 import { ModuleMetadata, metadata, BlockHeader, ProveResponse, ValidatorsData } from './types';
 import { MODULE_NAME_INTEROPERABILITY } from './constants';
-import { EventsListener } from './eventsListener';
 import { ChainConnectorStore } from './db';
+import { EventsListener } from './events_listener';
 
 export class NewBlockHandler {
 	private readonly _chainConnectorPluginStore: ChainConnectorStore;
