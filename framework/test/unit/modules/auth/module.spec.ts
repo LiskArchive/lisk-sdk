@@ -21,7 +21,7 @@ import { AuthModule } from '../../../../src/modules/auth';
 import * as fixtures from './fixtures.json';
 import * as testing from '../../../../src/testing';
 import { genesisAuthStoreSchema } from '../../../../src/modules/auth/schemas';
-import { VerifyStatus } from '../../../../src/state_machine';
+import { TransactionExecuteContext, VerifyStatus } from '../../../../src/state_machine';
 import { InvalidNonceError } from '../../../../src/modules/auth/errors';
 import { createGenesisBlockContext } from '../../../../src/testing';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
@@ -1129,15 +1129,23 @@ describe('AuthModule', () => {
 	});
 
 	describe('beforeCommandExecute', () => {
-		it('should increment account nonce after a transaction', async () => {
-			const context = testing
+		let authAccountStore: AuthAccountStore;
+		let context: TransactionExecuteContext;
+
+		beforeEach(() => {
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+			authAccountStore = authModule.stores.get(AuthAccountStore);
+
+			context = testing
 				.createTransactionContext({
-					stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
+					stateStore,
 					transaction: validTestTransaction,
 					chainID,
 				})
 				.createTransactionExecuteContext();
-			const authAccountStore = authModule.stores.get(AuthAccountStore);
+		});
+
+		it('should increment account nonce after a transaction', async () => {
 			const address = cryptoAddress.getAddressFromPublicKey(validTestTransaction.senderPublicKey);
 			const authAccountBeforeTransaction = {
 				nonce: BigInt(validTestTransaction.nonce),
@@ -1166,6 +1174,17 @@ describe('AuthModule', () => {
 			expect(authAccountAfterTransaction.optionalKeys).toEqual(
 				authAccountBeforeTransaction.optionalKeys,
 			);
+		});
+
+		it('should initialize account with default values when the account is not in Auth Store', async () => {
+			await authModule.beforeCommandExecute(context);
+
+			const authAccount = await authAccountStore.get(context, context.transaction.senderAddress);
+
+			expect(authAccount.nonce).toBe(BigInt(1)); // the hook incremented nonce
+			expect(authAccount.numberOfSignatures).toBe(0);
+			expect(authAccount.mandatoryKeys).toEqual([]);
+			expect(authAccount.optionalKeys).toEqual([]);
 		});
 	});
 });
