@@ -17,11 +17,11 @@ import { getBytes } from './sign';
 
 /** Available options for {@link computeMinFee} */
 export interface Options {
-	/** Minimum fee per byte */
+	/** Minimum fee per byte. Default value: {@link DEFAULT_MIN_FEE_PER_BYTE} */
 	readonly minFeePerByte?: number;
-	/** Number of signatures included in the transaction. */
+	/** Number of signatures included in the transaction. Default value: {@link DEFAULT_NUMBER_OF_SIGNATURES} */
 	readonly numberOfSignatures?: number;
-	/** Number of empty signatures in the transaction. */
+	/** Number of empty signatures in the transaction. Default value: {@link DEFAULT_SIGNATURE_BYTE_SIZE} */
 	readonly numberOfEmptySignatures?: number;
 }
 
