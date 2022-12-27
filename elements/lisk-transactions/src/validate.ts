@@ -17,7 +17,7 @@ import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { baseTransactionSchema } from './schema';
 
 /**
- * Validates a given transaction against their schema.
+ * Validates a given transaction against its' schema.
  *
  * @example
  * ```ts
