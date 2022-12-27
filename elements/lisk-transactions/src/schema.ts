@@ -14,7 +14,7 @@
  */
 
 /**
- * Schema for Lisk Transactions
+ * Schema for Lisk Transactions.
  *
  * @see [LIP 0068 - Define new transaction schema](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0068.md)
  */
