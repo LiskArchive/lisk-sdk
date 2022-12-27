@@ -15,7 +15,7 @@
 
 import { getBytes } from './sign';
 
-/** Available option for {@link computeMinFee} */
+/** Available options for {@link computeMinFee} */
 export interface Options {
 	/** Minimum fee per byte */
 	readonly minFeePerByte?: number;
@@ -67,7 +67,7 @@ const computeTransactionMinFee = (
  *
  * @param trx the {@link baseTransactionSchema | transaction}  object
  * @param assetSchema Schema for the command parameters.
- * The different schemas for parameters are described in the [Modules reference]().
+ * The specific schemas for parameters are described in the [Modules reference]().
  * @param options
  *
  * @returns Minimum fee for the provided transaction.
