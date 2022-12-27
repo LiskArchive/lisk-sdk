@@ -13,3 +13,4 @@
  *
  */
 export { InvokeCommand } from './invoke';
+export { ListCommand } from './list';
