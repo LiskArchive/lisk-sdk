@@ -1129,36 +1129,43 @@ describe('AuthModule', () => {
 	});
 
 	describe('beforeCommandExecute', () => {
-		it('should initialize senderAccount with default values when there is no sender account in AUTH store', async () => {
-			const stateStore1 = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+		it('should increment account nonce after a transaction', async () => {
 			const context = testing
 				.createTransactionContext({
-					stateStore: stateStore1,
+					stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
 					transaction: validTestTransaction,
 					chainID,
 				})
 				.createTransactionExecuteContext();
-			const authStore1 = authModule.stores.get(AuthAccountStore);
+			const authAccountStore = authModule.stores.get(AuthAccountStore);
 			const address = cryptoAddress.getAddressFromPublicKey(validTestTransaction.senderPublicKey);
-			const mandatoryKeys = [utils.getRandomBytes(64), utils.getRandomBytes(64)];
-			const optionalKeys = [utils.getRandomBytes(64), utils.getRandomBytes(64)];
-			const authAccount1 = {
-				nonce: validTestTransaction.nonce,
+			const authAccountBeforeTransaction = {
+				nonce: BigInt(validTestTransaction.nonce),
 				numberOfSignatures: 4,
-				mandatoryKeys,
-				optionalKeys,
+				mandatoryKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
+				optionalKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
 			};
-			await authStore1.set(context, address, authAccount1);
+			await authAccountStore.set(context, address, authAccountBeforeTransaction);
 
 			await authModule.beforeCommandExecute(context);
 
-			const authStore = authModule.stores.get(AuthAccountStore);
-			const authAccount = await authStore.get(context, context.transaction.senderAddress);
+			const authAccountAfterTransaction = await authAccountStore.get(
+				context,
+				context.transaction.senderAddress,
+			);
 
-			expect(authAccount.nonce).toBe(BigInt(2));
-			expect(authAccount.numberOfSignatures).toBe(4);
-			expect(authAccount.mandatoryKeys).toEqual(mandatoryKeys);
-			expect(authAccount.optionalKeys).toEqual(optionalKeys);
+			expect(authAccountAfterTransaction.nonce).toBe(
+				authAccountBeforeTransaction.nonce + BigInt(1),
+			);
+			expect(authAccountAfterTransaction.numberOfSignatures).toBe(
+				authAccountBeforeTransaction.numberOfSignatures,
+			);
+			expect(authAccountAfterTransaction.mandatoryKeys).toEqual(
+				authAccountBeforeTransaction.mandatoryKeys,
+			);
+			expect(authAccountAfterTransaction.optionalKeys).toEqual(
+				authAccountBeforeTransaction.optionalKeys,
+			);
 		});
 	});
 });
