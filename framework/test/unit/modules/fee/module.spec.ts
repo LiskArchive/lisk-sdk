@@ -29,10 +29,10 @@ describe('FeeModule', () => {
 		signatures: [utils.getRandomBytes(20)],
 		params: utils.getRandomBytes(32),
 	});
-
 	let feeModule!: FeeModule;
 	let genesisConfig: any;
 	let moduleConfig: any;
+	let tokenMethod: any;
 
 	beforeEach(async () => {
 		genesisConfig = {
@@ -41,16 +41,15 @@ describe('FeeModule', () => {
 		moduleConfig = {};
 		feeModule = new FeeModule();
 		await feeModule.init({ genesisConfig, moduleConfig });
-		feeModule.addDependencies(
-			{
-				burn: jest.fn(),
-				lock: jest.fn(),
-				unlock: jest.fn(),
-				transfer: jest.fn(),
-				getAvailableBalance: jest.fn(),
-			} as any,
-			{} as any,
-		);
+		tokenMethod = {
+			burn: jest.fn(),
+			lock: jest.fn(),
+			unlock: jest.fn(),
+			transfer: jest.fn(),
+			getAvailableBalance: jest.fn(),
+		} as any;
+		feeModule.addDependencies(tokenMethod, {} as any);
+		jest.spyOn(tokenMethod, 'getAvailableBalance').mockResolvedValue(BigInt(2000000000));
 	});
 
 	describe('init', () => {
@@ -115,6 +114,41 @@ describe('FeeModule', () => {
 			const expectedMinFee = BigInt(feeModule['_minFeePerByte'] * transaction.getBytes().length);
 			await expect(feeModule.verifyTransaction({ transaction } as any)).rejects.toThrow(
 				`Insufficient transaction fee. Minimum required fee is ${expectedMinFee}.`,
+			);
+		});
+
+		it('should validate transaction with balance greater than min fee', async () => {
+			const transaction = new Transaction({
+				module: 'token',
+				command: 'transfer',
+				fee: BigInt(1000000000),
+				nonce: BigInt(0),
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [utils.getRandomBytes(20)],
+				params: utils.getRandomBytes(32),
+			});
+
+			const context = createTransactionContext({ transaction });
+			const transactionVerifyContext = context.createTransactionVerifyContext();
+			const result = await feeModule.verifyTransaction(transactionVerifyContext);
+			expect(result.status).toEqual(VerifyStatus.OK);
+		});
+
+		it('should invalidate transaction with balance less than min fee', async () => {
+			const transaction = new Transaction({
+				module: 'token',
+				command: 'transfer',
+				fee: BigInt(100000000000000000),
+				nonce: BigInt(0),
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [utils.getRandomBytes(20)],
+				params: utils.getRandomBytes(32),
+			});
+
+			const context = createTransactionContext({ transaction });
+			const transactionVerifyContext = context.createTransactionVerifyContext();
+			await expect(feeModule.verifyTransaction(transactionVerifyContext)).rejects.toThrow(
+				`Insufficient balance.`,
 			);
 		});
 	});
