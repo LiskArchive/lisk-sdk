@@ -3,7 +3,7 @@ import { Flags as flagParser } from '@oclif/core';
 import { BaseIPCClientCommand } from '../base_ipc_client';
 
 export class ListCommand extends BaseIPCClientCommand {
-	static description = 'Invokes the provided endpoint.';
+	static description = 'Lists registered endpoints.';
 
 	static examples = [
 		'endpoint:list',
