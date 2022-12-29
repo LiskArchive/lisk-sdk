@@ -17,7 +17,7 @@ import * as fs from 'fs-extra';
 import { homedir } from 'os';
 import { join } from 'path';
 import { ChainConnectorStore, getDBInstance } from '../../src/db';
-import { DB_KEY_SIDECHAIN } from '../../src/constants';
+import { ADDRESS_LENGTH, BLS_PUBLIC_KEY_LENGTH, DB_KEY_SIDECHAIN } from '../../src/constants';
 import { BlockHeader, CrossChainMessagesFromEvents, ValidatorsData } from '../../src/types';
 
 jest.mock('fs-extra');
@@ -52,14 +52,14 @@ describe('Plugins DB', () => {
 	describe('ChainConnectorStore', () => {
 		let chainConnectorStore: ChainConnectorStore;
 
-		describe('constructor', () => {
-			beforeEach(() => {
-				chainConnectorStore = new ChainConnectorStore(
-					new db.InMemoryDatabase() as never,
-					DB_KEY_SIDECHAIN,
-				);
-			});
+		beforeEach(() => {
+			chainConnectorStore = new ChainConnectorStore(
+				new db.InMemoryDatabase() as never,
+				DB_KEY_SIDECHAIN,
+			);
+		});
 
+		describe('constructor', () => {
 			it('should assign DB in the constructor', () => {
 				expect(chainConnectorStore['_db']).toBeInstanceOf(db.InMemoryDatabase);
 			});
@@ -78,11 +78,6 @@ describe('Plugins DB', () => {
 
 					return block;
 				});
-
-				chainConnectorStore = new ChainConnectorStore(
-					new db.InMemoryDatabase() as never,
-					DB_KEY_SIDECHAIN,
-				);
 			});
 
 			it('should return empty array when there is no record', async () => {
@@ -112,10 +107,6 @@ describe('Plugins DB', () => {
 						height: 2,
 					},
 				];
-				chainConnectorStore = new ChainConnectorStore(
-					new db.InMemoryDatabase() as never,
-					DB_KEY_SIDECHAIN,
-				);
 			});
 
 			it('should return empty array when there is no record', async () => {
@@ -139,23 +130,18 @@ describe('Plugins DB', () => {
 					certificateThreshold: BigInt(68),
 					validators: [
 						{
-							address: cryptography.utils.getRandomBytes(20),
+							address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
 							bftWeight: BigInt(1),
-							blsKey: cryptography.utils.getRandomBytes(48),
+							blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
 						},
 						{
-							address: cryptography.utils.getRandomBytes(20),
+							address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
 							bftWeight: BigInt(1),
-							blsKey: cryptography.utils.getRandomBytes(48),
+							blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
 						},
 					],
 					validatorsHash: cryptography.utils.getRandomBytes(54),
 				}));
-
-				chainConnectorStore = new ChainConnectorStore(
-					new db.InMemoryDatabase() as never,
-					DB_KEY_SIDECHAIN,
-				);
 			});
 
 			it('should return empty array when there is no record', async () => {
@@ -225,10 +211,6 @@ describe('Plugins DB', () => {
 						},
 					},
 				];
-				chainConnectorStore = new ChainConnectorStore(
-					new db.InMemoryDatabase() as never,
-					DB_KEY_SIDECHAIN,
-				);
 			});
 
 			it('should return empty array when there is no record', async () => {

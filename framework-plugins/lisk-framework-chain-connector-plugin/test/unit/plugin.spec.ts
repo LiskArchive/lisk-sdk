@@ -108,26 +108,25 @@ describe('ChainConnectorPlugin', () => {
 		subscribe: jest.fn(),
 	};
 
-	const chainConnectorInfoMock = {
+	const chainConnectorStoreMock = {
 		setBlockHeaders: jest.fn(),
-		setAggregateCommits: jest.fn(),
-		setCrossChainMessages: jest.fn(),
-		setValidatorsHashPreimage: jest.fn(),
 		getBlockHeaders: jest.fn(),
+		setAggregateCommits: jest.fn(),
 		getAggregateCommits: jest.fn(),
+		setCrossChainMessages: jest.fn(),
 		getCrossChainMessages: jest.fn(),
 		getValidatorsHashPreimage: jest.fn(),
+		setValidatorsHashPreimage: jest.fn(),
 		close: jest.fn(),
 	};
 	beforeEach(() => {
 		chainConnectorPlugin = new plugins.ChainConnectorPlugin();
 
 		jest.spyOn(dbApi, 'getDBInstance').mockResolvedValue(new db.InMemoryDatabase() as never);
-		(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorInfoMock;
+		(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorStoreMock;
 	});
 
 	afterEach(() => {
-		jest.restoreAllMocks();
 		jest.resetAllMocks();
 	});
 
@@ -220,7 +219,7 @@ describe('ChainConnectorPlugin', () => {
 
 	describe('_newBlockHandler', () => {
 		beforeEach(() => {
-			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorInfoMock;
+			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorStoreMock;
 			(chainConnectorPlugin as any)['_sidechainAPIClient'] = sidechainAPIClientMock;
 			(chainConnectorPlugin as any)['_createCCU'] = jest.fn();
 			(chainConnectorPlugin as any)['_cleanup'] = jest.fn();
@@ -235,13 +234,13 @@ describe('ChainConnectorPlugin', () => {
 
 		it('should invoke "consensus_getBFTParameters" on _sidechainAPIClient', async () => {
 			const block = await getTestBlock();
-			when(chainConnectorInfoMock.getBlockHeaders).calledWith().mockResolvedValue([]);
+			when(chainConnectorStoreMock.getBlockHeaders).calledWith().mockResolvedValue([]);
 
-			when(chainConnectorInfoMock.getAggregateCommits).calledWith().mockResolvedValue([]);
+			when(chainConnectorStoreMock.getAggregateCommits).calledWith().mockResolvedValue([]);
 
-			when(chainConnectorInfoMock.getValidatorsHashPreimage).calledWith().mockResolvedValue([]);
+			when(chainConnectorStoreMock.getValidatorsHashPreimage).calledWith().mockResolvedValue([]);
 
-			when(chainConnectorInfoMock.getCrossChainMessages).calledWith().mockResolvedValue([]);
+			when(chainConnectorStoreMock.getCrossChainMessages).calledWith().mockResolvedValue([]);
 
 			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
 			when(sidechainAPIClientMock.invoke)
@@ -487,9 +486,9 @@ describe('ChainConnectorPlugin', () => {
 			});
 
 			await chainConnectorPlugin.load();
-			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorInfoMock;
+			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorStoreMock;
 
-			chainConnectorInfoMock.getBlockHeaders.mockResolvedValue([
+			chainConnectorStoreMock.getBlockHeaders.mockResolvedValue([
 				{
 					...block.header,
 					height: 1,
@@ -499,7 +498,7 @@ describe('ChainConnectorPlugin', () => {
 				},
 			] as never);
 
-			chainConnectorInfoMock.getValidatorsHashPreimage.mockResolvedValue([
+			chainConnectorStoreMock.getValidatorsHashPreimage.mockResolvedValue([
 				{
 					validatorsHash: block.header.validatorsHash,
 					validators: [
@@ -705,7 +704,7 @@ describe('ChainConnectorPlugin', () => {
 			});
 
 			await chainConnectorPlugin.load();
-			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorInfoMock;
+			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorStoreMock;
 
 			chainConnectorPlugin['_lastCertifiedHeight'] = 6;
 		});
@@ -716,15 +715,15 @@ describe('ChainConnectorPlugin', () => {
 			beforeEach(() => {
 				block1 = testing.createFakeBlockHeader({ height: 5 }).toObject();
 				block2 = testing.createFakeBlockHeader({ height: 6 }).toObject();
-				chainConnectorInfoMock.getBlockHeaders.mockResolvedValue([block1, block2] as never);
+				chainConnectorStoreMock.getBlockHeaders.mockResolvedValue([block1, block2] as never);
 			});
 
 			it('should delete block headers with height less than _lastCertifiedHeight', async () => {
 				await chainConnectorPlugin.deleteBlockHeaders();
 
-				expect(chainConnectorInfoMock.getBlockHeaders).toHaveBeenCalledTimes(1);
+				expect(chainConnectorStoreMock.getBlockHeaders).toHaveBeenCalledTimes(1);
 
-				expect(chainConnectorInfoMock.setBlockHeaders).toHaveBeenCalledWith([block2]);
+				expect(chainConnectorStoreMock.setBlockHeaders).toHaveBeenCalledWith([block2]);
 			});
 		});
 
@@ -1017,7 +1016,7 @@ describe('ChainConnectorPlugin', () => {
 		};
 
 		beforeEach(() => {
-			chainConnectorInfoMock.getCrossChainMessages.mockResolvedValue([
+			chainConnectorStoreMock.getCrossChainMessages.mockResolvedValue([
 				{ nonce: 5 },
 				{ nonce: 6 },
 				{ nonce: 7 },
@@ -1088,8 +1087,8 @@ describe('ChainConnectorPlugin', () => {
 		};
 
 		beforeEach(() => {
-			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorInfoMock;
-			chainConnectorInfoMock.getBlockHeaders.mockResolvedValue([
+			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorStoreMock;
+			chainConnectorStoreMock.getBlockHeaders.mockResolvedValue([
 				{
 					height: 5,
 					validatorsHash,
@@ -1100,7 +1099,7 @@ describe('ChainConnectorPlugin', () => {
 				},
 			] as never);
 
-			chainConnectorInfoMock.getValidatorsHashPreimage.mockResolvedValue([
+			chainConnectorStoreMock.getValidatorsHashPreimage.mockResolvedValue([
 				{
 					validatorsHash,
 					certificateThreshold: BigInt(0),

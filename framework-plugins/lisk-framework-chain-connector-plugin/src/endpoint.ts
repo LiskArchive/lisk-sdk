@@ -44,7 +44,7 @@ export class Endpoint extends BasePluginEndpoint {
 	public async getValidatorsInfoFromPreimage(
 		_context: PluginEndpointContext,
 	): Promise<ValidatorsDataJSON[]> {
-		const validatorsHashPreimages = await this._chainConnectorStore.getValidatorsHashPreimage();
-		return validatorsHashPreimagetoJSON(validatorsHashPreimages);
+		const validatorsHashPreimage = await this._chainConnectorStore.getValidatorsHashPreimage();
+		return validatorsHashPreimagetoJSON(validatorsHashPreimage);
 	}
 }
