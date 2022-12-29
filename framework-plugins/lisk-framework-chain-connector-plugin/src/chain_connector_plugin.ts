@@ -361,8 +361,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			const { modules } = await this._sidechainAPIClient.invoke<{ modules: ModuleMetadata }>(
 				'system_getMetadata',
 			);
-			const interoperabilityMetadata = modules.find(m => m.name === MODULE_NAME_INTEROPERABILITY);
-			const store = interoperabilityMetadata?.stores.find(
+			const interopModuleMetadata = modules.find(m => m.name === MODULE_NAME_INTEROPERABILITY);
+			const store = interopModuleMetadata?.stores.find(
 				s => s.data.$id === '/modules/interoperability/outbox',
 			);
 
@@ -397,18 +397,15 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		const validatorsDataIndex = validatorsHashPreimage.findIndex(v =>
 			v.validatorsHash.equals(bftParameters?.validatorsHash),
 		);
+		const validatorsHashPreimageData = {
+			certificateThreshold: bftParameters?.certificateThreshold,
+			validators: bftParameters?.validators,
+			validatorsHash: bftParameters?.validatorsHash,
+		};
 		if (validatorsDataIndex > -1) {
-			validatorsHashPreimage[validatorsDataIndex] = {
-				certificateThreshold: bftParameters?.certificateThreshold,
-				validators: bftParameters?.validators,
-				validatorsHash: bftParameters?.validatorsHash,
-			};
+			validatorsHashPreimage[validatorsDataIndex] = validatorsHashPreimageData;
 		} else {
-			validatorsHashPreimage.push({
-				certificateThreshold: bftParameters?.certificateThreshold,
-				validators: bftParameters?.validators,
-				validatorsHash: bftParameters?.validatorsHash,
-			});
+			validatorsHashPreimage.push(validatorsHashPreimageData);
 		}
 
 		if (newBlockHeader.aggregateCommit) {
@@ -441,7 +438,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		aggregateCommit: AggregateCommit,
 	): Promise<Certificate> {
 		const blockHeaders = await this._sidechainChainConnectorStore.getBlockHeaders();
-		// console.log(blockHeaders, aggregateCommit.height)
 		const blockHeader = blockHeaders.find(header => header.height === aggregateCommit.height);
 
 		if (!blockHeader) {

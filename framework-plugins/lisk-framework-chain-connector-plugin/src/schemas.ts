@@ -41,7 +41,7 @@ export const configSchema = {
 };
 
 export const validatorsDataSchema = {
-	$id: `${pluginSchemaIDPrefix}/validatorsHashInput`,
+	$id: `${pluginSchemaIDPrefix}/validatorsData`,
 	type: 'object',
 	required: ['validators', 'certificateThreshold'],
 	properties: {

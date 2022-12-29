@@ -11,11 +11,14 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#liveness-condition
 export const CCU_FREQUENCY = 864000; // Approximately 10 days which is 33% of 1 month liveness condition
 export const EMPTY_BYTES = Buffer.alloc(0);
 export const MODULE_NAME_INTEROPERABILITY = 'interoperability';
 export const CROSS_CHAIN_COMMAND_NAME_TRANSFER = 'crossChainTransfer';
 export const CCM_SEND_SUCCESS = 'ccmSendSuccess';
+export const ADDRESS_LENGTH = 20;
+export const BLS_PUBLIC_KEY_LENGTH = 48;
 
 export const DB_KEY_MAINCHAIN = Buffer.from([0]);
 export const DB_KEY_SIDECHAIN = Buffer.from([1]);
