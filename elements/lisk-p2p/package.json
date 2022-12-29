@@ -24,7 +24,6 @@
 	"typedoc": {
 		"entryPoint": "./src/index.ts",
 		"readmeFile": "./README.md",
-		"displayName": "Lisk P2P",
 		"tsconfig": "./tsconfig.json"
 	},
 	"main": "dist-node/index.js",

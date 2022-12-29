@@ -23,7 +23,6 @@
 	"typedoc": {
 		"entryPoint": "./src/index.ts",
 		"readmeFile": "./README.md",
-		"displayName": "Lisk Cryptography",
 		"tsconfig": "./tsconfig.json"
 	},
 	"main": "dist-node/index.js",

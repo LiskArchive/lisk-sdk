@@ -33,6 +33,9 @@ import { baseTransactionSchema } from './schema';
  *
  * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
  * @see {@link LiskValidator}
+ * @see {@link Lisk_Validator.LiskValidator}
+ * @see {@link LiskValidationError}
+ * @see {@link Lisk_Validator.LiskValidationError}
  */
 export const validateTransaction = (
 	transactionObject: Record<string, unknown>,
