@@ -11,11 +11,19 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-export const CCM_BASED_CCU_FREQUENCY = 10;
-export const LIVENESS_BASED_CCU_FREQUENCY = 864000; // Approximately 10 days which is 33% of 1 month liveness condition
+// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#liveness-condition
+export const CCU_FREQUENCY = 864000; // Approximately 10 days which is 33% of 1 month liveness condition
 export const EMPTY_BYTES = Buffer.alloc(0);
 export const MODULE_NAME_INTEROPERABILITY = 'interoperability';
 export const CROSS_CHAIN_COMMAND_NAME_TRANSFER = 'crossChainTransfer';
 export const CCM_SEND_SUCCESS = 'ccmSendSuccess';
-export const DB_KEY_CROSS_CHAIN_MESSAGES = Buffer.from([0]);
+export const ADDRESS_LENGTH = 20;
+export const BLS_PUBLIC_KEY_LENGTH = 48;
+
+export const DB_KEY_MAINCHAIN = Buffer.from([0]);
+export const DB_KEY_SIDECHAIN = Buffer.from([1]);
+
+export const DB_KEY_CROSS_CHAIN_MESSAGES = Buffer.from([1]);
+export const DB_KEY_BLOCK_HEADERS = Buffer.from([2]);
+export const DB_KEY_AGGREGATE_COMMITS = Buffer.from([3]);
+export const DB_KEY_VALIDATORS_HASH_PREIMAGE = Buffer.from([4]);

@@ -12,20 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	Transaction,
-	chain,
-	AggregateCommit,
-	CCMsg,
-	ActiveValidator,
-	OutboxRootWitness,
-} from 'lisk-sdk';
+import { Transaction, chain, CCMsg, ActiveValidator, OutboxRootWitness } from 'lisk-sdk';
+
+export interface BlockHeader extends chain.BlockHeaderAttrs {
+	validatorsHash: Buffer;
+}
 
 export interface ChainConnectorPluginConfig {
 	mainchainIPCPath: string;
 	sidechainIPCPath: string;
-	ccmBasedFrequency: number;
-	livenessBasedFrequency: number;
+	ccuFrequency: number;
 }
 
 export type SentCCUs = Transaction[];
@@ -38,25 +34,15 @@ export interface Validator {
 }
 
 export interface ValidatorsData {
-	certificateThreshold: BigInt;
+	certificateThreshold: bigint;
 	validators: Validator[];
 	validatorsHash: Buffer;
 }
 
-interface CcmWithHeight {
-	ccm: CCMsg;
+export interface CrossChainMessagesFromEvents {
+	ccms: CCMsg[];
 	height: number;
-}
-
-export interface ChainConnectorInfo {
-	blockHeaders: chain.BlockHeader[];
-	aggregateCommits: AggregateCommit[];
-	validatorsHashPreimage: ValidatorsData[];
-	crossChainMessages: CcmWithHeight[];
-}
-
-export interface CrossChainMessages {
-	crossChainMessages: CCMsg[];
+	inclusionProof: OutboxRootWitness;
 }
 
 export interface AggregateCommitJSON {
