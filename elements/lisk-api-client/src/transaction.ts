@@ -272,7 +272,7 @@ export class Transaction {
 		return encodeTransaction(transaction, this._schema, this._metadata);
 	}
 
-	public computeMinFee(transaction: Omit<DecodedTransactionJSON, 'id'>, options: Options): bigint {
+	public computeMinFee(transaction: Omit<DecodedTransactionJSON, 'id'>, options?: Options): bigint {
 		const decodedTx = this.fromJSON(transaction as DecodedTransactionJSON);
 		this._validateTransaction(decodedTx);
 		const commandSchema = getTransactionParamsSchema(transaction, this._metadata);

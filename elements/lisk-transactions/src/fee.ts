@@ -47,8 +47,8 @@ export const computeMinFee = (
 
 	do {
 		transaction.fee = minFee;
-		const size = getBytes(transaction, assetSchema).length;
-		minFee = BigInt(size * (options?.minFeePerByte ?? DEFAULT_MIN_FEE_PER_BYTE));
+		const transactionSize = getBytes(transaction, assetSchema).length;
+		minFee = BigInt(transactionSize * (options?.minFeePerByte ?? DEFAULT_MIN_FEE_PER_BYTE));
 	} while (minFee > BigInt(transaction.fee as bigint));
 
 	return minFee;
