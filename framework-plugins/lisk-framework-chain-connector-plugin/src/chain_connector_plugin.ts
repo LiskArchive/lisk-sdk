@@ -43,6 +43,7 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 	CCM_SEND_SUCCESS,
 	DB_KEY_SIDECHAIN,
+	CCU_TOTAL_CCM_SIZE,
 } from './constants';
 import { ChainConnectorStore, getDBInstance } from './db';
 import { Endpoint } from './endpoint';
@@ -54,6 +55,7 @@ import {
 	InboxUpdate,
 	ProveResponse,
 	BlockHeader,
+	CrossChainMessagesFromEvents,
 } from './types';
 import { getActiveValidatorsDiff } from './utils';
 
@@ -427,11 +429,80 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		// When # of CCMs are there on the outbox to be sent or # of blocks passed from last certified height
 		if (this._ccuFrequency >= newBlockHeader.height - this._lastCertifiedHeight) {
 			// TODO: _createCCU needs to be implemented which will create and send the CCU transaction
+
+			// @ts-expect-error unused constant ccmsWithHeight
+			const ccmsWithHeight = await this._sidechainChainConnectorStore.getCrossChainMessages();
+
+			// TODO: update `certificate` after 7908 is merged
+			const certificate = {} as Certificate;
+
+			// @ts-expect-error unused constant groupedCCMsBySize
+			const groupedCCMsBySize = this._groupCCMsBySize(
+				await this._sidechainChainConnectorStore.getCrossChainMessages(),
+				certificate,
+			);
 			await this._createCCU();
 			// if the transaction is successfully submitted then update the last certfied height and do the cleanup
 			// TODO: also check if the state is growing, delete everything from the inMemory state if it goes beyond last 3 rounds
 			await this._cleanup();
 		}
+	}
+
+	/**
+	 * This will return lists with sub-lists, where total size of CCMs in each sub-list will be <= CCU_TOTAL_CCM_SIZE
+	 * Each sublist can contain CCMS from DIFFERENT heights
+	 */
+	private _groupCCMsBySize(
+		ccmsFromEvents: CrossChainMessagesFromEvents[],
+		certificate: Certificate,
+	): CCMsg[][] {
+		const groupedCCMsBySize: CCMsg[][] = [];
+
+		const filteredCCMsFromEvents = ccmsFromEvents.filter(
+			ccm => ccm.height <= certificate.height && ccm.height > this._lastCertifiedHeight,
+		);
+
+		if (filteredCCMsFromEvents.length === 0) {
+			return groupedCCMsBySize;
+		}
+
+		const allCCMs: CCMsg[] = [];
+		for (const filteredCCMsFromEvent of filteredCCMsFromEvents) {
+			allCCMs.push(...filteredCCMsFromEvent.ccms);
+		}
+
+		// This will group/bundle CCMs in a list where total size of the list will be <= CCU_TOTAL_CCM_SIZE
+		const groupBySize = (startIndex: number): [list: CCMsg[], newIndex: number] => {
+			const newList: CCMsg[] = [];
+			let totalSize = 0;
+			let i = startIndex;
+
+			for (; i < allCCMs.length; i += 1) {
+				const ccm = allCCMs[i];
+				const ccmBytes = codec.encode(ccmSchema, ccm);
+				const size = ccmBytes.length;
+				totalSize += size;
+				if (totalSize > CCU_TOTAL_CCM_SIZE) {
+					return [newList, i];
+				}
+
+				newList.push(ccm);
+			}
+
+			return [newList, i];
+		};
+
+		const buildGroupsBySize = (startIndex: number) => {
+			const [list, lastIndex] = groupBySize(startIndex);
+			groupedCCMsBySize.push(list);
+
+			if (lastIndex < allCCMs.length) {
+				buildGroupsBySize(lastIndex);
+			}
+		};
+
+		buildGroupsBySize(0);
+		return groupedCCMsBySize;
 	}
 
 	private async _getCertificateFromAggregateCommit(
@@ -503,7 +574,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private async _calculateInboxUpdate(sendingChainID: Buffer): Promise<InboxUpdate> {
 		// TODO: Fetch as many CCMs as configured in _ccuFrequency.ccm, between lastCertificateHeight and certificateHeight - After #7569
 		const crossChainMessages = await this._sidechainChainConnectorStore.getCrossChainMessages();
-		const serialzedCCMs = crossChainMessages.map(ccm => codec.encode(ccmSchema, ccm));
+		const serializedCCMs = crossChainMessages.map(ccm => codec.encode(ccmSchema, ccm));
 
 		// TODO: should use the store prefix with sendingChainID after issue https://github.com/LiskHQ/lisk-sdk/issues/7631
 		const outboxKey = sendingChainID;
@@ -517,7 +588,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		};
 
 		return {
-			crossChainMessages: serialzedCCMs,
+			crossChainMessages: serializedCCMs,
 			messageWitnessHashes: [],
 			outboxRootWitness: inclusionProofOutboxRoot,
 		};

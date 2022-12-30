@@ -11,6 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import { MAX_CCM_SIZE } from 'lisk-sdk';
+
 // LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#liveness-condition
 export const CCU_FREQUENCY = 864000; // Approximately 10 days which is 33% of 1 month liveness condition
 export const EMPTY_BYTES = Buffer.alloc(0);
@@ -27,3 +30,13 @@ export const DB_KEY_CROSS_CHAIN_MESSAGES = Buffer.from([1]);
 export const DB_KEY_BLOCK_HEADERS = Buffer.from([2]);
 export const DB_KEY_AGGREGATE_COMMITS = Buffer.from([3]);
 export const DB_KEY_VALIDATORS_HASH_PREIMAGE = Buffer.from([4]);
+
+/**
+ * It’s not really MAX_CCU_SIZE, coz CCU includes other properties
+ * It’s more max size of a CCM to be included in a mainchain block
+ * MAX_CCM_SIZE
+
+ * Max size of total CCM which can be included in a CCU
+ * CCU_TOTAL_CCM_SIZE
+ */
+export const CCU_TOTAL_CCM_SIZE = MAX_CCM_SIZE;
