@@ -135,6 +135,15 @@ describe('endpoint:list command', () => {
 		await expect(listCommand.run()).rejects.toThrow('APIClient is not initialized');
 	});
 
+	it('should throw error if application is not running', async () => {
+		jest.spyOn(appUtils, 'isApplicationRunning').mockReturnValue(false);
+
+		const dataPath = 'mock-data-path';
+		await expect(ListCommand.run([`-d${dataPath}`], config)).rejects.toThrow(
+			`Application at data path ${dataPath} is not running.`,
+		);
+	});
+
 	it('should return empty results if provided module search string through -m flag does not exist', async () => {
 		await ListCommand.run(['-m non-existent-character-combination'], config);
 
