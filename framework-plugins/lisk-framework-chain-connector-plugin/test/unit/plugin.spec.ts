@@ -30,6 +30,7 @@ import {
 	CCMsg,
 	ccmSchema,
 	db,
+	Block,
 } from 'lisk-sdk';
 import { when } from 'jest-when';
 import {
@@ -37,11 +38,16 @@ import {
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	MODULE_NAME_INTEROPERABILITY,
 	CCM_SEND_SUCCESS,
+	CCU_TOTAL_CCM_SIZE,
 } from '../../src/constants';
 import * as plugins from '../../src/chain_connector_plugin';
 import * as dbApi from '../../src/db';
 import * as utils from '../../src/utils';
-import { BlockHeader, CrossChainUpdateTransactionParams } from '../../src/types';
+import {
+	BlockHeader,
+	CrossChainUpdateTransactionParams,
+	CrossChainMessagesFromEvents,
+} from '../../src/types';
 
 const appConfigForPlugin: ApplicationConfigForPlugin = {
 	system: {
@@ -92,6 +98,39 @@ const getTestBlock = async () => {
 	});
 };
 
+const getCCM = (n = 1): CCMsg => {
+	return {
+		nonce: BigInt(n),
+		module: MODULE_NAME_INTEROPERABILITY,
+		crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+		sendingChainID: Buffer.from([0, 0, 0, 3]),
+		receivingChainID: Buffer.from([0, 0, 0, 2]),
+		fee: BigInt(n),
+		status: 0,
+		params: Buffer.alloc(1000),
+	};
+};
+
+const getEventsJSON = (eventsCount: number) => {
+	const someEvents = [];
+	let i = 0;
+	const height = 1;
+	while (i < eventsCount) {
+		someEvents.push(
+			new chain.Event({
+				index: i,
+				module: MODULE_NAME_INTEROPERABILITY,
+				topics: [cryptography.utils.getRandomBytes(32)],
+				name: CCM_SEND_SUCCESS,
+				height,
+				data: codec.encode(ccmSchema, { ...getCCM(height + i) } as CCMsg),
+			}),
+		);
+		i += 1;
+	}
+	return someEvents.map(e => e.toJSON());
+};
+
 const getApiClientMocks = () => {
 	return {
 		disconnect: jest.fn().mockResolvedValue({} as never),
@@ -119,6 +158,34 @@ describe('ChainConnectorPlugin', () => {
 		setValidatorsHashPreimage: jest.fn(),
 		close: jest.fn(),
 	};
+
+	const setupChainConnectorPluginLoad = async (block: Block, eventsCount = 2) => {
+		jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
+
+		when(sidechainAPIClientMock.invoke)
+			.calledWith('consensus_getBFTParameters', { height: block.header.height })
+			.mockResolvedValue({
+				certificateThreshold: BigInt(70),
+				validators: [],
+				validatorsHash: cryptography.utils.getRandomBytes(20),
+			});
+
+		when(sidechainAPIClientMock.invoke)
+			.calledWith('chain_getEvents', { height: block.header.height })
+			.mockResolvedValue(getEventsJSON(eventsCount));
+
+		await chainConnectorPlugin.init({
+			logger: testing.mocks.loggerMock,
+			config: { mainchainIPCPath: '~/.lisk/mainchain' },
+			appConfig: appConfigForPlugin,
+		});
+
+		await chainConnectorPlugin.load();
+		await (chainConnectorPlugin as any)['_newBlockHandler']({
+			blockHeader: block.header.toJSON(),
+		});
+	};
+
 	beforeEach(() => {
 		chainConnectorPlugin = new plugins.ChainConnectorPlugin();
 
@@ -218,11 +285,16 @@ describe('ChainConnectorPlugin', () => {
 	});
 
 	describe('_newBlockHandler', () => {
-		beforeEach(() => {
+		let block: Block;
+		beforeEach(async () => {
 			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorStoreMock;
 			(chainConnectorPlugin as any)['_sidechainAPIClient'] = sidechainAPIClientMock;
+			(chainConnectorPlugin as any)['_groupCCMsBySize'] = jest.fn();
 			(chainConnectorPlugin as any)['_createCCU'] = jest.fn();
 			(chainConnectorPlugin as any)['_cleanup'] = jest.fn();
+
+			block = await getTestBlock();
+			await setupChainConnectorPluginLoad(block);
 		});
 
 		afterEach(async () => {
@@ -232,8 +304,7 @@ describe('ChainConnectorPlugin', () => {
 			jest.resetAllMocks();
 		});
 
-		it('should invoke "consensus_getBFTParameters" on _sidechainAPIClient', async () => {
-			const block = await getTestBlock();
+		it('should invoke "consensus_getBFTParameters" on _sidechainAPIClient', () => {
 			when(chainConnectorStoreMock.getBlockHeaders).calledWith().mockResolvedValue([]);
 
 			when(chainConnectorStoreMock.getAggregateCommits).calledWith().mockResolvedValue([]);
@@ -241,25 +312,6 @@ describe('ChainConnectorPlugin', () => {
 			when(chainConnectorStoreMock.getValidatorsHashPreimage).calledWith().mockResolvedValue([]);
 
 			when(chainConnectorStoreMock.getCrossChainMessages).calledWith().mockResolvedValue([]);
-
-			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
-			when(sidechainAPIClientMock.invoke)
-				.calledWith('consensus_getBFTParameters', { height: block.header.height })
-				.mockResolvedValue({
-					certificateThreshold: BigInt(70),
-					validators: [],
-					validatorsHash: cryptography.utils.getRandomBytes(20),
-				});
-			await chainConnectorPlugin.init({
-				logger: testing.mocks.loggerMock,
-				config: { mainchainIPCPath: '~/.lisk/mainchain' },
-				appConfig: appConfigForPlugin,
-			});
-
-			await chainConnectorPlugin.load();
-			await (chainConnectorPlugin as any)['_newBlockHandler']({
-				blockHeader: block.header.toJSON(),
-			});
 
 			expect(sidechainAPIClientMock.subscribe).toHaveBeenCalledTimes(1);
 			expect(sidechainAPIClientMock.invoke).toHaveBeenCalledWith('consensus_getBFTParameters', {
@@ -270,58 +322,6 @@ describe('ChainConnectorPlugin', () => {
 		});
 
 		it('should invoke "chain_getEvents" on _sidechainAPIClient', async () => {
-			const block = await getTestBlock();
-			const ccm: CCMsg = {
-				nonce: BigInt(1),
-				module: MODULE_NAME_INTEROPERABILITY,
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-				sendingChainID: Buffer.from([0, 0, 0, 3]),
-				receivingChainID: Buffer.from([0, 0, 0, 2]),
-				fee: BigInt(0),
-				status: 0,
-				params: Buffer.alloc(2),
-			};
-
-			const someEvents = [
-				new chain.Event({
-					index: 1,
-					module: MODULE_NAME_INTEROPERABILITY,
-					topics: [cryptography.utils.getRandomBytes(32)],
-					name: CCM_SEND_SUCCESS,
-					height: 1,
-					data: codec.encode(ccmSchema, { ...ccm, nonce: BigInt(1) } as CCMsg),
-				}),
-				new chain.Event({
-					index: 2,
-					module: MODULE_NAME_INTEROPERABILITY,
-					topics: [cryptography.utils.getRandomBytes(32)],
-					name: CCM_SEND_SUCCESS,
-					height: 1,
-					data: codec.encode(ccmSchema, { ...ccm, nonce: BigInt(2) } as CCMsg),
-				}),
-			];
-			const eventsJson = someEvents.map(e => e.toJSON());
-
-			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
-
-			when(sidechainAPIClientMock.invoke)
-				.calledWith('consensus_getBFTParameters', { height: block.header.height })
-				.mockResolvedValue({
-					certificateThreshold: BigInt(70),
-					validators: [],
-					validatorsHash: cryptography.utils.getRandomBytes(20),
-				});
-
-			when(sidechainAPIClientMock.invoke)
-				.calledWith('chain_getEvents', { height: block.header.height })
-				.mockResolvedValue(eventsJson);
-
-			await chainConnectorPlugin.init({
-				logger: testing.mocks.loggerMock,
-				config: { mainchainIPCPath: '~/.lisk/mainchain' },
-				appConfig: appConfigForPlugin,
-			});
-
 			when(sidechainAPIClientMock.invoke)
 				.calledWith('system_getMetadata')
 				.mockResolvedValue({
@@ -379,6 +379,7 @@ describe('ChainConnectorPlugin', () => {
 			expect((chainConnectorPlugin as any)['_createCCU']).toHaveBeenCalled();
 			expect((chainConnectorPlugin as any)['_cleanup']).toHaveBeenCalled();
 
+			const ccm = getCCM(1);
 			const savedCCMs = await chainConnectorPlugin[
 				'_sidechainChainConnectorStore'
 			].getCrossChainMessages();
@@ -395,6 +396,66 @@ describe('ChainConnectorPlugin', () => {
 					},
 				},
 			]);
+		});
+	});
+
+	describe('getListOfCCMs', () => {
+		it('should return CrossChainMessagesFromEvents[][] with length of total CCMs divided by CCU_TOTAL_CCM_SIZE', () => {
+			const ccmsFromEvents: CrossChainMessagesFromEvents[] = [];
+			const buildNumCCMs = (num: number, fromHeight: number): CCMsg[] => {
+				const ccms: CCMsg[] = [];
+				let j = 1;
+				while (j <= num) {
+					ccms.push(getCCM(fromHeight + j));
+					j += 1;
+				}
+				return ccms;
+			};
+
+			ccmsFromEvents.push({
+				height: 1,
+				ccms: buildNumCCMs(2, 1),
+				inclusionProof: {} as any,
+			});
+			ccmsFromEvents.push({
+				height: 3,
+				ccms: buildNumCCMs(5, 3),
+				inclusionProof: {} as any,
+			});
+			ccmsFromEvents.push({
+				height: 4,
+				ccms: buildNumCCMs(20, 4),
+				inclusionProof: {} as any,
+			});
+
+			// after filtering, we will have ccms only from heights 3 & 4, so total 25 ccms
+			chainConnectorPlugin['_lastCertifiedHeight'] = 2;
+			const listOfCCMs = (chainConnectorPlugin as any)['_groupCCMsBySize'](ccmsFromEvents, {
+				height: 5,
+			} as Certificate);
+
+			const getTotalSize = (ccms: CCMsg[]) => {
+				return ccms
+					.map(ccm => codec.encode(ccmSchema, ccm).length) // to each CCM size
+					.reduce((a, b) => a + b, 0); // sum
+			};
+
+			// for 25 CCMs (after filtering), we will have 3 lists
+			expect(listOfCCMs).toHaveLength(3);
+
+			// Ist list will have 9 CCMs (start index 0, last index = 8), totalSize = 9531 (1059 * 9))
+			const firstList = listOfCCMs[0];
+			expect(firstList).toHaveLength(9);
+			expect(getTotalSize(firstList)).toBeLessThan(CCU_TOTAL_CCM_SIZE);
+
+			// 2nd list will have 9 CCMs (start index 9, last index = 17)
+			const secondList = listOfCCMs[1];
+			expect(secondList).toHaveLength(9);
+			expect(getTotalSize(secondList)).toBeLessThan(CCU_TOTAL_CCM_SIZE);
+
+			// 3rd list will have 7 CCMs (start index 18)
+			const thirdList = listOfCCMs[2];
+			expect(thirdList).toHaveLength(7);
 		});
 	});
 
