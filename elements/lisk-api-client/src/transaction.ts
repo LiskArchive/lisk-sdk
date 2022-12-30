@@ -17,6 +17,7 @@ import {
 	signMultiSignatureTransaction,
 	computeMinFee,
 } from '@liskhq/lisk-transactions';
+import { Options } from '@liskhq/lisk-transactions/src/fee';
 import { address as cryptoAddress, ed } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
@@ -37,10 +38,6 @@ import {
 	Transaction as ITransaction,
 	DecodedTransactionJSON,
 } from './types';
-
-interface Options {
-	readonly numberOfSignatures: number;
-}
 
 interface AuthAccount {
 	nonce: string;
@@ -275,14 +272,10 @@ export class Transaction {
 		return encodeTransaction(transaction, this._schema, this._metadata);
 	}
 
-	public computeMinFee(transaction: Omit<DecodedTransactionJSON, 'id'>): bigint {
+	public computeMinFee(transaction: Omit<DecodedTransactionJSON, 'id'>, options: Options): bigint {
 		const decodedTx = this.fromJSON(transaction as DecodedTransactionJSON);
 		this._validateTransaction(decodedTx);
 		const commandSchema = getTransactionParamsSchema(transaction, this._metadata);
-		const numberOfSignatures = decodedTx.signatures ? decodedTx.signatures.length : 1;
-		const options: Options = {
-			numberOfSignatures,
-		};
 
 		return computeMinFee(decodedTx, commandSchema, options);
 	}

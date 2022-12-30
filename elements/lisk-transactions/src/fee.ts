@@ -15,7 +15,7 @@
 
 import { getBytes } from './sign';
 
-interface Options {
+export interface Options {
 	readonly minFeePerByte?: number;
 	readonly numberOfSignatures?: number;
 	readonly numberOfEmptySignatures?: number;
