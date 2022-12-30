@@ -13,7 +13,6 @@
  */
 
 import { validator } from '@liskhq/lisk-validator';
-import { NotFoundError } from '@liskhq/lisk-chain';
 import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { Schema } from '@liskhq/lisk-codec';
 import { ModuleEndpointContext } from '../../types';
@@ -21,7 +20,6 @@ import { VerifyStatus } from '../../state_machine';
 import { BaseEndpoint } from '../base_endpoint';
 import {
 	AuthAccountJSON,
-	ImmutableStoreCallback,
 	VerifyEndpointResultJSON,
 	KeySignaturePair,
 	SortedMultisignatureGroup,
@@ -47,8 +45,8 @@ export class AuthEndpoint extends BaseEndpoint {
 		cryptoAddress.validateLisk32Address(address);
 
 		const accountAddress = cryptoAddress.getAddressFromLisk32Address(address);
-		const store = this.stores.get(AuthAccountStore);
-		const authAccount = await store.getOrDefault(context, accountAddress);
+		const authAccountStore = this.stores.get(AuthAccountStore);
+		const authAccount = await authAccountStore.getOrDefault(context, accountAddress);
 
 		return {
 			nonce: authAccount.nonce.toString(),
@@ -70,20 +68,12 @@ export class AuthEndpoint extends BaseEndpoint {
 		} = context;
 
 		const transaction = getTransactionFromParameter(transactionParameter);
-		const transactionBytes = transaction.getSigningBytes();
-
 		const accountAddress = cryptoAddress.getAddressFromPublicKey(transaction.senderPublicKey);
-
-		const store = this.stores.get(AuthAccountStore);
-		const account = await store.get(context, accountAddress);
-
-		const isMultisignatureAccount = await this._isMultisignatureAccount(
-			context.getStore,
-			accountAddress,
-		);
+		const authAccountStore = this.stores.get(AuthAccountStore);
+		const account = await authAccountStore.getOrDefault(context, accountAddress);
 
 		try {
-			verifySignatures(transaction, transactionBytes, chainID, account, isMultisignatureAccount);
+			verifySignatures(transaction, chainID, account);
 		} catch (error) {
 			return { verified: false };
 		}
@@ -99,8 +89,8 @@ export class AuthEndpoint extends BaseEndpoint {
 		const transaction = getTransactionFromParameter(transactionParameter);
 		const accountAddress = cryptoAddress.getAddressFromPublicKey(transaction.senderPublicKey);
 
-		const store = this.stores.get(AuthAccountStore);
-		const account = await store.get(context, accountAddress);
+		const authAccountStore = this.stores.get(AuthAccountStore);
+		const account = await authAccountStore.getOrDefault(context, accountAddress);
 
 		const verificationResult = verifyNonce(transaction, account).status;
 		return { verified: verificationResult === VerifyStatus.OK };
@@ -139,22 +129,5 @@ export class AuthEndpoint extends BaseEndpoint {
 				.map(keySignaturePair => keySignaturePair.signature)
 				.concat(sortedOptional.map(keySignaturePair => keySignaturePair.signature)),
 		};
-	}
-
-	private async _isMultisignatureAccount(
-		getStore: ImmutableStoreCallback,
-		address: Buffer,
-	): Promise<boolean> {
-		const authSubstore = this.stores.get(AuthAccountStore);
-		try {
-			const authAccount = await authSubstore.get({ getStore }, address);
-
-			return authAccount.numberOfSignatures !== 0;
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
-			return false;
-		}
 	}
 }

@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-framework-forger-plugin",
-	"version": "0.3.0-alpha.7",
+	"version": "0.3.0-alpha.8",
 	"description": "A plugin for lisk-framework that monitors configured validators forging activity and stakers information.",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -40,10 +40,10 @@
 	"dependencies": {
 		"debug": "4.3.4",
 		"fs-extra": "11.1.0",
-		"lisk-sdk": "^6.0.0-alpha.7"
+		"lisk-sdk": "^6.0.0-alpha.8"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-api-client": "^6.0.0-alpha.7",
+		"@liskhq/lisk-api-client": "^6.0.0-alpha.8",
 		"@types/debug": "4.1.5",
 		"@types/jest": "29.2.3",
 		"@types/jest-when": "3.5.2",
