@@ -38,6 +38,12 @@ export {
 	OwnChainAccountJSON,
 } from './types';
 // Common
-export { LIVENESS_LIMIT, MESSAGE_TAG_CERTIFICATE } from './constants';
+export {
+	LIVENESS_LIMIT,
+	MESSAGE_TAG_CERTIFICATE,
+	MODULE_NAME_INTEROPERABILITY,
+	MAX_CCM_SIZE,
+	EMPTY_BYTES,
+} from './constants';
 export { ChainStatus } from './stores/chain_account';
 export { ccmSchema } from './schemas';

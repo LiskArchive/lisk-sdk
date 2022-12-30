@@ -59,6 +59,7 @@ export {
 	TokenModule,
 	TransferCommand,
 	genesisTokenStoreSchema as tokenGenesisStoreSchema,
+	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 } from './modules/token';
 export {
 	PoSMethod,
@@ -98,6 +99,9 @@ export {
 	OutboxRootWitness,
 	LIVENESS_LIMIT,
 	MESSAGE_TAG_CERTIFICATE,
+	MODULE_NAME_INTEROPERABILITY,
+	MAX_CCM_SIZE,
+	EMPTY_BYTES,
 	ChainStatus,
 	ccmSchema,
 	OwnChainAccount,
