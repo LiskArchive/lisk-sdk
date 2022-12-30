@@ -128,6 +128,13 @@ describe('endpoint:list command', () => {
 		jest.spyOn(BaseIPCClientCommand.prototype, 'printJSON');
 	});
 
+	it('should throw error if client is not initialized', async () => {
+		const listCommand = new ListCommand(['-mnon-existent-character-combination'], config as never);
+		listCommand['_client'] = undefined;
+
+		await expect(listCommand.run()).rejects.toThrow('APIClient is not initialized');
+	});
+
 	it('should return empty results if provided module search string through -m flag does not exist', async () => {
 		await ListCommand.run(['-m non-existent-character-combination'], config);
 
