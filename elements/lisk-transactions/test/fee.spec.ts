@@ -106,7 +106,7 @@ describe('fee', () => {
 			const txBytes = getBytes({ ...transaction, fee: minFee }, validParamsSchema);
 
 			// Assert
-			expect(minFee.toString()).toEqual(BigInt(txBytes.length * 1000).toString());
+			expect(minFee).toBe(BigInt(txBytes.length * 1000));
 		});
 
 		it('should calculate minimum fee for validator registration transaction', () => {
