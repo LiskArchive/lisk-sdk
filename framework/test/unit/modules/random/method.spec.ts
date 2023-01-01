@@ -15,7 +15,7 @@
 import { BlockAsset, BlockAssets } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { utils } from '@liskhq/lisk-cryptography';
+import { objects } from '@liskhq/lisk-utils';
 import { RandomMethod } from '../../../../src/modules/random/method';
 import { SEED_LENGTH } from '../../../../src/modules/random/constants';
 import { blockHeaderAssetRandomModule } from '../../../../src/modules/random/schemas';
@@ -32,7 +32,7 @@ import {
 } from '../../../../src/modules/random/stores/validator_reveals';
 
 const strippedHashOfIntegerBuffer = (num: number) =>
-	cryptography.utils.hash(utils.intToBuffer(num, 4)).slice(0, SEED_LENGTH);
+	cryptography.utils.hash(cryptography.utils.intToBuffer(num, 4)).slice(0, SEED_LENGTH);
 
 describe('RandomModuleMethod', () => {
 	let randomMethod: RandomMethod;
@@ -91,7 +91,7 @@ describe('RandomModuleMethod', () => {
 			).rejects.toThrow('Block asset is missing.');
 		});
 
-		it('should return true for a valid seed reveal', async () => {
+		it('should return true if the last revealed seed by generatorAddress in validatorReveals array is equal to the hash of seedReveal', async () => {
 			for (const [address, hashes] of Object.entries(twoRoundsValidatorsHashes)) {
 				// Arrange
 				const blockAsset: BlockAsset = {
@@ -128,7 +128,7 @@ describe('RandomModuleMethod', () => {
 			}
 		});
 
-		it('should return false for an invalid seed reveal when last seed is not hash of the given reveal', async () => {
+		it('should return false if there is a last revealed seed by generatorAddress in validatorReveals array but it is not equal to the hash of seedReveal', async () => {
 			await randomStore.set(context, emptyBytes, { validatorReveals: twoRoundsValidators });
 			for (const [address, hashes] of Object.entries(twoRoundsValidatorsHashes)) {
 				// Arrange
@@ -145,6 +145,76 @@ describe('RandomModuleMethod', () => {
 				// Assert
 				expect(isValid).toBe(false);
 			}
+		});
+
+		it('should return true if generatorAddress is not present in any element of validatorReveals array', async () => {
+			// Arrange
+			const { generatorAddress } = twoRoundsValidators[5];
+			const twoRoundsValidatorsClone1 = objects.cloneDeep(twoRoundsValidators);
+			twoRoundsValidatorsClone1[5].generatorAddress = Buffer.alloc(0);
+			await randomStore.set(context, emptyBytes, {
+				validatorReveals: twoRoundsValidatorsClone1.slice(0, 103),
+			});
+			const hashes = twoRoundsValidatorsHashes[generatorAddress.toString('hex')];
+			const blockAsset: BlockAsset = {
+				module: randomModule.name,
+				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[1] }),
+			};
+			// Act
+			const isValid = await randomMethod.isSeedRevealValid(
+				context,
+				generatorAddress,
+				new BlockAssets([blockAsset]),
+			);
+			// Assert
+			expect(isValid).toBe(true);
+		});
+
+		it('should return false if seedreveal is not a 16-bytes value', async () => {
+			// Arrange
+			const { generatorAddress } = twoRoundsValidators[5];
+			const twoRoundsValidatorsClone2 = twoRoundsValidators;
+			twoRoundsValidatorsClone2[5].seedReveal = cryptography.utils.getRandomBytes(17);
+			await randomStore.set(context, emptyBytes, {
+				validatorReveals: twoRoundsValidatorsClone2.slice(0, 103),
+			});
+			const hashes = twoRoundsValidatorsHashes[generatorAddress.toString('hex')];
+			const blockAsset: BlockAsset = {
+				module: randomModule.name,
+				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[1] }),
+			};
+			// Act
+			const isValid = await randomMethod.isSeedRevealValid(
+				context,
+				generatorAddress,
+				new BlockAssets([blockAsset]),
+			);
+			// Assert
+			expect(isValid).toBe(false);
+		});
+
+		it('should return false if generatorAddress is not a 20-byte input', async () => {
+			// Arrange
+			const generatorAddress = cryptography.utils.getRandomBytes(21);
+			const twoRoundsValidatorsClone3 = objects.cloneDeep(twoRoundsValidators);
+			twoRoundsValidatorsClone3[5].generatorAddress = generatorAddress;
+			await randomStore.set(context, emptyBytes, {
+				validatorReveals: twoRoundsValidatorsClone3.slice(0, 103),
+			});
+			const hashes =
+				twoRoundsValidatorsHashes[twoRoundsValidators[5].generatorAddress.toString('hex')];
+			const blockAsset: BlockAsset = {
+				module: randomModule.name,
+				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[1] }),
+			};
+			// Act
+			const isValid = await randomMethod.isSeedRevealValid(
+				context,
+				generatorAddress,
+				new BlockAssets([blockAsset]),
+			);
+			// Assert
+			expect(isValid).toBe(false);
 		});
 	});
 
@@ -198,7 +268,6 @@ describe('RandomModuleMethod', () => {
 		it('should throw error when height is negative', async () => {
 			const height = -11;
 			const numberOfSeeds = 2;
-			// Create a buffer from height + numberOfSeeds
 
 			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
 				'Height or number of seeds cannot be negative.',
@@ -208,14 +277,49 @@ describe('RandomModuleMethod', () => {
 		it('should throw error when numberOfSeeds is negative', async () => {
 			const height = 11;
 			const numberOfSeeds = -2;
-			// Create a buffer from height + numberOfSeeds
 
 			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
 				'Height or number of seeds cannot be negative.',
 			);
 		});
 
-		it('should return XOR random bytes for height=11, numberOfSeeds=2', async () => {
+		it('should throw error if for every seedObject element in validatorReveals height > seedObject.height', async () => {
+			const height = 35;
+			const numberOfSeeds = 5;
+
+			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
+				'Height is in future.',
+			);
+		});
+
+		it('should throw error when numberOfSeeds is greater than 1000', async () => {
+			const height = 11;
+			const numberOfSeeds = 1001;
+
+			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
+				'Number of seeds cannot be greater than 1000.',
+			);
+		});
+
+		it('should throw error when height is non integer input', async () => {
+			const height = 5.1;
+			const numberOfSeeds = 2;
+
+			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
+				'Height or number of seeds cannot be non integer.',
+			);
+		});
+
+		it('should throw error when number of seeds is non integer input', async () => {
+			const height = 5;
+			const numberOfSeeds = 0.3;
+
+			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
+				'Height or number of seeds cannot be non integer.',
+			);
+		});
+
+		it('should return XOR random bytes as 16 bytes value for height=11, numberOfSeeds=2', async () => {
 			const height = 11;
 			const numberOfSeeds = 2;
 			// Create a buffer from height + numberOfSeeds
@@ -231,6 +335,7 @@ describe('RandomModuleMethod', () => {
 				hashesExpected[1],
 			]);
 
+			expect(xorExpected).toHaveLength(16);
 			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				xorExpected,
 			);
@@ -308,14 +413,12 @@ describe('RandomModuleMethod', () => {
 			);
 		});
 
-		it('should return initial random bytes for height=20, numberOfSeeds=1', async () => {
+		it('should throw error for height=20, numberOfSeeds=1', async () => {
 			const height = 20;
 			const numberOfSeeds = 1;
-			// Create a buffer from height + numberOfSeeds
-			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
-			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
-				randomSeed,
+			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
+				'Height is in future.',
 			);
 		});
 	});

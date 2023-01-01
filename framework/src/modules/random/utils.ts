@@ -67,14 +67,33 @@ export const getRandomSeed = (
 	numberOfSeeds: number,
 	validatorsReveal: ValidatorSeedReveal[],
 ) => {
+	if (!Number.isInteger(height) || !Number.isInteger(numberOfSeeds)) {
+		throw new Error('Height or number of seeds cannot be non integer.');
+	}
 	if (height < 0 || numberOfSeeds < 0) {
 		throw new Error('Height or number of seeds cannot be negative.');
 	}
+	if (numberOfSeeds > 1000) {
+		throw new Error('Number of seeds cannot be greater than 1000.');
+	}
 	const initRandomBuffer = utils.intToBuffer(height + numberOfSeeds, 4);
 	let randomSeed = cryptography.utils.hash(initRandomBuffer).slice(0, 16);
-	const currentSeeds = validatorsReveal.filter(
-		v => height <= v.height && v.height <= height + numberOfSeeds,
-	);
+
+	let isInFuture = true;
+	const currentSeeds = [];
+	for (const validatorReveal of validatorsReveal) {
+		if (validatorReveal.height >= height) {
+			isInFuture = false;
+			if (validatorReveal.height <= height + numberOfSeeds) {
+				currentSeeds.push(validatorReveal);
+			}
+		}
+	}
+
+	if (isInFuture) {
+		throw new Error('Height is in future.');
+	}
+
 	for (const seedObject of currentSeeds) {
 		if (seedObject.valid) {
 			randomSeed = bitwiseXOR([randomSeed, seedObject.seedReveal]);
