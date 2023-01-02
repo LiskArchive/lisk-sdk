@@ -35,17 +35,17 @@ describe('AuthEndpoint', () => {
 		targetAccount: {
 			passphrase: 'inherit moon normal relief spring bargain hobby join baby flash fog blood',
 		},
-		mandatoryOne: {
+		mandatory1: {
 			passphrase: 'trim elegant oven term access apple obtain error grain excite lawn neck',
 		},
-		mandatoryTwo: {
+		mandatory2: {
 			passphrase: 'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic',
 		},
-		optionalOne: {
+		optional1: {
 			passphrase:
 				'sugar object slender confirm clock peanut auto spice carbon knife increase estate',
 		},
-		optionalTwo: {
+		optional2: {
 			passphrase: 'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
 		},
 	};
@@ -83,7 +83,6 @@ describe('AuthEndpoint', () => {
 
 	describe('getAuthAccount', () => {
 		it('should get an auth account successfully', async () => {
-			// Arrange
 			const context = createTransientModuleEndpointContext({
 				params: {
 					address: address.getLisk32AddressFromAddress(existingAddress),
@@ -107,7 +106,6 @@ describe('AuthEndpoint', () => {
 			);
 			const expectedOptionalKeys = expectedAuthAccount.optionalKeys.map(key => key.toString('hex'));
 
-			// Assert
 			expect(authAccount).toHaveProperty('nonce', expectedAuthAccount.nonce.toString());
 			expect(authAccount).toHaveProperty(
 				'numberOfSignatures',
@@ -118,7 +116,6 @@ describe('AuthEndpoint', () => {
 		});
 
 		it('should get a zero-value for non-existent auth account', async () => {
-			// Arrange
 			const context = createTransientModuleEndpointContext({
 				params: {
 					address: address.getLisk32AddressFromAddress(nonExistingAddress),
@@ -138,7 +135,6 @@ describe('AuthEndpoint', () => {
 
 			const authAccount = await authEndpoint.getAuthAccount(context);
 
-			// Assert
 			expect(authAccount).toHaveProperty('nonce', expectedAuthAccount.nonce.toString());
 			expect(authAccount).toHaveProperty(
 				'numberOfSignatures',
@@ -150,9 +146,10 @@ describe('AuthEndpoint', () => {
 	});
 
 	describe('isValidSignature', () => {
-		it('should verify the transaction from a single-signature account that contains one signature', async () => {
-			// Arrange
-			const transaction = new Transaction({
+		let transaction: Transaction;
+
+		beforeEach(() => {
+			transaction = new Transaction({
 				module: 'token',
 				command: 'transfer',
 				nonce: BigInt('0'),
@@ -161,246 +158,332 @@ describe('AuthEndpoint', () => {
 				params: utils.getRandomBytes(100),
 				signatures: [],
 			});
-
-			const signature = ed.signDataWithPrivateKey(
-				TAG_TRANSACTION,
-				chainID,
-				transaction.getBytes(),
-				existingPrivateKey,
-			);
-
-			transaction.signatures.push(signature);
-
-			const context = createTransientModuleEndpointContext({
-				params: { transaction: transaction.getBytes().toString('hex') },
-				chainID,
-			});
-
-			when(authAccountStore.get as jest.Mock)
-				.calledWith(expect.anything(), existingAddress)
-				.mockReturnValue({
-					mandatoryKeys: [],
-					optionalKeys: [],
-					nonce: BigInt(0),
-					numberOfSignatures: 0,
-				});
-
-			// Act
-			const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
-				.verified;
-
-			// Assert
-			expect(receivedSignatureVerificationResult).toBeTrue();
 		});
 
-		it('should report invalid signature in a transaction from a single-signature account', async () => {
-			// Arrange
-			const transaction = new Transaction({
-				module: 'token',
-				command: 'transfer',
-				nonce: BigInt('0'),
-				fee: BigInt('100000000'),
-				senderPublicKey: existingSenderPublicKey,
-				params: utils.getRandomBytes(100),
-				signatures: [utils.getRandomBytes(64)],
-			});
-
-			const context = createTransientModuleEndpointContext({
-				params: { transaction: transaction.getBytes().toString('hex') },
-				chainID,
-			});
-
-			when(authAccountStore.get as jest.Mock)
-				.calledWith(expect.anything(), existingAddress)
-				.mockReturnValue({
-					mandatoryKeys: [],
-					optionalKeys: [],
-					nonce: BigInt(0),
-					numberOfSignatures: 0,
-				});
-
-			// Act
-			const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
-				.verified;
-
-			// Assert
-			expect(receivedSignatureVerificationResult).toBeFalse();
-		});
-
-		it('should verify the transaction with multi-signature', async () => {
-			// Arrange
-			const transaction = new Transaction({
-				module: 'token',
-				command: 'transfer',
-				nonce: BigInt('0'),
-				fee: BigInt('100000000'),
-				senderPublicKey: existingSenderPublicKey,
-				params: utils.getRandomBytes(100),
-				signatures: [],
-			});
-
-			(transaction.signatures as any).push(
-				ed.signDataWithPrivateKey(
+		describe('single-signature account', () => {
+			it('should return true for a valid signature', async () => {
+				const signature = ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
 					chainID,
-					transaction.getSigningBytes(),
-					accounts.mandatoryOne.privateKey as Buffer,
-				),
-			);
-
-			(transaction.signatures as any).push(
-				ed.signDataWithPrivateKey(
-					TAG_TRANSACTION,
-					chainID,
-					transaction.getSigningBytes(),
-					accounts.mandatoryTwo.privateKey as Buffer,
-				),
-			);
-
-			(transaction.signatures as any).push(
-				ed.signDataWithPrivateKey(
-					TAG_TRANSACTION,
-					chainID,
-					transaction.getSigningBytes(),
-					accounts.optionalOne.privateKey as Buffer,
-				),
-			);
-
-			(transaction.signatures as any).push(Buffer.from(''));
-
-			const transactionAsString = transaction.getBytes().toString('hex');
-
-			const context = createTransientModuleEndpointContext({
-				params: {
-					transaction: transactionAsString,
-				},
-				chainID,
-			});
-
-			when(authAccountStore.get as jest.Mock)
-				.calledWith(expect.anything(), existingAddress)
-				.mockReturnValue({
-					mandatoryKeys: [accounts.mandatoryOne.publicKey, accounts.mandatoryTwo.publicKey],
-					optionalKeys: [accounts.optionalOne.publicKey, accounts.optionalTwo.publicKey],
-					nonce: BigInt(0),
-					numberOfSignatures: 3,
-				});
-
-			// Assert
-			const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
-				.verified;
-			expect(receivedSignatureVerificationResult).toBeTrue();
-		});
-
-		it('should verify the transaction of register multisignature group', async () => {
-			const decodedTxParams = {
-				numberOfSignatures: 3,
-				mandatoryKeys: [accounts.mandatoryOne.publicKey, accounts.mandatoryTwo.publicKey],
-				optionalKeys: [accounts.optionalOne.publicKey, accounts.optionalTwo.publicKey],
-				signatures: [],
-			};
-			const transactionParams = codec.encode(registerMultisignatureParamsSchema, decodedTxParams);
-
-			const rawTx = {
-				module: 'auth',
-				command: COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP,
-				nonce: BigInt('0'),
-				fee: BigInt('100000000'),
-				senderPublicKey: existingSenderPublicKey,
-				params: transactionParams,
-				signatures: [],
-			};
-
-			const transaction = new Transaction({ ...rawTx });
-
-			const message = codec.encode(multisigRegMsgSchema, {
-				address: transaction.senderAddress,
-				nonce: transaction.nonce,
-				numberOfSignatures: decodedTxParams.numberOfSignatures,
-				mandatoryKeys: decodedTxParams.mandatoryKeys,
-				optionalKeys: decodedTxParams.optionalKeys,
-			});
-
-			(decodedTxParams.signatures as any).push(
-				ed.signDataWithPrivateKey(
-					MESSAGE_TAG_MULTISIG_REG,
-					chainID,
-					message,
-					accounts.mandatoryOne.privateKey as Buffer,
-				),
-			);
-
-			(decodedTxParams.signatures as any).push(
-				ed.signDataWithPrivateKey(
-					MESSAGE_TAG_MULTISIG_REG,
-					chainID,
-					message,
-					accounts.mandatoryTwo.privateKey as Buffer,
-				),
-			);
-
-			(decodedTxParams.signatures as any).push(
-				ed.signDataWithPrivateKey(
-					MESSAGE_TAG_MULTISIG_REG,
-					chainID,
-					message,
-					accounts.optionalOne.privateKey as Buffer,
-				),
-			);
-
-			(decodedTxParams.signatures as any).push(
-				ed.signDataWithPrivateKey(
-					MESSAGE_TAG_MULTISIG_REG,
-					chainID,
-					message,
-					accounts.optionalTwo.privateKey as Buffer,
-				),
-			);
-
-			const encodedTransactionParams = codec.encode(
-				registerMultisignatureParamsSchema,
-				decodedTxParams,
-			);
-
-			const signedTransaction = new Transaction({ ...rawTx, params: encodedTransactionParams });
-
-			(signedTransaction.signatures as any).push(
-				ed.signDataWithPrivateKey(
-					TAG_TRANSACTION,
-					chainID,
-					signedTransaction.getSigningBytes(),
+					transaction.getBytes(),
 					existingPrivateKey,
-				),
-			);
+				);
 
-			when(authAccountStore.get as jest.Mock)
-				.calledWith(expect.anything(), existingAddress)
-				.mockReturnValue({
-					mandatoryKeys: [],
-					optionalKeys: [],
-					nonce: BigInt(0),
-					numberOfSignatures: 0,
+				transaction.signatures.push(signature);
+
+				const context = createTransientModuleEndpointContext({
+					params: { transaction: transaction.getBytes().toString('hex') },
+					chainID,
 				});
 
-			const transactionAsString = signedTransaction.getBytes().toString('hex');
+				const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
+					.verified;
 
-			const context = createTransientModuleEndpointContext({
-				params: {
-					transaction: transactionAsString,
-				},
-				chainID,
+				expect(receivedSignatureVerificationResult).toBeTrue();
 			});
 
-			// Assert
-			const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
-				.verified;
-			expect(receivedSignatureVerificationResult).toBeTrue();
+			it('should return false for an invalid signature', async () => {
+				transaction = new Transaction({
+					module: 'token',
+					command: 'transfer',
+					nonce: BigInt('0'),
+					fee: BigInt('100000000'),
+					senderPublicKey: existingSenderPublicKey,
+					params: utils.getRandomBytes(100),
+					signatures: [utils.getRandomBytes(64)],
+				});
+
+				const context = createTransientModuleEndpointContext({
+					params: { transaction: transaction.getBytes().toString('hex') },
+					chainID,
+				});
+
+				const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
+					.verified;
+
+				expect(receivedSignatureVerificationResult).toBeFalse();
+			});
+		});
+
+		describe('multi-signature account', () => {
+			it('should return true for 3-of-4 multisig account with 2 mandatory keys, when 2 mandatory and 1 optional signatures are present', async () => {
+				transaction.signatures.push(
+					ed.signDataWithPrivateKey(
+						TAG_TRANSACTION,
+						chainID,
+						transaction.getSigningBytes(),
+						accounts.mandatory1.privateKey as Buffer,
+					),
+				);
+
+				transaction.signatures.push(
+					ed.signDataWithPrivateKey(
+						TAG_TRANSACTION,
+						chainID,
+						transaction.getSigningBytes(),
+						accounts.mandatory2.privateKey as Buffer,
+					),
+				);
+
+				transaction.signatures.push(
+					ed.signDataWithPrivateKey(
+						TAG_TRANSACTION,
+						chainID,
+						transaction.getSigningBytes(),
+						accounts.optional1.privateKey as Buffer,
+					),
+				);
+
+				transaction.signatures.push(Buffer.from(''));
+
+				const context = createTransientModuleEndpointContext({
+					params: {
+						transaction: transaction.getBytes().toString('hex'),
+					},
+					chainID,
+				});
+
+				when(authAccountStore.get as jest.Mock)
+					.calledWith(expect.anything(), existingAddress)
+					.mockReturnValue({
+						mandatoryKeys: [accounts.mandatory1.publicKey, accounts.mandatory2.publicKey],
+						optionalKeys: [accounts.optional1.publicKey, accounts.optional2.publicKey],
+						nonce: BigInt(0),
+						numberOfSignatures: 3,
+					});
+
+				const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
+					.verified;
+
+				expect(receivedSignatureVerificationResult).toBeTrue();
+			});
+
+			it('should return true for 2-of-2 multi-sig account with 2 mandatory keys, when 2 mandatory signatures are present', async () => {
+				transaction.signatures.push(
+					ed.signDataWithPrivateKey(
+						TAG_TRANSACTION,
+						chainID,
+						transaction.getSigningBytes(),
+						accounts.mandatory1.privateKey as Buffer,
+					),
+				);
+
+				transaction.signatures.push(
+					ed.signDataWithPrivateKey(
+						TAG_TRANSACTION,
+						chainID,
+						transaction.getSigningBytes(),
+						accounts.mandatory2.privateKey as Buffer,
+					),
+				);
+
+				const context = createTransientModuleEndpointContext({
+					params: {
+						transaction: transaction.getBytes().toString('hex'),
+					},
+					chainID,
+				});
+
+				when(authAccountStore.get as jest.Mock)
+					.calledWith(expect.anything(), existingAddress)
+					.mockReturnValue({
+						mandatoryKeys: [accounts.mandatory1.publicKey, accounts.mandatory2.publicKey],
+						optionalKeys: [],
+						nonce: BigInt(0),
+						numberOfSignatures: 2,
+					});
+
+				const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
+					.verified;
+
+				expect(receivedSignatureVerificationResult).toBeTrue();
+			});
+
+			it('should return true for 2-of-2 multisig account with 0 mandatory keys, when 2 optional signatures are present', async () => {
+				transaction.signatures.push(
+					ed.signDataWithPrivateKey(
+						TAG_TRANSACTION,
+						chainID,
+						transaction.getSigningBytes(),
+						accounts.optional1.privateKey as Buffer,
+					),
+				);
+
+				transaction.signatures.push(
+					ed.signDataWithPrivateKey(
+						TAG_TRANSACTION,
+						chainID,
+						transaction.getSigningBytes(),
+						accounts.optional2.privateKey as Buffer,
+					),
+				);
+
+				const context = createTransientModuleEndpointContext({
+					params: {
+						transaction: transaction.getBytes().toString('hex'),
+					},
+					chainID,
+				});
+
+				when(authAccountStore.get as jest.Mock)
+					.calledWith(expect.anything(), existingAddress)
+					.mockReturnValue({
+						mandatoryKeys: [],
+						optionalKeys: [accounts.optional1.publicKey, accounts.optional2.publicKey],
+						nonce: BigInt(0),
+						numberOfSignatures: 2,
+					});
+
+				const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
+					.verified;
+
+				expect(receivedSignatureVerificationResult).toBeTrue();
+			});
+
+			it('should return true for 2-of-4 multisig account with 0 mandatory keys, when 2 optional signatures are present', async () => {
+				transaction.signatures.push(
+					ed.signDataWithPrivateKey(
+						TAG_TRANSACTION,
+						chainID,
+						transaction.getSigningBytes(),
+						accounts.optional1.privateKey as Buffer,
+					),
+				);
+
+				transaction.signatures.push(
+					ed.signDataWithPrivateKey(
+						TAG_TRANSACTION,
+						chainID,
+						transaction.getSigningBytes(),
+						accounts.optional2.privateKey as Buffer,
+					),
+				);
+
+				transaction.signatures.push(Buffer.from(''), Buffer.from(''));
+
+				const context = createTransientModuleEndpointContext({
+					params: {
+						transaction: transaction.getBytes().toString('hex'),
+					},
+					chainID,
+				});
+
+				when(authAccountStore.get as jest.Mock)
+					.calledWith(expect.anything(), existingAddress)
+					.mockReturnValue({
+						mandatoryKeys: [],
+						optionalKeys: [
+							accounts.optional1.publicKey,
+							accounts.optional2.publicKey,
+							utils.getRandomBytes(32),
+							utils.getRandomBytes(32),
+						],
+						nonce: BigInt(0),
+						numberOfSignatures: 2,
+					});
+
+				const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
+					.verified;
+
+				expect(receivedSignatureVerificationResult).toBeTrue();
+			});
+
+			it('should return true for register multisignature group command with 4 valid signatures', async () => {
+				const decodedTxParams = {
+					numberOfSignatures: 3,
+					mandatoryKeys: [accounts.mandatory1.publicKey, accounts.mandatory2.publicKey],
+					optionalKeys: [accounts.optional1.publicKey, accounts.optional2.publicKey],
+					signatures: [] as Buffer[],
+				};
+				const transactionParams = codec.encode(registerMultisignatureParamsSchema, decodedTxParams);
+
+				const rawTx = {
+					module: 'auth',
+					command: COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP,
+					nonce: BigInt('0'),
+					fee: BigInt('100000000'),
+					senderPublicKey: existingSenderPublicKey,
+					params: transactionParams,
+					signatures: [] as Buffer[],
+				};
+
+				const message = codec.encode(multisigRegMsgSchema, {
+					address: existingAddress,
+					nonce: rawTx.nonce,
+					numberOfSignatures: decodedTxParams.numberOfSignatures,
+					mandatoryKeys: decodedTxParams.mandatoryKeys,
+					optionalKeys: decodedTxParams.optionalKeys,
+				});
+
+				decodedTxParams.signatures.push(
+					ed.signDataWithPrivateKey(
+						MESSAGE_TAG_MULTISIG_REG,
+						chainID,
+						message,
+						accounts.mandatory1.privateKey as Buffer,
+					),
+				);
+
+				decodedTxParams.signatures.push(
+					ed.signDataWithPrivateKey(
+						MESSAGE_TAG_MULTISIG_REG,
+						chainID,
+						message,
+						accounts.mandatory2.privateKey as Buffer,
+					),
+				);
+
+				decodedTxParams.signatures.push(
+					ed.signDataWithPrivateKey(
+						MESSAGE_TAG_MULTISIG_REG,
+						chainID,
+						message,
+						accounts.optional1.privateKey as Buffer,
+					),
+				);
+
+				decodedTxParams.signatures.push(
+					ed.signDataWithPrivateKey(
+						MESSAGE_TAG_MULTISIG_REG,
+						chainID,
+						message,
+						accounts.optional2.privateKey as Buffer,
+					),
+				);
+
+				const encodedTransactionParams = codec.encode(
+					registerMultisignatureParamsSchema,
+					decodedTxParams,
+				);
+
+				const signedTransaction = new Transaction({ ...rawTx, params: encodedTransactionParams });
+
+				signedTransaction.signatures.push(
+					ed.signDataWithPrivateKey(
+						TAG_TRANSACTION,
+						chainID,
+						signedTransaction.getSigningBytes(),
+						existingPrivateKey,
+					),
+				);
+
+				const context = createTransientModuleEndpointContext({
+					params: {
+						transaction: signedTransaction.getBytes().toString('hex'),
+					},
+					chainID,
+				});
+
+				const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
+					.verified;
+
+				expect(receivedSignatureVerificationResult).toBeTrue();
+			});
 		});
 	});
 
 	describe('isValidNonce', () => {
 		it('should verify equal transaction nonce and account nonce', async () => {
-			// Arrange
 			const transaction = new Transaction({
 				module: 'token',
 				command: 'transfer',
@@ -411,11 +494,9 @@ describe('AuthEndpoint', () => {
 				signatures: [utils.getRandomBytes(64)],
 			});
 
-			const transactionAsString = transaction.getBytes().toString('hex');
-
 			const context = createTransientModuleEndpointContext({
 				params: {
-					transaction: transactionAsString,
+					transaction: transaction.getBytes().toString('hex'),
 				},
 			});
 
@@ -428,13 +509,12 @@ describe('AuthEndpoint', () => {
 					numberOfSignatures: 0,
 				});
 
-			// Assert
 			const receivedNonceVerificationResult = (await authEndpoint.isValidNonce(context)).verified;
+
 			expect(receivedNonceVerificationResult).toBeTrue();
 		});
 
 		it('should fail to verify greater transaction nonce than account nonce', async () => {
-			// Arrange
 			const transaction = new Transaction({
 				module: 'token',
 				command: 'transfer',
@@ -445,11 +525,9 @@ describe('AuthEndpoint', () => {
 				signatures: [utils.getRandomBytes(64)],
 			});
 
-			const transactionAsString = transaction.getBytes().toString('hex');
-
 			const context = createTransientModuleEndpointContext({
 				params: {
-					transaction: transactionAsString,
+					transaction: transaction.getBytes().toString('hex'),
 				},
 			});
 
@@ -462,15 +540,12 @@ describe('AuthEndpoint', () => {
 					numberOfSignatures: 0,
 				});
 
-			// Act
 			const isValidNonceResponse = (await authEndpoint.isValidNonce(context)).verified;
 
-			// Assert
 			expect(isValidNonceResponse).toBeFalse();
 		});
 
 		it('should fail to verify lower transaction nonce than account nonce', async () => {
-			// Arrange
 			const transaction = new Transaction({
 				module: 'token',
 				command: 'transfer',
@@ -481,11 +556,9 @@ describe('AuthEndpoint', () => {
 				signatures: [utils.getRandomBytes(64)],
 			});
 
-			const transactionAsString = transaction.getBytes().toString('hex');
-
 			const context = createTransientModuleEndpointContext({
 				params: {
-					transaction: transactionAsString,
+					transaction: transaction.getBytes().toString('hex'),
 				},
 			});
 
@@ -498,30 +571,68 @@ describe('AuthEndpoint', () => {
 					numberOfSignatures: 0,
 				});
 
-			// Act
 			const isValidNonceResponse = (await authEndpoint.isValidNonce(context)).verified;
 
-			// Assert
 			expect(isValidNonceResponse).toBeFalse();
+		});
+
+		it('should return true when account does not exist in AuthAccountStore and transaction nonce is 0', async () => {
+			const transaction = new Transaction({
+				module: 'token',
+				command: 'transfer',
+				nonce: BigInt(0),
+				fee: BigInt('100000000'),
+				senderPublicKey: existingSenderPublicKey,
+				params: utils.getRandomBytes(100),
+				signatures: [utils.getRandomBytes(64)],
+			});
+
+			const context = createTransientModuleEndpointContext({
+				params: {
+					transaction: transaction.getBytes().toString('hex'),
+				},
+			});
+
+			const receivedNonceVerificationResult = (await authEndpoint.isValidNonce(context)).verified;
+
+			expect(receivedNonceVerificationResult).toBeTrue();
+		});
+
+		it('should return false when account does not exist in AuthAccountStore and transaction nonce is greater than 0', async () => {
+			const transaction = new Transaction({
+				module: 'token',
+				command: 'transfer',
+				nonce: BigInt(8),
+				fee: BigInt('100000000'),
+				senderPublicKey: existingSenderPublicKey,
+				params: utils.getRandomBytes(100),
+				signatures: [utils.getRandomBytes(64)],
+			});
+
+			const context = createTransientModuleEndpointContext({
+				params: {
+					transaction: transaction.getBytes().toString('hex'),
+				},
+			});
+
+			const receivedNonceVerificationResult = (await authEndpoint.isValidNonce(context)).verified;
+
+			expect(receivedNonceVerificationResult).toBeFalse();
 		});
 	});
 
 	describe('getMultiSigRegMsgSchema', () => {
 		it('should return multiSigRegMsgSchema from the endpoint', async () => {
-			// Arrange
 			const context = createTransientModuleEndpointContext({});
 
-			// Act
 			const result = await authEndpoint.getMultiSigRegMsgSchema(context);
 
-			// Assert
 			expect(result.schema).toEqual(multisigRegMsgSchema);
 		});
 	});
 
 	describe('sortMultisignatureGroup', () => {
 		it('should sort signatures when provided mandatory and optional keys', () => {
-			// Arrange
 			const inputData = {
 				mandatory: [
 					{
@@ -555,10 +666,8 @@ describe('AuthEndpoint', () => {
 
 			const context = createTransientModuleEndpointContext({ params: inputData });
 
-			// Act
 			const sortedSignatures = authEndpoint.sortMultisignatureGroup(context);
 
-			// Assert
 			expect(sortedSignatures.signatures[0]).toEqual(inputData.mandatory[1].signature);
 			expect(sortedSignatures.signatures[1]).toEqual(inputData.mandatory[0].signature);
 			expect(sortedSignatures.signatures[2]).toEqual(inputData.mandatory[2].signature);
@@ -567,7 +676,6 @@ describe('AuthEndpoint', () => {
 		});
 
 		it('should throw a validation error when provided invalid request', () => {
-			// Arrange
 			const inputData = {
 				mandatory: [
 					// left empty to trigger the error test case
@@ -582,7 +690,6 @@ describe('AuthEndpoint', () => {
 
 			const context = createTransientModuleEndpointContext({ params: inputData });
 
-			// Act & Assert
 			expect(() => authEndpoint.sortMultisignatureGroup(context)).toThrow(LiskValidationError);
 		});
 	});
