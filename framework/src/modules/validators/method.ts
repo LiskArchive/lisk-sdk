@@ -12,12 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { bls } from '@liskhq/lisk-cryptography';
+import { validator as liskValidator } from '@liskhq/lisk-validator';
 import { BaseMethod } from '../base_method';
 import { MethodContext, ImmutableMethodContext } from '../../state_machine';
-import { EMPTY_KEY, INVALID_BLS_KEY, KeyRegResult } from './constants';
+import {
+	ADDRESS_LENGTH,
+	BLS_PUBLIC_KEY_LENGTH,
+	ED25519_PUBLIC_KEY_LENGTH,
+	EMPTY_KEY,
+	INVALID_BLS_KEY,
+	KeyRegResult,
+} from './constants';
 import { MethodInitArgs, ValidatorAddress } from './types';
 import { GeneratorKeyRegistrationEvent } from './events/generator_key_registration';
-import { ValidatorKeys, ValidatorKeysStore } from './stores/validator_keys';
+import { ValidatorKeys, validatorKeysSchema, ValidatorKeysStore } from './stores/validator_keys';
 import { BLSKeyStore } from './stores/bls_keys';
 import { BLSKeyRegistrationEvent } from './events/bls_key_registration';
 import { ValidatorsParams, ValidatorsParamsStore } from './stores/validators_params';
@@ -37,6 +45,15 @@ export class ValidatorsMethod extends BaseMethod {
 		generatorKey: Buffer,
 		proofOfPossession: Buffer,
 	): Promise<boolean> {
+		if (validatorAddress.length !== ADDRESS_LENGTH) {
+			throw new Error(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
+		}
+		const validatorAccount = {
+			generatorKey,
+			blsKey,
+		};
+		liskValidator.validate<ValidatorKeys>(validatorKeysSchema, validatorAccount);
+
 		const validatorsSubStore = this.stores.get(ValidatorKeysStore);
 		const addressExists = await validatorsSubStore.has(methodContext, validatorAddress);
 		if (addressExists) {
@@ -69,11 +86,6 @@ export class ValidatorsMethod extends BaseMethod {
 			throw new Error('Invalid proof of possession for the given BLS key.');
 		}
 
-		const validatorAccount = {
-			generatorKey,
-			blsKey,
-		};
-
 		await validatorsSubStore.set(methodContext, validatorAddress, validatorAccount);
 		await blsKeysSubStore.set(methodContext, blsKey, { address: validatorAddress });
 		this.events
@@ -93,6 +105,15 @@ export class ValidatorsMethod extends BaseMethod {
 		validatorAddress: Buffer,
 		generatorKey: Buffer,
 	): Promise<boolean> {
+		if (validatorAddress.length !== ADDRESS_LENGTH) {
+			throw new Error(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
+		}
+		const validatorAccount = {
+			generatorKey,
+			blsKey: INVALID_BLS_KEY,
+		};
+		liskValidator.validate<ValidatorKeys>(validatorKeysSchema, validatorAccount);
+
 		const validatorsSubStore = this.stores.get(ValidatorKeysStore);
 
 		const addressExists = await validatorsSubStore.has(methodContext, validatorAddress);
@@ -104,11 +125,6 @@ export class ValidatorsMethod extends BaseMethod {
 
 			throw new Error('This address is already registered as validator.');
 		}
-
-		const validatorAccount = {
-			generatorKey,
-			blsKey: INVALID_BLS_KEY,
-		};
 
 		await validatorsSubStore.set(methodContext, validatorAddress, validatorAccount);
 
@@ -123,6 +139,10 @@ export class ValidatorsMethod extends BaseMethod {
 		methodContext: MethodContext,
 		blsKey: Buffer,
 	): Promise<ValidatorAddress> {
+		if (blsKey.length !== BLS_PUBLIC_KEY_LENGTH) {
+			throw new Error(`BLS public key must be ${BLS_PUBLIC_KEY_LENGTH} bytes long.`);
+		}
+
 		const blsKeysSubStore = this.stores.get(BLSKeyStore);
 		const blsKeyExists = await blsKeysSubStore.has(methodContext, blsKey);
 
@@ -158,6 +178,13 @@ export class ValidatorsMethod extends BaseMethod {
 		blsKey: Buffer,
 		proofOfPossession: Buffer,
 	): Promise<boolean> {
+		if (validatorAddress.length !== ADDRESS_LENGTH) {
+			throw new Error(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
+		}
+		if (blsKey.length !== BLS_PUBLIC_KEY_LENGTH) {
+			throw new Error(`BLS public key must be ${BLS_PUBLIC_KEY_LENGTH} bytes long.`);
+		}
+
 		const validatorsSubStore = this.stores.get(ValidatorKeysStore);
 		const addressExists = await validatorsSubStore.has(methodContext, validatorAddress);
 
@@ -219,6 +246,13 @@ export class ValidatorsMethod extends BaseMethod {
 		validatorAddress: Buffer,
 		generatorKey: Buffer,
 	): Promise<boolean> {
+		if (validatorAddress.length !== ADDRESS_LENGTH) {
+			throw new Error(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
+		}
+		if (generatorKey.length !== ED25519_PUBLIC_KEY_LENGTH) {
+			throw new Error(`Generator key must be ${ED25519_PUBLIC_KEY_LENGTH} bytes long.`);
+		}
+
 		const validatorsSubStore = this.stores.get(ValidatorKeysStore);
 
 		const addressExists = await validatorsSubStore.has(methodContext, validatorAddress);
