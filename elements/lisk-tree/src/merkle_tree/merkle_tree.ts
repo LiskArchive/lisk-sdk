@@ -14,7 +14,7 @@
 /* eslint-disable no-bitwise */
 /* eslint-disable @typescript-eslint/prefer-for-of */
 
-import { utils } from '../../../lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import {
 	LAYER_INDEX_SIZE,
 	NODE_HASH_SIZE,
