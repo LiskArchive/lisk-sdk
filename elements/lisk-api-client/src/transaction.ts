@@ -16,8 +16,8 @@ import {
 	signTransaction,
 	signMultiSignatureTransaction,
 	computeMinFee,
+	Options,
 } from '@liskhq/lisk-transactions';
-import { Options } from '@liskhq/lisk-transactions/src/fee';
 import { address as cryptoAddress, ed } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
@@ -266,6 +266,7 @@ export class Transaction {
 		this._validateTransaction(decodedTx);
 		const commandSchema = getTransactionParamsSchema(transaction, this._metadata);
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		return computeMinFee(decodedTx, commandSchema, options);
 	}
 
