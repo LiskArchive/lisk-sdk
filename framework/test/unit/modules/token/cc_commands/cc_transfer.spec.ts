@@ -699,7 +699,7 @@ describe('CrossChain Transfer Command', () => {
 			// Arrange
 			const params = codec.encode(crossChainTransferMessageParams, {
 				tokenID: defaultTokenID,
-				amount: BigInt(100000000),
+				amount: defaultEscrowAmount + BigInt(10),
 				senderAddress: defaultAddress,
 				recipientAddress: defaultAddress,
 				data: 'ddd',
@@ -738,7 +738,7 @@ describe('CrossChain Transfer Command', () => {
 			};
 
 			// Act && Assert
-			await expect(command.execute(ctx)).resolves.toBeUndefined();
+			await expect(command.execute(ctx)).rejects.toThrow('Insufficient balance in escrow account.');
 		});
 	});
 });
