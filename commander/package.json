@@ -89,7 +89,7 @@
 				"description": "Commands relating to Lisk passphrases."
 			},
 			"endpoint": {
-				"description": "Invokes the provided endpoint."
+				"description": "Commands relating to endpoints."
 			}
 		}
 	},

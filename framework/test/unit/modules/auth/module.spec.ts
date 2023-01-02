@@ -21,7 +21,7 @@ import { AuthModule } from '../../../../src/modules/auth';
 import * as fixtures from './fixtures.json';
 import * as testing from '../../../../src/testing';
 import { genesisAuthStoreSchema } from '../../../../src/modules/auth/schemas';
-import { VerifyStatus } from '../../../../src/state_machine';
+import { TransactionExecuteContext, VerifyStatus } from '../../../../src/state_machine';
 import { InvalidNonceError } from '../../../../src/modules/auth/errors';
 import { createGenesisBlockContext } from '../../../../src/testing';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
@@ -360,7 +360,7 @@ describe('AuthModule', () => {
 					passphraseDerivedKeys.privateKey,
 				);
 
-				(transaction.signatures as any).push(signature);
+				transaction.signatures.push(signature);
 
 				const context = testing
 					.createTransactionContext({
@@ -415,7 +415,7 @@ describe('AuthModule', () => {
 					passphraseDerivedKeys.privateKey,
 				);
 
-				(transaction.signatures as any).push(signature);
+				transaction.signatures.push(signature);
 
 				const context = testing
 					.createTransactionContext({
@@ -478,8 +478,8 @@ describe('AuthModule', () => {
 					passphraseDerivedKeys.privateKey,
 				);
 
-				(transaction.signatures as any).push(signature);
-				(transaction.signatures as any).push(signature);
+				transaction.signatures.push(signature);
+				transaction.signatures.push(signature);
 
 				const context = testing
 					.createTransactionContext({
@@ -572,7 +572,7 @@ describe('AuthModule', () => {
 
 			it('should not throw for valid transaction', async () => {
 				// Arrange
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -581,7 +581,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -590,7 +590,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -599,7 +599,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(Buffer.from(''));
+				transaction.signatures.push(Buffer.from(''));
 
 				const context = testing
 					.createTransactionContext({
@@ -630,7 +630,7 @@ describe('AuthModule', () => {
 						nonce: BigInt(0),
 					});
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -639,7 +639,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(Buffer.from(''));
+				transaction.signatures.push(Buffer.from(''));
 
 				const context = testing
 					.createTransactionContext({
@@ -657,7 +657,7 @@ describe('AuthModule', () => {
 
 			it('should not throw for valid transaction when first optional is present', async () => {
 				// Arrange
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -666,7 +666,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -675,7 +675,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -684,7 +684,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(Buffer.from(''));
+				transaction.signatures.push(Buffer.from(''));
 				const context = testing
 					.createTransactionContext({
 						stateStore,
@@ -701,7 +701,7 @@ describe('AuthModule', () => {
 
 			it('should not throw for valid transaction when second optional is present', async () => {
 				// Arrange
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -710,7 +710,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -719,9 +719,9 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(Buffer.from(''));
+				transaction.signatures.push(Buffer.from(''));
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -746,7 +746,7 @@ describe('AuthModule', () => {
 
 			it('should throw for transaction where non optional absent signature is not empty buffer', async () => {
 				// Arrange
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -755,7 +755,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -764,7 +764,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -792,7 +792,7 @@ describe('AuthModule', () => {
 
 			it('should throw error if number of provided signatures is bigger than numberOfSignatures in account asset', async () => {
 				// Arrange
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -801,7 +801,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -810,7 +810,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -819,7 +819,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -848,7 +848,7 @@ describe('AuthModule', () => {
 
 			it('should throw error if number of provided signatures is smaller than numberOfSignatures in account asset', async () => {
 				// Arrange
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -857,7 +857,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -866,7 +866,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(Buffer.from(''));
+				transaction.signatures.push(Buffer.from(''));
 
 				const context = testing
 					.createTransactionContext({
@@ -888,7 +888,7 @@ describe('AuthModule', () => {
 
 			it('should throw for transaction with valid numberOfSignatures but missing mandatory key signature', async () => {
 				// Arrange
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -897,9 +897,9 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(Buffer.from(''));
+				transaction.signatures.push(Buffer.from(''));
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -908,7 +908,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -933,7 +933,7 @@ describe('AuthModule', () => {
 
 			it('should throw error if any of the mandatory signatures is not valid', async () => {
 				// Arrange
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -942,7 +942,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -951,7 +951,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -960,7 +960,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(Buffer.from(''));
+				transaction.signatures.push(Buffer.from(''));
 
 				const context = testing
 					.createTransactionContext({
@@ -978,7 +978,7 @@ describe('AuthModule', () => {
 
 			it('should throw error if any of the optional signatures is not valid', async () => {
 				// Arrange
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -987,7 +987,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -996,9 +996,9 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(Buffer.from(''));
+				transaction.signatures.push(Buffer.from(''));
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -1008,7 +1008,7 @@ describe('AuthModule', () => {
 				);
 
 				// We change the first byte of the 2nd optional signature
-				(transaction.signatures as any)[3][0] = 10;
+				transaction.signatures[3][0] = 10;
 
 				const context = testing
 					.createTransactionContext({
@@ -1030,7 +1030,7 @@ describe('AuthModule', () => {
 
 			it('should throw error if mandatory signatures are not in order', async () => {
 				// Arrange
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -1039,7 +1039,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -1048,7 +1048,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -1057,7 +1057,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(Buffer.from(''));
+				transaction.signatures.push(Buffer.from(''));
 
 				const context = testing
 					.createTransactionContext({
@@ -1079,7 +1079,7 @@ describe('AuthModule', () => {
 
 			it('should throw error if optional signatures are not in order', async () => {
 				// Arrange
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -1088,7 +1088,7 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -1097,9 +1097,9 @@ describe('AuthModule', () => {
 					),
 				);
 
-				(transaction.signatures as any).push(Buffer.from(''));
+				transaction.signatures.push(Buffer.from(''));
 
-				(transaction.signatures as any).push(
+				transaction.signatures.push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						chainID,
@@ -1129,36 +1129,62 @@ describe('AuthModule', () => {
 	});
 
 	describe('beforeCommandExecute', () => {
-		it('should initialize senderAccount with default values when there is no sender account in AUTH store', async () => {
-			const stateStore1 = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			const context = testing
+		let authAccountStore: AuthAccountStore;
+		let context: TransactionExecuteContext;
+
+		beforeEach(() => {
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+			authAccountStore = authModule.stores.get(AuthAccountStore);
+
+			context = testing
 				.createTransactionContext({
-					stateStore: stateStore1,
+					stateStore,
 					transaction: validTestTransaction,
 					chainID,
 				})
 				.createTransactionExecuteContext();
-			const authStore1 = authModule.stores.get(AuthAccountStore);
+		});
+
+		it('should increment account nonce after a transaction', async () => {
 			const address = cryptoAddress.getAddressFromPublicKey(validTestTransaction.senderPublicKey);
-			const mandatoryKeys = [utils.getRandomBytes(64), utils.getRandomBytes(64)];
-			const optionalKeys = [utils.getRandomBytes(64), utils.getRandomBytes(64)];
-			const authAccount1 = {
-				nonce: validTestTransaction.nonce,
+			const authAccountBeforeTransaction = {
+				nonce: BigInt(validTestTransaction.nonce),
 				numberOfSignatures: 4,
-				mandatoryKeys,
-				optionalKeys,
+				mandatoryKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
+				optionalKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
 			};
-			await authStore1.set(context, address, authAccount1);
+			await authAccountStore.set(context, address, authAccountBeforeTransaction);
 
 			await authModule.beforeCommandExecute(context);
 
-			const authStore = authModule.stores.get(AuthAccountStore);
-			const authAccount = await authStore.get(context, context.transaction.senderAddress);
+			const authAccountAfterTransaction = await authAccountStore.get(
+				context,
+				context.transaction.senderAddress,
+			);
 
-			expect(authAccount.nonce).toBe(BigInt(2));
-			expect(authAccount.numberOfSignatures).toBe(4);
-			expect(authAccount.mandatoryKeys).toEqual(mandatoryKeys);
-			expect(authAccount.optionalKeys).toEqual(optionalKeys);
+			expect(authAccountAfterTransaction.nonce).toBe(
+				authAccountBeforeTransaction.nonce + BigInt(1),
+			);
+			expect(authAccountAfterTransaction.numberOfSignatures).toBe(
+				authAccountBeforeTransaction.numberOfSignatures,
+			);
+			expect(authAccountAfterTransaction.mandatoryKeys).toEqual(
+				authAccountBeforeTransaction.mandatoryKeys,
+			);
+			expect(authAccountAfterTransaction.optionalKeys).toEqual(
+				authAccountBeforeTransaction.optionalKeys,
+			);
+		});
+
+		it('should initialize account with default values when the account is not in Auth Store', async () => {
+			await authModule.beforeCommandExecute(context);
+
+			const authAccount = await authAccountStore.get(context, context.transaction.senderAddress);
+
+			expect(authAccount.nonce).toBe(BigInt(1)); // the hook incremented nonce
+			expect(authAccount.numberOfSignatures).toBe(0);
+			expect(authAccount.mandatoryKeys).toEqual([]);
+			expect(authAccount.optionalKeys).toEqual([]);
 		});
 	});
 });
