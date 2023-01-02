@@ -13,7 +13,7 @@
  *
  */
 
-export { computeMinFee } from './fee';
+export { computeMinFee, Options } from './fee';
 export { convertBeddowsToLSK, convertLSKToBeddows } from './format';
 export {
 	getBytes,
