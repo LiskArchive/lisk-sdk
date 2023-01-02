@@ -1802,15 +1802,6 @@
   dependencies:
     "@types/node" "11.11.2"
 
-"@liskhq/lisk-codec@0.3.0-alpha.4":
-  version "0.3.0-alpha.4"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-codec/-/lisk-codec-0.3.0-alpha.4.tgz#6f09c4b397a6448456169d92d3e27cd0ef083fe4"
-  integrity sha512-1UBDXgnxP/LkEWHEXrHtpeqcL6khyXlbB4ZfTi7CTSfDH4NQ2lJ7IQqKJsELLptvMgxLeJKNj+h0Vb6SmjTiBA==
-  dependencies:
-    "@liskhq/lisk-cryptography" "^4.0.0-alpha.4"
-    "@liskhq/lisk-utils" "^0.3.0-alpha.0"
-    "@liskhq/lisk-validator" "^0.7.0-alpha.4"
-
 "@liskhq/lisk-db@0.3.1":
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/@liskhq/lisk-db/-/lisk-db-0.3.1.tgz#c1f2be045fdc67924a407aa7753670bd13b69c75"
