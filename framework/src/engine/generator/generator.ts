@@ -309,7 +309,7 @@ export class Generator {
 				transaction,
 				header: this._chain.lastBlock.header.toObject(),
 			});
-			if (verifyResult !== TransactionVerifyResult.OK) {
+			if (verifyResult === TransactionVerifyResult.INVALID) {
 				throw new Error('Transaction is not valid');
 			}
 		}
