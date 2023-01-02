@@ -45,8 +45,8 @@ export class AuthEndpoint extends BaseEndpoint {
 		cryptoAddress.validateLisk32Address(address);
 
 		const accountAddress = cryptoAddress.getAddressFromLisk32Address(address);
-		const store = this.stores.get(AuthAccountStore);
-		const authAccount = await store.getOrDefault(context, accountAddress);
+		const authAccountStore = this.stores.get(AuthAccountStore);
+		const authAccount = await authAccountStore.getOrDefault(context, accountAddress);
 
 		return {
 			nonce: authAccount.nonce.toString(),
