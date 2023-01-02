@@ -114,7 +114,7 @@ describe('FeeModule', () => {
 		});
 
 		it('should invalidate transaction with balance less than min fee', async () => {
-			const tx = new Transaction({ ...transaction, fee: BigInt(1000000000) });
+			const tx = new Transaction({ ...transaction, fee: BigInt(100000000000000000) });
 			const context = createTransactionContext({ transaction: tx });
 			const transactionVerifyContext = context.createTransactionVerifyContext();
 			await expect(feeModule.verifyTransaction(transactionVerifyContext)).rejects.toThrow(
