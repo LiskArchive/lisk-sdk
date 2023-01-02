@@ -35,9 +35,9 @@ import { terminatedStateSchema } from '../stores/terminated_state';
 import { terminatedOutboxSchema } from '../stores/terminated_outbox';
 import { TokenMethod } from '../../token';
 import {
-	MainchainCCUpdateCommand,
-	MainchainMessageRecoveryCommand,
-	SidechainRegistrationCommand,
+	SubmitMainchainCrossChainUpdateCommand,
+	RecoverMessageCommand,
+	RegisterSidechainCommand,
 	TerminateSidechainForLivenessCommand,
 } from './commands';
 import { CcmProcessedEvent } from '../events/ccm_processed';
@@ -49,10 +49,10 @@ import { CcmSendSuccessEvent } from '../events/ccm_send_success';
 import { TerminatedStateCreatedEvent } from '../events/terminated_state_created';
 import { TerminatedOutboxCreatedEvent } from '../events/terminated_outbox_created';
 import { MainchainInteroperabilityInternalMethod } from './internal_method';
-import { MessageRecoveryInitializationCommand } from './commands/message_recovery_initialization';
+import { InitializeMessageRecoveryCommand } from './commands/initialize_message_recovery';
 import { FeeMethod } from '../types';
 import { MainchainCCChannelTerminatedCommand, MainchainCCRegistrationCommand } from './cc_commands';
-import { StateRecoveryCommand } from './commands/state_recovery';
+import { RecoverStateCommand } from './commands/recover_state';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
@@ -71,7 +71,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public endpoint = new MainchainInteroperabilityEndpoint(this.stores, this.offchainStores);
 
-	private readonly _sidechainRegistrationCommand = new SidechainRegistrationCommand(
+	private readonly _sidechainRegistrationCommand = new RegisterSidechainCommand(
 		this.stores,
 		this.events,
 		this.interoperableCCMethods,
@@ -79,28 +79,28 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.internalMethod,
 	);
 
-	private readonly _messageRecoveryInitializationCommand = new MessageRecoveryInitializationCommand(
+	private readonly _messageRecoveryInitializationCommand = new InitializeMessageRecoveryCommand(
 		this.stores,
 		this.events,
 		this.interoperableCCMethods,
 		this.interoperableCCCommands,
 		this.internalMethod,
 	);
-	private readonly _crossChainUpdateCommand = new MainchainCCUpdateCommand(
+	private readonly _crossChainUpdateCommand = new SubmitMainchainCrossChainUpdateCommand(
 		this.stores,
 		this.events,
 		this.interoperableCCMethods,
 		this.interoperableCCCommands,
 		this.internalMethod,
 	);
-	private readonly _messageRecoveryCommand = new MainchainMessageRecoveryCommand(
+	private readonly _messageRecoveryCommand = new RecoverMessageCommand(
 		this.stores,
 		this.events,
 		this.interoperableCCMethods,
 		this.interoperableCCCommands,
 		this.internalMethod,
 	);
-	private readonly _stateRecoveryCommand = new StateRecoveryCommand(
+	private readonly _stateRecoveryCommand = new RecoverStateCommand(
 		this.stores,
 		this.events,
 		this.interoperableCCMethods,

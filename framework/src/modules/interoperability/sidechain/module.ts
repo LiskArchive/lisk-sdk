@@ -15,7 +15,7 @@ import { ModuleInitArgs, ModuleMetadata } from '../../base_module';
 import { BaseInteroperabilityModule } from '../base_interoperability_module';
 import { SidechainInteroperabilityMethod } from './method';
 import { SidechainCCMethod } from './cc_method';
-import { MainchainRegistrationCommand } from './commands/mainchain_registration';
+import { RegisterMainchainCommand } from './commands/register_mainchain';
 import { SidechainInteroperabilityEndpoint } from './endpoint';
 import {
 	getChainAccountRequestSchema,
@@ -42,9 +42,9 @@ import { CcmSendSuccessEvent } from '../events/ccm_send_success';
 import { BaseCCMethod } from '../base_cc_method';
 import { TokenMethod, ValidatorsMethod } from '../types';
 import { SidechainInteroperabilityInternalMethod } from './internal_method';
-import { SidechainCCUpdateCommand } from './commands';
-import { StateRecoveryInitializationCommand } from './commands/state_recovery_init';
-import { StateRecoveryCommand } from './commands/state_recovery';
+import { SubmitSidechainCrossChainUpdateCommand } from './commands';
+import { InitializeStateRecoveryCommand } from './commands/initialize_state_recovery';
+import { RecoverStateCommand } from './commands/recover_state';
 import { SidechainCCChannelTerminatedCommand, SidechainCCRegistrationCommand } from './cc_commands';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
@@ -64,28 +64,28 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public endpoint = new SidechainInteroperabilityEndpoint(this.stores, this.offchainStores);
 
-	private readonly _mainchainRegistrationCommand = new MainchainRegistrationCommand(
+	private readonly _mainchainRegistrationCommand = new RegisterMainchainCommand(
 		this.stores,
 		this.events,
 		this.interoperableCCMethods,
 		this.interoperableCCCommands,
 		this.internalMethod,
 	);
-	private readonly _crossChainUpdateCommand = new SidechainCCUpdateCommand(
+	private readonly _crossChainUpdateCommand = new SubmitSidechainCrossChainUpdateCommand(
 		this.stores,
 		this.events,
 		this.interoperableCCMethods,
 		this.interoperableCCCommands,
 		this.internalMethod,
 	);
-	private readonly _stateRecoveryInitCommand = new StateRecoveryInitializationCommand(
+	private readonly _stateRecoveryInitCommand = new InitializeStateRecoveryCommand(
 		this.stores,
 		this.events,
 		this.interoperableCCMethods,
 		this.interoperableCCCommands,
 		this.internalMethod,
 	);
-	private readonly _stateRecoveryCommand = new StateRecoveryCommand(
+	private readonly _stateRecoveryCommand = new RecoverStateCommand(
 		this.stores,
 		this.events,
 		this.interoperableCCMethods,

@@ -28,7 +28,7 @@ import {
 	ChannelData,
 	CrossChainUpdateTransactionParams,
 } from '../../../../../../src/modules/interoperability/types';
-import { SidechainCCUpdateCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/cc_update';
+import { SubmitSidechainCrossChainUpdateCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/submit_sidechain_cross_chain_update';
 import { Certificate } from '../../../../../../src/engine/consensus/certificate_generation/types';
 import { certificateSchema } from '../../../../../../src/engine/consensus/certificate_generation/schema';
 import * as interopUtils from '../../../../../../src/modules/interoperability/utils';
@@ -55,7 +55,7 @@ import { createStoreGetter } from '../../../../../../src/testing/utils';
 import { createTransactionContext } from '../../../../../../src/testing';
 import { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../../../../../../src/modules/token/constants';
 
-describe('CrossChainUpdateCommand', () => {
+describe('SubmitSidechainCrossChainUpdateCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
 	const senderPublicKey = utils.getRandomBytes(32);
 	const messageFeeTokenID = Buffer.alloc(8, 0);
@@ -128,7 +128,7 @@ describe('CrossChainUpdateCommand', () => {
 	let partnerChannelAccount: ChannelData;
 	let verifyContext: CommandVerifyContext<CrossChainUpdateTransactionParams>;
 	let executeContext: CommandExecuteContext<CrossChainUpdateTransactionParams>;
-	let sidechainCCUUpdateCommand: SidechainCCUpdateCommand;
+	let sidechainCCUUpdateCommand: SubmitSidechainCrossChainUpdateCommand;
 	let params: CrossChainUpdateTransactionParams;
 	let activeValidatorsUpdate: ActiveValidator[];
 	let sortedActiveValidatorsUpdate: ActiveValidator[];
@@ -137,7 +137,7 @@ describe('CrossChainUpdateCommand', () => {
 	let partnerValidatorStore: ChainValidatorsStore;
 
 	beforeEach(async () => {
-		sidechainCCUUpdateCommand = new SidechainCCUpdateCommand(
+		sidechainCCUUpdateCommand = new SubmitSidechainCrossChainUpdateCommand(
 			interopMod.stores,
 			interopMod.events,
 			new Map(),

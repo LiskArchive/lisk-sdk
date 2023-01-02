@@ -41,7 +41,7 @@ export interface MessageRecoveryInitializationParams {
 }
 
 // LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#message-recovery-initialization-command
-export class MessageRecoveryInitializationCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
+export class InitializeMessageRecoveryCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = messageRecoveryInitializationParamsSchema;
 
 	public async verify(
