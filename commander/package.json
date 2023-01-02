@@ -1,6 +1,6 @@
 {
 	"name": "lisk-commander",
-	"version": "6.0.0-alpha.8",
+	"version": "6.0.0-alpha.9",
 	"description": "A command line interface for Lisk",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -101,8 +101,8 @@
 		"/docs"
 	],
 	"dependencies": {
-		"@liskhq/lisk-api-client": "^6.0.0-alpha.8",
-		"@liskhq/lisk-chain": "^0.4.0-alpha.8",
+		"@liskhq/lisk-api-client": "^6.0.0-alpha.9",
+		"@liskhq/lisk-chain": "^0.4.0-alpha.9",
 		"@liskhq/lisk-codec": "^0.3.0-alpha.6",
 		"@liskhq/lisk-cryptography": "^4.0.0-alpha.5",
 		"@liskhq/lisk-db": "0.3.2",
@@ -120,7 +120,7 @@
 		"cli-table3": "0.6.0",
 		"fs-extra": "11.1.0",
 		"inquirer": "8.2.5",
-		"lisk-framework": "^0.10.0-alpha.8",
+		"lisk-framework": "^0.10.0-alpha.9",
 		"listr": "0.14.3",
 		"progress": "2.0.3",
 		"semver": "7.3.8",

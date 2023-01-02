@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseStore } from '../../base_store';
+import { BLS_PUBLIC_KEY_LENGTH, ED25519_PUBLIC_KEY_LENGTH } from '../constants';
 
 export interface ValidatorKeys {
 	generatorKey: Buffer;
@@ -26,10 +27,14 @@ export const validatorKeysSchema = {
 		generatorKey: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: ED25519_PUBLIC_KEY_LENGTH,
+			maxLength: ED25519_PUBLIC_KEY_LENGTH,
 		},
 		blsKey: {
 			dataType: 'bytes',
 			fieldNumber: 2,
+			minLength: BLS_PUBLIC_KEY_LENGTH,
+			maxLength: BLS_PUBLIC_KEY_LENGTH,
 		},
 	},
 	required: ['generatorKey', 'blsKey'],
