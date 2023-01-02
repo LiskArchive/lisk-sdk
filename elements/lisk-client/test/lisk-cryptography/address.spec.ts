@@ -74,9 +74,9 @@ describe('keys', () => {
 				'lsk6xevdsz3dpqfsx2u6mg3jx9zk8xqdozvn7x5ur',
 			];
 
-			it('should return true', () => {
-				return addresses.forEach(address => {
-					return expect(validateLisk32Address(address)).toBeTruthy();
+			it('should not throw', () => {
+				addresses.forEach(address => {
+					expect(() => validateLisk32Address(address)).not.toThrow();
 				});
 			});
 		});
@@ -84,7 +84,7 @@ describe('keys', () => {
 		describe('Given an address that is too short', () => {
 			const address = 'lsk1';
 			it('should throw an error', () => {
-				return expect(validateLisk32Address.bind(null, address)).toThrow(
+				expect(validateLisk32Address.bind(null, address)).toThrow(
 					'Address length does not match requirements. Expected 41 characters.',
 				);
 			});
@@ -93,7 +93,7 @@ describe('keys', () => {
 		describe('Given an address that is too long', () => {
 			const address = 'lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmux2ga';
 			it('should throw an error', () => {
-				return expect(validateLisk32Address.bind(null, address)).toThrow(
+				expect(validateLisk32Address.bind(null, address)).toThrow(
 					'Address length does not match requirements. Expected 41 characters.',
 				);
 			});
@@ -102,7 +102,7 @@ describe('keys', () => {
 		describe('Given an address that is not prefixed with `lsk`', () => {
 			const address = 'LSK24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu';
 			it('should throw an error', () => {
-				return expect(validateLisk32Address.bind(null, address)).toThrow(
+				expect(validateLisk32Address.bind(null, address)).toThrow(
 					'Invalid address prefix. Actual prefix: LSK, Expected prefix: lsk',
 				);
 			});
@@ -111,8 +111,8 @@ describe('keys', () => {
 		describe('Given an address containing non-base32 characters', () => {
 			const address = 'lsk1aknq582o6fw7sp82bm2hnj7pzp47mpmbmux2g';
 			it('should throw an error', () => {
-				return expect(validateLisk32Address.bind(null, address)).toThrow(
-					"Invalid character found in address. Only allow characters: 'abcdefghjkmnopqrstuvwxyz23456789'.",
+				expect(validateLisk32Address.bind(null, address)).toThrow(
+					"Invalid character found in address. Only allow characters: 'zxvcpmbn3465o978uyrtkqew2adsjhfg'.",
 				);
 			});
 		});
@@ -120,9 +120,7 @@ describe('keys', () => {
 		describe('Given an address with invalid checksum', () => {
 			const address = 'lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmuxgg';
 			it('should throw an error', () => {
-				return expect(validateLisk32Address.bind(null, address)).toThrow(
-					'Invalid checksum for address.',
-				);
+				expect(validateLisk32Address.bind(null, address)).toThrow('Invalid checksum for address.');
 			});
 		});
 	});
@@ -139,7 +137,7 @@ describe('keys', () => {
 		};
 
 		it('should throw error for invalid address', () => {
-			return expect(getAddressFromLisk32Address.bind(null, 'invalid')).toThrow();
+			expect(getAddressFromLisk32Address.bind(null, 'invalid')).toThrow();
 		});
 
 		it('should return an address given a base32 address', () => {

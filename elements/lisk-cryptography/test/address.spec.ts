@@ -20,6 +20,11 @@ import {
 	getAddressFromLisk32Address,
 	getLisk32AddressFromAddress,
 } from '../src/address';
+import {
+	BASE32_CHARSET,
+	DEFAULT_LISK32_ADDRESS_PREFIX,
+	LISK32_ADDRESS_LENGTH,
+} from '../src/constants';
 import * as utils from '../src/utils';
 
 describe('address', () => {
@@ -79,9 +84,9 @@ describe('address', () => {
 				'lsk6xevdsz3dpqfsx2u6mg3jx9zk8xqdozvn7x5ur',
 			];
 
-			it('should return true', () => {
-				return addresses.forEach(address => {
-					return expect(validateLisk32Address(address)).toBeTrue();
+			it('should not throw', () => {
+				addresses.forEach(address => {
+					expect(() => validateLisk32Address(address)).not.toThrow();
 				});
 			});
 		});
@@ -89,8 +94,8 @@ describe('address', () => {
 		describe('Given an address that is too short', () => {
 			const address = 'lsk1';
 			it('should throw an error', () => {
-				return expect(() => validateLisk32Address(address)).toThrow(
-					'Address length does not match requirements. Expected 41 characters.',
+				expect(() => validateLisk32Address(address)).toThrow(
+					`Address length does not match requirements. Expected ${LISK32_ADDRESS_LENGTH} characters.`,
 				);
 			});
 		});
@@ -98,8 +103,8 @@ describe('address', () => {
 		describe('Given an address that is too long', () => {
 			const address = 'lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmux2ga';
 			it('should throw an error', () => {
-				return expect(() => validateLisk32Address(address)).toThrow(
-					'Address length does not match requirements. Expected 41 characters.',
+				expect(() => validateLisk32Address(address)).toThrow(
+					`Address length does not match requirements. Expected ${LISK32_ADDRESS_LENGTH} characters.`,
 				);
 			});
 		});
@@ -107,8 +112,8 @@ describe('address', () => {
 		describe('Given an address that is not prefixed with `lsk`', () => {
 			const address = 'LSK24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu';
 			it('should throw an error', () => {
-				return expect(() => validateLisk32Address(address)).toThrow(
-					'Invalid address prefix. Actual prefix: LSK, Expected prefix: lsk',
+				expect(() => validateLisk32Address(address)).toThrow(
+					`Invalid address prefix. Actual prefix: LSK, Expected prefix: ${DEFAULT_LISK32_ADDRESS_PREFIX}`,
 				);
 			});
 		});
@@ -116,8 +121,8 @@ describe('address', () => {
 		describe('Given an address containing non-lisk32 characters', () => {
 			const address = 'lsk1aknq582o6fw7sp82bm2hnj7pzp47mpmbmux2g';
 			it('should throw an error', () => {
-				return expect(() => validateLisk32Address(address)).toThrow(
-					"Invalid character found in address. Only allow characters: 'abcdefghjkmnopqrstuvwxyz23456789'.",
+				expect(() => validateLisk32Address(address)).toThrow(
+					`Invalid character found in address. Only allow characters: '${BASE32_CHARSET}'.`,
 				);
 			});
 		});
@@ -125,9 +130,7 @@ describe('address', () => {
 		describe('Given an address with invalid checksum', () => {
 			const address = 'lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmuxgg';
 			it('should throw an error', () => {
-				return expect(() => validateLisk32Address(address)).toThrow(
-					'Invalid checksum for address.',
-				);
+				expect(() => validateLisk32Address(address)).toThrow('Invalid checksum for address.');
 			});
 		});
 	});
@@ -150,7 +153,9 @@ describe('address', () => {
 		it('should throw error for invalid prefix', () => {
 			expect(() =>
 				getAddressFromLisk32Address('abcvtr2zq9v36vyefjdvhxas92nf438z9ap8wnzav').toString('hex'),
-			).toThrow('Invalid address prefix. Actual prefix: abc, Expected prefix: lsk');
+			).toThrow(
+				`Invalid address prefix. Actual prefix: abc, Expected prefix: ${DEFAULT_LISK32_ADDRESS_PREFIX}`,
+			);
 		});
 
 		it('should return an address given a lisk32 address with default prefix', () => {
