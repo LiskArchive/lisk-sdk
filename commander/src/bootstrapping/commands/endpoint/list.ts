@@ -43,52 +43,48 @@ export class ListCommand extends BaseIPCClientCommand {
 			this.error('APIClient is not initialized.');
 		}
 
-		try {
-			let modules;
-			let result;
+		let modules;
+		let result;
 
-			if (flags.module === undefined) {
-				modules = this._client.metadata;
-			} else {
-				modules = this._client.metadata.filter(moduleData => moduleData.name.match(flags.module!));
-			}
+		if (flags.module === undefined) {
+			modules = this._client.metadata;
+		} else {
+			modules = this._client.metadata.filter(moduleData => moduleData.name.match(flags.module!));
+		}
 
-			const initialValue: {
-				name: string;
-				request?: Schema;
-				response: Schema;
-			}[] = [];
+		const initialValue: {
+			name: string;
+			request?: Schema;
+			response: Schema;
+		}[] = [];
 
-			if (args.endpoint !== undefined) {
-				const searchExpression = new RegExp(args.endpoint, 'i');
+		if (args.endpoint !== undefined) {
+			const searchExpression = new RegExp(args.endpoint, 'i');
 
-				result = modules.reduce((aggregatedResult, liskModule) => {
-					const endpoints = liskModule.endpoints
-						.filter(endpoint => endpoint.name.match(searchExpression))
-						.map(endpoint => ({ ...endpoint, name: `${liskModule.name}_${endpoint.name}` }));
+			result = modules.reduce((aggregatedResult, liskModule) => {
+				const endpoints = liskModule.endpoints
+					.filter(endpoint => endpoint.name.match(searchExpression))
+					.map(endpoint => ({ ...endpoint, name: `${liskModule.name}_${endpoint.name}` }));
 
-					return aggregatedResult.concat(endpoints);
-				}, initialValue);
-			} else {
-				result = modules.reduce(
-					(aggregatedResult, liskModule) =>
-						aggregatedResult.concat(
-							liskModule.endpoints.map(endpoint => ({
-								...endpoint,
-								name: `${liskModule.name}_${endpoint.name}`,
-							})),
-						),
-					initialValue,
-				);
-			}
+				return aggregatedResult.concat(endpoints);
+			}, initialValue);
+		} else {
+			result = modules.reduce(
+				(aggregatedResult, liskModule) =>
+					aggregatedResult.concat(
+						liskModule.endpoints.map(endpoint => ({
+							...endpoint,
+							name: `${liskModule.name}_${endpoint.name}`,
+						})),
+					),
+				initialValue,
+			);
+		}
 
-			if (flags.info) {
-				this.printJSON(result as unknown as Record<string, unknown>);
-			} else {
-				this.printJSON(result.map(item => item.name) as unknown as Record<string, unknown>);
-			}
-		} catch (error) {
-			this.error((error as Error).message);
+		if (flags.info) {
+			this.printJSON(result as unknown as Record<string, unknown>);
+		} else {
+			this.printJSON(result.map(item => item.name) as unknown as Record<string, unknown>);
 		}
 	}
 }
