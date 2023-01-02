@@ -111,10 +111,9 @@ const getCCM = (n = 1): CCMsg => {
 	};
 };
 
-const getEventsJSON = (eventsCount: number) => {
+const getEventsJSON = (eventsCount: number, height = 1) => {
 	const someEvents = [];
 	let i = 0;
-	const height = 1;
 	while (i < eventsCount) {
 		someEvents.push(
 			new chain.Event({
@@ -139,6 +138,21 @@ const getApiClientMocks = () => {
 	};
 };
 
+const initChainConnectorPlugin = async (
+	chainConnectorPlugin: plugins.ChainConnectorPlugin,
+	ccuFrequency = CCU_FREQUENCY,
+) => {
+	await chainConnectorPlugin.init({
+		logger: testing.mocks.loggerMock,
+		config: {
+			mainchainIPCPath: '~/.lisk/mainchain',
+			sidechainIPCPath: '~/.list/sidechain',
+			ccuFrequency,
+		},
+		appConfig: appConfigForPlugin,
+	});
+};
+
 describe('ChainConnectorPlugin', () => {
 	let chainConnectorPlugin: plugins.ChainConnectorPlugin;
 	const sidechainAPIClientMock = {
@@ -158,34 +172,6 @@ describe('ChainConnectorPlugin', () => {
 		setValidatorsHashPreimage: jest.fn(),
 		close: jest.fn(),
 	};
-
-	const setupChainConnectorPluginLoad = async (block: Block, eventsCount = 2) => {
-		jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
-
-		when(sidechainAPIClientMock.invoke)
-			.calledWith('consensus_getBFTParameters', { height: block.header.height })
-			.mockResolvedValue({
-				certificateThreshold: BigInt(70),
-				validators: [],
-				validatorsHash: cryptography.utils.getRandomBytes(20),
-			});
-
-		when(sidechainAPIClientMock.invoke)
-			.calledWith('chain_getEvents', { height: block.header.height })
-			.mockResolvedValue(getEventsJSON(eventsCount));
-
-		await chainConnectorPlugin.init({
-			logger: testing.mocks.loggerMock,
-			config: { mainchainIPCPath: '~/.lisk/mainchain' },
-			appConfig: appConfigForPlugin,
-		});
-
-		await chainConnectorPlugin.load();
-		await (chainConnectorPlugin as any)['_newBlockHandler']({
-			blockHeader: block.header.toJSON(),
-		});
-	};
-
 	beforeEach(() => {
 		chainConnectorPlugin = new plugins.ChainConnectorPlugin();
 
@@ -203,24 +189,12 @@ describe('ChainConnectorPlugin', () => {
 		});
 
 		it('should assign ccuFrequency properties to default values', async () => {
-			await chainConnectorPlugin.init({
-				logger: testing.mocks.loggerMock,
-				config: { mainchainIPCPath: '~/.lisk/mainchain' },
-				appConfig: appConfigForPlugin,
-			});
+			await initChainConnectorPlugin(chainConnectorPlugin);
 			expect(chainConnectorPlugin['_ccuFrequency']).toEqual(CCU_FREQUENCY);
 		});
 
 		it('should assign ccuFrequency properties to passed config values', async () => {
-			await chainConnectorPlugin.init({
-				logger: testing.mocks.loggerMock,
-				config: {
-					mainchainIPCPath: '~/.lisk/mainchain',
-					sidechainIPCPath: '~/.list/sidechain',
-					ccuFrequency: 300000,
-				},
-				appConfig: appConfigForPlugin,
-			});
+			await initChainConnectorPlugin(chainConnectorPlugin, 300000);
 			expect(chainConnectorPlugin['_ccuFrequency']).toBe(300000);
 		});
 	});
@@ -239,12 +213,7 @@ describe('ChainConnectorPlugin', () => {
 
 		it('should initialize api clients without sidechain', async () => {
 			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(getApiClientMocks() as never);
-			await chainConnectorPlugin.init({
-				logger: testing.mocks.loggerMock,
-				config: { mainchainIPCPath: '~/.lisk/mainchain' },
-				appConfig: appConfigForPlugin,
-			});
-
+			await initChainConnectorPlugin(chainConnectorPlugin);
 			await chainConnectorPlugin.load();
 
 			expect(chainConnectorPlugin['_mainchainAPIClient']).toBeDefined();
@@ -286,15 +255,25 @@ describe('ChainConnectorPlugin', () => {
 
 	describe('_newBlockHandler', () => {
 		let block: Block;
+
 		beforeEach(async () => {
+			block = await getTestBlock();
+
+			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
+
 			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorStoreMock;
 			(chainConnectorPlugin as any)['_sidechainAPIClient'] = sidechainAPIClientMock;
 			(chainConnectorPlugin as any)['_groupCCMsBySize'] = jest.fn();
 			(chainConnectorPlugin as any)['_createCCU'] = jest.fn();
 			(chainConnectorPlugin as any)['_cleanup'] = jest.fn();
 
-			block = await getTestBlock();
-			await setupChainConnectorPluginLoad(block);
+			when(sidechainAPIClientMock.invoke)
+				.calledWith('consensus_getBFTParameters', { height: block.header.height })
+				.mockResolvedValue({
+					certificateThreshold: BigInt(70),
+					validators: [],
+					validatorsHash: cryptography.utils.getRandomBytes(20),
+				});
 		});
 
 		afterEach(async () => {
@@ -304,7 +283,7 @@ describe('ChainConnectorPlugin', () => {
 			jest.resetAllMocks();
 		});
 
-		it('should invoke "consensus_getBFTParameters" on _sidechainAPIClient', () => {
+		it('should invoke "consensus_getBFTParameters" on _sidechainAPIClient', async () => {
 			when(chainConnectorStoreMock.getBlockHeaders).calledWith().mockResolvedValue([]);
 
 			when(chainConnectorStoreMock.getAggregateCommits).calledWith().mockResolvedValue([]);
@@ -312,6 +291,13 @@ describe('ChainConnectorPlugin', () => {
 			when(chainConnectorStoreMock.getValidatorsHashPreimage).calledWith().mockResolvedValue([]);
 
 			when(chainConnectorStoreMock.getCrossChainMessages).calledWith().mockResolvedValue([]);
+
+			await initChainConnectorPlugin(chainConnectorPlugin);
+			await chainConnectorPlugin.load();
+
+			await (chainConnectorPlugin as any)['_newBlockHandler']({
+				blockHeader: block.header.toJSON(),
+			});
 
 			expect(sidechainAPIClientMock.subscribe).toHaveBeenCalledTimes(1);
 			expect(sidechainAPIClientMock.invoke).toHaveBeenCalledWith('consensus_getBFTParameters', {
@@ -322,6 +308,14 @@ describe('ChainConnectorPlugin', () => {
 		});
 
 		it('should invoke "chain_getEvents" on _sidechainAPIClient', async () => {
+			const eventsJson = getEventsJSON(2);
+
+			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
+
+			when(sidechainAPIClientMock.invoke)
+				.calledWith('chain_getEvents', { height: block.header.height })
+				.mockResolvedValue(eventsJson);
+
 			when(sidechainAPIClientMock.invoke)
 				.calledWith('system_getMetadata')
 				.mockResolvedValue({
@@ -366,7 +360,9 @@ describe('ChainConnectorPlugin', () => {
 					chainID: '10000000',
 				});
 
+			await initChainConnectorPlugin(chainConnectorPlugin);
 			await chainConnectorPlugin.load();
+
 			await (chainConnectorPlugin as any)['_newBlockHandler']({
 				blockHeader: block.header.toJSON(),
 			});
@@ -379,15 +375,16 @@ describe('ChainConnectorPlugin', () => {
 			expect((chainConnectorPlugin as any)['_createCCU']).toHaveBeenCalled();
 			expect((chainConnectorPlugin as any)['_cleanup']).toHaveBeenCalled();
 
-			const ccm = getCCM(1);
+			// const ccm = getCCM(1);
 			const savedCCMs = await chainConnectorPlugin[
 				'_sidechainChainConnectorStore'
 			].getCrossChainMessages();
+
 			expect(savedCCMs).toEqual([
 				{
 					ccms: [
-						{ ...ccm, nonce: BigInt(1) },
-						{ ...ccm, nonce: BigInt(2) },
+						{ ...getCCM(1), nonce: BigInt(1) },
+						{ ...getCCM(2), nonce: BigInt(2) },
 					],
 					height: 1,
 					inclusionProof: {
@@ -428,7 +425,7 @@ describe('ChainConnectorPlugin', () => {
 				inclusionProof: {} as any,
 			});
 
-			// after filtering, we will have ccms only from heights 3 & 4, so total 25 ccms
+			// after filtering, we will have ccms only from heights 3 & 4, so total 25 (20 + 5)
 			chainConnectorPlugin['_lastCertifiedHeight'] = 2;
 			const listOfCCMs = (chainConnectorPlugin as any)['_groupCCMsBySize'](ccmsFromEvents, {
 				height: 5,
