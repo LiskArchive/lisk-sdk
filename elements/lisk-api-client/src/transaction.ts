@@ -16,6 +16,7 @@ import {
 	signTransaction,
 	signMultiSignatureTransaction,
 	computeMinFee,
+	Options,
 } from '@liskhq/lisk-transactions';
 import { address as cryptoAddress, ed } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
@@ -37,10 +38,6 @@ import {
 	Transaction as ITransaction,
 	DecodedTransactionJSON,
 } from './types';
-
-interface Options {
-	readonly numberOfSignatures: number;
-}
 
 interface AuthAccount {
 	nonce: string;
@@ -137,7 +134,10 @@ export class Transaction {
 				? codec.fromJSON(commandSchema, txInput.params as Record<string, unknown>)
 				: {},
 		};
-		if (authAccount.numberOfSignatures > 0) {
+		if (
+			authAccount.numberOfSignatures > 0 ||
+			(options?.multisignatureKeys && options?.includeSenderSignature)
+		) {
 			const signedTx = signMultiSignatureTransaction(
 				rawTx,
 				chainID,
@@ -148,20 +148,6 @@ export class Transaction {
 				},
 				commandSchema,
 				options?.includeSenderSignature,
-			);
-			return this.toJSON(signedTx) as DecodedTransactionJSON<T>;
-		}
-		if (options?.multisignatureKeys && options?.includeSenderSignature) {
-			const signedTx = signMultiSignatureTransaction(
-				rawTx,
-				chainID,
-				privateKey,
-				{
-					mandatoryKeys: authAccount.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
-					optionalKeys: authAccount.optionalKeys.map(k => Buffer.from(k, 'hex')),
-				},
-				commandSchema,
-				options.includeSenderSignature,
 			);
 			return this.toJSON(signedTx) as DecodedTransactionJSON<T>;
 		}
@@ -275,15 +261,12 @@ export class Transaction {
 		return encodeTransaction(transaction, this._schema, this._metadata);
 	}
 
-	public computeMinFee(transaction: Omit<DecodedTransactionJSON, 'id'>): bigint {
+	public computeMinFee(transaction: Omit<DecodedTransactionJSON, 'id'>, options?: Options): bigint {
 		const decodedTx = this.fromJSON(transaction as DecodedTransactionJSON);
 		this._validateTransaction(decodedTx);
 		const commandSchema = getTransactionParamsSchema(transaction, this._metadata);
-		const numberOfSignatures = decodedTx.signatures ? decodedTx.signatures.length : 1;
-		const options: Options = {
-			numberOfSignatures,
-		};
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		return computeMinFee(decodedTx, commandSchema, options);
 	}
 

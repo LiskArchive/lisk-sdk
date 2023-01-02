@@ -1,6 +1,6 @@
 {
 	"name": "lisk-elements",
-	"version": "6.0.0-alpha.8",
+	"version": "6.0.0-alpha.9",
 	"description": "Elements for building blockchain applications in the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -35,8 +35,8 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"@liskhq/lisk-api-client": "^6.0.0-alpha.8",
-		"@liskhq/lisk-chain": "^0.4.0-alpha.8",
+		"@liskhq/lisk-api-client": "^6.0.0-alpha.9",
+		"@liskhq/lisk-chain": "^0.4.0-alpha.9",
 		"@liskhq/lisk-codec": "^0.3.0-alpha.6",
 		"@liskhq/lisk-cryptography": "^4.0.0-alpha.5",
 		"@liskhq/lisk-db": "0.3.2",

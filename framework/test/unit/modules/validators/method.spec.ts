@@ -20,6 +20,9 @@ import {
 	EMPTY_KEY,
 	INVALID_BLS_KEY,
 	KeyRegResult,
+	ADDRESS_LENGTH,
+	BLS_PUBLIC_KEY_LENGTH,
+	ED25519_PUBLIC_KEY_LENGTH,
 } from '../../../../src/modules/validators/constants';
 import * as generatorList from '../../../fixtures/config/devnet/validators_for_first_round.json';
 import {
@@ -57,8 +60,8 @@ describe('ValidatorsModuleMethod', () => {
 	const moduleConfig: any = {
 		blockTime,
 	};
-	const address = utils.getRandomBytes(48);
-	const generatorKey = utils.getRandomBytes(48);
+	const address = utils.getRandomBytes(20);
+	const generatorKey = utils.getRandomBytes(32);
 	const proofOfPossession = Buffer.from(
 		'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26',
 		'hex',
@@ -67,6 +70,17 @@ describe('ValidatorsModuleMethod', () => {
 		'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81',
 		'hex',
 	);
+	const invalidProofOfPossession = Buffer.from(
+		'0x88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26',
+		'hex',
+	);
+	const invalidAddressShort = utils.getRandomBytes(19);
+	const invalidAddressLong = utils.getRandomBytes(21);
+	const invalidGeneratorKeyShort = utils.getRandomBytes(31);
+	const invalidGeneratorKeyLong = utils.getRandomBytes(33);
+	const invalidBlsKeyShort = utils.getRandomBytes(47);
+	const invalidBlsKeyLong = utils.getRandomBytes(49);
+
 	beforeAll(async () => {
 		validatorsModule = new ValidatorsModule();
 		await validatorsModule.init({ genesisConfig, moduleConfig });
@@ -190,7 +204,6 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should not be able to create new validator account if validator address does not exist, bls key is not registered and proof of possession is invalid', async () => {
-			const invalidProofOfPossession = utils.getRandomBytes(48);
 			const blsEventData = codec.encode(blsKeyRegDataSchema, {
 				blsKey,
 				proofOfPossession: invalidProofOfPossession,
@@ -213,6 +226,90 @@ describe('ValidatorsModuleMethod', () => {
 				[address],
 				true,
 			);
+		});
+
+		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but validatorAddress is shorter than 20 bytes', async () => {
+			await expect(
+				validatorsModule.method.registerValidatorKeys(
+					methodContext,
+					invalidAddressShort,
+					blsKey,
+					generatorKey,
+					proofOfPossession,
+				),
+			).rejects.toThrow(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
+			await expect(validatorsSubStore.get(methodContext, invalidAddressShort)).rejects.toThrow();
+			await expect(blsKeysSubStore.get(methodContext, blsKey)).rejects.toThrow();
+		});
+
+		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but validatorAddress is longer than 20 bytes', async () => {
+			await expect(
+				validatorsModule.method.registerValidatorKeys(
+					methodContext,
+					invalidAddressLong,
+					blsKey,
+					generatorKey,
+					proofOfPossession,
+				),
+			).rejects.toThrow(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
+			await expect(validatorsSubStore.get(methodContext, invalidAddressLong)).rejects.toThrow();
+			await expect(blsKeysSubStore.get(methodContext, blsKey)).rejects.toThrow();
+		});
+
+		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but generator key is shorter than 32 bytes', async () => {
+			await expect(
+				validatorsModule.method.registerValidatorKeys(
+					methodContext,
+					address,
+					blsKey,
+					invalidGeneratorKeyShort,
+					proofOfPossession,
+				),
+			).rejects.toThrow();
+			await expect(validatorsSubStore.get(methodContext, address)).rejects.toThrow();
+			await expect(blsKeysSubStore.get(methodContext, blsKey)).rejects.toThrow();
+		});
+
+		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but generator key is longer than 32 bytes', async () => {
+			await expect(
+				validatorsModule.method.registerValidatorKeys(
+					methodContext,
+					address,
+					blsKey,
+					invalidGeneratorKeyLong,
+					proofOfPossession,
+				),
+			).rejects.toThrow();
+			await expect(validatorsSubStore.get(methodContext, address)).rejects.toThrow();
+			await expect(blsKeysSubStore.get(methodContext, blsKey)).rejects.toThrow();
+		});
+
+		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but bls key is shorter than 48 bytes', async () => {
+			await expect(
+				validatorsModule.method.registerValidatorKeys(
+					methodContext,
+					address,
+					invalidBlsKeyShort,
+					generatorKey,
+					proofOfPossession,
+				),
+			).rejects.toThrow();
+			await expect(validatorsSubStore.get(methodContext, address)).rejects.toThrow();
+			await expect(blsKeysSubStore.get(methodContext, invalidBlsKeyShort)).rejects.toThrow();
+		});
+
+		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but bls key is longer than 48 bytes', async () => {
+			await expect(
+				validatorsModule.method.registerValidatorKeys(
+					methodContext,
+					address,
+					invalidBlsKeyLong,
+					generatorKey,
+					proofOfPossession,
+				),
+			).rejects.toThrow();
+			await expect(validatorsSubStore.get(methodContext, address)).rejects.toThrow();
+			await expect(blsKeysSubStore.get(methodContext, invalidBlsKeyLong)).rejects.toThrow();
 		});
 	});
 
@@ -313,7 +410,6 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should not be able to set bls key for validator if address exists, key is not registered but proof of possession is invalid', async () => {
-			const invalidProofOfPossession = utils.getRandomBytes(48);
 			const blsEventData = codec.encode(blsKeyRegDataSchema, {
 				blsKey,
 				proofOfPossession: invalidProofOfPossession,
@@ -341,6 +437,54 @@ describe('ValidatorsModuleMethod', () => {
 				true,
 			);
 		});
+
+		it('should throw and be unable to set bls key for validator if address is shorter than 20 bytes', async () => {
+			await expect(
+				validatorsModule.method.setValidatorBLSKey(
+					methodContext,
+					invalidAddressShort,
+					blsKey,
+					proofOfPossession,
+				),
+			).rejects.toThrow(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
+			await expect(blsKeysSubStore.get(methodContext, blsKey)).rejects.toThrow();
+		});
+
+		it('should throw and be unable to set bls key for validator if address is longer than 20 bytes', async () => {
+			await expect(
+				validatorsModule.method.setValidatorBLSKey(
+					methodContext,
+					invalidAddressLong,
+					blsKey,
+					proofOfPossession,
+				),
+			).rejects.toThrow(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
+			await expect(blsKeysSubStore.get(methodContext, blsKey)).rejects.toThrow();
+		});
+
+		it('should throw and be unable to set bls key for validator if bls key is shorter than 48 bytes', async () => {
+			await expect(
+				validatorsModule.method.setValidatorBLSKey(
+					methodContext,
+					address,
+					invalidBlsKeyShort,
+					proofOfPossession,
+				),
+			).rejects.toThrow(`BLS public key must be ${BLS_PUBLIC_KEY_LENGTH} bytes long.`);
+			await expect(blsKeysSubStore.get(methodContext, invalidBlsKeyShort)).rejects.toThrow();
+		});
+
+		it('should throw and be unable to set bls key for validator if bls key is longer than 48 bytes', async () => {
+			await expect(
+				validatorsModule.method.setValidatorBLSKey(
+					methodContext,
+					address,
+					invalidBlsKeyLong,
+					proofOfPossession,
+				),
+			).rejects.toThrow(`BLS public key must be ${BLS_PUBLIC_KEY_LENGTH} bytes long.`);
+			await expect(blsKeysSubStore.get(methodContext, invalidBlsKeyLong)).rejects.toThrow();
+		});
 	});
 
 	describe('setValidatorGeneratorKey', () => {
@@ -349,9 +493,8 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should be able to correctly set generator key for validator if address exists', async () => {
-			const generatorKey1 = utils.getRandomBytes(48);
 			const generatorEventData = codec.encode(generatorKeyRegDataSchema, {
-				generatorKey: generatorKey1,
+				generatorKey,
 				result: KeyRegResult.SUCCESS,
 			});
 			const validatorAccount = {
@@ -363,12 +506,12 @@ describe('ValidatorsModuleMethod', () => {
 			const isSet = await validatorsModule.method.setValidatorGeneratorKey(
 				methodContext,
 				address,
-				generatorKey1,
+				generatorKey,
 			);
 			const setValidatorAccount = await validatorsSubStore.get(methodContext, address);
 
 			expect(isSet).toBe(true);
-			expect(setValidatorAccount.generatorKey.equals(generatorKey1)).toBe(true);
+			expect(setValidatorAccount.generatorKey.equals(generatorKey)).toBe(true);
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
 				validatorsModule.events.get(GeneratorKeyRegistrationEvent).name,
@@ -396,6 +539,50 @@ describe('ValidatorsModuleMethod', () => {
 				[address],
 				true,
 			);
+		});
+
+		it('should throw error and be unable to set generator key for validator if address is shorter than 20 bytes', async () => {
+			await expect(
+				validatorsModule.method.setValidatorGeneratorKey(
+					methodContext,
+					invalidAddressShort,
+					generatorKey,
+				),
+			).rejects.toThrow(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
+			await expect(validatorsSubStore.get(methodContext, invalidAddressShort)).rejects.toThrow();
+		});
+
+		it('should throw error and be unable to set generator key for validator if address is longer than 20 bytes', async () => {
+			await expect(
+				validatorsModule.method.setValidatorGeneratorKey(
+					methodContext,
+					invalidAddressLong,
+					generatorKey,
+				),
+			).rejects.toThrow(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
+			await expect(validatorsSubStore.get(methodContext, invalidAddressLong)).rejects.toThrow();
+		});
+
+		it('should throw error and be unable to set generator key for validator if generator key is shorter than 32 bytes', async () => {
+			await expect(
+				validatorsModule.method.setValidatorGeneratorKey(
+					methodContext,
+					address,
+					invalidGeneratorKeyShort,
+				),
+			).rejects.toThrow(`Generator key must be ${ED25519_PUBLIC_KEY_LENGTH} bytes long.`);
+			await expect(validatorsSubStore.get(methodContext, address)).rejects.toThrow();
+		});
+
+		it('should throw error and be unable to set generator key for validator if generator key is longer than 32 bytes', async () => {
+			await expect(
+				validatorsModule.method.setValidatorGeneratorKey(
+					methodContext,
+					address,
+					invalidGeneratorKeyLong,
+				),
+			).rejects.toThrow(`Generator key must be ${ED25519_PUBLIC_KEY_LENGTH} bytes long.`);
+			await expect(validatorsSubStore.get(methodContext, address)).rejects.toThrow();
 		});
 	});
 
@@ -595,6 +782,18 @@ describe('ValidatorsModuleMethod', () => {
 				`The BLS key ${blsKey.toString('hex')} has not been registered in the chain.`,
 			);
 		});
+
+		it('should throw if bls key is shorter than 48 bytes', async () => {
+			await expect(
+				validatorsMethod.getAddressFromBLSKey(methodContext, invalidBlsKeyShort),
+			).rejects.toThrow(`BLS public key must be ${BLS_PUBLIC_KEY_LENGTH} bytes long.`);
+		});
+
+		it('should throw if bls key is longer than 48 bytes', async () => {
+			await expect(
+				validatorsMethod.getAddressFromBLSKey(methodContext, invalidBlsKeyLong),
+			).rejects.toThrow(`BLS public key must be ${BLS_PUBLIC_KEY_LENGTH} bytes long.`);
+		});
 	});
 
 	describe('registerValidatorWithoutBLSKey', () => {
@@ -649,6 +848,50 @@ describe('ValidatorsModuleMethod', () => {
 				[address],
 				true,
 			);
+		});
+
+		it('should throw error and be unable to register validator if address length is less than 20 bytes', async () => {
+			await expect(
+				validatorsModule.method.registerValidatorWithoutBLSKey(
+					methodContext,
+					invalidAddressShort,
+					generatorKey,
+				),
+			).rejects.toThrow(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
+			await expect(validatorsSubStore.get(methodContext, invalidAddressShort)).rejects.toThrow();
+		});
+
+		it('should throw error and be unable to register validator if address length is greater than 20 bytes', async () => {
+			await expect(
+				validatorsModule.method.registerValidatorWithoutBLSKey(
+					methodContext,
+					invalidAddressLong,
+					generatorKey,
+				),
+			).rejects.toThrow(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
+			await expect(validatorsSubStore.get(methodContext, invalidAddressLong)).rejects.toThrow();
+		});
+
+		it('should throw error and be unable to register validator if generator key is less than 20 bytes', async () => {
+			await expect(
+				validatorsModule.method.registerValidatorWithoutBLSKey(
+					methodContext,
+					address,
+					invalidGeneratorKeyShort,
+				),
+			).rejects.toThrow();
+			await expect(validatorsSubStore.get(methodContext, address)).rejects.toThrow();
+		});
+
+		it('should throw error and be unable to register validator if generator key is greater than 20 bytes', async () => {
+			await expect(
+				validatorsModule.method.registerValidatorWithoutBLSKey(
+					methodContext,
+					address,
+					invalidGeneratorKeyLong,
+				),
+			).rejects.toThrow();
+			await expect(validatorsSubStore.get(methodContext, address)).rejects.toThrow();
 		});
 	});
 });

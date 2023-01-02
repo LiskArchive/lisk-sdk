@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '../../../lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { LEAF_PREFIX } from './constants';
 import { calculatePathNodes, ROOT_INDEX } from './utils';
 

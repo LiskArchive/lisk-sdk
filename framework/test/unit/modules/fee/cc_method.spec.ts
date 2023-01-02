@@ -85,7 +85,7 @@ describe('FeeInteroperableMethod', () => {
 			await feeMethod.afterCrossChainCommandExecute(context);
 		});
 
-		it('should unlock transaction fee from sender', () => {
+		it('should unlock ccm fee from sender', () => {
 			expect(feeMethod['_tokenMethod'].unlock).toHaveBeenCalledWith(
 				expect.anything(),
 				context.transaction.senderAddress,

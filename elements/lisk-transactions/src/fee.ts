@@ -15,7 +15,7 @@
 
 import { getBytes } from './sign';
 
-interface Options {
+export interface Options {
 	readonly minFeePerByte?: number;
 	readonly numberOfSignatures?: number;
 	readonly numberOfEmptySignatures?: number;
@@ -25,7 +25,7 @@ const DEFAULT_MIN_FEE_PER_BYTE = 1000;
 const DEFAULT_NUMBER_OF_SIGNATURES = 1;
 const DEFAULT_SIGNATURE_BYTE_SIZE = 64;
 
-const computeTransactionMinFee = (
+export const computeMinFee = (
 	trx: Record<string, unknown>,
 	assetSchema?: object,
 	options?: Options,
@@ -38,30 +38,18 @@ const computeTransactionMinFee = (
 			...new Array<Buffer>(options.numberOfEmptySignatures).fill(Buffer.alloc(0)),
 		);
 	}
-	const size = getBytes(
-		{
-			...trx,
-			signatures: mockSignatures,
-		},
-		assetSchema,
-	).length;
 
-	return BigInt(size * (options?.minFeePerByte ?? DEFAULT_MIN_FEE_PER_BYTE));
-};
+	const { ...transaction } = trx;
+	transaction.signatures = mockSignatures;
+	transaction.fee = BigInt(0);
 
-export const computeMinFee = (
-	trx: Record<string, unknown>,
-	assetSchema?: object,
-	options?: Options,
-): bigint => {
-	const { fee, ...trxWithoutFee } = trx;
-	trxWithoutFee.fee = BigInt(0);
-	let minFee = computeTransactionMinFee(trxWithoutFee, assetSchema, options);
+	let minFee = BigInt(0);
 
-	while (minFee > BigInt(trxWithoutFee.fee as bigint)) {
-		// eslint-disable-next-line no-param-reassign
-		trxWithoutFee.fee = minFee;
-		minFee = computeTransactionMinFee(trxWithoutFee, assetSchema, options);
-	}
+	do {
+		transaction.fee = minFee;
+		const transactionSize = getBytes(transaction, assetSchema).length;
+		minFee = BigInt(transactionSize * (options?.minFeePerByte ?? DEFAULT_MIN_FEE_PER_BYTE));
+	} while (minFee > BigInt(transaction.fee as bigint));
+
 	return minFee;
 };

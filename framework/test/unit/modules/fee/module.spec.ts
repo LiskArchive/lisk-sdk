@@ -16,6 +16,7 @@ import { Transaction } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { FeeModule } from '../../../../src/modules/fee';
 import { CONTEXT_STORE_KEY_AVAILABLE_FEE } from '../../../../src/modules/fee/constants';
+import { MODULE_NAME_TOKEN } from '../../../../src/modules/interoperability/cc_methods';
 import { TransactionExecuteContext, VerifyStatus } from '../../../../src/state_machine';
 import { createTransactionContext } from '../../../../src/testing';
 
@@ -29,10 +30,10 @@ describe('FeeModule', () => {
 		signatures: [utils.getRandomBytes(20)],
 		params: utils.getRandomBytes(32),
 	});
-
 	let feeModule!: FeeModule;
 	let genesisConfig: any;
 	let moduleConfig: any;
+	let tokenMethod: any;
 
 	beforeEach(async () => {
 		genesisConfig = {
@@ -41,16 +42,15 @@ describe('FeeModule', () => {
 		moduleConfig = {};
 		feeModule = new FeeModule();
 		await feeModule.init({ genesisConfig, moduleConfig });
-		feeModule.addDependencies(
-			{
-				burn: jest.fn(),
-				lock: jest.fn(),
-				unlock: jest.fn(),
-				transfer: jest.fn(),
-				getAvailableBalance: jest.fn(),
-			} as any,
-			{} as any,
-		);
+		tokenMethod = {
+			burn: jest.fn(),
+			lock: jest.fn(),
+			unlock: jest.fn(),
+			transfer: jest.fn(),
+			getAvailableBalance: jest.fn(),
+		} as any;
+		feeModule.addDependencies(tokenMethod, {} as any);
+		jest.spyOn(tokenMethod, 'getAvailableBalance').mockResolvedValue(BigInt(2000000000));
 	});
 
 	describe('init', () => {
@@ -67,16 +67,17 @@ describe('FeeModule', () => {
 	});
 
 	describe('verifyTransaction', () => {
+		const transaction = new Transaction({
+			module: MODULE_NAME_TOKEN,
+			command: 'transfer',
+			fee: BigInt(1000000000),
+			nonce: BigInt(0),
+			senderPublicKey: utils.getRandomBytes(32),
+			signatures: [utils.getRandomBytes(20)],
+			params: utils.getRandomBytes(32),
+		});
+
 		it('should validate transaction with sufficient min fee', async () => {
-			const transaction = new Transaction({
-				module: 'token',
-				command: 'transfer',
-				fee: BigInt(1000000000),
-				nonce: BigInt(0),
-				senderPublicKey: utils.getRandomBytes(32),
-				signatures: [utils.getRandomBytes(20)],
-				params: utils.getRandomBytes(32),
-			});
 			const context = createTransactionContext({ transaction });
 			const transactionVerifyContext = context.createTransactionVerifyContext();
 			const result = await feeModule.verifyTransaction(transactionVerifyContext);
@@ -86,16 +87,9 @@ describe('FeeModule', () => {
 
 		it('should validate transaction with exactly the min fee', async () => {
 			const exactMinFee = BigInt(113000);
-			const transaction = new Transaction({
-				module: 'token',
-				command: 'transfer',
-				fee: exactMinFee,
-				nonce: BigInt(0),
-				senderPublicKey: utils.getRandomBytes(32),
-				signatures: [utils.getRandomBytes(20)],
-				params: utils.getRandomBytes(32),
-			});
-			const context = createTransactionContext({ transaction });
+			const tx = new Transaction({ ...transaction, fee: exactMinFee });
+
+			const context = createTransactionContext({ transaction: tx });
 			const transactionVerifyContext = context.createTransactionVerifyContext();
 			const result = await feeModule.verifyTransaction(transactionVerifyContext);
 
@@ -103,18 +97,28 @@ describe('FeeModule', () => {
 		});
 
 		it('should invalidate transaction with insufficient min fee', async () => {
-			const transaction = new Transaction({
-				module: 'token',
-				command: 'transfer',
-				fee: BigInt(0),
-				nonce: BigInt(0),
-				senderPublicKey: utils.getRandomBytes(32),
-				signatures: [utils.getRandomBytes(20)],
-				params: utils.getRandomBytes(32),
-			});
-			const expectedMinFee = BigInt(feeModule['_minFeePerByte'] * transaction.getBytes().length);
-			await expect(feeModule.verifyTransaction({ transaction } as any)).rejects.toThrow(
+			const tx = new Transaction({ ...transaction, fee: BigInt(0) });
+			const expectedMinFee = BigInt(feeModule['_minFeePerByte'] * tx.getBytes().length);
+			await expect(feeModule.verifyTransaction({ transaction: tx } as any)).rejects.toThrow(
 				`Insufficient transaction fee. Minimum required fee is ${expectedMinFee}.`,
+			);
+		});
+
+		it('should validate transaction with balance greater than min fee', async () => {
+			const tx = new Transaction({ ...transaction, fee: BigInt(1000000000) });
+
+			const context = createTransactionContext({ transaction: tx });
+			const transactionVerifyContext = context.createTransactionVerifyContext();
+			const result = await feeModule.verifyTransaction(transactionVerifyContext);
+			expect(result.status).toEqual(VerifyStatus.OK);
+		});
+
+		it('should invalidate transaction with balance less than min fee', async () => {
+			const tx = new Transaction({ ...transaction, fee: BigInt(100000000000000000) });
+			const context = createTransactionContext({ transaction: tx });
+			const transactionVerifyContext = context.createTransactionVerifyContext();
+			await expect(feeModule.verifyTransaction(transactionVerifyContext)).rejects.toThrow(
+				`Insufficient balance.`,
 			);
 		});
 	});
