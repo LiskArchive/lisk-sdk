@@ -38,7 +38,7 @@ export const uint32 = (data: string): boolean => isNumberString(data) && isUInt3
 
 export const int32 = (data: string): boolean => isNumberString(data) && isSInt32(Number(data));
 
-const camelCaseRegex = /^[a-z]+((\d)|([A-Z0-9][a-zA-Z0-9]+))*([a-z0-9A-Z])?$/;
+const camelCaseRegex = /^[a-z][0-9]*([A-Z][a-z]*[a-zA-Z0-9]*|[a-z][a-z]*[a-zA-Z0-9]*)?$/;
 
 export const camelCase = (data: string): boolean => camelCaseRegex.exec(data) !== null;
 
