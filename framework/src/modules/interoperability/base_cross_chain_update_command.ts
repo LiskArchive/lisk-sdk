@@ -100,6 +100,10 @@ export abstract class BaseCrossChainUpdateCommand<
 				const ccm = codec.decode<CCMsg>(ccmSchema, ccmBytes);
 				validateFormat(ccm);
 				decodedCCMs.push(ccm);
+
+				if (!context.chainID.equals(ccm.receivingChainID)) {
+					throw new Error('CCM is not directed to the sidechain.');
+				}
 				if (!ccm.sendingChainID.equals(params.sendingChainID)) {
 					throw new Error('CCM is not from the sending chain.');
 				}
