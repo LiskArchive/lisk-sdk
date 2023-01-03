@@ -1,13 +1,13 @@
 module.exports = {
-	globals: {
-		'ts-jest': {
-			tsconfig: './test/tsconfig.json',
-		},
-	},
 	testMatch: ['<rootDir>/test/**/?(*.)+(spec|test).+(ts|tsx|js)'],
 	setupFilesAfterEnv: ['<rootDir>/test/_setup.js'],
 	transform: {
-		'^.+\\.(ts|tsx)$': 'ts-jest',
+		'^.+\\.(ts|tsx)$': [
+			'ts-jest',
+			{
+				tsconfig: '<rootDir>/test/tsconfig.json',
+			},
+		],
 	},
 	verbose: false,
 	collectCoverage: false,
@@ -36,4 +36,15 @@ module.exports = {
 	 * This can be done programmatically using jest.resetModules().
 	 */
 	resetModules: true,
+
+	/**
+	 * clearMocks [boolean]
+	 *
+	 * Default: false
+	 *
+	 * Automatically clear mock calls and instances between every test.
+	 * Equivalent to calling jest.clearAllMocks() between each test.
+	 * This does not remove any mock implementation that may have been provided.
+	 */
+	clearMocks: true,
 };
