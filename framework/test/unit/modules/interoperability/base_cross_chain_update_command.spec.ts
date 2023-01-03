@@ -335,6 +335,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 		beforeEach(async () => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -474,6 +475,52 @@ describe('BaseCrossChainUpdateCommand', () => {
 									params: utils.getRandomBytes(10),
 									receivingChainID: utils.intToBuffer(2, 4),
 									sendingChainID: Buffer.from([1, 2, 3, 4]),
+									status: CCMStatusCode.OK,
+								}),
+							],
+						},
+					}),
+				}),
+			}).createCommandExecuteContext(command.schema);
+
+			await expect(command['executeCommon'](executeContext, true)).resolves.toEqual([[], false]);
+			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
+				expect.anything(),
+				params.sendingChainID,
+			);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				params.sendingChainID,
+				chainID,
+				{
+					ccmID: expect.any(Buffer),
+					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+				},
+			);
+		});
+
+		it('should terminate the chain and add an event when CCM is not directed to the sidechain', async () => {
+			executeContext = createTransactionContext({
+				chainID,
+				stateStore,
+				transaction: new Transaction({
+					...defaultTransaction,
+					command: command.name,
+					params: codec.encode(crossChainUpdateTransactionParams, {
+						...params,
+						inboxUpdate: {
+							...params.inboxUpdate,
+							crossChainMessages: [
+								...params.inboxUpdate.crossChainMessages,
+								codec.encode(ccmSchema, {
+									crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+									fee: BigInt(0),
+									module: MODULE_NAME_INTEROPERABILITY,
+									nonce: BigInt(1),
+									params: utils.getRandomBytes(10),
+									receivingChainID: Buffer.from([0, 0, 3, 0]),
+									sendingChainID: defaultSendingChainID,
 									status: CCMStatusCode.OK,
 								}),
 							],
