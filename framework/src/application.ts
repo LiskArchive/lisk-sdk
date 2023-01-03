@@ -229,6 +229,11 @@ export class Application {
 		plugin: BasePlugin<any>,
 		options: PluginConfig = { loadAsChildProcess: false },
 	): void {
+		for (const registeredModule of this._registeredModules) {
+			if (plugin.name === registeredModule.name) {
+				throw new Error(`A module with name "${plugin.name}" is already registered.`);
+			}
+		}
 		this._controller.registerPlugin(plugin as BasePlugin, options);
 	}
 

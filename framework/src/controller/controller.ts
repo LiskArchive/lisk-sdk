@@ -133,7 +133,7 @@ export class Controller {
 		const pluginName = plugin.name;
 
 		if (Object.keys(this._plugins).includes(pluginName)) {
-			throw new Error(`A plugin with name "${pluginName}" already registered.`);
+			throw new Error(`A plugin with name "${pluginName}" is already registered.`);
 		}
 
 		if (options.loadAsChildProcess) {
