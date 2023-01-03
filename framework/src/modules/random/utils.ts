@@ -91,7 +91,7 @@ export const getRandomSeed = (
 	}
 
 	if (isInFuture) {
-		throw new Error('Height is in future.');
+		throw new Error('Height is in the future.');
 	}
 
 	for (const seedObject of currentSeeds) {

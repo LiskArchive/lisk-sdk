@@ -288,7 +288,7 @@ describe('RandomModuleMethod', () => {
 			const numberOfSeeds = 5;
 
 			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
-				'Height is in future.',
+				'Height is in the future.',
 			);
 		});
 
@@ -418,7 +418,7 @@ describe('RandomModuleMethod', () => {
 			const numberOfSeeds = 1;
 
 			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
-				'Height is in future.',
+				'Height is in the future.',
 			);
 		});
 	});
