@@ -26,7 +26,7 @@ import { CrossChainUpdateTransactionParams } from '../../types';
 import { getMainchainID } from '../../utils';
 import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 
-export class SidechainCCUpdateCommand extends BaseCrossChainUpdateCommand<SidechainInteroperabilityInternalMethod> {
+export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdateCommand<SidechainInteroperabilityInternalMethod> {
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {

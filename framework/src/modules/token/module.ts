@@ -68,7 +68,7 @@ import { AllTokensFromChainSupportRemovedEvent } from './events/all_tokens_from_
 import { TokenIDSupportedEvent } from './events/token_id_supported';
 import { TokenIDSupportRemovedEvent } from './events/token_id_supported_removed';
 import { CrossChainTransferCommand as CrossChainTransferMessageCommand } from './cc_commands/cc_transfer';
-import { CrossChainTransferCommand } from './commands/cc_transfer';
+import { TransferCrossChainCommand } from './commands/transfer_cross_chain';
 import { InternalMethod } from './internal_method';
 
 export class TokenModule extends BaseInteroperableModule {
@@ -80,7 +80,7 @@ export class TokenModule extends BaseInteroperableModule {
 
 	private _ownChainID!: Buffer;
 	private readonly _transferCommand = new TransferCommand(this.stores, this.events);
-	private readonly _ccTransferCommand = new CrossChainTransferCommand(this.stores, this.events);
+	private readonly _ccTransferCommand = new TransferCrossChainCommand(this.stores, this.events);
 	private readonly _internalMethod = new InternalMethod(this.stores, this.events);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering

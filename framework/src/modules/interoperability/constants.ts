@@ -73,11 +73,11 @@ export const CROSS_CHAIN_COMMAND_REGISTRATION = 'crossChainCommandRegistration';
 export const CCM_SENT_STATUS_SUCCESS = 0;
 
 // Commands
-export const COMMAND_NAME_SIDECHAIN_REG = 'sidechainRegistration';
-export const COMMAND_NAME_MAINCHAIN_REG = 'mainchainRegistration';
-export const COMMAND_NAME_STATE_RECOVERY = 'stateRecovery';
-export const COMMAND_NAME_MESSAGE_RECOVERY = 'messageRecovery';
-export const COMMAND_NAME_STATE_RECOVERY_INIT = 'stateRecoveryInitialization';
+export const COMMAND_NAME_SIDECHAIN_REG = 'registerSidechain';
+export const COMMAND_NAME_MAINCHAIN_REG = 'registerMainchain';
+export const COMMAND_NAME_STATE_RECOVERY = 'recoverState';
+export const COMMAND_NAME_MESSAGE_RECOVERY = 'recoverMessage';
+export const COMMAND_NAME_STATE_RECOVERY_INIT = 'initializeStateRecovery';
 export const COMMAND_NAME_LIVENESS_TERMINATION = 'terminateSidechainForLiveness';
 
 // Events

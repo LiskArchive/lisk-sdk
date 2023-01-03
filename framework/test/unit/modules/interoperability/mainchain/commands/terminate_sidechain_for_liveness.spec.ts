@@ -36,7 +36,7 @@ import {
 } from '../../../../../../src/modules/interoperability/stores/chain_account';
 import { TerminateSidechainForLivenessCommand } from '../../../../../../src/modules/interoperability';
 
-describe('Liveness termination command', () => {
+describe('TerminateSidechainForLivenessCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 
 	describe('verify', () => {

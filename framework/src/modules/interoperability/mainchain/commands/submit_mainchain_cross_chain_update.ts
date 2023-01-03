@@ -48,7 +48,7 @@ import { CrossChainMessageContext, CrossChainUpdateTransactionParams } from '../
 import { getMainchainID, isInboxUpdateEmpty } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
-export class MainchainCCUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
+export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
