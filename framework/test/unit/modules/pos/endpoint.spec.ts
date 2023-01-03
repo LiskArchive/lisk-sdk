@@ -57,6 +57,9 @@ describe('PosModuleEndpoint', () => {
 	const address = utils.getRandomBytes(20);
 	const address1 = utils.getRandomBytes(20);
 	const address2 = utils.getRandomBytes(20);
+	const address3 = utils.getRandomBytes(20);
+	const address4 = utils.getRandomBytes(20);
+	const address5 = utils.getRandomBytes(20);
 
 	const addressStaker = utils.getRandomBytes(20);
 	const stakerData: StakerData = {
@@ -537,6 +540,117 @@ describe('PosModuleEndpoint', () => {
 				})),
 				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
 			});
+		});
+	});
+
+	describe('getAllValidatorsByStake', () => {
+		beforeEach(async () => {
+			const context = createStoreGetter(stateStore);
+			await eligibleValidatorsSubStore.set(
+				context,
+				eligibleValidatorsSubStore.getKey(address, BigInt(20)),
+				{ lastPomHeight: 0 },
+			);
+			await eligibleValidatorsSubStore.set(
+				context,
+				eligibleValidatorsSubStore.getKey(address1, BigInt(50)),
+				{ lastPomHeight: 0 },
+			);
+			await eligibleValidatorsSubStore.set(
+				context,
+				eligibleValidatorsSubStore.getKey(address2, BigInt(100)),
+				{ lastPomHeight: 0 },
+			);
+			await eligibleValidatorsSubStore.set(
+				context,
+				eligibleValidatorsSubStore.getKey(address3, BigInt(10)),
+				{ lastPomHeight: 0 },
+			);
+			await eligibleValidatorsSubStore.set(
+				context,
+				eligibleValidatorsSubStore.getKey(address4, BigInt(300)),
+				{ lastPomHeight: 0 },
+			);
+			await eligibleValidatorsSubStore.set(
+				context,
+				eligibleValidatorsSubStore.getKey(address5, BigInt(400)),
+				{ lastPomHeight: 0 },
+			);
+
+			await validatorSubStore.set(context, address, {
+				...validatorData,
+				name: '1',
+			});
+			await validatorSubStore.set(context, address1, {
+				...validatorData,
+				name: '2',
+			});
+			await validatorSubStore.set(context, address2, {
+				...validatorData,
+				name: '3',
+			});
+			await validatorSubStore.set(context, address3, {
+				...validatorData,
+				name: '4',
+			});
+			await validatorSubStore.set(context, address4, {
+				...validatorData,
+				name: '5',
+			});
+			await validatorSubStore.set(context, address5, {
+				...validatorData,
+				name: '6',
+			});
+		});
+
+		it('should return all validators in correct order', async () => {
+			const resp = await posEndpoint.getAllValidatorsByStake(
+				createTransientModuleEndpointContext({ stateStore }),
+			);
+			expect(resp.validators).toHaveLength(6);
+			expect(resp.validators[0]).toEqual({
+				...validatorData,
+				address: cryptoAddress.getLisk32AddressFromAddress(address5),
+				name: '6',
+				totalStakeReceived: validatorData.totalStakeReceived.toString(),
+				selfStake: validatorData.selfStake.toString(),
+				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
+					tokenID: co.tokenID.toString('hex'),
+					coefficient: co.coefficient.toString('hex'),
+				})),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+			});
+			expect(resp.validators[5]).toEqual({
+				...validatorData,
+				address: cryptoAddress.getLisk32AddressFromAddress(address3),
+				name: '4',
+				totalStakeReceived: validatorData.totalStakeReceived.toString(),
+				selfStake: validatorData.selfStake.toString(),
+				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
+					tokenID: co.tokenID.toString('hex'),
+					coefficient: co.coefficient.toString('hex'),
+				})),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+			});
+		});
+
+		it('should return valid JSON output', async () => {
+			const { validators: validatorsDataReturned } = await posEndpoint.getAllValidatorsByStake(
+				createTransientModuleEndpointContext({ stateStore }),
+			);
+
+			expect(validatorsDataReturned[0].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[0].selfStake).toBeString();
+			expect(validatorsDataReturned[1].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[1].selfStake).toBeString();
+			expect(validatorsDataReturned[2].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[2].selfStake).toBeString();
+			expect(validatorsDataReturned[3].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[3].selfStake).toBeString();
+			expect(validatorsDataReturned[4].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[4].selfStake).toBeString();
+			expect(validatorsDataReturned[5].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[5].selfStake).toBeString();
 		});
 	});
 

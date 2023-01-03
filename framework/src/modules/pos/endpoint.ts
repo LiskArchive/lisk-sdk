@@ -245,6 +245,28 @@ export class PoSEndpoint extends BaseEndpoint {
 		return { validators: response };
 	}
 
+	public async getAllValidatorsByStake(
+		ctx: ModuleEndpointContext,
+	): Promise<{ validators: ValidatorAccountEndpoint[] }> {
+		const eligibleValidatorStore = this.stores.get(EligibleValidatorsStore);
+		const validatorSubStore = this.stores.get(ValidatorStore);
+		const response = [];
+
+		const validatorsList = await eligibleValidatorStore.getAll(ctx);
+		for (const { key } of validatorsList) {
+			const [address] = eligibleValidatorStore.splitKey(key);
+			const validatorAccount = await validatorSubStore.get(ctx, address);
+			const validatorAccountJSON = {
+				...codec.toJSON<ValidatorAccountJSON>(validatorStoreSchema, validatorAccount),
+				address: cryptoAddress.getLisk32AddressFromAddress(address),
+				punishmentPeriods: this._calculatePunishmentPeriods(validatorAccount.pomHeights),
+			};
+			response.push(validatorAccountJSON);
+		}
+
+		return { validators: response };
+	}
+
 	public async getLockedReward(ctx: ModuleEndpointContext): Promise<GetLockedRewardResponse> {
 		validator.validate<GetLockedRewardRequest>(getLockedRewardRequestSchema, ctx.params);
 
