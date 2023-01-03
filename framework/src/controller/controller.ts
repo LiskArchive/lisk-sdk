@@ -151,6 +151,10 @@ export class Controller {
 		this._plugins[pluginName] = plugin;
 	}
 
+	public getRegisteredPlugins(): { [key: string]: BasePlugin } {
+		return this._plugins;
+	}
+
 	public registerEndpoint(namespace: string, handlers: EndpointHandlers): void {
 		if (this._endpointHandlers[namespace]) {
 			throw new Error(`Endpoint for ${namespace} is already registered.`);

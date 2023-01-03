@@ -238,6 +238,9 @@ export class Application {
 	}
 
 	public registerModule(Module: BaseModule): void {
+		if (Object.keys(this._controller.getRegisteredPlugins()).includes(Module.name)) {
+			throw new Error(`A plugin with name "${Module.name}" is already registered.`);
+		}
 		this._registerModule(Module);
 	}
 

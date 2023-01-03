@@ -232,6 +232,29 @@ describe('Application', () => {
 		});
 	});
 
+	describe('#registerModule', () => {
+		it('should throw error when module with same name is already registered', () => {
+			// Arrange
+			const { app } = Application.defaultApplication(config);
+			class MyPlugin extends TestPlugin {
+				public get name() {
+					return 'my-plugin';
+				}
+			}
+			class MyModule extends TestModule {
+				public get name() {
+					return 'my-plugin';
+				}
+			}
+			app.registerPlugin(new MyPlugin());
+
+			// Act && Assert
+			expect(() => app.registerModule(new MyModule())).toThrow(
+				'A plugin with name "my-plugin" is already registered.',
+			);
+		});
+	});
+
 	describe('#run', () => {
 		let app: Application;
 
