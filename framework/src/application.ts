@@ -238,9 +238,6 @@ export class Application {
 	}
 
 	public registerModule(Module: BaseModule): void {
-		if (Object.keys(this._controller.getRegisteredPlugins()).includes(Module.name)) {
-			throw new Error(`A plugin with name "${Module.name}" is already registered.`);
-		}
 		this._registerModule(Module);
 	}
 
@@ -391,6 +388,9 @@ export class Application {
 
 	private _registerModule(mod: BaseModule): void {
 		assert(mod, 'Module implementation is required');
+		if (Object.keys(this._controller.getRegisteredPlugins()).includes(mod.name)) {
+			throw new Error(`A plugin with name "${mod.name}" is already registered.`);
+		}
 		this._registeredModules.push(mod);
 		this._stateMachine.registerModule(mod);
 		this._controller.registerEndpoint(mod.name, getEndpointHandlers(mod.endpoint));
