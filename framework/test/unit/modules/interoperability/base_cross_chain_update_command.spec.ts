@@ -108,7 +108,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					module: MODULE_NAME_INTEROPERABILITY,
 					nonce: BigInt(1),
 					params: Buffer.alloc(2),
-					receivingChainID: Buffer.from([0, 0, 0, 2]),
+					receivingChainID: chainID,
 					sendingChainID: defaultSendingChainID,
 					status: CCMStatusCode.OK,
 				},
@@ -128,7 +128,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					module: MODULE_NAME_INTEROPERABILITY,
 					nonce: BigInt(1),
 					params: Buffer.alloc(2),
-					receivingChainID: Buffer.from([0, 0, 0, 4]),
+					receivingChainID: chainID,
 					sendingChainID: defaultSendingChainID,
 					status: CCMStatusCode.OK,
 				},
@@ -358,18 +358,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should verify certificate signature', async () => {
-			executeContext = createTransactionContext({
-				chainID,
-				stateStore,
-				transaction: new Transaction({
-					...defaultTransaction,
-					command: command.name,
-					params: codec.encode(crossChainUpdateTransactionParams, {
-						...params,
-					}),
-				}),
-			}).createCommandExecuteContext(command.schema);
-
 			await expect(command['executeCommon'](executeContext, true)).resolves.toEqual([
 				expect.toBeArrayOfSize(params.inboxUpdate.crossChainMessages.length),
 				true,
@@ -378,18 +366,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should initialize user account for message fee token ID when inboxUpdate is not empty', async () => {
-			executeContext = createTransactionContext({
-				chainID,
-				stateStore,
-				transaction: new Transaction({
-					...defaultTransaction,
-					command: command.name,
-					params: codec.encode(crossChainUpdateTransactionParams, {
-						...params,
-					}),
-				}),
-			}).createCommandExecuteContext(command.schema);
-
 			await expect(command['executeCommon'](executeContext, true)).resolves.toEqual([
 				expect.toBeArrayOfSize(params.inboxUpdate.crossChainMessages.length),
 				true,
@@ -431,7 +407,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			expect(command['_tokenMethod'].initializeUserAccount).not.toHaveBeenCalled();
 		});
 
-		it('should reject terminate the chain and add an event when ccm format is invalid', async () => {
+		it('should terminate the chain and add an event when ccm format is invalid', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -477,7 +453,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			);
 		});
 
-		it('should reject terminate the chain and add an event when CCM sending chain and ccu sending chain is not the same', async () => {
+		it('should terminate the chain and add an event when CCM sending chain and ccu sending chain is not the same', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -523,7 +499,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			);
 		});
 
-		it('should reject terminate the chain and add an event when receiving chain is the same as sending chain', async () => {
+		it('should terminate the chain and add an event when receiving chain is the same as sending chain', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -634,7 +610,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 									module: MODULE_NAME_INTEROPERABILITY,
 									nonce: BigInt(1),
 									params: utils.getRandomBytes(10),
-									receivingChainID: utils.intToBuffer(2, 4),
+									receivingChainID: chainID,
 									sendingChainID: defaultSendingChainID,
 									status: CCMStatusCode.CHANNEL_UNAVAILABLE,
 								}),
@@ -703,18 +679,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should update certificate when certificate is not empty', async () => {
-			executeContext = createTransactionContext({
-				chainID,
-				stateStore,
-				transaction: new Transaction({
-					...defaultTransaction,
-					command: command.name,
-					params: codec.encode(crossChainUpdateTransactionParams, {
-						...params,
-					}),
-				}),
-			}).createCommandExecuteContext(command.schema);
-
 			await expect(command['executeCommon'](executeContext, true)).resolves.toEqual([
 				expect.toBeArrayOfSize(params.inboxUpdate.crossChainMessages.length),
 				true,
