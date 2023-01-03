@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { MainchainCCUpdateCommand } from './cc_update';
-export { SidechainRegistrationCommand } from './sidechain_registration';
-export { MainchainMessageRecoveryCommand } from './message_recovery';
+export { SubmitMainchainCrossChainUpdateCommand } from './submit_mainchain_cross_chain_update';
+export { RegisterSidechainCommand } from './register_sidechain';
+export { RecoverMessageCommand } from './recover_message';
 export { TerminateSidechainForLivenessCommand } from './terminate_sidechain_for_liveness';

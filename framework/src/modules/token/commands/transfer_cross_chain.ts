@@ -42,7 +42,7 @@ interface Params {
 	messageFee: bigint;
 }
 
-export class CrossChainTransferCommand extends BaseCommand {
+export class TransferCrossChainCommand extends BaseCommand {
 	public schema = crossChainTransferParamsSchema;
 	private _moduleName!: string;
 	private _method!: TokenMethod;

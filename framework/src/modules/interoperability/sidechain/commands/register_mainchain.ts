@@ -56,7 +56,7 @@ import { InvalidRegistrationSignatureEvent } from '../../events/invalid_registra
 import { CcmSendSuccessEvent } from '../../events/ccm_send_success';
 import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 
-export class MainchainRegistrationCommand extends BaseInteroperabilityCommand<SidechainInteroperabilityInternalMethod> {
+export class RegisterMainchainCommand extends BaseInteroperabilityCommand<SidechainInteroperabilityInternalMethod> {
 	public schema = mainchainRegParams;
 
 	private _validatorsMethod!: ValidatorsMethod;

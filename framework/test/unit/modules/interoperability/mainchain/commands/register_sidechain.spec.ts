@@ -16,7 +16,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import * as testing from '../../../../../../src/testing';
-import { SidechainRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/sidechain_registration';
+import { RegisterSidechainCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/register_sidechain';
 import {
 	EMPTY_HASH,
 	MAX_UINT64,
@@ -64,7 +64,7 @@ import { EMPTY_BYTES } from '../../../../../../src/modules/token/constants';
 import { ChainAccountUpdatedEvent } from '../../../../../../src/modules/interoperability/events/chain_account_updated';
 import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
 
-describe('Sidechain registration command', () => {
+describe('RegisterSidechainCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 	const chainID = Buffer.from([0, 0, 0, 0]);
 	const newChainID = utils.intToBuffer(2, 4);
@@ -117,7 +117,7 @@ describe('Sidechain registration command', () => {
 		status: 0,
 	};
 
-	let sidechainRegistrationCommand: SidechainRegistrationCommand;
+	let sidechainRegistrationCommand: RegisterSidechainCommand;
 	let stateStore: PrefixedStateReadWriter;
 	let nameSubstore: RegisteredNamesStore;
 	let chainAccountSubstore: ChainAccountStore;
@@ -130,7 +130,7 @@ describe('Sidechain registration command', () => {
 	let tokenMethod: TokenMethod;
 
 	beforeEach(async () => {
-		sidechainRegistrationCommand = new SidechainRegistrationCommand(
+		sidechainRegistrationCommand = new RegisterSidechainCommand(
 			interopMod.stores,
 			interopMod.events,
 			new Map(),

@@ -11,7 +11,7 @@ import {
 } from '../../../../../../src/modules/interoperability/constants';
 import { SidechainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/sidechain/internal_method';
 import { Mocked } from '../../../../../utils/types';
-import { StateRecoveryInitializationCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/state_recovery_init';
+import { InitializeStateRecoveryCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/initialize_state_recovery';
 import {
 	ChainAccount,
 	OwnChainAccount,
@@ -37,7 +37,7 @@ import { createStoreGetter } from '../../../../../../src/testing/utils';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 import { getMainchainID } from '../../../../../../src/modules/interoperability/utils';
 
-describe('Sidechain StateRecoveryInitializationCommand', () => {
+describe('Sidechain InitializeStateRecoveryCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
 	type StoreMock = Mocked<SidechainInteroperabilityInternalMethod, 'createTerminatedStateAccount'>;
 	const chainAccountStoreMock = {
@@ -56,7 +56,7 @@ describe('Sidechain StateRecoveryInitializationCommand', () => {
 		set: jest.fn(),
 		has: jest.fn(),
 	};
-	let stateRecoveryInitCommand: StateRecoveryInitializationCommand;
+	let stateRecoveryInitCommand: InitializeStateRecoveryCommand;
 	let commandExecuteContext: CommandExecuteContext<StateRecoveryInitParams>;
 	let transaction: Transaction;
 	let transactionParams: StateRecoveryInitParams;
@@ -72,7 +72,7 @@ describe('Sidechain StateRecoveryInitializationCommand', () => {
 	let mainchainAccount: ChainAccount;
 
 	beforeEach(async () => {
-		stateRecoveryInitCommand = new StateRecoveryInitializationCommand(
+		stateRecoveryInitCommand = new InitializeStateRecoveryCommand(
 			interopMod.stores,
 			interopMod.events,
 			new Map(),
