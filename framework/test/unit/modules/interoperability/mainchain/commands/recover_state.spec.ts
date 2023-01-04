@@ -24,7 +24,7 @@ import {
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { BaseCCMethod } from '../../../../../../src/modules/interoperability/base_cc_method';
 import { COMMAND_NAME_STATE_RECOVERY } from '../../../../../../src/modules/interoperability/constants';
-import { StateRecoveryCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/state_recovery';
+import { RecoverStateCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/recover_state';
 import { stateRecoveryParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import {
 	TerminatedStateAccount,
@@ -37,11 +37,11 @@ import { createTransactionContext } from '../../../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
 
-describe('Mainchain StateRecoveryCommand', () => {
+describe('Mainchain RecoverStateCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 	const module = 'module';
 	let chainIDAsBuffer: Buffer;
-	let stateRecoveryCommand: StateRecoveryCommand;
+	let stateRecoveryCommand: RecoverStateCommand;
 	let commandVerifyContext: CommandVerifyContext<StateRecoveryParams>;
 	let commandExecuteContext: CommandExecuteContext<StateRecoveryParams>;
 	let interoperableCCMethods: Map<string, BaseCCMethod>;
@@ -63,7 +63,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 		};
 		interoperableCCMethods.set('module', interoperableMethod);
 		ccCommands = new Map();
-		stateRecoveryCommand = new StateRecoveryCommand(
+		stateRecoveryCommand = new RecoverStateCommand(
 			interopMod.stores,
 			interopMod.events,
 			interoperableCCMethods,

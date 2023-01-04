@@ -26,7 +26,7 @@ import { CCMsg, CrossChainMessageContext, MessageRecoveryParams } from '../../ty
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 import { getMainchainID, validateFormat } from '../../utils';
-import { CCMStatusCode, COMMAND_NAME_MESSAGE_RECOVERY } from '../../constants';
+import { CCMStatusCode } from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from '../../stores/terminated_outbox';
 import {
@@ -36,12 +36,8 @@ import {
 } from '../../events/ccm_processed';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#message-recovery-command
-export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
+export class RecoverMessageCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = messageRecoveryParamsSchema;
-
-	public get name(): string {
-		return COMMAND_NAME_MESSAGE_RECOVERY;
-	}
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#verification-1
 	public async verify(

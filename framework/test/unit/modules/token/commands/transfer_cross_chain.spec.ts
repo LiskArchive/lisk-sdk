@@ -23,7 +23,7 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../../../src';
-import { CrossChainTransferCommand } from '../../../../../src/modules/token/commands/cc_transfer';
+import { TransferCrossChainCommand } from '../../../../../src/modules/token/commands/transfer_cross_chain';
 import {
 	CCM_STATUS_OK,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
@@ -47,7 +47,7 @@ interface Params {
 }
 
 describe('CCTransfer command', () => {
-	let command: CrossChainTransferCommand;
+	let command: TransferCrossChainCommand;
 	const module = new TokenModule();
 	const method = new TokenMethod(module.stores, module.events, module.name);
 	const internalMethod = new InternalMethod(module.stores, module.events);
@@ -116,7 +116,7 @@ describe('CCTransfer command', () => {
 	};
 
 	beforeEach(() => {
-		command = new CrossChainTransferCommand(module.stores, module.events);
+		command = new TransferCrossChainCommand(module.stores, module.events);
 
 		interoperabilityMethod = {
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),

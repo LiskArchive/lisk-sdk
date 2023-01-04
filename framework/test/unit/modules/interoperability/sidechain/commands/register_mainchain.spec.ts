@@ -17,7 +17,7 @@ import * as crypto from '@liskhq/lisk-cryptography';
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { LiskValidationError } from '@liskhq/lisk-validator';
-import { MainchainRegistrationCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/mainchain_registration';
+import { RegisterMainchainCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/register_mainchain';
 import {
 	CCMStatusCode,
 	COMMAND_NAME_MAINCHAIN_REG,
@@ -72,7 +72,7 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
 }));
 
-describe('Mainchain registration command', () => {
+describe('RegisterMainchainCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
 	interopMod['internalMethod'] = { addToOutbox: jest.fn() } as any;
 	const unsortedMainchainValidators: ActiveValidators[] = [];
@@ -101,14 +101,14 @@ describe('Mainchain registration command', () => {
 		params: encodedTransactionParams,
 		signatures: [publicKey],
 	});
-	let mainchainRegistrationCommand: MainchainRegistrationCommand;
+	let mainchainRegistrationCommand: RegisterMainchainCommand;
 	let verifyContext: CommandVerifyContext<MainchainRegistrationParams>;
 	let ownChainAccountSubstore: OwnChainAccountStore;
 	let stateStore: PrefixedStateReadWriter;
 	let validatorsMethod: ValidatorsMethod;
 
 	beforeEach(() => {
-		mainchainRegistrationCommand = new MainchainRegistrationCommand(
+		mainchainRegistrationCommand = new RegisterMainchainCommand(
 			interopMod.stores,
 			interopMod.events,
 			new Map(),

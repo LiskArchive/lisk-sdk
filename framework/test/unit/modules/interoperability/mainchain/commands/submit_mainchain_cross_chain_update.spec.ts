@@ -19,7 +19,7 @@ import {
 	CommandExecuteContext,
 	CommandVerifyContext,
 	VerifyStatus,
-	MainchainCCUpdateCommand,
+	SubmitMainchainCrossChainUpdateCommand,
 	MainchainInteroperabilityModule,
 	Transaction,
 } from '../../../../../../src';
@@ -72,7 +72,7 @@ import {
 import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/internal_method';
 import { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../../../../../../src/modules/token/constants';
 
-describe('CrossChainUpdateCommand', () => {
+describe('SubmitMainchainCrossChainUpdateCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 
 	const chainID = Buffer.alloc(4, 0);
@@ -146,7 +146,7 @@ describe('CrossChainUpdateCommand', () => {
 	let partnerChannelAccount: ChannelData;
 	let verifyContext: CommandVerifyContext<CrossChainUpdateTransactionParams>;
 	let executeContext: CommandExecuteContext<CrossChainUpdateTransactionParams>;
-	let mainchainCCUUpdateCommand: MainchainCCUpdateCommand;
+	let mainchainCCUUpdateCommand: SubmitMainchainCrossChainUpdateCommand;
 	let params: CrossChainUpdateTransactionParams;
 	let activeValidatorsUpdate: ActiveValidator[];
 	let sortedActiveValidatorsUpdate: ActiveValidator[];
@@ -155,7 +155,7 @@ describe('CrossChainUpdateCommand', () => {
 	let partnerValidatorStore: ChainValidatorsStore;
 
 	beforeEach(async () => {
-		mainchainCCUUpdateCommand = new MainchainCCUpdateCommand(
+		mainchainCCUUpdateCommand = new SubmitMainchainCrossChainUpdateCommand(
 			interopMod.stores,
 			interopMod.events,
 			new Map(),
@@ -434,7 +434,7 @@ describe('CrossChainUpdateCommand', () => {
 			params: Buffer.alloc(0),
 		};
 		let context: CrossChainMessageContext;
-		let command: MainchainCCUpdateCommand;
+		let command: SubmitMainchainCrossChainUpdateCommand;
 		let ccMethods: Map<string, BaseCCMethod>;
 		let ccCommands: Map<string, BaseCCCommand[]>;
 
@@ -456,7 +456,7 @@ describe('CrossChainUpdateCommand', () => {
 					public execute = jest.fn();
 				})(interopModule.stores, interopModule.events),
 			]);
-			command = new MainchainCCUpdateCommand(
+			command = new SubmitMainchainCrossChainUpdateCommand(
 				interopModule.stores,
 				interopModule.events,
 				ccMethods,
