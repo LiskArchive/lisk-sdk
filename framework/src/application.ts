@@ -229,6 +229,11 @@ export class Application {
 		plugin: BasePlugin<any>,
 		options: PluginConfig = { loadAsChildProcess: false },
 	): void {
+		for (const registeredModule of this._registeredModules) {
+			if (plugin.name === registeredModule.name) {
+				throw new Error(`A module with name "${plugin.name}" is already registered.`);
+			}
+		}
 		this._controller.registerPlugin(plugin as BasePlugin, options);
 	}
 
@@ -383,6 +388,9 @@ export class Application {
 
 	private _registerModule(mod: BaseModule): void {
 		assert(mod, 'Module implementation is required');
+		if (Object.keys(this._controller.getRegisteredPlugins()).includes(mod.name)) {
+			throw new Error(`A plugin with name "${mod.name}" is already registered.`);
+		}
 		this._registeredModules.push(mod);
 		this._stateMachine.registerModule(mod);
 		this._controller.registerEndpoint(mod.name, getEndpointHandlers(mod.endpoint));
