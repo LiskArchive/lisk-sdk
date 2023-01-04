@@ -574,7 +574,7 @@ export const getValidatorsByStakeRequestSchema = {
 	properties: {
 		limit: {
 			type: 'integer',
-			format: 'uint32',
+			format: 'int32',
 		},
 	},
 };

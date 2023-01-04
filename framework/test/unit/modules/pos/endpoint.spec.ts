@@ -470,97 +470,6 @@ describe('PosModuleEndpoint', () => {
 				eligibleValidatorsSubStore.getKey(address2, BigInt(100)),
 				{ lastPomHeight: 0 },
 			);
-
-			await validatorSubStore.set(context, address, {
-				...validatorData,
-				name: '1',
-			});
-			await validatorSubStore.set(context, address1, {
-				...validatorData,
-				name: '2',
-			});
-			await validatorSubStore.set(context, address2, {
-				...validatorData,
-				name: '3',
-			});
-		});
-
-		it('should reject with invalid params', async () => {
-			await expect(
-				posEndpoint.getValidatorsByStake(
-					createTransientModuleEndpointContext({ stateStore, params: { limit: true } }),
-				),
-			).rejects.toThrow('Lisk validator found 1 error[s]:');
-		});
-
-		it('should return validators with default limit', async () => {
-			const resp = await posEndpoint.getValidatorsByStake(
-				createTransientModuleEndpointContext({ stateStore }),
-			);
-			expect(resp.validators).toHaveLength(3);
-			expect(resp.validators[0]).toEqual({
-				...validatorData,
-				name: '3',
-				totalStakeReceived: validatorData.totalStakeReceived.toString(),
-				selfStake: validatorData.selfStake.toString(),
-				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
-					tokenID: co.tokenID.toString('hex'),
-					coefficient: co.coefficient.toString('hex'),
-				})),
-				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
-			});
-		});
-
-		it('should return all validators with limit', async () => {
-			const resp = await posEndpoint.getValidatorsByStake(
-				createTransientModuleEndpointContext({ stateStore, params: { limit: 2 } }),
-			);
-			expect(resp.validators).toHaveLength(2);
-			expect(resp.validators[0]).toEqual({
-				...validatorData,
-				name: '3',
-				address: cryptoAddress.getLisk32AddressFromAddress(address2),
-				totalStakeReceived: validatorData.totalStakeReceived.toString(),
-				selfStake: validatorData.selfStake.toString(),
-				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
-					tokenID: co.tokenID.toString('hex'),
-					coefficient: co.coefficient.toString('hex'),
-				})),
-				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
-			});
-			expect(resp.validators[1]).toEqual({
-				...validatorData,
-				address: cryptoAddress.getLisk32AddressFromAddress(address1),
-				name: '2',
-				totalStakeReceived: validatorData.totalStakeReceived.toString(),
-				selfStake: validatorData.selfStake.toString(),
-				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
-					tokenID: co.tokenID.toString('hex'),
-					coefficient: co.coefficient.toString('hex'),
-				})),
-				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
-			});
-		});
-	});
-
-	describe('getAllValidatorsByStake', () => {
-		beforeEach(async () => {
-			const context = createStoreGetter(stateStore);
-			await eligibleValidatorsSubStore.set(
-				context,
-				eligibleValidatorsSubStore.getKey(address, BigInt(20)),
-				{ lastPomHeight: 0 },
-			);
-			await eligibleValidatorsSubStore.set(
-				context,
-				eligibleValidatorsSubStore.getKey(address1, BigInt(50)),
-				{ lastPomHeight: 0 },
-			);
-			await eligibleValidatorsSubStore.set(
-				context,
-				eligibleValidatorsSubStore.getKey(address2, BigInt(100)),
-				{ lastPomHeight: 0 },
-			);
 			await eligibleValidatorsSubStore.set(
 				context,
 				eligibleValidatorsSubStore.getKey(address3, BigInt(10)),
@@ -603,9 +512,67 @@ describe('PosModuleEndpoint', () => {
 			});
 		});
 
-		it('should return all validators in correct order', async () => {
-			const resp = await posEndpoint.getAllValidatorsByStake(
+		it('should reject with invalid params', async () => {
+			await expect(
+				posEndpoint.getValidatorsByStake(
+					createTransientModuleEndpointContext({ stateStore, params: { limit: true } }),
+				),
+			).rejects.toThrow('Lisk validator found 1 error[s]:');
+		});
+
+		it('should return validators with default limit in correct order', async () => {
+			const resp = await posEndpoint.getValidatorsByStake(
 				createTransientModuleEndpointContext({ stateStore }),
+			);
+			expect(resp.validators).toHaveLength(6);
+			expect(resp.validators[0]).toEqual({
+				...validatorData,
+				address: cryptoAddress.getLisk32AddressFromAddress(address5),
+				name: '6',
+				totalStakeReceived: validatorData.totalStakeReceived.toString(),
+				selfStake: validatorData.selfStake.toString(),
+				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
+					tokenID: co.tokenID.toString('hex'),
+					coefficient: co.coefficient.toString('hex'),
+				})),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+			});
+		});
+
+		it('should return validators corresponding with input limit in correct order if limit is not -1', async () => {
+			const resp = await posEndpoint.getValidatorsByStake(
+				createTransientModuleEndpointContext({ stateStore, params: { limit: 2 } }),
+			);
+			expect(resp.validators).toHaveLength(2);
+			expect(resp.validators[0]).toEqual({
+				...validatorData,
+				address: cryptoAddress.getLisk32AddressFromAddress(address5),
+				name: '6',
+				totalStakeReceived: validatorData.totalStakeReceived.toString(),
+				selfStake: validatorData.selfStake.toString(),
+				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
+					tokenID: co.tokenID.toString('hex'),
+					coefficient: co.coefficient.toString('hex'),
+				})),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+			});
+			expect(resp.validators[1]).toEqual({
+				...validatorData,
+				address: cryptoAddress.getLisk32AddressFromAddress(address4),
+				name: '5',
+				totalStakeReceived: validatorData.totalStakeReceived.toString(),
+				selfStake: validatorData.selfStake.toString(),
+				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
+					tokenID: co.tokenID.toString('hex'),
+					coefficient: co.coefficient.toString('hex'),
+				})),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+			});
+		});
+
+		it('should return all validators in correct order if limit is -1', async () => {
+			const resp = await posEndpoint.getValidatorsByStake(
+				createTransientModuleEndpointContext({ stateStore, params: { limit: -1 } }),
 			);
 			expect(resp.validators).toHaveLength(6);
 			expect(resp.validators[0]).toEqual({
@@ -635,8 +602,8 @@ describe('PosModuleEndpoint', () => {
 		});
 
 		it('should return valid JSON output', async () => {
-			const { validators: validatorsDataReturned } = await posEndpoint.getAllValidatorsByStake(
-				createTransientModuleEndpointContext({ stateStore }),
+			const { validators: validatorsDataReturned } = await posEndpoint.getValidatorsByStake(
+				createTransientModuleEndpointContext({ stateStore, params: { limit: -1 } }),
 			);
 
 			expect(validatorsDataReturned[0].totalStakeReceived).toBeString();
