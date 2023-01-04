@@ -72,7 +72,7 @@ import {
 import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/internal_method';
 import { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../../../../../../src/modules/token/constants';
 
-const getDefaultCCMs = (chainID: Buffer, defaultSendingChainIDBuffer: Buffer) => {
+const getDefaultCCMs = (chainID: Buffer, sendingChainID: Buffer) => {
 	const defaultCCMs: CCMsg[] = [
 		{
 			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
@@ -81,7 +81,7 @@ const getDefaultCCMs = (chainID: Buffer, defaultSendingChainIDBuffer: Buffer) =>
 			nonce: BigInt(1),
 			params: Buffer.alloc(2),
 			receivingChainID: chainID,
-			sendingChainID: defaultSendingChainIDBuffer,
+			sendingChainID,
 			status: CCMStatusCode.OK,
 		},
 		{
@@ -91,7 +91,7 @@ const getDefaultCCMs = (chainID: Buffer, defaultSendingChainIDBuffer: Buffer) =>
 			nonce: BigInt(1),
 			params: Buffer.alloc(2),
 			receivingChainID: chainID,
-			sendingChainID: defaultSendingChainIDBuffer,
+			sendingChainID,
 			status: CCMStatusCode.OK,
 		},
 		{
@@ -101,7 +101,7 @@ const getDefaultCCMs = (chainID: Buffer, defaultSendingChainIDBuffer: Buffer) =>
 			nonce: BigInt(1),
 			params: Buffer.alloc(2),
 			receivingChainID: chainID,
-			sendingChainID: defaultSendingChainIDBuffer,
+			sendingChainID,
 			status: CCMStatusCode.OK,
 		},
 	];
