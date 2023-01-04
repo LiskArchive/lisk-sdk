@@ -22,6 +22,7 @@ import {
 } from 'lisk-sdk';
 import { BlockHeader, ValidatorsData } from './types';
 
+// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#getcertificatefromaggregatecommit
 export const getCertificateFromAggregateCommit = (
 	aggregateCommit: AggregateCommit,
 	blockHeaders: BlockHeader[],
@@ -32,20 +33,21 @@ export const getCertificateFromAggregateCommit = (
 		throw new Error('No Block header found for the given aggregate height.');
 	}
 
-	const certificate = computeCertificateFromBlockHeader(new chain.BlockHeader(blockHeader));
-	certificate.aggregationBits = blockHeader.aggregateCommit.aggregationBits;
-	certificate.signature = aggregateCommit.certificateSignature;
-
-	return certificate;
+	return {
+		...computeCertificateFromBlockHeader(new chain.BlockHeader(blockHeader)),
+		aggregationBits: aggregateCommit.aggregationBits,
+		signature: aggregateCommit.certificateSignature,
+	};
 };
 
+// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#execution-8
 export const checkChainOfTrust = (
 	lastValidatorsHash: Buffer,
 	blsKeyToBFTWeight: Record<string, bigint>,
 	lastCertificateThreshold: bigint,
 	aggregateCommit: AggregateCommit,
 	blockHeaders: BlockHeader[],
-	validatorsHashPreimages: ValidatorsData[],
+	validatorsHashPreimage: ValidatorsData[],
 ): boolean => {
 	const blockHeader = blockHeaders.find(header => header.height === aggregateCommit.height - 1);
 
@@ -59,17 +61,17 @@ export const checkChainOfTrust = (
 	}
 
 	let aggregateBFTWeight = BigInt(0);
-	const validatorData = validatorsHashPreimages.find(
+	const validatorData = validatorsHashPreimage.find(
 		data => data.validatorsHash === blockHeader.validatorsHash,
 	);
-
 	if (!validatorData) {
 		throw new Error('No Validators data found for the given validatorsHash.');
 	}
 
 	for (let i = 0; i < validatorData.validators.length; i += 1) {
-		if (aggregateCommit.aggregationBits[i] === 1) {
+		if (aggregateCommit.aggregationBits.toString('hex')[i] === '1') {
 			const blsKey = validatorData.validators[i].blsKey.toString('hex');
+			// Aggregate commit must only be signed by BLS keys known to the other chain
 			if (!blsKeyToBFTWeight[blsKey]) {
 				return false;
 			}
@@ -81,47 +83,55 @@ export const checkChainOfTrust = (
 	return aggregateBFTWeight >= lastCertificateThreshold;
 };
 
+// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#execution-8
 export const getNextCertificateFromAggregateCommits = (
 	blockHeaders: BlockHeader[],
 	aggregateCommits: AggregateCommit[],
-	validatorsHashPreimages: ValidatorsData[],
+	validatorsHashPreimage: ValidatorsData[],
 	bftHeights: BFTHeights,
 	lastCertificate: LastCertificate,
 ): Certificate | undefined => {
-	const blockHeader = blockHeaders.find(header => header.height === lastCertificate.height);
-
-	if (!blockHeader) {
-		throw new Error('No blockHeader found for the last certified height.');
-	}
-	const validatorData = validatorsHashPreimages.find(
-		data => data.validatorsHash === blockHeader?.validatorsHash,
+	const blockHeaderAtLastCertifiedHeight = blockHeaders.find(
+		header => header.height === lastCertificate.height,
 	);
 
-	if (!validatorData) {
+	if (!blockHeaderAtLastCertifiedHeight) {
+		throw new Error('No blockHeader found for the last certified height.');
+	}
+	const validatorDataAtLastCertifiedHeight = validatorsHashPreimage.find(
+		data => data.validatorsHash === blockHeaderAtLastCertifiedHeight?.validatorsHash,
+	);
+
+	if (!validatorDataAtLastCertifiedHeight) {
 		throw new Error('No validatorsHash preimage data present for the given validatorsHash.');
 	}
 
 	const blsKeyToBFTWeight: Record<string, bigint> = {};
 
-	for (const validator of validatorData.validators) {
+	for (const validator of validatorDataAtLastCertifiedHeight.validators) {
 		blsKeyToBFTWeight[validator.blsKey.toString('hex')] = validator.bftWeight;
 	}
 
 	let height = bftHeights.maxHeightCertified;
 
 	while (height > lastCertificate.height) {
-		if (aggregateCommits[height] !== undefined && blockHeader.validatorsHash) {
+		// eslint-disable-next-line no-loop-func
+		const aggregateCommitAtHeight = aggregateCommits.find(a => a.height === height);
+
+		if (aggregateCommitAtHeight !== undefined) {
+			// Verify whether the chain of trust is maintained, i.e., the certificate corresponding to
+			// aggregateCommits[h] would be accepted by blockchain B.
 			const valid = checkChainOfTrust(
-				blockHeader.validatorsHash,
+				blockHeaderAtLastCertifiedHeight.validatorsHash,
 				blsKeyToBFTWeight,
-				validatorData.certificateThreshold,
-				aggregateCommits[height],
+				validatorDataAtLastCertifiedHeight.certificateThreshold,
+				aggregateCommitAtHeight,
 				blockHeaders,
-				validatorsHashPreimages,
+				validatorsHashPreimage,
 			);
 
 			if (valid) {
-				return getCertificateFromAggregateCommit(aggregateCommits[height], blockHeaders);
+				return getCertificateFromAggregateCommit(aggregateCommitAtHeight, blockHeaders);
 			}
 		}
 
