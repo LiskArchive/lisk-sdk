@@ -238,10 +238,7 @@ export class PoSEndpoint extends BaseEndpoint {
 		if (limit && limit === -1) {
 			validatorsList = await eligibleValidatorStore.getAll(ctx);
 		} else {
-			validatorsList = await eligibleValidatorStore.getTop(
-				ctx,
-				(limit as number | undefined) ?? 100,
-			);
+			validatorsList = await eligibleValidatorStore.getTop(ctx, limit ?? 100);
 		}
 
 		for (const { key } of validatorsList) {
