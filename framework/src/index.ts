@@ -95,6 +95,7 @@ export {
 	OutboxJSON,
 	InboxUpdate,
 	CrossChainUpdateTransactionParams,
+	crossChainUpdateTransactionParams,
 	ActiveValidator,
 	OutboxRootWitness,
 	LIVENESS_LIMIT,
