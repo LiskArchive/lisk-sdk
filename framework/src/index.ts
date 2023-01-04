@@ -24,6 +24,7 @@ export {
 	BlockHeader,
 	BlockHeaderJSON,
 	BlockAssetJSON,
+	standardEventDataSchema,
 } from '@liskhq/lisk-chain';
 export {
 	BaseModule,
@@ -101,3 +102,4 @@ export {
 	BlockExecuteContext,
 	BlockAfterExecuteContext,
 } from './state_machine/types';
+export { TransactionExecutionResult, TransactionVerifyResult } from './abi/constants';
