@@ -1289,7 +1289,9 @@ describe('StakeCommand', () => {
 					}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
 
 					// Assert
-					await expect(command.execute(context)).rejects.toThrow();
+					await expect(command.execute(context)).rejects.toThrow(
+						'Invalid stake: no registered validator with the specified address',
+					);
 
 					checkEventResult(
 						context.eventQueue,
