@@ -38,6 +38,8 @@ import {
 	Schema,
 	OwnChainAccountJSON,
 	Transaction,
+	CrossChainUpdateTransactionParams,
+	crossChainUpdateTransactionParams,
 } from 'lisk-sdk';
 import {
 	CCU_FREQUENCY,
@@ -49,12 +51,10 @@ import {
 } from './constants';
 import { ChainConnectorStore, getDBInstance } from './db';
 import { Endpoint } from './endpoint';
-import { configSchema, crossChainUpdateTransactionParams } from './schemas';
+import { configSchema } from './schemas';
 import {
 	ChainConnectorPluginConfig,
 	SentCCUs,
-	CrossChainUpdateTransactionParams,
-	InboxUpdate,
 	ProveResponse,
 	BlockHeader,
 	CrossChainMessagesFromEvents,
@@ -467,6 +467,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				try {
 					const ccms = groupedCCMsBySize[i];
 					const ccu = await this._createCCU(
+						activeAPIClient,
 						certificate,
 						BigInt(nonce) + BigInt(i),
 						activePrivateKey,
@@ -476,7 +477,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 					const result = await activeAPIClient.invoke<{
 						transactionId?: string;
 					}>('txpool_postTransaction', {
-						transaction: ccu.toString('hex'),
+						transaction: ccu.getBytes().toString('hex'),
 					});
 					this.logger.info({ transactionID: result.transactionId }, 'Sent CCU transaction');
 				} catch (error) {
@@ -616,7 +617,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private async _calculateInboxUpdate(
 		sendingChainID: Buffer,
 		crossChainMessages: CCMsg[],
-	): Promise<InboxUpdate> {
+	): Promise<CrossChainUpdateTransactionParams['inboxUpdate']> {
 		const serializedCCMs = crossChainMessages.map(ccm => codec.encode(ccmSchema, ccm));
 
 		// TODO: should use the store prefix with sendingChainID after issue https://github.com/LiskHQ/lisk-sdk/issues/7631
@@ -754,18 +755,19 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	}
 
 	private async _createCCU(
+		activeAPIClient: apiClient.APIClient,
 		certificate: Certificate,
 		nonce: bigint,
 		privateKey: Buffer,
 		targetCommand: string,
 		crossChainMessages: CCMsg[] = [],
-	): Promise<Buffer> {
-		const publicKey = ed.getPublicKeyFromPrivateKey(this._privateKey);
+	): Promise<Transaction> {
+		const publicKey = ed.getPublicKeyFromPrivateKey(privateKey);
 
 		const validatorHashPreImg =
 			await this._sidechainChainConnectorStore.getValidatorsHashPreimage();
 
-		const { chainID: chainIDStr } = await this.apiClient.invoke<{ chainID: string }>(
+		const { chainID: chainIDStr } = await activeAPIClient.invoke<{ chainID: string }>(
 			'system_getNodeInfo',
 		);
 		const chainID = Buffer.from(chainIDStr, 'hex');
@@ -791,6 +793,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		});
 		tx.sign(chainID, privateKey);
 
-		return tx.getBytes();
+		return tx;
 	}
 }

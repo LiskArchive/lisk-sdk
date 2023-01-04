@@ -46,4 +46,4 @@ export {
 	EMPTY_BYTES,
 } from './constants';
 export { ChainStatus } from './stores/chain_account';
-export { ccmSchema } from './schemas';
+export { ccmSchema, crossChainUpdateTransactionParams } from './schemas';

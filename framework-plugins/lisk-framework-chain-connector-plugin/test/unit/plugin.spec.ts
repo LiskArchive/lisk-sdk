@@ -31,6 +31,7 @@ import {
 	ccmSchema,
 	db,
 	Block,
+	CrossChainUpdateTransactionParams,
 } from 'lisk-sdk';
 import { when } from 'jest-when';
 import {
@@ -39,118 +40,120 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 	CCM_SEND_SUCCESS,
 	CCU_TOTAL_CCM_SIZE,
+	COMMAND_NAME_SUBMIT_SIDECHAIN_CCU,
 } from '../../src/constants';
 import * as plugins from '../../src/chain_connector_plugin';
 import * as dbApi from '../../src/db';
 import * as utils from '../../src/utils';
 import {
 	BlockHeader,
-	CrossChainUpdateTransactionParams,
 	CrossChainMessagesFromEvents,
 	ChainConnectorPluginConfig,
 } from '../../src/types';
 
-const appConfigForPlugin: ApplicationConfigForPlugin = {
-	system: {
-		keepEventsForHeights: -1,
-		dataPath: '~/.lisk',
-		logLevel: 'info',
-		version: '1.0.0',
-	},
-	rpc: {
-		modes: ['ipc'],
-		port: 8080,
-		host: '127.0.0.1',
-	},
-	network: {
-		seedPeers: [],
-		port: 5000,
-		version: '1.0.0',
-	},
-	transactionPool: {
-		maxTransactions: 4096,
-		maxTransactionsPerAccount: 64,
-		transactionExpiryTime: 3 * 60 * 60 * 1000,
-		minEntranceFeePriority: '0',
-		minReplacementFeeDifference: '10',
-	},
-	genesis: {} as GenesisConfig,
-	generator: {
-		keys: {
-			fromFile: '',
-		},
-	},
-	modules: {},
-	legacy: {
-		brackets: [],
-		sync: false,
-	},
-};
-
-const getTestBlock = async () => {
-	return testing.createBlock({
-		chainID: Buffer.from('00001111', 'hex'),
-		privateKey: Buffer.from(
-			'd4b1a8a6f91482c40ba1d5c054bd7595cc0230291244fc47869f51c21af657b9e142de105ecd851507f2627e991b54b2b71104b11b6660d0646b9fdbe415fd87',
-			'hex',
-		),
-		previousBlockID: cryptography.utils.getRandomBytes(20),
-		timestamp: Math.floor(Date.now() / 1000),
-	});
-};
-
-const getCCM = (n = 1): CCMsg => {
-	return {
-		nonce: BigInt(n),
-		module: MODULE_NAME_INTEROPERABILITY,
-		crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-		sendingChainID: Buffer.from([0, 0, 0, 3]),
-		receivingChainID: Buffer.from([0, 0, 0, 2]),
-		fee: BigInt(n),
-		status: 0,
-		params: Buffer.alloc(1000),
-	};
-};
-
-const getEventsJSON = (eventsCount: number, height = 1) => {
-	const someEvents = [];
-	let i = 0;
-	while (i < eventsCount) {
-		someEvents.push(
-			new chain.Event({
-				index: i,
-				module: MODULE_NAME_INTEROPERABILITY,
-				topics: [cryptography.utils.getRandomBytes(32)],
-				name: CCM_SEND_SUCCESS,
-				height,
-				data: codec.encode(ccmSchema, { ...getCCM(height + i) } as CCMsg),
-			}),
-		);
-		i += 1;
-	}
-	return someEvents.map(e => e.toJSON());
-};
-
-const getApiClientMocks = () => {
-	return {
-		disconnect: jest.fn().mockResolvedValue({} as never),
-		invoke: jest.fn(),
-		subscribe: jest.fn().mockResolvedValue({} as never),
-	};
-};
-
-const initChainConnectorPlugin = async (
-	chainConnectorPlugin: plugins.ChainConnectorPlugin,
-	defaultConfig: ChainConnectorPluginConfig & Record<string, unknown>,
-) => {
-	await chainConnectorPlugin.init({
-		logger: testing.mocks.loggerMock,
-		config: defaultConfig,
-		appConfig: appConfigForPlugin,
-	});
-};
+const { ed } = cryptography;
 
 describe('ChainConnectorPlugin', () => {
+	const appConfigForPlugin: ApplicationConfigForPlugin = {
+		system: {
+			keepEventsForHeights: -1,
+			dataPath: '~/.lisk',
+			logLevel: 'info',
+			version: '1.0.0',
+		},
+		rpc: {
+			modes: ['ipc'],
+			port: 8080,
+			host: '127.0.0.1',
+		},
+		network: {
+			seedPeers: [],
+			port: 5000,
+			version: '1.0.0',
+		},
+		transactionPool: {
+			maxTransactions: 4096,
+			maxTransactionsPerAccount: 64,
+			transactionExpiryTime: 3 * 60 * 60 * 1000,
+			minEntranceFeePriority: '0',
+			minReplacementFeeDifference: '10',
+		},
+		genesis: {} as GenesisConfig,
+		generator: {
+			keys: {
+				fromFile: '',
+			},
+		},
+		modules: {},
+		legacy: {
+			brackets: [],
+			sync: false,
+		},
+	};
+
+	const getTestBlock = async () => {
+		return testing.createBlock({
+			chainID: Buffer.from('00001111', 'hex'),
+			privateKey: Buffer.from(
+				'd4b1a8a6f91482c40ba1d5c054bd7595cc0230291244fc47869f51c21af657b9e142de105ecd851507f2627e991b54b2b71104b11b6660d0646b9fdbe415fd87',
+				'hex',
+			),
+			previousBlockID: cryptography.utils.getRandomBytes(20),
+			timestamp: Math.floor(Date.now() / 1000),
+		});
+	};
+
+	const getCCM = (n = 1): CCMsg => {
+		return {
+			nonce: BigInt(n),
+			module: MODULE_NAME_INTEROPERABILITY,
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+			sendingChainID: Buffer.from([0, 0, 0, 3]),
+			receivingChainID: Buffer.from([0, 0, 0, 2]),
+			fee: BigInt(n),
+			status: 0,
+			params: Buffer.alloc(1000),
+		};
+	};
+
+	const getEventsJSON = (eventsCount: number, height = 1) => {
+		const someEvents = [];
+		let i = 0;
+		while (i < eventsCount) {
+			someEvents.push(
+				new chain.Event({
+					index: i,
+					module: MODULE_NAME_INTEROPERABILITY,
+					topics: [cryptography.utils.getRandomBytes(32)],
+					name: CCM_SEND_SUCCESS,
+					height,
+					data: codec.encode(ccmSchema, { ...getCCM(height + i) } as CCMsg),
+				}),
+			);
+			i += 1;
+		}
+		return someEvents.map(e => e.toJSON());
+	};
+
+	const getApiClientMocks = () => {
+		return {
+			disconnect: jest.fn().mockResolvedValue({} as never),
+			invoke: jest.fn(),
+			subscribe: jest.fn().mockResolvedValue({} as never),
+		};
+	};
+
+	const initChainConnectorPlugin = async (
+		chainConnectorPlugin: plugins.ChainConnectorPlugin,
+		defaultConfig: ChainConnectorPluginConfig & Record<string, unknown>,
+	) => {
+		await chainConnectorPlugin.init({
+			logger: testing.mocks.loggerMock,
+			config: defaultConfig,
+			appConfig: appConfigForPlugin,
+		});
+	};
+
 	let chainConnectorPlugin: plugins.ChainConnectorPlugin;
 	const sidechainAPIClientMock = {
 		disconnect: jest.fn().mockResolvedValue({} as never),
@@ -1393,6 +1396,82 @@ describe('ChainConnectorPlugin', () => {
 				expect(utils.getActiveValidatorsDiff).toHaveBeenCalledTimes(1);
 				expect(utils.getActiveValidatorsDiff).toHaveBeenCalledWith([2, 3], [1, 2]);
 			});
+		});
+	});
+
+	describe('_createCCU', () => {
+		const ccms = [getCCM(2), getCCM(3), getCCM(4)];
+		const certificate: Certificate = {
+			blockID: cryptography.utils.getRandomBytes(32),
+			height: 30,
+			stateRoot: cryptography.utils.getRandomBytes(32),
+			timestamp: 123000,
+			validatorsHash: cryptography.utils.getRandomBytes(32),
+			aggregationBits: cryptography.utils.getRandomBytes(2),
+			signature: cryptography.utils.getRandomBytes(64),
+		};
+
+		beforeEach(async () => {
+			jest.spyOn(chainConnectorPlugin, 'calculateCCUParams').mockResolvedValue({
+				sendingChainID: Buffer.from('10000000', 'hex'),
+				activeValidatorsUpdate: [],
+				certificate: cryptography.utils.getRandomBytes(40),
+				certificateThreshold: BigInt(30),
+				inboxUpdate: {
+					crossChainMessages: [Buffer.from([1]), Buffer.from([2]), Buffer.from([3])],
+					messageWitnessHashes: [],
+					outboxRootWitness: {
+						bitmap: Buffer.from([]),
+						siblingHashes: [],
+					},
+				},
+			});
+			when(sidechainAPIClientMock.invoke).calledWith('system_getNodeInfo').mockResolvedValue({
+				chainID: '10000000',
+			});
+			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
+			await initChainConnectorPlugin(chainConnectorPlugin, defaultConfig);
+		});
+
+		it('should reject when it fails to compute CCU params', async () => {
+			jest.spyOn(chainConnectorPlugin, 'calculateCCUParams').mockResolvedValue(undefined);
+
+			await expect(
+				chainConnectorPlugin['_createCCU'](
+					sidechainAPIClientMock as any,
+					certificate,
+					BigInt(99),
+					Buffer.from(defaultPrivateKey, 'hex'),
+					COMMAND_NAME_SUBMIT_SIDECHAIN_CCU,
+					ccms,
+				),
+			).rejects.toThrow('Fail to compute CCU params');
+		});
+
+		it('should create transaction with inputs', async () => {
+			const transaction = await chainConnectorPlugin['_createCCU'](
+				sidechainAPIClientMock as any,
+				certificate,
+				BigInt(99),
+				Buffer.from(defaultPrivateKey, 'hex'),
+				COMMAND_NAME_SUBMIT_SIDECHAIN_CCU,
+				ccms,
+			);
+
+			expect(transaction.senderPublicKey).toEqual(
+				ed.getPublicKeyFromPrivateKey(Buffer.from(defaultPrivateKey, 'hex')),
+			);
+			expect(transaction.nonce).toEqual(BigInt(99));
+			expect(transaction.module).toEqual(MODULE_NAME_INTEROPERABILITY);
+			expect(transaction.command).toEqual(COMMAND_NAME_SUBMIT_SIDECHAIN_CCU);
+			expect(transaction.signatures).toHaveLength(1);
+
+			expect(chainConnectorPlugin.calculateCCUParams).toHaveBeenCalledWith(
+				Buffer.from('10000000', 'hex'),
+				certificate,
+				5,
+				ccms,
+			);
 		});
 	});
 });
