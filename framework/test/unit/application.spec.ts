@@ -158,37 +158,27 @@ describe('Application', () => {
 		it('should throw error when plugin with same name is already registered', () => {
 			// Arrange
 			const { app } = Application.defaultApplication(config);
-			class MyPlugin extends TestPlugin {
-				public get name() {
-					return 'my-plugin';
-				}
-			}
-			app.registerPlugin(new MyPlugin());
+			app.registerPlugin(new TestPlugin());
 
 			// Act && Assert
-			expect(() => app.registerPlugin(new MyPlugin())).toThrow(
-				'A plugin with name "my-plugin" is already registered.',
+			expect(() => app.registerPlugin(new TestPlugin())).toThrow(
+				'A plugin with name "test-plugin" is already registered.',
 			);
 		});
 
 		it('should throw error when module with same name is already registered', () => {
 			// Arrange
 			const { app } = Application.defaultApplication(config);
-			class MyPlugin extends TestPlugin {
+			class DuplicateNameModule extends TestModule {
 				public get name() {
-					return 'my-plugin';
+					return 'test-plugin';
 				}
 			}
-			class MyModule extends TestModule {
-				public get name() {
-					return 'my-plugin';
-				}
-			}
-			app.registerModule(new MyModule());
+			app.registerModule(new DuplicateNameModule());
 
 			// Act && Assert
-			expect(() => app.registerPlugin(new MyPlugin())).toThrow(
-				'A module with name "my-plugin" is already registered.',
+			expect(() => app.registerPlugin(new TestPlugin())).toThrow(
+				'A module with name "test-plugin" is already registered.',
 			);
 		});
 
@@ -233,24 +223,19 @@ describe('Application', () => {
 	});
 
 	describe('#registerModule', () => {
-		it('should throw error when module with same name is already registered', () => {
+		it('should throw error when plugin with same name is already registered', () => {
 			// Arrange
 			const { app } = Application.defaultApplication(config);
-			class MyPlugin extends TestPlugin {
+			class DuplicateNamePlugin extends TestPlugin {
 				public get name() {
-					return 'my-plugin';
+					return 'test-module';
 				}
 			}
-			class MyModule extends TestModule {
-				public get name() {
-					return 'my-plugin';
-				}
-			}
-			app.registerPlugin(new MyPlugin());
+			app.registerPlugin(new DuplicateNamePlugin());
 
 			// Act && Assert
-			expect(() => app.registerModule(new MyModule())).toThrow(
-				'A plugin with name "my-plugin" is already registered.',
+			expect(() => app.registerModule(new TestModule())).toThrow(
+				'A plugin with name "test-module" is already registered.',
 			);
 		});
 	});
