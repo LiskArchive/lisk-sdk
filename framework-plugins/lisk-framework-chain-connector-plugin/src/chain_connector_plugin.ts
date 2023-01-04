@@ -130,6 +130,11 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			this._sidechainAPIClient.subscribe('chain_newBlock', async (data?: Record<string, unknown>) =>
 				this._newBlockHandler(data),
 			);
+
+			this._sidechainAPIClient.subscribe(
+				'chain_deleteBlock',
+				async (data?: Record<string, unknown>) => this._deleteBlockHandler(data),
+			);
 		}
 	}
 
@@ -322,6 +327,39 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			certificateThreshold,
 			inboxUpdate,
 		};
+	}
+
+	private async _deleteBlockHandler(data?: Record<string, unknown>) {
+		const { blockHeader: receivedBlock } = data as unknown as Data;
+
+		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock).toObject();
+
+		const findIndexByHeight = (someData: { height: number }[]): number =>
+			someData.findIndex(datum => datum.height === newBlockHeader.height);
+
+		const blockHeaders = await this._sidechainChainConnectorStore.getBlockHeaders();
+		const blockHeaderIndex = findIndexByHeight(blockHeaders);
+		if (blockHeaderIndex !== -1) {
+			blockHeaders.splice(blockHeaderIndex, 1);
+			await this._sidechainChainConnectorStore.setBlockHeaders(blockHeaders);
+		}
+
+		const aggregateCommits = await this._sidechainChainConnectorStore.getAggregateCommits();
+		const aggregateCommitIndex = findIndexByHeight(aggregateCommits);
+		if (aggregateCommitIndex !== -1) {
+			aggregateCommits.splice(aggregateCommitIndex, 1);
+			await this._sidechainChainConnectorStore.setAggregateCommits(aggregateCommits);
+		}
+
+		const validatorsHashPreimage =
+			await this._sidechainChainConnectorStore.getValidatorsHashPreimage();
+		const validatorsHashPreimageIndex = validatorsHashPreimage.findIndex(v =>
+			v.validatorsHash.equals(newBlockHeader.validatorsHash),
+		);
+		if (validatorsHashPreimageIndex !== -1) {
+			validatorsHashPreimage.splice(validatorsHashPreimageIndex, 1);
+			await this._sidechainChainConnectorStore.setValidatorsHashPreimage(validatorsHashPreimage);
+		}
 	}
 
 	private async _newBlockHandler(data?: Record<string, unknown>) {
