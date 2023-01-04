@@ -30,15 +30,13 @@ export interface ChainConnectorPluginConfig {
 export type SentCCUs = Transaction[];
 export type SentCCUsJSON = chain.TransactionJSON[];
 
-export interface Validator {
+export interface ActiveValidatorWithAddress extends ActiveValidator {
 	address: Buffer;
-	bftWeight: bigint;
-	blsKey: Buffer;
 }
 
 export interface ValidatorsData {
-	certificateThreshold: BigInt;
-	validators: Validator[];
+	certificateThreshold: bigint;
+	validators: ActiveValidatorWithAddress[];
 	validatorsHash: Buffer;
 }
 

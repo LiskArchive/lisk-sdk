@@ -112,6 +112,7 @@ export {
 	CcmSendSuccessEventData,
 	CCMProcessedCode,
 	CCMProcessedResult,
+	ccuParamsSchema,
 } from './modules/interoperability';
 export { RewardMethod, RewardModule } from './modules/reward';
 export { FeeMethod, FeeModule } from './modules/fee';

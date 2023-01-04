@@ -12,320 +12,273 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-describe('Name of the group', () => {
-	it.todo('add tests for certificate generation');
+import {
+	BFTHeights,
+	chain,
+	computeCertificateFromBlockHeader,
+	cryptography,
+	testing,
+} from 'lisk-sdk';
+import {
+	checkChainOfTrust,
+	getCertificateFromAggregateCommit,
+	getNextCertificateFromAggregateCommits,
+} from '../../src/certificate_generation';
+
+describe('certificate generation', () => {
+	const sampleSizeArray = new Array(10).fill(0);
+	const lastValidatorsHash = cryptography.utils.getRandomBytes(32);
+	const lastCertifiedBlock = testing
+		.createFakeBlockHeader({
+			height: 1,
+			validatorsHash: lastValidatorsHash,
+			aggregateCommit: {
+				aggregationBits: cryptography.utils.getRandomBytes(32),
+				certificateSignature: cryptography.utils.getRandomBytes(32),
+				height: 1,
+			},
+		})
+		.toObject();
+	// Blockheaders from height 2 to 11
+	const uncertifiedBlockHeaders = sampleSizeArray
+		.map((_value, _index) => {
+			// for every alternate height add aggregateCommit and for rest empty aggregateCommit
+			if (_index % 2 === 0) {
+				return testing.createFakeBlockHeader({
+					height: _index + 2,
+					aggregateCommit: {
+						aggregationBits: Buffer.from('01', 'hex'),
+						certificateSignature: cryptography.utils.getRandomBytes(32),
+						height: _index + 2,
+					},
+				});
+			}
+			return testing.createFakeBlockHeader({ height: _index + 2 });
+		})
+		.map(b => b.toObject());
+
+	const blockHeadersSample = [lastCertifiedBlock].concat(uncertifiedBlockHeaders);
+
+	// aggregateCommits from the blockheaders
+	const aggregateCommitsSample = blockHeadersSample.reduce((commits, b) => {
+		if (!b.aggregateCommit.certificateSignature.equals(Buffer.alloc(0))) {
+			commits.push(b.aggregateCommit as never);
+		}
+
+		return commits;
+	}, []);
+
+	const validatorsDataAtLastCertifiedheight = {
+		certificateThreshold: BigInt(2),
+		validators: [
+			{
+				address: cryptography.utils.getRandomBytes(20),
+				bftWeight: BigInt(1),
+				blsKey: cryptography.utils.getRandomBytes(48),
+			},
+			{
+				address: cryptography.utils.getRandomBytes(20),
+				bftWeight: BigInt(1),
+				blsKey: cryptography.utils.getRandomBytes(48),
+			},
+		],
+		validatorsHash: lastValidatorsHash,
+	};
+
+	const validatorsDataSample = {
+		certificateThreshold: BigInt(10),
+		validators: [
+			{
+				address: cryptography.utils.getRandomBytes(20),
+				bftWeight: BigInt(1),
+				blsKey: cryptography.utils.getRandomBytes(48),
+			},
+			{
+				address: cryptography.utils.getRandomBytes(20),
+				bftWeight: BigInt(1),
+				blsKey: cryptography.utils.getRandomBytes(48),
+			},
+		],
+		validatorsHash: cryptography.utils.getRandomBytes(32),
+	};
+
+	const bftHeights: BFTHeights = {
+		maxHeightPrevoted: 5,
+		maxHeightPrecommitted: 5,
+		maxHeightCertified: 3,
+	};
+
+	const blsKeyToBFTWeight: Record<string, bigint> = {};
+	blsKeyToBFTWeight[validatorsDataSample.validators[1].blsKey.toString('hex')] = BigInt(2);
+
+	describe('getCertificateFromAggregateCommit', () => {
+		it('should throw error if blockheader is not found for the aggregateCommit height', () => {
+			expect(() =>
+				getCertificateFromAggregateCommit(aggregateCommitsSample[1], [blockHeadersSample[0]]),
+			).toThrow('No Block header found for the given aggregate height');
+		});
+
+		it('should compute Certificate from BlockHeader', () => {
+			const expectedCertificate = computeCertificateFromBlockHeader(
+				new chain.BlockHeader(blockHeadersSample[0]),
+			);
+			expectedCertificate.aggregationBits = blockHeadersSample[0].aggregateCommit.aggregationBits;
+			expectedCertificate.signature = blockHeadersSample[0].aggregateCommit.certificateSignature;
+			const computedCertificate = getCertificateFromAggregateCommit(
+				blockHeadersSample[0].aggregateCommit,
+				[blockHeadersSample[0]],
+			);
+
+			expect(computedCertificate).toEqual(expectedCertificate);
+		});
+	});
+
+	describe('checkChainOfTrust', () => {
+		it('should throw error when there is no blockheader at {aggregateCommit.height - 1}', () => {
+			expect(() =>
+				checkChainOfTrust(
+					lastValidatorsHash,
+					blsKeyToBFTWeight,
+					validatorsDataAtLastCertifiedheight.certificateThreshold,
+					aggregateCommitsSample[3],
+					[lastCertifiedBlock],
+					[validatorsDataAtLastCertifiedheight],
+				),
+			).toThrow('No Block header found for the given aggregate height');
+		});
+
+		it('should throw error when there is no validatorsData at {aggregateCommit.height - 1}', () => {
+			expect(() =>
+				checkChainOfTrust(
+					lastValidatorsHash,
+					blsKeyToBFTWeight,
+					validatorsDataAtLastCertifiedheight.certificateThreshold,
+					aggregateCommitsSample[2],
+					blockHeadersSample,
+					[validatorsDataAtLastCertifiedheight],
+				),
+			).toThrow('No Validators data found for the given validatorsHash');
+		});
+
+		it('should validate for valid lastValidatorsHash', () => {
+			const valid = checkChainOfTrust(
+				lastValidatorsHash,
+				blsKeyToBFTWeight,
+				validatorsDataAtLastCertifiedheight.certificateThreshold,
+				aggregateCommitsSample[1],
+				blockHeadersSample,
+				[validatorsDataAtLastCertifiedheight],
+			);
+			expect(valid).toBe(true);
+		});
+
+		it('should return false when lastCertificateThreshold > { aggregateBFTWeight of the validators }', () => {
+			const aggreggateHeightAtFour = aggregateCommitsSample[2];
+			const validatorsHashAtHeightThree = blockHeadersSample[2].validatorsHash;
+			const validatorsDataAtHeightThree = {
+				...validatorsDataSample,
+				validatorsHash: validatorsHashAtHeightThree,
+			};
+
+			/**
+			 * Configuration:
+			 * aggregate height = 4
+			 * validatorsHash at height 3
+			 * lastCertifiedHeight = 1
+			 * aggregationBit = '01'
+			 * lastCertificateThreshold = BigInt(3)
+			 */
+			const valid = checkChainOfTrust(
+				lastCertifiedBlock.validatorsHash,
+				blsKeyToBFTWeight,
+				BigInt(3), // Last certificate threshold > aggregateBFT weight
+				aggreggateHeightAtFour,
+				blockHeadersSample,
+				[validatorsDataAtHeightThree],
+			);
+			expect(valid).toBe(false);
+		});
+
+		it('should validate for blockheader at height 4', () => {
+			const aggreggateHeightAtFour = aggregateCommitsSample[2];
+			const validatorsHashAtHeightThree = blockHeadersSample[2].validatorsHash;
+			const validatorsDataAtHeightThree = {
+				...validatorsDataSample,
+				validatorsHash: validatorsHashAtHeightThree,
+			};
+
+			/**
+			 * Configuration:
+			 * aggregate height = 4
+			 * validatorsHash at height 3
+			 * lastCertifiedHeight = 1
+			 * aggregationBit = '01'
+			 * lastCertificateThreshold = BigInt(1)
+			 */
+			const valid = checkChainOfTrust(
+				lastCertifiedBlock.validatorsHash,
+				blsKeyToBFTWeight,
+				validatorsDataAtLastCertifiedheight.certificateThreshold,
+				aggreggateHeightAtFour,
+				blockHeadersSample,
+				[validatorsDataAtHeightThree],
+			);
+			expect(valid).toBe(true);
+		});
+	});
+
+	describe('getNextCertificateFromAggregateCommits', () => {
+		it('should throw error when no block header found at last certified height', () => {
+			expect(() =>
+				getNextCertificateFromAggregateCommits(
+					[],
+					aggregateCommitsSample,
+					[validatorsDataSample],
+					bftHeights,
+					{ height: lastCertifiedBlock.height } as any,
+				),
+			).toThrow('No blockHeader found for the last certified height');
+		});
+
+		it('should throw error when no validators data was found at last certfied height', () => {
+			expect(() =>
+				getNextCertificateFromAggregateCommits(
+					blockHeadersSample,
+					aggregateCommitsSample,
+					[],
+					bftHeights,
+					{ height: lastCertifiedBlock.height } as any,
+				),
+			).toThrow('No validatorsHash preimage data present for the given validatorsHash');
+		});
+
+		it('should return undefined when certificate is found through chainOfTrust', () => {
+			expect(
+				getNextCertificateFromAggregateCommits(
+					blockHeadersSample,
+					[aggregateCommitsSample[2]],
+					[validatorsDataAtLastCertifiedheight],
+					bftHeights,
+					{ height: lastCertifiedBlock.height } as any,
+				),
+			).toBeUndefined();
+		});
+
+		it('should return a valid certificate passing chainOfTrust check', () => {
+			const expectedCertificate = computeCertificateFromBlockHeader(
+				new chain.BlockHeader(blockHeadersSample[1]),
+			);
+			expectedCertificate.aggregationBits = blockHeadersSample[1].aggregateCommit.aggregationBits;
+			expectedCertificate.signature = blockHeadersSample[1].aggregateCommit.certificateSignature;
+			expect(
+				getNextCertificateFromAggregateCommits(
+					blockHeadersSample,
+					aggregateCommitsSample,
+					[validatorsDataAtLastCertifiedheight, validatorsDataSample],
+					bftHeights,
+					{ height: lastCertifiedBlock.height } as any,
+				),
+			).toEqual(expectedCertificate);
+		});
+	});
 });
-// describe('Auxiliary Functions', () => {
-//   let aggregateCommit: AggregateCommit = {
-//     height: 2,
-//     aggregationBits: Buffer.from('00', 'hex'),
-//     certificateSignature: Buffer.alloc(0),
-//   };
-
-//   const aggregateCommits: AggregateCommit[] = [
-//     aggregateCommit,
-//     aggregateCommit,
-//     aggregateCommit,
-//     aggregateCommit,
-//   ];
-
-//   const block = {
-//     header: {
-//       version: 2,
-//       timestamp: 1658508497,
-//       height: 2,
-//       previousBlockID: Buffer.from(
-//         'b3778ca5ff83a6da5fea3b96fae6538c24b0ee88236faf06495022782d09756f',
-//         'hex',
-//       ),
-//       stateRoot: Buffer.from(
-//         'f7df9bec6d6106acb86a386d389a89988b0ebf5c9c722f375864e6f4983d4af7',
-//         'hex',
-//       ),
-//       assetRoot: Buffer.from(
-//         'f81025331b0ac890653ab48aa928b63724b40362ba707931ca524f8df513a24e',
-//         'hex',
-//       ),
-//       eventRoot: Buffer.from(
-//         'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-//         'hex',
-//       ),
-//       transactionRoot: Buffer.from(
-//         'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-//         'hex',
-//       ),
-//       validatorsHash: Buffer.from(
-//         'ad0076aa444f6cda608bb163c3bd77d9bf172f1d2803d53095bc0f277db6bcb3',
-//         'hex',
-//       ),
-//       aggregateCommit: {
-//         height: 0,
-//         aggregationBits: Buffer.alloc(0),
-//         certificateSignature: Buffer.alloc(0),
-//       },
-//       generatorAddress: Buffer.from('38562249e1969099833677a98e0c1a5ebaa2a191', 'hex'),
-//       maxHeightPrevoted: 0,
-//       maxHeightGenerated: 0,
-//       signature: Buffer.from(
-//         '82743907d3beb8565638a5d82a8891a7142abfa5b6e3328ed7259efc7a66acd71617eef2ec50191d42027f8bfefa361f087b714981641231d312347393d20f01',
-//         'hex',
-//       ),
-//       impliesMaxPrevotes: true,
-//       id: Buffer.from('f04938e16d894bcbbe71efcc2ef053ee5d149a4ecca099137398d70876afc164'),
-//     },
-//     transactions: [],
-//     assets: [
-//       {
-//         moduleID: '0000000f',
-//         data: '0a100ec4eed9bdb878f3454356db515aed2c',
-//       },
-//     ],
-//   };
-
-//   const bftHeights: BFTHeights = {
-//     maxHeightPrevoted: 5,
-//     maxHeightPrecommitted: 5,
-//     maxHeightCertified: 3,
-//   };
-
-//   let blsKeyToBFTWeight: Record<string, bigint> = {
-//     ad0076aa444f6cda608bb163c3bd77d9bf172f1d2803d53095bc0f277db6bcb3: BigInt(1),
-//   };
-
-//   beforeEach(async () => {
-//     jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
-//     await chainConnectorPlugin.init({
-//       logger: testing.mocks.loggerMock,
-//       config: {
-//         mainchainIPCPath: '~/.lisk/mainchain',
-//         sidechainIPCPath: '~/.list/sidechain',
-//       },
-//       appConfig: appConfigForPlugin,
-//     });
-
-//     when(sidechainAPIClientMock.invoke)
-//       .calledWith('interoperability_getOwnChainAccount')
-//       .mockResolvedValue({
-//         chainID: ownChainID.toString('hex'),
-//       });
-//     when(sidechainAPIClientMock.invoke)
-//       .calledWith('interoperability_getChainAccount', { chainID: ownChainID })
-//       .mockResolvedValue({
-//         height: 10,
-//         stateRoot: cryptography.utils.getRandomBytes(32).toString('hex'),
-//         timestamp: Date.now(),
-//         validatorsHash: cryptography.utils.getRandomBytes(32).toString('hex'),
-//       });
-
-//     await chainConnectorPlugin.load();
-
-//     (chainConnectorPlugin as any)['_sidechainChainConnectorDB'] = chainConnectorInfoDBMock;
-//     chainConnectorInfoDBMock.getBlockHeaders.mockResolvedValue([
-//       {
-//         ...block.header,
-//         height: 1,
-//       },
-//       {
-//         ...block.header,
-//       },
-//     ] as never);
-
-//     chainConnectorInfoDBMock.getValidatorsHashPreImage.mockResolvedValue([
-//       {
-//         validatorsHash: block.header.validatorsHash,
-//         validators: [
-//           {
-//             bftWeight: BigInt(0),
-//             blsKey: Buffer.from('00', 'hex'),
-//           },
-//         ],
-//       },
-//     ] as never);
-//   });
-
-//   describe('getCertificateFromAggregateCommit', () => {
-//     it('should call getBlockHeaders', async () => {
-//       await chainConnectorPlugin['_getCertificateFromAggregateCommit'](aggregateCommit);
-
-//       expect(
-//         chainConnectorPlugin['_sidechainChainConnectorDB']['getBlockHeaders'],
-//       ).toHaveBeenCalledTimes(1);
-//     });
-
-//     it('should compute Certificate from BlockHeader', async () => {
-//       const blockHeader: chain.BlockHeader = new chain.BlockHeader(block.header);
-//       const expectedCertificate = computeCertificateFromBlockHeader(blockHeader);
-//       // when(chainConnectorPlugin['_sidechainChainConnectorDB'].getBlockHeaders)
-//       // 	.calledWith()
-//       // 	.mockResolvedValue([blockHeader]);
-
-//       expectedCertificate.aggregationBits = Buffer.alloc(0);
-//       expectedCertificate.signature = Buffer.alloc(0);
-
-//       const certificate = await chainConnectorPlugin['_getCertificateFromAggregateCommit'](
-//         aggregateCommit,
-//       );
-
-//       expect(certificate).toEqual(expectedCertificate);
-//     });
-//   });
-
-//   describe('getNextCertificateFromAggregateCommits', () => {
-//     let expectedCertificate: Certificate;
-
-//     beforeEach(() => {
-//       const blockHeader: chain.BlockHeader = new chain.BlockHeader(block.header);
-//       expectedCertificate = computeCertificateFromBlockHeader(blockHeader);
-
-//       (chainConnectorPlugin['_sidechainAPIClient'] as any).invoke = jest
-//         .fn()
-//         .mockResolvedValue(bftHeights);
-
-//       chainConnectorPlugin['_checkChainOfTrust'] = jest
-//         .fn()
-//         .mockResolvedValueOnce(false)
-//         .mockResolvedValueOnce(true);
-//       chainConnectorPlugin['_getCertificateFromAggregateCommit'] = jest
-//         .fn()
-//         .mockResolvedValue(expectedCertificate);
-//     });
-
-//     it('should call getBlockHeaders', async () => {
-//       await chainConnectorPlugin.getNextCertificateFromAggregateCommits(2, aggregateCommits);
-
-//       expect(
-//         chainConnectorPlugin['_sidechainChainConnectorDB']['getBlockHeaders'],
-//       ).toHaveBeenCalledTimes(1);
-//     });
-
-//     it('should invoke consensus_getBFTHeights on _sidechainAPIClient', async () => {
-//       await chainConnectorPlugin.getNextCertificateFromAggregateCommits(2, aggregateCommits);
-
-//       expect((chainConnectorPlugin['_sidechainAPIClient'] as any).invoke).toHaveBeenCalledWith(
-//         'consensus_getBFTHeights',
-//       );
-//     });
-
-//     it('should return undefined if BFTHeights.lastCertifiedHeight < provided lastCertifiedHeight', async () => {
-//       const certificate = await chainConnectorPlugin.getNextCertificateFromAggregateCommits(
-//         2,
-//         aggregateCommits,
-//       );
-
-//       expect(certificate).toBeUndefined();
-//     });
-
-//     it('should return certificate from aggregateCommit if chainOfTrust is valid', async () => {
-//       const certificate = getNextCertificateFromAggregateCommits(
-//         1,
-//         aggregateCommits,
-//       );
-
-//       expect(checkChainOfTrust).toHaveBeenCalledTimes(2);
-//       expect(getCertificateFromAggregateCommit).toHaveBeenCalledTimes(1);
-
-//       expect(certificate).toEqual(expectedCertificate);
-//     });
-//   });
-
-//   describe('checkChainOfTrust', () => {
-//     it('should call getChainConnectorInfo', async () => {
-//       checkChainOfTrust(
-//         block.header.validatorsHash,
-//         blsKeyToBFTWeight,
-//         BigInt(1),
-//         aggregateCommit,
-//         [],
-//         [],
-//       );
-
-//       expect(
-//         chainConnectorPlugin['_sidechainChainConnectorDB']['getBlockHeaders'],
-//       ).toHaveBeenCalledTimes(1);
-//     });
-
-//     it('should validate for valid lastValidatorsHash', async () => {
-//       const valid = checkChainOfTrust(
-//         block.header.validatorsHash,
-//         blsKeyToBFTWeight,
-//         BigInt(2),
-//         aggregateCommit,
-//         [],
-//         [],
-//       );
-
-//       expect(valid).toBe(true);
-//     });
-
-//     it('should validate if aggregateBFTWeight is equal or greater than provided lastCertificateThreshold', async () => {
-//       aggregateCommit = {
-//         height: 2,
-//         aggregationBits: Buffer.from('01', 'hex'),
-//         certificateSignature: Buffer.alloc(0),
-//       };
-
-//       blsKeyToBFTWeight = {
-//         ad0076aa444f6cda608bb163c3bd77d9bf172f1d2803d53095bc0f277db6bcb3: BigInt(5),
-//       };
-
-//       jest
-//         .spyOn(chainConnectorPlugin['_sidechainChainConnectorDB'], 'getBlockHeaders')
-//         .mockResolvedValue([
-//           {
-//             ...block.header,
-//             height: -1,
-//           },
-//           {
-//             ...block.header,
-//             height: aggregateCommit.height - 1,
-//           },
-//         ] as never);
-
-//       jest
-//         .spyOn(chainConnectorPlugin['_sidechainChainConnectorDB'], 'getValidatorsHashPreImage')
-//         .mockResolvedValue([
-//           {
-//             validatorsHash: block.header.validatorsHash,
-//             validators: [
-//               {
-//                 bftWeight: BigInt(0),
-//                 blsKey: Buffer.from(
-//                   'ad0076aa444f6cda608bb163c3bd77d9bf172f1d2803d53095bc0f277db6bcb3',
-//                   'hex',
-//                 ),
-//               },
-//             ],
-//           },
-//         ] as never);
-
-//       let valid = await chainConnectorPlugin['_checkChainOfTrust'](
-//         Buffer.from('0', 'hex'),
-//         blsKeyToBFTWeight,
-//         BigInt(2),
-//         aggregateCommit,
-//       );
-
-//       expect(valid).toBe(true);
-
-//       valid = await chainConnectorPlugin['_checkChainOfTrust'](
-//         Buffer.from('0', 'hex'),
-//         blsKeyToBFTWeight,
-//         BigInt(-1),
-//         aggregateCommit,
-//       );
-
-//       expect(valid).toBe(true);
-//     });
-
-//     it('should not validate if aggregateBFTWeight is less than provided lastCertificateThreshold', async () => {
-//       const valid = await chainConnectorPlugin['_checkChainOfTrust'](
-//         Buffer.from('0', 'hex'),
-//         blsKeyToBFTWeight,
-//         BigInt(2),
-//         aggregateCommit,
-//       );
-
-//       expect(valid).toBe(false);
-//     });
-//   });
-// });
