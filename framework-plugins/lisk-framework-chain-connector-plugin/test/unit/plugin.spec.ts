@@ -41,6 +41,8 @@ import {
 	CCM_SEND_SUCCESS,
 	CCU_TOTAL_CCM_SIZE,
 	COMMAND_NAME_SUBMIT_SIDECHAIN_CCU,
+	ADDRESS_LENGTH,
+	BLS_PUBLIC_KEY_LENGTH,
 } from '../../src/constants';
 import * as plugins from '../../src/chain_connector_plugin';
 import * as dbApi from '../../src/db';
@@ -49,6 +51,7 @@ import {
 	BlockHeader,
 	CrossChainMessagesFromEvents,
 	ChainConnectorPluginConfig,
+	ValidatorsData,
 } from '../../src/types';
 
 const { ed } = cryptography;
@@ -273,6 +276,140 @@ describe('ChainConnectorPlugin', () => {
 			expect(chainConnectorPlugin['_chainConnectorPluginDB']).toEqual(
 				new db.InMemoryDatabase() as never,
 			);
+		});
+	});
+
+	describe('_deleteBlockHandler', () => {
+		beforeEach(async () => {
+			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(getApiClientMocks() as never);
+			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorStoreMock;
+			await initChainConnectorPlugin(chainConnectorPlugin);
+			await chainConnectorPlugin.load();
+		});
+
+		it('should delete block header from db corresponding to chain block header', async () => {
+			const getSomeBlockHeaders = (count = 4) => {
+				let height = 0;
+				return new Array(count).fill(0).map(() => {
+					height += 1;
+					const { id, ...block } = testing.createFakeBlockHeader({ height }).toObject();
+					return block;
+				});
+			};
+
+			const someBlockHeaders = getSomeBlockHeaders();
+			expect(someBlockHeaders).toHaveLength(4);
+
+			// let's first save some data to db
+			await chainConnectorPlugin['_sidechainChainConnectorStore'].setBlockHeaders(someBlockHeaders);
+			await expect(
+				chainConnectorPlugin['_sidechainChainConnectorStore'].getBlockHeaders(),
+			).resolves.toHaveLength(4);
+
+			// call handler with expected Block having one of stored block headers height
+			const block = await getTestBlock();
+			expect(block.header.height).toEqual(someBlockHeaders[0].height);
+
+			await (chainConnectorPlugin as any)['_deleteBlockHandler']({
+				blockHeader: block.header.toJSON(),
+			});
+
+			// here, we assume that block with height 1 was removed from db
+			await expect(
+				chainConnectorPlugin['_sidechainChainConnectorStore'].getBlockHeaders(),
+			).resolves.toHaveLength(3);
+		});
+
+		it('should delete aggregateCommits from db corresponding to chain block header', async () => {
+			const getSomeAggregateCommits = (count = 4) => {
+				let height = 0;
+				return new Array(count).fill(0).map(() => {
+					height += 1;
+					const aggregateCommit: AggregateCommit = {
+						height,
+						aggregationBits: Buffer.from('00', 'hex'),
+						certificateSignature: Buffer.alloc(0),
+					};
+					return aggregateCommit;
+				});
+			};
+
+			const someAggregateCommits = getSomeAggregateCommits();
+			expect(someAggregateCommits[0].height).toBe(1);
+			expect(someAggregateCommits[3].height).toBe(4);
+
+			// let's first save some data to db
+			await chainConnectorPlugin['_sidechainChainConnectorStore'].setAggregateCommits(
+				someAggregateCommits,
+			);
+			await expect(
+				chainConnectorPlugin['_sidechainChainConnectorStore'].getAggregateCommits(),
+			).resolves.toHaveLength(4);
+
+			// call handler with expected Block having one of stored block headers height
+			const block = await getTestBlock();
+			expect(block.header.height).toBe(1);
+
+			await (chainConnectorPlugin as any)['_deleteBlockHandler']({
+				blockHeader: block.header.toJSON(),
+			});
+
+			// here, we assume that block with height 1 was removed from db
+			await expect(
+				chainConnectorPlugin['_sidechainChainConnectorStore'].getAggregateCommits(),
+			).resolves.toHaveLength(3);
+		});
+
+		it('should delete ValidatorsHashPreimage from db corresponding to chain block header', async () => {
+			const getSomeValidatorsHashPreimage = (count = 4, block: Block): ValidatorsData[] => {
+				let validatorsHash = block.header.validatorsHash as Buffer;
+
+				let i = -1;
+				return new Array(count).fill(0).map(() => {
+					i += 1;
+					if (i > 0) {
+						validatorsHash = cryptography.utils.getRandomBytes(54);
+					}
+					return {
+						certificateThreshold: BigInt(68),
+						validators: [
+							{
+								address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+								bftWeight: BigInt(1),
+								blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+							},
+							{
+								address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+								bftWeight: BigInt(1),
+								blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+							},
+						],
+						validatorsHash,
+					};
+				});
+			};
+
+			const block = await getTestBlock();
+
+			const someValidatorsHashPreimage = getSomeValidatorsHashPreimage(4, block);
+			await chainConnectorPlugin['_sidechainChainConnectorStore'].setValidatorsHashPreimage(
+				someValidatorsHashPreimage,
+			);
+			await expect(
+				chainConnectorPlugin['_sidechainChainConnectorStore'].getValidatorsHashPreimage(),
+			).resolves.toHaveLength(4);
+
+			expect(block.header.validatorsHash as Buffer).toEqual(
+				someValidatorsHashPreimage[0].validatorsHash,
+			);
+
+			await (chainConnectorPlugin as any)['_deleteBlockHandler']({
+				blockHeader: block.header.toJSON(),
+			});
+
+			await expect(
+				chainConnectorPlugin['_sidechainChainConnectorStore'].getValidatorsHashPreimage(),
+			).resolves.toHaveLength(3);
 		});
 	});
 
