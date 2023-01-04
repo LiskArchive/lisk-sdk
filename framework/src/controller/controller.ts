@@ -144,7 +144,7 @@ export class Controller {
 			}
 		}
 
-		this._pluginConfigs[pluginName] = Object.assign(this._pluginConfigs[pluginName] ?? {}, options);
+		this._pluginConfigs[pluginName] = { ...this._pluginConfigs[pluginName], ...options };
 
 		validatePluginSpec(plugin);
 
