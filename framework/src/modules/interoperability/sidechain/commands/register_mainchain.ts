@@ -24,6 +24,7 @@ import {
 	EMPTY_BYTES,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	CCMStatusCode,
+	NUMBER_MAINCHAIN_VALIDATORS,
 } from '../../constants';
 import {
 	mainchainRegParams,
@@ -70,6 +71,15 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 		context: CommandVerifyContext<MainchainRegistrationParams>,
 	): Promise<VerificationResult> {
 		const { ownName, mainchainValidators, ownChainID } = context.params;
+		const mainchainID = getMainchainID(context.chainID);
+		const chainAccountSubstore = this.stores.get(ChainAccountStore);
+		const mainchainAccountExists = await chainAccountSubstore.has(context, mainchainID);
+		if (mainchainAccountExists) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Mainchain has already been registered.'),
+			};
+		}
 
 		try {
 			validator.validate<MainchainRegistrationParams>(mainchainRegParams, context.params);

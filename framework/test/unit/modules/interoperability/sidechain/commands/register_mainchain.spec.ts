@@ -103,6 +103,7 @@ describe('RegisterMainchainCommand', () => {
 	let mainchainRegistrationCommand: RegisterMainchainCommand;
 	let verifyContext: CommandVerifyContext<MainchainRegistrationParams>;
 	let ownChainAccountSubstore: OwnChainAccountStore;
+	let chainAccountSubstore: ChainAccountStore;
 	let stateStore: PrefixedStateReadWriter;
 	let validatorsMethod: ValidatorsMethod;
 
@@ -121,6 +122,7 @@ describe('RegisterMainchainCommand', () => {
 		mainchainRegistrationCommand.addDependencies(validatorsMethod);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		ownChainAccountSubstore = interopMod.stores.get(OwnChainAccountStore);
+		chainAccountSubstore = interopMod.stores.get(ChainAccountStore);
 	});
 
 	describe('verify', () => {
@@ -157,6 +159,14 @@ describe('RegisterMainchainCommand', () => {
 		it('should return status OK for valid params', async () => {
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 			expect(result.status).toBe(VerifyStatus.OK);
+		});
+
+		it('should fail if mainchainID already exists in chain account substore', async () => {
+			jest.spyOn(chainAccountSubstore, 'has').mockResolvedValue(true);
+			const result = await mainchainRegistrationCommand.verify(verifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Mainchain has already been registered.`);
 		});
 
 		it('should return error if own chain id is greater than 4 bytes', async () => {
@@ -201,8 +211,24 @@ describe('RegisterMainchainCommand', () => {
 			);
 		});
 
+		it('should return error if name is empty', async () => {
+			verifyContext.params.ownName = '';
+			const result = await mainchainRegistrationCommand.verify(verifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error).toBeInstanceOf(LiskValidationError);
+		});
+
 		it('should return error if number of mainchain validators is not equal to number of mainchain validators', async () => {
 			verifyContext.params.mainchainValidators.pop();
+			const result = await mainchainRegistrationCommand.verify(verifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error).toBeInstanceOf(LiskValidationError);
+		});
+
+		it(`should return error if mainchainValidators array has not exactly ${NUMBER_MAINCHAIN_VALIDATORS} elements`, async () => {
+			verifyContext.params.mainchainValidators = [];
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);

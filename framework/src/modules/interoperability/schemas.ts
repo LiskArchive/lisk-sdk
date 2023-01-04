@@ -176,7 +176,7 @@ export const mainchainRegParams = {
 					},
 				},
 			},
-			minItems: NUMBER_MAINCHAIN_VALIDATORS,
+			minItems: 1,
 			maxItems: NUMBER_MAINCHAIN_VALIDATORS,
 		},
 		signature: {
