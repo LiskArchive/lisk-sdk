@@ -622,3 +622,22 @@ export const isSupportedResponseSchema = {
 	},
 	required: ['supported'],
 };
+
+// hasUserAccountRequestSchema is used to validate the request of the `hasUserAccount` endpoint
+export const hasUserAccountRequestSchema = {
+	$id: '/token/endpoint/hasUserAccountRequest',
+	type: 'object',
+	properties: {
+		address: {
+			type: 'string',
+			format: 'lisk32',
+		},
+		tokenID: {
+			type: 'string',
+			format: 'hex',
+			minLength: TOKEN_ID_LENGTH * 2,
+			maxLength: TOKEN_ID_LENGTH * 2,
+		},
+	},
+	required: ['address', 'tokenID'],
+};

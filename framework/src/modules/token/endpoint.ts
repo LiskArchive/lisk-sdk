@@ -22,6 +22,7 @@ import { CHAIN_ID_LENGTH, TOKEN_ID_LENGTH } from './constants';
 import {
 	getBalanceRequestSchema,
 	getBalancesRequestSchema,
+	hasUserAccountRequestSchema,
 	isSupportedRequestSchema,
 	SupplyStoreData,
 	UserStoreData,
@@ -184,5 +185,28 @@ export class TokenEndpoint extends BaseEndpoint {
 			userAccount: this._moduleConfig.userAccountInitializationFee.toString(),
 			escrowAccount: this._moduleConfig.escrowAccountInitializationFee.toString(),
 		};
+	}
+
+	public async hasUserAccount(context: ModuleEndpointContext): Promise<{ hasAccount: boolean }> {
+		validator.validate<{ address: string; tokenID: string }>(
+			hasUserAccountRequestSchema,
+			context.params,
+		);
+
+		const address = cryptography.address.getAddressFromLisk32Address(context.params.address);
+		const tokenID = Buffer.from(context.params.tokenID, 'hex');
+		const userStore = this.stores.get(UserStore);
+
+		try {
+			const isUser = await userStore.has(context, userStore.getKey(address, tokenID));
+
+			return { hasAccount: isUser };
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+
+			return { hasAccount: false };
+		}
 	}
 }

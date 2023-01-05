@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-disabled-tests */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -12,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { address, utils } from '@liskhq/lisk-cryptography';
-import { TokenMethod, TokenModule } from '../../../../src/modules/token';
+import { TokenMethod, TokenModule, MethodContext } from '../../../../src';
 import {
 	USER_SUBSTORE_INITIALIZATION_FEE,
 	ESCROW_SUBSTORE_INITIALIZATION_FEE,
@@ -22,15 +23,23 @@ import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
 import { SupplyStore } from '../../../../src/modules/token/stores/supply';
 import { UserStore } from '../../../../src/modules/token/stores/user';
 import { SupportedTokensStore } from '../../../../src/modules/token/stores/supported_tokens';
-import { MethodContext } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import {
 	createTransientMethodContext,
 	createTransientModuleEndpointContext,
+	InMemoryPrefixedStateDB,
 } from '../../../../src/testing';
-import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { ModuleConfig } from '../../../../src/modules/token/types';
 import { InternalMethod } from '../../../../src/modules/token/internal_method';
+import {
+	AMOUNT,
+	AVAILABLE_BALANCE,
+	ESCROW_AMOUNT,
+	INVALID_ADDRESS,
+	INVALID_TOKEN_ID,
+	NON_SUPPORTED_TOKEN_ID,
+	TOTAL_SUPPLY,
+} from './constants';
 
 describe('token endpoint', () => {
 	const tokenModule = new TokenModule();
@@ -42,16 +51,16 @@ describe('token endpoint', () => {
 	const foreignChainID = Buffer.from([1, 0, 0, 8]);
 	const foreignTokenID = Buffer.concat([foreignChainID, Buffer.from([0, 0, 0, 0])]);
 	const account = {
-		availableBalance: BigInt(10000000000),
+		availableBalance: AVAILABLE_BALANCE,
 		lockedBalances: [
 			{
 				module: 'pos',
-				amount: BigInt(100000000),
+				amount: AMOUNT,
 			},
 		],
 	};
-	const totalSupply = BigInt('100000000000000');
-	const escrowAmount = BigInt('100000000000');
+	const totalSupply = TOTAL_SUPPLY;
+	const escrowAmount = ESCROW_AMOUNT;
 	const supportedForeignChainTokenIDs = [
 		Buffer.concat([foreignChainID, Buffer.from([0, 0, 0, 8])]),
 		Buffer.concat([foreignChainID, Buffer.from([0, 0, 0, 9])]),
@@ -103,11 +112,15 @@ describe('token endpoint', () => {
 		supportedTokensStore.registerOwnChainID(nativeChainID);
 	});
 
+	afterEach(() => {
+		jest.clearAllMocks();
+	});
+
 	describe('getBalances', () => {
 		it('should reject when input is invalid', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { address: '1234' },
+				params: { address: INVALID_ADDRESS },
 			});
 			await expect(endpoint.getBalances(moduleEndpointContext)).rejects.toThrow(
 				'.address\' must match format "lisk32"',
@@ -158,7 +171,7 @@ describe('token endpoint', () => {
 		it('should reject when input has invalid address', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { address: '1234' },
+				params: { address: INVALID_ADDRESS },
 			});
 			await expect(endpoint.getBalance(moduleEndpointContext)).rejects.toThrow(
 				'.address\' must match format "lisk32"',
@@ -168,7 +181,7 @@ describe('token endpoint', () => {
 		it('should reject when input has invalid tokenID', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { address: address.getLisk32AddressFromAddress(addr), tokenID: '00' },
+				params: { address: address.getLisk32AddressFromAddress(addr), tokenID: INVALID_TOKEN_ID },
 			});
 			await expect(endpoint.getBalance(moduleEndpointContext)).rejects.toThrow(
 				".tokenID' must NOT have fewer than 16 characters",
@@ -190,7 +203,7 @@ describe('token endpoint', () => {
 			});
 		});
 
-		it('should return return balance when network tokenID is specified', async () => {
+		it('should return balance when network tokenID is specified', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
@@ -209,7 +222,7 @@ describe('token endpoint', () => {
 			});
 		});
 
-		it('should return return balance when native tokenID is specified', async () => {
+		it('should return balance when native tokenID is specified', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
@@ -259,8 +272,6 @@ describe('token endpoint', () => {
 		it('should return the list of supported tokens when ALL the tokens from a foreign chain are supported', async () => {
 			await supportedTokensStore.set(methodContext, foreignChainID, { supportedTokenIDs: [] });
 
-			// const anotherForeignChainID = Buffer.from([0, 0, 0, 9]);
-			// await supportedTokensStore.set(methodContext, anotherForeignChainID, { supportedTokenIDs: [] });
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				chainID: nativeChainID,
@@ -329,7 +340,7 @@ describe('token endpoint', () => {
 		it('should return false for a non-supported token', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { tokenID: '8888888888888888' },
+				params: { tokenID: NON_SUPPORTED_TOKEN_ID },
 			});
 
 			expect(await endpoint.isSupported(moduleEndpointContext)).toEqual({ supported: false });
@@ -339,7 +350,7 @@ describe('token endpoint', () => {
 			await supportedTokensStore.supportAll(methodContext);
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { tokenID: '8888888888888888' },
+				params: { tokenID: NON_SUPPORTED_TOKEN_ID },
 			});
 
 			expect(await endpoint.isSupported(moduleEndpointContext)).toEqual({ supported: true });
@@ -352,6 +363,54 @@ describe('token endpoint', () => {
 				userAccount: USER_SUBSTORE_INITIALIZATION_FEE.toString(),
 				escrowAccount: ESCROW_SUBSTORE_INITIALIZATION_FEE.toString(),
 			});
+		});
+	});
+
+	describe('hasUserAccount', () => {
+		it('should throw an error if an invalid address is provided', async () => {
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { tokenID: nativeTokenID.toString('hex'), address: INVALID_ADDRESS },
+			});
+
+			await expect(endpoint.hasUserAccount(moduleEndpointContext)).rejects.toThrow(
+				'Property \'.address\' must match format "lisk32"',
+			);
+		});
+
+		it('should throw an error if an invalid tokenID is provided', async () => {
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { tokenID: INVALID_TOKEN_ID, address: address.getLisk32AddressFromAddress(addr) },
+			});
+
+			await expect(endpoint.hasUserAccount(moduleEndpointContext)).rejects.toThrow(
+				".tokenID' must NOT have fewer than 16 characters",
+			);
+		});
+
+		it('should return true if the user account exists', async () => {
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					tokenID: nativeTokenID.toString('hex'),
+					address: address.getLisk32AddressFromAddress(addr),
+				},
+			});
+
+			expect(await endpoint.hasUserAccount(moduleEndpointContext)).toEqual({ hasAccount: true });
+		});
+
+		it('should return false if the user account does not exist', async () => {
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					tokenID: nativeTokenID.toString('hex'),
+					address: address.getLisk32AddressFromAddress(Buffer.alloc(20)),
+				},
+			});
+
+			expect(await endpoint.hasUserAccount(moduleEndpointContext)).toEqual({ hasAccount: false });
 		});
 	});
 });
