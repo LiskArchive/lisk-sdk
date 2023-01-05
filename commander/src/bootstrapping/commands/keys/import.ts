@@ -14,10 +14,8 @@
  */
 
 import { encrypt } from '@liskhq/lisk-cryptography';
-import * as apiClient from '@liskhq/lisk-api-client';
 import { Flags as flagParser } from '@oclif/core';
 import * as fs from 'fs-extra';
-import { PromiseResolvedType } from '../../../types';
 import { BaseIPCClientCommand } from '../base_ipc_client';
 
 interface EncryptedMessageObject {
@@ -69,8 +67,6 @@ export abstract class ImportCommand extends BaseIPCClientCommand {
 			required: true,
 		}),
 	};
-
-	protected _client!: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
 
 	async run(): Promise<void> {
 		const { flags } = await this.parse(ImportCommand);
