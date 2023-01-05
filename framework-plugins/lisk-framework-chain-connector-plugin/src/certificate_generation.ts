@@ -14,13 +14,20 @@
 
 import {
 	AggregateCommit,
+	apiClient,
 	BFTHeights,
 	Certificate,
 	chain,
+	ChainAccount,
+	ChainStatus,
 	computeCertificateFromBlockHeader,
+	cryptography,
 	LastCertificate,
+	LIVENESS_LIMIT,
+	MESSAGE_TAG_CERTIFICATE,
 } from 'lisk-sdk';
 import { BlockHeader, ValidatorsData } from './types';
+import { ChainConnectorStore } from './db';
 
 // LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#getcertificatefromaggregatecommit
 export const getCertificateFromAggregateCommit = (
@@ -139,4 +146,133 @@ export const getNextCertificateFromAggregateCommits = (
 	}
 
 	return undefined;
+};
+
+interface LivenessValidationResult {
+	status: boolean;
+	isLive: boolean;
+	chainID: Buffer;
+	certificateTimestamp: number;
+	blockTimestamp: number;
+}
+
+interface CertificateValidationResult {
+	status: boolean;
+	livenessValidationResult?: LivenessValidationResult;
+	chainStatus: number;
+	certificate: Certificate;
+	blockHeader: BlockHeader;
+	hasValidBLSWeightedAggSig?: boolean;
+	message: string;
+}
+
+export const validateCertificate = async (
+	certificateBytes: Buffer,
+	certificate: Certificate,
+	blockHeader: BlockHeader,
+	chainAccount: ChainAccount,
+	sendingChainID: Buffer,
+	sidechainChainConnectorStore: ChainConnectorStore,
+	mainchainAPIClient: apiClient.APIClient,
+): Promise<CertificateValidationResult> => {
+	const result: CertificateValidationResult = {
+		status: false,
+		chainStatus: chainAccount.status,
+		certificate,
+		blockHeader,
+		message: 'Certificate validation failed.',
+	};
+
+	if (chainAccount.status === ChainStatus.TERMINATED) {
+		result.message = 'Sending chain is terminated.';
+		return result;
+	}
+
+	if (certificate.height <= chainAccount.lastCertificate.height) {
+		result.message = 'Certificate height is higher than last certified height.';
+		return result;
+	}
+
+	const certificateLivenessValidationResult = await verifyLiveness(
+		sendingChainID,
+		certificate.timestamp,
+		blockHeader.timestamp,
+		mainchainAPIClient,
+	);
+
+	result.livenessValidationResult = certificateLivenessValidationResult;
+
+	if (!certificateLivenessValidationResult.status) {
+		result.message = 'Liveness validation failed.';
+		return result;
+	}
+
+	if (chainAccount.status === ChainStatus.ACTIVE) {
+		result.status = true;
+
+		return result;
+	}
+
+	const validatorsHashPreimage = await sidechainChainConnectorStore.getValidatorsHashPreimage();
+	const validatorData = validatorsHashPreimage.find(data =>
+		data.validatorsHash.equals(blockHeader.validatorsHash),
+	);
+
+	if (!validatorData) {
+		result.message = 'Block validators are not valid.';
+
+		return result;
+	}
+
+	const keysList = validatorData.validators.map(validator => validator.blsKey);
+
+	const weights = validatorData.validators.map(validator => validator.bftWeight);
+
+	const hasValidWeightedAggSig = cryptography.bls.verifyWeightedAggSig(
+		keysList,
+		certificate.aggregationBits as Buffer,
+		certificate.signature as Buffer,
+		MESSAGE_TAG_CERTIFICATE,
+		sendingChainID,
+		certificateBytes,
+		weights,
+		validatorData.certificateThreshold,
+	);
+	if (hasValidWeightedAggSig) {
+		result.hasValidBLSWeightedAggSig = true;
+		result.status = false;
+		return result;
+	}
+
+	result.message = 'Weighted aggregate signature is not valid.';
+
+	return result;
+};
+
+export const verifyLiveness = async (
+	chainID: Buffer,
+	certificateTimestamp: number,
+	blockTimestamp: number,
+	mainchainAPIClient: apiClient.APIClient,
+): Promise<LivenessValidationResult> => {
+	const isLive = await mainchainAPIClient.invoke<boolean>('interoperability_isLive', {
+		chainID,
+		timestamp: certificateTimestamp,
+	});
+
+	const result: LivenessValidationResult = {
+		status: true,
+		isLive,
+		chainID,
+		certificateTimestamp,
+		blockTimestamp,
+	};
+
+	if (isLive && blockTimestamp - certificateTimestamp < LIVENESS_LIMIT / 2) {
+		return result;
+	}
+
+	result.status = false;
+
+	return result;
 };
