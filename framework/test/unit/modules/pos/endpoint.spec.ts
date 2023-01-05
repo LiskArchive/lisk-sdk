@@ -520,6 +520,15 @@ describe('PosModuleEndpoint', () => {
 			).rejects.toThrow('Lisk validator found 1 error[s]:');
 		});
 
+		it('should throw if limit is less than -1', async () => {
+			const limit = -2;
+			await expect(
+				posEndpoint.getValidatorsByStake(
+					createTransientModuleEndpointContext({ stateStore, params: { limit } }),
+				),
+			).rejects.toThrow(`Input parameter limit ${limit} is not valid.`);
+		});
+
 		it('should return validators with default limit in correct order', async () => {
 			const resp = await posEndpoint.getValidatorsByStake(
 				createTransientModuleEndpointContext({ stateStore }),

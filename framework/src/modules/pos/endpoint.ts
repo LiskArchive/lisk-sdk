@@ -222,7 +222,7 @@ export class PoSEndpoint extends BaseEndpoint {
 		ctx: ModuleEndpointContext,
 	): Promise<{ validators: ValidatorAccountEndpoint[] }> {
 		validator.validate<GetValidatorsByStakeRequest>(getValidatorsByStakeRequestSchema, ctx.params);
-		const limit = ctx.params.limit as number;
+		const limit = ctx.params.limit as number | undefined;
 
 		const eligibleValidatorStore = this.stores.get(EligibleValidatorsStore);
 		const validatorSubStore = this.stores.get(ValidatorStore);
@@ -233,7 +233,7 @@ export class PoSEndpoint extends BaseEndpoint {
 		}[];
 
 		if (limit && limit < -1) {
-			throw new Error(`Input parameter limit ${limit} is not valid `);
+			throw new Error(`Input parameter limit ${limit} is not valid.`);
 		}
 		if (limit && limit === -1) {
 			validatorsList = await eligibleValidatorStore.getAll(ctx);
