@@ -327,6 +327,12 @@ export class PoSEndpoint extends BaseEndpoint {
 		};
 	}
 
+	public getRegistrationFee(): { fee: string } {
+		return {
+			fee: this._moduleConfig.validatorRegistrationFee.toString(),
+		};
+	}
+
 	private async _getLockedStakedAmount(
 		ctx: ImmutableMethodContext,
 		address: Buffer,
