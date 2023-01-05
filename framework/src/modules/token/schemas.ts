@@ -623,7 +623,6 @@ export const isSupportedResponseSchema = {
 	required: ['supported'],
 };
 
-// hasUserAccountRequestSchema is used to validate the request of the `hasUserAccount` endpoint
 export const hasUserAccountRequestSchema = {
 	$id: '/token/endpoint/hasUserAccountRequest',
 	type: 'object',
@@ -640,4 +639,23 @@ export const hasUserAccountRequestSchema = {
 		},
 	},
 	required: ['address', 'tokenID'],
+};
+
+export const hasEscrowAccountRequestSchema = {
+	$id: '/token/endpoint/hasEscrowAccountRequest',
+	type: 'object',
+	properties: {
+		tokenID: {
+			type: 'string',
+			format: 'hex',
+			minLength: TOKEN_ID_LENGTH * 2,
+			maxLength: TOKEN_ID_LENGTH * 2,
+		},
+		escrowChainID: {
+			dataType: 'bytes',
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
+		},
+	},
+	required: ['tokenID', 'escrowChainID'],
 };

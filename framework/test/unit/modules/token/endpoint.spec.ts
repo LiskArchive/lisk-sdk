@@ -36,6 +36,7 @@ import {
 	AVAILABLE_BALANCE,
 	ESCROW_AMOUNT,
 	INVALID_ADDRESS,
+	INVALID_CHAIN_ID,
 	INVALID_TOKEN_ID,
 	NON_SUPPORTED_TOKEN_ID,
 	TOTAL_SUPPLY,
@@ -411,6 +412,54 @@ describe('token endpoint', () => {
 			});
 
 			expect(await endpoint.hasUserAccount(moduleEndpointContext)).toEqual({ hasAccount: false });
+		});
+	});
+
+	describe('hasEscrowAccount', () => {
+		it('should throw an error if an invalid tokenID is provided', async () => {
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { tokenID: INVALID_TOKEN_ID, escrowChainID: foreignChainID.toString('hex') },
+			});
+
+			await expect(endpoint.hasEscrowAccount(moduleEndpointContext)).rejects.toThrow(
+				".tokenID' must NOT have fewer than 16 characters",
+			);
+		});
+
+		it('should throw an error if an invalid chainID is provided', async () => {
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { tokenID: nativeTokenID.toString('hex'), escrowChainID: INVALID_CHAIN_ID },
+			});
+
+			await expect(endpoint.hasEscrowAccount(moduleEndpointContext)).rejects.toThrow(
+				'Property \'.escrowChainID\' should pass "dataType" keyword validation',
+			);
+		});
+
+		it('should return true if the escrow account exists', async () => {
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					tokenID: nativeTokenID.toString('hex'),
+					escrowChainID: foreignChainID,
+				},
+			});
+
+			expect(await endpoint.hasEscrowAccount(moduleEndpointContext)).toEqual({ hasAccount: true });
+		});
+
+		it('should return false if the escrow account does not exist', async () => {
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					tokenID: nativeTokenID.toString('hex'),
+					escrowChainID: Buffer.alloc(4),
+				},
+			});
+
+			expect(await endpoint.hasEscrowAccount(moduleEndpointContext)).toEqual({ hasAccount: false });
 		});
 	});
 });

@@ -17,5 +17,6 @@ export const AVAILABLE_BALANCE = BigInt('10000000000');
 export const ESCROW_AMOUNT = BigInt('100000000000');
 export const INVALID_ADDRESS = '1234';
 export const INVALID_TOKEN_ID = '00';
+export const INVALID_CHAIN_ID = '00';
 export const NON_SUPPORTED_TOKEN_ID = '8888888888888888';
 export const TOTAL_SUPPLY = BigInt('100000000000000');
