@@ -19,9 +19,7 @@ import {
 	testing,
 	apiClient,
 	ApplicationConfigForPlugin,
-	LIVENESS_LIMIT,
-	ChainAccount,
-	ChainStatus,
+	GenesisConfig,
 	codec,
 	CCMsg,
 	ccmSchema,
@@ -368,6 +366,11 @@ describe('ChainConnectorPlugin', () => {
 	describe('_deleteBlockHandler', () => {
 		beforeEach(async () => {
 			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(apiClientMocks as never);
+			when(apiClientMocks.invoke)
+				.calledWith('interoperability_getOwnChainAccount')
+				.mockResolvedValue({
+					chainID: ownChainID.toString('hex'),
+				});
 			(chainConnectorPlugin as any)['_sidechainChainConnectorStore'] = chainConnectorStoreMock;
 			await initChainConnectorPlugin(chainConnectorPlugin, defaultConfig);
 			await chainConnectorPlugin.load();
@@ -573,6 +576,7 @@ describe('ChainConnectorPlugin', () => {
 				blockHeader: block.header.toJSON(),
 			});
 
+			// For chain_newBlock and chain_deleteBlock
 			expect(sidechainAPIClientMock.subscribe).toHaveBeenCalledTimes(2);
 			expect(sidechainAPIClientMock.invoke).toHaveBeenCalledWith('consensus_getBFTParameters', {
 				height: block.header.height,
@@ -832,233 +836,6 @@ describe('ChainConnectorPlugin', () => {
 		});
 	});
 
-	describe('_verifyLiveness', () => {
-		beforeEach(() => {
-			(chainConnectorPlugin as any)['_mainchainAPIClient'] = apiClientMocks;
-			(chainConnectorPlugin as any)['_sidechainAPIClient'] = apiClientMocks;
-		});
-
-		it('should not validate if provided chain ID is not live', async () => {
-			(chainConnectorPlugin['_mainchainAPIClient'] as any).invoke = jest
-				.fn()
-				.mockResolvedValue(false);
-
-			const result = await chainConnectorPlugin['_verifyLiveness'](Buffer.from('10'), 10, 5);
-
-			expect(result.status).toBe(false);
-		});
-
-		it('should not validate if the condition blockTimestamp - certificateTimestamp < LIVENESS_LIMIT / 2, is invalid', async () => {
-			(chainConnectorPlugin['_mainchainAPIClient'] as any).invoke = jest
-				.fn()
-				.mockResolvedValue(true);
-
-			const blockTimestamp = LIVENESS_LIMIT;
-			const certificateTimestamp = LIVENESS_LIMIT / 2;
-
-			const result = await chainConnectorPlugin['_verifyLiveness'](
-				Buffer.from('10'),
-				certificateTimestamp,
-				blockTimestamp,
-			);
-
-			expect(result.status).toBe(false);
-		});
-
-		it('should validate if provided chain ID is live and blockTimestamp - certificateTimestamp < LIVENESS_LIMIT / 2', async () => {
-			(chainConnectorPlugin['_mainchainAPIClient'] as any).invoke = jest
-				.fn()
-				.mockResolvedValue(true);
-
-			const result = await chainConnectorPlugin['_verifyLiveness'](Buffer.from('10'), 10, 5);
-
-			expect(result.status).toBe(true);
-		});
-	});
-
-	describe('_validateCertificate', () => {
-		it('should not validate if chain is terminated', async () => {
-			const certificateBytes = Buffer.from('10');
-			const certificate = { height: 5 } as Certificate;
-			const blockHeader = {} as BlockHeader;
-			const chainAccount = { status: ChainStatus.TERMINATED } as ChainAccount;
-			const sendingChainID = Buffer.from('01');
-
-			const result = await chainConnectorPlugin['validateCertificate'](
-				certificateBytes,
-				certificate,
-				blockHeader,
-				chainAccount,
-				sendingChainID,
-			);
-
-			expect(result.status).toBe(false);
-		});
-
-		it('should not validate if certificate height is not greater than height of last certificate', async () => {
-			const certificateBytes = Buffer.from('10');
-			const certificate = { height: 5 } as Certificate;
-			const blockHeader = {} as BlockHeader;
-			const chainAccout = {
-				status: ChainStatus.ACTIVE,
-				lastCertificate: { height: 5 },
-			} as ChainAccount;
-			const sendingChainID = Buffer.from('01');
-
-			const result = await chainConnectorPlugin['validateCertificate'](
-				certificateBytes,
-				certificate,
-				blockHeader,
-				chainAccout,
-				sendingChainID,
-			);
-
-			expect(result.status).toBe(false);
-		});
-
-		it('should not validate if liveness is not valid', async () => {
-			chainConnectorPlugin['_verifyLiveness'] = jest.fn().mockResolvedValue({
-				status: false,
-			});
-
-			const certificateBytes = Buffer.from('10');
-			const certificate = { height: 5 } as Certificate;
-			const blockHeader = {} as BlockHeader;
-			const chainAccount = {
-				status: ChainStatus.ACTIVE,
-				lastCertificate: { height: 4 },
-			} as ChainAccount;
-			const sendingChainID = Buffer.from('01');
-
-			const result = await chainConnectorPlugin['validateCertificate'](
-				certificateBytes,
-				certificate,
-				blockHeader,
-				chainAccount,
-				sendingChainID,
-			);
-
-			expect(result.status).toBe(false);
-		});
-
-		it('should validate if chain is active and has valid liveness', async () => {
-			chainConnectorPlugin['_verifyLiveness'] = jest.fn().mockResolvedValue({
-				status: true,
-			});
-
-			const certificateBytes = Buffer.from('10');
-			const certificate = { height: 5 } as Certificate;
-			const blockHeader = {} as BlockHeader;
-			const chainAccount = {
-				status: ChainStatus.ACTIVE,
-				lastCertificate: { height: 4 },
-			} as ChainAccount;
-			const sendingChainID = Buffer.from('01');
-
-			const result = await chainConnectorPlugin['validateCertificate'](
-				certificateBytes,
-				certificate,
-				blockHeader,
-				chainAccount,
-				sendingChainID,
-			);
-
-			expect(result.status).toBe(true);
-		});
-
-		it('should not validate if weighted aggregate signature validation fails', async () => {
-			chainConnectorPlugin['_verifyLiveness'] = jest.fn().mockResolvedValue({
-				status: true,
-			});
-
-			jest
-				.spyOn(chainConnectorPlugin['_sidechainChainConnectorStore'], 'getValidatorsHashPreimage')
-				.mockResolvedValue([
-					{
-						validatorsHash: Buffer.from('10'),
-						validators: [
-							{
-								blsKey: Buffer.from('10'),
-								bftWeight: BigInt(10),
-							},
-						],
-					},
-				] as never);
-
-			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(false);
-
-			const certificateBytes = Buffer.from('10');
-			const certificate = {
-				height: 5,
-				aggregationBits: Buffer.from('10'),
-				signature: Buffer.from('10'),
-			} as Certificate;
-			const blockHeader = { validatorsHash: Buffer.from('10') } as BlockHeader;
-			const sendingChainID = Buffer.from('01');
-
-			const chainAccount = {
-				status: 0,
-				name: 'chain1',
-				lastCertificate: { height: 4 },
-			} as ChainAccount;
-
-			const result = await chainConnectorPlugin['validateCertificate'](
-				certificateBytes,
-				certificate,
-				blockHeader,
-				chainAccount,
-				sendingChainID,
-			);
-
-			expect(result.status).toBe(false);
-		});
-
-		it('should not validate if ValidatorsData for block header is undefined', async () => {
-			chainConnectorPlugin['_verifyLiveness'] = jest.fn().mockResolvedValue({
-				status: true,
-			});
-			jest
-				.spyOn(chainConnectorPlugin['_sidechainChainConnectorStore'], 'getValidatorsHashPreimage')
-				.mockResolvedValue([
-					{
-						validatorsHash: Buffer.from('10'),
-						validators: [
-							{
-								blsKey: Buffer.from('10'),
-								bftWeight: BigInt(10),
-							},
-						],
-					},
-				] as never);
-
-			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(false);
-
-			const certificateBytes = Buffer.from('10');
-			const certificate = {
-				height: 5,
-				aggregationBits: Buffer.from('10'),
-				signature: Buffer.from('10'),
-			} as Certificate;
-			const blockHeader = { validatorsHash: Buffer.from('11') } as BlockHeader;
-			const chainAccount = {
-				status: 0,
-				name: 'chain1',
-				lastCertificate: { height: 4 },
-			} as ChainAccount;
-			const sendingChainID = Buffer.from('01');
-
-			const result = await chainConnectorPlugin['validateCertificate'](
-				certificateBytes,
-				certificate,
-				blockHeader,
-				chainAccount,
-				sendingChainID,
-			);
-
-			expect(result.status).toBe(false);
-		});
-	});
-
 	describe('_calculateInboxUpdate', () => {
 		const sendingChainID = Buffer.from('00000001', 'hex');
 		const mockEncodedCCM = Buffer.from('01');
@@ -1185,9 +962,9 @@ describe('ChainConnectorPlugin', () => {
 			chainConnectorPlugin['_mainchainAPIClient'].invoke = jest
 				.fn()
 				.mockResolvedValue(chainAccount);
-			chainConnectorPlugin['validateCertificate'] = jest
-				.fn()
-				.mockResolvedValue(certificateValidationFailingResult);
+			jest
+				.spyOn(certificateGeneration, 'validateCertificate')
+				.mockResolvedValue(certificateValidationFailingResult as never);
 			chainConnectorPlugin['logger'] = {
 				error: jest.fn(),
 			} as never;
@@ -1223,9 +1000,9 @@ describe('ChainConnectorPlugin', () => {
 		});
 
 		it('should call _calculateInboxUpdate', async () => {
-			chainConnectorPlugin['validateCertificate'] = jest
-				.fn()
-				.mockResolvedValue(certificateValidationPassingResult);
+			jest
+				.spyOn(certificateGeneration, 'validateCertificate')
+				.mockResolvedValue(certificateValidationPassingResult as never);
 
 			await chainConnectorPlugin['_calculateCCUParams']();
 
@@ -1235,92 +1012,15 @@ describe('ChainConnectorPlugin', () => {
 
 		describe('when chainAccount.lastCertificate.validatorsHash == certificate.validatorsHash', () => {
 			beforeEach(() => {
-				chainConnectorPlugin['validateCertificate'] = jest
-					.fn()
-					.mockResolvedValue(certificateValidationPassingResult);
+				jest
+					.spyOn(certificateGeneration, 'validateCertificate')
+					.mockResolvedValue(certificateValidationPassingResult as never);
 			});
 
 			it('should return CCUTxParams with activeValidatorsUpdate set to []', async () => {
 				await expect(chainConnectorPlugin['_calculateCCUParams']()).resolves.toBeUndefined();
 			});
 		});
-
-		// describe('when chainAccount.lastCertificate.validatorsHash != certificate.validatorsHash', () => {
-		// 	beforeEach(() => {
-		// 		(certificate as any).validatorsHash = Buffer.from('20');
-		// 		chainConnectorPlugin['validateCertificate'] = jest
-		// 			.fn()
-		// 			.mockResolvedValue(certificateValidationPassingResult);
-		// 	});
-
-		// 	it('should return CCUTxParams with newCertificateThreshold set to provided newCertificateThreshold if validatorsHash of block header at certificate height is not equal to that of last certificate', async () => {
-		// 		jest
-		// 			.spyOn(chainConnectorPlugin['_sidechainChainConnectorStore'], 'getBlockHeaders')
-		// 			.mockResolvedValue([
-		// 				{
-		// 					height: 5,
-		// 					validatorsHash: Buffer.from('05'),
-		// 				},
-		// 				{
-		// 					height: 6,
-		// 					validatorsHash,
-		// 				},
-		// 			] as never);
-
-		// 		jest
-		// 			.spyOn(chainConnectorPlugin['_sidechainChainConnectorStore'], 'getValidatorsHashPreimage')
-		// 			.mockResolvedValue([
-		// 				{
-		// 					validatorsHash: Buffer.from('05'),
-		// 					certificateThreshold: 5,
-		// 					validators: [1, 2],
-		// 				},
-		// 				{
-		// 					validatorsHash,
-		// 					newCertificateThreshold: 6,
-		// 					validators: [2, 3],
-		// 				},
-		// 			] as never);
-
-		// 		// const ccuTxParams = await chainConnectorPlugin['_calculateCCUParams']();
-
-		// 	});
-
-		// 	it('should call getActiveValidatorsDiff', async () => {
-		// 		jest
-		// 			.spyOn(chainConnectorPlugin['_sidechainChainConnectorStore'], 'getBlockHeaders')
-		// 			.mockResolvedValue([
-		// 				{
-		// 					height: 5,
-		// 					validatorsHash: Buffer.from('05'),
-		// 				},
-		// 				{
-		// 					height: 6,
-		// 					validatorsHash,
-		// 				},
-		// 			] as never);
-
-		// 		jest
-		// 			.spyOn(chainConnectorPlugin['_sidechainChainConnectorStore'], 'getValidatorsHashPreimage')
-		// 			.mockResolvedValue([
-		// 				{
-		// 					validatorsHash: Buffer.from('05'),
-		// 					certificateThreshold: 5,
-		// 					validators: [1, 2],
-		// 				},
-		// 				{
-		// 					validatorsHash,
-		// 					newCertificateThreshold: 6,
-		// 					validators: [2, 3],
-		// 				},
-		// 			] as never);
-
-		// 			await chainConnectorPlugin['_calculateCCUParams']();
-
-		// 		expect(utils.getActiveValidatorsDiff).toHaveBeenCalledTimes(1);
-		// 		expect(utils.getActiveValidatorsDiff).toHaveBeenCalledWith([2, 3], [1, 2]);
-		// 	});
-		// });
 	});
 
 	describe('_submitCCUs', () => {

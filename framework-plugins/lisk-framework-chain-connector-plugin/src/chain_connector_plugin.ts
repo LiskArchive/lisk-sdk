@@ -22,12 +22,8 @@ import {
 	codec,
 	chain,
 	BFTParameters,
-	LIVENESS_LIMIT,
-	ChainAccount,
 	OutboxRootWitness,
-	MESSAGE_TAG_CERTIFICATE,
 	ActiveValidator,
-	cryptography,
 	ccmSchema,
 	JSONObject,
 	Schema,
@@ -44,7 +40,6 @@ import {
 	CrossChainUpdateTransactionParams,
 	certificateSchema,
 	ccuParamsSchema,
-	ChainStatus,
 } from 'lisk-sdk';
 import { calculateActiveValidatorsUpdate } from './active_validators_update';
 import { getNextCertificateFromAggregateCommits } from './certificate_generation';
@@ -72,24 +67,6 @@ const { address, ed, encrypt } = cryptography;
 
 interface Data {
 	readonly blockHeader: chain.BlockHeaderJSON;
-}
-
-interface LivenessValidationResult {
-	status: boolean;
-	isLive: boolean;
-	chainID: Buffer;
-	certificateTimestamp: number;
-	blockTimestamp: number;
-}
-
-interface CertificateValidationResult {
-	status: boolean;
-	livenessValidationResult?: LivenessValidationResult;
-	chainStatus: number;
-	certificate: Certificate;
-	blockHeader: BlockHeader;
-	hasValidBLSWeightedAggSig?: boolean;
-	message: string;
 }
 
 type ModuleMetadata = [
@@ -179,6 +156,15 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				async (data?: Record<string, unknown>) => this._deleteBlockHandler(data),
 			);
 		}
+	}
+
+	public async unload(): Promise<void> {
+		await this._mainchainAPIClient.disconnect();
+		if (this._sidechainAPIClient) {
+			await this._sidechainAPIClient.disconnect();
+		}
+
+		this._sidechainChainConnectorStore.close();
 	}
 
 	private async _newBlockHandler(data?: Record<string, unknown>) {
@@ -404,15 +390,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 	}
 
-	public async unload(): Promise<void> {
-		await this._mainchainAPIClient.disconnect();
-		if (this._sidechainAPIClient) {
-			await this._sidechainAPIClient.disconnect();
-		}
-
-		this._sidechainChainConnectorStore.close();
-	}
-
 	private async _deleteBlockHandler(data?: Record<string, unknown>) {
 		const { blockHeader: receivedBlock } = data as unknown as Data;
 
@@ -446,7 +423,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 	}
 
-	
 	private async _calculateInboxUpdate(certificate: Certificate): Promise<InboxUpdate[]> {
 		const crossChainMessages = await this._sidechainChainConnectorStore.getCrossChainMessages();
 
@@ -541,114 +517,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 		buildGroupsBySize(0);
 		return groupedCCMsBySize;
-	}
-
-	public async validateCertificate(
-		certificateBytes: Buffer,
-		certificate: Certificate,
-		blockHeader: BlockHeader,
-		chainAccount: ChainAccount,
-		sendingChainID: Buffer,
-	): Promise<CertificateValidationResult> {
-		const result: CertificateValidationResult = {
-			status: false,
-			chainStatus: chainAccount.status,
-			certificate,
-			blockHeader,
-			message: 'Certificate validation failed.',
-		};
-
-		if (chainAccount.status === ChainStatus.TERMINATED) {
-			result.message = 'Sending chain is terminated.';
-			return result;
-		}
-
-		if (certificate.height <= chainAccount.lastCertificate.height) {
-			result.message = 'Certificate height is higher than last certified height.';
-			return result;
-		}
-
-		const certificateLivenessValidationResult = await this._verifyLiveness(
-			sendingChainID,
-			certificate.timestamp,
-			blockHeader.timestamp,
-		);
-
-		result.livenessValidationResult = certificateLivenessValidationResult;
-
-		if (!certificateLivenessValidationResult.status) {
-			result.message = 'Liveness validation failed.';
-			return result;
-		}
-
-		if (chainAccount.status === ChainStatus.ACTIVE) {
-			result.status = true;
-
-			return result;
-		}
-
-		const validatorsHashPreimage =
-			await this._sidechainChainConnectorStore.getValidatorsHashPreimage();
-		const validatorData = validatorsHashPreimage.find(data =>
-			data.validatorsHash.equals(blockHeader.validatorsHash),
-		);
-
-		if (!validatorData) {
-			result.message = 'Block validators are not valid.';
-
-			return result;
-		}
-
-		const keysList = validatorData.validators.map(validator => validator.blsKey);
-
-		const weights = validatorData.validators.map(validator => validator.bftWeight);
-
-		const hasValidWeightedAggSig = cryptography.bls.verifyWeightedAggSig(
-			keysList,
-			certificate.aggregationBits as Buffer,
-			certificate.signature as Buffer,
-			MESSAGE_TAG_CERTIFICATE,
-			sendingChainID,
-			certificateBytes,
-			weights,
-			validatorData.certificateThreshold,
-		);
-		if (hasValidWeightedAggSig) {
-			result.hasValidBLSWeightedAggSig = true;
-			result.status = false;
-			return result;
-		}
-
-		result.message = 'Weighted aggregate signature is not valid.';
-
-		return result;
-	}
-
-	private async _verifyLiveness(
-		chainID: Buffer,
-		certificateTimestamp: number,
-		blockTimestamp: number,
-	): Promise<LivenessValidationResult> {
-		const isLive = await this._mainchainAPIClient.invoke<boolean>('interoperability_isLive', {
-			chainID,
-			timestamp: certificateTimestamp,
-		});
-
-		const result: LivenessValidationResult = {
-			status: true,
-			isLive,
-			chainID,
-			certificateTimestamp,
-			blockTimestamp,
-		};
-
-		if (isLive && blockTimestamp - certificateTimestamp < LIVENESS_LIMIT / 2) {
-			return result;
-		}
-
-		result.status = false;
-
-		return result;
 	}
 
 	private async _cleanup() {

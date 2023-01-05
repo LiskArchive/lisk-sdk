@@ -14,16 +14,26 @@
 
 import {
 	BFTHeights,
+	Certificate,
+	ChainAccount,
+	ChainStatus,
+	LIVENESS_LIMIT,
 	chain,
 	computeCertificateFromBlockHeader,
 	cryptography,
 	testing,
+	db,
 } from 'lisk-sdk';
 import {
 	checkChainOfTrust,
 	getCertificateFromAggregateCommit,
 	getNextCertificateFromAggregateCommits,
+	validateCertificate,
+	verifyLiveness,
 } from '../../src/certificate_generation';
+import { BlockHeader } from '../../src/types';
+import { ChainConnectorStore } from '../../src/db';
+import { DB_KEY_SIDECHAIN } from '../../src/constants';
 
 describe('certificate generation', () => {
 	const sampleSizeArray = new Array(10).fill(0);
@@ -279,6 +289,263 @@ describe('certificate generation', () => {
 					{ height: lastCertifiedBlock.height } as any,
 				),
 			).toEqual(expectedCertificate);
+		});
+	});
+
+	describe('_verifyLiveness', () => {
+		const apiClientMock = {
+			invoke: jest.fn(),
+		};
+
+		let mainchainAPIClient: any;
+
+		beforeEach(() => {
+			mainchainAPIClient = apiClientMock;
+		});
+
+		it('should not validate if provided chain ID is not live', async () => {
+			mainchainAPIClient.invoke.mockResolvedValue(false);
+
+			const result = await verifyLiveness(Buffer.from('10'), 10, 5, mainchainAPIClient);
+
+			expect(result.status).toBe(false);
+		});
+
+		it('should not validate if the condition blockTimestamp - certificateTimestamp < LIVENESS_LIMIT / 2, is invalid', async () => {
+			mainchainAPIClient.invoke.mockResolvedValue(true);
+
+			const blockTimestamp = LIVENESS_LIMIT;
+			const certificateTimestamp = LIVENESS_LIMIT / 2;
+
+			const result = await verifyLiveness(
+				Buffer.from('10'),
+				certificateTimestamp,
+				blockTimestamp,
+				mainchainAPIClient,
+			);
+
+			expect(result.status).toBe(false);
+		});
+
+		it('should validate if provided chain ID is live and blockTimestamp - certificateTimestamp < LIVENESS_LIMIT / 2', async () => {
+			mainchainAPIClient.invoke.mockResolvedValue(true);
+
+			const result = await verifyLiveness(Buffer.from('10'), 10, 5, mainchainAPIClient);
+
+			expect(result.status).toBe(true);
+		});
+	});
+
+	describe('validateCertificate', () => {
+		const apiClientMock = {
+			invoke: jest.fn(),
+		};
+
+		let sidechainStore: ChainConnectorStore;
+		let mainchainAPIClient: any;
+
+		beforeEach(() => {
+			sidechainStore = new ChainConnectorStore(new db.InMemoryDatabase() as any, DB_KEY_SIDECHAIN);
+			mainchainAPIClient = apiClientMock;
+		});
+
+		it('should not validate if chain is terminated', async () => {
+			const certificateBytes = Buffer.from('10');
+			const certificate = { height: 5 } as Certificate;
+			const blockHeader = {} as BlockHeader;
+			const chainAccount = { status: ChainStatus.TERMINATED } as ChainAccount;
+			const sendingChainID = Buffer.from('01');
+
+			const result = await validateCertificate(
+				certificateBytes,
+				certificate,
+				blockHeader,
+				chainAccount,
+				sendingChainID,
+				sidechainStore,
+				mainchainAPIClient,
+			);
+
+			expect(result.status).toBe(false);
+		});
+
+		it('should not validate if certificate height is not greater than height of last certificate', async () => {
+			const certificateBytes = Buffer.from('10');
+			const certificate = { height: 5 } as Certificate;
+			const blockHeader = {} as BlockHeader;
+			const chainAccout = {
+				status: ChainStatus.ACTIVE,
+				lastCertificate: { height: 5 },
+			} as ChainAccount;
+			const sendingChainID = Buffer.from('01');
+
+			const result = await validateCertificate(
+				certificateBytes,
+				certificate,
+				blockHeader,
+				chainAccout,
+				sendingChainID,
+				sidechainStore,
+				mainchainAPIClient,
+			);
+
+			expect(result.status).toBe(false);
+		});
+
+		it('should not validate if liveness is not valid', async () => {
+			mainchainAPIClient.invoke.mockResolvedValue(false);
+
+			const certificateBytes = Buffer.from('10');
+			const certificate = { height: 5 } as Certificate;
+			const blockHeader = {} as BlockHeader;
+			const chainAccount = {
+				status: ChainStatus.ACTIVE,
+				lastCertificate: { height: 4 },
+			} as ChainAccount;
+			const sendingChainID = Buffer.from('01');
+
+			const result = await validateCertificate(
+				certificateBytes,
+				certificate,
+				blockHeader,
+				chainAccount,
+				sendingChainID,
+				sidechainStore,
+				mainchainAPIClient,
+			);
+
+			expect(result.status).toBe(false);
+		});
+
+		it('should validate if chain is active and has valid liveness', async () => {
+			mainchainAPIClient.invoke.mockResolvedValue(true);
+
+			const timestampNow = Date.now();
+			const certificateBytes = Buffer.from('10');
+			const certificate = {
+				height: 5,
+				timestamp: timestampNow - LIVENESS_LIMIT / 2 + 1000,
+			} as Certificate;
+			const blockHeader = { timestamp: timestampNow } as BlockHeader;
+			const chainAccount = {
+				status: ChainStatus.ACTIVE,
+				lastCertificate: { height: 4 },
+			} as ChainAccount;
+			const sendingChainID = Buffer.from('01');
+
+			const result = await validateCertificate(
+				certificateBytes,
+				certificate,
+				blockHeader,
+				chainAccount,
+				sendingChainID,
+				sidechainStore,
+				mainchainAPIClient,
+			);
+
+			expect(result.status).toBe(true);
+		});
+
+		it('should not validate if weighted aggregate signature validation fails', async () => {
+			mainchainAPIClient.invoke.mockResolvedValue(true);
+			await sidechainStore.setValidatorsHashPreimage([
+				{
+					validatorsHash: Buffer.from('10'),
+					validators: [
+						{
+							address: cryptography.utils.getRandomBytes(20),
+							blsKey: Buffer.from('10'),
+							bftWeight: BigInt(10),
+						},
+					],
+					certificateThreshold: BigInt(2),
+				},
+			]);
+
+			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(false);
+
+			const timestampNow = Date.now();
+			const certificateBytes = Buffer.from('10');
+			const certificate = {
+				height: 5,
+				aggregationBits: Buffer.from('10'),
+				signature: Buffer.from('10'),
+				timestamp: timestampNow - LIVENESS_LIMIT / 2 + 1000,
+			} as Certificate;
+			const blockHeader = {
+				validatorsHash: Buffer.from('10'),
+				timestamp: timestampNow,
+			} as BlockHeader;
+			const sendingChainID = Buffer.from('01');
+
+			const chainAccount = {
+				status: 0,
+				name: 'chain1',
+				lastCertificate: { height: 4 },
+			} as ChainAccount;
+
+			const result = await validateCertificate(
+				certificateBytes,
+				certificate,
+				blockHeader,
+				chainAccount,
+				sendingChainID,
+				sidechainStore,
+				mainchainAPIClient,
+			);
+
+			expect(result.status).toBe(false);
+		});
+
+		it('should not validate if ValidatorsData for block header is undefined', async () => {
+			mainchainAPIClient.invoke.mockResolvedValue(true);
+
+			await sidechainStore.setValidatorsHashPreimage([
+				{
+					validatorsHash: Buffer.from('10'),
+					validators: [
+						{
+							address: cryptography.utils.getRandomBytes(20),
+							blsKey: Buffer.from('10'),
+							bftWeight: BigInt(10),
+						},
+					],
+					certificateThreshold: BigInt(2),
+				},
+			]);
+
+			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(false);
+
+			const timestampNow = Date.now();
+			const certificateBytes = Buffer.from('10');
+			const certificate = {
+				height: 5,
+				aggregationBits: Buffer.from('10'),
+				signature: Buffer.from('10'),
+				timestamp: timestampNow - LIVENESS_LIMIT / 2 + 1000,
+			} as Certificate;
+			const blockHeader = {
+				validatorsHash: Buffer.from('11'),
+				timestamp: timestampNow,
+			} as BlockHeader;
+			const chainAccount = {
+				status: 0,
+				name: 'chain1',
+				lastCertificate: { height: 4 },
+			} as ChainAccount;
+			const sendingChainID = Buffer.from('01');
+
+			const result = await validateCertificate(
+				certificateBytes,
+				certificate,
+				blockHeader,
+				chainAccount,
+				sendingChainID,
+				sidechainStore,
+				mainchainAPIClient,
+			);
+
+			expect(result.status).toBe(false);
 		});
 	});
 });
