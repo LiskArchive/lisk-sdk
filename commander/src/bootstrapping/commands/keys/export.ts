@@ -13,13 +13,9 @@
  *
  */
 import { encrypt } from '@liskhq/lisk-cryptography';
-import * as apiClient from '@liskhq/lisk-api-client';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { getDefaultPath } from '../../../utils/path';
 import { flagsWithParser } from '../../../utils/flags';
-import { PromiseResolvedType } from '../../../types';
-import { getApiClient } from '../../../utils/transaction';
 import { BaseIPCClientCommand } from '../base_ipc_client';
 
 interface EncryptedMessageObject {
@@ -73,8 +69,6 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 		},
 	};
 
-	protected _client!: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
-
 	async run(): Promise<void> {
 		const { flags } = await this.parse(ExportCommand);
 		if (!this._client) {
@@ -84,10 +78,6 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 		const { dir } = path.parse(flags.output as string);
 		fs.ensureDirSync(dir);
 
-		const dataPath = flags['data-path']
-			? flags['data-path']
-			: getDefaultPath(this.config.pjson.name);
-		this._client = await getApiClient(dataPath, this.config.pjson.name);
 		const response = await this._client.invoke<GetKeysResponse>('generator_getAllKeys');
 
 		const keys = response.keys.map(k => {

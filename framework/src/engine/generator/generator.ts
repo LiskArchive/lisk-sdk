@@ -119,7 +119,7 @@ export class Generator {
 		this._pool = new TransactionPool({
 			maxPayloadLength: args.config.genesis.maxTransactionsSize,
 			applyTransactions: async (transactions: Transaction[]) =>
-				this._verifyTransaction(transactions),
+				this._verifyTransactions(transactions),
 		});
 		this._config = args.config;
 		this._blockTime = args.config.genesis.blockTime;
@@ -302,14 +302,14 @@ export class Generator {
 		}
 	}
 
-	private async _verifyTransaction(transactions: Transaction[]): Promise<void> {
+	private async _verifyTransactions(transactions: Transaction[]): Promise<void> {
 		for (const transaction of transactions) {
-			const { result: verifyResult } = await this._abi.verifyTransaction({
+			const { result } = await this._abi.verifyTransaction({
 				contextID: Buffer.alloc(0),
 				transaction,
 				header: this._chain.lastBlock.header.toObject(),
 			});
-			if (verifyResult !== TransactionVerifyResult.OK) {
+			if (result === TransactionVerifyResult.INVALID) {
 				throw new Error('Transaction is not valid');
 			}
 		}

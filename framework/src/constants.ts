@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const eventWithModuleNameReg = /^([^\d][\w]+)((?:_[^\d][\w]+)+)$/;
+export const eventWithModuleNameReg = /^[a-zA-Z]\w*_[a-zA-Z][a-zA-Z0-9]*$/;
 export const moduleNameReg = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 export const actionWithModuleNameReg = /^[a-zA-Z][a-zA-Z0-9_]*_[a-zA-Z][a-zA-Z0-9]*$/;
 export const APP_IDENTIFIER = 'app';

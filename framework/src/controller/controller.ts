@@ -133,7 +133,7 @@ export class Controller {
 		const pluginName = plugin.name;
 
 		if (Object.keys(this._plugins).includes(pluginName)) {
-			throw new Error(`A plugin with name "${pluginName}" already registered.`);
+			throw new Error(`A plugin with name "${pluginName}" is already registered.`);
 		}
 
 		if (options.loadAsChildProcess) {
@@ -144,11 +144,15 @@ export class Controller {
 			}
 		}
 
-		this._pluginConfigs[pluginName] = Object.assign(this._pluginConfigs[pluginName] ?? {}, options);
+		this._pluginConfigs[pluginName] = { ...this._pluginConfigs[pluginName], ...options };
 
 		validatePluginSpec(plugin);
 
 		this._plugins[pluginName] = plugin;
+	}
+
+	public getRegisteredPlugins(): { [key: string]: BasePlugin } {
+		return this._plugins;
 	}
 
 	public registerEndpoint(namespace: string, handlers: EndpointHandlers): void {
