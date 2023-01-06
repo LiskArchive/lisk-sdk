@@ -1540,56 +1540,11 @@ describe('ChainConnectorPlugin', () => {
 	});
 
 	describe('_submitCCUs', () => {
-		// const ccms = [getCCM(2), getCCM(3), getCCM(4)];
-		const aggregateCommits: AggregateCommit[] = [
-			{
-				aggregationBits: cryptography.utils.getRandomBytes(2),
-				certificateSignature: cryptography.utils.getRandomBytes(98),
-				height: 100,
-			},
+		const ccuParams = [
+			cryptography.utils.getRandomBytes(100),
+			cryptography.utils.getRandomBytes(100),
 		];
-		const validatorsHashPreimage: ValidatorsData[] = [
-			{
-				certificateThreshold: BigInt(20),
-				validators: [],
-				validatorsHash: cryptography.utils.getRandomBytes(32),
-			},
-		];
-		const certificate: Certificate = {
-			blockID: cryptography.utils.getRandomBytes(32),
-			height: 30,
-			stateRoot: cryptography.utils.getRandomBytes(32),
-			timestamp: 123000,
-			validatorsHash: cryptography.utils.getRandomBytes(32),
-			aggregationBits: cryptography.utils.getRandomBytes(2),
-			signature: cryptography.utils.getRandomBytes(64),
-		};
-
 		beforeEach(async () => {
-			jest
-				.spyOn<plugins.ChainConnectorPlugin, any>(chainConnectorPlugin, '_groupCCMsBySize')
-				.mockReturnValue([
-					[cryptography.utils.getRandomBytes(100), cryptography.utils.getRandomBytes(50)],
-					[cryptography.utils.getRandomBytes(100)],
-				]);
-			jest
-				.spyOn(chainConnectorPlugin, 'getNextCertificateFromAggregateCommits')
-				.mockResolvedValue(certificate);
-			jest.spyOn(chainConnectorPlugin, 'calculateCCUParams').mockResolvedValue({
-				sendingChainID: Buffer.from('10000000', 'hex'),
-				activeValidatorsUpdate: [],
-				certificate: cryptography.utils.getRandomBytes(40),
-				certificateThreshold: BigInt(30),
-				inboxUpdate: {
-					crossChainMessages: [Buffer.from([1]), Buffer.from([2]), Buffer.from([3])],
-					messageWitnessHashes: [],
-					outboxRootWitness: {
-						bitmap: Buffer.from([]),
-						siblingHashes: [],
-					},
-				},
-			});
-
 			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
 			await initChainConnectorPlugin(chainConnectorPlugin, defaultConfig);
 			(chainConnectorPlugin['_sidechainAPIClient'] as any) = sidechainAPIClientMock;
@@ -1598,63 +1553,30 @@ describe('ChainConnectorPlugin', () => {
 				.mockResolvedValue({
 					chainID: '10000000',
 				})
+				.calledWith('txpool_postTransaction', expect.anything())
+				.mockResolvedValue({
+					transactionId: 'transactin-id',
+				})
 				.calledWith('auth_getAuthAccount', expect.anything())
 				.mockResolvedValue({ nonce: '3' });
+
+			await chainConnectorPlugin['_submitCCUs'](ccuParams);
 		});
 
-		it('should not create CCU when certificate cannot be generated', async () => {
-			jest
-				.spyOn(chainConnectorPlugin, 'getNextCertificateFromAggregateCommits')
-				.mockResolvedValue(undefined);
-
-			await expect(
-				chainConnectorPlugin['_submitCCUs'](aggregateCommits, validatorsHashPreimage),
-			).rejects.toThrow('Failed to generate certificate');
-
-			expect(sidechainAPIClientMock.invoke).not.toHaveBeenCalledWith(
-				'auth_getAuthAccount',
-				expect.anything(),
-			);
-			expect(sidechainAPIClientMock.invoke).not.toHaveBeenCalledWith(
-				'txpool_postTransaction',
-				expect.anything(),
-			);
+		it('should get the chainID from the node', () => {
+			expect(sidechainAPIClientMock.invoke).toHaveBeenCalledWith('system_getNodeInfo');
 		});
 
-		it('should not post CCU if fails to calculateCCUParams', async () => {
-			jest.spyOn(chainConnectorPlugin, 'calculateCCUParams').mockResolvedValue(undefined);
-
-			await expect(
-				chainConnectorPlugin['_submitCCUs'](aggregateCommits, validatorsHashPreimage),
-			).rejects.toThrow('Failed to compute CCU params');
-
-			expect(sidechainAPIClientMock.invoke).not.toHaveBeenCalledWith(
-				'txpool_postTransaction',
-				expect.anything(),
-			);
+		it('should get the current nonce for the account', () => {
+			expect(sidechainAPIClientMock.invoke).toHaveBeenCalledWith('auth_getAuthAccount', {
+				address: expect.any(String),
+			});
 		});
 
-		it('should not create and post the CCU if the fist CCU fails', async () => {
-			when(sidechainAPIClientMock.invoke)
-				.calledWith('txpool_postTransaction', expect.anything())
-				.mockRejectedValue(new Error('Failed to submit'));
-
-			await expect(
-				chainConnectorPlugin['_submitCCUs'](aggregateCommits, validatorsHashPreimage),
-			).rejects.toThrow('Failed to submit');
-
-			expect(chainConnectorPlugin.calculateCCUParams).toHaveBeenCalledTimes(1);
-			expect(sidechainAPIClientMock.invoke).toHaveBeenCalledTimes(3);
-		});
-
-		it('should create and post the CCUs', async () => {
-			when(sidechainAPIClientMock.invoke)
-				.calledWith('txpool_postTransaction', expect.anything())
-				.mockResolvedValue({ transactionId: '' });
-
-			await chainConnectorPlugin['_submitCCUs'](aggregateCommits, validatorsHashPreimage);
-
-			expect(chainConnectorPlugin.calculateCCUParams).toHaveBeenCalledTimes(2);
+		it('should create and post the CCUs', () => {
+			expect(sidechainAPIClientMock.invoke).toHaveBeenCalledWith('txpool_postTransaction', {
+				transaction: expect.any(String),
+			});
 			expect(sidechainAPIClientMock.invoke).toHaveBeenCalledTimes(4);
 		});
 	});
