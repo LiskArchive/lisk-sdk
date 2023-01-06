@@ -44,7 +44,7 @@ import {
 import { getPunishTime, getWaitTime, isCertificateGenerated, calculateStakeRewards } from './utils';
 import { GenesisDataStore } from './stores/genesis';
 import { EMPTY_KEY, PUNISHMENT_PERIOD } from './constants';
-import { EligibleValidatorsStore } from './stores/eligible_validators';
+import { EligibleValidator, EligibleValidatorsStore } from './stores/eligible_validators';
 import {
 	getClaimableRewardsRequestSchema,
 	getLockedRewardRequestSchema,
@@ -222,15 +222,25 @@ export class PoSEndpoint extends BaseEndpoint {
 		ctx: ModuleEndpointContext,
 	): Promise<{ validators: ValidatorAccountEndpoint[] }> {
 		validator.validate<GetValidatorsByStakeRequest>(getValidatorsByStakeRequestSchema, ctx.params);
+		const limit = ctx.params.limit as number | undefined;
 
 		const eligibleValidatorStore = this.stores.get(EligibleValidatorsStore);
 		const validatorSubStore = this.stores.get(ValidatorStore);
 		const response = [];
+		let validatorsList: {
+			key: Buffer;
+			value: EligibleValidator;
+		}[];
 
-		const validatorsList = await eligibleValidatorStore.getTop(
-			ctx,
-			(ctx.params.limit as number | undefined) ?? 100,
-		);
+		if (limit && limit < -1) {
+			throw new Error(`Input parameter limit ${limit} is not valid.`);
+		}
+		if (limit && limit === -1) {
+			validatorsList = await eligibleValidatorStore.getAll(ctx);
+		} else {
+			validatorsList = await eligibleValidatorStore.getTop(ctx, limit ?? 100);
+		}
+
 		for (const { key } of validatorsList) {
 			const [address] = eligibleValidatorStore.splitKey(key);
 			const validatorAccount = await validatorSubStore.get(ctx, address);
