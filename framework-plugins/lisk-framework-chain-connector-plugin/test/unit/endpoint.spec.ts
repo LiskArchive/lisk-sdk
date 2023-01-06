@@ -149,6 +149,18 @@ describe('getSentCCUs', () => {
 			logger: testing.mocks.loggerMock,
 		});
 		(chainConnectorPlugin as any)['_sidechainAPIClient'] = sidechainAPIClientMock;
+		when(sidechainAPIClientMock.invoke)
+			.calledWith('interoperability_getChainAccount', { chainID: ownChainID })
+			.mockResolvedValue({
+				lastCertificate: {
+					height: 10,
+					stateRoot: cryptography.utils.getRandomBytes(32).toString('hex'),
+					timestamp: Date.now(),
+					validatorsHash: cryptography.utils.getRandomBytes(32).toString('hex'),
+				},
+				name: 'chain1',
+				status: 1,
+			});
 		await chainConnectorPlugin.load();
 		await chainConnectorPlugin['_sidechainChainConnectorStore'].setAggregateCommits([
 			aggregateCommit,

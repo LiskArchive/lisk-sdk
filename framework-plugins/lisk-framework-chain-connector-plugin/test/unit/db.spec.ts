@@ -18,7 +18,7 @@ import { homedir } from 'os';
 import { join } from 'path';
 import { ChainConnectorStore, getDBInstance } from '../../src/db';
 import { ADDRESS_LENGTH, BLS_PUBLIC_KEY_LENGTH, DB_KEY_SIDECHAIN } from '../../src/constants';
-import { BlockHeader, CrossChainMessagesFromEvents, ValidatorsData } from '../../src/types';
+import { BlockHeader, CCMsFromEvents, ValidatorsData } from '../../src/types';
 
 jest.mock('fs-extra');
 const mockedFsExtra = fs as jest.Mocked<typeof fs>;
@@ -158,7 +158,7 @@ describe('Plugins DB', () => {
 		});
 
 		describe('crossChainMessages', () => {
-			let sampleCrossChainMessages: CrossChainMessagesFromEvents[];
+			let sampleCrossChainMessages: CCMsFromEvents[];
 
 			beforeEach(() => {
 				sampleCrossChainMessages = [

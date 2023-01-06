@@ -25,15 +25,15 @@ import {
 	LastCertificate,
 } from 'lisk-sdk';
 import { CCU_TOTAL_CCM_SIZE } from './constants';
-import { CrossChainMessagesFromEvents } from './types';
+import { CCMsFromEvents } from './types';
 
 export const calculateInboxUpdate = async (
 	certificate: Certificate,
 	lastCertificate: LastCertificate,
-	crossChainMessages: CrossChainMessagesFromEvents[],
+	crossChainMessages: CCMsFromEvents[],
 	chainConnectorPluginDB: liskDB.Database,
 ): Promise<InboxUpdate[]> => {
-	// Filter all the CCMs to be included between lastCertifiedheight and certificate height.
+	// Filter all the CCMs between lastCertifiedHeight and certificate height.
 	const ccmsToBeIncluded = crossChainMessages.filter(
 		ccmFromEvents =>
 			ccmFromEvents.height <= certificate.height && ccmFromEvents.height > lastCertificate.height,
@@ -55,22 +55,22 @@ export const calculateInboxUpdate = async (
 	// Calculate list of inboxUpdates to be sent by multiple CCUs
 	const inboxUpdates = [];
 
+	const emptyInclusionProof: OutboxRootWitness = {
+		bitmap: EMPTY_BYTES,
+		siblingHashes: [],
+	};
+	const merkleTree = new tree.MerkleTree({ db: chainConnectorPluginDB });
 	for (let i = 0; i < ccmsListOfList.length; i += 1) {
 		const subList = ccmsListOfList[i];
 
 		const ccmHashesList = subList.map(ccm => codec.encode(ccmSchema, ccm));
 		// Calculate message witnesses
 
-		const merkleTree = new tree.MerkleTree({ db: chainConnectorPluginDB });
 		for (const ccm of ccmHashesList) {
 			await merkleTree.append(ccm);
 		}
 		const messageWitnesses = await merkleTree.generateRightWitness(ccmHashesList.length);
 
-		const emptyInclusionProof: OutboxRootWitness = {
-			bitmap: EMPTY_BYTES,
-			siblingHashes: [],
-		};
 		inboxUpdates.push({
 			crossChainMessages: ccmHashesList,
 			messageWitnessHashes: messageWitnesses,
@@ -86,7 +86,7 @@ export const calculateInboxUpdate = async (
  * This will return lists with sub-lists, where total size of CCMs in each sub-list will be <= CCU_TOTAL_CCM_SIZE
  * Each sublist can contain CCMS from DIFFERENT heights
  */
-export const groupCCMsBySize = (ccmsFromEvents: CrossChainMessagesFromEvents[]): CCMsg[][] => {
+export const groupCCMsBySize = (ccmsFromEvents: CCMsFromEvents[]): CCMsg[][] => {
 	const groupedCCMsBySize: CCMsg[][] = [];
 
 	if (ccmsFromEvents.length === 0) {

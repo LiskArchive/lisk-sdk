@@ -33,7 +33,12 @@ import {
 } from '../../src/certificate_generation';
 import { BlockHeader } from '../../src/types';
 import { ChainConnectorStore } from '../../src/db';
-import { DB_KEY_SIDECHAIN } from '../../src/constants';
+import {
+	ADDRESS_LENGTH,
+	BLS_PUBLIC_KEY_LENGTH,
+	DB_KEY_SIDECHAIN,
+	HASH_LENGTH,
+} from '../../src/constants';
 
 describe('certificate generation', () => {
 	const sampleSizeArray = new Array(10).fill(0);
@@ -67,10 +72,10 @@ describe('certificate generation', () => {
 		})
 		.map(b => b.toObject());
 
-	const blockHeadersSample = [lastCertifiedBlock].concat(uncertifiedBlockHeaders);
+	const sampleBlockHeaders = [lastCertifiedBlock].concat(uncertifiedBlockHeaders);
 
 	// aggregateCommits from the blockheaders
-	const aggregateCommitsSample = blockHeadersSample.reduce((commits, b) => {
+	const aggregateCommitsSample = sampleBlockHeaders.reduce((commits, b) => {
 		if (!b.aggregateCommit.certificateSignature.equals(Buffer.alloc(0))) {
 			commits.push(b.aggregateCommit as never);
 		}
@@ -82,34 +87,34 @@ describe('certificate generation', () => {
 		certificateThreshold: BigInt(2),
 		validators: [
 			{
-				address: cryptography.utils.getRandomBytes(20),
+				address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
 				bftWeight: BigInt(1),
-				blsKey: cryptography.utils.getRandomBytes(48),
+				blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
 			},
 			{
-				address: cryptography.utils.getRandomBytes(20),
+				address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
 				bftWeight: BigInt(1),
-				blsKey: cryptography.utils.getRandomBytes(48),
+				blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
 			},
 		],
 		validatorsHash: lastValidatorsHash,
 	};
 
-	const validatorsDataSample = {
+	const sampleValidatorsData = {
 		certificateThreshold: BigInt(10),
 		validators: [
 			{
-				address: cryptography.utils.getRandomBytes(20),
+				address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
 				bftWeight: BigInt(1),
-				blsKey: cryptography.utils.getRandomBytes(48),
+				blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
 			},
 			{
-				address: cryptography.utils.getRandomBytes(20),
+				address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
 				bftWeight: BigInt(1),
-				blsKey: cryptography.utils.getRandomBytes(48),
+				blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
 			},
 		],
-		validatorsHash: cryptography.utils.getRandomBytes(32),
+		validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH),
 	};
 
 	const bftHeights: BFTHeights = {
@@ -119,32 +124,34 @@ describe('certificate generation', () => {
 	};
 
 	const blsKeyToBFTWeight: Record<string, bigint> = {};
-	blsKeyToBFTWeight[validatorsDataSample.validators[1].blsKey.toString('hex')] = BigInt(2);
+	blsKeyToBFTWeight[sampleValidatorsData.validators[1].blsKey.toString('hex')] = BigInt(2);
 
 	describe('getCertificateFromAggregateCommit', () => {
-		it('should throw error if blockheader is not found for the aggregateCommit height', () => {
+		it('should throw error if block header is not found for the aggregateCommit height', () => {
 			expect(() =>
-				getCertificateFromAggregateCommit(aggregateCommitsSample[1], [blockHeadersSample[0]]),
-			).toThrow('No Block header found for the given aggregate height');
+				getCertificateFromAggregateCommit(aggregateCommitsSample[1], [sampleBlockHeaders[0]]),
+			).toThrow('No block header found for the given aggregate height');
 		});
 
-		it('should compute Certificate from BlockHeader', () => {
+		it('should compute Certificate from block header', () => {
+			const firstBlockHeader = sampleBlockHeaders[0];
+			const { aggregateCommit } = firstBlockHeader;
+
 			const expectedCertificate = computeCertificateFromBlockHeader(
-				new chain.BlockHeader(blockHeadersSample[0]),
+				new chain.BlockHeader(firstBlockHeader),
 			);
-			expectedCertificate.aggregationBits = blockHeadersSample[0].aggregateCommit.aggregationBits;
-			expectedCertificate.signature = blockHeadersSample[0].aggregateCommit.certificateSignature;
-			const computedCertificate = getCertificateFromAggregateCommit(
-				blockHeadersSample[0].aggregateCommit,
-				[blockHeadersSample[0]],
-			);
+			expectedCertificate.aggregationBits = aggregateCommit.aggregationBits;
+			expectedCertificate.signature = aggregateCommit.certificateSignature;
+			const computedCertificate = getCertificateFromAggregateCommit(aggregateCommit, [
+				firstBlockHeader,
+			]);
 
 			expect(computedCertificate).toEqual(expectedCertificate);
 		});
 	});
 
 	describe('checkChainOfTrust', () => {
-		it('should throw error when there is no blockheader at {aggregateCommit.height - 1}', () => {
+		it('should throw error when there is no block header at {aggregateCommit.height - 1}', () => {
 			expect(() =>
 				checkChainOfTrust(
 					lastValidatorsHash,
@@ -154,7 +161,7 @@ describe('certificate generation', () => {
 					[lastCertifiedBlock],
 					[validatorsDataAtLastCertifiedheight],
 				),
-			).toThrow('No Block header found for the given aggregate height');
+			).toThrow('No block header found for the given aggregate height');
 		});
 
 		it('should throw error when there is no validatorsData at {aggregateCommit.height - 1}', () => {
@@ -164,10 +171,10 @@ describe('certificate generation', () => {
 					blsKeyToBFTWeight,
 					validatorsDataAtLastCertifiedheight.certificateThreshold,
 					aggregateCommitsSample[2],
-					blockHeadersSample,
+					sampleBlockHeaders,
 					[validatorsDataAtLastCertifiedheight],
 				),
-			).toThrow('No Validators data found for the given validatorsHash');
+			).toThrow('No validators data found for the given validatorsHash');
 		});
 
 		it('should validate for valid lastValidatorsHash', () => {
@@ -176,17 +183,17 @@ describe('certificate generation', () => {
 				blsKeyToBFTWeight,
 				validatorsDataAtLastCertifiedheight.certificateThreshold,
 				aggregateCommitsSample[1],
-				blockHeadersSample,
+				sampleBlockHeaders,
 				[validatorsDataAtLastCertifiedheight],
 			);
 			expect(valid).toBe(true);
 		});
 
 		it('should return false when lastCertificateThreshold > { aggregateBFTWeight of the validators }', () => {
-			const aggreggateHeightAtFour = aggregateCommitsSample[2];
-			const validatorsHashAtHeightThree = blockHeadersSample[2].validatorsHash;
+			const aggregateHeightAtThree = aggregateCommitsSample[2];
+			const validatorsHashAtHeightThree = sampleBlockHeaders[2].validatorsHash;
 			const validatorsDataAtHeightThree = {
-				...validatorsDataSample,
+				...sampleValidatorsData,
 				validatorsHash: validatorsHashAtHeightThree,
 			};
 
@@ -202,18 +209,18 @@ describe('certificate generation', () => {
 				lastCertifiedBlock.validatorsHash,
 				blsKeyToBFTWeight,
 				BigInt(3), // Last certificate threshold > aggregateBFT weight
-				aggreggateHeightAtFour,
-				blockHeadersSample,
+				aggregateHeightAtThree,
+				sampleBlockHeaders,
 				[validatorsDataAtHeightThree],
 			);
 			expect(valid).toBe(false);
 		});
 
-		it('should validate for blockheader at height 4', () => {
-			const aggreggateHeightAtFour = aggregateCommitsSample[2];
-			const validatorsHashAtHeightThree = blockHeadersSample[2].validatorsHash;
+		it('should validate for blockHeader at height 4', () => {
+			const aggregateHeightAtFour = aggregateCommitsSample[2];
+			const validatorsHashAtHeightThree = sampleBlockHeaders[2].validatorsHash;
 			const validatorsDataAtHeightThree = {
-				...validatorsDataSample,
+				...sampleValidatorsData,
 				validatorsHash: validatorsHashAtHeightThree,
 			};
 
@@ -229,8 +236,8 @@ describe('certificate generation', () => {
 				lastCertifiedBlock.validatorsHash,
 				blsKeyToBFTWeight,
 				validatorsDataAtLastCertifiedheight.certificateThreshold,
-				aggreggateHeightAtFour,
-				blockHeadersSample,
+				aggregateHeightAtFour,
+				sampleBlockHeaders,
 				[validatorsDataAtHeightThree],
 			);
 			expect(valid).toBe(true);
@@ -243,17 +250,17 @@ describe('certificate generation', () => {
 				getNextCertificateFromAggregateCommits(
 					[],
 					aggregateCommitsSample,
-					[validatorsDataSample],
+					[sampleValidatorsData],
 					bftHeights,
 					{ height: lastCertifiedBlock.height } as any,
 				),
-			).toThrow('No blockHeader found for the last certified height');
+			).toThrow('No block header found for the last certified height');
 		});
 
-		it('should throw error when no validators data was found at last certfied height', () => {
+		it('should throw error when no validators data found at last certified height', () => {
 			expect(() =>
 				getNextCertificateFromAggregateCommits(
-					blockHeadersSample,
+					sampleBlockHeaders,
 					aggregateCommitsSample,
 					[],
 					bftHeights,
@@ -265,7 +272,7 @@ describe('certificate generation', () => {
 		it('should return undefined when certificate is found through chainOfTrust', () => {
 			expect(
 				getNextCertificateFromAggregateCommits(
-					blockHeadersSample,
+					sampleBlockHeaders,
 					[aggregateCommitsSample[2]],
 					[validatorsDataAtLastCertifiedheight],
 					bftHeights,
@@ -275,16 +282,17 @@ describe('certificate generation', () => {
 		});
 
 		it('should return a valid certificate passing chainOfTrust check', () => {
+			const secondBlockHeader = sampleBlockHeaders[1];
 			const expectedCertificate = computeCertificateFromBlockHeader(
-				new chain.BlockHeader(blockHeadersSample[1]),
+				new chain.BlockHeader(secondBlockHeader),
 			);
-			expectedCertificate.aggregationBits = blockHeadersSample[1].aggregateCommit.aggregationBits;
-			expectedCertificate.signature = blockHeadersSample[1].aggregateCommit.certificateSignature;
+			expectedCertificate.aggregationBits = secondBlockHeader.aggregateCommit.aggregationBits;
+			expectedCertificate.signature = secondBlockHeader.aggregateCommit.certificateSignature;
 			expect(
 				getNextCertificateFromAggregateCommits(
-					blockHeadersSample,
+					sampleBlockHeaders,
 					aggregateCommitsSample,
-					[validatorsDataAtLastCertifiedheight, validatorsDataSample],
+					[validatorsDataAtLastCertifiedheight, sampleValidatorsData],
 					bftHeights,
 					{ height: lastCertifiedBlock.height } as any,
 				),
@@ -292,7 +300,7 @@ describe('certificate generation', () => {
 		});
 	});
 
-	describe('_verifyLiveness', () => {
+	describe('verifyLiveness', () => {
 		const apiClientMock = {
 			invoke: jest.fn(),
 		};
@@ -308,7 +316,7 @@ describe('certificate generation', () => {
 
 			const result = await verifyLiveness(Buffer.from('10'), 10, 5, mainchainAPIClient);
 
-			expect(result.status).toBe(false);
+			expect(result).toBe(false);
 		});
 
 		it('should not validate if the condition blockTimestamp - certificateTimestamp < LIVENESS_LIMIT / 2, is invalid', async () => {
@@ -324,7 +332,7 @@ describe('certificate generation', () => {
 				mainchainAPIClient,
 			);
 
-			expect(result.status).toBe(false);
+			expect(result).toBe(false);
 		});
 
 		it('should validate if provided chain ID is live and blockTimestamp - certificateTimestamp < LIVENESS_LIMIT / 2', async () => {
@@ -332,7 +340,7 @@ describe('certificate generation', () => {
 
 			const result = await verifyLiveness(Buffer.from('10'), 10, 5, mainchainAPIClient);
 
-			expect(result.status).toBe(true);
+			expect(result).toBe(true);
 		});
 	});
 
@@ -419,14 +427,30 @@ describe('certificate generation', () => {
 
 		it('should validate if chain is active and has valid liveness', async () => {
 			mainchainAPIClient.invoke.mockResolvedValue(true);
-
+			await sidechainStore.setValidatorsHashPreimage([
+				{
+					validatorsHash: Buffer.from('10'),
+					validators: [
+						{
+							address: cryptography.utils.getRandomBytes(20),
+							blsKey: Buffer.from('10'),
+							bftWeight: BigInt(10),
+						},
+					],
+					certificateThreshold: BigInt(2),
+				},
+			]);
+			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
 			const timestampNow = Date.now();
 			const certificateBytes = Buffer.from('10');
 			const certificate = {
 				height: 5,
 				timestamp: timestampNow - LIVENESS_LIMIT / 2 + 1000,
 			} as Certificate;
-			const blockHeader = { timestamp: timestampNow } as BlockHeader;
+			const blockHeader = {
+				timestamp: timestampNow,
+				validatorsHash: Buffer.from('10'),
+			} as BlockHeader;
 			const chainAccount = {
 				status: ChainStatus.ACTIVE,
 				lastCertificate: { height: 4 },
