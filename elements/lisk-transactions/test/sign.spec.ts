@@ -15,11 +15,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { ed, legacy } from '@liskhq/lisk-cryptography';
-import {
-	getSigningBytes,
-	signTransactionWithPrivateKey,
-	signMultiSignatureTransactionWithPrivateKey,
-} from '../src/sign';
+import { getSigningBytes, signTransaction, signMultiSignatureTransaction } from '../src/sign';
 import * as multisigScenario from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 import { baseTransactionSchema } from '../src/schema';
 import { TAG_TRANSACTION } from '../src';
@@ -166,32 +162,22 @@ describe('sign', () => {
 		});
 	});
 
-	describe('signTransactionWithPrivateKey', () => {
+	describe('signTransaction', () => {
 		it('should throw error for invalid network identifier', () => {
 			expect(() =>
-				signTransactionWithPrivateKey(
-					validTransaction,
-					Buffer.alloc(0),
-					privateKey,
-					validParamsSchema,
-				),
+				signTransaction(validTransaction, Buffer.alloc(0), privateKey, validParamsSchema),
 			).toThrow('ChainID is required to sign a transaction');
 		});
 
 		it('should throw error for empty private key', () => {
 			expect(() =>
-				signTransactionWithPrivateKey(
-					validTransaction,
-					chainID,
-					Buffer.alloc(0),
-					validParamsSchema,
-				),
+				signTransaction(validTransaction, chainID, Buffer.alloc(0), validParamsSchema),
 			).toThrow('Private key must be 64 bytes');
 		});
 
 		it('should throw error for private key with invalid length', () => {
 			expect(() =>
-				signTransactionWithPrivateKey(
+				signTransaction(
 					validTransaction,
 					chainID,
 					Buffer.from('invalid', 'utf8'),
@@ -209,14 +195,14 @@ describe('sign', () => {
 			];
 			return invalidTransactionObjects.forEach(transactionObject =>
 				expect(() =>
-					signTransactionWithPrivateKey(transactionObject, chainID, privateKey, validParamsSchema),
+					signTransaction(transactionObject, chainID, privateKey, validParamsSchema),
 				).toThrow(),
 			);
 		});
 
 		it('should throw error when params is null', () => {
 			return expect(() =>
-				signTransactionWithPrivateKey(
+				signTransaction(
 					{ ...validTransaction, params: null },
 					chainID,
 					privateKey,
@@ -235,13 +221,13 @@ describe('sign', () => {
 			];
 			return invalidParams.forEach(transactionObject =>
 				expect(() =>
-					signTransactionWithPrivateKey(transactionObject, chainID, privateKey, validParamsSchema),
+					signTransaction(transactionObject, chainID, privateKey, validParamsSchema),
 				).toThrow(),
 			);
 		});
 
 		it('should return signed transaction for given params schema', () => {
-			const signedTransaction = signTransactionWithPrivateKey(
+			const signedTransaction = signTransaction(
 				{ ...validTransaction },
 				chainID,
 				privateKey,
@@ -253,10 +239,10 @@ describe('sign', () => {
 		});
 	});
 
-	describe('signMultiSignatureTransactionWithPrivateKey', () => {
+	describe('signMultiSignatureTransaction', () => {
 		it('should throw error for invalid network identifier', () => {
 			expect(() =>
-				signMultiSignatureTransactionWithPrivateKey(
+				signMultiSignatureTransaction(
 					{ ...validTransaction },
 					Buffer.alloc(0),
 					privateKey,
@@ -268,7 +254,7 @@ describe('sign', () => {
 
 		it('should throw error for empty private key', () => {
 			expect(() =>
-				signMultiSignatureTransactionWithPrivateKey(
+				signMultiSignatureTransaction(
 					{ ...validTransaction },
 					chainID,
 					Buffer.alloc(0),
@@ -280,7 +266,7 @@ describe('sign', () => {
 
 		it('should throw error for private key with invalid length', () => {
 			expect(() =>
-				signMultiSignatureTransactionWithPrivateKey(
+				signMultiSignatureTransaction(
 					{ ...validTransaction },
 					chainID,
 					Buffer.from('invalid', 'utf8'),
@@ -292,7 +278,7 @@ describe('sign', () => {
 
 		it('should throw error when signatures property is not an array', () => {
 			expect(() =>
-				signMultiSignatureTransactionWithPrivateKey(
+				signMultiSignatureTransaction(
 					{ ...validTransaction },
 					chainID,
 					privateKey,
@@ -311,7 +297,7 @@ describe('sign', () => {
 			];
 			return invalidTransactionObjects.forEach(transactionObject =>
 				expect(() =>
-					signMultiSignatureTransactionWithPrivateKey(
+					signMultiSignatureTransaction(
 						transactionObject,
 						chainID,
 						privateKey,
@@ -324,7 +310,7 @@ describe('sign', () => {
 
 		it('should throw error when params is null', () => {
 			return expect(() =>
-				signMultiSignatureTransactionWithPrivateKey(
+				signMultiSignatureTransaction(
 					{ ...validTransaction, signatures: [], params: null },
 					chainID,
 					privateKey,
@@ -345,7 +331,7 @@ describe('sign', () => {
 
 			return invalidParams.forEach(transactionObject =>
 				expect(() =>
-					signMultiSignatureTransactionWithPrivateKey(
+					signMultiSignatureTransaction(
 						transactionObject,
 						chainID,
 						privateKey,
@@ -379,7 +365,7 @@ describe('sign', () => {
 			const transactionObject = { ...multisignatureRegistrationTrx, signatures: [] };
 
 			// Sign with the senderPublic key sender of the transaction
-			const signedTransaction = signMultiSignatureTransactionWithPrivateKey(
+			const signedTransaction = signMultiSignatureTransaction(
 				transactionObject,
 				chainID,
 				account1.privateKey,
@@ -389,7 +375,7 @@ describe('sign', () => {
 			);
 
 			// Signing with non sender second mandatory key
-			const signedTransactionNonSender = signMultiSignatureTransactionWithPrivateKey(
+			const signedTransactionNonSender = signMultiSignatureTransaction(
 				signedTransaction,
 				chainID,
 				account2.privateKey,
@@ -436,7 +422,7 @@ describe('sign', () => {
 			const transactionObject = { ...transaction, signatures: [] };
 
 			// Sign with the senderPublic key of the transaction
-			const signedTransaction = signMultiSignatureTransactionWithPrivateKey(
+			const signedTransaction = signMultiSignatureTransaction(
 				transactionObject,
 				chainID,
 				account1.privateKey,
@@ -452,7 +438,7 @@ describe('sign', () => {
 			);
 
 			// Sign with the mandatory key of the multi-signature account
-			const signedTransactionMandatoryKey = signMultiSignatureTransactionWithPrivateKey(
+			const signedTransactionMandatoryKey = signMultiSignatureTransaction(
 				signedTransaction,
 				chainID,
 				account2.privateKey,
@@ -501,7 +487,7 @@ describe('sign', () => {
 						address: 'be046d336cd0c2fbde62bc47e20199395d2eeadc',
 					};
 
-					const signaturesResult = signTransactionWithPrivateKey(
+					const signaturesResult = signTransaction(
 						signedMultiSigTransaction,
 						_chainID,
 						Buffer.from(senderAccount.privateKey, 'hex'),
@@ -541,7 +527,7 @@ describe('sign', () => {
 			};
 			const _chainID = Buffer.from(testCase.input.chainID, 'hex');
 
-			const signaturesResult = signTransactionWithPrivateKey(
+			const signaturesResult = signTransaction(
 				signedMultiSigTransaction,
 				_chainID,
 				Buffer.from(senderAccount.privateKey, 'hex'),

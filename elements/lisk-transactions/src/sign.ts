@@ -135,8 +135,8 @@ const sanitizeSignaturesArray = (
  *
  * @example
  *  ```ts
- *  import { signTransactionWithPrivateKey } from '@liskhq/lisk-transactions';
- *  const signedTransaction = signTransactionWithPrivateKey(unsignedTrx, chainID, privateKey, paramsSchema);
+ *  import { signTransaction } from '@liskhq/lisk-transactions';
+ *  const signedTransaction = signTransaction(unsignedTrx, chainID, privateKey, paramsSchema);
  *  ```
  *
  * @param transactionObject The unsigned transaction object.
@@ -150,7 +150,7 @@ const sanitizeSignaturesArray = (
  * @see [LIP 0068 - Define new transaction schema](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0068.md)
  * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
  */
-export const signTransactionWithPrivateKey = (
+export const signTransaction = (
 	transactionObject: Record<string, unknown>,
 	chainID: Buffer,
 	privateKey: Buffer,
@@ -182,27 +182,12 @@ export const signTransactionWithPrivateKey = (
 };
 
 /**
- * {@inheritDoc signTransactionWithPrivateKey}
- *
- * @example
- *  ```ts
- *  import { signTransaction } from '@liskhq/lisk-transactions';
- *  const signedTransaction = signTransaction(unsignedTrx, chainID, privateKey, paramsSchema);
- *  ```
- *
- * @see [LIP 0028 - Define schema and use generic serialization for transactions](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0028.md)
- * @see [LIP 0068 - Define new transaction schema](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0068.md)
- * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
- */
-export const signTransaction = signTransactionWithPrivateKey;
-
-/**
  * Signs a multi-signature transaction.
  *
  * @example
  *  ```ts
- *  import { signMultiSignatureTransactionWithPrivateKey } from '@liskhq/lisk-transactions';
- *  const signedTransaction = signMultiSignatureTransactionWithPrivateKey(unsignedTrx, chainID, privateKey, keys, paramsSchema, true);
+ *  import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
+ *  const signedTransaction = signMultiSignatureTransaction(unsignedTrx, chainID, privateKey, keys, paramsSchema, true);
  *  ```
  *
  * @param transactionObject The unsigned multi-signature transaction object.
@@ -219,7 +204,7 @@ export const signTransaction = signTransactionWithPrivateKey;
  * @see [LIP 0068 - Define new transaction schema](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0068.md)
  * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
  */
-export const signMultiSignatureTransactionWithPrivateKey = (
+export const signMultiSignatureTransaction = (
 	transactionObject: Record<string, unknown>,
 	chainID: Buffer,
 	privateKey: Buffer,
@@ -289,17 +274,33 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 	return { ...transactionObject, id: utils.hash(getBytes(transactionObject, paramsSchema)) };
 };
 
+// TODO: Check if these backward compatibility aliases are still needed
 /**
- * {@inheritDoc signMultiSignatureTransactionWithPrivateKey}
+ * {@inheritDoc signTransaction}
  *
  * @example
  *  ```ts
- *  import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
- *  const signedTransaction = signMultiSignatureTransaction(unsignedTrx, chainID, privateKey, keys, paramsSchema, true);
+ *  import { signTransactionWithPrivateKey } from '@liskhq/lisk-transactions';
+ *  const signedTransaction = signTransactionWithPrivateKey(unsignedTrx, chainID, privateKey, paramsSchema);
  *  ```
  *
  * @see [LIP 0028 - Define schema and use generic serialization for transactions](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0028.md)
  * @see [LIP 0068 - Define new transaction schema](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0068.md)
  * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
  */
-export const signMultiSignatureTransaction = signMultiSignatureTransactionWithPrivateKey;
+export const signTransactionWithPrivateKey = signTransaction;
+
+/**
+ * {@inheritDoc signMultiSignatureTransaction}
+ *
+ * @example
+ *  ```ts
+ *  import { signMultiSignatureTransactionWithPrivateKey } from '@liskhq/lisk-transactions';
+ *  const signedTransaction = signMultiSignatureTransactionWithPrivateKey(unsignedTrx, chainID, privateKey, keys, paramsSchema, true);
+ *  ```
+ *
+ * @see [LIP 0028 - Define schema and use generic serialization for transactions](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0028.md)
+ * @see [LIP 0068 - Define new transaction schema](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0068.md)
+ * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
+ */
+export const signMultiSignatureTransactionWithPrivateKey = signMultiSignatureTransaction;
