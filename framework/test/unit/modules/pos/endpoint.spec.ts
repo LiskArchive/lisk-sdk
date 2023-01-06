@@ -767,7 +767,7 @@ describe('PosModuleEndpoint', () => {
 	});
 
 	describe('getRegistrationFee', () => {
-		it('should return registration fee', () => {
+		it('should return the registration fee', () => {
 			const response = posEndpoint.getRegistrationFee();
 
 			expect(response).toEqual({ fee: config.validatorRegistrationFee.toString() });

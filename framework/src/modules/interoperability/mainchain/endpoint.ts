@@ -12,6 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { NamedRegistry } from '../../named_registry';
 import { BaseInteroperabilityEndpoint } from '../base_interoperability_endpoint';
+import { REGISTRATION_FEE } from '../constants';
 
-export class MainchainInteroperabilityEndpoint extends BaseInteroperabilityEndpoint {}
+export class MainchainInteroperabilityEndpoint extends BaseInteroperabilityEndpoint {
+	public constructor(protected stores: NamedRegistry, protected offchainStores: NamedRegistry) {
+		super(stores, offchainStores);
+	}
+
+	public getRegistrationFee(): { fee: string } {
+		return { fee: REGISTRATION_FEE.toString() };
+	}
+}
