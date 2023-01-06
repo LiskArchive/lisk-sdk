@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { REGISTRATION_FEE } from '../../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityEndpoint } from '../../../../../src/modules/interoperability/mainchain/endpoint';
-import { REGISTRATION_FEE } from './constants';
 
 describe('MainchainInteroperabilityEndpoint', () => {
 	let endpoint: MainchainInteroperabilityEndpoint;
@@ -23,10 +23,6 @@ describe('MainchainInteroperabilityEndpoint', () => {
 
 	beforeEach(() => {
 		endpoint = new MainchainInteroperabilityEndpoint(storesMock as any, offchainStoresMock as any);
-	});
-
-	afterEach(() => {
-		jest.clearAllMocks();
 	});
 
 	describe('getRegistrationFee', () => {

@@ -53,6 +53,7 @@ import {
 	getValidatorsByStakeResponseSchema,
 	getStakerRequestSchema,
 	getStakerResponseSchema,
+	getRegistrationFeeResponseSchema,
 } from './schemas';
 import {
 	RandomMethod,
@@ -234,6 +235,10 @@ export class PoSModule extends BaseModule {
 					name: this.endpoint.getPendingUnlocks.name,
 					request: getPendingUnlocksRequestSchema,
 					response: getPendingUnlocksResponseSchema,
+				},
+				{
+					name: this.endpoint.getRegistrationFee.name,
+					response: getRegistrationFeeResponseSchema,
 				},
 			],
 			commands: this.commands.map(command => ({

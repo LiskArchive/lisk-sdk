@@ -1,4 +1,3 @@
-/* eslint-disable jest/no-disabled-tests */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -31,16 +30,6 @@ import {
 } from '../../../../src/testing';
 import { ModuleConfig } from '../../../../src/modules/token/types';
 import { InternalMethod } from '../../../../src/modules/token/internal_method';
-import {
-	AMOUNT,
-	AVAILABLE_BALANCE,
-	ESCROW_AMOUNT,
-	INVALID_ADDRESS,
-	INVALID_CHAIN_ID,
-	INVALID_TOKEN_ID,
-	NON_SUPPORTED_TOKEN_ID,
-	TOTAL_SUPPLY,
-} from './constants';
 
 describe('token endpoint', () => {
 	const tokenModule = new TokenModule();
@@ -52,16 +41,20 @@ describe('token endpoint', () => {
 	const foreignChainID = Buffer.from([1, 0, 0, 8]);
 	const foreignTokenID = Buffer.concat([foreignChainID, Buffer.from([0, 0, 0, 0])]);
 	const account = {
-		availableBalance: AVAILABLE_BALANCE,
+		availableBalance: BigInt('10000000000'),
 		lockedBalances: [
 			{
 				module: 'pos',
-				amount: AMOUNT,
+				amount: BigInt('100000000'),
 			},
 		],
 	};
-	const totalSupply = TOTAL_SUPPLY;
-	const escrowAmount = ESCROW_AMOUNT;
+	const totalSupply = BigInt('100000000000000');
+	const escrowAmount = BigInt('100000000000');
+	const INVALID_ADDRESS = '1234';
+	const INVALID_TOKEN_ID = '00';
+	const INVALID_CHAIN_ID = '00';
+	const NON_SUPPORTED_TOKEN_ID = '8888888888888888';
 	const supportedForeignChainTokenIDs = [
 		Buffer.concat([foreignChainID, Buffer.from([0, 0, 0, 8])]),
 		Buffer.concat([foreignChainID, Buffer.from([0, 0, 0, 9])]),
@@ -111,10 +104,6 @@ describe('token endpoint', () => {
 
 		supportedTokensStore = tokenModule.stores.get(SupportedTokensStore);
 		supportedTokensStore.registerOwnChainID(nativeChainID);
-	});
-
-	afterEach(() => {
-		jest.clearAllMocks();
 	});
 
 	describe('getBalances', () => {
@@ -399,7 +388,7 @@ describe('token endpoint', () => {
 				},
 			});
 
-			expect(await endpoint.hasUserAccount(moduleEndpointContext)).toEqual({ hasAccount: true });
+			expect(await endpoint.hasUserAccount(moduleEndpointContext)).toEqual({ exists: true });
 		});
 
 		it('should return false if the user account does not exist', async () => {
@@ -411,7 +400,7 @@ describe('token endpoint', () => {
 				},
 			});
 
-			expect(await endpoint.hasUserAccount(moduleEndpointContext)).toEqual({ hasAccount: false });
+			expect(await endpoint.hasUserAccount(moduleEndpointContext)).toEqual({ exists: false });
 		});
 	});
 
@@ -427,15 +416,15 @@ describe('token endpoint', () => {
 			);
 		});
 
-		it('should throw an error if an invalid chainID is provided', async () => {
+		it('should return false if an invalid chainID is provided', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: { tokenID: nativeTokenID.toString('hex'), escrowChainID: INVALID_CHAIN_ID },
 			});
 
-			await expect(endpoint.hasEscrowAccount(moduleEndpointContext)).rejects.toThrow(
-				'Property \'.escrowChainID\' should pass "dataType" keyword validation',
-			);
+			await expect(endpoint.hasEscrowAccount(moduleEndpointContext)).resolves.toEqual({
+				exists: false,
+			});
 		});
 
 		it('should return true if the escrow account exists', async () => {
@@ -443,11 +432,11 @@ describe('token endpoint', () => {
 				stateStore,
 				params: {
 					tokenID: nativeTokenID.toString('hex'),
-					escrowChainID: foreignChainID,
+					escrowChainID: foreignChainID.toString('hex'),
 				},
 			});
 
-			expect(await endpoint.hasEscrowAccount(moduleEndpointContext)).toEqual({ hasAccount: true });
+			expect(await endpoint.hasEscrowAccount(moduleEndpointContext)).toEqual({ exists: true });
 		});
 
 		it('should return false if the escrow account does not exist', async () => {
@@ -455,11 +444,11 @@ describe('token endpoint', () => {
 				stateStore,
 				params: {
 					tokenID: nativeTokenID.toString('hex'),
-					escrowChainID: Buffer.alloc(4),
+					escrowChainID: Buffer.alloc(4).toString('hex'),
 				},
 			});
 
-			expect(await endpoint.hasEscrowAccount(moduleEndpointContext)).toEqual({ hasAccount: false });
+			expect(await endpoint.hasEscrowAccount(moduleEndpointContext)).toEqual({ exists: false });
 		});
 	});
 });

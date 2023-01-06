@@ -188,7 +188,7 @@ export class TokenEndpoint extends BaseEndpoint {
 		};
 	}
 
-	public async hasUserAccount(context: ModuleEndpointContext): Promise<{ hasAccount: boolean }> {
+	public async hasUserAccount(context: ModuleEndpointContext): Promise<{ exists: boolean }> {
 		validator.validate<{ address: string; tokenID: string }>(
 			hasUserAccountRequestSchema,
 			context.params,
@@ -198,20 +198,10 @@ export class TokenEndpoint extends BaseEndpoint {
 		const tokenID = Buffer.from(context.params.tokenID, 'hex');
 		const userStore = this.stores.get(UserStore);
 
-		try {
-			const isUser = await userStore.has(context, userStore.getKey(address, tokenID));
-
-			return { hasAccount: isUser };
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
-
-			return { hasAccount: false };
-		}
+		return { exists: await userStore.has(context, userStore.getKey(address, tokenID)) };
 	}
 
-	public async hasEscrowAccount(context: ModuleEndpointContext): Promise<{ hasAccount: boolean }> {
+	public async hasEscrowAccount(context: ModuleEndpointContext): Promise<{ exists: boolean }> {
 		validator.validate<{ escrowChainID: string; tokenID: string }>(
 			hasEscrowAccountRequestSchema,
 			context.params,
@@ -221,16 +211,6 @@ export class TokenEndpoint extends BaseEndpoint {
 		const tokenID = Buffer.from(context.params.tokenID, 'hex');
 		const escrowStore = this.stores.get(EscrowStore);
 
-		try {
-			const isEscrow = await escrowStore.has(context, escrowStore.getKey(escrowChainID, tokenID));
-
-			return { hasAccount: isEscrow };
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
-
-			return { hasAccount: false };
-		}
+		return { exists: await escrowStore.has(context, escrowStore.getKey(escrowChainID, tokenID)) };
 	}
 }

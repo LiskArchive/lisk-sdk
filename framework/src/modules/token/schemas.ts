@@ -652,10 +652,29 @@ export const hasEscrowAccountRequestSchema = {
 			maxLength: TOKEN_ID_LENGTH * 2,
 		},
 		escrowChainID: {
-			dataType: 'bytes',
-			minLength: CHAIN_ID_LENGTH,
-			maxLength: CHAIN_ID_LENGTH,
+			type: 'string',
+			format: 'hex',
 		},
 	},
 	required: ['tokenID', 'escrowChainID'],
+};
+
+export const hasUserAccountResponseSchema = {
+	$id: '/token/endpoint/hasUserAccountResponse',
+	type: 'object',
+	properties: {
+		exists: {
+			type: 'boolean',
+		},
+	},
+};
+
+export const hasEscrowAccountResponseSchema = {
+	$id: '/token/endpoint/hasEscrowAccountResponse',
+	type: 'object',
+	properties: {
+		exists: {
+			type: 'boolean',
+		},
+	},
 };
