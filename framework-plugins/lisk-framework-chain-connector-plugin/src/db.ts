@@ -28,7 +28,7 @@ import {
 	ccmsFromEventsSchema,
 	validatorsHashPreimageInfoSchema,
 } from './schemas';
-import { BlockHeader, CrossChainMessagesFromEvents, ValidatorsData } from './types';
+import { BlockHeader, CCMsFromEvents, ValidatorsData } from './types';
 
 const { Database } = liskDB;
 type KVStore = liskDB.Database;
@@ -46,7 +46,7 @@ interface ValidatorsHashPreimage {
 }
 
 interface CrossChainMessagesInfo {
-	ccmsFromEvents: CrossChainMessagesFromEvents[];
+	ccmsFromEvents: CCMsFromEvents[];
 }
 
 export const getDBInstance = async (
@@ -147,8 +147,8 @@ export class ChainConnectorStore {
 		await this._db.set(this._validatorsHashPreimageDBKey, encodedInfo);
 	}
 
-	public async getCrossChainMessages(): Promise<CrossChainMessagesFromEvents[]> {
-		let crossChainMessages: CrossChainMessagesFromEvents[] = [];
+	public async getCrossChainMessages(): Promise<CCMsFromEvents[]> {
+		let crossChainMessages: CCMsFromEvents[] = [];
 		try {
 			const encodedInfo = await this._db.get(this._crossChainMessagesDBKey);
 			crossChainMessages = codec.decode<CrossChainMessagesInfo>(
@@ -163,7 +163,7 @@ export class ChainConnectorStore {
 		return crossChainMessages;
 	}
 
-	public async setCrossChainMessages(ccms: CrossChainMessagesFromEvents[]) {
+	public async setCrossChainMessages(ccms: CCMsFromEvents[]) {
 		const encodedInfo = codec.encode(ccmsFromEventsSchema, { ccmsFromEvents: ccms });
 		await this._db.set(this._crossChainMessagesDBKey, encodedInfo);
 	}

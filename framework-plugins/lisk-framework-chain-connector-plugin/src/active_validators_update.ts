@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Certificate, LastCertificate } from 'lisk-sdk';
+import { ActiveValidator, Certificate, LastCertificate } from 'lisk-sdk';
 import { ActiveValidatorWithAddress, ValidatorsData } from './types';
 
 export const getActiveValidatorsDiff = (
@@ -55,14 +55,14 @@ export const calculateActiveValidatorsUpdate = (
 	certificate: Certificate,
 	validatorsHashPreimage: ValidatorsData[],
 	lastCertificate: LastCertificate,
-) => {
+): { activeValidatorsUpdate: ActiveValidator[]; certificateThreshold: bigint } => {
 	let certificateThreshold;
 	const validatorDataAtCertificate = validatorsHashPreimage.find(validatorsData =>
 		validatorsData.validatorsHash.equals(certificate.validatorsHash),
 	);
 
 	if (!validatorDataAtCertificate) {
-		throw new Error('No validators data found for the given certificate height.');
+		throw new Error('No validators data found for the certificate height.');
 	}
 
 	const validatorDataAtLastCertificate = validatorsHashPreimage.find(validatorsData =>

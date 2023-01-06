@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Transaction, chain, CCMsg, OutboxRootWitness } from 'lisk-sdk';
+import { Transaction, chain, CCMsg, OutboxRootWitness, ActiveValidator } from 'lisk-sdk';
 
 export interface BlockHeader extends chain.BlockHeaderAttrs {
 	validatorsHash: Buffer;
@@ -40,7 +40,7 @@ export interface ValidatorsData {
 	validatorsHash: Buffer;
 }
 
-export interface CrossChainMessagesFromEvents {
+export interface CCMsFromEvents {
 	ccms: CCMsg[];
 	height: number;
 	inclusionProof: OutboxRootWitness;

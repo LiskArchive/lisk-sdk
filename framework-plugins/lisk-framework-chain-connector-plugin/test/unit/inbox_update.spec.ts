@@ -27,7 +27,7 @@ import {
 } from 'lisk-sdk';
 import { CCU_TOTAL_CCM_SIZE } from '../../src/constants';
 import * as inboxUpdateUtil from '../../src/inbox_update';
-import { CrossChainMessagesFromEvents } from '../../src/types';
+import { CCMsFromEvents } from '../../src/types';
 import { calculateInboxUpdate } from '../../src/inbox_update';
 import { getSampleCCM } from '../utils/sampleCCM';
 
@@ -55,7 +55,7 @@ describe('inboxUpdate', () => {
 		};
 
 		const sampleCCMs = new Array(4).fill(0).map((_, index) => getSampleCCM(index + 1));
-		const sampleCCMFromEvents: CrossChainMessagesFromEvents[] = [
+		const sampleCCMFromEvents: CCMsFromEvents[] = [
 			{
 				ccms: sampleCCMs.slice(0, 1),
 				height: 60,
@@ -141,8 +141,8 @@ describe('inboxUpdate', () => {
 
 	// TODO: Break it down into multiple cases where we have 1 group and multiple group depending on ccms size.
 	describe('_groupCCMsBySize', () => {
-		it('should return CrossChainMessagesFromEvents[][] with length of total CCMs divided by CCU_TOTAL_CCM_SIZE', () => {
-			const ccmsFromEvents: CrossChainMessagesFromEvents[] = [];
+		it('should return CCMsFromEvents[][] with length of total CCMs divided by CCU_TOTAL_CCM_SIZE', () => {
+			const ccmsFromEvents: CCMsFromEvents[] = [];
 			const buildNumCCMs = (num: number, fromHeight: number): CCMsg[] => {
 				const ccms: CCMsg[] = [];
 				let j = 1;

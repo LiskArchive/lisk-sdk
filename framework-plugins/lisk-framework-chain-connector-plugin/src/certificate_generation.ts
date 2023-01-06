@@ -29,6 +29,11 @@ import {
 import { BlockHeader, ValidatorsData } from './types';
 import { ChainConnectorStore } from './db';
 
+interface CertificateValidationResult {
+	status: boolean;
+	message?: string;
+}
+
 // LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#getcertificatefromaggregatecommit
 export const getCertificateFromAggregateCommit = (
 	aggregateCommit: AggregateCommit,
@@ -37,7 +42,7 @@ export const getCertificateFromAggregateCommit = (
 	const blockHeader = blockHeaders.find(header => header.height === aggregateCommit.height);
 
 	if (!blockHeader) {
-		throw new Error('No Block header found for the given aggregate height.');
+		throw new Error('No block header found for the given aggregate height.');
 	}
 
 	return {
@@ -57,9 +62,8 @@ export const checkChainOfTrust = (
 	validatorsHashPreimage: ValidatorsData[],
 ): boolean => {
 	const blockHeader = blockHeaders.find(header => header.height === aggregateCommit.height - 1);
-
 	if (!blockHeader) {
-		throw new Error('No Block header found for the given aggregate height.');
+		throw new Error('No block header found for the given aggregate height.');
 	}
 
 	// Certificate signers and certificate threshold for aggregateCommit are those authenticated by the last certificate
@@ -72,7 +76,7 @@ export const checkChainOfTrust = (
 		data => data.validatorsHash === blockHeader.validatorsHash,
 	);
 	if (!validatorData) {
-		throw new Error('No Validators data found for the given validatorsHash.');
+		throw new Error('No validators data found for the given validatorsHash.');
 	}
 
 	for (let i = 0; i < validatorData.validators.length; i += 1) {
@@ -101,14 +105,13 @@ export const getNextCertificateFromAggregateCommits = (
 	const blockHeaderAtLastCertifiedHeight = blockHeaders.find(
 		header => header.height === lastCertificate.height,
 	);
-
 	if (!blockHeaderAtLastCertifiedHeight) {
-		throw new Error('No blockHeader found for the last certified height.');
+		throw new Error('No block header found for the last certified height.');
 	}
+
 	const validatorDataAtLastCertifiedHeight = validatorsHashPreimage.find(
 		data => data.validatorsHash === blockHeaderAtLastCertifiedHeight?.validatorsHash,
 	);
-
 	if (!validatorDataAtLastCertifiedHeight) {
 		throw new Error('No validatorsHash preimage data present for the given validatorsHash.');
 	}
@@ -148,24 +151,6 @@ export const getNextCertificateFromAggregateCommits = (
 	return undefined;
 };
 
-interface LivenessValidationResult {
-	status: boolean;
-	isLive: boolean;
-	chainID: Buffer;
-	certificateTimestamp: number;
-	blockTimestamp: number;
-}
-
-interface CertificateValidationResult {
-	status: boolean;
-	livenessValidationResult?: LivenessValidationResult;
-	chainStatus: number;
-	certificate: Certificate;
-	blockHeader: BlockHeader;
-	hasValidBLSWeightedAggSig?: boolean;
-	message: string;
-}
-
 export const validateCertificate = async (
 	certificateBytes: Buffer,
 	certificate: Certificate,
@@ -175,42 +160,32 @@ export const validateCertificate = async (
 	sidechainChainConnectorStore: ChainConnectorStore,
 	mainchainAPIClient: apiClient.APIClient,
 ): Promise<CertificateValidationResult> => {
-	const result: CertificateValidationResult = {
-		status: false,
-		chainStatus: chainAccount.status,
-		certificate,
-		blockHeader,
-		message: 'Certificate validation failed.',
-	};
-
 	if (chainAccount.status === ChainStatus.TERMINATED) {
-		result.message = 'Sending chain is terminated.';
-		return result;
+		return {
+			message: 'Sending chain is terminated.',
+			status: false,
+		};
 	}
 
 	if (certificate.height <= chainAccount.lastCertificate.height) {
-		result.message = 'Certificate height is higher than last certified height.';
-		return result;
+		return {
+			message: 'Certificate height is higher than last certified height.',
+			status: false,
+		};
 	}
 
-	const certificateLivenessValidationResult = await verifyLiveness(
+	const isCertificateLivenessValid = await verifyLiveness(
 		sendingChainID,
 		certificate.timestamp,
 		blockHeader.timestamp,
 		mainchainAPIClient,
 	);
 
-	result.livenessValidationResult = certificateLivenessValidationResult;
-
-	if (!certificateLivenessValidationResult.status) {
-		result.message = 'Liveness validation failed.';
-		return result;
-	}
-
-	if (chainAccount.status === ChainStatus.ACTIVE) {
-		result.status = true;
-
-		return result;
+	if (!isCertificateLivenessValid) {
+		return {
+			message: 'Liveness validation failed.',
+			status: false,
+		};
 	}
 
 	const validatorsHashPreimage = await sidechainChainConnectorStore.getValidatorsHashPreimage();
@@ -219,9 +194,10 @@ export const validateCertificate = async (
 	);
 
 	if (!validatorData) {
-		result.message = 'Block validators are not valid.';
-
-		return result;
+		return {
+			status: false,
+			message: 'Block validators are not valid.',
+		};
 	}
 
 	const keysList = validatorData.validators.map(validator => validator.blsKey);
@@ -238,15 +214,18 @@ export const validateCertificate = async (
 		weights,
 		validatorData.certificateThreshold,
 	);
-	if (hasValidWeightedAggSig) {
-		result.hasValidBLSWeightedAggSig = true;
-		result.status = false;
-		return result;
+
+	if (!hasValidWeightedAggSig) {
+		return {
+			message: 'Weighted aggregate signature is not valid.',
+			status: false,
+		};
 	}
 
-	result.message = 'Weighted aggregate signature is not valid.';
-
-	return result;
+	return {
+		message: 'Weighted aggregate signature is not valid.',
+		status: true,
+	};
 };
 
 export const verifyLiveness = async (
@@ -254,25 +233,11 @@ export const verifyLiveness = async (
 	certificateTimestamp: number,
 	blockTimestamp: number,
 	mainchainAPIClient: apiClient.APIClient,
-): Promise<LivenessValidationResult> => {
+): Promise<boolean> => {
 	const isLive = await mainchainAPIClient.invoke<boolean>('interoperability_isLive', {
 		chainID,
 		timestamp: certificateTimestamp,
 	});
 
-	const result: LivenessValidationResult = {
-		status: true,
-		isLive,
-		chainID,
-		certificateTimestamp,
-		blockTimestamp,
-	};
-
-	if (isLive && blockTimestamp - certificateTimestamp < LIVENESS_LIMIT / 2) {
-		return result;
-	}
-
-	result.status = false;
-
-	return result;
+	return isLive && blockTimestamp - certificateTimestamp < LIVENESS_LIMIT / 2;
 };
