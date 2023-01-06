@@ -16,7 +16,6 @@ import {
 	BasePlugin,
 	PluginInitContext,
 	apiClient,
-	Certificate,
 	BFTHeights,
 	db as liskDB,
 	codec,
@@ -24,22 +23,19 @@ import {
 	BFTParameters,
 	OutboxRootWitness,
 	ActiveValidator,
-	ccmSchema,
 	JSONObject,
 	Schema,
 	OwnChainAccountJSON,
 	Transaction,
-	InboxUpdate,
 	LastCertificate,
 	LastCertificateJSON,
 	CcmSendSuccessEventData,
 	CcmProcessedEventData,
 	CCMProcessedResult,
-	CCMsg,
-	tree,
 	CrossChainUpdateTransactionParams,
 	certificateSchema,
 	ccuParamsSchema,
+	cryptography,
 } from 'lisk-sdk';
 import { calculateActiveValidatorsUpdate } from './active_validators_update';
 import { getNextCertificateFromAggregateCommits } from './certificate_generation';
@@ -48,20 +44,15 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 	CCM_SEND_SUCCESS,
 	DB_KEY_SIDECHAIN,
-	CCU_TOTAL_CCM_SIZE,
 	COMMAND_NAME_SUBMIT_SIDECHAIN_CCU,
 	CCM_PROCESSED,
+	EMPTY_BYTES,
 } from './constants';
 import { ChainConnectorStore, getDBInstance } from './db';
 import { Endpoint } from './endpoint';
 import { configSchema } from './schemas';
-import {
-	ChainConnectorPluginConfig,
-	SentCCUs,
-	ProveResponse,
-	BlockHeader,
-	CrossChainMessagesFromEvents,
-} from './types';
+import { ChainConnectorPluginConfig, SentCCUs, ProveResponse, BlockHeader } from './types';
+import { calculateInboxUpdate } from './inbox_update';
 
 const { address, ed, encrypt } = cryptography;
 
@@ -180,7 +171,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 
 		// When all the relevant data is saved successfully then try to create CCU
-		// When # of CCMs are there on the outbox to be sent or # of blocks passed from last certified height
 		if (this._ccuFrequency >= newBlockHeader.height - this._lastCertificate.height) {
 			// TODO: _createCCU needs to be implemented which will create and send the CCU transaction
 			await this._submitCCUs([]);
@@ -340,6 +330,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		await this._sidechainChainConnectorStore.setValidatorsHashPreimage(validatorsHashPreimages);
 	}
 
+	// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#parameters
 	public async _calculateCCUParams(): Promise<void> {
 		const blockHeaders = await this._sidechainChainConnectorStore.getBlockHeaders();
 		const aggregateCommits = await this._sidechainChainConnectorStore.getAggregateCommits();
@@ -373,20 +364,42 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			activeValidatorsUpdate = validatorsUpdateResult.activeValidatorsUpdate;
 			certificateThreshold = validatorsUpdateResult.certificateThreshold;
 		}
+		const crossChainMessages = await this._sidechainChainConnectorStore.getCrossChainMessages();
 		// Calculate inboxUpdate
-		const inboxUpdates = await this._calculateInboxUpdate(certificate);
+		const inboxUpdates = await calculateInboxUpdate(
+			certificate,
+			this._lastCertificate,
+			crossChainMessages,
+			this._chainConnectorPluginDB,
+		);
 
 		// Now create CCUs for all the inboxUpdates handling full or partial updates
 		const serializedCertificate = codec.encode(certificateSchema, certificate);
-		for (const inboxUpdate of inboxUpdates) {
+		// If one inboxUpdate then create single CCU
+		if (inboxUpdates.length === 1) {
 			const serializedCCUParams = codec.encode(ccuParamsSchema, {
 				sendingChainID: this._ownChainID,
 				activeValidatorsUpdate,
 				certificate: serializedCertificate,
 				certificateThreshold,
-				inboxUpdate
-			} as CrossChainUpdateTransactionParams)
+				inboxUpdate: inboxUpdates[0],
+			} as CrossChainUpdateTransactionParams);
 			await this._submitCCUs([serializedCCUParams]);
+		} else {
+			// If there are partial inboxUpdates then create CCU for each inboxUpdate
+			for (let i = 0; i < inboxUpdates.length; i += 1) {
+				const inboxUpdate = inboxUpdates[i];
+
+				const serializedCCUParams = codec.encode(ccuParamsSchema, {
+					sendingChainID: this._ownChainID,
+					activeValidatorsUpdate,
+					// Subsequent inboxUpdates don't require certificate
+					certificate: i === 0 ? serializedCertificate : EMPTY_BYTES,
+					certificateThreshold,
+					inboxUpdate,
+				} as CrossChainUpdateTransactionParams);
+				await this._submitCCUs([serializedCCUParams]);
+			}
 		}
 	}
 
@@ -421,102 +434,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			validatorsHashPreimage.splice(validatorsHashPreimageIndex, 1);
 			await this._sidechainChainConnectorStore.setValidatorsHashPreimage(validatorsHashPreimage);
 		}
-	}
-
-	private async _calculateInboxUpdate(certificate: Certificate): Promise<InboxUpdate[]> {
-		const crossChainMessages = await this._sidechainChainConnectorStore.getCrossChainMessages();
-
-		// Filter all the CCMs to be included between lastCertifiedheight and certificate height.
-		const ccmsToBeIncluded = crossChainMessages.filter(
-			ccmFromEvents =>
-				ccmFromEvents.height <= certificate.height &&
-				ccmFromEvents.height > this._lastCertificate.height,
-		);
-		const ccmsListOfList = this._groupCCMsBySize(ccmsToBeIncluded);
-		// Take the inclusion proof of the last CCM to be included.
-		const { inclusionProof } = ccmsToBeIncluded[ccmsToBeIncluded.length - 1];
-
-		if (ccmsListOfList.length === 1) {
-			const ccmHashesList = ccmsListOfList[0].map(ccm => codec.encode(ccmSchema, ccm));
-			return [
-				{
-					crossChainMessages: ccmHashesList,
-					messageWitnessHashes: [],
-					outboxRootWitness: inclusionProof,
-				},
-			];
-		}
-
-		// Calculate list of inboxUpdates to be sent by multiple CCUs
-		const inboxUpdates = [];
-		for (const subList of ccmsListOfList) {
-			const ccmHashesList = subList.map(ccm => codec.encode(ccmSchema, ccm));
-			// Calculate message witnesses
-
-			const merkleTree = new tree.MerkleTree({ db: this._chainConnectorPluginDB });
-			for (const ccm of ccmHashesList) {
-				await merkleTree.append(ccm);
-			}
-			const messageWitness = await merkleTree.generateRightWitness(ccmHashesList.length);
-
-			inboxUpdates.push({
-				crossChainMessages: ccmHashesList,
-				messageWitnessHashes: messageWitness,
-				outboxRootWitness: inclusionProof,
-			});
-		}
-
-		return inboxUpdates;
-	}
-
-	/**
-	 * This will return lists with sub-lists, where total size of CCMs in each sub-list will be <= CCU_TOTAL_CCM_SIZE
-	 * Each sublist can contain CCMS from DIFFERENT heights
-	 */
-	private _groupCCMsBySize(ccmsFromEvents: CrossChainMessagesFromEvents[]): CCMsg[][] {
-		const groupedCCMsBySize: CCMsg[][] = [];
-
-		if (ccmsFromEvents.length === 0) {
-			return groupedCCMsBySize;
-		}
-
-		const allCCMs: CCMsg[] = [];
-		for (const filteredCCMsFromEvent of ccmsFromEvents) {
-			allCCMs.push(...filteredCCMsFromEvent.ccms);
-		}
-
-		// This will group/bundle CCMs in a list where total size of the list will be <= CCU_TOTAL_CCM_SIZE
-		const groupBySize = (startIndex: number): [list: CCMsg[], newIndex: number] => {
-			const newList: CCMsg[] = [];
-			let totalSize = 0;
-			let i = startIndex;
-
-			for (; i < allCCMs.length; i += 1) {
-				const ccm = allCCMs[i];
-				const ccmBytes = codec.encode(ccmSchema, ccm);
-				const size = ccmBytes.length;
-				totalSize += size;
-				if (totalSize > CCU_TOTAL_CCM_SIZE) {
-					return [newList, i];
-				}
-
-				newList.push(ccm);
-			}
-
-			return [newList, i];
-		};
-
-		const buildGroupsBySize = (startIndex: number) => {
-			const [list, lastIndex] = groupBySize(startIndex);
-			groupedCCMsBySize.push(list);
-
-			if (lastIndex < allCCMs.length) {
-				buildGroupsBySize(lastIndex);
-			}
-		};
-
-		buildGroupsBySize(0);
-		return groupedCCMsBySize;
 	}
 
 	private async _cleanup() {
