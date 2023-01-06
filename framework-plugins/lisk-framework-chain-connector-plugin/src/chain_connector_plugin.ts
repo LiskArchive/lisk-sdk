@@ -39,7 +39,6 @@ import {
 	OwnChainAccountJSON,
 	Transaction,
 	CrossChainUpdateTransactionParams,
-	crossChainUpdateTransactionParams,
 	InboxUpdate,
 } from 'lisk-sdk';
 import {
@@ -59,7 +58,6 @@ import {
 	ProveResponse,
 	BlockHeader,
 	CrossChainMessagesFromEvents,
-	ValidatorsData,
 } from './types';
 import { getActiveValidatorsDiff } from './utils';
 
@@ -480,11 +478,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		// When # of CCMs are there on the outbox to be sent or # of blocks passed from last certified height
 		if (this._ccuFrequency >= newBlockHeader.height - this._lastCertifiedHeight) {
 			try {
-				await this._submitCCUs(aggregateCommits, validatorsHashPreimage);
+				await this._submitCCUs([]);
 			} catch (error) {
 				this.logger.error({ err: error }, 'Failed to create CCU');
 			}
-
 			// if the transaction is successfully submitted then update the last certfied height and do the cleanup
 			// TODO: also check if the state is growing, delete everything from the inMemory state if it goes beyond last 3 rounds
 			await this._cleanup();
@@ -495,6 +492,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	 * This will return lists with sub-lists, where total size of CCMs in each sub-list will be <= CCU_TOTAL_CCM_SIZE
 	 * Each sublist can contain CCMS from DIFFERENT heights
 	 */
+	// @ts-expect-error this function will be used later
 	private _groupCCMsBySize(
 		ccmsFromEvents: CrossChainMessagesFromEvents[],
 		certificate: Certificate,
@@ -754,22 +752,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		await this._sidechainChainConnectorStore.setCrossChainMessages(crossChainMessages);
 	}
 
-	private async _submitCCUs(
-		aggregateCommits: AggregateCommit[],
-		validatorsHashPreimage: ValidatorsData[],
-	): Promise<void> {
-		const ccmsWithHeight = await this._sidechainChainConnectorStore.getCrossChainMessages();
-
-		const certificate = await this.getNextCertificateFromAggregateCommits(
-			this._lastCertifiedHeight,
-			aggregateCommits,
-		);
-		if (!certificate) {
-			throw new Error('Failed to generate certificate.');
-		}
-
-		const groupedCCMsBySize = this._groupCCMsBySize(ccmsWithHeight, certificate);
-
+	private async _submitCCUs(ccuParams: Buffer[]): Promise<void> {
 		// This can be changed based on mainchain/sidechain
 		const activeAPIClient = this._sidechainAPIClient;
 		const activePrivateKey = this._privateKey;
@@ -785,25 +768,14 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		);
 		const chainID = Buffer.from(chainIDStr, 'hex');
 
-		for (let i = 0; i < groupedCCMsBySize.length; i += 1) {
-			const ccms = groupedCCMsBySize[i];
-			const ccuParams = await this.calculateCCUParams(
-				chainID,
-				certificate,
-				validatorsHashPreimage[0].certificateThreshold,
-				ccms,
-			);
-			if (!ccuParams) {
-				throw new Error('Failed to compute CCU params.');
-			}
-			const params = codec.encode(crossChainUpdateTransactionParams, ccuParams);
+		for (let i = 0; i < ccuParams.length; i += 1) {
 			const tx = new Transaction({
 				module: MODULE_NAME_INTEROPERABILITY,
 				command: activeTargetCommand,
 				nonce: BigInt(nonce) + BigInt(i),
 				senderPublicKey: activePublicKey,
 				fee: BigInt(this.config.ccuFee),
-				params,
+				params: ccuParams[i],
 				signatures: [],
 			});
 			tx.sign(chainID, activePrivateKey);
