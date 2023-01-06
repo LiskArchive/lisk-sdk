@@ -40,6 +40,7 @@ import {
 	Transaction,
 	CrossChainUpdateTransactionParams,
 	crossChainUpdateTransactionParams,
+	InboxUpdate,
 } from 'lisk-sdk';
 import {
 	CCU_FREQUENCY,
@@ -58,6 +59,7 @@ import {
 	ProveResponse,
 	BlockHeader,
 	CrossChainMessagesFromEvents,
+	ValidatorsData,
 } from './types';
 import { getActiveValidatorsDiff } from './utils';
 
@@ -108,12 +110,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		await super.init(context);
 		this.endpoint.init(this._sentCCUs);
 		this._ccuFrequency = this.config.ccuFrequency ?? CCU_FREQUENCY;
-		if (this.config.password) {
-			const parsedEncryptedKey = encrypt.parseEncryptedMessage(this.config.encryptedPrivateKey);
-			this._privateKey = await encrypt.decryptMessageWithPassword(
-				parsedEncryptedKey,
-				this.config.password,
-			);
+		const { password, encryptedPrivateKey } = this.config;
+		if (password) {
+			const parsedEncryptedKey = encrypt.parseEncryptedMessage(encryptedPrivateKey);
+			this._privateKey = await encrypt.decryptMessageWithPassword(parsedEncryptedKey, password);
 		}
 	}
 
@@ -479,50 +479,12 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 		// When # of CCMs are there on the outbox to be sent or # of blocks passed from last certified height
 		if (this._ccuFrequency >= newBlockHeader.height - this._lastCertifiedHeight) {
-			const ccmsWithHeight = await this._sidechainChainConnectorStore.getCrossChainMessages();
-
-			const certificate = await this.getNextCertificateFromAggregateCommits(
-				this._lastCertifiedHeight,
-				aggregateCommits,
-			);
-			if (!certificate) {
-				return;
+			try {
+				await this._submitCCUs(aggregateCommits, validatorsHashPreimage);
+			} catch (error) {
+				this.logger.error({ err: error }, 'Failed to create CCU');
 			}
 
-			const groupedCCMsBySize = this._groupCCMsBySize(ccmsWithHeight, certificate);
-
-			// This can be changed based on mainchain/sidechain
-			const activeAPIClient = this._mainchainAPIClient;
-			const activePrivateKey = this._privateKey;
-			const activePublicKey = ed.getPublicKeyFromPrivateKey(activePrivateKey);
-			const activeTargetCommand = COMMAND_NAME_SUBMIT_SIDECHAIN_CCU;
-
-			const { nonce } = await activeAPIClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
-				address: address.getLisk32AddressFromPublicKey(activePublicKey),
-			});
-
-			for (let i = 0; i < groupedCCMsBySize.length; i += 1) {
-				try {
-					const ccms = groupedCCMsBySize[i];
-					const ccu = await this._createCCU(
-						activeAPIClient,
-						certificate,
-						BigInt(nonce) + BigInt(i),
-						activePrivateKey,
-						activeTargetCommand,
-						ccms,
-					);
-					const result = await activeAPIClient.invoke<{
-						transactionId?: string;
-					}>('txpool_postTransaction', {
-						transaction: ccu.getBytes().toString('hex'),
-					});
-					this.logger.info({ transactionID: result.transactionId }, 'Sent CCU transaction');
-				} catch (error) {
-					this.logger.error({ err: error }, 'Fail to create CCU');
-					break;
-				}
-			}
 			// if the transaction is successfully submitted then update the last certfied height and do the cleanup
 			// TODO: also check if the state is growing, delete everything from the inMemory state if it goes beyond last 3 rounds
 			await this._cleanup();
@@ -655,7 +617,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private async _calculateInboxUpdate(
 		sendingChainID: Buffer,
 		crossChainMessages: CCMsg[],
-	): Promise<CrossChainUpdateTransactionParams['inboxUpdate']> {
+	): Promise<InboxUpdate> {
 		const serializedCCMs = crossChainMessages.map(ccm => codec.encode(ccmSchema, ccm));
 
 		// TODO: should use the store prefix with sendingChainID after issue https://github.com/LiskHQ/lisk-sdk/issues/7631
@@ -792,45 +754,65 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		await this._sidechainChainConnectorStore.setCrossChainMessages(crossChainMessages);
 	}
 
-	private async _createCCU(
-		activeAPIClient: apiClient.APIClient,
-		certificate: Certificate,
-		nonce: bigint,
-		privateKey: Buffer,
-		targetCommand: string,
-		crossChainMessages: CCMsg[] = [],
-	): Promise<Transaction> {
-		const publicKey = ed.getPublicKeyFromPrivateKey(privateKey);
+	private async _submitCCUs(
+		aggregateCommits: AggregateCommit[],
+		validatorsHashPreimage: ValidatorsData[],
+	): Promise<void> {
+		const ccmsWithHeight = await this._sidechainChainConnectorStore.getCrossChainMessages();
 
-		const validatorHashPreImg =
-			await this._sidechainChainConnectorStore.getValidatorsHashPreimage();
+		const certificate = await this.getNextCertificateFromAggregateCommits(
+			this._lastCertifiedHeight,
+			aggregateCommits,
+		);
+		if (!certificate) {
+			throw new Error('Failed to generate certificate.');
+		}
+
+		const groupedCCMsBySize = this._groupCCMsBySize(ccmsWithHeight, certificate);
+
+		// This can be changed based on mainchain/sidechain
+		const activeAPIClient = this._sidechainAPIClient;
+		const activePrivateKey = this._privateKey;
+		const activePublicKey = ed.getPublicKeyFromPrivateKey(activePrivateKey);
+		const activeTargetCommand = COMMAND_NAME_SUBMIT_SIDECHAIN_CCU;
+
+		const { nonce } = await activeAPIClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
+			address: address.getLisk32AddressFromPublicKey(activePublicKey),
+		});
 
 		const { chainID: chainIDStr } = await activeAPIClient.invoke<{ chainID: string }>(
 			'system_getNodeInfo',
 		);
 		const chainID = Buffer.from(chainIDStr, 'hex');
-		const ccuParams = await this.calculateCCUParams(
-			chainID,
-			certificate,
-			validatorHashPreImg[0].certificateThreshold,
-			crossChainMessages,
-		);
-		if (!ccuParams) {
-			throw new Error('Fail to compute CCU params.');
+
+		for (let i = 0; i < groupedCCMsBySize.length; i += 1) {
+			const ccms = groupedCCMsBySize[i];
+			const ccuParams = await this.calculateCCUParams(
+				chainID,
+				certificate,
+				validatorsHashPreimage[0].certificateThreshold,
+				ccms,
+			);
+			if (!ccuParams) {
+				throw new Error('Failed to compute CCU params.');
+			}
+			const params = codec.encode(crossChainUpdateTransactionParams, ccuParams);
+			const tx = new Transaction({
+				module: MODULE_NAME_INTEROPERABILITY,
+				command: activeTargetCommand,
+				nonce: BigInt(nonce) + BigInt(i),
+				senderPublicKey: activePublicKey,
+				fee: BigInt(this.config.ccuFee),
+				params,
+				signatures: [],
+			});
+			tx.sign(chainID, activePrivateKey);
+			const result = await activeAPIClient.invoke<{
+				transactionId: string;
+			}>('txpool_postTransaction', {
+				transaction: tx.getBytes().toString('hex'),
+			});
+			this.logger.info({ transactionID: result.transactionId }, 'Sent CCU transaction');
 		}
-		const params = codec.encode(crossChainUpdateTransactionParams, ccuParams);
-
-		const tx = new Transaction({
-			module: MODULE_NAME_INTEROPERABILITY,
-			command: targetCommand,
-			nonce,
-			senderPublicKey: publicKey,
-			fee: BigInt(this.config.ccuFee),
-			params,
-			signatures: [],
-		});
-		tx.sign(chainID, privateKey);
-
-		return tx;
 	}
 }
