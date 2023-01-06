@@ -55,27 +55,7 @@ export interface ModuleMetadata {
 	}[];
 }
 
-export type RootModuleMetadata = ModuleMetadata & { name: string };
-export interface ModuleMetadataJSON {
-	name: string;
-	endpoints: {
-		name: string;
-		request?: Schema;
-		response: Schema;
-	}[];
-	events: {
-		name: string;
-		data?: Schema;
-	}[];
-	commands: {
-		name: string;
-		params?: Schema;
-	}[];
-	assets: {
-		version: number;
-		data: Schema;
-	}[];
-}
+export type ModuleMetadataJSON = ModuleMetadata & { name: string };
 
 export abstract class BaseModule {
 	public commands: BaseCommand[] = [];
