@@ -37,6 +37,9 @@ import {
 	ChainStatus,
 	Schema,
 	OwnChainAccountJSON,
+	Transaction,
+	CrossChainUpdateTransactionParams,
+	InboxUpdate,
 } from 'lisk-sdk';
 import {
 	CCU_FREQUENCY,
@@ -44,6 +47,7 @@ import {
 	CCM_SEND_SUCCESS,
 	DB_KEY_SIDECHAIN,
 	CCU_TOTAL_CCM_SIZE,
+	COMMAND_NAME_SUBMIT_SIDECHAIN_CCU,
 } from './constants';
 import { ChainConnectorStore, getDBInstance } from './db';
 import { Endpoint } from './endpoint';
@@ -51,13 +55,13 @@ import { configSchema } from './schemas';
 import {
 	ChainConnectorPluginConfig,
 	SentCCUs,
-	CrossChainUpdateTransactionParams,
-	InboxUpdate,
 	ProveResponse,
 	BlockHeader,
 	CrossChainMessagesFromEvents,
 } from './types';
 import { getActiveValidatorsDiff } from './utils';
+
+const { address, ed, encrypt } = cryptography;
 
 interface Data {
 	readonly blockHeader: chain.BlockHeaderJSON;
@@ -93,6 +97,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _mainchainAPIClient!: apiClient.APIClient;
 	private _sidechainAPIClient!: apiClient.APIClient;
 	private readonly _sentCCUs: SentCCUs = [];
+	private _privateKey!: Buffer;
 
 	public get nodeModulePath(): string {
 		return __filename;
@@ -103,6 +108,11 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		await super.init(context);
 		this.endpoint.init(this._sentCCUs);
 		this._ccuFrequency = this.config.ccuFrequency ?? CCU_FREQUENCY;
+		const { password, encryptedPrivateKey } = this.config;
+		if (password) {
+			const parsedEncryptedKey = encrypt.parseEncryptedMessage(encryptedPrivateKey);
+			this._privateKey = await encrypt.decryptMessageWithPassword(parsedEncryptedKey, password);
+		}
 	}
 
 	public async load(): Promise<void> {
@@ -236,6 +246,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		sendingChainID: Buffer,
 		certificate: Certificate,
 		newCertificateThreshold: bigint,
+		crossChainMessages: CCMsg[] = [],
 	): Promise<CrossChainUpdateTransactionParams | undefined> {
 		let activeBFTValidatorsUpdate: ActiveValidator[];
 		let activeValidatorsUpdate: ActiveValidator[] = [];
@@ -318,7 +329,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			);
 		}
 
-		const inboxUpdate = await this._calculateInboxUpdate(sendingChainID);
+		const inboxUpdate = await this._calculateInboxUpdate(sendingChainID, crossChainMessages);
 
 		return {
 			sendingChainID,
@@ -466,20 +477,11 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 		// When # of CCMs are there on the outbox to be sent or # of blocks passed from last certified height
 		if (this._ccuFrequency >= newBlockHeader.height - this._lastCertifiedHeight) {
-			// TODO: _createCCU needs to be implemented which will create and send the CCU transaction
-
-			// @ts-expect-error unused constant ccmsWithHeight
-			const ccmsWithHeight = await this._sidechainChainConnectorStore.getCrossChainMessages();
-
-			// TODO: update `certificate` after 7908 is merged
-			const certificate = {} as Certificate;
-
-			// @ts-expect-error unused constant groupedCCMsBySize
-			const groupedCCMsBySize = this._groupCCMsBySize(
-				await this._sidechainChainConnectorStore.getCrossChainMessages(),
-				certificate,
-			);
-			await this._createCCU();
+			try {
+				await this._submitCCUs([]);
+			} catch (error) {
+				this.logger.error({ err: error }, 'Failed to create CCU');
+			}
 			// if the transaction is successfully submitted then update the last certfied height and do the cleanup
 			// TODO: also check if the state is growing, delete everything from the inMemory state if it goes beyond last 3 rounds
 			await this._cleanup();
@@ -490,6 +492,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	 * This will return lists with sub-lists, where total size of CCMs in each sub-list will be <= CCU_TOTAL_CCM_SIZE
 	 * Each sublist can contain CCMS from DIFFERENT heights
 	 */
+	// @ts-expect-error this function will be used later
 	private _groupCCMsBySize(
 		ccmsFromEvents: CrossChainMessagesFromEvents[],
 		certificate: Certificate,
@@ -609,9 +612,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		return aggregateBFTWeight >= lastCertificateThreshold;
 	}
 
-	private async _calculateInboxUpdate(sendingChainID: Buffer): Promise<InboxUpdate> {
-		// TODO: Fetch as many CCMs as configured in _ccuFrequency.ccm, between lastCertificateHeight and certificateHeight - After #7569
-		const crossChainMessages = await this._sidechainChainConnectorStore.getCrossChainMessages();
+	private async _calculateInboxUpdate(
+		sendingChainID: Buffer,
+		crossChainMessages: CCMsg[],
+	): Promise<InboxUpdate> {
 		const serializedCCMs = crossChainMessages.map(ccm => codec.encode(ccmSchema, ccm));
 
 		// TODO: should use the store prefix with sendingChainID after issue https://github.com/LiskHQ/lisk-sdk/issues/7631
@@ -748,6 +752,39 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		await this._sidechainChainConnectorStore.setCrossChainMessages(crossChainMessages);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	private async _createCCU() {}
+	private async _submitCCUs(ccuParams: Buffer[]): Promise<void> {
+		// This can be changed based on mainchain/sidechain
+		const activeAPIClient = this._sidechainAPIClient;
+		const activePrivateKey = this._privateKey;
+		const activePublicKey = ed.getPublicKeyFromPrivateKey(activePrivateKey);
+		const activeTargetCommand = COMMAND_NAME_SUBMIT_SIDECHAIN_CCU;
+
+		const { nonce } = await activeAPIClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
+			address: address.getLisk32AddressFromPublicKey(activePublicKey),
+		});
+
+		const { chainID: chainIDStr } = await activeAPIClient.invoke<{ chainID: string }>(
+			'system_getNodeInfo',
+		);
+		const chainID = Buffer.from(chainIDStr, 'hex');
+
+		for (let i = 0; i < ccuParams.length; i += 1) {
+			const tx = new Transaction({
+				module: MODULE_NAME_INTEROPERABILITY,
+				command: activeTargetCommand,
+				nonce: BigInt(nonce) + BigInt(i),
+				senderPublicKey: activePublicKey,
+				fee: BigInt(this.config.ccuFee),
+				params: ccuParams[i],
+				signatures: [],
+			});
+			tx.sign(chainID, activePrivateKey);
+			const result = await activeAPIClient.invoke<{
+				transactionId: string;
+			}>('txpool_postTransaction', {
+				transaction: tx.getBytes().toString('hex'),
+			});
+			this.logger.info({ transactionID: result.transactionId }, 'Sent CCU transaction');
+		}
+	}
 }

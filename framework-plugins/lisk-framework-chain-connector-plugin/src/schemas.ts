@@ -13,6 +13,7 @@
  */
 
 import { chain, aggregateCommitSchema, ccmSchema } from 'lisk-sdk';
+import { CCU_FREQUENCY } from './constants';
 
 const pluginSchemaIDPrefix = '/lisk/plugins/chainConnector';
 
@@ -32,11 +33,20 @@ export const configSchema = {
 			type: 'integer',
 			description: 'Number of blocks after which a CCU should be created',
 		},
+		encryptedPrivateKey: {
+			type: 'string',
+		},
+		ccuFee: {
+			type: 'string',
+			format: 'uint64',
+		},
+		password: {
+			type: 'string',
+		},
 	},
-	required: ['mainchainIPCPath'],
+	required: ['mainchainIPCPath', 'ccuFee', 'encryptedPrivateKey'],
 	default: {
-		ccmFrequency: 10,
-		livenessFrequency: 86400,
+		ccuFrequency: CCU_FREQUENCY,
 	},
 };
 

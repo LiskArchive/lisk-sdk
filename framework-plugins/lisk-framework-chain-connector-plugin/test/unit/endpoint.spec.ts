@@ -96,6 +96,12 @@ describe('getSentCCUs', () => {
 		aggregationBits: Buffer.alloc(0).toString('hex'),
 		certificateSignature: Buffer.alloc(0).toString('hex'),
 	};
+
+	const defaultPrivateKey =
+		'6c5e2b24ff1cc99da7a49bd28420b93b2a91e2e2a3b0a0ce07676966b707d3c2859bbd02747cf8e26dab592c02155dfddd4a16b0fe83fd7e7ffaec0b5391f3f7';
+	const defaultPassword = '123';
+	const defaultCCUFee = '100000000';
+
 	let chainConnectorPlugin: ChainConnectorPlugin;
 
 	beforeEach(async () => {
@@ -108,8 +114,21 @@ describe('getSentCCUs', () => {
 			.spyOn(chainConnectorDB, 'getDBInstance')
 			.mockResolvedValue(new db.InMemoryDatabase() as never);
 
+		const encryptedKey = await cryptography.encrypt.encryptMessageWithPassword(
+			Buffer.from(defaultPrivateKey, 'hex'),
+			defaultPassword,
+		);
+		const defaultEncryptedPrivateKey = cryptography.encrypt.stringifyEncryptedMessage(encryptedKey);
+
 		await chainConnectorPlugin.init({
-			config: { mainchainIPCPath: '~/.lisk/mainchain' },
+			config: {
+				mainchainIPCPath: '~/.lisk/mainchain',
+				sidechainIPCPath: '~/.lisk/sidechain',
+				ccuFee: defaultCCUFee,
+				encryptedPrivateKey: defaultEncryptedPrivateKey,
+				ccuFrequency: 10,
+				password: defaultPassword,
+			},
 			appConfig: appConfigForPlugin,
 			logger: testing.mocks.loggerMock,
 		});
