@@ -13,9 +13,16 @@
  *
  */
 
-export { computeMinFee, Options } from './fee';
+export {
+	Options,
+	computeMinFee,
+	DEFAULT_MIN_FEE_PER_BYTE,
+	DEFAULT_NUMBER_OF_SIGNATURES,
+	DEFAULT_SIGNATURE_BYTE_SIZE,
+} from './fee';
 export { convertBeddowsToLSK, convertLSKToBeddows } from './format';
 export {
+	MultiSignatureKeys,
 	getBytes,
 	getSigningBytes,
 	signTransaction,
@@ -25,3 +32,4 @@ export {
 } from './sign';
 export { validateTransaction } from './validate';
 export * from './constants';
+export { baseTransactionSchema } from './schema';
