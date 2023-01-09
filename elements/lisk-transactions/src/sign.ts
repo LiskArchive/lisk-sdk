@@ -114,10 +114,8 @@ export const getBytes = (
 const sanitizeSignaturesArray = (
 	transactionObject: Record<string, unknown>,
 	keys: MultiSignatureKeys,
-	includeSenderSignature: boolean,
 ): void => {
-	const numberOfSignatures =
-		(includeSenderSignature ? 1 : 0) + keys.mandatoryKeys.length + keys.optionalKeys.length;
+	const numberOfSignatures = keys.mandatoryKeys.length + keys.optionalKeys.length;
 
 	for (let i = 0; i < numberOfSignatures; i += 1) {
 		if (
@@ -210,7 +208,6 @@ export const signMultiSignatureTransaction = (
 	privateKey: Buffer,
 	keys: MultiSignatureKeys,
 	paramsSchema?: object,
-	includeSenderSignature = false,
 ): Record<string, unknown> => {
 	if (!chainID.length) {
 		throw new Error('ChainID is required to sign a transaction');
@@ -228,11 +225,10 @@ export const signMultiSignatureTransaction = (
 	if (validationErrors) {
 		throw validationErrors;
 	}
-	// Sort keys
+
 	keys.mandatoryKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
 	keys.optionalKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
 
-	const publicKey = ed.getPublicKeyFromPrivateKey(privateKey);
 	const signature = ed.signDataWithPrivateKey(
 		TAG_TRANSACTION,
 		chainID,
@@ -240,36 +236,20 @@ export const signMultiSignatureTransaction = (
 		privateKey,
 	);
 
-	if (
-		includeSenderSignature &&
-		Buffer.isBuffer(transactionObject.senderPublicKey) &&
-		publicKey.equals(transactionObject.senderPublicKey)
-	) {
-		// eslint-disable-next-line no-param-reassign
-		transactionObject.signatures[0] = signature;
-	}
-
-	// Locate where this public key should go in the signatures array
-	const mandatoryKeyIndex = keys.mandatoryKeys.findIndex(aPublicKey =>
-		aPublicKey.equals(publicKey),
-	);
-	const optionalKeyIndex = keys.optionalKeys.findIndex(aPublicKey => aPublicKey.equals(publicKey));
-
-	// If it's a mandatory Public Key find where to add the signature
+	// Based on the signer's public key, locate where this signature should go in the signatures array
+	const publicKey = ed.getPublicKeyFromPrivateKey(privateKey);
+	const mandatoryKeyIndex = keys.mandatoryKeys.findIndex(key => key.equals(publicKey));
+	const optionalKeyIndex = keys.optionalKeys.findIndex(key => key.equals(publicKey));
 	if (mandatoryKeyIndex !== -1) {
-		const signatureOffset = includeSenderSignature ? 1 : 0;
 		// eslint-disable-next-line no-param-reassign
-		transactionObject.signatures[mandatoryKeyIndex + signatureOffset] = signature;
+		transactionObject.signatures[mandatoryKeyIndex] = signature;
 	}
-
 	if (optionalKeyIndex !== -1) {
-		const signatureOffset = includeSenderSignature ? 1 : 0;
 		// eslint-disable-next-line no-param-reassign
-		transactionObject.signatures[keys.mandatoryKeys.length + optionalKeyIndex + signatureOffset] =
-			signature;
+		transactionObject.signatures[keys.mandatoryKeys.length + optionalKeyIndex] = signature;
 	}
 
-	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
+	sanitizeSignaturesArray(transactionObject, keys);
 
 	return { ...transactionObject, id: utils.hash(getBytes(transactionObject, paramsSchema)) };
 };
