@@ -390,13 +390,13 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 
 		it('should call apply for ccm and add to the inbox where receiving chain is the main chain', async () => {
 			executeContext = createTransactionContext({
-				chainID,
+				chainID, // this chainID matches `getMainchainID(context.chainID)`
 				stateStore,
 				transaction: new Transaction({
 					...defaultTransaction,
 					command: mainchainCCUUpdateCommand.name,
 					params: codec.encode(crossChainUpdateTransactionParams, {
-						...params,
+						...params, // each CCM receivingChainID is chainID in this case
 					}),
 				}),
 			}).createCommandExecuteContext(mainchainCCUUpdateCommand.schema);
@@ -409,7 +409,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 		});
 
 		it('should call forward for ccm and add to the inbox where receiving chain is not the mainchain', async () => {
-			chainID = Buffer.from([0, 1, 2, 0]);
+			chainID = Buffer.from([0, 1, 2, 0]); // this chainID doesn't match `getMainchainID(context.chainID)`
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -420,6 +420,8 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 						activeValidatorsUpdate: sortedActiveValidatorsUpdate,
 						certificate: encodedDefaultCertificate,
 						inboxUpdate: {
+							// each CCM receivingChainID must match context.chainID
+							// otherwise, it will fail on `!context.chainID.equals(ccm.receivingChainID)`
 							crossChainMessages: getDefaultCCMs(chainID, defaultSendingChainIDBuffer).map(ccm =>
 								codec.encode(ccmSchema, ccm),
 							),
