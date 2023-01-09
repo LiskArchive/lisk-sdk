@@ -23,9 +23,9 @@ import {
 } from '../../../../../../src';
 import { EMPTY_BYTES, EMPTY_HASH } from '../../../../../../src/modules/interoperability/constants';
 import {
-	MessageRecoveryInitializationCommand,
+	InitializeMessageRecoveryCommand,
 	MessageRecoveryInitializationParams,
-} from '../../../../../../src/modules/interoperability/mainchain/commands/message_recovery_initialization';
+} from '../../../../../../src/modules/interoperability/mainchain/commands/initialize_message_recovery';
 import {
 	ChainAccountStore,
 	ChainStatus,
@@ -41,7 +41,7 @@ import { OwnChainAccount } from '../../../../../../src/modules/interoperability/
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { createTransactionContext, InMemoryPrefixedStateDB } from '../../../../../../src/testing';
 
-describe('MessageRecoveryInitializationCommand', () => {
+describe('InitializeMessageRecoveryCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 	const targetChainID = Buffer.from([0, 0, 3, 0]);
 	const ownChainAccount: OwnChainAccount = {
@@ -96,12 +96,12 @@ describe('MessageRecoveryInitializationCommand', () => {
 		mainchainStateRoot: EMPTY_HASH,
 	};
 
-	let command: MessageRecoveryInitializationCommand;
+	let command: InitializeMessageRecoveryCommand;
 	let stateStore: PrefixedStateReadWriter;
 
 	beforeEach(async () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		command = new MessageRecoveryInitializationCommand(
+		command = new InitializeMessageRecoveryCommand(
 			interopMod.stores,
 			interopMod.events,
 			new Map(),

@@ -70,8 +70,6 @@ describe('transaction', () => {
 	const txId = Buffer.from(tx.id, 'hex');
 	const txJSON = {
 		...tx,
-		module: tx.module,
-		command: tx.command,
 		nonce: tx.nonce.toString(),
 		fee: tx.fee.toString(),
 		senderPublicKey: tx.senderPublicKey.toString('hex'),
@@ -288,13 +286,13 @@ describe('transaction', () => {
 
 		describe('send', () => {
 			it('should invoke txpool_postTransaction', async () => {
-				const { transactionId: trxId } = await transaction.send(txJSON);
+				const { transactionId } = await transaction.send(txJSON);
 
 				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
 				expect(channelMock.invoke).toHaveBeenCalledWith('txpool_postTransaction', {
 					transaction: txHex,
 				});
-				expect(trxId).toEqual(tx.id);
+				expect(transactionId).toEqual(tx.id);
 			});
 		});
 
@@ -318,13 +316,6 @@ describe('transaction', () => {
 			it('should return encoded transaction', () => {
 				const returnedTx = transaction.encode(tx);
 				expect(returnedTx).toEqual(encodedTx);
-			});
-		});
-
-		describe('computeMinFee', () => {
-			it('should return some value', () => {
-				const fee = transaction.computeMinFee(txJSON);
-				expect(fee).toBeDefined();
 			});
 		});
 

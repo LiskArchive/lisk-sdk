@@ -31,7 +31,7 @@ import { ChainAccount, StateRecoveryInitParams } from '../../types';
 import { getMainchainID } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../../mainchain/internal_method';
 
-export class StateRecoveryInitializationCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
+export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = stateRecoveryInitParamsSchema;
 
 	// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#verification-3

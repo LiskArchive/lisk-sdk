@@ -18,7 +18,7 @@ import * as childProcess from 'child_process';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import { join } from 'path';
-import { BasePlugin } from '../../src';
+import { BaseEndpoint, BaseMethod, BaseModule, BasePlugin, ModuleMetadata } from '../../src';
 import { Application } from '../../src/application';
 import { Bus } from '../../src/controller/bus';
 import { WSServer } from '../../src/controller/ws/ws_server';
@@ -57,6 +57,23 @@ class TestPlugin extends BasePlugin {
 	public async load(): Promise<void> {}
 
 	public async unload(): Promise<void> {}
+}
+
+class TestModule extends BaseModule {
+	public commands = [];
+	public endpoint: BaseEndpoint = {} as BaseEndpoint;
+	public method: BaseMethod = {} as BaseMethod;
+
+	public verifyAssets = jest.fn();
+	public beforeTransactionsExecute = jest.fn();
+	public afterCommandExecute = jest.fn();
+
+	public get name() {
+		return 'test-module';
+	}
+	public metadata(): ModuleMetadata {
+		throw new Error('Method not implemented.');
+	}
 }
 
 describe('Application', () => {
@@ -141,16 +158,27 @@ describe('Application', () => {
 		it('should throw error when plugin with same name is already registered', () => {
 			// Arrange
 			const { app } = Application.defaultApplication(config);
-			class MyPlugin extends TestPlugin {
-				public get name() {
-					return 'my-plugin';
-				}
-			}
-			app.registerPlugin(new MyPlugin());
+			app.registerPlugin(new TestPlugin());
 
 			// Act && Assert
-			expect(() => app.registerPlugin(new MyPlugin())).toThrow(
-				'A plugin with name "my-plugin" already registered.',
+			expect(() => app.registerPlugin(new TestPlugin())).toThrow(
+				'A plugin with name "test-plugin" is already registered.',
+			);
+		});
+
+		it('should throw error when module with same name is already registered', () => {
+			// Arrange
+			const { app } = Application.defaultApplication(config);
+			class DuplicateNameModule extends TestModule {
+				public get name() {
+					return 'test-plugin';
+				}
+			}
+			app.registerModule(new DuplicateNameModule());
+
+			// Act && Assert
+			expect(() => app.registerPlugin(new TestPlugin())).toThrow(
+				'A module with name "test-plugin" is already registered.',
 			);
 		});
 
@@ -191,6 +219,24 @@ describe('Application', () => {
 			expect(app['_controller'].registerPlugin).toHaveBeenCalledWith(plugin, {
 				loadAsChildProcess: false,
 			});
+		});
+	});
+
+	describe('#registerModule', () => {
+		it('should throw error when plugin with same name is already registered', () => {
+			// Arrange
+			const { app } = Application.defaultApplication(config);
+			class DuplicateNamePlugin extends TestPlugin {
+				public get name() {
+					return 'test-module';
+				}
+			}
+			app.registerPlugin(new DuplicateNamePlugin());
+
+			// Act && Assert
+			expect(() => app.registerModule(new TestModule())).toThrow(
+				'A plugin with name "test-module" is already registered.',
+			);
 		});
 	});
 

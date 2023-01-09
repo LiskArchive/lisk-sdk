@@ -24,6 +24,7 @@ export {
 	BlockHeader,
 	BlockHeaderJSON,
 	BlockAssetJSON,
+	standardEventDataSchema,
 } from '@liskhq/lisk-chain';
 export {
 	BaseModule,
@@ -70,15 +71,18 @@ export {
 	genesisStoreSchema as posGenesisStoreSchema,
 } from './modules/pos';
 export {
-	MainchainCCUpdateCommand,
+	SubmitMainchainCrossChainUpdateCommand,
 	MainchainInteroperabilityMethod,
 	MainchainInteroperabilityModule,
-	MainchainMessageRecoveryCommand,
-	MainchainRegistrationCommand,
-	SidechainCCUpdateCommand,
+	RecoverMessageCommand,
+	RegisterMainchainCommand,
+	SubmitSidechainCrossChainUpdateCommand,
 	SidechainInteroperabilityMethod,
 	SidechainInteroperabilityModule,
-	SidechainRegistrationCommand,
+	RegisterSidechainCommand,
+	InitializeStateRecoveryCommand,
+	RecoverStateCommand,
+	TerminateSidechainForLivenessCommand,
 } from './modules/interoperability';
 export { RewardMethod, RewardModule } from './modules/reward';
 export { FeeMethod, FeeModule } from './modules/fee';
@@ -98,3 +102,4 @@ export {
 	BlockExecuteContext,
 	BlockAfterExecuteContext,
 } from './state_machine/types';
+export { TransactionExecutionResult, TransactionVerifyResult } from './abi/constants';

@@ -68,7 +68,7 @@ describe('FeeMethod', () => {
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 		});
 
-		it('should deduct amount from ccm available fee when ccm is processing and available fee is sufficient for amount', () => {
+		it('should deduct amount from ccm available fee when ccm is processing and transaction available fee is sufficient for amount', () => {
 			methodContext.contextStore.set(CONTEXT_STORE_KEY_CCM_PROCESSING, true);
 			expect(() => feeMethod.payFee(methodContext, availableAmount - BigInt(1))).not.toThrow();
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
@@ -77,7 +77,7 @@ describe('FeeMethod', () => {
 			);
 		});
 
-		it('should fail and log event when ccm is not processing and available fee is less than amount', () => {
+		it('should fail and log event when ccm is not processing and transaction available fee is less than amount', () => {
 			expect(() => feeMethod.payFee(methodContext, availableAmount + BigInt(1))).toThrow(
 				'Transaction ran out of fee',
 			);
@@ -88,6 +88,14 @@ describe('FeeMethod', () => {
 			expect(() => feeMethod.payFee(methodContext, availableAmount - BigInt(1))).not.toThrow();
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
 			expect(methodContext.contextStore.get(CONTEXT_STORE_KEY_AVAILABLE_FEE)).toEqual(BigInt(1));
+		});
+
+		it('should fail and log event when ccmProcessing is false and transaction available fee is less than amount', () => {
+			methodContext.contextStore.set(CONTEXT_STORE_KEY_CCM_PROCESSING, false);
+			expect(() => feeMethod.payFee(methodContext, availableAmount + BigInt(1))).toThrow(
+				'Transaction ran out of fee',
+			);
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 		});
 	});
 });

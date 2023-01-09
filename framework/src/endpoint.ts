@@ -21,12 +21,23 @@ export const isReservedEndpointFunction = (key: string): boolean =>
 
 export const getEndpointHandlers = (endpoint: Record<string, unknown>): EndpointHandlers => {
 	const endpointHandlers: EndpointHandlers = {};
-	for (const key of Object.getOwnPropertyNames(Object.getPrototypeOf(endpoint))) {
-		const val = endpoint[key];
-		if (!isReservedEndpointFunction(key) && typeof val === 'function') {
-			endpointHandlers[key] = val.bind(endpoint) as EndpointHandler;
+	let isBaseEndpoint;
+	let localEndpoint = endpoint;
+
+	// For endpoints which extend other endpoints, go deeper in the prototype chain
+	do {
+		for (const key of Object.getOwnPropertyNames(localEndpoint)) {
+			const val = localEndpoint[key];
+			if (!isReservedEndpointFunction(key) && typeof val === 'function') {
+				endpointHandlers[key] = val.bind(endpoint) as EndpointHandler;
+			}
 		}
-	}
+
+		localEndpoint = Object.getPrototypeOf(localEndpoint) as Record<string, unknown>;
+
+		isBaseEndpoint = localEndpoint.constructor.name === Object.name;
+	} while (!isBaseEndpoint);
+
 	return endpointHandlers;
 };
 

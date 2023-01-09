@@ -27,7 +27,7 @@ import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
-import { MainchainMessageRecoveryCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/message_recovery';
+import { RecoverMessageCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/recover_message';
 import {
 	ccmSchema,
 	messageRecoveryParamsSchema,
@@ -94,13 +94,13 @@ const generateProof = async (ccms: Buffer[]): Promise<Proof> => {
 	return merkleTree.generateProof(queryHashes);
 };
 
-describe('Mainchain MessageRecoveryCommand', () => {
+describe('Mainchain InitializeMessageRecoveryCommand', () => {
 	const interopModule = new MainchainInteroperabilityModule();
 
-	let command: MainchainMessageRecoveryCommand;
+	let command: RecoverMessageCommand;
 
 	beforeEach(() => {
-		command = new MainchainMessageRecoveryCommand(
+		command = new RecoverMessageCommand(
 			interopModule.stores,
 			interopModule.events,
 			new Map(),

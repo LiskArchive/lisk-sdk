@@ -32,30 +32,6 @@ export const DEFAULT_NUMBER_OF_SIGNATURES = 1;
 /** Default byte size for transaction signatures. */
 export const DEFAULT_SIGNATURE_BYTE_SIZE = 64;
 
-const computeTransactionMinFee = (
-	trx: Record<string, unknown>,
-	assetSchema?: object,
-	options?: Options,
-): bigint => {
-	const mockSignatures = new Array(
-		options?.numberOfSignatures ?? DEFAULT_NUMBER_OF_SIGNATURES,
-	).fill(Buffer.alloc(DEFAULT_SIGNATURE_BYTE_SIZE));
-	if (options?.numberOfEmptySignatures) {
-		mockSignatures.push(
-			...new Array<Buffer>(options.numberOfEmptySignatures).fill(Buffer.alloc(0)),
-		);
-	}
-	const size = getBytes(
-		{
-			...trx,
-			signatures: mockSignatures,
-		},
-		assetSchema,
-	).length;
-
-	return BigInt(size * (options?.minFeePerByte ?? DEFAULT_MIN_FEE_PER_BYTE));
-};
-
 /**
  * Computes the minimum fee for a provided transaction.
  *
@@ -67,7 +43,7 @@ const computeTransactionMinFee = (
  *
  * @param trx the {@link baseTransactionSchema | transaction}  object
  * @param assetSchema Schema for the command parameters.
- * The specific schemas for parameters are described in the [Modules reference]().
+ * The specific schemas for parameters are described in the [Modules reference](https://lisk.com/documentation/lisk-sdk/modules/index.html).
  * @param options
  *
  * @returns Minimum fee for the provided transaction.
@@ -80,14 +56,26 @@ export const computeMinFee = (
 	assetSchema?: object,
 	options?: Options,
 ): bigint => {
-	const { fee, ...trxWithoutFee } = trx;
-	trxWithoutFee.fee = BigInt(0);
-	let minFee = computeTransactionMinFee(trxWithoutFee, assetSchema, options);
-
-	while (minFee > BigInt(trxWithoutFee.fee as bigint)) {
-		// eslint-disable-next-line no-param-reassign
-		trxWithoutFee.fee = minFee;
-		minFee = computeTransactionMinFee(trxWithoutFee, assetSchema, options);
+	const mockSignatures = new Array(
+		options?.numberOfSignatures ?? DEFAULT_NUMBER_OF_SIGNATURES,
+	).fill(Buffer.alloc(DEFAULT_SIGNATURE_BYTE_SIZE));
+	if (options?.numberOfEmptySignatures) {
+		mockSignatures.push(
+			...new Array<Buffer>(options.numberOfEmptySignatures).fill(Buffer.alloc(0)),
+		);
 	}
+
+	const { ...transaction } = trx;
+	transaction.signatures = mockSignatures;
+	transaction.fee = BigInt(0);
+
+	let minFee = BigInt(0);
+
+	do {
+		transaction.fee = minFee;
+		const transactionSize = getBytes(transaction, assetSchema).length;
+		minFee = BigInt(transactionSize * (options?.minFeePerByte ?? DEFAULT_MIN_FEE_PER_BYTE));
+	} while (minFee > BigInt(transaction.fee as bigint));
+
 	return minFee;
 };
