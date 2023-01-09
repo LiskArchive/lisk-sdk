@@ -57,6 +57,9 @@ describe('PosModuleEndpoint', () => {
 	const address = utils.getRandomBytes(20);
 	const address1 = utils.getRandomBytes(20);
 	const address2 = utils.getRandomBytes(20);
+	const address3 = utils.getRandomBytes(20);
+	const address4 = utils.getRandomBytes(20);
+	const address5 = utils.getRandomBytes(20);
 
 	const addressStaker = utils.getRandomBytes(20);
 	const stakerData: StakerData = {
@@ -467,6 +470,21 @@ describe('PosModuleEndpoint', () => {
 				eligibleValidatorsSubStore.getKey(address2, BigInt(100)),
 				{ lastPomHeight: 0 },
 			);
+			await eligibleValidatorsSubStore.set(
+				context,
+				eligibleValidatorsSubStore.getKey(address3, BigInt(10)),
+				{ lastPomHeight: 0 },
+			);
+			await eligibleValidatorsSubStore.set(
+				context,
+				eligibleValidatorsSubStore.getKey(address4, BigInt(300)),
+				{ lastPomHeight: 0 },
+			);
+			await eligibleValidatorsSubStore.set(
+				context,
+				eligibleValidatorsSubStore.getKey(address5, BigInt(400)),
+				{ lastPomHeight: 0 },
+			);
 
 			await validatorSubStore.set(context, address, {
 				...validatorData,
@@ -480,6 +498,18 @@ describe('PosModuleEndpoint', () => {
 				...validatorData,
 				name: '3',
 			});
+			await validatorSubStore.set(context, address3, {
+				...validatorData,
+				name: '4',
+			});
+			await validatorSubStore.set(context, address4, {
+				...validatorData,
+				name: '5',
+			});
+			await validatorSubStore.set(context, address5, {
+				...validatorData,
+				name: '6',
+			});
 		});
 
 		it('should reject with invalid params', async () => {
@@ -490,14 +520,24 @@ describe('PosModuleEndpoint', () => {
 			).rejects.toThrow('Lisk validator found 1 error[s]:');
 		});
 
-		it('should return validators with default limit', async () => {
+		it('should throw if limit is less than -1', async () => {
+			const limit = -2;
+			await expect(
+				posEndpoint.getValidatorsByStake(
+					createTransientModuleEndpointContext({ stateStore, params: { limit } }),
+				),
+			).rejects.toThrow(`Input parameter limit ${limit} is not valid.`);
+		});
+
+		it('should return validators with default limit in correct order', async () => {
 			const resp = await posEndpoint.getValidatorsByStake(
 				createTransientModuleEndpointContext({ stateStore }),
 			);
-			expect(resp.validators).toHaveLength(3);
+			expect(resp.validators).toHaveLength(6);
 			expect(resp.validators[0]).toEqual({
 				...validatorData,
-				name: '3',
+				address: cryptoAddress.getLisk32AddressFromAddress(address5),
+				name: '6',
 				totalStakeReceived: validatorData.totalStakeReceived.toString(),
 				selfStake: validatorData.selfStake.toString(),
 				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
@@ -508,15 +548,15 @@ describe('PosModuleEndpoint', () => {
 			});
 		});
 
-		it('should return all validators with limit', async () => {
+		it('should return validators corresponding with input limit in correct order if limit is not -1', async () => {
 			const resp = await posEndpoint.getValidatorsByStake(
 				createTransientModuleEndpointContext({ stateStore, params: { limit: 2 } }),
 			);
 			expect(resp.validators).toHaveLength(2);
 			expect(resp.validators[0]).toEqual({
 				...validatorData,
-				name: '3',
-				address: cryptoAddress.getLisk32AddressFromAddress(address2),
+				address: cryptoAddress.getLisk32AddressFromAddress(address5),
+				name: '6',
 				totalStakeReceived: validatorData.totalStakeReceived.toString(),
 				selfStake: validatorData.selfStake.toString(),
 				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
@@ -527,8 +567,8 @@ describe('PosModuleEndpoint', () => {
 			});
 			expect(resp.validators[1]).toEqual({
 				...validatorData,
-				address: cryptoAddress.getLisk32AddressFromAddress(address1),
-				name: '2',
+				address: cryptoAddress.getLisk32AddressFromAddress(address4),
+				name: '5',
 				totalStakeReceived: validatorData.totalStakeReceived.toString(),
 				selfStake: validatorData.selfStake.toString(),
 				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
@@ -537,6 +577,56 @@ describe('PosModuleEndpoint', () => {
 				})),
 				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
 			});
+		});
+
+		it('should return all validators in correct order if limit is -1', async () => {
+			const resp = await posEndpoint.getValidatorsByStake(
+				createTransientModuleEndpointContext({ stateStore, params: { limit: -1 } }),
+			);
+			expect(resp.validators).toHaveLength(6);
+			expect(resp.validators[0]).toEqual({
+				...validatorData,
+				address: cryptoAddress.getLisk32AddressFromAddress(address5),
+				name: '6',
+				totalStakeReceived: validatorData.totalStakeReceived.toString(),
+				selfStake: validatorData.selfStake.toString(),
+				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
+					tokenID: co.tokenID.toString('hex'),
+					coefficient: co.coefficient.toString('hex'),
+				})),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+			});
+			expect(resp.validators[5]).toEqual({
+				...validatorData,
+				address: cryptoAddress.getLisk32AddressFromAddress(address3),
+				name: '4',
+				totalStakeReceived: validatorData.totalStakeReceived.toString(),
+				selfStake: validatorData.selfStake.toString(),
+				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
+					tokenID: co.tokenID.toString('hex'),
+					coefficient: co.coefficient.toString('hex'),
+				})),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+			});
+		});
+
+		it('should return valid JSON output', async () => {
+			const { validators: validatorsDataReturned } = await posEndpoint.getValidatorsByStake(
+				createTransientModuleEndpointContext({ stateStore, params: { limit: -1 } }),
+			);
+
+			expect(validatorsDataReturned[0].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[0].selfStake).toBeString();
+			expect(validatorsDataReturned[1].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[1].selfStake).toBeString();
+			expect(validatorsDataReturned[2].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[2].selfStake).toBeString();
+			expect(validatorsDataReturned[3].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[3].selfStake).toBeString();
+			expect(validatorsDataReturned[4].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[4].selfStake).toBeString();
+			expect(validatorsDataReturned[5].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[5].selfStake).toBeString();
 		});
 	});
 
@@ -673,6 +763,14 @@ describe('PosModuleEndpoint', () => {
 			);
 
 			expect(response).toEqual({ rewards: [] });
+		});
+	});
+
+	describe('getRegistrationFee', () => {
+		it('should return the registration fee', () => {
+			const response = posEndpoint.getRegistrationFee();
+
+			expect(response).toEqual({ fee: config.validatorRegistrationFee.toString() });
 		});
 	});
 });

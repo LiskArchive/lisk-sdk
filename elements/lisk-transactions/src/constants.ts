@@ -14,4 +14,13 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 
+/**
+ * The transaction tag is used during the signature creation to create unique signatures for transactions.
+ *
+ * The tag for transactions is `LSK_TX` as defined in the Lisk protocol.
+ * For more information, check out the corresponding LIPs.
+ *
+ * @see [LIP 0037 - Use message tags and chain identifiers for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0037.md) and
+ * @see [LIP 0068 - Define new transaction schema](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0068.md) for more information about message tags.
+ */
 export const TAG_TRANSACTION = utils.createMessageTag('TX');

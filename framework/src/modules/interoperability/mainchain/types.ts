@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export enum ForwardCCMsgResult {
+export const enum ForwardCCMsgResult {
 	COULD_NOT_TRANSFER_FORWARD_FEE,
 	SUCCESS,
 	INVALID_CCM,

@@ -15,16 +15,42 @@
 
 import { getBytes } from './sign';
 
+/** Available options for {@link computeMinFee} */
 export interface Options {
+	/** Minimum fee per byte. Default value: {@link DEFAULT_MIN_FEE_PER_BYTE} */
 	readonly minFeePerByte?: number;
+	/** Number of signatures included in the transaction. Default value: {@link DEFAULT_NUMBER_OF_SIGNATURES} */
 	readonly numberOfSignatures?: number;
+	/** Number of empty signatures in the transaction. Default value: {@link DEFAULT_SIGNATURE_BYTE_SIZE} */
 	readonly numberOfEmptySignatures?: number;
 }
 
-const DEFAULT_MIN_FEE_PER_BYTE = 1000;
-const DEFAULT_NUMBER_OF_SIGNATURES = 1;
-const DEFAULT_SIGNATURE_BYTE_SIZE = 64;
+/** Default value for `minFeePerByte`. */
+export const DEFAULT_MIN_FEE_PER_BYTE = 1000;
+/** Default value for `numberOfSignatures`. */
+export const DEFAULT_NUMBER_OF_SIGNATURES = 1;
+/** Default byte size for transaction signatures. */
+export const DEFAULT_SIGNATURE_BYTE_SIZE = 64;
 
+/**
+ * Computes the minimum fee for a provided transaction.
+ *
+ *  @example
+ *  ```ts
+ *  import { computeMinFee } from '@liskhq/lisk-transactions';
+ *  const minFee = computeMinFee(TransferTrx, transferParamsSchema, options);
+ *  ```
+ *
+ * @param trx the {@link baseTransactionSchema | transaction}  object
+ * @param assetSchema Schema for the command parameters.
+ * The specific schemas for parameters are described in the [Modules reference](https://lisk.com/documentation/lisk-sdk/modules/index.html).
+ * @param options
+ *
+ * @returns Minimum fee for the provided transaction.
+ *
+ * @see [LIP 0013 - Replace static fee system by dynamic fee system](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0013.md)
+ * @see [LIP 0048 - Introduce Fee Module](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0048.md#minimum-fee-per-transaction)
+ * */
 export const computeMinFee = (
 	trx: Record<string, unknown>,
 	assetSchema?: object,

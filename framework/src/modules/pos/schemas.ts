@@ -574,7 +574,7 @@ export const getValidatorsByStakeRequestSchema = {
 	properties: {
 		limit: {
 			type: 'integer',
-			format: 'uint32',
+			format: 'int32',
 		},
 	},
 };
@@ -728,6 +728,17 @@ export const getPendingUnlocksResponseSchema = {
 					},
 				},
 			},
+		},
+	},
+};
+
+export const getRegistrationFeeResponseSchema = {
+	$id: 'modules/pos/endpoint/getRegistrationFeeResponse',
+	type: 'object',
+	required: ['registrationFee'],
+	properties: {
+		registrationFee: {
+			type: 'string',
 		},
 	},
 };

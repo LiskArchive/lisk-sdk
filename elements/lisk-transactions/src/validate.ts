@@ -16,6 +16,24 @@
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { baseTransactionSchema } from './schema';
 
+/**
+ * Validates a given transaction against its' schema.
+ *
+ * @example
+ * ```ts
+ * import { validateTransaction } from '@liskhq/lisk-transactions';
+ * const validation = validateTransaction(transaction, paramsSchema);
+ * ```
+ *
+ * @param transactionObject The transaction to validate.
+ * @param paramsSchema The parameters schema for the transaction.
+ *
+ * @returns `undefined`, if the transaction is valid and no errors are found.
+ * Returns the Error, if any errors are discovered curing the validation.
+ *
+ * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
+ * @see {@link @liskhq/lisk-validator!LiskValidator.validate}
+ */
 export const validateTransaction = (
 	transactionObject: Record<string, unknown>,
 	paramsSchema?: object,
