@@ -92,6 +92,12 @@ export default class InitGenerator extends Generator {
 	}
 
 	public end(): void {
+		this.spawnCommandSync('yarn', ['link', 'lisk-sdk'], {
+			cwd: this.destinationRoot(),
+		});
+		this.spawnCommandSync('yarn', ['link', 'lisk-commander'], {
+			cwd: this.destinationRoot(),
+		});
 		this.spawnCommandSync('npm', ['run', 'build']);
 		this.log('Generating genesis block and config.', this.destinationRoot());
 		// create default config file
