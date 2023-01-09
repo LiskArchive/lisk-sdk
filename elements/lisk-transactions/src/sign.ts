@@ -239,14 +239,15 @@ export const signMultiSignatureTransaction = (
 	// Based on the signer's public key, locate where this signature should go in the signatures array
 	const publicKey = ed.getPublicKeyFromPrivateKey(privateKey);
 	const mandatoryKeyIndex = keys.mandatoryKeys.findIndex(key => key.equals(publicKey));
-	const optionalKeyIndex = keys.optionalKeys.findIndex(key => key.equals(publicKey));
 	if (mandatoryKeyIndex !== -1) {
 		// eslint-disable-next-line no-param-reassign
 		transactionObject.signatures[mandatoryKeyIndex] = signature;
-	}
-	if (optionalKeyIndex !== -1) {
-		// eslint-disable-next-line no-param-reassign
-		transactionObject.signatures[keys.mandatoryKeys.length + optionalKeyIndex] = signature;
+	} else {
+		const optionalKeyIndex = keys.optionalKeys.findIndex(key => key.equals(publicKey));
+		if (optionalKeyIndex !== -1) {
+			// eslint-disable-next-line no-param-reassign
+			transactionObject.signatures[keys.mandatoryKeys.length + optionalKeyIndex] = signature;
+		}
 	}
 
 	sanitizeSignaturesArray(transactionObject, keys);
