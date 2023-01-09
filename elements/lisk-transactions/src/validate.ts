@@ -32,10 +32,7 @@ import { baseTransactionSchema } from './schema';
  * Returns the Error, if any errors are discovered curing the validation.
  *
  * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
- * @see {@link LiskValidator}
- * @see {@link Lisk_Validator.LiskValidator}
- * @see {@link LiskValidationError}
- * @see {@link Lisk_Validator.LiskValidationError}
+ * @see {@link @liskhq/lisk-validator!LiskValidator.validate}
  */
 export const validateTransaction = (
 	transactionObject: Record<string, unknown>,
