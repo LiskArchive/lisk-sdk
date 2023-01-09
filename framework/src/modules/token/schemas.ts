@@ -622,3 +622,59 @@ export const isSupportedResponseSchema = {
 	},
 	required: ['supported'],
 };
+
+export const hasUserAccountRequestSchema = {
+	$id: '/token/endpoint/hasUserAccountRequest',
+	type: 'object',
+	properties: {
+		address: {
+			type: 'string',
+			format: 'lisk32',
+		},
+		tokenID: {
+			type: 'string',
+			format: 'hex',
+			minLength: TOKEN_ID_LENGTH * 2,
+			maxLength: TOKEN_ID_LENGTH * 2,
+		},
+	},
+	required: ['address', 'tokenID'],
+};
+
+export const hasEscrowAccountRequestSchema = {
+	$id: '/token/endpoint/hasEscrowAccountRequest',
+	type: 'object',
+	properties: {
+		tokenID: {
+			type: 'string',
+			format: 'hex',
+			minLength: TOKEN_ID_LENGTH * 2,
+			maxLength: TOKEN_ID_LENGTH * 2,
+		},
+		escrowChainID: {
+			type: 'string',
+			format: 'hex',
+		},
+	},
+	required: ['tokenID', 'escrowChainID'],
+};
+
+export const hasUserAccountResponseSchema = {
+	$id: '/token/endpoint/hasUserAccountResponse',
+	type: 'object',
+	properties: {
+		exists: {
+			type: 'boolean',
+		},
+	},
+};
+
+export const hasEscrowAccountResponseSchema = {
+	$id: '/token/endpoint/hasEscrowAccountResponse',
+	type: 'object',
+	properties: {
+		exists: {
+			type: 'boolean',
+		},
+	},
+};

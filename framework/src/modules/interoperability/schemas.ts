@@ -741,3 +741,14 @@ export const genesisInteroperabilitySchema = {
 		},
 	},
 };
+
+export const getRegistrationFeeSchema = {
+	$id: '/modules/interoperability/mainchain/registrationFee',
+	type: 'object',
+	required: ['registrationFee'],
+	properties: {
+		registrationFee: {
+			type: 'string',
+		},
+	},
+};
