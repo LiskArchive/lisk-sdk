@@ -162,12 +162,8 @@ describe('getSentCCUs', () => {
 				status: 1,
 			});
 		await chainConnectorPlugin.load();
-		await chainConnectorPlugin['_sidechainChainConnectorStore'].setAggregateCommits([
-			aggregateCommit,
-		]);
-		await chainConnectorPlugin['_sidechainChainConnectorStore'].setValidatorsHashPreimage([
-			validatorsData,
-		]);
+		await chainConnectorPlugin['_chainConnectorStore'].setAggregateCommits([aggregateCommit]);
+		await chainConnectorPlugin['_chainConnectorStore'].setValidatorsHashPreimage([validatorsData]);
 	});
 
 	afterEach(async () => {
@@ -178,11 +174,11 @@ describe('getSentCCUs', () => {
 			disconnect: jest.fn(),
 		};
 
-		await chainConnectorPlugin['_sidechainChainConnectorStore']['_db'].clear();
+		await chainConnectorPlugin['_chainConnectorStore']['_db'].clear();
 	});
 
 	afterAll(() => {
-		chainConnectorPlugin['_sidechainChainConnectorStore']['_db'].close();
+		chainConnectorPlugin['_chainConnectorStore']['_db'].close();
 
 		removeSync(chainConnectorPlugin['dataPath']);
 	});

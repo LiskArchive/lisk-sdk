@@ -75,11 +75,11 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	public endpoint = new Endpoint();
 	public configSchema = configSchema;
 	private _chainConnectorPluginDB!: liskDB.Database;
-	private _sidechainChainConnectorStore!: ChainConnectorStore;
+	private _chainConnectorStore!: ChainConnectorStore;
 	private _lastCertificate!: LastCertificate;
 	private _ccuFrequency!: number;
-	private _mainchainAPIClient!: apiClient.APIClient;
-	private _sidechainAPIClient!: apiClient.APIClient;
+	private _receivingChainClient!: apiClient.APIClient;
+	private _sendingChainClient!: apiClient.APIClient;
 	private _ownChainID!: Buffer;
 	private readonly _sentCCUs: SentCCUs = [];
 	private _privateKey!: Buffer;
@@ -102,29 +102,29 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 	public async load(): Promise<void> {
 		this._chainConnectorPluginDB = await getDBInstance(this.dataPath);
-		this._sidechainChainConnectorStore = new ChainConnectorStore(
+		this._chainConnectorStore = new ChainConnectorStore(
 			this._chainConnectorPluginDB,
 			DB_KEY_SIDECHAIN,
 		);
-		this.endpoint.load(this._sidechainChainConnectorStore);
+		this.endpoint.load(this._chainConnectorStore);
 
-		this._mainchainAPIClient = await apiClient.createIPCClient(this.config.mainchainIPCPath);
+		this._receivingChainClient = await apiClient.createIPCClient(this.config.mainchainIPCPath);
 		if (this.config.sidechainIPCPath) {
-			this._sidechainAPIClient = await apiClient.createIPCClient(this.config.sidechainIPCPath);
+			this._sendingChainClient = await apiClient.createIPCClient(this.config.sidechainIPCPath);
 		} else {
-			this._sidechainAPIClient = this.apiClient;
+			this._sendingChainClient = this.apiClient;
 		}
 
 		this._ownChainID = Buffer.from(
 			(
-				await this._sidechainAPIClient.invoke<OwnChainAccountJSON>(
+				await this._sendingChainClient.invoke<OwnChainAccountJSON>(
 					'interoperability_getOwnChainAccount',
 				)
 			).chainID,
 			'hex',
 		);
 		// Fetch last certificate from the receiving chain and update the _lastCertificate
-		const { lastCertificate } = await this._mainchainAPIClient.invoke<ChainAccountJSON>(
+		const { lastCertificate } = await this._receivingChainClient.invoke<ChainAccountJSON>(
 			'interoperability_getChainAccount',
 			{ chainID: this._ownChainID },
 		);
@@ -135,23 +135,23 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			validatorsHash: Buffer.from(lastCertificate.validatorsHash, 'hex'),
 		};
 		// On a new block start with CCU creation process
-		this._sidechainAPIClient.subscribe('chain_newBlock', async (data?: Record<string, unknown>) =>
+		this._sendingChainClient.subscribe('chain_newBlock', async (data?: Record<string, unknown>) =>
 			this._newBlockHandler(data),
 		);
 
-		this._sidechainAPIClient.subscribe(
+		this._sendingChainClient.subscribe(
 			'chain_deleteBlock',
 			async (data?: Record<string, unknown>) => this._deleteBlockHandler(data),
 		);
 	}
 
 	public async unload(): Promise<void> {
-		await this._mainchainAPIClient.disconnect();
-		if (this._sidechainAPIClient) {
-			await this._sidechainAPIClient.disconnect();
+		await this._receivingChainClient.disconnect();
+		if (this._sendingChainClient) {
+			await this._sendingChainClient.disconnect();
 		}
 
-		this._sidechainChainConnectorStore.close();
+		this._chainConnectorStore.close();
 	}
 
 	private async _newBlockHandler(data?: Record<string, unknown>) {
@@ -178,7 +178,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 	private async _saveDataOnNewBlock(newBlockHeader: BlockHeader) {
 		// Save block header if a new block header arrives
-		const blockHeaders = await this._sidechainChainConnectorStore.getBlockHeaders();
+		const blockHeaders = await this._chainConnectorStore.getBlockHeaders();
 
 		const blockHeaderIndex = blockHeaders.findIndex(
 			header => header.height === newBlockHeader.height,
@@ -190,7 +190,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 
 		// Check for events if any and store them
-		const events = await this._sidechainAPIClient.invoke<JSONObject<chain.EventAttr[]>>(
+		const events = await this._sendingChainClient.invoke<JSONObject<chain.EventAttr[]>>(
 			'chain_getEvents',
 			{ height: newBlockHeader.height },
 		);
@@ -213,7 +213,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				break ccmInEventsCheck;
 			}
 
-			const { modules } = await this._sidechainAPIClient.invoke<{ modules: ModuleMetadata }>(
+			const { modules } = await this._sendingChainClient.invoke<{ modules: ModuleMetadata }>(
 				'system_getMetadata',
 			);
 			const interoperabilityMetadata = modules.find(m => m.name === MODULE_NAME_INTEROPERABILITY);
@@ -265,7 +265,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 			// Calculate the inclusion proof of the CCMs
 			const outboxKey = Buffer.concat([Buffer.from(store?.key as string, 'hex'), this._ownChainID]);
-			const stateProveResponse = await this._sidechainAPIClient.invoke<ProveResponse>(
+			const stateProveResponse = await this._sendingChainClient.invoke<ProveResponse>(
 				'state_prove',
 				{
 					queries: [outboxKey],
@@ -275,22 +275,21 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				bitmap: stateProveResponse.proof.queries[0].bitmap,
 				siblingHashes: stateProveResponse.proof.siblingHashes,
 			};
-			const crossChainMessages = await this._sidechainChainConnectorStore.getCrossChainMessages();
+			const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
 			crossChainMessages.push({
 				ccms: ccmsFromEvents,
 				height: newBlockHeader.height,
 				inclusionProof: inclusionProofOutboxRoot,
 			});
 
-			await this._sidechainChainConnectorStore.setCrossChainMessages(crossChainMessages);
+			await this._chainConnectorStore.setCrossChainMessages(crossChainMessages);
 		}
 
 		// Save validatorsData for a new validatorsHash
-		const validatorsHashPreimage =
-			await this._sidechainChainConnectorStore.getValidatorsHashPreimage();
+		const validatorsHashPreimage = await this._chainConnectorStore.getValidatorsHashPreimage();
 
 		// Get validatorsData at new block header height
-		const bftParameters = await this._sidechainAPIClient.invoke<BFTParameters>(
+		const bftParameters = await this._sendingChainClient.invoke<BFTParameters>(
 			'consensus_getBFTParameters',
 			{ height: newBlockHeader.height },
 		);
@@ -307,7 +306,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 
 		// Save aggregateCommit if present in the block header
-		const aggregateCommits = await this._sidechainChainConnectorStore.getAggregateCommits();
+		const aggregateCommits = await this._chainConnectorStore.getAggregateCommits();
 		if (newBlockHeader.aggregateCommit) {
 			const aggregateCommitIndex = aggregateCommits.findIndex(
 				commit => commit.height === newBlockHeader.aggregateCommit.height,
@@ -320,18 +319,17 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 
 		// Save all the data
-		await this._sidechainChainConnectorStore.setBlockHeaders(blockHeaders);
-		await this._sidechainChainConnectorStore.setAggregateCommits(aggregateCommits);
-		await this._sidechainChainConnectorStore.setValidatorsHashPreimage(validatorsHashPreimage);
+		await this._chainConnectorStore.setBlockHeaders(blockHeaders);
+		await this._chainConnectorStore.setAggregateCommits(aggregateCommits);
+		await this._chainConnectorStore.setValidatorsHashPreimage(validatorsHashPreimage);
 	}
 
 	// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#parameters
 	public async _calculateCCUParams(): Promise<Buffer[]> {
-		const blockHeaders = await this._sidechainChainConnectorStore.getBlockHeaders();
-		const aggregateCommits = await this._sidechainChainConnectorStore.getAggregateCommits();
-		const validatorsHashPreimage =
-			await this._sidechainChainConnectorStore.getValidatorsHashPreimage();
-		const bftHeights = await this._sidechainAPIClient.invoke<BFTHeights>('consensus_getBFTHeights');
+		const blockHeaders = await this._chainConnectorStore.getBlockHeaders();
+		const aggregateCommits = await this._chainConnectorStore.getAggregateCommits();
+		const validatorsHashPreimage = await this._chainConnectorStore.getValidatorsHashPreimage();
+		const bftHeights = await this._sendingChainClient.invoke<BFTHeights>('consensus_getBFTHeights');
 		// Calculate certificate
 		const certificate = getNextCertificateFromAggregateCommits(
 			blockHeaders,
@@ -352,7 +350,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		if (!blockHeader) {
 			throw new Error('No block header found for the given certificate height.');
 		}
-		const chainAccount = await this._mainchainAPIClient.invoke<ChainAccountJSON>(
+		const chainAccount = await this._receivingChainClient.invoke<ChainAccountJSON>(
 			'interoperability_getChainAccount',
 			{ chainID: this._ownChainID },
 		);
@@ -372,8 +370,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				status: chainAccount.status,
 			},
 			this._ownChainID,
-			this._sidechainChainConnectorStore,
-			this._mainchainAPIClient,
+			this._chainConnectorStore,
+			this._receivingChainClient,
 		);
 		if (!status) {
 			throw new Error(`Certificate validation failed with message: ${message ?? ''}.`);
@@ -388,7 +386,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			activeValidatorsUpdate = validatorsUpdateResult.activeValidatorsUpdate;
 			certificateThreshold = validatorsUpdateResult.certificateThreshold;
 		}
-		const crossChainMessages = await this._sidechainChainConnectorStore.getCrossChainMessages();
+		const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
 		// Calculate inboxUpdate
 		const inboxUpdates = await calculateInboxUpdate(
 			certificate,
@@ -438,59 +436,57 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		const findIndexByHeight = (someData: { height: number }[]): number =>
 			someData.findIndex(datum => datum.height === newBlockHeader.height);
 
-		const blockHeaders = await this._sidechainChainConnectorStore.getBlockHeaders();
+		const blockHeaders = await this._chainConnectorStore.getBlockHeaders();
 		const blockHeaderIndex = findIndexByHeight(blockHeaders);
 		if (blockHeaderIndex !== -1) {
 			blockHeaders.splice(blockHeaderIndex, 1);
-			await this._sidechainChainConnectorStore.setBlockHeaders(blockHeaders);
+			await this._chainConnectorStore.setBlockHeaders(blockHeaders);
 		}
 
-		const aggregateCommits = await this._sidechainChainConnectorStore.getAggregateCommits();
+		const aggregateCommits = await this._chainConnectorStore.getAggregateCommits();
 		const aggregateCommitIndex = findIndexByHeight(aggregateCommits);
 		if (aggregateCommitIndex !== -1) {
 			aggregateCommits.splice(aggregateCommitIndex, 1);
-			await this._sidechainChainConnectorStore.setAggregateCommits(aggregateCommits);
+			await this._chainConnectorStore.setAggregateCommits(aggregateCommits);
 		}
 
-		const validatorsHashPreimage =
-			await this._sidechainChainConnectorStore.getValidatorsHashPreimage();
+		const validatorsHashPreimage = await this._chainConnectorStore.getValidatorsHashPreimage();
 		const validatorsHashPreimageIndex = validatorsHashPreimage.findIndex(v =>
 			v.validatorsHash.equals(newBlockHeader.validatorsHash),
 		);
 		if (validatorsHashPreimageIndex !== -1) {
 			validatorsHashPreimage.splice(validatorsHashPreimageIndex, 1);
-			await this._sidechainChainConnectorStore.setValidatorsHashPreimage(validatorsHashPreimage);
+			await this._chainConnectorStore.setValidatorsHashPreimage(validatorsHashPreimage);
 		}
 	}
 
 	private async _cleanup() {
 		// Delete CCMs
-		const crossChainMessages = await this._sidechainChainConnectorStore.getCrossChainMessages();
+		const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
 		const index = crossChainMessages.findIndex(ccm => ccm.height === this._lastCertificate.height);
 		crossChainMessages.splice(index, 1);
 
-		await this._sidechainChainConnectorStore.setCrossChainMessages(crossChainMessages);
+		await this._chainConnectorStore.setCrossChainMessages(crossChainMessages);
 
 		// Delete blockHeaders
-		const blockHeaders = await this._sidechainChainConnectorStore.getBlockHeaders();
+		const blockHeaders = await this._chainConnectorStore.getBlockHeaders();
 
-		await this._sidechainChainConnectorStore.setBlockHeaders(
+		await this._chainConnectorStore.setBlockHeaders(
 			blockHeaders.filter(blockHeader => blockHeader.height >= this._lastCertificate.height),
 		);
 
 		// Delete aggregateCommits
-		const aggregateCommits = await this._sidechainChainConnectorStore.getAggregateCommits();
+		const aggregateCommits = await this._chainConnectorStore.getAggregateCommits();
 
-		await this._sidechainChainConnectorStore.setAggregateCommits(
+		await this._chainConnectorStore.setAggregateCommits(
 			aggregateCommits.filter(
 				aggregateCommit => aggregateCommit.height >= this._lastCertificate.height,
 			),
 		);
 		// Delete validatorsHashPreimage
-		const validatorsHashPreimage =
-			await this._sidechainChainConnectorStore.getValidatorsHashPreimage();
+		const validatorsHashPreimage = await this._chainConnectorStore.getValidatorsHashPreimage();
 
-		await this._sidechainChainConnectorStore.setValidatorsHashPreimage(
+		await this._chainConnectorStore.setValidatorsHashPreimage(
 			validatorsHashPreimage.filter(
 				validatorsData =>
 					validatorsData.certificateThreshold >= BigInt(this._lastCertificate.height),
@@ -500,7 +496,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 	private async _submitCCUs(ccuParams: Buffer[]): Promise<void> {
 		// This can be changed based on mainchain/sidechain
-		const activeAPIClient = this._sidechainAPIClient;
+		const activeAPIClient = this._sendingChainClient;
 		const activePrivateKey = this._privateKey;
 		const activePublicKey = ed.getPublicKeyFromPrivateKey(activePrivateKey);
 		const activeTargetCommand = COMMAND_NAME_SUBMIT_SIDECHAIN_CCU;
