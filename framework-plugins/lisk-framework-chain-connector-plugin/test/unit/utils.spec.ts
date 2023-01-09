@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Validator } from '../../src/types';
-import { getActiveValidatorsDiff } from '../../src/utils';
+import { ActiveValidatorWithAddress } from '../../src/types';
+import { getActiveValidatorsDiff } from '../../src/active_validators_update';
 
 describe('getActiveValidatorsDiff', () => {
 	it('should aggregate new validators not existing in existing validators', () => {
-		const currentValidators: Validator[] = [
+		const currentValidators: ActiveValidatorWithAddress[] = [
 			{
 				blsKey: Buffer.from('02', 'hex'),
 				bftWeight: BigInt(20),
@@ -25,7 +25,7 @@ describe('getActiveValidatorsDiff', () => {
 			},
 		];
 
-		const newValidators: Validator[] = [
+		const newValidators: ActiveValidatorWithAddress[] = [
 			{
 				blsKey: Buffer.from('02', 'hex'),
 				bftWeight: BigInt(20),
@@ -43,7 +43,7 @@ describe('getActiveValidatorsDiff', () => {
 			},
 		];
 
-		const expectedValidators: Validator[] = [
+		const expectedValidators: ActiveValidatorWithAddress[] = [
 			{
 				blsKey: Buffer.from('03', 'hex'),
 				bftWeight: BigInt(30),
@@ -62,7 +62,7 @@ describe('getActiveValidatorsDiff', () => {
 	});
 
 	it('should aggregate existing validators having blsKey not existing in new validators with bftWeight set to 0 and aggregating the new validator as well', () => {
-		const currentValidators: Validator[] = [
+		const currentValidators: ActiveValidatorWithAddress[] = [
 			{
 				blsKey: Buffer.from('01', 'hex'),
 				bftWeight: BigInt(10),
@@ -75,7 +75,7 @@ describe('getActiveValidatorsDiff', () => {
 			},
 		];
 
-		const newValidators: Validator[] = [
+		const newValidators: ActiveValidatorWithAddress[] = [
 			{
 				blsKey: Buffer.from('02', 'hex'),
 				bftWeight: BigInt(10),
@@ -83,7 +83,7 @@ describe('getActiveValidatorsDiff', () => {
 			},
 		];
 
-		const expectedValidators: Validator[] = [
+		const expectedValidators: ActiveValidatorWithAddress[] = [
 			{
 				blsKey: Buffer.from('02', 'hex'),
 				bftWeight: BigInt(10),

@@ -36,6 +36,8 @@ export {
 	OutboxRootWitness,
 	OwnChainAccount,
 	OwnChainAccountJSON,
+	LastCertificate,
+	LastCertificateJSON,
 } from './types';
 // Common
 export {
@@ -46,4 +48,10 @@ export {
 	EMPTY_BYTES,
 } from './constants';
 export { ChainStatus } from './stores/chain_account';
-export { ccmSchema, crossChainUpdateTransactionParams } from './schemas';
+export { ccmSchema, crossChainUpdateTransactionParams as ccuParamsSchema } from './schemas';
+export {
+	CcmProcessedEventData,
+	CCMProcessedCode,
+	CCMProcessedResult,
+} from './events/ccm_processed';
+export { CcmSendSuccessEventData } from './events/ccm_send_success';

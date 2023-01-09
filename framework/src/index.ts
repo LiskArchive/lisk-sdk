@@ -94,7 +94,6 @@ export {
 	OutboxJSON,
 	InboxUpdate,
 	CrossChainUpdateTransactionParams,
-	crossChainUpdateTransactionParams,
 	ActiveValidator,
 	OutboxRootWitness,
 	LIVENESS_LIMIT,
@@ -106,6 +105,13 @@ export {
 	ccmSchema,
 	OwnChainAccount,
 	OwnChainAccountJSON,
+	LastCertificate,
+	LastCertificateJSON,
+	CcmProcessedEventData,
+	CcmSendSuccessEventData,
+	CCMProcessedCode,
+	CCMProcessedResult,
+	ccuParamsSchema,
 } from './modules/interoperability';
 export { RewardMethod, RewardModule } from './modules/reward';
 export { FeeMethod, FeeModule } from './modules/fee';

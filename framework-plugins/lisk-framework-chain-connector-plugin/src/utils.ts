@@ -21,7 +21,7 @@ import {
 	Outbox,
 	OutboxJSON,
 } from 'lisk-sdk';
-import { Validator, ValidatorsData } from './types';
+import { ValidatorsData } from './types';
 
 export const aggregateCommitToJSON = (aggregateCommit: AggregateCommit) => ({
 	height: aggregateCommit.height,
@@ -89,39 +89,4 @@ export const channelDataJSONToObj = (channelData: ChannelDataJSON): ChannelData 
 		inbox: inboxJSON,
 		partnerChainOutboxRoot: Buffer.from(partnerChainOutboxRoot, 'hex'),
 	};
-};
-
-export const getActiveValidatorsDiff = (
-	currentValidators: Validator[],
-	newValidators: Validator[],
-): Validator[] => {
-	const activeValidatorsUpdate: Validator[] = [];
-
-	for (const newValidator of newValidators) {
-		const existingValidator = currentValidators.find(
-			validator =>
-				Buffer.compare(validator.blsKey, newValidator.blsKey) === 0 &&
-				validator.bftWeight === newValidator.bftWeight,
-		);
-
-		if (existingValidator === undefined) {
-			activeValidatorsUpdate.push(newValidator);
-		}
-	}
-
-	for (const currentValidator of currentValidators) {
-		const newValidator = newValidators.find(
-			validator => Buffer.compare(validator.blsKey, currentValidator.blsKey) === 0,
-		);
-
-		if (newValidator === undefined) {
-			activeValidatorsUpdate.push({
-				blsKey: currentValidator.blsKey,
-				bftWeight: BigInt(0),
-				address: currentValidator.address,
-			});
-		}
-	}
-
-	return activeValidatorsUpdate;
 };

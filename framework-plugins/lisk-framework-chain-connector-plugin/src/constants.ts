@@ -24,6 +24,8 @@ export const CROSS_CHAIN_COMMAND_NAME_TRANSFER = 'crossChainTransfer';
 export const CCM_SEND_SUCCESS = 'ccmSendSuccess';
 export const ADDRESS_LENGTH = 20;
 export const BLS_PUBLIC_KEY_LENGTH = 48;
+export const HASH_LENGTH = 32;
+export const CCM_PROCESSED = 'ccmProcessed';
 
 export const DB_KEY_MAINCHAIN = Buffer.from([0]);
 export const DB_KEY_SIDECHAIN = Buffer.from([1]);
