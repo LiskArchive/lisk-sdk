@@ -372,6 +372,7 @@ describe('certificate generation', () => {
 				sendingChainID,
 				sidechainStore,
 				mainchainAPIClient,
+				false,
 			);
 
 			expect(result.status).toBe(false);
@@ -395,6 +396,7 @@ describe('certificate generation', () => {
 				sendingChainID,
 				sidechainStore,
 				mainchainAPIClient,
+				false,
 			);
 
 			expect(result.status).toBe(false);
@@ -420,6 +422,7 @@ describe('certificate generation', () => {
 				sendingChainID,
 				sidechainStore,
 				mainchainAPIClient,
+				false,
 			);
 
 			expect(result.status).toBe(false);
@@ -465,6 +468,7 @@ describe('certificate generation', () => {
 				sendingChainID,
 				sidechainStore,
 				mainchainAPIClient,
+				false,
 			);
 
 			expect(result.status).toBe(true);
@@ -516,6 +520,7 @@ describe('certificate generation', () => {
 				sendingChainID,
 				sidechainStore,
 				mainchainAPIClient,
+				false,
 			);
 
 			expect(result.status).toBe(false);
@@ -567,6 +572,7 @@ describe('certificate generation', () => {
 				sendingChainID,
 				sidechainStore,
 				mainchainAPIClient,
+				false,
 			);
 
 			expect(result.status).toBe(false);

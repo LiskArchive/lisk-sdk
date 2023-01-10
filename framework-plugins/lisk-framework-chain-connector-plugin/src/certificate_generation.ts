@@ -157,8 +157,9 @@ export const validateCertificate = async (
 	blockHeader: BlockHeader,
 	chainAccount: ChainAccount,
 	sendingChainID: Buffer,
-	sidechainChainConnectorStore: ChainConnectorStore,
-	mainchainAPIClient: apiClient.APIClient,
+	chainConnectorStore: ChainConnectorStore,
+	receivingChainAPIClient: apiClient.APIClient,
+	isReceivingChainIsMainchain: boolean,
 ): Promise<CertificateValidationResult> => {
 	if (chainAccount.status === ChainStatus.TERMINATED) {
 		return {
@@ -174,21 +175,24 @@ export const validateCertificate = async (
 		};
 	}
 
-	const isCertificateLivenessValid = await verifyLiveness(
-		sendingChainID,
-		certificate.timestamp,
-		blockHeader.timestamp,
-		mainchainAPIClient,
-	);
+	// Verify liveness when receiving chain is not mainchain
+	if (!isReceivingChainIsMainchain) {
+		const isCertificateLivenessValid = await verifyLiveness(
+			sendingChainID,
+			certificate.timestamp,
+			blockHeader.timestamp,
+			receivingChainAPIClient,
+		);
 
-	if (!isCertificateLivenessValid) {
-		return {
-			message: 'Liveness validation failed.',
-			status: false,
-		};
+		if (!isCertificateLivenessValid) {
+			return {
+				message: 'Liveness validation failed.',
+				status: false,
+			};
+		}
 	}
 
-	const validatorsHashPreimage = await sidechainChainConnectorStore.getValidatorsHashPreimage();
+	const validatorsHashPreimage = await chainConnectorStore.getValidatorsHashPreimage();
 	const validatorData = validatorsHashPreimage.find(data =>
 		data.validatorsHash.equals(blockHeader.validatorsHash),
 	);
@@ -232,9 +236,9 @@ export const verifyLiveness = async (
 	chainID: Buffer,
 	certificateTimestamp: number,
 	blockTimestamp: number,
-	mainchainAPIClient: apiClient.APIClient,
+	receivingChainAPIClient: apiClient.APIClient,
 ): Promise<boolean> => {
-	const isLive = await mainchainAPIClient.invoke<boolean>('interoperability_isLive', {
+	const isLive = await receivingChainAPIClient.invoke<boolean>('interoperability_isLive', {
 		chainID,
 		timestamp: certificateTimestamp,
 	});

@@ -25,6 +25,13 @@ import {
 	OutboxJSON,
 } from 'lisk-sdk';
 import { BFTParametersJSON, ProveResponse, ProveResponseJSON, ValidatorsData } from './types';
+import { CHAIN_ID_LENGTH } from './constants';
+
+export const getMainchainID = (chainID: Buffer): Buffer => {
+	const networkID = chainID.slice(0, 1);
+	// 3 bytes for remaining chainID bytes
+	return Buffer.concat([networkID, Buffer.alloc(CHAIN_ID_LENGTH - 1, 0)]);
+};
 
 export const aggregateCommitToJSON = (aggregateCommit: AggregateCommit) => ({
 	height: aggregateCommit.height,

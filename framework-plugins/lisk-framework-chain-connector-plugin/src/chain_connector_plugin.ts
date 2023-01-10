@@ -49,6 +49,7 @@ import {
 	COMMAND_NAME_SUBMIT_SIDECHAIN_CCU,
 	CCM_PROCESSED,
 	EMPTY_BYTES,
+	COMMAND_NAME_SUBMIT_MAINCHAIN_CCU,
 } from './constants';
 import { ChainConnectorStore, getDBInstance } from './db';
 import { Endpoint } from './endpoint';
@@ -61,7 +62,12 @@ import {
 	BFTParametersJSON,
 } from './types';
 import { calculateInboxUpdate } from './inbox_update';
-import { bftParametersJSONToObj, chainAccountDataJSONToObj, proveResponseJSONToObj } from './utils';
+import {
+	bftParametersJSONToObj,
+	chainAccountDataJSONToObj,
+	getMainchainID,
+	proveResponseJSONToObj,
+} from './utils';
 
 const { address, ed, encrypt } = cryptography;
 
@@ -87,6 +93,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _receivingChainClient!: apiClient.APIClient;
 	private _sendingChainClient!: apiClient.APIClient;
 	private _ownChainID!: Buffer;
+	private _isReceivingChainIsMainchain!: boolean;
 	private readonly _sentCCUs: SentCCUs = [];
 	private _privateKey!: Buffer;
 
@@ -129,6 +136,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			).chainID,
 			'hex',
 		);
+		// If the running node is mainchain then receiving chain will be sidehchain or vice verse.
+		this._isReceivingChainIsMainchain = !getMainchainID(this._ownChainID).equals(this._ownChainID);
 		// Fetch last certificate from the receiving chain and update the _lastCertificate
 		const { lastCertificate } = await this._receivingChainClient.invoke<ChainAccountJSON>(
 			'interoperability_getChainAccount',
@@ -162,6 +171,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 	private async _newBlockHandler(data?: Record<string, unknown>) {
 		const { blockHeader: receivedBlock } = data as unknown as Data;
+
 		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock).toObject();
 		// Save blockHeader, aggregateCommit, validatorsData and cross chain messages if any.
 		try {
@@ -353,6 +363,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#parameters
 	public async _calculateCCUParams(): Promise<Buffer[]> {
 		const blockHeaders = await this._chainConnectorStore.getBlockHeaders();
+
 		const aggregateCommits = await this._chainConnectorStore.getAggregateCommits();
 		const validatorsHashPreimage = await this._chainConnectorStore.getValidatorsHashPreimage();
 		const bftHeights = await this._sendingChainClient.invoke<BFTHeights>('consensus_getBFTHeights');
@@ -372,6 +383,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		// Calculate activeValidatorsUpdate
 		let activeValidatorsUpdate: ActiveValidator[] = [];
 		let certificateThreshold = BigInt(0);
+
 		const blockHeader = blockHeaders.find(header => header.height === certificate.height);
 		if (!blockHeader) {
 			throw new Error('No block header found for the given certificate height.');
@@ -398,6 +410,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			this._ownChainID,
 			this._chainConnectorStore,
 			this._receivingChainClient,
+			this._isReceivingChainIsMainchain,
 		);
 		if (!status) {
 			throw new Error(`Certificate validation failed with message: ${message ?? ''}.`);
@@ -524,7 +537,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		const activeAPIClient = this._sendingChainClient;
 		const activePrivateKey = this._privateKey;
 		const activePublicKey = ed.getPublicKeyFromPrivateKey(activePrivateKey);
-		const activeTargetCommand = COMMAND_NAME_SUBMIT_SIDECHAIN_CCU;
+		const activeTargetCommand = this._isReceivingChainIsMainchain
+			? COMMAND_NAME_SUBMIT_MAINCHAIN_CCU
+			: COMMAND_NAME_SUBMIT_SIDECHAIN_CCU;
 
 		const { nonce } = await activeAPIClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
 			address: address.getLisk32AddressFromPublicKey(activePublicKey),
