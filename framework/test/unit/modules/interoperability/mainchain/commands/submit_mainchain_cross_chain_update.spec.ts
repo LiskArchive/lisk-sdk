@@ -72,46 +72,10 @@ import {
 import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/internal_method';
 import { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../../../../../../src/modules/token/constants';
 
-const getDefaultCCMs = (chainID: Buffer, sendingChainID: Buffer) => {
-	const defaultCCMs: CCMsg[] = [
-		{
-			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-			fee: BigInt(0),
-			module: MODULE_NAME_INTEROPERABILITY,
-			nonce: BigInt(1),
-			params: Buffer.alloc(2),
-			receivingChainID: chainID,
-			sendingChainID,
-			status: CCMStatusCode.OK,
-		},
-		{
-			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
-			fee: BigInt(0),
-			module: MODULE_NAME_INTEROPERABILITY,
-			nonce: BigInt(1),
-			params: Buffer.alloc(2),
-			receivingChainID: chainID,
-			sendingChainID,
-			status: CCMStatusCode.OK,
-		},
-		{
-			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-			fee: BigInt(0),
-			module: MODULE_NAME_INTEROPERABILITY,
-			nonce: BigInt(1),
-			params: Buffer.alloc(2),
-			receivingChainID: chainID,
-			sendingChainID,
-			status: CCMStatusCode.OK,
-		},
-	];
-	return defaultCCMs;
-};
-
 describe('SubmitMainchainCrossChainUpdateCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 
-	let chainID = Buffer.alloc(4, 0);
+	const chainID = Buffer.alloc(4, 0);
 	const senderPublicKey = utils.getRandomBytes(32);
 	const messageFeeTokenID = Buffer.alloc(8, 0);
 	const defaultCertificateValues: Certificate = {
@@ -127,10 +91,39 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 	const defaultNewCertificateThreshold = BigInt(20);
 	const defaultSendingChainID = 20;
 	const defaultSendingChainIDBuffer = utils.intToBuffer(defaultSendingChainID, 4);
-
-	const defaultCCMsEncoded = getDefaultCCMs(chainID, defaultSendingChainIDBuffer).map(ccm =>
-		codec.encode(ccmSchema, ccm),
-	);
+	const defaultCCMs: CCMsg[] = [
+		{
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+			fee: BigInt(0),
+			module: MODULE_NAME_INTEROPERABILITY,
+			nonce: BigInt(1),
+			params: Buffer.alloc(2),
+			receivingChainID: Buffer.from([0, 0, 0, 2]),
+			sendingChainID: defaultSendingChainIDBuffer,
+			status: CCMStatusCode.OK,
+		},
+		{
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+			fee: BigInt(0),
+			module: MODULE_NAME_INTEROPERABILITY,
+			nonce: BigInt(1),
+			params: Buffer.alloc(2),
+			receivingChainID: chainID,
+			sendingChainID: defaultSendingChainIDBuffer,
+			status: CCMStatusCode.OK,
+		},
+		{
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+			fee: BigInt(0),
+			module: MODULE_NAME_INTEROPERABILITY,
+			nonce: BigInt(1),
+			params: Buffer.alloc(2),
+			receivingChainID: Buffer.from([0, 0, 0, 4]),
+			sendingChainID: defaultSendingChainIDBuffer,
+			status: CCMStatusCode.OK,
+		},
+	];
+	const defaultCCMsEncoded = defaultCCMs.map(ccm => codec.encode(ccmSchema, ccm));
 	const defaultInboxUpdateValue = {
 		crossChainMessages: defaultCCMsEncoded,
 		messageWitnessHashes: [Buffer.alloc(32)],
@@ -390,26 +383,25 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 
 		it('should call apply for ccm and add to the inbox where receiving chain is the main chain', async () => {
 			executeContext = createTransactionContext({
-				chainID, // this chainID matches `getMainchainID(context.chainID)`
+				chainID,
 				stateStore,
 				transaction: new Transaction({
 					...defaultTransaction,
 					command: mainchainCCUUpdateCommand.name,
 					params: codec.encode(crossChainUpdateTransactionParams, {
-						...params, // each CCM receivingChainID is chainID in this case
+						...params,
 					}),
 				}),
 			}).createCommandExecuteContext(mainchainCCUUpdateCommand.schema);
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
-			expect(mainchainCCUUpdateCommand['apply']).toHaveBeenCalledTimes(3);
+			expect(mainchainCCUUpdateCommand['apply']).toHaveBeenCalledTimes(1);
 			expect(mainchainCCUUpdateCommand['internalMethod'].appendToInboxTree).toHaveBeenCalledTimes(
 				3,
 			);
 		});
 
 		it('should call forward for ccm and add to the inbox where receiving chain is not the mainchain', async () => {
-			chainID = Buffer.from([0, 1, 2, 0]); // this chainID doesn't match `getMainchainID(context.chainID)`
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -417,28 +409,13 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 					...defaultTransaction,
 					command: mainchainCCUUpdateCommand.name,
 					params: codec.encode(crossChainUpdateTransactionParams, {
-						activeValidatorsUpdate: sortedActiveValidatorsUpdate,
-						certificate: encodedDefaultCertificate,
-						inboxUpdate: {
-							// each CCM receivingChainID must match context.chainID
-							// otherwise, it will fail on `!context.chainID.equals(ccm.receivingChainID)`
-							crossChainMessages: getDefaultCCMs(chainID, defaultSendingChainIDBuffer).map(ccm =>
-								codec.encode(ccmSchema, ccm),
-							),
-							messageWitnessHashes: [Buffer.alloc(32)],
-							outboxRootWitness: {
-								bitmap: Buffer.alloc(1),
-								siblingHashes: [Buffer.alloc(32)],
-							},
-						},
-						certificateThreshold: defaultNewCertificateThreshold,
-						sendingChainID: defaultSendingChainIDBuffer,
+						...params,
 					}),
 				}),
 			}).createCommandExecuteContext(mainchainCCUUpdateCommand.schema);
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
-			expect(mainchainCCUUpdateCommand['_forward']).toHaveBeenCalledTimes(3);
+			expect(mainchainCCUUpdateCommand['_forward']).toHaveBeenCalledTimes(2);
 			expect(mainchainCCUUpdateCommand['internalMethod'].appendToInboxTree).toHaveBeenCalledTimes(
 				3,
 			);

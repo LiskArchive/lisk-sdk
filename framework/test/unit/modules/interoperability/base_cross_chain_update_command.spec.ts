@@ -108,7 +108,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					module: MODULE_NAME_INTEROPERABILITY,
 					nonce: BigInt(1),
 					params: Buffer.alloc(2),
-					receivingChainID: chainID,
+					receivingChainID: Buffer.from([0, 0, 0, 2]),
 					sendingChainID: defaultSendingChainID,
 					status: CCMStatusCode.OK,
 				},
@@ -128,7 +128,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					module: MODULE_NAME_INTEROPERABILITY,
 					nonce: BigInt(1),
 					params: Buffer.alloc(2),
-					receivingChainID: chainID,
+					receivingChainID: Buffer.from([0, 0, 0, 4]),
 					sendingChainID: defaultSendingChainID,
 					status: CCMStatusCode.OK,
 				},
@@ -488,7 +488,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				}),
 			}).createCommandExecuteContext(command.schema);
 
-			await expect(command['executeCommon'](executeContext, true)).resolves.toEqual([[], false]);
+			await expect(command['executeCommon'](executeContext, false)).resolves.toEqual([[], false]);
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
 				expect.anything(),
 				params.sendingChainID,
@@ -655,7 +655,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 		it('should resolve when ccm status is CCMStatusCode.CHANNEL_UNAVAILABLE and mainchain is false', async () => {
 			executeContext = createTransactionContext({
-				chainID,
+				chainID: Buffer.from([0, 0, 2, 0]),
 				stateStore,
 				transaction: new Transaction({
 					...defaultTransaction,
@@ -665,15 +665,14 @@ describe('BaseCrossChainUpdateCommand', () => {
 						inboxUpdate: {
 							...params.inboxUpdate,
 							crossChainMessages: [
-								...params.inboxUpdate.crossChainMessages,
 								codec.encode(ccmSchema, {
 									crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 									fee: BigInt(0),
 									module: MODULE_NAME_INTEROPERABILITY,
 									nonce: BigInt(1),
 									params: utils.getRandomBytes(10),
-									receivingChainID: chainID,
-									sendingChainID: defaultSendingChainID,
+									receivingChainID: Buffer.from([0, 0, 2, 0]),
+									sendingChainID: Buffer.from([0, 0, 0, 4]),
 									status: CCMStatusCode.CHANNEL_UNAVAILABLE,
 								}),
 							],
@@ -683,9 +682,10 @@ describe('BaseCrossChainUpdateCommand', () => {
 			}).createCommandExecuteContext(command.schema);
 
 			await expect(command['executeCommon'](executeContext, false)).resolves.toEqual([
-				expect.toBeArrayOfSize(params.inboxUpdate.crossChainMessages.length + 1),
+				expect.toBeArrayOfSize(1),
 				true,
 			]);
+
 			expect(internalMethod.terminateChainInternal).not.toHaveBeenCalled();
 			expect(command['events'].get(CcmProcessedEvent).log).not.toHaveBeenCalled();
 		});
