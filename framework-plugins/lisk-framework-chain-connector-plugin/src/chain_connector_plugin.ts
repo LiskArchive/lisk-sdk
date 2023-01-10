@@ -20,7 +20,6 @@ import {
 	db as liskDB,
 	codec,
 	chain,
-	BFTParameters,
 	OutboxRootWitness,
 	ActiveValidator,
 	JSONObject,
@@ -54,8 +53,15 @@ import {
 import { ChainConnectorStore, getDBInstance } from './db';
 import { Endpoint } from './endpoint';
 import { configSchema } from './schemas';
-import { ChainConnectorPluginConfig, SentCCUs, ProveResponse, BlockHeader } from './types';
+import {
+	ChainConnectorPluginConfig,
+	SentCCUs,
+	BlockHeader,
+	ProveResponseJSON,
+	BFTParametersJSON,
+} from './types';
 import { calculateInboxUpdate } from './inbox_update';
+import { bftParametersJSONToObj, chainAccountDataJSONToObj, proveResponseJSONToObj } from './utils';
 
 const { address, ed, encrypt } = cryptography;
 
@@ -161,17 +167,34 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		try {
 			await this._saveDataOnNewBlock(newBlockHeader);
 		} catch (error) {
-			this.logger.error(error, 'Failed saving data on new block event.');
+			this.logger.error(error, 'Failed saving data on new block event');
 
 			return;
 		}
 
 		// When all the relevant data is saved successfully then try to create CCU
 		if (this._ccuFrequency >= newBlockHeader.height - this._lastCertificate.height) {
-			const ccuParamsList = await this._calculateCCUParams();
-			await this._submitCCUs(ccuParamsList);
-			// if the transaction is successfully sent then update the last certfied height and do the cleanup
-			// TODO: also check if the state is growing, delete everything from the inMemory state if it goes beyond last 3 rounds
+			let ccuParamsList;
+			try {
+				ccuParamsList = await this._calculateCCUParams();
+			} catch (error) {
+				this.logger.error(error, 'Error occured while calculating CCU params');
+
+				return;
+			}
+			try {
+				await this._submitCCUs(ccuParamsList);
+			} catch (error) {
+				this.logger.error(error, 'Error occured while submitting CCUs');
+
+				return;
+			}
+			// If the transaction is successfully sent then update the last certfied height and do the cleanup
+			const chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
+				'interoperability_getChainAccount',
+				{ chainID: this._ownChainID },
+			);
+			this._lastCertificate = chainAccountDataJSONToObj(chainAccountJSON).lastCertificate;
 			await this._cleanup();
 		}
 	}
@@ -265,15 +288,16 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 			// Calculate the inclusion proof of the CCMs
 			const outboxKey = Buffer.concat([Buffer.from(store?.key as string, 'hex'), this._ownChainID]);
-			const stateProveResponse = await this._sendingChainClient.invoke<ProveResponse>(
+			const proveResponseJSON = await this._sendingChainClient.invoke<ProveResponseJSON>(
 				'state_prove',
 				{
 					queries: [outboxKey],
 				},
 			);
+			const proveResponseObj = proveResponseJSONToObj(proveResponseJSON);
 			const inclusionProofOutboxRoot: OutboxRootWitness = {
-				bitmap: stateProveResponse.proof.queries[0].bitmap,
-				siblingHashes: stateProveResponse.proof.siblingHashes,
+				bitmap: proveResponseObj.proof.queries[0].bitmap,
+				siblingHashes: proveResponseObj.proof.siblingHashes,
 			};
 			const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
 			crossChainMessages.push({
@@ -289,19 +313,21 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		const validatorsHashPreimage = await this._chainConnectorStore.getValidatorsHashPreimage();
 
 		// Get validatorsData at new block header height
-		const bftParameters = await this._sendingChainClient.invoke<BFTParameters>(
+		const bftParametersJSON = await this._sendingChainClient.invoke<BFTParametersJSON>(
 			'consensus_getBFTParameters',
 			{ height: newBlockHeader.height },
 		);
+
+		const bftParametersObj = bftParametersJSONToObj(bftParametersJSON);
 		const validatorsDataIndex = validatorsHashPreimage.findIndex(v =>
-			v.validatorsHash.equals(bftParameters?.validatorsHash),
+			v.validatorsHash.equals(bftParametersObj.validatorsHash),
 		);
 		// Save validatorsData if there is a new validatorsHash
 		if (validatorsDataIndex === -1) {
 			validatorsHashPreimage.push({
-				certificateThreshold: bftParameters?.certificateThreshold,
-				validators: bftParameters?.validators,
-				validatorsHash: bftParameters?.validatorsHash,
+				certificateThreshold: bftParametersObj.certificateThreshold,
+				validators: bftParametersObj.validators,
+				validatorsHash: bftParametersObj.validatorsHash,
 			});
 		}
 
@@ -495,7 +521,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	}
 
 	private async _submitCCUs(ccuParams: Buffer[]): Promise<void> {
-		// This can be changed based on mainchain/sidechain
 		const activeAPIClient = this._sendingChainClient;
 		const activePrivateKey = this._privateKey;
 		const activePublicKey = ed.getPublicKeyFromPrivateKey(activePrivateKey);

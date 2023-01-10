@@ -78,3 +78,32 @@ export interface QueryProof {
 export interface ProveResponse {
 	proof: Proof;
 }
+export interface ProofJSON {
+	siblingHashes: string[];
+	queries: QueryProofJSON[];
+}
+
+export interface QueryProofJSON {
+	key: string;
+	value: string;
+	bitmap: string;
+}
+
+export interface ProveResponseJSON {
+	proof: ProofJSON;
+}
+
+export interface ValidatorJSON {
+	address: string;
+	bftWeight: string;
+	generatorKey: string;
+	blsKey: string;
+}
+
+export interface BFTParametersJSON {
+	prevoteThreshold: string;
+	precommitThreshold: string;
+	certificateThreshold: string;
+	validators: ValidatorJSON[];
+	validatorsHash: string;
+}
