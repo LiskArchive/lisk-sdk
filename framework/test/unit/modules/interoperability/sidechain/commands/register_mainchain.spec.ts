@@ -26,10 +26,10 @@ import {
 	EMPTY_HASH,
 	EVENT_NAME_CCM_SEND_SUCCESS,
 	EVENT_NAME_CHAIN_ACCOUNT_UPDATED,
-	MAINCHAIN_NAME,
+	CHAIN_NAME_MAINCHAIN,
 	MODULE_NAME_INTEROPERABILITY,
-	NUMBER_MAINCHAIN_VALIDATORS,
-	TAG_CHAIN_REG_MESSAGE,
+	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
+	MESSAGE_TAG_CHAIN_REG,
 	THRESHOLD_MAINCHAIN,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
@@ -75,17 +75,19 @@ describe('RegisterMainchainCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
 	interopMod['internalMethod'] = { addToOutbox: jest.fn() } as any;
 	const unsortedMainchainValidators: ActiveValidators[] = [];
-	for (let i = 0; i < NUMBER_MAINCHAIN_VALIDATORS; i += 1) {
+	for (let i = 0; i < NUMBER_ACTIVE_VALIDATORS_MAINCHAIN; i += 1) {
 		unsortedMainchainValidators.push({ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) });
 	}
 	const ownChainID = Buffer.from([0, 1, 0, 0]);
 	const mainchainID = Buffer.from([0, 0, 0, 0]);
 	const mainchainTokenID = Buffer.concat([mainchainID, Buffer.alloc(4)]);
 	const mainchainValidators = sortValidatorsByBLSKey(unsortedMainchainValidators);
+	const mainchainCertificateThreshold = BigInt(51);
 	const transactionParams: MainchainRegistrationParams = {
-		ownChainID,
 		ownName: 'testchain',
+		ownChainID,
 		mainchainValidators,
+		mainchainCertificateThreshold: BigInt(51),
 		aggregationBits: Buffer.alloc(0),
 		signature: Buffer.alloc(0),
 	};
@@ -131,23 +133,6 @@ describe('RegisterMainchainCommand', () => {
 				chainID: utils.intToBuffer(11, 4),
 				name: 'testchain',
 				nonce: BigInt(0),
-			});
-			(validatorsMethod.getValidatorsParams as jest.Mock).mockResolvedValue({
-				certificateThreshold: BigInt(40),
-				validators: [
-					{
-						address: utils.getRandomBytes(20),
-						bftWeight: BigInt(10),
-						blsKey: utils.getRandomBytes(48),
-						generatorKey: utils.getRandomBytes(32),
-					},
-					{
-						address: utils.getRandomBytes(20),
-						bftWeight: BigInt(5),
-						generatorKey: utils.getRandomBytes(32),
-						blsKey: utils.getRandomBytes(48),
-					},
-				],
 			});
 			verifyContext = createTransactionContext({
 				chainID: ownChainID,
@@ -219,16 +204,19 @@ describe('RegisterMainchainCommand', () => {
 			expect(result.error).toBeInstanceOf(LiskValidationError);
 		});
 
-		it('should return error if number of mainchain validators is not equal to number of mainchain validators', async () => {
-			verifyContext.params.mainchainValidators.pop();
+		it('should return error if number of mainchain validators is zero', async () => {
+			verifyContext.params.mainchainValidators = [];
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error).toBeInstanceOf(LiskValidationError);
 		});
 
-		it(`should return error if mainchainValidators array has not exactly ${NUMBER_MAINCHAIN_VALIDATORS} elements`, async () => {
-			verifyContext.params.mainchainValidators = [];
+		it(`should return error if mainchainValidators array has more than ${NUMBER_ACTIVE_VALIDATORS_MAINCHAIN} elements`, async () => {
+			verifyContext.params.mainchainValidators = [
+				...mainchainValidators,
+				{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) },
+			];
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
@@ -266,6 +254,22 @@ describe('RegisterMainchainCommand', () => {
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude('Validator bft weight must be positive integer');
 		});
+
+		it('should return error if certificate threshold is too small', async () => {
+			verifyContext.params.mainchainValidators[0].bftWeight = BigInt(10000000000);
+			const result = await mainchainRegistrationCommand.verify(verifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude('Certificate threshold is too small.');
+		});
+
+		it('should return error if certificate threshold is too large', async () => {
+			verifyContext.params.mainchainCertificateThreshold = BigInt(10000000000);
+			const result = await mainchainRegistrationCommand.verify(verifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude('Certificate threshold is too large.');
+		});
 	});
 
 	describe('execute', () => {
@@ -277,7 +281,7 @@ describe('RegisterMainchainCommand', () => {
 			signature: Buffer.alloc(0),
 		};
 		const chainAccount = {
-			name: MAINCHAIN_NAME,
+			name: CHAIN_NAME_MAINCHAIN,
 			lastCertificate: {
 				height: 0,
 				timestamp: 0,
@@ -343,9 +347,10 @@ describe('RegisterMainchainCommand', () => {
 		it('should call verifyWeightedAggSig with appropriate parameters', async () => {
 			// Arrange
 			const message = codec.encode(registrationSignatureMessageSchema, {
-				ownChainID: params.ownChainID,
 				ownName: params.ownName,
+				ownChainID: params.ownChainID,
 				mainchainValidators,
+				mainchainCertificateThreshold,
 			});
 
 			const keyList = [validatorAccounts[0].blsKey, validatorAccounts[1].blsKey];
@@ -359,7 +364,7 @@ describe('RegisterMainchainCommand', () => {
 				keyList,
 				params.aggregationBits,
 				params.signature,
-				TAG_CHAIN_REG_MESSAGE,
+				MESSAGE_TAG_CHAIN_REG,
 				context.params.ownChainID,
 				message,
 				weights,
@@ -418,7 +423,7 @@ describe('RegisterMainchainCommand', () => {
 			// Arrange
 			const expectedValue = {
 				activeValidators: mainchainValidators,
-				certificateThreshold: BigInt(THRESHOLD_MAINCHAIN),
+				certificateThreshold: mainchainCertificateThreshold,
 			};
 
 			// Act
@@ -462,7 +467,7 @@ describe('RegisterMainchainCommand', () => {
 
 		it(`should emit ${EVENT_NAME_CHAIN_ACCOUNT_UPDATED} event`, async () => {
 			const mainchainAccount = {
-				name: MAINCHAIN_NAME,
+				name: CHAIN_NAME_MAINCHAIN,
 				lastCertificate: {
 					height: 0,
 					timestamp: 0,
@@ -485,7 +490,7 @@ describe('RegisterMainchainCommand', () => {
 		it('should call addToOutbox with an appropriate ccm', async () => {
 			// Arrange
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
-				name: MAINCHAIN_NAME,
+				name: CHAIN_NAME_MAINCHAIN,
 				messageFeeTokenID: mainchainTokenID,
 			});
 			const ccm = {
@@ -527,7 +532,7 @@ describe('RegisterMainchainCommand', () => {
 
 		it(`should emit ${EVENT_NAME_CCM_SEND_SUCCESS} event`, async () => {
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
-				name: MAINCHAIN_NAME,
+				name: CHAIN_NAME_MAINCHAIN,
 				messageFeeTokenID: mainchainTokenID,
 			});
 			const ownChainAccount = {

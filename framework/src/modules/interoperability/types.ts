@@ -268,6 +268,7 @@ export interface MainchainRegistrationParams {
 	ownChainID: Buffer;
 	ownName: string;
 	mainchainValidators: RegistrationParametersValidator[];
+	mainchainCertificateThreshold: bigint;
 	signature: Buffer;
 	aggregationBits: Buffer;
 }
