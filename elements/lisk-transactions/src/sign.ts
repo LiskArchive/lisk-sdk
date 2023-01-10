@@ -111,23 +111,6 @@ export const getBytes = (
 	return transactionBytes;
 };
 
-const sanitizeSignaturesArray = (
-	transactionObject: Record<string, unknown>,
-	keys: MultiSignatureKeys,
-): void => {
-	const numberOfSignatures = keys.mandatoryKeys.length + keys.optionalKeys.length;
-
-	for (let i = 0; i < numberOfSignatures; i += 1) {
-		if (
-			Array.isArray(transactionObject.signatures) &&
-			transactionObject.signatures[i] === undefined
-		) {
-			// eslint-disable-next-line no-param-reassign
-			transactionObject.signatures[i] = Buffer.alloc(0);
-		}
-	}
-};
-
 /**
  * Signs a given transaction.
  *
@@ -236,26 +219,25 @@ export const signMultiSignatureTransaction = (
 		privateKey,
 	);
 
-	// Based on the signer's public key, locate where this signature should go in the signatures array
 	const publicKey = ed.getPublicKeyFromPrivateKey(privateKey);
-	const mandatoryKeyIndex = keys.mandatoryKeys.findIndex(key => key.equals(publicKey));
-	if (mandatoryKeyIndex !== -1) {
-		// eslint-disable-next-line no-param-reassign
-		transactionObject.signatures[mandatoryKeyIndex] = signature;
-	} else {
-		const optionalKeyIndex = keys.optionalKeys.findIndex(key => key.equals(publicKey));
-		if (optionalKeyIndex !== -1) {
+	const accountKeys = keys.mandatoryKeys.concat(keys.optionalKeys);
+
+	// Find the position for the signature in the signatures array, based on the public key of the signer
+	for (let i = 0; i < accountKeys.length; i += 1) {
+		if (accountKeys[i].equals(publicKey)) {
 			// eslint-disable-next-line no-param-reassign
-			transactionObject.signatures[keys.mandatoryKeys.length + optionalKeyIndex] = signature;
+			transactionObject.signatures[i] = signature;
+		} else if (transactionObject.signatures[i] === undefined) {
+			// eslint-disable-next-line no-param-reassign
+			transactionObject.signatures[i] = Buffer.alloc(0);
 		}
 	}
-
-	sanitizeSignaturesArray(transactionObject, keys);
 
 	return { ...transactionObject, id: utils.hash(getBytes(transactionObject, paramsSchema)) };
 };
 
 // TODO: Check if these backward compatibility aliases are still needed
+
 /**
  * {@inheritDoc signTransaction}
  *
