@@ -45,7 +45,6 @@ import {
 	CCU_FREQUENCY,
 	MODULE_NAME_INTEROPERABILITY,
 	CCM_SEND_SUCCESS,
-	DB_KEY_SIDECHAIN,
 	COMMAND_NAME_SUBMIT_SIDECHAIN_CCU,
 	CCM_PROCESSED,
 	EMPTY_BYTES,
@@ -115,15 +114,12 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 	public async load(): Promise<void> {
 		this._chainConnectorPluginDB = await getDBInstance(this.dataPath);
-		this._chainConnectorStore = new ChainConnectorStore(
-			this._chainConnectorPluginDB,
-			DB_KEY_SIDECHAIN,
-		);
+		this._chainConnectorStore = new ChainConnectorStore(this._chainConnectorPluginDB);
 		this.endpoint.load(this._chainConnectorStore);
 
-		this._receivingChainClient = await apiClient.createIPCClient(this.config.mainchainIPCPath);
-		if (this.config.sidechainIPCPath) {
-			this._sendingChainClient = await apiClient.createIPCClient(this.config.sidechainIPCPath);
+		this._receivingChainClient = await apiClient.createIPCClient(this.config.receivingChainIPCPath);
+		if (this.config.sendingChainIPCPath) {
+			this._sendingChainClient = await apiClient.createIPCClient(this.config.sendingChainIPCPath);
 		} else {
 			this._sendingChainClient = this.apiClient;
 		}

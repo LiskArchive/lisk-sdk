@@ -165,8 +165,8 @@ describe('ChainConnectorPlugin', () => {
 		jest.spyOn(dbApi, 'getDBInstance').mockResolvedValue(new db.InMemoryDatabase() as never);
 		(chainConnectorPlugin as any)['_chainConnectorStore'] = chainConnectorStoreMock;
 		defaultConfig = {
-			mainchainIPCPath: '~/.lisk/mainchain',
-			sidechainIPCPath: '~/.lisk/sidechain',
+			receivingChainIPCPath: '~/.lisk/mainchain',
+			sendingChainIPCPath: '~/.lisk/sidechain',
 			ccuFee: defaultCCUFee,
 			encryptedPrivateKey: defaultEncryptedPrivateKey,
 			ccuFrequency: 10,
@@ -189,8 +189,8 @@ describe('ChainConnectorPlugin', () => {
 
 		it('should assign ccuFrequency properties to default values', async () => {
 			await initChainConnectorPlugin(chainConnectorPlugin, {
-				mainchainIPCPath: '~/.lisk/mainchain',
-				sidechainIPCPath: '~/.lisk/sidechain',
+				receivingChainIPCPath: '~/.lisk/mainchain',
+				sendingChainIPCPath: '~/.lisk/sidechain',
 				ccuFee: defaultCCUFee,
 				encryptedPrivateKey: defaultEncryptedPrivateKey,
 			} as never);

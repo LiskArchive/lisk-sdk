@@ -21,11 +21,11 @@ export const configSchema = {
 	$id: `${pluginSchemaIDPrefix}/config`,
 	type: 'object',
 	properties: {
-		mainchainIPCPath: {
+		receivingChainIPCPath: {
 			type: 'string',
 			description: 'The IPC path to a mainchain node',
 		},
-		sidechainIPCPath: {
+		sendingChainIPCPath: {
 			type: 'string',
 			description: 'The IPC path to a sidechain node',
 		},
@@ -44,7 +44,7 @@ export const configSchema = {
 			type: 'string',
 		},
 	},
-	required: ['mainchainIPCPath', 'ccuFee', 'encryptedPrivateKey'],
+	required: ['receivingChainIPCPath', 'ccuFee', 'encryptedPrivateKey'],
 	default: {
 		ccuFrequency: CCU_FREQUENCY,
 	},

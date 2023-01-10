@@ -17,7 +17,7 @@ import * as fs from 'fs-extra';
 import { homedir } from 'os';
 import { join } from 'path';
 import { ChainConnectorStore, getDBInstance } from '../../src/db';
-import { ADDRESS_LENGTH, BLS_PUBLIC_KEY_LENGTH, DB_KEY_SIDECHAIN } from '../../src/constants';
+import { ADDRESS_LENGTH, BLS_PUBLIC_KEY_LENGTH } from '../../src/constants';
 import { BlockHeader, CCMsFromEvents, ValidatorsData } from '../../src/types';
 
 jest.mock('fs-extra');
@@ -53,19 +53,12 @@ describe('Plugins DB', () => {
 		let chainConnectorStore: ChainConnectorStore;
 
 		beforeEach(() => {
-			chainConnectorStore = new ChainConnectorStore(
-				new db.InMemoryDatabase() as never,
-				DB_KEY_SIDECHAIN,
-			);
+			chainConnectorStore = new ChainConnectorStore(new db.InMemoryDatabase() as never);
 		});
 
 		describe('constructor', () => {
 			it('should assign DB in the constructor', () => {
 				expect(chainConnectorStore['_db']).toBeInstanceOf(db.InMemoryDatabase);
-			});
-
-			it('should assign chainType in the constructor', () => {
-				expect(chainConnectorStore['_chainType']).toEqual(DB_KEY_SIDECHAIN);
 			});
 		});
 

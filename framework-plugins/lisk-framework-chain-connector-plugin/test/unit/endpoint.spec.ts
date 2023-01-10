@@ -138,8 +138,8 @@ describe('getSentCCUs', () => {
 
 		await chainConnectorPlugin.init({
 			config: {
-				mainchainIPCPath: '~/.lisk/mainchain',
-				sidechainIPCPath: '~/.lisk/sidechain',
+				receivingChainIPCPath: '~/.lisk/mainchain',
+				sendingChainIPCPath: '~/.lisk/sidechain',
 				ccuFee: defaultCCUFee,
 				encryptedPrivateKey: defaultEncryptedPrivateKey,
 				ccuFrequency: 10,

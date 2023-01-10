@@ -28,9 +28,6 @@ export const HASH_LENGTH = 32;
 export const CCM_PROCESSED = 'ccmProcessed';
 export const CHAIN_ID_LENGTH = 4;
 
-export const DB_KEY_MAINCHAIN = Buffer.from([0]);
-export const DB_KEY_SIDECHAIN = Buffer.from([1]);
-
 export const DB_KEY_CROSS_CHAIN_MESSAGES = Buffer.from([1]);
 export const DB_KEY_BLOCK_HEADERS = Buffer.from([2]);
 export const DB_KEY_AGGREGATE_COMMITS = Buffer.from([3]);
