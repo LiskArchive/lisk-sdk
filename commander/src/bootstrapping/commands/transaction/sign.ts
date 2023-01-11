@@ -105,9 +105,11 @@ const signTransaction = async (
 			paramsSchema,
 		);
 	}
+
 	const paramsJSON = paramsSchema
 		? codec.toJSON(paramsSchema, signedTransaction.params as Record<string, unknown>)
 		: {};
+
 	return {
 		...codec.toJSON<Record<string, unknown>>(registeredSchema.transaction, {
 			...signedTransaction,
@@ -124,33 +126,25 @@ const signTransactionOffline = async (
 	metadata: ModuleMetadataJSON[],
 	transactionHexStr: string,
 ): Promise<Record<string, unknown>> => {
-	let signedTransaction: Record<string, unknown>;
-
-	if (!flags['sender-public-key']) {
-		signedTransaction = await signTransaction(
-			flags,
-			registeredSchema,
-			metadata,
-			transactionHexStr,
-			flags['chain-id'],
-			{} as Keys,
-		);
-		return signedTransaction;
-	}
-
-	const mandatoryKeys = flags['mandatory-keys'];
-	const optionalKeys = flags['optional-keys'];
-	if (!mandatoryKeys?.length && !optionalKeys?.length) {
-		throw new Error(
-			'--mandatory-keys or --optional-keys flag must be specified to sign transaction from multi signature account.',
-		);
-	}
-	const keys = {
-		mandatoryKeys: mandatoryKeys ? mandatoryKeys.map(k => Buffer.from(k, 'hex')) : [],
-		optionalKeys: optionalKeys ? optionalKeys.map(k => Buffer.from(k, 'hex')) : [],
+	const keys: Keys = {
+		mandatoryKeys: [],
+		optionalKeys: [],
 	};
 
-	signedTransaction = await signTransaction(
+	if (flags['sender-public-key']) {
+		const mandatoryKeys = flags['mandatory-keys'];
+		const optionalKeys = flags['optional-keys'];
+		if (!mandatoryKeys?.length && !optionalKeys?.length) {
+			throw new Error(
+				'--mandatory-keys or --optional-keys flag must be specified to sign transaction from multi signature account.',
+			);
+		}
+
+		keys.mandatoryKeys = mandatoryKeys ? mandatoryKeys.map(k => Buffer.from(k, 'hex')) : [];
+		keys.optionalKeys = optionalKeys ? optionalKeys.map(k => Buffer.from(k, 'hex')) : [];
+	}
+
+	const signedTransaction = await signTransaction(
 		flags,
 		registeredSchema,
 		metadata,
@@ -158,6 +152,7 @@ const signTransactionOffline = async (
 		flags['chain-id'],
 		keys,
 	);
+
 	return signedTransaction;
 };
 
