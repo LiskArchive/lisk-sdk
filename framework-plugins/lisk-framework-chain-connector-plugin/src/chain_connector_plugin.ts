@@ -140,16 +140,11 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		// If the running node is mainchain then receiving chain will be sidehchain or vice verse.
 		this._isReceivingChainIsMainchain = !getMainchainID(this._ownChainID).equals(this._ownChainID);
 		// Fetch last certificate from the receiving chain and update the _lastCertificate
-		const { lastCertificate } = await this._receivingChainClient.invoke<ChainAccountJSON>(
+		const chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
 			'interoperability_getChainAccount',
 			{ chainID: this._ownChainID },
 		);
-		this._lastCertificate = {
-			height: lastCertificate.height,
-			stateRoot: Buffer.from(lastCertificate.stateRoot, 'hex'),
-			timestamp: lastCertificate.timestamp,
-			validatorsHash: Buffer.from(lastCertificate.validatorsHash, 'hex'),
-		};
+		this._lastCertificate = chainAccountDataJSONToObj(chainAccountJSON).lastCertificate;
 		// On a new block start with CCU creation process
 		this._sendingChainClient.subscribe('chain_newBlock', async (data?: Record<string, unknown>) =>
 			this._newBlockHandler(data),
@@ -177,36 +172,20 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		// Save blockHeader, aggregateCommit, validatorsData and cross chain messages if any.
 		try {
 			await this._saveDataOnNewBlock(newBlockHeader);
-		} catch (error) {
-			this.logger.error(error, 'Failed saving data on new block event');
-
-			return;
-		}
-
-		// When all the relevant data is saved successfully then try to create CCU
-		if (this._ccuFrequency >= newBlockHeader.height - this._lastCertificate.height) {
-			let ccuParamsList;
-			try {
-				ccuParamsList = await this._calculateCCUParams();
-			} catch (error) {
-				this.logger.error(error, 'Error occured while calculating CCU params');
-
-				return;
-			}
-			try {
+			// When all the relevant data is saved successfully then try to create CCU
+			if (this._ccuFrequency >= newBlockHeader.height - this._lastCertificate.height) {
+				const ccuParamsList = await this._calculateCCUParams();
 				await this._submitCCUs(ccuParamsList);
-			} catch (error) {
-				this.logger.error(error, 'Error occured while submitting CCUs');
-
-				return;
+				// If the transaction is successfully sent then update the last certfied height and do the cleanup
+				const chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
+					'interoperability_getChainAccount',
+					{ chainID: this._ownChainID },
+				);
+				this._lastCertificate = chainAccountDataJSONToObj(chainAccountJSON).lastCertificate;
+				await this._cleanup();
 			}
-			// If the transaction is successfully sent then update the last certfied height and do the cleanup
-			const chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
-				'interoperability_getChainAccount',
-				{ chainID: this._ownChainID },
-			);
-			this._lastCertificate = chainAccountDataJSONToObj(chainAccountJSON).lastCertificate;
-			await this._cleanup();
+		} catch (error) {
+			this.logger.error(error, 'Failed while handling the new block');
 		}
 	}
 
@@ -258,7 +237,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			const ccmsFromEvents = [];
 			// Save ccm send success events
 			if (ccmSendSuccessEvents.length > 0) {
-				const ccmSendSuccessEventInfo = interoperabilityMetadata?.events.filter(
+				const ccmSendSuccessEventInfo = interoperabilityMetadata.events.filter(
 					e => e.name === CCM_SEND_SUCCESS,
 				);
 
@@ -276,7 +255,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			}
 			// Save ccm processed events based on CCMProcessedResult FORWARDED = 1
 			if (ccmProcessedEvents.length > 0) {
-				const ccmProcessedEventInfo = interoperabilityMetadata?.events.filter(
+				const ccmProcessedEventInfo = interoperabilityMetadata.events.filter(
 					e => e.name === CCM_PROCESSED,
 				);
 
@@ -296,7 +275,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			}
 
 			// TODO: find a better way to find storeKey from metadata
-			const store = interoperabilityMetadata?.stores.find(
+			const store = interoperabilityMetadata.stores.find(
 				s => s.data.$id === '/modules/interoperability/outbox',
 			);
 
@@ -570,6 +549,11 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			}>('txpool_postTransaction', {
 				transaction: tx.getBytes().toString('hex'),
 			});
+			/**
+			 * TODO: As of now we save it in memory but going forward it should be saved in DB,
+			 * as the array size can grow after sometime.
+			 */
+			this._sentCCUs.push(tx);
 			this.logger.info({ transactionID: result.transactionId }, 'Sent CCU transaction');
 		}
 	}
