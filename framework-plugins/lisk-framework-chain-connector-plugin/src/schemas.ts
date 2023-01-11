@@ -23,11 +23,11 @@ export const configSchema = {
 	properties: {
 		receivingChainIPCPath: {
 			type: 'string',
-			description: 'The IPC path to a mainchain node',
+			description: 'The IPC path of a receiving node',
 		},
-		sendingChainIPCPath: {
+		receivingChainWsURL: {
 			type: 'string',
-			description: 'The IPC path to a sidechain node',
+			description: 'The WS url of a receiving node',
 		},
 		ccuFrequency: {
 			type: 'integer',
@@ -44,7 +44,7 @@ export const configSchema = {
 			type: 'string',
 		},
 	},
-	required: ['receivingChainIPCPath', 'ccuFee', 'encryptedPrivateKey'],
+	required: ['ccuFee', 'encryptedPrivateKey', 'password'],
 	default: {
 		ccuFrequency: CCU_FREQUENCY,
 	},

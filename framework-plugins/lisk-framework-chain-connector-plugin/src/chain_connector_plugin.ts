@@ -117,12 +117,17 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		this._chainConnectorStore = new ChainConnectorStore(this._chainConnectorPluginDB);
 		this.endpoint.load(this._chainConnectorStore);
 
-		this._receivingChainClient = await apiClient.createIPCClient(this.config.receivingChainIPCPath);
-		if (this.config.sendingChainIPCPath) {
-			this._sendingChainClient = await apiClient.createIPCClient(this.config.sendingChainIPCPath);
+		if (this.config.receivingChainIPCPath) {
+			this._receivingChainClient = await apiClient.createIPCClient(
+				this.config.receivingChainIPCPath,
+			);
+		} else if (this.config.receivingChainWsURL) {
+			this._receivingChainClient = await apiClient.createWSClient(this.config.receivingChainWsURL);
 		} else {
-			this._sendingChainClient = this.apiClient;
+			throw new Error('IPC path and WS url are undefined.');
 		}
+
+		this._sendingChainClient = this.apiClient;
 
 		this._ownChainID = Buffer.from(
 			(
@@ -530,7 +535,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	}
 
 	private async _submitCCUs(ccuParams: Buffer[]): Promise<void> {
-		const activeAPIClient = this._sendingChainClient;
+		const activeAPIClient = this._receivingChainClient;
 		const activePrivateKey = this._privateKey;
 		const activePublicKey = ed.getPublicKeyFromPrivateKey(activePrivateKey);
 		const activeTargetCommand = this._isReceivingChainIsMainchain

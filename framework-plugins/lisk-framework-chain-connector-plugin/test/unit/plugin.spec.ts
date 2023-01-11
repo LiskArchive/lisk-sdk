@@ -163,10 +163,12 @@ describe('ChainConnectorPlugin', () => {
 		defaultEncryptedPrivateKey = cryptography.encrypt.stringifyEncryptedMessage(encryptedKey);
 
 		jest.spyOn(dbApi, 'getDBInstance').mockResolvedValue(new db.InMemoryDatabase() as never);
+		jest
+			.spyOn(cryptography.encrypt, 'decryptMessageWithPassword')
+			.mockResolvedValue(Buffer.from(defaultPrivateKey, 'hex') as never);
 		(chainConnectorPlugin as any)['_chainConnectorStore'] = chainConnectorStoreMock;
 		defaultConfig = {
 			receivingChainIPCPath: '~/.lisk/mainchain',
-			sendingChainIPCPath: '~/.lisk/sidechain',
 			ccuFee: defaultCCUFee,
 			encryptedPrivateKey: defaultEncryptedPrivateKey,
 			ccuFrequency: 10,
@@ -190,9 +192,9 @@ describe('ChainConnectorPlugin', () => {
 		it('should assign ccuFrequency properties to default values', async () => {
 			await initChainConnectorPlugin(chainConnectorPlugin, {
 				receivingChainIPCPath: '~/.lisk/mainchain',
-				sendingChainIPCPath: '~/.lisk/sidechain',
 				ccuFee: defaultCCUFee,
 				encryptedPrivateKey: defaultEncryptedPrivateKey,
+				password: 'lisk',
 			} as never);
 			expect(chainConnectorPlugin['_ccuFrequency']).toEqual(CCU_FREQUENCY);
 		});
@@ -252,6 +254,42 @@ describe('ChainConnectorPlugin', () => {
 
 			expect(chainConnectorPlugin['_receivingChainClient']).toBeDefined();
 			expect(chainConnectorPlugin['_sendingChainClient']).toBeDefined();
+		});
+
+		it('should call createWSClient when receivingChainWsURL is provided', async () => {
+			jest.spyOn(apiClient, 'createWSClient').mockResolvedValue(apiClientMocks as never);
+
+			await chainConnectorPlugin.init({
+				logger: testing.mocks.loggerMock,
+				config: {
+					receivingChainWsURL: 'ws://127.0.0.1:8080/rpc',
+					ccuFee: defaultCCUFee,
+					encryptedPrivateKey: defaultEncryptedPrivateKey,
+					password: 'lisk',
+				},
+				appConfig: appConfigForPlugin,
+			});
+
+			await chainConnectorPlugin.load();
+			expect(apiClient.createWSClient).toHaveBeenCalled();
+		});
+
+		it('should throw error when receivingChainWsURL and receivingChainIPCPath are undefined', async () => {
+			jest.spyOn(apiClient, 'createWSClient').mockResolvedValue(apiClientMocks as never);
+
+			await chainConnectorPlugin.init({
+				logger: testing.mocks.loggerMock,
+				config: {
+					ccuFee: defaultCCUFee,
+					encryptedPrivateKey: defaultEncryptedPrivateKey,
+					password: 'lisk',
+				},
+				appConfig: appConfigForPlugin,
+			});
+
+			await expect(chainConnectorPlugin.load()).rejects.toThrow(
+				'IPC path and WS url are undefined',
+			);
 		});
 
 		it('should initialize _chainConnectorDB', async () => {
@@ -910,7 +948,7 @@ describe('ChainConnectorPlugin', () => {
 				.spyOn(apiClient, 'createIPCClient')
 				.mockResolvedValue(sendingChainAPIClientMock as never);
 			await initChainConnectorPlugin(chainConnectorPlugin, defaultConfig);
-			(chainConnectorPlugin['_sendingChainClient'] as any) = sendingChainAPIClientMock;
+			(chainConnectorPlugin['_receivingChainClient'] as any) = sendingChainAPIClientMock;
 			when(sendingChainAPIClientMock.invoke)
 				.calledWith('system_getNodeInfo')
 				.mockResolvedValue({
