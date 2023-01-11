@@ -42,12 +42,6 @@ import { PromiseResolvedType } from '../../../types';
 import { DEFAULT_KEY_DERIVATION_PATH } from '../../../utils/config';
 import { deriveKeypair } from '../../../utils/commons';
 
-interface AuthAccount {
-	nonce: string;
-	mandatoryKeys: Array<Readonly<string>>;
-	optionalKeys: Array<Readonly<string>>;
-}
-
 interface Keys {
 	mandatoryKeys: Buffer[];
 	optionalKeys: Buffer[];
@@ -56,7 +50,6 @@ interface Keys {
 interface SignFlags {
 	'chain-id': string | undefined;
 	passphrase: string | undefined;
-	'include-sender': boolean;
 	offline: boolean;
 	'data-path': string | undefined;
 	'sender-public-key': string | undefined;
@@ -74,7 +67,6 @@ const signTransaction = async (
 	keys: Keys,
 ) => {
 	const transactionObject = decodeTransaction(registeredSchema, metadata, transactionHexStr);
-	// eslint-disable-next-line @typescript-eslint/ban-types
 	const paramsSchema = getParamsSchema(
 		metadata,
 		transactionObject.module,
@@ -96,9 +88,8 @@ const signTransaction = async (
 
 	const edKeys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 
-	// sign from multi sig account offline using input keys
 	let signedTransaction: Record<string, unknown>;
-	if (!flags['include-sender'] && !flags['sender-public-key']) {
+	if (!flags['sender-public-key']) {
 		signedTransaction = transactions.signTransaction(
 			decodedTx,
 			chainIDBuffer,
@@ -112,7 +103,6 @@ const signTransaction = async (
 			edKeys.privateKey,
 			keys,
 			paramsSchema,
-			flags['include-sender'],
 		);
 	}
 	const paramsJSON = paramsSchema
@@ -136,7 +126,7 @@ const signTransactionOffline = async (
 ): Promise<Record<string, unknown>> => {
 	let signedTransaction: Record<string, unknown>;
 
-	if (!flags['include-sender'] && !flags['sender-public-key']) {
+	if (!flags['sender-public-key']) {
 		signedTransaction = await signTransaction(
 			flags,
 			registeredSchema,
@@ -178,46 +168,14 @@ const signTransactionOnline = async (
 	metadata: ModuleMetadataJSON[],
 	transactionHexStr: string,
 ) => {
-	// Sign non multi-sig transaction
 	const transactionObject = decodeTransaction(registeredSchema, metadata, transactionHexStr);
 	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
 	const edKeys = await deriveKeypair(passphrase, flags['key-derivation-path']);
-	const address = cryptography.address.getLisk32AddressFromPublicKey(edKeys.publicKey);
 
-	let signedTransaction: Record<string, unknown>;
+	const signedTransaction = await client.transaction.sign(transactionObject, [
+		edKeys.privateKey.toString('hex'),
+	]);
 
-	if (!flags['include-sender']) {
-		signedTransaction = await client.transaction.sign(transactionObject, [
-			edKeys.privateKey.toString('hex'),
-		]);
-
-		return signedTransaction;
-	}
-
-	// Sign multi-sig transaction
-
-	const account = await client.invoke<AuthAccount>('auth_getAuthAccount', {
-		address,
-	});
-	let authAccount: AuthAccount;
-	if (account.mandatoryKeys.length === 0 && account.optionalKeys.length === 0) {
-		authAccount = transactionObject.params as unknown as AuthAccount;
-	} else {
-		authAccount = account;
-	}
-	const keys = {
-		mandatoryKeys: authAccount.mandatoryKeys,
-		optionalKeys: authAccount.optionalKeys,
-	};
-
-	signedTransaction = await client.transaction.sign(
-		transactionObject,
-		[edKeys.privateKey.toString('hex')],
-		{
-			includeSenderSignature: flags['include-sender'],
-			multisignatureKeys: keys,
-		},
-	);
 	return signedTransaction;
 };
 
@@ -240,10 +198,6 @@ export abstract class SignCommand extends Command {
 			dependsOn: ['chain-id'],
 			exclusive: ['data-path'],
 		},
-		'include-sender': flagParser.boolean({
-			description: 'Include sender signature in transaction.',
-			default: false,
-		}),
 		'mandatory-keys': flagParser.string({
 			multiple: true,
 			description: 'Mandatory publicKey string in hex format.',
@@ -298,7 +252,7 @@ export abstract class SignCommand extends Command {
 				flags,
 				this._schema,
 				this._metadata,
-				transaction,
+				transaction as string,
 			);
 		} else {
 			this._client = await getApiClient(dataPath, this.config.pjson.name);
@@ -309,7 +263,7 @@ export abstract class SignCommand extends Command {
 				this._client,
 				this._schema,
 				this._metadata,
-				transaction,
+				transaction as string,
 			);
 		}
 
