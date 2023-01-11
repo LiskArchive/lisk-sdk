@@ -131,7 +131,7 @@ export const flags: FlagMap = {
 	senderPublicKey: {
 		char: 's',
 		description:
-			'Sign the transaction with provided sender public key, when passphrase is not provided',
+			"Set a custom senderPublicKey property for the transaction, to be used when account address does not correspond to signer's private key",
 	},
 	file: {
 		char: 'f',
