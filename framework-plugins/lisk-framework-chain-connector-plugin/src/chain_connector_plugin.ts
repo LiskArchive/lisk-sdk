@@ -252,6 +252,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			);
 			const interoperabilityMetadata = modules.find(m => m.name === MODULE_NAME_INTEROPERABILITY);
 
+			if (!interoperabilityMetadata) {
+				throw new Error('No metadata found for interoperability module.');
+			}
 			const ccmsFromEvents = [];
 			// Save ccm send success events
 			if (ccmSendSuccessEvents.length > 0) {
