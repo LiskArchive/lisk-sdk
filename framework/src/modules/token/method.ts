@@ -665,4 +665,18 @@ export class TokenMethod extends BaseMethod {
 		await this.stores.get(SupportedTokensStore).removeSupportForToken(methodContext, tokenID);
 		this.events.get(TokenIDSupportRemovedEvent).log(methodContext, tokenID);
 	}
+
+	public async getTotalSupply(
+		context: MethodContext,
+	): Promise<{ totalSupply: (SupplyStoreData & { tokenID: Buffer })[] }> {
+		const supplyStore = this.stores.get(SupplyStore);
+		const supplyData = await supplyStore.getAll(context);
+
+		return {
+			totalSupply: supplyData.map(({ key: tokenID, value: supply }) => ({
+				tokenID,
+				totalSupply: supply.totalSupply,
+			})),
+		};
+	}
 }
