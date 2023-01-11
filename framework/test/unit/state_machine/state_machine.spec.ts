@@ -246,7 +246,7 @@ describe('state_machine', () => {
 				transaction,
 			});
 			await stateMachine.executeTransaction(ctx);
-			expect(ctx.eventQueue.getEvents()).toHaveLength(events.length);
+			expect(ctx.eventQueue.getEvents()).toHaveLength(events.length + 1);
 		});
 	});
 
