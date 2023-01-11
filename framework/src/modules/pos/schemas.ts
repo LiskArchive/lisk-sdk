@@ -731,3 +731,14 @@ export const getPendingUnlocksResponseSchema = {
 		},
 	},
 };
+
+export const getRegistrationFeeResponseSchema = {
+	$id: 'modules/pos/endpoint/getRegistrationFeeResponse',
+	type: 'object',
+	required: ['registrationFee'],
+	properties: {
+		registrationFee: {
+			type: 'string',
+		},
+	},
+};

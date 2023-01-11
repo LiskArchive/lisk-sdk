@@ -765,4 +765,12 @@ describe('PosModuleEndpoint', () => {
 			expect(response).toEqual({ rewards: [] });
 		});
 	});
+
+	describe('getRegistrationFee', () => {
+		it('should return the registration fee', () => {
+			const response = posEndpoint.getRegistrationFee();
+
+			expect(response).toEqual({ fee: config.validatorRegistrationFee.toString() });
+		});
+	});
 });

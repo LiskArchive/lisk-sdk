@@ -23,6 +23,7 @@ import {
 	getTerminatedStateAccountRequestSchema,
 	getTerminatedOutboxAccountRequestSchema,
 	genesisInteroperabilitySchema,
+	getRegistrationFeeSchema,
 } from '../schemas';
 import {
 	chainAccountSchema,
@@ -191,6 +192,10 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 					name: this.endpoint.getTerminatedOutboxAccount.name,
 					request: getTerminatedOutboxAccountRequestSchema,
 					response: terminatedOutboxSchema,
+				},
+				{
+					name: this.endpoint.getRegistrationFee.name,
+					response: getRegistrationFeeSchema,
 				},
 			],
 			commands: this.commands.map(command => ({
