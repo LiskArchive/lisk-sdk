@@ -61,20 +61,9 @@ export const getDBInstance = async (
 
 export class ChainConnectorStore {
 	private readonly _db: KVStore;
-	private readonly _blockHeadersDBKey: Buffer;
-	private readonly _aggregateCommitsDBKey: Buffer;
-	private readonly _validatorsHashPreimageDBKey: Buffer;
-	private readonly _crossChainMessagesDBKey: Buffer;
 
-	public constructor(db: KVStore, private readonly _chainType: Buffer) {
+	public constructor(db: KVStore) {
 		this._db = db;
-		this._blockHeadersDBKey = Buffer.concat([this._chainType, DB_KEY_BLOCK_HEADERS]);
-		this._aggregateCommitsDBKey = Buffer.concat([this._chainType, DB_KEY_AGGREGATE_COMMITS]);
-		this._validatorsHashPreimageDBKey = Buffer.concat([
-			this._chainType,
-			DB_KEY_VALIDATORS_HASH_PREIMAGE,
-		]);
-		this._crossChainMessagesDBKey = Buffer.concat([this._chainType, DB_KEY_CROSS_CHAIN_MESSAGES]);
 	}
 
 	public close() {
@@ -84,7 +73,7 @@ export class ChainConnectorStore {
 	public async getBlockHeaders(): Promise<BlockHeader[]> {
 		let blockHeaders: BlockHeader[] = [];
 		try {
-			const encodedInfo = await this._db.get(this._blockHeadersDBKey);
+			const encodedInfo = await this._db.get(DB_KEY_BLOCK_HEADERS);
 			blockHeaders = codec.decode<BlockHeadersInfo>(
 				blockHeadersInfoSchema,
 				encodedInfo,
@@ -100,13 +89,13 @@ export class ChainConnectorStore {
 	public async setBlockHeaders(blockHeaders: BlockHeader[]) {
 		const encodedInfo = codec.encode(blockHeadersInfoSchema, { blockHeaders });
 
-		await this._db.set(this._blockHeadersDBKey, encodedInfo);
+		await this._db.set(DB_KEY_BLOCK_HEADERS, encodedInfo);
 	}
 
 	public async getAggregateCommits(): Promise<AggregateCommit[]> {
 		let aggregateCommits: AggregateCommit[] = [];
 		try {
-			const encodedInfo = await this._db.get(this._aggregateCommitsDBKey);
+			const encodedInfo = await this._db.get(DB_KEY_AGGREGATE_COMMITS);
 			aggregateCommits = codec.decode<AggregateCommitsInfo>(
 				aggregateCommitsInfoSchema,
 				encodedInfo,
@@ -121,13 +110,13 @@ export class ChainConnectorStore {
 
 	public async setAggregateCommits(aggregateCommits: AggregateCommit[]) {
 		const encodedInfo = codec.encode(aggregateCommitsInfoSchema, { aggregateCommits });
-		await this._db.set(this._aggregateCommitsDBKey, encodedInfo);
+		await this._db.set(DB_KEY_AGGREGATE_COMMITS, encodedInfo);
 	}
 
 	public async getValidatorsHashPreimage(): Promise<ValidatorsData[]> {
 		let validatorsHashPreimage: ValidatorsData[] = [];
 		try {
-			const encodedInfo = await this._db.get(this._validatorsHashPreimageDBKey);
+			const encodedInfo = await this._db.get(DB_KEY_VALIDATORS_HASH_PREIMAGE);
 			validatorsHashPreimage = codec.decode<ValidatorsHashPreimage>(
 				validatorsHashPreimageInfoSchema,
 				encodedInfo,
@@ -144,13 +133,13 @@ export class ChainConnectorStore {
 		const encodedInfo = codec.encode(validatorsHashPreimageInfoSchema, {
 			validatorsHashPreimage: validatorsHashInput,
 		});
-		await this._db.set(this._validatorsHashPreimageDBKey, encodedInfo);
+		await this._db.set(DB_KEY_VALIDATORS_HASH_PREIMAGE, encodedInfo);
 	}
 
 	public async getCrossChainMessages(): Promise<CCMsFromEvents[]> {
 		let crossChainMessages: CCMsFromEvents[] = [];
 		try {
-			const encodedInfo = await this._db.get(this._crossChainMessagesDBKey);
+			const encodedInfo = await this._db.get(DB_KEY_CROSS_CHAIN_MESSAGES);
 			crossChainMessages = codec.decode<CrossChainMessagesInfo>(
 				ccmsFromEventsSchema,
 				encodedInfo,
@@ -165,6 +154,6 @@ export class ChainConnectorStore {
 
 	public async setCrossChainMessages(ccms: CCMsFromEvents[]) {
 		const encodedInfo = codec.encode(ccmsFromEventsSchema, { ccmsFromEvents: ccms });
-		await this._db.set(this._crossChainMessagesDBKey, encodedInfo);
+		await this._db.set(DB_KEY_CROSS_CHAIN_MESSAGES, encodedInfo);
 	}
 }

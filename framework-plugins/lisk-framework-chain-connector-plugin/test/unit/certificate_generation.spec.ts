@@ -33,12 +33,7 @@ import {
 } from '../../src/certificate_generation';
 import { BlockHeader } from '../../src/types';
 import { ChainConnectorStore } from '../../src/db';
-import {
-	ADDRESS_LENGTH,
-	BLS_PUBLIC_KEY_LENGTH,
-	DB_KEY_SIDECHAIN,
-	HASH_LENGTH,
-} from '../../src/constants';
+import { ADDRESS_LENGTH, BLS_PUBLIC_KEY_LENGTH, HASH_LENGTH } from '../../src/constants';
 
 describe('certificate generation', () => {
 	const sampleSizeArray = new Array(10).fill(0);
@@ -353,7 +348,7 @@ describe('certificate generation', () => {
 		let mainchainAPIClient: any;
 
 		beforeEach(() => {
-			sidechainStore = new ChainConnectorStore(new db.InMemoryDatabase() as any, DB_KEY_SIDECHAIN);
+			sidechainStore = new ChainConnectorStore(new db.InMemoryDatabase() as any);
 			mainchainAPIClient = apiClientMock;
 		});
 
@@ -372,6 +367,7 @@ describe('certificate generation', () => {
 				sendingChainID,
 				sidechainStore,
 				mainchainAPIClient,
+				false,
 			);
 
 			expect(result.status).toBe(false);
@@ -395,6 +391,7 @@ describe('certificate generation', () => {
 				sendingChainID,
 				sidechainStore,
 				mainchainAPIClient,
+				false,
 			);
 
 			expect(result.status).toBe(false);
@@ -420,6 +417,7 @@ describe('certificate generation', () => {
 				sendingChainID,
 				sidechainStore,
 				mainchainAPIClient,
+				false,
 			);
 
 			expect(result.status).toBe(false);
@@ -465,6 +463,7 @@ describe('certificate generation', () => {
 				sendingChainID,
 				sidechainStore,
 				mainchainAPIClient,
+				false,
 			);
 
 			expect(result.status).toBe(true);
@@ -516,6 +515,7 @@ describe('certificate generation', () => {
 				sendingChainID,
 				sidechainStore,
 				mainchainAPIClient,
+				false,
 			);
 
 			expect(result.status).toBe(false);
@@ -567,6 +567,7 @@ describe('certificate generation', () => {
 				sendingChainID,
 				sidechainStore,
 				mainchainAPIClient,
+				false,
 			);
 
 			expect(result.status).toBe(false);

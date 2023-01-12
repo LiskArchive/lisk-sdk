@@ -14,6 +14,9 @@
 
 import {
 	AggregateCommit,
+	BFTParameters,
+	ChainAccount,
+	ChainAccountJSON,
 	ChannelData,
 	ChannelDataJSON,
 	Inbox,
@@ -21,7 +24,14 @@ import {
 	Outbox,
 	OutboxJSON,
 } from 'lisk-sdk';
-import { ValidatorsData } from './types';
+import { BFTParametersJSON, ProveResponse, ProveResponseJSON, ValidatorsData } from './types';
+import { CHAIN_ID_LENGTH } from './constants';
+
+export const getMainchainID = (chainID: Buffer): Buffer => {
+	const networkID = chainID.slice(0, 1);
+	// 3 bytes for remaining chainID bytes
+	return Buffer.concat([networkID, Buffer.alloc(CHAIN_ID_LENGTH - 1, 0)]);
+};
 
 export const aggregateCommitToJSON = (aggregateCommit: AggregateCommit) => ({
 	height: aggregateCommit.height,
@@ -88,5 +98,53 @@ export const channelDataJSONToObj = (channelData: ChannelDataJSON): ChannelData 
 		outbox: outboxJSON,
 		inbox: inboxJSON,
 		partnerChainOutboxRoot: Buffer.from(partnerChainOutboxRoot, 'hex'),
+	};
+};
+
+export const chainAccountDataJSONToObj = (chainAccountJSON: ChainAccountJSON): ChainAccount => {
+	const { lastCertificate } = chainAccountJSON;
+	return {
+		...chainAccountJSON,
+		lastCertificate: {
+			height: lastCertificate.height,
+			stateRoot: Buffer.from(lastCertificate.stateRoot, 'hex'),
+			timestamp: lastCertificate.timestamp,
+			validatorsHash: Buffer.from(lastCertificate.validatorsHash, 'hex'),
+		},
+	};
+};
+
+export const proveResponseJSONToObj = (proveResponseJSON: ProveResponseJSON): ProveResponse => {
+	const {
+		proof: { queries, siblingHashes },
+	} = proveResponseJSON;
+
+	return {
+		proof: {
+			queries: queries.map(query => ({
+				bitmap: Buffer.from(query.bitmap, 'hex'),
+				key: Buffer.from(query.key, 'hex'),
+				value: Buffer.from(query.value, 'hex'),
+			})),
+			siblingHashes: siblingHashes.map(siblingHash => Buffer.from(siblingHash, 'hex')),
+		},
+	};
+};
+
+export const bftParametersJSONToObj = (bftParametersJSON: BFTParametersJSON): BFTParameters => {
+	const { certificateThreshold, precommitThreshold, prevoteThreshold, validators, validatorsHash } =
+		bftParametersJSON;
+
+	return {
+		certificateThreshold: BigInt(certificateThreshold),
+		precommitThreshold: BigInt(precommitThreshold),
+		prevoteThreshold: BigInt(prevoteThreshold),
+		validators: validators.map(validator => ({
+			address: Buffer.from(validator.address, 'hex'),
+			bftWeight: BigInt(validator.bftWeight),
+			blsKey: Buffer.from(validator.blsKey, 'hex'),
+			generatorKey: Buffer.from(validator.generatorKey, 'hex'),
+		})),
+		validatorsHash: Buffer.from(validatorsHash, 'hex'),
 	};
 };
