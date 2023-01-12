@@ -53,6 +53,10 @@ export interface ModuleMetadata {
 		version: number;
 		data: Schema;
 	}[];
+	stores: {
+		key: string;
+		data?: Schema;
+	}[];
 }
 
 export type ModuleMetadataJSON = ModuleMetadata & { name: string };
@@ -83,4 +87,23 @@ export abstract class BaseModule {
 	public async afterTransactionsExecute?(context: BlockAfterExecuteContext): Promise<void>;
 
 	public abstract metadata(): ModuleMetadata;
+
+	protected baseMetadata() {
+		return {
+			commands: this.commands.map(command => ({
+				name: command.name,
+				params: command.schema,
+			})),
+			events: this.events.values().map(v => ({
+				name: v.name,
+				data: v.schema,
+			})),
+			stores: this.stores.values().map(v => ({
+				key: v.key.toString('hex'),
+				data: v.schema,
+			})),
+			endpoints: [],
+			assets: [],
+		};
+	}
 }

@@ -20,3 +20,38 @@ export * from './mainchain/commands';
 export { SidechainInteroperabilityModule } from './sidechain/module';
 export { SidechainInteroperabilityMethod } from './sidechain/method';
 export * from './sidechain/commands';
+export {
+	CCMsg,
+	ChainAccount,
+	ChainAccountJSON,
+	ChannelData,
+	ChannelDataJSON,
+	Inbox,
+	InboxJSON,
+	Outbox,
+	OutboxJSON,
+	InboxUpdate,
+	CrossChainUpdateTransactionParams,
+	ActiveValidator,
+	OutboxRootWitness,
+	OwnChainAccount,
+	OwnChainAccountJSON,
+	LastCertificate,
+	LastCertificateJSON,
+} from './types';
+// Common
+export {
+	LIVENESS_LIMIT,
+	MESSAGE_TAG_CERTIFICATE,
+	MODULE_NAME_INTEROPERABILITY,
+	MAX_CCM_SIZE,
+	EMPTY_BYTES,
+} from './constants';
+export { ChainStatus } from './stores/chain_account';
+export { ccmSchema, crossChainUpdateTransactionParams as ccuParamsSchema } from './schemas';
+export {
+	CcmProcessedEventData,
+	CCMProcessedCode,
+	CCMProcessedResult,
+} from './events/ccm_processed';
+export { CcmSendSuccessEventData } from './events/ccm_send_success';

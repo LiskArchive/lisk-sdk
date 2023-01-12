@@ -252,3 +252,77 @@ export const genesisAuthStoreSchema = {
 		},
 	},
 };
+
+export const addressRequestSchema = {
+	$id: '/auth/addressRequest',
+	type: 'object',
+	properties: {
+		address: {
+			type: 'string',
+			format: 'lisk32',
+		},
+	},
+	required: ['address'],
+};
+
+export const transactionRequestSchema = {
+	$id: '/auth/transactionRequest',
+	type: 'object',
+	properties: {
+		transaction: {
+			type: 'string',
+			format: 'hex',
+		},
+	},
+	required: ['transaction'],
+};
+
+export const verifyResultSchema = {
+	$id: '/auth/verifyResult',
+	type: 'object',
+	properties: {
+		verified: {
+			type: 'boolean',
+		},
+	},
+	required: ['verified'],
+};
+
+export const sortMultisignatureGroupResponseSchema = {
+	$id: '/auth/sortMultisignatureGroupResponse',
+	type: 'object',
+	properties: {
+		mandatoryKeys: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: ED25519_PUBLIC_KEY_LENGTH,
+				maxLength: ED25519_PUBLIC_KEY_LENGTH,
+			},
+			fieldNumber: 1,
+			minItems: 0,
+			maxItems: 64,
+		},
+		optionalKeys: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: ED25519_PUBLIC_KEY_LENGTH,
+				maxLength: ED25519_PUBLIC_KEY_LENGTH,
+			},
+			fieldNumber: 2,
+			minItems: 0,
+			maxItems: 64,
+		},
+		signatures: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: ED25519_SIGNATURE_LENGTH,
+				maxLength: ED25519_SIGNATURE_LENGTH,
+			},
+			fieldNumber: 3,
+		},
+	},
+	required: ['mandatoryKeys', 'optionalKeys', 'signatures'],
+};
