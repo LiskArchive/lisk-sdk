@@ -14,7 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { Chain, Transaction, Event } from '@liskhq/lisk-chain';
-import { TransactionPool } from '@liskhq/lisk-transaction-pool';
+import { TransactionObject, TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { LiskValidationError } from '@liskhq/lisk-validator';
 import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../../../src/abi';
 import { Logger } from '../../../../src/logger';
@@ -53,14 +53,33 @@ describe('generator endpoint', () => {
 	let pool: TransactionPool;
 	let abi: ABI;
 	let chain: Chain;
+	let transactions: TransactionObject[];
+	const transactionReceivedAt = new Date();
 
 	beforeEach(() => {
+		transactions = [
+			{
+				id: Buffer.from('id'),
+				nonce: BigInt(10),
+				fee: BigInt(2),
+				senderPublicKey: Buffer.from('sender public key'),
+				receivedAt: transactionReceivedAt,
+				feePriority: BigInt(1),
+			},
+			{
+				id: Buffer.from('id'),
+				nonce: BigInt(11),
+				fee: BigInt(2),
+				senderPublicKey: Buffer.from('sender public key'),
+			},
+		];
 		broadcaster = {
 			enqueueTransactionId: jest.fn(),
 		} as never;
 		pool = {
 			contains: jest.fn().mockReturnValue(false),
 			add: jest.fn().mockResolvedValue({}),
+			getAll: jest.fn().mockReturnValue(transactions),
 		} as never;
 		abi = {
 			verifyTransaction: jest.fn().mockResolvedValue({ result: TransactionVerifyResult.OK }),
@@ -178,6 +197,27 @@ describe('generator endpoint', () => {
 				});
 				expect(broadcaster.enqueueTransactionId).toHaveBeenCalledWith(tx.id);
 			});
+		});
+	});
+
+	describe('getTransactionsFromPool', () => {
+		it('should return transactions in the pool', async () => {
+			const expectedTransactions = transactions.map(transaction => ({
+				id: transaction.id.toString('hex'),
+				nonce: transaction.nonce.toString(),
+				fee: transaction.fee.toString(),
+				senderPublicKey: transaction.senderPublicKey.toString('hex'),
+				receivedAt: transaction.receivedAt,
+				feePriority: transaction.feePriority?.toString(),
+			}));
+
+			expect(
+				await endpoint.getTransactionsFromPool({
+					logger,
+					params: {},
+					chainID,
+				}),
+			).toEqual(expectedTransactions);
 		});
 	});
 
