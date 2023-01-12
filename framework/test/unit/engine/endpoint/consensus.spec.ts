@@ -16,7 +16,7 @@ import { address, utils } from '@liskhq/lisk-cryptography';
 import { Database, InMemoryDatabase } from '@liskhq/lisk-db';
 import { ConsensusEndpoint } from '../../../../src/engine/endpoint/consensus';
 
-describe('system endpoint', () => {
+describe('consensus endpoint', () => {
 	const validators = [
 		{
 			address: utils.getRandomBytes(20),

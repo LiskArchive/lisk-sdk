@@ -83,6 +83,10 @@ export interface ModuleMetadata {
 		version: number;
 		data: Schema;
 	}[];
+	stores: {
+		key: string;
+		data?: Schema;
+	}[];
 }
 
 export interface GenesisConfig {

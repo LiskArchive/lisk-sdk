@@ -615,6 +615,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				const ctx: CrossChainMessageContext = {
 					...commandExecuteContext,
 					ccm,
+					eventQueue: commandExecuteContext.eventQueue.getChildQueue(utils.hash(crossChainMessage)),
 				};
 
 				expect(command['_applyRecovery']).toHaveBeenCalledWith(ctx);
@@ -650,6 +651,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				const ctx: CrossChainMessageContext = {
 					...commandExecuteContext,
 					ccm,
+					eventQueue: commandExecuteContext.eventQueue.getChildQueue(utils.hash(crossChainMessage)),
 				};
 
 				expect(command['_forwardRecovery']).toHaveBeenCalledWith(ctx);
@@ -709,6 +711,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 		};
 
 		let context: CrossChainMessageContext;
+		let recoveredCCM: CCMsg;
 
 		beforeEach(() => {
 			command['interoperableCCMethods'].set(
@@ -730,6 +733,12 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 			context = createCrossChainMessageContext({
 				ccm: defaultCCM,
 			});
+			recoveredCCM = {
+				...defaultCCM,
+				sendingChainID: defaultCCM.receivingChainID,
+				receivingChainID: defaultCCM.sendingChainID,
+				status: CCMStatusCode.RECOVERED,
+			};
 		});
 
 		it('should log event when verifyCrossChainMessage fails', async () => {
@@ -745,7 +754,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				context.ccm.receivingChainID,
 				context.ccm.sendingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: recoveredCCM,
 					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -768,7 +777,10 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				context.ccm.receivingChainID,
 				context.ccm.sendingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: {
+						...recoveredCCM,
+						module: 'nonExisting',
+					},
 					code: CCMProcessedCode.MODULE_NOT_SUPPORTED,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -791,7 +803,10 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				context.ccm.receivingChainID,
 				context.ccm.sendingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: {
+						...recoveredCCM,
+						crossChainCommand: 'nonExisting',
+					},
 					code: CCMProcessedCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -815,7 +830,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				context.ccm.receivingChainID,
 				context.ccm.sendingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: recoveredCCM,
 					code: CCMProcessedCode.INVALID_CCM_VERIFY_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -836,7 +851,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				context.ccm.receivingChainID,
 				context.ccm.sendingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: recoveredCCM,
 					code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -904,7 +919,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				context.ccm.receivingChainID,
 				context.ccm.sendingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: recoveredCCM,
 					code: CCMProcessedCode.INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -947,7 +962,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				context.ccm.receivingChainID,
 				context.ccm.sendingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: recoveredCCM,
 					code: CCMProcessedCode.SUCCESS,
 					result: CCMProcessedResult.APPLIED,
 				},
@@ -967,6 +982,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 			params: Buffer.alloc(0),
 		};
 		let context: CrossChainMessageContext;
+		let recoveredCCM: CCMsg;
 
 		beforeEach(() => {
 			command['interoperableCCMethods'].set(
@@ -988,6 +1004,12 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 			context = createCrossChainMessageContext({
 				ccm: defaultCCM,
 			});
+			recoveredCCM = {
+				...defaultCCM,
+				sendingChainID: defaultCCM.receivingChainID,
+				receivingChainID: defaultCCM.sendingChainID,
+				status: CCMStatusCode.RECOVERED,
+			};
 		});
 
 		it('should log event when verifyCrossChainMessage fails', async () => {
@@ -1003,7 +1025,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				context.ccm.receivingChainID,
 				context.ccm.sendingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: recoveredCCM,
 					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -1024,7 +1046,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				context.ccm.receivingChainID,
 				context.ccm.sendingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: recoveredCCM,
 					code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -1070,7 +1092,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				context.ccm.receivingChainID,
 				context.ccm.sendingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: recoveredCCM,
 					code: CCMProcessedCode.SUCCESS,
 					result: CCMProcessedResult.FORWARDED,
 				},

@@ -45,6 +45,7 @@ export class ValidatorsModule extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
+			...this.baseMetadata(),
 			endpoints: [
 				// getGeneratorList is not listed since it will be moved to engine endpoint
 				{
@@ -53,9 +54,6 @@ export class ValidatorsModule extends BaseModule {
 					response: validateBLSKeyResponseSchema,
 				},
 			],
-			commands: [],
-			events: [],
-			assets: [],
 		};
 	}
 
