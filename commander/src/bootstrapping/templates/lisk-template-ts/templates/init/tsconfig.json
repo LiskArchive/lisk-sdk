@@ -19,7 +19,8 @@
 		"declaration": true,
 		"noImplicitAny": false,
 		"rootDir": "./src",
-		"outDir": "./dist"
+		"outDir": "./dist",
+		"skipLibCheck": true
 	},
 	"include": ["./src/**/*.ts", "./src/**/*.json"]
 }
