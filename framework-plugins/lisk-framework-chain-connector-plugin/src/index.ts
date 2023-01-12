@@ -12,4 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export default {};
+export { ChainConnectorPlugin } from './chain_connector_plugin';
