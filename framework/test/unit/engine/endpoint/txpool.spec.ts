@@ -14,7 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { Chain, Transaction, Event } from '@liskhq/lisk-chain';
-import { TransactionObject, TransactionPool } from '@liskhq/lisk-transaction-pool';
+import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { LiskValidationError } from '@liskhq/lisk-validator';
 import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../../../src/abi';
 import { Logger } from '../../../../src/logger';
@@ -24,7 +24,7 @@ import { fakeLogger } from '../../../utils/mocks';
 import { TxpoolEndpoint } from '../../../../src/engine/endpoint/txpool';
 import { VerifyStatus } from '../../../../src';
 
-describe('generator endpoint', () => {
+describe('txpool endpoint', () => {
 	const logger: Logger = fakeLogger;
 	const tx = new Transaction({
 		params: Buffer.alloc(20),
@@ -53,24 +53,33 @@ describe('generator endpoint', () => {
 	let pool: TransactionPool;
 	let abi: ABI;
 	let chain: Chain;
-	let transactions: TransactionObject[];
-	const transactionReceivedAt = new Date();
+	let jsonMock: jest.Mock;
+	let transactionsFromPool;
 
 	beforeEach(() => {
-		transactions = [
+		jsonMock = jest.fn();
+		transactionsFromPool = [
 			{
 				id: Buffer.from('id'),
+				module: 'module',
+				command: 'command',
+				senderPublicKey: Buffer.from('sender public key'),
 				nonce: BigInt(10),
 				fee: BigInt(2),
-				senderPublicKey: Buffer.from('sender public key'),
-				receivedAt: transactionReceivedAt,
-				feePriority: BigInt(1),
+				params: Buffer.from('params'),
+				signatures: [Buffer.from('signature1'), Buffer.from('signature2')],
+				toJSON: jsonMock,
 			},
 			{
 				id: Buffer.from('id'),
-				nonce: BigInt(11),
-				fee: BigInt(2),
+				module: 'module',
+				command: 'command',
 				senderPublicKey: Buffer.from('sender public key'),
+				nonce: BigInt(10),
+				fee: BigInt(2),
+				params: Buffer.from('params'),
+				signatures: [Buffer.from('signature1'), Buffer.from('signature2')],
+				toJSON: jsonMock,
 			},
 		];
 		broadcaster = {
@@ -79,7 +88,7 @@ describe('generator endpoint', () => {
 		pool = {
 			contains: jest.fn().mockReturnValue(false),
 			add: jest.fn().mockResolvedValue({}),
-			getAll: jest.fn().mockReturnValue(transactions),
+			getAll: jest.fn().mockReturnValue(transactionsFromPool),
 		} as never;
 		abi = {
 			verifyTransaction: jest.fn().mockResolvedValue({ result: TransactionVerifyResult.OK }),
@@ -201,23 +210,14 @@ describe('generator endpoint', () => {
 	});
 
 	describe('getTransactionsFromPool', () => {
-		it('should return transactions in the pool', async () => {
-			const expectedTransactions = transactions.map(transaction => ({
-				id: transaction.id.toString('hex'),
-				nonce: transaction.nonce.toString(),
-				fee: transaction.fee.toString(),
-				senderPublicKey: transaction.senderPublicKey.toString('hex'),
-				receivedAt: transaction.receivedAt,
-				feePriority: transaction.feePriority?.toString(),
-			}));
+		it('should return transactions in the pool in JSON format', async () => {
+			await endpoint.getTransactionsFromPool({
+				logger,
+				params: {},
+				chainID,
+			});
 
-			expect(
-				await endpoint.getTransactionsFromPool({
-					logger,
-					params: {},
-					chainID,
-				}),
-			).toEqual(expectedTransactions);
+			expect(jsonMock).toHaveBeenCalledTimes(transactionsFromPool.length);
 		});
 	});
 

@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Chain, Transaction, Event } from '@liskhq/lisk-chain';
-import { TransactionPool, TransactionObject } from '@liskhq/lisk-transaction-pool';
+import { Chain, Transaction, Event, TransactionJSON } from '@liskhq/lisk-chain';
+import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { validator } from '@liskhq/lisk-validator';
 import { Broadcaster } from '../generator/broadcaster';
 import { InvalidTransactionError } from '../generator/errors';
@@ -27,7 +27,6 @@ import {
 } from '../generator/schemas';
 import { RequestContext } from '../rpc/rpc_server';
 import { ABI, TransactionVerifyResult } from '../../abi';
-import { JSONObject } from '../../types';
 
 interface EndpointArgs {
 	abi: ABI;
@@ -97,17 +96,8 @@ export class TxpoolEndpoint {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getTransactionsFromPool(
-		_context: RequestContext,
-	): Promise<JSONObject<TransactionObject>[]> {
-		return this._pool.getAll().map(transaction => ({
-			id: transaction.id.toString('hex'),
-			nonce: transaction.nonce.toString(),
-			fee: transaction.fee.toString(),
-			senderPublicKey: transaction.senderPublicKey.toString('hex'),
-			receivedAt: transaction.receivedAt,
-			feePriority: transaction.feePriority?.toString(),
-		}));
+	public async getTransactionsFromPool(_context: RequestContext): Promise<TransactionJSON[]> {
+		return (this._pool.getAll() as Transaction[]).map(transaction => transaction.toJSON());
 	}
 
 	public async dryRunTransaction(ctx: RequestContext): Promise<DryRunTransactionResponse> {
