@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
-import { codec } from '@liskhq/lisk-codec';
 import { BaseCCMethod } from '../interoperability/base_cc_method';
 import { CrossChainMessageContext } from '../interoperability/types';
 import { InteroperabilityMethod, TokenMethod } from './types';
@@ -21,7 +19,7 @@ import { NamedRegistry } from '../named_registry';
 import { CONTEXT_STORE_KEY_AVAILABLE_CCM_FEE } from './constants';
 import { getContextStoreBigInt } from '../../state_machine';
 import { RelayerFeeProcessedEvent } from './events/relayer_fee_processed';
-import { ccmSchema } from '../interoperability/schemas';
+import { getEncodedCCMAndID } from '../interoperability/utils';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0048.md#cross-chain-update-processing
 export class FeeInteroperableMethod extends BaseCCMethod {
@@ -79,7 +77,7 @@ export class FeeInteroperableMethod extends BaseCCMethod {
 			messageTokenID,
 			burntAmount,
 		);
-		const ccmID = utils.hash(codec.encode(ccmSchema, ctx.ccm));
+		const { ccmID } = getEncodedCCMAndID(ctx.ccm);
 
 		this.events.get(RelayerFeeProcessedEvent).log(ctx, {
 			burntAmount,

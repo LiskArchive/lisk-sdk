@@ -498,7 +498,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				context.ccm.sendingChainID,
 				context.ccm.receivingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: context.ccm,
 					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -524,7 +524,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				context.ccm.sendingChainID,
 				context.ccm.receivingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: context.ccm,
 					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -539,7 +539,6 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			expect(command['bounce']).toHaveBeenCalledTimes(1);
 			expect(command['bounce']).toHaveBeenCalledWith(
 				expect.anything(),
-				expect.any(Buffer),
 				expect.any(Number),
 				CCMStatusCode.CHANNEL_UNAVAILABLE,
 				CCMProcessedCode.CHANNEL_UNAVAILABLE,
@@ -563,7 +562,6 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			expect(command['bounce']).toHaveBeenCalledTimes(1);
 			expect(command['bounce']).toHaveBeenCalledWith(
 				expect.anything(),
-				expect.any(Buffer),
 				expect.any(Number),
 				CCMStatusCode.CHANNEL_UNAVAILABLE,
 				CCMProcessedCode.CHANNEL_UNAVAILABLE,
@@ -595,7 +593,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				context.ccm.sendingChainID,
 				context.ccm.receivingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: context.ccm,
 					code: CCMProcessedCode.CHANNEL_UNAVAILABLE,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -638,7 +636,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				context.ccm.sendingChainID,
 				context.ccm.receivingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: context.ccm,
 					code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
@@ -662,7 +660,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				context.ccm.sendingChainID,
 				context.ccm.receivingChainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: context.ccm,
 					code: CCMProcessedCode.SUCCESS,
 					result: CCMProcessedResult.FORWARDED,
 				},

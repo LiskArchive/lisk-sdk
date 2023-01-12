@@ -59,6 +59,7 @@ export {
 	TokenModule,
 	TransferCommand,
 	genesisTokenStoreSchema as tokenGenesisStoreSchema,
+	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 } from './modules/token';
 export {
 	PoSMethod,
@@ -83,6 +84,35 @@ export {
 	InitializeStateRecoveryCommand,
 	RecoverStateCommand,
 	TerminateSidechainForLivenessCommand,
+	CCMsg,
+	ChainAccount,
+	ChainAccountJSON,
+	ChannelData,
+	ChannelDataJSON,
+	Inbox,
+	InboxJSON,
+	Outbox,
+	OutboxJSON,
+	InboxUpdate,
+	CrossChainUpdateTransactionParams,
+	ActiveValidator,
+	OutboxRootWitness,
+	LIVENESS_LIMIT,
+	MESSAGE_TAG_CERTIFICATE,
+	MODULE_NAME_INTEROPERABILITY,
+	MAX_CCM_SIZE,
+	EMPTY_BYTES,
+	ChainStatus,
+	ccmSchema,
+	OwnChainAccount,
+	OwnChainAccountJSON,
+	LastCertificate,
+	LastCertificateJSON,
+	CcmProcessedEventData,
+	CcmSendSuccessEventData,
+	CCMProcessedCode,
+	CCMProcessedResult,
+	ccuParamsSchema,
 } from './modules/interoperability';
 export { RewardMethod, RewardModule } from './modules/reward';
 export { FeeMethod, FeeModule } from './modules/fee';
@@ -103,3 +133,10 @@ export {
 	BlockAfterExecuteContext,
 } from './state_machine/types';
 export { TransactionExecutionResult, TransactionVerifyResult } from './abi/constants';
+export { AggregateCommit } from './engine/consensus/types';
+export { BFTHeights } from './engine/bft/types';
+export { BFTParameters } from './engine/bft/schemas';
+export { aggregateCommitSchema } from './engine/consensus/certificate_generation/schema';
+export { computeCertificateFromBlockHeader } from './engine/consensus/certificate_generation/utils';
+export { Certificate } from './engine/consensus/certificate_generation/types';
+export { certificateSchema } from './engine/consensus/certificate_generation/schema';

@@ -12,7 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { CCMsg } from '../types';
 import { BaseEvent, EventQueuer } from '../../base_event';
+import { ccmSchema } from '../schemas';
 
 export const enum CCMProcessedResult {
 	// Value of result of CCM Processed Event if CCM is applied
@@ -51,19 +53,23 @@ export const enum CCMProcessedCode {
 }
 
 export interface CcmProcessedEventData {
-	ccmID: Buffer;
 	result: CCMProcessedResult;
 	code: CCMProcessedCode;
+	ccm: CCMsg;
 }
 
 export const ccmProcessedEventSchema = {
 	$id: '/interoperability/events/ccmProcessed',
 	type: 'object',
-	required: ['ccmID', 'result', 'code'],
+	required: ['ccm', 'result', 'code'],
 	properties: {
-		ccmID: {
-			dataType: 'bytes',
+		ccm: {
 			fieldNumber: 1,
+			type: ccmSchema.type,
+			required: [...ccmSchema.required],
+			properties: {
+				...ccmSchema.properties,
+			},
 		},
 		result: {
 			dataType: 'uint32',
@@ -85,6 +91,6 @@ export class CcmProcessedEvent extends BaseEvent<CcmProcessedEventData> {
 		receivingChainID: Buffer,
 		data: CcmProcessedEventData,
 	): void {
-		this.add(ctx, data, [sendingChainID, receivingChainID, data.ccmID]);
+		this.add(ctx, data, [sendingChainID, receivingChainID]);
 	}
 }
