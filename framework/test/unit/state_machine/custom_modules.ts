@@ -13,15 +13,18 @@
  */
 /* eslint-disable max-classes-per-file */
 
-import { BaseMethod, BaseCommand, BaseEndpoint, BaseModule } from '../../../src';
-import { TransactionVerifyResult } from '../../../src/abi';
-import { ModuleMetadata } from '../../../src/modules/base_module';
 import {
+	BaseMethod,
+	BaseCommand,
+	BaseEndpoint,
+	BaseModule,
+	TransactionVerifyResult,
 	BlockAfterExecuteContext,
 	BlockExecuteContext,
 	GenesisBlockExecuteContext,
 	TransactionExecuteContext,
-} from '../../../src/state_machine';
+	ModuleMetadata,
+} from '../../../src';
 
 export class CustomCommand0 extends BaseCommand {
 	public schema = {
