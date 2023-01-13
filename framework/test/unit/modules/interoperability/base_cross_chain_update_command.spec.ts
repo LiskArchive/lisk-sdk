@@ -340,12 +340,17 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 	});
 
+	// CAUTION!
+	// tests should be written/executed as per `BaseCrossChainUpdateCommand::executeCommon`,
+	// otherwise, they can fail due to some other check
+	// also, we can simplify test cases by giving only one CCM to params.inboxUpdate.crossChainMessages array
 	describe('executeCommon', () => {
 		let executeContext: CommandExecuteContext<CrossChainUpdateTransactionParams>;
 		let stateStore: PrefixedStateReadWriter;
 
 		beforeEach(async () => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -369,18 +374,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should verify certificate signature', async () => {
-			executeContext = createTransactionContext({
-				chainID,
-				stateStore,
-				transaction: new Transaction({
-					...defaultTransaction,
-					command: command.name,
-					params: codec.encode(crossChainUpdateTransactionParams, {
-						...params,
-					}),
-				}),
-			}).createCommandExecuteContext(command.schema);
-
 			await expect(command['executeCommon'](executeContext, true)).resolves.toEqual([
 				expect.toBeArrayOfSize(params.inboxUpdate.crossChainMessages.length),
 				true,
@@ -389,18 +382,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should initialize user account for message fee token ID when inboxUpdate is not empty', async () => {
-			executeContext = createTransactionContext({
-				chainID,
-				stateStore,
-				transaction: new Transaction({
-					...defaultTransaction,
-					command: command.name,
-					params: codec.encode(crossChainUpdateTransactionParams, {
-						...params,
-					}),
-				}),
-			}).createCommandExecuteContext(command.schema);
-
 			await expect(command['executeCommon'](executeContext, true)).resolves.toEqual([
 				expect.toBeArrayOfSize(params.inboxUpdate.crossChainMessages.length),
 				true,
@@ -442,7 +423,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			expect(command['_tokenMethod'].initializeUserAccount).not.toHaveBeenCalled();
 		});
 
-		it('should reject terminate the chain and add an event when ccm format is invalid', async () => {
+		it('should terminate the chain and add an event when ccm format is invalid', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -488,7 +469,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 			);
 		});
 
-		it('should reject terminate the chain and add an event when CCM sending chain and ccu sending chain is not the same', async () => {
+		// after `validateFormat`, we should check `!context.chainID.equals(ccm.receivingChainID)`
+		it('should terminate the chain and add an event when CCM is not directed to the sidechain', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -500,14 +482,64 @@ describe('BaseCrossChainUpdateCommand', () => {
 						inboxUpdate: {
 							...params.inboxUpdate,
 							crossChainMessages: [
-								...params.inboxUpdate.crossChainMessages,
 								codec.encode(ccmSchema, {
 									crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 									fee: BigInt(0),
 									module: MODULE_NAME_INTEROPERABILITY,
 									nonce: BigInt(1),
 									params: utils.getRandomBytes(10),
-									receivingChainID: utils.intToBuffer(2, 4),
+									// will fail for `!context.chainID.equals(ccm.receivingChainID)`
+									receivingChainID: Buffer.from([0, 0, 3, 0]), //
+									sendingChainID: defaultSendingChainID,
+									status: CCMStatusCode.OK,
+								}),
+							],
+						},
+					}),
+				}),
+			}).createCommandExecuteContext(command.schema);
+
+			await expect(command['executeCommon'](executeContext, false)).resolves.toEqual([[], false]);
+			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
+				expect.anything(),
+				params.sendingChainID,
+			);
+			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				params.sendingChainID,
+				chainID,
+				{
+					ccm: zeroValueCCM,
+					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+				},
+			);
+		});
+
+		// next, we should check `!ccm.sendingChainID.equals(params.sendingChainID)`
+		// params.sendingChainID is defaultSendingChainID (Buffer.from([0, 0, 2, 0])
+		it('should terminate the chain and add an event when CCM sending chain and ccu sending chain is not the same', async () => {
+			executeContext = createTransactionContext({
+				chainID,
+				stateStore,
+				transaction: new Transaction({
+					...defaultTransaction,
+					command: command.name,
+					params: codec.encode(crossChainUpdateTransactionParams, {
+						...params,
+						inboxUpdate: {
+							...params.inboxUpdate,
+							crossChainMessages: [
+								codec.encode(ccmSchema, {
+									crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+									fee: BigInt(0),
+									module: MODULE_NAME_INTEROPERABILITY,
+									nonce: BigInt(1),
+									params: utils.getRandomBytes(10),
+									// must be same as `context.chainID` to pass `!context.chainID.equals(ccm.receivingChainID)` check
+									receivingChainID: chainID,
+									// will fail for `!ccm.sendingChainID.equals(params.sendingChainID)
+									// `params.sendingChainID` is defaultSendingChainID
 									sendingChainID: Buffer.from([1, 2, 3, 4]),
 									status: CCMStatusCode.OK,
 								}),
@@ -534,9 +566,11 @@ describe('BaseCrossChainUpdateCommand', () => {
 			);
 		});
 
-		it('should reject terminate the chain and add an event when receiving chain is the same as sending chain', async () => {
+		// next, we should check `ccm.sendingChainID.equals(ccm.receivingChainID)`
+		it('should terminate the chain and add an event when receiving chain is the same as sending chain', async () => {
+			const sendingChainID = Buffer.alloc(4, 1);
 			executeContext = createTransactionContext({
-				chainID,
+				chainID: sendingChainID,
 				stateStore,
 				transaction: new Transaction({
 					...defaultTransaction,
@@ -546,19 +580,22 @@ describe('BaseCrossChainUpdateCommand', () => {
 						inboxUpdate: {
 							...params.inboxUpdate,
 							crossChainMessages: [
-								...params.inboxUpdate.crossChainMessages,
 								codec.encode(ccmSchema, {
 									crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 									fee: BigInt(0),
 									module: MODULE_NAME_INTEROPERABILITY,
 									nonce: BigInt(1),
 									params: utils.getRandomBytes(10),
-									receivingChainID: defaultSendingChainID,
-									sendingChainID: defaultSendingChainID,
+									// must be same as `context.chainID` to pass `!context.chainID.equals(ccm.receivingChainID)` check
+									receivingChainID: sendingChainID,
+									// will fail for `ccm.sendingChainID.equals(ccm.receivingChainID)`
+									sendingChainID,
 									status: CCMStatusCode.OK,
 								}),
 							],
 						},
+						// this is needed to pass `!ccm.sendingChainID.equals(params.sendingChainID)` check (previous test)
+						sendingChainID,
 					}),
 				}),
 			}).createCommandExecuteContext(command.schema);
@@ -566,12 +603,12 @@ describe('BaseCrossChainUpdateCommand', () => {
 			await expect(command['executeCommon'](executeContext, true)).resolves.toEqual([[], false]);
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
 				expect.anything(),
-				params.sendingChainID,
+				sendingChainID,
 			);
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
-				params.sendingChainID,
-				chainID,
+				sendingChainID,
+				sendingChainID,
 				{
 					ccm: zeroValueCCM,
 					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
@@ -592,14 +629,15 @@ describe('BaseCrossChainUpdateCommand', () => {
 						inboxUpdate: {
 							...params.inboxUpdate,
 							crossChainMessages: [
-								...params.inboxUpdate.crossChainMessages,
 								codec.encode(ccmSchema, {
 									crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 									fee: BigInt(0),
 									module: MODULE_NAME_INTEROPERABILITY,
 									nonce: BigInt(1),
 									params: utils.getRandomBytes(10),
-									receivingChainID: utils.intToBuffer(2, 4),
+									// must be same as `context.chainID` to pass `!context.chainID.equals(ccm.receivingChainID)`
+									receivingChainID: chainID,
+									// must be same as defaultSendingChainID to pass `!ccm.sendingChainID.equals(params.sendingChainID)`
 									sendingChainID: defaultSendingChainID,
 									status: CCMStatusCode.CHANNEL_UNAVAILABLE,
 								}),
@@ -628,7 +666,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 		it('should resolve when ccm status is CCMStatusCode.CHANNEL_UNAVAILABLE and mainchain is false', async () => {
 			executeContext = createTransactionContext({
-				chainID,
+				chainID: Buffer.from([0, 0, 2, 0]),
 				stateStore,
 				transaction: new Transaction({
 					...defaultTransaction,
@@ -638,15 +676,14 @@ describe('BaseCrossChainUpdateCommand', () => {
 						inboxUpdate: {
 							...params.inboxUpdate,
 							crossChainMessages: [
-								...params.inboxUpdate.crossChainMessages,
 								codec.encode(ccmSchema, {
 									crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 									fee: BigInt(0),
 									module: MODULE_NAME_INTEROPERABILITY,
 									nonce: BigInt(1),
 									params: utils.getRandomBytes(10),
-									receivingChainID: utils.intToBuffer(2, 4),
-									sendingChainID: defaultSendingChainID,
+									receivingChainID: Buffer.from([0, 0, 2, 0]),
+									sendingChainID: Buffer.from([0, 0, 0, 4]),
 									status: CCMStatusCode.CHANNEL_UNAVAILABLE,
 								}),
 							],
@@ -656,9 +693,10 @@ describe('BaseCrossChainUpdateCommand', () => {
 			}).createCommandExecuteContext(command.schema);
 
 			await expect(command['executeCommon'](executeContext, false)).resolves.toEqual([
-				expect.toBeArrayOfSize(params.inboxUpdate.crossChainMessages.length + 1),
+				expect.toBeArrayOfSize(1),
 				true,
 			]);
+
 			expect(internalMethod.terminateChainInternal).not.toHaveBeenCalled();
 			expect(command['events'].get(CcmProcessedEvent).log).not.toHaveBeenCalled();
 		});
@@ -714,18 +752,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should update certificate when certificate is not empty', async () => {
-			executeContext = createTransactionContext({
-				chainID,
-				stateStore,
-				transaction: new Transaction({
-					...defaultTransaction,
-					command: command.name,
-					params: codec.encode(crossChainUpdateTransactionParams, {
-						...params,
-					}),
-				}),
-			}).createCommandExecuteContext(command.schema);
-
 			await expect(command['executeCommon'](executeContext, true)).resolves.toEqual([
 				expect.toBeArrayOfSize(params.inboxUpdate.crossChainMessages.length),
 				true,
