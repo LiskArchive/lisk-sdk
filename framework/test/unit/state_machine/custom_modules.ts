@@ -144,3 +144,46 @@ export class CustomModule2 extends BaseModule {
 		throw new Error('Method not implemented.');
 	}
 }
+
+export class CustomCommand3 extends BaseCommand {
+	public schema = {
+		$id: '/lisk/customCommand3',
+		type: 'object',
+		properties: {
+			data: {
+				dataType: 'string',
+				fieldNumber: 1,
+			},
+		},
+	};
+
+	public get name() {
+		return 'customCommand3';
+	}
+
+	public verify = jest.fn().mockResolvedValue({ status: 1 });
+	public execute = jest.fn().mockRejectedValue('Command execution failed');
+}
+
+export class CustomModule3 extends BaseModule {
+	public commands = [new CustomCommand3(this.stores, this.events)];
+	public method = {
+		testing: jest.fn(),
+	} as unknown as BaseMethod;
+	public endpoint: BaseEndpoint = {} as BaseEndpoint;
+
+	public get name() {
+		return 'customModule3';
+	}
+
+	public verifyAssets = jest.fn();
+	public initGenesisState = jest.fn();
+	public beforeTransactionsExecute = jest.fn();
+	public afterTransactionsExecute = jest.fn();
+	public verifyTransaction = jest.fn().mockResolvedValue({ status: 1 });
+	public beforeCommandExecute = jest.fn();
+	public afterCommandExecute = jest.fn();
+	public metadata(): ModuleMetadata {
+		throw new Error('Method not implemented.');
+	}
+}

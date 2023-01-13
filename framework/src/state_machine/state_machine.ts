@@ -193,21 +193,9 @@ export class StateMachine {
 					this._logger.debug({ moduleName: mod.name }, 'Executing afterCommandExecute');
 					await mod.afterCommandExecute(transactionContext);
 					this._logger.debug({ moduleName: mod.name }, 'Executed afterCommandExecute');
-					ctx.eventQueue.unsafeAdd(
-						ctx.transaction.module,
-						EVENT_TRANSACTION_NAME,
-						codec.encode(standardEventDataSchema, { success: true }),
-						[ctx.transaction.id],
-					);
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
-					ctx.eventQueue.unsafeAdd(
-						ctx.transaction.module,
-						EVENT_TRANSACTION_NAME,
-						codec.encode(standardEventDataSchema, { success: false }),
-						[ctx.transaction.id],
-					);
 					this._logger.debug(
 						{ err: error as Error, moduleName: mod.name },
 						'Transaction afterCommandExecution failed',
@@ -215,6 +203,22 @@ export class StateMachine {
 					return TransactionExecutionResult.INVALID;
 				}
 			}
+		}
+
+		if (status === TransactionExecutionResult.OK) {
+			ctx.eventQueue.unsafeAdd(
+				ctx.transaction.module,
+				EVENT_TRANSACTION_NAME,
+				codec.encode(standardEventDataSchema, { success: true }),
+				[ctx.transaction.id],
+			);
+		} else {
+			ctx.eventQueue.unsafeAdd(
+				ctx.transaction.module,
+				EVENT_TRANSACTION_NAME,
+				codec.encode(standardEventDataSchema, { success: false }),
+				[ctx.transaction.id],
+			);
 		}
 
 		return status;
