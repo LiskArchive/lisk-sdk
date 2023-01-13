@@ -320,15 +320,16 @@ export abstract class CreateCommand extends Command {
 			);
 		}
 
+		this.printJSON(flags.pretty, {
+			transaction: encodeTransaction(
+				this._schema,
+				this._metadata,
+				transactionObject,
+				this._client,
+			).toString('hex'),
+		});
+
 		if (flags.json) {
-			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(
-					this._schema,
-					this._metadata,
-					transactionObject,
-					this._client,
-				).toString('hex'),
-			});
 			this.printJSON(flags.pretty, {
 				transaction: transactionToJSON(
 					this._schema,
@@ -336,15 +337,6 @@ export abstract class CreateCommand extends Command {
 					transactionObject,
 					this._client,
 				),
-			});
-		} else {
-			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(
-					this._schema,
-					this._metadata,
-					transactionObject,
-					this._client,
-				).toString('hex'),
 			});
 		}
 	}

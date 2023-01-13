@@ -211,17 +211,12 @@ export abstract class SignCommand extends Command {
 	protected _dataPath!: string;
 
 	async run(): Promise<void> {
-		const {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			args: { transaction },
-			flags,
-		} = await this.parse(SignCommand);
-		const { offline, 'data-path': dataPath } = flags;
-		this._dataPath = dataPath ?? getDefaultPath(this.config.pjson.name);
+		const { args, flags } = await this.parse(SignCommand);
+		this._dataPath = flags['data-path'] ?? getDefaultPath(this.config.pjson.name);
 
 		let signedTransaction: Record<string, unknown>;
 
-		if (offline) {
+		if (flags.offline) {
 			const app = this.getApplication({}, {});
 			this._metadata = app.getMetadata();
 			this._schema = {
@@ -235,10 +230,10 @@ export abstract class SignCommand extends Command {
 				flags,
 				this._schema,
 				this._metadata,
-				transaction as string,
+				args.transaction as string,
 			);
 		} else {
-			this._client = await getApiClient(dataPath, this.config.pjson.name);
+			this._client = await getApiClient(this._dataPath, this.config.pjson.name);
 			this._schema = this._client.schema;
 			this._metadata = this._client.metadata;
 			signedTransaction = await signTransactionOnline(
@@ -246,30 +241,21 @@ export abstract class SignCommand extends Command {
 				this._client,
 				this._schema,
 				this._metadata,
-				transaction as string,
+				args.transaction as string,
 			);
 		}
 
+		this.printJSON(flags.pretty, {
+			transaction: encodeTransactionJSON(
+				this._schema,
+				this._metadata,
+				signedTransaction,
+				this._client,
+			).toString('hex'),
+		});
 		if (flags.json) {
 			this.printJSON(flags.pretty, {
-				transaction: encodeTransactionJSON(
-					this._schema,
-					this._metadata,
-					signedTransaction,
-					this._client,
-				).toString('hex'),
-			});
-			this.printJSON(flags.pretty, {
 				transaction: signedTransaction,
-			});
-		} else {
-			this.printJSON(flags.pretty, {
-				transaction: encodeTransactionJSON(
-					this._schema,
-					this._metadata,
-					signedTransaction,
-					this._client,
-				).toString('hex'),
 			});
 		}
 	}
