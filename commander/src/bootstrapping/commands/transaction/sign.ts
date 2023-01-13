@@ -65,32 +65,25 @@ const signTransaction = async (
 	chainID: string | undefined,
 	keys: Keys,
 ) => {
-	const transactionObject = decodeTransaction(registeredSchema, metadata, transactionHexStr);
+	const decodedTransaction = decodeTransaction(registeredSchema, metadata, transactionHexStr);
 	const paramsSchema = getParamsSchema(
 		metadata,
-		transactionObject.module,
-		transactionObject.command,
+		decodedTransaction.module,
+		decodedTransaction.command,
 	);
-	const chainIDBuffer = Buffer.from(chainID as string, 'hex');
-	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
-
-	const txObject = codec.fromJSON(registeredSchema.transaction, {
-		...transactionObject,
-		params: '',
-	});
-	const paramsObject = paramsSchema ? codec.fromJSON(paramsSchema, transactionObject.params) : {};
-
-	const decodedTx = {
-		...txObject,
-		params: paramsObject,
+	const unsignedTransaction = {
+		...codec.fromJSON(registeredSchema.transaction, decodedTransaction),
+		params: paramsSchema ? codec.fromJSON(paramsSchema, decodedTransaction.params) : {},
 	};
 
+	const chainIDBuffer = Buffer.from(chainID as string, 'hex');
+	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
 	const edKeys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 	let signedTransaction: Record<string, unknown>;
 	if (flags['mandatory-keys'] || flags['optional-keys']) {
 		signedTransaction = transactions.signMultiSignatureTransaction(
-			decodedTx,
+			unsignedTransaction,
 			chainIDBuffer,
 			edKeys.privateKey,
 			keys,
@@ -98,23 +91,16 @@ const signTransaction = async (
 		);
 	} else {
 		signedTransaction = transactions.signTransaction(
-			decodedTx,
+			unsignedTransaction,
 			chainIDBuffer,
 			edKeys.privateKey,
 			paramsSchema,
 		);
 	}
 
-	const paramsJSON = paramsSchema
-		? codec.toJSON(paramsSchema, signedTransaction.params as Record<string, unknown>)
-		: {};
-
 	return {
-		...codec.toJSON<Record<string, unknown>>(registeredSchema.transaction, {
-			...signedTransaction,
-			params: '',
-		}),
-		params: paramsJSON,
+		...codec.toJSON<Record<string, unknown>>(registeredSchema.transaction, signedTransaction),
+		params: decodedTransaction.params,
 		id: (signedTransaction.id as Buffer).toString('hex'),
 	};
 };
