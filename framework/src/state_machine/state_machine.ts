@@ -205,21 +205,12 @@ export class StateMachine {
 			}
 		}
 
-		if (status === TransactionExecutionResult.OK) {
-			ctx.eventQueue.unsafeAdd(
-				ctx.transaction.module,
-				EVENT_TRANSACTION_NAME,
-				codec.encode(standardEventDataSchema, { success: true }),
-				[ctx.transaction.id],
-			);
-		} else {
-			ctx.eventQueue.unsafeAdd(
-				ctx.transaction.module,
-				EVENT_TRANSACTION_NAME,
-				codec.encode(standardEventDataSchema, { success: false }),
-				[ctx.transaction.id],
-			);
-		}
+		ctx.eventQueue.unsafeAdd(
+			ctx.transaction.module,
+			EVENT_TRANSACTION_NAME,
+			codec.encode(standardEventDataSchema, { success: status === TransactionExecutionResult.OK }),
+			[ctx.transaction.id],
+		);
 
 		return status;
 	}
