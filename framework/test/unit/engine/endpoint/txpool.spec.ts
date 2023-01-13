@@ -24,7 +24,7 @@ import { fakeLogger } from '../../../utils/mocks';
 import { TxpoolEndpoint } from '../../../../src/engine/endpoint/txpool';
 import { VerifyStatus } from '../../../../src';
 
-describe('generator endpoint', () => {
+describe('txpool endpoint', () => {
 	const logger: Logger = fakeLogger;
 	const tx = new Transaction({
 		params: Buffer.alloc(20),
@@ -53,14 +53,42 @@ describe('generator endpoint', () => {
 	let pool: TransactionPool;
 	let abi: ABI;
 	let chain: Chain;
+	let jsonMock: jest.Mock;
+	let transactionsFromPool;
 
 	beforeEach(() => {
+		jsonMock = jest.fn();
+		transactionsFromPool = [
+			{
+				id: Buffer.from('id'),
+				module: 'module',
+				command: 'command',
+				senderPublicKey: Buffer.from('sender public key'),
+				nonce: BigInt(10),
+				fee: BigInt(2),
+				params: Buffer.from('params'),
+				signatures: [Buffer.from('signature1'), Buffer.from('signature2')],
+				toJSON: jsonMock,
+			},
+			{
+				id: Buffer.from('id'),
+				module: 'module',
+				command: 'command',
+				senderPublicKey: Buffer.from('sender public key'),
+				nonce: BigInt(10),
+				fee: BigInt(2),
+				params: Buffer.from('params'),
+				signatures: [Buffer.from('signature1'), Buffer.from('signature2')],
+				toJSON: jsonMock,
+			},
+		];
 		broadcaster = {
 			enqueueTransactionId: jest.fn(),
 		} as never;
 		pool = {
 			contains: jest.fn().mockReturnValue(false),
 			add: jest.fn().mockResolvedValue({}),
+			getAll: jest.fn().mockReturnValue(transactionsFromPool),
 		} as never;
 		abi = {
 			verifyTransaction: jest.fn().mockResolvedValue({ result: TransactionVerifyResult.OK }),
@@ -178,6 +206,18 @@ describe('generator endpoint', () => {
 				});
 				expect(broadcaster.enqueueTransactionId).toHaveBeenCalledWith(tx.id);
 			});
+		});
+	});
+
+	describe('getTransactionsFromPool', () => {
+		it('should return transactions in the pool in JSON format', async () => {
+			await endpoint.getTransactionsFromPool({
+				logger,
+				params: {},
+				chainID,
+			});
+
+			expect(jsonMock).toHaveBeenCalledTimes(transactionsFromPool.length);
 		});
 	});
 
