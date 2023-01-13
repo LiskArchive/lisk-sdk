@@ -236,8 +236,6 @@ export const signMultiSignatureTransaction = (
 	return { ...transactionObject, id: utils.hash(getBytes(transactionObject, paramsSchema)) };
 };
 
-// TODO: Check if these backward compatibility aliases are still needed
-
 /**
  * {@inheritDoc signTransaction}
  *
