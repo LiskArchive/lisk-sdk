@@ -72,7 +72,6 @@ describe('transaction:sign command', () => {
 			`--optional-keys=${optionalKeys[1]}`,
 			`--chain-id=${chainIDStr}`,
 			'--offline',
-			'--sender-public-key=f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
 		];
 	};
 

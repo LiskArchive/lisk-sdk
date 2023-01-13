@@ -52,7 +52,6 @@ interface SignFlags {
 	passphrase: string | undefined;
 	offline: boolean;
 	'data-path': string | undefined;
-	'sender-public-key': string | undefined;
 	'mandatory-keys': string[] | undefined;
 	'optional-keys': string[] | undefined;
 	'key-derivation-path': string;
@@ -89,19 +88,19 @@ const signTransaction = async (
 	const edKeys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 	let signedTransaction: Record<string, unknown>;
-	if (!flags['sender-public-key']) {
-		signedTransaction = transactions.signTransaction(
-			decodedTx,
-			chainIDBuffer,
-			edKeys.privateKey,
-			paramsSchema,
-		);
-	} else {
+	if (flags['mandatory-keys'] || flags['optional-keys']) {
 		signedTransaction = transactions.signMultiSignatureTransaction(
 			decodedTx,
 			chainIDBuffer,
 			edKeys.privateKey,
 			keys,
+			paramsSchema,
+		);
+	} else {
+		signedTransaction = transactions.signTransaction(
+			decodedTx,
+			chainIDBuffer,
+			edKeys.privateKey,
 			paramsSchema,
 		);
 	}
@@ -126,23 +125,13 @@ const signTransactionOffline = async (
 	metadata: ModuleMetadataJSON[],
 	transactionHexStr: string,
 ): Promise<Record<string, unknown>> => {
+	const mandatoryKeys = flags['mandatory-keys'];
+	const optionalKeys = flags['optional-keys'];
+
 	const keys: Keys = {
-		mandatoryKeys: [],
-		optionalKeys: [],
+		mandatoryKeys: mandatoryKeys ? mandatoryKeys.map(k => Buffer.from(k, 'hex')) : [],
+		optionalKeys: optionalKeys ? optionalKeys.map(k => Buffer.from(k, 'hex')) : [],
 	};
-
-	if (flags['sender-public-key']) {
-		const mandatoryKeys = flags['mandatory-keys'];
-		const optionalKeys = flags['optional-keys'];
-		if (!mandatoryKeys?.length && !optionalKeys?.length) {
-			throw new Error(
-				'--mandatory-keys or --optional-keys flag must be specified to sign transaction from multi signature account.',
-			);
-		}
-
-		keys.mandatoryKeys = mandatoryKeys ? mandatoryKeys.map(k => Buffer.from(k, 'hex')) : [];
-		keys.optionalKeys = optionalKeys ? optionalKeys.map(k => Buffer.from(k, 'hex')) : [];
-	}
 
 	const signedTransaction = await signTransaction(
 		flags,
@@ -202,7 +191,6 @@ export abstract class SignCommand extends Command {
 			description: 'Optional publicKey string in hex format.',
 		}),
 		'chain-id': flagsWithParser.chainID,
-		'sender-public-key': flagsWithParser.senderPublicKey,
 		'data-path': flagsWithParser.dataPath,
 		'key-derivation-path': flagParser.string({
 			default: DEFAULT_KEY_DERIVATION_PATH,
