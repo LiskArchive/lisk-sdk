@@ -256,11 +256,7 @@ export abstract class CreateCommand extends Command {
 		nonce: flagParser.string({
 			description: 'Nonce of the transaction.',
 		}),
-		'sender-public-key': flagParser.string({
-			char: 's',
-			description:
-				'Creates the transaction with provided sender publickey, when passphrase is not provided',
-		}),
+		'sender-public-key': flagsWithParser.senderPublicKey,
 		'data-path': flagsWithParser.dataPath,
 		'key-derivation-path': flagParser.string({
 			default: DEFAULT_KEY_DERIVATION_PATH,
@@ -324,15 +320,16 @@ export abstract class CreateCommand extends Command {
 			);
 		}
 
+		this.printJSON(flags.pretty, {
+			transaction: encodeTransaction(
+				this._schema,
+				this._metadata,
+				transactionObject,
+				this._client,
+			).toString('hex'),
+		});
+
 		if (flags.json) {
-			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(
-					this._schema,
-					this._metadata,
-					transactionObject,
-					this._client,
-				).toString('hex'),
-			});
 			this.printJSON(flags.pretty, {
 				transaction: transactionToJSON(
 					this._schema,
@@ -340,15 +337,6 @@ export abstract class CreateCommand extends Command {
 					transactionObject,
 					this._client,
 				),
-			});
-		} else {
-			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(
-					this._schema,
-					this._metadata,
-					transactionObject,
-					this._client,
-				).toString('hex'),
 			});
 		}
 	}

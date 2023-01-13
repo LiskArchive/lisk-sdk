@@ -19,12 +19,6 @@ exports[`transaction Transaction create when called with nonce equal to zero in 
 ]
 `;
 
-exports[`transaction Transaction create when called with optional keys in input should return created tx 1`] = `
-[
-  "d27e0d4c1504e47d06e85c510946fda57c12279da70e2bb1f3b2bc3760127368c03bbf443e562543e9827beb433e97614dff59fbfca5c5776b2fc6f237b77009",
-]
-`;
-
 exports[`transaction Transaction create when called without sender public key in input should return created tx 1`] = `
 [
   "d27e0d4c1504e47d06e85c510946fda57c12279da70e2bb1f3b2bc3760127368c03bbf443e562543e9827beb433e97614dff59fbfca5c5776b2fc6f237b77009",
@@ -398,13 +392,6 @@ exports[`transaction Transaction decode transaction from input as hex should ret
 `;
 
 exports[`transaction Transaction sign when called with multi-signature account in input should return created tx 1`] = `
-[
-  "d27e0d4c1504e47d06e85c510946fda57c12279da70e2bb1f3b2bc3760127368c03bbf443e562543e9827beb433e97614dff59fbfca5c5776b2fc6f237b77009",
-  "746711c65d963b1fe8c6e40d64100548fb1080a943c2b53ac8466570f96c4687478a9307b45ad0172da134aa1eb9c44e2f11b3f08e790bdfd9247f3f89526508",
-]
-`;
-
-exports[`transaction Transaction sign when called with optional keys in input should return created tx 1`] = `
 [
   "d27e0d4c1504e47d06e85c510946fda57c12279da70e2bb1f3b2bc3760127368c03bbf443e562543e9827beb433e97614dff59fbfca5c5776b2fc6f237b77009",
   "746711c65d963b1fe8c6e40d64100548fb1080a943c2b53ac8466570f96c4687478a9307b45ad0172da134aa1eb9c44e2f11b3f08e790bdfd9247f3f89526508",
