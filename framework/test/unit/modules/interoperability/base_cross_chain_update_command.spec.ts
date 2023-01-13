@@ -509,7 +509,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				params.sendingChainID,
 				chainID,
 				{
-					ccmID: expect.any(Buffer),
+					ccm: zeroValueCCM,
 					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
