@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Chain, Transaction, Event } from '@liskhq/lisk-chain';
+import { Chain, Transaction, Event, TransactionJSON } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { validator } from '@liskhq/lisk-validator';
 import { Broadcaster } from '../generator/broadcaster';
@@ -96,8 +96,8 @@ export class TxpoolEndpoint {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getTransactionsFromPool(_context: RequestContext): Promise<string[]> {
-		return this._pool.getAll().map(tx => tx.getBytes().toString('hex'));
+	public async getTransactionsFromPool(_context: RequestContext): Promise<TransactionJSON[]> {
+		return (this._pool.getAll() as Transaction[]).map(transaction => transaction.toJSON());
 	}
 
 	public async dryRunTransaction(ctx: RequestContext): Promise<DryRunTransactionResponse> {

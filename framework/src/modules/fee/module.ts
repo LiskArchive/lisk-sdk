@@ -60,6 +60,7 @@ export class FeeModule extends BaseInteroperableModule {
 
 	public metadata(): ModuleMetadata {
 		return {
+			...this.baseMetadata(),
 			endpoints: [
 				{
 					name: this.endpoint.getMinFeePerByte.name,
@@ -70,12 +71,6 @@ export class FeeModule extends BaseInteroperableModule {
 					response: getFeeTokenIDResponseSchema,
 				},
 			],
-			commands: [],
-			events: this.events.values().map(v => ({
-				name: v.name,
-				data: v.schema,
-			})),
-			assets: [],
 		};
 	}
 

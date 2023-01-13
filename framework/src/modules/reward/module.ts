@@ -48,6 +48,7 @@ export class RewardModule extends BaseModule {
 
 	public metadata(): ModuleMetadata {
 		return {
+			...this.baseMetadata(),
 			endpoints: [
 				{
 					name: this.endpoint.getDefaultRewardAtHeight.name,
@@ -55,12 +56,6 @@ export class RewardModule extends BaseModule {
 					response: getDefaultRewardAtHeightResponseSchema,
 				},
 			],
-			commands: [],
-			events: this.events.values().map(v => ({
-				name: v.name,
-				data: v.schema,
-			})),
-			assets: [],
 		};
 	}
 

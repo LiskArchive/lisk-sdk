@@ -41,6 +41,7 @@ describe('abi handler', () => {
 		stateDBMock = {
 			get: jest.fn(),
 			finalize: jest.fn(),
+			prove: jest.fn(),
 			revert: jest.fn(),
 			getCurrentState: jest.fn(),
 			newReadWriter: () => new InMemoryPrefixedStateDB(),
@@ -638,6 +639,18 @@ describe('abi handler', () => {
 	});
 
 	describe('prove', () => {
-		it.todo('should provide proof based on the queries provided');
+		it('should call stateDB.prove with appropriate parameters', async () => {
+			const stateRoot = utils.getRandomBytes(32);
+			const queryKeys = [utils.getRandomBytes(32), utils.getRandomBytes(32)];
+			const inputParams = { stateRoot, keys: queryKeys };
+			jest.spyOn(abiHandler['_stateDB'], 'prove');
+			await abiHandler.prove(inputParams);
+
+			expect(abiHandler['_stateDB'].prove).toHaveBeenCalledTimes(1);
+			expect(abiHandler['_stateDB'].prove).toHaveBeenCalledWith(
+				inputParams.stateRoot,
+				inputParams.keys,
+			);
+		});
 	});
 });

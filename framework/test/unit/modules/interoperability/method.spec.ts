@@ -425,7 +425,7 @@ describe('Sample Method', () => {
 				ccmOnMainchain.sendingChainID,
 				ccmOnMainchain.receivingChainID,
 				ccmID,
-				{ ccmID },
+				{ ccm: ccmOnMainchain },
 			);
 		});
 	});
