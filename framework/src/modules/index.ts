@@ -12,12 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export {
-	BaseModule,
-	RootModuleMetadata as ModuleMetadata,
-	ModuleMetadataJSON,
-	ModuleInitArgs,
-} from './base_module';
+export { BaseModule, ModuleMetadata, ModuleMetadataJSON, ModuleInitArgs } from './base_module';
 export { BaseCommand } from './base_command';
 export { BaseMethod } from './base_method';
 export { BaseEndpoint } from './base_endpoint';

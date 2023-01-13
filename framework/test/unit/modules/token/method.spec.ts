@@ -1129,4 +1129,17 @@ describe('token module', () => {
 			);
 		});
 	});
+
+	describe('getTotalSupply', () => {
+		it('should return the total supply', async () => {
+			await expect(method.getTotalSupply(methodContext)).resolves.toEqual({
+				totalSupply: [
+					{
+						tokenID: defaultTokenID,
+						totalSupply: defaultTotalSupply,
+					},
+				],
+			});
+		});
+	});
 });

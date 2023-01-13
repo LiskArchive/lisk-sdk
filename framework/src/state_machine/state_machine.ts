@@ -172,21 +172,9 @@ export class StateMachine {
 			this._logger.debug({ commandName: command.name }, 'Executing command.execute');
 			await command.execute(commandContext);
 			this._logger.debug({ commandName: command.name }, 'Executed command.execute');
-			ctx.eventQueue.unsafeAdd(
-				ctx.transaction.module,
-				EVENT_TRANSACTION_NAME,
-				codec.encode(standardEventDataSchema, { success: true }),
-				[ctx.transaction.id],
-			);
 		} catch (error) {
 			ctx.eventQueue.restoreSnapshot(commandEventQueueSnapshotID);
 			ctx.stateStore.restoreSnapshot(commandStateStoreSnapshotID);
-			ctx.eventQueue.unsafeAdd(
-				ctx.transaction.module,
-				EVENT_TRANSACTION_NAME,
-				codec.encode(standardEventDataSchema, { success: false }),
-				[ctx.transaction.id],
-			);
 			status = TransactionExecutionResult.FAIL;
 			this._logger.debug(
 				{
@@ -216,6 +204,13 @@ export class StateMachine {
 				}
 			}
 		}
+
+		ctx.eventQueue.unsafeAdd(
+			ctx.transaction.module,
+			EVENT_TRANSACTION_NAME,
+			codec.encode(standardEventDataSchema, { success: status === TransactionExecutionResult.OK }),
+			[ctx.transaction.id],
+		);
 
 		return status;
 	}

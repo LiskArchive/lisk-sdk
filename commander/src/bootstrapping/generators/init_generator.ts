@@ -41,11 +41,10 @@ export default class InitGenerator extends BaseGenerator {
 
 	public install(): void {
 		this.log('\n');
-		this.installDependencies({
-			npm: this._registry ? { registry: this._registry } : true,
-			bower: false,
-			yarn: false,
-			skipMessage: false,
-		});
+
+		this.spawnCommandSync(
+			'npm',
+			this._registry !== undefined ? ['install', '--registry', this._registry] : ['install'],
+		);
 	}
 }

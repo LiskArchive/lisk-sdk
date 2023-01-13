@@ -16,3 +16,4 @@ export { TokenModule } from './module';
 export { TransferCommand } from './commands/transfer';
 export { TokenMethod } from './method';
 export { genesisTokenStoreSchema } from './schemas';
+export { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from './constants';
