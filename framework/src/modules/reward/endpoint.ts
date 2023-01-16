@@ -40,7 +40,7 @@ export class RewardEndpoint extends BaseEndpoint {
 		return { reward: reward.toString() };
 	}
 
-	public getRewardTokenID(): string {
-		return this._config.tokenID.toString('hex');
+	public getRewardTokenID(): { tokenID: string } {
+		return { tokenID: this._config.tokenID.toString('hex') };
 	}
 }
