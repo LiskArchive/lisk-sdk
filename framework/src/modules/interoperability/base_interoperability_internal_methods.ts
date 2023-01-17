@@ -27,7 +27,13 @@ import {
 } from './constants';
 import { ccmSchema } from './schemas';
 import { CCMsg, CrossChainUpdateTransactionParams, ChainAccount } from './types';
-import { computeValidatorsHash, getEncodedCCMAndID, getMainchainID, validateFormat } from './utils';
+import {
+	computeValidatorsHash,
+	getEncodedCCMAndID,
+	getMainchainID,
+	isOutboxRootWitnessEmpty,
+	validateFormat,
+} from './utils';
 import { NamedRegistry } from '../named_registry';
 import { OwnChainAccountStore } from './stores/own_chain_account';
 import { ChannelDataStore } from './stores/channel_data';
@@ -529,10 +535,25 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		);
 
 		if (params.certificate.length === 0) {
+			// The value of outboxRootWitness can only be non-empty when certificate is non-empty
+			if (!isOutboxRootWitnessEmpty(params.inboxUpdate.outboxRootWitness)) {
+				throw new Error(
+					'The outbox root witness must be non-empty to authenticate the new partnerChainOutboxRoot.',
+				);
+			}
 			if (!newInboxRoot.equals(channel.partnerChainOutboxRoot)) {
 				throw new Error('Inbox root does not match partner chain outbox root.');
 			}
 			return;
+		}
+		// For every non-empty certificate there should be non-empty outboxRootWitness
+		if (
+			params.certificate.length > 0 &&
+			isOutboxRootWitnessEmpty(params.inboxUpdate.outboxRootWitness)
+		) {
+			throw new Error(
+				'The outbox root witness must be non-empty to authenticate the new partnerChainOutboxRoot.',
+			);
 		}
 		const outboxRootStore = this.stores.get(OutboxRootStore);
 		const outboxKey = Buffer.concat([outboxRootStore.key, utils.hash(params.sendingChainID)]);

@@ -988,10 +988,28 @@ describe('Base interoperability internal method', () => {
 			});
 		});
 
+		it('should reject when certificate is empty but outboxRootWitness is non-empty', async () => {
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
+					...txParams,
+					certificate: Buffer.alloc(0),
+				}),
+			).rejects.toThrow(
+				'The outbox root witness must be non-empty to authenticate the new partnerChainOutboxRoot',
+			);
+		});
+
 		it('should reject when inbox root is empty but partnerchain outbox root does not match', async () => {
 			await expect(
 				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
 					...txParams,
+					inboxUpdate: {
+						...txParams.inboxUpdate,
+						outboxRootWitness: {
+							bitmap: Buffer.alloc(0),
+							siblingHashes: [],
+						},
+					},
 					certificate: Buffer.alloc(0),
 				}),
 			).rejects.toThrow('Inbox root does not match partner chain outbox root');
@@ -1016,6 +1034,13 @@ describe('Base interoperability internal method', () => {
 			await expect(
 				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
 					...txParams,
+					inboxUpdate: {
+						...txParams.inboxUpdate,
+						outboxRootWitness: {
+							bitmap: Buffer.alloc(0),
+							siblingHashes: [],
+						},
+					},
 					certificate: Buffer.alloc(0),
 				}),
 			).resolves.toBeUndefined();
