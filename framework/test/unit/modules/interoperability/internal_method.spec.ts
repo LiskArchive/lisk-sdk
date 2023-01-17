@@ -46,7 +46,6 @@ import { ChainAccountUpdatedEvent } from '../../../../src/modules/interoperabili
 import { TerminatedStateCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_state_created';
 import { createTransientMethodContext } from '../../../../src/testing';
 import { ChainValidatorsStore } from '../../../../src/modules/interoperability/stores/chain_validators';
-import * as chainValidators from '../../../../src/modules/interoperability/stores/chain_validators';
 import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
 import { Certificate } from '../../../../src/engine/consensus/certificate_generation/types';
@@ -115,7 +114,11 @@ describe('Base interoperability internal method', () => {
 		status: 2739,
 	};
 	const ccuParams = {
-		activeValidatorsUpdate: [],
+		activeValidatorsUpdate: {
+			blsKeysUpdate: [],
+			bftWeightsUpdate: [],
+			bftWeightsUpdateBitmap: Buffer.from([]),
+		},
 		certificate: Buffer.alloc(0),
 		inboxUpdate: {
 			crossChainMessages: [],
@@ -134,6 +137,7 @@ describe('Base interoperability internal method', () => {
 	let terminatedOutboxSubstore: TerminatedOutboxStore;
 	let stateStore: PrefixedStateReadWriter;
 	let chainDataSubstore: ChainAccountStore;
+	let chainValidatorsSubstore: ChainValidatorsStore;
 	let terminatedStateSubstore: TerminatedStateStore;
 	let methodContext: MethodContext;
 	let storeContext: StoreGetter;
@@ -146,6 +150,7 @@ describe('Base interoperability internal method', () => {
 		outboxRootSubstore = interopMod.stores.get(OutboxRootStore);
 		jest.spyOn(outboxRootSubstore, 'set');
 		terminatedOutboxSubstore = interopMod.stores.get(TerminatedOutboxStore);
+		chainValidatorsSubstore = interopMod.stores.get(ChainValidatorsStore);
 		// jest.spyOn(terminatedOutboxSubstore, 'set');
 		chainDataSubstore = interopMod.stores.get(ChainAccountStore);
 		terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
@@ -538,14 +543,26 @@ describe('Base interoperability internal method', () => {
 
 	describe('updateValidators', () => {
 		it('should update validators in ChainValidatorsStore', async () => {
-			jest.spyOn(interopMod.stores.get(ChainValidatorsStore), 'updateValidators');
+			jest.spyOn(interopMod.stores.get(ChainValidatorsStore), 'set');
+			const activeValidators = new Array(5).fill(0).map(() => ({
+				bftWeight: BigInt(1),
+				blsKey: cryptoUtils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+			}));
+			jest.spyOn(utils, 'calculateNewActiveValidators').mockReturnValue(activeValidators);
 
+			const activeValidatorsUpdate = {
+				blsKeysUpdate: [
+					cryptoUtils.getRandomBytes(48),
+					cryptoUtils.getRandomBytes(48),
+					cryptoUtils.getRandomBytes(48),
+					cryptoUtils.getRandomBytes(48),
+				].sort((v1, v2) => v1.compare(v2)),
+				bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4), BigInt(3)],
+				bftWeightsUpdateBitmap: Buffer.from([1, 0, 2]),
+			};
 			const ccu = {
 				...ccuParams,
-				activeValidatorsUpdate: new Array(5).fill(0).map(() => ({
-					bftWeight: BigInt(1),
-					blsKey: cryptoUtils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
-				})),
+				activeValidatorsUpdate,
 			};
 
 			await interopMod.stores.get(ChainValidatorsStore).set(storeContext, ccu.sendingChainID, {
@@ -555,11 +572,17 @@ describe('Base interoperability internal method', () => {
 
 			await mainchainInteroperabilityInternalMethod.updateValidators(methodContext, ccu);
 
-			expect(interopMod.stores.get(ChainValidatorsStore).updateValidators).toHaveBeenCalledWith(
+			expect(utils.calculateNewActiveValidators).toHaveBeenCalledWith(
+				[],
+				activeValidatorsUpdate.blsKeysUpdate,
+				activeValidatorsUpdate.bftWeightsUpdate,
+				activeValidatorsUpdate.bftWeightsUpdateBitmap,
+			);
+			expect(interopMod.stores.get(ChainValidatorsStore).set).toHaveBeenCalledWith(
 				expect.anything(),
 				ccu.sendingChainID,
 				{
-					activeValidators: ccu.activeValidatorsUpdate,
+					activeValidators,
 					certificateThreshold: ccu.certificateThreshold,
 				},
 			);
@@ -694,11 +717,15 @@ describe('Base interoperability internal method', () => {
 			const ccu = {
 				...ccuParams,
 				certificate: codec.encode(certificateSchema, certificate),
-				activeValidatorsUpdate: [
-					{ blsKey: Buffer.from([0, 0, 0, 0]), bftWeight: BigInt(5) },
-					{ blsKey: Buffer.from([0, 0, 3, 0]), bftWeight: BigInt(5) },
-					{ blsKey: Buffer.from([0, 0, 0, 1]), bftWeight: BigInt(5) },
-				],
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [
+						Buffer.from([0, 0, 0, 0]),
+						Buffer.from([0, 0, 3, 0]),
+						Buffer.from([0, 0, 0, 1]),
+					],
+					bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4), BigInt(3)],
+					bftWeightsUpdateBitmap: Buffer.from([51]),
+				},
 			};
 
 			await expect(
@@ -710,34 +737,131 @@ describe('Base interoperability internal method', () => {
 			const ccu = {
 				...ccuParams,
 				certificate: codec.encode(certificateSchema, certificate),
-				activeValidatorsUpdate: [
-					{ blsKey: Buffer.from([0, 0, 0, 1]), bftWeight: BigInt(5) },
-					{ blsKey: Buffer.from([0, 0, 0, 1]), bftWeight: BigInt(5) },
-					{ blsKey: Buffer.from([0, 0, 3, 0]), bftWeight: BigInt(5) },
-				],
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [
+						Buffer.from([0, 0, 0, 0]),
+						Buffer.from([0, 0, 0, 1]),
+						Buffer.from([0, 0, 2, 0]),
+					],
+					bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4)],
+					bftWeightsUpdateBitmap: Buffer.from([14]),
+				},
 			};
+			await chainValidatorsSubstore.set(methodContext, ccu.sendingChainID, {
+				activeValidators: [{ blsKey: Buffer.from([0, 0, 2, 0]), bftWeight: BigInt(2) }],
+				certificateThreshold: BigInt(1),
+			});
 
 			await expect(
 				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
 			).rejects.toThrow('Keys have duplicated entry');
 		});
 
+		it('shoud reject if bftWeightsUpdateBitmap does not corresponds to the bftWeightsUpdateBitmap', async () => {
+			const ccu = {
+				...ccuParams,
+				certificate: codec.encode(certificateSchema, certificate),
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [
+						Buffer.from([0, 0, 0, 0]),
+						Buffer.from([0, 0, 0, 1]),
+						Buffer.from([0, 0, 2, 0]),
+					],
+					bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4)],
+					// 9 corresponds to 1001
+					bftWeightsUpdateBitmap: Buffer.from([9]),
+				},
+			};
+			await chainValidatorsSubstore.set(methodContext, ccu.sendingChainID, {
+				activeValidators: [{ blsKey: Buffer.from([0, 2, 3, 0]), bftWeight: BigInt(2) }],
+				certificateThreshold: BigInt(1),
+			});
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
+			).rejects.toThrow(
+				'The number of 1s in the bitmap is not equal to the number of new BFT weights.',
+			);
+		});
+
+		it('shoud reject if new validator does not have bft weight', async () => {
+			const ccu = {
+				...ccuParams,
+				certificate: codec.encode(certificateSchema, certificate),
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [
+						Buffer.from([0, 0, 0, 0]),
+						Buffer.from([0, 0, 0, 1]),
+						Buffer.from([0, 0, 2, 0]),
+					],
+					bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(3)],
+					// 11 corresponds to 1011
+					bftWeightsUpdateBitmap: Buffer.from([11]),
+				},
+			};
+			await chainValidatorsSubstore.set(methodContext, ccu.sendingChainID, {
+				activeValidators: [{ blsKey: Buffer.from([0, 2, 3, 0]), bftWeight: BigInt(2) }],
+				certificateThreshold: BigInt(1),
+			});
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
+			).rejects.toThrow('New validators must have a BFT weight update.');
+		});
+
+		it('shoud reject if new validator have bft weight = 0', async () => {
+			const ccu = {
+				...ccuParams,
+				certificate: codec.encode(certificateSchema, certificate),
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [
+						Buffer.from([0, 0, 0, 0]),
+						Buffer.from([0, 0, 0, 1]),
+						Buffer.from([0, 0, 2, 0]),
+					],
+					bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(0)],
+					// 7 corresponds to 0111
+					bftWeightsUpdateBitmap: Buffer.from([7]),
+				},
+			};
+			await chainValidatorsSubstore.set(methodContext, ccu.sendingChainID, {
+				activeValidators: [{ blsKey: Buffer.from([0, 2, 3, 0]), bftWeight: BigInt(2) }],
+				certificateThreshold: BigInt(1),
+			});
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
+			).rejects.toThrow('New validators must have a positive BFT weight.');
+		});
+
 		it('shoud reject new validatorsHash does not match with certificate', async () => {
 			const ccu = {
 				...ccuParams,
 				certificate: codec.encode(certificateSchema, certificate),
-				activeValidatorsUpdate: [
-					{ blsKey: Buffer.from([0, 0, 0, 1]), bftWeight: BigInt(5) },
-					{ blsKey: Buffer.from([0, 0, 0, 2]), bftWeight: BigInt(5) },
-					{ blsKey: Buffer.from([0, 0, 3, 0]), bftWeight: BigInt(5) },
-				],
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [
+						Buffer.from([0, 0, 0, 0]),
+						Buffer.from([0, 0, 0, 1]),
+						Buffer.from([0, 0, 2, 0]),
+					],
+					bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4)],
+					// 7 corresponds to 0111
+					bftWeightsUpdateBitmap: Buffer.from([7]),
+				},
 			};
 
-			const newValidators = new Array(5).fill(0).map(() => ({
-				bftWeight: BigInt(1),
-				blsKey: cryptoUtils.getRandomBytes(48),
-			}));
-			jest.spyOn(chainValidators, 'calculateNewActiveValidators').mockReturnValue(newValidators);
+			const existingKey = Buffer.from([0, 2, 3, 0]);
+			await chainValidatorsSubstore.set(methodContext, ccu.sendingChainID, {
+				activeValidators: [{ blsKey: existingKey, bftWeight: BigInt(2) }],
+				certificateThreshold: BigInt(1),
+			});
+			const newValidators = [
+				{ blsKey: Buffer.from([0, 0, 0, 0]), bftWeight: BigInt(1) },
+				{ blsKey: Buffer.from([0, 0, 0, 1]), bftWeight: BigInt(3) },
+				{ blsKey: Buffer.from([0, 0, 3, 0]), bftWeight: BigInt(4) },
+				{ blsKey: existingKey, bftWeight: BigInt(2) },
+			];
+			jest.spyOn(utils, 'calculateNewActiveValidators').mockReturnValue(newValidators);
 			jest.spyOn(utils, 'computeValidatorsHash');
 
 			await interopMod.stores.get(ChainValidatorsStore).set(storeContext, ccu.sendingChainID, {
@@ -758,24 +882,31 @@ describe('Base interoperability internal method', () => {
 			const ccu = {
 				...ccuParams,
 				certificate: codec.encode(certificateSchema, certificate),
-				activeValidatorsUpdate: [
-					{ blsKey: Buffer.from([0, 0, 0, 1]), bftWeight: BigInt(5) },
-					{ blsKey: Buffer.from([0, 0, 0, 2]), bftWeight: BigInt(5) },
-					{ blsKey: Buffer.from([0, 0, 3, 0]), bftWeight: BigInt(5) },
-				],
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [
+						Buffer.from([0, 0, 0, 0]),
+						Buffer.from([0, 0, 0, 1]),
+						Buffer.from([0, 0, 3, 0]),
+					],
+					bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4)],
+					// 7 corresponds to 0111
+					bftWeightsUpdateBitmap: Buffer.from([7]),
+				},
 			};
 
-			const newValidators = new Array(5).fill(0).map(() => ({
-				bftWeight: BigInt(1),
-				blsKey: cryptoUtils.getRandomBytes(48),
-			}));
-			jest.spyOn(chainValidators, 'calculateNewActiveValidators').mockReturnValue(newValidators);
-			jest.spyOn(utils, 'computeValidatorsHash').mockReturnValue(certificate.validatorsHash);
-
-			await interopMod.stores.get(ChainValidatorsStore).set(storeContext, ccu.sendingChainID, {
-				activeValidators: [],
-				certificateThreshold: BigInt(0),
+			const existingKey = Buffer.from([0, 2, 3, 0]);
+			await chainValidatorsSubstore.set(methodContext, ccu.sendingChainID, {
+				activeValidators: [{ blsKey: existingKey, bftWeight: BigInt(2) }],
+				certificateThreshold: BigInt(1),
 			});
+			const newValidators = [
+				{ blsKey: Buffer.from([0, 0, 0, 0]), bftWeight: BigInt(1) },
+				{ blsKey: Buffer.from([0, 0, 0, 1]), bftWeight: BigInt(3) },
+				{ blsKey: Buffer.from([0, 0, 3, 0]), bftWeight: BigInt(4) },
+				{ blsKey: existingKey, bftWeight: BigInt(2) },
+			];
+			jest.spyOn(utils, 'calculateNewActiveValidators').mockReturnValue(newValidators);
+			jest.spyOn(utils, 'computeValidatorsHash').mockReturnValue(certificate.validatorsHash);
 
 			await expect(
 				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
@@ -786,7 +917,11 @@ describe('Base interoperability internal method', () => {
 	describe('verifyCertificate', () => {
 		const txParams: CrossChainUpdateTransactionParams = {
 			certificate: Buffer.alloc(0),
-			activeValidatorsUpdate: [],
+			activeValidatorsUpdate: {
+				blsKeysUpdate: [],
+				bftWeightsUpdate: [],
+				bftWeightsUpdateBitmap: Buffer.from([]),
+			},
 			certificateThreshold: BigInt(10),
 			sendingChainID: cryptoUtils.getRandomBytes(4),
 			inboxUpdate: {
@@ -885,12 +1020,23 @@ describe('Base interoperability internal method', () => {
 	});
 
 	describe('verifyCertificateSignature', () => {
-		const activeValidatorsUpdate = [
+		const activeValidators = [
 			{ blsKey: cryptoUtils.getRandomBytes(48), bftWeight: BigInt(1) },
 			{ blsKey: cryptoUtils.getRandomBytes(48), bftWeight: BigInt(3) },
 			{ blsKey: cryptoUtils.getRandomBytes(48), bftWeight: BigInt(4) },
-			{ blsKey: cryptoUtils.getRandomBytes(48), bftWeight: BigInt(3) },
-		].sort((a, b) => a.blsKey.compare(b.blsKey));
+			{ blsKey: cryptoUtils.getRandomBytes(48), bftWeight: BigInt(2) },
+		].sort((v1, v2) => v1.blsKey.compare(v2.blsKey));
+
+		const activeValidatorsUpdate = {
+			blsKeysUpdate: [
+				cryptoUtils.getRandomBytes(48),
+				cryptoUtils.getRandomBytes(48),
+				cryptoUtils.getRandomBytes(48),
+				cryptoUtils.getRandomBytes(48),
+			].sort((v1, v2) => v1.compare(v2)),
+			bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4), BigInt(3)],
+			bftWeightsUpdateBitmap: Buffer.from([1, 0, 2]),
+		};
 
 		const certificate: Certificate = {
 			blockID: cryptoUtils.getRandomBytes(20),
@@ -921,7 +1067,7 @@ describe('Base interoperability internal method', () => {
 			await interopMod.stores
 				.get(ChainValidatorsStore)
 				.set(methodContext, txParams.sendingChainID, {
-					activeValidators: activeValidatorsUpdate,
+					activeValidators,
 					certificateThreshold: BigInt(20),
 				});
 		});
@@ -934,13 +1080,13 @@ describe('Base interoperability internal method', () => {
 			).rejects.toThrow('Certificate is not a valid aggregate signature');
 
 			expect(cryptography.bls.verifyWeightedAggSig).toHaveBeenCalledWith(
-				activeValidatorsUpdate.map(v => v.blsKey),
+				activeValidators.map(v => v.blsKey),
 				certificate.aggregationBits as Buffer,
 				certificate.signature as Buffer,
 				MESSAGE_TAG_CERTIFICATE,
 				txParams.sendingChainID,
 				txParams.certificate,
-				activeValidatorsUpdate.map(v => v.bftWeight),
+				activeValidators.map(v => v.bftWeight),
 				txParams.certificateThreshold,
 			);
 		});
@@ -969,7 +1115,11 @@ describe('Base interoperability internal method', () => {
 		const encodedCertificate = codec.encode(certificateSchema, certificate);
 		const txParams: CrossChainUpdateTransactionParams = {
 			certificate: encodedCertificate,
-			activeValidatorsUpdate: [],
+			activeValidatorsUpdate: {
+				blsKeysUpdate: [],
+				bftWeightsUpdate: [],
+				bftWeightsUpdateBitmap: Buffer.from([]),
+			},
 			certificateThreshold: BigInt(10),
 			sendingChainID: cryptoUtils.getRandomBytes(4),
 			inboxUpdate: {
