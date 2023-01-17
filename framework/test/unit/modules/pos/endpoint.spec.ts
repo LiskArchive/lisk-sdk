@@ -105,11 +105,11 @@ describe('PosModuleEndpoint', () => {
 
 	const validatorData = {
 		name: 'validator1',
-		totalStakeReceived: BigInt(0),
+		totalStake: BigInt(0),
 		selfStake: BigInt(0),
 		lastGeneratedHeight: 0,
 		isBanned: false,
-		pomHeights: [0],
+		reportMisbehaviorHeights: [0],
 		consecutiveMissedBlocks: 0,
 		address: cryptoAddress.getLisk32AddressFromAddress(address),
 		commission: 0,
@@ -191,7 +191,7 @@ describe('PosModuleEndpoint', () => {
 
 				const validatorDataJSON = {
 					...validatorData,
-					totalStakeReceived: validatorData.totalStakeReceived.toString(),
+					totalStake: validatorData.totalStake.toString(),
 					selfStake: validatorData.selfStake.toString(),
 					address: cryptoAddress.getLisk32AddressFromAddress(address),
 					sharingCoefficients: [
@@ -204,7 +204,9 @@ describe('PosModuleEndpoint', () => {
 							coefficient: validatorCoefficient2.toString('hex'),
 						},
 					],
-					punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+					punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](
+						validatorData.reportMisbehaviorHeights,
+					),
 				};
 
 				expect(validatorDataReturned).toStrictEqual(validatorDataJSON);
@@ -221,7 +223,7 @@ describe('PosModuleEndpoint', () => {
 					}),
 				);
 
-				expect(validatorDataReturned.totalStakeReceived).toBeString();
+				expect(validatorDataReturned.totalStake).toBeString();
 				expect(validatorDataReturned.selfStake).toBeString();
 			});
 		});
@@ -257,9 +259,9 @@ describe('PosModuleEndpoint', () => {
 					createTransientModuleEndpointContext({ stateStore }),
 				);
 
-				expect(validatorsDataReturned[0].totalStakeReceived).toBeString();
+				expect(validatorsDataReturned[0].totalStake).toBeString();
 				expect(validatorsDataReturned[0].selfStake).toBeString();
-				expect(validatorsDataReturned[1].totalStakeReceived).toBeString();
+				expect(validatorsDataReturned[1].totalStake).toBeString();
 				expect(validatorsDataReturned[1].selfStake).toBeString();
 			});
 		});
@@ -348,18 +350,18 @@ describe('PosModuleEndpoint', () => {
 			await validatorSubStore.set(createStoreGetter(stateStore), address, {
 				...validatorData,
 				name: 'validator',
-				pomHeights: [],
+				reportMisbehaviorHeights: [],
 			});
 			await validatorSubStore.set(createStoreGetter(stateStore), address1, {
 				...validatorData,
 				name: 'validator1',
-				pomHeights: [],
+				reportMisbehaviorHeights: [],
 			});
 			const pomHeight = 260000;
 			await validatorSubStore.set(createStoreGetter(stateStore), address2, {
 				...validatorData,
 				name: 'validator2',
-				pomHeights: [pomHeight],
+				reportMisbehaviorHeights: [pomHeight],
 			});
 			const pendingUnlocks = [
 				{
@@ -538,13 +540,15 @@ describe('PosModuleEndpoint', () => {
 				...validatorData,
 				address: cryptoAddress.getLisk32AddressFromAddress(address5),
 				name: '6',
-				totalStakeReceived: validatorData.totalStakeReceived.toString(),
+				totalStake: validatorData.totalStake.toString(),
 				selfStake: validatorData.selfStake.toString(),
 				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
 					tokenID: co.tokenID.toString('hex'),
 					coefficient: co.coefficient.toString('hex'),
 				})),
-				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](
+					validatorData.reportMisbehaviorHeights,
+				),
 			});
 		});
 
@@ -557,25 +561,29 @@ describe('PosModuleEndpoint', () => {
 				...validatorData,
 				address: cryptoAddress.getLisk32AddressFromAddress(address5),
 				name: '6',
-				totalStakeReceived: validatorData.totalStakeReceived.toString(),
+				totalStake: validatorData.totalStake.toString(),
 				selfStake: validatorData.selfStake.toString(),
 				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
 					tokenID: co.tokenID.toString('hex'),
 					coefficient: co.coefficient.toString('hex'),
 				})),
-				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](
+					validatorData.reportMisbehaviorHeights,
+				),
 			});
 			expect(resp.validators[1]).toEqual({
 				...validatorData,
 				address: cryptoAddress.getLisk32AddressFromAddress(address4),
 				name: '5',
-				totalStakeReceived: validatorData.totalStakeReceived.toString(),
+				totalStake: validatorData.totalStake.toString(),
 				selfStake: validatorData.selfStake.toString(),
 				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
 					tokenID: co.tokenID.toString('hex'),
 					coefficient: co.coefficient.toString('hex'),
 				})),
-				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](
+					validatorData.reportMisbehaviorHeights,
+				),
 			});
 		});
 
@@ -588,25 +596,29 @@ describe('PosModuleEndpoint', () => {
 				...validatorData,
 				address: cryptoAddress.getLisk32AddressFromAddress(address5),
 				name: '6',
-				totalStakeReceived: validatorData.totalStakeReceived.toString(),
+				totalStake: validatorData.totalStake.toString(),
 				selfStake: validatorData.selfStake.toString(),
 				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
 					tokenID: co.tokenID.toString('hex'),
 					coefficient: co.coefficient.toString('hex'),
 				})),
-				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](
+					validatorData.reportMisbehaviorHeights,
+				),
 			});
 			expect(resp.validators[5]).toEqual({
 				...validatorData,
 				address: cryptoAddress.getLisk32AddressFromAddress(address3),
 				name: '4',
-				totalStakeReceived: validatorData.totalStakeReceived.toString(),
+				totalStake: validatorData.totalStake.toString(),
 				selfStake: validatorData.selfStake.toString(),
 				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
 					tokenID: co.tokenID.toString('hex'),
 					coefficient: co.coefficient.toString('hex'),
 				})),
-				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](
+					validatorData.reportMisbehaviorHeights,
+				),
 			});
 		});
 
@@ -615,17 +627,17 @@ describe('PosModuleEndpoint', () => {
 				createTransientModuleEndpointContext({ stateStore, params: { limit: -1 } }),
 			);
 
-			expect(validatorsDataReturned[0].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[0].totalStake).toBeString();
 			expect(validatorsDataReturned[0].selfStake).toBeString();
-			expect(validatorsDataReturned[1].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[1].totalStake).toBeString();
 			expect(validatorsDataReturned[1].selfStake).toBeString();
-			expect(validatorsDataReturned[2].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[2].totalStake).toBeString();
 			expect(validatorsDataReturned[2].selfStake).toBeString();
-			expect(validatorsDataReturned[3].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[3].totalStake).toBeString();
 			expect(validatorsDataReturned[3].selfStake).toBeString();
-			expect(validatorsDataReturned[4].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[4].totalStake).toBeString();
 			expect(validatorsDataReturned[4].selfStake).toBeString();
-			expect(validatorsDataReturned[5].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[5].totalStake).toBeString();
 			expect(validatorsDataReturned[5].selfStake).toBeString();
 		});
 	});

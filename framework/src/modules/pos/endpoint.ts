@@ -97,7 +97,9 @@ export class PoSEndpoint extends BaseEndpoint {
 		return {
 			...codec.toJSON<ValidatorAccountJSON>(validatorStoreSchema, validatorAccount),
 			address,
-			punishmentPeriods: this._calculatePunishmentPeriods(validatorAccount.pomHeights),
+			punishmentPeriods: this._calculatePunishmentPeriods(
+				validatorAccount.reportMisbehaviorHeights,
+			),
 		};
 	}
 
@@ -115,7 +117,9 @@ export class PoSEndpoint extends BaseEndpoint {
 			const validatorAccountJSON = {
 				...codec.toJSON<ValidatorAccountJSON>(validatorStoreSchema, validatorAccount),
 				address: cryptoAddress.getLisk32AddressFromAddress(data.key),
-				punishmentPeriods: this._calculatePunishmentPeriods(validatorAccount.pomHeights),
+				punishmentPeriods: this._calculatePunishmentPeriods(
+					validatorAccount.reportMisbehaviorHeights,
+				),
 			};
 			response.push(validatorAccountJSON);
 		}
@@ -247,7 +251,9 @@ export class PoSEndpoint extends BaseEndpoint {
 			const validatorAccountJSON = {
 				...codec.toJSON<ValidatorAccountJSON>(validatorStoreSchema, validatorAccount),
 				address: cryptoAddress.getLisk32AddressFromAddress(address),
-				punishmentPeriods: this._calculatePunishmentPeriods(validatorAccount.pomHeights),
+				punishmentPeriods: this._calculatePunishmentPeriods(
+					validatorAccount.reportMisbehaviorHeights,
+				),
 			};
 			response.push(validatorAccountJSON);
 		}
@@ -357,10 +363,13 @@ export class PoSEndpoint extends BaseEndpoint {
 		const validatorSubStore = this.stores.get(ValidatorStore);
 		const validatorAccount = await validatorSubStore.get(ctx, validatorAddress);
 		const waitTime = getWaitTime(callerAddress, validatorAddress) + unstakeHeight;
-		if (!validatorAccount.pomHeights.length) {
+		if (!validatorAccount.reportMisbehaviorHeights.length) {
 			return waitTime;
 		}
-		const lastPomHeight = validatorAccount.pomHeights[validatorAccount.pomHeights.length - 1];
+		const lastPomHeight =
+			validatorAccount.reportMisbehaviorHeights[
+				validatorAccount.reportMisbehaviorHeights.length - 1
+			];
 		// if last pom height is greater than unstake height + wait time, the validator is not punished
 		if (lastPomHeight >= unstakeHeight + waitTime) {
 			return waitTime;

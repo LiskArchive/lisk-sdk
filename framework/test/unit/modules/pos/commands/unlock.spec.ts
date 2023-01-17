@@ -78,11 +78,11 @@ describe('UnlockCommand', () => {
 		amount: liskToBeddows(400),
 	};
 	const defaultValidatorInfo = {
-		totalStakeReceived: BigInt(100000000),
+		totalStake: BigInt(100000000),
 		selfStake: BigInt(0),
 		lastGeneratedHeight: 0,
 		isBanned: false,
-		pomHeights: [],
+		reportMisbehaviorHeights: [],
 		consecutiveMissedBlocks: 0,
 		commission: 0,
 		lastCommissionIncreaseHeight: 0,
@@ -312,24 +312,24 @@ describe('UnlockCommand', () => {
 			await validatorSubstore.set(createStoreGetter(stateStore), validator1.address, {
 				...defaultValidatorInfo,
 				name: 'punishedstaker1',
-				pomHeights: [blockHeight - PUNISHMENT_WINDOW_STAKES],
+				reportMisbehaviorHeights: [blockHeight - PUNISHMENT_WINDOW_STAKES],
 			});
 			// This covers scenario: has not waited pomHeight + 260,000 blocks but waited unstakeHeight + 2000 blocks and pomHeight is more than unstakeHeight + 2000 blocks
 			await validatorSubstore.set(createStoreGetter(stateStore), validator2.address, {
 				...defaultValidatorInfo,
 				name: 'punishedstaker2',
-				pomHeights: [blockHeight],
+				reportMisbehaviorHeights: [blockHeight],
 			});
 			// This covers scenario: has not waited pomHeight + 260,000 blocks but waited unstakeHeight + 2000 blocks and pomHeight is equal to unstakeHeight + 2000 blocks
 			await validatorSubstore.set(createStoreGetter(stateStore), validator3.address, {
 				...defaultValidatorInfo,
 				name: 'punishedstaker3',
-				pomHeights: [blockHeight - 1000],
+				reportMisbehaviorHeights: [blockHeight - 1000],
 			});
 			await validatorSubstore.set(createStoreGetter(stateStore), validator4.address, {
 				...defaultValidatorInfo,
 				name: 'punishedstaker4',
-				pomHeights: [blockHeight - PUNISHMENT_WINDOW_STAKES],
+				reportMisbehaviorHeights: [blockHeight - PUNISHMENT_WINDOW_STAKES],
 			});
 			unlockableObject = {
 				validatorAddress: validator1.address,
@@ -417,7 +417,7 @@ describe('UnlockCommand', () => {
 			await validatorSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				...defaultValidatorInfo,
 				name: 'punishedselfstaker',
-				pomHeights: [blockHeight - PUNISHMENT_WINDOW_SELF_STAKES],
+				reportMisbehaviorHeights: [blockHeight - PUNISHMENT_WINDOW_SELF_STAKES],
 			});
 			unlockableObject = {
 				validatorAddress: transaction.senderAddress,
@@ -478,7 +478,7 @@ describe('UnlockCommand', () => {
 			await validatorSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				...defaultValidatorInfo,
 				name: 'punishedselfstaker',
-				pomHeights: [blockHeight - 1],
+				reportMisbehaviorHeights: [blockHeight - 1],
 			});
 			nonUnlockableObject = {
 				validatorAddress: transaction.senderAddress,

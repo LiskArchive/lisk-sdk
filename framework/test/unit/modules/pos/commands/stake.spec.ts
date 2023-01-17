@@ -141,9 +141,9 @@ describe('StakeCommand', () => {
 			isBanned: false,
 			lastGeneratedHeight: 5,
 			name: 'someValidator1',
-			pomHeights: [],
+			reportMisbehaviorHeights: [],
 			selfStake: BigInt(0),
-			totalStakeReceived: BigInt(0),
+			totalStake: BigInt(0),
 			commission: 0,
 			lastCommissionIncreaseHeight: 0,
 			sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
@@ -154,9 +154,9 @@ describe('StakeCommand', () => {
 			isBanned: false,
 			lastGeneratedHeight: 5,
 			name: 'someValidator2',
-			pomHeights: [],
+			reportMisbehaviorHeights: [],
 			selfStake: BigInt(0),
-			totalStakeReceived: BigInt(0),
+			totalStake: BigInt(0),
 			commission: 0,
 			lastCommissionIncreaseHeight: 0,
 			sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
@@ -167,9 +167,9 @@ describe('StakeCommand', () => {
 			isBanned: false,
 			lastGeneratedHeight: 5,
 			name: 'someValidator3',
-			pomHeights: [],
+			reportMisbehaviorHeights: [],
 			selfStake: BigInt(0),
-			totalStakeReceived: BigInt(0),
+			totalStake: BigInt(0),
 			commission: 0,
 			lastCommissionIncreaseHeight: 0,
 			sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
@@ -737,11 +737,11 @@ describe('StakeCommand', () => {
 
 				await command.execute(context);
 
-				const { totalStakeReceived: totalStakeReceived1 } = await validatorStore.get(
+				const { totalStake: totalStakeReceived1 } = await validatorStore.get(
 					createStoreGetter(stateStore),
 					validatorAddress1,
 				);
-				const { totalStakeReceived: totalStakeReceived2 } = await validatorStore.get(
+				const { totalStake: totalStakeReceived2 } = await validatorStore.get(
 					createStoreGetter(stateStore),
 					validatorAddress2,
 				);
@@ -965,8 +965,8 @@ describe('StakeCommand', () => {
 				);
 
 				// Assert
-				expect(validatorData1.totalStakeReceived).toEqual(BigInt(0));
-				expect(validatorData2.totalStakeReceived).toEqual(BigInt(0));
+				expect(validatorData1.totalStake).toEqual(BigInt(0));
+				expect(validatorData2.totalStake).toEqual(BigInt(0));
 			});
 
 			it('should throw error and emit ValidatorStakedEvent with STAKE_FAILED_INVALID_UNSTAKE_PARAMETERS result when downstaked validator is not already upstaked', async () => {
@@ -1127,7 +1127,7 @@ describe('StakeCommand', () => {
 				const validatorInfo = {
 					...validatorInfo1,
 					selfStake,
-					totalStakeReceived: BigInt(1) + BigInt(100) * BigInt(defaultConfig.minWeightStandby),
+					totalStake: BigInt(1) + BigInt(100) * BigInt(defaultConfig.minWeightStandby),
 				};
 				const expectedWeight = BigInt(10) * selfStake;
 				await validatorStore.set(createStoreGetter(stateStore), validatorAddress, validatorInfo);
@@ -1221,9 +1221,7 @@ describe('StakeCommand', () => {
 				);
 
 				// Assert
-				expect(validatorData1.totalStakeReceived).toEqual(
-					validator1StakeAmount + positiveStakeValidator1,
-				);
+				expect(validatorData1.totalStake).toEqual(validator1StakeAmount + positiveStakeValidator1);
 			});
 
 			it('should make downstaked validator account to have correct totalStakeReceived', async () => {
@@ -1236,9 +1234,7 @@ describe('StakeCommand', () => {
 				);
 
 				// Assert
-				expect(validatorData2.totalStakeReceived).toEqual(
-					validator2StakeAmount + negativeStakeValidator2,
-				);
+				expect(validatorData2.totalStake).toEqual(validator2StakeAmount + negativeStakeValidator2);
 			});
 		});
 
@@ -1321,9 +1317,9 @@ describe('StakeCommand', () => {
 							isBanned: false,
 							lastGeneratedHeight: 5,
 							name: `someValidator${i}`,
-							pomHeights: [],
+							reportMisbehaviorHeights: [],
 							selfStake: BigInt(0),
-							totalStakeReceived: BigInt(0),
+							totalStake: BigInt(0),
 							commission: 0,
 							lastCommissionIncreaseHeight: 0,
 							sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
@@ -1387,9 +1383,9 @@ describe('StakeCommand', () => {
 							isBanned: false,
 							lastGeneratedHeight: 5,
 							name: `someValidator${i}`,
-							pomHeights: [],
+							reportMisbehaviorHeights: [],
 							selfStake: BigInt(0),
-							totalStakeReceived: BigInt(0),
+							totalStake: BigInt(0),
 							commission: 0,
 							lastCommissionIncreaseHeight: 0,
 							sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
@@ -1434,9 +1430,9 @@ describe('StakeCommand', () => {
 							isBanned: false,
 							lastGeneratedHeight: 5,
 							name: `someValidator${i + initialValidatorAmount}`,
-							pomHeights: [],
+							reportMisbehaviorHeights: [],
 							selfStake: BigInt(0),
-							totalStakeReceived: BigInt(0),
+							totalStake: BigInt(0),
 							commission: 0,
 							lastCommissionIncreaseHeight: 0,
 							sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
@@ -1504,9 +1500,9 @@ describe('StakeCommand', () => {
 							isBanned: false,
 							lastGeneratedHeight: 5,
 							name: `someValidator${i}`,
-							pomHeights: [],
+							reportMisbehaviorHeights: [],
 							selfStake: BigInt(0),
-							totalStakeReceived: BigInt(0),
+							totalStake: BigInt(0),
 							commission: 0,
 							lastCommissionIncreaseHeight: 0,
 							sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
@@ -1535,9 +1531,9 @@ describe('StakeCommand', () => {
 							isBanned: false,
 							lastGeneratedHeight: 5,
 							name: `someValidator${i}`,
-							pomHeights: [],
+							reportMisbehaviorHeights: [],
 							selfStake: BigInt(0),
-							totalStakeReceived: BigInt(0),
+							totalStake: BigInt(0),
 							commission: 0,
 							lastCommissionIncreaseHeight: 0,
 							sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
@@ -1663,15 +1659,15 @@ describe('StakeCommand', () => {
 		describe('when transaction.params.stakes contains self-stake', () => {
 			const senderStakeAmountPositive = liskToBeddows(80);
 			const senderStakeAmountNegative = liskToBeddows(20);
-			let totalStakeReceived: bigint;
+			let totalStake: bigint;
 			let selfStake: bigint;
 			beforeEach(async () => {
-				totalStakeReceived = BigInt(20);
+				totalStake = BigInt(20);
 				selfStake = BigInt(20);
 
 				const validatorInfo = {
 					...validatorInfo1,
-					totalStakeReceived,
+					totalStake,
 					selfStake,
 				};
 				await validatorStore.set(createStoreGetter(stateStore), senderAddress, validatorInfo);
@@ -1708,9 +1704,7 @@ describe('StakeCommand', () => {
 					senderAddress,
 				);
 				// Assert
-				expect(validatorData.totalStakeReceived).toEqual(
-					totalStakeReceived + senderStakeAmountPositive,
-				);
+				expect(validatorData.totalStake).toEqual(totalStake + senderStakeAmountPositive);
 				expect(stakerData.sentStakes).toHaveLength(1);
 				expect(lockFn).toHaveBeenCalledWith(
 					expect.anything(),
@@ -1730,9 +1724,7 @@ describe('StakeCommand', () => {
 					senderAddress,
 				);
 				// Assert
-				expect(validatorData.totalStakeReceived).toEqual(
-					totalStakeReceived + senderStakeAmountPositive,
-				);
+				expect(validatorData.totalStake).toEqual(totalStake + senderStakeAmountPositive);
 				expect(validatorData.selfStake).toEqual(selfStake + senderStakeAmountPositive);
 			});
 
@@ -1770,11 +1762,11 @@ describe('StakeCommand', () => {
 				);
 
 				// Assert
-				expect(validatorData.totalStakeReceived).toEqual(
-					totalStakeReceived + senderStakeAmountPositive - senderStakeAmountNegative,
+				expect(validatorData.totalStake).toEqual(
+					totalStake + senderStakeAmountPositive - senderStakeAmountNegative,
 				);
 				expect(validatorData.selfStake).toEqual(
-					totalStakeReceived + senderStakeAmountPositive - senderStakeAmountNegative,
+					totalStake + senderStakeAmountPositive - senderStakeAmountNegative,
 				);
 				expect(stakerData.sentStakes).toHaveLength(1);
 				expect(stakerData.sentStakes).toEqual([
@@ -1812,9 +1804,9 @@ describe('StakeCommand', () => {
 					isBanned: false,
 					lastGeneratedHeight: 5,
 					name: 'validator',
-					pomHeights: [],
+					reportMisbehaviorHeights: [],
 					selfStake: validatorSelfStake,
-					totalStakeReceived: validatorSelfStake,
+					totalStake: validatorSelfStake,
 					commission: 0,
 					lastCommissionIncreaseHeight: 0,
 					sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
@@ -1850,9 +1842,7 @@ describe('StakeCommand', () => {
 					validatorAddress,
 				);
 				// Assert
-				expect(validatorData.totalStakeReceived).toEqual(
-					senderStakeAmountPositive + validatorSelfStake,
-				);
+				expect(validatorData.totalStake).toEqual(senderStakeAmountPositive + validatorSelfStake);
 				expect(validatorData.selfStake).toEqual(validatorSelfStake);
 			});
 
@@ -1888,7 +1878,7 @@ describe('StakeCommand', () => {
 				);
 
 				// Assert
-				expect(validatorData.totalStakeReceived).toEqual(
+				expect(validatorData.totalStake).toEqual(
 					senderStakeAmountPositive - senderStakeAmountNegative + validatorSelfStake,
 				);
 				expect(validatorData.selfStake).toEqual(validatorSelfStake);

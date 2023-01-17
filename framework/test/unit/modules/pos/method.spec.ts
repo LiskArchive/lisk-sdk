@@ -59,11 +59,11 @@ describe('PoSMethod', () => {
 
 	const validatorData = {
 		name: 'validator1',
-		totalStakeReceived: BigInt(0),
+		totalStake: BigInt(0),
 		selfStake: BigInt(0),
 		lastGeneratedHeight: 0,
 		isBanned: false,
-		pomHeights: [0],
+		reportMisbehaviorHeights: [0],
 		consecutiveMissedBlocks: 0,
 		commission: 0,
 		lastCommissionIncreaseHeight: 0,
@@ -170,9 +170,9 @@ describe('PoSMethod', () => {
 			isBanned: false,
 			lastGeneratedHeight: 5,
 			name: 'validator1',
-			pomHeights: [],
+			reportMisbehaviorHeights: [],
 			selfStake: BigInt(0),
-			totalStakeReceived: BigInt(0),
+			totalStake: BigInt(0),
 			commission: 0,
 			lastCommissionIncreaseHeight: 0,
 			sharingCoefficients: [
@@ -186,9 +186,9 @@ describe('PoSMethod', () => {
 			isBanned: false,
 			lastGeneratedHeight: 5,
 			name: 'validator2',
-			pomHeights: [],
+			reportMisbehaviorHeights: [],
 			selfStake: BigInt(0),
-			totalStakeReceived: BigInt(4),
+			totalStake: BigInt(4),
 			commission: 0,
 			lastCommissionIncreaseHeight: 0,
 			sharingCoefficients: [
@@ -201,9 +201,9 @@ describe('PoSMethod', () => {
 			isBanned: false,
 			lastGeneratedHeight: 5,
 			name: 'validator3',
-			pomHeights: [],
+			reportMisbehaviorHeights: [],
 			selfStake: BigInt(0),
-			totalStakeReceived: BigInt(4),
+			totalStake: BigInt(4),
 			commission: 0,
 			lastCommissionIncreaseHeight: 0,
 			sharingCoefficients: [
@@ -257,7 +257,7 @@ describe('PoSMethod', () => {
 			const commissionQ = q96(BigInt(validatorData2.commission));
 			const rewardFractionQ = q96(BigInt(1)).sub(commissionQ.div(q96(BigInt(10000))));
 			const selfStakeQ = q96(validatorData2.selfStake);
-			const totalStakesQ = q96(validatorData2.totalStakeReceived);
+			const totalStakesQ = q96(validatorData2.totalStake);
 			const oldSharingCoefficient = q96(0);
 			const sharingCoefficientIncrease = rewardQ.muldiv(rewardFractionQ, totalStakesQ);
 			const sharedRewards = sharingCoefficientIncrease.mul(totalStakesQ.sub(selfStakeQ)).floor();
@@ -267,9 +267,9 @@ describe('PoSMethod', () => {
 				isBanned: false,
 				lastGeneratedHeight: 5,
 				name: 'validator2',
-				pomHeights: [],
+				reportMisbehaviorHeights: [],
 				selfStake: BigInt(0),
-				totalStakeReceived: BigInt(4),
+				totalStake: BigInt(4),
 				commission: 0,
 				lastCommissionIncreaseHeight: 0,
 				sharingCoefficients: [
@@ -304,7 +304,7 @@ describe('PoSMethod', () => {
 			const commissionQ = q96(BigInt(validatorData3.commission));
 			const rewardFractionQ = q96(BigInt(1)).sub(commissionQ.div(q96(BigInt(10000))));
 			const selfStakeQ = q96(validatorData3.selfStake);
-			const totalStakesQ = q96(validatorData3.totalStakeReceived);
+			const totalStakesQ = q96(validatorData3.totalStake);
 			const oldSharingCoefficient = q96(validatorData3.sharingCoefficients[1].coefficient);
 			const sharingCoefficientIncrease = rewardQ.muldiv(rewardFractionQ, totalStakesQ);
 			const sharedRewards = sharingCoefficientIncrease.mul(totalStakesQ.sub(selfStakeQ)).floor();
@@ -314,9 +314,9 @@ describe('PoSMethod', () => {
 				isBanned: false,
 				lastGeneratedHeight: 5,
 				name: 'validator3',
-				pomHeights: [],
+				reportMisbehaviorHeights: [],
 				selfStake: BigInt(0),
-				totalStakeReceived: BigInt(4),
+				totalStake: BigInt(4),
 				commission: 0,
 				lastCommissionIncreaseHeight: 0,
 				sharingCoefficients: [

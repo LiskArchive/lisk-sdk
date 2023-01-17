@@ -107,7 +107,7 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 			getPunishmentPeriod(
 				validatorAddress,
 				validatorAddress,
-				validatorAccount.pomHeights,
+				validatorAccount.reportMisbehaviorHeights,
 				header.height,
 			) > 0
 		) {
@@ -151,14 +151,14 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 			this._posTokenID,
 		);
 
-		validatorAccount.pomHeights.push(currentHeight);
+		validatorAccount.reportMisbehaviorHeights.push(currentHeight);
 
 		this.events.get(ValidatorPunishedEvent).log(context, {
 			address: punishedAddress,
 			height: currentHeight,
 		});
 
-		if (validatorAccount.pomHeights.length === POM_LIMIT_BANNED) {
+		if (validatorAccount.reportMisbehaviorHeights.length === POM_LIMIT_BANNED) {
 			validatorAccount.isBanned = true;
 
 			this.events.get(ValidatorBannedEvent).log(context, {
@@ -170,7 +170,7 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 		const currentWeight = getValidatorWeight(
 			BigInt(this._factorSelfStakes),
 			validatorAccount.selfStake,
-			validatorAccount.totalStakeReceived,
+			validatorAccount.totalStake,
 		);
 
 		const eligibleValidatorStore = this.stores.get(EligibleValidatorsStore);

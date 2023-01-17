@@ -114,9 +114,9 @@ describe('InternalMethod', () => {
 			isBanned: false,
 			lastGeneratedHeight: 5,
 			name: 'Hawthorne',
-			pomHeights: [],
+			reportMisbehaviorHeights: [],
 			selfStake: BigInt(0),
-			totalStakeReceived: BigInt(0),
+			totalStake: BigInt(0),
 			commission: 0,
 			lastCommissionIncreaseHeight: 0,
 			sharingCoefficients: [

@@ -320,14 +320,14 @@ export class StakeCommand extends BaseCommand {
 			const previousValidatorWeight = getValidatorWeight(
 				this._factorSelfStakes,
 				validatorData.selfStake,
-				validatorData.totalStakeReceived,
+				validatorData.totalStake,
 			);
 			// Change validator.selfStake if this stake is a self stake
 			if (senderAddress.equals(stake.validatorAddress)) {
 				validatorData.selfStake += stake.amount;
 			}
 
-			validatorData.totalStakeReceived += stake.amount;
+			validatorData.totalStake += stake.amount;
 
 			const eligibleValidatorsStore = this.stores.get(EligibleValidatorsStore);
 

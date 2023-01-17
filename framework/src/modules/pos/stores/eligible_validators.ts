@@ -90,15 +90,15 @@ export class EligibleValidatorsStore extends BaseStore<EligibleValidator> {
 		const newWeight = getValidatorWeight(
 			BigInt(this._config.factorSelfStakes),
 			validator.selfStake,
-			validator.totalStakeReceived,
+			validator.totalStake,
 		);
 
 		if (newWeight < this._config.minWeightStandby) {
 			return;
 		}
 
-		const lastPomHeight = validator.pomHeights.length
-			? validator.pomHeights[validator.pomHeights.length - 1]
+		const lastPomHeight = validator.reportMisbehaviorHeights.length
+			? validator.reportMisbehaviorHeights[validator.reportMisbehaviorHeights.length - 1]
 			: 0;
 
 		await this.set(context, this.getKey(address, newWeight), { lastPomHeight });

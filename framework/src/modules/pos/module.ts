@@ -436,11 +436,11 @@ export class PoSModule extends BaseModule {
 			};
 			await validatorStore.set(context, posValidator.address, {
 				name: posValidator.name,
-				totalStakeReceived: stakeInfo.stakeReceived,
+				totalStake: stakeInfo.stakeReceived,
 				selfStake: stakeInfo.selfStake,
 				lastGeneratedHeight: posValidator.lastGeneratedHeight,
 				isBanned: posValidator.isBanned,
-				pomHeights: posValidator.pomHeights,
+				reportMisbehaviorHeights: posValidator.pomHeights,
 				consecutiveMissedBlocks: posValidator.consecutiveMissedBlocks,
 				commission: posValidator.commission,
 				lastCommissionIncreaseHeight: posValidator.lastCommissionIncreaseHeight,
@@ -697,7 +697,7 @@ export class PoSModule extends BaseModule {
 					getValidatorWeight(
 						BigInt(this._moduleConfig.factorSelfStakes),
 						validatorData.selfStake,
-						validatorData.totalStakeReceived,
+						validatorData.totalStake,
 					),
 					validatorData,
 				);

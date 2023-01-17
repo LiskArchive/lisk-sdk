@@ -49,9 +49,9 @@ describe('EligibleValidatorsStore', () => {
 		isBanned: false,
 		lastCommissionIncreaseHeight: 0,
 		lastGeneratedHeight: 0,
-		pomHeights: [],
+		reportMisbehaviorHeights: [],
 		selfStake: BigInt(200000000000),
-		totalStakeReceived: BigInt(250000000000),
+		totalStake: BigInt(250000000000),
 		sharingCoefficients: [],
 	};
 
@@ -116,7 +116,7 @@ describe('EligibleValidatorsStore', () => {
 					context,
 					eligibleValidatorsStore.getKey(
 						eligibleValidators[0].address,
-						defaultValidatorAccount.totalStakeReceived,
+						defaultValidatorAccount.totalStake,
 					),
 				),
 			).resolves.toBeFalse();
@@ -139,14 +139,14 @@ describe('EligibleValidatorsStore', () => {
 		it('should insert new key with latest pomHeight', async () => {
 			await eligibleValidatorsStore.update(context, eligibleValidators[0].address, BigInt(10), {
 				...defaultValidatorAccount,
-				pomHeights: [10, 20, 30],
+				reportMisbehaviorHeights: [10, 20, 30],
 			});
 			await expect(
 				eligibleValidatorsStore.get(
 					context,
 					eligibleValidatorsStore.getKey(
 						eligibleValidators[0].address,
-						defaultValidatorAccount.totalStakeReceived,
+						defaultValidatorAccount.totalStake,
 					),
 				),
 			).resolves.toEqual({ lastPomHeight: 30 });
@@ -161,7 +161,7 @@ describe('EligibleValidatorsStore', () => {
 					context,
 					eligibleValidatorsStore.getKey(
 						eligibleValidators[0].address,
-						defaultValidatorAccount.totalStakeReceived,
+						defaultValidatorAccount.totalStake,
 					),
 				),
 			).resolves.toEqual({ lastPomHeight: 0 });

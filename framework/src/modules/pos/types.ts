@@ -147,11 +147,11 @@ export interface StakeSharingCoefficient {
 
 export interface ValidatorAccount {
 	name: string;
-	totalStakeReceived: bigint;
+	totalStake: bigint;
 	selfStake: bigint;
 	lastGeneratedHeight: number;
 	isBanned: boolean;
-	pomHeights: number[];
+	reportMisbehaviorHeights: number[];
 	consecutiveMissedBlocks: number;
 	commission: number;
 	lastCommissionIncreaseHeight: number;

@@ -59,11 +59,11 @@ describe('Update generator key command', () => {
 		validatorSubstore = pos.stores.get(ValidatorStore);
 		await validatorSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 			name: 'mrrobot',
-			totalStakeReceived: BigInt(10000000000),
+			totalStake: BigInt(10000000000),
 			selfStake: BigInt(1000000000),
 			lastGeneratedHeight: 100,
 			isBanned: false,
-			pomHeights: [],
+			reportMisbehaviorHeights: [],
 			consecutiveMissedBlocks: 0,
 			commission: 0,
 			lastCommissionIncreaseHeight: 0,
