@@ -168,11 +168,14 @@ export abstract class BaseCrossChainUpdateCommand<
 	}
 
 	protected async apply(context: CrossChainMessageContext): Promise<void> {
-		const { ccm, logger } = context;
+		const { ccm, ccu, logger } = context;
 		const { ccmID, encodedCCM } = getEncodedCCMAndID(ccm);
 		const valid = await this.verifyCCM(context, ccmID);
 		if (!valid) {
 			return;
+		}
+		if (!ccu) {
+			throw new Error('CCU to apply cross chain command is missing.');
 		}
 		const commands = this.ccCommands.get(ccm.module);
 		if (!commands) {
@@ -249,6 +252,15 @@ export abstract class BaseCrossChainUpdateCommand<
 
 		try {
 			const params = command.schema ? codec.decode(command.schema, context.ccm.params) : {};
+
+			const isSendingChainExist = await this.stores
+				.get(ChainAccountStore)
+				.has(context, ccm.sendingChainID);
+
+			if (isSendingChainExist && !ccu.sendingChainID.equals(ccm.sendingChainID)) {
+				throw new Error('Cannot receive forwarded messages for a direct channel.');
+			}
+
 			await command.execute({ ...context, params });
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				code: CCMProcessedCode.SUCCESS,

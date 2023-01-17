@@ -91,6 +91,7 @@ export interface ImmutableCrossChainMessageContext {
 		fee: bigint;
 	};
 	ccm: CCMsg;
+	ccu?: CrossChainUpdateTransactionParams;
 }
 
 export interface CrossChainMessageContext extends ImmutableCrossChainMessageContext {
@@ -387,6 +388,7 @@ export interface GenesisInteroperability {
 
 export interface CCMRegistrationParams {
 	name: string;
+	chainID: Buffer;
 	messageFeeTokenID: Buffer;
 }
 export interface TokenMethod {
