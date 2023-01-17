@@ -237,6 +237,30 @@ describe('sign', () => {
 			expect(signedTransaction.signatures).toHaveLength(1);
 			return expect(signedTransaction).toMatchSnapshot();
 		});
+
+		it('should return a signed transaction for an undefined params schema', () => {
+			const signedTransaction = signTransaction(
+				{ ...validTransaction, params: undefined },
+				chainID,
+				privateKey,
+				undefined,
+			);
+
+			expect((signedTransaction.signatures as Array<Buffer>)[0].length).toBeGreaterThan(0);
+			expect(signedTransaction.signatures).toHaveLength(1);
+		});
+
+		it('should return a signed transaction for an empty params object', () => {
+			const signedTransaction = signTransaction(
+				{ ...validTransaction, params: {} },
+				chainID,
+				privateKey,
+				undefined,
+			);
+
+			expect((signedTransaction.signatures as Array<Buffer>)[0].length).toBeGreaterThan(0);
+			expect(signedTransaction.signatures).toHaveLength(1);
+		});
 	});
 
 	describe('signMultiSignatureTransaction', () => {
