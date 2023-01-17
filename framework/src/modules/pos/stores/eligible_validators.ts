@@ -18,15 +18,15 @@ import { getValidatorWeight } from '../utils';
 import { ValidatorAccount } from './validator';
 
 export interface EligibleValidator {
-	lastPomHeight: number;
+	lastReportMisbehaviorHeight: number;
 }
 
 export const eligibleValidatorsStoreSchema = {
 	$id: '/pos/eligibleValidators',
 	type: 'object',
-	required: ['lastPomHeight'],
+	required: ['lastReportMisbehaviorHeight'],
 	properties: {
-		lastPomHeight: {
+		lastReportMisbehaviorHeight: {
 			dataType: 'uint32',
 			fieldNumber: 1,
 		},
@@ -97,10 +97,10 @@ export class EligibleValidatorsStore extends BaseStore<EligibleValidator> {
 			return;
 		}
 
-		const lastPomHeight = validator.reportMisbehaviorHeights.length
+		const lastReportMisbehaviorHeight = validator.reportMisbehaviorHeights.length
 			? validator.reportMisbehaviorHeights[validator.reportMisbehaviorHeights.length - 1]
 			: 0;
 
-		await this.set(context, this.getKey(address, newWeight), { lastPomHeight });
+		await this.set(context, this.getKey(address, newWeight), { lastReportMisbehaviorHeight });
 	}
 }

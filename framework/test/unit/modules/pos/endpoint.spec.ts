@@ -460,32 +460,32 @@ describe('PosModuleEndpoint', () => {
 			await eligibleValidatorsSubStore.set(
 				context,
 				eligibleValidatorsSubStore.getKey(address, BigInt(20)),
-				{ lastPomHeight: 0 },
+				{ lastReportMisbehaviorHeight: 0 },
 			);
 			await eligibleValidatorsSubStore.set(
 				context,
 				eligibleValidatorsSubStore.getKey(address1, BigInt(50)),
-				{ lastPomHeight: 0 },
+				{ lastReportMisbehaviorHeight: 0 },
 			);
 			await eligibleValidatorsSubStore.set(
 				context,
 				eligibleValidatorsSubStore.getKey(address2, BigInt(100)),
-				{ lastPomHeight: 0 },
+				{ lastReportMisbehaviorHeight: 0 },
 			);
 			await eligibleValidatorsSubStore.set(
 				context,
 				eligibleValidatorsSubStore.getKey(address3, BigInt(10)),
-				{ lastPomHeight: 0 },
+				{ lastReportMisbehaviorHeight: 0 },
 			);
 			await eligibleValidatorsSubStore.set(
 				context,
 				eligibleValidatorsSubStore.getKey(address4, BigInt(300)),
-				{ lastPomHeight: 0 },
+				{ lastReportMisbehaviorHeight: 0 },
 			);
 			await eligibleValidatorsSubStore.set(
 				context,
 				eligibleValidatorsSubStore.getKey(address5, BigInt(400)),
-				{ lastPomHeight: 0 },
+				{ lastReportMisbehaviorHeight: 0 },
 			);
 
 			await validatorSubStore.set(context, address, {

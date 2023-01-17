@@ -565,8 +565,8 @@ export class PoSModule extends BaseModule {
 		const validatorWeightSnapshot = [];
 		for (const { key, value } of eligibleValidatorsList) {
 			if (
-				value.lastPomHeight === 0 ||
-				value.lastPomHeight < snapshotHeight - this._moduleConfig.punishmentWindow
+				value.lastReportMisbehaviorHeight === 0 ||
+				value.lastReportMisbehaviorHeight < snapshotHeight - this._moduleConfig.punishmentWindow
 			) {
 				const [address, weight] = eligibleValidatorStore.splitKey(key);
 				validatorWeightSnapshot.push({ address, weight });

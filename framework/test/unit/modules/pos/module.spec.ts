@@ -320,7 +320,7 @@ describe('PoS module', () => {
 								BigInt(data.validatorWeight),
 							),
 						),
-						{ lastPomHeight: 0 },
+						{ lastReportMisbehaviorHeight: 0 },
 					);
 				}
 				context = createBlockContext({
@@ -360,7 +360,7 @@ describe('PoS module', () => {
 						BigInt(fixtures[0].validatorWeight),
 					),
 					{
-						lastPomHeight: 1000,
+						lastReportMisbehaviorHeight: 1000,
 					},
 				);
 				await eligibleValidatorStore.set(
@@ -370,7 +370,7 @@ describe('PoS module', () => {
 						BigInt(fixtures[1].validatorWeight),
 					),
 					{
-						lastPomHeight: 250001,
+						lastReportMisbehaviorHeight: 250001,
 					},
 				);
 				await eligibleValidatorStore.set(
@@ -380,7 +380,7 @@ describe('PoS module', () => {
 						BigInt(fixtures[2].validatorWeight),
 					),
 					{
-						lastPomHeight: 250000,
+						lastReportMisbehaviorHeight: 250000,
 					},
 				);
 				for (const data of fixtures.slice(3)) {
@@ -391,7 +391,7 @@ describe('PoS module', () => {
 							BigInt(data.validatorWeight),
 						),
 						{
-							lastPomHeight: 0,
+							lastReportMisbehaviorHeight: 0,
 						},
 					);
 				}
