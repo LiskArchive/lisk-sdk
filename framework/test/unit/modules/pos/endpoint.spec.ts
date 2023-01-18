@@ -63,11 +63,11 @@ describe('PosModuleEndpoint', () => {
 
 	const addressStaker = utils.getRandomBytes(20);
 	const stakerData: StakerData = {
-		sentStakes: [
+		stakes: [
 			{
 				validatorAddress: utils.getRandomBytes(20),
 				amount: BigInt(0),
-				stakeSharingCoefficients: [],
+				sharingCoefficients: [],
 			},
 		],
 		pendingUnlocks: [
@@ -168,8 +168,8 @@ describe('PosModuleEndpoint', () => {
 					}),
 				);
 
-				expect(stakerDataReturned.sentStakes[0].validatorAddress).toBeString();
-				expect(stakerDataReturned.sentStakes[0].amount).toBeString();
+				expect(stakerDataReturned.stakes[0].validatorAddress).toBeString();
+				expect(stakerDataReturned.stakes[0].amount).toBeString();
 				expect(stakerDataReturned.pendingUnlocks[0].validatorAddress).toBeString();
 				expect(stakerDataReturned.pendingUnlocks[0].amount).toBeString();
 			});
@@ -271,9 +271,9 @@ describe('PosModuleEndpoint', () => {
 		beforeEach(async () => {
 			const context = createStoreGetter(stateStore);
 			await stakerSubStore.set(context, address, {
-				sentStakes: [
-					{ validatorAddress: address1, amount: BigInt(200), stakeSharingCoefficients: [] },
-					{ validatorAddress: address2, amount: BigInt(10), stakeSharingCoefficients: [] },
+				stakes: [
+					{ validatorAddress: address1, amount: BigInt(200), sharingCoefficients: [] },
+					{ validatorAddress: address2, amount: BigInt(10), sharingCoefficients: [] },
 				],
 				pendingUnlocks: [{ amount: BigInt(30), validatorAddress: address1, unstakeHeight: 99 }],
 			});
@@ -381,7 +381,7 @@ describe('PosModuleEndpoint', () => {
 				},
 			];
 			await stakerSubStore.set(createStoreGetter(stateStore), address, {
-				sentStakes: [],
+				stakes: [],
 				pendingUnlocks,
 			});
 			await genesisSubStore.set(createStoreGetter(stateStore), EMPTY_KEY, {
@@ -646,9 +646,9 @@ describe('PosModuleEndpoint', () => {
 		beforeEach(async () => {
 			const context = createStoreGetter(stateStore);
 			await stakerSubStore.set(context, address, {
-				sentStakes: [
-					{ validatorAddress: address1, amount: BigInt(200), stakeSharingCoefficients: [] },
-					{ validatorAddress: address2, amount: BigInt(10), stakeSharingCoefficients: [] },
+				stakes: [
+					{ validatorAddress: address1, amount: BigInt(200), sharingCoefficients: [] },
+					{ validatorAddress: address2, amount: BigInt(10), sharingCoefficients: [] },
 				],
 				pendingUnlocks: [{ amount: BigInt(30), validatorAddress: address1, unstakeHeight: 99 }],
 			});
@@ -708,11 +708,11 @@ describe('PosModuleEndpoint', () => {
 			const context = createStoreGetter(stateStore);
 			await validatorSubStore.set(context, address, validatorData);
 			await stakerSubStore.set(context, addressStaker, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: address,
 						amount,
-						stakeSharingCoefficients: [stakerSharingCoefficient1, stakerSharingCoefficient2],
+						sharingCoefficients: [stakerSharingCoefficient1, stakerSharingCoefficient2],
 					},
 				],
 				pendingUnlocks: [],
@@ -755,11 +755,11 @@ describe('PosModuleEndpoint', () => {
 			const context = createStoreGetter(stateStore);
 			await validatorSubStore.set(context, address, validatorData);
 			await stakerSubStore.set(context, address, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: address,
 						amount,
-						stakeSharingCoefficients: [stakerSharingCoefficient1, stakerSharingCoefficient2],
+						sharingCoefficients: [stakerSharingCoefficient1, stakerSharingCoefficient2],
 					},
 				],
 				pendingUnlocks: [],

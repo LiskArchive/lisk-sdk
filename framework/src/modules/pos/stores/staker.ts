@@ -19,14 +19,14 @@ import { StakerData } from '../types';
 export const stakerStoreSchema = {
 	$id: '/pos/staker',
 	type: 'object',
-	required: ['sentStakes', 'pendingUnlocks'],
+	required: ['stakes', 'pendingUnlocks'],
 	properties: {
-		sentStakes: {
+		stakes: {
 			type: 'array',
 			fieldNumber: 1,
 			items: {
 				type: 'object',
-				required: ['validatorAddress', 'amount', 'stakeSharingCoefficients'],
+				required: ['validatorAddress', 'amount', 'sharingCoefficients'],
 				properties: {
 					validatorAddress: {
 						dataType: 'bytes',
@@ -37,7 +37,7 @@ export const stakerStoreSchema = {
 						dataType: 'uint64',
 						fieldNumber: 2,
 					},
-					stakeSharingCoefficients: {
+					sharingCoefficients: {
 						type: 'array',
 						fieldNumber: 3,
 						items: {
@@ -100,7 +100,7 @@ export class StakerStore extends BaseStore<StakerData> {
 			}
 
 			const stakerData = {
-				sentStakes: [],
+				stakes: [],
 				pendingUnlocks: [],
 			};
 			return stakerData;

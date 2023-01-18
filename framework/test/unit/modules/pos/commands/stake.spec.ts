@@ -703,13 +703,13 @@ describe('StakeCommand', () => {
 
 				await command.execute(context);
 
-				const { sentStakes } = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
+				const { stakes } = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
 
-				const sentStakesCopy = sentStakes.slice(0);
+				const sentStakesCopy = stakes.slice(0);
 				sentStakesCopy.sort((a: any, b: any) => a.validatorAddress.compare(b.validatorAddress));
 
 				// Assert
-				expect(sentStakes).toStrictEqual(sentStakesCopy);
+				expect(stakes).toStrictEqual(sentStakesCopy);
 			});
 
 			it('should make upstaked validator account to have correct totalStakeReceived', async () => {
@@ -776,11 +776,11 @@ describe('StakeCommand', () => {
 				).rejects.toThrow();
 
 				await command.execute(context);
-				const { sentStakes } = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
-				expect(sentStakes[0]).toEqual({
+				const { stakes } = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
+				expect(stakes[0]).toEqual({
 					validatorAddress: validatorAddress1,
 					amount: validator1StakeAmount,
-					stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+					sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 				});
 			});
 		});
@@ -879,8 +879,8 @@ describe('StakeCommand', () => {
 				const stakerData = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
 
 				// Assert
-				expect(stakerData.sentStakes).toHaveLength(1);
-				expect(stakerData.sentStakes[0].validatorAddress).not.toEqual(validatorAddress1);
+				expect(stakerData.stakes).toHaveLength(1);
+				expect(stakerData.stakes[0].validatorAddress).not.toEqual(validatorAddress1);
 			});
 
 			it('should update stake which has non-zero amount', async () => {
@@ -906,11 +906,11 @@ describe('StakeCommand', () => {
 
 				// Assert
 				expect(
-					stakerData.sentStakes.find((v: any) => v.validatorAddress.equals(validatorAddress1)),
+					stakerData.stakes.find((v: any) => v.validatorAddress.equals(validatorAddress1)),
 				).toEqual({
 					validatorAddress: validatorAddress1,
 					amount: validator1StakeAmount - downStakeAmount,
-					stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+					sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 				});
 			});
 
@@ -1088,15 +1088,15 @@ describe('StakeCommand', () => {
 
 				await expect(command.execute(context)).resolves.toBeUndefined();
 
-				const { sentStakes } = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
+				const { stakes } = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
 
 				expect(
-					sentStakes.find(sentStake => sentStake.validatorAddress.equals(validatorAddress1))!
-						.stakeSharingCoefficients,
+					stakes.find(sentStake => sentStake.validatorAddress.equals(validatorAddress1))!
+						.sharingCoefficients,
 				).toEqual(sharingCoefficients);
 				expect(
-					sentStakes.find(sentStake => sentStake.validatorAddress.equals(validatorAddress2))!
-						.stakeSharingCoefficients,
+					stakes.find(sentStake => sentStake.validatorAddress.equals(validatorAddress2))!
+						.sharingCoefficients,
 				).toEqual(sharingCoefficients);
 			});
 
@@ -1400,11 +1400,9 @@ describe('StakeCommand', () => {
 						const stake = {
 							validatorAddress,
 							amount: liskToBeddows(20),
-							stakeSharingCoefficients: [
-								{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) },
-							],
+							sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 						};
-						stakerData.sentStakes.push(stake);
+						stakerData.stakes.push(stake);
 					}
 
 					await stakerStore.set(createStoreGetter(stateStore), senderAddress, stakerData);
@@ -1412,11 +1410,11 @@ describe('StakeCommand', () => {
 					// We have 2 negative stakes
 					const stakes = [
 						{
-							validatorAddress: stakerData.sentStakes[0].validatorAddress,
+							validatorAddress: stakerData.stakes[0].validatorAddress,
 							amount: liskToBeddows(-10),
 						},
 						{
-							validatorAddress: stakerData.sentStakes[1].validatorAddress,
+							validatorAddress: stakerData.stakes[1].validatorAddress,
 							amount: liskToBeddows(-10),
 						},
 					];
@@ -1548,9 +1546,9 @@ describe('StakeCommand', () => {
 						const stake = {
 							validatorAddress,
 							amount: liskToBeddows(20),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						};
-						stakerData.sentStakes.push(stake);
+						stakerData.stakes.push(stake);
 					}
 
 					await stakerStore.set(createStoreGetter(stateStore), senderAddress, stakerData);
@@ -1558,11 +1556,11 @@ describe('StakeCommand', () => {
 					// We have 2 negative stakes
 					const stakes = [
 						{
-							validatorAddress: stakerData.sentStakes[0].validatorAddress,
+							validatorAddress: stakerData.stakes[0].validatorAddress,
 							amount: liskToBeddows(-10),
 						},
 						{
-							validatorAddress: stakerData.sentStakes[1].validatorAddress,
+							validatorAddress: stakerData.stakes[1].validatorAddress,
 							amount: liskToBeddows(-10),
 						},
 					];
@@ -1610,10 +1608,10 @@ describe('StakeCommand', () => {
 						createStoreGetter(stateStore),
 						senderAddress,
 					);
-					stakerData.sentStakes.push({
+					stakerData.stakes.push({
 						validatorAddress: validatorAddress1,
 						amount: liskToBeddows(70),
-						stakeSharingCoefficients: [],
+						sharingCoefficients: [],
 					});
 					await stakerStore.set(createStoreGetter(stateStore), senderAddress, stakerData);
 
@@ -1705,7 +1703,7 @@ describe('StakeCommand', () => {
 				);
 				// Assert
 				expect(validatorData.totalStake).toEqual(totalStake + senderStakeAmountPositive);
-				expect(stakerData.sentStakes).toHaveLength(1);
+				expect(stakerData.stakes).toHaveLength(1);
 				expect(lockFn).toHaveBeenCalledWith(
 					expect.anything(),
 					senderAddress,
@@ -1768,12 +1766,12 @@ describe('StakeCommand', () => {
 				expect(validatorData.selfStake).toEqual(
 					totalStake + senderStakeAmountPositive - senderStakeAmountNegative,
 				);
-				expect(stakerData.sentStakes).toHaveLength(1);
-				expect(stakerData.sentStakes).toEqual([
+				expect(stakerData.stakes).toHaveLength(1);
+				expect(stakerData.stakes).toEqual([
 					{
 						validatorAddress: senderAddress,
 						amount: senderStakeAmountPositive - senderStakeAmountNegative,
-						stakeSharingCoefficients: [
+						sharingCoefficients: [
 							{
 								tokenID: Buffer.alloc(8),
 								coefficient: Buffer.alloc(24),
@@ -1882,12 +1880,12 @@ describe('StakeCommand', () => {
 					senderStakeAmountPositive - senderStakeAmountNegative + validatorSelfStake,
 				);
 				expect(validatorData.selfStake).toEqual(validatorSelfStake);
-				expect(stakerData.sentStakes).toHaveLength(1);
-				expect(stakerData.sentStakes).toEqual([
+				expect(stakerData.stakes).toHaveLength(1);
+				expect(stakerData.stakes).toEqual([
 					{
 						validatorAddress,
 						amount: senderStakeAmountPositive - senderStakeAmountNegative,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				]);
 				expect(stakerData.pendingUnlocks).toHaveLength(1);

@@ -214,7 +214,7 @@ describe('PoS module', () => {
 				expect.assertions(validAsset.stakers.length + 1);
 				for (const staker of validAsset.stakers) {
 					await expect(stakerStore.get(context, staker.address)).resolves.toEqual({
-						sentStakes: staker.sentStakes,
+						stakes: staker.stakes,
 						pendingUnlocks: staker.pendingUnlocks,
 					});
 				}

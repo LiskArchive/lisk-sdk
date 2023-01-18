@@ -170,7 +170,7 @@ export interface ValidatorAccountJSON {
 }
 
 export interface StakerDataJSON {
-	sentStakes: {
+	stakes: {
 		validatorAddress: string;
 		amount: string;
 	}[];
@@ -184,11 +184,11 @@ export interface StakerDataJSON {
 export interface StakeObject {
 	validatorAddress: Buffer;
 	amount: bigint;
-	stakeSharingCoefficients: StakeSharingCoefficient[];
+	sharingCoefficients: StakeSharingCoefficient[];
 }
 
 export interface StakerData {
-	sentStakes: StakeObject[];
+	stakes: StakeObject[];
 	pendingUnlocks: UnlockingObject[];
 }
 
@@ -248,7 +248,7 @@ export interface GenesisStore {
 		generatorKey: Buffer;
 		lastGeneratedHeight: number;
 		isBanned: boolean;
-		pomHeights: number[];
+		reportMisbehaviorHeights: number[];
 		consecutiveMissedBlocks: number;
 		commission: number;
 		lastCommissionIncreaseHeight: number;
@@ -256,10 +256,10 @@ export interface GenesisStore {
 	}[];
 	stakers: {
 		address: Buffer;
-		sentStakes: {
+		stakes: {
 			validatorAddress: Buffer;
 			amount: bigint;
-			stakeSharingCoefficients: StakeSharingCoefficient[];
+			sharingCoefficients: StakeSharingCoefficient[];
 		}[];
 		pendingUnlocks: {
 			validatorAddress: Buffer;

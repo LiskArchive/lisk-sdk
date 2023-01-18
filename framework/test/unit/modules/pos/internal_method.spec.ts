@@ -97,11 +97,11 @@ describe('InternalMethod', () => {
 	beforeEach(() => {
 		methodContext = createNewMethodContext(new InMemoryPrefixedStateDB());
 		stakerData = {
-			sentStakes: [
+			stakes: [
 				{
 					validatorAddress,
 					amount: BigInt(10),
-					stakeSharingCoefficients: [
+					sharingCoefficients: [
 						{ tokenID: tokenID1, coefficient: Buffer.alloc(MAX_NUMBER_BYTES_Q96) },
 					],
 				},
@@ -139,7 +139,7 @@ describe('InternalMethod', () => {
 				await internalMethod.assignStakeRewards(
 					methodContext,
 					validatorAddress,
-					stakerData.sentStakes[indexWithValidatorStake],
+					stakerData.stakes[indexWithValidatorStake],
 					validatorData,
 				);
 
@@ -152,14 +152,14 @@ describe('InternalMethod', () => {
 
 		describe('when not self-stake', () => {
 			it('should insert sharing coefficients for non-existing tokenIDs to sent stake from sharingCoefficients of the staked validator and sort by tokenID', async () => {
-				stakerData.sentStakes[0].stakeSharingCoefficients = [
+				stakerData.stakes[0].sharingCoefficients = [
 					{ tokenID: tokenID2, coefficient: Buffer.alloc(MAX_NUMBER_BYTES_Q96) },
 				];
 
 				const sentStake: StakeObject = {
 					validatorAddress,
 					amount: BigInt(10),
-					stakeSharingCoefficients: [
+					sharingCoefficients: [
 						{ tokenID: tokenID1, coefficient: Buffer.alloc(MAX_NUMBER_BYTES_Q96) },
 						{ tokenID: tokenID2, coefficient: Buffer.alloc(MAX_NUMBER_BYTES_Q96) },
 						{ tokenID: tokenID3, coefficient: Buffer.alloc(MAX_NUMBER_BYTES_Q96) },
@@ -169,7 +169,7 @@ describe('InternalMethod', () => {
 				await internalMethod.assignStakeRewards(
 					methodContext,
 					stakerAddress,
-					stakerData.sentStakes[indexWithValidatorStake],
+					stakerData.stakes[indexWithValidatorStake],
 					validatorData,
 				);
 
@@ -197,7 +197,7 @@ describe('InternalMethod', () => {
 				await internalMethod.assignStakeRewards(
 					methodContext,
 					stakerAddress,
-					stakerData.sentStakes[indexWithValidatorStake],
+					stakerData.stakes[indexWithValidatorStake],
 					validatorData,
 				);
 
@@ -215,7 +215,7 @@ describe('InternalMethod', () => {
 					await internalMethod.assignStakeRewards(
 						methodContext,
 						stakerAddress,
-						stakerData.sentStakes[indexWithValidatorStake],
+						stakerData.stakes[indexWithValidatorStake],
 						validatorData,
 					);
 
@@ -224,7 +224,7 @@ describe('InternalMethod', () => {
 					expect(unlockMock).toHaveBeenNthCalledWith(
 						1,
 						methodContext,
-						stakerData.sentStakes[indexWithValidatorStake].validatorAddress,
+						stakerData.stakes[indexWithValidatorStake].validatorAddress,
 						moduleName,
 						tokenID1,
 						stakeReward,
@@ -239,14 +239,14 @@ describe('InternalMethod', () => {
 					await internalMethod.assignStakeRewards(
 						methodContext,
 						stakerAddress,
-						stakerData.sentStakes[indexWithValidatorStake],
+						stakerData.stakes[indexWithValidatorStake],
 						validatorData,
 					);
 
 					expect(transferMock).toHaveBeenNthCalledWith(
 						1,
 						methodContext,
-						stakerData.sentStakes[indexWithValidatorStake].validatorAddress,
+						stakerData.stakes[indexWithValidatorStake].validatorAddress,
 						stakerAddress,
 						tokenID1,
 						stakeReward,
@@ -261,7 +261,7 @@ describe('InternalMethod', () => {
 					await internalMethod.assignStakeRewards(
 						methodContext,
 						stakerAddress,
-						stakerData.sentStakes[indexWithValidatorStake],
+						stakerData.stakes[indexWithValidatorStake],
 						validatorData,
 					);
 
@@ -287,7 +287,7 @@ describe('InternalMethod', () => {
 					await internalMethod.assignStakeRewards(
 						methodContext,
 						stakerAddress,
-						stakerData.sentStakes[indexWithValidatorStake],
+						stakerData.stakes[indexWithValidatorStake],
 						validatorData,
 					);
 

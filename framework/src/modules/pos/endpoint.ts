@@ -296,9 +296,7 @@ export class PoSEndpoint extends BaseEndpoint {
 
 		const rewards = new dataStructures.BufferMap<bigint>();
 		const address = cryptoAddress.getAddressFromLisk32Address(context.params.address);
-		const { sentStakes: stakes } = await this.stores
-			.get(StakerStore)
-			.getOrDefault(context, address);
+		const { stakes } = await this.stores.get(StakerStore).getOrDefault(context, address);
 
 		for (const stake of stakes) {
 			if (stake.validatorAddress.equals(address)) {
@@ -309,7 +307,7 @@ export class PoSEndpoint extends BaseEndpoint {
 				.get(context, stake.validatorAddress);
 
 			for (const validatorSharingCoefficient of validatorAccount.sharingCoefficients) {
-				const stakeSharingConefficient = stake.stakeSharingCoefficients.find(sc =>
+				const stakeSharingConefficient = stake.sharingCoefficients.find(sc =>
 					sc.tokenID.equals(validatorSharingCoefficient.tokenID),
 				) ?? {
 					tokenID: validatorSharingCoefficient.tokenID,
@@ -345,7 +343,7 @@ export class PoSEndpoint extends BaseEndpoint {
 	): Promise<bigint> {
 		const staker = await this.stores.get(StakerStore).getOrDefault(ctx, address);
 		let lockedAmount = BigInt(0);
-		for (const stakes of staker.sentStakes) {
+		for (const stakes of staker.stakes) {
 			lockedAmount += stakes.amount;
 		}
 		for (const unlock of staker.pendingUnlocks) {

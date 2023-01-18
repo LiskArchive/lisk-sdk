@@ -41,11 +41,11 @@ describe('PoSMethod', () => {
 	let nameSubStore: NameStore;
 	const address = utils.getRandomBytes(20);
 	const stakerData = {
-		sentStakes: [
+		stakes: [
 			{
 				validatorAddress: utils.getRandomBytes(20),
 				amount: BigInt(0),
-				stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+				sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 			},
 		],
 		pendingUnlocks: [

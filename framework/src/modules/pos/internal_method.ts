@@ -44,7 +44,7 @@ export class InternalMethod extends BaseMethod {
 		}
 
 		for (const sharingCoefficient of validatorData.sharingCoefficients) {
-			const stakeSharingCoefficient = sentStake.stakeSharingCoefficients.find(coefficient =>
+			const stakeSharingCoefficient = sentStake.sharingCoefficients.find(coefficient =>
 				coefficient.tokenID.equals(sharingCoefficient.tokenID),
 			) ?? {
 				tokenID: sharingCoefficient.tokenID,

@@ -68,18 +68,18 @@ describe('Change Commission command', () => {
 		validatorStore = pos.stores.get(ValidatorStore);
 		stakerStore = pos.stores.get(StakerStore);
 		stakerData = {
-			sentStakes: [
+			stakes: [
 				{
 					validatorAddress: senderAddress,
 					amount: BigInt(10),
-					stakeSharingCoefficients: [
+					sharingCoefficients: [
 						{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(MAX_NUMBER_BYTES_Q96) },
 					],
 				},
 				{
 					validatorAddress: Buffer.alloc(20, 1),
 					amount: BigInt(20),
-					stakeSharingCoefficients: [
+					sharingCoefficients: [
 						{ tokenID: Buffer.alloc(0), coefficient: Buffer.alloc(MAX_NUMBER_BYTES_Q96) },
 					],
 				},
@@ -142,11 +142,11 @@ describe('Change Commission command', () => {
 			await claimRewardsCommand.execute(context);
 			const updatedStakerData = await stakerStore.get(context, senderAddress);
 
-			expect(internalMethod.assignStakeRewards).toHaveBeenCalledTimes(stakerData.sentStakes.length);
-			expect(updatedStakerData.sentStakes[0].stakeSharingCoefficients).toStrictEqual(
+			expect(internalMethod.assignStakeRewards).toHaveBeenCalledTimes(stakerData.stakes.length);
+			expect(updatedStakerData.stakes[0].sharingCoefficients).toStrictEqual(
 				validatorInfo1.sharingCoefficients,
 			);
-			expect(updatedStakerData.sentStakes[1].stakeSharingCoefficients).toStrictEqual(
+			expect(updatedStakerData.stakes[1].sharingCoefficients).toStrictEqual(
 				validatorInfo2.sharingCoefficients,
 			);
 		});

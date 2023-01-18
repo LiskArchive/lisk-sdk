@@ -209,11 +209,11 @@ describe('UnlockCommand', () => {
 				unstakeHeight: blockHeight,
 			};
 			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
 						amount: unlockableObject.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [unlockableObject, nonUnlockableObject],
@@ -264,16 +264,16 @@ describe('UnlockCommand', () => {
 				unstakeHeight: blockHeight,
 			};
 			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
 						amount: validator1.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 					{
 						validatorAddress: nonUnlockableObject.validatorAddress,
 						amount: validator2.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [unlockableObject, nonUnlockableObject],
@@ -352,26 +352,26 @@ describe('UnlockCommand', () => {
 				unstakeHeight: blockHeight,
 			};
 			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
 						amount: unlockableObject.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 					{
 						validatorAddress: unlockableObject2.validatorAddress,
 						amount: unlockableObject2.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 					{
 						validatorAddress: unlockableObject3.validatorAddress,
 						amount: unlockableObject3.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 					{
 						validatorAddress: nonUnlockableObject.validatorAddress,
 						amount: nonUnlockableObject.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [
@@ -430,16 +430,16 @@ describe('UnlockCommand', () => {
 				unstakeHeight: blockHeight,
 			};
 			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
 						amount: unlockableObject.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 					{
 						validatorAddress: nonUnlockableObject.validatorAddress,
 						amount: nonUnlockableObject.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [unlockableObject, nonUnlockableObject],
@@ -486,11 +486,11 @@ describe('UnlockCommand', () => {
 				unstakeHeight: blockHeight - LOCKING_PERIOD_SELF_STAKES,
 			};
 			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: nonUnlockableObject.validatorAddress,
 						amount: nonUnlockableObject.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [nonUnlockableObject],
@@ -533,11 +533,11 @@ describe('UnlockCommand', () => {
 				unstakeHeight: blockHeight,
 			};
 			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
 						amount: unlockableObject.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [nonUnlockableObject],
@@ -595,11 +595,11 @@ describe('UnlockCommand', () => {
 				unstakeHeight: blockHeight,
 			};
 			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
 						amount: unlockableObject.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [unlockableObject, nonUnlockableObject],
