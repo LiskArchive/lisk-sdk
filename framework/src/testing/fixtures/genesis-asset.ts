@@ -52,7 +52,7 @@ export const blockAssetsJSON = [
 				address: account.address,
 				name: `genesis_${i}`,
 				blsKey: account.plain.blsKey,
-				proofOfPossession: account.plain.blsProofOfPosession,
+				proofOfPossession: account.plain.blsProofOfPossession,
 				generatorKey: account.plain.generatorKey,
 				lastGeneratedHeight: 0,
 				isBanned: false,
