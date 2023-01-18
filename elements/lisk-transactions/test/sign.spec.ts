@@ -15,11 +15,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { ed, legacy } from '@liskhq/lisk-cryptography';
-import {
-	getSigningBytes,
-	signTransactionWithPrivateKey,
-	signMultiSignatureTransactionWithPrivateKey,
-} from '../src/sign';
+import { getSigningBytes, signTransaction, signMultiSignatureTransaction } from '../src/sign';
 import * as multisigScenario from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 import { baseTransactionSchema } from '../src/schema';
 import { TAG_TRANSACTION } from '../src';
@@ -62,7 +58,7 @@ describe('sign', () => {
 		},
 	};
 
-	const multisigRegParams = {
+	const multisigRegParamsSchema = {
 		$id: '/multisignature/registrationParams',
 		type: 'object',
 		properties: {
@@ -166,32 +162,22 @@ describe('sign', () => {
 		});
 	});
 
-	describe('signTransactionWithPrivateKey', () => {
+	describe('signTransaction', () => {
 		it('should throw error for invalid network identifier', () => {
 			expect(() =>
-				signTransactionWithPrivateKey(
-					validTransaction,
-					Buffer.alloc(0),
-					privateKey,
-					validParamsSchema,
-				),
+				signTransaction(validTransaction, Buffer.alloc(0), privateKey, validParamsSchema),
 			).toThrow('ChainID is required to sign a transaction');
 		});
 
 		it('should throw error for empty private key', () => {
 			expect(() =>
-				signTransactionWithPrivateKey(
-					validTransaction,
-					chainID,
-					Buffer.alloc(0),
-					validParamsSchema,
-				),
+				signTransaction(validTransaction, chainID, Buffer.alloc(0), validParamsSchema),
 			).toThrow('Private key must be 64 bytes');
 		});
 
 		it('should throw error for private key with invalid length', () => {
 			expect(() =>
-				signTransactionWithPrivateKey(
+				signTransaction(
 					validTransaction,
 					chainID,
 					Buffer.from('invalid', 'utf8'),
@@ -209,14 +195,14 @@ describe('sign', () => {
 			];
 			return invalidTransactionObjects.forEach(transactionObject =>
 				expect(() =>
-					signTransactionWithPrivateKey(transactionObject, chainID, privateKey, validParamsSchema),
+					signTransaction(transactionObject, chainID, privateKey, validParamsSchema),
 				).toThrow(),
 			);
 		});
 
 		it('should throw error when params is null', () => {
 			return expect(() =>
-				signTransactionWithPrivateKey(
+				signTransaction(
 					{ ...validTransaction, params: null },
 					chainID,
 					privateKey,
@@ -235,13 +221,13 @@ describe('sign', () => {
 			];
 			return invalidParams.forEach(transactionObject =>
 				expect(() =>
-					signTransactionWithPrivateKey(transactionObject, chainID, privateKey, validParamsSchema),
+					signTransaction(transactionObject, chainID, privateKey, validParamsSchema),
 				).toThrow(),
 			);
 		});
 
 		it('should return signed transaction for given params schema', () => {
-			const signedTransaction = signTransactionWithPrivateKey(
+			const signedTransaction = signTransaction(
 				{ ...validTransaction },
 				chainID,
 				privateKey,
@@ -253,11 +239,11 @@ describe('sign', () => {
 		});
 	});
 
-	describe('signMultiSignatureTransactionWithPrivateKey', () => {
+	describe('signMultiSignatureTransaction', () => {
 		it('should throw error for invalid network identifier', () => {
 			expect(() =>
-				signMultiSignatureTransactionWithPrivateKey(
-					{ ...validTransaction },
+				signMultiSignatureTransaction(
+					{ ...validTransaction, signatures: [] },
 					Buffer.alloc(0),
 					privateKey,
 					keys,
@@ -268,8 +254,8 @@ describe('sign', () => {
 
 		it('should throw error for empty private key', () => {
 			expect(() =>
-				signMultiSignatureTransactionWithPrivateKey(
-					{ ...validTransaction },
+				signMultiSignatureTransaction(
+					{ ...validTransaction, signatures: [] },
 					chainID,
 					Buffer.alloc(0),
 					keys,
@@ -280,7 +266,7 @@ describe('sign', () => {
 
 		it('should throw error for private key with invalid length', () => {
 			expect(() =>
-				signMultiSignatureTransactionWithPrivateKey(
+				signMultiSignatureTransaction(
 					{ ...validTransaction },
 					chainID,
 					Buffer.from('invalid', 'utf8'),
@@ -292,7 +278,7 @@ describe('sign', () => {
 
 		it('should throw error when signatures property is not an array', () => {
 			expect(() =>
-				signMultiSignatureTransactionWithPrivateKey(
+				signMultiSignatureTransaction(
 					{ ...validTransaction },
 					chainID,
 					privateKey,
@@ -311,7 +297,7 @@ describe('sign', () => {
 			];
 			return invalidTransactionObjects.forEach(transactionObject =>
 				expect(() =>
-					signMultiSignatureTransactionWithPrivateKey(
+					signMultiSignatureTransaction(
 						transactionObject,
 						chainID,
 						privateKey,
@@ -324,7 +310,7 @@ describe('sign', () => {
 
 		it('should throw error when params is null', () => {
 			return expect(() =>
-				signMultiSignatureTransactionWithPrivateKey(
+				signMultiSignatureTransaction(
 					{ ...validTransaction, signatures: [], params: null },
 					chainID,
 					privateKey,
@@ -345,7 +331,7 @@ describe('sign', () => {
 
 			return invalidParams.forEach(transactionObject =>
 				expect(() =>
-					signMultiSignatureTransactionWithPrivateKey(
+					signMultiSignatureTransaction(
 						transactionObject,
 						chainID,
 						privateKey,
@@ -354,66 +340,6 @@ describe('sign', () => {
 					),
 				).toThrow(),
 			);
-		});
-
-		it('should add sender and mandatory public key signatures in right order for multisignature registration trx', () => {
-			const account1 = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase1);
-			const account2 = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase2);
-			const account3 = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase3);
-			const mandatoryKeys = [account1.publicKey, account2.publicKey];
-			const optionalKeys = [account3.publicKey];
-
-			const multisignatureRegistrationTrx = {
-				module: 'token',
-				command: 'transfer',
-				nonce: BigInt('1'),
-				fee: BigInt('10000000'),
-				senderPublicKey: account1.publicKey,
-				params: {
-					mandatoryKeys,
-					optionalKeys,
-					numberOfSignatures: 2,
-					signatures: [],
-				},
-			};
-			const transactionObject = { ...multisignatureRegistrationTrx, signatures: [] };
-
-			// Sign with the senderPublic key sender of the transaction
-			const signedTransaction = signMultiSignatureTransactionWithPrivateKey(
-				transactionObject,
-				chainID,
-				account1.privateKey,
-				{ mandatoryKeys, optionalKeys },
-				multisigRegParams,
-				true,
-			);
-
-			// Signing with non sender second mandatory key
-			const signedTransactionNonSender = signMultiSignatureTransactionWithPrivateKey(
-				signedTransaction,
-				chainID,
-				account2.privateKey,
-				{ mandatoryKeys, optionalKeys },
-				multisigRegParams,
-				true,
-			);
-
-			const signature = ed.signDataWithPrivateKey(
-				TAG_TRANSACTION,
-				chainID,
-				getSigningBytes(transactionObject, multisigRegParams),
-				account1.privateKey,
-			);
-			const signatureNonSender = ed.signDataWithPrivateKey(
-				TAG_TRANSACTION,
-				chainID,
-				getSigningBytes(transactionObject, multisigRegParams),
-				account2.privateKey,
-			);
-
-			expect((signedTransactionNonSender as any).signatures[0]).toEqual(signature);
-			expect((signedTransactionNonSender as any).signatures[1]).toEqual(signatureNonSender);
-			expect((signedTransactionNonSender as any).signatures[2]).toEqual(signature);
 		});
 
 		it('should match the signatures of the mandatory keys in right order for transfer trx', () => {
@@ -426,6 +352,7 @@ describe('sign', () => {
 				nonce: BigInt('1'),
 				fee: BigInt('10000000'),
 				senderPublicKey: account1.publicKey,
+				signatures: [],
 				params: {
 					recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
 					amount: BigInt('4008489300000000'),
@@ -433,11 +360,9 @@ describe('sign', () => {
 				},
 			};
 
-			const transactionObject = { ...transaction, signatures: [] };
-
 			// Sign with the senderPublic key of the transaction
-			const signedTransaction = signMultiSignatureTransactionWithPrivateKey(
-				transactionObject,
+			const signedTransaction = signMultiSignatureTransaction(
+				transaction,
 				chainID,
 				account1.privateKey,
 				{ mandatoryKeys: [account2.publicKey, account1.publicKey], optionalKeys: [] },
@@ -447,12 +372,12 @@ describe('sign', () => {
 			const signature = ed.signDataWithPrivateKey(
 				TAG_TRANSACTION,
 				chainID,
-				getSigningBytes(transactionObject, validParamsSchema),
+				getSigningBytes(transaction, validParamsSchema),
 				account1.privateKey,
 			);
 
 			// Sign with the mandatory key of the multi-signature account
-			const signedTransactionMandatoryKey = signMultiSignatureTransactionWithPrivateKey(
+			const signedTransactionMandatoryKey = signMultiSignatureTransaction(
 				signedTransaction,
 				chainID,
 				account2.privateKey,
@@ -483,72 +408,27 @@ describe('sign', () => {
 						Buffer.from(testCase.output.transaction, 'hex'),
 					);
 					const decodedParams = codec.decode<MultiSignatureParams>(
-						multisigRegParams,
+						multisigRegParamsSchema,
 						decodedBaseTransaction.params,
 					);
-					const { signatures, ...transactionObject } = decodedBaseTransaction;
-					const _chainID = Buffer.from(testCase.input.chainID, 'hex');
-					const signedMultiSigTransaction = {
-						...transactionObject,
-						params: { ...decodedParams },
+					const registerMultisigTransaction = {
+						...decodedBaseTransaction,
+						params: decodedParams,
 						signatures: [],
 					};
-					const senderAccount = {
-						passphrase: 'inherit moon normal relief spring bargain hobby join baby flash fog blood',
-						privateKey:
-							'de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-						publicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-						address: 'be046d336cd0c2fbde62bc47e20199395d2eeadc',
-					};
+					const senderAccount = testCase.input.account;
 
-					const signaturesResult = signTransactionWithPrivateKey(
-						signedMultiSigTransaction,
-						_chainID,
+					const signaturesResult = signTransaction(
+						registerMultisigTransaction,
+						Buffer.from(testCase.input.chainID, 'hex'),
 						Buffer.from(senderAccount.privateKey, 'hex'),
-						multisigRegParams,
+						multisigRegParamsSchema,
 					).signatures;
 
-					expect(signaturesResult).toStrictEqual(signatures);
-					expect(signedMultiSigTransaction).toMatchSnapshot();
+					expect(signaturesResult).toStrictEqual(decodedBaseTransaction.signatures);
+					expect(registerMultisigTransaction).toMatchSnapshot();
 				});
 			});
-		});
-	});
-
-	describe('when signing multisignature register transaction where sender is member', () => {
-		it('should have correct signatures', () => {
-			const testCase = multisigScenario.testCases[1];
-			const decodedBaseTransaction = codec.decode<Transaction>(
-				baseTransactionSchema,
-				Buffer.from(testCase.output.transaction, 'hex'),
-			);
-			const decodedParams = codec.decode<MultiSignatureParams>(
-				multisigRegParams,
-				decodedBaseTransaction.params,
-			);
-			const { signatures, ...transactionObject } = decodedBaseTransaction;
-			const signedMultiSigTransaction = {
-				...transactionObject,
-				params: { ...decodedParams },
-				signatures: [],
-			};
-			const senderAccount = {
-				passphrase: 'inherit moon normal relief spring bargain hobby join baby flash fog blood',
-				privateKey:
-					'de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-				publicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-				address: 'be046d336cd0c2fbde62bc47e20199395d2eeadc',
-			};
-			const _chainID = Buffer.from(testCase.input.chainID, 'hex');
-
-			const signaturesResult = signTransactionWithPrivateKey(
-				signedMultiSigTransaction,
-				_chainID,
-				Buffer.from(senderAccount.privateKey, 'hex'),
-				multisigRegParams,
-			).signatures;
-
-			expect(signaturesResult).toStrictEqual(signatures);
 		});
 	});
 });

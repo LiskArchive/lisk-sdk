@@ -12,6 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+/**
+ * Schema for Lisk Transactions.
+ *
+ * @see [LIP 0068 - Define new transaction schema](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0068.md)
+ */
 export const baseTransactionSchema = {
 	$id: '/lisk/baseTransaction',
 	type: 'object',

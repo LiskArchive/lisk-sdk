@@ -633,7 +633,7 @@ describe('RegisterSidechainCommand', () => {
 				newChainID,
 				ccmID,
 				{
-					ccmID,
+					ccm,
 				},
 			);
 		});

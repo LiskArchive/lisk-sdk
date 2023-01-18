@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-validator",
-	"version": "0.7.0-alpha.5",
+	"version": "0.7.0-alpha.6",
 	"description": "Validation library according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -21,6 +21,11 @@
 		"node": ">=16.14.1 <=16",
 		"npm": ">=8.1.0"
 	},
+	"typedoc": {
+		"entryPoint": "./src/index.ts",
+		"readmeFile": "./README.md",
+		"tsconfig": "./tsconfig.json"
+	},
 	"main": "dist-node/index.js",
 	"scripts": {
 		"clean": "./scripts/clean.sh",
@@ -36,7 +41,7 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"@liskhq/lisk-cryptography": "^4.0.0-alpha.5",
+		"@liskhq/lisk-cryptography": "^4.0.0-alpha.6",
 		"ajv": "8.1.0",
 		"ajv-formats": "2.1.1",
 		"debug": "4.3.4",

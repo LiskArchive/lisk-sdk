@@ -226,21 +226,6 @@ describe('transaction', () => {
 					expect(returnedTx.signatures).toMatchSnapshot();
 				});
 			});
-
-			describe('when called with optional keys in input', () => {
-				it('should return created tx', async () => {
-					const options = {
-						includeSenderSignature: true,
-						multisignatureKeys: {
-							mandatoryKeys: [],
-							optionalKeys: [publicKey2].map(k => k.toString('hex')),
-						},
-					};
-					const returnedTx = await transaction.create(validTransaction, privateKey1, options);
-					expect(returnedTx.signatures).toHaveLength(1);
-					expect(returnedTx.signatures).toMatchSnapshot();
-				});
-			});
 		});
 
 		describe('sign', () => {
@@ -263,21 +248,6 @@ describe('transaction', () => {
 						.calledWith('auth_getAuthAccount', expect.anything())
 						.mockResolvedValue(multisigAccount as never);
 					const returnedTx = await transaction.sign(validTransaction, privateKeys);
-					expect(returnedTx.signatures).toHaveLength(2);
-					expect(returnedTx.signatures).toMatchSnapshot();
-				});
-			});
-
-			describe('when called with optional keys in input', () => {
-				it('should return created tx', async () => {
-					const options = {
-						includeSenderSignature: true,
-						multisignatureKeys: {
-							mandatoryKeys: [],
-							optionalKeys: [publicKey2].map(k => k.toString('hex')),
-						},
-					};
-					const returnedTx = await transaction.sign(validTransaction, privateKeys, options);
 					expect(returnedTx.signatures).toHaveLength(2);
 					expect(returnedTx.signatures).toMatchSnapshot();
 				});

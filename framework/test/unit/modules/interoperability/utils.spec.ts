@@ -1042,37 +1042,6 @@ describe('Utils', () => {
 			sendingChainID: utils.getRandomBytes(4),
 		};
 
-		it('should not throw if certificate is empty', () => {
-			expect(
-				verifyLivenessConditionForRegisteredChains(
-					{
-						...ccuParams,
-						certificate: Buffer.alloc(0),
-					},
-					10000,
-				),
-			).toBeUndefined();
-		});
-
-		it('should not throw if inbox update is empty', () => {
-			expect(
-				verifyLivenessConditionForRegisteredChains(
-					{
-						...ccuParams,
-						inboxUpdate: {
-							crossChainMessages: [],
-							messageWitnessHashes: [],
-							outboxRootWitness: {
-								bitmap: Buffer.alloc(0),
-								siblingHashes: [],
-							},
-						},
-					},
-					10000,
-				),
-			).toBeUndefined();
-		});
-
 		it('should throw if certificate timestamp is older than half of liveness limit', () => {
 			expect(() =>
 				verifyLivenessConditionForRegisteredChains(

@@ -31,6 +31,10 @@ import {
 	isSupportedRequestSchema,
 	isSupportedResponseSchema,
 	getTotalSupplyResponseSchema,
+	hasUserAccountRequestSchema,
+	hasEscrowAccountRequestSchema,
+	hasUserAccountResponseSchema,
+	hasEscrowAccountResponseSchema,
 } from './schemas';
 import { TokenMethod } from './method';
 import { TokenEndpoint } from './endpoint';
@@ -126,6 +130,7 @@ export class TokenModule extends BaseInteroperableModule {
 
 	public metadata(): ModuleMetadata {
 		return {
+			...this.baseMetadata(),
 			endpoints: [
 				{
 					name: this.endpoint.getBalance.name,
@@ -154,15 +159,17 @@ export class TokenModule extends BaseInteroperableModule {
 					name: this.endpoint.getEscrowedAmounts.name,
 					response: getEscrowedAmountsResponseSchema,
 				},
+				{
+					name: this.endpoint.hasUserAccount.name,
+					request: hasUserAccountRequestSchema,
+					response: hasUserAccountResponseSchema,
+				},
+				{
+					name: this.endpoint.hasEscrowAccount.name,
+					request: hasEscrowAccountRequestSchema,
+					response: hasEscrowAccountResponseSchema,
+				},
 			],
-			commands: this.commands.map(command => ({
-				name: command.name,
-				params: command.schema,
-			})),
-			events: this.events.values().map(v => ({
-				name: v.name,
-				data: v.schema,
-			})),
 			assets: [
 				{
 					version: 0,

@@ -17,8 +17,8 @@
 import BaseBootstrapCommand from '../../base_bootstrap_command';
 
 export default class ModuleCommand extends BaseBootstrapCommand {
-	static description = 'Creates a module skeleton for the given name and id.';
-	static examples = ['generate:module nft 5000'];
+	static description = 'Creates a module skeleton for the given name.';
+	static examples = ['generate:module nft'];
 	static args = [
 		{
 			name: 'moduleName',

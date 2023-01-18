@@ -24,7 +24,13 @@ import {
 	TransactionContext,
 	VerifyStatus,
 } from '../../../src/state_machine';
-import { CustomCommand0, CustomModule0, CustomModule2 } from './custom_modules';
+import {
+	CustomCommand0,
+	CustomCommand3,
+	CustomModule0,
+	CustomModule2,
+	CustomModule3,
+} from './custom_modules';
 import {
 	EVENT_INDEX_AFTER_TRANSACTIONS,
 	EVENT_INDEX_BEFORE_TRANSACTIONS,
@@ -35,6 +41,7 @@ import { PrefixedStateReadWriter } from '../../../src/state_machine/prefixed_sta
 import { InMemoryPrefixedStateDB } from '../../../src/testing/in_memory_prefixed_state';
 import { NamedRegistry } from '../../../src/modules/named_registry';
 import { loggerMock } from '../../../src/testing/mocks';
+import { standardEventDataSchema } from '../../../src';
 
 describe('state_machine', () => {
 	const genesisHeader = {} as BlockHeader;
@@ -180,7 +187,7 @@ describe('state_machine', () => {
 			expect(mod.afterCommandExecute).toHaveBeenCalledTimes(1);
 		});
 
-		it('should add event with a topic with transaction id', async () => {
+		it('should add event with a topic with transaction id and success true if command execution does not fail', async () => {
 			stateMachine.registerModule(new CustomModule2());
 			const ctx = new TransactionContext({
 				eventQueue,
@@ -195,8 +202,38 @@ describe('state_machine', () => {
 			await stateMachine.executeTransaction(ctx);
 
 			const events = ctx.eventQueue.getEvents();
+			const dataDecoded = codec.decode(standardEventDataSchema, events[0].toObject().data);
 			expect(events).toHaveLength(1);
 			expect(events[0].toObject().topics[0]).toEqual(transaction.id);
+			expect(dataDecoded).toStrictEqual({ success: true });
+		});
+
+		it('should add event with a topic with transaction id with success false if command execution fails', async () => {
+			const transactionWithInvalidCommand = {
+				module: 'customModule3',
+				command: 'customCommand3',
+				params: codec.encode(new CustomCommand3(new NamedRegistry(), new NamedRegistry()).schema, {
+					data: 'some info',
+				}),
+			} as Transaction;
+			stateMachine.registerModule(new CustomModule3());
+			const ctx = new TransactionContext({
+				eventQueue,
+				logger,
+				stateStore,
+				contextStore,
+				header,
+				assets,
+				chainID,
+				transaction: transactionWithInvalidCommand,
+			});
+			await stateMachine.executeTransaction(ctx);
+
+			const events = ctx.eventQueue.getEvents();
+			const dataDecoded = codec.decode(standardEventDataSchema, events[0].toObject().data);
+			expect(events).toHaveLength(1);
+			expect(events[0].toObject().topics[0]).toEqual(transaction.id);
+			expect(dataDecoded).toStrictEqual({ success: false });
 		});
 
 		it('should rollback state if afterCommandExecute fails', async () => {

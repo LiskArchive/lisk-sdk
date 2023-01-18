@@ -60,6 +60,7 @@ export const metadata: ModuleMetadata[] = [
 		events: [],
 		assets: [],
 		endpoints: [],
+		stores: [],
 		commands: [
 			{
 				id: utils.intToBuffer(0, 4).toString('hex'),
@@ -83,6 +84,7 @@ export const metadata: ModuleMetadata[] = [
 		events: [],
 		assets: [],
 		endpoints: [],
+		stores: [],
 		commands: [
 			{
 				id: utils.intToBuffer(0, 4).toString('hex'),
@@ -118,6 +120,7 @@ export const metadata: ModuleMetadata[] = [
 		events: [],
 		assets: [],
 		endpoints: [],
+		stores: [],
 		commands: [
 			{
 				id: utils.intToBuffer(0, 4).toString('hex'),

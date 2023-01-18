@@ -221,5 +221,18 @@ describe('InMemoryChannel Channel', () => {
 			// Assert
 			expect(inMemoryChannel['bus'].invoke).toHaveBeenCalled();
 		});
+
+		it('should throw an error if the action does not exist', async () => {
+			// Arrange
+			const actionFullName = `${inMemoryChannel.namespace}_nonExistingAction`;
+
+			// Act
+			await inMemoryChannel.registerToBus(bus);
+
+			// Assert
+			await expect(
+				inMemoryChannel.invoke({ methodName: actionFullName, context: {} }),
+			).rejects.toThrow(`The action 'nonExistingAction' on module 'sample' does not exist.`);
+		});
 	});
 });

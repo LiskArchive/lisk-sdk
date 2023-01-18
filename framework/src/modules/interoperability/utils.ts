@@ -26,6 +26,7 @@ import {
 	CrossChainUpdateTransactionParams,
 	ChainValidators,
 	InboxUpdate,
+	OutboxRootWitness,
 } from './types';
 import { EMPTY_BYTES, LIVENESS_LIMIT, MAX_CCM_SIZE, CHAIN_ID_LENGTH } from './constants';
 import {
@@ -129,6 +130,9 @@ export const isInboxUpdateEmpty = (inboxUpdate: InboxUpdate) =>
 	inboxUpdate.messageWitnessHashes.length === 0 &&
 	inboxUpdate.outboxRootWitness.siblingHashes.length === 0 &&
 	inboxUpdate.outboxRootWitness.bitmap.length === 0;
+
+export const isOutboxRootWitnessEmpty = (outboxRootWitness: OutboxRootWitness) =>
+	outboxRootWitness.siblingHashes.length === 0 || outboxRootWitness.bitmap.length === 0;
 
 export const isCertificateEmpty = (decodedCertificate: Certificate) =>
 	decodedCertificate.blockID.equals(EMPTY_BYTES) ||
@@ -420,9 +424,6 @@ export const verifyLivenessConditionForRegisteredChains = (
 	ccu: CrossChainUpdateTransactionParams,
 	blockTimestamp: number,
 ) => {
-	if (ccu.certificate.length === 0 || isInboxUpdateEmpty(ccu.inboxUpdate)) {
-		return;
-	}
 	const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
 	const limitSecond = LIVENESS_LIMIT / 2;
 	if (blockTimestamp - certificate.timestamp > limitSecond) {
@@ -443,4 +444,9 @@ export const getMainchainTokenID = (chainID: Buffer): Buffer => {
 	const networkID = chainID.slice(0, 1);
 	// 3 bytes for remaining chainID bytes
 	return Buffer.concat([networkID, Buffer.alloc(7, 0)]);
+};
+
+export const getEncodedCCMAndID = (ccm: CCMsg) => {
+	const encodedCCM = codec.encode(ccmSchema, ccm);
+	return { ccmID: utils.hash(encodedCCM), encodedCCM };
 };

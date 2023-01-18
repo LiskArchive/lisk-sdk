@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-transaction-pool",
-	"version": "0.6.0-alpha.7",
+	"version": "0.6.0-alpha.8",
 	"description": "Transaction pool library for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -20,6 +20,11 @@
 		"node": ">=16.14.1 <=16",
 		"npm": ">=8.1.0"
 	},
+	"typedoc": {
+		"entryPoint": "./src/index.ts",
+		"readmeFile": "./README.md",
+		"tsconfig": "./tsconfig.json"
+	},
 	"main": "dist-node/index.js",
 	"typings": "dist-node/index.d.ts",
 	"scripts": {
@@ -36,8 +41,8 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"@liskhq/lisk-cryptography": "^4.0.0-alpha.5",
-		"@liskhq/lisk-utils": "^0.3.0-alpha.2",
+		"@liskhq/lisk-cryptography": "^4.0.0-alpha.6",
+		"@liskhq/lisk-utils": "^0.3.0-alpha.3",
 		"debug": "4.3.4"
 	},
 	"devDependencies": {

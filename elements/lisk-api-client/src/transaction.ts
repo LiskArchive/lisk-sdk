@@ -75,13 +75,6 @@ export class Transaction {
 			signatures?: string[];
 		},
 		privateKeyHex: string,
-		options?: {
-			includeSenderSignature?: boolean;
-			multisignatureKeys?: {
-				mandatoryKeys: string[];
-				optionalKeys: string[];
-			};
-		},
 	): Promise<DecodedTransactionJSON<T>> {
 		const txInput = input;
 		const chainID = Buffer.from(this._nodeInfo.chainID, 'hex');
@@ -134,10 +127,7 @@ export class Transaction {
 				? codec.fromJSON(commandSchema, txInput.params as Record<string, unknown>)
 				: {},
 		};
-		if (
-			authAccount.numberOfSignatures > 0 ||
-			(options?.multisignatureKeys && options?.includeSenderSignature)
-		) {
+		if (authAccount.numberOfSignatures > 0) {
 			const signedTx = signMultiSignatureTransaction(
 				rawTx,
 				chainID,
@@ -147,7 +137,6 @@ export class Transaction {
 					optionalKeys: authAccount.optionalKeys.map(k => Buffer.from(k, 'hex')),
 				},
 				commandSchema,
-				options?.includeSenderSignature,
 			);
 			return this.toJSON(signedTx) as DecodedTransactionJSON<T>;
 		}
@@ -176,13 +165,6 @@ export class Transaction {
 	public async sign(
 		transaction: Record<string, unknown>,
 		privateKeyHexes: string[],
-		options?: {
-			includeSenderSignature?: boolean;
-			multisignatureKeys?: {
-				mandatoryKeys: string[];
-				optionalKeys: string[];
-			};
-		},
 	): Promise<DecodedTransactionJSON> {
 		const commandSchema = getTransactionParamsSchema(
 			transaction as TransactionJSON,
@@ -195,6 +177,7 @@ export class Transaction {
 		const authAccount = await this._channel.invoke<AuthAccount>('auth_getAuthAccount', {
 			address,
 		});
+
 		if (authAccount.numberOfSignatures > 0) {
 			for (const privateKeyHex of privateKeyHexes) {
 				const privateKey = Buffer.from(privateKeyHex, 'hex');
@@ -207,34 +190,19 @@ export class Transaction {
 						optionalKeys: authAccount.optionalKeys.map(k => Buffer.from(k, 'hex')),
 					},
 					commandSchema,
-					options?.includeSenderSignature,
 				);
 			}
+
 			return this.toJSON(decodedTx);
 		}
-		if (options?.multisignatureKeys && options?.includeSenderSignature) {
-			for (const privateKeyHex of privateKeyHexes) {
-				const privateKey = Buffer.from(privateKeyHex, 'hex');
-				signMultiSignatureTransaction(
-					decodedTx,
-					chainID,
-					privateKey,
-					{
-						mandatoryKeys: options.multisignatureKeys.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
-						optionalKeys: options.multisignatureKeys.optionalKeys.map(k => Buffer.from(k, 'hex')),
-					},
-					commandSchema,
-					options.includeSenderSignature,
-				);
-			}
-			return this.toJSON(decodedTx);
-		}
+
 		const signedTx = signTransaction(
 			decodedTx,
 			chainID,
 			Buffer.from(privateKeyHexes[0], 'hex'),
 			commandSchema,
 		) as DecodedTransaction;
+
 		return this.toJSON(signedTx);
 	}
 

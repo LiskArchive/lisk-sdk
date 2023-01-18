@@ -19,12 +19,33 @@ import { validateTransaction } from './validate';
 import { baseTransactionSchema } from './schema';
 import { TAG_TRANSACTION } from './constants';
 
-interface MultiSignatureKeys {
+/** Mandatory and optional public keys of a multi-signature account. */
+export interface MultiSignatureKeys {
+	/** Mandatory public keys of a multi-signature account */
 	readonly mandatoryKeys: Array<Buffer>;
+	/** Optional public keys  of a multi-signature account */
 	readonly optionalKeys: Array<Buffer>;
 }
 
-// Validates transaction against schema and returns transaction bytes for signing
+/**
+ * Validates transaction against schema and converts transaction to bytes for signing.
+ *
+ *  @example
+ *  ```ts
+ *  import { getSigningBytes } from '@liskhq/lisk-transactions';
+ *  const txBytes = getSigningBytes(TransferTrx, transferParamsSchema);
+ *  ```
+ *
+ * @param transactionObject a decrypted transaction
+ * @param paramsSchema parameter schema for the transaction
+ *
+ * @returns Returns the encrypted transaction, if the provided transaction is valid.
+ * If the transaction is invalid, it returns the validation errors.
+ *
+ * @see [LIP 0028 - Define schema and use generic serialization for transactions](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0028.md)
+ * @see [LIP 0068 - Define new transaction schema](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0068.md)
+ * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
+ */
 export const getSigningBytes = (
 	transactionObject: Record<string, unknown>,
 	paramsSchema?: object,
@@ -52,6 +73,23 @@ export const getSigningBytes = (
 	return transactionBytes;
 };
 
+/**
+ * Encrypts a given transaction object.
+ *
+ * @example
+ *  ```ts
+ *  import { getBytes } from '@liskhq/lisk-transactions';
+ *  const txBytes = getBytes(TransferTrx, transferParamsSchema);
+ *  ```
+ *
+ * @param transactionObject a decrypted transaction
+ * @param paramsSchema parameter schema for the transaction
+ *
+ * @returns Returns the encrypted transaction.
+ *
+ * @see [LIP 0028 - Define schema and use generic serialization for transactions](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0028.md)
+ * @see [LIP 0068 - Define new transaction schema](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0068.md)
+ */
 export const getBytes = (
 	transactionObject: Record<string, unknown>,
 	paramsSchema?: object,
@@ -73,26 +111,27 @@ export const getBytes = (
 	return transactionBytes;
 };
 
-const sanitizeSignaturesArray = (
-	transactionObject: Record<string, unknown>,
-	keys: MultiSignatureKeys,
-	includeSenderSignature: boolean,
-): void => {
-	const numberOfSignatures =
-		(includeSenderSignature ? 1 : 0) + keys.mandatoryKeys.length + keys.optionalKeys.length;
-
-	for (let i = 0; i < numberOfSignatures; i += 1) {
-		if (
-			Array.isArray(transactionObject.signatures) &&
-			transactionObject.signatures[i] === undefined
-		) {
-			// eslint-disable-next-line no-param-reassign
-			transactionObject.signatures[i] = Buffer.alloc(0);
-		}
-	}
-};
-
-export const signTransactionWithPrivateKey = (
+/**
+ * Signs a given transaction.
+ *
+ * @example
+ *  ```ts
+ *  import { signTransaction } from '@liskhq/lisk-transactions';
+ *  const signedTransaction = signTransaction(unsignedTrx, chainID, privateKey, paramsSchema);
+ *  ```
+ *
+ * @param transactionObject The unsigned transaction object.
+ * @param chainID The chain ID of the chain to which the transaction belongs.
+ * @param privateKey The private key of the sender of the transaction.
+ * @param paramsSchema The schema for the `params` of the transaction.
+ *
+ * @returns The signed transaction.
+ *
+ * @see [LIP 0028 - Define schema and use generic serialization for transactions](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0028.md)
+ * @see [LIP 0068 - Define new transaction schema](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0068.md)
+ * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
+ */
+export const signTransaction = (
 	transactionObject: Record<string, unknown>,
 	chainID: Buffer,
 	privateKey: Buffer,
@@ -123,15 +162,35 @@ export const signTransactionWithPrivateKey = (
 	return { ...transactionObject, id: utils.hash(getBytes(transactionObject, paramsSchema)) };
 };
 
-export const signTransaction = signTransactionWithPrivateKey;
-
-export const signMultiSignatureTransactionWithPrivateKey = (
+/**
+ * Signs a multi-signature transaction.
+ *
+ * @example
+ *  ```ts
+ *  import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
+ *  const signedTransaction = signMultiSignatureTransaction(unsignedTrx, chainID, privateKey, keys, paramsSchema, true);
+ *  ```
+ *
+ * @param transactionObject The unsigned multi-signature transaction object.
+ * @param chainID The chain ID of the chain to which the transaction belongs.
+ * @param privateKey The private key of the sender of the transaction.
+ * @param keys Mandatory and optional keys to sign the transaction.
+ * @param paramsSchema The schema for the `params` of the transaction.
+ * @param includeSenderSignature `true` if the sender wants to add their signature to the transaction.
+ * `false`, if the sender signature should not be included.
+ *
+ * @returns The signed multi-signature transaction.
+ *
+ * @see [LIP 0028 - Define schema and use generic serialization for transactions](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0028.md)
+ * @see [LIP 0068 - Define new transaction schema](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0068.md)
+ * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
+ */
+export const signMultiSignatureTransaction = (
 	transactionObject: Record<string, unknown>,
 	chainID: Buffer,
 	privateKey: Buffer,
 	keys: MultiSignatureKeys,
 	paramsSchema?: object,
-	includeSenderSignature = false,
 ): Record<string, unknown> => {
 	if (!chainID.length) {
 		throw new Error('ChainID is required to sign a transaction');
@@ -149,11 +208,10 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 	if (validationErrors) {
 		throw validationErrors;
 	}
-	// Sort keys
+
 	keys.mandatoryKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
 	keys.optionalKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
 
-	const publicKey = ed.getPublicKeyFromPrivateKey(privateKey);
 	const signature = ed.signDataWithPrivateKey(
 		TAG_TRANSACTION,
 		chainID,
@@ -161,38 +219,49 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 		privateKey,
 	);
 
-	if (
-		includeSenderSignature &&
-		Buffer.isBuffer(transactionObject.senderPublicKey) &&
-		publicKey.equals(transactionObject.senderPublicKey)
-	) {
-		// eslint-disable-next-line no-param-reassign
-		transactionObject.signatures[0] = signature;
+	const publicKey = ed.getPublicKeyFromPrivateKey(privateKey);
+	const accountKeys = keys.mandatoryKeys.concat(keys.optionalKeys);
+
+	// Find the position for the signature in the signatures array, based on the public key of the signer
+	for (let i = 0; i < accountKeys.length; i += 1) {
+		if (accountKeys[i].equals(publicKey)) {
+			// eslint-disable-next-line no-param-reassign
+			transactionObject.signatures[i] = signature;
+		} else if (transactionObject.signatures[i] === undefined) {
+			// eslint-disable-next-line no-param-reassign
+			transactionObject.signatures[i] = Buffer.alloc(0);
+		}
 	}
-
-	// Locate where this public key should go in the signatures array
-	const mandatoryKeyIndex = keys.mandatoryKeys.findIndex(aPublicKey =>
-		aPublicKey.equals(publicKey),
-	);
-	const optionalKeyIndex = keys.optionalKeys.findIndex(aPublicKey => aPublicKey.equals(publicKey));
-
-	// If it's a mandatory Public Key find where to add the signature
-	if (mandatoryKeyIndex !== -1) {
-		const signatureOffset = includeSenderSignature ? 1 : 0;
-		// eslint-disable-next-line no-param-reassign
-		transactionObject.signatures[mandatoryKeyIndex + signatureOffset] = signature;
-	}
-
-	if (optionalKeyIndex !== -1) {
-		const signatureOffset = includeSenderSignature ? 1 : 0;
-		// eslint-disable-next-line no-param-reassign
-		transactionObject.signatures[keys.mandatoryKeys.length + optionalKeyIndex + signatureOffset] =
-			signature;
-	}
-
-	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
 
 	return { ...transactionObject, id: utils.hash(getBytes(transactionObject, paramsSchema)) };
 };
 
-export const signMultiSignatureTransaction = signMultiSignatureTransactionWithPrivateKey;
+/**
+ * {@inheritDoc signTransaction}
+ *
+ * @example
+ *  ```ts
+ *  import { signTransactionWithPrivateKey } from '@liskhq/lisk-transactions';
+ *  const signedTransaction = signTransactionWithPrivateKey(unsignedTrx, chainID, privateKey, paramsSchema);
+ *  ```
+ *
+ * @see [LIP 0028 - Define schema and use generic serialization for transactions](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0028.md)
+ * @see [LIP 0068 - Define new transaction schema](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0068.md)
+ * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
+ */
+export const signTransactionWithPrivateKey = signTransaction;
+
+/**
+ * {@inheritDoc signMultiSignatureTransaction}
+ *
+ * @example
+ *  ```ts
+ *  import { signMultiSignatureTransactionWithPrivateKey } from '@liskhq/lisk-transactions';
+ *  const signedTransaction = signMultiSignatureTransactionWithPrivateKey(unsignedTrx, chainID, privateKey, keys, paramsSchema, true);
+ *  ```
+ *
+ * @see [LIP 0028 - Define schema and use generic serialization for transactions](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0028.md)
+ * @see [LIP 0068 - Define new transaction schema](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0068.md)
+ * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
+ */
+export const signMultiSignatureTransactionWithPrivateKey = signMultiSignatureTransaction;

@@ -101,7 +101,7 @@ exports[`sign getSigningBytes should return transaction bytes for given params 1
 }
 `;
 
-exports[`sign signTransactionWithPrivateKey should return signed transaction for given params schema 1`] = `
+exports[`sign signTransaction should return signed transaction for given params schema 1`] = `
 {
   "command": "transfer",
   "fee": 10000000n,
