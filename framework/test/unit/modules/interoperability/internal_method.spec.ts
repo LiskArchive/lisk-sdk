@@ -995,11 +995,11 @@ describe('Base interoperability internal method', () => {
 					certificate: Buffer.alloc(0),
 				}),
 			).rejects.toThrow(
-				'The outbox root witness must be non-empty to authenticate the new partnerChainOutboxRoot',
+				'The outbox root witness can be non-empty only if the certificate is non-empty.',
 			);
 		});
 
-		it('should reject when inbox root is empty but partnerchain outbox root does not match', async () => {
+		it('should reject when outboxRootWitness is empty but partnerchain outbox root does not match inboxRoot', async () => {
 			await expect(
 				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
 					...txParams,

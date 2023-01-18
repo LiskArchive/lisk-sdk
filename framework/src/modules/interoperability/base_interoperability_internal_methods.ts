@@ -534,11 +534,12 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			params.inboxUpdate.messageWitnessHashes,
 		);
 
+		const { outboxRootWitness } = params.inboxUpdate;
 		if (params.certificate.length === 0) {
 			// The value of outboxRootWitness can only be non-empty when certificate is non-empty
-			if (!isOutboxRootWitnessEmpty(params.inboxUpdate.outboxRootWitness)) {
+			if (!isOutboxRootWitnessEmpty(outboxRootWitness)) {
 				throw new Error(
-					'The outbox root witness must be non-empty to authenticate the new partnerChainOutboxRoot.',
+					'The outbox root witness can be non-empty only if the certificate is non-empty.',
 				);
 			}
 			if (!newInboxRoot.equals(channel.partnerChainOutboxRoot)) {
@@ -547,10 +548,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			return;
 		}
 		// For every non-empty certificate there should be non-empty outboxRootWitness
-		if (
-			params.certificate.length > 0 &&
-			isOutboxRootWitnessEmpty(params.inboxUpdate.outboxRootWitness)
-		) {
+		if (isOutboxRootWitnessEmpty(outboxRootWitness)) {
 			throw new Error(
 				'The outbox root witness must be non-empty to authenticate the new partnerChainOutboxRoot.',
 			);
@@ -558,12 +556,12 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		const outboxRootStore = this.stores.get(OutboxRootStore);
 		const outboxKey = Buffer.concat([outboxRootStore.key, utils.hash(params.sendingChainID)]);
 		const proof = {
-			siblingHashes: params.inboxUpdate.outboxRootWitness.siblingHashes,
+			siblingHashes: outboxRootWitness.siblingHashes,
 			queries: [
 				{
 					key: outboxKey,
 					value: codec.encode(outboxRootSchema, { root: newInboxRoot }),
-					bitmap: params.inboxUpdate.outboxRootWitness.bitmap,
+					bitmap: outboxRootWitness.bitmap,
 				},
 			],
 		};
