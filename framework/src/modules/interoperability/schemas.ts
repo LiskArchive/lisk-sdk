@@ -575,6 +575,23 @@ export const getChainAccountResponseSchema = {
 	},
 };
 
+export const getChainValidatorsRequestSchema = getChainAccountRequestSchema;
+
+export const getChainValidatorsResponseSchema = validatorsHashInputSchema;
+
+export const isChainIDAvailableRequestSchema = getChainAccountRequestSchema;
+
+export const isChainIDAvailableResponseSchema = {
+	$id: '/modules/interoperability/endpoint/isChainIDAvailableResponseSchema',
+	type: 'object',
+	required: ['result'],
+	properties: {
+		result: {
+			type: 'boolean',
+		},
+	},
+};
+
 export const getChannelRequestSchema = getChainAccountRequestSchema;
 
 export const getTerminatedStateAccountRequestSchema = getChainAccountRequestSchema;
