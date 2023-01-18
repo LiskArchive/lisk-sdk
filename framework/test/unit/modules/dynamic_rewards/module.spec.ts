@@ -91,6 +91,7 @@ describe('DynamicRewardModule', () => {
 				...defaultConfig,
 				brackets: defaultConfig.brackets.map(b => BigInt(b)),
 				tokenID: Buffer.from('0000000000000000', 'hex'),
+				blockTime: 10,
 			});
 		});
 
@@ -99,11 +100,12 @@ describe('DynamicRewardModule', () => {
 			await expect(
 				rewardModule.init({
 					genesisConfig: { chainID: '00000000' } as any,
-					moduleConfig: { offset: 1000 },
+					moduleConfig: { offset: 1000, blockTime: 7 },
 				}),
 			).toResolve();
 
 			expect(rewardModule['_moduleConfig'].offset).toBe(1000);
+			expect(rewardModule['_moduleConfig'].blockTime).toBe(7);
 		});
 
 		it('should not initialize config with invalid value for tokenID', async () => {

@@ -20,6 +20,7 @@ export interface ModuleConfig {
 	brackets: ReadonlyArray<bigint>;
 	offset: number;
 	distance: number;
+	blockTime: number;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
@@ -47,4 +48,9 @@ export interface BFTMethod {
 
 export interface DefaultReward {
 	reward: string;
+}
+
+export interface InflationRate {
+	tokenID: string;
+	rate: string;
 }

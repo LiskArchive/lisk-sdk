@@ -27,6 +27,7 @@ describe('RewardModuleEndpoint', () => {
 			'100000000', // Milestone 4
 		],
 		tokenID: '0000000000000000',
+		blockTime: 7,
 	};
 
 	let rewardModule: RewardModule;
@@ -41,12 +42,12 @@ describe('RewardModuleEndpoint', () => {
 	});
 
 	const { brackets, offset, distance } = moduleConfig as {
-		brackets: ReadonlyArray<bigint>;
+		brackets: ReadonlyArray<string>;
 		offset: number;
 		distance: number;
 	};
 
-	for (const [index, rewardFromConfig] of Object.entries(brackets)) {
+	for (const [index, rewardFromConfigString] of Object.entries(brackets)) {
 		const nthBracket = +index;
 		const currentHeight = offset + nthBracket * distance;
 		// eslint-disable-next-line no-loop-func
@@ -58,7 +59,21 @@ describe('RewardModuleEndpoint', () => {
 					},
 				}),
 			);
-			expect(rewardFromEndpoint).toEqual({ reward: rewardFromConfig.toString() });
+			expect(rewardFromEndpoint).toEqual({ reward: rewardFromConfigString });
+		});
+
+		// eslint-disable-next-line no-loop-func
+		it(`should getInflationRate for the ${nthBracket}th bracket`, () => {
+			const blocksPerYear = BigInt(Math.floor((365 * 24 * 60 * 60) / moduleConfig.blockTime));
+			const rate = blocksPerYear * BigInt(rewardFromConfigString);
+			const inflationRate = rewardModule.endpoint.getInflationRate(
+				createTransientModuleEndpointContext({
+					params: {
+						height: currentHeight,
+					},
+				}),
+			);
+			expect(inflationRate).toEqual({ tokenID: moduleConfig.tokenID, rate: rate.toString() });
 		});
 	}
 
@@ -71,6 +86,17 @@ describe('RewardModuleEndpoint', () => {
 			}),
 		);
 		expect(rewardFromEndpoint).toEqual({ reward: '0' });
+	});
+
+	it('should getInflationRate for the for the height below offset', () => {
+		const inflationRate = rewardModule.endpoint.getInflationRate(
+			createTransientModuleEndpointContext({
+				params: {
+					height: offset - 1,
+				},
+			}),
+		);
+		expect(inflationRate).toEqual({ tokenID: moduleConfig.tokenID, rate: '0' });
 	});
 
 	it('should throw an error when parameter height is not a number', () => {
