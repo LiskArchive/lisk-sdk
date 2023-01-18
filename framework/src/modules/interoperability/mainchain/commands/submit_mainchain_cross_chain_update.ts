@@ -76,6 +76,7 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			.get(ChainAccountStore)
 			.get(context, params.sendingChainID);
 
+		// Liveness condition is only checked on the mainchain for the first CCU with a non-empty inbox update.
 		if (
 			sendingChainAccount.status === ChainStatus.REGISTERED &&
 			!isInboxUpdateEmpty(params.inboxUpdate)

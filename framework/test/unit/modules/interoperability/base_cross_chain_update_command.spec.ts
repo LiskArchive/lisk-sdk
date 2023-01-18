@@ -290,6 +290,19 @@ describe('BaseCrossChainUpdateCommand', () => {
 			);
 		});
 
+		it('should verify certificate when certificate is not empty', async () => {
+			await expect(
+				command['verifyCommon']({
+					...verifyContext,
+					params: {
+						...params,
+					},
+				}),
+			).resolves.toBeUndefined();
+
+			expect(internalMethod.verifyCertificate).toHaveBeenCalledTimes(1);
+		});
+
 		it('should verify validators update when active validator update exist', async () => {
 			await expect(
 				command['verifyCommon']({
@@ -320,7 +333,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			expect(internalMethod.verifyValidatorsUpdate).toHaveBeenCalledTimes(1);
 		});
 
-		it('should verify partnerchain outbox root when inbox is not empty', async () => {
+		it('should verify partnerchain outbox root when inboxUpdate is not empty', async () => {
 			await expect(
 				command['verifyCommon']({
 					...verifyContext,
