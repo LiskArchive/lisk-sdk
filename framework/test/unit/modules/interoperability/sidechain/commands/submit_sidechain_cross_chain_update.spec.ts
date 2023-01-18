@@ -269,6 +269,39 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			).rejects.toThrow('.sendingChainID');
 		});
 
+		it('should reject when certificate and inboxUpdate are empty', async () => {
+			await expect(
+				sidechainCCUUpdateCommand.verify({
+					...verifyContext,
+					params: {
+						...params,
+						certificate: Buffer.alloc(0),
+						inboxUpdate: {
+							crossChainMessages: [],
+							messageWitnessHashes: [],
+							outboxRootWitness: {
+								bitmap: Buffer.alloc(0),
+								siblingHashes: [],
+							},
+						},
+					} as any,
+				}),
+			).rejects.toThrow(
+				'A cross-chain update must contain a non-empty certificate and/or a non-empty inbox update.',
+			);
+		});
+
+		it('should reject when sending chain does not exist', async () => {
+			await partnerChainStore.del(stateStore, params.sendingChainID);
+
+			await expect(
+				sidechainCCUUpdateCommand.verify({
+					...verifyContext,
+					params: { ...params } as any,
+				}),
+			).rejects.toThrow('The mainchain is not registered');
+		});
+
 		it('should reject when sending chain is not mainchain', async () => {
 			await expect(
 				sidechainCCUUpdateCommand.verify({

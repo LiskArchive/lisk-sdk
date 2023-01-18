@@ -285,7 +285,9 @@ describe('BaseCrossChainUpdateCommand', () => {
 						certificate: Buffer.alloc(0),
 					},
 				}),
-			).rejects.toThrow('The first CCU must contain a non-empty certificate');
+			).rejects.toThrow(
+				'Cross-chain updates from chains with status CHAIN_STATUS_REGISTERED must contain a non-empty certificate',
+			);
 		});
 
 		it('should verify validators update when active validator update exist', async () => {

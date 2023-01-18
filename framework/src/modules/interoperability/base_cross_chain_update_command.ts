@@ -52,7 +52,9 @@ export abstract class BaseCrossChainUpdateCommand<
 			.get(ChainAccountStore)
 			.get(context, params.sendingChainID);
 		if (sendingChainAccount.status === ChainStatus.REGISTERED && params.certificate.length === 0) {
-			throw new Error('The first CCU must contain a non-empty certificate.');
+			throw new Error(
+				'Cross-chain updates from chains with status CHAIN_STATUS_REGISTERED must contain a non-empty certificate.',
+			);
 		}
 		if (params.certificate.length > 0) {
 			await this.internalMethod.verifyCertificate(context, params, context.header.timestamp);

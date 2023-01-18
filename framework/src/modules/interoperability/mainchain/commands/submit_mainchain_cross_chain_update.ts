@@ -57,6 +57,12 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			context.params,
 		);
 
+		if (params.certificate.length === 0 && isInboxUpdateEmpty(params.inboxUpdate)) {
+			throw new Error(
+				'A cross-chain update must contain a non-empty certificate and/or a non-empty inbox update.',
+			);
+		}
+
 		const isLive = await this.internalMethod.isLive(
 			context,
 			params.sendingChainID,
@@ -70,7 +76,10 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			.get(ChainAccountStore)
 			.get(context, params.sendingChainID);
 
-		if (sendingChainAccount.status === ChainStatus.REGISTERED) {
+		if (
+			sendingChainAccount.status === ChainStatus.REGISTERED &&
+			!isInboxUpdateEmpty(params.inboxUpdate)
+		) {
 			this._verifyLivenessConditionForRegisteredChains(context);
 		}
 
