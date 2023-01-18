@@ -13,7 +13,7 @@
  */
 import { EventEmitter } from 'events';
 import { BlockAssets, BlockHeader, StateStore, Transaction } from '@liskhq/lisk-chain';
-import { StateDB, Database } from '@liskhq/lisk-db';
+import { StateDB, Database, Batch } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import {
@@ -285,6 +285,12 @@ export class ABIHandler implements ABI {
 			finalizedHeight: req.finalizedHeight,
 		});
 		await this._stateMachine.insertAssets(context);
+
+		// Save updated information on module store
+		const batch = new Batch();
+		this._executionContext.moduleStore.finalize(batch);
+		await this._moduleDB.write(batch);
+
 		return {
 			assets: context.assets.getAll(),
 		};
