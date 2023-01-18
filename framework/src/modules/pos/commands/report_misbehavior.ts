@@ -23,8 +23,8 @@ import {
 import { BaseCommand } from '../../base_command';
 import {
 	REPORTING_PUNISHMENT_REWARD,
-	POM_LIMIT_BANNED,
-	LOCKING_PERIOD_SELF_STAKES,
+	REPORT_MISBEHAVIOR_LIMIT_BANNED,
+	LOCKING_PERIOD_SELF_STAKING,
 } from '../constants';
 import { reportMisbehaviorCommandParamsSchema } from '../schemas';
 import {
@@ -99,7 +99,7 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 			Math.abs(header2.height - currentHeight),
 		);
 
-		if (maxPunishableHeight >= LOCKING_PERIOD_SELF_STAKES) {
+		if (maxPunishableHeight >= LOCKING_PERIOD_SELF_STAKING) {
 			throw new Error('Locking period has expired.');
 		}
 
@@ -158,7 +158,7 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 			height: currentHeight,
 		});
 
-		if (validatorAccount.reportMisbehaviorHeights.length === POM_LIMIT_BANNED) {
+		if (validatorAccount.reportMisbehaviorHeights.length === REPORT_MISBEHAVIOR_LIMIT_BANNED) {
 			validatorAccount.isBanned = true;
 
 			this.events.get(ValidatorBannedEvent).log(context, {

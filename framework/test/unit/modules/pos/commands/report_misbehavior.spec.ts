@@ -22,7 +22,7 @@ import { ReportMisbehaviorCommand, VerifyStatus, PoSModule } from '../../../../.
 import * as testing from '../../../../../src/testing';
 import {
 	defaultConfig,
-	LOCKING_PERIOD_SELF_STAKES,
+	LOCKING_PERIOD_SELF_STAKING,
 	REPORTING_PUNISHMENT_REWARD,
 } from '../../../../../src/modules/pos/constants';
 import {
@@ -290,7 +290,7 @@ describe('ReportMisbehaviorCommand', () => {
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, {
 					...header1,
-					height: LOCKING_PERIOD_SELF_STAKES,
+					height: LOCKING_PERIOD_SELF_STAKING,
 				}),
 				header2: codec.encode(blockHeaderSchema, { ...header2 }),
 			};
