@@ -158,17 +158,6 @@ export interface ValidatorAccount {
 	sharingCoefficients: StakeSharingCoefficient[];
 }
 
-export interface ValidatorAccountJSON {
-	name: string;
-	totalStakeReceived: string;
-	selfStake: string;
-	lastGeneratedHeight: number;
-	isBanned: boolean;
-	pomHeights: number[];
-	consecutiveMissedBlocks: number;
-	address: string;
-}
-
 export interface StakerDataJSON {
 	stakes: {
 		validatorAddress: string;
