@@ -1802,27 +1802,6 @@
   dependencies:
     "@types/node" "11.11.2"
 
-"@liskhq/lisk-codec@0.3.0-alpha.6":
-  version "0.3.0-alpha.6"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-codec/-/lisk-codec-0.3.0-alpha.6.tgz#b320c19f60f70b3ac9b6f57edce7076bb93017f7"
-  integrity sha512-G35ZkqJvUZ4C1WPtAI0Bzk/P4vBa/eTrNw9DZ8kuYkvCo40eruKHublI2YCE7tj9BtS0DHGPxyufv+k/ExVV7Q==
-  dependencies:
-    "@liskhq/lisk-cryptography" "^4.0.0-alpha.5"
-    "@liskhq/lisk-utils" "^0.3.0-alpha.2"
-    "@liskhq/lisk-validator" "^0.7.0-alpha.5"
-
-"@liskhq/lisk-cryptography@4.0.0-alpha.5":
-  version "4.0.0-alpha.5"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-cryptography/-/lisk-cryptography-4.0.0-alpha.5.tgz#6c32fcb8cce3ee7610ecafd9ab88bd889c3c8f82"
-  integrity sha512-SU3TkxcHzZRwmNIEfY12qktr/5HSYpR6j92Sm2oxhDGoQ8rU8zwNW2OBaMFJNGFl6FKC4A5sV6zWsQ+EJgw7oQ==
-  dependencies:
-    "@liskhq/lisk-passphrase" "^4.0.0-alpha.1"
-    buffer-reverse "1.0.1"
-    ed2curve "0.3.0"
-    hash-wasm "4.9.0"
-    tweetnacl "1.0.3"
-    varuint-bitcoin "1.1.2"
-
 "@liskhq/lisk-db@0.3.2":
   version "0.3.2"
   resolved "https://npm.lisk.com/@liskhq%2flisk-db/-/lisk-db-0.3.2.tgz#cf35f27c510eb89d75d901dc0ce46820813fcf90"
@@ -1830,25 +1809,6 @@
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.9"
     "@types/node" "^16"
-
-"@liskhq/lisk-passphrase@4.0.0-alpha.1":
-  version "4.0.0-alpha.1"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-passphrase/-/lisk-passphrase-4.0.0-alpha.1.tgz#5d13850b4ccf5b00297ca19535f9d82e8b159b8e"
-  integrity sha512-/gtLXVMjUkp+IMpZhqSQtjCB5rptwoN8SWzUID+pApGsFrXr/7D6p/xPMFfJqerQCz+twrrUfKIY6sA3QP+MBQ==
-  dependencies:
-    bip39 "3.0.3"
-
-"@liskhq/lisk-validator@0.7.0-alpha.5":
-  version "0.7.0-alpha.5"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-validator/-/lisk-validator-0.7.0-alpha.5.tgz#4f602e80e57163ee89b33574fe09cb981396bc01"
-  integrity sha512-hDpvGpUo3gQVNAKTpmgVMsqc+R7yceP3ts0YQ3ROPTYgAqTBBYs7af8TYkljtxx5hEsB8KN+y9KCDOVlBqoTyg==
-  dependencies:
-    "@liskhq/lisk-cryptography" "^4.0.0-alpha.5"
-    ajv "8.1.0"
-    ajv-formats "2.1.1"
-    debug "4.3.4"
-    semver "7.3.8"
-    validator "13.7.0"
 
 "@lmdb/lmdb-darwin-arm64@2.5.2":
   version "2.5.2"
