@@ -733,6 +733,30 @@ describe('Base interoperability internal method', () => {
 			).rejects.toThrow('Keys are not sorted lexicographic order');
 		});
 
+		it('shoud reject if blsKyesUpdate contains duplicate keys', async () => {
+			const ccu = {
+				...ccuParams,
+				certificate: codec.encode(certificateSchema, certificate),
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [
+						Buffer.from([0, 0, 0, 0]),
+						Buffer.from([0, 0, 3, 0]),
+						Buffer.from([0, 0, 3, 0]),
+					],
+					bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4)],
+					bftWeightsUpdateBitmap: Buffer.from([14]),
+				},
+			};
+			await chainValidatorsSubstore.set(methodContext, ccu.sendingChainID, {
+				activeValidators: [{ blsKey: Buffer.from([0, 0, 2, 0]), bftWeight: BigInt(2) }],
+				certificateThreshold: BigInt(1),
+			});
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
+			).rejects.toThrow('Keys have duplicated entry');
+		});
+
 		it('shoud reject if BLS keys are not unique', async () => {
 			const ccu = {
 				...ccuParams,

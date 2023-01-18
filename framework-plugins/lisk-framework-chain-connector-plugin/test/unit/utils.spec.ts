@@ -135,6 +135,61 @@ describe('getActiveValidatorsUpdate', () => {
 				},
 			},
 		],
+		[
+			// only remove validator
+			{
+				currentValidators: [
+					{
+						blsKey: Buffer.from('05', 'hex'),
+						bftWeight: BigInt(99),
+					},
+					{
+						blsKey: Buffer.from('03', 'hex'),
+						bftWeight: BigInt(30),
+					},
+					{
+						blsKey: Buffer.from('04', 'hex'),
+						bftWeight: BigInt(40),
+					},
+				],
+				newValidators: [],
+				expected: {
+					blsKeysUpdate: [],
+					bftWeightsUpdate: [BigInt(0), BigInt(0), BigInt(0)],
+					bftWeightsUpdateBitmap: bytesToBuffer('111'),
+				},
+			},
+		],
+		[
+			// remove and change weight
+			{
+				currentValidators: [
+					{
+						blsKey: Buffer.from('05', 'hex'),
+						bftWeight: BigInt(99),
+					},
+					{
+						blsKey: Buffer.from('03', 'hex'),
+						bftWeight: BigInt(30),
+					},
+					{
+						blsKey: Buffer.from('04', 'hex'),
+						bftWeight: BigInt(40),
+					},
+				],
+				newValidators: [
+					{
+						blsKey: Buffer.from('03', 'hex'),
+						bftWeight: BigInt(90),
+					},
+				],
+				expected: {
+					blsKeysUpdate: [],
+					bftWeightsUpdate: [BigInt(90), BigInt(0), BigInt(0)],
+					bftWeightsUpdateBitmap: bytesToBuffer('111'),
+				},
+			},
+		],
 	];
 
 	it.each(cases)('should compute expected activeValidatorsUpdate', val => {
