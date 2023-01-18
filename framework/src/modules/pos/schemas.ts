@@ -94,7 +94,7 @@ export const stakeCommandParamsSchema = {
 	},
 };
 
-export const pomCommandParamsSchema = {
+export const reportMisbehaviorCommandParamsSchema = {
 	$id: '/pos/command/reportMisbehaviorParams',
 	type: 'object',
 	required: ['header1', 'header2'],

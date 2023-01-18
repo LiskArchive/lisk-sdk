@@ -26,7 +26,7 @@ import {
 	POM_LIMIT_BANNED,
 	LOCKING_PERIOD_SELF_STAKES,
 } from '../constants';
-import { pomCommandParamsSchema } from '../schemas';
+import { reportMisbehaviorCommandParamsSchema } from '../schemas';
 import {
 	PomCommandDependencies,
 	PomTransactionParams,
@@ -43,7 +43,7 @@ import { ValidatorBannedEvent } from '../events/validator_banned';
 import { EligibleValidatorsStore } from '../stores/eligible_validators';
 
 export class ReportMisbehaviorCommand extends BaseCommand {
-	public schema = pomCommandParamsSchema;
+	public schema = reportMisbehaviorCommandParamsSchema;
 	private _tokenMethod!: TokenMethod;
 	private _validatorsMethod!: ValidatorsMethod;
 	private _posTokenID!: TokenID;
