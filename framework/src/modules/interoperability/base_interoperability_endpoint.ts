@@ -42,17 +42,16 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 		super(stores, offchainStores);
 	}
 
-	public async getChainAccount(
-		context: ModuleEndpointContext,
-		chainID: Buffer,
-	): Promise<ChainAccountJSON> {
+	public async getChainAccount(context: ModuleEndpointContext): Promise<ChainAccountJSON> {
+		const chainID = Buffer.from(context.params.chainID as string, 'hex');
 		return chainAccountToJSON(await this.stores.get(ChainAccountStore).get(context, chainID));
 	}
 
 	public async getAllChainAccounts(
 		context: ModuleEndpointContext,
-		startChainID: Buffer,
 	): Promise<{ chains: ChainAccountJSON[] }> {
+		const startChainID = Buffer.from(context.params.chainID as string, 'hex');
+
 		const chainAccounts = (
 			await this.stores.get(ChainAccountStore).getAllAccounts(context, startChainID)
 		).map(chainAccount => chainAccountToJSON(chainAccount));
@@ -60,10 +59,8 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 		return { chains: chainAccounts };
 	}
 
-	public async getChannel(
-		context: ModuleEndpointContext,
-		chainID: Buffer,
-	): Promise<ChannelDataJSON> {
+	public async getChannel(context: ModuleEndpointContext): Promise<ChannelDataJSON> {
+		const chainID = Buffer.from(context.params.chainID as string, 'hex');
 		const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot } = await this.stores
 			.get(ChannelDataStore)
 			.get(context, chainID);
@@ -93,8 +90,8 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 
 	public async getTerminatedStateAccount(
 		context: ModuleEndpointContext,
-		chainID: Buffer,
 	): Promise<TerminatedStateAccountJSON> {
+		const chainID = Buffer.from(context.params.chainID as string, 'hex');
 		const { stateRoot, initialized, mainchainStateRoot } = await this.stores
 			.get(TerminatedStateStore)
 			.get(context, chainID);
@@ -108,8 +105,8 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 
 	public async getTerminatedOutboxAccount(
 		context: ModuleEndpointContext,
-		chainID: Buffer,
 	): Promise<TerminatedOutboxAccountJSON> {
+		const chainID = Buffer.from(context.params.chainID as string, 'hex');
 		const { outboxRoot, outboxSize, partnerChainInboxSize } = await this.stores
 			.get(TerminatedOutboxStore)
 			.get(context, chainID);
@@ -121,10 +118,8 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 		};
 	}
 
-	public async getChainValidators(
-		context: ModuleEndpointContext,
-		chainID: Buffer,
-	): Promise<ChainValidatorsJSON> {
+	public async getChainValidators(context: ModuleEndpointContext): Promise<ChainValidatorsJSON> {
+		const chainID = Buffer.from(context.params.chainID as string, 'hex');
 		const chainAccountStore = this.stores.get(ChainAccountStore);
 		const chainAccountExists = await chainAccountStore.has(context, chainID);
 		if (!chainAccountExists) {
@@ -144,10 +139,8 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 		};
 	}
 
-	public async isChainIDAvailable(
-		context: ModuleEndpointContext,
-		chainID: Buffer,
-	): Promise<{ result: boolean }> {
+	public async isChainIDAvailable(context: ModuleEndpointContext): Promise<{ result: boolean }> {
+		const chainID = Buffer.from(context.params.chainID as string, 'hex');
 		const chainSubstore = this.stores.get(ChainAccountStore);
 		const chainAccountExists = await chainSubstore.has(context, chainID);
 
