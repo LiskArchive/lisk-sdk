@@ -369,7 +369,7 @@ describe('Test interoperability endpoint', () => {
 				moduleContext,
 				chainID,
 			);
-			expect(isAvailable).toBeFalse();
+			expect(isAvailable).toEqual({ result: false });
 		});
 
 		it('should return true when the chainID does not exists', async () => {
@@ -379,7 +379,7 @@ describe('Test interoperability endpoint', () => {
 				chainID,
 			);
 
-			expect(isChainIDAvailableResult).toBeTrue();
+			expect(isChainIDAvailableResult).toEqual({ result: true });
 		});
 	});
 });

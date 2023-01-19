@@ -32,7 +32,7 @@ import {
 	genesisAuthStoreSchema,
 	multisigRegMsgSchema,
 	sortMultisignatureGroupResponseSchema,
-	sortMultisignatureGroupSchema,
+	sortMultisignatureGroupRequestSchema,
 	transactionRequestSchema,
 	verifyResultSchema,
 } from './schemas';
@@ -85,7 +85,7 @@ export class AuthModule extends BaseModule {
 				},
 				{
 					name: this.endpoint.sortMultisignatureGroup.name,
-					request: sortMultisignatureGroupSchema,
+					request: sortMultisignatureGroupRequestSchema,
 					response: sortMultisignatureGroupResponseSchema,
 				},
 			],

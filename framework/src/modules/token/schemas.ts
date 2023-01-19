@@ -623,6 +623,22 @@ export const isSupportedResponseSchema = {
 	required: ['supported'],
 };
 
+export const getInitializationFeesResponseSchema = {
+	$id: '/token/endpoint/getInitializationFees',
+	type: 'object',
+	properties: {
+		userAccount: {
+			type: 'string',
+			format: 'uint64',
+		},
+		escrowAccount: {
+			type: 'string',
+			format: 'uint64',
+		},
+	},
+	required: ['userAccount', 'escrowAccount'],
+};
+
 export const hasUserAccountRequestSchema = {
 	$id: '/token/endpoint/hasUserAccountRequest',
 	type: 'object',
