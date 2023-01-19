@@ -214,22 +214,29 @@ export const crossChainUpdateTransactionParams = {
 			fieldNumber: 2,
 		},
 		activeValidatorsUpdate: {
-			type: 'array',
+			type: 'object',
 			fieldNumber: 3,
-			items: {
-				type: 'object',
-				required: ['blsKey', 'bftWeight'],
-				properties: {
-					blsKey: {
+			required: ['blsKeysUpdate', 'bftWeightsUpdate', 'bftWeightsUpdateBitmap'],
+			properties: {
+				blsKeysUpdate: {
+					type: 'array',
+					fieldNumber: 1,
+					items: {
 						dataType: 'bytes',
-						fieldNumber: 1,
 						minLength: BLS_PUBLIC_KEY_LENGTH,
 						maxLength: BLS_PUBLIC_KEY_LENGTH,
 					},
-					bftWeight: {
+				},
+				bftWeightsUpdate: {
+					type: 'array',
+					fieldNumber: 2,
+					items: {
 						dataType: 'uint64',
-						fieldNumber: 2,
 					},
+				},
+				bftWeightsUpdateBitmap: {
+					dataType: 'bytes',
+					fieldNumber: 3,
 				},
 			},
 		},

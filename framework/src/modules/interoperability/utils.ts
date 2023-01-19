@@ -27,6 +27,7 @@ import {
 	ChainValidators,
 	InboxUpdate,
 	OutboxRootWitness,
+	ActiveValidatorsUpdate,
 } from './types';
 import { EMPTY_BYTES, LIVENESS_LIMIT, MAX_CCM_SIZE, CHAIN_ID_LENGTH } from './constants';
 import {
@@ -42,7 +43,7 @@ import { certificateToJSON } from './certificates';
 import { NamedRegistry } from '../named_registry';
 import { OutboxRootStore } from './stores/outbox_root';
 import { ChannelDataStore } from './stores/channel_data';
-import { ChainValidatorsStore, calculateNewActiveValidators } from './stores/chain_validators';
+import { ChainValidatorsStore } from './stores/chain_validators';
 import { ChainAccountStore, ChainStatus } from './stores/chain_account';
 
 interface CommonExecutionLogicArgs {
@@ -320,7 +321,10 @@ export const checkValidatorsHashWithCertificate = (
 	txParams: CrossChainUpdateTransactionParams,
 	partnerValidators: ChainValidators,
 ): VerificationResult => {
-	if (txParams.activeValidatorsUpdate.length !== 0 || txParams.certificateThreshold > BigInt(0)) {
+	if (
+		!emptyActiveValidatorsUpdate(txParams.activeValidatorsUpdate) ||
+		txParams.certificateThreshold > BigInt(0)
+	) {
 		if (txParams.certificate.equals(EMPTY_BYTES)) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -346,7 +350,9 @@ export const checkValidatorsHashWithCertificate = (
 
 		const newActiveValidators = calculateNewActiveValidators(
 			partnerValidators.activeValidators,
-			txParams.activeValidatorsUpdate,
+			txParams.activeValidatorsUpdate.blsKeysUpdate,
+			txParams.activeValidatorsUpdate.bftWeightsUpdate,
+			txParams.activeValidatorsUpdate.bftWeightsUpdateBitmap,
 		);
 
 		const validatorsHash = computeValidatorsHash(
@@ -380,7 +386,9 @@ export const commonCCUExecutelogic = async (args: CommonExecutionLogicArgs) => {
 	} = args;
 	const newActiveValidators = calculateNewActiveValidators(
 		partnerValidators.activeValidators,
-		context.params.activeValidatorsUpdate,
+		context.params.activeValidatorsUpdate.blsKeysUpdate,
+		context.params.activeValidatorsUpdate.bftWeightsUpdate,
+		context.params.activeValidatorsUpdate.bftWeightsUpdateBitmap,
 	);
 	partnerValidators.activeValidators = newActiveValidators;
 	if (context.params.certificateThreshold !== BigInt(0)) {
@@ -450,3 +458,15 @@ export const getEncodedCCMAndID = (ccm: CCMsg) => {
 	const encodedCCM = codec.encode(ccmSchema, ccm);
 	return { ccmID: utils.hash(encodedCCM), encodedCCM };
 };
+
+export const emptyActiveValidatorsUpdate = (value: ActiveValidatorsUpdate): boolean =>
+	value.blsKeysUpdate.length === 0 &&
+	value.bftWeightsUpdate.length === 0 &&
+	value.bftWeightsUpdateBitmap.length === 0;
+
+export const calculateNewActiveValidators = (
+	_activeValidators: ActiveValidators[],
+	_blskyesUpdate: Buffer[],
+	_bftWeightsUpdate: bigint[],
+	_bftWeightsUpdateBitmap: Buffer,
+): ActiveValidators[] => [];

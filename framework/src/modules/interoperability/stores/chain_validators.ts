@@ -11,8 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { dataStructures } from '@liskhq/lisk-utils';
-import { BaseStore, StoreGetter } from '../../base_store';
+import { BaseStore } from '../../base_store';
 import { ActiveValidator } from '../types';
 import { BLS_PUBLIC_KEY_LENGTH, MAX_NUM_VALIDATORS } from '../constants';
 
@@ -56,48 +55,6 @@ export const chainValidatorsSchema = {
 	},
 };
 
-// TODO: Fix with #7742 - In order to avoid circular dependency temporally, move to this file
-export const calculateNewActiveValidators = (
-	activeValidators: ActiveValidator[],
-	activeValidatorsUpdate: ActiveValidator[],
-): ActiveValidator[] => {
-	const originalValidatorMap = new dataStructures.BufferMap<ActiveValidator>();
-	for (const validator of activeValidators) {
-		originalValidatorMap.set(validator.blsKey, validator);
-	}
-	for (const updatedValidator of activeValidatorsUpdate) {
-		const originalValidator = originalValidatorMap.get(updatedValidator.blsKey);
-		if (!originalValidator) {
-			originalValidatorMap.set(updatedValidator.blsKey, updatedValidator);
-			continue;
-		}
-		originalValidator.bftWeight = updatedValidator.bftWeight;
-	}
-
-	const updatedValidators = originalValidatorMap
-		.values()
-		.filter(validator => validator.bftWeight > BigInt(0));
-	updatedValidators.sort((a, b) => a.blsKey.compare(b.blsKey));
-
-	return updatedValidators;
-};
-
 export class ChainValidatorsStore extends BaseStore<ChainValidators> {
 	public schema = chainValidatorsSchema;
-
-	public async updateValidators(
-		context: StoreGetter,
-		chainID: Buffer,
-		chainValidators: ChainValidators,
-	): Promise<void> {
-		const currentValidators = await this.get(context, chainID);
-
-		currentValidators.certificateThreshold = chainValidators.certificateThreshold;
-		currentValidators.activeValidators = calculateNewActiveValidators(
-			currentValidators.activeValidators,
-			chainValidators.activeValidators,
-		);
-
-		await this.set(context, chainID, currentValidators);
-	}
 }
