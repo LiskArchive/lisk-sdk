@@ -76,7 +76,9 @@ export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdate
 		const { params } = context;
 
 		try {
+			// Update the context to indicate that now we start the CCM processing.
 			context.contextStore.set(CONTEXT_STORE_KEY_CCM_PROCESSING, true);
+
 			for (let i = 0; i < decodedCCMs.length; i += 1) {
 				const ccm = decodedCCMs[i];
 				const ccmBytes = params.inboxUpdate.crossChainMessages[i];
@@ -86,10 +88,17 @@ export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdate
 				};
 
 				await this.apply(ccmContext);
+
+				// We append at the very end. This implies that if the message leads to a chain termination,
+				// it is still possible to recover it (because the channel terminated message
+				// would refer to an inbox where the message has not been appended yet).
 				await this.internalMethod.appendToInboxTree(context, params.sendingChainID, ccmBytes);
 			}
 		} finally {
+			// Update the context to indicate that now we stop the CCM processing.
 			context.contextStore.delete(CONTEXT_STORE_KEY_CCM_PROCESSING);
 		}
+
+		await this.afterExecuteCommon(context);
 	}
 }
