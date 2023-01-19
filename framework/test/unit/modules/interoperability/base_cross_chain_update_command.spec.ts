@@ -950,6 +950,40 @@ describe('BaseCrossChainUpdateCommand', () => {
 			expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(10);
 		});
 
+		it('should raise exception(and hence bounce) when chainAccount(ccm.sendingChainID) exists and ccu.params.sendingChainID != ccm.sendingChainID', async () => {
+			const chainAccountStore = command['stores'].get(ChainAccountStore);
+			jest.spyOn(chainAccountStore, 'has').mockResolvedValue(true);
+			(
+				(
+					(ccCommands.get(defaultCCM.module) as BaseCCCommand[]).find(
+						com => com.name === defaultCCM.crossChainCommand,
+					) as BaseCCCommand
+				).execute as jest.Mock
+			).mockRejectedValue('error');
+			jest.spyOn(command, 'bounce' as never).mockResolvedValue(undefined as never);
+			let eventQueueCount = 0;
+			let stateStoreCount = 0;
+			jest.spyOn(context.eventQueue, 'createSnapshot').mockImplementation(() => {
+				eventQueueCount += 1;
+				return eventQueueCount;
+			});
+			jest.spyOn(context.stateStore, 'createSnapshot').mockImplementation(() => {
+				stateStoreCount += 1;
+				return stateStoreCount;
+			});
+			jest.spyOn(context.eventQueue, 'restoreSnapshot');
+			jest.spyOn(context.stateStore, 'restoreSnapshot');
+
+			await expect(command['apply'](context)).resolves.toBeUndefined();
+
+			expect(context.eventQueue.restoreSnapshot).toHaveBeenCalledWith(2);
+			expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(2);
+			expect(
+				(ccMethods.get('token') as BaseCCMethod).afterCrossChainCommandExecute as jest.Mock,
+			).toHaveBeenCalledTimes(1);
+			expect(command['bounce']).toHaveBeenCalledTimes(1);
+		});
+
 		it('should bounce, log event and restore the state/event before calling execute when execute fails', async () => {
 			(
 				(

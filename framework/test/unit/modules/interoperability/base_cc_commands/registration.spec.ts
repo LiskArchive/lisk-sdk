@@ -51,16 +51,17 @@ describe('BaseCCRegistrationCommand', () => {
 		log: jest.fn(),
 	};
 
+	const mainchainID = Buffer.from([0, 0, 0, 0]);
 	const ownChainAccountMainchain = {
 		name: 'mainchain',
-		chainID: Buffer.from([0, 0, 0, 0]),
+		chainID: mainchainID,
 		nonce: BigInt(0),
 	};
 
 	const sidechainIDBuffer = utils.intToBuffer(2, 4);
 	const messageFeeTokenID = Buffer.from('0000000000000011', 'hex');
 	const ccmRegistrationParams = {
-		chainID: sidechainIDBuffer,
+		chainID: mainchainID,
 		name: ownChainAccountMainchain.name,
 		messageFeeTokenID,
 	};
@@ -93,7 +94,7 @@ describe('BaseCCRegistrationCommand', () => {
 			stateRoot: Buffer.alloc(HASH_LENGTH),
 			validatorsHash: Buffer.alloc(HASH_LENGTH),
 		},
-		status: 2739,
+		status: ChainStatus.REGISTERED,
 	};
 
 	interopMod.stores.register(ChannelDataStore, channelStoreMock as never);
@@ -112,10 +113,16 @@ describe('BaseCCRegistrationCommand', () => {
 		status: obj.status ?? CCMStatusCode.OK,
 	});
 
-	const createContext = (ccm: CCMsg): CrossChainMessageContext => {
+	const createContext = (
+		ccm: CCMsg,
+		ccu?: { sendingChainID: Buffer },
+	): CrossChainMessageContext => {
 		return createCrossChainMessageContext({
 			ccm,
 			chainID: sidechainIDBuffer,
+			ccu: ccu ?? {
+				sendingChainID: ccm.sendingChainID,
+			},
 		});
 	};
 
@@ -140,6 +147,29 @@ describe('BaseCCRegistrationCommand', () => {
 	});
 
 	describe('verify', () => {
+		it('should fail if chainAccount does not exist', async () => {
+			chainAccountStoreMock.get.mockResolvedValue(undefined);
+			await expect(ccRegistrationCommand.verify(sampleExecuteContext)).rejects.toThrow(
+				'Registration message must be sent from a registered chain.',
+			);
+		});
+		it('should fail if ccm.sendingChainID not equal to ccu.params.sendingChainID', async () => {
+			sampleExecuteContext = createContext(ccm, {
+				sendingChainID: Buffer.from([0, 0, 0, 8]),
+			});
+			await expect(ccRegistrationCommand.verify(sampleExecuteContext)).rejects.toThrow(
+				'Registration message must be sent from a direct channel.',
+			);
+		});
+		it('should fail if chainAccount.status not equal to ChainStatus.REGISTERED', async () => {
+			chainAccountStoreMock.get.mockResolvedValue({
+				...fakeChainAccount,
+				status: ChainStatus.TERMINATED,
+			});
+			await expect(ccRegistrationCommand.verify(sampleExecuteContext)).rejects.toThrow(
+				"Registration message must be sent from a chain with status 'registered'.",
+			);
+		});
 		it('should fail if channel.inbox.size !== 0', async () => {
 			channelStoreMock.get.mockResolvedValue({
 				inbox: {
@@ -173,12 +203,26 @@ describe('BaseCCRegistrationCommand', () => {
 			);
 		});
 
+		it('should fail if ownChainAccount.chainID !== ccmRegistrationParams.chainID', async () => {
+			sampleExecuteContext = createContext(
+				buildCCM({
+					params: codec.encode(registrationCCMParamsSchema, {
+						...ccmRegistrationParams,
+						chainID: sidechainIDBuffer,
+					}),
+				}),
+			);
+			await expect(ccRegistrationCommand.verify(sampleExecuteContext)).rejects.toThrow(
+				'Registration message must contain the chain ID of the receiving chain.',
+			);
+		});
+
 		it('should fail if ownChainAccount.name !== ccmRegistrationParams.name', async () => {
 			sampleExecuteContext = createContext(
 				buildCCM({
 					params: codec.encode(registrationCCMParamsSchema, {
+						...ccmRegistrationParams,
 						name: 'Fake-Name',
-						messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
 					}),
 				}),
 			);
@@ -191,7 +235,7 @@ describe('BaseCCRegistrationCommand', () => {
 			sampleExecuteContext = createContext(
 				buildCCM({
 					params: codec.encode(registrationCCMParamsSchema, {
-						name: ownChainAccountMainchain.name,
+						...ccmRegistrationParams,
 						messageFeeTokenID: Buffer.from('0000000000000012', 'hex'),
 					}),
 				}),
@@ -209,22 +253,6 @@ describe('BaseCCRegistrationCommand', () => {
 			);
 			await expect(ccRegistrationCommand.verify(sampleExecuteContext)).rejects.toThrow(
 				'Registration message must have nonce 0.',
-			);
-		});
-
-		it('should fail if chainID is Sidechain and sendingChainID !== mainchainID', async () => {
-			sampleExecuteContext = createContext(
-				buildCCM({
-					receivingChainID: sidechainIDBuffer,
-				}),
-			);
-			ownChainAccountStoreMock.get.mockResolvedValue({
-				name: 'mainchain',
-				chainID: sidechainIDBuffer,
-				nonce: BigInt(0),
-			});
-			await expect(ccRegistrationCommand.verify(sampleExecuteContext)).rejects.toThrow(
-				'Registration message must be sent from the mainchain.',
 			);
 		});
 

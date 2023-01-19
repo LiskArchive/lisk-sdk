@@ -500,6 +500,7 @@ describe('RegisterMainchainCommand', () => {
 			// Arrange
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
 				name: CHAIN_NAME_MAINCHAIN,
+				chainID: mainchainID,
 				messageFeeTokenID: mainchainTokenID,
 			});
 			const ccm = {
@@ -542,6 +543,7 @@ describe('RegisterMainchainCommand', () => {
 		it(`should emit ${EVENT_NAME_CCM_SEND_SUCCESS} event`, async () => {
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
 				name: CHAIN_NAME_MAINCHAIN,
+				chainID: mainchainID,
 				messageFeeTokenID: mainchainTokenID,
 			});
 			const ownChainAccount = {

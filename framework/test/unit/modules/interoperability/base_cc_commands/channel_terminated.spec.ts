@@ -13,18 +13,31 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { MainchainInteroperabilityModule } from '../../../../../src';
+import { ChainStatus, MainchainInteroperabilityModule } from '../../../../../src';
 import {
+	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	EMPTY_BYTES,
+	EMPTY_HASH,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../src/modules/interoperability/constants';
 import { MainchainCCChannelTerminatedCommand } from '../../../../../src/modules/interoperability/mainchain/cc_commands';
-import { createCrossChainMessageContext } from '../../../../../src/testing';
+import {
+	createCrossChainMessageContext,
+	InMemoryPrefixedStateDB,
+} from '../../../../../src/testing';
+import { TerminatedStateStore } from '../../../../../src/modules/interoperability/stores/terminated_state';
+import { createStoreGetter } from '../../../../../src/testing/utils';
+import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
+import { CCCommandExecuteContext } from '../../../../../src/modules/interoperability/types';
 
 describe('BaseCCChannelTerminatedCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 	const createTerminatedStateAccountMock = jest.fn();
+
+	let sampleExecuteContext: CCCommandExecuteContext<void>;
+	let stateStore: PrefixedStateReadWriter;
+	let terminatedStateSubstore: TerminatedStateStore;
 
 	const ccMethodMod1 = {
 		beforeSendCCM: jest.fn(),
@@ -48,13 +61,6 @@ describe('BaseCCChannelTerminatedCommand', () => {
 		status: 0,
 		params: EMPTY_BYTES,
 	};
-	const sampleExecuteContext = {
-		...createCrossChainMessageContext({
-			ccm,
-			chainID,
-		}),
-		params: undefined,
-	};
 
 	const ccChannelTerminatedCommand = new MainchainCCChannelTerminatedCommand(
 		interopMod.stores,
@@ -64,17 +70,48 @@ describe('BaseCCChannelTerminatedCommand', () => {
 	);
 	interopMod['internalMethod'].createTerminatedStateAccount = createTerminatedStateAccountMock;
 
+	const sidechainChainAccount = {
+		name: 'sidechain1',
+		chainID: Buffer.alloc(CHAIN_ID_LENGTH),
+		lastCertificate: {
+			height: 10,
+			stateRoot: utils.getRandomBytes(32),
+			timestamp: 100,
+			validatorsHash: utils.getRandomBytes(32),
+		},
+		status: ChainStatus.TERMINATED,
+	};
+
+	beforeEach(() => {
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+		sampleExecuteContext = {
+			...createCrossChainMessageContext({
+				ccm,
+				chainID,
+				stateStore,
+			}),
+			params: undefined,
+		};
+	});
+
 	describe('execute', () => {
-		it('should skip if isLive is false ', async () => {
-			interopMod['internalMethod'].isLive = jest.fn().mockResolvedValue(false);
+		it('should skip if terminatedStateAccount exists', async () => {
+			terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
+			await terminatedStateSubstore.set(
+				createStoreGetter(stateStore),
+				sampleExecuteContext.ccm.sendingChainID,
+				{
+					stateRoot: sidechainChainAccount.lastCertificate.stateRoot,
+					mainchainStateRoot: EMPTY_HASH,
+					initialized: true,
+				},
+			);
 
 			await ccChannelTerminatedCommand.execute(sampleExecuteContext);
 			expect(createTerminatedStateAccountMock).toHaveBeenCalledTimes(0);
 		});
 
-		it('should call createTerminatedStateAccount if isLive', async () => {
-			interopMod['internalMethod'].isLive = jest.fn().mockResolvedValue(true);
-
+		it('should call createTerminatedStateAccount if terminatedStateAccount do not exists', async () => {
 			await ccChannelTerminatedCommand.execute(sampleExecuteContext);
 			expect(createTerminatedStateAccountMock).toHaveBeenCalledWith(
 				sampleExecuteContext,

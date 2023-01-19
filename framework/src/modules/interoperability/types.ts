@@ -91,7 +91,9 @@ export interface ImmutableCrossChainMessageContext {
 		fee: bigint;
 	};
 	ccm: CCMsg;
-	ccu?: CrossChainUpdateTransactionParams;
+	ccu: {
+		sendingChainID: Buffer;
+	};
 }
 
 export interface CrossChainMessageContext extends ImmutableCrossChainMessageContext {

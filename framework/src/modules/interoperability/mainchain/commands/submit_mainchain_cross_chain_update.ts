@@ -110,6 +110,9 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 					...context,
 					ccm,
 					eventQueue: context.eventQueue.getChildQueue(ccmID),
+					ccu: {
+						sendingChainID: params.sendingChainID,
+					},
 				};
 
 				if (ccm.receivingChainID.equals(getMainchainID(context.chainID))) {
