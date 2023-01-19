@@ -207,7 +207,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				utils.getRandomBytes(48),
 			].sort((v1, v2) => v1.compare(v2)),
 			bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4), BigInt(3)],
-			bftWeightsUpdateBitmap: Buffer.from([1, 0, 2]),
+			bftWeightsUpdateBitmap: Buffer.from([15]),
 		};
 		partnerChainAccount = {
 			lastCertificate: {
