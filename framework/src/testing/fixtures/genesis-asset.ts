@@ -56,7 +56,7 @@ export const blockAssetsJSON = [
 				generatorKey: account.plain.generatorKey,
 				lastGeneratedHeight: 0,
 				isBanned: false,
-				pomHeights: [],
+				reportMisbehaviorHeights: [],
 				consecutiveMissedBlocks: 0,
 				commission: 0,
 				lastCommissionIncreaseHeight: 0,
