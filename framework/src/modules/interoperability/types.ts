@@ -42,6 +42,12 @@ export interface CCMsg {
 	readonly params: Buffer;
 }
 
+export interface ActiveValidatorsUpdate {
+	blsKeysUpdate: Buffer[];
+	bftWeightsUpdate: bigint[];
+	bftWeightsUpdateBitmap: Buffer;
+}
+
 export interface ActiveValidator {
 	blsKey: Buffer;
 	bftWeight: bigint;
@@ -66,7 +72,7 @@ export interface InboxUpdate {
 export interface CCUpdateParams {
 	sendingChainID: Buffer;
 	certificate: Buffer;
-	activeValidatorsUpdate: ActiveValidator[];
+	activeValidatorsUpdate: ActiveValidatorsUpdate;
 	certificateThreshold: bigint;
 	inboxUpdate: InboxUpdate;
 }
@@ -328,7 +334,7 @@ export interface TerminateSidehchainForLivenessParams {
 export interface CrossChainUpdateTransactionParams {
 	sendingChainID: Buffer;
 	certificate: Buffer;
-	activeValidatorsUpdate: ActiveValidator[];
+	activeValidatorsUpdate: ActiveValidatorsUpdate;
 	certificateThreshold: bigint;
 	inboxUpdate: InboxUpdate;
 }

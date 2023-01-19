@@ -35,6 +35,7 @@ import {
 	CrossChainUpdateTransactionParams,
 	InboxUpdate,
 	CCMsg,
+	ActiveValidatorsUpdate,
 } from '../../../../src/modules/interoperability/types';
 import {
 	checkCertificateTimestamp,
@@ -48,6 +49,7 @@ import {
 	validateFormat,
 	verifyLivenessConditionForRegisteredChains,
 } from '../../../../src/modules/interoperability/utils';
+import * as interopUtils from '../../../../src/modules/interoperability/utils';
 import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
 import { Certificate } from '../../../../src/engine/consensus/certificate_generation/types';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
@@ -65,12 +67,16 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 
 describe('Utils', () => {
 	const interopMod = new MainchainInteroperabilityModule();
-	const defaultActiveValidatorsUpdate = [
-		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
-		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
-		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(4) },
-		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
-	];
+	const defaultActiveValidatorsUpdate = {
+		blsKeysUpdate: [
+			utils.getRandomBytes(48),
+			utils.getRandomBytes(48),
+			utils.getRandomBytes(48),
+			utils.getRandomBytes(48),
+		].sort((v1, v2) => v1.compare(v2)),
+		bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4), BigInt(3)],
+		bftWeightsUpdateBitmap: Buffer.from([1, 0, 2]),
+	};
 
 	describe('checkLivenessRequirementFirstCCU', () => {
 		const partnerChainAccount = {
@@ -265,18 +271,16 @@ describe('Utils', () => {
 	});
 
 	describe('checkValidatorsHashWithCertificate', () => {
-		const activeValidatorsUpdate = [...defaultActiveValidatorsUpdate];
-
+		const activeValidatorsUpdate = { ...defaultActiveValidatorsUpdate };
 		const partnerValidators: any = {
 			certificateThreshold: BigInt(10),
-			activeValidators: activeValidatorsUpdate.map(v => ({
-				blsKey: v.blsKey,
-				bftWeight: v.bftWeight + BigInt(1),
+			activeValidators: activeValidatorsUpdate.blsKeysUpdate.map((v, i) => ({
+				blsKey: v,
+				bftWeight: activeValidatorsUpdate.bftWeightsUpdate[i] + BigInt(1),
 			})),
 		};
-		activeValidatorsUpdate.sort((a, b) => a.blsKey.compare(b.blsKey));
 		const validatorsHash = computeValidatorsHash(
-			activeValidatorsUpdate,
+			partnerValidators.activeValidators,
 			partnerValidators.certificateThreshold,
 		);
 
@@ -297,6 +301,12 @@ describe('Utils', () => {
 			activeValidatorsUpdate,
 			certificateThreshold: BigInt(10),
 		};
+
+		beforeEach(() => {
+			jest
+				.spyOn(interopUtils, 'calculateNewActiveValidators')
+				.mockReturnValue(partnerValidators.activeValidators);
+		});
 
 		it('should return VerifyStatus.FAIL when certificate is empty', () => {
 			const txParamsWithIncorrectHash = { ...txParams, certificate: EMPTY_BYTES };
@@ -360,10 +370,14 @@ describe('Utils', () => {
 			expect(error).toBeUndefined();
 		});
 
-		it('should return VerifyStatus.OK when activeValidatorsUpdate.length === 0 and certificateThreshold === 0', () => {
+		it('should return VerifyStatus.OK when activeValidatorsUpdateis empty and certificateThreshold === 0', () => {
 			const ineligibleTxParams = {
 				...txParams,
-				activeValidatorsUpdate: [],
+				activeValidatorsUpdate: {
+					bftWeightsUpdate: [],
+					bftWeightsUpdateBitmap: Buffer.from([]),
+					blsKeysUpdate: [],
+				},
 				certificateThreshold: BigInt(0),
 			};
 			const { status, error } = checkValidatorsHashWithCertificate(
@@ -385,9 +399,16 @@ describe('Utils', () => {
 			expect(error).toBeUndefined();
 		});
 
-		it('should return VerifyStatus.OK when certificateThreshold > 0 but activeValidatorsUpdate.length === 0', () => {
+		it('should return VerifyStatus.OK when certificateThreshold > 0 but activeValidatorsUpdate is empty', () => {
 			const { status, error } = checkValidatorsHashWithCertificate(
-				{ ...txParams, activeValidatorsUpdate: [] },
+				{
+					...txParams,
+					activeValidatorsUpdate: {
+						bftWeightsUpdate: [],
+						bftWeightsUpdateBitmap: Buffer.from([]),
+						blsKeysUpdate: [],
+					},
+				},
 				partnerValidators,
 			);
 
@@ -397,7 +418,7 @@ describe('Utils', () => {
 	});
 
 	describe('checkInboxUpdateValidity', () => {
-		const activeValidatorsUpdate = [...defaultActiveValidatorsUpdate];
+		const activeValidatorsUpdate = { ...defaultActiveValidatorsUpdate };
 
 		const partnerChainOutboxRoot = cryptography.utils.getRandomBytes(HASH_LENGTH);
 		const inboxTree = {
@@ -735,7 +756,7 @@ describe('Utils', () => {
 	describe('commonCCUExecutelogic', () => {
 		const chainIDBuffer = Buffer.from([0, 0, 0, 1]);
 		const defaultCalculatedRootFromRightWitness = cryptography.utils.getRandomBytes(20);
-		let activeValidatorsUpdate: any;
+		let activeValidatorsUpdate: ActiveValidatorsUpdate;
 		let inboxUpdate: InboxUpdate;
 		let certificate: any;
 		let partnerChainAccount: any;
@@ -749,12 +770,16 @@ describe('Utils', () => {
 		let calculateRootFromRightWitness: any;
 
 		beforeEach(async () => {
-			activeValidatorsUpdate = [
-				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
-				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
-				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(4) },
-				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
-			];
+			activeValidatorsUpdate = {
+				blsKeysUpdate: [
+					utils.getRandomBytes(48),
+					utils.getRandomBytes(48),
+					utils.getRandomBytes(48),
+					utils.getRandomBytes(48),
+				].sort((v1, v2) => v1.compare(v2)),
+				bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4), BigInt(3)],
+				bftWeightsUpdateBitmap: Buffer.from([1, 0, 2]),
+			};
 			inboxUpdate = {
 				crossChainMessages: [Buffer.alloc(1)],
 				messageWitnessHashes: [Buffer.alloc(1)],
@@ -1028,7 +1053,11 @@ describe('Utils', () => {
 			signature: utils.getRandomBytes(32),
 		};
 		const ccuParams = {
-			activeValidatorsUpdate: [],
+			activeValidatorsUpdate: {
+				blsKeysUpdate: [],
+				bftWeightsUpdate: [],
+				bftWeightsUpdateBitmap: Buffer.from([]),
+			},
 			certificate: codec.encode(certificateSchema, certificate),
 			inboxUpdate: {
 				crossChainMessages: [utils.getRandomBytes(100)],
