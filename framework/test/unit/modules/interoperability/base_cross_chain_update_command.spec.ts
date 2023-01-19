@@ -94,14 +94,24 @@ describe('BaseCrossChainUpdateCommand', () => {
 		sendingChainID: EMPTY_BYTES,
 		status: 0,
 	};
+	const activeValidators = [
+		{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) },
+		{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(3) },
+		{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(4) },
+		{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(2) },
+	].sort((v1, v2) => v1.blsKey.compare(v2.blsKey));
 	const defaultSendingChainID = Buffer.from([0, 0, 2, 0]);
 	const params = {
-		activeValidatorsUpdate: [
-			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) },
-			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(3) },
-			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(4) },
-			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(3) },
-		].sort((v1, v2) => v1.blsKey.compare(v2.blsKey)),
+		activeValidatorsUpdate: {
+			blsKeysUpdate: [
+				utils.getRandomBytes(48),
+				utils.getRandomBytes(48),
+				utils.getRandomBytes(48),
+				utils.getRandomBytes(48),
+			].sort((v1, v2) => v1.compare(v2)),
+			bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4), BigInt(3)],
+			bftWeightsUpdateBitmap: Buffer.from([1, 0, 2]),
+		},
 		certificate: codec.encode(certificateSchema, {
 			blockID: utils.getRandomBytes(32),
 			height: 21,
@@ -266,7 +276,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				.get(ChainAccountStore)
 				.set(stateStore, defaultSendingChainID, partnerChainAccount);
 			await interopsModule.stores.get(ChainValidatorsStore).set(stateStore, defaultSendingChainID, {
-				activeValidators: params.activeValidatorsUpdate,
+				activeValidators,
 				certificateThreshold: params.certificateThreshold,
 			});
 		});
@@ -294,9 +304,11 @@ describe('BaseCrossChainUpdateCommand', () => {
 					...verifyContext,
 					params: {
 						...params,
-						activeValidatorsUpdate: [
-							{ bftWeight: BigInt(0), blsKey: utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH) },
-						],
+						activeValidatorsUpdate: {
+							blsKeysUpdate: [utils.getRandomBytes(48)],
+							bftWeightsUpdate: [],
+							bftWeightsUpdateBitmap: Buffer.from([1]),
+						},
 					},
 				}),
 			).resolves.toBeUndefined();
@@ -365,7 +377,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				.get(ChainAccountStore)
 				.set(stateStore, defaultSendingChainID, partnerChainAccount);
 			await interopsModule.stores.get(ChainValidatorsStore).set(stateStore, defaultSendingChainID, {
-				activeValidators: params.activeValidatorsUpdate,
+				activeValidators,
 				certificateThreshold: params.certificateThreshold,
 			});
 			await interopsModule.stores
