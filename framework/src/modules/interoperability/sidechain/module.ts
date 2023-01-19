@@ -25,12 +25,12 @@ import {
 	genesisInteroperabilitySchema,
 } from '../schemas';
 import {
-	chainAccountSchema,
+	chainDataSchema,
 	allChainAccountsSchema,
 	ChainAccountStore,
 } from '../stores/chain_account';
 import { ChannelDataStore, channelSchema } from '../stores/channel_data';
-import { ownChainAccountSchema, OwnChainAccountStore } from '../stores/own_chain_account';
+import { ownchainDataSchema, OwnChainAccountStore } from '../stores/own_chain_account';
 import { terminatedStateSchema } from '../stores/terminated_state';
 import { terminatedOutboxSchema } from '../stores/terminated_outbox';
 import { OutboxRootStore } from '../stores/outbox_root';
@@ -146,7 +146,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 				{
 					name: this.endpoint.getChainAccount.name,
 					request: getChainAccountRequestSchema,
-					response: chainAccountSchema,
+					response: chainDataSchema,
 				},
 				{
 					name: this.endpoint.getAllChainAccounts.name,
@@ -160,7 +160,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 				},
 				{
 					name: this.endpoint.getOwnChainAccount.name,
-					response: ownChainAccountSchema,
+					response: ownchainDataSchema,
 				},
 				{
 					name: this.endpoint.getTerminatedStateAccount.name,

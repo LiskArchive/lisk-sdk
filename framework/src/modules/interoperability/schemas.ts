@@ -27,11 +27,11 @@ import {
 	MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH,
 	HASH_LENGTH,
 } from './constants';
-import { chainAccountSchema } from './stores/chain_account';
+import { chainDataSchema } from './stores/chain_account';
 import { chainValidatorsSchema } from './stores/chain_validators';
 import { channelSchema } from './stores/channel_data';
 import { outboxRootSchema } from './stores/outbox_root';
-import { ownChainAccountSchema } from './stores/own_chain_account';
+import { ownchainDataSchema } from './stores/own_chain_account';
 import { registeredNamesSchema } from './stores/registered_names';
 import { terminatedOutboxSchema } from './stores/terminated_outbox';
 import { terminatedStateSchema } from './stores/terminated_state';
@@ -632,7 +632,7 @@ export const genesisInteroperabilitySchema = {
 						fieldNumber: 1,
 					},
 					storeValue: {
-						...chainAccountSchema,
+						...chainDataSchema,
 						fieldNumber: 2,
 					},
 				},
@@ -686,7 +686,7 @@ export const genesisInteroperabilitySchema = {
 						fieldNumber: 1,
 					},
 					storeValue: {
-						...ownChainAccountSchema,
+						...ownchainDataSchema,
 						fieldNumber: 2,
 					},
 				},

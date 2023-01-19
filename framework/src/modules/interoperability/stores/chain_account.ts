@@ -85,7 +85,7 @@ const chainAccountJSONSchema = {
 };
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#chain-data-substore
-export const chainAccountSchema = {
+export const chainDataSchema = {
 	$id: '/modules/interoperability/chainAccount',
 	...chainAccountJSONSchema,
 };
@@ -103,7 +103,7 @@ export const allChainAccountsSchema = {
 };
 
 export class ChainAccountStore extends BaseStore<ChainAccount> {
-	public schema = chainAccountSchema;
+	public schema = chainDataSchema;
 
 	public async getAllAccounts(
 		context: ImmutableStoreGetter,
