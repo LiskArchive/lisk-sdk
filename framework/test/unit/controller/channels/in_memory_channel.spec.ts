@@ -30,7 +30,9 @@ describe('InMemoryChannel Channel', () => {
 		db: {
 			newReadWriter: jest.fn(),
 		} as never,
-		moduleDB: jest.fn() as never,
+		moduleDB: {
+			write: jest.fn(),
+		} as never,
 		events: ['event1', 'event2'],
 		endpoints: {
 			action1: jest.fn(),
@@ -206,6 +208,17 @@ describe('InMemoryChannel Channel', () => {
 					.getImmutableMethodContext()
 					.getStore(Buffer.from([0, 0, 0, 0]), Buffer.from([0, 0, 0, 0])),
 			).toBeInstanceOf(PrefixedStateReadWriter);
+		});
+
+		it('should store changes to the module DB', async () => {
+			// Arrange
+			const actionFullName = `${inMemoryChannel.namespace}_${actionName}`;
+
+			// Act
+			await inMemoryChannel.invoke({ methodName: actionFullName, context: {} });
+
+			// Assert
+			expect(inMemoryChannel['_moduleDB'].write).toHaveBeenCalledTimes(1);
 		});
 
 		it('should call bus.invoke if the action module is different to moduleName', async () => {
