@@ -38,6 +38,7 @@ import {
 } from './utils';
 import { ChainValidatorsStore } from './stores/chain_validators';
 import { ChannelDataStore } from './stores/channel_data';
+import { OwnChainAccountStore } from './stores/own_chain_account';
 
 export abstract class BaseCrossChainUpdateCommand<
 	T extends BaseInteroperabilityInternalMethod,
@@ -292,7 +293,9 @@ export abstract class BaseCrossChainUpdateCommand<
 			});
 		}
 	}
-
+	/**
+	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#bounce
+	 */
 	protected async bounce(
 		context: CrossChainMessageContext,
 		ccmSize: number,
@@ -321,14 +324,21 @@ export abstract class BaseCrossChainUpdateCommand<
 			receivingChainID: ccm.sendingChainID,
 			fee: ccmStatusCode === CCMStatusCode.FAILED_CCM ? BigInt(0) : ccm.fee - minFee,
 		};
+
 		let partnerChainID: Buffer;
 		const doesReceivingChainExist = await this.stores
 			.get(ChainAccountStore)
 			.has(context, bouncedCCM.receivingChainID);
-		if (!doesReceivingChainExist) {
-			partnerChainID = getMainchainID(bouncedCCM.receivingChainID);
-		} else {
+
+		const mainchainID = getMainchainID(bouncedCCM.receivingChainID);
+		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
+		// Processing on the mainchain
+		if (ownChainAccount.chainID.equals(mainchainID)) {
 			partnerChainID = bouncedCCM.receivingChainID;
+			// Processing on a sidechain
+		} else {
+			// Check for direct channel
+			partnerChainID = doesReceivingChainExist ? bouncedCCM.receivingChainID : mainchainID;
 		}
 
 		await this.internalMethod.addToOutbox(context, partnerChainID, bouncedCCM);

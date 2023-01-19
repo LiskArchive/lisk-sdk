@@ -64,6 +64,7 @@ import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules
 import { getMainchainID } from '../../../../src/modules/interoperability/utils';
 import { BaseInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/base_interoperability_internal_methods';
 import { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../../../../src/modules/token/constants';
+import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
 
 class CrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -1024,12 +1025,24 @@ describe('BaseCrossChainUpdateCommand', () => {
 	describe('bounce', () => {
 		const ccmStatus = CCMStatusCode.MODULE_NOT_SUPPORTED;
 		const ccmProcessedEventCode = CCMProcessedCode.MODULE_NOT_SUPPORTED;
+		let stateStore: PrefixedStateReadWriter;
+
+		beforeEach(async () => {
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+			await interopsModule.stores.get(OwnChainAccountStore).set(stateStore, EMPTY_BYTES, {
+				chainID: Buffer.from('11111111', 'hex'),
+				name: 'ownChain',
+				nonce: BigInt(1),
+			});
+		});
+
 		it('should log event when status is not ok', async () => {
 			context = createCrossChainMessageContext({
 				ccm: {
 					...defaultCCM,
 					status: CCMStatusCode.MODULE_NOT_SUPPORTED,
 				},
+				stateStore,
 			});
 
 			await expect(
@@ -1056,6 +1069,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: CCMStatusCode.OK,
 					fee: BigInt(1),
 				},
+				stateStore,
 			});
 
 			await expect(
@@ -1085,6 +1099,43 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: CCMStatusCode.OK,
 					fee: BigInt(100000000000),
 				},
+				stateStore,
+			});
+
+			await expect(
+				command['bounce'](context, 100, ccmStatus, ccmProcessedEventCode),
+			).resolves.toBeUndefined();
+
+			expect(internalMethod.addToOutbox).toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.sendingChainID,
+				{
+					...defaultCCM,
+					status: ccmStatus,
+					sendingChainID: defaultCCM.receivingChainID,
+					receivingChainID: defaultCCM.sendingChainID,
+					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
+				},
+			);
+		});
+
+		it('should add returning ccm to the sending chain outbox when ownChainID is mainchainID', async () => {
+			const chainAccountStore = command['stores'].get(ChainAccountStore);
+			jest.spyOn(chainAccountStore, 'has').mockResolvedValue(false);
+
+			await interopsModule.stores.get(OwnChainAccountStore).set(stateStore, EMPTY_BYTES, {
+				chainID: getMainchainID(defaultCCM.receivingChainID),
+				name: 'mainchain',
+				nonce: BigInt(1),
+			});
+
+			context = createCrossChainMessageContext({
+				ccm: {
+					...defaultCCM,
+					status: CCMStatusCode.OK,
+					fee: BigInt(100000000000),
+				},
+				stateStore,
 			});
 
 			await expect(
@@ -1114,6 +1165,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: CCMStatusCode.OK,
 					fee: BigInt(100000000000),
 				},
+				stateStore,
 			});
 
 			await expect(
@@ -1140,6 +1192,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: CCMStatusCode.OK,
 					fee: BigInt(100000000000),
 				},
+				stateStore,
 			});
 
 			await expect(
