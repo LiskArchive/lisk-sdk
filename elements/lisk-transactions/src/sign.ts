@@ -54,7 +54,11 @@ export const getSigningBytes = (
 	if (validationErrors) {
 		throw validationErrors;
 	}
-	if (typeof transactionObject.params !== 'object' || transactionObject.params === null) {
+	if (
+		typeof transactionObject.params !== 'object' ||
+		transactionObject.params === null ||
+		!paramsSchema
+	) {
 		const transactionBytes = codec.encode(baseTransactionSchema, {
 			...transactionObject,
 			params: Buffer.alloc(0),
@@ -94,7 +98,11 @@ export const getBytes = (
 	transactionObject: Record<string, unknown>,
 	paramsSchema?: object,
 ): Buffer => {
-	if (typeof transactionObject.params !== 'object' || transactionObject.params === null) {
+	if (
+		typeof transactionObject.params !== 'object' ||
+		transactionObject.params === null ||
+		!paramsSchema
+	) {
 		const transactionBytes = codec.encode(baseTransactionSchema, {
 			...transactionObject,
 			params: Buffer.alloc(0),
