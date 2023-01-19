@@ -34,7 +34,6 @@ describe('RewardModule', () => {
 			'100000000', // Milestone 4
 		],
 		tokenID: '0000000000000000',
-		blockTime: 10,
 	};
 
 	let rewardModule: RewardModule;
@@ -68,12 +67,11 @@ describe('RewardModule', () => {
 			await expect(
 				rewardModule.init({
 					genesisConfig: { chainID: '00000000' } as any,
-					moduleConfig: { offset: 1000, blockTime: 7 },
+					moduleConfig: { offset: 1000 },
 				}),
 			).toResolve();
 
 			expect(rewardModule['_moduleConfig'].offset).toBe(1000);
-			expect(rewardModule['_moduleConfig'].blockTime).toBe(7);
 		});
 
 		it('should not initialize config with invalid value for tokenID', async () => {

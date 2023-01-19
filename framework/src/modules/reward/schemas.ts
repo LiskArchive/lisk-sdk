@@ -37,12 +37,8 @@ export const configSchema = {
 				format: 'uint64',
 			},
 		},
-		blockTime: {
-			type: 'integer',
-			minimum: 1,
-		},
 	},
-	required: ['tokenID', 'offset', 'distance', 'brackets', 'blockTime'],
+	required: ['tokenID', 'offset', 'distance', 'brackets'],
 };
 
 export const getDefaultRewardAtHeightRequestSchema = {

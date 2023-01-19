@@ -119,7 +119,7 @@ export class DynamicRewardModule extends BaseModule {
 
 		this.method.init({ config: this._moduleConfig });
 
-		this.endpoint.init(this._moduleConfig);
+		this.endpoint.init(this._moduleConfig, args.genesisConfig.blockTime);
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {

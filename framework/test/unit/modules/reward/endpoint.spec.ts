@@ -15,7 +15,7 @@ import { RewardModule } from '../../../../src/modules/reward';
 import { createTransientModuleEndpointContext } from '../../../../src/testing';
 
 describe('RewardModuleEndpoint', () => {
-	const genesisConfig: any = {};
+	const genesisConfig: any = { blockTime: 7 };
 	const moduleConfig: any = {
 		distance: 3000000,
 		offset: 2160,
@@ -27,7 +27,6 @@ describe('RewardModuleEndpoint', () => {
 			'100000000', // Milestone 4
 		],
 		tokenID: '0000000000000000',
-		blockTime: 7,
 	};
 
 	let rewardModule: RewardModule;
@@ -64,7 +63,7 @@ describe('RewardModuleEndpoint', () => {
 
 		// eslint-disable-next-line no-loop-func
 		it(`should getInflationRate for the ${nthBracket}th bracket`, () => {
-			const blocksPerYear = BigInt(Math.floor((365 * 24 * 60 * 60) / moduleConfig.blockTime));
+			const blocksPerYear = BigInt(Math.floor((365 * 24 * 60 * 60) / genesisConfig.blockTime));
 			const rate = blocksPerYear * BigInt(rewardFromConfigString);
 			const inflationRate = rewardModule.endpoint.getInflationRate(
 				createTransientModuleEndpointContext({

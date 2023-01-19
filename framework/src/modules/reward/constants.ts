@@ -22,5 +22,4 @@ export const defaultConfig = {
 	offset: 2160,
 	distance: 3000000,
 	brackets: ['500000000', '400000000', '300000000', '200000000', '100000000'],
-	blockTime: 10,
 };
