@@ -32,7 +32,7 @@ import { chainValidatorsSchema } from './stores/chain_validators';
 import { channelSchema } from './stores/channel_data';
 import { outboxRootSchema } from './stores/outbox_root';
 import { ownChainAccountSchema } from './stores/own_chain_account';
-import { chainIDSchema } from './stores/registered_names';
+import { registeredNamesSchema } from './stores/registered_names';
 import { terminatedOutboxSchema } from './stores/terminated_outbox';
 import { terminatedStateSchema } from './stores/terminated_state';
 
@@ -740,7 +740,7 @@ export const genesisInteroperabilitySchema = {
 						fieldNumber: 1,
 					},
 					storeValue: {
-						...chainIDSchema,
+						...registeredNamesSchema,
 						fieldNumber: 2,
 					},
 				},
