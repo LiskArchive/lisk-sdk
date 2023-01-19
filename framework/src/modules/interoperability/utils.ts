@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+/* eslint-disable no-bitwise */
 
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
@@ -38,24 +39,10 @@ import {
 import { BlockHeader, VerificationResult, VerifyStatus } from '../../state_machine';
 import { Certificate } from '../../engine/consensus/certificate_generation/types';
 import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';
-import { CommandExecuteContext } from '../../state_machine/types';
 import { certificateToJSON } from './certificates';
 import { NamedRegistry } from '../named_registry';
 import { OutboxRootStore } from './stores/outbox_root';
-import { ChannelDataStore } from './stores/channel_data';
-import { ChainValidatorsStore } from './stores/chain_validators';
-import { ChainAccountStore, ChainStatus } from './stores/chain_account';
-
-interface CommonExecutionLogicArgs {
-	stores: NamedRegistry;
-	context: CommandExecuteContext<CrossChainUpdateTransactionParams>;
-	certificate: Certificate;
-	partnerValidators: ChainValidators;
-	partnerChainAccount: ChainAccount;
-	partnerValidatorStore: ChainValidatorsStore;
-	partnerChainStore: ChainAccountStore;
-	chainIDBuffer: Buffer;
-}
+import { ChainStatus } from './stores/chain_account';
 
 export const validateFormat = (ccm: CCMsg) => {
 	validator.validate(ccmSchema, ccm);
@@ -373,51 +360,6 @@ export const checkValidatorsHashWithCertificate = (
 	};
 };
 
-export const commonCCUExecutelogic = async (args: CommonExecutionLogicArgs) => {
-	const {
-		stores,
-		certificate,
-		partnerChainAccount,
-		partnerValidatorStore,
-		partnerChainStore,
-		partnerValidators,
-		chainIDBuffer,
-		context,
-	} = args;
-	const newActiveValidators = calculateNewActiveValidators(
-		partnerValidators.activeValidators,
-		context.params.activeValidatorsUpdate.blsKeysUpdate,
-		context.params.activeValidatorsUpdate.bftWeightsUpdate,
-		context.params.activeValidatorsUpdate.bftWeightsUpdateBitmap,
-	);
-	partnerValidators.activeValidators = newActiveValidators;
-	if (context.params.certificateThreshold !== BigInt(0)) {
-		partnerValidators.certificateThreshold = context.params.certificateThreshold;
-	}
-	await partnerValidatorStore.set(context, chainIDBuffer, partnerValidators);
-	if (!context.params.certificate.equals(EMPTY_BYTES)) {
-		partnerChainAccount.lastCertificate.stateRoot = certificate.stateRoot;
-		partnerChainAccount.lastCertificate.timestamp = certificate.timestamp;
-		partnerChainAccount.lastCertificate.height = certificate.height;
-		partnerChainAccount.lastCertificate.validatorsHash = certificate.validatorsHash;
-		await partnerChainStore.set(context, chainIDBuffer, partnerChainAccount);
-	}
-
-	const partnerChannelStore = stores.get(ChannelDataStore);
-	const partnerChannelData = await partnerChannelStore.get(context, chainIDBuffer);
-	const { inboxUpdate } = context.params;
-	if (inboxUpdate.messageWitnessHashes.length === 0) {
-		partnerChannelData.partnerChainOutboxRoot = partnerChannelData.inbox.root;
-	} else {
-		partnerChannelData.partnerChainOutboxRoot = regularMerkleTree.calculateRootFromRightWitness(
-			partnerChannelData.inbox.size,
-			partnerChannelData.inbox.appendPath,
-			inboxUpdate.messageWitnessHashes,
-		);
-	}
-	await partnerChannelStore.set(context, chainIDBuffer, partnerChannelData);
-};
-
 export const chainAccountToJSON = (chainAccount: ChainAccount) => {
 	const { lastCertificate, name, status } = chainAccount;
 
@@ -465,8 +407,29 @@ export const emptyActiveValidatorsUpdate = (value: ActiveValidatorsUpdate): bool
 	value.bftWeightsUpdateBitmap.length === 0;
 
 export const calculateNewActiveValidators = (
-	_activeValidators: ActiveValidators[],
-	_blskyesUpdate: Buffer[],
-	_bftWeightsUpdate: bigint[],
-	_bftWeightsUpdateBitmap: Buffer,
-): ActiveValidators[] => [];
+	activeValidators: ActiveValidators[],
+	blskeysUpdate: Buffer[],
+	bftWeightsUpdate: bigint[],
+	bftWeightsUpdateBitmap: Buffer,
+): ActiveValidators[] => {
+	const newValidators = blskeysUpdate.map(blsKey => ({
+		blsKey,
+		bftWeight: BigInt(0),
+	}));
+	const newActiveValidators = [...activeValidators, ...newValidators];
+	newActiveValidators.sort((a, b) => a.blsKey.compare(b.blsKey));
+	const intBitmap = BigInt(`0x${bftWeightsUpdateBitmap.toString('hex')}`);
+	let weightUsed = 0;
+	for (let i = 0; i < newActiveValidators.length; i += 1) {
+		// Get digit of bitmap at index idx (starting from the right) and check if it is 1.
+		if (((intBitmap >> BigInt(i)) & BigInt(1)) === BigInt(1)) {
+			newActiveValidators[i].bftWeight = bftWeightsUpdate[weightUsed];
+			weightUsed += 1;
+		}
+	}
+	if (weightUsed !== bftWeightsUpdate.length) {
+		throw new Error('No BFT weights should be left.');
+	}
+
+	return newActiveValidators.filter(v => v.bftWeight > BigInt(0));
+};
