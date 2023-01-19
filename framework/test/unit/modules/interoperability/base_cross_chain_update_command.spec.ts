@@ -295,7 +295,22 @@ describe('BaseCrossChainUpdateCommand', () => {
 						certificate: Buffer.alloc(0),
 					},
 				}),
-			).rejects.toThrow('The first CCU must contain a non-empty certificate');
+			).rejects.toThrow(
+				'Cross-chain updates from chains with status CHAIN_STATUS_REGISTERED must contain a non-empty certificate',
+			);
+		});
+
+		it('should verify certificate when certificate is not empty', async () => {
+			await expect(
+				command['verifyCommon']({
+					...verifyContext,
+					params: {
+						...params,
+					},
+				}),
+			).resolves.toBeUndefined();
+
+			expect(internalMethod.verifyCertificate).toHaveBeenCalledTimes(1);
 		});
 
 		it('should verify validators update when active validator update exist', async () => {
@@ -330,7 +345,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			expect(internalMethod.verifyValidatorsUpdate).toHaveBeenCalledTimes(1);
 		});
 
-		it('should verify partnerchain outbox root when inbox is not empty', async () => {
+		it('should verify partnerchain outbox root when inboxUpdate is not empty', async () => {
 			await expect(
 				command['verifyCommon']({
 					...verifyContext,
