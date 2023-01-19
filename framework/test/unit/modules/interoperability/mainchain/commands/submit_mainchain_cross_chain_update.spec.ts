@@ -298,6 +298,28 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			).rejects.toThrow('.sendingChainID');
 		});
 
+		it('should reject when certificate and inboxUpdate are empty', async () => {
+			await expect(
+				mainchainCCUUpdateCommand.verify({
+					...verifyContext,
+					params: {
+						...params,
+						certificate: Buffer.alloc(0),
+						inboxUpdate: {
+							crossChainMessages: [],
+							messageWitnessHashes: [],
+							outboxRootWitness: {
+								bitmap: Buffer.alloc(0),
+								siblingHashes: [],
+							},
+						},
+					} as any,
+				}),
+			).rejects.toThrow(
+				'A cross-chain update must contain a non-empty certificate and/or a non-empty inbox update.',
+			);
+		});
+
 		it('should return error when sending chain not live', async () => {
 			jest.spyOn(mainchainCCUUpdateCommand['internalMethod'], 'isLive').mockResolvedValue(false);
 			await expect(mainchainCCUUpdateCommand.verify(verifyContext)).rejects.toThrow(
@@ -326,6 +348,41 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			).rejects.toThrow(
 				'The first CCU with a non-empty inbox update cannot contain a certificate older',
 			);
+		});
+
+		it('should not reject when first CCU contains a certificate older than LIVENESS_LIMIT / 2 when inboxUpdate is empty', async () => {
+			await interopMod.stores.get(ChainAccountStore).set(stateStore, params.sendingChainID, {
+				...partnerChainAccount,
+				status: ChainStatus.REGISTERED,
+			});
+
+			jest
+				.spyOn(mainchainCCUUpdateCommand, 'verifyCommon' as never)
+				.mockResolvedValue(undefined as never);
+
+			await expect(
+				mainchainCCUUpdateCommand.verify({
+					...verifyContext,
+					header: { timestamp: Math.floor(Date.now() / 1000), height: 0 },
+					params: {
+						...params,
+						certificate: codec.encode(certificateSchema, {
+							...defaultCertificateValues,
+							timestamp: 0,
+						}),
+						inboxUpdate: {
+							crossChainMessages: [],
+							messageWitnessHashes: [],
+							outboxRootWitness: {
+								bitmap: Buffer.alloc(0),
+								siblingHashes: [],
+							},
+						},
+					},
+				}),
+			).resolves.toEqual({ status: VerifyStatus.OK });
+
+			expect(mainchainCCUUpdateCommand['verifyCommon']).toHaveBeenCalledTimes(1);
 		});
 
 		it('should call verifyCommon', async () => {
