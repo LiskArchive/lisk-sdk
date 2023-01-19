@@ -68,3 +68,19 @@ export const getDefaultRewardAtHeightResponseSchema = {
 		},
 	},
 };
+
+export const getInflationRateResponseSchema = {
+	$id: '/reward/endpoint/getInflationRateResponse',
+	type: 'object',
+	required: ['tokenID', 'rate'],
+	properties: {
+		tokenID: {
+			type: 'string',
+			format: 'hex',
+		},
+		rate: {
+			type: 'string',
+			format: 'uint64',
+		},
+	},
+};
