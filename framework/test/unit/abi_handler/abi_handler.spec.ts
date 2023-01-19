@@ -15,7 +15,7 @@ import * as fs from 'fs';
 import { Block, BlockAssets, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { InMemoryDatabase, StateDB } from '@liskhq/lisk-db';
+import { StateDB } from '@liskhq/lisk-db';
 import { BaseModule, TokenModule } from '../../../src';
 import { ABIHandler } from '../../../src/abi_handler/abi_handler';
 import { transferParamsSchema } from '../../../src/modules/token/schemas';
@@ -55,7 +55,9 @@ describe('abi handler', () => {
 			logger: fakeLogger,
 			channel: channelMock,
 			stateDB: stateDBMock as never,
-			moduleDB: new InMemoryDatabase() as never,
+			moduleDB: {
+				write: jest.fn(),
+			} as never,
 			stateMachine,
 			modules: [mod2, mod],
 			config: {
@@ -82,7 +84,9 @@ describe('abi handler', () => {
 				logger: fakeLogger,
 				channel: channelMock,
 				stateDB: stateDBMock as never,
-				moduleDB: new InMemoryDatabase() as never,
+				moduleDB: {
+					write: jest.fn(),
+				} as never,
 				stateMachine,
 				modules: [mod],
 				config: {
@@ -239,6 +243,17 @@ describe('abi handler', () => {
 			expect(abiHandler['_stateMachine'].insertAssets).toHaveBeenCalledTimes(1);
 
 			expect(resp.assets).toEqual([]);
+		});
+
+		it('should write to the module DB', async () => {
+			const { contextID } = await abiHandler.initStateMachine({
+				header: createFakeBlockHeader().toObject(),
+			});
+			await abiHandler.insertAssets({
+				contextID,
+				finalizedHeight: 0,
+			});
+			expect(abiHandler['_moduleDB'].write).toHaveBeenCalledTimes(1);
 		});
 	});
 
