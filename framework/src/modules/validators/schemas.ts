@@ -11,18 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-export const configSchema = {
-	$id: '/validators/config',
-	type: 'object',
-	properties: {
-		blockTime: {
-			type: 'integer',
-			format: 'uint32',
-			minimum: 1,
-		},
-	},
-	required: ['blockTime'],
-};
 
 export interface ValidateBLSKeyRequest {
 	proofOfPossession: string;

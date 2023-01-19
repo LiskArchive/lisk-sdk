@@ -12,13 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { objects } from '@liskhq/lisk-utils';
-import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { defaultConfig } from './constants';
 import { ValidatorsMethod } from './method';
 import { ValidatorsEndpoint } from './endpoint';
-import { configSchema, validateBLSKeyRequestSchema, validateBLSKeyResponseSchema } from './schemas';
+import { validateBLSKeyRequestSchema, validateBLSKeyResponseSchema } from './schemas';
 import { ValidatorKeysStore } from './stores/validator_keys';
 import { BLSKeyStore } from './stores/bls_keys';
 import { GeneratorKeyRegistrationEvent } from './events/generator_key_registration';
@@ -59,11 +56,7 @@ export class ValidatorsModule extends BaseModule {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs): Promise<void> {
-		const { moduleConfig } = args;
-		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
-		validator.validate(configSchema, config);
-
-		this._blockTime = config.blockTime as number;
+		this._blockTime = args.genesisConfig.blockTime;
 
 		this.method.init({
 			config: {
