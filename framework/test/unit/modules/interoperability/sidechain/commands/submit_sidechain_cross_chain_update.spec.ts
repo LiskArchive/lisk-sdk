@@ -23,6 +23,7 @@ import {
 } from '../../../../../../src';
 import {
 	ActiveValidator,
+	ActiveValidatorsUpdate,
 	CCMsg,
 	ChainAccount,
 	ChannelData,
@@ -131,7 +132,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 	let sidechainCCUUpdateCommand: SubmitSidechainCrossChainUpdateCommand;
 	let params: CrossChainUpdateTransactionParams;
 	let activeValidatorsUpdate: ActiveValidator[];
-	let sortedActiveValidatorsUpdate: ActiveValidator[];
+	let sortedActiveValidatorsUpdate: ActiveValidatorsUpdate;
 	let partnerChainStore: ChainAccountStore;
 	let partnerChannelStore: ChannelDataStore;
 	let partnerValidatorStore: ChainValidatorsStore;
@@ -179,9 +180,16 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			validatorsHash,
 		});
 
-		sortedActiveValidatorsUpdate = [...activeValidatorsUpdate].sort((v1, v2) =>
-			v1.blsKey.compare(v2.blsKey),
-		);
+		sortedActiveValidatorsUpdate = {
+			blsKeysUpdate: [
+				utils.getRandomBytes(48),
+				utils.getRandomBytes(48),
+				utils.getRandomBytes(48),
+				utils.getRandomBytes(48),
+			].sort((v1, v2) => v1.compare(v2)),
+			bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4), BigInt(3)],
+			bftWeightsUpdateBitmap: Buffer.from([15]),
+		};
 		partnerChainAccount = {
 			lastCertificate: {
 				height: 10,

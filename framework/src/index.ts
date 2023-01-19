@@ -96,6 +96,7 @@ export {
 	InboxUpdate,
 	CrossChainUpdateTransactionParams,
 	ActiveValidator,
+	ActiveValidatorsUpdate,
 	OutboxRootWitness,
 	LIVENESS_LIMIT,
 	MESSAGE_TAG_CERTIFICATE,

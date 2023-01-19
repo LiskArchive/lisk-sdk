@@ -54,7 +54,7 @@ export class RandomEndpoint extends BaseEndpoint {
 		};
 	}
 
-	public async setHashOnion(ctx: ModuleEndpointContext): Promise<void> {
+	public async setHashOnion(ctx: ModuleEndpointContext): Promise<{ updated: boolean }> {
 		validator.validate<SetHashOnionRequest>(setHashOnionRequestSchema, ctx.params);
 
 		const address = cryptography.address.getAddressFromLisk32Address(ctx.params.address);
@@ -68,6 +68,7 @@ export class RandomEndpoint extends BaseEndpoint {
 		const hashOnion = { count, distance, hashes };
 		const hashOnionStore = this.offchainStores.get(HashOnionStore);
 		await hashOnionStore.set(ctx, address, hashOnion);
+		return { updated: true };
 	}
 
 	public async getHashOnionSeeds(ctx: ModuleEndpointContext): Promise<GetSeedsResponse> {

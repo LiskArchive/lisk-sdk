@@ -29,7 +29,13 @@ import {
 	TokenMethod,
 } from './types';
 import { ChainAccountStore, ChainStatus } from './stores/chain_account';
-import { getEncodedCCMAndID, getMainchainID, isInboxUpdateEmpty, validateFormat } from './utils';
+import {
+	emptyActiveValidatorsUpdate,
+	getEncodedCCMAndID,
+	getMainchainID,
+	isInboxUpdateEmpty,
+	validateFormat,
+} from './utils';
 import { ChainValidatorsStore } from './stores/chain_validators';
 import { ChannelDataStore } from './stores/channel_data';
 
@@ -63,7 +69,7 @@ export abstract class BaseCrossChainUpdateCommand<
 			.get(ChainValidatorsStore)
 			.get(context, params.sendingChainID);
 		if (
-			params.activeValidatorsUpdate.length > 0 ||
+			!emptyActiveValidatorsUpdate(params.activeValidatorsUpdate) ||
 			params.certificateThreshold !== sendingChainValidators.certificateThreshold
 		) {
 			await this.internalMethod.verifyValidatorsUpdate(context, params);
@@ -140,7 +146,7 @@ export abstract class BaseCrossChainUpdateCommand<
 			.get(ChainValidatorsStore)
 			.get(context, params.sendingChainID);
 		if (
-			params.activeValidatorsUpdate.length > 0 ||
+			!emptyActiveValidatorsUpdate(params.activeValidatorsUpdate) ||
 			params.certificateThreshold !== sendingChainValidators.certificateThreshold
 		) {
 			await this.internalMethod.updateValidators(context, params);
