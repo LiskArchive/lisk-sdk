@@ -153,6 +153,7 @@ describe('BaseCCRegistrationCommand', () => {
 				'Registration message must be sent from a registered chain.',
 			);
 		});
+
 		it('should fail if ccm.sendingChainID not equal to ccu.params.sendingChainID', async () => {
 			sampleExecuteContext = createContext(ccm, {
 				sendingChainID: Buffer.from([0, 0, 0, 8]),
@@ -161,6 +162,7 @@ describe('BaseCCRegistrationCommand', () => {
 				'Registration message must be sent from a direct channel.',
 			);
 		});
+
 		it('should fail if chainAccount.status not equal to ChainStatus.REGISTERED', async () => {
 			chainAccountStoreMock.get.mockResolvedValue({
 				...fakeChainAccount,
@@ -170,6 +172,7 @@ describe('BaseCCRegistrationCommand', () => {
 				"Registration message must be sent from a chain with status 'registered'.",
 			);
 		});
+
 		it('should fail if channel.inbox.size !== 0', async () => {
 			channelStoreMock.get.mockResolvedValue({
 				inbox: {
