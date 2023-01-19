@@ -260,8 +260,8 @@ export interface RegistrationParametersValidator {
 export interface SidechainRegistrationParams {
 	name: string;
 	chainID: Buffer;
-	initValidators: RegistrationParametersValidator[];
-	certificateThreshold: bigint;
+	sidechainValidators: RegistrationParametersValidator[];
+	sidechainCertificateThreshold: bigint;
 }
 
 export interface MainchainRegistrationParams {
