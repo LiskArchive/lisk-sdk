@@ -66,10 +66,10 @@ export const getActiveValidatorsUpdate = (
 	newValidators: ActiveValidator[],
 ): ActiveValidatorsUpdate => {
 	const currentValidatorsMap = new utils.dataStructures.BufferMap<ActiveValidator>();
-	const allBLSKeysMap = new utils.dataStructures.BufferMap<Buffer>();
+	const allBLSKeysSet = new utils.dataStructures.BufferSet();
 	for (const v of currentValidators) {
 		currentValidatorsMap.set(v.blsKey, v);
-		allBLSKeysMap.set(v.blsKey, v.blsKey);
+		allBLSKeysSet.add(v.blsKey);
 	}
 
 	const validatorsUpdate: ActiveValidator[] = [];
@@ -77,7 +77,7 @@ export const getActiveValidatorsUpdate = (
 	const newBLSKeys = new utils.dataStructures.BufferSet();
 	for (const v of newValidators) {
 		newBLSKeys.add(v.blsKey);
-		allBLSKeysMap.set(v.blsKey, v.blsKey);
+		allBLSKeysSet.add(v.blsKey);
 		const currentValidator = currentValidatorsMap.get(v.blsKey);
 		// if new validator does not exist, add to the blsKeysUpdate and validatorsUpdate
 		if (!currentValidator) {
@@ -104,7 +104,7 @@ export const getActiveValidatorsUpdate = (
 	validatorsUpdate.sort((a, b) => a.blsKey.compare(b.blsKey));
 
 	const bftWeightsUpdate = validatorsUpdate.map(v => v.bftWeight);
-	const allBLSKeys = allBLSKeysMap.values();
+	const allBLSKeys = [...allBLSKeysSet];
 	allBLSKeys.sort((a, b) => a.compare(b));
 
 	let bitmap = BigInt(0);
