@@ -48,3 +48,8 @@ export interface BFTMethod {
 export interface DefaultReward {
 	reward: string;
 }
+
+export interface InflationRate {
+	tokenID: string;
+	rate: string;
+}

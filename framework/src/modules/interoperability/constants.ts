@@ -17,24 +17,23 @@ import { utils } from '@liskhq/lisk-cryptography';
 export const MODULE_NAME_INTEROPERABILITY = 'interoperability';
 
 // General constants
-export const MAINCHAIN_NAME = 'lisk-mainchain';
+export const CHAIN_NAME_MAINCHAIN = 'lisk_mainchain';
 export const MAX_RESERVED_ERROR_STATUS = 63;
 export const BLS_PUBLIC_KEY_LENGTH = 48;
 export const BLS_SIGNATURE_LENGTH = 96;
 export const SMT_KEY_LENGTH = 38;
-export const NUMBER_MAINCHAIN_VALIDATORS = 101;
-export const TAG_CHAIN_REG_MESSAGE = 'LSK_CHAIN_REGISTRATION';
+export const NUMBER_ACTIVE_VALIDATORS_MAINCHAIN = 101;
+export const MESSAGE_TAG_CHAIN_REG = 'LSK_CHAIN_REGISTRATION_';
 export const LIVENESS_LIMIT = 2592000; // 30*24*3600
 export const MAX_CCM_SIZE = 10240;
 export const EMPTY_FEE_ADDRESS = Buffer.alloc(0);
 export const EMPTY_BYTES = Buffer.alloc(0);
 export const EMPTY_HASH = utils.hash(EMPTY_BYTES);
-export const REGISTRATION_FEE = BigInt(1000000000);
+export const CHAIN_REGISTRATION_FEE = BigInt(1000000000);
 export const MAX_NUM_VALIDATORS = 199;
 export const MAX_LENGTH_NAME = 40;
 export const MAX_UINT32 = 4294967295;
 export const MAX_UINT64 = BigInt('18446744073709551615'); // BigInt((2 ** 64) - 1) - 1
-export const THRESHOLD_MAINCHAIN = 68;
 export const MESSAGE_TAG_CERTIFICATE = 'LSK_CE_';
 export const MIN_CHAIN_NAME_LENGTH = 1;
 export const MAX_CHAIN_NAME_LENGTH = 32;

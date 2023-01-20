@@ -23,7 +23,7 @@ import {
 	MAX_NUM_VALIDATORS,
 	MODULE_NAME_INTEROPERABILITY,
 	COMMAND_NAME_SIDECHAIN_REG,
-	REGISTRATION_FEE,
+	CHAIN_REGISTRATION_FEE,
 	MAX_CHAIN_NAME_LENGTH,
 	EVENT_NAME_CHAIN_ACCOUNT_UPDATED,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
@@ -43,11 +43,12 @@ import {
 } from '../../../../../../src/state_machine';
 import {
 	computeValidatorsHash,
+	getMainchainID,
 	getMainchainTokenID,
 } from '../../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
-import { MainchainInteroperabilityModule, TokenMethod, TokenModule } from '../../../../../../src';
+import { MainchainInteroperabilityModule } from '../../../../../../src';
 import { RegisteredNamesStore } from '../../../../../../src/modules/interoperability/stores/registered_names';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
 import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
@@ -72,7 +73,7 @@ describe('RegisterSidechainCommand', () => {
 	const transactionParams = {
 		name: 'sidechain',
 		chainID: newChainID,
-		initValidators: [
+		sidechainValidators: [
 			{
 				blsKey: Buffer.from(
 					'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
@@ -88,8 +89,8 @@ describe('RegisterSidechainCommand', () => {
 				bftWeight: BigInt(10),
 			},
 		],
-		certificateThreshold: BigInt(10),
-		sidechainRegistrationFee: REGISTRATION_FEE,
+		sidechainCertificateThreshold: BigInt(10),
+		sidechainRegistrationFee: CHAIN_REGISTRATION_FEE,
 	};
 	const encodedTransactionParams = codec.encode(sidechainRegParams, transactionParams);
 	const publicKey = utils.getRandomBytes(32);
@@ -98,11 +99,10 @@ describe('RegisterSidechainCommand', () => {
 		command: COMMAND_NAME_SIDECHAIN_REG,
 		senderPublicKey: publicKey,
 		nonce: BigInt(0),
-		fee: BigInt(100000000),
+		fee: BigInt(10000000000),
 		params: encodedTransactionParams,
 		signatures: [publicKey],
 	});
-	const tokenModule = new TokenModule();
 	const chainAccount: ChainAccount = {
 		name: 'sidechain',
 		lastCertificate: {
@@ -110,8 +110,8 @@ describe('RegisterSidechainCommand', () => {
 			timestamp: 0,
 			stateRoot: EMPTY_HASH,
 			validatorsHash: computeValidatorsHash(
-				transactionParams.initValidators,
-				transactionParams.certificateThreshold,
+				transactionParams.sidechainValidators,
+				transactionParams.sidechainCertificateThreshold,
 			),
 		},
 		status: 0,
@@ -127,7 +127,6 @@ describe('RegisterSidechainCommand', () => {
 	let chainValidatorsSubstore: ChainValidatorsStore;
 	let registeredNamesSubstore: RegisteredNamesStore;
 	let verifyContext: CommandVerifyContext<SidechainRegistrationParams>;
-	let tokenMethod: TokenMethod;
 
 	beforeEach(async () => {
 		sidechainRegistrationCommand = new RegisterSidechainCommand(
@@ -139,10 +138,7 @@ describe('RegisterSidechainCommand', () => {
 		);
 
 		// Set up dependencies
-		tokenMethod = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
-		jest.spyOn(tokenMethod, 'getAvailableBalance').mockResolvedValue(REGISTRATION_FEE);
-		jest.spyOn(tokenMethod, 'burn').mockResolvedValue();
-		sidechainRegistrationCommand.addDependencies(tokenMethod, { payFee: jest.fn() });
+		sidechainRegistrationCommand.addDependencies({ payFee: jest.fn() });
 
 		// Initialize stores
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -209,7 +205,7 @@ describe('RegisterSidechainCommand', () => {
 		it('should return error if store key name already exists in name store', async () => {
 			await nameSubstore.set(
 				createStoreGetter(stateStore),
-				Buffer.from(transactionParams.name, 'utf8'),
+				Buffer.from(transactionParams.name, 'ascii'),
 				{ chainID: utils.intToBuffer(0, 4) },
 			);
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
@@ -245,8 +241,16 @@ describe('RegisterSidechainCommand', () => {
 			expect(result.error?.message).toInclude('Chain ID does not match the mainchain network.');
 		});
 
-		it(`should return error if initValidators array count exceeds ${MAX_NUM_VALIDATORS}`, async () => {
-			verifyContext.params.initValidators = new Array(MAX_NUM_VALIDATORS + 2).fill({
+		it('should return error if chainID equals the mainchain chain ID', async () => {
+			verifyContext.params.chainID = getMainchainID(chainID);
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude('Chain ID cannot be the mainchain chain ID.');
+		});
+
+		it(`should return error if sidechainValidators array count exceeds ${MAX_NUM_VALIDATORS}`, async () => {
+			verifyContext.params.sidechainValidators = new Array(MAX_NUM_VALIDATORS + 2).fill({
 				blsKey: utils.getRandomBytes(48),
 				bftWeight: BigInt(1),
 			});
@@ -258,8 +262,8 @@ describe('RegisterSidechainCommand', () => {
 			);
 		});
 
-		it('should return error if initValidators array does not have any elements', async () => {
-			verifyContext.params.initValidators = [];
+		it('should return error if sidechainValidators array does not have any elements', async () => {
+			verifyContext.params.sidechainValidators = [];
 
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
@@ -268,7 +272,7 @@ describe('RegisterSidechainCommand', () => {
 		});
 
 		it('should return error if bls key is below minimum length', async () => {
-			verifyContext.params.initValidators = [
+			verifyContext.params.sidechainValidators = [
 				{
 					blsKey: utils.getRandomBytes(2),
 					bftWeight: BigInt(10),
@@ -279,12 +283,12 @@ describe('RegisterSidechainCommand', () => {
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
-				"Property '.initValidators.0.blsKey' minLength not satisfied",
+				"Property '.sidechainValidators.0.blsKey' minLength not satisfied",
 			);
 		});
 
 		it('should return error if bls key is above maximum length', async () => {
-			verifyContext.params.initValidators = [
+			verifyContext.params.sidechainValidators = [
 				{
 					blsKey: utils.getRandomBytes(50),
 					bftWeight: BigInt(10),
@@ -295,12 +299,12 @@ describe('RegisterSidechainCommand', () => {
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
-				"Property '.initValidators.0.blsKey' maxLength exceeded",
+				"Property '.sidechainValidators.0.blsKey' maxLength exceeded",
 			);
 		});
 
 		it('should return error if bls keys are not lexicographically ordered', async () => {
-			verifyContext.params.initValidators = [
+			verifyContext.params.sidechainValidators = [
 				{
 					blsKey: Buffer.from(
 						'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
@@ -326,7 +330,7 @@ describe('RegisterSidechainCommand', () => {
 		});
 
 		it('should return error if duplicate bls keys', async () => {
-			verifyContext.params.initValidators = [
+			verifyContext.params.sidechainValidators = [
 				{
 					blsKey: Buffer.from(
 						'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
@@ -352,7 +356,7 @@ describe('RegisterSidechainCommand', () => {
 		});
 
 		it('should return error if invalid bft weight', async () => {
-			verifyContext.params.initValidators = [
+			verifyContext.params.sidechainValidators = [
 				{
 					blsKey: Buffer.from(
 						'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
@@ -376,7 +380,7 @@ describe('RegisterSidechainCommand', () => {
 		});
 
 		it(`should return error if totalBftWeight exceeds ${MAX_UINT64}`, async () => {
-			verifyContext.params.initValidators = [
+			verifyContext.params.sidechainValidators = [
 				{
 					blsKey: Buffer.from(
 						'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
@@ -400,7 +404,7 @@ describe('RegisterSidechainCommand', () => {
 		});
 
 		it('should return error if certificate theshold below minimum weight', async () => {
-			verifyContext.params.certificateThreshold = BigInt(1);
+			verifyContext.params.sidechainCertificateThreshold = BigInt(1);
 
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
@@ -409,7 +413,7 @@ describe('RegisterSidechainCommand', () => {
 		});
 
 		it('should return error if certificate theshold exceeds maximum weight', async () => {
-			verifyContext.params.certificateThreshold = BigInt(1000);
+			verifyContext.params.sidechainCertificateThreshold = BigInt(1000);
 
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
@@ -417,16 +421,15 @@ describe('RegisterSidechainCommand', () => {
 			expect(result.error?.message).toInclude('Certificate threshold above maximum bft weight');
 		});
 
-		it(`should return error if available balance < ${REGISTRATION_FEE}`, async () => {
-			const insufficientBalance = BigInt(0);
-			jest.spyOn(tokenMethod, 'getAvailableBalance').mockResolvedValue(insufficientBalance);
-
+		it(`should return error if transaction fee is less than ${CHAIN_REGISTRATION_FEE}`, async () => {
+			verifyContext.transaction = new Transaction({
+				...verifyContext.transaction,
+				fee: BigInt(900000000),
+			});
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				`Sender does not have enough balance. Required: ${REGISTRATION_FEE}, found: ${insufficientBalance}`,
-			);
+			expect(result.error?.message).toInclude('Insufficient transaction fee.');
 		});
 	});
 
@@ -456,8 +459,8 @@ describe('RegisterSidechainCommand', () => {
 					timestamp: 0,
 					stateRoot: EMPTY_HASH,
 					validatorsHash: computeValidatorsHash(
-						transactionParams.initValidators,
-						transactionParams.certificateThreshold,
+						transactionParams.sidechainValidators,
+						transactionParams.sidechainCertificateThreshold,
 					),
 				},
 				status: CCMStatusCode.OK,
@@ -497,8 +500,8 @@ describe('RegisterSidechainCommand', () => {
 		it('should add an entry to chain validators substore', async () => {
 			// Arrange
 			const expectedValue = {
-				activeValidators: transactionParams.initValidators,
-				certificateThreshold: transactionParams.certificateThreshold,
+				activeValidators: transactionParams.sidechainValidators,
+				certificateThreshold: transactionParams.sidechainCertificateThreshold,
 			};
 
 			// Act
@@ -535,21 +538,8 @@ describe('RegisterSidechainCommand', () => {
 			// Assert
 			expect(registeredNamesSubstore.set).toHaveBeenCalledWith(
 				expect.anything(),
-				Buffer.from(transactionParams.name, 'utf-8'),
+				Buffer.from(transactionParams.name, 'ascii'),
 				expectedValue,
-			);
-		});
-
-		it(`should burn the ${REGISTRATION_FEE}`, async () => {
-			// Act
-			await sidechainRegistrationCommand.execute(context);
-
-			// Assert
-			expect(tokenMethod.burn).toHaveBeenCalledWith(
-				expect.anything(),
-				transaction.senderAddress,
-				getMainchainTokenID(chainID),
-				REGISTRATION_FEE,
 			);
 		});
 
@@ -561,8 +551,8 @@ describe('RegisterSidechainCommand', () => {
 					timestamp: 0,
 					stateRoot: EMPTY_HASH,
 					validatorsHash: computeValidatorsHash(
-						transactionParams.initValidators,
-						transactionParams.certificateThreshold,
+						transactionParams.sidechainValidators,
+						transactionParams.sidechainCertificateThreshold,
 					),
 				},
 				status: ChainStatus.REGISTERED,
@@ -586,7 +576,7 @@ describe('RegisterSidechainCommand', () => {
 			// Assert
 			expect(sidechainRegistrationCommand['_feeMethod'].payFee).toHaveBeenCalledWith(
 				expect.anything(),
-				REGISTRATION_FEE,
+				CHAIN_REGISTRATION_FEE,
 			);
 		});
 
@@ -608,6 +598,7 @@ describe('RegisterSidechainCommand', () => {
 		it(`should emit ${EVENT_NAME_CCM_SEND_SUCCESS} event`, async () => {
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
 				name: transactionParams.name,
+				chainID: newChainID,
 				messageFeeTokenID: getMainchainTokenID(chainID),
 			});
 			const ccm = {
