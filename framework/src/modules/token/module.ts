@@ -35,6 +35,7 @@ import {
 	hasEscrowAccountRequestSchema,
 	hasUserAccountResponseSchema,
 	hasEscrowAccountResponseSchema,
+	getInitializationFeesResponseSchema,
 } from './schemas';
 import { TokenMethod } from './method';
 import { TokenEndpoint } from './endpoint';
@@ -158,6 +159,10 @@ export class TokenModule extends BaseInteroperableModule {
 				{
 					name: this.endpoint.getEscrowedAmounts.name,
 					response: getEscrowedAmountsResponseSchema,
+				},
+				{
+					name: this.endpoint.getInitializationFees.name,
+					response: getInitializationFeesResponseSchema,
 				},
 				{
 					name: this.endpoint.hasUserAccount.name,

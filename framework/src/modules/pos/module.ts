@@ -213,11 +213,6 @@ export class PoSModule extends BaseModule {
 					response: getClaimableRewardsResponseSchema,
 				},
 				{
-					name: this.endpoint.getClaimableRewards.name,
-					request: getClaimableRewardsRequestSchema,
-					response: getClaimableRewardsResponseSchema,
-				},
-				{
 					name: this.endpoint.getLockedReward.name,
 					request: getLockedRewardRequestSchema,
 					response: getLockedRewardResponseSchema,
@@ -240,6 +235,12 @@ export class PoSModule extends BaseModule {
 				{
 					name: this.endpoint.getRegistrationFee.name,
 					response: getRegistrationFeeResponseSchema,
+				},
+			],
+			assets: [
+				{
+					version: 0,
+					data: genesisStoreSchema,
 				},
 			],
 		};

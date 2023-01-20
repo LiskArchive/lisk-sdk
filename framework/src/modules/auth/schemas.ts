@@ -104,7 +104,7 @@ export const registerMultisignatureParamsSchema = {
 	required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys', 'signatures'],
 };
 
-export const sortMultisignatureGroupSchema = {
+export const sortMultisignatureGroupRequestSchema = {
 	$id: '/auth/command/sortMultisig',
 	required: ['mandatory', 'optional'],
 	type: 'object',

@@ -24,6 +24,7 @@ import {
 	configSchema,
 	getDefaultRewardAtHeightRequestSchema,
 	getDefaultRewardAtHeightResponseSchema,
+	getRewardTokenIDResponseSchema,
 } from './schemas';
 import { RewardMintedEvent } from './events/reward_minted';
 
@@ -54,6 +55,10 @@ export class RewardModule extends BaseModule {
 					name: this.endpoint.getDefaultRewardAtHeight.name,
 					request: getDefaultRewardAtHeightRequestSchema,
 					response: getDefaultRewardAtHeightResponseSchema,
+				},
+				{
+					name: this.endpoint.getRewardTokenID.name,
+					response: getRewardTokenIDResponseSchema,
 				},
 			],
 		};
