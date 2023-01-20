@@ -31,6 +31,7 @@ import {
 	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
 	MESSAGE_TAG_CHAIN_REG,
 	THRESHOLD_MAINCHAIN,
+	MAX_UINT64,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	mainchainRegParams,
@@ -253,6 +254,14 @@ describe('RegisterMainchainCommand', () => {
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude('Validator bft weight must be positive integer');
+		});
+
+		it(`should return error if total bft weight > ${MAX_UINT64}`, async () => {
+			verifyContext.params.mainchainValidators[0].bftWeight = BigInt(MAX_UINT64);
+			const result = await mainchainRegistrationCommand.verify(verifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude('Total BFT weight exceeds maximum value.');
 		});
 
 		it('should return error if certificate threshold is too small', async () => {

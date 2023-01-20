@@ -72,6 +72,15 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 	): Promise<VerificationResult> {
 		const { ownName, mainchainValidators, mainchainCertificateThreshold, ownChainID } =
 			context.params;
+		try {
+			validator.validate<MainchainRegistrationParams>(mainchainRegParams, context.params);
+		} catch (err) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: err as Error,
+			};
+		}
+
 		const mainchainID = getMainchainID(context.chainID);
 		const chainAccountSubstore = this.stores.get(ChainAccountStore);
 		const mainchainAccountExists = await chainAccountSubstore.has(context, mainchainID);
@@ -79,15 +88,6 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Mainchain has already been registered.'),
-			};
-		}
-
-		try {
-			validator.validate<MainchainRegistrationParams>(mainchainRegParams, context.params);
-		} catch (err) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: err as Error,
 			};
 		}
 
