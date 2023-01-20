@@ -39,7 +39,7 @@ export const createAccount = async () => {
 		blsKeyPath,
 	);
 	const blsKey = cryptography.bls.getPublicKeyFromPrivateKey(blsPrivateKey);
-	const blsProofOfPosession = cryptography.bls.popProve(blsPrivateKey);
+	const blsProofOfPossession = cryptography.bls.popProve(blsPrivateKey);
 
 	return {
 		passphrase: mnemonicPassphrase,
@@ -50,6 +50,6 @@ export const createAccount = async () => {
 		generatorKey,
 		blsPrivateKey,
 		blsKey,
-		blsProofOfPosession,
+		blsProofOfPossession,
 	};
 };

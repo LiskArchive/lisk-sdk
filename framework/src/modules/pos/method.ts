@@ -86,7 +86,7 @@ export class PoSMethod extends BaseMethod {
 	): Promise<void> {
 		const validatorStore = this.stores.get(ValidatorStore);
 		const validator = await validatorStore.get(context, generatorAddress);
-		if (validator.totalStakeReceived === BigInt(0)) {
+		if (validator.totalStake === BigInt(0)) {
 			return;
 		}
 
@@ -95,7 +95,7 @@ export class PoSMethod extends BaseMethod {
 		const commissionQ = q96(BigInt(validator.commission));
 		const rewardFractionQ = q96(BigInt(1)).sub(commissionQ.div(q96(BigInt(10000))));
 		const selfStakeQ = q96(validator.selfStake);
-		const totalStakesQ = q96(validator.totalStakeReceived);
+		const totalStakesQ = q96(validator.totalStake);
 
 		const matchingCoefficientIndex = validator.sharingCoefficients.findIndex(coefficient =>
 			coefficient.tokenID.equals(tokenID),

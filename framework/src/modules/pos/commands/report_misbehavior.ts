@@ -23,10 +23,10 @@ import {
 import { BaseCommand } from '../../base_command';
 import {
 	REPORTING_PUNISHMENT_REWARD,
-	POM_LIMIT_BANNED,
-	LOCKING_PERIOD_SELF_STAKES,
+	REPORT_MISBEHAVIOR_LIMIT_BANNED,
+	LOCKING_PERIOD_SELF_STAKING,
 } from '../constants';
-import { pomCommandParamsSchema } from '../schemas';
+import { reportMisbehaviorCommandParamsSchema } from '../schemas';
 import {
 	PomCommandDependencies,
 	PomTransactionParams,
@@ -43,7 +43,7 @@ import { ValidatorBannedEvent } from '../events/validator_banned';
 import { EligibleValidatorsStore } from '../stores/eligible_validators';
 
 export class ReportMisbehaviorCommand extends BaseCommand {
-	public schema = pomCommandParamsSchema;
+	public schema = reportMisbehaviorCommandParamsSchema;
 	private _tokenMethod!: TokenMethod;
 	private _validatorsMethod!: ValidatorsMethod;
 	private _posTokenID!: TokenID;
@@ -99,7 +99,7 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 			Math.abs(header2.height - currentHeight),
 		);
 
-		if (maxPunishableHeight >= LOCKING_PERIOD_SELF_STAKES) {
+		if (maxPunishableHeight >= LOCKING_PERIOD_SELF_STAKING) {
 			throw new Error('Locking period has expired.');
 		}
 
@@ -107,7 +107,7 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 			getPunishmentPeriod(
 				validatorAddress,
 				validatorAddress,
-				validatorAccount.pomHeights,
+				validatorAccount.reportMisbehaviorHeights,
 				header.height,
 			) > 0
 		) {
@@ -151,14 +151,14 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 			this._posTokenID,
 		);
 
-		validatorAccount.pomHeights.push(currentHeight);
+		validatorAccount.reportMisbehaviorHeights.push(currentHeight);
 
 		this.events.get(ValidatorPunishedEvent).log(context, {
 			address: punishedAddress,
 			height: currentHeight,
 		});
 
-		if (validatorAccount.pomHeights.length === POM_LIMIT_BANNED) {
+		if (validatorAccount.reportMisbehaviorHeights.length === REPORT_MISBEHAVIOR_LIMIT_BANNED) {
 			validatorAccount.isBanned = true;
 
 			this.events.get(ValidatorBannedEvent).log(context, {
@@ -170,7 +170,7 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 		const currentWeight = getValidatorWeight(
 			BigInt(this._factorSelfStakes),
 			validatorAccount.selfStake,
-			validatorAccount.totalStakeReceived,
+			validatorAccount.totalStake,
 		);
 
 		const eligibleValidatorStore = this.stores.get(EligibleValidatorsStore);

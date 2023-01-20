@@ -81,7 +81,7 @@ describe('keys:create command', () => {
 					generatorPrivateKey: defaultGeneratorPrivateKey.toString('hex'),
 					blsKeyPath: defaultBlsKeyPath,
 					blsKey: defaultBlsPublicKey.toString('hex'),
-					blsProofOfPosession: cryptography.bls.popProve(defaultBlsPrivateKey).toString('hex'),
+					blsProofOfPossession: cryptography.bls.popProve(defaultBlsPrivateKey).toString('hex'),
 					blsPrivateKey: defaultBlsPrivateKey.toString('hex'),
 				},
 			},

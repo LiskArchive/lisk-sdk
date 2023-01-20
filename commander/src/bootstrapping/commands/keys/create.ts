@@ -150,7 +150,7 @@ export class CreateCommand extends Command {
 					generatorPrivateKey: generatorPrivateKey.toString('hex'),
 					blsKeyPath,
 					blsKey: blsPublicKey.toString('hex'),
-					blsProofOfPosession: bls.popProve(blsPrivateKey).toString('hex'),
+					blsProofOfPossession: bls.popProve(blsPrivateKey).toString('hex'),
 					blsPrivateKey: blsPrivateKey.toString('hex'),
 				},
 				encrypted: encryptedMessageObject,

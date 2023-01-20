@@ -24,10 +24,10 @@ import {
 import {
 	defaultConfig,
 	EMPTY_KEY,
-	PUNISHMENT_WINDOW_SELF_STAKES,
-	PUNISHMENT_WINDOW_STAKES,
-	LOCKING_PERIOD_SELF_STAKES,
-	LOCKING_PERIOD_STAKES,
+	PUNISHMENT_WINDOW_SELF_STAKING,
+	PUNISHMENT_WINDOW_STAKING,
+	LOCKING_PERIOD_SELF_STAKING,
+	LOCKING_PERIOD_STAKING,
 } from '../../../../../src/modules/pos/constants';
 import { TokenMethod, UnlockingObject, StakerData } from '../../../../../src/modules/pos/types';
 import { liskToBeddows } from '../../../../utils/assets';
@@ -78,11 +78,11 @@ describe('UnlockCommand', () => {
 		amount: liskToBeddows(400),
 	};
 	const defaultValidatorInfo = {
-		totalStakeReceived: BigInt(100000000),
+		totalStake: BigInt(100000000),
 		selfStake: BigInt(0),
 		lastGeneratedHeight: 0,
 		isBanned: false,
-		pomHeights: [],
+		reportMisbehaviorHeights: [],
 		consecutiveMissedBlocks: 0,
 		commission: 0,
 		lastCommissionIncreaseHeight: 0,
@@ -182,7 +182,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when non self-staked non-punished account waits ${LOCKING_PERIOD_STAKES} blocks since unstakeHeight`, () => {
+	describe(`when non self-staked non-punished account waits ${LOCKING_PERIOD_STAKING} blocks since unstakeHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -201,7 +201,7 @@ describe('UnlockCommand', () => {
 			unlockableObject = {
 				validatorAddress: validator1.address,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKES,
+				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKING,
 			};
 			nonUnlockableObject = {
 				validatorAddress: validator2.address,
@@ -209,11 +209,11 @@ describe('UnlockCommand', () => {
 				unstakeHeight: blockHeight,
 			};
 			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
 						amount: unlockableObject.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [unlockableObject, nonUnlockableObject],
@@ -242,7 +242,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when self-staked non-punished account waits ${LOCKING_PERIOD_SELF_STAKES} blocks since unstakeHeight`, () => {
+	describe(`when self-staked non-punished account waits ${LOCKING_PERIOD_SELF_STAKING} blocks since unstakeHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -256,7 +256,7 @@ describe('UnlockCommand', () => {
 			unlockableObject = {
 				validatorAddress: transaction.senderAddress,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_SELF_STAKES,
+				unstakeHeight: blockHeight - LOCKING_PERIOD_SELF_STAKING,
 			};
 			nonUnlockableObject = {
 				validatorAddress: transaction.senderAddress,
@@ -264,16 +264,16 @@ describe('UnlockCommand', () => {
 				unstakeHeight: blockHeight,
 			};
 			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
 						amount: validator1.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 					{
 						validatorAddress: nonUnlockableObject.validatorAddress,
 						amount: validator2.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [unlockableObject, nonUnlockableObject],
@@ -302,7 +302,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when non self-staked punished account waits ${PUNISHMENT_WINDOW_STAKES} blocks and unstakeHeight + ${LOCKING_PERIOD_STAKES} blocks since last pomHeight`, () => {
+	describe(`when non self-staked punished account waits ${PUNISHMENT_WINDOW_STAKING} blocks and unstakeHeight + ${LOCKING_PERIOD_STAKING} blocks since last pomHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -312,39 +312,39 @@ describe('UnlockCommand', () => {
 			await validatorSubstore.set(createStoreGetter(stateStore), validator1.address, {
 				...defaultValidatorInfo,
 				name: 'punishedstaker1',
-				pomHeights: [blockHeight - PUNISHMENT_WINDOW_STAKES],
+				reportMisbehaviorHeights: [blockHeight - PUNISHMENT_WINDOW_STAKING],
 			});
 			// This covers scenario: has not waited pomHeight + 260,000 blocks but waited unstakeHeight + 2000 blocks and pomHeight is more than unstakeHeight + 2000 blocks
 			await validatorSubstore.set(createStoreGetter(stateStore), validator2.address, {
 				...defaultValidatorInfo,
 				name: 'punishedstaker2',
-				pomHeights: [blockHeight],
+				reportMisbehaviorHeights: [blockHeight],
 			});
 			// This covers scenario: has not waited pomHeight + 260,000 blocks but waited unstakeHeight + 2000 blocks and pomHeight is equal to unstakeHeight + 2000 blocks
 			await validatorSubstore.set(createStoreGetter(stateStore), validator3.address, {
 				...defaultValidatorInfo,
 				name: 'punishedstaker3',
-				pomHeights: [blockHeight - 1000],
+				reportMisbehaviorHeights: [blockHeight - 1000],
 			});
 			await validatorSubstore.set(createStoreGetter(stateStore), validator4.address, {
 				...defaultValidatorInfo,
 				name: 'punishedstaker4',
-				pomHeights: [blockHeight - PUNISHMENT_WINDOW_STAKES],
+				reportMisbehaviorHeights: [blockHeight - PUNISHMENT_WINDOW_STAKING],
 			});
 			unlockableObject = {
 				validatorAddress: validator1.address,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKES,
+				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKING,
 			};
 			unlockableObject2 = {
 				validatorAddress: validator2.address,
 				amount: validator2.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKES - 1000,
+				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKING - 1000,
 			};
 			unlockableObject3 = {
 				validatorAddress: validator3.address,
 				amount: validator3.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKES - 1000,
+				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKING - 1000,
 			};
 			nonUnlockableObject = {
 				validatorAddress: validator4.address,
@@ -352,26 +352,26 @@ describe('UnlockCommand', () => {
 				unstakeHeight: blockHeight,
 			};
 			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
 						amount: unlockableObject.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 					{
 						validatorAddress: unlockableObject2.validatorAddress,
 						amount: unlockableObject2.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 					{
 						validatorAddress: unlockableObject3.validatorAddress,
 						amount: unlockableObject3.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 					{
 						validatorAddress: nonUnlockableObject.validatorAddress,
 						amount: nonUnlockableObject.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [
@@ -407,7 +407,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when self-staked punished account waits ${PUNISHMENT_WINDOW_SELF_STAKES} blocks and waits unstakeHeight + ${LOCKING_PERIOD_SELF_STAKES} blocks since pomHeight`, () => {
+	describe(`when self-staked punished account waits ${PUNISHMENT_WINDOW_SELF_STAKING} blocks and waits unstakeHeight + ${LOCKING_PERIOD_SELF_STAKING} blocks since pomHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -417,12 +417,12 @@ describe('UnlockCommand', () => {
 			await validatorSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				...defaultValidatorInfo,
 				name: 'punishedselfstaker',
-				pomHeights: [blockHeight - PUNISHMENT_WINDOW_SELF_STAKES],
+				reportMisbehaviorHeights: [blockHeight - PUNISHMENT_WINDOW_SELF_STAKING],
 			});
 			unlockableObject = {
 				validatorAddress: transaction.senderAddress,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_SELF_STAKES,
+				unstakeHeight: blockHeight - LOCKING_PERIOD_SELF_STAKING,
 			};
 			nonUnlockableObject = {
 				validatorAddress: transaction.senderAddress,
@@ -430,16 +430,16 @@ describe('UnlockCommand', () => {
 				unstakeHeight: blockHeight,
 			};
 			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
 						amount: unlockableObject.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 					{
 						validatorAddress: nonUnlockableObject.validatorAddress,
 						amount: nonUnlockableObject.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [unlockableObject, nonUnlockableObject],
@@ -468,7 +468,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when self-staked punished account does not wait ${PUNISHMENT_WINDOW_SELF_STAKES} blocks and waits unstakeHeight + ${LOCKING_PERIOD_SELF_STAKES} blocks since pomHeight`, () => {
+	describe(`when self-staked punished account does not wait ${PUNISHMENT_WINDOW_SELF_STAKING} blocks and waits unstakeHeight + ${LOCKING_PERIOD_SELF_STAKING} blocks since pomHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -478,19 +478,19 @@ describe('UnlockCommand', () => {
 			await validatorSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				...defaultValidatorInfo,
 				name: 'punishedselfstaker',
-				pomHeights: [blockHeight - 1],
+				reportMisbehaviorHeights: [blockHeight - 1],
 			});
 			nonUnlockableObject = {
 				validatorAddress: transaction.senderAddress,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_SELF_STAKES,
+				unstakeHeight: blockHeight - LOCKING_PERIOD_SELF_STAKING,
 			};
 			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: nonUnlockableObject.validatorAddress,
 						amount: nonUnlockableObject.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [nonUnlockableObject],
@@ -533,11 +533,11 @@ describe('UnlockCommand', () => {
 				unstakeHeight: blockHeight,
 			};
 			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
 						amount: unlockableObject.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [nonUnlockableObject],
@@ -587,7 +587,7 @@ describe('UnlockCommand', () => {
 			unlockableObject = {
 				validatorAddress: validator1.address,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKES,
+				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKING,
 			};
 			nonUnlockableObject = {
 				validatorAddress: validator2.address,
@@ -595,11 +595,11 @@ describe('UnlockCommand', () => {
 				unstakeHeight: blockHeight,
 			};
 			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
 						amount: unlockableObject.amount,
-						stakeSharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [unlockableObject, nonUnlockableObject],
