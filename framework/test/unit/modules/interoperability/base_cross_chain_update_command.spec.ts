@@ -86,6 +86,16 @@ describe('BaseCrossChainUpdateCommand', () => {
 		signatures: [],
 	};
 
+	const certificate = codec.encode(certificateSchema, {
+		blockID: utils.getRandomBytes(32),
+		height: 21,
+		timestamp: Math.floor(Date.now() / 1000),
+		stateRoot: utils.getRandomBytes(HASH_LENGTH),
+		validatorsHash: utils.getRandomBytes(48),
+		aggregationBits: utils.getRandomBytes(38),
+		signature: utils.getRandomBytes(32),
+	});
+
 	const activeValidators = [
 		{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) },
 		{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(3) },
@@ -104,15 +114,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4), BigInt(3)],
 			bftWeightsUpdateBitmap: Buffer.from([1, 0, 2]),
 		},
-		certificate: codec.encode(certificateSchema, {
-			blockID: utils.getRandomBytes(32),
-			height: 21,
-			timestamp: Math.floor(Date.now() / 1000),
-			stateRoot: utils.getRandomBytes(HASH_LENGTH),
-			validatorsHash: utils.getRandomBytes(48),
-			aggregationBits: utils.getRandomBytes(38),
-			signature: utils.getRandomBytes(32),
-		}),
+		certificate,
 		inboxUpdate: {
 			crossChainMessages: [
 				{
@@ -224,6 +226,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			verifyPartnerChainOutboxRoot: jest.fn(),
 			updateValidators: jest.fn(),
 			updateCertificate: jest.fn(),
+			updatePartnerChainOutboxRoot: jest.fn(),
 		} as unknown as BaseInteroperabilityInternalMethod;
 		command = new CrossChainUpdateCommand(
 			interopsModuleule.stores,
@@ -759,6 +762,63 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 			expect(internalMethod.terminateChainInternal).not.toHaveBeenCalled();
 			expect(command['events'].get(CcmProcessedEvent).log).not.toHaveBeenCalled();
+		});
+	});
+
+	describe('afterExecuteCommon', () => {
+		let executeContext: CommandExecuteContext<CrossChainUpdateTransactionParams>;
+
+		beforeEach(() => {
+			executeContext = createTransactionContext({
+				transaction: new Transaction({
+					...defaultTransaction,
+					command: command.name,
+					params: codec.encode(crossChainUpdateTransactionParams, {
+						...params,
+						inboxUpdate: {
+							...params.inboxUpdate,
+						},
+						activeValidatorsUpdate: {
+							blsKeysUpdate: [utils.getRandomBytes(48)],
+							bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4), BigInt(3)],
+							bftWeightsUpdateBitmap: Buffer.from([1]),
+						},
+						sendingChainID: defaultSendingChainID,
+						certificateThreshold: BigInt(20),
+						certificate,
+					}),
+				}),
+			}).createCommandExecuteContext(command.schema);
+
+			const chainValidatorsStore = command['stores'].get(ChainValidatorsStore);
+			jest.spyOn(chainValidatorsStore, 'get').mockResolvedValue({
+				certificateThreshold: BigInt(10),
+			} as any);
+
+			const channelDataStore = command['stores'].get(ChannelDataStore);
+			jest.spyOn(channelDataStore, 'get').mockResolvedValue({
+				inbox: {
+					size: 1,
+				} as any,
+			} as any);
+		});
+
+		it('should update validators if activeValidatorsUpdate is not empty', async () => {
+			await expect(command['afterExecuteCommon'](executeContext)).resolves.toBeUndefined();
+			expect(command['internalMethod'].updateValidators).toHaveBeenCalledWith(
+				expect.anything(),
+				executeContext.params,
+			);
+
+			expect(command['internalMethod'].updateCertificate).toHaveBeenCalledWith(
+				expect.anything(),
+				executeContext.params,
+			);
+
+			expect(command['internalMethod'].updatePartnerChainOutboxRoot).toHaveBeenCalledWith(
+				expect.anything(),
+				executeContext.params,
+			);
 		});
 	});
 
