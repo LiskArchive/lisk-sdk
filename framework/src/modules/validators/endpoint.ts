@@ -30,22 +30,10 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 	public async validateBLSKey(ctx: ModuleEndpointContext): Promise<{ valid: boolean }> {
 		validator.validate<ValidateBLSKeyRequest>(validateBLSKeyRequestSchema, ctx.params);
 
-		const req = ctx.params;
-		const { proofOfPossession, blsKey } = req;
+		const { proofOfPossession, blsKey } = ctx.params;
+		const blsKeyStore = this.stores.get(BLSKeyStore);
 
-		const blsKeysSubStore = this.stores.get(BLSKeyStore);
-
-		let persistedValue;
-
-		try {
-			persistedValue = await blsKeysSubStore.get(ctx, Buffer.from(blsKey, 'hex'));
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
-		}
-
-		if (persistedValue) {
+		if (await blsKeyStore.has(ctx, Buffer.from(blsKey, 'hex'))) {
 			return { valid: false };
 		}
 
@@ -58,12 +46,12 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 		ctx: ModuleEndpointContext,
 	): Promise<{ generatorKey: string; blsKey: string }> {
 		validator.validate<GetValidatorRequest>(getValidatorRequestSchema, ctx.params);
-		const validatorsKeysSubStore = this.stores.get(ValidatorKeysStore);
+		const validatorsKeysStore = this.stores.get(ValidatorKeysStore);
 
-		let persistedValue;
+		let validatorKeys;
 
 		try {
-			persistedValue = await validatorsKeysSubStore.get(
+			validatorKeys = await validatorsKeysStore.get(
 				ctx,
 				cryptoAddress.getAddressFromLisk32Address(ctx.params.address),
 			);
@@ -79,8 +67,8 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 		}
 
 		return {
-			generatorKey: persistedValue?.generatorKey.toString('hex'),
-			blsKey: persistedValue?.blsKey.toString('hex'),
+			generatorKey: validatorKeys.generatorKey.toString('hex'),
+			blsKey: validatorKeys.blsKey.toString('hex'),
 		};
 	}
 }

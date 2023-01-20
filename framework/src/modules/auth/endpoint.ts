@@ -27,7 +27,7 @@ import {
 import { getTransactionFromParameter, verifyNonce, verifySignatures } from './utils';
 import { AuthAccountStore } from './stores/auth_account';
 import { NamedRegistry } from '../named_registry';
-import { multisigRegMsgSchema, sortMultisignatureGroupSchema } from './schemas';
+import { multisigRegMsgSchema, sortMultisignatureGroupRequestSchema } from './schemas';
 
 export class AuthEndpoint extends BaseEndpoint {
 	public constructor(_moduleName: string, stores: NamedRegistry, offchainStores: NamedRegistry) {
@@ -104,7 +104,7 @@ export class AuthEndpoint extends BaseEndpoint {
 	}
 
 	public sortMultisignatureGroup(context: ModuleEndpointContext): SortedMultisignatureGroup {
-		validator.validate(sortMultisignatureGroupSchema, context.params);
+		validator.validate(sortMultisignatureGroupRequestSchema, context.params);
 
 		const mandatory = context.params.mandatory as KeySignaturePair[];
 		const optional = context.params.optional as KeySignaturePair[];

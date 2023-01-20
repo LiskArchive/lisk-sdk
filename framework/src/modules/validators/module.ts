@@ -15,7 +15,12 @@
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { ValidatorsMethod } from './method';
 import { ValidatorsEndpoint } from './endpoint';
-import { validateBLSKeyRequestSchema, validateBLSKeyResponseSchema } from './schemas';
+import {
+	getValidatorRequestSchema,
+	getValidatorResponseSchema,
+	validateBLSKeyRequestSchema,
+	validateBLSKeyResponseSchema,
+} from './schemas';
 import { ValidatorKeysStore } from './stores/validator_keys';
 import { BLSKeyStore } from './stores/bls_keys';
 import { GeneratorKeyRegistrationEvent } from './events/generator_key_registration';
@@ -44,11 +49,15 @@ export class ValidatorsModule extends BaseModule {
 		return {
 			...this.baseMetadata(),
 			endpoints: [
-				// getGeneratorList is not listed since it will be moved to engine endpoint
 				{
 					name: this.endpoint.validateBLSKey.name,
 					request: validateBLSKeyRequestSchema,
 					response: validateBLSKeyResponseSchema,
+				},
+				{
+					name: this.endpoint.getValidator.name,
+					request: getValidatorRequestSchema,
+					response: getValidatorResponseSchema,
 				},
 			],
 		};

@@ -24,7 +24,7 @@ export interface SetHashOnionRequest extends AddressRequest {
 	distance?: number | undefined;
 }
 
-export const setHashOnionRequestSchema = {
+export const hashOnionSchema = {
 	$id: 'lisk/random/setSeedRequestSchema',
 	type: 'object',
 	title: 'Random setSeed request',
@@ -66,14 +66,29 @@ export interface HasHashOnionResponse {
 	remaining: number;
 }
 
-export const hasHashOnionRequestSchema = {
-	$id: 'lisk/random/hasHashOnionRequestSchema',
+export const addressSchema = {
+	$id: 'lisk/random/addressSchema',
 	type: 'object',
 	required: ['address'],
 	properties: {
 		address: {
 			type: 'string',
 			format: 'lisk32',
+		},
+	},
+};
+
+export const hasHashOnionResponseSchema = {
+	$id: 'lisk/random/hasHashOnionResponseSchema',
+	type: 'object',
+	required: ['hasSeed', 'remaining'],
+	properties: {
+		hasSeed: {
+			type: 'boolean',
+		},
+		remaining: {
+			type: 'integer',
+			format: 'uint32',
 		},
 	},
 };
@@ -86,14 +101,22 @@ export interface GetHashOnionUsageResponse {
 
 export type GetHashOnionUsageRequest = AddressRequest;
 
-export const getHashOnionUsageRequestSchema = {
-	$id: 'lisk/random/getHashOnionUsageRequest',
+export const getHashOnionUsageResponse = {
+	$id: 'lisk/random/getHashOnionUsageResponse',
 	type: 'object',
-	required: ['address'],
+	required: ['count', 'height', 'seed'],
 	properties: {
-		address: {
+		count: {
+			type: 'integer',
+			format: 'uint32',
+		},
+		height: {
+			type: 'integer',
+			format: 'uint32',
+		},
+		seed: {
 			type: 'string',
-			format: 'lisk32',
+			format: 'hex',
 		},
 	},
 };
