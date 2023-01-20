@@ -23,6 +23,7 @@ import {
 } from '../../../../../../src';
 import {
 	ActiveValidator,
+	ActiveValidatorsUpdate,
 	CCMsg,
 	ChainAccount,
 	ChannelData,
@@ -131,7 +132,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 	let sidechainCCUUpdateCommand: SubmitSidechainCrossChainUpdateCommand;
 	let params: CrossChainUpdateTransactionParams;
 	let activeValidatorsUpdate: ActiveValidator[];
-	let sortedActiveValidatorsUpdate: ActiveValidator[];
+	let sortedActiveValidatorsUpdate: ActiveValidatorsUpdate;
 	let partnerChainStore: ChainAccountStore;
 	let partnerChannelStore: ChannelDataStore;
 	let partnerValidatorStore: ChainValidatorsStore;
@@ -179,9 +180,16 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			validatorsHash,
 		});
 
-		sortedActiveValidatorsUpdate = [...activeValidatorsUpdate].sort((v1, v2) =>
-			v1.blsKey.compare(v2.blsKey),
-		);
+		sortedActiveValidatorsUpdate = {
+			blsKeysUpdate: [
+				utils.getRandomBytes(48),
+				utils.getRandomBytes(48),
+				utils.getRandomBytes(48),
+				utils.getRandomBytes(48),
+			].sort((v1, v2) => v1.compare(v2)),
+			bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4), BigInt(3)],
+			bftWeightsUpdateBitmap: Buffer.from([15]),
+		};
 		partnerChainAccount = {
 			lastCertificate: {
 				height: 10,
@@ -267,6 +275,39 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 					params: { ...params, sendingChainID: 2 } as any,
 				}),
 			).rejects.toThrow('.sendingChainID');
+		});
+
+		it('should reject when certificate and inboxUpdate are empty', async () => {
+			await expect(
+				sidechainCCUUpdateCommand.verify({
+					...verifyContext,
+					params: {
+						...params,
+						certificate: Buffer.alloc(0),
+						inboxUpdate: {
+							crossChainMessages: [],
+							messageWitnessHashes: [],
+							outboxRootWitness: {
+								bitmap: Buffer.alloc(0),
+								siblingHashes: [],
+							},
+						},
+					} as any,
+				}),
+			).rejects.toThrow(
+				'A cross-chain update must contain a non-empty certificate and/or a non-empty inbox update.',
+			);
+		});
+
+		it('should reject when sending chain does not exist', async () => {
+			await partnerChainStore.del(stateStore, params.sendingChainID);
+
+			await expect(
+				sidechainCCUUpdateCommand.verify({
+					...verifyContext,
+					params: { ...params } as any,
+				}),
+			).rejects.toThrow('The mainchain is not registered');
 		});
 
 		it('should reject when sending chain is not mainchain', async () => {

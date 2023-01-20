@@ -33,6 +33,7 @@ export {
 	InboxUpdate,
 	CrossChainUpdateTransactionParams,
 	ActiveValidator,
+	ActiveValidatorsUpdate,
 	OutboxRootWitness,
 	OwnChainAccount,
 	OwnChainAccountJSON,

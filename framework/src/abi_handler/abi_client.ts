@@ -86,7 +86,7 @@ import {
 } from '../abi';
 import { Logger } from '../logger';
 
-const DEFAULT_TIMEOUT = 500;
+const DEFAULT_TIMEOUT = 3000;
 const MAX_UINT64 = BigInt(2) ** BigInt(64) - BigInt(1);
 
 interface Defer<T> {

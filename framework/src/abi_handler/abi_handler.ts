@@ -13,7 +13,7 @@
  */
 import { EventEmitter } from 'events';
 import { BlockAssets, BlockHeader, StateStore, Transaction } from '@liskhq/lisk-chain';
-import { StateDB, Database } from '@liskhq/lisk-db';
+import { StateDB, Database, Batch } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import {
@@ -285,6 +285,12 @@ export class ABIHandler implements ABI {
 			finalizedHeight: req.finalizedHeight,
 		});
 		await this._stateMachine.insertAssets(context);
+
+		// Save updated information on module store
+		const batch = new Batch();
+		this._executionContext.moduleStore.finalize(batch);
+		await this._moduleDB.write(batch);
+
 		return {
 			assets: context.assets.getAll(),
 		};
@@ -535,7 +541,8 @@ export class ABIHandler implements ABI {
 			});
 			this._logger.info({ method: req.method }, 'Called ABI query successfully');
 			return {
-				data: Buffer.from(JSON.stringify(resp), 'utf-8'),
+				// default resp to {} for endpoints with no response
+				data: Buffer.from(JSON.stringify(resp ?? '{}'), 'utf-8'),
 			};
 		} catch (error) {
 			this._logger.info({ method: req.method, err: error as Error }, 'Failed to call ABI query');

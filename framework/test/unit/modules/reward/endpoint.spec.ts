@@ -98,6 +98,6 @@ describe('RewardModuleEndpoint', () => {
 	});
 
 	it('should return reward token ID', () => {
-		expect(rewardModule.endpoint.getRewardTokenID()).toBe(moduleConfig.tokenID);
+		expect(rewardModule.endpoint.getRewardTokenID()).toEqual({ tokenID: moduleConfig.tokenID });
 	});
 });

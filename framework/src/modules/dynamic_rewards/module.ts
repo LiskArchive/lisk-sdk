@@ -55,6 +55,7 @@ import { calculateDefaultReward } from '../reward/calculate_reward';
 import {
 	getDefaultRewardAtHeightRequestSchema,
 	getDefaultRewardAtHeightResponseSchema,
+	getRewardTokenIDResponseSchema,
 } from '../reward/schemas';
 
 export class DynamicRewardModule extends BaseModule {
@@ -93,6 +94,10 @@ export class DynamicRewardModule extends BaseModule {
 					name: this.endpoint.getDefaultRewardAtHeight.name,
 					request: getDefaultRewardAtHeightRequestSchema,
 					response: getDefaultRewardAtHeightResponseSchema,
+				},
+				{
+					name: this.endpoint.getRewardTokenID.name,
+					response: getRewardTokenIDResponseSchema,
 				},
 			],
 		};

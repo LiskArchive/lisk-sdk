@@ -39,7 +39,7 @@ export interface ModuleMetadata {
 	endpoints: {
 		name: string;
 		request?: Schema;
-		response: Schema;
+		response?: Schema;
 	}[];
 	events: {
 		name: string;
