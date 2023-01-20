@@ -15,10 +15,7 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { ModuleEndpointContext, SidechainInteroperabilityModule } from '../../../../src';
 import { BaseInteroperabilityEndpoint } from '../../../../src/modules/interoperability/base_interoperability_endpoint';
-import {
-	BLS_PUBLIC_KEY_LENGTH,
-	THRESHOLD_MAINCHAIN,
-} from '../../../../src/modules/interoperability/constants';
+import { BLS_PUBLIC_KEY_LENGTH } from '../../../../src/modules/interoperability/constants';
 import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
 import { ChainValidatorsStore } from '../../../../src/modules/interoperability/stores/chain_validators';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
@@ -313,12 +310,13 @@ describe('Test interoperability endpoint', () => {
 	});
 
 	describe('getChainValidators', () => {
+		const mainchainThreshold = 68;
 		const chainValidators: ChainValidators = {
 			activeValidators: new Array(11).fill(0).map(() => ({
 				blsKey: utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
 				bftWeight: BigInt(1),
 			})),
-			certificateThreshold: BigInt(THRESHOLD_MAINCHAIN),
+			certificateThreshold: BigInt(mainchainThreshold),
 		};
 
 		const chainValidatorsJSON: ChainValidatorsJSON = {

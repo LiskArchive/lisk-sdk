@@ -14,8 +14,6 @@
 
 import { CHAIN_ID_LENGTH, TOKEN_ID_LENGTH } from '../token/constants';
 import {
-	MAX_LENGTH_NAME,
-	NUMBER_MAINCHAIN_VALIDATORS,
 	MAX_NUM_VALIDATORS,
 	MIN_CHAIN_NAME_LENGTH,
 	MAX_CHAIN_NAME_LENGTH,
@@ -26,6 +24,7 @@ import {
 	MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH,
 	MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH,
 	HASH_LENGTH,
+	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
 } from './constants';
 import { chainAccountSchema } from './stores/chain_account';
 import { chainValidatorsSchema } from './stores/chain_validators';
@@ -97,21 +96,21 @@ export const ccmSchema = {
 export const sidechainRegParams = {
 	$id: '/modules/interoperability/mainchain/sidechainRegistration',
 	type: 'object',
-	required: ['name', 'chainID', 'initValidators', 'certificateThreshold'],
+	required: ['chainID', 'name', 'sidechainValidators', 'sidechainCertificateThreshold'],
 	properties: {
-		name: {
-			dataType: 'string',
-			fieldNumber: 1,
-			minLength: MIN_CHAIN_NAME_LENGTH,
-			maxLength: MAX_CHAIN_NAME_LENGTH,
-		},
 		chainID: {
 			dataType: 'bytes',
-			fieldNumber: 2,
+			fieldNumber: 1,
 			minLength: CHAIN_ID_LENGTH,
 			maxLength: CHAIN_ID_LENGTH,
 		},
-		initValidators: {
+		name: {
+			dataType: 'string',
+			fieldNumber: 2,
+			minLength: MIN_CHAIN_NAME_LENGTH,
+			maxLength: MAX_CHAIN_NAME_LENGTH,
+		},
+		sidechainValidators: {
 			type: 'array',
 			fieldNumber: 3,
 			items: {
@@ -133,7 +132,7 @@ export const sidechainRegParams = {
 			minItems: 1,
 			maxItems: MAX_NUM_VALIDATORS,
 		},
-		certificateThreshold: {
+		sidechainCertificateThreshold: {
 			dataType: 'uint64',
 			fieldNumber: 4,
 		},
@@ -143,7 +142,14 @@ export const sidechainRegParams = {
 export const mainchainRegParams = {
 	$id: '/modules/interoperability/sidechain/mainchainRegistration',
 	type: 'object',
-	required: ['ownChainID', 'ownName', 'mainchainValidators', 'signature', 'aggregationBits'],
+	required: [
+		'ownChainID',
+		'ownName',
+		'mainchainValidators',
+		'mainchainCertificateThreshold',
+		'signature',
+		'aggregationBits',
+	],
 	properties: {
 		ownChainID: {
 			dataType: 'bytes',
@@ -176,18 +182,22 @@ export const mainchainRegParams = {
 					},
 				},
 			},
-			minItems: NUMBER_MAINCHAIN_VALIDATORS,
-			maxItems: NUMBER_MAINCHAIN_VALIDATORS,
+			minItems: 1,
+			maxItems: NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
+		},
+		mainchainCertificateThreshold: {
+			dataType: 'uint64',
+			fieldNumber: 4,
 		},
 		signature: {
 			dataType: 'bytes',
-			fieldNumber: 4,
+			fieldNumber: 5,
 			minItems: BLS_SIGNATURE_LENGTH,
 			maxItems: BLS_SIGNATURE_LENGTH,
 		},
 		aggregationBits: {
 			dataType: 'bytes',
-			fieldNumber: 5,
+			fieldNumber: 6,
 		},
 	},
 };
@@ -422,7 +432,7 @@ export const validatorsHashInputSchema = {
 export const registrationSignatureMessageSchema = {
 	$id: '/modules/interoperability/sidechain/registrationSignatureMessage',
 	type: 'object',
-	required: ['ownChainID', 'ownName', 'mainchainValidators'],
+	required: ['ownChainID', 'ownName', 'mainchainValidators', 'mainchainCertificateThreshold'],
 	properties: {
 		ownChainID: {
 			dataType: 'bytes',
@@ -434,7 +444,7 @@ export const registrationSignatureMessageSchema = {
 			dataType: 'string',
 			fieldNumber: 2,
 			minLength: MIN_CHAIN_NAME_LENGTH,
-			maxLength: MAX_LENGTH_NAME,
+			maxLength: MAX_CHAIN_NAME_LENGTH,
 		},
 		mainchainValidators: {
 			type: 'array',
@@ -455,8 +465,12 @@ export const registrationSignatureMessageSchema = {
 					},
 				},
 			},
-			minItems: NUMBER_MAINCHAIN_VALIDATORS,
-			maxItems: NUMBER_MAINCHAIN_VALIDATORS,
+			minItems: 1,
+			maxItems: NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
+		},
+		mainchainCertificateThreshold: {
+			dataType: 'uint64',
+			fieldNumber: 4,
 		},
 	},
 };
