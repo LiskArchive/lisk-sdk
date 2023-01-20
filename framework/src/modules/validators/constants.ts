@@ -34,7 +34,3 @@ export const ADDRESS_LENGTH = 20;
 export const ED25519_PUBLIC_KEY_LENGTH = 32;
 export const BLS_PUBLIC_KEY_LENGTH = 48;
 export const BLS_POP_LENGTH = 96;
-
-export const defaultConfig = {
-	blockTime: 10,
-};
