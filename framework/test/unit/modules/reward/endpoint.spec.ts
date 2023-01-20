@@ -62,10 +62,10 @@ describe('RewardModuleEndpoint', () => {
 		});
 
 		// eslint-disable-next-line no-loop-func
-		it(`should getInflationRate for the ${nthBracket}th bracket`, () => {
+		it(`should getAnnualInflationRate for the ${nthBracket}th bracket`, () => {
 			const blocksPerYear = BigInt(Math.floor((365 * 24 * 60 * 60) / genesisConfig.blockTime));
 			const rate = blocksPerYear * BigInt(rewardFromConfigString);
-			const inflationRate = rewardModule.endpoint.getInflationRate(
+			const inflationRate = rewardModule.endpoint.getAnnualInflationRate(
 				createTransientModuleEndpointContext({
 					params: {
 						height: currentHeight,
@@ -87,8 +87,8 @@ describe('RewardModuleEndpoint', () => {
 		expect(rewardFromEndpoint).toEqual({ reward: '0' });
 	});
 
-	it('should getInflationRate for the for the height below offset', () => {
-		const inflationRate = rewardModule.endpoint.getInflationRate(
+	it('should getAnnualInflationRate for the for the height below offset', () => {
+		const inflationRate = rewardModule.endpoint.getAnnualInflationRate(
 			createTransientModuleEndpointContext({
 				params: {
 					height: offset - 1,

@@ -55,8 +55,8 @@ import { calculateDefaultReward } from '../reward/calculate_reward';
 import {
 	getDefaultRewardAtHeightRequestSchema,
 	getDefaultRewardAtHeightResponseSchema,
-	getInflationRateRequestSchema,
-	getInflationRateResponseSchema,
+	getAnnualInflationRateRequestSchema,
+	getAnnualInflationRateResponseSchema,
 } from '../reward/schemas';
 
 export class DynamicRewardModule extends BaseModule {
@@ -97,9 +97,9 @@ export class DynamicRewardModule extends BaseModule {
 					response: getDefaultRewardAtHeightResponseSchema,
 				},
 				{
-					name: this.endpoint.getInflationRate.name,
-					request: getInflationRateRequestSchema,
-					response: getInflationRateResponseSchema,
+					name: this.endpoint.getAnnualInflationRate.name,
+					request: getAnnualInflationRateRequestSchema,
+					response: getAnnualInflationRateResponseSchema,
 				},
 			],
 		};

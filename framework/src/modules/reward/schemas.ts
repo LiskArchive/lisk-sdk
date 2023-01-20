@@ -42,7 +42,7 @@ export const configSchema = {
 };
 
 export const heightSchema = {
-	$id: '/reward/endpoint/getDefaultRewardAtHeightRequest',
+	$id: '/reward/endpoint/height',
 	type: 'object',
 	required: ['height'],
 	properties: {
@@ -54,7 +54,7 @@ export const heightSchema = {
 };
 
 export const getDefaultRewardAtHeightRequestSchema = heightSchema;
-export const getInflationRateRequestSchema = heightSchema;
+export const getAnnualInflationRateRequestSchema = heightSchema;
 
 export const getDefaultRewardAtHeightResponseSchema = {
 	$id: '/reward/endpoint/getDefaultRewardAtHeightResponse',
@@ -68,8 +68,8 @@ export const getDefaultRewardAtHeightResponseSchema = {
 	},
 };
 
-export const getInflationRateResponseSchema = {
-	$id: '/reward/endpoint/getInflationRateResponse',
+export const getAnnualInflationRateResponseSchema = {
+	$id: '/reward/endpoint/getAnnualInflationRateResponse',
 	type: 'object',
 	required: ['tokenID', 'rate'],
 	properties: {

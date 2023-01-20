@@ -46,7 +46,7 @@ export class RewardEndpoint extends BaseEndpoint {
 		return this._config.tokenID.toString('hex');
 	}
 
-	public getInflationRate(context: ModuleEndpointContext): InflationRate {
+	public getAnnualInflationRate(context: ModuleEndpointContext): InflationRate {
 		const reward = BigInt(this.getDefaultRewardAtHeight(context).reward);
 		const blocksPerYear = BigInt(Math.floor((365 * 24 * 60 * 60) / this._blockTime));
 		const rate = blocksPerYear * reward;
