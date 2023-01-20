@@ -24,8 +24,9 @@ import {
 	configSchema,
 	getDefaultRewardAtHeightRequestSchema,
 	getDefaultRewardAtHeightResponseSchema,
-  getAnnualInflationRateResponseSchema,
+	getAnnualInflationRateResponseSchema,
 	getRewardTokenIDResponseSchema,
+	getAnnualInflationRateRequestSchema,
 } from './schemas';
 import { RewardMintedEvent } from './events/reward_minted';
 
