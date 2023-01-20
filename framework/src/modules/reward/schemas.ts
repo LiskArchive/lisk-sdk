@@ -41,8 +41,8 @@ export const configSchema = {
 	required: ['tokenID', 'offset', 'distance', 'brackets'],
 };
 
-export const getDefaultRewardAtHeightRequestSchema = {
-	$id: '/reward/endpoint/getDefaultRewardAtHeightRequest',
+export const heightSchema = {
+	$id: '/reward/endpoint/height',
 	type: 'object',
 	required: ['height'],
 	properties: {
@@ -53,6 +53,9 @@ export const getDefaultRewardAtHeightRequestSchema = {
 	},
 };
 
+export const getDefaultRewardAtHeightRequestSchema = heightSchema;
+export const getAnnualInflationRequestSchema = heightSchema;
+
 export const getDefaultRewardAtHeightResponseSchema = {
 	$id: '/reward/endpoint/getDefaultRewardAtHeightResponse',
 	type: 'object',
@@ -61,6 +64,24 @@ export const getDefaultRewardAtHeightResponseSchema = {
 		reward: {
 			type: 'string',
 			format: 'uint64',
+		},
+	},
+};
+
+export const getAnnualInflationResponseSchema = {
+	$id: '/reward/endpoint/getAnnualInflationResponse',
+	type: 'object',
+	required: ['tokenID', 'rate'],
+	properties: {
+		tokenID: {
+			type: 'string',
+			format: 'hex',
+		},
+		rate: {
+			type: 'string',
+			format: 'uint64',
+			minLength: 16,
+			maxLength: 16,
 		},
 	},
 };

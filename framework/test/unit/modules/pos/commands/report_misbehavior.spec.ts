@@ -22,7 +22,7 @@ import { ReportMisbehaviorCommand, VerifyStatus, PoSModule } from '../../../../.
 import * as testing from '../../../../../src/testing';
 import {
 	defaultConfig,
-	LOCKING_PERIOD_SELF_STAKES,
+	LOCKING_PERIOD_SELF_STAKING,
 	REPORTING_PUNISHMENT_REWARD,
 } from '../../../../../src/modules/pos/constants';
 import {
@@ -65,11 +65,11 @@ describe('ReportMisbehaviorCommand', () => {
 	);
 	const validator1Address = address.getAddressFromPublicKey(validator1PublicKey);
 	const defaultValidatorInfo = {
-		totalStakeReceived: BigInt(100000000),
+		totalStake: BigInt(100000000),
 		selfStake: BigInt(0),
 		lastGeneratedHeight: 0,
 		isBanned: false,
-		pomHeights: [],
+		reportMisbehaviorHeights: [],
 		consecutiveMissedBlocks: 0,
 		commission: 0,
 		lastCommissionIncreaseHeight: 0,
@@ -140,11 +140,11 @@ describe('ReportMisbehaviorCommand', () => {
 
 		await validatorSubstore.set(createStoreGetter(stateStore), senderAddress, {
 			name: 'mrrobot',
-			totalStakeReceived: BigInt(10000000000),
+			totalStake: BigInt(10000000000),
 			selfStake: BigInt(1000000000),
 			lastGeneratedHeight: 100,
 			isBanned: false,
-			pomHeights: [],
+			reportMisbehaviorHeights: [],
 			consecutiveMissedBlocks: 0,
 			commission: 0,
 			lastCommissionIncreaseHeight: 0,
@@ -290,7 +290,7 @@ describe('ReportMisbehaviorCommand', () => {
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, {
 					...header1,
-					height: LOCKING_PERIOD_SELF_STAKES,
+					height: LOCKING_PERIOD_SELF_STAKING,
 				}),
 				header2: codec.encode(blockHeaderSchema, { ...header2 }),
 			};
@@ -318,7 +318,9 @@ describe('ReportMisbehaviorCommand', () => {
 			};
 
 			const updatedValidatorAccount = objects.cloneDeep(misBehavingValidator);
-			updatedValidatorAccount.pomHeights = [transactionParamsPreDecoded.header1.height + 10];
+			updatedValidatorAccount.reportMisbehaviorHeights = [
+				transactionParamsPreDecoded.header1.height + 10,
+			];
 			await validatorSubstore.set(
 				createStoreGetter(stateStore),
 				validator1Address,
@@ -699,13 +701,13 @@ describe('ReportMisbehaviorCommand', () => {
 				validator1Address,
 			);
 
-			expect(updatedValidator.pomHeights).toEqual([blockHeight]);
+			expect(updatedValidator.reportMisbehaviorHeights).toEqual([blockHeight]);
 		});
 
 		it('should set isBanned property to true if pomHeights.length === 5', async () => {
 			const pomHeights = [500, 1000, 2000, 4550];
 			const updatedValidatorAccount = objects.cloneDeep(misBehavingValidator);
-			updatedValidatorAccount.pomHeights = objects.cloneDeep(pomHeights);
+			updatedValidatorAccount.reportMisbehaviorHeights = objects.cloneDeep(pomHeights);
 			updatedValidatorAccount.isBanned = false;
 			await validatorSubstore.set(
 				createStoreGetter(stateStore),
@@ -734,8 +736,8 @@ describe('ReportMisbehaviorCommand', () => {
 				validator1Address,
 			);
 
-			expect(updatedValidator.pomHeights).toEqual([...pomHeights, blockHeight]);
-			expect(updatedValidator.pomHeights).toHaveLength(5);
+			expect(updatedValidator.reportMisbehaviorHeights).toEqual([...pomHeights, blockHeight]);
+			expect(updatedValidator.reportMisbehaviorHeights).toHaveLength(5);
 			expect(updatedValidator.isBanned).toBeTrue();
 
 			const events = context.eventQueue.getEvents();

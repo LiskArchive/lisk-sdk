@@ -20,10 +20,10 @@ import {
 	EMPTY_HASH,
 	MAX_UINT64,
 	MODULE_NAME_INTEROPERABILITY,
-	REGISTRATION_FEE,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	EMPTY_BYTES,
 	CCMStatusCode,
+	CHAIN_REGISTRATION_FEE,
 } from '../../constants';
 import { registrationCCMParamsSchema, sidechainRegParams } from '../../schemas';
 import { FeeMethod, SidechainRegistrationParams } from '../../types';
@@ -44,18 +44,15 @@ import { ChannelDataStore } from '../../stores/channel_data';
 import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { OutboxRootStore } from '../../stores/outbox_root';
 import { RegisteredNamesStore } from '../../stores/registered_names';
-import { TokenMethod } from '../../../token';
 import { ChainAccountUpdatedEvent } from '../../events/chain_account_updated';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { CcmSendSuccessEvent } from '../../events/ccm_send_success';
 
 export class RegisterSidechainCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = sidechainRegParams;
-	private _tokenMethod!: TokenMethod;
 	private _feeMethod!: FeeMethod;
 
-	public addDependencies(tokenMethod: TokenMethod, feeMethod: FeeMethod) {
-		this._tokenMethod = tokenMethod;
+	public addDependencies(feeMethod: FeeMethod) {
 		this._feeMethod = feeMethod;
 	}
 
@@ -63,8 +60,8 @@ export class RegisterSidechainCommand extends BaseInteroperabilityCommand<Mainch
 		context: CommandVerifyContext<SidechainRegistrationParams>,
 	): Promise<VerificationResult> {
 		const {
-			transaction: { senderAddress },
-			params: { certificateThreshold, initValidators, chainID, name },
+			transaction,
+			params: { sidechainValidators, sidechainCertificateThreshold, chainID, name },
 		} = context;
 
 		try {
@@ -88,7 +85,7 @@ export class RegisterSidechainCommand extends BaseInteroperabilityCommand<Mainch
 
 		// 	The sidechain name has to be unique with respect to the set of already registered sidechain names in the blockchain state
 		const nameSubstore = this.stores.get(RegisteredNamesStore);
-		const nameExists = await nameSubstore.has(context, Buffer.from(name, 'utf8'));
+		const nameExists = await nameSubstore.has(context, Buffer.from(name, 'ascii'));
 
 		if (nameExists) {
 			return {
@@ -116,14 +113,22 @@ export class RegisterSidechainCommand extends BaseInteroperabilityCommand<Mainch
 			};
 		}
 
+		// Chain ID cannot be the mainchain chain ID.
+		if (chainID.equals(context.chainID)) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Chain ID cannot be the mainchain chain ID.'),
+			};
+		}
+
 		let totalBftWeight = BigInt(0);
-		for (let i = 0; i < initValidators.length; i += 1) {
-			const currentValidator = initValidators[i];
+		for (let i = 0; i < sidechainValidators.length; i += 1) {
+			const currentValidator = sidechainValidators[i];
 
 			// The blsKeys must be lexicographically ordered and unique within the array.
 			if (
-				initValidators[i + 1] &&
-				currentValidator.blsKey.compare(initValidators[i + 1].blsKey) > -1
+				sidechainValidators[i + 1] &&
+				currentValidator.blsKey.compare(sidechainValidators[i + 1].blsKey) > -1
 			) {
 				return {
 					status: VerifyStatus.FAIL,
@@ -150,7 +155,7 @@ export class RegisterSidechainCommand extends BaseInteroperabilityCommand<Mainch
 
 		// Minimum certificateThreshold value: floor(1/3 * totalWeight) + 1
 		// Note: BigInt truncates to floor
-		if (certificateThreshold < totalBftWeight / BigInt(3) + BigInt(1)) {
+		if (sidechainCertificateThreshold < totalBftWeight / BigInt(3) + BigInt(1)) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Certificate threshold below minimum bft weight '),
@@ -158,25 +163,17 @@ export class RegisterSidechainCommand extends BaseInteroperabilityCommand<Mainch
 		}
 
 		// Maximum certificateThreshold value: total bft weight
-		if (certificateThreshold > totalBftWeight) {
+		if (sidechainCertificateThreshold > totalBftWeight) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Certificate threshold above maximum bft weight'),
 			};
 		}
 
-		// Sender must have enough balance to pay for extra command fee.
-		const availableBalance = await this._tokenMethod.getAvailableBalance(
-			context.getMethodContext(),
-			senderAddress,
-			getMainchainTokenID(context.chainID),
-		);
-		if (availableBalance < REGISTRATION_FEE) {
+		if (transaction.fee < CHAIN_REGISTRATION_FEE) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error(
-					`Sender does not have enough balance. Required: ${REGISTRATION_FEE}, found: ${availableBalance}`,
-				),
+				error: new Error('Insufficient transaction fee.'),
 			};
 		}
 
@@ -188,8 +185,7 @@ export class RegisterSidechainCommand extends BaseInteroperabilityCommand<Mainch
 	public async execute(context: CommandExecuteContext<SidechainRegistrationParams>): Promise<void> {
 		const {
 			getMethodContext,
-			transaction: { senderAddress },
-			params: { certificateThreshold, initValidators, chainID, name },
+			params: { sidechainCertificateThreshold, sidechainValidators, chainID, name },
 		} = context;
 		const methodContext = getMethodContext();
 
@@ -201,7 +197,7 @@ export class RegisterSidechainCommand extends BaseInteroperabilityCommand<Mainch
 				height: 0,
 				timestamp: 0,
 				stateRoot: EMPTY_HASH,
-				validatorsHash: computeValidatorsHash(initValidators, certificateThreshold),
+				validatorsHash: computeValidatorsHash(sidechainValidators, sidechainCertificateThreshold),
 			},
 			status: ChainStatus.REGISTERED,
 		};
@@ -221,8 +217,8 @@ export class RegisterSidechainCommand extends BaseInteroperabilityCommand<Mainch
 		// Add an entry in the validators substore
 		const chainValidatorsSubstore = this.stores.get(ChainValidatorsStore);
 		await chainValidatorsSubstore.set(context, chainID, {
-			activeValidators: initValidators,
-			certificateThreshold,
+			activeValidators: sidechainValidators,
+			certificateThreshold: sidechainCertificateThreshold,
 		});
 
 		// Add an entry in the outbox root substore
@@ -231,19 +227,17 @@ export class RegisterSidechainCommand extends BaseInteroperabilityCommand<Mainch
 
 		// Add an entry in the registered names substore
 		const registeredNamesSubstore = this.stores.get(RegisteredNamesStore);
-		await registeredNamesSubstore.set(context, Buffer.from(name, 'utf-8'), { chainID });
+		await registeredNamesSubstore.set(context, Buffer.from(name, 'ascii'), { chainID });
 
-		// Burn the registration fee
-		await this._tokenMethod.burn(methodContext, senderAddress, mainchainTokenID, REGISTRATION_FEE);
+		this._feeMethod.payFee(context.getMethodContext(), CHAIN_REGISTRATION_FEE);
 
 		// Emit chain account updated event.
 		this.events.get(ChainAccountUpdatedEvent).log(methodContext, chainID, sidechainAccount);
 
-		this._feeMethod.payFee(context.getMethodContext(), REGISTRATION_FEE);
-
 		// Send registration CCM to the sidechain.
 		const encodedParams = codec.encode(registrationCCMParamsSchema, {
 			name,
+			chainID,
 			messageFeeTokenID: mainchainTokenID,
 		});
 

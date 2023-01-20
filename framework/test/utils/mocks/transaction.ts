@@ -26,7 +26,7 @@ import {
 import { VALIDATOR_REGISTRATION_FEE } from '../../../src/modules/pos/constants';
 import {
 	validatorRegistrationCommandParamsSchema,
-	pomCommandParamsSchema,
+	reportMisbehaviorCommandParamsSchema,
 	stakeCommandParamsSchema,
 } from '../../../src/modules/pos/schemas';
 import { TransferCommand } from '../../../src/modules/token/commands/transfer';
@@ -251,7 +251,7 @@ export const createReportMisbehaviorTransaction = (input: {
 	header2: BlockHeader;
 	fee?: bigint;
 }): Transaction => {
-	const encodedAsset = codec.encode(pomCommandParamsSchema, {
+	const encodedAsset = codec.encode(reportMisbehaviorCommandParamsSchema, {
 		header1: input.header1.getBytes(),
 		header2: input.header2.getBytes(),
 	});

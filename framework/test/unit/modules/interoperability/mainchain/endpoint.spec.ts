@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { REGISTRATION_FEE } from '../../../../../src/modules/interoperability/constants';
+import { CHAIN_REGISTRATION_FEE } from '../../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityEndpoint } from '../../../../../src/modules/interoperability/mainchain/endpoint';
 
 describe('MainchainInteroperabilityEndpoint', () => {
@@ -29,7 +29,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 		it('should return the registration fee', () => {
 			const result = endpoint.getRegistrationFee();
 
-			expect(result).toEqual({ fee: REGISTRATION_FEE.toString() });
+			expect(result).toEqual({ fee: CHAIN_REGISTRATION_FEE.toString() });
 		});
 	});
 });

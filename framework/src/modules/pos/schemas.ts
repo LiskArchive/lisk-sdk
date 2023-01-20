@@ -94,7 +94,7 @@ export const stakeCommandParamsSchema = {
 	},
 };
 
-export const pomCommandParamsSchema = {
+export const reportMisbehaviorCommandParamsSchema = {
 	$id: '/pos/command/reportMisbehaviorParams',
 	type: 'object',
 	required: ['header1', 'header2'],
@@ -230,7 +230,7 @@ export const genesisStoreSchema = {
 					'generatorKey',
 					'lastGeneratedHeight',
 					'isBanned',
-					'pomHeights',
+					'reportMisbehaviorHeights',
 					'consecutiveMissedBlocks',
 					'commission',
 					'lastCommissionIncreaseHeight',
@@ -274,7 +274,7 @@ export const genesisStoreSchema = {
 						dataType: 'boolean',
 						fieldNumber: 7,
 					},
-					pomHeights: {
+					reportMisbehaviorHeights: {
 						type: 'array',
 						fieldNumber: 8,
 						items: { dataType: 'uint32' },
@@ -321,19 +321,19 @@ export const genesisStoreSchema = {
 			fieldNumber: 2,
 			items: {
 				type: 'object',
-				required: ['address', 'sentStakes', 'pendingUnlocks'],
+				required: ['address', 'stakes', 'pendingUnlocks'],
 				properties: {
 					address: {
 						dataType: 'bytes',
 						format: 'lisk32',
 						fieldNumber: 1,
 					},
-					sentStakes: {
+					stakes: {
 						type: 'array',
 						fieldNumber: 2,
 						items: {
 							type: 'object',
-							required: ['validatorAddress', 'amount'],
+							required: ['validatorAddress', 'amount', 'sharingCoefficients'],
 							properties: {
 								validatorAddress: {
 									dataType: 'bytes',
@@ -344,7 +344,7 @@ export const genesisStoreSchema = {
 									dataType: 'uint64',
 									fieldNumber: 2,
 								},
-								stakeSharingCoefficients: {
+								sharingCoefficients: {
 									type: 'array',
 									fieldNumber: 3,
 									items: {

@@ -892,7 +892,11 @@ describe('ChainConnectorPlugin', () => {
 					status: 1,
 				});
 			jest.spyOn(codec, 'encode').mockReturnValue(certificateBytes);
-			jest.spyOn(activeValidatorsUpdateUtil, 'getActiveValidatorsDiff').mockReturnValue([]);
+			jest.spyOn(activeValidatorsUpdateUtil, 'getActiveValidatorsUpdate').mockReturnValue({
+				blsKeysUpdate: [],
+				bftWeightsUpdate: [],
+				bftWeightsUpdateBitmap: Buffer.from([]),
+			});
 			(inboxUpdateUtil as any).calculateInboxUpdate = jest.fn().mockResolvedValue([
 				{
 					crossChainMessages: [Buffer.alloc(0)],

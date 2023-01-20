@@ -21,7 +21,6 @@ import {
 	codec,
 	chain,
 	OutboxRootWitness,
-	ActiveValidator,
 	JSONObject,
 	Schema,
 	OwnChainAccountJSON,
@@ -35,6 +34,7 @@ import {
 	ccuParamsSchema,
 	cryptography,
 	ChainAccountJSON,
+	ActiveValidatorsUpdate,
 } from 'lisk-sdk';
 import { calculateActiveValidatorsUpdate } from './active_validators_update';
 import {
@@ -364,7 +364,11 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		const certificateBytes = codec.encode(certificateSchema, certificate);
 
 		// Calculate activeValidatorsUpdate
-		let activeValidatorsUpdate: ActiveValidator[] = [];
+		let activeValidatorsUpdate: ActiveValidatorsUpdate = {
+			blsKeysUpdate: [],
+			bftWeightsUpdate: [],
+			bftWeightsUpdateBitmap: Buffer.from([]),
+		};
 		let certificateThreshold = BigInt(0);
 
 		const blockHeader = blockHeaders.find(header => header.height === certificate.height);

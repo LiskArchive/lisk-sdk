@@ -29,17 +29,17 @@ describe('EligibleValidatorsStore', () => {
 		{
 			address: Buffer.from('fa1c00809ff1b10cd269a711eef40a465ba4a9cb'),
 			validatorWeight: BigInt(10),
-			lastPomHeight: 278,
+			lastReportMisbehaviorHeight: 278,
 		},
 		{
 			address: Buffer.from('e81fa3d9650e6427c2e35c6b41c249589e5da84c'),
 			validatorWeight: BigInt(11),
-			lastPomHeight: 478,
+			lastReportMisbehaviorHeight: 478,
 		},
 		{
 			address: Buffer.from('14b23e2adad2afd2990bc80907989d96ee20cff6'),
 			validatorWeight: BigInt(12),
-			lastPomHeight: 978,
+			lastReportMisbehaviorHeight: 978,
 		},
 	];
 	const defaultValidatorAccount = {
@@ -49,9 +49,9 @@ describe('EligibleValidatorsStore', () => {
 		isBanned: false,
 		lastCommissionIncreaseHeight: 0,
 		lastGeneratedHeight: 0,
-		pomHeights: [],
+		reportMisbehaviorHeights: [],
 		selfStake: BigInt(200000000000),
-		totalStakeReceived: BigInt(250000000000),
+		totalStake: BigInt(250000000000),
 		sharingCoefficients: [],
 	};
 
@@ -72,7 +72,7 @@ describe('EligibleValidatorsStore', () => {
 			);
 			storeKeys.push(key);
 			await eligibleValidatorsStore.set(context, key, {
-				lastPomHeight: eligibleValidator.lastPomHeight,
+				lastReportMisbehaviorHeight: eligibleValidator.lastReportMisbehaviorHeight,
 			});
 		}
 	});
@@ -82,8 +82,8 @@ describe('EligibleValidatorsStore', () => {
 			const returnedValue = await eligibleValidatorsStore.getTop(context, 2);
 
 			expect(returnedValue).toHaveLength(2);
-			expect(returnedValue[0].value.lastPomHeight).toBe(978);
-			expect(returnedValue[1].value.lastPomHeight).toBe(478);
+			expect(returnedValue[0].value.lastReportMisbehaviorHeight).toBe(978);
+			expect(returnedValue[1].value.lastReportMisbehaviorHeight).toBe(478);
 		});
 	});
 
@@ -92,8 +92,8 @@ describe('EligibleValidatorsStore', () => {
 			const returnedValue = await eligibleValidatorsStore.getAll(context);
 
 			expect(returnedValue).toHaveLength(3);
-			expect(returnedValue[0].value.lastPomHeight).toBe(978);
-			expect(returnedValue[2].value.lastPomHeight).toBe(278);
+			expect(returnedValue[0].value.lastReportMisbehaviorHeight).toBe(978);
+			expect(returnedValue[2].value.lastReportMisbehaviorHeight).toBe(278);
 		});
 	});
 
@@ -116,7 +116,7 @@ describe('EligibleValidatorsStore', () => {
 					context,
 					eligibleValidatorsStore.getKey(
 						eligibleValidators[0].address,
-						defaultValidatorAccount.totalStakeReceived,
+						defaultValidatorAccount.totalStake,
 					),
 				),
 			).resolves.toBeFalse();
@@ -136,23 +136,23 @@ describe('EligibleValidatorsStore', () => {
 			).resolves.toBeFalse();
 		});
 
-		it('should insert new key with latest pomHeight', async () => {
+		it('should insert new key with lastReportMisbehaviorHeight', async () => {
 			await eligibleValidatorsStore.update(context, eligibleValidators[0].address, BigInt(10), {
 				...defaultValidatorAccount,
-				pomHeights: [10, 20, 30],
+				reportMisbehaviorHeights: [10, 20, 30],
 			});
 			await expect(
 				eligibleValidatorsStore.get(
 					context,
 					eligibleValidatorsStore.getKey(
 						eligibleValidators[0].address,
-						defaultValidatorAccount.totalStakeReceived,
+						defaultValidatorAccount.totalStake,
 					),
 				),
-			).resolves.toEqual({ lastPomHeight: 30 });
+			).resolves.toEqual({ lastReportMisbehaviorHeight: 30 });
 		});
 
-		it('should insert new key with 0 if validator does not have pomHeights', async () => {
+		it('should insert new key with 0 if validator does not have lastReportMisbehaviorHeight', async () => {
 			await eligibleValidatorsStore.update(context, eligibleValidators[0].address, BigInt(10), {
 				...defaultValidatorAccount,
 			});
@@ -161,10 +161,10 @@ describe('EligibleValidatorsStore', () => {
 					context,
 					eligibleValidatorsStore.getKey(
 						eligibleValidators[0].address,
-						defaultValidatorAccount.totalStakeReceived,
+						defaultValidatorAccount.totalStake,
 					),
 				),
-			).resolves.toEqual({ lastPomHeight: 0 });
+			).resolves.toEqual({ lastReportMisbehaviorHeight: 0 });
 		});
 	});
 });

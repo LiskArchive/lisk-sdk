@@ -29,7 +29,7 @@ export const validators = new Array(120).fill(0).map((_, i) => {
 		generatorKey: keys.publicKey,
 		lastGeneratedHeight: 0,
 		isBanned: false,
-		pomHeights: [],
+		reportMisbehaviorHeights: [],
 		consecutiveMissedBlocks: 0,
 		commission: 0,
 		lastCommissionIncreaseHeight: 0,
@@ -43,11 +43,11 @@ export const validAsset = {
 	stakers: [
 		{
 			address: validators[0].address,
-			sentStakes: [
+			stakes: [
 				{
 					validatorAddress: validators[0].address,
 					amount: BigInt(1000) * BigInt(100000000),
-					stakeSharingCoefficients: [],
+					sharingCoefficients: [],
 				},
 			],
 			pendingUnlocks: [
@@ -60,11 +60,11 @@ export const validAsset = {
 		},
 		{
 			address: validators[1].address,
-			sentStakes: [
+			stakes: [
 				{
 					validatorAddress: validators[0].address,
 					amount: BigInt(1000) * BigInt(100000000),
-					stakeSharingCoefficients: [],
+					sharingCoefficients: [],
 				},
 			],
 			pendingUnlocks: [
@@ -96,11 +96,11 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						{
 							validatorAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						},
 					],
 					pendingUnlocks: [
@@ -131,11 +131,11 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						{
 							validatorAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						},
 					],
 					pendingUnlocks: [
@@ -167,11 +167,11 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						{
 							validatorAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						},
 					],
 					pendingUnlocks: [
@@ -203,11 +203,11 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						{
 							validatorAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						},
 					],
 					pendingUnlocks: [
@@ -248,11 +248,11 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						{
 							validatorAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						},
 					],
 					pendingUnlocks: [
@@ -278,10 +278,10 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: validators.slice(0, 22).map(v => ({
+					stakes: validators.slice(0, 22).map(v => ({
 						validatorAddress: v.address,
 						amount: BigInt(1000) * BigInt(100000000),
-						stakeSharingCoefficients: [],
+						sharingCoefficients: [],
 					})),
 					pendingUnlocks: [
 						{
@@ -306,16 +306,16 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						{
 							validatorAddress: validators[1].address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						},
 						...validators.slice(1, 10).map(v => ({
 							validatorAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -341,21 +341,21 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						{
 							validatorAddress: validators[1].address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						},
 						{
 							validatorAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						},
 						...validators.slice(2, 10).map(v => ({
 							validatorAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -381,16 +381,16 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						{
 							validatorAddress: Buffer.alloc(20, 0),
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						},
 						...validators.slice(1, 10).map(v => ({
 							validatorAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -416,11 +416,11 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						{
 							validatorAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [
+							sharingCoefficients: [
 								{
 									tokenID: Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]),
 									coefficient: Buffer.from([1, 0, 0, 0]),
@@ -434,7 +434,7 @@ export const invalidAssets: any[] = [
 						...validators.slice(1, 10).map(v => ({
 							validatorAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -475,11 +475,11 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						{
 							validatorAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [
+							sharingCoefficients: [
 								{
 									tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 									coefficient: Buffer.from([255, 0, 0, 0]),
@@ -489,7 +489,7 @@ export const invalidAssets: any[] = [
 						...validators.slice(1, 10).map(v => ({
 							validatorAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -515,11 +515,11 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						...validators.slice(0, 10).map(v => ({
 							validatorAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -545,11 +545,11 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						...validators.slice(0, 10).map(v => ({
 							validatorAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -585,11 +585,11 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						...validators.slice(0, 10).map(v => ({
 							validatorAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -620,11 +620,11 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						...validators.slice(0, 10).map(v => ({
 							validatorAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -637,11 +637,11 @@ export const invalidAssets: any[] = [
 				},
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						...validators.slice(0, 10).map(v => ({
 							validatorAddress: v.address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						})),
 					],
 					pendingUnlocks: [
@@ -667,11 +667,11 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						{
 							validatorAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						},
 					],
 					pendingUnlocks: [
@@ -697,11 +697,11 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						{
 							validatorAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						},
 					],
 					pendingUnlocks: [
@@ -727,11 +727,11 @@ export const invalidAssets: any[] = [
 			stakers: [
 				{
 					address: validators[0].address,
-					sentStakes: [
+					stakes: [
 						{
 							validatorAddress: validators[0].address,
 							amount: BigInt(1000) * BigInt(100000000),
-							stakeSharingCoefficients: [],
+							sharingCoefficients: [],
 						},
 					],
 					pendingUnlocks: [
