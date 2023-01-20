@@ -43,21 +43,14 @@ import {
 	checkLivenessRequirementFirstCCU,
 	checkValidatorsHashWithCertificate,
 	checkValidCertificateLiveness,
-	commonCCUExecutelogic,
 	computeValidatorsHash,
 	validateFormat,
 	verifyLivenessConditionForRegisteredChains,
 } from '../../../../src/modules/interoperability/utils';
+import * as interopUtils from '../../../../src/modules/interoperability/utils';
 import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
 import { Certificate } from '../../../../src/engine/consensus/certificate_generation/types';
-import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
-import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
-import {
-	ChainAccountStore,
-	ChainStatus,
-} from '../../../../src/modules/interoperability/stores/chain_account';
-import { ChainValidatorsStore } from '../../../../src/modules/interoperability/stores/chain_validators';
-import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
+import { ChainStatus } from '../../../../src/modules/interoperability/stores/chain_account';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -65,12 +58,16 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 
 describe('Utils', () => {
 	const interopMod = new MainchainInteroperabilityModule();
-	const defaultActiveValidatorsUpdate = [
-		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
-		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
-		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(4) },
-		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
-	];
+	const defaultActiveValidatorsUpdate = {
+		blsKeysUpdate: [
+			utils.getRandomBytes(48),
+			utils.getRandomBytes(48),
+			utils.getRandomBytes(48),
+			utils.getRandomBytes(48),
+		].sort((v1, v2) => v1.compare(v2)),
+		bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4), BigInt(3)],
+		bftWeightsUpdateBitmap: Buffer.from([1, 0, 2]),
+	};
 
 	describe('checkLivenessRequirementFirstCCU', () => {
 		const partnerChainAccount = {
@@ -265,18 +262,16 @@ describe('Utils', () => {
 	});
 
 	describe('checkValidatorsHashWithCertificate', () => {
-		const activeValidatorsUpdate = [...defaultActiveValidatorsUpdate];
-
+		const activeValidatorsUpdate = { ...defaultActiveValidatorsUpdate };
 		const partnerValidators: any = {
 			certificateThreshold: BigInt(10),
-			activeValidators: activeValidatorsUpdate.map(v => ({
-				blsKey: v.blsKey,
-				bftWeight: v.bftWeight + BigInt(1),
+			activeValidators: activeValidatorsUpdate.blsKeysUpdate.map((v, i) => ({
+				blsKey: v,
+				bftWeight: activeValidatorsUpdate.bftWeightsUpdate[i] + BigInt(1),
 			})),
 		};
-		activeValidatorsUpdate.sort((a, b) => a.blsKey.compare(b.blsKey));
 		const validatorsHash = computeValidatorsHash(
-			activeValidatorsUpdate,
+			partnerValidators.activeValidators,
 			partnerValidators.certificateThreshold,
 		);
 
@@ -297,6 +292,12 @@ describe('Utils', () => {
 			activeValidatorsUpdate,
 			certificateThreshold: BigInt(10),
 		};
+
+		beforeEach(() => {
+			jest
+				.spyOn(interopUtils, 'calculateNewActiveValidators')
+				.mockReturnValue(partnerValidators.activeValidators);
+		});
 
 		it('should return VerifyStatus.FAIL when certificate is empty', () => {
 			const txParamsWithIncorrectHash = { ...txParams, certificate: EMPTY_BYTES };
@@ -360,10 +361,14 @@ describe('Utils', () => {
 			expect(error).toBeUndefined();
 		});
 
-		it('should return VerifyStatus.OK when activeValidatorsUpdate.length === 0 and certificateThreshold === 0', () => {
+		it('should return VerifyStatus.OK when activeValidatorsUpdateis empty and certificateThreshold === 0', () => {
 			const ineligibleTxParams = {
 				...txParams,
-				activeValidatorsUpdate: [],
+				activeValidatorsUpdate: {
+					bftWeightsUpdate: [],
+					bftWeightsUpdateBitmap: Buffer.from([]),
+					blsKeysUpdate: [],
+				},
 				certificateThreshold: BigInt(0),
 			};
 			const { status, error } = checkValidatorsHashWithCertificate(
@@ -385,9 +390,16 @@ describe('Utils', () => {
 			expect(error).toBeUndefined();
 		});
 
-		it('should return VerifyStatus.OK when certificateThreshold > 0 but activeValidatorsUpdate.length === 0', () => {
+		it('should return VerifyStatus.OK when certificateThreshold > 0 but activeValidatorsUpdate is empty', () => {
 			const { status, error } = checkValidatorsHashWithCertificate(
-				{ ...txParams, activeValidatorsUpdate: [] },
+				{
+					...txParams,
+					activeValidatorsUpdate: {
+						bftWeightsUpdate: [],
+						bftWeightsUpdateBitmap: Buffer.from([]),
+						blsKeysUpdate: [],
+					},
+				},
 				partnerValidators,
 			);
 
@@ -397,7 +409,7 @@ describe('Utils', () => {
 	});
 
 	describe('checkInboxUpdateValidity', () => {
-		const activeValidatorsUpdate = [...defaultActiveValidatorsUpdate];
+		const activeValidatorsUpdate = { ...defaultActiveValidatorsUpdate };
 
 		const partnerChainOutboxRoot = cryptography.utils.getRandomBytes(HASH_LENGTH);
 		const inboxTree = {
@@ -732,234 +744,6 @@ describe('Utils', () => {
 		});
 	});
 
-	describe('commonCCUExecutelogic', () => {
-		const chainIDBuffer = Buffer.from([0, 0, 0, 1]);
-		const defaultCalculatedRootFromRightWitness = cryptography.utils.getRandomBytes(20);
-		let activeValidatorsUpdate: any;
-		let inboxUpdate: InboxUpdate;
-		let certificate: any;
-		let partnerChainAccount: any;
-		let partnerValidatorStore: ChainValidatorsStore;
-		let partnerChainStore: ChainAccountStore;
-		let partnerValidators: any;
-		let params: any;
-		let partnerChannelStoreMock: ChannelDataStore;
-		let partnerChannelData: any;
-		let context: any;
-		let calculateRootFromRightWitness: any;
-
-		beforeEach(async () => {
-			activeValidatorsUpdate = [
-				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
-				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
-				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(4) },
-				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
-			];
-			inboxUpdate = {
-				crossChainMessages: [Buffer.alloc(1)],
-				messageWitnessHashes: [Buffer.alloc(1)],
-				outboxRootWitness: {
-					bitmap: Buffer.alloc(1),
-					siblingHashes: [Buffer.alloc(1)],
-				},
-			} as InboxUpdate;
-
-			certificate = {
-				stateRoot: Buffer.alloc(2),
-				validatorsHash: Buffer.alloc(2),
-				height: 10,
-				timestamp: Date.now(),
-			};
-			partnerChainAccount = {
-				lastCertificate: { ...certificate, height: 5 },
-				height: 8,
-			};
-			partnerValidatorStore = interopMod.stores.get(ChainValidatorsStore);
-			partnerChainStore = interopMod.stores.get(ChainAccountStore);
-			partnerValidators = {
-				activeValidators: activeValidatorsUpdate,
-				certificateThreshold: BigInt(12),
-			};
-			params = {
-				activeValidatorsUpdate,
-				certificateThreshold: BigInt(10),
-				certificate: Buffer.alloc(2),
-				inboxUpdate,
-			};
-			partnerChannelStoreMock = interopMod.stores.get(ChannelDataStore);
-
-			partnerChannelData = {
-				partnerChainOutboxRoot: Buffer.alloc(HASH_LENGTH),
-				inbox: {
-					size: 2,
-					appendPath: [Buffer.alloc(1)],
-					root: cryptography.utils.getRandomBytes(20),
-				},
-				outbox: {
-					size: 0,
-					appendPath: [],
-					root: Buffer.alloc(HASH_LENGTH),
-				},
-				messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
-			};
-			const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			context = {
-				getStore: (modulePrefix: Buffer, storePrefix: Buffer) =>
-					stateStore.getStore(modulePrefix, storePrefix),
-				params,
-				transaction: {
-					module: MODULE_NAME_INTEROPERABILITY,
-				},
-			};
-
-			await partnerChannelStoreMock.set(context, chainIDBuffer, partnerChannelData);
-			calculateRootFromRightWitness = jest
-				.spyOn(merkleTree.regularMerkleTree, 'calculateRootFromRightWitness')
-				.mockReturnValue(defaultCalculatedRootFromRightWitness);
-
-			jest.spyOn(partnerChainStore, 'set');
-			jest.spyOn(partnerValidatorStore, 'set');
-			jest.spyOn(partnerChannelStoreMock, 'get');
-			jest.spyOn(partnerChannelStoreMock, 'set');
-		});
-
-		it('should run successfully and return undefined when certificateThreshold is non-zero', async () => {
-			await expect(
-				commonCCUExecutelogic({
-					stores: interopMod.stores,
-					certificate,
-					partnerChainAccount,
-					partnerValidatorStore,
-					partnerChainStore,
-					partnerValidators,
-					chainIDBuffer,
-					context,
-				}),
-			).resolves.toBeUndefined();
-			expect(partnerValidatorStore.set).toHaveBeenCalledTimes(1);
-			expect(partnerChainStore.set).toHaveBeenCalledTimes(1);
-			expect(partnerChannelStoreMock.get).toHaveBeenCalledTimes(1);
-			expect(partnerChannelStoreMock.set).toHaveBeenCalledTimes(1);
-			expect(partnerValidators.certificateThreshold).toEqual(params.certificateThreshold);
-
-			const updatedPartnerChannelData = await partnerChannelStoreMock.get(context, chainIDBuffer);
-
-			expect(updatedPartnerChannelData.partnerChainOutboxRoot).toEqual(
-				defaultCalculatedRootFromRightWitness,
-			);
-		});
-
-		it('should run successfully and return undefined when certificateThreshold is zero', async () => {
-			const paramsWithThresholdZero = {
-				activeValidatorsUpdate,
-				certificateThreshold: BigInt(0),
-				certificate: Buffer.alloc(2),
-				inboxUpdate,
-			};
-			const contextWithThresholdZero: any = { ...context, params: paramsWithThresholdZero };
-
-			await expect(
-				commonCCUExecutelogic({
-					stores: interopMod.stores,
-					certificate,
-					partnerChainAccount,
-					partnerValidatorStore,
-					partnerChainStore,
-					partnerValidators,
-					chainIDBuffer,
-					context: contextWithThresholdZero,
-				}),
-			).resolves.toBeUndefined();
-			expect(partnerValidatorStore.set).toHaveBeenCalledTimes(1);
-			expect(partnerChainStore.set).toHaveBeenCalledTimes(1);
-			expect(partnerChannelStoreMock.get).toHaveBeenCalledTimes(1);
-			expect(partnerChannelStoreMock.set).toHaveBeenCalledTimes(1);
-			expect(partnerValidators.certificateThreshold).toEqual(BigInt(12)); // original partnerValidator value unchanged
-
-			const updatedPartnerChannelData = await partnerChannelStoreMock.get(context, chainIDBuffer);
-
-			expect(updatedPartnerChannelData.partnerChainOutboxRoot).toEqual(
-				defaultCalculatedRootFromRightWitness,
-			);
-		});
-
-		it('should run successfully and return undefined when certificate is empty', async () => {
-			const paramsWithEmptyCertificate = {
-				activeValidatorsUpdate,
-				certificateThreshold: params.certificateThreshold,
-				certificate: EMPTY_BYTES,
-				inboxUpdate,
-			};
-			const contextWithEmptyCertificate: any = { ...context, params: paramsWithEmptyCertificate };
-
-			await expect(
-				commonCCUExecutelogic({
-					stores: interopMod.stores,
-					certificate: {} as any,
-					partnerChainAccount,
-					partnerValidatorStore,
-					partnerChainStore,
-					partnerValidators,
-					chainIDBuffer,
-					context: contextWithEmptyCertificate,
-				}),
-			).resolves.toBeUndefined();
-			expect(partnerValidatorStore.set).toHaveBeenCalledTimes(1);
-			expect(partnerChainStore.set).not.toHaveBeenCalled();
-			expect(partnerChannelStoreMock.get).toHaveBeenCalledTimes(1);
-			expect(partnerChannelStoreMock.set).toHaveBeenCalledTimes(1);
-			expect(partnerChainAccount.lastCertificate.height).toBe(5); // original partnerValidator value unchange
-
-			const updatedPartnerChannelData = await partnerChannelStoreMock.get(context, chainIDBuffer);
-
-			expect(updatedPartnerChannelData.partnerChainOutboxRoot).toEqual(
-				defaultCalculatedRootFromRightWitness,
-			);
-			expect(calculateRootFromRightWitness).toHaveBeenCalled();
-		});
-
-		it('should run successfully and return undefined when messageWitnessHashes is empty', async () => {
-			const paramsWithEmptyMessageWitness = {
-				activeValidatorsUpdate,
-				certificateThreshold: params.certificateThreshold,
-				certificate: params.certificate,
-				inboxUpdate: {
-					...inboxUpdate,
-					messageWitnessHashes: [],
-				},
-			};
-			const contextWithEmptyMessageWitness: any = {
-				...context,
-				params: paramsWithEmptyMessageWitness,
-			};
-
-			await expect(
-				commonCCUExecutelogic({
-					stores: interopMod.stores,
-					certificate,
-					partnerChainAccount,
-					partnerValidatorStore,
-					partnerChainStore,
-					partnerValidators,
-					chainIDBuffer,
-					context: contextWithEmptyMessageWitness,
-				}),
-			).resolves.toBeUndefined();
-			expect(partnerValidatorStore.set).toHaveBeenCalledTimes(1);
-			expect(partnerChainStore.set).toHaveBeenCalledTimes(1);
-			expect(partnerChannelStoreMock.get).toHaveBeenCalledTimes(1);
-			expect(partnerChannelStoreMock.set).toHaveBeenCalledTimes(1);
-			expect(partnerChainAccount.lastCertificate.height).toEqual(certificate.height);
-
-			const updatedPartnerChannelData = await partnerChannelStoreMock.get(context, chainIDBuffer);
-
-			expect(updatedPartnerChannelData.partnerChainOutboxRoot).toEqual(
-				partnerChannelData.inbox.root,
-			);
-			expect(calculateRootFromRightWitness).not.toHaveBeenCalled();
-		});
-	});
-
 	describe('validateFormat', () => {
 		const buildCCM = (obj: Partial<CCMsg>) => ({
 			crossChainCommand: obj.crossChainCommand ?? CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
@@ -1028,7 +812,11 @@ describe('Utils', () => {
 			signature: utils.getRandomBytes(32),
 		};
 		const ccuParams = {
-			activeValidatorsUpdate: [],
+			activeValidatorsUpdate: {
+				blsKeysUpdate: [],
+				bftWeightsUpdate: [],
+				bftWeightsUpdateBitmap: Buffer.from([]),
+			},
 			certificate: codec.encode(certificateSchema, certificate),
 			inboxUpdate: {
 				crossChainMessages: [utils.getRandomBytes(100)],
@@ -1062,6 +850,208 @@ describe('Utils', () => {
 					certificate.timestamp + LIVENESS_LIMIT / 2,
 				),
 			).toBeUndefined();
+		});
+	});
+
+	describe('calculateNewActiveValidators', () => {
+		const bytesToBuffer = (str: string): Buffer => {
+			const val = BigInt(`0b${str}`).toString(16);
+			return Buffer.from(`${val.length % 2 === 0 ? val : `0${val}`}`, 'hex');
+		};
+
+		const cases = [
+			[
+				// 2 new validators
+				{
+					activeValidators: [
+						{
+							blsKey: Buffer.from('02', 'hex'),
+							bftWeight: BigInt(20),
+						},
+					],
+					blsKeysUpdate: [Buffer.from('03', 'hex'), Buffer.from('04', 'hex')],
+					bftWeightsUpdate: [BigInt(30), BigInt(40)],
+					bftWeightsUpdateBitmap: bytesToBuffer('110'),
+					newValidators: [
+						{
+							blsKey: Buffer.from('02', 'hex'),
+							bftWeight: BigInt(20),
+						},
+						{
+							blsKey: Buffer.from('03', 'hex'),
+							bftWeight: BigInt(30),
+						},
+						{
+							blsKey: Buffer.from('04', 'hex'),
+							bftWeight: BigInt(40),
+						},
+					],
+				},
+			],
+			[
+				// 2 new validators and update bft weight for existing ones
+				{
+					activeValidators: [
+						{
+							blsKey: Buffer.from('02', 'hex'),
+							bftWeight: BigInt(20),
+						},
+					],
+					blsKeysUpdate: [Buffer.from('03', 'hex'), Buffer.from('04', 'hex')],
+					bftWeightsUpdate: [BigInt(99), BigInt(30), BigInt(40)],
+					bftWeightsUpdateBitmap: bytesToBuffer('111'),
+					newValidators: [
+						{
+							blsKey: Buffer.from('02', 'hex'),
+							bftWeight: BigInt(99),
+						},
+						{
+							blsKey: Buffer.from('03', 'hex'),
+							bftWeight: BigInt(30),
+						},
+						{
+							blsKey: Buffer.from('04', 'hex'),
+							bftWeight: BigInt(40),
+						},
+					],
+				},
+			],
+			[
+				// complete new set
+				{
+					activeValidators: [
+						{
+							blsKey: Buffer.from('02', 'hex'),
+							bftWeight: BigInt(20),
+						},
+					],
+					blsKeysUpdate: [
+						Buffer.from('03', 'hex'),
+						Buffer.from('04', 'hex'),
+						Buffer.from('05', 'hex'),
+					],
+					bftWeightsUpdate: [BigInt(0), BigInt(30), BigInt(40), BigInt(99)],
+					bftWeightsUpdateBitmap: bytesToBuffer('1111'),
+					newValidators: [
+						{
+							blsKey: Buffer.from('03', 'hex'),
+							bftWeight: BigInt(30),
+						},
+						{
+							blsKey: Buffer.from('04', 'hex'),
+							bftWeight: BigInt(40),
+						},
+						{
+							blsKey: Buffer.from('05', 'hex'),
+							bftWeight: BigInt(99),
+						},
+					],
+				},
+			],
+			[
+				// complete new set
+				{
+					activeValidators: [
+						{
+							blsKey: Buffer.from('02', 'hex'),
+							bftWeight: BigInt(20),
+						},
+					],
+					blsKeysUpdate: new Array(100).fill(0).map((_, i) => Buffer.from([i + 3])),
+					bftWeightsUpdate: [BigInt(0), ...new Array(100).fill(0).map((_, i) => BigInt(i + 10))],
+					bftWeightsUpdateBitmap: bytesToBuffer('0'.repeat(27) + '1'.repeat(101)),
+					newValidators: new Array(100).fill(0).map((_, i) => ({
+						blsKey: Buffer.from([i + 3]),
+						bftWeight: BigInt(i + 10),
+					})),
+				},
+			],
+			[
+				// only remove validator
+				{
+					activeValidators: [
+						{
+							blsKey: Buffer.from('05', 'hex'),
+							bftWeight: BigInt(99),
+						},
+						{
+							blsKey: Buffer.from('03', 'hex'),
+							bftWeight: BigInt(30),
+						},
+						{
+							blsKey: Buffer.from('04', 'hex'),
+							bftWeight: BigInt(40),
+						},
+					],
+					blsKeysUpdate: [],
+					bftWeightsUpdate: [BigInt(0), BigInt(0), BigInt(0)],
+					bftWeightsUpdateBitmap: bytesToBuffer('111'),
+					newValidators: [],
+				},
+			],
+			[
+				// remove and change weight
+				{
+					activeValidators: [
+						{
+							blsKey: Buffer.from('05', 'hex'),
+							bftWeight: BigInt(99),
+						},
+						{
+							blsKey: Buffer.from('03', 'hex'),
+							bftWeight: BigInt(30),
+						},
+						{
+							blsKey: Buffer.from('04', 'hex'),
+							bftWeight: BigInt(40),
+						},
+					],
+					blsKeysUpdate: [],
+					bftWeightsUpdate: [BigInt(90), BigInt(0), BigInt(0)],
+					bftWeightsUpdateBitmap: bytesToBuffer('111'),
+					newValidators: [
+						{
+							blsKey: Buffer.from('03', 'hex'),
+							bftWeight: BigInt(90),
+						},
+					],
+				},
+			],
+		];
+
+		it.each(cases)('should compute new active validators', val => {
+			expect(
+				interopUtils.calculateNewActiveValidators(
+					val.activeValidators,
+					val.blsKeysUpdate,
+					val.bftWeightsUpdate,
+					val.bftWeightsUpdateBitmap,
+				),
+			).toEqual(val.newValidators);
+		});
+
+		it('should fail if more bftWeightsUpdate than the bftWeightsUpdateBitmap specifies are provided', () => {
+			expect(() =>
+				interopUtils.calculateNewActiveValidators(
+					[
+						{
+							blsKey: Buffer.from('05', 'hex'),
+							bftWeight: BigInt(99),
+						},
+						{
+							blsKey: Buffer.from('03', 'hex'),
+							bftWeight: BigInt(30),
+						},
+						{
+							blsKey: Buffer.from('04', 'hex'),
+							bftWeight: BigInt(40),
+						},
+					],
+					[],
+					[BigInt(90), BigInt(0), BigInt(0)],
+					bytesToBuffer('1110'),
+				),
+			).toThrow('No BFT weights should be left');
 		});
 	});
 });

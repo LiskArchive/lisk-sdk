@@ -64,3 +64,17 @@ export const getDefaultRewardAtHeightResponseSchema = {
 		},
 	},
 };
+
+export const getRewardTokenIDResponseSchema = {
+	$id: '/reward/endpoint/getRewardTokenID',
+	type: 'object',
+	required: ['tokenID'],
+	properties: {
+		tokenID: {
+			type: 'string',
+			format: 'hex',
+			minLength: 16,
+			maxLength: 16,
+		},
+	},
+};

@@ -94,14 +94,24 @@ describe('BaseCrossChainUpdateCommand', () => {
 		sendingChainID: EMPTY_BYTES,
 		status: 0,
 	};
+	const activeValidators = [
+		{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) },
+		{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(3) },
+		{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(4) },
+		{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(2) },
+	].sort((v1, v2) => v1.blsKey.compare(v2.blsKey));
 	const defaultSendingChainID = Buffer.from([0, 0, 2, 0]);
 	const params = {
-		activeValidatorsUpdate: [
-			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) },
-			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(3) },
-			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(4) },
-			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(3) },
-		].sort((v1, v2) => v1.blsKey.compare(v2.blsKey)),
+		activeValidatorsUpdate: {
+			blsKeysUpdate: [
+				utils.getRandomBytes(48),
+				utils.getRandomBytes(48),
+				utils.getRandomBytes(48),
+				utils.getRandomBytes(48),
+			].sort((v1, v2) => v1.compare(v2)),
+			bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4), BigInt(3)],
+			bftWeightsUpdateBitmap: Buffer.from([1, 0, 2]),
+		},
 		certificate: codec.encode(certificateSchema, {
 			blockID: utils.getRandomBytes(32),
 			height: 21,
@@ -266,7 +276,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				.get(ChainAccountStore)
 				.set(stateStore, defaultSendingChainID, partnerChainAccount);
 			await interopsModule.stores.get(ChainValidatorsStore).set(stateStore, defaultSendingChainID, {
-				activeValidators: params.activeValidatorsUpdate,
+				activeValidators,
 				certificateThreshold: params.certificateThreshold,
 			});
 		});
@@ -285,7 +295,22 @@ describe('BaseCrossChainUpdateCommand', () => {
 						certificate: Buffer.alloc(0),
 					},
 				}),
-			).rejects.toThrow('The first CCU must contain a non-empty certificate');
+			).rejects.toThrow(
+				'Cross-chain updates from chains with status CHAIN_STATUS_REGISTERED must contain a non-empty certificate',
+			);
+		});
+
+		it('should verify certificate when certificate is not empty', async () => {
+			await expect(
+				command['verifyCommon']({
+					...verifyContext,
+					params: {
+						...params,
+					},
+				}),
+			).resolves.toBeUndefined();
+
+			expect(internalMethod.verifyCertificate).toHaveBeenCalledTimes(1);
 		});
 
 		it('should verify validators update when active validator update exist', async () => {
@@ -294,9 +319,11 @@ describe('BaseCrossChainUpdateCommand', () => {
 					...verifyContext,
 					params: {
 						...params,
-						activeValidatorsUpdate: [
-							{ bftWeight: BigInt(0), blsKey: utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH) },
-						],
+						activeValidatorsUpdate: {
+							blsKeysUpdate: [utils.getRandomBytes(48)],
+							bftWeightsUpdate: [],
+							bftWeightsUpdateBitmap: Buffer.from([1]),
+						},
 					},
 				}),
 			).resolves.toBeUndefined();
@@ -318,7 +345,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			expect(internalMethod.verifyValidatorsUpdate).toHaveBeenCalledTimes(1);
 		});
 
-		it('should verify partnerchain outbox root when inbox is not empty', async () => {
+		it('should verify partnerchain outbox root when inboxUpdate is not empty', async () => {
 			await expect(
 				command['verifyCommon']({
 					...verifyContext,
@@ -365,7 +392,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				.get(ChainAccountStore)
 				.set(stateStore, defaultSendingChainID, partnerChainAccount);
 			await interopsModule.stores.get(ChainValidatorsStore).set(stateStore, defaultSendingChainID, {
-				activeValidators: params.activeValidatorsUpdate,
+				activeValidators,
 				certificateThreshold: params.certificateThreshold,
 			});
 			await interopsModule.stores

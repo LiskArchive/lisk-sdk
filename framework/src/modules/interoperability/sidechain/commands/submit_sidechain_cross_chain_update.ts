@@ -22,8 +22,9 @@ import {
 import { BaseCrossChainUpdateCommand } from '../../base_cross_chain_update_command';
 import { CONTEXT_STORE_KEY_CCM_PROCESSING } from '../../constants';
 import { crossChainUpdateTransactionParams } from '../../schemas';
+import { ChainAccountStore } from '../../stores/chain_account';
 import { CrossChainUpdateTransactionParams } from '../../types';
-import { getMainchainID } from '../../utils';
+import { getMainchainID, isInboxUpdateEmpty } from '../../utils';
 import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 
 export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdateCommand<SidechainInteroperabilityInternalMethod> {
@@ -36,9 +37,23 @@ export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			context.params,
 		);
 
+		if (params.certificate.length === 0 && isInboxUpdateEmpty(params.inboxUpdate)) {
+			throw new Error(
+				'A cross-chain update must contain a non-empty certificate and/or a non-empty inbox update.',
+			);
+		}
+
 		if (!params.sendingChainID.equals(getMainchainID(context.chainID))) {
 			throw new Error('Only the mainchain can send a sidechain cross-chain update.');
 		}
+
+		const sendingChainExist = await this.stores
+			.get(ChainAccountStore)
+			.has(context, params.sendingChainID);
+		if (!sendingChainExist) {
+			throw new Error('The mainchain is not registered.');
+		}
+
 		const isLive = await this.internalMethod.isLive(context, params.sendingChainID);
 		if (!isLive) {
 			throw new Error('The sending chain is not live.');
