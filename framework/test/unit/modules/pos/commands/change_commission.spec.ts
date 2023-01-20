@@ -49,11 +49,11 @@ describe('Change Commission command', () => {
 
 	const validatorDetails = {
 		name: 'PamelaAnderson',
-		totalStakeReceived: BigInt(0),
+		totalStake: BigInt(0),
 		selfStake: BigInt(0),
 		lastGeneratedHeight: 0,
 		isBanned: false,
-		pomHeights: [],
+		reportMisbehaviorHeights: [],
 		consecutiveMissedBlocks: 0,
 		commission: 100,
 		lastCommissionIncreaseHeight: 0,

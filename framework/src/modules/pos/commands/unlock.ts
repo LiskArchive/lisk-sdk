@@ -71,11 +71,14 @@ export class UnlockCommand extends BaseCommand {
 		const { height: genesisHeight } = genesisData;
 
 		for (const unlockObject of stakerData.pendingUnlocks) {
-			const { pomHeights } = await validatorSubstore.get(context, unlockObject.validatorAddress);
+			const { reportMisbehaviorHeights } = await validatorSubstore.get(
+				context,
+				unlockObject.validatorAddress,
+			);
 
 			if (
 				hasWaited(unlockObject, senderAddress, height) &&
-				!isPunished(unlockObject, pomHeights, senderAddress, height) &&
+				!isPunished(unlockObject, reportMisbehaviorHeights, senderAddress, height) &&
 				isCertificateGenerated({
 					unlockObject,
 					genesisHeight,

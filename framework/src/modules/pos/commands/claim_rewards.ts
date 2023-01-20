@@ -35,7 +35,7 @@ export class ClaimRewardsCommand extends BaseCommand {
 		const stakerStore = this.stores.get(StakerStore);
 		const stakerData = await stakerStore.get(context, senderAddress);
 
-		for (const sentStake of stakerData.sentStakes) {
+		for (const sentStake of stakerData.stakes) {
 			const validator = await validatorStore.get(context, sentStake.validatorAddress);
 			await this._internalMethod.assignStakeRewards(
 				getMethodContext(),
@@ -43,7 +43,7 @@ export class ClaimRewardsCommand extends BaseCommand {
 				sentStake,
 				validator,
 			);
-			sentStake.stakeSharingCoefficients = validator.sharingCoefficients;
+			sentStake.sharingCoefficients = validator.sharingCoefficients;
 		}
 
 		await stakerStore.set(context, senderAddress, stakerData);
