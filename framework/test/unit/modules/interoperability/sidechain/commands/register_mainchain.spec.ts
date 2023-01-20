@@ -30,7 +30,6 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
 	MESSAGE_TAG_CHAIN_REG,
-	THRESHOLD_MAINCHAIN,
 	MAX_UINT64,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
@@ -83,12 +82,12 @@ describe('RegisterMainchainCommand', () => {
 	const mainchainID = Buffer.from([0, 0, 0, 0]);
 	const mainchainTokenID = Buffer.concat([mainchainID, Buffer.alloc(4)]);
 	const mainchainValidators = sortValidatorsByBLSKey(unsortedMainchainValidators);
-	const mainchainCertificateThreshold = BigInt(51);
+	const mainchainCertificateThreshold = BigInt(68);
 	const transactionParams: MainchainRegistrationParams = {
 		ownName: 'testchain',
 		ownChainID,
 		mainchainValidators,
-		mainchainCertificateThreshold: BigInt(51),
+		mainchainCertificateThreshold,
 		aggregationBits: Buffer.alloc(0),
 		signature: Buffer.alloc(0),
 	};
@@ -282,6 +281,7 @@ describe('RegisterMainchainCommand', () => {
 	});
 
 	describe('execute', () => {
+		const mainchainThreshold = 68;
 		const params = {
 			ownChainID,
 			ownName: 'testchain',
@@ -295,7 +295,7 @@ describe('RegisterMainchainCommand', () => {
 				height: 0,
 				timestamp: 0,
 				stateRoot: EMPTY_HASH,
-				validatorsHash: computeValidatorsHash(mainchainValidators, BigInt(THRESHOLD_MAINCHAIN)),
+				validatorsHash: computeValidatorsHash(mainchainValidators, BigInt(mainchainThreshold)),
 			},
 			status: ChainStatus.REGISTERED,
 		};
@@ -481,7 +481,7 @@ describe('RegisterMainchainCommand', () => {
 					height: 0,
 					timestamp: 0,
 					stateRoot: EMPTY_HASH,
-					validatorsHash: computeValidatorsHash(mainchainValidators, BigInt(THRESHOLD_MAINCHAIN)),
+					validatorsHash: computeValidatorsHash(mainchainValidators, BigInt(mainchainThreshold)),
 				},
 				status: ChainStatus.REGISTERED,
 			};

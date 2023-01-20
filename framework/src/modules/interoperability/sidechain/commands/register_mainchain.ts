@@ -18,7 +18,6 @@ import { validator } from '@liskhq/lisk-validator';
 import {
 	EMPTY_HASH,
 	MODULE_NAME_INTEROPERABILITY,
-	THRESHOLD_MAINCHAIN,
 	EMPTY_BYTES,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	CCMStatusCode,
@@ -215,7 +214,7 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 				height: 0,
 				timestamp: 0,
 				stateRoot: EMPTY_HASH,
-				validatorsHash: computeValidatorsHash(mainchainValidators, BigInt(THRESHOLD_MAINCHAIN)),
+				validatorsHash: computeValidatorsHash(mainchainValidators, mainchainCertificateThreshold),
 			},
 			status: ChainStatus.REGISTERED,
 		};

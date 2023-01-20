@@ -34,7 +34,6 @@ export const MAX_NUM_VALIDATORS = 199;
 export const MAX_LENGTH_NAME = 40;
 export const MAX_UINT32 = 4294967295;
 export const MAX_UINT64 = BigInt('18446744073709551615'); // BigInt((2 ** 64) - 1) - 1
-export const THRESHOLD_MAINCHAIN = 68;
 export const MESSAGE_TAG_CERTIFICATE = 'LSK_CE_';
 export const MIN_CHAIN_NAME_LENGTH = 1;
 export const MAX_CHAIN_NAME_LENGTH = 32;
