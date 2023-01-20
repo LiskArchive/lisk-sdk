@@ -15,10 +15,10 @@ export const MODULE_NAME_POS = 'pos';
 
 export const COMMAND_NAME_VALIDATOR_REGISTRATION = 'registerValidator';
 
-export const LOCKING_PERIOD_STAKES = 26000;
-export const LOCKING_PERIOD_SELF_STAKES = 260000;
-export const PUNISHMENT_WINDOW_STAKES = 260000;
-export const PUNISHMENT_WINDOW_SELF_STAKES = 780000;
+export const LOCKING_PERIOD_STAKING = 26000;
+export const LOCKING_PERIOD_SELF_STAKING = 260000;
+export const PUNISHMENT_WINDOW_STAKING = 260000;
+export const PUNISHMENT_WINDOW_SELF_STAKING = 780000;
 // Punishment period is 780k block height by default
 export const PUNISHMENT_PERIOD = 780000;
 export const MAX_LENGTH_NAME = 20;
@@ -28,7 +28,7 @@ export const MAX_NUMBER_PENDING_UNLOCKS = 20;
 export const TOKEN_ID_POS = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 export const VALIDATOR_REGISTRATION_FEE = BigInt(10) * BigInt(10) ** BigInt(8);
 export const MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE = 260000;
-export const POM_LIMIT_BANNED = 5;
+export const REPORT_MISBEHAVIOR_LIMIT_BANNED = 5;
 export const REPORTING_PUNISHMENT_REWARD = BigInt(100000000);
 export const VALIDATOR_LIST_ROUND_OFFSET = 2;
 export const EMPTY_KEY = Buffer.alloc(0);

@@ -18,9 +18,9 @@ import { math } from '@liskhq/lisk-utils';
 import {
 	defaultConfig,
 	EMPTY_KEY,
-	PUNISHMENT_WINDOW_STAKES,
-	LOCKING_PERIOD_SELF_STAKES,
-	LOCKING_PERIOD_STAKES,
+	PUNISHMENT_WINDOW_STAKING,
+	LOCKING_PERIOD_SELF_STAKING,
+	LOCKING_PERIOD_STAKING,
 } from '../../../../src/modules/pos/constants';
 import { PoSEndpoint } from '../../../../src/modules/pos/endpoint';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
@@ -63,11 +63,11 @@ describe('PosModuleEndpoint', () => {
 
 	const addressStaker = utils.getRandomBytes(20);
 	const stakerData: StakerData = {
-		sentStakes: [
+		stakes: [
 			{
 				validatorAddress: utils.getRandomBytes(20),
 				amount: BigInt(0),
-				stakeSharingCoefficients: [],
+				sharingCoefficients: [],
 			},
 		],
 		pendingUnlocks: [
@@ -105,11 +105,11 @@ describe('PosModuleEndpoint', () => {
 
 	const validatorData = {
 		name: 'validator1',
-		totalStakeReceived: BigInt(0),
+		totalStake: BigInt(0),
 		selfStake: BigInt(0),
 		lastGeneratedHeight: 0,
 		isBanned: false,
-		pomHeights: [0],
+		reportMisbehaviorHeights: [0],
 		consecutiveMissedBlocks: 0,
 		address: cryptoAddress.getLisk32AddressFromAddress(address),
 		commission: 0,
@@ -168,8 +168,8 @@ describe('PosModuleEndpoint', () => {
 					}),
 				);
 
-				expect(stakerDataReturned.sentStakes[0].validatorAddress).toBeString();
-				expect(stakerDataReturned.sentStakes[0].amount).toBeString();
+				expect(stakerDataReturned.stakes[0].validatorAddress).toBeString();
+				expect(stakerDataReturned.stakes[0].amount).toBeString();
 				expect(stakerDataReturned.pendingUnlocks[0].validatorAddress).toBeString();
 				expect(stakerDataReturned.pendingUnlocks[0].amount).toBeString();
 			});
@@ -191,7 +191,7 @@ describe('PosModuleEndpoint', () => {
 
 				const validatorDataJSON = {
 					...validatorData,
-					totalStakeReceived: validatorData.totalStakeReceived.toString(),
+					totalStake: validatorData.totalStake.toString(),
 					selfStake: validatorData.selfStake.toString(),
 					address: cryptoAddress.getLisk32AddressFromAddress(address),
 					sharingCoefficients: [
@@ -204,7 +204,9 @@ describe('PosModuleEndpoint', () => {
 							coefficient: validatorCoefficient2.toString('hex'),
 						},
 					],
-					punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+					punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](
+						validatorData.reportMisbehaviorHeights,
+					),
 				};
 
 				expect(validatorDataReturned).toStrictEqual(validatorDataJSON);
@@ -221,7 +223,7 @@ describe('PosModuleEndpoint', () => {
 					}),
 				);
 
-				expect(validatorDataReturned.totalStakeReceived).toBeString();
+				expect(validatorDataReturned.totalStake).toBeString();
 				expect(validatorDataReturned.selfStake).toBeString();
 			});
 		});
@@ -257,9 +259,9 @@ describe('PosModuleEndpoint', () => {
 					createTransientModuleEndpointContext({ stateStore }),
 				);
 
-				expect(validatorsDataReturned[0].totalStakeReceived).toBeString();
+				expect(validatorsDataReturned[0].totalStake).toBeString();
 				expect(validatorsDataReturned[0].selfStake).toBeString();
-				expect(validatorsDataReturned[1].totalStakeReceived).toBeString();
+				expect(validatorsDataReturned[1].totalStake).toBeString();
 				expect(validatorsDataReturned[1].selfStake).toBeString();
 			});
 		});
@@ -269,9 +271,9 @@ describe('PosModuleEndpoint', () => {
 		beforeEach(async () => {
 			const context = createStoreGetter(stateStore);
 			await stakerSubStore.set(context, address, {
-				sentStakes: [
-					{ validatorAddress: address1, amount: BigInt(200), stakeSharingCoefficients: [] },
-					{ validatorAddress: address2, amount: BigInt(10), stakeSharingCoefficients: [] },
+				stakes: [
+					{ validatorAddress: address1, amount: BigInt(200), sharingCoefficients: [] },
+					{ validatorAddress: address2, amount: BigInt(10), sharingCoefficients: [] },
 				],
 				pendingUnlocks: [{ amount: BigInt(30), validatorAddress: address1, unstakeHeight: 99 }],
 			});
@@ -348,18 +350,18 @@ describe('PosModuleEndpoint', () => {
 			await validatorSubStore.set(createStoreGetter(stateStore), address, {
 				...validatorData,
 				name: 'validator',
-				pomHeights: [],
+				reportMisbehaviorHeights: [],
 			});
 			await validatorSubStore.set(createStoreGetter(stateStore), address1, {
 				...validatorData,
 				name: 'validator1',
-				pomHeights: [],
+				reportMisbehaviorHeights: [],
 			});
 			const pomHeight = 260000;
 			await validatorSubStore.set(createStoreGetter(stateStore), address2, {
 				...validatorData,
 				name: 'validator2',
-				pomHeights: [pomHeight],
+				reportMisbehaviorHeights: [pomHeight],
 			});
 			const pendingUnlocks = [
 				{
@@ -379,7 +381,7 @@ describe('PosModuleEndpoint', () => {
 				},
 			];
 			await stakerSubStore.set(createStoreGetter(stateStore), address, {
-				sentStakes: [],
+				stakes: [],
 				pendingUnlocks,
 			});
 			await genesisSubStore.set(createStoreGetter(stateStore), EMPTY_KEY, {
@@ -417,7 +419,7 @@ describe('PosModuleEndpoint', () => {
 						),
 						amount: pendingUnlocks[0].amount.toString(),
 						unlockable: true,
-						expectedUnlockableHeight: pendingUnlocks[0].unstakeHeight + LOCKING_PERIOD_SELF_STAKES,
+						expectedUnlockableHeight: pendingUnlocks[0].unstakeHeight + LOCKING_PERIOD_SELF_STAKING,
 					},
 					{
 						...pendingUnlocks[1],
@@ -426,7 +428,7 @@ describe('PosModuleEndpoint', () => {
 						),
 						amount: pendingUnlocks[1].amount.toString(),
 						unlockable: false,
-						expectedUnlockableHeight: pendingUnlocks[1].unstakeHeight + LOCKING_PERIOD_STAKES,
+						expectedUnlockableHeight: pendingUnlocks[1].unstakeHeight + LOCKING_PERIOD_STAKING,
 					},
 					{
 						...pendingUnlocks[2],
@@ -435,7 +437,7 @@ describe('PosModuleEndpoint', () => {
 						),
 						amount: pendingUnlocks[2].amount.toString(),
 						unlockable: false,
-						expectedUnlockableHeight: pomHeight + PUNISHMENT_WINDOW_STAKES,
+						expectedUnlockableHeight: pomHeight + PUNISHMENT_WINDOW_STAKING,
 					},
 				],
 			});
@@ -458,32 +460,32 @@ describe('PosModuleEndpoint', () => {
 			await eligibleValidatorsSubStore.set(
 				context,
 				eligibleValidatorsSubStore.getKey(address, BigInt(20)),
-				{ lastPomHeight: 0 },
+				{ lastReportMisbehaviorHeight: 0 },
 			);
 			await eligibleValidatorsSubStore.set(
 				context,
 				eligibleValidatorsSubStore.getKey(address1, BigInt(50)),
-				{ lastPomHeight: 0 },
+				{ lastReportMisbehaviorHeight: 0 },
 			);
 			await eligibleValidatorsSubStore.set(
 				context,
 				eligibleValidatorsSubStore.getKey(address2, BigInt(100)),
-				{ lastPomHeight: 0 },
+				{ lastReportMisbehaviorHeight: 0 },
 			);
 			await eligibleValidatorsSubStore.set(
 				context,
 				eligibleValidatorsSubStore.getKey(address3, BigInt(10)),
-				{ lastPomHeight: 0 },
+				{ lastReportMisbehaviorHeight: 0 },
 			);
 			await eligibleValidatorsSubStore.set(
 				context,
 				eligibleValidatorsSubStore.getKey(address4, BigInt(300)),
-				{ lastPomHeight: 0 },
+				{ lastReportMisbehaviorHeight: 0 },
 			);
 			await eligibleValidatorsSubStore.set(
 				context,
 				eligibleValidatorsSubStore.getKey(address5, BigInt(400)),
-				{ lastPomHeight: 0 },
+				{ lastReportMisbehaviorHeight: 0 },
 			);
 
 			await validatorSubStore.set(context, address, {
@@ -538,13 +540,15 @@ describe('PosModuleEndpoint', () => {
 				...validatorData,
 				address: cryptoAddress.getLisk32AddressFromAddress(address5),
 				name: '6',
-				totalStakeReceived: validatorData.totalStakeReceived.toString(),
+				totalStake: validatorData.totalStake.toString(),
 				selfStake: validatorData.selfStake.toString(),
 				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
 					tokenID: co.tokenID.toString('hex'),
 					coefficient: co.coefficient.toString('hex'),
 				})),
-				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](
+					validatorData.reportMisbehaviorHeights,
+				),
 			});
 		});
 
@@ -557,25 +561,29 @@ describe('PosModuleEndpoint', () => {
 				...validatorData,
 				address: cryptoAddress.getLisk32AddressFromAddress(address5),
 				name: '6',
-				totalStakeReceived: validatorData.totalStakeReceived.toString(),
+				totalStake: validatorData.totalStake.toString(),
 				selfStake: validatorData.selfStake.toString(),
 				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
 					tokenID: co.tokenID.toString('hex'),
 					coefficient: co.coefficient.toString('hex'),
 				})),
-				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](
+					validatorData.reportMisbehaviorHeights,
+				),
 			});
 			expect(resp.validators[1]).toEqual({
 				...validatorData,
 				address: cryptoAddress.getLisk32AddressFromAddress(address4),
 				name: '5',
-				totalStakeReceived: validatorData.totalStakeReceived.toString(),
+				totalStake: validatorData.totalStake.toString(),
 				selfStake: validatorData.selfStake.toString(),
 				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
 					tokenID: co.tokenID.toString('hex'),
 					coefficient: co.coefficient.toString('hex'),
 				})),
-				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](
+					validatorData.reportMisbehaviorHeights,
+				),
 			});
 		});
 
@@ -588,25 +596,29 @@ describe('PosModuleEndpoint', () => {
 				...validatorData,
 				address: cryptoAddress.getLisk32AddressFromAddress(address5),
 				name: '6',
-				totalStakeReceived: validatorData.totalStakeReceived.toString(),
+				totalStake: validatorData.totalStake.toString(),
 				selfStake: validatorData.selfStake.toString(),
 				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
 					tokenID: co.tokenID.toString('hex'),
 					coefficient: co.coefficient.toString('hex'),
 				})),
-				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](
+					validatorData.reportMisbehaviorHeights,
+				),
 			});
 			expect(resp.validators[5]).toEqual({
 				...validatorData,
 				address: cryptoAddress.getLisk32AddressFromAddress(address3),
 				name: '4',
-				totalStakeReceived: validatorData.totalStakeReceived.toString(),
+				totalStake: validatorData.totalStake.toString(),
 				selfStake: validatorData.selfStake.toString(),
 				sharingCoefficients: validatorData.sharingCoefficients.map(co => ({
 					tokenID: co.tokenID.toString('hex'),
 					coefficient: co.coefficient.toString('hex'),
 				})),
-				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](validatorData.pomHeights),
+				punishmentPeriods: posEndpoint['_calculatePunishmentPeriods'](
+					validatorData.reportMisbehaviorHeights,
+				),
 			});
 		});
 
@@ -615,17 +627,17 @@ describe('PosModuleEndpoint', () => {
 				createTransientModuleEndpointContext({ stateStore, params: { limit: -1 } }),
 			);
 
-			expect(validatorsDataReturned[0].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[0].totalStake).toBeString();
 			expect(validatorsDataReturned[0].selfStake).toBeString();
-			expect(validatorsDataReturned[1].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[1].totalStake).toBeString();
 			expect(validatorsDataReturned[1].selfStake).toBeString();
-			expect(validatorsDataReturned[2].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[2].totalStake).toBeString();
 			expect(validatorsDataReturned[2].selfStake).toBeString();
-			expect(validatorsDataReturned[3].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[3].totalStake).toBeString();
 			expect(validatorsDataReturned[3].selfStake).toBeString();
-			expect(validatorsDataReturned[4].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[4].totalStake).toBeString();
 			expect(validatorsDataReturned[4].selfStake).toBeString();
-			expect(validatorsDataReturned[5].totalStakeReceived).toBeString();
+			expect(validatorsDataReturned[5].totalStake).toBeString();
 			expect(validatorsDataReturned[5].selfStake).toBeString();
 		});
 	});
@@ -634,9 +646,9 @@ describe('PosModuleEndpoint', () => {
 		beforeEach(async () => {
 			const context = createStoreGetter(stateStore);
 			await stakerSubStore.set(context, address, {
-				sentStakes: [
-					{ validatorAddress: address1, amount: BigInt(200), stakeSharingCoefficients: [] },
-					{ validatorAddress: address2, amount: BigInt(10), stakeSharingCoefficients: [] },
+				stakes: [
+					{ validatorAddress: address1, amount: BigInt(200), sharingCoefficients: [] },
+					{ validatorAddress: address2, amount: BigInt(10), sharingCoefficients: [] },
 				],
 				pendingUnlocks: [{ amount: BigInt(30), validatorAddress: address1, unstakeHeight: 99 }],
 			});
@@ -696,11 +708,11 @@ describe('PosModuleEndpoint', () => {
 			const context = createStoreGetter(stateStore);
 			await validatorSubStore.set(context, address, validatorData);
 			await stakerSubStore.set(context, addressStaker, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: address,
 						amount,
-						stakeSharingCoefficients: [stakerSharingCoefficient1, stakerSharingCoefficient2],
+						sharingCoefficients: [stakerSharingCoefficient1, stakerSharingCoefficient2],
 					},
 				],
 				pendingUnlocks: [],
@@ -743,11 +755,11 @@ describe('PosModuleEndpoint', () => {
 			const context = createStoreGetter(stateStore);
 			await validatorSubStore.set(context, address, validatorData);
 			await stakerSubStore.set(context, address, {
-				sentStakes: [
+				stakes: [
 					{
 						validatorAddress: address,
 						amount,
-						stakeSharingCoefficients: [stakerSharingCoefficient1, stakerSharingCoefficient2],
+						sharingCoefficients: [stakerSharingCoefficient1, stakerSharingCoefficient2],
 					},
 				],
 				pendingUnlocks: [],
