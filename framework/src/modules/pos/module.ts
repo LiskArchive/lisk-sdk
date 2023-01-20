@@ -334,21 +334,21 @@ export class PoSModule extends BaseModule {
 		// stakers property check
 		const stakerAddresses = [];
 		for (const staker of genesisStore.stakers) {
-			if (staker.sentStakes.length > MAX_NUMBER_SENT_STAKES) {
+			if (staker.stakes.length > MAX_NUMBER_SENT_STAKES) {
 				throw new Error(`Sent stake exceeds max stake ${MAX_NUMBER_SENT_STAKES}.`);
 			}
-			if (!objectUtils.bufferArrayUniqueItems(staker.sentStakes.map(v => v.validatorAddress))) {
+			if (!objectUtils.bufferArrayUniqueItems(staker.stakes.map(v => v.validatorAddress))) {
 				throw new Error('Sent stake validator address is not unique.');
 			}
-			if (!objectUtils.bufferArrayOrderByLex(staker.sentStakes.map(v => v.validatorAddress))) {
+			if (!objectUtils.bufferArrayOrderByLex(staker.stakes.map(v => v.validatorAddress))) {
 				throw new Error('Sent stake validator address is not lexicographically ordered.');
 			}
-			for (const stakes of staker.sentStakes) {
+			for (const stakes of staker.stakes) {
 				const posValidator = posValidatorAddressMap.get(stakes.validatorAddress);
 				if (!posValidator) {
 					throw new Error('Sent stake includes non existing validator address.');
 				}
-				for (const sharingCoefficient of stakes.stakeSharingCoefficients) {
+				for (const sharingCoefficient of stakes.sharingCoefficients) {
 					const targetCoefficient = posValidator.sharingCoefficients.find(co =>
 						co.tokenID.equals(sharingCoefficient.tokenID),
 					);
@@ -362,7 +362,7 @@ export class PoSModule extends BaseModule {
 					}
 				}
 				// sharingCoefficients must be sorted by tokenID
-				if (!isSharingCoefficientSorted(stakes.stakeSharingCoefficients)) {
+				if (!isSharingCoefficientSorted(stakes.sharingCoefficients)) {
 					throw new Error('stakeSharingCoefficients must be sorted by tokenID.');
 				}
 			}
@@ -405,7 +405,7 @@ export class PoSModule extends BaseModule {
 		const stakerStore = this.stores.get(StakerStore);
 		const stakeMap = new dataStructures.BufferMap<{ selfStake: bigint; stakeReceived: bigint }>();
 		for (const staker of genesisStore.stakers) {
-			for (const sentStake of staker.sentStakes) {
+			for (const sentStake of staker.stakes) {
 				const validatorData = stakeMap.get(sentStake.validatorAddress) ?? {
 					selfStake: BigInt(0),
 					stakeReceived: BigInt(0),
@@ -423,7 +423,7 @@ export class PoSModule extends BaseModule {
 				stakeMap.set(sentStake.validatorAddress, validatorData);
 			}
 			await stakerStore.set(context, staker.address, {
-				sentStakes: staker.sentStakes,
+				stakes: staker.stakes,
 				pendingUnlocks: staker.pendingUnlocks,
 			});
 		}
@@ -437,11 +437,11 @@ export class PoSModule extends BaseModule {
 			};
 			await validatorStore.set(context, posValidator.address, {
 				name: posValidator.name,
-				totalStakeReceived: stakeInfo.stakeReceived,
+				totalStake: stakeInfo.stakeReceived,
 				selfStake: stakeInfo.selfStake,
 				lastGeneratedHeight: posValidator.lastGeneratedHeight,
 				isBanned: posValidator.isBanned,
-				pomHeights: posValidator.pomHeights,
+				reportMisbehaviorHeights: posValidator.reportMisbehaviorHeights,
 				consecutiveMissedBlocks: posValidator.consecutiveMissedBlocks,
 				commission: posValidator.commission,
 				lastCommissionIncreaseHeight: posValidator.lastCommissionIncreaseHeight,
@@ -492,7 +492,7 @@ export class PoSModule extends BaseModule {
 		});
 		for (const stakerData of allStakers) {
 			let stakedAmount = BigInt(0);
-			for (const sentStakes of stakerData.value.sentStakes) {
+			for (const sentStakes of stakerData.value.stakes) {
 				stakedAmount += sentStakes.amount;
 			}
 			for (const pendingUnlock of stakerData.value.pendingUnlocks) {
@@ -566,8 +566,8 @@ export class PoSModule extends BaseModule {
 		const validatorWeightSnapshot = [];
 		for (const { key, value } of eligibleValidatorsList) {
 			if (
-				value.lastPomHeight === 0 ||
-				value.lastPomHeight < snapshotHeight - this._moduleConfig.punishmentWindow
+				value.lastReportMisbehaviorHeight === 0 ||
+				value.lastReportMisbehaviorHeight < snapshotHeight - this._moduleConfig.punishmentWindow
 			) {
 				const [address, weight] = eligibleValidatorStore.splitKey(key);
 				validatorWeightSnapshot.push({ address, weight });
@@ -698,7 +698,7 @@ export class PoSModule extends BaseModule {
 					getValidatorWeight(
 						BigInt(this._moduleConfig.factorSelfStakes),
 						validatorData.selfStake,
-						validatorData.totalStakeReceived,
+						validatorData.totalStake,
 					),
 					validatorData,
 				);
