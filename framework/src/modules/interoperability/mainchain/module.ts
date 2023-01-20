@@ -31,7 +31,7 @@ import {
 	ChainAccountStore,
 } from '../stores/chain_account';
 import { ChannelDataStore, channelSchema } from '../stores/channel_data';
-import { ownchainDataSchema, OwnChainAccountStore } from '../stores/own_chain_account';
+import { ownChainAccountSchema, OwnChainAccountStore } from '../stores/own_chain_account';
 import { terminatedStateSchema } from '../stores/terminated_state';
 import { terminatedOutboxSchema } from '../stores/terminated_outbox';
 import { TokenMethod } from '../../token';
@@ -182,7 +182,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				},
 				{
 					name: this.endpoint.getOwnChainAccount.name,
-					response: ownchainDataSchema,
+					response: ownChainAccountSchema,
 				},
 				{
 					name: this.endpoint.getTerminatedStateAccount.name,

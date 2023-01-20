@@ -21,7 +21,7 @@ export interface OwnChainAccount {
 }
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#own-chain-data
-export const ownchainDataSchema = {
+export const ownChainAccountSchema = {
 	$id: '/modules/interoperability/ownChainAccount',
 	type: 'object',
 	required: ['name', 'chainID', 'nonce'],
@@ -44,5 +44,5 @@ export const ownchainDataSchema = {
 };
 
 export class OwnChainAccountStore extends BaseStore<OwnChainAccount> {
-	public schema = ownchainDataSchema;
+	public schema = ownChainAccountSchema;
 }
