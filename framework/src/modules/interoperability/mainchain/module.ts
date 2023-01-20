@@ -24,6 +24,10 @@ import {
 	getTerminatedOutboxAccountRequestSchema,
 	genesisInteroperabilitySchema,
 	getRegistrationFeeSchema,
+	isChainIDAvailableResponseSchema,
+	getChainValidatorsRequestSchema,
+	getChainValidatorsResponseSchema,
+	isChainIDAvailableRequestSchema,
 } from '../schemas';
 import {
 	chainDataSchema,
@@ -197,6 +201,16 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				{
 					name: this.endpoint.getRegistrationFee.name,
 					response: getRegistrationFeeSchema,
+				},
+				{
+					name: this.endpoint.getChainValidators.name,
+					request: getChainValidatorsRequestSchema,
+					response: getChainValidatorsResponseSchema,
+				},
+				{
+					name: this.endpoint.isChainIDAvailable.name,
+					request: isChainIDAvailableRequestSchema,
+					response: isChainIDAvailableResponseSchema,
 				},
 			],
 			assets: [

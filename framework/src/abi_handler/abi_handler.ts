@@ -541,7 +541,8 @@ export class ABIHandler implements ABI {
 			});
 			this._logger.info({ method: req.method }, 'Called ABI query successfully');
 			return {
-				data: Buffer.from(JSON.stringify(resp), 'utf-8'),
+				// default resp to {} for endpoints with no response
+				data: Buffer.from(JSON.stringify(resp ?? '{}'), 'utf-8'),
 			};
 		} catch (error) {
 			this._logger.info({ method: req.method, err: error as Error }, 'Failed to call ABI query');

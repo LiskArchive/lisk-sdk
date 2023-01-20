@@ -119,11 +119,11 @@ export class RegisterValidatorCommand extends BaseCommand {
 		const validatorSubstore = this.stores.get(ValidatorStore);
 		await validatorSubstore.set(context, transaction.senderAddress, {
 			name,
-			totalStakeReceived: BigInt(0),
+			totalStake: BigInt(0),
 			selfStake: BigInt(0),
 			lastGeneratedHeight: height,
 			isBanned: false,
-			pomHeights: [],
+			reportMisbehaviorHeights: [],
 			consecutiveMissedBlocks: 0,
 			commission: COMMISSION,
 			lastCommissionIncreaseHeight: height,

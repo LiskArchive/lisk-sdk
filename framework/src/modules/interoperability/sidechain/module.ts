@@ -23,6 +23,10 @@ import {
 	getTerminatedStateAccountRequestSchema,
 	getTerminatedOutboxAccountRequestSchema,
 	genesisInteroperabilitySchema,
+	isChainIDAvailableResponseSchema,
+	getChainValidatorsRequestSchema,
+	getChainValidatorsResponseSchema,
+	isChainIDAvailableRequestSchema,
 } from '../schemas';
 import {
 	chainDataSchema,
@@ -171,6 +175,16 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 					name: this.endpoint.getTerminatedOutboxAccount.name,
 					request: getTerminatedOutboxAccountRequestSchema,
 					response: terminatedOutboxSchema,
+				},
+				{
+					name: this.endpoint.getChainValidators.name,
+					request: getChainValidatorsRequestSchema,
+					response: getChainValidatorsResponseSchema,
+				},
+				{
+					name: this.endpoint.isChainIDAvailable.name,
+					request: isChainIDAvailableRequestSchema,
+					response: isChainIDAvailableResponseSchema,
 				},
 			],
 			assets: [

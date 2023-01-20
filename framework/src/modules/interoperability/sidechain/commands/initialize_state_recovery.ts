@@ -15,6 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
+import { validator } from '@liskhq/lisk-validator';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -38,9 +39,11 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 	public async verify(
 		context: CommandVerifyContext<StateRecoveryInitParams>,
 	): Promise<VerificationResult> {
-		const {
-			params: { chainID, sidechainAccount, bitmap, siblingHashes },
-		} = context;
+		const { params } = context;
+		validator.validate<StateRecoveryInitParams>(this.schema, params);
+
+		const { chainID, bitmap, siblingHashes, sidechainAccount } = params;
+
 		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
 
 		const mainchainID = getMainchainID(ownChainAccount.chainID);

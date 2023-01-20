@@ -20,14 +20,13 @@ import { ADDRESS_LENGTH, EMPTY_KEY } from './constants';
 import {
 	GetSeedsResponse,
 	GetHashOnionUsageRequest,
-	getHashOnionUsageRequestSchema,
+	addressSchema,
 	GetHashOnionUsageResponse,
 	HasHashOnionRequest,
 	HasHashOnionResponse,
-	hasHashOnionRequestSchema,
 	isSeedRevealValidRequestSchema,
 	SetHashOnionRequest,
-	setHashOnionRequestSchema,
+	hashOnionSchema,
 } from './schemas';
 import { ValidatorRevealsStore } from './stores/validator_reveals';
 import { getSeedRevealValidity } from './utils';
@@ -54,8 +53,8 @@ export class RandomEndpoint extends BaseEndpoint {
 		};
 	}
 
-	public async setHashOnion(ctx: ModuleEndpointContext): Promise<{ updated: boolean }> {
-		validator.validate<SetHashOnionRequest>(setHashOnionRequestSchema, ctx.params);
+	public async setHashOnion(ctx: ModuleEndpointContext): Promise<void> {
+		validator.validate<SetHashOnionRequest>(hashOnionSchema, ctx.params);
 
 		const address = cryptography.address.getAddressFromLisk32Address(ctx.params.address);
 		const seed = ctx.params.seed
@@ -68,7 +67,6 @@ export class RandomEndpoint extends BaseEndpoint {
 		const hashOnion = { count, distance, hashes };
 		const hashOnionStore = this.offchainStores.get(HashOnionStore);
 		await hashOnionStore.set(ctx, address, hashOnion);
-		return { updated: true };
 	}
 
 	public async getHashOnionSeeds(ctx: ModuleEndpointContext): Promise<GetSeedsResponse> {
@@ -89,7 +87,7 @@ export class RandomEndpoint extends BaseEndpoint {
 	}
 
 	public async hasHashOnion(ctx: ModuleEndpointContext): Promise<HasHashOnionResponse> {
-		validator.validate<HasHashOnionRequest>(hasHashOnionRequestSchema, ctx.params);
+		validator.validate<HasHashOnionRequest>(addressSchema, ctx.params);
 
 		const address = cryptography.address.getAddressFromLisk32Address(ctx.params.address);
 		const hashOnionStore = this.offchainStores.get(HashOnionStore);
@@ -116,7 +114,7 @@ export class RandomEndpoint extends BaseEndpoint {
 	}
 
 	public async getHashOnionUsage(ctx: ModuleEndpointContext): Promise<GetHashOnionUsageResponse> {
-		validator.validate<GetHashOnionUsageRequest>(getHashOnionUsageRequestSchema, ctx.params);
+		validator.validate<GetHashOnionUsageRequest>(addressSchema, ctx.params);
 
 		const address = cryptography.address.getAddressFromLisk32Address(ctx.params.address);
 		const hashOnionStore = this.offchainStores.get(HashOnionStore);
