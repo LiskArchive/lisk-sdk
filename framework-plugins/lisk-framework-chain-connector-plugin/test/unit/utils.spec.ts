@@ -12,92 +12,189 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ActiveValidatorWithAddress } from '../../src/types';
-import { getActiveValidatorsDiff } from '../../src/active_validators_update';
+import { getActiveValidatorsUpdate } from '../../src/active_validators_update';
 
-describe('getActiveValidatorsDiff', () => {
-	it('should aggregate new validators not existing in existing validators', () => {
-		const currentValidators: ActiveValidatorWithAddress[] = [
-			{
-				blsKey: Buffer.from('02', 'hex'),
-				bftWeight: BigInt(20),
-				address: Buffer.from('bb', 'hex'),
-			},
-		];
+describe('getActiveValidatorsUpdate', () => {
+	const bytesToBuffer = (str: string): Buffer => {
+		const val = BigInt(`0b${str}`).toString(16);
+		return Buffer.from(`${val.length % 2 === 0 ? val : `0${val}`}`, 'hex');
+	};
 
-		const newValidators: ActiveValidatorWithAddress[] = [
+	const cases = [
+		[
+			// 2 new validators
 			{
-				blsKey: Buffer.from('02', 'hex'),
-				bftWeight: BigInt(20),
-				address: Buffer.from('bb', 'hex'),
+				currentValidators: [
+					{
+						blsKey: Buffer.from('02', 'hex'),
+						bftWeight: BigInt(20),
+					},
+				],
+				newValidators: [
+					{
+						blsKey: Buffer.from('02', 'hex'),
+						bftWeight: BigInt(20),
+					},
+					{
+						blsKey: Buffer.from('03', 'hex'),
+						bftWeight: BigInt(30),
+					},
+					{
+						blsKey: Buffer.from('04', 'hex'),
+						bftWeight: BigInt(40),
+					},
+				],
+				expected: {
+					blsKeysUpdate: [Buffer.from('03', 'hex'), Buffer.from('04', 'hex')],
+					bftWeightsUpdate: [BigInt(30), BigInt(40)],
+					bftWeightsUpdateBitmap: bytesToBuffer('110'),
+				},
 			},
+		],
+		[
+			// 2 new validators and update bft weight for existing ones
 			{
-				blsKey: Buffer.from('03', 'hex'),
-				bftWeight: BigInt(30),
-				address: Buffer.from('cc', 'hex'),
+				currentValidators: [
+					{
+						blsKey: Buffer.from('02', 'hex'),
+						bftWeight: BigInt(20),
+					},
+				],
+				newValidators: [
+					{
+						blsKey: Buffer.from('02', 'hex'),
+						bftWeight: BigInt(99),
+					},
+					{
+						blsKey: Buffer.from('03', 'hex'),
+						bftWeight: BigInt(30),
+					},
+					{
+						blsKey: Buffer.from('04', 'hex'),
+						bftWeight: BigInt(40),
+					},
+				],
+				expected: {
+					blsKeysUpdate: [Buffer.from('03', 'hex'), Buffer.from('04', 'hex')],
+					bftWeightsUpdate: [BigInt(99), BigInt(30), BigInt(40)],
+					bftWeightsUpdateBitmap: bytesToBuffer('111'),
+				},
 			},
+		],
+		[
+			// complete new set
 			{
-				blsKey: Buffer.from('04', 'hex'),
-				bftWeight: BigInt(40),
-				address: Buffer.from('dd', 'hex'),
+				currentValidators: [
+					{
+						blsKey: Buffer.from('02', 'hex'),
+						bftWeight: BigInt(20),
+					},
+				],
+				newValidators: [
+					{
+						blsKey: Buffer.from('05', 'hex'),
+						bftWeight: BigInt(99),
+					},
+					{
+						blsKey: Buffer.from('03', 'hex'),
+						bftWeight: BigInt(30),
+					},
+					{
+						blsKey: Buffer.from('04', 'hex'),
+						bftWeight: BigInt(40),
+					},
+				],
+				expected: {
+					blsKeysUpdate: [
+						Buffer.from('03', 'hex'),
+						Buffer.from('04', 'hex'),
+						Buffer.from('05', 'hex'),
+					],
+					bftWeightsUpdate: [BigInt(0), BigInt(30), BigInt(40), BigInt(99)],
+					bftWeightsUpdateBitmap: bytesToBuffer('1111'),
+				},
 			},
-		];
+		],
+		[
+			// complete new set
+			{
+				currentValidators: [
+					{
+						blsKey: Buffer.from('02', 'hex'),
+						bftWeight: BigInt(20),
+					},
+				],
+				newValidators: new Array(100).fill(0).map((_, i) => ({
+					blsKey: Buffer.from([i + 3]),
+					bftWeight: BigInt(i + 10),
+				})),
+				expected: {
+					blsKeysUpdate: new Array(100).fill(0).map((_, i) => Buffer.from([i + 3])),
+					bftWeightsUpdate: [BigInt(0), ...new Array(100).fill(0).map((_, i) => BigInt(i + 10))],
+					bftWeightsUpdateBitmap: bytesToBuffer('0'.repeat(27) + '1'.repeat(101)),
+				},
+			},
+		],
+		[
+			// only remove validator
+			{
+				currentValidators: [
+					{
+						blsKey: Buffer.from('05', 'hex'),
+						bftWeight: BigInt(99),
+					},
+					{
+						blsKey: Buffer.from('03', 'hex'),
+						bftWeight: BigInt(30),
+					},
+					{
+						blsKey: Buffer.from('04', 'hex'),
+						bftWeight: BigInt(40),
+					},
+				],
+				newValidators: [],
+				expected: {
+					blsKeysUpdate: [],
+					bftWeightsUpdate: [BigInt(0), BigInt(0), BigInt(0)],
+					bftWeightsUpdateBitmap: bytesToBuffer('111'),
+				},
+			},
+		],
+		[
+			// remove and change weight
+			{
+				currentValidators: [
+					{
+						blsKey: Buffer.from('05', 'hex'),
+						bftWeight: BigInt(99),
+					},
+					{
+						blsKey: Buffer.from('03', 'hex'),
+						bftWeight: BigInt(30),
+					},
+					{
+						blsKey: Buffer.from('04', 'hex'),
+						bftWeight: BigInt(40),
+					},
+				],
+				newValidators: [
+					{
+						blsKey: Buffer.from('03', 'hex'),
+						bftWeight: BigInt(90),
+					},
+				],
+				expected: {
+					blsKeysUpdate: [],
+					bftWeightsUpdate: [BigInt(90), BigInt(0), BigInt(0)],
+					bftWeightsUpdateBitmap: bytesToBuffer('111'),
+				},
+			},
+		],
+	];
 
-		const expectedValidators: ActiveValidatorWithAddress[] = [
-			{
-				blsKey: Buffer.from('03', 'hex'),
-				bftWeight: BigInt(30),
-				address: Buffer.from('cc', 'hex'),
-			},
-			{
-				blsKey: Buffer.from('04', 'hex'),
-				bftWeight: BigInt(40),
-				address: Buffer.from('dd', 'hex'),
-			},
-		];
-
-		const actualValidators = getActiveValidatorsDiff(currentValidators, newValidators);
-
-		expect(actualValidators).toStrictEqual(expectedValidators);
-	});
-
-	it('should aggregate existing validators having blsKey not existing in new validators with bftWeight set to 0 and aggregating the new validator as well', () => {
-		const currentValidators: ActiveValidatorWithAddress[] = [
-			{
-				blsKey: Buffer.from('01', 'hex'),
-				bftWeight: BigInt(10),
-				address: Buffer.from('aa', 'hex'),
-			},
-			{
-				blsKey: Buffer.from('02', 'hex'),
-				bftWeight: BigInt(20),
-				address: Buffer.from('bb', 'hex'),
-			},
-		];
-
-		const newValidators: ActiveValidatorWithAddress[] = [
-			{
-				blsKey: Buffer.from('02', 'hex'),
-				bftWeight: BigInt(10),
-				address: Buffer.from('bb', 'hex'),
-			},
-		];
-
-		const expectedValidators: ActiveValidatorWithAddress[] = [
-			{
-				blsKey: Buffer.from('02', 'hex'),
-				bftWeight: BigInt(10),
-				address: Buffer.from('bb', 'hex'),
-			},
-			{
-				blsKey: Buffer.from('01', 'hex'),
-				bftWeight: BigInt(0),
-				address: Buffer.from('aa', 'hex'),
-			},
-		];
-
-		const actualValidators = getActiveValidatorsDiff(currentValidators, newValidators);
-
-		expect(actualValidators).toStrictEqual(expectedValidators);
+	it.each(cases)('should compute expected activeValidatorsUpdate', val => {
+		expect(getActiveValidatorsUpdate(val.currentValidators, val.newValidators)).toEqual(
+			val.expected,
+		);
 	});
 });

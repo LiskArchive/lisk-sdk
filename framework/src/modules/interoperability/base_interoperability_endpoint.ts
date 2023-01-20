@@ -147,11 +147,11 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 	public async isChainIDAvailable(
 		context: ModuleEndpointContext,
 		chainID: Buffer,
-	): Promise<boolean> {
+	): Promise<{ result: boolean }> {
 		const chainSubstore = this.stores.get(ChainAccountStore);
 		const chainAccountExists = await chainSubstore.has(context, chainID);
 
-		return !chainAccountExists;
+		return { result: !chainAccountExists };
 	}
 
 	private _toBoxJSON(box: Inbox | Outbox) {

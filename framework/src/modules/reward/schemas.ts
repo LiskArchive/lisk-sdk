@@ -80,6 +80,20 @@ export const getAnnualInflationRateResponseSchema = {
 		rate: {
 			type: 'string',
 			format: 'uint64',
+			minLength: 16,
+			maxLength: 16,
+		},
+	},
+};
+
+export const getRewardTokenIDResponseSchema = {
+	$id: '/reward/endpoint/getRewardTokenID',
+	type: 'object',
+	required: ['tokenID'],
+	properties: {
+		tokenID: {
+			type: 'string',
+			format: 'hex',
 		},
 	},
 };

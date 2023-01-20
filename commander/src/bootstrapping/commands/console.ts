@@ -16,6 +16,7 @@
 import { REPLServer, start } from 'repl';
 import { Command, Flags as flagParser } from '@oclif/core';
 import * as apiClient from '@liskhq/lisk-api-client';
+import * as lisk from '@liskhq/lisk-client';
 
 interface ConsoleFlags {
 	readonly 'api-ipc'?: string;
@@ -63,6 +64,10 @@ export class ConsoleCommand extends Command {
 	}
 
 	async initREPLContext(replServer: REPLServer, flags: ConsoleFlags): Promise<void> {
+		Object.defineProperty(replServer.context, 'lisk', {
+			enumerable: true,
+			value: lisk,
+		});
 		if (flags['api-ipc']) {
 			const ipcClient = await apiClient.createIPCClient(flags['api-ipc']);
 			Object.defineProperty(replServer.context, 'client', {
