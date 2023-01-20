@@ -24,9 +24,9 @@ import {
 	configSchema,
 	getDefaultRewardAtHeightRequestSchema,
 	getDefaultRewardAtHeightResponseSchema,
-	getAnnualInflationRateResponseSchema,
+	getAnnualInflationResponseSchema,
 	getRewardTokenIDResponseSchema,
-	getAnnualInflationRateRequestSchema,
+	getAnnualInflationRequestSchema,
 } from './schemas';
 import { RewardMintedEvent } from './events/reward_minted';
 
@@ -59,9 +59,9 @@ export class RewardModule extends BaseModule {
 					response: getDefaultRewardAtHeightResponseSchema,
 				},
 				{
-					name: this.endpoint.getAnnualInflationRate.name,
-					request: getAnnualInflationRateRequestSchema,
-					response: getAnnualInflationRateResponseSchema,
+					name: this.endpoint.getAnnualInflation.name,
+					request: getAnnualInflationRequestSchema,
+					response: getAnnualInflationResponseSchema,
 				},
 				{
 					name: this.endpoint.getRewardTokenID.name,
