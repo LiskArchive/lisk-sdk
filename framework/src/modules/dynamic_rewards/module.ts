@@ -55,7 +55,9 @@ import { calculateDefaultReward } from '../reward/calculate_reward';
 import {
 	getDefaultRewardAtHeightRequestSchema,
 	getDefaultRewardAtHeightResponseSchema,
+	getAnnualInflationResponseSchema,
 	getRewardTokenIDResponseSchema,
+	getAnnualInflationRequestSchema,
 } from '../reward/schemas';
 
 export class DynamicRewardModule extends BaseModule {
@@ -96,6 +98,11 @@ export class DynamicRewardModule extends BaseModule {
 					response: getDefaultRewardAtHeightResponseSchema,
 				},
 				{
+					name: this.endpoint.getAnnualInflation.name,
+					request: getAnnualInflationRequestSchema,
+					response: getAnnualInflationResponseSchema,
+				},
+				{
 					name: this.endpoint.getRewardTokenID.name,
 					response: getRewardTokenIDResponseSchema,
 				},
@@ -124,7 +131,7 @@ export class DynamicRewardModule extends BaseModule {
 
 		this.method.init({ config: this._moduleConfig });
 
-		this.endpoint.init(this._moduleConfig);
+		this.endpoint.init(this._moduleConfig, args.genesisConfig.blockTime);
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
