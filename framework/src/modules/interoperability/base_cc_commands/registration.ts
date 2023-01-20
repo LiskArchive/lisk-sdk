@@ -42,9 +42,6 @@ export abstract class BaseCCRegistrationCommand<
 		if (!ccm) {
 			throw new Error('CCM to execute registration cross chain command is missing.');
 		}
-		if (!ccu) {
-			throw new Error('CCU to execute registration cross chain command is missing.');
-		}
 		const ccmRegistrationParams = codec.decode<CCMRegistrationParams>(
 			registrationCCMParamsSchema,
 			ccm.params,

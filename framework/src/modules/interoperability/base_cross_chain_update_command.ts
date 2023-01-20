@@ -174,9 +174,6 @@ export abstract class BaseCrossChainUpdateCommand<
 		if (!valid) {
 			return;
 		}
-		if (!ccu) {
-			throw new Error('CCU to apply cross chain command is missing.');
-		}
 		const commands = this.ccCommands.get(ccm.module);
 		if (!commands) {
 			await this.bounce(
