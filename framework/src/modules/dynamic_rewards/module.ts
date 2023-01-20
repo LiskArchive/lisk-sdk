@@ -55,8 +55,8 @@ import { calculateDefaultReward } from '../reward/calculate_reward';
 import {
 	getDefaultRewardAtHeightRequestSchema,
 	getDefaultRewardAtHeightResponseSchema,
-	getAnnualInflationResponseSchema,
 	getRewardTokenIDResponseSchema,
+	getAnnualInflationResponseSchema,
 	getAnnualInflationRequestSchema,
 } from '../reward/schemas';
 
