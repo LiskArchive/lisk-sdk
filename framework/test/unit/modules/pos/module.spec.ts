@@ -199,9 +199,9 @@ describe('PoS module', () => {
 					consecutiveMissedBlocks: 0,
 					isBanned: false,
 					lastGeneratedHeight: 0,
-					pomHeights: [],
+					reportMisbehaviorHeights: [],
 					selfStake: BigInt(100000000000),
-					totalStakeReceived: BigInt(200000000000),
+					totalStake: BigInt(200000000000),
 					commission: 0,
 					lastCommissionIncreaseHeight: 0,
 					sharingCoefficients: [],
@@ -214,7 +214,7 @@ describe('PoS module', () => {
 				expect.assertions(validAsset.stakers.length + 1);
 				for (const staker of validAsset.stakers) {
 					await expect(stakerStore.get(context, staker.address)).resolves.toEqual({
-						sentStakes: staker.sentStakes,
+						stakes: staker.stakes,
 						pendingUnlocks: staker.pendingUnlocks,
 					});
 				}
@@ -320,7 +320,7 @@ describe('PoS module', () => {
 								BigInt(data.validatorWeight),
 							),
 						),
-						{ lastPomHeight: 0 },
+						{ lastReportMisbehaviorHeight: 0 },
 					);
 				}
 				context = createBlockContext({
@@ -360,7 +360,7 @@ describe('PoS module', () => {
 						BigInt(fixtures[0].validatorWeight),
 					),
 					{
-						lastPomHeight: 1000,
+						lastReportMisbehaviorHeight: 1000,
 					},
 				);
 				await eligibleValidatorStore.set(
@@ -370,7 +370,7 @@ describe('PoS module', () => {
 						BigInt(fixtures[1].validatorWeight),
 					),
 					{
-						lastPomHeight: 250001,
+						lastReportMisbehaviorHeight: 250001,
 					},
 				);
 				await eligibleValidatorStore.set(
@@ -380,7 +380,7 @@ describe('PoS module', () => {
 						BigInt(fixtures[2].validatorWeight),
 					),
 					{
-						lastPomHeight: 250000,
+						lastReportMisbehaviorHeight: 250000,
 					},
 				);
 				for (const data of fixtures.slice(3)) {
@@ -391,7 +391,7 @@ describe('PoS module', () => {
 							BigInt(data.validatorWeight),
 						),
 						{
-							lastPomHeight: 0,
+							lastReportMisbehaviorHeight: 0,
 						},
 					);
 				}
@@ -651,11 +651,11 @@ describe('PoS module', () => {
 				.fill({})
 				.map((_, index) => ({
 					name: `validator${index}`,
-					totalStakeReceived: BigInt(0),
+					totalStake: BigInt(0),
 					selfStake: BigInt(0),
 					lastGeneratedHeight: 0,
 					isBanned: false,
-					pomHeights: [],
+					reportMisbehaviorHeights: [],
 					consecutiveMissedBlocks: 0,
 					commission: 0,
 					lastCommissionIncreaseHeight: 0,
