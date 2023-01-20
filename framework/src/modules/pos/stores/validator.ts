@@ -18,11 +18,11 @@ import { StakeSharingCoefficient } from '../types';
 
 export interface ValidatorAccount {
 	name: string;
-	totalStakeReceived: bigint;
+	totalStake: bigint;
 	selfStake: bigint;
 	lastGeneratedHeight: number;
 	isBanned: boolean;
-	pomHeights: number[];
+	reportMisbehaviorHeights: number[];
 	consecutiveMissedBlocks: number;
 	commission: number;
 	lastCommissionIncreaseHeight: number;
@@ -45,11 +45,11 @@ export const validatorStoreSchema = {
 	type: 'object',
 	required: [
 		'name',
-		'totalStakeReceived',
+		'totalStake',
 		'selfStake',
 		'lastGeneratedHeight',
 		'isBanned',
-		'pomHeights',
+		'reportMisbehaviorHeights',
 		'consecutiveMissedBlocks',
 		'commission',
 		'lastCommissionIncreaseHeight',
@@ -60,7 +60,7 @@ export const validatorStoreSchema = {
 			dataType: 'string',
 			fieldNumber: 1,
 		},
-		totalStakeReceived: {
+		totalStake: {
 			dataType: 'uint64',
 			fieldNumber: 2,
 		},
@@ -76,7 +76,7 @@ export const validatorStoreSchema = {
 			dataType: 'boolean',
 			fieldNumber: 5,
 		},
-		pomHeights: {
+		reportMisbehaviorHeights: {
 			type: 'array',
 			fieldNumber: 6,
 			items: { dataType: 'uint32' },

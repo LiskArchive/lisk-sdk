@@ -182,10 +182,10 @@ export class StakeCommand extends BaseCommand {
 
 			const validatorData = await validatorStore.get(context, stake.validatorAddress);
 
-			const originalUpstakeIndex = stakerData.sentStakes.findIndex(senderStake =>
+			const originalUpstakeIndex = stakerData.stakes.findIndex(senderStake =>
 				senderStake.validatorAddress.equals(stake.validatorAddress),
 			);
-			const index = originalUpstakeIndex > -1 ? originalUpstakeIndex : stakerData.sentStakes.length;
+			const index = originalUpstakeIndex > -1 ? originalUpstakeIndex : stakerData.stakes.length;
 
 			if (stake.amount < BigInt(0)) {
 				// unstake
@@ -205,7 +205,7 @@ export class StakeCommand extends BaseCommand {
 					);
 				}
 
-				if (stakerData.sentStakes[originalUpstakeIndex].amount + stake.amount < BigInt(0)) {
+				if (stakerData.stakes[originalUpstakeIndex].amount + stake.amount < BigInt(0)) {
 					this.events.get(ValidatorStakedEvent).error(
 						context,
 						{
@@ -224,16 +224,16 @@ export class StakeCommand extends BaseCommand {
 				await this._internalMethod.assignStakeRewards(
 					context,
 					senderAddress,
-					stakerData.sentStakes[originalUpstakeIndex],
+					stakerData.stakes[originalUpstakeIndex],
 					validatorData,
 				);
 
-				stakerData.sentStakes[originalUpstakeIndex].amount += stake.amount;
-				stakerData.sentStakes[originalUpstakeIndex].stakeSharingCoefficients =
+				stakerData.stakes[originalUpstakeIndex].amount += stake.amount;
+				stakerData.stakes[originalUpstakeIndex].sharingCoefficients =
 					validatorData.sharingCoefficients;
 
-				if (stakerData.sentStakes[originalUpstakeIndex].amount === BigInt(0)) {
-					stakerData.sentStakes = stakerData.sentStakes.filter(
+				if (stakerData.stakes[originalUpstakeIndex].amount === BigInt(0)) {
+					stakerData.stakes = stakerData.stakes.filter(
 						senderStake => !senderStake.validatorAddress.equals(stake.validatorAddress),
 					);
 				}
@@ -277,32 +277,32 @@ export class StakeCommand extends BaseCommand {
 				);
 
 				if (originalUpstakeIndex > -1) {
-					upstake = stakerData.sentStakes[originalUpstakeIndex];
+					upstake = stakerData.stakes[originalUpstakeIndex];
 
 					await this._internalMethod.assignStakeRewards(
 						context.getMethodContext(),
 						senderAddress,
-						stakerData.sentStakes[originalUpstakeIndex],
+						stakerData.stakes[originalUpstakeIndex],
 						validatorData,
 					);
 
-					stakerData.sentStakes[index].stakeSharingCoefficients = validatorData.sharingCoefficients;
+					stakerData.stakes[index].sharingCoefficients = validatorData.sharingCoefficients;
 				} else {
 					upstake = {
 						validatorAddress: stake.validatorAddress,
 						amount: BigInt(0),
-						stakeSharingCoefficients: validatorData.sharingCoefficients,
+						sharingCoefficients: validatorData.sharingCoefficients,
 					};
 				}
 
 				upstake.amount += stake.amount;
 
-				stakerData.sentStakes[index] = {
+				stakerData.stakes[index] = {
 					...upstake,
 				};
 
-				stakerData.sentStakes.sort((a, b) => a.validatorAddress.compare(b.validatorAddress));
-				if (stakerData.sentStakes.length > MAX_NUMBER_SENT_STAKES) {
+				stakerData.stakes.sort((a, b) => a.validatorAddress.compare(b.validatorAddress));
+				if (stakerData.stakes.length > MAX_NUMBER_SENT_STAKES) {
 					this.events.get(ValidatorStakedEvent).error(
 						context,
 						{
@@ -320,14 +320,14 @@ export class StakeCommand extends BaseCommand {
 			const previousValidatorWeight = getValidatorWeight(
 				this._factorSelfStakes,
 				validatorData.selfStake,
-				validatorData.totalStakeReceived,
+				validatorData.totalStake,
 			);
 			// Change validator.selfStake if this stake is a self stake
 			if (senderAddress.equals(stake.validatorAddress)) {
 				validatorData.selfStake += stake.amount;
 			}
 
-			validatorData.totalStakeReceived += stake.amount;
+			validatorData.totalStake += stake.amount;
 
 			const eligibleValidatorsStore = this.stores.get(EligibleValidatorsStore);
 
