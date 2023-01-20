@@ -200,7 +200,7 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 			).rejects.toThrow("Property '.chainID' maxLength exceeded");
 		});
 
-		it('should reject when sibglingHashes contains bytes with invalid length', async () => {
+		it('should reject when siblingHashes contains bytes with invalid length', async () => {
 			await expect(
 				stateRecoveryInitCommand.verify(
 					createTransactionContext({
