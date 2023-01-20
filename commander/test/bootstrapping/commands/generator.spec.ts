@@ -51,15 +51,130 @@ describe('generator enable/disable', () => {
 		it('should throw an error when height, max-height-generated and max-height-prevoted arg is not provided', async () => {
 			await expect(
 				EnableCommand.run(['myAddress', '--password=my-password'], config),
-			).rejects.toThrow('--use-status-value flag or heights flags must be specified.');
+			).rejects.toThrow(
+				'All of the following must be provided: --height, --max-height-generated, --max-height-prevoted',
+			);
 		});
 
 		it('should throw an error when arg max-height-generated and max-height-prevoted is not provided', async () => {
 			await expect(
 				EnableCommand.run(['myAddress', '--height=10', '--password=my-password'], config),
 			).rejects.toThrow(
-				'All of the following must be provided when using --height: --max-height-generated, --max-height-prevoted',
+				'All of the following must be provided: --height, --max-height-generated, --max-height-prevoted',
 			);
+		});
+
+		it('should throw an error when arg height and max-height-prevoted is not provided', async () => {
+			await expect(
+				EnableCommand.run(
+					['myAddress', '--height=10', '--max-height-generated=10', '--password=my-password'],
+					config,
+				),
+			).rejects.toThrow(
+				'All of the following must be provided: --height, --max-height-generated, --max-height-prevoted',
+			);
+		});
+
+		it('should throw an error when arg height and max-height-generated is not provided', async () => {
+			await expect(
+				EnableCommand.run(
+					['myAddress', '--height=10', '--max-height-prevoted=1', '--password=my-password'],
+					config,
+				),
+			).rejects.toThrow(
+				'All of the following must be provided: --height, --max-height-generated, --max-height-prevoted',
+			);
+		});
+
+		it("should throw an error when only height and maxHeightGenerated are provided'", async () => {
+			await expect(
+				EnableCommand.run(
+					['myAddress', '--height=10', '--max-height-generated=10', '--password=my-password'],
+					config,
+				),
+			).rejects.toThrow(
+				'All of the following must be provided: --height, --max-height-generated, --max-height-prevoted',
+			);
+		});
+
+		it('should throw an error when only height and maxHeightPrevoted are provided', async () => {
+			await expect(
+				EnableCommand.run(
+					['myAddress', '--height=10', '--max-height-prevoted=1', '--password=my-password'],
+					config,
+				),
+			).rejects.toThrow(
+				'All of the following must be provided: --height, --max-height-generated, --max-height-prevoted',
+			);
+		});
+
+		it('should throw an error when only maxHeightGenerated and maxHeightPrevoted are provided', async () => {
+			await expect(
+				EnableCommand.run(
+					[
+						'myAddress',
+						'--max-height-generated=10',
+						'--max-height-prevoted=1',
+						'--password=my-password',
+					],
+					config,
+				),
+			).rejects.toThrow(
+				'All of the following must be provided: --height, --max-height-generated, --max-height-prevoted',
+			);
+		});
+
+		it('should throw an error when flag height is not provided', async () => {
+			await expect(
+				EnableCommand.run(
+					[
+						'myAddress',
+						'--max-height-generated=10',
+						'--max-height-prevoted=1',
+						'--password=my-password',
+					],
+					config,
+				),
+			).rejects.toThrow(
+				'All of the following must be provided: --height, --max-height-generated, --max-height-prevoted',
+			);
+		});
+
+		it('should throw an error when flag max-height-generated is not provided', async () => {
+			await expect(
+				EnableCommand.run(
+					['myAddress', '--height=10', '--max-height-prevoted=1', '--password=my-password'],
+					config,
+				),
+			).rejects.toThrow(
+				'All of the following must be provided: --height, --max-height-generated, --max-height-prevoted',
+			);
+		});
+
+		it('should throw an error when flag max-height-prevoted is not provided', async () => {
+			await expect(
+				EnableCommand.run(
+					['myAddress', '--height=10', '--max-height-generated=10', '--password=my-password'],
+					config,
+				),
+			).rejects.toThrow(
+				'All of the following must be provided: --height, --max-height-generated, --max-height-prevoted',
+			);
+		});
+
+		it('should not throw an error when height, maxHeightGenerated, maxHeightPrevoted are set to 0', async () => {
+			await expect(
+				EnableCommand.run(
+					[
+						'myAddress',
+						'--height=0',
+						'--max-height-generated=0',
+						'--max-height-prevoted=0',
+						'--password=my-password',
+					],
+					config,
+				),
+			).resolves.toBeUndefined();
 		});
 
 		it('should throw an error when flag height is negative', async () => {
