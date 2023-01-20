@@ -13,10 +13,10 @@
  */
 
 import { BaseInteroperabilityEndpoint } from '../base_interoperability_endpoint';
-import { REGISTRATION_FEE } from '../constants';
+import { CHAIN_REGISTRATION_FEE } from '../constants';
 
 export class MainchainInteroperabilityEndpoint extends BaseInteroperabilityEndpoint {
 	public getRegistrationFee(): { fee: string } {
-		return { fee: REGISTRATION_FEE.toString() };
+		return { fee: CHAIN_REGISTRATION_FEE.toString() };
 	}
 }
