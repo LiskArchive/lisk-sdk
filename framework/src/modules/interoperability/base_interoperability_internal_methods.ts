@@ -441,18 +441,6 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			sendingChainID: ownChainAccount.chainID,
 			status,
 		};
-		// Not possible to send messages to the own chain.
-		if (receivingChainID.equals(ownChainAccount.chainID)) {
-			this.events.get(CcmSentFailedEvent).log(
-				context,
-				{
-					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSentFailedCode.INVALID_RECEIVING_CHAIN,
-				},
-				true,
-			);
-			throw new Error('Sending chain cannot be the receiving chain.');
-		}
 
 		// Validate ccm size.
 		try {
@@ -471,6 +459,18 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		}
 		// From now on, we can assume that the ccm is valid.
 
+		// Not possible to send messages to the own chain.
+		if (receivingChainID.equals(ownChainAccount.chainID)) {
+			this.events.get(CcmSentFailedEvent).log(
+				context,
+				{
+					ccm: { ...ccm, params: EMPTY_BYTES },
+					code: CCMSentFailedCode.INVALID_RECEIVING_CHAIN,
+				},
+				true,
+			);
+			throw new Error('Sending chain cannot be the receiving chain.');
+		}
 		// receivingChainID must correspond to a live chain.
 		const isReceivingChainLive = await this.isLive(
 			context,
@@ -500,6 +500,26 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 				throw error;
 			}
 		}
+
+		// Pay message fee.
+		if (fee > 0) {
+			try {
+				// eslint-disable-next-line no-lonely-if
+				await this._tokenMethod.payMessageFee(context, sendingAddress, fee, ccm.receivingChainID);
+			} catch (error) {
+				this.events.get(CcmSentFailedEvent).log(
+					context,
+					{
+						ccm: { ...ccm, params: EMPTY_BYTES },
+						code: CCMSentFailedCode.MESSAGE_FEE_EXCEPTION,
+					},
+					true,
+				);
+
+				throw new Error('Failed to pay message fee.');
+			}
+		}
+
 		const mainchainID = getMainchainID(ownChainAccount.chainID);
 		let partnerChainID: Buffer;
 		// Processing on the mainchain.
@@ -527,25 +547,6 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			);
 
 			throw new Error('Receiving chain is not active.');
-		}
-
-		// Pay message fee.
-		if (fee > 0) {
-			try {
-				// eslint-disable-next-line no-lonely-if
-				await this._tokenMethod.payMessageFee(context, sendingAddress, fee, partnerChainID);
-			} catch (error) {
-				this.events.get(CcmSentFailedEvent).log(
-					context,
-					{
-						ccm: { ...ccm, params: EMPTY_BYTES },
-						code: CCMSentFailedCode.MESSAGE_FEE_EXCEPTION,
-					},
-					true,
-				);
-
-				throw new Error('Failed to pay message fee.');
-			}
 		}
 
 		const { ccmID } = getEncodedCCMAndID(ccm);

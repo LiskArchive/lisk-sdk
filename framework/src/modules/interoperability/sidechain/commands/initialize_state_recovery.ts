@@ -25,7 +25,7 @@ import {
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { EMPTY_BYTES, LIVENESS_LIMIT } from '../../constants';
 import { stateRecoveryInitParamsSchema } from '../../schemas';
-import { chainAccountSchema, ChainAccountStore, ChainStatus } from '../../stores/chain_account';
+import { chainDataSchema, ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { TerminatedStateAccount, TerminatedStateStore } from '../../stores/terminated_state';
 import { ChainAccount, StateRecoveryInitParams } from '../../types';
@@ -63,7 +63,7 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 		}
 
 		const deserializedSidechainAccount = codec.decode<ChainAccount>(
-			chainAccountSchema,
+			chainDataSchema,
 			sidechainAccount,
 		);
 		const mainchainAccount = await this.stores.get(ChainAccountStore).get(context, mainchainID);
@@ -117,10 +117,7 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 	// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#execution-3
 	public async execute(context: CommandExecuteContext<StateRecoveryInitParams>): Promise<void> {
 		const { params } = context;
-		const sidechainAccount = codec.decode<ChainAccount>(
-			chainAccountSchema,
-			params.sidechainAccount,
-		);
+		const sidechainAccount = codec.decode<ChainAccount>(chainDataSchema, params.sidechainAccount);
 
 		const doesTerminatedStateAccountExist = await this.stores
 			.get(TerminatedStateStore)

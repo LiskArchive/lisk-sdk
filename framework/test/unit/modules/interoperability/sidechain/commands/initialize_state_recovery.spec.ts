@@ -29,7 +29,7 @@ import {
 	TerminatedStateStore,
 } from '../../../../../../src/modules/interoperability/stores/terminated_state';
 import {
-	chainAccountSchema,
+	chainDataSchema,
 	ChainAccountStore,
 	ChainStatus,
 } from '../../../../../../src/modules/interoperability/stores/chain_account';
@@ -91,7 +91,7 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 			status: ChainStatus.TERMINATED,
 		};
 
-		sidechainChainAccountEncoded = codec.encode(chainAccountSchema, sidechainChainAccount);
+		sidechainChainAccountEncoded = codec.encode(chainDataSchema, sidechainChainAccount);
 
 		transactionParams = {
 			chainID: utils.intToBuffer(3, 4),
@@ -261,7 +261,7 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 				},
 				status: ChainStatus.ACTIVE,
 			};
-			sidechainChainAccountEncoded = codec.encode(chainAccountSchema, sidechainChainAccount);
+			sidechainChainAccountEncoded = codec.encode(chainDataSchema, sidechainChainAccount);
 			transactionParams = {
 				chainID: utils.intToBuffer(3, 4),
 				bitmap: Buffer.alloc(0),

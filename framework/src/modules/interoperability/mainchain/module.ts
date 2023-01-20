@@ -30,7 +30,7 @@ import {
 	isChainIDAvailableRequestSchema,
 } from '../schemas';
 import {
-	chainAccountSchema,
+	chainDataSchema,
 	allChainAccountsSchema,
 	ChainAccountStore,
 } from '../stores/chain_account';
@@ -172,7 +172,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				{
 					name: this.endpoint.getChainAccount.name,
 					request: getChainAccountRequestSchema,
-					response: chainAccountSchema,
+					response: chainDataSchema,
 				},
 				{
 					name: this.endpoint.getAllChainAccounts.name,
