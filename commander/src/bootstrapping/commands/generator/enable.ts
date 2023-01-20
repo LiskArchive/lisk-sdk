@@ -38,19 +38,16 @@ export abstract class EnableCommand extends BaseGeneratorCommand {
 		height: Flags.integer({
 			description: 'Last generated block height.',
 			exclusive: ['use-status-value'],
-			dependsOn: ['max-height-generated', 'max-height-prevoted'],
 			min: 0,
 		}),
 		'max-height-generated': Flags.integer({
 			description: "Validator's largest previously generated height.",
 			exclusive: ['use-status-value'],
-			dependsOn: ['height', 'max-height-prevoted'],
 			min: 0,
 		}),
 		'max-height-prevoted': Flags.integer({
 			description: "Validator's largest prevoted height for a block.",
 			exclusive: ['use-status-value'],
-			dependsOn: ['max-height-generated', 'height'],
 			min: 0,
 		}),
 		'use-status-value': Flags.boolean({
@@ -63,6 +60,7 @@ export abstract class EnableCommand extends BaseGeneratorCommand {
 
 	async run(): Promise<void> {
 		const { args, flags } = await this.parse(EnableCommand);
+
 		const { address } = args as { address: string };
 		const { 'use-status-value': useStatusValue } = flags;
 
@@ -72,8 +70,13 @@ export abstract class EnableCommand extends BaseGeneratorCommand {
 			'max-height-prevoted': maxHeightPrevoted,
 		} = flags;
 
-		if (!useStatusValue && height === undefined) {
-			throw new Error('--use-status-value flag or heights flags must be specified.');
+		if (
+			!useStatusValue &&
+			[height, maxHeightGenerated, maxHeightPrevoted].some(v => typeof v !== 'number')
+		) {
+			throw new Error(
+				'All of the following must be provided: --height, --max-height-generated, --max-height-prevoted',
+			);
 		}
 
 		const password = await this.getPassword(flags);

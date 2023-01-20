@@ -184,7 +184,7 @@ describe('Test interoperability endpoint', () => {
 			getImmutableMethodContext: jest.fn(),
 			getOffchainStore: jest.fn(),
 			chainID: Buffer.alloc(0),
-			params: {},
+			params: { chainID: chainID.toString('hex') },
 			logger: {} as any,
 			header: { aggregateCommit: { height: 10 }, height: 12, timestamp: Date.now() },
 		};
@@ -209,10 +209,7 @@ describe('Test interoperability endpoint', () => {
 		let chainAccountResult: ChainAccountJSON;
 
 		beforeEach(async () => {
-			chainAccountResult = await testInteroperabilityEndpoint.getChainAccount(
-				moduleContext,
-				chainID,
-			);
+			chainAccountResult = await testInteroperabilityEndpoint.getChainAccount(moduleContext);
 		});
 
 		it('should call getChainAccount', () => {
@@ -230,7 +227,6 @@ describe('Test interoperability endpoint', () => {
 		beforeEach(async () => {
 			({ chains: chainAccountResults } = await testInteroperabilityEndpoint.getAllChainAccounts(
 				moduleContext,
-				chainID,
 			));
 		});
 
@@ -243,7 +239,7 @@ describe('Test interoperability endpoint', () => {
 		let channelDataResult: ChannelDataJSON;
 
 		beforeEach(async () => {
-			channelDataResult = await testInteroperabilityEndpoint.getChannel(moduleContext, chainID);
+			channelDataResult = await testInteroperabilityEndpoint.getChannel(moduleContext);
 		});
 
 		it('should call getChannel', () => {
@@ -277,7 +273,6 @@ describe('Test interoperability endpoint', () => {
 		beforeEach(async () => {
 			terminatedStateAccountResult = await testInteroperabilityEndpoint.getTerminatedStateAccount(
 				moduleContext,
-				chainID,
 			);
 		});
 
@@ -296,7 +291,6 @@ describe('Test interoperability endpoint', () => {
 		beforeEach(async () => {
 			terminatedOutboxAccountResult = await testInteroperabilityEndpoint.getTerminatedOutboxAccount(
 				moduleContext,
-				chainID,
 			);
 		});
 
@@ -335,7 +329,6 @@ describe('Test interoperability endpoint', () => {
 				chainValidatorsMock.get.mockResolvedValue(chainValidators);
 				chainValidatorsResult = await testInteroperabilityEndpoint.getChainValidators(
 					moduleContext,
-					chainID,
 				);
 			});
 
@@ -354,7 +347,7 @@ describe('Test interoperability endpoint', () => {
 				chainValidatorsMock.get.mockResolvedValue(chainValidators);
 
 				await expect(
-					testInteroperabilityEndpoint.getChainValidators(moduleContext, chainID),
+					testInteroperabilityEndpoint.getChainValidators(moduleContext),
 				).rejects.toThrow('Chain account does not exist.');
 			});
 		});
@@ -363,10 +356,7 @@ describe('Test interoperability endpoint', () => {
 	describe('isChainIDAvailable', () => {
 		it('should return false when the chainID exists', async () => {
 			chainAccountStoreMock.has.mockResolvedValue(true);
-			const isAvailable = await testInteroperabilityEndpoint.isChainIDAvailable(
-				moduleContext,
-				chainID,
-			);
+			const isAvailable = await testInteroperabilityEndpoint.isChainIDAvailable(moduleContext);
 			expect(isAvailable).toEqual({ result: false });
 		});
 
@@ -374,7 +364,6 @@ describe('Test interoperability endpoint', () => {
 			chainAccountStoreMock.has.mockResolvedValue(false);
 			const isChainIDAvailableResult = await testInteroperabilityEndpoint.isChainIDAvailable(
 				moduleContext,
-				chainID,
 			);
 
 			expect(isChainIDAvailableResult).toEqual({ result: true });

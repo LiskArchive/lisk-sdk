@@ -94,6 +94,8 @@ export const getRewardTokenIDResponseSchema = {
 		tokenID: {
 			type: 'string',
 			format: 'hex',
+			minLength: 16,
+			maxLength: 16,
 		},
 	},
 };
