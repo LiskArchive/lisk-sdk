@@ -329,9 +329,7 @@ export abstract class BaseCrossChainUpdateCommand<
 		}
 	}
 
-	/**
-	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#bounce
-	 */
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#bounce
 	protected async bounce(
 		context: CrossChainMessageContext,
 		ccmSize: number,

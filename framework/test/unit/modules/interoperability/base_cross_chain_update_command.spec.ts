@@ -14,6 +14,7 @@
 /* eslint-disable max-classes-per-file */
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
+import { EMPTY_BUFFER } from '@liskhq/lisk-chain/dist-node/constants';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -763,6 +764,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 	describe('afterExecuteCommon', () => {
 		let executeContext: CommandExecuteContext<CrossChainUpdateTransactionParams>;
+		let chainValidatorsStore: ChainValidatorsStore;
 
 		beforeEach(() => {
 			executeContext = createTransactionContext({
@@ -786,7 +788,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				}),
 			}).createCommandExecuteContext(command.schema);
 
-			const chainValidatorsStore = command['stores'].get(ChainValidatorsStore);
+			chainValidatorsStore = command['stores'].get(ChainValidatorsStore);
 			jest.spyOn(chainValidatorsStore, 'get').mockResolvedValue({
 				certificateThreshold: BigInt(10),
 			} as any);
@@ -799,22 +801,47 @@ describe('BaseCrossChainUpdateCommand', () => {
 			} as any);
 		});
 
-		it('should update validators if activeValidatorsUpdate is not empty', async () => {
+		it('should update validators if activeValidatorsUpdate is not empty but params.certificateThreshold === sendingChainValidators.certificateThreshold', async () => {
+			jest.spyOn(chainValidatorsStore, 'get').mockResolvedValue({
+				certificateThreshold: BigInt(20),
+			} as any);
+
 			await expect(command['afterExecuteCommon'](executeContext)).resolves.toBeUndefined();
 			expect(command['internalMethod'].updateValidators).toHaveBeenCalledWith(
 				expect.anything(),
 				executeContext.params,
 			);
+		});
 
-			expect(command['internalMethod'].updateCertificate).toHaveBeenCalledWith(
+		it('should update validators if activeValidatorsUpdate is empty but params.certificateThreshold !== sendingChainValidators.certificateThreshold', async () => {
+			executeContext.params.activeValidatorsUpdate.bftWeightsUpdateBitmap = EMPTY_BUFFER;
+			await expect(command['afterExecuteCommon'](executeContext)).resolves.toBeUndefined();
+
+			expect(command['internalMethod'].updateValidators).toHaveBeenCalledWith(
 				expect.anything(),
 				executeContext.params,
 			);
+		});
 
-			expect(command['internalMethod'].updatePartnerChainOutboxRoot).toHaveBeenCalledWith(
-				expect.anything(),
-				executeContext.params,
-			);
+		it('should not update certificate and updatePartnerChainOutboxRoot if certificate is empty', async () => {
+			executeContext.params.certificate = EMPTY_BYTES;
+			await expect(command['afterExecuteCommon'](executeContext)).resolves.toBeUndefined();
+			expect(command['internalMethod'].updateCertificate).not.toHaveBeenCalled();
+			expect(command['internalMethod'].updatePartnerChainOutboxRoot).not.toHaveBeenCalled();
+		});
+
+		it('should not update partnerChainOutboxRoot if inboxUpdate is empty', async () => {
+			executeContext.params.inboxUpdate = {
+				crossChainMessages: [],
+				messageWitnessHashes: [],
+				outboxRootWitness: {
+					siblingHashes: [],
+					bitmap: EMPTY_BUFFER,
+				},
+			};
+			await expect(command['afterExecuteCommon'](executeContext)).resolves.toBeUndefined();
+
+			expect(command['internalMethod'].updatePartnerChainOutboxRoot).not.toHaveBeenCalled();
 		});
 	});
 
