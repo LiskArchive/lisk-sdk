@@ -243,6 +243,7 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 
 		const encodedParams = codec.encode(registrationCCMParamsSchema, {
 			name: CHAIN_NAME_MAINCHAIN,
+			chainID: mainchainID,
 			messageFeeTokenID: mainchainTokenID,
 		});
 

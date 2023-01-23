@@ -68,6 +68,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			receivingChainID: Buffer,
 		) => Promise<void>;
 	};
+
 	public constructor(
 		stores: NamedRegistry,
 		events: NamedRegistry,
@@ -302,6 +303,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 				ccu.inboxUpdate.messageWitnessHashes,
 			);
 	}
+
 	public async verifyValidatorsUpdate(
 		context: ImmutableMethodContext,
 		ccu: CrossChainUpdateTransactionParams,
