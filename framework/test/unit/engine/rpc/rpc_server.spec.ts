@@ -164,4 +164,49 @@ describe('RPC server', () => {
 			expect(rpcServer['_httpServer']?.stop).toHaveBeenCalledTimes(1);
 		});
 	});
+
+	describe('_isDisabledMethod', () => {
+		it('should return true for a disabled method', () => {
+			rpcServer = new RPCServer(dataPath, {
+				modes: ['ipc'],
+				host: '0.0.0.0',
+				port: 7887,
+				disabledMethods: ['token_transfer'],
+			});
+
+			expect(rpcServer['_isDisabledMethod']('token', 'transfer')).toBeTrue();
+		});
+
+		it('should return true for method from a disabled namespace', () => {
+			rpcServer = new RPCServer(dataPath, {
+				modes: ['ipc'],
+				host: '0.0.0.0',
+				port: 7887,
+				disabledMethods: ['token'],
+			});
+
+			expect(rpcServer['_isDisabledMethod']('token', 'transfer')).toBeTrue();
+		});
+
+		it('should return false if a method is not disabled', () => {
+			rpcServer = new RPCServer(dataPath, {
+				modes: ['ipc'],
+				host: '0.0.0.0',
+				port: 7887,
+				disabledMethods: ['auth'],
+			});
+
+			expect(rpcServer['_isDisabledMethod']('token', 'transfer')).toBeFalse();
+		});
+
+		it('should return false when disabledMethods configuration is absent', () => {
+			rpcServer = new RPCServer(dataPath, {
+				modes: ['ipc'],
+				host: '0.0.0.0',
+				port: 7887,
+			});
+
+			expect(rpcServer['_isDisabledMethod']('token', 'transfer')).toBeFalse();
+		});
+	});
 });

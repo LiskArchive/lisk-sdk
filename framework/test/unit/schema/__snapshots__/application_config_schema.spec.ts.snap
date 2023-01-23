@@ -276,6 +276,13 @@ exports[`schema/application_config_schema.js application config schema must matc
     },
     "rpc": {
       "properties": {
+        "disabledMethods": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+          "uniqueItems": true,
+        },
         "host": {
           "type": "string",
         },
