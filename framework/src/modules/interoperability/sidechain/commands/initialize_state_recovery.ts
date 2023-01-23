@@ -23,7 +23,7 @@ import {
 	VerifyStatus,
 } from '../../../../state_machine';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
-import { EMPTY_BYTES, LIVENESS_LIMIT } from '../../constants';
+import { EMPTY_BYTES, EMPTY_HASH, LIVENESS_LIMIT } from '../../constants';
 import { stateRecoveryInitParamsSchema } from '../../schemas';
 import { chainDataSchema, ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
@@ -125,7 +125,7 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 		if (doesTerminatedStateAccountExist) {
 			const newTerminatedStateAccount: TerminatedStateAccount = {
 				stateRoot: sidechainAccount.lastCertificate.stateRoot,
-				mainchainStateRoot: EMPTY_BYTES,
+				mainchainStateRoot: EMPTY_HASH,
 				initialized: true,
 			};
 
