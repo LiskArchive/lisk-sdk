@@ -83,6 +83,9 @@ export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdate
 				const ccmContext = {
 					...context,
 					ccm,
+					ccu: {
+						sendingChainID: params.sendingChainID,
+					},
 				};
 
 				await this.apply(ccmContext);

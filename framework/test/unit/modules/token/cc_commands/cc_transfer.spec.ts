@@ -165,6 +165,9 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: utils.getRandomBytes(32),
+				ccu: {
+					sendingChainID,
+				},
 			};
 
 			// Act & Assert
@@ -213,6 +216,9 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: utils.getRandomBytes(32),
+				ccu: {
+					sendingChainID,
+				},
 			};
 
 			// Act & Assert
@@ -261,6 +267,9 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: utils.getRandomBytes(32),
+				ccu: {
+					sendingChainID,
+				},
 			};
 
 			// Act & Assert
@@ -308,6 +317,9 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: utils.getRandomBytes(32),
+				ccu: {
+					sendingChainID,
+				},
 			};
 
 			// Assert
@@ -356,6 +368,9 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: utils.getRandomBytes(32),
+				ccu: {
+					sendingChainID,
+				},
 			};
 
 			// Act & Assert
@@ -396,6 +411,9 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: utils.getRandomBytes(32),
+				ccu: {
+					sendingChainID,
+				},
 			};
 
 			// Act & Assert
@@ -444,6 +462,9 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: utils.getRandomBytes(32),
+				ccu: {
+					sendingChainID,
+				},
 			};
 
 			// Act & Assert
@@ -504,6 +525,9 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: utils.getRandomBytes(32),
+				ccu: {
+					sendingChainID,
+				},
 			};
 
 			// Act & Assert
@@ -553,6 +577,9 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: utils.getRandomBytes(32),
+				ccu: {
+					sendingChainID,
+				},
 			};
 
 			// Act
@@ -609,6 +636,9 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: utils.getRandomBytes(32),
+				ccu: {
+					sendingChainID,
+				},
 			};
 
 			// Act
@@ -669,6 +699,9 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: utils.getRandomBytes(32),
+				ccu: {
+					sendingChainID,
+				},
 			};
 
 			// Act
@@ -735,6 +768,9 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: utils.getRandomBytes(32),
+				ccu: {
+					sendingChainID,
+				},
 			};
 
 			// Act && Assert

@@ -53,9 +53,9 @@ export const enum CCMProcessedCode {
 }
 
 export interface CcmProcessedEventData {
+	ccm: CCMsg;
 	result: CCMProcessedResult;
 	code: CCMProcessedCode;
-	ccm: CCMsg;
 }
 
 export const ccmProcessedEventSchema = {
