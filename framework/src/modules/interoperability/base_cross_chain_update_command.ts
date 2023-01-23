@@ -18,7 +18,7 @@ import { CommandExecuteContext, CommandVerifyContext } from '../../state_machine
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import { BaseInteroperabilityMethod } from './base_interoperability_method';
-import { CCMStatusCode, EMPTY_BYTES, MIN_RETURN_FEE } from './constants';
+import { CCMStatusCode, EMPTY_BYTES, MIN_RETURN_FEE, EmptyCCM } from './constants';
 import { CCMProcessedCode, CcmProcessedEvent, CCMProcessedResult } from './events/ccm_processed';
 import { CcmSendSuccessEvent } from './events/ccm_send_success';
 import { ccmSchema, crossChainUpdateTransactionParams } from './schemas';
@@ -27,7 +27,6 @@ import {
 	CrossChainMessageContext,
 	CrossChainUpdateTransactionParams,
 	TokenMethod,
-	EmptyCCM,
 } from './types';
 import { ChainAccountStore, ChainStatus } from './stores/chain_account';
 import {
@@ -86,11 +85,12 @@ export abstract class BaseCrossChainUpdateCommand<
 		isMainchain: boolean,
 	): Promise<[CCMsg[], boolean]> {
 		const { params, transaction } = context;
+		const { inboxUpdate } = params;
 
 		// Verify certificate signature. We do it here because if it fails, the transaction fails rather than being invalid.
 		await this.internalMethod.verifyCertificateSignature(context, params);
 
-		if (!isInboxUpdateEmpty(params.inboxUpdate)) {
+		if (!isInboxUpdateEmpty(inboxUpdate)) {
 			// Initialize the relayer account for the message fee token.
 			// This is necessary to ensure that the relayer can receive the CCM fees
 			// If the account already exists, nothing is done.
@@ -105,21 +105,17 @@ export abstract class BaseCrossChainUpdateCommand<
 			);
 		}
 
-		const terminateChain = async (): Promise<void> => {
-			await this.internalMethod.terminateChainInternal(context, params.sendingChainID);
-		};
-
 		const ccms: CCMsg[] = [];
 		let ccm: CCMsg;
 
 		// Process cross-chain messages in inbox update.
 		// First process basic checks for all CCMs.
-		for (const ccmBytes of params.inboxUpdate.crossChainMessages) {
+		for (const ccmBytes of inboxUpdate.crossChainMessages) {
 			try {
 				// Verify general format. Past this point, we can access ccm root properties.
 				ccm = codec.decode<CCMsg>(ccmSchema, ccmBytes);
 			} catch (error) {
-				await terminateChain();
+				await this.internalMethod.terminateChainInternal(context, params.sendingChainID);
 				this.events.get(CcmProcessedEvent).log(context, params.sendingChainID, context.chainID, {
 					ccm: EmptyCCM,
 					result: CCMProcessedResult.DISCARDED,
@@ -132,7 +128,7 @@ export abstract class BaseCrossChainUpdateCommand<
 			try {
 				validateFormat(ccm);
 			} catch (error) {
-				await terminateChain();
+				await this.internalMethod.terminateChainInternal(context, params.sendingChainID);
 				ccm = { ...ccm, params: EMPTY_BYTES };
 				this.events
 					.get(CcmProcessedEvent)
@@ -163,7 +159,7 @@ export abstract class BaseCrossChainUpdateCommand<
 				}
 				ccms.push(ccm);
 			} catch (error) {
-				await terminateChain();
+				await this.internalMethod.terminateChainInternal(context, params.sendingChainID);
 				this.events
 					.get(CcmProcessedEvent)
 					.log(context, params.sendingChainID, ccm.receivingChainID, {
@@ -185,17 +181,12 @@ export abstract class BaseCrossChainUpdateCommand<
 		const { params } = context;
 
 		// Update sidechain validators.
-		const chainValidatorsStore = this.stores.get(ChainValidatorsStore);
-		const validators = await chainValidatorsStore.get(context, params.sendingChainID);
-
-		const { blsKeysUpdate, bftWeightsUpdate, bftWeightsUpdateBitmap } =
-			params.activeValidatorsUpdate;
-
+		const sendingChainValidators = await this.stores
+			.get(ChainValidatorsStore)
+			.get(context, params.sendingChainID);
 		if (
-			blsKeysUpdate.length > 0 ||
-			bftWeightsUpdate.length > 0 ||
-			bftWeightsUpdateBitmap !== EMPTY_BYTES ||
-			params.certificateThreshold !== validators.certificateThreshold
+			!emptyActiveValidatorsUpdate(params.activeValidatorsUpdate) ||
+			params.certificateThreshold !== sendingChainValidators.certificateThreshold
 		) {
 			await this.internalMethod.updateValidators(context, params);
 		}
@@ -337,6 +328,7 @@ export abstract class BaseCrossChainUpdateCommand<
 			});
 		}
 	}
+
 	/**
 	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#bounce
 	 */

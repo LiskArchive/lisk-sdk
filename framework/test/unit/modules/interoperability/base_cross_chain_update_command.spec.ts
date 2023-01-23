@@ -31,6 +31,7 @@ import {
 	MIN_RETURN_FEE,
 	MODULE_NAME_INTEROPERABILITY,
 	EMPTY_BYTES,
+	EmptyCCM,
 } from '../../../../src/modules/interoperability/constants';
 import {
 	CCMProcessedCode,
@@ -41,7 +42,6 @@ import { CcmSendSuccessEvent } from '../../../../src/modules/interoperability/ev
 import {
 	CrossChainMessageContext,
 	CrossChainUpdateTransactionParams,
-	EmptyCCM,
 } from '../../../../src/modules/interoperability/types';
 import {
 	createCrossChainMessageContext,
@@ -445,7 +445,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 			expect(command['_tokenMethod'].initializeUserAccount).not.toHaveBeenCalled();
 		});
 
-		// decoding
 		it('should terminate the chain and add an event when fails with ccm decoding', async () => {
 			executeContext = createTransactionContext({
 				chainID,
@@ -491,7 +490,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 			);
 		});
 
-		// format
 		it('should terminate the chain and add an event when ccm format is invalid', async () => {
 			executeContext = createTransactionContext({
 				chainID,
@@ -531,7 +529,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 			);
 		});
 
-		// The CCM must come from the sending chain.
 		it('should terminate the chain and add an event when CCM sending chain and ccu sending chain is not the same', async () => {
 			const ccm = {
 				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
@@ -632,7 +629,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 			);
 		});
 
-		// The CCM must come be directed to the sidechain, unless it was bounced on the mainchain.
 		it('should terminate the chain and add an event when CCM is not directed to the sidechain', async () => {
 			const ccm = {
 				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,

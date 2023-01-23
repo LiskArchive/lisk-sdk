@@ -28,7 +28,6 @@ import { OutboxRoot } from './stores/outbox_root';
 import { ChainID } from './stores/registered_names';
 import { TerminatedOutboxAccount } from './stores/terminated_outbox';
 import { TerminatedStateAccount } from './stores/terminated_state';
-import { EMPTY_BYTES } from './constants';
 
 export type StoreCallback = (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 export type ImmutableStoreCallback = (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
@@ -43,17 +42,6 @@ export interface CCMsg {
 	readonly status: number;
 	readonly params: Buffer;
 }
-
-export const EmptyCCM = {
-	crossChainCommand: '',
-	fee: BigInt(0),
-	module: '',
-	nonce: BigInt(0),
-	params: EMPTY_BYTES,
-	receivingChainID: EMPTY_BYTES,
-	sendingChainID: EMPTY_BYTES,
-	status: 0,
-};
 
 export interface ActiveValidatorsUpdate {
 	blsKeysUpdate: Buffer[];
