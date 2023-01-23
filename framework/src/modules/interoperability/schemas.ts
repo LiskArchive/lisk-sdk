@@ -373,17 +373,25 @@ export const messageRecoveryInitializationParamsSchema = {
 export const registrationCCMParamsSchema = {
 	$id: '/modules/interoperability/ccCommand/registration',
 	type: 'object',
-	required: ['name', 'messageFeeTokenID'],
+	required: ['name', 'chainID', 'messageFeeTokenID'],
 	properties: {
 		name: {
 			dataType: 'string',
+			minLength: MIN_CHAIN_NAME_LENGTH,
+			maxLength: MAX_CHAIN_NAME_LENGTH,
 			fieldNumber: 1,
+		},
+		chainID: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 		messageFeeTokenID: {
 			dataType: 'bytes',
 			minLength: TOKEN_ID_LENGTH,
 			maxLength: TOKEN_ID_LENGTH,
-			fieldNumber: 2,
+			fieldNumber: 3,
 		},
 	},
 };

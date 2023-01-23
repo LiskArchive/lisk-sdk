@@ -616,6 +616,9 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 					...commandExecuteContext,
 					ccm,
 					eventQueue: commandExecuteContext.eventQueue.getChildQueue(utils.hash(crossChainMessage)),
+					ccu: {
+						sendingChainID: commandExecuteContext.params.chainID,
+					},
 				};
 
 				expect(command['_applyRecovery']).toHaveBeenCalledWith(ctx);
@@ -652,6 +655,9 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 					...commandExecuteContext,
 					ccm,
 					eventQueue: commandExecuteContext.eventQueue.getChildQueue(utils.hash(crossChainMessage)),
+					ccu: {
+						sendingChainID: commandExecuteContext.params.chainID,
+					},
 				};
 
 				expect(command['_forwardRecovery']).toHaveBeenCalledWith(ctx);

@@ -153,6 +153,9 @@ describe('TokenInteroperableMethod', () => {
 						fee,
 						senderAddress: defaultAddress,
 					},
+					ccu: {
+						sendingChainID,
+					},
 				}),
 			).resolves.toBeUndefined();
 			const { availableBalance } = await userStore.get(
@@ -195,6 +198,9 @@ describe('TokenInteroperableMethod', () => {
 						fee,
 						senderAddress: defaultAddress,
 					},
+					ccu: {
+						sendingChainID,
+					},
 				}),
 			).rejects.toThrow('Insufficient balance in the sending chain for the message fee.');
 			checkEventResult(
@@ -231,6 +237,9 @@ describe('TokenInteroperableMethod', () => {
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
+					},
+					ccu: {
+						sendingChainID,
 					},
 				}),
 			).resolves.toBeUndefined();
@@ -281,6 +290,9 @@ describe('TokenInteroperableMethod', () => {
 						fee,
 						senderAddress: defaultAddress,
 					},
+					ccu: {
+						sendingChainID,
+					},
 				}),
 			).rejects.toThrow('Insufficient balance in the sending chain for the message fee.');
 			checkEventResult(
@@ -325,6 +337,9 @@ describe('TokenInteroperableMethod', () => {
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
+					},
+					ccu: {
+						sendingChainID,
 					},
 				}),
 			).resolves.toBeUndefined();
@@ -377,6 +392,9 @@ describe('TokenInteroperableMethod', () => {
 						fee,
 						senderAddress: defaultAddress,
 					},
+					ccu: {
+						sendingChainID,
+					},
 				}),
 			).rejects.toThrow('Insufficient balance in the sending chain for the transfer.');
 			checkEventResult(
@@ -421,6 +439,9 @@ describe('TokenInteroperableMethod', () => {
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
+					},
+					ccu: {
+						sendingChainID,
 					},
 				}),
 			).resolves.toBeUndefined();
@@ -471,6 +492,9 @@ describe('TokenInteroperableMethod', () => {
 						fee,
 						senderAddress: defaultAddress,
 					},
+					ccu: {
+						sendingChainID,
+					},
 				}),
 			).resolves.toBeUndefined();
 		});
@@ -502,6 +526,9 @@ describe('TokenInteroperableMethod', () => {
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
+					},
+					ccu: {
+						sendingChainID,
 					},
 				}),
 			).rejects.toThrow('Insufficient escrow amount.');
@@ -537,6 +564,9 @@ describe('TokenInteroperableMethod', () => {
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
+					},
+					ccu: {
+						sendingChainID,
 					},
 				}),
 			).resolves.toBeUndefined();
