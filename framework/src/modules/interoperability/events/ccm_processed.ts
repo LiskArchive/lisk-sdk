@@ -38,18 +38,22 @@ export const enum CCMProcessedCode {
 	CROSS_CHAIN_COMMAND_NOT_SUPPORTED = 3,
 	// Value of code of CCM Processed Event if processing failed due to: exception in cross-chain command execution
 	FAILED_CCM = 4,
-	// Value of code of CCM Processed Event if processing failed due to: exception in validation
-	INVALID_CCM_VALIDATION_EXCEPTION = 5,
+	// Value of code of CCM Processed Event if processing failed due to: exception in ccm decoding
+	INVALID_CCM_DECODING_EXCEPTION = 5,
+	// Value of code of CCM Processed Event if processing failed due to: exception in format validation
+	INVALID_CCM_VALIDATION_EXCEPTION = 6,
+	// Value of code of CCM Processed Event if processing failed due to: exception in validation of ccm routing rules
+	INVALID_CCM_ROUTING_EXCEPTION = 7,
 	// Value of code of CCM Processed Event if processing failed due to: exception in CCM verification
-	INVALID_CCM_VERIFY_CCM_EXCEPTION = 6,
+	INVALID_CCM_VERIFY_CCM_EXCEPTION = 8,
 	// Value of code of CCM Processed Event if processing failed due to: exception in cross-chain command verification
-	INVALID_CCM_VERIFY_EXCEPTION = 7,
+	INVALID_CCM_VERIFY_EXCEPTION = 9,
 	// Value of code of CCM Processed Event if processing failed due to: exception in before cross-chain command execution
-	INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION = 8,
+	INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION = 10,
 	// Value of code of CCM Processed Event if processing failed due to: exception in after cross-chain command execution
-	INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION = 9,
+	INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION = 11,
 	// Value of code of CCM Processed Event if processing failed due to: exception in before cross-chain command forwarding
-	INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION = 10,
+	INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION = 12,
 }
 
 export interface CcmProcessedEventData {

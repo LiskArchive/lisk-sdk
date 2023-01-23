@@ -85,3 +85,15 @@ export const EVENT_NAME_CCM_PROCESSED = 'ccmProcessed';
 export const EVENT_NAME_CCM_SEND_SUCCESS = 'ccmSendSucess';
 
 export const CONTEXT_STORE_KEY_CCM_PROCESSING = 'CONTEXT_STORE_KEY_CCM_PROCESSING';
+
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#empty-cross-chain-message
+export const EmptyCCM = {
+	module: '',
+	crossChainCommand: '',
+	nonce: BigInt(0),
+	fee: BigInt(0),
+	sendingChainID: EMPTY_BYTES,
+	receivingChainID: EMPTY_BYTES,
+	params: EMPTY_BYTES,
+	status: 0,
+};

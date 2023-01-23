@@ -31,6 +31,7 @@ import { TerminatedStateAccount } from './stores/terminated_state';
 
 export type StoreCallback = (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 export type ImmutableStoreCallback = (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
+
 export interface CCMsg {
 	readonly nonce: bigint;
 	readonly module: string;
@@ -76,6 +77,7 @@ export interface CCUpdateParams {
 	certificateThreshold: bigint;
 	inboxUpdate: InboxUpdate;
 }
+
 export interface ImmutableCrossChainMessageContext {
 	getMethodContext: () => ImmutableMethodContext;
 	getStore: ImmutableStoreCallback;
@@ -103,9 +105,11 @@ export interface CrossChainMessageContext extends ImmutableCrossChainMessageCont
 	contextStore: Map<string, unknown>;
 	eventQueue: EventQueue;
 }
+
 export interface CCCommandExecuteContext<T> extends CrossChainMessageContext {
 	params: T;
 }
+
 export interface RecoverContext {
 	getMethodContext: () => MethodContext;
 	getStore: StoreCallback;
@@ -283,6 +287,7 @@ export interface ValidatorKeys {
 
 export interface ValidatorsMethod {
 	getValidatorKeys(methodContext: ImmutableMethodContext, address: Buffer): Promise<ValidatorKeys>;
+
 	getValidatorsParams(
 		methodContext: ImmutableMethodContext,
 	): Promise<{ validators: Validator[]; certificateThreshold: bigint }>;
@@ -393,6 +398,7 @@ export interface CCMRegistrationParams {
 	chainID: Buffer;
 	messageFeeTokenID: Buffer;
 }
+
 export interface TokenMethod {
 	initializeUserAccount(
 		methodContext: MethodContext,
