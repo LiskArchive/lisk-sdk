@@ -154,7 +154,7 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 				ccm,
 				eventQueue: context.eventQueue.getChildQueue(ccmID),
 				ccu: {
-					sendingChainID: context.params.chainID,
+					sendingChainID: params.chainID,
 				},
 			};
 			// If the sending chain is the mainchain, recover the CCM.

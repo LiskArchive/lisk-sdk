@@ -34,15 +34,15 @@ export abstract class BaseCCChannelTerminatedCommand<
 		}
 
 		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
-		const terminatedStateAccountExists = await terminatedStateSubstore.has(
-			context,
-			context.ccm.sendingChainID,
-		);
+		const {
+			ccm: { sendingChainID },
+		} = context;
+		const terminatedStateAccountExists = await terminatedStateSubstore.has(context, sendingChainID);
 
 		if (terminatedStateAccountExists) {
 			return;
 		}
 
-		await this.internalMethods.createTerminatedStateAccount(context, context.ccm.sendingChainID);
+		await this.internalMethods.createTerminatedStateAccount(context, sendingChainID);
 	}
 }

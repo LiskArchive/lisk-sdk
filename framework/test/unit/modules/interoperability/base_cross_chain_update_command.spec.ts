@@ -905,7 +905,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				context.ccm.receivingChainID,
 				{
 					ccm: context.ccm,
-					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
+					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 				},
 			);
@@ -950,7 +950,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(10);
 		});
 
-		it('should raise exception(and hence bounce) when chainAccount(ccm.sendingChainID) exists and ccu.params.sendingChainID != ccm.sendingChainID', async () => {
+		it('should raise exception(and hence bounce) when chainAccount(ccm.sendingChainID) exists and ccu.params.sendingChainID !== ccm.sendingChainID', async () => {
 			const chainAccountStore = command['stores'].get(ChainAccountStore);
 			jest.spyOn(chainAccountStore, 'has').mockResolvedValue(true);
 			(

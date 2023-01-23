@@ -37,6 +37,10 @@ export abstract class BaseCCRegistrationCommand<
 		return CROSS_CHAIN_COMMAND_NAME_REGISTRATION;
 	}
 
+	/**
+	 *
+	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#verification
+	 */
 	public async verify(ctx: ImmutableCrossChainMessageContext): Promise<void> {
 		const { ccm, ccu } = ctx;
 		if (!ccm) {
@@ -56,7 +60,9 @@ export abstract class BaseCCRegistrationCommand<
 			throw new Error('Registration message must be sent from a direct channel.');
 		}
 		if (chainAccount.status !== ChainStatus.REGISTERED) {
-			throw new Error("Registration message must be sent from a chain with status 'registered'.");
+			throw new Error(
+				`Registration message must be sent from a chain with status ${ChainStatus.REGISTERED}.`,
+			);
 		}
 
 		const channel = await this.stores.get(ChannelDataStore).get(ctx, ccm.sendingChainID);

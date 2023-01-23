@@ -147,7 +147,7 @@ describe('BaseCCRegistrationCommand', () => {
 	});
 
 	describe('verify', () => {
-		it('should fail if chainAccount does not exist', async () => {
+		it('should fail if partner chainAccount does not exist', async () => {
 			chainAccountStoreMock.get.mockResolvedValue(undefined);
 			await expect(ccRegistrationCommand.verify(sampleExecuteContext)).rejects.toThrow(
 				'Registration message must be sent from a registered chain.',
@@ -169,7 +169,7 @@ describe('BaseCCRegistrationCommand', () => {
 				status: ChainStatus.TERMINATED,
 			});
 			await expect(ccRegistrationCommand.verify(sampleExecuteContext)).rejects.toThrow(
-				"Registration message must be sent from a chain with status 'registered'.",
+				`Registration message must be sent from a chain with status ${ChainStatus.REGISTERED}.`,
 			);
 		});
 
@@ -184,7 +184,7 @@ describe('BaseCCRegistrationCommand', () => {
 			);
 		});
 
-		it('should fail if ccm.status !== OK', async () => {
+		it('should fail if ccm.status !== CCMStatusCode.OK', async () => {
 			sampleExecuteContext = createContext(
 				buildCCM({
 					status: CCMStatusCode.FAILED_CCM,

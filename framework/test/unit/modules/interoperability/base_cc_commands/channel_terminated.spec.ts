@@ -111,7 +111,7 @@ describe('BaseCCChannelTerminatedCommand', () => {
 			expect(createTerminatedStateAccountMock).toHaveBeenCalledTimes(0);
 		});
 
-		it('should call createTerminatedStateAccount if terminatedStateAccount do not exists', async () => {
+		it('should call createTerminatedStateAccount if terminatedStateAccount does not exist', async () => {
 			await ccChannelTerminatedCommand.execute(sampleExecuteContext);
 			expect(createTerminatedStateAccountMock).toHaveBeenCalledWith(
 				sampleExecuteContext,
