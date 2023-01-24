@@ -193,6 +193,9 @@ export const configSchema = {
 			type: 'integer',
 			format: 'uint32',
 		},
+		useInvalidBLSKey: {
+			type: 'boolean',
+		},
 	},
 	required: [
 		'factorSelfStakes',
@@ -209,6 +212,7 @@ export const configSchema = {
 		'posTokenID',
 		'validatorRegistrationFee',
 		'maxBFTWeightCap',
+		'useInvalidBLSKey',
 	],
 };
 

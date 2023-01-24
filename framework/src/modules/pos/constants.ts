@@ -65,6 +65,7 @@ export const defaultConfig = {
 	maxBFTWeightCap: 500,
 	commissionIncreasePeriod: COMMISSION_INCREASE_PERIOD,
 	maxCommissionIncreaseRate: MAX_COMMISSION_INCREASE_RATE,
+	useInvalidBLSKey: false,
 };
 
 export const enum PoSEventResult {

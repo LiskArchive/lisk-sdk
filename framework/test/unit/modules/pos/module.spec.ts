@@ -74,6 +74,7 @@ describe('PoS module', () => {
 		maxBFTWeightCap: 500,
 		commissionIncreasePeriod: COMMISSION_INCREASE_PERIOD,
 		maxCommissionIncreaseRate: MAX_COMMISSION_INCREASE_RATE,
+		useInvalidBLSKey: false,
 	};
 
 	const sortValidatorsByWeightDesc = (validators: ValidatorWeight[]) =>
@@ -133,6 +134,7 @@ describe('PoS module', () => {
 			const validatorMethod = {
 				setValidatorGeneratorKey: jest.fn(),
 				registerValidatorKeys: jest.fn().mockResolvedValue(true),
+				registerValidatorWithoutBLSKey: jest.fn().mockResolvedValue(true),
 				getValidatorKeys: jest.fn().mockResolvedValue({
 					blsKey: utils.getRandomBytes(48),
 					generatorKey: utils.getRandomBytes(32),
@@ -287,6 +289,25 @@ describe('PoS module', () => {
 				await expect(pos.finalizeGenesisState(context)).rejects.toThrow(
 					'Staked amount is not locked',
 				);
+			});
+
+			describe('when moduleConfig.useInvalidBLSKey is set to true and chain is mainchain', () => {
+				beforeEach(async () => {
+					await pos.init({
+						genesisConfig: {} as GenesisConfig,
+						moduleConfig: { ...defaultConfig, useInvalidBLSKey: true },
+					});
+				});
+
+				it('should register validators without BLS key', async () => {
+					const mainChainContext = { ...context, chainID: Buffer.from([0, 0, 0, 0]) };
+					await expect(pos.initGenesisState(mainChainContext)).toResolve();
+					await expect(pos.finalizeGenesisState(mainChainContext)).toResolve();
+
+					expect(pos['_validatorsMethod'].registerValidatorWithoutBLSKey).toHaveBeenCalledTimes(
+						validAsset.validators.length,
+					);
+				});
 			});
 		});
 	});
@@ -484,6 +505,7 @@ describe('PoS module', () => {
 						const validatorMethod = {
 							setValidatorGeneratorKey: jest.fn(),
 							registerValidatorKeys: jest.fn(),
+							registerValidatorWithoutBLSKey: jest.fn(),
 							getValidatorKeys: jest.fn().mockResolvedValue({
 								blsKey: utils.getRandomBytes(48),
 								generatorKey: utils.getRandomBytes(32),
@@ -563,6 +585,7 @@ describe('PoS module', () => {
 				validatorMethod = {
 					setValidatorGeneratorKey: jest.fn(),
 					registerValidatorKeys: jest.fn(),
+					registerValidatorWithoutBLSKey: jest.fn(),
 					getValidatorKeys: jest.fn().mockResolvedValue({
 						blsKey: utils.getRandomBytes(48),
 						generatorKey: utils.getRandomBytes(32),

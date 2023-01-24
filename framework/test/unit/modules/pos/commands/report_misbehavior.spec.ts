@@ -95,6 +95,7 @@ describe('ReportMisbehaviorCommand', () => {
 		mockValidatorsMethod = {
 			setValidatorGeneratorKey: jest.fn(),
 			registerValidatorKeys: jest.fn(),
+			registerValidatorWithoutBLSKey: jest.fn(),
 			getValidatorKeys: jest.fn().mockResolvedValue({ generatorKey: publicKey }),
 			getGeneratorsBetweenTimestamps: jest.fn(),
 			setValidatorsParams: jest.fn(),
