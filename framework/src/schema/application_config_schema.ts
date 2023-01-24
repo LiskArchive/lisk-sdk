@@ -51,6 +51,11 @@ export const applicationConfigSchema = {
 				},
 				host: { type: 'string' },
 				port: { type: 'number', minimum: 1024, maximum: 65535 },
+				disabledMethods: {
+					type: 'array',
+					items: { type: 'string' },
+					uniqueItems: true,
+				},
 			},
 		},
 		legacy: {
