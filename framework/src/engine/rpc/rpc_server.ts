@@ -231,6 +231,15 @@ export class RPCServer {
 
 		try {
 			const request = Request.fromJSONRPCRequest(requestObj);
+			if (this._isDisabledMethod(request.namespace, request.name)) {
+				const disabledMethodErrorMessage =
+					'Requested method or namespace is disabled in node config.';
+				throw new JSONRPC.JSONRPCError(
+					disabledMethodErrorMessage,
+					JSONRPC.errorResponse(request.id, JSONRPC.invalidRequest(disabledMethodErrorMessage)),
+				);
+			}
+
 			const handler = this._getHandler(request.namespace, request.name);
 
 			const context = {
@@ -304,5 +313,15 @@ export class RPCServer {
 			return undefined;
 		}
 		return existingMethod;
+	}
+
+	private _isDisabledMethod(namespace: string, method: string): boolean {
+		const { disabledMethods } = this._config;
+		if (!disabledMethods) {
+			return false;
+		}
+		return (
+			disabledMethods.includes(namespace) || disabledMethods.includes(`${namespace}_${method}`)
+		);
 	}
 }
