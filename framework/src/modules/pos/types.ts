@@ -38,6 +38,7 @@ export interface ModuleConfig {
 	maxBFTWeightCap: number;
 	commissionIncreasePeriod: number;
 	maxCommissionIncreaseRate: number;
+	useInvalidBLSKey: boolean;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
@@ -62,6 +63,11 @@ export interface ValidatorsMethod {
 		blsKey: Buffer,
 		generatorKey: Buffer,
 		proofOfPossession: Buffer,
+	): Promise<boolean>;
+	registerValidatorWithoutBLSKey(
+		methodContext: MethodContext,
+		validatorAddress: Buffer,
+		generatorKey: Buffer,
 	): Promise<boolean>;
 	getValidatorKeys(methodContext: ImmutableMethodContext, address: Buffer): Promise<ValidatorKeys>;
 	getGeneratorsBetweenTimestamps(

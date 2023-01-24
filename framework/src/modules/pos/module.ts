@@ -90,6 +90,7 @@ import { ValidatorStakedEvent } from './events/validator_staked';
 import { InternalMethod } from './internal_method';
 import { CommissionChangeEvent } from './events/commission_change';
 import { ClaimRewardsCommand } from './commands/claim_rewards';
+import { getMainchainID } from '../interoperability/utils';
 
 export class PoSModule extends BaseModule {
 	public method = new PoSMethod(this.stores, this.events);
@@ -473,16 +474,30 @@ export class PoSModule extends BaseModule {
 		}
 		const genesisStore = codec.decode<GenesisStore>(genesisStoreSchema, assetBytes);
 		const methodContext = context.getMethodContext();
-		for (const posValidator of genesisStore.validators) {
-			const valid = await this._validatorsMethod.registerValidatorKeys(
-				methodContext,
-				posValidator.address,
-				posValidator.blsKey,
-				posValidator.generatorKey,
-				posValidator.proofOfPossession,
-			);
-			if (!valid) {
-				throw new Error('Invalid validator key.');
+
+		if (
+			this._moduleConfig.useInvalidBLSKey &&
+			context.chainID.equals(getMainchainID(context.chainID))
+		) {
+			for (const posValidator of genesisStore.validators) {
+				await this._validatorsMethod.registerValidatorWithoutBLSKey(
+					methodContext,
+					posValidator.address,
+					posValidator.generatorKey,
+				);
+			}
+		} else {
+			for (const posValidator of genesisStore.validators) {
+				const valid = await this._validatorsMethod.registerValidatorKeys(
+					methodContext,
+					posValidator.address,
+					posValidator.blsKey,
+					posValidator.generatorKey,
+					posValidator.proofOfPossession,
+				);
+				if (!valid) {
+					throw new Error('Invalid validator key.');
+				}
 			}
 		}
 		const stakerStore = this.stores.get(StakerStore);
