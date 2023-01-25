@@ -684,7 +684,6 @@ describe('fast_chain_switching_mechanism', () => {
 				// Assert
 
 				for (const block of requestedBlocks) {
-					expect(blockExecutor.verify).toHaveBeenCalledWith(block);
 					expect(loggerMock.trace).toHaveBeenCalledWith(
 						{ blockId: block.header.id, height: block.header.height },
 						'Validating block',
@@ -742,7 +741,7 @@ describe('fast_chain_switching_mechanism', () => {
 				when(chainModule.dataAccess.getBlockHeaderByID)
 					.calledWith(highestCommonBlock.id)
 					.mockResolvedValue(highestCommonBlock as never);
-				blockExecutor.verify.mockImplementation(() => {
+				blockExecutor.validate.mockImplementation(() => {
 					throw new Error('validation error');
 				});
 
@@ -861,6 +860,7 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 						'Applying blocks',
 					);
+					expect(blockExecutor.verify).toHaveBeenCalledWith(block);
 					expect(blockExecutor.executeValidated).toHaveBeenCalledWith(block, {
 						skipBroadcast: true,
 					});

@@ -857,15 +857,12 @@ export class Consensus {
 		if (this._stop) {
 			return;
 		}
-		await this._mutex.runExclusive(async () => {
-			const { lastBlock } = this._chain;
-			this._logger.debug(
-				{ id: lastBlock.header.id, height: lastBlock.header.height },
-				'Deleting last block',
-			);
-			await this._deleteBlock(lastBlock, saveTempBlock);
-			return this._chain.lastBlock;
-		});
+		const { lastBlock } = this._chain;
+		this._logger.debug(
+			{ id: lastBlock.header.id, height: lastBlock.header.height },
+			'Deleting last block',
+		);
+		await this._deleteBlock(lastBlock, saveTempBlock);
 	}
 
 	private async _sync(block: Block, peerID: string): Promise<void> {
