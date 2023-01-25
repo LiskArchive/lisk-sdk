@@ -76,9 +76,20 @@ export class StakeCommand extends BaseCommand {
 
 		let upstakeCount = 0;
 		let downstakeCount = 0;
-		const addressSet = new dataStructures.BufferMap<boolean>();
+		const validatorAddressSet = new dataStructures.BufferSet();
+
 		for (const stake of stakes) {
-			addressSet.set(stake.validatorAddress, true);
+			if (validatorAddressSet.has(stake.validatorAddress)) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new ValidationError(
+						'Validator address must be unique.',
+						stake.validatorAddress.toString('hex'),
+					),
+				};
+			}
+
+			validatorAddressSet.add(stake.validatorAddress);
 
 			if (stake.amount === BigInt(0)) {
 				return {
@@ -118,18 +129,8 @@ export class StakeCommand extends BaseCommand {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new ValidationError(
-					'Downstake can only be casted up to 10.',
+					`Downstake can only be casted up to ${MAX_NUMBER_SENT_STAKES}.`,
 					downstakeCount.toString(),
-				),
-			};
-		}
-
-		if (addressSet.entries().length !== stakes.length) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new ValidationError(
-					'Validator address must be unique.',
-					stakes.map(stake => stake.validatorAddress.toString('hex')).join(),
 				),
 			};
 		}
@@ -163,7 +164,6 @@ export class StakeCommand extends BaseCommand {
 		const validatorStore = this.stores.get(ValidatorStore);
 		for (const stake of stakes) {
 			const stakerData = await stakerStore.getOrDefault(context, senderAddress);
-
 			const validatorExists = await validatorStore.has(context, stake.validatorAddress);
 
 			if (!validatorExists) {
@@ -182,14 +182,14 @@ export class StakeCommand extends BaseCommand {
 
 			const validatorData = await validatorStore.get(context, stake.validatorAddress);
 
-			const originalUpstakeIndex = stakerData.stakes.findIndex(senderStake =>
+			const existingStakeIndex = stakerData.stakes.findIndex(senderStake =>
 				senderStake.validatorAddress.equals(stake.validatorAddress),
 			);
-			const index = originalUpstakeIndex > -1 ? originalUpstakeIndex : stakerData.stakes.length;
+			const index = existingStakeIndex > -1 ? existingStakeIndex : stakerData.stakes.length;
 
+			// downstake
 			if (stake.amount < BigInt(0)) {
-				// unstake
-				if (originalUpstakeIndex < 0) {
+				if (existingStakeIndex < 0) {
 					this.events.get(ValidatorStakedEvent).error(
 						context,
 						{
@@ -205,7 +205,7 @@ export class StakeCommand extends BaseCommand {
 					);
 				}
 
-				if (stakerData.stakes[originalUpstakeIndex].amount + stake.amount < BigInt(0)) {
+				if (stakerData.stakes[existingStakeIndex].amount + stake.amount < BigInt(0)) {
 					this.events.get(ValidatorStakedEvent).error(
 						context,
 						{
@@ -224,15 +224,15 @@ export class StakeCommand extends BaseCommand {
 				await this._internalMethod.assignStakeRewards(
 					context,
 					senderAddress,
-					stakerData.stakes[originalUpstakeIndex],
+					stakerData.stakes[existingStakeIndex],
 					validatorData,
 				);
 
-				stakerData.stakes[originalUpstakeIndex].amount += stake.amount;
-				stakerData.stakes[originalUpstakeIndex].sharingCoefficients =
+				stakerData.stakes[existingStakeIndex].amount += stake.amount;
+				stakerData.stakes[existingStakeIndex].sharingCoefficients =
 					validatorData.sharingCoefficients;
 
-				if (stakerData.stakes[originalUpstakeIndex].amount === BigInt(0)) {
+				if (stakerData.stakes[existingStakeIndex].amount === BigInt(0)) {
 					stakerData.stakes = stakerData.stakes.filter(
 						senderStake => !senderStake.validatorAddress.equals(stake.validatorAddress),
 					);
@@ -260,12 +260,11 @@ export class StakeCommand extends BaseCommand {
 						PoSEventResult.STAKE_FAILED_TOO_MANY_PENDING_UNLOCKS,
 					);
 
-					throw new Error(
-						`Pending unlocks cannot exceed ${MAX_NUMBER_PENDING_UNLOCKS.toString()}.`,
-					);
+					throw new Error(`Pending unlocks cannot exceed ${MAX_NUMBER_PENDING_UNLOCKS}.`);
 				}
-			} else {
-				// Upstake amount case
+			}
+			// upstake
+			else {
 				let upstake;
 
 				await this._tokenMethod.lock(
@@ -276,13 +275,13 @@ export class StakeCommand extends BaseCommand {
 					stake.amount,
 				);
 
-				if (originalUpstakeIndex > -1) {
-					upstake = stakerData.stakes[originalUpstakeIndex];
+				if (existingStakeIndex > -1) {
+					upstake = stakerData.stakes[existingStakeIndex];
 
 					await this._internalMethod.assignStakeRewards(
 						context.getMethodContext(),
 						senderAddress,
-						stakerData.stakes[originalUpstakeIndex],
+						stakerData.stakes[existingStakeIndex],
 						validatorData,
 					);
 
