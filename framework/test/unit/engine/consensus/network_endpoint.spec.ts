@@ -258,15 +258,32 @@ describe('p2p endpoint', () => {
 			});
 		});
 
-		it('should add commit with valid commit', async () => {
-			// eslint-disable-next-line @typescript-eslint/require-await
-			commitPool.validateCommit = jest.fn(async () => true);
+		it('should add message with valid commit', async () => {
+			(commitPool.validateCommit as jest.Mock).mockResolvedValue(true);
 			commitPool.addCommit = jest.fn();
 			await expect(
 				endpoint.handleEventSingleCommit(encodedValidCommit, defaultPeerId),
 			).resolves.not.toThrow();
 			expect(commitPool.validateCommit).toHaveBeenCalled();
 			expect(commitPool.addCommit).toHaveBeenCalled();
+		});
+
+		it('should not add message with invalid commit', async () => {
+			(commitPool.validateCommit as jest.Mock).mockResolvedValue(false);
+			commitPool.addCommit = jest.fn();
+			await expect(
+				endpoint.handleEventSingleCommit(encodedValidCommit, defaultPeerId),
+			).resolves.not.toThrow();
+			expect(commitPool.validateCommit).toHaveBeenCalled();
+			expect(commitPool.addCommit).not.toHaveBeenCalled();
+		});
+
+		it('should apply penalty when not buffer is given', async () => {
+			await expect(endpoint.handleEventSingleCommit('some data', defaultPeerId)).rejects.toThrow();
+			expect(network.applyPenaltyOnPeer).toHaveBeenCalledWith({
+				peerId: defaultPeerId,
+				penalty: 100,
+			});
 		});
 
 		it('should apply penalty when un-decodable data is received', async () => {
@@ -299,7 +316,7 @@ describe('p2p endpoint', () => {
 		});
 
 		it('should apply penalty when invalid commit is received', async () => {
-			commitPool.validateCommit = jest.fn(() => {
+			(commitPool.validateCommit as jest.Mock).mockImplementation(() => {
 				throw new Error('Invalid commit');
 			});
 			await expect(

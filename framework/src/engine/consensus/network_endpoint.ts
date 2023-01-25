@@ -24,7 +24,6 @@ import {
 	NETWORK_RPC_GET_BLOCKS_FROM_ID,
 	NETWORK_RPC_GET_HIGHEST_COMMON_BLOCK,
 	NETWORK_RPC_GET_LAST_BLOCK,
-	NETWORK_RPC_GET_SINGLE_COMMIT_FROM_ID,
 } from './constants';
 import {
 	getBlocksFromIdRequestSchema,
@@ -42,6 +41,7 @@ import {
 } from './certificate_generation/schema';
 import { SingleCommit } from './certificate_generation/types';
 import { BaseNetworkEndpoint } from '../network/base_network_endpoint';
+import { NETWORK_EVENT_COMMIT_MESSAGES } from './certificate_generation/constants';
 
 export interface EndpointArgs {
 	logger: Logger;
@@ -182,7 +182,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 
 	public async handleEventSingleCommit(data: unknown, peerId: string): Promise<void> {
 		this.addRateLimit(
-			NETWORK_RPC_GET_SINGLE_COMMIT_FROM_ID,
+			NETWORK_EVENT_COMMIT_MESSAGES,
 			peerId,
 			DEFAULT_SINGLE_COMMIT_FROM_IDS_RATE_LIMIT_FREQUENCY,
 		);
@@ -206,6 +206,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			for (const encodedCommit of receivedSingleCommits.commits) {
 				const decodedSingleCommit = codec.decode<SingleCommit>(singleCommitSchema, encodedCommit);
 				validator.validate(singleCommitSchema, decodedSingleCommit);
+				// in case of critical error, it will throw an error, which will result in banning
 				const isValidCommit = await this._commitPool.validateCommit(
 					stateStore,
 					decodedSingleCommit,
@@ -231,7 +232,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 					req: data,
 					peerID: peerId,
 				},
-				`${NETWORK_RPC_GET_SINGLE_COMMIT_FROM_ID} response failed on decoding`,
+				`${NETWORK_EVENT_COMMIT_MESSAGES} fail to verify single commit`,
 			);
 			this._network.applyPenaltyOnPeer({
 				peerId,
