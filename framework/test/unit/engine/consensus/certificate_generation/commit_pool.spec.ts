@@ -31,12 +31,12 @@ import {
 	singleCommitsNetworkPacketSchema,
 } from '../../../../../src/engine/consensus/certificate_generation/schema';
 import {
-	Certificate,
 	SingleCommit,
+	UnsignedCertificate,
 } from '../../../../../src/engine/consensus/certificate_generation/types';
 import { createFakeBlockHeader } from '../../../../../src/testing';
 import {
-	computeCertificateFromBlockHeader,
+	computeUnsignedCertificateFromBlockHeader,
 	signCertificate,
 } from '../../../../../src/engine/consensus/certificate_generation/utils';
 import { AggregateCommit } from '../../../../../src/engine/consensus/types';
@@ -425,7 +425,7 @@ describe('CommitPool', () => {
 		let commit: SingleCommit;
 		let blockHeader: BlockHeader;
 		let blockHeaderOfFinalizedHeight: BlockHeader;
-		let certificate: Certificate;
+		let certificate: UnsignedCertificate;
 		let publicKey: Buffer;
 		let privateKey: Buffer;
 		let signature: Buffer;
@@ -455,7 +455,7 @@ describe('CommitPool', () => {
 				},
 			});
 
-			certificate = computeCertificateFromBlockHeader(blockHeader);
+			certificate = computeUnsignedCertificateFromBlockHeader(blockHeader);
 
 			privateKey = bls.generatePrivateKey(utils.getRandomBytes(32));
 			publicKey = bls.getPublicKeyFromPrivateKey(privateKey);
@@ -733,7 +733,7 @@ describe('CommitPool', () => {
 			blsPublicKey: utils.getRandomBytes(48),
 			blsSecretKey: utils.getRandomBytes(32),
 		};
-		const certificate = computeCertificateFromBlockHeader(blockHeader);
+		const certificate = computeUnsignedCertificateFromBlockHeader(blockHeader);
 		let expectedCommit: SingleCommit;
 
 		beforeEach(() => {
@@ -759,7 +759,7 @@ describe('CommitPool', () => {
 		let timestamp: number;
 		let stateStore: StateStore;
 		let aggregateCommit: AggregateCommit;
-		let certificate: Certificate;
+		let certificate: UnsignedCertificate;
 		let keysList: Buffer[];
 		let privateKeys: Buffer[];
 		let publicKeys: Buffer[];
@@ -1007,9 +1007,9 @@ describe('CommitPool', () => {
 			blsPublicKey: utils.getRandomBytes(48),
 			blsSecretKey: utils.getRandomBytes(32),
 		};
-		const certificate1 = computeCertificateFromBlockHeader(blockHeader1);
-		const certificate2 = computeCertificateFromBlockHeader(blockHeader2);
-		const certificate3 = computeCertificateFromBlockHeader(blockHeader3);
+		const certificate1 = computeUnsignedCertificateFromBlockHeader(blockHeader1);
+		const certificate2 = computeUnsignedCertificateFromBlockHeader(blockHeader2);
+		const certificate3 = computeUnsignedCertificateFromBlockHeader(blockHeader3);
 		const singleCommit1 = {
 			blockID: blockHeader1.id,
 			height: blockHeader1.height,
@@ -1158,8 +1158,8 @@ describe('CommitPool', () => {
 			blsPublicKey: utils.getRandomBytes(48),
 			blsSecretKey: utils.getRandomBytes(32),
 		};
-		const certificate1 = computeCertificateFromBlockHeader(blockHeader1);
-		const certificate2 = computeCertificateFromBlockHeader(blockHeader2);
+		const certificate1 = computeUnsignedCertificateFromBlockHeader(blockHeader1);
+		const certificate2 = computeUnsignedCertificateFromBlockHeader(blockHeader2);
 		const singleCommit1 = {
 			blockID: blockHeader1.id,
 			height: blockHeader1.height,

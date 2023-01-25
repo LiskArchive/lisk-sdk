@@ -15,16 +15,20 @@
 import { BlockHeader } from '@liskhq/lisk-chain';
 import { bls, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import { Certificate } from '../../../../../src/engine/consensus/certificate_generation/types';
+import {
+	Certificate,
+	UnsignedCertificate,
+} from '../../../../../src/engine/consensus/certificate_generation/types';
 import { MESSAGE_TAG_CERTIFICATE } from '../../../../../src/engine/consensus/certificate_generation/constants';
-import { certificateSchema } from '../../../../../src/engine/consensus/certificate_generation/schema';
+import { unsignedCertificateSchema } from '../../../../../src/engine/consensus/certificate_generation/schema';
 import {
 	verifyAggregateCertificateSignature,
-	computeCertificateFromBlockHeader,
+	computeUnsignedCertificateFromBlockHeader,
 	signCertificate,
 	verifySingleCertificateSignature,
 } from '../../../../../src/engine/consensus/certificate_generation/utils';
 import { createFakeBlockHeader } from '../../../../../src/testing';
+import { Validator } from '../../../../../src/engine/consensus/types';
 
 describe('utils', () => {
 	const chainID = Buffer.alloc(0);
@@ -37,7 +41,7 @@ describe('utils', () => {
 		});
 
 		it('should return a certificate with proper parameters', () => {
-			const certificate = computeCertificateFromBlockHeader(blockHeader);
+			const certificate = computeUnsignedCertificateFromBlockHeader(blockHeader);
 
 			expect(certificate.blockID).toBe(blockHeader.id);
 			expect(certificate.height).toBe(blockHeader.height);
@@ -49,7 +53,7 @@ describe('utils', () => {
 		it('should throw error when stateRoot is undefined', () => {
 			(blockHeader as any).stateRoot = undefined;
 
-			expect(() => computeCertificateFromBlockHeader(blockHeader)).toThrow(
+			expect(() => computeUnsignedCertificateFromBlockHeader(blockHeader)).toThrow(
 				"'stateRoot' is not defined.",
 			);
 		});
@@ -57,7 +61,7 @@ describe('utils', () => {
 		it('should throw error when validatorsHash is undefined', () => {
 			(blockHeader as any).validatorsHash = undefined;
 
-			expect(() => computeCertificateFromBlockHeader(blockHeader)).toThrow(
+			expect(() => computeUnsignedCertificateFromBlockHeader(blockHeader)).toThrow(
 				"'validatorsHash' is not defined.",
 			);
 		});
@@ -65,7 +69,7 @@ describe('utils', () => {
 
 	describe('signCertificate', () => {
 		let privateKey: Buffer;
-		let certificate: Certificate;
+		let certificate: UnsignedCertificate;
 		let signature: Buffer;
 
 		beforeEach(() => {
@@ -77,7 +81,7 @@ describe('utils', () => {
 				timestamp: 10000,
 				validatorsHash: Buffer.alloc(0),
 			};
-			const encodedCertificate = codec.encode(certificateSchema, certificate);
+			const encodedCertificate = codec.encode(unsignedCertificateSchema, certificate);
 			signature = bls.signData(MESSAGE_TAG_CERTIFICATE, chainID, encodedCertificate, privateKey);
 			(certificate as any).aggregationBits = utils.getRandomBytes(4);
 			(certificate as any).signature = utils.getRandomBytes(4);
@@ -90,7 +94,7 @@ describe('utils', () => {
 	describe('verifySingleCertificateSignature', () => {
 		let privateKey: Buffer;
 		let publicKey: Buffer;
-		let certificate: Certificate;
+		let certificate: UnsignedCertificate;
 		let signature: Buffer;
 
 		beforeEach(() => {
@@ -104,7 +108,7 @@ describe('utils', () => {
 				validatorsHash: Buffer.alloc(0),
 			};
 
-			const encodedCertificate = codec.encode(certificateSchema, certificate);
+			const encodedCertificate = codec.encode(unsignedCertificateSchema, certificate);
 
 			signature = bls.signData(MESSAGE_TAG_CERTIFICATE, chainID, encodedCertificate, privateKey);
 
@@ -150,11 +154,10 @@ describe('utils', () => {
 		});
 	});
 	describe('verifyAggregateCertificateSignature', () => {
-		let certificate: Certificate;
-		let keysList: Buffer[];
+		let unsignedCertificate: UnsignedCertificate;
+		let signedCertificate: Certificate;
 		let privateKeys: Buffer[];
-		let publicKeys: Buffer[];
-		let weights: number[];
+		let validators: Validator[];
 		let threshold: number;
 		let signatures: Buffer[];
 		let pubKeySignaturePairs: { publicKey: Buffer; signature: Buffer }[];
@@ -165,13 +168,13 @@ describe('utils', () => {
 			privateKeys = Array.from({ length: 103 }, _ =>
 				bls.generatePrivateKey(utils.getRandomBytes(32)),
 			);
-			publicKeys = privateKeys.map(priv => bls.getPublicKeyFromPrivateKey(priv));
+			validators = privateKeys.map(
+				priv => ({ blsKey: bls.getPublicKeyFromPrivateKey(priv), bftWeight: BigInt(1) } as any),
+			);
 
-			keysList = [...publicKeys];
-			weights = Array.from({ length: 103 }, _ => 1);
 			threshold = 33;
 
-			certificate = {
+			unsignedCertificate = {
 				blockID: Buffer.alloc(0),
 				height: 1030,
 				stateRoot: Buffer.alloc(0),
@@ -179,47 +182,48 @@ describe('utils', () => {
 				validatorsHash: Buffer.alloc(0),
 			};
 
-			const encodedCertificate = codec.encode(certificateSchema, certificate);
+			const encodedCertificate = codec.encode(unsignedCertificateSchema, unsignedCertificate);
 
 			signatures = privateKeys.map(privateKey =>
 				bls.signData(MESSAGE_TAG_CERTIFICATE, chainID, encodedCertificate, privateKey),
 			);
 
 			pubKeySignaturePairs = Array.from({ length: 103 }, (_, i) => ({
-				publicKey: publicKeys[i],
+				publicKey: validators[i].blsKey,
 				signature: signatures[i],
 			}));
 
 			({ aggregationBits, signature: aggregateSignature } = bls.createAggSig(
-				publicKeys,
+				validators.map(v => v.blsKey),
 				pubKeySignaturePairs,
 			));
 
-			(certificate as any).aggregationBits = aggregationBits;
-			(certificate as any).signature = aggregateSignature;
+			signedCertificate = {
+				...unsignedCertificate,
+				aggregationBits,
+				signature: aggregateSignature,
+			};
 		});
 
 		it('should return true for proper parameters', () => {
 			const isVerifiedSignature = verifyAggregateCertificateSignature(
-				keysList,
-				weights,
+				validators,
 				threshold,
 				chainID,
-				certificate,
+				signedCertificate,
 			);
 
 			expect(isVerifiedSignature).toBeTrue();
 		});
 
 		it('should return false for one unmatching publicKey in keysList', () => {
-			keysList[102] = utils.getRandomBytes(32);
+			validators[102].blsKey = utils.getRandomBytes(32);
 
 			const isVerifiedSignature = verifyAggregateCertificateSignature(
-				keysList,
-				weights,
+				validators,
 				threshold,
 				chainID,
-				certificate,
+				signedCertificate,
 			);
 
 			expect(isVerifiedSignature).toBeFalse();
@@ -229,67 +233,62 @@ describe('utils', () => {
 			threshold = 105;
 
 			const isVerifiedSignature = verifyAggregateCertificateSignature(
-				keysList,
-				weights,
+				validators,
 				threshold,
 				chainID,
-				certificate,
+				signedCertificate,
 			);
 
 			expect(isVerifiedSignature).toBeFalse();
 		});
 
 		it('should return false for missing aggregationBits', () => {
-			delete (certificate as any).aggregationBits;
+			delete (signedCertificate as any).aggregationBits;
 
 			const isVerifiedSignature = verifyAggregateCertificateSignature(
-				keysList,
-				weights,
+				validators,
 				threshold,
 				chainID,
-				certificate,
+				signedCertificate,
 			);
 
 			expect(isVerifiedSignature).toBeFalse();
 		});
 
 		it('should return false for missing signature', () => {
-			delete (certificate as any).signature;
+			delete (signedCertificate as any).signature;
 
 			const isVerifiedSignature = verifyAggregateCertificateSignature(
-				keysList,
-				weights,
+				validators,
 				threshold,
 				chainID,
-				certificate,
+				signedCertificate,
 			);
 
 			expect(isVerifiedSignature).toBeFalse();
 		});
 
 		it('should return false for wrong aggregationBits', () => {
-			(certificate as any).aggregationBits = utils.getRandomBytes(32);
+			(signedCertificate as any).aggregationBits = utils.getRandomBytes(32);
 
 			const isVerifiedSignature = verifyAggregateCertificateSignature(
-				keysList,
-				weights,
+				validators,
 				threshold,
 				chainID,
-				certificate,
+				signedCertificate,
 			);
 
 			expect(isVerifiedSignature).toBeFalse();
 		});
 
 		it('should return false for wrong signature', () => {
-			(certificate as any).signature = utils.getRandomBytes(32);
+			(signedCertificate as any).signature = utils.getRandomBytes(32);
 
 			const isVerifiedSignature = verifyAggregateCertificateSignature(
-				keysList,
-				weights,
+				validators,
 				threshold,
 				chainID,
-				certificate,
+				signedCertificate,
 			);
 
 			expect(isVerifiedSignature).toBeFalse();

@@ -12,10 +12,46 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const certificateSchema = {
+export const unsignedCertificateSchema = {
 	$id: '/consensus/certificate',
 	type: 'object',
 	required: ['blockID', 'height', 'timestamp', 'stateRoot', 'validatorsHash'],
+	properties: {
+		blockID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		height: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		timestamp: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+		stateRoot: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+		validatorsHash: {
+			dataType: 'bytes',
+			fieldNumber: 5,
+		},
+	},
+};
+
+export const certificateSchema = {
+	$id: '/consensus/certificate',
+	type: 'object',
+	required: [
+		'blockID',
+		'height',
+		'timestamp',
+		'stateRoot',
+		'validatorsHash',
+		'aggregationBits',
+		'signature',
+	],
 	properties: {
 		blockID: {
 			dataType: 'bytes',

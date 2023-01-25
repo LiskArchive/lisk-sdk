@@ -23,9 +23,8 @@ import { PkSigPair, AggregateCommit } from '../types';
 import { Certificate, CommitPoolConfig, SingleCommit, ValidatorInfo } from './types';
 
 import {
-	computeCertificateFromBlockHeader,
+	computeUnsignedCertificateFromBlockHeader,
 	verifyAggregateCertificateSignature,
-	getSortedWeightsAndValidatorKeys,
 	signCertificate,
 	verifySingleCertificateSignature,
 } from './utils';
@@ -128,7 +127,7 @@ export class CommitPool {
 		}
 
 		// Validation Step 6
-		const certificate = computeCertificateFromBlockHeader(blockHeaderAtCommitHeight);
+		const certificate = computeUnsignedCertificateFromBlockHeader(blockHeaderAtCommitHeight);
 		const { chainID } = this._chain;
 		const isSingleCertificateVerified = verifySingleCertificateSignature(
 			validator.blsKey,
@@ -163,7 +162,7 @@ export class CommitPool {
 			certificateSignature: signCertificate(
 				validatorInfo.blsSecretKey,
 				chainID,
-				computeCertificateFromBlockHeader(blockHeader),
+				computeUnsignedCertificateFromBlockHeader(blockHeader),
 			),
 		};
 
@@ -218,27 +217,19 @@ export class CommitPool {
 
 		const blockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(aggregateCommit.height);
 		const certificate: Certificate = {
-			...computeCertificateFromBlockHeader(blockHeader),
+			...computeUnsignedCertificateFromBlockHeader(blockHeader),
 			aggregationBits: aggregateCommit.aggregationBits,
 			signature: aggregateCommit.certificateSignature,
 		};
 		const { chainID } = this._chain;
-		const bftParams = await this._bftMethod.getBFTParameters(stateStore, aggregateCommit.height);
-		const threshold = bftParams.certificateThreshold;
-
-		const validatorKeysWithWeights = [];
-		for (const validator of bftParams.validators) {
-			validatorKeysWithWeights.push({
-				weight: validator.bftWeight,
-				blsKey: validator.blsKey,
-			});
-		}
-		const { weights, validatorKeys } = getSortedWeightsAndValidatorKeys(validatorKeysWithWeights);
+		const { validators, certificateThreshold } = await this._bftMethod.getBFTParameters(
+			stateStore,
+			aggregateCommit.height,
+		);
 
 		return verifyAggregateCertificateSignature(
-			validatorKeys,
-			weights,
-			threshold,
+			validators,
+			certificateThreshold,
 			chainID,
 			certificate,
 		);

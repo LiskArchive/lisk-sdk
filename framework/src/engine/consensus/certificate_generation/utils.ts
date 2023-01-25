@@ -15,11 +15,14 @@
 import { bls } from '@liskhq/lisk-cryptography';
 import { BlockHeader } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { Certificate } from './types';
-import { certificateSchema } from './schema';
+import { Certificate, UnsignedCertificate } from './types';
+import { certificateSchema, unsignedCertificateSchema } from './schema';
 import { MESSAGE_TAG_CERTIFICATE } from './constants';
+import { Validator } from '../types';
 
-export const computeCertificateFromBlockHeader = (blockHeader: BlockHeader): Certificate => {
+export const computeUnsignedCertificateFromBlockHeader = (
+	blockHeader: BlockHeader,
+): UnsignedCertificate => {
 	if (!blockHeader.stateRoot) {
 		throw new Error("'stateRoot' is not defined.");
 	}
@@ -37,37 +40,37 @@ export const computeCertificateFromBlockHeader = (blockHeader: BlockHeader): Cer
 	};
 };
 
-export const signCertificate = (sk: Buffer, chainID: Buffer, certificate: Certificate): Buffer => {
-	const { aggregationBits, signature, ...rawCertificate } = certificate;
-
-	return bls.signData(
+export const signCertificate = (
+	sk: Buffer,
+	chainID: Buffer,
+	unsignedCertificate: UnsignedCertificate,
+): Buffer =>
+	bls.signData(
 		MESSAGE_TAG_CERTIFICATE,
 		chainID,
-		codec.encode(certificateSchema, rawCertificate),
+		codec.encode(unsignedCertificateSchema, unsignedCertificate),
 		sk,
 	);
-};
 
 export const verifySingleCertificateSignature = (
 	pk: Buffer,
 	signature: Buffer,
 	chainID: Buffer,
-	certificate: Certificate,
+	unsignedCertificate: UnsignedCertificate,
 ): boolean => {
-	const message = codec.encode(certificateSchema, {
-		blockID: certificate.blockID,
-		height: certificate.height,
-		timestamp: certificate.timestamp,
-		stateRoot: certificate.stateRoot,
-		validatorsHash: certificate.validatorsHash,
+	const message = codec.encode(unsignedCertificateSchema, {
+		blockID: unsignedCertificate.blockID,
+		height: unsignedCertificate.height,
+		timestamp: unsignedCertificate.timestamp,
+		stateRoot: unsignedCertificate.stateRoot,
+		validatorsHash: unsignedCertificate.validatorsHash,
 	});
 
 	return bls.verifyData(MESSAGE_TAG_CERTIFICATE, chainID, message, signature, pk);
 };
 
 export const verifyAggregateCertificateSignature = (
-	keysList: Buffer[],
-	weights: number[] | bigint[],
+	validators: Validator[],
 	threshold: number | bigint,
 	chainID: Buffer,
 	certificate: Certificate,
@@ -75,6 +78,15 @@ export const verifyAggregateCertificateSignature = (
 	if (!certificate.aggregationBits || !certificate.signature) {
 		return false;
 	}
+
+	const validatorKeysWithWeights = [];
+	for (const validator of validators) {
+		validatorKeysWithWeights.push({
+			weight: validator.bftWeight,
+			blsKey: validator.blsKey,
+		});
+	}
+	const { weights, validatorKeys } = getSortedWeightsAndValidatorKeys(validatorKeysWithWeights);
 
 	const { aggregationBits, signature } = certificate;
 	const message = codec.encode(certificateSchema, {
@@ -86,7 +98,7 @@ export const verifyAggregateCertificateSignature = (
 	});
 
 	return bls.verifyWeightedAggSig(
-		keysList,
+		validatorKeys,
 		aggregationBits,
 		signature,
 		MESSAGE_TAG_CERTIFICATE,
