@@ -185,7 +185,6 @@ export class StakeCommand extends BaseCommand {
 			const existingStakeIndex = stakerData.stakes.findIndex(senderStake =>
 				senderStake.validatorAddress.equals(stake.validatorAddress),
 			);
-			const index = existingStakeIndex > -1 ? existingStakeIndex : stakerData.stakes.length;
 
 			// downstake
 			if (stake.amount < BigInt(0)) {
@@ -265,8 +264,6 @@ export class StakeCommand extends BaseCommand {
 			}
 			// upstake
 			else {
-				let upstake;
-
 				await this._tokenMethod.lock(
 					getMethodContext(),
 					senderAddress,
@@ -276,8 +273,6 @@ export class StakeCommand extends BaseCommand {
 				);
 
 				if (existingStakeIndex > -1) {
-					upstake = stakerData.stakes[existingStakeIndex];
-
 					await this._internalMethod.assignStakeRewards(
 						context.getMethodContext(),
 						senderAddress,
@@ -285,20 +280,16 @@ export class StakeCommand extends BaseCommand {
 						validatorData,
 					);
 
-					stakerData.stakes[index].sharingCoefficients = validatorData.sharingCoefficients;
+					stakerData.stakes[existingStakeIndex].amount += stake.amount;
+					stakerData.stakes[existingStakeIndex].sharingCoefficients =
+						validatorData.sharingCoefficients;
 				} else {
-					upstake = {
+					stakerData.stakes.push({
 						validatorAddress: stake.validatorAddress,
-						amount: BigInt(0),
+						amount: stake.amount,
 						sharingCoefficients: validatorData.sharingCoefficients,
-					};
+					});
 				}
-
-				upstake.amount += stake.amount;
-
-				stakerData.stakes[index] = {
-					...upstake,
-				};
 
 				stakerData.stakes.sort((a, b) => a.validatorAddress.compare(b.validatorAddress));
 				if (stakerData.stakes.length > MAX_NUMBER_SENT_STAKES) {
