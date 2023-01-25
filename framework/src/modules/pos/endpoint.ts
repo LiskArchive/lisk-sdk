@@ -159,6 +159,7 @@ export class PoSEndpoint extends BaseEndpoint {
 			maxBFTWeightCap: this._moduleConfig.maxBFTWeightCap,
 			commissionIncreasePeriod: this._moduleConfig.commissionIncreasePeriod,
 			maxCommissionIncreaseRate: this._moduleConfig.maxCommissionIncreaseRate,
+			useInvalidBLSKey: this._moduleConfig.useInvalidBLSKey,
 		};
 	}
 
@@ -226,7 +227,7 @@ export class PoSEndpoint extends BaseEndpoint {
 		ctx: ModuleEndpointContext,
 	): Promise<{ validators: ValidatorAccountEndpoint[] }> {
 		validator.validate<GetValidatorsByStakeRequest>(getValidatorsByStakeRequestSchema, ctx.params);
-		const limit = ctx.params.limit as number | undefined;
+		const limit = ctx.params.limit ?? 100;
 
 		const eligibleValidatorStore = this.stores.get(EligibleValidatorsStore);
 		const validatorSubStore = this.stores.get(ValidatorStore);
@@ -236,13 +237,13 @@ export class PoSEndpoint extends BaseEndpoint {
 			value: EligibleValidator;
 		}[];
 
-		if (limit && limit < -1) {
+		if (limit < -1) {
 			throw new Error(`Input parameter limit ${limit} is not valid.`);
 		}
-		if (limit && limit === -1) {
+		if (limit === -1) {
 			validatorsList = await eligibleValidatorStore.getAll(ctx);
 		} else {
-			validatorsList = await eligibleValidatorStore.getTop(ctx, limit ?? 100);
+			validatorsList = await eligibleValidatorStore.getTop(ctx, limit);
 		}
 
 		for (const { key } of validatorsList) {
