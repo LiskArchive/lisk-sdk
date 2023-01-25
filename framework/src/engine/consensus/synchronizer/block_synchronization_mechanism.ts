@@ -155,7 +155,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 						return;
 					}
 					await this.blockExecutor.verify(block);
-					await this.blockExecutor.executeValidated(block);
+					await this.blockExecutor.executeValidated(block, { skipBroadcast: true });
 				}
 			} catch (err) {
 				this._logger.error({ err: err as Error }, 'Block processing failed');

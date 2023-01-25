@@ -193,7 +193,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 					},
 					'Applying blocks',
 				);
-				await this.blockExecutor.executeValidated(block);
+				await this.blockExecutor.executeValidated(block, { skipBroadcast: true });
 			}
 		} catch (e) {
 			throw new BlockProcessingError();

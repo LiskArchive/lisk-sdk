@@ -861,7 +861,9 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 						'Applying blocks',
 					);
-					expect(blockExecutor.executeValidated).toHaveBeenCalledWith(block);
+					expect(blockExecutor.executeValidated).toHaveBeenCalledWith(block, {
+						skipBroadcast: true,
+					});
 					expect(loggerMock.debug).toHaveBeenCalledWith('Cleaning blocks temp table');
 					expect(chainModule.dataAccess.clearTempBlocks).toHaveBeenCalled();
 					expect(loggerMock.info).toHaveBeenCalledWith(
