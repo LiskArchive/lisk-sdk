@@ -288,7 +288,7 @@ export interface GetPoSTokenIDResponse {
 }
 
 export interface GetValidatorsByStakeRequest {
-	limit: number;
+	limit: number | undefined;
 }
 
 export interface GetLockedRewardRequest {
