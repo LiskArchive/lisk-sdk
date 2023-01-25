@@ -32,6 +32,8 @@ import { Validator } from '../../../../../src/engine/consensus/types';
 
 describe('utils', () => {
 	const chainID = Buffer.alloc(0);
+	const BLS_PUBLIC_KEY_LENGTH = 48;
+	let unsignedCertificate: UnsignedCertificate;
 
 	describe('computeCertificateFromBlockHeader', () => {
 		let blockHeader: BlockHeader;
@@ -69,38 +71,37 @@ describe('utils', () => {
 
 	describe('signCertificate', () => {
 		let privateKey: Buffer;
-		let certificate: UnsignedCertificate;
+
 		let signature: Buffer;
 
 		beforeEach(() => {
 			privateKey = bls.generatePrivateKey(utils.getRandomBytes(32));
-			certificate = {
+			unsignedCertificate = {
 				blockID: Buffer.alloc(0),
 				height: 1000,
 				stateRoot: Buffer.alloc(0),
 				timestamp: 10000,
 				validatorsHash: Buffer.alloc(0),
 			};
-			const encodedCertificate = codec.encode(unsignedCertificateSchema, certificate);
+			const encodedCertificate = codec.encode(unsignedCertificateSchema, unsignedCertificate);
 			signature = bls.signData(MESSAGE_TAG_CERTIFICATE, chainID, encodedCertificate, privateKey);
-			(certificate as any).aggregationBits = utils.getRandomBytes(4);
-			(certificate as any).signature = utils.getRandomBytes(4);
+			(unsignedCertificate as any).aggregationBits = utils.getRandomBytes(4);
+			(unsignedCertificate as any).signature = utils.getRandomBytes(4);
 		});
 
 		it('should sign certificate', () => {
-			expect(signCertificate(privateKey, chainID, certificate)).toEqual(signature);
+			expect(signCertificate(privateKey, chainID, unsignedCertificate)).toEqual(signature);
 		});
 	});
 	describe('verifySingleCertificateSignature', () => {
 		let privateKey: Buffer;
 		let publicKey: Buffer;
-		let certificate: UnsignedCertificate;
 		let signature: Buffer;
 
 		beforeEach(() => {
 			privateKey = bls.generatePrivateKey(utils.getRandomBytes(32));
 			publicKey = bls.getPublicKeyFromPrivateKey(privateKey);
-			certificate = {
+			unsignedCertificate = {
 				blockID: Buffer.alloc(0),
 				height: 1030,
 				stateRoot: Buffer.alloc(0),
@@ -108,12 +109,12 @@ describe('utils', () => {
 				validatorsHash: Buffer.alloc(0),
 			};
 
-			const encodedCertificate = codec.encode(unsignedCertificateSchema, certificate);
+			const encodedCertificate = codec.encode(unsignedCertificateSchema, unsignedCertificate);
 
 			signature = bls.signData(MESSAGE_TAG_CERTIFICATE, chainID, encodedCertificate, privateKey);
 
-			(certificate as any).aggregationBits = utils.getRandomBytes(4);
-			(certificate as any).signature = utils.getRandomBytes(4);
+			(unsignedCertificate as any).aggregationBits = utils.getRandomBytes(4);
+			(unsignedCertificate as any).signature = utils.getRandomBytes(4);
 		});
 
 		it('should return true with proper parameters', () => {
@@ -121,7 +122,7 @@ describe('utils', () => {
 				publicKey,
 				signature,
 				chainID,
-				certificate,
+				unsignedCertificate,
 			);
 
 			expect(isVerifiedSignature).toBeTrue();
@@ -134,7 +135,7 @@ describe('utils', () => {
 				publicKey,
 				signature,
 				chainID,
-				certificate,
+				unsignedCertificate,
 			);
 
 			expect(isVerifiedSignature).toBeFalse();
@@ -147,18 +148,17 @@ describe('utils', () => {
 				publicKey,
 				signature,
 				chainID,
-				certificate,
+				unsignedCertificate,
 			);
 
 			expect(isVerifiedSignature).toBeFalse();
 		});
 	});
 	describe('verifyAggregateCertificateSignature', () => {
-		let unsignedCertificate: UnsignedCertificate;
 		let signedCertificate: Certificate;
 		let privateKeys: Buffer[];
 		let validators: Validator[];
-		let threshold: number;
+		let threshold: bigint;
 		let signatures: Buffer[];
 		let pubKeySignaturePairs: { publicKey: Buffer; signature: Buffer }[];
 		let aggregateSignature: Buffer;
@@ -166,13 +166,14 @@ describe('utils', () => {
 
 		beforeEach(() => {
 			privateKeys = Array.from({ length: 103 }, _ =>
-				bls.generatePrivateKey(utils.getRandomBytes(32)),
+				bls.generatePrivateKey(utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH)),
 			);
 			validators = privateKeys.map(
-				priv => ({ blsKey: bls.getPublicKeyFromPrivateKey(priv), bftWeight: BigInt(1) } as any),
+				privateKey =>
+					({ blsKey: bls.getPublicKeyFromPrivateKey(privateKey), bftWeight: BigInt(1) } as any),
 			);
 
-			threshold = 33;
+			threshold = BigInt(33);
 
 			unsignedCertificate = {
 				blockID: Buffer.alloc(0),
@@ -217,7 +218,7 @@ describe('utils', () => {
 		});
 
 		it('should return false for one unmatching publicKey in keysList', () => {
-			validators[102].blsKey = utils.getRandomBytes(32);
+			validators[102].blsKey = utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH);
 
 			const isVerifiedSignature = verifyAggregateCertificateSignature(
 				validators,
@@ -230,7 +231,7 @@ describe('utils', () => {
 		});
 
 		it('should return false for below threshold certificate value', () => {
-			threshold = 105;
+			threshold = BigInt(105);
 
 			const isVerifiedSignature = verifyAggregateCertificateSignature(
 				validators,

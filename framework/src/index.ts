@@ -138,6 +138,6 @@ export { AggregateCommit } from './engine/consensus/types';
 export { BFTHeights } from './engine/bft/types';
 export { BFTParameters } from './engine/bft/schemas';
 export { aggregateCommitSchema } from './engine/consensus/certificate_generation/schema';
-export { computeUnsignedCertificateFromBlockHeader as computeCertificateFromBlockHeader } from './engine/consensus/certificate_generation/utils';
+export { computeUnsignedCertificateFromBlockHeader } from './engine/consensus/certificate_generation/utils';
 export { Certificate } from './engine/consensus/certificate_generation/types';
 export { certificateSchema } from './engine/consensus/certificate_generation/schema';

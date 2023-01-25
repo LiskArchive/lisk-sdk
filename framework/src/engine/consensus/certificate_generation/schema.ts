@@ -12,8 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+/**
+ * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#schema
+ */
 export const unsignedCertificateSchema = {
-	$id: '/consensus/certificate',
+	$id: '/consensus/unsignedCertificate',
 	type: 'object',
 	required: ['blockID', 'height', 'timestamp', 'stateRoot', 'validatorsHash'],
 	properties: {
@@ -40,39 +43,15 @@ export const unsignedCertificateSchema = {
 	},
 };
 
+/**
+ * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#schema
+ */
 export const certificateSchema = {
 	$id: '/consensus/certificate',
 	type: 'object',
-	required: [
-		'blockID',
-		'height',
-		'timestamp',
-		'stateRoot',
-		'validatorsHash',
-		'aggregationBits',
-		'signature',
-	],
+	required: [...unsignedCertificateSchema.required, 'aggregationBits', 'signature'],
 	properties: {
-		blockID: {
-			dataType: 'bytes',
-			fieldNumber: 1,
-		},
-		height: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-		timestamp: {
-			dataType: 'uint32',
-			fieldNumber: 3,
-		},
-		stateRoot: {
-			dataType: 'bytes',
-			fieldNumber: 4,
-		},
-		validatorsHash: {
-			dataType: 'bytes',
-			fieldNumber: 5,
-		},
+		...unsignedCertificateSchema.properties,
 		aggregationBits: {
 			dataType: 'bytes',
 			fieldNumber: 6,

@@ -234,7 +234,7 @@ describe('p2p endpoint', () => {
 	describe('handleEventSingleCommit', () => {
 		const chainID = Buffer.alloc(0);
 		const blockHeader = createFakeBlockHeader();
-		const certificate = computeUnsignedCertificateFromBlockHeader(blockHeader);
+		const unsignedCertificate = computeUnsignedCertificateFromBlockHeader(blockHeader);
 		const validatorInfo = {
 			address: utils.getRandomBytes(20),
 			blsPublicKey: utils.getRandomBytes(48),
@@ -249,7 +249,11 @@ describe('p2p endpoint', () => {
 					blockID: blockHeader.id,
 					height: blockHeader.height,
 					validatorAddress: validatorInfo.address,
-					certificateSignature: signCertificate(validatorInfo.blsSecretKey, chainID, certificate),
+					certificateSignature: signCertificate(
+						validatorInfo.blsSecretKey,
+						chainID,
+						unsignedCertificate,
+					),
 				},
 			};
 			encodedValidCommit = codec.encode(getSingleCommitEventSchema, validCommit);
