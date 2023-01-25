@@ -15,6 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
+import { validator } from '@liskhq/lisk-validator';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -22,9 +23,9 @@ import {
 	VerifyStatus,
 } from '../../../../state_machine';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
-import { EMPTY_BYTES, LIVENESS_LIMIT } from '../../constants';
+import { EMPTY_BYTES, EMPTY_HASH, LIVENESS_LIMIT } from '../../constants';
 import { stateRecoveryInitParamsSchema } from '../../schemas';
-import { chainAccountSchema, ChainAccountStore, ChainStatus } from '../../stores/chain_account';
+import { chainDataSchema, ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { TerminatedStateAccount, TerminatedStateStore } from '../../stores/terminated_state';
 import { ChainAccount, StateRecoveryInitParams } from '../../types';
@@ -38,9 +39,11 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 	public async verify(
 		context: CommandVerifyContext<StateRecoveryInitParams>,
 	): Promise<VerificationResult> {
-		const {
-			params: { chainID, sidechainAccount, bitmap, siblingHashes },
-		} = context;
+		const { params } = context;
+		validator.validate<StateRecoveryInitParams>(this.schema, params);
+
+		const { chainID, bitmap, siblingHashes, sidechainAccount } = params;
+
 		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
 
 		const mainchainID = getMainchainID(ownChainAccount.chainID);
@@ -60,7 +63,7 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 		}
 
 		const deserializedSidechainAccount = codec.decode<ChainAccount>(
-			chainAccountSchema,
+			chainDataSchema,
 			sidechainAccount,
 		);
 		const mainchainAccount = await this.stores.get(ChainAccountStore).get(context, mainchainID);
@@ -114,10 +117,7 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 	// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#execution-3
 	public async execute(context: CommandExecuteContext<StateRecoveryInitParams>): Promise<void> {
 		const { params } = context;
-		const sidechainAccount = codec.decode<ChainAccount>(
-			chainAccountSchema,
-			params.sidechainAccount,
-		);
+		const sidechainAccount = codec.decode<ChainAccount>(chainDataSchema, params.sidechainAccount);
 
 		const doesTerminatedStateAccountExist = await this.stores
 			.get(TerminatedStateStore)
@@ -125,7 +125,7 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 		if (doesTerminatedStateAccountExist) {
 			const newTerminatedStateAccount: TerminatedStateAccount = {
 				stateRoot: sidechainAccount.lastCertificate.stateRoot,
-				mainchainStateRoot: EMPTY_BYTES,
+				mainchainStateRoot: EMPTY_HASH,
 				initialized: true,
 			};
 

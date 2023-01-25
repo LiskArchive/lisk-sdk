@@ -15,7 +15,7 @@ import { RewardModule } from '../../../../src/modules/reward';
 import { createTransientModuleEndpointContext } from '../../../../src/testing';
 
 describe('RewardModuleEndpoint', () => {
-	const genesisConfig: any = {};
+	const genesisConfig: any = { blockTime: 7 };
 	const moduleConfig: any = {
 		distance: 3000000,
 		offset: 2160,
@@ -41,12 +41,12 @@ describe('RewardModuleEndpoint', () => {
 	});
 
 	const { brackets, offset, distance } = moduleConfig as {
-		brackets: ReadonlyArray<bigint>;
+		brackets: ReadonlyArray<string>;
 		offset: number;
 		distance: number;
 	};
 
-	for (const [index, rewardFromConfig] of Object.entries(brackets)) {
+	for (const [index, rewardFromConfigString] of Object.entries(brackets)) {
 		const nthBracket = +index;
 		const currentHeight = offset + nthBracket * distance;
 		// eslint-disable-next-line no-loop-func
@@ -58,7 +58,21 @@ describe('RewardModuleEndpoint', () => {
 					},
 				}),
 			);
-			expect(rewardFromEndpoint).toEqual({ reward: rewardFromConfig.toString() });
+			expect(rewardFromEndpoint).toEqual({ reward: rewardFromConfigString });
+		});
+
+		// eslint-disable-next-line no-loop-func
+		it(`should getAnnualInflation for the ${nthBracket}th bracket`, () => {
+			const blocksPerYear = BigInt(Math.floor((365 * 24 * 60 * 60) / genesisConfig.blockTime));
+			const rate = blocksPerYear * BigInt(rewardFromConfigString);
+			const inflationRate = rewardModule.endpoint.getAnnualInflation(
+				createTransientModuleEndpointContext({
+					params: {
+						height: currentHeight,
+					},
+				}),
+			);
+			expect(inflationRate).toEqual({ tokenID: moduleConfig.tokenID, rate: rate.toString() });
 		});
 	}
 
@@ -71,6 +85,17 @@ describe('RewardModuleEndpoint', () => {
 			}),
 		);
 		expect(rewardFromEndpoint).toEqual({ reward: '0' });
+	});
+
+	it('should getAnnualInflation for the for the height below offset', () => {
+		const inflationRate = rewardModule.endpoint.getAnnualInflation(
+			createTransientModuleEndpointContext({
+				params: {
+					height: offset - 1,
+				},
+			}),
+		);
+		expect(inflationRate).toEqual({ tokenID: moduleConfig.tokenID, rate: '0' });
 	});
 
 	it('should throw an error when parameter height is not a number', () => {
@@ -98,6 +123,6 @@ describe('RewardModuleEndpoint', () => {
 	});
 
 	it('should return reward token ID', () => {
-		expect(rewardModule.endpoint.getRewardTokenID()).toBe(moduleConfig.tokenID);
+		expect(rewardModule.endpoint.getRewardTokenID()).toEqual({ tokenID: moduleConfig.tokenID });
 	});
 });

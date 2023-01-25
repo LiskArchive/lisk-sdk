@@ -15,13 +15,15 @@
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { calculateDefaultReward } from './calculate_reward';
-import { DefaultReward, ModuleConfig } from './types';
+import { DefaultReward, InflationRate, ModuleConfig } from './types';
 
 export class RewardEndpoint extends BaseEndpoint {
 	protected _config!: ModuleConfig;
+	private _blockTime!: number;
 
-	public init(config: ModuleConfig) {
+	public init(config: ModuleConfig, blockTime: number) {
 		this._config = config;
+		this._blockTime = blockTime;
 	}
 
 	public getDefaultRewardAtHeight(context: ModuleEndpointContext): DefaultReward {
@@ -40,7 +42,15 @@ export class RewardEndpoint extends BaseEndpoint {
 		return { reward: reward.toString() };
 	}
 
-	public getRewardTokenID(): string {
-		return this._config.tokenID.toString('hex');
+	public getRewardTokenID(): { tokenID: string } {
+		return { tokenID: this._config.tokenID.toString('hex') };
+	}
+
+	public getAnnualInflation(context: ModuleEndpointContext): InflationRate {
+		const reward = BigInt(this.getDefaultRewardAtHeight(context).reward);
+		const blocksPerYear = BigInt(Math.floor((365 * 24 * 60 * 60) / this._blockTime));
+		const rate = blocksPerYear * reward;
+
+		return { tokenID: this._config.tokenID.toString('hex'), rate: rate.toString() };
 	}
 }

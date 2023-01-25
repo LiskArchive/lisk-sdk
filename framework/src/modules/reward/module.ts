@@ -24,6 +24,9 @@ import {
 	configSchema,
 	getDefaultRewardAtHeightRequestSchema,
 	getDefaultRewardAtHeightResponseSchema,
+	getAnnualInflationResponseSchema,
+	getRewardTokenIDResponseSchema,
+	getAnnualInflationRequestSchema,
 } from './schemas';
 import { RewardMintedEvent } from './events/reward_minted';
 
@@ -55,6 +58,15 @@ export class RewardModule extends BaseModule {
 					request: getDefaultRewardAtHeightRequestSchema,
 					response: getDefaultRewardAtHeightResponseSchema,
 				},
+				{
+					name: this.endpoint.getAnnualInflation.name,
+					request: getAnnualInflationRequestSchema,
+					response: getAnnualInflationResponseSchema,
+				},
+				{
+					name: this.endpoint.getRewardTokenID.name,
+					response: getRewardTokenIDResponseSchema,
+				},
 			],
 		};
 	}
@@ -76,7 +88,7 @@ export class RewardModule extends BaseModule {
 			config: this._moduleConfig,
 		});
 
-		this.endpoint.init(this._moduleConfig);
+		this.endpoint.init(this._moduleConfig, args.genesisConfig.blockTime);
 	}
 
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {

@@ -5,7 +5,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
 import {
 	COMMAND_NAME_STATE_RECOVERY_INIT,
-	EMPTY_BYTES,
+	EMPTY_HASH,
 	LIVENESS_LIMIT,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
@@ -29,7 +29,7 @@ import {
 	TerminatedStateStore,
 } from '../../../../../../src/modules/interoperability/stores/terminated_state';
 import {
-	chainAccountSchema,
+	chainDataSchema,
 	ChainAccountStore,
 	ChainStatus,
 } from '../../../../../../src/modules/interoperability/stores/chain_account';
@@ -91,7 +91,7 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 			status: ChainStatus.TERMINATED,
 		};
 
-		sidechainChainAccountEncoded = codec.encode(chainAccountSchema, sidechainChainAccount);
+		sidechainChainAccountEncoded = codec.encode(chainDataSchema, sidechainChainAccount);
 
 		transactionParams = {
 			chainID: utils.intToBuffer(3, 4),
@@ -114,7 +114,7 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 
 		terminatedStateAccount = {
 			stateRoot: sidechainChainAccount.lastCertificate.stateRoot,
-			mainchainStateRoot: EMPTY_BYTES,
+			mainchainStateRoot: EMPTY_HASH,
 			initialized: false,
 		};
 
@@ -178,6 +178,50 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 			);
 		});
 
+		it('should reject when chain id has invalid length', async () => {
+			await expect(
+				stateRecoveryInitCommand.verify(
+					createTransactionContext({
+						transaction: new Transaction({
+							module: MODULE_NAME_INTEROPERABILITY,
+							command: COMMAND_NAME_STATE_RECOVERY_INIT,
+							fee: BigInt(100000000),
+							nonce: BigInt(0),
+							params: codec.encode(stateRecoveryInitParamsSchema, {
+								...transactionParams,
+								chainID: Buffer.alloc(20, 255),
+							}),
+							senderPublicKey: utils.getRandomBytes(32),
+							signatures: [],
+						}),
+						stateStore,
+					}).createCommandVerifyContext(stateRecoveryInitParamsSchema),
+				),
+			).rejects.toThrow("Property '.chainID' maxLength exceeded");
+		});
+
+		it('should reject when siblingHashes contains bytes with invalid length', async () => {
+			await expect(
+				stateRecoveryInitCommand.verify(
+					createTransactionContext({
+						transaction: new Transaction({
+							module: MODULE_NAME_INTEROPERABILITY,
+							command: COMMAND_NAME_STATE_RECOVERY_INIT,
+							fee: BigInt(100000000),
+							nonce: BigInt(0),
+							params: codec.encode(stateRecoveryInitParamsSchema, {
+								...transactionParams,
+								siblingHashes: [Buffer.alloc(100, 255)],
+							}),
+							senderPublicKey: utils.getRandomBytes(32),
+							signatures: [],
+						}),
+						stateStore,
+					}).createCommandVerifyContext(stateRecoveryInitParamsSchema),
+				),
+			).rejects.toThrow("Property '.siblingHashes.0' maxLength exceeded");
+		});
+
 		it('should return status OK for valid params', async () => {
 			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
 			expect(result.status).toBe(VerifyStatus.OK);
@@ -217,7 +261,7 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 				},
 				status: ChainStatus.ACTIVE,
 			};
-			sidechainChainAccountEncoded = codec.encode(chainAccountSchema, sidechainChainAccount);
+			sidechainChainAccountEncoded = codec.encode(chainDataSchema, sidechainChainAccount);
 			transactionParams = {
 				chainID: utils.intToBuffer(3, 4),
 				bitmap: Buffer.alloc(0),

@@ -13,10 +13,10 @@
  */
 
 import { BaseEvent, EventQueuer } from '../../base_event';
-import { chainAccountSchema, ChainAccount } from '../stores/chain_account';
+import { chainDataSchema, ChainAccount } from '../stores/chain_account';
 
 export class ChainAccountUpdatedEvent extends BaseEvent<ChainAccount> {
-	public schema = chainAccountSchema;
+	public schema = chainDataSchema;
 
 	public log(ctx: EventQueuer, chainID: Buffer, data: ChainAccount): void {
 		this.add(ctx, data, [chainID]);

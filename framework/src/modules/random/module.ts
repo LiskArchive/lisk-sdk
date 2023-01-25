@@ -29,9 +29,13 @@ import { defaultConfig, EMPTY_KEY } from './constants';
 import { RandomEndpoint } from './endpoint';
 import {
 	blockHeaderAssetRandomModule,
+	addressSchema,
 	isSeedRevealValidRequestSchema,
 	isSeedRevealValidResponseSchema,
 	randomModuleConfig,
+	hashOnionSchema,
+	hasHashOnionResponseSchema,
+	getHashOnionUsageResponse,
 } from './schemas';
 import { BlockHeaderAssetRandomModule } from './types';
 import { UsedHashOnion, UsedHashOnionsStore } from './stores/used_hash_onions';
@@ -61,6 +65,30 @@ export class RandomModule extends BaseModule {
 					name: this.endpoint.isSeedRevealValid.name,
 					request: isSeedRevealValidRequestSchema,
 					response: isSeedRevealValidResponseSchema,
+				},
+				{
+					name: this.endpoint.setHashOnion.name,
+					request: hashOnionSchema,
+				},
+				{
+					name: this.endpoint.getHashOnionSeeds.name,
+					response: hashOnionSchema,
+				},
+				{
+					name: this.endpoint.hasHashOnion.name,
+					request: addressSchema,
+					response: hasHashOnionResponseSchema,
+				},
+				{
+					name: this.endpoint.getHashOnionUsage.name,
+					request: addressSchema,
+					response: getHashOnionUsageResponse,
+				},
+			],
+			assets: [
+				{
+					version: 2,
+					data: blockHeaderAssetRandomModule,
 				},
 			],
 		};

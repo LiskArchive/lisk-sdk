@@ -89,6 +89,7 @@ export interface RPCConfig {
 	modes: (typeof RPC_MODES.IPC | typeof RPC_MODES.WS | typeof RPC_MODES.HTTP)[];
 	port: number;
 	host: string;
+	disabledMethods?: string[];
 }
 
 export interface LegacyConfig {

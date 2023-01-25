@@ -13,7 +13,7 @@
  */
 
 import { ListenerFn } from 'eventemitter2';
-import { Database, StateDB } from '@liskhq/lisk-db';
+import { Batch, Database, StateDB } from '@liskhq/lisk-db';
 import { StateStore } from '@liskhq/lisk-chain';
 import { Event, EventCallback } from '../event';
 import { Request } from '../request';
@@ -108,7 +108,9 @@ export class InMemoryChannel extends BaseChannel {
 				throw new Error('Handler does not exist.');
 			}
 
-			return handler({
+			const offchainStore = new StateStore(this._moduleDB);
+
+			const result = (await handler({
 				logger: this._logger,
 				params: request.params ?? {},
 				getStore: (moduleID: Buffer, storePrefix: Buffer) => {
@@ -116,17 +118,21 @@ export class InMemoryChannel extends BaseChannel {
 					return stateStore.getStore(moduleID, storePrefix);
 				},
 				header: req.context.header,
-				getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) => {
-					const stateStore = new StateStore(this._moduleDB);
-					return stateStore.getStore(moduleID, storePrefix);
-				},
+				getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) =>
+					offchainStore.getStore(moduleID, storePrefix),
 				getImmutableMethodContext: () =>
 					createImmutableMethodContext(new PrefixedStateReadWriter(this._db.newReadWriter())),
 				chainID: this._chainID,
-			}) as Promise<T>;
+			})) as Promise<T>;
+
+			const batch = new Batch();
+			offchainStore.finalize(batch);
+			await this._moduleDB.write(batch);
+
+			return result;
 		}
 
-		const resp = await this.bus.invoke<T>(request.toJSONRPCRequest());
+		const resp = await this.bus.invoke<T>(request.toJSONRPCRequest(), req.context);
 		return resp.result;
 	}
 }

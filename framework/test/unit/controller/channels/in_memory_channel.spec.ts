@@ -30,7 +30,9 @@ describe('InMemoryChannel Channel', () => {
 		db: {
 			newReadWriter: jest.fn(),
 		} as never,
-		moduleDB: jest.fn() as never,
+		moduleDB: {
+			write: jest.fn(),
+		} as never,
 		events: ['event1', 'event2'],
 		endpoints: {
 			action1: jest.fn(),
@@ -208,6 +210,17 @@ describe('InMemoryChannel Channel', () => {
 			).toBeInstanceOf(PrefixedStateReadWriter);
 		});
 
+		it('should store changes to the module DB', async () => {
+			// Arrange
+			const actionFullName = `${inMemoryChannel.namespace}_${actionName}`;
+
+			// Act
+			await inMemoryChannel.invoke({ methodName: actionFullName, context: {} });
+
+			// Assert
+			expect(inMemoryChannel['_moduleDB'].write).toHaveBeenCalledTimes(1);
+		});
+
 		it('should call bus.invoke if the action module is different to moduleName', async () => {
 			// Arrange
 			const actionFullName = `aDifferentModule_${actionName}`;
@@ -220,6 +233,19 @@ describe('InMemoryChannel Channel', () => {
 
 			// Assert
 			expect(inMemoryChannel['bus'].invoke).toHaveBeenCalled();
+		});
+
+		it('should throw an error if the action does not exist', async () => {
+			// Arrange
+			const actionFullName = `${inMemoryChannel.namespace}_nonExistingAction`;
+
+			// Act
+			await inMemoryChannel.registerToBus(bus);
+
+			// Assert
+			await expect(
+				inMemoryChannel.invoke({ methodName: actionFullName, context: {} }),
+			).rejects.toThrow(`The action 'nonExistingAction' on module 'sample' does not exist.`);
 		});
 	});
 });

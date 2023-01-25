@@ -237,6 +237,7 @@ export const createCrossChainMessageContext = (params: {
 	stateStore?: IStateStore;
 	contextStore?: Map<string, unknown>;
 	eventQueue?: EventQueue;
+	ccu?: { sendingChainID: Buffer };
 }): CrossChainMessageContext => {
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -268,6 +269,9 @@ export const createCrossChainMessageContext = (params: {
 		transaction: params.transaction ?? {
 			senderAddress: utils.getRandomBytes(20),
 			fee: BigInt(100000000),
+		},
+		ccu: params.ccu ?? {
+			sendingChainID: Buffer.from([0, 0, 0, 4]),
 		},
 	};
 };

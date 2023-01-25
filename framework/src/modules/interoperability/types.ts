@@ -31,6 +31,7 @@ import { TerminatedStateAccount } from './stores/terminated_state';
 
 export type StoreCallback = (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 export type ImmutableStoreCallback = (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
+
 export interface CCMsg {
 	readonly nonce: bigint;
 	readonly module: string;
@@ -40,6 +41,12 @@ export interface CCMsg {
 	readonly fee: bigint;
 	readonly status: number;
 	readonly params: Buffer;
+}
+
+export interface ActiveValidatorsUpdate {
+	blsKeysUpdate: Buffer[];
+	bftWeightsUpdate: bigint[];
+	bftWeightsUpdateBitmap: Buffer;
 }
 
 export interface ActiveValidator {
@@ -66,10 +73,11 @@ export interface InboxUpdate {
 export interface CCUpdateParams {
 	sendingChainID: Buffer;
 	certificate: Buffer;
-	activeValidatorsUpdate: ActiveValidator[];
+	activeValidatorsUpdate: ActiveValidatorsUpdate;
 	certificateThreshold: bigint;
 	inboxUpdate: InboxUpdate;
 }
+
 export interface ImmutableCrossChainMessageContext {
 	getMethodContext: () => ImmutableMethodContext;
 	getStore: ImmutableStoreCallback;
@@ -85,6 +93,9 @@ export interface ImmutableCrossChainMessageContext {
 		fee: bigint;
 	};
 	ccm: CCMsg;
+	ccu: {
+		sendingChainID: Buffer;
+	};
 }
 
 export interface CrossChainMessageContext extends ImmutableCrossChainMessageContext {
@@ -94,9 +105,11 @@ export interface CrossChainMessageContext extends ImmutableCrossChainMessageCont
 	contextStore: Map<string, unknown>;
 	eventQueue: EventQueue;
 }
+
 export interface CCCommandExecuteContext<T> extends CrossChainMessageContext {
 	params: T;
 }
+
 export interface RecoverContext {
 	getMethodContext: () => MethodContext;
 	getStore: StoreCallback;
@@ -254,14 +267,15 @@ export interface RegistrationParametersValidator {
 export interface SidechainRegistrationParams {
 	name: string;
 	chainID: Buffer;
-	initValidators: RegistrationParametersValidator[];
-	certificateThreshold: bigint;
+	sidechainValidators: RegistrationParametersValidator[];
+	sidechainCertificateThreshold: bigint;
 }
 
 export interface MainchainRegistrationParams {
 	ownChainID: Buffer;
 	ownName: string;
 	mainchainValidators: RegistrationParametersValidator[];
+	mainchainCertificateThreshold: bigint;
 	signature: Buffer;
 	aggregationBits: Buffer;
 }
@@ -273,6 +287,7 @@ export interface ValidatorKeys {
 
 export interface ValidatorsMethod {
 	getValidatorKeys(methodContext: ImmutableMethodContext, address: Buffer): Promise<ValidatorKeys>;
+
 	getValidatorsParams(
 		methodContext: ImmutableMethodContext,
 	): Promise<{ validators: Validator[]; certificateThreshold: bigint }>;
@@ -328,7 +343,7 @@ export interface TerminateSidehchainForLivenessParams {
 export interface CrossChainUpdateTransactionParams {
 	sendingChainID: Buffer;
 	certificate: Buffer;
-	activeValidatorsUpdate: ActiveValidator[];
+	activeValidatorsUpdate: ActiveValidatorsUpdate;
 	certificateThreshold: bigint;
 	inboxUpdate: InboxUpdate;
 }
@@ -380,8 +395,10 @@ export interface GenesisInteroperability {
 
 export interface CCMRegistrationParams {
 	name: string;
+	chainID: Buffer;
 	messageFeeTokenID: Buffer;
 }
+
 export interface TokenMethod {
 	initializeUserAccount(
 		methodContext: MethodContext,

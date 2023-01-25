@@ -18,7 +18,7 @@ import { Dealer, Router, Subscriber } from 'zeromq';
 import { Logger } from '../logger';
 import { ChannelType, EndpointInfo } from '../types';
 import { Request } from './request';
-import { BaseChannel } from './channels/base_channel';
+import { BaseChannel, InvokeRequest } from './channels/base_channel';
 import { IPC_EVENTS } from './constants';
 import { Event, EventsDefinition } from './event';
 import { IPCServer } from './ipc/ipc_server';
@@ -223,6 +223,7 @@ export class Bus {
 
 	public async invoke<T>(
 		rawRequest: string | JSONRPC.RequestObject,
+		context?: InvokeRequest['context'],
 	): Promise<JSONRPC.ResponseObjectWithResult<T>> {
 		let requestObj!: JSONRPC.RequestObject;
 
@@ -273,10 +274,11 @@ export class Bus {
 
 		const actionParams = request.params;
 		const channelInfo = this._channels[request.namespace];
+
 		if (channelInfo.type === ChannelType.InMemory) {
 			try {
 				const result = await (channelInfo.channel as BaseChannel).invoke<T>({
-					context: {},
+					context: context ?? {},
 					methodName: actionFullName,
 					params: actionParams,
 				});

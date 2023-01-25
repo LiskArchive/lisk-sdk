@@ -18,7 +18,7 @@ import { CommandExecuteContext, CommandVerifyContext } from '../../state_machine
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import { BaseInteroperabilityMethod } from './base_interoperability_method';
-import { CCMStatusCode, EMPTY_BYTES, MIN_RETURN_FEE } from './constants';
+import { CCMStatusCode, EMPTY_BYTES, MIN_RETURN_FEE, EmptyCCM } from './constants';
 import { CCMProcessedCode, CcmProcessedEvent, CCMProcessedResult } from './events/ccm_processed';
 import { CcmSendSuccessEvent } from './events/ccm_send_success';
 import { ccmSchema, crossChainUpdateTransactionParams } from './schemas';
@@ -29,9 +29,15 @@ import {
 	TokenMethod,
 } from './types';
 import { ChainAccountStore, ChainStatus } from './stores/chain_account';
-import { getEncodedCCMAndID, getMainchainID, isInboxUpdateEmpty, validateFormat } from './utils';
+import {
+	emptyActiveValidatorsUpdate,
+	getEncodedCCMAndID,
+	getMainchainID,
+	isInboxUpdateEmpty,
+	validateFormat,
+} from './utils';
 import { ChainValidatorsStore } from './stores/chain_validators';
-import { ChannelDataStore } from './stores/channel_data';
+import { OwnChainAccountStore } from './stores/own_chain_account';
 
 export abstract class BaseCrossChainUpdateCommand<
 	T extends BaseInteroperabilityInternalMethod,
@@ -52,7 +58,9 @@ export abstract class BaseCrossChainUpdateCommand<
 			.get(ChainAccountStore)
 			.get(context, params.sendingChainID);
 		if (sendingChainAccount.status === ChainStatus.REGISTERED && params.certificate.length === 0) {
-			throw new Error('The first CCU must contain a non-empty certificate.');
+			throw new Error(
+				'Cross-chain updates from chains with status CHAIN_STATUS_REGISTERED must contain a non-empty certificate.',
+			);
 		}
 		if (params.certificate.length > 0) {
 			await this.internalMethod.verifyCertificate(context, params, context.header.timestamp);
@@ -61,7 +69,7 @@ export abstract class BaseCrossChainUpdateCommand<
 			.get(ChainValidatorsStore)
 			.get(context, params.sendingChainID);
 		if (
-			params.activeValidatorsUpdate.length > 0 ||
+			!emptyActiveValidatorsUpdate(params.activeValidatorsUpdate) ||
 			params.certificateThreshold !== sendingChainValidators.certificateThreshold
 		) {
 			await this.internalMethod.verifyValidatorsUpdate(context, params);
@@ -77,9 +85,12 @@ export abstract class BaseCrossChainUpdateCommand<
 		isMainchain: boolean,
 	): Promise<[CCMsg[], boolean]> {
 		const { params, transaction } = context;
+		const { inboxUpdate } = params;
+
+		// Verify certificate signature. We do it here because if it fails, the transaction fails rather than being invalid.
 		await this.internalMethod.verifyCertificateSignature(context, params);
 
-		if (!isInboxUpdateEmpty(params.inboxUpdate)) {
+		if (!isInboxUpdateEmpty(inboxUpdate)) {
 			// Initialize the relayer account for the message fee token.
 			// This is necessary to ensure that the relayer can receive the CCM fees
 			// If the account already exists, nothing is done.
@@ -94,68 +105,108 @@ export abstract class BaseCrossChainUpdateCommand<
 			);
 		}
 
-		const decodedCCMs = [];
-		for (const ccmBytes of params.inboxUpdate.crossChainMessages) {
+		const ccms: CCMsg[] = [];
+		let ccm: CCMsg;
+
+		// Process cross-chain messages in inbox update.
+		// First process basic checks for all CCMs.
+		for (const ccmBytes of inboxUpdate.crossChainMessages) {
 			try {
-				const ccm = codec.decode<CCMsg>(ccmSchema, ccmBytes);
+				// Verify general format. Past this point, we can access ccm root properties.
+				ccm = codec.decode<CCMsg>(ccmSchema, ccmBytes);
+			} catch (error) {
+				await this.internalMethod.terminateChainInternal(context, params.sendingChainID);
+				this.events.get(CcmProcessedEvent).log(context, params.sendingChainID, context.chainID, {
+					ccm: EmptyCCM,
+					result: CCMProcessedResult.DISCARDED,
+					code: CCMProcessedCode.INVALID_CCM_DECODING_EXCEPTION,
+				});
+				// In this case, we do not even update the chain account with the new certificate.
+				return [[], false];
+			}
+
+			try {
 				validateFormat(ccm);
-				decodedCCMs.push(ccm);
-				if (!ccm.sendingChainID.equals(params.sendingChainID)) {
+			} catch (error) {
+				await this.internalMethod.terminateChainInternal(context, params.sendingChainID);
+				ccm = { ...ccm, params: EMPTY_BYTES };
+				this.events
+					.get(CcmProcessedEvent)
+					.log(context, params.sendingChainID, ccm.receivingChainID, {
+						ccm,
+						result: CCMProcessedResult.DISCARDED,
+						code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
+					});
+				// In this case, we do not even update the chain account with the new certificate.
+				return [[], false];
+			}
+
+			try {
+				// The CCM must come from the sending chain.
+				if (isMainchain && !ccm.sendingChainID.equals(params.sendingChainID)) {
 					throw new Error('CCM is not from the sending chain.');
 				}
-				if (ccm.sendingChainID.equals(ccm.receivingChainID)) {
+				// Sending and receiving chains must differ.
+				if (ccm.receivingChainID.equals(ccm.sendingChainID)) {
 					throw new Error('Sending and receiving chains must differ.');
+				}
+				// The CCM must come be directed to the sidechain, unless it was bounced on the mainchain.
+				if (!isMainchain && !context.chainID.equals(ccm.receivingChainID)) {
+					throw new Error('CCM is not directed to the sidechain.');
 				}
 				if (isMainchain && ccm.status === CCMStatusCode.CHANNEL_UNAVAILABLE) {
 					throw new Error('CCM status channel unavailable can only be set on the mainchain.');
 				}
+				ccms.push(ccm);
 			} catch (error) {
 				await this.internalMethod.terminateChainInternal(context, params.sendingChainID);
-				this.events.get(CcmProcessedEvent).log(context, params.sendingChainID, context.chainID, {
-					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
-					result: CCMProcessedResult.DISCARDED,
-					// When failing decode, add event with zero values
-					ccm: {
-						crossChainCommand: '',
-						fee: BigInt(0),
-						module: '',
-						nonce: BigInt(0),
-						params: EMPTY_BYTES,
-						receivingChainID: EMPTY_BYTES,
-						sendingChainID: EMPTY_BYTES,
-						status: 0,
-					},
-				});
+				this.events
+					.get(CcmProcessedEvent)
+					.log(context, params.sendingChainID, ccm.receivingChainID, {
+						ccm,
+						result: CCMProcessedResult.DISCARDED,
+						code: CCMProcessedCode.INVALID_CCM_ROUTING_EXCEPTION,
+					});
+				// In this case, we do not even update the chain account with the new certificate.
 				return [[], false];
 			}
 		}
 
+		return [ccms, true];
+	}
+
+	protected async afterExecuteCommon(
+		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
+	) {
+		const { params } = context;
+
+		// Update sidechain validators.
 		const sendingChainValidators = await this.stores
 			.get(ChainValidatorsStore)
 			.get(context, params.sendingChainID);
 		if (
-			params.activeValidatorsUpdate.length > 0 ||
+			!emptyActiveValidatorsUpdate(params.activeValidatorsUpdate) ||
 			params.certificateThreshold !== sendingChainValidators.certificateThreshold
 		) {
 			await this.internalMethod.updateValidators(context, params);
 		}
+
 		if (params.certificate.length > 0) {
 			await this.internalMethod.updateCertificate(context, params);
 		}
-		if (!isInboxUpdateEmpty(params.inboxUpdate)) {
-			await this.stores
-				.get(ChannelDataStore)
-				.updatePartnerChainOutboxRoot(
-					context,
-					params.sendingChainID,
-					params.inboxUpdate.messageWitnessHashes,
-				);
+
+		if (!isInboxUpdateEmpty(params.inboxUpdate) && params.certificate.length > 0) {
+			await this.internalMethod.updatePartnerChainOutboxRoot(context, params);
 		}
-		return [decodedCCMs, true];
 	}
 
+	/**
+	 * @param context
+	 * @returns Promise<void>
+	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#apply
+	 */
 	protected async apply(context: CrossChainMessageContext): Promise<void> {
-		const { ccm, logger } = context;
+		const { ccm, ccu, logger } = context;
 		const { ccmID, encodedCCM } = getEncodedCCMAndID(ccm);
 		const valid = await this.verifyCCM(context, ccmID);
 		if (!valid) {
@@ -191,17 +242,20 @@ export abstract class BaseCrossChainUpdateCommand<
 				);
 				await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
 				this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
-					result: CCMProcessedResult.DISCARDED,
 					ccm,
+					result: CCMProcessedResult.DISCARDED,
+					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
 				});
 				return;
 			}
 		}
+		// Create a state snapshot.
 		const baseEventSnapshotID = context.eventQueue.createSnapshot();
 		const baseStateSnapshotID = context.stateStore.createSnapshot();
 
 		try {
+			// Call the beforeCrossChainCommandExecution functions from other modules.
+			// For example, the Token module assigns the message fee to the CCU sender.
 			for (const [module, method] of this.interoperableCCMethods.entries()) {
 				if (method.beforeCrossChainCommandExecute) {
 					logger.debug(
@@ -224,23 +278,40 @@ export abstract class BaseCrossChainUpdateCommand<
 			);
 			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
-				result: CCMProcessedResult.DISCARDED,
 				ccm,
+				result: CCMProcessedResult.DISCARDED,
+				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
 			});
 			return;
 		}
 
+		// Create a state snapshot.
 		const execEventSnapshotID = context.eventQueue.createSnapshot();
 		const execStateSnapshotID = context.stateStore.createSnapshot();
 
 		try {
+			/**
+			 * This could happen during the execution of a mainchain CCU containing a CCM
+			 * from a sidechain for which a direct channel has been registered.
+			 * Then, ccu.params.sendingChainID == getMainchainID().
+			 * This is not necessarily a violation of the protocol, since the message
+			 * could have been sent before the direct channel was opened.
+			 */
 			const params = command.schema ? codec.decode(command.schema, context.ccm.params) : {};
+
+			const isSendingChainExist = await this.stores
+				.get(ChainAccountStore)
+				.has(context, ccm.sendingChainID);
+
+			if (isSendingChainExist && !ccu.sendingChainID.equals(ccm.sendingChainID)) {
+				throw new Error('Cannot receive forwarded messages for a direct channel.');
+			}
+			// Execute the cross-chain command.
 			await command.execute({ ...context, params });
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				code: CCMProcessedCode.SUCCESS,
-				result: CCMProcessedResult.APPLIED,
 				ccm,
+				result: CCMProcessedResult.APPLIED,
+				code: CCMProcessedCode.SUCCESS,
 			});
 		} catch (error) {
 			context.eventQueue.restoreSnapshot(execEventSnapshotID);
@@ -254,6 +325,7 @@ export abstract class BaseCrossChainUpdateCommand<
 		}
 
 		try {
+			// Call the afterCrossChainCommandExecution functions from other modules.
 			for (const [module, method] of this.interoperableCCMethods.entries()) {
 				if (method.afterCrossChainCommandExecute) {
 					logger.debug(
@@ -276,13 +348,14 @@ export abstract class BaseCrossChainUpdateCommand<
 			);
 			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				code: CCMProcessedCode.INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
-				result: CCMProcessedResult.DISCARDED,
 				ccm,
+				result: CCMProcessedResult.DISCARDED,
+				code: CCMProcessedCode.INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
 			});
 		}
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#bounce
 	protected async bounce(
 		context: CrossChainMessageContext,
 		ccmSize: number,
@@ -311,14 +384,21 @@ export abstract class BaseCrossChainUpdateCommand<
 			receivingChainID: ccm.sendingChainID,
 			fee: ccmStatusCode === CCMStatusCode.FAILED_CCM ? BigInt(0) : ccm.fee - minFee,
 		};
+
 		let partnerChainID: Buffer;
 		const doesReceivingChainExist = await this.stores
 			.get(ChainAccountStore)
 			.has(context, bouncedCCM.receivingChainID);
-		if (!doesReceivingChainExist) {
-			partnerChainID = getMainchainID(bouncedCCM.receivingChainID);
-		} else {
+
+		const mainchainID = getMainchainID(bouncedCCM.receivingChainID);
+		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
+		// Processing on the mainchain
+		if (ownChainAccount.chainID.equals(mainchainID)) {
 			partnerChainID = bouncedCCM.receivingChainID;
+			// Processing on a sidechain
+		} else {
+			// Check for direct channel
+			partnerChainID = doesReceivingChainExist ? bouncedCCM.receivingChainID : mainchainID;
 		}
 
 		await this.internalMethod.addToOutbox(context, partnerChainID, bouncedCCM);
@@ -337,6 +417,8 @@ export abstract class BaseCrossChainUpdateCommand<
 			if (!isLive) {
 				throw new Error(`Sending chain ${ccm.sendingChainID.toString('hex')} is not live.`);
 			}
+			// Modules can verify the CCM.
+			// The Token module verifies the escrowed balance in the CCM sending chain for the message fee.
 			for (const [module, method] of this.interoperableCCMethods.entries()) {
 				if (method.verifyCrossChainMessage) {
 					logger.debug({ module, ccmID: ccmID.toString('hex') }, 'verifying cross chain message');
@@ -350,6 +432,8 @@ export abstract class BaseCrossChainUpdateCommand<
 				'Fail to verify cross chain message.',
 			);
 			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
+			// Notice that, since the sending chain has been terminated,
+			// the verification of all future CCMs will fail.
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
 				result: CCMProcessedResult.DISCARDED,

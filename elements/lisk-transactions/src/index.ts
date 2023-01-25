@@ -27,8 +27,8 @@ export {
 	getSigningBytes,
 	signTransaction,
 	signMultiSignatureTransaction,
-	signMultiSignatureTransactionWithPrivateKey,
 	signTransactionWithPrivateKey,
+	signMultiSignatureTransactionWithPrivateKey,
 } from './sign';
 export { validateTransaction } from './validate';
 export * from './constants';

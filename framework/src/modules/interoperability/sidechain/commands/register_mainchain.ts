@@ -17,13 +17,13 @@ import { bls } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import {
 	EMPTY_HASH,
-	MAINCHAIN_NAME,
 	MODULE_NAME_INTEROPERABILITY,
-	TAG_CHAIN_REG_MESSAGE,
-	THRESHOLD_MAINCHAIN,
 	EMPTY_BYTES,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	CCMStatusCode,
+	MAX_UINT64,
+	MESSAGE_TAG_CHAIN_REG,
+	CHAIN_NAME_MAINCHAIN,
 } from '../../constants';
 import {
 	mainchainRegParams,
@@ -69,14 +69,24 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 	public async verify(
 		context: CommandVerifyContext<MainchainRegistrationParams>,
 	): Promise<VerificationResult> {
-		const { ownName, mainchainValidators, ownChainID } = context.params;
-
+		const { ownName, mainchainValidators, mainchainCertificateThreshold, ownChainID } =
+			context.params;
 		try {
 			validator.validate<MainchainRegistrationParams>(mainchainRegParams, context.params);
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: err as Error,
+			};
+		}
+
+		const mainchainID = getMainchainID(context.chainID);
+		const chainAccountSubstore = this.stores.get(ChainAccountStore);
+		const mainchainAccountExists = await chainAccountSubstore.has(context, mainchainID);
+		if (mainchainAccountExists) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Mainchain has already been registered.'),
 			};
 		}
 
@@ -95,6 +105,8 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 				),
 			};
 		}
+
+		let totalWeight = BigInt(0);
 
 		for (let i = 0; i < mainchainValidators.length; i += 1) {
 			const currentValidator = mainchainValidators[i];
@@ -115,6 +127,28 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 					error: new Error('Validator bft weight must be positive integer.'),
 				};
 			}
+
+			if (totalWeight > MAX_UINT64) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error('Total BFT weight exceeds maximum value.'),
+				};
+			}
+
+			totalWeight += currentValidator.bftWeight;
+		}
+
+		if (mainchainCertificateThreshold < totalWeight / BigInt(3) + BigInt(1)) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Certificate threshold is too small.'),
+			};
+		}
+		if (mainchainCertificateThreshold > totalWeight) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Certificate threshold is too large.'),
+			};
 		}
 
 		return {
@@ -125,7 +159,14 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 	public async execute(context: CommandExecuteContext<MainchainRegistrationParams>): Promise<void> {
 		const {
 			getMethodContext,
-			params: { ownChainID, ownName, mainchainValidators, aggregationBits, signature },
+			params: {
+				ownChainID,
+				ownName,
+				mainchainValidators,
+				mainchainCertificateThreshold,
+				aggregationBits,
+				signature,
+			},
 		} = context;
 		const methodContext = getMethodContext();
 
@@ -142,9 +183,10 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 			weights.push(v.bftWeight);
 		}
 		const message = codec.encode(registrationSignatureMessageSchema, {
-			ownChainID,
 			ownName,
+			ownChainID,
 			mainchainValidators,
+			mainchainCertificateThreshold,
 		});
 
 		if (
@@ -152,7 +194,7 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 				keyList,
 				aggregationBits,
 				signature,
-				TAG_CHAIN_REG_MESSAGE,
+				MESSAGE_TAG_CHAIN_REG,
 				ownChainID,
 				message,
 				weights,
@@ -164,19 +206,20 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 			throw new Error('Invalid signature property.');
 		}
 
-		const mainchainID = getMainchainID(context.chainID);
 		const mainchainTokenID = getMainchainTokenID(context.chainID);
 		const chainSubstore = this.stores.get(ChainAccountStore);
 		const mainchainAccount = {
-			name: MAINCHAIN_NAME,
+			name: CHAIN_NAME_MAINCHAIN,
 			lastCertificate: {
 				height: 0,
 				timestamp: 0,
 				stateRoot: EMPTY_HASH,
-				validatorsHash: computeValidatorsHash(mainchainValidators, BigInt(THRESHOLD_MAINCHAIN)),
+				validatorsHash: computeValidatorsHash(mainchainValidators, mainchainCertificateThreshold),
 			},
 			status: ChainStatus.REGISTERED,
 		};
+
+		const mainchainID = getMainchainID(context.chainID);
 		await chainSubstore.set(context, mainchainID, mainchainAccount);
 
 		const channelSubstore = this.stores.get(ChannelDataStore);
@@ -190,7 +233,7 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 		const chainValidatorsSubstore = this.stores.get(ChainValidatorsStore);
 		await chainValidatorsSubstore.set(context, mainchainID, {
 			activeValidators: mainchainValidators,
-			certificateThreshold: BigInt(THRESHOLD_MAINCHAIN),
+			certificateThreshold: mainchainCertificateThreshold,
 		});
 
 		const outboxRootSubstore = this.stores.get(OutboxRootStore);
@@ -199,7 +242,8 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 		this.events.get(ChainAccountUpdatedEvent).log(methodContext, mainchainID, mainchainAccount);
 
 		const encodedParams = codec.encode(registrationCCMParamsSchema, {
-			name: MAINCHAIN_NAME,
+			name: CHAIN_NAME_MAINCHAIN,
+			chainID: mainchainID,
 			messageFeeTokenID: mainchainTokenID,
 		});
 

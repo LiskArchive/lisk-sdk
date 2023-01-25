@@ -11,18 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-export const configSchema = {
-	$id: '/validators/config',
-	type: 'object',
-	properties: {
-		blockTime: {
-			type: 'integer',
-			format: 'uint32',
-			minimum: 1,
-		},
-	},
-	required: ['blockTime'],
-};
 
 export interface ValidateBLSKeyRequest {
 	proofOfPossession: string;
@@ -30,7 +18,7 @@ export interface ValidateBLSKeyRequest {
 }
 
 export const validateBLSKeyRequestSchema = {
-	$id: '/validators/validateBLSKey',
+	$id: '/validators/endpoint/validateBLSKeyRequest',
 	title: 'Bls Key Properties',
 	type: 'object',
 	properties: {
@@ -63,7 +51,7 @@ export interface GetValidatorRequest {
 }
 
 export const getValidatorRequestSchema = {
-	$id: '/validators/endpoint/getValidator',
+	$id: '/validators/endpoint/getValidatorRequest',
 	title: 'Validator properties',
 	type: 'object',
 	properties: {
@@ -73,4 +61,21 @@ export const getValidatorRequestSchema = {
 		},
 	},
 	required: ['address'],
+};
+
+export const getValidatorResponseSchema = {
+	$id: '/validators/endpoint/getValidatorResponse',
+	title: 'Validator properties',
+	type: 'object',
+	properties: {
+		generatorKey: {
+			type: 'string',
+			format: 'hex',
+		},
+		blsKey: {
+			type: 'string',
+			format: 'hex',
+		},
+	},
+	required: ['generatorKey', 'blsKey'],
 };

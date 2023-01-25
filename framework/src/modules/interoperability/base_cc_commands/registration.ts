@@ -37,8 +37,12 @@ export abstract class BaseCCRegistrationCommand<
 		return CROSS_CHAIN_COMMAND_NAME_REGISTRATION;
 	}
 
+	/**
+	 *
+	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#verification
+	 */
 	public async verify(ctx: ImmutableCrossChainMessageContext): Promise<void> {
-		const { ccm } = ctx;
+		const { ccm, ccu } = ctx;
 		if (!ccm) {
 			throw new Error('CCM to execute registration cross chain command is missing.');
 		}
@@ -47,6 +51,19 @@ export abstract class BaseCCRegistrationCommand<
 			ccm.params,
 		);
 		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(ctx, EMPTY_BYTES);
+
+		const chainAccount = await this.stores.get(ChainAccountStore).get(ctx, ccm.sendingChainID);
+		if (!chainAccount) {
+			throw new Error('Registration message must be sent from a registered chain.');
+		}
+		if (!ccm.sendingChainID.equals(ccu.sendingChainID)) {
+			throw new Error('Registration message must be sent from a direct channel.');
+		}
+		if (chainAccount.status !== ChainStatus.REGISTERED) {
+			throw new Error(
+				`Registration message must be sent from a chain with status ${ChainStatus.REGISTERED}.`,
+			);
+		}
 
 		const channel = await this.stores.get(ChannelDataStore).get(ctx, ccm.sendingChainID);
 		if (channel.inbox.size !== 0) {
@@ -58,6 +75,10 @@ export abstract class BaseCCRegistrationCommand<
 		if (!ownChainAccount.chainID.equals(ccm.receivingChainID)) {
 			throw new Error('Registration message must be sent to the chain account ID of the chain.');
 		}
+		if (!ownChainAccount.chainID.equals(ccmRegistrationParams.chainID)) {
+			throw new Error('Registration message must contain the chain ID of the receiving chain.');
+		}
+
 		if (ownChainAccount.name !== ccmRegistrationParams.name) {
 			throw new Error('Registration message must contain the name of the registered chain.');
 		}
@@ -71,8 +92,6 @@ export abstract class BaseCCRegistrationCommand<
 			if (ccm.nonce !== BigInt(0)) {
 				throw new Error('Registration message must have nonce 0.');
 			}
-		} else if (!ccm.sendingChainID.equals(mainchainID)) {
-			throw new Error('Registration message must be sent from the mainchain.');
 		}
 	}
 

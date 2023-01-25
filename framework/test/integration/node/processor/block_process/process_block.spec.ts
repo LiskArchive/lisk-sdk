@@ -267,11 +267,11 @@ describe('Process block', () => {
 					address: address.getLisk32AddressFromAddress(account.address),
 					tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 				});
-				const stakes = await processEnv.invoke<{ sentStakes: Record<string, unknown>[] }>(
+				const stakes = await processEnv.invoke<{ stakes: Record<string, unknown>[] }>(
 					'pos_getStaker',
 					{ address: address.getLisk32AddressFromAddress(account.address) },
 				);
-				expect(stakes.sentStakes).toHaveLength(1);
+				expect(stakes.stakes).toHaveLength(1);
 				expect(balance.availableBalance).toEqual(
 					(BigInt(senderBalance.availableBalance) - voteAmount - voteTransaction.fee).toString(),
 				);
@@ -316,7 +316,7 @@ describe('Process block', () => {
 				const validator = await processEnv.invoke<{ name: string }>('pos_getValidator', {
 					address: address.getLisk32AddressFromAddress(account.address),
 				});
-				expect(validator.name).toEqual('number1');
+				expect(validator.name).toBe('number1');
 			});
 
 			it('should not save the block to the database', async () => {

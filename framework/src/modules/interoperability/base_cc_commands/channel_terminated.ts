@@ -16,6 +16,7 @@ import { BaseInteroperabilityCCCommand } from '../base_interoperability_cc_comma
 import { CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED } from '../constants';
 import { CCCommandExecuteContext } from '../types';
 import { BaseInteroperabilityInternalMethod } from '../base_interoperability_internal_methods';
+import { TerminatedStateStore } from '../stores/terminated_state';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#channel-terminated-message-1
 export abstract class BaseCCChannelTerminatedCommand<
@@ -31,8 +32,17 @@ export abstract class BaseCCChannelTerminatedCommand<
 				`CCM to execute cross chain command '${CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED}' is missing.`,
 			);
 		}
-		if (await this.internalMethods.isLive(context, context.ccm.sendingChainID, Date.now())) {
-			await this.internalMethods.createTerminatedStateAccount(context, context.ccm.sendingChainID);
+
+		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
+		const {
+			ccm: { sendingChainID },
+		} = context;
+		const terminatedStateAccountExists = await terminatedStateSubstore.has(context, sendingChainID);
+
+		if (terminatedStateAccountExists) {
+			return;
 		}
+
+		await this.internalMethods.createTerminatedStateAccount(context, sendingChainID);
 	}
 }

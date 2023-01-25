@@ -24,9 +24,13 @@ import {
 	getTerminatedOutboxAccountRequestSchema,
 	genesisInteroperabilitySchema,
 	getRegistrationFeeSchema,
+	isChainIDAvailableResponseSchema,
+	getChainValidatorsRequestSchema,
+	getChainValidatorsResponseSchema,
+	isChainIDAvailableRequestSchema,
 } from '../schemas';
 import {
-	chainAccountSchema,
+	chainDataSchema,
 	allChainAccountsSchema,
 	ChainAccountStore,
 } from '../stores/chain_account';
@@ -157,7 +161,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 	}
 
 	public addDependencies(tokenMethod: TokenMethod, feeMethod: FeeMethod) {
-		this._sidechainRegistrationCommand.addDependencies(tokenMethod, feeMethod);
+		this._sidechainRegistrationCommand.addDependencies(feeMethod);
 		this._crossChainUpdateCommand.init(this.method, tokenMethod);
 	}
 
@@ -168,7 +172,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				{
 					name: this.endpoint.getChainAccount.name,
 					request: getChainAccountRequestSchema,
-					response: chainAccountSchema,
+					response: chainDataSchema,
 				},
 				{
 					name: this.endpoint.getAllChainAccounts.name,
@@ -197,6 +201,16 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				{
 					name: this.endpoint.getRegistrationFee.name,
 					response: getRegistrationFeeSchema,
+				},
+				{
+					name: this.endpoint.getChainValidators.name,
+					request: getChainValidatorsRequestSchema,
+					response: getChainValidatorsResponseSchema,
+				},
+				{
+					name: this.endpoint.isChainIDAvailable.name,
+					request: isChainIDAvailableRequestSchema,
+					response: isChainIDAvailableResponseSchema,
 				},
 			],
 			assets: [

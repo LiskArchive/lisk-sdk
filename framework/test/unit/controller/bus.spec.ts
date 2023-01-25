@@ -18,6 +18,7 @@ import { Bus } from '../../../src/controller/bus';
 import { Request } from '../../../src/controller/request';
 import { IPCServer } from '../../../src/controller/ipc/ipc_server';
 import { EndpointInfo } from '../../../src';
+import { InvokeRequest } from '../../../src/controller/channels/base_channel';
 
 jest.mock('ws');
 jest.mock('eventemitter2');
@@ -34,8 +35,11 @@ jest.mock('zeromq', () => {
 });
 
 describe('Bus', () => {
-	const channelMock: any = {};
+	const channelMock: any = {
+		invoke: jest.fn(),
+	};
 	const chainID = Buffer.from('10000000', 'hex');
+	const context: InvokeRequest['context'] = {};
 
 	const channelOptions = {
 		type: 'inMemory',
@@ -92,6 +96,17 @@ describe('Bus', () => {
 	});
 
 	describe('#registerChannel', () => {
+		it('should throw error when trying to register duplicate channels', async () => {
+			// Arrange
+			const moduleName = 'name';
+
+			// Act && Assert
+			await bus.registerChannel(moduleName, [], {}, channelOptions);
+			await expect(bus.registerChannel(moduleName, [], {}, channelOptions)).rejects.toThrow(
+				'Channel for module name is already registered.',
+			);
+		});
+
 		it('should register events.', async () => {
 			// Arrange
 			const moduleName = 'name';
@@ -114,7 +129,7 @@ describe('Bus', () => {
 
 			// Act && Assert
 			await expect(bus.registerChannel(moduleName, events, {}, channelOptions)).rejects.toThrow(
-				Error,
+				'Event "event1" already registered with bus.',
 			);
 		});
 
@@ -161,8 +176,41 @@ describe('Bus', () => {
 	});
 
 	describe('#invoke', () => {
-		it.todo('should invoke controller channel action.');
-		it.todo('should invoke module channel action.');
+		it('should invoke the action on the channel.', async () => {
+			// Arrange
+			const moduleName = 'name';
+			const endpointInfo: { [key: string]: EndpointInfo } = {
+				action1: {
+					namespace: 'name',
+					method: 'action1',
+				},
+			};
+
+			// Act
+			await bus.registerChannel(moduleName, [], endpointInfo, channelOptions);
+
+			// Assert
+			expect(Object.keys(bus['_endpointInfos'])).toHaveLength(1);
+		});
+
+		it('should throw error when invoking an action on the channel with an invalid context.', async () => {
+			// Arrange
+			const moduleName = 'name';
+			const endpointInfo: { [key: string]: EndpointInfo } = {
+				action1: {
+					namespace: 'name',
+					method: 'action1',
+				},
+			};
+
+			// Act
+			await bus.registerChannel(moduleName, [], endpointInfo, channelOptions);
+
+			// Assert
+			await expect(bus.invoke('action1', undefined as never)).rejects.toThrow(
+				'Invalid invoke request.',
+			);
+		});
 
 		it('should throw error if action was not registered', async () => {
 			// Arrange
@@ -174,7 +222,7 @@ describe('Bus', () => {
 			const action = Request.fromJSONRPCRequest(jsonrpcRequest);
 
 			// Act && Assert
-			await expect(bus.invoke(jsonrpcRequest)).rejects.toThrow(
+			await expect(bus.invoke(jsonrpcRequest, context)).rejects.toThrow(
 				`Request '${action.namespace}_${action.name}' is not registered to bus.`,
 			);
 		});
@@ -189,24 +237,58 @@ describe('Bus', () => {
 			const action = Request.fromJSONRPCRequest(jsonrpcRequest);
 
 			// Act && Assert
-			await expect(bus.invoke(jsonrpcRequest)).rejects.toThrow(
+			await expect(bus.invoke(jsonrpcRequest, context)).rejects.toThrow(
 				`Request '${action.namespace}_${action.name}' is not registered to bus.`,
 			);
 		});
 
+		it('should return a result of undefined when an empty context and action params are passed to a registered channel', async () => {
+			const moduleName = 'name';
+			const endpointInfo: { [key: string]: EndpointInfo } = {
+				action1: {
+					namespace: 'name',
+					method: 'action1',
+				},
+			};
+
+			await bus.registerChannel(moduleName, [], endpointInfo, channelOptions);
+
+			const jsonrpcRequest = {
+				id: 1,
+				jsonrpc: '2.0',
+				method: 'name_action1',
+			};
+
+			// Act && Assert
+			await expect(bus.invoke(jsonrpcRequest, context)).resolves.toEqual({
+				id: 1,
+				jsonrpc: '2.0',
+				result: undefined,
+			});
+		});
+
 		it('should throw error if invoked without request', async () => {
 			// Act && Assert
-			await expect(bus.invoke(undefined as never)).rejects.toThrow('Invalid invoke request.');
+			await expect(bus.invoke(undefined as never, context)).rejects.toThrow(
+				'Invalid invoke request.',
+			);
+		});
+
+		it('should throw error if invoked without context', async () => {
+			// Act && Assert
+			await expect(bus.invoke({} as never, undefined as never)).rejects.toThrow(
+				'Invalid invoke request.',
+			);
 		});
 
 		it('should throw error if invoked with invalid json', async () => {
 			// Act && Assert
-			await expect(bus.invoke('\n')).rejects.toThrow('Invalid invoke request.');
+			await expect(bus.invoke('\n', context)).rejects.toThrow('Invalid invoke request.');
 		});
 
 		it('should throw error if invoked with empty string', async () => {
 			// Act && Assert
-			await expect(bus.invoke('')).rejects.toThrow('Invalid invoke request.');
+			await expect(bus.invoke('', context)).rejects.toThrow('Invalid invoke request.');
 		});
 
 		it('should throw error if invoked without method', async () => {
@@ -217,7 +299,9 @@ describe('Bus', () => {
 			};
 
 			// Act && Assert
-			await expect(bus.invoke(jsonrpcRequest as never)).rejects.toThrow('Invalid invoke request.');
+			await expect(bus.invoke(jsonrpcRequest as never, context)).rejects.toThrow(
+				'Invalid invoke request.',
+			);
 		});
 
 		it('should throw error if invoked without id', async () => {
@@ -228,7 +312,22 @@ describe('Bus', () => {
 			};
 
 			// Act && Assert
-			await expect(bus.invoke(jsonrpcRequest as never)).rejects.toThrow('Invalid invoke request.');
+			await expect(bus.invoke(jsonrpcRequest as never, context)).rejects.toThrow(
+				'Invalid invoke request.',
+			);
+		});
+
+		it('should throw error if invoked without jsonrpc', async () => {
+			// Arrange
+			const jsonrpcRequest = {
+				id: 1,
+				method: 'module:action',
+			};
+
+			// Act && Assert
+			await expect(bus.invoke(jsonrpcRequest as never, context)).rejects.toThrow(
+				'Invalid invoke request.',
+			);
 		});
 	});
 

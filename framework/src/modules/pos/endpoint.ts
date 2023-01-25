@@ -97,7 +97,9 @@ export class PoSEndpoint extends BaseEndpoint {
 		return {
 			...codec.toJSON<ValidatorAccountJSON>(validatorStoreSchema, validatorAccount),
 			address,
-			punishmentPeriods: this._calculatePunishmentPeriods(validatorAccount.pomHeights),
+			punishmentPeriods: this._calculatePunishmentPeriods(
+				validatorAccount.reportMisbehaviorHeights,
+			),
 		};
 	}
 
@@ -115,7 +117,9 @@ export class PoSEndpoint extends BaseEndpoint {
 			const validatorAccountJSON = {
 				...codec.toJSON<ValidatorAccountJSON>(validatorStoreSchema, validatorAccount),
 				address: cryptoAddress.getLisk32AddressFromAddress(data.key),
-				punishmentPeriods: this._calculatePunishmentPeriods(validatorAccount.pomHeights),
+				punishmentPeriods: this._calculatePunishmentPeriods(
+					validatorAccount.reportMisbehaviorHeights,
+				),
 			};
 			response.push(validatorAccountJSON);
 		}
@@ -155,6 +159,7 @@ export class PoSEndpoint extends BaseEndpoint {
 			maxBFTWeightCap: this._moduleConfig.maxBFTWeightCap,
 			commissionIncreasePeriod: this._moduleConfig.commissionIncreasePeriod,
 			maxCommissionIncreaseRate: this._moduleConfig.maxCommissionIncreaseRate,
+			useInvalidBLSKey: this._moduleConfig.useInvalidBLSKey,
 		};
 	}
 
@@ -247,7 +252,9 @@ export class PoSEndpoint extends BaseEndpoint {
 			const validatorAccountJSON = {
 				...codec.toJSON<ValidatorAccountJSON>(validatorStoreSchema, validatorAccount),
 				address: cryptoAddress.getLisk32AddressFromAddress(address),
-				punishmentPeriods: this._calculatePunishmentPeriods(validatorAccount.pomHeights),
+				punishmentPeriods: this._calculatePunishmentPeriods(
+					validatorAccount.reportMisbehaviorHeights,
+				),
 			};
 			response.push(validatorAccountJSON);
 		}
@@ -290,9 +297,7 @@ export class PoSEndpoint extends BaseEndpoint {
 
 		const rewards = new dataStructures.BufferMap<bigint>();
 		const address = cryptoAddress.getAddressFromLisk32Address(context.params.address);
-		const { sentStakes: stakes } = await this.stores
-			.get(StakerStore)
-			.getOrDefault(context, address);
+		const { stakes } = await this.stores.get(StakerStore).getOrDefault(context, address);
 
 		for (const stake of stakes) {
 			if (stake.validatorAddress.equals(address)) {
@@ -303,7 +308,7 @@ export class PoSEndpoint extends BaseEndpoint {
 				.get(context, stake.validatorAddress);
 
 			for (const validatorSharingCoefficient of validatorAccount.sharingCoefficients) {
-				const stakeSharingConefficient = stake.stakeSharingCoefficients.find(sc =>
+				const stakeSharingConefficient = stake.sharingCoefficients.find(sc =>
 					sc.tokenID.equals(validatorSharingCoefficient.tokenID),
 				) ?? {
 					tokenID: validatorSharingCoefficient.tokenID,
@@ -339,7 +344,7 @@ export class PoSEndpoint extends BaseEndpoint {
 	): Promise<bigint> {
 		const staker = await this.stores.get(StakerStore).getOrDefault(ctx, address);
 		let lockedAmount = BigInt(0);
-		for (const stakes of staker.sentStakes) {
+		for (const stakes of staker.stakes) {
 			lockedAmount += stakes.amount;
 		}
 		for (const unlock of staker.pendingUnlocks) {
@@ -357,10 +362,13 @@ export class PoSEndpoint extends BaseEndpoint {
 		const validatorSubStore = this.stores.get(ValidatorStore);
 		const validatorAccount = await validatorSubStore.get(ctx, validatorAddress);
 		const waitTime = getWaitTime(callerAddress, validatorAddress) + unstakeHeight;
-		if (!validatorAccount.pomHeights.length) {
+		if (!validatorAccount.reportMisbehaviorHeights.length) {
 			return waitTime;
 		}
-		const lastPomHeight = validatorAccount.pomHeights[validatorAccount.pomHeights.length - 1];
+		const lastPomHeight =
+			validatorAccount.reportMisbehaviorHeights[
+				validatorAccount.reportMisbehaviorHeights.length - 1
+			];
 		// if last pom height is greater than unstake height + wait time, the validator is not punished
 		if (lastPomHeight >= unstakeHeight + waitTime) {
 			return waitTime;

@@ -14,8 +14,6 @@
 
 import { CHAIN_ID_LENGTH, TOKEN_ID_LENGTH } from '../token/constants';
 import {
-	MAX_LENGTH_NAME,
-	NUMBER_MAINCHAIN_VALIDATORS,
 	MAX_NUM_VALIDATORS,
 	MIN_CHAIN_NAME_LENGTH,
 	MAX_CHAIN_NAME_LENGTH,
@@ -26,13 +24,14 @@ import {
 	MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH,
 	MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH,
 	HASH_LENGTH,
+	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
 } from './constants';
-import { chainAccountSchema } from './stores/chain_account';
+import { chainDataSchema } from './stores/chain_account';
 import { chainValidatorsSchema } from './stores/chain_validators';
 import { channelSchema } from './stores/channel_data';
 import { outboxRootSchema } from './stores/outbox_root';
 import { ownChainAccountSchema } from './stores/own_chain_account';
-import { chainIDSchema } from './stores/registered_names';
+import { registeredNamesSchema } from './stores/registered_names';
 import { terminatedOutboxSchema } from './stores/terminated_outbox';
 import { terminatedStateSchema } from './stores/terminated_state';
 
@@ -97,21 +96,21 @@ export const ccmSchema = {
 export const sidechainRegParams = {
 	$id: '/modules/interoperability/mainchain/sidechainRegistration',
 	type: 'object',
-	required: ['name', 'chainID', 'initValidators', 'certificateThreshold'],
+	required: ['chainID', 'name', 'sidechainValidators', 'sidechainCertificateThreshold'],
 	properties: {
-		name: {
-			dataType: 'string',
-			fieldNumber: 1,
-			minLength: MIN_CHAIN_NAME_LENGTH,
-			maxLength: MAX_CHAIN_NAME_LENGTH,
-		},
 		chainID: {
 			dataType: 'bytes',
-			fieldNumber: 2,
+			fieldNumber: 1,
 			minLength: CHAIN_ID_LENGTH,
 			maxLength: CHAIN_ID_LENGTH,
 		},
-		initValidators: {
+		name: {
+			dataType: 'string',
+			fieldNumber: 2,
+			minLength: MIN_CHAIN_NAME_LENGTH,
+			maxLength: MAX_CHAIN_NAME_LENGTH,
+		},
+		sidechainValidators: {
 			type: 'array',
 			fieldNumber: 3,
 			items: {
@@ -133,7 +132,7 @@ export const sidechainRegParams = {
 			minItems: 1,
 			maxItems: MAX_NUM_VALIDATORS,
 		},
-		certificateThreshold: {
+		sidechainCertificateThreshold: {
 			dataType: 'uint64',
 			fieldNumber: 4,
 		},
@@ -143,7 +142,14 @@ export const sidechainRegParams = {
 export const mainchainRegParams = {
 	$id: '/modules/interoperability/sidechain/mainchainRegistration',
 	type: 'object',
-	required: ['ownChainID', 'ownName', 'mainchainValidators', 'signature', 'aggregationBits'],
+	required: [
+		'ownChainID',
+		'ownName',
+		'mainchainValidators',
+		'mainchainCertificateThreshold',
+		'signature',
+		'aggregationBits',
+	],
 	properties: {
 		ownChainID: {
 			dataType: 'bytes',
@@ -176,18 +182,22 @@ export const mainchainRegParams = {
 					},
 				},
 			},
-			minItems: NUMBER_MAINCHAIN_VALIDATORS,
-			maxItems: NUMBER_MAINCHAIN_VALIDATORS,
+			minItems: 1,
+			maxItems: NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
+		},
+		mainchainCertificateThreshold: {
+			dataType: 'uint64',
+			fieldNumber: 4,
 		},
 		signature: {
 			dataType: 'bytes',
-			fieldNumber: 4,
+			fieldNumber: 5,
 			minItems: BLS_SIGNATURE_LENGTH,
 			maxItems: BLS_SIGNATURE_LENGTH,
 		},
 		aggregationBits: {
 			dataType: 'bytes',
-			fieldNumber: 5,
+			fieldNumber: 6,
 		},
 	},
 };
@@ -214,22 +224,29 @@ export const crossChainUpdateTransactionParams = {
 			fieldNumber: 2,
 		},
 		activeValidatorsUpdate: {
-			type: 'array',
+			type: 'object',
 			fieldNumber: 3,
-			items: {
-				type: 'object',
-				required: ['blsKey', 'bftWeight'],
-				properties: {
-					blsKey: {
+			required: ['blsKeysUpdate', 'bftWeightsUpdate', 'bftWeightsUpdateBitmap'],
+			properties: {
+				blsKeysUpdate: {
+					type: 'array',
+					fieldNumber: 1,
+					items: {
 						dataType: 'bytes',
-						fieldNumber: 1,
 						minLength: BLS_PUBLIC_KEY_LENGTH,
 						maxLength: BLS_PUBLIC_KEY_LENGTH,
 					},
-					bftWeight: {
+				},
+				bftWeightsUpdate: {
+					type: 'array',
+					fieldNumber: 2,
+					items: {
 						dataType: 'uint64',
-						fieldNumber: 2,
 					},
+				},
+				bftWeightsUpdateBitmap: {
+					dataType: 'bytes',
+					fieldNumber: 3,
 				},
 			},
 		},
@@ -356,17 +373,25 @@ export const messageRecoveryInitializationParamsSchema = {
 export const registrationCCMParamsSchema = {
 	$id: '/modules/interoperability/ccCommand/registration',
 	type: 'object',
-	required: ['name', 'messageFeeTokenID'],
+	required: ['name', 'chainID', 'messageFeeTokenID'],
 	properties: {
 		name: {
 			dataType: 'string',
+			minLength: MIN_CHAIN_NAME_LENGTH,
+			maxLength: MAX_CHAIN_NAME_LENGTH,
 			fieldNumber: 1,
+		},
+		chainID: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 		messageFeeTokenID: {
 			dataType: 'bytes',
 			minLength: TOKEN_ID_LENGTH,
 			maxLength: TOKEN_ID_LENGTH,
-			fieldNumber: 2,
+			fieldNumber: 3,
 		},
 	},
 };
@@ -415,7 +440,7 @@ export const validatorsHashInputSchema = {
 export const registrationSignatureMessageSchema = {
 	$id: '/modules/interoperability/sidechain/registrationSignatureMessage',
 	type: 'object',
-	required: ['ownChainID', 'ownName', 'mainchainValidators'],
+	required: ['ownChainID', 'ownName', 'mainchainValidators', 'mainchainCertificateThreshold'],
 	properties: {
 		ownChainID: {
 			dataType: 'bytes',
@@ -427,7 +452,7 @@ export const registrationSignatureMessageSchema = {
 			dataType: 'string',
 			fieldNumber: 2,
 			minLength: MIN_CHAIN_NAME_LENGTH,
-			maxLength: MAX_LENGTH_NAME,
+			maxLength: MAX_CHAIN_NAME_LENGTH,
 		},
 		mainchainValidators: {
 			type: 'array',
@@ -448,8 +473,12 @@ export const registrationSignatureMessageSchema = {
 					},
 				},
 			},
-			minItems: NUMBER_MAINCHAIN_VALIDATORS,
-			maxItems: NUMBER_MAINCHAIN_VALIDATORS,
+			minItems: 1,
+			maxItems: NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
+		},
+		mainchainCertificateThreshold: {
+			dataType: 'uint64',
+			fieldNumber: 4,
 		},
 	},
 };
@@ -575,6 +604,23 @@ export const getChainAccountResponseSchema = {
 	},
 };
 
+export const getChainValidatorsRequestSchema = getChainAccountRequestSchema;
+
+export const getChainValidatorsResponseSchema = validatorsHashInputSchema;
+
+export const isChainIDAvailableRequestSchema = getChainAccountRequestSchema;
+
+export const isChainIDAvailableResponseSchema = {
+	$id: '/modules/interoperability/endpoint/isChainIDAvailableResponseSchema',
+	type: 'object',
+	required: ['result'],
+	properties: {
+		result: {
+			type: 'boolean',
+		},
+	},
+};
+
 export const getChannelRequestSchema = getChainAccountRequestSchema;
 
 export const getTerminatedStateAccountRequestSchema = getChainAccountRequestSchema;
@@ -625,7 +671,7 @@ export const genesisInteroperabilitySchema = {
 						fieldNumber: 1,
 					},
 					storeValue: {
-						...chainAccountSchema,
+						...chainDataSchema,
 						fieldNumber: 2,
 					},
 				},
@@ -733,7 +779,7 @@ export const genesisInteroperabilitySchema = {
 						fieldNumber: 1,
 					},
 					storeValue: {
-						...chainIDSchema,
+						...registeredNamesSchema,
 						fieldNumber: 2,
 					},
 				},

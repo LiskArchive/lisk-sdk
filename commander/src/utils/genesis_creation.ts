@@ -67,7 +67,7 @@ interface Keys {
 		generatorPrivateKey: string;
 		blsKeyPath: string;
 		blsKey: string;
-		blsProofOfPosession: string;
+		blsProofOfPossession: string;
 		blsPrivateKey: string;
 	};
 }
@@ -115,11 +115,11 @@ export const generateGenesisBlockDefaultPoSAssets = (input: GenesisBlockDefaultA
 					address: v.address,
 					name: `genesis_${i}`,
 					blsKey: v.plain.blsKey,
-					proofOfPossession: v.plain.blsProofOfPosession,
+					proofOfPossession: v.plain.blsProofOfPossession,
 					generatorKey: v.plain.generatorKey,
 					lastGeneratedHeight: 0,
 					isBanned: false,
-					pomHeights: [],
+					reportMisbehaviorHeights: [],
 					consecutiveMissedBlocks: 0,
 					commission: 0,
 					lastCommissionIncreaseHeight: 0,

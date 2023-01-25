@@ -15,7 +15,7 @@ import { BaseStore } from '../../base_store';
 import { CHAIN_ID_LENGTH } from '../constants';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#registered-names-substore
-export const chainIDSchema = {
+export const registeredNamesSchema = {
 	$id: '/modules/interoperability/chainId',
 	type: 'object',
 	required: ['chainID'],
@@ -34,5 +34,5 @@ export interface ChainID {
 }
 
 export class RegisteredNamesStore extends BaseStore<ChainID> {
-	public schema = chainIDSchema;
+	public schema = registeredNamesSchema;
 }

@@ -56,10 +56,8 @@ describe('ValidatorsModuleMethod', () => {
 	let blsKeysSubStore: BLSKeyStore;
 	let validatorsParamsSubStore: ValidatorsParamsStore;
 	const blockTime = 10;
-	const genesisConfig: any = {};
-	const moduleConfig: any = {
-		blockTime,
-	};
+	const genesisConfig: any = { blockTime };
+	const moduleConfig: any = {};
 	const address = utils.getRandomBytes(20);
 	const generatorKey = utils.getRandomBytes(32);
 	const proofOfPossession = Buffer.from(

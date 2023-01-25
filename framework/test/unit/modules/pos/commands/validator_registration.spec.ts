@@ -52,11 +52,11 @@ describe('Validator registration command', () => {
 	};
 	const defaultValidatorInfo = {
 		name: transactionParams.name,
-		totalStakeReceived: BigInt(0),
+		totalStake: BigInt(0),
 		selfStake: BigInt(0),
 		lastGeneratedHeight: 0,
 		isBanned: false,
-		pomHeights: [],
+		reportMisbehaviorHeights: [],
 		consecutiveMissedBlocks: 0,
 		commission: COMMISSION,
 		lastCommissionIncreaseHeight: 0,
@@ -109,6 +109,7 @@ describe('Validator registration command', () => {
 		mockValidatorsMethod = {
 			setValidatorGeneratorKey: jest.fn(),
 			registerValidatorKeys: jest.fn().mockResolvedValue(true),
+			registerValidatorWithoutBLSKey: jest.fn().mockResolvedValue(true),
 			getValidatorKeys: jest.fn(),
 			getGeneratorsBetweenTimestamps: jest.fn(),
 			setValidatorsParams: jest.fn(),

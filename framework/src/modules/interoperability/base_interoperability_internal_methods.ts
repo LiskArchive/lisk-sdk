@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+/* eslint-disable no-bitwise */
 
 import { codec } from '@liskhq/lisk-codec';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
@@ -24,10 +25,18 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 	MESSAGE_TAG_CERTIFICATE,
 	EMPTY_HASH,
+	MAX_NUM_VALIDATORS,
 } from './constants';
 import { ccmSchema } from './schemas';
 import { CCMsg, CrossChainUpdateTransactionParams, ChainAccount } from './types';
-import { computeValidatorsHash, getEncodedCCMAndID, getMainchainID, validateFormat } from './utils';
+import {
+	computeValidatorsHash,
+	getEncodedCCMAndID,
+	getMainchainID,
+	isOutboxRootWitnessEmpty,
+	validateFormat,
+	calculateNewActiveValidators,
+} from './utils';
 import { NamedRegistry } from '../named_registry';
 import { OwnChainAccountStore } from './stores/own_chain_account';
 import { ChannelDataStore } from './stores/channel_data';
@@ -39,7 +48,7 @@ import { ChainAccountUpdatedEvent } from './events/chain_account_updated';
 import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
 import { BaseInternalMethod } from '../BaseInternalMethod';
 import { MethodContext, ImmutableMethodContext, NotFoundError } from '../../state_machine';
-import { calculateNewActiveValidators, ChainValidatorsStore } from './stores/chain_validators';
+import { ChainValidatorsStore } from './stores/chain_validators';
 import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';
 import { Certificate } from '../../engine/consensus/certificate_generation/types';
 import { CCMSentFailedCode, CcmSentFailedEvent } from './events/ccm_send_fail';
@@ -59,6 +68,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			receivingChainID: Buffer,
 		) => Promise<void>;
 	};
+
 	public constructor(
 		stores: NamedRegistry,
 		events: NamedRegistry,
@@ -247,8 +257,15 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		context: MethodContext,
 		ccu: CrossChainUpdateTransactionParams,
 	): Promise<void> {
-		await this.stores.get(ChainValidatorsStore).updateValidators(context, ccu.sendingChainID, {
-			activeValidators: ccu.activeValidatorsUpdate,
+		const chainValidatorsStore = this.stores.get(ChainValidatorsStore);
+		const currentValidators = await chainValidatorsStore.get(context, ccu.sendingChainID);
+		await chainValidatorsStore.set(context, ccu.sendingChainID, {
+			activeValidators: calculateNewActiveValidators(
+				currentValidators.activeValidators,
+				ccu.activeValidatorsUpdate.blsKeysUpdate,
+				ccu.activeValidatorsUpdate.bftWeightsUpdate,
+				ccu.activeValidatorsUpdate.bftWeightsUpdateBitmap,
+			),
 			certificateThreshold: ccu.certificateThreshold,
 		});
 	}
@@ -286,6 +303,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 				ccu.inboxUpdate.messageWitnessHashes,
 			);
 	}
+
 	public async verifyValidatorsUpdate(
 		context: ImmutableMethodContext,
 		ccu: CrossChainUpdateTransactionParams,
@@ -293,22 +311,58 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		if (ccu.certificate.length === 0) {
 			throw new Error('Certificate must be non-empty if validators have been updated.');
 		}
-		const blsKeys = ccu.activeValidatorsUpdate.map(v => v.blsKey);
-
-		if (!objects.bufferArrayOrderByLex(blsKeys)) {
+		const { bftWeightsUpdate, bftWeightsUpdateBitmap, blsKeysUpdate } = ccu.activeValidatorsUpdate;
+		if (!objects.bufferArrayOrderByLex(blsKeysUpdate)) {
 			throw new Error('Keys are not sorted lexicographic order.');
-		}
-		if (!objects.bufferArrayUniqueItems(blsKeys)) {
-			throw new Error('Keys have duplicated entry.');
 		}
 		const { activeValidators } = await this.stores
 			.get(ChainValidatorsStore)
 			.get(context, ccu.sendingChainID);
 
+		const allBLSKeys = [...activeValidators.map(v => v.blsKey), ...blsKeysUpdate];
+		allBLSKeys.sort((a, b) => a.compare(b));
+
+		if (!objects.bufferArrayUniqueItems(allBLSKeys)) {
+			throw new Error('Keys have duplicated entry.');
+		}
+		// using bigint for integer division
+		const expectedBitmapLength = BigInt(allBLSKeys.length + 7) / BigInt(8);
+		if (BigInt(bftWeightsUpdateBitmap.length) !== expectedBitmapLength) {
+			throw new Error(`Invalid bftWeightsUpdateBitmap. Expected length ${expectedBitmapLength}.`);
+		}
+		const bftWeightsUpdateBitmapBin = BigInt(`0x${bftWeightsUpdateBitmap.toString('hex')}`);
+		const expectedWeightLength = (bftWeightsUpdateBitmapBin.toString(2).match(/1/g) ?? []).length;
+		if (expectedWeightLength !== bftWeightsUpdate.length) {
+			throw new Error(
+				'The number of 1s in the bitmap is not equal to the number of new BFT weights.',
+			);
+		}
+		for (let i = 0; i < allBLSKeys.length; i += 1) {
+			// existing key does not need to be checked
+			if (!objects.bufferArrayIncludes(blsKeysUpdate, allBLSKeys[i])) {
+				continue;
+			}
+			const digit = (bftWeightsUpdateBitmapBin >> BigInt(i)) & BigInt(1);
+			if (digit !== BigInt(1)) {
+				throw new Error('New validators must have a BFT weight update.');
+			}
+			if (bftWeightsUpdate[i] === BigInt(0)) {
+				throw new Error('New validators must have a positive BFT weight.');
+			}
+		}
+
 		const newActiveValidators = calculateNewActiveValidators(
 			activeValidators,
-			ccu.activeValidatorsUpdate,
+			ccu.activeValidatorsUpdate.blsKeysUpdate,
+			ccu.activeValidatorsUpdate.bftWeightsUpdate,
+			ccu.activeValidatorsUpdate.bftWeightsUpdateBitmap,
 		);
+		if (newActiveValidators.length < 1 || newActiveValidators.length > MAX_NUM_VALIDATORS) {
+			throw new Error(
+				`Invalid validators array. It must have at least 1 element and at most ${MAX_NUM_VALIDATORS} elements.`,
+			);
+		}
+
 		const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
 		const newValidatorsHash = computeValidatorsHash(newActiveValidators, ccu.certificateThreshold);
 		if (!certificate.validatorsHash.equals(newValidatorsHash)) {
@@ -389,18 +443,6 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			sendingChainID: ownChainAccount.chainID,
 			status,
 		};
-		// Not possible to send messages to the own chain.
-		if (receivingChainID.equals(ownChainAccount.chainID)) {
-			this.events.get(CcmSentFailedEvent).log(
-				context,
-				{
-					ccm: { ...ccm, params: EMPTY_BYTES },
-					code: CCMSentFailedCode.INVALID_RECEIVING_CHAIN,
-				},
-				true,
-			);
-			throw new Error('Sending chain cannot be the receiving chain.');
-		}
 
 		// Validate ccm size.
 		try {
@@ -419,6 +461,18 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		}
 		// From now on, we can assume that the ccm is valid.
 
+		// Not possible to send messages to the own chain.
+		if (receivingChainID.equals(ownChainAccount.chainID)) {
+			this.events.get(CcmSentFailedEvent).log(
+				context,
+				{
+					ccm: { ...ccm, params: EMPTY_BYTES },
+					code: CCMSentFailedCode.INVALID_RECEIVING_CHAIN,
+				},
+				true,
+			);
+			throw new Error('Sending chain cannot be the receiving chain.');
+		}
 		// receivingChainID must correspond to a live chain.
 		const isReceivingChainLive = await this.isLive(
 			context,
@@ -448,6 +502,26 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 				throw error;
 			}
 		}
+
+		// Pay message fee.
+		if (fee > 0) {
+			try {
+				// eslint-disable-next-line no-lonely-if
+				await this._tokenMethod.payMessageFee(context, sendingAddress, fee, ccm.receivingChainID);
+			} catch (error) {
+				this.events.get(CcmSentFailedEvent).log(
+					context,
+					{
+						ccm: { ...ccm, params: EMPTY_BYTES },
+						code: CCMSentFailedCode.MESSAGE_FEE_EXCEPTION,
+					},
+					true,
+				);
+
+				throw new Error('Failed to pay message fee.');
+			}
+		}
+
 		const mainchainID = getMainchainID(ownChainAccount.chainID);
 		let partnerChainID: Buffer;
 		// Processing on the mainchain.
@@ -475,25 +549,6 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			);
 
 			throw new Error('Receiving chain is not active.');
-		}
-
-		// Pay message fee.
-		if (fee > 0) {
-			try {
-				// eslint-disable-next-line no-lonely-if
-				await this._tokenMethod.payMessageFee(context, sendingAddress, fee, partnerChainID);
-			} catch (error) {
-				this.events.get(CcmSentFailedEvent).log(
-					context,
-					{
-						ccm: { ...ccm, params: EMPTY_BYTES },
-						code: CCMSentFailedCode.MESSAGE_FEE_EXCEPTION,
-					},
-					true,
-				);
-
-				throw new Error('Failed to pay message fee.');
-			}
 		}
 
 		const { ccmID } = getEncodedCCMAndID(ccm);
@@ -528,21 +583,34 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			params.inboxUpdate.messageWitnessHashes,
 		);
 
+		const { outboxRootWitness } = params.inboxUpdate;
 		if (params.certificate.length === 0) {
+			// The value of outboxRootWitness can only be non-empty when certificate is non-empty
+			if (!isOutboxRootWitnessEmpty(outboxRootWitness)) {
+				throw new Error(
+					'The outbox root witness can be non-empty only if the certificate is non-empty.',
+				);
+			}
 			if (!newInboxRoot.equals(channel.partnerChainOutboxRoot)) {
 				throw new Error('Inbox root does not match partner chain outbox root.');
 			}
 			return;
 		}
+		// For every non-empty certificate there should be non-empty outboxRootWitness
+		if (isOutboxRootWitnessEmpty(outboxRootWitness)) {
+			throw new Error(
+				'The outbox root witness must be non-empty to authenticate the new partnerChainOutboxRoot.',
+			);
+		}
 		const outboxRootStore = this.stores.get(OutboxRootStore);
 		const outboxKey = Buffer.concat([outboxRootStore.key, utils.hash(params.sendingChainID)]);
 		const proof = {
-			siblingHashes: params.inboxUpdate.outboxRootWitness.siblingHashes,
+			siblingHashes: outboxRootWitness.siblingHashes,
 			queries: [
 				{
 					key: outboxKey,
 					value: codec.encode(outboxRootSchema, { root: newInboxRoot }),
-					bitmap: params.inboxUpdate.outboxRootWitness.bitmap,
+					bitmap: outboxRootWitness.bitmap,
 				},
 			],
 		};
