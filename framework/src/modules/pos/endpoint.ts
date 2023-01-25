@@ -159,6 +159,7 @@ export class PoSEndpoint extends BaseEndpoint {
 			maxBFTWeightCap: this._moduleConfig.maxBFTWeightCap,
 			commissionIncreasePeriod: this._moduleConfig.commissionIncreasePeriod,
 			maxCommissionIncreaseRate: this._moduleConfig.maxCommissionIncreaseRate,
+			useInvalidBLSKey: this._moduleConfig.useInvalidBLSKey,
 		};
 	}
 

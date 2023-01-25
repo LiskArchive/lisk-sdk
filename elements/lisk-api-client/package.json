@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-api-client",
-	"version": "6.0.0-alpha.11",
+	"version": "6.0.0-alpha.12",
 	"description": "An API client for the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -42,7 +42,7 @@
 	"dependencies": {
 		"@liskhq/lisk-codec": "^0.3.0-alpha.7",
 		"@liskhq/lisk-cryptography": "^4.0.0-alpha.6",
-		"@liskhq/lisk-transactions": "^6.0.0-alpha.8",
+		"@liskhq/lisk-transactions": "^6.0.0-alpha.9",
 		"@liskhq/lisk-validator": "^0.7.0-alpha.6",
 		"isomorphic-ws": "4.0.1",
 		"ws": "8.11.0",
