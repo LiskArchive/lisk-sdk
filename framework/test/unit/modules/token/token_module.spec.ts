@@ -24,6 +24,8 @@ import { invalidGenesisAssets, validGenesisAssets } from './init_genesis_state_f
 describe('token module', () => {
 	let tokenModule: TokenModule;
 
+	const ownChainID = Buffer.from([0, 0, 0, 0]);
+
 	beforeEach(() => {
 		tokenModule = new TokenModule();
 	});
@@ -32,7 +34,7 @@ describe('token module', () => {
 		it('should initialize config with default value when module config is empty', async () => {
 			await expect(
 				tokenModule.init({
-					genesisConfig: { chainID: '00000000' } as any,
+					genesisConfig: { chainID: ownChainID.toString('hex') } as any,
 					moduleConfig: {},
 				}),
 			).toResolve();
@@ -41,7 +43,7 @@ describe('token module', () => {
 		it('should initialize config with given value', async () => {
 			await expect(
 				tokenModule.init({
-					genesisConfig: { chainID: '00000000' } as any,
+					genesisConfig: { chainID: ownChainID.toString('hex') } as any,
 					moduleConfig: {
 						supportedTokenID: ['000000020000'],
 					},
@@ -59,7 +61,9 @@ describe('token module', () => {
 		});
 
 		it('should setup initial state', async () => {
-			const context = createGenesisBlockContext({}).createInitGenesisStateContext();
+			const context = createGenesisBlockContext({
+				chainID: ownChainID,
+			}).createInitGenesisStateContext();
 			return expect(tokenModule.initGenesisState(context)).resolves.toBeUndefined();
 		});
 
@@ -69,6 +73,7 @@ describe('token module', () => {
 			}
 			const encodedAsset = codec.encode(genesisTokenStoreSchema, input);
 			const context = createGenesisBlockContext({
+				chainID: ownChainID,
 				assets: new BlockAssets([{ module: 'token', data: encodedAsset }]),
 			}).createInitGenesisStateContext();
 
@@ -102,6 +107,7 @@ describe('token module', () => {
 			}
 			const encodedAsset = codec.encode(genesisTokenStoreSchema, input);
 			const context = createGenesisBlockContext({
+				chainID: ownChainID,
 				assets: new BlockAssets([{ module: 'token', data: encodedAsset }]),
 			}).createInitGenesisStateContext();
 
