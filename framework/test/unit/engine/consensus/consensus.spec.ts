@@ -168,6 +168,12 @@ describe('consensus', () => {
 			expect(network.registerEndpoint).toHaveBeenCalledTimes(4);
 		});
 
+		it('should register handlers', async () => {
+			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
+			await initConsensus();
+			expect(network.registerHandler).toHaveBeenCalledTimes(3);
+		});
+
 		it('should execute genesis block if genesis block does not exist', async () => {
 			// Arrange
 			jest.spyOn(consensus['_bft'].method, 'getBFTParameters').mockResolvedValue({

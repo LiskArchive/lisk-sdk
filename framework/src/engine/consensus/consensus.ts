@@ -62,6 +62,7 @@ import { ValidatorInfo } from './certificate_generation/types';
 import { BFTModule } from '../bft';
 import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../abi';
 import { isEmptyConsensusUpdate } from './utils';
+import { NETWORK_EVENT_COMMIT_MESSAGES } from './certificate_generation/constants';
 
 interface ConsensusArgs {
 	chain: Chain;
@@ -183,6 +184,11 @@ export class Consensus {
 		this._network.registerHandler(NETWORK_EVENT_POST_BLOCK, ({ data, peerId }) => {
 			this.onBlockReceive(data, peerId).catch(err => {
 				this._logger.error({ err: err as Error, peerId }, 'Fail to handle received block');
+			});
+		});
+		this._network.registerHandler(NETWORK_EVENT_COMMIT_MESSAGES, ({ data, peerId }) => {
+			this._endpoint.handleEventSingleCommit(data, peerId).catch(err => {
+				this._logger.error({ err: err as Error, peerId }, 'Fail to handle received single commits');
 			});
 		});
 		this._network.registerHandler(NETWORK_EVENT_POST_NODE_INFO, ({ data, peerId }) => {
@@ -540,7 +546,10 @@ export class Consensus {
 		const contextID = await this._verifyAssets(block);
 
 		if (!options.skipBroadcast) {
-			this._network.send({ event: NETWORK_EVENT_POST_BLOCK, data: block.getBytes() });
+			this._network.send({
+				event: NETWORK_EVENT_POST_BLOCK,
+				data: codec.encode(postBlockEventSchema, { block: block.getBytes() }),
+			});
 			this._logger.debug(
 				{
 					id: block.header.id,

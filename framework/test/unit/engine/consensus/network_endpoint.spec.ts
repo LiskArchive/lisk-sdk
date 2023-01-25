@@ -26,13 +26,16 @@ import {
 	getBlocksFromIdRequestSchema,
 	getHighestCommonBlockRequestSchema,
 	getHighestCommonBlockResponseSchema,
-	getSingleCommitEventSchema,
 } from '../../../../src/engine/consensus/schema';
 import { Network } from '../../../../src/engine/network';
 import { loggerMock } from '../../../../src/testing/mocks';
 import { createValidDefaultBlock } from '../../../fixtures';
 import { CommitPool } from '../../../../src/engine/consensus/certificate_generation/commit_pool';
 import { createFakeBlockHeader } from '../../../../src/testing/create_block';
+import {
+	singleCommitSchema,
+	singleCommitsNetworkPacketSchema,
+} from '../../../../src/engine/consensus/certificate_generation/schema';
 
 describe('p2p endpoint', () => {
 	const defaultPeerId = 'peer-id';
@@ -240,19 +243,19 @@ describe('p2p endpoint', () => {
 			blsPublicKey: utils.getRandomBytes(48),
 			blsSecretKey: utils.getRandomBytes(32),
 		};
-		let validCommit: { singleCommit: SingleCommit };
+		let validCommit: SingleCommit;
 		let encodedValidCommit: Buffer;
 
 		beforeEach(() => {
 			validCommit = {
-				singleCommit: {
-					blockID: blockHeader.id,
-					height: blockHeader.height,
-					validatorAddress: validatorInfo.address,
-					certificateSignature: signCertificate(validatorInfo.blsSecretKey, chainID, certificate),
-				},
+				blockID: blockHeader.id,
+				height: blockHeader.height,
+				validatorAddress: validatorInfo.address,
+				certificateSignature: signCertificate(validatorInfo.blsSecretKey, chainID, certificate),
 			};
-			encodedValidCommit = codec.encode(getSingleCommitEventSchema, validCommit);
+			encodedValidCommit = codec.encode(singleCommitsNetworkPacketSchema, {
+				commits: [codec.encode(singleCommitSchema, validCommit)],
+			});
 		});
 
 		it('should add commit with valid commit', async () => {
@@ -278,12 +281,14 @@ describe('p2p endpoint', () => {
 
 		it('should apply penalty when invalid data value is received', async () => {
 			const invalidCommit = {
-				singleCommit: {
-					...validCommit.singleCommit,
-					certificateSignature: utils.getRandomBytes(2),
-				},
+				commits: [
+					codec.encode(singleCommitSchema, {
+						...validCommit,
+						certificateSignature: utils.getRandomBytes(2),
+					}),
+				],
 			};
-			const encodedInvalidCommit = codec.encode(getSingleCommitEventSchema, invalidCommit);
+			const encodedInvalidCommit = codec.encode(singleCommitsNetworkPacketSchema, invalidCommit);
 			await expect(
 				endpoint.handleEventSingleCommit(encodedInvalidCommit, defaultPeerId),
 			).rejects.toThrow('minLength not satisfied');

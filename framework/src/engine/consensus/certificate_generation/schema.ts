@@ -77,6 +77,10 @@ export const singleCommitSchema = {
 	},
 };
 
+export interface SingleCommitsNetworkPacket {
+	commits: Buffer[];
+}
+
 export const singleCommitsNetworkPacketSchema = {
 	$id: '/consensus/singleCommitsNetworkPacket',
 	type: 'object',
