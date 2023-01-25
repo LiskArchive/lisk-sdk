@@ -467,18 +467,18 @@ describe('TokenInteroperableMethod', () => {
 	});
 
 	describe('recover', () => {
-		const createRecoverContext = () => ({
+		const createRecoverContext = (store: PrefixedStateReadWriter) => ({
 			getMethodContext: () => methodContext,
 			eventQueue: new EventQueue(0),
-			getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+			getStore: (moduleID: Buffer, prefix: Buffer) => store.getStore(moduleID, prefix),
 			module: tokenModule.name,
-			stateStore,
+			stateStore: store,
 			chainID: ownChainID,
 		});
 		it('should reject if store prefix is not store prefix user', async () => {
 			await expect(
 				tokenInteropMethod.recover({
-					...createRecoverContext(),
+					...createRecoverContext(stateStore),
 					storeKey: Buffer.concat([defaultAddress, defaultTokenID]),
 					substorePrefix: Buffer.from([0, 0]),
 					storeValue: codec.encode(userStoreSchema, {
@@ -498,7 +498,7 @@ describe('TokenInteroperableMethod', () => {
 		it('should reject if store key is not 28 bytes', async () => {
 			await expect(
 				tokenInteropMethod.recover({
-					...createRecoverContext(),
+					...createRecoverContext(stateStore),
 					module: tokenModule.name,
 					storeKey: Buffer.concat([defaultAddress, defaultTokenID, Buffer.alloc(20)]),
 					substorePrefix: userStore.subStorePrefix,
@@ -519,7 +519,7 @@ describe('TokenInteroperableMethod', () => {
 		it('should reject if store value cannot be decoded', async () => {
 			await expect(
 				tokenInteropMethod.recover({
-					...createRecoverContext(),
+					...createRecoverContext(stateStore),
 					storeKey: Buffer.concat([defaultAddress, defaultTokenID]),
 					substorePrefix: userStore.subStorePrefix,
 					storeValue: utils.getRandomBytes(32),
@@ -539,7 +539,7 @@ describe('TokenInteroperableMethod', () => {
 				.mockResolvedValue(defaultForeignTokenID);
 			await expect(
 				tokenInteropMethod.recover({
-					...createRecoverContext(),
+					...createRecoverContext(stateStore),
 					storeKey: Buffer.concat([defaultAddress, defaultForeignTokenID]),
 					substorePrefix: userStore.subStorePrefix,
 					storeValue: codec.encode(userStoreSchema, {
@@ -560,7 +560,7 @@ describe('TokenInteroperableMethod', () => {
 			const recipient = utils.getRandomBytes(20);
 			await expect(
 				tokenInteropMethod.recover({
-					...createRecoverContext(),
+					...createRecoverContext(stateStore),
 					storeKey: Buffer.concat([recipient, defaultTokenID]),
 					substorePrefix: userStore.subStorePrefix,
 					storeValue: codec.encode(userStoreSchema, {
@@ -585,7 +585,7 @@ describe('TokenInteroperableMethod', () => {
 			});
 			await expect(
 				tokenInteropMethod.recover({
-					...createRecoverContext(),
+					...createRecoverContext(stateStore),
 					storeKey: Buffer.concat([recipient, defaultTokenID]),
 					substorePrefix: userStore.subStorePrefix,
 					storeValue: codec.encode(userStoreSchema, defaultAccount),
@@ -613,7 +613,7 @@ describe('TokenInteroperableMethod', () => {
 			});
 			await expect(
 				tokenInteropMethod.recover({
-					...createRecoverContext(),
+					...createRecoverContext(stateStore),
 					storeKey: Buffer.concat([recipient, defaultTokenID]),
 					substorePrefix: userStore.subStorePrefix,
 					storeValue: codec.encode(userStoreSchema, defaultAccount),
