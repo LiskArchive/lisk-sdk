@@ -19,7 +19,7 @@ import {
 	ChainStatus,
 	LIVENESS_LIMIT,
 	chain,
-	computeCertificateFromBlockHeader,
+	computeUnsignedCertificateFromBlockHeader,
 	cryptography,
 	testing,
 	db,
@@ -132,11 +132,15 @@ describe('certificate generation', () => {
 			const firstBlockHeader = sampleBlockHeaders[0];
 			const { aggregateCommit } = firstBlockHeader;
 
-			const expectedCertificate = computeCertificateFromBlockHeader(
+			const unsignedCertificate = computeUnsignedCertificateFromBlockHeader(
 				new chain.BlockHeader(firstBlockHeader),
 			);
-			expectedCertificate.aggregationBits = aggregateCommit.aggregationBits;
-			expectedCertificate.signature = aggregateCommit.certificateSignature;
+			const expectedCertificate = {
+				...unsignedCertificate,
+				aggregationBits: aggregateCommit.aggregationBits,
+				signature: aggregateCommit.certificateSignature,
+			};
+
 			const computedCertificate = getCertificateFromAggregateCommit(aggregateCommit, [
 				firstBlockHeader,
 			]);
@@ -278,11 +282,15 @@ describe('certificate generation', () => {
 
 		it('should return a valid certificate passing chainOfTrust check', () => {
 			const secondBlockHeader = sampleBlockHeaders[1];
-			const expectedCertificate = computeCertificateFromBlockHeader(
+			const unsignedCertificate = computeUnsignedCertificateFromBlockHeader(
 				new chain.BlockHeader(secondBlockHeader),
 			);
-			expectedCertificate.aggregationBits = secondBlockHeader.aggregateCommit.aggregationBits;
-			expectedCertificate.signature = secondBlockHeader.aggregateCommit.certificateSignature;
+			const expectedCertificate = {
+				...unsignedCertificate,
+				aggregationBits: secondBlockHeader.aggregateCommit.aggregationBits,
+				signature: secondBlockHeader.aggregateCommit.certificateSignature,
+			};
+
 			expect(
 				getNextCertificateFromAggregateCommits(
 					sampleBlockHeaders,

@@ -137,7 +137,11 @@ export { TransactionExecutionResult, TransactionVerifyResult } from './abi/const
 export { AggregateCommit } from './engine/consensus/types';
 export { BFTHeights } from './engine/bft/types';
 export { BFTParameters } from './engine/bft/schemas';
-export { aggregateCommitSchema } from './engine/consensus/certificate_generation/schema';
-export { computeUnsignedCertificateFromBlockHeader } from './engine/consensus/certificate_generation/utils';
-export { Certificate } from './engine/consensus/certificate_generation/types';
-export { certificateSchema } from './engine/consensus/certificate_generation/schema';
+export {
+	computeUnsignedCertificateFromBlockHeader,
+	Certificate,
+	UnsignedCertificate,
+	aggregateCommitSchema,
+	certificateSchema,
+	unsignedCertificateSchema,
+} from './engine/consensus';

@@ -45,6 +45,8 @@ describe('inboxUpdate', () => {
 			timestamp: sampleBlock.timestamp,
 			validatorsHash: sampleBlock.validatorsHash,
 			stateRoot: sampleBlock.stateRoot,
+			aggregationBits: Buffer.alloc(0),
+			signature: cryptography.utils.getRandomBytes(32),
 		};
 
 		const sampleLastCertificate: LastCertificate = {
