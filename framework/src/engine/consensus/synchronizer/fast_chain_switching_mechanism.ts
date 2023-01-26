@@ -155,10 +155,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 	private _validateBlocks(blocks: ReadonlyArray<Block>, peerId: string): void {
 		this._logger.debug(
 			{
-				blocks: blocks.map(block => ({
-					blockId: block.header.id,
-					height: block.header.height,
-				})),
+				heights: blocks.map(b => b.header.height).toString(),
 			},
 			'Validating blocks',
 		);
@@ -166,7 +163,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 			for (const block of blocks) {
 				this._logger.trace(
 					{
-						blockId: block.header.id,
+						blockId: block.header.id.toString('hex'),
 						height: block.header.height,
 					},
 					'Validating block',
@@ -187,7 +184,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 				}
 				this._logger.trace(
 					{
-						blockId: block.header.id,
+						blockId: block.header.id.toString('hex'),
 						height: block.header.height,
 					},
 					'Applying blocks',

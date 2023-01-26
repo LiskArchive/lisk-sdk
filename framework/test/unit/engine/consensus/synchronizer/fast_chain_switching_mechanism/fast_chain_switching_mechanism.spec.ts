@@ -685,7 +685,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 				for (const block of requestedBlocks) {
 					expect(loggerMock.trace).toHaveBeenCalledWith(
-						{ blockId: block.header.id, height: block.header.height },
+						{ blockId: block.header.id.toString('hex'), height: block.header.height },
 						'Validating block',
 					);
 				}
@@ -855,7 +855,7 @@ describe('fast_chain_switching_mechanism', () => {
 				for (const block of requestedBlocks) {
 					expect(loggerMock.trace).toHaveBeenCalledWith(
 						{
-							blockId: block.header.id,
+							blockId: block.header.id.toString('hex'),
 							height: block.header.height,
 						},
 						'Applying blocks',

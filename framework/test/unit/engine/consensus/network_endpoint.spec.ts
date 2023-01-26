@@ -282,7 +282,7 @@ describe('p2p endpoint', () => {
 			expect(commitPool.addCommit).not.toHaveBeenCalled();
 		});
 
-		it('should apply penalty when not buffer is given', async () => {
+		it('should apply penalty when received message is not Buffer', async () => {
 			await expect(endpoint.handleEventSingleCommit('some data', defaultPeerId)).rejects.toThrow();
 			expect(network.applyPenaltyOnPeer).toHaveBeenCalledWith({
 				peerId: defaultPeerId,

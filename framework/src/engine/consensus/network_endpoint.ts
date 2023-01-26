@@ -199,31 +199,33 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 		const stateStore = new StateStore(this._db);
 
 		try {
-			const receivedSingleCommits = codec.decode<SingleCommitsNetworkPacket>(
+			const singleCommitsNetworkPacket = codec.decode<SingleCommitsNetworkPacket>(
 				singleCommitsNetworkPacketSchema,
 				data as never,
 			);
-			for (const encodedCommit of receivedSingleCommits.commits) {
-				const decodedSingleCommit = codec.decode<SingleCommit>(singleCommitSchema, encodedCommit);
-				validator.validate(singleCommitSchema, decodedSingleCommit);
+			for (const encodedCommit of singleCommitsNetworkPacket.commits) {
+				const singleCommit = codec.decode<SingleCommit>(singleCommitSchema, encodedCommit);
+				validator.validate(singleCommitSchema, singleCommit);
 				// in case of critical error, it will throw an error, which will result in banning
-				const isValidCommit = await this._commitPool.validateCommit(
-					stateStore,
-					decodedSingleCommit,
-				);
+				const isValidCommit = await this._commitPool.validateCommit(stateStore, singleCommit);
 				if (!isValidCommit) {
-					this._logger.debug(
+					this._logger.trace(
 						{
-							validatorAddress: address.getLisk32AddressFromAddress(
-								decodedSingleCommit.validatorAddress,
-							),
-							height: decodedSingleCommit.height,
+							validatorAddress: address.getLisk32AddressFromAddress(singleCommit.validatorAddress),
+							height: singleCommit.height,
 						},
-						'Received commit is invalid',
+						'Received single commit is invalid',
 					);
 					continue;
 				}
-				this._commitPool.addCommit(decodedSingleCommit);
+				this._commitPool.addCommit(singleCommit);
+				this._logger.debug(
+					{
+						validatorAddress: address.getLisk32AddressFromAddress(singleCommit.validatorAddress),
+						height: singleCommit.height,
+					},
+					'Added received single commit to the pool',
+				);
 			}
 		} catch (error) {
 			this._logger.warn(
