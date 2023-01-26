@@ -407,8 +407,8 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 
 		const verifySignature = bls.verifyWeightedAggSig(
 			blsKeys,
-			certificate.aggregationBits as Buffer,
-			certificate.signature as Buffer,
+			certificate.aggregationBits,
+			certificate.signature,
 			MESSAGE_TAG_CERTIFICATE,
 			params.sendingChainID,
 			params.certificate,

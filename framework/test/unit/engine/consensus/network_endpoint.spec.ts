@@ -18,7 +18,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SingleCommit } from '.../../../src/engine/consensus//certificate_generation/types';
 import {
-	computeCertificateFromBlockHeader,
+	computeUnsignedCertificateFromBlockHeader,
 	signCertificate,
 } from '.../../../src/engine/consensus//certificate_generation/utils';
 import { NetworkEndpoint } from '../../../../src/engine/consensus/network_endpoint';
@@ -234,7 +234,7 @@ describe('p2p endpoint', () => {
 	describe('handleEventSingleCommit', () => {
 		const chainID = Buffer.alloc(0);
 		const blockHeader = createFakeBlockHeader();
-		const certificate = computeCertificateFromBlockHeader(blockHeader);
+		const unsignedCertificate = computeUnsignedCertificateFromBlockHeader(blockHeader);
 		const validatorInfo = {
 			address: utils.getRandomBytes(20),
 			blsPublicKey: utils.getRandomBytes(48),
@@ -249,7 +249,11 @@ describe('p2p endpoint', () => {
 					blockID: blockHeader.id,
 					height: blockHeader.height,
 					validatorAddress: validatorInfo.address,
-					certificateSignature: signCertificate(validatorInfo.blsSecretKey, chainID, certificate),
+					certificateSignature: signCertificate(
+						validatorInfo.blsSecretKey,
+						chainID,
+						unsignedCertificate,
+					),
 				},
 			};
 			encodedValidCommit = codec.encode(getSingleCommitEventSchema, validCommit);

@@ -12,9 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 /* eslint-disable no-bitwise */
-
-import { ActiveValidatorsUpdate } from 'lisk-sdk';
-import { ActiveValidator, Certificate, LastCertificate, utils } from 'lisk-sdk';
+import {
+	ActiveValidator,
+	Certificate,
+	LastCertificate,
+	utils,
+	ActiveValidatorsUpdate,
+} from 'lisk-sdk';
 import { ValidatorsData } from './types';
 
 // LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#computing-the-validators-update
