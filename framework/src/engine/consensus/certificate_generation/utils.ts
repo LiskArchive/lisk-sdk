@@ -15,17 +15,23 @@
 import { bls } from '@liskhq/lisk-cryptography';
 import { BlockHeader } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { Certificate } from './types';
-import { certificateSchema } from './schema';
+import { Certificate, UnsignedCertificate } from './types';
+import { unsignedCertificateSchema } from './schema';
 import { MESSAGE_TAG_CERTIFICATE } from './constants';
+import { Validator } from '../types';
 
-export const computeCertificateFromBlockHeader = (blockHeader: BlockHeader): Certificate => {
+/**
+ * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#creation
+ */
+export const computeUnsignedCertificateFromBlockHeader = (
+	blockHeader: BlockHeader,
+): UnsignedCertificate => {
 	if (!blockHeader.stateRoot) {
-		throw new Error("'stateRoot' is not defined.");
+		throw new Error('stateRoot is not defined.');
 	}
 
 	if (!blockHeader.validatorsHash) {
-		throw new Error("'validatorsHash' is not defined.");
+		throw new Error('validatorsHash is not defined.');
 	}
 
 	return {
@@ -37,38 +43,44 @@ export const computeCertificateFromBlockHeader = (blockHeader: BlockHeader): Cer
 	};
 };
 
-export const signCertificate = (sk: Buffer, chainID: Buffer, certificate: Certificate): Buffer => {
-	const { aggregationBits, signature, ...rawCertificate } = certificate;
-
-	return bls.signData(
+/**
+ * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#signcertificate
+ */
+export const signCertificate = (
+	sk: Buffer,
+	chainID: Buffer,
+	unsignedCertificate: UnsignedCertificate,
+): Buffer =>
+	bls.signData(
 		MESSAGE_TAG_CERTIFICATE,
 		chainID,
-		codec.encode(certificateSchema, rawCertificate),
+		codec.encode(unsignedCertificateSchema, unsignedCertificate),
 		sk,
 	);
-};
 
+/**
+ * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#verifysinglecertificatesignature
+ */
 export const verifySingleCertificateSignature = (
 	pk: Buffer,
 	signature: Buffer,
 	chainID: Buffer,
-	certificate: Certificate,
-): boolean => {
-	const message = codec.encode(certificateSchema, {
-		blockID: certificate.blockID,
-		height: certificate.height,
-		timestamp: certificate.timestamp,
-		stateRoot: certificate.stateRoot,
-		validatorsHash: certificate.validatorsHash,
-	});
+	unsignedCertificate: UnsignedCertificate,
+): boolean =>
+	bls.verifyData(
+		MESSAGE_TAG_CERTIFICATE,
+		chainID,
+		codec.encode(unsignedCertificateSchema, unsignedCertificate),
+		signature,
+		pk,
+	);
 
-	return bls.verifyData(MESSAGE_TAG_CERTIFICATE, chainID, message, signature, pk);
-};
-
+/**
+ * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#verifyaggregatecertificatesignature
+ */
 export const verifyAggregateCertificateSignature = (
-	keysList: Buffer[],
-	weights: number[] | bigint[],
-	threshold: number | bigint,
+	validators: Validator[],
+	threshold: bigint,
 	chainID: Buffer,
 	certificate: Certificate,
 ): boolean => {
@@ -76,43 +88,29 @@ export const verifyAggregateCertificateSignature = (
 		return false;
 	}
 
-	const { aggregationBits, signature } = certificate;
-	const message = codec.encode(certificateSchema, {
-		blockID: certificate.blockID,
-		height: certificate.height,
-		timestamp: certificate.timestamp,
-		stateRoot: certificate.stateRoot,
-		validatorsHash: certificate.validatorsHash,
-	});
+	const { weights, validatorKeys } = getSortedWeightsAndValidatorKeys(validators);
+	const { aggregationBits, signature, ...unsignedCertificate } = certificate;
 
 	return bls.verifyWeightedAggSig(
-		keysList,
+		validatorKeys,
 		aggregationBits,
 		signature,
 		MESSAGE_TAG_CERTIFICATE,
 		chainID,
-		message,
+		codec.encode(unsignedCertificateSchema, unsignedCertificate),
 		weights,
 		threshold,
 	);
 };
 
-export const getSortedWeightsAndValidatorKeys = (
-	validatorKeysWithWeightsParam: {
-		weight: bigint;
-		blsKey: Buffer;
-	}[],
-) => {
-	const validatorKeysWithWeights = validatorKeysWithWeightsParam.map(validatorKeyWithWeight => ({
-		...validatorKeyWithWeight,
-	}));
-	validatorKeysWithWeights.sort((a, b) => a.blsKey.compare(b.blsKey));
+export const getSortedWeightsAndValidatorKeys = (validators: Validator[]) => {
+	validators.sort((a, b) => a.blsKey.compare(b.blsKey));
 	const weights = [];
 	const validatorKeys = [];
 
-	for (const validatorKeyWithWeight of validatorKeysWithWeights) {
-		weights.push(validatorKeyWithWeight.weight);
-		validatorKeys.push(validatorKeyWithWeight.blsKey);
+	for (const validator of validators) {
+		weights.push(validator.bftWeight);
+		validatorKeys.push(validator.blsKey);
 	}
 
 	return { weights, validatorKeys };

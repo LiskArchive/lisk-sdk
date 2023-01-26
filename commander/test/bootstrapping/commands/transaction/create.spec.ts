@@ -417,7 +417,7 @@ describe('transaction:create command', () => {
 						},
 						{ message: 'Please enter: data: ', name: 'data', type: 'input' },
 					]);
-					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
+					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase');
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: expect.any(String),
@@ -634,7 +634,7 @@ describe('transaction:create command', () => {
 						},
 						{ message: 'Please enter: data: ', name: 'data', type: 'input' },
 					]);
-					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
+					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase');
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: mockEncodedTransaction.toString('hex'),
@@ -656,7 +656,7 @@ describe('transaction:create command', () => {
 						},
 						{ message: 'Please enter: data: ', name: 'data', type: 'input' },
 					]);
-					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
+					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase');
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: mockEncodedTransaction.toString('hex'),
