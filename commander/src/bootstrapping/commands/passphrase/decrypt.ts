@@ -62,7 +62,7 @@ export class DecryptCommand extends Command {
 	async run(): Promise<void> {
 		const { flags } = await this.parse(DecryptCommand);
 		const { encryptedPassphrase } = fs.readJSONSync(flags['file-path']) as unknown as inputFileData;
-		const password = flags.password ?? (await getPasswordFromPrompt('password', true));
+		const password = flags.password ?? (await getPasswordFromPrompt('password'));
 		const passphrase = await cryptography.encrypt.decryptMessageWithPassword(
 			encryptedPassphrase,
 			password,

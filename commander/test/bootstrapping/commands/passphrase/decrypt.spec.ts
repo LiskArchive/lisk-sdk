@@ -76,7 +76,7 @@ describe('passphrase:decrypt', () => {
 		it('should decrypt passphrase with arg', async () => {
 			await DecryptCommand.run(['--file-path=/my/path/keys.json'], config);
 			const loggedData = JSON.parse(stdout[0]);
-			expect(readerUtils.getPasswordFromPrompt).toHaveBeenCalledWith('password', true);
+			expect(readerUtils.getPasswordFromPrompt).toHaveBeenCalledWith('password');
 			expect(cryptography.encrypt.decryptMessageWithPassword).toHaveBeenCalledWith(
 				encryptedPassphraseObject,
 				defaultInputs,

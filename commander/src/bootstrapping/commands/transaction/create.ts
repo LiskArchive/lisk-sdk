@@ -97,7 +97,7 @@ const getKeysFromFlags = async (flags: CreateFlags) => {
 		address = cryptography.address.getAddressFromPublicKey(publicKey);
 		passphrase = '';
 	} else {
-		passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
+		passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase'));
 		const keys = await deriveKeypair(passphrase, flags['key-derivation-path']);
 		publicKey = keys.publicKey;
 		privateKey = keys.privateKey;
