@@ -77,7 +77,7 @@ const signTransaction = async (
 	};
 
 	const chainIDBuffer = Buffer.from(chainID as string, 'hex');
-	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
+	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase'));
 	const edKeys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 	let signedTransaction: Record<string, unknown>;
@@ -139,7 +139,7 @@ const signTransactionOnline = async (
 	transactionHexStr: string,
 ) => {
 	const transactionObject = decodeTransaction(registeredSchema, metadata, transactionHexStr);
-	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
+	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase'));
 	const edKeys = await deriveKeypair(passphrase, flags['key-derivation-path']);
 
 	const signedTransaction = await client.transaction.sign(transactionObject, [

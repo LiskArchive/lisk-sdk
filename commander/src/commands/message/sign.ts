@@ -71,7 +71,7 @@ export default class SignCommand extends BaseCommand {
 			throw new ValidationError('No message was provided.');
 		}
 
-		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
+		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase'));
 		const dataFromSource =
 			messageSource && isFileSource(messageSource)
 				? await readFileSource(messageSource)
