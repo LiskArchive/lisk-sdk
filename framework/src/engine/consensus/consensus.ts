@@ -142,6 +142,7 @@ export class Consensus {
 			logger: this._logger,
 			network: this._network,
 			db: this._db,
+			commitPool: this._commitPool,
 		} as EndpointArgs); // TODO: Remove casting in issue where commitPool is added here
 		this._legacyEndpoint = new LegacyNetworkEndpoint({
 			logger: this._logger,
@@ -339,6 +340,7 @@ export class Consensus {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async start(): Promise<void> {
+		this._commitPool.start();
 		this._endpoint.start();
 	}
 
@@ -347,6 +349,7 @@ export class Consensus {
 		// Add mutex to wait for the current mutex to finish
 		await this._mutex.acquire();
 		this._endpoint.stop();
+		this._commitPool.stop();
 	}
 
 	public async getAggregateCommit(methodContext: StateStore): Promise<AggregateCommit> {
