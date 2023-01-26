@@ -27,11 +27,11 @@ export const computeUnsignedCertificateFromBlockHeader = (
 	blockHeader: BlockHeader,
 ): UnsignedCertificate => {
 	if (!blockHeader.stateRoot) {
-		throw new Error("'stateRoot' is not defined.");
+		throw new Error('stateRoot is not defined.');
 	}
 
 	if (!blockHeader.validatorsHash) {
-		throw new Error("'validatorsHash' is not defined.");
+		throw new Error('validatorsHash is not defined.');
 	}
 
 	return {
@@ -108,9 +108,9 @@ export const getSortedWeightsAndValidatorKeys = (validators: Validator[]) => {
 	const weights = [];
 	const validatorKeys = [];
 
-	for (const validatorKeyWithWeight of validators) {
-		weights.push(validatorKeyWithWeight.bftWeight);
-		validatorKeys.push(validatorKeyWithWeight.blsKey);
+	for (const validator of validators) {
+		weights.push(validator.bftWeight);
+		validatorKeys.push(validator.blsKey);
 	}
 
 	return { weights, validatorKeys };

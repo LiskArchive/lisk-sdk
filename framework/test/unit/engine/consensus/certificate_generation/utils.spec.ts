@@ -29,22 +29,22 @@ import {
 } from '../../../../../src/engine/consensus/certificate_generation/utils';
 import { createFakeBlockHeader } from '../../../../../src/testing';
 import { Validator } from '../../../../../src/engine/consensus/types';
+import { BLS_PUBLIC_KEY_LENGTH } from '../../../../../src/engine/bft/constants';
 
 describe('utils', () => {
 	const chainID = Buffer.alloc(0);
-	const BLS_PUBLIC_KEY_LENGTH = 48;
 	let unsignedCertificate: UnsignedCertificate;
 
 	describe('computeCertificateFromBlockHeader', () => {
 		let blockHeader: BlockHeader;
+		let certificate: UnsignedCertificate;
 
 		beforeEach(() => {
 			blockHeader = createFakeBlockHeader({});
+			certificate = computeUnsignedCertificateFromBlockHeader(blockHeader);
 		});
 
 		it('should return a certificate with proper parameters', () => {
-			const certificate = computeUnsignedCertificateFromBlockHeader(blockHeader);
-
 			expect(certificate.blockID).toBe(blockHeader.id);
 			expect(certificate.height).toBe(blockHeader.height);
 			expect(certificate.stateRoot).toBe(blockHeader.stateRoot);
@@ -56,7 +56,7 @@ describe('utils', () => {
 			(blockHeader as any).stateRoot = undefined;
 
 			expect(() => computeUnsignedCertificateFromBlockHeader(blockHeader)).toThrow(
-				"'stateRoot' is not defined.",
+				'stateRoot is not defined.',
 			);
 		});
 
@@ -64,7 +64,7 @@ describe('utils', () => {
 			(blockHeader as any).validatorsHash = undefined;
 
 			expect(() => computeUnsignedCertificateFromBlockHeader(blockHeader)).toThrow(
-				"'validatorsHash' is not defined.",
+				'validatorsHash is not defined.',
 			);
 		});
 	});
@@ -206,7 +206,7 @@ describe('utils', () => {
 			};
 		});
 
-		it('should return true for proper parameters', () => {
+		it('should return true for valid parameters', () => {
 			const isVerifiedSignature = verifyAggregateCertificateSignature(
 				validators,
 				threshold,

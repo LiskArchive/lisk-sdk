@@ -1012,26 +1012,38 @@ describe('CommitPool', () => {
 			blsPublicKey: utils.getRandomBytes(48),
 			blsSecretKey: utils.getRandomBytes(32),
 		};
-		const certificate1 = computeUnsignedCertificateFromBlockHeader(blockHeader1);
-		const certificate2 = computeUnsignedCertificateFromBlockHeader(blockHeader2);
-		const certificate3 = computeUnsignedCertificateFromBlockHeader(blockHeader3);
+		const unsignedCertificate1 = computeUnsignedCertificateFromBlockHeader(blockHeader1);
+		const unsignedCertificate2 = computeUnsignedCertificateFromBlockHeader(blockHeader2);
+		const unsignedCertificate3 = computeUnsignedCertificateFromBlockHeader(blockHeader3);
 		const singleCommit1 = {
 			blockID: blockHeader1.id,
 			height: blockHeader1.height,
 			validatorAddress: validatorInfo1.address,
-			certificateSignature: signCertificate(validatorInfo1.blsSecretKey, chainID, certificate1),
+			certificateSignature: signCertificate(
+				validatorInfo1.blsSecretKey,
+				chainID,
+				unsignedCertificate1,
+			),
 		};
 		const singleCommit2 = {
 			blockID: blockHeader2.id,
 			height: blockHeader2.height,
 			validatorAddress: validatorInfo2.address,
-			certificateSignature: signCertificate(validatorInfo2.blsSecretKey, chainID, certificate2),
+			certificateSignature: signCertificate(
+				validatorInfo2.blsSecretKey,
+				chainID,
+				unsignedCertificate2,
+			),
 		};
 		const singleCommit3 = {
 			blockID: blockHeader3.id,
 			height: blockHeader3.height,
 			validatorAddress: validatorInfo3.address,
-			certificateSignature: signCertificate(validatorInfo3.blsSecretKey, chainID, certificate3),
+			certificateSignature: signCertificate(
+				validatorInfo3.blsSecretKey,
+				chainID,
+				unsignedCertificate3,
+			),
 		};
 		const singleCommits = [singleCommit1, singleCommit2, singleCommit3];
 		const validatorKeys = [

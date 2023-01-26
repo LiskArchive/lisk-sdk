@@ -127,13 +127,14 @@ export class CommitPool {
 		}
 
 		// Validation Step 6
-		const certificate = computeUnsignedCertificateFromBlockHeader(blockHeaderAtCommitHeight);
+		const unsignedCertificate =
+			computeUnsignedCertificateFromBlockHeader(blockHeaderAtCommitHeight);
 		const { chainID } = this._chain;
 		const isSingleCertificateVerified = verifySingleCertificateSignature(
 			validator.blsKey,
 			commit.certificateSignature,
 			chainID,
-			certificate,
+			unsignedCertificate,
 		);
 
 		if (!isSingleCertificateVerified) {
@@ -155,7 +156,7 @@ export class CommitPool {
 		validatorInfo: ValidatorInfo,
 		chainID: Buffer,
 	): SingleCommit {
-		const commit = {
+		return {
 			blockID: blockHeader.id,
 			height: blockHeader.height,
 			validatorAddress: validatorInfo.address,
@@ -165,8 +166,6 @@ export class CommitPool {
 				computeUnsignedCertificateFromBlockHeader(blockHeader),
 			),
 		};
-
-		return commit;
 	}
 
 	public async verifyAggregateCommit(
@@ -280,13 +279,11 @@ export class CommitPool {
 			pubKeySignaturePairs,
 		);
 
-		const aggregateCommit = {
+		return {
 			height,
 			aggregationBits,
 			certificateSignature: aggregateSignature,
 		};
-
-		return aggregateCommit;
 	}
 
 	private async _selectAggregateCommit(methodContext: StateStore): Promise<AggregateCommit> {
