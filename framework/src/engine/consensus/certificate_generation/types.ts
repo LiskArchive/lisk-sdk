@@ -18,14 +18,17 @@ import { BFTMethod } from '../../bft';
 import { Network } from '../../network';
 
 // aggregationBits and signatures are optional as these properties are removed when signing certificates
-export interface Certificate {
+export interface UnsignedCertificate {
 	readonly blockID: Buffer;
 	readonly height: number;
 	readonly timestamp: number;
 	readonly stateRoot: Buffer;
 	readonly validatorsHash: Buffer;
-	aggregationBits?: Buffer;
-	signature?: Buffer;
+}
+
+export interface Certificate extends UnsignedCertificate {
+	aggregationBits: Buffer;
+	signature: Buffer;
 }
 
 export interface SingleCommit {

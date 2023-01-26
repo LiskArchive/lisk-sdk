@@ -1105,8 +1105,8 @@ describe('Base interoperability internal method', () => {
 
 			expect(cryptography.bls.verifyWeightedAggSig).toHaveBeenCalledWith(
 				activeValidators.map(v => v.blsKey),
-				certificate.aggregationBits as Buffer,
-				certificate.signature as Buffer,
+				certificate.aggregationBits,
+				certificate.signature,
 				MESSAGE_TAG_CERTIFICATE,
 				txParams.sendingChainID,
 				txParams.certificate,

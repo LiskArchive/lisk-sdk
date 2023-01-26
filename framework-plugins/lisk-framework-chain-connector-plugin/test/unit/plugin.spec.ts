@@ -821,6 +821,8 @@ describe('ChainConnectorPlugin', () => {
 			stateRoot: Buffer.from('00'),
 			blockID: Buffer.from('00'),
 			timestamp: Date.now(),
+			aggregationBits: Buffer.alloc(0),
+			signature: cryptography.utils.getRandomBytes(32),
 		};
 		const certificateBytes = Buffer.from('ff');
 		// const newCertificateThreshold = BigInt(7);

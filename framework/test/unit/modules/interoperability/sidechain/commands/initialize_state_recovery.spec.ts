@@ -5,7 +5,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
 import {
 	COMMAND_NAME_STATE_RECOVERY_INIT,
-	EMPTY_BYTES,
+	EMPTY_HASH,
 	LIVENESS_LIMIT,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
@@ -114,7 +114,7 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 
 		terminatedStateAccount = {
 			stateRoot: sidechainChainAccount.lastCertificate.stateRoot,
-			mainchainStateRoot: EMPTY_BYTES,
+			mainchainStateRoot: EMPTY_HASH,
 			initialized: false,
 		};
 
