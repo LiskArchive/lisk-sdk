@@ -45,7 +45,10 @@ client
 		started = true;
 	})
 	.catch(err => {
-		abiLogger.error({ err: err as Error }, 'Fail to start engine');
+		abiLogger.error(
+			{ err: err instanceof Error ? err.message : String(err) },
+			'Fail to start engine',
+		);
 		process.exit(1);
 	});
 
@@ -60,7 +63,10 @@ process.on('disconnect', () => {
 			client.stop();
 		})
 		.catch(err => {
-			abiLogger.error({ err: err as Error }, 'Error occured while stopping the engine');
+			abiLogger.error(
+				{ err: err instanceof Error ? err.message : String(err) },
+				'Fail to start engine',
+			);
 			process.exit(1);
 		});
 });
