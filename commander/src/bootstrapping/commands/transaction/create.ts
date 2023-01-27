@@ -15,7 +15,7 @@
 /* eslint-disable no-param-reassign */
 import * as apiClient from '@liskhq/lisk-api-client';
 import { blockAssetSchema, eventSchema } from '@liskhq/lisk-chain';
-import { codec, Schema } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 import { validator } from '@liskhq/lisk-validator';
@@ -75,7 +75,10 @@ interface Transaction {
 const getParamsObject = async (metadata: ModuleMetadataJSON[], flags: CreateFlags, args: Args) => {
 	let params: Record<string, unknown>;
 
-	const paramsSchema = getParamsSchema(metadata, args.module, args.command) as Schema;
+	const paramsSchema = getParamsSchema(metadata, args.module, args.command);
+	if (!paramsSchema) {
+		return {};
+	}
 
 	if (flags.file) {
 		params = JSON.parse(getFileParams(flags.file));
@@ -97,7 +100,7 @@ const getKeysFromFlags = async (flags: CreateFlags) => {
 		address = cryptography.address.getAddressFromPublicKey(publicKey);
 		passphrase = '';
 	} else {
-		passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
+		passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase'));
 		const keys = await deriveKeypair(passphrase, flags['key-derivation-path']);
 		publicKey = keys.publicKey;
 		privateKey = keys.privateKey;
@@ -116,7 +119,7 @@ const validateAndSignTransaction = async (
 	noSignature: boolean,
 ) => {
 	const { params, ...transactionWithoutParams } = transaction;
-	const paramsSchema = getParamsSchema(metadata, transaction.module, transaction.command) as Schema;
+	const paramsSchema = getParamsSchema(metadata, transaction.module, transaction.command);
 
 	const txObject = codec.fromJSON(schema.transaction, { ...transactionWithoutParams, params: '' });
 	validator.validate(schema.transaction, txObject);

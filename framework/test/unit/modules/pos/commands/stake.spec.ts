@@ -1091,12 +1091,12 @@ describe('StakeCommand', () => {
 				const { stakes } = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
 
 				expect(
-					stakes.find(sentStake => sentStake.validatorAddress.equals(validatorAddress1))!
-						.sharingCoefficients,
+					stakes.find(sentStake => sentStake.validatorAddress.equals(validatorAddress1))
+						?.sharingCoefficients,
 				).toEqual(sharingCoefficients);
 				expect(
-					stakes.find(sentStake => sentStake.validatorAddress.equals(validatorAddress2))!
-						.sharingCoefficients,
+					stakes.find(sentStake => sentStake.validatorAddress.equals(validatorAddress2))
+						?.sharingCoefficients,
 				).toEqual(sharingCoefficients);
 			});
 

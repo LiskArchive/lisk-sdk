@@ -17,27 +17,31 @@ import { Chain, StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
+import { address } from '@liskhq/lisk-cryptography';
 import { Logger } from '../../logger';
 import { Network } from '../network';
 import {
 	NETWORK_RPC_GET_BLOCKS_FROM_ID,
 	NETWORK_RPC_GET_HIGHEST_COMMON_BLOCK,
 	NETWORK_RPC_GET_LAST_BLOCK,
-	NETWORK_RPC_GET_SINGLE_COMMIT_FROM_ID,
 } from './constants';
 import {
 	getBlocksFromIdRequestSchema,
 	getBlocksFromIdResponseSchema,
 	getHighestCommonBlockRequestSchema,
 	getHighestCommonBlockResponseSchema,
-	getSingleCommitEventSchema,
 	RPCBlocksByIdData,
 	RPCHighestCommonBlockRequest,
-	SingleCommitData,
 } from './schema';
 import { CommitPool } from './certificate_generation/commit_pool';
-import { singleCommitSchema } from './certificate_generation/schema';
+import {
+	singleCommitSchema,
+	SingleCommitsNetworkPacket,
+	singleCommitsNetworkPacketSchema,
+} from './certificate_generation/schema';
+import { SingleCommit } from './certificate_generation/types';
 import { BaseNetworkEndpoint } from '../network/base_network_endpoint';
+import { NETWORK_EVENT_COMMIT_MESSAGES } from './certificate_generation/constants';
 
 export interface EndpointArgs {
 	logger: Logger;
@@ -178,14 +182,51 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 
 	public async handleEventSingleCommit(data: unknown, peerId: string): Promise<void> {
 		this.addRateLimit(
-			NETWORK_RPC_GET_SINGLE_COMMIT_FROM_ID,
+			NETWORK_EVENT_COMMIT_MESSAGES,
 			peerId,
 			DEFAULT_SINGLE_COMMIT_FROM_IDS_RATE_LIMIT_FREQUENCY,
 		);
-		let decodedData: SingleCommitData;
+		if (!Buffer.isBuffer(data)) {
+			const errorMessage = 'Received invalid single commit data';
+			this._logger.warn({ peerId }, errorMessage);
+			this.network.applyPenaltyOnPeer({
+				peerId,
+				penalty: 100,
+			});
+			throw new Error(errorMessage);
+		}
+
+		const stateStore = new StateStore(this._db);
 
 		try {
-			decodedData = codec.decode<SingleCommitData>(getSingleCommitEventSchema, data as never);
+			const singleCommitsNetworkPacket = codec.decode<SingleCommitsNetworkPacket>(
+				singleCommitsNetworkPacketSchema,
+				data as never,
+			);
+			for (const encodedCommit of singleCommitsNetworkPacket.commits) {
+				const singleCommit = codec.decode<SingleCommit>(singleCommitSchema, encodedCommit);
+				validator.validate(singleCommitSchema, singleCommit);
+				// in case of critical error, it will throw an error, which will result in banning
+				const isValidCommit = await this._commitPool.validateCommit(stateStore, singleCommit);
+				if (!isValidCommit) {
+					this._logger.trace(
+						{
+							validatorAddress: address.getLisk32AddressFromAddress(singleCommit.validatorAddress),
+							height: singleCommit.height,
+						},
+						'Received single commit is invalid',
+					);
+					continue;
+				}
+				this._commitPool.addCommit(singleCommit);
+				this._logger.debug(
+					{
+						validatorAddress: address.getLisk32AddressFromAddress(singleCommit.validatorAddress),
+						height: singleCommit.height,
+					},
+					'Added received single commit to the pool',
+				);
+			}
 		} catch (error) {
 			this._logger.warn(
 				{
@@ -193,7 +234,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 					req: data,
 					peerID: peerId,
 				},
-				`${NETWORK_RPC_GET_SINGLE_COMMIT_FROM_ID} response failed on decoding`,
+				`${NETWORK_EVENT_COMMIT_MESSAGES} fail to verify single commit`,
 			);
 			this._network.applyPenaltyOnPeer({
 				peerId,
@@ -202,44 +243,5 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 
 			throw error;
 		}
-
-		try {
-			validator.validate(singleCommitSchema, decodedData.singleCommit);
-		} catch (error) {
-			this._logger.debug(
-				{ peerId, penalty: 100 },
-				'Adding penalty on peer for invalid single commit',
-			);
-
-			this._network.applyPenaltyOnPeer({
-				peerId,
-				penalty: 100,
-			});
-			throw error;
-		}
-
-		try {
-			const isValidCommit = await this._commitPool.validateCommit(
-				new StateStore(this._db),
-				decodedData.singleCommit,
-			);
-
-			if (!isValidCommit) {
-				return;
-			}
-		} catch (error) {
-			this._logger.debug(
-				{ peerId, penalty: 100 },
-				'Adding penalty on peer for invalid single commit',
-			);
-
-			this._network.applyPenaltyOnPeer({
-				peerId,
-				penalty: 100,
-			});
-			throw error;
-		}
-
-		this._commitPool.addCommit(decodedData.singleCommit);
 	}
 }

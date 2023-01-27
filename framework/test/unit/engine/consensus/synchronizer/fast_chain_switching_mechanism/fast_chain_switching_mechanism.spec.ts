@@ -684,9 +684,8 @@ describe('fast_chain_switching_mechanism', () => {
 				// Assert
 
 				for (const block of requestedBlocks) {
-					expect(blockExecutor.verify).toHaveBeenCalledWith(block);
 					expect(loggerMock.trace).toHaveBeenCalledWith(
-						{ blockId: block.header.id, height: block.header.height },
+						{ blockId: block.header.id.toString('hex'), height: block.header.height },
 						'Validating block',
 					);
 				}
@@ -742,7 +741,7 @@ describe('fast_chain_switching_mechanism', () => {
 				when(chainModule.dataAccess.getBlockHeaderByID)
 					.calledWith(highestCommonBlock.id)
 					.mockResolvedValue(highestCommonBlock as never);
-				blockExecutor.verify.mockImplementation(() => {
+				blockExecutor.validate.mockImplementation(() => {
 					throw new Error('validation error');
 				});
 
@@ -856,12 +855,15 @@ describe('fast_chain_switching_mechanism', () => {
 				for (const block of requestedBlocks) {
 					expect(loggerMock.trace).toHaveBeenCalledWith(
 						{
-							blockId: block.header.id,
+							blockId: block.header.id.toString('hex'),
 							height: block.header.height,
 						},
 						'Applying blocks',
 					);
-					expect(blockExecutor.executeValidated).toHaveBeenCalledWith(block);
+					expect(blockExecutor.verify).toHaveBeenCalledWith(block);
+					expect(blockExecutor.executeValidated).toHaveBeenCalledWith(block, {
+						skipBroadcast: true,
+					});
 					expect(loggerMock.debug).toHaveBeenCalledWith('Cleaning blocks temp table');
 					expect(chainModule.dataAccess.clearTempBlocks).toHaveBeenCalled();
 					expect(loggerMock.info).toHaveBeenCalledWith(

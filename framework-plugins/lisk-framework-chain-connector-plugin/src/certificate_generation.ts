@@ -20,7 +20,7 @@ import {
 	chain,
 	ChainAccount,
 	ChainStatus,
-	computeCertificateFromBlockHeader,
+	computeUnsignedCertificateFromBlockHeader,
 	cryptography,
 	LastCertificate,
 	LIVENESS_LIMIT,
@@ -46,7 +46,7 @@ export const getCertificateFromAggregateCommit = (
 	}
 
 	return {
-		...computeCertificateFromBlockHeader(new chain.BlockHeader(blockHeader)),
+		...computeUnsignedCertificateFromBlockHeader(new chain.BlockHeader(blockHeader)),
 		aggregationBits: aggregateCommit.aggregationBits,
 		signature: aggregateCommit.certificateSignature,
 	};
@@ -210,8 +210,8 @@ export const validateCertificate = async (
 
 	const hasValidWeightedAggSig = cryptography.bls.verifyWeightedAggSig(
 		keysList,
-		certificate.aggregationBits as Buffer,
-		certificate.signature as Buffer,
+		certificate.aggregationBits,
+		certificate.signature,
 		MESSAGE_TAG_CERTIFICATE,
 		sendingChainID,
 		certificateBytes,

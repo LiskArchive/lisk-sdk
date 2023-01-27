@@ -21,3 +21,11 @@ export {
 } from './constants';
 export { BFTHeights } from '../bft/types';
 export { isEmptyConsensusUpdate } from './utils';
+export {
+	computeUnsignedCertificateFromBlockHeader,
+	aggregateCommitSchema,
+	certificateSchema,
+	unsignedCertificateSchema,
+	Certificate,
+	UnsignedCertificate,
+} from './certificate_generation';
