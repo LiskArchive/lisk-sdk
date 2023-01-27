@@ -62,6 +62,7 @@ import { ValidatorInfo } from './certificate_generation/types';
 import { BFTModule } from '../bft';
 import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../abi';
 import { isEmptyConsensusUpdate } from './utils';
+import { NETWORK_EVENT_COMMIT_MESSAGES } from './certificate_generation/constants';
 
 interface ConsensusArgs {
 	chain: Chain;
@@ -141,6 +142,7 @@ export class Consensus {
 			logger: this._logger,
 			network: this._network,
 			db: this._db,
+			commitPool: this._commitPool,
 		} as EndpointArgs); // TODO: Remove casting in issue where commitPool is added here
 		this._legacyEndpoint = new LegacyNetworkEndpoint({
 			logger: this._logger,
@@ -183,6 +185,11 @@ export class Consensus {
 		this._network.registerHandler(NETWORK_EVENT_POST_BLOCK, ({ data, peerId }) => {
 			this.onBlockReceive(data, peerId).catch(err => {
 				this._logger.error({ err: err as Error, peerId }, 'Fail to handle received block');
+			});
+		});
+		this._network.registerHandler(NETWORK_EVENT_COMMIT_MESSAGES, ({ data, peerId }) => {
+			this._endpoint.handleEventSingleCommit(data, peerId).catch(err => {
+				this._logger.error({ err: err as Error, peerId }, 'Fail to handle received single commits');
 			});
 		});
 		this._network.registerHandler(NETWORK_EVENT_POST_NODE_INFO, ({ data, peerId }) => {
@@ -333,6 +340,7 @@ export class Consensus {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async start(): Promise<void> {
+		this._commitPool.start();
 		this._endpoint.start();
 	}
 
@@ -341,6 +349,7 @@ export class Consensus {
 		// Add mutex to wait for the current mutex to finish
 		await this._mutex.acquire();
 		this._endpoint.stop();
+		this._commitPool.stop();
 	}
 
 	public async getAggregateCommit(methodContext: StateStore): Promise<AggregateCommit> {
@@ -540,7 +549,10 @@ export class Consensus {
 		const contextID = await this._verifyAssets(block);
 
 		if (!options.skipBroadcast) {
-			this._network.send({ event: NETWORK_EVENT_POST_BLOCK, data: block.getBytes() });
+			this._network.send({
+				event: NETWORK_EVENT_POST_BLOCK,
+				data: codec.encode(postBlockEventSchema, { block: block.getBytes() }),
+			});
 			this._logger.debug(
 				{
 					id: block.header.id,
@@ -848,15 +860,12 @@ export class Consensus {
 		if (this._stop) {
 			return;
 		}
-		await this._mutex.runExclusive(async () => {
-			const { lastBlock } = this._chain;
-			this._logger.debug(
-				{ id: lastBlock.header.id, height: lastBlock.header.height },
-				'Deleting last block',
-			);
-			await this._deleteBlock(lastBlock, saveTempBlock);
-			return this._chain.lastBlock;
-		});
+		const { lastBlock } = this._chain;
+		this._logger.debug(
+			{ id: lastBlock.header.id, height: lastBlock.header.height },
+			'Deleting last block',
+		);
+		await this._deleteBlock(lastBlock, saveTempBlock);
 	}
 
 	private async _sync(block: Block, peerID: string): Promise<void> {

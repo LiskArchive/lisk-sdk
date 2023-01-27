@@ -427,18 +427,15 @@ export class TokenMethod extends BaseMethod {
 			}
 		}
 		const [tokenChainID] = splitTokenID(tokenID);
-		const [mainchainID] = splitTokenID(this.getMainchainTokenID());
 
-		if (
-			![mainchainID, this._config.ownChainID, receivingChainID].some(id => id.equals(tokenChainID))
-		) {
+		if (![this._config.ownChainID, receivingChainID].some(id => id.equals(tokenChainID))) {
 			this.events
 				.get(TransferCrossChainEvent)
 				.error(methodContext, eventData, TokenEventResult.INVALID_TOKEN_ID);
 			throw new Error(
 				`Invalid token ID ${tokenID.toString(
 					'hex',
-				)}. Token must be native to either the sending, the receiving chain or the mainchain.`,
+				)}. Token must be native to either the sending or the receiving chain.`,
 			);
 		}
 

@@ -40,6 +40,7 @@ interface Params {
 	recipientAddress: Buffer;
 	data: string;
 	messageFee: bigint;
+	messageFeeTokenID: Buffer;
 }
 
 export class TransferCrossChainCommand extends BaseCommand {
@@ -47,7 +48,6 @@ export class TransferCrossChainCommand extends BaseCommand {
 	private _moduleName!: string;
 	private _method!: TokenMethod;
 	private _interoperabilityMethod!: InteroperabilityMethod;
-	private _ownChainID!: Buffer;
 	private _internalMethod!: InternalMethod;
 
 	public init(args: {
@@ -55,12 +55,10 @@ export class TransferCrossChainCommand extends BaseCommand {
 		method: TokenMethod;
 		interoperabilityMethod: InteroperabilityMethod;
 		internalMethod: InternalMethod;
-		ownChainID: Buffer;
 	}) {
 		this._moduleName = args.moduleName;
 		this._method = args.method;
 		this._interoperabilityMethod = args.interoperabilityMethod;
-		this._ownChainID = args.ownChainID;
 		this._internalMethod = args.internalMethod;
 	}
 
@@ -73,28 +71,23 @@ export class TransferCrossChainCommand extends BaseCommand {
 
 			const [tokenChainID, _] = splitTokenID(params.tokenID);
 
-			const [mainChainID] = splitTokenID(this._method.getMainchainTokenID());
-
 			if (
-				![this._ownChainID, params.receivingChainID, mainChainID].some(allowedChainID =>
+				![context.chainID, params.receivingChainID].some(allowedChainID =>
 					tokenChainID.equals(allowedChainID),
 				)
 			) {
-				throw new Error(
-					'Token must be native to either the sending or the receiving chain or the mainchain.',
-				);
+				throw new Error('Token must be native to either the sending or the receiving chain.');
 			}
-
-			const balanceCheck = new dataStructures.BufferMap<bigint>();
-			balanceCheck.set(
-				params.tokenID,
-				(balanceCheck.get(params.tokenID) ?? BigInt(0)) + params.amount,
-			);
-
 			const messageFeeTokenID = await this._interoperabilityMethod.getMessageFeeTokenID(
 				context.getMethodContext(),
 				params.receivingChainID,
 			);
+			if (messageFeeTokenID.equals(params.messageFeeTokenID)) {
+				throw new Error('Invalid message fee Token ID.');
+			}
+
+			const balanceCheck = new dataStructures.BufferMap<bigint>();
+			balanceCheck.set(params.tokenID, params.amount);
 
 			balanceCheck.set(
 				messageFeeTokenID,
@@ -141,7 +134,7 @@ export class TransferCrossChainCommand extends BaseCommand {
 		const escrowAccountKey = escrowStore.getKey(params.receivingChainID, params.tokenID);
 		const escrowAccoutExists = await escrowStore.has(context, escrowAccountKey);
 
-		if (tokenChainID.equals(this._ownChainID) && !escrowAccoutExists) {
+		if (tokenChainID.equals(context.chainID) && !escrowAccoutExists) {
 			await this._internalMethod.initializeEscrowAccount(
 				context.getMethodContext(),
 				params.receivingChainID,
@@ -165,6 +158,11 @@ export class TransferCrossChainCommand extends BaseCommand {
 
 		senderAccount.availableBalance -= params.amount;
 		await userStore.save(context, senderAddress, params.tokenID, senderAccount);
+
+		// escrow has to be updated only if the token is native to the chain.
+		if (tokenChainID.equals(context.chainID)) {
+			await escrowStore.addAmount(context, params.receivingChainID, params.tokenID, params.amount);
+		}
 
 		this.events.get(TransferCrossChainEvent).log(context, {
 			senderAddress,

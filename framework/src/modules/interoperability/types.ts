@@ -115,6 +115,7 @@ export interface RecoverContext {
 	getStore: StoreCallback;
 	stateStore: StateStore;
 	eventQueue: EventQueue;
+	chainID: Buffer;
 	terminatedChainID: Buffer;
 	module: string;
 	substorePrefix: Buffer;

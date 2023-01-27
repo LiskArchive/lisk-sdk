@@ -687,7 +687,7 @@ export class Generator {
 			blsSecretKey: blsSK,
 		};
 		this._consensus.certifySingleCommit(blockHeader, validatorInfo);
-		this._logger.info(
+		this._logger.debug(
 			{
 				height,
 				generator: addressUtil.getLisk32AddressFromAddress(generatorAddress),
