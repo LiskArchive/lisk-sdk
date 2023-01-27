@@ -366,13 +366,6 @@ export class Consensus {
 		this._commitPool.addCommit(singleCommit, true);
 	}
 
-	public async getMaxRemovalHeight(): Promise<number> {
-		const finalizedBlockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(
-			this._chain.finalizedHeight,
-		);
-		return finalizedBlockHeader.aggregateCommit.height;
-	}
-
 	public isSynced(height: number, maxHeightPrevoted: number): boolean {
 		const lastBlockHeader = this._chain.lastBlock.header;
 		if (lastBlockHeader.version === 0) {

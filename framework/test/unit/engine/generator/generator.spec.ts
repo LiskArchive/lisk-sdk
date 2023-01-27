@@ -88,10 +88,8 @@ describe('generator', () => {
 		consensusEvent = new EventEmitter();
 		consensus = {
 			execute: jest.fn(),
-
 			getAggregateCommit: jest.fn(),
 			certifySingleCommit: jest.fn(),
-			getMaxRemovalHeight: jest.fn().mockResolvedValue(0),
 			getConsensusParams: jest.fn().mockResolvedValue({
 				currentValidators: [],
 				implyMaxPrevote: true,
@@ -199,21 +197,21 @@ describe('generator', () => {
 				expect(generator['_keypairs'].values()).toHaveLength(103);
 			});
 
-			it('should handle finalized height change between max removal height and max height precommitted', async () => {
+			it('should handle finalized height change between maxHeightCertified + 1 and max height precommitted', async () => {
 				jest.spyOn(generator, '_handleFinalizedHeightChanged' as any).mockReturnValue([] as never);
-				jest.spyOn(generator['_consensus'], 'getMaxRemovalHeight').mockResolvedValue(313);
 				jest
 					.spyOn(generator['_bft'].method, 'getBFTHeights')
-					.mockResolvedValue({ maxHeightPrecommitted: 515 } as never);
+					.mockResolvedValue({ maxHeightPrecommitted: 515, maxHeightCertified: 313 } as never);
 
 				await generator.init({
 					blockchainDB,
 					generatorDB,
 					logger,
 				});
-				expect(generator['_handleFinalizedHeightChanged']).toHaveBeenCalledWith(313, 515);
+				expect(generator['_handleFinalizedHeightChanged']).toHaveBeenCalledWith(314, 515);
 			});
 		});
+
 		describe('saveKeysFromFile', () => {
 			it('should not store any data when generator.keys.fromFile is not defined', async () => {
 				generator['_config'].generator = { keys: {} };

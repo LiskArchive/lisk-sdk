@@ -42,7 +42,6 @@ export interface Consensus {
 	finalizedHeight: () => number;
 	getAggregateCommit: (stateStore: StateStore) => Promise<AggregateCommit>;
 	certifySingleCommit: (blockHeader: BlockHeader, validatorInfo: ValidatorInfo) => void;
-	getMaxRemovalHeight: () => Promise<number>;
 	readonly events: EventEmitter;
 }
 
