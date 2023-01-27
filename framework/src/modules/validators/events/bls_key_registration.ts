@@ -45,7 +45,7 @@ export const blsKeyRegDataSchema = {
 	},
 };
 
-export class BLSKeyRegistrationEvent extends BaseEvent<BLSKeyRegData> {
+export class BlsKeyRegistrationEvent extends BaseEvent<BLSKeyRegData> {
 	public schema = blsKeyRegDataSchema;
 
 	public log(ctx: EventQueuer, validatorAddress: Buffer, data: BLSKeyRegData): void {
