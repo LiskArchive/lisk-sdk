@@ -778,9 +778,7 @@ describe('token module', () => {
 					BigInt('10000'),
 					'data',
 				),
-			).rejects.toThrow(
-				'Token must be native to either the sending, the receiving chain or the mainchain',
-			);
+			).rejects.toThrow('Token must be native to either the sending or the receiving chain');
 			checkEventResult(
 				methodContext.eventQueue,
 				TransferCrossChainEvent,

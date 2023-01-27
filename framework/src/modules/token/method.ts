@@ -435,7 +435,7 @@ export class TokenMethod extends BaseMethod {
 			throw new Error(
 				`Invalid token ID ${tokenID.toString(
 					'hex',
-				)}. Token must be native to either the sending, the receiving chain or the mainchain.`,
+				)}. Token must be native to either the sending or the receiving chain.`,
 			);
 		}
 

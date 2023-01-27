@@ -399,7 +399,7 @@ describe('CCTransfer command', () => {
 		});
 
 		describe('when chainID of tokenID is equal to ownChainID and escrowAccount does not exist', () => {
-			it('should create escrowAccount for receivingChainID and tokenID and logs InitializeEscrowAccountEvent and TransferCrossChainEvent and call InteroperabilityMethod#send', async () => {
+			it('should create and add amount to escrowAccount for receivingChainID and tokenID and logs InitializeEscrowAccountEvent and TransferCrossChainEvent and call InteroperabilityMethod#send', async () => {
 				const userStore = module.stores.get(UserStore);
 				const escrowStore = module.stores.get(EscrowStore);
 
@@ -435,7 +435,7 @@ describe('CCTransfer command', () => {
 					escrowStore.getKey(validParams.receivingChainID, commonTokenID),
 				);
 
-				expect(escrowAccount.amount).toBe(BigInt(0));
+				expect(escrowAccount.amount).toBe(BigInt(50));
 
 				expect(command['_internalMethod'].initializeEscrowAccount).toHaveBeenCalledWith(
 					expect.anything(),

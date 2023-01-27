@@ -159,6 +159,11 @@ export class TransferCrossChainCommand extends BaseCommand {
 		senderAccount.availableBalance -= params.amount;
 		await userStore.save(context, senderAddress, params.tokenID, senderAccount);
 
+		// escrow has to be updated only if the token is native to the chain.
+		if (tokenChainID.equals(context.chainID)) {
+			await escrowStore.addAmount(context, params.receivingChainID, params.tokenID, params.amount);
+		}
+
 		this.events.get(TransferCrossChainEvent).log(context, {
 			senderAddress,
 			receivingChainID: params.receivingChainID,
