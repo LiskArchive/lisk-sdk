@@ -27,7 +27,6 @@ export const NETWORK_EVENT_POST_NODE_INFO = 'postNodeInfo';
 export const NETWORK_RPC_GET_LAST_BLOCK = 'getLastBlock';
 export const NETWORK_RPC_GET_BLOCKS_FROM_ID = 'getBlocksFromId';
 export const NETWORK_RPC_GET_HIGHEST_COMMON_BLOCK = 'getHighestCommonBlock';
-export const NETWORK_RPC_GET_SINGLE_COMMIT_FROM_ID = 'getSingleCommit';
 
 export const NETWORK_LEGACY_GET_BLOCKS_FROM_ID = 'getLegacyBlocksFromId';
 

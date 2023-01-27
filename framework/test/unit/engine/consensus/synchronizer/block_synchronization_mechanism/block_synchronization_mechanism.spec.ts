@@ -948,12 +948,16 @@ describe('block_synchronization_mechanism', () => {
 				expect(blockExecutor.executeValidated).toHaveBeenCalledTimes(blocksToApply.length);
 				for (const requestedBlock of blocksToApply) {
 					expect(blockExecutor.verify).toHaveBeenCalledWith(requestedBlock);
-					expect(blockExecutor.executeValidated).toHaveBeenCalledWith(requestedBlock);
+					expect(blockExecutor.executeValidated).toHaveBeenCalledWith(requestedBlock, {
+						skipBroadcast: true,
+					});
 				}
 
 				for (const requestedBlock of blocksToNotApply) {
 					expect(blockExecutor.verify).not.toHaveBeenCalledWith(requestedBlock);
-					expect(blockExecutor.executeValidated).not.toHaveBeenCalledWith(requestedBlock);
+					expect(blockExecutor.executeValidated).not.toHaveBeenCalledWith(requestedBlock, {
+						skipBroadcast: true,
+					});
 				}
 			});
 

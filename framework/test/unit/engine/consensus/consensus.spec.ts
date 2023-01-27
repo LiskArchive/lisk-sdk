@@ -144,28 +144,33 @@ describe('consensus', () => {
 	};
 
 	describe('init', () => {
-		it('should instantiate synchronizer', async () => {
+		beforeEach(() => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
+		});
+
+		it('should instantiate synchronizer', async () => {
 			await initConsensus();
 			expect(consensus['_synchronizer']).toBeInstanceOf(Synchronizer);
 		});
 
 		it('should instantiate endpoint', async () => {
-			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
 			await initConsensus();
 			expect(consensus['_endpoint']).toBeInstanceOf(NetworkEndpoint);
 		});
 
 		it('should instantiate legacy endpoint', async () => {
-			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
 			await initConsensus();
 			expect(consensus['_legacyEndpoint']).toBeInstanceOf(LegacyNetworkEndpoint);
 		});
 
 		it('should register endpoints', async () => {
-			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
 			await initConsensus();
 			expect(network.registerEndpoint).toHaveBeenCalledTimes(4);
+		});
+
+		it('should register network handlers', async () => {
+			await initConsensus();
+			expect(network.registerHandler).toHaveBeenCalledTimes(3);
 		});
 
 		it('should execute genesis block if genesis block does not exist', async () => {
@@ -182,7 +187,6 @@ describe('consensus', () => {
 		});
 
 		it('should not execute genesis block if it exists in chain', async () => {
-			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
 			await initConsensus();
 			expect(chain.saveBlock).not.toHaveBeenCalled();
 			expect(chain.loadLastBlocks).toHaveBeenCalledTimes(1);

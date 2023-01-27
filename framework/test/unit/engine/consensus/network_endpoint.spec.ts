@@ -26,13 +26,16 @@ import {
 	getBlocksFromIdRequestSchema,
 	getHighestCommonBlockRequestSchema,
 	getHighestCommonBlockResponseSchema,
-	getSingleCommitEventSchema,
 } from '../../../../src/engine/consensus/schema';
 import { Network } from '../../../../src/engine/network';
 import { loggerMock } from '../../../../src/testing/mocks';
 import { createValidDefaultBlock } from '../../../fixtures';
 import { CommitPool } from '../../../../src/engine/consensus/certificate_generation/commit_pool';
 import { createFakeBlockHeader } from '../../../../src/testing/create_block';
+import {
+	singleCommitSchema,
+	singleCommitsNetworkPacketSchema,
+} from '../../../../src/engine/consensus/certificate_generation/schema';
 
 describe('p2p endpoint', () => {
 	const defaultPeerId = 'peer-id';
@@ -240,34 +243,51 @@ describe('p2p endpoint', () => {
 			blsPublicKey: utils.getRandomBytes(48),
 			blsSecretKey: utils.getRandomBytes(32),
 		};
-		let validCommit: { singleCommit: SingleCommit };
+		let validCommit: SingleCommit;
 		let encodedValidCommit: Buffer;
 
 		beforeEach(() => {
 			validCommit = {
-				singleCommit: {
-					blockID: blockHeader.id,
-					height: blockHeader.height,
-					validatorAddress: validatorInfo.address,
-					certificateSignature: signCertificate(
-						validatorInfo.blsSecretKey,
-						chainID,
-						unsignedCertificate,
-					),
-				},
+				blockID: blockHeader.id,
+				height: blockHeader.height,
+				validatorAddress: validatorInfo.address,
+				certificateSignature: signCertificate(
+					validatorInfo.blsSecretKey,
+					chainID,
+					unsignedCertificate,
+				),
 			};
-			encodedValidCommit = codec.encode(getSingleCommitEventSchema, validCommit);
+			encodedValidCommit = codec.encode(singleCommitsNetworkPacketSchema, {
+				commits: [codec.encode(singleCommitSchema, validCommit)],
+			});
 		});
 
-		it('should add commit with valid commit', async () => {
-			// eslint-disable-next-line @typescript-eslint/require-await
-			commitPool.validateCommit = jest.fn(async () => true);
+		it('should add message with valid commit', async () => {
+			(commitPool.validateCommit as jest.Mock).mockResolvedValue(true);
 			commitPool.addCommit = jest.fn();
 			await expect(
 				endpoint.handleEventSingleCommit(encodedValidCommit, defaultPeerId),
 			).resolves.not.toThrow();
 			expect(commitPool.validateCommit).toHaveBeenCalled();
 			expect(commitPool.addCommit).toHaveBeenCalled();
+		});
+
+		it('should not add message with invalid commit', async () => {
+			(commitPool.validateCommit as jest.Mock).mockResolvedValue(false);
+			commitPool.addCommit = jest.fn();
+			await expect(
+				endpoint.handleEventSingleCommit(encodedValidCommit, defaultPeerId),
+			).resolves.not.toThrow();
+			expect(commitPool.validateCommit).toHaveBeenCalled();
+			expect(commitPool.addCommit).not.toHaveBeenCalled();
+		});
+
+		it('should apply penalty when received message is not Buffer', async () => {
+			await expect(endpoint.handleEventSingleCommit('some data', defaultPeerId)).rejects.toThrow();
+			expect(network.applyPenaltyOnPeer).toHaveBeenCalledWith({
+				peerId: defaultPeerId,
+				penalty: 100,
+			});
 		});
 
 		it('should apply penalty when un-decodable data is received', async () => {
@@ -282,12 +302,14 @@ describe('p2p endpoint', () => {
 
 		it('should apply penalty when invalid data value is received', async () => {
 			const invalidCommit = {
-				singleCommit: {
-					...validCommit.singleCommit,
-					certificateSignature: utils.getRandomBytes(2),
-				},
+				commits: [
+					codec.encode(singleCommitSchema, {
+						...validCommit,
+						certificateSignature: utils.getRandomBytes(2),
+					}),
+				],
 			};
-			const encodedInvalidCommit = codec.encode(getSingleCommitEventSchema, invalidCommit);
+			const encodedInvalidCommit = codec.encode(singleCommitsNetworkPacketSchema, invalidCommit);
 			await expect(
 				endpoint.handleEventSingleCommit(encodedInvalidCommit, defaultPeerId),
 			).rejects.toThrow('minLength not satisfied');
@@ -298,7 +320,7 @@ describe('p2p endpoint', () => {
 		});
 
 		it('should apply penalty when invalid commit is received', async () => {
-			commitPool.validateCommit = jest.fn(() => {
+			(commitPool.validateCommit as jest.Mock).mockImplementation(() => {
 				throw new Error('Invalid commit');
 			});
 			await expect(
