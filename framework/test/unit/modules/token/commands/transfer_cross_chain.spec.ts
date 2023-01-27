@@ -44,6 +44,7 @@ interface Params {
 	recipientAddress: Buffer;
 	data: string;
 	messageFee: bigint;
+	messageFeeTokenID: Buffer;
 }
 
 describe('CCTransfer command', () => {
@@ -62,6 +63,7 @@ describe('CCTransfer command', () => {
 
 	const createTransactionContextWithOverridingParams = (params: Record<string, unknown>) =>
 		createTransactionContext({
+			chainID: defaultOwnChainID,
 			transaction: new Transaction({
 				module: module.name,
 				command: command.name,
@@ -147,7 +149,6 @@ describe('CCTransfer command', () => {
 			method,
 			interoperabilityMethod,
 			internalMethod,
-			ownChainID: defaultOwnChainID,
 		});
 
 		jest.spyOn(command['_internalMethod'], 'initializeEscrowAccount');
@@ -167,6 +168,7 @@ describe('CCTransfer command', () => {
 				recipientAddress: utils.getRandomBytes(20),
 				data: '1'.repeat(64),
 				messageFee: BigInt(1000),
+				messageFeeTokenID: defaultTokenID,
 			};
 		});
 
@@ -248,7 +250,7 @@ describe('CCTransfer command', () => {
 			);
 		});
 
-		it('should fail when chainID of the tokenID is other than ownChainID, receivingChainID or MAINCHAINID', async () => {
+		it('should fail when chainID of the tokenID is other than ownChainID or receivingChainID', async () => {
 			const invalidtokenChainIDContext = createTransactionContextWithOverridingParams({
 				tokenID: Buffer.from([0, 0, 1, 1, 0, 0, 0, 0]),
 			});
@@ -257,7 +259,20 @@ describe('CCTransfer command', () => {
 				await command.verify(
 					invalidtokenChainIDContext.createCommandExecuteContext(crossChainTransferParamsSchema),
 				),
-				'Token must be native to either the sending or the receiving chain or the mainchain.',
+				'Token must be native to either the sending or the receiving chain.',
+			);
+		});
+
+		it('should fail when chainID of the tokenID is mainchain token ID', async () => {
+			const invalidtokenChainIDContext = createTransactionContextWithOverridingParams({
+				tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
+			});
+
+			expectSchemaValidationError(
+				await command.verify(
+					invalidtokenChainIDContext.createCommandExecuteContext(crossChainTransferParamsSchema),
+				),
+				'Token must be native to either the sending or the receiving chain.',
 			);
 		});
 
@@ -266,7 +281,7 @@ describe('CCTransfer command', () => {
 			const amount = BigInt(50);
 			const senderBalance = BigInt(49);
 
-			const tokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
+			const tokenID = Buffer.concat([defaultOwnChainID, Buffer.from([0, 0, 0, 0])]);
 			const messageFeeTokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 1]);
 
 			const insufficientBalanceContext = createTransactionContextWithOverridingParams({
@@ -320,7 +335,7 @@ describe('CCTransfer command', () => {
 			const amount = BigInt(50);
 			const senderBalance = BigInt(49);
 
-			const tokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
+			const tokenID = Buffer.concat([defaultOwnChainID, Buffer.from([0, 0, 0, 0])]);
 			const messageFeeTokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 1]);
 
 			const insufficientBalanceContext = createTransactionContextWithOverridingParams({
@@ -379,11 +394,12 @@ describe('CCTransfer command', () => {
 				recipientAddress: utils.getRandomBytes(20),
 				data: '1'.repeat(64),
 				messageFee: BigInt(1000),
+				messageFeeTokenID: defaultTokenID,
 			};
 		});
 
 		describe('when chainID of tokenID is equal to ownChainID and escrowAccount does not exist', () => {
-			it('should create escrowAccount for receivingChainID and tokenID and logs InitializeEscrowAccountEvent and TransferCrossChainEvent and call InteroperabilityMethod#send', async () => {
+			it('should create and add amount to escrowAccount for receivingChainID and tokenID and logs InitializeEscrowAccountEvent and TransferCrossChainEvent and call InteroperabilityMethod#send', async () => {
 				const userStore = module.stores.get(UserStore);
 				const escrowStore = module.stores.get(EscrowStore);
 
@@ -419,7 +435,7 @@ describe('CCTransfer command', () => {
 					escrowStore.getKey(validParams.receivingChainID, commonTokenID),
 				);
 
-				expect(escrowAccount.amount).toBe(BigInt(0));
+				expect(escrowAccount.amount).toBe(BigInt(50));
 
 				expect(command['_internalMethod'].initializeEscrowAccount).toHaveBeenCalledWith(
 					expect.anything(),

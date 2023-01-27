@@ -91,7 +91,6 @@ describe('CrossChain Transfer Command', () => {
 		internalMethod.init(config);
 		method.init(config);
 		command.init({
-			ownChainID,
 			internalMethod,
 			tokenMethod: method,
 		});
@@ -176,7 +175,7 @@ describe('CrossChain Transfer Command', () => {
 			);
 		});
 
-		it('should throw if token is not native to the sending chain, receiving chain or the mainchain', async () => {
+		it('should throw if token is not native to the sending chain, receiving chain', async () => {
 			// Arrange
 			const params = codec.encode(crossChainTransferMessageParams, {
 				tokenID: defaultForeignTokenID,
@@ -223,7 +222,7 @@ describe('CrossChain Transfer Command', () => {
 
 			// Act & Assert
 			await expect(command.verify(ctx)).rejects.toThrow(
-				'Token must be native to either the sending or the receiving chain or the mainchain',
+				'Token must be native to either the sending or the receiving chain',
 			);
 		});
 
@@ -266,7 +265,7 @@ describe('CrossChain Transfer Command', () => {
 				ccmSize: BigInt(30),
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
-				chainID: utils.getRandomBytes(32),
+				chainID: ownChainID,
 				ccu: {
 					sendingChainID,
 				},
@@ -316,7 +315,7 @@ describe('CrossChain Transfer Command', () => {
 				ccmSize: BigInt(30),
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
-				chainID: utils.getRandomBytes(32),
+				chainID: ownChainID,
 				ccu: {
 					sendingChainID,
 				},
@@ -367,7 +366,7 @@ describe('CrossChain Transfer Command', () => {
 				ccmSize: BigInt(30),
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
-				chainID: utils.getRandomBytes(32),
+				chainID: ownChainID,
 				ccu: {
 					sendingChainID,
 				},
@@ -410,7 +409,7 @@ describe('CrossChain Transfer Command', () => {
 				ccmSize: BigInt(30),
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
-				chainID: utils.getRandomBytes(32),
+				chainID: ownChainID,
 				ccu: {
 					sendingChainID,
 				},
@@ -461,7 +460,7 @@ describe('CrossChain Transfer Command', () => {
 				ccmSize: BigInt(30),
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
-				chainID: utils.getRandomBytes(32),
+				chainID: ownChainID,
 				ccu: {
 					sendingChainID,
 				},
@@ -524,7 +523,7 @@ describe('CrossChain Transfer Command', () => {
 				ccmSize: BigInt(30),
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
-				chainID: utils.getRandomBytes(32),
+				chainID: ownChainID,
 				ccu: {
 					sendingChainID,
 				},
@@ -576,7 +575,7 @@ describe('CrossChain Transfer Command', () => {
 				ccmSize: BigInt(30),
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
-				chainID: utils.getRandomBytes(32),
+				chainID: ownChainID,
 				ccu: {
 					sendingChainID,
 				},
@@ -635,7 +634,7 @@ describe('CrossChain Transfer Command', () => {
 				ccmSize: BigInt(30),
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
-				chainID: utils.getRandomBytes(32),
+				chainID: ownChainID,
 				ccu: {
 					sendingChainID,
 				},
@@ -698,7 +697,7 @@ describe('CrossChain Transfer Command', () => {
 				ccmSize: BigInt(30),
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
-				chainID: utils.getRandomBytes(32),
+				chainID: ownChainID,
 				ccu: {
 					sendingChainID,
 				},
@@ -767,7 +766,7 @@ describe('CrossChain Transfer Command', () => {
 				ccmSize: BigInt(30),
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
-				chainID: utils.getRandomBytes(32),
+				chainID: ownChainID,
 				ccu: {
 					sendingChainID,
 				},

@@ -25,24 +25,19 @@ import { CcmTransferEvent } from '../events/ccm_transfer';
 import { UserStore } from '../stores/user';
 import { EscrowStore } from '../stores/escrow';
 import { InternalMethod } from '../internal_method';
+import { MAX_RESERVED_ERROR_STATUS } from '../../interoperability/constants';
 
 export class CrossChainTransferCommand extends BaseCCCommand {
 	public schema = crossChainTransferMessageParams;
 
 	private _tokenMethod!: TokenMethod;
 	private _internalMethod!: InternalMethod;
-	private _ownChainID!: Buffer;
 
 	public get name(): string {
 		return CROSS_CHAIN_COMMAND_NAME_TRANSFER;
 	}
 
-	public init(args: {
-		ownChainID: Buffer;
-		tokenMethod: TokenMethod;
-		internalMethod: InternalMethod;
-	}): void {
-		this._ownChainID = args.ownChainID;
+	public init(args: { tokenMethod: TokenMethod; internalMethod: InternalMethod }): void {
 		this._tokenMethod = args.tokenMethod;
 		this._internalMethod = args.internalMethod;
 	}
@@ -50,28 +45,25 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 	public async verify(ctx: CrossChainMessageContext): Promise<void> {
 		const { ccm } = ctx;
 		const methodContext = ctx.getMethodContext();
-		const ownChainID = this._ownChainID;
-		const mainChainID = this._tokenMethod.getMainchainTokenID();
 		const { sendingChainID } = ccm;
 		const params = codec.decode<CCTransferMessageParams>(
 			crossChainTransferMessageParams,
 			ccm.params,
 		);
 		validator.validate(crossChainTransferMessageParams, params);
+
+		if (ccm.status > MAX_RESERVED_ERROR_STATUS) {
+			throw new Error('Invalid CCM status code.');
+		}
+
 		const { tokenID, amount } = params;
 		const [tokenChainID] = splitTokenID(tokenID);
 
-		if (
-			!tokenChainID.equals(ownChainID) &&
-			!tokenChainID.equals(sendingChainID) &&
-			!tokenChainID.equals(mainChainID)
-		) {
-			throw new Error(
-				'Token must be native to either the sending or the receiving chain or the mainchain.',
-			);
+		if (!tokenChainID.equals(ctx.chainID) && !tokenChainID.equals(sendingChainID)) {
+			throw new Error('Token must be native to either the sending or the receiving chain.');
 		}
 
-		if (tokenChainID.equals(ownChainID)) {
+		if (tokenChainID.equals(ctx.chainID)) {
 			const escrowedAmount = await this._tokenMethod.getEscrowedAmount(
 				methodContext,
 				sendingChainID,
@@ -86,7 +78,6 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 
 	public async execute(ctx: CrossChainMessageContext): Promise<void> {
 		const { ccm } = ctx;
-		const ownChainID = this._ownChainID;
 		const methodContext = ctx.getMethodContext();
 		const { sendingChainID, status, receivingChainID } = ccm;
 		let recipientAddress: Buffer;
@@ -99,7 +90,7 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 		recipientAddress = params.recipientAddress;
 		const [tokenChainID] = splitTokenID(tokenID);
 
-		this.stores.get(SupportedTokensStore).registerOwnChainID(this._ownChainID);
+		this.stores.get(SupportedTokensStore).registerOwnChainID(ctx.chainID);
 		const supported = await this.stores.get(SupportedTokensStore).isSupported(ctx, tokenID);
 
 		if (!supported) {
@@ -136,7 +127,7 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 			);
 		}
 
-		if (tokenChainID.equals(ownChainID)) {
+		if (tokenChainID.equals(ctx.chainID)) {
 			const escrowStore = this.stores.get(EscrowStore);
 			const escrowKey = escrowStore.getKey(sendingChainID, tokenID);
 			const escrowData = await escrowStore.get(methodContext, escrowKey);
