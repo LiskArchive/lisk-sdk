@@ -594,7 +594,7 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create pos unlock 100000000 --params=${voteParams} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create pos unlock 100000000 --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
 						['pos', 'unlock', '100000000', `--passphrase=${passphrase}`],
