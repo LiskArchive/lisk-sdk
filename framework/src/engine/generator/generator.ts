@@ -625,6 +625,9 @@ export class Generator {
 	}
 
 	private _handleFinalizedHeightChanged(from: number, to: number): Promise<void>[] {
+		if (from >= to) {
+			return [];
+		}
 		const promises = [];
 		const stateStore = new StateStore(this._blockchainDB);
 		for (const [address, pairs] of this._keypairs.entries()) {
