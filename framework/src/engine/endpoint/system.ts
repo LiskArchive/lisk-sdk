@@ -17,6 +17,7 @@ import {
 	blockSchema,
 	Chain,
 	eventSchema,
+	standardEventDataSchema,
 	transactionSchema,
 } from '@liskhq/lisk-chain';
 import { ABI } from '../../abi';
@@ -88,6 +89,7 @@ export class SystemEndpoint {
 			asset: blockAssetSchema,
 			transaction: transactionSchema,
 			event: eventSchema,
+			standardEvent: standardEventDataSchema,
 		};
 	}
 }
