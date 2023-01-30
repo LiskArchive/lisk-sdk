@@ -203,7 +203,7 @@ export class Generator {
 			stateStore,
 		);
 		await Promise.all(
-			this._handleFinalizedHeightChanged(maxHeightCertified + 1, maxHeightPrecommitted),
+			this._handleFinalizedHeightChanged(maxHeightCertified, maxHeightPrecommitted),
 		);
 	}
 

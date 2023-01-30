@@ -208,7 +208,7 @@ describe('generator', () => {
 					generatorDB,
 					logger,
 				});
-				expect(generator['_handleFinalizedHeightChanged']).toHaveBeenCalledWith(314, 515);
+				expect(generator['_handleFinalizedHeightChanged']).toHaveBeenCalledWith(313, 515);
 			});
 		});
 
