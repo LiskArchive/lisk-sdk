@@ -43,7 +43,7 @@ import {
 } from '../../../../src/modules/validators/events/generator_key_registration';
 import {
 	blsKeyRegDataSchema,
-	BLSKeyRegistrationEvent,
+	BlsKeyRegistrationEvent,
 } from '../../../../src/modules/validators/events/bls_key_registration';
 import { ValidatorsParamsStore } from '../../../../src/modules/validators/stores/validators_params';
 
@@ -137,7 +137,7 @@ describe('ValidatorsModuleMethod', () => {
 			expect(methodContext.eventQueue.add).toHaveBeenNthCalledWith(
 				2,
 				MODULE_NAME_VALIDATORS,
-				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
+				validatorsModule.events.get(BlsKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				false,
@@ -194,7 +194,7 @@ describe('ValidatorsModuleMethod', () => {
 			);
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
+				validatorsModule.events.get(BlsKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				true,
@@ -219,7 +219,7 @@ describe('ValidatorsModuleMethod', () => {
 			).rejects.toThrow('Invalid proof of possession for the given BLS key.');
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
+				validatorsModule.events.get(BlsKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				true,
@@ -343,7 +343,7 @@ describe('ValidatorsModuleMethod', () => {
 			expect(hasKey).toBe(true);
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
+				validatorsModule.events.get(BlsKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				false,
@@ -368,7 +368,7 @@ describe('ValidatorsModuleMethod', () => {
 			);
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
+				validatorsModule.events.get(BlsKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				true,
@@ -400,7 +400,7 @@ describe('ValidatorsModuleMethod', () => {
 			);
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
+				validatorsModule.events.get(BlsKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				true,
@@ -429,7 +429,7 @@ describe('ValidatorsModuleMethod', () => {
 			).rejects.toThrow('Invalid proof of possession for the given BLS key.');
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
+				validatorsModule.events.get(BlsKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				true,

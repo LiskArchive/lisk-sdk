@@ -24,7 +24,7 @@ import {
 import { ValidatorKeysStore } from './stores/validator_keys';
 import { BLSKeyStore } from './stores/bls_keys';
 import { GeneratorKeyRegistrationEvent } from './events/generator_key_registration';
-import { BLSKeyRegistrationEvent } from './events/bls_key_registration';
+import { BlsKeyRegistrationEvent } from './events/bls_key_registration';
 import { ValidatorsParamsStore } from './stores/validators_params';
 
 export class ValidatorsModule extends BaseModule {
@@ -42,7 +42,7 @@ export class ValidatorsModule extends BaseModule {
 			GeneratorKeyRegistrationEvent,
 			new GeneratorKeyRegistrationEvent(this.name),
 		);
-		this.events.register(BLSKeyRegistrationEvent, new BLSKeyRegistrationEvent(this.name));
+		this.events.register(BlsKeyRegistrationEvent, new BlsKeyRegistrationEvent(this.name));
 	}
 
 	public metadata(): ModuleMetadata {
