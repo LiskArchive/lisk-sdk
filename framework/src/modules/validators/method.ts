@@ -27,7 +27,7 @@ import { MethodInitArgs, ValidatorAddress } from './types';
 import { GeneratorKeyRegistrationEvent } from './events/generator_key_registration';
 import { ValidatorKeys, validatorKeysSchema, ValidatorKeysStore } from './stores/validator_keys';
 import { BLSKeyStore } from './stores/bls_keys';
-import { BLSKeyRegistrationEvent } from './events/bls_key_registration';
+import { BlsKeyRegistrationEvent } from './events/bls_key_registration';
 import { ValidatorsParams, ValidatorsParamsStore } from './stores/validators_params';
 import { NextValidatorsSetter, Validator } from '../../state_machine/types';
 
@@ -67,7 +67,7 @@ export class ValidatorsMethod extends BaseMethod {
 		const blsKeysSubStore = this.stores.get(BLSKeyStore);
 		const blsKeyExists = await blsKeysSubStore.has(methodContext, blsKey);
 		if (blsKeyExists) {
-			this.events.get(BLSKeyRegistrationEvent).log(methodContext, validatorAddress, {
+			this.events.get(BlsKeyRegistrationEvent).log(methodContext, validatorAddress, {
 				blsKey,
 				proofOfPossession,
 				result: KeyRegResult.DUPLICATE_BLS_KEY,
@@ -78,7 +78,7 @@ export class ValidatorsMethod extends BaseMethod {
 		}
 
 		if (!bls.popVerify(blsKey, proofOfPossession)) {
-			this.events.get(BLSKeyRegistrationEvent).log(methodContext, validatorAddress, {
+			this.events.get(BlsKeyRegistrationEvent).log(methodContext, validatorAddress, {
 				blsKey,
 				proofOfPossession,
 				result: KeyRegResult.INVALID_POP,
@@ -91,7 +91,7 @@ export class ValidatorsMethod extends BaseMethod {
 		this.events
 			.get(GeneratorKeyRegistrationEvent)
 			.log(methodContext, validatorAddress, { generatorKey, result: KeyRegResult.SUCCESS });
-		this.events.get(BLSKeyRegistrationEvent).log(methodContext, validatorAddress, {
+		this.events.get(BlsKeyRegistrationEvent).log(methodContext, validatorAddress, {
 			blsKey,
 			proofOfPossession,
 			result: KeyRegResult.SUCCESS,
@@ -189,7 +189,7 @@ export class ValidatorsMethod extends BaseMethod {
 		const addressExists = await validatorsSubStore.has(methodContext, validatorAddress);
 
 		if (!addressExists) {
-			this.events.get(BLSKeyRegistrationEvent).log(methodContext, validatorAddress, {
+			this.events.get(BlsKeyRegistrationEvent).log(methodContext, validatorAddress, {
 				blsKey,
 				proofOfPossession,
 				result: KeyRegResult.NO_VALIDATOR,
@@ -202,7 +202,7 @@ export class ValidatorsMethod extends BaseMethod {
 		const blsKeysSubStore = this.stores.get(BLSKeyStore);
 		const blsKeyExists = await blsKeysSubStore.has(methodContext, blsKey);
 		if (blsKeyExists) {
-			this.events.get(BLSKeyRegistrationEvent).log(methodContext, validatorAddress, {
+			this.events.get(BlsKeyRegistrationEvent).log(methodContext, validatorAddress, {
 				blsKey,
 				proofOfPossession,
 				result: KeyRegResult.DUPLICATE_BLS_KEY,
@@ -218,7 +218,7 @@ export class ValidatorsMethod extends BaseMethod {
 		}
 
 		if (!bls.popVerify(blsKey, proofOfPossession)) {
-			this.events.get(BLSKeyRegistrationEvent).log(methodContext, validatorAddress, {
+			this.events.get(BlsKeyRegistrationEvent).log(methodContext, validatorAddress, {
 				blsKey,
 				proofOfPossession,
 				result: KeyRegResult.INVALID_POP,
@@ -232,7 +232,7 @@ export class ValidatorsMethod extends BaseMethod {
 		await validatorsSubStore.set(methodContext, validatorAddress, validatorAccount);
 		await blsKeysSubStore.set(methodContext, blsKey, { address: validatorAddress });
 
-		this.events.get(BLSKeyRegistrationEvent).log(methodContext, validatorAddress, {
+		this.events.get(BlsKeyRegistrationEvent).log(methodContext, validatorAddress, {
 			blsKey,
 			proofOfPossession,
 			result: KeyRegResult.SUCCESS,
