@@ -33,9 +33,9 @@ import {
 	computeValidatorsHash,
 	getEncodedCCMAndID,
 	getMainchainID,
-	isOutboxRootWitnessEmpty,
 	validateFormat,
 	calculateNewActiveValidators,
+	emptyActiveValidatorsUpdate,
 } from './utils';
 import { NamedRegistry } from '../named_registry';
 import { OwnChainAccountStore } from './stores/own_chain_account';
@@ -388,6 +388,21 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 				'Certificate timestamp is not smaller than timestamp of the block including the CCU.',
 			);
 		}
+		const partnerchainValidators = await this.stores
+			.get(ChainValidatorsStore)
+			.get(context, params.sendingChainID);
+
+		// If the certified validators hash differs from the one stored in the chain account,
+		// the CCU must contain a validators update (which is verified in verifyValidatorsUpdate).
+		if (
+			!certificate.validatorsHash.equals(partnerchainAccount.lastCertificate.validatorsHash) &&
+			emptyActiveValidatorsUpdate(params.activeValidatorsUpdate) &&
+			params.certificateThreshold === partnerchainValidators.certificateThreshold
+		) {
+			throw new Error(
+				'Certifying an update to the validators hash requires an active validators update.',
+			);
+		}
 	}
 
 	public async verifyCertificateSignature(
@@ -562,6 +577,9 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			.log(context, ccm.sendingChainID, ccm.receivingChainID, ccmID, { ccm });
 	}
 
+	/**
+	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#verifypartnerchainoutboxroot
+	 */
 	public async verifyPartnerChainOutboxRoot(
 		context: ImmutableMethodContext,
 		params: CrossChainUpdateTransactionParams,
@@ -584,23 +602,36 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		);
 
 		const { outboxRootWitness } = params.inboxUpdate;
+		// The outbox root witness properties must be set either both to their default values
+		// or both to a non-default value.
+		if (outboxRootWitness.bitmap.length === 0 && outboxRootWitness.siblingHashes.length > 0) {
+			throw new Error(
+				'The bitmap in the outbox root witness must be non-mepty if the sibling hashes are non-empty.',
+			);
+		}
+		if (outboxRootWitness.bitmap.length !== 0 && outboxRootWitness.siblingHashes.length === 0) {
+			throw new Error(
+				'The sibling hashes in the outbox root witness must be non-mepty if the bitmap is non-empty.',
+			);
+		}
+
+		// The outbox root witness is empty if and only if the certificate is empty
+		if (outboxRootWitness.bitmap.length === 0 && params.certificate.length > 0) {
+			throw new Error(
+				'The outbox root witness must be non-empty to authenticate the new partnerChainOutboxRoot.',
+			);
+		}
+		if (outboxRootWitness.bitmap.length !== 0 && params.certificate.length === 0) {
+			throw new Error(
+				'The outbox root witness can be non-empty only if the certificate is non-empty.',
+			);
+		}
+
 		if (params.certificate.length === 0) {
-			// The value of outboxRootWitness can only be non-empty when certificate is non-empty
-			if (!isOutboxRootWitnessEmpty(outboxRootWitness)) {
-				throw new Error(
-					'The outbox root witness can be non-empty only if the certificate is non-empty.',
-				);
-			}
 			if (!newInboxRoot.equals(channel.partnerChainOutboxRoot)) {
 				throw new Error('Inbox root does not match partner chain outbox root.');
 			}
 			return;
-		}
-		// For every non-empty certificate there should be non-empty outboxRootWitness
-		if (isOutboxRootWitnessEmpty(outboxRootWitness)) {
-			throw new Error(
-				'The outbox root witness must be non-empty to authenticate the new partnerChainOutboxRoot.',
-			);
 		}
 		const outboxRootStore = this.stores.get(OutboxRootStore);
 		const outboxKey = Buffer.concat([outboxRootStore.key, utils.hash(params.sendingChainID)]);
