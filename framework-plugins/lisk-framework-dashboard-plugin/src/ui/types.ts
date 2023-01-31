@@ -20,7 +20,7 @@ export interface Account {
 
 export interface GenesisConfig {
 	[key: string]: unknown;
-	readonly bftThreshold: number;
+	readonly bftBatchSize: number;
 	readonly chainID: string;
 	readonly blockTime: number;
 	readonly maxTransactionsSize: number;
@@ -35,11 +35,11 @@ export interface NodeInfo {
 	readonly finalizedHeight: number;
 	readonly syncing: boolean;
 	readonly unconfirmedTransactions: number;
-	readonly genesisConfig: GenesisConfig;
+	readonly genesis: GenesisConfig;
 }
 export interface BlockHeader {
 	id: string;
-	generatorPublicKey: string;
+	generatorAddress: string;
 	height: number;
 }
 
@@ -51,15 +51,21 @@ export interface Block {
 export interface Transaction {
 	id: string;
 	senderPublicKey: string;
-	moduleID: string;
-	commandID: string;
+	module: string;
+	command: string;
 	fee: number;
 }
 
 export interface EventData {
+	module: string;
 	name: string;
-	data: Record<string, unknown>;
+	topics: string[];
+	index: number;
+	height: number;
+	data: string;
 }
+
+export type ParsedEvent = Omit<EventData, 'data'> & { data: Record<string, unknown> };
 
 export interface SendTransactionOptions {
 	module: string;
@@ -68,7 +74,7 @@ export interface SendTransactionOptions {
 	passphrase: string;
 }
 
-export interface CallActionOptions {
+export interface CallEndpointOptions {
 	name: string;
 	params: Record<string, unknown>;
 }

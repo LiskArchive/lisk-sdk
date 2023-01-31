@@ -57,6 +57,7 @@ export const DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE = BigInt(10);
 export const DEFAULT_REORGANIZE_TIME = 500;
 export const events = {
 	EVENT_TRANSACTION_REMOVED: 'EVENT_TRANSACTION_REMOVED',
+	EVENT_TRANSACTION_ADDED: 'EVENT_TRANSACTION_ADDED',
 };
 const ERR_NONCE_OUT_OF_BOUNDS_CODE = 'ERR_NONCE_OUT_OF_BOUNDS';
 const ERR_TRANSACTION_VERIFICATION_FAIL = 'ERR_TRANSACTION_VERIFICATION_FAIL';
@@ -274,6 +275,7 @@ export class TransactionPool {
 		// Add to feePriorityQueue
 		this._feePriorityQueue.push(this._calculateFeePriority(incomingTx), incomingTx.id);
 
+		this.events.emit(events.EVENT_TRANSACTION_ADDED, { transaction: incomingTx });
 		return { status: Status.OK };
 	}
 

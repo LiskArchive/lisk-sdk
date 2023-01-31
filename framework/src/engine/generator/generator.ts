@@ -226,7 +226,12 @@ export class Generator {
 
 	public async start(): Promise<void> {
 		this._networkEndpoint.start();
-		this._pool.events.on(events.EVENT_TRANSACTION_REMOVED, event => {
+		this._pool.events.on(events.EVENT_TRANSACTION_ADDED, (event: { transaction: Transaction }) => {
+			this.events.emit(GENERATOR_EVENT_NEW_TRANSACTION, {
+				transaction: event.transaction.toJSON(),
+			});
+		});
+		this._pool.events.on(events.EVENT_TRANSACTION_REMOVED, (event: Record<string, unknown>) => {
 			this._logger.debug(event, 'Transaction was removed from the pool.');
 		});
 		this._broadcaster.start();
@@ -277,8 +282,8 @@ export class Generator {
 	public onDeleteBlock(block: Block): void {
 		if (block.transactions.length) {
 			for (const transaction of block.transactions) {
-				this._pool.add(transaction).catch(err => {
-					this._logger.error({ err: err as Error }, 'Failed to add transaction back to the pool');
+				this._pool.add(transaction).catch((err: Error) => {
+					this._logger.error({ err }, 'Failed to add transaction back to the pool');
 				});
 			}
 		}

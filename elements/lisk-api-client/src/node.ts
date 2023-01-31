@@ -26,7 +26,7 @@ export class Node {
 	}
 
 	public async getNetworkStats(): Promise<NetworkStats> {
-		return this._channel.invoke('network_getNetworkStats');
+		return this._channel.invoke('network_getStats');
 	}
 
 	public async getConnectedPeers(): Promise<PeerInfo[]> {

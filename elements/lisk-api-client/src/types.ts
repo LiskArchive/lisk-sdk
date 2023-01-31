@@ -91,7 +91,7 @@ export interface ModuleMetadata {
 
 export interface GenesisConfig {
 	[key: string]: unknown;
-	readonly bftThreshold: number;
+	readonly bftBatchSize: number;
 	readonly chainID: string;
 	readonly blockTime: number;
 	readonly maxTransactionsSize: number;
@@ -107,7 +107,7 @@ export interface NodeInfo {
 	readonly finalizedHeight: number;
 	readonly syncing: boolean;
 	readonly unconfirmedTransactions: number;
-	readonly genesisConfig: GenesisConfig;
+	readonly genesis: GenesisConfig;
 	readonly network: {
 		readonly port: number;
 		readonly hostIp?: string;

@@ -21,7 +21,7 @@ import Box from '../Box';
 import Button from '../Button';
 
 interface WidgetProps {
-	modules: { id: string; name: string; commands: { id: string; name: string }[] }[];
+	modules: { name: string; commands: { name: string }[] }[];
 	onSubmit: (data: SendTransactionOptions) => void;
 }
 
@@ -32,8 +32,8 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 	const parameters = props.modules
 		.map(m =>
 			m.commands.map(t => ({
-				label: `${m.name}:${t.name}`,
-				value: `${m.name}:${t.name}`,
+				label: `${m.name}_${t.name}`,
+				value: `${m.name}_${t.name}`,
 			})),
 		)
 		.flat();
@@ -41,31 +41,13 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 
 	const handleSubmit = () => {
 		const paramsSelectedValue = selectedParams ? selectedParams.value : '';
-		const moduleName = paramsSelectedValue.split(':').shift();
-		const commandName = paramsSelectedValue.split(':').slice(1).join(':');
-		let moduleID: string | undefined;
-		let commandID: string | undefined;
+		const moduleName = paramsSelectedValue.split('_').shift();
+		const commandName = paramsSelectedValue.split('_').slice(1).join('_');
 
-		for (const m of props.modules) {
-			if (m.name === moduleName) {
-				moduleID = m.id;
-
-				for (const t of m.commands) {
-					if (t.name === commandName) {
-						commandID = t.id;
-
-						break;
-					}
-				}
-
-				break;
-			}
-		}
-
-		if (moduleID !== undefined && commandID !== undefined) {
+		if (moduleName !== undefined && commandName !== undefined) {
 			props.onSubmit({
-				module: moduleID,
-				command: commandID,
+				module: moduleName,
+				command: commandName,
 				passphrase,
 				params: JSON.parse(params) as Record<string, unknown>,
 			});
@@ -75,7 +57,7 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 	return (
 		<Widget>
 			<WidgetHeader>
-				<Text type={'h2'}>{'Send transaction'}</Text>
+				<Text type={'h2'}>{'Invoke command'}</Text>
 			</WidgetHeader>
 			<WidgetBody>
 				<Box mb={4}>
