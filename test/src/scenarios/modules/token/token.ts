@@ -31,6 +31,10 @@ export const sampleTokenTestScenario = (fixtures: Fixtures) =>
 
 		it('transfer token', async () => {
 			const target = await account.createAccount();
+			const devnetTokenID = Buffer.concat([
+				Buffer.from('04000000', 'hex'),
+				Buffer.alloc(4, 0),
+			]).toString('hex');
 			const tx = await client.transaction.create(
 				{
 					module: 'token',
@@ -40,7 +44,7 @@ export const sampleTokenTestScenario = (fixtures: Fixtures) =>
 						amount: '100000000',
 						recipientAddress: target.address,
 						data: '',
-						tokenID: Buffer.alloc(8, 0).toString('hex'),
+						tokenID: devnetTokenID,
 					},
 				},
 				fixtures.validators.keys[0].privateKey,
