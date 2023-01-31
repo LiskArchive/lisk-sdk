@@ -379,7 +379,9 @@ describe('Application', () => {
 
 		it('should stop the engine', async () => {
 			await app.shutdown();
-			expect(engineProcessMock.kill).toHaveBeenCalledTimes(1);
+			expect(engineProcessMock.kill).toHaveBeenCalledTimes(2);
+			expect(engineProcessMock.kill).toHaveBeenCalledWith('SIGINT');
+			expect(engineProcessMock.kill).toHaveBeenCalledWith('SIGTERM');
 		});
 
 		it('should call cleanup methods', async () => {
