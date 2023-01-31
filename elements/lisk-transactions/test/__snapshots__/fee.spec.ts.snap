@@ -4,6 +4,6 @@ exports[`fee computeMinFee should calculate minimum fee for given minFeePerByte 
 
 exports[`fee computeMinFee should calculate minimum fee for transaction from multisignature account 1`] = `8634000n`;
 
-exports[`fee computeMinFee should calculate minimum fee for validator registration transaction 1`] = `136000n`;
+exports[`fee computeMinFee should calculate minimum fee for validator registration transaction 1`] = `1000138000n`;
 
 exports[`fee computeMinFee should return minimum fee required to send to network 1`] = `158000n`;
