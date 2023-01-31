@@ -169,7 +169,7 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 				// Append the recovered CCM to the list of recovered CCMs.
 				// Notice that the ccm has been mutated in the applyRecovery and forwardRecovery functions
 				// as the status is set to CCM_STATUS_CODE_RECOVERED (so that it cannot be recovered again).
-				recoveredCCMs.push(codec.encode(ccmSchema, ccm));
+				recoveredCCMs.push(crossChainMessage);
 			}
 		}
 
