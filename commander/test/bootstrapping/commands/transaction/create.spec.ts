@@ -99,6 +99,9 @@ describe('transaction:create command', () => {
 							name: 'stake',
 							params: posVoteParamsSchema,
 						},
+						{
+							name: 'unlock',
+						},
 					],
 				},
 			],
@@ -582,6 +585,19 @@ describe('transaction:create command', () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
 						['pos', 'stake', '100000000', `--params=${unVoteParams}`, `--passphrase=${passphrase}`],
+						config,
+					);
+					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
+					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
+						transaction: mockEncodedTransaction.toString('hex'),
+					});
+				});
+			});
+
+			describe(`transaction:create pos unlock 100000000 --passphrase=${passphrase}`, () => {
+				it('should return encoded transaction string in hex format with signature', async () => {
+					await CreateCommandExtended.run(
+						['pos', 'unlock', '100000000', `--passphrase=${passphrase}`],
 						config,
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const CROSS_CHAIN_COMMAND_NAME_TRANSFER = 'crossChainTransfer';
+export const CROSS_CHAIN_COMMAND_NAME_TRANSFER = 'transferCrossChain';
 
 export const ADDRESS_LENGTH = 20;
 export const MAX_DATA_LENGTH = 64;

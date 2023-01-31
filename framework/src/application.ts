@@ -354,7 +354,7 @@ export class Application {
 
 		try {
 			this.channel.publish(APP_EVENT_SHUTDOWN);
-			this._engineProcess.kill(0);
+			this._stopEngine();
 			await this._controller.stop(errorCode, message);
 			this._stateDB.close();
 			this._moduleDB.close();
@@ -452,5 +452,12 @@ export class Application {
 	private _clearControllerPidFile() {
 		const dirs = systemDirs(this.config.system.dataPath);
 		fs.unlinkSync(path.join(dirs.pids, 'controller.pid'));
+	}
+
+	// engine igniter is catching both signal once. Either SIGINT or SIGTERM is canceled once.
+	// it should kill with both catched termination signal because it cannot detect which signal was received
+	private _stopEngine() {
+		this._engineProcess?.kill('SIGINT');
+		this._engineProcess?.kill('SIGTERM');
 	}
 }

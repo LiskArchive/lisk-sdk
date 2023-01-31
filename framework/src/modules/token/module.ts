@@ -83,7 +83,6 @@ export class TokenModule extends BaseInteroperableModule {
 	public crossChainTransferCommand = new CrossChainTransferMessageCommand(this.stores, this.events);
 	public crossChainCommand = [this.crossChainTransferCommand];
 
-	private _ownChainID!: Buffer;
 	private readonly _transferCommand = new TransferCommand(this.stores, this.events);
 	private readonly _ccTransferCommand = new TransferCrossChainCommand(this.stores, this.events);
 	private readonly _internalMethod = new InternalMethod(this.stores, this.events);
@@ -187,7 +186,7 @@ export class TokenModule extends BaseInteroperableModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig, genesisConfig } = args;
-		this._ownChainID = Buffer.from(genesisConfig.chainID, 'hex');
+		const ownChainID = Buffer.from(genesisConfig.chainID, 'hex');
 
 		const rawConfig = objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfigJSON;
 		validator.validate(configSchema, rawConfig);
@@ -198,15 +197,13 @@ export class TokenModule extends BaseInteroperableModule {
 		};
 
 		this._internalMethod.init(config);
-		this.stores.get(SupportedTokensStore).registerOwnChainID(this._ownChainID);
+		this.stores.get(SupportedTokensStore).registerOwnChainID(ownChainID);
 		this.crossChainTransferCommand.init({
-			ownChainID: this._ownChainID,
 			internalMethod: this._internalMethod,
 			tokenMethod: this.method,
 		});
 
-		this.method.init({ ...config, ownChainID: this._ownChainID });
-		this.crossChainMethod.init(this._ownChainID);
+		this.method.init({ ...config, ownChainID });
 		this.endpoint.init(config);
 		this._transferCommand.init({
 			method: this.method,
@@ -394,7 +391,7 @@ export class TokenModule extends BaseInteroperableModule {
 		for (const { key, value: user } of allUsers) {
 			const tokenID = key.slice(ADDRESS_LENGTH);
 			const [chainID] = splitTokenID(tokenID);
-			if (chainID.equals(this._ownChainID)) {
+			if (chainID.equals(context.chainID)) {
 				const existingSupply = computedSupply.get(tokenID) ?? BigInt(0);
 				computedSupply.set(
 					tokenID,

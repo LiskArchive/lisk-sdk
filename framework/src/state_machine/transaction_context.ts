@@ -136,7 +136,7 @@ export class TransactionContext {
 		return {
 			logger: this._logger,
 			chainID: this._chainID,
-			eventQueue: this._eventQueue,
+			eventQueue: childQueue,
 			stateStore: this._stateStore,
 			contextStore: this._contextStore,
 			getMethodContext: () =>

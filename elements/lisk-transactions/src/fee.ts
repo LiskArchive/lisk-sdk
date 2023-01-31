@@ -23,6 +23,8 @@ export interface Options {
 	readonly numberOfSignatures?: number;
 	/** Number of empty signatures in the transaction. Default value: {@link DEFAULT_SIGNATURE_BYTE_SIZE} */
 	readonly numberOfEmptySignatures?: number;
+	/** Additional fee to be considered out side of minFeePerByte. ex) account initialization fee for token module */
+	readonly additionalFee?: bigint;
 }
 
 /** Default value for `minFeePerByte`. */
@@ -69,12 +71,16 @@ export const computeMinFee = (
 	transaction.signatures = mockSignatures;
 	transaction.fee = BigInt(0);
 
-	let minFee = BigInt(0);
+	const additionalFee = options?.additionalFee ?? BigInt(0);
+
+	let minFee = additionalFee;
 
 	do {
 		transaction.fee = minFee;
 		const transactionSize = getBytes(transaction, assetSchema).length;
-		minFee = BigInt(transactionSize * (options?.minFeePerByte ?? DEFAULT_MIN_FEE_PER_BYTE));
+		minFee =
+			BigInt(transactionSize * (options?.minFeePerByte ?? DEFAULT_MIN_FEE_PER_BYTE)) +
+			additionalFee;
 	} while (minFee > BigInt(transaction.fee as bigint));
 
 	return minFee;

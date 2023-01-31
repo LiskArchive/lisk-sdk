@@ -116,8 +116,10 @@ describe('fee', () => {
 				module: utils.intToBuffer(5, 4),
 				command: 'transfer',
 				params: { username: 'validator1' },
+				signatures: [],
 			};
-			const options = { minFeePerByte: 1000, numberOfSignatures: 1 };
+			const additionalFee = BigInt(1000000000);
+			const options = { minFeePerByte: 1000, numberOfSignatures: 1, additionalFee };
 			const validatorRegisterParamsSchema = {
 				$id: '/lisk/pos/register',
 				type: 'object',
@@ -140,6 +142,17 @@ describe('fee', () => {
 			// Assert
 			expect(minFee).toBeDefined();
 			expect(minFee).toMatchSnapshot();
+			// get bytes with the computed min fee with 1 signature
+			const minFeeForBytes =
+				getBytes(
+					{
+						...validatorRegisterTransaction,
+						fee: minFee,
+						signatures: [Buffer.alloc(64, 255)],
+					},
+					validatorRegisterParamsSchema,
+				).length * 1000;
+			expect(BigInt(minFeeForBytes) + additionalFee).toEqual(minFee);
 		});
 	});
 });

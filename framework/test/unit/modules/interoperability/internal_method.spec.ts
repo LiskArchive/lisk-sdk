@@ -969,6 +969,12 @@ describe('Base interoperability internal method', () => {
 				name: 'rand',
 				status: 0,
 			});
+			await interopMod.stores
+				.get(ChainValidatorsStore)
+				.set(methodContext, txParams.sendingChainID, {
+					certificateThreshold: BigInt(99),
+					activeValidators: [],
+				});
 		});
 
 		it('should reject when certificate height is lower than last certificate height', async () => {
@@ -1016,6 +1022,39 @@ describe('Base interoperability internal method', () => {
 				),
 			).rejects.toThrow(
 				'Certificate timestamp is not smaller than timestamp of the block including the CCU',
+			);
+		});
+
+		it('should reject when validatorsHash is not equal but activeValidatorsUpdate and certificateThreshold do not change', async () => {
+			await interopMod.stores
+				.get(ChainValidatorsStore)
+				.set(methodContext, txParams.sendingChainID, {
+					certificateThreshold: BigInt(99),
+					activeValidators: [],
+				});
+
+			const certificate: Certificate = {
+				blockID: cryptoUtils.getRandomBytes(20),
+				height: 101,
+				timestamp: 1000,
+				stateRoot: cryptoUtils.getRandomBytes(38),
+				validatorsHash: cryptoUtils.getRandomBytes(48),
+				aggregationBits: cryptoUtils.getRandomBytes(38),
+				signature: cryptoUtils.getRandomBytes(32),
+			};
+			const encodedCertificate = codec.encode(certificateSchema, certificate);
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyCertificate(
+					methodContext,
+					{
+						...txParams,
+						certificate: encodedCertificate,
+						certificateThreshold: BigInt(99),
+					},
+					1001,
+				),
+			).rejects.toThrow(
+				'Certifying an update to the validators hash requires an active validators update',
 			);
 		});
 
@@ -1167,6 +1206,80 @@ describe('Base interoperability internal method', () => {
 				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
 					...txParams,
 					certificate: Buffer.alloc(0),
+				}),
+			).rejects.toThrow(
+				'The outbox root witness can be non-empty only if the certificate is non-empty.',
+			);
+		});
+
+		it('should reject when outboxRootWitness.bitmap is empty and sublingHashes is not empty', async () => {
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
+					...txParams,
+					inboxUpdate: {
+						crossChainMessages: [],
+						messageWitnessHashes: [],
+						outboxRootWitness: {
+							bitmap: Buffer.from([]),
+							siblingHashes: [cryptoUtils.getRandomBytes(32)],
+						},
+					},
+				}),
+			).rejects.toThrow(
+				'The bitmap in the outbox root witness must be non-mepty if the sibling hashes are non-empty.',
+			);
+		});
+
+		it('should reject when outboxRootWitness.bitmap is not empty and sublingHashes is empty', async () => {
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
+					...txParams,
+					inboxUpdate: {
+						crossChainMessages: [],
+						messageWitnessHashes: [],
+						outboxRootWitness: {
+							bitmap: Buffer.from([1]),
+							siblingHashes: [],
+						},
+					},
+				}),
+			).rejects.toThrow(
+				'The sibling hashes in the outbox root witness must be non-mepty if the bitmap is non-empty.',
+			);
+		});
+
+		it('should reject when outboxRootWitness.bitmap is empty and certificate is not empty', async () => {
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
+					...txParams,
+					certificate: cryptoUtils.getRandomBytes(100),
+					inboxUpdate: {
+						crossChainMessages: [],
+						messageWitnessHashes: [],
+						outboxRootWitness: {
+							bitmap: Buffer.from([]),
+							siblingHashes: [],
+						},
+					},
+				}),
+			).rejects.toThrow(
+				'The outbox root witness must be non-empty to authenticate the new partnerChainOutboxRoot.',
+			);
+		});
+
+		it('should reject when outboxRootWitness.bitmap is not empty and certificate is empty', async () => {
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
+					...txParams,
+					certificate: Buffer.alloc(0),
+					inboxUpdate: {
+						crossChainMessages: [],
+						messageWitnessHashes: [],
+						outboxRootWitness: {
+							bitmap: Buffer.from([1]),
+							siblingHashes: [cryptoUtils.getRandomBytes(32)],
+						},
+					},
 				}),
 			).rejects.toThrow(
 				'The outbox root witness can be non-empty only if the certificate is non-empty.',

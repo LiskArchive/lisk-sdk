@@ -88,7 +88,6 @@ describe('TokenInteroperableMethod', () => {
 
 	beforeEach(async () => {
 		tokenInteropMethod = new TokenInteroperableMethod(tokenModule.stores, tokenModule.events);
-		tokenInteropMethod.init(ownChainID);
 		tokenInteropMethod.addDependencies({
 			send: jest.fn().mockResolvedValue(true),
 			getMessageFeeTokenID: jest.fn().mockResolvedValue(defaultTokenID),
@@ -142,7 +141,7 @@ describe('TokenInteroperableMethod', () => {
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
+					chainID: ownChainID,
 					header: {
 						timestamp: Date.now(),
 						height: 10,
@@ -187,7 +186,7 @@ describe('TokenInteroperableMethod', () => {
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
+					chainID: ownChainID,
 					header: {
 						timestamp: Date.now(),
 						height: 10,
@@ -206,7 +205,7 @@ describe('TokenInteroperableMethod', () => {
 			checkEventResult(
 				methodContext.eventQueue,
 				BeforeCCCExecutionEvent,
-				TokenEventResult.FAIL_INSUFFICIENT_BALANCE,
+				TokenEventResult.INSUFFICIENT_ESCROW_BALANCE,
 			);
 		});
 
@@ -227,7 +226,7 @@ describe('TokenInteroperableMethod', () => {
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
+					chainID: ownChainID,
 					header: {
 						timestamp: Date.now(),
 						height: 10,
@@ -279,7 +278,7 @@ describe('TokenInteroperableMethod', () => {
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
+					chainID: ownChainID,
 					header: {
 						timestamp: Date.now(),
 						height: 10,
@@ -298,7 +297,7 @@ describe('TokenInteroperableMethod', () => {
 			checkEventResult(
 				methodContext.eventQueue,
 				BeforeCCMForwardingEvent,
-				TokenEventResult.FAIL_INSUFFICIENT_BALANCE,
+				TokenEventResult.INSUFFICIENT_ESCROW_BALANCE,
 			);
 		});
 
@@ -327,7 +326,7 @@ describe('TokenInteroperableMethod', () => {
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
+					chainID: ownChainID,
 					header: {
 						timestamp: Date.now(),
 						height: 10,
@@ -355,112 +354,6 @@ describe('TokenInteroperableMethod', () => {
 			);
 			expect(receiver).toEqual(fee);
 		});
-
-		it('should throw if ccm command is transfer but escrow amount is less than the ccm params amount', async () => {
-			await expect(
-				tokenInteropMethod.beforeCrossChainMessageForwarding({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee,
-						status: CCM_STATUS_OK,
-						params: codec.encode(crossChainForwardMessageParams, {
-							tokenID: utils.getRandomBytes(9),
-							amount: defaultEscrowAmount + BigInt(1000),
-							senderAddress: defaultAddress,
-							forwardToChainID: Buffer.from([4, 0, 0, 0]),
-							recipientAddress: defaultAddress,
-							data: 'ddd',
-							forwardedMessageFee: BigInt(2000),
-						}),
-					},
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
-					header: {
-						timestamp: Date.now(),
-						height: 10,
-					},
-					stateStore,
-					contextStore,
-					transaction: {
-						fee,
-						senderAddress: defaultAddress,
-					},
-					ccu: {
-						sendingChainID,
-					},
-				}),
-			).rejects.toThrow('Insufficient balance in the sending chain for the transfer.');
-			checkEventResult(
-				methodContext.eventQueue,
-				BeforeCCMForwardingEvent,
-				TokenEventResult.INSUFFICIENT_ESCROW_BALANCE,
-			);
-		});
-
-		it('should deduct escrow account for fee+ccm.params.amount and credit to sender if ccm command is transfer', async () => {
-			await expect(
-				tokenInteropMethod.beforeCrossChainMessageForwarding({
-					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-						module: tokenModule.name,
-						nonce: BigInt(1),
-						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
-						fee,
-						status: CCM_STATUS_OK,
-						params: codec.encode(crossChainForwardMessageParams, {
-							tokenID: utils.getRandomBytes(9),
-							amount: BigInt(1000),
-							senderAddress: defaultAddress,
-							forwardToChainID: Buffer.from([4, 0, 0, 0]),
-							recipientAddress: defaultAddress,
-							data: 'ddd',
-							forwardedMessageFee: BigInt(2000),
-						}),
-					},
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
-					header: {
-						timestamp: Date.now(),
-						height: 10,
-					},
-					stateStore,
-					contextStore,
-					transaction: {
-						fee,
-						senderAddress: defaultAddress,
-					},
-					ccu: {
-						sendingChainID,
-					},
-				}),
-			).resolves.toBeUndefined();
-			const { amount } = await escrowStore.get(
-				methodContext,
-				userStore.getKey(sendingChainID, defaultTokenID),
-			);
-			expect(amount).toEqual(defaultEscrowAmount - fee - BigInt(1000));
-			const { amount: receiver } = await escrowStore.get(
-				methodContext,
-				userStore.getKey(Buffer.from([0, 0, 0, 1]), defaultTokenID),
-			);
-			expect(receiver).toEqual(fee + BigInt(1000));
-			checkEventResult(
-				methodContext.eventQueue,
-				BeforeCCMForwardingEvent,
-				TokenEventResult.SUCCESSFUL,
-			);
-		});
 	});
 
 	describe('verifyCrossChainMessage', () => {
@@ -481,7 +374,7 @@ describe('TokenInteroperableMethod', () => {
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
+					chainID: ownChainID,
 					header: {
 						timestamp: Date.now(),
 						height: 10,
@@ -516,7 +409,7 @@ describe('TokenInteroperableMethod', () => {
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
+					chainID: ownChainID,
 					header: {
 						timestamp: Date.now(),
 						height: 10,
@@ -554,7 +447,7 @@ describe('TokenInteroperableMethod', () => {
 					eventQueue: new EventQueue(0),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					chainID: utils.getRandomBytes(32),
+					chainID: ownChainID,
 					header: {
 						timestamp: Date.now(),
 						height: 10,
@@ -574,13 +467,18 @@ describe('TokenInteroperableMethod', () => {
 	});
 
 	describe('recover', () => {
+		const createRecoverContext = (store: PrefixedStateReadWriter) => ({
+			getMethodContext: () => methodContext,
+			eventQueue: new EventQueue(0),
+			getStore: (moduleID: Buffer, prefix: Buffer) => store.getStore(moduleID, prefix),
+			module: tokenModule.name,
+			stateStore: store,
+			chainID: ownChainID,
+		});
 		it('should reject if store prefix is not store prefix user', async () => {
 			await expect(
 				tokenInteropMethod.recover({
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					module: tokenModule.name,
+					...createRecoverContext(stateStore),
 					storeKey: Buffer.concat([defaultAddress, defaultTokenID]),
 					substorePrefix: Buffer.from([0, 0]),
 					storeValue: codec.encode(userStoreSchema, {
@@ -588,7 +486,6 @@ describe('TokenInteroperableMethod', () => {
 						lockedBalances: [{ module: 'dpos', amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
-					stateStore,
 				}),
 			).rejects.toThrow('Invalid arguments.');
 			checkEventResult(
@@ -601,9 +498,7 @@ describe('TokenInteroperableMethod', () => {
 		it('should reject if store key is not 28 bytes', async () => {
 			await expect(
 				tokenInteropMethod.recover({
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+					...createRecoverContext(stateStore),
 					module: tokenModule.name,
 					storeKey: Buffer.concat([defaultAddress, defaultTokenID, Buffer.alloc(20)]),
 					substorePrefix: userStore.subStorePrefix,
@@ -612,7 +507,6 @@ describe('TokenInteroperableMethod', () => {
 						lockedBalances: [{ module: 'pos', amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
-					stateStore,
 				}),
 			).rejects.toThrow('Invalid arguments.');
 			checkEventResult(
@@ -625,15 +519,11 @@ describe('TokenInteroperableMethod', () => {
 		it('should reject if store value cannot be decoded', async () => {
 			await expect(
 				tokenInteropMethod.recover({
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					module: tokenModule.name,
+					...createRecoverContext(stateStore),
 					storeKey: Buffer.concat([defaultAddress, defaultTokenID]),
 					substorePrefix: userStore.subStorePrefix,
 					storeValue: utils.getRandomBytes(32),
 					terminatedChainID: sendingChainID,
-					stateStore,
 				}),
 			).rejects.toThrow('Invalid arguments.');
 			checkEventResult(
@@ -649,18 +539,14 @@ describe('TokenInteroperableMethod', () => {
 				.mockResolvedValue(defaultForeignTokenID);
 			await expect(
 				tokenInteropMethod.recover({
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					substorePrefix: userStore.subStorePrefix,
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					module: tokenModule.name,
+					...createRecoverContext(stateStore),
 					storeKey: Buffer.concat([defaultAddress, defaultForeignTokenID]),
+					substorePrefix: userStore.subStorePrefix,
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultAccount.availableBalance * BigInt(2),
 						lockedBalances: [{ module: 'pos', amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
-					stateStore,
 				}),
 			).rejects.toThrow('Insufficient escrow amount.');
 			checkEventResult(
@@ -674,10 +560,7 @@ describe('TokenInteroperableMethod', () => {
 			const recipient = utils.getRandomBytes(20);
 			await expect(
 				tokenInteropMethod.recover({
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					module: tokenModule.name,
+					...createRecoverContext(stateStore),
 					storeKey: Buffer.concat([recipient, defaultTokenID]),
 					substorePrefix: userStore.subStorePrefix,
 					storeValue: codec.encode(userStoreSchema, {
@@ -685,7 +568,6 @@ describe('TokenInteroperableMethod', () => {
 						lockedBalances: [{ module: 'pos', amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
-					stateStore,
 				}),
 			).rejects.toThrow('Insufficient escrow amount.');
 			checkEventResult(
@@ -703,15 +585,11 @@ describe('TokenInteroperableMethod', () => {
 			});
 			await expect(
 				tokenInteropMethod.recover({
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					module: tokenModule.name,
+					...createRecoverContext(stateStore),
 					storeKey: Buffer.concat([recipient, defaultTokenID]),
 					substorePrefix: userStore.subStorePrefix,
 					storeValue: codec.encode(userStoreSchema, defaultAccount),
 					terminatedChainID: sendingChainID,
-					stateStore,
 				}),
 			).resolves.toBeUndefined();
 
@@ -735,15 +613,11 @@ describe('TokenInteroperableMethod', () => {
 			});
 			await expect(
 				tokenInteropMethod.recover({
-					getMethodContext: () => methodContext,
-					eventQueue: new EventQueue(0),
-					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-					module: tokenModule.name,
+					...createRecoverContext(stateStore),
 					storeKey: Buffer.concat([recipient, defaultTokenID]),
 					substorePrefix: userStore.subStorePrefix,
 					storeValue: codec.encode(userStoreSchema, defaultAccount),
 					terminatedChainID: sendingChainID,
-					stateStore,
 				}),
 			).resolves.toBeUndefined();
 
