@@ -3,10 +3,152 @@
 		{
 			"module": "interoperability",
 			"data": {
-				"outboxRootSubstore": [],
-				"chainDataSubstore": [],
-				"channelDataSubstore": [],
-				"chainValidatorsSubstore": [],
+				"outboxRootSubstore": [
+					{
+						"storeKey": "04000000",
+						"storeValue": {
+							"root": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+						}
+					},
+					{
+						"storeKey": "04000001",
+						"storeValue": {
+							"root": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+						}
+					}
+				],
+				"chainDataSubstore": [
+					{
+						"storeKey": "04000000",
+						"storeValue": {
+							"lastCertificate": {
+								"height": 0,
+								"timestamp": 0,
+								"stateRoot": "3401831cdf0952ee7a513008bf027f6064967d5eadf964d51b9deb7d255e10d1",
+								"validatorsHash": "43538f898219b129efd9d96eba7de850f5544ee9ee3a7d9b942e8df09ed24903"
+							},
+							"name": "lisk_mainchain",
+							"status": 1
+						}
+					},
+					{
+						"storeKey": "04000001",
+						"storeValue": {
+							"lastCertificate": {
+								"height": 0,
+								"timestamp": 0,
+								"stateRoot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+								"validatorsHash": "43538f898219b129efd9d96eba7de850f5544ee9ee3a7d9b942e8df09ed24903"
+							},
+							"name": "sidechain1",
+							"status": 0
+						}
+					},
+					{
+						"storeKey": "04000002",
+						"storeValue": {
+							"lastCertificate": {
+								"height": 0,
+								"timestamp": 0,
+								"stateRoot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+								"validatorsHash": "43538f898219b129efd9d96eba7de850f5544ee9ee3a7d9b942e8df09ed24903"
+							},
+							"name": "sidechain2",
+							"status": 2
+						}
+					}
+				],
+				"channelDataSubstore": [
+					{
+						"storeKey": "04000000",
+						"storeValue": {
+							"messageFeeTokenID": "0400000000000000",
+							"outbox": {
+								"appendPath": [],
+								"root": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+								"size": 0
+							},
+							"inbox": {
+								"appendPath": [],
+								"root": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+								"size": 0
+							},
+							"partnerChainOutboxRoot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+						}
+					},
+					{
+						"storeKey": "04000001",
+						"storeValue": {
+							"messageFeeTokenID": "0400000000000000",
+							"outbox": {
+								"appendPath": ["d3eb21361c783b37106d1089243f047ae53b4d3ddb95256ad0120ec9ca40b3a7"],
+								"root": "d3eb21361c783b37106d1089243f047ae53b4d3ddb95256ad0120ec9ca40b3a7",
+								"size": 1
+							},
+							"inbox": {
+								"appendPath": [],
+								"root": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+								"size": 0
+							},
+							"partnerChainOutboxRoot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+						}
+					},
+					{
+						"storeKey": "04000002",
+						"storeValue": {
+							"messageFeeTokenID": "0400000000000000",
+							"outbox": {
+								"appendPath": ["2381eae35fbef3018bfe5ef929e33c04548ef6a6f50d0e9bc6981e3a2eb94b2c"],
+								"root": "2381eae35fbef3018bfe5ef929e33c04548ef6a6f50d0e9bc6981e3a2eb94b2c",
+								"size": 1
+							},
+							"inbox": {
+								"appendPath": [],
+								"root": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+								"size": 0
+							},
+							"partnerChainOutboxRoot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+						}
+					}
+				],
+				"chainValidatorsSubstore": [
+					{
+						"storeKey": "04000000",
+						"storeValue": {
+							"activeValidators": [
+								{
+									"blsKey": "92f020ce5e37befb86493a82686b0eedddb264350b0873cf1eeaa1fefe39d938f05f272452c1ef5e6ceb4d9b23687e31",
+									"bftWeight": "2"
+								}
+							],
+							"certificateThreshold": "2"
+						}
+					},
+					{
+						"storeKey": "04000001",
+						"storeValue": {
+							"activeValidators": [
+								{
+									"blsKey": "92f020ce5e37befb86493a82686b0eedddb264350b0873cf1eeaa1fefe39d938f05f272452c1ef5e6ceb4d9b23687e31",
+									"bftWeight": "2"
+								}
+							],
+							"certificateThreshold": "2"
+						}
+					},
+					{
+						"storeKey": "04000002",
+						"storeValue": {
+							"activeValidators": [
+								{
+									"blsKey": "92f020ce5e37befb86493a82686b0eedddb264350b0873cf1eeaa1fefe39d938f05f272452c1ef5e6ceb4d9b23687e31",
+									"bftWeight": "2"
+								}
+							],
+							"certificateThreshold": "2"
+						}
+					}
+				],
 				"ownChainDataSubstore": [
 					{
 						"storeKey": "",
@@ -17,8 +159,26 @@
 						}
 					}
 				],
-				"terminatedStateSubstore": [],
-				"terminatedOutboxSubstore": [],
+				"terminatedStateSubstore": [
+					{
+						"storeKey": "04000002",
+						"storeValue": {
+							"stateRoot": "3401831cdf0952ee7a513008bf027f6064967d5eadf964d51b9deb7d255e10d1",
+							"mainchainStateRoot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+							"initialized": true
+						}
+					}
+				],
+				"terminatedOutboxSubstore": [
+					{
+						"storeKey": "04000002",
+						"storeValue": {
+							"outboxRoot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+							"outboxSize": 10,
+							"partnerChainInboxSize": 20
+						}
+					}
+				],
 				"registeredNamesSubstore": [
 					{
 						"storeKey": "lisk_mainchain",
