@@ -199,9 +199,17 @@ export class Generator {
 		});
 
 		const stateStore = new StateStore(this._blockchainDB);
-		const maxRemovalHeight = await this._consensus.getMaxRemovalHeight();
-		const { maxHeightPrecommitted } = await this._bft.method.getBFTHeights(stateStore);
-		await Promise.all(this._handleFinalizedHeightChanged(maxRemovalHeight, maxHeightPrecommitted));
+
+		// On node start, it re generates certificate from maxHeightCertified to maxHeightPrecommitted.
+		// in the _handleFinalizedHeightChanged, it loops between maxHeightCertified + 1 and  maxHeightPrecommitted.
+		// maxHeightCertified is skipped because it has been already certified.
+		// @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#initial-single-commit-creation
+		const { maxHeightPrecommitted, maxHeightCertified } = await this._bft.method.getBFTHeights(
+			stateStore,
+		);
+		await Promise.all(
+			this._handleFinalizedHeightChanged(maxHeightCertified, maxHeightPrecommitted),
+		);
 	}
 
 	public get endpoint(): Endpoint {
@@ -622,10 +630,13 @@ export class Generator {
 	}
 
 	private _handleFinalizedHeightChanged(from: number, to: number): Promise<void>[] {
+		if (from >= to) {
+			return [];
+		}
 		const promises = [];
 		const stateStore = new StateStore(this._blockchainDB);
 		for (const [address, pairs] of this._keypairs.entries()) {
-			for (let height = from + 1; height <= to; height += 1) {
+			for (let height = from + 1; height < to; height += 1) {
 				promises.push(
 					this._certifySingleCommitForChangedHeight(
 						stateStore,
@@ -635,9 +646,7 @@ export class Generator {
 					),
 				);
 			}
-			promises.push(
-				this._certifySingleCommitForFinalizedHeight(stateStore, to, address, pairs.blsSecretKey),
-			);
+			promises.push(this._certifySingleCommit(stateStore, to, address, pairs.blsSecretKey));
 		}
 		return promises;
 	}
@@ -650,19 +659,6 @@ export class Generator {
 	): Promise<void> {
 		const paramExist = await this._bft.method.existBFTParameters(stateStore, height + 1);
 		if (!paramExist) {
-			return;
-		}
-		await this._certifySingleCommit(stateStore, height, generatorAddress, blsSK);
-	}
-
-	private async _certifySingleCommitForFinalizedHeight(
-		stateStore: StateStore,
-		height: number,
-		generatorAddress: Buffer,
-		blsSK: Buffer,
-	): Promise<void> {
-		const paramExist = await this._bft.method.existBFTParameters(stateStore, height + 1);
-		if (paramExist) {
 			return;
 		}
 		await this._certifySingleCommit(stateStore, height, generatorAddress, blsSK);

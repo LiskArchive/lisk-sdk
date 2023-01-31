@@ -53,7 +53,6 @@ describe('engine', () => {
 		jest
 			.spyOn(Chain.prototype, 'lastBlock', 'get')
 			.mockReturnValue({ header: { height: 300 } } as never);
-		jest.spyOn(Consensus.prototype, 'getMaxRemovalHeight').mockResolvedValue(0);
 		jest
 			.spyOn(BFTMethod.prototype, 'getBFTHeights')
 			.mockResolvedValue({ maxHeightPrecommitted: 0 } as never);
