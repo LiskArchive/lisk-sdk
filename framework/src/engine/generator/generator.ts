@@ -199,6 +199,11 @@ export class Generator {
 		});
 
 		const stateStore = new StateStore(this._blockchainDB);
+
+		// On node start, it re generates certificate from maxHeightCertified to maxHeightPrecommitted.
+		// in the _handleFinalizedHeightChanged, it loops between maxHeightCertified + 1 and  maxHeightPrecommitted.
+		// maxHeightCertified is skipped because it has been already certified.
+		// @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#initial-single-commit-creation
 		const { maxHeightPrecommitted, maxHeightCertified } = await this._bft.method.getBFTHeights(
 			stateStore,
 		);
