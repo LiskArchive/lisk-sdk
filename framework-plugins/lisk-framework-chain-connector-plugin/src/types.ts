@@ -40,6 +40,10 @@ export interface ValidatorsData {
 	validatorsHash: Buffer;
 }
 
+export interface LastSentCCMWithHeight extends CCMsg {
+	height: number;
+}
+
 export interface CCMsFromEvents {
 	ccms: CCMsg[];
 	height: number;

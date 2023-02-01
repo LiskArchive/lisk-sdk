@@ -12,23 +12,27 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec, db as liskDB, AggregateCommit } from 'lisk-sdk';
+import { codec, db as liskDB, AggregateCommit, Certificate } from 'lisk-sdk';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
 import {
 	DB_KEY_AGGREGATE_COMMITS,
 	DB_KEY_BLOCK_HEADERS,
+	DB_KEY_CERTIFICATE,
 	DB_KEY_CROSS_CHAIN_MESSAGES,
+	DB_KEY_LAST_SENT_CCM,
 	DB_KEY_VALIDATORS_HASH_PREIMAGE,
 } from './constants';
 import {
 	aggregateCommitsInfoSchema,
 	blockHeadersInfoSchema,
 	ccmsFromEventsSchema,
+	certifcatesSchema,
+	lastSentCCMWithHeight,
 	validatorsHashPreimageInfoSchema,
 } from './schemas';
-import { BlockHeader, CCMsFromEvents, ValidatorsData } from './types';
+import { BlockHeader, CCMsFromEvents, LastSentCCMWithHeight, ValidatorsData } from './types';
 
 const { Database } = liskDB;
 type KVStore = liskDB.Database;
@@ -155,5 +159,43 @@ export class ChainConnectorStore {
 	public async setCrossChainMessages(ccms: CCMsFromEvents[]) {
 		const encodedInfo = codec.encode(ccmsFromEventsSchema, { ccmsFromEvents: ccms });
 		await this._db.set(DB_KEY_CROSS_CHAIN_MESSAGES, encodedInfo);
+	}
+
+	public async getLastSentCCM(): Promise<LastSentCCMWithHeight | undefined> {
+		let lastSentCCM: LastSentCCMWithHeight | undefined;
+		try {
+			const encodedInfo = await this._db.get(DB_KEY_LAST_SENT_CCM);
+			lastSentCCM = codec.decode<LastSentCCMWithHeight>(lastSentCCMWithHeight, encodedInfo);
+		} catch (error) {
+			if (!(error instanceof liskDB.NotFoundError)) {
+				throw error;
+			}
+		}
+		return lastSentCCM;
+	}
+
+	public async setLastSentCCM(lastSentCCM: LastSentCCMWithHeight) {
+		await this._db.set(DB_KEY_LAST_SENT_CCM, codec.encode(lastSentCCMWithHeight, lastSentCCM));
+	}
+
+	public async getCertificates(): Promise<Certificate[]> {
+		let certificates: Certificate[] | undefined = [];
+		try {
+			const encodedInfo = await this._db.get(DB_KEY_CERTIFICATE);
+			certificates = codec.decode<{ certificates: Certificate[] }>(
+				certifcatesSchema,
+				encodedInfo,
+			).certificates;
+		} catch (error) {
+			if (!(error instanceof liskDB.NotFoundError)) {
+				throw error;
+			}
+		}
+		return certificates;
+	}
+
+	public async setCertificates(certificates: Certificate[]) {
+		certificates.sort((a, b) => b.height - a.height);
+		await this._db.set(DB_KEY_CERTIFICATE, codec.encode(certifcatesSchema, certificates));
 	}
 }

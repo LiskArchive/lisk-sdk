@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { chain, aggregateCommitSchema, ccmSchema } from 'lisk-sdk';
+import { chain, aggregateCommitSchema, ccmSchema, certificateSchema } from 'lisk-sdk';
 import { CCU_FREQUENCY } from './constants';
 
 const pluginSchemaIDPrefix = '/lisk/plugins/chainConnector';
@@ -110,6 +110,30 @@ export const validatorsHashPreimageInfoSchema = {
 			fieldNumber: 1,
 			items: {
 				...validatorsDataSchema,
+			},
+		},
+	},
+};
+
+export const lastSentCCMWithHeight = {
+	$id: `${pluginSchemaIDPrefix}/lastSentCCMWithHeight`,
+	type: 'object',
+	properties: {
+		...ccmSchema.properties,
+		height: { dataType: 'uint32', fieldNumber: Object.keys(ccmSchema.properties).length },
+	},
+};
+
+export const certifcatesSchema = {
+	$id: `${pluginSchemaIDPrefix}/certifcates`,
+	type: 'object',
+	properties: {
+		type: 'array',
+		fieldNumber: 1,
+		items: {
+			type: 'object',
+			properties: {
+				...certificateSchema.properties,
 			},
 		},
 	},

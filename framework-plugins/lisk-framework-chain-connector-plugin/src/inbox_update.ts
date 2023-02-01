@@ -23,79 +23,171 @@ import {
 	tree,
 	db as liskDB,
 	LastCertificate,
+	cryptography,
 } from 'lisk-sdk';
 import { CCU_TOTAL_CCM_SIZE } from './constants';
 import { CCMsFromEvents } from './types';
 
-export const calculateInboxUpdate = async (
-	certificate: Certificate,
+/**
+ * @description When we have no new certificate and we use the lastCertificate for inboxUpdate calculation
+ * @param lastCertificate
+ * @param crossChainMessages
+ * @param chainConnectorPluginDB
+ * @param lastSentCCM
+ * @returns InboxUpdate
+ */
+export const calculateInboxUpdateForPartialUpdate = async (
 	lastCertificate: LastCertificate,
 	crossChainMessages: CCMsFromEvents[],
 	chainConnectorPluginDB: liskDB.Database,
-): Promise<InboxUpdate[]> => {
+	lastSentCCMInfo: {
+		height: number;
+		nonce: bigint;
+	},
+): Promise<InboxUpdate> => {
 	// Filter all the CCMs between lastCertifiedHeight and certificate height.
+	let potentialCCMs: CCMsg[] = [];
+	// Take range from lastSentCCM height until certificate height
 	const ccmsToBeIncluded = crossChainMessages.filter(
 		ccmFromEvents =>
-			ccmFromEvents.height <= certificate.height && ccmFromEvents.height > lastCertificate.height,
+			ccmFromEvents.height >= lastSentCCMInfo.height &&
+			ccmFromEvents.height <= lastCertificate.height,
 	);
-	const ccmsListOfList = groupCCMsBySize(ccmsToBeIncluded);
-	// Take the inclusion proof of the last CCM to be included.
-	const { inclusionProof } = ccmsToBeIncluded[ccmsToBeIncluded.length - 1];
 
-	if (ccmsListOfList.length === 1) {
-		const ccmHashesList = ccmsListOfList[0].map(ccm => codec.encode(ccmSchema, ccm));
-		return [
-			{
-				crossChainMessages: ccmHashesList,
-				messageWitnessHashes: [],
-				outboxRootWitness: inclusionProof,
-			},
-		];
+	for (const ccmFromEvents of ccmsToBeIncluded) {
+		const { ccms } = ccmFromEvents;
+		if (ccmFromEvents.height === lastSentCCMInfo.height) {
+			for (const ccm of ccms.filter(c => c.nonce > lastSentCCMInfo.nonce)) {
+				potentialCCMs.push(ccm);
+			}
+		}
+		potentialCCMs = [...potentialCCMs, ...ccms];
 	}
-	// Calculate list of inboxUpdates to be sent by multiple CCUs
-	const inboxUpdates = [];
+	const ccmsListOfList = groupCCMsBySize(potentialCCMs);
+	// Return empty inboxUpdate when there are no ccms
+	if (ccmsListOfList.length < 1) {
+		return {
+			crossChainMessages: [],
+			messageWitnessHashes: [],
+			outboxRootWitness: {
+				bitmap: EMPTY_BYTES,
+				siblingHashes: [],
+			},
+		};
+	}
 
 	const emptyInclusionProof: OutboxRootWitness = {
 		bitmap: EMPTY_BYTES,
 		siblingHashes: [],
 	};
+
 	const merkleTree = new tree.MerkleTree({ db: chainConnectorPluginDB });
-	for (let i = 0; i < ccmsListOfList.length; i += 1) {
-		const subList = ccmsListOfList[i];
+	const firstCCMList = ccmsListOfList[0];
+	const serializedCCMList = firstCCMList.map(ccm => codec.encode(ccmSchema, ccm));
 
-		const ccmHashesList = subList.map(ccm => codec.encode(ccmSchema, ccm));
-		// Calculate message witnesses
-
-		for (const ccm of ccmHashesList) {
-			await merkleTree.append(ccm);
-		}
-		const messageWitnesses = await merkleTree.generateRightWitness(ccmHashesList.length);
-
-		inboxUpdates.push({
-			crossChainMessages: ccmHashesList,
-			messageWitnessHashes: messageWitnesses,
-			// For first CCU we have inclusionProof and then for subsequent proofs we can leave outboxRootWitness empty
-			outboxRootWitness: i === 0 ? inclusionProof : emptyInclusionProof,
-		});
+	// Calculate message witnesses
+	for (const ccm of serializedCCMList) {
+		await merkleTree.append(cryptography.utils.hash(ccm));
 	}
+	const messageWitnesses = await merkleTree.generateRightWitness(serializedCCMList.length);
 
-	return inboxUpdates;
+	return {
+		crossChainMessages: serializedCCMList,
+		messageWitnessHashes: messageWitnesses,
+		outboxRootWitness: emptyInclusionProof,
+	};
 };
 
 /**
- * This will return lists with sub-lists, where total size of CCMs in each sub-list will be <= CCU_TOTAL_CCM_SIZE
- * Each sublist can contain CCMS from DIFFERENT heights
+ *
+ * @param certificate
+ * @param lastCertificate
+ * @param crossChainMessages
+ * @param lastSentCCM
+ * @returns Promise<InboxUpdate>
  */
-export const groupCCMsBySize = (ccmsFromEvents: CCMsFromEvents[]): CCMsg[][] => {
-	const groupedCCMsBySize: CCMsg[][] = [];
+export const calculateInboxUpdate = async (
+	certificate: Certificate,
+	crossChainMessages: CCMsFromEvents[],
+	chainConnectorPluginDB: liskDB.Database,
+	lastSentCCMInfo: {
+		height: number;
+		nonce: bigint;
+	} = { height: 1, nonce: BigInt(-1) },
+): Promise<InboxUpdate> => {
+	// Filter all the CCMs between lastCertifiedHeight and certificate height.
+	let potentialCCMs: CCMsg[] = [];
+	// Take range from lastSentCCM height until certificate height
+	const ccmsToBeIncluded = crossChainMessages.filter(
+		ccmFromEvents =>
+			ccmFromEvents.height >= lastSentCCMInfo.height && ccmFromEvents.height <= certificate.height,
+	);
 
-	if (ccmsFromEvents.length === 0) {
-		return groupedCCMsBySize;
+	// Make an array of ccms with nonce greater than last sent ccm nonce
+	for (const ccmFromEvents of ccmsToBeIncluded) {
+		const { ccms } = ccmFromEvents;
+		if (ccmFromEvents.height === lastSentCCMInfo.height) {
+			for (const ccm of ccms.filter(c => c.nonce > lastSentCCMInfo.nonce)) {
+				potentialCCMs.push(ccm);
+			}
+		}
+		potentialCCMs = [...potentialCCMs, ...ccms];
+	}
+	const ccmsListOfList = groupCCMsBySize(potentialCCMs);
+
+	// Return empty inboxUpdate when there are no ccms
+	if (ccmsListOfList.length < 1) {
+		return {
+			crossChainMessages: [],
+			messageWitnessHashes: [],
+			outboxRootWitness: {
+				bitmap: EMPTY_BYTES,
+				siblingHashes: [],
+			},
+		};
+	}
+	const { inclusionProof } = ccmsToBeIncluded[ccmsToBeIncluded.length - 1];
+
+	if (ccmsListOfList.length === 1) {
+		const firstCCMList = ccmsListOfList[0];
+		const serializedCCMList = firstCCMList.map(ccm => codec.encode(ccmSchema, ccm));
+		// Take the inclusion proof of the last CCM to be included.
+
+		return {
+			crossChainMessages: serializedCCMList,
+			messageWitnessHashes: [],
+			outboxRootWitness: inclusionProof,
+		};
 	}
 
-	const allCCMs: CCMsg[] = [];
-	for (const filteredCCMsFromEvent of ccmsFromEvents) {
-		allCCMs.push(...filteredCCMsFromEvent.ccms);
+	const merkleTree = new tree.MerkleTree({ db: chainConnectorPluginDB });
+	const firstCCMList = ccmsListOfList[0];
+	const serializedCCMList = firstCCMList.map(ccm => codec.encode(ccmSchema, ccm));
+
+	// Calculate message witnesses when not all the ccms can be included
+	for (const ccm of serializedCCMList) {
+		await merkleTree.append(cryptography.utils.hash(ccm));
+	}
+	const messageWitnesses = await merkleTree.generateRightWitness(serializedCCMList.length);
+
+	return {
+		crossChainMessages: serializedCCMList,
+		messageWitnessHashes: messageWitnesses,
+		outboxRootWitness: inclusionProof,
+	};
+};
+
+/**
+ * @description This will return lists with sub-lists, where total size of CCMs in each sub-list will be <= CCU_TOTAL_CCM_SIZE
+ * Each sublist can contain CCMS from DIFFERENT heights
+ * @param allCCMs
+ * @returns CCMsg[][]
+ */
+export const groupCCMsBySize = (allCCMs: CCMsg[]): CCMsg[][] => {
+	const groupedCCMsBySize: CCMsg[][] = [];
+
+	if (allCCMs.length === 0) {
+		return groupedCCMsBySize;
 	}
 
 	// This will group/bundle CCMs in a list where total size of the list will be <= CCU_TOTAL_CCM_SIZE

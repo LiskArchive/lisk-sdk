@@ -20,10 +20,9 @@ import {
 	testing,
 	cryptography,
 	BlockHeader,
-	LastCertificate,
-	db,
+	// LastCertificate,
 	tree,
-	EMPTY_BYTES,
+	db,
 } from 'lisk-sdk';
 import { CCU_TOTAL_CCM_SIZE } from '../../src/constants';
 import * as inboxUpdateUtil from '../../src/inbox_update';
@@ -49,13 +48,6 @@ describe('inboxUpdate', () => {
 			signature: cryptography.utils.getRandomBytes(32),
 		};
 
-		const sampleLastCertificate: LastCertificate = {
-			height: sampleCertificate.height - 50,
-			stateRoot: cryptography.utils.getRandomBytes(32),
-			validatorsHash: cryptography.utils.getRandomBytes(32),
-			timestamp: Date.now(),
-		};
-
 		const sampleCCMs = new Array(4).fill(0).map((_, index) => getSampleCCM(index + 1));
 		const sampleCCMFromEvents: CCMsFromEvents[] = [
 			{
@@ -76,12 +68,11 @@ describe('inboxUpdate', () => {
 			},
 		];
 
-		let chainConnectorDB: db.Database;
 		let appendMock: jest.SpyInstance;
 		let generateRightWitnessMock: jest.SpyInstance;
+		let chainConnectorPluginDB: db.Database;
 
 		beforeEach(() => {
-			chainConnectorDB = new db.InMemoryDatabase() as unknown as db.Database;
 			appendMock = jest.spyOn(tree.MerkleTree.prototype, 'append').mockImplementation();
 			generateRightWitnessMock = jest
 				.spyOn(tree.MerkleTree.prototype, 'generateRightWitness')
@@ -89,18 +80,16 @@ describe('inboxUpdate', () => {
 		});
 
 		it('should return one inboxUpdate when all the ccms can be included', async () => {
-			const inboxUpdates = await calculateInboxUpdate(
+			const inboxUpdate = await calculateInboxUpdate(
 				sampleCertificate,
-				sampleLastCertificate,
 				sampleCCMFromEvents,
-				chainConnectorDB,
+				chainConnectorPluginDB,
 			);
-			expect(inboxUpdates).toHaveLength(1);
 
-			expect(inboxUpdates[0].outboxRootWitness.bitmap).toEqual(Buffer.alloc(1));
-			expect(inboxUpdates[0].outboxRootWitness.siblingHashes).toEqual([Buffer.alloc(1)]);
+			expect(inboxUpdate.outboxRootWitness.bitmap).toEqual(Buffer.alloc(1));
+			expect(inboxUpdate.outboxRootWitness.siblingHashes).toEqual([Buffer.alloc(1)]);
 			// Message witness is empty when all the CCMs are included
-			expect(inboxUpdates[0].messageWitnessHashes).toEqual([]);
+			expect(inboxUpdate.messageWitnessHashes).toEqual([]);
 			expect(appendMock).not.toHaveBeenCalled();
 			expect(generateRightWitnessMock).not.toHaveBeenCalled();
 		});
@@ -118,33 +107,26 @@ describe('inboxUpdate', () => {
 				},
 			];
 			generateRightWitnessMock.mockResolvedValue([Buffer.alloc(1)]);
-			const inboxUpdates = await calculateInboxUpdate(
+			const inboxUpdate = await calculateInboxUpdate(
 				sampleCertificate,
-				sampleLastCertificate,
 				ccmListWithBigSize,
-				chainConnectorDB,
+				chainConnectorPluginDB,
 			);
 
-			expect(inboxUpdates).toHaveLength(2);
-
 			// First inboxUpdate should have non-empty outboxRootWitness
-			expect(inboxUpdates[0].outboxRootWitness.bitmap).toEqual(Buffer.alloc(1));
-			expect(inboxUpdates[0].outboxRootWitness.siblingHashes).toEqual([Buffer.from('01')]);
-			expect(inboxUpdates[0].messageWitnessHashes).toEqual([Buffer.alloc(1)]);
+			expect(inboxUpdate.outboxRootWitness.bitmap).toEqual(Buffer.alloc(1));
+			expect(inboxUpdate.outboxRootWitness.siblingHashes).toEqual([Buffer.from('01')]);
+			expect(inboxUpdate.messageWitnessHashes).toEqual([Buffer.alloc(1)]);
 
-			// Second inboxUpdate should have empty outboxRootWitness
-			expect(inboxUpdates[1].outboxRootWitness.bitmap).toEqual(EMPTY_BYTES);
-			expect(inboxUpdates[1].outboxRootWitness.siblingHashes).toEqual([]);
-			expect(inboxUpdates[0].messageWitnessHashes).toEqual([Buffer.alloc(1)]);
-			expect(appendMock).toHaveBeenCalledTimes(4);
-			expect(generateRightWitnessMock).toHaveBeenCalledTimes(2);
+			expect(appendMock).toHaveBeenCalledTimes(3);
+			expect(generateRightWitnessMock).toHaveBeenCalledTimes(1);
 		});
 	});
 
 	// TODO: Break it down into multiple cases where we have 1 group and multiple group depending on ccms size.
 	describe('_groupCCMsBySize', () => {
 		it('should return CCMsFromEvents[][] with length of total CCMs divided by CCU_TOTAL_CCM_SIZE', () => {
-			const ccmsFromEvents: CCMsFromEvents[] = [];
+			let ccmsFromEvents: CCMsg[] = [];
 			const buildNumCCMs = (num: number, fromHeight: number): CCMsg[] => {
 				const ccms: CCMsg[] = [];
 				let j = 1;
@@ -155,21 +137,9 @@ describe('inboxUpdate', () => {
 				return ccms;
 			};
 
-			ccmsFromEvents.push({
-				height: 1,
-				ccms: buildNumCCMs(2, 1),
-				inclusionProof: {} as any,
-			});
-			ccmsFromEvents.push({
-				height: 3,
-				ccms: buildNumCCMs(5, 3),
-				inclusionProof: {} as any,
-			});
-			ccmsFromEvents.push({
-				height: 4,
-				ccms: buildNumCCMs(20, 4),
-				inclusionProof: {} as any,
-			});
+			ccmsFromEvents = [...ccmsFromEvents, ...buildNumCCMs(2, 1)];
+			ccmsFromEvents = [...ccmsFromEvents, ...buildNumCCMs(5, 3)];
+			ccmsFromEvents = [...ccmsFromEvents, ...buildNumCCMs(20, 4)];
 
 			const listOfCCMs = inboxUpdateUtil.groupCCMsBySize(ccmsFromEvents);
 

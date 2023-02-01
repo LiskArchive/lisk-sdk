@@ -34,7 +34,12 @@ interface CertificateValidationResult {
 	message?: string;
 }
 
-// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#getcertificatefromaggregatecommit
+/**
+ * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#getcertificatefromaggregatecommit
+ * @param aggregateCommit
+ * @param blockHeaders
+ * @returns Certificate
+ */
 export const getCertificateFromAggregateCommit = (
 	aggregateCommit: AggregateCommit,
 	blockHeaders: BlockHeader[],
@@ -52,7 +57,16 @@ export const getCertificateFromAggregateCommit = (
 	};
 };
 
-// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#execution-8
+/**
+ * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#execution-8
+ * @param lastValidatorsHash
+ * @param blsKeyToBFTWeight
+ * @param lastCertificateThreshold
+ * @param aggregateCommit
+ * @param blockHeaders
+ * @param validatorsHashPreimage
+ * @returns boolean
+ */
 export const checkChainOfTrust = (
 	lastValidatorsHash: Buffer,
 	blsKeyToBFTWeight: Record<string, bigint>,
@@ -94,7 +108,15 @@ export const checkChainOfTrust = (
 	return aggregateBFTWeight >= lastCertificateThreshold;
 };
 
-// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#execution-8
+/**
+ * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#execution-8
+ * @param blockHeaders
+ * @param aggregateCommits
+ * @param validatorsHashPreimage
+ * @param bftHeights
+ * @param lastCertificate
+ * @returns Certificate | undefined
+ */
 export const getNextCertificateFromAggregateCommits = (
 	blockHeaders: BlockHeader[],
 	aggregateCommits: AggregateCommit[],

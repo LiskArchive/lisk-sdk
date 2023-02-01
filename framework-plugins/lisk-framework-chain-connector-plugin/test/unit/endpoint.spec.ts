@@ -108,23 +108,35 @@ describe('getSentCCUs', () => {
 
 	beforeEach(async () => {
 		chainConnectorPlugin = new ChainConnectorPlugin();
-		const sidechainAPIClientMock = {
+		const sendingChainAPIClientMock = {
 			subscribe: jest.fn(),
 			invoke: jest.fn(),
 		};
-		jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
-		when(sidechainAPIClientMock.invoke)
+
+		const receivingChainAPIClientMock = {
+			subscribe: jest.fn(),
+			invoke: jest.fn(),
+		};
+
+		jest
+			.spyOn(apiClient, 'createIPCClient')
+			.mockResolvedValue(receivingChainAPIClientMock as never);
+		when(sendingChainAPIClientMock.invoke)
 			.calledWith('interoperability_getOwnChainAccount')
 			.mockResolvedValue({
 				chainID: ownChainID.toString('hex'),
 			});
-		when(sidechainAPIClientMock.invoke)
-			.calledWith('interoperability_getChainAccount', { chainID: ownChainID })
+		when(receivingChainAPIClientMock.invoke)
+			.calledWith('interoperability_getChainAccount', { chainID: ownChainID.toString('hex') })
 			.mockResolvedValue({
-				height: 10,
-				stateRoot: cryptography.utils.getRandomBytes(32).toString('hex'),
-				timestamp: Date.now(),
-				validatorsHash: cryptography.utils.getRandomBytes(32).toString('hex'),
+				lastCertificate: {
+					height: 10,
+					stateRoot: cryptography.utils.getRandomBytes(32).toString('hex'),
+					timestamp: Date.now(),
+					validatorsHash: cryptography.utils.getRandomBytes(32).toString('hex'),
+				},
+				name: 'chain1',
+				status: 1,
 			});
 		jest
 			.spyOn(chainConnectorDB, 'getDBInstance')
@@ -148,19 +160,8 @@ describe('getSentCCUs', () => {
 			appConfig: appConfigForPlugin,
 			logger: testing.mocks.loggerMock,
 		});
-		(chainConnectorPlugin as any)['_sidechainAPIClient'] = sidechainAPIClientMock;
-		when(sidechainAPIClientMock.invoke)
-			.calledWith('interoperability_getChainAccount', { chainID: ownChainID })
-			.mockResolvedValue({
-				lastCertificate: {
-					height: 10,
-					stateRoot: cryptography.utils.getRandomBytes(32).toString('hex'),
-					timestamp: Date.now(),
-					validatorsHash: cryptography.utils.getRandomBytes(32).toString('hex'),
-				},
-				name: 'chain1',
-				status: 1,
-			});
+		(chainConnectorPlugin as any)['_apiClient'] = sendingChainAPIClientMock;
+
 		await chainConnectorPlugin.load();
 		await chainConnectorPlugin['_chainConnectorStore'].setAggregateCommits([aggregateCommit]);
 		await chainConnectorPlugin['_chainConnectorStore'].setValidatorsHashPreimage([validatorsData]);
