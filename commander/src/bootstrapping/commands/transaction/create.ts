@@ -41,6 +41,7 @@ import {
 	getParamsSchema,
 	transactionToJSON,
 } from '../../../utils/transaction';
+import { SendCommand } from './send';
 
 interface Args {
 	readonly module: string;
@@ -54,6 +55,7 @@ interface CreateFlags {
 	params?: string;
 	pretty: boolean;
 	offline: boolean;
+	send: boolean;
 	'data-path'?: string;
 	'no-signature': boolean;
 	'sender-public-key'?: string;
@@ -250,6 +252,10 @@ export abstract class CreateCommand extends Command {
 			dependsOn: ['chain-id', 'nonce'],
 			exclusive: ['data-path'],
 		}),
+		send: flagParser.boolean({
+			description: 'Create and immediately send transaction to a node',
+			exclusive: ['offline'],
+		}),
 		'no-signature': flagParser.boolean({
 			description:
 				'Creates the transaction without a signature. Your passphrase will therefore not be required',
@@ -323,13 +329,15 @@ export abstract class CreateCommand extends Command {
 			);
 		}
 
+		const encodedTransaction = encodeTransaction(
+			this._schema,
+			this._metadata,
+			transactionObject,
+			this._client,
+		).toString('hex');
+
 		this.printJSON(flags.pretty, {
-			transaction: encodeTransaction(
-				this._schema,
-				this._metadata,
-				transactionObject,
-				this._client,
-			).toString('hex'),
+			transaction: encodedTransaction,
 		});
 
 		if (flags.json) {
@@ -341,6 +349,10 @@ export abstract class CreateCommand extends Command {
 					this._client,
 				),
 			});
+		}
+
+		if (flags.send) {
+			await SendCommand.run([encodedTransaction]);
 		}
 	}
 

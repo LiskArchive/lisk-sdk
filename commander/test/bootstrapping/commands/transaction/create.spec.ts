@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as fs from 'fs-extra';
 import * as inquirer from 'inquirer';
 import { Application, transactionSchema } from 'lisk-framework';
 import * as cryptography from '@liskhq/lisk-cryptography';
@@ -55,8 +54,6 @@ describe('transaction:create command', () => {
 		],
 	};
 
-	let stdout: string[];
-	let stderr: string[];
 	let config: Awaited<ReturnType<typeof getConfig>>;
 	let clientMock: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>>;
 
@@ -69,13 +66,8 @@ describe('transaction:create command', () => {
 	}
 
 	beforeEach(async () => {
-		stdout = [];
-		stderr = [];
 		config = await getConfig();
-		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
-		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(appUtils, 'isApplicationRunning').mockReturnValue(true);
-		jest.spyOn(fs, 'existsSync').mockReturnValue(true);
 		jest.spyOn(CreateCommandExtended.prototype, 'printJSON').mockReturnValue();
 		clientMock = {
 			disconnect: jest.fn(),
@@ -604,6 +596,26 @@ describe('transaction:create command', () => {
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: mockEncodedTransaction.toString('hex'),
 					});
+				});
+			});
+
+			describe('create and send using --send flag', () => {
+				it('should return encoded transaction string in hex format with signature and invoke send command', async () => {
+					const stdout: string[] = [];
+					jest
+						.spyOn(process.stdout, 'write')
+						.mockImplementation(val => stdout.push(val as string) > -1);
+
+					await CreateCommandExtended.run(
+						['pos', 'unlock', '100000000', `--passphrase=${passphrase}`, '--send'],
+						config,
+					);
+
+					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
+					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
+						transaction: mockEncodedTransaction.toString('hex'),
+					});
+					expect(stdout[0]).toContain(`Transaction with id: 'undefined' received by node`);
 				});
 			});
 		});
