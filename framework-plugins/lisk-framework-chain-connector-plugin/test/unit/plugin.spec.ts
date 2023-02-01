@@ -853,8 +853,6 @@ describe('ChainConnectorPlugin', () => {
 				validatorsHash,
 			},
 		};
-		const certificateValidationPassingResult = { status: true };
-		const certificateValidationFailingResult = { status: false };
 
 		const blockHeaders = [
 			testing.createFakeBlockHeader({ height: 5, validatorsHash }).toObject(),
@@ -896,9 +894,6 @@ describe('ChainConnectorPlugin', () => {
 			chainConnectorPlugin['_receivingChainClient'].invoke = jest
 				.fn()
 				.mockResolvedValue(chainAccount);
-			jest
-				.spyOn(certificateGenerationUtil, 'validateCertificate')
-				.mockResolvedValue(certificateValidationFailingResult as never);
 			chainConnectorPlugin['logger'] = {
 				error: jest.fn(),
 			} as never;
@@ -923,10 +918,6 @@ describe('ChainConnectorPlugin', () => {
 		});
 
 		it('should call _calculateInboxUpdate', async () => {
-			jest
-				.spyOn(certificateGenerationUtil, 'validateCertificate')
-				.mockResolvedValue(certificateValidationPassingResult as never);
-
 			await chainConnectorPlugin['_calculateCCUParams'](
 				certificate,
 				blockHeaders,
@@ -938,10 +929,6 @@ describe('ChainConnectorPlugin', () => {
 		});
 
 		it('should return CCUTxParams with activeValidatorsUpdate set to [] when chainAccount.lastCertificate.validatorsHash == certificate.validatorsHash', async () => {
-			jest
-				.spyOn(certificateGenerationUtil, 'validateCertificate')
-				.mockResolvedValue(certificateValidationPassingResult as never);
-
 			await expect(
 				chainConnectorPlugin['_calculateCCUParams'](
 					certificate,
