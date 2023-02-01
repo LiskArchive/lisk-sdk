@@ -64,6 +64,17 @@ describe('FeeModule', () => {
 		it('should set the minFeePerByte property', () => {
 			expect(feeModule['_minFeePerByte']).toBe(1000);
 		});
+
+		it('should call method and endpoint init', async () => {
+			feeModule = new FeeModule();
+			// Spy on init functions
+			jest.spyOn(feeModule.endpoint, 'init');
+			jest.spyOn(feeModule.method, 'init');
+			await feeModule.init({ genesisConfig, moduleConfig });
+
+			expect(feeModule.endpoint.init).toHaveBeenCalled();
+			expect(feeModule.method.init).toHaveBeenCalled();
+		});
 	});
 
 	describe('verifyTransaction', () => {
