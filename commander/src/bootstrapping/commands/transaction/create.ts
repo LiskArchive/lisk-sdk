@@ -92,7 +92,6 @@ const getParamsObject = async (metadata: ModuleMetadataJSON[], flags: CreateFlag
 };
 
 const getKeysFromFlags = async (flags: CreateFlags) => {
-	let passphrase!: string;
 	let publicKey!: Buffer;
 	let privateKey!: Buffer;
 	let address!: Buffer;
@@ -100,19 +99,18 @@ const getKeysFromFlags = async (flags: CreateFlags) => {
 	if (flags['no-signature']) {
 		publicKey = Buffer.from(flags['sender-public-key'] as string, 'hex');
 		address = cryptography.address.getAddressFromPublicKey(publicKey);
-		passphrase = '';
 	} else {
-		passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase'));
+		const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase'));
 		const keys = await deriveKeypair(passphrase, flags['key-derivation-path']);
 		publicKey = keys.publicKey;
 		privateKey = keys.privateKey;
 		address = cryptography.address.getAddressFromPublicKey(publicKey);
 	}
 
-	return { address, passphrase, publicKey, privateKey };
+	return { address, publicKey, privateKey };
 };
 
-const validateAndSignTransaction = async (
+const validateAndSignTransaction = (
 	transaction: Transaction,
 	schema: RegisteredSchema,
 	metadata: ModuleMetadataJSON[],
@@ -155,7 +153,7 @@ const createTransactionOffline = async (
 	const { publicKey, privateKey } = await getKeysFromFlags(flags);
 	transaction.nonce = flags.nonce ?? '0';
 	transaction.params = params;
-	transaction.senderPublicKey = publicKey.toString('hex') || (flags['sender-public-key'] as string);
+	transaction.senderPublicKey = publicKey.toString('hex');
 
 	return validateAndSignTransaction(
 		transaction,
@@ -196,7 +194,7 @@ const createTransactionOnline = async (
 
 	transaction.nonce = flags.nonce ? flags.nonce : account.nonce;
 	transaction.params = params;
-	transaction.senderPublicKey = publicKey.toString('hex') || (flags['sender-public-key'] as string);
+	transaction.senderPublicKey = publicKey.toString('hex');
 
 	return validateAndSignTransaction(
 		transaction,
