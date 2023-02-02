@@ -89,6 +89,7 @@ export class FeeModule extends BaseInteroperableModule {
 			feeTokenID: Buffer.from(config.feeTokenID, 'hex'),
 		};
 		this.method.init(moduleConfig);
+		this.endpoint.init(moduleConfig);
 
 		this._tokenID = moduleConfig.feeTokenID;
 		this._minFeePerByte = moduleConfig.minFeePerByte;
