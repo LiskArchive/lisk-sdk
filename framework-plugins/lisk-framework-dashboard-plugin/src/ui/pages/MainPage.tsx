@@ -364,6 +364,9 @@ const MainPage: React.FC = () => {
 	const handleCallEndpoint = async (data: CallEndpointOptions) => {
 		try {
 			const result = await callAndProcessActions(getClient(), data.name, data.params);
+			if (result.error) {
+				throw new Error((result.error as { message: string }).message);
+			}
 			showMessageDialog(
 				'Success!',
 				<TextAreaInput
