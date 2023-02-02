@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { apiClient } from '@liskhq/lisk-client';
-import { Block, Transaction } from '../types';
+import { Block, BlockHeader, Transaction } from '../types';
 
 interface Config {
 	applicationUrl: string;
@@ -20,34 +20,43 @@ interface Config {
 }
 
 const configDevEnvValues: Config = {
-	applicationUrl: 'ws://localhost:8080/ws',
+	applicationUrl: 'ws://localhost:7887/rpc-ws',
 	applicationName: 'Lisk',
 };
+
+export const getKeyPath = (offset: number) => `m/44'/134'/${offset}'`;
 
 const MAX_BLOCKS = 103 * 3;
 const MAX_TRANSACTIONS = 150;
 
 const sortByBlockHeight = (a: Block, b: Block) => b.header.height - a.header.height;
 
-export const updateStatesOnNewBlock = (
+export const updateStatesOnNewBlock = async (
 	client: apiClient.APIClient,
-	newBlockStr: string,
+	newBlockHeader: BlockHeader,
 	blocks: Block[],
 	confirmedTransactions: Transaction[],
 	unconfirmedTransactions: Transaction[],
-): {
+): Promise<{
 	blocks: Block[];
 	confirmedTransactions: Transaction[];
 	unconfirmedTransactions: Transaction[];
-} => {
-	const newBlock = client.block.toJSON(client.block.decode(newBlockStr));
-	let newBlocks = blocks;
-	if (!blocks.find(b => b.header.height === newBlock.header.height)) {
-		newBlocks = [newBlock, ...blocks].slice(0, MAX_BLOCKS) as Block[];
+}> => {
+	if (!blocks || blocks.find(b => b.header.height === newBlockHeader.height)) {
+		return {
+			blocks,
+			confirmedTransactions,
+			unconfirmedTransactions,
+		};
 	}
+	const transactions = await client.invoke<Transaction[]>('chain_getTransactionsByHeight', {
+		height: newBlockHeader.height,
+	});
+
+	const newBlocks = [{ header: newBlockHeader, transactions }, ...blocks].slice(0, MAX_BLOCKS);
 	newBlocks.sort(sortByBlockHeight);
 
-	for (const trs of newBlock.transactions) {
+	for (const trs of transactions) {
 		confirmedTransactions.unshift(trs as unknown as Transaction);
 	}
 	const confirmedTransactionsIds = confirmedTransactions.map(t => t.id);
@@ -65,13 +74,9 @@ export const updateStatesOnNewBlock = (
 };
 
 export const updateStatesOnNewTransaction = (
-	client: apiClient.APIClient,
-	newTransactionStr: string,
+	newTransactionStr: Transaction,
 	unconfirmedTransactions: Transaction[],
-): Transaction[] => {
-	const transaction = client.transaction.toJSON(client.transaction.decode(newTransactionStr));
-	return [transaction, ...unconfirmedTransactions].slice(-1 * MAX_TRANSACTIONS) as Transaction[];
-};
+): Transaction[] => [newTransactionStr, ...unconfirmedTransactions].slice(-1 * MAX_TRANSACTIONS);
 
 export const getConfig = async () => {
 	if (process.env.NODE_ENV === 'development') {

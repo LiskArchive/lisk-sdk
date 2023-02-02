@@ -33,10 +33,10 @@ export const nodeInfo: NodeInfo = {
 	finalizedHeight: 276489,
 	syncing: false,
 	unconfirmedTransactions: 2243,
-	genesisConfig: {
+	genesis: {
 		blockTime: 10,
 		maxTransactionsSize: 15360,
-		bftThreshold: 68,
+		bftBatchSize: 68,
 		chainID: '00000000',
 	},
 	network: {

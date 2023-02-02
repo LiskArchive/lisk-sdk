@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
-import { apiClient } from '@liskhq/lisk-client';
+import { apiClient, transactions as txLib } from '@liskhq/lisk-client';
 import { TableBody, TableHeader, Table } from '../Table';
 import { Widget, WidgetHeader, WidgetBody } from '../widget';
 import Text from '../Text';
@@ -29,22 +29,22 @@ interface WidgetProps {
 }
 
 const getModuleAsset = (
-	nodeInfo: Metadata | undefined,
-	moduleID: string,
-	commandID: string,
+	metadata: Metadata | undefined,
+	module: string,
+	command: string,
 ): string => {
-	if (!nodeInfo) {
+	if (!metadata) {
 		return 'unknown';
 	}
-	const registeredModule = nodeInfo.find(rm => rm.id === moduleID);
+	const registeredModule = metadata.find(rm => rm.name === module);
 	if (!registeredModule) {
 		return 'unknown';
 	}
-	const registeredCommand = registeredModule.commands.find(ta => ta.id === commandID);
+	const registeredCommand = registeredModule.commands.find(ta => ta.name === command);
 	if (!registeredCommand) {
-		return `${registeredModule.name}:unknown`;
+		return `${registeredModule.name}_unknown`;
 	}
-	return `${registeredModule.name}:${registeredCommand.name}`;
+	return `${registeredModule.name}_${registeredCommand.name}`;
 };
 
 const TransactionWidget: React.FC<WidgetProps> = props => {
@@ -60,13 +60,13 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 					<TableHeader sticky>
 						<tr>
 							<th className={styles.headerID}>
-								<Text>Id</Text>
+								<Text>ID</Text>
 							</th>
 							<th className={styles.headerSender}>
 								<Text>Sender</Text>
 							</th>
 							<th className={styles.headerModule}>
-								<Text>Module:Asset</Text>
+								<Text>Module_Command</Text>
 							</th>
 							<th className={styles.headerFee}>
 								<Text>Fee</Text>
@@ -86,11 +86,11 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 								</td>
 								<td>
 									<Text>
-										{getModuleAsset(props.metadata, transaction.moduleID, transaction.commandID)}
+										{getModuleAsset(props.metadata, transaction.module, transaction.command)}
 									</Text>
 								</td>
 								<td>
-									<Text>{transaction.fee}</Text>
+									<Text>{txLib.convertBeddowsToLSK(String(transaction.fee))}</Text>
 								</td>
 							</tr>
 						))}
