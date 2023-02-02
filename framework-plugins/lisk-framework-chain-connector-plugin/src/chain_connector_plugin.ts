@@ -89,6 +89,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _chainConnectorStore!: ChainConnectorStore;
 	private _lastCertificate!: LastCertificate;
 	private _ccuFrequency!: number;
+	private _maxCCUSize!: number;
+	private _saveCCM!: boolean;
 	private _receivingChainClient!: apiClient.APIClient;
 	private _sendingChainClient!: apiClient.APIClient;
 	private _ownChainID!: Buffer;
@@ -105,6 +107,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		await super.init(context);
 		this.endpoint.init(this._sentCCUs);
 		this._ccuFrequency = this.config.ccuFrequency ?? CCU_FREQUENCY;
+		this._maxCCUSize = this.config.maxCCUSize;
+		this._saveCCM = this.config.saveCCM;
 		const { password, encryptedPrivateKey } = this.config;
 		if (password) {
 			const parsedEncryptedKey = encrypt.parseEncryptedMessage(encryptedPrivateKey);
@@ -198,6 +202,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 						crossChainMessages,
 						this._chainConnectorPluginDB,
 						lastSentCCM,
+						this._maxCCUSize,
 					);
 
 					// Send partial update
@@ -457,6 +462,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			this._chainConnectorPluginDB,
 			// If no lastSentCCM then assume that we can start from the beginning
 			lastSentCCM ?? { height: 1, nonce: BigInt(-1) },
+			this._maxCCUSize,
 		);
 		const serializedCertificate = codec.encode(certificateSchema, certificate);
 
@@ -563,11 +569,16 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				signatures: [],
 			});
 			tx.sign(chainID, activePrivateKey);
-			const result = await activeAPIClient.invoke<{
-				transactionId: string;
-			}>('txpool_postTransaction', {
-				transaction: tx.getBytes().toString('hex'),
-			});
+			let result: { transactionId: string };
+			if (this._saveCCM) {
+				result = { transactionId: tx.id.toString('hex') };
+			} else {
+				result = await activeAPIClient.invoke<{
+					transactionId: string;
+				}>('txpool_postTransaction', {
+					transaction: tx.getBytes().toString('hex'),
+				});
+			}
 			/**
 			 * TODO: As of now we save it in memory but going forward it should be saved in DB,
 			 * as the array size can grow after sometime.

@@ -34,6 +34,7 @@ export const DB_KEY_AGGREGATE_COMMITS = Buffer.from([3]);
 export const DB_KEY_VALIDATORS_HASH_PREIMAGE = Buffer.from([4]);
 export const DB_KEY_LAST_SENT_CCM = Buffer.from([5]);
 export const DB_KEY_CERTIFICATE = Buffer.from([6]);
+export const DB_KEY_LIST_OF_CCU = Buffer.from([7]);
 
 /**
  * It’s not really MAX_CCU_SIZE, coz CCU includes other properties

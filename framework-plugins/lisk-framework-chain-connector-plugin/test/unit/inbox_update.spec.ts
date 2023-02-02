@@ -90,6 +90,7 @@ describe('inboxUpdate', () => {
 				sampleCCMFromEvents,
 				chainConnectorPluginDB,
 				{ height: 1, nonce: BigInt(0) },
+				CCU_TOTAL_CCM_SIZE,
 			);
 
 			expect(inboxUpdate.outboxRootWitness.bitmap).toEqual(Buffer.alloc(1));
@@ -118,6 +119,7 @@ describe('inboxUpdate', () => {
 				ccmListWithBigSize,
 				chainConnectorPluginDB,
 				{ height: 1, nonce: BigInt(0) },
+				CCU_TOTAL_CCM_SIZE,
 			);
 
 			// First inboxUpdate should have non-empty outboxRootWitness
@@ -146,6 +148,7 @@ describe('inboxUpdate', () => {
 				ccmListWithBigSize,
 				chainConnectorPluginDB,
 				{ height: 1, nonce: BigInt(0) },
+				CCU_TOTAL_CCM_SIZE,
 			);
 
 			// First inboxUpdate should have non-empty outboxRootWitness
@@ -171,6 +174,7 @@ describe('inboxUpdate', () => {
 				sampleCCMFromEvents,
 				chainConnectorPluginDB,
 				{ height: 1, nonce: BigInt(0) },
+				CCU_TOTAL_CCM_SIZE,
 			);
 
 			expect(inboxUpdate.outboxRootWitness.bitmap).toEqual(Buffer.alloc(0));
@@ -198,6 +202,7 @@ describe('inboxUpdate', () => {
 				ccmListWithBigSize,
 				chainConnectorPluginDB,
 				{ height: 1, nonce: BigInt(0) },
+				CCU_TOTAL_CCM_SIZE,
 			);
 
 			// First inboxUpdate should have non-empty outboxRootWitness
@@ -233,7 +238,7 @@ describe('inboxUpdate', () => {
 			ccmsFromEvents = [...ccmsFromEvents, ...buildNumCCMs(5, 3)];
 			ccmsFromEvents = [...ccmsFromEvents, ...buildNumCCMs(20, 4)];
 
-			const listOfCCMs = inboxUpdateUtil.groupCCMsBySize(ccmsFromEvents);
+			const listOfCCMs = inboxUpdateUtil.groupCCMsBySize(ccmsFromEvents, CCU_TOTAL_CCM_SIZE);
 
 			const getTotalSize = (ccms: CCMsg[]) => {
 				return ccms

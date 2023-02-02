@@ -25,7 +25,6 @@ import {
 	LastCertificate,
 	cryptography,
 } from 'lisk-sdk';
-import { CCU_TOTAL_CCM_SIZE } from './constants';
 import { CCMsFromEvents } from './types';
 
 /**
@@ -44,6 +43,7 @@ export const calculateInboxUpdateForPartialUpdate = async (
 		height: number;
 		nonce: bigint;
 	},
+	maxCCUSize: number,
 ): Promise<InboxUpdate> => {
 	// Filter all the CCMs between lastCertifiedHeight and certificate height.
 	let potentialCCMs: CCMsg[] = [];
@@ -63,7 +63,7 @@ export const calculateInboxUpdateForPartialUpdate = async (
 		}
 		potentialCCMs = [...potentialCCMs, ...ccms];
 	}
-	const ccmsListOfList = groupCCMsBySize(potentialCCMs);
+	const ccmsListOfList = groupCCMsBySize(potentialCCMs, maxCCUSize);
 	// Return empty inboxUpdate when there are no ccms
 	if (ccmsListOfList.length < 1) {
 		return {
@@ -114,6 +114,7 @@ export const calculateInboxUpdate = async (
 		height: number;
 		nonce: bigint;
 	},
+	maxCCUSize: number,
 ): Promise<InboxUpdate> => {
 	// Filter all the CCMs between lastCertifiedHeight and certificate height.
 	let potentialCCMs: CCMsg[] = [];
@@ -133,7 +134,7 @@ export const calculateInboxUpdate = async (
 		}
 		potentialCCMs = [...potentialCCMs, ...ccms];
 	}
-	const ccmsListOfList = groupCCMsBySize(potentialCCMs);
+	const ccmsListOfList = groupCCMsBySize(potentialCCMs, maxCCUSize);
 
 	// Return empty inboxUpdate when there are no ccms
 	if (ccmsListOfList.length < 1) {
@@ -183,7 +184,7 @@ export const calculateInboxUpdate = async (
  * @param allCCMs
  * @returns CCMsg[][]
  */
-export const groupCCMsBySize = (allCCMs: CCMsg[]): CCMsg[][] => {
+export const groupCCMsBySize = (allCCMs: CCMsg[], maxCCUSize: number): CCMsg[][] => {
 	const groupedCCMsBySize: CCMsg[][] = [];
 
 	if (allCCMs.length === 0) {
@@ -201,7 +202,7 @@ export const groupCCMsBySize = (allCCMs: CCMsg[]): CCMsg[][] => {
 			const ccmBytes = codec.encode(ccmSchema, ccm);
 			const size = ccmBytes.length;
 			totalSize += size;
-			if (totalSize > CCU_TOTAL_CCM_SIZE) {
+			if (totalSize > maxCCUSize) {
 				return [newList, i];
 			}
 

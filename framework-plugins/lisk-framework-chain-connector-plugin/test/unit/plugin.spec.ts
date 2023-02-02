@@ -34,6 +34,7 @@ import {
 	BLS_PUBLIC_KEY_LENGTH,
 	HASH_LENGTH,
 	CCM_PROCESSED,
+	CCU_TOTAL_CCM_SIZE,
 } from '../../src/constants';
 import * as plugins from '../../src/chain_connector_plugin';
 import * as dbApi from '../../src/db';
@@ -169,6 +170,8 @@ describe('ChainConnectorPlugin', () => {
 			encryptedPrivateKey: defaultEncryptedPrivateKey,
 			ccuFrequency: 10,
 			password: defaultPassword,
+			maxCCUSize: CCU_TOTAL_CCM_SIZE,
+			saveCCM: false,
 		};
 
 		sendingChainAPIClientMock = {
@@ -706,13 +709,13 @@ describe('ChainConnectorPlugin', () => {
 			 * 5. consensus_getBFTParameters
 			 * 6. consensus_getBFTHeights
 			 */
-			expect(sendingChainAPIClientMock.invoke).toBeCalledTimes(6);
+			expect(sendingChainAPIClientMock.invoke).toHaveBeenCalledTimes(6);
 			/**
 			 * Two calls to below RPC through receivingChainAPIClient
 			 * 1. interoperability_getChainAccount: in load() function
 			 * 2. interoperability_getChainAccount: at the end of newBlockHandler()
 			 */
-			expect(receivingChainAPIClientMock.invoke).toBeCalledTimes(2);
+			expect(receivingChainAPIClientMock.invoke).toHaveBeenCalledTimes(2);
 
 			const savedCCMs = await chainConnectorPlugin['_chainConnectorStore'].getCrossChainMessages();
 

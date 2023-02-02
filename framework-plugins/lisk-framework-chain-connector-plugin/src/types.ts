@@ -24,7 +24,9 @@ export interface ChainConnectorPluginConfig {
 	ccuFrequency: number;
 	encryptedPrivateKey: string;
 	ccuFee: string;
-	password?: string;
+	password: string;
+	saveCCM: boolean;
+	maxCCUSize: number;
 }
 
 export type SentCCUs = Transaction[];

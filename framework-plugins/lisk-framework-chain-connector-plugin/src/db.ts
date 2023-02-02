@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec, db as liskDB, AggregateCommit, Certificate } from 'lisk-sdk';
+import { codec, db as liskDB, AggregateCommit, Certificate, chain } from 'lisk-sdk';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
@@ -22,6 +22,7 @@ import {
 	DB_KEY_CERTIFICATE,
 	DB_KEY_CROSS_CHAIN_MESSAGES,
 	DB_KEY_LAST_SENT_CCM,
+	DB_KEY_LIST_OF_CCU,
 	DB_KEY_VALIDATORS_HASH_PREIMAGE,
 } from './constants';
 import {
@@ -30,6 +31,7 @@ import {
 	ccmsFromEventsSchema,
 	certifcatesSchema,
 	lastSentCCMWithHeight,
+	listOfCCUsSchema,
 	validatorsHashPreimageInfoSchema,
 } from './schemas';
 import { BlockHeader, CCMsFromEvents, LastSentCCMWithHeight, ValidatorsData } from './types';
@@ -196,6 +198,28 @@ export class ChainConnectorStore {
 
 	public async setCertificates(certificates: Certificate[]) {
 		certificates.sort((a, b) => b.height - a.height);
-		await this._db.set(DB_KEY_CERTIFICATE, codec.encode(certifcatesSchema, certificates));
+		await this._db.set(DB_KEY_CERTIFICATE, codec.encode(certifcatesSchema, { certificates }));
+	}
+
+	public async getListOfCCUs(): Promise<chain.TransactionAttrs[]> {
+		let listOfCCUs: chain.TransactionAttrs[] | undefined = [];
+		try {
+			const encodedInfo = await this._db.get(DB_KEY_LIST_OF_CCU);
+			listOfCCUs = codec.decode<{ listOfCCUs: chain.TransactionAttrs[] }>(
+				listOfCCUsSchema,
+				encodedInfo,
+			).listOfCCUs;
+		} catch (error) {
+			if (!(error instanceof liskDB.NotFoundError)) {
+				throw error;
+			}
+		}
+		return listOfCCUs;
+	}
+
+	public async setListOfCCUs(listOfCCUs: chain.TransactionAttrs[]) {
+		listOfCCUs.sort((a, b) => Number(b.nonce) - Number(a.nonce));
+
+		await this._db.set(DB_KEY_LIST_OF_CCU, codec.encode(listOfCCUsSchema, { listOfCCUs }));
 	}
 }
