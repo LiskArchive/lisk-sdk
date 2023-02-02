@@ -24,32 +24,42 @@ import {
 	tree,
 	db,
 } from 'lisk-sdk';
-import { CCU_TOTAL_CCM_SIZE } from '../../src/constants';
+import { CCU_TOTAL_CCM_SIZE, EMPTY_BYTES } from '../../src/constants';
 import * as inboxUpdateUtil from '../../src/inbox_update';
 import { CCMsFromEvents } from '../../src/types';
-import { calculateInboxUpdate } from '../../src/inbox_update';
+import { calculateInboxUpdate, calculateInboxUpdateForPartialUpdate } from '../../src/inbox_update';
 import { getSampleCCM } from '../utils/sampleCCM';
 
 describe('inboxUpdate', () => {
-	describe('calculateInboxUpdate', () => {
-		const sampleBlock = testing.createFakeBlockHeader({
+	let sampleBlock: BlockHeader;
+	let sampleCertificate: Certificate;
+
+	let sampleCCMs: CCMsg[];
+	let sampleCCMFromEvents: CCMsFromEvents[];
+	let appendMock: jest.SpyInstance;
+	let generateRightWitnessMock: jest.SpyInstance;
+	let chainConnectorPluginDB: db.Database;
+
+	beforeEach(() => {
+		sampleBlock = testing.createFakeBlockHeader({
 			stateRoot: cryptography.utils.getRandomBytes(32),
 			validatorsHash: cryptography.utils.getRandomBytes(32),
 			height: 100,
 		}) as BlockHeader & { validatorsHash: Buffer; stateRoot: Buffer };
 
-		const sampleCertificate: Certificate = {
+		sampleCertificate = {
 			blockID: sampleBlock.id,
 			height: sampleBlock.height,
 			timestamp: sampleBlock.timestamp,
-			validatorsHash: sampleBlock.validatorsHash,
-			stateRoot: sampleBlock.stateRoot,
+			validatorsHash: sampleBlock.validatorsHash as Buffer,
+			stateRoot: sampleBlock.stateRoot as Buffer,
 			aggregationBits: Buffer.alloc(0),
 			signature: cryptography.utils.getRandomBytes(32),
 		};
 
-		const sampleCCMs = new Array(4).fill(0).map((_, index) => getSampleCCM(index + 1));
-		const sampleCCMFromEvents: CCMsFromEvents[] = [
+		sampleCCMs = new Array(4).fill(0).map((_, index) => getSampleCCM(index + 1));
+
+		sampleCCMFromEvents = [
 			{
 				ccms: sampleCCMs.slice(0, 1),
 				height: 60,
@@ -67,23 +77,19 @@ describe('inboxUpdate', () => {
 				},
 			},
 		];
+		appendMock = jest.spyOn(tree.MerkleTree.prototype, 'append').mockImplementation();
+		generateRightWitnessMock = jest
+			.spyOn(tree.MerkleTree.prototype, 'generateRightWitness')
+			.mockImplementation();
+	});
 
-		let appendMock: jest.SpyInstance;
-		let generateRightWitnessMock: jest.SpyInstance;
-		let chainConnectorPluginDB: db.Database;
-
-		beforeEach(() => {
-			appendMock = jest.spyOn(tree.MerkleTree.prototype, 'append').mockImplementation();
-			generateRightWitnessMock = jest
-				.spyOn(tree.MerkleTree.prototype, 'generateRightWitness')
-				.mockImplementation();
-		});
-
+	describe('calculateInboxUpdate', () => {
 		it('should return one inboxUpdate when all the ccms can be included', async () => {
 			const inboxUpdate = await calculateInboxUpdate(
 				sampleCertificate,
 				sampleCCMFromEvents,
 				chainConnectorPluginDB,
+				{ height: 1, nonce: BigInt(0) },
 			);
 
 			expect(inboxUpdate.outboxRootWitness.bitmap).toEqual(Buffer.alloc(1));
@@ -111,6 +117,7 @@ describe('inboxUpdate', () => {
 				sampleCertificate,
 				ccmListWithBigSize,
 				chainConnectorPluginDB,
+				{ height: 1, nonce: BigInt(0) },
 			);
 
 			// First inboxUpdate should have non-empty outboxRootWitness
@@ -120,6 +127,91 @@ describe('inboxUpdate', () => {
 
 			expect(appendMock).toHaveBeenCalledTimes(3);
 			expect(generateRightWitnessMock).toHaveBeenCalledTimes(1);
+		});
+
+		it('should return empty inboxUpdate when there is no ccm after filter', async () => {
+			const ccmListWithBigSize = [
+				{
+					ccms: [getSampleCCM(5, 8000), getSampleCCM(6, 8000)],
+					height: sampleCertificate.height + 1,
+					inclusionProof: {
+						bitmap: Buffer.alloc(1),
+						siblingHashes: [Buffer.from('01')],
+					},
+				},
+			];
+			generateRightWitnessMock.mockResolvedValue([Buffer.alloc(1)]);
+			const inboxUpdate = await calculateInboxUpdate(
+				sampleCertificate,
+				ccmListWithBigSize,
+				chainConnectorPluginDB,
+				{ height: 1, nonce: BigInt(0) },
+			);
+
+			// First inboxUpdate should have non-empty outboxRootWitness
+			expect(inboxUpdate).toEqual({
+				crossChainMessages: [],
+				messageWitnessHashes: [],
+				outboxRootWitness: {
+					bitmap: EMPTY_BYTES,
+					siblingHashes: [],
+				},
+			});
+
+			expect(appendMock).not.toHaveBeenCalled();
+			expect(generateRightWitnessMock).not.toHaveBeenCalled();
+		});
+	});
+
+	describe('calculateInboxUpdateForPartialUpdate', () => {
+		it('should return one inboxUpdate with messageWitnessHashes and empty outboxRootWitness', async () => {
+			generateRightWitnessMock.mockResolvedValue([Buffer.alloc(1)]);
+			const inboxUpdate = await calculateInboxUpdateForPartialUpdate(
+				sampleCertificate,
+				sampleCCMFromEvents,
+				chainConnectorPluginDB,
+				{ height: 1, nonce: BigInt(0) },
+			);
+
+			expect(inboxUpdate.outboxRootWitness.bitmap).toEqual(Buffer.alloc(0));
+			expect(inboxUpdate.outboxRootWitness.siblingHashes).toEqual([]);
+			// Message witness is empty when all the CCMs are included
+			expect(inboxUpdate.messageWitnessHashes).toEqual([Buffer.alloc(1)]);
+			expect(appendMock).toHaveBeenCalled();
+			expect(generateRightWitnessMock).toHaveBeenCalled();
+		});
+
+		it('should return empty inboxUpdate when there is no ccm after filter', async () => {
+			const ccmListWithBigSize = [
+				{
+					ccms: [getSampleCCM(5, 8000), getSampleCCM(6, 8000)],
+					height: sampleCertificate.height + 1,
+					inclusionProof: {
+						bitmap: Buffer.alloc(1),
+						siblingHashes: [Buffer.from('01')],
+					},
+				},
+			];
+			generateRightWitnessMock.mockResolvedValue([Buffer.alloc(1)]);
+			const inboxUpdate = await calculateInboxUpdateForPartialUpdate(
+				sampleCertificate,
+				ccmListWithBigSize,
+				chainConnectorPluginDB,
+				{ height: 1, nonce: BigInt(0) },
+			);
+
+			// First inboxUpdate should have non-empty outboxRootWitness
+			expect(inboxUpdate).toEqual({
+				crossChainMessages: [],
+				messageWitnessHashes: [],
+				outboxRootWitness: {
+					bitmap: EMPTY_BYTES,
+					siblingHashes: [],
+				},
+			});
+
+			expect(appendMock).not.toHaveBeenCalled();
+			expect(generateRightWitnessMock).not.toHaveBeenCalled();
 		});
 	});
 

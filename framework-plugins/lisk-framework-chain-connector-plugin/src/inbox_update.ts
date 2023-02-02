@@ -113,7 +113,7 @@ export const calculateInboxUpdate = async (
 	lastSentCCMInfo: {
 		height: number;
 		nonce: bigint;
-	} = { height: 1, nonce: BigInt(-1) },
+	},
 ): Promise<InboxUpdate> => {
 	// Filter all the CCMs between lastCertifiedHeight and certificate height.
 	let potentialCCMs: CCMsg[] = [];

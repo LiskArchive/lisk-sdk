@@ -184,10 +184,14 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 				if (!newCertificate) {
 					const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
-					// If no lastSentCCM then assume that we can start from the beginning
+					/**
+					 * If no lastSentCCM then assume that its the first CCM to be sent
+					 * and we can use the lastCertificate height
+					 * which will be zero in case if this is the first CCU after registration
+					 */
 					const lastSentCCM = (await this._chainConnectorStore.getLastSentCCM()) ?? {
-						nonce: BigInt(-1),
-						height: 1,
+						nonce: BigInt(0),
+						height: this._lastCertificate.height,
 					};
 					const inboxUpdate = await calculateInboxUpdateForPartialUpdate(
 						this._lastCertificate,
