@@ -23,6 +23,7 @@ import { JSONObject } from '../../types';
 export interface Keypair {
 	publicKey: Buffer;
 	privateKey: Buffer;
+	blsPublicKey: Buffer;
 	blsSecretKey: Buffer;
 }
 
