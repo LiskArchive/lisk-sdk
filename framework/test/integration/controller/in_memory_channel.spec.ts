@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { homedir } from 'os';
+import { homedir, tmpdir } from 'os';
 import { resolve as pathResolve } from 'path';
-import { InMemoryDatabase } from '@liskhq/lisk-db';
+import { InMemoryDatabase, StateDB } from '@liskhq/lisk-db';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import { Bus } from '../../../src/controller/bus';
 
@@ -26,6 +26,7 @@ describe('InMemoryChannel', () => {
 	};
 
 	const socketsDir = pathResolve(`${homedir()}/.lisk/integration/in_memory/sockets`);
+	const dbPath = pathResolve(tmpdir(), 'state.db');
 
 	const config: any = {
 		rpc: {
@@ -61,6 +62,16 @@ describe('InMemoryChannel', () => {
 		},
 	};
 
+	let stateDB: StateDB;
+
+	beforeAll(() => {
+		stateDB = new StateDB(dbPath);
+	});
+
+	afterAll(() => {
+		stateDB.close();
+	});
+
 	describe('after registering itself to the bus', () => {
 		let inMemoryChannelAlpha: InMemoryChannel;
 		let inMemoryChannelBeta: InMemoryChannel;
@@ -72,7 +83,7 @@ describe('InMemoryChannel', () => {
 
 			inMemoryChannelAlpha = new InMemoryChannel(
 				logger,
-				new InMemoryDatabase() as any,
+				stateDB,
 				new InMemoryDatabase() as any,
 				alpha.moduleName,
 				alpha.events,
@@ -84,7 +95,7 @@ describe('InMemoryChannel', () => {
 
 			inMemoryChannelBeta = new InMemoryChannel(
 				logger,
-				new InMemoryDatabase() as any,
+				stateDB,
 				new InMemoryDatabase() as any,
 				beta.moduleName,
 				beta.events,
