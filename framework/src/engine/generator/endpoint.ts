@@ -188,6 +188,7 @@ export class Endpoint {
 
 		// Enable validator to forge by adding keypairs corresponding to address
 		this._keypairs.set(address, {
+			blsPublicKey: decryptedKeys.blsKey,
 			blsSecretKey: decryptedKeys.blsPrivateKey,
 			privateKey: decryptedKeys.generatorPrivateKey,
 			publicKey: decryptedKeys.generatorKey,

@@ -187,6 +187,7 @@ describe('generator endpoint', () => {
 			endpoint['_keypairs'].set(defaultEncryptedKeys.address, {
 				publicKey: Buffer.alloc(0),
 				privateKey: Buffer.alloc(0),
+				blsPublicKey: Buffer.alloc(0),
 				blsSecretKey: Buffer.alloc(0),
 			});
 			await expect(
@@ -556,6 +557,7 @@ describe('generator endpoint', () => {
 
 		it('should delete in-memory keypairs when new keys are set', async () => {
 			endpoint['_keypairs'].set(defaultEncryptedKeys.address, {
+				blsPublicKey: Buffer.alloc(0),
 				blsSecretKey: Buffer.alloc(0),
 				privateKey: Buffer.alloc(0),
 				publicKey: Buffer.alloc(0),
