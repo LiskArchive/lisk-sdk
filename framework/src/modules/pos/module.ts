@@ -91,6 +91,7 @@ import { InternalMethod } from './internal_method';
 import { CommissionChangeEvent } from './events/commission_change';
 import { ClaimRewardsCommand } from './commands/claim_rewards';
 import { getMainchainID } from '../interoperability/utils';
+import { RewardsAssignedEvent } from './events/rewards_assigned';
 
 export class PoSModule extends BaseModule {
 	public method = new PoSMethod(this.stores, this.events);
@@ -147,6 +148,7 @@ export class PoSModule extends BaseModule {
 		this.events.register(ValidatorRegisteredEvent, new ValidatorRegisteredEvent(this.name));
 		this.events.register(ValidatorStakedEvent, new ValidatorStakedEvent(this.name));
 		this.events.register(CommissionChangeEvent, new CommissionChangeEvent(this.name));
+		this.events.register(RewardsAssignedEvent, new RewardsAssignedEvent(this.name));
 	}
 
 	public get name() {
@@ -164,6 +166,7 @@ export class PoSModule extends BaseModule {
 		this._tokenMethod = tokenMethod;
 		this._feeMethod = feeMethod;
 
+		this._internalMethod.addDependencies(this._tokenMethod);
 		this._registerValidatorCommand.addDependencies(this._validatorsMethod, this._feeMethod);
 		this._reportMisbehaviorCommand.addDependencies({
 			tokenMethod: this._tokenMethod,
