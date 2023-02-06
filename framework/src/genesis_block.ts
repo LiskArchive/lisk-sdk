@@ -99,6 +99,7 @@ export const generateGenesisBlock = async (
 		});
 		header.stateRoot = stateRoot;
 	} finally {
+		stateDB.close();
 		stateStore.inner.close();
 	}
 
