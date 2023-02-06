@@ -28,7 +28,7 @@ describe('InMemoryChannel Channel', () => {
 		namespace: 'sample',
 		logger: fakeLogger,
 		db: {
-			newReadWriter: jest.fn(),
+			newReadWriter: jest.fn().mockReturnValue({ close: jest.fn() }),
 		} as never,
 		moduleDB: {
 			write: jest.fn(),

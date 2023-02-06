@@ -23,6 +23,7 @@ export interface StateDBReadWriter {
 	range(options?: IterateOptions): Promise<{ key: Buffer; value: Buffer }[]>;
 	snapshot(): number;
 	restoreSnapshot(snapshotID: number): void;
+	close(): void;
 }
 
 interface KeyValue {

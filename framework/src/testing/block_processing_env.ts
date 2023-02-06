@@ -304,17 +304,20 @@ export const getBlockProcessingEnv = async (
 			const bindedHandler = moduleHandler.bind(modules[moduleIndex].endpoint);
 
 			const stateStore = new PrefixedStateReadWriter(stateDB.newReadWriter());
+			try {
+				const result = await bindedHandler({
+					getStore: (moduleID: Buffer, storePrefix: Buffer) =>
+						stateStore.getStore(moduleID, storePrefix),
+					getImmutableMethodContext: () => createImmutableMethodContext(stateStore),
+					logger: engine['_logger'],
+					chainID: engine['_chain'].chainID,
+					params: input,
+				});
 
-			const result = await bindedHandler({
-				getStore: (moduleID: Buffer, storePrefix: Buffer) =>
-					stateStore.getStore(moduleID, storePrefix),
-				getImmutableMethodContext: () => createImmutableMethodContext(stateStore),
-				logger: engine['_logger'],
-				chainID: engine['_chain'].chainID,
-				params: input,
-			});
-
-			return result as T;
+				return result as T;
+			} finally {
+				stateStore.inner.close();
+			}
 		},
 		getChainID: () => chainID,
 		getDataAccess: () => engine['_chain'].dataAccess,

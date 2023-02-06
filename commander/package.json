@@ -111,7 +111,7 @@
 		"@liskhq/lisk-client": "^6.0.0-alpha.13",
 		"@liskhq/lisk-codec": "^0.3.0-alpha.7",
 		"@liskhq/lisk-cryptography": "^4.0.0-alpha.6",
-		"@liskhq/lisk-db": "0.3.2",
+		"@liskhq/lisk-db": "0.3.4",
 		"@liskhq/lisk-passphrase": "^4.0.0-alpha.2",
 		"@liskhq/lisk-transactions": "^6.0.0-alpha.10",
 		"@liskhq/lisk-utils": "^0.3.0-alpha.3",

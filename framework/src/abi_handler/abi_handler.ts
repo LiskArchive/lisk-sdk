@@ -149,18 +149,23 @@ export class ABIHandler implements ABI {
 			assets: genesisBlock.assets,
 			chainID: this.chainID,
 		});
+		let stateRoot: Buffer;
+		try {
+			await this._stateMachine.executeGenesisBlock(context);
+			stateRoot = await this._stateDB.commit(
+				stateStore.inner,
+				genesisBlock.header.height,
+				utils.hash(Buffer.alloc(0)),
+				{
+					readonly: false,
+					expectedRoot: genesisBlock.header.stateRoot,
+					checkRoot: true,
+				},
+			);
+		} finally {
+			stateStore.inner.close();
+		}
 
-		await this._stateMachine.executeGenesisBlock(context);
-		const stateRoot = await this._stateDB.commit(
-			stateStore.inner,
-			genesisBlock.header.height,
-			utils.hash(Buffer.alloc(0)),
-			{
-				readonly: false,
-				expectedRoot: genesisBlock.header.stateRoot,
-				checkRoot: true,
-			},
-		);
 		this._cachedGenesisState = {
 			stateRoot,
 			events: context.eventQueue.getEvents().map(e => e.toObject()),
@@ -405,6 +410,11 @@ export class ABIHandler implements ABI {
 		});
 		const result = await this._stateMachine.verifyTransaction(context);
 
+		// If stateStore is transient, close the read writer
+		if (!this._executionContext?.id.equals(req.contextID)) {
+			stateStore.inner.close();
+		}
+
 		return {
 			result: result.status,
 			errorMessage: result.error?.message ?? '',
@@ -444,6 +454,10 @@ export class ABIHandler implements ABI {
 			header,
 		});
 		const status = await this._stateMachine.executeTransaction(context);
+		// in case of dry run, no need to hold onto the writer
+		if (req.dryRun) {
+			stateStore.inner.close();
+		}
 		return {
 			events: context.eventQueue.getEvents().map(e => e.toObject()),
 			result: status,
@@ -464,24 +478,28 @@ export class ABIHandler implements ABI {
 				{ stateRoot: currentState.root },
 				'Skipping commit. Current state is already expected state',
 			);
+			this._executionContext.stateStore.inner.close();
 			return { stateRoot: currentState.root };
 		}
-		const stateRoot = await this._stateDB.commit(
-			this._executionContext.stateStore.inner,
-			this._executionContext.header.height,
-			req.stateRoot,
-			{
-				checkRoot: req.expectedStateRoot.length > 0,
-				readonly: req.dryRun,
-				expectedRoot: req.expectedStateRoot,
-			},
-		);
-		return {
-			stateRoot,
-		};
+		try {
+			const stateRoot = await this._stateDB.commit(
+				this._executionContext.stateStore.inner,
+				this._executionContext.header.height,
+				req.stateRoot,
+				{
+					checkRoot: req.expectedStateRoot.length > 0,
+					readonly: req.dryRun,
+					expectedRoot: req.expectedStateRoot,
+				},
+			);
+			return {
+				stateRoot,
+			};
+		} finally {
+			this._executionContext.stateStore.inner.close();
+		}
 	}
 
-	// TODO: Logic should be re-written with https://github.com/LiskHQ/lisk-sdk/issues/7128
 	public async revert(req: RevertRequest): Promise<RevertResponse> {
 		if (!this._executionContext?.id.equals(req.contextID)) {
 			throw new Error(

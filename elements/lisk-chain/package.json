@@ -42,7 +42,7 @@
 	"dependencies": {
 		"@liskhq/lisk-codec": "^0.3.0-alpha.7",
 		"@liskhq/lisk-cryptography": "^4.0.0-alpha.6",
-		"@liskhq/lisk-db": "0.3.2",
+		"@liskhq/lisk-db": "0.3.4",
 		"@liskhq/lisk-tree": "^0.3.0-alpha.8",
 		"@liskhq/lisk-utils": "^0.3.0-alpha.3",
 		"@liskhq/lisk-validator": "^0.7.0-alpha.6",
