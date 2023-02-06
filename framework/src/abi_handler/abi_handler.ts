@@ -478,6 +478,7 @@ export class ABIHandler implements ABI {
 				{ stateRoot: currentState.root },
 				'Skipping commit. Current state is already expected state',
 			);
+			this._executionContext.stateStore.inner.close();
 			return { stateRoot: currentState.root };
 		}
 		try {
