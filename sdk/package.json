@@ -33,7 +33,7 @@
 		"@liskhq/lisk-chain": "^0.4.0-alpha.11",
 		"@liskhq/lisk-codec": "^0.3.0-alpha.7",
 		"@liskhq/lisk-cryptography": "^4.0.0-alpha.6",
-		"@liskhq/lisk-db": "0.3.2-af7e9d1207335663ad2c496449993a1eacae8f3e",
+		"@liskhq/lisk-db": "0.3.4",
 		"@liskhq/lisk-p2p": "^0.8.0-alpha.7",
 		"@liskhq/lisk-passphrase": "^4.0.0-alpha.2",
 		"@liskhq/lisk-transaction-pool": "^0.6.0-alpha.8",
