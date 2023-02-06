@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-framework-chain-connector-plugin",
-	"version": "0.1.0-alpha.3",
+	"version": "0.1.0-alpha.2",
 	"description": "A plugin used by a relayer node to automatically create and submit Cross Chain Transaction by aggregating off-chain information of a chain",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -33,7 +33,7 @@
 	"dependencies": {
 		"debug": "4.3.4",
 		"fs-extra": "11.1.0",
-		"lisk-sdk": "^6.0.0-alpha.14"
+		"lisk-sdk": "^6.0.0-alpha.13"
 	},
 	"devDependencies": {
 		"@types/jest": "29.2.3",
