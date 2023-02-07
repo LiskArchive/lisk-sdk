@@ -266,8 +266,8 @@ export class PoSModule extends BaseModule {
 
 		this._moduleConfig = getModuleConfig(config);
 
-		this.method.init(this.name, this._moduleConfig, this._tokenMethod);
-		this.endpoint.init(this.name, this._moduleConfig, this._tokenMethod);
+		this.method.init(this.name, this._moduleConfig, this._internalMethod, this._tokenMethod);
+		this.endpoint.init(this.name, this._moduleConfig, this._internalMethod, this._tokenMethod);
 
 		this._reportMisbehaviorCommand.init({
 			posTokenID: this._moduleConfig.posTokenID,
