@@ -48,14 +48,14 @@ describe('node', () => {
 			});
 		});
 
-		describe('getNetworkStats', () => {
-			it('should invoke network_getNetworkStats', async () => {
+		describe('getStats', () => {
+			it('should invoke network_getStats', async () => {
 				// Act
 				await node.getNetworkStats();
 
 				// Assert
 				expect(channel.invoke).toHaveBeenCalledTimes(1);
-				expect(channel.invoke).toHaveBeenCalledWith('network_getNetworkStats');
+				expect(channel.invoke).toHaveBeenCalledWith('network_getStats');
 			});
 		});
 

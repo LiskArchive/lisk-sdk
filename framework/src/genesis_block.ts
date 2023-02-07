@@ -90,14 +90,18 @@ export const generateGenesisBlock = async (
 		chainID: input.chainID,
 	});
 
-	await stateMachine.executeGenesisBlock(blockCtx);
+	try {
+		await stateMachine.executeGenesisBlock(blockCtx);
 
-	const stateRoot = await stateDB.commit(stateStore.inner, height, EMPTY_HASH, {
-		checkRoot: false,
-		readonly: true,
-	});
-
-	header.stateRoot = stateRoot;
+		const stateRoot = await stateDB.commit(stateStore.inner, height, EMPTY_HASH, {
+			checkRoot: false,
+			readonly: true,
+		});
+		header.stateRoot = stateRoot;
+	} finally {
+		stateDB.close();
+		stateStore.inner.close();
+	}
 
 	const blockEvents = blockCtx.eventQueue.getEvents();
 	const eventSMT = new SparseMerkleTree(EVENT_KEY_LENGTH);

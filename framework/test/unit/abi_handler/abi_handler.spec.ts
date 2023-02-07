@@ -43,8 +43,9 @@ describe('abi handler', () => {
 			finalize: jest.fn(),
 			prove: jest.fn(),
 			revert: jest.fn(),
-			getCurrentState: jest.fn(),
+			getCurrentState: jest.fn().mockResolvedValue({ root: utils.getRandomBytes(32) }),
 			newReadWriter: () => new InMemoryPrefixedStateDB(),
+			commit: jest.fn().mockResolvedValue(utils.getRandomBytes(32)),
 		} as never;
 		const stateMachine = new StateMachine();
 		const mod = new TokenModule();
@@ -166,6 +167,36 @@ describe('abi handler', () => {
 			expect(resp.contextID).toHaveLength(32);
 			expect(abiHandler['_executionContext']).toBeDefined();
 			expect(abiHandler['_executionContext']?.stateStore).toBeInstanceOf(PrefixedStateReadWriter);
+		});
+	});
+
+	describe('cacheGenesisState', () => {
+		beforeEach(() => {
+			jest
+				.spyOn(stateDBMock, 'getCurrentState')
+				.mockResolvedValue({ root: utils.hash(Buffer.alloc(0)), version: 0 });
+			jest.spyOn(abiHandler['_stateMachine'], 'executeGenesisBlock');
+		});
+
+		it('should not do anything if root is not empty hash', async () => {
+			const stateRoot = utils.getRandomBytes(32);
+			jest.spyOn(stateDBMock, 'getCurrentState').mockResolvedValue({ root: stateRoot, version: 0 });
+			await expect(abiHandler.cacheGenesisState()).resolves.toBeUndefined();
+			expect(abiHandler['_stateMachine'].executeGenesisBlock).not.toHaveBeenCalled();
+		});
+
+		it('should not do anything if version is not zero', async () => {
+			jest
+				.spyOn(stateDBMock, 'getCurrentState')
+				.mockResolvedValue({ root: utils.hash(Buffer.alloc(0)), version: 20 });
+			await expect(abiHandler.cacheGenesisState()).resolves.toBeUndefined();
+			expect(abiHandler['_stateMachine'].executeGenesisBlock).not.toHaveBeenCalled();
+		});
+
+		it('should populate cached genesis state', async () => {
+			await expect(abiHandler.cacheGenesisState()).resolves.toBeUndefined();
+			expect(abiHandler['_stateMachine'].executeGenesisBlock).toHaveBeenCalledTimes(1);
+			expect(abiHandler['_cachedGenesisState']).not.toBeEmptyObject();
 		});
 	});
 
@@ -550,13 +581,58 @@ describe('abi handler', () => {
 			).rejects.toThrow('Context is not initialized or different');
 		});
 
-		it.todo('should resolve updated state root without saving when dryRun == true');
+		it('should skip commit if the state is the same', async () => {
+			const resp = await abiHandler.initStateMachine({
+				header: createFakeBlockHeader().toObject(),
+			});
+			const stateRoot = utils.getRandomBytes(32);
 
-		it.todo(
-			'should reject before saving if new state root is different from the expected stateRoot',
-		);
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			jest.spyOn(abiHandler['_executionContext']!.stateStore.inner, 'close');
+			jest
+				.spyOn(stateDBMock, 'getCurrentState')
+				.mockResolvedValue({ root: stateRoot, version: 20 });
 
-		it.todo('should resolve updated state root after saving all the states');
+			await expect(
+				abiHandler.commit({
+					contextID: resp.contextID,
+					dryRun: true,
+					expectedStateRoot: stateRoot,
+					stateRoot: utils.getRandomBytes(32),
+				}),
+			).resolves.toEqual({ stateRoot });
+
+			expect(abiHandler['_executionContext']?.stateStore.inner.close).toHaveBeenCalledTimes(1);
+			expect(stateDBMock.commit).not.toHaveBeenCalled();
+		});
+
+		it('should resolve updated state root without saving when dryRun == true', async () => {
+			const resp = await abiHandler.initStateMachine({
+				header: createFakeBlockHeader().toObject(),
+			});
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			jest.spyOn(abiHandler['_executionContext']!.stateStore.inner, 'close');
+			await expect(
+				abiHandler.commit({
+					contextID: resp.contextID,
+					dryRun: true,
+					expectedStateRoot: utils.getRandomBytes(32),
+					stateRoot: utils.getRandomBytes(32),
+				}),
+			).resolves.toEqual({ stateRoot: expect.any(Buffer) });
+
+			expect(stateDBMock.commit).toHaveBeenCalledWith(
+				expect.anything(),
+				expect.any(Number),
+				expect.any(Buffer),
+				{
+					checkRoot: true,
+					readonly: true,
+					expectedRoot: expect.any(Buffer),
+				},
+			);
+			expect(abiHandler['_executionContext']?.stateStore.inner.close).toHaveBeenCalledTimes(1);
+		});
 	});
 
 	describe('revert', () => {

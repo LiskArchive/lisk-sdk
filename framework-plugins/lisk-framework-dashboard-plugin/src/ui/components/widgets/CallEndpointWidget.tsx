@@ -18,14 +18,14 @@ import SelectInput, { SelectInputOptionType } from '../input/SelectInput';
 import { TextAreaInput } from '../input';
 import Box from '../Box';
 import Button from '../Button';
-import { CallActionOptions } from '../../types';
+import { CallEndpointOptions } from '../../types';
 
 interface WidgetProps {
 	actions: string[];
-	onSubmit: (data: CallActionOptions) => void;
+	onSubmit: (data: CallEndpointOptions) => void;
 }
 
-const CallActionWidget: React.FC<WidgetProps> = props => {
+const CallEndpointWidget: React.FC<WidgetProps> = props => {
 	const actions = props.actions.map(action => ({ label: action, value: action })).flat();
 	const [selectedAction, setSelectedAction] = React.useState<SelectInputOptionType>();
 	const [keyValue, setKeyValue] = React.useState('{}');
@@ -46,7 +46,7 @@ const CallActionWidget: React.FC<WidgetProps> = props => {
 	return (
 		<Widget>
 			<WidgetHeader>
-				<Text type={'h2'}>{'Call action'}</Text>
+				<Text type={'h2'}>{'Call endpoint'}</Text>
 			</WidgetHeader>
 			<WidgetBody>
 				<Box mb={4}>
@@ -86,4 +86,4 @@ const CallActionWidget: React.FC<WidgetProps> = props => {
 	);
 };
 
-export default CallActionWidget;
+export default CallEndpointWidget;

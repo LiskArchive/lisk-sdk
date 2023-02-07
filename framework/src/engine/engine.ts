@@ -41,7 +41,10 @@ import {
 } from './consensus/constants';
 import { TxpoolEndpoint } from './endpoint/txpool';
 import { ValidatorUpdate } from './consensus/types';
-import { GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT } from './generator/constants';
+import {
+	GENERATOR_EVENT_NEW_TRANSACTION,
+	GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT,
+} from './generator/constants';
 import { ConsensusEndpoint } from './endpoint/consensus';
 import { StateEndpoint } from './endpoint/state';
 import { EngineConfig } from '../types';
@@ -330,7 +333,7 @@ export class Engine {
 			},
 		);
 		this._generator.events.on(
-			GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT,
+			GENERATOR_EVENT_NEW_TRANSACTION,
 			(event: { transaction: TransactionJSON }) => {
 				this._rpcServer
 					.publish(EVENT_TX_POOL_TRANSACTION_NEW, event)

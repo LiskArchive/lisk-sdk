@@ -48,7 +48,10 @@ const NodeInfoDialog: React.FC<NodeInfoDialogProps> = props => {
 					</Grid>
 
 					<Grid row>
-						<NodeInfoItem label={'Network identifier'} value={nodeInfo.chainID} />
+						<NodeInfoItem
+							label={'Finalized Height'}
+							value={nodeInfo.finalizedHeight.toLocaleString()}
+						/>
 						<NodeInfoItem label={'Last block ID'} value={nodeInfo.lastBlockID} />
 					</Grid>
 
@@ -63,37 +66,20 @@ const NodeInfoDialog: React.FC<NodeInfoDialogProps> = props => {
 					<Grid row>
 						<NodeInfoItem
 							label={'Block time'}
-							value={nodeInfo.genesisConfig.blockTime.toLocaleString()}
+							value={nodeInfo.genesis.blockTime.toLocaleString()}
 						/>
-						<NodeInfoItem label={'Chain ID'} value={nodeInfo.genesisConfig.chainID} />
+						<NodeInfoItem label={'Chain ID'} value={nodeInfo.genesis.chainID} />
 					</Grid>
 
 					<Grid row>
 						<NodeInfoItem
 							label={'Max transactions length'}
-							value={nodeInfo.genesisConfig.maxTransactionsSize.toLocaleString()}
+							value={nodeInfo.genesis.maxTransactionsSize.toLocaleString()}
 						/>
 						<NodeInfoItem
 							label={'BFT threshold'}
-							value={nodeInfo.genesisConfig.bftThreshold.toLocaleString()}
+							value={nodeInfo.genesis.bftBatchSize.toLocaleString()}
 						/>
-					</Grid>
-				</Grid>
-
-				<Box mt={5}>
-					<Text type={'h2'}>Base Fees</Text>
-				</Box>
-				<Grid container fluid spacing={3}>
-					<Grid row rowBorder>
-						<Grid xs={4}>
-							<Text type={'h3'}>Module ID</Text>
-						</Grid>
-						<Grid xs={4}>
-							<Text type={'h3'}>Asset ID</Text>
-						</Grid>
-						<Grid xs={4}>
-							<Text type={'h3'}>Base Fee</Text>
-						</Grid>
 					</Grid>
 				</Grid>
 			</DialogBody>

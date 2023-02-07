@@ -24,7 +24,7 @@ import {
 	EVENT_KEY_LENGTH,
 } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { address as addressUtil, bls } from '@liskhq/lisk-cryptography';
+import { address as addressUtil } from '@liskhq/lisk-cryptography';
 import { Database, Batch, SparseMerkleTree } from '@liskhq/lisk-db';
 import { TransactionPool, events } from '@liskhq/lisk-transaction-pool';
 import { MerkleTree } from '@liskhq/lisk-tree';
@@ -226,7 +226,12 @@ export class Generator {
 
 	public async start(): Promise<void> {
 		this._networkEndpoint.start();
-		this._pool.events.on(events.EVENT_TRANSACTION_REMOVED, event => {
+		this._pool.events.on(events.EVENT_TRANSACTION_ADDED, (event: { transaction: Transaction }) => {
+			this.events.emit(GENERATOR_EVENT_NEW_TRANSACTION, {
+				transaction: event.transaction.toJSON(),
+			});
+		});
+		this._pool.events.on(events.EVENT_TRANSACTION_REMOVED, (event: Record<string, unknown>) => {
 			this._logger.debug(event, 'Transaction was removed from the pool.');
 		});
 		this._broadcaster.start();
@@ -277,8 +282,8 @@ export class Generator {
 	public onDeleteBlock(block: Block): void {
 		if (block.transactions.length) {
 			for (const transaction of block.transactions) {
-				this._pool.add(transaction).catch(err => {
-					this._logger.error({ err: err as Error }, 'Failed to add transaction back to the pool');
+				this._pool.add(transaction).catch((err: Error) => {
+					this._logger.error({ err }, 'Failed to add transaction back to the pool');
 				});
 			}
 		}
@@ -385,6 +390,7 @@ export class Generator {
 				this._keypairs.set(key, {
 					publicKey: keys.generatorKey,
 					privateKey: keys.generatorPrivateKey,
+					blsPublicKey: keys.blsKey,
 					blsSecretKey: keys.blsPrivateKey,
 				});
 				this._logger.info(
@@ -642,11 +648,14 @@ export class Generator {
 						stateStore,
 						height,
 						address,
+						pairs.blsPublicKey,
 						pairs.blsSecretKey,
 					),
 				);
 			}
-			promises.push(this._certifySingleCommit(stateStore, to, address, pairs.blsSecretKey));
+			promises.push(
+				this._certifySingleCommit(stateStore, to, address, pairs.blsPublicKey, pairs.blsSecretKey),
+			);
 		}
 		return promises;
 	}
@@ -655,31 +664,40 @@ export class Generator {
 		stateStore: StateStore,
 		height: number,
 		generatorAddress: Buffer,
+		blsPK: Buffer,
 		blsSK: Buffer,
 	): Promise<void> {
 		const paramExist = await this._bft.method.existBFTParameters(stateStore, height + 1);
 		if (!paramExist) {
 			return;
 		}
-		await this._certifySingleCommit(stateStore, height, generatorAddress, blsSK);
+		await this._certifySingleCommit(stateStore, height, generatorAddress, blsPK, blsSK);
 	}
 
 	private async _certifySingleCommit(
 		stateStore: StateStore,
 		height: number,
 		generatorAddress: Buffer,
+		blsPK: Buffer,
 		blsSK: Buffer,
 	): Promise<void> {
 		const params = await this._bft.method.getBFTParameters(stateStore, height);
-		const isActive = params.validators.find(v => v.address.equals(generatorAddress)) !== undefined;
-		if (!isActive) {
+		const registeredValidator = params.validators.find(v => v.address.equals(generatorAddress));
+		if (!registeredValidator) {
+			return;
+		}
+		if (!registeredValidator.blsKey.equals(blsPK)) {
+			this._logger.warn(
+				{ address: addressUtil.getLisk32AddressFromAddress(generatorAddress) },
+				'Validator does not have registered BLS key',
+			);
 			return;
 		}
 
 		const blockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(height);
 		const validatorInfo = {
 			address: generatorAddress,
-			blsPublicKey: bls.getPublicKeyFromPrivateKey(blsSK),
+			blsPublicKey: blsPK,
 			blsSecretKey: blsSK,
 		};
 		this._consensus.certifySingleCommit(blockHeader, validatorInfo);
