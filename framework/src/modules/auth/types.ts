@@ -57,3 +57,7 @@ export interface GenesisAuthStore {
 		storeValue: AuthAccount;
 	}[];
 }
+
+export interface MultiSigRegMsgTag {
+	tag: string;
+}
