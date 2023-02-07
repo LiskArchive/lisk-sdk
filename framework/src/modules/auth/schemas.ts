@@ -333,7 +333,6 @@ export const multiSigRegMsgTagSchema = {
 	properties: {
 		tag: {
 			type: 'string',
-			fieldNumber: 1,
 		},
 	},
 	required: ['tag'],
