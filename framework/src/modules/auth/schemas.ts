@@ -326,3 +326,15 @@ export const sortMultisignatureGroupResponseSchema = {
 	},
 	required: ['mandatoryKeys', 'optionalKeys', 'signatures'],
 };
+
+export const multiSigRegMsgTagSchema = {
+	$id: '/auth/mutliSignatureRegistrationSignatureMessageTagResponse',
+	type: 'object',
+	properties: {
+		tag: {
+			type: 'string',
+			fieldNumber: 1,
+		},
+	},
+	required: ['tag'],
+};

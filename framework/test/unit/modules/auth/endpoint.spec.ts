@@ -693,4 +693,12 @@ describe('AuthEndpoint', () => {
 			expect(() => authEndpoint.sortMultisignatureGroup(context)).toThrow(LiskValidationError);
 		});
 	});
+
+	describe('getMultiSigRegSigMessageTag', () => {
+		it('should return MultiSigRegMsgTag with tag set to MESSAGE_TAG_MULTISIG_REG', async () => {
+			const result = authEndpoint.getMultiSigRegMsgTag();
+
+			expect(result.tag).toEqual(MESSAGE_TAG_MULTISIG_REG);
+		});
+	});
 });

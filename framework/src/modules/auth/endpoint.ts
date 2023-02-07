@@ -23,11 +23,13 @@ import {
 	VerifyEndpointResultJSON,
 	KeySignaturePair,
 	SortedMultisignatureGroup,
+	MultiSigRegMsgTag,
 } from './types';
 import { getTransactionFromParameter, verifyNonce, verifySignatures } from './utils';
 import { AuthAccountStore } from './stores/auth_account';
 import { NamedRegistry } from '../named_registry';
 import { multisigRegMsgSchema, sortMultisignatureGroupRequestSchema } from './schemas';
+import { MESSAGE_TAG_MULTISIG_REG } from './constants';
 
 export class AuthEndpoint extends BaseEndpoint {
 	public constructor(_moduleName: string, stores: NamedRegistry, offchainStores: NamedRegistry) {
@@ -129,5 +131,9 @@ export class AuthEndpoint extends BaseEndpoint {
 				.map(keySignaturePair => keySignaturePair.signature)
 				.concat(sortedOptional.map(keySignaturePair => keySignaturePair.signature)),
 		};
+	}
+
+	public getMultiSigRegMsgTag(): MultiSigRegMsgTag {
+		return { tag: MESSAGE_TAG_MULTISIG_REG };
 	}
 }
