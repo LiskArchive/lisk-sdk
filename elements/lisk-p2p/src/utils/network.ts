@@ -142,14 +142,16 @@ export const expirePeerFromBucket = (
 	thresholdTime: number,
 ): P2PEnhancedPeerInfo | undefined => {
 	for (const [peerId, peer] of bucket) {
-		const timeDifference = Math.round(
-			Math.abs((peer.dateAdded as Date).getTime() - new Date().getTime()),
-		);
+		if (peer.dateAdded) {
+			const timeDifference = Math.round(
+				Math.abs(new Date().getTime() - peer.dateAdded.getTime()),
+			);
 
-		if (timeDifference >= thresholdTime) {
-			bucket.delete(peerId);
+			if (timeDifference >= thresholdTime) {
+				bucket.delete(peerId);
 
-			return peer;
+				return peer;
+			}
 		}
 	}
 
