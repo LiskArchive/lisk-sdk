@@ -126,14 +126,15 @@ describe('PosModuleEndpoint', () => {
 
 	beforeEach(() => {
 		posEndpoint = new PoSEndpoint(pos.stores, pos.offchainStores);
-		posEndpoint.init('pos', config, {
+		const tokenMehthod = {
 			getAvailableBalance: jest.fn(),
 			getLockedAmount: jest.fn(),
 			burn: jest.fn(),
 			lock: jest.fn(),
 			transfer: jest.fn(),
 			unlock: jest.fn(),
-		});
+		};
+		posEndpoint.init('pos', config, pos['_internalMethod'], tokenMehthod);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		stakerSubStore = pos.stores.get(StakerStore);
 		validatorSubStore = pos.stores.get(ValidatorStore);

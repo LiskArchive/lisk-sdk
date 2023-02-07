@@ -235,7 +235,7 @@ describe('PoSMethod', () => {
 
 		beforeEach(async () => {
 			tokenMethod = { lock: jest.fn() };
-			posMethod.init(moduleName, defaultConfig, tokenMethod);
+			posMethod.init(moduleName, defaultConfig, pos['_internalMethod'], tokenMethod);
 			await validatorSubStore.set(createStoreGetter(stateStore), address1, validatorData1);
 			await validatorSubStore.set(createStoreGetter(stateStore), address2, validatorData2);
 			await validatorSubStore.set(createStoreGetter(stateStore), address3, validatorData3);

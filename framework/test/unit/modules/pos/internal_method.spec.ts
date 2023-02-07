@@ -13,13 +13,13 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { utils as cryptoUtils } from '@liskhq/lisk-cryptography';
 import { RewardsAssignedEvent } from '../../../../src/modules/pos/events/rewards_assigned';
 import { InternalMethod } from '../../../../src/modules/pos/internal_method';
-import { NamedRegistry } from '../../../../src/modules/named_registry';
 import { createNewMethodContext } from '../../../../src/state_machine/method_context';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing';
 import * as utils from '../../../../src/modules/pos/utils';
-import { MethodContext, TokenMethod } from '../../../../src';
+import { MethodContext, PoSModule, TokenMethod } from '../../../../src';
 import { ValidatorAccount } from '../../../../src/modules/pos/stores/validator';
 import {
 	StakeObject,
@@ -28,6 +28,7 @@ import {
 } from '../../../../src/modules/pos/types';
 import { EventQueue } from '../../../../src/state_machine';
 import { MAX_NUMBER_BYTES_Q96 } from '../../../../src/modules/pos/constants';
+import { StakerStore } from '../../../../src/modules/pos/stores/staker';
 
 describe('InternalMethod', () => {
 	const checkEventResult = (
@@ -47,11 +48,10 @@ describe('InternalMethod', () => {
 
 		expect(eventData).toEqual(expectedResult);
 	};
+	const pos = new PoSModule();
 	const moduleName = 'pos';
-	const stores: NamedRegistry = new NamedRegistry();
-	const events: NamedRegistry = new NamedRegistry();
-	const internalMethod: InternalMethod = new InternalMethod(stores, events, moduleName);
-	const tokenMethod: TokenMethod = new TokenMethod(stores, events, moduleName);
+	const internalMethod: InternalMethod = new InternalMethod(pos.stores, pos.events, moduleName);
+	const tokenMethod: TokenMethod = new TokenMethod(pos.stores, pos.events, moduleName);
 	const chainID = Buffer.from([0, 0, 0, 0]);
 	const localTokenID1 = Buffer.from([0, 0, 0, 1]);
 	const localTokenID2 = Buffer.from([0, 0, 1, 0]);
@@ -65,7 +65,6 @@ describe('InternalMethod', () => {
 	const stakeReward = BigInt(10);
 	const indexWithValidatorStake = 0;
 
-	events.register(RewardsAssignedEvent, new RewardsAssignedEvent(moduleName));
 	internalMethod.addDependencies(tokenMethod);
 
 	let methodContext: MethodContext;
@@ -296,6 +295,41 @@ describe('InternalMethod', () => {
 					expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
 				});
 			});
+		});
+	});
+
+	describe('getLockedStakedAmount', () => {
+		it('should return zero locked amount if staker does not exist', async () => {
+			const amount = await internalMethod.getLockedStakedAmount(
+				methodContext,
+				cryptoUtils.getRandomBytes(20),
+			);
+
+			expect(amount).toBe(BigInt(0));
+		});
+
+		it('should return locked amount', async () => {
+			const address = cryptoUtils.getRandomBytes(20);
+			await pos.stores.get(StakerStore).set(methodContext, address, {
+				pendingUnlocks: [
+					{
+						amount: BigInt(20),
+						unstakeHeight: 10,
+						validatorAddress: cryptoUtils.getRandomBytes(20),
+					},
+				],
+				stakes: [
+					{
+						amount: BigInt(80),
+						sharingCoefficients: [],
+						validatorAddress: cryptoUtils.getRandomBytes(20),
+					},
+				],
+			});
+
+			const amount = await internalMethod.getLockedStakedAmount(methodContext, address);
+
+			expect(amount).toBe(BigInt(100));
 		});
 	});
 });
