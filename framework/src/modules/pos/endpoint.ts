@@ -51,7 +51,7 @@ import {
 	getLockedStakedAmountRequestSchema,
 	getValidatorsByStakeRequestSchema,
 } from './schemas';
-import { ImmutableMethodContext } from '../../state_machine';
+import { InternalMethod } from './internal_method';
 
 const { q96 } = math;
 
@@ -59,11 +59,18 @@ export class PoSEndpoint extends BaseEndpoint {
 	private _moduleConfig!: ModuleConfig;
 	private _moduleName!: string;
 	private _tokenMethod!: TokenMethod;
+	private _internalMethod!: InternalMethod;
 
-	public init(moduleName: string, moduleConfig: ModuleConfig, tokenMethod: TokenMethod) {
+	public init(
+		moduleName: string,
+		moduleConfig: ModuleConfig,
+		internalMethod: InternalMethod,
+		tokenMethod: TokenMethod,
+	) {
 		this._moduleName = moduleName;
 		this._moduleConfig = moduleConfig;
 		this._tokenMethod = tokenMethod;
+		this._internalMethod = internalMethod;
 	}
 
 	public async getStaker(ctx: ModuleEndpointContext): Promise<StakerDataJSON> {
@@ -131,7 +138,7 @@ export class PoSEndpoint extends BaseEndpoint {
 		const { params } = ctx;
 		validator.validate<{ address: string }>(getLockedStakedAmountRequestSchema, params);
 
-		const amount = await this._getLockedStakedAmount(
+		const amount = await this._internalMethod.getLockedStakedAmount(
 			ctx,
 			cryptoAddress.getAddressFromLisk32Address(params.address),
 		);
@@ -279,7 +286,7 @@ export class PoSEndpoint extends BaseEndpoint {
 			};
 		}
 		// if the token is the same as governance tokenID, subtract the locked amount for stake
-		const lockedAmountForStakes = await this._getLockedStakedAmount(ctx, address);
+		const lockedAmountForStakes = await this._internalMethod.getLockedStakedAmount(ctx, address);
 		locked -= lockedAmountForStakes;
 
 		return {
@@ -336,21 +343,6 @@ export class PoSEndpoint extends BaseEndpoint {
 		return {
 			fee: this._moduleConfig.validatorRegistrationFee.toString(),
 		};
-	}
-
-	private async _getLockedStakedAmount(
-		ctx: ImmutableMethodContext,
-		address: Buffer,
-	): Promise<bigint> {
-		const staker = await this.stores.get(StakerStore).getOrDefault(ctx, address);
-		let lockedAmount = BigInt(0);
-		for (const stakes of staker.stakes) {
-			lockedAmount += stakes.amount;
-		}
-		for (const unlock of staker.pendingUnlocks) {
-			lockedAmount += unlock.amount;
-		}
-		return lockedAmount;
 	}
 
 	private async _getExpectedUnlockHeight(
