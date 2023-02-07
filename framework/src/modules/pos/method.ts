@@ -22,16 +22,24 @@ import { ModuleConfig, StakerData, TokenMethod } from './types';
 import { ValidatorAccount, ValidatorStore } from './stores/validator';
 import { NameStore } from './stores/name';
 import { isUsername } from './utils';
+import { InternalMethod } from './internal_method';
 
 export class PoSMethod extends BaseMethod {
 	private _config!: ModuleConfig;
 	private _moduleName!: string;
 	private _tokenMethod!: TokenMethod;
+	private _internalMethod!: InternalMethod;
 
-	public init(moduleName: string, config: ModuleConfig, tokenMethod: TokenMethod) {
+	public init(
+		moduleName: string,
+		config: ModuleConfig,
+		internalMethod: InternalMethod,
+		tokenMethod: TokenMethod,
+	) {
 		this._moduleName = moduleName;
 		this._config = config;
 		this._tokenMethod = tokenMethod;
+		this._internalMethod = internalMethod;
 	}
 	public async isNameAvailable(
 		methodContext: ImmutableMethodContext,
@@ -145,5 +153,12 @@ export class PoSMethod extends BaseMethod {
 		}
 		validator.isBanned = false;
 		await validatorSubStore.set(methodContext, address, validator);
+	}
+
+	public async getLockedStakedAmount(
+		ctx: ImmutableMethodContext,
+		address: Buffer,
+	): Promise<bigint> {
+		return this._internalMethod.getLockedStakedAmount(ctx, address);
 	}
 }
