@@ -12,11 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext } from '../../state_machine';
+import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import { BaseMethod } from '../base_method';
 import { NamedRegistry } from '../named_registry';
 import { MAX_NUMBER_BYTES_Q96 } from './constants';
 import { RewardsAssignedEvent } from './events/rewards_assigned';
+import { StakerStore } from './stores/staker';
 import { ValidatorAccount, TokenMethod, StakeObject } from './types';
 import { calculateStakeRewards } from './utils';
 
@@ -82,5 +83,20 @@ export class InternalMethod extends BaseMethod {
 				});
 			}
 		}
+	}
+
+	public async getLockedStakedAmount(
+		ctx: ImmutableMethodContext,
+		address: Buffer,
+	): Promise<bigint> {
+		const staker = await this.stores.get(StakerStore).getOrDefault(ctx, address);
+		let lockedAmount = BigInt(0);
+		for (const stakes of staker.stakes) {
+			lockedAmount += stakes.amount;
+		}
+		for (const unlock of staker.pendingUnlocks) {
+			lockedAmount += unlock.amount;
+		}
+		return lockedAmount;
 	}
 }
