@@ -20,6 +20,7 @@ export type FeeTokenID = Buffer;
 export interface ModuleConfig {
 	feeTokenID: Buffer;
 	minFeePerByte: number;
+	feePoolAddress?: Buffer;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;

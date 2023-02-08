@@ -20,8 +20,16 @@ export const configSchema = {
 			type: 'string',
 			format: 'hex',
 		},
+		minFeePerByte: {
+			type: 'integer',
+			format: 'uint32',
+		},
+		feePoolAddress: {
+			type: 'string',
+			format: 'lisk32',
+		},
 	},
-	required: ['feeTokenID'],
+	required: ['feeTokenID', 'minFeePerByte'],
 };
 
 export const getMinFeePerByteResponseSchema = {

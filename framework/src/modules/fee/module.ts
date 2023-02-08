@@ -14,6 +14,7 @@
 
 import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
+import { address } from '@liskhq/lisk-cryptography';
 import { ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { CONTEXT_STORE_KEY_AVAILABLE_FEE, defaultConfig } from './constants';
 import { InteroperabilityMethod, ModuleConfigJSON, TokenMethod } from './types';
@@ -45,6 +46,7 @@ export class FeeModule extends BaseInteroperableModule {
 	private _tokenMethod!: TokenMethod;
 	private _minFeePerByte!: number;
 	private _tokenID!: Buffer;
+	private _feePoolAddress?: Buffer;
 
 	public constructor() {
 		super();
@@ -87,12 +89,16 @@ export class FeeModule extends BaseInteroperableModule {
 		const moduleConfig = {
 			...config,
 			feeTokenID: Buffer.from(config.feeTokenID, 'hex'),
+			feePoolAddress: config.feePoolAddress
+				? address.getAddressFromLisk32Address(config.feePoolAddress)
+				: undefined,
 		};
 		this.method.init(moduleConfig);
 		this.endpoint.init(moduleConfig);
 
 		this._tokenID = moduleConfig.feeTokenID;
 		this._minFeePerByte = moduleConfig.minFeePerByte;
+		this._feePoolAddress = moduleConfig.feePoolAddress;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -146,12 +152,24 @@ export class FeeModule extends BaseInteroperableModule {
 			context.contextStore,
 			CONTEXT_STORE_KEY_AVAILABLE_FEE,
 		);
-		await this._tokenMethod.burn(
-			context.getMethodContext(),
-			transaction.senderAddress,
-			this._tokenID,
-			transaction.fee - availableFee,
-		);
+		const minFee = transaction.fee - availableFee;
+		if (this._feePoolAddress) {
+			await this._tokenMethod.transfer(
+				context.getMethodContext(),
+				transaction.senderAddress,
+				this._feePoolAddress,
+				this._tokenID,
+				minFee,
+			);
+		} else {
+			await this._tokenMethod.burn(
+				context.getMethodContext(),
+				transaction.senderAddress,
+				this._tokenID,
+				minFee,
+			);
+		}
+
 		await this._tokenMethod.transfer(
 			context.getMethodContext(),
 			transaction.senderAddress,
