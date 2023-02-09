@@ -155,7 +155,7 @@
 						"storeValue": {
 							"name": "lisk_mainchain",
 							"chainID": "04000000",
-							"nonce": 0
+							"nonce": 2
 						}
 					}
 				],
