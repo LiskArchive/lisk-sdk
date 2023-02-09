@@ -100,9 +100,9 @@ export class Transaction {
 		if (!registeredCommand) {
 			throw new Error(`Command corresponding to name ${txInput.command} not registered.`);
 		}
-		if (typeof txInput.nonce !== 'bigint' && txInput.nonce !== 'string') {
-			txInput.nonce = BigInt(authAccount.nonce);
-		}
+
+		txInput.nonce ??= BigInt(authAccount.nonce);
+
 		if (txInput.nonce < BigInt(0)) {
 			throw new Error('Nonce must be greater or equal to zero');
 		}
