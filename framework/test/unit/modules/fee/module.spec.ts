@@ -167,15 +167,16 @@ describe('FeeModule', () => {
 		let context: TransactionExecuteContext;
 		const availableFee = defaultTransaction.fee - BigInt(10000);
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			context = createTransactionContext({
 				transaction: defaultTransaction,
 			}).createCommandExecuteContext();
 			context.contextStore.set(CONTEXT_STORE_KEY_AVAILABLE_FEE, availableFee);
-			await feeModule.afterCommandExecute(context);
 		});
 
-		it('should unlock transaction fee from sender', () => {
+		it('should unlock transaction fee from sender', async () => {
+			await feeModule.afterCommandExecute(context);
+
 			expect(feeModule['_tokenMethod'].unlock).toHaveBeenCalledWith(
 				expect.anything(),
 				context.transaction.senderAddress,
@@ -185,7 +186,9 @@ describe('FeeModule', () => {
 			);
 		});
 
-		it('should burn the used fee', () => {
+		it('should burn the used fee when addressFeePool is not defined', async () => {
+			await feeModule.afterCommandExecute(context);
+
 			expect(feeModule['_tokenMethod'].burn).toHaveBeenCalledWith(
 				expect.anything(),
 				context.transaction.senderAddress,
@@ -194,7 +197,24 @@ describe('FeeModule', () => {
 			);
 		});
 
-		it('should transfer remaining fee to block generator', () => {
+		it('should transfer the used fee when addressFeePool is defined', async () => {
+			feeModule['_feePoolAddress'] = utils.getRandomBytes(20);
+
+			await feeModule.afterCommandExecute(context);
+
+			expect(feeModule['_tokenMethod'].transfer).toHaveBeenCalledWith(
+				expect.anything(),
+				context.transaction.senderAddress,
+				feeModule['_feePoolAddress'],
+				feeModule['_tokenID'],
+				defaultTransaction.fee - availableFee,
+			);
+			expect(feeModule['_tokenMethod'].burn).not.toHaveBeenCalled();
+		});
+
+		it('should transfer remaining fee to block generator', async () => {
+			await feeModule.afterCommandExecute(context);
+
 			expect(feeModule['_tokenMethod'].transfer).toHaveBeenCalledWith(
 				expect.anything(),
 				context.transaction.senderAddress,
@@ -204,7 +224,9 @@ describe('FeeModule', () => {
 			);
 		});
 
-		it('should reset the context store', () => {
+		it('should reset the context store', async () => {
+			await feeModule.afterCommandExecute(context);
+
 			expect(context.contextStore.get(CONTEXT_STORE_KEY_AVAILABLE_FEE)).toBeUndefined();
 		});
 	});

@@ -35,6 +35,7 @@ import {
 	sortMultisignatureGroupRequestSchema,
 	transactionRequestSchema,
 	verifyResultSchema,
+	multiSigRegMsgTagSchema,
 } from './schemas';
 import { GenesisAuthStore } from './types';
 import { verifyNonce, verifySignatures } from './utils';
@@ -87,6 +88,10 @@ export class AuthModule extends BaseModule {
 					name: this.endpoint.sortMultisignatureGroup.name,
 					request: sortMultisignatureGroupRequestSchema,
 					response: sortMultisignatureGroupResponseSchema,
+				},
+				{
+					name: this.endpoint.getMultiSigRegMsgTag.name,
+					response: multiSigRegMsgTagSchema,
 				},
 			],
 			assets: [
