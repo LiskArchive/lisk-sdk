@@ -199,6 +199,16 @@ describe('transaction', () => {
 				});
 			});
 
+			describe('when transaction nonce is not provided', () => {
+				it('should default to account nonce', async () => {
+					const returnedTx = await transaction.create(
+						{ ...validTransaction, nonce: undefined },
+						privateKey1,
+					);
+					expect(returnedTx.nonce).toBe('1');
+				});
+			});
+
 			describe('when called without sender public key in input', () => {
 				it('should return created tx', async () => {
 					const returnedTx = await transaction.create(
