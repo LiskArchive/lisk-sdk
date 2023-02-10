@@ -46,7 +46,7 @@ export const configSchema = {
 			type: 'string',
 			description: 'Password to decrypt encryptedPrivateKey',
 		},
-		saveCCM: {
+		isSaveCCM: {
 			type: 'boolean',
 			description:
 				'Flag for the user to either save or send a CCU on creation. Send is by default.',
@@ -54,6 +54,8 @@ export const configSchema = {
 		maxCCUSize: {
 			type: 'integer',
 			description: 'Maximum size of CCU to be allowed',
+			minimum: 1,
+			maximum: CCU_TOTAL_CCM_SIZE,
 		},
 	},
 	required: ['ccuFee', 'encryptedPrivateKey', 'password'],

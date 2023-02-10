@@ -36,7 +36,7 @@ import {
 	ChainAccountJSON,
 	ActiveValidatorsUpdate,
 	AggregateCommit,
-	Certificate,
+	ChannelDataJSON,
 } from 'lisk-sdk';
 import { calculateActiveValidatorsUpdate } from './active_validators_update';
 import { getNextCertificateFromAggregateCommits } from './certificate_generation';
@@ -59,11 +59,14 @@ import {
 	ProveResponseJSON,
 	BFTParametersJSON,
 	ValidatorsData,
+	LastSentCCMWithHeight,
+	CCMsFromEvents,
 } from './types';
-import { calculateInboxUpdate, calculateInboxUpdateForPartialUpdate } from './inbox_update';
+import { calculateMessageWitnesses } from './inbox_update';
 import {
 	bftParametersJSONToObj,
 	chainAccountDataJSONToObj,
+	channelDataJSONToObj,
 	getMainchainID,
 	proveResponseJSONToObj,
 } from './utils';
@@ -108,7 +111,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		this.endpoint.init(this._sentCCUs);
 		this._ccuFrequency = this.config.ccuFrequency ?? CCU_FREQUENCY;
 		this._maxCCUSize = this.config.maxCCUSize;
-		this._saveCCM = this.config.saveCCM;
+		this._saveCCM = this.config.isSaveCCM;
 		const { password, encryptedPrivateKey } = this.config;
 		if (password) {
 			const parsedEncryptedKey = encrypt.parseEncryptedMessage(encryptedPrivateKey);
@@ -175,60 +178,23 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock).toObject();
 		// Save blockHeader, aggregateCommit, validatorsData and cross chain messages if any.
 		try {
-			const { aggregateCommits, blockHeaders, validatorsHashPreimage } =
+			const { aggregateCommits, blockHeaders, validatorsHashPreimage, crossChainMessages } =
 				await this._saveDataOnNewBlock(newBlockHeader);
 
 			// When all the relevant data is saved successfully then try to create CCU
 			if (this._ccuFrequency >= newBlockHeader.height - this._lastCertificate.height) {
-				const newCertificate = await this._findNextCertificate(
-					aggregateCommits,
+				const computedCCUParams = await this._computeCCUParams(
 					blockHeaders,
+					aggregateCommits,
 					validatorsHashPreimage,
+					crossChainMessages,
 				);
 
-				if (!newCertificate) {
-					const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
-					/**
-					 * If no lastSentCCM then assume that its the first CCM to be sent
-					 * and we can use the lastCertificate height
-					 * which will be zero in case if this is the first CCU after registration
-					 */
-					const lastSentCCM = (await this._chainConnectorStore.getLastSentCCM()) ?? {
-						nonce: BigInt(0),
-						height: this._lastCertificate.height,
-					};
-					const inboxUpdate = await calculateInboxUpdateForPartialUpdate(
-						this._lastCertificate,
-						crossChainMessages,
-						this._chainConnectorPluginDB,
-						lastSentCCM,
-						this._maxCCUSize,
-					);
-
-					// Send partial update
-					await this._submitCCUs([
-						codec.encode(ccuParamsSchema, {
-							sendingChainID: this._ownChainID,
-							activeValidatorsUpdate: {
-								bftWeightsUpdate: [],
-								blsKeysUpdate: [],
-								bftWeightsUpdateBitmap: EMPTY_BYTES,
-							},
-							certificate: EMPTY_BYTES,
-							certificateThreshold: BigInt(0),
-							inboxUpdate,
-						} as CrossChainUpdateTransactionParams),
-					]);
-				} else {
-					const ccuParamsList = await this._calculateCCUParams(
-						newCertificate,
-						blockHeaders,
-						validatorsHashPreimage,
-					);
-					if (ccuParamsList) {
-						await this._submitCCUs([ccuParamsList]);
-					} else {
-						this.logger.info(`No CCU was sent for the new block at height ${receivedBlock.height}`);
+				if (computedCCUParams) {
+					await this._submitCCUs([codec.encode(ccuParamsSchema, computedCCUParams.ccuParams)]);
+					// If CCU sent was successfull then save the lastSentCCM
+					if (computedCCUParams.lastCCMToBeSent) {
+						await this._chainConnectorStore.setLastSentCCM(computedCCUParams.lastCCMToBeSent);
 					}
 				}
 				// If the transaction is successfully sent then update the last certfied height and do the cleanup
@@ -242,6 +208,206 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		} catch (error) {
 			this.logger.error(error, 'Failed while handling the new block');
 		}
+	}
+
+	/**
+	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#cross-chain-update-transaction-properties
+	 * @param blockHeaders 
+	 * @param aggregateCommits 
+	 * @param validatorsHashPreimage 
+	 * @returns Promise<{
+			ccuParams: CrossChainUpdateTransactionParams;
+			lastCCMToBeSent: LastSentCCMWithHeight | undefined;
+		} | undefined>
+	 */
+	private async _computeCCUParams(
+		blockHeaders: BlockHeader[],
+		aggregateCommits: AggregateCommit[],
+		validatorsHashPreimage: ValidatorsData[],
+		ccmsFromEvents: CCMsFromEvents[],
+	): Promise<
+		| {
+				ccuParams: CrossChainUpdateTransactionParams;
+				lastCCMToBeSent: LastSentCCMWithHeight | undefined;
+		  }
+		| undefined
+	> {
+		const newCertificate = await this._findNextCertificate(
+			aggregateCommits,
+			blockHeaders,
+			validatorsHashPreimage,
+		);
+		/**
+		 * If no lastSentCCM then assume that its the first CCM to be sent
+		 * and we can use the lastCertificate height
+		 * which will be zero in case if this is the first CCU after registration
+		 */
+		const lastSentCCM = (await this._chainConnectorStore.getLastSentCCM()) ?? {
+			nonce: BigInt(0),
+			height: this._lastCertificate.height,
+		};
+
+		let activeValidatorsUpdate: ActiveValidatorsUpdate = {
+			blsKeysUpdate: [],
+			bftWeightsUpdate: [],
+			bftWeightsUpdateBitmap: EMPTY_BYTES,
+		};
+		let certificate;
+		let certificateThreshold;
+		let crossChainMessages;
+		let messageWitnessHashes;
+		let outboxRootWitness;
+		let lastCCMToBeSent: LastSentCCMWithHeight | undefined;
+
+		/**
+		 * If there is no new certificate then we calculate CCU params based on last certificate and pending ccms
+		 */
+		if (!newCertificate) {
+			certificate = EMPTY_BYTES;
+			// Take range from lastSentCCM height until last certificate height
+			const ccmsToBeIncluded = ccmsFromEvents.filter(
+				ccmFromEvents =>
+					ccmFromEvents.height >= lastSentCCM.height &&
+					ccmFromEvents.height <= this._lastCertificate.height,
+			);
+
+			if (ccmsToBeIncluded.length === 0) {
+				this.logger.info('There is no pending ccm for the last certificate so no CCU can be sent.');
+
+				return;
+			}
+
+			// Calculate messageWitnessHashes for pending CCMs if any
+			const sendingChainChannelInfoJSON = await this._receivingChainClient.invoke<ChannelDataJSON>(
+				'interoperability_getChannelData',
+				{ chainID: this._ownChainID.toString('hex') },
+			);
+			const sendingChainChannelInfoObj = channelDataJSONToObj(sendingChainChannelInfoJSON);
+			const messageWitnessHashesForCCMs = await calculateMessageWitnesses(
+				sendingChainChannelInfoObj,
+				ccmsToBeIncluded,
+				this._chainConnectorPluginDB,
+				lastSentCCM,
+				this._maxCCUSize,
+			);
+			if (messageWitnessHashesForCCMs.crossChainMessages.length === 0) {
+				this.logger.info(
+					'No pending CCMs after last sent ccm for the last certificate so no CCU is needed.',
+				);
+				return;
+			}
+			crossChainMessages = messageWitnessHashesForCCMs.crossChainMessages;
+			messageWitnessHashes = messageWitnessHashesForCCMs.messageWitnessHashes;
+
+			if (lastSentCCM) {
+				lastCCMToBeSent = {
+					...(messageWitnessHashesForCCMs.lastCCMToBeSent as LastSentCCMWithHeight),
+				};
+			}
+			// Empty outboxRootWitness for last certificate
+			outboxRootWitness = {
+				bitmap: EMPTY_BYTES,
+				siblingHashes: [],
+			};
+
+			// Use the old certificateThreshold
+			const validatorsDataAtLastCertificate = validatorsHashPreimage.find(validatorsData =>
+				validatorsData.validatorsHash.equals(this._lastCertificate.validatorsHash),
+			);
+			if (!validatorsDataAtLastCertificate) {
+				throw new Error('No validatorsData found for the lastCertificate.');
+			}
+
+			certificateThreshold = validatorsDataAtLastCertificate.certificateThreshold;
+		} else {
+			const blockHeader = blockHeaders.find(header => header.height === newCertificate.height);
+			if (!blockHeader) {
+				throw new Error('No block header found for the given certificate height.');
+			}
+
+			// Calculate activeValidatorsUpdate: start with empty activeValidatorsUpdate object
+			activeValidatorsUpdate = {
+				blsKeysUpdate: [],
+				bftWeightsUpdate: [],
+				bftWeightsUpdateBitmap: Buffer.from([]),
+			};
+
+			if (!this._lastCertificate.validatorsHash.equals(newCertificate.validatorsHash)) {
+				const validatorsUpdateResult = calculateActiveValidatorsUpdate(
+					newCertificate,
+					validatorsHashPreimage,
+					this._lastCertificate,
+				);
+				activeValidatorsUpdate = validatorsUpdateResult.activeValidatorsUpdate;
+				certificateThreshold = validatorsUpdateResult.certificateThreshold;
+			} else {
+				// If there was no activeValidatorsUpdate then use the old certificateThreshold
+				const validatorsDataAtLastCertificate = validatorsHashPreimage.find(validatorsData =>
+					validatorsData.validatorsHash.equals(this._lastCertificate.validatorsHash),
+				);
+				if (!validatorsDataAtLastCertificate) {
+					throw new Error('No validatorsData found for the lastCertificate.');
+				}
+				certificateThreshold = validatorsDataAtLastCertificate.certificateThreshold;
+			}
+
+			// Take range from lastSentCCM height until certificate height
+			const ccmsToBeIncluded = ccmsFromEvents.filter(
+				ccmFromEvents =>
+					ccmFromEvents.height >= lastSentCCM.height &&
+					ccmFromEvents.height <= newCertificate.height,
+			);
+
+			// Get the inclusionProof for outboxRoot on stateRoot
+			const ccmsDataAtCertificateHeight = ccmsToBeIncluded.find(
+				ccmsData => ccmsData.height === newCertificate.height,
+			);
+			outboxRootWitness = ccmsDataAtCertificateHeight?.inclusionProof;
+
+			// Calculate messageWitnessHashes for pending CCMs if any
+			const sendingChainChannelInfoJSON = await this._receivingChainClient.invoke<ChannelDataJSON>(
+				'interoperability_getChannelData',
+				{ chainID: this._ownChainID.toString('hex') },
+			);
+			const sendingChainChannelInfoObj = channelDataJSONToObj(sendingChainChannelInfoJSON);
+			const messageWitnessHashesForCCMs = await calculateMessageWitnesses(
+				sendingChainChannelInfoObj,
+				ccmsToBeIncluded,
+				this._chainConnectorPluginDB,
+				lastSentCCM,
+				this._maxCCUSize,
+			);
+			crossChainMessages = messageWitnessHashesForCCMs.crossChainMessages;
+			messageWitnessHashes = messageWitnessHashesForCCMs.messageWitnessHashes;
+
+			if (lastSentCCM) {
+				lastCCMToBeSent = {
+					...(messageWitnessHashesForCCMs.lastCCMToBeSent as LastSentCCMWithHeight),
+				};
+			}
+
+			if (messageWitnessHashesForCCMs.lastCCMToBeSent) {
+				await this._chainConnectorStore.setLastSentCCM(messageWitnessHashesForCCMs.lastCCMToBeSent);
+			}
+
+			certificate = codec.encode(certificateSchema, newCertificate);
+		}
+
+		// eslint-disable-next-line consistent-return
+		return {
+			ccuParams: {
+				sendingChainID: this._ownChainID,
+				activeValidatorsUpdate,
+				certificate,
+				certificateThreshold,
+				inboxUpdate: {
+					crossChainMessages,
+					messageWitnessHashes,
+					outboxRootWitness,
+				},
+			} as CrossChainUpdateTransactionParams,
+			lastCCMToBeSent,
+		};
 	}
 
 	private async _saveDataOnNewBlock(newBlockHeader: BlockHeader) {
@@ -263,6 +429,16 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			{ height: newBlockHeader.height },
 		);
 
+		const { modules } = await this._sendingChainClient.invoke<{ modules: ModuleMetadata }>(
+			'system_getMetadata',
+		);
+		const interoperabilityMetadata = modules.find(m => m.name === MODULE_NAME_INTEROPERABILITY);
+
+		if (!interoperabilityMetadata) {
+			throw new Error('No metadata found for interoperability module.');
+		}
+
+		const ccmsFromEvents = [];
 		// eslint-disable-next-line no-restricted-syntax, no-labels
 		ccmInEventsCheck: if (events && events.length > 0) {
 			const ccmSendSuccessEvents = events.filter(
@@ -281,15 +457,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				break ccmInEventsCheck;
 			}
 
-			const { modules } = await this._sendingChainClient.invoke<{ modules: ModuleMetadata }>(
-				'system_getMetadata',
-			);
-			const interoperabilityMetadata = modules.find(m => m.name === MODULE_NAME_INTEROPERABILITY);
-
-			if (!interoperabilityMetadata) {
-				throw new Error('No metadata found for interoperability module.');
-			}
-			const ccmsFromEvents = [];
 			// Save ccm send success events
 			if (ccmSendSuccessEvents.length > 0) {
 				const ccmSendSuccessEventInfo = interoperabilityMetadata.events.filter(
@@ -328,34 +495,33 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 					}
 				}
 			}
-
-			// TODO: find a better way to find storeKey from metadata
-			const store = interoperabilityMetadata.stores.find(
-				s => s.data.$id === '/modules/interoperability/outbox',
-			);
-
-			// Calculate the inclusion proof of the CCMs
-			const outboxKey = Buffer.concat([Buffer.from(store?.key as string, 'hex'), this._ownChainID]);
-			const proveResponseJSON = await this._sendingChainClient.invoke<ProveResponseJSON>(
-				'state_prove',
-				{
-					queries: [outboxKey],
-				},
-			);
-			const proveResponseObj = proveResponseJSONToObj(proveResponseJSON);
-			const inclusionProofOutboxRoot: OutboxRootWitness = {
-				bitmap: proveResponseObj.proof.queries[0].bitmap,
-				siblingHashes: proveResponseObj.proof.siblingHashes,
-			};
-			const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
-			crossChainMessages.push({
-				ccms: ccmsFromEvents,
-				height: newBlockHeader.height,
-				inclusionProof: inclusionProofOutboxRoot,
-			});
-
-			await this._chainConnectorStore.setCrossChainMessages(crossChainMessages);
 		}
+		// TODO: find a better way to find storeKey from metadata
+		const store = interoperabilityMetadata.stores.find(
+			s => s.data.$id === '/modules/interoperability/outbox',
+		);
+
+		// Calculate the inclusion proof of the outbox root on state root
+		const outboxKey = Buffer.concat([Buffer.from(store?.key as string, 'hex'), this._ownChainID]);
+		const proveResponseJSON = await this._sendingChainClient.invoke<ProveResponseJSON>(
+			'state_prove',
+			{
+				queries: [outboxKey],
+			},
+		);
+		const proveResponseObj = proveResponseJSONToObj(proveResponseJSON);
+		const inclusionProofOutboxRoot: OutboxRootWitness = {
+			bitmap: proveResponseObj.proof.queries[0].bitmap,
+			siblingHashes: proveResponseObj.proof.siblingHashes,
+		};
+		const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
+		crossChainMessages.push({
+			ccms: ccmsFromEvents,
+			height: newBlockHeader.height,
+			inclusionProof: inclusionProofOutboxRoot,
+		});
+
+		await this._chainConnectorStore.setCrossChainMessages(crossChainMessages);
 
 		// Save validatorsData for a new validatorsHash
 		const validatorsHashPreimage = await this._chainConnectorStore.getValidatorsHashPreimage();
@@ -401,6 +567,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			blockHeaders,
 			aggregateCommits,
 			validatorsHashPreimage,
+			crossChainMessages,
 		};
 	}
 
@@ -420,59 +587,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		);
 
 		return certificate;
-	}
-
-	/**
-	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#parameters
-	 */
-	public async _calculateCCUParams(
-		certificate: Certificate,
-		blockHeaders: BlockHeader[],
-		validatorsHashPreimage: ValidatorsData[],
-	): Promise<Buffer | undefined> {
-		const lastSentCCM = await this._chainConnectorStore.getLastSentCCM();
-		const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
-
-		// Calculate activeValidatorsUpdate
-		let activeValidatorsUpdate: ActiveValidatorsUpdate = {
-			blsKeysUpdate: [],
-			bftWeightsUpdate: [],
-			bftWeightsUpdateBitmap: Buffer.from([]),
-		};
-		let certificateThreshold = BigInt(0);
-
-		const blockHeader = blockHeaders.find(header => header.height === certificate.height);
-		if (!blockHeader) {
-			throw new Error('No block header found for the given certificate height.');
-		}
-
-		if (!this._lastCertificate.validatorsHash.equals(certificate.validatorsHash)) {
-			const validatorsUpdateResult = calculateActiveValidatorsUpdate(
-				certificate,
-				validatorsHashPreimage,
-				this._lastCertificate,
-			);
-			activeValidatorsUpdate = validatorsUpdateResult.activeValidatorsUpdate;
-			certificateThreshold = validatorsUpdateResult.certificateThreshold;
-		}
-		// Calculate inboxUpdate
-		const inboxUpdate = await calculateInboxUpdate(
-			certificate,
-			crossChainMessages,
-			this._chainConnectorPluginDB,
-			// If no lastSentCCM then assume that we can start from the beginning
-			lastSentCCM ?? { height: 1, nonce: BigInt(-1) },
-			this._maxCCUSize,
-		);
-		const serializedCertificate = codec.encode(certificateSchema, certificate);
-
-		return codec.encode(ccuParamsSchema, {
-			sendingChainID: this._ownChainID,
-			activeValidatorsUpdate,
-			certificate: serializedCertificate,
-			certificateThreshold,
-			inboxUpdate,
-		} as CrossChainUpdateTransactionParams);
 	}
 
 	private async _deleteBlockHandler(data?: Record<string, unknown>) {
@@ -584,6 +698,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			 * as the array size can grow after sometime.
 			 */
 			this._sentCCUs.push(tx);
+			// Save the sent CCU
+			const listOfCCUs = await this._chainConnectorStore.getListOfCCUs();
+			listOfCCUs.push(tx.toObject());
+			await this._chainConnectorStore.setListOfCCUs(listOfCCUs);
 			this.logger.info({ transactionID: result.transactionId }, 'Sent CCU transaction');
 		}
 	}

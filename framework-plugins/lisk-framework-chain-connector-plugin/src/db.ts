@@ -181,7 +181,7 @@ export class ChainConnectorStore {
 	}
 
 	public async getCertificates(): Promise<Certificate[]> {
-		let certificates: Certificate[] | undefined = [];
+		let certificates: Certificate[] = [];
 		try {
 			const encodedInfo = await this._db.get(DB_KEY_CERTIFICATE);
 			certificates = codec.decode<{ certificates: Certificate[] }>(

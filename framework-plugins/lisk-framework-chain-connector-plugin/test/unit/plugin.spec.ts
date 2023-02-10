@@ -13,7 +13,6 @@
  */
 
 import {
-	Certificate,
 	cryptography,
 	testing,
 	apiClient,
@@ -24,6 +23,11 @@ import {
 	AggregateCommit,
 	chain,
 	ccmSchema,
+	ChannelDataJSON,
+	CCMsg,
+	certificateSchema,
+	tree,
+	CrossChainUpdateTransactionParams,
 } from 'lisk-sdk';
 import { when } from 'jest-when';
 import {
@@ -35,16 +39,22 @@ import {
 	HASH_LENGTH,
 	CCM_PROCESSED,
 	CCU_TOTAL_CCM_SIZE,
+	EMPTY_BYTES,
 } from '../../src/constants';
+import { getSampleCCM } from '../utils/sampleCCM';
 import * as plugins from '../../src/chain_connector_plugin';
 import * as dbApi from '../../src/db';
-import { BlockHeader, ChainConnectorPluginConfig, ValidatorsData } from '../../src/types';
+import {
+	BlockHeader,
+	CCMsFromEvents,
+	ChainConnectorPluginConfig,
+	ValidatorsData,
+} from '../../src/types';
 import * as certificateGenerationUtil from '../../src/certificate_generation';
 import * as activeValidatorsUpdateUtil from '../../src/active_validators_update';
-import * as inboxUpdateUtil from '../../src/inbox_update';
-import { getSampleCCM } from '../utils/sampleCCM';
 
 describe('ChainConnectorPlugin', () => {
+	const BLS_SIGNATURE_LENGTH = 96;
 	const ownChainID = Buffer.from('10000000', 'hex');
 	const appConfigForPlugin: ApplicationConfigForPlugin = {
 		...testing.fixtures.defaultConfig,
@@ -145,6 +155,8 @@ describe('ChainConnectorPlugin', () => {
 		getLastSentCCM: jest.fn(),
 		setLastSentCCM: jest.fn(),
 		close: jest.fn(),
+		getListOfCCUs: jest.fn().mockResolvedValue([]),
+		setListOfCCUs: jest.fn(),
 	};
 
 	let defaultEncryptedPrivateKey: string;
@@ -171,7 +183,7 @@ describe('ChainConnectorPlugin', () => {
 			ccuFrequency: 10,
 			password: defaultPassword,
 			maxCCUSize: CCU_TOTAL_CCM_SIZE,
-			saveCCM: false,
+			isSaveCCM: false,
 		};
 
 		sendingChainAPIClientMock = {
@@ -520,23 +532,53 @@ describe('ChainConnectorPlugin', () => {
 					timestamp: block.header.timestamp,
 					validatorsHash: block.header.validatorsHash as Buffer,
 				});
-			jest
-				.spyOn(chainConnectorPlugin, '_calculateCCUParams')
-				.mockResolvedValue(cryptography.utils.getRandomBytes(32));
 
 			await initChainConnectorPlugin(chainConnectorPlugin, defaultConfig);
 			chainConnectorPlugin['_apiClient'] = sendingChainAPIClientMock;
 			await chainConnectorPlugin.load();
 
+			const saveDataOnNewBlockMock = jest.fn();
+			chainConnectorPlugin['_saveDataOnNewBlock'] = saveDataOnNewBlockMock;
+			saveDataOnNewBlockMock.mockResolvedValue({
+				aggregateCommits: [],
+				blockHeaders: [],
+				validatorsHashPreimage: [],
+				crossChainMessages: [],
+			});
+
+			const computedCCUParamsMock = jest.fn();
+			chainConnectorPlugin['_computeCCUParams'] = computedCCUParamsMock;
+			const sampleCCUParams = {
+				sendingChainID: Buffer.from('04000001', 'hex'),
+				activeValidatorsUpdate: {
+					bftWeightsUpdate: [],
+					bftWeightsUpdateBitmap: EMPTY_BYTES,
+					blsKeysUpdate: [],
+				},
+				certificate: EMPTY_BYTES,
+				certificateThreshold: BigInt(1),
+				inboxUpdate: {
+					crossChainMessages: [],
+					messageWitnessHashes: [],
+					outboxRootWitness: {
+						bitmap: EMPTY_BYTES,
+						siblingHashes: [],
+					},
+				},
+			} as CrossChainUpdateTransactionParams;
+			computedCCUParamsMock.mockResolvedValue({
+				ccuParams: sampleCCUParams,
+				lastCCMToBeSent: {
+					...getSampleCCM(1),
+					height: 1,
+				},
+			});
 			await chainConnectorPlugin['_newBlockHandler']({
 				blockHeader: block.header.toJSON(),
 			});
 
 			// For chain_newBlock and chain_deleteBlock
 			expect(sendingChainAPIClientMock.subscribe).toHaveBeenCalledTimes(2);
-			expect(sendingChainAPIClientMock.invoke).toHaveBeenCalledWith('consensus_getBFTParameters', {
-				height: block.header.height,
-			});
 			expect(chainConnectorPlugin['_submitCCUs']).toHaveBeenCalled();
 			expect(chainConnectorPlugin['_cleanup']).toHaveBeenCalled();
 		});
@@ -590,10 +632,6 @@ describe('ChainConnectorPlugin', () => {
 					],
 					validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH).toString('hex'),
 				});
-
-			jest
-				.spyOn(chainConnectorPlugin, '_calculateCCUParams')
-				.mockResolvedValue(cryptography.utils.getRandomBytes(32));
 
 			const ccmSendSuccessEvent = {
 				index: 1,
@@ -688,7 +726,42 @@ describe('ChainConnectorPlugin', () => {
 			await chainConnectorPlugin['_chainConnectorStore'].setAggregateCommits(
 				blockHeaders.map(b => b.aggregateCommit),
 			);
+			// const saveDataOnNewBlockMock = jest.fn();
+			// chainConnectorPlugin['_saveDataOnNewBlock'] = saveDataOnNewBlockMock;
+			// saveDataOnNewBlockMock.mockResolvedValue({
+			// 	aggregateCommits: [],
+			// 	blockHeaders: [],
+			// 	validatorsHashPreimage: [],
+			// 	crossChainMessages: [],
+			// });
 
+			const computedCCUParamsMock = jest.fn();
+			chainConnectorPlugin['_computeCCUParams'] = computedCCUParamsMock;
+			const sampleCCUParams = {
+				sendingChainID: Buffer.from('04000001', 'hex'),
+				activeValidatorsUpdate: {
+					bftWeightsUpdate: [],
+					bftWeightsUpdateBitmap: EMPTY_BYTES,
+					blsKeysUpdate: [],
+				},
+				certificate: EMPTY_BYTES,
+				certificateThreshold: BigInt(1),
+				inboxUpdate: {
+					crossChainMessages: [],
+					messageWitnessHashes: [],
+					outboxRootWitness: {
+						bitmap: EMPTY_BYTES,
+						siblingHashes: [],
+					},
+				},
+			} as CrossChainUpdateTransactionParams;
+			computedCCUParamsMock.mockResolvedValue({
+				ccuParams: sampleCCUParams,
+				lastCCMToBeSent: {
+					...getSampleCCM(1),
+					height: 1,
+				},
+			});
 			// (chainConnectorPlugin as any)['_chainConnectorStore'] = chainConnectorStoreMock;
 			await (chainConnectorPlugin as any)['_newBlockHandler']({
 				blockHeader: newBlockHeaderJSON,
@@ -709,7 +782,7 @@ describe('ChainConnectorPlugin', () => {
 			 * 5. consensus_getBFTParameters
 			 * 6. consensus_getBFTHeights
 			 */
-			expect(sendingChainAPIClientMock.invoke).toHaveBeenCalledTimes(6);
+			expect(sendingChainAPIClientMock.invoke).toHaveBeenCalledTimes(5);
 			/**
 			 * Two calls to below RPC through receivingChainAPIClient
 			 * 1. interoperability_getChainAccount: in load() function
@@ -837,108 +910,706 @@ describe('ChainConnectorPlugin', () => {
 		});
 	});
 
-	describe('_calculateCCUParams', () => {
-		const validatorsHash = Buffer.from('01');
-		// const sendingChainID = Buffer.from('01');
-		const certificate: Certificate = {
-			height: 5,
-			validatorsHash,
-			stateRoot: Buffer.from('00'),
-			blockID: Buffer.from('00'),
-			timestamp: Date.now(),
-			aggregationBits: Buffer.alloc(0),
-			signature: cryptography.utils.getRandomBytes(32),
-		};
-		const certificateBytes = Buffer.from('ff');
-		// const newCertificateThreshold = BigInt(7);
-		const chainAccount = {
-			lastCertificate: {
-				validatorsHash,
-			},
-		};
+	describe('_computeCCUParams', () => {
+		let sampleCCMsWithEvents: CCMsFromEvents[];
+		let sampleBlockHeaders: BlockHeader[];
+		let sampleAggregateCommits: AggregateCommit[];
+		let sampleValidatorsHashPreimage: ValidatorsData[];
+		let sampleChannelDataJSON: ChannelDataJSON;
 
-		const blockHeaders = [
-			testing.createFakeBlockHeader({ height: 5, validatorsHash }).toObject(),
-			testing.createFakeBlockHeader({ height: 6, validatorsHash }).toObject(),
-		];
-		const validatorsHashPreimage = [
-			{
-				validatorsHash,
-				certificateThreshold: BigInt(0),
-				validators: [
-					{
-						bftWeight: BigInt(1),
-						blsKey: Buffer.alloc(2),
-						address: cryptography.utils.getRandomBytes(20),
-					},
-					{
-						bftWeight: BigInt(2),
-						blsKey: Buffer.alloc(1),
-						address: cryptography.utils.getRandomBytes(20),
-					},
-				],
-			},
-		];
 		beforeEach(async () => {
-			await chainConnectorPlugin['_chainConnectorStore'].setBlockHeaders(blockHeaders);
+			sampleBlockHeaders = new Array(10).fill(0).map((_, index) => {
+				// Aggregate commits at height 3, 6, 9
+				if ((index + 1) % 3 === 0) {
+					return testing
+						.createFakeBlockHeader({
+							height: index + 1,
+							aggregateCommit: {
+								aggregationBits: Buffer.alloc(2),
+								certificateSignature: cryptography.utils.getRandomBytes(54),
+								height: index - 2,
+							},
+						})
+						.toObject();
+				}
 
-			chainConnectorPlugin['_ownChainID'] = ownChainID;
-			await chainConnectorPlugin['_chainConnectorStore'].setValidatorsHashPreimage(
-				validatorsHashPreimage,
-			);
+				// Validators change at height 2, 4, 6, 8, 10
+				if ((index + 1) % 2 === 0) {
+					return testing
+						.createFakeBlockHeader({
+							height: index + 1,
+							validatorsHash: cryptography.utils.getRandomBytes(32),
+						})
+						.toObject();
+				}
 
-			jest
-				.spyOn(certificateGenerationUtil, 'getNextCertificateFromAggregateCommits')
-				.mockReturnValue(certificate as never);
-
-			chainConnectorPlugin['_receivingChainClient'] = receivingChainAPIClientMock;
-			chainConnectorPlugin['_sendingChainClient'] = sendingChainAPIClientMock;
-
-			chainConnectorPlugin['_receivingChainClient'].invoke = jest
-				.fn()
-				.mockResolvedValue(chainAccount);
-			chainConnectorPlugin['logger'] = {
-				error: jest.fn(),
-			} as never;
-
-			jest.spyOn(codec, 'encode').mockReturnValue(certificateBytes);
-			jest.spyOn(activeValidatorsUpdateUtil, 'getActiveValidatorsUpdate').mockReturnValue({
-				blsKeysUpdate: [],
-				bftWeightsUpdate: [],
-				bftWeightsUpdateBitmap: Buffer.from([]),
+				return testing.createFakeBlockHeader({ height: index + 1 }).toObject();
 			});
-			(inboxUpdateUtil as any).calculateInboxUpdate = jest.fn().mockResolvedValue([
-				{
-					crossChainMessages: [Buffer.alloc(0)],
-					messageWitnessHashes: [Buffer.alloc(0)],
-					outboxRootWitness: {
-						bitmap: Buffer.alloc(0),
-						siblingHashes: [Buffer.alloc(0)],
-					},
+			sampleCCMsWithEvents = sampleBlockHeaders.map(b => ({
+				ccms: [getSampleCCM(b.height)],
+				height: b.height,
+				inclusionProof: {
+					bitmap: Buffer.alloc(1),
+					siblingHashes: [Buffer.alloc(1)],
 				},
-			]);
-			chainConnectorPlugin['_lastCertificate'] = certificate;
-		});
+			}));
+			sampleAggregateCommits = sampleBlockHeaders
+				.filter(b => !b.aggregateCommit.certificateSignature.equals(Buffer.alloc(0)))
+				.map(b => b.aggregateCommit);
+			// Validators change at height 2, 4, 6, 8, 10
+			sampleValidatorsHashPreimage = sampleBlockHeaders
+				.filter(b => b.height % 2 === 0)
+				.map(b => ({
+					certificateThreshold: BigInt(78),
+					validators: [
+						{
+							address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+							bftWeight: BigInt(40),
+							blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+						},
+						{
+							address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+							bftWeight: BigInt(40),
+							blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+						},
+					],
+					validatorsHash: b.validatorsHash,
+				}));
+			sampleChannelDataJSON = {
+				inbox: {
+					appendPath: [],
+					root: cryptography.utils.getRandomBytes(32).toString('hex'),
+					size: 2,
+				},
+				outbox: {
+					appendPath: [],
+					root: cryptography.utils.getRandomBytes(32).toString('hex'),
+					size: 2,
+				},
+				partnerChainOutboxRoot: cryptography.utils.getRandomBytes(32).toString('hex'),
+				messageFeeTokenID: '04000010',
+			};
+			// Save all data to the chainConnectorStore
+			await chainConnectorPlugin.init({
+				logger: testing.mocks.loggerMock,
+				config: defaultConfig,
+				appConfig: appConfigForPlugin,
+			});
+			chainConnectorPlugin['_apiClient'] = sendingChainAPIClientMock;
 
-		it('should call _calculateInboxUpdate', async () => {
-			await chainConnectorPlugin['_calculateCCUParams'](
-				certificate,
-				blockHeaders,
-				validatorsHashPreimage,
+			await chainConnectorPlugin.load();
+			// Set all the sample data
+			await chainConnectorPlugin['_chainConnectorStore'].setBlockHeaders(sampleBlockHeaders);
+			await chainConnectorPlugin['_chainConnectorStore'].setAggregateCommits(
+				sampleAggregateCommits,
 			);
-
-			expect((inboxUpdateUtil as any).calculateInboxUpdate).toHaveBeenCalledTimes(1);
-			expect((inboxUpdateUtil as any).calculateInboxUpdate).toHaveBeenCalled();
+			await chainConnectorPlugin['_chainConnectorStore'].setValidatorsHashPreimage(
+				sampleValidatorsHashPreimage,
+			);
+			await chainConnectorPlugin['_chainConnectorStore'].setValidatorsHashPreimage(
+				sampleValidatorsHashPreimage,
+			);
+			await chainConnectorPlugin['_chainConnectorStore'].setCrossChainMessages(
+				sampleCCMsWithEvents,
+			);
 		});
 
-		it('should return CCUTxParams with activeValidatorsUpdate set to [] when chainAccount.lastCertificate.validatorsHash == certificate.validatorsHash', async () => {
-			await expect(
-				chainConnectorPlugin['_calculateCCUParams'](
-					certificate,
-					blockHeaders,
-					validatorsHashPreimage,
-				),
-			).resolves.toBeDefined();
+		describe('CCU params calculation when last certificate', () => {
+			beforeEach(() => {
+				when(sendingChainAPIClientMock.invoke)
+					.calledWith('consensus_getBFTHeights')
+					.mockResolvedValue({
+						maxHeightPrevoted: 1,
+						maxHeightPrecommitted: 1,
+						maxHeightCertified: 1,
+					});
+				when(receivingChainAPIClientMock.invoke)
+					.calledWith('interoperability_getChannelData', {
+						chainID: chainConnectorPlugin['_ownChainID'].toString('hex'),
+					})
+					.mockResolvedValue(sampleChannelDataJSON);
+
+				jest
+					.spyOn(certificateGenerationUtil, 'getNextCertificateFromAggregateCommits')
+					.mockReturnValue(undefined);
+			});
+
+			it('should exit function without CCU params computation when no pending CCMs found for the height range', async () => {
+				jest.spyOn(chainConnectorPlugin['logger'], 'info');
+
+				chainConnectorPlugin['_lastCertificate'] = {
+					height: 0,
+					stateRoot: Buffer.alloc(1),
+					timestamp: Date.now(),
+					validatorsHash: cryptography.utils.hash(cryptography.utils.getRandomBytes(4)),
+				};
+				const result = await chainConnectorPlugin['_computeCCUParams'](
+					sampleBlockHeaders,
+					sampleAggregateCommits,
+					sampleValidatorsHashPreimage,
+					sampleCCMsWithEvents,
+				);
+
+				expect(result).toBeUndefined();
+
+				expect(chainConnectorPlugin['logger'].info).toHaveBeenCalledWith(
+					'There is no pending ccm for the last certificate so no CCU can be sent.',
+				);
+			});
+
+			it('should exit function without CCU params computation when no pending CCMs found after last ccm', async () => {
+				jest.spyOn(chainConnectorPlugin['logger'], 'info');
+
+				const validatorsHashAtLastCertificate = sampleBlockHeaders.find(b => b.height === 8);
+				chainConnectorPlugin['_lastCertificate'] = {
+					height: 10,
+					stateRoot: Buffer.alloc(1),
+					timestamp: Date.now(),
+					validatorsHash: validatorsHashAtLastCertificate?.validatorsHash as Buffer,
+				};
+				await chainConnectorPlugin['_chainConnectorStore'].setLastSentCCM({
+					...getSampleCCM(12),
+					height: 10,
+				});
+				const result = await chainConnectorPlugin['_computeCCUParams'](
+					sampleBlockHeaders,
+					sampleAggregateCommits,
+					sampleValidatorsHashPreimage,
+					sampleCCMsWithEvents,
+				);
+
+				expect(result).toBeUndefined();
+
+				expect(chainConnectorPlugin['logger'].info).toHaveBeenCalledWith(
+					'No pending CCMs after last sent ccm for the last certificate so no CCU is needed.',
+				);
+			});
+
+			it('should throw error when no validatorsData found for the last certificate', async () => {
+				jest.spyOn(chainConnectorPlugin['logger'], 'info');
+
+				chainConnectorPlugin['_lastCertificate'] = {
+					height: 9,
+					stateRoot: Buffer.alloc(1),
+					timestamp: Date.now(),
+					validatorsHash: cryptography.utils.hash(cryptography.utils.getRandomBytes(4)),
+				};
+				await chainConnectorPlugin['_chainConnectorStore'].setLastSentCCM({
+					...getSampleCCM(9),
+					height: 8,
+				});
+
+				await expect(
+					chainConnectorPlugin['_computeCCUParams'](
+						sampleBlockHeaders,
+						sampleAggregateCommits,
+						sampleValidatorsHashPreimage,
+						sampleCCMsWithEvents,
+					),
+				).rejects.toThrow('No validatorsData found for the lastCertificate');
+			});
+
+			it('should successfully create CCU with messageWitness for pending ccms', async () => {
+				jest.spyOn(chainConnectorPlugin['logger'], 'info');
+
+				const validatorsHashAtLastCertificate = sampleBlockHeaders.find(b => b.height === 8);
+				chainConnectorPlugin['_lastCertificate'] = {
+					height: 8,
+					stateRoot: Buffer.alloc(1),
+					timestamp: Date.now(),
+					validatorsHash: validatorsHashAtLastCertificate?.validatorsHash as Buffer,
+				};
+				const lastSentCCMsFromEvents = sampleCCMsWithEvents[5];
+				const expectedCCMsToBeSent = sampleCCMsWithEvents
+					.slice(6, 8)
+					.reduce((ccms: CCMsg[], record: CCMsFromEvents) => {
+						for (const ccm of record.ccms) {
+							ccms.push(ccm);
+						}
+
+						return ccms;
+					}, [])
+					.map(ccm => codec.encode(ccmSchema, ccm));
+				await chainConnectorPlugin['_chainConnectorStore'].setLastSentCCM({
+					...lastSentCCMsFromEvents.ccms[0],
+					height: lastSentCCMsFromEvents.height,
+				});
+				const result = await chainConnectorPlugin['_computeCCUParams'](
+					sampleBlockHeaders,
+					sampleAggregateCommits,
+					sampleValidatorsHashPreimage,
+					sampleCCMsWithEvents,
+				);
+
+				expect(result).toBeDefined();
+				expect(result?.ccuParams).toBeDefined();
+				expect((result?.ccuParams as any).inboxUpdate.outboxRootWitness).toEqual({
+					bitmap: EMPTY_BYTES,
+					siblingHashes: [],
+				});
+				expect((result?.ccuParams as any).activeValidatorsUpdate).toEqual({
+					blsKeysUpdate: [],
+					bftWeightsUpdate: [],
+					bftWeightsUpdateBitmap: EMPTY_BYTES,
+				});
+				expect((result?.ccuParams as any).certificate).toEqual(EMPTY_BYTES);
+
+				expect((result?.ccuParams as any).inboxUpdate.messageWitnessHashes).toEqual([]);
+				expect((result?.ccuParams as any).inboxUpdate.crossChainMessages).toHaveLength(
+					expectedCCMsToBeSent.length,
+				);
+			});
+		});
+
+		describe('CCU params calculation for new certificate', () => {
+			beforeEach(() => {
+				when(sendingChainAPIClientMock.invoke)
+					.calledWith('consensus_getBFTHeights')
+					.mockResolvedValue({
+						maxHeightPrevoted: 1,
+						maxHeightPrecommitted: 1,
+						maxHeightCertified: 1,
+					});
+				when(receivingChainAPIClientMock.invoke)
+					.calledWith('interoperability_getChannelData', {
+						chainID: chainConnectorPlugin['_ownChainID'].toString('hex'),
+					})
+					.mockResolvedValue(sampleChannelDataJSON);
+			});
+
+			it('should throw error when no blockHeader is found for the new certificate height', async () => {
+				const blockHeaderAtCertificateHeight = testing
+					.createFakeBlockHeader({ height: 15 })
+					.toObject();
+				const newCertificate = {
+					aggregationBits: Buffer.alloc(1),
+					blockID: blockHeaderAtCertificateHeight.id,
+					height: blockHeaderAtCertificateHeight.height,
+					signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
+					stateRoot: cryptography.utils.getRandomBytes(32),
+					timestamp: blockHeaderAtCertificateHeight.timestamp,
+					validatorsHash: blockHeaderAtCertificateHeight.validatorsHash,
+				};
+				jest
+					.spyOn(certificateGenerationUtil, 'getNextCertificateFromAggregateCommits')
+					.mockReturnValue(newCertificate);
+
+				await expect(
+					chainConnectorPlugin['_computeCCUParams'](
+						sampleBlockHeaders,
+						sampleAggregateCommits,
+						sampleValidatorsHashPreimage,
+						sampleCCMsWithEvents,
+					),
+				).rejects.toThrow('No block header found for the given certificate height');
+			});
+
+			it('should return empty activeValidatorsUpdate when (lastCertificate.validatorsHash === newCertificate.validatorsHash)', async () => {
+				const blockHeaderAtCertificateHeight = sampleBlockHeaders[8];
+				const newCertificate = {
+					aggregationBits: Buffer.alloc(1),
+					blockID: blockHeaderAtCertificateHeight.id as Buffer,
+					height: blockHeaderAtCertificateHeight.height,
+					signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
+					stateRoot: cryptography.utils.getRandomBytes(32),
+					timestamp: blockHeaderAtCertificateHeight.timestamp,
+					validatorsHash: blockHeaderAtCertificateHeight.validatorsHash,
+				};
+				jest
+					.spyOn(certificateGenerationUtil, 'getNextCertificateFromAggregateCommits')
+					.mockReturnValue(newCertificate);
+				chainConnectorPlugin['_lastCertificate'] = {
+					height: 4,
+					stateRoot: Buffer.alloc(1),
+					timestamp: Date.now(),
+					validatorsHash: blockHeaderAtCertificateHeight.validatorsHash,
+				};
+				await chainConnectorPlugin['_chainConnectorStore'].setLastSentCCM({
+					...getSampleCCM(4),
+					height: 4,
+				});
+				const validatorsData = [
+					{
+						certificateThreshold: BigInt(78),
+						validators: [
+							{
+								address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+								bftWeight: BigInt(40),
+								blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+							},
+							{
+								address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+								bftWeight: BigInt(40),
+								blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+							},
+						],
+						validatorsHash: blockHeaderAtCertificateHeight.validatorsHash,
+					},
+				];
+
+				const expectedCCMsToBeSent = sampleCCMsWithEvents
+					.slice(4, 9)
+					.reduce((ccms: CCMsg[], record: CCMsFromEvents) => {
+						for (const ccm of record.ccms) {
+							ccms.push(ccm);
+						}
+
+						return ccms;
+					}, [])
+					.map(ccm => codec.encode(ccmSchema, ccm));
+
+				const result = await chainConnectorPlugin['_computeCCUParams'](
+					sampleBlockHeaders,
+					sampleAggregateCommits,
+					validatorsData,
+					sampleCCMsWithEvents,
+				);
+				expect(result?.ccuParams.activeValidatorsUpdate).toEqual({
+					blsKeysUpdate: [],
+					bftWeightsUpdate: [],
+					bftWeightsUpdateBitmap: Buffer.from([]),
+				});
+				expect(result?.ccuParams.certificateThreshold).toEqual(
+					validatorsData[0].certificateThreshold,
+				);
+				expect(result?.ccuParams.certificate).toEqual(
+					codec.encode(certificateSchema, newCertificate),
+				);
+				expect(result?.ccuParams.inboxUpdate.crossChainMessages).toEqual(expectedCCMsToBeSent);
+				expect(result?.ccuParams.inboxUpdate.messageWitnessHashes).toEqual([]);
+				expect(result?.ccuParams.inboxUpdate.outboxRootWitness).toEqual(
+					sampleCCMsWithEvents[8].inclusionProof,
+				);
+			});
+
+			it('should return non-empty activeValidatorsUpdate when (lastCertificate.validatorsHash !== newCertificate.validatorsHash)', async () => {
+				const blockHeaderAtCertificateHeight = sampleBlockHeaders[8];
+				const newCertificate = {
+					aggregationBits: Buffer.alloc(1),
+					blockID: blockHeaderAtCertificateHeight.id as Buffer,
+					height: blockHeaderAtCertificateHeight.height,
+					signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
+					stateRoot: cryptography.utils.getRandomBytes(32),
+					timestamp: blockHeaderAtCertificateHeight.timestamp,
+					validatorsHash: blockHeaderAtCertificateHeight.validatorsHash,
+				};
+				jest
+					.spyOn(certificateGenerationUtil, 'getNextCertificateFromAggregateCommits')
+					.mockReturnValue(newCertificate);
+				const validatorsUpdateResult = {
+					activeValidatorsUpdate: {
+						blsKeysUpdate: [cryptography.utils.getRandomBytes(54)],
+						bftWeightsUpdate: [BigInt(1)],
+						bftWeightsUpdateBitmap: Buffer.alloc(1),
+					},
+					certificateThreshold: BigInt(79),
+				};
+				jest
+					.spyOn(activeValidatorsUpdateUtil, 'calculateActiveValidatorsUpdate')
+					.mockReturnValue(validatorsUpdateResult);
+				const lastCertificate = {
+					height: 4,
+					stateRoot: Buffer.alloc(1),
+					timestamp: Date.now(),
+					validatorsHash: cryptography.utils.getRandomBytes(32),
+				};
+				chainConnectorPlugin['_lastCertificate'] = lastCertificate;
+				await chainConnectorPlugin['_chainConnectorStore'].setLastSentCCM({
+					...getSampleCCM(4),
+					height: 4,
+				});
+				const validatorsData = [
+					{
+						certificateThreshold: BigInt(78),
+						validators: [
+							{
+								address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+								bftWeight: BigInt(40),
+								blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+							},
+							{
+								address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+								bftWeight: BigInt(40),
+								blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+							},
+						],
+						validatorsHash: blockHeaderAtCertificateHeight.validatorsHash,
+					},
+					{
+						certificateThreshold: BigInt(78),
+						validators: [
+							{
+								address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+								bftWeight: BigInt(40),
+								blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+							},
+							{
+								address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+								bftWeight: BigInt(40),
+								blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+							},
+						],
+						validatorsHash: lastCertificate.validatorsHash,
+					},
+				];
+
+				const expectedCCMsToBeSent = sampleCCMsWithEvents
+					.slice(4, 9)
+					.reduce((ccms: CCMsg[], record: CCMsFromEvents) => {
+						for (const ccm of record.ccms) {
+							ccms.push(ccm);
+						}
+
+						return ccms;
+					}, [])
+					.map(ccm => codec.encode(ccmSchema, ccm));
+
+				const result = await chainConnectorPlugin['_computeCCUParams'](
+					sampleBlockHeaders,
+					sampleAggregateCommits,
+					validatorsData,
+					sampleCCMsWithEvents,
+				);
+				expect(result?.ccuParams.activeValidatorsUpdate).toEqual(
+					validatorsUpdateResult.activeValidatorsUpdate,
+				);
+				expect(result?.ccuParams.certificateThreshold).toEqual(
+					validatorsUpdateResult.certificateThreshold,
+				);
+				expect(result?.ccuParams.certificate).toEqual(
+					codec.encode(certificateSchema, newCertificate),
+				);
+				expect(result?.ccuParams.inboxUpdate.crossChainMessages).toEqual(expectedCCMsToBeSent);
+				expect(result?.ccuParams.inboxUpdate.messageWitnessHashes).toEqual([]);
+				expect(result?.ccuParams.inboxUpdate.outboxRootWitness).toEqual(
+					sampleCCMsWithEvents[8].inclusionProof,
+				);
+			});
+
+			it('should return serialized ccms and message witnesses when pending ccms', async () => {
+				const messageWitnessHashes = [cryptography.utils.getRandomBytes(32)];
+				jest
+					.spyOn(tree.MerkleTree.prototype, 'generateRightWitness')
+					.mockResolvedValue(messageWitnessHashes);
+				const blockHeaderAtCertificateHeight = sampleBlockHeaders[8];
+				const newCertificate = {
+					aggregationBits: Buffer.alloc(1),
+					blockID: blockHeaderAtCertificateHeight.id as Buffer,
+					height: blockHeaderAtCertificateHeight.height,
+					signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
+					stateRoot: cryptography.utils.getRandomBytes(32),
+					timestamp: blockHeaderAtCertificateHeight.timestamp,
+					validatorsHash: blockHeaderAtCertificateHeight.validatorsHash,
+				};
+				jest
+					.spyOn(certificateGenerationUtil, 'getNextCertificateFromAggregateCommits')
+					.mockReturnValue(newCertificate);
+				const validatorsUpdateResult = {
+					activeValidatorsUpdate: {
+						blsKeysUpdate: [cryptography.utils.getRandomBytes(54)],
+						bftWeightsUpdate: [BigInt(1)],
+						bftWeightsUpdateBitmap: Buffer.alloc(1),
+					},
+					certificateThreshold: BigInt(79),
+				};
+				jest
+					.spyOn(activeValidatorsUpdateUtil, 'calculateActiveValidatorsUpdate')
+					.mockReturnValue(validatorsUpdateResult);
+				const lastCertificate = {
+					height: 4,
+					stateRoot: Buffer.alloc(1),
+					timestamp: Date.now(),
+					validatorsHash: cryptography.utils.getRandomBytes(32),
+				};
+				chainConnectorPlugin['_lastCertificate'] = lastCertificate;
+				await chainConnectorPlugin['_chainConnectorStore'].setLastSentCCM({
+					...getSampleCCM(4),
+					height: 4,
+				});
+				const validatorsData = [
+					{
+						certificateThreshold: BigInt(78),
+						validators: [
+							{
+								address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+								bftWeight: BigInt(40),
+								blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+							},
+							{
+								address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+								bftWeight: BigInt(40),
+								blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+							},
+						],
+						validatorsHash: blockHeaderAtCertificateHeight.validatorsHash,
+					},
+					{
+						certificateThreshold: BigInt(78),
+						validators: [
+							{
+								address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+								bftWeight: BigInt(40),
+								blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+							},
+							{
+								address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+								bftWeight: BigInt(40),
+								blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+							},
+						],
+						validatorsHash: lastCertificate.validatorsHash,
+					},
+				];
+
+				// Insert CCM with a big size
+				sampleCCMsWithEvents[7] = {
+					ccms: [getSampleCCM(8, 10000)],
+					height: 8,
+					inclusionProof: {
+						bitmap: Buffer.alloc(1),
+						siblingHashes: [Buffer.alloc(1)],
+					},
+				};
+				await chainConnectorPlugin['_chainConnectorStore'].setCrossChainMessages(
+					sampleCCMsWithEvents,
+				);
+				// CCMs are only included until height 8 where a big CCM takes up all the space
+				const expectedCCMsToBeSent = sampleCCMsWithEvents
+					.slice(4, 7)
+					.reduce((ccms: CCMsg[], record: CCMsFromEvents) => {
+						for (const ccm of record.ccms) {
+							ccms.push(ccm);
+						}
+
+						return ccms;
+					}, [])
+					.map(ccm => codec.encode(ccmSchema, ccm));
+
+				const result = await chainConnectorPlugin['_computeCCUParams'](
+					sampleBlockHeaders,
+					sampleAggregateCommits,
+					validatorsData,
+					sampleCCMsWithEvents,
+				);
+				expect(result?.ccuParams.activeValidatorsUpdate).toEqual(
+					validatorsUpdateResult.activeValidatorsUpdate,
+				);
+				expect(result?.ccuParams.certificateThreshold).toEqual(
+					validatorsUpdateResult.certificateThreshold,
+				);
+				expect(result?.ccuParams.certificate).toEqual(
+					codec.encode(certificateSchema, newCertificate),
+				);
+				expect(result?.ccuParams.inboxUpdate.crossChainMessages).toEqual(expectedCCMsToBeSent);
+				expect(result?.ccuParams.inboxUpdate.messageWitnessHashes).toEqual(messageWitnessHashes);
+				expect(result?.ccuParams.inboxUpdate.outboxRootWitness).toEqual(
+					sampleCCMsWithEvents[8].inclusionProof,
+				);
+			});
+
+			it('should return empty list of ccms and message witnesses when no pending ccms', async () => {
+				const blockHeaderAtCertificateHeight = sampleBlockHeaders[8];
+				const newCertificate = {
+					aggregationBits: Buffer.alloc(1),
+					blockID: blockHeaderAtCertificateHeight.id as Buffer,
+					height: blockHeaderAtCertificateHeight.height,
+					signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
+					stateRoot: cryptography.utils.getRandomBytes(32),
+					timestamp: blockHeaderAtCertificateHeight.timestamp,
+					validatorsHash: blockHeaderAtCertificateHeight.validatorsHash,
+				};
+				jest
+					.spyOn(certificateGenerationUtil, 'getNextCertificateFromAggregateCommits')
+					.mockReturnValue(newCertificate);
+				const validatorsUpdateResult = {
+					activeValidatorsUpdate: {
+						blsKeysUpdate: [cryptography.utils.getRandomBytes(54)],
+						bftWeightsUpdate: [BigInt(1)],
+						bftWeightsUpdateBitmap: Buffer.alloc(1),
+					},
+					certificateThreshold: BigInt(79),
+				};
+				jest
+					.spyOn(activeValidatorsUpdateUtil, 'calculateActiveValidatorsUpdate')
+					.mockReturnValue(validatorsUpdateResult);
+				const lastCertificate = {
+					height: 4,
+					stateRoot: Buffer.alloc(1),
+					timestamp: Date.now(),
+					validatorsHash: cryptography.utils.getRandomBytes(32),
+				};
+				chainConnectorPlugin['_lastCertificate'] = lastCertificate;
+				await chainConnectorPlugin['_chainConnectorStore'].setLastSentCCM({
+					...getSampleCCM(4),
+					height: 4,
+				});
+				const validatorsData = [
+					{
+						certificateThreshold: BigInt(78),
+						validators: [
+							{
+								address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+								bftWeight: BigInt(40),
+								blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+							},
+							{
+								address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+								bftWeight: BigInt(40),
+								blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+							},
+						],
+						validatorsHash: blockHeaderAtCertificateHeight.validatorsHash,
+					},
+					{
+						certificateThreshold: BigInt(78),
+						validators: [
+							{
+								address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+								bftWeight: BigInt(40),
+								blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+							},
+							{
+								address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+								bftWeight: BigInt(40),
+								blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+							},
+						],
+						validatorsHash: lastCertificate.validatorsHash,
+					},
+				];
+
+				// Empty ccms for certificate height
+				const result = await chainConnectorPlugin['_computeCCUParams'](
+					sampleBlockHeaders,
+					sampleAggregateCommits,
+					validatorsData,
+					[
+						{
+							ccms: [],
+							height: 9,
+							inclusionProof: {
+								bitmap: Buffer.alloc(1),
+								siblingHashes: [Buffer.alloc(1)],
+							},
+						},
+					],
+				);
+				expect(result?.ccuParams.activeValidatorsUpdate).toEqual(
+					validatorsUpdateResult.activeValidatorsUpdate,
+				);
+				expect(result?.ccuParams.certificateThreshold).toEqual(
+					validatorsUpdateResult.certificateThreshold,
+				);
+				expect(result?.ccuParams.certificate).toEqual(
+					codec.encode(certificateSchema, newCertificate),
+				);
+				expect(result?.ccuParams.inboxUpdate.crossChainMessages).toEqual([]);
+				expect(result?.ccuParams.inboxUpdate.messageWitnessHashes).toEqual([]);
+				expect(result?.ccuParams.inboxUpdate.outboxRootWitness).toEqual({
+					bitmap: Buffer.alloc(1),
+					siblingHashes: [Buffer.alloc(1)],
+				});
+			});
 		});
 	});
 

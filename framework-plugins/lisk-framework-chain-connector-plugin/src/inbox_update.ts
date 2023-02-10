@@ -12,118 +12,40 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	CCMsg,
-	Certificate,
-	EMPTY_BYTES,
-	InboxUpdate,
-	OutboxRootWitness,
-	ccmSchema,
-	codec,
-	tree,
-	db as liskDB,
-	LastCertificate,
-	cryptography,
-} from 'lisk-sdk';
-import { CCMsFromEvents } from './types';
+import { CCMsg, ccmSchema, codec, tree, db as liskDB, cryptography, ChannelData } from 'lisk-sdk';
+import { CCMsFromEvents, LastSentCCMWithHeight } from './types';
 
 /**
- * @description When we have no new certificate and we use the lastCertificate for inboxUpdate calculation
- * @param lastCertificate
- * @param crossChainMessages
- * @param chainConnectorPluginDB
- * @param lastSentCCM
- * @returns InboxUpdate
+ * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#messagewitnesshashes
+ * @param sendingChainChannelInfo 
+ * @param ccmsToBeIncluded 
+ * @param chainConnectorPluginDB 
+ * @param lastSentCCMInfo 
+ * @param maxCCUSize 
+ * @returns Promise<{
+	crossChainMessages: Buffer[];
+	messageWitnessHashes: Buffer[];
+	lastCCMToBeSent: LastSentCCMWithHeight | undefined;
+	}>
  */
-export const calculateInboxUpdateForPartialUpdate = async (
-	lastCertificate: LastCertificate,
-	crossChainMessages: CCMsFromEvents[],
+export const calculateMessageWitnesses = async (
+	sendingChainChannelInfo: ChannelData,
+	ccmsToBeIncluded: CCMsFromEvents[],
 	chainConnectorPluginDB: liskDB.Database,
 	lastSentCCMInfo: {
 		height: number;
 		nonce: bigint;
 	},
 	maxCCUSize: number,
-): Promise<InboxUpdate> => {
+): Promise<{
+	crossChainMessages: Buffer[];
+	messageWitnessHashes: Buffer[];
+	lastCCMToBeSent: LastSentCCMWithHeight | undefined;
+}> => {
 	// Filter all the CCMs between lastCertifiedHeight and certificate height.
 	let potentialCCMs: CCMsg[] = [];
-	// Take range from lastSentCCM height until certificate height
-	const ccmsToBeIncluded = crossChainMessages.filter(
-		ccmFromEvents =>
-			ccmFromEvents.height >= lastSentCCMInfo.height &&
-			ccmFromEvents.height <= lastCertificate.height,
-	);
 
-	for (const ccmFromEvents of ccmsToBeIncluded) {
-		const { ccms } = ccmFromEvents;
-		if (ccmFromEvents.height === lastSentCCMInfo.height) {
-			for (const ccm of ccms.filter(c => c.nonce > lastSentCCMInfo.nonce)) {
-				potentialCCMs.push(ccm);
-			}
-		}
-		potentialCCMs = [...potentialCCMs, ...ccms];
-	}
-	const ccmsListOfList = groupCCMsBySize(potentialCCMs, maxCCUSize);
-	// Return empty inboxUpdate when there are no ccms
-	if (ccmsListOfList.length < 1) {
-		return {
-			crossChainMessages: [],
-			messageWitnessHashes: [],
-			outboxRootWitness: {
-				bitmap: EMPTY_BYTES,
-				siblingHashes: [],
-			},
-		};
-	}
-
-	const emptyInclusionProof: OutboxRootWitness = {
-		bitmap: EMPTY_BYTES,
-		siblingHashes: [],
-	};
-
-	const merkleTree = new tree.MerkleTree({ db: chainConnectorPluginDB });
-	const firstCCMList = ccmsListOfList[0];
-	const serializedCCMList = firstCCMList.map(ccm => codec.encode(ccmSchema, ccm));
-
-	// Calculate message witnesses
-	for (const ccm of serializedCCMList) {
-		await merkleTree.append(cryptography.utils.hash(ccm));
-	}
-	const messageWitnesses = await merkleTree.generateRightWitness(serializedCCMList.length);
-
-	return {
-		crossChainMessages: serializedCCMList,
-		messageWitnessHashes: messageWitnesses,
-		outboxRootWitness: emptyInclusionProof,
-	};
-};
-
-/**
- *
- * @param certificate
- * @param lastCertificate
- * @param crossChainMessages
- * @param lastSentCCM
- * @returns Promise<InboxUpdate>
- */
-export const calculateInboxUpdate = async (
-	certificate: Certificate,
-	crossChainMessages: CCMsFromEvents[],
-	chainConnectorPluginDB: liskDB.Database,
-	lastSentCCMInfo: {
-		height: number;
-		nonce: bigint;
-	},
-	maxCCUSize: number,
-): Promise<InboxUpdate> => {
-	// Filter all the CCMs between lastCertifiedHeight and certificate height.
-	let potentialCCMs: CCMsg[] = [];
-	// Take range from lastSentCCM height until certificate height
-	const ccmsToBeIncluded = crossChainMessages.filter(
-		ccmFromEvents =>
-			ccmFromEvents.height >= lastSentCCMInfo.height && ccmFromEvents.height <= certificate.height,
-	);
-
+	let lastCCMHeight = 0;
 	// Make an array of ccms with nonce greater than last sent ccm nonce
 	for (const ccmFromEvents of ccmsToBeIncluded) {
 		const { ccms } = ccmFromEvents;
@@ -131,9 +53,12 @@ export const calculateInboxUpdate = async (
 			for (const ccm of ccms.filter(c => c.nonce > lastSentCCMInfo.nonce)) {
 				potentialCCMs.push(ccm);
 			}
+			continue;
 		}
 		potentialCCMs = [...potentialCCMs, ...ccms];
+		lastCCMHeight = ccmFromEvents.height;
 	}
+
 	const ccmsListOfList = groupCCMsBySize(potentialCCMs, maxCCUSize);
 
 	// Return empty inboxUpdate when there are no ccms
@@ -141,13 +66,9 @@ export const calculateInboxUpdate = async (
 		return {
 			crossChainMessages: [],
 			messageWitnessHashes: [],
-			outboxRootWitness: {
-				bitmap: EMPTY_BYTES,
-				siblingHashes: [],
-			},
+			lastCCMToBeSent: undefined,
 		};
 	}
-	const { inclusionProof } = ccmsToBeIncluded[ccmsToBeIncluded.length - 1];
 
 	if (ccmsListOfList.length === 1) {
 		const firstCCMList = ccmsListOfList[0];
@@ -157,24 +78,29 @@ export const calculateInboxUpdate = async (
 		return {
 			crossChainMessages: serializedCCMList,
 			messageWitnessHashes: [],
-			outboxRootWitness: inclusionProof,
+			lastCCMToBeSent: { ...firstCCMList[0], height: lastCCMHeight },
 		};
 	}
 
+	// TODO: Use stateless way to generateRightWitness so that we don't need to store all the CCMs
 	const merkleTree = new tree.MerkleTree({ db: chainConnectorPluginDB });
+
 	const firstCCMList = ccmsListOfList[0];
 	const serializedCCMList = firstCCMList.map(ccm => codec.encode(ccmSchema, ccm));
 
-	// Calculate message witnesses when not all the ccms can be included
-	for (const ccm of serializedCCMList) {
+	const allSerializedCCMs = potentialCCMs.map(ccm => codec.encode(ccmSchema, ccm));
+	// Append all the serialized ccms
+	for (const ccm of allSerializedCCMs) {
 		await merkleTree.append(cryptography.utils.hash(ccm));
 	}
-	const messageWitnesses = await merkleTree.generateRightWitness(serializedCCMList.length);
+	const messageWitnesses = await merkleTree.generateRightWitness(
+		sendingChainChannelInfo.inbox.size + serializedCCMList.length,
+	);
 
 	return {
 		crossChainMessages: serializedCCMList,
 		messageWitnessHashes: messageWitnesses,
-		outboxRootWitness: inclusionProof,
+		lastCCMToBeSent: { ...firstCCMList[0], height: lastCCMHeight },
 	};
 };
 
@@ -182,6 +108,7 @@ export const calculateInboxUpdate = async (
  * @description This will return lists with sub-lists, where total size of CCMs in each sub-list will be <= CCU_TOTAL_CCM_SIZE
  * Each sublist can contain CCMS from DIFFERENT heights
  * @param allCCMs
+ * @param maxCCUSize
  * @returns CCMsg[][]
  */
 export const groupCCMsBySize = (allCCMs: CCMsg[], maxCCUSize: number): CCMsg[][] => {

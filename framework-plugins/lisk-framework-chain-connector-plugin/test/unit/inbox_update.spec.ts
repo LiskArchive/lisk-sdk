@@ -23,11 +23,12 @@ import {
 	// LastCertificate,
 	tree,
 	db,
+	ChannelData,
 } from 'lisk-sdk';
-import { CCU_TOTAL_CCM_SIZE, EMPTY_BYTES } from '../../src/constants';
+import { CCU_TOTAL_CCM_SIZE } from '../../src/constants';
 import * as inboxUpdateUtil from '../../src/inbox_update';
 import { CCMsFromEvents } from '../../src/types';
-import { calculateInboxUpdate, calculateInboxUpdateForPartialUpdate } from '../../src/inbox_update';
+import { calculateMessageWitnesses } from '../../src/inbox_update';
 import { getSampleCCM } from '../utils/sampleCCM';
 
 describe('inboxUpdate', () => {
@@ -83,18 +84,30 @@ describe('inboxUpdate', () => {
 			.mockImplementation();
 	});
 
-	describe('calculateInboxUpdate', () => {
+	describe('calculateMessageWitnesses', () => {
+		const channelData: ChannelData = {
+			inbox: {
+				size: 2,
+				appendPath: [],
+				root: Buffer.alloc(1),
+			},
+			outbox: {
+				size: 2,
+				appendPath: [],
+				root: Buffer.alloc(1),
+			},
+			messageFeeTokenID: Buffer.from('04000001', 'hex'),
+			partnerChainOutboxRoot: Buffer.alloc(2),
+		};
 		it('should return one inboxUpdate when all the ccms can be included', async () => {
-			const inboxUpdate = await calculateInboxUpdate(
-				sampleCertificate,
+			const inboxUpdate = await calculateMessageWitnesses(
+				channelData,
 				sampleCCMFromEvents,
 				chainConnectorPluginDB,
 				{ height: 1, nonce: BigInt(0) },
 				CCU_TOTAL_CCM_SIZE,
 			);
 
-			expect(inboxUpdate.outboxRootWitness.bitmap).toEqual(Buffer.alloc(1));
-			expect(inboxUpdate.outboxRootWitness.siblingHashes).toEqual([Buffer.alloc(1)]);
 			// Message witness is empty when all the CCMs are included
 			expect(inboxUpdate.messageWitnessHashes).toEqual([]);
 			expect(appendMock).not.toHaveBeenCalled();
@@ -114,8 +127,8 @@ describe('inboxUpdate', () => {
 				},
 			];
 			generateRightWitnessMock.mockResolvedValue([Buffer.alloc(1)]);
-			const inboxUpdate = await calculateInboxUpdate(
-				sampleCertificate,
+			const inboxUpdate = await calculateMessageWitnesses(
+				channelData,
 				ccmListWithBigSize,
 				chainConnectorPluginDB,
 				{ height: 1, nonce: BigInt(0) },
@@ -123,97 +136,27 @@ describe('inboxUpdate', () => {
 			);
 
 			// First inboxUpdate should have non-empty outboxRootWitness
-			expect(inboxUpdate.outboxRootWitness.bitmap).toEqual(Buffer.alloc(1));
-			expect(inboxUpdate.outboxRootWitness.siblingHashes).toEqual([Buffer.from('01')]);
 			expect(inboxUpdate.messageWitnessHashes).toEqual([Buffer.alloc(1)]);
 
-			expect(appendMock).toHaveBeenCalledTimes(3);
+			expect(appendMock).toHaveBeenCalledTimes(4);
 			expect(generateRightWitnessMock).toHaveBeenCalledTimes(1);
 		});
 
 		it('should return empty inboxUpdate when there is no ccm after filter', async () => {
-			const ccmListWithBigSize = [
-				{
-					ccms: [getSampleCCM(5, 8000), getSampleCCM(6, 8000)],
-					height: sampleCertificate.height + 1,
-					inclusionProof: {
-						bitmap: Buffer.alloc(1),
-						siblingHashes: [Buffer.from('01')],
-					},
-				},
-			];
 			generateRightWitnessMock.mockResolvedValue([Buffer.alloc(1)]);
-			const inboxUpdate = await calculateInboxUpdate(
-				sampleCertificate,
-				ccmListWithBigSize,
-				chainConnectorPluginDB,
-				{ height: 1, nonce: BigInt(0) },
-				CCU_TOTAL_CCM_SIZE,
-			);
+			const { crossChainMessages, lastCCMToBeSent, messageWitnessHashes } =
+				await calculateMessageWitnesses(
+					channelData,
+					[],
+					chainConnectorPluginDB,
+					{ height: sampleCertificate.height + 1, nonce: BigInt(2) },
+					CCU_TOTAL_CCM_SIZE,
+				);
 
 			// First inboxUpdate should have non-empty outboxRootWitness
-			expect(inboxUpdate).toEqual({
-				crossChainMessages: [],
-				messageWitnessHashes: [],
-				outboxRootWitness: {
-					bitmap: EMPTY_BYTES,
-					siblingHashes: [],
-				},
-			});
-
-			expect(appendMock).not.toHaveBeenCalled();
-			expect(generateRightWitnessMock).not.toHaveBeenCalled();
-		});
-	});
-
-	describe('calculateInboxUpdateForPartialUpdate', () => {
-		it('should return one inboxUpdate with messageWitnessHashes and empty outboxRootWitness', async () => {
-			generateRightWitnessMock.mockResolvedValue([Buffer.alloc(1)]);
-			const inboxUpdate = await calculateInboxUpdateForPartialUpdate(
-				sampleCertificate,
-				sampleCCMFromEvents,
-				chainConnectorPluginDB,
-				{ height: 1, nonce: BigInt(0) },
-				CCU_TOTAL_CCM_SIZE,
-			);
-
-			expect(inboxUpdate.outboxRootWitness.bitmap).toEqual(Buffer.alloc(0));
-			expect(inboxUpdate.outboxRootWitness.siblingHashes).toEqual([]);
-			// Message witness is empty when all the CCMs are included
-			expect(inboxUpdate.messageWitnessHashes).toEqual([Buffer.alloc(1)]);
-			expect(appendMock).toHaveBeenCalled();
-			expect(generateRightWitnessMock).toHaveBeenCalled();
-		});
-
-		it('should return empty inboxUpdate when there is no ccm after filter', async () => {
-			const ccmListWithBigSize = [
-				{
-					ccms: [getSampleCCM(5, 8000), getSampleCCM(6, 8000)],
-					height: sampleCertificate.height + 1,
-					inclusionProof: {
-						bitmap: Buffer.alloc(1),
-						siblingHashes: [Buffer.from('01')],
-					},
-				},
-			];
-			generateRightWitnessMock.mockResolvedValue([Buffer.alloc(1)]);
-			const inboxUpdate = await calculateInboxUpdateForPartialUpdate(
-				sampleCertificate,
-				ccmListWithBigSize,
-				chainConnectorPluginDB,
-				{ height: 1, nonce: BigInt(0) },
-				CCU_TOTAL_CCM_SIZE,
-			);
-
-			// First inboxUpdate should have non-empty outboxRootWitness
-			expect(inboxUpdate).toEqual({
-				crossChainMessages: [],
-				messageWitnessHashes: [],
-				outboxRootWitness: {
-					bitmap: EMPTY_BYTES,
-					siblingHashes: [],
-				},
-			});
+			expect(crossChainMessages).toHaveLength(0);
+			expect(messageWitnessHashes).toHaveLength(0);
+			expect(lastCCMToBeSent).toBeUndefined();
 
 			expect(appendMock).not.toHaveBeenCalled();
 			expect(generateRightWitnessMock).not.toHaveBeenCalled();
