@@ -201,7 +201,7 @@ export const getLocation = (index: number, height: number): NodeLocation => {
 export const toIndex = (nodeIndex: number, layerIndex: number, height: number): number => {
 	const length = height - layerIndex;
 	if (length <= 0) {
-		throw new Error(`Invalid height ${height} or layer inder ${layerIndex}`);
+		throw new Error(`Invalid height ${height} or layer index ${layerIndex}`);
 	}
 	let binaryString = nodeIndex.toString(2);
 	while (binaryString.length < length) {

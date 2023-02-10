@@ -12,8 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 /* eslint-disable no-bitwise */
-import { BRANCH_PREFIX } from './constants';
-import { generateHash } from './utils';
+import { utils } from '@liskhq/lisk-cryptography';
+import { BRANCH_PREFIX, LEAF_PREFIX } from './constants';
+import { generateHash, getHeight } from './utils';
 
 const popFirst = (val: Buffer[]): Buffer => {
 	const [first] = val;
@@ -83,4 +84,53 @@ export const verifyRightWitness = (
 ): boolean => {
 	const calculatedRoot = calculateRootFromRightWitness(idx, appendPath, rightWitness);
 	return calculatedRoot.equals(root);
+};
+
+export const calculateRightWitness = (size: number, values: Buffer[]): Buffer[] => {
+	if (size === 0) {
+		throw new Error('witness cannot be generated for empty tree.');
+	}
+	// if values are empty, no need to compute right witness
+	if (values.length === 0) {
+		return [];
+	}
+
+	let hashes: Buffer[] = [];
+
+	for (const data of values) {
+		const leafValueWithoutNodeIndex = Buffer.concat(
+			[LEAF_PREFIX, data],
+			LEAF_PREFIX.length + data.length,
+		);
+		const leafHash = utils.hash(leafValueWithoutNodeIndex);
+		hashes.push(leafHash);
+	}
+	const witness: Buffer[] = [];
+	const height = getHeight(size + hashes.length);
+	let incrementalIdx = size;
+
+	// compute right witness using the path nodes
+	for (let layerIndex = 0; layerIndex < height; layerIndex += 1) {
+		if (hashes.length === 0) {
+			break;
+		}
+		// digit is the l-th binary digit of idx (from the right)
+		const digit = (incrementalIdx >>> layerIndex) & 1;
+		if (digit === 1) {
+			const [removed] = hashes.splice(0, 1);
+			witness.push(removed);
+			incrementalIdx += 1 << layerIndex;
+		}
+		const nextHashes: Buffer[] = [];
+
+		for (let i = 0; i < hashes.length; i += 2) {
+			if (i + 1 < hashes.length) {
+				nextHashes.push(generateHash(BRANCH_PREFIX, hashes[i], hashes[i + 1]));
+			} else {
+				nextHashes.push(hashes[i]);
+			}
+		}
+		hashes = nextHashes;
+	}
+	return witness;
 };
