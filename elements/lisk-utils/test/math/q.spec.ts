@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { q, q96 } from '../../src/math';
+import { Q, q, q96 } from '../../src/math';
 
 /**
  * For the test cases `binary` represents the calculation result in binary.
@@ -331,6 +331,20 @@ describe('Q', () => {
 			expect(muldivResult).not.toEqual(mulThenDivResult);
 			// muldiv should have closer value to fourNinths
 			expect(fourNinths.sub(muldivResult).lt(fourNinths.sub(mulThenDivResult))).toBeTrue();
+		});
+	});
+
+	describe('toBuffer', () => {
+		const cases = [
+			[{ original: BigInt('0') }],
+			[{ original: BigInt('100000000000') }],
+			[{ original: BigInt('396140812571321687967719751') }],
+		];
+
+		it.each(cases)('should result in expected value %o', val => {
+			expect(val.original).toBe(BigInt(`0x${val.original.toString(16)}`));
+			const qVal = new Q(val.original, 96);
+			expect(qVal).toEqual(q96(qVal.toBuffer()));
 		});
 	});
 });
