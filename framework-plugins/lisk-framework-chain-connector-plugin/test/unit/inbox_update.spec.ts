@@ -20,9 +20,7 @@ import {
 	testing,
 	cryptography,
 	BlockHeader,
-	// LastCertificate,
 	tree,
-	db,
 	ChannelData,
 } from 'lisk-sdk';
 import { CCU_TOTAL_CCM_SIZE } from '../../src/constants';
@@ -37,9 +35,6 @@ describe('inboxUpdate', () => {
 
 	let sampleCCMs: CCMsg[];
 	let sampleCCMFromEvents: CCMsFromEvents[];
-	let appendMock: jest.SpyInstance;
-	let generateRightWitnessMock: jest.SpyInstance;
-	let chainConnectorPluginDB: db.Database;
 
 	beforeEach(() => {
 		sampleBlock = testing.createFakeBlockHeader({
@@ -78,10 +73,6 @@ describe('inboxUpdate', () => {
 				},
 			},
 		];
-		appendMock = jest.spyOn(tree.MerkleTree.prototype, 'append').mockImplementation();
-		generateRightWitnessMock = jest
-			.spyOn(tree.MerkleTree.prototype, 'generateRightWitness')
-			.mockImplementation();
 	});
 
 	describe('calculateMessageWitnesses', () => {
@@ -100,21 +91,23 @@ describe('inboxUpdate', () => {
 			partnerChainOutboxRoot: Buffer.alloc(2),
 		};
 		it('should return one inboxUpdate when all the ccms can be included', async () => {
-			const inboxUpdate = await calculateMessageWitnesses(
+			jest.spyOn(tree.regularMerkleTree, 'calculateRightWitness').mockReturnValue([]);
+			const inboxUpdate = calculateMessageWitnesses(
 				channelData,
 				sampleCCMFromEvents,
-				chainConnectorPluginDB,
 				{ height: 1, nonce: BigInt(0) },
 				CCU_TOTAL_CCM_SIZE,
 			);
 
 			// Message witness is empty when all the CCMs are included
 			expect(inboxUpdate.messageWitnessHashes).toEqual([]);
-			expect(appendMock).not.toHaveBeenCalled();
-			expect(generateRightWitnessMock).not.toHaveBeenCalled();
+			expect(tree.regularMerkleTree.calculateRightWitness).not.toHaveBeenCalled();
 		});
 
 		it('should return multiple inboxUpdates when all the ccms cannot be included in one', async () => {
+			jest
+				.spyOn(tree.regularMerkleTree, 'calculateRightWitness')
+				.mockReturnValue([Buffer.alloc(1)]);
 			const ccmListWithBigSize = [
 				...sampleCCMFromEvents,
 				{
@@ -126,29 +119,27 @@ describe('inboxUpdate', () => {
 					},
 				},
 			];
-			generateRightWitnessMock.mockResolvedValue([Buffer.alloc(1)]);
-			const inboxUpdate = await calculateMessageWitnesses(
+
+			const inboxUpdate = calculateMessageWitnesses(
 				channelData,
 				ccmListWithBigSize,
-				chainConnectorPluginDB,
 				{ height: 1, nonce: BigInt(0) },
 				CCU_TOTAL_CCM_SIZE,
 			);
 
 			// First inboxUpdate should have non-empty outboxRootWitness
 			expect(inboxUpdate.messageWitnessHashes).toEqual([Buffer.alloc(1)]);
-
-			expect(appendMock).toHaveBeenCalledTimes(4);
-			expect(generateRightWitnessMock).toHaveBeenCalledTimes(1);
+			expect(tree.regularMerkleTree.calculateRightWitness).toHaveBeenCalledTimes(1);
 		});
 
 		it('should return empty inboxUpdate when there is no ccm after filter', async () => {
-			generateRightWitnessMock.mockResolvedValue([Buffer.alloc(1)]);
+			jest
+				.spyOn(tree.regularMerkleTree, 'calculateRightWitness')
+				.mockReturnValue([Buffer.alloc(1)]);
 			const { crossChainMessages, lastCCMToBeSent, messageWitnessHashes } =
-				await calculateMessageWitnesses(
+				calculateMessageWitnesses(
 					channelData,
 					[],
-					chainConnectorPluginDB,
 					{ height: sampleCertificate.height + 1, nonce: BigInt(2) },
 					CCU_TOTAL_CCM_SIZE,
 				);
@@ -158,8 +149,7 @@ describe('inboxUpdate', () => {
 			expect(messageWitnessHashes).toHaveLength(0);
 			expect(lastCCMToBeSent).toBeUndefined();
 
-			expect(appendMock).not.toHaveBeenCalled();
-			expect(generateRightWitnessMock).not.toHaveBeenCalled();
+			expect(tree.regularMerkleTree.calculateRightWitness).not.toHaveBeenCalled();
 		});
 	});
 

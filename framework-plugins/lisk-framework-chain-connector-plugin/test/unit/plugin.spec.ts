@@ -1389,8 +1389,8 @@ describe('ChainConnectorPlugin', () => {
 			it('should return serialized ccms and message witnesses when pending ccms', async () => {
 				const messageWitnessHashes = [cryptography.utils.getRandomBytes(32)];
 				jest
-					.spyOn(tree.MerkleTree.prototype, 'generateRightWitness')
-					.mockResolvedValue(messageWitnessHashes);
+					.spyOn(tree.regularMerkleTree, 'calculateRightWitness')
+					.mockReturnValue(messageWitnessHashes as never);
 				const blockHeaderAtCertificateHeight = sampleBlockHeaders[8];
 				const newCertificate = {
 					aggregationBits: Buffer.alloc(1),

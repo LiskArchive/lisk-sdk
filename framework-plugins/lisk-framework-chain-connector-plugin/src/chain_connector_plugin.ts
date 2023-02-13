@@ -283,10 +283,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				{ chainID: this._ownChainID.toString('hex') },
 			);
 			const sendingChainChannelInfoObj = channelDataJSONToObj(sendingChainChannelInfoJSON);
-			const messageWitnessHashesForCCMs = await calculateMessageWitnesses(
+			const messageWitnessHashesForCCMs = calculateMessageWitnesses(
 				sendingChainChannelInfoObj,
 				ccmsToBeIncluded,
-				this._chainConnectorPluginDB,
 				lastSentCCM,
 				this._maxCCUSize,
 			);
@@ -370,10 +369,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				{ chainID: this._ownChainID.toString('hex') },
 			);
 			const sendingChainChannelInfoObj = channelDataJSONToObj(sendingChainChannelInfoJSON);
-			const messageWitnessHashesForCCMs = await calculateMessageWitnesses(
+			const messageWitnessHashesForCCMs = calculateMessageWitnesses(
 				sendingChainChannelInfoObj,
 				ccmsToBeIncluded,
-				this._chainConnectorPluginDB,
 				lastSentCCM,
 				this._maxCCUSize,
 			);

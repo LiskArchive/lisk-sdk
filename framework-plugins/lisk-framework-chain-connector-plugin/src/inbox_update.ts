@@ -12,36 +12,34 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { CCMsg, ccmSchema, codec, tree, db as liskDB, cryptography, ChannelData } from 'lisk-sdk';
+import { CCMsg, ccmSchema, codec, tree, ChannelData } from 'lisk-sdk';
 import { CCMsFromEvents, LastSentCCMWithHeight } from './types';
 
 /**
  * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#messagewitnesshashes
  * @param sendingChainChannelInfo 
  * @param ccmsToBeIncluded 
- * @param chainConnectorPluginDB 
  * @param lastSentCCMInfo 
  * @param maxCCUSize 
  * @returns Promise<{
-	crossChainMessages: Buffer[];
-	messageWitnessHashes: Buffer[];
-	lastCCMToBeSent: LastSentCCMWithHeight | undefined;
+		crossChainMessages: Buffer[];
+		messageWitnessHashes: Buffer[];
+		lastCCMToBeSent: LastSentCCMWithHeight | undefined;
 	}>
  */
-export const calculateMessageWitnesses = async (
+export const calculateMessageWitnesses = (
 	sendingChainChannelInfo: ChannelData,
 	ccmsToBeIncluded: CCMsFromEvents[],
-	chainConnectorPluginDB: liskDB.Database,
 	lastSentCCMInfo: {
 		height: number;
 		nonce: bigint;
 	},
 	maxCCUSize: number,
-): Promise<{
+): {
 	crossChainMessages: Buffer[];
 	messageWitnessHashes: Buffer[];
 	lastCCMToBeSent: LastSentCCMWithHeight | undefined;
-}> => {
+} => {
 	// Filter all the CCMs between lastCertifiedHeight and certificate height.
 	let potentialCCMs: CCMsg[] = [];
 
@@ -82,24 +80,23 @@ export const calculateMessageWitnesses = async (
 		};
 	}
 
-	// TODO: Use stateless way to generateRightWitness so that we don't need to store all the CCMs
-	const merkleTree = new tree.MerkleTree({ db: chainConnectorPluginDB });
-
 	const firstCCMList = ccmsListOfList[0];
-	const serializedCCMList = firstCCMList.map(ccm => codec.encode(ccmSchema, ccm));
+	const includedSerializedCCMList = firstCCMList.map(ccm => codec.encode(ccmSchema, ccm));
 
 	const allSerializedCCMs = potentialCCMs.map(ccm => codec.encode(ccmSchema, ccm));
-	// Append all the serialized ccms
-	for (const ccm of allSerializedCCMs) {
-		await merkleTree.append(cryptography.utils.hash(ccm));
-	}
-	const messageWitnesses = await merkleTree.generateRightWitness(
-		sendingChainChannelInfo.inbox.size + serializedCCMList.length,
+	const remainingCCMValues = allSerializedCCMs.slice(
+		firstCCMList.length - 1,
+		allSerializedCCMs.length - 1,
+	);
+	// Generate messageWitness
+	const messageWitnessHashes = tree.regularMerkleTree.calculateRightWitness(
+		sendingChainChannelInfo.inbox.size + firstCCMList.length,
+		remainingCCMValues,
 	);
 
 	return {
-		crossChainMessages: serializedCCMList,
-		messageWitnessHashes: messageWitnesses,
+		crossChainMessages: includedSerializedCCMList,
+		messageWitnessHashes,
 		lastCCMToBeSent: { ...firstCCMList[0], height: lastCCMHeight },
 	};
 };
