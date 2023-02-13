@@ -160,6 +160,9 @@ export class Q {
 
 	// _bigintToHex mitigates the problem where bigint.toString(16) does not prepend 0 at the beginning
 	private _bigintToHex(val: bigint): string {
+		if (val === BigInt(0)) {
+			return '';
+		}
 		const result = val.toString(16);
 		if (result.length % 2 === 0) {
 			return result;
