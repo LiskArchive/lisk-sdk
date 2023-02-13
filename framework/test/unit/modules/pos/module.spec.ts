@@ -51,6 +51,7 @@ import {
 	COMMISSION_INCREASE_PERIOD,
 	MAX_COMMISSION_INCREASE_RATE,
 	TOKEN_ID_LENGTH,
+	WEIGHT_SCALE_FACTOR,
 } from '../../../../src/modules/pos/constants';
 import { EligibleValidatorsStore } from '../../../../src/modules/pos/stores/eligible_validators';
 import { getValidatorWeight, ValidatorWeight } from '../../../../src/modules/pos/utils';
@@ -627,17 +628,17 @@ describe('PoS module', () => {
 
 				const updatedValidators = (validatorMethod.setValidatorsParams as jest.Mock).mock
 					.calls[0][4] as Validator[];
-				const standbyCandidatesAddresses = updatedValidators
+				const standbyCandidates = updatedValidators
 					.filter(
 						validator =>
 							standbyValidatorsInFixture.find(fixture => fixture.equals(validator.address)) !==
 							undefined,
 					)
-					.sort((a, b) => a.address.compare(b.address))
-					.map(validator => validator.address);
+					.sort((a, b) => a.address.compare(b.address));
 
-				expect(standbyCandidatesAddresses).toHaveLength(2);
-				expect(standbyCandidatesAddresses).toEqual(standbyValidatorsInFixture);
+				expect(standbyCandidates).toHaveLength(2);
+				expect(standbyCandidates.map(v => v.address)).toEqual(standbyValidatorsInFixture);
+				expect(standbyCandidates.every(v => v.bftWeight === BigInt(0))).toBeTrue();
 			});
 		});
 	});
@@ -1139,10 +1140,58 @@ describe('PoS module', () => {
 
 				expect(result).toHaveLength(defaultConfig.numberActiveValidators);
 			});
+
+			it('should set averageWeight for initValidators', async () => {
+				context = createBlockContext({
+					stateStore,
+				}).getBlockAfterExecuteContext();
+				// Forger selection relies on stake weight to be sorted
+				const validators: { address: Buffer; weight: bigint }[] = [
+					...scenario.testCases.input.validatorWeights.map(d => ({
+						address: Buffer.from(d.address, 'hex'),
+						weight: BigInt(d.validatorWeight),
+					})),
+				];
+				sortValidatorsByWeightDesc(validators);
+
+				const result = await pos['_getActiveValidators'](context, validators, 6);
+				expect(result).toHaveLength(defaultConfig.numberActiveValidators);
+				const notFromInitValidators = result.filter(
+					v => initValidators.findIndex(address => v.address.equals(address)) === -1,
+				);
+				const fromInitValidators = result.filter(
+					v => initValidators.findIndex(address => v.address.equals(address)) > -1,
+				);
+				const average =
+					notFromInitValidators.reduce((prev, curr) => prev + curr.weight, BigInt(0)) /
+					BigInt(notFromInitValidators.length);
+				expect(fromInitValidators.every(v => v.weight === average)).toBeTrue();
+			});
+
+			it('should scale BFT weight', async () => {
+				context = createBlockContext({
+					stateStore,
+				}).getBlockAfterExecuteContext();
+				// Forger selection relies on stake weight to be sorted
+				const validators: { address: Buffer; weight: bigint }[] = [
+					...scenario.testCases.input.validatorWeights.map(d => ({
+						address: Buffer.from(d.address, 'hex'),
+						weight: BigInt(d.validatorWeight),
+					})),
+				];
+				sortValidatorsByWeightDesc(validators);
+
+				const result = await pos['_getActiveValidators'](context, validators, 6);
+				expect(result).toHaveLength(defaultConfig.numberActiveValidators);
+				const notFromInitValidators = result.filter(
+					v => initValidators.findIndex(address => v.address.equals(address)) === -1,
+				);
+				expect(notFromInitValidators.every(v => v.weight <= WEIGHT_SCALE_FACTOR)).toBeTrue();
+			});
 		});
 
 		describe('when current round is more than initRounds + numberOfActiveValidators', () => {
-			it('should all if snapshotValidators is less than numberOfActiveValidators', async () => {
+			it('should select all snapshotValidators if snapshotValidators is less than numberOfActiveValidators', async () => {
 				context = createBlockContext({
 					stateStore,
 				}).getBlockAfterExecuteContext();
@@ -1160,7 +1209,7 @@ describe('PoS module', () => {
 				expect(pos['_capWeight']).not.toHaveBeenCalled();
 			});
 
-			it('should numberOfActiveValidators if snapshotValidators is longer', async () => {
+			it('should select numberOfActiveValidators if snapshotValidators is longer', async () => {
 				context = createBlockContext({
 					stateStore,
 				}).getBlockAfterExecuteContext();

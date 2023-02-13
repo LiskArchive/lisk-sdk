@@ -32,6 +32,7 @@ import {
 	MAX_NUMBER_PENDING_UNLOCKS,
 	defaultConfig,
 	MAX_CAP,
+	WEIGHT_SCALE_FACTOR,
 } from './constants';
 import { PoSEndpoint } from './endpoint';
 import {
@@ -755,7 +756,16 @@ export class PoSModule extends BaseModule {
 			const numInitValidators =
 				genesisData.initRounds + this._moduleConfig.numberActiveValidators - round;
 			const numElectedValidators = this._moduleConfig.numberActiveValidators - numInitValidators;
-			const activeValidators = snapshotValidators.slice(0, numElectedValidators);
+			let weightSum = BigInt(0);
+			const activeValidators = snapshotValidators.slice(0, numElectedValidators).map(v => {
+				const scaledWeight = this._ceiling(v.weight, WEIGHT_SCALE_FACTOR);
+				weightSum += scaledWeight;
+				return {
+					...v,
+					weight: scaledWeight,
+				};
+			});
+			const averageWeight = weightSum / BigInt(numElectedValidators);
 			for (const address of genesisData.initValidators) {
 				// when activeValidator is filled, don't add anymore
 				if (activeValidators.length === this._moduleConfig.numberActiveValidators) {
@@ -765,17 +775,23 @@ export class PoSModule extends BaseModule {
 				if (activeValidators.findIndex(d => d.address.equals(address)) > -1) {
 					continue;
 				}
-				activeValidators.push({ address, weight: BigInt(1) });
+				activeValidators.push({ address, weight: averageWeight });
 			}
-			return activeValidators;
+			return this._capWeightIfNeeded(activeValidators);
 		}
 		// Validator selection is out of init rounds
 		const activeValidators =
 			snapshotValidators.length > this._moduleConfig.numberActiveValidators
 				? snapshotValidators.slice(0, this._moduleConfig.numberActiveValidators)
 				: snapshotValidators;
-		// No capping is required
+		return this._capWeightIfNeeded(
+			activeValidators.map(v => ({ ...v, weight: this._ceiling(v.weight, WEIGHT_SCALE_FACTOR) })),
+		);
+	}
+
+	private _capWeightIfNeeded(activeValidators: ValidatorWeight[]) {
 		const capValue = this._moduleConfig.maxBFTWeightCap;
+		// No capping is required
 		if (activeValidators.length < Math.ceil(MAX_CAP / capValue)) {
 			return activeValidators;
 		}
@@ -804,5 +820,12 @@ export class PoSModule extends BaseModule {
 			}
 		}
 		return validators;
+	}
+
+	private _ceiling(x: bigint, y: bigint): bigint {
+		if (y === BigInt(0)) {
+			throw new Error('Cannot divide by zero.');
+		}
+		return (x + y - BigInt(1)) / y;
 	}
 }
