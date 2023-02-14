@@ -57,6 +57,7 @@ export const calculateMessageWitnesses = (
 		lastCCMHeight = ccmFromEvents.height;
 	}
 
+	// Check max CCU size < MAX CCM size
 	const ccmsListOfList = groupCCMsBySize(potentialCCMs, maxCCUSize);
 
 	// Return empty inboxUpdate when there are no ccms

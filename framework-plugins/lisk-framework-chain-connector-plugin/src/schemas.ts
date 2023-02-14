@@ -46,7 +46,7 @@ export const configSchema = {
 			type: 'string',
 			description: 'Password to decrypt encryptedPrivateKey',
 		},
-		isSaveCCM: {
+		isSaveCCU: {
 			type: 'boolean',
 			description:
 				'Flag for the user to either save or send a CCU on creation. Send is by default.',
@@ -61,7 +61,7 @@ export const configSchema = {
 	required: ['ccuFee', 'encryptedPrivateKey', 'password'],
 	default: {
 		ccuFrequency: CCU_FREQUENCY,
-		saveCCM: false,
+		isSaveCCU: false,
 		maxCCUSize: CCU_TOTAL_CCM_SIZE,
 	},
 };

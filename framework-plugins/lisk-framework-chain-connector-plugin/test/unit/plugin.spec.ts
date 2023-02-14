@@ -183,7 +183,7 @@ describe('ChainConnectorPlugin', () => {
 			ccuFrequency: 10,
 			password: defaultPassword,
 			maxCCUSize: CCU_TOTAL_CCM_SIZE,
-			isSaveCCM: false,
+			isSaveCCU: false,
 		};
 
 		sendingChainAPIClientMock = {
@@ -517,7 +517,7 @@ describe('ChainConnectorPlugin', () => {
 			when(sendingChainAPIClientMock.invoke).calledWith('system_getNodeInfo').mockResolvedValue({
 				chainID: '10000000',
 			});
-			jest.spyOn(chainConnectorPlugin as any, '_submitCCUs').mockResolvedValue({});
+			jest.spyOn(chainConnectorPlugin as any, '_submitCCU').mockResolvedValue({});
 		});
 
 		it('should invoke "consensus_getBFTParameters" on _sendingChainClient', async () => {
@@ -579,7 +579,7 @@ describe('ChainConnectorPlugin', () => {
 
 			// For chain_newBlock and chain_deleteBlock
 			expect(sendingChainAPIClientMock.subscribe).toHaveBeenCalledTimes(2);
-			expect(chainConnectorPlugin['_submitCCUs']).toHaveBeenCalled();
+			expect(chainConnectorPlugin['_submitCCU']).toHaveBeenCalled();
 			expect(chainConnectorPlugin['_cleanup']).toHaveBeenCalled();
 		});
 
@@ -803,7 +803,7 @@ describe('ChainConnectorPlugin', () => {
 				},
 			]);
 
-			expect((chainConnectorPlugin as any)['_submitCCUs']).toHaveBeenCalled();
+			expect((chainConnectorPlugin as any)['_submitCCU']).toHaveBeenCalled();
 			expect((chainConnectorPlugin as any)['_cleanup']).toHaveBeenCalled();
 		});
 	});
@@ -1032,29 +1032,6 @@ describe('ChainConnectorPlugin', () => {
 				jest
 					.spyOn(certificateGenerationUtil, 'getNextCertificateFromAggregateCommits')
 					.mockReturnValue(undefined);
-			});
-
-			it('should exit function without CCU params computation when no pending CCMs found for the height range', async () => {
-				jest.spyOn(chainConnectorPlugin['logger'], 'info');
-
-				chainConnectorPlugin['_lastCertificate'] = {
-					height: 0,
-					stateRoot: Buffer.alloc(1),
-					timestamp: Date.now(),
-					validatorsHash: cryptography.utils.hash(cryptography.utils.getRandomBytes(4)),
-				};
-				const result = await chainConnectorPlugin['_computeCCUParams'](
-					sampleBlockHeaders,
-					sampleAggregateCommits,
-					sampleValidatorsHashPreimage,
-					sampleCCMsWithEvents,
-				);
-
-				expect(result).toBeUndefined();
-
-				expect(chainConnectorPlugin['logger'].info).toHaveBeenCalledWith(
-					'There is no pending ccm for the last certificate so no CCU can be sent.',
-				);
 			});
 
 			it('should exit function without CCU params computation when no pending CCMs found after last ccm', async () => {
@@ -1613,11 +1590,8 @@ describe('ChainConnectorPlugin', () => {
 		});
 	});
 
-	describe('_submitCCUs', () => {
-		const ccuParams = [
-			cryptography.utils.getRandomBytes(100),
-			cryptography.utils.getRandomBytes(100),
-		];
+	describe('_submitCCU', () => {
+		const ccuParams = cryptography.utils.getRandomBytes(100);
 		beforeEach(async () => {
 			jest
 				.spyOn(apiClient, 'createIPCClient')
@@ -1636,7 +1610,7 @@ describe('ChainConnectorPlugin', () => {
 				.calledWith('auth_getAuthAccount', expect.anything())
 				.mockResolvedValue({ nonce: '3' });
 
-			await chainConnectorPlugin['_submitCCUs'](ccuParams);
+			await chainConnectorPlugin['_submitCCU'](ccuParams);
 		});
 
 		it('should get the chainID from the node', () => {
@@ -1653,7 +1627,7 @@ describe('ChainConnectorPlugin', () => {
 			expect(sendingChainAPIClientMock.invoke).toHaveBeenCalledWith('txpool_postTransaction', {
 				transaction: expect.any(String),
 			});
-			expect(sendingChainAPIClientMock.invoke).toHaveBeenCalledTimes(4);
+			expect(sendingChainAPIClientMock.invoke).toHaveBeenCalledTimes(3);
 		});
 	});
 });

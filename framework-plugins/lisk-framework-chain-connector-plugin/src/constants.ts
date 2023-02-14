@@ -15,7 +15,7 @@
 import { MAX_CCM_SIZE } from 'lisk-sdk';
 
 // LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#liveness-condition
-export const CCU_FREQUENCY = 864000; // Approximately 10 days which is 33% of 1 month liveness condition
+export const CCU_FREQUENCY = 1; // At each block
 export const EMPTY_BYTES = Buffer.alloc(0);
 export const MODULE_NAME_INTEROPERABILITY = 'interoperability';
 export const COMMAND_NAME_SUBMIT_MAINCHAIN_CCU = 'submitMainchainCrossChainUpdate';

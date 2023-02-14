@@ -25,7 +25,7 @@ export interface ChainConnectorPluginConfig {
 	encryptedPrivateKey: string;
 	ccuFee: string;
 	password: string;
-	isSaveCCM: boolean;
+	isSaveCCU: boolean;
 	maxCCUSize: number;
 }
 
