@@ -69,6 +69,14 @@ export class HighFeeGenerationStrategy {
 			if (!lowestNonceHighestFeeTrx) {
 				throw new Error('lowest nonce tx must exist');
 			}
+			// If transaction byte size can't fit in max transactions length
+			// then discard all transactions from that account as
+			// other transactions will be higher nonce
+			const trsByteSize = lowestNonceHighestFeeTrx.getBytes().length;
+			if (blockTransactionsSize + trsByteSize > this._constants.maxTransactionsSize) {
+				// End up filling the block
+				break;
+			}
 			const senderId = address.getAddressFromPublicKey(lowestNonceHighestFeeTrx.senderPublicKey);
 			// Try to process transaction
 			try {
@@ -98,15 +106,6 @@ export class HighFeeGenerationStrategy {
 				// from that account as other transactions will be higher nonce
 				transactionsBySender.delete(senderId);
 				continue;
-			}
-
-			// If transaction byte size can't fit in max transactions length
-			// then discard all transactions from that account as
-			// other transactions will be higher nonce
-			const trsByteSize = lowestNonceHighestFeeTrx.getBytes().length;
-			if (blockTransactionsSize + trsByteSize > this._constants.maxTransactionsSize) {
-				// End up filling the block
-				break;
 			}
 
 			// Select transaction as ready for forging
