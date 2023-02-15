@@ -40,10 +40,16 @@ describe('PoS and reward', () => {
 			options: {
 				databasePath,
 				modules: {
+					random: {
+						// seed reveal is always valid
+						maxLengthReveals: 1,
+					},
 					dynamicReward: {
+						// start reward from height 1
 						offset: 1,
 					},
 					pos: {
+						// commission can be changed to anything anytime
 						commissionIncreasePeriod: 0,
 						maxCommissionIncreaseRate: 10000,
 					},
@@ -587,6 +593,106 @@ describe('PoS and reward', () => {
 			).toBeLessThanOrEqual(BigInt(lockedReward.reward));
 			// Reward should be 5LSK * 0.5 (50% commission) * 0.666666 (66% of whole stake)
 			expect(Number(lockedReward.reward)).toBeGreaterThanOrEqual(166666666);
+		});
+
+		it('when validator generates a block and commission is 0, with 2 staker and self stake reward should be distributed', async () => {
+			const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+				address: genesis.address,
+			});
+			const newAccount = nodeUtils.createAccount();
+			const newAccount2 = nodeUtils.createAccount();
+			const fundingTx = createTransferTransaction({
+				nonce: BigInt(authData.nonce),
+				recipientAddress: newAccount.address,
+				amount: BigInt('1000000000000'),
+				chainID,
+				privateKey: Buffer.from(genesis.privateKey, 'hex'),
+				fee: BigInt(200000) + BigInt(defaultConfig.userAccountInitializationFee), // minFee not to give fee for generator
+			});
+			const fundingTx2 = createTransferTransaction({
+				nonce: BigInt(authData.nonce) + BigInt(1),
+				recipientAddress: newAccount2.address,
+				amount: BigInt('1000000000000'),
+				chainID,
+				privateKey: Buffer.from(genesis.privateKey, 'hex'),
+				fee: BigInt(200000) + BigInt(defaultConfig.userAccountInitializationFee), // minFee not to give fee for generator
+			});
+
+			newBlock = await processEnv.createBlock([fundingTx, fundingTx2]);
+			await processEnv.process(newBlock);
+
+			const nextValidator = await processEnv.getNextValidatorKeys(newBlock.header, 2);
+			const stakeTx = createValidatorStakeTransaction({
+				chainID,
+				nonce: BigInt(0),
+				privateKey: newAccount.privateKey,
+				stakes: [
+					{
+						validatorAddress: address.getAddressFromLisk32Address(nextValidator.address),
+						amount: BigInt('430000000000'),
+					},
+				],
+			});
+
+			const stakeTx2 = createValidatorStakeTransaction({
+				chainID,
+				nonce: BigInt(0),
+				privateKey: newAccount2.privateKey,
+				stakes: [
+					{
+						validatorAddress: address.getAddressFromLisk32Address(nextValidator.address),
+						amount: BigInt('430000000000'),
+					},
+				],
+			});
+
+			newBlock = await processEnv.createBlock([stakeTx, stakeTx2]);
+			await processEnv.process(newBlock);
+			await processEnv.processUntilHeight(newBlock.header.height + 103);
+
+			const selfStakeTx = createValidatorStakeTransaction({
+				chainID,
+				nonce: BigInt(0),
+				privateKey: Buffer.from(nextValidator.privateKey, 'hex'),
+				stakes: [
+					{
+						validatorAddress: address.getAddressFromLisk32Address(nextValidator.address),
+						amount: BigInt('100000000000'),
+					},
+				],
+			});
+			newBlock = await processEnv.createBlock([selfStakeTx]);
+			await processEnv.process(newBlock);
+
+			const [commandExecutionEvent] = await processEnv.getEvents(
+				newBlock.header.height,
+				undefined,
+				'commandExecutionResult',
+			);
+			expect(commandExecutionEvent.decodedData).toEqual({ success: true });
+
+			await processEnv.processUntilHeight(300);
+
+			const validator = await processEnv.invoke<ValidatorAccountJSON>('pos_getValidator', {
+				address: nextValidator.address,
+			});
+			expect(validator.sharingCoefficients).not.toBeEmpty();
+
+			const claimableRewards = await processEnv.invoke<{ rewards: { reward: string }[] }>(
+				'pos_getClaimableRewards',
+				{ address: address.getLisk32AddressFromAddress(newAccount.address) },
+			);
+			const claimableRewards2 = await processEnv.invoke<{ rewards: { reward: string }[] }>(
+				'pos_getClaimableRewards',
+				{ address: address.getLisk32AddressFromAddress(newAccount2.address) },
+			);
+			const lockedReward = await processEnv.invoke<{ reward: string }>('pos_getLockedReward', {
+				address: nextValidator.address,
+				tokenID: `${chainID.toString('hex')}00000000`,
+			});
+			expect(
+				BigInt(claimableRewards.rewards[0].reward) + BigInt(claimableRewards2.rewards[0].reward),
+			).toBeLessThanOrEqual(BigInt(lockedReward.reward));
 		});
 	});
 });

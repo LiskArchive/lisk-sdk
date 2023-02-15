@@ -234,7 +234,7 @@ export const getBlockProcessingEnv = async (
 	}));
 	await stateMachine.init(logger, appConfig.genesis, appConfig.modules);
 	const genesisBlock = await generateGenesisBlock(stateMachine, logger, {
-		timestamp: Math.floor(Date.now() / 1000) - 60 * 60,
+		timestamp: Math.floor(Date.now() / 1000) - 60 * 60 * 12,
 		assets: blockAssets,
 		chainID,
 	});
@@ -253,6 +253,7 @@ export const getBlockProcessingEnv = async (
 	const engine = new Engine(abiHandler, appConfig);
 	await engine['_init']();
 	engine['_logger'] = logger;
+	engine['_consensus']['_logger'] = logger;
 
 	await abiHandler.init({
 		chainID,
