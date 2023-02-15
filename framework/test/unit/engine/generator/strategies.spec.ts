@@ -185,7 +185,7 @@ describe('strategies', () => {
 				);
 			});
 
-			it('should not execute transaction if maximum size after maximum size is reached', async () => {
+			it('should not execute transaction if the transaction byte size exceeds max transaction byte size allowed for the block', async () => {
 				// Arrange
 				mockTxPool.getProcessableTransactions.mockReturnValue(
 					buildProcessableTxMock(maxTransactionsSizeCase.input.transactions, abi),
