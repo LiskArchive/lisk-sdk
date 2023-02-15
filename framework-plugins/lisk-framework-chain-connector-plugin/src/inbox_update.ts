@@ -17,15 +17,13 @@ import { CCMsFromEvents, LastSentCCMWithHeight } from './types';
 
 /**
  * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#messagewitnesshashes
- * @param sendingChainChannelInfo 
- * @param ccmsToBeIncluded 
- * @param lastSentCCMInfo 
- * @param maxCCUSize 
- * @returns Promise<{
-		crossChainMessages: Buffer[];
-		messageWitnessHashes: Buffer[];
-		lastCCMToBeSent: LastSentCCMWithHeight | undefined;
-	}>
+ * @description This method is to calculate messageWitnessHashes
+ * if there are any pending ccms as well as it filters out ccms based on last sent ccm nonce.
+ * Also, it checks whether a list of ccm can fit into a CCU based on maxCCUSize
+ * @param sendingChainChannelInfo Channel info of the sendingChain stored on receivingChain
+ * @param ccmsToBeIncluded Filtered list of CCMs that can be included for a given certificate
+ * @param lastSentCCMInfo Last send CCM info which is used to filter out ccms
+ * @param maxCCUSize Max size of CCU based of which number of ccms are selected
  */
 export const calculateMessageWitnesses = (
 	sendingChainChannelInfo: ChannelData,
@@ -57,7 +55,6 @@ export const calculateMessageWitnesses = (
 		lastCCMHeight = ccmFromEvents.height;
 	}
 
-	// Check max CCU size < MAX CCM size
 	const ccmsListOfList = groupCCMsBySize(potentialCCMs, maxCCUSize);
 
 	// Return empty inboxUpdate when there are no ccms
@@ -105,9 +102,6 @@ export const calculateMessageWitnesses = (
 /**
  * @description This will return lists with sub-lists, where total size of CCMs in each sub-list will be <= CCU_TOTAL_CCM_SIZE
  * Each sublist can contain CCMS from DIFFERENT heights
- * @param allCCMs
- * @param maxCCUSize
- * @returns CCMsg[][]
  */
 export const groupCCMsBySize = (allCCMs: CCMsg[], maxCCUSize: number): CCMsg[][] => {
 	const groupedCCMsBySize: CCMsg[][] = [];

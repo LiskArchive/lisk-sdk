@@ -48,6 +48,7 @@ import {
 	CCM_PROCESSED,
 	EMPTY_BYTES,
 	COMMAND_NAME_SUBMIT_MAINCHAIN_CCU,
+	CCU_TOTAL_CCM_SIZE,
 } from './constants';
 import { ChainConnectorStore, getDBInstance } from './db';
 import { Endpoint } from './endpoint';
@@ -110,6 +111,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		await super.init(context);
 		this.endpoint.init(this._sentCCUs);
 		this._ccuFrequency = this.config.ccuFrequency ?? CCU_FREQUENCY;
+		if (this.config.maxCCUSize > CCU_TOTAL_CCM_SIZE) {
+			throw new Error(`maxCCUSize cannot be greater than ${CCU_TOTAL_CCM_SIZE} bytes.`);
+		}
 		this._maxCCUSize = this.config.maxCCUSize;
 		this._saveCCM = this.config.isSaveCCU;
 		const { password, encryptedPrivateKey } = this.config;
@@ -174,7 +178,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 	/**
 	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md
-	 * This function handle TODO
+	 * This function is a handler for a new block. It saves all the relevant needed to be stored for each block that will be used to calculate CCU params
+	 * - Calls _computeCCUParams that calculates CCU params
+	 * - Saves or sends a CCU if created
+	 * - Updates the last certificate and does the cleanup
 	 */
 	private async _newBlockHandler(data?: Record<string, unknown>) {
 		const { blockHeader: receivedBlock } = data as unknown as Data;
@@ -368,6 +375,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		};
 	}
 
+	/**
+	 * This function saves block header, aggregateCommit, validatorsHashPreimage and crossChainMessages for a new block
+	 */
 	private async _saveDataOnNewBlock(newBlockHeader: BlockHeader) {
 		// Save block header if a new block header arrives
 		const blockHeaders = await this._chainConnectorStore.getBlockHeaders();
