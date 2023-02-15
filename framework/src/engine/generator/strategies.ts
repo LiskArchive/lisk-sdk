@@ -50,12 +50,12 @@ export class HighFeeGenerationStrategy {
 
 		// Get processable transactions from transaction pool
 		// transactions are sorted by lowest nonce per account
-		const transactionsBySender = this._pool.getProcessableTransactions();
+		const transactionsMappedBySender = this._pool.getProcessableTransactions();
 
 		// Initialize block size with 0
 		let blockTransactionsSize = 0;
 		const feePriorityHeap = new dataStructures.MaxHeap();
-		for (const transactions of transactionsBySender.values()) {
+		for (const transactions of transactionsMappedBySender.values()) {
 			const lowestNonceTrx = transactions[0];
 			feePriorityHeap.push(lowestNonceTrx.feePriority as bigint, lowestNonceTrx);
 		}
@@ -63,7 +63,7 @@ export class HighFeeGenerationStrategy {
 		const events = [];
 
 		// Loop till we have last account exhausted to pick transactions
-		while (transactionsBySender.size > 0) {
+		while (transactionsMappedBySender.size > 0) {
 			// Get the transaction with highest fee and lowest nonce
 			const lowestNonceHighestFeeTrx = feePriorityHeap.pop()?.value as Transaction | undefined;
 			if (!lowestNonceHighestFeeTrx) {
@@ -104,7 +104,7 @@ export class HighFeeGenerationStrategy {
 			} catch (error) {
 				// If transaction can't be processed then discard all transactions
 				// from that account as other transactions will be higher nonce
-				transactionsBySender.delete(senderId);
+				transactionsMappedBySender.delete(senderId);
 				continue;
 			}
 
@@ -117,19 +117,21 @@ export class HighFeeGenerationStrategy {
 			// Remove the selected transaction from the list
 			// as original array is readonly in future when we convert it to
 			// typescript the `splice` will not work so why used destruction
-			const [, ...choppedArray] = transactionsBySender.get(senderId) as PooledTransaction[];
-			transactionsBySender.set(senderId, choppedArray);
+			const [, ...choppedArray] = transactionsMappedBySender.get(senderId) as PooledTransaction[];
+			transactionsMappedBySender.set(senderId, choppedArray);
 
 			// If there is no transaction left in heap for that account
 			// then remove that account from map
-			const remainingTransactions = transactionsBySender.get(senderId);
+			const remainingTransactions = transactionsMappedBySender.get(senderId);
 			if (!remainingTransactions || remainingTransactions.length === 0) {
-				transactionsBySender.delete(senderId);
+				transactionsMappedBySender.delete(senderId);
 				continue;
 			}
 
 			// Pick next lowest transaction from same account and push to fee queue
-			const nextLowestNonceTransactions = transactionsBySender.get(senderId) as PooledTransaction[];
+			const nextLowestNonceTransactions = transactionsMappedBySender.get(
+				senderId,
+			) as PooledTransaction[];
 			feePriorityHeap.push(
 				nextLowestNonceTransactions[0].feePriority as bigint,
 				nextLowestNonceTransactions[0],
