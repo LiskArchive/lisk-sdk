@@ -16,6 +16,7 @@ import { EventCallback, Channel, RegisteredSchemas, NodeInfo, ModuleMetadata } f
 import { Node } from './node';
 import { Block } from './block';
 import { Transaction } from './transaction';
+import { Event } from './event';
 
 export class APIClient {
 	private readonly _channel: Channel;
@@ -25,6 +26,7 @@ export class APIClient {
 	private _node!: Node;
 	private _block!: Block;
 	private _transaction!: Transaction;
+	private _event!: Event;
 
 	public constructor(channel: Channel) {
 		this._channel = channel;
@@ -45,6 +47,7 @@ export class APIClient {
 			this._metadata,
 			this._nodeInfo,
 		);
+		this._event = new Event(this._channel, this._metadata);
 	}
 
 	public async disconnect(): Promise<void> {
@@ -80,5 +83,9 @@ export class APIClient {
 
 	public get transaction(): Transaction {
 		return this._transaction;
+	}
+
+	public get event(): Event {
+		return this._event;
 	}
 }

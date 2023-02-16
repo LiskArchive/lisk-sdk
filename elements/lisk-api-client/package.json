@@ -40,6 +40,7 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
+		"@liskhq/lisk-chain": "^0.4.0-alpha.12",
 		"@liskhq/lisk-codec": "^0.3.0-alpha.7",
 		"@liskhq/lisk-cryptography": "^4.0.0-alpha.6",
 		"@liskhq/lisk-transactions": "^6.0.0-alpha.10",
@@ -49,7 +50,6 @@
 		"zeromq": "6.0.0-beta.6"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-chain": "^0.4.0-alpha.12",
 		"@types/jest": "29.2.3",
 		"@types/jest-when": "3.5.2",
 		"@types/node": "16.18.3",

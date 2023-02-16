@@ -15,6 +15,7 @@
 
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
+import { standardEventDataSchema } from '@liskhq/lisk-chain';
 import {
 	Block,
 	BlockAsset,
@@ -26,8 +27,10 @@ import {
 	DecodedBlockAsset,
 	DecodedBlockAssetJSON,
 	DecodedBlockJSON,
+	DecodedEvent,
 	DecodedTransaction,
 	DecodedTransactionJSON,
+	Event,
 	ModuleMetadata,
 	RegisteredSchemas,
 	Transaction,
@@ -40,19 +43,30 @@ export const getTransactionParamsSchema = (
 ): Schema | undefined => {
 	const moduleMeta = metadata.find(meta => meta.name === transaction.module);
 	if (!moduleMeta) {
-		throw new Error(
-			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			`Module: ${transaction.module} is not registered.`,
-		);
+		throw new Error(`Module: ${transaction.module} is not registered.`);
 	}
 	const commandMeta = moduleMeta.commands.find(meta => meta.name === transaction.command);
 	if (!commandMeta) {
 		throw new Error(
-			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			`Module: ${transaction.module} CommandID: ${transaction.command} is not registered.`,
 		);
 	}
 	return commandMeta.params;
+};
+
+export const getEventDataSchema = (
+	event: { module: string; name: string },
+	metadata: ModuleMetadata[],
+): Schema | undefined => {
+	const moduleMetadata = metadata.find(meta => meta.name === event.module);
+	if (!moduleMetadata) {
+		throw new Error(`Module: ${event.module} is not registered.`);
+	}
+	const eventMetadata = moduleMetadata.events.find(meta => meta.name === event.name);
+	if (!eventMetadata) {
+		return standardEventDataSchema;
+	}
+	return eventMetadata.data;
 };
 
 export const getAssetDataSchema = (
@@ -85,6 +99,15 @@ export const decodeTransactionParams = <T>(
 	return {
 		...transaction,
 		params: paramsSchema ? codec.decode<T>(paramsSchema, transaction.params) : ({} as T),
+	};
+};
+
+export const decodeEventData = (event: Event, metadata: ModuleMetadata[]): DecodedEvent => {
+	const eventDataSchema = getEventDataSchema(event, metadata);
+
+	return {
+		...event,
+		data: eventDataSchema ? codec.decode(eventDataSchema, event.data) : {},
 	};
 };
 
