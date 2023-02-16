@@ -196,7 +196,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				await this._saveDataOnNewBlock(newBlockHeader);
 
 			// When all the relevant data is saved successfully then try to create CCU
-			if (this._ccuFrequency >= newBlockHeader.height - this._lastCertificate.height) {
+			if (this._ccuFrequency <= newBlockHeader.height - this._lastCertificate.height) {
 				const computedCCUParams = await this._computeCCUParams(
 					blockHeaders,
 					aggregateCommits,
@@ -277,7 +277,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		);
 		// Calculate messageWitnessHashes for pending CCMs if any
 		const sendingChainChannelInfoJSON = await this._receivingChainClient.invoke<ChannelDataJSON>(
-			'interoperability_getChannelData',
+			'interoperability_getChannel',
 			{ chainID: this._ownChainID.toString('hex') },
 		);
 		const sendingChainChannelInfoObj = channelDataJSONToObj(sendingChainChannelInfoJSON);
@@ -476,11 +476,11 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		const outboxKey = Buffer.concat([
 			Buffer.from(store?.key as string, 'hex'),
 			cryptography.utils.hash(this._ownChainID),
-		]);
+		]).toString('hex');
 		const proveResponseJSON = await this._sendingChainClient.invoke<ProveResponseJSON>(
 			'state_prove',
 			{
-				queryKey: [outboxKey],
+				queryKeys: [outboxKey],
 			},
 		);
 		const proveResponseObj = proveResponseJSONToObj(proveResponseJSON);

@@ -57,7 +57,7 @@ describe('state endpoint', () => {
 		describe('when request data is invalid', () => {
 			it('should reject with validation error', async () => {
 				await expect(
-					endpoint.stateProve({
+					endpoint.prove({
 						logger,
 						params: {
 							invalid: 'schema',
@@ -69,7 +69,7 @@ describe('state endpoint', () => {
 
 			it('should reject with error when queryKeys is not an array', async () => {
 				await expect(
-					endpoint.stateProve({
+					endpoint.prove({
 						logger,
 						params: {
 							queryKeys: queryKeys[0],
@@ -81,7 +81,7 @@ describe('state endpoint', () => {
 
 			it('should reject with error when queryKeys string is invalid', async () => {
 				await expect(
-					endpoint.stateProve({
+					endpoint.prove({
 						logger,
 						params: {
 							queryKeys: [Buffer.from('xxxx')],
@@ -106,14 +106,14 @@ describe('state endpoint', () => {
 						},
 					} as never,
 				});
-				await expect(
-					endpoint.stateProve({ logger, params: { queryKeys }, chainID }),
-				).rejects.toThrow('Last block header state root is empty.');
+				await expect(endpoint.prove({ logger, params: { queryKeys }, chainID })).rejects.toThrow(
+					'Last block header state root is empty.',
+				);
 			});
 
 			it('should call abi.prove with appropriate parameters if last block header state root is not empty', async () => {
 				const proveSpy = jest.spyOn(abi, 'prove');
-				await endpoint.stateProve({ logger, params: { queryKeys }, chainID });
+				await endpoint.prove({ logger, params: { queryKeys }, chainID });
 
 				expect(proveSpy).toHaveBeenCalledTimes(1);
 				expect(proveSpy).toHaveBeenCalledWith({

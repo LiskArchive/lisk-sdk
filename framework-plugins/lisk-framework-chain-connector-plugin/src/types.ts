@@ -99,17 +99,24 @@ export interface ProveResponseJSON {
 	proof: ProofJSON;
 }
 
-export interface ValidatorJSON {
-	address: string;
-	bftWeight: string;
-	generatorKey: string;
-	blsKey: string;
+export interface BFTValidator {
+	address: Buffer;
+	bftWeight: bigint;
+	blsKey: Buffer;
 }
 
 export interface BFTParametersJSON {
 	prevoteThreshold: string;
 	precommitThreshold: string;
 	certificateThreshold: string;
-	validators: ValidatorJSON[];
+	validators: BFTValidatorJSON[];
 	validatorsHash: string;
+}
+
+export interface BFTParameters {
+	prevoteThreshold: bigint;
+	precommitThreshold: bigint;
+	certificateThreshold: bigint;
+	validators: BFTValidator[];
+	validatorsHash: Buffer;
 }
