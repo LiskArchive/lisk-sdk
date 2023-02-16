@@ -23,7 +23,10 @@ import { fakeLogger } from '../../../utils/mocks';
 describe('state endpoint', () => {
 	const logger: Logger = fakeLogger;
 	const chainID = Buffer.from('00001111', 'hex');
-	const queryKeys = [utils.getRandomBytes(32), utils.getRandomBytes(32)];
+	const queryKeys = [
+		utils.getRandomBytes(32).toString('hex'),
+		utils.getRandomBytes(32).toString('hex'),
+	];
 
 	let endpoint: StateEndpoint;
 	let abi: ABI;
@@ -64,24 +67,24 @@ describe('state endpoint', () => {
 				).rejects.toThrow(LiskValidationError);
 			});
 
-			it('should reject with error when keys is not an array', async () => {
+			it('should reject with error when queryKeys is not an array', async () => {
 				await expect(
 					endpoint.stateProve({
 						logger,
 						params: {
-							keys: queryKeys[0],
+							queryKeys: queryKeys[0],
 						},
 						chainID,
 					}),
 				).rejects.toThrow();
 			});
 
-			it('should reject with error when keys bytes is invalid', async () => {
+			it('should reject with error when queryKeys string is invalid', async () => {
 				await expect(
 					endpoint.stateProve({
 						logger,
 						params: {
-							keys: ['xxxx'],
+							queryKeys: [Buffer.from('xxxx')],
 						},
 						chainID,
 					}),
@@ -104,18 +107,18 @@ describe('state endpoint', () => {
 					} as never,
 				});
 				await expect(
-					endpoint.stateProve({ logger, params: { keys: queryKeys }, chainID }),
+					endpoint.stateProve({ logger, params: { queryKeys }, chainID }),
 				).rejects.toThrow('Last block header state root is empty.');
 			});
 
 			it('should call abi.prove with appropriate parameters if last block header state root is not empty', async () => {
 				const proveSpy = jest.spyOn(abi, 'prove');
-				await endpoint.stateProve({ logger, params: { keys: queryKeys }, chainID });
+				await endpoint.stateProve({ logger, params: { queryKeys }, chainID });
 
 				expect(proveSpy).toHaveBeenCalledTimes(1);
 				expect(proveSpy).toHaveBeenCalledWith({
 					stateRoot: chain.lastBlock.header.stateRoot,
-					keys: queryKeys,
+					keys: queryKeys.map(q => Buffer.from(q, 'hex')),
 				});
 			});
 		});
