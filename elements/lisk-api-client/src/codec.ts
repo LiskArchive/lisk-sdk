@@ -27,10 +27,10 @@ import {
 	DecodedBlockAsset,
 	DecodedBlockAssetJSON,
 	DecodedBlockJSON,
-	DecodedEvent,
+	DecodedEventJSON,
 	DecodedTransaction,
 	DecodedTransactionJSON,
-	Event,
+	EventJSON,
 	ModuleMetadata,
 	RegisteredSchemas,
 	Transaction,
@@ -102,12 +102,12 @@ export const decodeTransactionParams = <T>(
 	};
 };
 
-export const decodeEventData = (event: Event, metadata: ModuleMetadata[]): DecodedEvent => {
+export const decodeEventData = (event: EventJSON, metadata: ModuleMetadata[]): DecodedEventJSON => {
 	const eventDataSchema = getEventDataSchema(event, metadata);
 
 	return {
 		...event,
-		data: eventDataSchema ? codec.decode(eventDataSchema, event.data) : {},
+		data: eventDataSchema ? codec.decodeJSON(eventDataSchema, Buffer.from(event.data, 'hex')) : {},
 	};
 };
 

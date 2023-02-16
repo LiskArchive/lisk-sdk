@@ -13,7 +13,7 @@
  *
  */
 import { decodeEventData } from './codec';
-import { Channel, ModuleMetadata, Event as IEvent, EventJSON, DecodedEvent } from './types';
+import { Channel, ModuleMetadata, EventJSON, DecodedEventJSON } from './types';
 
 export class Event {
 	private readonly _channel: Channel;
@@ -27,24 +27,18 @@ export class Event {
 	public async get(
 		height: number,
 		query: { module?: string; name?: string },
-	): Promise<DecodedEvent[]> {
-		const decodedEvents: DecodedEvent[] = [];
+	): Promise<DecodedEventJSON[]> {
+		const decodedEvents: DecodedEventJSON[] = [];
 
-		const eventsJSON = await this._channel.invoke<EventJSON[]>('chain_getEvents', { height });
+		const events = await this._channel.invoke<EventJSON[]>('chain_getEvents', { height });
 
-		for (const eventJSON of eventsJSON) {
+		for (const event of events) {
 			if (
 				(!query.module && !query.name) ||
-				(eventJSON.module === query.module && !query.name) ||
-				(eventJSON.name === query.name && !query.module) ||
-				(eventJSON.module === query.module && eventJSON.name === query.name)
+				(event.module === query.module && !query.name) ||
+				(event.name === query.name && !query.module) ||
+				(event.module === query.module && event.name === query.name)
 			) {
-				const event: IEvent = {
-					...eventJSON,
-					data: Buffer.from(eventJSON.data, 'hex'),
-					topics: eventJSON.topics.map(topic => Buffer.from(topic, 'hex')),
-				};
-
 				decodedEvents.push(decodeEventData(event, this._metadata));
 			}
 		}
