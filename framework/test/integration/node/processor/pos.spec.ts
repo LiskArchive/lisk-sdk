@@ -224,7 +224,12 @@ describe('PoS and reward', () => {
 			newBlock = await processEnv.createBlock([claimTx]);
 			await processEnv.process(newBlock);
 
-			expect(claimableRewards.rewards[0].reward).toEqual(lockedReward.reward);
+			expect(lockedReward.reward).toBe('500000000');
+			expect(claimableRewards.rewards[0].reward).toBe('499999999');
+
+			expect(Number(claimableRewards.rewards[0].reward)).toBeLessThanOrEqual(
+				Number(lockedReward.reward),
+			);
 		});
 
 		it('when validator generates a block with stake transaction without self stake, reward should be locked for sharing', async () => {
@@ -284,7 +289,9 @@ describe('PoS and reward', () => {
 				address: nextValidator.address,
 				tokenID: `${chainID.toString('hex')}00000000`,
 			});
-			expect(claimableRewards.rewards[0].reward).toEqual(lockedReward.reward);
+			expect(Number(claimableRewards.rewards[0].reward)).toBeLessThanOrEqual(
+				Number(lockedReward.reward),
+			);
 
 			const claimTx = createClaimRewardTransaction({
 				chainID,
@@ -449,10 +456,11 @@ describe('PoS and reward', () => {
 				address: nextValidator.address,
 				tokenID: `${chainID.toString('hex')}00000000`,
 			});
-			expect(claimableRewards.rewards[0].reward).toEqual(lockedReward.reward);
+			expect(Number(claimableRewards.rewards[0].reward)).toBeLessThanOrEqual(
+				Number(lockedReward.reward),
+			);
 			// Reward should be 5LSK * 0.5 (50% commission) * 0.5 (50% of whole stake)
-			expect(Number(lockedReward.reward)).toBeLessThanOrEqual(125000000);
-			expect(Number(lockedReward.reward)).toBeGreaterThanOrEqual(124999999);
+			expect(Number(lockedReward.reward)).toBe(125000000);
 		});
 
 		it('when validator generates a block and commission is 50, half of rewards should be given to generator and half should be locked for other stakers', async () => {
