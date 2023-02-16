@@ -13,7 +13,7 @@
  *
  */
 import { decodeEventData } from './codec';
-import { Channel, ModuleMetadata, EventJSON, DecodedEventJSON } from './types';
+import { Channel, ModuleMetadata, EventJSON, DecodedEventJSON, BlockHeaderJSON } from './types';
 
 export class Event {
 	private readonly _channel: Channel;
@@ -44,5 +44,18 @@ export class Event {
 		}
 
 		return decodedEvents;
+	}
+
+	public subscribe(
+		query: { module?: string; name?: string },
+		callback: (events: DecodedEventJSON[]) => void,
+	): void {
+		this._channel.subscribe('chain_newBlock', async event => {
+			const {
+				blockHeader: { height },
+			} = event as { blockHeader: BlockHeaderJSON };
+			const events = await this.get(height, query);
+			callback(events);
+		});
 	}
 }
