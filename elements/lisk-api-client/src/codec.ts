@@ -15,7 +15,6 @@
 
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { standardEventDataSchema } from '@liskhq/lisk-chain';
 import {
 	Block,
 	BlockAsset,
@@ -36,6 +35,20 @@ import {
 	Transaction,
 	TransactionJSON,
 } from './types';
+
+const EVENT_COMMAND_EXECUTION_RESULT = 'commandExecutionResult';
+
+const standardEventDataSchema = {
+	$id: '/block/event/standard',
+	type: 'object',
+	required: ['success'],
+	properties: {
+		success: {
+			dataType: 'boolean',
+			fieldNumber: 1,
+		},
+	},
+};
 
 export const getTransactionParamsSchema = (
 	transaction: { module: string; command: string },
@@ -64,7 +77,7 @@ export const getEventDataSchema = (
 	}
 	const eventMetadata = moduleMetadata.events.find(meta => meta.name === event.name);
 	if (!eventMetadata) {
-		return standardEventDataSchema;
+		return event.name === EVENT_COMMAND_EXECUTION_RESULT ? standardEventDataSchema : undefined;
 	}
 	return eventMetadata.data;
 };
