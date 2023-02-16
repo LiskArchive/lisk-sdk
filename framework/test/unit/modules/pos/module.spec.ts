@@ -1119,7 +1119,7 @@ describe('PoS module', () => {
 				expect(duplicateAddressList).toHaveLength(1);
 			});
 
-			it('should not select from init validators if there is not enough snapshot validators', async () => {
+			it('should select from init validators if there is not enough snapshot validators', async () => {
 				context = createBlockContext({
 					stateStore,
 				}).getBlockAfterExecuteContext();
@@ -1166,6 +1166,26 @@ describe('PoS module', () => {
 					notFromInitValidators.reduce((prev, curr) => prev + curr.weight, BigInt(0)) /
 					BigInt(notFromInitValidators.length);
 				expect(fromInitValidators.every(v => v.weight === average)).toBeTrue();
+			});
+
+			it('should cap the weight if activeValidators is more than capValue', async () => {
+				context = createBlockContext({
+					stateStore,
+				}).getBlockAfterExecuteContext();
+				// Forger selection relies on stake weight to be sorted
+				const validators: { address: Buffer; weight: bigint }[] = [
+					...scenario.testCases.input.validatorWeights.map(d => ({
+						address: Buffer.from(d.address, 'hex'),
+						weight: BigInt(d.validatorWeight),
+					})),
+				];
+				sortValidatorsByWeightDesc(validators);
+
+				await pos['_getActiveValidators'](context, validators, 6);
+				expect(pos['_capWeight']).toHaveBeenCalledWith(
+					expect.any(Array),
+					defaultConfig.maxBFTWeightCap,
+				);
 			});
 
 			it('should scale BFT weight', async () => {
@@ -1244,6 +1264,49 @@ describe('PoS module', () => {
 					expect.any(Array),
 					defaultConfig.maxBFTWeightCap,
 				);
+			});
+
+			it('should scale BFT weight', async () => {
+				context = createBlockContext({
+					stateStore,
+				}).getBlockAfterExecuteContext();
+				// Forger selection relies on stake weight to be sorted
+				const validators: { address: Buffer; weight: bigint }[] = [
+					...scenario.testCases.input.validatorWeights.map(d => ({
+						address: Buffer.from(d.address, 'hex'),
+						weight: BigInt(d.validatorWeight),
+					})),
+				];
+				sortValidatorsByWeightDesc(validators);
+
+				const result = await pos['_getActiveValidators'](context, validators, 104);
+				expect(pos['_capWeight']).toHaveBeenCalledWith(
+					expect.any(Array),
+					defaultConfig.maxBFTWeightCap,
+				);
+				const notFromInitValidators = result.filter(
+					v => initValidators.findIndex(address => v.address.equals(address)) === -1,
+				);
+				expect(notFromInitValidators.every(v => v.weight <= WEIGHT_SCALE_FACTOR)).toBeTrue();
+			});
+		});
+
+		describe('when current round is equal to initRounds + numberOfActiveValidators', () => {
+			it('should select active validators from the snapshot', async () => {
+				context = createBlockContext({
+					stateStore,
+				}).getBlockAfterExecuteContext();
+				// Forger selection relies on stake weight to be sorted
+				const validators: { address: Buffer; weight: bigint }[] = [
+					...scenario.testCases.input.validatorWeights.map(d => ({
+						address: Buffer.from(d.address, 'hex'),
+						weight: BigInt(d.validatorWeight),
+					})),
+				];
+				sortValidatorsByWeightDesc(validators);
+
+				const result = await pos['_getActiveValidators'](context, validators, 104);
+				expect(result).toHaveLength(defaultConfig.numberActiveValidators);
 			});
 		});
 	});
