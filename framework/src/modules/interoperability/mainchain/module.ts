@@ -28,6 +28,8 @@ import {
 	getChainValidatorsRequestSchema,
 	getChainValidatorsResponseSchema,
 	isChainIDAvailableRequestSchema,
+	getMinimumMessageFeeResponseSchema,
+	getMinimumMessageFeeRequestSchema,
 } from '../schemas';
 import {
 	chainDataSchema,
@@ -201,6 +203,11 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				{
 					name: this.endpoint.getRegistrationFee.name,
 					response: getRegistrationFeeSchema,
+				},
+				{
+					name: this.endpoint.getMinimumMessageFee.name,
+					request: getMinimumMessageFeeRequestSchema,
+					response: getMinimumMessageFeeResponseSchema,
 				},
 				{
 					name: this.endpoint.getChainValidators.name,
