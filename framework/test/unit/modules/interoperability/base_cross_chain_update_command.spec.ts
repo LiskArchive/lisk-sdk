@@ -29,7 +29,7 @@ import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	HASH_LENGTH,
-	MIN_RETURN_FEE,
+	MIN_RETURN_FEE_PER_BYTE_LSK,
 	MODULE_NAME_INTEROPERABILITY,
 	EMPTY_BYTES,
 	EmptyCCM,
@@ -1199,7 +1199,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: ccmStatus,
 					sendingChainID: defaultCCM.receivingChainID,
 					receivingChainID: defaultCCM.sendingChainID,
-					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
+					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE_PER_BYTE_LSK,
 				},
 			);
 		});
@@ -1235,7 +1235,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: ccmStatus,
 					sendingChainID: defaultCCM.receivingChainID,
 					receivingChainID: defaultCCM.sendingChainID,
-					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
+					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE_PER_BYTE_LSK,
 				},
 			);
 		});
@@ -1265,7 +1265,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: ccmStatus,
 					sendingChainID: defaultCCM.receivingChainID,
 					receivingChainID: defaultCCM.sendingChainID,
-					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
+					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE_PER_BYTE_LSK,
 				},
 			);
 		});
@@ -1306,7 +1306,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 						status: ccmStatus,
 						sendingChainID: defaultCCM.receivingChainID,
 						receivingChainID: defaultCCM.sendingChainID,
-						fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
+						fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE_PER_BYTE_LSK,
 					},
 				},
 			);

@@ -68,7 +68,6 @@ export const enum CCMStatusCode {
 	RECOVERED = 5,
 }
 
-export const MIN_RETURN_FEE = BigInt(1000);
 export const CROSS_CHAIN_COMMAND_REGISTRATION = 'crossChainCommandRegistration';
 export const CCM_SENT_STATUS_SUCCESS = 0;
 

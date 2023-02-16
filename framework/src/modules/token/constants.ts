@@ -25,7 +25,7 @@ export const CCM_STATUS_OK = 0;
 export const CCM_STATUS_TOKEN_NOT_SUPPORTED = 64;
 export const CCM_STATUS_PROTOCOL_VIOLATION = 65;
 
-export const MIN_RETURN_FEE = BigInt(1000);
+export const MIN_RETURN_FEE_PER_BYTE_LSK = BigInt(1000);
 
 export const CHAIN_ID_LENGTH = 4;
 export const HASH_LENGTH = 32;
