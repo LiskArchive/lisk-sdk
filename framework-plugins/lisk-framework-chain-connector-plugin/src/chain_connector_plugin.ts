@@ -119,7 +119,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		const { password, encryptedPrivateKey } = this.config;
 		if (password) {
 			const parsedEncryptedKey = encrypt.parseEncryptedMessage(encryptedPrivateKey);
-			this._privateKey = await encrypt.decryptMessageWithPassword(parsedEncryptedKey, password);
+			this._privateKey = Buffer.from(
+				await encrypt.decryptMessageWithPassword(parsedEncryptedKey, password, 'utf-8'),
+				'hex',
+			);
 		}
 	}
 
@@ -470,11 +473,14 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		);
 
 		// Calculate the inclusion proof of the outbox root on state root
-		const outboxKey = Buffer.concat([Buffer.from(store?.key as string, 'hex'), this._ownChainID]);
+		const outboxKey = Buffer.concat([
+			Buffer.from(store?.key as string, 'hex'),
+			cryptography.utils.hash(this._ownChainID),
+		]);
 		const proveResponseJSON = await this._sendingChainClient.invoke<ProveResponseJSON>(
 			'state_prove',
 			{
-				queries: [outboxKey],
+				queryKey: [outboxKey],
 			},
 		);
 		const proveResponseObj = proveResponseJSONToObj(proveResponseJSON);
@@ -497,7 +503,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		// Get validatorsData at new block header height
 		const bftParametersJSON = await this._sendingChainClient.invoke<BFTParametersJSON>(
 			'consensus_getBFTParameters',
-			{ height: newBlockHeader.height },
+			// When starting from genesis block
+			{ height: newBlockHeader.height === 0 ? 1 : newBlockHeader.height },
 		);
 
 		const bftParametersObj = bftParametersJSONToObj(bftParametersJSON);

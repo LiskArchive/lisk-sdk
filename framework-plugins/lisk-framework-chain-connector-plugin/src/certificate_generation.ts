@@ -69,13 +69,13 @@ export const checkChainOfTrust = (
 	}
 
 	// Certificate signers and certificate threshold for aggregateCommit are those authenticated by the last certificate
-	if (lastValidatorsHash === blockHeader.validatorsHash) {
+	if (lastValidatorsHash.equals(blockHeader.validatorsHash)) {
 		return true;
 	}
 
 	let aggregateBFTWeight = BigInt(0);
-	const validatorData = validatorsHashPreimage.find(
-		data => data.validatorsHash === blockHeader.validatorsHash,
+	const validatorData = validatorsHashPreimage.find(data =>
+		data.validatorsHash.equals(blockHeader.validatorsHash),
 	);
 	if (!validatorData) {
 		throw new Error('No validators data found for the given validatorsHash.');
@@ -119,8 +119,8 @@ export const getNextCertificateFromAggregateCommits = (
 		throw new Error('No block header found for the last certified height.');
 	}
 
-	const validatorDataAtLastCertifiedHeight = validatorsHashPreimage.find(
-		data => data.validatorsHash === blockHeaderAtLastCertifiedHeight?.validatorsHash,
+	const validatorDataAtLastCertifiedHeight = validatorsHashPreimage.find(data =>
+		data.validatorsHash.equals(blockHeaderAtLastCertifiedHeight?.validatorsHash),
 	);
 	if (!validatorDataAtLastCertifiedHeight) {
 		throw new Error('No validatorsHash preimage data present for the given validatorsHash.');
