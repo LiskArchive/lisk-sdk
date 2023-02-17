@@ -200,16 +200,12 @@ export class Generator {
 
 		const stateStore = new StateStore(this._blockchainDB);
 
-		// On node start, it re generates certificate from maxHeightCertified to maxHeightPrecommitted.
-		// in the _handleFinalizedHeightChanged, it loops between maxHeightCertified + 1 and  maxHeightPrecommitted.
-		// maxHeightCertified is skipped because it has been already certified.
+		// On node start, it re generates certificate from maxRemovalHeight to maxHeightPrecommitted.
+		// in the _handleFinalizedHeightChanged, it loops between maxRemovalHeight + 1 and  maxHeightPrecommitted.
 		// @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#initial-single-commit-creation
-		const { maxHeightPrecommitted, maxHeightCertified } = await this._bft.method.getBFTHeights(
-			stateStore,
-		);
-		await Promise.all(
-			this._handleFinalizedHeightChanged(maxHeightCertified, maxHeightPrecommitted),
-		);
+		const maxRemovalHeight = await this._consensus.getMaxRemovalHeight();
+		const { maxHeightPrecommitted } = await this._bft.method.getBFTHeights(stateStore);
+		await Promise.all(this._handleFinalizedHeightChanged(maxRemovalHeight, maxHeightPrecommitted));
 	}
 
 	public get endpoint(): Endpoint {
@@ -544,7 +540,8 @@ export class Generator {
 		});
 		const blockAssets = new BlockAssets(assets);
 
-		await this._bft.beforeTransactionsExecute(stateStore, blockHeader);
+		const maxRemovalHeight = await this._consensus.getMaxRemovalHeight();
+		await this._bft.beforeTransactionsExecute(stateStore, blockHeader, maxRemovalHeight);
 		const { events: beforeTxsEvents } = await this._abi.beforeTransactionsExecute({
 			contextID,
 			assets: blockAssets.getAll(),
