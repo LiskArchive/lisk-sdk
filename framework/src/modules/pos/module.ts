@@ -766,9 +766,10 @@ export class PoSModule extends BaseModule {
 				};
 			});
 			const averageWeight = weightSum / BigInt(numElectedValidators);
+			let addedInitValidators = 0;
 			for (const address of genesisData.initValidators) {
-				// when activeValidator is filled, don't add anymore
-				if (activeValidators.length === this._moduleConfig.numberActiveValidators) {
+				// only pick upto the numInitValidators
+				if (addedInitValidators === numInitValidators) {
 					break;
 				}
 				// it should not add duplicate address
@@ -776,6 +777,7 @@ export class PoSModule extends BaseModule {
 					continue;
 				}
 				activeValidators.push({ address, weight: averageWeight });
+				addedInitValidators += 1;
 			}
 			return this._capWeightIfNeeded(activeValidators);
 		}

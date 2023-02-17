@@ -1119,7 +1119,7 @@ describe('PoS module', () => {
 				expect(duplicateAddressList).toHaveLength(1);
 			});
 
-			it('should select from init validators if there is not enough snapshot validators', async () => {
+			it('should not select from init validators when there is not enough snapshot validators', async () => {
 				context = createBlockContext({
 					stateStore,
 				}).getBlockAfterExecuteContext();
@@ -1129,7 +1129,7 @@ describe('PoS module', () => {
 						address: Buffer.from(d.address, 'hex'),
 						weight: BigInt(d.validatorWeight),
 					})),
-				].slice(10);
+				].slice(scenario.testCases.input.validatorWeights.length - 1);
 				sortValidatorsByWeightDesc(validators);
 
 				// Overwrite the snapshot validator address to be the one in init validators
@@ -1138,7 +1138,7 @@ describe('PoS module', () => {
 
 				const result = await pos['_getActiveValidators'](context, validators, 6);
 
-				expect(result).toHaveLength(defaultConfig.numberActiveValidators);
+				expect(result).toHaveLength(defaultConfig.numberActiveValidators - 2);
 			});
 
 			it('should set averageWeight for initValidators', async () => {
