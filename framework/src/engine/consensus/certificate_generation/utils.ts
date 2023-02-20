@@ -18,7 +18,6 @@ import { codec } from '@liskhq/lisk-codec';
 import { Certificate, UnsignedCertificate } from './types';
 import { unsignedCertificateSchema } from './schema';
 import { MESSAGE_TAG_CERTIFICATE } from './constants';
-import { Validator } from '../types';
 
 /**
  * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#creation
@@ -79,7 +78,7 @@ export const verifySingleCertificateSignature = (
  * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#verifyaggregatecertificatesignature
  */
 export const verifyAggregateCertificateSignature = (
-	validators: Validator[],
+	validators: { blsKey: Buffer; bftWeight: bigint }[],
 	threshold: bigint,
 	chainID: Buffer,
 	certificate: Certificate,
@@ -103,7 +102,9 @@ export const verifyAggregateCertificateSignature = (
 	);
 };
 
-export const getSortedWeightsAndValidatorKeys = (validators: Validator[]) => {
+export const getSortedWeightsAndValidatorKeys = (
+	validators: { blsKey: Buffer; bftWeight: bigint }[],
+) => {
 	validators.sort((a, b) => a.blsKey.compare(b.blsKey));
 	const weights = [];
 	const validatorKeys = [];

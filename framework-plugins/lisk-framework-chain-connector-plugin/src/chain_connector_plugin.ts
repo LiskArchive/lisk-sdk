@@ -37,9 +37,13 @@ import {
 	ActiveValidatorsUpdate,
 	AggregateCommit,
 	ChannelDataJSON,
+	Certificate,
 } from 'lisk-sdk';
 import { calculateActiveValidatorsUpdate } from './active_validators_update';
-import { getNextCertificateFromAggregateCommits } from './certificate_generation';
+import {
+	getCertificateFromAggregateCommit,
+	getNextCertificateFromAggregateCommits,
+} from './certificate_generation';
 import {
 	CCU_FREQUENCY,
 	MODULE_NAME_INTEROPERABILITY,
@@ -109,7 +113,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(context: PluginInitContext): Promise<void> {
 		await super.init(context);
-		this.endpoint.init(this._sentCCUs);
 		this._ccuFrequency = this.config.ccuFrequency ?? CCU_FREQUENCY;
 		if (this.config.maxCCUSize > CCU_TOTAL_CCM_SIZE) {
 			throw new Error(`maxCCUSize cannot be greater than ${CCU_TOTAL_CCM_SIZE} bytes.`);
@@ -210,6 +213,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 					if (computedCCUParams.lastCCMToBeSent) {
 						await this._chainConnectorStore.setLastSentCCM(computedCCUParams.lastCCMToBeSent);
 					}
+				} else {
+					this.logger.info(
+						`No valid CCU can be generated for the height: ${newBlockHeader.height}`,
+					);
 				}
 				// If the transaction is successfully sent then update the last certfied height and do the cleanup
 				const chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
@@ -294,6 +301,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		 * If there is no new certificate then we calculate CCU params based on last certificate and pending ccms
 		 */
 		if (!newCertificate) {
+			if (this._lastCertificate.height === 0) {
+				return;
+			}
 			certificate = EMPTY_BYTES;
 			if (crossChainMessages.length === 0) {
 				this.logger.info(
@@ -352,10 +362,13 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			const ccmsDataAtCertificateHeight = ccmsToBeIncluded.find(
 				ccmsData => ccmsData.height === newCertificate.height,
 			);
-			outboxRootWitness = ccmsDataAtCertificateHeight?.inclusionProof;
-
-			if (messageWitnessHashesForCCMs.lastCCMToBeSent) {
-				await this._chainConnectorStore.setLastSentCCM(messageWitnessHashesForCCMs.lastCCMToBeSent);
+			if (crossChainMessages.length === 0) {
+				outboxRootWitness = {
+					bitmap: EMPTY_BYTES,
+					siblingHashes: [],
+				};
+			} else {
+				outboxRootWitness = ccmsDataAtCertificateHeight?.inclusionProof;
 			}
 
 			certificate = codec.encode(certificateSchema, newCertificate);
@@ -376,6 +389,45 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			} as CrossChainUpdateTransactionParams,
 			lastCCMToBeSent,
 		};
+	}
+
+	private async _findNextCertificate(
+		aggregateCommits: AggregateCommit[],
+		blockHeaders: BlockHeader[],
+		validatorsHashPreimage: ValidatorsData[],
+	): Promise<Certificate | undefined> {
+		// Last blockheader that was added recently
+		const newBlockHeader = blockHeaders.slice(-1)[0];
+
+		if (
+			this._lastCertificate.height === 0 &&
+			newBlockHeader.aggregateCommit.certificateSignature.equals(EMPTY_BYTES)
+		) {
+			return undefined;
+		}
+		// When we receive the first aggregateCommit in the chain we can create certificate directly
+		if (
+			this._lastCertificate.height === 0 &&
+			!newBlockHeader.aggregateCommit.certificateSignature.equals(EMPTY_BYTES)
+		) {
+			const firstCertificate = getCertificateFromAggregateCommit(
+				newBlockHeader.aggregateCommit,
+				blockHeaders,
+			);
+
+			return firstCertificate;
+		}
+		const bftHeights = await this._sendingChainClient.invoke<BFTHeights>('consensus_getBFTHeights');
+		// Calculate certificate
+		const certificate = getNextCertificateFromAggregateCommits(
+			blockHeaders,
+			aggregateCommits,
+			validatorsHashPreimage,
+			bftHeights,
+			this._lastCertificate,
+		);
+
+		return certificate;
 	}
 
 	/**
@@ -503,8 +555,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		// Get validatorsData at new block header height
 		const bftParametersJSON = await this._sendingChainClient.invoke<BFTParametersJSON>(
 			'consensus_getBFTParameters',
-			// When starting from genesis block
-			{ height: newBlockHeader.height === 0 ? 1 : newBlockHeader.height },
+			{ height: newBlockHeader.height },
 		);
 
 		const bftParametersObj = bftParametersJSONToObj(bftParametersJSON);
@@ -544,24 +595,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			validatorsHashPreimage,
 			crossChainMessages,
 		};
-	}
-
-	private async _findNextCertificate(
-		aggregateCommits: AggregateCommit[],
-		blockHeaders: BlockHeader[],
-		validatorsHashPreimage: ValidatorsData[],
-	) {
-		const bftHeights = await this._sendingChainClient.invoke<BFTHeights>('consensus_getBFTHeights');
-		// Calculate certificate
-		const certificate = getNextCertificateFromAggregateCommits(
-			blockHeaders,
-			aggregateCommits,
-			validatorsHashPreimage,
-			bftHeights,
-			this._lastCertificate,
-		);
-
-		return certificate;
 	}
 
 	private async _deleteBlockHandler(data?: Record<string, unknown>) {
