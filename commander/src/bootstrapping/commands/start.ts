@@ -39,7 +39,7 @@ export abstract class StartCommand extends Command {
 		'start',
 		'start --network devnet --data-path /path/to/data-dir --log debug',
 		'start --network devnet --api-ws',
-		'start --network devnet --api-ws --api-ws-port 8888',
+		'start --network devnet --api-ws --api-port 8888',
 		'start --network devnet --port 9000',
 		'start --network devnet --port 9002 --seed-peers 127.0.0.1:9001,127.0.0.1:9000',
 		'start --network testnet --overwrite-config',
