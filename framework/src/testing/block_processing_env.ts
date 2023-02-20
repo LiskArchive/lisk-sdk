@@ -17,10 +17,18 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
-import { Block, Chain, DataAccess, BlockHeader, Transaction, StateStore } from '@liskhq/lisk-chain';
+import {
+	Block,
+	Chain,
+	DataAccess,
+	BlockHeader,
+	Transaction,
+	StateStore,
+	standardEventDataSchema,
+} from '@liskhq/lisk-chain';
 import { Database, StateDB } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
-import { codec } from '@liskhq/lisk-codec';
+import { codec, Schema } from '@liskhq/lisk-codec';
 import { BaseModule } from '../modules';
 import { channelMock } from './mocks';
 import {
@@ -30,7 +38,7 @@ import {
 	Keys,
 } from './fixtures';
 import { removeDB } from './utils';
-import { ApplicationConfig, EndpointHandler, GenesisConfig } from '../types';
+import { ApplicationConfig, EndpointHandler, EventJSON, GenesisConfig } from '../types';
 import { Consensus } from '../engine/consensus';
 import { MethodContext, StateMachine } from '../state_machine';
 import { Engine } from '../engine';
@@ -43,7 +51,6 @@ import { ValidatorsModule } from '../modules/validators';
 import { TokenModule } from '../modules/token';
 import { AuthModule } from '../modules/auth';
 import { FeeModule } from '../modules/fee';
-import { RewardModule } from '../modules/reward';
 import { RandomModule } from '../modules/random';
 import { PoSModule } from '../modules/pos';
 import { Generator } from '../engine/generator';
@@ -53,9 +60,11 @@ import { systemDirs } from '../system_dirs';
 import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
 import { createLogger } from '../logger';
 import { MainchainInteroperabilityModule } from '../modules/interoperability';
+import { DynamicRewardModule } from '../modules/dynamic_rewards';
 
 type Options = {
 	genesis?: GenesisConfig;
+	modules?: Record<string, Record<string, unknown>>;
 	databasePath?: string;
 	passphrase?: string;
 };
@@ -66,6 +75,8 @@ interface BlockProcessingParams {
 	initValidators?: Buffer[];
 	logLevel?: string;
 }
+
+type DecodedEventJSON = EventJSON & { decodedData: Record<string, unknown> };
 
 export interface BlockProcessingEnv {
 	createBlock: (transactions?: Transaction[], timestamp?: number) => Promise<Block>;
@@ -79,8 +90,9 @@ export interface BlockProcessingEnv {
 	process: (block: Block) => Promise<void>;
 	processUntilHeight: (height: number) => Promise<void>;
 	getLastBlock: () => Block;
-	getNextValidatorKeys: (blockHeader: BlockHeader) => Promise<Keys>;
+	getNextValidatorKeys: (blockHeader: BlockHeader, distance?: number) => Promise<Keys>;
 	getDataAccess: () => DataAccess;
+	getEvents: (height: number, module?: string, name?: string) => Promise<DecodedEventJSON[]>;
 	getChainID: () => Buffer;
 	invoke: <T = void>(path: string, params?: Record<string, unknown>) => Promise<T>;
 	cleanup: (config: Options) => void;
@@ -111,11 +123,11 @@ const getAppConfig = (
 	return mergedConfig;
 };
 
-const getNextTimestamp = (engine: Engine, previousBlock: BlockHeader) => {
+const getNextTimestamp = (engine: Engine, previousBlock: BlockHeader, distance = 1) => {
 	const previousSlotNumber = engine['_consensus']['_bft'].method.getSlotNumber(
 		previousBlock.timestamp,
 	);
-	return engine['_consensus']['_bft'].method.getSlotTime(previousSlotNumber + 1);
+	return engine['_consensus']['_bft'].method.getSlotTime(previousSlotNumber + distance);
 };
 
 const createProcessableBlock = async (
@@ -163,6 +175,7 @@ export const getBlockProcessingEnv = async (
 					chainID: chainID.toString('hex'),
 			  }
 			: { chainID: chainID.toString('hex') },
+		params.options?.modules ?? {},
 	);
 
 	const systemDir = systemDirs(appConfig.system.dataPath);
@@ -175,7 +188,7 @@ export const getBlockProcessingEnv = async (
 	const authModule = new AuthModule();
 	const tokenModule = new TokenModule();
 	const feeModule = new FeeModule();
-	const rewardModule = new RewardModule();
+	const rewardModule = new DynamicRewardModule();
 	const randomModule = new RandomModule();
 	const posModule = new PoSModule();
 	const interopModule = new MainchainInteroperabilityModule();
@@ -194,7 +207,12 @@ export const getBlockProcessingEnv = async (
 	// resolve dependencies
 	tokenModule.addDependencies(interopModule.method, feeModule.method);
 	feeModule.addDependencies(tokenModule.method, interopModule.method);
-	rewardModule.addDependencies(tokenModule.method, randomModule.method);
+	rewardModule.addDependencies(
+		tokenModule.method,
+		randomModule.method,
+		validatorsModule.method,
+		posModule.method,
+	);
 	posModule.addDependencies(
 		randomModule.method,
 		validatorsModule.method,
@@ -216,7 +234,7 @@ export const getBlockProcessingEnv = async (
 	}));
 	await stateMachine.init(logger, appConfig.genesis, appConfig.modules);
 	const genesisBlock = await generateGenesisBlock(stateMachine, logger, {
-		timestamp: Math.floor(Date.now() / 1000) - 60 * 60,
+		timestamp: Math.floor(Date.now() / 1000) - 60 * 60 * 12,
 		assets: blockAssets,
 		chainID,
 	});
@@ -235,6 +253,7 @@ export const getBlockProcessingEnv = async (
 	const engine = new Engine(abiHandler, appConfig);
 	await engine['_init']();
 	engine['_logger'] = logger;
+	engine['_consensus']['_logger'] = logger;
 
 	await abiHandler.init({
 		chainID,
@@ -270,17 +289,62 @@ export const getBlockProcessingEnv = async (
 			}
 		},
 		getLastBlock: () => engine['_chain'].lastBlock,
-		getNextValidatorKeys: async (previousBlockHeader: BlockHeader): Promise<Keys> => {
+		getNextValidatorKeys: async (previousBlockHeader: BlockHeader, distance = 1): Promise<Keys> => {
 			const stateStore = new StateStore(engine['_blockchainDB']);
-			const nextTimestamp = getNextTimestamp(engine, previousBlockHeader);
+			const nextTimestamp = getNextTimestamp(engine, previousBlockHeader, distance);
 			const validator = await engine['_consensus']['_bft'].method.getGeneratorAtTimestamp(
 				stateStore,
-				previousBlockHeader.height + 1,
+				previousBlockHeader.height + distance,
 				nextTimestamp,
 			);
 			const keys = getKeysFromDefaultConfig(validator.address);
 
 			return keys;
+		},
+		getEvents: async (
+			height: number,
+			module?: string,
+			name?: string,
+		): Promise<DecodedEventJSON[]> => {
+			const handler = engine['_rpcServer']['_getHandler']('chain', 'getEvents');
+			if (!handler) {
+				throw new Error('invalid');
+			}
+			const resp = (await handler({
+				logger,
+				chainID: engine['_chain'].chainID,
+				params: { height },
+			})) as EventJSON[];
+			const eventMetadata = stateMachine['_modules']
+				.map(m => ({ module: m.name, ...m.metadata().events } as Record<string, unknown>))
+				.flat();
+			const results: DecodedEventJSON[] = [];
+			for (const event of resp) {
+				if (module && event.module !== module) {
+					continue;
+				}
+				if (name && event.name !== name) {
+					continue;
+				}
+				if (event.name === 'commandExecutionResult') {
+					results.push({
+						...event,
+						decodedData: codec.decodeJSON(standardEventDataSchema, Buffer.from(event.data, 'hex')),
+					});
+					continue;
+				}
+				const metadata = eventMetadata.find(
+					e => e.module === event.module && e.name === event.name,
+				);
+
+				results.push({
+					...event,
+					decodedData: metadata
+						? codec.decodeJSON(metadata.schema as Schema, Buffer.from(event.data, 'hex'))
+						: {},
+				});
+			}
+			return results;
 		},
 		async invoke<T = void>(func: string, input: Record<string, unknown> = {}): Promise<T> {
 			const [namespace, method] = func.split('_');
