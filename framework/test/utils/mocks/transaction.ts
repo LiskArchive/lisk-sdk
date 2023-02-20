@@ -28,6 +28,7 @@ import {
 	validatorRegistrationCommandParamsSchema,
 	reportMisbehaviorCommandParamsSchema,
 	stakeCommandParamsSchema,
+	changeCommissionCommandParamsSchema,
 } from '../../../src/modules/pos/schemas';
 import { TransferCommand } from '../../../src/modules/token/commands/transfer';
 import { transferParamsSchema } from '../../../src/modules/token/schemas';
@@ -121,6 +122,56 @@ export const createValidatorStakeTransaction = (input: {
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('100000000'),
 		params: encodedAsset,
+		signatures: [],
+	});
+	tx.signatures.push(
+		ed.signData(TAG_TRANSACTION, input.chainID, tx.getSigningBytes(), input.privateKey),
+	);
+	return tx;
+};
+
+export const createChangeCommissionTransaction = (input: {
+	nonce: bigint;
+	chainID: Buffer;
+	privateKey: Buffer;
+	newCommission: number;
+	fee?: bigint;
+}): Transaction => {
+	const encodedAsset = codec.encode(changeCommissionCommandParamsSchema, {
+		newCommission: input.newCommission,
+	});
+	const publicKey = ed.getPublicKeyFromPrivateKey(input.privateKey);
+
+	const tx = new Transaction({
+		module: 'pos',
+		command: 'changeCommission',
+		nonce: input.nonce,
+		senderPublicKey: publicKey,
+		fee: input.fee ?? BigInt('100000000'),
+		params: encodedAsset,
+		signatures: [],
+	});
+	tx.signatures.push(
+		ed.signData(TAG_TRANSACTION, input.chainID, tx.getSigningBytes(), input.privateKey),
+	);
+	return tx;
+};
+
+export const createClaimRewardTransaction = (input: {
+	nonce: bigint;
+	chainID: Buffer;
+	privateKey: Buffer;
+	fee?: bigint;
+}): Transaction => {
+	const publicKey = ed.getPublicKeyFromPrivateKey(input.privateKey);
+
+	const tx = new Transaction({
+		module: 'pos',
+		command: 'claimRewards',
+		nonce: input.nonce,
+		senderPublicKey: publicKey,
+		fee: input.fee ?? BigInt('100000000'),
+		params: Buffer.alloc(0),
 		signatures: [],
 	});
 	tx.signatures.push(
