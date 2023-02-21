@@ -51,7 +51,6 @@ import {
 	COMMISSION_INCREASE_PERIOD,
 	MAX_COMMISSION_INCREASE_RATE,
 	TOKEN_ID_LENGTH,
-	VALIDATOR_LIST_ROUND_OFFSET,
 	WEIGHT_SCALE_FACTOR,
 } from '../../../../src/modules/pos/constants';
 import { EligibleValidatorsStore } from '../../../../src/modules/pos/stores/eligible_validators';
@@ -356,7 +355,7 @@ describe('PoS module', () => {
 				await pos['_createStakeWeightSnapshot'](context);
 
 				const snapshotStore = pos.stores.get(SnapshotStore);
-				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11, 4));
+				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
 
 				expect(snapshot.validatorWeightSnapshot).toHaveLength(fixtures.length);
 			});
@@ -419,13 +418,13 @@ describe('PoS module', () => {
 					);
 				}
 				const snapshotStore = pos.stores.get(SnapshotStore);
-				await snapshotStore.set(context, utils.intToBuffer(9998, 4), {
-					validatorWeightSnapshot: [],
-				});
-				await snapshotStore.set(context, utils.intToBuffer(9999, 4), {
-					validatorWeightSnapshot: [],
-				});
 				await snapshotStore.set(context, utils.intToBuffer(10000, 4), {
+					validatorWeightSnapshot: [],
+				});
+				await snapshotStore.set(context, utils.intToBuffer(10001, 4), {
+					validatorWeightSnapshot: [],
+				});
+				await snapshotStore.set(context, utils.intToBuffer(10002, 4), {
 					validatorWeightSnapshot: [],
 				});
 
@@ -434,7 +433,7 @@ describe('PoS module', () => {
 
 			it('should create a snapshot which includes all validators who are not currently punished', async () => {
 				const snapshotStore = pos.stores.get(SnapshotStore);
-				const snapshot = await snapshotStore.get(context, utils.intToBuffer(10001, 4));
+				const snapshot = await snapshotStore.get(context, utils.intToBuffer(10001 + 2, 4));
 
 				// Remove punished validators
 				expect(snapshot.validatorWeightSnapshot).toHaveLength(fixtures.length - 1);
@@ -443,9 +442,9 @@ describe('PoS module', () => {
 			it('should remove the snapshot older than 3 rounds', async () => {
 				const snapshotStore = pos.stores.get(SnapshotStore);
 
-				await expect(snapshotStore.has(context, utils.intToBuffer(9998, 4))).resolves.toBeFalse();
-				await expect(snapshotStore.has(context, utils.intToBuffer(9999, 4))).resolves.toBeTrue();
-				await expect(snapshotStore.has(context, utils.intToBuffer(10000, 4))).resolves.toBeTrue();
+				await expect(snapshotStore.has(context, utils.intToBuffer(10000, 4))).resolves.toBeFalse();
+				await expect(snapshotStore.has(context, utils.intToBuffer(10001, 4))).resolves.toBeTrue();
+				await expect(snapshotStore.has(context, utils.intToBuffer(10002, 4))).resolves.toBeTrue();
 			});
 		});
 	});
@@ -494,13 +493,9 @@ describe('PoS module', () => {
 							initValidators: [],
 						});
 						const snapshotStore = pos.stores.get(SnapshotStore);
-						await snapshotStore.set(
-							context,
-							utils.intToBuffer(defaultRound - VALIDATOR_LIST_ROUND_OFFSET, 4),
-							{
-								validatorWeightSnapshot: validators,
-							},
-						);
+						await snapshotStore.set(context, utils.intToBuffer(defaultRound, 4), {
+							validatorWeightSnapshot: validators,
+						});
 						const randomMethod = {
 							getRandomBytes: jest
 								.fn()
@@ -577,7 +572,7 @@ describe('PoS module', () => {
 				const snapshotStore = pos.stores.get(SnapshotStore);
 				await snapshotStore.set(
 					blockContext.getBlockExecuteContext(),
-					utils.intToBuffer(defaultRound - VALIDATOR_LIST_ROUND_OFFSET, 4),
+					utils.intToBuffer(defaultRound, 4),
 					{
 						validatorWeightSnapshot: validators,
 					},

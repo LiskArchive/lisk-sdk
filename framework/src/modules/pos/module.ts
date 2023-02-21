@@ -577,7 +577,7 @@ export class PoSModule extends BaseModule {
 	private async _createStakeWeightSnapshot(context: BlockAfterExecuteContext): Promise<void> {
 		const snapshotHeight = context.header.height + 1;
 		const round = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
-		const snapshotRound = round.calcRound(snapshotHeight);
+		const snapshotRound = round.calcRound(snapshotHeight) + VALIDATOR_LIST_ROUND_OFFSET;
 		context.logger.debug(`Creating stake weight snapshot for round: ${snapshotRound.toString()}`);
 
 		const eligibleValidatorStore = this.stores.get(EligibleValidatorsStore);
@@ -619,10 +619,7 @@ export class PoSModule extends BaseModule {
 		context.logger.debug(nextRound, 'Updating validator list for');
 
 		const snapshotStore = this.stores.get(SnapshotStore);
-		const snapshot = await snapshotStore.get(
-			context,
-			utils.intToBuffer(nextRound - VALIDATOR_LIST_ROUND_OFFSET, 4),
-		);
+		const snapshot = await snapshotStore.get(context, utils.intToBuffer(nextRound, 4));
 		const genesisData = await this.stores.get(GenesisDataStore).get(context, EMPTY_KEY);
 
 		const methodContext = context.getMethodContext();
