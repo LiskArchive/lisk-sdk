@@ -135,6 +135,13 @@ export class PoSMethod extends BaseMethod {
 		await validatorStore.set(context, generatorAddress, validator);
 	}
 
+	public async roundNumber(methodContext: ImmutableMethodContext, height: number): Promise<number> {
+		const { height: genesisHeight } = await this.stores
+			.get(GenesisDataStore)
+			.get(methodContext, EMPTY_KEY);
+		return Math.ceil((height - genesisHeight) / this._config.roundLength);
+	}
+
 	public async isEndOfRound(
 		methodContext: ImmutableMethodContext,
 		height: number,

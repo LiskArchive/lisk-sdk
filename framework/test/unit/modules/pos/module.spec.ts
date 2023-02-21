@@ -329,9 +329,15 @@ describe('PoS module', () => {
 
 			beforeEach(async () => {
 				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+				const ctx = createTransientMethodContext({ stateStore });
+				const genesisDataStore = pos.stores.get(GenesisDataStore);
+				await genesisDataStore.set(ctx, EMPTY_KEY, {
+					height: 0,
+					initRounds: 3,
+					initValidators: [],
+				});
 				const eligibleValidatorStore = pos.stores.get(EligibleValidatorsStore);
 				for (const data of fixtures) {
-					const ctx = createTransientMethodContext({ stateStore });
 					await eligibleValidatorStore.set(
 						ctx,
 						eligibleValidatorStore.getKey(
@@ -373,6 +379,12 @@ describe('PoS module', () => {
 					stateStore,
 					header: createFakeBlockHeader({ height: 1030000 }),
 				}).getBlockAfterExecuteContext();
+				const genesisDataStore = pos.stores.get(GenesisDataStore);
+				await genesisDataStore.set(context, EMPTY_KEY, {
+					height: 0,
+					initRounds: 3,
+					initValidators: [],
+				});
 				const eligibleValidatorStore = pos.stores.get(EligibleValidatorsStore);
 				// set first validator banned
 				await eligibleValidatorStore.set(
@@ -691,6 +703,12 @@ describe('PoS module', () => {
 
 			previousTimestampStore = pos.stores.get(PreviousTimestampStore);
 			validatorStore = pos.stores.get(ValidatorStore);
+			const genesisDataStore = pos.stores.get(GenesisDataStore);
+			await genesisDataStore.set(createStoreGetter(stateStore), EMPTY_KEY, {
+				height: 0,
+				initRounds: 3,
+				initValidators: [],
+			});
 
 			for (let i = 0; i < 103; i += 1) {
 				await validatorStore.set(

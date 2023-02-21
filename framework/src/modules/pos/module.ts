@@ -65,7 +65,6 @@ import {
 	ModuleConfig,
 	FeeMethod,
 } from './types';
-import { Rounds } from './rounds';
 import {
 	equalUnlocking,
 	isUsername,
@@ -576,8 +575,8 @@ export class PoSModule extends BaseModule {
 
 	private async _createStakeWeightSnapshot(context: BlockAfterExecuteContext): Promise<void> {
 		const snapshotHeight = context.header.height + 1;
-		const round = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
-		const snapshotRound = round.calcRound(snapshotHeight) + VALIDATOR_LIST_ROUND_OFFSET;
+		const round = await this.method.roundNumber(context.getMethodContext(), snapshotHeight);
+		const snapshotRound = round + VALIDATOR_LIST_ROUND_OFFSET;
 		context.logger.debug(`Creating stake weight snapshot for round: ${snapshotRound.toString()}`);
 
 		const eligibleValidatorStore = this.stores.get(EligibleValidatorsStore);
@@ -613,9 +612,9 @@ export class PoSModule extends BaseModule {
 	}
 
 	private async _updateValidators(context: BlockAfterExecuteContext): Promise<void> {
-		const round = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
 		const { height } = context.header;
-		const nextRound = round.calcRound(height) + 1;
+		const round = await this.method.roundNumber(context.getMethodContext(), height);
+		const nextRound = round + 1;
 		context.logger.debug(nextRound, 'Updating validator list for');
 
 		const snapshotStore = this.stores.get(SnapshotStore);
@@ -689,11 +688,11 @@ export class PoSModule extends BaseModule {
 	private async _updateProductivity(context: BlockAfterExecuteContext, previousTimestamp: number) {
 		const { logger, header, getMethodContext } = context;
 
-		const round = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
-		logger.debug(round, 'Updating validators productivity for round');
+		const methodContext = getMethodContext();
+		const round = await this.method.roundNumber(methodContext, header.height);
+		logger.debug({ round }, 'Updating validators productivity for round');
 
 		const newHeight = header.height;
-		const methodContext = getMethodContext();
 		const missedBlocks = await this._validatorsMethod.getGeneratorsBetweenTimestamps(
 			methodContext,
 			previousTimestamp,
@@ -734,11 +733,13 @@ export class PoSModule extends BaseModule {
 
 	private async _didBootstrapRoundsEnd(context: BlockAfterExecuteContext) {
 		const { header } = context;
-		const rounds = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
 		const genesisDataStore = this.stores.get(GenesisDataStore);
 		const genesisData = await genesisDataStore.get(context, EMPTY_KEY);
 		const { initRounds } = genesisData;
-		const nextHeightRound = rounds.calcRound(header.height + 1);
+		const nextHeightRound = await this.method.roundNumber(
+			context.getMethodContext(),
+			header.height + 1,
+		);
 
 		return nextHeightRound > initRounds;
 	}
