@@ -72,6 +72,7 @@ describe('Sample Method', () => {
 		get: jest.fn(),
 		set: jest.fn(),
 		has: jest.fn(),
+		getOwnChainAccount: jest.fn(),
 	};
 	const terminatedStateAccountStoreMock = {
 		get: jest.fn(),
@@ -452,6 +453,25 @@ describe('Sample Method', () => {
 			jest.spyOn(chainAccountStoreMock, 'has').mockResolvedValue(true);
 
 			await sampleInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
+			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), newChainID);
+		});
+	});
+
+	describe('getMinReturnFeePerByte', () => {
+		const newChainID = Buffer.from('00000000', 'hex');
+
+		it('should assign chainID as mainchain ID if ownchain ID is not mainchain ID and chainAccount not found', async () => {
+			await sampleInteroperabilityMethod.getMinReturnFeePerByte(methodContext, newChainID);
+			expect(channelStoreMock.get).toHaveBeenCalledWith(
+				expect.anything(),
+				getMainchainID(newChainID),
+			);
+		});
+
+		it('should process with input chainID', async () => {
+			jest.spyOn(chainAccountStoreMock, 'has').mockResolvedValue(true);
+
+			await sampleInteroperabilityMethod.getMinReturnFeePerByte(methodContext, newChainID);
 			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), newChainID);
 		});
 	});

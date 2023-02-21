@@ -22,6 +22,7 @@ import {
 	EMPTY_HASH,
 	HASH_LENGTH,
 	MESSAGE_TAG_CERTIFICATE,
+	MIN_RETURN_FEE_PER_BYTE_LSK,
 } from '../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
 import * as utils from '../../../../src/modules/interoperability/utils';
@@ -102,6 +103,7 @@ describe('Base interoperability internal method', () => {
 		outbox: outboxTree,
 		partnerChainOutboxRoot: Buffer.alloc(0),
 		messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
 	};
 	const chainAccount = {
 		name: 'account1',
@@ -674,6 +676,7 @@ describe('Base interoperability internal method', () => {
 					size: 1,
 				},
 				partnerChainOutboxRoot: cryptoUtils.getRandomBytes(HASH_LENGTH),
+				minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
 			});
 
 			await mainchainInteroperabilityInternalMethod.updatePartnerChainOutboxRoot(

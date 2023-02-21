@@ -29,6 +29,7 @@ import {
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	EVENT_NAME_CCM_SEND_SUCCESS,
 	CCMStatusCode,
+	MIN_RETURN_FEE_PER_BYTE_LSK,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	ccmSchema,
@@ -484,6 +485,7 @@ describe('RegisterSidechainCommand', () => {
 				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				partnerChainOutboxRoot: EMPTY_HASH,
 				messageFeeTokenID: getMainchainTokenID(chainID),
+				minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
 			};
 
 			// Act
@@ -600,6 +602,7 @@ describe('RegisterSidechainCommand', () => {
 				name: transactionParams.name,
 				chainID: newChainID,
 				messageFeeTokenID: getMainchainTokenID(chainID),
+				minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
 			});
 			const ccm = {
 				nonce: BigInt(0),

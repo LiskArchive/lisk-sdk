@@ -33,6 +33,7 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 	EMPTY_BYTES,
 	EmptyCCM,
+	MIN_RETURN_FEE_PER_BYTE_LSK,
 } from '../../../../src/modules/interoperability/constants';
 import {
 	CCMProcessedCode,
@@ -181,6 +182,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			size: 18,
 		},
 		partnerChainOutboxRoot: utils.getRandomBytes(32),
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
 	};
 	const defaultCCM = {
 		nonce: BigInt(0),

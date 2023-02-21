@@ -20,6 +20,7 @@ import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	MODULE_NAME_INTEROPERABILITY,
 	HASH_LENGTH,
+	MIN_RETURN_FEE_PER_BYTE_LSK,
 } from '../../../../../src/modules/interoperability/constants';
 import { MainchainCCRegistrationCommand } from '../../../../../src/modules/interoperability/mainchain/cc_commands';
 import { registrationCCMParamsSchema } from '../../../../../src/modules/interoperability/schemas';
@@ -64,6 +65,7 @@ describe('BaseCCRegistrationCommand', () => {
 		chainID: mainchainID,
 		name: ownChainAccountMainchain.name,
 		messageFeeTokenID,
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
 	};
 	const encodedRegistrationParams = codec.encode(
 		registrationCCMParamsSchema,
@@ -83,6 +85,7 @@ describe('BaseCCRegistrationCommand', () => {
 			size: 1,
 		},
 		partnerChainOutboxRoot: Buffer.alloc(0),
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
 	};
 
 	const fakeChainAccount = {
