@@ -49,6 +49,7 @@ describe('FeeInteroperableMethod', () => {
 				lock: jest.fn(),
 				transfer: jest.fn(),
 				unlock: jest.fn(),
+				userAccountExists: jest.fn(),
 			},
 		);
 		context = createCrossChainMessageContext({

@@ -43,7 +43,7 @@ describe('RewardModule', () => {
 		rewardModule = new RewardModule();
 		await rewardModule.init({ genesisConfig, moduleConfig });
 		rewardModule.addDependencies(
-			{ mint } as any,
+			{ mint, userAccountExists: jest.fn() } as any,
 			{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
 		);
 	});

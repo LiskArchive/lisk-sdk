@@ -48,6 +48,7 @@ describe('FeeModule', () => {
 			unlock: jest.fn(),
 			transfer: jest.fn(),
 			getAvailableBalance: jest.fn(),
+			userAccountExists: jest.fn(),
 		} as any;
 		feeModule.addDependencies(tokenMethod, {} as any);
 		jest.spyOn(tokenMethod, 'getAvailableBalance').mockResolvedValue(BigInt(2000000000));

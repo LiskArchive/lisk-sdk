@@ -55,7 +55,7 @@ describe('RewardModuleMethod', () => {
 
 		it(`should getBlockReward return full reward for bracket ${nthBracket}`, async () => {
 			rewardModule.addDependencies(
-				{ mint: jest.fn() } as any,
+				{ mint: jest.fn(), userAccountExists: jest.fn() } as any,
 				{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
 			);
 			const blockHeader = createBlockHeaderWithDefaults({

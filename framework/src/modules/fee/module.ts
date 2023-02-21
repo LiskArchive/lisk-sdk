@@ -45,6 +45,7 @@ export class FeeModule extends BaseInteroperableModule {
 	public endpoint = new FeeEndpoint(this.stores, this.offchainStores);
 	private _tokenMethod!: TokenMethod;
 	private _minFeePerByte!: number;
+	private _maxBlockHeightZeroFeePerByte!: number;
 	private _tokenID!: Buffer;
 	private _feePoolAddress?: Buffer;
 
@@ -98,16 +99,30 @@ export class FeeModule extends BaseInteroperableModule {
 
 		this._tokenID = moduleConfig.feeTokenID;
 		this._minFeePerByte = moduleConfig.minFeePerByte;
+		this._maxBlockHeightZeroFeePerByte = moduleConfig.maxBlockHeightZeroFeePerByte;
 		this._feePoolAddress = moduleConfig.feePoolAddress;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
-		const { getMethodContext, transaction } = context;
-		const minFee = BigInt(this._minFeePerByte) * BigInt(transaction.getBytes().length);
+		const { getMethodContext, transaction, header } = context;
 
+		if (header.height < this._maxBlockHeightZeroFeePerByte) {
+			this._minFeePerByte = 0;
+		}
+
+		const minFee = BigInt(this._minFeePerByte) * BigInt(transaction.getBytes().length);
 		if (transaction.fee < minFee) {
 			throw new Error(`Insufficient transaction fee. Minimum required fee is ${minFee}.`);
+		}
+
+		const userSubstoreExists = await this._tokenMethod.userAccountExists(
+			getMethodContext(),
+			transaction.senderAddress,
+			this._tokenID,
+		);
+		if (!userSubstoreExists) {
+			throw new Error('Account not initialized.');
 		}
 
 		const balance = await this._tokenMethod.getAvailableBalance(
@@ -148,35 +163,56 @@ export class FeeModule extends BaseInteroperableModule {
 			this._tokenID,
 			transaction.fee,
 		);
-		const availableFee = getContextStoreBigInt(
-			context.contextStore,
-			CONTEXT_STORE_KEY_AVAILABLE_FEE,
+
+		let availableFee = getContextStoreBigInt(context.contextStore, CONTEXT_STORE_KEY_AVAILABLE_FEE);
+
+		const userSubstoreGeneratorExists = await this._tokenMethod.userAccountExists(
+			context,
+			header.generatorAddress,
+			this._tokenID,
 		);
-		const minFee = transaction.fee - availableFee;
-		if (this._feePoolAddress) {
+		if (userSubstoreGeneratorExists) {
 			await this._tokenMethod.transfer(
 				context.getMethodContext(),
 				transaction.senderAddress,
-				this._feePoolAddress,
+				header.generatorAddress,
 				this._tokenID,
-				minFee,
+				availableFee,
 			);
 		} else {
+			availableFee = BigInt(0);
+		}
+
+		let burnConsumedFee = true;
+		if (this._feePoolAddress) {
+			const userSubstoreFeePoolExists = await this._tokenMethod.userAccountExists(
+				context,
+				this._feePoolAddress,
+				this._tokenID,
+			);
+			if (userSubstoreFeePoolExists) {
+				burnConsumedFee = false;
+			}
+		}
+
+		const minFee = transaction.fee - availableFee;
+		if (burnConsumedFee) {
 			await this._tokenMethod.burn(
 				context.getMethodContext(),
 				transaction.senderAddress,
 				this._tokenID,
 				minFee,
 			);
+		} else {
+			await this._tokenMethod.transfer(
+				context.getMethodContext(),
+				transaction.senderAddress,
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+				this._feePoolAddress!,
+				this._tokenID,
+				minFee,
+			);
 		}
-
-		await this._tokenMethod.transfer(
-			context.getMethodContext(),
-			transaction.senderAddress,
-			header.generatorAddress,
-			this._tokenID,
-			availableFee,
-		);
 
 		this.events.get(GeneratorFeeProcessedEvent).log(context, {
 			burntAmount: transaction.fee - availableFee,

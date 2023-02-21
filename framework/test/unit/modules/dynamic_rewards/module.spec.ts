@@ -62,7 +62,7 @@ describe('DynamicRewardModule', () => {
 			genesisConfig: { chainID: '00000000' } as any,
 			moduleConfig: {},
 		});
-		tokenMethod = { mint: jest.fn() };
+		tokenMethod = { mint: jest.fn(), userAccountExists: jest.fn() };
 		randomMethod = { isSeedRevealValid: jest.fn().mockReturnValue(true) };
 		validatorsMethod = {
 			getGeneratorsBetweenTimestamps: jest.fn(),
