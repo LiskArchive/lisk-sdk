@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { HASH_LENGTH, BLS_SIGNATURE_LENGTH } from '../../../modules/interoperability/constants';
+
 /**
  * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#schema
  */
@@ -22,6 +24,8 @@ export const unsignedCertificateSchema = {
 	properties: {
 		blockID: {
 			dataType: 'bytes',
+			minLength: HASH_LENGTH,
+			maxLength: HASH_LENGTH,
 			fieldNumber: 1,
 		},
 		height: {
@@ -34,10 +38,14 @@ export const unsignedCertificateSchema = {
 		},
 		stateRoot: {
 			dataType: 'bytes',
+			minLength: HASH_LENGTH,
+			maxLength: HASH_LENGTH,
 			fieldNumber: 4,
 		},
 		validatorsHash: {
 			dataType: 'bytes',
+			minLength: HASH_LENGTH,
+			maxLength: HASH_LENGTH,
 			fieldNumber: 5,
 		},
 	},
@@ -58,6 +66,8 @@ export const certificateSchema = {
 		},
 		signature: {
 			dataType: 'bytes',
+			minLength: BLS_SIGNATURE_LENGTH,
+			maxLength: BLS_SIGNATURE_LENGTH,
 			fieldNumber: 7,
 		},
 	},
