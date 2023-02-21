@@ -13,6 +13,7 @@
  */
 
 import { HASH_LENGTH, BLS_SIGNATURE_LENGTH } from '../../../modules/interoperability/constants';
+import { ADDRESS_LENGTH } from '../../../modules/validators/constants';
 
 /**
  * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#schema
@@ -81,8 +82,8 @@ export const singleCommitSchema = {
 		blockID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
-			minLength: 32,
-			maxLength: 32,
+			minLength: HASH_LENGTH,
+			maxLength: HASH_LENGTH,
 		},
 		height: {
 			dataType: 'uint32',
@@ -90,14 +91,16 @@ export const singleCommitSchema = {
 		},
 		validatorAddress: {
 			dataType: 'bytes',
+			minLength: ADDRESS_LENGTH,
+			maxLength: ADDRESS_LENGTH,
 			fieldNumber: 3,
 			format: 'lisk32',
 		},
 		certificateSignature: {
 			dataType: 'bytes',
 			fieldNumber: 4,
-			minLength: 96,
-			maxLength: 96,
+			minLength: BLS_SIGNATURE_LENGTH,
+			maxLength: BLS_SIGNATURE_LENGTH,
 		},
 	},
 };
@@ -136,6 +139,8 @@ export const aggregateCommitSchema = {
 		},
 		certificateSignature: {
 			dataType: 'bytes',
+			minLength: BLS_SIGNATURE_LENGTH,
+			maxLength: BLS_SIGNATURE_LENGTH,
 			fieldNumber: 3,
 		},
 	},
