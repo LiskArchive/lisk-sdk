@@ -1114,6 +1114,17 @@ describe('PoS module', () => {
 				expect(fromInitValidators).toHaveLength(3 + defaultConfig.numberActiveValidators - 6);
 			});
 
+			it('should select init validators with weight 1 if there are no active validators selected', async () => {
+				context = createBlockContext({
+					stateStore,
+				}).getBlockAfterExecuteContext();
+
+				const result = await pos['_getActiveValidators'](context, [], 6);
+
+				expect(result).toHaveLength(defaultConfig.numberActiveValidators - 3);
+				expect(result.every(v => v.weight === BigInt(1))).toBeTrue();
+			});
+
 			it('should not select the same validator twice', async () => {
 				context = createBlockContext({
 					stateStore,

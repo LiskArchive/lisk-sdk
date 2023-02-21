@@ -575,7 +575,10 @@ export class PoSModule extends BaseModule {
 
 	private async _createStakeWeightSnapshot(context: BlockAfterExecuteContext): Promise<void> {
 		const snapshotHeight = context.header.height + 1;
-		const round = await this.method.roundNumber(context.getMethodContext(), snapshotHeight);
+		const round = await this.method.getRoundNumberFromHeight(
+			context.getMethodContext(),
+			snapshotHeight,
+		);
 		const snapshotRound = round + VALIDATOR_LIST_ROUND_OFFSET;
 		context.logger.debug(`Creating stake weight snapshot for round: ${snapshotRound.toString()}`);
 
@@ -613,7 +616,7 @@ export class PoSModule extends BaseModule {
 
 	private async _updateValidators(context: BlockAfterExecuteContext): Promise<void> {
 		const { height } = context.header;
-		const round = await this.method.roundNumber(context.getMethodContext(), height);
+		const round = await this.method.getRoundNumberFromHeight(context.getMethodContext(), height);
 		const nextRound = round + 1;
 		context.logger.debug(nextRound, 'Updating validator list for');
 
@@ -689,7 +692,7 @@ export class PoSModule extends BaseModule {
 		const { logger, header, getMethodContext } = context;
 
 		const methodContext = getMethodContext();
-		const round = await this.method.roundNumber(methodContext, header.height);
+		const round = await this.method.getRoundNumberFromHeight(methodContext, header.height);
 		logger.debug({ round }, 'Updating validators productivity for round');
 
 		const newHeight = header.height;
@@ -736,7 +739,7 @@ export class PoSModule extends BaseModule {
 		const genesisDataStore = this.stores.get(GenesisDataStore);
 		const genesisData = await genesisDataStore.get(context, EMPTY_KEY);
 		const { initRounds } = genesisData;
-		const nextHeightRound = await this.method.roundNumber(
+		const nextHeightRound = await this.method.getRoundNumberFromHeight(
 			context.getMethodContext(),
 			header.height + 1,
 		);
@@ -766,6 +769,14 @@ export class PoSModule extends BaseModule {
 					weight: scaledWeight,
 				};
 			});
+			// when active validators is zero, we don't take average and assign weight = 1 to avoid every validator having 0 weight.
+			if (activeValidators.length === 0) {
+				// when weights for all validators are 1, no need to cap the weight
+				return genesisData.initValidators.slice(0, numInitValidators).map(v => ({
+					address: v,
+					weight: BigInt(1),
+				}));
+			}
 			const averageWeight = weightSum / BigInt(numElectedValidators);
 			let addedInitValidators = 0;
 			for (const address of genesisData.initValidators) {

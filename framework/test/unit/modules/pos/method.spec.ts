@@ -29,6 +29,7 @@ import {
 	MAX_COMMISSION_INCREASE_RATE,
 	MAX_NUMBER_BYTES_Q96,
 } from '../../../../src/modules/pos/constants';
+import { EligibleValidatorsStore } from '../../../../src/modules/pos/stores/eligible_validators';
 
 describe('PoSMethod', () => {
 	const pos = new PoSModule();
@@ -241,6 +242,7 @@ describe('PoSMethod', () => {
 			await validatorSubStore.set(createStoreGetter(stateStore), address3, validatorData3);
 			jest.spyOn(tokenMethod, 'lock');
 			jest.spyOn(validatorSubStore, 'set');
+			pos.stores.get(EligibleValidatorsStore).init(defaultConfig);
 		});
 
 		it('should return if totalStakeReceived is 0', async () => {
@@ -349,7 +351,12 @@ describe('PoSMethod', () => {
 
 	describe('unbanValidator', () => {
 		it('should unban validator if the validator is banned', async () => {
-			const bannedValidator = { ...validatorData, isBanned: true };
+			const bannedValidator = {
+				...validatorData,
+				isBanned: true,
+				totalStake: BigInt(100000000000),
+				selfStake: BigInt(100000000000),
+			};
 			await validatorSubStore.set(createStoreGetter(stateStore), address, bannedValidator);
 
 			await expect(posMethod.unbanValidator(methodContext, address)).resolves.toBeUndefined();
@@ -357,16 +364,37 @@ describe('PoSMethod', () => {
 			const validatorDataReturned = await validatorSubStore.get(methodContext, address);
 
 			expect(validatorDataReturned.isBanned).toBeFalse();
+
+			const eligibleValidators = await pos.stores
+				.get(EligibleValidatorsStore)
+				.getAll(methodContext);
+			expect(eligibleValidators.find(v => v.key.slice(8).equals(address))).toBeDefined();
 		});
 
-		it('should resolve without changing status if the validator is already not banned', async () => {
+		it('should reject changing status if the validator does not exist', async () => {
+			await expect(posMethod.unbanValidator(methodContext, address)).rejects.toThrow(
+				'does not exist',
+			);
+		});
+
+		it('should reject changing status if the validator is already not banned', async () => {
 			await validatorSubStore.set(createStoreGetter(stateStore), address, validatorData);
 
-			await expect(posMethod.unbanValidator(methodContext, address)).resolves.toBeUndefined();
+			await expect(posMethod.unbanValidator(methodContext, address)).rejects.toThrow(
+				'The specified validator is not banned',
+			);
+		});
 
-			const validatorDataReturned = await validatorSubStore.get(methodContext, address);
+		it('should reject if the validator is reported misbehavior more than REPORT_MISBEHAVIOR_LIMIT_BANNED', async () => {
+			await validatorSubStore.set(createStoreGetter(stateStore), address, {
+				...validatorData,
+				isBanned: true,
+				reportMisbehaviorHeights: [1, 2, 3, 4, 5],
+			});
 
-			expect(validatorDataReturned.isBanned).toBeFalse();
+			await expect(posMethod.unbanValidator(methodContext, address)).rejects.toThrow(
+				'Validator exceeded the maximum allowed number of misbehaviors and is permanently banned',
+			);
 		});
 	});
 });
