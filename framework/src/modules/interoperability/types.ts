@@ -246,6 +246,7 @@ export interface ChannelData {
 	outbox: Outbox;
 	partnerChainOutboxRoot: Buffer;
 	messageFeeTokenID: Buffer;
+	minReturnFeePerByte: bigint;
 }
 
 export interface ChannelDataJSON {
@@ -398,6 +399,7 @@ export interface CCMRegistrationParams {
 	name: string;
 	chainID: Buffer;
 	messageFeeTokenID: Buffer;
+	minReturnFeePerByte: bigint;
 }
 
 export interface TokenMethod {
