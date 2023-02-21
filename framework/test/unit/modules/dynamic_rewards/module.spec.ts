@@ -259,6 +259,7 @@ describe('DynamicRewardModule', () => {
 
 		beforeEach(async () => {
 			jest.spyOn(rewardModule.events.get(RewardMintedEvent), 'log');
+			jest.spyOn(tokenMethod, 'userAccountExists').mockResolvedValue(true);
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			const blockHeader = createBlockHeaderWithDefaults({ height: defaultConfig.offset });
 			blockExecuteContext = createBlockContext({

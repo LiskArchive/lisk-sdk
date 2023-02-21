@@ -37,15 +37,20 @@ describe('RewardModule', () => {
 	};
 
 	let rewardModule: RewardModule;
+	let tokenMethod: any;
 	let mint: any;
 	beforeEach(async () => {
 		mint = jest.fn();
 		rewardModule = new RewardModule();
 		await rewardModule.init({ genesisConfig, moduleConfig });
-		rewardModule.addDependencies(
-			{ mint, userAccountExists: jest.fn() } as any,
-			{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
-		);
+		tokenMethod = {
+			mint,
+			userAccountExists: jest.fn(),
+		} as any;
+		rewardModule.addDependencies(tokenMethod, {
+			isSeedRevealValid: jest.fn().mockReturnValue(true),
+		} as any);
+		jest.spyOn(tokenMethod, 'userAccountExists').mockResolvedValue(true);
 	});
 
 	describe('init', () => {

@@ -52,6 +52,7 @@ describe('FeeModule', () => {
 		} as any;
 		feeModule.addDependencies(tokenMethod, {} as any);
 		jest.spyOn(tokenMethod, 'getAvailableBalance').mockResolvedValue(BigInt(2000000000));
+		jest.spyOn(tokenMethod, 'userAccountExists').mockResolvedValue(true);
 	});
 
 	describe('init', () => {
@@ -64,6 +65,10 @@ describe('FeeModule', () => {
 
 		it('should set the minFeePerByte property', () => {
 			expect(feeModule['_minFeePerByte']).toBe(1000);
+		});
+
+		it('should set the maxBlockHeightZeroFeePerByte property', () => {
+			expect(feeModule['_maxBlockHeightZeroFeePerByte']).toBe(0);
 		});
 
 		it('should call method and endpoint init', async () => {
@@ -89,6 +94,17 @@ describe('FeeModule', () => {
 			params: utils.getRandomBytes(32),
 		});
 
+		it('should set min fee per byte to zero if block height is less than maxBlockHeightZeroFeePerByte', async () => {
+			feeModule = new FeeModule();
+			await feeModule.init({ genesisConfig, moduleConfig: { maxBlockHeightZeroFeePerByte: 76 } });
+			feeModule.addDependencies(tokenMethod, {} as any);
+			const context = createTransactionContext({ transaction });
+			const transactionVerifyContext = context.createTransactionVerifyContext();
+			await feeModule.verifyTransaction(transactionVerifyContext);
+
+			expect(feeModule['_minFeePerByte']).toBe(0);
+		});
+
 		it('should validate transaction with sufficient min fee', async () => {
 			const context = createTransactionContext({ transaction });
 			const transactionVerifyContext = context.createTransactionVerifyContext();
@@ -110,8 +126,10 @@ describe('FeeModule', () => {
 
 		it('should invalidate transaction with insufficient min fee', async () => {
 			const tx = new Transaction({ ...transaction, fee: BigInt(0) });
+			const context = createTransactionContext({ transaction: tx });
+			const transactionVerifyContext = context.createTransactionVerifyContext();
 			const expectedMinFee = BigInt(feeModule['_minFeePerByte'] * tx.getBytes().length);
-			await expect(feeModule.verifyTransaction({ transaction: tx } as any)).rejects.toThrow(
+			await expect(feeModule.verifyTransaction(transactionVerifyContext)).rejects.toThrow(
 				`Insufficient transaction fee. Minimum required fee is ${expectedMinFee}.`,
 			);
 		});
@@ -131,6 +149,15 @@ describe('FeeModule', () => {
 			const transactionVerifyContext = context.createTransactionVerifyContext();
 			await expect(feeModule.verifyTransaction(transactionVerifyContext)).rejects.toThrow(
 				`Insufficient balance.`,
+			);
+		});
+
+		it('should invalidate transaction if the sender account is not initialized for the token id', async () => {
+			jest.spyOn(tokenMethod, 'userAccountExists').mockResolvedValueOnce(false);
+			const context = createTransactionContext({ transaction });
+			const transactionVerifyContext = context.createTransactionVerifyContext();
+			await expect(feeModule.verifyTransaction(transactionVerifyContext)).rejects.toThrow(
+				'Account not initialized.',
 			);
 		});
 	});
