@@ -128,7 +128,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		const channel = await channelSubstore.get(context, chainID);
 
 		const outboxRootSubstore = this.stores.get(OutboxRootStore);
-		await outboxRootSubstore.set(context, chainID, channel.outbox);
+		await outboxRootSubstore.set(context, chainID, { root: channel.outbox.root });
 	}
 
 	public async createTerminatedOutboxAccount(
@@ -414,12 +414,6 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		const chainValidators = await this.stores
 			.get(ChainValidatorsStore)
 			.get(context, params.sendingChainID);
-		const blsKeys = [];
-		const blsWeights = [];
-		for (const validator of chainValidators.activeValidators) {
-			blsKeys.push(validator.blsKey);
-			blsWeights.push(validator.bftWeight);
-		}
 
 		const verifySignature = verifyAggregateCertificateSignature(
 			chainValidators.activeValidators,

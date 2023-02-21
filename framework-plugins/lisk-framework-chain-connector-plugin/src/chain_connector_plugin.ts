@@ -102,6 +102,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _receivingChainClient!: apiClient.APIClient;
 	private _sendingChainClient!: apiClient.APIClient;
 	private _ownChainID!: Buffer;
+	private _receivingChainID!: Buffer;
 	private _isReceivingChainIsMainchain!: boolean;
 	private readonly _sentCCUs: SentCCUs = [];
 	private _privateKey!: Buffer;
@@ -149,6 +150,14 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		this._ownChainID = Buffer.from(
 			(
 				await this._sendingChainClient.invoke<OwnChainAccountJSON>(
+					'interoperability_getOwnChainAccount',
+				)
+			).chainID,
+			'hex',
+		);
+		this._receivingChainID = Buffer.from(
+			(
+				await this._receivingChainClient.invoke<OwnChainAccountJSON>(
 					'interoperability_getOwnChainAccount',
 				)
 			).chainID,
@@ -209,7 +218,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 				if (computedCCUParams) {
 					await this._submitCCU(codec.encode(ccuParamsSchema, computedCCUParams.ccuParams));
-					// If CCU sent was successfull then save the lastSentCCM
+					// If CCU sent was successful then save the lastSentCCM
 					if (computedCCUParams.lastCCMToBeSent) {
 						await this._chainConnectorStore.setLastSentCCM(computedCCUParams.lastCCMToBeSent);
 					}
@@ -527,15 +536,12 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		// Calculate the inclusion proof of the outbox root on state root
 		const outboxKey = Buffer.concat([
 			Buffer.from(store?.key as string, 'hex'),
-			cryptography.utils.hash(this._ownChainID),
+			cryptography.utils.hash(this._receivingChainID),
 		]).toString('hex');
-		const proveResponseJSON = await this._sendingChainClient.invoke<ProveResponseJSON>(
-			'state_prove',
-			{
-				queryKeys: [outboxKey],
-			},
-		);
-		const proveResponseObj = proveResponseJSONToObj(proveResponseJSON);
+		const proofJSON = await this._sendingChainClient.invoke<ProveResponseJSON>('state_prove', {
+			queryKeys: [outboxKey],
+		});
+		const proveResponseObj = proveResponseJSONToObj(proofJSON);
 		const inclusionProofOutboxRoot: OutboxRootWitness = {
 			bitmap: proveResponseObj.proof.queries[0].bitmap,
 			siblingHashes: proveResponseObj.proof.siblingHashes,
@@ -632,10 +638,11 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private async _cleanup() {
 		// Delete CCMs
 		const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
-		const index = crossChainMessages.findIndex(ccm => ccm.height === this._lastCertificate.height);
-		crossChainMessages.splice(index, 1);
+		const ccmsAfterLastCertificate = crossChainMessages.filter(
+			ccm => ccm.height >= this._lastCertificate.height,
+		);
 
-		await this._chainConnectorStore.setCrossChainMessages(crossChainMessages);
+		await this._chainConnectorStore.setCrossChainMessages(ccmsAfterLastCertificate);
 
 		// Delete blockHeaders
 		const blockHeaders = await this._chainConnectorStore.getBlockHeaders();
@@ -664,37 +671,39 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	}
 
 	private async _submitCCU(ccuParams: Buffer): Promise<void> {
-		const activeAPIClient = this._receivingChainClient;
-		const activePrivateKey = this._privateKey;
-		const activePublicKey = ed.getPublicKeyFromPrivateKey(activePrivateKey);
-		const activeTargetCommand = this._isReceivingChainIsMainchain
+		const relayerPrivateKey = this._privateKey;
+		const relayerPublicKey = ed.getPublicKeyFromPrivateKey(relayerPrivateKey);
+		const targetCommand = this._isReceivingChainIsMainchain
 			? COMMAND_NAME_SUBMIT_MAINCHAIN_CCU
 			: COMMAND_NAME_SUBMIT_SIDECHAIN_CCU;
 
-		const { nonce } = await activeAPIClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
-			address: address.getLisk32AddressFromPublicKey(activePublicKey),
-		});
+		const { nonce } = await this._receivingChainClient.invoke<{ nonce: string }>(
+			'auth_getAuthAccount',
+			{
+				address: address.getLisk32AddressFromPublicKey(relayerPublicKey),
+			},
+		);
 
-		const { chainID: chainIDStr } = await activeAPIClient.invoke<{ chainID: string }>(
+		const { chainID: chainIDStr } = await this._receivingChainClient.invoke<{ chainID: string }>(
 			'system_getNodeInfo',
 		);
 		const chainID = Buffer.from(chainIDStr, 'hex');
 
 		const tx = new Transaction({
 			module: MODULE_NAME_INTEROPERABILITY,
-			command: activeTargetCommand,
+			command: targetCommand,
 			nonce: BigInt(nonce),
-			senderPublicKey: activePublicKey,
+			senderPublicKey: relayerPublicKey,
 			fee: BigInt(this.config.ccuFee),
 			params: ccuParams,
 			signatures: [],
 		});
-		tx.sign(chainID, activePrivateKey);
+		tx.sign(chainID, relayerPrivateKey);
 		let result: { transactionId: string };
 		if (this._saveCCM) {
 			result = { transactionId: tx.id.toString('hex') };
 		} else {
-			result = await activeAPIClient.invoke<{
+			result = await this._receivingChainClient.invoke<{
 				transactionId: string;
 			}>('txpool_postTransaction', {
 				transaction: tx.getBytes().toString('hex'),

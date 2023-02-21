@@ -29,7 +29,7 @@ import {
 	aggregateCommitsInfoSchema,
 	blockHeadersInfoSchema,
 	ccmsFromEventsSchema,
-	certifcatesSchema,
+	certificatesSchema,
 	lastSentCCMWithHeight,
 	listOfCCUsSchema,
 	validatorsHashPreimageInfoSchema,
@@ -185,7 +185,7 @@ export class ChainConnectorStore {
 		try {
 			const encodedInfo = await this._db.get(DB_KEY_CERTIFICATE);
 			certificates = codec.decode<{ certificates: Certificate[] }>(
-				certifcatesSchema,
+				certificatesSchema,
 				encodedInfo,
 			).certificates;
 		} catch (error) {
@@ -198,7 +198,7 @@ export class ChainConnectorStore {
 
 	public async setCertificates(certificates: Certificate[]) {
 		certificates.sort((a, b) => b.height - a.height);
-		await this._db.set(DB_KEY_CERTIFICATE, codec.encode(certifcatesSchema, { certificates }));
+		await this._db.set(DB_KEY_CERTIFICATE, codec.encode(certificatesSchema, { certificates }));
 	}
 
 	public async getListOfCCUs(): Promise<chain.TransactionAttrs[]> {

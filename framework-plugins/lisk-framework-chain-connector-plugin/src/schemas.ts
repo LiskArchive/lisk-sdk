@@ -140,7 +140,7 @@ export const lastSentCCMWithHeight = {
 	},
 };
 
-export const certifcatesSchema = {
+export const certificatesSchema = {
 	$id: `${pluginSchemaIDPrefix}/certifcates`,
 	type: 'object',
 	properties: {
