@@ -95,6 +95,7 @@ describe('generator', () => {
 				implyMaxPrevote: true,
 				maxHeightCertified: 0,
 			}),
+			getMaxRemovalHeight: jest.fn().mockResolvedValue(0),
 			events: consensusEvent,
 		} as never;
 		network = {
@@ -197,18 +198,19 @@ describe('generator', () => {
 				expect(generator['_keypairs'].values()).toHaveLength(103);
 			});
 
-			it('should handle finalized height change between maxHeightCertified + 1 and max height precommitted', async () => {
+			it('should handle finalized height change between maxRemovalHeight and max height precommitted', async () => {
 				jest.spyOn(generator, '_handleFinalizedHeightChanged' as any).mockReturnValue([] as never);
 				jest
 					.spyOn(generator['_bft'].method, 'getBFTHeights')
 					.mockResolvedValue({ maxHeightPrecommitted: 515, maxHeightCertified: 313 } as never);
+				jest.spyOn(generator['_consensus'], 'getMaxRemovalHeight').mockResolvedValue(200);
 
 				await generator.init({
 					blockchainDB,
 					generatorDB,
 					logger,
 				});
-				expect(generator['_handleFinalizedHeightChanged']).toHaveBeenCalledWith(313, 515);
+				expect(generator['_handleFinalizedHeightChanged']).toHaveBeenCalledWith(200, 515);
 			});
 		});
 
