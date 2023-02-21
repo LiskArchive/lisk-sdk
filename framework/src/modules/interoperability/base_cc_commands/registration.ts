@@ -78,13 +78,17 @@ export abstract class BaseCCRegistrationCommand<
 		if (!ownChainAccount.chainID.equals(ccmRegistrationParams.chainID)) {
 			throw new Error('Registration message must contain the chain ID of the receiving chain.');
 		}
-
 		if (ownChainAccount.name !== ccmRegistrationParams.name) {
 			throw new Error('Registration message must contain the name of the registered chain.');
 		}
 		if (!channel.messageFeeTokenID.equals(ccmRegistrationParams.messageFeeTokenID)) {
 			throw new Error(
 				'Registration message must contain the same message fee token ID as the chain account.',
+			);
+		}
+		if (channel.minReturnFeePerByte !== ccmRegistrationParams.minReturnFeePerByte) {
+			throw new Error(
+				'Registration message must contain the same minimum return fee per byte as the channel account.',
 			);
 		}
 		const mainchainID = getMainchainID(ctx.chainID);
