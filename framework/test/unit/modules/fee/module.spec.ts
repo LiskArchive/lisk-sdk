@@ -14,6 +14,7 @@
 
 import { Transaction } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
+import { when } from 'jest-when';
 import { FeeModule } from '../../../../src/modules/fee';
 import { CONTEXT_STORE_KEY_AVAILABLE_FEE } from '../../../../src/modules/fee/constants';
 import { MODULE_NAME_TOKEN } from '../../../../src/modules/interoperability/cc_methods';
@@ -52,7 +53,7 @@ describe('FeeModule', () => {
 		} as any;
 		feeModule.addDependencies(tokenMethod, {} as any);
 		jest.spyOn(tokenMethod, 'getAvailableBalance').mockResolvedValue(BigInt(2000000000));
-		jest.spyOn(tokenMethod, 'userAccountExists').mockResolvedValue(true);
+		jest.spyOn(tokenMethod, 'userAccountExists');
 	});
 
 	describe('init', () => {
@@ -95,6 +96,9 @@ describe('FeeModule', () => {
 		});
 
 		it('should set min fee per byte to zero if block height is less than maxBlockHeightZeroFeePerByte', async () => {
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), transaction.senderAddress, feeModule['_tokenID'])
+				.mockResolvedValue(true as never);
 			feeModule = new FeeModule();
 			await feeModule.init({ genesisConfig, moduleConfig: { maxBlockHeightZeroFeePerByte: 76 } });
 			feeModule.addDependencies(tokenMethod, {} as any);
@@ -106,6 +110,9 @@ describe('FeeModule', () => {
 		});
 
 		it('should validate transaction with sufficient min fee', async () => {
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), transaction.senderAddress, feeModule['_tokenID'])
+				.mockResolvedValue(true as never);
 			const context = createTransactionContext({ transaction });
 			const transactionVerifyContext = context.createTransactionVerifyContext();
 			const result = await feeModule.verifyTransaction(transactionVerifyContext);
@@ -114,6 +121,9 @@ describe('FeeModule', () => {
 		});
 
 		it('should validate transaction with exactly the min fee', async () => {
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), transaction.senderAddress, feeModule['_tokenID'])
+				.mockResolvedValue(true as never);
 			const exactMinFee = BigInt(113000);
 			const tx = new Transaction({ ...transaction, fee: exactMinFee });
 
@@ -125,6 +135,9 @@ describe('FeeModule', () => {
 		});
 
 		it('should invalidate transaction with insufficient min fee', async () => {
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), transaction.senderAddress, feeModule['_tokenID'])
+				.mockResolvedValue(true as never);
 			const tx = new Transaction({ ...transaction, fee: BigInt(0) });
 			const context = createTransactionContext({ transaction: tx });
 			const transactionVerifyContext = context.createTransactionVerifyContext();
@@ -135,6 +148,9 @@ describe('FeeModule', () => {
 		});
 
 		it('should validate transaction with balance greater than min fee', async () => {
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), transaction.senderAddress, feeModule['_tokenID'])
+				.mockResolvedValue(true as never);
 			const tx = new Transaction({ ...transaction, fee: BigInt(1000000000) });
 
 			const context = createTransactionContext({ transaction: tx });
@@ -144,6 +160,9 @@ describe('FeeModule', () => {
 		});
 
 		it('should invalidate transaction with balance less than min fee', async () => {
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), transaction.senderAddress, feeModule['_tokenID'])
+				.mockResolvedValue(true as never);
 			const tx = new Transaction({ ...transaction, fee: BigInt(100000000000000000) });
 			const context = createTransactionContext({ transaction: tx });
 			const transactionVerifyContext = context.createTransactionVerifyContext();
@@ -153,7 +172,9 @@ describe('FeeModule', () => {
 		});
 
 		it('should invalidate transaction if the sender account is not initialized for the token id', async () => {
-			jest.spyOn(tokenMethod, 'userAccountExists').mockResolvedValueOnce(false);
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), transaction.senderAddress, feeModule['_tokenID'])
+				.mockResolvedValue(false as never);
 			const context = createTransactionContext({ transaction });
 			const transactionVerifyContext = context.createTransactionVerifyContext();
 			await expect(feeModule.verifyTransaction(transactionVerifyContext)).rejects.toThrow(
@@ -215,6 +236,9 @@ describe('FeeModule', () => {
 		});
 
 		it('should burn the used fee when addressFeePool is not defined', async () => {
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
+				.mockResolvedValue(true as never);
 			await feeModule.afterCommandExecute(context);
 
 			expect(feeModule['_tokenMethod'].burn).toHaveBeenCalledWith(
@@ -225,8 +249,14 @@ describe('FeeModule', () => {
 			);
 		});
 
-		it('should transfer the used fee when addressFeePool is defined', async () => {
+		it('should transfer the entire fee when addressFeePool is defined and user account for token id exists for fee pool address but does not exist for generator address', async () => {
 			feeModule['_feePoolAddress'] = utils.getRandomBytes(20);
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
+				.mockResolvedValue(false as never);
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), feeModule['_feePoolAddress'], feeModule['_tokenID'])
+				.mockResolvedValue(true as never);
 
 			await feeModule.afterCommandExecute(context);
 
@@ -235,12 +265,91 @@ describe('FeeModule', () => {
 				context.transaction.senderAddress,
 				feeModule['_feePoolAddress'],
 				feeModule['_tokenID'],
-				defaultTransaction.fee - availableFee,
+				defaultTransaction.fee,
 			);
 			expect(feeModule['_tokenMethod'].burn).not.toHaveBeenCalled();
 		});
 
-		it('should transfer remaining fee to block generator', async () => {
+		it('should transfer the used fee when addressFeePool is defined and user accounts of fee pool address and generator address exists for the token id', async () => {
+			feeModule['_feePoolAddress'] = utils.getRandomBytes(20);
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
+				.mockResolvedValue(true as never);
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), feeModule['_feePoolAddress'], feeModule['_tokenID'])
+				.mockResolvedValue(true as never);
+
+			await feeModule.afterCommandExecute(context);
+
+			expect(feeModule['_tokenMethod'].transfer).toHaveBeenCalledTimes(2);
+			expect(feeModule['_tokenMethod'].transfer).toHaveBeenCalledWith(
+				expect.anything(),
+				context.transaction.senderAddress,
+				feeModule['_feePoolAddress'],
+				feeModule['_tokenID'],
+				defaultTransaction.fee - availableFee,
+			);
+			expect(feeModule['_tokenMethod'].transfer).toHaveBeenCalledWith(
+				expect.anything(),
+				context.transaction.senderAddress,
+				context.header.generatorAddress,
+				feeModule['_tokenID'],
+				availableFee,
+			);
+			expect(feeModule['_tokenMethod'].burn).not.toHaveBeenCalled();
+		});
+
+		it('should burn the used fee when addressFeePool is defined and user account for token id exists for generator address but does not exist for fee pool address', async () => {
+			feeModule['_feePoolAddress'] = utils.getRandomBytes(20);
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
+				.mockResolvedValue(true as never);
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), feeModule['_feePoolAddress'], feeModule['_tokenID'])
+				.mockResolvedValue(false as never);
+
+			await feeModule.afterCommandExecute(context);
+
+			expect(feeModule['_tokenMethod'].burn).toHaveBeenCalledWith(
+				expect.anything(),
+				context.transaction.senderAddress,
+				feeModule['_tokenID'],
+				defaultTransaction.fee - availableFee,
+			);
+			expect(feeModule['_tokenMethod'].transfer).toHaveBeenCalledTimes(1);
+			expect(feeModule['_tokenMethod'].transfer).toHaveBeenCalledWith(
+				expect.anything(),
+				context.transaction.senderAddress,
+				context.header.generatorAddress,
+				feeModule['_tokenID'],
+				availableFee,
+			);
+		});
+
+		it('should burn the entire fee when addressFeePool is defined but user accounts of fee pool address and generator address does not exist for the token id', async () => {
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
+				.mockResolvedValue(false as never);
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), feeModule['_feePoolAddress'], feeModule['_tokenID'])
+				.mockResolvedValue(false as never);
+			feeModule['_feePoolAddress'] = utils.getRandomBytes(20);
+
+			await feeModule.afterCommandExecute(context);
+
+			expect(feeModule['_tokenMethod'].burn).toHaveBeenCalledWith(
+				expect.anything(),
+				context.transaction.senderAddress,
+				feeModule['_tokenID'],
+				defaultTransaction.fee,
+			);
+			expect(feeModule['_tokenMethod'].transfer).not.toHaveBeenCalled();
+		});
+
+		it('should transfer remaining fee to block generator if user account of generator address exists for the token id', async () => {
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
+				.mockResolvedValue(true as never);
 			await feeModule.afterCommandExecute(context);
 
 			expect(feeModule['_tokenMethod'].transfer).toHaveBeenCalledWith(
@@ -249,6 +358,21 @@ describe('FeeModule', () => {
 				context.header.generatorAddress,
 				feeModule['_tokenID'],
 				availableFee,
+			);
+		});
+
+		it('should not transfer remaining fee to block generator if user account of generator address does not exist for the token id', async () => {
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
+				.mockResolvedValue(false as never);
+			await feeModule.afterCommandExecute(context);
+
+			expect(feeModule['_tokenMethod'].transfer).not.toHaveBeenCalledWith(
+				expect.anything(),
+				context.transaction.senderAddress,
+				context.header.generatorAddress,
+				feeModule['_tokenID'],
+				expect.anything(),
 			);
 		});
 

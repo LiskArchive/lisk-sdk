@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { when } from 'jest-when';
 import { RewardModule } from '../../../../src/modules/reward';
 import {
 	createBlockHeaderWithDefaults,
@@ -39,6 +40,7 @@ describe('RewardModuleMethod', () => {
 	let rewardModule: RewardModule;
 	let context: any;
 	let blockAsset: any;
+	let tokenMethod: any;
 	beforeEach(async () => {
 		context = createTransientMethodContext({});
 
@@ -47,6 +49,14 @@ describe('RewardModuleMethod', () => {
 		};
 		rewardModule = new RewardModule();
 		await rewardModule.init({ genesisConfig, moduleConfig });
+		tokenMethod = {
+			mint: jest.fn(),
+			userAccountExists: jest.fn(),
+		} as any;
+		rewardModule.addDependencies(tokenMethod, {
+			isSeedRevealValid: jest.fn().mockReturnValue(true),
+		} as any);
+		jest.spyOn(tokenMethod, 'userAccountExists');
 	});
 
 	describe.each(Object.entries(brackets))('test for brackets', (index, rewardFromConfig) => {
@@ -54,14 +64,17 @@ describe('RewardModuleMethod', () => {
 		const currentHeight = offset + nthBracket * distance;
 
 		it(`should getBlockReward return full reward for bracket ${nthBracket}`, async () => {
-			rewardModule.addDependencies(
-				{ mint: jest.fn(), userAccountExists: jest.fn() } as any,
-				{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
-			);
 			const blockHeader = createBlockHeaderWithDefaults({
 				height: currentHeight,
 				impliesMaxPrevotes: true,
 			});
+			when(tokenMethod.userAccountExists)
+				.calledWith(
+					expect.anything(),
+					blockHeader.generatorAddress,
+					rewardModule['_moduleConfig'].tokenID,
+				)
+				.mockResolvedValue(true as never);
 			const rewardFromMethod = await rewardModule.method.getBlockReward(
 				context,
 				blockHeader,
@@ -72,14 +85,17 @@ describe('RewardModuleMethod', () => {
 		});
 
 		it(`should getBlockReward return quarter reward for bracket ${nthBracket} due to bft violation`, async () => {
-			rewardModule.addDependencies(
-				{ mint: jest.fn() } as any,
-				{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
-			);
 			const blockHeader = createBlockHeaderWithDefaults({
 				height: currentHeight,
 				impliesMaxPrevotes: false,
 			});
+			when(tokenMethod.userAccountExists)
+				.calledWith(
+					expect.anything(),
+					blockHeader.generatorAddress,
+					rewardModule['_moduleConfig'].tokenID,
+				)
+				.mockResolvedValue(true as never);
 			const rewardFromMethod = await rewardModule.method.getBlockReward(
 				context,
 				blockHeader,
@@ -90,14 +106,17 @@ describe('RewardModuleMethod', () => {
 		});
 
 		it(`should getBlockReward return no reward for bracket ${nthBracket} due to seedReveal violation`, async () => {
-			rewardModule.addDependencies(
-				{ mint: jest.fn() } as any,
-				{ isSeedRevealValid: jest.fn().mockReturnValue(false) } as any,
-			);
 			const blockHeader = createBlockHeaderWithDefaults({
 				height: currentHeight,
 				impliesMaxPrevotes: true,
 			});
+			when(tokenMethod.userAccountExists)
+				.calledWith(
+					expect.anything(),
+					blockHeader.generatorAddress,
+					rewardModule['_moduleConfig'].tokenID,
+				)
+				.mockResolvedValue(true as never);
 			const rewardFromMethod = await rewardModule.method.getBlockReward(
 				context,
 				blockHeader,
@@ -109,11 +128,14 @@ describe('RewardModuleMethod', () => {
 	});
 
 	it(`should getBlockReward return no reward for the height below offset`, async () => {
-		rewardModule.addDependencies(
-			{ mint: jest.fn() } as any,
-			{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
-		);
 		const blockHeader = createBlockHeaderWithDefaults({ height: 1, impliesMaxPrevotes: true });
+		when(tokenMethod.userAccountExists)
+			.calledWith(
+				expect.anything(),
+				blockHeader.generatorAddress,
+				rewardModule['_moduleConfig'].tokenID,
+			)
+			.mockResolvedValue(true as never);
 		const rewardFromMethod = await rewardModule.method.getBlockReward(
 			context,
 			blockHeader,

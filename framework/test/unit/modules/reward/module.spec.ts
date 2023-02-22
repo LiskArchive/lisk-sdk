@@ -11,6 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import { when } from 'jest-when';
 import { RewardModule } from '../../../../src/modules/reward';
 import { createBlockContext, createBlockHeaderWithDefaults } from '../../../../src/testing';
 import {
@@ -50,7 +52,6 @@ describe('RewardModule', () => {
 		rewardModule.addDependencies(tokenMethod, {
 			isSeedRevealValid: jest.fn().mockReturnValue(true),
 		} as any);
-		jest.spyOn(tokenMethod, 'userAccountExists').mockResolvedValue(true);
 	});
 
 	describe('init', () => {
@@ -102,6 +103,14 @@ describe('RewardModule', () => {
 
 		beforeEach(() => {
 			jest.spyOn(rewardModule.events.get(RewardMintedEvent), 'log');
+			jest.spyOn(tokenMethod, 'userAccountExists');
+			when(tokenMethod.userAccountExists)
+				.calledWith(
+					expect.anything(),
+					blockAfterExecuteContext.header.generatorAddress,
+					rewardModule['_moduleConfig'].tokenID,
+				)
+				.mockResolvedValue(true as never);
 		});
 
 		it(`should call mint for a valid bracket`, async () => {

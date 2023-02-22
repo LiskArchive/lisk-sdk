@@ -13,6 +13,7 @@
  */
 import { BlockHeader } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
+import { when } from 'jest-when';
 import {
 	createBlockContext,
 	createBlockHeaderWithDefaults,
@@ -43,6 +44,7 @@ import { EndOfRoundTimestampStore } from '../../../../src/modules/dynamic_reward
 import {
 	REWARD_NO_REDUCTION,
 	REWARD_REDUCTION_MAX_PREVOTES,
+	REWARD_REDUCTION_NO_ACCOUNT,
 	REWARD_REDUCTION_SEED_REVEAL,
 } from '../../../../src/modules/reward/constants';
 
@@ -259,7 +261,7 @@ describe('DynamicRewardModule', () => {
 
 		beforeEach(async () => {
 			jest.spyOn(rewardModule.events.get(RewardMintedEvent), 'log');
-			jest.spyOn(tokenMethod, 'userAccountExists').mockResolvedValue(true);
+			jest.spyOn(tokenMethod, 'userAccountExists');
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			const blockHeader = createBlockHeaderWithDefaults({ height: defaultConfig.offset });
 			blockExecuteContext = createBlockContext({
@@ -267,6 +269,13 @@ describe('DynamicRewardModule', () => {
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
 			blockExecuteContext.contextStore.set(CONTEXT_STORE_KEY_BLOCK_REWARD, defaultReward);
+			when(tokenMethod.userAccountExists)
+				.calledWith(
+					expect.anything(),
+					blockExecuteContext.header.generatorAddress,
+					rewardModule['_moduleConfig'].tokenID,
+				)
+				.mockResolvedValue(true as never);
 		});
 
 		it('should return zero reward with seed reveal reduction when seed reveal is invalid', async () => {
@@ -291,6 +300,13 @@ describe('DynamicRewardModule', () => {
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
 			blockExecuteContext.contextStore.set(CONTEXT_STORE_KEY_BLOCK_REWARD, defaultReward);
+			when(tokenMethod.userAccountExists)
+				.calledWith(
+					expect.anything(),
+					blockExecuteContext.header.generatorAddress,
+					rewardModule['_moduleConfig'].tokenID,
+				)
+				.mockResolvedValue(true as never);
 
 			await rewardModule.afterTransactionsExecute(blockExecuteContext);
 
@@ -314,7 +330,7 @@ describe('DynamicRewardModule', () => {
 			);
 		});
 
-		it('should mint the token and update shared reward when reward is non zero', async () => {
+		it('should mint the token and update shared reward when reward is non zero and user account of geenrator exists for the token id', async () => {
 			await rewardModule.afterTransactionsExecute(blockExecuteContext);
 
 			expect(rewardModule.events.get(RewardMintedEvent).log).toHaveBeenCalledWith(
@@ -337,7 +353,27 @@ describe('DynamicRewardModule', () => {
 			);
 		});
 
-		it('should not update shared reward and mint when reward is non zero', async () => {
+		it('should not mint or update shared reward and return zero reward with no account reduction when reward is non zero and user account of geenrator does not exist for the token id', async () => {
+			when(tokenMethod.userAccountExists)
+				.calledWith(
+					expect.anything(),
+					blockExecuteContext.header.generatorAddress,
+					rewardModule['_moduleConfig'].tokenID,
+				)
+				.mockResolvedValue(false as never);
+			await rewardModule.afterTransactionsExecute(blockExecuteContext);
+
+			expect(rewardModule.events.get(RewardMintedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				blockExecuteContext.header.generatorAddress,
+				{ amount: BigInt(0), reduction: REWARD_REDUCTION_NO_ACCOUNT },
+			);
+
+			expect(tokenMethod.mint).not.toHaveBeenCalled();
+			expect(posMethod.updateSharedRewards).not.toHaveBeenCalled();
+		});
+
+		it('should not update shared reward and mint when reward is zero', async () => {
 			(randomMethod.isSeedRevealValid as jest.Mock).mockResolvedValue(false);
 			await rewardModule.afterTransactionsExecute(blockExecuteContext);
 
