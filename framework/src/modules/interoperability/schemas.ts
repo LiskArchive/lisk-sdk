@@ -799,22 +799,6 @@ export const getRegistrationFeeSchema = {
 	},
 };
 
-export const getMinimumMessageFeeRequestSchema = {
-	$id: '/modules/interoperability/mainchain/minimumMessageFeeRequest',
-	type: 'object',
-	required: ['ccm'],
-	properties: {
-		ccm: {
-			fieldNumber: 1,
-			type: ccmSchema.type,
-			required: [...ccmSchema.required],
-			properties: {
-				...ccmSchema.properties,
-			},
-		},
-	},
-};
-
 export const getMinimumMessageFeeResponseSchema = {
 	$id: '/modules/interoperability/mainchain/minimumMessageFeeResponse',
 	type: 'object',

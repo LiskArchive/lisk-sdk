@@ -118,14 +118,16 @@ export class PoSMethod extends BaseMethod {
 
 		const oldSharingCoefficient = q96(validator.sharingCoefficients[index].coefficient);
 		const sharingCoefficientIncrease = rewardQ.muldiv(rewardFractionQ, totalStakesQ);
-		const sharedRewards = sharingCoefficientIncrease.mul(totalStakesQ.sub(selfStakeQ)).floor();
+		const sharedRewards = sharingCoefficientIncrease.mul(totalStakesQ.sub(selfStakeQ)).ceil();
+		// it should not lock more than the original reward. This might happen because of ceil above
+		const cappedSharedRewards = sharedRewards > reward ? reward : sharedRewards;
 
 		await this._tokenMethod.lock(
 			context,
 			generatorAddress,
 			this._moduleName,
 			tokenID,
-			sharedRewards,
+			cappedSharedRewards,
 		);
 
 		const newSharingCoefficient = oldSharingCoefficient.add(sharingCoefficientIncrease);
