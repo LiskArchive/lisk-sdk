@@ -81,7 +81,8 @@ describe('RewardModuleMethod', () => {
 				blockAsset,
 			);
 
-			expect(rewardFromMethod[0]).toBe(rewardFromConfig);
+			const expectation = rewardFromMethod[0] === rewardFromConfig;
+			expect(expectation).toBe(true);
 		});
 
 		it(`should getBlockReward return quarter reward for bracket ${nthBracket} due to bft violation`, async () => {
@@ -102,10 +103,14 @@ describe('RewardModuleMethod', () => {
 				blockAsset,
 			);
 
-			expect(rewardFromMethod[0]).toBe(BigInt(rewardFromConfig) / BigInt(4));
+			const expectation = rewardFromMethod[0] === BigInt(rewardFromConfig) / BigInt(4);
+			expect(expectation).toBe(true);
 		});
 
 		it(`should getBlockReward return no reward for bracket ${nthBracket} due to seedReveal violation`, async () => {
+			rewardModule.addDependencies(tokenMethod, {
+				isSeedRevealValid: jest.fn().mockReturnValue(false),
+			} as any);
 			const blockHeader = createBlockHeaderWithDefaults({
 				height: currentHeight,
 				impliesMaxPrevotes: true,
@@ -123,7 +128,8 @@ describe('RewardModuleMethod', () => {
 				blockAsset,
 			);
 
-			expect(rewardFromMethod[0]).toBe(BigInt(0));
+			const expectation = rewardFromMethod[0] === BigInt(0);
+			expect(expectation).toBe(true);
 		});
 	});
 
