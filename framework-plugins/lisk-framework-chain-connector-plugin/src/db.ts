@@ -202,7 +202,7 @@ export class ChainConnectorStore {
 	}
 
 	public async getListOfCCUs(): Promise<chain.TransactionAttrs[]> {
-		let listOfCCUs: chain.TransactionAttrs[] | undefined = [];
+		let listOfCCUs: chain.TransactionAttrs[] = [];
 		try {
 			const encodedInfo = await this._db.get(DB_KEY_LIST_OF_CCU);
 			listOfCCUs = codec.decode<{ listOfCCUs: chain.TransactionAttrs[] }>(

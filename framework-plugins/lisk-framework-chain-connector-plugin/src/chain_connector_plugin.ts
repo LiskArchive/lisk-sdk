@@ -98,7 +98,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _lastCertificate!: LastCertificate;
 	private _ccuFrequency!: number;
 	private _maxCCUSize!: number;
-	private _saveCCM!: boolean;
+	private _saveCCU!: boolean;
 	private _receivingChainClient!: apiClient.APIClient;
 	private _sendingChainClient!: apiClient.APIClient;
 	private _ownChainID!: Buffer;
@@ -119,7 +119,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			throw new Error(`maxCCUSize cannot be greater than ${CCU_TOTAL_CCM_SIZE} bytes.`);
 		}
 		this._maxCCUSize = this.config.maxCCUSize;
-		this._saveCCM = this.config.isSaveCCU;
+		this._saveCCU = this.config.isSaveCCU;
 		const { password, encryptedPrivateKey } = this.config;
 		if (password) {
 			const parsedEncryptedKey = encrypt.parseEncryptedMessage(encryptedPrivateKey);
@@ -163,7 +163,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			).chainID,
 			'hex',
 		);
-		// If the running node is mainchain then receiving chain will be sidehchain or vice verse.
+		// If the running node is mainchain then receiving chain will be sidechain or vice verse.
 		this._isReceivingChainIsMainchain = !getMainchainID(this._ownChainID).equals(this._ownChainID);
 		// Fetch last certificate from the receiving chain and update the _lastCertificate
 		const chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
@@ -218,7 +218,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 				if (computedCCUParams) {
 					await this._submitCCU(codec.encode(ccuParamsSchema, computedCCUParams.ccuParams));
-					// If CCU sent was successful then save the lastSentCCM
+					// If CCU was sent successfully then save the lastSentCCM if any
 					if (computedCCUParams.lastCCMToBeSent) {
 						await this._chainConnectorStore.setLastSentCCM(computedCCUParams.lastCCMToBeSent);
 					}
@@ -227,10 +227,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 						`No valid CCU can be generated for the height: ${newBlockHeader.height}`,
 					);
 				}
-				// If the transaction is successfully sent then update the last certfied height and do the cleanup
+				// If the CCU was sent successfully then update the last certified height and do the cleanup
 				const chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
 					'interoperability_getChainAccount',
-					{ chainID: this._ownChainID },
+					{ chainID: this._ownChainID.toString('hex') },
 				);
 				this._lastCertificate = chainAccountDataJSONToObj(chainAccountJSON).lastCertificate;
 				await this._cleanup();
@@ -265,7 +265,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			validatorsHashPreimage,
 		);
 		/**
-		 * If no lastSentCCM then assume that its the first CCM to be sent
+		 * If no lastSentCCM then assume that it's the first CCM to be sent
 		 * and we can use the lastCertificate height
 		 * which will be zero in case if this is the first CCU after registration
 		 */
@@ -279,7 +279,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			bftWeightsUpdate: [],
 			bftWeightsUpdateBitmap: EMPTY_BYTES,
 		};
-		let certificate;
+		let certificate = EMPTY_BYTES;
 		let certificateThreshold;
 		let outboxRootWitness;
 
@@ -313,10 +313,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			if (this._lastCertificate.height === 0) {
 				return;
 			}
-			certificate = EMPTY_BYTES;
 			if (crossChainMessages.length === 0) {
 				this.logger.info(
-					'No pending CCMs after last sent ccm for the last certificate so no CCU is needed.',
+					'No pending CCMs after last sent CCM for the last certificate so no CCU is needed.',
 				);
 				return;
 			}
@@ -336,18 +335,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 			certificateThreshold = validatorsDataAtLastCertificate.certificateThreshold;
 		} else {
-			const blockHeader = blockHeaders.find(header => header.height === newCertificate.height);
-			if (!blockHeader) {
-				throw new Error('No block header found for the given certificate height.');
-			}
-
-			// Calculate activeValidatorsUpdate: start with empty activeValidatorsUpdate object
-			activeValidatorsUpdate = {
-				blsKeysUpdate: [],
-				bftWeightsUpdate: [],
-				bftWeightsUpdateBitmap: Buffer.from([]),
-			};
-
 			if (!this._lastCertificate.validatorsHash.equals(newCertificate.validatorsHash)) {
 				const validatorsUpdateResult = calculateActiveValidatorsUpdate(
 					newCertificate,
@@ -428,15 +415,13 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 		const bftHeights = await this._sendingChainClient.invoke<BFTHeights>('consensus_getBFTHeights');
 		// Calculate certificate
-		const certificate = getNextCertificateFromAggregateCommits(
+		return getNextCertificateFromAggregateCommits(
 			blockHeaders,
 			aggregateCommits,
 			validatorsHashPreimage,
 			bftHeights,
 			this._lastCertificate,
 		);
-
-		return certificate;
 	}
 
 	/**
@@ -461,13 +446,15 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			{ height: newBlockHeader.height },
 		);
 
-		const { modules } = await this._sendingChainClient.invoke<{ modules: ModuleMetadata }>(
-			'system_getMetadata',
+		const { modules: modulesMetadata } = await this._sendingChainClient.invoke<{
+			modules: ModuleMetadata;
+		}>('system_getMetadata');
+		const interoperabilityMetadata = modulesMetadata.find(
+			m => m.name === MODULE_NAME_INTEROPERABILITY,
 		);
-		const interoperabilityMetadata = modules.find(m => m.name === MODULE_NAME_INTEROPERABILITY);
 
 		if (!interoperabilityMetadata) {
-			throw new Error('No metadata found for interoperability module.');
+			throw new Error(`No metadata found for ${MODULE_NAME_INTEROPERABILITY} module.`);
 		}
 
 		const ccmsFromEvents = [];
@@ -542,7 +529,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			queryKeys: [outboxKey],
 		});
 		const proveResponseObj = proveResponseJSONToObj(proofJSON);
-		const inclusionProofOutboxRoot: OutboxRootWitness = {
+		const outboxRootWitness: OutboxRootWitness = {
 			bitmap: proveResponseObj.proof.queries[0].bitmap,
 			siblingHashes: proveResponseObj.proof.siblingHashes,
 		};
@@ -550,7 +537,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		crossChainMessages.push({
 			ccms: ccmsFromEvents,
 			height: newBlockHeader.height,
-			inclusionProof: inclusionProofOutboxRoot,
+			inclusionProof: outboxRootWitness,
 		});
 
 		await this._chainConnectorStore.setCrossChainMessages(crossChainMessages);
@@ -700,7 +687,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		});
 		tx.sign(chainID, relayerPrivateKey);
 		let result: { transactionId: string };
-		if (this._saveCCM) {
+		if (this._saveCCU) {
 			result = { transactionId: tx.id.toString('hex') };
 		} else {
 			result = await this._receivingChainClient.invoke<{

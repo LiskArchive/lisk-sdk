@@ -41,7 +41,7 @@ export const DB_KEY_LIST_OF_CCU = Buffer.from([7]);
  * It’s more max size of a CCM to be included in a mainchain block
  * MAX_CCM_SIZE
 
- * Max size of total CCM which can be included in a CCU
+ * Max size of total CCMs that can be included in a CCU
  * CCU_TOTAL_CCM_SIZE
  */
 export const CCU_TOTAL_CCM_SIZE = MAX_CCM_SIZE;

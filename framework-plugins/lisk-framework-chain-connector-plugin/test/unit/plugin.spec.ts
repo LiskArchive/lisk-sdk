@@ -726,14 +726,6 @@ describe('ChainConnectorPlugin', () => {
 			await chainConnectorPlugin['_chainConnectorStore'].setAggregateCommits(
 				blockHeaders.map(b => b.aggregateCommit),
 			);
-			// const saveDataOnNewBlockMock = jest.fn();
-			// chainConnectorPlugin['_saveDataOnNewBlock'] = saveDataOnNewBlockMock;
-			// saveDataOnNewBlockMock.mockResolvedValue({
-			// 	aggregateCommits: [],
-			// 	blockHeaders: [],
-			// 	validatorsHashPreimage: [],
-			// 	crossChainMessages: [],
-			// });
 
 			const computedCCUParamsMock = jest.fn();
 			chainConnectorPlugin['_computeCCUParams'] = computedCCUParamsMock;
@@ -762,7 +754,6 @@ describe('ChainConnectorPlugin', () => {
 					height: 1,
 				},
 			});
-			// (chainConnectorPlugin as any)['_chainConnectorStore'] = chainConnectorStoreMock;
 			await (chainConnectorPlugin as any)['_newBlockHandler']({
 				blockHeader: newBlockHeaderJSON,
 			});

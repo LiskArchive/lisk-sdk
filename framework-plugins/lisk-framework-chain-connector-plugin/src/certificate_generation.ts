@@ -24,9 +24,6 @@ import { BlockHeader, ValidatorsData } from './types';
 
 /**
  * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#getcertificatefromaggregatecommit
- * @param aggregateCommit
- * @param blockHeaders
- * @returns Certificate
  */
 export const getCertificateFromAggregateCommit = (
 	aggregateCommit: AggregateCommit,

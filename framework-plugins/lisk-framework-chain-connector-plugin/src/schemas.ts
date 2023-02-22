@@ -46,7 +46,7 @@ export const configSchema = {
 			type: 'string',
 			description: 'Password to decrypt encryptedPrivateKey',
 		},
-		isSaveCCU: {
+		saveCCU: {
 			type: 'boolean',
 			description:
 				'Flag for the user to either save or send a CCU on creation. Send is by default.',
@@ -141,7 +141,7 @@ export const lastSentCCMWithHeight = {
 };
 
 export const certificatesSchema = {
-	$id: `${pluginSchemaIDPrefix}/certifcates`,
+	$id: `${pluginSchemaIDPrefix}/certificates`,
 	type: 'object',
 	properties: {
 		certificates: {

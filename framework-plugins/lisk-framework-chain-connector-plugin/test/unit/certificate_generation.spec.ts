@@ -40,7 +40,7 @@ describe('certificate generation', () => {
 			},
 		})
 		.toObject();
-	// Blockheaders from height 2 to 11
+	// blockHeaders from height 2 to 11
 	const uncertifiedBlockHeaders = sampleSizeArray
 		.map((_value, _index) => {
 			// for every alternate height add aggregateCommit and for rest empty aggregateCommit
@@ -60,7 +60,7 @@ describe('certificate generation', () => {
 
 	const sampleBlockHeaders = [lastCertifiedBlock].concat(uncertifiedBlockHeaders);
 
-	// aggregateCommits from the blockheaders
+	// aggregateCommits from the blockHeaders
 	const aggregateCommitsSample = sampleBlockHeaders.reduce((commits, b) => {
 		if (!b.aggregateCommit.certificateSignature.equals(Buffer.alloc(0))) {
 			commits.push(b.aggregateCommit as never);
@@ -69,7 +69,7 @@ describe('certificate generation', () => {
 		return commits;
 	}, []);
 
-	const validatorsDataAtLastCertifiedheight = {
+	const validatorsDataAtLastCertifiedHeight = {
 		certificateThreshold: BigInt(2),
 		validators: [
 			{
@@ -146,10 +146,10 @@ describe('certificate generation', () => {
 				checkChainOfTrust(
 					lastValidatorsHash,
 					blsKeyToBFTWeight,
-					validatorsDataAtLastCertifiedheight.certificateThreshold,
+					validatorsDataAtLastCertifiedHeight.certificateThreshold,
 					aggregateCommitsSample[3],
 					[lastCertifiedBlock],
-					[validatorsDataAtLastCertifiedheight],
+					[validatorsDataAtLastCertifiedHeight],
 				),
 			).toThrow('No block header found for the given aggregate height');
 		});
@@ -159,10 +159,10 @@ describe('certificate generation', () => {
 				checkChainOfTrust(
 					lastValidatorsHash,
 					blsKeyToBFTWeight,
-					validatorsDataAtLastCertifiedheight.certificateThreshold,
+					validatorsDataAtLastCertifiedHeight.certificateThreshold,
 					aggregateCommitsSample[2],
 					sampleBlockHeaders,
-					[validatorsDataAtLastCertifiedheight],
+					[validatorsDataAtLastCertifiedHeight],
 				),
 			).toThrow('No validators data found for the given validatorsHash');
 		});
@@ -171,10 +171,10 @@ describe('certificate generation', () => {
 			const valid = checkChainOfTrust(
 				lastValidatorsHash,
 				blsKeyToBFTWeight,
-				validatorsDataAtLastCertifiedheight.certificateThreshold,
+				validatorsDataAtLastCertifiedHeight.certificateThreshold,
 				aggregateCommitsSample[1],
 				sampleBlockHeaders,
-				[validatorsDataAtLastCertifiedheight],
+				[validatorsDataAtLastCertifiedHeight],
 			);
 			expect(valid).toBe(true);
 		});
@@ -225,7 +225,7 @@ describe('certificate generation', () => {
 			const valid = checkChainOfTrust(
 				lastCertifiedBlock.validatorsHash,
 				blsKeyToBFTWeight,
-				validatorsDataAtLastCertifiedheight.certificateThreshold,
+				validatorsDataAtLastCertifiedHeight.certificateThreshold,
 				aggregateHeightAtFour,
 				sampleBlockHeaders,
 				[validatorsDataAtHeightThree],
@@ -264,7 +264,7 @@ describe('certificate generation', () => {
 				getNextCertificateFromAggregateCommits(
 					sampleBlockHeaders,
 					[aggregateCommitsSample[2]],
-					[validatorsDataAtLastCertifiedheight],
+					[validatorsDataAtLastCertifiedHeight],
 					bftHeights,
 					{ height: lastCertifiedBlock.height } as any,
 				),
@@ -286,7 +286,7 @@ describe('certificate generation', () => {
 				getNextCertificateFromAggregateCommits(
 					sampleBlockHeaders,
 					aggregateCommitsSample,
-					[validatorsDataAtLastCertifiedheight, sampleValidatorsData],
+					[validatorsDataAtLastCertifiedHeight, sampleValidatorsData],
 					bftHeights,
 					{ height: lastCertifiedBlock.height } as any,
 				),
