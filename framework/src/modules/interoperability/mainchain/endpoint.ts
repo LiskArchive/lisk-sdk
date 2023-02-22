@@ -14,34 +14,15 @@
 
 import { BaseInteroperabilityEndpoint } from '../base_interoperability_endpoint';
 import { CHAIN_REGISTRATION_FEE, MIN_RETURN_FEE_PER_BYTE_LSK } from '../constants';
-import { getCCMSize } from '../utils';
-import {
-	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-	USER_SUBSTORE_INITIALIZATION_FEE,
-} from '../../token/constants';
-import { ModuleEndpointContext } from '../../../types';
-import { CCMsg } from '../types';
 
 export class MainchainInteroperabilityEndpoint extends BaseInteroperabilityEndpoint {
 	public getRegistrationFee(): { fee: string } {
 		return { fee: CHAIN_REGISTRATION_FEE.toString() };
 	}
 
-	public getMinimumMessageFee(context: ModuleEndpointContext): { fee: string } {
-		const ccm = context.params.ccm as CCMsg;
-
-		let additionalFee = BigInt(0);
-
-		// Check if user account has to be initialized
-		if (
-			ccm.crossChainCommand === CROSS_CHAIN_COMMAND_NAME_TRANSFER &&
-			!context.params.isUserInitialized
-		) {
-			additionalFee += USER_SUBSTORE_INITIALIZATION_FEE;
-		}
-
+	public getMinimumMessageFee(): { fee: string } {
 		return {
-			fee: (getCCMSize(ccm) * MIN_RETURN_FEE_PER_BYTE_LSK + additionalFee).toString(),
+			fee: MIN_RETURN_FEE_PER_BYTE_LSK.toString(),
 		};
 	}
 }
