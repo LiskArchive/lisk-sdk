@@ -254,6 +254,7 @@ export interface ChannelDataJSON {
 	outbox: OutboxJSON;
 	partnerChainOutboxRoot: string;
 	messageFeeTokenID: string;
+	minReturnFeePerByte: string;
 }
 
 export interface ActiveValidators {
