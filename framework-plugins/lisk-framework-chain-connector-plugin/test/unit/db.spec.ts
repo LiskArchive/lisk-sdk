@@ -20,6 +20,7 @@ import {
 	chain,
 	SubmitMainchainCrossChainUpdateCommand,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+	MODULE_NAME_INTEROPERABILITY,
 } from 'lisk-sdk';
 import * as fs from 'fs-extra';
 import { homedir } from 'os';
@@ -268,7 +269,7 @@ describe('Plugins DB', () => {
 					testing
 						.createTransaction({
 							commandClass: SubmitMainchainCrossChainUpdateCommand as any,
-							module: 'interoperability',
+							module: MODULE_NAME_INTEROPERABILITY,
 							params: {
 								activeValidatorsUpdate: {
 									blsKeysUpdate: [],
@@ -293,7 +294,7 @@ describe('Plugins DB', () => {
 					testing
 						.createTransaction({
 							commandClass: SubmitMainchainCrossChainUpdateCommand as any,
-							module: 'interoperability',
+							module: MODULE_NAME_INTEROPERABILITY,
 							params: {
 								activeValidatorsUpdate: {
 									blsKeysUpdate: [],

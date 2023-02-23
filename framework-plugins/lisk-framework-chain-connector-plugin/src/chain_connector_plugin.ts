@@ -82,7 +82,7 @@ interface Data {
 	readonly blockHeader: chain.BlockHeaderJSON;
 }
 
-type ModuleMetadata = [
+type ModulesMetadata = [
 	{
 		stores: { key: string; data: Schema }[];
 		events: { name: string; data: Schema }[];
@@ -98,12 +98,12 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _lastCertificate!: LastCertificate;
 	private _ccuFrequency!: number;
 	private _maxCCUSize!: number;
-	private _saveCCU!: boolean;
+	private _isSaveCCU!: boolean;
 	private _receivingChainClient!: apiClient.APIClient;
 	private _sendingChainClient!: apiClient.APIClient;
 	private _ownChainID!: Buffer;
 	private _receivingChainID!: Buffer;
-	private _isReceivingChainIsMainchain!: boolean;
+	private _isReceivingChainMainchain!: boolean;
 	private readonly _sentCCUs: SentCCUs = [];
 	private _privateKey!: Buffer;
 
@@ -119,7 +119,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			throw new Error(`maxCCUSize cannot be greater than ${CCU_TOTAL_CCM_SIZE} bytes.`);
 		}
 		this._maxCCUSize = this.config.maxCCUSize;
-		this._saveCCU = this.config.isSaveCCU;
+		this._isSaveCCU = this.config.isSaveCCU;
 		const { password, encryptedPrivateKey } = this.config;
 		if (password) {
 			const parsedEncryptedKey = encrypt.parseEncryptedMessage(encryptedPrivateKey);
@@ -164,7 +164,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			'hex',
 		);
 		// If the running node is mainchain then receiving chain will be sidechain or vice verse.
-		this._isReceivingChainIsMainchain = !getMainchainID(this._ownChainID).equals(this._ownChainID);
+		this._isReceivingChainMainchain = !getMainchainID(this._ownChainID).equals(this._ownChainID);
 		// Fetch last certificate from the receiving chain and update the _lastCertificate
 		const chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
 			'interoperability_getChainAccount',
@@ -447,7 +447,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		);
 
 		const { modules: modulesMetadata } = await this._sendingChainClient.invoke<{
-			modules: ModuleMetadata;
+			modules: ModulesMetadata;
 		}>('system_getMetadata');
 		const interoperabilityMetadata = modulesMetadata.find(
 			m => m.name === MODULE_NAME_INTEROPERABILITY,
@@ -660,7 +660,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private async _submitCCU(ccuParams: Buffer): Promise<void> {
 		const relayerPrivateKey = this._privateKey;
 		const relayerPublicKey = ed.getPublicKeyFromPrivateKey(relayerPrivateKey);
-		const targetCommand = this._isReceivingChainIsMainchain
+		const targetCommand = this._isReceivingChainMainchain
 			? COMMAND_NAME_SUBMIT_MAINCHAIN_CCU
 			: COMMAND_NAME_SUBMIT_SIDECHAIN_CCU;
 
@@ -687,7 +687,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		});
 		tx.sign(chainID, relayerPrivateKey);
 		let result: { transactionId: string };
-		if (this._saveCCU) {
+		if (this._isSaveCCU) {
 			result = { transactionId: tx.id.toString('hex') };
 		} else {
 			result = await this._receivingChainClient.invoke<{

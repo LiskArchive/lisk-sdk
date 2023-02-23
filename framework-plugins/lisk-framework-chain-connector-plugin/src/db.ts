@@ -63,6 +63,12 @@ export const getDBInstance = async (
 	return new Database(dirPath);
 };
 
+export const checkDBError = (error: Error | unknown) => {
+	if (!(error instanceof liskDB.NotFoundError)) {
+		throw error;
+	}
+};
+
 export class ChainConnectorStore {
 	private readonly _db: KVStore;
 
@@ -83,9 +89,7 @@ export class ChainConnectorStore {
 				encodedInfo,
 			).blockHeaders;
 		} catch (error) {
-			if (!(error instanceof liskDB.NotFoundError)) {
-				throw error;
-			}
+			checkDBError(error);
 		}
 		return blockHeaders;
 	}
@@ -105,9 +109,7 @@ export class ChainConnectorStore {
 				encodedInfo,
 			).aggregateCommits;
 		} catch (error) {
-			if (!(error instanceof liskDB.NotFoundError)) {
-				throw error;
-			}
+			checkDBError(error);
 		}
 		return aggregateCommits;
 	}
@@ -126,9 +128,7 @@ export class ChainConnectorStore {
 				encodedInfo,
 			).validatorsHashPreimage;
 		} catch (error) {
-			if (!(error instanceof liskDB.NotFoundError)) {
-				throw error;
-			}
+			checkDBError(error);
 		}
 		return validatorsHashPreimage;
 	}
@@ -149,9 +149,7 @@ export class ChainConnectorStore {
 				encodedInfo,
 			).ccmsFromEvents;
 		} catch (error) {
-			if (!(error instanceof liskDB.NotFoundError)) {
-				throw error;
-			}
+			checkDBError(error);
 		}
 		return crossChainMessages;
 	}
@@ -167,9 +165,7 @@ export class ChainConnectorStore {
 			const encodedInfo = await this._db.get(DB_KEY_LAST_SENT_CCM);
 			lastSentCCM = codec.decode<LastSentCCMWithHeight>(lastSentCCMWithHeight, encodedInfo);
 		} catch (error) {
-			if (!(error instanceof liskDB.NotFoundError)) {
-				throw error;
-			}
+			checkDBError(error);
 		}
 		return lastSentCCM;
 	}
@@ -187,9 +183,7 @@ export class ChainConnectorStore {
 				encodedInfo,
 			).listOfCCUs;
 		} catch (error) {
-			if (!(error instanceof liskDB.NotFoundError)) {
-				throw error;
-			}
+			checkDBError(error);
 		}
 		return listOfCCUs;
 	}

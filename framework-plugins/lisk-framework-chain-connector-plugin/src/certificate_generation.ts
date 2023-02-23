@@ -44,13 +44,6 @@ export const getCertificateFromAggregateCommit = (
 
 /**
  * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#execution-8
- * @param lastValidatorsHash
- * @param blsKeyToBFTWeight
- * @param lastCertificateThreshold
- * @param aggregateCommit
- * @param blockHeaders
- * @param validatorsHashPreimage
- * @returns boolean
  */
 export const checkChainOfTrust = (
 	lastValidatorsHash: Buffer,
@@ -95,12 +88,6 @@ export const checkChainOfTrust = (
 
 /**
  * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#execution-8
- * @param blockHeaders
- * @param aggregateCommits
- * @param validatorsHashPreimage
- * @param bftHeights
- * @param lastCertificate
- * @returns Certificate | undefined
  */
 export const getNextCertificateFromAggregateCommits = (
 	blockHeaders: BlockHeader[],

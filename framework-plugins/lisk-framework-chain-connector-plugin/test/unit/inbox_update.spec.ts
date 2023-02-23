@@ -31,7 +31,7 @@ describe('inboxUpdate', () => {
 	let sampleCertificate: Certificate;
 
 	let sampleCCMs: CCMsg[];
-	let sampleCCMFromEvents: CCMsFromEvents[];
+	let sampleCCMsFromEvents: CCMsFromEvents[];
 
 	beforeEach(() => {
 		sampleBlock = testing.createFakeBlockHeader({
@@ -52,7 +52,7 @@ describe('inboxUpdate', () => {
 
 		sampleCCMs = new Array(4).fill(0).map((_, index) => getSampleCCM(index + 1));
 
-		sampleCCMFromEvents = [
+		sampleCCMsFromEvents = [
 			{
 				ccms: sampleCCMs.slice(0, 1),
 				height: 60,
@@ -87,26 +87,26 @@ describe('inboxUpdate', () => {
 			messageFeeTokenID: Buffer.from('04000001', 'hex'),
 			partnerChainOutboxRoot: Buffer.alloc(2),
 		};
-		it('should return one inboxUpdate when all the ccms can be included', async () => {
+		it('should return one inboxUpdate when all the ccms can be included', () => {
 			jest.spyOn(tree.regularMerkleTree, 'calculateRightWitness').mockReturnValue([]);
-			const inboxUpdate = calculateMessageWitnesses(
+			const messageWitnessHashesForCCMs = calculateMessageWitnesses(
 				channelData,
-				sampleCCMFromEvents,
+				sampleCCMsFromEvents,
 				{ height: 1, nonce: BigInt(0) },
 				CCU_TOTAL_CCM_SIZE,
 			);
 
 			// Message witness is empty when all the CCMs are included
-			expect(inboxUpdate.messageWitnessHashes).toEqual([]);
+			expect(messageWitnessHashesForCCMs.messageWitnessHashes).toEqual([]);
 			expect(tree.regularMerkleTree.calculateRightWitness).not.toHaveBeenCalled();
 		});
 
-		it('should return multiple inboxUpdates when all the ccms cannot be included in one', async () => {
+		it('should return multiple inboxUpdates when all the ccms cannot be included in one', () => {
 			jest
 				.spyOn(tree.regularMerkleTree, 'calculateRightWitness')
 				.mockReturnValue([Buffer.alloc(1)]);
 			const ccmListWithBigSize = [
-				...sampleCCMFromEvents,
+				...sampleCCMsFromEvents,
 				{
 					ccms: [getSampleCCM(5, 8000), getSampleCCM(6, 8000)],
 					height: 60,
@@ -117,7 +117,7 @@ describe('inboxUpdate', () => {
 				},
 			];
 
-			const inboxUpdate = calculateMessageWitnesses(
+			const messageWitnessHashesForCCMs = calculateMessageWitnesses(
 				channelData,
 				ccmListWithBigSize,
 				{ height: 1, nonce: BigInt(0) },
@@ -125,11 +125,11 @@ describe('inboxUpdate', () => {
 			);
 
 			// First inboxUpdate should have non-empty outboxRootWitness
-			expect(inboxUpdate.messageWitnessHashes).toEqual([Buffer.alloc(1)]);
+			expect(messageWitnessHashesForCCMs.messageWitnessHashes).toEqual([Buffer.alloc(1)]);
 			expect(tree.regularMerkleTree.calculateRightWitness).toHaveBeenCalledTimes(1);
 		});
 
-		it('should return empty inboxUpdate when there is no ccm after filter', async () => {
+		it('should return empty inboxUpdate when there is no ccm after filter', () => {
 			jest
 				.spyOn(tree.regularMerkleTree, 'calculateRightWitness')
 				.mockReturnValue([Buffer.alloc(1)]);

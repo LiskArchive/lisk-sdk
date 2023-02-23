@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { chain, aggregateCommitSchema, ccmSchema, certificateSchema } from 'lisk-sdk';
+import { chain, aggregateCommitSchema, ccmSchema } from 'lisk-sdk';
 import { CCU_FREQUENCY, CCU_TOTAL_CCM_SIZE } from './constants';
 
 const pluginSchemaIDPrefix = '/lisk/plugins/chainConnector';

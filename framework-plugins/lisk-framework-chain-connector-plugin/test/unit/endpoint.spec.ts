@@ -24,6 +24,7 @@ import {
 } from 'lisk-sdk';
 import { ChainConnectorPlugin } from '../../src/chain_connector_plugin';
 import * as chainConnectorDB from '../../src/db';
+import { getMainchainID } from '../../src/utils';
 
 describe('getSentCCUs', () => {
 	const appConfigForPlugin: ApplicationConfigForPlugin = {
@@ -125,6 +126,11 @@ describe('getSentCCUs', () => {
 			.calledWith('interoperability_getOwnChainAccount')
 			.mockResolvedValue({
 				chainID: ownChainID.toString('hex'),
+			});
+		when(receivingChainAPIClientMock.invoke)
+			.calledWith('interoperability_getOwnChainAccount')
+			.mockResolvedValue({
+				chainID: getMainchainID(ownChainID).toString('hex'),
 			});
 		when(receivingChainAPIClientMock.invoke)
 			.calledWith('interoperability_getChainAccount', { chainID: ownChainID.toString('hex') })
