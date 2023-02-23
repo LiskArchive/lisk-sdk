@@ -46,7 +46,7 @@ export const configSchema = {
 			type: 'string',
 			description: 'Password to decrypt encryptedPrivateKey',
 		},
-		saveCCU: {
+		isSaveCCU: {
 			type: 'boolean',
 			description:
 				'Flag for the user to either save or send a CCU on creation. Send is by default.',

@@ -165,12 +165,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		);
 		// If the running node is mainchain then receiving chain will be sidechain or vice verse.
 		this._isReceivingChainMainchain = !getMainchainID(this._ownChainID).equals(this._ownChainID);
-		// Fetch last certificate from the receiving chain and update the _lastCertificate
-		const chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
-			'interoperability_getChainAccount',
-			{ chainID: this._ownChainID.toString('hex') },
-		);
-		this._lastCertificate = chainAccountDataJSONToObj(chainAccountJSON).lastCertificate;
 		// On a new block start with CCU creation process
 		this._sendingChainClient.subscribe('chain_newBlock', async (data?: Record<string, unknown>) =>
 			this._newBlockHandler(data),
@@ -202,8 +196,25 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		const { blockHeader: receivedBlock } = data as unknown as Data;
 
 		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock).toObject();
+		let chainAccountJSON: ChainAccountJSON;
 		// Save blockHeader, aggregateCommit, validatorsData and cross chain messages if any.
 		try {
+			// Fetch last certificate from the receiving chain and update the _lastCertificate
+			chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
+				'interoperability_getChainAccount',
+				{ chainID: this._ownChainID.toString('hex') },
+			);
+
+			// If sending chain is not registered with the receiving chain then only save data on new block and exit
+			if (!chainAccountJSON || (chainAccountJSON && !chainAccountJSON.lastCertificate)) {
+				this.logger.info(
+					'Sending chain is not registered to the receiving chain yet and has no chain data.',
+				);
+				await this._saveDataOnNewBlock(newBlockHeader);
+
+				return;
+			}
+			this._lastCertificate = chainAccountDataJSONToObj(chainAccountJSON).lastCertificate;
 			const { aggregateCommits, blockHeaders, validatorsHashPreimage, crossChainMessages } =
 				await this._saveDataOnNewBlock(newBlockHeader);
 
@@ -228,7 +239,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 					);
 				}
 				// If the CCU was sent successfully then update the last certified height and do the cleanup
-				const chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
+				chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
 					'interoperability_getChainAccount',
 					{ chainID: this._ownChainID.toString('hex') },
 				);
@@ -285,11 +296,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 		// Take range from lastSentCCM height until new or last certificate height
 		const ccmsToBeIncluded = ccmsFromEvents.filter(
-			ccmFromEvents =>
-				ccmFromEvents.height >= lastSentCCM.height &&
+			record =>
+				record.height >= lastSentCCM.height &&
 				// If no newCertificate then use lastCertificate height
-				ccmFromEvents.height <=
-					(newCertificate ? newCertificate.height : this._lastCertificate.height),
+				record.height <= (newCertificate ? newCertificate.height : this._lastCertificate.height),
 		);
 		// Calculate messageWitnessHashes for pending CCMs if any
 		const sendingChainChannelInfoJSON = await this._receivingChainClient.invoke<ChannelDataJSON>(
@@ -525,10 +535,13 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			Buffer.from(store?.key as string, 'hex'),
 			cryptography.utils.hash(this._receivingChainID),
 		]).toString('hex');
-		const proofJSON = await this._sendingChainClient.invoke<ProveResponseJSON>('state_prove', {
-			queryKeys: [outboxKey],
-		});
-		const proveResponseObj = proveResponseJSONToObj(proofJSON);
+		const proveResponseJSON = await this._sendingChainClient.invoke<ProveResponseJSON>(
+			'state_prove',
+			{
+				queryKeys: [outboxKey],
+			},
+		);
+		const proveResponseObj = proveResponseJSONToObj(proveResponseJSON);
 		const outboxRootWitness: OutboxRootWitness = {
 			bitmap: proveResponseObj.proof.queries[0].bitmap,
 			siblingHashes: proveResponseObj.proof.siblingHashes,

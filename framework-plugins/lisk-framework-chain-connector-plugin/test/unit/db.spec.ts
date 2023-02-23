@@ -98,7 +98,7 @@ describe('Plugins DB', () => {
 			});
 		});
 
-		describe('aggregatecommits', () => {
+		describe('aggregateCommits', () => {
 			let sampleAggregateCommits: AggregateCommit[];
 
 			beforeEach(() => {
