@@ -57,4 +57,8 @@ export const chainValidatorsSchema = {
 
 export class ChainValidatorsStore extends BaseStore<ChainValidators> {
 	public schema = chainValidatorsSchema;
+
+	public get storePrefix(): Buffer {
+		return Buffer.from([0x83, 0xed, 0x0d, 0x25]);
+	}
 }

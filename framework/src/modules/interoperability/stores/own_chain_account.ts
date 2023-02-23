@@ -45,4 +45,8 @@ export const ownChainAccountSchema = {
 
 export class OwnChainAccountStore extends BaseStore<OwnChainAccount> {
 	public schema = ownChainAccountSchema;
+
+	public get storePrefix(): Buffer {
+		return Buffer.from([0x83, 0xed, 0x0d, 0x25]);
+	}
 }

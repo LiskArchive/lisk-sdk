@@ -105,6 +105,10 @@ export const allChainAccountsSchema = {
 export class ChainAccountStore extends BaseStore<ChainAccount> {
 	public schema = chainDataSchema;
 
+	public get storePrefix(): Buffer {
+		return Buffer.from([0x83, 0xed, 0x0d, 0x25]);
+	}
+
 	public async getAllAccounts(
 		context: ImmutableStoreGetter,
 		startChainID: Buffer,

@@ -75,6 +75,10 @@ export const channelSchema = {
 export class ChannelDataStore extends BaseStore<ChannelData> {
 	public schema = channelSchema;
 
+	public get storePrefix(): Buffer {
+		return Buffer.from([0x83, 0xed, 0x0d, 0x25]);
+	}
+
 	public async updatePartnerChainOutboxRoot(
 		context: StoreGetter,
 		chainID: Buffer,

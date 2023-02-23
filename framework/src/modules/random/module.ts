@@ -52,7 +52,7 @@ export class RandomModule extends BaseModule {
 
 	public constructor() {
 		super();
-		this.stores.register(ValidatorRevealsStore, new ValidatorRevealsStore(this.name));
+		this.stores.register(ValidatorRevealsStore, new ValidatorRevealsStore(this.name, 0));
 		this.offchainStores.register(HashOnionStore, new HashOnionStore(this.name));
 		this.offchainStores.register(UsedHashOnionsStore, new UsedHashOnionsStore(this.name));
 	}

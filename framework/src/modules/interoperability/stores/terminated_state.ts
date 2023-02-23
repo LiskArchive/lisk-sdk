@@ -53,4 +53,8 @@ export const terminatedStateSchema = {
 
 export class TerminatedStateStore extends BaseStore<TerminatedStateAccount> {
 	public schema = terminatedStateSchema;
+
+	public get storePrefix(): Buffer {
+		return Buffer.from([0x83, 0xed, 0x0d, 0x25]);
+	}
 }

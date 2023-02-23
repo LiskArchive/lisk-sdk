@@ -26,7 +26,7 @@ describe('EscrowStore', () => {
 	let context: StoreGetter;
 
 	beforeEach(() => {
-		store = new EscrowStore('token');
+		store = new EscrowStore('token', 2);
 		const db = new InMemoryPrefixedStateDB();
 		const stateStore = new PrefixedStateReadWriter(db);
 		context = createStoreGetter(stateStore);

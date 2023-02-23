@@ -51,4 +51,8 @@ export const terminatedOutboxSchema = {
 
 export class TerminatedOutboxStore extends BaseStore<TerminatedOutboxAccount> {
 	public schema = terminatedOutboxSchema;
+
+	public get storePrefix(): Buffer {
+		return Buffer.from([0x83, 0xed, 0x0d, 0x25]);
+	}
 }
