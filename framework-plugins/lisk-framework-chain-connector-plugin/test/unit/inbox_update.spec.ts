@@ -14,8 +14,6 @@
 
 import {
 	CCMsg,
-	codec,
-	ccmSchema,
 	Certificate,
 	testing,
 	cryptography,
@@ -24,7 +22,6 @@ import {
 	ChannelData,
 } from 'lisk-sdk';
 import { CCU_TOTAL_CCM_SIZE } from '../../src/constants';
-import * as inboxUpdateUtil from '../../src/inbox_update';
 import { CCMsFromEvents } from '../../src/types';
 import { calculateMessageWitnesses } from '../../src/inbox_update';
 import { getSampleCCM } from '../utils/sampleCCM';
@@ -150,51 +147,6 @@ describe('inboxUpdate', () => {
 			expect(lastCCMToBeSent).toBeUndefined();
 
 			expect(tree.regularMerkleTree.calculateRightWitness).not.toHaveBeenCalled();
-		});
-	});
-
-	// TODO: Break it down into multiple cases where we have 1 group and multiple group depending on ccms size.
-	describe('_groupCCMsBySize', () => {
-		it('should return CCMsFromEvents[][] with length of total CCMs divided by CCU_TOTAL_CCM_SIZE', () => {
-			let ccmsFromEvents: CCMsg[] = [];
-			const buildNumCCMs = (num: number, fromHeight: number): CCMsg[] => {
-				const ccms: CCMsg[] = [];
-				let j = 1;
-				while (j <= num) {
-					ccms.push(getSampleCCM(fromHeight + j, 1000));
-					j += 1;
-				}
-				return ccms;
-			};
-
-			ccmsFromEvents = [...ccmsFromEvents, ...buildNumCCMs(2, 1)];
-			ccmsFromEvents = [...ccmsFromEvents, ...buildNumCCMs(5, 3)];
-			ccmsFromEvents = [...ccmsFromEvents, ...buildNumCCMs(20, 4)];
-
-			const listOfCCMs = inboxUpdateUtil.groupCCMsBySize(ccmsFromEvents, CCU_TOTAL_CCM_SIZE);
-
-			const getTotalSize = (ccms: CCMsg[]) => {
-				return ccms
-					.map(ccm => codec.encode(ccmSchema, ccm).length) // to each CCM size
-					.reduce((a, b) => a + b, 0); // sum
-			};
-
-			// for 25 CCMs (after filtering), we will have 3 lists
-			expect(listOfCCMs).toHaveLength(3);
-
-			// Ist list will have 9 CCMs (start index 0, last index = 8), totalSize = 9531 (1059 * 9))
-			const firstList = listOfCCMs[0];
-			expect(firstList).toHaveLength(9);
-			expect(getTotalSize(firstList)).toBeLessThan(CCU_TOTAL_CCM_SIZE);
-
-			// 2nd list will have 9 CCMs (start index 9, last index = 17)
-			const secondList = listOfCCMs[1];
-			expect(secondList).toHaveLength(9);
-			expect(getTotalSize(secondList)).toBeLessThan(CCU_TOTAL_CCM_SIZE);
-
-			// 3rd list will have 7 CCMs (start index 18)
-			const thirdList = listOfCCMs[2];
-			expect(thirdList).toHaveLength(9);
 		});
 	});
 });

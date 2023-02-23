@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { CCMsg, ccmSchema, codec, tree, ChannelData } from 'lisk-sdk';
+import { ccmSchema, codec, tree, ChannelData } from 'lisk-sdk';
 import { CCMsFromEvents, LastSentCCMWithHeight } from './types';
 
 /**
  * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#messagewitnesshashes
- * @description This method is to calculate messageWitnessHashes
- * if there are any pending ccms as well as it filters out ccms based on last sent ccm nonce.
+ * @description Calculates messageWitnessHashes if there are any pending ccms as well as it filters out ccms
+ * based on last sent ccm nonce.
  * Also, it checks whether a list of ccm can fit into a CCU based on maxCCUSize
  * @param sendingChainChannelInfo Channel info of the sendingChain stored on receivingChain
  * @param ccmsToBeIncluded Filtered list of CCMs that can be included for a given certificate
@@ -38,27 +38,28 @@ export const calculateMessageWitnesses = (
 	messageWitnessHashes: Buffer[];
 	lastCCMToBeSent: LastSentCCMWithHeight | undefined;
 } => {
-	// Filter all the CCMs between lastCertifiedHeight and certificate height.
-	let potentialCCMs: CCMsg[] = [];
-
-	let lastCCMHeight = 0;
+	const allSerializedCCMs = [];
+	const includedSerializedCCMs = [];
+	let lastCCMWithHeight;
+	let totalSize = 0;
 	// Make an array of ccms with nonce greater than last sent ccm nonce
-	for (const ccmFromEvents of ccmsToBeIncluded) {
-		const { ccms } = ccmFromEvents;
-		if (ccmFromEvents.height === lastSentCCMInfo.height) {
-			for (const ccm of ccms.filter(c => c.nonce > lastSentCCMInfo.nonce)) {
-				potentialCCMs.push(ccm);
+	for (const ccmsFromEvents of ccmsToBeIncluded) {
+		const { ccms } = ccmsFromEvents;
+		for (const ccm of ccms) {
+			if (ccm.nonce > lastSentCCMInfo.nonce) {
+				const ccmBytes = codec.encode(ccmSchema, ccm);
+				totalSize += ccmBytes.length;
+				if (totalSize <= maxCCUSize) {
+					includedSerializedCCMs.push(ccmBytes);
+					lastCCMWithHeight = { ...ccm, height: ccmsFromEvents.height };
+				}
+				allSerializedCCMs.push(ccmBytes);
 			}
-			continue;
 		}
-		potentialCCMs = [...potentialCCMs, ...ccms];
-		lastCCMHeight = ccmFromEvents.height;
 	}
 
-	const ccmsListOfList = groupCCMsBySize(potentialCCMs, maxCCUSize);
-
-	// Return empty inboxUpdate when there are no ccms
-	if (ccmsListOfList.length < 1) {
+	// Return empty inboxUpdate when there is no CCM
+	if (includedSerializedCCMs.length < 1) {
 		return {
 			crossChainMessages: [],
 			messageWitnessHashes: [],
@@ -66,80 +67,25 @@ export const calculateMessageWitnesses = (
 		};
 	}
 
-	if (ccmsListOfList.length === 1) {
-		const firstCCMList = ccmsListOfList[0];
-		const serializedCCMList = firstCCMList.map(ccm => codec.encode(ccmSchema, ccm));
-		// Take the inclusion proof of the last CCM to be included.
-
+	// When all the ccms are included then keep the messageWitnessHashes empty
+	if (includedSerializedCCMs.length === allSerializedCCMs.length) {
 		return {
-			crossChainMessages: serializedCCMList,
+			crossChainMessages: includedSerializedCCMs,
 			messageWitnessHashes: [],
-			lastCCMToBeSent: { ...firstCCMList[0], height: lastCCMHeight },
+			lastCCMToBeSent: lastCCMWithHeight,
 		};
 	}
 
-	const firstCCMList = ccmsListOfList[0];
-	const includedSerializedCCMList = firstCCMList.map(ccm => codec.encode(ccmSchema, ccm));
-
-	const allSerializedCCMs = potentialCCMs.map(ccm => codec.encode(ccmSchema, ccm));
-	const remainingCCMValues = allSerializedCCMs.slice(
-		firstCCMList.length - 1,
-		allSerializedCCMs.length - 1,
-	);
+	const remainingSerializedCCMs = allSerializedCCMs.slice(includedSerializedCCMs.length);
 	// Generate messageWitness
 	const messageWitnessHashes = tree.regularMerkleTree.calculateRightWitness(
-		sendingChainChannelInfo.inbox.size + firstCCMList.length,
-		remainingCCMValues,
+		sendingChainChannelInfo.inbox.size + includedSerializedCCMs.length,
+		remainingSerializedCCMs,
 	);
 
 	return {
-		crossChainMessages: includedSerializedCCMList,
+		crossChainMessages: includedSerializedCCMs,
 		messageWitnessHashes,
-		lastCCMToBeSent: { ...firstCCMList[0], height: lastCCMHeight },
+		lastCCMToBeSent: lastCCMWithHeight,
 	};
-};
-
-/**
- * @description This will return lists with sub-lists, where total size of CCMs in each sub-list will be <= CCU_TOTAL_CCM_SIZE
- * Each sublist can contain CCMS from DIFFERENT heights
- */
-export const groupCCMsBySize = (allCCMs: CCMsg[], maxCCUSize: number): CCMsg[][] => {
-	const groupedCCMsBySize: CCMsg[][] = [];
-
-	if (allCCMs.length === 0) {
-		return groupedCCMsBySize;
-	}
-
-	// This will group/bundle CCMs in a list where total size of the list will be <= CCU_TOTAL_CCM_SIZE
-	const groupBySize = (startIndex: number): [list: CCMsg[], newIndex: number] => {
-		const newList: CCMsg[] = [];
-		let totalSize = 0;
-		let i = startIndex;
-
-		for (; i < allCCMs.length; i += 1) {
-			const ccm = allCCMs[i];
-			const ccmBytes = codec.encode(ccmSchema, ccm);
-			const size = ccmBytes.length;
-			totalSize += size;
-			if (totalSize > maxCCUSize) {
-				return [newList, i];
-			}
-
-			newList.push(ccm);
-		}
-
-		return [newList, i];
-	};
-
-	const buildGroupsBySize = (startIndex: number) => {
-		const [list, lastIndex] = groupBySize(startIndex);
-		groupedCCMsBySize.push(list);
-
-		if (lastIndex < allCCMs.length) {
-			buildGroupsBySize(lastIndex);
-		}
-	};
-
-	buildGroupsBySize(0);
-	return groupedCCMsBySize;
 };
