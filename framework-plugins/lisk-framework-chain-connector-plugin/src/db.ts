@@ -12,14 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec, db as liskDB, AggregateCommit, Certificate, chain } from 'lisk-sdk';
+import { codec, db as liskDB, AggregateCommit, chain } from 'lisk-sdk';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
 import {
 	DB_KEY_AGGREGATE_COMMITS,
 	DB_KEY_BLOCK_HEADERS,
-	DB_KEY_CERTIFICATE,
 	DB_KEY_CROSS_CHAIN_MESSAGES,
 	DB_KEY_LAST_SENT_CCM,
 	DB_KEY_LIST_OF_CCU,
@@ -29,7 +28,6 @@ import {
 	aggregateCommitsInfoSchema,
 	blockHeadersInfoSchema,
 	ccmsFromEventsSchema,
-	certificatesSchema,
 	lastSentCCMWithHeight,
 	listOfCCUsSchema,
 	validatorsHashPreimageInfoSchema,
@@ -178,27 +176,6 @@ export class ChainConnectorStore {
 
 	public async setLastSentCCM(lastSentCCM: LastSentCCMWithHeight) {
 		await this._db.set(DB_KEY_LAST_SENT_CCM, codec.encode(lastSentCCMWithHeight, lastSentCCM));
-	}
-
-	public async getCertificates(): Promise<Certificate[]> {
-		let certificates: Certificate[] = [];
-		try {
-			const encodedInfo = await this._db.get(DB_KEY_CERTIFICATE);
-			certificates = codec.decode<{ certificates: Certificate[] }>(
-				certificatesSchema,
-				encodedInfo,
-			).certificates;
-		} catch (error) {
-			if (!(error instanceof liskDB.NotFoundError)) {
-				throw error;
-			}
-		}
-		return certificates;
-	}
-
-	public async setCertificates(certificates: Certificate[]) {
-		certificates.sort((a, b) => b.height - a.height);
-		await this._db.set(DB_KEY_CERTIFICATE, codec.encode(certificatesSchema, { certificates }));
 	}
 
 	public async getListOfCCUs(): Promise<chain.TransactionAttrs[]> {

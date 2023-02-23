@@ -17,7 +17,6 @@ import {
 	db,
 	testing,
 	cryptography,
-	Certificate,
 	chain,
 	SubmitMainchainCrossChainUpdateCommand,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
@@ -26,7 +25,7 @@ import * as fs from 'fs-extra';
 import { homedir } from 'os';
 import { join } from 'path';
 import { ChainConnectorStore, getDBInstance } from '../../src/db';
-import { ADDRESS_LENGTH, BLS_PUBLIC_KEY_LENGTH, HASH_LENGTH } from '../../src/constants';
+import { ADDRESS_LENGTH, BLS_PUBLIC_KEY_LENGTH } from '../../src/constants';
 import {
 	BlockHeader,
 	CCMsFromEvents,
@@ -40,7 +39,6 @@ const mockedFsExtra = fs as jest.Mocked<typeof fs>;
 describe('Plugins DB', () => {
 	const unresolvedRootPath = '~/.lisk/devnet';
 	const dbName = 'lisk-framework-chain-connector-plugin.db';
-	const BLS_SIGNATURE_LENGTH = 96;
 
 	beforeEach(() => {
 		jest.spyOn(db, 'Database');
@@ -259,43 +257,6 @@ describe('Plugins DB', () => {
 				await chainConnectorStore.setLastSentCCM(sampleLastSentCCM);
 
 				await expect(chainConnectorStore.getLastSentCCM()).resolves.toEqual(sampleLastSentCCM);
-			});
-		});
-
-		describe('certificates', () => {
-			let certificates: Certificate[];
-
-			beforeEach(() => {
-				certificates = [
-					{
-						height: 5,
-						validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH),
-						stateRoot: Buffer.from('00'),
-						blockID: Buffer.from('00'),
-						timestamp: Math.floor(Date.now() / 1000),
-						aggregationBits: Buffer.alloc(0),
-						signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
-					},
-					{
-						height: 17,
-						validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH),
-						stateRoot: Buffer.from('01'),
-						blockID: Buffer.from('01'),
-						timestamp: Math.floor(Date.now() / 1000),
-						aggregationBits: Buffer.alloc(1),
-						signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
-					},
-				];
-			});
-
-			it('should return empty array when there is no record', async () => {
-				await expect(chainConnectorStore.getCertificates()).resolves.toEqual([]);
-			});
-
-			it('should return list of certificates', async () => {
-				await chainConnectorStore.setCertificates(certificates);
-
-				await expect(chainConnectorStore.getCertificates()).resolves.toEqual(certificates);
 			});
 		});
 

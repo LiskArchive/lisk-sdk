@@ -140,20 +140,6 @@ export const lastSentCCMWithHeight = {
 	},
 };
 
-export const certificatesSchema = {
-	$id: `${pluginSchemaIDPrefix}/certificates`,
-	type: 'object',
-	properties: {
-		certificates: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				...certificateSchema,
-			},
-		},
-	},
-};
-
 export const listOfCCUsSchema = {
 	$id: `${pluginSchemaIDPrefix}/listOfCCUs`,
 	type: 'object',
