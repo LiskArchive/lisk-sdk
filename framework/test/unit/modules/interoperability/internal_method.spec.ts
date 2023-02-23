@@ -208,11 +208,9 @@ describe('Base interoperability internal method', () => {
 			await mainchainInteroperabilityInternalMethod.addToOutbox(methodContext, chainID, ccm);
 
 			// Assert
-			expect(outboxRootSubstore.set).toHaveBeenCalledWith(
-				expect.anything(),
-				chainID,
-				updatedOutboxTree,
-			);
+			expect(outboxRootSubstore.set).toHaveBeenCalledWith(expect.anything(), chainID, {
+				root: updatedOutboxTree.root,
+			});
 		});
 	});
 
