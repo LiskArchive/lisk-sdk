@@ -777,7 +777,7 @@ export class PoSModule extends BaseModule {
 					weight: BigInt(1),
 				}));
 			}
-			const averageWeight = weightSum / BigInt(numElectedValidators);
+			const averageWeight = weightSum / BigInt(activeValidators.length);
 			let addedInitValidators = 0;
 			for (const address of genesisData.initValidators) {
 				// only pick upto the numInitValidators
