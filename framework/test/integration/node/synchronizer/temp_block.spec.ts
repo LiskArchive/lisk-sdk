@@ -14,7 +14,11 @@
 import { Chain } from '@liskhq/lisk-chain';
 
 import { nodeUtils } from '../../../utils';
-import { createTransferTransaction } from '../../../utils/mocks/transaction';
+import {
+	createTransferTransaction,
+	createValidatorRegisterTransaction,
+	createValidatorStakeTransaction,
+} from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
 import {
 	clearBlocksTempTable,
@@ -47,7 +51,42 @@ describe('Temp block', () => {
 	describe('given a blockchain with more than 3 rounds', () => {
 		describe('when deleting 100 blocks and saving to the temp blocks chain', () => {
 			it('should successfully store to temp block and restore from temp block', async () => {
-				const targetHeight = processEnv.getLastBlock().header.height + numberOfValidators * 3;
+				const genesisAuth = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+					address: genesis.address,
+				});
+				const recipientAccount = nodeUtils.createAccount();
+				const transaction1 = createTransferTransaction({
+					nonce: BigInt(genesisAuth.nonce),
+					recipientAddress: recipientAccount.address,
+					amount: BigInt('1000000000000'),
+					chainID,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
+				});
+				const transaction2 = createValidatorRegisterTransaction({
+					nonce: BigInt(0),
+					username: 'rand',
+					chainID,
+					blsKey: recipientAccount.blsPublicKey,
+					blsProofOfPossession: recipientAccount.blsPoP,
+					generatorKey: recipientAccount.publicKey,
+					privateKey: recipientAccount.privateKey,
+				});
+				const transaction3 = createValidatorStakeTransaction({
+					nonce: BigInt(1),
+					chainID,
+					privateKey: recipientAccount.privateKey,
+					stakes: [
+						{
+							validatorAddress: recipientAccount.address,
+							amount: BigInt('100000000000'),
+						},
+					],
+				});
+				const block = await processEnv.createBlock([transaction1, transaction2, transaction3]);
+				await processEnv.process(block);
+
+				// targetHeight is to end of the default init round. `-1` refers to the above preparation block.
+				const targetHeight = processEnv.getLastBlock().header.height + numberOfValidators * 3 - 1;
 				while (chain.lastBlock.header.height < targetHeight) {
 					const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
 						address: genesis.address,

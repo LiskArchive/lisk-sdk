@@ -138,14 +138,20 @@ export const selectStandbyValidators = (
 	const result: ValidatorWeight[] = [];
 	const index = pickStandByValidator(validatorWeights, randomSeed1);
 	const [selected] = validatorWeights.splice(index, 1);
-	result.push(selected);
+	result.push({
+		address: selected.address,
+		weight: BigInt(0),
+	});
 	// if seed2 is missing, return only 1
 	if (!randomSeed2) {
 		return result;
 	}
 	const secondIndex = pickStandByValidator(validatorWeights, randomSeed2);
 	const [secondStandby] = validatorWeights.splice(secondIndex, 1);
-	result.push(secondStandby);
+	result.push({
+		address: secondStandby.address,
+		weight: BigInt(0),
+	});
 
 	return result;
 };
