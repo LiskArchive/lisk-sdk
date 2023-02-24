@@ -14,7 +14,6 @@
 
 import {
 	AggregateCommit,
-	BFTParameters,
 	ChainAccount,
 	ChainAccountJSON,
 	ChannelData,
@@ -24,7 +23,13 @@ import {
 	Outbox,
 	OutboxJSON,
 } from 'lisk-sdk';
-import { BFTParametersJSON, ProveResponse, ProveResponseJSON, ValidatorsData } from './types';
+import {
+	BFTParameters,
+	BFTParametersJSON,
+	ProveResponse,
+	ProveResponseJSON,
+	ValidatorsData,
+} from './types';
 import { CHAIN_ID_LENGTH } from './constants';
 
 export const getMainchainID = (chainID: Buffer): Buffer => {
@@ -147,7 +152,6 @@ export const bftParametersJSONToObj = (bftParametersJSON: BFTParametersJSON): BF
 			address: Buffer.from(validator.address, 'hex'),
 			bftWeight: BigInt(validator.bftWeight),
 			blsKey: Buffer.from(validator.blsKey, 'hex'),
-			generatorKey: Buffer.from(validator.generatorKey, 'hex'),
 		})),
 		validatorsHash: Buffer.from(validatorsHash, 'hex'),
 	};

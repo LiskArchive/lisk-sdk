@@ -13,7 +13,7 @@
  */
 
 import { chain, aggregateCommitSchema, ccmSchema } from 'lisk-sdk';
-import { CCU_FREQUENCY } from './constants';
+import { CCU_FREQUENCY, CCU_TOTAL_CCM_SIZE } from './constants';
 
 const pluginSchemaIDPrefix = '/lisk/plugins/chainConnector';
 
@@ -35,18 +35,34 @@ export const configSchema = {
 		},
 		encryptedPrivateKey: {
 			type: 'string',
+			description: 'Encrypted privateKey of the relayer',
 		},
 		ccuFee: {
 			type: 'string',
 			format: 'uint64',
+			description: 'Fee to be paid for each CCU transaction',
 		},
 		password: {
 			type: 'string',
+			description: 'Password to decrypt encryptedPrivateKey',
+		},
+		isSaveCCU: {
+			type: 'boolean',
+			description:
+				'Flag for the user to either save or send a CCU on creation. Send is by default.',
+		},
+		maxCCUSize: {
+			type: 'integer',
+			description: 'Maximum size of CCU to be allowed',
+			minimum: 1,
+			maximum: CCU_TOTAL_CCM_SIZE,
 		},
 	},
 	required: ['ccuFee', 'encryptedPrivateKey', 'password'],
 	default: {
 		ccuFrequency: CCU_FREQUENCY,
+		isSaveCCU: false,
+		maxCCUSize: CCU_TOTAL_CCM_SIZE,
 	},
 };
 
@@ -110,6 +126,29 @@ export const validatorsHashPreimageInfoSchema = {
 			fieldNumber: 1,
 			items: {
 				...validatorsDataSchema,
+			},
+		},
+	},
+};
+
+export const lastSentCCMWithHeight = {
+	$id: `${pluginSchemaIDPrefix}/lastSentCCMWithHeight`,
+	type: 'object',
+	properties: {
+		...ccmSchema.properties,
+		height: { dataType: 'uint32', fieldNumber: Object.keys(ccmSchema.properties).length + 1 },
+	},
+};
+
+export const listOfCCUsSchema = {
+	$id: `${pluginSchemaIDPrefix}/listOfCCUs`,
+	type: 'object',
+	properties: {
+		listOfCCUs: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				...chain.transactionSchema,
 			},
 		},
 	},

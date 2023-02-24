@@ -108,7 +108,7 @@ export class Q {
 	}
 
 	public toBuffer(): Buffer {
-		return Buffer.from(this._val.toString(16), 'hex');
+		return Buffer.from(this._bigintToHex(this._val), 'hex');
 	}
 
 	public eq(n: Q): boolean {
@@ -156,5 +156,17 @@ export class Q {
 			return result;
 		}
 		return result + ONE;
+	}
+
+	// _bigintToHex mitigates the problem where bigint.toString(16) does not prepend 0 at the beginning
+	private _bigintToHex(val: bigint): string {
+		if (val === BigInt(0)) {
+			return '';
+		}
+		const result = val.toString(16);
+		if (result.length % 2 === 0) {
+			return result;
+		}
+		return `0${result}`;
 	}
 }

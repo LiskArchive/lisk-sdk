@@ -34,9 +34,9 @@ export class ValidatorsModule extends BaseModule {
 
 	public constructor() {
 		super();
-		this.stores.register(ValidatorKeysStore, new ValidatorKeysStore(this.name));
-		this.stores.register(BLSKeyStore, new BLSKeyStore(this.name));
-		this.stores.register(ValidatorsParamsStore, new ValidatorsParamsStore(this.name));
+		this.stores.register(ValidatorKeysStore, new ValidatorKeysStore(this.name, 0));
+		this.stores.register(ValidatorsParamsStore, new ValidatorsParamsStore(this.name, 1));
+		this.stores.register(BLSKeyStore, new BLSKeyStore(this.name, 2));
 
 		this.events.register(
 			GeneratorKeyRegistrationEvent,

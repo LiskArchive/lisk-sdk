@@ -339,7 +339,7 @@ export interface StateRecoveryInitParams {
 	siblingHashes: Buffer[];
 }
 
-export interface TerminateSidehchainForLivenessParams {
+export interface TerminateSidechainForLivenessParams {
 	chainID: Buffer;
 }
 

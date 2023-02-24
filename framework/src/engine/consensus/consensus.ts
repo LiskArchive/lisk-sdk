@@ -377,6 +377,13 @@ export class Consensus {
 		);
 	}
 
+	public async getMaxRemovalHeight(): Promise<number> {
+		const finalizedBlockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(
+			this._chain.finalizedHeight,
+		);
+		return finalizedBlockHeader.aggregateCommit.height;
+	}
+
 	private async _execute(block: Block, peerID: string): Promise<void> {
 		if (this._stop) {
 			return;
@@ -930,7 +937,8 @@ export class Consensus {
 		block: Block,
 	): Promise<Event[]> {
 		try {
-			await this._bft.beforeTransactionsExecute(stateStore, block.header);
+			const maxRemovalHeight = await this.getMaxRemovalHeight();
+			await this._bft.beforeTransactionsExecute(stateStore, block.header, maxRemovalHeight);
 
 			const events = [];
 			const beforeResult = await this._abi.beforeTransactionsExecute({

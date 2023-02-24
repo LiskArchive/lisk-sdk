@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec, db as liskDB, AggregateCommit } from 'lisk-sdk';
+import { codec, db as liskDB, AggregateCommit, chain } from 'lisk-sdk';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
@@ -20,15 +20,19 @@ import {
 	DB_KEY_AGGREGATE_COMMITS,
 	DB_KEY_BLOCK_HEADERS,
 	DB_KEY_CROSS_CHAIN_MESSAGES,
+	DB_KEY_LAST_SENT_CCM,
+	DB_KEY_LIST_OF_CCU,
 	DB_KEY_VALIDATORS_HASH_PREIMAGE,
 } from './constants';
 import {
 	aggregateCommitsInfoSchema,
 	blockHeadersInfoSchema,
 	ccmsFromEventsSchema,
+	lastSentCCMWithHeight,
+	listOfCCUsSchema,
 	validatorsHashPreimageInfoSchema,
 } from './schemas';
-import { BlockHeader, CCMsFromEvents, ValidatorsData } from './types';
+import { BlockHeader, CCMsFromEvents, LastSentCCMWithHeight, ValidatorsData } from './types';
 
 const { Database } = liskDB;
 type KVStore = liskDB.Database;
@@ -59,6 +63,12 @@ export const getDBInstance = async (
 	return new Database(dirPath);
 };
 
+export const checkDBError = (error: Error | unknown) => {
+	if (!(error instanceof liskDB.NotFoundError)) {
+		throw error;
+	}
+};
+
 export class ChainConnectorStore {
 	private readonly _db: KVStore;
 
@@ -79,9 +89,7 @@ export class ChainConnectorStore {
 				encodedInfo,
 			).blockHeaders;
 		} catch (error) {
-			if (!(error instanceof liskDB.NotFoundError)) {
-				throw error;
-			}
+			checkDBError(error);
 		}
 		return blockHeaders;
 	}
@@ -101,9 +109,7 @@ export class ChainConnectorStore {
 				encodedInfo,
 			).aggregateCommits;
 		} catch (error) {
-			if (!(error instanceof liskDB.NotFoundError)) {
-				throw error;
-			}
+			checkDBError(error);
 		}
 		return aggregateCommits;
 	}
@@ -122,9 +128,7 @@ export class ChainConnectorStore {
 				encodedInfo,
 			).validatorsHashPreimage;
 		} catch (error) {
-			if (!(error instanceof liskDB.NotFoundError)) {
-				throw error;
-			}
+			checkDBError(error);
 		}
 		return validatorsHashPreimage;
 	}
@@ -145,9 +149,7 @@ export class ChainConnectorStore {
 				encodedInfo,
 			).ccmsFromEvents;
 		} catch (error) {
-			if (!(error instanceof liskDB.NotFoundError)) {
-				throw error;
-			}
+			checkDBError(error);
 		}
 		return crossChainMessages;
 	}
@@ -155,5 +157,40 @@ export class ChainConnectorStore {
 	public async setCrossChainMessages(ccms: CCMsFromEvents[]) {
 		const encodedInfo = codec.encode(ccmsFromEventsSchema, { ccmsFromEvents: ccms });
 		await this._db.set(DB_KEY_CROSS_CHAIN_MESSAGES, encodedInfo);
+	}
+
+	public async getLastSentCCM(): Promise<LastSentCCMWithHeight | undefined> {
+		let lastSentCCM: LastSentCCMWithHeight | undefined;
+		try {
+			const encodedInfo = await this._db.get(DB_KEY_LAST_SENT_CCM);
+			lastSentCCM = codec.decode<LastSentCCMWithHeight>(lastSentCCMWithHeight, encodedInfo);
+		} catch (error) {
+			checkDBError(error);
+		}
+		return lastSentCCM;
+	}
+
+	public async setLastSentCCM(lastSentCCM: LastSentCCMWithHeight) {
+		await this._db.set(DB_KEY_LAST_SENT_CCM, codec.encode(lastSentCCMWithHeight, lastSentCCM));
+	}
+
+	public async getListOfCCUs(): Promise<chain.TransactionAttrs[]> {
+		let listOfCCUs: chain.TransactionAttrs[] = [];
+		try {
+			const encodedInfo = await this._db.get(DB_KEY_LIST_OF_CCU);
+			listOfCCUs = codec.decode<{ listOfCCUs: chain.TransactionAttrs[] }>(
+				listOfCCUsSchema,
+				encodedInfo,
+			).listOfCCUs;
+		} catch (error) {
+			checkDBError(error);
+		}
+		return listOfCCUs;
+	}
+
+	public async setListOfCCUs(listOfCCUs: chain.TransactionAttrs[]) {
+		listOfCCUs.sort((a, b) => Number(b.nonce) - Number(a.nonce));
+
+		await this._db.set(DB_KEY_LIST_OF_CCU, codec.encode(listOfCCUsSchema, { listOfCCUs }));
 	}
 }

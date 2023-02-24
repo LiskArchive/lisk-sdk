@@ -137,7 +137,7 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 			stateRecoveryInitParamsSchema,
 		);
 
-		const chainAccountStore = new ChainAccountStore(interopMod.name);
+		const chainAccountStore = new ChainAccountStore(interopMod.name, 1);
 		chainAccountStoreMock.key = chainAccountStore.key;
 
 		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);

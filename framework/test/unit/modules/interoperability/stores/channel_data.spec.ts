@@ -48,7 +48,7 @@ describe('ChannelDataStore', () => {
 
 	beforeEach(async () => {
 		context = createStoreGetter(new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()));
-		channelDataStore = new ChannelDataStore(MODULE_NAME_INTEROPERABILITY);
+		channelDataStore = new ChannelDataStore(MODULE_NAME_INTEROPERABILITY, 5);
 		await channelDataStore.set(context, chainID, channelData);
 	});
 

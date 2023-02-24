@@ -71,6 +71,9 @@ describe('consensus', () => {
 			validateBlock: jest.fn(),
 			validateTransaction: jest.fn(),
 			removeBlock: jest.fn(),
+			dataAccess: {
+				getBlockHeaderByHeight: jest.fn().mockResolvedValue(lastBlock.header),
+			},
 		} as unknown as Chain;
 		network = {
 			registerEndpoint: jest.fn(),

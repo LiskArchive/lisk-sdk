@@ -46,6 +46,10 @@ export const CHAIN_ID_LENGTH = 4;
 // Value is in beddows
 export const MIN_RETURN_FEE_PER_BYTE_LSK = BigInt(1000);
 
+// Custom prefix for all the stores for interoperability.
+// It is hash('interoperability').slice(0, 4) but without changing the first byte unlike default store prefix
+export const STORE_PREFIX = Buffer.from([0x83, 0xed, 0x0d, 0x25]);
+
 // Cross chain command names
 export const CROSS_CHAIN_COMMAND_NAME_REGISTRATION = 'registration';
 export const CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED = 'channelTerminated';

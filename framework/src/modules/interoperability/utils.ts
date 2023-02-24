@@ -221,7 +221,7 @@ export const checkInboxUpdateValidity = async (
 			);
 		}
 		const outboxStore = stores.get(OutboxRootStore);
-		const outboxKey = outboxStore.key;
+		const outboxKey = Buffer.concat([outboxStore.key, utils.hash(txParams.sendingChainID)]);
 		const proof = {
 			siblingHashes: outboxRootWitness.siblingHashes,
 			queries: [
