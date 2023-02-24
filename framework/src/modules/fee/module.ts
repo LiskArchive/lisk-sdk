@@ -107,22 +107,9 @@ export class FeeModule extends BaseInteroperableModule {
 	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
 		const { getMethodContext, transaction, header } = context;
 
-		if (header.height < this._maxBlockHeightZeroFeePerByte) {
-			this._minFeePerByte = 0;
-		}
-
-		const minFee = BigInt(this._minFeePerByte) * BigInt(transaction.getBytes().length);
+		const minFee = this._getMinFee(header.height, transaction.getBytes().length);
 		if (transaction.fee < minFee) {
 			throw new Error(`Insufficient transaction fee. Minimum required fee is ${minFee}.`);
-		}
-
-		const userSubstoreExists = await this._tokenMethod.userAccountExists(
-			getMethodContext(),
-			transaction.senderAddress,
-			this._tokenID,
-		);
-		if (!userSubstoreExists) {
-			throw new Error('Account not initialized.');
 		}
 
 		const balance = await this._tokenMethod.getAvailableBalance(
@@ -138,7 +125,7 @@ export class FeeModule extends BaseInteroperableModule {
 	}
 
 	public async beforeCommandExecute(context: TransactionExecuteContext): Promise<void> {
-		const { transaction } = context;
+		const { transaction, header } = context;
 		const methodContext = context.getMethodContext();
 		// The Token module beforeCrossChainCommandExecute needs to be called first
 		// to ensure that the relayer has enough funds
@@ -149,7 +136,7 @@ export class FeeModule extends BaseInteroperableModule {
 			this._tokenID,
 			transaction.fee,
 		);
-		const minFee = BigInt(this._minFeePerByte * context.transaction.getBytes().length);
+		const minFee = this._getMinFee(header.height, transaction.getBytes().length);
 
 		context.contextStore.set(CONTEXT_STORE_KEY_AVAILABLE_FEE, transaction.fee - minFee);
 	}
@@ -221,5 +208,12 @@ export class FeeModule extends BaseInteroperableModule {
 			senderAddress: transaction.senderAddress,
 		});
 		context.contextStore.delete(CONTEXT_STORE_KEY_AVAILABLE_FEE);
+	}
+
+	public _getMinFee(blockHeight: number, transactionByteLength: number): bigint {
+		if (blockHeight < this._maxBlockHeightZeroFeePerByte) {
+			return BigInt(0);
+		}
+		return BigInt(this._minFeePerByte) * BigInt(transactionByteLength);
 	}
 }

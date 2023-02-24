@@ -95,24 +95,7 @@ describe('FeeModule', () => {
 			params: utils.getRandomBytes(32),
 		});
 
-		it('should set min fee per byte to zero if block height is less than maxBlockHeightZeroFeePerByte', async () => {
-			when(tokenMethod.userAccountExists)
-				.calledWith(expect.anything(), transaction.senderAddress, feeModule['_tokenID'])
-				.mockResolvedValue(true as never);
-			feeModule = new FeeModule();
-			await feeModule.init({ genesisConfig, moduleConfig: { maxBlockHeightZeroFeePerByte: 76 } });
-			feeModule.addDependencies(tokenMethod, {} as any);
-			const context = createTransactionContext({ transaction });
-			const transactionVerifyContext = context.createTransactionVerifyContext();
-			await feeModule.verifyTransaction(transactionVerifyContext);
-
-			expect(feeModule['_minFeePerByte']).toBe(0);
-		});
-
 		it('should validate transaction with sufficient min fee', async () => {
-			when(tokenMethod.userAccountExists)
-				.calledWith(expect.anything(), transaction.senderAddress, feeModule['_tokenID'])
-				.mockResolvedValue(true as never);
 			const context = createTransactionContext({ transaction });
 			const transactionVerifyContext = context.createTransactionVerifyContext();
 			const result = await feeModule.verifyTransaction(transactionVerifyContext);
@@ -121,9 +104,6 @@ describe('FeeModule', () => {
 		});
 
 		it('should validate transaction with exactly the min fee', async () => {
-			when(tokenMethod.userAccountExists)
-				.calledWith(expect.anything(), transaction.senderAddress, feeModule['_tokenID'])
-				.mockResolvedValue(true as never);
 			const exactMinFee = BigInt(113000);
 			const tx = new Transaction({ ...transaction, fee: exactMinFee });
 
@@ -135,9 +115,6 @@ describe('FeeModule', () => {
 		});
 
 		it('should invalidate transaction with insufficient min fee', async () => {
-			when(tokenMethod.userAccountExists)
-				.calledWith(expect.anything(), transaction.senderAddress, feeModule['_tokenID'])
-				.mockResolvedValue(true as never);
 			const tx = new Transaction({ ...transaction, fee: BigInt(0) });
 			const context = createTransactionContext({ transaction: tx });
 			const transactionVerifyContext = context.createTransactionVerifyContext();
@@ -148,11 +125,7 @@ describe('FeeModule', () => {
 		});
 
 		it('should validate transaction with balance greater than min fee', async () => {
-			when(tokenMethod.userAccountExists)
-				.calledWith(expect.anything(), transaction.senderAddress, feeModule['_tokenID'])
-				.mockResolvedValue(true as never);
 			const tx = new Transaction({ ...transaction, fee: BigInt(1000000000) });
-
 			const context = createTransactionContext({ transaction: tx });
 			const transactionVerifyContext = context.createTransactionVerifyContext();
 			const result = await feeModule.verifyTransaction(transactionVerifyContext);
@@ -160,9 +133,6 @@ describe('FeeModule', () => {
 		});
 
 		it('should invalidate transaction with balance less than min fee', async () => {
-			when(tokenMethod.userAccountExists)
-				.calledWith(expect.anything(), transaction.senderAddress, feeModule['_tokenID'])
-				.mockResolvedValue(true as never);
 			const tx = new Transaction({ ...transaction, fee: BigInt(100000000000000000) });
 			const context = createTransactionContext({ transaction: tx });
 			const transactionVerifyContext = context.createTransactionVerifyContext();
@@ -172,13 +142,13 @@ describe('FeeModule', () => {
 		});
 
 		it('should invalidate transaction if the sender account is not initialized for the token id', async () => {
-			when(tokenMethod.userAccountExists)
+			when(tokenMethod.getAvailableBalance)
 				.calledWith(expect.anything(), transaction.senderAddress, feeModule['_tokenID'])
-				.mockResolvedValue(false as never);
+				.mockRejectedValue(new Error('Account does not exist.') as never);
 			const context = createTransactionContext({ transaction });
 			const transactionVerifyContext = context.createTransactionVerifyContext();
 			await expect(feeModule.verifyTransaction(transactionVerifyContext)).rejects.toThrow(
-				'Account not initialized.',
+				'Account does not exist.',
 			);
 		});
 	});
@@ -208,6 +178,20 @@ describe('FeeModule', () => {
 
 			expect(transactionExecuteContext.contextStore.get(CONTEXT_STORE_KEY_AVAILABLE_FEE)).toEqual(
 				defaultTransaction.fee - minFee,
+			);
+		});
+
+		it('should set default transaction fee to context store if block height is less than maxBlockHeightZeroFeePerByte', async () => {
+			feeModule = new FeeModule();
+			await feeModule.init({ genesisConfig, moduleConfig: { maxBlockHeightZeroFeePerByte: 76 } });
+			feeModule.addDependencies(tokenMethod, {} as any);
+			const context = createTransactionContext({ transaction: defaultTransaction });
+			const transactionExecuteContext = context.createTransactionExecuteContext();
+
+			await feeModule.beforeCommandExecute(transactionExecuteContext);
+
+			expect(transactionExecuteContext.contextStore.get(CONTEXT_STORE_KEY_AVAILABLE_FEE)).toEqual(
+				defaultTransaction.fee,
 			);
 		});
 	});
