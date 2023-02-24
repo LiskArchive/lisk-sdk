@@ -247,7 +247,21 @@ describe('BaseCCRegistrationCommand', () => {
 				}),
 			);
 			await expect(ccRegistrationCommand.verify(sampleExecuteContext)).rejects.toThrow(
-				'Registration message must contain the same message fee token ID as the chain account.',
+				'Registration message must contain the same message fee token ID as the channel account.',
+			);
+		});
+
+		it('should fail if channel.minReturnFeePerByte !== ccmRegistrationParams.minReturnFeePerByte', async () => {
+			sampleExecuteContext = createContext(
+				buildCCM({
+					params: codec.encode(registrationCCMParamsSchema, {
+						...ccmRegistrationParams,
+						minReturnFeePerByte: '1',
+					}),
+				}),
+			);
+			await expect(ccRegistrationCommand.verify(sampleExecuteContext)).rejects.toThrow(
+				'Registration message must contain the same minimum return fee per byte as the channel account.',
 			);
 		});
 

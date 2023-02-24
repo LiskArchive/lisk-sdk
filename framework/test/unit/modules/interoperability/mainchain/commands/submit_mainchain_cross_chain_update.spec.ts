@@ -167,6 +167,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 		mainchainCCUUpdateCommand.init(
 			{
 				getMessageFeeTokenID: jest.fn().mockResolvedValue(messageFeeTokenID),
+				getMinReturnFeePerByte: jest.fn().mockResolvedValue(BigInt(10000000)),
 			} as any,
 			{
 				initializeUserAccount: jest.fn(),
@@ -530,7 +531,15 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				ccCommands,
 				interopMod['internalMethod'],
 			);
-
+			command.init(
+				{
+					getMessageFeeTokenID: jest.fn().mockResolvedValue(messageFeeTokenID),
+					getMinReturnFeePerByte: jest.fn().mockResolvedValue(BigInt(10000000)),
+				} as any,
+				{
+					initializeUserAccount: jest.fn(),
+				},
+			);
 			jest.spyOn(command['events'].get(CcmProcessedEvent), 'log');
 			jest.spyOn(command, 'bounce' as never);
 			context = createCrossChainMessageContext({

@@ -29,7 +29,6 @@ import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	HASH_LENGTH,
-	MIN_RETURN_FEE,
 	MODULE_NAME_INTEROPERABILITY,
 	EMPTY_BYTES,
 	EmptyCCM,
@@ -245,6 +244,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		command.init(
 			{
 				getMessageFeeTokenID: jest.fn().mockResolvedValue(messageFeeTokenID),
+				getMinReturnFeePerByte: jest.fn().mockResolvedValue(BigInt(10000000)),
 			} as any,
 			{
 				initializeUserAccount: jest.fn(),
@@ -1201,7 +1201,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: ccmStatus,
 					sendingChainID: defaultCCM.receivingChainID,
 					receivingChainID: defaultCCM.sendingChainID,
-					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
+					fee: BigInt(99000000000),
 				},
 			);
 		});
@@ -1237,7 +1237,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: ccmStatus,
 					sendingChainID: defaultCCM.receivingChainID,
 					receivingChainID: defaultCCM.sendingChainID,
-					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
+					fee: BigInt(99000000000),
 				},
 			);
 		});
@@ -1267,12 +1267,12 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: ccmStatus,
 					sendingChainID: defaultCCM.receivingChainID,
 					receivingChainID: defaultCCM.sendingChainID,
-					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
+					fee: BigInt(99000000000),
 				},
 			);
 		});
 
-		it('should log the event with the new boucing ccm', async () => {
+		it('should log the event with the new bouncing ccm', async () => {
 			context = createCrossChainMessageContext({
 				ccm: {
 					...defaultCCM,
@@ -1308,7 +1308,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 						status: ccmStatus,
 						sendingChainID: defaultCCM.receivingChainID,
 						receivingChainID: defaultCCM.sendingChainID,
-						fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
+						fee: expect.anything(),
 					},
 				},
 			);

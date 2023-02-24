@@ -107,11 +107,16 @@ export abstract class BaseInteroperabilityMethod<
 		chainID: Buffer,
 	): Promise<bigint> {
 		const ownChainAccount = await this.getOwnChainAccount(context);
+		const mainchainID = getMainchainID(chainID);
 		const updatedChainID =
-			!ownChainAccount.chainID.equals(getMainchainID(chainID)) &&
+			!ownChainAccount.chainID.equals(mainchainID) &&
 			!(await this.stores.get(ChainAccountStore).has(context, chainID))
-				? getMainchainID(chainID)
+				? mainchainID
 				: chainID;
+
+		if (!(await this.stores.get(ChannelDataStore).has(context, updatedChainID))) {
+			throw new Error('Channel does not exist.');
+		}
 
 		return (await this.getChannel(context, updatedChainID)).minReturnFeePerByte;
 	}

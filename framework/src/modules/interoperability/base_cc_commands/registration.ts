@@ -83,7 +83,7 @@ export abstract class BaseCCRegistrationCommand<
 		}
 		if (!channel.messageFeeTokenID.equals(ccmRegistrationParams.messageFeeTokenID)) {
 			throw new Error(
-				'Registration message must contain the same message fee token ID as the chain account.',
+				'Registration message must contain the same message fee token ID as the channel account.',
 			);
 		}
 		if (channel.minReturnFeePerByte !== ccmRegistrationParams.minReturnFeePerByte) {

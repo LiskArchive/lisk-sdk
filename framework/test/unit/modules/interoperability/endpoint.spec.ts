@@ -141,6 +141,7 @@ describe('Test interoperability endpoint', () => {
 			size: channelData.outbox.size,
 		},
 		partnerChainOutboxRoot: channelData.partnerChainOutboxRoot.toString('hex'),
+		minReturnFeePerByte: channelData.minReturnFeePerByte.toString(),
 	};
 
 	const terminateStateAccount: TerminatedStateAccount = {

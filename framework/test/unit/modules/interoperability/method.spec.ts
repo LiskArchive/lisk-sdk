@@ -459,6 +459,9 @@ describe('Sample Method', () => {
 
 	describe('getMinReturnFeePerByte', () => {
 		const newChainID = Buffer.from('00000000', 'hex');
+		beforeEach(() => {
+			jest.spyOn(channelStoreMock, 'has').mockResolvedValue(true);
+		});
 
 		it('should assign chainID as mainchain ID if ownchain ID is not mainchain ID and chainAccount not found', async () => {
 			await sampleInteroperabilityMethod.getMinReturnFeePerByte(methodContext, newChainID);
@@ -473,6 +476,14 @@ describe('Sample Method', () => {
 
 			await sampleInteroperabilityMethod.getMinReturnFeePerByte(methodContext, newChainID);
 			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), newChainID);
+		});
+
+		it('should throw error if channel is not found', async () => {
+			jest.spyOn(channelStoreMock, 'has').mockResolvedValue(false);
+
+			await expect(
+				sampleInteroperabilityMethod.getMinReturnFeePerByte(methodContext, newChainID),
+			).rejects.toThrow('Channel does not exist.');
 		});
 	});
 
