@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseStore } from '../../base_store';
-import { CHAIN_ID_LENGTH } from '../constants';
+import { CHAIN_ID_LENGTH, STORE_PREFIX } from '../constants';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#registered-names-substore
 export const registeredNamesSchema = {
@@ -37,6 +37,6 @@ export class RegisteredNamesStore extends BaseStore<ChainID> {
 	public schema = registeredNamesSchema;
 
 	public get storePrefix(): Buffer {
-		return Buffer.from([0x83, 0xed, 0x0d, 0x25]);
+		return STORE_PREFIX;
 	}
 }
