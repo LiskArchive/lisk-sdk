@@ -1112,6 +1112,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 	describe('bounce', () => {
 		const ccmStatus = CCMStatusCode.MODULE_NOT_SUPPORTED;
 		const ccmProcessedEventCode = CCMProcessedCode.MODULE_NOT_SUPPORTED;
+		// See LIP 45 and getMinReturnFeePerByte implementation for fee calculation breakdown
+		const expectedFee = BigInt(99000000000);
 		let stateStore: PrefixedStateReadWriter;
 
 		beforeEach(async () => {
@@ -1201,7 +1203,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: ccmStatus,
 					sendingChainID: defaultCCM.receivingChainID,
 					receivingChainID: defaultCCM.sendingChainID,
-					fee: BigInt(99000000000),
+					fee: expectedFee,
 				},
 			);
 		});
@@ -1237,7 +1239,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: ccmStatus,
 					sendingChainID: defaultCCM.receivingChainID,
 					receivingChainID: defaultCCM.sendingChainID,
-					fee: BigInt(99000000000),
+					fee: expectedFee,
 				},
 			);
 		});
@@ -1267,7 +1269,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: ccmStatus,
 					sendingChainID: defaultCCM.receivingChainID,
 					receivingChainID: defaultCCM.sendingChainID,
-					fee: BigInt(99000000000),
+					fee: expectedFee,
 				},
 			);
 		});
@@ -1308,7 +1310,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 						status: ccmStatus,
 						sendingChainID: defaultCCM.receivingChainID,
 						receivingChainID: defaultCCM.sendingChainID,
-						fee: expect.anything(),
+						fee: expectedFee,
 					},
 				},
 			);

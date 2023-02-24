@@ -43,6 +43,7 @@ export const MAX_MODULE_NAME_LENGTH = 32;
 export const MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH = 1;
 export const MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH = 32;
 export const CHAIN_ID_LENGTH = 4;
+// Value is in beddows
 export const MIN_RETURN_FEE_PER_BYTE_LSK = BigInt(1000);
 
 // Cross chain command names
