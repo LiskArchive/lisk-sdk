@@ -25,7 +25,7 @@ import {
 import { terminateSidechainForLivenessParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import {
 	ChainAccount,
-	TerminateSidehchainForLivenessParams,
+	TerminateSidechainForLivenessParams,
 } from '../../../../../../src/modules/interoperability/types';
 import { CommandVerifyContext, VerifyStatus } from '../../../../../../src/state_machine/types';
 import { createTransactionContext } from '../../../../../../src/testing';
@@ -41,11 +41,11 @@ describe('TerminateSidechainForLivenessCommand', () => {
 
 	describe('verify', () => {
 		let livenessTerminationCommand: TerminateSidechainForLivenessCommand;
-		let commandVerifyContext: CommandVerifyContext<TerminateSidehchainForLivenessParams>;
+		let commandVerifyContext: CommandVerifyContext<TerminateSidechainForLivenessParams>;
 		let interoperableCCMethods: Map<string, BaseCCMethod>;
 		let ccCommands: Map<string, BaseCCCommand[]>;
 		let transaction: Transaction;
-		let transactionParams: TerminateSidehchainForLivenessParams;
+		let transactionParams: TerminateSidechainForLivenessParams;
 		let encodedTransactionParams: Buffer;
 		let chainAccount: ChainAccount;
 
@@ -90,7 +90,7 @@ describe('TerminateSidechainForLivenessCommand', () => {
 			});
 			commandVerifyContext = createTransactionContext({
 				transaction,
-			}).createCommandVerifyContext<TerminateSidehchainForLivenessParams>(
+			}).createCommandVerifyContext<TerminateSidechainForLivenessParams>(
 				terminateSidechainForLivenessParamsSchema,
 			);
 
@@ -140,11 +140,11 @@ describe('TerminateSidechainForLivenessCommand', () => {
 
 	describe('execute', () => {
 		let livenessTerminationCommand: TerminateSidechainForLivenessCommand;
-		let commandExecuteContext: CommandExecuteContext<TerminateSidehchainForLivenessParams>;
+		let commandExecuteContext: CommandExecuteContext<TerminateSidechainForLivenessParams>;
 		let interoperableCCMethods: Map<string, BaseCCMethod>;
 		let ccCommands: Map<string, BaseCCCommand[]>;
 		let transaction: Transaction;
-		let transactionParams: TerminateSidehchainForLivenessParams;
+		let transactionParams: TerminateSidechainForLivenessParams;
 		let encodedTransactionParams: Buffer;
 		let transactionContext: TransactionContext;
 
@@ -183,7 +183,7 @@ describe('TerminateSidechainForLivenessCommand', () => {
 			});
 
 			commandExecuteContext =
-				transactionContext.createCommandExecuteContext<TerminateSidehchainForLivenessParams>(
+				transactionContext.createCommandExecuteContext<TerminateSidechainForLivenessParams>(
 					terminateSidechainForLivenessParamsSchema,
 				);
 			jest.spyOn(interopMod['internalMethod'], 'terminateChainInternal').mockResolvedValue();

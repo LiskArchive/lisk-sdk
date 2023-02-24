@@ -59,7 +59,7 @@ export const createTransferTransaction = (input: {
 		command: 'transfer',
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
-		fee: input.fee ?? BigInt('200000'),
+		fee: input.fee ?? BigInt('50000000'),
 		params: encodedParams,
 		signatures: [],
 	});

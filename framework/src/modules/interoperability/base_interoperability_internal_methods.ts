@@ -15,7 +15,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
-import { bls, utils } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { objects } from '@liskhq/lisk-utils';
 import {
@@ -23,7 +23,6 @@ import {
 	EMPTY_FEE_ADDRESS,
 	CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
 	MODULE_NAME_INTEROPERABILITY,
-	MESSAGE_TAG_CERTIFICATE,
 	EMPTY_HASH,
 	MAX_NUM_VALIDATORS,
 } from './constants';
@@ -57,6 +56,7 @@ import { TokenMethod } from '../token';
 import { CCM_STATUS_OK } from '../token/constants';
 import { TerminatedOutboxCreatedEvent } from './events/terminated_outbox_created';
 import { BaseCCMethod } from './base_cc_method';
+import { verifyAggregateCertificateSignature } from '../../engine/consensus/certificate_generation/utils';
 
 export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMethod {
 	protected readonly interoperableModuleMethods = new Map<string, BaseCCMethod>();
@@ -128,7 +128,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		const channel = await channelSubstore.get(context, chainID);
 
 		const outboxRootSubstore = this.stores.get(OutboxRootStore);
-		await outboxRootSubstore.set(context, chainID, channel.outbox);
+		await outboxRootSubstore.set(context, chainID, { root: channel.outbox.root });
 	}
 
 	public async createTerminatedOutboxAccount(
@@ -410,25 +410,16 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		params: CrossChainUpdateTransactionParams,
 	): Promise<void> {
 		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
+
 		const chainValidators = await this.stores
 			.get(ChainValidatorsStore)
 			.get(context, params.sendingChainID);
-		const blsKeys = [];
-		const blsWeights = [];
-		for (const validator of chainValidators.activeValidators) {
-			blsKeys.push(validator.blsKey);
-			blsWeights.push(validator.bftWeight);
-		}
 
-		const verifySignature = bls.verifyWeightedAggSig(
-			blsKeys,
-			certificate.aggregationBits,
-			certificate.signature,
-			MESSAGE_TAG_CERTIFICATE,
-			params.sendingChainID,
-			params.certificate,
-			blsWeights,
+		const verifySignature = verifyAggregateCertificateSignature(
+			chainValidators.activeValidators,
 			params.certificateThreshold,
+			params.sendingChainID,
+			certificate,
 		);
 
 		if (!verifySignature) {

@@ -23,18 +23,18 @@ interface EndpointArgs {
 }
 
 interface StateProveRequest {
-	keys: Buffer[];
+	queryKeys: string[];
 }
 
 const stateProveRequestSchema = {
 	$id: '/node/endpoint/stateProveRequestSchema',
 	type: 'object',
-	required: ['keys'],
+	required: ['queryKeys'],
 	properties: {
-		keys: {
+		queryKeys: {
 			type: 'array',
 			items: {
-				dataType: 'bytes',
+				dataType: 'string',
 			},
 		},
 	},
@@ -50,14 +50,14 @@ export class StateEndpoint {
 		this._chain = args.chain;
 	}
 
-	public async stateProve(ctx: RequestContext): Promise<ProveResponse> {
+	public async prove(ctx: RequestContext): Promise<ProveResponse> {
 		validator.validate<StateProveRequest>(stateProveRequestSchema, ctx.params);
 		if (!this._chain.lastBlock.header.stateRoot) {
 			throw new Error('Last block header state root is empty.');
 		}
 		return this._abi.prove({
 			stateRoot: this._chain.lastBlock.header.stateRoot,
-			keys: ctx.params.keys,
+			keys: ctx.params.queryKeys.map(key => Buffer.from(key, 'hex')),
 		});
 	}
 }

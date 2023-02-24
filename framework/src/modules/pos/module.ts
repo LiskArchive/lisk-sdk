@@ -32,6 +32,7 @@ import {
 	MAX_NUMBER_PENDING_UNLOCKS,
 	defaultConfig,
 	MAX_CAP,
+	WEIGHT_SCALE_FACTOR,
 } from './constants';
 import { PoSEndpoint } from './endpoint';
 import {
@@ -64,7 +65,6 @@ import {
 	ModuleConfig,
 	FeeMethod,
 } from './types';
-import { Rounds } from './rounds';
 import {
 	equalUnlocking,
 	isUsername,
@@ -135,13 +135,13 @@ export class PoSModule extends BaseModule {
 
 	public constructor() {
 		super();
-		this.stores.register(ValidatorStore, new ValidatorStore(this.name));
-		this.stores.register(GenesisDataStore, new GenesisDataStore(this.name));
-		this.stores.register(NameStore, new NameStore(this.name));
-		this.stores.register(PreviousTimestampStore, new PreviousTimestampStore(this.name));
-		this.stores.register(SnapshotStore, new SnapshotStore(this.name));
-		this.stores.register(StakerStore, new StakerStore(this.name));
-		this.stores.register(EligibleValidatorsStore, new EligibleValidatorsStore(this.name));
+		this.stores.register(StakerStore, new StakerStore(this.name, 0));
+		this.stores.register(ValidatorStore, new ValidatorStore(this.name, 1));
+		this.stores.register(NameStore, new NameStore(this.name, 2));
+		this.stores.register(SnapshotStore, new SnapshotStore(this.name, 3));
+		this.stores.register(GenesisDataStore, new GenesisDataStore(this.name, 4));
+		this.stores.register(PreviousTimestampStore, new PreviousTimestampStore(this.name, 5));
+		this.stores.register(EligibleValidatorsStore, new EligibleValidatorsStore(this.name, 6));
 
 		this.events.register(ValidatorBannedEvent, new ValidatorBannedEvent(this.name));
 		this.events.register(ValidatorPunishedEvent, new ValidatorPunishedEvent(this.name));
@@ -575,8 +575,11 @@ export class PoSModule extends BaseModule {
 
 	private async _createStakeWeightSnapshot(context: BlockAfterExecuteContext): Promise<void> {
 		const snapshotHeight = context.header.height + 1;
-		const round = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
-		const snapshotRound = round.calcRound(snapshotHeight) + VALIDATOR_LIST_ROUND_OFFSET;
+		const round = await this.method.getRoundNumberFromHeight(
+			context.getMethodContext(),
+			snapshotHeight,
+		);
+		const snapshotRound = round + VALIDATOR_LIST_ROUND_OFFSET;
 		context.logger.debug(`Creating stake weight snapshot for round: ${snapshotRound.toString()}`);
 
 		const eligibleValidatorStore = this.stores.get(EligibleValidatorsStore);
@@ -612,9 +615,9 @@ export class PoSModule extends BaseModule {
 	}
 
 	private async _updateValidators(context: BlockAfterExecuteContext): Promise<void> {
-		const round = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
 		const { height } = context.header;
-		const nextRound = round.calcRound(height) + 1;
+		const round = await this.method.getRoundNumberFromHeight(context.getMethodContext(), height);
+		const nextRound = round + 1;
 		context.logger.debug(nextRound, 'Updating validator list for');
 
 		const snapshotStore = this.stores.get(SnapshotStore);
@@ -688,11 +691,11 @@ export class PoSModule extends BaseModule {
 	private async _updateProductivity(context: BlockAfterExecuteContext, previousTimestamp: number) {
 		const { logger, header, getMethodContext } = context;
 
-		const round = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
-		logger.debug(round, 'Updating validators productivity for round');
+		const methodContext = getMethodContext();
+		const round = await this.method.getRoundNumberFromHeight(methodContext, header.height);
+		logger.debug({ round }, 'Updating validators productivity for round');
 
 		const newHeight = header.height;
-		const methodContext = getMethodContext();
 		const missedBlocks = await this._validatorsMethod.getGeneratorsBetweenTimestamps(
 			methodContext,
 			previousTimestamp,
@@ -733,11 +736,13 @@ export class PoSModule extends BaseModule {
 
 	private async _didBootstrapRoundsEnd(context: BlockAfterExecuteContext) {
 		const { header } = context;
-		const rounds = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
 		const genesisDataStore = this.stores.get(GenesisDataStore);
 		const genesisData = await genesisDataStore.get(context, EMPTY_KEY);
 		const { initRounds } = genesisData;
-		const nextHeightRound = rounds.calcRound(header.height + 1);
+		const nextHeightRound = await this.method.getRoundNumberFromHeight(
+			context.getMethodContext(),
+			header.height + 1,
+		);
 
 		return nextHeightRound > initRounds;
 	}
@@ -755,27 +760,52 @@ export class PoSModule extends BaseModule {
 			const numInitValidators =
 				genesisData.initRounds + this._moduleConfig.numberActiveValidators - round;
 			const numElectedValidators = this._moduleConfig.numberActiveValidators - numInitValidators;
-			const activeValidators = snapshotValidators.slice(0, numElectedValidators);
+			let weightSum = BigInt(0);
+			const activeValidators = snapshotValidators.slice(0, numElectedValidators).map(v => {
+				const scaledWeight = this._ceiling(v.weight, WEIGHT_SCALE_FACTOR);
+				weightSum += scaledWeight;
+				return {
+					...v,
+					weight: scaledWeight,
+				};
+			});
+			// when active validators is zero, we don't take average and assign weight = 1 to avoid every validator having 0 weight.
+			if (activeValidators.length === 0) {
+				// when weights for all validators are 1, no need to cap the weight
+				return genesisData.initValidators.slice(0, numInitValidators).map(v => ({
+					address: v,
+					weight: BigInt(1),
+				}));
+			}
+			const averageWeight = weightSum / BigInt(activeValidators.length);
+			let addedInitValidators = 0;
 			for (const address of genesisData.initValidators) {
-				// when activeValidator is filled, don't add anymore
-				if (activeValidators.length === this._moduleConfig.numberActiveValidators) {
+				// only pick upto the numInitValidators
+				if (addedInitValidators === numInitValidators) {
 					break;
 				}
 				// it should not add duplicate address
 				if (activeValidators.findIndex(d => d.address.equals(address)) > -1) {
 					continue;
 				}
-				activeValidators.push({ address, weight: BigInt(1) });
+				activeValidators.push({ address, weight: averageWeight });
+				addedInitValidators += 1;
 			}
-			return activeValidators;
+			return this._capWeightIfNeeded(activeValidators);
 		}
 		// Validator selection is out of init rounds
 		const activeValidators =
 			snapshotValidators.length > this._moduleConfig.numberActiveValidators
 				? snapshotValidators.slice(0, this._moduleConfig.numberActiveValidators)
 				: snapshotValidators;
-		// No capping is required
+		return this._capWeightIfNeeded(
+			activeValidators.map(v => ({ ...v, weight: this._ceiling(v.weight, WEIGHT_SCALE_FACTOR) })),
+		);
+	}
+
+	private _capWeightIfNeeded(activeValidators: ValidatorWeight[]) {
 		const capValue = this._moduleConfig.maxBFTWeightCap;
+		// No capping is required
 		if (activeValidators.length < Math.ceil(MAX_CAP / capValue)) {
 			return activeValidators;
 		}
@@ -804,5 +834,12 @@ export class PoSModule extends BaseModule {
 			}
 		}
 		return validators;
+	}
+
+	private _ceiling(x: bigint, y: bigint): bigint {
+		if (y === BigInt(0)) {
+			throw new Error('Cannot divide by zero.');
+		}
+		return (x + y - BigInt(1)) / y;
 	}
 }
