@@ -135,13 +135,13 @@ export class PoSModule extends BaseModule {
 
 	public constructor() {
 		super();
-		this.stores.register(ValidatorStore, new ValidatorStore(this.name));
-		this.stores.register(GenesisDataStore, new GenesisDataStore(this.name));
-		this.stores.register(NameStore, new NameStore(this.name));
-		this.stores.register(PreviousTimestampStore, new PreviousTimestampStore(this.name));
-		this.stores.register(SnapshotStore, new SnapshotStore(this.name));
-		this.stores.register(StakerStore, new StakerStore(this.name));
-		this.stores.register(EligibleValidatorsStore, new EligibleValidatorsStore(this.name));
+		this.stores.register(StakerStore, new StakerStore(this.name, 0));
+		this.stores.register(ValidatorStore, new ValidatorStore(this.name, 1));
+		this.stores.register(NameStore, new NameStore(this.name, 2));
+		this.stores.register(SnapshotStore, new SnapshotStore(this.name, 3));
+		this.stores.register(GenesisDataStore, new GenesisDataStore(this.name, 4));
+		this.stores.register(PreviousTimestampStore, new PreviousTimestampStore(this.name, 5));
+		this.stores.register(EligibleValidatorsStore, new EligibleValidatorsStore(this.name, 6));
 
 		this.events.register(ValidatorBannedEvent, new ValidatorBannedEvent(this.name));
 		this.events.register(ValidatorPunishedEvent, new ValidatorPunishedEvent(this.name));

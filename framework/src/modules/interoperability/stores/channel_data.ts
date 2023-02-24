@@ -13,7 +13,7 @@
  */
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { BaseStore, StoreGetter } from '../../base_store';
-import { HASH_LENGTH } from '../constants';
+import { HASH_LENGTH, STORE_PREFIX } from '../constants';
 import { ChannelData } from '../types';
 import { TOKEN_ID_LENGTH } from '../../token/constants';
 
@@ -74,6 +74,10 @@ export const channelSchema = {
 
 export class ChannelDataStore extends BaseStore<ChannelData> {
 	public schema = channelSchema;
+
+	public get storePrefix(): Buffer {
+		return STORE_PREFIX;
+	}
 
 	public async updatePartnerChainOutboxRoot(
 		context: StoreGetter,
