@@ -144,7 +144,7 @@ describe('Delete block', () => {
 						tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 					},
 				);
-				expect(recipientBalance.availableBalance).toEqual('0');
+				expect(recipientBalance.availableBalance).toBe('0');
 			});
 
 			it('should not persist the state diff for that block height', async () => {
@@ -229,12 +229,8 @@ describe('Delete block', () => {
 						},
 					],
 				});
-				const insertAssets = await processEnv.createBlock([
-					transaction1,
-					transaction2,
-					transaction3,
-				]);
-				await processEnv.process(insertAssets);
+				const block = await processEnv.createBlock([transaction1, transaction2, transaction3]);
+				await processEnv.process(block);
 				await processEnv.processUntilHeight(308);
 				const validatorsBefore = await processEnv
 					.getConsensus()
@@ -245,16 +241,15 @@ describe('Delete block', () => {
 
 				const newBlock = await processEnv.createBlock([]);
 				await processEnv.process(newBlock);
-				// TODO: #7666 after stake command changes the eligible validator, it should enable
-				// const validatorsAfter = await processEnv
-				// 	.getConsensus()
-				// 	['_bft'].method.getBFTParameters(
-				// 		processEnv.getConsensusStore(),
-				// 		processEnv.getLastBlock().header.height + 1,
-				// 	);
-				// expect(validatorsBefore.validators.map(v => v.address)).not.toEqual(
-				// 	validatorsAfter.validators.map(v => v.address),
-				// );
+				const validatorsAfter = await processEnv
+					.getConsensus()
+					['_bft'].method.getBFTParameters(
+						processEnv.getConsensusStore(),
+						processEnv.getLastBlock().header.height + 1,
+					);
+				expect(validatorsBefore.validators.map(v => v.address)).not.toEqual(
+					validatorsAfter.validators.map(v => v.address),
+				);
 				await processEnv.getConsensus()['_deleteLastBlock']();
 				const validatorsReverted = await processEnv
 					.getConsensus()

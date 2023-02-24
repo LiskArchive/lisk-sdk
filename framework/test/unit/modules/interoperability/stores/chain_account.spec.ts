@@ -35,7 +35,7 @@ describe('ChainAccountStore', () => {
 
 	beforeEach(async () => {
 		context = createStoreGetter(new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()));
-		chainAccountStore = new ChainAccountStore(MODULE_NAME_INTEROPERABILITY);
+		chainAccountStore = new ChainAccountStore(MODULE_NAME_INTEROPERABILITY, 1);
 		for (const index of [0, 1, 2]) {
 			await chainAccountStore.set(context, chainIDs[index], {
 				lastCertificate: {

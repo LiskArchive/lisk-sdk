@@ -58,7 +58,7 @@ describe('EligibleValidatorsStore', () => {
 	beforeEach(async () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		context = createStoreGetter(stateStore);
-		eligibleValidatorsStore = new EligibleValidatorsStore('pos');
+		eligibleValidatorsStore = new EligibleValidatorsStore('pos', 6);
 		eligibleValidatorsStore.init({
 			...defaultConfig,
 			minWeightStandby: BigInt(defaultConfig.minWeightStandby),

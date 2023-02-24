@@ -13,6 +13,7 @@
  */
 import { BaseStore } from '../../base_store';
 import { CHAIN_ID_LENGTH } from '../../token/constants';
+import { STORE_PREFIX } from '../constants';
 
 export interface OwnChainAccount {
 	name: string;
@@ -45,4 +46,8 @@ export const ownChainAccountSchema = {
 
 export class OwnChainAccountStore extends BaseStore<OwnChainAccount> {
 	public schema = ownChainAccountSchema;
+
+	public get storePrefix(): Buffer {
+		return STORE_PREFIX;
+	}
 }

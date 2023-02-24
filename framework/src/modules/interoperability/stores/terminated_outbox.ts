@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseStore } from '../../base_store';
-import { HASH_LENGTH } from '../constants';
+import { HASH_LENGTH, STORE_PREFIX } from '../constants';
 
 export interface TerminatedOutboxAccount {
 	outboxRoot: Buffer;
@@ -51,4 +51,8 @@ export const terminatedOutboxSchema = {
 
 export class TerminatedOutboxStore extends BaseStore<TerminatedOutboxAccount> {
 	public schema = terminatedOutboxSchema;
+
+	public get storePrefix(): Buffer {
+		return STORE_PREFIX;
+	}
 }

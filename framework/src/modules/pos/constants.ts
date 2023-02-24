@@ -48,6 +48,7 @@ export const BLS_POP_LENGTH = 96;
 export const MAX_CAP = 10000;
 export const MAX_COMMISSION = 10000;
 export const MIN_WEIGHT = BigInt(1000) * BigInt(10) ** BigInt(8);
+export const WEIGHT_SCALE_FACTOR = BigInt(1000) * BigInt(10) ** BigInt(8);
 
 export const defaultConfig = {
 	factorSelfStakes: 10,

@@ -62,6 +62,7 @@ export class BFTModule {
 	public async beforeTransactionsExecute(
 		stateStore: StateStore,
 		header: BlockHeader,
+		maxRemovalHeight: number,
 	): Promise<void> {
 		const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 		const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
@@ -80,7 +81,7 @@ export class BFTModule {
 		await votesStore.setWithSchema(EMPTY_KEY, bftVotes, bftVotesSchema);
 		const minHeightBFTParametersRequired = Math.min(
 			bftVotes.blockBFTInfos[bftVotes.blockBFTInfos.length - 1].height,
-			bftVotes.maxHeightCertified + 1,
+			maxRemovalHeight,
 		);
 		await deleteBFTParameters(paramsStore, minHeightBFTParametersRequired);
 	}
