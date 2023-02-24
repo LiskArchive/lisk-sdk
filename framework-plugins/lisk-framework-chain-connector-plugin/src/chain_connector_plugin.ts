@@ -302,13 +302,13 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				record.height <= (newCertificate ? newCertificate.height : this._lastCertificate.height),
 		);
 		// Calculate messageWitnessHashes for pending CCMs if any
-		const sendingChainChannelInfoJSON = await this._receivingChainClient.invoke<ChannelDataJSON>(
+		const sendingChainChannelDataJSON = await this._receivingChainClient.invoke<ChannelDataJSON>(
 			'interoperability_getChannel',
 			{ chainID: this._ownChainID.toString('hex') },
 		);
-		const sendingChainChannelInfoObj = channelDataJSONToObj(sendingChainChannelInfoJSON);
+		const sendingChainChannelData = channelDataJSONToObj(sendingChainChannelDataJSON);
 		const messageWitnessHashesForCCMs = calculateMessageWitnesses(
-			sendingChainChannelInfoObj,
+			sendingChainChannelData,
 			ccmsToBeIncluded,
 			lastSentCCM,
 			this._maxCCUSize,
@@ -325,7 +325,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			}
 			if (crossChainMessages.length === 0) {
 				this.logger.info(
-					'No pending CCMs after last sent CCM for the last certificate so no CCU is needed.',
+					'CCU cant be created as there are no pending CCMs for the last certificate.',
 				);
 				return;
 			}

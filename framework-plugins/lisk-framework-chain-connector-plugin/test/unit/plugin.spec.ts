@@ -721,12 +721,6 @@ describe('ChainConnectorPlugin', () => {
 				})
 				.mockResolvedValue(sampleProof);
 
-			// when(sendingChainAPIClientMock.invoke)
-			// 	.calledWith('interoperability_ownChainAccount')
-			// 	.mockResolvedValue({
-			// 		chainID: '10000000',
-			// 	});
-
 			await initChainConnectorPlugin(chainConnectorPlugin, defaultConfig);
 			chainConnectorPlugin['_apiClient'] = sendingChainAPIClientMock;
 			await chainConnectorPlugin.load();
@@ -1024,7 +1018,7 @@ describe('ChainConnectorPlugin', () => {
 				expect(result).toBeUndefined();
 
 				expect(chainConnectorPlugin['logger'].info).toHaveBeenCalledWith(
-					'No pending CCMs after last sent CCM for the last certificate so no CCU is needed.',
+					'CCU cant be created as there are no pending CCMs for the last certificate.',
 				);
 			});
 
