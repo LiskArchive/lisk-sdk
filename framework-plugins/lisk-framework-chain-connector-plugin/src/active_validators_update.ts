@@ -21,7 +21,9 @@ import {
 } from 'lisk-sdk';
 import { ValidatorsData } from './types';
 
-// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#computing-the-validators-update
+/**
+ * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#computing-the-validators-update
+ */
 export const calculateActiveValidatorsUpdate = (
 	certificate: Certificate,
 	validatorsHashPreimage: ValidatorsData[],
