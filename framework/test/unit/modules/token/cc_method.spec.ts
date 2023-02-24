@@ -480,7 +480,7 @@ describe('TokenInteroperableMethod', () => {
 				tokenInteropMethod.recover({
 					...createRecoverContext(stateStore),
 					storeKey: Buffer.concat([defaultAddress, defaultTokenID]),
-					substorePrefix: Buffer.from([0, 0]),
+					substorePrefix: Buffer.from([0xff, 0xff]),
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultAccount.availableBalance * BigInt(2),
 						lockedBalances: [{ module: 'dpos', amount: BigInt(20) }],

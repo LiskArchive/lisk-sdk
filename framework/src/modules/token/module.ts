@@ -92,10 +92,10 @@ export class TokenModule extends BaseInteroperableModule {
 
 	public constructor() {
 		super();
-		this.stores.register(UserStore, new UserStore(this.name));
-		this.stores.register(EscrowStore, new EscrowStore(this.name));
-		this.stores.register(SupplyStore, new SupplyStore(this.name));
-		this.stores.register(SupportedTokensStore, new SupportedTokensStore(this.name));
+		this.stores.register(UserStore, new UserStore(this.name, 0));
+		this.stores.register(SupplyStore, new SupplyStore(this.name, 1));
+		this.stores.register(EscrowStore, new EscrowStore(this.name, 2));
+		this.stores.register(SupportedTokensStore, new SupportedTokensStore(this.name, 3));
 		this.events.register(TransferEvent, new TransferEvent(this.name));
 		this.events.register(TransferCrossChainEvent, new TransferCrossChainEvent(this.name));
 		this.events.register(CcmTransferEvent, new CcmTransferEvent(this.name));
