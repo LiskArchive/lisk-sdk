@@ -39,14 +39,14 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 
 	public constructor() {
 		super();
-		this.stores.register(ChainAccountStore, new ChainAccountStore(this.name));
-		this.stores.register(ChainValidatorsStore, new ChainValidatorsStore(this.name));
-		this.stores.register(ChannelDataStore, new ChannelDataStore(this.name));
-		this.stores.register(OutboxRootStore, new OutboxRootStore(this.name));
-		this.stores.register(OwnChainAccountStore, new OwnChainAccountStore(this.name));
-		this.stores.register(RegisteredNamesStore, new RegisteredNamesStore(this.name));
-		this.stores.register(TerminatedOutboxStore, new TerminatedOutboxStore(this.name));
-		this.stores.register(TerminatedStateStore, new TerminatedStateStore(this.name));
+		this.stores.register(OutboxRootStore, new OutboxRootStore(this.name, 0));
+		this.stores.register(ChainAccountStore, new ChainAccountStore(this.name, 1));
+		this.stores.register(OwnChainAccountStore, new OwnChainAccountStore(this.name, 13));
+		this.stores.register(ChannelDataStore, new ChannelDataStore(this.name, 5));
+		this.stores.register(ChainValidatorsStore, new ChainValidatorsStore(this.name, 9));
+		this.stores.register(TerminatedStateStore, new TerminatedStateStore(this.name, 3));
+		this.stores.register(TerminatedOutboxStore, new TerminatedOutboxStore(this.name, 11));
+		this.stores.register(RegisteredNamesStore, new RegisteredNamesStore(this.name, 7));
 	}
 
 	// Common name for mainchain/sidechain interoperability module

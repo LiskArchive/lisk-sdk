@@ -21,14 +21,14 @@ import {
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { terminateSidechainForLivenessParamsSchema } from '../../schemas';
 import { ChainAccountStore, ChainStatus } from '../../stores/chain_account';
-import { TerminateSidehchainForLivenessParams } from '../../types';
+import { TerminateSidechainForLivenessParams } from '../../types';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
 export class TerminateSidechainForLivenessCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = terminateSidechainForLivenessParamsSchema;
 
 	public async verify(
-		context: CommandVerifyContext<TerminateSidehchainForLivenessParams>,
+		context: CommandVerifyContext<TerminateSidechainForLivenessParams>,
 	): Promise<VerificationResult> {
 		const {
 			params: { chainID },
@@ -62,7 +62,7 @@ export class TerminateSidechainForLivenessCommand extends BaseInteroperabilityCo
 	}
 
 	public async execute(
-		context: CommandExecuteContext<TerminateSidehchainForLivenessParams>,
+		context: CommandExecuteContext<TerminateSidechainForLivenessParams>,
 	): Promise<void> {
 		const {
 			params: { chainID },

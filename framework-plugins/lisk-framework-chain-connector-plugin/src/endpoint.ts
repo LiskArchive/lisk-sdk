@@ -12,18 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BasePluginEndpoint, PluginEndpointContext } from 'lisk-sdk';
+import { BasePluginEndpoint, PluginEndpointContext, chain } from 'lisk-sdk';
 import { ChainConnectorStore } from './db';
-import { AggregateCommitJSON, SentCCUs, SentCCUsJSON, ValidatorsDataJSON } from './types';
+import { AggregateCommitJSON, SentCCUsJSON, ValidatorsDataJSON } from './types';
 import { aggregateCommitToJSON, validatorsHashPreimagetoJSON } from './utils';
 
 export class Endpoint extends BasePluginEndpoint {
 	private _chainConnectorStore!: ChainConnectorStore;
-	private _sentCCUs!: SentCCUs;
-
-	public init(sentCCUs: SentCCUs) {
-		this._sentCCUs = sentCCUs;
-	}
 
 	public load(store: ChainConnectorStore) {
 		this._chainConnectorStore = store;
@@ -31,7 +26,8 @@ export class Endpoint extends BasePluginEndpoint {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async getSentCCUs(_context: PluginEndpointContext): Promise<SentCCUsJSON> {
-		return this._sentCCUs.map(transaction => transaction.toJSON());
+		const sentCCUs = await this._chainConnectorStore.getListOfCCUs();
+		return sentCCUs.map(transaction => new chain.Transaction(transaction).toJSON());
 	}
 
 	public async getAggregateCommits(

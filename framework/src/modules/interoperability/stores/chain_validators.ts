@@ -13,7 +13,7 @@
  */
 import { BaseStore } from '../../base_store';
 import { ActiveValidator } from '../types';
-import { BLS_PUBLIC_KEY_LENGTH, MAX_NUM_VALIDATORS } from '../constants';
+import { BLS_PUBLIC_KEY_LENGTH, MAX_NUM_VALIDATORS, STORE_PREFIX } from '../constants';
 
 export interface ChainValidators {
 	activeValidators: ActiveValidator[];
@@ -57,4 +57,8 @@ export const chainValidatorsSchema = {
 
 export class ChainValidatorsStore extends BaseStore<ChainValidators> {
 	public schema = chainValidatorsSchema;
+
+	public get storePrefix(): Buffer {
+		return STORE_PREFIX;
+	}
 }
