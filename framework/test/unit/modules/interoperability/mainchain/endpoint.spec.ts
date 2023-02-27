@@ -14,7 +14,7 @@
 
 import {
 	CHAIN_REGISTRATION_FEE,
-	MIN_RETURN_FEE_PER_BYTE_LSK,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 } from '../../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityEndpoint } from '../../../../../src/modules/interoperability/mainchain/endpoint';
 
@@ -40,7 +40,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 		it('should return the message fee', () => {
 			const result = endpoint.getMinimumMessageFee();
 
-			expect(result).toEqual({ fee: MIN_RETURN_FEE_PER_BYTE_LSK.toString() });
+			expect(result).toEqual({ fee: MIN_RETURN_FEE_PER_BYTE_BEDDOWS.toString() });
 		});
 	});
 });

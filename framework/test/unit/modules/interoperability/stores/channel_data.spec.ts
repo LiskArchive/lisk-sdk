@@ -17,6 +17,7 @@ import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { StoreGetter } from '../../../../../src/modules/base_store';
 import {
 	HASH_LENGTH,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../src/modules/interoperability/constants';
 import { ChannelDataStore } from '../../../../../src/modules/interoperability/stores/channel_data';
@@ -42,6 +43,7 @@ describe('ChannelDataStore', () => {
 			size: 1,
 		},
 		partnerChainOutboxRoot: cryptoUtils.getRandomBytes(HASH_LENGTH),
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	};
 
 	beforeEach(async () => {

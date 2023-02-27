@@ -29,7 +29,7 @@ import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	HASH_LENGTH,
-	MIN_RETURN_FEE_PER_BYTE_LSK,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
 	EMPTY_BYTES,
 	EmptyCCM,
@@ -181,6 +181,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			size: 18,
 		},
 		partnerChainOutboxRoot: utils.getRandomBytes(32),
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	};
 	const defaultCCM = {
 		nonce: BigInt(0),
@@ -243,6 +244,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		command.init(
 			{
 				getMessageFeeTokenID: jest.fn().mockResolvedValue(messageFeeTokenID),
+				getMinReturnFeePerByte: jest.fn().mockResolvedValue(BigInt(10000000)),
 			} as any,
 			{
 				initializeUserAccount: jest.fn(),
@@ -1110,6 +1112,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 	describe('bounce', () => {
 		const ccmStatus = CCMStatusCode.MODULE_NOT_SUPPORTED;
 		const ccmProcessedEventCode = CCMProcessedCode.MODULE_NOT_SUPPORTED;
+		// See LIP 45 and getMinReturnFeePerByte implementation for fee calculation breakdown
+		const expectedFee = BigInt(99000000000);
 		let stateStore: PrefixedStateReadWriter;
 
 		beforeEach(async () => {
@@ -1199,7 +1203,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: ccmStatus,
 					sendingChainID: defaultCCM.receivingChainID,
 					receivingChainID: defaultCCM.sendingChainID,
-					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE_PER_BYTE_LSK,
+					fee: expectedFee,
 				},
 			);
 		});
@@ -1235,7 +1239,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: ccmStatus,
 					sendingChainID: defaultCCM.receivingChainID,
 					receivingChainID: defaultCCM.sendingChainID,
-					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE_PER_BYTE_LSK,
+					fee: expectedFee,
 				},
 			);
 		});
@@ -1265,12 +1269,12 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: ccmStatus,
 					sendingChainID: defaultCCM.receivingChainID,
 					receivingChainID: defaultCCM.sendingChainID,
-					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE_PER_BYTE_LSK,
+					fee: expectedFee,
 				},
 			);
 		});
 
-		it('should log the event with the new boucing ccm', async () => {
+		it('should log the event with the new bouncing ccm', async () => {
 			context = createCrossChainMessageContext({
 				ccm: {
 					...defaultCCM,
@@ -1306,7 +1310,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 						status: ccmStatus,
 						sendingChainID: defaultCCM.receivingChainID,
 						receivingChainID: defaultCCM.sendingChainID,
-						fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE_PER_BYTE_LSK,
+						fee: expectedFee,
 					},
 				},
 			);

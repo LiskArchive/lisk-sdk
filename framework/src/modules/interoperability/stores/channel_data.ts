@@ -43,7 +43,13 @@ const inboxOutboxProps = {
 export const channelSchema = {
 	$id: '/modules/interoperability/channel',
 	type: 'object',
-	required: ['inbox', 'outbox', 'partnerChainOutboxRoot', 'messageFeeTokenID'],
+	required: [
+		'inbox',
+		'outbox',
+		'partnerChainOutboxRoot',
+		'messageFeeTokenID',
+		'minReturnFeePerByte',
+	],
 	properties: {
 		inbox: {
 			type: 'object',
@@ -68,6 +74,10 @@ export const channelSchema = {
 			minLength: TOKEN_ID_LENGTH,
 			maxLength: TOKEN_ID_LENGTH,
 			fieldNumber: 4,
+		},
+		minReturnFeePerByte: {
+			dataType: 'uint64',
+			fieldNumber: 5,
 		},
 	},
 };
