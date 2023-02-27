@@ -219,7 +219,7 @@ describe('FeeModule', () => {
 			);
 		});
 
-		it('should burn the used fee when addressFeePool is not defined', async () => {
+		it('should burn the used fee when addressFeePool is not defined and user account of generator address exists for the token id', async () => {
 			when(tokenMethod.userAccountExists)
 				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
 				.mockResolvedValue(true as never);
@@ -230,6 +230,20 @@ describe('FeeModule', () => {
 				context.transaction.senderAddress,
 				feeModule['_tokenID'],
 				defaultTransaction.fee - availableFee,
+			);
+		});
+
+		it('should burn the entire fee when addressFeePool is not defined and user account of generator address does not exist for the token id', async () => {
+			when(tokenMethod.userAccountExists)
+				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
+				.mockResolvedValue(false as never);
+			await feeModule.afterCommandExecute(context);
+
+			expect(feeModule['_tokenMethod'].burn).toHaveBeenCalledWith(
+				expect.anything(),
+				context.transaction.senderAddress,
+				feeModule['_tokenID'],
+				defaultTransaction.fee,
 			);
 		});
 
@@ -308,16 +322,23 @@ describe('FeeModule', () => {
 				feeModule['_tokenID'],
 				availableFee,
 			);
+			expect(feeModule['_tokenMethod'].transfer).not.toHaveBeenCalledWith(
+				expect.anything(),
+				context.transaction.senderAddress,
+				feeModule['_feePoolAddress'],
+				feeModule['_tokenID'],
+				defaultTransaction.fee,
+			);
 		});
 
 		it('should burn the entire fee when addressFeePool is defined but user accounts of fee pool address and generator address does not exist for the token id', async () => {
+			feeModule['_feePoolAddress'] = utils.getRandomBytes(20);
 			when(tokenMethod.userAccountExists)
 				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
 				.mockResolvedValue(false as never);
 			when(tokenMethod.userAccountExists)
 				.calledWith(expect.anything(), feeModule['_feePoolAddress'], feeModule['_tokenID'])
 				.mockResolvedValue(false as never);
-			feeModule['_feePoolAddress'] = utils.getRandomBytes(20);
 
 			await feeModule.afterCommandExecute(context);
 
