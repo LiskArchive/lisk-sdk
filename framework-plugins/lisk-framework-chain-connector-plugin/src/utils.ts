@@ -62,7 +62,8 @@ export const validatorsHashPreimagetoJSON = (validatorsHashPreimage: ValidatorsD
 };
 
 export const channelDataToJSON = (channelData: ChannelData) => {
-	const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot } = channelData;
+	const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot, minReturnFeePerByte } =
+		channelData;
 	const inboxJSON: InboxJSON = {
 		appendPath: inbox.appendPath.map(ap => ap.toString('hex')),
 		root: inbox.root.toString('hex'),
@@ -80,11 +81,13 @@ export const channelDataToJSON = (channelData: ChannelData) => {
 		outbox: outboxJSON,
 		inbox: inboxJSON,
 		partnerChainOutboxRoot: partnerChainOutboxRoot.toString('hex'),
+		minReturnFeePerByte: minReturnFeePerByte.toString(),
 	};
 };
 
 export const channelDataJSONToObj = (channelData: ChannelDataJSON): ChannelData => {
-	const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot } = channelData;
+	const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot, minReturnFeePerByte } =
+		channelData;
 
 	const inboxJSON: Inbox = {
 		appendPath: inbox.appendPath.map(ap => Buffer.from(ap, 'hex')),
@@ -103,6 +106,7 @@ export const channelDataJSONToObj = (channelData: ChannelDataJSON): ChannelData 
 		outbox: outboxJSON,
 		inbox: inboxJSON,
 		partnerChainOutboxRoot: Buffer.from(partnerChainOutboxRoot, 'hex'),
+		minReturnFeePerByte: BigInt(minReturnFeePerByte),
 	};
 };
 

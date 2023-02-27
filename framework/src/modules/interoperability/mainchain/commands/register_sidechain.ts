@@ -24,6 +24,7 @@ import {
 	EMPTY_BYTES,
 	CCMStatusCode,
 	CHAIN_REGISTRATION_FEE,
+	MIN_RETURN_FEE_PER_BYTE_LSK,
 } from '../../constants';
 import { registrationCCMParamsSchema, sidechainRegParams } from '../../schemas';
 import { FeeMethod, SidechainRegistrationParams } from '../../types';
@@ -212,6 +213,7 @@ export class RegisterSidechainCommand extends BaseInteroperabilityCommand<Mainch
 			outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 			partnerChainOutboxRoot: EMPTY_HASH,
 			messageFeeTokenID: mainchainTokenID,
+			minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
 		});
 
 		// Add an entry in the validators substore
@@ -239,6 +241,7 @@ export class RegisterSidechainCommand extends BaseInteroperabilityCommand<Mainch
 			name,
 			chainID,
 			messageFeeTokenID: mainchainTokenID,
+			minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
 		});
 
 		const ownChainAccountSubstore = this.stores.get(OwnChainAccountStore);

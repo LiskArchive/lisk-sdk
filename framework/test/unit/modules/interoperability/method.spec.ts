@@ -72,6 +72,7 @@ describe('Sample Method', () => {
 		get: jest.fn(),
 		set: jest.fn(),
 		has: jest.fn(),
+		getOwnChainAccount: jest.fn(),
 	};
 	const terminatedStateAccountStoreMock = {
 		get: jest.fn(),
@@ -453,6 +454,36 @@ describe('Sample Method', () => {
 
 			await sampleInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
 			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), newChainID);
+		});
+	});
+
+	describe('getMinReturnFeePerByte', () => {
+		const newChainID = Buffer.from('00000000', 'hex');
+		beforeEach(() => {
+			jest.spyOn(channelStoreMock, 'has').mockResolvedValue(true);
+		});
+
+		it('should assign chainID as mainchain ID if ownchain ID is not mainchain ID and chainAccount not found', async () => {
+			await sampleInteroperabilityMethod.getMinReturnFeePerByte(methodContext, newChainID);
+			expect(channelStoreMock.get).toHaveBeenCalledWith(
+				expect.anything(),
+				getMainchainID(newChainID),
+			);
+		});
+
+		it('should process with input chainID', async () => {
+			jest.spyOn(chainAccountStoreMock, 'has').mockResolvedValue(true);
+
+			await sampleInteroperabilityMethod.getMinReturnFeePerByte(methodContext, newChainID);
+			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), newChainID);
+		});
+
+		it('should throw error if channel is not found', async () => {
+			jest.spyOn(channelStoreMock, 'has').mockResolvedValue(false);
+
+			await expect(
+				sampleInteroperabilityMethod.getMinReturnFeePerByte(methodContext, newChainID),
+			).rejects.toThrow('Channel does not exist.');
 		});
 	});
 

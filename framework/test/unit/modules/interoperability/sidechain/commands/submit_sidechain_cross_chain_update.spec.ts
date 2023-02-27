@@ -41,6 +41,7 @@ import {
 	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+	MIN_RETURN_FEE_PER_BYTE_LSK,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
@@ -213,6 +214,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 				size: 18,
 			},
 			partnerChainOutboxRoot: utils.getRandomBytes(38),
+			minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
 		};
 
 		params = {
