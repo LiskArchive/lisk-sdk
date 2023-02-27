@@ -24,7 +24,7 @@ import {
 	MAX_UINT64,
 	MESSAGE_TAG_CHAIN_REG,
 	CHAIN_NAME_MAINCHAIN,
-	MIN_RETURN_FEE_PER_BYTE_LSK,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 } from '../../constants';
 import {
 	mainchainRegParams,
@@ -229,7 +229,7 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 			outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 			partnerChainOutboxRoot: EMPTY_HASH,
 			messageFeeTokenID: mainchainTokenID,
-			minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
+			minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 		});
 
 		const chainValidatorsSubstore = this.stores.get(ChainValidatorsStore);
@@ -247,7 +247,7 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 			name: CHAIN_NAME_MAINCHAIN,
 			chainID: mainchainID,
 			messageFeeTokenID: mainchainTokenID,
-			minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
+			minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 		});
 
 		const ownChainAccount = {

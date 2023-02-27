@@ -802,3 +802,14 @@ export const getRegistrationFeeSchema = {
 		},
 	},
 };
+
+export const getMinimumMessageFeeResponseSchema = {
+	$id: '/modules/interoperability/mainchain/minimumMessageFeeResponse',
+	type: 'object',
+	required: ['fee'],
+	properties: {
+		fee: {
+			type: 'string',
+		},
+	},
+};

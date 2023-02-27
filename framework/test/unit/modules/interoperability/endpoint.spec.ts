@@ -17,7 +17,7 @@ import { ModuleEndpointContext, SidechainInteroperabilityModule } from '../../..
 import { BaseInteroperabilityEndpoint } from '../../../../src/modules/interoperability/base_interoperability_endpoint';
 import {
 	BLS_PUBLIC_KEY_LENGTH,
-	MIN_RETURN_FEE_PER_BYTE_LSK,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 } from '../../../../src/modules/interoperability/constants';
 import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
 import { ChainValidatorsStore } from '../../../../src/modules/interoperability/stores/chain_validators';
@@ -125,7 +125,7 @@ describe('Test interoperability endpoint', () => {
 			size: 10,
 		},
 		partnerChainOutboxRoot: utils.getRandomBytes(32),
-		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	};
 
 	const channelDataJSON: ChannelDataJSON = {
