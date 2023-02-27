@@ -109,10 +109,10 @@ describe('validator', () => {
 		});
 
 		it('should not return error when "properties" are empty object', () => {
-			const invalidSchema = cloneDeep(validSchema);
-			delete invalidSchema.properties.myProp;
+			const emptySchema = cloneDeep(validSchema);
+			delete emptySchema.properties.myProp;
 
-			expect(() => validator.validateSchema(invalidSchema)).not.toThrow();
+			expect(() => validator.validateSchema(emptySchema)).not.toThrow();
 		});
 	});
 });
