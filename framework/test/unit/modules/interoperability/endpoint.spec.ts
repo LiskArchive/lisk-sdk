@@ -15,7 +15,10 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { ModuleEndpointContext, SidechainInteroperabilityModule } from '../../../../src';
 import { BaseInteroperabilityEndpoint } from '../../../../src/modules/interoperability/base_interoperability_endpoint';
-import { BLS_PUBLIC_KEY_LENGTH } from '../../../../src/modules/interoperability/constants';
+import {
+	BLS_PUBLIC_KEY_LENGTH,
+	MIN_RETURN_FEE_PER_BYTE_LSK,
+} from '../../../../src/modules/interoperability/constants';
 import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
 import { ChainValidatorsStore } from '../../../../src/modules/interoperability/stores/chain_validators';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
@@ -122,6 +125,7 @@ describe('Test interoperability endpoint', () => {
 			size: 10,
 		},
 		partnerChainOutboxRoot: utils.getRandomBytes(32),
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
 	};
 
 	const channelDataJSON: ChannelDataJSON = {
@@ -137,6 +141,7 @@ describe('Test interoperability endpoint', () => {
 			size: channelData.outbox.size,
 		},
 		partnerChainOutboxRoot: channelData.partnerChainOutboxRoot.toString('hex'),
+		minReturnFeePerByte: channelData.minReturnFeePerByte.toString(),
 	};
 
 	const terminateStateAccount: TerminatedStateAccount = {

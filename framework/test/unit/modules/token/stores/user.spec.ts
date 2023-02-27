@@ -32,7 +32,7 @@ describe('UserStore', () => {
 	let context: StoreGetter;
 
 	beforeEach(async () => {
-		store = new UserStore('token');
+		store = new UserStore('token', 0);
 		const db = new InMemoryPrefixedStateDB();
 		const stateStore = new PrefixedStateReadWriter(db);
 		context = createStoreGetter(stateStore);

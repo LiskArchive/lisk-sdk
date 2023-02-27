@@ -13,7 +13,7 @@
  */
 import { utils } from '@liskhq/lisk-cryptography';
 import { BaseStore, ImmutableStoreGetter } from '../../base_store';
-import { HASH_LENGTH, MAX_UINT32 } from '../constants';
+import { HASH_LENGTH, MAX_UINT32, STORE_PREFIX } from '../constants';
 
 // Chain status
 export const enum ChainStatus {
@@ -104,6 +104,10 @@ export const allChainAccountsSchema = {
 
 export class ChainAccountStore extends BaseStore<ChainAccount> {
 	public schema = chainDataSchema;
+
+	public get storePrefix(): Buffer {
+		return STORE_PREFIX;
+	}
 
 	public async getAllAccounts(
 		context: ImmutableStoreGetter,

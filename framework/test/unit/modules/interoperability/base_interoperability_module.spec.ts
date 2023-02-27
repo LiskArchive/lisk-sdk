@@ -24,6 +24,7 @@ import {
 	HASH_LENGTH,
 	MAX_NUM_VALIDATORS,
 	MAX_UINT64,
+	MIN_RETURN_FEE_PER_BYTE_LSK,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../src/modules/interoperability/constants';
 import { genesisInteroperabilitySchema } from '../../../../src/modules/interoperability/schemas';
@@ -95,6 +96,7 @@ describe('BaseInteroperabilityModule', () => {
 				size: 18,
 			},
 			partnerChainOutboxRoot: utils.getRandomBytes(HASH_LENGTH),
+			minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
 		};
 		const outboxRoot = { root: utils.getRandomBytes(HASH_LENGTH) };
 		const validatorsHashInput = {

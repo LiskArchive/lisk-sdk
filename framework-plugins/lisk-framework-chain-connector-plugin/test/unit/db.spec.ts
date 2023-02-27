@@ -12,13 +12,27 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { AggregateCommit, db, testing, cryptography } from 'lisk-sdk';
+import {
+	AggregateCommit,
+	db,
+	testing,
+	cryptography,
+	chain,
+	SubmitMainchainCrossChainUpdateCommand,
+	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+	MODULE_NAME_INTEROPERABILITY,
+} from 'lisk-sdk';
 import * as fs from 'fs-extra';
 import { homedir } from 'os';
 import { join } from 'path';
 import { ChainConnectorStore, getDBInstance } from '../../src/db';
 import { ADDRESS_LENGTH, BLS_PUBLIC_KEY_LENGTH } from '../../src/constants';
-import { BlockHeader, CCMsFromEvents, ValidatorsData } from '../../src/types';
+import {
+	BlockHeader,
+	CCMsFromEvents,
+	LastSentCCMWithHeight,
+	ValidatorsData,
+} from '../../src/types';
 
 jest.mock('fs-extra');
 const mockedFsExtra = fs as jest.Mocked<typeof fs>;
@@ -84,7 +98,7 @@ describe('Plugins DB', () => {
 			});
 		});
 
-		describe('aggregatecommits', () => {
+		describe('aggregateCommits', () => {
 			let sampleAggregateCommits: AggregateCommit[];
 
 			beforeEach(() => {
@@ -216,6 +230,106 @@ describe('Plugins DB', () => {
 				await expect(chainConnectorStore.getCrossChainMessages()).resolves.toEqual(
 					sampleCrossChainMessages,
 				);
+			});
+		});
+
+		describe('lastSentCCM', () => {
+			let sampleLastSentCCM: LastSentCCMWithHeight;
+
+			beforeEach(() => {
+				sampleLastSentCCM = {
+					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+					fee: BigInt(1000),
+					height: 1,
+					module: 'token',
+					nonce: BigInt(1),
+					params: Buffer.alloc(1),
+					receivingChainID: Buffer.from('04000000', 'hex'),
+					sendingChainID: Buffer.from('04000001', 'hex'),
+					status: 1,
+				};
+			});
+
+			it('should return undefined when there is no record', async () => {
+				await expect(chainConnectorStore.getLastSentCCM()).resolves.toBeUndefined();
+			});
+
+			it('should return lastSentCCM', async () => {
+				await chainConnectorStore.setLastSentCCM(sampleLastSentCCM);
+
+				await expect(chainConnectorStore.getLastSentCCM()).resolves.toEqual(sampleLastSentCCM);
+			});
+		});
+
+		describe('listOfCCUs', () => {
+			let listOfCCUs: chain.TransactionAttrs[];
+
+			beforeEach(() => {
+				listOfCCUs = [
+					testing
+						.createTransaction({
+							commandClass: SubmitMainchainCrossChainUpdateCommand as any,
+							module: MODULE_NAME_INTEROPERABILITY,
+							params: {
+								activeValidatorsUpdate: {
+									blsKeysUpdate: [],
+									bftWeightsUpdate: [],
+									bftWeightsUpdateBitmap: Buffer.alloc(0),
+								},
+								certificate: Buffer.alloc(1),
+								certificateThreshold: BigInt(1),
+								inboxUpdate: {
+									crossChainMessages: [],
+									messageWitnessHashes: [],
+									outboxRootWitness: {
+										bitmap: Buffer.alloc(1),
+										siblingHashes: [],
+									},
+								},
+								sendingChainID: Buffer.from('04000001', 'hex'),
+							},
+							chainID: Buffer.from('04000001', 'hex'),
+						})
+						.toObject(),
+					testing
+						.createTransaction({
+							commandClass: SubmitMainchainCrossChainUpdateCommand as any,
+							module: MODULE_NAME_INTEROPERABILITY,
+							params: {
+								activeValidatorsUpdate: {
+									blsKeysUpdate: [],
+									bftWeightsUpdate: [],
+									bftWeightsUpdateBitmap: Buffer.alloc(0),
+								},
+								certificate: Buffer.alloc(2),
+								certificateThreshold: BigInt(2),
+								inboxUpdate: {
+									crossChainMessages: [],
+									messageWitnessHashes: [],
+									outboxRootWitness: {
+										bitmap: Buffer.alloc(1),
+										siblingHashes: [],
+									},
+								},
+								sendingChainID: Buffer.from('04000001', 'hex'),
+							},
+							chainID: Buffer.from('04000001', 'hex'),
+						})
+						.toObject(),
+				].map(tx => {
+					const { id, ...txWithoutID } = tx;
+					return txWithoutID;
+				});
+			});
+
+			it('should return empty array when there is no record', async () => {
+				await expect(chainConnectorStore.getListOfCCUs()).resolves.toEqual([]);
+			});
+
+			it('should return list of CCUs', async () => {
+				await chainConnectorStore.setListOfCCUs(listOfCCUs);
+
+				await expect(chainConnectorStore.getListOfCCUs()).resolves.toEqual(listOfCCUs);
 			});
 		});
 	});

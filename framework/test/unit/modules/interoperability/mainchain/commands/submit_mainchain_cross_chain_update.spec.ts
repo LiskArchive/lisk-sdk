@@ -47,6 +47,7 @@ import {
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_FEE_ADDRESS,
 	HASH_LENGTH,
+	MIN_RETURN_FEE_PER_BYTE_LSK,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
@@ -166,6 +167,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 		mainchainCCUUpdateCommand.init(
 			{
 				getMessageFeeTokenID: jest.fn().mockResolvedValue(messageFeeTokenID),
+				getMinReturnFeePerByte: jest.fn().mockResolvedValue(BigInt(10000000)),
 			} as any,
 			{
 				initializeUserAccount: jest.fn(),
@@ -232,6 +234,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				size: 18,
 			},
 			partnerChainOutboxRoot: utils.getRandomBytes(38),
+			minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
 		};
 
 		params = {
@@ -528,7 +531,15 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				ccCommands,
 				interopMod['internalMethod'],
 			);
-
+			command.init(
+				{
+					getMessageFeeTokenID: jest.fn().mockResolvedValue(messageFeeTokenID),
+					getMinReturnFeePerByte: jest.fn().mockResolvedValue(BigInt(10000000)),
+				} as any,
+				{
+					initializeUserAccount: jest.fn(),
+				},
+			);
 			jest.spyOn(command['events'].get(CcmProcessedEvent), 'log');
 			jest.spyOn(command, 'bounce' as never);
 			context = createCrossChainMessageContext({
