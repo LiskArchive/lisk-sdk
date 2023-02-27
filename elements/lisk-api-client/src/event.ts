@@ -26,7 +26,7 @@ export class Event {
 
 	public async get(
 		height: number,
-		query: { module?: string; name?: string },
+		query: { module?: string; name?: string } = {},
 	): Promise<DecodedEventJSON[]> {
 		const decodedEvents: DecodedEventJSON[] = [];
 
@@ -47,8 +47,8 @@ export class Event {
 	}
 
 	public subscribe(
-		query: { module?: string; name?: string },
 		callback: (events: DecodedEventJSON[]) => void,
+		query: { module?: string; name?: string } = {},
 	): void {
 		this._channel.subscribe('chain_newBlock', async event => {
 			const {
