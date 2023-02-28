@@ -26,7 +26,7 @@ import {
 	CHAIN_REGISTRATION_FEE,
 	MAX_CHAIN_NAME_LENGTH,
 	EVENT_NAME_CHAIN_ACCOUNT_UPDATED,
-	CROSS_CHAIN_COMMAND_REGISTRATION,
+	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	EVENT_NAME_CCM_SEND_SUCCESS,
 	CCMStatusCode,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
@@ -607,7 +607,7 @@ describe('RegisterSidechainCommand', () => {
 			const ccm = {
 				nonce: BigInt(0),
 				module: MODULE_NAME_INTEROPERABILITY,
-				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 				sendingChainID: chainID,
 				receivingChainID: newChainID,
 				fee: BigInt(0),

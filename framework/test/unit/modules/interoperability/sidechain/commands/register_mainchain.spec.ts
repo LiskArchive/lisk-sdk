@@ -21,7 +21,7 @@ import { RegisterMainchainCommand } from '../../../../../../src/modules/interope
 import {
 	CCMStatusCode,
 	COMMAND_NAME_MAINCHAIN_REG,
-	CROSS_CHAIN_COMMAND_REGISTRATION,
+	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	EMPTY_BYTES,
 	EMPTY_HASH,
 	EVENT_NAME_CCM_SEND_SUCCESS,
@@ -509,7 +509,7 @@ describe('RegisterMainchainCommand', () => {
 			const ccm = {
 				nonce: BigInt(0),
 				module: MODULE_NAME_INTEROPERABILITY,
-				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 				sendingChainID: params.ownChainID,
 				receivingChainID: mainchainID,
 				fee: BigInt(0),
@@ -558,7 +558,7 @@ describe('RegisterMainchainCommand', () => {
 			const ccm = {
 				nonce: ownChainAccount.nonce,
 				module: MODULE_NAME_INTEROPERABILITY,
-				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 				sendingChainID: ownChainAccount.chainID,
 				receivingChainID: mainchainID,
 				fee: BigInt(0),

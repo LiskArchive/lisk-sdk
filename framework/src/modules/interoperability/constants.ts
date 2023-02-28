@@ -73,7 +73,6 @@ export const enum CCMStatusCode {
 	RECOVERED = 5,
 }
 
-export const CROSS_CHAIN_COMMAND_REGISTRATION = 'crossChainCommandRegistration';
 export const CCM_SENT_STATUS_SUCCESS = 0;
 
 // Commands
