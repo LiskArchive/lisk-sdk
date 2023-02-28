@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { CHAIN_REGISTRATION_FEE } from '../../../../../src/modules/interoperability/constants';
+import {
+	CHAIN_REGISTRATION_FEE,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
+} from '../../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityEndpoint } from '../../../../../src/modules/interoperability/mainchain/endpoint';
 
 describe('MainchainInteroperabilityEndpoint', () => {
@@ -30,6 +33,14 @@ describe('MainchainInteroperabilityEndpoint', () => {
 			const result = endpoint.getRegistrationFee();
 
 			expect(result).toEqual({ fee: CHAIN_REGISTRATION_FEE.toString() });
+		});
+	});
+
+	describe('getMinimumMessageFee', () => {
+		it('should return the message fee', () => {
+			const result = endpoint.getMinimumMessageFee();
+
+			expect(result).toEqual({ fee: MIN_RETURN_FEE_PER_BYTE_BEDDOWS.toString() });
 		});
 	});
 });

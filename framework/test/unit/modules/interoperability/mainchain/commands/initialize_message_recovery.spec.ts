@@ -24,7 +24,7 @@ import {
 import {
 	EMPTY_BYTES,
 	EMPTY_HASH,
-	MIN_RETURN_FEE_PER_BYTE_LSK,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	InitializeMessageRecoveryCommand,
@@ -73,7 +73,7 @@ describe('InitializeMessageRecoveryCommand', () => {
 			size: 4,
 		},
 		partnerChainOutboxRoot: utils.getRandomBytes(32),
-		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	};
 	const storedChannel = {
 		inbox: {
@@ -88,7 +88,7 @@ describe('InitializeMessageRecoveryCommand', () => {
 			size: 100,
 		},
 		partnerChainOutboxRoot: utils.getRandomBytes(32),
-		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	};
 	const defaultParams = {
 		chainID: targetChainID,

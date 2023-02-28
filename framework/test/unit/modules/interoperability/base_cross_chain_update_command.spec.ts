@@ -29,10 +29,10 @@ import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	HASH_LENGTH,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
 	EMPTY_BYTES,
 	EmptyCCM,
-	MIN_RETURN_FEE_PER_BYTE_LSK,
 } from '../../../../src/modules/interoperability/constants';
 import {
 	CCMProcessedCode,
@@ -181,7 +181,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			size: 18,
 		},
 		partnerChainOutboxRoot: utils.getRandomBytes(32),
-		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	};
 	const defaultCCM = {
 		nonce: BigInt(0),

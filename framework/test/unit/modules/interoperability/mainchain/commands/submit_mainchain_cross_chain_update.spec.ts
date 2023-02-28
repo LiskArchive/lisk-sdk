@@ -47,7 +47,7 @@ import {
 	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_FEE_ADDRESS,
 	HASH_LENGTH,
-	MIN_RETURN_FEE_PER_BYTE_LSK,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
@@ -234,7 +234,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				size: 18,
 			},
 			partnerChainOutboxRoot: utils.getRandomBytes(38),
-			minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_LSK,
+			minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 		};
 
 		params = {
