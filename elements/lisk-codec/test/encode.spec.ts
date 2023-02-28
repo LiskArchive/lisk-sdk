@@ -31,6 +31,22 @@ import { testCases as stringTestCases } from '../fixtures/string_encodings.json'
 import { testCases as transactionTestCases } from '../fixtures/transaction_encodings.json';
 
 describe('encode', () => {
+	describe('empty', () => {
+		const emptySchema = {
+			$id: '/lisk/empty',
+			type: 'object',
+			properties: {},
+		};
+
+		it('should encode empty schema to empty bytes', () => {
+			expect(codec.encode(emptySchema, {})).toEqual(Buffer.alloc(0));
+		});
+
+		it('should encode empty schema to empty bytes when additional properties exist', () => {
+			expect(codec.encode(emptySchema, { additional: 'property' })).toEqual(Buffer.alloc(0));
+		});
+	});
+
 	describe('account', () => {
 		it.each(buildTestCases(accountTestCases))('%s', ({ input, output }) => {
 			const message = getAccountFromJSON(input.object);
