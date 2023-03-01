@@ -16,6 +16,7 @@ export const MODULE_ID_REWARD = 10;
 export const REWARD_NO_REDUCTION = 0;
 export const REWARD_REDUCTION_SEED_REVEAL = 1;
 export const REWARD_REDUCTION_MAX_PREVOTES = 2;
+export const REWARD_REDUCTION_NO_ACCOUNT = 3;
 export const REWARD_REDUCTION_FACTOR_BFT = BigInt(4);
 
 export const defaultConfig = {
