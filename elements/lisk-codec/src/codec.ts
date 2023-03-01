@@ -30,6 +30,12 @@ import {
 
 import { iterator, recursiveTypeCast } from './json_wrapper';
 
+export const emptySchema = {
+	$id: '/lisk/empty',
+	type: 'object',
+	properties: {},
+};
+
 export const validateSchema = (schema: {
 	// eslint-disable-next-line
 	[key: string]: any;
