@@ -98,7 +98,9 @@ describe('MainchainInteroperabilityEndpoint', () => {
 			});
 
 			// Assert
-			await expect(endpoint.isChainNameAvailable(context)).resolves.toBe({ result: false });
+			await expect(endpoint.isChainNameAvailable(context)).resolves.toStrictEqual({
+				result: false,
+			});
 		});
 
 		it('should return true if name is available in the store', async () => {
@@ -111,7 +113,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 			});
 
 			// Assert
-			await expect(endpoint.isChainNameAvailable(context)).resolves.toBe({ result: true });
+			await expect(endpoint.isChainNameAvailable(context)).resolves.toStrictEqual({ result: true });
 		});
 	});
 });
