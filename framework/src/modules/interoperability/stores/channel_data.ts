@@ -13,7 +13,7 @@
  */
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { BaseStore, StoreGetter } from '../../base_store';
-import { HASH_LENGTH } from '../constants';
+import { HASH_LENGTH, STORE_PREFIX } from '../constants';
 import { ChannelData } from '../types';
 import { TOKEN_ID_LENGTH } from '../../token/constants';
 
@@ -43,7 +43,13 @@ const inboxOutboxProps = {
 export const channelSchema = {
 	$id: '/modules/interoperability/channel',
 	type: 'object',
-	required: ['inbox', 'outbox', 'partnerChainOutboxRoot', 'messageFeeTokenID'],
+	required: [
+		'inbox',
+		'outbox',
+		'partnerChainOutboxRoot',
+		'messageFeeTokenID',
+		'minReturnFeePerByte',
+	],
 	properties: {
 		inbox: {
 			type: 'object',
@@ -69,11 +75,19 @@ export const channelSchema = {
 			maxLength: TOKEN_ID_LENGTH,
 			fieldNumber: 4,
 		},
+		minReturnFeePerByte: {
+			dataType: 'uint64',
+			fieldNumber: 5,
+		},
 	},
 };
 
 export class ChannelDataStore extends BaseStore<ChannelData> {
 	public schema = channelSchema;
+
+	public get storePrefix(): Buffer {
+		return STORE_PREFIX;
+	}
 
 	public async updatePartnerChainOutboxRoot(
 		context: StoreGetter,

@@ -73,7 +73,7 @@ export class DynamicRewardModule extends BaseModule {
 
 	public constructor() {
 		super();
-		this.stores.register(EndOfRoundTimestampStore, new EndOfRoundTimestampStore(this.name));
+		this.stores.register(EndOfRoundTimestampStore, new EndOfRoundTimestampStore(this.name, 0));
 		this.events.register(RewardMintedEvent, new RewardMintedEvent(this.name));
 	}
 

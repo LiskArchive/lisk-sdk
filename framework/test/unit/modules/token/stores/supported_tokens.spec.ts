@@ -28,7 +28,7 @@ describe('SupportedTokensStore', () => {
 	let context: StoreGetter;
 
 	beforeEach(() => {
-		store = new SupportedTokensStore('token');
+		store = new SupportedTokensStore('token', 3);
 		const db = new InMemoryPrefixedStateDB();
 		const stateStore = new PrefixedStateReadWriter(db);
 		context = createStoreGetter(stateStore);

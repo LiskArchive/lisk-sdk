@@ -246,6 +246,7 @@ export interface ChannelData {
 	outbox: Outbox;
 	partnerChainOutboxRoot: Buffer;
 	messageFeeTokenID: Buffer;
+	minReturnFeePerByte: bigint;
 }
 
 export interface ChannelDataJSON {
@@ -253,6 +254,7 @@ export interface ChannelDataJSON {
 	outbox: OutboxJSON;
 	partnerChainOutboxRoot: string;
 	messageFeeTokenID: string;
+	minReturnFeePerByte: string;
 }
 
 export interface ActiveValidators {
@@ -337,7 +339,7 @@ export interface StateRecoveryInitParams {
 	siblingHashes: Buffer[];
 }
 
-export interface TerminateSidehchainForLivenessParams {
+export interface TerminateSidechainForLivenessParams {
 	chainID: Buffer;
 }
 
@@ -398,6 +400,7 @@ export interface CCMRegistrationParams {
 	name: string;
 	chainID: Buffer;
 	messageFeeTokenID: Buffer;
+	minReturnFeePerByte: bigint;
 }
 
 export interface TokenMethod {

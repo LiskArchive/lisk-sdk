@@ -31,6 +31,7 @@ import {
 	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
 	MESSAGE_TAG_CHAIN_REG,
 	MAX_UINT64,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	mainchainRegParams,
@@ -415,6 +416,7 @@ describe('RegisterMainchainCommand', () => {
 				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				partnerChainOutboxRoot: EMPTY_HASH,
 				messageFeeTokenID: mainchainTokenID,
+				minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 			};
 
 			// Act
@@ -502,6 +504,7 @@ describe('RegisterMainchainCommand', () => {
 				name: CHAIN_NAME_MAINCHAIN,
 				chainID: mainchainID,
 				messageFeeTokenID: mainchainTokenID,
+				minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 			});
 			const ccm = {
 				nonce: BigInt(0),
@@ -545,6 +548,7 @@ describe('RegisterMainchainCommand', () => {
 				name: CHAIN_NAME_MAINCHAIN,
 				chainID: mainchainID,
 				messageFeeTokenID: mainchainTokenID,
+				minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 			});
 			const ownChainAccount = {
 				name: params.ownName,

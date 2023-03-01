@@ -14,7 +14,6 @@
 
 import {
 	AggregateCommit,
-	BFTParameters,
 	ChainAccount,
 	ChainAccountJSON,
 	ChannelData,
@@ -24,7 +23,13 @@ import {
 	Outbox,
 	OutboxJSON,
 } from 'lisk-sdk';
-import { BFTParametersJSON, ProveResponse, ProveResponseJSON, ValidatorsData } from './types';
+import {
+	BFTParameters,
+	BFTParametersJSON,
+	ProveResponse,
+	ProveResponseJSON,
+	ValidatorsData,
+} from './types';
 import { CHAIN_ID_LENGTH } from './constants';
 
 export const getMainchainID = (chainID: Buffer): Buffer => {
@@ -57,7 +62,8 @@ export const validatorsHashPreimagetoJSON = (validatorsHashPreimage: ValidatorsD
 };
 
 export const channelDataToJSON = (channelData: ChannelData) => {
-	const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot } = channelData;
+	const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot, minReturnFeePerByte } =
+		channelData;
 	const inboxJSON: InboxJSON = {
 		appendPath: inbox.appendPath.map(ap => ap.toString('hex')),
 		root: inbox.root.toString('hex'),
@@ -75,11 +81,13 @@ export const channelDataToJSON = (channelData: ChannelData) => {
 		outbox: outboxJSON,
 		inbox: inboxJSON,
 		partnerChainOutboxRoot: partnerChainOutboxRoot.toString('hex'),
+		minReturnFeePerByte: minReturnFeePerByte.toString(),
 	};
 };
 
 export const channelDataJSONToObj = (channelData: ChannelDataJSON): ChannelData => {
-	const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot } = channelData;
+	const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot, minReturnFeePerByte } =
+		channelData;
 
 	const inboxJSON: Inbox = {
 		appendPath: inbox.appendPath.map(ap => Buffer.from(ap, 'hex')),
@@ -98,6 +106,7 @@ export const channelDataJSONToObj = (channelData: ChannelDataJSON): ChannelData 
 		outbox: outboxJSON,
 		inbox: inboxJSON,
 		partnerChainOutboxRoot: Buffer.from(partnerChainOutboxRoot, 'hex'),
+		minReturnFeePerByte: BigInt(minReturnFeePerByte),
 	};
 };
 
@@ -143,7 +152,6 @@ export const bftParametersJSONToObj = (bftParametersJSON: BFTParametersJSON): BF
 			address: Buffer.from(validator.address, 'hex'),
 			bftWeight: BigInt(validator.bftWeight),
 			blsKey: Buffer.from(validator.blsKey, 'hex'),
-			generatorKey: Buffer.from(validator.generatorKey, 'hex'),
 		})),
 		validatorsHash: Buffer.from(validatorsHash, 'hex'),
 	};

@@ -34,6 +34,24 @@ import { testCases as transactionTestCases } from '../fixtures/transaction_decod
 import { generateKey } from '../src/utils';
 
 describe('decode', () => {
+	describe('empty', () => {
+		const emptySchema = {
+			$id: '/lisk/empty',
+			type: 'object',
+			properties: {},
+		};
+
+		it('should decode empty schema to empty object', () => {
+			expect(codec.decode(emptySchema, Buffer.alloc(0))).toEqual({});
+		});
+
+		it('should throw if input is not empty bytes', () => {
+			expect(() => codec.decode(emptySchema, Buffer.from([1, 2, 3]))).toThrow(
+				'Invalid terminate index',
+			);
+		});
+	});
+
 	describe('account', () => {
 		it.each(buildTestCases(accountTestCases))('%s', ({ input, output }) => {
 			const object = getAccountFromJSON(output.object);

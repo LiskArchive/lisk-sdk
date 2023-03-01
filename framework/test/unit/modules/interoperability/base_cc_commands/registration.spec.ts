@@ -20,6 +20,7 @@ import {
 	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	MODULE_NAME_INTEROPERABILITY,
 	HASH_LENGTH,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 } from '../../../../../src/modules/interoperability/constants';
 import { MainchainCCRegistrationCommand } from '../../../../../src/modules/interoperability/mainchain/cc_commands';
 import { registrationCCMParamsSchema } from '../../../../../src/modules/interoperability/schemas';
@@ -64,6 +65,7 @@ describe('BaseCCRegistrationCommand', () => {
 		chainID: mainchainID,
 		name: ownChainAccountMainchain.name,
 		messageFeeTokenID,
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	};
 	const encodedRegistrationParams = codec.encode(
 		registrationCCMParamsSchema,
@@ -83,6 +85,7 @@ describe('BaseCCRegistrationCommand', () => {
 			size: 1,
 		},
 		partnerChainOutboxRoot: Buffer.alloc(0),
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	};
 
 	const fakeChainAccount = {
@@ -244,7 +247,21 @@ describe('BaseCCRegistrationCommand', () => {
 				}),
 			);
 			await expect(ccRegistrationCommand.verify(sampleExecuteContext)).rejects.toThrow(
-				'Registration message must contain the same message fee token ID as the chain account.',
+				'Registration message must contain the same message fee token ID as the channel account.',
+			);
+		});
+
+		it('should fail if channel.minReturnFeePerByte !== ccmRegistrationParams.minReturnFeePerByte', async () => {
+			sampleExecuteContext = createContext(
+				buildCCM({
+					params: codec.encode(registrationCCMParamsSchema, {
+						...ccmRegistrationParams,
+						minReturnFeePerByte: '1',
+					}),
+				}),
+			);
+			await expect(ccRegistrationCommand.verify(sampleExecuteContext)).rejects.toThrow(
+				'Registration message must contain the same minimum return fee per byte as the channel account.',
 			);
 		});
 

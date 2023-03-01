@@ -22,6 +22,7 @@ import {
 	EMPTY_HASH,
 	HASH_LENGTH,
 	MESSAGE_TAG_CERTIFICATE,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 } from '../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
 import * as utils from '../../../../src/modules/interoperability/utils';
@@ -46,7 +47,10 @@ import { ChainAccountUpdatedEvent } from '../../../../src/modules/interoperabili
 import { TerminatedStateCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_state_created';
 import { createTransientMethodContext } from '../../../../src/testing';
 import { ChainValidatorsStore } from '../../../../src/modules/interoperability/stores/chain_validators';
-import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
+import {
+	certificateSchema,
+	unsignedCertificateSchema,
+} from '../../../../src/engine/consensus/certificate_generation/schema';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
 import { Certificate } from '../../../../src/engine/consensus/certificate_generation/types';
 import { TerminatedOutboxCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_outbox_created';
@@ -102,6 +106,7 @@ describe('Base interoperability internal method', () => {
 		outbox: outboxTree,
 		partnerChainOutboxRoot: Buffer.alloc(0),
 		messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	};
 	const chainAccount = {
 		name: 'account1',
@@ -205,11 +210,9 @@ describe('Base interoperability internal method', () => {
 			await mainchainInteroperabilityInternalMethod.addToOutbox(methodContext, chainID, ccm);
 
 			// Assert
-			expect(outboxRootSubstore.set).toHaveBeenCalledWith(
-				expect.anything(),
-				chainID,
-				updatedOutboxTree,
-			);
+			expect(outboxRootSubstore.set).toHaveBeenCalledWith(expect.anything(), chainID, {
+				root: updatedOutboxTree.root,
+			});
 		});
 	});
 
@@ -674,6 +677,7 @@ describe('Base interoperability internal method', () => {
 					size: 1,
 				},
 				partnerChainOutboxRoot: cryptoUtils.getRandomBytes(HASH_LENGTH),
+				minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 			});
 
 			await mainchainInteroperabilityInternalMethod.updatePartnerChainOutboxRoot(
@@ -1110,7 +1114,9 @@ describe('Base interoperability internal method', () => {
 			aggregationBits: cryptoUtils.getRandomBytes(38),
 			signature: cryptoUtils.getRandomBytes(32),
 		};
+		const { aggregationBits, signature, ...unsignedCertificate } = certificate;
 		const encodedCertificate = codec.encode(certificateSchema, certificate);
+		const encodedUnsignedCertificate = codec.encode(unsignedCertificateSchema, unsignedCertificate);
 		const txParams: CrossChainUpdateTransactionParams = {
 			certificate: encodedCertificate,
 			activeValidatorsUpdate,
@@ -1148,7 +1154,7 @@ describe('Base interoperability internal method', () => {
 				certificate.signature,
 				MESSAGE_TAG_CERTIFICATE,
 				txParams.sendingChainID,
-				txParams.certificate,
+				encodedUnsignedCertificate,
 				activeValidators.map(v => v.bftWeight),
 				txParams.certificateThreshold,
 			);

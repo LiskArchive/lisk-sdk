@@ -26,6 +26,7 @@ import {
 	HASH_LENGTH,
 	LIVENESS_LIMIT,
 	MAX_CCM_SIZE,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../src/modules/interoperability/constants';
 import { ccmSchema } from '../../../../src/modules/interoperability/schemas';
@@ -431,6 +432,7 @@ describe('Utils', () => {
 			messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
 			outbox: outboxTree,
 			partnerChainOutboxRoot,
+			minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 		};
 
 		const defaultSendingChainID = utils.intToBuffer(20, 4);
