@@ -12,9 +12,36 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { computeSubstorePrefix } from '../../../src/modules/base_store';
+import { Schema } from '@liskhq/lisk-codec';
+import { MethodContext } from '../../../src';
+import { BaseStore, computeSubstorePrefix } from '../../../src/modules/base_store';
+import { createTransientMethodContext } from '../../../src/testing';
+
+class SampleStore extends BaseStore<undefined> {
+	public schema: Schema = {
+		$id: '/lisk/test/sample',
+		type: 'object',
+		properties: {},
+	};
+
+	public get storePrefix(): Buffer {
+		return Buffer.from([1, 2, 3, 4]);
+	}
+}
 
 describe('BaseStore', () => {
+	const storePrefix = Buffer.from([1, 2, 3, 4]);
+	const substorePrefix = computeSubstorePrefix(0);
+	const key = Buffer.from([1, 2]);
+
+	let store: SampleStore;
+	let context: MethodContext;
+
+	beforeEach(() => {
+		store = new SampleStore('sample', 0);
+		context = createTransientMethodContext({});
+	});
+
 	describe('computeSubstorePrefix', () => {
 		const cases = [
 			[{ index: 0, expected: Buffer.from([0x00, 0x00]) }],
@@ -33,6 +60,64 @@ describe('BaseStore', () => {
 
 		it.each(cases)('should produce expected key', ({ index, expected }) => {
 			expect(computeSubstorePrefix(index)).toEqual(expected);
+		});
+	});
+
+	describe('key', () => {
+		it('should return concat of storePrefix and substorePrefix', () => {
+			expect(store.key).toEqual(Buffer.concat([storePrefix, substorePrefix]));
+		});
+	});
+
+	describe('get', () => {
+		it('should resolve when key exists', async () => {
+			const expectedStore = context.getStore(storePrefix, substorePrefix);
+			await expectedStore.set(key, Buffer.alloc(0));
+
+			await expect(store.get(context, key)).toResolve();
+		});
+	});
+
+	describe('has', () => {
+		it('should return true when key exist', async () => {
+			const expectedStore = context.getStore(storePrefix, substorePrefix);
+			await expectedStore.set(key, Buffer.alloc(0));
+
+			await expect(store.has(context, key)).resolves.toBeTrue();
+		});
+	});
+
+	describe('set', () => {
+		it('should store data with the key', async () => {
+			await store.set(context, key, undefined);
+
+			const expectedStore = context.getStore(storePrefix, substorePrefix);
+
+			await expect(expectedStore.has(key)).resolves.toBeTrue();
+		});
+	});
+
+	describe('del', () => {
+		it('should store data with the key', async () => {
+			await store.set(context, key, undefined);
+			const expectedStore = context.getStore(storePrefix, substorePrefix);
+
+			await expect(expectedStore.has(key)).resolves.toBeTrue();
+
+			await store.del(context, key);
+
+			await expect(expectedStore.has(key)).resolves.toBeFalse();
+		});
+	});
+
+	describe('iterate', () => {
+		it('should resolve when key exists', async () => {
+			const expectedStore = context.getStore(storePrefix, substorePrefix);
+			await expectedStore.set(key, Buffer.alloc(0));
+
+			const keypairs = await store.iterate(context, {});
+			expect(keypairs).toHaveLength(1);
+			expect(keypairs[0].key).toEqual(key);
 		});
 	});
 });
