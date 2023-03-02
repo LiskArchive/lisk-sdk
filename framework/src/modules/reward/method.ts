@@ -19,9 +19,10 @@ import {
 	REWARD_NO_REDUCTION,
 	REWARD_REDUCTION_FACTOR_BFT,
 	REWARD_REDUCTION_MAX_PREVOTES,
+	REWARD_REDUCTION_NO_ACCOUNT,
 	REWARD_REDUCTION_SEED_REVEAL,
 } from './constants';
-import { ModuleConfig, RandomMethod } from './types';
+import { ModuleConfig, RandomMethod, TokenMethod } from './types';
 
 interface MethodInitArgs {
 	config: ModuleConfig;
@@ -29,14 +30,16 @@ interface MethodInitArgs {
 
 export class RewardMethod extends BaseMethod {
 	private _randomMethod!: RandomMethod;
+	private _tokenMethod!: TokenMethod;
 	private _config!: ModuleConfig;
 
 	public init(args: MethodInitArgs) {
 		this._config = args.config;
 	}
 
-	public addDependencies(randomMethod: RandomMethod): void {
+	public addDependencies(randomMethod: RandomMethod, tokenMethod: TokenMethod): void {
 		this._randomMethod = randomMethod;
+		this._tokenMethod = tokenMethod;
 	}
 
 	public async getBlockReward(
@@ -47,6 +50,15 @@ export class RewardMethod extends BaseMethod {
 		const defaultReward = calculateDefaultReward(this._config, header.height);
 		if (defaultReward === BigInt(0)) {
 			return [defaultReward, REWARD_NO_REDUCTION];
+		}
+
+		const userSubstoreExists = await this._tokenMethod.userAccountExists(
+			context,
+			header.generatorAddress,
+			this._config.tokenID,
+		);
+		if (!userSubstoreExists) {
+			return [BigInt(0), REWARD_REDUCTION_NO_ACCOUNT];
 		}
 
 		const isValidSeedReveal = await this._randomMethod.isSeedRevealValid(

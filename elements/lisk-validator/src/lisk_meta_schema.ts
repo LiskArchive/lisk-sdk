@@ -56,7 +56,6 @@ export const liskMetaSchema = {
 					},
 				],
 			},
-			minProperties: 1,
 		},
 		required: {
 			type: 'array',
