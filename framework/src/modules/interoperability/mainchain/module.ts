@@ -52,6 +52,8 @@ import { InitializeMessageRecoveryCommand } from './commands/initialize_message_
 import { FeeMethod } from '../types';
 import { MainchainCCChannelTerminatedCommand, MainchainCCRegistrationCommand } from './cc_commands';
 import { RecoverStateCommand } from './commands/recover_state';
+import { CcmSentFailedEvent } from '../events/ccm_send_fail';
+import { InvalidRegistrationSignatureEvent } from '../events/invalid_registration_signature';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
@@ -144,6 +146,11 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.events.register(ChainAccountUpdatedEvent, new ChainAccountUpdatedEvent(this.name));
 		this.events.register(CcmProcessedEvent, new CcmProcessedEvent(this.name));
 		this.events.register(CcmSendSuccessEvent, new CcmSendSuccessEvent(this.name));
+		this.events.register(CcmSentFailedEvent, new CcmSentFailedEvent(this.name));
+		this.events.register(
+			InvalidRegistrationSignatureEvent,
+			new InvalidRegistrationSignatureEvent(this.name),
+		);
 		this.events.register(TerminatedStateCreatedEvent, new TerminatedStateCreatedEvent(this.name));
 		this.events.register(TerminatedOutboxCreatedEvent, new TerminatedOutboxCreatedEvent(this.name));
 	}
