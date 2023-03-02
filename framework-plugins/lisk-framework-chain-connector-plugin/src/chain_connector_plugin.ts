@@ -105,7 +105,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _ownChainID!: Buffer;
 	private _receivingChainID!: Buffer;
 	private _isReceivingChainMainchain!: boolean;
-	private registrationHeight!: number;
+	private _registrationHeight!: number;
 	private readonly _sentCCUs: SentCCUs = [];
 	private _privateKey!: Buffer;
 
@@ -122,7 +122,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 		this._maxCCUSize = this.config.maxCCUSize;
 		this._isSaveCCU = this.config.isSaveCCU;
-		this.registrationHeight = this.config.registrationHeight;
+		this._registrationHeight = this.config.registrationHeight;
 		const { password, encryptedPrivateKey } = this.config;
 		if (password) {
 			const parsedEncryptedKey = encrypt.parseEncryptedMessage(encryptedPrivateKey);
@@ -231,10 +231,17 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				);
 
 				if (computedCCUParams) {
-					await this._submitCCU(codec.encode(ccuParamsSchema, computedCCUParams.ccuParams));
-					// If CCU was sent successfully then save the lastSentCCM if any
-					if (computedCCUParams.lastCCMToBeSent) {
-						await this._chainConnectorStore.setLastSentCCM(computedCCUParams.lastCCMToBeSent);
+					try {
+						await this._submitCCU(codec.encode(ccuParamsSchema, computedCCUParams.ccuParams));
+						// If CCU was sent successfully then save the lastSentCCM if any
+						if (computedCCUParams.lastCCMToBeSent) {
+							await this._chainConnectorStore.setLastSentCCM(computedCCUParams.lastCCMToBeSent);
+						}
+					} catch (error) {
+						this.logger.info(
+							`Error occured while submitting CCU for the blockHeader at height: ${newBlockHeader.height}`,
+						);
+						return;
 					}
 				} else {
 					this.logger.info(
@@ -410,21 +417,21 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 
 		if (this._lastCertificate.height === 0) {
-			const firstAggregateCommit = aggregateCommits[0];
-			if (
-				firstAggregateCommit.certificateSignature.equals(EMPTY_BYTES) ||
-				firstAggregateCommit.height < this.registrationHeight
-			) {
-				return undefined;
+			for (const aggregateCommit of aggregateCommits) {
+				if (
+					aggregateCommit.certificateSignature.equals(EMPTY_BYTES) ||
+					aggregateCommit.height < this._registrationHeight
+				) {
+					continue;
+				}
+
+				// When we receive the first aggregateCommit in the chain we can create certificate directly
+				const firstCertificate = getCertificateFromAggregateCommit(aggregateCommit, blockHeaders);
+
+				return firstCertificate;
 			}
 
-			// When we receive the first aggregateCommit in the chain we can create certificate directly
-			const firstCertificate = getCertificateFromAggregateCommit(
-				firstAggregateCommit,
-				blockHeaders,
-			);
-
-			return firstCertificate;
+			return undefined;
 		}
 		const bftHeights = await this._sendingChainClient.invoke<BFTHeights>('consensus_getBFTHeights');
 		// Calculate certificate
