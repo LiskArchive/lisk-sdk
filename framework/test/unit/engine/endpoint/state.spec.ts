@@ -15,7 +15,7 @@
 import { Chain } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { LiskValidationError } from '@liskhq/lisk-validator';
-import { ABI } from '../../../../src/abi';
+import { ABI, ProveResponseJSON } from '../../../../src/abi';
 import { StateEndpoint } from '../../../../src/engine/endpoint/state';
 import { Logger } from '../../../../src/logger';
 import { fakeLogger } from '../../../utils/mocks';
@@ -112,14 +112,35 @@ describe('state endpoint', () => {
 			});
 
 			it('should call abi.prove with appropriate parameters if last block header state root is not empty', async () => {
-				const proveSpy = jest.spyOn(abi, 'prove');
-				await endpoint.prove({ logger, params: { queryKeys }, chainID });
+				const proveABIResponse = {
+					proof: {
+						queries: queryKeys.map(q => ({
+							bitmap: Buffer.alloc(1),
+							key: Buffer.from(q, 'hex'),
+							value: utils.hash(Buffer.alloc(1)),
+						})),
+						siblingHashes: [utils.getRandomBytes(32)],
+					},
+				};
+				const proveABIResponseJSON: ProveResponseJSON = {
+					proof: {
+						queries: proveABIResponse.proof.queries.map(q => ({
+							bitmap: q.bitmap.toString('hex'),
+							key: q.key.toString('hex'),
+							value: q.value.toString('hex'),
+						})),
+						siblingHashes: proveABIResponse.proof.siblingHashes.map(s => s.toString('hex')),
+					},
+				};
+				const proveSpy = jest.spyOn(abi, 'prove').mockResolvedValue(proveABIResponse);
+				const response = await endpoint.prove({ logger, params: { queryKeys }, chainID });
 
 				expect(proveSpy).toHaveBeenCalledTimes(1);
 				expect(proveSpy).toHaveBeenCalledWith({
 					stateRoot: chain.lastBlock.header.stateRoot,
 					keys: queryKeys.map(q => Buffer.from(q, 'hex')),
 				});
+				expect(response).toEqual(proveABIResponseJSON);
 			});
 		});
 	});
