@@ -415,7 +415,7 @@ export class Consensus {
 						maxHeightPrevoted: block.header.maxHeightPrevoted,
 						maxHeightGenerated: block.header.maxHeightGenerated,
 					},
-					'Discarding block',
+					'Discarding the block',
 				);
 				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
@@ -833,7 +833,7 @@ export class Consensus {
 			expectedStateRoot = secondLastBlockHeader.stateRoot as Buffer;
 		}
 		try {
-			this._logger.debug({ height: block.header.height }, 'reverting block');
+			this._logger.debug({ height: block.header.height }, 'Reverting the block');
 			const { contextID } = await this._abi.initStateMachine({
 				header: block.header.toObject(),
 			});

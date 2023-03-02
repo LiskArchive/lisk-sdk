@@ -156,7 +156,7 @@ export class Generator {
 		this._generationJob = new jobHandlers.Scheduler(
 			async () =>
 				this._generateLoop().catch(err => {
-					this._logger.error({ err: err as Error }, 'Fail to generate block');
+					this._logger.error({ err: err as Error }, 'Failed to generate a block');
 				}),
 			FORGE_INTERVAL,
 		);
