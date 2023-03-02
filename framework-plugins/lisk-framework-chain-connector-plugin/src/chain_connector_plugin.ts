@@ -282,7 +282,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		 */
 		const lastSentCCM = (await this._chainConnectorStore.getLastSentCCM()) ?? {
 			nonce: BigInt(0),
-			height: this._lastCertificate.height,
+			height: this._lastCertificate?.height,
 		};
 
 		let activeValidatorsUpdate: ActiveValidatorsUpdate = {
@@ -345,7 +345,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 			certificateThreshold = validatorsDataAtLastCertificate.certificateThreshold;
 		} else {
-			if (!this._lastCertificate.validatorsHash.equals(newCertificate.validatorsHash)) {
+			if (!this._lastCertificate?.validatorsHash.equals(newCertificate.validatorsHash)) {
 				const validatorsUpdateResult = calculateActiveValidatorsUpdate(
 					newCertificate,
 					validatorsHashPreimage,
@@ -406,14 +406,14 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		const newBlockHeader = blockHeaders.slice(-1)[0];
 
 		if (
-			this._lastCertificate.height === 0 &&
+			this._lastCertificate?.height === 0 &&
 			newBlockHeader.aggregateCommit.certificateSignature.equals(EMPTY_BYTES)
 		) {
 			return undefined;
 		}
 		// When we receive the first aggregateCommit in the chain we can create certificate directly
 		if (
-			this._lastCertificate.height === 0 &&
+			this._lastCertificate?.height === 0 &&
 			!newBlockHeader.aggregateCommit.certificateSignature.equals(EMPTY_BYTES)
 		) {
 			const firstCertificate = getCertificateFromAggregateCommit(
