@@ -171,19 +171,19 @@ export class Endpoint {
 			ctx.logger.debug(`Last generated information does not exist for address: ${req.address}`);
 		}
 
-		if (lastGeneratedInfo !== undefined && !isEqualGeneratedInfo(req, lastGeneratedInfo)) {
+		if (lastGeneratedInfo && !isEqualGeneratedInfo(req, lastGeneratedInfo)) {
 			throw new Error('Request does not match last generated information.');
 		}
-		if (lastGeneratedInfo === undefined && !isZeroValueGeneratedInfo(req)) {
-			throw new Error('Last generated information does not exist.');
-		}
-
-		if (lastGeneratedInfo === undefined) {
-			await setLastGeneratedInfo(
-				generatorStore,
-				cryptoAddress.getAddressFromLisk32Address(req.address),
-				req,
-			);
+		if (!lastGeneratedInfo) {
+			if (isZeroValueGeneratedInfo(req)) {
+				await setLastGeneratedInfo(
+					generatorStore,
+					cryptoAddress.getAddressFromLisk32Address(req.address),
+					req,
+				);
+			} else {
+				throw new Error('Last generated information does not exist.');
+			}
 		}
 
 		// Enable validator to forge by adding keypairs corresponding to address
@@ -207,25 +207,25 @@ export class Endpoint {
 		validator.validate<EstimateSafeStatusRequest>(estimateSafeStatusRequestSchema, ctx.params);
 
 		const req = ctx.params;
-
 		const finalizedHeight = this._consensus.finalizedHeight();
-
 		const finalizedBlock = await this._chain.dataAccess.getBlockHeaderByHeight(finalizedHeight);
-		if (finalizedBlock.timestamp < req.timeShutdown) {
+		if (req.timeShutdown > finalizedBlock.timestamp) {
 			throw new Error(`A block at the time shutdown ${req.timeShutdown} must be finalized.`);
 		}
 
-		// assume there is 30 days per month
+		// assume there are 30 days per month
 		const numberOfBlocksPerMonth = Math.ceil((60 * 60 * 24 * 30) / this._blockTime);
-		const heightOneMonthAgo = Math.max(finalizedHeight - numberOfBlocksPerMonth, 0);
+		const heightOneMonthAgo = Math.max(finalizedHeight - numberOfBlocksPerMonth, 1);
 		const blockHeaderLastMonth = await this._chain.dataAccess.getBlockHeaderByHeight(
 			heightOneMonthAgo,
 		);
-		const missedBlocks =
-			Math.ceil((finalizedBlock.timestamp - blockHeaderLastMonth.timestamp) / this._blockTime) -
-			(finalizedBlock.height - blockHeaderLastMonth.height);
 
-		const safeGeneratedHeight = finalizedHeight + missedBlocks;
+		const expectedBlocksCount = Math.ceil(
+			(finalizedBlock.timestamp - blockHeaderLastMonth.timestamp) / this._blockTime,
+		);
+		const generatedBlocksCount = finalizedBlock.height - blockHeaderLastMonth.height;
+		const missedBlocksCount = expectedBlocksCount - generatedBlocksCount;
+		const safeGeneratedHeight = finalizedHeight + missedBlocksCount;
 
 		return {
 			height: safeGeneratedHeight,
