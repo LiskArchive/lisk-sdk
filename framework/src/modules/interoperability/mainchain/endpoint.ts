@@ -13,10 +13,16 @@
  */
 
 import { BaseInteroperabilityEndpoint } from '../base_interoperability_endpoint';
-import { CHAIN_REGISTRATION_FEE } from '../constants';
+import { CHAIN_REGISTRATION_FEE, MIN_RETURN_FEE_PER_BYTE_BEDDOWS } from '../constants';
 
 export class MainchainInteroperabilityEndpoint extends BaseInteroperabilityEndpoint {
 	public getRegistrationFee(): { fee: string } {
 		return { fee: CHAIN_REGISTRATION_FEE.toString() };
+	}
+
+	public getMinimumMessageFee(): { fee: string } {
+		return {
+			fee: MIN_RETURN_FEE_PER_BYTE_BEDDOWS.toString(),
+		};
 	}
 }

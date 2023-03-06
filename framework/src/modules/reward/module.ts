@@ -46,7 +46,7 @@ export class RewardModule extends BaseModule {
 	public addDependencies(tokenMethod: TokenMethod, randomMethod: RandomMethod) {
 		this._tokenMethod = tokenMethod;
 		this._randomMethod = randomMethod;
-		this.method.addDependencies(this._randomMethod);
+		this.method.addDependencies(this._randomMethod, this._tokenMethod);
 	}
 
 	public metadata(): ModuleMetadata {

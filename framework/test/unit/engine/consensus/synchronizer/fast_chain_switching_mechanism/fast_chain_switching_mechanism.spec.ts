@@ -259,7 +259,7 @@ describe('fast_chain_switching_mechanism', () => {
 				.mockResolvedValue(lastBlock as never);
 
 			when(chainModule.dataAccess.getBlockHeadersWithHeights)
-				.calledWith([2, 1])
+				.calledWith([2, 1, 0])
 				.mockResolvedValue([genesisBlock.header, lastBlock.header] as never);
 
 			// Simulate finalized height stored in ConsensusState table is 0
@@ -503,7 +503,7 @@ describe('fast_chain_switching_mechanism', () => {
 					.calledWith()
 					.mockResolvedValue(lastBlock as never);
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
-					.calledWith([2, 1])
+					.calledWith([2, 1, 0])
 					.mockResolvedValue([genesisBlock.header, lastBlock.header] as never);
 
 				when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
@@ -511,7 +511,7 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue([lastBlock] as never);
 
 				const heightList = new Array(
-					Math.min(numberOfValidators * 2, chainModule.lastBlock.header.height),
+					Math.min(numberOfValidators * 2, (chainModule.lastBlock.header.height as number) + 1),
 				)
 					.fill(0)
 					.map((_, index) => chainModule.lastBlock.header.height - index);
@@ -579,7 +579,7 @@ describe('fast_chain_switching_mechanism', () => {
 				});
 
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
-					.calledWith([2, 1])
+					.calledWith([2, 1, 0])
 					.mockResolvedValue(storageReturnValue as never);
 				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
 					ids: storageReturnValue.map(blocks => blocks.id),
@@ -646,7 +646,7 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue(requestedBlocks);
 
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
-					.calledWith([2, 1])
+					.calledWith([2, 1, 0])
 					.mockResolvedValue(storageReturnValue as never);
 				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
 					ids: storageReturnValue.map(blocks => blocks.id),
@@ -814,7 +814,7 @@ describe('fast_chain_switching_mechanism', () => {
 						chainModule._lastBlock = genesisBlock;
 					});
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
-					.calledWith([2, 1])
+					.calledWith([2, 1, 0])
 					.mockResolvedValue(storageReturnValue as never);
 				when(chainModule.dataAccess.getBlockByID)
 					.calledWith(highestCommonBlock.id)
@@ -924,7 +924,7 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue(highestCommonBlock as never);
 
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
-					.calledWith([2, 1])
+					.calledWith([2, 1, 0])
 					.mockResolvedValue(storageReturnValue as never);
 				when(chainModule.dataAccess.getBlockByID)
 					.calledWith(highestCommonBlock.id)

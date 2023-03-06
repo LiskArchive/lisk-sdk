@@ -45,6 +45,7 @@ export class FeeModule extends BaseInteroperableModule {
 	public endpoint = new FeeEndpoint(this.stores, this.offchainStores);
 	private _tokenMethod!: TokenMethod;
 	private _minFeePerByte!: number;
+	private _maxBlockHeightZeroFeePerByte!: number;
 	private _tokenID!: Buffer;
 	private _feePoolAddress?: Buffer;
 
@@ -98,14 +99,15 @@ export class FeeModule extends BaseInteroperableModule {
 
 		this._tokenID = moduleConfig.feeTokenID;
 		this._minFeePerByte = moduleConfig.minFeePerByte;
+		this._maxBlockHeightZeroFeePerByte = moduleConfig.maxBlockHeightZeroFeePerByte;
 		this._feePoolAddress = moduleConfig.feePoolAddress;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
-		const { getMethodContext, transaction } = context;
-		const minFee = BigInt(this._minFeePerByte) * BigInt(transaction.getBytes().length);
+		const { getMethodContext, transaction, header } = context;
 
+		const minFee = this._getMinFee(header.height, transaction.getBytes().length);
 		if (transaction.fee < minFee) {
 			throw new Error(`Insufficient transaction fee. Minimum required fee is ${minFee}.`);
 		}
@@ -123,7 +125,7 @@ export class FeeModule extends BaseInteroperableModule {
 	}
 
 	public async beforeCommandExecute(context: TransactionExecuteContext): Promise<void> {
-		const { transaction } = context;
+		const { transaction, header } = context;
 		const methodContext = context.getMethodContext();
 		// The Token module beforeCrossChainCommandExecute needs to be called first
 		// to ensure that the relayer has enough funds
@@ -134,7 +136,7 @@ export class FeeModule extends BaseInteroperableModule {
 			this._tokenID,
 			transaction.fee,
 		);
-		const minFee = BigInt(this._minFeePerByte * context.transaction.getBytes().length);
+		const minFee = this._getMinFee(header.height, transaction.getBytes().length);
 
 		context.contextStore.set(CONTEXT_STORE_KEY_AVAILABLE_FEE, transaction.fee - minFee);
 	}
@@ -148,35 +150,56 @@ export class FeeModule extends BaseInteroperableModule {
 			this._tokenID,
 			transaction.fee,
 		);
-		const availableFee = getContextStoreBigInt(
-			context.contextStore,
-			CONTEXT_STORE_KEY_AVAILABLE_FEE,
+
+		let availableFee = getContextStoreBigInt(context.contextStore, CONTEXT_STORE_KEY_AVAILABLE_FEE);
+
+		const userSubstoreGeneratorExists = await this._tokenMethod.userAccountExists(
+			context,
+			header.generatorAddress,
+			this._tokenID,
 		);
-		const minFee = transaction.fee - availableFee;
-		if (this._feePoolAddress) {
+		if (userSubstoreGeneratorExists) {
 			await this._tokenMethod.transfer(
 				context.getMethodContext(),
 				transaction.senderAddress,
-				this._feePoolAddress,
+				header.generatorAddress,
 				this._tokenID,
-				minFee,
+				availableFee,
 			);
 		} else {
+			availableFee = BigInt(0);
+		}
+
+		let burnConsumedFee = true;
+		if (this._feePoolAddress) {
+			const userSubstoreFeePoolExists = await this._tokenMethod.userAccountExists(
+				context,
+				this._feePoolAddress,
+				this._tokenID,
+			);
+			if (userSubstoreFeePoolExists) {
+				burnConsumedFee = false;
+			}
+		}
+
+		const minFee = transaction.fee - availableFee;
+		if (burnConsumedFee) {
 			await this._tokenMethod.burn(
 				context.getMethodContext(),
 				transaction.senderAddress,
 				this._tokenID,
 				minFee,
 			);
+		} else {
+			await this._tokenMethod.transfer(
+				context.getMethodContext(),
+				transaction.senderAddress,
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+				this._feePoolAddress!,
+				this._tokenID,
+				minFee,
+			);
 		}
-
-		await this._tokenMethod.transfer(
-			context.getMethodContext(),
-			transaction.senderAddress,
-			header.generatorAddress,
-			this._tokenID,
-			availableFee,
-		);
 
 		this.events.get(GeneratorFeeProcessedEvent).log(context, {
 			burntAmount: transaction.fee - availableFee,
@@ -185,5 +208,12 @@ export class FeeModule extends BaseInteroperableModule {
 			senderAddress: transaction.senderAddress,
 		});
 		context.contextStore.delete(CONTEXT_STORE_KEY_AVAILABLE_FEE);
+	}
+
+	public _getMinFee(blockHeight: number, transactionByteLength: number): bigint {
+		if (blockHeight < this._maxBlockHeightZeroFeePerByte) {
+			return BigInt(0);
+		}
+		return BigInt(this._minFeePerByte) * BigInt(transactionByteLength);
 	}
 }

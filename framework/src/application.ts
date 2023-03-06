@@ -16,7 +16,6 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as psList from 'ps-list';
 import * as assert from 'assert';
-import * as childProcess from 'child_process';
 import { Block } from '@liskhq/lisk-chain';
 import { Database, StateDB } from '@liskhq/lisk-db';
 import { validator } from '@liskhq/lisk-validator';
@@ -47,8 +46,7 @@ import { RandomModule, RandomMethod } from './modules/random';
 import { PoSModule, PoSMethod } from './modules/pos';
 import { generateGenesisBlock, GenesisBlockGenerateInput } from './genesis_block';
 import { StateMachine } from './state_machine';
-import { ABIHandler, EVENT_ENGINE_READY } from './abi_handler/abi_handler';
-import { ABIServer } from './abi_handler/abi_server';
+import { ABIHandler } from './abi_handler/abi_handler';
 import {
 	SidechainInteroperabilityModule,
 	MainchainInteroperabilityModule,
@@ -56,6 +54,7 @@ import {
 	MainchainInteroperabilityMethod,
 } from './modules/interoperability';
 import { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_rewards';
+import { Engine } from './engine';
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -125,11 +124,10 @@ export class Application {
 	private readonly _registeredModules: BaseModule[] = [];
 	private readonly _stateMachine: StateMachine;
 
-	private _abiServer!: ABIServer;
 	private _stateDB!: StateDB;
 	private _moduleDB!: Database;
 	private _abiHandler!: ABIHandler;
-	private _engineProcess!: childProcess.ChildProcess;
+	private _engineProcess!: Engine;
 
 	private readonly _mutex = new jobHandlers.Mutex();
 
@@ -281,11 +279,7 @@ export class Application {
 		await this._validatePidFile();
 
 		// Initialize database instances
-		const {
-			data: dbFolder,
-			config,
-			sockets: socketsPath,
-		} = systemDirs(this.config.system.dataPath);
+		const { data: dbFolder } = systemDirs(this.config.system.dataPath);
 		this.logger.debug({ dbFolder }, 'Create module.db database instance.');
 		this._moduleDB = new Database(path.join(dbFolder, 'module.db'));
 		this.logger.debug({ dbFolder }, 'Create state.db database instance.');
@@ -312,38 +306,13 @@ export class Application {
 				chainID: Buffer.from(this.config.genesis.chainID, 'hex'),
 			});
 			await this._abiHandler.cacheGenesisState();
-			const abiSocketPath = `ipc://${path.join(socketsPath, 'abi.ipc')}`;
-
-			this._abiServer = new ABIServer(this.logger, abiSocketPath, this._abiHandler);
-			this._abiHandler.event.on(EVENT_ENGINE_READY, () => {
-				this._controller
-					.start()
-					.then(() => {
-						for (const method of this._controller.getEndpoints()) {
-							this.logger.info({ method }, `Registered endpoint`);
-						}
-						this.channel.publish(APP_EVENT_READY);
-					})
-					.catch(err => {
-						this.logger.error({ err: err as Error }, 'Fail to start controller');
-					});
-			});
-			await this._abiServer.start();
-			const program = path.resolve(__dirname, 'engine_igniter');
-			const engineConfigPath = path.join(config, 'engine_config.json');
-			fs.writeFileSync(engineConfigPath, JSON.stringify(this.config, undefined, '  '));
-			const parameters = [abiSocketPath, '--config', engineConfigPath];
-			this._engineProcess = childProcess.fork(program, parameters);
-			this._engineProcess.on('exit', (code, signal) => {
-				// If child process exited with error
-				if (code !== null && code !== undefined && code !== 0) {
-					this.logger.error({ code, signal: signal ?? '' }, 'Engine exited unexpectedly');
-				}
-				process.exit(code ?? 0);
-			});
-			this._engineProcess.on('error', error => {
-				this.logger.error({ err: error }, `Engine signaled error.`);
-			});
+			this._engineProcess = new Engine(this._abiHandler, this.config);
+			await this._engineProcess.start();
+			await this._controller.start();
+			for (const method of this._controller.getEndpoints()) {
+				this.logger.info({ method }, `Registered endpoint`);
+			}
+			this.channel.publish(APP_EVENT_READY);
 		});
 	}
 
@@ -354,7 +323,7 @@ export class Application {
 
 		try {
 			this.channel.publish(APP_EVENT_SHUTDOWN);
-			this._stopEngine();
+			await this._stopEngine();
 			await this._controller.stop(errorCode, message);
 			this._stateDB.close();
 			this._moduleDB.close();
@@ -456,8 +425,7 @@ export class Application {
 
 	// engine igniter is catching both signal once. Either SIGINT or SIGTERM is canceled once.
 	// it should kill with both catched termination signal because it cannot detect which signal was received
-	private _stopEngine() {
-		this._engineProcess?.kill('SIGINT');
-		this._engineProcess?.kill('SIGTERM');
+	private async _stopEngine() {
+		await this._engineProcess.stop();
 	}
 }

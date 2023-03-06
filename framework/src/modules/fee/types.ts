@@ -20,25 +20,26 @@ export type FeeTokenID = Buffer;
 export interface ModuleConfig {
 	feeTokenID: Buffer;
 	minFeePerByte: number;
+	maxBlockHeightZeroFeePerByte: number;
 	feePoolAddress?: Buffer;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
 
 export interface TokenMethod {
-	transfer: (
+	transfer(
 		methodContext: MethodContext,
 		senderAddress: Buffer,
 		generatorAddress: Buffer,
 		id: Buffer,
 		amount: bigint,
-	) => Promise<void>;
-	burn: (
+	): Promise<void>;
+	burn(
 		methodContext: MethodContext,
 		senderAddress: Buffer,
 		id: FeeTokenID,
 		amount: bigint,
-	) => Promise<void>;
+	): Promise<void>;
 	getAvailableBalance(
 		methodContext: ImmutableMethodContext,
 		address: Buffer,
@@ -58,6 +59,11 @@ export interface TokenMethod {
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void>;
+	userAccountExists(
+		methodContext: ImmutableMethodContext,
+		address: Buffer,
+		tokenID: Buffer,
+	): Promise<boolean>;
 }
 
 export interface GetFeeTokenIDResponse {

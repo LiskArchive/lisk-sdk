@@ -373,7 +373,7 @@ export const messageRecoveryInitializationParamsSchema = {
 export const registrationCCMParamsSchema = {
 	$id: '/modules/interoperability/ccCommand/registration',
 	type: 'object',
-	required: ['name', 'chainID', 'messageFeeTokenID'],
+	required: ['name', 'chainID', 'messageFeeTokenID', 'minReturnFeePerByte'],
 	properties: {
 		name: {
 			dataType: 'string',
@@ -392,6 +392,10 @@ export const registrationCCMParamsSchema = {
 			minLength: TOKEN_ID_LENGTH,
 			maxLength: TOKEN_ID_LENGTH,
 			fieldNumber: 3,
+		},
+		minReturnFeePerByte: {
+			dataType: 'uint64',
+			fieldNumber: 4,
 		},
 	},
 };
@@ -794,6 +798,17 @@ export const getRegistrationFeeSchema = {
 	required: ['registrationFee'],
 	properties: {
 		registrationFee: {
+			type: 'string',
+		},
+	},
+};
+
+export const getMinimumMessageFeeResponseSchema = {
+	$id: '/modules/interoperability/mainchain/minimumMessageFeeResponse',
+	type: 'object',
+	required: ['fee'],
+	properties: {
+		fee: {
 			type: 'string',
 		},
 	},

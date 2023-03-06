@@ -11,6 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import { when } from 'jest-when';
 import { RewardModule } from '../../../../src/modules/reward';
 import { createBlockContext, createBlockHeaderWithDefaults } from '../../../../src/testing';
 import {
@@ -37,15 +39,19 @@ describe('RewardModule', () => {
 	};
 
 	let rewardModule: RewardModule;
+	let tokenMethod: any;
 	let mint: any;
 	beforeEach(async () => {
 		mint = jest.fn();
 		rewardModule = new RewardModule();
 		await rewardModule.init({ genesisConfig, moduleConfig });
-		rewardModule.addDependencies(
-			{ mint } as any,
-			{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
-		);
+		tokenMethod = {
+			mint,
+			userAccountExists: jest.fn(),
+		} as any;
+		rewardModule.addDependencies(tokenMethod, {
+			isSeedRevealValid: jest.fn().mockReturnValue(true),
+		} as any);
 	});
 
 	describe('init', () => {
@@ -97,6 +103,14 @@ describe('RewardModule', () => {
 
 		beforeEach(() => {
 			jest.spyOn(rewardModule.events.get(RewardMintedEvent), 'log');
+			jest.spyOn(tokenMethod, 'userAccountExists');
+			when(tokenMethod.userAccountExists)
+				.calledWith(
+					expect.anything(),
+					blockAfterExecuteContext.header.generatorAddress,
+					rewardModule['_moduleConfig'].tokenID,
+				)
+				.mockResolvedValue(true as never);
 		});
 
 		it(`should call mint for a valid bracket`, async () => {

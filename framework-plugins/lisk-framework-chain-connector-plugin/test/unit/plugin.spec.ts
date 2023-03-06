@@ -955,6 +955,7 @@ describe('ChainConnectorPlugin', () => {
 				},
 				partnerChainOutboxRoot: cryptography.utils.getRandomBytes(HASH_LENGTH).toString('hex'),
 				messageFeeTokenID: '04000010',
+				minReturnFeePerByte: '1000',
 			};
 			// Save all data to the chainConnectorStore
 			await chainConnectorPlugin.init({

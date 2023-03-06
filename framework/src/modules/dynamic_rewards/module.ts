@@ -25,6 +25,7 @@ import {
 	REWARD_NO_REDUCTION,
 	REWARD_REDUCTION_FACTOR_BFT,
 	REWARD_REDUCTION_MAX_PREVOTES,
+	REWARD_REDUCTION_NO_ACCOUNT,
 	REWARD_REDUCTION_SEED_REVEAL,
 } from '../reward/constants';
 import {
@@ -153,7 +154,7 @@ export class DynamicRewardModule extends BaseModule {
 			context.contextStore,
 			CONTEXT_STORE_KEY_BLOCK_REWARD,
 		);
-		const [blockReward, reduction] = await this._getBlockRewardDeduction(
+		let [blockReward, reduction] = await this._getBlockRewardDeduction(
 			context.getMethodContext(),
 			context.header,
 			context.assets,
@@ -161,18 +162,28 @@ export class DynamicRewardModule extends BaseModule {
 		);
 
 		if (blockReward !== BigInt(0)) {
-			await this._tokenMethod.mint(
-				context.getMethodContext(),
+			const userSubstoreExists = await this._tokenMethod.userAccountExists(
+				context,
 				context.header.generatorAddress,
 				this._moduleConfig.tokenID,
-				blockReward,
 			);
-			await this._posMethod.updateSharedRewards(
-				context.getMethodContext(),
-				context.header.generatorAddress,
-				this._moduleConfig.tokenID,
-				blockReward,
-			);
+			if (userSubstoreExists) {
+				await this._tokenMethod.mint(
+					context.getMethodContext(),
+					context.header.generatorAddress,
+					this._moduleConfig.tokenID,
+					blockReward,
+				);
+				await this._posMethod.updateSharedRewards(
+					context.getMethodContext(),
+					context.header.generatorAddress,
+					this._moduleConfig.tokenID,
+					blockReward,
+				);
+			} else {
+				blockReward = BigInt(0);
+				reduction = REWARD_REDUCTION_NO_ACCOUNT;
+			}
 		}
 
 		const isEndOfRound = await this._posMethod.isEndOfRound(
