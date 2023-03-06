@@ -13,17 +13,23 @@
  */
 
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
-import { CCMStatusCode, CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED } from '../../constants';
+import {
+	CCMStatusCode,
+	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+	EMPTY_HASH,
+} from '../../constants';
 import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
 import { CCCommandExecuteContext, ImmutableCrossChainMessageContext } from '../../types';
 import { getMainchainID } from '../../utils';
 import { SidechainInteroperabilityInternalMethod } from '../internal_method';
+import { TerminatedStateStore } from '../../stores/terminated_state';
 
 interface CCMSidechainTerminatedParams {
 	chainID: Buffer;
 	stateRoot: Buffer;
 }
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#sidechain-terminated-message-1
 export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityCCCommand<SidechainInteroperabilityInternalMethod> {
 	public schema = sidechainTerminatedCCMParamsSchema;
 
@@ -44,14 +50,29 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 	public async execute(
 		context: CCCommandExecuteContext<CCMSidechainTerminatedParams>,
 	): Promise<void> {
-		const isLive = await this.internalMethods.isLive(context, context.params.chainID);
-		if (!isLive) {
-			return;
-		}
-		await this.internalMethods.createTerminatedStateAccount(
+		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
+		const terminatedStateAccountExists = await terminatedStateSubstore.has(
 			context,
-			context.params.chainID,
-			context.params.stateRoot,
+			context.chainID,
 		);
+
+		if (terminatedStateAccountExists) {
+			const terminatedStateAccount = await terminatedStateSubstore.get(context, context.chainID);
+			if (terminatedStateAccount.initialized) {
+				return;
+			}
+
+			await terminatedStateSubstore.set(context, context.chainID, {
+				stateRoot: context.params.stateRoot,
+				mainchainStateRoot: EMPTY_HASH,
+				initialized: true,
+			});
+		} else {
+			await this.internalMethods.createTerminatedStateAccount(
+				context,
+				context.params.chainID,
+				context.params.stateRoot,
+			);
+		}
 	}
 }
