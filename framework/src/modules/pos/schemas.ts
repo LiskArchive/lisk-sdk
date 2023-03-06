@@ -503,7 +503,7 @@ export const getStakerRequestSchema = getValidatorRequestSchema;
 export const getStakerResponseSchema = {
 	$id: 'modules/pos/endpoint/getStakerResponse',
 	type: 'object',
-	required: ['sentStakes', 'pendingUnlocks'],
+	required: ['stakes', 'pendingUnlocks'],
 	properties: {
 		sentStakes: {
 			type: 'array',
