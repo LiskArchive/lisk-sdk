@@ -29,6 +29,8 @@ import {
 	getChainValidatorsResponseSchema,
 	isChainIDAvailableRequestSchema,
 	getMinimumMessageFeeResponseSchema,
+	isChainNameAvailableRequestSchema,
+	isChainNameAvailableResponseSchema,
 } from '../schemas';
 import { chainDataSchema, allChainAccountsSchema } from '../stores/chain_account';
 import { channelSchema } from '../stores/channel_data';
@@ -210,6 +212,11 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 					name: this.endpoint.isChainIDAvailable.name,
 					request: isChainIDAvailableRequestSchema,
 					response: isChainIDAvailableResponseSchema,
+				},
+				{
+					name: this.endpoint.isChainNameAvailable.name,
+					request: isChainNameAvailableRequestSchema,
+					response: isChainNameAvailableResponseSchema,
 				},
 			],
 			assets: [
