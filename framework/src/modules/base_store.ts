@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { emptySchema } from '@liskhq/lisk-codec';
 import { Schema } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { IterateOptions } from '@liskhq/lisk-db';
@@ -52,7 +53,7 @@ export abstract class BaseStore<T> {
 	private readonly _storePrefix: Buffer;
 	private readonly _subStorePrefix: Buffer;
 
-	public abstract schema: Schema;
+	public schema: Schema = emptySchema;
 
 	public get storePrefix(): Buffer {
 		return this._storePrefix;
