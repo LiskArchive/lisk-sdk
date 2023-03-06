@@ -213,7 +213,7 @@ export class Endpoint {
 		const finalizedHeight = this._consensus.finalizedHeight();
 		// if there hasn't been a finalized block after genesis block yet, then heightOneMonthAgo could be
 		// higher than the current finalizedHeight, resulting in negative safe status estimate
-		if (!(finalizedHeight > this._genesisBlockHeight)) {
+		if (finalizedHeight === this._genesisBlockHeight) {
 			throw new Error('At least one block after the genesis block must be finalized.');
 		}
 
