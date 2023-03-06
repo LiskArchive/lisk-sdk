@@ -88,7 +88,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 			);
 		});
 
-		it('should return false is name is not available in the store', async () => {
+		it('should return false if name exists in the store', async () => {
 			// Arrange
 			jest.spyOn(registeredNamesStore, 'has').mockResolvedValue(true);
 			const context = createTransientModuleEndpointContext({
@@ -103,7 +103,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 			});
 		});
 
-		it('should return true if name is available in the store', async () => {
+		it('should return true if name does not exist in the store', async () => {
 			// Arrange
 			jest.spyOn(registeredNamesStore, 'has').mockResolvedValue(false);
 			const context = createTransientModuleEndpointContext({
