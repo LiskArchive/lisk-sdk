@@ -337,6 +337,9 @@ export const getParamsFromPrompt = async (
 ): Promise<NestedAsset | Record<string, unknown>> => {
 	// prepare array of questions based on asset schema
 	const questions = prepareQuestions(assetSchema);
+	if (questions.length === 0) {
+		return {};
+	}
 	let isTypeConfirm = false;
 	// Prompt user with prepared questions
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

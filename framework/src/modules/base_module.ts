@@ -43,11 +43,11 @@ export interface ModuleMetadata {
 	}[];
 	events: {
 		name: string;
-		data?: Schema;
+		data: Schema;
 	}[];
 	commands: {
 		name: string;
-		params?: Schema;
+		params: Schema;
 	}[];
 	assets: {
 		version: number;
