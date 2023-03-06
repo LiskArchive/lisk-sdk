@@ -21,7 +21,7 @@ import { objects } from '@liskhq/lisk-utils';
 import {
 	EMPTY_BYTES,
 	EMPTY_FEE_ADDRESS,
-	CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
+	CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
 	MODULE_NAME_INTEROPERABILITY,
 	EMPTY_HASH,
 	MAX_NUM_VALIDATORS,
@@ -243,7 +243,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			context,
 			EMPTY_FEE_ADDRESS,
 			MODULE_NAME_INTEROPERABILITY,
-			CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
+			CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
 			chainID,
 			BigInt(0),
 			CCM_STATUS_OK,
@@ -624,14 +624,16 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			}
 			return;
 		}
+		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
+
 		const outboxRootStore = this.stores.get(OutboxRootStore);
-		const outboxKey = Buffer.concat([outboxRootStore.key, utils.hash(params.sendingChainID)]);
+		const outboxKey = Buffer.concat([outboxRootStore.key, utils.hash(ownChainAccount.chainID)]);
 		const proof = {
 			siblingHashes: outboxRootWitness.siblingHashes,
 			queries: [
 				{
 					key: outboxKey,
-					value: codec.encode(outboxRootSchema, { root: newInboxRoot }),
+					value: utils.hash(codec.encode(outboxRootSchema, { root: newInboxRoot })),
 					bitmap: outboxRootWitness.bitmap,
 				},
 			],

@@ -200,6 +200,7 @@ describe('ChainConnectorPlugin', () => {
 			password: defaultPassword,
 			maxCCUSize: CCU_TOTAL_CCM_SIZE,
 			isSaveCCU: false,
+			registrationHeight: 1,
 		};
 
 		sendingChainAPIClientMock = getApiClientMock() as any;
