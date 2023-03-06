@@ -29,9 +29,6 @@ import {
 import { chainDataSchema } from './stores/chain_account';
 import { chainValidatorsSchema } from './stores/chain_validators';
 import { channelSchema } from './stores/channel_data';
-import { outboxRootSchema } from './stores/outbox_root';
-import { ownChainAccountSchema } from './stores/own_chain_account';
-import { registeredNamesSchema } from './stores/registered_names';
 import { terminatedOutboxSchema } from './stores/terminated_outbox';
 import { terminatedStateSchema } from './stores/terminated_state';
 
@@ -93,6 +90,28 @@ export const ccmSchema = {
 	},
 };
 
+const chainValidators = {
+	type: 'array',
+	items: {
+		type: 'object',
+		required: ['blsKey', 'bftWeight'],
+		properties: {
+			blsKey: {
+				dataType: 'bytes',
+				fieldNumber: 1,
+				minLength: BLS_PUBLIC_KEY_LENGTH,
+				maxLength: BLS_PUBLIC_KEY_LENGTH,
+			},
+			bftWeight: {
+				dataType: 'uint64',
+				fieldNumber: 2,
+			},
+		},
+	},
+	minItems: 1,
+	maxItems: MAX_NUM_VALIDATORS,
+};
+
 export const sidechainRegParams = {
 	$id: '/modules/interoperability/mainchain/sidechainRegistration',
 	type: 'object',
@@ -111,26 +130,8 @@ export const sidechainRegParams = {
 			maxLength: MAX_CHAIN_NAME_LENGTH,
 		},
 		sidechainValidators: {
-			type: 'array',
+			...chainValidators,
 			fieldNumber: 3,
-			items: {
-				type: 'object',
-				required: ['blsKey', 'bftWeight'],
-				properties: {
-					blsKey: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-						minLength: BLS_PUBLIC_KEY_LENGTH,
-						maxLength: BLS_PUBLIC_KEY_LENGTH,
-					},
-					bftWeight: {
-						dataType: 'uint64',
-						fieldNumber: 2,
-					},
-				},
-			},
-			minItems: 1,
-			maxItems: MAX_NUM_VALIDATORS,
 		},
 		sidechainCertificateThreshold: {
 			dataType: 'uint64',
@@ -652,155 +653,87 @@ export const genesisInteroperabilitySchema = {
 	$id: '/interoperability/module/genesis',
 	type: 'object',
 	required: [
-		'outboxRootSubstore',
-		'chainDataSubstore',
-		'channelDataSubstore',
-		'chainValidatorsSubstore',
-		'ownChainDataSubstore',
-		'terminatedStateSubstore',
-		'terminatedOutboxSubstore',
-		'registeredNamesSubstore',
+		'ownChainName',
+		'ownChainNonce',
+		'chainInfos',
+		'terminatedStateAccounts',
+		'terminatedOutboxAccounts',
 	],
 	properties: {
-		outboxRootSubstore: {
-			type: 'array',
+		ownChainName: {
+			dataType: 'string',
+			maxLength: MAX_CHAIN_NAME_LENGTH,
 			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['storeKey', 'storeValue'],
-				properties: {
-					storeKey: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-					storeValue: {
-						...outboxRootSchema,
-						fieldNumber: 2,
-					},
-				},
-			},
 		},
-		chainDataSubstore: {
-			type: 'array',
+		ownChainNonce: {
+			dataType: 'uint64',
 			fieldNumber: 2,
-			items: {
-				type: 'object',
-				required: ['storeKey', 'storeValue'],
-				properties: {
-					storeKey: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-					storeValue: {
-						...chainDataSchema,
-						fieldNumber: 2,
-					},
-				},
-			},
 		},
-		channelDataSubstore: {
+
+		chainInfos: {
 			type: 'array',
 			fieldNumber: 3,
 			items: {
 				type: 'object',
-				required: ['storeKey', 'storeValue'],
+				required: ['chainID', 'chainData', 'channelData', 'chainValidators'],
 				properties: {
-					storeKey: {
+					chainID: {
 						dataType: 'bytes',
+						minLength: CHAIN_ID_LENGTH,
+						maxLength: CHAIN_ID_LENGTH,
 						fieldNumber: 1,
 					},
-					storeValue: {
-						...channelSchema,
+					chainData: {
+						...chainDataSchema,
 						fieldNumber: 2,
+					},
+
+					channelData: {
+						...channelSchema,
+						fieldNumber: 3,
+					},
+					chainValidators: {
+						...chainValidatorsSchema,
+						fieldNumber: 4,
 					},
 				},
 			},
 		},
-		chainValidatorsSubstore: {
+		terminatedStateAccounts: {
 			type: 'array',
 			fieldNumber: 4,
 			items: {
 				type: 'object',
-				required: ['storeKey', 'storeValue'],
+				required: ['chainID', 'terminatedStateAccount'],
 				properties: {
-					storeKey: {
+					chainID: {
 						dataType: 'bytes',
+						minLength: CHAIN_ID_LENGTH,
+						maxLength: CHAIN_ID_LENGTH,
 						fieldNumber: 1,
 					},
-					storeValue: {
-						fieldNumber: 2,
-						...chainValidatorsSchema,
-					},
-				},
-			},
-		},
-		ownChainDataSubstore: {
-			type: 'array',
-			fieldNumber: 5,
-			items: {
-				type: 'object',
-				required: ['storeKey', 'storeValue'],
-				properties: {
-					storeKey: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-					storeValue: {
-						...ownChainAccountSchema,
-						fieldNumber: 2,
-					},
-				},
-			},
-		},
-		terminatedStateSubstore: {
-			type: 'array',
-			fieldNumber: 6,
-			items: {
-				type: 'object',
-				required: ['storeKey', 'storeValue'],
-				properties: {
-					storeKey: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-					storeValue: {
+					terminatedStateAccount: {
 						...terminatedStateSchema,
 						fieldNumber: 2,
 					},
 				},
 			},
 		},
-		terminatedOutboxSubstore: {
+		terminatedOutboxAccounts: {
 			type: 'array',
-			fieldNumber: 7,
+			fieldNumber: 5,
 			items: {
 				type: 'object',
-				required: ['storeKey', 'storeValue'],
+				required: ['chainID', 'terminatedOutboxAccount'],
 				properties: {
-					storeKey: {
+					chainID: {
 						dataType: 'bytes',
+						minLength: CHAIN_ID_LENGTH,
+						maxLength: CHAIN_ID_LENGTH,
 						fieldNumber: 1,
 					},
-					storeValue: {
+					terminatedOutboxAccount: {
 						...terminatedOutboxSchema,
-						fieldNumber: 2,
-					},
-				},
-			},
-		},
-		registeredNamesSubstore: {
-			type: 'array',
-			fieldNumber: 8,
-			items: {
-				type: 'object',
-				required: ['storeKey', 'storeValue'],
-				properties: {
-					storeKey: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-					storeValue: {
-						...registeredNamesSchema,
 						fieldNumber: 2,
 					},
 				},
