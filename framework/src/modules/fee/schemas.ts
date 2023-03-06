@@ -24,6 +24,10 @@ export const configSchema = {
 			type: 'integer',
 			format: 'uint32',
 		},
+		maxBlockHeightZeroFeePerByte: {
+			type: 'integer',
+			format: 'uint32',
+		},
 		feePoolAddress: {
 			type: 'string',
 			format: 'lisk32',

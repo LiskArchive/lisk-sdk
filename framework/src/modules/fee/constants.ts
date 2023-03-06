@@ -14,6 +14,7 @@
 
 export const defaultConfig = {
 	minFeePerByte: 1000,
+	maxBlockHeightZeroFeePerByte: 0,
 };
 
 export const CONTEXT_STORE_KEY_AVAILABLE_FEE = 'CONTEXT_STORE_KEY_AVAILABLE_FEE';

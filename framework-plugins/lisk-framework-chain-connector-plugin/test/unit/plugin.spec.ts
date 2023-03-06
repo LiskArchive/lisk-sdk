@@ -200,6 +200,7 @@ describe('ChainConnectorPlugin', () => {
 			password: defaultPassword,
 			maxCCUSize: CCU_TOTAL_CCM_SIZE,
 			isSaveCCU: false,
+			registrationHeight: 1,
 		};
 
 		sendingChainAPIClientMock = getApiClientMock() as any;
@@ -1128,22 +1129,25 @@ describe('ChainConnectorPlugin', () => {
 			});
 
 			it('should throw error when no validators data is found for the new certificate height', async () => {
-				const blockHeaderAtCertificateHeight15 = testing
-					.createFakeBlockHeader({ height: 15 })
-					.toObject();
 				const newCertificate = {
 					aggregationBits: Buffer.alloc(1),
-					blockID: blockHeaderAtCertificateHeight15.id,
-					height: blockHeaderAtCertificateHeight15.height,
+					blockID: blockHeaderAtCertificateHeight.id as Buffer,
+					height: blockHeaderAtCertificateHeight.height,
 					signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
 					stateRoot: cryptography.utils.getRandomBytes(HASH_LENGTH),
-					timestamp: blockHeaderAtCertificateHeight15.timestamp,
-					validatorsHash: blockHeaderAtCertificateHeight15.validatorsHash,
+					timestamp: blockHeaderAtCertificateHeight.timestamp,
+					validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH),
 				};
+
 				jest
 					.spyOn(certificateGenerationUtil, 'getNextCertificateFromAggregateCommits')
 					.mockReturnValue(newCertificate);
-
+				chainConnectorPlugin['_lastCertificate'] = {
+					height: 4,
+					stateRoot: Buffer.alloc(1),
+					timestamp: Date.now(),
+					validatorsHash: blockHeaderAtCertificateHeight.validatorsHash,
+				};
 				await expect(
 					chainConnectorPlugin['_computeCCUParams'](
 						sampleBlockHeaders,
@@ -1151,7 +1155,7 @@ describe('ChainConnectorPlugin', () => {
 						sampleValidatorsHashPreimage,
 						sampleCCMsWithEvents,
 					),
-				).rejects.toThrow('No validators data found for the certificate height');
+				).rejects.toThrow('No validators data found for the certificate height.');
 			});
 
 			it('should return empty activeValidatorsUpdate when (lastCertificate.validatorsHash === newCertificate.validatorsHash)', async () => {

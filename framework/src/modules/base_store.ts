@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { emptySchema } from '@liskhq/lisk-codec';
 import { Schema } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { IterateOptions } from '@liskhq/lisk-db';
@@ -52,7 +53,7 @@ export abstract class BaseStore<T> {
 	private readonly _storePrefix: Buffer;
 	private readonly _subStorePrefix: Buffer;
 
-	public abstract schema: Schema;
+	public schema: Schema = emptySchema;
 
 	public get storePrefix(): Buffer {
 		return this._storePrefix;
@@ -63,7 +64,7 @@ export abstract class BaseStore<T> {
 	}
 
 	public get key(): Buffer {
-		return Buffer.concat([this._storePrefix, this._subStorePrefix]);
+		return Buffer.concat([this.storePrefix, this.subStorePrefix]);
 	}
 
 	public get name(): string {
@@ -80,7 +81,7 @@ export abstract class BaseStore<T> {
 		if (!this.schema) {
 			throw new Error('Schema is not set');
 		}
-		const subStore = ctx.getStore(this._storePrefix, this._subStorePrefix);
+		const subStore = ctx.getStore(this.storePrefix, this.subStorePrefix);
 		return subStore.getWithSchema<T>(key, this.schema);
 	}
 
@@ -88,7 +89,7 @@ export abstract class BaseStore<T> {
 		if (!this.schema) {
 			throw new Error('Schema is not set');
 		}
-		const subStore = ctx.getStore(this._storePrefix, this._subStorePrefix);
+		const subStore = ctx.getStore(this.storePrefix, this.subStorePrefix);
 		return subStore.has(key);
 	}
 
@@ -99,7 +100,7 @@ export abstract class BaseStore<T> {
 		if (!this.schema) {
 			throw new Error('Schema is not set');
 		}
-		const subStore = ctx.getStore(this._storePrefix, this._subStorePrefix);
+		const subStore = ctx.getStore(this.storePrefix, this.subStorePrefix);
 		return subStore.iterateWithSchema<T>(options, this.schema);
 	}
 
@@ -107,7 +108,7 @@ export abstract class BaseStore<T> {
 		if (!this.schema) {
 			throw new Error('Schema is not set');
 		}
-		const subStore = ctx.getStore(this._storePrefix, this._subStorePrefix);
+		const subStore = ctx.getStore(this.storePrefix, this.subStorePrefix);
 		return subStore.setWithSchema(key, value as Record<string, unknown>, this.schema);
 	}
 
@@ -115,7 +116,7 @@ export abstract class BaseStore<T> {
 		if (!this.schema) {
 			throw new Error('Schema is not set');
 		}
-		const subStore = ctx.getStore(this._storePrefix, this._subStorePrefix);
+		const subStore = ctx.getStore(this.storePrefix, this.subStorePrefix);
 		return subStore.del(key);
 	}
 }

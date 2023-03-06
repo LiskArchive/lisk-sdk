@@ -13,12 +13,12 @@
  */
 /* eslint-disable class-methods-use-this */
 
-import { Schema } from '@liskhq/lisk-codec';
+import { Schema, emptySchema } from '@liskhq/lisk-codec';
 import { CommandVerifyContext, CommandExecuteContext, VerificationResult } from '../state_machine';
 import { NamedRegistry } from './named_registry';
 
 export abstract class BaseCommand<T = unknown> {
-	public schema?: Schema;
+	public schema: Schema = emptySchema;
 
 	public get name(): string {
 		const name = this.constructor.name.replace('Command', '');
