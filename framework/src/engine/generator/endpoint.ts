@@ -163,7 +163,6 @@ export class Endpoint {
 			throw new Error('Failed to enable forging as the node is not synced to the network.');
 		}
 
-		// check
 		let lastGeneratedInfo: GeneratedInfo | undefined;
 		try {
 			lastGeneratedInfo = await getLastGeneratedInfo(
@@ -177,16 +176,8 @@ export class Endpoint {
 		if (lastGeneratedInfo && !isEqualGeneratedInfo(req, lastGeneratedInfo)) {
 			throw new Error('Request does not match last generated information.');
 		}
-		if (!lastGeneratedInfo) {
-			if (isZeroValueGeneratedInfo(req)) {
-				await setLastGeneratedInfo(
-					generatorStore,
-					cryptoAddress.getAddressFromLisk32Address(req.address),
-					req,
-				);
-			} else {
-				throw new Error('Last generated information does not exist.');
-			}
+		if (!lastGeneratedInfo && !isZeroValueGeneratedInfo(req)) {
+			throw new Error('Last generated information does not exist.');
 		}
 
 		// Enable validator to forge by adding keypairs corresponding to address
@@ -196,6 +187,15 @@ export class Endpoint {
 			privateKey: decryptedKeys.generatorPrivateKey,
 			publicKey: decryptedKeys.generatorKey,
 		});
+
+		if (!lastGeneratedInfo) {
+			await setLastGeneratedInfo(
+				generatorStore,
+				cryptoAddress.getAddressFromLisk32Address(req.address),
+				req,
+			);
+		}
+
 		ctx.logger.info(`Block generation enabled on address: ${req.address}`);
 
 		return {
