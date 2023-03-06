@@ -13,7 +13,7 @@
  */
 
 import { BaseInteroperabilityCCCommand } from '../base_interoperability_cc_commands';
-import { CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED } from '../constants';
+import { CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED } from '../constants';
 import { CCCommandExecuteContext } from '../types';
 import { BaseInteroperabilityInternalMethod } from '../base_interoperability_internal_methods';
 import { TerminatedStateStore } from '../stores/terminated_state';
@@ -23,13 +23,13 @@ export abstract class BaseCCChannelTerminatedCommand<
 	T extends BaseInteroperabilityInternalMethod,
 > extends BaseInteroperabilityCCCommand<T> {
 	public get name(): string {
-		return CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED;
+		return CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED;
 	}
 
 	public async execute(context: CCCommandExecuteContext<void>): Promise<void> {
 		if (!context.ccm) {
 			throw new Error(
-				`CCM to execute cross chain command '${CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED}' is missing.`,
+				`CCM to execute cross chain command '${CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED}' is missing.`,
 			);
 		}
 
