@@ -415,7 +415,7 @@ export class Consensus {
 						maxHeightPrevoted: block.header.maxHeightPrevoted,
 						maxHeightGenerated: block.header.maxHeightGenerated,
 					},
-					'Detected a fork',
+					'Discarding the block',
 				);
 				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
@@ -833,6 +833,7 @@ export class Consensus {
 			expectedStateRoot = secondLastBlockHeader.stateRoot as Buffer;
 		}
 		try {
+			this._logger.debug({ height: block.header.height }, 'Reverting the block');
 			const { contextID } = await this._abi.initStateMachine({
 				header: block.header.toObject(),
 			});
@@ -876,12 +877,17 @@ export class Consensus {
 			await this._synchronizer.run(block, peerID);
 		} catch (error) {
 			if (error instanceof ApplyPenaltyAndRestartError) {
+				this._logger.info(
+					{ error, reason: error.reason },
+					'Applying penalty and restarting synchronization',
+				);
 				this._network.applyPenaltyOnPeer({ peerId: peerID, penalty: 100 });
 				await this._sync(block, peerID);
 				return;
 			}
 
 			if (error instanceof RestartError) {
+				this._logger.info({ error, reason: error.reason }, 'Restarting synchronization');
 				await this._sync(block, peerID);
 				return;
 			}
