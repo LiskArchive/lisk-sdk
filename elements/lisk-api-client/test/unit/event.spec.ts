@@ -28,7 +28,8 @@ describe('event', () => {
 			connect: jest.fn(),
 			disconnect: jest.fn(),
 			invoke: jest.fn().mockResolvedValue(encodedEventsJSON),
-			subscribe: jest.fn().mockResolvedValue({ blockHeader: { BLOCK_HEIGHT } }),
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
+			subscribe: jest.fn((_, callback) => callback({ blockHeader: { BLOCK_HEIGHT } })),
 		};
 		event = new Event(channel, metadata);
 	});
@@ -57,6 +58,16 @@ describe('event', () => {
 			expect(decodedEvents).toHaveLength(1);
 			expect(decodedEvents[0].module).toBe('pos');
 			expect(decodedEvents[0].name).toBe('validatorStaked');
+		});
+	});
+
+	describe('subscribe', () => {
+		it('should subscribe to all events', async () => {
+			const decodedEvents = await event.get(BLOCK_HEIGHT);
+
+			event.subscribe(events => {
+				expect(events).toEqual(decodedEvents);
+			});
 		});
 	});
 });
