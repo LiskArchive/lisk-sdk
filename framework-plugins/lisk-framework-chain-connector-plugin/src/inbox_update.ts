@@ -56,7 +56,7 @@ export const calculateMessageWitnesses = (
 			if (ccm.nonce > lastSentCCMInfo.nonce) {
 				const ccmBytes = codec.encode(ccmSchema, ccm);
 				totalSize += ccmBytes.length;
-				if (totalSize <= maxCCUSize) {
+				if (totalSize < maxCCUSize) {
 					includedSerializedCCMs.push(ccmBytes);
 					lastCCMWithHeight = { ...ccm, height: ccmsFromEvents.height };
 				}

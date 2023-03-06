@@ -17,14 +17,21 @@ import { utils } from '@liskhq/lisk-cryptography';
 import {
 	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
+	EMPTY_HASH,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { SidechainCCSidechainTerminatedCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands';
 import { sidechainTerminatedCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { CrossChainMessageContext } from '../../../../../../src/modules/interoperability/types';
-import { createCrossChainMessageContext } from '../../../../../../src/testing';
+import {
+	createCrossChainMessageContext,
+	InMemoryPrefixedStateDB,
+} from '../../../../../../src/testing';
 import { SidechainInteroperabilityModule } from '../../../../../../src';
 import { SidechainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/sidechain/internal_method';
+import { TerminatedStateStore } from '../../../../../../src/modules/interoperability/stores/terminated_state';
+import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
+import { createStoreGetter } from '../../../../../../src/testing/utils';
 
 describe('SidechainCCSidechainTerminatedCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
@@ -52,15 +59,18 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 		params: encodedSidechainTerminatedParams,
 	};
 
+	const storedTerminatedState = {
+		stateRoot: utils.getRandomBytes(32),
+		mainchainStateRoot: utils.getRandomBytes(32),
+		initialized: true,
+	};
+
 	let ccSidechainTerminatedCommand: SidechainCCSidechainTerminatedCommand;
 	let context: CrossChainMessageContext;
+	let terminatedStateSubstore: TerminatedStateStore;
+	let stateStore: PrefixedStateReadWriter;
 
 	beforeEach(() => {
-		context = createCrossChainMessageContext({
-			ccm: { ...ccm },
-			chainID,
-		});
-
 		ccSidechainTerminatedCommand = new SidechainCCSidechainTerminatedCommand(
 			interopMod.stores,
 			interopMod.events,
@@ -68,10 +78,18 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 			new SidechainInteroperabilityInternalMethod(interopMod.stores, interopMod.events, new Map()),
 		);
 
-		jest.spyOn(ccSidechainTerminatedCommand['internalMethods'], 'isLive');
 		jest
 			.spyOn(ccSidechainTerminatedCommand['internalMethods'], 'createTerminatedStateAccount')
 			.mockResolvedValue();
+
+		terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+
+		context = createCrossChainMessageContext({
+			ccm: { ...ccm },
+			chainID,
+			stateStore,
+		});
 	});
 
 	describe('verify', () => {
@@ -110,10 +128,12 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 	});
 
 	describe('execute', () => {
-		it('should not create terminatedStateAccount when chain is not live', async () => {
-			jest
-				.spyOn(ccSidechainTerminatedCommand['internalMethods'], 'isLive')
-				.mockResolvedValue(false);
+		it('should update terminatedStateAccount exists and initialized', async () => {
+			await terminatedStateSubstore.set(
+				createStoreGetter(stateStore),
+				chainID,
+				storedTerminatedState,
+			);
 
 			await expect(
 				ccSidechainTerminatedCommand.execute({
@@ -122,17 +142,19 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 				}),
 			).resolves.toBeUndefined();
 
-			expect(ccSidechainTerminatedCommand['internalMethods'].isLive).toHaveBeenCalledWith(
-				expect.anything(),
-				ccmSidechainTerminatedParams.chainID,
-			);
 			expect(
 				ccSidechainTerminatedCommand['internalMethods'].createTerminatedStateAccount,
-			).not.toHaveBeenCalled();
+			).toHaveBeenCalledTimes(0);
+			await expect(
+				terminatedStateSubstore.get(createStoreGetter(stateStore), chainID),
+			).resolves.toStrictEqual(storedTerminatedState);
 		});
 
-		it('should create terminatedStateAccount when chain is live', async () => {
-			jest.spyOn(ccSidechainTerminatedCommand['internalMethods'], 'isLive').mockResolvedValue(true);
+		it('should do nothing when terminatedStateAccount exists and not initialized', async () => {
+			await terminatedStateSubstore.set(createStoreGetter(stateStore), chainID, {
+				...storedTerminatedState,
+				initialized: false,
+			});
 
 			await expect(
 				ccSidechainTerminatedCommand.execute({
@@ -141,10 +163,26 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 				}),
 			).resolves.toBeUndefined();
 
-			expect(ccSidechainTerminatedCommand['internalMethods'].isLive).toHaveBeenCalledWith(
-				expect.anything(),
-				ccmSidechainTerminatedParams.chainID,
-			);
+			expect(
+				ccSidechainTerminatedCommand['internalMethods'].createTerminatedStateAccount,
+			).toHaveBeenCalledTimes(0);
+			await expect(
+				terminatedStateSubstore.get(createStoreGetter(stateStore), chainID),
+			).resolves.toStrictEqual({
+				stateRoot: ccmSidechainTerminatedParams.stateRoot,
+				mainchainStateRoot: EMPTY_HASH,
+				initialized: true,
+			});
+		});
+
+		it('should create terminatedStateAccount when terminatedStateAccount does not exist', async () => {
+			await expect(
+				ccSidechainTerminatedCommand.execute({
+					...context,
+					params: ccmSidechainTerminatedParams,
+				}),
+			).resolves.toBeUndefined();
+
 			expect(
 				ccSidechainTerminatedCommand['internalMethods'].createTerminatedStateAccount,
 			).toHaveBeenCalledWith(

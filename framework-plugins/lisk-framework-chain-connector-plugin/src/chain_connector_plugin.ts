@@ -53,6 +53,7 @@ import {
 	EMPTY_BYTES,
 	COMMAND_NAME_SUBMIT_MAINCHAIN_CCU,
 	CCU_TOTAL_CCM_SIZE,
+	DEFAULT_LAST_CCM_SENT_NONCE,
 } from './constants';
 import { ChainConnectorStore, getDBInstance } from './db';
 import { Endpoint } from './endpoint';
@@ -104,6 +105,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _ownChainID!: Buffer;
 	private _receivingChainID!: Buffer;
 	private _isReceivingChainMainchain!: boolean;
+	private _registrationHeight!: number;
 	private readonly _sentCCUs: SentCCUs = [];
 	private _privateKey!: Buffer;
 
@@ -120,6 +122,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 		this._maxCCUSize = this.config.maxCCUSize;
 		this._isSaveCCU = this.config.isSaveCCU;
+		this._registrationHeight = this.config.registrationHeight;
 		const { password, encryptedPrivateKey } = this.config;
 		if (password) {
 			const parsedEncryptedKey = encrypt.parseEncryptedMessage(encryptedPrivateKey);
@@ -228,10 +231,17 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				);
 
 				if (computedCCUParams) {
-					await this._submitCCU(codec.encode(ccuParamsSchema, computedCCUParams.ccuParams));
-					// If CCU was sent successfully then save the lastSentCCM if any
-					if (computedCCUParams.lastCCMToBeSent) {
-						await this._chainConnectorStore.setLastSentCCM(computedCCUParams.lastCCMToBeSent);
+					try {
+						await this._submitCCU(codec.encode(ccuParamsSchema, computedCCUParams.ccuParams));
+						// If CCU was sent successfully then save the lastSentCCM if any
+						if (computedCCUParams.lastCCMToBeSent) {
+							await this._chainConnectorStore.setLastSentCCM(computedCCUParams.lastCCMToBeSent);
+						}
+					} catch (error) {
+						this.logger.info(
+							`Error occured while submitting CCU for the blockHeader at height: ${newBlockHeader.height}`,
+						);
+						return;
 					}
 				} else {
 					this.logger.info(
@@ -281,7 +291,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		 * which will be zero in case if this is the first CCU after registration
 		 */
 		const lastSentCCM = (await this._chainConnectorStore.getLastSentCCM()) ?? {
-			nonce: BigInt(0),
+			nonce: DEFAULT_LAST_CCM_SENT_NONCE,
 			height: this._lastCertificate.height,
 		};
 
@@ -402,26 +412,26 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		blockHeaders: BlockHeader[],
 		validatorsHashPreimage: ValidatorsData[],
 	): Promise<Certificate | undefined> {
-		// Last blockheader that was added recently
-		const newBlockHeader = blockHeaders.slice(-1)[0];
-
-		if (
-			this._lastCertificate.height === 0 &&
-			newBlockHeader.aggregateCommit.certificateSignature.equals(EMPTY_BYTES)
-		) {
+		if (aggregateCommits.length === 0) {
 			return undefined;
 		}
-		// When we receive the first aggregateCommit in the chain we can create certificate directly
-		if (
-			this._lastCertificate.height === 0 &&
-			!newBlockHeader.aggregateCommit.certificateSignature.equals(EMPTY_BYTES)
-		) {
-			const firstCertificate = getCertificateFromAggregateCommit(
-				newBlockHeader.aggregateCommit,
-				blockHeaders,
-			);
 
-			return firstCertificate;
+		if (this._lastCertificate.height === 0) {
+			for (const aggregateCommit of aggregateCommits) {
+				if (
+					aggregateCommit.certificateSignature.equals(EMPTY_BYTES) ||
+					aggregateCommit.height < this._registrationHeight
+				) {
+					continue;
+				}
+
+				// When we receive the first aggregateCommit in the chain we can create certificate directly
+				const firstCertificate = getCertificateFromAggregateCommit(aggregateCommit, blockHeaders);
+
+				return firstCertificate;
+			}
+
+			return undefined;
 		}
 		const bftHeights = await this._sendingChainClient.invoke<BFTHeights>('consensus_getBFTHeights');
 		// Calculate certificate
