@@ -319,6 +319,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		}
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#mainchain
 	private _verifyChainInfos(
 		ctx: GenesisBlockExecuteContext,
 		chainInfos: ChainInfo[],
@@ -451,6 +452,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		}
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#mainchain
 	private _verifyTerminatedStateAccounts(
 		chainInfos: ChainInfo[],
 		terminatedStateAccounts: TerminatedStateAccountWithChainID[],
@@ -514,6 +516,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		}
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#mainchain
 	private _verifyTerminatedOutboxAccounts(
 		_chainInfos: ChainInfo[],
 		terminatedStateAccounts: TerminatedStateAccountWithChainID[],
