@@ -18,6 +18,7 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import * as apiClient from '@liskhq/lisk-api-client';
 import * as transactions from '@liskhq/lisk-transactions';
 
+import { emptySchema } from '@liskhq/lisk-codec';
 import * as appUtils from '../../../../src/utils/application';
 import * as readerUtils from '../../../../src/utils/reader';
 import { tokenTransferParamsSchema, posVoteParamsSchema } from '../../../helpers/transactions';
@@ -93,6 +94,7 @@ describe('transaction:create command', () => {
 						},
 						{
 							name: 'unlock',
+							params: emptySchema,
 						},
 					],
 				},
