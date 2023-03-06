@@ -44,6 +44,7 @@ import { SubmitSidechainCrossChainUpdateCommand } from './commands';
 import { InitializeStateRecoveryCommand } from './commands/initialize_state_recovery';
 import { RecoverStateCommand } from './commands/recover_state';
 import { SidechainCCChannelTerminatedCommand, SidechainCCRegistrationCommand } from './cc_commands';
+import { CcmSentFailedEvent } from '../events/ccm_send_fail';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod: BaseCCMethod = new SidechainCCMethod(this.stores, this.events);
@@ -125,6 +126,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			InvalidRegistrationSignatureEvent,
 			new InvalidRegistrationSignatureEvent(this.name),
 		);
+		this.events.register(CcmSentFailedEvent, new CcmSentFailedEvent(this.name));
 	}
 
 	public addDependencies(validatorsMethod: ValidatorsMethod, tokenMethod: TokenMethod) {

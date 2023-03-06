@@ -624,14 +624,16 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			}
 			return;
 		}
+		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
+
 		const outboxRootStore = this.stores.get(OutboxRootStore);
-		const outboxKey = Buffer.concat([outboxRootStore.key, utils.hash(params.sendingChainID)]);
+		const outboxKey = Buffer.concat([outboxRootStore.key, utils.hash(ownChainAccount.chainID)]);
 		const proof = {
 			siblingHashes: outboxRootWitness.siblingHashes,
 			queries: [
 				{
 					key: outboxKey,
-					value: codec.encode(outboxRootSchema, { root: newInboxRoot }),
+					value: utils.hash(codec.encode(outboxRootSchema, { root: newInboxRoot })),
 					bitmap: outboxRootWitness.bitmap,
 				},
 			],

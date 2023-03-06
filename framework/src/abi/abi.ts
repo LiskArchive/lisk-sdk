@@ -245,14 +245,29 @@ export interface Proof {
 	queries: QueryProof[];
 }
 
+export interface ProofJSON {
+	siblingHashes: string[];
+	queries: QueryProofJSON[];
+}
+
 export interface QueryProof {
 	key: Buffer;
 	value: Buffer;
 	bitmap: Buffer;
 }
 
+export interface QueryProofJSON {
+	key: string;
+	value: string;
+	bitmap: string;
+}
+
 export interface ProveResponse {
 	proof: Proof;
+}
+
+export interface ProveResponseJSON {
+	proof: ProofJSON;
 }
 
 export interface IPCRequest {
