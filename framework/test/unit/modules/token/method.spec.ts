@@ -470,6 +470,12 @@ describe('token module', () => {
 			).rejects.toThrow('is not native token');
 		});
 
+		it('should reject for own chain ID', async () => {
+			await expect(
+				method.initializeEscrowAccount(methodContext, method['_config'].ownChainID, defaultTokenID),
+			).rejects.toThrow('Can not initialize escrow account for own chain');
+		});
+
 		it('should reject if address does not have balance for inititialization fee', async () => {
 			(method['_internalMethod']['_feeMethod'].payFee as jest.Mock).mockImplementation(() => {
 				throw new Error('Insufficient fee');

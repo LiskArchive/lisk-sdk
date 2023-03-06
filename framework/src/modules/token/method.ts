@@ -310,6 +310,12 @@ export class TokenMethod extends BaseMethod {
 			throw new Error(`TokenID ${tokenID.toString('hex')} is not native token.`);
 		}
 
+		if (this._config.ownChainID.equals(chainID)) {
+			throw new Error(
+				`Can not initialize escrow account for own chain, ${chainID.toString('hex')}`,
+			);
+		}
+
 		const escrowStore = this.stores.get(EscrowStore);
 		const escrowAccountExist = await escrowStore.has(
 			methodContext,
