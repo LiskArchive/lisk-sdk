@@ -27,17 +27,15 @@ import { BFTHeader } from './types';
 export const areDistinctHeadersContradicting = (b1: BFTHeader, b2: BFTHeader): boolean => {
 	let earlierBlock = b1;
 	let laterBlock = b2;
-	const higherMaxHeightPreviouslyForged =
-		earlierBlock.maxHeightGenerated > laterBlock.maxHeightGenerated;
-	const sameMaxHeightPreviouslyForged =
-		earlierBlock.maxHeightGenerated === laterBlock.maxHeightGenerated;
+	const higherMaxHeightGenerated = earlierBlock.maxHeightGenerated > laterBlock.maxHeightGenerated;
+	const sameMaxHeightGenerated = earlierBlock.maxHeightGenerated === laterBlock.maxHeightGenerated;
 	const higherMaxHeightPrevoted = earlierBlock.maxHeightPrevoted > laterBlock.maxHeightPrevoted;
 	const sameMaxHeightPrevoted = earlierBlock.maxHeightPrevoted === laterBlock.maxHeightPrevoted;
 	const higherHeight = earlierBlock.height > laterBlock.height;
 	if (
-		higherMaxHeightPreviouslyForged ||
-		(sameMaxHeightPreviouslyForged && higherMaxHeightPrevoted) ||
-		(sameMaxHeightPreviouslyForged && sameMaxHeightPrevoted && higherHeight)
+		higherMaxHeightGenerated ||
+		(sameMaxHeightGenerated && higherMaxHeightPrevoted) ||
+		(sameMaxHeightGenerated && sameMaxHeightPrevoted && higherHeight)
 	) {
 		[earlierBlock, laterBlock] = [laterBlock, earlierBlock];
 	}
@@ -50,7 +48,7 @@ export const areDistinctHeadersContradicting = (b1: BFTHeader, b2: BFTHeader): b
 		earlierBlock.height >= laterBlock.height
 	) {
 		/* Violation of the fork choice rule as validator moved to different chain
-		 without strictly larger maxHeightPreviouslyForged or larger height as
+		 without strictly larger maxHeightGenerated or larger height as
 		 justification. This in particular happens, if a validator is double forging. */
 		return true;
 	}

@@ -64,6 +64,7 @@ interface EndpointArgs {
 
 interface EndpointInit {
 	generatorDB: Database;
+	genesisBlockHeight: number;
 }
 
 export class Endpoint {
@@ -75,6 +76,7 @@ export class Endpoint {
 	private readonly _blockTime: number;
 
 	private _generatorDB!: Database;
+	private _genesisBlockHeight!: number;
 
 	public constructor(args: EndpointArgs) {
 		this._keypairs = args.keypair;
@@ -86,6 +88,7 @@ export class Endpoint {
 
 	public init(args: EndpointInit) {
 		this._generatorDB = args.generatorDB;
+		this._genesisBlockHeight = args.genesisBlockHeight;
 	}
 
 	public async getStatus(_ctx: RequestContext): Promise<GetStatusResponse> {
@@ -208,6 +211,12 @@ export class Endpoint {
 
 		const req = ctx.params;
 		const finalizedHeight = this._consensus.finalizedHeight();
+		// if there hasn't been a finalized block after genesis block yet, then heightOneMonthAgo could be
+		// higher than the current finalizedHeight, resulting in negative safe status estimate
+		if (!(finalizedHeight > this._genesisBlockHeight)) {
+			throw new Error('At least one block after the genesis block must be finalized.');
+		}
+
 		const finalizedBlock = await this._chain.dataAccess.getBlockHeaderByHeight(finalizedHeight);
 		if (req.timeShutdown > finalizedBlock.timestamp) {
 			throw new Error(`A block at the time shutdown ${req.timeShutdown} must be finalized.`);
@@ -215,7 +224,12 @@ export class Endpoint {
 
 		// assume there are 30 days per month
 		const numberOfBlocksPerMonth = Math.ceil((60 * 60 * 24 * 30) / this._blockTime);
-		const heightOneMonthAgo = Math.max(finalizedHeight - numberOfBlocksPerMonth, 1);
+		// if the blockchain is less than a month old, default starting height to 1 block after genesis, to prevent error
+		// in missed blocks calculation below, due to the hardcoded timestamp of the genesis block in the example app
+		const heightOneMonthAgo = Math.max(
+			finalizedHeight - numberOfBlocksPerMonth,
+			this._genesisBlockHeight + 1,
+		);
 		const blockHeaderLastMonth = await this._chain.dataAccess.getBlockHeaderByHeight(
 			heightOneMonthAgo,
 		);
