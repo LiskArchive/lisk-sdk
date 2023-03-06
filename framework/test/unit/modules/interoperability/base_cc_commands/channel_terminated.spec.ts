@@ -16,7 +16,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { ChainStatus, MainchainInteroperabilityModule } from '../../../../../src';
 import {
 	CHAIN_ID_LENGTH,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	CROSS_CHAIN_COMMAND_REGISTRATION,
 	EMPTY_BYTES,
 	EMPTY_HASH,
 	MODULE_NAME_INTEROPERABILITY,
@@ -54,7 +54,7 @@ describe('BaseCCChannelTerminatedCommand', () => {
 	const ccm = {
 		nonce: BigInt(0),
 		module: MODULE_NAME_INTEROPERABILITY,
-		crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+		crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 		sendingChainID: utils.intToBuffer(2, 4),
 		receivingChainID: utils.intToBuffer(3, 4),
 		fee: BigInt(20000),
