@@ -20,7 +20,7 @@ import {
 	EMPTY_HASH,
 	MAX_UINT64,
 	MODULE_NAME_INTEROPERABILITY,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	CROSS_CHAIN_COMMAND_REGISTRATION,
 	EMPTY_BYTES,
 	CCMStatusCode,
 	CHAIN_REGISTRATION_FEE,
@@ -250,7 +250,7 @@ export class RegisterSidechainCommand extends BaseInteroperabilityCommand<Mainch
 		const ccm = {
 			nonce: ownChainAccount.nonce,
 			module: MODULE_NAME_INTEROPERABILITY,
-			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+			crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 			sendingChainID: ownChainAccount.chainID,
 			receivingChainID: chainID,
 			fee: BigInt(0),

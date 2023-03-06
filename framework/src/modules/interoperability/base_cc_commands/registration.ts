@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { CCMStatusCode, CROSS_CHAIN_COMMAND_NAME_REGISTRATION, EMPTY_BYTES } from '../constants';
+import { CCMStatusCode, CROSS_CHAIN_COMMAND_REGISTRATION, EMPTY_BYTES } from '../constants';
 import { registrationCCMParamsSchema } from '../schemas';
 import {
 	CCMRegistrationParams,
@@ -34,7 +34,7 @@ export abstract class BaseCCRegistrationCommand<
 	public schema = registrationCCMParamsSchema;
 
 	public get name(): string {
-		return CROSS_CHAIN_COMMAND_NAME_REGISTRATION;
+		return CROSS_CHAIN_COMMAND_REGISTRATION;
 	}
 
 	/**

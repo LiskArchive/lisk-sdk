@@ -51,12 +51,9 @@ export const MIN_RETURN_FEE_PER_BYTE_BEDDOWS = BigInt(1000);
 export const STORE_PREFIX = Buffer.from([0x83, 0xed, 0x0d, 0x25]);
 
 // Cross chain command names
-export const CROSS_CHAIN_COMMAND_NAME_REGISTRATION = 'registration';
-export const CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED = 'channelTerminated';
-export const CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED = 'sidechainTerminated';
-
-// Cross chain commands
+export const CROSS_CHAIN_COMMAND_REGISTRATION = 'registration';
 export const CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED = 'channelTerminated';
+export const CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED = 'sidechainTerminated';
 
 export const enum CCMStatusCode {
 	// Value of status of a new CCM which is not a response due do an error

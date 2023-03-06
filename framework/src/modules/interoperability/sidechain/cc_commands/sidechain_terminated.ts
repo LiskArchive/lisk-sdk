@@ -13,7 +13,7 @@
  */
 
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
-import { CCMStatusCode, CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED } from '../../constants';
+import { CCMStatusCode, CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED } from '../../constants';
 import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
 import { CCCommandExecuteContext, ImmutableCrossChainMessageContext } from '../../types';
 import { getMainchainID } from '../../utils';
@@ -28,7 +28,7 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 	public schema = sidechainTerminatedCCMParamsSchema;
 
 	public get name(): string {
-		return CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED;
+		return CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

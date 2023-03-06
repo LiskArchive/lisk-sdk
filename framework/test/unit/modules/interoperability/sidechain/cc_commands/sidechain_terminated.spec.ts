@@ -16,7 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import {
 	CCMStatusCode,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	CROSS_CHAIN_COMMAND_REGISTRATION,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { SidechainCCSidechainTerminatedCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands';
@@ -44,7 +44,7 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 	const ccm = {
 		nonce: BigInt(0),
 		module: MODULE_NAME_INTEROPERABILITY,
-		crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+		crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 		sendingChainID: Buffer.from([0, 0, 0, 0]),
 		receivingChainID: utils.intToBuffer(1, 4),
 		fee: BigInt(20000),
