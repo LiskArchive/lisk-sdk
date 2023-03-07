@@ -380,8 +380,8 @@ export interface GenesisInteroperability {
 	ownChainName: string;
 	ownChainNonce: bigint;
 	chainInfos: ChainInfo[];
-	/* terminatedStateAccounts: TerminatedStateAccountWithChainID[];
-	terminatedOutboxAccounts: TerminatedOutboxAccountWithChainID[]; */
+	terminatedStateAccounts: TerminatedStateAccountWithChainID[];
+	terminatedOutboxAccounts: TerminatedOutboxAccountWithChainID[];
 }
 
 export interface CCMRegistrationParams {
