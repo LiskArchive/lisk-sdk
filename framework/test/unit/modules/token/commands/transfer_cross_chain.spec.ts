@@ -383,6 +383,19 @@ describe('CCTransfer command', () => {
 				),
 			);
 		});
+
+		it('should fail when receivingChainID is own chainID', async () => {
+			const transactionContext = createTransactionContextWithOverridingParams({
+				receivingChainID: defaultOwnChainID,
+			});
+
+			expectSchemaValidationError(
+				await command.verify(
+					transactionContext.createCommandVerifyContext(crossChainTransferParamsSchema),
+				),
+				'Receiving chain cannot be the sending chain.',
+			);
+		});
 	});
 
 	describe('execute', () => {

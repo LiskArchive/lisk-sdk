@@ -71,6 +71,10 @@ export class TransferCrossChainCommand extends BaseCommand {
 
 			const [tokenChainID, _] = splitTokenID(params.tokenID);
 
+			if (params.receivingChainID.equals(context.chainID)) {
+				throw new Error('Receiving chain cannot be the sending chain.');
+			}
+
 			if (
 				![context.chainID, params.receivingChainID].some(allowedChainID =>
 					tokenChainID.equals(allowedChainID),
