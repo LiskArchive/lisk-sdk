@@ -550,6 +550,9 @@ export class TokenMethod extends BaseMethod {
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
+		if (amount === BigInt(0)) {
+			return;
+		}
 		const userStore = this.stores.get(UserStore);
 		const eventData = {
 			address,
