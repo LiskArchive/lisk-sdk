@@ -657,8 +657,8 @@ export const genesisInteroperabilitySchema = {
 		'ownChainName',
 		'ownChainNonce',
 		'chainInfos',
-		/* 'terminatedStateAccounts',
-		'terminatedOutboxAccounts', */
+		'terminatedStateAccounts',
+		'terminatedOutboxAccounts',
 	],
 	properties: {
 		ownChainName: {
