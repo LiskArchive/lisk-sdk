@@ -14,14 +14,14 @@
  */
 
 import { Channel } from '../../src/types';
-import { Event } from '../../src/event';
+import { EventMethods } from '../../src/event_methods';
 import { metadata } from '../utils/transaction';
 import * as encodedEventsJSON from '../fixtures/encoded_events.json';
 
 describe('event', () => {
 	const BLOCK_HEIGHT = encodedEventsJSON[0].height;
 	let channel: Channel;
-	let event: Event;
+	let event: EventMethods;
 
 	beforeEach(() => {
 		channel = {
@@ -31,7 +31,7 @@ describe('event', () => {
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
 			subscribe: jest.fn((_, callback) => callback({ blockHeader: { BLOCK_HEIGHT } })),
 		};
-		event = new Event(channel, metadata);
+		event = new EventMethods(channel, metadata);
 	});
 
 	describe('get', () => {

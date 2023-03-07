@@ -15,7 +15,7 @@
 import { decodeEventData } from './codec';
 import { Channel, ModuleMetadata, EventJSON, DecodedEventJSON, BlockHeaderJSON } from './types';
 
-export class Event {
+export class EventMethods {
 	private readonly _channel: Channel;
 	private readonly _metadata: ModuleMetadata[];
 
