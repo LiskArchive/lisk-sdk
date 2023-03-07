@@ -1005,6 +1005,4 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 			});
 		});
 	});
-
-	describe('On the sidechain', () => {});
 });
