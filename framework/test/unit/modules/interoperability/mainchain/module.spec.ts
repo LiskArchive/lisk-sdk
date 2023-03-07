@@ -256,7 +256,7 @@ describe('initGenesisState', () => {
 					params,
 				);
 				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					'chainID must be not equal to getMainchainID()[0].',
+					'chainID must be not equal to getMainchainID().',
 				);
 			});
 
