@@ -62,6 +62,10 @@ export const configSchema = {
 			description: 'Height at the time of registration on the receiving chain.',
 			minimum: 1,
 		},
+		receivingChainID: {
+			type: 'string',
+			description: 'Chain ID of the receiving chain.',
+		},
 	},
 	required: ['ccuFee', 'encryptedPrivateKey', 'password'],
 	default: {
