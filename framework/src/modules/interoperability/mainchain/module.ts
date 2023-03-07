@@ -330,7 +330,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 
 			// chainInfo.chainID != getMainchainID();
 			if (chainID.equals(mainchainID)) {
-				throw new Error(`chainID must be not equal to getMainchainID()[0].`);
+				throw new Error(`chainID must be not equal to getMainchainID().`);
 			}
 
 			// - chainInfo.chainId[0] == getMainchainID()[0].
