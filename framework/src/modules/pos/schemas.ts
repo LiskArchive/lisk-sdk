@@ -505,7 +505,7 @@ export const getStakerResponseSchema = {
 	type: 'object',
 	required: ['stakes', 'pendingUnlocks'],
 	properties: {
-		sentStakes: {
+		stakes: {
 			type: 'array',
 			fieldNumber: 1,
 			items: {
