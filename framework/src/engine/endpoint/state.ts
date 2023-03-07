@@ -14,7 +14,7 @@
 
 import { Chain } from '@liskhq/lisk-chain';
 import { validator } from '@liskhq/lisk-validator';
-import { ABI, ProveResponse } from '../../abi';
+import { ABI, ProveResponseJSON } from '../../abi';
 import { RequestContext } from '../rpc/rpc_server';
 
 interface EndpointArgs {
@@ -50,14 +50,25 @@ export class StateEndpoint {
 		this._chain = args.chain;
 	}
 
-	public async prove(ctx: RequestContext): Promise<ProveResponse> {
+	public async prove(ctx: RequestContext): Promise<ProveResponseJSON> {
 		validator.validate<StateProveRequest>(stateProveRequestSchema, ctx.params);
 		if (!this._chain.lastBlock.header.stateRoot) {
 			throw new Error('Last block header state root is empty.');
 		}
-		return this._abi.prove({
+		const { proof } = await this._abi.prove({
 			stateRoot: this._chain.lastBlock.header.stateRoot,
 			keys: ctx.params.queryKeys.map(key => Buffer.from(key, 'hex')),
 		});
+
+		return {
+			proof: {
+				queries: proof.queries.map(query => ({
+					bitmap: query.bitmap.toString('hex'),
+					key: query.key.toString('hex'),
+					value: query.value.toString('hex'),
+				})),
+				siblingHashes: proof.siblingHashes.map(s => s.toString('hex')),
+			},
+		};
 	}
 }

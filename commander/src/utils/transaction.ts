@@ -26,7 +26,7 @@ export const getParamsSchema = (
 	metadata: ModuleMetadataJSON[],
 	module: string,
 	command: string,
-): Schema | undefined => {
+): Schema => {
 	const moduleMeta = metadata.find(meta => meta.name === module);
 	if (!moduleMeta) {
 		throw new Error(`Module: ${module} is not registered.`);
@@ -48,7 +48,7 @@ export const decodeTransaction = (
 	const transaction = codec.decodeJSON<TransactionJSON>(schema.transaction, transactionBytes);
 	const paramsSchema = getParamsSchema(metadata, transaction.module, transaction.command);
 	const params = codec.decodeJSON<Record<string, unknown>>(
-		paramsSchema as Schema,
+		paramsSchema,
 		Buffer.from(transaction.params, 'hex'),
 	);
 	return {
@@ -72,7 +72,7 @@ export const encodeTransaction = (
 		transaction.module as string,
 		transaction.command as string,
 	);
-	const paramsBytes = codec.encode(paramsSchema as Schema, transaction.params as object);
+	const paramsBytes = codec.encode(paramsSchema, transaction.params as object);
 	const txBytes = codec.encode(schema.transaction, { ...transaction, params: paramsBytes });
 	return txBytes;
 };
@@ -91,7 +91,7 @@ export const encodeTransactionJSON = (
 		transaction.module as string,
 		transaction.command as string,
 	);
-	const paramsBytes = codec.encodeJSON(paramsSchema as Schema, transaction.params as object);
+	const paramsBytes = codec.encodeJSON(paramsSchema, transaction.params as object);
 	const txBytes = codec.encodeJSON(schema.transaction, {
 		...transaction,
 		params: paramsBytes.toString('hex'),
@@ -113,7 +113,7 @@ export const transactionToJSON = (
 		transaction.module as string,
 		transaction.command as string,
 	);
-	const paramsJSON = codec.toJSON(paramsSchema as Schema, transaction.params as object);
+	const paramsJSON = codec.toJSON(paramsSchema, transaction.params as object);
 	const { id, params, ...txWithoutParams } = transaction;
 	const txJSON = codec.toJSON(schema.transaction, txWithoutParams);
 	return {

@@ -26,8 +26,8 @@ import { BaseCrossChainUpdateCommand } from '../../../../src/modules/interoperab
 import { BaseCCMethod } from '../../../../src/modules/interoperability/base_cc_method';
 import {
 	CCMStatusCode,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+	CROSS_CHAIN_COMMAND_REGISTRATION,
+	CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 	HASH_LENGTH,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
@@ -119,7 +119,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		inboxUpdate: {
 			crossChainMessages: [
 				{
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 					fee: BigInt(0),
 					module: MODULE_NAME_INTEROPERABILITY,
 					nonce: BigInt(1),
@@ -129,7 +129,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: CCMStatusCode.OK,
 				},
 				{
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+					crossChainCommand: CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 					fee: BigInt(0),
 					module: MODULE_NAME_INTEROPERABILITY,
 					nonce: BigInt(1),
@@ -534,7 +534,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 		it('should terminate the chain and add an event when CCM sending chain and ccu sending chain is not the same', async () => {
 			const ccm = {
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 				fee: BigInt(0),
 				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(1),
@@ -585,7 +585,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		it('should terminate the chain and add an event when receiving chain is the same as sending chain', async () => {
 			const sendingChainID = chainID;
 			const ccm = {
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 				fee: BigInt(0),
 				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(1),
@@ -634,7 +634,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 		it('should terminate the chain and add an event when CCM is not directed to the sidechain', async () => {
 			const ccm = {
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 				fee: BigInt(0),
 				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(1),
@@ -680,7 +680,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 		it('should reject with terminate the chain and add an event when ccm status is CCMStatusCode.CHANNEL_UNAVAILABLE and mainchain is true', async () => {
 			const ccm = {
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 				fee: BigInt(0),
 				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(1),
@@ -739,7 +739,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 							...params.inboxUpdate,
 							crossChainMessages: [
 								codec.encode(ccmSchema, {
-									crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+									crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 									fee: BigInt(0),
 									module: MODULE_NAME_INTEROPERABILITY,
 									nonce: BigInt(1),

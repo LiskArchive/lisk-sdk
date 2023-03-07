@@ -39,8 +39,8 @@ import {
 } from '../../../../../../src/modules/interoperability/schemas';
 import {
 	CCMStatusCode,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+	CROSS_CHAIN_COMMAND_REGISTRATION,
+	CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
@@ -77,7 +77,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 	const defaultSendingChainID = Buffer.from([0, 0, 0, 0]);
 	const defaultCCMs: CCMsg[] = [
 		{
-			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+			crossChainCommand: CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 			fee: BigInt(0),
 			module: MODULE_NAME_INTEROPERABILITY,
 			nonce: BigInt(1),
@@ -87,7 +87,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			status: CCMStatusCode.OK,
 		},
 		{
-			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+			crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 			fee: BigInt(0),
 			module: MODULE_NAME_INTEROPERABILITY,
 			nonce: BigInt(1),
