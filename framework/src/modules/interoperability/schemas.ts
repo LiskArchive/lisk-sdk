@@ -29,8 +29,6 @@ import {
 import { chainDataSchema } from './stores/chain_account';
 import { chainValidatorsSchema } from './stores/chain_validators';
 import { channelSchema } from './stores/channel_data';
-import { terminatedOutboxSchema } from './stores/terminated_outbox';
-import { terminatedStateSchema } from './stores/terminated_state';
 
 // LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#cross-chain-message-schema
 export const ccmSchema = {
@@ -657,8 +655,8 @@ export const genesisInteroperabilitySchema = {
 		'ownChainName',
 		'ownChainNonce',
 		'chainInfos',
-		'terminatedStateAccounts',
-		'terminatedOutboxAccounts',
+		/* 'terminatedStateAccounts',
+		'terminatedOutboxAccounts', */
 	],
 	properties: {
 		ownChainName: {
@@ -700,7 +698,7 @@ export const genesisInteroperabilitySchema = {
 				},
 			},
 		},
-		terminatedStateAccounts: {
+		/* terminatedStateAccounts: {
 			type: 'array',
 			fieldNumber: 4,
 			items: {
@@ -739,7 +737,7 @@ export const genesisInteroperabilitySchema = {
 					},
 				},
 			},
-		},
+		}, */
 	},
 };
 

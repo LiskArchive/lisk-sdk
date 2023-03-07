@@ -7,7 +7,6 @@ import { BaseInteroperabilityModule } from '../../../../../src/modules/interoper
 import {
 	HASH_LENGTH,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
-	EMPTY_HASH,
 	CHAIN_NAME_MAINCHAIN,
 	MAX_NUM_VALIDATORS,
 	MODULE_NAME_INTEROPERABILITY,
@@ -18,8 +17,6 @@ import {
 	ActiveValidator,
 	GenesisBlockExecuteContext,
 } from '../../../../../src';
-import { TerminatedStateAccount } from '../../../../../src/modules/interoperability/stores/terminated_state';
-import { TerminatedOutboxAccount } from '../../../../../src/modules/interoperability/stores/terminated_outbox';
 import { GenesisInteroperability } from '../../../../../src/modules/interoperability/types';
 import {
 	InMemoryPrefixedStateDB,
@@ -103,24 +100,10 @@ describe('initGenesisState', () => {
 		chainValidators,
 	};
 
-	const terminatedStateAccount: TerminatedStateAccount = {
-		stateRoot: lastCertificate.stateRoot,
-		mainchainStateRoot: EMPTY_HASH,
-		initialized: true,
-	};
-
-	const terminatedOutboxAccount: TerminatedOutboxAccount = {
-		outboxRoot: utils.getRandomBytes(HASH_LENGTH),
-		outboxSize: 1,
-		partnerChainInboxSize: 1,
-	};
-
 	const genesisInteroperability: GenesisInteroperability = {
 		ownChainName: CHAIN_NAME_MAINCHAIN,
 		ownChainNonce: BigInt(123),
 		chainInfos: [chainInfo],
-		terminatedStateAccounts: [], // handle it in `describe('terminatedStateAccounts'`
-		terminatedOutboxAccounts: [],
 	};
 
 	let params: CreateGenesisBlockContextParams;
@@ -176,23 +159,6 @@ describe('initGenesisState', () => {
 
 		describe('if chainInfos is not empty', () => {
 			certificateThreshold = BigInt(10);
-			const validChainInfos = [
-				{
-					...chainInfo,
-					chainData: {
-						...chainData,
-						status: ChainStatus.TERMINATED,
-						lastCertificate: {
-							...lastCertificate,
-							validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
-						},
-					},
-					chainValidators: {
-						activeValidators,
-						certificateThreshold,
-					},
-				},
-			];
 
 			it('should throw error if ownChainNonce <= 0', async () => {
 				const context = createInitGenesisStateContext(
@@ -762,245 +728,6 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 					);
 
 					await expect(interopMod.initGenesisState(context)).resolves.toBeUndefined();
-				});
-			});
-
-			describe('terminatedStateAccounts', () => {
-				it('should throw error if chainInfo.chainID exists in terminatedStateAccounts & chainInfo.chainData.status !== CHAIN_STATUS_TERMINATED', async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...genesisInteroperability,
-							// this is needed to verify `validatorsHash` related tests (above)
-							chainInfos: [
-								{
-									...chainInfo,
-									chainData: {
-										...chainData,
-										lastCertificate: {
-											...lastCertificate,
-											validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
-										},
-									},
-									chainValidators: {
-										activeValidators,
-										certificateThreshold,
-									},
-								},
-							],
-							terminatedStateAccounts: [
-								{
-									chainID: chainInfo.chainID,
-									terminatedStateAccount,
-								},
-							],
-						},
-						params,
-					);
-
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						`chainInfo.chainData.status must be ${ChainStatus.TERMINATED} if chainInfo.chainID exists in terminatedStateAccounts.`,
-					);
-				});
-
-				it("should throw error if terminatedStateAccounts don't hold unique chainID", async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...genesisInteroperability,
-							// this is needed to verify `validatorsHash` related tests (above)
-							chainInfos: validChainInfos,
-							terminatedStateAccounts: [
-								{
-									chainID: chainInfo.chainID,
-									terminatedStateAccount,
-								},
-								{
-									chainID: chainInfo.chainID,
-									terminatedStateAccount,
-								},
-							],
-						},
-						params,
-					);
-
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						"terminatedStateAccounts don't hold unique chainID",
-					);
-				});
-
-				it('should throw error if terminatedStateAccounts is not ordered lexicographically by chainID', async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...genesisInteroperability,
-							// this is needed to verify `validatorsHash` related tests (above)
-							chainInfos: validChainInfos,
-							terminatedStateAccounts: [
-								{
-									chainID: Buffer.from([0, 0, 0, 2]),
-									terminatedStateAccount,
-								},
-								{
-									chainID: Buffer.from([0, 0, 0, 1]),
-									terminatedStateAccount,
-								},
-							],
-						},
-						params,
-					);
-
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						'terminatedStateAccounts must be ordered lexicographically by chainID.',
-					);
-				});
-
-				it('should throw error if some stateAccount in terminatedStateAccounts have stateRoot not equal to chainData.lastCertificate.stateRoot', async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...genesisInteroperability,
-							// this is needed to verify `validatorsHash` related tests (above)
-							chainInfos: validChainInfos,
-							terminatedStateAccounts: [
-								{
-									chainID: Buffer.from([0, 0, 0, 1]),
-									terminatedStateAccount: {
-										...terminatedStateAccount,
-										stateRoot: Buffer.from(utils.getRandomBytes(HASH_LENGTH)),
-									},
-								},
-							],
-						},
-						params,
-					);
-
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						"stateAccount.stateRoot doesn't match chainInfo.chainData.lastCertificate.stateRoot.",
-					);
-				});
-
-				it('should throw error if some stateAccount in terminatedStateAccounts have mainchainStateRoot not equal to EMPTY_HASH', async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...genesisInteroperability,
-							// this is needed to verify `validatorsHash` related tests (above)
-							chainInfos: validChainInfos,
-							terminatedStateAccounts: [
-								{
-									chainID: Buffer.from([0, 0, 0, 1]),
-									terminatedStateAccount: {
-										...terminatedStateAccount,
-										mainchainStateRoot: Buffer.from(utils.getRandomBytes(HASH_LENGTH)),
-									},
-								},
-							],
-						},
-						params,
-					);
-
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						`stateAccount.mainchainStateRoot is not equal to EMPTY_HASH.`,
-					);
-				});
-
-				it('should throw error if some stateAccount in terminatedStateAccounts is not initialized', async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...genesisInteroperability,
-							// this is needed to verify `validatorsHash` related tests (above)
-							chainInfos: validChainInfos,
-							terminatedStateAccounts: [
-								{
-									chainID: Buffer.from([0, 0, 0, 1]),
-									terminatedStateAccount: {
-										...terminatedStateAccount,
-										initialized: false,
-									},
-								},
-							],
-						},
-						params,
-					);
-
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						'stateAccount is not initialized.',
-					);
-				});
-			});
-
-			describe('terminatedOutboxAccounts', () => {
-				it("should throw error if terminatedOutboxAccounts don't hold unique chainID", async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...genesisInteroperability,
-							// this is needed to verify `validatorsHash` related tests (above)
-							chainInfos: validChainInfos,
-							terminatedOutboxAccounts: [
-								{
-									chainID: chainInfo.chainID,
-									terminatedOutboxAccount,
-								},
-								{
-									chainID: chainInfo.chainID,
-									terminatedOutboxAccount,
-								},
-							],
-						},
-						params,
-					);
-
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						"terminatedOutboxAccounts don't hold unique chainID",
-					);
-				});
-
-				it('should throw error if terminatedOutboxAccounts is not ordered lexicographically by chainID', async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...genesisInteroperability,
-							// this is needed to verify `validatorsHash` related tests (above)
-							chainInfos: validChainInfos,
-							terminatedOutboxAccounts: [
-								{
-									chainID: Buffer.from([0, 0, 0, 2]),
-									terminatedOutboxAccount,
-								},
-								{
-									chainID: Buffer.from([0, 0, 0, 1]),
-									terminatedOutboxAccount,
-								},
-							],
-						},
-						params,
-					);
-
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						'terminatedOutboxAccounts must be ordered lexicographically by chainID.',
-					);
-				});
-
-				it("should throw error if terminatedOutboxAccounts don't have a corresponding entry (with chainID == outboxAccount.chainID) in terminatedStateAccounts", async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...genesisInteroperability,
-							// this is needed to verify `validatorsHash` related tests (above)
-							chainInfos: validChainInfos,
-							terminatedStateAccounts: [
-								{
-									chainID: Buffer.from([0, 0, 0, 2]),
-									terminatedStateAccount,
-								},
-							],
-							terminatedOutboxAccounts: [
-								{
-									chainID: Buffer.from([0, 0, 0, 1]),
-									terminatedOutboxAccount,
-								},
-							],
-						},
-						params,
-					);
-
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						'Each entry outboxAccount in terminatedOutboxAccounts must have a corresponding entry (with chainID == outboxAccount.chainID) in terminatedStateAccounts.',
-					);
 				});
 			});
 		});
