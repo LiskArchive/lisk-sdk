@@ -313,11 +313,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 	}
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#mainchain
-	private _verifyChainInfos(
-		ctx: GenesisBlockExecuteContext,
-		chainInfos: ChainInfo[],
-		// terminatedStateAccounts: { chainID: Buffer; terminatedStateAccount: TerminatedStateAccount } []
-	) {
+	private _verifyChainInfos(ctx: GenesisBlockExecuteContext, chainInfos: ChainInfo[]) {
 		const mainchainID = getMainchainID(ctx.chainID);
 		const chainDataNames = chainInfos.map(info => info.chainData.name);
 
