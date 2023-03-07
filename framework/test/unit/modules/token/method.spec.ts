@@ -894,6 +894,22 @@ describe('token module', () => {
 			);
 		});
 
+		it('should not update availableBalance and lockedBalance for module if amount is zero', async () => {
+			await expect(
+				method.lock(methodContext, defaultAddress, 'token', defaultTokenID, BigInt(0)),
+			).resolves.toBeUndefined();
+
+			await expect(
+				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
+			).resolves.toEqual(defaultAccount.availableBalance);
+
+			await expect(
+				method.getLockedAmount(methodContext, defaultAddress, defaultTokenID, 'pos'),
+			).resolves.toBe(defaultAccount.lockedBalances[0].amount);
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
 		it('should update address balance', async () => {
 			await expect(
 				method.lock(

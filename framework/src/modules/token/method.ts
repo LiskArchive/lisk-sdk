@@ -503,6 +503,9 @@ export class TokenMethod extends BaseMethod {
 		};
 		let account: UserStoreData;
 		try {
+			if (amount === BigInt(0)) {
+				return;
+			}
 			account = await userStore.get(methodContext, userStore.getKey(address, tokenID));
 			if (account.availableBalance < amount) {
 				this.events
