@@ -86,6 +86,7 @@ describe('inboxUpdate', () => {
 			},
 			messageFeeTokenID: Buffer.from('04000001', 'hex'),
 			partnerChainOutboxRoot: Buffer.alloc(2),
+			minReturnFeePerByte: BigInt(0),
 		};
 		it('should return one inboxUpdate when all the ccms can be included', () => {
 			jest.spyOn(tree.regularMerkleTree, 'calculateRightWitness').mockReturnValue([]);

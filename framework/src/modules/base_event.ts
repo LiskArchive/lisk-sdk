@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { codec, Schema } from '@liskhq/lisk-codec';
+import { codec, emptySchema, Schema } from '@liskhq/lisk-codec';
 import { EventQueue } from '../state_machine';
 
 export interface EventQueuer {
@@ -19,7 +19,7 @@ export interface EventQueuer {
 }
 
 export abstract class BaseEvent<T> {
-	public schema?: Schema;
+	public schema: Schema = emptySchema;
 
 	private readonly _moduleName: string;
 

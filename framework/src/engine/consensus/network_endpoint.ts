@@ -231,7 +231,6 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			this._logger.warn(
 				{
 					err: error as Error,
-					req: data,
 					peerID: peerId,
 				},
 				`${NETWORK_EVENT_COMMIT_MESSAGES} fail to verify single commit`,
