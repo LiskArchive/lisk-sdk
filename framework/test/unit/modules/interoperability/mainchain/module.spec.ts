@@ -127,172 +127,298 @@ describe('initGenesisState', () => {
 		expect(context.getStore).not.toHaveBeenCalled();
 	});
 
-	describe('On the mainchain', () => {
-		it(`should throw error if ownChainName !== CHAIN_NAME_MAINCHAIN`, async () => {
+	it(`should throw error if ownChainName !== CHAIN_NAME_MAINCHAIN`, async () => {
+		const context = createInitGenesisStateContext(
+			{
+				...genesisInteroperability,
+				ownChainName: 'dummy',
+			},
+			params,
+		);
+		await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+			'ownChainName must be equal to CHAIN_NAME_MAINCHAIN',
+		);
+	});
+
+	describe('if chainInfos is empty', () => {
+		it('should throw error if ownChainNonce !== 0', async () => {
 			const context = createInitGenesisStateContext(
 				{
 					...genesisInteroperability,
-					ownChainName: 'dummy',
+					chainInfos: [],
+					ownChainNonce: BigInt(123),
 				},
 				params,
 			);
 			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-				'ownChainName must be equal to CHAIN_NAME_MAINCHAIN',
+				'ownChainNonce must be 0 if chainInfos is empty.',
+			);
+		});
+	});
+
+	describe('if chainInfos is not empty', () => {
+		certificateThreshold = BigInt(10);
+
+		it('should throw error if ownChainNonce <= 0', async () => {
+			const context = createInitGenesisStateContext(
+				{
+					...genesisInteroperability,
+					ownChainNonce: BigInt(0),
+				},
+				params,
+			);
+			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+				'ownChainNonce must be positive if chainInfos is not empty.',
 			);
 		});
 
-		describe('if chainInfos is empty', () => {
-			it('should throw error if ownChainNonce !== 0', async () => {
+		it("should throw error if chainInfos doesn't hold unique chainID", async () => {
+			const context = createInitGenesisStateContext(
+				{
+					...genesisInteroperability,
+					chainInfos: [{ ...chainInfo }, { ...chainInfo }],
+				},
+				params,
+			);
+			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+				"chainInfos doesn't hold unique chainID.",
+			);
+		});
+
+		it('should throw error if chainInfos is not ordered lexicographically by chainID.', async () => {
+			const context = createInitGenesisStateContext(
+				{
+					...genesisInteroperability,
+					chainInfos: [
+						{
+							...chainInfo,
+							chainID: Buffer.from([2, 0, 0, 0]),
+						},
+						{
+							...chainInfo,
+							chainID: Buffer.from([1, 0, 0, 0]),
+						},
+					],
+				},
+				params,
+			);
+			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+				'chainInfos is not ordered lexicographically by chainID.',
+			);
+		});
+
+		it('should throw error if chainInfo.chainID equals getMainchainID()', async () => {
+			const context = createInitGenesisStateContext(
+				{
+					...genesisInteroperability,
+					chainInfos: [
+						{
+							...chainInfo,
+							chainID: mainchainID,
+						},
+					],
+				},
+				params,
+			);
+			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+				'chainID must be not equal to getMainchainID().',
+			);
+		});
+
+		it('should throw error if chainInfo.chainID[0] !== getMainchainID()[0]', async () => {
+			const context = createInitGenesisStateContext(
+				{
+					...genesisInteroperability,
+					chainInfos: [
+						{
+							...chainInfo,
+							chainID: Buffer.from([1, 0, 0, 0]),
+						},
+					],
+				},
+				params,
+			);
+			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+				"chainID[0] doesn't match getMainchainID()[0].",
+			);
+		});
+
+		describe('chainInfo.chainData', () => {
+			it(`should throw error if not 'chainData.name must be pairwise distinct'`, async () => {
 				const context = createInitGenesisStateContext(
 					{
 						...genesisInteroperability,
-						chainInfos: [],
-						ownChainNonce: BigInt(123),
+						chainInfos: [
+							{
+								...chainInfo,
+								chainID: Buffer.from([0, 0, 0, 1]),
+								chainData: {
+									...chainData,
+									name: 'chain_account1',
+								},
+							},
+							{
+								...chainInfo,
+								chainID: Buffer.from([0, 0, 0, 2]),
+								chainData: {
+									...chainData,
+									name: 'chain_account1',
+								},
+							},
+						],
+					},
+					{
+						...params,
+						header: {
+							timestamp: Date.now(),
+						} as any,
+					},
+				);
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					`chainData.name must be pairwise distinct.`,
+				);
+			});
+
+			it(`should throw error if not 'chainData.lastCertificate.timestamp < g.header.timestamp'`, async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						chainInfos: [
+							{
+								...chainInfo,
+								chainData: {
+									...genesisInteroperability.chainInfos[0].chainData,
+									lastCertificate: {
+										...genesisInteroperability.chainInfos[0].chainData.lastCertificate,
+										timestamp: Date.now(),
+									},
+								},
+							},
+						],
 					},
 					params,
 				);
 				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					'ownChainNonce must be 0 if chainInfos is empty.',
+					'chainData.lastCertificate.timestamp must be less than header.timestamp.',
+				);
+			});
+
+			it(`should throw error if chainData.name has chars outside [${validNameCharset}] range`, async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						chainInfos: [
+							{
+								...chainInfo,
+								chainData: {
+									...genesisInteroperability.chainInfos[0].chainData,
+									name: '>(bogus_name)<',
+								},
+							},
+						],
+					},
+					{
+						...params,
+						header: {
+							timestamp: Date.now(),
+						} as any,
+					},
+				);
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					`chainData.name only uses the character set ${validNameCharset}.`,
+				);
+			});
+
+			it(`should throw error if not 'chainData.status is in set {CHAIN_STATUS_REGISTERED, CHAIN_STATUS_ACTIVE, CHAIN_STATUS_TERMINATED}'`, async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						chainInfos: [
+							{
+								...chainInfo,
+								chainData: {
+									...genesisInteroperability.chainInfos[0].chainData,
+									status: 123,
+								},
+							},
+						],
+					},
+					{
+						...params,
+						header: {
+							timestamp: Date.now(),
+						} as any,
+					},
+				);
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					`chainData.status must be one of ${[
+						ChainStatus.REGISTERED,
+						ChainStatus.ACTIVE,
+						ChainStatus.TERMINATED,
+					].join(', ')}`,
+				);
+			});
+
+			it(`should throw error if channelData.messageFeeTokenID is not equal to Token.getTokenIDLSK()`, async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						chainInfos: [
+							{
+								...chainInfo,
+								channelData: {
+									...genesisInteroperability.chainInfos[0].channelData,
+									messageFeeTokenID: Buffer.from('12345678'),
+								},
+							},
+						],
+					},
+					{
+						...params,
+						header: {
+							timestamp: Date.now(),
+						} as any,
+					},
+				);
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					`channelData.messageFeeTokenID is not equal to Token.getTokenIDLSK().`,
+				);
+			});
+
+			it(`should throw error if channelData.minReturnFeePerByte is not equal to MIN_RETURN_FEE_PER_BYTE_BEDDOWS`, async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						chainInfos: [
+							{
+								...chainInfo,
+								channelData: {
+									...channelData,
+									minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS + BigInt(1),
+								},
+							},
+						],
+					},
+					params,
+				);
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					`channelData.minReturnFeePerByte is not equal to MIN_RETURN_FEE_PER_BYTE_BEDDOWS.`,
 				);
 			});
 		});
 
-		describe('if chainInfos is not empty', () => {
-			certificateThreshold = BigInt(10);
-
-			it('should throw error if ownChainNonce <= 0', async () => {
-				const context = createInitGenesisStateContext(
-					{
-						...genesisInteroperability,
-						ownChainNonce: BigInt(0),
-					},
-					params,
-				);
-				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					'ownChainNonce must be positive if chainInfos is not empty.',
-				);
-			});
-
-			it("should throw error if chainInfos doesn't hold unique chainID", async () => {
-				const context = createInitGenesisStateContext(
-					{
-						...genesisInteroperability,
-						chainInfos: [{ ...chainInfo }, { ...chainInfo }],
-					},
-					params,
-				);
-				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					"chainInfos doesn't hold unique chainID.",
-				);
-			});
-
-			it('should throw error if chainInfos is not ordered lexicographically by chainID.', async () => {
-				const context = createInitGenesisStateContext(
-					{
-						...genesisInteroperability,
-						chainInfos: [
-							{
-								...chainInfo,
-								chainID: Buffer.from([2, 0, 0, 0]),
-							},
-							{
-								...chainInfo,
-								chainID: Buffer.from([1, 0, 0, 0]),
-							},
-						],
-					},
-					params,
-				);
-				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					'chainInfos is not ordered lexicographically by chainID.',
-				);
-			});
-
-			it('should throw error if chainInfo.chainID equals getMainchainID()', async () => {
-				const context = createInitGenesisStateContext(
-					{
-						...genesisInteroperability,
-						chainInfos: [
-							{
-								...chainInfo,
-								chainID: mainchainID,
-							},
-						],
-					},
-					params,
-				);
-				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					'chainID must be not equal to getMainchainID().',
-				);
-			});
-
-			it('should throw error if chainInfo.chainID[0] !== getMainchainID()[0]', async () => {
-				const context = createInitGenesisStateContext(
-					{
-						...genesisInteroperability,
-						chainInfos: [
-							{
-								...chainInfo,
-								chainID: Buffer.from([1, 0, 0, 0]),
-							},
-						],
-					},
-					params,
-				);
-				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					"chainID[0] doesn't match getMainchainID()[0].",
-				);
-			});
-
-			describe('chainInfo.chainData', () => {
-				it(`should throw error if not 'chainData.name must be pairwise distinct'`, async () => {
+		describe('chainInfo.chainValidators', () => {
+			describe('chainValidators.activeValidators', () => {
+				it(`should throw error if activeValidators have 0 elements`, async () => {
 					const context = createInitGenesisStateContext(
 						{
 							...genesisInteroperability,
 							chainInfos: [
 								{
 									...chainInfo,
-									chainID: Buffer.from([0, 0, 0, 1]),
-									chainData: {
-										...chainData,
-										name: 'chain_account1',
-									},
-								},
-								{
-									...chainInfo,
-									chainID: Buffer.from([0, 0, 0, 2]),
-									chainData: {
-										...chainData,
-										name: 'chain_account1',
-									},
-								},
-							],
-						},
-						{
-							...params,
-							header: {
-								timestamp: Date.now(),
-							} as any,
-						},
-					);
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						`chainData.name must be pairwise distinct.`,
-					);
-				});
-
-				it(`should throw error if not 'chainData.lastCertificate.timestamp < g.header.timestamp'`, async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...genesisInteroperability,
-							chainInfos: [
-								{
-									...chainInfo,
-									chainData: {
-										...genesisInteroperability.chainInfos[0].chainData,
-										lastCertificate: {
-											...genesisInteroperability.chainInfos[0].chainData.lastCertificate,
-											timestamp: Date.now(),
-										},
+									chainValidators: {
+										...chainValidators,
+										activeValidators: [],
 									},
 								},
 							],
@@ -300,388 +426,187 @@ describe('initGenesisState', () => {
 						params,
 					);
 					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						'chainData.lastCertificate.timestamp must be less than header.timestamp.',
+						'Lisk validator found 1 error[s]:\nmust NOT have fewer than 1 items',
 					);
 				});
 
-				it(`should throw error if chainData.name has chars outside [${validNameCharset}] range`, async () => {
+				it(`should throw error if activeValidators have more than MAX_NUM_VALIDATORS elements`, async () => {
+					const activeValidatorsTemp: ActiveValidator[] = [];
+					const max = MAX_NUM_VALIDATORS + 10;
+					for (let i = 1; i < max; i += 1) {
+						activeValidatorsTemp.push({
+							blsKey: Buffer.from(i.toString(), 'hex'),
+							bftWeight: BigInt(i + 10),
+						});
+					}
+
 					const context = createInitGenesisStateContext(
 						{
 							...genesisInteroperability,
 							chainInfos: [
 								{
 									...chainInfo,
-									chainData: {
-										...genesisInteroperability.chainInfos[0].chainData,
-										name: '>(bogus_name)<',
-									},
-								},
-							],
-						},
-						{
-							...params,
-							header: {
-								timestamp: Date.now(),
-							} as any,
-						},
-					);
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						`chainData.name only uses the character set ${validNameCharset}.`,
-					);
-				});
-
-				it(`should throw error if not 'chainData.status is in set {CHAIN_STATUS_REGISTERED, CHAIN_STATUS_ACTIVE, CHAIN_STATUS_TERMINATED}'`, async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...genesisInteroperability,
-							chainInfos: [
-								{
-									...chainInfo,
-									chainData: {
-										...genesisInteroperability.chainInfos[0].chainData,
-										status: 123,
-									},
-								},
-							],
-						},
-						{
-							...params,
-							header: {
-								timestamp: Date.now(),
-							} as any,
-						},
-					);
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						`chainData.status must be one of ${[
-							ChainStatus.REGISTERED,
-							ChainStatus.ACTIVE,
-							ChainStatus.TERMINATED,
-						].join(', ')}`,
-					);
-				});
-
-				it(`should throw error if channelData.messageFeeTokenID is not equal to Token.getTokenIDLSK()`, async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...genesisInteroperability,
-							chainInfos: [
-								{
-									...chainInfo,
-									channelData: {
-										...genesisInteroperability.chainInfos[0].channelData,
-										messageFeeTokenID: Buffer.from('12345678'),
-									},
-								},
-							],
-						},
-						{
-							...params,
-							header: {
-								timestamp: Date.now(),
-							} as any,
-						},
-					);
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						`channelData.messageFeeTokenID is not equal to Token.getTokenIDLSK().`,
-					);
-				});
-
-				it(`should throw error if channelData.minReturnFeePerByte is not equal to MIN_RETURN_FEE_PER_BYTE_BEDDOWS`, async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...genesisInteroperability,
-							chainInfos: [
-								{
-									...chainInfo,
-									channelData: {
-										...channelData,
-										minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS + BigInt(1),
+									chainValidators: {
+										...chainValidators,
+										activeValidators: activeValidatorsTemp,
 									},
 								},
 							],
 						},
 						params,
 					);
+
 					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						`channelData.minReturnFeePerByte is not equal to MIN_RETURN_FEE_PER_BYTE_BEDDOWS.`,
-					);
-				});
-			});
-
-			describe('chainInfo.chainValidators', () => {
-				describe('chainValidators.activeValidators', () => {
-					it(`should throw error if activeValidators have 0 elements`, async () => {
-						const context = createInitGenesisStateContext(
-							{
-								...genesisInteroperability,
-								chainInfos: [
-									{
-										...chainInfo,
-										chainValidators: {
-											...chainValidators,
-											activeValidators: [],
-										},
-									},
-								],
-							},
-							params,
-						);
-						await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-							'Lisk validator found 1 error[s]:\nmust NOT have fewer than 1 items',
-						);
-					});
-
-					it(`should throw error if activeValidators have more than MAX_NUM_VALIDATORS elements`, async () => {
-						const activeValidatorsTemp: ActiveValidator[] = [];
-						const max = MAX_NUM_VALIDATORS + 10;
-						for (let i = 1; i < max; i += 1) {
-							activeValidatorsTemp.push({
-								blsKey: Buffer.from(i.toString(), 'hex'),
-								bftWeight: BigInt(i + 10),
-							});
-						}
-
-						const context = createInitGenesisStateContext(
-							{
-								...genesisInteroperability,
-								chainInfos: [
-									{
-										...chainInfo,
-										chainValidators: {
-											...chainValidators,
-											activeValidators: activeValidatorsTemp,
-										},
-									},
-								],
-							},
-							params,
-						);
-
-						await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-							`Lisk validator found ${max} error[s]:
+						`Lisk validator found ${max} error[s]:
 must NOT have more than ${MAX_NUM_VALIDATORS} items`,
-						);
-					});
-
-					it(`should throw error if activeValidators are not ordered lexicographically by blsKey property`, async () => {
-						const context = createInitGenesisStateContext(
-							{
-								...genesisInteroperability,
-								chainInfos: [
-									{
-										...chainInfo,
-										chainValidators: {
-											...chainValidators,
-											activeValidators: [
-												{
-													// utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH).toString('hex')
-													blsKey: Buffer.from(
-														'c1d3c7919a4ea7e3b5d5b0068513c2cd7fe047a632e13d9238a51fcd6a4afd7ee16906978992a702bccf1f0149fa5d39',
-														'hex',
-													),
-													bftWeight: BigInt(10),
-												},
-												{
-													blsKey: Buffer.from(
-														'901550cf1fde7dde29218ee82c5196754efea99813af079bb2809a7fad8a053f93726d1e61ccf427118dcc27b0c07d9a',
-														'hex',
-													),
-													bftWeight: BigInt(10),
-												},
-											],
-										},
-									},
-								],
-							},
-							params,
-						);
-
-						await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-							`activeValidators must be ordered lexicographically by blsKey property.`,
-						);
-					});
-
-					it(`should throw error if not all blsKey are pairwise distinct`, async () => {
-						const context = createInitGenesisStateContext(
-							{
-								...genesisInteroperability,
-								chainInfos: [
-									{
-										...chainInfo,
-										chainValidators: {
-											...chainValidators,
-											activeValidators: [
-												{
-													// utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH).toString('hex')
-													blsKey: Buffer.from(
-														'c1d3c7919a4ea7e3b5d5b0068513c2cd7fe047a632e13d9238a51fcd6a4afd7ee16906978992a702bccf1f0149fa5d39',
-														'hex',
-													),
-													bftWeight: BigInt(10),
-												},
-												{
-													blsKey: Buffer.from(
-														'c1d3c7919a4ea7e3b5d5b0068513c2cd7fe047a632e13d9238a51fcd6a4afd7ee16906978992a702bccf1f0149fa5d39',
-														'hex',
-													),
-													bftWeight: BigInt(10),
-												},
-											],
-										},
-									},
-								],
-							},
-							params,
-						);
-
-						await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-							`All blsKey properties must be pairwise distinct.`,
-						);
-					});
-
-					it(`should throw error if each validator in activeValidators have bftWeight <=0`, async () => {
-						const context = createInitGenesisStateContext(
-							{
-								...genesisInteroperability,
-								chainInfos: [
-									{
-										...chainInfo,
-										chainValidators: {
-											...chainValidators,
-											activeValidators: [
-												{
-													...activeValidator,
-													bftWeight: BigInt(0),
-												},
-											],
-										},
-									},
-								],
-							},
-							params,
-						);
-
-						await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-							`validator.bftWeight must be > 0.`,
-						);
-					});
-
-					it(`should throw error if activeValidators total bftWeight > MAX_UINT64`, async () => {
-						const bftWeight = MAX_UINT64 - BigInt(100);
-						const context = createInitGenesisStateContext(
-							{
-								...genesisInteroperability,
-								chainInfos: [
-									{
-										...chainInfo,
-										chainValidators: {
-											...chainValidators,
-											activeValidators: [
-												{
-													blsKey: Buffer.from(
-														'901550cf1fde7dde29218ee82c5196754efea99813af079bb2809a7fad8a053f93726d1e61ccf427118dcc27b0c07d9a',
-														'hex',
-													),
-													bftWeight,
-												},
-												{
-													// utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH).toString('hex')
-													blsKey: Buffer.from(
-														'c1d3c7919a4ea7e3b5d5b0068513c2cd7fe047a632e13d9238a51fcd6a4afd7ee16906978992a702bccf1f0149fa5d39',
-														'hex',
-													),
-													bftWeight,
-												},
-											],
-										},
-									},
-								],
-							},
-							params,
-						);
-
-						await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-							`totalWeight has to be less than or equal to MAX_UINT64.`,
-						);
-					});
+					);
 				});
 
-				describe('activeValidators.certificateThreshold', () => {
-					it(`should throw error if 'totalWeight / BigInt(3) + BigInt(1) > certificateThreshold'`, async () => {
-						const context = createInitGenesisStateContext(
-							{
-								...genesisInteroperability,
-								chainInfos: [
-									{
-										...chainInfo,
-										chainValidators: {
-											activeValidators: [
-												{
-													blsKey: Buffer.from(
-														'901550cf1fde7dde29218ee82c5196754efea99813af079bb2809a7fad8a053f93726d1e61ccf427118dcc27b0c07d9a',
-														'hex',
-													),
-													bftWeight: BigInt(100),
-												},
-												{
-													// utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH).toString('hex')
-													blsKey: Buffer.from(
-														'c1d3c7919a4ea7e3b5d5b0068513c2cd7fe047a632e13d9238a51fcd6a4afd7ee16906978992a702bccf1f0149fa5d39',
-														'hex',
-													),
-													bftWeight: BigInt(200),
-												},
-											],
-											// totalWeight / BigInt(3) + BigInt(1) = (100 + 200)/3 + 1 = 101
-											// totalWeight / BigInt(3) + BigInt(1) > certificateThreshold
-											certificateThreshold: BigInt(10), // 101 > 10
-										},
+				it(`should throw error if activeValidators are not ordered lexicographically by blsKey property`, async () => {
+					const context = createInitGenesisStateContext(
+						{
+							...genesisInteroperability,
+							chainInfos: [
+								{
+									...chainInfo,
+									chainValidators: {
+										...chainValidators,
+										activeValidators: [
+											{
+												// utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH).toString('hex')
+												blsKey: Buffer.from(
+													'c1d3c7919a4ea7e3b5d5b0068513c2cd7fe047a632e13d9238a51fcd6a4afd7ee16906978992a702bccf1f0149fa5d39',
+													'hex',
+												),
+												bftWeight: BigInt(10),
+											},
+											{
+												blsKey: Buffer.from(
+													'901550cf1fde7dde29218ee82c5196754efea99813af079bb2809a7fad8a053f93726d1e61ccf427118dcc27b0c07d9a',
+													'hex',
+												),
+												bftWeight: BigInt(10),
+											},
+										],
 									},
-								],
-							},
-							params,
-						);
+								},
+							],
+						},
+						params,
+					);
 
-						await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-							`Invalid certificateThreshold input.`,
-						);
-					});
+					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+						`activeValidators must be ordered lexicographically by blsKey property.`,
+					);
+				});
 
-					it(`should throw error if certificateThreshold > totalWeight`, async () => {
-						const context = createInitGenesisStateContext(
-							{
-								...genesisInteroperability,
-								chainInfos: [
-									{
-										...chainInfo,
-										chainValidators: {
-											activeValidators: [
-												{
-													blsKey: Buffer.from(
-														'901550cf1fde7dde29218ee82c5196754efea99813af079bb2809a7fad8a053f93726d1e61ccf427118dcc27b0c07d9a',
-														'hex',
-													),
-													bftWeight: BigInt(10),
-												},
-											],
-											certificateThreshold: BigInt(20),
-										},
+				it(`should throw error if not all blsKey are pairwise distinct`, async () => {
+					const context = createInitGenesisStateContext(
+						{
+							...genesisInteroperability,
+							chainInfos: [
+								{
+									...chainInfo,
+									chainValidators: {
+										...chainValidators,
+										activeValidators: [
+											{
+												// utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH).toString('hex')
+												blsKey: Buffer.from(
+													'c1d3c7919a4ea7e3b5d5b0068513c2cd7fe047a632e13d9238a51fcd6a4afd7ee16906978992a702bccf1f0149fa5d39',
+													'hex',
+												),
+												bftWeight: BigInt(10),
+											},
+											{
+												blsKey: Buffer.from(
+													'c1d3c7919a4ea7e3b5d5b0068513c2cd7fe047a632e13d9238a51fcd6a4afd7ee16906978992a702bccf1f0149fa5d39',
+													'hex',
+												),
+												bftWeight: BigInt(10),
+											},
+										],
 									},
-								],
-							},
-							params,
-						);
+								},
+							],
+						},
+						params,
+					);
 
-						await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-							`Invalid certificateThreshold input.`,
-						);
-					});
+					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+						`All blsKey properties must be pairwise distinct.`,
+					);
+				});
+
+				it(`should throw error if each validator in activeValidators have bftWeight <=0`, async () => {
+					const context = createInitGenesisStateContext(
+						{
+							...genesisInteroperability,
+							chainInfos: [
+								{
+									...chainInfo,
+									chainValidators: {
+										...chainValidators,
+										activeValidators: [
+											{
+												...activeValidator,
+												bftWeight: BigInt(0),
+											},
+										],
+									},
+								},
+							],
+						},
+						params,
+					);
+
+					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+						`validator.bftWeight must be > 0.`,
+					);
+				});
+
+				it(`should throw error if activeValidators total bftWeight > MAX_UINT64`, async () => {
+					const bftWeight = MAX_UINT64 - BigInt(100);
+					const context = createInitGenesisStateContext(
+						{
+							...genesisInteroperability,
+							chainInfos: [
+								{
+									...chainInfo,
+									chainValidators: {
+										...chainValidators,
+										activeValidators: [
+											{
+												blsKey: Buffer.from(
+													'901550cf1fde7dde29218ee82c5196754efea99813af079bb2809a7fad8a053f93726d1e61ccf427118dcc27b0c07d9a',
+													'hex',
+												),
+												bftWeight,
+											},
+											{
+												// utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH).toString('hex')
+												blsKey: Buffer.from(
+													'c1d3c7919a4ea7e3b5d5b0068513c2cd7fe047a632e13d9238a51fcd6a4afd7ee16906978992a702bccf1f0149fa5d39',
+													'hex',
+												),
+												bftWeight,
+											},
+										],
+									},
+								},
+							],
+						},
+						params,
+					);
+
+					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+						`totalWeight has to be less than or equal to MAX_UINT64.`,
+					);
 				});
 			});
 
-			// it is defined here, since it applies sto both chainData & chainValidators
-			describe('validatorsHash', () => {
-				it(`should throw error if invalid validatorsHash provided`, async () => {
+			describe('activeValidators.certificateThreshold', () => {
+				it(`should throw error if 'totalWeight / BigInt(3) + BigInt(1) > certificateThreshold'`, async () => {
 					const context = createInitGenesisStateContext(
 						{
 							...genesisInteroperability,
@@ -689,37 +614,56 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 								{
 									...chainInfo,
 									chainValidators: {
-										activeValidators,
-										certificateThreshold: BigInt(10),
+										activeValidators: [
+											{
+												blsKey: Buffer.from(
+													'901550cf1fde7dde29218ee82c5196754efea99813af079bb2809a7fad8a053f93726d1e61ccf427118dcc27b0c07d9a',
+													'hex',
+												),
+												bftWeight: BigInt(100),
+											},
+											{
+												// utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH).toString('hex')
+												blsKey: Buffer.from(
+													'c1d3c7919a4ea7e3b5d5b0068513c2cd7fe047a632e13d9238a51fcd6a4afd7ee16906978992a702bccf1f0149fa5d39',
+													'hex',
+												),
+												bftWeight: BigInt(200),
+											},
+										],
+										// totalWeight / BigInt(3) + BigInt(1) = (100 + 200)/3 + 1 = 101
+										// totalWeight / BigInt(3) + BigInt(1) > certificateThreshold
+										certificateThreshold: BigInt(10), // 101 > 10
 									},
 								},
 							],
 						},
 						params,
 					);
+
 					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						'Invalid validatorsHash from chainData.lastCertificate.',
+						`Invalid certificateThreshold input.`,
 					);
 				});
 
-				it(`should not throw error if valid validatorsHash provided`, async () => {
-					certificateThreshold = BigInt(10);
+				it(`should throw error if certificateThreshold > totalWeight`, async () => {
 					const context = createInitGenesisStateContext(
 						{
 							...genesisInteroperability,
 							chainInfos: [
 								{
 									...chainInfo,
-									chainData: {
-										...chainData,
-										lastCertificate: {
-											...lastCertificate,
-											validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
-										},
-									},
 									chainValidators: {
-										activeValidators,
-										certificateThreshold,
+										activeValidators: [
+											{
+												blsKey: Buffer.from(
+													'901550cf1fde7dde29218ee82c5196754efea99813af079bb2809a7fad8a053f93726d1e61ccf427118dcc27b0c07d9a',
+													'hex',
+												),
+												bftWeight: BigInt(10),
+											},
+										],
+										certificateThreshold: BigInt(20),
 									},
 								},
 							],
@@ -727,8 +671,62 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 						params,
 					);
 
-					await expect(interopMod.initGenesisState(context)).resolves.toBeUndefined();
+					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+						`Invalid certificateThreshold input.`,
+					);
 				});
+			});
+		});
+
+		// it is defined here, since it applies sto both chainData & chainValidators
+		describe('validatorsHash', () => {
+			it(`should throw error if invalid validatorsHash provided`, async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						chainInfos: [
+							{
+								...chainInfo,
+								chainValidators: {
+									activeValidators,
+									certificateThreshold: BigInt(10),
+								},
+							},
+						],
+					},
+					params,
+				);
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					'Invalid validatorsHash from chainData.lastCertificate.',
+				);
+			});
+
+			it(`should not throw error if valid validatorsHash provided`, async () => {
+				certificateThreshold = BigInt(10);
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						chainInfos: [
+							{
+								...chainInfo,
+								chainData: {
+									...chainData,
+									lastCertificate: {
+										...lastCertificate,
+										validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+									},
+								},
+								chainValidators: {
+									activeValidators,
+									certificateThreshold,
+								},
+							},
+						],
+					},
+					params,
+				);
+
+				await expect(interopMod.initGenesisState(context)).resolves.toBeUndefined();
 			});
 		});
 	});
