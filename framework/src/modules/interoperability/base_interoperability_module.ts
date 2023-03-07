@@ -31,7 +31,7 @@ import { RegisteredNamesStore } from './stores/registered_names';
 import { TerminatedOutboxStore } from './stores/terminated_outbox';
 import { TerminatedStateStore } from './stores/terminated_state';
 import { GenesisInteroperability } from './types';
-import { getMainchainID, getMainchainTokenID } from './utils';
+import { getMainchainTokenID } from './utils';
 
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
 	protected interoperableCCCommands = new Map<string, BaseCCCommand[]>();
@@ -64,7 +64,7 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		if (!assetBytes) {
 			return;
 		}
-		const mainchainID = getMainchainID(ctx.chainID);
+
 		const mainchainTokenID = getMainchainTokenID(ctx.chainID);
 
 		const genesisStore = codec.decode<GenesisInteroperability>(
@@ -161,7 +161,7 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 
 		const chainDataStoreKeySet = new dataStructures.BufferSet();
 		const chainDataStore = this.stores.get(ChainAccountStore);
-		let hasSidechainAccount = false;
+
 		for (const chainData of genesisStore.chainDataSubstore) {
 			const chainDataStoreKey = chainData.storeKey;
 			if (chainDataStoreKeySet.has(chainDataStoreKey)) {
@@ -196,20 +196,7 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 				);
 			}
 
-			if (!(chainDataStoreKey.equals(ctx.chainID) || chainDataStoreKey.equals(mainchainID))) {
-				hasSidechainAccount = true;
-			}
-
 			await chainDataStore.set(ctx, chainData.storeKey, chainData.storeValue);
-		}
-
-		if (
-			hasSidechainAccount &&
-			!(chainDataStoreKeySet.has(mainchainID) && chainDataStoreKeySet.has(ctx.chainID))
-		) {
-			throw new Error(
-				'If a chain account for another sidechain is present, then a chain account for the mainchain must be present, as well as the own chain account.',
-			);
 		}
 
 		for (const storeKey of outboxRootStoreKeySet) {

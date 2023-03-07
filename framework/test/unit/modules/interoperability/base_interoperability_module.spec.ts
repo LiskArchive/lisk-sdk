@@ -910,38 +910,6 @@ describe('BaseInteroperabilityModule', () => {
 			);
 		});
 
-		it('should throw if a chain account for another sidechain is present but chain account for ownchain is not present', async () => {
-			const otherChainID = Buffer.from([0, 2, 2, 2]);
-			const validData1 = {
-				...validData,
-				chainDataSubstore: [
-					{ storeKey: mainchainID, storeValue: chainAccount },
-					{ storeKey: otherChainID, storeValue: chainAccount },
-				],
-				outboxRootSubstore: [
-					{ storeKey: mainchainID, storeValue: outboxRoot },
-					{ storeKey: otherChainID, storeValue: outboxRoot },
-				],
-				channelDataSubstore: [
-					{ storeKey: mainchainID, storeValue: channelData },
-					{ storeKey: otherChainID, storeValue: channelData },
-				],
-				chainValidatorsSubstore: [
-					{ storeKey: mainchainID, storeValue: validatorsHashInput },
-					{ storeKey: otherChainID, storeValue: validatorsHashInput },
-				],
-			};
-			const encodedAsset = codec.encode(genesisInteroperabilitySchema, validData1);
-			const context = createGenesisBlockContext({
-				stateStore,
-				chainID: ownChainID,
-				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-			}).createInitGenesisStateContext();
-			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-				'If a chain account for another sidechain is present, then a chain account for the mainchain must be present',
-			);
-		});
-
 		it('should not throw if some chain id corresponding to message fee token id of a channel is not 1 but is corresponding native token id of either chains', async () => {
 			const validData1 = {
 				...validData,
