@@ -28,7 +28,7 @@ import { BaseCrossChainUpdateCommand } from '../../base_cross_chain_update_comma
 import {
 	CCMStatusCode,
 	CONTEXT_STORE_KEY_CCM_PROCESSING,
-	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+	CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 	EMPTY_FEE_ADDRESS,
 	LIVENESS_LIMIT,
 	MODULE_NAME_INTEROPERABILITY,
@@ -188,7 +188,7 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 				context,
 				EMPTY_FEE_ADDRESS,
 				MODULE_NAME_INTEROPERABILITY,
-				CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+				CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 				ccm.sendingChainID,
 				BigInt(0),
 				CCMStatusCode.OK,

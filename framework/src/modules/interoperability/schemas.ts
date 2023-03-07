@@ -625,6 +625,23 @@ export const isChainIDAvailableResponseSchema = {
 	},
 };
 
+export const isChainNameAvailableRequestSchema = {
+	$id: '/modules/interoperability/endpoint/isChainNameAvailableRequest',
+	type: 'object',
+	required: ['name'],
+	properties: {
+		name: {
+			dataType: 'string',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const isChainNameAvailableResponseSchema = {
+	...isChainIDAvailableResponseSchema,
+	$id: '/modules/interoperability/endpoint/isChainNameAvailableResponseSchema',
+};
+
 export const getChannelRequestSchema = getChainAccountRequestSchema;
 
 export const getTerminatedStateAccountRequestSchema = getChainAccountRequestSchema;

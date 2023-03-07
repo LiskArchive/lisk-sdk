@@ -17,7 +17,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { MainchainInteroperabilityModule } from '../../../../../src';
 import {
 	CCMStatusCode,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	CROSS_CHAIN_COMMAND_REGISTRATION,
 	MODULE_NAME_INTEROPERABILITY,
 	HASH_LENGTH,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
@@ -106,7 +106,7 @@ describe('BaseCCRegistrationCommand', () => {
 	interopMod.events.register(ChainAccountUpdatedEvent, chainAccountUpdatedEventMock as never);
 
 	const buildCCM = (obj: Partial<CCMsg>) => ({
-		crossChainCommand: obj.crossChainCommand ?? CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+		crossChainCommand: obj.crossChainCommand ?? CROSS_CHAIN_COMMAND_REGISTRATION,
 		fee: obj.fee ?? BigInt(0),
 		module: obj.module ?? MODULE_NAME_INTEROPERABILITY,
 		nonce: obj.nonce ?? BigInt(0),
