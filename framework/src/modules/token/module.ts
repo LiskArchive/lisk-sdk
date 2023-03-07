@@ -86,6 +86,7 @@ export class TokenModule extends BaseInteroperableModule {
 	private readonly _transferCommand = new TransferCommand(this.stores, this.events);
 	private readonly _ccTransferCommand = new TransferCrossChainCommand(this.stores, this.events);
 	private readonly _internalMethod = new InternalMethod(this.stores, this.events);
+	private _interoperabilityMethod!: InteroperabilityMethod;
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [this._transferCommand, this._ccTransferCommand];
@@ -124,6 +125,7 @@ export class TokenModule extends BaseInteroperableModule {
 	}
 
 	public addDependencies(interoperabilityMethod: InteroperabilityMethod, feeMethod: FeeMethod) {
+		this._interoperabilityMethod = interoperabilityMethod;
 		this.method.addDependencies(interoperabilityMethod, this._internalMethod);
 		this.crossChainMethod.addDependencies(interoperabilityMethod);
 		this._internalMethod.addDependencies(feeMethod);
@@ -204,6 +206,12 @@ export class TokenModule extends BaseInteroperableModule {
 			tokenMethod: this.method,
 		});
 
+		this._ccTransferCommand.init({
+			internalMethod: this._internalMethod,
+			interoperabilityMethod: this._interoperabilityMethod,
+			method: this.method,
+			moduleName: this.name,
+		});
 		this.method.init({ ...config, ownChainID });
 		this.endpoint.init(config);
 		this._transferCommand.init({
