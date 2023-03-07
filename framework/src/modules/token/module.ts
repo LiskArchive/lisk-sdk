@@ -125,6 +125,7 @@ export class TokenModule extends BaseInteroperableModule {
 
 	public addDependencies(interoperabilityMethod: InteroperabilityMethod, feeMethod: FeeMethod) {
 		this.method.addDependencies(interoperabilityMethod, this._internalMethod);
+		this.crossChainMethod.addDependencies(interoperabilityMethod);
 		this._internalMethod.addDependencies(feeMethod);
 	}
 
