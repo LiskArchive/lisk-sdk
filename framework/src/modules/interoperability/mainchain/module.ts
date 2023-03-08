@@ -54,7 +54,13 @@ import { TerminatedStateCreatedEvent } from '../events/terminated_state_created'
 import { TerminatedOutboxCreatedEvent } from '../events/terminated_outbox_created';
 import { MainchainInteroperabilityInternalMethod } from './internal_method';
 import { InitializeMessageRecoveryCommand } from './commands/initialize_message_recovery';
-import { FeeMethod, GenesisInteroperability, ChainInfo } from '../types';
+import {
+	FeeMethod,
+	GenesisInteroperability,
+	ChainInfo,
+	TerminatedStateAccountWithChainID,
+	TerminatedOutboxAccountWithChainID,
+} from '../types';
 import { MainchainCCChannelTerminatedCommand, MainchainCCRegistrationCommand } from './cc_commands';
 import { RecoverStateCommand } from './commands/recover_state';
 import { CcmSentFailedEvent } from '../events/ccm_send_fail';
@@ -65,6 +71,7 @@ import {
 	CHAIN_NAME_MAINCHAIN,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MAX_NUM_VALIDATORS,
+	EMPTY_HASH,
 } from '../constants';
 import {
 	getMainchainID,
@@ -263,7 +270,13 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 			genesisInteroperability,
 		);
 
-		const { ownChainName, ownChainNonce, chainInfos } = genesisInteroperability;
+		const {
+			ownChainName,
+			ownChainNonce,
+			chainInfos,
+			terminatedStateAccounts,
+			terminatedOutboxAccounts,
+		} = genesisInteroperability;
 
 		// On the mainchain, the following checks are performed:
 		if (ctx.chainID.equals(getMainchainID(ctx.chainID))) {
@@ -299,6 +312,12 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				}
 
 				this._verifyChainInfos(ctx, chainInfos);
+				this._verifyTerminatedStateAccounts(chainInfos, terminatedStateAccounts);
+				this._verifyTerminatedOutboxAccounts(
+					chainInfos,
+					terminatedStateAccounts,
+					terminatedOutboxAccounts,
+				);
 			}
 		}
 	}
@@ -429,6 +448,104 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		const { validatorsHash } = chainData.lastCertificate;
 		if (!validatorsHash.equals(computeValidatorsHash(activeValidators, certificateThreshold))) {
 			throw new Error('Invalid validatorsHash from chainData.lastCertificate.');
+		}
+	}
+
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#mainchain
+	private _verifyTerminatedStateAccounts(
+		chainInfos: ChainInfo[],
+		terminatedStateAccounts: TerminatedStateAccountWithChainID[],
+	) {
+		for (const chainInfo of chainInfos) {
+			const { chainID } = chainInfo;
+
+			if (terminatedStateAccounts.filter(a => a.chainID.equals(chainID)).length > 0) {
+				// For each entry chainInfo in chainInfos, chainInfo.chainData.status == CHAIN_STATUS_TERMINATED
+				// if and only if a corresponding entry (i.e., with chainID == chainInfo.chainID) exists in terminatedStateAccounts.
+				if (chainInfo.chainData.status !== ChainStatus.TERMINATED) {
+					throw new Error(
+						`chainInfo.chainData.status must be ${ChainStatus.TERMINATED} if chainInfo.chainID exists in terminatedStateAccounts.`,
+					);
+				}
+			}
+		}
+
+		// Each entry stateAccount in terminatedStateAccounts has a unique stateAccount.chainID
+		const chainIDs = terminatedStateAccounts.map(a => a.chainID);
+		if (!bufferArrayUniqueItems(chainIDs)) {
+			throw new Error(`terminatedStateAccounts don't hold unique chainID.`);
+		}
+
+		// terminatedStateAccounts is ordered lexicographically by stateAccount.chainID
+		const sortedByChainID = [...terminatedStateAccounts].sort((a, b) =>
+			a.chainID.compare(b.chainID),
+		);
+		for (let i = 0; i < terminatedStateAccounts.length; i += 1) {
+			if (!terminatedStateAccounts[i].chainID.equals(sortedByChainID[i].chainID)) {
+				throw new Error('terminatedStateAccounts must be ordered lexicographically by chainID.');
+			}
+		}
+
+		// For each entry stateAccount in terminatedStateAccounts holds
+		// stateAccount.stateRoot == chainData.lastCertificate.stateRoot,
+		// stateAccount.mainchainStateRoot == EMPTY_HASH, and
+		// stateAccount.initialized == True.
+		// Here chainData is the corresponding entry (i.e., with chainID == stateAccount.chainID) in chainInfos.
+		for (const chainInfo of chainInfos) {
+			const stateAccount = terminatedStateAccounts.find(a =>
+				a.chainID.equals(chainInfo.chainID),
+			)?.terminatedStateAccount;
+			if (stateAccount) {
+				if (!stateAccount.stateRoot.equals(chainInfo.chainData.lastCertificate.stateRoot)) {
+					throw new Error(
+						"stateAccount.stateRoot doesn't match chainInfo.chainData.lastCertificate.stateRoot.",
+					);
+				}
+
+				if (!stateAccount.mainchainStateRoot.equals(EMPTY_HASH)) {
+					throw new Error('stateAccount.mainchainStateRoot is not equal to EMPTY_HASH.');
+				}
+
+				if (!stateAccount.initialized) {
+					throw new Error('stateAccount is not initialized.');
+				}
+			}
+		}
+	}
+
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#mainchain
+	private _verifyTerminatedOutboxAccounts(
+		_chainInfos: ChainInfo[],
+		terminatedStateAccounts: TerminatedStateAccountWithChainID[],
+		terminatedOutboxAccounts: TerminatedOutboxAccountWithChainID[],
+	) {
+		// Each entry outboxAccount in terminatedOutboxAccounts has a unique outboxAccount.chainID
+		const chainIDs = terminatedOutboxAccounts.map(a => a.chainID);
+		if (!bufferArrayUniqueItems(chainIDs)) {
+			throw new Error(`terminatedOutboxAccounts don't hold unique chainID.`);
+		}
+
+		// terminatedOutboxAccounts is ordered lexicographically by outboxAccount.chainID
+		const sortedByChainID = [...terminatedOutboxAccounts].sort((a, b) =>
+			a.chainID.compare(b.chainID),
+		);
+		for (let i = 0; i < terminatedOutboxAccounts.length; i += 1) {
+			if (!terminatedOutboxAccounts[i].chainID.equals(sortedByChainID[i].chainID)) {
+				throw new Error('terminatedOutboxAccounts must be ordered lexicographically by chainID.');
+			}
+		}
+
+		// Furthermore, an entry outboxAccount in terminatedOutboxAccounts must have a corresponding entry
+		// (i.e., with chainID == outboxAccount.chainID) in terminatedStateAccounts
+		for (const outboxAccount of terminatedOutboxAccounts) {
+			if (
+				terminatedStateAccounts.find(a => a.chainID.equals(outboxAccount.chainID)) === undefined
+			) {
+				let msg =
+					'Each entry outboxAccount in terminatedOutboxAccounts must have a corresponding entry ';
+				msg += '(with chainID == outboxAccount.chainID) in terminatedStateAccounts.';
+				throw new Error(msg);
+			}
 		}
 	}
 }
