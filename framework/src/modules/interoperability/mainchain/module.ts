@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { bufferArrayUniqueItems } from '@liskhq/lisk-utils/dist-node/objects';
-import { MAX_UINT64 } from '@liskhq/lisk-validator';
+import { MAX_UINT64, validator } from '@liskhq/lisk-validator';
 import { ModuleMetadata } from '../../base_module';
 import { BaseInteroperabilityModule } from '../base_interoperability_module';
 import { MainchainInteroperabilityMethod } from './method';
@@ -253,11 +253,14 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 			return;
 		}
 
-		await super.initGenesisState(ctx);
-
 		const genesisInteroperability = codec.decode<GenesisInteroperability>(
 			genesisInteroperabilitySchema,
 			genesisBlockAssetBytes,
+		);
+
+		validator.validate<GenesisInteroperability>(
+			genesisInteroperabilitySchema,
+			genesisInteroperability,
 		);
 
 		const { ownChainName, ownChainNonce, chainInfos } = genesisInteroperability;

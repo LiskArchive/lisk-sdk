@@ -12,14 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec } from '@liskhq/lisk-codec';
-import { validator } from '@liskhq/lisk-validator';
 import { GenesisBlockExecuteContext } from '../../state_machine';
 import { BaseCCCommand } from './base_cc_command';
 import { BaseCCMethod } from './base_cc_method';
 import { BaseInteroperableModule } from './base_interoperable_module';
 import { MODULE_NAME_INTEROPERABILITY } from './constants';
-import { genesisInteroperabilitySchema } from './schemas';
 import { ChainAccountStore } from './stores/chain_account';
 import { ChainValidatorsStore } from './stores/chain_validators';
 import { ChannelDataStore } from './stores/channel_data';
@@ -28,7 +25,6 @@ import { OwnChainAccountStore } from './stores/own_chain_account';
 import { RegisteredNamesStore } from './stores/registered_names';
 import { TerminatedOutboxStore } from './stores/terminated_outbox';
 import { TerminatedStateStore } from './stores/terminated_state';
-import { GenesisInteroperability } from './types';
 
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
 	protected interoperableCCCommands = new Map<string, BaseCCCommand[]>();
@@ -57,20 +53,6 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 	}
 
 	// @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#mainchain
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async initGenesisState(ctx: GenesisBlockExecuteContext): Promise<void> {
-		const genesisBlockAssetBytes = ctx.assets.getAsset(MODULE_NAME_INTEROPERABILITY);
-		if (!genesisBlockAssetBytes) {
-			return;
-		}
-
-		const genesisInteroperability = codec.decode<GenesisInteroperability>(
-			genesisInteroperabilitySchema,
-			genesisBlockAssetBytes,
-		);
-		validator.validate<GenesisInteroperability>(
-			genesisInteroperabilitySchema,
-			genesisInteroperability,
-		);
-	}
+	// eslint-disable-next-line @typescript-eslint/require-await,@typescript-eslint/no-empty-function
+	public async initGenesisState(_ctx: GenesisBlockExecuteContext): Promise<void> {}
 }
