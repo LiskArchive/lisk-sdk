@@ -16,7 +16,7 @@
 import { Channel } from '../../src/types';
 import { EventMethods } from '../../src/event_methods';
 import { metadata } from '../utils/transaction';
-import * as encodedEventsJSON from '../fixtures/encoded_events.json';
+import { events as encodedEventsJSON } from '../fixtures/encoded_events.json';
 
 describe('event', () => {
 	const BLOCK_HEIGHT = encodedEventsJSON[0].height;
@@ -68,6 +68,8 @@ describe('event', () => {
 			event.subscribe(events => {
 				expect(events).toEqual(decodedEvents);
 			});
+
+			expect.assertions(1);
 		});
 	});
 });
