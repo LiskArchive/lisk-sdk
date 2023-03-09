@@ -302,9 +302,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			await expect(
 				command['verifyCommon']({
 					...verifyContext,
-					params: {
-						...params,
-					},
+					params,
 				}),
 			).resolves.toBeUndefined();
 

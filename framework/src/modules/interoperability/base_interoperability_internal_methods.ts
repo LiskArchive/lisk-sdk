@@ -57,6 +57,7 @@ import { CCM_STATUS_OK } from '../token/constants';
 import { TerminatedOutboxCreatedEvent } from './events/terminated_outbox_created';
 import { BaseCCMethod } from './base_cc_method';
 import { verifyAggregateCertificateSignature } from '../../engine/consensus/certificate_generation/utils';
+import { InvalidCertificateSignatureEvent } from './events/invalid_certificate_signature';
 
 export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMethod {
 	protected readonly interoperableModuleMethods = new Map<string, BaseCCMethod>();
@@ -389,7 +390,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 	}
 
 	public async verifyCertificateSignature(
-		context: ImmutableMethodContext,
+		context: MethodContext,
 		params: CrossChainUpdateTransactionParams,
 	): Promise<void> {
 		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
@@ -406,6 +407,10 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		);
 
 		if (!verifySignature) {
+			this.events
+				.get(InvalidCertificateSignatureEvent)
+				.add(context, undefined, [params.sendingChainID], true);
+
 			throw new Error('Certificate is not a valid aggregate signature.');
 		}
 	}
