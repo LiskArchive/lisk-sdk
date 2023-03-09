@@ -55,7 +55,7 @@ describe('Change Commission command', () => {
 		isBanned: false,
 		reportMisbehaviorHeights: [],
 		consecutiveMissedBlocks: 0,
-		commission: 100,
+		commission: 300, // 3%
 		lastCommissionIncreaseHeight: 0,
 		sharingCoefficients: [],
 	};
@@ -71,7 +71,7 @@ describe('Change Commission command', () => {
 		nonce: BigInt(0),
 		fee: BigInt(100000000),
 		params: encodedCommandParams,
-		signatures: [publicKey],
+		signatures: [utils.getRandomBytes(64)],
 	};
 	let transaction = new Transaction(transactionDetails);
 
@@ -219,7 +219,7 @@ describe('Change Commission command', () => {
 		});
 
 		it('should NOT update last commission increase height in the validator store after DECREASING commission', async () => {
-			commandParams.newCommission = 50;
+			commandParams.newCommission = 100; // 1%
 			transactionDetails.params = codec.encode(schema, commandParams);
 			transaction = new Transaction(transactionDetails);
 
@@ -236,6 +236,26 @@ describe('Change Commission command', () => {
 
 			expect(validator.commission).toBe(commandParams.newCommission);
 			expect(validator.lastCommissionIncreaseHeight).toBe(0);
+		});
+
+		it('should update last commission increase height when new commission is equal to the previous commission', async () => {
+			commandParams.newCommission = validatorDetails.commission;
+			transactionDetails.params = codec.encode(schema, commandParams);
+			transaction = new Transaction(transactionDetails);
+
+			const context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					header: createFakeBlockHeader({ height: COMMISSION_INCREASE_PERIOD + 1 }),
+				})
+				.createCommandExecuteContext<ChangeCommissionParams>(schema);
+
+			await changeCommissionCommand.execute(context);
+			const validator = await validatorStore.get(context, transaction.senderAddress);
+
+			expect(validator.commission).toBe(commandParams.newCommission);
+			expect(validator.lastCommissionIncreaseHeight).toBe(COMMISSION_INCREASE_PERIOD + 1);
 		});
 
 		it('should emit event after changing commission', async () => {

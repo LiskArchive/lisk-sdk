@@ -90,15 +90,15 @@ export class ChangeCommissionCommand extends BaseCommand {
 	public async execute(context: CommandExecuteContext<ChangeCommissionParams>): Promise<void> {
 		const validatorStore = this.stores.get(ValidatorStore);
 
-		const validatorData = await validatorStore.get(context, context.transaction.senderAddress);
-		const oldCommission = validatorData.commission;
+		const validatorAccount = await validatorStore.get(context, context.transaction.senderAddress);
+		const oldCommission = validatorAccount.commission;
+		validatorAccount.commission = context.params.newCommission;
 
-		validatorData.commission = context.params.newCommission;
-		if (validatorData.commission > oldCommission) {
-			validatorData.lastCommissionIncreaseHeight = context.header.height;
+		if (validatorAccount.commission >= oldCommission) {
+			validatorAccount.lastCommissionIncreaseHeight = context.header.height;
 		}
 
-		await validatorStore.set(context, context.transaction.senderAddress, validatorData);
+		await validatorStore.set(context, context.transaction.senderAddress, validatorAccount);
 
 		this.events.get(CommissionChangeEvent).log(context, {
 			validatorAddress: context.transaction.senderAddress,
