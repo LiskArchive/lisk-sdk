@@ -816,6 +816,21 @@ describe('token module', () => {
 			);
 		});
 
+		it('should reject if receiving chain is own chain', async () => {
+			await expect(
+				method.transferCrossChain(
+					methodContext,
+					defaultAddress,
+					method['_config'].ownChainID,
+					utils.getRandomBytes(20),
+					defaultTokenID,
+					BigInt('100000'),
+					BigInt('10000'),
+					'data',
+				),
+			).rejects.toThrow('Receiving chain cannot be the sending chain.');
+		});
+
 		it('should debit amount from sender and move to escrow', async () => {
 			await expect(
 				method.transferCrossChain(

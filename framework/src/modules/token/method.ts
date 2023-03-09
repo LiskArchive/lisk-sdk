@@ -403,6 +403,10 @@ export class TokenMethod extends BaseMethod {
 			messageFee,
 		};
 
+		if (this._config.ownChainID.equals(receivingChainID)) {
+			throw new Error('Receiving chain cannot be the sending chain.');
+		}
+
 		if (data.length > MAX_DATA_LENGTH) {
 			this.events
 				.get(TransferCrossChainEvent)
