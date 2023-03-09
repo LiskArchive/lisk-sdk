@@ -137,6 +137,11 @@ export class TokenMethod extends BaseMethod {
 		if (!this.isNativeToken(tokenID)) {
 			throw new Error('Only native token can have escrow amount.');
 		}
+
+		if (this._config.ownChainID.equals(escrowChainID)) {
+			throw new Error('Escrow is not defined for own chain.');
+		}
+
 		const escrowStore = this.stores.get(EscrowStore);
 		const escrowAccount = await escrowStore.get(
 			methodContext,

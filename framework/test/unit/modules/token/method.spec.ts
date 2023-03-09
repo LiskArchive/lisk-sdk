@@ -206,6 +206,12 @@ describe('token module', () => {
 			).rejects.toThrow('Only native token can have escrow amount');
 		});
 
+		it('should reject if escrow chain is native', async () => {
+			await expect(
+				method.getEscrowedAmount(methodContext, method['_config'].ownChainID, defaultTokenID),
+			).rejects.toThrow('Escrow is not defined for own chain');
+		});
+
 		it('should reject if escrow account does not exist', async () => {
 			await expect(
 				method.getEscrowedAmount(
