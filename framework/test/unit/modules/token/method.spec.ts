@@ -397,6 +397,18 @@ describe('token module', () => {
 			checkEventResult(methodContext.eventQueue, BurnEvent, TokenEventResult.SUCCESSFUL);
 		});
 
+		it('should not update address balance if amount is zero', async () => {
+			await expect(
+				method.burn(methodContext, defaultAddress, defaultTokenID, BigInt(0)),
+			).resolves.toBeUndefined();
+
+			await expect(
+				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
+			).resolves.toEqual(defaultAccount.availableBalance);
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
 		it('should update address balance and total supply', async () => {
 			await expect(
 				method.burn(methodContext, defaultAddress, defaultTokenID, defaultAccount.availableBalance),
