@@ -212,14 +212,14 @@ describe('token module', () => {
 			).rejects.toThrow('Escrow is not defined for own chain');
 		});
 
-		it('should reject if escrow account does not exist', async () => {
+		it('should return 0 if escrow account does not exist', async () => {
 			await expect(
 				method.getEscrowedAmount(
 					methodContext,
 					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 					Buffer.from([0, 0, 0, 1, 0, 0, 0, 1]),
 				),
-			).rejects.toThrow('does not exist');
+			).resolves.toBe(BigInt(0));
 		});
 
 		it('should return balance if data exists', async () => {

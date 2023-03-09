@@ -143,10 +143,15 @@ export class TokenMethod extends BaseMethod {
 		}
 
 		const escrowStore = this.stores.get(EscrowStore);
-		const escrowAccount = await escrowStore.get(
-			methodContext,
-			escrowStore.getKey(escrowChainID, tokenID),
-		);
+
+		const key = escrowStore.getKey(escrowChainID, tokenID);
+
+		if (!(await escrowStore.has(methodContext, key))) {
+			return BigInt(0);
+		}
+
+		const escrowAccount = await escrowStore.get(methodContext, key);
+
 		return escrowAccount.amount;
 	}
 
