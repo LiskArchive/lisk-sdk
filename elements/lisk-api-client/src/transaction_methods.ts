@@ -46,7 +46,7 @@ interface AuthAccount {
 	numberOfSignatures: number;
 }
 
-export class Transaction {
+export class TransactionMethods {
 	private readonly _channel: Channel;
 	private readonly _metadata: ModuleMetadata[];
 	private readonly _schema: RegisteredSchemas;
