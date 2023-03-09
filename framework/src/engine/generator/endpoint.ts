@@ -64,6 +64,7 @@ interface EndpointArgs {
 
 interface EndpointInit {
 	generatorDB: Database;
+	genesisBlockHeight: number;
 }
 
 export class Endpoint {
@@ -75,6 +76,7 @@ export class Endpoint {
 	private readonly _blockTime: number;
 
 	private _generatorDB!: Database;
+	private _genesisBlockHeight!: number;
 
 	public constructor(args: EndpointArgs) {
 		this._keypairs = args.keypair;
@@ -86,6 +88,7 @@ export class Endpoint {
 
 	public init(args: EndpointInit) {
 		this._generatorDB = args.generatorDB;
+		this._genesisBlockHeight = args.genesisBlockHeight;
 	}
 
 	public async getStatus(_ctx: RequestContext): Promise<GetStatusResponse> {
@@ -160,7 +163,6 @@ export class Endpoint {
 			throw new Error('Failed to enable forging as the node is not synced to the network.');
 		}
 
-		// check
 		let lastGeneratedInfo: GeneratedInfo | undefined;
 		try {
 			lastGeneratedInfo = await getLastGeneratedInfo(
@@ -171,19 +173,11 @@ export class Endpoint {
 			ctx.logger.debug(`Last generated information does not exist for address: ${req.address}`);
 		}
 
-		if (lastGeneratedInfo !== undefined && !isEqualGeneratedInfo(req, lastGeneratedInfo)) {
+		if (lastGeneratedInfo && !isEqualGeneratedInfo(req, lastGeneratedInfo)) {
 			throw new Error('Request does not match last generated information.');
 		}
-		if (lastGeneratedInfo === undefined && !isZeroValueGeneratedInfo(req)) {
+		if (!lastGeneratedInfo && !isZeroValueGeneratedInfo(req)) {
 			throw new Error('Last generated information does not exist.');
-		}
-
-		if (lastGeneratedInfo === undefined) {
-			await setLastGeneratedInfo(
-				generatorStore,
-				cryptoAddress.getAddressFromLisk32Address(req.address),
-				req,
-			);
 		}
 
 		// Enable validator to forge by adding keypairs corresponding to address
@@ -193,6 +187,15 @@ export class Endpoint {
 			privateKey: decryptedKeys.generatorPrivateKey,
 			publicKey: decryptedKeys.generatorKey,
 		});
+
+		if (!lastGeneratedInfo) {
+			await setLastGeneratedInfo(
+				generatorStore,
+				cryptoAddress.getAddressFromLisk32Address(req.address),
+				req,
+			);
+		}
+
 		ctx.logger.info(`Block generation enabled on address: ${req.address}`);
 
 		return {
@@ -207,25 +210,36 @@ export class Endpoint {
 		validator.validate<EstimateSafeStatusRequest>(estimateSafeStatusRequestSchema, ctx.params);
 
 		const req = ctx.params;
-
 		const finalizedHeight = this._consensus.finalizedHeight();
+		// if there hasn't been a finalized block after genesis block yet, then heightOneMonthAgo could be
+		// higher than the current finalizedHeight, resulting in negative safe status estimate
+		if (finalizedHeight === this._genesisBlockHeight) {
+			throw new Error('At least one block after the genesis block must be finalized.');
+		}
 
 		const finalizedBlock = await this._chain.dataAccess.getBlockHeaderByHeight(finalizedHeight);
-		if (finalizedBlock.timestamp < req.timeShutdown) {
+		if (req.timeShutdown > finalizedBlock.timestamp) {
 			throw new Error(`A block at the time shutdown ${req.timeShutdown} must be finalized.`);
 		}
 
-		// assume there is 30 days per month
+		// assume there are 30 days per month
 		const numberOfBlocksPerMonth = Math.ceil((60 * 60 * 24 * 30) / this._blockTime);
-		const heightOneMonthAgo = Math.max(finalizedHeight - numberOfBlocksPerMonth, 0);
+		// if the blockchain is less than a month old, default starting height to 1 block after genesis, to prevent error
+		// in missed blocks calculation below, due to the hardcoded timestamp of the genesis block in the example app
+		const heightOneMonthAgo = Math.max(
+			finalizedHeight - numberOfBlocksPerMonth,
+			this._genesisBlockHeight + 1,
+		);
 		const blockHeaderLastMonth = await this._chain.dataAccess.getBlockHeaderByHeight(
 			heightOneMonthAgo,
 		);
-		const missedBlocks =
-			Math.ceil((finalizedBlock.timestamp - blockHeaderLastMonth.timestamp) / this._blockTime) -
-			(finalizedBlock.height - blockHeaderLastMonth.height);
 
-		const safeGeneratedHeight = finalizedHeight + missedBlocks;
+		const expectedBlocksCount = Math.ceil(
+			(finalizedBlock.timestamp - blockHeaderLastMonth.timestamp) / this._blockTime,
+		);
+		const generatedBlocksCount = finalizedBlock.height - blockHeaderLastMonth.height;
+		const missedBlocksCount = expectedBlocksCount - generatedBlocksCount;
+		const safeGeneratedHeight = finalizedHeight + missedBlocksCount;
 
 		return {
 			height: safeGeneratedHeight,

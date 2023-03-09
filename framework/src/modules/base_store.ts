@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { emptySchema } from '@liskhq/lisk-codec';
 import { Schema } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { IterateOptions } from '@liskhq/lisk-db';
@@ -31,12 +32,28 @@ export const computeStorePrefix = (name: string): Buffer => {
 	return prefix;
 };
 
+export const computeSubstorePrefix = (index: number): Buffer => {
+	//  Converts input to binary, inverts binary string, and converts it to bytes
+	const binaryIndex = `${'0'.repeat(16)}${index.toString(2)}`;
+	const val = parseInt(
+		binaryIndex
+			.substring(binaryIndex.length - 16)
+			.split('')
+			.reverse()
+			.join(''),
+		2,
+	);
+	const result = Buffer.alloc(2);
+	result.writeUint16BE(val);
+
+	return result;
+};
+
 export abstract class BaseStore<T> {
-	private readonly _version: number;
 	private readonly _storePrefix: Buffer;
 	private readonly _subStorePrefix: Buffer;
 
-	public abstract schema: Schema;
+	public schema: Schema = emptySchema;
 
 	public get storePrefix(): Buffer {
 		return this._storePrefix;
@@ -47,7 +64,7 @@ export abstract class BaseStore<T> {
 	}
 
 	public get key(): Buffer {
-		return Buffer.concat([this._storePrefix, this._subStorePrefix]);
+		return Buffer.concat([this.storePrefix, this.subStorePrefix]);
 	}
 
 	public get name(): string {
@@ -55,21 +72,16 @@ export abstract class BaseStore<T> {
 		return name.charAt(0).toLowerCase() + name.substr(1);
 	}
 
-	public constructor(moduleName: string, version = 0) {
-		this._version = version;
+	public constructor(moduleName: string, index: number) {
 		this._storePrefix = computeStorePrefix(moduleName);
-		const versionBuffer = Buffer.alloc(2);
-		versionBuffer.writeUInt16BE(this._version, 0);
-		this._subStorePrefix = utils
-			.hash(Buffer.concat([Buffer.from(this.name, 'utf-8'), versionBuffer]))
-			.slice(0, 2);
+		this._subStorePrefix = computeSubstorePrefix(index);
 	}
 
 	public async get(ctx: ImmutableStoreGetter, key: Buffer): Promise<T> {
 		if (!this.schema) {
 			throw new Error('Schema is not set');
 		}
-		const subStore = ctx.getStore(this._storePrefix, this._subStorePrefix);
+		const subStore = ctx.getStore(this.storePrefix, this.subStorePrefix);
 		return subStore.getWithSchema<T>(key, this.schema);
 	}
 
@@ -77,7 +89,7 @@ export abstract class BaseStore<T> {
 		if (!this.schema) {
 			throw new Error('Schema is not set');
 		}
-		const subStore = ctx.getStore(this._storePrefix, this._subStorePrefix);
+		const subStore = ctx.getStore(this.storePrefix, this.subStorePrefix);
 		return subStore.has(key);
 	}
 
@@ -88,7 +100,7 @@ export abstract class BaseStore<T> {
 		if (!this.schema) {
 			throw new Error('Schema is not set');
 		}
-		const subStore = ctx.getStore(this._storePrefix, this._subStorePrefix);
+		const subStore = ctx.getStore(this.storePrefix, this.subStorePrefix);
 		return subStore.iterateWithSchema<T>(options, this.schema);
 	}
 
@@ -96,7 +108,7 @@ export abstract class BaseStore<T> {
 		if (!this.schema) {
 			throw new Error('Schema is not set');
 		}
-		const subStore = ctx.getStore(this._storePrefix, this._subStorePrefix);
+		const subStore = ctx.getStore(this.storePrefix, this.subStorePrefix);
 		return subStore.setWithSchema(key, value as Record<string, unknown>, this.schema);
 	}
 
@@ -104,7 +116,7 @@ export abstract class BaseStore<T> {
 		if (!this.schema) {
 			throw new Error('Schema is not set');
 		}
-		const subStore = ctx.getStore(this._storePrefix, this._subStorePrefix);
+		const subStore = ctx.getStore(this.storePrefix, this.subStorePrefix);
 		return subStore.del(key);
 	}
 }

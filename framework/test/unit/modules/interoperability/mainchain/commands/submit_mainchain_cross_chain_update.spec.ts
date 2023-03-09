@@ -43,10 +43,11 @@ import {
 } from '../../../../../../src/modules/interoperability/schemas';
 import {
 	CCMStatusCode,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+	CROSS_CHAIN_COMMAND_REGISTRATION,
+	CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 	EMPTY_FEE_ADDRESS,
 	HASH_LENGTH,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
@@ -94,7 +95,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 	const defaultSendingChainIDBuffer = utils.intToBuffer(defaultSendingChainID, 4);
 	const defaultCCMs: CCMsg[] = [
 		{
-			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+			crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 			fee: BigInt(0),
 			module: MODULE_NAME_INTEROPERABILITY,
 			nonce: BigInt(1),
@@ -104,7 +105,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			status: CCMStatusCode.OK,
 		},
 		{
-			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+			crossChainCommand: CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 			fee: BigInt(0),
 			module: MODULE_NAME_INTEROPERABILITY,
 			nonce: BigInt(1),
@@ -166,6 +167,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 		mainchainCCUUpdateCommand.init(
 			{
 				getMessageFeeTokenID: jest.fn().mockResolvedValue(messageFeeTokenID),
+				getMinReturnFeePerByte: jest.fn().mockResolvedValue(BigInt(10000000)),
 			} as any,
 			{
 				initializeUserAccount: jest.fn(),
@@ -232,6 +234,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				size: 18,
 			},
 			partnerChainOutboxRoot: utils.getRandomBytes(38),
+			minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 		};
 
 		params = {
@@ -528,7 +531,15 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				ccCommands,
 				interopMod['internalMethod'],
 			);
-
+			command.init(
+				{
+					getMessageFeeTokenID: jest.fn().mockResolvedValue(messageFeeTokenID),
+					getMinReturnFeePerByte: jest.fn().mockResolvedValue(BigInt(10000000)),
+				} as any,
+				{
+					initializeUserAccount: jest.fn(),
+				},
+			);
 			jest.spyOn(command['events'].get(CcmProcessedEvent), 'log');
 			jest.spyOn(command, 'bounce' as never);
 			context = createCrossChainMessageContext({
@@ -667,7 +678,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				expect.anything(),
 				EMPTY_FEE_ADDRESS,
 				MODULE_NAME_INTEROPERABILITY,
-				CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+				CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 				context.ccm.sendingChainID,
 				BigInt(0),
 				CCMStatusCode.OK,

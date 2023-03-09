@@ -15,7 +15,7 @@
 import { math } from '@liskhq/lisk-utils';
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import { BaseMethod } from '../base_method';
-import { EMPTY_KEY, MAX_LENGTH_NAME } from './constants';
+import { EMPTY_KEY, MAX_LENGTH_NAME, REPORT_MISBEHAVIOR_LIMIT_BANNED } from './constants';
 import { GenesisDataStore } from './stores/genesis';
 import { StakerStore } from './stores/staker';
 import { ModuleConfig, StakerData, TokenMethod } from './types';
@@ -23,6 +23,7 @@ import { ValidatorAccount, ValidatorStore } from './stores/validator';
 import { NameStore } from './stores/name';
 import { isUsername } from './utils';
 import { InternalMethod } from './internal_method';
+import { EligibleValidatorsStore } from './stores/eligible_validators';
 
 export class PoSMethod extends BaseMethod {
 	private _config!: ModuleConfig;
@@ -118,14 +119,16 @@ export class PoSMethod extends BaseMethod {
 
 		const oldSharingCoefficient = q96(validator.sharingCoefficients[index].coefficient);
 		const sharingCoefficientIncrease = rewardQ.muldiv(rewardFractionQ, totalStakesQ);
-		const sharedRewards = sharingCoefficientIncrease.mul(totalStakesQ.sub(selfStakeQ)).floor();
+		const sharedRewards = sharingCoefficientIncrease.mul(totalStakesQ.sub(selfStakeQ)).ceil();
+		// it should not lock more than the original reward. This might happen because of ceil above
+		const cappedSharedRewards = sharedRewards > reward ? reward : sharedRewards;
 
 		await this._tokenMethod.lock(
 			context,
 			generatorAddress,
 			this._moduleName,
 			tokenID,
-			sharedRewards,
+			cappedSharedRewards,
 		);
 
 		const newSharingCoefficient = oldSharingCoefficient.add(sharingCoefficientIncrease);
@@ -133,6 +136,16 @@ export class PoSMethod extends BaseMethod {
 
 		validator.sharingCoefficients.sort((a, b) => a.tokenID.compare(b.tokenID));
 		await validatorStore.set(context, generatorAddress, validator);
+	}
+
+	public async getRoundNumberFromHeight(
+		methodContext: ImmutableMethodContext,
+		height: number,
+	): Promise<number> {
+		const { height: genesisHeight } = await this.stores
+			.get(GenesisDataStore)
+			.get(methodContext, EMPTY_KEY);
+		return Math.ceil((height - genesisHeight) / this._config.roundLength);
 	}
 
 	public async isEndOfRound(
@@ -149,10 +162,19 @@ export class PoSMethod extends BaseMethod {
 		const validatorSubStore = this.stores.get(ValidatorStore);
 		const validator = await validatorSubStore.get(methodContext, address);
 		if (!validator.isBanned) {
-			return;
+			throw new Error('The specified validator is not banned.');
+		}
+		if (validator.reportMisbehaviorHeights.length >= REPORT_MISBEHAVIOR_LIMIT_BANNED) {
+			throw new Error(
+				'Validator exceeded the maximum allowed number of misbehaviors and is permanently banned.',
+			);
 		}
 		validator.isBanned = false;
 		await validatorSubStore.set(methodContext, address, validator);
+		// previous weight is always 0 because the validator was banned previously
+		await this.stores
+			.get(EligibleValidatorsStore)
+			.update(methodContext, address, BigInt(0), validator);
 	}
 
 	public async getLockedStakedAmount(

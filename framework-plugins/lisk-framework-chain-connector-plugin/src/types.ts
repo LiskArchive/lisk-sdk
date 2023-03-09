@@ -24,7 +24,10 @@ export interface ChainConnectorPluginConfig {
 	ccuFrequency: number;
 	encryptedPrivateKey: string;
 	ccuFee: string;
-	password?: string;
+	password: string;
+	isSaveCCU: boolean;
+	maxCCUSize: number;
+	registrationHeight: number;
 }
 
 export type SentCCUs = Transaction[];
@@ -38,6 +41,10 @@ export interface ValidatorsData {
 	certificateThreshold: bigint;
 	validators: ActiveValidatorWithAddress[];
 	validatorsHash: Buffer;
+}
+
+export interface LastSentCCMWithHeight extends CCMsg {
+	height: number;
 }
 
 export interface CCMsFromEvents {
@@ -93,17 +100,24 @@ export interface ProveResponseJSON {
 	proof: ProofJSON;
 }
 
-export interface ValidatorJSON {
-	address: string;
-	bftWeight: string;
-	generatorKey: string;
-	blsKey: string;
+export interface BFTValidator {
+	address: Buffer;
+	bftWeight: bigint;
+	blsKey: Buffer;
 }
 
 export interface BFTParametersJSON {
 	prevoteThreshold: string;
 	precommitThreshold: string;
 	certificateThreshold: string;
-	validators: ValidatorJSON[];
+	validators: BFTValidatorJSON[];
 	validatorsHash: string;
+}
+
+export interface BFTParameters {
+	prevoteThreshold: bigint;
+	precommitThreshold: bigint;
+	certificateThreshold: bigint;
+	validators: BFTValidator[];
+	validatorsHash: Buffer;
 }

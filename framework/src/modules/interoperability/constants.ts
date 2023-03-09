@@ -43,14 +43,17 @@ export const MAX_MODULE_NAME_LENGTH = 32;
 export const MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH = 1;
 export const MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH = 32;
 export const CHAIN_ID_LENGTH = 4;
+// Value is in beddows
+export const MIN_RETURN_FEE_PER_BYTE_BEDDOWS = BigInt(1000);
+
+// Custom prefix for all the stores for interoperability.
+// It is hash('interoperability').slice(0, 4) but without changing the first byte unlike default store prefix
+export const STORE_PREFIX = Buffer.from([0x83, 0xed, 0x0d, 0x25]);
 
 // Cross chain command names
-export const CROSS_CHAIN_COMMAND_NAME_REGISTRATION = 'registration';
-export const CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED = 'channelTerminated';
-export const CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED = 'sidechainTerminated';
-
-// Cross chain commands
+export const CROSS_CHAIN_COMMAND_REGISTRATION = 'registration';
 export const CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED = 'channelTerminated';
+export const CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED = 'sidechainTerminated';
 
 export const enum CCMStatusCode {
 	// Value of status of a new CCM which is not a response due do an error
@@ -67,8 +70,6 @@ export const enum CCMStatusCode {
 	RECOVERED = 5,
 }
 
-export const MIN_RETURN_FEE = BigInt(1000);
-export const CROSS_CHAIN_COMMAND_REGISTRATION = 'crossChainCommandRegistration';
 export const CCM_SENT_STATUS_SUCCESS = 0;
 
 // Commands

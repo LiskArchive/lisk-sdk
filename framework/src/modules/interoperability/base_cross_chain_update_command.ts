@@ -18,7 +18,7 @@ import { CommandExecuteContext, CommandVerifyContext } from '../../state_machine
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import { BaseInteroperabilityMethod } from './base_interoperability_method';
-import { CCMStatusCode, EMPTY_BYTES, MIN_RETURN_FEE, EmptyCCM } from './constants';
+import { CCMStatusCode, EMPTY_BYTES, EmptyCCM } from './constants';
 import { CCMProcessedCode, CcmProcessedEvent, CCMProcessedResult } from './events/ccm_processed';
 import { CcmSendSuccessEvent } from './events/ccm_send_success';
 import { ccmSchema, crossChainUpdateTransactionParams } from './schemas';
@@ -363,7 +363,11 @@ export abstract class BaseCrossChainUpdateCommand<
 		ccmProcessedCode: CCMProcessedCode,
 	): Promise<void> {
 		const { ccm } = context;
-		const minFee = MIN_RETURN_FEE * BigInt(ccmSize);
+		const minReturnFeePerByte = await this._interopsMethod.getMinReturnFeePerByte(
+			context,
+			ccm.sendingChainID,
+		);
+		const minFee = minReturnFeePerByte * BigInt(ccmSize);
 		if (ccm.status !== CCMStatusCode.OK || ccm.fee < minFee) {
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				code: ccmProcessedCode,

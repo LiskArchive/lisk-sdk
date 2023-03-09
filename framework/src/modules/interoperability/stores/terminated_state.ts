@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseStore } from '../../base_store';
-import { HASH_LENGTH } from '../constants';
+import { HASH_LENGTH, STORE_PREFIX } from '../constants';
 
 export interface TerminatedStateAccount {
 	stateRoot: Buffer;
@@ -53,4 +53,8 @@ export const terminatedStateSchema = {
 
 export class TerminatedStateStore extends BaseStore<TerminatedStateAccount> {
 	public schema = terminatedStateSchema;
+
+	public get storePrefix(): Buffer {
+		return STORE_PREFIX;
+	}
 }

@@ -19,14 +19,19 @@ import { codec } from '@liskhq/lisk-codec';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
 import {
 	BLS_PUBLIC_KEY_LENGTH,
+	EMPTY_BYTES,
 	EMPTY_HASH,
 	HASH_LENGTH,
 	MESSAGE_TAG_CERTIFICATE,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 } from '../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
 import * as utils from '../../../../src/modules/interoperability/utils';
 import { MainchainInteroperabilityModule, testing } from '../../../../src';
-import { CrossChainUpdateTransactionParams } from '../../../../src/modules/interoperability/types';
+import {
+	CrossChainUpdateTransactionParams,
+	OwnChainAccount,
+} from '../../../../src/modules/interoperability/types';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
@@ -46,7 +51,10 @@ import { ChainAccountUpdatedEvent } from '../../../../src/modules/interoperabili
 import { TerminatedStateCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_state_created';
 import { createTransientMethodContext } from '../../../../src/testing';
 import { ChainValidatorsStore } from '../../../../src/modules/interoperability/stores/chain_validators';
-import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
+import {
+	certificateSchema,
+	unsignedCertificateSchema,
+} from '../../../../src/engine/consensus/certificate_generation/schema';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
 import { Certificate } from '../../../../src/engine/consensus/certificate_generation/types';
 import { TerminatedOutboxCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_outbox_created';
@@ -102,6 +110,7 @@ describe('Base interoperability internal method', () => {
 		outbox: outboxTree,
 		partnerChainOutboxRoot: Buffer.alloc(0),
 		messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	};
 	const chainAccount = {
 		name: 'account1',
@@ -139,12 +148,20 @@ describe('Base interoperability internal method', () => {
 	let chainDataSubstore: ChainAccountStore;
 	let chainValidatorsSubstore: ChainValidatorsStore;
 	let terminatedStateSubstore: TerminatedStateStore;
+	let ownChainAccountSubstore: OwnChainAccountStore;
 	let methodContext: MethodContext;
 	let storeContext: StoreGetter;
+	let ownChainAccount: OwnChainAccount;
 
 	beforeEach(async () => {
+		ownChainAccount = {
+			chainID: Buffer.from('04000000'),
+			name: 'mainchain',
+			nonce: BigInt(1),
+		};
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		regularMerkleTree.calculateMerkleRoot = jest.fn().mockReturnValue(updatedOutboxTree);
+		ownChainAccountSubstore = interopMod.stores.get(OwnChainAccountStore);
 		channelDataSubstore = interopMod.stores.get(ChannelDataStore);
 		jest.spyOn(channelDataSubstore, 'set');
 		outboxRootSubstore = interopMod.stores.get(OutboxRootStore);
@@ -163,6 +180,7 @@ describe('Base interoperability internal method', () => {
 		methodContext = createTransientMethodContext({ stateStore });
 		storeContext = createStoreGetter(stateStore);
 		await channelDataSubstore.set(methodContext, chainID, channelData);
+		await ownChainAccountSubstore.set(methodContext, EMPTY_BYTES, ownChainAccount);
 	});
 
 	describe('appendToInboxTree', () => {
@@ -205,11 +223,9 @@ describe('Base interoperability internal method', () => {
 			await mainchainInteroperabilityInternalMethod.addToOutbox(methodContext, chainID, ccm);
 
 			// Assert
-			expect(outboxRootSubstore.set).toHaveBeenCalledWith(
-				expect.anything(),
-				chainID,
-				updatedOutboxTree,
-			);
+			expect(outboxRootSubstore.set).toHaveBeenCalledWith(expect.anything(), chainID, {
+				root: updatedOutboxTree.root,
+			});
 		});
 	});
 
@@ -674,6 +690,7 @@ describe('Base interoperability internal method', () => {
 					size: 1,
 				},
 				partnerChainOutboxRoot: cryptoUtils.getRandomBytes(HASH_LENGTH),
+				minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 			});
 
 			await mainchainInteroperabilityInternalMethod.updatePartnerChainOutboxRoot(
@@ -1110,7 +1127,9 @@ describe('Base interoperability internal method', () => {
 			aggregationBits: cryptoUtils.getRandomBytes(38),
 			signature: cryptoUtils.getRandomBytes(32),
 		};
+		const { aggregationBits, signature, ...unsignedCertificate } = certificate;
 		const encodedCertificate = codec.encode(certificateSchema, certificate);
+		const encodedUnsignedCertificate = codec.encode(unsignedCertificateSchema, unsignedCertificate);
 		const txParams: CrossChainUpdateTransactionParams = {
 			certificate: encodedCertificate,
 			activeValidatorsUpdate,
@@ -1148,7 +1167,7 @@ describe('Base interoperability internal method', () => {
 				certificate.signature,
 				MESSAGE_TAG_CERTIFICATE,
 				txParams.sendingChainID,
-				txParams.certificate,
+				encodedUnsignedCertificate,
 				activeValidators.map(v => v.bftWeight),
 				txParams.certificateThreshold,
 			);
@@ -1346,7 +1365,7 @@ describe('Base interoperability internal method', () => {
 
 			const outboxKey = Buffer.concat([
 				interopMod.stores.get(OutboxRootStore).key,
-				cryptoUtils.hash(txParams.sendingChainID),
+				cryptoUtils.hash(ownChainAccount.chainID),
 			]);
 			expect(SparseMerkleTree.prototype.verify).toHaveBeenCalledWith(
 				certificate.stateRoot,
@@ -1356,7 +1375,7 @@ describe('Base interoperability internal method', () => {
 					queries: [
 						{
 							key: outboxKey,
-							value: codec.encode(outboxRootSchema, { root: nextRoot }),
+							value: cryptoUtils.hash(codec.encode(outboxRootSchema, { root: nextRoot })),
 							bitmap: txParams.inboxUpdate.outboxRootWitness.bitmap,
 						},
 					],

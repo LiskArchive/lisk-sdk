@@ -24,7 +24,7 @@ import { BaseCCMethod } from '../../../../../../src/modules/interoperability/bas
 import {
 	CCMStatusCode,
 	COMMAND_NAME_MESSAGE_RECOVERY,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	CROSS_CHAIN_COMMAND_REGISTRATION,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { RecoverMessageCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/recover_message';
@@ -132,7 +132,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				{
 					nonce: BigInt(0),
 					module: MODULE_NAME_INTEROPERABILITY,
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 					sendingChainID: utils.intToBuffer(2, 4),
 					receivingChainID: utils.intToBuffer(3, 4),
 					fee: BigInt(1),
@@ -142,7 +142,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				{
 					nonce: BigInt(1),
 					module: MODULE_NAME_INTEROPERABILITY,
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 					sendingChainID: utils.intToBuffer(4, 4),
 					receivingChainID: utils.intToBuffer(5, 4),
 					fee: BigInt(2),
@@ -246,7 +246,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				{
 					nonce: BigInt(0),
 					module: MODULE_NAME_INTEROPERABILITY,
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 					sendingChainID: utils.intToBuffer(2, 4),
 					receivingChainID: utils.intToBuffer(3, 4),
 					fee: BigInt(1),
@@ -279,7 +279,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				{
 					nonce: BigInt(0),
 					module: MODULE_NAME_INTEROPERABILITY,
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 					sendingChainID: utils.intToBuffer(2, 4),
 					receivingChainID: utils.intToBuffer(2, 4),
 					fee: BigInt(1),
@@ -315,7 +315,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				{
 					nonce: BigInt(0),
 					module: MODULE_NAME_INTEROPERABILITY,
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 					sendingChainID: utils.intToBuffer(2, 4),
 					receivingChainID: utils.intToBuffer(3, 4),
 					fee: BigInt(1),
@@ -350,7 +350,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				{
 					nonce: BigInt(0),
 					module: MODULE_NAME_INTEROPERABILITY,
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 					sendingChainID: utils.intToBuffer(2, 4),
 					receivingChainID: chainID,
 					fee: BigInt(1),
@@ -384,7 +384,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				{
 					nonce: BigInt(0),
 					module: MODULE_NAME_INTEROPERABILITY,
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 					sendingChainID: utils.intToBuffer(2, 4),
 					receivingChainID: utils.intToBuffer(3, 4),
 					fee: BigInt(1),
@@ -394,7 +394,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				{
 					nonce: BigInt(1),
 					module: MODULE_NAME_INTEROPERABILITY,
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 					sendingChainID: utils.intToBuffer(4, 4),
 					receivingChainID: utils.intToBuffer(3, 4),
 					fee: BigInt(2),
@@ -438,7 +438,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				{
 					nonce: BigInt(0),
 					module: MODULE_NAME_INTEROPERABILITY,
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 					sendingChainID: utils.intToBuffer(2, 4),
 					receivingChainID: chainID,
 					fee: BigInt(1),
@@ -528,7 +528,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				{
 					nonce: BigInt(0),
 					module: MODULE_NAME_INTEROPERABILITY,
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 					sendingChainID: utils.intToBuffer(2, 4),
 					receivingChainID: utils.intToBuffer(3, 4),
 					fee: BigInt(1),
@@ -538,7 +538,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				{
 					nonce: BigInt(1),
 					module: 'token',
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 					sendingChainID: utils.intToBuffer(2, 4),
 					receivingChainID: utils.intToBuffer(3, 4),
 					fee: BigInt(1),
@@ -598,7 +598,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				{
 					nonce: BigInt(0),
 					module: MODULE_NAME_INTEROPERABILITY,
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 					sendingChainID: getMainchainID(utils.intToBuffer(3, 4)),
 					receivingChainID: utils.intToBuffer(3, 4),
 					fee: BigInt(1),
@@ -637,7 +637,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 				{
 					nonce: BigInt(0),
 					module: MODULE_NAME_INTEROPERABILITY,
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 					sendingChainID: Buffer.from('abc', 'hex'),
 					receivingChainID: utils.intToBuffer(3, 4),
 					fee: BigInt(1),

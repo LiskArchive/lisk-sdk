@@ -15,7 +15,7 @@
 import { MAX_CCM_SIZE } from 'lisk-sdk';
 
 // LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#liveness-condition
-export const CCU_FREQUENCY = 864000; // Approximately 10 days which is 33% of 1 month liveness condition
+export const CCU_FREQUENCY = 1; // At each block
 export const EMPTY_BYTES = Buffer.alloc(0);
 export const MODULE_NAME_INTEROPERABILITY = 'interoperability';
 export const COMMAND_NAME_SUBMIT_MAINCHAIN_CCU = 'submitMainchainCrossChainUpdate';
@@ -27,18 +27,22 @@ export const BLS_PUBLIC_KEY_LENGTH = 48;
 export const HASH_LENGTH = 32;
 export const CCM_PROCESSED = 'ccmProcessed';
 export const CHAIN_ID_LENGTH = 4;
+export const DEFAULT_REGISTRATION_HEIGHT = 1;
+export const DEFAULT_LAST_CCM_SENT_NONCE = BigInt(-1);
 
 export const DB_KEY_CROSS_CHAIN_MESSAGES = Buffer.from([1]);
 export const DB_KEY_BLOCK_HEADERS = Buffer.from([2]);
 export const DB_KEY_AGGREGATE_COMMITS = Buffer.from([3]);
 export const DB_KEY_VALIDATORS_HASH_PREIMAGE = Buffer.from([4]);
+export const DB_KEY_LAST_SENT_CCM = Buffer.from([5]);
+export const DB_KEY_LIST_OF_CCU = Buffer.from([6]);
 
 /**
  * It’s not really MAX_CCU_SIZE, coz CCU includes other properties
  * It’s more max size of a CCM to be included in a mainchain block
  * MAX_CCM_SIZE
 
- * Max size of total CCM which can be included in a CCU
+ * Max size of total CCMs that can be included in a CCU
  * CCU_TOTAL_CCM_SIZE
  */
 export const CCU_TOTAL_CCM_SIZE = MAX_CCM_SIZE;

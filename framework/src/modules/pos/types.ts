@@ -164,17 +164,7 @@ export interface ValidatorAccount {
 	sharingCoefficients: StakeSharingCoefficient[];
 }
 
-export interface StakerDataJSON {
-	stakes: {
-		validatorAddress: string;
-		amount: string;
-	}[];
-	pendingUnlocks: {
-		validatorAddress: string;
-		amount: string;
-		unstakeHeight: number;
-	}[];
-}
+export type StakerDataJSON = JSONObject<StakerData>;
 
 export interface StakeObject {
 	validatorAddress: Buffer;

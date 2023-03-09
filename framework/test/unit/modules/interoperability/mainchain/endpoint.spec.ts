@@ -12,8 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { CHAIN_REGISTRATION_FEE } from '../../../../../src/modules/interoperability/constants';
+import { MainchainInteroperabilityModule } from '../../../../../src';
+import {
+	CHAIN_REGISTRATION_FEE,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
+} from '../../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityEndpoint } from '../../../../../src/modules/interoperability/mainchain/endpoint';
+import { RegisteredNamesStore } from '../../../../../src/modules/interoperability/stores/registered_names';
+import { createTransientModuleEndpointContext } from '../../../../../src/testing';
 
 describe('MainchainInteroperabilityEndpoint', () => {
 	let endpoint: MainchainInteroperabilityEndpoint;
@@ -30,6 +36,84 @@ describe('MainchainInteroperabilityEndpoint', () => {
 			const result = endpoint.getRegistrationFee();
 
 			expect(result).toEqual({ fee: CHAIN_REGISTRATION_FEE.toString() });
+		});
+	});
+
+	describe('getMinimumMessageFee', () => {
+		it('should return the message fee', () => {
+			const result = endpoint.getMinimumMessageFee();
+
+			expect(result).toEqual({ fee: MIN_RETURN_FEE_PER_BYTE_BEDDOWS.toString() });
+		});
+	});
+
+	describe('isChainNameAvailable', () => {
+		const interopMod = new MainchainInteroperabilityModule();
+		const registeredNamesStore = {
+			has: jest.fn(),
+		};
+		beforeEach(() => {
+			endpoint = new MainchainInteroperabilityEndpoint(
+				interopMod.stores,
+				offchainStoresMock as any,
+			);
+			interopMod.stores.register(RegisteredNamesStore, registeredNamesStore as never);
+		});
+
+		it('should throw error if name is not a string', async () => {
+			// Arrange
+			const context = createTransientModuleEndpointContext({
+				params: {
+					name: 1,
+				},
+			});
+
+			// Assert
+			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(
+				'Chain name must be a string.',
+			);
+		});
+
+		it('should throw error if name is invalid format', async () => {
+			// Arrange
+			const context = createTransientModuleEndpointContext({
+				params: {
+					name: '@*#$*%&@((%$#@((',
+				},
+			});
+
+			// Assert
+			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(
+				`Invalid name property. It should contain only characters from the set [a-z0-9!@$&_.].`,
+			);
+		});
+
+		it('should return false if name exists in the store', async () => {
+			// Arrange
+			jest.spyOn(registeredNamesStore, 'has').mockResolvedValue(true);
+			const context = createTransientModuleEndpointContext({
+				params: {
+					name: 'sidechain',
+				},
+			});
+
+			// Assert
+			await expect(endpoint.isChainNameAvailable(context)).resolves.toStrictEqual({
+				result: false,
+			});
+		});
+
+		it('should return true if name does not exist in the store', async () => {
+			// Arrange
+			jest.spyOn(registeredNamesStore, 'has').mockResolvedValue(false);
+			const context = createTransientModuleEndpointContext({
+				params: {
+					name: 'mitsuchain',
+				},
+			});
+
+			// Assert
+			await expect(endpoint.isChainNameAvailable(context)).resolves.toStrictEqual({ result: true });
 		});
 	});
 });

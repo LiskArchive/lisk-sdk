@@ -268,7 +268,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 	}
 
 	private _computeLastTwoRoundsHeights(numberOfValidators: number): number[] {
-		return new Array(Math.min(numberOfValidators * 2, this._chain.lastBlock.header.height))
+		return new Array(Math.min(numberOfValidators * 2, this._chain.lastBlock.header.height + 1))
 			.fill(0)
 			.map((_, index) => this._chain.lastBlock.header.height - index);
 	}

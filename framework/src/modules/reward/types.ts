@@ -25,12 +25,12 @@ export interface ModuleConfig {
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
 
 export interface TokenMethod {
-	mint: (
-		methodContext: MethodContext,
+	mint(methodContext: MethodContext, address: Buffer, id: Buffer, amount: bigint): Promise<void>;
+	userAccountExists(
+		methodContext: ImmutableMethodContext,
 		address: Buffer,
-		id: Buffer,
-		amount: bigint,
-	) => Promise<void>;
+		tokenID: Buffer,
+	): Promise<boolean>;
 }
 
 export interface RandomMethod {

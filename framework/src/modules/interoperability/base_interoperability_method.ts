@@ -102,6 +102,25 @@ export abstract class BaseInteroperabilityMethod<
 		return (await this.getChannel(context, updatedChainID)).messageFeeTokenID;
 	}
 
+	public async getMinReturnFeePerByte(
+		context: ImmutableMethodContext,
+		chainID: Buffer,
+	): Promise<bigint> {
+		const ownChainAccount = await this.getOwnChainAccount(context);
+		const mainchainID = getMainchainID(chainID);
+		const updatedChainID =
+			!ownChainAccount.chainID.equals(mainchainID) &&
+			!(await this.stores.get(ChainAccountStore).has(context, chainID))
+				? mainchainID
+				: chainID;
+
+		if (!(await this.stores.get(ChannelDataStore).has(context, updatedChainID))) {
+			throw new Error('Channel does not exist.');
+		}
+
+		return (await this.getChannel(context, updatedChainID)).minReturnFeePerByte;
+	}
+
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async send(
 		context: MethodContext,

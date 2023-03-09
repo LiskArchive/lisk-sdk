@@ -17,9 +17,10 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { MainchainInteroperabilityModule } from '../../../../../src';
 import {
 	CCMStatusCode,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	CROSS_CHAIN_COMMAND_REGISTRATION,
 	MODULE_NAME_INTEROPERABILITY,
 	HASH_LENGTH,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 } from '../../../../../src/modules/interoperability/constants';
 import { MainchainCCRegistrationCommand } from '../../../../../src/modules/interoperability/mainchain/cc_commands';
 import { registrationCCMParamsSchema } from '../../../../../src/modules/interoperability/schemas';
@@ -64,6 +65,7 @@ describe('BaseCCRegistrationCommand', () => {
 		chainID: mainchainID,
 		name: ownChainAccountMainchain.name,
 		messageFeeTokenID,
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	};
 	const encodedRegistrationParams = codec.encode(
 		registrationCCMParamsSchema,
@@ -83,6 +85,7 @@ describe('BaseCCRegistrationCommand', () => {
 			size: 1,
 		},
 		partnerChainOutboxRoot: Buffer.alloc(0),
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	};
 
 	const fakeChainAccount = {
@@ -103,7 +106,7 @@ describe('BaseCCRegistrationCommand', () => {
 	interopMod.events.register(ChainAccountUpdatedEvent, chainAccountUpdatedEventMock as never);
 
 	const buildCCM = (obj: Partial<CCMsg>) => ({
-		crossChainCommand: obj.crossChainCommand ?? CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+		crossChainCommand: obj.crossChainCommand ?? CROSS_CHAIN_COMMAND_REGISTRATION,
 		fee: obj.fee ?? BigInt(0),
 		module: obj.module ?? MODULE_NAME_INTEROPERABILITY,
 		nonce: obj.nonce ?? BigInt(0),
@@ -244,7 +247,21 @@ describe('BaseCCRegistrationCommand', () => {
 				}),
 			);
 			await expect(ccRegistrationCommand.verify(sampleExecuteContext)).rejects.toThrow(
-				'Registration message must contain the same message fee token ID as the chain account.',
+				'Registration message must contain the same message fee token ID as the channel account.',
+			);
+		});
+
+		it('should fail if channel.minReturnFeePerByte !== ccmRegistrationParams.minReturnFeePerByte', async () => {
+			sampleExecuteContext = createContext(
+				buildCCM({
+					params: codec.encode(registrationCCMParamsSchema, {
+						...ccmRegistrationParams,
+						minReturnFeePerByte: '1',
+					}),
+				}),
+			);
+			await expect(ccRegistrationCommand.verify(sampleExecuteContext)).rejects.toThrow(
+				'Registration message must contain the same minimum return fee per byte as the channel account.',
 			);
 		});
 

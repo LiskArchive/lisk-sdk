@@ -53,7 +53,7 @@ export class AuthModule extends BaseModule {
 
 	public constructor() {
 		super();
-		this.stores.register(AuthAccountStore, new AuthAccountStore(this.name));
+		this.stores.register(AuthAccountStore, new AuthAccountStore(this.name, 0));
 		this.events.register(
 			MultisignatureRegistrationEvent,
 			new MultisignatureRegistrationEvent(this.name),

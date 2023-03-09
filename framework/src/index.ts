@@ -53,7 +53,12 @@ export type { EventsDefinition, EventCallback } from './controller/event';
 export * as testing from './testing';
 export * from './types';
 export { ValidatorsMethod, ValidatorsModule } from './modules/validators';
-export { AuthMethod, AuthModule, multisigRegMsgSchema } from './modules/auth';
+export {
+	AuthMethod,
+	AuthModule,
+	multisigRegMsgSchema,
+	genesisAuthStoreSchema as authGenesisStoreSchema,
+} from './modules/auth';
 export {
 	TokenMethod,
 	TokenModule,
@@ -145,3 +150,4 @@ export {
 	certificateSchema,
 	unsignedCertificateSchema,
 } from './engine/consensus';
+export { applicationConfigSchema } from './schema';

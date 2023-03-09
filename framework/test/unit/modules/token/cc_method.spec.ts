@@ -36,7 +36,7 @@ import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
 import { BeforeCCCExecutionEvent } from '../../../../src/modules/token/events/before_ccc_execution';
 import { BeforeCCMForwardingEvent } from '../../../../src/modules/token/events/before_ccm_forwarding';
 import { RecoverEvent } from '../../../../src/modules/token/events/recover';
-import { CROSS_CHAIN_COMMAND_NAME_REGISTRATION } from '../../../../src/modules/interoperability/constants';
+import { CROSS_CHAIN_COMMAND_REGISTRATION } from '../../../../src/modules/interoperability/constants';
 
 describe('TokenInteroperableMethod', () => {
 	const tokenModule = new TokenModule();
@@ -305,7 +305,7 @@ describe('TokenInteroperableMethod', () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainMessageForwarding({
 					ccm: {
-						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+						crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
@@ -480,7 +480,7 @@ describe('TokenInteroperableMethod', () => {
 				tokenInteropMethod.recover({
 					...createRecoverContext(stateStore),
 					storeKey: Buffer.concat([defaultAddress, defaultTokenID]),
-					substorePrefix: Buffer.from([0, 0]),
+					substorePrefix: Buffer.from([0xff, 0xff]),
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultAccount.availableBalance * BigInt(2),
 						lockedBalances: [{ module: 'dpos', amount: BigInt(20) }],

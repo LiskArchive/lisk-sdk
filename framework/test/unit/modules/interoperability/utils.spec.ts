@@ -20,12 +20,13 @@ import { SparseMerkleTree } from '@liskhq/lisk-db';
 import { MainchainInteroperabilityModule, VerifyStatus } from '../../../../src';
 import {
 	CCMStatusCode,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+	CROSS_CHAIN_COMMAND_REGISTRATION,
+	CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 	EMPTY_BYTES,
 	HASH_LENGTH,
 	LIVENESS_LIMIT,
 	MAX_CCM_SIZE,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../src/modules/interoperability/constants';
 import { ccmSchema } from '../../../../src/modules/interoperability/schemas';
@@ -431,13 +432,14 @@ describe('Utils', () => {
 			messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
 			outbox: outboxTree,
 			partnerChainOutboxRoot,
+			minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 		};
 
 		const defaultSendingChainID = utils.intToBuffer(20, 4);
 
 		const defaultCCMs = [
 			{
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 				fee: BigInt(0),
 				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(1),
@@ -460,7 +462,7 @@ describe('Utils', () => {
 
 		const inboxUpdateCCMs = [
 			{
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 				fee: BigInt(0),
 				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(2),
@@ -746,7 +748,7 @@ describe('Utils', () => {
 
 	describe('validateFormat', () => {
 		const buildCCM = (obj: Partial<CCMsg>) => ({
-			crossChainCommand: obj.crossChainCommand ?? CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+			crossChainCommand: obj.crossChainCommand ?? CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 			fee: obj.fee ?? BigInt(0),
 			module: obj.module ?? MODULE_NAME_INTEROPERABILITY,
 			nonce: obj.nonce ?? BigInt(1),

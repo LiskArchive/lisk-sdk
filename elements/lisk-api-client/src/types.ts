@@ -77,7 +77,7 @@ export interface ModuleMetadata {
 	commands: {
 		id: string;
 		name: string;
-		params?: Schema;
+		params: Schema;
 	}[];
 	assets: {
 		version: number;
@@ -85,7 +85,7 @@ export interface ModuleMetadata {
 	}[];
 	stores: {
 		key: string;
-		data?: Schema;
+		data: Schema;
 	}[];
 }
 

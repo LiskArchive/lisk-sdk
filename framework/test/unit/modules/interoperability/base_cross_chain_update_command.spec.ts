@@ -26,10 +26,10 @@ import { BaseCrossChainUpdateCommand } from '../../../../src/modules/interoperab
 import { BaseCCMethod } from '../../../../src/modules/interoperability/base_cc_method';
 import {
 	CCMStatusCode,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+	CROSS_CHAIN_COMMAND_REGISTRATION,
+	CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 	HASH_LENGTH,
-	MIN_RETURN_FEE,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
 	EMPTY_BYTES,
 	EmptyCCM,
@@ -119,7 +119,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		inboxUpdate: {
 			crossChainMessages: [
 				{
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 					fee: BigInt(0),
 					module: MODULE_NAME_INTEROPERABILITY,
 					nonce: BigInt(1),
@@ -129,7 +129,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: CCMStatusCode.OK,
 				},
 				{
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+					crossChainCommand: CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 					fee: BigInt(0),
 					module: MODULE_NAME_INTEROPERABILITY,
 					nonce: BigInt(1),
@@ -181,6 +181,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			size: 18,
 		},
 		partnerChainOutboxRoot: utils.getRandomBytes(32),
+		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	};
 	const defaultCCM = {
 		nonce: BigInt(0),
@@ -243,6 +244,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		command.init(
 			{
 				getMessageFeeTokenID: jest.fn().mockResolvedValue(messageFeeTokenID),
+				getMinReturnFeePerByte: jest.fn().mockResolvedValue(BigInt(10000000)),
 			} as any,
 			{
 				initializeUserAccount: jest.fn(),
@@ -532,7 +534,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 		it('should terminate the chain and add an event when CCM sending chain and ccu sending chain is not the same', async () => {
 			const ccm = {
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 				fee: BigInt(0),
 				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(1),
@@ -583,7 +585,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		it('should terminate the chain and add an event when receiving chain is the same as sending chain', async () => {
 			const sendingChainID = chainID;
 			const ccm = {
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 				fee: BigInt(0),
 				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(1),
@@ -632,7 +634,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 		it('should terminate the chain and add an event when CCM is not directed to the sidechain', async () => {
 			const ccm = {
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 				fee: BigInt(0),
 				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(1),
@@ -678,7 +680,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 		it('should reject with terminate the chain and add an event when ccm status is CCMStatusCode.CHANNEL_UNAVAILABLE and mainchain is true', async () => {
 			const ccm = {
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 				fee: BigInt(0),
 				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(1),
@@ -737,7 +739,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 							...params.inboxUpdate,
 							crossChainMessages: [
 								codec.encode(ccmSchema, {
-									crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+									crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 									fee: BigInt(0),
 									module: MODULE_NAME_INTEROPERABILITY,
 									nonce: BigInt(1),
@@ -1110,6 +1112,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 	describe('bounce', () => {
 		const ccmStatus = CCMStatusCode.MODULE_NOT_SUPPORTED;
 		const ccmProcessedEventCode = CCMProcessedCode.MODULE_NOT_SUPPORTED;
+		// See LIP 45 and getMinReturnFeePerByte implementation for fee calculation breakdown
+		const expectedFee = BigInt(99000000000);
 		let stateStore: PrefixedStateReadWriter;
 
 		beforeEach(async () => {
@@ -1199,7 +1203,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: ccmStatus,
 					sendingChainID: defaultCCM.receivingChainID,
 					receivingChainID: defaultCCM.sendingChainID,
-					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
+					fee: expectedFee,
 				},
 			);
 		});
@@ -1235,7 +1239,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: ccmStatus,
 					sendingChainID: defaultCCM.receivingChainID,
 					receivingChainID: defaultCCM.sendingChainID,
-					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
+					fee: expectedFee,
 				},
 			);
 		});
@@ -1265,12 +1269,12 @@ describe('BaseCrossChainUpdateCommand', () => {
 					status: ccmStatus,
 					sendingChainID: defaultCCM.receivingChainID,
 					receivingChainID: defaultCCM.sendingChainID,
-					fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
+					fee: expectedFee,
 				},
 			);
 		});
 
-		it('should log the event with the new boucing ccm', async () => {
+		it('should log the event with the new bouncing ccm', async () => {
 			context = createCrossChainMessageContext({
 				ccm: {
 					...defaultCCM,
@@ -1306,7 +1310,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 						status: ccmStatus,
 						sendingChainID: defaultCCM.receivingChainID,
 						receivingChainID: defaultCCM.sendingChainID,
-						fee: context.ccm.fee - BigInt(100) * MIN_RETURN_FEE,
+						fee: expectedFee,
 					},
 				},
 			);

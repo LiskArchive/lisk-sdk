@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { CCMStatusCode, CROSS_CHAIN_COMMAND_NAME_REGISTRATION, EMPTY_BYTES } from '../constants';
+import { CCMStatusCode, CROSS_CHAIN_COMMAND_REGISTRATION, EMPTY_BYTES } from '../constants';
 import { registrationCCMParamsSchema } from '../schemas';
 import {
 	CCMRegistrationParams,
@@ -34,7 +34,7 @@ export abstract class BaseCCRegistrationCommand<
 	public schema = registrationCCMParamsSchema;
 
 	public get name(): string {
-		return CROSS_CHAIN_COMMAND_NAME_REGISTRATION;
+		return CROSS_CHAIN_COMMAND_REGISTRATION;
 	}
 
 	/**
@@ -78,13 +78,17 @@ export abstract class BaseCCRegistrationCommand<
 		if (!ownChainAccount.chainID.equals(ccmRegistrationParams.chainID)) {
 			throw new Error('Registration message must contain the chain ID of the receiving chain.');
 		}
-
 		if (ownChainAccount.name !== ccmRegistrationParams.name) {
 			throw new Error('Registration message must contain the name of the registered chain.');
 		}
 		if (!channel.messageFeeTokenID.equals(ccmRegistrationParams.messageFeeTokenID)) {
 			throw new Error(
-				'Registration message must contain the same message fee token ID as the chain account.',
+				'Registration message must contain the same message fee token ID as the channel account.',
+			);
+		}
+		if (channel.minReturnFeePerByte !== ccmRegistrationParams.minReturnFeePerByte) {
+			throw new Error(
+				'Registration message must contain the same minimum return fee per byte as the channel account.',
 			);
 		}
 		const mainchainID = getMainchainID(ctx.chainID);

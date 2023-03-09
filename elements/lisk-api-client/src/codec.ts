@@ -53,7 +53,7 @@ const standardEventDataSchema = {
 export const getTransactionParamsSchema = (
 	transaction: { module: string; command: string },
 	metadata: ModuleMetadata[],
-): Schema | undefined => {
+): Schema => {
 	const moduleMeta = metadata.find(meta => meta.name === transaction.module);
 	if (!moduleMeta) {
 		throw new Error(`Module: ${transaction.module} is not registered.`);
@@ -111,7 +111,7 @@ export const decodeTransactionParams = <T>(
 	const paramsSchema = getTransactionParamsSchema(transaction, metadata);
 	return {
 		...transaction,
-		params: paramsSchema ? codec.decode<T>(paramsSchema, transaction.params) : ({} as T),
+		params: codec.decode<T>(paramsSchema, transaction.params),
 	};
 };
 
@@ -131,7 +131,7 @@ export const decodeTransaction = <T = Record<string, unknown>>(
 ): DecodedTransaction<T> => {
 	const transaction = codec.decode<Transaction>(registeredSchema.transaction, encodedTransaction);
 	const paramsSchema = getTransactionParamsSchema(transaction, metadata);
-	const params = paramsSchema ? codec.decode<T>(paramsSchema, transaction.params) : ({} as T);
+	const params = codec.decode<T>(paramsSchema, transaction.params);
 	const id = utils.hash(encodedTransaction);
 	return {
 		...transaction,
@@ -148,7 +148,7 @@ export const encodeTransaction = (
 	let encodedParams;
 	if (!Buffer.isBuffer(transaction.params)) {
 		const paramsSchema = getTransactionParamsSchema(transaction, metadata);
-		encodedParams = paramsSchema ? codec.encode(paramsSchema, transaction.params) : Buffer.alloc(0);
+		encodedParams = codec.encode(paramsSchema, transaction.params);
 	} else {
 		encodedParams = transaction.params;
 	}
@@ -173,11 +173,9 @@ export const fromTransactionJSON = <T = Record<string, unknown>>(
 	});
 	let params: T;
 	if (typeof transaction.params === 'string') {
-		params = paramsSchema
-			? codec.decode<T>(paramsSchema, Buffer.from(transaction.params, 'hex'))
-			: ({} as T);
+		params = codec.decode<T>(paramsSchema, Buffer.from(transaction.params, 'hex'));
 	} else {
-		params = paramsSchema ? codec.fromJSON<T>(paramsSchema, transaction.params) : ({} as T);
+		params = codec.fromJSON<T>(paramsSchema, transaction.params);
 	}
 
 	return {
@@ -196,7 +194,7 @@ export const toTransactionJSON = <T = Record<string, unknown>>(
 	if (Buffer.isBuffer(transaction.params)) {
 		return {
 			...codec.toJSON(registeredSchema.transaction, transaction),
-			params: paramsSchema ? codec.decodeJSON(paramsSchema, transaction.params) : ({} as T),
+			params: codec.decodeJSON(paramsSchema, transaction.params),
 			id: transaction.id.toString('hex'),
 		};
 	}
@@ -205,9 +203,7 @@ export const toTransactionJSON = <T = Record<string, unknown>>(
 			...transaction,
 			params: Buffer.alloc(0),
 		}),
-		params: paramsSchema
-			? codec.toJSON(paramsSchema, transaction.params as Record<string, unknown>)
-			: ({} as T),
+		params: codec.toJSON(paramsSchema, transaction.params as Record<string, unknown>),
 		id: transaction.id.toString('hex'),
 	};
 };
@@ -407,9 +403,7 @@ export const decodeBlockJSON = (block: BlockJSON, metadata: ModuleMetadata[]): D
 	for (const transaction of block.transactions) {
 		const params = Buffer.from(transaction.params, 'hex');
 		const paramsSchema = getTransactionParamsSchema(transaction, metadata);
-		const paramsJSON = paramsSchema
-			? codec.decodeJSON<Record<string, unknown>>(paramsSchema, params)
-			: {};
+		const paramsJSON = codec.decodeJSON<Record<string, unknown>>(paramsSchema, params);
 		transactions.push({
 			...transaction,
 			params: paramsJSON,

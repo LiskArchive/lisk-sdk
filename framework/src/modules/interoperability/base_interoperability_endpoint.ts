@@ -61,9 +61,8 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 
 	public async getChannel(context: ModuleEndpointContext): Promise<ChannelDataJSON> {
 		const chainID = Buffer.from(context.params.chainID as string, 'hex');
-		const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot } = await this.stores
-			.get(ChannelDataStore)
-			.get(context, chainID);
+		const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot, minReturnFeePerByte } =
+			await this.stores.get(ChannelDataStore).get(context, chainID);
 
 		const inboxJSON = this._toBoxJSON(inbox) as InboxJSON;
 		const outboxJSON = this._toBoxJSON(outbox) as OutboxJSON;
@@ -73,6 +72,7 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 			outbox: outboxJSON,
 			inbox: inboxJSON,
 			partnerChainOutboxRoot: partnerChainOutboxRoot.toString('hex'),
+			minReturnFeePerByte: minReturnFeePerByte.toString(),
 		};
 	}
 

@@ -28,14 +28,13 @@ import {
 	getChainValidatorsRequestSchema,
 	getChainValidatorsResponseSchema,
 	isChainIDAvailableRequestSchema,
+	getMinimumMessageFeeResponseSchema,
+	isChainNameAvailableRequestSchema,
+	isChainNameAvailableResponseSchema,
 } from '../schemas';
-import {
-	chainDataSchema,
-	allChainAccountsSchema,
-	ChainAccountStore,
-} from '../stores/chain_account';
-import { ChannelDataStore, channelSchema } from '../stores/channel_data';
-import { ownChainAccountSchema, OwnChainAccountStore } from '../stores/own_chain_account';
+import { chainDataSchema, allChainAccountsSchema } from '../stores/chain_account';
+import { channelSchema } from '../stores/channel_data';
+import { ownChainAccountSchema } from '../stores/own_chain_account';
 import { terminatedStateSchema } from '../stores/terminated_state';
 import { terminatedOutboxSchema } from '../stores/terminated_outbox';
 import { TokenMethod } from '../../token';
@@ -47,9 +46,6 @@ import {
 } from './commands';
 import { CcmProcessedEvent } from '../events/ccm_processed';
 import { ChainAccountUpdatedEvent } from '../events/chain_account_updated';
-import { RegisteredNamesStore } from '../stores/registered_names';
-import { OutboxRootStore } from '../stores/outbox_root';
-import { ChainValidatorsStore } from '../stores/chain_validators';
 import { CcmSendSuccessEvent } from '../events/ccm_send_success';
 import { TerminatedStateCreatedEvent } from '../events/terminated_state_created';
 import { TerminatedOutboxCreatedEvent } from '../events/terminated_outbox_created';
@@ -58,6 +54,8 @@ import { InitializeMessageRecoveryCommand } from './commands/initialize_message_
 import { FeeMethod } from '../types';
 import { MainchainCCChannelTerminatedCommand, MainchainCCRegistrationCommand } from './cc_commands';
 import { RecoverStateCommand } from './commands/recover_state';
+import { CcmSentFailedEvent } from '../events/ccm_send_fail';
+import { InvalidRegistrationSignatureEvent } from '../events/invalid_registration_signature';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
@@ -147,15 +145,14 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 
 	public constructor() {
 		super();
-		this.stores.register(RegisteredNamesStore, new RegisteredNamesStore(this.name));
-		this.stores.register(ChainAccountStore, new ChainAccountStore(this.name));
-		this.stores.register(OwnChainAccountStore, new OwnChainAccountStore(this.name));
-		this.stores.register(ChannelDataStore, new ChannelDataStore(this.name));
-		this.stores.register(OutboxRootStore, new OutboxRootStore(this.name));
-		this.stores.register(ChainValidatorsStore, new ChainValidatorsStore(this.name));
 		this.events.register(ChainAccountUpdatedEvent, new ChainAccountUpdatedEvent(this.name));
 		this.events.register(CcmProcessedEvent, new CcmProcessedEvent(this.name));
 		this.events.register(CcmSendSuccessEvent, new CcmSendSuccessEvent(this.name));
+		this.events.register(CcmSentFailedEvent, new CcmSentFailedEvent(this.name));
+		this.events.register(
+			InvalidRegistrationSignatureEvent,
+			new InvalidRegistrationSignatureEvent(this.name),
+		);
 		this.events.register(TerminatedStateCreatedEvent, new TerminatedStateCreatedEvent(this.name));
 		this.events.register(TerminatedOutboxCreatedEvent, new TerminatedOutboxCreatedEvent(this.name));
 	}
@@ -203,6 +200,10 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 					response: getRegistrationFeeSchema,
 				},
 				{
+					name: this.endpoint.getMinimumMessageFee.name,
+					response: getMinimumMessageFeeResponseSchema,
+				},
+				{
 					name: this.endpoint.getChainValidators.name,
 					request: getChainValidatorsRequestSchema,
 					response: getChainValidatorsResponseSchema,
@@ -211,6 +212,11 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 					name: this.endpoint.isChainIDAvailable.name,
 					request: isChainIDAvailableRequestSchema,
 					response: isChainIDAvailableResponseSchema,
+				},
+				{
+					name: this.endpoint.isChainNameAvailable.name,
+					request: isChainNameAvailableRequestSchema,
+					response: isChainNameAvailableResponseSchema,
 				},
 			],
 			assets: [

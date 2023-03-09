@@ -44,8 +44,7 @@ describe('validator', () => {
 				properties: {},
 			};
 
-			const msg =
-				'Lisk validator found 2 error[s]:\nmust be equal to constant\nmust NOT have fewer than 1 items';
+			const msg = 'Lisk validator found 1 error[s]:\nmust be equal to constant';
 			expect(() => validator.validateSchema(invalidSchema)).toThrow(msg);
 		});
 
@@ -109,12 +108,11 @@ describe('validator', () => {
 			expect(() => validator.validateSchema(invalidSchema)).toThrow(msg);
 		});
 
-		it('should return error when "properties" are empty object', () => {
-			const invalidSchema = cloneDeep(validSchema);
-			delete invalidSchema.properties.myProp;
+		it('should not return error when "properties" are empty object', () => {
+			const emptySchema = cloneDeep(validSchema);
+			delete emptySchema.properties.myProp;
 
-			const msg = 'Lisk validator found 1 error[s]:\nmust NOT have fewer than 1 items';
-			expect(() => validator.validateSchema(invalidSchema)).toThrow(msg);
+			expect(() => validator.validateSchema(emptySchema)).not.toThrow();
 		});
 	});
 });

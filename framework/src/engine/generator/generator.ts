@@ -87,6 +87,7 @@ interface GeneratorInitArgs {
 	generatorDB: Database;
 	blockchainDB: Database;
 	logger: Logger;
+	genesisBlockHeight: number;
 }
 
 const BLOCK_VERSION = 2;
@@ -112,6 +113,7 @@ export class Generator {
 	private _logger!: Logger;
 	private _generatorDB!: Database;
 	private _blockchainDB!: Database;
+	private _genesisBlockHeight!: number;
 
 	public constructor(args: GeneratorArgs) {
 		this._abi = args.abi;
@@ -154,7 +156,10 @@ export class Generator {
 			pool: this._pool,
 		});
 		this._generationJob = new jobHandlers.Scheduler(
-			async () => this._generateLoop(),
+			async () =>
+				this._generateLoop().catch(err => {
+					this._logger.error({ err: err as Error }, 'Failed to generate a block');
+				}),
 			FORGE_INTERVAL,
 		);
 	}
@@ -163,12 +168,14 @@ export class Generator {
 		this._logger = args.logger;
 		this._generatorDB = args.generatorDB;
 		this._blockchainDB = args.blockchainDB;
+		this._genesisBlockHeight = args.genesisBlockHeight;
 
 		this._broadcaster.init({
 			logger: this._logger,
 		});
 		this._endpoint.init({
 			generatorDB: this._generatorDB,
+			genesisBlockHeight: this._genesisBlockHeight,
 		});
 		this._networkEndpoint.init({
 			logger: this._logger,
@@ -200,16 +207,12 @@ export class Generator {
 
 		const stateStore = new StateStore(this._blockchainDB);
 
-		// On node start, it re generates certificate from maxHeightCertified to maxHeightPrecommitted.
-		// in the _handleFinalizedHeightChanged, it loops between maxHeightCertified + 1 and  maxHeightPrecommitted.
-		// maxHeightCertified is skipped because it has been already certified.
+		// On node start, it re generates certificate from maxRemovalHeight to maxHeightPrecommitted.
+		// in the _handleFinalizedHeightChanged, it loops between maxRemovalHeight + 1 and  maxHeightPrecommitted.
 		// @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#initial-single-commit-creation
-		const { maxHeightPrecommitted, maxHeightCertified } = await this._bft.method.getBFTHeights(
-			stateStore,
-		);
-		await Promise.all(
-			this._handleFinalizedHeightChanged(maxHeightCertified, maxHeightPrecommitted),
-		);
+		const maxRemovalHeight = await this._consensus.getMaxRemovalHeight();
+		const { maxHeightPrecommitted } = await this._bft.method.getBFTHeights(stateStore);
+		await Promise.all(this._handleFinalizedHeightChanged(maxRemovalHeight, maxHeightPrecommitted));
 	}
 
 	public get endpoint(): Endpoint {
@@ -544,7 +547,8 @@ export class Generator {
 		});
 		const blockAssets = new BlockAssets(assets);
 
-		await this._bft.beforeTransactionsExecute(stateStore, blockHeader);
+		const maxRemovalHeight = await this._consensus.getMaxRemovalHeight();
+		await this._bft.beforeTransactionsExecute(stateStore, blockHeader, maxRemovalHeight);
 		const { events: beforeTxsEvents } = await this._abi.beforeTransactionsExecute({
 			contextID,
 			assets: blockAssets.getAll(),
