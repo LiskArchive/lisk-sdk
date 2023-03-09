@@ -48,13 +48,16 @@ import { RegisteredNamesStore } from '../../stores/registered_names';
 import { ChainAccountUpdatedEvent } from '../../events/chain_account_updated';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { CcmSendSuccessEvent } from '../../events/ccm_send_success';
+import { TokenMethod } from '../../../token';
 
 export class RegisterSidechainCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = sidechainRegParams;
 	private _feeMethod!: FeeMethod;
+	private _tokenMethod!: TokenMethod;
 
-	public addDependencies(feeMethod: FeeMethod) {
+	public addDependencies(feeMethod: FeeMethod, tokenMethod: TokenMethod) {
 		this._feeMethod = feeMethod;
+		this._tokenMethod = tokenMethod;
 	}
 
 	public async verify(
@@ -232,6 +235,12 @@ export class RegisterSidechainCommand extends BaseInteroperabilityCommand<Mainch
 		await registeredNamesSubstore.set(context, Buffer.from(name, 'ascii'), { chainID });
 
 		this._feeMethod.payFee(context.getMethodContext(), CHAIN_REGISTRATION_FEE);
+
+		await this._tokenMethod.initializeEscrowAccount(
+			context.getMethodContext(),
+			chainID,
+			mainchainTokenID,
+		);
 
 		// Emit chain account updated event.
 		this.events.get(ChainAccountUpdatedEvent).log(methodContext, chainID, sidechainAccount);
