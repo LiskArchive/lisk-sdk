@@ -64,7 +64,7 @@ export class ChangeCommissionCommand extends BaseCommand {
 			context.header.height - validatorData.lastCommissionIncreaseHeight <
 			this._commissionIncreasePeriod;
 
-		if (context.params.newCommission >= oldCommission && hasIncreasedCommissionRecently) {
+		if (context.params.newCommission > oldCommission && hasIncreasedCommissionRecently) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(

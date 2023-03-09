@@ -14,7 +14,7 @@
 
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { utils } from '@liskhq/lisk-cryptography';
+import { utils, address } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../../../src/testing';
 import { ChangeCommissionCommand } from '../../../../../src/modules/pos/commands/change_commission';
 import { changeCommissionCommandParamsSchema as schema } from '../../../../../src/modules/pos/schemas';
@@ -45,8 +45,6 @@ describe('Change Commission command', () => {
 	let validatorStore: ValidatorStore;
 	let commissionChangedEvent: CommissionChangeEvent;
 
-	const publicKey = utils.getRandomBytes(32);
-
 	const validatorDetails = {
 		name: 'PamelaAnderson',
 		totalStake: BigInt(0),
@@ -60,20 +58,15 @@ describe('Change Commission command', () => {
 		sharingCoefficients: [],
 	};
 
-	const commandParams: ChangeCommissionParams = {
-		newCommission: validatorDetails.commission + MAX_COMMISSION_INCREASE_RATE - 1,
-	};
-	const encodedCommandParams = codec.encode(schema, commandParams);
-	const transactionDetails = {
+	const transactionTemplate = {
 		module: 'pos',
 		command: changeCommissionCommand.name,
-		senderPublicKey: publicKey,
+		senderPublicKey: utils.getRandomBytes(32),
 		nonce: BigInt(0),
 		fee: BigInt(100000000),
-		params: encodedCommandParams,
+		params: Buffer.alloc(0),
 		signatures: [utils.getRandomBytes(64)],
 	};
-	let transaction = new Transaction(transactionDetails);
 
 	// TODO: move this function to utils and import from all other tests using it
 	const checkEventResult = (
@@ -101,7 +94,7 @@ describe('Change Commission command', () => {
 
 		await validatorStore.set(
 			createStoreGetter(stateStore),
-			transaction.senderAddress,
+			address.getAddressFromPublicKey(transactionTemplate.senderPublicKey),
 			validatorDetails,
 		);
 
@@ -110,7 +103,11 @@ describe('Change Commission command', () => {
 	});
 
 	describe('verify', () => {
-		it('should return status OK for valid params', async () => {
+		it('should return status OK for a commission INCREASE requested AFTER commission increase period has expired', async () => {
+			const newCommission = validatorDetails.commission + MAX_COMMISSION_INCREASE_RATE;
+			const params = codec.encode(schema, { newCommission });
+			const transaction = new Transaction({ ...transactionTemplate, params });
+
 			const context = testing
 				.createTransactionContext({
 					stateStore,
@@ -124,7 +121,68 @@ describe('Change Commission command', () => {
 			expect(result.status).toBe(VerifyStatus.OK);
 		});
 
+		it('should return error for a commission INCREASE requested BEFORE commission increase period has expired', async () => {
+			const newCommission = validatorDetails.commission + MAX_COMMISSION_INCREASE_RATE;
+			const params = codec.encode(schema, { newCommission });
+			const transaction = new Transaction({ ...transactionTemplate, params });
+
+			const context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					header: createFakeBlockHeader({ height: 8 }),
+				})
+				.createCommandVerifyContext<ChangeCommissionParams>(schema);
+
+			const result = await changeCommissionCommand.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
+				`Can only increase the commission again ${COMMISSION_INCREASE_PERIOD} blocks after the last commission increase.`,
+			);
+		});
+
+		it('should return status OK for a commission DECREASE requested BEFORE commission increase period has expired', async () => {
+			const newCommission = validatorDetails.commission - 1;
+			const params = codec.encode(schema, { newCommission });
+			const transaction = new Transaction({ ...transactionTemplate, params });
+
+			const context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					header: createFakeBlockHeader({ height: 8 }),
+				})
+				.createCommandVerifyContext<ChangeCommissionParams>(schema);
+
+			const result = await changeCommissionCommand.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.OK);
+		});
+
+		it('should return status OK when setting EQUAL commission BEFORE commission increase period has expired', async () => {
+			const newCommission = validatorDetails.commission;
+			const params = codec.encode(schema, { newCommission });
+			const transaction = new Transaction({ ...transactionTemplate, params });
+
+			const context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					header: createFakeBlockHeader({ height: 8 }),
+				})
+				.createCommandVerifyContext<ChangeCommissionParams>(schema);
+
+			const result = await changeCommissionCommand.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.OK);
+		});
+
 		it('should return error when changing commission of an unregistered validator', async () => {
+			const newCommission = validatorDetails.commission + MAX_COMMISSION_INCREASE_RATE;
+			const params = codec.encode(schema, { newCommission });
+			const transaction = new Transaction({ ...transactionTemplate, params });
+
 			await validatorStore.del(createStoreGetter(stateStore), transaction.senderAddress);
 
 			const context = testing
@@ -143,27 +201,10 @@ describe('Change Commission command', () => {
 			);
 		});
 
-		it('should return error when changing commission before commission increase period has expired', async () => {
-			const context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction,
-					header: createFakeBlockHeader({ height: 8 }),
-				})
-				.createCommandVerifyContext<ChangeCommissionParams>(schema);
-
-			const result = await changeCommissionCommand.verify(context);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				`Can only increase the commission again ${COMMISSION_INCREASE_PERIOD} blocks after the last commission increase.`,
-			);
-		});
-
 		it('should return error when requested commission change is higher than allowed', async () => {
-			commandParams.newCommission = validatorDetails.commission + MAX_COMMISSION_INCREASE_RATE + 1;
-			transactionDetails.params = codec.encode(schema, commandParams);
-			transaction = new Transaction(transactionDetails);
+			const newCommission = validatorDetails.commission + MAX_COMMISSION_INCREASE_RATE + 1;
+			const params = codec.encode(schema, { newCommission });
+			const transaction = new Transaction({ ...transactionTemplate, params });
 
 			const context = testing
 				.createTransactionContext({
@@ -182,9 +223,9 @@ describe('Change Commission command', () => {
 		});
 
 		it('should not allow the commission to be set higher than 100%', async () => {
-			commandParams.newCommission = MAX_COMMISSION + 1;
-			transactionDetails.params = codec.encode(schema, commandParams);
-			transaction = new Transaction(transactionDetails);
+			const newCommission = MAX_COMMISSION + 1;
+			const params = codec.encode(schema, { newCommission });
+			const transaction = new Transaction({ ...transactionTemplate, params });
 
 			const context = testing
 				.createTransactionContext({
@@ -203,6 +244,10 @@ describe('Change Commission command', () => {
 
 	describe('execute', () => {
 		it('should update last commission increase height in the validator store after INCREASING commission', async () => {
+			const newCommission = validatorDetails.commission + MAX_COMMISSION_INCREASE_RATE;
+			const params = codec.encode(schema, { newCommission });
+			const transaction = new Transaction({ ...transactionTemplate, params });
+
 			const context = testing
 				.createTransactionContext({
 					stateStore,
@@ -214,14 +259,14 @@ describe('Change Commission command', () => {
 			await changeCommissionCommand.execute(context);
 			const validator = await validatorStore.get(context, transaction.senderAddress);
 
-			expect(validator.commission).toBe(commandParams.newCommission);
+			expect(validator.commission).toBe(newCommission);
 			expect(validator.lastCommissionIncreaseHeight).toBe(COMMISSION_INCREASE_PERIOD + 1);
 		});
 
 		it('should NOT update last commission increase height in the validator store after DECREASING commission', async () => {
-			commandParams.newCommission = 100; // 1%
-			transactionDetails.params = codec.encode(schema, commandParams);
-			transaction = new Transaction(transactionDetails);
+			const newCommission = validatorDetails.commission - 1;
+			const params = codec.encode(schema, { newCommission });
+			const transaction = new Transaction({ ...transactionTemplate, params });
 
 			const context = testing
 				.createTransactionContext({
@@ -234,14 +279,14 @@ describe('Change Commission command', () => {
 			await changeCommissionCommand.execute(context);
 			const validator = await validatorStore.get(context, transaction.senderAddress);
 
-			expect(validator.commission).toBe(commandParams.newCommission);
+			expect(validator.commission).toBe(newCommission);
 			expect(validator.lastCommissionIncreaseHeight).toBe(0);
 		});
 
 		it('should update last commission increase height when new commission is equal to the previous commission', async () => {
-			commandParams.newCommission = validatorDetails.commission;
-			transactionDetails.params = codec.encode(schema, commandParams);
-			transaction = new Transaction(transactionDetails);
+			const newCommission = validatorDetails.commission;
+			const params = codec.encode(schema, { newCommission });
+			const transaction = new Transaction({ ...transactionTemplate, params });
 
 			const context = testing
 				.createTransactionContext({
@@ -254,11 +299,15 @@ describe('Change Commission command', () => {
 			await changeCommissionCommand.execute(context);
 			const validator = await validatorStore.get(context, transaction.senderAddress);
 
-			expect(validator.commission).toBe(commandParams.newCommission);
+			expect(validator.commission).toBe(newCommission);
 			expect(validator.lastCommissionIncreaseHeight).toBe(COMMISSION_INCREASE_PERIOD + 1);
 		});
 
 		it('should emit event after changing commission', async () => {
+			const newCommission = validatorDetails.commission + MAX_COMMISSION_INCREASE_RATE;
+			const params = codec.encode(schema, { newCommission });
+			const transaction = new Transaction({ ...transactionTemplate, params });
+
 			const context = testing
 				.createTransactionContext({
 					stateStore,
@@ -273,14 +322,14 @@ describe('Change Commission command', () => {
 			expect(commissionChangedEvent.log).toHaveBeenCalledWith(expect.anything(), {
 				validatorAddress: transaction.senderAddress,
 				oldCommission: validatorDetails.commission,
-				newCommission: commandParams.newCommission,
+				newCommission,
 			});
 
 			// check if the event is in the event queue
 			checkEventResult(context.eventQueue, CommissionChangeEvent, 'pos', {
 				validatorAddress: transaction.senderAddress,
 				oldCommission: validatorDetails.commission,
-				newCommission: commandParams.newCommission,
+				newCommission,
 			});
 		});
 	});
