@@ -1,0 +1,43 @@
+{
+	"events": [
+		{
+			"data": "0a14b2f75b6968f687b495b69e1fec51d06fa8ae9d8d12036665651a0804000000000000002080ade2042800",
+			"index": 0,
+			"module": "token",
+			"name": "lock",
+			"topics": [
+				"0b3133525e7aeeffeea6c84375f029dfd7dd68c4ade9b253bd8f024829865f73",
+				"b2f75b6968f687b495b69e1fec51d06fa8ae9d8d"
+			],
+			"height": 1345
+		},
+		{
+			"data": "0a14b2f75b6968f687b495b69e1fec51d06fa8ae9d8d1214781098673389eaa3f71aae77527b677cdbbc84ea1880c8afa0252001",
+			"index": 1,
+			"module": "pos",
+			"name": "validatorStaked",
+			"topics": [
+				"0b3133525e7aeeffeea6c84375f029dfd7dd68c4ade9b253bd8f024829865f73",
+				"b2f75b6968f687b495b69e1fec51d06fa8ae9d8d",
+				"781098673389eaa3f71aae77527b677cdbbc84ea"
+			],
+			"height": 1345
+		},
+		{
+			"data": "0800",
+			"index": 6,
+			"module": "pos",
+			"name": "commandExecutionResult",
+			"topics": ["0b3133525e7aeeffeea6c84375f029dfd7dd68c4ade9b253bd8f024829865f73"],
+			"height": 1345
+		},
+		{
+			"data": "08001001",
+			"index": 7,
+			"module": "dynamicReward",
+			"name": "rewardMinted",
+			"topics": ["03", "906f6b4539a3d16a215f629946064a3065626848"],
+			"height": 1345
+		}
+	]
+}
