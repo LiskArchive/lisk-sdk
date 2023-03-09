@@ -183,6 +183,9 @@ export class TokenMethod extends BaseMethod {
 			tokenID,
 			amount,
 		};
+		if (amount === BigInt(0)) {
+			return;
+		}
 		if (!this.isNativeToken(tokenID)) {
 			this.events
 				.get(MintEvent)

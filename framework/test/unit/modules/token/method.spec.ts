@@ -301,6 +301,18 @@ describe('token module', () => {
 			);
 		});
 
+		it('should not update balance if amount it zero', async () => {
+			await expect(
+				method.mint(methodContext, defaultAddress, defaultTokenID, BigInt(0)),
+			).resolves.toBeUndefined();
+
+			await expect(
+				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
+			).resolves.toEqual(defaultAccount.availableBalance);
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
 		it('should initialize account if account does not exist', async () => {
 			await expect(
 				method.mint(methodContext, utils.getRandomBytes(20), defaultTokenID, BigInt(100)),
