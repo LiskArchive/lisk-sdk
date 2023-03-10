@@ -57,7 +57,43 @@ export const metadata: ModuleMetadata[] = [
 	{
 		id: utils.intToBuffer(2, 4).toString('hex'),
 		name: 'token',
-		events: [],
+		events: [
+			{
+				name: 'lock',
+				data: {
+					$id: '/token/events/lock',
+					type: 'object',
+					required: ['address', 'module', 'tokenID', 'amount', 'result'],
+					properties: {
+						address: {
+							dataType: 'bytes',
+							format: 'lisk32',
+							fieldNumber: 1,
+						},
+						module: {
+							dataType: 'string',
+							minLength: 1,
+							maxLength: 32,
+							fieldNumber: 2,
+						},
+						tokenID: {
+							dataType: 'bytes',
+							minLength: 8,
+							maxLength: 8,
+							fieldNumber: 3,
+						},
+						amount: {
+							dataType: 'uint64',
+							fieldNumber: 4,
+						},
+						result: {
+							dataType: 'uint32',
+							fieldNumber: 5,
+						},
+					},
+				},
+			},
+		],
 		assets: [],
 		endpoints: [],
 		stores: [],
@@ -117,7 +153,36 @@ export const metadata: ModuleMetadata[] = [
 	{
 		id: utils.intToBuffer(5, 4).toString('hex'),
 		name: 'pos',
-		events: [],
+		events: [
+			{
+				name: 'validatorStaked',
+				data: {
+					$id: '/pos/events/validatorStakedData',
+					type: 'object',
+					required: ['senderAddress', 'validatorAddress', 'amount', 'result'],
+					properties: {
+						senderAddress: {
+							dataType: 'bytes',
+							fieldNumber: 1,
+							format: 'lisk32',
+						},
+						validatorAddress: {
+							dataType: 'bytes',
+							fieldNumber: 2,
+							format: 'lisk32',
+						},
+						amount: {
+							dataType: 'sint64',
+							fieldNumber: 3,
+						},
+						result: {
+							dataType: 'uint32',
+							fieldNumber: 4,
+						},
+					},
+				},
+			},
+		],
 		assets: [],
 		endpoints: [],
 		stores: [],
@@ -142,6 +207,34 @@ export const metadata: ModuleMetadata[] = [
 				},
 			},
 		],
+	},
+	{
+		id: utils.intToBuffer(7, 4).toString('hex'),
+		name: 'dynamicReward',
+		events: [
+			{
+				name: 'rewardMinted',
+				data: {
+					$id: '/reward/events/rewardMintedData',
+					type: 'object',
+					required: ['amount', 'reduction'],
+					properties: {
+						amount: {
+							dataType: 'uint64',
+							fieldNumber: 1,
+						},
+						reduction: {
+							dataType: 'uint32',
+							fieldNumber: 2,
+						},
+					},
+				},
+			},
+		],
+		assets: [],
+		endpoints: [],
+		stores: [],
+		commands: [],
 	},
 ];
 
