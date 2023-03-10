@@ -15,35 +15,25 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import * as merkleTree from '@liskhq/lisk-tree';
-import { SparseMerkleTree } from '@liskhq/lisk-db';
-import { MainchainInteroperabilityModule, VerifyStatus } from '../../../../src';
+import { VerifyStatus } from '../../../../src';
 import {
 	CCMStatusCode,
-	CROSS_CHAIN_COMMAND_REGISTRATION,
 	CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 	EMPTY_BYTES,
-	HASH_LENGTH,
 	LIVENESS_LIMIT,
 	MAX_CCM_SIZE,
-	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../src/modules/interoperability/constants';
-import { ccmSchema } from '../../../../src/modules/interoperability/schemas';
 import {
 	ChainAccount,
-	ChannelData,
 	CrossChainUpdateTransactionParams,
-	InboxUpdate,
 	CCMsg,
 } from '../../../../src/modules/interoperability/types';
 import {
 	checkCertificateTimestamp,
 	checkCertificateValidity,
-	checkInboxUpdateValidity,
 	checkLivenessRequirementFirstCCU,
 	checkValidatorsHashWithCertificate,
-	checkValidCertificateLiveness,
 	computeValidatorsHash,
 	validateFormat,
 	verifyLivenessConditionForRegisteredChains,
@@ -58,7 +48,6 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 }));
 
 describe('Utils', () => {
-	const interopMod = new MainchainInteroperabilityModule();
 	const defaultActiveValidatorsUpdate = {
 		blsKeysUpdate: [
 			utils.getRandomBytes(48),
@@ -170,58 +159,6 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.OK);
 			expect(error).toBeUndefined();
-		});
-	});
-
-	describe('checkValidCertificateLiveness', () => {
-		const inboxUpdate = {
-			crossChainMessages: [Buffer.alloc(1)],
-			messageWitnessHashes: [Buffer.alloc(1)],
-			outboxRootWitness: {
-				bitmap: Buffer.alloc(1),
-				siblingHashes: [Buffer.alloc(1)],
-			},
-		} as InboxUpdate;
-		const inboxUpdateEmpty = {
-			crossChainMessages: [],
-			messageWitnessHashes: [],
-			outboxRootWitness: {
-				bitmap: Buffer.alloc(1),
-				siblingHashes: [],
-			},
-		} as InboxUpdate;
-		const txParams: any = {
-			inboxUpdate,
-		};
-		const timestamp = Date.now();
-		const header: any = {
-			timestamp,
-		};
-		const invalidCertificate: any = {
-			timestamp: timestamp - LIVENESS_LIMIT / 2,
-		};
-		const certificate: any = {
-			timestamp: timestamp + 100,
-		};
-
-		it('should throw error when certificate has passed liveness condition', () => {
-			expect(() => checkValidCertificateLiveness(txParams, header, invalidCertificate)).toThrow(
-				`Certificate is not valid as it passed Liveness limit of ${LIVENESS_LIMIT} seconds.`,
-			);
-		});
-
-		it('should pass when inboxUpdate is undefined', () => {
-			expect(
-				checkValidCertificateLiveness(
-					{ inboxUpdate: inboxUpdateEmpty } as any,
-					header,
-					certificate,
-				),
-			).toBeUndefined();
-		});
-
-		it('should pass successfully', () => {
-			expect(checkValidCertificateLiveness(txParams, header, certificate)).toBeUndefined();
 		});
 	});
 
@@ -406,343 +343,6 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.OK);
 			expect(error).toBeUndefined();
-		});
-	});
-
-	describe('checkInboxUpdateValidity', () => {
-		const activeValidatorsUpdate = { ...defaultActiveValidatorsUpdate };
-
-		const partnerChainOutboxRoot = cryptography.utils.getRandomBytes(HASH_LENGTH);
-		const inboxTree = {
-			root: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
-			appendPath: [
-				Buffer.from('6d391e95b7cb484862aa577320dbb4999971569e0b7c21fc02e9fda4d1d8485c', 'hex'),
-			],
-			size: 1,
-		};
-		const outboxTree = {
-			root: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
-			appendPath: [
-				Buffer.from('6d391e95b7cb484862aa577320dbb4999971569e0b7c21fc02e9fda4d1d8485c', 'hex'),
-			],
-			size: 1,
-		};
-		const partnerChannelData: ChannelData = {
-			inbox: inboxTree,
-			messageFeeTokenID: Buffer.from('0000000000000011', 'hex'),
-			outbox: outboxTree,
-			partnerChainOutboxRoot,
-			minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
-		};
-
-		const defaultSendingChainID = utils.intToBuffer(20, 4);
-
-		const defaultCCMs = [
-			{
-				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
-				fee: BigInt(0),
-				module: MODULE_NAME_INTEROPERABILITY,
-				nonce: BigInt(1),
-				params: Buffer.alloc(2),
-				receivingChainID: utils.intToBuffer(2, 4),
-				sendingChainID: defaultSendingChainID,
-				status: CCMStatusCode.OK,
-			},
-			{
-				crossChainCommandID: utils.intToBuffer(2, 4),
-				fee: BigInt(0),
-				module: MODULE_NAME_INTEROPERABILITY,
-				nonce: BigInt(1),
-				params: Buffer.alloc(2),
-				receivingChainID: utils.intToBuffer(3, 4),
-				sendingChainID: defaultSendingChainID,
-				status: CCMStatusCode.OK,
-			},
-		];
-
-		const inboxUpdateCCMs = [
-			{
-				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
-				fee: BigInt(0),
-				module: MODULE_NAME_INTEROPERABILITY,
-				nonce: BigInt(2),
-				params: Buffer.alloc(4),
-				receivingChainID: utils.intToBuffer(90, 4),
-				sendingChainID: defaultSendingChainID,
-				status: CCMStatusCode.OK,
-			},
-			{
-				crossChainCommandID: utils.intToBuffer(2, 4),
-				fee: BigInt(0),
-				module: MODULE_NAME_INTEROPERABILITY,
-				nonce: BigInt(10),
-				params: Buffer.alloc(4),
-				receivingChainID: utils.intToBuffer(70, 4),
-				sendingChainID: defaultSendingChainID,
-				status: CCMStatusCode.OK,
-			},
-		];
-		const defaultCCMsEncoded = defaultCCMs.map(ccm => codec.encode(ccmSchema, ccm));
-		const inboxUpdateCCMsEncoded = inboxUpdateCCMs.map(ccm => codec.encode(ccmSchema, ccm));
-
-		const inboxUpdateEmpty = {
-			crossChainMessages: [],
-			messageWitnessHashes: [],
-			outboxRootWitness: {
-				bitmap: Buffer.alloc(0),
-				siblingHashes: [],
-			},
-		};
-		const inboxUpdate = {
-			crossChainMessages: inboxUpdateCCMsEncoded,
-			messageWitnessHashes: [cryptography.utils.getRandomBytes(32)],
-			outboxRootWitness: {
-				bitmap: cryptography.utils.getRandomBytes(32),
-				siblingHashes: [cryptography.utils.getRandomBytes(32)],
-			},
-		};
-		const certificate: Certificate = {
-			blockID: cryptography.utils.getRandomBytes(20),
-			height: 20,
-			stateRoot: cryptography.utils.getRandomBytes(32),
-			timestamp: Math.floor(Date.now() / 1000),
-			validatorsHash: cryptography.utils.getRandomBytes(48),
-			aggregationBits: cryptography.utils.getRandomBytes(1),
-			signature: cryptography.utils.getRandomBytes(32),
-		};
-
-		const encodedCertificate = codec.encode(certificateSchema, certificate);
-		const txParams: CrossChainUpdateTransactionParams = {
-			certificate: encodedCertificate,
-			activeValidatorsUpdate,
-			certificateThreshold: BigInt(10),
-			inboxUpdate,
-			sendingChainID: utils.intToBuffer(2, 4),
-		};
-
-		let newInboxRoot: Buffer;
-		let newInboxAppendPath: Buffer[] = [];
-		let newInboxSize = 0;
-
-		beforeEach(() => {
-			for (const ccm of defaultCCMsEncoded) {
-				const { appendPath, size, root } = merkleTree.regularMerkleTree.calculateMerkleRoot({
-					value: ccm,
-					appendPath: newInboxAppendPath,
-					size: newInboxSize,
-				});
-				newInboxAppendPath = appendPath;
-				newInboxSize = size;
-				newInboxRoot = root;
-			}
-			partnerChannelData.partnerChainOutboxRoot = newInboxRoot;
-		});
-
-		it('should return VerifyStatus.OK when inboxUpdate is empty', async () => {
-			const txParamsEmptyInboxUpdate = { ...txParams, inboxUpdate: inboxUpdateEmpty };
-			const { status, error } = await checkInboxUpdateValidity(
-				interopMod.stores,
-				txParamsEmptyInboxUpdate,
-				partnerChannelData,
-			);
-			expect(status).toEqual(VerifyStatus.OK);
-			expect(error).toBeUndefined();
-		});
-
-		describe('Non-empty certificate and inboxUpdate', () => {
-			it('should update inboxRoot when messageWitnessHashes is non-empty', async () => {
-				const smtVerifySpy = jest
-					.spyOn(SparseMerkleTree.prototype, 'verify')
-					.mockResolvedValue({} as never);
-				const { status, error } = await checkInboxUpdateValidity(
-					interopMod.stores,
-					txParams,
-					partnerChannelData,
-				);
-				expect(status).toEqual(VerifyStatus.OK);
-				expect(error).toBeUndefined();
-				expect(smtVerifySpy).toHaveBeenCalled();
-			});
-
-			it('should not call calculateRootFromRightWitness when messageWitnessHashes is empty', async () => {
-				const calculateRootFromRightWitnessSpy = jest.spyOn(
-					merkleTree.regularMerkleTree,
-					'calculateRootFromRightWitness',
-				);
-				const smtVerifySpy = jest
-					.spyOn(SparseMerkleTree.prototype, 'verify')
-					.mockResolvedValue(true);
-
-				const inboxUpdateMessageWitnessEmpty = {
-					crossChainMessages: inboxUpdateCCMsEncoded,
-					messageWitnessHashes: [],
-					outboxRootWitness: {
-						bitmap: cryptography.utils.getRandomBytes(32),
-						siblingHashes: [cryptography.utils.getRandomBytes(32)],
-					},
-				};
-
-				const txParamsEmptyMessageWitness: CrossChainUpdateTransactionParams = {
-					certificate: encodedCertificate,
-					activeValidatorsUpdate,
-					certificateThreshold: BigInt(10),
-					inboxUpdate: inboxUpdateMessageWitnessEmpty,
-					sendingChainID: utils.intToBuffer(2, 4),
-				};
-				const { status, error } = await checkInboxUpdateValidity(
-					interopMod.stores,
-					txParamsEmptyMessageWitness,
-					partnerChannelData,
-				);
-				expect(status).toEqual(VerifyStatus.OK);
-				expect(error).toBeUndefined();
-				expect(calculateRootFromRightWitnessSpy).not.toHaveBeenCalled();
-				expect(smtVerifySpy).toHaveBeenCalled();
-			});
-
-			it('should return VerifyStatus.FAIL if outboxWitness fails SMT.verify', async () => {
-				const calculateRootFromRightWitnessSpy = jest
-					.spyOn(merkleTree.regularMerkleTree, 'calculateRootFromRightWitness')
-					.mockReturnValue({} as never);
-				const smtVerifySpy = jest
-					.spyOn(SparseMerkleTree.prototype, 'verify')
-					.mockResolvedValue(false);
-
-				const { status, error } = await checkInboxUpdateValidity(
-					interopMod.stores,
-					txParams,
-					partnerChannelData,
-				);
-				expect(status).toEqual(VerifyStatus.FAIL);
-				expect(error?.message).toBe(
-					'Failed at verifying state root when messageWitnessHashes and certificate are non-empty.',
-				);
-				expect(calculateRootFromRightWitnessSpy).toHaveBeenCalled();
-				expect(smtVerifySpy).toHaveBeenCalled();
-			});
-
-			it('should return VerifyStatus.OK on SMT.verify true for non-empty certificate and inboxUpdate', async () => {
-				const calculateRootFromRightWitnessSpy = jest
-					.spyOn(merkleTree.regularMerkleTree, 'calculateRootFromRightWitness')
-					.mockReturnValue({} as never);
-				const smtVerifySpy = jest
-					.spyOn(SparseMerkleTree.prototype, 'verify')
-					.mockResolvedValue(true);
-
-				const { status, error } = await checkInboxUpdateValidity(
-					interopMod.stores,
-					txParams,
-					partnerChannelData,
-				);
-				expect(status).toEqual(VerifyStatus.OK);
-				expect(error).toBeUndefined();
-				expect(calculateRootFromRightWitnessSpy).toHaveBeenCalled();
-				expect(smtVerifySpy).toHaveBeenCalled();
-			});
-		});
-
-		describe('Empty certificate and non-empty inboxUpdate', () => {
-			const txParamsWithEmptyCertificate = {
-				...txParams,
-				certificate: codec.encode(certificateSchema, {
-					blockID: Buffer.alloc(0),
-					height: 0,
-					timestamp: 0,
-					stateRoot: Buffer.alloc(0),
-					validatorsHash: Buffer.alloc(0),
-					aggregationBits: Buffer.alloc(0),
-					signature: Buffer.alloc(0),
-				}),
-			};
-
-			it('should update newInboxRoot when messageWitnessHashes is non-empty', async () => {
-				const calculateRootFromRightWitnessSpy = jest
-					.spyOn(merkleTree.regularMerkleTree, 'calculateRootFromRightWitness')
-					.mockReturnValue(partnerChannelData.partnerChainOutboxRoot);
-
-				const { status, error } = await checkInboxUpdateValidity(
-					interopMod.stores,
-					txParamsWithEmptyCertificate,
-					partnerChannelData,
-				);
-				expect(status).toEqual(VerifyStatus.OK);
-				expect(error).toBeUndefined();
-				expect(calculateRootFromRightWitnessSpy).toHaveBeenCalled();
-			});
-
-			it('should not call calculateRootFromRightWitness when messageWitnessHashes is empty', async () => {
-				const txParamsEmptyMessageWitness = {
-					...txParams,
-					certificate: codec.encode(certificateSchema, {
-						blockID: Buffer.alloc(0),
-						height: 0,
-						timestamp: 0,
-						stateRoot: Buffer.alloc(0),
-						validatorsHash: Buffer.alloc(0),
-						aggregationBits: Buffer.alloc(0),
-						signature: Buffer.alloc(0),
-					}),
-					inboxUpdate: {
-						...txParams.inboxUpdate,
-						messageWitnessHashes: [],
-					},
-				};
-				const calculateRootFromRightWitnessSpy = jest.spyOn(
-					merkleTree.regularMerkleTree,
-					'calculateRootFromRightWitness',
-				);
-				const calculateMerkleRootSpy = jest
-					.spyOn(merkleTree.regularMerkleTree, 'calculateMerkleRoot')
-					.mockReturnValue({ root: partnerChannelData.partnerChainOutboxRoot } as never);
-
-				const { status, error } = await checkInboxUpdateValidity(
-					interopMod.stores,
-					txParamsEmptyMessageWitness,
-					partnerChannelData,
-				);
-				expect(status).toEqual(VerifyStatus.OK);
-				expect(error).toBeUndefined();
-				expect(calculateMerkleRootSpy).toHaveBeenCalledTimes(inboxUpdateCCMsEncoded.length);
-				expect(calculateRootFromRightWitnessSpy).not.toHaveBeenCalled();
-			});
-
-			it('should return VerifyStatus.FAIL when calculated newInboxRoot is not equal to partnerChainOutboxRoot', async () => {
-				const txParamsEmptyMessageWitness = {
-					...txParams,
-					certificate: codec.encode(certificateSchema, {
-						blockID: Buffer.alloc(0),
-						height: 0,
-						timestamp: 0,
-						stateRoot: Buffer.alloc(0),
-						validatorsHash: Buffer.alloc(0),
-						aggregationBits: Buffer.alloc(0),
-						signature: Buffer.alloc(0),
-					}),
-					inboxUpdate: {
-						...txParams.inboxUpdate,
-						messageWitnessHashes: [],
-					},
-				};
-				const calculateRootFromRightWitnessSpy = jest.spyOn(
-					merkleTree.regularMerkleTree,
-					'calculateRootFromRightWitness',
-				);
-				const calculateMerkleRootSpy = jest
-					.spyOn(merkleTree.regularMerkleTree, 'calculateMerkleRoot')
-					.mockReturnValue({ root: cryptography.utils.getRandomBytes(32) } as never);
-
-				const { status, error } = await checkInboxUpdateValidity(
-					interopMod.stores,
-					txParamsEmptyMessageWitness,
-					partnerChannelData,
-				);
-				expect(status).toEqual(VerifyStatus.FAIL);
-				expect(error?.message).toBe(
-					'Failed at verifying state root when messageWitnessHashes is non-empty and certificate is empty.',
-				);
-				expect(calculateMerkleRootSpy).toHaveBeenCalledTimes(inboxUpdateCCMsEncoded.length);
-				expect(calculateRootFromRightWitnessSpy).not.toHaveBeenCalled();
-			});
 		});
 	});
 
