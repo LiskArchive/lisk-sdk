@@ -160,7 +160,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			'hex',
 		);
 		if (this._receivingChainID[0] !== this._ownChainID[0]) {
-			throw new Error('Receiving Chain ID does not match the sending chain network.');
+			throw new Error('Receiving Chain ID network does not match the sending chain network.');
 		}
 		// If the running node is mainchain then receiving chain will be sidechain or vice verse.
 		this._isReceivingChainMainchain = !getMainchainID(this._ownChainID).equals(this._ownChainID);
@@ -220,7 +220,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				await this._saveDataOnNewBlock(newBlockHeader);
 				this.logger.error(
 					error,
-					'Error occured while using accessing receivingChain API Client but all data is saved on newBlock.',
+					'Error occurred while using accessing receivingChain API Client but all data is saved on newBlock.',
 				);
 
 				return;
