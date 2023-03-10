@@ -3,14 +3,13 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { BlockAssets } from '@liskhq/lisk-chain';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
-import { BaseInteroperabilityModule } from '../../../../../src/modules/interoperability/base_interoperability_module';
 import {
 	HASH_LENGTH,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
-	EMPTY_HASH,
-	CHAIN_NAME_MAINCHAIN,
 	MAX_NUM_VALIDATORS,
 	MODULE_NAME_INTEROPERABILITY,
+	CHAIN_NAME_MAINCHAIN,
+	EMPTY_HASH,
 } from '../../../../../src/modules/interoperability/constants';
 import {
 	ChainStatus,
@@ -18,8 +17,6 @@ import {
 	ActiveValidator,
 	GenesisBlockExecuteContext,
 } from '../../../../../src';
-import { TerminatedStateAccount } from '../../../../../src/modules/interoperability/stores/terminated_state';
-import { TerminatedOutboxAccount } from '../../../../../src/modules/interoperability/stores/terminated_outbox';
 import { GenesisInteroperability } from '../../../../../src/modules/interoperability/types';
 import {
 	InMemoryPrefixedStateDB,
@@ -29,14 +26,27 @@ import {
 import {
 	computeValidatorsHash,
 	validNameCharset,
+	getMainchainID,
 } from '../../../../../src/modules/interoperability/utils';
 import { genesisInteroperabilitySchema } from '../../../../../src/modules/interoperability/schemas';
+import {
+	genesisInteroperability,
+	activeValidators,
+	chainInfo,
+	chainData,
+	lastCertificate,
+	chainValidators,
+	channelData,
+	activeValidator,
+	terminatedStateAccount,
+	terminatedOutboxAccount,
+} from '../interopFixtures';
 
 const createInitGenesisStateContext = (
-	genesisInteroperability: GenesisInteroperability,
+	genesisInterop: GenesisInteroperability,
 	params: CreateGenesisBlockContextParams,
 ): GenesisBlockExecuteContext => {
-	const encodedAsset = codec.encode(genesisInteroperabilitySchema, genesisInteroperability);
+	const encodedAsset = codec.encode(genesisInteroperabilitySchema, genesisInterop);
 
 	return createGenesisBlockContext({
 		...params,
@@ -47,81 +57,9 @@ const createInitGenesisStateContext = (
 describe('initGenesisState', () => {
 	const chainID = Buffer.from([0, 0, 0, 0]);
 	const mainchainID = Buffer.from([0, 0, 0, 0]);
-	const mainchainTokenID = Buffer.concat([mainchainID, Buffer.alloc(4)]);
 	let stateStore: PrefixedStateReadWriter;
-	let interopMod: BaseInteroperabilityModule;
+	let interopMod: MainchainInteroperabilityModule;
 	let certificateThreshold = BigInt(0);
-
-	const channelData = {
-		inbox: {
-			appendPath: [Buffer.alloc(HASH_LENGTH), Buffer.alloc(HASH_LENGTH)],
-			root: utils.getRandomBytes(HASH_LENGTH),
-			size: 18,
-		},
-		outbox: {
-			appendPath: [Buffer.alloc(HASH_LENGTH), Buffer.alloc(HASH_LENGTH)],
-			root: utils.getRandomBytes(HASH_LENGTH),
-			size: 18,
-		},
-		partnerChainOutboxRoot: utils.getRandomBytes(HASH_LENGTH),
-		messageFeeTokenID: mainchainTokenID,
-		minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
-	};
-
-	const activeValidator = {
-		// utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH).toString('hex')
-		blsKey: Buffer.from(
-			'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-			'hex',
-		),
-		bftWeight: BigInt(10),
-	};
-
-	const activeValidators = [activeValidator];
-	const chainValidators = {
-		activeValidators,
-		certificateThreshold: BigInt(20),
-	};
-
-	const lastCertificate = {
-		height: 567467,
-		timestamp: Date.now() / 10000000000,
-		stateRoot: Buffer.alloc(HASH_LENGTH),
-		validatorsHash: Buffer.alloc(HASH_LENGTH),
-	};
-
-	const chainData = {
-		name: 'dummy',
-		lastCertificate,
-		status: ChainStatus.REGISTERED,
-	};
-
-	const chainInfo = {
-		chainID: Buffer.from([0, 0, 0, 1]),
-		chainData,
-		channelData,
-		chainValidators,
-	};
-
-	const terminatedStateAccount: TerminatedStateAccount = {
-		stateRoot: lastCertificate.stateRoot,
-		mainchainStateRoot: EMPTY_HASH,
-		initialized: true,
-	};
-
-	const terminatedOutboxAccount: TerminatedOutboxAccount = {
-		outboxRoot: utils.getRandomBytes(HASH_LENGTH),
-		outboxSize: 1,
-		partnerChainInboxSize: 1,
-	};
-
-	const genesisInteroperability: GenesisInteroperability = {
-		ownChainName: CHAIN_NAME_MAINCHAIN,
-		ownChainNonce: BigInt(123),
-		chainInfos: [chainInfo],
-		terminatedStateAccounts: [], // handle it in `describe('terminatedStateAccounts'`
-		terminatedOutboxAccounts: [],
-	};
 
 	let params: CreateGenesisBlockContextParams;
 	beforeEach(() => {
@@ -153,7 +91,7 @@ describe('initGenesisState', () => {
 			params,
 		);
 		await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-			'ownChainName must be equal to CHAIN_NAME_MAINCHAIN',
+			`ownChainName must be equal to ${CHAIN_NAME_MAINCHAIN}.`,
 		);
 	});
 
@@ -255,7 +193,7 @@ describe('initGenesisState', () => {
 				params,
 			);
 			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-				'chainID must be not equal to getMainchainID().',
+				`chainID must be not equal to ${getMainchainID(chainID).toString('hex')}.`,
 			);
 		});
 
@@ -273,7 +211,7 @@ describe('initGenesisState', () => {
 				params,
 			);
 			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-				"chainID[0] doesn't match getMainchainID()[0].",
+				`chainID[0] doesn't match ${getMainchainID(chainID)[0]}.`,
 			);
 		});
 
@@ -436,7 +374,7 @@ describe('initGenesisState', () => {
 					params,
 				);
 				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					`channelData.minReturnFeePerByte is not equal to MIN_RETURN_FEE_PER_BYTE_BEDDOWS.`,
+					`channelData.minReturnFeePerByte is not equal to ${MIN_RETURN_FEE_PER_BYTE_BEDDOWS}.`,
 				);
 			});
 		});
@@ -895,7 +833,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 				);
 
 				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					`stateAccount.mainchainStateRoot is not equal to EMPTY_HASH.`,
+					`stateAccount.mainchainStateRoot is not equal to ${EMPTY_HASH.toString('hex')}.`,
 				);
 			});
 

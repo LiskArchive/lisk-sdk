@@ -670,7 +670,6 @@ export const genesisInteroperabilitySchema = {
 			dataType: 'uint64',
 			fieldNumber: 2,
 		},
-
 		chainInfos: {
 			type: 'array',
 			fieldNumber: 3,
@@ -688,7 +687,6 @@ export const genesisInteroperabilitySchema = {
 						...chainDataSchema,
 						fieldNumber: 2,
 					},
-
 					channelData: {
 						...channelSchema,
 						fieldNumber: 3,
