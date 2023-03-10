@@ -124,14 +124,12 @@ export const getHashOnionUsageResponse = {
 export interface SetHashOnionUsageRequest extends AddressRequest {
 	height: number;
 	count: number;
-	seed: string;
-	distance: number;
 }
 
 export const setHashOnionUsageRequest = {
 	$id: 'lisk/random/setHashOnionUsageRequest',
 	type: 'object',
-	required: ['address', 'count', 'height', 'seed', 'distance'],
+	required: ['address', 'count', 'height'],
 	properties: {
 		address: {
 			type: 'string',
@@ -144,14 +142,6 @@ export const setHashOnionUsageRequest = {
 		height: {
 			type: 'integer',
 			format: 'uint32',
-		},
-		seed: {
-			type: 'string',
-			format: 'hex',
-		},
-		distance: {
-			type: 'integer',
-			minimum: 1,
 		},
 	},
 };
