@@ -23,7 +23,7 @@ import {
 } from './types';
 import { decodeBlock, decodeBlockJSON, encodeBlock, fromBlockJSON, toBlockJSON } from './codec';
 
-export class Block {
+export class BlockMethods {
 	private readonly _channel: Channel;
 	private readonly _schemas: RegisteredSchemas;
 	private readonly _metadata: ModuleMetadata[];

@@ -15,12 +15,12 @@
 
 import { when } from 'jest-when';
 import { address, legacy } from '@liskhq/lisk-cryptography';
-import { Transaction } from '../../src/transaction';
+import { TransactionMethods } from '../../src/transaction_methods';
 import { metadata, nodeInfo, schema, tx } from '../utils/transaction';
 
 describe('transaction', () => {
 	let channelMock: any;
-	let transaction: Transaction;
+	let transaction: TransactionMethods;
 	const passphrases = [
 		'trim elegant oven term access apple obtain error grain excite lawn neck',
 		'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
@@ -104,7 +104,7 @@ describe('transaction', () => {
 			.calledWith('txpool_postTransaction', expect.anything())
 			.mockResolvedValue({ transactionId: tx.id } as never);
 
-		transaction = new Transaction(channelMock, schema, metadata, nodeInfo);
+		transaction = new TransactionMethods(channelMock, schema, metadata, nodeInfo);
 	});
 
 	describe('Transaction', () => {

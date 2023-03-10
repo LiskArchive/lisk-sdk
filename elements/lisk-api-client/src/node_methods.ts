@@ -14,7 +14,7 @@
  */
 import { Channel, NodeInfo, NetworkStats, PeerInfo } from './types';
 
-export class Node {
+export class NodeMethods {
 	private readonly _channel: Channel;
 
 	public constructor(channel: Channel) {

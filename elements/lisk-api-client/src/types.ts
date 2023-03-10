@@ -280,4 +280,4 @@ export interface Event {
 }
 
 export type EventJSON = JSONObject<Event>;
-export type DecodedEvent<T = Record<string, unknown>> = Omit<Event, 'data'> & { data: T };
+export type DecodedEventJSON<T = Record<string, unknown>> = Omit<EventJSON, 'data'> & { data: T };
