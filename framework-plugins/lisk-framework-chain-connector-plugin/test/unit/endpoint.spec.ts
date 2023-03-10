@@ -162,6 +162,7 @@ describe('getSentCCUs', () => {
 				encryptedPrivateKey: defaultEncryptedPrivateKey,
 				ccuFrequency: 10,
 				password: defaultPassword,
+				receivingChainID: getMainchainID(ownChainID).toString('hex'),
 			},
 			appConfig: appConfigForPlugin,
 			logger: testing.mocks.loggerMock,

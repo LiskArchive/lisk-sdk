@@ -19,6 +19,7 @@ export interface BlockHeader extends chain.BlockHeaderAttrs {
 }
 
 export interface ChainConnectorPluginConfig {
+	receivingChainID: string;
 	receivingChainWsURL?: string;
 	receivingChainIPCPath?: string;
 	ccuFrequency: number;

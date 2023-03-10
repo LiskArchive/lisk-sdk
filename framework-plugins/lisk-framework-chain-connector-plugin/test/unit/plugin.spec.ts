@@ -58,7 +58,7 @@ import { getMainchainID } from '../../src/utils';
 
 describe('ChainConnectorPlugin', () => {
 	const BLS_SIGNATURE_LENGTH = 96;
-	const ownChainID = Buffer.from('10000000', 'hex');
+	const ownChainID = Buffer.from('04000000', 'hex');
 	const appConfigForPlugin: ApplicationConfigForPlugin = {
 		...testing.fixtures.defaultConfig,
 		rpc: {
@@ -201,6 +201,7 @@ describe('ChainConnectorPlugin', () => {
 			maxCCUSize: CCU_TOTAL_CCM_SIZE,
 			isSaveCCU: false,
 			registrationHeight: 1,
+			receivingChainID: getMainchainID(ownChainID).toString('hex'),
 		};
 
 		sendingChainAPIClientMock = getApiClientMock() as any;
@@ -242,6 +243,7 @@ describe('ChainConnectorPlugin', () => {
 				ccuFee: defaultCCUFee,
 				encryptedPrivateKey: defaultEncryptedPrivateKey,
 				password: 'lisk',
+				receivingChainID: getMainchainID(ownChainID).toString('hex'),
 			} as never);
 			expect(chainConnectorPlugin['_ccuFrequency']).toEqual(CCU_FREQUENCY);
 		});
@@ -250,6 +252,7 @@ describe('ChainConnectorPlugin', () => {
 			await initChainConnectorPlugin(chainConnectorPlugin, {
 				...defaultConfig,
 				ccuFrequency: 300000,
+				receivingChainID: getMainchainID(ownChainID).toString('hex'),
 			});
 			expect(chainConnectorPlugin['_ccuFrequency']).toBe(300000);
 		});
@@ -287,6 +290,7 @@ describe('ChainConnectorPlugin', () => {
 					ccuFee: defaultCCUFee,
 					encryptedPrivateKey: defaultEncryptedPrivateKey,
 					password: 'lisk',
+					receivingChainID: getMainchainID(ownChainID).toString('hex'),
 				},
 				appConfig: appConfigForPlugin,
 			});
@@ -303,6 +307,7 @@ describe('ChainConnectorPlugin', () => {
 					ccuFee: defaultCCUFee,
 					encryptedPrivateKey: defaultEncryptedPrivateKey,
 					password: 'lisk',
+					receivingChainID: getMainchainID(ownChainID).toString('hex'),
 				},
 				appConfig: appConfigForPlugin,
 			});
@@ -756,7 +761,7 @@ describe('ChainConnectorPlugin', () => {
 			 * 1. interoperability_getChainAccount: in load() function
 			 * 2. interoperability_getChainAccount: at the end of newBlockHandler()
 			 */
-			expect(receivingChainAPIClientMock.invoke).toHaveBeenCalledTimes(3);
+			expect(receivingChainAPIClientMock.invoke).toHaveBeenCalledTimes(2);
 
 			const savedCCMs = await chainConnectorPlugin['_chainConnectorStore'].getCrossChainMessages();
 

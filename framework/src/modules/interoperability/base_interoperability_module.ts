@@ -55,6 +55,7 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 	}
 
 	public registerInteroperableModule(module: BaseInteroperableModule): void {
+		this.interoperableCCCommands.set(this.name, this.crossChainCommand);
 		this.interoperableCCMethods.set(module.name, module.crossChainMethod);
 		this.interoperableCCCommands.set(module.name, module.crossChainCommand);
 	}
