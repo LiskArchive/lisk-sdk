@@ -29,7 +29,7 @@ import {
 	ValidatorsMethod,
 } from '../../../../src/modules/dynamic_rewards/types';
 import {
-	CONTEXT_STORE_KEY_BLOCK_REWARD,
+	CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD,
 	DECIMAL_PERCENT_FACTOR,
 	defaultConfig,
 	EMPTY_BYTES,
@@ -201,7 +201,7 @@ describe('DynamicRewardModule', () => {
 
 			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 
-			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_BLOCK_REWARD)).toEqual(
+			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD)).toEqual(
 				minimumReward,
 			);
 		});
@@ -220,7 +220,7 @@ describe('DynamicRewardModule', () => {
 			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 
 			// generatorAddress has 20% of total weight
-			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_BLOCK_REWARD)).toEqual(
+			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD)).toEqual(
 				minimumReward + ratioReward / BigInt(5),
 			);
 		});
@@ -247,7 +247,7 @@ describe('DynamicRewardModule', () => {
 
 			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 
-			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_BLOCK_REWARD)).toEqual(
+			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD)).toEqual(
 				BigInt(defaultConfig.brackets[0]),
 			);
 		});
@@ -268,7 +268,7 @@ describe('DynamicRewardModule', () => {
 				stateStore,
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
-			blockExecuteContext.contextStore.set(CONTEXT_STORE_KEY_BLOCK_REWARD, defaultReward);
+			blockExecuteContext.contextStore.set(CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD, defaultReward);
 			when(tokenMethod.userAccountExists)
 				.calledWith(
 					expect.anything(),
@@ -299,7 +299,7 @@ describe('DynamicRewardModule', () => {
 				stateStore,
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
-			blockExecuteContext.contextStore.set(CONTEXT_STORE_KEY_BLOCK_REWARD, defaultReward);
+			blockExecuteContext.contextStore.set(CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD, defaultReward);
 			when(tokenMethod.userAccountExists)
 				.calledWith(
 					expect.anything(),
@@ -397,7 +397,7 @@ describe('DynamicRewardModule', () => {
 				stateStore,
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
-			blockExecuteContext.contextStore.set(CONTEXT_STORE_KEY_BLOCK_REWARD, defaultReward);
+			blockExecuteContext.contextStore.set(CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD, defaultReward);
 
 			(posMethod.isEndOfRound as jest.Mock).mockResolvedValue(true);
 

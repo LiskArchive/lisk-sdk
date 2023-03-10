@@ -20,4 +20,4 @@ export const defaultConfig = {
 	factorMinimumRewardActiveValidators: 1000,
 };
 export const DECIMAL_PERCENT_FACTOR = BigInt(10000);
-export const CONTEXT_STORE_KEY_BLOCK_REWARD = 'CONTEXT_STORE_KEY_BLOCK_REWARD';
+export const CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD = 'CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD';
