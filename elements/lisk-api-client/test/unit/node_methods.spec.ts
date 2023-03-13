@@ -14,11 +14,11 @@
  */
 
 import { Channel } from '../../src/types';
-import { Node } from '../../src/node';
+import { NodeMethods } from '../../src/node_methods';
 
 describe('node', () => {
 	let channel: Channel;
-	let node: Node;
+	let node: NodeMethods;
 
 	beforeEach(() => {
 		channel = {
@@ -27,7 +27,7 @@ describe('node', () => {
 			invoke: jest.fn(),
 			subscribe: jest.fn(),
 		};
-		node = new Node(channel);
+		node = new NodeMethods(channel);
 	});
 
 	describe('Node', () => {

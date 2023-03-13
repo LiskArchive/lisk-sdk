@@ -86,7 +86,7 @@ export class TransferCrossChainCommand extends BaseCommand {
 				context.getMethodContext(),
 				params.receivingChainID,
 			);
-			if (messageFeeTokenID.equals(params.messageFeeTokenID)) {
+			if (!messageFeeTokenID.equals(params.messageFeeTokenID)) {
 				throw new Error('Invalid message fee Token ID.');
 			}
 

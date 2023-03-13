@@ -287,6 +287,7 @@ describe('CCTransfer command', () => {
 			const insufficientBalanceContext = createTransactionContextWithOverridingParams({
 				amount,
 				tokenID,
+				messageFeeTokenID,
 			});
 
 			jest
@@ -341,6 +342,7 @@ describe('CCTransfer command', () => {
 			const insufficientBalanceContext = createTransactionContextWithOverridingParams({
 				amount,
 				tokenID,
+				messageFeeTokenID,
 			});
 
 			jest

@@ -1,0 +1,66 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`event get should decode all events 1`] = `
+[
+  {
+    "data": {
+      "address": "lske5sqed53fdcs4m9et28f2k7u9fk6hno9bauday",
+      "amount": "10000000",
+      "module": "fee",
+      "result": 0,
+      "tokenID": "0400000000000000",
+    },
+    "height": 1345,
+    "index": 0,
+    "module": "token",
+    "name": "lock",
+    "topics": [
+      "0b3133525e7aeeffeea6c84375f029dfd7dd68c4ade9b253bd8f024829865f73",
+      "b2f75b6968f687b495b69e1fec51d06fa8ae9d8d",
+    ],
+  },
+  {
+    "data": {
+      "amount": "5000000000",
+      "result": 1,
+      "senderAddress": "lske5sqed53fdcs4m9et28f2k7u9fk6hno9bauday",
+      "validatorAddress": "lsk8z34uaatynq6nh2dqasqpfsn8t9saxn6dpa536",
+    },
+    "height": 1345,
+    "index": 1,
+    "module": "pos",
+    "name": "validatorStaked",
+    "topics": [
+      "0b3133525e7aeeffeea6c84375f029dfd7dd68c4ade9b253bd8f024829865f73",
+      "b2f75b6968f687b495b69e1fec51d06fa8ae9d8d",
+      "781098673389eaa3f71aae77527b677cdbbc84ea",
+    ],
+  },
+  {
+    "data": {
+      "success": false,
+    },
+    "height": 1345,
+    "index": 6,
+    "module": "pos",
+    "name": "commandExecutionResult",
+    "topics": [
+      "0b3133525e7aeeffeea6c84375f029dfd7dd68c4ade9b253bd8f024829865f73",
+    ],
+  },
+  {
+    "data": {
+      "amount": "0",
+      "reduction": 1,
+    },
+    "height": 1345,
+    "index": 7,
+    "module": "dynamicReward",
+    "name": "rewardMinted",
+    "topics": [
+      "03",
+      "906f6b4539a3d16a215f629946064a3065626848",
+    ],
+  },
+]
+`;

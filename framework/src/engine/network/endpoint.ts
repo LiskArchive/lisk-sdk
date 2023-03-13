@@ -29,28 +29,36 @@ export class Endpoint {
 
 	public getConnectedPeers() {
 		const peers = this._p2p.getConnectedPeers();
+
 		return peers.map(peer => {
 			const parsedPeer = {
 				...peer,
+				chainID: peer.chainID?.toString('hex') ?? '',
 			};
+
 			if (parsedPeer.options) {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				parsedPeer.options = codec.toJSON(customNodeInfoSchema, parsedPeer.options);
 			}
+
 			return parsedPeer;
 		});
 	}
 
 	public getDisconnectedPeers() {
 		const peers = this._p2p.getDisconnectedPeers();
+
 		return peers.map(peer => {
 			const parsedPeer = {
 				...peer,
+				chainID: peer.chainID?.toString('hex') ?? '',
 			};
+
 			if (parsedPeer.options) {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				parsedPeer.options = codec.toJSON(customNodeInfoSchema, parsedPeer.options);
 			}
+
 			return parsedPeer;
 		});
 	}

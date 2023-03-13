@@ -27,6 +27,8 @@ import {
 	isSeedRevealValidRequestSchema,
 	SetHashOnionRequest,
 	hashOnionSchema,
+	SetHashOnionUsageRequest,
+	setHashOnionUsageRequest,
 } from './schemas';
 import { ValidatorRevealsStore } from './stores/validator_reveals';
 import { getSeedRevealValidity } from './utils';
@@ -132,5 +134,14 @@ export class RandomEndpoint extends BaseEndpoint {
 		}
 
 		return { height: usedHashOnion.height, count: usedHashOnion.count, seed };
+	}
+
+	public async setHashOnionUsage(ctx: ModuleEndpointContext): Promise<void> {
+		validator.validate<SetHashOnionUsageRequest>(setHashOnionUsageRequest, ctx.params);
+		const { count, height } = ctx.params;
+		const address = cryptography.address.getAddressFromLisk32Address(ctx.params.address);
+
+		const usedHashOnionStore = this.offchainStores.get(UsedHashOnionsStore);
+		await usedHashOnionStore.set(ctx, address, { usedHashOnions: [{ count, height }] });
 	}
 }

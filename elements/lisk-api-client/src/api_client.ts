@@ -13,18 +13,20 @@
  *
  */
 import { EventCallback, Channel, RegisteredSchemas, NodeInfo, ModuleMetadata } from './types';
-import { Node } from './node';
-import { Block } from './block';
-import { Transaction } from './transaction';
+import { NodeMethods } from './node_methods';
+import { BlockMethods } from './block_methods';
+import { TransactionMethods } from './transaction_methods';
+import { EventMethods } from './event_methods';
 
 export class APIClient {
 	private readonly _channel: Channel;
 	private _schema!: RegisteredSchemas;
 	private _metadata!: ModuleMetadata[];
 	private _nodeInfo!: NodeInfo;
-	private _node!: Node;
-	private _block!: Block;
-	private _transaction!: Transaction;
+	private _nodeMethods!: NodeMethods;
+	private _blockMethods!: BlockMethods;
+	private _transactionMethods!: TransactionMethods;
+	private _eventMethods!: EventMethods;
 
 	public constructor(channel: Channel) {
 		this._channel = channel;
@@ -36,15 +38,16 @@ export class APIClient {
 		);
 		this._metadata = modules;
 		this._schema = await this._channel.invoke<RegisteredSchemas>('system_getSchema');
-		this._node = new Node(this._channel);
-		this._block = new Block(this._channel, this._schema, this._metadata);
-		this._nodeInfo = await this._node.getNodeInfo();
-		this._transaction = new Transaction(
+		this._nodeMethods = new NodeMethods(this._channel);
+		this._blockMethods = new BlockMethods(this._channel, this._schema, this._metadata);
+		this._nodeInfo = await this._nodeMethods.getNodeInfo();
+		this._transactionMethods = new TransactionMethods(
 			this._channel,
 			this._schema,
 			this._metadata,
 			this._nodeInfo,
 		);
+		this._eventMethods = new EventMethods(this._channel, this._metadata);
 	}
 
 	public async disconnect(): Promise<void> {
@@ -70,15 +73,19 @@ export class APIClient {
 		return this._metadata;
 	}
 
-	public get node(): Node {
-		return this._node;
+	public get node(): NodeMethods {
+		return this._nodeMethods;
 	}
 
-	public get block(): Block {
-		return this._block;
+	public get block(): BlockMethods {
+		return this._blockMethods;
 	}
 
-	public get transaction(): Transaction {
-		return this._transaction;
+	public get transaction(): TransactionMethods {
+		return this._transactionMethods;
+	}
+
+	public get event(): EventMethods {
+		return this._eventMethods;
 	}
 }

@@ -14,4 +14,4 @@
 
 export { AuthModule } from './module';
 export { AuthMethod } from './method';
-export { multisigRegMsgSchema } from './schemas';
+export { multisigRegMsgSchema, genesisAuthStoreSchema } from './schemas';

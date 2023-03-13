@@ -26,13 +26,29 @@ import {
 	DecodedBlockAsset,
 	DecodedBlockAssetJSON,
 	DecodedBlockJSON,
+	DecodedEventJSON,
 	DecodedTransaction,
 	DecodedTransactionJSON,
+	EventJSON,
 	ModuleMetadata,
 	RegisteredSchemas,
 	Transaction,
 	TransactionJSON,
 } from './types';
+
+const EVENT_COMMAND_EXECUTION_RESULT = 'commandExecutionResult';
+
+const standardEventDataSchema = {
+	$id: '/block/event/standard',
+	type: 'object',
+	required: ['success'],
+	properties: {
+		success: {
+			dataType: 'boolean',
+			fieldNumber: 1,
+		},
+	},
+};
 
 export const getTransactionParamsSchema = (
 	transaction: { module: string; command: string },
@@ -40,19 +56,30 @@ export const getTransactionParamsSchema = (
 ): Schema => {
 	const moduleMeta = metadata.find(meta => meta.name === transaction.module);
 	if (!moduleMeta) {
-		throw new Error(
-			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			`Module: ${transaction.module} is not registered.`,
-		);
+		throw new Error(`Module: ${transaction.module} is not registered.`);
 	}
 	const commandMeta = moduleMeta.commands.find(meta => meta.name === transaction.command);
 	if (!commandMeta) {
 		throw new Error(
-			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			`Module: ${transaction.module} CommandID: ${transaction.command} is not registered.`,
 		);
 	}
 	return commandMeta.params;
+};
+
+export const getEventDataSchema = (
+	event: { module: string; name: string },
+	metadata: ModuleMetadata[],
+): Schema | undefined => {
+	const moduleMetadata = metadata.find(meta => meta.name === event.module);
+	if (!moduleMetadata) {
+		throw new Error(`Module: ${event.module} is not registered.`);
+	}
+	const eventMetadata = moduleMetadata.events.find(meta => meta.name === event.name);
+	if (!eventMetadata) {
+		return event.name === EVENT_COMMAND_EXECUTION_RESULT ? standardEventDataSchema : undefined;
+	}
+	return eventMetadata.data;
 };
 
 export const getAssetDataSchema = (
@@ -85,6 +112,15 @@ export const decodeTransactionParams = <T>(
 	return {
 		...transaction,
 		params: codec.decode<T>(paramsSchema, transaction.params),
+	};
+};
+
+export const decodeEventData = (event: EventJSON, metadata: ModuleMetadata[]): DecodedEventJSON => {
+	const eventDataSchema = getEventDataSchema(event, metadata);
+
+	return {
+		...event,
+		data: eventDataSchema ? codec.decodeJSON(eventDataSchema, Buffer.from(event.data, 'hex')) : {},
 	};
 };
 
