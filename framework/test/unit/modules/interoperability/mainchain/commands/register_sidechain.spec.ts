@@ -49,7 +49,7 @@ import {
 } from '../../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
-import { MainchainInteroperabilityModule } from '../../../../../../src';
+import { MainchainInteroperabilityModule, TokenMethod, MethodContext } from '../../../../../../src';
 import { RegisteredNamesStore } from '../../../../../../src/modules/interoperability/stores/registered_names';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
 import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
@@ -128,6 +128,15 @@ describe('RegisterSidechainCommand', () => {
 	let chainValidatorsSubstore: ChainValidatorsStore;
 	let registeredNamesSubstore: RegisteredNamesStore;
 	let verifyContext: CommandVerifyContext<SidechainRegistrationParams>;
+	const tokenMethod: TokenMethod = new TokenMethod(
+		interopMod.stores,
+		interopMod.events,
+		interopMod.name,
+	);
+	let initializeEscrowAmountMock: jest.SpyInstance<
+		Promise<void>,
+		[methodContext: MethodContext, chainID: Buffer, tokenID: Buffer]
+	>;
 
 	beforeEach(async () => {
 		sidechainRegistrationCommand = new RegisterSidechainCommand(
@@ -138,8 +147,12 @@ describe('RegisterSidechainCommand', () => {
 			interopMod['internalMethod'],
 		);
 
+		initializeEscrowAmountMock = jest
+			.spyOn(tokenMethod, 'initializeEscrowAccount')
+			.mockResolvedValue();
+
 		// Set up dependencies
-		sidechainRegistrationCommand.addDependencies({ payFee: jest.fn() });
+		sidechainRegistrationCommand.addDependencies({ payFee: jest.fn() }, tokenMethod);
 
 		// Initialize stores
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -579,6 +592,18 @@ describe('RegisterSidechainCommand', () => {
 			expect(sidechainRegistrationCommand['_feeMethod'].payFee).toHaveBeenCalledWith(
 				expect.anything(),
 				CHAIN_REGISTRATION_FEE,
+			);
+		});
+
+		it('should initialize escrow account', async () => {
+			// Act
+			await sidechainRegistrationCommand.execute(context);
+
+			// Assert
+			expect(initializeEscrowAmountMock).toHaveBeenCalledWith(
+				expect.anything(),
+				context.params.chainID,
+				getMainchainTokenID(context.params.chainID),
 			);
 		});
 
