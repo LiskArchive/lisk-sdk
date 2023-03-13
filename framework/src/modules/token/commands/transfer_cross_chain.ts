@@ -24,7 +24,11 @@ import {
 	VerifyStatus,
 } from '../../../state_machine';
 import { TokenMethod } from '../method';
-import { crossChainTransferParamsSchema } from '../schemas';
+import {
+	CCTransferMessageParams,
+	crossChainTransferMessageParams,
+	crossChainTransferParamsSchema,
+} from '../schemas';
 import { InteroperabilityMethod } from '../types';
 import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../constants';
 import { splitTokenID } from '../utils';
@@ -172,6 +176,14 @@ export class TransferCrossChainCommand extends BaseCommand {
 			recipientAddress: params.recipientAddress,
 		});
 
+		const transferCCM: CCTransferMessageParams = {
+			amount: params.amount,
+			data: params.data,
+			recipientAddress: params.recipientAddress,
+			senderAddress,
+			tokenID: params.tokenID,
+		};
+
 		await this._interoperabilityMethod.send(
 			context.getMethodContext(),
 			senderAddress,
@@ -180,7 +192,7 @@ export class TransferCrossChainCommand extends BaseCommand {
 			params.receivingChainID,
 			params.messageFee,
 			CCM_STATUS_OK,
-			codec.encode(this.schema, params),
+			codec.encode(crossChainTransferMessageParams, transferCCM),
 		);
 	}
 }

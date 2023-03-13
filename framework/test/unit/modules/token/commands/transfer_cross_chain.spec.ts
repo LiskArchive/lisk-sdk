@@ -28,7 +28,11 @@ import {
 	CCM_STATUS_OK,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 } from '../../../../../src/modules/token/constants';
-import { crossChainTransferParamsSchema } from '../../../../../src/modules/token/schemas';
+import {
+	CCTransferMessageParams,
+	crossChainTransferMessageParams,
+	crossChainTransferParamsSchema,
+} from '../../../../../src/modules/token/schemas';
 import { EventQueue } from '../../../../../src/state_machine';
 import { EscrowStore } from '../../../../../src/modules/token/stores/escrow';
 import { UserStore } from '../../../../../src/modules/token/stores/user';
@@ -468,11 +472,13 @@ describe('CCTransfer command', () => {
 					validParams.receivingChainID,
 					validParams.messageFee,
 					CCM_STATUS_OK,
-					codec.encode(crossChainTransferParamsSchema, {
-						...validParams,
-						amount,
+					codec.encode(crossChainTransferMessageParams, {
 						tokenID: commonTokenID,
-					}),
+						amount,
+						senderAddress: context.transaction.senderAddress,
+						recipientAddress: validParams.recipientAddress,
+						data: validParams.data,
+					} as CCTransferMessageParams),
 				);
 			});
 		});
@@ -526,11 +532,13 @@ describe('CCTransfer command', () => {
 				validParams.receivingChainID,
 				validParams.messageFee,
 				CCM_STATUS_OK,
-				codec.encode(crossChainTransferParamsSchema, {
-					...validParams,
-					amount,
+				codec.encode(crossChainTransferMessageParams, {
 					tokenID: commonTokenID,
-				}),
+					amount,
+					senderAddress: context.transaction.senderAddress,
+					recipientAddress: validParams.recipientAddress,
+					data: validParams.data,
+				} as CCTransferMessageParams),
 			);
 		});
 
