@@ -353,7 +353,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			);
 		});
 
-		it('should reject when sending chain status is registered but certificate is empty', async () => {
+		it('should reject when sending chain status is registered and certificate is empty', async () => {
 			await partnerChainStore.set(stateStore, params.sendingChainID, {
 				...partnerChainAccount,
 				status: ChainStatus.REGISTERED,
