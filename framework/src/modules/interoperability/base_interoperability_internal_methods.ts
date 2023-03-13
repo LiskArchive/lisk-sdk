@@ -60,14 +60,7 @@ import { verifyAggregateCertificateSignature } from '../../engine/consensus/cert
 
 export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMethod {
 	protected readonly interoperableModuleMethods = new Map<string, BaseCCMethod>();
-	protected _tokenMethod!: TokenMethod & {
-		payMessageFee: (
-			context: MethodContext,
-			payFromAddress: Buffer,
-			fee: bigint,
-			receivingChainID: Buffer,
-		) => Promise<void>;
-	};
+	protected _tokenMethod!: TokenMethod;
 
 	public constructor(
 		stores: NamedRegistry,
@@ -78,17 +71,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		this.interoperableModuleMethods = interoperableModuleMethods;
 	}
 
-	public addDependencies(
-		tokenMethod: TokenMethod & {
-			// TODO: Remove this after token module update
-			payMessageFee: (
-				context: MethodContext,
-				payFromAddress: Buffer,
-				fee: bigint,
-				receivingChainID: Buffer,
-			) => Promise<void>;
-		},
-	) {
+	public addDependencies(tokenMethod: TokenMethod) {
 		this._tokenMethod = tokenMethod;
 	}
 
@@ -513,7 +496,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		if (fee > 0) {
 			try {
 				// eslint-disable-next-line no-lonely-if
-				await this._tokenMethod.payMessageFee(context, sendingAddress, fee, ccm.receivingChainID);
+				await this._tokenMethod.payMessageFee(context, sendingAddress, ccm.receivingChainID, fee);
 			} catch (error) {
 				this.events.get(CcmSentFailedEvent).log(
 					context,
