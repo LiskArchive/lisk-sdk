@@ -203,12 +203,51 @@ describe('generator network endpoint', () => {
 				expect(pool.add).toHaveBeenCalledTimes(2);
 			});
 
-			it('should apply penalty when validateTransactions fails', async () => {
-				// Act
+			it('should not apply penalty when abi verification fails', async () => {
+				// Arrange
 				(pool.contains as jest.Mock).mockReturnValue(false);
+
 				(abi.verifyTransaction as jest.Mock).mockResolvedValue({
 					result: TransactionVerifyResult.INVALID,
 				});
+
+				// Act
+				await endpoint.handleEventPostTransactionsAnnouncement(
+					validTransactionsRequest,
+					defaultPeerId,
+				);
+
+				// Assert
+				expect(network.applyPenaltyOnPeer).not.toHaveBeenCalledWith();
+			});
+
+			it('should not apply penalty for valid transactions', async () => {
+				// Arrange
+				(pool.contains as jest.Mock).mockReturnValue(false);
+
+				(abi.verifyTransaction as jest.Mock).mockResolvedValue({
+					result: TransactionVerifyResult.OK,
+				});
+
+				// Act
+				await endpoint.handleEventPostTransactionsAnnouncement(
+					validTransactionsRequest,
+					defaultPeerId,
+				);
+
+				// Assert
+				expect(network.applyPenaltyOnPeer).not.toHaveBeenCalledWith();
+			});
+
+			it('should apply penalty when validation fails', async () => {
+				// Arrange
+				(pool.contains as jest.Mock).mockReturnValue(false);
+
+				(abi.verifyTransaction as jest.Mock).mockResolvedValue({
+					result: TransactionVerifyResult.INVALID,
+				});
+
+				// Act
 				await endpoint.handleEventPostTransactionsAnnouncement(
 					validTransactionsRequest,
 					defaultPeerId,

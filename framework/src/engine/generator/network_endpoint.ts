@@ -228,10 +228,10 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			try {
 				for (const transactionBytes of transactionsData.transactions) {
 					const transaction = Transaction.fromBytes(transactionBytes);
+					transaction.validate();
 					await this._receiveTransaction(transaction);
 				}
 			} catch (err) {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				this._logger.warn({ err, peerId }, 'Received invalid transactions.');
 				if (err instanceof InvalidTransactionError) {
 					this.network.applyPenaltyOnPeer({
