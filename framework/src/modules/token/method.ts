@@ -137,11 +137,21 @@ export class TokenMethod extends BaseMethod {
 		if (!this.isNativeToken(tokenID)) {
 			throw new Error('Only native token can have escrow amount.');
 		}
+
+		if (this._config.ownChainID.equals(escrowChainID)) {
+			throw new Error('Escrow is not defined for own chain.');
+		}
+
 		const escrowStore = this.stores.get(EscrowStore);
-		const escrowAccount = await escrowStore.get(
-			methodContext,
-			escrowStore.getKey(escrowChainID, tokenID),
-		);
+
+		const key = escrowStore.getKey(escrowChainID, tokenID);
+
+		if (!(await escrowStore.has(methodContext, key))) {
+			return BigInt(0);
+		}
+
+		const escrowAccount = await escrowStore.get(methodContext, key);
+
 		return escrowAccount.amount;
 	}
 
@@ -183,6 +193,9 @@ export class TokenMethod extends BaseMethod {
 			tokenID,
 			amount,
 		};
+		if (amount === BigInt(0)) {
+			return;
+		}
 		if (!this.isNativeToken(tokenID)) {
 			this.events
 				.get(MintEvent)
@@ -256,6 +269,9 @@ export class TokenMethod extends BaseMethod {
 		};
 		let userAccount: UserStoreData;
 		try {
+			if (amount === BigInt(0)) {
+				return;
+			}
 			userAccount = await userStore.get(methodContext, userStore.getKey(address, tokenID));
 			if (userAccount.availableBalance < amount) {
 				this.events
@@ -308,6 +324,12 @@ export class TokenMethod extends BaseMethod {
 	): Promise<void> {
 		if (!this.isNativeToken(tokenID)) {
 			throw new Error(`TokenID ${tokenID.toString('hex')} is not native token.`);
+		}
+
+		if (this._config.ownChainID.equals(chainID)) {
+			throw new Error(
+				`Can not initialize escrow account for own chain, ${chainID.toString('hex')}`,
+			);
 		}
 
 		const escrowStore = this.stores.get(EscrowStore);
@@ -390,6 +412,10 @@ export class TokenMethod extends BaseMethod {
 			receivingChainID,
 			messageFee,
 		};
+
+		if (this._config.ownChainID.equals(receivingChainID)) {
+			throw new Error('Receiving chain cannot be the sending chain.');
+		}
 
 		if (data.length > MAX_DATA_LENGTH) {
 			this.events
@@ -497,6 +523,9 @@ export class TokenMethod extends BaseMethod {
 		};
 		let account: UserStoreData;
 		try {
+			if (amount === BigInt(0)) {
+				return;
+			}
 			account = await userStore.get(methodContext, userStore.getKey(address, tokenID));
 			if (account.availableBalance < amount) {
 				this.events
@@ -541,6 +570,9 @@ export class TokenMethod extends BaseMethod {
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
+		if (amount === BigInt(0)) {
+			return;
+		}
 		const userStore = this.stores.get(UserStore);
 		const eventData = {
 			address,
