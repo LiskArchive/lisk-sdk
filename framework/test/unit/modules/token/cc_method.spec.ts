@@ -120,13 +120,13 @@ describe('TokenInteroperableMethod', () => {
 		);
 	});
 
-	describe('beforeCrossChainCommandExecution', () => {
+	describe('beforeCrossChainCommandExecute', () => {
 		it('should credit fee to transaction sender if token id is not native', async () => {
 			jest
 				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenID')
 				.mockResolvedValue(defaultForeignTokenID);
 			await expect(
-				tokenInteropMethod.beforeCrossChainCommandExecution({
+				tokenInteropMethod.beforeCrossChainCommandExecute({
 					ccm: {
 						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 						module: tokenModule.name,
@@ -171,7 +171,7 @@ describe('TokenInteroperableMethod', () => {
 
 		it('should throw if escrow balance is not sufficient', async () => {
 			await expect(
-				tokenInteropMethod.beforeCrossChainCommandExecution({
+				tokenInteropMethod.beforeCrossChainCommandExecute({
 					ccm: {
 						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 						module: tokenModule.name,
@@ -211,7 +211,7 @@ describe('TokenInteroperableMethod', () => {
 
 		it('should deduct escrow account for fee and credit to sender if token id is native', async () => {
 			await expect(
-				tokenInteropMethod.beforeCrossChainCommandExecution({
+				tokenInteropMethod.beforeCrossChainCommandExecute({
 					ccm: {
 						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 						module: tokenModule.name,
