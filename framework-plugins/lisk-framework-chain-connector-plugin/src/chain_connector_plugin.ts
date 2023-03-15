@@ -139,15 +139,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		this._chainConnectorStore = new ChainConnectorStore(this._chainConnectorPluginDB);
 		this.endpoint.load(this._chainConnectorStore);
 
-		if (this.config.receivingChainIPCPath) {
-			this._receivingChainClient = await apiClient.createIPCClient(
-				this.config.receivingChainIPCPath,
-			);
-		} else if (this.config.receivingChainWsURL) {
-			this._receivingChainClient = await apiClient.createWSClient(this.config.receivingChainWsURL);
-		} else {
-			throw new Error('IPC path and WS url are undefined.');
-		}
+		await this._initializeReceivingChainClient();
 
 		this._sendingChainClient = this.apiClient;
 
@@ -218,9 +210,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			} catch (error) {
 				// If receivingChainAPIClient is not ready then still save data on new block
 				await this._saveDataOnNewBlock(newBlockHeader);
+				await this._initializeReceivingChainClient();
 				this.logger.error(
 					error,
-					'Error occurred while using accessing receivingChain API Client but all data is saved on newBlock.',
+					'Error occurred while accessing receivingChainAPIClient but all data is saved on newBlock.',
 				);
 
 				return;
@@ -741,5 +734,18 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		await this._chainConnectorStore.setListOfCCUs(listOfCCUs);
 		// Update logs
 		this.logger.info({ transactionID: result.transactionId }, 'Sent CCU transaction');
+	}
+
+	private async _initializeReceivingChainClient() {
+		if (!this.config.receivingChainIPCPath && !this.config.receivingChainWsURL) {
+			throw new Error('IPC path and WS url are undefined.');
+		}
+		if (this.config.receivingChainIPCPath) {
+			this._receivingChainClient = await apiClient.createIPCClient(
+				this.config.receivingChainIPCPath,
+			);
+		} else if (this.config.receivingChainWsURL) {
+			this._receivingChainClient = await apiClient.createWSClient(this.config.receivingChainWsURL);
+		}
 	}
 }
