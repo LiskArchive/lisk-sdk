@@ -15,9 +15,19 @@
 import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { defaultConfig } from './constants';
+import {
+	CONTEXT_STORE_KEY_BLOCK_REDUCTION,
+	CONTEXT_STORE_KEY_BLOCK_REWARD,
+	defaultConfig,
+	REWARD_REDUCTION_NO_ACCOUNT,
+} from './constants';
 import { ModuleConfig, ModuleConfigJSON, RandomMethod, TokenMethod } from './types';
-import { BlockAfterExecuteContext } from '../../state_machine';
+import {
+	BlockAfterExecuteContext,
+	BlockExecuteContext,
+	getContextStoreBigInt,
+	getContextStoreNumber,
+} from '../../state_machine';
 import { RewardMethod } from './method';
 import { RewardEndpoint } from './endpoint';
 import {
@@ -46,7 +56,7 @@ export class RewardModule extends BaseModule {
 	public addDependencies(tokenMethod: TokenMethod, randomMethod: RandomMethod) {
 		this._tokenMethod = tokenMethod;
 		this._randomMethod = randomMethod;
-		this.method.addDependencies(this._randomMethod, this._tokenMethod);
+		this.method.addDependencies(this._randomMethod);
 	}
 
 	public metadata(): ModuleMetadata {
@@ -91,23 +101,41 @@ export class RewardModule extends BaseModule {
 		this.endpoint.init(this._moduleConfig, args.genesisConfig.blockTime);
 	}
 
-	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
+	public async beforeTransactionsExecute(context: BlockExecuteContext): Promise<void> {
 		const [blockReward, reduction] = await this.method.getBlockReward(
 			context.getMethodContext(),
 			context.header,
 			context.assets,
 		);
+		context.contextStore.set(CONTEXT_STORE_KEY_BLOCK_REWARD, blockReward);
+		context.contextStore.set(CONTEXT_STORE_KEY_BLOCK_REDUCTION, reduction);
+	}
+
+	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
+		let blockReward = getContextStoreBigInt(context.contextStore, CONTEXT_STORE_KEY_BLOCK_REWARD);
+		let reduction = getContextStoreNumber(context.contextStore, CONTEXT_STORE_KEY_BLOCK_REDUCTION);
 		if (blockReward < BigInt(0)) {
 			throw new Error("Block reward can't be negative.");
 		}
 
+		const userSubstoreExists = await this._tokenMethod.userAccountExists(
+			context,
+			context.header.generatorAddress,
+			this._moduleConfig.tokenID,
+		);
+
 		if (blockReward !== BigInt(0)) {
-			await this._tokenMethod.mint(
-				context.getMethodContext(),
-				context.header.generatorAddress,
-				this._moduleConfig.tokenID,
-				blockReward,
-			);
+			if (userSubstoreExists) {
+				await this._tokenMethod.mint(
+					context.getMethodContext(),
+					context.header.generatorAddress,
+					this._moduleConfig.tokenID,
+					blockReward,
+				);
+			} else {
+				blockReward = BigInt(0);
+				reduction = REWARD_REDUCTION_NO_ACCOUNT;
+			}
 		}
 
 		this.events.get(RewardMintedEvent).log(context, context.header.generatorAddress, {
