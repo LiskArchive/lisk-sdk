@@ -61,6 +61,7 @@ export interface InteroperabilityMethod {
 		fee: bigint,
 		status: number,
 		parameters: Buffer,
+		timestamp?: number,
 	): Promise<void>;
 	error(methodContext: MethodContext, ccm: CCMsg, code: number): Promise<void>;
 	terminateChain(methodContext: MethodContext, chainID: Buffer): Promise<void>;

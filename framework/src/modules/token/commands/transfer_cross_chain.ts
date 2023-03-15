@@ -197,6 +197,7 @@ export class TransferCrossChainCommand extends BaseCommand {
 			params.messageFee,
 			CCM_STATUS_OK,
 			codec.encode(crossChainTransferMessageParams, transferCCM),
+			context.header.timestamp,
 		);
 	}
 }

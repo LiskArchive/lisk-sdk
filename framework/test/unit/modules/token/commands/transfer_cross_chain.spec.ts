@@ -492,6 +492,7 @@ describe('CCTransfer command', () => {
 						recipientAddress: validParams.recipientAddress,
 						data: validParams.data,
 					} as CCTransferMessageParams),
+					commandExecuteContext.header.timestamp,
 				);
 			});
 		});
@@ -552,6 +553,7 @@ describe('CCTransfer command', () => {
 					recipientAddress: validParams.recipientAddress,
 					data: validParams.data,
 				} as CCTransferMessageParams),
+				commandExecuteContext.header.timestamp,
 			);
 		});
 
