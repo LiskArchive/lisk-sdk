@@ -1811,13 +1811,15 @@
     "@liskhq/lisk-utils" "^0.3.0-alpha.3"
     "@liskhq/lisk-validator" "^0.7.0-alpha.6"
 
-"@liskhq/lisk-db@0.3.4":
-  version "0.3.4"
-  resolved "https://registry.yarnpkg.com/@liskhq/lisk-db/-/lisk-db-0.3.4.tgz#92661c8bec6f15431d1576fc656539ef95c81d9d"
-  integrity sha512-4lF863V2LHtFALdk2xf8vNExIK60xzHd9EYWOxRh4R7ouDhgrUszfe/Raw2QzQigXayiLa1XMkGo0NSTFJTHZA==
+"@liskhq/lisk-db@0.3.5":
+  version "0.3.5"
+  resolved "https://registry.yarnpkg.com/@liskhq/lisk-db/-/lisk-db-0.3.5.tgz#ab0b639a1121d7c7e132bfb8e9bd78bf39beab3c"
+  integrity sha512-Ch+nx+VOMBwrJ5OdkUs56dLa5oRUys2umBsLvxe5K26HZ0BrVHvpSam+8KtE0qdQeu3+v9fvCoVeug8mkP8Jcg==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.9"
     "@types/node" "^16"
+    cargo-cp-artifact "^0.1"
+    shelljs "^0.8.5"
 
 "@lmdb/lmdb-darwin-arm64@2.5.2":
   version "2.5.2"
@@ -5616,6 +5618,11 @@ cardinal@^2.1.1:
   dependencies:
     ansicolors "~0.3.2"
     redeyed "~2.1.0"
+
+cargo-cp-artifact@^0.1:
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/cargo-cp-artifact/-/cargo-cp-artifact-0.1.8.tgz#353814f49f6aa76601a4bcb3ea5f3071180b90de"
+  integrity sha512-3j4DaoTrsCD1MRkTF2Soacii0Nx7UHCce0EwUf4fHnggwiE4fbmF2AbnfzayR36DF8KGadfh7M/Yfy625kgPlA==
 
 caseless@~0.12.0:
   version "0.12.0"
