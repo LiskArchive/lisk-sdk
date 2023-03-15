@@ -16,6 +16,7 @@ import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import {
+	CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REDUCTION,
 	CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD,
 	DECIMAL_PERCENT_FACTOR,
 	defaultConfig,
@@ -40,6 +41,7 @@ import {
 	BlockAfterExecuteContext,
 	BlockHeader,
 	getContextStoreBigInt,
+	getContextStoreNumber,
 	ImmutableMethodContext,
 } from '../../state_machine';
 import { DynamicRewardMethod } from './method';
@@ -146,19 +148,24 @@ export class DynamicRewardModule extends BaseModule {
 			context.getMethodContext(),
 			context.header,
 		);
-		context.contextStore.set(CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD, defaultReward);
-	}
-
-	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
-		const defaultReward = getContextStoreBigInt(
-			context.contextStore,
-			CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD,
-		);
-		let [blockReward, reduction] = await this._getBlockRewardDeduction(
+		const [blockReward, reduction] = await this._getBlockRewardDeduction(
 			context.getMethodContext(),
 			context.header,
 			context.assets,
 			defaultReward,
+		);
+		context.contextStore.set(CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD, blockReward);
+		context.contextStore.set(CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REDUCTION, reduction);
+	}
+
+	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
+		let blockReward = getContextStoreBigInt(
+			context.contextStore,
+			CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD,
+		);
+		let reduction = getContextStoreNumber(
+			context.contextStore,
+			CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REDUCTION,
 		);
 
 		if (blockReward !== BigInt(0)) {
