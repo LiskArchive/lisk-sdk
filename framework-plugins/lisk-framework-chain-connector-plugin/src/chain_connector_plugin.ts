@@ -120,6 +120,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		if (this.config.maxCCUSize > CCU_TOTAL_CCM_SIZE) {
 			throw new Error(`maxCCUSize cannot be greater than ${CCU_TOTAL_CCM_SIZE} bytes.`);
 		}
+		this._receivingChainID = Buffer.from(this.config.receivingChainID, 'hex');
 		this._maxCCUSize = this.config.maxCCUSize;
 		this._isSaveCCU = this.config.isSaveCCU;
 		this._registrationHeight = this.config.registrationHeight;
@@ -158,14 +159,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			).chainID,
 			'hex',
 		);
-		this._receivingChainID = Buffer.from(
-			(
-				await this._receivingChainClient.invoke<OwnChainAccountJSON>(
-					'interoperability_getOwnChainAccount',
-				)
-			).chainID,
-			'hex',
-		);
+		if (this._receivingChainID[0] !== this._ownChainID[0]) {
+			throw new Error('Receiving Chain ID network does not match the sending chain network.');
+		}
 		// If the running node is mainchain then receiving chain will be sidechain or vice verse.
 		this._isReceivingChainMainchain = !getMainchainID(this._ownChainID).equals(this._ownChainID);
 		// On a new block start with CCU creation process
@@ -180,7 +176,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	}
 
 	public async unload(): Promise<void> {
-		await this._receivingChainClient.disconnect();
+		if (this._receivingChainClient) {
+			await this._sendingChainClient.disconnect();
+		}
 		if (this._sendingChainClient) {
 			await this._sendingChainClient.disconnect();
 		}
@@ -203,20 +201,31 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		// Save blockHeader, aggregateCommit, validatorsData and cross chain messages if any.
 		try {
 			// Fetch last certificate from the receiving chain and update the _lastCertificate
-			chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
-				'interoperability_getChainAccount',
-				{ chainID: this._ownChainID.toString('hex') },
-			);
-
-			// If sending chain is not registered with the receiving chain then only save data on new block and exit
-			if (!chainAccountJSON || (chainAccountJSON && !chainAccountJSON.lastCertificate)) {
-				this.logger.info(
-					'Sending chain is not registered to the receiving chain yet and has no chain data.',
+			try {
+				chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
+					'interoperability_getChainAccount',
+					{ chainID: this._ownChainID.toString('hex') },
 				);
+				// If sending chain is not registered with the receiving chain then only save data on new block and exit
+				if (!chainAccountJSON || (chainAccountJSON && !chainAccountJSON.lastCertificate)) {
+					this.logger.info(
+						'Sending chain is not registered to the receiving chain yet and has no chain data.',
+					);
+					await this._saveDataOnNewBlock(newBlockHeader);
+
+					return;
+				}
+			} catch (error) {
+				// If receivingChainAPIClient is not ready then still save data on new block
 				await this._saveDataOnNewBlock(newBlockHeader);
+				this.logger.error(
+					error,
+					'Error occurred while using accessing receivingChain API Client but all data is saved on newBlock.',
+				);
 
 				return;
 			}
+
 			this._lastCertificate = chainAccountDataJSONToObj(chainAccountJSON).lastCertificate;
 			const { aggregateCommits, blockHeaders, validatorsHashPreimage, crossChainMessages } =
 				await this._saveDataOnNewBlock(newBlockHeader);
@@ -234,6 +243,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 					try {
 						await this._submitCCU(codec.encode(ccuParamsSchema, computedCCUParams.ccuParams));
 						// If CCU was sent successfully then save the lastSentCCM if any
+						// TODO: Add function to check on the receiving chain whether last sent CCM was accepted or not
 						if (computedCCUParams.lastCCMToBeSent) {
 							await this._chainConnectorStore.setLastSentCCM(computedCCUParams.lastCCMToBeSent);
 						}
@@ -545,6 +555,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			Buffer.from(store?.key as string, 'hex'),
 			cryptography.utils.hash(this._receivingChainID),
 		]).toString('hex');
+
 		const proveResponseJSON = await this._sendingChainClient.invoke<ProveResponseJSON>(
 			'state_prove',
 			{

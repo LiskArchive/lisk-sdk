@@ -714,6 +714,34 @@ describe('BFT Method', () => {
 			).rejects.toThrow('Invalid validators size.');
 		});
 
+		it('should throw when validator addresses are not unique', async () => {
+			const validators = new Array(bftMethod['_batchSize']).fill(0).map(() => ({
+				address: utils.getRandomBytes(20),
+				bftWeight: BigInt(1),
+				blsKey: utils.getRandomBytes(48),
+				generatorKey: utils.getRandomBytes(32),
+			}));
+			validators[8].address = validators[12].address;
+
+			await expect(
+				bftMethod.setBFTParameters(stateStore, BigInt(68), BigInt(68), validators),
+			).rejects.toThrow('Provided validator addresses are not unique.');
+		});
+
+		it('should throw when validator BLS keys are not unique', async () => {
+			const validators = new Array(bftMethod['_batchSize']).fill(0).map(() => ({
+				address: utils.getRandomBytes(20),
+				bftWeight: BigInt(1),
+				blsKey: utils.getRandomBytes(48),
+				generatorKey: utils.getRandomBytes(32),
+			}));
+			validators[13].blsKey = validators[7].blsKey;
+
+			await expect(
+				bftMethod.setBFTParameters(stateStore, BigInt(68), BigInt(68), validators),
+			).rejects.toThrow('Provided validator BLS keys are not unique.');
+		});
+
 		it('should throw when bft weight is negative', async () => {
 			await expect(
 				bftMethod.setBFTParameters(

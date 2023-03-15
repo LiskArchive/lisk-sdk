@@ -206,14 +206,20 @@ describe('token module', () => {
 			).rejects.toThrow('Only native token can have escrow amount');
 		});
 
-		it('should reject if escrow account does not exist', async () => {
+		it('should reject if escrow chain is native', async () => {
+			await expect(
+				method.getEscrowedAmount(methodContext, method['_config'].ownChainID, defaultTokenID),
+			).rejects.toThrow('Escrow is not defined for own chain');
+		});
+
+		it('should return 0 if escrow account does not exist', async () => {
 			await expect(
 				method.getEscrowedAmount(
 					methodContext,
 					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 					Buffer.from([0, 0, 0, 1, 0, 0, 0, 1]),
 				),
-			).rejects.toThrow('does not exist');
+			).resolves.toBe(BigInt(0));
 		});
 
 		it('should return balance if data exists', async () => {
@@ -301,6 +307,18 @@ describe('token module', () => {
 			);
 		});
 
+		it('should not update balance if amount it zero', async () => {
+			await expect(
+				method.mint(methodContext, defaultAddress, defaultTokenID, BigInt(0)),
+			).resolves.toBeUndefined();
+
+			await expect(
+				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
+			).resolves.toEqual(defaultAccount.availableBalance);
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
 		it('should initialize account if account does not exist', async () => {
 			await expect(
 				method.mint(methodContext, utils.getRandomBytes(20), defaultTokenID, BigInt(100)),
@@ -383,6 +401,18 @@ describe('token module', () => {
 			const { totalSupply } = await supplyStore.get(methodContext, defaultTokenID);
 			expect(totalSupply).toEqual(defaultTotalSupply);
 			checkEventResult(methodContext.eventQueue, BurnEvent, TokenEventResult.SUCCESSFUL);
+		});
+
+		it('should not update address balance if amount is zero', async () => {
+			await expect(
+				method.burn(methodContext, defaultAddress, defaultTokenID, BigInt(0)),
+			).resolves.toBeUndefined();
+
+			await expect(
+				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
+			).resolves.toEqual(defaultAccount.availableBalance);
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
 		});
 
 		it('should update address balance and total supply', async () => {
@@ -468,6 +498,12 @@ describe('token module', () => {
 					defaultForeignTokenID,
 				),
 			).rejects.toThrow('is not native token');
+		});
+
+		it('should reject for own chain ID', async () => {
+			await expect(
+				method.initializeEscrowAccount(methodContext, method['_config'].ownChainID, defaultTokenID),
+			).rejects.toThrow('Can not initialize escrow account for own chain');
 		});
 
 		it('should reject if address does not have balance for inititialization fee', async () => {
@@ -786,6 +822,21 @@ describe('token module', () => {
 			);
 		});
 
+		it('should reject if receiving chain is own chain', async () => {
+			await expect(
+				method.transferCrossChain(
+					methodContext,
+					defaultAddress,
+					method['_config'].ownChainID,
+					utils.getRandomBytes(20),
+					defaultTokenID,
+					BigInt('100000'),
+					BigInt('10000'),
+					'data',
+				),
+			).rejects.toThrow('Receiving chain cannot be the sending chain.');
+		});
+
 		it('should debit amount from sender and move to escrow', async () => {
 			await expect(
 				method.transferCrossChain(
@@ -888,6 +939,22 @@ describe('token module', () => {
 			);
 		});
 
+		it('should not update availableBalance and lockedBalance for module if amount is zero', async () => {
+			await expect(
+				method.lock(methodContext, defaultAddress, 'token', defaultTokenID, BigInt(0)),
+			).resolves.toBeUndefined();
+
+			await expect(
+				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
+			).resolves.toEqual(defaultAccount.availableBalance);
+
+			await expect(
+				method.getLockedAmount(methodContext, defaultAddress, defaultTokenID, 'pos'),
+			).resolves.toBe(defaultAccount.lockedBalances[0].amount);
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
 		it('should update address balance', async () => {
 			await expect(
 				method.lock(
@@ -962,6 +1029,22 @@ describe('token module', () => {
 				UnlockEvent,
 				TokenEventResult.INSUFFICIENT_LOCKED_AMOUNT,
 			);
+		});
+
+		it('should not update availableBalance and lockedBalance for module if amount is zero', async () => {
+			await expect(
+				method.unlock(methodContext, defaultAddress, 'pos', defaultTokenID, BigInt(0)),
+			).resolves.toBeUndefined();
+
+			await expect(
+				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
+			).resolves.toEqual(defaultAccount.availableBalance);
+
+			await expect(
+				method.getLockedAmount(methodContext, defaultAddress, defaultTokenID, 'pos'),
+			).resolves.toBe(defaultAccount.lockedBalances[0].amount);
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
 		});
 
 		it('should update address balance', async () => {

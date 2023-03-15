@@ -121,6 +121,31 @@ export const getHashOnionUsageResponse = {
 	},
 };
 
+export interface SetHashOnionUsageRequest extends AddressRequest {
+	height: number;
+	count: number;
+}
+
+export const setHashOnionUsageRequest = {
+	$id: 'lisk/random/setHashOnionUsageRequest',
+	type: 'object',
+	required: ['address', 'count', 'height'],
+	properties: {
+		address: {
+			type: 'string',
+			format: 'lisk32',
+		},
+		count: {
+			type: 'integer',
+			minimum: 1,
+		},
+		height: {
+			type: 'integer',
+			format: 'uint32',
+		},
+	},
+};
+
 export const randomModuleConfig = {
 	$id: '/modules/random/config',
 	type: 'object',

@@ -14,6 +14,7 @@
 
 import { BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
+import { objects } from '@liskhq/lisk-utils';
 import {
 	areDistinctHeadersContradicting,
 	computeValidatorsHash,
@@ -163,6 +164,14 @@ export class BFTMethod {
 				`Invalid validators size. The number of validators can be at most the batch size ${this._batchSize}.`,
 			);
 		}
+
+		if (!objects.bufferArrayUniqueItems(validators.map(validator => validator.address))) {
+			throw new Error('Provided validator addresses are not unique.');
+		}
+		if (!objects.bufferArrayUniqueItems(validators.map(validator => validator.blsKey))) {
+			throw new Error('Provided validator BLS keys are not unique.');
+		}
+
 		let aggregateBFTWeight = BigInt(0);
 		for (const validator of validators) {
 			if (validator.bftWeight < 0) {

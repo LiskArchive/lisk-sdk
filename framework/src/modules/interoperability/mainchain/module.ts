@@ -158,8 +158,9 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 	}
 
 	public addDependencies(tokenMethod: TokenMethod, feeMethod: FeeMethod) {
-		this._sidechainRegistrationCommand.addDependencies(feeMethod);
+		this._sidechainRegistrationCommand.addDependencies(feeMethod, tokenMethod);
 		this._crossChainUpdateCommand.init(this.method, tokenMethod);
+		this.internalMethod.addDependencies(tokenMethod);
 	}
 
 	public metadata(): ModuleMetadata {
