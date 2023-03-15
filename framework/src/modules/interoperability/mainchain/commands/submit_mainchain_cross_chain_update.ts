@@ -242,9 +242,6 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 	private _verifyLivenessConditionForRegisteredChains(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): void {
-		if (context.params.certificate.length === 0 || isInboxUpdateEmpty(context.params.inboxUpdate)) {
-			return;
-		}
 		const certificate = codec.decode<Certificate>(certificateSchema, context.params.certificate);
 		if (context.header.timestamp - certificate.timestamp > LIVENESS_LIMIT / 2) {
 			throw new Error(
