@@ -9,6 +9,9 @@ module.exports = {
 	transform: {
 		'^.+\\.(ts|tsx)$': 'ts-jest',
 	},
+	moduleNameMapper: {
+		"^axios$": "axios/dist/axios.js"
+	},
 	verbose: false,
 	collectCoverage: false,
 	coverageReporters: ['json'],

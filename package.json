@@ -69,7 +69,7 @@
 		"istanbul-lib-coverage": "3.0.0",
 		"istanbul-lib-report": "3.0.0",
 		"istanbul-reports": "3.0.0",
-		"lerna": "4.0.0",
+		"lerna": "6.4.1",
 		"lint-staged": "10.5.4",
 		"prettier": "2.2.1",
 		"typescript": "4.2.3",
