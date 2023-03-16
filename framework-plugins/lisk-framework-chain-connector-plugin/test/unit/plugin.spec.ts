@@ -314,7 +314,7 @@ describe('ChainConnectorPlugin', () => {
 			chainConnectorPlugin['_apiClient'] = sendingChainAPIClientMock;
 
 			await expect(chainConnectorPlugin.load()).rejects.toThrow(
-				'IPC path and WS url are undefined',
+				'IPC path and WS url are undefined in the configuration',
 			);
 		});
 

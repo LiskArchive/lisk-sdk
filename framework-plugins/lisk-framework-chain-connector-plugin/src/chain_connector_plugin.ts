@@ -738,7 +738,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 	private async _initializeReceivingChainClient() {
 		if (!this.config.receivingChainIPCPath && !this.config.receivingChainWsURL) {
-			throw new Error('IPC path and WS url are undefined.');
+			throw new Error('IPC path and WS url are undefined in the configuration.');
 		}
 		if (this.config.receivingChainIPCPath) {
 			this._receivingChainClient = await apiClient.createIPCClient(
