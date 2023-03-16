@@ -463,11 +463,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			throw new Error('Sending chain cannot be the receiving chain.');
 		}
 		// receivingChainID must correspond to a live chain.
-		const isReceivingChainLive = await this.isLive(
-			context,
-			receivingChainID,
-			timestamp ?? Date.now(),
-		);
+		const isReceivingChainLive = await this.isLive(context, receivingChainID, timestamp);
 		if (!isReceivingChainLive) {
 			this.events.get(CcmSentFailedEvent).log(
 				context,

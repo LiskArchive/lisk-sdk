@@ -254,7 +254,7 @@ export abstract class BaseCrossChainUpdateCommand<
 		const baseStateSnapshotID = context.stateStore.createSnapshot();
 
 		try {
-			// Call the beforeCrossChainCommandExecution functions from other modules.
+			// Call the beforeCrossChainCommandExecute functions from other modules.
 			// For example, the Token module assigns the message fee to the CCU sender.
 			for (const [module, method] of this.interoperableCCMethods.entries()) {
 				if (method.beforeCrossChainCommandExecute) {
