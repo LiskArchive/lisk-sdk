@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { when } from 'jest-when';
 import { RewardModule } from '../../../../src/modules/reward';
 import {
 	createBlockHeaderWithDefaults,
@@ -56,7 +55,6 @@ describe('RewardModuleMethod', () => {
 		rewardModule.addDependencies(tokenMethod, {
 			isSeedRevealValid: jest.fn().mockReturnValue(true),
 		} as any);
-		jest.spyOn(tokenMethod, 'userAccountExists');
 	});
 
 	describe.each(Object.entries(brackets))('test for brackets', (index, rewardFromConfig) => {
@@ -68,13 +66,6 @@ describe('RewardModuleMethod', () => {
 				height: currentHeight,
 				impliesMaxPrevotes: true,
 			});
-			when(tokenMethod.userAccountExists)
-				.calledWith(
-					expect.anything(),
-					blockHeader.generatorAddress,
-					rewardModule['_moduleConfig'].tokenID,
-				)
-				.mockResolvedValue(true as never);
 			const rewardFromMethod = await rewardModule.method.getBlockReward(
 				context,
 				blockHeader,
@@ -90,13 +81,6 @@ describe('RewardModuleMethod', () => {
 				height: currentHeight,
 				impliesMaxPrevotes: false,
 			});
-			when(tokenMethod.userAccountExists)
-				.calledWith(
-					expect.anything(),
-					blockHeader.generatorAddress,
-					rewardModule['_moduleConfig'].tokenID,
-				)
-				.mockResolvedValue(true as never);
 			const rewardFromMethod = await rewardModule.method.getBlockReward(
 				context,
 				blockHeader,
@@ -115,13 +99,6 @@ describe('RewardModuleMethod', () => {
 				height: currentHeight,
 				impliesMaxPrevotes: true,
 			});
-			when(tokenMethod.userAccountExists)
-				.calledWith(
-					expect.anything(),
-					blockHeader.generatorAddress,
-					rewardModule['_moduleConfig'].tokenID,
-				)
-				.mockResolvedValue(true as never);
 			const rewardFromMethod = await rewardModule.method.getBlockReward(
 				context,
 				blockHeader,
@@ -135,13 +112,6 @@ describe('RewardModuleMethod', () => {
 
 	it(`should getBlockReward return no reward for the height below offset`, async () => {
 		const blockHeader = createBlockHeaderWithDefaults({ height: 1, impliesMaxPrevotes: true });
-		when(tokenMethod.userAccountExists)
-			.calledWith(
-				expect.anything(),
-				blockHeader.generatorAddress,
-				rewardModule['_moduleConfig'].tokenID,
-			)
-			.mockResolvedValue(true as never);
 		const rewardFromMethod = await rewardModule.method.getBlockReward(
 			context,
 			blockHeader,

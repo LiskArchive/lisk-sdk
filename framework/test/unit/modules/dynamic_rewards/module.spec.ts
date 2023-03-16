@@ -29,7 +29,8 @@ import {
 	ValidatorsMethod,
 } from '../../../../src/modules/dynamic_rewards/types';
 import {
-	CONTEXT_STORE_KEY_BLOCK_REWARD,
+	CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REDUCTION,
+	CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD,
 	DECIMAL_PERCENT_FACTOR,
 	defaultConfig,
 	EMPTY_BYTES,
@@ -201,9 +202,12 @@ describe('DynamicRewardModule', () => {
 
 			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 
-			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_BLOCK_REWARD)).toEqual(
+			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD)).toEqual(
 				minimumReward,
 			);
+			expect(
+				blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REDUCTION),
+			).toEqual(REWARD_NO_REDUCTION);
 		});
 
 		it('should store reward based on ratio when BFTWeight is positive', async () => {
@@ -220,9 +224,12 @@ describe('DynamicRewardModule', () => {
 			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 
 			// generatorAddress has 20% of total weight
-			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_BLOCK_REWARD)).toEqual(
+			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD)).toEqual(
 				minimumReward + ratioReward / BigInt(5),
 			);
+			expect(
+				blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REDUCTION),
+			).toEqual(REWARD_NO_REDUCTION);
 		});
 
 		it('should store default reward when weight is zero', async () => {
@@ -247,28 +254,68 @@ describe('DynamicRewardModule', () => {
 
 			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 
-			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_BLOCK_REWARD)).toEqual(
+			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD)).toEqual(
 				BigInt(defaultConfig.brackets[0]),
 			);
+			expect(
+				blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REDUCTION),
+			).toEqual(REWARD_NO_REDUCTION);
 		});
 	});
 
 	describe('afterTransactionsExecute', () => {
 		let blockExecuteContext: BlockAfterExecuteContext;
 		let stateStore: PrefixedStateReadWriter;
+		let generatorAddress: Buffer;
+		let standbyValidatorAddress: Buffer;
+		let contextStore: Map<string, unknown>;
 
-		const defaultReward = BigInt(500000000);
+		const activeValidator = 4;
+		const minimumReward =
+			(BigInt(defaultConfig.brackets[0]) *
+				BigInt(defaultConfig.factorMinimumRewardActiveValidators)) /
+			DECIMAL_PERCENT_FACTOR;
+		const totalRewardActiveValidator = BigInt(defaultConfig.brackets[0]) * BigInt(activeValidator);
+		const ratioReward = totalRewardActiveValidator - minimumReward * BigInt(activeValidator);
+		const defaultReward = minimumReward + ratioReward / BigInt(5);
 
 		beforeEach(async () => {
 			jest.spyOn(rewardModule.events.get(RewardMintedEvent), 'log');
 			jest.spyOn(tokenMethod, 'userAccountExists');
+			generatorAddress = utils.getRandomBytes(20);
+			standbyValidatorAddress = utils.getRandomBytes(20);
+			contextStore = new Map<string, unknown>();
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			const blockHeader = createBlockHeaderWithDefaults({ height: defaultConfig.offset });
+			const blockHeader = createBlockHeaderWithDefaults({
+				height: defaultConfig.offset,
+				generatorAddress,
+			});
 			blockExecuteContext = createBlockContext({
 				stateStore,
+				contextStore,
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
-			blockExecuteContext.contextStore.set(CONTEXT_STORE_KEY_BLOCK_REWARD, defaultReward);
+			await rewardModule.stores
+				.get(EndOfRoundTimestampStore)
+				.set(blockExecuteContext, EMPTY_BYTES, { timestamp: blockHeader.timestamp - 100000 });
+			const validators = [
+				{ address: generatorAddress, bftWeight: BigInt(20) },
+				{ address: utils.getRandomBytes(20), bftWeight: BigInt(30) },
+				{ address: utils.getRandomBytes(20), bftWeight: BigInt(40) },
+				{ address: utils.getRandomBytes(20), bftWeight: BigInt(10) },
+				{ address: standbyValidatorAddress, bftWeight: BigInt(0) },
+			];
+			const generatorMap = new Array(1).fill(0).reduce(prev => {
+				// eslint-disable-next-line no-param-reassign
+				prev[utils.getRandomBytes(20).toString('binary')] = 1;
+				return prev;
+			}, {});
+
+			(validatorsMethod.getValidatorsParams as jest.Mock).mockResolvedValue({ validators });
+			(validatorsMethod.getGeneratorsBetweenTimestamps as jest.Mock).mockResolvedValue(
+				generatorMap,
+			);
+			(posMethod.getNumberOfActiveValidators as jest.Mock).mockReturnValue(activeValidator);
 			when(tokenMethod.userAccountExists)
 				.calledWith(
 					expect.anything(),
@@ -280,7 +327,7 @@ describe('DynamicRewardModule', () => {
 
 		it('should return zero reward with seed reveal reduction when seed reveal is invalid', async () => {
 			(randomMethod.isSeedRevealValid as jest.Mock).mockResolvedValue(false);
-
+			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 			await rewardModule.afterTransactionsExecute(blockExecuteContext);
 
 			expect(rewardModule.events.get(RewardMintedEvent).log).toHaveBeenCalledWith(
@@ -294,12 +341,13 @@ describe('DynamicRewardModule', () => {
 			const blockHeader = createBlockHeaderWithDefaults({
 				height: defaultConfig.offset,
 				impliesMaxPrevotes: false,
+				generatorAddress,
 			});
 			blockExecuteContext = createBlockContext({
 				stateStore,
+				contextStore,
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
-			blockExecuteContext.contextStore.set(CONTEXT_STORE_KEY_BLOCK_REWARD, defaultReward);
 			when(tokenMethod.userAccountExists)
 				.calledWith(
 					expect.anything(),
@@ -308,48 +356,51 @@ describe('DynamicRewardModule', () => {
 				)
 				.mockResolvedValue(true as never);
 
+			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 			await rewardModule.afterTransactionsExecute(blockExecuteContext);
 
 			expect(rewardModule.events.get(RewardMintedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
 				blockExecuteContext.header.generatorAddress,
 				{
-					amount: BigInt(defaultConfig.brackets[0]) / BigInt(4),
+					amount: defaultReward / BigInt(4),
 					reduction: REWARD_REDUCTION_MAX_PREVOTES,
 				},
 			);
 		});
 
 		it('should return full reward when header and assets are valid', async () => {
+			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 			await rewardModule.afterTransactionsExecute(blockExecuteContext);
 
 			expect(rewardModule.events.get(RewardMintedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
 				blockExecuteContext.header.generatorAddress,
-				{ amount: BigInt(defaultConfig.brackets[0]), reduction: REWARD_NO_REDUCTION },
+				{ amount: defaultReward, reduction: REWARD_NO_REDUCTION },
 			);
 		});
 
 		it('should mint the token and update shared reward when reward is non zero and user account of geenrator exists for the token id', async () => {
+			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 			await rewardModule.afterTransactionsExecute(blockExecuteContext);
 
 			expect(rewardModule.events.get(RewardMintedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
 				blockExecuteContext.header.generatorAddress,
-				{ amount: BigInt(defaultConfig.brackets[0]), reduction: REWARD_NO_REDUCTION },
+				{ amount: defaultReward, reduction: REWARD_NO_REDUCTION },
 			);
 
 			expect(tokenMethod.mint).toHaveBeenCalledWith(
 				expect.anything(),
 				blockExecuteContext.header.generatorAddress,
 				rewardModule['_moduleConfig'].tokenID,
-				BigInt(defaultConfig.brackets[0]),
+				defaultReward,
 			);
 			expect(posMethod.updateSharedRewards).toHaveBeenCalledWith(
 				expect.anything(),
 				blockExecuteContext.header.generatorAddress,
 				rewardModule['_moduleConfig'].tokenID,
-				BigInt(defaultConfig.brackets[0]),
+				defaultReward,
 			);
 		});
 
@@ -361,6 +412,7 @@ describe('DynamicRewardModule', () => {
 					rewardModule['_moduleConfig'].tokenID,
 				)
 				.mockResolvedValue(false as never);
+			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 			await rewardModule.afterTransactionsExecute(blockExecuteContext);
 
 			expect(rewardModule.events.get(RewardMintedEvent).log).toHaveBeenCalledWith(
@@ -375,6 +427,7 @@ describe('DynamicRewardModule', () => {
 
 		it('should not update shared reward and mint when reward is zero', async () => {
 			(randomMethod.isSeedRevealValid as jest.Mock).mockResolvedValue(false);
+			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 			await rewardModule.afterTransactionsExecute(blockExecuteContext);
 
 			expect(rewardModule.events.get(RewardMintedEvent).log).toHaveBeenCalledWith(
@@ -392,15 +445,17 @@ describe('DynamicRewardModule', () => {
 			const blockHeader = createBlockHeaderWithDefaults({
 				height: defaultConfig.offset,
 				timestamp,
+				generatorAddress,
 			});
 			blockExecuteContext = createBlockContext({
 				stateStore,
+				contextStore,
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
-			blockExecuteContext.contextStore.set(CONTEXT_STORE_KEY_BLOCK_REWARD, defaultReward);
 
 			(posMethod.isEndOfRound as jest.Mock).mockResolvedValue(true);
 
+			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 			await rewardModule.afterTransactionsExecute(blockExecuteContext);
 
 			const { timestamp: updatedTimestamp } = await rewardModule.stores

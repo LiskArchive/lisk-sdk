@@ -20,6 +20,9 @@ import {
 	REWARD_REDUCTION_SEED_REVEAL,
 	REWARD_REDUCTION_FACTOR_BFT,
 	REWARD_REDUCTION_MAX_PREVOTES,
+	CONTEXT_STORE_KEY_BLOCK_REWARD,
+	CONTEXT_STORE_KEY_BLOCK_REDUCTION,
+	REWARD_REDUCTION_NO_ACCOUNT,
 } from '../../../../src/modules/reward/constants';
 import { RewardMintedEvent } from '../../../../src/modules/reward/events/reward_minted';
 
@@ -95,13 +98,40 @@ describe('RewardModule', () => {
 		});
 	});
 
+	describe('beforeTransactionsExecute', () => {
+		const blockHeader = createBlockHeaderWithDefaults({ height: moduleConfig.offset });
+		const blockExecuteContext = createBlockContext({
+			header: blockHeader,
+		}).getBlockExecuteContext();
+		it('should store appropriate reward and reduction values', async () => {
+			rewardModule.method.getBlockReward = jest
+				.fn()
+				.mockReturnValue([BigInt(1), REWARD_NO_REDUCTION]);
+			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
+			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_BLOCK_REWARD)).toEqual(
+				BigInt(1),
+			);
+			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_BLOCK_REDUCTION)).toEqual(
+				REWARD_NO_REDUCTION,
+			);
+		});
+	});
+
 	describe('afterTransactionsExecute', () => {
 		const blockHeader = createBlockHeaderWithDefaults({ height: moduleConfig.offset });
-		const blockAfterExecuteContext = createBlockContext({
-			header: blockHeader,
-		}).getBlockAfterExecuteContext();
+		let blockExecuteContext: any;
+		let blockAfterExecuteContext: any;
 
 		beforeEach(() => {
+			const contextStore = new Map<string, unknown>();
+			blockAfterExecuteContext = createBlockContext({
+				contextStore,
+				header: blockHeader,
+			}).getBlockAfterExecuteContext();
+			blockExecuteContext = createBlockContext({
+				contextStore,
+				header: blockHeader,
+			}).getBlockExecuteContext();
 			jest.spyOn(rewardModule.events.get(RewardMintedEvent), 'log');
 			jest.spyOn(tokenMethod, 'userAccountExists');
 			when(tokenMethod.userAccountExists)
@@ -114,14 +144,16 @@ describe('RewardModule', () => {
 		});
 
 		it(`should call mint for a valid bracket`, async () => {
+			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
 			expect(mint).toHaveBeenCalledTimes(1);
 		});
 
-		it('should emit rewardMinted event for event type REWARD_NO_REDUCTION', async () => {
+		it('should emit rewardMinted event for event type REWARD_NO_REDUCTION if block reward is greater than 0 and user account exists for the generator address', async () => {
 			rewardModule.method.getBlockReward = jest
 				.fn()
 				.mockReturnValue([BigInt(1), REWARD_NO_REDUCTION]);
+			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
 			expect(mint).toHaveBeenCalledTimes(1);
 			expect(rewardModule.events.get(RewardMintedEvent).log).toHaveBeenCalledWith(
@@ -134,10 +166,35 @@ describe('RewardModule', () => {
 			);
 		});
 
+		it('should not call mint and emit rewardMinted event for event type REWARD_REDUCTION_NO_ACCOUNT if block reward is greater than 0 but no user account exists for the generator address', async () => {
+			when(tokenMethod.userAccountExists)
+				.calledWith(
+					expect.anything(),
+					blockAfterExecuteContext.header.generatorAddress,
+					rewardModule['_moduleConfig'].tokenID,
+				)
+				.mockResolvedValue(false as never);
+			rewardModule.method.getBlockReward = jest
+				.fn()
+				.mockReturnValue([BigInt(1), REWARD_NO_REDUCTION]);
+			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
+			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
+			expect(mint).toHaveBeenCalledTimes(0);
+			expect(rewardModule.events.get(RewardMintedEvent).log).toHaveBeenCalledWith(
+				expect.anything(),
+				blockHeader.generatorAddress,
+				{
+					amount: BigInt(0),
+					reduction: REWARD_REDUCTION_NO_ACCOUNT,
+				},
+			);
+		});
+
 		it('should emit rewardMinted event for event type REWARD_REDUCTION_SEED_REVEAL', async () => {
 			rewardModule.method.getBlockReward = jest
 				.fn()
 				.mockReturnValue([BigInt(0), REWARD_REDUCTION_SEED_REVEAL]);
+			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
 			expect(mint).toHaveBeenCalledTimes(0);
 			expect(rewardModule.events.get(RewardMintedEvent).log).toHaveBeenCalledWith(
@@ -157,8 +214,9 @@ describe('RewardModule', () => {
 					BigInt(1) / BigInt(REWARD_REDUCTION_FACTOR_BFT),
 					REWARD_REDUCTION_MAX_PREVOTES,
 				]);
-			expect(mint).toHaveBeenCalledTimes(0);
+			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
 			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
+			expect(mint).toHaveBeenCalledTimes(0);
 			expect(rewardModule.events.get(RewardMintedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
 				blockHeader.generatorAddress,
