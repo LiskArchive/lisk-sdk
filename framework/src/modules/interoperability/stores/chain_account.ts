@@ -13,7 +13,13 @@
  */
 import { utils } from '@liskhq/lisk-cryptography';
 import { BaseStore, ImmutableStoreGetter } from '../../base_store';
-import { HASH_LENGTH, MAX_UINT32, STORE_PREFIX } from '../constants';
+import {
+	HASH_LENGTH,
+	MAX_CHAIN_NAME_LENGTH,
+	MAX_UINT32,
+	MIN_CHAIN_NAME_LENGTH,
+	STORE_PREFIX,
+} from '../constants';
 
 // Chain status
 export const enum ChainStatus {
@@ -48,6 +54,8 @@ const chainDataJSONSchema = {
 	properties: {
 		name: {
 			dataType: 'string',
+			minLength: MIN_CHAIN_NAME_LENGTH,
+			maxLength: MAX_CHAIN_NAME_LENGTH,
 			fieldNumber: 1,
 		},
 		lastCertificate: {

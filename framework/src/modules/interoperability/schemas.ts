@@ -88,7 +88,7 @@ export const ccmSchema = {
 	},
 };
 
-const chainValidators = {
+const activeChainValidatorsSchema = {
 	type: 'array',
 	items: {
 		type: 'object',
@@ -107,7 +107,7 @@ const chainValidators = {
 		},
 	},
 	minItems: 1,
-	maxItems: MAX_NUM_VALIDATORS,
+	// maxItems: MAX_NUM_VALIDATORS,
 };
 
 export const sidechainRegParams = {
@@ -128,8 +128,9 @@ export const sidechainRegParams = {
 			maxLength: MAX_CHAIN_NAME_LENGTH,
 		},
 		sidechainValidators: {
-			...chainValidators,
+			...activeChainValidatorsSchema,
 			fieldNumber: 3,
+			maxItems: MAX_NUM_VALIDATORS,
 		},
 		sidechainCertificateThreshold: {
 			dataType: 'uint64',
@@ -163,25 +164,8 @@ export const mainchainRegParams = {
 			maxLength: MAX_CHAIN_NAME_LENGTH,
 		},
 		mainchainValidators: {
-			type: 'array',
+			...activeChainValidatorsSchema,
 			fieldNumber: 3,
-			items: {
-				type: 'object',
-				required: ['blsKey', 'bftWeight'],
-				properties: {
-					blsKey: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-						minLength: BLS_PUBLIC_KEY_LENGTH,
-						maxLength: BLS_PUBLIC_KEY_LENGTH,
-					},
-					bftWeight: {
-						dataType: 'uint64',
-						fieldNumber: 2,
-					},
-				},
-			},
-			minItems: 1,
 			maxItems: NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
 		},
 		mainchainCertificateThreshold: {
@@ -458,25 +442,8 @@ export const registrationSignatureMessageSchema = {
 			maxLength: MAX_CHAIN_NAME_LENGTH,
 		},
 		mainchainValidators: {
-			type: 'array',
+			...activeChainValidatorsSchema,
 			fieldNumber: 3,
-			items: {
-				type: 'object',
-				required: ['blsKey', 'bftWeight'],
-				properties: {
-					blsKey: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-						minLength: BLS_PUBLIC_KEY_LENGTH,
-						maxLength: BLS_PUBLIC_KEY_LENGTH,
-					},
-					bftWeight: {
-						dataType: 'uint64',
-						fieldNumber: 2,
-					},
-				},
-			},
-			minItems: 1,
 			maxItems: NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
 		},
 		mainchainCertificateThreshold: {

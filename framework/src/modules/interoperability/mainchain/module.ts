@@ -64,7 +64,6 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 	CHAIN_NAME_MAINCHAIN,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
-	MAX_NUM_VALIDATORS,
 } from '../constants';
 import {
 	getMainchainID,
@@ -277,36 +276,35 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				if (ownChainNonce !== BigInt(0)) {
 					throw new Error(`ownChainNonce must be 0 if chainInfos is empty.`);
 				}
-			} else {
-				// If chainInfos is non-empty
-				// ownChainNonce > 0
-				if (ownChainNonce <= 0) {
-					throw new Error(`ownChainNonce must be positive if chainInfos is not empty.`);
-				}
-
-				// Each entry chainInfo in chainInfos has a unique chainInfo.chainID
-				const chainIDs = chainInfos.map(info => info.chainID);
-				if (!bufferArrayUniqueItems(chainIDs)) {
-					throw new Error(`chainInfos doesn't hold unique chainID.`);
-				}
-
-				// chainInfos is ordered lexicographically by chainInfo.chainID
-				const sortedByChainID = [...chainInfos].sort((a, b) => a.chainID.compare(b.chainID));
-				for (let i = 0; i < chainInfos.length; i += 1) {
-					if (!chainInfos[i].chainID.equals(sortedByChainID[i].chainID)) {
-						throw new Error('chainInfos is not ordered lexicographically by chainID.');
-					}
-				}
-
-				this._verifyChainInfos(ctx, chainInfos);
 			}
+
+			// If chainInfos is non-empty
+			// ownChainNonce > 0
+			if (ownChainNonce <= 0) {
+				throw new Error(`ownChainNonce must be positive if chainInfos is not empty.`);
+			}
+
+			// Each entry chainInfo in chainInfos has a unique chainInfo.chainID
+			const chainIDs = chainInfos.map(info => info.chainID);
+			if (!bufferArrayUniqueItems(chainIDs)) {
+				throw new Error(`chainInfos doesn't hold unique chainID.`);
+			}
+
+			// chainInfos should be ordered lexicographically by chainInfo.chainID
+			const sortedByChainID = [...chainInfos].sort((a, b) => a.chainID.compare(b.chainID));
+			for (let i = 0; i < chainInfos.length; i += 1) {
+				if (!chainInfos[i].chainID.equals(sortedByChainID[i].chainID)) {
+					throw new Error('chainInfos is not ordered lexicographically by chainID.');
+				}
+			}
+
+			this._verifyChainInfos(ctx, chainInfos);
 		}
 	}
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#mainchain
 	private _verifyChainInfos(ctx: GenesisBlockExecuteContext, chainInfos: ChainInfo[]) {
 		const mainchainID = getMainchainID(ctx.chainID);
-		const chainDataNames = chainInfos.map(info => info.chainData.name);
 
 		// verify root level properties
 		for (const chainInfo of chainInfos) {
@@ -314,36 +312,27 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 
 			// chainInfo.chainID != getMainchainID();
 			if (chainID.equals(mainchainID)) {
-				throw new Error(`chainID must be not equal to getMainchainID().`);
+				throw new Error(`chainID must not be equal to getMainchainID().`);
 			}
 
 			// - chainInfo.chainId[0] == getMainchainID()[0].
 			if (chainID[0] !== mainchainID[0]) {
-				throw new Error(`chainID[0] doesn't match getMainchainID()[0].`);
+				throw new Error(`Network byte of chainID[0] doesn't match getMainchainID()[0].`);
 			}
 
-			this._verifyChainData(ctx, chainInfo, chainDataNames);
+			this._verifyChainData(ctx, chainInfo);
 			this._verifyChannelData(ctx, chainInfo);
 			this._verifyChainValidators(chainInfo);
 		}
 	}
 
-	private _verifyChainData(
-		ctx: GenesisBlockExecuteContext,
-		chainInfo: ChainInfo,
-		chainDataNames: string[],
-	) {
+	private _verifyChainData(ctx: GenesisBlockExecuteContext, chainInfo: ChainInfo) {
 		const validStatuses = [ChainStatus.REGISTERED, ChainStatus.ACTIVE, ChainStatus.TERMINATED];
-
-		// The entries chainData.name must be pairwise distinct
-		if (new Set(chainDataNames).size !== chainDataNames.length) {
-			throw new Error(`chainData.name must be pairwise distinct.`);
-		}
 
 		const { chainData } = chainInfo;
 
 		// chainData.lastCertificate.timestamp < g.header.timestamp;
-		if (chainData.lastCertificate.timestamp > ctx.header.timestamp) {
+		if (chainData.lastCertificate.timestamp >= ctx.header.timestamp) {
 			throw new Error(`chainData.lastCertificate.timestamp must be less than header.timestamp.`);
 		}
 
@@ -379,13 +368,6 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 	private _verifyChainValidators(chainInfo: ChainInfo) {
 		const { chainValidators, chainData } = chainInfo;
 		const { activeValidators, certificateThreshold } = chainValidators;
-
-		// activeValidators must have at least 1 element and at most MAX_NUM_VALIDATORS elements
-		if (activeValidators.length === 0 || activeValidators.length > MAX_NUM_VALIDATORS) {
-			throw new Error(
-				`activeValidators must have at least 1 element and at most MAX_NUM_VALIDATORS elements.`,
-			);
-		}
 
 		// activeValidators must be ordered lexicographically by blsKey property
 		const sortedByBlsKeys = [...activeValidators].sort((a, b) => a.blsKey.compare(b.blsKey));
