@@ -31,7 +31,7 @@ import { fakeLogger } from '../../../utils/mocks';
 
 describe('generator network endpoint', () => {
 	const logger: Logger = fakeLogger;
-	const tx = new Transaction({
+	const tx1 = new Transaction({
 		params: Buffer.alloc(20),
 		command: 'transfer',
 		fee: BigInt(100000),
@@ -64,7 +64,7 @@ describe('generator network endpoint', () => {
 		} as never;
 		chain = {
 			dataAccess: {
-				decodeTransaction: jest.fn().mockReturnValue(tx),
+				decodeTransaction: jest.fn().mockReturnValue(tx1),
 				getTransactionsByIDs: jest.fn().mockResolvedValue([]),
 			},
 			constants: {
@@ -87,7 +87,7 @@ describe('generator network endpoint', () => {
 			applyPenaltyOnPeer: jest.fn(),
 			requestFromPeer: jest.fn().mockResolvedValue({
 				data: codec.encode(getTransactionsResponseSchema, {
-					transactions: [tx.getBytes(), tx2.getBytes()],
+					transactions: [tx1.getBytes(), tx2.getBytes()],
 				}),
 			}),
 			broadcast: jest.fn(),
@@ -112,7 +112,7 @@ describe('generator network endpoint', () => {
 
 		beforeEach(() => {
 			validTransactionsRequest = codec.encode(postTransactionsAnnouncementSchema, {
-				transactionIds: [tx.id, tx2.id],
+				transactionIds: [tx1.id, tx2.id],
 			});
 		});
 
@@ -162,7 +162,7 @@ describe('generator network endpoint', () => {
 			beforeEach(() => {
 				// Arrange
 				const transactions = codec.encode(getTransactionsResponseSchema, {
-					transactions: [tx.getBytes(), tx2.getBytes()],
+					transactions: [tx1.getBytes(), tx2.getBytes()],
 				});
 
 				(pool.contains as jest.Mock).mockReturnValue(false);
@@ -218,7 +218,7 @@ describe('generator network endpoint', () => {
 				);
 
 				// Assert
-				expect(network.applyPenaltyOnPeer).not.toHaveBeenCalledWith();
+				expect(network.applyPenaltyOnPeer).not.toHaveBeenCalled();
 			});
 
 			it('should not apply penalty for valid transactions', async () => {
@@ -236,15 +236,13 @@ describe('generator network endpoint', () => {
 				);
 
 				// Assert
-				expect(network.applyPenaltyOnPeer).not.toHaveBeenCalledWith();
+				expect(network.applyPenaltyOnPeer).not.toHaveBeenCalled();
 			});
 
-			it('should apply penalty when validation fails', async () => {
+			it('should apply penalty when transaction is not decoded', async () => {
 				// Arrange
-				(pool.contains as jest.Mock).mockReturnValue(false);
-
-				(abi.verifyTransaction as jest.Mock).mockResolvedValue({
-					result: TransactionVerifyResult.INVALID,
+				jest.spyOn(Transaction, 'fromBytes').mockImplementationOnce(() => {
+					throw new Error('decode error');
 				});
 
 				// Act
@@ -254,6 +252,29 @@ describe('generator network endpoint', () => {
 				);
 
 				// Assert
+				expect(Transaction.fromBytes).toHaveBeenCalledTimes(1);
+				expect(network.applyPenaltyOnPeer).toHaveBeenCalledWith({
+					peerId: defaultPeerId,
+					penalty: 100,
+				});
+			});
+
+			it('should apply penalty when transaction validation fails', async () => {
+				// Arrange
+				jest.spyOn(Transaction, 'fromBytes').mockReturnValueOnce(tx1).mockReturnValueOnce(tx2);
+				jest.spyOn(tx1, 'validate').mockImplementationOnce(() => {
+					throw new Error('validate error');
+				});
+
+				// Act
+				await endpoint.handleEventPostTransactionsAnnouncement(
+					validTransactionsRequest,
+					defaultPeerId,
+				);
+
+				// Assert
+				expect(Transaction.fromBytes).toHaveBeenCalledTimes(1);
+				expect(tx1.validate).toHaveBeenCalledTimes(1);
 				expect(network.applyPenaltyOnPeer).toHaveBeenCalledWith({
 					peerId: defaultPeerId,
 					penalty: 100,
@@ -280,7 +301,7 @@ describe('generator network endpoint', () => {
 		describe('when some of the transactions ids are known', () => {
 			beforeEach(() => {
 				const transactionIds = codec.encode(postTransactionsAnnouncementSchema, {
-					transactionIds: [tx.id, tx2.id],
+					transactionIds: [tx1.id, tx2.id],
 				});
 
 				const responseTransaction = codec.encode(getTransactionRequestSchema, {
@@ -288,7 +309,7 @@ describe('generator network endpoint', () => {
 				});
 
 				when(pool.contains as jest.Mock)
-					.calledWith(tx.id)
+					.calledWith(tx1.id)
 					.mockReturnValue(true)
 					.calledWith(tx2.id)
 					.mockReturnValue(false);

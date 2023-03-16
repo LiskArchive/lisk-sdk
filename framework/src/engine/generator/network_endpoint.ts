@@ -193,6 +193,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			data,
 		);
 
+		// Validate the data received from the peer.
 		try {
 			validator.validate(postTransactionsAnnouncementSchema, decodedData);
 		} catch (error) {
@@ -209,10 +210,12 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(
 			decodedData.transactionIds,
 		);
+
 		if (unknownTransactionIDs.length > 0) {
 			const transactionIdsBuffer = codec.encode(getTransactionRequestSchema, {
 				transactionIds: unknownTransactionIDs,
 			});
+
 			const encodedData = (await this.network.requestFromPeer({
 				procedure: NETWORK_RPC_GET_TRANSACTIONS,
 				data: transactionIdsBuffer,
@@ -220,6 +223,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			})) as {
 				data: Buffer;
 			};
+
 			const transactionsData = codec.decode<GetTransactionResponse>(
 				getTransactionsResponseSchema,
 				encodedData.data,
@@ -228,17 +232,23 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			try {
 				for (const transactionBytes of transactionsData.transactions) {
 					const transaction = Transaction.fromBytes(transactionBytes);
+
 					transaction.validate();
+
 					await this._receiveTransaction(transaction);
 				}
 			} catch (err) {
 				this._logger.warn({ err, peerId }, 'Received invalid transactions.');
+
 				if (err instanceof InvalidTransactionError) {
-					this.network.applyPenaltyOnPeer({
-						peerId,
-						penalty: 100,
-					});
+					this._logger.debug({ err, peerId }, 'Received invalid transactions.');
+					return;
 				}
+
+				this.network.applyPenaltyOnPeer({
+					peerId,
+					penalty: 100,
+				});
 			}
 		}
 	}
