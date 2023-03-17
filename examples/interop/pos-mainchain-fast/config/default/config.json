@@ -1,0 +1,40 @@
+{
+	"system": {
+		"dataPath": "/Users/ishan/.lisk/beta-sdk-app",
+		"keepEventsForHeights": 300,
+		"logLevel": "info"
+	},
+	"rpc": {
+		"modes": ["ipc"],
+		"port": 7887,
+		"host": "127.0.0.1"
+	},
+	"network": {
+		"version": "1.0",
+		"seedPeers": [],
+		"port": 7667
+	},
+	"transactionPool": {
+		"maxTransactions": 4096,
+		"maxTransactionsPerAccount": 64,
+		"transactionExpiryTime": 10800000,
+		"minEntranceFeePriority": "0",
+		"minReplacementFeeDifference": "10"
+	},
+	"genesis": {
+		"block": {
+			"fromFile": "./config/genesis_block.blob"
+		},
+		"blockTime": 10,
+		"bftBatchSize": 103,
+		"maxTransactionsSize": 15360,
+		"chainID": "04000000"
+	},
+	"generator": {
+		"keys": {
+			"fromFile": "./config/dev-validators.json"
+		}
+	},
+	"modules": {},
+	"plugins": {}
+}
