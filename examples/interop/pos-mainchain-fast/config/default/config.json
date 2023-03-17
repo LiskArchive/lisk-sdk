@@ -1,6 +1,6 @@
 {
 	"system": {
-		"dataPath": "/Users/ishan/.lisk/beta-sdk-app",
+		"dataPath": "/Users/ishan/.lisk/pos-mainchain-fast",
 		"keepEventsForHeights": 300,
 		"logLevel": "info"
 	},
@@ -25,8 +25,8 @@
 		"block": {
 			"fromFile": "./config/genesis_block.blob"
 		},
-		"blockTime": 10,
-		"bftBatchSize": 103,
+		"blockTime": 5,
+		"bftBatchSize": 5,
 		"maxTransactionsSize": 15360,
 		"chainID": "04000000"
 	},
@@ -36,5 +36,13 @@
 		}
 	},
 	"modules": {},
-	"plugins": {}
+	"plugins": {
+		"chainConnector": {
+			"receivingChainID": "04000011",
+			"encryptedPrivateKey": "kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=b27ca42ac6004f7d740a687876f4c2d29209fb81ff0e3754e81a0dffbdd581b0e6971e38b2a01e3cee6954edbfe8fc1a92ca643d643fb0d0276498230b9fd6f2eec48439a5eaaf230c754f17bc51bbe12bbe59191979a4b1dad83e960140666729a79d658488cd76be0f2b43c4c61f718768f4dd8da1ab735286224c1bd8a352&mac=d62128312bfe5fe0f799224f9098030497c1c1edf13fc48efda430ad4bbde78f&salt=ab7e51f3033232c42e2986441a131d1e&iv=60205cbd79f8b561f08b3944&tag=08634436352e7b7f50fd043938535f6d&iterations=1&parallelism=4&memorySize=2024",
+			"password": "lisk",
+			"ccuFee": "1000000000",
+			"receivingChainIPCPath": "~/.lisk/pos-sidechain-fast"
+		}
+	}
 }
