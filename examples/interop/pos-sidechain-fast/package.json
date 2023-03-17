@@ -1,8 +1,8 @@
 {
-	"name": "pos-mainchain-fast",
+	"name": "pos-sidechain-fast",
 	"version": "0.1.0",
-	"description": "POS mainchain application with small set of validators",
-	"author": "Lisk Foundation &lt;admin@lisk.com&gt;, lightcurve GmbH &lt;admin@lightcurve.io&gt;",
+	"description": "POS sidechain example application to test interoperability",
+	"author": "Lisk Foundation &amp;lt;admin@lisk.com&amp;gt;, lightcurve GmbH &amp;lt;admin@lightcurve.io&amp;gt;",
 	"license": "Apache-2.0",
 	"keywords": [
 		"blockchain",
@@ -33,13 +33,13 @@
 		"prepublishOnly": "npm ci && npm run lint && npm run build"
 	},
 	"bin": {
-		"pos-mainchain-fast": "./bin/run"
+		"pos-sidechain-fast": "./bin/run"
 	},
 	"lisk": {
 		"addressPrefix": "lsk"
 	},
 	"oclif": {
-		"bin": "pos-mainchain-fast",
+		"bin": "pos-sidechain-fast",
 		"commands": "./dist/commands",
 		"plugins": [
 			"@oclif/plugin-help",
@@ -55,40 +55,40 @@
 		"topicSeparator": " ",
 		"topics": {
 			"block": {
-				"description": "Commands relating to pos-mainchain-fast blocks."
+				"description": "Commands relating to pos-sidechain-fast blocks."
 			},
 			"blockchain": {
-				"description": "Commands relating to pos-mainchain-fast blockchain data."
+				"description": "Commands relating to pos-sidechain-fast blockchain data."
 			},
 			"console": {
-				"description": "pos-mainchain-fast interactive REPL session to run commands."
+				"description": "pos-sidechain-fast interactive REPL session to run commands."
 			},
 			"config": {
-				"description": "Commands relating to pos-mainchain-fast node configuration."
+				"description": "Commands relating to pos-sidechain-fast node configuration."
 			},
 			"keys": {
-				"description": "Commands relating to pos-mainchain-fast key generation."
+				"description": "Commands relating to pos-sidechain-fast key generation."
 			},
 			"generator": {
-				"description": "Commands relating to pos-mainchain-fast block generator."
+				"description": "Commands relating to pos-sidechain-fast block generator."
 			},
 			"hash-onion": {
 				"description": "Create hash onions to be used by the forger."
 			},
 			"system": {
-				"description": "Commands relating to pos-mainchain-fast node."
+				"description": "Commands relating to pos-sidechain-fast node."
 			},
 			"passphrase": {
-				"description": "Commands relating to pos-mainchain-fast passphrases."
+				"description": "Commands relating to pos-sidechain-fast passphrases."
 			},
 			"endpoint": {
-				"description": "Commands relating to pos-mainchain-fast endpoint."
+				"description": "Commands relating to pos-sidechain-fast endpoint."
 			},
 			"sdk": {
 				"description": "Commands relating to Lisk SDK development."
 			},
 			"transaction": {
-				"description": "Commands relating to pos-mainchain-fast transactions."
+				"description": "Commands relating to pos-sidechain-fast transactions."
 			}
 		}
 	},
