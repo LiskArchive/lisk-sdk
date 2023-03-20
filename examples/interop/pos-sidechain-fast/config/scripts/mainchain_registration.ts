@@ -65,13 +65,9 @@ import { keys as sidechainDevValidators } from '../default/dev-validators.json';
 	// Sort active validators from sidechainchain
 	activeValidatorsWithPrivateKey.sort((a, b) => a.blsPublicKey.compare(b.blsPublicKey));
 
-	const keys: Buffer[] = [];
-	const weights: bigint[] = [];
 	const sidechainValidatorsSignatures: { publicKey: Buffer; signature: Buffer }[] = [];
 	// Sign with each active validator
 	for (const validator of activeValidatorsWithPrivateKey) {
-		keys.push(validator.blsPublicKey);
-		weights.push(BigInt(1));
 		const signature = bls.signData(
 			MESSAGE_TAG_CHAIN_REG,
 			params.ownChainID,
