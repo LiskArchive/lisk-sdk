@@ -101,7 +101,7 @@
 										"inbox": {
 											"type": "object",
 											"fieldNumber": 1,
-											"required": ["size", "root"],
+											"required": ["appendPath", "size", "root"],
 											"properties": {
 												"appendPath": {
 													"type": "array",
@@ -125,7 +125,7 @@
 										},
 										"outbox": {
 											"type": "object",
-											"fieldNumber": 1,
+											"fieldNumber": 2,
 											"required": ["appendPath", "size", "root"],
 											"properties": {
 												"appendPath": {

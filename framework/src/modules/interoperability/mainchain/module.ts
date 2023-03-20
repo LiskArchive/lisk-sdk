@@ -298,6 +298,12 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				}
 			}
 
+			// The entries chainData.name must be pairwise distinct
+			const chainDataNames = chainInfos.map(info => info.chainData.name);
+			if (new Set(chainDataNames).size !== chainDataNames.length) {
+				throw new Error(`chainData.name must be pairwise distinct.`);
+			}
+
 			this._verifyChainInfos(ctx, chainInfos);
 		}
 	}
