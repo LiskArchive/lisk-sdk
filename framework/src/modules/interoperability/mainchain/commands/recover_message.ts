@@ -60,6 +60,23 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			throw error;
 		}
 
+		// Check that there is at least one cross-chain message to recover.
+		if (!crossChainMessages.length) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('No cross-chain messages to recover.'),
+			};
+		}
+
+		if (idxs.length !== crossChainMessages.length) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(
+					'Inclusion proof indices and cross-chain messages do not have the same length.',
+				),
+			};
+		}
+
 		// Check that the idxs are sorted in ascending order
 		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#sort_returns_the_reference_to_the_same_array
 		// CAUTION! `sort` modifies original array
@@ -74,14 +91,21 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			};
 		}
 
-		// Check that the CCMs are still pending.
-		for (const index of idxs) {
-			if (index < terminatedOutboxAccount.partnerChainInboxSize) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error('Cross-chain message is not pending.'),
-				};
-			}
+		// Check that the idxs are unique.
+		if (idxs.length !== new Set(idxs).size) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Cross-chain message indexes are not unique.'),
+			};
+		}
+
+		// Check that the CCMs are still pending. We can check only the first one,
+		// as the idxs are sorted in ascending order.
+		if (idxs[0] < terminatedOutboxAccount.partnerChainInboxSize) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Cross-chain message is not pending.'),
+			};
 		}
 
 		// Process basic checks for all CCMs.
@@ -229,6 +253,7 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 				});
 			return;
 		}
+
 		const commands = this.ccCommands.get(recoveredCCM.module);
 		if (!commands) {
 			this.events
