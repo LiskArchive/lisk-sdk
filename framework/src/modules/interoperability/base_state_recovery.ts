@@ -12,11 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
 import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
-import { EMPTY_BYTES, EMPTY_HASH, MODULE_NAME_INTEROPERABILITY } from './constants';
+import { EMPTY_BYTES, EMPTY_HASH } from './constants';
 import { stateRecoveryParamsSchema } from './schemas';
 import { RecoverContext, StateRecoveryParams } from './types';
 import {
@@ -70,13 +71,6 @@ export class BaseStateRecoveryCommand<
 			};
 		}
 
-		if (module === MODULE_NAME_INTEROPERABILITY) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Interoperability module cannot be recovered.'),
-			};
-		}
-
 		const moduleMethod = this.interoperableCCMethods.get(module);
 
 		if (!moduleMethod) {
@@ -106,12 +100,24 @@ export class BaseStateRecoveryCommand<
 					error: new Error('Recovered store value cannot be empty.'),
 				};
 			}
-			queryKeys.push(entry.storeKey);
+			const queryKey = Buffer.concat([
+				storePrefix,
+				entry.substorePrefix,
+				utils.hash(entry.storeKey),
+			]);
+			queryKeys.push(queryKey);
 			storeQueries.push({
-				key: Buffer.from([...storePrefix, ...entry.substorePrefix, ...entry.storeKey]),
+				key: queryKey,
 				value: utils.hash(entry.storeValue),
 				bitmap: entry.bitmap,
 			});
+		}
+
+		if (!objectUtils.bufferArrayUniqueItems(queryKeys)) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Recovered store keys are not pairwise distinct.'),
+			};
 		}
 
 		const proofOfInclusionStores = { siblingHashes, queries: storeQueries };
@@ -157,7 +163,7 @@ export class BaseStateRecoveryCommand<
 			}
 
 			storeQueries.push({
-				key: Buffer.from([...storePrefix, ...entry.substorePrefix, ...entry.storeKey]),
+				key: Buffer.concat([storePrefix, entry.substorePrefix, utils.hash(entry.storeKey)]),
 				value: EMPTY_HASH,
 				bitmap: entry.bitmap,
 			});
