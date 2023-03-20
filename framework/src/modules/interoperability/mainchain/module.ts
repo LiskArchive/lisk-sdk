@@ -70,7 +70,6 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 	CHAIN_NAME_MAINCHAIN,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
-	MAX_NUM_VALIDATORS,
 	EMPTY_HASH,
 } from '../constants';
 import {
@@ -448,7 +447,13 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		for (const chainInfo of chainInfos) {
 			const { chainID } = chainInfo;
 
-			if (terminatedStateAccounts.filter(a => a.chainID.equals(chainID)).length > 0) {
+			const filteredTerminatedStateAccounts = terminatedStateAccounts.filter(a =>
+				a.chainID.equals(chainID),
+			);
+			if (terminatedStateAccounts.length > 0 && filteredTerminatedStateAccounts.length === 0) {
+				throw new Error('there can not be a terminated account if there is no chain account');
+			}
+			if (filteredTerminatedStateAccounts.length > 0) {
 				// For each entry chainInfo in chainInfos, chainInfo.chainData.status == CHAIN_STATUS_TERMINATED
 				// if and only if a corresponding entry (i.e., with chainID == chainInfo.chainID) exists in terminatedStateAccounts.
 				if (chainInfo.chainData.status !== ChainStatus.TERMINATED) {
