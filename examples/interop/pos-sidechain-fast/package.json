@@ -30,7 +30,8 @@
 		"test:coverage": "jest --passWithNoTests --coverage=true --coverage-reporters=text",
 		"test:ci": "jest --passWithNoTests --coverage=true --coverage-reporters=json",
 		"version": "oclif readme --multi --dir=docs/commands && git add README.md docs",
-		"prepublishOnly": "npm ci && npm run lint && npm run build"
+		"prepublishOnly": "npm ci && npm run lint && npm run build",
+		"app": "./bin/run start --api-ipc --api-http --log debug"
 	},
 	"bin": {
 		"pos-sidechain-fast": "./bin/run"
