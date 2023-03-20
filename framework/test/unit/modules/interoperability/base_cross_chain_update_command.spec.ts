@@ -17,7 +17,6 @@ import { codec } from '@liskhq/lisk-codec';
 import { EMPTY_BUFFER } from '@liskhq/lisk-chain/dist-node/constants';
 import {
 	CommandExecuteContext,
-	CommandVerifyContext,
 	MainchainInteroperabilityModule,
 	Transaction,
 } from '../../../../src';
@@ -252,116 +251,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 		);
 		context = createCrossChainMessageContext({
 			ccm: defaultCCM,
-		});
-	});
-
-	describe('verifyCommon', () => {
-		let verifyContext: CommandVerifyContext<CrossChainUpdateTransactionParams>;
-		let stateStore: PrefixedStateReadWriter;
-
-		beforeEach(async () => {
-			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			verifyContext = createTransactionContext({
-				chainID,
-				stateStore,
-				transaction: new Transaction({
-					...defaultTransaction,
-					command: command.name,
-					params: codec.encode(crossChainUpdateTransactionParams, params),
-				}),
-			}).createCommandVerifyContext(command.schema);
-			await interopsModule.stores
-				.get(ChainAccountStore)
-				.set(stateStore, defaultSendingChainID, partnerChainAccount);
-			await interopsModule.stores.get(ChainValidatorsStore).set(stateStore, defaultSendingChainID, {
-				activeValidators,
-				certificateThreshold: params.certificateThreshold,
-			});
-		});
-
-		it('should reject when sending chain status is registered but certificate is empty', async () => {
-			await interopsModule.stores.get(ChainAccountStore).set(stateStore, params.sendingChainID, {
-				...partnerChainAccount,
-				status: ChainStatus.REGISTERED,
-			});
-
-			await expect(
-				command['verifyCommon']({
-					...verifyContext,
-					params: {
-						...params,
-						certificate: Buffer.alloc(0),
-					},
-				}),
-			).rejects.toThrow(
-				'Cross-chain updates from chains with status CHAIN_STATUS_REGISTERED must contain a non-empty certificate',
-			);
-		});
-
-		it('should verify certificate when certificate is not empty', async () => {
-			await expect(
-				command['verifyCommon']({
-					...verifyContext,
-					params: {
-						...params,
-					},
-				}),
-			).resolves.toBeUndefined();
-
-			expect(internalMethod.verifyCertificate).toHaveBeenCalledTimes(1);
-		});
-
-		it('should verify validators update when active validator update exist', async () => {
-			await expect(
-				command['verifyCommon']({
-					...verifyContext,
-					params: {
-						...params,
-						activeValidatorsUpdate: {
-							blsKeysUpdate: [utils.getRandomBytes(48)],
-							bftWeightsUpdate: [],
-							bftWeightsUpdateBitmap: Buffer.from([1]),
-						},
-					},
-				}),
-			).resolves.toBeUndefined();
-
-			expect(internalMethod.verifyValidatorsUpdate).toHaveBeenCalledTimes(1);
-		});
-
-		it('should verify validators update when certificate threshold changes', async () => {
-			await expect(
-				command['verifyCommon']({
-					...verifyContext,
-					params: {
-						...params,
-						certificateThreshold: BigInt(1),
-					},
-				}),
-			).resolves.toBeUndefined();
-
-			expect(internalMethod.verifyValidatorsUpdate).toHaveBeenCalledTimes(1);
-		});
-
-		it('should verify partnerchain outbox root when inboxUpdate is not empty', async () => {
-			await expect(
-				command['verifyCommon']({
-					...verifyContext,
-					params: {
-						...params,
-						inboxUpdate: {
-							crossChainMessages: [utils.getRandomBytes(100)],
-							messageWitnessHashes: [utils.getRandomBytes(32)],
-							outboxRootWitness: {
-								bitmap: utils.getRandomBytes(2),
-								siblingHashes: [utils.getRandomBytes(32)],
-							},
-						},
-					},
-				}),
-			).resolves.toBeUndefined();
-
-			expect(internalMethod.verifyPartnerChainOutboxRoot).toHaveBeenCalledTimes(1);
 		});
 	});
 

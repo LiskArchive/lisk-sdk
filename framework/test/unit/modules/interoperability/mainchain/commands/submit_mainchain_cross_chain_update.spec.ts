@@ -73,10 +73,10 @@ import {
 } from '../../../../../../src/modules/interoperability/events/ccm_processed';
 import { MainchainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/mainchain/internal_method';
 import { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../../../../../../src/modules/token/constants';
+import { BaseInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/base_interoperability_internal_methods';
 
 describe('SubmitMainchainCrossChainUpdateCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
-
 	const chainID = Buffer.alloc(4, 0);
 	const senderPublicKey = utils.getRandomBytes(32);
 	const messageFeeTokenID = Buffer.alloc(8, 0);
@@ -141,6 +141,19 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 		senderPublicKey,
 		signatures: [],
 	};
+	const internalMethod = {
+		isLive: jest.fn().mockResolvedValue(true),
+		addToOutbox: jest.fn(),
+		terminateChainInternal: jest.fn(),
+		verifyCertificate: jest.fn().mockResolvedValue(undefined),
+		verifyCertificateSignature: jest.fn(),
+		verifyValidatorsUpdate: jest.fn(),
+		verifyPartnerChainOutboxRoot: jest.fn(),
+		updateValidators: jest.fn(),
+		updateCertificate: jest.fn(),
+		updatePartnerChainOutboxRoot: jest.fn(),
+		appendToInboxTree: jest.fn(),
+	} as unknown as BaseInteroperabilityInternalMethod;
 
 	let stateStore: PrefixedStateReadWriter;
 	let encodedDefaultCertificate: Buffer;
@@ -162,7 +175,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			interopMod.events,
 			new Map(),
 			new Map(),
-			interopMod['internalMethod'],
+			internalMethod,
 		);
 		mainchainCCUUpdateCommand.init(
 			{
@@ -180,7 +193,6 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(4) },
 			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(3) },
 		].sort((v1, v2) => v2.blsKey.compare(v1.blsKey)); // unsorted list
-
 		const partnerValidators: any = {
 			certificateThreshold: BigInt(10),
 			activeValidators: activeValidatorsUpdate.map(v => ({
@@ -276,7 +288,13 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 	});
 
 	describe('verify', () => {
-		beforeEach(() => {
+		const activeValidators = [
+			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) },
+			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(3) },
+			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(4) },
+			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(2) },
+		].sort((v1, v2) => v1.blsKey.compare(v2.blsKey));
+		beforeEach(async () => {
 			verifyContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -286,6 +304,11 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 					params: codec.encode(crossChainUpdateTransactionParams, params),
 				}),
 			}).createCommandVerifyContext(mainchainCCUUpdateCommand.schema);
+			await partnerChainStore.set(stateStore, defaultSendingChainIDBuffer, partnerChainAccount);
+			await partnerValidatorStore.set(stateStore, defaultSendingChainIDBuffer, {
+				activeValidators,
+				certificateThreshold: params.certificateThreshold,
+			});
 			jest.spyOn(mainchainCCUUpdateCommand['internalMethod'], 'isLive').mockResolvedValue(true);
 			jest
 				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'isLive')
@@ -330,6 +353,68 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			);
 		});
 
+		it('should reject when sending chain status is registered and certificate is empty', async () => {
+			await partnerChainStore.set(stateStore, params.sendingChainID, {
+				...partnerChainAccount,
+				status: ChainStatus.REGISTERED,
+			});
+
+			await expect(
+				mainchainCCUUpdateCommand.verify({
+					...verifyContext,
+					header: { timestamp: Math.floor(Date.now() / 1000), height: 0 },
+					params: {
+						...params,
+						certificate: Buffer.alloc(0),
+					},
+				}),
+			).rejects.toThrow(
+				'Cross-chain updates from chains with status CHAIN_STATUS_REGISTERED must contain a non-empty certificate.',
+			);
+		});
+
+		it('should verify certificate when certificate is not empty', async () => {
+			await expect(
+				mainchainCCUUpdateCommand.verify({
+					...verifyContext,
+					params,
+				}),
+			).resolves.toEqual({ status: VerifyStatus.OK });
+
+			expect(mainchainCCUUpdateCommand['internalMethod'].verifyCertificate).toHaveBeenCalledTimes(
+				1,
+			);
+		});
+
+		it('should not reject when first CCU contains a certificate older than LIVENESS_LIMIT / 2 when inboxUpdate is empty', async () => {
+			await interopMod.stores.get(ChainAccountStore).set(stateStore, params.sendingChainID, {
+				...partnerChainAccount,
+				status: ChainStatus.REGISTERED,
+			});
+
+			await expect(
+				mainchainCCUUpdateCommand.verify({
+					...verifyContext,
+					header: { timestamp: Math.floor(Date.now() / 1000), height: 0 },
+					params: {
+						...params,
+						certificate: codec.encode(certificateSchema, {
+							...defaultCertificateValues,
+							timestamp: 0,
+						}),
+						inboxUpdate: {
+							crossChainMessages: [],
+							messageWitnessHashes: [],
+							outboxRootWitness: {
+								bitmap: Buffer.alloc(0),
+								siblingHashes: [],
+							},
+						},
+					},
+				}),
+			).resolves.toEqual({ status: VerifyStatus.OK });
+		});
+
 		it('should reject when first CCU contains a certificate older than LIVENESS_LIMIT / 2', async () => {
 			await interopMod.stores.get(ChainAccountStore).set(stateStore, params.sendingChainID, {
 				...partnerChainAccount,
@@ -353,55 +438,63 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			);
 		});
 
-		it('should not reject when first CCU contains a certificate older than LIVENESS_LIMIT / 2 when inboxUpdate is empty', async () => {
-			await interopMod.stores.get(ChainAccountStore).set(stateStore, params.sendingChainID, {
-				...partnerChainAccount,
-				status: ChainStatus.REGISTERED,
-			});
-
-			jest
-				.spyOn(mainchainCCUUpdateCommand, 'verifyCommon' as never)
-				.mockResolvedValue(undefined as never);
-
+		it('should verify validators update when active validator update exist', async () => {
 			await expect(
 				mainchainCCUUpdateCommand.verify({
 					...verifyContext,
-					header: { timestamp: Math.floor(Date.now() / 1000), height: 0 },
 					params: {
 						...params,
-						certificate: codec.encode(certificateSchema, {
-							...defaultCertificateValues,
-							timestamp: 0,
-						}),
+						activeValidatorsUpdate: {
+							blsKeysUpdate: [utils.getRandomBytes(48)],
+							bftWeightsUpdate: [],
+							bftWeightsUpdateBitmap: Buffer.from([1]),
+						},
+					},
+				}),
+			).resolves.toEqual({ status: VerifyStatus.OK });
+
+			expect(
+				mainchainCCUUpdateCommand['internalMethod'].verifyValidatorsUpdate,
+			).toHaveBeenCalledTimes(1);
+		});
+
+		it('should verify validators update when certificate threshold changes', async () => {
+			await expect(
+				mainchainCCUUpdateCommand.verify({
+					...verifyContext,
+					params: {
+						...params,
+						certificateThreshold: BigInt(1),
+					},
+				}),
+			).resolves.toEqual({ status: VerifyStatus.OK });
+
+			expect(
+				mainchainCCUUpdateCommand['internalMethod'].verifyValidatorsUpdate,
+			).toHaveBeenCalledTimes(1);
+		});
+
+		it('should verify partnerchain outbox root when inboxUpdate is not empty', async () => {
+			await expect(
+				mainchainCCUUpdateCommand.verify({
+					...verifyContext,
+					params: {
+						...params,
 						inboxUpdate: {
-							crossChainMessages: [],
-							messageWitnessHashes: [],
+							crossChainMessages: [utils.getRandomBytes(100)],
+							messageWitnessHashes: [utils.getRandomBytes(32)],
 							outboxRootWitness: {
-								bitmap: Buffer.alloc(0),
-								siblingHashes: [],
+								bitmap: utils.getRandomBytes(2),
+								siblingHashes: [utils.getRandomBytes(32)],
 							},
 						},
 					},
 				}),
 			).resolves.toEqual({ status: VerifyStatus.OK });
 
-			expect(mainchainCCUUpdateCommand['verifyCommon']).toHaveBeenCalledTimes(1);
-		});
-
-		it('should call verifyCommon', async () => {
-			jest
-				.spyOn(mainchainCCUUpdateCommand, 'verifyCommon' as never)
-				.mockResolvedValue(undefined as never);
-			await expect(
-				mainchainCCUUpdateCommand.verify({
-					...verifyContext,
-					params: {
-						...params,
-					},
-				}),
-			).resolves.toEqual({ status: VerifyStatus.OK });
-
-			expect(mainchainCCUUpdateCommand['verifyCommon']).toHaveBeenCalledTimes(1);
+			expect(
+				mainchainCCUUpdateCommand['internalMethod'].verifyPartnerChainOutboxRoot,
+			).toHaveBeenCalledTimes(1);
 		});
 	});
 
