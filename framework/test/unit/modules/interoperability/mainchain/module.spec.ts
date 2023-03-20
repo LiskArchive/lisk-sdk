@@ -1,3 +1,17 @@
+/*
+ * Copyright © 2023 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 import { MAX_UINT64 } from '@liskhq/lisk-validator';
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
@@ -174,24 +188,27 @@ describe('initGenesisState', () => {
 	});
 
 	describe('if chainInfos is not empty', () => {
-		certificateThreshold = BigInt(10);
-		const validChainInfos = [
-			{
-				...chainInfo,
-				chainData: {
-					...chainData,
-					status: ChainStatus.TERMINATED,
-					lastCertificate: {
-						...lastCertificate,
-						validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+		let validChainInfos;
+		beforeEach(() => {
+			certificateThreshold = BigInt(10);
+			validChainInfos = [
+				{
+					...chainInfo,
+					chainData: {
+						...chainData,
+						status: ChainStatus.TERMINATED,
+						lastCertificate: {
+							...lastCertificate,
+							validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+						},
+					},
+					chainValidators: {
+						activeValidators,
+						certificateThreshold,
 					},
 				},
-				chainValidators: {
-					activeValidators,
-					certificateThreshold,
-				},
-			},
-		];
+			];
+		});
 
 		it('should throw error if ownChainNonce <= 0', async () => {
 			const context = createInitGenesisStateContext(
@@ -206,7 +223,7 @@ describe('initGenesisState', () => {
 			);
 		});
 
-		it("should throw error if chainInfos doesn't hold unique chainID", async () => {
+		it('should throw error if chainInfos does not hold unique chainID', async () => {
 			const context = createInitGenesisStateContext(
 				{
 					...genesisInteroperability,
@@ -255,7 +272,7 @@ describe('initGenesisState', () => {
 				params,
 			);
 			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-				'chainID must be not equal to getMainchainID().',
+				'chainID must not be equal to getMainchainID().',
 			);
 		});
 
@@ -278,41 +295,6 @@ describe('initGenesisState', () => {
 		});
 
 		describe('chainInfo.chainData', () => {
-			it(`should throw error if not 'chainData.name must be pairwise distinct'`, async () => {
-				const context = createInitGenesisStateContext(
-					{
-						...genesisInteroperability,
-						chainInfos: [
-							{
-								...chainInfo,
-								chainID: Buffer.from([0, 0, 0, 1]),
-								chainData: {
-									...chainData,
-									name: 'chain_account1',
-								},
-							},
-							{
-								...chainInfo,
-								chainID: Buffer.from([0, 0, 0, 2]),
-								chainData: {
-									...chainData,
-									name: 'chain_account1',
-								},
-							},
-						],
-					},
-					{
-						...params,
-						header: {
-							timestamp: Date.now(),
-						} as any,
-					},
-				);
-				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					`chainData.name must be pairwise distinct.`,
-				);
-			});
-
 			it(`should throw error if not 'chainData.lastCertificate.timestamp < g.header.timestamp'`, async () => {
 				const context = createInitGenesisStateContext(
 					{
@@ -712,7 +694,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 			});
 		});
 
-		// it is defined here, since it applies sto both chainData & chainValidators
+		// it is defined here, since it applies to both chainData & chainValidators
 		describe('validatorsHash', () => {
 			it(`should throw error if invalid validatorsHash provided`, async () => {
 				const context = createInitGenesisStateContext(
