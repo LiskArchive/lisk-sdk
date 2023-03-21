@@ -75,7 +75,7 @@ describe('Mainchain RecoverStateCommand', () => {
 			module,
 			storeEntries: [
 				{
-					substorePrefix: Buffer.from([1]),
+					substorePrefix: Buffer.from([1, 1]),
 					storeKey: utils.getRandomBytes(32),
 					storeValue: utils.getRandomBytes(32),
 					bitmap: utils.getRandomBytes(32),
@@ -150,14 +150,6 @@ describe('Mainchain RecoverStateCommand', () => {
 			expect(result.error?.message).toInclude('The terminated state is not initialized.');
 		});
 
-		it('should return error if module is interoperability module', async () => {
-			commandVerifyContext.params.module = 'interoperability';
-			const result = await stateRecoveryCommand.verify(commandVerifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Interoperability module cannot be recovered.');
-		});
-
 		it('should return error if module not registered on chain', async () => {
 			interoperableCCMethods.delete(module);
 			const result = await stateRecoveryCommand.verify(commandVerifyContext);
@@ -177,16 +169,25 @@ describe('Mainchain RecoverStateCommand', () => {
 
 		it('should return error if recovered store value is empty', async () => {
 			commandVerifyContext.params.storeEntries[0] = {
-				substorePrefix: Buffer.alloc(0),
-				storeKey: Buffer.alloc(0),
+				substorePrefix: Buffer.from([1, 1]),
+				storeKey: utils.getRandomBytes(32),
 				storeValue: Buffer.alloc(0),
-				bitmap: Buffer.alloc(0),
+				bitmap: utils.getRandomBytes(32),
 			};
 
 			const result = await stateRecoveryCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude('Recovered store value cannot be empty.');
+		});
+
+		it('should return error if recovered store keys are not pairwise distinct', async () => {
+			commandVerifyContext.params.storeEntries.push(commandVerifyContext.params.storeEntries[0]);
+
+			const result = await stateRecoveryCommand.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude('Recovered store keys are not pairwise distinct.');
 		});
 
 		it('should return error if proof of inclusion is not verified', async () => {

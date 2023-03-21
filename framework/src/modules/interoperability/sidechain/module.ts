@@ -46,6 +46,7 @@ import { RecoverStateCommand } from './commands/recover_state';
 import { SidechainCCChannelTerminatedCommand, SidechainCCRegistrationCommand } from './cc_commands';
 import { CcmSentFailedEvent } from '../events/ccm_send_fail';
 import { TokenMethod } from '../../token';
+import { InvalidCertificateSignatureEvent } from '../events/invalid_certificate_signature';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod: BaseCCMethod = new SidechainCCMethod(this.stores, this.events);
@@ -128,6 +129,10 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			new InvalidRegistrationSignatureEvent(this.name),
 		);
 		this.events.register(CcmSentFailedEvent, new CcmSentFailedEvent(this.name));
+		this.events.register(
+			InvalidCertificateSignatureEvent,
+			new InvalidCertificateSignatureEvent(this.name),
+		);
 	}
 
 	public addDependencies(validatorsMethod: ValidatorsMethod, tokenMethod: TokenMethod) {

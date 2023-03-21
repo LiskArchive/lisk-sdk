@@ -43,8 +43,14 @@ import {
 	sidechainTerminatedCCMParamsSchema,
 } from '../../schemas';
 import { ChainAccount, ChainAccountStore, ChainStatus } from '../../stores/chain_account';
+import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { CrossChainMessageContext, CrossChainUpdateTransactionParams } from '../../types';
-import { getEncodedCCMAndID, getMainchainID, isInboxUpdateEmpty } from '../../utils';
+import {
+	emptyActiveValidatorsUpdate,
+	getEncodedCCMAndID,
+	getMainchainID,
+	isInboxUpdateEmpty,
+} from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
 export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
@@ -76,6 +82,16 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			.get(ChainAccountStore)
 			.get(context, params.sendingChainID);
 
+		if (sendingChainAccount.status === ChainStatus.REGISTERED && params.certificate.length === 0) {
+			throw new Error(
+				'Cross-chain updates from chains with status CHAIN_STATUS_REGISTERED must contain a non-empty certificate.',
+			);
+		}
+
+		if (params.certificate.length > 0) {
+			await this.internalMethod.verifyCertificate(context, params, context.header.timestamp);
+		}
+
 		// Liveness condition is only checked on the mainchain for the first CCU with a non-empty inbox update.
 		if (
 			sendingChainAccount.status === ChainStatus.REGISTERED &&
@@ -84,7 +100,19 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			this._verifyLivenessConditionForRegisteredChains(context);
 		}
 
-		await this.verifyCommon(context);
+		const sendingChainValidators = await this.stores
+			.get(ChainValidatorsStore)
+			.get(context, params.sendingChainID);
+		if (
+			!emptyActiveValidatorsUpdate(params.activeValidatorsUpdate) ||
+			params.certificateThreshold !== sendingChainValidators.certificateThreshold
+		) {
+			await this.internalMethod.verifyValidatorsUpdate(context, params);
+		}
+
+		if (!isInboxUpdateEmpty(params.inboxUpdate)) {
+			await this.internalMethod.verifyPartnerChainOutboxRoot(context, params);
+		}
 
 		return {
 			status: VerifyStatus.OK,
