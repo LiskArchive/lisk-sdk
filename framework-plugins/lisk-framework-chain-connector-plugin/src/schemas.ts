@@ -67,7 +67,7 @@ export const configSchema = {
 			description: 'Chain ID of the receiving chain.',
 		},
 	},
-	required: ['ccuFee', 'encryptedPrivateKey', 'password'],
+	required: ['ccuFee', 'encryptedPrivateKey', 'password', 'receivingChainID'],
 	default: {
 		ccuFrequency: CCU_FREQUENCY,
 		isSaveCCU: false,

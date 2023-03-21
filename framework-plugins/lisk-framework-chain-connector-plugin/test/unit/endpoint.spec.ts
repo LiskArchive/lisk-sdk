@@ -24,7 +24,8 @@ import {
 } from 'lisk-sdk';
 import { ChainConnectorPlugin } from '../../src/chain_connector_plugin';
 import * as chainConnectorDB from '../../src/db';
-import { getMainchainID } from '../../src/utils';
+import { CCMsFromEvents, CCMsFromEventsJSON, LastSentCCMWithHeightJSON } from '../../src/types';
+import { ccmsFromEventsToJSON, getMainchainID } from '../../src/utils';
 
 describe('getSentCCUs', () => {
 	const appConfigForPlugin: ApplicationConfigForPlugin = {
@@ -98,7 +99,16 @@ describe('getSentCCUs', () => {
 		aggregationBits: Buffer.alloc(0).toString('hex'),
 		certificateSignature: Buffer.alloc(0).toString('hex'),
 	};
-
+	const lastSentCCM = {
+		crossChainCommand: 'transfer',
+		fee: BigInt(0),
+		module: 'token',
+		nonce: BigInt(0),
+		params: Buffer.alloc(2),
+		receivingChainID: Buffer.from('04000001', 'hex'),
+		sendingChainID: Buffer.from('04000000', 'hex'),
+		status: 1,
+	};
 	const defaultPrivateKey =
 		'6c5e2b24ff1cc99da7a49bd28420b93b2a91e2e2a3b0a0ce07676966b707d3c2859bbd02747cf8e26dab592c02155dfddd4a16b0fe83fd7e7ffaec0b5391f3f7';
 	const defaultPassword = '123';
@@ -212,6 +222,78 @@ describe('getSentCCUs', () => {
 			const response = await chainConnectorPlugin.endpoint.getValidatorsInfoFromPreimage({} as any);
 
 			expect(response).toStrictEqual([validatorsDataJSON]);
+		});
+	});
+
+	describe('getBlockHeaders', () => {
+		let blockHeadersObj: any;
+		let blockHeadersJSON: any;
+
+		beforeEach(async () => {
+			const blockHeaders = new Array(5).fill(0).map(_ => testing.createFakeBlockHeader());
+			blockHeadersObj = blockHeaders.map(b => b.toObject());
+			blockHeadersJSON = blockHeaders.map(b => b.toJSON());
+			await chainConnectorPlugin['_chainConnectorStore'].setBlockHeaders(blockHeadersObj);
+		});
+
+		it('should return list of block headers', async () => {
+			const response = await chainConnectorPlugin.endpoint.getBlockHeaders({} as any);
+
+			expect(response).toStrictEqual(blockHeadersJSON);
+		});
+	});
+
+	describe('getCrossChainMessages', () => {
+		let ccmsFromEvents: CCMsFromEvents;
+		let ccmsFromEventsJSON: CCMsFromEventsJSON;
+
+		beforeEach(async () => {
+			ccmsFromEvents = {
+				ccms: [
+					{
+						...lastSentCCM,
+					},
+				],
+				height: 1,
+				inclusionProof: {
+					bitmap: Buffer.alloc(0),
+					siblingHashes: [],
+				},
+			};
+			ccmsFromEventsJSON = ccmsFromEventsToJSON(ccmsFromEvents);
+			await chainConnectorPlugin['_chainConnectorStore'].setCrossChainMessages([ccmsFromEvents]);
+		});
+
+		it('should return list of ccms from events', async () => {
+			const response = await chainConnectorPlugin.endpoint.getCrossChainMessages({} as any);
+
+			expect(response).toStrictEqual([ccmsFromEventsJSON]);
+		});
+	});
+
+	describe('getLastSentCCM', () => {
+		let lastSentCCMJSON: LastSentCCMWithHeightJSON;
+
+		beforeEach(async () => {
+			lastSentCCMJSON = {
+				...lastSentCCM,
+				height: 1,
+				fee: lastSentCCM.fee.toString(),
+				nonce: lastSentCCM.nonce.toString(),
+				params: lastSentCCM.params.toString('hex'),
+				receivingChainID: lastSentCCM.receivingChainID.toString('hex'),
+				sendingChainID: lastSentCCM.sendingChainID.toString('hex'),
+			};
+			await chainConnectorPlugin['_chainConnectorStore'].setLastSentCCM({
+				...lastSentCCM,
+				height: lastSentCCMJSON.height,
+			});
+		});
+
+		it('should return list of ccms from events', async () => {
+			const response = await chainConnectorPlugin.endpoint.getLastSentCCM({} as any);
+
+			expect(response).toStrictEqual(lastSentCCMJSON);
 		});
 	});
 });

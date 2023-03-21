@@ -26,6 +26,8 @@ import {
 import {
 	BFTParameters,
 	BFTParametersJSON,
+	CCMsFromEvents,
+	CCMsFromEventsJSON,
 	ProveResponse,
 	ProveResponseJSON,
 	ValidatorsData,
@@ -42,6 +44,22 @@ export const aggregateCommitToJSON = (aggregateCommit: AggregateCommit) => ({
 	height: aggregateCommit.height,
 	aggregationBits: aggregateCommit.aggregationBits.toString('hex'),
 	certificateSignature: aggregateCommit.certificateSignature.toString('hex'),
+});
+
+export const ccmsFromEventsToJSON = (ccmsFromEvents: CCMsFromEvents): CCMsFromEventsJSON => ({
+	ccms: ccmsFromEvents.ccms.map(ccm => ({
+		...ccm,
+		fee: ccm.fee.toString(),
+		nonce: ccm.nonce.toString(),
+		params: ccm.params.toString('hex'),
+		receivingChainID: ccm.receivingChainID.toString('hex'),
+		sendingChainID: ccm.sendingChainID.toString('hex'),
+	})),
+	height: ccmsFromEvents.height,
+	inclusionProof: {
+		bitmap: ccmsFromEvents.inclusionProof.bitmap.toString('hex'),
+		siblingHashes: ccmsFromEvents.inclusionProof.siblingHashes.map(s => s.toString('hex')),
+	},
 });
 
 export const validatorsHashPreimagetoJSON = (validatorsHashPreimage: ValidatorsData[]) => {
