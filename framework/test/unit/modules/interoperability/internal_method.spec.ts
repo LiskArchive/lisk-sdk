@@ -59,6 +59,7 @@ import { OwnChainAccountStore } from '../../../../src/modules/interoperability/s
 import { Certificate } from '../../../../src/engine/consensus/certificate_generation/types';
 import { TerminatedOutboxCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_outbox_created';
 import { createStoreGetter } from '../../../../src/testing/utils';
+import { InvalidCertificateSignatureEvent } from '../../../../src/modules/interoperability/events/invalid_certificate_signature';
 
 describe('Base interoperability internal method', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -1146,6 +1147,7 @@ describe('Base interoperability internal method', () => {
 		};
 
 		beforeEach(async () => {
+			jest.spyOn(interopMod.events.get(InvalidCertificateSignatureEvent), 'add');
 			await interopMod.stores
 				.get(ChainValidatorsStore)
 				.set(methodContext, txParams.sendingChainID, {
@@ -1171,6 +1173,8 @@ describe('Base interoperability internal method', () => {
 				activeValidators.map(v => v.bftWeight),
 				txParams.certificateThreshold,
 			);
+
+			expect(interopMod.events.get(InvalidCertificateSignatureEvent).add).toHaveBeenCalledTimes(1);
 		});
 
 		it('should resolve when verifyWeightedAggSig return true', async () => {

@@ -102,15 +102,14 @@ export class TransactionMethods {
 		}
 
 		txInput.nonce ??= BigInt(authAccount.nonce);
-
-		if (txInput.nonce < BigInt(0)) {
+		const nonce = BigInt(txInput.nonce);
+		if (nonce < BigInt(0)) {
 			throw new Error('Nonce must be greater or equal to zero');
 		}
-		if (!txInput.senderPublicKey) {
-			txInput.senderPublicKey = publicKey.toString('hex');
-		}
-		// If signature is not set, assign empty array
-		txInput.signatures = txInput.signatures ?? [];
+
+		txInput.senderPublicKey ??= publicKey.toString('hex');
+		txInput.signatures ??= [];
+
 		const commandSchema = getTransactionParamsSchema(
 			txInput as { module: string; command: string },
 			this._metadata,
@@ -119,7 +118,7 @@ export class TransactionMethods {
 			...txInput,
 			module: txInput.module,
 			command: txInput.command,
-			nonce: BigInt(txInput.nonce),
+			nonce,
 			fee: BigInt(txInput.fee),
 			signatures: txInput.signatures.map(s => Buffer.from(s, 'hex')),
 			senderPublicKey: Buffer.from(txInput.senderPublicKey, 'hex'),

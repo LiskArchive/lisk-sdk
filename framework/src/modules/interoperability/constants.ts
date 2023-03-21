@@ -43,6 +43,8 @@ export const MAX_MODULE_NAME_LENGTH = 32;
 export const MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH = 1;
 export const MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH = 32;
 export const CHAIN_ID_LENGTH = 4;
+export const SUBSTORE_PREFIX_LENGTH = 2;
+
 // Value is in beddows
 export const MIN_RETURN_FEE_PER_BYTE_BEDDOWS = BigInt(1000);
 
@@ -84,6 +86,7 @@ export const COMMAND_NAME_LIVENESS_TERMINATION = 'terminateSidechainForLiveness'
 export const EVENT_NAME_CHAIN_ACCOUNT_UPDATED = 'chainAccountUpdated';
 export const EVENT_NAME_CCM_PROCESSED = 'ccmProcessed';
 export const EVENT_NAME_CCM_SEND_SUCCESS = 'ccmSendSucess';
+export const EVENT_NAME_INVALID_CERTIFICATE_SIGNATURE = 'invalidCertificateSignature';
 
 export const CONTEXT_STORE_KEY_CCM_PROCESSING = 'CONTEXT_STORE_KEY_CCM_PROCESSING';
 
