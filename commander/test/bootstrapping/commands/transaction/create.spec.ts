@@ -355,6 +355,28 @@ describe('transaction:create command', () => {
 					});
 				});
 			});
+
+			describe(`transaction:create token transfer 0 --nonce 600 --chain-id 04000001 --offline`, () => {
+				it('should not throw', async () => {
+					await expect(
+						CreateCommandExtended.run(
+							['token', 'transfer', '0', '--offline', '--chain-id=04000001', '--nonce=600'],
+							config,
+						),
+					).resolves.toBeUndefined();
+				});
+
+				it('should successfully create transaction', async () => {
+					await CreateCommandExtended.run(
+						['token', 'transfer', '0', '--offline', '--chain-id=04000001', '--nonce=600'],
+						config,
+					);
+					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
+					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
+						transaction: expect.any(String),
+					});
+				});
+			});
 		});
 
 		describe('with prompts and flags', () => {
