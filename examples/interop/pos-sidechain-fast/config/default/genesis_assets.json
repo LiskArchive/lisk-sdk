@@ -1,0 +1,1455 @@
+{
+	"assets": [
+		{
+			"module": "interoperability",
+			"data": {
+				"outboxRootSubstore": [],
+				"chainDataSubstore": [],
+				"channelDataSubstore": [],
+				"chainValidatorsSubstore": [],
+				"ownChainDataSubstore": [
+					{
+						"storeKey": "",
+						"storeValue": {
+							"name": "lisk_sidechain",
+							"chainID": "04000001",
+							"nonce": 0
+						}
+					}
+				],
+				"terminatedStateSubstore": [],
+				"terminatedOutboxSubstore": [],
+				"registeredNamesSubstore": [
+					{
+						"storeKey": "lisk_sidechain",
+						"storeValue": {
+							"chainID": "04000001"
+						}
+					}
+				]
+			},
+			"schema": {
+				"$id": "/interoperability/module/genesis",
+				"type": "object",
+				"required": [
+					"outboxRootSubstore",
+					"chainDataSubstore",
+					"channelDataSubstore",
+					"chainValidatorsSubstore",
+					"ownChainDataSubstore",
+					"terminatedStateSubstore",
+					"terminatedOutboxSubstore",
+					"registeredNamesSubstore"
+				],
+				"properties": {
+					"outboxRootSubstore": {
+						"type": "array",
+						"fieldNumber": 1,
+						"items": {
+							"type": "object",
+							"required": ["storeKey", "storeValue"],
+							"properties": {
+								"storeKey": {
+									"dataType": "bytes",
+									"fieldNumber": 1
+								},
+								"storeValue": {
+									"$id": "/modules/interoperability/outbox",
+									"type": "object",
+									"required": ["root"],
+									"properties": {
+										"root": {
+											"dataType": "bytes",
+											"minLength": 32,
+											"maxLength": 32,
+											"fieldNumber": 1
+										}
+									},
+									"fieldNumber": 2
+								}
+							}
+						}
+					},
+					"chainDataSubstore": {
+						"type": "array",
+						"fieldNumber": 2,
+						"items": {
+							"type": "object",
+							"required": ["storeKey", "storeValue"],
+							"properties": {
+								"storeKey": {
+									"dataType": "bytes",
+									"fieldNumber": 1
+								},
+								"storeValue": {
+									"$id": "/modules/interoperability/chainData",
+									"type": "object",
+									"required": ["name", "lastCertificate", "status"],
+									"properties": {
+										"name": {
+											"dataType": "string",
+											"fieldNumber": 1
+										},
+										"lastCertificate": {
+											"type": "object",
+											"fieldNumber": 2,
+											"required": ["height", "timestamp", "stateRoot", "validatorsHash"],
+											"properties": {
+												"height": {
+													"dataType": "uint32",
+													"fieldNumber": 1
+												},
+												"timestamp": {
+													"dataType": "uint32",
+													"fieldNumber": 2
+												},
+												"stateRoot": {
+													"dataType": "bytes",
+													"minLength": 32,
+													"maxLength": 32,
+													"fieldNumber": 3
+												},
+												"validatorsHash": {
+													"dataType": "bytes",
+													"minLength": 32,
+													"maxLength": 32,
+													"fieldNumber": 4
+												}
+											}
+										},
+										"status": {
+											"dataType": "uint32",
+											"fieldNumber": 3
+										}
+									},
+									"fieldNumber": 2
+								}
+							}
+						}
+					},
+					"channelDataSubstore": {
+						"type": "array",
+						"fieldNumber": 3,
+						"items": {
+							"type": "object",
+							"required": ["storeKey", "storeValue"],
+							"properties": {
+								"storeKey": {
+									"dataType": "bytes",
+									"fieldNumber": 1
+								},
+								"storeValue": {
+									"$id": "/modules/interoperability/channel",
+									"type": "object",
+									"required": ["inbox", "outbox", "partnerChainOutboxRoot", "messageFeeTokenID"],
+									"properties": {
+										"inbox": {
+											"type": "object",
+											"fieldNumber": 1,
+											"required": ["appendPath", "size", "root"],
+											"properties": {
+												"appendPath": {
+													"type": "array",
+													"items": {
+														"dataType": "bytes",
+														"minLength": 32,
+														"maxLength": 32
+													},
+													"fieldNumber": 1
+												},
+												"size": {
+													"dataType": "uint32",
+													"fieldNumber": 2
+												},
+												"root": {
+													"dataType": "bytes",
+													"minLength": 32,
+													"maxLength": 32,
+													"fieldNumber": 3
+												}
+											}
+										},
+										"outbox": {
+											"type": "object",
+											"fieldNumber": 2,
+											"required": ["appendPath", "size", "root"],
+											"properties": {
+												"appendPath": {
+													"type": "array",
+													"items": {
+														"dataType": "bytes",
+														"minLength": 32,
+														"maxLength": 32
+													},
+													"fieldNumber": 1
+												},
+												"size": {
+													"dataType": "uint32",
+													"fieldNumber": 2
+												},
+												"root": {
+													"dataType": "bytes",
+													"minLength": 32,
+													"maxLength": 32,
+													"fieldNumber": 3
+												}
+											}
+										},
+										"partnerChainOutboxRoot": {
+											"dataType": "bytes",
+											"minLength": 32,
+											"maxLength": 32,
+											"fieldNumber": 3
+										},
+										"messageFeeTokenID": {
+											"dataType": "bytes",
+											"minLength": 8,
+											"maxLength": 8,
+											"fieldNumber": 4
+										}
+									},
+									"fieldNumber": 2
+								}
+							}
+						}
+					},
+					"chainValidatorsSubstore": {
+						"type": "array",
+						"fieldNumber": 4,
+						"items": {
+							"type": "object",
+							"required": ["storeKey", "storeValue"],
+							"properties": {
+								"storeKey": {
+									"dataType": "bytes",
+									"fieldNumber": 1
+								},
+								"storeValue": {
+									"fieldNumber": 2,
+									"$id": "/modules/interoperability/chainValidators",
+									"type": "object",
+									"required": ["activeValidators", "certificateThreshold"],
+									"properties": {
+										"activeValidators": {
+											"type": "array",
+											"fieldNumber": 1,
+											"minItems": 1,
+											"maxItems": 199,
+											"items": {
+												"type": "object",
+												"required": ["blsKey", "bftWeight"],
+												"properties": {
+													"blsKey": {
+														"dataType": "bytes",
+														"minLength": 48,
+														"maxLength": 48,
+														"fieldNumber": 1
+													},
+													"bftWeight": {
+														"dataType": "uint64",
+														"fieldNumber": 2
+													}
+												}
+											}
+										},
+										"certificateThreshold": {
+											"dataType": "uint64",
+											"fieldNumber": 2
+										}
+									}
+								}
+							}
+						}
+					},
+					"ownChainDataSubstore": {
+						"type": "array",
+						"fieldNumber": 5,
+						"items": {
+							"type": "object",
+							"required": ["storeKey", "storeValue"],
+							"properties": {
+								"storeKey": {
+									"dataType": "bytes",
+									"fieldNumber": 1
+								},
+								"storeValue": {
+									"$id": "/modules/interoperability/ownChainAccount",
+									"type": "object",
+									"required": ["name", "chainID", "nonce"],
+									"properties": {
+										"name": {
+											"dataType": "string",
+											"fieldNumber": 1
+										},
+										"chainID": {
+											"dataType": "bytes",
+											"minLength": 4,
+											"maxLength": 4,
+											"fieldNumber": 2
+										},
+										"nonce": {
+											"dataType": "uint64",
+											"fieldNumber": 3
+										}
+									},
+									"fieldNumber": 2
+								}
+							}
+						}
+					},
+					"terminatedStateSubstore": {
+						"type": "array",
+						"fieldNumber": 6,
+						"items": {
+							"type": "object",
+							"required": ["storeKey", "storeValue"],
+							"properties": {
+								"storeKey": {
+									"dataType": "bytes",
+									"fieldNumber": 1
+								},
+								"storeValue": {
+									"$id": "/modules/interoperability/terminatedState",
+									"type": "object",
+									"required": ["stateRoot", "mainchainStateRoot", "initialized"],
+									"properties": {
+										"stateRoot": {
+											"dataType": "bytes",
+											"minLength": 32,
+											"maxLength": 32,
+											"fieldNumber": 1
+										},
+										"mainchainStateRoot": {
+											"dataType": "bytes",
+											"minLength": 32,
+											"maxLength": 32,
+											"fieldNumber": 2
+										},
+										"initialized": {
+											"dataType": "boolean",
+											"fieldNumber": 3
+										}
+									},
+									"fieldNumber": 2
+								}
+							}
+						}
+					},
+					"terminatedOutboxSubstore": {
+						"type": "array",
+						"fieldNumber": 7,
+						"items": {
+							"type": "object",
+							"required": ["storeKey", "storeValue"],
+							"properties": {
+								"storeKey": {
+									"dataType": "bytes",
+									"fieldNumber": 1
+								},
+								"storeValue": {
+									"$id": "/modules/interoperability/terminatedOutbox",
+									"type": "object",
+									"required": ["outboxRoot", "outboxSize", "partnerChainInboxSize"],
+									"properties": {
+										"outboxRoot": {
+											"dataType": "bytes",
+											"minLength": 32,
+											"maxLength": 32,
+											"fieldNumber": 1
+										},
+										"outboxSize": {
+											"dataType": "uint32",
+											"fieldNumber": 2
+										},
+										"partnerChainInboxSize": {
+											"dataType": "uint32",
+											"fieldNumber": 3
+										}
+									},
+									"fieldNumber": 2
+								}
+							}
+						}
+					},
+					"registeredNamesSubstore": {
+						"type": "array",
+						"fieldNumber": 8,
+						"items": {
+							"type": "object",
+							"required": ["storeKey", "storeValue"],
+							"properties": {
+								"storeKey": {
+									"dataType": "bytes",
+									"fieldNumber": 1
+								},
+								"storeValue": {
+									"$id": "/modules/interoperability/chainId",
+									"type": "object",
+									"required": ["chainID"],
+									"properties": {
+										"chainID": {
+											"dataType": "bytes",
+											"minLength": 4,
+											"maxLength": 4,
+											"fieldNumber": 1
+										}
+									},
+									"fieldNumber": 2
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"module": "token",
+			"data": {
+				"userSubstore": [
+					{
+						"address": "lskz9we2bp6s5e6gh2gsevmemd5665pmnz5tzf92x",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskzdauvxe6xqbp4uvfrjquakn6ztswcv6ng7k6gu",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskxz85sur2yo22dmcxybe39uvh2fg7s2ezxq4ny9",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskxvesvwgxpdnhp4rdukmsx42teehpxkeod7xv7f",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskx73eq4dcp85rad9eace4afzhpqr6u965vvk3hj",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskxwt6xpswt77puoeyhwz5jqe789nw73x62gaoqx",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskxs87ywhaw5uzapwuqebr2zw2atzqqtwmn8qvhj",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskvxgc9b7cvjz8dps3nyqrkgqazxyxqu7qcoyqnp",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskvcv6ot5mhbq9xrreu2b2eof68u4f5hsb28yeof",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskvma3wgqrspcptux4jpa5o96f4ewrcz64zn885p",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskvw7zvme6wmpcknzr2rcf3ng2236yopsyx3ohms",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskvg6nj59q6w2gybmu2v8ocnmdz2jormtrgxkos7",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskcx8gvm66mzuam5qo7r6wvwd2yphhjfn3x33rmn",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskc5pvgv9mjtksgmd49fpqjtuopbwx3sqzcg8gm5",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskpwjxnvsj462nj2xu3vhg5z53tebwzw24pcqk7k",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskpf9rwaw3vkwnbxvy4cowur5en7gkgkwxnxhn8w",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskmmyxtjrge6vde2qmvcaa594542o43grzhxvfwn",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskm4wjeanm2f6zwznpa739whbt68qgzjsd7t6ytz",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskmwcaq5aux5co239fn3984kadzpcupb2nok3nmd",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskmjwp8z88avvxn4voktmx8cu9wk4opjkna5owt5",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskmgnuvuvctt7suyhtq8hv3sp4tj9n3t63xwwu4b",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskbx6reezwszaw3vnqfjqbcjsqfe67ns6ddjca96",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskbpda6h6bqockd5cqf4zba4x67d74rs5nttt7ej",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskb6ca6kdrkcqjed8zfwavcupa78emqxgjzas524",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsknno6kh6akto75yhchvujnosw7454uecxbuu76v",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskn4z8au2hrzu4gdmvmu5fovguzmzynwy3th2vpa",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsknojqbgujd4g4xvyk6b47bhmfqjzxtvzt8sgew4",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsknohmzeqzvon9yyt72sg8got5gjothq86fpauck",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk3e9bogc2zwr8oashyq5kkrnvfhxusowsa95kod",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk49rszajer27guvuor4kmn7vffjjvuukdo2cc96",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk6bhcuebbmzeofz656fht5uwwr5nqqdyw6qz4a5",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk6obt6qjovdnan7vtxxvtnm8rbqeka9g82wybxw",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk6q4tzyev38ffwmfubctacqzofyb7z2ofrffm3y",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk6er6ot7n7zukkuekjdoovknp6byhqs99jyk8tu",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk5oebxamogcfsxwho7enn7523ocjkm6eqjajnce",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk5rryuaqyxrm5suzpjzz8zhns62g6ujmo5bmtjj",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskochy8jh28ne4bxz8c9c7c2uxe3aoag2n9z8zys",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskoer36v4xqh5ugsnhebpdzyjxm3nga2o9ogvewh",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskowwqqaegj27dzu6hkyrg6ysandjn5ewm7hdykq",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskoaw7jhs2u3vyf57zdkvjzxsngqyr2v6r969xdj",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk9htmn2b3zszj9kat82vb5hn9yr56kjs5ybe8zk",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk7v3zjhngex38qxfap34kbouuv49q59fdw6x5zz",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk73fqj4ysnpa9w9x5cxb2rx68p8p9hbobjyaxbq",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk75qme2wrqwr3np79dvfp274arxadzw5e79eutz",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk7txf4jfr9y66bofodzjotnu8ad88nmbzonf4ry",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk7awcvzuu3tgrca892u8qb93otnesxtarmmpgq9",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk7sc43mc4jm5mdsymw9o242qs2jeskzzztfdy8n",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk7hd43rovkana5gbxckqzodj7sskekv27hqa9qf",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk8zygvy7pcut5f7km3bm4af8bzp5c7hhgkdxvdv",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk8cs5f7hmub5f24v9ghsvjjw2k4ojrbb24n9mr3",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk8n85n79gs3ot4rc5pm7nzkgcgxqjxzz5k54krz",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk8na3xo7rvsapg5edemwkdxy36z3qwoe7gyep8x",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk8uzvmdwtxk2nxxdatrpm28vesfckrwccghwkzc",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskuz3odak5zxa6qtcc9bh7y6ue7fhsdy2sbsd98s",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskuxraqembhgy7cywjnqx72jsoamutvfpo26vnku",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskuptsehmer7fbyp968soxeazanvpbry6f2vo8do",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskuubp96enabn6huv4rsczs3wqnw3zkq3svevrk9",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskyww2onsuex4kjgdrh2v9wk72u5yaxhc3bqeuwb",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskydvwhgzryehb9zgogdvvqbrupwog7fpahttffv",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskyhobhyf2whs3dngn7w99myjjsepk6w6aweaytt",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskrumjaob38fvxhm47m69ypopt6kxfkq2d6yxn6n",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskryvmqmcnzcgwj3h86wn6orhdzpvjsw8d5fn33y",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsktugfodmx6w6qxvmoowfpt6pfqbszaj93qyuysj",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsktebd7urfnna8gebth6ozqfn78ddjnrx8zjpfak",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskkz2edev3bwssucz46zdfzem4du6os6a46eowfn",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskk7r7hs4b3n7fhnjedb3nvpb2vxnk6tnaoqooyp",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskkrfrtrpmch5sn3g9bjjekt2v4nqhbpp7v2how7",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskkfmt8wzwtf43zwamrtc2ov8we8sxbkekogepha",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskqn64o49w5gn5mz5963fv4drqvdfp9mpxza3myq",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskq3t9jjy3jpt2y3yrc67gs267e4vaedxzwpwzt4",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskqd6rbe9jaw54tqbxtccsmx2hanca5ux6n28hr2",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskqgqf3kqnh3mre382p6vj2hgjyd5msq9cnge9ac",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lske9zpqfj4brypfn3hhw9yfqqkwsfnpqs2k4fh78",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskewwcy547n3vztpdvmmpfm76cn9ycz2tmm8a4s7",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskeff6hkfvr24sxetqgwff3aadrrf8g86sege7ca",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskwp6nnuukprngcpnqdhkdes3n2z53aosmtrcc8o",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskwqjf9rhnuvebykqdzkstt8xyb5n9zos85qamda",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskwajjg7kg2oa9n95grmguv2xv55vsaubgb7uddk",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk27jh9a7jmohwefyd78d3b6885knts6qndvvkfh",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk2k9kesn3uec4gck5bnwfstzpprnymkynfqw255",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk2qrmfvc3g6b2gdhxxdea5oeo8hw2wavzhp3xrz",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsk222ns2869aw3rumyrgc5ufn23jo84kueqesdt8",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskabxy8m4w4nc2azvzvqvzvzjd9adem3vzn8ys65",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lska5ezp53c5pu64avrhpj4n9w4n8dgpvqqmqedfd",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskadfr4qs5x9u7ze5fmtkd7mzphooxyn7vjsyokj",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskag2o3d8mqvj59ejek2xtf5s9e29nrkgbyxwytr",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskdxdcwe42wpw4kzeceb6fpkcvrp3k25n62ur7bq",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskd6vsegbxs728ua3qtw5t2ybrfq48ed7g8hcanw",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskdr6fchzj3j47q6crnd5kpohwyt6nusbzw5qqyw",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsksusjckmce7qxnu52jfffnve8tdnbu8u6eagjy6",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lsksetrw5df7k9j82g9jo9aftmoo2v926we5vufzw",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskssvpp4eujocya2urjwpkphzqdky38qx42297u7",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskjzygjez5r5s6n7wbatfqyasrbnu5hmfzgjd66r",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskjucneqe6oercznrubcj6j8d22g9b46rxayg36p",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskjk2r8ymmky2fzdhmcfjq45mndo8aws59qmwzr8",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskj2of6osaccz2euvmpdsqkyxkf7bnud5ecza44r",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskj2hsd58nooq392335sq6pynmgg7cuakrxvn3ng",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskh7dv89yg4rgpe2tk8a2hwrus5merdrgzh9gzjk",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskhjj5ojqbw8rkxquu5pd63qek2j7now4b6khk8h",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskhfdjpr5ae3fyrvspc63uemrzmtbuta2sacz4pw",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskf3vr7fxuk4og2evd2x8efpg8nwj73um98qznss",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskfuhnp5wcyhb4576c2auk9rbyag2jgmn929f8un",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					},
+					{
+						"address": "lskfs9tecoa9jsoo8zubtjswfeku5hzyqzbeuot7e",
+						"tokenID": "0400000100000000",
+						"availableBalance": "100000000000000",
+						"lockedBalances": []
+					}
+				],
+				"supplySubstore": [
+					{
+						"tokenID": "0400000100000000",
+						"totalSupply": "10300000000000000"
+					}
+				],
+				"escrowSubstore": [],
+				"supportedTokensSubstore": []
+			},
+			"schema": {
+				"$id": "/token/module/genesis",
+				"type": "object",
+				"required": ["userSubstore", "supplySubstore", "escrowSubstore", "supportedTokensSubstore"],
+				"properties": {
+					"userSubstore": {
+						"type": "array",
+						"fieldNumber": 1,
+						"items": {
+							"type": "object",
+							"required": ["address", "tokenID", "availableBalance", "lockedBalances"],
+							"properties": {
+								"address": {
+									"dataType": "bytes",
+									"format": "lisk32",
+									"fieldNumber": 1
+								},
+								"tokenID": {
+									"dataType": "bytes",
+									"fieldNumber": 2,
+									"minLength": 8,
+									"maxLength": 8
+								},
+								"availableBalance": {
+									"dataType": "uint64",
+									"fieldNumber": 3
+								},
+								"lockedBalances": {
+									"type": "array",
+									"fieldNumber": 4,
+									"items": {
+										"type": "object",
+										"required": ["module", "amount"],
+										"properties": {
+											"module": {
+												"dataType": "string",
+												"minLength": 1,
+												"maxLength": 32,
+												"fieldNumber": 1
+											},
+											"amount": {
+												"dataType": "uint64",
+												"fieldNumber": 2
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"supplySubstore": {
+						"type": "array",
+						"fieldNumber": 2,
+						"items": {
+							"type": "object",
+							"required": ["tokenID", "totalSupply"],
+							"properties": {
+								"tokenID": {
+									"dataType": "bytes",
+									"fieldNumber": 1,
+									"minLength": 8,
+									"maxLength": 8
+								},
+								"totalSupply": {
+									"dataType": "uint64",
+									"fieldNumber": 2
+								}
+							}
+						}
+					},
+					"escrowSubstore": {
+						"type": "array",
+						"fieldNumber": 3,
+						"items": {
+							"type": "object",
+							"required": ["escrowChainID", "tokenID", "amount"],
+							"properties": {
+								"escrowChainID": {
+									"dataType": "bytes",
+									"minLength": 4,
+									"maxLength": 4,
+									"fieldNumber": 1
+								},
+								"tokenID": {
+									"dataType": "bytes",
+									"fieldNumber": 2,
+									"minLength": 8,
+									"maxLength": 8
+								},
+								"amount": {
+									"dataType": "uint64",
+									"fieldNumber": 3
+								}
+							}
+						}
+					},
+					"supportedTokensSubstore": {
+						"type": "array",
+						"fieldNumber": 4,
+						"items": {
+							"type": "object",
+							"required": ["chainID", "supportedTokenIDs"],
+							"properties": {
+								"chainID": {
+									"dataType": "bytes",
+									"minLength": 4,
+									"maxLength": 4,
+									"fieldNumber": 1
+								},
+								"supportedTokenIDs": {
+									"type": "array",
+									"fieldNumber": 2,
+									"items": {
+										"dataType": "bytes",
+										"minLength": 8,
+										"maxLength": 8
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"module": "pos",
+			"data": {
+				"validators": [
+					{
+						"address": "lskz9we2bp6s5e6gh2gsevmemd5665pmnz5tzf92x",
+						"name": "genesis_0",
+						"blsKey": "b05f5a2899b70e55ce376dc611794929d410eea5ff7848de5e2eb902bfc6a9fc4c2e29ef56ede22d8ff3459f2b1c8807",
+						"proofOfPossession": "a9e132e5b59cd8cc47ac45e8748f97517cc90bb1d49fdc892060afed2991dbe4fef45e809fedb150992acc7cd73e4ced0bcee0204ec9689bba83b9b7d15fcc5d62bedfdc8c15504bfa4176ca6b6da2f5a087d80af242f2fd11a0b9b4d3eed53a",
+						"generatorKey": "1592223f384b543ba9ddade80b83d6b75caa98db245889b5bb5a845978c3954e",
+						"lastGeneratedHeight": 0,
+						"isBanned": false,
+						"reportMisbehaviorHeights": [],
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
+					},
+					{
+						"address": "lskzdauvxe6xqbp4uvfrjquakn6ztswcv6ng7k6gu",
+						"name": "genesis_1",
+						"blsKey": "a9ea7c94b8e91e0d82dbbcaf69daa05355b2f91357f6f3b1984f85220176ef94515ab8f9f54d303dfdf211f546383c79",
+						"proofOfPossession": "90d1a89fc1dbdeeacce5a962b70fd70c5ae6e288155c61251c24f4f053c686895bb59464cd6ebbeda99869e3bde8f5cc137d7cbb6d143e7cb22e0eb74ab98f4d6ed0701adff291cd3c1f498f4b578cb966065b8e32f05f4a59580c41fdd65fd3",
+						"generatorKey": "6a3de12040b4baedc05576c486ef8131d5434d9c5ae145d93dbab555a1c3eaa2",
+						"lastGeneratedHeight": 0,
+						"isBanned": false,
+						"reportMisbehaviorHeights": [],
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
+					},
+					{
+						"address": "lskxz85sur2yo22dmcxybe39uvh2fg7s2ezxq4ny9",
+						"name": "genesis_2",
+						"blsKey": "88643444b17ca8caae7e9dd9920af3cce7d7be64fd4ea9a4ff51166b6a29b18f7533daf6005bf4b4e626d16670e3c768",
+						"proofOfPossession": "8dc18f5a545893011c8925fce7420cd5fbc9edf34175282b56e1fbdc80cd7e38ab2cd682aacb7dae821142a8c281eb2403c93f5b6e3a6a006e5d3616ae58cf82a4ad240b54cb0ab34341685431d4a52a48bfa17769ca509e7dc5f61ce02137b8",
+						"generatorKey": "f25ebc7996d30022083e45797e1a414bc620c08f4770455220f3e969e51bcad2",
+						"lastGeneratedHeight": 0,
+						"isBanned": false,
+						"reportMisbehaviorHeights": [],
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
+					},
+					{
+						"address": "lskxvesvwgxpdnhp4rdukmsx42teehpxkeod7xv7f",
+						"name": "genesis_3",
+						"blsKey": "a00cf0291a727000a89a8d67e28f89344cc011de1ac238141e3839a8a816eb0315ee4d3e54c42b64f41be411d714d515",
+						"proofOfPossession": "99f34d5c768c78b89a8858472af7fbf4596e5d1628728bcb8fa4c2e21bdb4df3fa859a066e90ab1403febccc92354685054d1352c7b7d251ffd336d0d85673f8db5040ccec0b9b79f0b1c87876b890c6ffafbc7bc127c98d7e7c82c83aea27fd",
+						"generatorKey": "acae760769ba7ff65375648ca064c62bf1d7c1f507b419e5e8302b2d18ca7725",
+						"lastGeneratedHeight": 0,
+						"isBanned": false,
+						"reportMisbehaviorHeights": [],
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
+					},
+					{
+						"address": "lskx73eq4dcp85rad9eace4afzhpqr6u965vvk3hj",
+						"name": "genesis_4",
+						"blsKey": "85faef3beb92e8a37182d92be27b0918475e3b1db23cc1bb804a7bb33041ab64b5a2e1bbb3dc331ba52d765c964fa56c",
+						"proofOfPossession": "896a4688e319c5914eb305252c4711896143a896b9b1fbed00a000ac6967d2a3663523734e90524145fe222ce7fd474d07f7c7fc7065695bf666c937e12c243564568193217e985d11e3b47f4fd4ea0a2decd75c2aaea87200a2633d446a257a",
+						"generatorKey": "dff4432b00adefdf977685bd8afe6f430b5a555acf9b98a09697d898aca8ec09",
+						"lastGeneratedHeight": 0,
+						"isBanned": false,
+						"reportMisbehaviorHeights": [],
+						"consecutiveMissedBlocks": 0,
+						"commission": 0,
+						"lastCommissionIncreaseHeight": 0,
+						"sharingCoefficients": []
+					}
+				],
+				"stakers": [],
+				"genesisData": {
+					"initRounds": 3,
+					"initValidators": [
+						"lskz9we2bp6s5e6gh2gsevmemd5665pmnz5tzf92x",
+						"lskzdauvxe6xqbp4uvfrjquakn6ztswcv6ng7k6gu",
+						"lskxz85sur2yo22dmcxybe39uvh2fg7s2ezxq4ny9",
+						"lskxvesvwgxpdnhp4rdukmsx42teehpxkeod7xv7f",
+						"lskx73eq4dcp85rad9eace4afzhpqr6u965vvk3hj"
+					]
+				}
+			},
+			"schema": {
+				"$id": "/pos/module/genesis",
+				"type": "object",
+				"required": ["validators", "stakers", "genesisData"],
+				"properties": {
+					"validators": {
+						"type": "array",
+						"fieldNumber": 1,
+						"items": {
+							"type": "object",
+							"required": [
+								"address",
+								"name",
+								"blsKey",
+								"proofOfPossession",
+								"generatorKey",
+								"lastGeneratedHeight",
+								"isBanned",
+								"reportMisbehaviorHeights",
+								"consecutiveMissedBlocks",
+								"commission",
+								"lastCommissionIncreaseHeight",
+								"sharingCoefficients"
+							],
+							"properties": {
+								"address": {
+									"dataType": "bytes",
+									"format": "lisk32",
+									"fieldNumber": 1
+								},
+								"name": {
+									"dataType": "string",
+									"fieldNumber": 2,
+									"minLength": 1,
+									"maxLength": 20
+								},
+								"blsKey": {
+									"dataType": "bytes",
+									"fieldNumber": 3,
+									"minLength": 48,
+									"maxLength": 48
+								},
+								"proofOfPossession": {
+									"dataType": "bytes",
+									"fieldNumber": 4,
+									"minLength": 96,
+									"maxLength": 96
+								},
+								"generatorKey": {
+									"dataType": "bytes",
+									"fieldNumber": 5,
+									"minLength": 32,
+									"maxLength": 32
+								},
+								"lastGeneratedHeight": {
+									"dataType": "uint32",
+									"fieldNumber": 6
+								},
+								"isBanned": {
+									"dataType": "boolean",
+									"fieldNumber": 7
+								},
+								"reportMisbehaviorHeights": {
+									"type": "array",
+									"fieldNumber": 8,
+									"items": {
+										"dataType": "uint32"
+									}
+								},
+								"consecutiveMissedBlocks": {
+									"dataType": "uint32",
+									"fieldNumber": 9
+								},
+								"commission": {
+									"dataType": "uint32",
+									"fieldNumber": 10,
+									"maximum": 10000
+								},
+								"lastCommissionIncreaseHeight": {
+									"dataType": "uint32",
+									"fieldNumber": 11
+								},
+								"sharingCoefficients": {
+									"type": "array",
+									"fieldNumber": 12,
+									"items": {
+										"type": "object",
+										"required": ["tokenID", "coefficient"],
+										"properties": {
+											"tokenID": {
+												"dataType": "bytes",
+												"minLength": 8,
+												"maxLength": 8,
+												"fieldNumber": 1
+											},
+											"coefficient": {
+												"dataType": "bytes",
+												"maxLength": 24,
+												"fieldNumber": 2
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"stakers": {
+						"type": "array",
+						"fieldNumber": 2,
+						"items": {
+							"type": "object",
+							"required": ["address", "stakes", "pendingUnlocks"],
+							"properties": {
+								"address": {
+									"dataType": "bytes",
+									"format": "lisk32",
+									"fieldNumber": 1
+								},
+								"stakes": {
+									"type": "array",
+									"fieldNumber": 2,
+									"items": {
+										"type": "object",
+										"required": ["validatorAddress", "amount", "sharingCoefficients"],
+										"properties": {
+											"validatorAddress": {
+												"dataType": "bytes",
+												"format": "lisk32",
+												"fieldNumber": 1
+											},
+											"amount": {
+												"dataType": "uint64",
+												"fieldNumber": 2
+											},
+											"sharingCoefficients": {
+												"type": "array",
+												"fieldNumber": 3,
+												"items": {
+													"type": "object",
+													"required": ["tokenID", "coefficient"],
+													"properties": {
+														"tokenID": {
+															"dataType": "bytes",
+															"minLength": 8,
+															"maxLength": 8,
+															"fieldNumber": 1
+														},
+														"coefficient": {
+															"dataType": "bytes",
+															"maxLength": 24,
+															"fieldNumber": 2
+														}
+													}
+												}
+											}
+										}
+									}
+								},
+								"pendingUnlocks": {
+									"type": "array",
+									"fieldNumber": 3,
+									"items": {
+										"type": "object",
+										"required": ["validatorAddress", "amount", "unstakeHeight"],
+										"properties": {
+											"validatorAddress": {
+												"dataType": "bytes",
+												"fieldNumber": 1,
+												"format": "lisk32"
+											},
+											"amount": {
+												"dataType": "uint64",
+												"fieldNumber": 2
+											},
+											"unstakeHeight": {
+												"dataType": "uint32",
+												"fieldNumber": 3
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"genesisData": {
+						"type": "object",
+						"fieldNumber": 3,
+						"required": ["initRounds", "initValidators"],
+						"properties": {
+							"initRounds": {
+								"dataType": "uint32",
+								"fieldNumber": 1
+							},
+							"initValidators": {
+								"type": "array",
+								"fieldNumber": 2,
+								"items": {
+									"dataType": "bytes",
+									"format": "lisk32"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	]
+}

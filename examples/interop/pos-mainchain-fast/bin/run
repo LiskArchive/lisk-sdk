@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+
+require('@oclif/core')
+	.run()
+	.then(require('@oclif/core/flush'))
+	.catch(require('@oclif/core/handle'));
