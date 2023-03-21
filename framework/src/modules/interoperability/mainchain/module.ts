@@ -66,8 +66,19 @@ import { RecoverStateCommand } from './commands/recover_state';
 import { CcmSentFailedEvent } from '../events/ccm_send_fail';
 import { InvalidRegistrationSignatureEvent } from '../events/invalid_registration_signature';
 import { GenesisBlockExecuteContext } from '../../../state_machine';
-import { MODULE_NAME_INTEROPERABILITY, CHAIN_NAME_MAINCHAIN, EMPTY_HASH } from '../constants';
-import { getMainchainID, isValidName, validNameCharset } from '../utils';
+import {
+	MODULE_NAME_INTEROPERABILITY,
+	CHAIN_NAME_MAINCHAIN,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
+	EMPTY_HASH,
+} from '../constants';
+import {
+	getMainchainID,
+	isValidName,
+	validNameCharset,
+	getMainchainTokenID,
+	computeValidatorsHash,
+} from '../utils';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
@@ -278,42 +289,47 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				if (ownChainNonce !== BigInt(0)) {
 					throw new Error(`ownChainNonce must be 0 if chainInfos is empty.`);
 				}
-			} else {
-				// If chainInfos is non-empty
-				// ownChainNonce > 0
-				if (ownChainNonce <= 0) {
-					throw new Error(`ownChainNonce must be positive if chainInfos is not empty.`);
-				}
-
-				// Each entry chainInfo in chainInfos has a unique chainInfo.chainID
-				const chainIDs = chainInfos.map(info => info.chainID);
-				if (!bufferArrayUniqueItems(chainIDs)) {
-					throw new Error(`chainInfos doesn't hold unique chainID.`);
-				}
-
-				// chainInfos is ordered lexicographically by chainInfo.chainID
-				const sortedByChainID = [...chainInfos].sort((a, b) => a.chainID.compare(b.chainID));
-				for (let i = 0; i < chainInfos.length; i += 1) {
-					if (!chainInfos[i].chainID.equals(sortedByChainID[i].chainID)) {
-						throw new Error('chainInfos is not ordered lexicographically by chainID.');
-					}
-				}
-
-				this._verifyChainInfos(ctx, chainInfos);
-				this._verifyTerminatedStateAccounts(chainInfos, terminatedStateAccounts);
-				this._verifyTerminatedOutboxAccounts(
-					chainInfos,
-					terminatedStateAccounts,
-					terminatedOutboxAccounts,
-				);
 			}
+
+			// If chainInfos is non-empty
+			// ownChainNonce > 0
+			if (ownChainNonce <= 0) {
+				throw new Error(`ownChainNonce must be positive if chainInfos is not empty.`);
+			}
+
+			// Each entry chainInfo in chainInfos has a unique chainInfo.chainID
+			const chainIDs = chainInfos.map(info => info.chainID);
+			if (!bufferArrayUniqueItems(chainIDs)) {
+				throw new Error(`chainInfos doesn't hold unique chainID.`);
+			}
+
+			// chainInfos should be ordered lexicographically by chainInfo.chainID
+			const sortedByChainID = [...chainInfos].sort((a, b) => a.chainID.compare(b.chainID));
+			for (let i = 0; i < chainInfos.length; i += 1) {
+				if (!chainInfos[i].chainID.equals(sortedByChainID[i].chainID)) {
+					throw new Error('chainInfos is not ordered lexicographically by chainID.');
+				}
+			}
+
+			// The entries chainData.name must be pairwise distinct
+			const chainDataNames = chainInfos.map(info => info.chainData.name);
+			if (new Set(chainDataNames).size !== chainDataNames.length) {
+				throw new Error(`chainData.name must be pairwise distinct.`);
+			}
+
+			this._verifyChainInfos(ctx, chainInfos);
+			this._verifyTerminatedStateAccounts(chainInfos, terminatedStateAccounts);
+			this._verifyTerminatedOutboxAccounts(
+				chainInfos,
+				terminatedStateAccounts,
+				terminatedOutboxAccounts,
+			);
 		}
 	}
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#mainchain
 	private _verifyChainInfos(ctx: GenesisBlockExecuteContext, chainInfos: ChainInfo[]) {
 		const mainchainID = getMainchainID(ctx.chainID);
-		const chainDataNames = chainInfos.map(info => info.chainData.name);
 
 		// verify root level properties
 		for (const chainInfo of chainInfos) {
@@ -329,28 +345,19 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				throw new Error(`chainID[0] doesn't match ${mainchainID[0]}.`);
 			}
 
-			this._verifyChainData(ctx, chainInfo, chainDataNames);
+			this._verifyChainData(ctx, chainInfo);
 			this._verifyChannelData(ctx, chainInfo);
 			this._verifyChainValidators(chainInfo);
 		}
 	}
 
-	private _verifyChainData(
-		ctx: GenesisBlockExecuteContext,
-		chainInfo: ChainInfo,
-		chainDataNames: string[],
-	) {
+	private _verifyChainData(ctx: GenesisBlockExecuteContext, chainInfo: ChainInfo) {
 		const validStatuses = [ChainStatus.REGISTERED, ChainStatus.ACTIVE, ChainStatus.TERMINATED];
-
-		// The entries chainData.name must be pairwise distinct
-		if (new Set(chainDataNames).size !== chainDataNames.length) {
-			throw new Error(`chainData.name must be pairwise distinct.`);
-		}
 
 		const { chainData } = chainInfo;
 
 		// chainData.lastCertificate.timestamp < g.header.timestamp;
-		if (chainData.lastCertificate.timestamp > ctx.header.timestamp) {
+		if (chainData.lastCertificate.timestamp >= ctx.header.timestamp) {
 			throw new Error(`chainData.lastCertificate.timestamp must be less than header.timestamp.`);
 		}
 
@@ -365,6 +372,73 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		}
 	}
 
+	private _verifyChannelData(ctx: GenesisBlockExecuteContext, chainInfo: ChainInfo) {
+		const mainchainTokenID = getMainchainTokenID(ctx.chainID);
+
+		const { channelData } = chainInfo;
+
+		// channelData.messageFeeTokenID == Token.getTokenIDLSK();
+		if (!channelData.messageFeeTokenID.equals(mainchainTokenID)) {
+			throw new Error(`channelData.messageFeeTokenID is not equal to Token.getTokenIDLSK().`);
+		}
+
+		// channelData.minReturnFeePerByte == MIN_RETURN_FEE_PER_BYTE_LSK.
+		if (channelData.minReturnFeePerByte !== MIN_RETURN_FEE_PER_BYTE_BEDDOWS) {
+			throw new Error(
+				`channelData.minReturnFeePerByte is not equal to MIN_RETURN_FEE_PER_BYTE_BEDDOWS.`,
+			);
+		}
+	}
+
+	private _verifyChainValidators(chainInfo: ChainInfo) {
+		const { chainValidators, chainData } = chainInfo;
+		const { activeValidators, certificateThreshold } = chainValidators;
+
+		// activeValidators must be ordered lexicographically by blsKey property
+		const sortedByBlsKeys = [...activeValidators].sort((a, b) => a.blsKey.compare(b.blsKey));
+		for (let i = 0; i < activeValidators.length; i += 1) {
+			if (!activeValidators[i].blsKey.equals(sortedByBlsKeys[i].blsKey)) {
+				throw new Error('activeValidators must be ordered lexicographically by blsKey property.');
+			}
+		}
+
+		// all blsKey properties must be pairwise distinct
+		const blsKeys = activeValidators.map(v => v.blsKey);
+		if (!bufferArrayUniqueItems(blsKeys)) {
+			throw new Error(`All blsKey properties must be pairwise distinct.`);
+		}
+
+		// for each validator in activeValidators, validator.bftWeight > 0 must hold
+		if (activeValidators.filter(v => v.bftWeight <= 0).length > 0) {
+			throw new Error(`validator.bftWeight must be > 0.`);
+		}
+
+		// let totalWeight be the sum of the bftWeight property of every element in activeValidators.
+		// Then totalWeight has to be less than or equal to MAX_UINT64
+		const totalWeight = activeValidators.reduce(
+			(accumulator, v) => accumulator + v.bftWeight,
+			BigInt(0),
+		);
+		if (totalWeight > MAX_UINT64) {
+			throw new Error(`totalWeight has to be less than or equal to MAX_UINT64.`);
+		}
+
+		// check that totalWeight//3 + 1 <= certificateThreshold <= totalWeight, where // indicates integer division
+		if (
+			totalWeight / BigInt(3) + BigInt(1) > certificateThreshold ||
+			certificateThreshold > totalWeight
+		) {
+			throw new Error('Invalid certificateThreshold input.');
+		}
+
+		// check that the corresponding validatorsHash stored in chainInfo.chainData.lastCertificate.validatorsHash
+		// matches with the value computed from activeValidators and certificateThreshold
+		const { validatorsHash } = chainData.lastCertificate;
+		if (!validatorsHash.equals(computeValidatorsHash(activeValidators, certificateThreshold))) {
+			throw new Error('Invalid validatorsHash from chainData.lastCertificate.');
+		}
+	}
+
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#mainchain
 	private _verifyTerminatedStateAccounts(
 		chainInfos: ChainInfo[],
@@ -373,7 +447,13 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		for (const chainInfo of chainInfos) {
 			const { chainID } = chainInfo;
 
-			if (terminatedStateAccounts.filter(a => a.chainID.equals(chainID)).length > 0) {
+			const filteredTerminatedStateAccounts = terminatedStateAccounts.filter(a =>
+				a.chainID.equals(chainID),
+			);
+			if (terminatedStateAccounts.length > 0 && filteredTerminatedStateAccounts.length === 0) {
+				throw new Error('there can not be a terminated account if there is no chain account');
+			}
+			if (filteredTerminatedStateAccounts.length > 0) {
 				// For each entry chainInfo in chainInfos, chainInfo.chainData.status == CHAIN_STATUS_TERMINATED
 				// if and only if a corresponding entry (i.e., with chainID == chainInfo.chainID) exists in terminatedStateAccounts.
 				if (chainInfo.chainData.status !== ChainStatus.TERMINATED) {

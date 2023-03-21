@@ -1,4 +1,18 @@
 import { utils } from '@liskhq/lisk-cryptography';
+/*
+ * Copyright © 2023 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 import { codec } from '@liskhq/lisk-codec';
 import { BlockAssets } from '@liskhq/lisk-chain';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
@@ -13,7 +27,10 @@ import {
 	MainchainInteroperabilityModule,
 	GenesisBlockExecuteContext,
 } from '../../../../../src';
-import { GenesisInteroperability } from '../../../../../src/modules/interoperability/types';
+import {
+	ChainInfo,
+	GenesisInteroperability,
+} from '../../../../../src/modules/interoperability/types';
 import {
 	InMemoryPrefixedStateDB,
 	createGenesisBlockContext,
@@ -105,24 +122,27 @@ describe('initGenesisState', () => {
 	});
 
 	describe('if chainInfos is not empty', () => {
-		certificateThreshold = BigInt(10);
-		const validChainInfos = [
-			{
-				...chainInfo,
-				chainData: {
-					...chainData,
-					status: ChainStatus.TERMINATED,
-					lastCertificate: {
-						...lastCertificate,
-						validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+		let validChainInfos: ChainInfo[];
+		beforeEach(() => {
+			certificateThreshold = BigInt(10);
+			validChainInfos = [
+				{
+					...chainInfo,
+					chainData: {
+						...chainData,
+						status: ChainStatus.TERMINATED,
+						lastCertificate: {
+							...lastCertificate,
+							validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+						},
+					},
+					chainValidators: {
+						activeValidators,
+						certificateThreshold,
 					},
 				},
-				chainValidators: {
-					activeValidators,
-					certificateThreshold,
-				},
-			},
-		];
+			];
+		});
 
 		it('should throw error if ownChainNonce <= 0', async () => {
 			const context = createInitGenesisStateContext(
@@ -137,7 +157,7 @@ describe('initGenesisState', () => {
 			);
 		});
 
-		it("should throw error if chainInfos doesn't hold unique chainID", async () => {
+		it('should throw error if chainInfos does not hold unique chainID', async () => {
 			const context = createInitGenesisStateContext(
 				{
 					...genesisInteroperability,
@@ -209,41 +229,6 @@ describe('initGenesisState', () => {
 		});
 
 		describe('chainInfo.chainData', () => {
-			it(`should throw error if not 'chainData.name must be pairwise distinct'`, async () => {
-				const context = createInitGenesisStateContext(
-					{
-						...genesisInteroperability,
-						chainInfos: [
-							{
-								...chainInfo,
-								chainID: Buffer.from([0, 0, 0, 1]),
-								chainData: {
-									...chainData,
-									name: 'chain_account1',
-								},
-							},
-							{
-								...chainInfo,
-								chainID: Buffer.from([0, 0, 0, 2]),
-								chainData: {
-									...chainData,
-									name: 'chain_account1',
-								},
-							},
-						],
-					},
-					{
-						...params,
-						header: {
-							timestamp: Date.now(),
-						} as any,
-					},
-				);
-				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					`chainData.name must be pairwise distinct.`,
-				);
-			});
-
 			it(`should throw error if not 'chainData.lastCertificate.timestamp < g.header.timestamp'`, async () => {
 				const context = createInitGenesisStateContext(
 					{
@@ -326,6 +311,35 @@ describe('initGenesisState', () => {
 		});
 
 		describe('terminatedStateAccounts', () => {
+			it('should not throw error if length of terminatedStateAccounts is zero', async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						// this is needed to verify `validatorsHash` related tests (above)
+						chainInfos: [
+							{
+								...chainInfo,
+								chainData: {
+									...chainData,
+									lastCertificate: {
+										...lastCertificate,
+										validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+									},
+								},
+								chainValidators: {
+									activeValidators,
+									certificateThreshold,
+								},
+							},
+						],
+						terminatedStateAccounts: [],
+					},
+					params,
+				);
+
+				await expect(interopMod.initGenesisState(context)).resolves.not.toThrow();
+			});
+
 			it('should throw error if chainInfo.chainID exists in terminatedStateAccounts & chainInfo.chainData.status !== CHAIN_STATUS_TERMINATED', async () => {
 				const context = createInitGenesisStateContext(
 					{
@@ -494,13 +508,13 @@ describe('initGenesisState', () => {
 						chainInfos: validChainInfos,
 						terminatedStateAccounts: [
 							{
-								chainID: Buffer.from([0, 0, 0, 2]),
+								chainID: Buffer.from([0, 0, 0, 1]),
 								terminatedStateAccount,
 							},
 						],
 						terminatedOutboxAccounts: [
 							{
-								chainID: Buffer.from([0, 0, 0, 1]),
+								chainID: Buffer.from([0, 0, 0, 2]),
 								terminatedOutboxAccount,
 							},
 						],
