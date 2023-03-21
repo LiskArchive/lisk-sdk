@@ -107,7 +107,8 @@
 													"type": "array",
 													"items": {
 														"dataType": "bytes",
-														"length": 32
+														"minLength": 32,
+														"maxLength": 32
 													},
 													"fieldNumber": 1
 												},
@@ -132,7 +133,8 @@
 													"type": "array",
 													"items": {
 														"dataType": "bytes",
-														"length": 32
+														"minLength": 32,
+														"maxLength": 32
 													},
 													"fieldNumber": 1
 												},
