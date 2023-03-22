@@ -22,6 +22,7 @@ import { encodeBlock, encodeLegacyChainBracketInfo } from '../../../../src/engin
 import { Peer, LegacyBlock } from '../../../../src/engine/legacy/types';
 import { getBlocksFromIdResponseSchema } from '../../../../src/engine/consensus/schema';
 import { blockFixtures } from './fixtures';
+import { fakeLogger } from '../../../utils/mocks';
 
 const randomSnapshotBlockID = utils.getRandomBytes(20);
 const expectedSnapshotBlockID = utils.getRandomBytes(20);
@@ -71,7 +72,7 @@ describe('Legacy Chain Handler', () => {
 		network.requestFromPeer = jest.fn();
 		network.applyNodeInfo = jest.fn();
 
-		legacyChainHandler = new LegacyChainHandler({ legacyConfig, network });
+		legacyChainHandler = new LegacyChainHandler({ legacyConfig, network, logger: fakeLogger });
 		await legacyChainHandler.init({
 			db: { get: jest.fn(), write: jest.fn(), set: jest.fn() } as never,
 		});
