@@ -2,7 +2,7 @@
 
 # Lisk SDK
 
-[![Build Status](https://jenkins.lisk.com/job/lisk-sdk/job/lisk-sdk/job/development/badge/icon)](https://jenkins.lisk.com/job/lisk-sdk/job/lisk-sdk/job/development/)
+[![Build status](https://github.com/LiskHQ/lisk-sdk/actions/workflows/branch.yaml/badge.svg?branch=development)](https://github.com/LiskHQ/lisk-sdk/actions/workflows/branch.yaml)
 ![npm](https://img.shields.io/npm/v/lisk-sdk)
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/liskHQ/lisk-sdk)
 ![GitHub repo size](https://img.shields.io/github/repo-size/liskhq/lisk-sdk)
