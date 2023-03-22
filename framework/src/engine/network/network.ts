@@ -328,9 +328,9 @@ export class Network {
 
 			if (!Object.keys(this._endpoints).includes(request.procedure)) {
 				const error = new Error(`Requested procedure "${request.procedure}" is not permitted.`);
-				this._logger.error(
+				this._logger.warn(
 					{ err: error, procedure: request.procedure },
-					'Peer request not fulfilled event: Requested procedure is not permitted.',
+					'Peer request not fulfilled event: Requested procedure is not permitted. Applying penalty on peer',
 				);
 
 				// Ban peer on if non-permitted procedure is requested
@@ -369,9 +369,9 @@ export class Network {
 			}) => {
 				if (!Object.keys(this._eventHandlers).includes(packet.event)) {
 					const error = new Error(`Sent event "${packet.event}" is not permitted.`);
-					this._logger.error(
+					this._logger.warn(
 						{ err: error, event: packet.event },
-						'Peer request not fulfilled. Sent event is not permitted.',
+						'Peer request not fulfilled. Sent event is not permitted. Applying penalty on peer',
 					);
 					// Ban peer on if non-permitted procedure is requested
 					this._p2p.applyPenalty({ peerId: packet.peerId, penalty: 100 });
@@ -388,9 +388,9 @@ export class Network {
 				try {
 					this._eventHandlers[packet.event](packet);
 				} catch (error) {
-					this._logger.error(
+					this._logger.warn(
 						{ err: error as Error, event: packet.event },
-						'Peer request not fulfilled event: Fail to handle event',
+						'Peer request not fulfilled event: Fail to handle event. Applying penalty on peer',
 					);
 					this._p2p.applyPenalty({ peerId: packet.peerId, penalty: 100 });
 				}
