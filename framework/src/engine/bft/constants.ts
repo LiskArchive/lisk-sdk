@@ -18,6 +18,7 @@ export const MODULE_STORE_PREFIX_BFT = Buffer.from([0, 0, 0, 0]);
 
 export const ED25519_PUBLIC_KEY_LENGTH = 32;
 export const BLS_PUBLIC_KEY_LENGTH = 48;
+export const EMPTY_BLS_KEY = Buffer.alloc(BLS_PUBLIC_KEY_LENGTH, 0);
 export const STORE_PREFIX_BFT_PARAMETERS = 0x0000;
 export const STORE_PREFIX_BFT_VOTES = 0x4000;
 export const EMPTY_KEY = Buffer.alloc(0);
