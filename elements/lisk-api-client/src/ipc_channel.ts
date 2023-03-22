@@ -33,6 +33,8 @@ const getSocketsPath = (dataPath: string) => {
 };
 
 export class IPCChannel implements Channel {
+	public isAlive = false;
+
 	private readonly _events: EventEmitter;
 	private readonly _subSocket: Subscriber;
 	private readonly _rpcClient: Dealer;
@@ -90,6 +92,7 @@ export class IPCChannel implements Channel {
 
 				this._rpcClient.connect(this._rpcServerSocketPath);
 			});
+			this.isAlive = true;
 		} catch (error) {
 			this._subSocket.close();
 			this._rpcClient.close();
@@ -105,6 +108,7 @@ export class IPCChannel implements Channel {
 	public async disconnect(): Promise<void> {
 		this._subSocket.close();
 		this._rpcClient.close();
+		this.isAlive = false;
 	}
 
 	public async invoke<T = Record<string, unknown>>(
