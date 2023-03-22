@@ -421,10 +421,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 		if (this._lastCertificate.height === 0) {
 			for (const aggregateCommit of aggregateCommits) {
-				if (
-					aggregateCommit.certificateSignature.equals(EMPTY_BYTES) ||
-					aggregateCommit.height < this._registrationHeight
-				) {
+				if (aggregateCommit.height < this._registrationHeight) {
 					continue;
 				}
 
@@ -593,7 +590,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 		// Save aggregateCommit if present in the block header
 		const aggregateCommits = await this._chainConnectorStore.getAggregateCommits();
-		if (newBlockHeader.aggregateCommit) {
+		if (
+			!newBlockHeader.aggregateCommit.aggregationBits.equals(EMPTY_BYTES) ||
+			!newBlockHeader.aggregateCommit.certificateSignature.equals(EMPTY_BYTES)
+		) {
 			const aggregateCommitIndex = aggregateCommits.findIndex(
 				commit => commit.height === newBlockHeader.aggregateCommit.height,
 			);
@@ -740,12 +740,21 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		if (!this.config.receivingChainIPCPath && !this.config.receivingChainWsURL) {
 			throw new Error('IPC path and WS url are undefined in the configuration.');
 		}
-		if (this.config.receivingChainIPCPath) {
-			this._receivingChainClient = await apiClient.createIPCClient(
-				this.config.receivingChainIPCPath,
+		try {
+			if (this.config.receivingChainIPCPath) {
+				this._receivingChainClient = await apiClient.createIPCClient(
+					this.config.receivingChainIPCPath,
+				);
+			} else if (this.config.receivingChainWsURL) {
+				this._receivingChainClient = await apiClient.createWSClient(
+					this.config.receivingChainWsURL,
+				);
+			}
+		} catch (error) {
+			this.logger.error(
+				error,
+				'Not able to connect to receivingChainAPIClient. Trying again on next new block.',
 			);
-		} else if (this.config.receivingChainWsURL) {
-			this._receivingChainClient = await apiClient.createWSClient(this.config.receivingChainWsURL);
 		}
 	}
 }
