@@ -22,7 +22,7 @@ import {
 } from './utils';
 import { getBFTParameters } from './bft_params';
 import {
-	BLS_PUBLIC_KEY_LENGTH,
+	EMPTY_BLS_KEY,
 	EMPTY_KEY,
 	MAX_UINT32,
 	MODULE_STORE_PREFIX_BFT,
@@ -170,7 +170,8 @@ export class BFTMethod {
 		const validatorValidBLSKeys = [];
 		for (const validator of validators) {
 			validatorAddresses.push(validator.address);
-			if (!validator.blsKey.equals(Buffer.alloc(BLS_PUBLIC_KEY_LENGTH, 0))) {
+			// invalid bls key is used when initializing the mainchain. Therefore, it needs to ignore the empty bls key.
+			if (!validator.blsKey.equals(EMPTY_BLS_KEY)) {
 				validatorValidBLSKeys.push(validator.blsKey);
 			}
 		}
