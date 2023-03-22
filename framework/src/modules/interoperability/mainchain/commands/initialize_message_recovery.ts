@@ -60,24 +60,29 @@ export class InitializeMessageRecoveryCommand extends BaseInteroperabilityComman
 			throw new Error('Chain is not registered.');
 		}
 
+		const terminatedAccountExists = await this.stores
+			.get(TerminatedStateStore)
+			.has(context, params.chainID);
+		if (!terminatedAccountExists) {
+			throw new Error('Terminated state account not present.');
+		}
+
 		const terminatedAccount = await this.stores
 			.get(TerminatedStateStore)
 			.get(context, params.chainID);
-		if (!terminatedAccount.initialized) {
-			throw new Error('Chain is not terminated.');
-		}
 
-		const terminatedOutboxAccountExist = await this.stores
+		const terminatedOutboxAccountExists = await this.stores
 			.get(TerminatedOutboxStore)
 			.has(context, params.chainID);
-		if (terminatedOutboxAccountExist) {
+		if (terminatedOutboxAccountExists) {
 			throw new Error('Terminated outbox account already exists.');
 		}
 
+		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
 		const queryKey = Buffer.concat([
 			// key contains both module and store key
 			this.stores.get(ChannelDataStore).key,
-			utils.hash(mainchainID),
+			utils.hash(ownChainAccount.chainID),
 		]);
 		const query = {
 			key: queryKey,

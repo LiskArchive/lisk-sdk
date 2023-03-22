@@ -190,17 +190,7 @@ describe('InitializeMessageRecoveryCommand', () => {
 		it('should reject when terminated account does not exist', async () => {
 			await interopMod.stores.get(TerminatedStateStore).del(stateStore, targetChainID);
 
-			await expect(command.verify(defaultContext)).rejects.toThrow('does not exist');
-		});
-
-		it('should reject when terminated account exists but not initialized', async () => {
-			await interopMod.stores.get(TerminatedStateStore).set(stateStore, targetChainID, {
-				stateRoot: utils.getRandomBytes(32),
-				initialized: false,
-				mainchainStateRoot: EMPTY_HASH,
-			});
-
-			await expect(command.verify(defaultContext)).rejects.toThrow('Chain is not terminated.');
+			await expect(command.verify(defaultContext)).rejects.toThrow('not present');
 		});
 
 		it('should reject when terminated outbox account exists', async () => {
@@ -223,10 +213,36 @@ describe('InitializeMessageRecoveryCommand', () => {
 			);
 		});
 
+		it('should resolve when ownchainID !== mainchainID', async () => {
+			await interopMod.stores
+				.get(OwnChainAccountStore)
+				.set(stateStore, EMPTY_BYTES, { ...ownChainAccount, chainID: Buffer.from([2, 2, 2, 2]) });
+			const queryKey = Buffer.concat([
+				interopMod.stores.get(ChannelDataStore).key,
+				utils.hash(Buffer.from([2, 2, 2, 2])),
+			]);
+
+			await expect(command.verify(defaultContext)).resolves.toEqual({ status: VerifyStatus.OK });
+			expect(SparseMerkleTree.prototype.verify).toHaveBeenCalledWith(
+				terminatedState.stateRoot,
+				[queryKey],
+				{
+					siblingHashes: defaultParams.siblingHashes,
+					queries: [
+						{
+							key: queryKey,
+							value: utils.hash(defaultParams.channel),
+							bitmap: defaultParams.bitmap,
+						},
+					],
+				},
+			);
+		});
+
 		it('should resolve when params is valid', async () => {
 			const queryKey = Buffer.concat([
 				interopMod.stores.get(ChannelDataStore).key,
-				utils.hash(Buffer.from([0, 0, 0, 0])),
+				utils.hash(ownChainAccount.chainID),
 			]);
 
 			await expect(command.verify(defaultContext)).resolves.toEqual({ status: VerifyStatus.OK });
