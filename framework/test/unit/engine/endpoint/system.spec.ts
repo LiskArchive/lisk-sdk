@@ -14,13 +14,13 @@
 
 import { Block, BlockAssets } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
-import { TokenModule } from '../../../../src';
 import { SystemEndpoint } from '../../../../src/engine/endpoint/system';
 import { createFakeBlockHeader } from '../../../../src/testing';
 import { nodeOptions } from '../../../fixtures';
 
 describe('system endpoint', () => {
 	let endpoint: SystemEndpoint;
+	const genesisHeight = 1234;
 
 	beforeEach(() => {
 		endpoint = new SystemEndpoint({
@@ -62,7 +62,7 @@ describe('system endpoint', () => {
 					...nodeOptions.genesis,
 				},
 			},
-			registeredModules: [new TokenModule()],
+			genesisHeight,
 		} as never);
 	});
 
@@ -76,6 +76,7 @@ describe('system endpoint', () => {
 				finalizedHeight: expect.any(Number),
 				syncing: true,
 				unconfirmedTransactions: 0,
+				genesisHeight,
 				genesis: expect.any(Object),
 				network: expect.any(Object),
 			});

@@ -32,6 +32,7 @@ interface EndpointArgs {
 	consensus: Consensus;
 	generator: Generator;
 	config: EngineConfig;
+	genesisHeight: number;
 }
 
 export class SystemEndpoint {
@@ -41,6 +42,7 @@ export class SystemEndpoint {
 	private readonly _consensus: Consensus;
 	private readonly _generator: Generator;
 	private readonly _config: EngineConfig;
+	private readonly _genesisHeight: number;
 
 	public constructor(args: EndpointArgs) {
 		this._abi = args.abi;
@@ -48,6 +50,7 @@ export class SystemEndpoint {
 		this._consensus = args.consensus;
 		this._generator = args.generator;
 		this._config = args.config;
+		this._genesisHeight = args.genesisHeight;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -61,6 +64,7 @@ export class SystemEndpoint {
 			finalizedHeight: this._consensus.finalizedHeight(),
 			syncing: this._consensus.syncing(),
 			unconfirmedTransactions: this._generator.getPooledTransactions().length,
+			genesisHeight: this._genesisHeight,
 			genesis: {
 				...this._config.genesis,
 			},

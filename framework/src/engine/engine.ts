@@ -206,7 +206,7 @@ export class Engine {
 			blockchainDB: this._blockchainDB,
 			generatorDB: this._generatorDB,
 			logger: this._logger,
-			genesisBlockHeight: genesis.header.height,
+			genesisHeight: genesis.header.height,
 		});
 		await this._legacyChainHandler.init({
 			db: this._legacyDB,
@@ -242,6 +242,7 @@ export class Engine {
 			consensus: this._consensus,
 			generator: this._generator,
 			config: this._config,
+			genesisHeight: genesis.header.height,
 		});
 		const txpoolEndpoint = new TxpoolEndpoint({
 			abi: this._abi,
