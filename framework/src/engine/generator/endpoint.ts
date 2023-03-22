@@ -64,7 +64,7 @@ interface EndpointArgs {
 
 interface EndpointInit {
 	generatorDB: Database;
-	genesisBlockHeight: number;
+	genesisHeight: number;
 }
 
 export class Endpoint {
@@ -76,7 +76,7 @@ export class Endpoint {
 	private readonly _blockTime: number;
 
 	private _generatorDB!: Database;
-	private _genesisBlockHeight!: number;
+	private _genesisHeight!: number;
 
 	public constructor(args: EndpointArgs) {
 		this._keypairs = args.keypair;
@@ -88,7 +88,7 @@ export class Endpoint {
 
 	public init(args: EndpointInit) {
 		this._generatorDB = args.generatorDB;
-		this._genesisBlockHeight = args.genesisBlockHeight;
+		this._genesisHeight = args.genesisHeight;
 	}
 
 	public async getStatus(_ctx: RequestContext): Promise<GetStatusResponse> {
@@ -213,7 +213,7 @@ export class Endpoint {
 		const finalizedHeight = this._consensus.finalizedHeight();
 		// if there hasn't been a finalized block after genesis block yet, then heightOneMonthAgo could be
 		// higher than the current finalizedHeight, resulting in negative safe status estimate
-		if (finalizedHeight === this._genesisBlockHeight) {
+		if (finalizedHeight === this._genesisHeight) {
 			throw new Error('At least one block after the genesis block must be finalized.');
 		}
 
@@ -228,7 +228,7 @@ export class Endpoint {
 		// in missed blocks calculation below, due to the hardcoded timestamp of the genesis block in the example app
 		const heightOneMonthAgo = Math.max(
 			finalizedHeight - numberOfBlocksPerMonth,
-			this._genesisBlockHeight + 1,
+			this._genesisHeight + 1,
 		);
 		const blockHeaderLastMonth = await this._chain.dataAccess.getBlockHeaderByHeight(
 			heightOneMonthAgo,
