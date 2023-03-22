@@ -107,10 +107,11 @@ export class CommitPool {
 		}
 
 		// Validation Step 3
+		const currentHeight = this._chain.lastBlock.header.height;
 		const { maxHeightPrecommitted } = await this._bftMethod.getBFTHeights(methodContext);
 		const isCommitInRange =
 			commit.height >= maxHeightPrecommitted - COMMIT_RANGE_STORED &&
-			commit.height <= maxHeightPrecommitted;
+			commit.height <= currentHeight;
 		const doesBFTParamExistForNextHeight = await this._bftMethod.existBFTParameters(
 			methodContext,
 			commit.height + 1,
@@ -346,6 +347,7 @@ export class CommitPool {
 
 	private async _job(methodContext: StateStore): Promise<void> {
 		const removalHeight = await this._getMaxRemovalHeight();
+		const currentHeight = this._chain.lastBlock.header.height;
 		const { maxHeightPrecommitted } = await this._bftMethod.getBFTHeights(methodContext);
 
 		// Clean up nonGossipedCommits
@@ -354,6 +356,7 @@ export class CommitPool {
 			this._nonGossipedCommits,
 			removalHeight,
 			maxHeightPrecommitted,
+			currentHeight,
 		);
 		for (const height of deletedNonGossipedHeights) {
 			this._nonGossipedCommits.deleteByHeight(height);
@@ -364,6 +367,7 @@ export class CommitPool {
 			this._nonGossipedCommitsLocal,
 			removalHeight,
 			maxHeightPrecommitted,
+			currentHeight,
 		);
 		for (const height of deletedNonGossipedHeightsLocal) {
 			this._nonGossipedCommits.deleteByHeight(height);
@@ -374,6 +378,7 @@ export class CommitPool {
 			this._gossipedCommits,
 			removalHeight,
 			maxHeightPrecommitted,
+			currentHeight,
 		);
 		for (const height of deletedGossipedHeights) {
 			this._gossipedCommits.deleteByHeight(height);
@@ -439,6 +444,7 @@ export class CommitPool {
 		commitMap: CommitList,
 		removalHeight: number,
 		maxHeightPrecommitted: number,
+		currentHeight: number,
 	): Promise<number[]> {
 		const deleteHeights = [];
 		for (const height of commitMap.getHeights()) {
@@ -453,7 +459,7 @@ export class CommitPool {
 				// Condition #1
 				if (
 					maxHeightPrecommitted - COMMIT_RANGE_STORED <= singleCommit.height &&
-					singleCommit.height <= maxHeightPrecommitted
+					singleCommit.height <= currentHeight
 				) {
 					continue;
 				}
