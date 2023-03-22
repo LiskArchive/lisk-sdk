@@ -252,7 +252,7 @@ export class Consensus {
 		}
 
 		if (!Buffer.isBuffer(data)) {
-			const errorMessage = 'Received invalid post block data. Applying penalty on peer';
+			const errorMessage = 'Received invalid post block data. Applying a penalty to the peer';
 			this._logger.warn(
 				{
 					peerId,
@@ -276,7 +276,7 @@ export class Consensus {
 					err: error as Error,
 					data,
 				},
-				'Received post block broadcast request in unexpected format. Applying penalty on peer',
+				'Received post block broadcast request in unexpected format. Applying a penalty to the peer',
 			);
 			this._network.applyPenaltyOnPeer({
 				peerId,
@@ -296,7 +296,7 @@ export class Consensus {
 					err: error as Error,
 					data,
 				},
-				'Received post block broadcast request in not decodable format. Applying penalty on peer',
+				'Received post block broadcast request in not decodable format. Applying a penalty to the peer',
 			);
 			this._network.applyPenaltyOnPeer({
 				peerId,
@@ -316,7 +316,7 @@ export class Consensus {
 						err: error as Error,
 						data,
 					},
-					'Received post block broadcast request with invalid block. Applying penalty on peer',
+					'Received post block broadcast request with invalid block. Applying a penalty to the peer',
 				);
 				this._network.applyPenaltyOnPeer({
 					peerId,

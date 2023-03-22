@@ -159,7 +159,7 @@ export class LegacyChainHandler {
 		let legacyBlocks: LegacyBlock[];
 
 		const applyPenaltyAndRepeat = async (msg: string) => {
-			this._logger.warn({ peerId }, `${msg} Applying penalty on peer`);
+			this._logger.warn({ peerId }, `${msg} Applying a penalty to the peer`);
 			this._network.applyPenaltyOnPeer({ peerId, penalty: 100 });
 			await this.syncBlocks(bracket, legacyBlock);
 		};

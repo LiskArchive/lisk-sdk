@@ -69,7 +69,7 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 					req: data,
 					peerID,
 				},
-				`${NETWORK_LEGACY_GET_BLOCKS_FROM_ID} response failed on decoding. Applying penalty on peer`,
+				`${NETWORK_LEGACY_GET_BLOCKS_FROM_ID} response failed on decoding. Applying a penalty to the peer`,
 			);
 			this._network.applyPenaltyOnPeer({
 				peerId: peerID,
@@ -87,7 +87,7 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 					req: data,
 					peerID,
 				},
-				`${NETWORK_LEGACY_GET_BLOCKS_FROM_ID} response failed on validation. Applying penalty on peer`,
+				`${NETWORK_LEGACY_GET_BLOCKS_FROM_ID} response failed on validation. Applying a penalty to the peer`,
 			);
 			this._network.applyPenaltyOnPeer({
 				peerId: peerID,

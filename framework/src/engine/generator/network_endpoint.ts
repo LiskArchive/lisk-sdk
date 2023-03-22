@@ -87,7 +87,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			} catch (error) {
 				this._logger.warn(
 					{ err: error as Error, peerId },
-					'Received invalid getTransactions body. Applying penalty on peer',
+					'Received invalid getTransactions body. Applying a penalty to the peer',
 				);
 				this.network.applyPenaltyOnPeer({
 					peerId,
@@ -99,7 +99,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			if (!objectUtils.bufferArrayUniqueItems(decodedData.transactionIds)) {
 				this._logger.warn(
 					{ peerId },
-					'Received invalid getTransactions body. Applying penalty on peer',
+					'Received invalid getTransactions body. Applying a penalty to the peer',
 				);
 				this.network.applyPenaltyOnPeer({
 					peerId,
@@ -132,7 +132,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			);
 			this._logger.warn(
 				{ err: error, peerId },
-				'Received invalid request. Applying penalty on peer',
+				'Received invalid request. Applying a penalty to the peer',
 			);
 			this.network.applyPenaltyOnPeer({
 				peerId,
@@ -189,7 +189,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 		);
 		if (!Buffer.isBuffer(data)) {
 			const errorMessage =
-				'Received invalid transaction announcement data. Applying penalty on peer';
+				'Received invalid transaction announcement data. Applying a penalty to the peer';
 			this._logger.warn({ peerId }, errorMessage);
 			this.network.applyPenaltyOnPeer({
 				peerId,
@@ -209,7 +209,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 		} catch (error) {
 			this._logger.warn(
 				{ err: error as Error, peerId },
-				'Received invalid transactions body. Applying penalty on peer',
+				'Received invalid transactions body. Applying a penalty to the peer',
 			);
 			this.network.applyPenaltyOnPeer({
 				peerId,
@@ -257,7 +257,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 				}
 				this._logger.warn(
 					{ err, peerId },
-					'Received invalid transactions. Applying penalty on peer',
+					'Received invalid transactions. Applying a penalty to the peer',
 				);
 				this.network.applyPenaltyOnPeer({
 					peerId,

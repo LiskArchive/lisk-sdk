@@ -93,7 +93,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 					req: data,
 					peerID: peerId,
 				},
-				`${NETWORK_RPC_GET_BLOCKS_FROM_ID} response failed on decoding. Applying penalty on peer`,
+				`${NETWORK_RPC_GET_BLOCKS_FROM_ID} response failed on decoding. Applying a penalty to the peer`,
 			);
 			this._network.applyPenaltyOnPeer({
 				peerId,
@@ -111,7 +111,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 					req: data,
 					peerID: peerId,
 				},
-				`${NETWORK_RPC_GET_BLOCKS_FROM_ID} response failed on validation. Applying penalty on peer`,
+				`${NETWORK_RPC_GET_BLOCKS_FROM_ID} response failed on validation. Applying a penalty to the peer`,
 			);
 			this._network.applyPenaltyOnPeer({
 				peerId,
@@ -157,7 +157,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 		const logDataAndApplyPenalty = (errData?: unknown) => {
 			this._logger.warn(
 				errData,
-				'getHighestCommonBlock request validation failed. Applying penalty on peer',
+				'getHighestCommonBlock request validation failed. Applying a penalty to the peer',
 			);
 			this._network.applyPenaltyOnPeer({
 				peerId,
@@ -190,7 +190,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			DEFAULT_SINGLE_COMMIT_FROM_IDS_RATE_LIMIT_FREQUENCY,
 		);
 		if (!Buffer.isBuffer(data)) {
-			const errorMessage = 'Received invalid single commit data. Applying penalty on peer';
+			const errorMessage = 'Received invalid single commit data. Applying a penalty to the peer';
 			this._logger.warn({ peerId }, errorMessage);
 			this.network.applyPenaltyOnPeer({
 				peerId,
@@ -236,7 +236,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 					err: error as Error,
 					peerID: peerId,
 				},
-				`${NETWORK_EVENT_COMMIT_MESSAGES} fail to verify single commit. Applying penalty on peer`,
+				`${NETWORK_EVENT_COMMIT_MESSAGES} fail to verify single commit. Applying a penalty to the peer`,
 			);
 			this._network.applyPenaltyOnPeer({
 				peerId,
