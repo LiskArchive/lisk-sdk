@@ -444,22 +444,54 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		chainInfos: ChainInfo[],
 		terminatedStateAccounts: TerminatedStateAccountWithChainID[],
 	) {
-		for (const chainInfo of chainInfos) {
-			const { chainID } = chainInfo;
-
-			const filteredTerminatedStateAccounts = terminatedStateAccounts.filter(a =>
-				a.chainID.equals(chainID),
+		// Sanity check to fulfill if-and-only-if situation
+		for (const account of terminatedStateAccounts) {
+			const correspondingChainInfo = chainInfos.find(chainInfo =>
+				chainInfo.chainID.equals(account.chainID),
 			);
-			if (terminatedStateAccounts.length > 0 && filteredTerminatedStateAccounts.length === 0) {
-				throw new Error('there can not be a terminated account if there is no chain account');
+			if (
+				!correspondingChainInfo ||
+				correspondingChainInfo.chainData.status !== ChainStatus.TERMINATED
+			) {
+				throw new Error(
+					'For each terminatedStateAccount there should be a corresponding chainInfo at TERMINATED state',
+				);
 			}
-			if (filteredTerminatedStateAccounts.length > 0) {
-				// For each entry chainInfo in chainInfos, chainInfo.chainData.status == CHAIN_STATUS_TERMINATED
-				// if and only if a corresponding entry (i.e., with chainID == chainInfo.chainID) exists in terminatedStateAccounts.
-				if (chainInfo.chainData.status !== ChainStatus.TERMINATED) {
+		}
+
+		for (const chainInfo of chainInfos) {
+			// For each entry chainInfo in chainInfos, chainInfo.chainData.status == CHAIN_STATUS_TERMINATED
+			// if and only if a corresponding entry (i.e., with chainID == chainInfo.chainID) exists in terminatedStateAccounts.
+			if (chainInfo.chainData.status === ChainStatus.TERMINATED) {
+				const terminatedAccount = terminatedStateAccounts.find(tAccount =>
+					tAccount.chainID.equals(chainInfo.chainID),
+				);
+				if (!terminatedAccount) {
 					throw new Error(
-						`chainInfo.chainData.status must be ${ChainStatus.TERMINATED} if chainInfo.chainID exists in terminatedStateAccounts.`,
+						'For each chainInfo with status terminated there should be a corresponding entry in terminatedStateAccounts',
 					);
+				}
+
+				// For each entry stateAccount in terminatedStateAccounts holds
+				// stateAccount.stateRoot == chainData.lastCertificate.stateRoot,
+				// stateAccount.mainchainStateRoot == EMPTY_HASH, and
+				// stateAccount.initialized == True.
+				// Here chainData is the corresponding entry (i.e., with chainID == stateAccount.chainID) in chainInfos.
+				const stateAccount = terminatedAccount.terminatedStateAccount;
+				if (stateAccount) {
+					if (!stateAccount.stateRoot.equals(chainInfo.chainData.lastCertificate.stateRoot)) {
+						throw new Error(
+							"stateAccount.stateRoot doesn't match chainInfo.chainData.lastCertificate.stateRoot.",
+						);
+					}
+
+					if (!stateAccount.mainchainStateRoot.equals(EMPTY_HASH)) {
+						throw new Error('stateAccount.mainchainStateRoot is not equal to EMPTY_HASH.');
+					}
+
+					if (!stateAccount.initialized) {
+						throw new Error('stateAccount is not initialized.');
+					}
 				}
 			}
 		}
@@ -504,7 +536,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		// Each entry outboxAccount in terminatedOutboxAccounts has a unique outboxAccount.chainID
 		const chainIDs = terminatedOutboxAccounts.map(a => a.chainID);
 		if (!bufferArrayUniqueItems(chainIDs)) {
-			throw new Error(`terminatedOutboxAccounts don't hold unique chainID.`);
+			throw new Error('terminatedOutboxAccounts do not hold unique chainID.');
 		}
 
 		// terminatedOutboxAccounts is ordered lexicographically by outboxAccount.chainID
@@ -523,10 +555,11 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 			if (
 				terminatedStateAccounts.find(a => a.chainID.equals(outboxAccount.chainID)) === undefined
 			) {
-				let msg = 'Each entry outboxAccount in terminatedOutboxAccounts must have a';
-				msg += ' corresponding entry (with chainID == outboxAccount.chainID)';
-				msg += ' in terminatedStateAccounts.';
-				throw new Error(msg);
+				throw new Error(
+					`Each entry outboxAccount in terminatedOutboxAccounts must have a corresponding entry in terminatedStateAccount. outboxAccount with chainID: ${outboxAccount.chainID.toString(
+						'hex',
+					)} does not exist in terminatedStateAccounts`,
+				);
 			}
 		}
 	}
