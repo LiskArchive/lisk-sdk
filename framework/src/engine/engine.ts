@@ -241,6 +241,7 @@ export class Engine {
 			consensus: this._consensus,
 			generator: this._generator,
 			config: this._config,
+			genesisHeight: genesis.header.height,
 		});
 		const txpoolEndpoint = new TxpoolEndpoint({
 			abi: this._abi,
