@@ -87,7 +87,7 @@ interface GeneratorInitArgs {
 	generatorDB: Database;
 	blockchainDB: Database;
 	logger: Logger;
-	genesisBlockHeight: number;
+	genesisHeight: number;
 }
 
 const BLOCK_VERSION = 2;
@@ -113,7 +113,7 @@ export class Generator {
 	private _logger!: Logger;
 	private _generatorDB!: Database;
 	private _blockchainDB!: Database;
-	private _genesisBlockHeight!: number;
+	private _genesisHeight!: number;
 
 	public constructor(args: GeneratorArgs) {
 		this._abi = args.abi;
@@ -168,14 +168,14 @@ export class Generator {
 		this._logger = args.logger;
 		this._generatorDB = args.generatorDB;
 		this._blockchainDB = args.blockchainDB;
-		this._genesisBlockHeight = args.genesisBlockHeight;
+		this._genesisHeight = args.genesisHeight;
 
 		this._broadcaster.init({
 			logger: this._logger,
 		});
 		this._endpoint.init({
 			generatorDB: this._generatorDB,
-			genesisBlockHeight: this._genesisBlockHeight,
+			genesisHeight: this._genesisHeight,
 		});
 		this._networkEndpoint.init({
 			logger: this._logger,

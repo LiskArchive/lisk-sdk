@@ -169,6 +169,7 @@ export class Engine {
 		this._legacyChainHandler = new LegacyChainHandler({
 			legacyConfig: this._config.legacy,
 			network: this._network,
+			logger: this._logger,
 		});
 		this._rpcServer = new RPCServer(this._config.system.dataPath, this._config.rpc);
 
@@ -205,7 +206,7 @@ export class Engine {
 			blockchainDB: this._blockchainDB,
 			generatorDB: this._generatorDB,
 			logger: this._logger,
-			genesisBlockHeight: genesis.header.height,
+			genesisHeight: genesis.header.height,
 		});
 		await this._legacyChainHandler.init({
 			db: this._legacyDB,
@@ -241,6 +242,7 @@ export class Engine {
 			consensus: this._consensus,
 			generator: this._generator,
 			config: this._config,
+			genesisHeight: genesis.header.height,
 		});
 		const txpoolEndpoint = new TxpoolEndpoint({
 			abi: this._abi,

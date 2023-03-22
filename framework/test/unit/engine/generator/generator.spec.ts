@@ -194,7 +194,7 @@ describe('generator', () => {
 					blockchainDB,
 					generatorDB,
 					logger,
-					genesisBlockHeight: 0,
+					genesisHeight: 0,
 				});
 				expect(generator['_keypairs'].values()).toHaveLength(103);
 			});
@@ -210,7 +210,7 @@ describe('generator', () => {
 					blockchainDB,
 					generatorDB,
 					logger,
-					genesisBlockHeight: 0,
+					genesisHeight: 0,
 				});
 				expect(generator['_handleFinalizedHeightChanged']).toHaveBeenCalledWith(200, 515);
 			});
@@ -223,7 +223,7 @@ describe('generator', () => {
 					blockchainDB,
 					generatorDB,
 					logger,
-					genesisBlockHeight: 0,
+					genesisHeight: 0,
 				});
 
 				const store = new GeneratorStore(generator['_generatorDB']);
@@ -239,7 +239,7 @@ describe('generator', () => {
 						blockchainDB,
 						generatorDB,
 						logger,
-						genesisBlockHeight: 0,
+						genesisHeight: 0,
 					}),
 				).rejects.toThrow('Lisk validator found 1 error');
 			});
@@ -249,7 +249,7 @@ describe('generator', () => {
 					blockchainDB,
 					generatorDB,
 					logger,
-					genesisBlockHeight: 0,
+					genesisHeight: 0,
 				});
 
 				const store = new GeneratorStore(generator['_generatorDB']);
@@ -269,7 +269,7 @@ describe('generator', () => {
 				blockchainDB,
 				generatorDB,
 				logger,
-				genesisBlockHeight: 0,
+				genesisHeight: 0,
 			});
 			jest.useFakeTimers();
 		});
@@ -301,7 +301,7 @@ describe('generator', () => {
 				blockchainDB,
 				generatorDB,
 				logger,
-				genesisBlockHeight: 0,
+				genesisHeight: 0,
 			});
 			await generator.start();
 		});
@@ -330,7 +330,7 @@ describe('generator', () => {
 				blockchainDB,
 				generatorDB,
 				logger,
-				genesisBlockHeight: 0,
+				genesisHeight: 0,
 			});
 			await generator.start();
 		});
@@ -349,7 +349,7 @@ describe('generator', () => {
 				blockchainDB,
 				generatorDB,
 				logger,
-				genesisBlockHeight: 0,
+				genesisHeight: 0,
 			});
 			await generator.start();
 		});
@@ -377,7 +377,7 @@ describe('generator', () => {
 				blockchainDB,
 				generatorDB,
 				logger,
-				genesisBlockHeight: 0,
+				genesisHeight: 0,
 			});
 		});
 
@@ -485,7 +485,7 @@ describe('generator', () => {
 				blockchainDB,
 				generatorDB,
 				logger,
-				genesisBlockHeight: 0,
+				genesisHeight: 0,
 			});
 		});
 
@@ -661,7 +661,7 @@ describe('generator', () => {
 				blockchainDB,
 				generatorDB,
 				logger,
-				genesisBlockHeight: 0,
+				genesisHeight: 0,
 			});
 			await generator.start();
 			jest.spyOn(generator['_consensus'], 'certifySingleCommit');

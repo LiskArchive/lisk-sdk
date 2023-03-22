@@ -98,7 +98,7 @@ describe('generator endpoint', () => {
 		db = new InMemoryDatabase() as never;
 		endpoint.init({
 			generatorDB: db,
-			genesisBlockHeight: 0,
+			genesisHeight: 0,
 		});
 	});
 
