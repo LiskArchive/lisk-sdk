@@ -24,10 +24,12 @@ import { decodeBlock, encodeBlock } from './codec';
 import { PeerNotFoundWithLegacyInfo } from './errors';
 import { validateLegacyBlock } from './validate';
 import { legacyChainBracketInfoSchema } from './schemas';
+import { Logger } from '../../logger';
 
 interface LegacyChainHandlerArgs {
 	legacyConfig: LegacyConfig;
 	network: Network;
+	logger: Logger;
 }
 
 interface LegacyHandlerInitArgs {
@@ -38,11 +40,13 @@ export class LegacyChainHandler {
 	private readonly _network: Network;
 	private _storage!: Storage;
 	private readonly _legacyConfig: LegacyConfig;
+	private readonly _logger: Logger;
 	private _syncTimeout!: NodeJS.Timeout;
 
 	public constructor(args: LegacyChainHandlerArgs) {
 		this._legacyConfig = args.legacyConfig;
 		this._network = args.network;
+		this._logger = args.logger;
 	}
 
 	public async init(args: LegacyHandlerInitArgs): Promise<void> {
@@ -154,7 +158,8 @@ export class LegacyChainHandler {
 		const { data } = response;
 		let legacyBlocks: LegacyBlock[];
 
-		const applyPenaltyAndRepeat = async () => {
+		const applyPenaltyAndRepeat = async (msg: string) => {
+			this._logger.warn({ peerId }, `${msg} Applying a penalty to the peer`);
 			this._network.applyPenaltyOnPeer({ peerId, penalty: 100 });
 			await this.syncBlocks(bracket, legacyBlock);
 		};
@@ -165,18 +170,18 @@ export class LegacyChainHandler {
 				getBlocksFromIdResponseSchema,
 				data as Buffer,
 			);
-			if (!(blocks.length > 0)) {
-				await applyPenaltyAndRepeat();
+			if (blocks.length === 0) {
+				await applyPenaltyAndRepeat('Received empty response');
 			}
 
 			this._applyValidation(blocks);
 
 			legacyBlocks = blocks.map(block => decodeBlock(block).block);
-			if (!(legacyBlocks.length > 0)) {
-				await applyPenaltyAndRepeat();
+			if (legacyBlocks.length === 0) {
+				await applyPenaltyAndRepeat('received empty blocks');
 			}
 		} catch (err) {
-			await applyPenaltyAndRepeat(); // catch validation error
+			await applyPenaltyAndRepeat((err as Error).message); // catch validation error
 		}
 
 		// @ts-expect-error Variable 'legacyBlocks' is used before being assigned.
