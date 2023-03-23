@@ -459,6 +459,22 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 			}
 		}
 
+		// Each entry stateAccount in terminatedStateAccounts has a unique stateAccount.chainID
+		const chainIDs = terminatedStateAccounts.map(a => a.chainID);
+		if (!bufferArrayUniqueItems(chainIDs)) {
+			throw new Error(`terminatedStateAccounts don't hold unique chainID.`);
+		}
+
+		// terminatedStateAccounts is ordered lexicographically by stateAccount.chainID
+		const sortedByChainID = [...terminatedStateAccounts].sort((a, b) =>
+			a.chainID.compare(b.chainID),
+		);
+		for (let i = 0; i < terminatedStateAccounts.length; i += 1) {
+			if (!terminatedStateAccounts[i].chainID.equals(sortedByChainID[i].chainID)) {
+				throw new Error('terminatedStateAccounts must be ordered lexicographically by chainID.');
+			}
+		}
+
 		for (const chainInfo of chainInfos) {
 			// For each entry chainInfo in chainInfos, chainInfo.chainData.status == CHAIN_STATUS_TERMINATED
 			// if and only if a corresponding entry (i.e., with chainID == chainInfo.chainID) exists in terminatedStateAccounts.
@@ -492,36 +508,6 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 					if (!stateAccount.initialized) {
 						throw new Error('stateAccount is not initialized.');
 					}
-				}
-			}
-		}
-
-		this._verifyTerminatedStateAccountsCommon(terminatedStateAccounts);
-
-		// For each entry stateAccount in terminatedStateAccounts holds
-		// stateAccount.stateRoot == chainData.lastCertificate.stateRoot,
-		// stateAccount.mainchainStateRoot == EMPTY_HASH, and
-		// stateAccount.initialized == True.
-		// Here chainData is the corresponding entry (i.e., with chainID == stateAccount.chainID) in chainInfos.
-		for (const chainInfo of chainInfos) {
-			const stateAccount = terminatedStateAccounts.find(a =>
-				a.chainID.equals(chainInfo.chainID),
-			)?.terminatedStateAccount;
-			if (stateAccount) {
-				if (!stateAccount.stateRoot.equals(chainInfo.chainData.lastCertificate.stateRoot)) {
-					throw new Error(
-						"stateAccount.stateRoot doesn't match chainInfo.chainData.lastCertificate.stateRoot.",
-					);
-				}
-
-				if (!stateAccount.mainchainStateRoot.equals(EMPTY_HASH)) {
-					throw new Error(
-						`stateAccount.mainchainStateRoot is not equal to ${EMPTY_HASH.toString('hex')}.`,
-					);
-				}
-
-				if (!stateAccount.initialized) {
-					throw new Error('stateAccount is not initialized.');
 				}
 			}
 		}
