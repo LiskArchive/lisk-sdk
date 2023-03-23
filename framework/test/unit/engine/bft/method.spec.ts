@@ -742,6 +742,21 @@ describe('BFT Method', () => {
 			).rejects.toThrow('Provided validator BLS keys are not unique.');
 		});
 
+		it('should not throw when validator BLS keys are not unique only with invalid keys', async () => {
+			const validators = new Array(bftMethod['_batchSize']).fill(0).map(() => ({
+				address: utils.getRandomBytes(20),
+				bftWeight: BigInt(1),
+				blsKey: utils.getRandomBytes(48),
+				generatorKey: utils.getRandomBytes(32),
+			}));
+			validators[7].blsKey = Buffer.alloc(48, 0);
+			validators[13].blsKey = Buffer.alloc(48, 0);
+
+			await expect(
+				bftMethod.setBFTParameters(stateStore, BigInt(68), BigInt(68), validators),
+			).not.toReject();
+		});
+
 		it('should throw when bft weight is negative', async () => {
 			await expect(
 				bftMethod.setBFTParameters(
