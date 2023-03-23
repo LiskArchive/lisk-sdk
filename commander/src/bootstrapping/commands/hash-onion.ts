@@ -40,7 +40,7 @@ export class HashOnionCommand extends Command {
 		}),
 		distance: flagParser.integer({
 			char: 'd',
-			description: 'Distance between each hashes',
+			description: 'Distance between each hash',
 			default: 1000,
 		}),
 		pretty: flagsWithParser.pretty,

@@ -104,11 +104,11 @@ export class RandomModule extends BaseModule {
 	}
 
 	public async insertAssets(context: InsertAssetContext): Promise<void> {
-		const generatorSubStore = this.offchainStores.get(UsedHashOnionsStore);
-		// Get used hash onions
+		const usedHashOnionsStore = this.offchainStores.get(UsedHashOnionsStore);
+
 		let usedHashOnions: UsedHashOnion[] = [];
 		try {
-			const usedHashOnionsData = await generatorSubStore.get(
+			const usedHashOnionsData = await usedHashOnionsStore.get(
 				context,
 				context.header.generatorAddress,
 			);
@@ -118,7 +118,7 @@ export class RandomModule extends BaseModule {
 				throw error;
 			}
 		}
-		// Get next hash onion
+
 		const nextHashOnion = await this._getNextHashOnion(
 			usedHashOnions,
 			context.header.generatorAddress,
@@ -129,7 +129,7 @@ export class RandomModule extends BaseModule {
 
 		const nextUsedHashOnion = {
 			count: nextHashOnion.count,
-			height: context.header.height, // Height of block being forged
+			height: context.header.height, // Height of the block being generated
 		} as UsedHashOnion;
 
 		// Set value in Block Asset
@@ -138,7 +138,7 @@ export class RandomModule extends BaseModule {
 			codec.encode(blockHeaderAssetRandomModule, { seedReveal: nextHashOnion.hash }),
 		);
 
-		await generatorSubStore.setLatest(
+		await usedHashOnionsStore.setLatest(
 			context,
 			context.getFinalizedHeight(),
 			context.header.generatorAddress,
@@ -205,18 +205,6 @@ export class RandomModule extends BaseModule {
 		readonly count: number;
 		readonly hash: Buffer;
 	}> {
-		// Get highest hashonion that is used by this address below height
-		const usedHashOnion = usedHashOnions.reduce<UsedHashOnion | undefined>((prev, current) => {
-			if (
-				current.height < height &&
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				(!prev || prev.height < current.height)
-			) {
-				return current;
-			}
-			return prev;
-		}, undefined);
-
 		const hashOnion = await this._getHashOnion(context, address);
 		if (!hashOnion) {
 			return {
@@ -225,15 +213,22 @@ export class RandomModule extends BaseModule {
 			};
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		// Get highest hashonion that is used by this address below height
+		const usedHashOnion = usedHashOnions.reduce<UsedHashOnion | undefined>((prev, current) => {
+			if (current.height < height && (!prev || prev.height < current.height)) {
+				return current;
+			}
+			return prev;
+		}, undefined);
+
 		if (!usedHashOnion) {
 			return {
 				hash: hashOnion.hashes[0],
 				count: 0,
 			};
 		}
-		const { count: usedCount } = usedHashOnion;
-		const nextCount = usedCount + 1;
+
+		const nextCount = usedHashOnion.count + 1;
 		if (nextCount > hashOnion.count) {
 			logger.warn(
 				'All of the hash onion has been used already. Please update to the new hash onion.',
@@ -243,16 +238,28 @@ export class RandomModule extends BaseModule {
 				count: 0,
 			};
 		}
-		// If checkpoint is reached then increment the nextCheckpointIndex taking integer into account
-		const nextCheckpointIndex =
-			nextCount % hashOnion.distance === 0
-				? Math.ceil(nextCount / hashOnion.distance) + 1
-				: Math.ceil(nextCount / hashOnion.distance);
+
+		// if at the checkpoint, return the hash available from the store
+		const distanceAfterCheckpoint = nextCount % hashOnion.distance;
+		if (!distanceAfterCheckpoint) {
+			return {
+				hash: hashOnion.hashes[nextCount / hashOnion.distance],
+				count: nextCount,
+			};
+		}
+
+		// otherwise fetch the next checkpoint and calculate the current hash from there
+		const nextCheckpointIndex = Math.ceil(nextCount / hashOnion.distance);
 		const nextCheckpoint = hashOnion.hashes[nextCheckpointIndex];
-		const hashes = utils.hashOnion(nextCheckpoint, hashOnion.distance, 1);
-		const checkpointIndex = nextCount % hashOnion.distance;
+		// calculate only until the current hash, instead of all the way until the previous checkpoint
+		const hashesFromCheckpoint = utils.hashOnion(
+			nextCheckpoint,
+			hashOnion.distance - distanceAfterCheckpoint,
+			1,
+		);
+
 		return {
-			hash: hashes[checkpointIndex],
+			hash: hashesFromCheckpoint[0],
 			count: nextCount,
 		};
 	}
