@@ -241,7 +241,7 @@ export class RandomModule extends BaseModule {
 
 		// if at the checkpoint, return the hash available from the store
 		const distanceAfterCheckpoint = nextCount % hashOnion.distance;
-		if (!distanceAfterCheckpoint) {
+		if (distanceAfterCheckpoint === 0) {
 			return {
 				hash: hashOnion.hashes[nextCount / hashOnion.distance],
 				count: nextCount,
