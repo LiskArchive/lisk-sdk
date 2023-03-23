@@ -12,10 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BasePluginEndpoint, PluginEndpointContext, chain } from 'lisk-sdk';
+import {
+	BasePluginEndpoint,
+	PluginEndpointContext,
+	chain,
+	BlockHeader,
+	BlockHeaderJSON,
+} from 'lisk-sdk';
 import { ChainConnectorStore } from './db';
-import { AggregateCommitJSON, SentCCUsJSON, ValidatorsDataJSON } from './types';
-import { aggregateCommitToJSON, validatorsHashPreimagetoJSON } from './utils';
+import {
+	AggregateCommitJSON,
+	CCMsFromEventsJSON,
+	LastSentCCMWithHeightJSON,
+	SentCCUsJSON,
+	ValidatorsDataJSON,
+} from './types';
+import { aggregateCommitToJSON, ccmsFromEventsToJSON, validatorsHashPreimagetoJSON } from './utils';
 
 export class Endpoint extends BasePluginEndpoint {
 	private _chainConnectorStore!: ChainConnectorStore;
@@ -35,6 +47,37 @@ export class Endpoint extends BasePluginEndpoint {
 	): Promise<AggregateCommitJSON[]> {
 		const aggregateCommits = await this._chainConnectorStore.getAggregateCommits();
 		return aggregateCommits.map(aggregateCommit => aggregateCommitToJSON(aggregateCommit));
+	}
+
+	public async getBlockHeaders(_context: PluginEndpointContext): Promise<BlockHeaderJSON[]> {
+		const blockHeaders = await this._chainConnectorStore.getBlockHeaders();
+
+		return blockHeaders.map(blockHeader => new BlockHeader(blockHeader).toJSON());
+	}
+
+	public async getCrossChainMessages(
+		_context: PluginEndpointContext,
+	): Promise<CCMsFromEventsJSON[]> {
+		const ccmsAndInclusionProofs = await this._chainConnectorStore.getCrossChainMessages();
+		return ccmsAndInclusionProofs.map(ccmsAndInclusionProof =>
+			ccmsFromEventsToJSON(ccmsAndInclusionProof),
+		);
+	}
+
+	public async getLastSentCCM(_context: PluginEndpointContext): Promise<LastSentCCMWithHeightJSON> {
+		const lastSentCCM = await this._chainConnectorStore.getLastSentCCM();
+		if (!lastSentCCM) {
+			throw new Error('No CCM was sent so far.');
+		}
+		return {
+			...lastSentCCM,
+			fee: lastSentCCM.fee.toString(),
+			height: lastSentCCM.height,
+			receivingChainID: lastSentCCM.receivingChainID.toString('hex'),
+			sendingChainID: lastSentCCM.sendingChainID.toString('hex'),
+			nonce: lastSentCCM.nonce.toString(),
+			params: lastSentCCM.params.toString('hex'),
+		};
 	}
 
 	public async getValidatorsInfoFromPreimage(

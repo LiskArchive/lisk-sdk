@@ -318,6 +318,36 @@ describe('ChainConnectorPlugin', () => {
 			);
 		});
 
+		it('should continue even when receivingChainAPIClient is not available', async () => {
+			await chainConnectorPlugin.init({
+				logger: testing.mocks.loggerMock,
+				config: defaultConfig,
+				appConfig: appConfigForPlugin,
+			});
+			chainConnectorPlugin['_apiClient'] = sendingChainAPIClientMock;
+
+			jest
+				.spyOn(apiClient, 'createIPCClient')
+				.mockRejectedValue(new Error('IPC connection timed out.') as never);
+
+			jest.spyOn(testing.mocks.loggerMock, 'error');
+
+			await chainConnectorPlugin.load();
+
+			expect(dbApi.getDBInstance).toHaveBeenCalledTimes(1);
+			expect(chainConnectorPlugin['_chainConnectorPluginDB']).toEqual(
+				new db.InMemoryDatabase() as never,
+			);
+
+			expect(sendingChainAPIClientMock.invoke).toHaveBeenCalledTimes(1);
+			expect(sendingChainAPIClientMock.subscribe).toHaveBeenCalledTimes(2);
+
+			expect(testing.mocks.loggerMock.error).toHaveBeenCalledWith(
+				new Error('IPC connection timed out.'),
+				'Not able to connect to receivingChainAPIClient. Trying again on next new block.',
+			);
+		});
+
 		it('should initialize _chainConnectorDB', async () => {
 			await chainConnectorPlugin.init({
 				logger: testing.mocks.loggerMock,

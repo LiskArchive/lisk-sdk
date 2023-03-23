@@ -22,6 +22,7 @@ import {
 } from './utils';
 import { getBFTParameters } from './bft_params';
 import {
+	EMPTY_BLS_KEY,
 	EMPTY_KEY,
 	MAX_UINT32,
 	MODULE_STORE_PREFIX_BFT,
@@ -165,10 +166,21 @@ export class BFTMethod {
 			);
 		}
 
-		if (!objects.bufferArrayUniqueItems(validators.map(validator => validator.address))) {
+		const validatorAddresses = [];
+		const validatorValidBLSKeys = [];
+		for (const validator of validators) {
+			validatorAddresses.push(validator.address);
+			// invalid bls key is used when initializing the mainchain. Therefore, it needs to ignore the empty bls key.
+			if (!validator.blsKey.equals(EMPTY_BLS_KEY)) {
+				validatorValidBLSKeys.push(validator.blsKey);
+			}
+		}
+
+		if (!objects.bufferArrayUniqueItems(validatorAddresses)) {
 			throw new Error('Provided validator addresses are not unique.');
 		}
-		if (!objects.bufferArrayUniqueItems(validators.map(validator => validator.blsKey))) {
+
+		if (!objects.bufferArrayUniqueItems(validatorValidBLSKeys)) {
 			throw new Error('Provided validator BLS keys are not unique.');
 		}
 
