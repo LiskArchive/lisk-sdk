@@ -313,7 +313,6 @@ export const messageRecoveryParamsSchema = {
 		},
 		crossChainMessages: {
 			type: 'array',
-			minItems: 1,
 			items: {
 				dataType: 'bytes',
 			},
