@@ -16,6 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { utils } from '@liskhq/lisk-cryptography';
 import { NotFoundError } from '@liskhq/lisk-chain';
+import { validator } from '@liskhq/lisk-validator';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -47,6 +48,15 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			params: { chainID, crossChainMessages, idxs, siblingHashes },
 		} = context;
 		let terminatedOutboxAccount: TerminatedOutboxAccount | undefined;
+
+		try {
+			validator.validate<MessageRecoveryParams>(messageRecoveryParamsSchema, context.params);
+		} catch (err) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: err as Error,
+			};
+		}
 
 		try {
 			terminatedOutboxAccount = await this.stores.get(TerminatedOutboxStore).get(context, chainID);
