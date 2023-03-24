@@ -482,7 +482,26 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 				{
 					...genesisInteroperability,
 					// this is needed to verify `validatorsHash` related tests (above)
-					chainInfos: validChainInfos,
+					chainInfos: [
+						...validChainInfos,
+						{
+							...chainInfo,
+							chainID: Buffer.from([0, 0, 0, 2]),
+							chainData: {
+								...chainData,
+								status: ChainStatus.TERMINATED,
+								lastCertificate: {
+									...lastCertificate,
+									validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+								},
+								name: 'sidechain2',
+							},
+							chainValidators: {
+								activeValidators,
+								certificateThreshold,
+							},
+						},
+					],
 					terminatedStateAccounts: [
 						{
 							chainID: Buffer.from([0, 0, 0, 2]),
