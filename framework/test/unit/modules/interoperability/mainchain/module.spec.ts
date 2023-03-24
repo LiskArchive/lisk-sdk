@@ -368,7 +368,7 @@ describe('initGenesisState', () => {
 				);
 
 				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					`For each terminatedStateAccount there should be a corresponding chainInfo at TERMINATED state`,
+					`For each chainInfo with status terminated there should be a corresponding entry in terminatedStateAccounts`,
 				);
 			});
 
@@ -396,42 +396,6 @@ describe('initGenesisState', () => {
 						terminatedStateAccounts: [
 							{
 								chainID: chainInfo.chainID,
-								terminatedStateAccount,
-							},
-						],
-					},
-					params,
-				);
-
-				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					`For each terminatedStateAccount there should be a corresponding chainInfo at TERMINATED state`,
-				);
-			});
-
-			it('should throw if there is no entry for terminateStateAccount chainID in chainInfos', async () => {
-				const context = createInitGenesisStateContext(
-					{
-						...genesisInteroperability,
-						chainInfos: [
-							{
-								...chainInfo,
-								chainData: {
-									...chainData,
-									status: ChainStatus.TERMINATED,
-									lastCertificate: {
-										...lastCertificate,
-										validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
-									},
-								},
-								chainValidators: {
-									activeValidators,
-									certificateThreshold,
-								},
-							},
-						],
-						terminatedStateAccounts: [
-							{
-								chainID: Buffer.from('04010101', 'hex'),
 								terminatedStateAccount,
 							},
 						],
