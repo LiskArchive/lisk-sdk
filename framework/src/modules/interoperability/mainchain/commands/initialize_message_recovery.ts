@@ -15,6 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
+import { validator } from '@liskhq/lisk-validator';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -49,22 +50,43 @@ export class InitializeMessageRecoveryCommand extends BaseInteroperabilityComman
 	): Promise<VerificationResult> {
 		const { params } = context;
 
+		try {
+			validator.validate<MessageRecoveryInitializationParams>(
+				messageRecoveryInitializationParamsSchema,
+				context.params,
+			);
+		} catch (err) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: err as Error,
+			};
+		}
+
 		const ownchainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
 		const mainchainID = getMainchainID(ownchainAccount.chainID);
 		if (params.chainID.equals(mainchainID) || params.chainID.equals(ownchainAccount.chainID)) {
-			throw new Error('Chain ID is not valid.');
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Chain ID is not valid.'),
+			};
 		}
 
 		const chainAccountExist = await this.stores.get(ChainAccountStore).has(context, params.chainID);
 		if (!chainAccountExist) {
-			throw new Error('Chain is not registered.');
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Chain is not registered.'),
+			};
 		}
 
 		const terminatedAccountExists = await this.stores
 			.get(TerminatedStateStore)
 			.has(context, params.chainID);
 		if (!terminatedAccountExists) {
-			throw new Error('Terminated state account not present.');
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Terminated state account not present.'),
+			};
 		}
 
 		const terminatedAccount = await this.stores
@@ -75,7 +97,10 @@ export class InitializeMessageRecoveryCommand extends BaseInteroperabilityComman
 			.get(TerminatedOutboxStore)
 			.has(context, params.chainID);
 		if (terminatedOutboxAccountExists) {
-			throw new Error('Terminated outbox account already exists.');
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Terminated outbox account already exists.'),
+			};
 		}
 
 		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
@@ -97,7 +122,10 @@ export class InitializeMessageRecoveryCommand extends BaseInteroperabilityComman
 		});
 
 		if (!valid) {
-			throw new Error('Message recovery initialization proof of inclusion is not valid.');
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Message recovery initialization proof of inclusion is not valid.'),
+			};
 		}
 
 		return {

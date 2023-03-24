@@ -163,7 +163,10 @@ describe('InitializeMessageRecoveryCommand', () => {
 					}),
 				}),
 			}).createCommandVerifyContext<MessageRecoveryInitializationParams>(command.schema);
-			await expect(command.verify(context)).rejects.toThrow('Chain ID is not valid.');
+			const result = await command.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Chain ID is not valid.`);
 		});
 
 		it('should reject when chainID is the ownchain', async () => {
@@ -178,19 +181,28 @@ describe('InitializeMessageRecoveryCommand', () => {
 					}),
 				}),
 			}).createCommandVerifyContext<MessageRecoveryInitializationParams>(command.schema);
-			await expect(command.verify(context)).rejects.toThrow('Chain ID is not valid.');
+			const result = await command.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Chain ID is not valid.`);
 		});
 
 		it('should reject when chain account does not exist', async () => {
 			await interopMod.stores.get(ChainAccountStore).del(stateStore, targetChainID);
 
-			await expect(command.verify(defaultContext)).rejects.toThrow('Chain is not registered');
+			const result = await command.verify(defaultContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Chain is not registered`);
 		});
 
 		it('should reject when terminated account does not exist', async () => {
 			await interopMod.stores.get(TerminatedStateStore).del(stateStore, targetChainID);
 
-			await expect(command.verify(defaultContext)).rejects.toThrow('not present');
+			const result = await command.verify(defaultContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`not present`);
 		});
 
 		it('should reject when terminated outbox account exists', async () => {
@@ -200,15 +212,19 @@ describe('InitializeMessageRecoveryCommand', () => {
 				partnerChainInboxSize: 20,
 			});
 
-			await expect(command.verify(defaultContext)).rejects.toThrow(
-				'Terminated outbox account already exists.',
-			);
+			const result = await command.verify(defaultContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Terminated outbox account already exists.`);
 		});
 
 		it('should reject when proof of inclusion is not valid', async () => {
 			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
 
-			await expect(command.verify(defaultContext)).rejects.toThrow(
+			const result = await command.verify(defaultContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
 				'Message recovery initialization proof of inclusion is not valid.',
 			);
 		});
