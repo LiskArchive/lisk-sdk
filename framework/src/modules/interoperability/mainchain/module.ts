@@ -12,6 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
+import { bufferArrayUniqueItems } from '@liskhq/lisk-utils/dist-node/objects';
+import { MAX_UINT64, validator } from '@liskhq/lisk-validator';
 import { ModuleMetadata } from '../../base_module';
 import { BaseInteroperabilityModule } from '../base_interoperability_module';
 import { MainchainInteroperabilityMethod } from './method';
@@ -32,7 +35,7 @@ import {
 	isChainNameAvailableRequestSchema,
 	isChainNameAvailableResponseSchema,
 } from '../schemas';
-import { chainDataSchema, allChainAccountsSchema } from '../stores/chain_account';
+import { chainDataSchema, allChainAccountsSchema, ChainStatus } from '../stores/chain_account';
 import { channelSchema } from '../stores/channel_data';
 import { ownChainAccountSchema } from '../stores/own_chain_account';
 import { terminatedStateSchema } from '../stores/terminated_state';
@@ -51,11 +54,24 @@ import { TerminatedStateCreatedEvent } from '../events/terminated_state_created'
 import { TerminatedOutboxCreatedEvent } from '../events/terminated_outbox_created';
 import { MainchainInteroperabilityInternalMethod } from './internal_method';
 import { InitializeMessageRecoveryCommand } from './commands/initialize_message_recovery';
-import { FeeMethod } from '../types';
+import { FeeMethod, GenesisInteroperability, ChainInfo } from '../types';
 import { MainchainCCChannelTerminatedCommand, MainchainCCRegistrationCommand } from './cc_commands';
 import { RecoverStateCommand } from './commands/recover_state';
 import { CcmSentFailedEvent } from '../events/ccm_send_fail';
 import { InvalidRegistrationSignatureEvent } from '../events/invalid_registration_signature';
+import { GenesisBlockExecuteContext } from '../../../state_machine';
+import {
+	MODULE_NAME_INTEROPERABILITY,
+	CHAIN_NAME_MAINCHAIN,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
+} from '../constants';
+import {
+	getMainchainID,
+	isValidName,
+	validNameCharset,
+	getMainchainTokenID,
+	computeValidatorsHash,
+} from '../utils';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
@@ -226,5 +242,181 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				},
 			],
 		};
+	}
+
+	// @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#mainchain
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async initGenesisState(ctx: GenesisBlockExecuteContext): Promise<void> {
+		const genesisBlockAssetBytes = ctx.assets.getAsset(MODULE_NAME_INTEROPERABILITY);
+		if (!genesisBlockAssetBytes) {
+			return;
+		}
+
+		const genesisInteroperability = codec.decode<GenesisInteroperability>(
+			genesisInteroperabilitySchema,
+			genesisBlockAssetBytes,
+		);
+
+		validator.validate<GenesisInteroperability>(
+			genesisInteroperabilitySchema,
+			genesisInteroperability,
+		);
+
+		const { ownChainName, ownChainNonce, chainInfos } = genesisInteroperability;
+
+		// On the mainchain, the following checks are performed:
+		if (ctx.chainID.equals(getMainchainID(ctx.chainID))) {
+			// ownChainName == CHAIN_NAME_MAINCHAIN.
+			if (ownChainName !== CHAIN_NAME_MAINCHAIN) {
+				throw new Error(`ownChainName must be equal to CHAIN_NAME_MAINCHAIN'`);
+			}
+
+			// if chainInfos is empty, then ownChainNonce == 0
+			if (chainInfos.length === 0) {
+				if (ownChainNonce !== BigInt(0)) {
+					throw new Error(`ownChainNonce must be 0 if chainInfos is empty.`);
+				}
+			}
+
+			// If chainInfos is non-empty
+			// ownChainNonce > 0
+			if (ownChainNonce <= 0) {
+				throw new Error(`ownChainNonce must be positive if chainInfos is not empty.`);
+			}
+
+			// Each entry chainInfo in chainInfos has a unique chainInfo.chainID
+			const chainIDs = chainInfos.map(info => info.chainID);
+			if (!bufferArrayUniqueItems(chainIDs)) {
+				throw new Error(`chainInfos doesn't hold unique chainID.`);
+			}
+
+			// chainInfos should be ordered lexicographically by chainInfo.chainID
+			const sortedByChainID = [...chainInfos].sort((a, b) => a.chainID.compare(b.chainID));
+			for (let i = 0; i < chainInfos.length; i += 1) {
+				if (!chainInfos[i].chainID.equals(sortedByChainID[i].chainID)) {
+					throw new Error('chainInfos is not ordered lexicographically by chainID.');
+				}
+			}
+
+			// The entries chainData.name must be pairwise distinct
+			const chainDataNames = chainInfos.map(info => info.chainData.name);
+			if (new Set(chainDataNames).size !== chainDataNames.length) {
+				throw new Error(`chainData.name must be pairwise distinct.`);
+			}
+
+			this._verifyChainInfos(ctx, chainInfos);
+		}
+	}
+
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#mainchain
+	private _verifyChainInfos(ctx: GenesisBlockExecuteContext, chainInfos: ChainInfo[]) {
+		const mainchainID = getMainchainID(ctx.chainID);
+
+		// verify root level properties
+		for (const chainInfo of chainInfos) {
+			const { chainID } = chainInfo;
+
+			// chainInfo.chainID != getMainchainID();
+			if (chainID.equals(mainchainID)) {
+				throw new Error(`chainID must not be equal to getMainchainID().`);
+			}
+
+			// - chainInfo.chainId[0] == getMainchainID()[0].
+			if (chainID[0] !== mainchainID[0]) {
+				throw new Error(`Network byte of chainID[0] doesn't match getMainchainID()[0].`);
+			}
+
+			this._verifyChainData(ctx, chainInfo);
+			this._verifyChannelData(ctx, chainInfo);
+			this._verifyChainValidators(chainInfo);
+		}
+	}
+
+	private _verifyChainData(ctx: GenesisBlockExecuteContext, chainInfo: ChainInfo) {
+		const validStatuses = [ChainStatus.REGISTERED, ChainStatus.ACTIVE, ChainStatus.TERMINATED];
+
+		const { chainData } = chainInfo;
+
+		// chainData.lastCertificate.timestamp < g.header.timestamp;
+		if (chainData.lastCertificate.timestamp >= ctx.header.timestamp) {
+			throw new Error(`chainData.lastCertificate.timestamp must be less than header.timestamp.`);
+		}
+
+		// chainData.name only uses the character set a-z0-9!@$&_.;
+		if (!isValidName(chainData.name)) {
+			throw new Error(`chainData.name only uses the character set ${validNameCharset}.`);
+		}
+
+		// chainData.status is in set {CHAIN_STATUS_REGISTERED, CHAIN_STATUS_ACTIVE, CHAIN_STATUS_TERMINATED}.
+		if (!validStatuses.includes(chainData.status)) {
+			throw new Error(`chainData.status must be one of ${validStatuses.join(', ')}`);
+		}
+	}
+
+	private _verifyChannelData(ctx: GenesisBlockExecuteContext, chainInfo: ChainInfo) {
+		const mainchainTokenID = getMainchainTokenID(ctx.chainID);
+
+		const { channelData } = chainInfo;
+
+		// channelData.messageFeeTokenID == Token.getTokenIDLSK();
+		if (!channelData.messageFeeTokenID.equals(mainchainTokenID)) {
+			throw new Error(`channelData.messageFeeTokenID is not equal to Token.getTokenIDLSK().`);
+		}
+
+		// channelData.minReturnFeePerByte == MIN_RETURN_FEE_PER_BYTE_LSK.
+		if (channelData.minReturnFeePerByte !== MIN_RETURN_FEE_PER_BYTE_BEDDOWS) {
+			throw new Error(
+				`channelData.minReturnFeePerByte is not equal to MIN_RETURN_FEE_PER_BYTE_BEDDOWS.`,
+			);
+		}
+	}
+
+	private _verifyChainValidators(chainInfo: ChainInfo) {
+		const { chainValidators, chainData } = chainInfo;
+		const { activeValidators, certificateThreshold } = chainValidators;
+
+		// activeValidators must be ordered lexicographically by blsKey property
+		const sortedByBlsKeys = [...activeValidators].sort((a, b) => a.blsKey.compare(b.blsKey));
+		for (let i = 0; i < activeValidators.length; i += 1) {
+			if (!activeValidators[i].blsKey.equals(sortedByBlsKeys[i].blsKey)) {
+				throw new Error('activeValidators must be ordered lexicographically by blsKey property.');
+			}
+		}
+
+		// all blsKey properties must be pairwise distinct
+		const blsKeys = activeValidators.map(v => v.blsKey);
+		if (!bufferArrayUniqueItems(blsKeys)) {
+			throw new Error(`All blsKey properties must be pairwise distinct.`);
+		}
+
+		// for each validator in activeValidators, validator.bftWeight > 0 must hold
+		if (activeValidators.filter(v => v.bftWeight <= 0).length > 0) {
+			throw new Error(`validator.bftWeight must be > 0.`);
+		}
+
+		// let totalWeight be the sum of the bftWeight property of every element in activeValidators.
+		// Then totalWeight has to be less than or equal to MAX_UINT64
+		const totalWeight = activeValidators.reduce(
+			(accumulator, v) => accumulator + v.bftWeight,
+			BigInt(0),
+		);
+		if (totalWeight > MAX_UINT64) {
+			throw new Error(`totalWeight has to be less than or equal to MAX_UINT64.`);
+		}
+
+		// check that totalWeight//3 + 1 <= certificateThreshold <= totalWeight, where // indicates integer division
+		if (
+			totalWeight / BigInt(3) + BigInt(1) > certificateThreshold ||
+			certificateThreshold > totalWeight
+		) {
+			throw new Error('Invalid certificateThreshold input.');
+		}
+
+		// check that the corresponding validatorsHash stored in chainInfo.chainData.lastCertificate.validatorsHash
+		// matches with the value computed from activeValidators and certificateThreshold
+		const { validatorsHash } = chainData.lastCertificate;
+		if (!validatorsHash.equals(computeValidatorsHash(activeValidators, certificateThreshold))) {
+			throw new Error('Invalid validatorsHash from chainData.lastCertificate.');
+		}
 	}
 }
