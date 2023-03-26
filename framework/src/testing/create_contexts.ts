@@ -25,19 +25,19 @@ import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { ModuleEndpointContext } from '../types';
 import { Logger } from '../logger';
 import {
-	MethodContext,
 	BlockContext,
-	createMethodContext,
 	createImmutableMethodContext,
+	createMethodContext,
 	EventQueue,
 	GenesisBlockContext,
 	ImmutableSubStore,
 	InsertAssetContext,
+	MethodContext,
 	TransactionContext,
 } from '../state_machine';
 import { loggerMock } from './mocks';
 import { WritableBlockAssets } from '../engine/generator/types';
-import { SubStore, StateStore as IStateStore } from '../state_machine/types';
+import { StateStore as IStateStore, SubStore } from '../state_machine/types';
 import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from './in_memory_prefixed_state';
 import { CCMsg, CrossChainMessageContext, RecoverContext } from '../modules/interoperability/types';
@@ -63,20 +63,24 @@ const createTestHeader = () =>
 		validatorsHash: utils.hash(Buffer.alloc(0)),
 	});
 
-export const createGenesisBlockContext = (params: {
+export type CreateGenesisBlockContextParams = {
 	header?: BlockHeader;
 	stateStore?: PrefixedStateReadWriter;
 	eventQueue?: EventQueue;
 	assets?: BlockAssets;
 	logger?: Logger;
 	chainID?: Buffer;
-}): GenesisBlockContext => {
+};
+
+export const createGenesisBlockContext = (
+	params: CreateGenesisBlockContextParams,
+): GenesisBlockContext => {
 	const logger = params.logger ?? loggerMock;
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const eventQueue = params.eventQueue ?? new EventQueue(params.header ? params.header.height : 0);
 	const header = params.header ?? createTestHeader();
-	const ctx = new GenesisBlockContext({
+	return new GenesisBlockContext({
 		eventQueue,
 		stateStore,
 		header,
@@ -84,7 +88,6 @@ export const createGenesisBlockContext = (params: {
 		logger,
 		chainID: params.chainID ?? Buffer.from('10000000', 'hex'),
 	});
-	return ctx;
 };
 
 export const createBlockContext = (params: {
@@ -103,7 +106,7 @@ export const createBlockContext = (params: {
 	const contextStore = params.contextStore ?? new Map<string, unknown>();
 	const eventQueue = params.eventQueue ?? new EventQueue(params.header ? params.header.height : 0);
 	const header = params.header ?? createTestHeader();
-	const ctx = new BlockContext({
+	return new BlockContext({
 		stateStore,
 		contextStore,
 		logger,
@@ -113,7 +116,6 @@ export const createBlockContext = (params: {
 		assets: params.assets ?? new BlockAssets(),
 		chainID: params.chainID ?? utils.getRandomBytes(4),
 	});
-	return ctx;
 };
 
 export const createBlockGenerateContext = (params: {
@@ -136,7 +138,7 @@ export const createBlockGenerateContext = (params: {
 	const getStore = (moduleID: Buffer, storePrefix: Buffer) =>
 		stateStore.getStore(moduleID, storePrefix);
 
-	const ctx: InsertAssetContext = {
+	return {
 		stateStore,
 		contextStore,
 		assets: params.assets ?? new BlockAssets([]),
@@ -154,8 +156,6 @@ export const createBlockGenerateContext = (params: {
 		getFinalizedHeight: () => params.finalizedHeight ?? 0,
 		header,
 	};
-
-	return ctx;
 };
 
 export const createTransactionContext = (params: {
@@ -174,7 +174,7 @@ export const createTransactionContext = (params: {
 	const contextStore = params.contextStore ?? new Map<string, unknown>();
 	const eventQueue = params.eventQueue ?? new EventQueue(params.header ? params.header.height : 0);
 	const header = params.header ?? createTestHeader();
-	const ctx = new TransactionContext({
+	return new TransactionContext({
 		stateStore,
 		contextStore,
 		logger,
@@ -184,7 +184,6 @@ export const createTransactionContext = (params: {
 		chainID: params.chainID ?? utils.getRandomBytes(32),
 		transaction: params.transaction,
 	});
-	return ctx;
 };
 
 export const createTransientMethodContext = (params: {
@@ -196,8 +195,7 @@ export const createTransientMethodContext = (params: {
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const contextStore = params.contextStore ?? new Map<string, unknown>();
 	const eventQueue = params.eventQueue ?? new EventQueue(0);
-	const ctx = createMethodContext({ stateStore, eventQueue, contextStore });
-	return ctx;
+	return createMethodContext({ stateStore, eventQueue, contextStore });
 };
 
 export const createTransientModuleEndpointContext = (params: {
@@ -214,7 +212,7 @@ export const createTransientModuleEndpointContext = (params: {
 	const parameters = params.params ?? {};
 	const logger = params.logger ?? loggerMock;
 	const chainID = params.chainID ?? Buffer.alloc(0);
-	const ctx = {
+	return {
 		getStore: (moduleID: Buffer, storePrefix: Buffer) => stateStore.getStore(moduleID, storePrefix),
 		getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) =>
 			moduleStore.getStore(moduleID, storePrefix),
@@ -224,7 +222,6 @@ export const createTransientModuleEndpointContext = (params: {
 		logger,
 		chainID,
 	};
-	return ctx;
 };
 
 export const createCrossChainMessageContext = (params: {
