@@ -24,8 +24,6 @@ import {
 	SubStore,
 	Validator,
 } from '../../state_machine/types';
-import { OutboxRoot } from './stores/outbox_root';
-import { ChainID } from './stores/registered_names';
 import { TerminatedOutboxAccount } from './stores/terminated_outbox';
 import { TerminatedStateAccount } from './stores/terminated_state';
 
@@ -361,39 +359,29 @@ export interface ChainValidatorsJSON {
 	certificateThreshold: string;
 }
 
+export interface ChainInfo {
+	chainID: Buffer;
+	chainData: ChainAccount;
+	channelData: ChannelData;
+	chainValidators: ChainValidators;
+}
+
+export interface TerminatedStateAccountWithChainID {
+	chainID: Buffer;
+	terminatedStateAccount: TerminatedStateAccount;
+}
+
+export interface TerminatedOutboxAccountWithChainID {
+	chainID: Buffer;
+	terminatedOutboxAccount: TerminatedOutboxAccount;
+}
+
 export interface GenesisInteroperability {
-	outboxRootSubstore: {
-		storeKey: Buffer;
-		storeValue: OutboxRoot;
-	}[];
-	chainDataSubstore: {
-		storeKey: Buffer;
-		storeValue: ChainAccount;
-	}[];
-	channelDataSubstore: {
-		storeKey: Buffer;
-		storeValue: ChannelData;
-	}[];
-	chainValidatorsSubstore: {
-		storeKey: Buffer;
-		storeValue: ValidatorsHashInput;
-	}[];
-	ownChainDataSubstore: {
-		storeKey: Buffer;
-		storeValue: OwnChainAccount;
-	}[];
-	terminatedStateSubstore: {
-		storeKey: Buffer;
-		storeValue: TerminatedStateAccount;
-	}[];
-	terminatedOutboxSubstore: {
-		storeKey: Buffer;
-		storeValue: TerminatedOutboxAccount;
-	}[];
-	registeredNamesSubstore: {
-		storeKey: Buffer;
-		storeValue: ChainID;
-	}[];
+	ownChainName: string;
+	ownChainNonce: bigint;
+	chainInfos: ChainInfo[];
+	/* terminatedStateAccounts: TerminatedStateAccountWithChainID[];
+	terminatedOutboxAccounts: TerminatedOutboxAccountWithChainID[]; */
 }
 
 export interface CCMRegistrationParams {
