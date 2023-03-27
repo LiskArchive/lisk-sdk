@@ -30,6 +30,8 @@ import {
 import { chainDataSchema } from './stores/chain_account';
 import { chainValidatorsSchema } from './stores/chain_validators';
 import { channelSchema } from './stores/channel_data';
+import { terminatedStateSchema } from './stores/terminated_state';
+import { terminatedOutboxSchema } from './stores/terminated_outbox';
 
 // LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#cross-chain-message-schema
 export const ccmSchema = {
@@ -671,7 +673,7 @@ export const genesisInteroperabilitySchema = {
 				},
 			},
 		},
-		/* terminatedStateAccounts: {
+		terminatedStateAccounts: {
 			type: 'array',
 			fieldNumber: 4,
 			items: {
@@ -710,7 +712,7 @@ export const genesisInteroperabilitySchema = {
 					},
 				},
 			},
-		}, */
+		},
 	},
 };
 
