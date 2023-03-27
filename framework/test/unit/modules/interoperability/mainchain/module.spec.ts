@@ -174,7 +174,7 @@ describe('initGenesisState', () => {
 		);
 	});
 
-	describe('if chainInfos is empty', () => {
+	describe('when chainInfos is empty', () => {
 		it('should throw error if ownChainNonce !== 0', async () => {
 			const context = createInitGenesisStateContext(
 				{
@@ -190,7 +190,7 @@ describe('initGenesisState', () => {
 		});
 	});
 
-	describe('if chainInfos is not empty', () => {
+	describe('when chainInfos is not empty', () => {
 		let validChainInfos: ChainInfo[];
 
 		beforeEach(() => {
