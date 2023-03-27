@@ -151,3 +151,12 @@ export {
 	unsignedCertificateSchema,
 } from './engine/consensus';
 export { applicationConfigSchema } from './schema';
+export {
+	MIN_CHAIN_NAME_LENGTH,
+	MAX_CHAIN_NAME_LENGTH,
+	BLS_PUBLIC_KEY_LENGTH,
+	MAX_NUM_VALIDATORS,
+	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
+	BLS_SIGNATURE_LENGTH,
+	CHAIN_ID_LENGTH,
+} from './modules/interoperability/constants';

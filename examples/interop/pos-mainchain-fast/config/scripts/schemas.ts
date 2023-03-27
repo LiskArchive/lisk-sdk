@@ -1,10 +1,12 @@
-const CHAIN_ID_LENGTH = 4;
-export const MIN_CHAIN_NAME_LENGTH = 1;
-export const MAX_CHAIN_NAME_LENGTH = 32;
-export const BLS_PUBLIC_KEY_LENGTH = 48;
-export const MAX_NUM_VALIDATORS = 199;
-const NUMBER_ACTIVE_VALIDATORS_MAINCHAIN = 101;
-export const BLS_SIGNATURE_LENGTH = 96;
+import {
+	CHAIN_ID_LENGTH,
+	MIN_CHAIN_NAME_LENGTH,
+	MAX_CHAIN_NAME_LENGTH,
+	BLS_PUBLIC_KEY_LENGTH,
+	MAX_NUM_VALIDATORS,
+	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
+	BLS_SIGNATURE_LENGTH,
+} from 'lisk-framework';
 
 export const sidechainRegParams = {
 	$id: '/modules/interoperability/mainchain/sidechainRegistration',

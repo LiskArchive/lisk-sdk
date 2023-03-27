@@ -1,10 +1,11 @@
-export const CHAIN_ID_LENGTH = 4;
-export const MIN_CHAIN_NAME_LENGTH = 1;
-export const MAX_CHAIN_NAME_LENGTH = 32;
-export const BLS_PUBLIC_KEY_LENGTH = 48;
-export const NUMBER_ACTIVE_VALIDATORS_MAINCHAIN = 101;
-export const MESSAGE_TAG_CHAIN_REG = 'LSK_CHAIN_REGISTRATION_';
-export const BLS_SIGNATURE_LENGTH = 96;
+import {
+	CHAIN_ID_LENGTH,
+	MIN_CHAIN_NAME_LENGTH,
+	MAX_CHAIN_NAME_LENGTH,
+	BLS_PUBLIC_KEY_LENGTH,
+	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
+	BLS_SIGNATURE_LENGTH,
+} from 'lisk-framework';
 
 export const registrationSignatureMessageSchema = {
 	$id: '/modules/interoperability/sidechain/registrationSignatureMessage',
