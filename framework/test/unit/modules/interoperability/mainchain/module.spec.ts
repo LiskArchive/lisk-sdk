@@ -276,7 +276,7 @@ describe('initGenesisState', () => {
 				params,
 			);
 			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-				'chainID must not be equal to getMainchainID().',
+				`chainID must be not equal to ${mainchainID.toString('hex')}.`,
 			);
 		});
 
@@ -294,7 +294,7 @@ describe('initGenesisState', () => {
 				params,
 			);
 			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-				"chainID[0] doesn't match getMainchainID()[0].",
+				`chainID[0] doesn't match ${mainchainID[0]}.`,
 			);
 		});
 
@@ -815,7 +815,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 				);
 
 				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					`For each chainInfo with status terminated there should be a corresponding entry in terminatedStateAccounts`,
+					`For each chainInfo with status terminated there should be a corresponding entry in terminatedStateAccounts.`,
 				);
 			});
 

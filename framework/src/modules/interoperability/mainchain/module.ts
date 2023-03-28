@@ -338,12 +338,12 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 
 			// chainInfo.chainID != getMainchainID();
 			if (chainID.equals(mainchainID)) {
-				throw new Error(`chainID must not be equal to getMainchainID().`);
+				throw new Error(`chainID must be not equal to ${mainchainID.toString('hex')}.`);
 			}
 
 			// - chainInfo.chainId[0] == getMainchainID()[0].
 			if (chainID[0] !== mainchainID[0]) {
-				throw new Error(`Network byte of chainID[0] doesn't match getMainchainID()[0].`);
+				throw new Error(`chainID[0] doesn't match ${mainchainID[0]}.`);
 			}
 
 			this._verifyChainData(ctx, chainInfo);
@@ -455,7 +455,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				correspondingChainInfo.chainData.status !== ChainStatus.TERMINATED
 			) {
 				throw new Error(
-					'For each terminatedStateAccount there should be a corresponding chainInfo at TERMINATED state',
+					'For each terminatedStateAccount there should be a corresponding chainInfo at TERMINATED state.',
 				);
 			}
 		}
@@ -485,7 +485,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				);
 				if (!terminatedAccount) {
 					throw new Error(
-						'For each chainInfo with status terminated there should be a corresponding entry in terminatedStateAccounts',
+						'For each chainInfo with status terminated there should be a corresponding entry in terminatedStateAccounts.',
 					);
 				}
 
