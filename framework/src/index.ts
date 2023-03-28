@@ -152,11 +152,12 @@ export {
 } from './engine/consensus';
 export { applicationConfigSchema } from './schema';
 export {
+	BLS_PUBLIC_KEY_LENGTH,
+	BLS_SIGNATURE_LENGTH,
+	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
+	MESSAGE_TAG_CHAIN_REG,
 	MIN_CHAIN_NAME_LENGTH,
 	MAX_CHAIN_NAME_LENGTH,
-	BLS_PUBLIC_KEY_LENGTH,
 	MAX_NUM_VALIDATORS,
-	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
-	BLS_SIGNATURE_LENGTH,
 	CHAIN_ID_LENGTH,
 } from './modules/interoperability/constants';

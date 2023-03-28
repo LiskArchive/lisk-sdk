@@ -6,9 +6,10 @@ import {
 } from './schemas';
 import { keys as sidechainDevValidators } from '../default/dev-validators.json';
 
+import { MESSAGE_TAG_CHAIN_REG } from 'lisk-framework';
+
 (async () => {
 	const { bls, address } = cryptography;
-	const MESSAGE_TAG_CHAIN_REG = 'LSK_CHAIN_REGISTRATION_';
 
 	const mainchainClient = await apiClient.createIPCClient('~/.lisk/pos-mainchain-fast');
 	const sidechainClient = await apiClient.createIPCClient('~/.lisk/pos-sidechain-fast');
