@@ -139,8 +139,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		this._chainConnectorStore = new ChainConnectorStore(this._chainConnectorPluginDB);
 		this.endpoint.load(this._chainConnectorStore);
 
-		await this._initializeReceivingChainClient();
-
 		this._sendingChainClient = this.apiClient;
 
 		this._ownChainID = Buffer.from(
@@ -169,7 +167,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 	public async unload(): Promise<void> {
 		if (this._receivingChainClient) {
-			await this._sendingChainClient.disconnect();
+			await this._receivingChainClient.disconnect();
 		}
 		if (this._sendingChainClient) {
 			await this._sendingChainClient.disconnect();
