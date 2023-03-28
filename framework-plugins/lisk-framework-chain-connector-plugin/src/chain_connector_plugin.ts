@@ -60,7 +60,6 @@ import { Endpoint } from './endpoint';
 import { configSchema } from './schemas';
 import {
 	ChainConnectorPluginConfig,
-	SentCCUs,
 	BlockHeader,
 	ProveResponseJSON,
 	BFTParametersJSON,
@@ -106,8 +105,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _receivingChainID!: Buffer;
 	private _isReceivingChainMainchain!: boolean;
 	private _registrationHeight!: number;
-	private readonly _sentCCUs: SentCCUs = [];
 	private _privateKey!: Buffer;
+	private _ccuSaveLimit!: number;
 
 	public get nodeModulePath(): string {
 		return __filename;
@@ -124,6 +123,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		this._maxCCUSize = this.config.maxCCUSize;
 		this._isSaveCCU = this.config.isSaveCCU;
 		this._registrationHeight = this.config.registrationHeight;
+		this._ccuSaveLimit = this.config.ccuSaveLimit;
 		const { password, encryptedPrivateKey } = this.config;
 		if (password) {
 			const parsedEncryptedKey = encrypt.parseEncryptedMessage(encryptedPrivateKey);
@@ -680,6 +680,16 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 					validatorsData.certificateThreshold >= BigInt(this._lastCertificate.height),
 			),
 		);
+		// Delete CCUs
+		// When given -1 then there is no limit
+		if (this._ccuSaveLimit !== -1) {
+			const listOfCCUs = await this._chainConnectorStore.getListOfCCUs();
+			if (listOfCCUs.length > this._ccuSaveLimit) {
+				await this._chainConnectorStore.setListOfCCUs(
+					listOfCCUs.slice(0, listOfCCUs.length - this._ccuSaveLimit),
+				);
+			}
+		}
 	}
 
 	private async _submitCCU(ccuParams: Buffer): Promise<void> {
@@ -725,7 +735,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		 * TODO: As of now we save it in memory but going forward it should be saved in DB,
 		 * as the array size can grow after sometime.
 		 */
-		this._sentCCUs.push(tx);
 		// Save the sent CCU
 		const listOfCCUs = await this._chainConnectorStore.getListOfCCUs();
 		listOfCCUs.push(tx.toObject());
