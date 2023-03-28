@@ -598,6 +598,8 @@ export const getChainAccountRequestSchema = {
 		chainID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 	},
 };
