@@ -13,11 +13,13 @@
  */
 import { Block, BlockHeader } from '@liskhq/lisk-chain';
 
+import { address } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../utils';
 import {
 	createTransferTransaction,
 	createReportMisbehaviorTransaction,
 	defaultTokenID,
+	createValidatorStakeTransaction,
 } from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
 import { Keys } from '../../../../src/testing/fixtures';
@@ -80,6 +82,20 @@ describe('Transaction order', () => {
 				},
 			);
 
+			const stakeTx = createValidatorStakeTransaction({
+				chainID,
+				nonce: BigInt(0),
+				privateKey: Buffer.from(blockGenerator.privateKey, 'hex'),
+				stakes: [
+					{
+						validatorAddress: address.getAddressFromLisk32Address(blockGenerator.address),
+						amount: BigInt('100000000000'),
+					},
+				],
+			});
+			newBlock = await processEnv.createBlock([stakeTx]);
+			await processEnv.process(newBlock);
+
 			const tx = createReportMisbehaviorTransaction({
 				nonce: BigInt(0),
 				privateKey: senderAccount.privateKey,
@@ -103,7 +119,11 @@ describe('Transaction order', () => {
 				tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
 			});
 			expect(balance.availableBalance).toEqual(
-				(BigInt(originalBalance.availableBalance) - BigInt(100000000)).toString(),
+				(
+					BigInt(originalBalance.availableBalance) -
+					BigInt(100000000) -
+					BigInt('100000000000')
+				).toString(),
 			);
 		});
 	});
