@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { BaseEndpoint } from '../base_endpoint';
 import { BaseCCMethod } from './base_cc_method';
 import {
@@ -34,6 +35,13 @@ import { ChainAccountStore } from './stores/chain_account';
 import { ChannelDataStore } from './stores/channel_data';
 import { OwnChainAccountStore } from './stores/own_chain_account';
 import { EMPTY_BYTES } from './constants';
+import {
+	getChainAccountRequestSchema,
+	getChainValidatorsRequestSchema,
+	getChannelRequestSchema,
+	getTerminatedOutboxAccountRequestSchema,
+	getTerminatedStateAccountRequestSchema,
+} from './schemas';
 
 export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 	protected readonly interoperableCCMethods = new Map<string, BaseCCMethod>();
@@ -43,6 +51,8 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 	}
 
 	public async getChainAccount(context: ModuleEndpointContext): Promise<ChainAccountJSON> {
+		validator.validate(getChainAccountRequestSchema, context.params);
+
 		const chainID = Buffer.from(context.params.chainID as string, 'hex');
 		return chainAccountToJSON(await this.stores.get(ChainAccountStore).get(context, chainID));
 	}
@@ -50,6 +60,7 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 	public async getAllChainAccounts(
 		context: ModuleEndpointContext,
 	): Promise<{ chains: ChainAccountJSON[] }> {
+		validator.validate(getChainAccountRequestSchema, context.params);
 		const startChainID = Buffer.from(context.params.chainID as string, 'hex');
 
 		const chainAccounts = (
@@ -60,6 +71,7 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 	}
 
 	public async getChannel(context: ModuleEndpointContext): Promise<ChannelDataJSON> {
+		validator.validate(getChannelRequestSchema, context.params);
 		const chainID = Buffer.from(context.params.chainID as string, 'hex');
 		const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot, minReturnFeePerByte } =
 			await this.stores.get(ChannelDataStore).get(context, chainID);
@@ -91,6 +103,7 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 	public async getTerminatedStateAccount(
 		context: ModuleEndpointContext,
 	): Promise<TerminatedStateAccountJSON> {
+		validator.validate(getTerminatedStateAccountRequestSchema, context.params);
 		const chainID = Buffer.from(context.params.chainID as string, 'hex');
 		const { stateRoot, initialized, mainchainStateRoot } = await this.stores
 			.get(TerminatedStateStore)
@@ -106,6 +119,7 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 	public async getTerminatedOutboxAccount(
 		context: ModuleEndpointContext,
 	): Promise<TerminatedOutboxAccountJSON> {
+		validator.validate(getTerminatedOutboxAccountRequestSchema, context.params);
 		const chainID = Buffer.from(context.params.chainID as string, 'hex');
 		const { outboxRoot, outboxSize, partnerChainInboxSize } = await this.stores
 			.get(TerminatedOutboxStore)
@@ -119,6 +133,7 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 	}
 
 	public async getChainValidators(context: ModuleEndpointContext): Promise<ChainValidatorsJSON> {
+		validator.validate(getChainValidatorsRequestSchema, context.params);
 		const chainID = Buffer.from(context.params.chainID as string, 'hex');
 		const chainAccountStore = this.stores.get(ChainAccountStore);
 		const chainAccountExists = await chainAccountStore.has(context, chainID);
@@ -131,9 +146,9 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 		const validators = await chainValidatorsStore.get(context, chainID);
 
 		return {
-			activeValidators: validators.activeValidators.map(validator => ({
-				blsKey: validator.blsKey.toString('hex'),
-				bftWeight: validator.bftWeight.toString(),
+			activeValidators: validators.activeValidators.map(v => ({
+				blsKey: v.blsKey.toString('hex'),
+				bftWeight: v.bftWeight.toString(),
 			})),
 			certificateThreshold: validators.certificateThreshold.toString(),
 		};
