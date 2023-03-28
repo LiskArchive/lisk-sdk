@@ -139,14 +139,6 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 		};
 	}
 
-	public async isChainIDAvailable(context: ModuleEndpointContext): Promise<{ result: boolean }> {
-		const chainID = Buffer.from(context.params.chainID as string, 'hex');
-		const chainSubstore = this.stores.get(ChainAccountStore);
-		const chainAccountExists = await chainSubstore.has(context, chainID);
-
-		return { result: !chainAccountExists };
-	}
-
 	private _toBoxJSON(box: Inbox | Outbox) {
 		return {
 			appendPath: box.appendPath.map(ap => ap.toString('hex')),

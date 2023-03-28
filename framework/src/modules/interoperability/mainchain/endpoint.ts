@@ -12,9 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../../../types';
 import { BaseInteroperabilityEndpoint } from '../base_interoperability_endpoint';
-import { CHAIN_REGISTRATION_FEE, MIN_RETURN_FEE_PER_BYTE_BEDDOWS } from '../constants';
+import { CHAIN_REGISTRATION_FEE, EMPTY_BYTES, MIN_RETURN_FEE_PER_BYTE_BEDDOWS } from '../constants';
+import { isChainIDAvailableRequestSchema } from '../schemas';
+import { ChainAccountStore } from '../stores/chain_account';
+import { OwnChainAccountStore } from '../stores/own_chain_account';
 import { RegisteredNamesStore } from '../stores/registered_names';
 import { isValidName } from '../utils';
 
@@ -31,6 +35,30 @@ export class MainchainInteroperabilityEndpoint extends BaseInteroperabilityEndpo
 		return {
 			fee: MIN_RETURN_FEE_PER_BYTE_BEDDOWS.toString(),
 		};
+	}
+
+	public async isChainIDAvailable(context: ModuleEndpointContext): Promise<{ result: boolean }> {
+		validator.validate(isChainIDAvailableRequestSchema, context.params);
+		const chainID = Buffer.from(context.params.chainID as string, 'hex');
+		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
+		const networkID = chainID.slice(0, 1);
+		const ownChainNetworkID = ownChainAccount.chainID.slice(0, 1);
+		// Only mainchain network IDs are available
+		if (!networkID.equals(ownChainNetworkID)) {
+			return {
+				result: false,
+			};
+		}
+		// Mainchain ID itself is not available
+		if (chainID.equals(ownChainAccount.chainID)) {
+			return {
+				result: false,
+			};
+		}
+		const chainAccountStore = this.stores.get(ChainAccountStore);
+		const chainAccountExists = await chainAccountStore.has(context, chainID);
+
+		return { result: !chainAccountExists };
 	}
 
 	public async isChainNameAvailable(context: ModuleEndpointContext): Promise<ResultJSON> {
