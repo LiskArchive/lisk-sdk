@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../../../types';
 import { BaseInteroperabilityEndpoint } from '../base_interoperability_endpoint';
 import { CHAIN_REGISTRATION_FEE, EMPTY_BYTES, MIN_RETURN_FEE_PER_BYTE_BEDDOWS } from '../constants';
+import { isChainIDAvailableRequestSchema } from '../schemas';
 import { ChainAccountStore } from '../stores/chain_account';
 import { OwnChainAccountStore } from '../stores/own_chain_account';
 import { RegisteredNamesStore } from '../stores/registered_names';
@@ -36,6 +38,7 @@ export class MainchainInteroperabilityEndpoint extends BaseInteroperabilityEndpo
 	}
 
 	public async isChainIDAvailable(context: ModuleEndpointContext): Promise<{ result: boolean }> {
+		validator.validate(isChainIDAvailableRequestSchema, context.params);
 		const chainID = Buffer.from(context.params.chainID as string, 'hex');
 		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
 		const networkID = chainID.slice(0, 1);
