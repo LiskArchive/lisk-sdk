@@ -3,10 +3,9 @@ import { keys as sidechainValidatorsKeys } from '../../config/default/dev-valida
 import {
 	registrationSignatureMessageSchema,
 	mainchainRegParams as mainchainRegParamsSchema,
+	MESSAGE_TAG_CHAIN_REG,
 } from 'lisk-framework';
 import { keys as sidechainDevValidators } from '../default/dev-validators.json';
-
-import { MESSAGE_TAG_CHAIN_REG } from 'lisk-framework';
 
 (async () => {
 	const { bls, address } = cryptography;
