@@ -65,7 +65,7 @@ export const configSchema = {
 		ccuSaveLimit: {
 			type: 'integer',
 			description: 'Number of CCUs to save.',
-			minimum: 0,
+			minimum: -1,
 		},
 		registrationHeight: {
 			type: 'integer',
