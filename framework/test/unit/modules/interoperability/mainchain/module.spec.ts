@@ -102,7 +102,7 @@ describe('initGenesisState', () => {
 
 	const lastCertificate = {
 		height: 567467,
-		timestamp: Date.now() / 10000000000,
+		timestamp: 1000,
 		stateRoot: Buffer.alloc(HASH_LENGTH),
 		validatorsHash: Buffer.alloc(HASH_LENGTH),
 	};
@@ -310,7 +310,7 @@ describe('initGenesisState', () => {
 									...genesisInteroperability.chainInfos[0].chainData,
 									lastCertificate: {
 										...genesisInteroperability.chainInfos[0].chainData.lastCertificate,
-										timestamp: Date.now(),
+										timestamp: 2000,
 									},
 								},
 							},
@@ -319,7 +319,7 @@ describe('initGenesisState', () => {
 					{
 						...params,
 						header: {
-							timestamp: Date.now() / 1000000,
+							timestamp: 1000,
 						} as any,
 					},
 				);
