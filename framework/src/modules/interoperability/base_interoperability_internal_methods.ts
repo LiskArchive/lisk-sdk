@@ -401,7 +401,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 
 		const verifySignature = verifyAggregateCertificateSignature(
 			chainValidators.activeValidators,
-			params.certificateThreshold,
+			chainValidators.certificateThreshold,
 			params.sendingChainID,
 			certificate,
 		);

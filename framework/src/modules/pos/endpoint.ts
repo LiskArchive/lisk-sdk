@@ -315,14 +315,14 @@ export class PoSEndpoint extends BaseEndpoint {
 				.get(context, stake.validatorAddress);
 
 			for (const validatorSharingCoefficient of validatorAccount.sharingCoefficients) {
-				const stakeSharingConefficient = stake.sharingCoefficients.find(sc =>
+				const stakeSharingCoefficient = stake.sharingCoefficients.find(sc =>
 					sc.tokenID.equals(validatorSharingCoefficient.tokenID),
 				) ?? {
 					tokenID: validatorSharingCoefficient.tokenID,
 					coefficient: q96(BigInt(0)).toBuffer(),
 				};
 				const reward = calculateStakeRewards(
-					stakeSharingConefficient,
+					stakeSharingCoefficient,
 					stake.amount,
 					validatorSharingCoefficient,
 				);
