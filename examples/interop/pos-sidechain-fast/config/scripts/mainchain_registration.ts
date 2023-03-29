@@ -1,9 +1,9 @@
 import { codec, cryptography, apiClient, Transaction } from 'lisk-sdk';
 import { keys as sidechainValidatorsKeys } from '../../config/default/dev-validators.json';
 import {
-	mainchainRegParams as mainchainRegParamsSchema,
 	registrationSignatureMessageSchema,
-} from './schemas';
+	mainchainRegParams as mainchainRegParamsSchema,
+} from 'lisk-framework';
 import { keys as sidechainDevValidators } from '../default/dev-validators.json';
 
 import { MESSAGE_TAG_CHAIN_REG } from 'lisk-framework';

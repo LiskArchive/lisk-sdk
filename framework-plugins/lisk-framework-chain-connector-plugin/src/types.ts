@@ -19,6 +19,10 @@ import {
 	OutboxRootWitness,
 	ActiveValidator,
 	AggregateCommit,
+	BFTParameters,
+	Proof,
+	ProveResponse,
+	BFTValidator,
 } from 'lisk-sdk';
 
 export interface BlockHeader extends chain.BlockHeaderAttrs {
@@ -78,41 +82,12 @@ export type LastSentCCMWithHeightJSON = JSONObject<LastSentCCMWithHeight>;
 
 export type AggregateCommitJSON = JSONObject<AggregateCommit>;
 
-export interface BFTValidator {
-	address: Buffer;
-	bftWeight: bigint;
-	blsKey: Buffer;
-}
-
 export type BFTValidatorJSON = JSONObject<BFTValidator>;
 
 export type ValidatorsDataJSON = JSONObject<ValidatorsData>;
 
-export interface Proof {
-	siblingHashes: Buffer[];
-	queries: QueryProof[];
-}
-
-export interface QueryProof {
-	key: Buffer;
-	value: Buffer;
-	bitmap: Buffer;
-}
-
-export interface ProveResponse {
-	proof: Proof;
-}
-
 export type ProofJSON = JSONObject<Proof>;
 
 export type ProveResponseJSON = JSONObject<ProveResponse>;
-
-export interface BFTParameters {
-	prevoteThreshold: bigint;
-	precommitThreshold: bigint;
-	certificateThreshold: bigint;
-	validators: BFTValidator[];
-	validatorsHash: Buffer;
-}
 
 export type BFTParametersJSON = JSONObject<BFTParameters>;

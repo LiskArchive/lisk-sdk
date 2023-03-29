@@ -119,6 +119,18 @@ export {
 	CCMProcessedCode,
 	CCMProcessedResult,
 	ccuParamsSchema,
+	sidechainRegParams,
+	mainchainRegParams,
+	messageRecoveryParamsSchema,
+	messageRecoveryInitializationParamsSchema,
+	registrationCCMParamsSchema,
+	sidechainTerminatedCCMParamsSchema,
+	validatorsHashInputSchema,
+	registrationSignatureMessageSchema,
+	stateRecoveryParamsSchema,
+	stateRecoveryInitParamsSchema,
+	terminateSidechainForLivenessParamsSchema,
+	genesisInteroperabilitySchema,
 } from './modules/interoperability';
 export { RewardMethod, RewardModule } from './modules/reward';
 export { FeeMethod, FeeModule } from './modules/fee';
@@ -161,3 +173,4 @@ export {
 	MAX_NUM_VALIDATORS,
 	CHAIN_ID_LENGTH,
 } from './modules/interoperability/constants';
+export { Proof, QueryProof, ProveResponse, Validator as BFTValidator } from './abi/abi';
