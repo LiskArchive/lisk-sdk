@@ -1146,14 +1146,16 @@ describe('Base interoperability internal method', () => {
 			},
 		};
 
+		const chainValidators = {
+			activeValidators,
+			certificateThreshold: BigInt(20),
+		};
+
 		beforeEach(async () => {
 			jest.spyOn(interopMod.events.get(InvalidCertificateSignatureEvent), 'add');
 			await interopMod.stores
 				.get(ChainValidatorsStore)
-				.set(methodContext, txParams.sendingChainID, {
-					activeValidators,
-					certificateThreshold: BigInt(20),
-				});
+				.set(methodContext, txParams.sendingChainID, chainValidators);
 		});
 
 		it('should reject if verifyWeightedAggSig fails', async () => {
@@ -1171,7 +1173,7 @@ describe('Base interoperability internal method', () => {
 				txParams.sendingChainID,
 				encodedUnsignedCertificate,
 				activeValidators.map(v => v.bftWeight),
-				txParams.certificateThreshold,
+				chainValidators.certificateThreshold,
 			);
 
 			expect(interopMod.events.get(InvalidCertificateSignatureEvent).add).toHaveBeenCalledTimes(1);
