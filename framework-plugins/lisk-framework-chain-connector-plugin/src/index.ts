@@ -13,3 +13,4 @@
  */
 
 export { ChainConnectorPlugin } from './chain_connector_plugin';
+export { Proof, QueryProof, ProveResponse, BFTValidator, BFTParameters } from './types';
