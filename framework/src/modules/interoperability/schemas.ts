@@ -27,7 +27,7 @@ import {
 	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
 	SUBSTORE_PREFIX_LENGTH,
 } from './constants';
-import { chainDataSchema } from './stores/chain_account';
+import { chainDataJSONSchema, chainDataSchema } from './stores/chain_account';
 import { chainValidatorsSchema } from './stores/chain_validators';
 import { channelSchema } from './stores/channel_data';
 import { outboxRootSchema } from './stores/outbox_root';
@@ -602,7 +602,7 @@ export const getChainAccountRequestSchema = {
 	},
 };
 
-export const getChainAccountResponseSchema = chainDataSchema;
+export const getChainAccountResponseSchema = chainDataJSONSchema;
 
 export const getChainValidatorsRequestSchema = getChainAccountRequestSchema;
 
