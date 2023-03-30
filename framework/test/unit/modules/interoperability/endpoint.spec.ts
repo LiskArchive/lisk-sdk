@@ -189,7 +189,7 @@ describe('Test interoperability endpoint', () => {
 			getImmutableMethodContext: jest.fn(),
 			getOffchainStore: jest.fn(),
 			chainID: Buffer.alloc(0),
-			params: { chainID: chainID.toString('hex') },
+			params: { chainID: Buffer.from('00000001', 'hex') },
 			logger: {} as any,
 			header: { aggregateCommit: { height: 10 }, height: 12, timestamp: Date.now() },
 		};
@@ -355,23 +355,6 @@ describe('Test interoperability endpoint', () => {
 					testInteroperabilityEndpoint.getChainValidators(moduleContext),
 				).rejects.toThrow('Chain account does not exist.');
 			});
-		});
-	});
-
-	describe('isChainIDAvailable', () => {
-		it('should return false when the chainID exists', async () => {
-			chainAccountStoreMock.has.mockResolvedValue(true);
-			const isAvailable = await testInteroperabilityEndpoint.isChainIDAvailable(moduleContext);
-			expect(isAvailable).toEqual({ result: false });
-		});
-
-		it('should return true when the chainID does not exists', async () => {
-			chainAccountStoreMock.has.mockResolvedValue(false);
-			const isChainIDAvailableResult = await testInteroperabilityEndpoint.isChainIDAvailable(
-				moduleContext,
-			);
-
-			expect(isChainIDAvailableResult).toEqual({ result: true });
 		});
 	});
 });
