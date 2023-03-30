@@ -189,7 +189,7 @@ describe('Test interoperability endpoint', () => {
 			getImmutableMethodContext: jest.fn(),
 			getOffchainStore: jest.fn(),
 			chainID: Buffer.alloc(0),
-			params: { chainID: Buffer.from('00000001', 'hex') },
+			params: { chainID: '00000001' },
 			logger: {} as any,
 			header: { aggregateCommit: { height: 10 }, height: 12, timestamp: Date.now() },
 		};
