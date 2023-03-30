@@ -13,6 +13,7 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext, SidechainInteroperabilityModule } from '../../../../src';
 import { BaseInteroperabilityEndpoint } from '../../../../src/modules/interoperability/base_interoperability_endpoint';
 import {
@@ -46,6 +47,7 @@ import {
 import { chainAccountToJSON } from '../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
+import { getChainAccountResponseSchema } from '../../../../src/modules/interoperability/schemas';
 
 class TestEndpoint extends BaseInteroperabilityEndpoint {}
 
@@ -91,7 +93,7 @@ describe('Test interoperability endpoint', () => {
 		lastCertificate: {
 			height: 100,
 			stateRoot: utils.getRandomBytes(32),
-			timestamp: Date.now(),
+			timestamp: Math.floor(Date.now() / 1000),
 			validatorsHash: utils.getRandomBytes(32),
 		},
 		name: 'nft',
@@ -102,7 +104,7 @@ describe('Test interoperability endpoint', () => {
 		lastCertificate: {
 			height: 200,
 			stateRoot: utils.getRandomBytes(32),
-			timestamp: Date.now(),
+			timestamp: Math.floor(Date.now() / 1000),
 			validatorsHash: utils.getRandomBytes(32),
 		},
 		name: chainAccount.name,
@@ -189,7 +191,7 @@ describe('Test interoperability endpoint', () => {
 			getImmutableMethodContext: jest.fn(),
 			getOffchainStore: jest.fn(),
 			chainID: Buffer.alloc(0),
-			params: { chainID: Buffer.from('00000001', 'hex') },
+			params: { chainID: '00000001' },
 			logger: {} as any,
 			header: { aggregateCommit: { height: 10 }, height: 12, timestamp: Date.now() },
 		};
@@ -223,6 +225,10 @@ describe('Test interoperability endpoint', () => {
 
 		it('should return JSON format result', () => {
 			expect(chainAccountResult).toEqual(chainAccountJSON);
+		});
+
+		it('should pass validation for response', () => {
+			validator.validate(getChainAccountResponseSchema, chainAccountResult);
 		});
 	});
 
@@ -319,9 +325,9 @@ describe('Test interoperability endpoint', () => {
 		};
 
 		const chainValidatorsJSON: ChainValidatorsJSON = {
-			activeValidators: chainValidators.activeValidators.map(validator => ({
-				blsKey: validator.blsKey.toString('hex'),
-				bftWeight: validator.bftWeight.toString(),
+			activeValidators: chainValidators.activeValidators.map(v => ({
+				blsKey: v.blsKey.toString('hex'),
+				bftWeight: v.bftWeight.toString(),
 			})),
 			certificateThreshold: chainValidators.certificateThreshold.toString(),
 		};

@@ -36,6 +36,14 @@ import {
 
 import { CHAIN_ID_LENGTH } from './constants';
 
+interface BFTParametersWithoutGeneratorKey extends Omit<BFTParameters, 'validators'> {
+	validators: {
+		address: Buffer;
+		bftWeight: bigint;
+		blsKey: Buffer;
+	}[];
+}
+
 export const getMainchainID = (chainID: Buffer): Buffer => {
 	const networkID = chainID.slice(0, 1);
 	// 3 bytes for remaining chainID bytes
@@ -160,7 +168,9 @@ export const proveResponseJSONToObj = (proveResponseJSON: ProveResponseJSON): Pr
 	};
 };
 
-export const bftParametersJSONToObj = (bftParametersJSON: BFTParametersJSON): BFTParameters => {
+export const bftParametersJSONToObj = (
+	bftParametersJSON: BFTParametersJSON,
+): BFTParametersWithoutGeneratorKey => {
 	const { certificateThreshold, precommitThreshold, prevoteThreshold, validators, validatorsHash } =
 		bftParametersJSON;
 
@@ -171,7 +181,6 @@ export const bftParametersJSONToObj = (bftParametersJSON: BFTParametersJSON): BF
 		validators: validators.map(validator => ({
 			address: Buffer.from(validator.address, 'hex'),
 			bftWeight: BigInt(validator.bftWeight),
-			generatorKey: Buffer.from(validator.generatorKey, 'hex'),
 			blsKey: Buffer.from(validator.blsKey, 'hex'),
 		})),
 		validatorsHash: Buffer.from(validatorsHash, 'hex'),

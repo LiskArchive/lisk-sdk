@@ -27,7 +27,7 @@ import {
 	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
 	SUBSTORE_PREFIX_LENGTH,
 } from './constants';
-import { chainDataSchema } from './stores/chain_account';
+import { chainDataJSONSchema, chainDataSchema } from './stores/chain_account';
 import { chainValidatorsSchema } from './stores/chain_validators';
 import { channelSchema } from './stores/channel_data';
 import { outboxRootSchema } from './stores/outbox_root';
@@ -596,25 +596,13 @@ export const getChainAccountRequestSchema = {
 	required: ['chainID'],
 	properties: {
 		chainID: {
-			dataType: 'bytes',
-			fieldNumber: 1,
-			minLength: CHAIN_ID_LENGTH,
-			maxLength: CHAIN_ID_LENGTH,
+			type: 'string',
+			format: 'hex',
 		},
 	},
 };
 
-export const getChainAccountResponseSchema = {
-	$id: '/modules/interoperability/endpoint/getChainAccountResponse',
-	type: 'object',
-	required: ['chainID'],
-	properties: {
-		name: {
-			dataType: 'string',
-			fieldNumber: 1,
-		},
-	},
-};
+export const getChainAccountResponseSchema = chainDataJSONSchema;
 
 export const getChainValidatorsRequestSchema = getChainAccountRequestSchema;
 
