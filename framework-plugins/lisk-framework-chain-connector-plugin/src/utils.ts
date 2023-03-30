@@ -22,16 +22,18 @@ import {
 	InboxJSON,
 	Outbox,
 	OutboxJSON,
-} from 'lisk-sdk';
-import {
 	BFTParameters,
+	ProveResponse,
+} from 'lisk-sdk';
+
+import {
 	BFTParametersJSON,
 	CCMsFromEvents,
 	CCMsFromEventsJSON,
-	ProveResponse,
 	ProveResponseJSON,
 	ValidatorsData,
 } from './types';
+
 import { CHAIN_ID_LENGTH } from './constants';
 
 export const getMainchainID = (chainID: Buffer): Buffer => {
@@ -169,6 +171,7 @@ export const bftParametersJSONToObj = (bftParametersJSON: BFTParametersJSON): BF
 		validators: validators.map(validator => ({
 			address: Buffer.from(validator.address, 'hex'),
 			bftWeight: BigInt(validator.bftWeight),
+			generatorKey: Buffer.from(validator.generatorKey, 'hex'),
 			blsKey: Buffer.from(validator.blsKey, 'hex'),
 		})),
 		validatorsHash: Buffer.from(validatorsHash, 'hex'),
