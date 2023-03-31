@@ -686,7 +686,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			const listOfCCUs = await this._chainConnectorStore.getListOfCCUs();
 			if (listOfCCUs.length > this._ccuSaveLimit) {
 				await this._chainConnectorStore.setListOfCCUs(
-					listOfCCUs.slice(0, listOfCCUs.length - this._ccuSaveLimit),
+					// Takes the last ccuSaveLimit elements
+					listOfCCUs.slice(-this._ccuSaveLimit),
 				);
 			}
 		}
