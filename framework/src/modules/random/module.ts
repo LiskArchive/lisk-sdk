@@ -228,8 +228,8 @@ export class RandomModule extends BaseModule {
 			};
 		}
 
-		const nextCount = usedHashOnion.count + 1;
-		if (nextCount > hashOnion.count) {
+		const newCount = usedHashOnion.count + 1;
+		if (newCount > hashOnion.count) {
 			logger.warn(
 				'All of the hash onion has been used already. Please update to the new hash onion.',
 			);
@@ -240,27 +240,27 @@ export class RandomModule extends BaseModule {
 		}
 
 		// if at the checkpoint, return the hash available from the store
-		const distanceAfterCheckpoint = nextCount % hashOnion.distance;
+		const distanceAfterCheckpoint = newCount % hashOnion.distance;
 		if (distanceAfterCheckpoint === 0) {
 			return {
-				hash: hashOnion.hashes[nextCount / hashOnion.distance],
-				count: nextCount,
+				hash: hashOnion.hashes[newCount / hashOnion.distance],
+				count: newCount,
 			};
 		}
 
 		// otherwise fetch the next checkpoint and calculate the current hash from there
-		const nextCheckpointIndex = Math.ceil(nextCount / hashOnion.distance);
-		const nextCheckpoint = hashOnion.hashes[nextCheckpointIndex];
+		const nextCheckpointIndex = Math.ceil(newCount / hashOnion.distance);
+		const nextCheckpointHash = hashOnion.hashes[nextCheckpointIndex];
 		// calculate only until the current hash, instead of all the way until the previous checkpoint
 		const hashesFromCheckpoint = utils.hashOnion(
-			nextCheckpoint,
+			nextCheckpointHash,
 			hashOnion.distance - distanceAfterCheckpoint,
 			1,
 		);
 
 		return {
 			hash: hashesFromCheckpoint[0],
-			count: nextCount,
+			count: newCount,
 		};
 	}
 
