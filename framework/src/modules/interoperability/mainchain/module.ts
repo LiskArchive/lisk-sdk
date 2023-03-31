@@ -394,6 +394,8 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 					);
 				}
 
+				this._verifyTerminatedStateAccountsCommon(terminatedStateAccounts);
+
 				// For each entry stateAccount in terminatedStateAccounts holds
 				// stateAccount.stateRoot == chainData.lastCertificate.stateRoot,
 				// stateAccount.mainchainStateRoot == EMPTY_HASH, and
