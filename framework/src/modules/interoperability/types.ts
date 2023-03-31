@@ -89,11 +89,9 @@ export interface ImmutableCrossChainMessageContext {
 	transaction: {
 		senderAddress: Buffer;
 		fee: bigint;
+		params: Buffer;
 	};
 	ccm: CCMsg;
-	ccu: {
-		sendingChainID: Buffer;
-	};
 }
 
 export interface CrossChainMessageContext extends ImmutableCrossChainMessageContext {

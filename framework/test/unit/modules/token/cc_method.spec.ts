@@ -37,6 +37,7 @@ import { BeforeCCCExecutionEvent } from '../../../../src/modules/token/events/be
 import { BeforeCCMForwardingEvent } from '../../../../src/modules/token/events/before_ccm_forwarding';
 import { RecoverEvent } from '../../../../src/modules/token/events/recover';
 import { CROSS_CHAIN_COMMAND_REGISTRATION } from '../../../../src/modules/interoperability/constants';
+import { ccuParamsSchema } from '../../../../src';
 
 describe('TokenInteroperableMethod', () => {
 	const tokenModule = new TokenModule();
@@ -61,6 +62,24 @@ describe('TokenInteroperableMethod', () => {
 	const defaultTotalSupply = BigInt('100000000000000');
 	const defaultEscrowAmount = BigInt('100000000000');
 	const sendingChainID = Buffer.from([3, 0, 0, 0]);
+	const defaultEncodedCCUParams = codec.encode(ccuParamsSchema, {
+		activeValidatorsUpdate: {
+			blsKeysUpdate: [],
+			bftWeightsUpdate: [],
+			bftWeightsUpdateBitmap: Buffer.alloc(0),
+		},
+		certificate: Buffer.alloc(1),
+		certificateThreshold: BigInt(1),
+		inboxUpdate: {
+			crossChainMessages: [],
+			messageWitnessHashes: [],
+			outboxRootWitness: {
+				bitmap: Buffer.alloc(1),
+				siblingHashes: [],
+			},
+		},
+		sendingChainID: Buffer.from('04000001', 'hex'),
+	});
 
 	let tokenInteropMethod: TokenInteroperableMethod;
 	let stateStore: PrefixedStateReadWriter;
@@ -151,9 +170,7 @@ describe('TokenInteroperableMethod', () => {
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
-					},
-					ccu: {
-						sendingChainID,
+						params: defaultEncodedCCUParams,
 					},
 				}),
 			).resolves.toBeUndefined();
@@ -196,9 +213,7 @@ describe('TokenInteroperableMethod', () => {
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
-					},
-					ccu: {
-						sendingChainID,
+						params: defaultEncodedCCUParams,
 					},
 				}),
 			).rejects.toThrow('Insufficient balance in the sending chain for the message fee.');
@@ -236,9 +251,7 @@ describe('TokenInteroperableMethod', () => {
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
-					},
-					ccu: {
-						sendingChainID,
+						params: defaultEncodedCCUParams,
 					},
 				}),
 			).resolves.toBeUndefined();
@@ -288,9 +301,7 @@ describe('TokenInteroperableMethod', () => {
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
-					},
-					ccu: {
-						sendingChainID,
+						params: defaultEncodedCCUParams,
 					},
 				}),
 			).rejects.toThrow('Insufficient balance in the sending chain for the message fee.');
@@ -336,9 +347,7 @@ describe('TokenInteroperableMethod', () => {
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
-					},
-					ccu: {
-						sendingChainID,
+						params: defaultEncodedCCUParams,
 					},
 				}),
 			).resolves.toBeUndefined();
@@ -384,9 +393,7 @@ describe('TokenInteroperableMethod', () => {
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
-					},
-					ccu: {
-						sendingChainID,
+						params: defaultEncodedCCUParams,
 					},
 				}),
 			).resolves.toBeUndefined();
@@ -419,9 +426,7 @@ describe('TokenInteroperableMethod', () => {
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
-					},
-					ccu: {
-						sendingChainID,
+						params: defaultEncodedCCUParams,
 					},
 				}),
 			).rejects.toThrow('Insufficient escrow amount.');
@@ -457,9 +462,7 @@ describe('TokenInteroperableMethod', () => {
 					transaction: {
 						fee,
 						senderAddress: defaultAddress,
-					},
-					ccu: {
-						sendingChainID,
+						params: defaultEncodedCCUParams,
 					},
 				}),
 			).resolves.toBeUndefined();

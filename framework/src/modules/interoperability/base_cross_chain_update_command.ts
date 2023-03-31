@@ -24,6 +24,7 @@ import { CcmSendSuccessEvent } from './events/ccm_send_success';
 import { ccmSchema, crossChainUpdateTransactionParams } from './schemas';
 import {
 	CCMsg,
+	CCUpdateParams,
 	CrossChainMessageContext,
 	CrossChainUpdateTransactionParams,
 	TokenMethod,
@@ -178,7 +179,7 @@ export abstract class BaseCrossChainUpdateCommand<
 	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#apply
 	 */
 	protected async apply(context: CrossChainMessageContext): Promise<void> {
-		const { ccm, ccu, logger } = context;
+		const { ccm, logger } = context;
 		const { ccmID, encodedCCM } = getEncodedCCMAndID(ccm);
 		const valid = await this.verifyCCM(context, ccmID);
 		if (!valid) {
@@ -275,7 +276,11 @@ export abstract class BaseCrossChainUpdateCommand<
 				.get(ChainAccountStore)
 				.has(context, ccm.sendingChainID);
 
-			if (isSendingChainExist && !ccu.sendingChainID.equals(ccm.sendingChainID)) {
+			const ccuParams = codec.decode<CCUpdateParams>(
+				crossChainUpdateTransactionParams,
+				context.transaction.params,
+			);
+			if (isSendingChainExist && !ccuParams.sendingChainID.equals(ccm.sendingChainID)) {
 				throw new Error('Cannot receive forwarded messages for a direct channel.');
 			}
 			// Execute the cross-chain command.
