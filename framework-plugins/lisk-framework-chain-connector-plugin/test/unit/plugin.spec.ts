@@ -902,7 +902,11 @@ describe('ChainConnectorPlugin', () => {
 				blockHeader1,
 				blockHeader2,
 			] as never);
-			sampleCCUs = [getSampleCCU(), getSampleCCU()];
+			sampleCCUs = [
+				getSampleCCU({ nonce: BigInt(1) }),
+				getSampleCCU({ nonce: BigInt(2) }),
+				getSampleCCU({ nonce: BigInt(2) }),
+			];
 			chainConnectorStoreMock.getListOfCCUs.mockResolvedValue(sampleCCUs as never);
 		});
 
@@ -944,7 +948,7 @@ describe('ChainConnectorPlugin', () => {
 			expect(chainConnectorPlugin['_chainConnectorStore'].getListOfCCUs).toHaveBeenCalledTimes(1);
 
 			expect(chainConnectorPlugin['_chainConnectorStore'].setListOfCCUs).toHaveBeenCalledWith([
-				sampleCCUs[1],
+				sampleCCUs[2],
 			]);
 		});
 	});
