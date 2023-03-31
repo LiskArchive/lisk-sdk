@@ -23,10 +23,8 @@ import {
 	getTerminatedStateAccountRequestSchema,
 	getTerminatedOutboxAccountRequestSchema,
 	genesisInteroperabilitySchema,
-	isChainIDAvailableResponseSchema,
 	getChainValidatorsRequestSchema,
 	getChainValidatorsResponseSchema,
-	isChainIDAvailableRequestSchema,
 } from '../schemas';
 import { chainDataSchema, allChainAccountsSchema } from '../stores/chain_account';
 import { channelSchema } from '../stores/channel_data';
@@ -38,13 +36,15 @@ import { CcmProcessedEvent } from '../events/ccm_processed';
 import { InvalidRegistrationSignatureEvent } from '../events/invalid_registration_signature';
 import { CcmSendSuccessEvent } from '../events/ccm_send_success';
 import { BaseCCMethod } from '../base_cc_method';
-import { TokenMethod, ValidatorsMethod } from '../types';
+import { ValidatorsMethod } from '../types';
 import { SidechainInteroperabilityInternalMethod } from './internal_method';
 import { SubmitSidechainCrossChainUpdateCommand } from './commands';
 import { InitializeStateRecoveryCommand } from './commands/initialize_state_recovery';
 import { RecoverStateCommand } from './commands/recover_state';
 import { SidechainCCChannelTerminatedCommand, SidechainCCRegistrationCommand } from './cc_commands';
 import { CcmSentFailedEvent } from '../events/ccm_send_fail';
+import { TokenMethod } from '../../token';
+import { InvalidCertificateSignatureEvent } from '../events/invalid_certificate_signature';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod: BaseCCMethod = new SidechainCCMethod(this.stores, this.events);
@@ -127,11 +127,16 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			new InvalidRegistrationSignatureEvent(this.name),
 		);
 		this.events.register(CcmSentFailedEvent, new CcmSentFailedEvent(this.name));
+		this.events.register(
+			InvalidCertificateSignatureEvent,
+			new InvalidCertificateSignatureEvent(this.name),
+		);
 	}
 
 	public addDependencies(validatorsMethod: ValidatorsMethod, tokenMethod: TokenMethod) {
 		this._validatorsMethod = validatorsMethod;
 		this._crossChainUpdateCommand.init(this.method, tokenMethod);
+		this.internalMethod.addDependencies(tokenMethod);
 	}
 
 	public metadata(): ModuleMetadata {
@@ -171,11 +176,6 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 					name: this.endpoint.getChainValidators.name,
 					request: getChainValidatorsRequestSchema,
 					response: getChainValidatorsResponseSchema,
-				},
-				{
-					name: this.endpoint.isChainIDAvailable.name,
-					request: isChainIDAvailableRequestSchema,
-					response: isChainIDAvailableResponseSchema,
 				},
 			],
 			assets: [

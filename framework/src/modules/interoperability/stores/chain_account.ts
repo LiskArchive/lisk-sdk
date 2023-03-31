@@ -42,7 +42,49 @@ export interface ChainAccount {
 	status: ChainStatus;
 }
 
-const chainDataJSONSchema = {
+export const chainDataJSONSchema = {
+	type: 'object',
+	required: ['name', 'lastCertificate', 'status'],
+	properties: {
+		name: {
+			dataType: 'string',
+			fieldNumber: 1,
+		},
+		lastCertificate: {
+			type: 'object',
+			fieldNumber: 2,
+			required: ['height', 'timestamp', 'stateRoot', 'validatorsHash'],
+			properties: {
+				height: {
+					dataType: 'uint32',
+					fieldNumber: 1,
+				},
+				timestamp: {
+					dataType: 'uint32',
+					fieldNumber: 2,
+				},
+				stateRoot: {
+					dataType: 'string',
+					format: 'hex',
+					fieldNumber: 3,
+				},
+				validatorsHash: {
+					dataType: 'string',
+					format: 'hex',
+					fieldNumber: 4,
+				},
+			},
+		},
+		status: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+	},
+};
+
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#chain-data-substore
+export const chainDataSchema = {
+	$id: '/modules/interoperability/chainData',
 	type: 'object',
 	required: ['name', 'lastCertificate', 'status'],
 	properties: {
@@ -82,12 +124,6 @@ const chainDataJSONSchema = {
 			fieldNumber: 3,
 		},
 	},
-};
-
-// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#chain-data-substore
-export const chainDataSchema = {
-	$id: '/modules/interoperability/chainData',
-	...chainDataJSONSchema,
 };
 
 export const allChainAccountsSchema = {

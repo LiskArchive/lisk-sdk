@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { CommandExecuteContext, CommandVerifyContext } from '../../state_machine';
+import { CommandExecuteContext } from '../../state_machine';
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import { BaseInteroperabilityMethod } from './base_interoperability_method';
@@ -28,7 +28,7 @@ import {
 	CrossChainUpdateTransactionParams,
 	TokenMethod,
 } from './types';
-import { ChainAccountStore, ChainStatus } from './stores/chain_account';
+import { ChainAccountStore } from './stores/chain_account';
 import {
 	emptyActiveValidatorsUpdate,
 	getEncodedCCMAndID,
@@ -50,34 +50,6 @@ export abstract class BaseCrossChainUpdateCommand<
 	public init(interopsMethod: BaseInteroperabilityMethod<T>, tokenMethod: TokenMethod) {
 		this._tokenMethod = tokenMethod;
 		this._interopsMethod = interopsMethod;
-	}
-
-	protected async verifyCommon(context: CommandVerifyContext<CrossChainUpdateTransactionParams>) {
-		const { params } = context;
-		const sendingChainAccount = await this.stores
-			.get(ChainAccountStore)
-			.get(context, params.sendingChainID);
-		if (sendingChainAccount.status === ChainStatus.REGISTERED && params.certificate.length === 0) {
-			throw new Error(
-				'Cross-chain updates from chains with status CHAIN_STATUS_REGISTERED must contain a non-empty certificate.',
-			);
-		}
-		if (params.certificate.length > 0) {
-			await this.internalMethod.verifyCertificate(context, params, context.header.timestamp);
-		}
-		const sendingChainValidators = await this.stores
-			.get(ChainValidatorsStore)
-			.get(context, params.sendingChainID);
-		if (
-			!emptyActiveValidatorsUpdate(params.activeValidatorsUpdate) ||
-			params.certificateThreshold !== sendingChainValidators.certificateThreshold
-		) {
-			await this.internalMethod.verifyValidatorsUpdate(context, params);
-		}
-
-		if (!isInboxUpdateEmpty(params.inboxUpdate)) {
-			await this.internalMethod.verifyPartnerChainOutboxRoot(context, params);
-		}
 	}
 
 	protected async executeCommon(
@@ -254,7 +226,7 @@ export abstract class BaseCrossChainUpdateCommand<
 		const baseStateSnapshotID = context.stateStore.createSnapshot();
 
 		try {
-			// Call the beforeCrossChainCommandExecution functions from other modules.
+			// Call the beforeCrossChainCommandExecute functions from other modules.
 			// For example, the Token module assigns the message fee to the CCU sender.
 			for (const [module, method] of this.interoperableCCMethods.entries()) {
 				if (method.beforeCrossChainCommandExecute) {

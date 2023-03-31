@@ -56,6 +56,7 @@ import { MainchainCCChannelTerminatedCommand, MainchainCCRegistrationCommand } f
 import { RecoverStateCommand } from './commands/recover_state';
 import { CcmSentFailedEvent } from '../events/ccm_send_fail';
 import { InvalidRegistrationSignatureEvent } from '../events/invalid_registration_signature';
+import { InvalidCertificateSignatureEvent } from '../events/invalid_certificate_signature';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
@@ -155,11 +156,16 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		);
 		this.events.register(TerminatedStateCreatedEvent, new TerminatedStateCreatedEvent(this.name));
 		this.events.register(TerminatedOutboxCreatedEvent, new TerminatedOutboxCreatedEvent(this.name));
+		this.events.register(
+			InvalidCertificateSignatureEvent,
+			new InvalidCertificateSignatureEvent(this.name),
+		);
 	}
 
 	public addDependencies(tokenMethod: TokenMethod, feeMethod: FeeMethod) {
-		this._sidechainRegistrationCommand.addDependencies(feeMethod);
+		this._sidechainRegistrationCommand.addDependencies(feeMethod, tokenMethod);
 		this._crossChainUpdateCommand.init(this.method, tokenMethod);
+		this.internalMethod.addDependencies(tokenMethod);
 	}
 
 	public metadata(): ModuleMetadata {

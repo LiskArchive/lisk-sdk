@@ -296,7 +296,12 @@ export abstract class CreateCommand extends Command {
 		this._dataPath = flags['data-path'] ?? getDefaultPath(this.config.pjson.name);
 
 		if (flags.offline) {
-			const app = this.getApplication({});
+			const app = this.getApplication({
+				genesis: {
+					chainID: flags['chain-id'],
+				},
+			});
+
 			this._metadata = app.getMetadata();
 			this._schema = {
 				header: blockHeaderSchema,

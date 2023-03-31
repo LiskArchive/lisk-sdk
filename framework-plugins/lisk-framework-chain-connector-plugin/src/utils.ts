@@ -22,15 +22,27 @@ import {
 	InboxJSON,
 	Outbox,
 	OutboxJSON,
-} from 'lisk-sdk';
-import {
 	BFTParameters,
-	BFTParametersJSON,
 	ProveResponse,
+} from 'lisk-sdk';
+
+import {
+	BFTParametersJSON,
+	CCMsFromEvents,
+	CCMsFromEventsJSON,
 	ProveResponseJSON,
 	ValidatorsData,
 } from './types';
+
 import { CHAIN_ID_LENGTH } from './constants';
+
+interface BFTParametersWithoutGeneratorKey extends Omit<BFTParameters, 'validators'> {
+	validators: {
+		address: Buffer;
+		bftWeight: bigint;
+		blsKey: Buffer;
+	}[];
+}
 
 export const getMainchainID = (chainID: Buffer): Buffer => {
 	const networkID = chainID.slice(0, 1);
@@ -42,6 +54,22 @@ export const aggregateCommitToJSON = (aggregateCommit: AggregateCommit) => ({
 	height: aggregateCommit.height,
 	aggregationBits: aggregateCommit.aggregationBits.toString('hex'),
 	certificateSignature: aggregateCommit.certificateSignature.toString('hex'),
+});
+
+export const ccmsFromEventsToJSON = (ccmsFromEvents: CCMsFromEvents): CCMsFromEventsJSON => ({
+	ccms: ccmsFromEvents.ccms.map(ccm => ({
+		...ccm,
+		fee: ccm.fee.toString(),
+		nonce: ccm.nonce.toString(),
+		params: ccm.params.toString('hex'),
+		receivingChainID: ccm.receivingChainID.toString('hex'),
+		sendingChainID: ccm.sendingChainID.toString('hex'),
+	})),
+	height: ccmsFromEvents.height,
+	inclusionProof: {
+		bitmap: ccmsFromEvents.inclusionProof.bitmap.toString('hex'),
+		siblingHashes: ccmsFromEvents.inclusionProof.siblingHashes.map(s => s.toString('hex')),
+	},
 });
 
 export const validatorsHashPreimagetoJSON = (validatorsHashPreimage: ValidatorsData[]) => {
@@ -140,7 +168,9 @@ export const proveResponseJSONToObj = (proveResponseJSON: ProveResponseJSON): Pr
 	};
 };
 
-export const bftParametersJSONToObj = (bftParametersJSON: BFTParametersJSON): BFTParameters => {
+export const bftParametersJSONToObj = (
+	bftParametersJSON: BFTParametersJSON,
+): BFTParametersWithoutGeneratorKey => {
 	const { certificateThreshold, precommitThreshold, prevoteThreshold, validators, validatorsHash } =
 		bftParametersJSON;
 

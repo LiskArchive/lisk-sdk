@@ -2,14 +2,14 @@
 
 # Lisk SDK
 
-[![Build Status](https://jenkins.lisk.com/job/lisk-sdk/job/lisk-sdk/job/development/badge/icon)](https://jenkins.lisk.com/job/lisk-sdk/job/lisk-sdk/job/development/)
+[![Build status](https://github.com/LiskHQ/lisk-sdk/actions/workflows/branch.yaml/badge.svg?branch=development)](https://github.com/LiskHQ/lisk-sdk/actions/workflows/branch.yaml)
 ![npm](https://img.shields.io/npm/v/lisk-sdk)
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/liskHQ/lisk-sdk)
 ![GitHub repo size](https://img.shields.io/github/repo-size/liskhq/lisk-sdk)
 [![DeepScan grade](https://deepscan.io/api/teams/6759/projects/8869/branches/113509/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=6759&pid=8869&bid=113509)
 ![GitHub issues](https://img.shields.io/github/issues-raw/liskhq/lisk-sdk)
 ![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/liskhq/lisk-sdk)
-![Jenkins Coverage](https://img.shields.io/jenkins/coverage/cobertura?jobUrl=https%3A%2F%2Fjenkins.lisk.com%2Fjob%2Flisk-sdk%2Fjob%2Fdevelopment)
+[![codecov](https://codecov.io/gh/LiskHQ/lisk-sdk/branch/development/graph/badge.svg?token=2JhT7caf5x)](https://codecov.io/gh/LiskHQ/lisk-sdk)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
 ## Sapphire phase [<img src="https://lisk.com/sites/default/files/2021-05/ico-sapphire.png" style="width:24px;vertical-align:middle">](https://lisk.com/roadmap)

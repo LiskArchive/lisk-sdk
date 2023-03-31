@@ -34,7 +34,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 		this._interopMethod = interoperabilityMethod;
 	}
 
-	public async beforeCrossChainCommandExecution(ctx: CrossChainMessageContext): Promise<void> {
+	public async beforeCrossChainCommandExecute(ctx: CrossChainMessageContext): Promise<void> {
 		const {
 			transaction: { senderAddress: relayerAddress },
 			ccm,

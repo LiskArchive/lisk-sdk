@@ -13,7 +13,12 @@
  */
 
 import { chain, aggregateCommitSchema, ccmSchema } from 'lisk-sdk';
-import { CCU_FREQUENCY, CCU_TOTAL_CCM_SIZE, DEFAULT_REGISTRATION_HEIGHT } from './constants';
+import {
+	CCU_FREQUENCY,
+	CCU_TOTAL_CCM_SIZE,
+	DEFAULT_CCU_SAVE_LIMIT,
+	DEFAULT_REGISTRATION_HEIGHT,
+} from './constants';
 
 const pluginSchemaIDPrefix = '/lisk/plugins/chainConnector';
 
@@ -57,18 +62,28 @@ export const configSchema = {
 			minimum: 1,
 			maximum: CCU_TOTAL_CCM_SIZE,
 		},
+		ccuSaveLimit: {
+			type: 'integer',
+			description: 'Number of CCUs to save.',
+			minimum: -1,
+		},
 		registrationHeight: {
 			type: 'integer',
 			description: 'Height at the time of registration on the receiving chain.',
 			minimum: 1,
 		},
+		receivingChainID: {
+			type: 'string',
+			description: 'Chain ID of the receiving chain.',
+		},
 	},
-	required: ['ccuFee', 'encryptedPrivateKey', 'password'],
+	required: ['ccuFee', 'encryptedPrivateKey', 'password', 'receivingChainID'],
 	default: {
 		ccuFrequency: CCU_FREQUENCY,
 		isSaveCCU: false,
 		maxCCUSize: CCU_TOTAL_CCM_SIZE,
 		registrationHeight: DEFAULT_REGISTRATION_HEIGHT,
+		ccuSaveLimit: DEFAULT_CCU_SAVE_LIMIT,
 	},
 };
 

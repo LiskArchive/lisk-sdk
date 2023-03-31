@@ -223,8 +223,6 @@ export interface CCTransferMessageParams {
 	senderAddress: Buffer;
 	recipientAddress: Buffer;
 	data: string;
-	messageFee: bigint;
-	escrowInitialzationFee: bigint;
 }
 
 export const crossChainTransferMessageParams = {

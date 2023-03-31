@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-cryptography",
-	"version": "4.0.0-alpha.6",
+	"version": "4.0.0-alpha.8",
 	"description": "General cryptographic functions for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -40,7 +40,7 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"@liskhq/lisk-passphrase": "^4.0.0-alpha.2",
+		"@liskhq/lisk-passphrase": "^4.0.0-alpha.3",
 		"buffer-reverse": "1.0.1",
 		"ed2curve": "0.3.0",
 		"hash-wasm": "4.9.0",
@@ -82,6 +82,6 @@
 		"ts-jest": "29.0.3",
 		"ts-node": "10.9.1",
 		"tsconfig-paths": "4.1.0",
-		"typescript": "4.9.3"
+		"typescript": "5.0.2"
 	}
 }

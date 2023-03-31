@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-utils",
-	"version": "0.3.0-alpha.4",
+	"version": "0.3.0-alpha.5",
 	"description": "Library containing generic utility functions for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -61,6 +61,6 @@
 		"ts-jest": "29.0.3",
 		"ts-node": "10.9.1",
 		"tsconfig-paths": "4.1.0",
-		"typescript": "4.9.3"
+		"typescript": "5.0.2"
 	}
 }

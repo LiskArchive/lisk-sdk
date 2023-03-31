@@ -60,7 +60,6 @@ import { Endpoint } from './endpoint';
 import { configSchema } from './schemas';
 import {
 	ChainConnectorPluginConfig,
-	SentCCUs,
 	BlockHeader,
 	ProveResponseJSON,
 	BFTParametersJSON,
@@ -106,8 +105,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _receivingChainID!: Buffer;
 	private _isReceivingChainMainchain!: boolean;
 	private _registrationHeight!: number;
-	private readonly _sentCCUs: SentCCUs = [];
 	private _privateKey!: Buffer;
+	private _ccuSaveLimit!: number;
 
 	public get nodeModulePath(): string {
 		return __filename;
@@ -120,9 +119,11 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		if (this.config.maxCCUSize > CCU_TOTAL_CCM_SIZE) {
 			throw new Error(`maxCCUSize cannot be greater than ${CCU_TOTAL_CCM_SIZE} bytes.`);
 		}
+		this._receivingChainID = Buffer.from(this.config.receivingChainID, 'hex');
 		this._maxCCUSize = this.config.maxCCUSize;
 		this._isSaveCCU = this.config.isSaveCCU;
 		this._registrationHeight = this.config.registrationHeight;
+		this._ccuSaveLimit = this.config.ccuSaveLimit;
 		const { password, encryptedPrivateKey } = this.config;
 		if (password) {
 			const parsedEncryptedKey = encrypt.parseEncryptedMessage(encryptedPrivateKey);
@@ -138,16 +139,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		this._chainConnectorStore = new ChainConnectorStore(this._chainConnectorPluginDB);
 		this.endpoint.load(this._chainConnectorStore);
 
-		if (this.config.receivingChainIPCPath) {
-			this._receivingChainClient = await apiClient.createIPCClient(
-				this.config.receivingChainIPCPath,
-			);
-		} else if (this.config.receivingChainWsURL) {
-			this._receivingChainClient = await apiClient.createWSClient(this.config.receivingChainWsURL);
-		} else {
-			throw new Error('IPC path and WS url are undefined.');
-		}
-
 		this._sendingChainClient = this.apiClient;
 
 		this._ownChainID = Buffer.from(
@@ -158,14 +149,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			).chainID,
 			'hex',
 		);
-		this._receivingChainID = Buffer.from(
-			(
-				await this._receivingChainClient.invoke<OwnChainAccountJSON>(
-					'interoperability_getOwnChainAccount',
-				)
-			).chainID,
-			'hex',
-		);
+		if (this._receivingChainID[0] !== this._ownChainID[0]) {
+			throw new Error('Receiving Chain ID network does not match the sending chain network.');
+		}
 		// If the running node is mainchain then receiving chain will be sidechain or vice verse.
 		this._isReceivingChainMainchain = !getMainchainID(this._ownChainID).equals(this._ownChainID);
 		// On a new block start with CCU creation process
@@ -180,7 +166,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	}
 
 	public async unload(): Promise<void> {
-		await this._receivingChainClient.disconnect();
+		if (this._receivingChainClient) {
+			await this._receivingChainClient.disconnect();
+		}
 		if (this._sendingChainClient) {
 			await this._sendingChainClient.disconnect();
 		}
@@ -203,20 +191,32 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		// Save blockHeader, aggregateCommit, validatorsData and cross chain messages if any.
 		try {
 			// Fetch last certificate from the receiving chain and update the _lastCertificate
-			chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
-				'interoperability_getChainAccount',
-				{ chainID: this._ownChainID.toString('hex') },
-			);
-
-			// If sending chain is not registered with the receiving chain then only save data on new block and exit
-			if (!chainAccountJSON || (chainAccountJSON && !chainAccountJSON.lastCertificate)) {
-				this.logger.info(
-					'Sending chain is not registered to the receiving chain yet and has no chain data.',
+			try {
+				chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
+					'interoperability_getChainAccount',
+					{ chainID: this._ownChainID.toString('hex') },
 				);
+				// If sending chain is not registered with the receiving chain then only save data on new block and exit
+				if (!chainAccountJSON || (chainAccountJSON && !chainAccountJSON.lastCertificate)) {
+					this.logger.info(
+						'Sending chain is not registered to the receiving chain yet and has no chain data.',
+					);
+					await this._saveDataOnNewBlock(newBlockHeader);
+
+					return;
+				}
+			} catch (error) {
+				// If receivingChainAPIClient is not ready then still save data on new block
 				await this._saveDataOnNewBlock(newBlockHeader);
+				await this._initializeReceivingChainClient();
+				this.logger.error(
+					error,
+					'Error occurred while accessing receivingChainAPIClient but all data is saved on newBlock.',
+				);
 
 				return;
 			}
+
 			this._lastCertificate = chainAccountDataJSONToObj(chainAccountJSON).lastCertificate;
 			const { aggregateCommits, blockHeaders, validatorsHashPreimage, crossChainMessages } =
 				await this._saveDataOnNewBlock(newBlockHeader);
@@ -234,6 +234,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 					try {
 						await this._submitCCU(codec.encode(ccuParamsSchema, computedCCUParams.ccuParams));
 						// If CCU was sent successfully then save the lastSentCCM if any
+						// TODO: Add function to check on the receiving chain whether last sent CCM was accepted or not
 						if (computedCCUParams.lastCCMToBeSent) {
 							await this._chainConnectorStore.setLastSentCCM(computedCCUParams.lastCCMToBeSent);
 						}
@@ -418,10 +419,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 		if (this._lastCertificate.height === 0) {
 			for (const aggregateCommit of aggregateCommits) {
-				if (
-					aggregateCommit.certificateSignature.equals(EMPTY_BYTES) ||
-					aggregateCommit.height < this._registrationHeight
-				) {
+				if (aggregateCommit.height < this._registrationHeight) {
 					continue;
 				}
 
@@ -545,6 +543,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			Buffer.from(store?.key as string, 'hex'),
 			cryptography.utils.hash(this._receivingChainID),
 		]).toString('hex');
+
 		const proveResponseJSON = await this._sendingChainClient.invoke<ProveResponseJSON>(
 			'state_prove',
 			{
@@ -589,7 +588,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 		// Save aggregateCommit if present in the block header
 		const aggregateCommits = await this._chainConnectorStore.getAggregateCommits();
-		if (newBlockHeader.aggregateCommit) {
+		if (
+			!newBlockHeader.aggregateCommit.aggregationBits.equals(EMPTY_BYTES) ||
+			!newBlockHeader.aggregateCommit.certificateSignature.equals(EMPTY_BYTES)
+		) {
 			const aggregateCommitIndex = aggregateCommits.findIndex(
 				commit => commit.height === newBlockHeader.aggregateCommit.height,
 			);
@@ -678,6 +680,16 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 					validatorsData.certificateThreshold >= BigInt(this._lastCertificate.height),
 			),
 		);
+		// Delete CCUs
+		// When given -1 then there is no limit
+		if (this._ccuSaveLimit !== -1) {
+			const listOfCCUs = await this._chainConnectorStore.getListOfCCUs();
+			if (listOfCCUs.length > this._ccuSaveLimit) {
+				await this._chainConnectorStore.setListOfCCUs(
+					listOfCCUs.slice(0, listOfCCUs.length - this._ccuSaveLimit),
+				);
+			}
+		}
 	}
 
 	private async _submitCCU(ccuParams: Buffer): Promise<void> {
@@ -723,12 +735,33 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		 * TODO: As of now we save it in memory but going forward it should be saved in DB,
 		 * as the array size can grow after sometime.
 		 */
-		this._sentCCUs.push(tx);
 		// Save the sent CCU
 		const listOfCCUs = await this._chainConnectorStore.getListOfCCUs();
 		listOfCCUs.push(tx.toObject());
 		await this._chainConnectorStore.setListOfCCUs(listOfCCUs);
 		// Update logs
 		this.logger.info({ transactionID: result.transactionId }, 'Sent CCU transaction');
+	}
+
+	private async _initializeReceivingChainClient() {
+		if (!this.config.receivingChainIPCPath && !this.config.receivingChainWsURL) {
+			throw new Error('IPC path and WS url are undefined in the configuration.');
+		}
+		try {
+			if (this.config.receivingChainIPCPath) {
+				this._receivingChainClient = await apiClient.createIPCClient(
+					this.config.receivingChainIPCPath,
+				);
+			} else if (this.config.receivingChainWsURL) {
+				this._receivingChainClient = await apiClient.createWSClient(
+					this.config.receivingChainWsURL,
+				);
+			}
+		} catch (error) {
+			this.logger.error(
+				error,
+				'Not able to connect to receivingChainAPIClient. Trying again on next new block.',
+			);
+		}
 	}
 }

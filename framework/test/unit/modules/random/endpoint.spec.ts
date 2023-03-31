@@ -444,4 +444,93 @@ describe('RandomModuleEndpoint', () => {
 			});
 		});
 	});
+
+	describe('setHashOnionUsage', () => {
+		it('should store the appropriate params in the offchain store', async () => {
+			// Arrange
+			const { address } = genesisValidators.validators[0];
+			const count = 1000;
+			const height = 50;
+			context.params = { address, count, height };
+
+			// Act
+			await randomEndpoint.setHashOnionUsage(context);
+
+			const usedHashOnionStore = randomEndpoint['offchainStores'].get(UsedHashOnionsStore);
+			const usedOnionData = await usedHashOnionStore.get(
+				context,
+				cryptography.address.getAddressFromLisk32Address(address),
+			);
+
+			// Assert
+			expect(usedOnionData).toEqual({
+				usedHashOnions: [
+					{
+						count: 1000,
+						height: 50,
+					},
+				],
+			});
+		});
+
+		it('should throw error when address provided in params is invalid', async () => {
+			// Arrange
+			const address = ['address'];
+			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
+			const count = 1000;
+			const distance = 1000;
+			const height = 50;
+			context.params = { address, seed, count, distance, height };
+
+			// Act & Assert
+			await expect(randomEndpoint.setHashOnionUsage(context)).rejects.toThrow(
+				"Lisk validator found 1 error[s]:\nProperty '.address' should be of type 'string'",
+			);
+		});
+
+		it('should throw error when count provided in params is invalid', async () => {
+			// Arrange
+			const { address } = genesisValidators.validators[0];
+			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
+			const count = 'count';
+			const distance = 1000;
+			const height = 50;
+			context.params = { address, seed, count, distance, height };
+
+			// Act & Assert
+			await expect(randomEndpoint.setHashOnionUsage(context)).rejects.toThrow(
+				"Lisk validator found 1 error[s]:\nProperty '.count' should be of type 'integer'",
+			);
+		});
+
+		it('should throw error when height provided in params is invalid', async () => {
+			// Arrange
+			const { address } = genesisValidators.validators[0];
+			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
+			const count = 1000;
+			const distance = 1000;
+			const height = 'height';
+			context.params = { address, seed, count, distance, height };
+
+			// Act & Assert
+			await expect(randomEndpoint.setHashOnionUsage(context)).rejects.toThrow(
+				"Lisk validator found 2 error[s]:\nProperty '.height' should be of type 'integer'\nProperty '.height' must match format \"uint32\"",
+			);
+		});
+
+		it('should throw error when count is less than 1', async () => {
+			// Arrange
+			const { address } = genesisValidators.validators[0];
+			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
+			const count = 0;
+			const distance = 1000;
+			const height = 50;
+			context.params = { address, seed, count, distance, height };
+
+			// Act & Assert
+			await expect(randomEndpoint.setHashOnionUsage(context)).rejects.toThrow(
+				'Lisk validator found 1 error[s]:\nmust be >= 1',
+			);
+		});
+	});
 });

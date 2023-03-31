@@ -55,10 +55,11 @@ import {
 import * as certificateGenerationUtil from '../../src/certificate_generation';
 import * as activeValidatorsUpdateUtil from '../../src/active_validators_update';
 import { getMainchainID } from '../../src/utils';
+import { getSampleCCU } from '../utils/sampleCCU';
 
 describe('ChainConnectorPlugin', () => {
 	const BLS_SIGNATURE_LENGTH = 96;
-	const ownChainID = Buffer.from('10000000', 'hex');
+	const ownChainID = Buffer.from('04000000', 'hex');
 	const appConfigForPlugin: ApplicationConfigForPlugin = {
 		...testing.fixtures.defaultConfig,
 		rpc: {
@@ -199,8 +200,10 @@ describe('ChainConnectorPlugin', () => {
 			ccuFrequency: CCU_FREQUENCY,
 			password: defaultPassword,
 			maxCCUSize: CCU_TOTAL_CCM_SIZE,
+			ccuSaveLimit: 1,
 			isSaveCCU: false,
 			registrationHeight: 1,
+			receivingChainID: getMainchainID(ownChainID).toString('hex'),
 		};
 
 		sendingChainAPIClientMock = getApiClientMock() as any;
@@ -242,6 +245,7 @@ describe('ChainConnectorPlugin', () => {
 				ccuFee: defaultCCUFee,
 				encryptedPrivateKey: defaultEncryptedPrivateKey,
 				password: 'lisk',
+				receivingChainID: getMainchainID(ownChainID).toString('hex'),
 			} as never);
 			expect(chainConnectorPlugin['_ccuFrequency']).toEqual(CCU_FREQUENCY);
 		});
@@ -250,6 +254,7 @@ describe('ChainConnectorPlugin', () => {
 			await initChainConnectorPlugin(chainConnectorPlugin, {
 				...defaultConfig,
 				ccuFrequency: 300000,
+				receivingChainID: getMainchainID(ownChainID).toString('hex'),
 			});
 			expect(chainConnectorPlugin['_ccuFrequency']).toBe(300000);
 		});
@@ -262,7 +267,7 @@ describe('ChainConnectorPlugin', () => {
 
 			await chainConnectorPlugin.load();
 
-			expect(chainConnectorPlugin['_receivingChainClient']).toBeDefined();
+			expect(chainConnectorPlugin['_receivingChainClient']).toBeUndefined();
 			expect(chainConnectorPlugin['_sendingChainClient']).toBe(chainConnectorPlugin['_apiClient']);
 		});
 
@@ -275,7 +280,7 @@ describe('ChainConnectorPlugin', () => {
 			chainConnectorPlugin['_apiClient'] = sendingChainAPIClientMock;
 			await chainConnectorPlugin.load();
 
-			expect(chainConnectorPlugin['_receivingChainClient']).toBeDefined();
+			expect(chainConnectorPlugin['_receivingChainClient']).toBeUndefined();
 			expect(chainConnectorPlugin['_sendingChainClient']).toBeDefined();
 		});
 
@@ -287,12 +292,21 @@ describe('ChainConnectorPlugin', () => {
 					ccuFee: defaultCCUFee,
 					encryptedPrivateKey: defaultEncryptedPrivateKey,
 					password: 'lisk',
+					receivingChainID: getMainchainID(ownChainID).toString('hex'),
 				},
 				appConfig: appConfigForPlugin,
 			});
 
 			chainConnectorPlugin['_apiClient'] = sendingChainAPIClientMock;
 			await chainConnectorPlugin.load();
+			jest.spyOn(chainConnectorPlugin as any, '_saveDataOnNewBlock').mockResolvedValue({});
+			await chainConnectorPlugin['_newBlockHandler']({
+				blockHeader: testing
+					.createFakeBlockHeader({
+						generatorAddress: Buffer.from('66687aadf862bd776c8fc18b8e9f8e2008971485', 'hex'),
+					})
+					.toJSON(),
+			});
 			expect(apiClient.createWSClient).toHaveBeenCalled();
 		});
 
@@ -303,14 +317,52 @@ describe('ChainConnectorPlugin', () => {
 					ccuFee: defaultCCUFee,
 					encryptedPrivateKey: defaultEncryptedPrivateKey,
 					password: 'lisk',
+					receivingChainID: getMainchainID(ownChainID).toString('hex'),
 				},
 				appConfig: appConfigForPlugin,
 			});
 			chainConnectorPlugin['_apiClient'] = sendingChainAPIClientMock;
+			await chainConnectorPlugin.load();
+			jest.spyOn(chainConnectorPlugin as any, '_saveDataOnNewBlock').mockResolvedValue({});
+			jest.spyOn(chainConnectorPlugin as any, '_initializeReceivingChainClient');
+			jest.spyOn(testing.mocks.loggerMock, 'error');
+			await chainConnectorPlugin['_newBlockHandler']({
+				blockHeader: testing
+					.createFakeBlockHeader({
+						generatorAddress: Buffer.from('66687aadf862bd776c8fc18b8e9f8e2008971485', 'hex'),
+					})
+					.toJSON(),
+			});
 
-			await expect(chainConnectorPlugin.load()).rejects.toThrow(
-				'IPC path and WS url are undefined',
+			expect(testing.mocks.loggerMock.error).toHaveBeenCalledWith(
+				new Error('IPC path and WS url are undefined in the configuration.'),
+				'Failed while handling the new block',
 			);
+		});
+
+		it('should continue even when receivingChainAPIClient is not available', async () => {
+			await chainConnectorPlugin.init({
+				logger: testing.mocks.loggerMock,
+				config: defaultConfig,
+				appConfig: appConfigForPlugin,
+			});
+			chainConnectorPlugin['_apiClient'] = sendingChainAPIClientMock;
+
+			jest
+				.spyOn(apiClient, 'createIPCClient')
+				.mockRejectedValue(new Error('IPC connection timed out.') as never);
+
+			jest.spyOn(testing.mocks.loggerMock, 'error');
+
+			await chainConnectorPlugin.load();
+
+			expect(dbApi.getDBInstance).toHaveBeenCalledTimes(1);
+			expect(chainConnectorPlugin['_chainConnectorPluginDB']).toEqual(
+				new db.InMemoryDatabase() as never,
+			);
+
+			expect(sendingChainAPIClientMock.invoke).toHaveBeenCalledTimes(1);
+			expect(sendingChainAPIClientMock.subscribe).toHaveBeenCalledTimes(2);
 		});
 
 		it('should initialize _chainConnectorDB', async () => {
@@ -756,7 +808,7 @@ describe('ChainConnectorPlugin', () => {
 			 * 1. interoperability_getChainAccount: in load() function
 			 * 2. interoperability_getChainAccount: at the end of newBlockHandler()
 			 */
-			expect(receivingChainAPIClientMock.invoke).toHaveBeenCalledTimes(3);
+			expect(receivingChainAPIClientMock.invoke).toHaveBeenCalledTimes(2);
 
 			const savedCCMs = await chainConnectorPlugin['_chainConnectorStore'].getCrossChainMessages();
 
@@ -783,8 +835,15 @@ describe('ChainConnectorPlugin', () => {
 	describe('Cleanup Functions', () => {
 		let blockHeader1: BlockHeader;
 		let blockHeader2: BlockHeader;
+		let sampleCCUs: chain.TransactionAttrs[];
 
 		beforeEach(async () => {
+			await chainConnectorPlugin.init({
+				logger: testing.mocks.loggerMock,
+				config: defaultConfig,
+				appConfig: appConfigForPlugin,
+			});
+
 			await chainConnectorPlugin.init({
 				logger: testing.mocks.loggerMock,
 				config: defaultConfig,
@@ -843,6 +902,8 @@ describe('ChainConnectorPlugin', () => {
 				blockHeader1,
 				blockHeader2,
 			] as never);
+			sampleCCUs = [getSampleCCU(), getSampleCCU()];
+			chainConnectorStoreMock.getListOfCCUs.mockResolvedValue(sampleCCUs as never);
 		});
 
 		it('should delete block headers with height less than _lastCertifiedHeight', async () => {
@@ -875,6 +936,16 @@ describe('ChainConnectorPlugin', () => {
 			expect(
 				chainConnectorPlugin['_chainConnectorStore'].setValidatorsHashPreimage,
 			).toHaveBeenCalledWith([]);
+		});
+
+		it('should delete sentCCUs based on config ccuSaveLimit', async () => {
+			await chainConnectorPlugin['_cleanup']();
+
+			expect(chainConnectorPlugin['_chainConnectorStore'].getListOfCCUs).toHaveBeenCalledTimes(1);
+
+			expect(chainConnectorPlugin['_chainConnectorStore'].setListOfCCUs).toHaveBeenCalledWith([
+				sampleCCUs[1],
+			]);
 		});
 	});
 
@@ -967,6 +1038,7 @@ describe('ChainConnectorPlugin', () => {
 			chainConnectorPlugin['_apiClient'] = sendingChainAPIClientMock;
 
 			await chainConnectorPlugin.load();
+			chainConnectorPlugin['_receivingChainClient'] = receivingChainAPIClientMock;
 			// Set all the sample data
 			await chainConnectorPlugin['_chainConnectorStore'].setBlockHeaders(sampleBlockHeaders);
 			await chainConnectorPlugin['_chainConnectorStore'].setAggregateCommits(
@@ -1010,6 +1082,7 @@ describe('ChainConnectorPlugin', () => {
 					...getSampleCCM(12),
 					height: 10,
 				});
+
 				const result = await chainConnectorPlugin['_computeCCUParams'](
 					sampleBlockHeaders,
 					sampleAggregateCommits,

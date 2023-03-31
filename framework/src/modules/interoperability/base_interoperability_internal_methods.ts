@@ -57,17 +57,11 @@ import { CCM_STATUS_OK } from '../token/constants';
 import { TerminatedOutboxCreatedEvent } from './events/terminated_outbox_created';
 import { BaseCCMethod } from './base_cc_method';
 import { verifyAggregateCertificateSignature } from '../../engine/consensus/certificate_generation/utils';
+import { InvalidCertificateSignatureEvent } from './events/invalid_certificate_signature';
 
 export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMethod {
 	protected readonly interoperableModuleMethods = new Map<string, BaseCCMethod>();
-	protected _tokenMethod!: TokenMethod & {
-		payMessageFee: (
-			context: MethodContext,
-			payFromAddress: Buffer,
-			fee: bigint,
-			receivingChainID: Buffer,
-		) => Promise<void>;
-	};
+	protected _tokenMethod!: TokenMethod;
 
 	public constructor(
 		stores: NamedRegistry,
@@ -78,17 +72,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		this.interoperableModuleMethods = interoperableModuleMethods;
 	}
 
-	public addDependencies(
-		tokenMethod: TokenMethod & {
-			// TODO: Remove this after token module update
-			payMessageFee: (
-				context: MethodContext,
-				payFromAddress: Buffer,
-				fee: bigint,
-				receivingChainID: Buffer,
-			) => Promise<void>;
-		},
-	) {
+	public addDependencies(tokenMethod: TokenMethod) {
 		this._tokenMethod = tokenMethod;
 	}
 
@@ -406,7 +390,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 	}
 
 	public async verifyCertificateSignature(
-		context: ImmutableMethodContext,
+		context: MethodContext,
 		params: CrossChainUpdateTransactionParams,
 	): Promise<void> {
 		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
@@ -417,12 +401,16 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 
 		const verifySignature = verifyAggregateCertificateSignature(
 			chainValidators.activeValidators,
-			params.certificateThreshold,
+			chainValidators.certificateThreshold,
 			params.sendingChainID,
 			certificate,
 		);
 
 		if (!verifySignature) {
+			this.events
+				.get(InvalidCertificateSignatureEvent)
+				.add(context, undefined, [params.sendingChainID], true);
+
 			throw new Error('Certificate is not a valid aggregate signature.');
 		}
 	}
@@ -480,11 +468,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			throw new Error('Sending chain cannot be the receiving chain.');
 		}
 		// receivingChainID must correspond to a live chain.
-		const isReceivingChainLive = await this.isLive(
-			context,
-			receivingChainID,
-			timestamp ?? Date.now(),
-		);
+		const isReceivingChainLive = await this.isLive(context, receivingChainID, timestamp);
 		if (!isReceivingChainLive) {
 			this.events.get(CcmSentFailedEvent).log(
 				context,
@@ -513,7 +497,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		if (fee > 0) {
 			try {
 				// eslint-disable-next-line no-lonely-if
-				await this._tokenMethod.payMessageFee(context, sendingAddress, fee, ccm.receivingChainID);
+				await this._tokenMethod.payMessageFee(context, sendingAddress, ccm.receivingChainID, fee);
 			} catch (error) {
 				this.events.get(CcmSentFailedEvent).log(
 					context,

@@ -12,13 +12,25 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Transaction, chain, CCMsg, OutboxRootWitness, ActiveValidator } from 'lisk-sdk';
+import {
+	Transaction,
+	chain,
+	CCMsg,
+	OutboxRootWitness,
+	ActiveValidator,
+	AggregateCommit,
+	BFTParameters,
+	Proof,
+	ProveResponse,
+	BFTValidator,
+} from 'lisk-sdk';
 
 export interface BlockHeader extends chain.BlockHeaderAttrs {
 	validatorsHash: Buffer;
 }
 
 export interface ChainConnectorPluginConfig {
+	receivingChainID: string;
 	receivingChainWsURL?: string;
 	receivingChainIPCPath?: string;
 	ccuFrequency: number;
@@ -28,6 +40,7 @@ export interface ChainConnectorPluginConfig {
 	isSaveCCU: boolean;
 	maxCCUSize: number;
 	registrationHeight: number;
+	ccuSaveLimit: number;
 }
 
 export type SentCCUs = Transaction[];
@@ -53,71 +66,29 @@ export interface CCMsFromEvents {
 	inclusionProof: OutboxRootWitness;
 }
 
-export interface AggregateCommitJSON {
-	readonly height: number;
-	readonly aggregationBits: string;
-	readonly certificateSignature: string;
-}
+type Primitive = string | number | bigint | boolean | null | undefined;
+type Replaced<T, TReplace, TWith, TKeep = Primitive> = T extends TReplace | TKeep
+	? T extends TReplace
+		? TWith | Exclude<T, TReplace>
+		: T
+	: {
+			[P in keyof T]: Replaced<T[P], TReplace, TWith, TKeep>;
+	  };
 
-export interface BFTValidatorJSON {
-	address: string;
-	bftWeight: string;
-	blsKey: string;
-}
+export type JSONObject<T> = Replaced<T, bigint | Buffer, string>;
 
-export interface ValidatorsDataJSON {
-	certificateThreshold: string;
-	validators: BFTValidatorJSON[];
-	validatorsHash: string;
-}
+export type CCMsFromEventsJSON = JSONObject<CCMsFromEvents>;
 
-export interface Proof {
-	siblingHashes: Buffer[];
-	queries: QueryProof[];
-}
+export type LastSentCCMWithHeightJSON = JSONObject<LastSentCCMWithHeight>;
 
-export interface QueryProof {
-	key: Buffer;
-	value: Buffer;
-	bitmap: Buffer;
-}
+export type AggregateCommitJSON = JSONObject<AggregateCommit>;
 
-export interface ProveResponse {
-	proof: Proof;
-}
-export interface ProofJSON {
-	siblingHashes: string[];
-	queries: QueryProofJSON[];
-}
+export type BFTValidatorJSON = JSONObject<BFTValidator>;
 
-export interface QueryProofJSON {
-	key: string;
-	value: string;
-	bitmap: string;
-}
+export type ValidatorsDataJSON = JSONObject<ValidatorsData>;
 
-export interface ProveResponseJSON {
-	proof: ProofJSON;
-}
+export type ProofJSON = JSONObject<Proof>;
 
-export interface BFTValidator {
-	address: Buffer;
-	bftWeight: bigint;
-	blsKey: Buffer;
-}
+export type ProveResponseJSON = JSONObject<ProveResponse>;
 
-export interface BFTParametersJSON {
-	prevoteThreshold: string;
-	precommitThreshold: string;
-	certificateThreshold: string;
-	validators: BFTValidatorJSON[];
-	validatorsHash: string;
-}
-
-export interface BFTParameters {
-	prevoteThreshold: bigint;
-	precommitThreshold: bigint;
-	certificateThreshold: bigint;
-	validators: BFTValidator[];
-	validatorsHash: Buffer;
-}
+export type BFTParametersJSON = JSONObject<BFTParameters>;

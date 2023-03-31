@@ -85,7 +85,10 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			try {
 				validator.validate(getTransactionRequestSchema, decodedData);
 			} catch (error) {
-				this._logger.warn({ err: error as Error, peerId }, 'Received invalid getTransactions body');
+				this._logger.warn(
+					{ err: error as Error, peerId },
+					'Received invalid getTransactions body. Applying a penalty to the peer',
+				);
 				this.network.applyPenaltyOnPeer({
 					peerId,
 					penalty: 100,
@@ -94,7 +97,10 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			}
 
 			if (!objectUtils.bufferArrayUniqueItems(decodedData.transactionIds)) {
-				this._logger.warn({ peerId }, 'Received invalid getTransactions body');
+				this._logger.warn(
+					{ peerId },
+					'Received invalid getTransactions body. Applying a penalty to the peer',
+				);
 				this.network.applyPenaltyOnPeer({
 					peerId,
 					penalty: 100,
@@ -124,7 +130,10 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			const error = new Error(
 				`Requested number of transactions ${transactionIds.length} exceeds maximum allowed.`,
 			);
-			this._logger.warn({ err: error, peerId }, 'Received invalid request.');
+			this._logger.warn(
+				{ err: error, peerId },
+				'Received invalid request. Applying a penalty to the peer',
+			);
 			this.network.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
@@ -179,7 +188,8 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			DEFAULT_RATE_LIMIT_FREQUENCY,
 		);
 		if (!Buffer.isBuffer(data)) {
-			const errorMessage = 'Received invalid transaction announcement data';
+			const errorMessage =
+				'Received invalid transaction announcement data. Applying a penalty to the peer';
 			this._logger.warn({ peerId }, errorMessage);
 			this.network.applyPenaltyOnPeer({
 				peerId,
@@ -193,10 +203,14 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			data,
 		);
 
+		// Validate the data received from the peer.
 		try {
 			validator.validate(postTransactionsAnnouncementSchema, decodedData);
 		} catch (error) {
-			this._logger.warn({ err: error as Error, peerId }, 'Received invalid transactions body');
+			this._logger.warn(
+				{ err: error as Error, peerId },
+				'Received invalid transactions body. Applying a penalty to the peer',
+			);
 			this.network.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
@@ -209,10 +223,12 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(
 			decodedData.transactionIds,
 		);
+
 		if (unknownTransactionIDs.length > 0) {
 			const transactionIdsBuffer = codec.encode(getTransactionRequestSchema, {
 				transactionIds: unknownTransactionIDs,
 			});
+
 			const encodedData = (await this.network.requestFromPeer({
 				procedure: NETWORK_RPC_GET_TRANSACTIONS,
 				data: transactionIdsBuffer,
@@ -220,6 +236,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			})) as {
 				data: Buffer;
 			};
+
 			const transactionsData = codec.decode<GetTransactionResponse>(
 				getTransactionsResponseSchema,
 				encodedData.data,
@@ -228,17 +245,24 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			try {
 				for (const transactionBytes of transactionsData.transactions) {
 					const transaction = Transaction.fromBytes(transactionBytes);
+
+					transaction.validate();
+
 					await this._receiveTransaction(transaction);
 				}
 			} catch (err) {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-				this._logger.warn({ err, peerId }, 'Received invalid transactions.');
 				if (err instanceof InvalidTransactionError) {
-					this.network.applyPenaltyOnPeer({
-						peerId,
-						penalty: 100,
-					});
+					this._logger.debug({ err, peerId }, 'Received invalid transactions.');
+					return;
 				}
+				this._logger.warn(
+					{ err, peerId },
+					'Received invalid transactions. Applying a penalty to the peer',
+				);
+				this.network.applyPenaltyOnPeer({
+					peerId,
+					penalty: 100,
+				});
 			}
 		}
 	}

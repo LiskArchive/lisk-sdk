@@ -1,0 +1,48 @@
+{
+	"system": {
+		"dataPath": "/Users/ishan/.lisk/pos-mainchain-fast",
+		"keepEventsForHeights": 300,
+		"logLevel": "info"
+	},
+	"rpc": {
+		"modes": ["ipc"],
+		"port": 7887,
+		"host": "127.0.0.1"
+	},
+	"network": {
+		"version": "1.0",
+		"seedPeers": [],
+		"port": 7667
+	},
+	"transactionPool": {
+		"maxTransactions": 4096,
+		"maxTransactionsPerAccount": 64,
+		"transactionExpiryTime": 10800000,
+		"minEntranceFeePriority": "0",
+		"minReplacementFeeDifference": "10"
+	},
+	"genesis": {
+		"block": {
+			"fromFile": "./config/genesis_block.blob"
+		},
+		"blockTime": 5,
+		"bftBatchSize": 5,
+		"maxTransactionsSize": 15360,
+		"chainID": "04000000"
+	},
+	"generator": {
+		"keys": {
+			"fromFile": "./config/dev-validators.json"
+		}
+	},
+	"modules": {},
+	"plugins": {
+		"chainConnector": {
+			"receivingChainID": "04000001",
+			"encryptedPrivateKey": "kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=47f00a1502fb1b4fe4db2427a805636e7b3d82be7b8b8c5aa8e0325fbe777dba8bea9daa1ef3d6b81784866229277fb2935dbd977ad40f3451081c1ef3fbc03ee044779241d99257bdcce2bd646cc7c9ceeb1952de88baf5fa7fe597cf20744ed8cdbbbc16fa3ff9a712272b61882d7fb7ed9b267ea1a12970352ba8a8dcded5&mac=f7a7a7b6c2c47e2305f4dc5019a0511b9645ef6c68a5b1f7de324ca995c1c869&salt=6483dd1e9c6b00f0b9e8968b0f852bd6&iv=eb182b56fc868be3ac2a5de6&tag=0f8572a9a25b6d344ee50f53e7af9a11&iterations=1&parallelism=4&memorySize=2024",
+			"password": "lisk",
+			"ccuFee": "1000000000",
+			"receivingChainIPCPath": "~/.lisk/pos-sidechain-fast"
+		}
+	}
+}

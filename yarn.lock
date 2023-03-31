@@ -1802,22 +1802,15 @@
   dependencies:
     "@types/node" "11.11.2"
 
-"@liskhq/lisk-codec@0.3.0-alpha.7":
-  version "0.3.0-alpha.7"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-codec/-/lisk-codec-0.3.0-alpha.7.tgz#a1e505e2e0ec6d202e41478e5b022addf5113d61"
-  integrity sha512-YK+YSFaf83o0DgO/6RNjI/3nu5Pqyu6WR1N0rk4FDHw8Ycu1hvpNVJiSZ354Xhs04dJJaEMadxIwHgiHKqO2Hg==
-  dependencies:
-    "@liskhq/lisk-cryptography" "^4.0.0-alpha.6"
-    "@liskhq/lisk-utils" "^0.3.0-alpha.3"
-    "@liskhq/lisk-validator" "^0.7.0-alpha.6"
-
-"@liskhq/lisk-db@0.3.4":
-  version "0.3.4"
-  resolved "https://registry.yarnpkg.com/@liskhq/lisk-db/-/lisk-db-0.3.4.tgz#92661c8bec6f15431d1576fc656539ef95c81d9d"
-  integrity sha512-4lF863V2LHtFALdk2xf8vNExIK60xzHd9EYWOxRh4R7ouDhgrUszfe/Raw2QzQigXayiLa1XMkGo0NSTFJTHZA==
+"@liskhq/lisk-db@0.3.5":
+  version "0.3.5"
+  resolved "https://registry.yarnpkg.com/@liskhq/lisk-db/-/lisk-db-0.3.5.tgz#ab0b639a1121d7c7e132bfb8e9bd78bf39beab3c"
+  integrity sha512-Ch+nx+VOMBwrJ5OdkUs56dLa5oRUys2umBsLvxe5K26HZ0BrVHvpSam+8KtE0qdQeu3+v9fvCoVeug8mkP8Jcg==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.9"
     "@types/node" "^16"
+    cargo-cp-artifact "^0.1"
+    shelljs "^0.8.5"
 
 "@lmdb/lmdb-darwin-arm64@2.5.2":
   version "2.5.2"
@@ -3244,9 +3237,9 @@
     "@hapi/hoek" "^9.0.0"
 
 "@sideway/formula@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@sideway/formula/-/formula-3.0.0.tgz#fe158aee32e6bd5de85044be615bc08478a0a13c"
-  integrity sha512-vHe7wZ4NOXVfkoRb8T5otiENVlT7a3IAiw7H5M2+GO+9CDgcVUUsX1zalAztCmwyOr2RUTGJdgB+ZvSVqmdHmg==
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@sideway/formula/-/formula-3.0.1.tgz#80fcbcbaf7ce031e0ef2dd29b1bfc7c3f583611f"
+  integrity sha512-/poHZJJVjx3L+zVD6g9KgHfYnb443oi7wLu/XKojDviHy6HOEOA6z1Trk5aR1dGcmPenJEgb2sK2I80LeS3MIg==
 
 "@sideway/pinpoint@^2.0.0":
   version "2.0.0"
@@ -5616,6 +5609,11 @@ cardinal@^2.1.1:
   dependencies:
     ansicolors "~0.3.2"
     redeyed "~2.1.0"
+
+cargo-cp-artifact@^0.1:
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/cargo-cp-artifact/-/cargo-cp-artifact-0.1.8.tgz#353814f49f6aa76601a4bcb3ea5f3071180b90de"
+  integrity sha512-3j4DaoTrsCD1MRkTF2Soacii0Nx7UHCce0EwUf4fHnggwiE4fbmF2AbnfzayR36DF8KGadfh7M/Yfy625kgPlA==
 
 caseless@~0.12.0:
   version "0.12.0"
@@ -15671,7 +15669,12 @@ typedoc@0.23.23:
     minimatch "^5.1.1"
     shiki "^0.11.1"
 
-typescript@4.9.3, "typescript@^3 || ^4":
+typescript@5.0.2:
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.0.2.tgz#891e1a90c5189d8506af64b9ef929fca99ba1ee5"
+  integrity sha512-wVORMBGO/FAs/++blGNeAVdbNKtIh1rbBL2EyQ1+J9lClJ93KiiKe8PmFIVdXhHcyv44SL9oglmfeSsndo0jRw==
+
+"typescript@^3 || ^4":
   version "4.9.3"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.9.3.tgz#3aea307c1746b8c384435d8ac36b8a2e580d85db"
   integrity sha512-CIfGzTelbKNEnLpLdGFgdyKhG23CKdKgQPOBc+OUNrkJ2vr+KSzsSV5kq5iWhEQbok+quxgGzrAtGWCyU7tHnA==

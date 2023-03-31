@@ -25,8 +25,9 @@ import {
 	MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH,
 	HASH_LENGTH,
 	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
+	SUBSTORE_PREFIX_LENGTH,
 } from './constants';
-import { chainDataSchema } from './stores/chain_account';
+import { chainDataJSONSchema, chainDataSchema } from './stores/chain_account';
 import { chainValidatorsSchema } from './stores/chain_validators';
 import { channelSchema } from './stores/channel_data';
 import { outboxRootSchema } from './stores/outbox_root';
@@ -312,7 +313,6 @@ export const messageRecoveryParamsSchema = {
 		},
 		crossChainMessages: {
 			type: 'array',
-			minItems: 1,
 			items: {
 				dataType: 'bytes',
 			},
@@ -501,6 +501,8 @@ export const stateRecoveryParamsSchema = {
 		module: {
 			dataType: 'string',
 			fieldNumber: 2,
+			minLength: MIN_MODULE_NAME_LENGTH,
+			maxLength: MAX_MODULE_NAME_LENGTH,
 		},
 		storeEntries: {
 			type: 'array',
@@ -511,6 +513,8 @@ export const stateRecoveryParamsSchema = {
 					substorePrefix: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: SUBSTORE_PREFIX_LENGTH,
+						maxLength: SUBSTORE_PREFIX_LENGTH,
 					},
 					storeKey: {
 						dataType: 'bytes',
@@ -532,6 +536,8 @@ export const stateRecoveryParamsSchema = {
 			type: 'array',
 			items: {
 				dataType: 'bytes',
+				minLength: HASH_LENGTH,
+				maxLength: HASH_LENGTH,
 			},
 			fieldNumber: 4,
 		},
@@ -590,23 +596,13 @@ export const getChainAccountRequestSchema = {
 	required: ['chainID'],
 	properties: {
 		chainID: {
-			dataType: 'bytes',
-			fieldNumber: 1,
+			type: 'string',
+			format: 'hex',
 		},
 	},
 };
 
-export const getChainAccountResponseSchema = {
-	$id: '/modules/interoperability/endpoint/getChainAccountResponse',
-	type: 'object',
-	required: ['chainID'],
-	properties: {
-		name: {
-			dataType: 'string',
-			fieldNumber: 1,
-		},
-	},
-};
+export const getChainAccountResponseSchema = chainDataJSONSchema;
 
 export const getChainValidatorsRequestSchema = getChainAccountRequestSchema;
 
