@@ -287,7 +287,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		if (ctx.chainID.equals(getMainchainID(ctx.chainID))) {
 			// ownChainName == CHAIN_NAME_MAINCHAIN.
 			if (ownChainName !== CHAIN_NAME_MAINCHAIN) {
-				throw new Error(`ownChainName must be equal to CHAIN_NAME_MAINCHAIN'`);
+				throw new Error(`ownChainName must be equal to ${CHAIN_NAME_MAINCHAIN}.`);
 			}
 
 			// if chainInfos is empty, then ownChainNonce == 0

@@ -170,7 +170,7 @@ describe('initGenesisState', () => {
 			params,
 		);
 		await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-			'ownChainName must be equal to CHAIN_NAME_MAINCHAIN',
+			`ownChainName must be equal to ${CHAIN_NAME_MAINCHAIN}.`,
 		);
 	});
 
