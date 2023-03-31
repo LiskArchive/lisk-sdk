@@ -429,7 +429,7 @@ describe('initGenesisState', () => {
 					params,
 				);
 				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					`channelData.minReturnFeePerByte is not equal to MIN_RETURN_FEE_PER_BYTE_BEDDOWS.`,
+					`channelData.minReturnFeePerByte is not equal to ${MIN_RETURN_FEE_PER_BYTE_BEDDOWS}.`,
 				);
 			});
 		});

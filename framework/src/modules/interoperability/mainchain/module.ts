@@ -386,7 +386,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		// channelData.minReturnFeePerByte == MIN_RETURN_FEE_PER_BYTE_LSK.
 		if (channelData.minReturnFeePerByte !== MIN_RETURN_FEE_PER_BYTE_BEDDOWS) {
 			throw new Error(
-				`channelData.minReturnFeePerByte is not equal to MIN_RETURN_FEE_PER_BYTE_BEDDOWS.`,
+				`channelData.minReturnFeePerByte is not equal to ${MIN_RETURN_FEE_PER_BYTE_BEDDOWS}.`,
 			);
 		}
 	}
