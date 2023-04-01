@@ -196,11 +196,33 @@ describe('RandomModule', () => {
 
 				// each time it should provide unique values, that are different from the checkpoint hashes
 				expect(hashOnion.hashes).not.toContain(nextHashOnion.hash.toString('hex'));
-				expect(nextHashOnion.count).toBe(0);
+				expect(nextHashOnion.count).toBe(hashOnion.count);
 			}
 
 			// to confirm randomness, also check that each hash generated with the same input params is unique
 			expect(newHashOnions.size).toBe(newHashOnionsCount);
+		});
+
+		it('should not modify used hash count when the onion is used up', async () => {
+			// Arrange
+			const usedHashOnions: UsedHashOnion[] = [
+				{
+					count: hashOnion.count,
+					height: height - 100,
+				},
+			];
+
+			// Act
+			const nextHashOnion = await randomModule['_getNextHashOnion'](
+				usedHashOnions,
+				generatorAddress,
+				height,
+				testing.mocks.loggerMock,
+				inserAssetContext,
+			);
+
+			// Assert
+			expect(nextHashOnion.count).toEqual(hashOnion.count);
 		});
 	});
 
@@ -455,10 +477,6 @@ describe('RandomModule', () => {
 				usedHashOnions: [
 					{
 						count: maxCount,
-						height: 10,
-					},
-					{
-						count: 0,
 						height: 15,
 					},
 				],
