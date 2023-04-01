@@ -16,6 +16,7 @@ import { utils, address } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { BlockAssets, StateStore } from '@liskhq/lisk-chain';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
+import { dataStructures } from '@liskhq/lisk-utils';
 import * as genesisValidators from '../../../fixtures/genesis_validators.json';
 import { RandomModule } from '../../../../src/modules/random';
 import {
@@ -165,6 +166,41 @@ describe('RandomModule', () => {
 
 			// Assert
 			expect(nextHashOnion.hash).toEqual(seedHash);
+		});
+
+		it('should return a random hash when the onion is used up', async () => {
+			// Arrange
+			// seed hash that corresponds to count 10000 has been used in the previous block
+			const usedHashOnions: UsedHashOnion[] = [
+				{
+					count: hashOnion.count,
+					height: height - 100,
+				},
+			];
+
+			const newHashOnions = new dataStructures.BufferSet();
+
+			// Act & Assert
+			// invoke the target function 5 times with the same input
+			const newHashOnionsCount = 5;
+			for (let i = 1; i <= newHashOnionsCount; i += 1) {
+				const nextHashOnion = await randomModule['_getNextHashOnion'](
+					usedHashOnions,
+					generatorAddress,
+					height,
+					testing.mocks.loggerMock,
+					inserAssetContext,
+				);
+
+				newHashOnions.add(nextHashOnion.hash);
+
+				// each time it should provide unique values, that are different from the checkpoint hashes
+				expect(hashOnion.hashes).not.toContain(nextHashOnion.hash.toString('hex'));
+				expect(nextHashOnion.count).toBe(0);
+			}
+
+			// to confirm randomness, also check that each hash generated with the same input params is unique
+			expect(newHashOnions.size).toBe(newHashOnionsCount);
 		});
 	});
 
