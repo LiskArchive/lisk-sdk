@@ -313,31 +313,8 @@ describe('RandomModuleEndpoint', () => {
 	});
 
 	describe('hasHashOnion', () => {
-		let address: string;
-		let address2: string;
-
-		beforeEach(async () => {
-			address = genesisValidators.validators[0].address;
-			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
-			const count = 1000;
-			const distance = 10;
-			address2 = genesisValidators.validators[1].address;
-
-			await randomEndpoint.setHashOnion({ ...context, params: { address, seed, count, distance } });
-			await randomEndpoint.setHashOnion({
-				...context,
-				params: { address: address2, count, distance },
-			});
-
-			const usedHashOnionStore = randomEndpoint['offchainStores'].get(UsedHashOnionsStore);
-			await usedHashOnionStore.set(
-				context,
-				cryptography.address.getAddressFromLisk32Address(address),
-				{
-					usedHashOnions: [{ count: 20, height: 2121 }],
-				},
-			);
-		});
+		const count = 1000;
+		const distance = 10;
 
 		it('should return error if param is empty', async () => {
 			await expect(
@@ -348,7 +325,7 @@ describe('RandomModuleEndpoint', () => {
 			).rejects.toThrow('must have required property');
 		});
 
-		it('should return hasHashOnion false with remaing 0 if hashOnion does not exist', async () => {
+		it('should return hasSeed false with 0 remaining hashes if hashOnion does not exist', async () => {
 			const hasHashOnion = await randomEndpoint.hasHashOnion({
 				...context,
 				params: { address: 'lsk7tyskeefnd6p6bfksd7ytp5jyaw8f2r9foa6ch' },
@@ -359,23 +336,67 @@ describe('RandomModuleEndpoint', () => {
 			expect(hasHashOnion.remaining).toBe(0);
 		});
 
-		it('should return hasHashOnion true with valid remaining', async () => {
+		it('should return hasSeed true with valid number of remaining hashes', async () => {
+			// Arrange
+			const { address } = genesisValidators.validators[0];
+			const usedCount = 20;
+
+			await randomEndpoint.setHashOnion({ ...context, params: { address, count, distance } });
+
+			const usedHashOnionStore = randomEndpoint['offchainStores'].get(UsedHashOnionsStore);
+			await usedHashOnionStore.set(
+				context,
+				cryptography.address.getAddressFromLisk32Address(address),
+				{
+					usedHashOnions: [{ count: usedCount, height: 2121 }],
+				},
+			);
+
+			// Act
 			const hasHashOnion = await randomEndpoint.hasHashOnion({ ...context, params: { address } });
 
 			// Assert
 			expect(hasHashOnion.hasSeed).toBe(true);
-			expect(hasHashOnion.remaining).toEqual(1000 - 20);
+			expect(hasHashOnion.remaining).toBe(count - usedCount);
 		});
 
-		it('should return hasHashOnion true with remaining the same as original when usedHashOnions does not exist', async () => {
+		it('should return hasSeed true with all remaining hashes when usedHashOnions does not exist', async () => {
+			// Arrange
+			const { address } = genesisValidators.validators[1];
+			await randomEndpoint.setHashOnion({ ...context, params: { address, count, distance } });
+
+			// Act
 			const hasHashOnion = await randomEndpoint.hasHashOnion({
 				...context,
-				params: { address: address2 },
+				params: { address },
 			});
 
 			// Assert
 			expect(hasHashOnion.hasSeed).toBe(true);
-			expect(hasHashOnion.remaining).toBe(1000);
+			expect(hasHashOnion.remaining).toBe(count);
+		});
+
+		it('should return hasSeed false with 0 remaining hashes when a hash onion is used up', async () => {
+			// Arrange
+			const { address } = genesisValidators.validators[2];
+
+			await randomEndpoint.setHashOnion({ ...context, params: { address, count, distance } });
+
+			const usedHashOnionStore = randomEndpoint['offchainStores'].get(UsedHashOnionsStore);
+			await usedHashOnionStore.set(
+				context,
+				cryptography.address.getAddressFromLisk32Address(address),
+				{
+					usedHashOnions: [{ count, height: 8888 }],
+				},
+			);
+
+			// Act
+			const hasHashOnion = await randomEndpoint.hasHashOnion({ ...context, params: { address } });
+
+			// Assert
+			expect(hasHashOnion.hasSeed).toBe(false);
+			expect(hasHashOnion.remaining).toBe(0);
 		});
 	});
 
