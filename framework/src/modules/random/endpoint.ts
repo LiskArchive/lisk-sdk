@@ -67,8 +67,12 @@ export class RandomEndpoint extends BaseEndpoint {
 
 		const hashes = cryptography.utils.hashOnion(seed, count, distance) as Buffer[];
 		const hashOnion = { count, distance, hashes };
+
 		const hashOnionStore = this.offchainStores.get(HashOnionStore);
 		await hashOnionStore.set(ctx, address, hashOnion);
+
+		const usedHashOnionStore = this.offchainStores.get(UsedHashOnionsStore);
+		await usedHashOnionStore.set(ctx, address, { usedHashOnions: [{ count: 0, height: 0 }] });
 	}
 
 	public async getHashOnionSeeds(ctx: ModuleEndpointContext): Promise<GetSeedsResponse> {
