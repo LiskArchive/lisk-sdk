@@ -18,12 +18,13 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 } from 'lisk-sdk';
 
-export const getSampleCCU = (params?: Record<string, unknown>) =>
+export const getSampleCCU = (txParams?: Record<string, unknown>) =>
 	testing
 		.createTransaction({
 			commandClass: SubmitMainchainCrossChainUpdateCommand as any,
 			module: MODULE_NAME_INTEROPERABILITY,
-			params: params ?? {
+			nonce: (txParams?.nonce as bigint) ?? BigInt(0),
+			params: (txParams?.params as Record<string, unknown>) ?? {
 				activeValidatorsUpdate: {
 					blsKeysUpdate: [],
 					bftWeightsUpdate: [],

@@ -116,16 +116,11 @@ describe('BaseCCRegistrationCommand', () => {
 		status: obj.status ?? CCMStatusCode.OK,
 	});
 
-	const createContext = (
-		ccm: CCMsg,
-		ccu?: { sendingChainID: Buffer },
-	): CrossChainMessageContext => {
+	const createContext = (ccm: CCMsg, sendingChainID?: Buffer): CrossChainMessageContext => {
 		return createCrossChainMessageContext({
 			ccm,
 			chainID: sidechainIDBuffer,
-			ccu: ccu ?? {
-				sendingChainID: ccm.sendingChainID,
-			},
+			sendingChainID: sendingChainID ?? ccm.sendingChainID,
 		});
 	};
 
@@ -158,9 +153,7 @@ describe('BaseCCRegistrationCommand', () => {
 		});
 
 		it('should fail if ccm.sendingChainID not equal to ccu.params.sendingChainID', async () => {
-			sampleExecuteContext = createContext(ccm, {
-				sendingChainID: Buffer.from([0, 0, 0, 8]),
-			});
+			sampleExecuteContext = createContext(ccm, Buffer.from([0, 0, 0, 8]));
 			await expect(ccRegistrationCommand.verify(sampleExecuteContext)).rejects.toThrow(
 				'Registration message must be sent from a direct channel.',
 			);

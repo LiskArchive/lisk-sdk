@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { TokenModule, TokenMethod } from '../../../../../src';
+import { TokenModule, TokenMethod, ccuParamsSchema } from '../../../../../src';
 import { CrossChainTransferCommand } from '../../../../../src/modules/token/cc_commands/cc_transfer';
 import {
 	CCM_STATUS_OK,
@@ -60,6 +60,24 @@ describe('CrossChain Transfer Command', () => {
 	};
 	const defaultEscrowAmount = BigInt('100000000000');
 	const sendingChainID = Buffer.from([3, 0, 0, 0]);
+	const defaultEncodedCCUParams = codec.encode(ccuParamsSchema, {
+		activeValidatorsUpdate: {
+			blsKeysUpdate: [],
+			bftWeightsUpdate: [],
+			bftWeightsUpdateBitmap: Buffer.alloc(0),
+		},
+		certificate: Buffer.alloc(1),
+		certificateThreshold: BigInt(1),
+		inboxUpdate: {
+			crossChainMessages: [],
+			messageWitnessHashes: [],
+			outboxRootWitness: {
+				bitmap: Buffer.alloc(1),
+				siblingHashes: [],
+			},
+		},
+		sendingChainID: Buffer.from('04000001', 'hex'),
+	});
 
 	let command: CrossChainTransferCommand;
 	let method: TokenMethod;
@@ -151,6 +169,7 @@ describe('CrossChain Transfer Command', () => {
 				transaction: {
 					senderAddress: defaultAddress,
 					fee: BigInt(0),
+					params: defaultEncodedCCUParams,
 				},
 				header: {
 					height: 0,
@@ -164,9 +183,6 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: utils.getRandomBytes(32),
-				ccu: {
-					sendingChainID,
-				},
 			};
 
 			// Act & Assert
@@ -202,6 +218,7 @@ describe('CrossChain Transfer Command', () => {
 				transaction: {
 					senderAddress: defaultAddress,
 					fee: BigInt(0),
+					params: defaultEncodedCCUParams,
 				},
 				header: {
 					height: 0,
@@ -215,9 +232,6 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: utils.getRandomBytes(32),
-				ccu: {
-					sendingChainID,
-				},
 			};
 
 			// Act & Assert
@@ -253,6 +267,7 @@ describe('CrossChain Transfer Command', () => {
 				transaction: {
 					senderAddress: defaultAddress,
 					fee: BigInt(0),
+					params: defaultEncodedCCUParams,
 				},
 				header: {
 					height: 0,
@@ -266,9 +281,6 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: ownChainID,
-				ccu: {
-					sendingChainID,
-				},
 			};
 
 			// Act & Assert
@@ -303,6 +315,7 @@ describe('CrossChain Transfer Command', () => {
 				transaction: {
 					senderAddress: defaultAddress,
 					fee: BigInt(0),
+					params: defaultEncodedCCUParams,
 				},
 				header: {
 					height: 0,
@@ -316,9 +329,6 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: ownChainID,
-				ccu: {
-					sendingChainID,
-				},
 			};
 
 			// Assert
@@ -354,6 +364,7 @@ describe('CrossChain Transfer Command', () => {
 				transaction: {
 					senderAddress: defaultAddress,
 					fee: BigInt(0),
+					params: defaultEncodedCCUParams,
 				},
 				header: {
 					height: 0,
@@ -367,9 +378,6 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: ownChainID,
-				ccu: {
-					sendingChainID,
-				},
 			};
 
 			// Act & Assert
@@ -397,6 +405,7 @@ describe('CrossChain Transfer Command', () => {
 				transaction: {
 					senderAddress: defaultAddress,
 					fee: BigInt(0),
+					params: defaultEncodedCCUParams,
 				},
 				header: {
 					height: 0,
@@ -410,9 +419,6 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: ownChainID,
-				ccu: {
-					sendingChainID,
-				},
 			};
 
 			// Act & Assert
@@ -448,6 +454,7 @@ describe('CrossChain Transfer Command', () => {
 				transaction: {
 					senderAddress: defaultAddress,
 					fee: BigInt(0),
+					params: defaultEncodedCCUParams,
 				},
 				header: {
 					height: 0,
@@ -461,9 +468,6 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: ownChainID,
-				ccu: {
-					sendingChainID,
-				},
 			};
 
 			// Act & Assert
@@ -511,6 +515,7 @@ describe('CrossChain Transfer Command', () => {
 				transaction: {
 					senderAddress: defaultAddress,
 					fee: BigInt(0),
+					params: defaultEncodedCCUParams,
 				},
 				header: {
 					height: 0,
@@ -524,9 +529,6 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: ownChainID,
-				ccu: {
-					sendingChainID,
-				},
 			};
 
 			// Act & Assert
@@ -563,6 +565,7 @@ describe('CrossChain Transfer Command', () => {
 				transaction: {
 					senderAddress: defaultAddress,
 					fee: BigInt(0),
+					params: defaultEncodedCCUParams,
 				},
 				header: {
 					height: 0,
@@ -576,9 +579,6 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: ownChainID,
-				ccu: {
-					sendingChainID,
-				},
 			};
 
 			// Act
@@ -622,6 +622,7 @@ describe('CrossChain Transfer Command', () => {
 				transaction: {
 					senderAddress: defaultAddress,
 					fee: BigInt(0),
+					params: defaultEncodedCCUParams,
 				},
 				header: {
 					height: 0,
@@ -635,9 +636,6 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: ownChainID,
-				ccu: {
-					sendingChainID,
-				},
 			};
 
 			// Act
@@ -685,6 +683,7 @@ describe('CrossChain Transfer Command', () => {
 				transaction: {
 					senderAddress: defaultAddress,
 					fee: BigInt(0),
+					params: defaultEncodedCCUParams,
 				},
 				header: {
 					height: 0,
@@ -698,9 +697,6 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: ownChainID,
-				ccu: {
-					sendingChainID,
-				},
 			};
 
 			// Act
@@ -754,6 +750,7 @@ describe('CrossChain Transfer Command', () => {
 				transaction: {
 					senderAddress: defaultAddress,
 					fee: BigInt(0),
+					params: defaultEncodedCCUParams,
 				},
 				header: {
 					height: 0,
@@ -767,9 +764,6 @@ describe('CrossChain Transfer Command', () => {
 				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 				logger: fakeLogger,
 				chainID: ownChainID,
-				ccu: {
-					sendingChainID,
-				},
 			};
 
 			// Act && Assert
