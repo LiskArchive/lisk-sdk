@@ -278,10 +278,6 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			partnerValidatorsData,
 		);
 
-		jest
-			.spyOn(interopUtils, 'checkInboxUpdateValidity')
-			.mockResolvedValue({ status: VerifyStatus.OK });
-
 		jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(true);
 		jest.spyOn(interopUtils, 'computeValidatorsHash').mockReturnValue(validatorsHash);
 		jest.spyOn(bls, 'verifyWeightedAggSig').mockReturnValue(true);
