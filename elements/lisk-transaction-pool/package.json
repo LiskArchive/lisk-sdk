@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-transaction-pool",
-	"version": "0.6.0-alpha.11",
+	"version": "0.6.0-alpha.12",
 	"description": "Transaction pool library for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -41,8 +41,8 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"@liskhq/lisk-cryptography": "^4.0.0-alpha.7",
-		"@liskhq/lisk-utils": "^0.3.0-alpha.4",
+		"@liskhq/lisk-cryptography": "^4.0.0-alpha.8",
+		"@liskhq/lisk-utils": "^0.3.0-alpha.5",
 		"debug": "4.3.4"
 	},
 	"devDependencies": {

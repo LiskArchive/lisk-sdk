@@ -165,7 +165,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 	public async createTerminatedStateAccount(
 		context: MethodContext,
 		chainID: Buffer,
-		stateRoot?: Buffer,
+		stateRoot = EMPTY_HASH,
 	): Promise<void> {
 		const chainSubstore = this.stores.get(ChainAccountStore);
 		let terminatedState: TerminatedStateAccount;
@@ -177,17 +177,20 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 				...chainAccount,
 				status: ChainStatus.TERMINATED,
 			});
+			this.events
+				.get(ChainAccountUpdatedEvent)
+				.log({ eventQueue: context.eventQueue }, chainID, chainAccount);
 			const outboxRootSubstore = this.stores.get(OutboxRootStore);
 			await outboxRootSubstore.del(context, chainID);
 
 			terminatedState = {
-				stateRoot: stateRoot ?? chainAccount.lastCertificate.stateRoot,
+				// If no stateRoot is given as input, get it from the state
+				stateRoot: stateRoot.equals(EMPTY_HASH)
+					? chainAccount.lastCertificate.stateRoot
+					: stateRoot,
 				mainchainStateRoot: EMPTY_HASH,
 				initialized: true,
 			};
-			this.events
-				.get(ChainAccountUpdatedEvent)
-				.log({ eventQueue: context.eventQueue }, chainID, chainAccount);
 		} else {
 			// Processing on the mainchain
 			const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
@@ -200,11 +203,19 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			const mainchainAccount = await chainSubstore.get(context, mainchainID);
 			// State root is not available, set it to empty bytes temporarily.
 			// This should only happen on a sidechain.
-			terminatedState = {
-				stateRoot: EMPTY_HASH,
-				mainchainStateRoot: mainchainAccount.lastCertificate.stateRoot,
-				initialized: false,
-			};
+			if (stateRoot.equals(EMPTY_HASH)) {
+				terminatedState = {
+					stateRoot: EMPTY_HASH,
+					mainchainStateRoot: mainchainAccount.lastCertificate.stateRoot,
+					initialized: false,
+				};
+			} else {
+				terminatedState = {
+					stateRoot,
+					mainchainStateRoot: EMPTY_HASH,
+					initialized: true,
+				};
+			}
 		}
 
 		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
@@ -401,7 +412,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 
 		const verifySignature = verifyAggregateCertificateSignature(
 			chainValidators.activeValidators,
-			params.certificateThreshold,
+			chainValidators.certificateThreshold,
 			params.sendingChainID,
 			certificate,
 		);

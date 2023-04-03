@@ -140,9 +140,6 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 					...context,
 					ccm,
 					eventQueue: context.eventQueue.getChildQueue(ccmID),
-					ccu: {
-						sendingChainID: params.sendingChainID,
-					},
 				};
 
 				// If the receiving chain is the mainchain, apply the CCM
