@@ -26,7 +26,6 @@ import {
 	REPORT_MISBEHAVIOR_LIMIT_BANNED,
 	LOCKING_PERIOD_SELF_STAKING,
 	MODULE_NAME_POS,
-	TOKEN_ID_POS,
 } from '../constants';
 import { reportMisbehaviorCommandParamsSchema } from '../schemas';
 import {
@@ -140,7 +139,6 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async execute(context: CommandExecuteContext<PomTransactionParams>): Promise<void> {
 		const { getMethodContext, params, transaction, header } = context;
-
 		const currentHeight = header.height;
 		const header1 = BlockHeader.fromBytes(params.header1);
 
@@ -149,7 +147,6 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 		const validatorAccount = await validatorSubStore.get(context, punishedAddress);
 
 		validatorAccount.reportMisbehaviorHeights.push(currentHeight);
-
 		this.events.get(ValidatorPunishedEvent).log(context, {
 			address: punishedAddress,
 			height: currentHeight,
@@ -163,7 +160,6 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 				height: currentHeight,
 			});
 		}
-
 		const reward =
 			REPORTING_PUNISHMENT_REWARD > validatorAccount.selfStake
 				? validatorAccount.selfStake
@@ -174,7 +170,7 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 				getMethodContext(),
 				punishedAddress,
 				MODULE_NAME_POS,
-				TOKEN_ID_POS,
+				this._posTokenID,
 				reward,
 			);
 			await this._tokenMethod.transfer(
@@ -185,7 +181,6 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 				reward,
 			);
 		}
-
 		const oldWeight = getValidatorWeight(
 			BigInt(this._factorSelfStakes),
 			validatorAccount.selfStake,
@@ -193,17 +188,15 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 		);
 		validatorAccount.selfStake -= reward;
 		validatorAccount.totalStake -= reward;
+		await validatorSubStore.set(context, punishedAddress, validatorAccount);
+		const eligibleValidatorStore = this.stores.get(EligibleValidatorsStore);
+		await eligibleValidatorStore.update(context, punishedAddress, oldWeight, validatorAccount);
 		const stakerSubStore = this.stores.get(StakerStore);
 		const stakerData = await stakerSubStore.get(context, punishedAddress);
 		const existingStakeIndex = stakerData.stakes.findIndex(senderStake =>
 			senderStake.validatorAddress.equals(punishedAddress),
 		);
 		stakerData.stakes[existingStakeIndex].amount -= reward;
-
-		const eligibleValidatorStore = this.stores.get(EligibleValidatorsStore);
-		await eligibleValidatorStore.update(context, punishedAddress, oldWeight, validatorAccount);
-
-		await validatorSubStore.set(context, punishedAddress, validatorAccount);
 		await stakerSubStore.set(context, punishedAddress, stakerData);
 	}
 }
