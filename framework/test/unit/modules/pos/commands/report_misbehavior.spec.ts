@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { when } from 'jest-when';
 import { BlockHeader, blockHeaderSchema, Transaction } from '@liskhq/lisk-chain';
 import { objects } from '@liskhq/lisk-utils';
 import { address, utils, legacy } from '@liskhq/lisk-cryptography';
@@ -23,6 +22,7 @@ import * as testing from '../../../../../src/testing';
 import {
 	defaultConfig,
 	LOCKING_PERIOD_SELF_STAKING,
+	MODULE_NAME_POS,
 	REPORTING_PUNISHMENT_REWARD,
 } from '../../../../../src/modules/pos/constants';
 import {
@@ -37,12 +37,16 @@ import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_pr
 import { ValidatorAccount, ValidatorStore } from '../../../../../src/modules/pos/stores/validator';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import { EligibleValidatorsStore } from '../../../../../src/modules/pos/stores/eligible_validators';
+import { StakerStore } from '../../../../../src/modules/pos/stores/staker';
+import { liskToBeddows } from '../../../../utils/assets';
+import { getValidatorWeight } from '../../../../../src/modules/pos/utils';
 
 describe('ReportMisbehaviorCommand', () => {
 	const pos = new PoSModule();
 	let pomCommand: ReportMisbehaviorCommand;
 	let stateStore: PrefixedStateReadWriter;
 	let validatorSubstore: ValidatorStore;
+	let stakerSubStore: StakerStore;
 	let mockTokenMethod: TokenMethod;
 	let mockValidatorsMethod: ValidatorsMethod;
 	const blockHeight = 8760000;
@@ -106,6 +110,7 @@ describe('ReportMisbehaviorCommand', () => {
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		validatorSubstore = pos.stores.get(ValidatorStore);
+		stakerSubStore = pos.stores.get(StakerStore);
 
 		misBehavingValidator = { name: 'misBehavingValidator', ...defaultValidatorInfo };
 		normalValidator = { name: 'normalValidator', ...defaultValidatorInfo };
@@ -152,11 +157,6 @@ describe('ReportMisbehaviorCommand', () => {
 			sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 		});
 		await validatorSubstore.set(createStoreGetter(stateStore), validator1Address, normalValidator);
-		await validatorSubstore.set(
-			createStoreGetter(stateStore),
-			validator1Address,
-			misBehavingValidator,
-		);
 	});
 
 	describe('constructor', () => {
@@ -533,15 +533,31 @@ describe('ReportMisbehaviorCommand', () => {
 	describe('execute', () => {
 		const block1Height = blockHeight - 768;
 		const block2Height = block1Height + 15;
+		let eligibleValidatorStore: EligibleValidatorsStore;
 		let transactionParamsPreDecoded: any;
+		let stake: any;
 
-		beforeEach(() => {
+		beforeEach(async () => {
+			eligibleValidatorStore = pos.stores.get(EligibleValidatorsStore);
+			jest.spyOn(eligibleValidatorStore, 'update');
 			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValue(undefined);
 
 			transactionParamsPreDecoded = {
 				header1: { ...header1, height: block1Height },
 				header2: { ...header2, height: block2Height },
 			};
+
+			const stakerData = await stakerSubStore.getOrDefault(
+				createStoreGetter(stateStore),
+				validator1Address,
+			);
+			stake = {
+				validatorAddress: validator1Address,
+				amount: liskToBeddows(200),
+				sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+			};
+			stakerData.stakes.push(stake);
+			await stakerSubStore.set(createStoreGetter(stateStore), validator1Address, stakerData);
 		});
 
 		it('should not throw error with valid transactions', async () => {
@@ -583,9 +599,30 @@ describe('ReportMisbehaviorCommand', () => {
 			await expect(pomCommand.execute(context)).rejects.toThrow();
 		});
 
-		it('should reward the sender with 1 LSK if validator has enough balance', async () => {
-			const remainingBalance = reportPunishmentReward + BigInt('10000000000');
-
+		it('should reward the sender with 1 LSK if validator has enough self stake', async () => {
+			const selfStake = reportPunishmentReward + BigInt('10000000000');
+			misBehavingValidator = {
+				name: 'misBehavingValidator',
+				totalStake: BigInt(100000000),
+				selfStake,
+				lastGeneratedHeight: 0,
+				isBanned: false,
+				reportMisbehaviorHeights: [],
+				consecutiveMissedBlocks: 0,
+				commission: 0,
+				lastCommissionIncreaseHeight: 0,
+				sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+			};
+			const oldWeight = getValidatorWeight(
+				BigInt(10),
+				misBehavingValidator.selfStake,
+				misBehavingValidator.totalStake,
+			);
+			await validatorSubstore.set(
+				createStoreGetter(stateStore),
+				validator1Address,
+				misBehavingValidator,
+			);
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
 				header2: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header2),
@@ -600,12 +637,23 @@ describe('ReportMisbehaviorCommand', () => {
 				})
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
-			when(pomCommand['_tokenMethod'].getAvailableBalance as any)
-				.calledWith(expect.anything(), validator1Address, DEFAULT_LOCAL_ID)
-				.mockResolvedValue(remainingBalance as never);
-
 			await pomCommand.execute(context);
+			const updatedValidator = await validatorSubstore.get(
+				createStoreGetter(stateStore),
+				validator1Address,
+			);
+			const updateStakerData = await stakerSubStore.get(
+				createStoreGetter(stateStore),
+				validator1Address,
+			);
 
+			expect(pomCommand['_tokenMethod'].unlock).toHaveBeenCalledWith(
+				expect.anything(),
+				validator1Address,
+				MODULE_NAME_POS,
+				DEFAULT_LOCAL_ID,
+				reportPunishmentReward,
+			);
 			expect(pomCommand['_tokenMethod'].transfer).toHaveBeenCalledWith(
 				expect.anything(),
 				validator1Address,
@@ -613,43 +661,88 @@ describe('ReportMisbehaviorCommand', () => {
 				DEFAULT_LOCAL_ID,
 				reportPunishmentReward,
 			);
-		});
-
-		it('should not reward the sender if validator does not has enough minimum remaining balance', async () => {
-			const remainingBalance = BigInt(100);
-
-			transactionParamsDecoded = {
-				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
-				header2: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header2),
-			};
-			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
-			transaction.params = transactionParams;
-			context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction,
-					header,
-				})
-				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
-
-			when(pomCommand['_tokenMethod'].getAvailableBalance as any)
-				.calledWith(expect.anything(), validator1Address, DEFAULT_LOCAL_ID)
-				.mockResolvedValue(remainingBalance as never);
-
-			await pomCommand.execute(context);
-
-			// If amount is zero, it should not call the transfer
-			expect(pomCommand['_tokenMethod'].transfer).not.toHaveBeenCalledWith(
+			expect(updatedValidator.selfStake).toEqual(
+				misBehavingValidator.selfStake - reportPunishmentReward,
+			);
+			expect(updatedValidator.totalStake).toEqual(
+				misBehavingValidator.totalStake - reportPunishmentReward,
+			);
+			expect(updateStakerData.stakes[0].amount).toEqual(stake.amount - reportPunishmentReward);
+			expect(eligibleValidatorStore['update']).toHaveBeenCalledWith(
 				expect.anything(),
 				validator1Address,
-				context.transaction.senderAddress,
-				DEFAULT_LOCAL_ID,
-				BigInt(0),
+				oldWeight,
+				updatedValidator,
 			);
 		});
 
-		it('should add (remaining balance - min remaining balance) of validator to balance of the sender if validator balance is less than report punishment reward', async () => {
-			const remainingBalance = reportPunishmentReward - BigInt(1);
+		it('should not reward the sender if validator has zero self stake', async () => {
+			const oldWeight = getValidatorWeight(
+				BigInt(10),
+				misBehavingValidator.selfStake,
+				misBehavingValidator.totalStake,
+			);
+			transactionParamsDecoded = {
+				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
+				header2: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header2),
+			};
+			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
+			transaction.params = transactionParams;
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					header,
+				})
+				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
+
+			await pomCommand.execute(context);
+			const updatedValidator = await validatorSubstore.get(
+				createStoreGetter(stateStore),
+				validator1Address,
+			);
+			const updateStakerData = await stakerSubStore.get(
+				createStoreGetter(stateStore),
+				validator1Address,
+			);
+
+			expect(pomCommand['_tokenMethod'].unlock).not.toHaveBeenCalledWith();
+			expect(pomCommand['_tokenMethod'].transfer).not.toHaveBeenCalledWith();
+			expect(updatedValidator.selfStake).toEqual(misBehavingValidator.selfStake - BigInt(0));
+			expect(updatedValidator.totalStake).toEqual(misBehavingValidator.totalStake - BigInt(0));
+			expect(updateStakerData.stakes[0].amount).toEqual(stake.amount - BigInt(0));
+			expect(eligibleValidatorStore['update']).toHaveBeenCalledWith(
+				expect.anything(),
+				validator1Address,
+				oldWeight,
+				updatedValidator,
+			);
+		});
+
+		it('should add self stake of validator to balance of the sender if validator self stake is less than report punishment reward', async () => {
+			const selfStake = reportPunishmentReward - BigInt(1);
+			misBehavingValidator = {
+				name: 'misBehavingValidator',
+				totalStake: BigInt(100000000),
+				selfStake,
+				lastGeneratedHeight: 0,
+				isBanned: false,
+				reportMisbehaviorHeights: [],
+				consecutiveMissedBlocks: 0,
+				commission: 0,
+				lastCommissionIncreaseHeight: 0,
+				sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+			};
+			const oldWeight = getValidatorWeight(
+				BigInt(10),
+				misBehavingValidator.selfStake,
+				misBehavingValidator.totalStake,
+			);
+			await validatorSubstore.set(
+				createStoreGetter(stateStore),
+				validator1Address,
+				misBehavingValidator,
+			);
 
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
@@ -665,18 +758,38 @@ describe('ReportMisbehaviorCommand', () => {
 				})
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
-			when(pomCommand['_tokenMethod'].getAvailableBalance as any)
-				.calledWith(expect.anything(), validator1Address, DEFAULT_LOCAL_ID)
-				.mockResolvedValue(remainingBalance as never);
-
 			await pomCommand.execute(context);
+			const updatedValidator = await validatorSubstore.get(
+				createStoreGetter(stateStore),
+				validator1Address,
+			);
+			const updateStakerData = await stakerSubStore.get(
+				createStoreGetter(stateStore),
+				validator1Address,
+			);
 
+			expect(pomCommand['_tokenMethod'].unlock).toHaveBeenCalledWith(
+				expect.anything(),
+				validator1Address,
+				MODULE_NAME_POS,
+				DEFAULT_LOCAL_ID,
+				selfStake,
+			);
 			expect(pomCommand['_tokenMethod'].transfer).toHaveBeenCalledWith(
 				expect.anything(),
 				validator1Address,
 				context.transaction.senderAddress,
 				DEFAULT_LOCAL_ID,
-				remainingBalance,
+				selfStake,
+			);
+			expect(updatedValidator.selfStake).toEqual(misBehavingValidator.selfStake - selfStake);
+			expect(updatedValidator.totalStake).toEqual(misBehavingValidator.totalStake - selfStake);
+			expect(updateStakerData.stakes[0].amount).toEqual(stake.amount - selfStake);
+			expect(eligibleValidatorStore['update']).toHaveBeenCalledWith(
+				expect.anything(),
+				validator1Address,
+				oldWeight,
+				updatedValidator,
 			);
 		});
 
