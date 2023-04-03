@@ -24,7 +24,6 @@ import {
 	LOCKING_PERIOD_SELF_STAKING,
 	MODULE_NAME_POS,
 	REPORTING_PUNISHMENT_REWARD,
-	TOKEN_ID_POS,
 } from '../../../../../src/modules/pos/constants';
 import {
 	TokenMethod,
@@ -652,7 +651,7 @@ describe('ReportMisbehaviorCommand', () => {
 				expect.anything(),
 				validator1Address,
 				MODULE_NAME_POS,
-				TOKEN_ID_POS,
+				DEFAULT_LOCAL_ID,
 				reportPunishmentReward,
 			);
 			expect(pomCommand['_tokenMethod'].transfer).toHaveBeenCalledWith(
@@ -677,7 +676,7 @@ describe('ReportMisbehaviorCommand', () => {
 			);
 		});
 
-		it('should not reward the sender if validator does not have enough self stake', async () => {
+		it('should not reward the sender if validator has zero self stake', async () => {
 			const oldWeight = getValidatorWeight(
 				BigInt(10),
 				misBehavingValidator.selfStake,
@@ -773,7 +772,7 @@ describe('ReportMisbehaviorCommand', () => {
 				expect.anything(),
 				validator1Address,
 				MODULE_NAME_POS,
-				TOKEN_ID_POS,
+				DEFAULT_LOCAL_ID,
 				selfStake,
 			);
 			expect(pomCommand['_tokenMethod'].transfer).toHaveBeenCalledWith(
