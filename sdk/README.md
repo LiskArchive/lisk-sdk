@@ -12,11 +12,10 @@
 [![codecov](https://codecov.io/gh/LiskHQ/lisk-sdk/branch/development/graph/badge.svg?token=2JhT7caf5x)](https://codecov.io/gh/LiskHQ/lisk-sdk)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
-## Sapphire phase [<img src="https://lisk.com/sites/default/files/2021-05/ico-sapphire.png" style="width:24px;vertical-align:middle">](https://lisk.com/roadmap)
+## Sapphire phase completed [<img src="https://lisk.com/sites/default/files/2021-05/ico-sapphire.png" style="width:24px;vertical-align:middle">](https://lisk.com/roadmap)
 
-We have completed [Emerald phase](https://lisk.com/roadmap)[<img src="https://lisk.com/sites/default/files/2021-05/ico-emerald.png" style="width:20px;vertical-align:middle">](https://lisk.com/roadmap) that encapsulates improvement in the key areas of network security and reliability, economics, consensus and longevity. Specifically a new address system, new fee system and an upgraded consensus algorithm for an improved version of PoS were successfully completed. During the Emerald phase all protocol improvements in the form of 36 Lisk Improvement Proposals (LIPs) were researched, published and implemented in Lisk SDK.
-
-We are currently working on [Sapphire phase](https://lisk.com/roadmap)[<img src="https://lisk.com/sites/default/files/2021-05/ico-sapphire.png" style="width:20px;vertical-align:middle">](https://lisk.com/roadmap) that brings the [Lisk interoperability solution](https://lisk.com/blog/research/lisk-interoperability-solution-published). All related Lisk Improvement Proposals (LIPs) are published and implementation is currently being actively developed. It consists of 8 roadmap objectives,
+With the release of Lisk SDK v6.0.0, we are completing the [Sapphire phase](https://lisk.com/roadmap)[<img src="https://lisk.com/sites/default/files/2021-05/ico-sapphire.png" style="width:20px;vertical-align:middle">](https://lisk.com/roadmap), which brings the [Lisk interoperability solution](https://lisk.com/blog/research/lisk-interoperability-solution-published).
+All related Lisk Improvement Proposals (LIPs) are published and implementation is currently being actively developed. It consists of 8 roadmap objectives,
 
 - Define cross-chain messaging protocol
 - Define sidechain registration and lifecycle
@@ -27,126 +26,134 @@ We are currently working on [Sapphire phase](https://lisk.com/roadmap)[<img src=
 - Update Lisk-BFT for interoperability
 - Update block header format
 
-To learn more about the Lisk Interoperability and the current development status, check out [Lisk Improvement Proposal](https://github.com/LiskHQ/lips), [Research Forum](https://research.lisk.com/), [Lisk interoperability solution blog](https://lisk.com/blog/research/lisk-interoperability-solution-published) and [Lisk SDK v6.0.0 project board](https://github.com/orgs/LiskHQ/projects/10/views/4).
+To learn more about the Lisk protocol and its' current development status, check out [Lisk Improvement Proposal](https://github.com/LiskHQ/lips), [Research Forum](https://research.lisk.com/), [Lisk interoperability solution blog](https://lisk.com/blog/research/lisk-interoperability-solution-published) and [Lisk SDK v6.0.0 project board](https://github.com/orgs/LiskHQ/projects/10/views/4).
 
 We hope you enjoy building your proof-of-concept blockchain applications using the Lisk SDK, and shall look forward to receiving your feedback and contributions during the beta phase.
 
 ## What is the Lisk SDK?
 
-The Lisk SDK aims to provide an easy and reliable software development kit for building blockchain applications which are compatible with the [Lisk Protocol](https://lisk.com/documentation/understand-blockchain/lisk-protocol). The architecture of the Lisk SDK has been designed so that it can be extended to meet the requirements of a wide variety of blockchain application use cases. The codebase is written entirely in JavaScript, which means for a majority of developers, no significant change of tools or mindset is required to get started. The Lisk SDK makes every effort to allow developers to focus simply and purely on writing the code that matters to their own blockchain application, and nothing more.
+The Lisk SDK aims to provide an easy and reliable software development kit for building blockchain applications which are compatible with the [Lisk Protocol](https://lisk.com/documentation/understand-blockchain/lisk-protocol).
+The architecture of the Lisk SDK has been designed so that it can be extended to meet the requirements of a wide variety of blockchain application use cases.
+The codebase is written entirely in JavaScript/TypeScript, which means for a majority of developers, no significant change of tools or mindset is required to get started.
+The Lisk SDK makes every effort to allow developers to focus simply and purely on writing the code that matters to their own blockchain application, and nothing more.
 
 ## Usage
 
+Lisk SDK is all-in-one package that provides you with tools to create, run and maintain blockchain applications in JavaScript/TypeScript.
+
 ### Documentation
 
-For more detailed documentation, see the [official Lisk SDK documentation](https://lisk.com/documentation/lisk-sdk).
+For more further guides and tutorials, see the [official Lisk SDK documentation](https://lisk.com/documentation/lisk-sdk).
 
-#### Dependencies
+### Dependencies
 
-Before running Lisk SDK, the following dependencies need to be installed in order to run applications created with the Lisk SDK:
+The following dependencies need to be installed in order to run blockchain clients created with the Lisk SDK:
 
-| Dependencies | Version |
-| ------------ | ------- |
-| NodeJS       | 16+     |
+#### Node.js
 
-For Mac M1 series,
-NodeJS must be above version 16. Additionally, to build `sodium-native` below tools are required.
+If you are using NVM ({url_nvm}[Node.js Version Manager]), install the correct version as shown below:
 
-```
-brew install libtool cmake autoconf automake pyenv
-pyenv install 2.7.18
-pyenv global 2.7.18
-# Add `eval "$(pyenv init --path)"` to ~/.zshrc etc
+```sh
+nvm install v16.18.0
 ```
 
-### Installation
+#### Lisk Commander
 
-The installation of Lisk Beta SDK is straightforward and limited to getting a single NPM package, `lisk-sdk`, to your Node.js project:
+It is recommended to install Lisk Commander globally with NPM (Node Package Manager), to facilitate the convenient usage of the Lisk Commander CLI.
 
-```
-npm install lisk-sdk@beta
-```
-
-Lisk SDK is all-in-one package that provides you with tools to create, run and maintain blockchain applications in JavaScript.
-
-### Set up new a blockchain application
-
-To start, create the project structure of your blockchain application. There are no special requirements here, you can create the basic Node.js project folder structure with `npm init`.
-
-To create a blockchain application, you need to provide an entry point of your application (like `index.js`) and set-up your network by using the modules of Lisk SDK.
-
-It is quite simple to have a working blockchain application, mirroring the configuration of the existing Lisk network. This can be done by copying the following three lines of code to your `index.js`:
-
-```js
-const { Application, genesisBlockDevnet, configDevnet } = require('lisk-sdk');
-
-const { app } = Application.defaultApplication(
-	genesisBlockDevnet,
-	configDevnet
-);
-
-app
-	.run()
-	.then(() => app.logger.info('App started...'))
-	.catch((error) => {
-		console.error('Faced error in application', error);
-		process.exit(1);
-	});
+```sh
+npm install --global lisk-commander@beta
 ```
 
-After that you can start the application by:
+To check the successful installation of Lisk Commander, run the following command:
 
+```sh
+$ lisk --version
+lisk-commander/6.0.0 darwin-arm64 node-v16.18.0
 ```
-node index.js
+
+#### Toolchain dependencies
+
+Once Lisk Commander is installed, install the following compiler dependencies as well.
+
+##### Ubuntu
+
+```sh
+sudo apt update
+sudo apt install -y libtool automake autoconf curl build-essential python2-minimal
+```
+
+##### macOS
+
+Ensure that [Homebrew](https://brew.sh/) is installed.
+
+```sh
+brew install autoconf automake libtool python2
+```
+
+### Initializing a new blockchain client
+
+Create a dedicated folder `my-blockchain-client/`, which will contain the logic for the blockchain client:
+
+```sh
+mkdir my-blockchain-client
+cd my-blockchain-client
+```
+
+Inside the `my-blockchain-client` folder, execute the `lisk init` command of Lisk Commander as shown below:
+
+```sh
+lisk init
+```
+
+As a result of executing the `init` command, you will be asked for the _Name_, _ChainID_, _Description_, _Author_, and _License_ of the blockchain client.
+
+---
+
+Using template "lisk-ts"
+Initializing git repository
+Updating .liskrc.json file
+Creating project structure
+? Application name my_client
+? Chain ID in hex representation. ChainID must be 4 bytes (8 characters) 12345678
+? Application description A simple blockchain client for my Web3 application
+? Author XYZ
+? License ISC
+
+---
+
+Next, all the required files are created by Lisk Commander.
+
+It is now already possible to start the newly bootstrapped blockchain client with default configurations for a local Devnet:
+
+```sh
+./bin/run start
 ```
 
 ### Configure your blockchain parameters
 
-You can also define your blockchain application parameters such as `blockTime`, `maxTransactionsSize` and more with an optional configurations object.
+The blockchain client offers a variety of configuration options such as `blockTime`, `maxTransactionsSize` and more.
 
-```js
-const { app } = Application.defaultApplication(genesisBlockDevnet, {
-    genesisConfig: {
-      blockTime: 5,
-      maxTransactionsSize: 100 * 1024,
-      minRemainingBalance: "5000000",
-	  activeValidators: 101,
-	  standbyValidators: 2,
-	  validatorListRoundOffset: 2
-    },
-    ...
-});
+For a complete overview of the client configuration options, please check out the [SDK configuration reference](https://lisk.com/documentation/lisk-sdk/v6/config.html) and the [Blockchain client configuration](https://liskhq.github.io/lisk-docs/beta/build-blockchain/configuration.html) guide.
+
+To use the custom config with the client, use the `--config` flag.
+Also add the `--overwrite-config` flag, if you used another config the last time the client was started.
+
+```sh
+./bin/run start --config config/custom_config.json --overwrite-config
 ```
 
 ### Register a custom module or a custom plugin
 
 A custom module is a logic to define state changes that will be executed on-chain meaning that it will be a part of the blockchain protocol.
-On the other hand, a custom plugin is a logic to define an off-chain logic which is not part of the blockchain protocol but to enhance the application features.
+
+A custom plugin, on the other hand, is a logic to define an off-chain logic which is not part of the blockchain protocol but to enhance the blockchain application features.
 
 Add your custom module and custom plugin to your blockchain application by registering it to the application instance:
 
-```js
-const { Application, genesisBlockDevnet, configDevnet } = require('lisk-sdk');
-
-const MyModule = require('./my_module');
-const MyPlugin = require('./my_plugin');
-
-const { app } = Application.defaultApplication(
-	genesisBlockDevnet,
-	configDevnet
-);
-
-app.registerModule(MyModule); // register the custom module
-app.registerPlugin(MyPlugin); // register the custom plugin
-
-app
-	.run()
-	.then(() => app.logger.info('App started...'))
-	.catch((error) => {
-		console.error('Faced error in application', error);
-		process.exit(1);
-	});
-```
+<!---
+TODO: Add steps how to generate modules and command with Commander, and add links to modules/plugin explanations & more detailed guides
+-->
 
 ## Architecture Overview
 
