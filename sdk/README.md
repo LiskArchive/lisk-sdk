@@ -40,7 +40,7 @@ The following dependencies need to be installed in order to run blockchain clien
 
 #### Node.js
 
-If you are using NVM ({url_nvm}[Node.js Version Manager]), install the correct version as shown below:
+If you are using NVM, install the correct version as shown below:
 
 ```sh
 nvm install v16.18.0
