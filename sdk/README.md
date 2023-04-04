@@ -12,9 +12,9 @@
 [![codecov](https://codecov.io/gh/LiskHQ/lisk-sdk/branch/development/graph/badge.svg?token=2JhT7caf5x)](https://codecov.io/gh/LiskHQ/lisk-sdk)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
-## Sapphire phase nearly completed [<img src="https://lisk.com/sites/default/files/2021-05/ico-sapphire.png" style="width:24px;vertical-align:middle">](https://lisk.com/roadmap)
+## Sapphire phase nearly completed
 
-With the release of Lisk SDK v6.0.0, we are completing the [Sapphire phase](https://lisk.com/roadmap)[<img src="https://lisk.com/sites/default/files/2021-05/ico-sapphire.png" style="width:20px;vertical-align:middle">](https://lisk.com/roadmap), which brings the [Lisk interoperability solution](https://lisk.com/blog/research/lisk-interoperability-solution-published).
+With the release of Lisk SDK v6.0.0, we are completing the [Sapphire phase](https://lisk.com/roadmap), which brings the [Lisk interoperability solution](https://lisk.com/blog/research/lisk-interoperability-solution-published).
 
 To learn more about the Lisk protocol and its' current development status, check out [Lisk Roadmap](https://lisk.com/roadmap), [Lisk Improvement Proposal](https://github.com/LiskHQ/lips), and [Research Forum](https://research.lisk.com/).
 
@@ -33,10 +33,6 @@ The Lisk SDK makes every effort to allow developers to focus simply and purely o
 ## Usage
 
 Lisk SDK is all-in-one package that provides you with tools to create, run and maintain blockchain applications in JavaScript/TypeScript.
-
-### Documentation
-
-For more further guides and tutorials, see the [official Lisk SDK documentation](https://lisk.com/documentation/lisk-sdk).
 
 ### Dependencies
 
@@ -154,6 +150,10 @@ lisk generate:plugin my-plugin-name
 ```
 
 For more detailed explanations how to create a module, please refer to the guide [How to create a plugin](https://lisk.com/documentation/beta/build-blockchain/plugin/index.html)
+
+### Documentation
+
+For further explanations, guides and tutorials, see the [official Lisk SDK documentation](https://lisk.com/documentation/lisk-sdk).
 
 ## Architecture Overview
 
