@@ -16,9 +16,9 @@
 
 With the release of Lisk SDK v6.0.0, we are completing the [Sapphire phase](https://lisk.com/roadmap), which brings the [Lisk interoperability solution](https://lisk.com/blog/research/lisk-interoperability-solution-published).
 
-To learn more about the Lisk protocol and its' current development status, check out [Lisk Roadmap](https://lisk.com/roadmap), [Lisk Improvement Proposal](https://github.com/LiskHQ/lips), and [Research Forum](https://research.lisk.com/).
+To learn more about the Lisk protocol and its current development status, check out [Lisk Roadmap](https://lisk.com/roadmap), [Lisk Improvement Proposal](https://github.com/LiskHQ/lips), and [Research Forum](https://research.lisk.com/).
 
-We hope you enjoy building your proof-of-concept Web3 applications using the Lisk SDK, and look forward to receive your feedback and contributions during the beta phase.
+We hope you enjoy building Web3 applications using the Lisk SDK, and look forward to receiving your feedback and contributions during the beta phase.
 
 ## What is the Lisk SDK?
 
@@ -32,7 +32,7 @@ The Lisk SDK makes every effort to allow developers to focus simply and purely o
 
 ## Usage
 
-Lisk SDK is all-in-one package that provides you with tools to create, run and maintain blockchain applications in JavaScript/TypeScript.
+Lisk SDK is an all-in-one package that provides you with tools to create, run and maintain blockchain applications in JavaScript/TypeScript.
 
 ### Dependencies
 
@@ -112,7 +112,7 @@ It is now already possible to start the newly bootstrapped blockchain client wit
 
 ### Configure your blockchain parameters
 
-The blockchain client offers a variety of configuration options such as `blockTime`, `maxTransactionsSize` and more.
+The blockchain client offers a variety of configuration options such as `blockTime`, `maxTransactionsSize`, and much more.
 
 For a complete overview of the client configuration options, please check out the [SDK configuration reference](https://lisk.com/documentation/lisk-sdk/v6/config.html) and the [Blockchain client configuration](https://liskhq.github.io/lisk-docs/beta/build-blockchain/configuration.html) guide.
 
@@ -125,9 +125,9 @@ Also add the `--overwrite-config` flag, if you used another config the last time
 
 ### Register a custom module or a custom plugin
 
-A custom [module](https://lisk.com/documentation/beta/understand-blockchain/sdk/modules-commands.html) is a logic to define state changes that will be executed on-chain meaning that it will be a part of the blockchain protocol.
+A custom [module](https://lisk.com/documentation/beta/understand-blockchain/sdk/modules-commands.html) defines the logic that makes state changes on-chain, meaning that it will be a part of the blockchain protocol.
 
-A custom [plugin](https://lisk.com/documentation/beta/understand-blockchain/sdk/plugins.html), on the other hand, is a logic to define an off-chain logic which is not part of the blockchain protocol but to enhance the blockchain application features.
+A custom [plugin](https://lisk.com/documentation/beta/understand-blockchain/sdk/plugins.html), on the other hand, defines an off-chain logic that is not part of the blockchain protocol but enhances the blockchain application features.
 
 Add your custom module and custom plugin to your blockchain client conveniently with Lisk Commander:
 
@@ -149,7 +149,7 @@ Use the `generate:plugin` command in the root folder of the blockchain client to
 lisk generate:plugin my-plugin-name
 ```
 
-For more detailed explanations how to create a module, please refer to the guide [How to create a plugin](https://lisk.com/documentation/beta/build-blockchain/plugin/index.html)
+For a more detailed explanation of how to create a plugin, please refer to the guide: [How to create a plugin](https://lisk.com/documentation/beta/build-blockchain/plugin/index.html)
 
 ### Documentation
 
