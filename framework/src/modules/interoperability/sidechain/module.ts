@@ -308,9 +308,9 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			if (mainchainInfo.chainData.name !== CHAIN_NAME_MAINCHAIN) {
 				throw new Error(`chainData.name must be equal to ${CHAIN_NAME_MAINCHAIN}.`);
 			}
-			const validStatues = [ChainStatus.REGISTERED, ChainStatus.ACTIVE];
-			if (!validStatues.includes(mainchainInfo.chainData.status)) {
-				throw new Error(`chainData.status must be one of ${validStatues.join(', ')}.`);
+			const validStatuses = [ChainStatus.REGISTERED, ChainStatus.ACTIVE];
+			if (!validStatuses.includes(mainchainInfo.chainData.status)) {
+				throw new Error(`chainData.status must be one of ${validStatuses.join(', ')}.`);
 			}
 			if (mainchainInfo.chainData.lastCertificate.timestamp > ctx.header.timestamp) {
 				throw new Error('chainData.lastCertificate.timestamp must be < header.timestamp.');
@@ -338,19 +338,19 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		this._verifyTerminatedStateAccountsCommon(terminatedStateAccounts);
 
 		const mainchainID = getMainchainID(ctx.chainID);
+		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(ctx, EMPTY_BYTES);
 
 		for (const stateAccount of terminatedStateAccounts) {
 			// stateAccount.chainID != getMainchainID()
 			if (stateAccount.chainID.equals(mainchainID)) {
 				throw new Error(
-					`stateAccount.chainID most be not equal to ${mainchainID.toString('hex')}.`,
+					`stateAccount.chainID must not be equal to ${mainchainID.toString('hex')}.`,
 				);
 			}
 
-			const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(ctx, EMPTY_BYTES);
 			// and stateAccount.chainID != ownChainAccount.chainID.
 			if (stateAccount.chainID.equals(ownChainAccount.chainID)) {
-				throw new Error(`stateAccount.chainID must be not equal to ownChainAccount.chainID.`);
+				throw new Error(`stateAccount.chainID must not be equal to ownChainAccount.chainID.`);
 			}
 
 			// For each entry stateAccount in terminatedStateAccounts either:

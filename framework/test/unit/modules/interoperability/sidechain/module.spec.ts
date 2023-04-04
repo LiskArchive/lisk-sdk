@@ -55,11 +55,9 @@ const createInitGenesisStateContext = (
 
 describe('initGenesisState', () => {
 	const chainID = Buffer.from([1, 2, 3, 4]);
-
 	let params: CreateGenesisBlockContextParams;
 	let stateStore: PrefixedStateReadWriter;
 	let interopMod: SidechainInteroperabilityModule;
-
 	const ownChainAccountStoreMock = {
 		get: jest.fn(),
 		set: jest.fn(),
@@ -343,9 +341,9 @@ describe('initGenesisState', () => {
 					params,
 				);
 
-				const validStatues = [ChainStatus.REGISTERED, ChainStatus.ACTIVE];
+				const validStatuses = [ChainStatus.REGISTERED, ChainStatus.ACTIVE];
 				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					`chainData.status must be one of ${validStatues.join(', ')}.`,
+					`chainData.status must be one of ${validStatuses.join(', ')}.`,
 				);
 			});
 
@@ -429,7 +427,7 @@ describe('initGenesisState', () => {
 				);
 
 				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					`stateAccount.chainID most be not equal to ${chainIDDefault.toString('hex')}.`,
+					`stateAccount.chainID must not be equal to ${chainIDDefault.toString('hex')}.`,
 				);
 			});
 
@@ -453,7 +451,7 @@ describe('initGenesisState', () => {
 				);
 
 				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					`stateAccount.chainID must be not equal to ownChainAccount.chainID.`,
+					`stateAccount.chainID must not be equal to ownChainAccount.chainID.`,
 				);
 			});
 

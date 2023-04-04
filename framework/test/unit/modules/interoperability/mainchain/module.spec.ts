@@ -16,7 +16,6 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { BlockAssets } from '@liskhq/lisk-chain';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
-import { BaseInteroperabilityModule } from '../../../../../src/modules/interoperability/base_interoperability_module';
 import {
 	HASH_LENGTH,
 	CHAIN_NAME_MAINCHAIN,
@@ -69,10 +68,10 @@ const createInitGenesisStateContext = (
 describe('initGenesisState', () => {
 	const chainID = Buffer.from([0, 0, 0, 0]);
 	let stateStore: PrefixedStateReadWriter;
-	let interopMod: BaseInteroperabilityModule;
+	let interopMod: MainchainInteroperabilityModule;
 	let certificateThreshold = BigInt(0);
-
 	let params: CreateGenesisBlockContextParams;
+
 	beforeEach(() => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		interopMod = new MainchainInteroperabilityModule();
@@ -208,7 +207,7 @@ describe('initGenesisState', () => {
 				params,
 			);
 			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-				`chainID must be not equal to ${mainchainID.toString('hex')}.`,
+				`chainID must not be equal to ${mainchainID.toString('hex')}.`,
 			);
 		});
 
