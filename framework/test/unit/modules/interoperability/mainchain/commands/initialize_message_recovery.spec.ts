@@ -163,7 +163,10 @@ describe('InitializeMessageRecoveryCommand', () => {
 					}),
 				}),
 			}).createCommandVerifyContext<MessageRecoveryInitializationParams>(command.schema);
-			await expect(command.verify(context)).rejects.toThrow('Chain ID is not valid.');
+			const result = await command.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Chain ID is not valid.`);
 		});
 
 		it('should reject when chainID is the ownchain', async () => {
@@ -178,29 +181,28 @@ describe('InitializeMessageRecoveryCommand', () => {
 					}),
 				}),
 			}).createCommandVerifyContext<MessageRecoveryInitializationParams>(command.schema);
-			await expect(command.verify(context)).rejects.toThrow('Chain ID is not valid.');
+			const result = await command.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Chain ID is not valid.`);
 		});
 
 		it('should reject when chain account does not exist', async () => {
 			await interopMod.stores.get(ChainAccountStore).del(stateStore, targetChainID);
 
-			await expect(command.verify(defaultContext)).rejects.toThrow('Chain is not registered');
+			const result = await command.verify(defaultContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Chain is not registered`);
 		});
 
 		it('should reject when terminated account does not exist', async () => {
 			await interopMod.stores.get(TerminatedStateStore).del(stateStore, targetChainID);
 
-			await expect(command.verify(defaultContext)).rejects.toThrow('does not exist');
-		});
+			const result = await command.verify(defaultContext);
 
-		it('should reject when terminated account exists but not initialized', async () => {
-			await interopMod.stores.get(TerminatedStateStore).set(stateStore, targetChainID, {
-				stateRoot: utils.getRandomBytes(32),
-				initialized: false,
-				mainchainStateRoot: EMPTY_HASH,
-			});
-
-			await expect(command.verify(defaultContext)).rejects.toThrow('Chain is not terminated.');
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`not present`);
 		});
 
 		it('should reject when terminated outbox account exists', async () => {
@@ -210,23 +212,53 @@ describe('InitializeMessageRecoveryCommand', () => {
 				partnerChainInboxSize: 20,
 			});
 
-			await expect(command.verify(defaultContext)).rejects.toThrow(
-				'Terminated outbox account already exists.',
-			);
+			const result = await command.verify(defaultContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Terminated outbox account already exists.`);
 		});
 
 		it('should reject when proof of inclusion is not valid', async () => {
 			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
 
-			await expect(command.verify(defaultContext)).rejects.toThrow(
+			const result = await command.verify(defaultContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
 				'Message recovery initialization proof of inclusion is not valid.',
+			);
+		});
+
+		it('should resolve when ownchainID !== mainchainID', async () => {
+			await interopMod.stores
+				.get(OwnChainAccountStore)
+				.set(stateStore, EMPTY_BYTES, { ...ownChainAccount, chainID: Buffer.from([2, 2, 2, 2]) });
+			const queryKey = Buffer.concat([
+				interopMod.stores.get(ChannelDataStore).key,
+				utils.hash(Buffer.from([2, 2, 2, 2])),
+			]);
+
+			await expect(command.verify(defaultContext)).resolves.toEqual({ status: VerifyStatus.OK });
+			expect(SparseMerkleTree.prototype.verify).toHaveBeenCalledWith(
+				terminatedState.stateRoot,
+				[queryKey],
+				{
+					siblingHashes: defaultParams.siblingHashes,
+					queries: [
+						{
+							key: queryKey,
+							value: utils.hash(defaultParams.channel),
+							bitmap: defaultParams.bitmap,
+						},
+					],
+				},
 			);
 		});
 
 		it('should resolve when params is valid', async () => {
 			const queryKey = Buffer.concat([
 				interopMod.stores.get(ChannelDataStore).key,
-				utils.hash(Buffer.from([0, 0, 0, 0])),
+				utils.hash(ownChainAccount.chainID),
 			]);
 
 			await expect(command.verify(defaultContext)).resolves.toEqual({ status: VerifyStatus.OK });

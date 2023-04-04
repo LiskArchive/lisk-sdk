@@ -119,6 +119,18 @@ export {
 	CCMProcessedCode,
 	CCMProcessedResult,
 	ccuParamsSchema,
+	sidechainRegParams,
+	mainchainRegParams,
+	messageRecoveryParamsSchema,
+	messageRecoveryInitializationParamsSchema,
+	registrationCCMParamsSchema,
+	sidechainTerminatedCCMParamsSchema,
+	validatorsHashInputSchema,
+	registrationSignatureMessageSchema,
+	stateRecoveryParamsSchema,
+	stateRecoveryInitParamsSchema,
+	terminateSidechainForLivenessParamsSchema,
+	genesisInteroperabilitySchema,
 } from './modules/interoperability';
 export { RewardMethod, RewardModule } from './modules/reward';
 export { FeeMethod, FeeModule } from './modules/fee';
@@ -151,3 +163,14 @@ export {
 	unsignedCertificateSchema,
 } from './engine/consensus';
 export { applicationConfigSchema } from './schema';
+export {
+	BLS_PUBLIC_KEY_LENGTH,
+	BLS_SIGNATURE_LENGTH,
+	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
+	MESSAGE_TAG_CHAIN_REG,
+	MIN_CHAIN_NAME_LENGTH,
+	MAX_CHAIN_NAME_LENGTH,
+	MAX_NUM_VALIDATORS,
+	CHAIN_ID_LENGTH,
+} from './modules/interoperability/constants';
+export { Proof, QueryProof, ProveResponse, Validator as BFTValidator } from './abi/abi';

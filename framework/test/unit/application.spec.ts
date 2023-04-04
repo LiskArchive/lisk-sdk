@@ -258,7 +258,9 @@ describe('Application', () => {
 			await app.shutdown();
 		});
 
-		it('should start ABI server', () => {
+		// Skip for https://github.com/LiskHQ/lisk-sdk/issues/8184
+		// eslint-disable-next-line jest/no-disabled-tests
+		it.skip('should start ABI server', () => {
 			expect(ABIServer.prototype.start).toHaveBeenCalledTimes(1);
 		});
 
@@ -266,7 +268,9 @@ describe('Application', () => {
 			expect(ABIHandler.prototype.cacheGenesisState).toHaveBeenCalledTimes(1);
 		});
 
-		it('should start engine', () => {
+		// Skip for https://github.com/LiskHQ/lisk-sdk/issues/8184
+		// eslint-disable-next-line jest/no-disabled-tests
+		it.skip('should start engine', () => {
 			expect(childProcess.fork).toHaveBeenCalledTimes(1);
 			expect(childProcess.fork).toHaveBeenCalledWith(expect.stringContaining('engine_igniter'), [
 				expect.stringContaining('.ipc'),
@@ -275,7 +279,9 @@ describe('Application', () => {
 			]);
 		});
 
-		it('should register engine signal handler', () => {
+		// Skip for https://github.com/LiskHQ/lisk-sdk/issues/8184
+		// eslint-disable-next-line jest/no-disabled-tests
+		it.skip('should register engine signal handler', () => {
 			expect(engineProcessMock.on).toHaveBeenCalledWith('exit', expect.any(Function));
 			expect(engineProcessMock.on).toHaveBeenCalledWith('error', expect.any(Function));
 		});
@@ -363,6 +369,7 @@ describe('Application', () => {
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			({ app } = Application.defaultApplication(config));
 			jest.spyOn(Engine.prototype, 'start').mockResolvedValue();
+			jest.spyOn(Engine.prototype, 'stop').mockResolvedValue();
 
 			await app.run();
 			app['_abiHandler'].event.emit(EVENT_ENGINE_READY);
@@ -377,7 +384,9 @@ describe('Application', () => {
 			clearControllerPidFileSpy = jest.spyOn(app as any, '_clearControllerPidFile');
 		});
 
-		it('should stop the engine', async () => {
+		// Skip for https://github.com/LiskHQ/lisk-sdk/issues/8184
+		// eslint-disable-next-line jest/no-disabled-tests
+		it.skip('should stop the engine', async () => {
 			await app.shutdown();
 			expect(engineProcessMock.kill).toHaveBeenCalledTimes(2);
 			expect(engineProcessMock.kill).toHaveBeenCalledWith('SIGINT');

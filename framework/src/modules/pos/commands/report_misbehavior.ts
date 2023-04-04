@@ -25,6 +25,7 @@ import {
 	REPORTING_PUNISHMENT_REWARD,
 	REPORT_MISBEHAVIOR_LIMIT_BANNED,
 	LOCKING_PERIOD_SELF_STAKING,
+	MODULE_NAME_POS,
 } from '../constants';
 import { reportMisbehaviorCommandParamsSchema } from '../schemas';
 import {
@@ -41,6 +42,7 @@ import { ValidatorStore } from '../stores/validator';
 import { ValidatorPunishedEvent } from '../events/validator_punished';
 import { ValidatorBannedEvent } from '../events/validator_banned';
 import { EligibleValidatorsStore } from '../stores/eligible_validators';
+import { StakerStore } from '../stores/staker';
 
 export class ReportMisbehaviorCommand extends BaseCommand {
 	public schema = reportMisbehaviorCommandParamsSchema;
@@ -137,7 +139,6 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async execute(context: CommandExecuteContext<PomTransactionParams>): Promise<void> {
 		const { getMethodContext, params, transaction, header } = context;
-
 		const currentHeight = header.height;
 		const header1 = BlockHeader.fromBytes(params.header1);
 
@@ -145,14 +146,7 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 		const validatorSubStore = this.stores.get(ValidatorStore);
 		const validatorAccount = await validatorSubStore.get(context, punishedAddress);
 
-		const validatorAccountBalance = await this._tokenMethod.getAvailableBalance(
-			getMethodContext(),
-			punishedAddress,
-			this._posTokenID,
-		);
-
 		validatorAccount.reportMisbehaviorHeights.push(currentHeight);
-
 		this.events.get(ValidatorPunishedEvent).log(context, {
 			address: punishedAddress,
 			height: currentHeight,
@@ -166,24 +160,19 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 				height: currentHeight,
 			});
 		}
-
-		const currentWeight = getValidatorWeight(
-			BigInt(this._factorSelfStakes),
-			validatorAccount.selfStake,
-			validatorAccount.totalStake,
-		);
-
-		const eligibleValidatorStore = this.stores.get(EligibleValidatorsStore);
-		await eligibleValidatorStore.update(context, punishedAddress, currentWeight, validatorAccount);
-
-		await validatorSubStore.set(context, punishedAddress, validatorAccount);
-
 		const reward =
-			REPORTING_PUNISHMENT_REWARD > validatorAccountBalance
-				? validatorAccountBalance
+			REPORTING_PUNISHMENT_REWARD > validatorAccount.selfStake
+				? validatorAccount.selfStake
 				: REPORTING_PUNISHMENT_REWARD;
 
 		if (reward > BigInt(0)) {
+			await this._tokenMethod.unlock(
+				getMethodContext(),
+				punishedAddress,
+				MODULE_NAME_POS,
+				this._posTokenID,
+				reward,
+			);
 			await this._tokenMethod.transfer(
 				getMethodContext(),
 				punishedAddress,
@@ -192,5 +181,22 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 				reward,
 			);
 		}
+		const oldWeight = getValidatorWeight(
+			BigInt(this._factorSelfStakes),
+			validatorAccount.selfStake,
+			validatorAccount.totalStake,
+		);
+		validatorAccount.selfStake -= reward;
+		validatorAccount.totalStake -= reward;
+		await validatorSubStore.set(context, punishedAddress, validatorAccount);
+		const eligibleValidatorStore = this.stores.get(EligibleValidatorsStore);
+		await eligibleValidatorStore.update(context, punishedAddress, oldWeight, validatorAccount);
+		const stakerSubStore = this.stores.get(StakerStore);
+		const stakerData = await stakerSubStore.get(context, punishedAddress);
+		const existingStakeIndex = stakerData.stakes.findIndex(senderStake =>
+			senderStake.validatorAddress.equals(punishedAddress),
+		);
+		stakerData.stakes[existingStakeIndex].amount -= reward;
+		await stakerSubStore.set(context, punishedAddress, stakerData);
 	}
 }

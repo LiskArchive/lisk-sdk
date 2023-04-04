@@ -359,7 +359,7 @@ describe('Base interoperability internal method', () => {
 			).rejects.toThrow('Chain to be terminated is not valid');
 		});
 
-		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account does not exist for the id and ownchain account id is not the same as mainchain id', async () => {
+		it('should set appropriate terminated state for chain id if chain account does not exist for the id and stateRoot is EMPTY_HASH', async () => {
 			const chainIdNew = cryptoUtils.intToBuffer(10, 4);
 			jest
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
@@ -388,6 +388,40 @@ describe('Base interoperability internal method', () => {
 					stateRoot: EMPTY_HASH,
 					mainchainStateRoot: chainAccount.lastCertificate.stateRoot,
 					initialized: false,
+				},
+			);
+		});
+
+		it('should set appropriate terminated state for chain id if chain account does not exist for the id and stateRoot is not EMPTY_HASH', async () => {
+			const chainIdNew = cryptoUtils.intToBuffer(10, 4);
+			jest
+				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
+				.mockResolvedValue(ownChainAccount1);
+			await chainDataSubstore.set(
+				createStoreGetter(crossChainMessageContext.stateStore as any),
+				utils.getMainchainID(ownChainAccount1.chainID),
+				chainAccount,
+			);
+			await mainchainInteroperabilityInternalMethod.createTerminatedStateAccount(
+				crossChainMessageContext,
+				chainIdNew,
+				stateRoot,
+			);
+
+			await expect(
+				terminatedStateSubstore.get(crossChainMessageContext, chainIdNew),
+			).resolves.toStrictEqual({
+				stateRoot,
+				mainchainStateRoot: EMPTY_HASH,
+				initialized: true,
+			});
+			expect(terminatedStateCreatedEvent.log).toHaveBeenCalledWith(
+				{ eventQueue: crossChainMessageContext.eventQueue },
+				chainIdNew,
+				{
+					stateRoot,
+					mainchainStateRoot: EMPTY_HASH,
+					initialized: true,
 				},
 			);
 		});
@@ -1146,14 +1180,16 @@ describe('Base interoperability internal method', () => {
 			},
 		};
 
+		const chainValidators = {
+			activeValidators,
+			certificateThreshold: BigInt(20),
+		};
+
 		beforeEach(async () => {
 			jest.spyOn(interopMod.events.get(InvalidCertificateSignatureEvent), 'add');
 			await interopMod.stores
 				.get(ChainValidatorsStore)
-				.set(methodContext, txParams.sendingChainID, {
-					activeValidators,
-					certificateThreshold: BigInt(20),
-				});
+				.set(methodContext, txParams.sendingChainID, chainValidators);
 		});
 
 		it('should reject if verifyWeightedAggSig fails', async () => {
@@ -1171,7 +1207,7 @@ describe('Base interoperability internal method', () => {
 				txParams.sendingChainID,
 				encodedUnsignedCertificate,
 				activeValidators.map(v => v.bftWeight),
-				txParams.certificateThreshold,
+				chainValidators.certificateThreshold,
 			);
 
 			expect(interopMod.events.get(InvalidCertificateSignatureEvent).add).toHaveBeenCalledTimes(1);

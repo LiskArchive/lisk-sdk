@@ -22,17 +22,27 @@ import {
 	InboxJSON,
 	Outbox,
 	OutboxJSON,
-} from 'lisk-sdk';
-import {
 	BFTParameters,
+	ProveResponse,
+} from 'lisk-sdk';
+
+import {
 	BFTParametersJSON,
 	CCMsFromEvents,
 	CCMsFromEventsJSON,
-	ProveResponse,
 	ProveResponseJSON,
 	ValidatorsData,
 } from './types';
+
 import { CHAIN_ID_LENGTH } from './constants';
+
+interface BFTParametersWithoutGeneratorKey extends Omit<BFTParameters, 'validators'> {
+	validators: {
+		address: Buffer;
+		bftWeight: bigint;
+		blsKey: Buffer;
+	}[];
+}
 
 export const getMainchainID = (chainID: Buffer): Buffer => {
 	const networkID = chainID.slice(0, 1);
@@ -158,7 +168,9 @@ export const proveResponseJSONToObj = (proveResponseJSON: ProveResponseJSON): Pr
 	};
 };
 
-export const bftParametersJSONToObj = (bftParametersJSON: BFTParametersJSON): BFTParameters => {
+export const bftParametersJSONToObj = (
+	bftParametersJSON: BFTParametersJSON,
+): BFTParametersWithoutGeneratorKey => {
 	const { certificateThreshold, precommitThreshold, prevoteThreshold, validators, validatorsHash } =
 		bftParametersJSON;
 

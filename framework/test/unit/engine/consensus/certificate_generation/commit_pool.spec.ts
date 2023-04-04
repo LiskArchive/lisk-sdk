@@ -76,7 +76,7 @@ describe('CommitPool', () => {
 
 		chain = {
 			lastBlock: {
-				header: { height: 1019 },
+				header: { height: 1100 },
 			},
 			chainID,
 			dataAccess: {
@@ -197,7 +197,10 @@ describe('CommitPool', () => {
 			expect(commitPool['_gossipedCommits'].exists(staleGossipedCommit)).toBeFalse();
 		});
 
-		it('should clean all the commits from nonGossipedCommit that does not have bftParams change', async () => {
+		it('should clean all the commits from nonGossipedCommit that does not have bftParams change and height is in the future', async () => {
+			// Update current height so that commits will always be in the future
+			chain.lastBlock = { header: { height: 1019 } };
+			// it should not be deleted by the height
 			commitPool['_nonGossipedCommits'].add({
 				blockID: utils.getRandomBytes(32),
 				certificateSignature: utils.getRandomBytes(96),
@@ -612,9 +615,9 @@ describe('CommitPool', () => {
 			expect(isCommitValid).toBeFalse();
 		});
 
-		it('should return false when bft parameter does not exist for next height and single commit height is above maxHeightPrecommited', async () => {
+		it('should return false when bft parameter does not exist for next height and single commit height is above current height', async () => {
 			maxHeightCertified = commit.height - 50 - 1;
-			maxHeightPrecommitted = commit.height - 1;
+			chain.lastBlock = { header: { height: commit.height - 1 } };
 
 			bftMethod.getBFTHeights.mockReturnValue({
 				maxHeightCertified,

@@ -94,7 +94,7 @@ const generateProof = async (ccms: Buffer[]): Promise<Proof> => {
 	return merkleTree.generateProof(queryHashes);
 };
 
-describe('Mainchain InitializeMessageRecoveryCommand', () => {
+describe('MessageRecoveryCommand', () => {
 	const interopModule = new MainchainInteroperabilityModule();
 
 	let command: RecoverMessageCommand;
@@ -113,7 +113,6 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 	});
 
 	describe('verify', () => {
-		// let stateStore: PrefixedStateReadWriter;
 		let commandVerifyContext: CommandVerifyContext<MessageRecoveryParams>;
 		let transaction: Transaction;
 		let transactionParams: MessageRecoveryParams;
@@ -203,8 +202,48 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 			expect(result.error?.message).toInclude(`Terminated outbox account does not exist.`);
 		});
 
+		it('should return error if there are no ccms to recover', async () => {
+			ccms = [];
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				});
+
+			const result = await command.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude('No cross-chain messages to recover.');
+		});
+
+		it('should return error if inclusion proof indices and number of ccms do not have the same length', async () => {
+			transactionParams.idxs = [1, 2, 3, 4];
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				});
+
+			const result = await command.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
+				'Inclusion proof indices and cross-chain messages do not have the same length.',
+			);
+		});
+
 		it('should return error if idxs are not sorted in ascending order', async () => {
-			transactionParams.idxs = [3, 1, 2, 0];
+			transactionParams.idxs = [1, 0];
 			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
 			await interopModule.stores
@@ -223,8 +262,29 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 			);
 		});
 
+		it('should return error if idxs are not unique', async () => {
+			transactionParams.idxs = [1, 1];
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				});
+
+			const result = await command.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude('Cross-chain message indexes are not unique.');
+		});
+
 		it('should return error if cross-chain message is not pending', async () => {
 			transactionParams.idxs = [0];
+			ccms.pop();
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
 			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
 			await interopModule.stores
@@ -256,7 +316,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 			];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 			transactionParams.crossChainMessages = [...ccmsEncoded];
-			transactionParams.idxs = [11, 12, 13];
+			transactionParams.idxs = [1];
 
 			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
@@ -289,7 +349,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 			];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 			transactionParams.crossChainMessages = [...ccmsEncoded];
-			transactionParams.idxs = [11, 12, 13];
+			transactionParams.idxs = [1];
 
 			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
@@ -325,7 +385,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 			];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 			transactionParams.crossChainMessages = [...ccmsEncoded];
-			transactionParams.idxs = [11, 12, 13];
+			transactionParams.idxs = [1];
 
 			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
@@ -360,7 +420,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 			];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 			transactionParams.crossChainMessages = [...ccmsEncoded];
-			transactionParams.idxs = [11, 12, 13];
+			transactionParams.idxs = [1];
 			transactionParams.chainID = chainID;
 
 			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
@@ -448,7 +508,7 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 			];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 			transactionParams.crossChainMessages = [...ccmsEncoded];
-			transactionParams.idxs = [11, 12, 13];
+			transactionParams.idxs = [1];
 			transactionParams.chainID = chainID;
 
 			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
@@ -616,9 +676,6 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 					...commandExecuteContext,
 					ccm,
 					eventQueue: commandExecuteContext.eventQueue.getChildQueue(utils.hash(crossChainMessage)),
-					ccu: {
-						sendingChainID: commandExecuteContext.params.chainID,
-					},
 				};
 
 				expect(command['_applyRecovery']).toHaveBeenCalledWith(ctx);
@@ -655,9 +712,6 @@ describe('Mainchain InitializeMessageRecoveryCommand', () => {
 					...commandExecuteContext,
 					ccm,
 					eventQueue: commandExecuteContext.eventQueue.getChildQueue(utils.hash(crossChainMessage)),
-					ccu: {
-						sendingChainID: commandExecuteContext.params.chainID,
-					},
 				};
 
 				expect(command['_forwardRecovery']).toHaveBeenCalledWith(ctx);

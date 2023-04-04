@@ -13,17 +13,14 @@
  */
 /* eslint-disable no-bitwise */
 
-import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { NAME_REGEX } from '@liskhq/lisk-chain';
-import { SparseMerkleTree } from '@liskhq/lisk-db';
 import {
 	ActiveValidators,
 	CCMsg,
 	ChainAccount,
-	ChannelData,
 	CrossChainUpdateTransactionParams,
 	ChainValidators,
 	InboxUpdate,
@@ -40,8 +37,6 @@ import { BlockHeader, VerificationResult, VerifyStatus } from '../../state_machi
 import { Certificate } from '../../engine/consensus/certificate_generation/types';
 import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';
 import { certificateToJSON } from './certificates';
-import { NamedRegistry } from '../named_registry';
-import { OutboxRootStore } from './stores/outbox_root';
 import { ChainStatus } from './stores/chain_account';
 
 export const validateFormat = (ccm: CCMsg) => {
@@ -90,6 +85,9 @@ export const handlePromiseErrorWithNull = async <T>(promise: Promise<T>) => {
 };
 
 export const isValidName = (username: string): boolean => /^[a-z0-9!@$&_.]+$/g.test(username);
+// CAUTION!
+// It must hold range from above `isValidName` function (as it's used in relevant error messages)
+export const validNameCharset = 'a-z0-9!@$&_.';
 
 export const computeValidatorsHash = (
 	initValidators: ActiveValidators[],
@@ -180,113 +178,6 @@ export const checkCertificateValidity = (
 	return {
 		status: VerifyStatus.OK,
 	};
-};
-
-export const checkInboxUpdateValidity = async (
-	stores: NamedRegistry,
-	txParams: CrossChainUpdateTransactionParams,
-	partnerChannelData: ChannelData,
-): Promise<VerificationResult> => {
-	// If inboxUpdate is empty then return success
-	if (isInboxUpdateEmpty(txParams.inboxUpdate)) {
-		return {
-			status: VerifyStatus.OK,
-		};
-	}
-	const decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
-	const { crossChainMessages, messageWitnessHashes, outboxRootWitness } = txParams.inboxUpdate;
-	const ccmHashes = crossChainMessages.map(ccm => utils.hash(ccm));
-
-	let newInboxRoot;
-	let newInboxAppendPath = partnerChannelData.inbox.appendPath;
-	let newInboxSize = partnerChannelData.inbox.size;
-	for (const ccm of ccmHashes) {
-		const { appendPath, size, root } = regularMerkleTree.calculateMerkleRoot({
-			value: ccm,
-			appendPath: newInboxAppendPath,
-			size: newInboxSize,
-		});
-		newInboxAppendPath = appendPath;
-		newInboxSize = size;
-		newInboxRoot = root;
-	}
-	// non-empty certificate and an inboxUpdate
-	if (!isCertificateEmpty(decodedCertificate)) {
-		// If inboxUpdate contains a non-empty messageWitnessHashes, then update newInboxRoot to the output
-		if (txParams.inboxUpdate.messageWitnessHashes.length !== 0) {
-			newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
-				newInboxSize,
-				newInboxAppendPath,
-				messageWitnessHashes,
-			);
-		}
-		const outboxStore = stores.get(OutboxRootStore);
-		const outboxKey = Buffer.concat([outboxStore.key, utils.hash(txParams.sendingChainID)]);
-		const proof = {
-			siblingHashes: outboxRootWitness.siblingHashes,
-			queries: [
-				{
-					key: outboxKey,
-					value: newInboxRoot as Buffer,
-					bitmap: outboxRootWitness.bitmap,
-				},
-			],
-		};
-		const querykeys = [outboxKey];
-		const sparseMerkleTree = new SparseMerkleTree();
-		const isSMTRootValid = await sparseMerkleTree.verify(
-			decodedCertificate.stateRoot,
-			querykeys,
-			proof,
-		);
-		if (!isSMTRootValid) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error(
-					'Failed at verifying state root when messageWitnessHashes and certificate are non-empty.',
-				),
-			};
-		}
-	}
-
-	// empty certificate and a non-empty inboxUpdate
-	if (isCertificateEmpty(decodedCertificate)) {
-		// If inboxUpdate contains a non-empty messageWitnessHashes, then update newInboxRoot to the output
-		if (txParams.inboxUpdate.messageWitnessHashes.length !== 0) {
-			newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
-				newInboxSize,
-				newInboxAppendPath,
-				messageWitnessHashes,
-			);
-		}
-		if (!(newInboxRoot as Buffer).equals(partnerChannelData.partnerChainOutboxRoot)) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error(
-					'Failed at verifying state root when messageWitnessHashes is non-empty and certificate is empty.',
-				),
-			};
-		}
-	}
-
-	return {
-		status: VerifyStatus.OK,
-	};
-};
-
-export const checkValidCertificateLiveness = (
-	txParams: CrossChainUpdateTransactionParams,
-	header: BlockHeader,
-	certificate: Certificate,
-) => {
-	if (isInboxUpdateEmpty(txParams.inboxUpdate)) {
-		return;
-	}
-	if (!(header.timestamp - certificate.timestamp < LIVENESS_LIMIT / 2)) {
-		throw Error(
-			`Certificate is not valid as it passed Liveness limit of ${LIVENESS_LIMIT} seconds.`,
-		);
-	}
 };
 
 export const checkCertificateTimestamp = (

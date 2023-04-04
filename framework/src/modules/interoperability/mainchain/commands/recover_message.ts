@@ -16,6 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { utils } from '@liskhq/lisk-cryptography';
 import { NotFoundError } from '@liskhq/lisk-chain';
+import { validator } from '@liskhq/lisk-validator';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -49,6 +50,15 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 		let terminatedOutboxAccount: TerminatedOutboxAccount | undefined;
 
 		try {
+			validator.validate<MessageRecoveryParams>(messageRecoveryParamsSchema, context.params);
+		} catch (err) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: err as Error,
+			};
+		}
+
+		try {
 			terminatedOutboxAccount = await this.stores.get(TerminatedOutboxStore).get(context, chainID);
 		} catch (error) {
 			if (error instanceof NotFoundError) {
@@ -58,6 +68,23 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 				};
 			}
 			throw error;
+		}
+
+		// Check that there is at least one cross-chain message to recover.
+		if (!crossChainMessages.length) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('No cross-chain messages to recover.'),
+			};
+		}
+
+		if (idxs.length !== crossChainMessages.length) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(
+					'Inclusion proof indices and cross-chain messages do not have the same length.',
+				),
+			};
 		}
 
 		// Check that the idxs are sorted in ascending order
@@ -74,14 +101,21 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			};
 		}
 
-		// Check that the CCMs are still pending.
-		for (const index of idxs) {
-			if (index < terminatedOutboxAccount.partnerChainInboxSize) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error('Cross-chain message is not pending.'),
-				};
-			}
+		// Check that the idxs are unique.
+		if (idxs.length !== new Set(idxs).size) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Cross-chain message indexes are not unique.'),
+			};
+		}
+
+		// Check that the CCMs are still pending. We can check only the first one,
+		// as the idxs are sorted in ascending order.
+		if (idxs[0] < terminatedOutboxAccount.partnerChainInboxSize) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Cross-chain message is not pending.'),
+			};
 		}
 
 		// Process basic checks for all CCMs.
@@ -153,9 +187,6 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 				...context,
 				ccm,
 				eventQueue: context.eventQueue.getChildQueue(ccmID),
-				ccu: {
-					sendingChainID: params.chainID,
-				},
 			};
 			// If the sending chain is the mainchain, recover the CCM.
 			// This function never raises an error.
@@ -229,6 +260,7 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 				});
 			return;
 		}
+
 		const commands = this.ccCommands.get(recoveredCCM.module);
 		if (!commands) {
 			this.events

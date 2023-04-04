@@ -1,6 +1,6 @@
 import { apiClient, codec, cryptography, Transaction } from 'lisk-sdk';
 import { keys } from '../default/dev-validators.json';
-import { sidechainRegParams } from './schemas';
+import { sidechainRegParams } from 'lisk-framework';
 
 (async () => {
 	const { address } = cryptography;

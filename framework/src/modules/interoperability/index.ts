@@ -49,7 +49,22 @@ export {
 	EMPTY_BYTES,
 } from './constants';
 export { ChainStatus } from './stores/chain_account';
-export { ccmSchema, crossChainUpdateTransactionParams as ccuParamsSchema } from './schemas';
+export {
+	ccmSchema,
+	crossChainUpdateTransactionParams as ccuParamsSchema,
+	sidechainRegParams,
+	mainchainRegParams,
+	messageRecoveryParamsSchema,
+	messageRecoveryInitializationParamsSchema,
+	registrationCCMParamsSchema,
+	sidechainTerminatedCCMParamsSchema,
+	validatorsHashInputSchema,
+	registrationSignatureMessageSchema,
+	stateRecoveryParamsSchema,
+	stateRecoveryInitParamsSchema,
+	terminateSidechainForLivenessParamsSchema,
+	genesisInteroperabilitySchema,
+} from './schemas';
 export {
 	CcmProcessedEventData,
 	CCMProcessedCode,
