@@ -22,7 +22,7 @@ We hope you enjoy building your proof-of-concept Web3 applications using the Lis
 
 ## What is the Lisk SDK?
 
-The Lisk SDK aims to provide an easy and reliable software development kit for building blockchain applications which are compatible with the [Lisk Protocol](https://lisk.com/documentation/understand-blockchain/lisk-protocol).
+The Lisk SDK aims to provide an easy and reliable software development kit for building blockchain applications which are compatible with the Lisk protocol.
 
 The [architecture](#architecture-overview) of the Lisk SDK has been designed so that it can be extended to meet the requirements of a wide variety of blockchain application use cases.
 
@@ -114,7 +114,7 @@ It is now already possible to start the newly bootstrapped blockchain client wit
 
 The blockchain client offers a variety of configuration options such as `blockTime`, `maxTransactionsSize` and more.
 
-For a complete overview of the client configuration options, please check out the [SDK configuration reference](https://lisk.com/documentation/lisk-sdk/v6/config.html) and the [Blockchain client configuration](https://liskhq.github.io/lisk-docs/beta/build-blockchain/configuration.html) guide.
+For a complete overview of the client configuration options, please check out the [SDK configuration reference](https://lisk.com/documentation/lisk-sdk/v6/config.html) and the [Blockchain client configuration](https://lisk.com/documentation/beta/build-blockchain/configuration.html) guide.
 
 To use the custom config with the client, use the `--config` flag.
 Also add the `--overwrite-config` flag, if you used another config the last time the client was started.
@@ -153,11 +153,12 @@ For more detailed explanations how to create a module, please refer to the guide
 
 ### Documentation
 
-For further explanations, guides and tutorials, see the [official Lisk SDK documentation](https://lisk.com/documentation/lisk-sdk).
+For further explanations, guides and tutorials, see the [official Lisk SDK documentation](https://lisk.com/documentation/lisk-sdk/v6).
 
 ## Architecture Overview
 
-The Lisk SDK operates on the NodeJS runtime and consists primarily of an application framework (Lisk Framework), a collection of libraries providing blockchain application functionalities (Lisk Elements), and a powerful command-line tool (Lisk Commander) helping developers to build a blockchain application using Lisk Framework. The diagram below provides a high-level overview of the architecture:
+The Lisk SDK operates on the NodeJS runtime and consists primarily of an application framework (Lisk Framework), a collection of libraries providing blockchain application functionalities (Lisk Elements), and a powerful command-line tool (Lisk Commander) helping developers to build a blockchain application using Lisk Framework.
+The diagram below provides a high-level overview of the architecture:
 
 ![Diagram](./docs/assets/diagram_sdk.png)
 
@@ -206,7 +207,7 @@ In order to link your local lisk-sdk repository and test your application which 
    b. To build specific package: `yarn workspace <package name> build` or go into each package folder and `yarn build` or `npm run build`
    Example: `yarn workspace @liskhq/lisk-p2p build`
 
-**Note:** In case you face any issues during the installation make sure you have the right version of `yarn` and `node` and try reset project with `yarn clean:full`.
+**Note:** In case you face any issues during the installation, make sure you have the right version of `yarn` and `node` and try resetting the project with `yarn clean:full`.
 
 ## Contributors
 
