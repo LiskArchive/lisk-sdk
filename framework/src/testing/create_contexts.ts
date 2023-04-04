@@ -22,6 +22,7 @@ import {
 } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
+import { codec } from '@liskhq/lisk-codec';
 import { ModuleEndpointContext } from '../types';
 import { Logger } from '../logger';
 import {
@@ -41,6 +42,7 @@ import { StateStore as IStateStore, SubStore } from '../state_machine/types';
 import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from './in_memory_prefixed_state';
 import { CCMsg, CrossChainMessageContext, RecoverContext } from '../modules/interoperability/types';
+import { ccuParamsSchema } from '../modules/interoperability';
 
 const createTestHeader = () =>
 	new BlockHeader({
@@ -230,11 +232,11 @@ export const createCrossChainMessageContext = (params: {
 	logger?: Logger;
 	chainID?: Buffer;
 	header?: { timestamp: number; height: number };
-	transaction?: { senderAddress: Buffer; fee: bigint };
+	transaction?: { senderAddress: Buffer; fee: bigint; params: Buffer };
 	stateStore?: IStateStore;
 	contextStore?: Map<string, unknown>;
 	eventQueue?: EventQueue;
-	ccu?: { sendingChainID: Buffer };
+	sendingChainID?: Buffer;
 }): CrossChainMessageContext => {
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -266,9 +268,24 @@ export const createCrossChainMessageContext = (params: {
 		transaction: params.transaction ?? {
 			senderAddress: utils.getRandomBytes(20),
 			fee: BigInt(100000000),
-		},
-		ccu: params.ccu ?? {
-			sendingChainID: Buffer.from([0, 0, 0, 4]),
+			params: codec.encode(ccuParamsSchema, {
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [],
+					bftWeightsUpdate: [],
+					bftWeightsUpdateBitmap: Buffer.alloc(0),
+				},
+				certificate: Buffer.alloc(1),
+				certificateThreshold: BigInt(1),
+				inboxUpdate: {
+					crossChainMessages: [],
+					messageWitnessHashes: [],
+					outboxRootWitness: {
+						bitmap: Buffer.alloc(1),
+						siblingHashes: [],
+					},
+				},
+				sendingChainID: params.sendingChainID ?? Buffer.from('04000001', 'hex'),
+			}),
 		},
 	};
 };

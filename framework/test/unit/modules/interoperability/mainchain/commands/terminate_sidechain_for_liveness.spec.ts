@@ -123,15 +123,15 @@ describe('TerminateSidechainForLivenessCommand', () => {
 			);
 		});
 
-		it('should return error if the chain is not live', async () => {
-			jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(false);
-
+		it('should return error if the chain is live', async () => {
 			await expect(livenessTerminationCommand.verify(commandVerifyContext)).rejects.toThrow(
 				'Sidechain did not violate the liveness condition',
 			);
 		});
 
-		it('should return VerifyStatus.OK when chain is active', async () => {
+		it('should return VerifyStatus.OK when chain is not active', async () => {
+			jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(false);
+
 			const result = await livenessTerminationCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.OK);

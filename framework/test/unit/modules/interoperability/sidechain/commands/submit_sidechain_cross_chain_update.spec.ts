@@ -260,10 +260,6 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			partnerValidatorsData,
 		);
 
-		jest
-			.spyOn(interopUtils, 'checkInboxUpdateValidity')
-			.mockResolvedValue({ status: VerifyStatus.OK });
-
 		jest.spyOn(sidechainCCUUpdateCommand['internalMethod'], 'isLive').mockResolvedValue(true);
 
 		jest.spyOn(interopUtils, 'computeValidatorsHash').mockReturnValue(validatorsHash);

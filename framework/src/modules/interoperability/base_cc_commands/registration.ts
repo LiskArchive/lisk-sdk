@@ -17,6 +17,7 @@ import { CCMStatusCode, CROSS_CHAIN_COMMAND_REGISTRATION, EMPTY_BYTES } from '..
 import { registrationCCMParamsSchema } from '../schemas';
 import {
 	CCMRegistrationParams,
+	CCUpdateParams,
 	CrossChainMessageContext,
 	ImmutableCrossChainMessageContext,
 } from '../types';
@@ -27,6 +28,7 @@ import { ChannelDataStore } from '../stores/channel_data';
 import { ChainAccountStore, ChainStatus } from '../stores/chain_account';
 import { BaseInteroperabilityInternalMethod } from '../base_interoperability_internal_methods';
 import { getMainchainID } from '../utils';
+import { crossChainUpdateTransactionParams } from '../schemas';
 
 export abstract class BaseCCRegistrationCommand<
 	T extends BaseInteroperabilityInternalMethod,
@@ -42,10 +44,14 @@ export abstract class BaseCCRegistrationCommand<
 	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#verification
 	 */
 	public async verify(ctx: ImmutableCrossChainMessageContext): Promise<void> {
-		const { ccm, ccu } = ctx;
+		const { ccm } = ctx;
 		if (!ccm) {
 			throw new Error('CCM to execute registration cross chain command is missing.');
 		}
+		const ccuParams = codec.decode<CCUpdateParams>(
+			crossChainUpdateTransactionParams,
+			ctx.transaction.params,
+		);
 		const ccmRegistrationParams = codec.decode<CCMRegistrationParams>(
 			registrationCCMParamsSchema,
 			ccm.params,
@@ -56,7 +62,7 @@ export abstract class BaseCCRegistrationCommand<
 		if (!chainAccount) {
 			throw new Error('Registration message must be sent from a registered chain.');
 		}
-		if (!ccm.sendingChainID.equals(ccu.sendingChainID)) {
+		if (!ccm.sendingChainID.equals(ccuParams.sendingChainID)) {
 			throw new Error('Registration message must be sent from a direct channel.');
 		}
 		if (chainAccount.status !== ChainStatus.REGISTERED) {
