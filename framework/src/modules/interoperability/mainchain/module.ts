@@ -20,30 +20,30 @@ import { MainchainInteroperabilityMethod } from './method';
 import { MainchainCCMethod } from './cc_method';
 import { MainchainInteroperabilityEndpoint } from './endpoint';
 import {
-	getChainAccountRequestSchema,
-	getChannelRequestSchema,
-	getTerminatedStateAccountRequestSchema,
-	getTerminatedOutboxAccountRequestSchema,
 	genesisInteroperabilitySchema,
-	getRegistrationFeeSchema,
-	isChainIDAvailableResponseSchema,
+	getChainAccountRequestSchema,
 	getChainValidatorsRequestSchema,
 	getChainValidatorsResponseSchema,
-	isChainIDAvailableRequestSchema,
+	getChannelRequestSchema,
 	getMinimumMessageFeeResponseSchema,
+	getRegistrationFeeSchema,
+	getTerminatedOutboxAccountRequestSchema,
+	getTerminatedStateAccountRequestSchema,
+	isChainIDAvailableRequestSchema,
+	isChainIDAvailableResponseSchema,
 	isChainNameAvailableRequestSchema,
 	isChainNameAvailableResponseSchema,
 } from '../schemas';
-import { chainDataSchema, allChainAccountsSchema, ChainStatus } from '../stores/chain_account';
+import { allChainAccountsSchema, chainDataSchema, ChainStatus } from '../stores/chain_account';
 import { channelSchema } from '../stores/channel_data';
 import { ownChainAccountSchema } from '../stores/own_chain_account';
 import { terminatedStateSchema } from '../stores/terminated_state';
 import { terminatedOutboxSchema } from '../stores/terminated_outbox';
 import { TokenMethod } from '../../token';
 import {
-	SubmitMainchainCrossChainUpdateCommand,
 	RecoverMessageCommand,
 	RegisterSidechainCommand,
+	SubmitMainchainCrossChainUpdateCommand,
 	TerminateSidechainForLivenessCommand,
 } from './commands';
 import { CcmProcessedEvent } from '../events/ccm_processed';
@@ -68,6 +68,7 @@ import { InvalidCertificateSignatureEvent } from '../events/invalid_certificate_
 import { CHAIN_NAME_MAINCHAIN, EMPTY_HASH, MODULE_NAME_INTEROPERABILITY } from '../constants';
 import { GenesisBlockExecuteContext } from '../../../state_machine';
 import { getMainchainID, isValidName, validNameCharset } from '../utils';
+import { RegisteredNamesStore } from '../stores/registered_names';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
@@ -313,6 +314,9 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				terminatedStateAccounts,
 				terminatedOutboxAccounts,
 			);
+
+			// parent method will be called from inside
+			await this.processGenesisState(ctx);
 		}
 	}
 
@@ -457,6 +461,36 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 					)} does not exist in terminatedStateAccounts`,
 				);
 			}
+		}
+	}
+
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#genesis-state-processing
+	public async processGenesisState(ctx: GenesisBlockExecuteContext) {
+		await super.processGenesisState(ctx);
+
+		const genesisBlockAssetBytes = ctx.assets.getAsset(MODULE_NAME_INTEROPERABILITY);
+		if (!genesisBlockAssetBytes) {
+			return;
+		}
+
+		const genesisInteroperability = codec.decode<GenesisInteroperability>(
+			genesisInteroperabilitySchema,
+			genesisBlockAssetBytes,
+		);
+		const { chainInfos } = genesisInteroperability;
+
+		// On the mainchain,
+		// for each chainInfo in chainInfos add an entry to the registered names substore
+		// with key chainInfo.chainData.name and value chainInfo.chainID.
+		// , Furthermore add an entry for the mainchain with key CHAIN_NAME_MAINCHAIN and value getMainchainID().
+		const namesSubstore = this.stores.get(RegisteredNamesStore);
+		for (const chainInfo of chainInfos) {
+			await namesSubstore.set(ctx, Buffer.from(chainInfo.chainData.name, 'ascii'), {
+				chainID: chainInfo.chainID,
+			});
+			await namesSubstore.set(ctx, Buffer.from(CHAIN_NAME_MAINCHAIN, 'ascii'), {
+				chainID: getMainchainID(ctx.chainID),
+			});
 		}
 	}
 }

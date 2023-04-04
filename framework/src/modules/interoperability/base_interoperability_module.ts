@@ -15,25 +15,33 @@
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 
 import { MAX_UINT64 } from '@liskhq/lisk-validator';
+import { codec } from '@liskhq/lisk-codec';
 import { GenesisBlockExecuteContext } from '../../state_machine';
 import { BaseCCCommand } from './base_cc_command';
 import { BaseCCMethod } from './base_cc_method';
 import { BaseInteroperableModule } from './base_interoperable_module';
 import {
-	MODULE_NAME_INTEROPERABILITY,
-	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
+	EMPTY_BYTES,
 	MAX_NUM_VALIDATORS,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
+	MODULE_NAME_INTEROPERABILITY,
 } from './constants';
-import { ChainAccountStore } from './stores/chain_account';
+import { ChainAccountStore, ChainStatus } from './stores/chain_account';
 import { ChainValidatorsStore } from './stores/chain_validators';
 import { ChannelDataStore } from './stores/channel_data';
-import { OutboxRootStore } from './stores/outbox_root';
+import { OutboxRoot, OutboxRootStore } from './stores/outbox_root';
 import { OwnChainAccountStore } from './stores/own_chain_account';
 import { RegisteredNamesStore } from './stores/registered_names';
 import { TerminatedOutboxStore } from './stores/terminated_outbox';
 import { TerminatedStateStore } from './stores/terminated_state';
-import { ChainInfo, TerminatedStateAccountWithChainID } from './types';
-import { getMainchainTokenID, computeValidatorsHash } from './utils';
+import {
+	ChainInfo,
+	GenesisInteroperability,
+	OwnChainAccount,
+	TerminatedStateAccountWithChainID,
+} from './types';
+import { computeValidatorsHash, getMainchainTokenID } from './utils';
+import { genesisInteroperabilitySchema } from './schemas';
 
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
 	protected interoperableCCCommands = new Map<string, BaseCCCommand[]>();
@@ -156,4 +164,102 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 			}
 		}
 	}
+
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#genesis-state-processing
+	public async processGenesisState(ctx: GenesisBlockExecuteContext) {
+		const genesisBlockAssetBytes = ctx.assets.getAsset(MODULE_NAME_INTEROPERABILITY);
+		if (!genesisBlockAssetBytes) {
+			return;
+		}
+
+		const genesisInteroperability = codec.decode<GenesisInteroperability>(
+			genesisInteroperabilitySchema,
+			genesisBlockAssetBytes,
+		);
+
+		const {
+			ownChainName,
+			ownChainNonce,
+			chainInfos,
+			terminatedStateAccounts,
+			terminatedOutboxAccounts,
+		} = genesisInteroperability;
+
+		const ownChainAccountSubStore = this.stores.get(OwnChainAccountStore);
+		const chainAccountStore = this.stores.get(ChainAccountStore);
+		const channelDataSubStore = this.stores.get(ChannelDataStore);
+		const chainValidatorsSubStore = this.stores.get(ChainValidatorsStore);
+		const outboxRootSubStore = this.stores.get(OutboxRootStore);
+		const terminatedStateSubStore = this.stores.get(TerminatedStateStore);
+		const terminatedOutboxStore = this.stores.get(TerminatedOutboxStore);
+
+		// If ownChainName is not the empty string, add an entry to the own chain substore with
+		// key set to EMPTY_BYTES
+		// and value set to {"name": ownChainName, "chainID": OWN_CHAIN_ID, "nonce": ownChainNonce}.
+		if (ownChainName !== '') {
+			const ownChainAccount: OwnChainAccount = {
+				name: ownChainName,
+				chainID: ctx.chainID,
+				nonce: ownChainNonce,
+			};
+			await ownChainAccountSubStore.set(ctx, EMPTY_BYTES, ownChainAccount);
+		}
+
+		// For each entry chainInfo in chainInfos add the following substore entries with key set to chainInfo.chainID:
+		// with the value chainInfo.chainData to the chain data substore;
+		// with the value chainInfo.channelData to the channel data substore;
+		// with the value chainInfo.chainValidators to the chain validators substore;
+		// with the value chainInfo.channelData.outbox.root to the outbox root substore, only if chainInfo.chainData.status != CHAIN_STATUS_TERMINATED
+		for (const chainInfo of chainInfos) {
+			await chainAccountStore.set(ctx, chainInfo.chainID, chainInfo.chainData);
+			await channelDataSubStore.set(ctx, chainInfo.chainID, chainInfo.channelData);
+			await chainValidatorsSubStore.set(ctx, chainInfo.chainID, chainInfo.chainValidators);
+			if (chainInfo.chainData.status !== ChainStatus.TERMINATED) {
+				const outboxRoot: OutboxRoot = {
+					root: chainInfo.channelData.outbox.root,
+				};
+				await outboxRootSubStore.set(ctx, chainInfo.chainID, outboxRoot);
+			}
+		}
+
+		// For each entry stateAccount in terminatedStateAccounts
+		// add an entry to the terminated state substore
+		// with key set to stateAccount.chainID and value set to stateAccount.terminatedStateAccount
+		for (const stateAccount of terminatedStateAccounts) {
+			await terminatedStateSubStore.set(
+				ctx,
+				stateAccount.chainID,
+				stateAccount.terminatedStateAccount,
+			);
+		}
+
+		// For each entry outboxAccount in terminatedOutboxAccounts add an entry to the terminated outbox substore
+		// with key set to outboxAccount.chainID and value set to outboxAccount.terminatedOutboxAccount.
+		for (const outboxAccount of terminatedOutboxAccounts) {
+			await terminatedOutboxStore.set(
+				ctx,
+				outboxAccount.chainID,
+				outboxAccount.terminatedOutboxAccount,
+			);
+		}
+	}
+
+	/* public async finalizeGenesisState(ctx: GenesisBlockExecuteContext): Promise<void> {
+		const genesisBlockAssetBytes = ctx.assets.getAsset(MODULE_NAME_INTEROPERABILITY);
+		if (!genesisBlockAssetBytes) {
+			return;
+		}
+
+		const genesisInteroperability = codec.decode<GenesisInteroperability>(
+			genesisInteroperabilitySchema,
+			genesisBlockAssetBytes,
+		);
+
+		const { chainInfos } = genesisInteroperability;
+
+		for (const chainInfo of ChainInfos) {
+
+		}
+
+	} */
 }
