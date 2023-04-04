@@ -92,26 +92,23 @@ export class UsedHashOnionsStore extends BaseOffchainStore<UsedHashOnionStoreObj
 		finalizedHeight: number,
 		address: Buffer,
 		usedHashOnion: UsedHashOnion,
-		originalusedHashOnions: UsedHashOnion[],
+		originalUsedHashOnions: UsedHashOnion[],
 	): Promise<void> {
-		const usedHashOnionStoreObject = {
-			usedHashOnions: originalusedHashOnions,
-		};
-
-		const index = usedHashOnionStoreObject.usedHashOnions.findIndex(
-			ho => ho.count === usedHashOnion.count,
+		const index = originalUsedHashOnions.findIndex(
+			hashOnion => hashOnion.count === usedHashOnion.count,
 		);
 
 		if (index === -1) {
-			usedHashOnionStoreObject.usedHashOnions.push(usedHashOnion);
+			originalUsedHashOnions.push(usedHashOnion);
 		} else {
-			usedHashOnionStoreObject.usedHashOnions[index] = usedHashOnion;
+			// eslint-disable-next-line no-param-reassign
+			originalUsedHashOnions[index] = usedHashOnion;
 		}
 
 		await this.set(
 			ctx,
 			address,
-			this._filterUsedHashOnions(usedHashOnionStoreObject.usedHashOnions, finalizedHeight),
+			this._filterUsedHashOnions(originalUsedHashOnions, finalizedHeight),
 		);
 	}
 
