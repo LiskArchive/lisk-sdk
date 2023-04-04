@@ -12,29 +12,22 @@
 [![codecov](https://codecov.io/gh/LiskHQ/lisk-sdk/branch/development/graph/badge.svg?token=2JhT7caf5x)](https://codecov.io/gh/LiskHQ/lisk-sdk)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
-## Sapphire phase completed [<img src="https://lisk.com/sites/default/files/2021-05/ico-sapphire.png" style="width:24px;vertical-align:middle">](https://lisk.com/roadmap)
+## Sapphire phase nearly completed [<img src="https://lisk.com/sites/default/files/2021-05/ico-sapphire.png" style="width:24px;vertical-align:middle">](https://lisk.com/roadmap)
 
 With the release of Lisk SDK v6.0.0, we are completing the [Sapphire phase](https://lisk.com/roadmap)[<img src="https://lisk.com/sites/default/files/2021-05/ico-sapphire.png" style="width:20px;vertical-align:middle">](https://lisk.com/roadmap), which brings the [Lisk interoperability solution](https://lisk.com/blog/research/lisk-interoperability-solution-published).
-All related Lisk Improvement Proposals (LIPs) are published and implementation is currently being actively developed. It consists of 8 roadmap objectives,
 
-- Define cross-chain messaging protocol
-- Define sidechain registration and lifecycle
-- Introduce token standards for the Lisk ecosystem
-- Introduce alternative validator selection mechanism for sidechains
-- Enhance signature scheme
-- Define state model and state root
-- Update Lisk-BFT for interoperability
-- Update block header format
+To learn more about the Lisk protocol and its' current development status, check out [Lisk Roadmap](https://lisk.com/roadmap), [Lisk Improvement Proposal](https://github.com/LiskHQ/lips), and [Research Forum](https://research.lisk.com/).
 
-To learn more about the Lisk protocol and its' current development status, check out [Lisk Improvement Proposal](https://github.com/LiskHQ/lips), [Research Forum](https://research.lisk.com/), [Lisk interoperability solution blog](https://lisk.com/blog/research/lisk-interoperability-solution-published) and [Lisk SDK v6.0.0 project board](https://github.com/orgs/LiskHQ/projects/10/views/4).
-
-We hope you enjoy building your proof-of-concept blockchain applications using the Lisk SDK, and shall look forward to receiving your feedback and contributions during the beta phase.
+We hope you enjoy building your proof-of-concept Web3 applications using the Lisk SDK, and look forward to receive your feedback and contributions during the beta phase.
 
 ## What is the Lisk SDK?
 
 The Lisk SDK aims to provide an easy and reliable software development kit for building blockchain applications which are compatible with the [Lisk Protocol](https://lisk.com/documentation/understand-blockchain/lisk-protocol).
-The architecture of the Lisk SDK has been designed so that it can be extended to meet the requirements of a wide variety of blockchain application use cases.
+
+The [architecture](#architecture-overview) of the Lisk SDK has been designed so that it can be extended to meet the requirements of a wide variety of blockchain application use cases.
+
 The codebase is written entirely in JavaScript/TypeScript, which means for a majority of developers, no significant change of tools or mindset is required to get started.
+
 The Lisk SDK makes every effort to allow developers to focus simply and purely on writing the code that matters to their own blockchain application, and nothing more.
 
 ## Usage
@@ -47,7 +40,7 @@ For more further guides and tutorials, see the [official Lisk SDK documentation]
 
 ### Dependencies
 
-The following dependencies need to be installed in order to run blockchain clients created with the Lisk SDK:
+The following dependencies need to be installed in order to run blockchain clients created with the Lisk SDK.
 
 #### Node.js
 
@@ -93,23 +86,15 @@ brew install autoconf automake libtool python2
 
 ### Initializing a new blockchain client
 
-Create a dedicated folder `my-blockchain-client/`, which will contain the logic for the blockchain client:
-
-```sh
-mkdir my-blockchain-client
-cd my-blockchain-client
-```
-
-Inside the `my-blockchain-client` folder, execute the `lisk init` command of Lisk Commander as shown below:
+Execute the `lisk init` command of Lisk Commander as shown below, to bootstrap a default blockchain client in the current folder.
 
 ```sh
 lisk init
 ```
 
-As a result of executing the `init` command, you will be asked for the _Name_, _ChainID_, _Description_, _Author_, and _License_ of the blockchain client.
+As a result of executing the `init` command, you will be asked for the _Name_, _ChainID_, _Description_, _Author_, and _License_ of the new blockchain client.
 
----
-
+```
 Using template "lisk-ts"
 Initializing git repository
 Updating .liskrc.json file
@@ -119,8 +104,7 @@ Creating project structure
 ? Application description A simple blockchain client for my Web3 application
 ? Author XYZ
 ? License ISC
-
----
+```
 
 Next, all the required files are created by Lisk Commander.
 
@@ -145,15 +129,31 @@ Also add the `--overwrite-config` flag, if you used another config the last time
 
 ### Register a custom module or a custom plugin
 
-A custom module is a logic to define state changes that will be executed on-chain meaning that it will be a part of the blockchain protocol.
+A custom [module](https://lisk.com/documentation/beta/understand-blockchain/sdk/modules-commands.html) is a logic to define state changes that will be executed on-chain meaning that it will be a part of the blockchain protocol.
 
-A custom plugin, on the other hand, is a logic to define an off-chain logic which is not part of the blockchain protocol but to enhance the blockchain application features.
+A custom [plugin](https://lisk.com/documentation/beta/understand-blockchain/sdk/plugins.html), on the other hand, is a logic to define an off-chain logic which is not part of the blockchain protocol but to enhance the blockchain application features.
 
-Add your custom module and custom plugin to your blockchain application by registering it to the application instance:
+Add your custom module and custom plugin to your blockchain client conveniently with Lisk Commander:
 
-<!---
-TODO: Add steps how to generate modules and command with Commander, and add links to modules/plugin explanations & more detailed guides
--->
+#### Generating a new module
+
+Use the `generate:module` command in the root folder of the blockchain client to generate a ready-to-use module template.
+
+```sh
+lisk generate:module my-module-name
+```
+
+For more detailed explanations how to create a module, please refer to the guide [How to create a module](https://lisk.com/documentation/beta/build-blockchain/module/index.html)
+
+#### Generating a new plugin
+
+Use the `generate:plugin` command in the root folder of the blockchain client to generate a ready-to-use plugin template.
+
+```sh
+lisk generate:plugin my-plugin-name
+```
+
+For more detailed explanations how to create a module, please refer to the guide [How to create a plugin](https://lisk.com/documentation/beta/build-blockchain/plugin/index.html)
 
 ## Architecture Overview
 
@@ -214,11 +214,12 @@ https://github.com/LiskHQ/lisk-sdk/graphs/contributors
 
 ## Disclaimer
 
-By using the Alpha release of the Lisk SDK, you acknowledge and agree that you have an adequate understanding of the risks associated with the use of the Alpha release of the Lisk SDK and that it is provided on an “as is” and “as available” basis, without any representations or warranties of any kind. To the fullest extent permitted by law, in no event shall the Lisk Foundation or other parties involved in the development of the Alpha release of the Lisk SDK have any liability whatsoever to any person for any direct or indirect loss, liability, cost, claim, expense or damage of any kind, whether in contract or in tort, including negligence, or otherwise, arising out of or related to the use of all or part of the Alpha release of the Lisk SDK.
+By using the Beta release of the Lisk SDK, you acknowledge and agree that you have an adequate understanding of the risks associated with the use of the Beta release of the Lisk SDK and that it is provided on an “as is” and “as available” basis, without any representations or warranties of any kind.
+To the fullest extent permitted by law, in no event shall the Lisk Foundation or other parties involved in the development of the Beta release of the Lisk SDK have any liability whatsoever to any person for any direct or indirect loss, liability, cost, claim, expense or damage of any kind, whether in contract or in tort, including negligence, or otherwise, arising out of or related to the use of all or part of the Beta release of the Lisk SDK.
 
 ## License
 
-Copyright 2016-2020 Lisk Foundation
+Copyright 2016-2023 Lisk Foundation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
