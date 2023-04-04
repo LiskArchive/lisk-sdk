@@ -61,7 +61,7 @@ Install and build `pos-mainchain-fast`
 
 Install and build `pos-sidechain-fast`
 
-- `cd pos-mainchain-fast`
+- `cd pos-sidechain-fast`
 - `yarn && yarn build`
 
 #### Run apps using pm2
