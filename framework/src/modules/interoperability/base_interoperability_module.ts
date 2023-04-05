@@ -15,7 +15,6 @@
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 
 import { MAX_UINT64 } from '@liskhq/lisk-validator';
-import { codec } from '@liskhq/lisk-codec';
 import { GenesisBlockExecuteContext } from '../../state_machine';
 import { BaseCCCommand } from './base_cc_command';
 import { BaseCCMethod } from './base_cc_method';
@@ -41,7 +40,6 @@ import {
 	TerminatedStateAccountWithChainID,
 } from './types';
 import { computeValidatorsHash, getMainchainTokenID } from './utils';
-import { genesisInteroperabilitySchema } from './schemas';
 
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
 	protected interoperableCCCommands = new Map<string, BaseCCCommand[]>();
@@ -166,17 +164,10 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 	}
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#genesis-state-processing
-	public async processGenesisState(ctx: GenesisBlockExecuteContext) {
-		const genesisBlockAssetBytes = ctx.assets.getAsset(MODULE_NAME_INTEROPERABILITY);
-		if (!genesisBlockAssetBytes) {
-			return;
-		}
-
-		const genesisInteroperability = codec.decode<GenesisInteroperability>(
-			genesisInteroperabilitySchema,
-			genesisBlockAssetBytes,
-		);
-
+	public async processGenesisState(
+		ctx: GenesisBlockExecuteContext,
+		genesisInteroperability: GenesisInteroperability,
+	) {
 		const {
 			ownChainName,
 			ownChainNonce,
@@ -243,23 +234,4 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 			);
 		}
 	}
-
-	/* public async finalizeGenesisState(ctx: GenesisBlockExecuteContext): Promise<void> {
-		const genesisBlockAssetBytes = ctx.assets.getAsset(MODULE_NAME_INTEROPERABILITY);
-		if (!genesisBlockAssetBytes) {
-			return;
-		}
-
-		const genesisInteroperability = codec.decode<GenesisInteroperability>(
-			genesisInteroperabilitySchema,
-			genesisBlockAssetBytes,
-		);
-
-		const { chainInfos } = genesisInteroperability;
-
-		for (const chainInfo of ChainInfos) {
-
-		}
-
-	} */
 }

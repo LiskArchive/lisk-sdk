@@ -13,24 +13,14 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { codec } from '@liskhq/lisk-codec';
-import { BlockAssets } from '@liskhq/lisk-chain';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import {
 	HASH_LENGTH,
 	CHAIN_NAME_MAINCHAIN,
-	MODULE_NAME_INTEROPERABILITY,
 	EMPTY_HASH,
 } from '../../../../../src/modules/interoperability/constants';
-import {
-	ChainStatus,
-	MainchainInteroperabilityModule,
-	GenesisBlockExecuteContext,
-} from '../../../../../src';
-import {
-	ChainInfo,
-	GenesisInteroperability,
-} from '../../../../../src/modules/interoperability/types';
+import { ChainStatus, MainchainInteroperabilityModule } from '../../../../../src';
+import { ChainInfo } from '../../../../../src/modules/interoperability/types';
 import {
 	InMemoryPrefixedStateDB,
 	createGenesisBlockContext,
@@ -40,7 +30,6 @@ import {
 	computeValidatorsHash,
 	validNameCharset,
 } from '../../../../../src/modules/interoperability/utils';
-import { genesisInteroperabilitySchema } from '../../../../../src/modules/interoperability/schemas';
 
 import {
 	genesisInteroperability,
@@ -51,19 +40,11 @@ import {
 	terminatedStateAccount,
 	terminatedOutboxAccount,
 	mainchainID,
+	createInitGenesisStateContext,
+	contextWithValidValidatorsHash,
+	getStoreMock,
 } from '../interopFixtures';
-
-const createInitGenesisStateContext = (
-	genesisInterop: GenesisInteroperability,
-	params: CreateGenesisBlockContextParams,
-): GenesisBlockExecuteContext => {
-	const encodedAsset = codec.encode(genesisInteroperabilitySchema, genesisInterop);
-
-	return createGenesisBlockContext({
-		...params,
-		assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-	}).createInitGenesisStateContext();
-};
+import { RegisteredNamesStore } from '../../../../../src/modules/interoperability/stores/registered_names';
 
 describe('initGenesisState', () => {
 	const chainID = Buffer.from([0, 0, 0, 0]);
@@ -71,6 +52,8 @@ describe('initGenesisState', () => {
 	let interopMod: MainchainInteroperabilityModule;
 	let certificateThreshold = BigInt(0);
 	let params: CreateGenesisBlockContextParams;
+	let validChainInfos: ChainInfo[];
+	const registeredNamesStoreMock = getStoreMock();
 
 	beforeEach(() => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -79,6 +62,25 @@ describe('initGenesisState', () => {
 			stateStore,
 			chainID,
 		};
+
+		validChainInfos = [
+			{
+				...chainInfo,
+				chainData: {
+					...chainData,
+					status: ChainStatus.TERMINATED,
+					lastCertificate: {
+						...lastCertificate,
+						validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+					},
+				},
+				chainValidators: {
+					activeValidators,
+					certificateThreshold,
+				},
+			},
+		];
+		interopMod.stores.register(RegisteredNamesStore, registeredNamesStoreMock as never);
 	});
 
 	it('should not throw error if asset does not exist', async () => {
@@ -122,27 +124,8 @@ describe('initGenesisState', () => {
 	});
 
 	describe('when chainInfos is not empty', () => {
-		let validChainInfos: ChainInfo[];
-
 		beforeEach(() => {
 			certificateThreshold = BigInt(10);
-			validChainInfos = [
-				{
-					...chainInfo,
-					chainData: {
-						...chainData,
-						status: ChainStatus.TERMINATED,
-						lastCertificate: {
-							...lastCertificate,
-							validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
-						},
-					},
-					chainValidators: {
-						activeValidators,
-						certificateThreshold,
-					},
-				},
-			];
 		});
 
 		it('should throw error if ownChainNonce <= 0', async () => {
@@ -672,6 +655,19 @@ describe('initGenesisState', () => {
 					).toString('hex')} does not exist in terminatedStateAccounts`,
 				);
 			});
+		});
+	});
+
+	describe('processGenesisState', () => {
+		it('should check that processGenesisState method has been called', async () => {
+			jest.spyOn(interopMod, 'processGenesisState');
+
+			await expect(
+				interopMod.initGenesisState(contextWithValidValidatorsHash),
+			).resolves.not.toThrow();
+
+			expect(interopMod.processGenesisState).toHaveBeenCalled();
+			expect(registeredNamesStoreMock.set).toHaveBeenCalledTimes(2);
 		});
 	});
 });

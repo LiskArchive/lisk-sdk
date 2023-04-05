@@ -315,8 +315,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				terminatedOutboxAccounts,
 			);
 
-			// parent method will be called from inside
-			await this.processGenesisState(ctx);
+			await this.processGenesisState(ctx, genesisInteroperability);
 		}
 	}
 
@@ -333,7 +332,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				throw new Error(`chainID must not be equal to ${mainchainID.toString('hex')}.`);
 			}
 
-			// - chainInfo.chainId[0] == getMainchainID()[0].
+			// chainInfo.chainId[0] == getMainchainID()[0].
 			if (chainID[0] !== mainchainID[0]) {
 				throw new Error(`chainID[0] doesn't match ${mainchainID[0]}.`);
 			}
@@ -465,30 +464,24 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 	}
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#genesis-state-processing
-	public async processGenesisState(ctx: GenesisBlockExecuteContext) {
-		await super.processGenesisState(ctx);
+	public async processGenesisState(
+		ctx: GenesisBlockExecuteContext,
+		genesisInteroperability: GenesisInteroperability,
+	) {
+		await super.processGenesisState(ctx, genesisInteroperability);
 
-		const genesisBlockAssetBytes = ctx.assets.getAsset(MODULE_NAME_INTEROPERABILITY);
-		if (!genesisBlockAssetBytes) {
-			return;
-		}
-
-		const genesisInteroperability = codec.decode<GenesisInteroperability>(
-			genesisInteroperabilitySchema,
-			genesisBlockAssetBytes,
-		);
 		const { chainInfos } = genesisInteroperability;
 
 		// On the mainchain,
 		// for each chainInfo in chainInfos add an entry to the registered names substore
 		// with key chainInfo.chainData.name and value chainInfo.chainID.
 		// , Furthermore add an entry for the mainchain with key CHAIN_NAME_MAINCHAIN and value getMainchainID().
-		const namesSubstore = this.stores.get(RegisteredNamesStore);
+		const namesSubStore = this.stores.get(RegisteredNamesStore);
 		for (const chainInfo of chainInfos) {
-			await namesSubstore.set(ctx, Buffer.from(chainInfo.chainData.name, 'ascii'), {
+			await namesSubStore.set(ctx, Buffer.from(chainInfo.chainData.name, 'ascii'), {
 				chainID: chainInfo.chainID,
 			});
-			await namesSubstore.set(ctx, Buffer.from(CHAIN_NAME_MAINCHAIN, 'ascii'), {
+			await namesSubStore.set(ctx, Buffer.from(CHAIN_NAME_MAINCHAIN, 'ascii'), {
 				chainID: getMainchainID(ctx.chainID),
 			});
 		}

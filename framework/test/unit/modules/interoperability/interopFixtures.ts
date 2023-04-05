@@ -1,5 +1,12 @@
 import { utils } from '@liskhq/lisk-cryptography';
-import { ChainStatus } from '../../../../src';
+import { codec } from '@liskhq/lisk-codec';
+import { BlockAssets } from '@liskhq/lisk-chain';
+import {
+	ChainStatus,
+	GenesisBlockExecuteContext,
+	genesisInteroperabilitySchema,
+	MODULE_NAME_INTEROPERABILITY,
+} from '../../../../src';
 import {
 	HASH_LENGTH,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
@@ -9,6 +16,13 @@ import {
 import { TerminatedStateAccount } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { TerminatedOutboxAccount } from '../../../../src/modules/interoperability/stores/terminated_outbox';
 import { GenesisInteroperability } from '../../../../src/modules/interoperability/types';
+import { computeValidatorsHash } from '../../../../src/modules/interoperability/utils';
+import {
+	createGenesisBlockContext,
+	CreateGenesisBlockContextParams,
+	InMemoryPrefixedStateDB,
+} from '../../../../src/testing';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 
 export const mainchainID = Buffer.from([0, 0, 0, 0]);
 const mainchainTokenID = Buffer.concat([mainchainID, Buffer.alloc(4)]);
@@ -83,3 +97,48 @@ export const genesisInteroperability: GenesisInteroperability = {
 	terminatedStateAccounts: [], // handle it in `describe('terminatedStateAccounts'`
 	terminatedOutboxAccounts: [],
 };
+
+export const createInitGenesisStateContext = (
+	genesisInterop: GenesisInteroperability,
+	params: CreateGenesisBlockContextParams,
+): GenesisBlockExecuteContext => {
+	const encodedAsset = codec.encode(genesisInteroperabilitySchema, genesisInterop);
+
+	return createGenesisBlockContext({
+		...params,
+		assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
+	}).createInitGenesisStateContext();
+};
+
+const certificateThreshold = BigInt(10);
+export const contextWithValidValidatorsHash = createInitGenesisStateContext(
+	{
+		...genesisInteroperability,
+		chainInfos: [
+			{
+				...chainInfo,
+				chainData: {
+					...chainData,
+					lastCertificate: {
+						...lastCertificate,
+						validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+					},
+				},
+				chainValidators: {
+					activeValidators,
+					certificateThreshold,
+				},
+			},
+		],
+	},
+	{
+		stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
+		chainID: Buffer.from([0, 0, 0, 0]),
+	},
+);
+
+export const getStoreMock = () => ({
+	get: jest.fn(),
+	set: jest.fn(),
+	has: jest.fn(),
+});

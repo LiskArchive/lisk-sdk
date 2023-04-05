@@ -231,7 +231,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		);
 
 		await this._verifyChainInfos(ctx, genesisInteroperability);
-		await super.processGenesisState(ctx);
+		await super.processGenesisState(ctx, genesisInteroperability);
 	}
 
 	private async _verifyChainInfos(
