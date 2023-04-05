@@ -714,9 +714,8 @@ export class TokenMethod extends BaseMethod {
 		chainID: Buffer,
 		tokenID: Buffer,
 	) {
-		const escrowStore = this.stores.get(EscrowStore);
-		const escrowExist = await escrowStore.has(methodContext, escrowStore.getKey(chainID, tokenID));
-
-		return escrowExist;
+		return this.stores
+			.get(EscrowStore)
+			.has(methodContext, this.stores.get(EscrowStore).getKey(chainID, tokenID));
 	}
 }
