@@ -31,6 +31,7 @@ export const EMPTY_BYTES = Buffer.alloc(0);
 export const EMPTY_HASH = utils.hash(EMPTY_BYTES);
 export const CHAIN_REGISTRATION_FEE = BigInt(1000000000);
 export const MAX_NUM_VALIDATORS = 199;
+export const MAX_LENGTH_AGGREGATION_BITS = Math.ceil(MAX_NUM_VALIDATORS / 8);
 export const MAX_LENGTH_NAME = 40;
 export const MAX_UINT32 = 4294967295;
 export const MAX_UINT64 = BigInt('18446744073709551615'); // BigInt((2 ** 64) - 1) - 1

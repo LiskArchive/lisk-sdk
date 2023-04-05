@@ -12,7 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { HASH_LENGTH, BLS_SIGNATURE_LENGTH } from '../../../modules/interoperability/constants';
+import {
+	HASH_LENGTH,
+	BLS_SIGNATURE_LENGTH,
+	MAX_LENGTH_AGGREGATION_BITS,
+} from '../../../modules/interoperability/constants';
 import { ADDRESS_LENGTH } from '../../../modules/validators/constants';
 
 /**
@@ -64,6 +68,7 @@ export const certificateSchema = {
 		aggregationBits: {
 			dataType: 'bytes',
 			fieldNumber: 6,
+			maxLength: MAX_LENGTH_AGGREGATION_BITS,
 		},
 		signature: {
 			dataType: 'bytes',
