@@ -137,6 +137,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		this._validatorsMethod = validatorsMethod;
 		this._crossChainUpdateCommand.init(this.method, tokenMethod);
 		this.internalMethod.addDependencies(tokenMethod);
+		this.tokenMethod = tokenMethod;
 	}
 
 	public metadata(): ModuleMetadata {
