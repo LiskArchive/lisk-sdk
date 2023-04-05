@@ -12,14 +12,6 @@
 [![codecov](https://codecov.io/gh/LiskHQ/lisk-sdk/branch/development/graph/badge.svg?token=2JhT7caf5x)](https://codecov.io/gh/LiskHQ/lisk-sdk)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
-## Sapphire phase nearly completed
-
-With the release of Lisk SDK v6.0.0, we are completing the [Sapphire phase](https://lisk.com/roadmap), which brings the [Lisk interoperability solution](https://lisk.com/blog/research/lisk-interoperability-solution-published).
-
-To learn more about the Lisk protocol and its current development status, check out [Lisk Roadmap](https://lisk.com/roadmap), [Lisk Improvement Proposal](https://github.com/LiskHQ/lips), and [Research Forum](https://research.lisk.com/).
-
-We hope you enjoy building Web3 applications using the Lisk SDK, and look forward to receiving your feedback and contributions during the beta phase.
-
 ## What is the Lisk SDK?
 
 The Lisk SDK aims to provide an easy and reliable software development kit for building blockchain applications which are compatible with the Lisk protocol.
@@ -123,13 +115,13 @@ Also add the `--overwrite-config` flag, if you used another config the last time
 ./bin/run start --config config/custom_config.json --overwrite-config
 ```
 
-### Register a custom module or a custom plugin
+### Registering new modules and plugins
 
-A custom [module](https://lisk.com/documentation/beta/understand-blockchain/sdk/modules-commands.html) defines the logic that makes state changes on-chain, meaning that it will be a part of the blockchain protocol.
+A [module](https://lisk.com/documentation/beta/understand-blockchain/sdk/modules-commands.html) defines the logic that makes state changes on-chain, meaning that it will be a part of the blockchain protocol.
 
-A custom [plugin](https://lisk.com/documentation/beta/understand-blockchain/sdk/plugins.html), on the other hand, defines an off-chain logic that is not part of the blockchain protocol but enhances the blockchain application features.
+A [plugin](https://lisk.com/documentation/beta/understand-blockchain/sdk/plugins.html), on the other hand, defines an off-chain logic that is not part of the blockchain protocol but enhances the blockchain application features.
 
-Add your custom module and custom plugin to your blockchain client conveniently with Lisk Commander:
+Add your new module or plugin to your blockchain client conveniently with Lisk Commander:
 
 #### Generating a new module
 
