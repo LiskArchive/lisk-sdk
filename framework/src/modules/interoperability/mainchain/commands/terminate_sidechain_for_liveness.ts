@@ -52,7 +52,7 @@ export class TerminateSidechainForLivenessCommand extends BaseInteroperabilityCo
 			context.header.timestamp,
 		);
 
-		if (!isChainAccountLive) {
+		if (isChainAccountLive) {
 			throw new Error('Sidechain did not violate the liveness condition.');
 		}
 
