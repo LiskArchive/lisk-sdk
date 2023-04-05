@@ -1223,4 +1223,22 @@ describe('token module', () => {
 			});
 		});
 	});
+
+	describe('escrowSubstoreExists', () => {
+		const escrowChainID = defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH);
+
+		it('should return false if escrow subStore does not exist for the given chain id and token id', async () => {
+			const escrowStore = tokenModule.stores.get(EscrowStore);
+			await escrowStore.del(methodContext, escrowStore.getKey(escrowChainID, defaultTokenID));
+			await expect(
+				method.escrowSubstoreExists(methodContext, escrowChainID, defaultTokenID),
+			).resolves.toBeFalse();
+		});
+
+		it('should return true if escrow subStore exists for the given chain id and token id', async () => {
+			await expect(
+				method.escrowSubstoreExists(methodContext, escrowChainID, defaultTokenID),
+			).resolves.toBeTrue();
+		});
+	});
 });

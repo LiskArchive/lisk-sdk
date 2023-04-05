@@ -708,4 +708,14 @@ export class TokenMethod extends BaseMethod {
 			})),
 		};
 	}
+
+	public async escrowSubstoreExists(
+		methodContext: MethodContext,
+		chainID: Buffer,
+		tokenID: Buffer,
+	) {
+		return this.stores
+			.get(EscrowStore)
+			.has(methodContext, this.stores.get(EscrowStore).getKey(chainID, tokenID));
+	}
 }
