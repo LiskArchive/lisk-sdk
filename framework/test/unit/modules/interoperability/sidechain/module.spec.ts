@@ -1,57 +1,36 @@
-import { codec } from '@liskhq/lisk-codec';
-import { BlockAssets } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
-import { GenesisInteroperability } from '../../../../../src/modules/interoperability/types';
 import {
 	CreateGenesisBlockContextParams,
-	createGenesisBlockContext,
 	InMemoryPrefixedStateDB,
 } from '../../../../../src/testing';
+import { ChainStatus, SidechainInteroperabilityModule } from '../../../../../src';
 import {
-	GenesisBlockExecuteContext,
-	MODULE_NAME_INTEROPERABILITY,
-	SidechainInteroperabilityModule,
-	ChainStatus,
-} from '../../../../../src';
-import { genesisInteroperabilitySchema } from '../../../../../src/modules/interoperability/schemas';
-import {
-	genesisInteroperability,
-	terminatedStateAccount,
-	terminatedOutboxAccount,
-	chainInfo,
-	chainData,
-	lastCertificate,
-	chainValidators,
 	activeValidator,
+	chainData,
+	chainInfo,
+	chainValidators,
+	createInitGenesisStateContext,
+	genesisInteroperability,
+	lastCertificate,
+	terminatedOutboxAccount,
+	terminatedStateAccount,
 } from '../interopFixtures';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import {
-	getMainchainID,
-	validNameCharset,
-	getMainchainTokenID,
 	computeValidatorsHash,
+	getMainchainID,
+	getMainchainTokenID,
+	validNameCharset,
 } from '../../../../../src/modules/interoperability/utils';
 import {
-	MIN_CHAIN_NAME_LENGTH,
-	MAX_CHAIN_NAME_LENGTH,
+	CHAIN_ID_LENGTH,
 	CHAIN_NAME_MAINCHAIN,
 	EMPTY_HASH,
 	HASH_LENGTH,
-	CHAIN_ID_LENGTH,
+	MAX_CHAIN_NAME_LENGTH,
+	MIN_CHAIN_NAME_LENGTH,
 } from '../../../../../src/modules/interoperability/constants';
 import { OwnChainAccountStore } from '../../../../../src/modules/interoperability/stores/own_chain_account';
-
-const createInitGenesisStateContext = (
-	genesisInterop: GenesisInteroperability,
-	params: CreateGenesisBlockContextParams,
-): GenesisBlockExecuteContext => {
-	const encodedAsset = codec.encode(genesisInteroperabilitySchema, genesisInterop);
-
-	return createGenesisBlockContext({
-		...params,
-		assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-	}).createInitGenesisStateContext();
-};
 
 describe('initGenesisState', () => {
 	const chainID = Buffer.from([1, 2, 3, 4]);
@@ -75,7 +54,7 @@ describe('initGenesisState', () => {
 		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
 	});
 
-	describe('If chainInfos is empty', () => {
+	describe('when chainInfos is empty', () => {
 		const genesisInteropWithEmptyChainInfos = {
 			...genesisInteroperability,
 			chainInfos: [],
@@ -131,30 +110,9 @@ describe('initGenesisState', () => {
 				`terminatedStateAccounts must be empty, ${ifChainInfosIsEmpty}.`,
 			);
 		});
-
-		it('should throw error terminatedOutboxAccounts is not empty', async () => {
-			const context = createInitGenesisStateContext(
-				{
-					...genesisInteropWithEmptyChainInfos,
-					ownChainName: '',
-					ownChainNonce: BigInt(0),
-					terminatedOutboxAccounts: [
-						{
-							chainID,
-							terminatedOutboxAccount,
-						},
-					],
-				},
-				params,
-			);
-
-			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-				`terminatedOutboxAccounts must be empty, ${ifChainInfosIsEmpty}.`,
-			);
-		});
 	});
 
-	describe('If chainInfos is not empty', () => {
+	describe('when chainInfos is not empty', () => {
 		const defaultData = {
 			...genesisInteroperability,
 			ownChainName: 'dummy',

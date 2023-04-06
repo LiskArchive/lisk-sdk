@@ -67,7 +67,7 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		this.interoperableCCCommands.set(module.name, module.crossChainCommand);
 	}
 
-	// Commented checks the ones which needs to be checked/applied
+	// Commented checks are the ones which need to be checked/applied
 	protected _verifyChannelData(ctx: GenesisBlockExecuteContext, chainInfo: ChainInfo) {
 		const mainchainTokenID = getMainchainTokenID(ctx.chainID);
 
@@ -86,7 +86,7 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		}
 	}
 
-	// Commented checks the ones which needs to be checked/applied
+	// Commented checks are the ones which need to be checked/applied
 	protected _verifyChainValidators(chainInfo: ChainInfo) {
 		const { chainValidators, chainData } = chainInfo;
 		const { activeValidators, certificateThreshold } = chainValidators;

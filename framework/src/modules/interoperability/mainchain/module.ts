@@ -287,26 +287,6 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				throw new Error(`ownChainNonce must be positive if chainInfos is not empty.`);
 			}
 
-			// Each entry chainInfo in chainInfos has a unique chainInfo.chainID
-			const chainIDs = chainInfos.map(info => info.chainID);
-			if (!objectUtils.bufferArrayUniqueItems(chainIDs)) {
-				throw new Error(`chainInfos doesn't hold unique chainID.`);
-			}
-
-			// chainInfos should be ordered lexicographically by chainInfo.chainID
-			const sortedByChainID = [...chainInfos].sort((a, b) => a.chainID.compare(b.chainID));
-			for (let i = 0; i < chainInfos.length; i += 1) {
-				if (!chainInfos[i].chainID.equals(sortedByChainID[i].chainID)) {
-					throw new Error('chainInfos is not ordered lexicographically by chainID.');
-				}
-			}
-
-			// The entries chainData.name must be pairwise distinct
-			const chainDataNames = chainInfos.map(info => info.chainData.name);
-			if (new Set(chainDataNames).size !== chainDataNames.length) {
-				throw new Error(`chainData.name must be pairwise distinct.`);
-			}
-
 			this._verifyChainInfos(ctx, chainInfos);
 			this._verifyTerminatedStateAccounts(chainInfos, terminatedStateAccounts);
 			this._verifyTerminatedOutboxAccounts(
@@ -321,25 +301,48 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#mainchain
 	private _verifyChainInfos(ctx: GenesisBlockExecuteContext, chainInfos: ChainInfo[]) {
+		// Each entry chainInfo in chainInfos has a unique chainInfo.chainID
+		const chainIDs = chainInfos.map(info => info.chainID);
+		if (!objectUtils.bufferArrayUniqueItems(chainIDs)) {
+			throw new Error(`chainInfos doesn't hold unique chainID.`);
+		}
+
+		// chainInfos should be ordered lexicographically by chainInfo.chainID
+		const sortedByChainID = [...chainInfos].sort((a, b) => a.chainID.compare(b.chainID));
+		for (let i = 0; i < chainInfos.length; i += 1) {
+			if (!chainInfos[i].chainID.equals(sortedByChainID[i].chainID)) {
+				throw new Error('chainInfos is not ordered lexicographically by chainID.');
+			}
+		}
+
+		// The entries chainData.name must be pairwise distinct
+		const chainDataNames = chainInfos.map(info => info.chainData.name);
+		if (new Set(chainDataNames).size !== chainDataNames.length) {
+			throw new Error(`chainData.name must be pairwise distinct.`);
+		}
+
 		const mainchainID = getMainchainID(ctx.chainID);
 
 		// verify root level properties
 		for (const chainInfo of chainInfos) {
-			const { chainID } = chainInfo;
-
-			// chainInfo.chainID != getMainchainID();
-			if (chainID.equals(mainchainID)) {
-				throw new Error(`chainID must not be equal to ${mainchainID.toString('hex')}.`);
-			}
-
-			// chainInfo.chainId[0] == getMainchainID()[0].
-			if (chainID[0] !== mainchainID[0]) {
-				throw new Error(`chainID[0] doesn't match ${mainchainID[0]}.`);
-			}
-
+			this._verifyChainID(chainInfo, mainchainID);
 			this._verifyChainData(ctx, chainInfo);
 			this._verifyChannelData(ctx, chainInfo);
 			this._verifyChainValidators(chainInfo);
+		}
+	}
+
+	private _verifyChainID(chainInfo: ChainInfo, mainchainID: Buffer) {
+		const { chainID } = chainInfo;
+
+		// chainInfo.chainID != getMainchainID();
+		if (chainID.equals(mainchainID)) {
+			throw new Error(`chainID must not be equal to ${mainchainID.toString('hex')}.`);
+		}
+
+		// chainInfo.chainId[0] == getMainchainID()[0].
+		if (chainID[0] !== mainchainID[0]) {
+			throw new Error(`chainID[0] doesn't match ${mainchainID[0]}.`);
 		}
 	}
 

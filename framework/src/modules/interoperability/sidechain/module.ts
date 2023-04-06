@@ -20,15 +20,15 @@ import { SidechainCCMethod } from './cc_method';
 import { RegisterMainchainCommand } from './commands/register_mainchain';
 import { SidechainInteroperabilityEndpoint } from './endpoint';
 import {
-	getChainAccountRequestSchema,
-	getChannelRequestSchema,
-	getTerminatedStateAccountRequestSchema,
-	getTerminatedOutboxAccountRequestSchema,
 	genesisInteroperabilitySchema,
+	getChainAccountRequestSchema,
 	getChainValidatorsRequestSchema,
 	getChainValidatorsResponseSchema,
+	getChannelRequestSchema,
+	getTerminatedOutboxAccountRequestSchema,
+	getTerminatedStateAccountRequestSchema,
 } from '../schemas';
-import { chainDataSchema, allChainAccountsSchema, ChainStatus } from '../stores/chain_account';
+import { allChainAccountsSchema, chainDataSchema, ChainStatus } from '../stores/chain_account';
 import { channelSchema } from '../stores/channel_data';
 import { ownChainAccountSchema, OwnChainAccountStore } from '../stores/own_chain_account';
 import { terminatedStateSchema } from '../stores/terminated_state';
@@ -39,9 +39,9 @@ import { InvalidRegistrationSignatureEvent } from '../events/invalid_registratio
 import { CcmSendSuccessEvent } from '../events/ccm_send_success';
 import { BaseCCMethod } from '../base_cc_method';
 import {
-	ValidatorsMethod,
 	GenesisInteroperability,
 	TerminatedStateAccountWithChainID,
+	ValidatorsMethod,
 } from '../types';
 import { SidechainInteroperabilityInternalMethod } from './internal_method';
 import { SubmitSidechainCrossChainUpdateCommand } from './commands';
@@ -230,21 +230,24 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			genesisInteroperability,
 		);
 
-		await this._verifyChainInfos(ctx, genesisInteroperability);
+		this._verifyChainInfos(ctx, genesisInteroperability);
+
+		const { terminatedStateAccounts, terminatedOutboxAccounts } = genesisInteroperability;
+		await this._verifyTerminatedStateAccounts(ctx, terminatedStateAccounts);
+
+		// terminatedOutboxAccounts
+		if (terminatedOutboxAccounts.length !== 0) {
+			throw new Error('terminatedOutboxAccounts must be empty.');
+		}
 		await super.processGenesisState(ctx, genesisInteroperability);
 	}
 
-	private async _verifyChainInfos(
+	private _verifyChainInfos(
 		ctx: GenesisBlockExecuteContext,
 		genesisInteroperability: GenesisInteroperability,
 	) {
-		const {
-			ownChainName,
-			ownChainNonce,
-			chainInfos,
-			terminatedStateAccounts,
-			terminatedOutboxAccounts,
-		} = genesisInteroperability;
+		const { ownChainName, ownChainNonce, chainInfos, terminatedStateAccounts } =
+			genesisInteroperability;
 
 		// If chainInfos is empty, then check that:
 		//
@@ -262,9 +265,6 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			}
 			if (terminatedStateAccounts.length !== 0) {
 				throw new Error(`terminatedStateAccounts must be empty, ${ifChainInfosIsEmpty}.`);
-			}
-			if (terminatedOutboxAccounts.length !== 0) {
-				throw new Error(`terminatedOutboxAccounts must be empty, ${ifChainInfosIsEmpty}.`);
 			}
 		} else {
 			// ownChainName
@@ -289,7 +289,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			}
 
 			// ownChainNonce > 0
-			if (ownChainNonce < 1) {
+			if (ownChainNonce <= 0) {
 				throw new Error('ownChainNonce must be > 0.');
 			}
 
@@ -313,7 +313,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			if (!validStatuses.includes(mainchainInfo.chainData.status)) {
 				throw new Error(`chainData.status must be one of ${validStatuses.join(', ')}.`);
 			}
-			if (mainchainInfo.chainData.lastCertificate.timestamp > ctx.header.timestamp) {
+			if (mainchainInfo.chainData.lastCertificate.timestamp >= ctx.header.timestamp) {
 				throw new Error('chainData.lastCertificate.timestamp must be < header.timestamp.');
 			}
 			// channelData
@@ -321,14 +321,6 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 
 			// activeValidators
 			this._verifyChainValidators(mainchainInfo);
-		}
-
-		// terminatedStateAccounts
-		await this._verifyTerminatedStateAccounts(ctx, terminatedStateAccounts);
-
-		// terminatedOutboxAccounts
-		if (terminatedOutboxAccounts.length !== 0) {
-			throw new Error('terminatedOutboxAccounts must be empty.');
 		}
 	}
 

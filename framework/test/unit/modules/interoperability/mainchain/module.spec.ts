@@ -176,40 +176,42 @@ describe('initGenesisState', () => {
 			);
 		});
 
-		it('should throw error if chainInfo.chainID equals getMainchainID()', async () => {
-			const context = createInitGenesisStateContext(
-				{
-					...genesisInteroperability,
-					chainInfos: [
-						{
-							...chainInfo,
-							chainID: mainchainID,
-						},
-					],
-				},
-				params,
-			);
-			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-				`chainID must not be equal to ${mainchainID.toString('hex')}.`,
-			);
-		});
+		describe('chainInfo.chainID', () => {
+			it('should throw error if chainInfo.chainID equals getMainchainID()', async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						chainInfos: [
+							{
+								...chainInfo,
+								chainID: mainchainID,
+							},
+						],
+					},
+					params,
+				);
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					`chainID must not be equal to ${mainchainID.toString('hex')}.`,
+				);
+			});
 
-		it('should throw error if chainInfo.chainID[0] !== getMainchainID()[0]', async () => {
-			const context = createInitGenesisStateContext(
-				{
-					...genesisInteroperability,
-					chainInfos: [
-						{
-							...chainInfo,
-							chainID: Buffer.from([1, 0, 0, 0]),
-						},
-					],
-				},
-				params,
-			);
-			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-				`chainID[0] doesn't match ${mainchainID[0]}.`,
-			);
+			it('should throw error if chainInfo.chainID[0] !== getMainchainID()[0]', async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						chainInfos: [
+							{
+								...chainInfo,
+								chainID: Buffer.from([1, 0, 0, 0]),
+							},
+						],
+					},
+					params,
+				);
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					`chainID[0] doesn't match ${mainchainID[0]}.`,
+				);
+			});
 		});
 
 		describe('chainInfo.chainData', () => {

@@ -1,6 +1,4 @@
 import { MAX_UINT64 } from '@liskhq/lisk-validator';
-import { codec } from '@liskhq/lisk-codec';
-import { BlockAssets } from '@liskhq/lisk-chain';
 import {
 	activeValidator,
 	activeValidators,
@@ -9,6 +7,7 @@ import {
 	chainValidators,
 	channelData,
 	contextWithValidValidatorsHash,
+	createInitGenesisStateContext,
 	genesisInteroperability,
 	getStoreMock,
 	lastCertificate,
@@ -19,21 +18,13 @@ import {
 	ActiveValidator,
 	ChainStatus,
 	EMPTY_BYTES,
-	GenesisBlockExecuteContext,
 	MainchainInteroperabilityModule,
-	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../src';
 import {
 	MAX_NUM_VALIDATORS,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 } from '../../../../src/modules/interoperability/constants';
-import { GenesisInteroperability } from '../../../../src/modules/interoperability/types';
-import {
-	createGenesisBlockContext,
-	CreateGenesisBlockContextParams,
-	InMemoryPrefixedStateDB,
-} from '../../../../src/testing';
-import { genesisInteroperabilitySchema } from '../../../../src/modules/interoperability/schemas';
+import { CreateGenesisBlockContextParams, InMemoryPrefixedStateDB } from '../../../../src/testing';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { computeValidatorsHash } from '../../../../src/modules/interoperability/utils';
 import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
@@ -43,18 +34,6 @@ import { ChainValidatorsStore } from '../../../../src/modules/interoperability/s
 import { OutboxRootStore } from '../../../../src/modules/interoperability/stores/outbox_root';
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
-
-const createInitGenesisStateContext = (
-	genesisInterop: GenesisInteroperability,
-	params: CreateGenesisBlockContextParams,
-): GenesisBlockExecuteContext => {
-	const encodedAsset = codec.encode(genesisInteroperabilitySchema, genesisInterop);
-
-	return createGenesisBlockContext({
-		...params,
-		assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
-	}).createInitGenesisStateContext();
-};
 
 describe('initGenesisState Common Tests', () => {
 	const chainID = Buffer.from([0, 0, 0, 0]);
