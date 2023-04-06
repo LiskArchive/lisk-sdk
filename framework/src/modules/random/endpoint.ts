@@ -94,25 +94,38 @@ export class RandomEndpoint extends BaseEndpoint {
 		const address = cryptography.address.getAddressFromLisk32Address(ctx.params.address);
 		const hashOnionStore = this.offchainStores.get(HashOnionStore);
 		const hasSeed = await hashOnionStore.has(ctx, address);
+
 		if (!hasSeed) {
 			return {
-				hasSeed,
+				hasSeed: false,
 				remaining: 0,
 			};
 		}
+
 		const hashOnion = await hashOnionStore.get(ctx, address);
 		const usedHashOnionStore = this.offchainStores.get(UsedHashOnionsStore);
 		const usedHashOnion = await usedHashOnionStore.getLatest(ctx, address);
+
 		if (!usedHashOnion) {
 			return {
-				hasSeed,
+				hasSeed: true,
 				remaining: hashOnion.count,
+			};
+		}
+
+		if (usedHashOnion.count === hashOnion.count) {
+			return {
+				hasSeed: false,
+				remaining: 0,
 			};
 		}
 
 		const remaining = hashOnion.count - usedHashOnion.count;
 
-		return { hasSeed, remaining };
+		return {
+			hasSeed: true,
+			remaining,
+		};
 	}
 
 	public async getHashOnionUsage(ctx: ModuleEndpointContext): Promise<GetHashOnionUsageResponse> {
