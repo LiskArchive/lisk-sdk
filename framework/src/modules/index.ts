@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+export { BaseInternalMethod } from './BaseInternalMethod';
 export { BaseModule, ModuleMetadata, ModuleMetadataJSON, ModuleInitArgs } from './base_module';
 export { BaseCommand } from './base_command';
 export { BaseMethod } from './base_method';
