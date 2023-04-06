@@ -11,7 +11,7 @@
 					{
 						"storeKey": "",
 						"storeValue": {
-							"name": "sidechain_example_2",
+							"name": "sidechain_example_two",
 							"chainID": "04000002",
 							"nonce": 0
 						}
@@ -21,7 +21,7 @@
 				"terminatedOutboxSubstore": [],
 				"registeredNamesSubstore": [
 					{
-						"storeKey": "sidechain_example_2",
+						"storeKey": "sidechain_example_two",
 						"storeValue": {
 							"chainID": "04000002"
 						}
