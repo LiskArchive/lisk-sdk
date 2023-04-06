@@ -339,9 +339,14 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 				);
 			}
 
-			// and stateAccount.chainID != ownChainAccount.chainID.
+			// and stateAccount.chainID != OWN_CHAIN_ID.
 			if (stateAccount.chainID.equals(ctx.chainID)) {
 				throw new Error(`stateAccount.chainID must not be equal to OWN_CHAIN_ID.`);
+			}
+
+			// and stateAccount.chainId[0] == getMainchainID()[0]
+			if (stateAccount.chainID[0] !== mainchainID[0]) {
+				throw new Error(`stateAccount.chainID[0] must be equal to mainchainID[0].`);
 			}
 
 			// For each entry stateAccount in terminatedStateAccounts either:

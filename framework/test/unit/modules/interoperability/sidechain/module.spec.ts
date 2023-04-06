@@ -23,25 +23,18 @@ import {
 	validNameCharset,
 } from '../../../../../src/modules/interoperability/utils';
 import {
-	CHAIN_ID_LENGTH,
 	CHAIN_NAME_MAINCHAIN,
 	EMPTY_HASH,
 	HASH_LENGTH,
 	MAX_CHAIN_NAME_LENGTH,
 	MIN_CHAIN_NAME_LENGTH,
 } from '../../../../../src/modules/interoperability/constants';
-import { OwnChainAccountStore } from '../../../../../src/modules/interoperability/stores/own_chain_account';
 
 describe('initGenesisState', () => {
 	const chainID = Buffer.from([1, 2, 3, 4]);
 	let params: CreateGenesisBlockContextParams;
 	let stateStore: PrefixedStateReadWriter;
 	let interopMod: SidechainInteroperabilityModule;
-	const ownChainAccountStoreMock = {
-		get: jest.fn(),
-		set: jest.fn(),
-		has: jest.fn(),
-	};
 
 	beforeEach(() => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -50,8 +43,6 @@ describe('initGenesisState', () => {
 			stateStore,
 			chainID,
 		};
-
-		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
 	});
 
 	describe('when chainInfos is empty', () => {
@@ -338,12 +329,6 @@ describe('initGenesisState', () => {
 		describe('chainInfo.terminatedStateAccounts', () => {
 			const chainIDNotEqualToOwnChainID = Buffer.from([1, 3, 5, 7]);
 
-			beforeEach(() => {
-				ownChainAccountStoreMock.get.mockResolvedValue({
-					chainID: utils.getRandomBytes(CHAIN_ID_LENGTH),
-				} as any);
-			});
-
 			it(`should throw error if stateAccount.chainID is equal to getMainchainID()`, async () => {
 				const chainIDDefault = getMainchainID(chainID);
 				const context = createInitGenesisStateContext(
@@ -392,10 +377,6 @@ describe('initGenesisState', () => {
 			});
 
 			it(`should throw error if stateAccount.chainID is equal to OWN_CHAIN_ID`, async () => {
-				ownChainAccountStoreMock.get.mockResolvedValue({
-					chainID,
-				} as any);
-
 				const context = createInitGenesisStateContext(
 					{
 						...defaultData,
@@ -412,6 +393,26 @@ describe('initGenesisState', () => {
 
 				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
 					`stateAccount.chainID must not be equal to OWN_CHAIN_ID.`,
+				);
+			});
+
+			it(`should throw error if not stateAccount.chainId[0] == getMainchainID()[0]`, async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...defaultData,
+						chainInfos: chainInfosDefault,
+						terminatedStateAccounts: [
+							{
+								chainID: Buffer.from([0, 1, 2, 3]),
+								terminatedStateAccount,
+							},
+						],
+					},
+					params,
+				);
+
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					`stateAccount.chainID[0] must be equal to mainchainID[0].`,
 				);
 			});
 
