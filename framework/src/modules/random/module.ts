@@ -235,7 +235,7 @@ export class RandomModule extends BaseModule {
 			);
 			return {
 				hash: utils.generateHashOnionSeed(),
-				count: 0,
+				count: usedHashOnion.count,
 			};
 		}
 
