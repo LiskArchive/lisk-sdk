@@ -30,7 +30,7 @@ import {
 } from '../schemas';
 import { allChainAccountsSchema, chainDataSchema, ChainStatus } from '../stores/chain_account';
 import { channelSchema } from '../stores/channel_data';
-import { ownChainAccountSchema, OwnChainAccountStore } from '../stores/own_chain_account';
+import { ownChainAccountSchema } from '../stores/own_chain_account';
 import { terminatedStateSchema } from '../stores/terminated_state';
 import { terminatedOutboxSchema } from '../stores/terminated_outbox';
 import { ChainAccountUpdatedEvent } from '../events/chain_account_updated';
@@ -51,14 +51,13 @@ import { SidechainCCChannelTerminatedCommand, SidechainCCRegistrationCommand } f
 import { CcmSentFailedEvent } from '../events/ccm_send_fail';
 import { GenesisBlockExecuteContext } from '../../../state_machine';
 import {
-	MODULE_NAME_INTEROPERABILITY,
-	MIN_CHAIN_NAME_LENGTH,
-	MAX_CHAIN_NAME_LENGTH,
 	CHAIN_NAME_MAINCHAIN,
-	EMPTY_BYTES,
 	EMPTY_HASH,
+	MAX_CHAIN_NAME_LENGTH,
+	MIN_CHAIN_NAME_LENGTH,
+	MODULE_NAME_INTEROPERABILITY,
 } from '../constants';
-import { isValidName, validNameCharset, getMainchainID } from '../utils';
+import { getMainchainID, isValidName, validNameCharset } from '../utils';
 import { TokenMethod } from '../../token';
 import { InvalidCertificateSignatureEvent } from '../events/invalid_certificate_signature';
 
@@ -233,7 +232,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		this._verifyChainInfos(ctx, genesisInteroperability);
 
 		const { terminatedStateAccounts, terminatedOutboxAccounts } = genesisInteroperability;
-		await this._verifyTerminatedStateAccounts(ctx, terminatedStateAccounts);
+		this._verifyTerminatedStateAccounts(ctx, terminatedStateAccounts);
 
 		// terminatedOutboxAccounts
 		if (terminatedOutboxAccounts.length !== 0) {
@@ -324,14 +323,13 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		}
 	}
 
-	private async _verifyTerminatedStateAccounts(
+	private _verifyTerminatedStateAccounts(
 		ctx: GenesisBlockExecuteContext,
 		terminatedStateAccounts: TerminatedStateAccountWithChainID[],
 	) {
 		this._verifyTerminatedStateAccountsCommon(terminatedStateAccounts);
 
 		const mainchainID = getMainchainID(ctx.chainID);
-		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(ctx, EMPTY_BYTES);
 
 		for (const stateAccount of terminatedStateAccounts) {
 			// stateAccount.chainID != getMainchainID()
@@ -342,8 +340,8 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			}
 
 			// and stateAccount.chainID != ownChainAccount.chainID.
-			if (stateAccount.chainID.equals(ownChainAccount.chainID)) {
-				throw new Error(`stateAccount.chainID must not be equal to ownChainAccount.chainID.`);
+			if (stateAccount.chainID.equals(ctx.chainID)) {
+				throw new Error(`stateAccount.chainID must not be equal to OWN_CHAIN_ID.`);
 			}
 
 			// For each entry stateAccount in terminatedStateAccounts either:

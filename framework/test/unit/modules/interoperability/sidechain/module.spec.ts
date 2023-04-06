@@ -336,6 +336,8 @@ describe('initGenesisState', () => {
 		});
 
 		describe('chainInfo.terminatedStateAccounts', () => {
+			const chainIDNotEqualToOwnChainID = Buffer.from([1, 3, 5, 7]);
+
 			beforeEach(() => {
 				ownChainAccountStoreMock.get.mockResolvedValue({
 					chainID: utils.getRandomBytes(CHAIN_ID_LENGTH),
@@ -389,7 +391,7 @@ describe('initGenesisState', () => {
 				);
 			});
 
-			it(`should throw error if stateAccount.chainID is equal to ownChainAccount.chainID`, async () => {
+			it(`should throw error if stateAccount.chainID is equal to OWN_CHAIN_ID`, async () => {
 				ownChainAccountStoreMock.get.mockResolvedValue({
 					chainID,
 				} as any);
@@ -400,7 +402,7 @@ describe('initGenesisState', () => {
 						chainInfos: chainInfosDefault,
 						terminatedStateAccounts: [
 							{
-								chainID,
+								chainID: params.chainID as Buffer,
 								terminatedStateAccount,
 							},
 						],
@@ -409,7 +411,7 @@ describe('initGenesisState', () => {
 				);
 
 				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					`stateAccount.chainID must not be equal to ownChainAccount.chainID.`,
+					`stateAccount.chainID must not be equal to OWN_CHAIN_ID.`,
 				);
 			});
 
@@ -420,7 +422,7 @@ describe('initGenesisState', () => {
 						chainInfos: chainInfosDefault,
 						terminatedStateAccounts: [
 							{
-								chainID,
+								chainID: chainIDNotEqualToOwnChainID,
 								terminatedStateAccount: {
 									...terminatedStateAccount,
 									stateRoot: EMPTY_HASH,
@@ -446,7 +448,7 @@ describe('initGenesisState', () => {
 						chainInfos: chainInfosDefault,
 						terminatedStateAccounts: [
 							{
-								chainID,
+								chainID: chainIDNotEqualToOwnChainID,
 								terminatedStateAccount: {
 									...terminatedStateAccount,
 									stateRoot: utils.getRandomBytes(HASH_LENGTH),
@@ -473,7 +475,7 @@ describe('initGenesisState', () => {
 						chainInfos: chainInfosDefault,
 						terminatedStateAccounts: [
 							{
-								chainID,
+								chainID: chainIDNotEqualToOwnChainID,
 								terminatedStateAccount: {
 									...terminatedStateAccount,
 									stateRoot: utils.getRandomBytes(HASH_LENGTH),
@@ -499,7 +501,7 @@ describe('initGenesisState', () => {
 						chainInfos: chainInfosDefault,
 						terminatedStateAccounts: [
 							{
-								chainID,
+								chainID: chainIDNotEqualToOwnChainID,
 								terminatedStateAccount: {
 									...terminatedStateAccount,
 									stateRoot: EMPTY_HASH,
