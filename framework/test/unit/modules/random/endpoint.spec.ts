@@ -173,7 +173,7 @@ describe('RandomModuleEndpoint', () => {
 	});
 
 	describe('setHashOnion', () => {
-		it('should create a new seed and store it in the offchain store', async () => {
+		it('should create a new hash onion and set used hash onion count to 0', async () => {
 			// Arrange
 			const { address } = genesisValidators.validators[0];
 			const seed = genesisValidators.validators[1].hashOnion.hashes[1];
@@ -185,18 +185,27 @@ describe('RandomModuleEndpoint', () => {
 			// Act
 			await randomEndpoint.setHashOnion(context);
 
+			// Assert
 			const hashOnionStore = randomEndpoint['offchainStores'].get(HashOnionStore);
 			const storedSeed = await hashOnionStore.get(
 				context,
 				cryptography.address.getAddressFromLisk32Address(address),
 			);
 
-			// Assert
 			expect(storedSeed).toEqual({
 				count,
 				distance,
 				hashes: expect.any(Array),
 			});
+
+			const usedHashOnionStore = randomEndpoint['offchainStores'].get(UsedHashOnionsStore);
+			const usedHashOnions = await usedHashOnionStore.get(
+				context,
+				cryptography.address.getAddressFromLisk32Address(address),
+			);
+
+			expect(usedHashOnions.usedHashOnions[0].count).toBe(0);
+			expect(usedHashOnions.usedHashOnions[0].height).toBe(0);
 		});
 
 		it('should throw error when address provided in params is invalid', async () => {
