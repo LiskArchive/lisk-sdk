@@ -1,6 +1,6 @@
 {
 	"system": {
-		"dataPath": "/Users/ishan/.lisk/pos-mainchain-fast",
+		"dataPath": "~/.lisk/pos-mainchain-fast",
 		"keepEventsForHeights": 300,
 		"logLevel": "info"
 	},
