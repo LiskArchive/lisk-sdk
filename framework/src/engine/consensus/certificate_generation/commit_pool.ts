@@ -32,6 +32,7 @@ import { Network } from '../../network';
 import { singleCommitSchema, singleCommitsNetworkPacketSchema } from './schema';
 import { CommitList, COMMIT_SORT } from './commit_list';
 import { BFTMethod } from '../../bft';
+import { defaultMetrics } from '../../metrics/metrics';
 
 export class CommitPool {
 	private readonly _nonGossipedCommits: CommitList;
@@ -43,6 +44,14 @@ export class CommitPool {
 	private readonly _network: Network;
 	private readonly _db: Database;
 	private _jobIntervalID!: NodeJS.Timeout;
+
+	private readonly _metrics = {
+		singleCommits: defaultMetrics.gauge('commitPool_numSingleCommits'),
+		nonGossippedCommits: defaultMetrics.gauge('commitPool_numNonGossippedCommits'),
+		nonGossippedCommitsLocal: defaultMetrics.gauge('commitPool_numNonGossippedCommitsLocal'),
+		gossippedCommits: defaultMetrics.gauge('commitPool_numGossippedCommits'),
+		job: defaultMetrics.histogram('commitPool_job', [0.01, 0.05, 0.1, 0.2, 0.5, 1, 5]),
+	};
 
 	public constructor(config: CommitPoolConfig) {
 		this._blockTime = config.blockTime;
@@ -60,7 +69,9 @@ export class CommitPool {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._jobIntervalID = setInterval(async () => {
 			const stateStore = new StateStore(this._db);
+			const endTimer = this._metrics.job.startTimer();
 			await this._job(stateStore);
+			endTimer();
 		}, (this._blockTime / 2) * 1000);
 	}
 
@@ -75,6 +86,7 @@ export class CommitPool {
 			} else {
 				this._nonGossipedCommits.add(commit);
 			}
+			this._metrics.singleCommits.inc();
 		}
 	}
 
@@ -361,6 +373,7 @@ export class CommitPool {
 		for (const height of deletedNonGossipedHeights) {
 			this._nonGossipedCommits.deleteByHeight(height);
 		}
+		this._metrics.nonGossippedCommits.set(this._nonGossipedCommits.size());
 		// Clean up nonGossipedCommitsLocal
 		const deletedNonGossipedHeightsLocal = await this._getDeleteHeights(
 			methodContext,
@@ -370,8 +383,9 @@ export class CommitPool {
 			currentHeight,
 		);
 		for (const height of deletedNonGossipedHeightsLocal) {
-			this._nonGossipedCommits.deleteByHeight(height);
+			this._nonGossipedCommitsLocal.deleteByHeight(height);
 		}
+		this._metrics.nonGossippedCommitsLocal.set(this._nonGossipedCommitsLocal.size());
 		// Clean up gossipedCommits
 		const deletedGossipedHeights = await this._getDeleteHeights(
 			methodContext,
@@ -383,6 +397,7 @@ export class CommitPool {
 		for (const height of deletedGossipedHeights) {
 			this._gossipedCommits.deleteByHeight(height);
 		}
+		this._metrics.gossippedCommits.set(this._gossipedCommits.size());
 		// 2. Select commits to gossip
 		const nextHeight = this._chain.lastBlock.header.height + 1;
 		const { validators } = await this._bftMethod.getBFTParameters(methodContext, nextHeight);
@@ -390,6 +405,7 @@ export class CommitPool {
 		const maxSelectedCommitsLength = 2 * validators.length;
 		// Get a list of commits sorted by ascending order of height
 		const allCommits = this._getAllCommits();
+		this._metrics.singleCommits.set(allCommits.length);
 
 		const selectedCommits = [];
 		for (const commit of allCommits) {

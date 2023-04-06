@@ -73,6 +73,7 @@ import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../
 import { BFTModule } from '../bft';
 import { isEmptyConsensusUpdate } from '../consensus';
 import { getPathFromDataPath } from '../../utils/path';
+import { defaultMetrics } from '../metrics/metrics';
 
 interface GeneratorArgs {
 	config: EngineConfig;
@@ -109,6 +110,10 @@ export class Generator {
 	private readonly _broadcaster: Broadcaster;
 	private readonly _forgingStrategy: HighFeeGenerationStrategy;
 	private readonly _blockTime: number;
+	private readonly _metrics = {
+		signedCommits: defaultMetrics.counter('generator_signedCommits'),
+		blockGeneration: defaultMetrics.counter('generator_blockGeneration'),
+	};
 
 	private _logger!: Logger;
 	private _generatorDB!: Database;
@@ -635,6 +640,7 @@ export class Generator {
 		await this._generatorDB.write(batch);
 
 		await this._abi.clear({});
+		this._metrics.blockGeneration.inc(1);
 
 		return generatedBlock;
 	}
@@ -712,6 +718,7 @@ export class Generator {
 			},
 			'Certified single commit',
 		);
+		this._metrics.signedCommits.inc(1);
 	}
 
 	private async _executeTransactions(

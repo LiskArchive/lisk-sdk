@@ -30,6 +30,14 @@ export class CommitList {
 		return [...this._commitMap.keys()];
 	}
 
+	public size() {
+		let sum = 0;
+		for (const [, value] of this._commitMap) {
+			sum += value.length;
+		}
+		return sum;
+	}
+
 	public add(commit: SingleCommit) {
 		const currentCommits = this._commitMap.get(commit.height) ?? [];
 
