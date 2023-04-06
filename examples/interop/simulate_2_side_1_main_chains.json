@@ -7,7 +7,7 @@
 		},
 		{
 			"name": "pos-sidechain-1",
-			"script": "pos-sidechain-fast/bin/run",
+			"script": "pos-sidechain-example-one/bin/run",
 			"args": ["start", "--api-ipc", "--api-http", "--enable-chain-connector-plugin"]
 		},
 		{
