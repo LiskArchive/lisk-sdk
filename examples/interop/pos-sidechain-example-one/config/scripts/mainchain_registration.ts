@@ -10,8 +10,8 @@ import { keys as sidechainDevValidators } from '../default/dev-validators.json';
 (async () => {
 	const { bls, address } = cryptography;
 
-	const mainchainClient = await apiClient.createIPCClient('~/.lisk/pos-mainchain-fast');
-	const sidechainClient = await apiClient.createIPCClient('~/.lisk/pos-sidechain-fast');
+	const mainchainClient = await apiClient.createIPCClient('~/.lisk/mainchain-node-one');
+	const sidechainClient = await apiClient.createIPCClient('~/.lisk/pos-sidechain-example-one');
 	const mainchainNodeInfo = await mainchainClient.invoke('system_getNodeInfo');
 	const sidechainNodeInfo = await sidechainClient.invoke('system_getNodeInfo');
 	// Get active validators from mainchain
@@ -24,7 +24,7 @@ import { keys as sidechainDevValidators } from '../default/dev-validators.json';
 
 	const paramsJSON = {
 		ownChainID: sidechainNodeInfo.chainID,
-		ownName: 'lisk_sidechain',
+		ownName: 'sidechain_example_one',
 		mainchainValidators: (mainchainActiveValidators as { blsKey: string; bftWeight: string }[])
 			.map(v => ({ blsKey: v.blsKey, bftWeight: v.bftWeight }))
 			.sort((a, b) => Buffer.from(a.blsKey, 'hex').compare(Buffer.from(b.blsKey, 'hex'))),
