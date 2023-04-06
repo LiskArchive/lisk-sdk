@@ -1,0 +1,9 @@
+{
+	"apps": [
+		{
+			"name": "pos-sidechain-example-two",
+			"script": "npm",
+			"args": ["run", "app"]
+		}
+	]
+}

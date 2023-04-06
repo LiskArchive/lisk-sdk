@@ -1,18 +1,18 @@
 {
 	"system": {
-		"dataPath": "~/.lisk/pos-sidechain-fast",
+		"dataPath": "~/.lisk/pos-sidechain-example-two",
 		"keepEventsForHeights": 300,
 		"logLevel": "info"
 	},
 	"rpc": {
 		"modes": ["ipc"],
-		"port": 7885,
+		"port": 7886,
 		"host": "127.0.0.1"
 	},
 	"network": {
 		"version": "1.0",
 		"seedPeers": [],
-		"port": 7665
+		"port": 7666
 	},
 	"transactionPool": {
 		"maxTransactions": 4096,
@@ -28,7 +28,7 @@
 		"blockTime": 5,
 		"bftBatchSize": 5,
 		"maxTransactionsSize": 15360,
-		"chainID": "04000001"
+		"chainID": "04000002"
 	},
 	"generator": {
 		"keys": {
@@ -39,7 +39,7 @@
 	"plugins": {
 		"chainConnector": {
 			"receivingChainID": "04000000",
-			"encryptedPrivateKey": "kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=ab4354c56527e236f4a4b1abed94519b2db8f2f5568f995f679466f597a7a0f4a124358a19a84b84328c8a6e8cc0c96f2234bbc279f9554723e4c21d73aa03ad0ca010110b76ca0680c3f43d2b66c574eb03ed306b8944d40db706a06a14931723ac1df7d613fe654d941c7c25e64cd9e8727e13314346b3bb519c9839338d9e&mac=9348ac2fcc1bc870cacef541cb00838e4f70b8c61239721286cb9a5d67c627c8&salt=ead34f6a3ae8f821396881e033dde523&iv=364dddf45dd0fee2f5971ae2&tag=d347e6e4b057e3bd5692904c595fd5a2&iterations=1&parallelism=4&memorySize=2024",
+			"encryptedPrivateKey": "kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=3d45025155df67973f68c8cef9a18eb45cfdccceef7bb5fca91e4e00bedc5712b4d3052474d60ede4a349a979d1d5acca9ffd5bc35f15d396e660d5610aa05052be9c8d2da8463d1fbee39c7cbd799a1babef8859625242da5ee666b6b1adba0b14d594928ece2cfc9a42cbfa8e08f59c1c348fa59591a00a82b7701d2d80b8e&mac=15117d3b141b43ebebd8ef9c32abfe53ebcb800c2227826b5cbb3294abf70ce0&salt=3d10a573119e2cdfdfe1b948456db2ab&iv=b00c208878c05de6b526892a&tag=dc3fdf59789ff2a231dae4436161dddc&iterations=1&parallelism=4&memorySize=2024",
 			"password": "lisk",
 			"ccuFee": "1000000000",
 			"receivingChainIPCPath": "~/.lisk/pos-mainchain-fast"
