@@ -1,6 +1,6 @@
 {
 	"system": {
-		"dataPath": "~/.lisk/pos-sidechain-fast",
+		"dataPath": "~/.lisk/pos-sidechain-example-one",
 		"keepEventsForHeights": 300,
 		"logLevel": "info"
 	},

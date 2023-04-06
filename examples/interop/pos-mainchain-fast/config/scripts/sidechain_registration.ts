@@ -5,7 +5,7 @@ import { sidechainRegParams } from 'lisk-framework';
 (async () => {
 	const { address } = cryptography;
 
-	const sidechainClient = await apiClient.createIPCClient('~/.lisk/pos-sidechain-fast');
+	const sidechainClient = await apiClient.createIPCClient('~/.lisk/pos-sidechain-example-one');
 	const mainchainClient = await apiClient.createIPCClient('~/.lisk/pos-mainchain-fast');
 
 	const sidechainNodeInfo = await sidechainClient.invoke('system_getNodeInfo');
@@ -24,7 +24,7 @@ import { sidechainRegParams } from 'lisk-framework';
 		sidechainCertificateThreshold: certificateThreshold,
 		sidechainValidators: sidehcainActiveValidators,
 		chainID: sidechainNodeInfo.chainID,
-		name: 'lisk_sidechain',
+		name: 'sidechain_example_one',
 	};
 
 	const relayerkeyInfo = keys[0];
