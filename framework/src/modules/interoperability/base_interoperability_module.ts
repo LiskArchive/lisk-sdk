@@ -16,6 +16,7 @@ import { objects as objectUtils } from '@liskhq/lisk-utils';
 
 import { MAX_UINT64 } from '@liskhq/lisk-validator';
 import { GenesisBlockExecuteContext } from '../../state_machine';
+import { TokenMethod } from '../token';
 import { BaseCCCommand } from './base_cc_command';
 import { BaseCCMethod } from './base_cc_method';
 import { BaseInteroperableModule } from './base_interoperable_module';
@@ -44,6 +45,7 @@ import { computeValidatorsHash, getMainchainTokenID } from './utils';
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
 	protected interoperableCCCommands = new Map<string, BaseCCCommand[]>();
 	protected interoperableCCMethods = new Map<string, BaseCCMethod>();
+	protected tokenMethod!: TokenMethod;
 
 	protected constructor() {
 		super();

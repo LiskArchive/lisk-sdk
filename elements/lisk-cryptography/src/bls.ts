@@ -89,6 +89,23 @@ export const createAggSig = (
 	return { aggregationBits, signature };
 };
 
+const verifyAggregationBits = (publicKeysList: Buffer[], aggregationBits: Buffer): boolean => {
+	const expectedAggregationBitsLength = Math.ceil(publicKeysList.length / 8);
+	if (aggregationBits.length !== expectedAggregationBitsLength) {
+		return false;
+	}
+	const unusedBits = publicKeysList.length % 8;
+	if (unusedBits === 0) {
+		return true;
+	}
+	const lastByte = aggregationBits[aggregationBits.length - 1];
+	// eslint-disable-next-line no-bitwise
+	if (lastByte >> unusedBits !== 0) {
+		return false;
+	}
+	return true;
+};
+
 export const verifyAggSig = (
 	publicKeysList: Buffer[],
 	aggregationBits: Buffer,
@@ -97,6 +114,9 @@ export const verifyAggSig = (
 	chainID: Buffer,
 	message: Buffer,
 ): boolean => {
+	if (!verifyAggregationBits(publicKeysList, aggregationBits)) {
+		return false;
+	}
 	const taggedMessage = tagMessage(tag, chainID, message);
 	const keys: Buffer[] = [];
 
@@ -119,6 +139,9 @@ export const verifyWeightedAggSig = (
 	weights: number[] | bigint[],
 	threshold: number | bigint,
 ): boolean => {
+	if (!verifyAggregationBits(publicKeysList, aggregationBits)) {
+		return false;
+	}
 	const taggedMessage = tagMessage(tag, chainID, message);
 	const keys: Buffer[] = [];
 	let weightSum = BigInt(0);

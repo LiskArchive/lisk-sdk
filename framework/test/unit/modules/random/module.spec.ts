@@ -16,9 +16,11 @@ import { utils, address } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { BlockAssets, StateStore } from '@liskhq/lisk-chain';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
+import { dataStructures } from '@liskhq/lisk-utils';
 import * as genesisValidators from '../../../fixtures/genesis_validators.json';
 import { RandomModule } from '../../../../src/modules/random';
 import {
+	UsedHashOnion,
 	UsedHashOnionStoreObject,
 	UsedHashOnionsStore,
 } from '../../../../src/modules/random/stores/used_hash_onions';
@@ -93,6 +95,137 @@ describe('RandomModule', () => {
 		});
 	});
 
+	describe('_getNextHashOnion', () => {
+		const generatorAddress = address.getAddressFromLisk32Address(
+			genesisValidators.validators[0].address,
+		);
+		const { hashOnion } = genesisValidators.validators[0];
+		const height = 1000000;
+
+		const inserAssetContext: InsertAssetContext = testing.createBlockGenerateContext({
+			assets: assetStub,
+			logger: testing.mocks.loggerMock,
+			chainID: defaultChainID,
+			getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
+			getMethodContext: jest.fn() as any,
+			getStore: jest.fn() as any,
+			header: { height, generatorAddress } as any,
+		});
+
+		it('should calculate the current hash using the next checkpoint', async () => {
+			// Arrange
+			const newCount = hashOnion.distance - 2; // 2 hashes before the second checkpoint at count 1000
+			const usedHashOnions: UsedHashOnion[] = [
+				{
+					count: newCount - 1,
+					height: height - 100,
+				},
+			];
+
+			const nextCheckpointHash = Buffer.from(hashOnion.hashes[1], 'hex'); // checkpoint at count 1000
+			const distanceAfterCheckpoint = newCount % hashOnion.distance;
+			const hashesFromCheckpoint = utils.hashOnion(
+				nextCheckpointHash,
+				hashOnion.distance - distanceAfterCheckpoint,
+				1,
+			);
+			const expectedHash = hashesFromCheckpoint[0];
+
+			// Act
+			const nextHashOnion = await randomModule['_getNextHashOnion'](
+				usedHashOnions,
+				generatorAddress,
+				height,
+				testing.mocks.loggerMock,
+				inserAssetContext,
+			);
+
+			// Assert
+			expect(nextHashOnion.hash).toEqual(expectedHash);
+		});
+
+		it('should return the seed hash when all previous hashes have been used up', async () => {
+			// Arrange
+			const usedHashOnions: UsedHashOnion[] = [
+				{
+					count: hashOnion.count - 1,
+					height: height - 100,
+				},
+			];
+
+			const seedHash = Buffer.from(hashOnion.hashes[10], 'hex');
+
+			// Act
+			const nextHashOnion = await randomModule['_getNextHashOnion'](
+				usedHashOnions,
+				generatorAddress,
+				height,
+				testing.mocks.loggerMock,
+				inserAssetContext,
+			);
+
+			// Assert
+			expect(nextHashOnion.hash).toEqual(seedHash);
+		});
+
+		it('should return a random hash when the onion is used up', async () => {
+			// Arrange
+			// seed hash that corresponds to count 10000 has been used in the previous block
+			const usedHashOnions: UsedHashOnion[] = [
+				{
+					count: hashOnion.count,
+					height: height - 100,
+				},
+			];
+
+			const newHashOnions = new dataStructures.BufferSet();
+
+			// Act & Assert
+			// invoke the target function 5 times with the same input
+			const newHashOnionsCount = 5;
+			for (let i = 1; i <= newHashOnionsCount; i += 1) {
+				const nextHashOnion = await randomModule['_getNextHashOnion'](
+					usedHashOnions,
+					generatorAddress,
+					height,
+					testing.mocks.loggerMock,
+					inserAssetContext,
+				);
+
+				newHashOnions.add(nextHashOnion.hash);
+
+				// each time it should provide unique values, that are different from the checkpoint hashes
+				expect(hashOnion.hashes).not.toContain(nextHashOnion.hash.toString('hex'));
+				expect(nextHashOnion.count).toBe(hashOnion.count);
+			}
+
+			// to confirm randomness, also check that each hash generated with the same input params is unique
+			expect(newHashOnions.size).toBe(newHashOnionsCount);
+		});
+
+		it('should not modify used hash count when the onion is used up', async () => {
+			// Arrange
+			const usedHashOnions: UsedHashOnion[] = [
+				{
+					count: hashOnion.count,
+					height: height - 100,
+				},
+			];
+
+			// Act
+			const nextHashOnion = await randomModule['_getNextHashOnion'](
+				usedHashOnions,
+				generatorAddress,
+				height,
+				testing.mocks.loggerMock,
+				inserAssetContext,
+			);
+
+			// Assert
+			expect(nextHashOnion.count).toEqual(hashOnion.count);
+		});
+	});
+
 	describe('insertAssets', () => {
 		const targetValidator = genesisValidators.validators[0];
 
@@ -137,7 +270,6 @@ describe('RandomModule', () => {
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
 				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
-				// getOffchainStore: jest.fn() as any,
 				header: { height: 15, generatorAddress: targetValidatorAddress } as any,
 			});
 
@@ -345,10 +477,6 @@ describe('RandomModule', () => {
 				usedHashOnions: [
 					{
 						count: maxCount,
-						height: 10,
-					},
-					{
-						count: 0,
 						height: 15,
 					},
 				],
