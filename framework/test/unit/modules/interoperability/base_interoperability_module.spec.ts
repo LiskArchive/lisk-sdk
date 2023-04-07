@@ -681,4 +681,50 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 			);
 		});
 	});
+
+	describe('finalizeGenesisState', () => {
+		const tokenMethod = {
+			isNativeToken: jest.fn(),
+			escrowSubstoreExists: jest.fn(),
+		} as any;
+
+		beforeEach(() => {
+			interopMod['tokenMethod'] = tokenMethod;
+			jest.spyOn(interopMod['tokenMethod'], 'isNativeToken').mockReturnValue(true);
+		});
+
+		it("should throw if token.isNativeToken(messageFeeTokenID) is true & the corresponding escrow account doesn't exists", async () => {
+			jest.spyOn(interopMod['tokenMethod'], 'escrowSubstoreExists').mockResolvedValue(false);
+			const context = createInitGenesisStateContext(
+				{
+					...genesisInteroperability,
+					chainInfos: [
+						{
+							...chainInfo,
+						},
+					],
+				},
+				params,
+			);
+			await expect(interopMod.finalizeGenesisState?.(context)).rejects.toThrow(
+				"Corresponding escrow account doesn't exist.",
+			);
+		});
+
+		it('should not throw if token.isNativeToken(messageFeeTokenID) is true & the corresponding escrow account exists', async () => {
+			jest.spyOn(interopMod['tokenMethod'], 'escrowSubstoreExists').mockResolvedValue(true);
+			const context = createInitGenesisStateContext(
+				{
+					...genesisInteroperability,
+					chainInfos: [
+						{
+							...chainInfo,
+						},
+					],
+				},
+				params,
+			);
+			await expect(interopMod.finalizeGenesisState?.(context)).resolves.not.toThrow();
+		});
+	});
 });
