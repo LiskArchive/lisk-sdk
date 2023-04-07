@@ -274,30 +274,28 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		} = genesisInteroperability;
 
 		// On the mainchain, the following checks are performed:
-		if (ctx.chainID.equals(getMainchainID(ctx.chainID))) {
-			// ownChainName == CHAIN_NAME_MAINCHAIN.
-			if (ownChainName !== CHAIN_NAME_MAINCHAIN) {
-				throw new Error(`ownChainName must be equal to ${CHAIN_NAME_MAINCHAIN}.`);
-			}
-
-			// if chainInfos is empty, then ownChainNonce == 0
-			// If chainInfos is non-empty, ownChainNonce > 0
-			if (chainInfos.length === 0 && ownChainNonce !== BigInt(0)) {
-				throw new Error(`ownChainNonce must be 0 if chainInfos is empty.`);
-			} else if (chainInfos.length !== 0 && ownChainNonce <= 0) {
-				throw new Error(`ownChainNonce must be positive if chainInfos is not empty.`);
-			}
-
-			this._verifyChainInfos(ctx, chainInfos);
-			this._verifyTerminatedStateAccounts(chainInfos, terminatedStateAccounts);
-			this._verifyTerminatedOutboxAccounts(
-				chainInfos,
-				terminatedStateAccounts,
-				terminatedOutboxAccounts,
-			);
-
-			await this.processGenesisState(ctx, genesisInteroperability);
+		// ownChainName == CHAIN_NAME_MAINCHAIN.
+		if (ownChainName !== CHAIN_NAME_MAINCHAIN) {
+			throw new Error(`ownChainName must be equal to ${CHAIN_NAME_MAINCHAIN}.`);
 		}
+
+		// if chainInfos is empty, then ownChainNonce == 0
+		// If chainInfos is non-empty, ownChainNonce > 0
+		if (chainInfos.length === 0 && ownChainNonce !== BigInt(0)) {
+			throw new Error(`ownChainNonce must be 0 if chainInfos is empty.`);
+		} else if (chainInfos.length !== 0 && ownChainNonce <= 0) {
+			throw new Error(`ownChainNonce must be positive if chainInfos is not empty.`);
+		}
+
+		this._verifyChainInfos(ctx, chainInfos);
+		this._verifyTerminatedStateAccounts(chainInfos, terminatedStateAccounts);
+		this._verifyTerminatedOutboxAccounts(
+			chainInfos,
+			terminatedStateAccounts,
+			terminatedOutboxAccounts,
+		);
+
+		await this.processGenesisState(ctx, genesisInteroperability);
 	}
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#mainchain
