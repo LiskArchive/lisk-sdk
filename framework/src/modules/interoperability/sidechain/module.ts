@@ -333,21 +333,11 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		const mainchainID = getMainchainID(ctx.chainID);
 
 		for (const stateAccount of terminatedStateAccounts) {
-			// stateAccount.chainID != getMainchainID()
-			if (stateAccount.chainID.equals(mainchainID)) {
-				throw new Error(
-					`stateAccount.chainID must not be equal to ${mainchainID.toString('hex')}.`,
-				);
-			}
+			super._verifyChainID(stateAccount.chainID, mainchainID, 'stateAccount.');
 
 			// and stateAccount.chainID != OWN_CHAIN_ID.
 			if (stateAccount.chainID.equals(ctx.chainID)) {
 				throw new Error(`stateAccount.chainID must not be equal to OWN_CHAIN_ID.`);
-			}
-
-			// and stateAccount.chainId[0] == getMainchainID()[0]
-			if (stateAccount.chainID[0] !== mainchainID[0]) {
-				throw new Error(`stateAccount.chainID[0] must be equal to mainchainID[0].`);
 			}
 
 			// For each entry stateAccount in terminatedStateAccounts either:

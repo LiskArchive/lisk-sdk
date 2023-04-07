@@ -326,24 +326,10 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 
 		// verify root level properties
 		for (const chainInfo of chainInfos) {
-			this._verifyChainID(chainInfo, mainchainID);
+			this._verifyChainID(chainInfo.chainID, mainchainID, 'chainInfo.');
 			this._verifyChainData(ctx, chainInfo);
 			this._verifyChannelData(ctx, chainInfo);
 			this._verifyChainValidators(chainInfo);
-		}
-	}
-
-	private _verifyChainID(chainInfo: ChainInfo, mainchainID: Buffer) {
-		const { chainID } = chainInfo;
-
-		// chainInfo.chainID != getMainchainID();
-		if (chainID.equals(mainchainID)) {
-			throw new Error(`chainID must not be equal to ${mainchainID.toString('hex')}.`);
-		}
-
-		// chainInfo.chainId[0] == getMainchainID()[0].
-		if (chainID[0] !== mainchainID[0]) {
-			throw new Error(`chainID[0] doesn't match ${mainchainID[0]}.`);
 		}
 	}
 

@@ -147,6 +147,18 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		}
 	}
 
+	protected _verifyChainID(chainID: Buffer, mainchainID: Buffer, prefix: string) {
+		// chainInfo.chainID != getMainchainID();
+		if (chainID.equals(mainchainID)) {
+			throw new Error(`${prefix}chainID must not be equal to ${mainchainID.toString('hex')}.`);
+		}
+
+		// chainInfo.chainId[0] == getMainchainID()[0].
+		if (chainID[0] !== mainchainID[0]) {
+			throw new Error(`${prefix}chainID[0] must be equal to ${mainchainID[0]}.`);
+		}
+	}
+
 	protected _verifyTerminatedStateAccountsCommon(
 		terminatedStateAccounts: TerminatedStateAccountWithChainID[],
 	) {

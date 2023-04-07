@@ -209,7 +209,7 @@ describe('initGenesisState', () => {
 					params,
 				);
 				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					`chainID[0] doesn't match ${mainchainID[0]}.`,
+					`chainID[0] must be equal to ${mainchainID[0]}.`,
 				);
 			});
 		});
