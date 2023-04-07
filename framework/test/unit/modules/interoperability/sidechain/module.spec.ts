@@ -324,6 +324,35 @@ describe('initGenesisState', () => {
 					'chainData.lastCertificate.timestamp must be < header.timestamp.',
 				);
 			});
+
+			it('should throw error if chainData.lastCertificate.timestamp = g.header.timestamp', async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...defaultData,
+						chainInfos: [
+							{
+								...defaultData.chainInfos[0],
+								chainData: {
+									...defaultData.chainInfos[0].chainData,
+									lastCertificate: {
+										...lastCertificate,
+										timestamp: 1000,
+									},
+								},
+							},
+						],
+					},
+					{
+						...params,
+						header: {
+							timestamp: 1000,
+						} as any,
+					},
+				);
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					'chainData.lastCertificate.timestamp must be < header.timestamp.',
+				);
+			});
 		});
 
 		describe('chainInfo.terminatedStateAccounts', () => {
