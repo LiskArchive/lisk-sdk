@@ -690,7 +690,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 			jest.spyOn(interopMod['tokenMethod'], 'isNativeToken').mockReturnValue(true);
 		});
 
-		it("should throw if token.isNativeToken(messageFeeTokenID) is true & the corresponding escrow account doesn't exists", async () => {
+		it("should throw an error if token.isNativeToken(messageFeeTokenID) is true & the corresponding escrow account doesn't exists", async () => {
 			jest.spyOn(interopMod['tokenMethod'], 'escrowSubstoreExists').mockResolvedValue(false);
 			const context = createInitGenesisStateContext(
 				{
@@ -708,7 +708,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 			);
 		});
 
-		it('should not throw if token.isNativeToken(messageFeeTokenID) is true & the corresponding escrow account exists', async () => {
+		it('should not throw an error if token.isNativeToken(messageFeeTokenID) is true & the corresponding escrow account exists', async () => {
 			jest.spyOn(interopMod['tokenMethod'], 'escrowSubstoreExists').mockResolvedValue(true);
 			const context = createInitGenesisStateContext(
 				{
@@ -721,6 +721,24 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 				},
 				params,
 			);
+			await expect(interopMod.finalizeGenesisState?.(context)).resolves.not.toThrow();
+		});
+
+		it('should not throw an error if token is not native', async () => {
+			jest.spyOn(interopMod['tokenMethod'], 'isNativeToken').mockReturnValue(false);
+
+			const context = createInitGenesisStateContext(
+				{
+					...genesisInteroperability,
+					chainInfos: [
+						{
+							...chainInfo,
+						},
+					],
+				},
+				params,
+			);
+
 			await expect(interopMod.finalizeGenesisState?.(context)).resolves.not.toThrow();
 		});
 	});
