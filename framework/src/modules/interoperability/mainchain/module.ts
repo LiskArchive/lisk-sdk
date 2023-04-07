@@ -273,6 +273,8 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 			terminatedOutboxAccounts,
 		} = genesisInteroperability;
 
+		const mainchainID = getMainchainID(ctx.chainID);
+
 		// On the mainchain, the following checks are performed:
 		// ownChainName == CHAIN_NAME_MAINCHAIN.
 		if (ownChainName !== CHAIN_NAME_MAINCHAIN) {
@@ -288,7 +290,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		}
 
 		this._verifyChainInfos(ctx, chainInfos);
-		this._verifyTerminatedStateAccounts(chainInfos, terminatedStateAccounts);
+		this._verifyTerminatedStateAccounts(chainInfos, terminatedStateAccounts, mainchainID);
 		this._verifyTerminatedOutboxAccounts(
 			chainInfos,
 			terminatedStateAccounts,
@@ -356,6 +358,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 	private _verifyTerminatedStateAccounts(
 		chainInfos: ChainInfo[],
 		terminatedStateAccounts: TerminatedStateAccountWithChainID[],
+		mainchainID: Buffer,
 	) {
 		// Sanity check to fulfill if-and-only-if situation
 		for (const account of terminatedStateAccounts) {
@@ -385,7 +388,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 					);
 				}
 
-				this._verifyTerminatedStateAccountsCommon(terminatedStateAccounts);
+				this._verifyTerminatedStateAccountsCommon(terminatedStateAccounts, mainchainID);
 
 				// For each entry stateAccount in terminatedStateAccounts holds
 				// stateAccount.stateRoot == chainData.lastCertificate.stateRoot,

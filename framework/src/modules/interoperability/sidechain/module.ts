@@ -233,7 +233,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		this._verifyChainInfos(ctx, genesisInteroperability);
 
 		const { terminatedStateAccounts, terminatedOutboxAccounts } = genesisInteroperability;
-		this._verifyTerminatedStateAccounts(ctx, terminatedStateAccounts);
+		this._verifyTerminatedStateAccounts(ctx, terminatedStateAccounts, getMainchainID(ctx.chainID));
 
 		// terminatedOutboxAccounts
 		if (terminatedOutboxAccounts.length !== 0) {
@@ -327,14 +327,11 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 	private _verifyTerminatedStateAccounts(
 		ctx: GenesisBlockExecuteContext,
 		terminatedStateAccounts: TerminatedStateAccountWithChainID[],
+		mainchainID: Buffer,
 	) {
-		this._verifyTerminatedStateAccountsCommon(terminatedStateAccounts);
-
-		const mainchainID = getMainchainID(ctx.chainID);
+		this._verifyTerminatedStateAccountsCommon(terminatedStateAccounts, mainchainID);
 
 		for (const stateAccount of terminatedStateAccounts) {
-			super._verifyChainID(stateAccount.chainID, mainchainID, 'stateAccount.');
-
 			// and stateAccount.chainID != OWN_CHAIN_ID.
 			if (stateAccount.chainID.equals(ctx.chainID)) {
 				throw new Error(`stateAccount.chainID must not be equal to OWN_CHAIN_ID.`);

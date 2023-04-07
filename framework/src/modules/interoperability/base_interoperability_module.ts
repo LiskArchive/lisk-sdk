@@ -161,6 +161,7 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 
 	protected _verifyTerminatedStateAccountsCommon(
 		terminatedStateAccounts: TerminatedStateAccountWithChainID[],
+		mainchainID: Buffer,
 	) {
 		// Each entry stateAccount in terminatedStateAccounts has a unique stateAccount.chainID
 		const chainIDs = terminatedStateAccounts.map(a => a.chainID);
@@ -172,10 +173,14 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		const sortedByChainID = [...terminatedStateAccounts].sort((a, b) =>
 			a.chainID.compare(b.chainID),
 		);
+
 		for (let i = 0; i < terminatedStateAccounts.length; i += 1) {
-			if (!terminatedStateAccounts[i].chainID.equals(sortedByChainID[i].chainID)) {
+			const stateAccountWithChainID = terminatedStateAccounts[i];
+			if (!stateAccountWithChainID.chainID.equals(sortedByChainID[i].chainID)) {
 				throw new Error('terminatedStateAccounts must be ordered lexicographically by chainID.');
 			}
+
+			this._verifyChainID(stateAccountWithChainID.chainID, mainchainID, 'stateAccount.');
 		}
 	}
 
