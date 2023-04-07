@@ -67,7 +67,7 @@ describe('initGenesisState Common Tests', () => {
 		interopMod.stores.register(TerminatedOutboxStore, terminatedOutboxStoreMock as never);
 	});
 
-	describe('channelData', () => {
+	describe('_verifyChannelData', () => {
 		it(`should throw error if channelData.messageFeeTokenID is not equal to Token.getTokenIDLSK()`, async () => {
 			const context = createInitGenesisStateContext(
 				{
@@ -116,7 +116,7 @@ describe('initGenesisState Common Tests', () => {
 		});
 	});
 
-	describe('chainValidators.activeValidators', () => {
+	describe('_verifyChainValidators', () => {
 		it(`should throw error if activeValidators have 0 elements`, async () => {
 			const context = createInitGenesisStateContext(
 				{
@@ -383,10 +383,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 				);
 			});
 		});
-	});
 
-	// it is defined here, since it applies to both chainData & chainValidators
-	describe('validatorsHash', () => {
 		it(`should throw error if invalid validatorsHash provided`, async () => {
 			const context = createInitGenesisStateContext(
 				{
@@ -416,7 +413,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 		});
 	});
 
-	describe('terminatedStateAccounts', () => {
+	describe('_verifyTerminatedStateAccountsCommon', () => {
 		certificateThreshold = BigInt(10);
 		const validChainInfos = [
 			{
@@ -543,7 +540,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 			});
 		});
 
-		it('should not throw error If for each entry chainInfo in chainInfos, we add the following substore entries', async () => {
+		it('should not throw error If for each entry in chainInfos, we add valid substore entries', async () => {
 			const context = createInitGenesisStateContext(
 				{
 					...genesisInteroperability,
@@ -585,7 +582,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 			});
 		});
 
-		it('should not throw error If for each entry stateAccount in terminatedStateAccounts, we add the following substore entries', async () => {
+		it('should not throw error If for each entry in terminatedStateAccounts, we add the valid substore entries', async () => {
 			const terminatedStateAccounts = [
 				{
 					chainID: chainInfo.chainID,
