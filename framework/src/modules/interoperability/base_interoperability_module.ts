@@ -15,6 +15,7 @@
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 
 import { MAX_UINT64 } from '@liskhq/lisk-validator';
+import { codec } from '@liskhq/lisk-codec';
 import { GenesisBlockExecuteContext } from '../../state_machine';
 import { TokenMethod } from '../token';
 import { BaseCCCommand } from './base_cc_command';
@@ -41,6 +42,7 @@ import {
 	TerminatedStateAccountWithChainID,
 } from './types';
 import { computeValidatorsHash, getMainchainTokenID } from './utils';
+import { genesisInteroperabilitySchema } from './schemas';
 
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
 	protected interoperableCCCommands = new Map<string, BaseCCCommand[]>();
@@ -234,6 +236,31 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 				outboxAccount.chainID,
 				outboxAccount.terminatedOutboxAccount,
 			);
+		}
+	}
+
+	public async finalizeGenesisState?(ctx: GenesisBlockExecuteContext): Promise<void> {
+		const genesisBlockAssetBytes = ctx.assets.getAsset(MODULE_NAME_INTEROPERABILITY);
+
+		const genesisInteroperability = codec.decode<GenesisInteroperability>(
+			genesisInteroperabilitySchema,
+			genesisBlockAssetBytes as Buffer,
+		);
+
+		const { chainInfos } = genesisInteroperability;
+		for (const chainInfo of chainInfos) {
+			const { messageFeeTokenID } = chainInfo.channelData;
+			if (this.tokenMethod?.isNativeToken(messageFeeTokenID)) {
+				if (
+					!(await this.tokenMethod?.escrowSubstoreExists(
+						ctx.getMethodContext(),
+						chainInfo.chainID,
+						messageFeeTokenID,
+					))
+				) {
+					throw new Error("Corresponding escrow account doesn't exist.");
+				}
+			}
 		}
 	}
 }

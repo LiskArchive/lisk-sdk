@@ -485,9 +485,9 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 			await namesSubStore.set(ctx, Buffer.from(chainInfo.chainData.name, 'ascii'), {
 				chainID: chainInfo.chainID,
 			});
-			await namesSubStore.set(ctx, Buffer.from(CHAIN_NAME_MAINCHAIN, 'ascii'), {
-				chainID: getMainchainID(ctx.chainID),
-			});
 		}
+		await namesSubStore.set(ctx, Buffer.from(CHAIN_NAME_MAINCHAIN, 'ascii'), {
+			chainID: getMainchainID(ctx.chainID),
+		});
 	}
 }
