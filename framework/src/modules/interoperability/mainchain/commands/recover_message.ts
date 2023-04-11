@@ -140,7 +140,11 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			}
 
 			// The sending chain must be live.
-			const isLive = await this.internalMethod.isLive(context, ccm.sendingChainID, Date.now());
+			const isLive = await this.internalMethod.isLive(
+				context,
+				ccm.sendingChainID,
+				context.header.timestamp,
+			);
 			if (!isLive) {
 				return {
 					status: VerifyStatus.FAIL,
