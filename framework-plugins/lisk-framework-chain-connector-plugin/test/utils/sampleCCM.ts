@@ -20,7 +20,7 @@ export const getSampleCCM = (nonce = 1, ccmSizeInBytes?: number): CCMsg => {
 		module: MODULE_NAME_INTEROPERABILITY,
 		crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 		sendingChainID: Buffer.from([0, 0, 0, 3]),
-		receivingChainID: Buffer.from([0, 0, 0, 2]),
+		receivingChainID: Buffer.from('04000000', 'hex'),
 		fee: BigInt(nonce),
 		status: 0,
 		params: Buffer.alloc(ccmSizeInBytes ?? 10),

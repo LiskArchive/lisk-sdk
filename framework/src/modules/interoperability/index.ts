@@ -12,6 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+export { BaseCCCommand } from './base_cc_command';
+export { BaseInteroperableModule } from './base_interoperable_module';
+export { BaseCCMethod } from './base_cc_method';
+export { getMainchainID } from './utils';
+
 // Mainchain
 export { MainchainInteroperabilityModule } from './mainchain/module';
 export { MainchainInteroperabilityMethod } from './mainchain/method';
@@ -39,6 +44,8 @@ export {
 	OwnChainAccountJSON,
 	LastCertificate,
 	LastCertificateJSON,
+	CrossChainMessageContext,
+	RecoverContext,
 } from './types';
 // Common
 export {

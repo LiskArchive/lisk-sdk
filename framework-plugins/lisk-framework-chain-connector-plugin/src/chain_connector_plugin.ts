@@ -557,7 +557,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		};
 		const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
 		crossChainMessages.push({
-			ccms: ccmsFromEvents,
+			ccms: this._isReceivingChainMainchain
+				? ccmsFromEvents
+				: ccmsFromEvents.filter(ccm => ccm.receivingChainID.equals(this._receivingChainID)),
 			height: newBlockHeader.height,
 			inclusionProof: outboxRootWitness,
 		});

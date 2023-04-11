@@ -42,6 +42,7 @@ export {
 	ModuleMetadata,
 	ModuleMetadataJSON,
 	ModuleInitArgs,
+	BaseInternalMethod,
 } from './modules';
 export { Application } from './application';
 export { systemDirs } from './system_dirs';
@@ -131,6 +132,12 @@ export {
 	stateRecoveryInitParamsSchema,
 	terminateSidechainForLivenessParamsSchema,
 	genesisInteroperabilitySchema,
+	BaseCCCommand,
+	BaseCCMethod,
+	BaseInteroperableModule,
+	CrossChainMessageContext,
+	getMainchainID,
+	RecoverContext,
 } from './modules/interoperability';
 export { RewardMethod, RewardModule } from './modules/reward';
 export { FeeMethod, FeeModule } from './modules/fee';
