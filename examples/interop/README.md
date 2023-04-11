@@ -2,14 +2,33 @@
 
 This folder contains example applications for mainchain and sidechain with POS consensus algorithm.
 
-- pos-mainchain-fast
-
 Genesis Configuration:
+
+- pos-mainchain-fast
 
 ```js
 blockTime: 5;
 bftBatchSize: 5;
-chainID: 04000000;
+chainID: '04000000';
+name: 'lisk_mainchain';
+```
+
+- pos-sidechain-example-one
+
+```js
+blockTime: 5;
+bftBatchSize: 5;
+chainID: '04000001';
+name: 'sidechain_example_one';
+```
+
+- pos-sidechain-example-two
+
+```js
+blockTime: 5;
+bftBatchSize: 5;
+chainID: '04000002';
+name: 'sidechain_example_two';
 ```
 
 ### How to run?
@@ -21,16 +40,21 @@ Install and build `pos-mainchain-fast`
 - `cd pos-mainchain-fast`
 - `yarn && yarn build`
 
-Install and build `pos-sidechain-fast`
+Install and build `pos-sidechain-example-one`
 
-- `cd pos-sidechain-fast`
+- `cd pos-sidechain-example-one`
+- `yarn && yarn build`
+
+Install and build `pos-sidechain-example-two`
+
+- `cd pos-sidechain-example-two`
 - `yarn && yarn build`
 
 #### Run apps using pm2
 
 Install [pm2](https://pm2.keymetrics.io/) if not installed using `npm install pm2 -g`
 
-Run mainchain nodes
+Run 2 instances mainchain node
 
 - `cd pos-mainchain-fast`
 - `pm2 start config/mainchain_node_one.sh`
@@ -58,7 +82,7 @@ Interact with applications using `pm2`
 - Run `ts-node pos-sidechain-example-one/config/scripts/mainchain_registration.ts` to register sidechain `sidechain_example_one` on mainchain.
 - Run `ts-node pos-sidechain-example-two/config/scripts/mainchain_registration.ts` to register sidechain `sidechain_example_two` on mainchain.
 
-Check chain status
+#### Check chain status
 
 - Run `./bin/run endpoint:invoke 'interoperability_getChainAccount' '{"chainID": "04000000" }'` to check chain status of mainchain account on sidechain. It should show lastCertificate with height 0 and status 0 if no CCU was sent yet.
 - Run `./bin/run endpoint:invoke 'interoperability_getChainAccount' '{"chainID": "04000001" }'` to check chain status of sidechain account on mainchain. It should show lastCertificate with height 0 and status 0 if no CCU was sent yet.
@@ -66,3 +90,25 @@ Check chain status
 Now observe logs, intially it will log `No valid CCU can be generated for the height: ${newBlockHeader.height}` until first finalized height is reached.
 
 When the finalized height is reached, check chain status as described above and it should update lastCertificate height > 0 and status to 1 which means the CCU was sent successfully and chain is active now.
+
+#### Cross Chain transfers
+
+##### Transfer from mainchain to sidechain one
+
+- Run `ts-node pos-mainchain-fast/config/scripts/transfer_lsk_sidechain_one.ts` from `interop` folder.
+- Check balance for `lskxz85sur2yo22dmcxybe39uvh2fg7s2ezxq4ny9` using `token_getBalances` RPC on sidechain one.
+
+##### Transfer from mainchain to sidechain two
+
+- Run `ts-node pos-mainchain-fast/config/scripts/transfer_lsk_sidechain_two.ts` from `interop` folder.
+- Check balance for `lskx5uqu2zzybdwrqswd8c6b5v5aj77yytn4k6mv6` using `token_getBalances` RPC on sidechain two.
+
+##### Transfer sidechain one to mainchain
+
+- Run `ts-node pos-sidechain-example-one/config/scripts/transfer_lsk_mainchain.ts` from `interop` folder.
+- Check balance for `lskzjzeam6szx4a65sxgavr98m9h4kctcx85nvy7h` using `token_getBalances` RPC on mainchain.
+
+##### Transfer sidechain two to sidechain one
+
+- Run `ts-node pos-sidechain-example-one/config/scripts/transfer_sidechain_one.ts` from `interop` folder.
+- Check balance for `lskxvesvwgxpdnhp4rdukmsx42teehpxkeod7xv7f` using `token_getBalances` RPC on sidechain one.
