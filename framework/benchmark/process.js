@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2023 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -90,7 +90,7 @@ const genesis = testing.fixtures.defaultFaucetAccount;
 			transactions.push(transaction);
 		}
 
-		newBlock = await processEnv.createBlock(transactions);
+		const newBlock = await processEnv.createBlock(transactions);
 		console.log(`processing new block ${newBlock.header.height}`);
 		console.time('process');
 		await processEnv.process(newBlock);
