@@ -61,7 +61,6 @@ import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_wr
 import { createLogger } from '../logger';
 import { MainchainInteroperabilityModule } from '../modules/interoperability';
 import { DynamicRewardModule } from '../modules/dynamic_rewards';
-import { CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED } from '../engine/consensus/constants';
 
 type Options = {
 	genesis?: GenesisConfig;
@@ -255,19 +254,6 @@ export const getBlockProcessingEnv = async (
 	await engine['_init']();
 	engine['_logger'] = logger;
 	engine['_consensus']['_logger'] = logger;
-	engine['_consensus'].events.on(
-		CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED,
-		(e: { from: number; to: number }) => {
-			Promise.all(engine['_generator']['_handleFinalizedHeightChanged'](e.from, e.to)).catch(
-				(err: Error) => logger.error({ err }, 'Fail to certify single commit'),
-			);
-		},
-	);
-	// eslint-disable-next-line @typescript-eslint/no-misused-promises
-	setInterval(async () => {
-		const stateStore = new StateStore(engine['_consensus']['_commitPool']['_db']);
-		await engine['_consensus']['_commitPool']['_job'](stateStore);
-	}, 500);
 
 	await abiHandler.init({
 		chainID,
