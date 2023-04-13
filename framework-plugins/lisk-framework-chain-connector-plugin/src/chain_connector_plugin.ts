@@ -23,7 +23,6 @@ import {
 	OutboxRootWitness,
 	JSONObject,
 	Schema,
-	OwnChainAccountJSON,
 	Transaction,
 	LastCertificate,
 	CcmSendSuccessEventData,
@@ -140,15 +139,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		this.endpoint.load(this._chainConnectorStore);
 
 		this._sendingChainClient = this.apiClient;
-
-		this._ownChainID = Buffer.from(
-			(
-				await this._sendingChainClient.invoke<OwnChainAccountJSON>(
-					'interoperability_getOwnChainAccount',
-				)
-			).chainID,
-			'hex',
-		);
+		this._ownChainID = Buffer.from(this.appConfig.genesis.chainID, 'hex');
 		if (this._receivingChainID[0] !== this._ownChainID[0]) {
 			throw new Error('Receiving Chain ID network does not match the sending chain network.');
 		}
@@ -313,15 +304,32 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				record.height <= (newCertificate ? newCertificate.height : this._lastCertificate.height),
 		);
 		// Calculate messageWitnessHashes for pending CCMs if any
-		const sendingChainChannelDataJSON = await this._receivingChainClient.invoke<ChannelDataJSON>(
+		const channelDataOnReceivingChain = await this._receivingChainClient.invoke<ChannelDataJSON>(
 			'interoperability_getChannel',
 			{ chainID: this._ownChainID.toString('hex') },
 		);
-		const sendingChainChannelData = channelDataJSONToObj(sendingChainChannelDataJSON);
+		if (!channelDataOnReceivingChain?.inbox) {
+			this.logger.info('Receiving chain is not registered yet on the sending chain.');
+			return;
+		}
+		const inboxSizeOnReceivingChain = channelDataJSONToObj(channelDataOnReceivingChain).inbox.size;
+
+		const receivingChainChannelDataJSON = await this._sendingChainClient.invoke<ChannelDataJSON>(
+			'interoperability_getChannel',
+			{ chainID: this._receivingChainID.toString('hex') },
+		);
+
+		if (!receivingChainChannelDataJSON?.outbox) {
+			this.logger.info('Sending chain is not registered yet on the receiving chain.');
+			return;
+		}
+		const outboxSizeOnSendingChain = channelDataJSONToObj(receivingChainChannelDataJSON).outbox
+			.size;
 		const messageWitnessHashesForCCMs = calculateMessageWitnesses(
-			sendingChainChannelData,
-			ccmsToBeIncluded,
+			inboxSizeOnReceivingChain,
+			outboxSizeOnSendingChain,
 			lastSentCCM,
+			ccmsToBeIncluded,
 			this._maxCCUSize,
 		);
 		const { crossChainMessages, lastCCMToBeSent, messageWitnessHashes } =

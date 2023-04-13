@@ -12,44 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	CCMsg,
-	Certificate,
-	testing,
-	cryptography,
-	BlockHeader,
-	tree,
-	ChannelData,
-} from 'lisk-sdk';
+import { CCMsg, tree } from 'lisk-sdk';
 import { CCU_TOTAL_CCM_SIZE } from '../../src/constants';
 import { CCMsFromEvents } from '../../src/types';
 import { calculateMessageWitnesses } from '../../src/inbox_update';
 import { getSampleCCM } from '../utils/sampleCCM';
 
 describe('inboxUpdate', () => {
-	let sampleBlock: BlockHeader;
-	let sampleCertificate: Certificate;
-
 	let sampleCCMs: CCMsg[];
 	let sampleCCMsFromEvents: CCMsFromEvents[];
 
 	beforeEach(() => {
-		sampleBlock = testing.createFakeBlockHeader({
-			stateRoot: cryptography.utils.getRandomBytes(32),
-			validatorsHash: cryptography.utils.getRandomBytes(32),
-			height: 100,
-		}) as BlockHeader & { validatorsHash: Buffer; stateRoot: Buffer };
-
-		sampleCertificate = {
-			blockID: sampleBlock.id,
-			height: sampleBlock.height,
-			timestamp: sampleBlock.timestamp,
-			validatorsHash: sampleBlock.validatorsHash as Buffer,
-			stateRoot: sampleBlock.stateRoot as Buffer,
-			aggregationBits: Buffer.alloc(0),
-			signature: cryptography.utils.getRandomBytes(32),
-		};
-
 		sampleCCMs = new Array(4).fill(0).map((_, index) => getSampleCCM(index + 1));
 
 		sampleCCMsFromEvents = [
@@ -73,27 +46,16 @@ describe('inboxUpdate', () => {
 	});
 
 	describe('calculateMessageWitnesses', () => {
-		const channelData: ChannelData = {
-			inbox: {
-				size: 2,
-				appendPath: [],
-				root: Buffer.alloc(1),
-			},
-			outbox: {
-				size: 2,
-				appendPath: [],
-				root: Buffer.alloc(1),
-			},
-			messageFeeTokenID: Buffer.from('04000001', 'hex'),
-			partnerChainOutboxRoot: Buffer.alloc(2),
-			minReturnFeePerByte: BigInt(0),
-		};
 		it('should return one inboxUpdate when all the ccms can be included', () => {
 			jest.spyOn(tree.regularMerkleTree, 'calculateRightWitness').mockReturnValue([]);
 			const messageWitnessHashesForCCMs = calculateMessageWitnesses(
-				channelData,
+				0,
+				1,
+				{
+					height: 1,
+					nonce: BigInt(0),
+				},
 				sampleCCMsFromEvents,
-				{ height: 1, nonce: BigInt(0) },
 				CCU_TOTAL_CCM_SIZE,
 			);
 
@@ -119,9 +81,13 @@ describe('inboxUpdate', () => {
 			];
 
 			const messageWitnessHashesForCCMs = calculateMessageWitnesses(
-				channelData,
+				0,
+				1,
+				{
+					height: 1,
+					nonce: BigInt(0),
+				},
 				ccmListWithBigSize,
-				{ height: 1, nonce: BigInt(0) },
 				CCU_TOTAL_CCM_SIZE,
 			);
 
@@ -136,9 +102,13 @@ describe('inboxUpdate', () => {
 				.mockReturnValue([Buffer.alloc(1)]);
 			const { crossChainMessages, lastCCMToBeSent, messageWitnessHashes } =
 				calculateMessageWitnesses(
-					channelData,
+					0,
+					1,
+					{
+						height: 1,
+						nonce: BigInt(0),
+					},
 					[],
-					{ height: sampleCertificate.height + 1, nonce: BigInt(2) },
 					CCU_TOTAL_CCM_SIZE,
 				);
 
