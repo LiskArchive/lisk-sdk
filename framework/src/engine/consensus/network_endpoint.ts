@@ -42,6 +42,7 @@ import {
 import { SingleCommit } from './certificate_generation/types';
 import { BaseNetworkEndpoint } from '../network/base_network_endpoint';
 import { NETWORK_EVENT_COMMIT_MESSAGES } from './certificate_generation/constants';
+import { defaultMetrics } from '../metrics/metrics';
 
 export interface EndpointArgs {
 	logger: Logger;
@@ -62,6 +63,10 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 	private readonly _network: Network;
 	private readonly _commitPool: CommitPool;
 	private readonly _db: Database | InMemoryDatabase;
+
+	private readonly _metrics = {
+		eventSingleCommit: defaultMetrics.counter('consensus_handleEventSingleCommit'),
+	};
 
 	public constructor(args: EndpointArgs) {
 		super(args.network);
@@ -184,6 +189,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 	}
 
 	public async handleEventSingleCommit(data: unknown, peerId: string): Promise<void> {
+		this._metrics.eventSingleCommit.inc();
 		this.addRateLimit(
 			NETWORK_EVENT_COMMIT_MESSAGES,
 			peerId,

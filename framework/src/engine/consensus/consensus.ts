@@ -126,6 +126,7 @@ export class Consensus {
 			'consensus_blockExecution',
 			[0.01, 0.05, 0.1, 0.2, 0.5, 1, 5],
 		),
+		fork: defaultMetrics.counter('consensus_fork'),
 	};
 
 	private _stop = false;
@@ -432,6 +433,7 @@ export class Consensus {
 					},
 					'Discarding the block',
 				);
+				this._metrics.fork.inc();
 				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
 				});
@@ -462,6 +464,7 @@ export class Consensus {
 					},
 					'Detected a fork',
 				);
+				this._metrics.fork.inc();
 				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
 				});
@@ -486,6 +489,7 @@ export class Consensus {
 				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
 				});
+				this._metrics.fork.inc();
 				// Sync requires decoded block
 				await this._sync(block, peerID);
 				return;
