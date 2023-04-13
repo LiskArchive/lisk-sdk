@@ -51,7 +51,7 @@ type ModulesMetadata = [
 	const tx = new Transaction({
 		module: 'token',
 		command: 'transferCrossChain',
-		fee: BigInt(200000000),
+		fee: BigInt(100000000),
 		params: codec.encode(ccTransferCMDSchema, params),
 		nonce: BigInt(nonce),
 		senderPublicKey: Buffer.from(relayerkeyInfo.publicKey, 'hex'),
