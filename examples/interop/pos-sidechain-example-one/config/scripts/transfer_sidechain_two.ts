@@ -11,14 +11,14 @@ type ModulesMetadata = [
 (async () => {
 	const { address } = cryptography;
 
-	const recipientLSKAddress = 'lskxvesvwgxpdnhp4rdukmsx42teehpxkeod7xv7f';
-	const nodeAlias = 'two';
-	const tokenID = Buffer.from('0400000200000000', 'hex');
+	const recipientLSKAddress = 'lskx5uqu2zzybdwrqswd8c6b5v5aj77yytn4k6mv6';
+	const nodeAlias = 'one';
+	const tokenID = Buffer.from('0400000100000000', 'hex');
 	const messageFeeTokenID = Buffer.from('0400000000000000', 'hex');
-	const sidechainID = Buffer.from('04000001', 'hex');
+	const sidechainID = Buffer.from('04000002', 'hex');
 	const recipientAddress = address.getAddressFromLisk32Address(recipientLSKAddress);
 
-	const sidechainClient = await apiClient.createIPCClient(`~/.lisk/pos-sidechain-example-two`);
+	const sidechainClient = await apiClient.createIPCClient(`~/.lisk/pos-sidechain-example-one`);
 
 	const mainchainNodeInfo = await sidechainClient.invoke('system_getNodeInfo');
 
@@ -42,7 +42,7 @@ type ModulesMetadata = [
 		messageFeeTokenID: messageFeeTokenID,
 	};
 
-	const relayerkeyInfo = keys[12];
+	const relayerkeyInfo = keys[48];
 
 	const { nonce } = await sidechainClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
 		address: address.getLisk32AddressFromPublicKey(Buffer.from(relayerkeyInfo.publicKey, 'hex')),

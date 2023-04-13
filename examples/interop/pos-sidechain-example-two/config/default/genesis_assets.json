@@ -3,91 +3,54 @@
 		{
 			"module": "interoperability",
 			"data": {
-				"outboxRootSubstore": [],
-				"chainDataSubstore": [],
-				"channelDataSubstore": [],
-				"chainValidatorsSubstore": [],
-				"ownChainDataSubstore": [
-					{
-						"storeKey": "",
-						"storeValue": {
-							"name": "sidechain_example_two",
-							"chainID": "04000002",
-							"nonce": 0
-						}
-					}
-				],
-				"terminatedStateSubstore": [],
-				"terminatedOutboxSubstore": [],
-				"registeredNamesSubstore": [
-					{
-						"storeKey": "sidechain_example_two",
-						"storeValue": {
-							"chainID": "04000002"
-						}
-					}
-				]
+				"ownChainName": "",
+				"ownChainNonce": 0,
+				"chainInfos": [],
+				"terminatedStateAccounts": [],
+				"terminatedOutboxAccounts": []
 			},
 			"schema": {
 				"$id": "/interoperability/module/genesis",
 				"type": "object",
 				"required": [
-					"outboxRootSubstore",
-					"chainDataSubstore",
-					"channelDataSubstore",
-					"chainValidatorsSubstore",
-					"ownChainDataSubstore",
-					"terminatedStateSubstore",
-					"terminatedOutboxSubstore",
-					"registeredNamesSubstore"
+					"ownChainName",
+					"ownChainNonce",
+					"chainInfos",
+					"terminatedStateAccounts",
+					"terminatedOutboxAccounts"
 				],
 				"properties": {
-					"outboxRootSubstore": {
-						"type": "array",
-						"fieldNumber": 1,
-						"items": {
-							"type": "object",
-							"required": ["storeKey", "storeValue"],
-							"properties": {
-								"storeKey": {
-									"dataType": "bytes",
-									"fieldNumber": 1
-								},
-								"storeValue": {
-									"$id": "/modules/interoperability/outbox",
-									"type": "object",
-									"required": ["root"],
-									"properties": {
-										"root": {
-											"dataType": "bytes",
-											"minLength": 32,
-											"maxLength": 32,
-											"fieldNumber": 1
-										}
-									},
-									"fieldNumber": 2
-								}
-							}
-						}
+					"ownChainName": {
+						"dataType": "string",
+						"maxLength": 32,
+						"fieldNumber": 1
 					},
-					"chainDataSubstore": {
+					"ownChainNonce": {
+						"dataType": "uint64",
+						"fieldNumber": 2
+					},
+					"chainInfos": {
 						"type": "array",
-						"fieldNumber": 2,
+						"fieldNumber": 3,
 						"items": {
 							"type": "object",
-							"required": ["storeKey", "storeValue"],
+							"required": ["chainID", "chainData", "channelData", "chainValidators"],
 							"properties": {
-								"storeKey": {
+								"chainID": {
 									"dataType": "bytes",
+									"minLength": 4,
+									"maxLength": 4,
 									"fieldNumber": 1
 								},
-								"storeValue": {
+								"chainData": {
 									"$id": "/modules/interoperability/chainData",
 									"type": "object",
 									"required": ["name", "lastCertificate", "status"],
 									"properties": {
 										"name": {
 											"dataType": "string",
+											"minLength": 1,
+											"maxLength": 32,
 											"fieldNumber": 1
 										},
 										"lastCertificate": {
@@ -123,25 +86,17 @@
 										}
 									},
 									"fieldNumber": 2
-								}
-							}
-						}
-					},
-					"channelDataSubstore": {
-						"type": "array",
-						"fieldNumber": 3,
-						"items": {
-							"type": "object",
-							"required": ["storeKey", "storeValue"],
-							"properties": {
-								"storeKey": {
-									"dataType": "bytes",
-									"fieldNumber": 1
 								},
-								"storeValue": {
+								"channelData": {
 									"$id": "/modules/interoperability/channel",
 									"type": "object",
-									"required": ["inbox", "outbox", "partnerChainOutboxRoot", "messageFeeTokenID"],
+									"required": [
+										"inbox",
+										"outbox",
+										"partnerChainOutboxRoot",
+										"messageFeeTokenID",
+										"minReturnFeePerByte"
+									],
 									"properties": {
 										"inbox": {
 											"type": "object",
@@ -158,14 +113,14 @@
 													"fieldNumber": 1
 												},
 												"size": {
-													"dataType": "uint32",
-													"fieldNumber": 2
+													"fieldNumber": 2,
+													"dataType": "uint32"
 												},
 												"root": {
+													"fieldNumber": 3,
 													"dataType": "bytes",
 													"minLength": 32,
-													"maxLength": 32,
-													"fieldNumber": 3
+													"maxLength": 32
 												}
 											}
 										},
@@ -184,14 +139,14 @@
 													"fieldNumber": 1
 												},
 												"size": {
-													"dataType": "uint32",
-													"fieldNumber": 2
+													"fieldNumber": 2,
+													"dataType": "uint32"
 												},
 												"root": {
+													"fieldNumber": 3,
 													"dataType": "bytes",
 													"minLength": 32,
-													"maxLength": 32,
-													"fieldNumber": 3
+													"maxLength": 32
 												}
 											}
 										},
@@ -206,26 +161,15 @@
 											"minLength": 8,
 											"maxLength": 8,
 											"fieldNumber": 4
+										},
+										"minReturnFeePerByte": {
+											"dataType": "uint64",
+											"fieldNumber": 5
 										}
 									},
-									"fieldNumber": 2
-								}
-							}
-						}
-					},
-					"chainValidatorsSubstore": {
-						"type": "array",
-						"fieldNumber": 4,
-						"items": {
-							"type": "object",
-							"required": ["storeKey", "storeValue"],
-							"properties": {
-								"storeKey": {
-									"dataType": "bytes",
-									"fieldNumber": 1
+									"fieldNumber": 3
 								},
-								"storeValue": {
-									"fieldNumber": 2,
+								"chainValidators": {
 									"$id": "/modules/interoperability/chainValidators",
 									"type": "object",
 									"required": ["activeValidators", "certificateThreshold"],
@@ -256,59 +200,26 @@
 											"dataType": "uint64",
 											"fieldNumber": 2
 										}
-									}
-								}
-							}
-						}
-					},
-					"ownChainDataSubstore": {
-						"type": "array",
-						"fieldNumber": 5,
-						"items": {
-							"type": "object",
-							"required": ["storeKey", "storeValue"],
-							"properties": {
-								"storeKey": {
-									"dataType": "bytes",
-									"fieldNumber": 1
-								},
-								"storeValue": {
-									"$id": "/modules/interoperability/ownChainAccount",
-									"type": "object",
-									"required": ["name", "chainID", "nonce"],
-									"properties": {
-										"name": {
-											"dataType": "string",
-											"fieldNumber": 1
-										},
-										"chainID": {
-											"dataType": "bytes",
-											"minLength": 4,
-											"maxLength": 4,
-											"fieldNumber": 2
-										},
-										"nonce": {
-											"dataType": "uint64",
-											"fieldNumber": 3
-										}
 									},
-									"fieldNumber": 2
+									"fieldNumber": 4
 								}
 							}
 						}
 					},
-					"terminatedStateSubstore": {
+					"terminatedStateAccounts": {
 						"type": "array",
-						"fieldNumber": 6,
+						"fieldNumber": 4,
 						"items": {
 							"type": "object",
-							"required": ["storeKey", "storeValue"],
+							"required": ["chainID", "terminatedStateAccount"],
 							"properties": {
-								"storeKey": {
+								"chainID": {
 									"dataType": "bytes",
+									"minLength": 4,
+									"maxLength": 4,
 									"fieldNumber": 1
 								},
-								"storeValue": {
+								"terminatedStateAccount": {
 									"$id": "/modules/interoperability/terminatedState",
 									"type": "object",
 									"required": ["stateRoot", "mainchainStateRoot", "initialized"],
@@ -335,18 +246,20 @@
 							}
 						}
 					},
-					"terminatedOutboxSubstore": {
+					"terminatedOutboxAccounts": {
 						"type": "array",
-						"fieldNumber": 7,
+						"fieldNumber": 5,
 						"items": {
 							"type": "object",
-							"required": ["storeKey", "storeValue"],
+							"required": ["chainID", "terminatedOutboxAccount"],
 							"properties": {
-								"storeKey": {
+								"chainID": {
 									"dataType": "bytes",
+									"minLength": 4,
+									"maxLength": 4,
 									"fieldNumber": 1
 								},
-								"storeValue": {
+								"terminatedOutboxAccount": {
 									"$id": "/modules/interoperability/terminatedOutbox",
 									"type": "object",
 									"required": ["outboxRoot", "outboxSize", "partnerChainInboxSize"],
@@ -364,34 +277,6 @@
 										"partnerChainInboxSize": {
 											"dataType": "uint32",
 											"fieldNumber": 3
-										}
-									},
-									"fieldNumber": 2
-								}
-							}
-						}
-					},
-					"registeredNamesSubstore": {
-						"type": "array",
-						"fieldNumber": 8,
-						"items": {
-							"type": "object",
-							"required": ["storeKey", "storeValue"],
-							"properties": {
-								"storeKey": {
-									"dataType": "bytes",
-									"fieldNumber": 1
-								},
-								"storeValue": {
-									"$id": "/modules/interoperability/chainId",
-									"type": "object",
-									"required": ["chainID"],
-									"properties": {
-										"chainID": {
-											"dataType": "bytes",
-											"minLength": 4,
-											"maxLength": 4,
-											"fieldNumber": 1
 										}
 									},
 									"fieldNumber": 2
@@ -1032,7 +917,12 @@
 					}
 				],
 				"escrowSubstore": [],
-				"supportedTokensSubstore": []
+				"supportedTokensSubstore": [
+					{
+						"chainID": "04000001",
+						"supportedTokenIDs": ["0400000100000000"]
+					}
+				]
 			},
 			"schema": {
 				"$id": "/token/module/genesis",
