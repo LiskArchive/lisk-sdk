@@ -121,6 +121,7 @@ export class Consensus {
 		finalizedHeight: defaultMetrics.gauge('consensus_finalizedHeight'),
 		maxHeightPrevoted: defaultMetrics.gauge('consensus_maxHeightPrevoted'),
 		maxHeightCertified: defaultMetrics.gauge('consensus_maxHeightCertified'),
+		maxRemovalHeight: defaultMetrics.gauge('consensus_maxRemovalHeight'),
 		blockExecution: defaultMetrics.histogram(
 			'consensus_blockExecution',
 			[0.01, 0.05, 0.1, 0.2, 0.5, 1, 5],
@@ -962,6 +963,7 @@ export class Consensus {
 	): Promise<Event[]> {
 		try {
 			const maxRemovalHeight = await this.getMaxRemovalHeight();
+			this._metrics.maxRemovalHeight.set(maxRemovalHeight);
 			await this._bft.beforeTransactionsExecute(stateStore, block.header, maxRemovalHeight);
 
 			const events = [];
