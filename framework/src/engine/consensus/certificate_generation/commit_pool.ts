@@ -91,14 +91,6 @@ export class CommitPool {
 	}
 
 	public async validateCommit(methodContext: StateStore, commit: SingleCommit): Promise<boolean> {
-		// Validation step 4
-		const blockHeaderAtCommitHeight = await this._chain.dataAccess.getBlockHeaderByHeight(
-			commit.height,
-		);
-		if (!blockHeaderAtCommitHeight.id.equals(commit.blockID)) {
-			return false;
-		}
-
 		// Validation step 1
 		const existsInNonGossiped = this._nonGossipedCommits.exists(commit);
 
@@ -129,6 +121,14 @@ export class CommitPool {
 			commit.height + 1,
 		);
 		if (!isCommitInRange && !doesBFTParamExistForNextHeight) {
+			return false;
+		}
+
+		// Validation step 4
+		const blockHeaderAtCommitHeight = await this._chain.dataAccess.getBlockHeaderByHeight(
+			commit.height,
+		);
+		if (!blockHeaderAtCommitHeight.id.equals(commit.blockID)) {
 			return false;
 		}
 
@@ -418,8 +418,6 @@ export class CommitPool {
 				selectedCommits.push(commit);
 			}
 		}
-		// Non gossiped commits with descending order of height
-		const sortedNonGossipedCommits = this._nonGossipedCommits.getAll(COMMIT_SORT.DSC);
 
 		// Non gossiped commits with descending order of height by generator
 		const sortedNonGossipedCommitsLocal = this._nonGossipedCommitsLocal.getAll(COMMIT_SORT.DSC);
@@ -432,6 +430,9 @@ export class CommitPool {
 			selectedCommits.push(commit);
 		}
 		// 2.3 Select newly received commits by others
+
+		// Non gossiped commits with descending order of height
+		const sortedNonGossipedCommits = this._nonGossipedCommits.getAll(COMMIT_SORT.DSC);
 		for (const commit of sortedNonGossipedCommits) {
 			if (selectedCommits.length >= maxSelectedCommitsLength) {
 				break;
@@ -449,7 +450,9 @@ export class CommitPool {
 		});
 		// 4. Move any gossiped commit message included in nonGossipedCommits, nonGossipedCommitsLocal to gossipedCommits.
 		for (const commit of selectedCommits) {
-			this._gossipedCommits.add(commit);
+			if (!this._gossipedCommits.exists(commit)) {
+				this._gossipedCommits.add(commit);
+			}
 			this._nonGossipedCommits.deleteSingle(commit);
 			this._nonGossipedCommitsLocal.deleteSingle(commit);
 		}
@@ -508,6 +511,6 @@ export class CommitPool {
 			...this._nonGossipedCommits.getAll(ascendingHeight),
 			...this._nonGossipedCommitsLocal.getAll(ascendingHeight),
 			...this._gossipedCommits.getAll(ascendingHeight),
-		];
+		].sort((a, b) => a.height - b.height);
 	}
 }
