@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ccmSchema, codec, tree, ChannelData } from 'lisk-sdk';
+import { ccmSchema, codec, tree } from 'lisk-sdk';
 import { CCMsFromEvents, LastSentCCMWithHeight } from './types';
 
 /**
@@ -33,12 +33,13 @@ import { CCMsFromEvents, LastSentCCMWithHeight } from './types';
 	}
  */
 export const calculateMessageWitnesses = (
-	sendingChainChannelInfo: ChannelData,
-	ccmsToBeIncluded: CCMsFromEvents[],
-	lastSentCCMInfo: {
+	inboxSizeOnReceivingChain: number,
+	outboxSizeOnSendingChain: number,
+	lastSentCCM: {
 		height: number;
 		nonce: bigint;
 	},
+	ccmsToBeIncluded: CCMsFromEvents[],
 	maxCCUSize: number,
 ): {
 	crossChainMessages: Buffer[];
@@ -51,9 +52,14 @@ export const calculateMessageWitnesses = (
 	let totalSize = 0;
 	// Make an array of ccms with nonce greater than last sent ccm nonce
 	for (const ccmsFromEvents of ccmsToBeIncluded) {
-		const { ccms } = ccmsFromEvents;
+		const { ccms, height } = ccmsFromEvents;
 		for (const ccm of ccms) {
-			if (ccm.nonce > lastSentCCMInfo.nonce) {
+			if (height !== 0 && lastSentCCM.height === height) {
+				if (ccm.nonce === lastSentCCM.nonce) {
+					continue;
+				}
+			}
+			if (inboxSizeOnReceivingChain < outboxSizeOnSendingChain) {
 				const ccmBytes = codec.encode(ccmSchema, ccm);
 				totalSize += ccmBytes.length;
 				if (totalSize < maxCCUSize) {
@@ -86,7 +92,7 @@ export const calculateMessageWitnesses = (
 	const remainingSerializedCCMs = allSerializedCCMs.slice(includedSerializedCCMs.length);
 	// Generate messageWitness
 	const messageWitnessHashes = tree.regularMerkleTree.calculateRightWitness(
-		sendingChainChannelInfo.inbox.size + includedSerializedCCMs.length,
+		inboxSizeOnReceivingChain + includedSerializedCCMs.length,
 		remainingSerializedCCMs,
 	);
 
