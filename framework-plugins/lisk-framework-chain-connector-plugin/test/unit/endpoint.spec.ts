@@ -27,7 +27,8 @@ import * as chainConnectorDB from '../../src/db';
 import { CCMsFromEvents, CCMsFromEventsJSON, LastSentCCMWithHeightJSON } from '../../src/types';
 import { ccmsFromEventsToJSON, getMainchainID } from '../../src/utils';
 
-describe('getSentCCUs', () => {
+describe('endpoints', () => {
+	const ownChainID = Buffer.from('10000000', 'hex');
 	const appConfigForPlugin: ApplicationConfigForPlugin = {
 		system: {
 			keepEventsForHeights: -1,
@@ -53,7 +54,9 @@ describe('getSentCCUs', () => {
 			minEntranceFeePriority: '0',
 			minReplacementFeeDifference: '10',
 		},
-		genesis: {} as GenesisConfig,
+		genesis: {
+			chainID: ownChainID.toString('hex'),
+		} as GenesisConfig,
 		generator: {
 			keys: {
 				fromFile: '',
@@ -115,7 +118,6 @@ describe('getSentCCUs', () => {
 	const defaultPassword = '123';
 	const defaultCCUFee = '100000000';
 
-	const ownChainID = Buffer.from('10000000', 'hex');
 	let chainConnectorPlugin: ChainConnectorPlugin;
 
 	beforeEach(async () => {
