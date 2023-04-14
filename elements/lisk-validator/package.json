@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-validator",
-	"version": "0.7.0-alpha.9",
+	"version": "0.7.0-alpha.10",
 	"description": "Validation library according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -36,7 +36,7 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"@liskhq/lisk-cryptography": "^4.0.0-alpha.9",
+		"@liskhq/lisk-cryptography": "^4.0.0-alpha.10",
 		"ajv": "8.1.0",
 		"ajv-formats": "2.1.1",
 		"debug": "4.3.4",
