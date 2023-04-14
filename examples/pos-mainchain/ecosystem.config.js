@@ -27,6 +27,7 @@ module.exports = {
 			env: {
 				LISK_LOG_LEVEL: 'debug',
 				LISK_NETWORK: 'default',
+				LISK_DATA_PATH: path.join(os.homedir(), '.lisk', 'ex-pos-mainchain', 'seed'),
 			},
 		},
 		...followers,
