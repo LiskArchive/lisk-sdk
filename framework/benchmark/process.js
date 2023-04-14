@@ -13,30 +13,12 @@
  */
 const testing = require('../dist-node/testing');
 const os = require('os');
-const { address, ed, legacy, bls } = require('@liskhq/lisk-cryptography');
-const { Mnemonic } = require('@liskhq/lisk-passphrase');
+const { address, ed } = require('@liskhq/lisk-cryptography');
 const { codec } = require('@liskhq/lisk-codec');
 const { Transaction, TAG_TRANSACTION } = require('@liskhq/lisk-chain');
-const { getGeneratorPrivateKeyFromDefaultConfig } = require('../dist-node/testing/fixtures');
 const { transferParamsSchema } = require('../dist-node/modules/token/schemas');
 
 const defaultTokenID = chainID => Buffer.concat([chainID, Buffer.from([0, 0, 0, 0])]);
-const createAccount = () => {
-	const passphrase = Mnemonic.generateMnemonic(256);
-	const keys = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
-	const blsPrivateKey = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
-	const blsPublicKey = bls.getPublicKeyFromPrivateKey(blsPrivateKey);
-	const blsPoP = bls.popProve(blsPrivateKey);
-	return {
-		passphrase,
-		address: address.getAddressFromPublicKey(keys.publicKey),
-		publicKey: keys.publicKey,
-		privateKey: keys.privateKey,
-		blsPrivateKey,
-		blsPublicKey,
-		blsPoP,
-	};
-};
 
 const createTransferTransaction = input => {
 	const encodedParams = codec.encode(transferParamsSchema, {
@@ -82,7 +64,7 @@ const genesis = testing.fixtures.defaultFaucetAccount;
 			const transaction = createTransferTransaction({
 				nonce: BigInt(authData.nonce) + BigInt(j),
 				recipientAddress: address.getAddressFromLisk32Address(genesis.address),
-				amount: 1_0000_0000n,
+				amount: BigInt(1_0000_0000),
 				chainID: processEnv.getChainID(),
 				fee: BigInt(5000_0000) + BigInt(2000_0000),
 				privateKey: Buffer.from(genesis.privateKey, 'hex'),
