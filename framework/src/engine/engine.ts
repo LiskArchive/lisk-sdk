@@ -51,6 +51,7 @@ import { EngineConfig } from '../types';
 import { readGenesisBlock } from '../utils/genesis_block';
 import { LegacyChainHandler } from './legacy/legacy_chain_handler';
 import { LegacyEndpoint } from './legacy/endpoint';
+import { defaultMetrics } from './metrics/metrics';
 
 const isEmpty = (value: unknown): boolean => {
 	switch (typeof value) {
@@ -107,6 +108,9 @@ export class Engine {
 	}
 
 	public async start() {
+		if (this._config.system.enableMetrics) {
+			defaultMetrics.enable();
+		}
 		await this._init();
 		await this._network.start();
 		if (this._config.legacy.sync) {

@@ -8,3 +8,4 @@ jest.config.js
 coverage
 benchmark
 .eslintrc.js
+ecosystem.config.js

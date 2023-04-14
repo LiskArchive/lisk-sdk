@@ -36,6 +36,7 @@ exports[`schema/application_config_schema.js application config schema must matc
     },
     "system": {
       "dataPath": "~/.lisk/beta-sdk-app",
+      "enableMetrics": false,
       "keepEventsForHeights": 300,
       "logLevel": "info",
       "version": "0.1.0",
@@ -315,6 +316,9 @@ exports[`schema/application_config_schema.js application config schema must matc
       "properties": {
         "dataPath": {
           "type": "string",
+        },
+        "enableMetrics": {
+          "type": "boolean",
         },
         "keepEventsForHeights": {
           "type": "integer",

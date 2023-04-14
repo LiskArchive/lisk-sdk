@@ -38,6 +38,9 @@ export const applicationConfigSchema = {
 				keepEventsForHeights: {
 					type: 'integer',
 				},
+				enableMetrics: {
+					type: 'boolean',
+				},
 			},
 		},
 		rpc: {
@@ -288,6 +291,7 @@ export const applicationConfigSchema = {
 			version: '0.1.0',
 			keepEventsForHeights: 300,
 			logLevel: 'info',
+			enableMetrics: false,
 		},
 		rpc: {
 			modes: ['ipc'],

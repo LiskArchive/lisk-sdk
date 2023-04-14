@@ -25,6 +25,7 @@ import { EngineConfig } from '../../types';
 import { Consensus } from '../consensus';
 import { Generator } from '../generator';
 import { RequestContext } from '../rpc/rpc_server';
+import { defaultMetrics } from '../metrics/metrics';
 
 interface EndpointArgs {
 	abi: ABI;
@@ -95,5 +96,15 @@ export class SystemEndpoint {
 			event: eventSchema,
 			standardEvent: standardEventDataSchema,
 		};
+	}
+
+	public async getMetricsReport(ctx: RequestContext): Promise<unknown> {
+		if (!defaultMetrics.enabled()) {
+			throw new Error('metrics is not enabled');
+		}
+		if (ctx.params && ctx.params.inString === true) {
+			return defaultMetrics.report();
+		}
+		return defaultMetrics.report(true);
 	}
 }

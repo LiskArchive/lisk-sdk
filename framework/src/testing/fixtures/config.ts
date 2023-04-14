@@ -22,6 +22,7 @@ export const defaultConfig: ApplicationConfig = {
 		logLevel: 'none',
 		keepEventsForHeights: -1,
 		dataPath: '~/.lisk/default',
+		enableMetrics: false,
 	},
 	genesis: {
 		block: {},

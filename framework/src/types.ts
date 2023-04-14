@@ -79,6 +79,7 @@ export interface SystemConfig {
 	dataPath: string;
 	logLevel: string;
 	keepEventsForHeights: number;
+	enableMetrics: boolean;
 }
 
 type RecursivePartial<T> = {

@@ -63,6 +63,7 @@ import { BFTModule } from '../bft';
 import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../abi';
 import { isEmptyConsensusUpdate } from './utils';
 import { NETWORK_EVENT_COMMIT_MESSAGES } from './certificate_generation/constants';
+import { defaultMetrics } from '../metrics/metrics';
 
 interface ConsensusArgs {
 	chain: Chain;
@@ -114,6 +115,19 @@ export class Consensus {
 	private _endpoint!: NetworkEndpoint;
 	private _legacyEndpoint!: LegacyNetworkEndpoint;
 	private _synchronizer!: Synchronizer;
+
+	private readonly _metrics = {
+		height: defaultMetrics.gauge('consensus_height'),
+		finalizedHeight: defaultMetrics.gauge('consensus_finalizedHeight'),
+		maxHeightPrevoted: defaultMetrics.gauge('consensus_maxHeightPrevoted'),
+		maxHeightCertified: defaultMetrics.gauge('consensus_maxHeightCertified'),
+		maxRemovalHeight: defaultMetrics.gauge('consensus_maxRemovalHeight'),
+		blockExecution: defaultMetrics.histogram(
+			'consensus_blockExecution',
+			[0.01, 0.05, 0.1, 0.2, 0.5, 1, 5],
+		),
+		fork: defaultMetrics.counter('consensus_fork'),
+	};
 
 	private _stop = false;
 
@@ -308,7 +322,9 @@ export class Consensus {
 		this.events.emit(CONSENSUS_EVENT_NETWORK_BLOCK_NEW, { block });
 
 		try {
+			const endExecuteMetrics = this._metrics.blockExecution.startTimer();
 			await this._execute(block, peerId);
+			endExecuteMetrics();
 		} catch (error) {
 			if (error instanceof ApplyPenaltyError) {
 				this._logger.warn(
@@ -417,6 +433,7 @@ export class Consensus {
 					},
 					'Discarding the block',
 				);
+				this._metrics.fork.inc();
 				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
 				});
@@ -447,6 +464,7 @@ export class Consensus {
 					},
 					'Detected a fork',
 				);
+				this._metrics.fork.inc();
 				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
 				});
@@ -471,6 +489,7 @@ export class Consensus {
 				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
 				});
+				this._metrics.fork.inc();
 				// Sync requires decoded block
 				await this._sync(block, peerID);
 				return;
@@ -534,6 +553,10 @@ export class Consensus {
 				maxHeightPrevoted: block.header.maxHeightPrevoted,
 				blockVersion: block.header.version,
 			});
+			this._metrics.height.set(block.header.height);
+			this._metrics.finalizedHeight.set(this._chain.finalizedHeight);
+			this._metrics.maxHeightCertified.set(block.header.aggregateCommit.height);
+			this._metrics.maxHeightPrevoted.set(block.header.maxHeightPrevoted);
 		});
 	}
 
@@ -944,6 +967,7 @@ export class Consensus {
 	): Promise<Event[]> {
 		try {
 			const maxRemovalHeight = await this.getMaxRemovalHeight();
+			this._metrics.maxRemovalHeight.set(maxRemovalHeight);
 			await this._bft.beforeTransactionsExecute(stateStore, block.header, maxRemovalHeight);
 
 			const events = [];

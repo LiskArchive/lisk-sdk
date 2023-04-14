@@ -35,6 +35,7 @@ describe('endpoints', () => {
 			dataPath: '~/.lisk',
 			logLevel: 'info',
 			version: '1.0.0',
+			enableMetrics: false,
 		},
 		rpc: {
 			modes: ['ipc'],

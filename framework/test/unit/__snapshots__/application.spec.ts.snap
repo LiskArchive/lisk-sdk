@@ -43,6 +43,7 @@ exports[`Application #constructor should set internal variables 1`] = `
   },
   "system": {
     "dataPath": "~/.lisk/beta-sdk-app",
+    "enableMetrics": false,
     "keepEventsForHeights": 300,
     "logLevel": "info",
     "version": "0.1.0",
