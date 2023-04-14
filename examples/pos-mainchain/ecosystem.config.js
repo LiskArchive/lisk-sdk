@@ -1,4 +1,5 @@
 const os = require('os');
+const path = require('path');
 const num = 10;
 
 const followers = new Array(num).fill(0).map((_, i) => ({
@@ -12,7 +13,7 @@ const followers = new Array(num).fill(0).map((_, i) => ({
 		LISK_PORT: 7667 + i + 1,
 		LISK_API_WS_PORT: 7887 + i + 1,
 		LISK_SEED_PEERS: `127.0.0.1:7667`,
-		LISK_DATA_PATH: `${os.tmpdir()}/follower_${i}`,
+		LISK_DATA_PATH: path.join(os.homedir(), '.lisk', 'ex-pos-mainchain', `follower_${i}`),
 	},
 }));
 

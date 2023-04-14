@@ -102,9 +102,9 @@ export class SystemEndpoint {
 		if (!defaultMetrics.enabled()) {
 			throw new Error('metrics is not enabled');
 		}
-		if (ctx.params && ctx.params.inJSON === true) {
-			return defaultMetrics.report(ctx.params.inJSON);
+		if (ctx.params && ctx.params.inString === true) {
+			return defaultMetrics.report();
 		}
-		return defaultMetrics.report();
+		return defaultMetrics.report(true);
 	}
 }

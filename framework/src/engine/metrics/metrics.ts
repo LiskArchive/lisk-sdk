@@ -33,28 +33,28 @@ const noopHistogram = {
 };
 
 export class Metrics {
-	private _enable: boolean;
+	private _enabled: boolean;
 	private readonly _registry: Registry;
 
-	public constructor(enable: boolean) {
-		this._enable = enable;
+	public constructor(enabled = false) {
+		this._enabled = enabled;
 		this._registry = new Registry();
 	}
 
 	public enable() {
-		this._enable = true;
+		this._enabled = true;
 	}
 
 	public disable() {
-		this._enable = false;
+		this._enabled = false;
 	}
 
 	public enabled() {
-		return this._enable;
+		return this._enabled;
 	}
 
 	public counter(name: string) {
-		if (!this._enable) {
+		if (!this._enabled) {
 			return noopCounter;
 		}
 		const newCounter = new Counter({
@@ -66,7 +66,7 @@ export class Metrics {
 	}
 
 	public gauge(name: string) {
-		if (!this._enable) {
+		if (!this._enabled) {
 			return noopGauge;
 		}
 		const newGauge = new Gauge({
@@ -78,7 +78,7 @@ export class Metrics {
 	}
 
 	public histogram(name: string, buckets: number[] = []) {
-		if (!this._enable) {
+		if (!this._enabled) {
 			return noopHistogram;
 		}
 		const newHistogram = new Histogram({
@@ -98,4 +98,4 @@ export class Metrics {
 	}
 }
 
-export const defaultMetrics = new Metrics(false);
+export const defaultMetrics = new Metrics();
