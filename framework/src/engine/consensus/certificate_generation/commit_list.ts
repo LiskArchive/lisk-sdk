@@ -15,8 +15,8 @@
 import { SingleCommit } from './types';
 
 export enum COMMIT_SORT {
-	ASC = 0,
-	DSC,
+	ASC = 1,
+	DSC = -1,
 }
 
 export class CommitList {
@@ -63,10 +63,8 @@ export class CommitList {
 		}
 	}
 
-	public getAll(ascendingHeight = COMMIT_SORT.ASC) {
-		return ascendingHeight === COMMIT_SORT.ASC
-			? [...this._commitMap.values()].flat().sort((a, b) => a.height - b.height)
-			: [...this._commitMap.values()].flat().sort((a, b) => b.height - a.height);
+	public getAll(sortOrder = COMMIT_SORT.ASC) {
+		return [...this._commitMap.values()].flat().sort((a, b) => sortOrder * (a.height - b.height));
 	}
 
 	public deleteSingle(commit: SingleCommit) {
