@@ -93,11 +93,8 @@ export class CommitPool {
 	public async validateCommit(methodContext: StateStore, commit: SingleCommit): Promise<boolean> {
 		// Validation step 1
 		const existsInNonGossiped = this._nonGossipedCommits.exists(commit);
-
 		const existsInNonGossipedLocal = this._nonGossipedCommitsLocal.exists(commit);
-
 		const existsInGossiped = this._gossipedCommits.exists(commit);
-
 		const doesCommitExist = existsInGossiped || existsInNonGossiped || existsInNonGossipedLocal;
 
 		if (doesCommitExist) {
@@ -374,6 +371,7 @@ export class CommitPool {
 			this._nonGossipedCommits.deleteByHeight(height);
 		}
 		this._metrics.nonGossippedCommits.set(this._nonGossipedCommits.size());
+
 		// Clean up nonGossipedCommitsLocal
 		const deletedNonGossipedHeightsLocal = await this._getDeleteHeights(
 			methodContext,
@@ -386,6 +384,7 @@ export class CommitPool {
 			this._nonGossipedCommitsLocal.deleteByHeight(height);
 		}
 		this._metrics.nonGossippedCommitsLocal.set(this._nonGossipedCommitsLocal.size());
+
 		// Clean up gossipedCommits
 		const deletedGossipedHeights = await this._getDeleteHeights(
 			methodContext,
@@ -398,6 +397,7 @@ export class CommitPool {
 			this._gossipedCommits.deleteByHeight(height);
 		}
 		this._metrics.gossippedCommits.set(this._gossipedCommits.size());
+
 		// 2. Select commits to gossip
 		const nextHeight = this._chain.lastBlock.header.height + 1;
 		const { validators } = await this._bftMethod.getBFTParameters(methodContext, nextHeight);
@@ -419,18 +419,17 @@ export class CommitPool {
 			}
 		}
 
+		// 2.2 Select newly created commits by generator
 		// Non gossiped commits with descending order of height by generator
 		const sortedNonGossipedCommitsLocal = this._nonGossipedCommitsLocal.getAll(COMMIT_SORT.DSC);
-
-		// 2.2 Select newly created commits by generator
 		for (const commit of sortedNonGossipedCommitsLocal) {
 			if (selectedCommits.length >= maxSelectedCommitsLength) {
 				break;
 			}
 			selectedCommits.push(commit);
 		}
-		// 2.3 Select newly received commits by others
 
+		// 2.3 Select newly received commits by others
 		// Non gossiped commits with descending order of height
 		const sortedNonGossipedCommits = this._nonGossipedCommits.getAll(COMMIT_SORT.DSC);
 		for (const commit of sortedNonGossipedCommits) {
@@ -443,11 +442,13 @@ export class CommitPool {
 		const encodedCommitArray = selectedCommits.map(commit =>
 			codec.encode(singleCommitSchema, commit),
 		);
+
 		// 3. Gossip an array of up to 2*numActiveValidators commit messages to 16 randomly chosen connected peers with at least 8 of them being outgoing peers (same parameters as block propagation)
 		this._network.send({
 			event: NETWORK_EVENT_COMMIT_MESSAGES,
 			data: codec.encode(singleCommitsNetworkPacketSchema, { commits: encodedCommitArray }),
 		});
+
 		// 4. Move any gossiped commit message included in nonGossipedCommits, nonGossipedCommitsLocal to gossipedCommits.
 		for (const commit of selectedCommits) {
 			if (!this._gossipedCommits.exists(commit)) {
@@ -505,12 +506,12 @@ export class CommitPool {
 		return blockHeader.aggregateCommit.height;
 	}
 
-	private _getAllCommits(ascendingHeight = COMMIT_SORT.ASC): SingleCommit[] {
+	private _getAllCommits(): SingleCommit[] {
 		// Flattened list of all the single commits from both gossiped and non gossiped list sorted by ascending order of height
 		return [
-			...this._nonGossipedCommits.getAll(ascendingHeight),
-			...this._nonGossipedCommitsLocal.getAll(ascendingHeight),
-			...this._gossipedCommits.getAll(ascendingHeight),
+			...this._nonGossipedCommits.getAll(),
+			...this._nonGossipedCommitsLocal.getAll(),
+			...this._gossipedCommits.getAll(),
 		].sort((a, b) => a.height - b.height);
 	}
 }
