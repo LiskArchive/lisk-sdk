@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-transactions",
-	"version": "6.0.0-alpha.16",
+	"version": "6.0.0-alpha.17",
 	"description": "Utility functions related to transactions according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -35,9 +35,9 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"@liskhq/lisk-codec": "^0.3.0-alpha.13",
-		"@liskhq/lisk-cryptography": "^4.0.0-alpha.11",
-		"@liskhq/lisk-validator": "^0.7.0-alpha.11"
+		"@liskhq/lisk-codec": "^0.3.0-alpha.14",
+		"@liskhq/lisk-cryptography": "^4.0.0-alpha.12",
+		"@liskhq/lisk-validator": "^0.7.0-alpha.12"
 	},
 	"devDependencies": {
 		"@types/jest": "29.2.3",
