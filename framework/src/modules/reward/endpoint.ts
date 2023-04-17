@@ -19,7 +19,7 @@ import { DefaultReward, InflationRate, ModuleConfig } from './types';
 
 export class RewardEndpoint extends BaseEndpoint {
 	protected _config!: ModuleConfig;
-	private _blockTime!: number;
+	protected _blockTime!: number;
 
 	public init(config: ModuleConfig, blockTime: number) {
 		this._config = config;

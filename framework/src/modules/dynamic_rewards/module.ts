@@ -18,7 +18,6 @@ import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import {
 	CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REDUCTION,
 	CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD,
-	DECIMAL_PERCENT_FACTOR,
 	defaultConfig,
 	EMPTY_BYTES,
 } from './constants';
@@ -62,6 +61,11 @@ import {
 	getAnnualInflationResponseSchema,
 	getAnnualInflationRequestSchema,
 } from '../reward/schemas';
+import { getMinimalRewardActiveValidators, getStakeRewardActiveValidators } from './utils';
+import {
+	getExpectedSharedRewardsRequestSchema,
+	getExpectedSharedRewardsResponseSchema,
+} from '../pos/schemas';
 
 export class DynamicRewardModule extends BaseModule {
 	public method = new DynamicRewardMethod(this.stores, this.events);
@@ -89,6 +93,8 @@ export class DynamicRewardModule extends BaseModule {
 		this._randomMethod = randomMethod;
 		this._validatorMethod = validatorMethod;
 		this._posMethod = posMethod;
+
+		this.endpoint.addDependencies(this._validatorMethod, this._posMethod);
 	}
 
 	public metadata(): ModuleMetadata {
@@ -108,6 +114,11 @@ export class DynamicRewardModule extends BaseModule {
 				{
 					name: this.endpoint.getRewardTokenID.name,
 					response: getRewardTokenIDResponseSchema,
+				},
+				{
+					name: this.endpoint.getExpectedValidatorRewards.name,
+					request: getExpectedSharedRewardsRequestSchema,
+					response: getExpectedSharedRewardsResponseSchema,
 				},
 			],
 		};
@@ -245,9 +256,10 @@ export class DynamicRewardModule extends BaseModule {
 		);
 
 		const defaultReward = calculateDefaultReward(this._moduleConfig, header.height);
-		const minimalRewardActiveValidators =
-			(defaultReward * BigInt(this._moduleConfig.factorMinimumRewardActiveValidators)) /
-			DECIMAL_PERCENT_FACTOR;
+		const minimalRewardActiveValidators = getMinimalRewardActiveValidators(
+			this._moduleConfig,
+			defaultReward,
+		);
 		if (Object.keys(generatorsMap).length >= roundLength) {
 			return minimalRewardActiveValidators;
 		}
@@ -265,11 +277,12 @@ export class DynamicRewardModule extends BaseModule {
 		if (!bftValidator) {
 			throw new Error('Invalid generator. Validator params does not include the validator.');
 		}
-		const numberOfActiveValidators = this._posMethod.getNumberOfActiveValidators(context);
-		const totalRewardActiveValidators = defaultReward * BigInt(numberOfActiveValidators);
-		const stakeRewardActiveValidators =
-			totalRewardActiveValidators -
-			BigInt(numberOfActiveValidators) * minimalRewardActiveValidators;
+		const stakeRewardActiveValidators = getStakeRewardActiveValidators(
+			context,
+			this._posMethod,
+			defaultReward,
+			minimalRewardActiveValidators,
+		);
 		if (bftValidator.bftWeight > BigInt(0)) {
 			return (
 				minimalRewardActiveValidators +

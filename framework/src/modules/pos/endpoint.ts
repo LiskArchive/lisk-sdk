@@ -40,6 +40,7 @@ import {
 	TokenMethod,
 	StakerData,
 	StakerDataJSON,
+	GetExpectedSharedRewardsRequest,
 } from './types';
 import { getPunishTime, getWaitTime, isCertificateGenerated, calculateStakeRewards } from './utils';
 import { GenesisDataStore } from './stores/genesis';
@@ -47,6 +48,7 @@ import { EMPTY_KEY, PUNISHMENT_PERIOD } from './constants';
 import { EligibleValidator, EligibleValidatorsStore } from './stores/eligible_validators';
 import {
 	getClaimableRewardsRequestSchema,
+	getExpectedSharedRewardsRequestSchema,
 	getLockedRewardRequestSchema,
 	getLockedStakedAmountRequestSchema,
 	getValidatorsByStakeRequestSchema,
@@ -342,6 +344,27 @@ export class PoSEndpoint extends BaseEndpoint {
 	public getRegistrationFee(): { fee: string } {
 		return {
 			fee: this._moduleConfig.validatorRegistrationFee.toString(),
+		};
+	}
+
+	public async getExpectedSharedRewards(ctx: ModuleEndpointContext): Promise<{ reward: string }> {
+		validator.validate<GetExpectedSharedRewardsRequest>(
+			getExpectedSharedRewardsRequestSchema,
+			ctx.params,
+		);
+		const validatorReward = q96(BigInt(ctx.params.validatorReward));
+		const validatorAccount = await this.stores
+			.get(ValidatorStore)
+			.get(ctx, cryptoAddress.getAddressFromLisk32Address(ctx.params.validatorAddress));
+		const commission = q96(validatorAccount.commission).div(q96(BigInt(10000)));
+		const rewardFraction = q96(BigInt(1)).sub(commission);
+		const totalStake = q96(BigInt(validatorAccount.totalStake) + BigInt(ctx.params.stake));
+
+		const rewardPerUnitStaked = validatorReward.muldiv(rewardFraction, totalStake);
+		const reward = rewardPerUnitStaked.mul(q96(BigInt(ctx.params.stake)));
+
+		return {
+			reward: reward.floor().toString(),
 		};
 	}
 

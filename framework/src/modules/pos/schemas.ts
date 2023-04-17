@@ -746,3 +746,35 @@ export const getRegistrationFeeResponseSchema = {
 		},
 	},
 };
+
+export const getExpectedSharedRewardsRequestSchema = {
+	$id: 'modules/pos/endpoint/getExpectedSharedRewardsRequest',
+	type: 'object',
+	required: ['validatorAddress', 'validatorReward', 'stake'],
+	properties: {
+		validatorAddress: {
+			type: 'string',
+			format: 'lisk32',
+		},
+		validatorReward: {
+			type: 'string',
+			format: 'uint64',
+		},
+		stake: {
+			type: 'string',
+			format: 'uint64',
+		},
+	},
+};
+
+export const getExpectedSharedRewardsResponseSchema = {
+	$id: 'modules/pos/endpoint/getExpectedSharedRewardsResponse',
+	type: 'object',
+	required: ['reward'],
+	properties: {
+		reward: {
+			type: 'string',
+			format: 'uint64',
+		},
+	},
+};
