@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-chain",
-	"version": "0.4.0-alpha.17",
+	"version": "0.4.0-alpha.18",
 	"description": "Blocks and state management implementation that are used for block processing according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -35,16 +35,16 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"@liskhq/lisk-codec": "^0.3.0-alpha.12",
-		"@liskhq/lisk-cryptography": "^4.0.0-alpha.10",
+		"@liskhq/lisk-codec": "^0.3.0-alpha.13",
+		"@liskhq/lisk-cryptography": "^4.0.0-alpha.11",
 		"@liskhq/lisk-db": "0.3.5",
-		"@liskhq/lisk-tree": "^0.3.0-alpha.13",
-		"@liskhq/lisk-utils": "^0.3.0-alpha.6",
-		"@liskhq/lisk-validator": "^0.7.0-alpha.10",
+		"@liskhq/lisk-tree": "^0.3.0-alpha.14",
+		"@liskhq/lisk-utils": "^0.3.0-alpha.7",
+		"@liskhq/lisk-validator": "^0.7.0-alpha.11",
 		"debug": "4.3.4"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-passphrase": "^4.0.0-alpha.4",
+		"@liskhq/lisk-passphrase": "^4.0.0-alpha.5",
 		"@types/debug": "4.1.5",
 		"@types/faker": "4.1.10",
 		"@types/jest": "29.2.3",
