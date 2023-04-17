@@ -363,6 +363,26 @@ describe('CommitPool', () => {
 			// Assert
 			expect(networkMock.send).toHaveBeenCalledTimes(1);
 		});
+
+		it('should not increase the size of gosspedCommits when all gossipedCommits are selected to broadcast', async () => {
+			for (const commit of nonGossipedCommits) {
+				commitPool['_nonGossipedCommits'].deleteSingle(commit);
+			}
+			// make all gossipedCommits selected for condition 2.1.
+			commitPool['_bftMethod'].getBFTHeights = jest
+				.fn()
+				.mockResolvedValue({ maxHeightPrecommitted: height + COMMIT_RANGE_STORED + 1 });
+			// Assert
+			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(6);
+			// Arrange
+			commitPool['_bftMethod'].existBFTParameters = jest.fn().mockResolvedValue(true);
+			const context = new StateStore(new InMemoryDatabase());
+			// Act
+			await commitPool['_job'](context);
+			// Assert
+			// one stale gossiped commit should be removed, and remaining 5 should be kept in the pool.
+			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(5);
+		});
 	});
 	describe('addCommit', () => {
 		let nonGossipedCommits: SingleCommit[];
@@ -515,6 +535,16 @@ describe('CommitPool', () => {
 			const isCommitValid = await commitPool.validateCommit(stateStore, commit);
 
 			expect(isCommitValid).toBeTrue();
+		});
+
+		it('should return false when single commit height is in the future', async () => {
+			bftMethod.existBFTParameters.mockReturnValue(false);
+			const isCommitValid = await commitPool.validateCommit(stateStore, {
+				...commit,
+				height: 2023,
+			});
+
+			expect(isCommitValid).toBeFalse();
 		});
 
 		it('should return false when single commit block id is not equal to chain block id at same height', async () => {
