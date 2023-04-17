@@ -55,12 +55,7 @@ export class CommitList {
 	}
 
 	public deleteByHeight(height: number) {
-		if (this._commitMap.delete(height)) {
-			// Delete empty array entry
-			if (this._commitMap.get(height) && this._commitMap.get(height)?.length === 0) {
-				this._commitMap.delete(height);
-			}
-		}
+		this._commitMap.delete(height);
 	}
 
 	public getAll(sortOrder = COMMIT_SORT.ASC) {
