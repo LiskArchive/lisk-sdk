@@ -98,8 +98,8 @@
 		"axios": "0.21.2",
 		"fs-extra": "11.1.0",
 		"inquirer": "8.2.5",
-		"lisk-commander": "6.0.0-alpha.21",
-		"lisk-sdk": "6.0.0-alpha.21",
+		"lisk-commander": "6.0.0-alpha.22",
+		"lisk-sdk": "6.0.0-alpha.22",
 		"tar": "6.1.11",
 		"tslib": "2.4.1"
 	},
