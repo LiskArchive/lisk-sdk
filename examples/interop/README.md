@@ -112,3 +112,8 @@ When the finalized height is reached, check chain status as described above and 
 
 - Run `ts-node pos-sidechain-example-one/config/scripts/transfer_sidechain_one.ts` from `interop` folder.
 - Check balance for `lskxvesvwgxpdnhp4rdukmsx42teehpxkeod7xv7f` using `token_getBalances` RPC on sidechain one.
+
+##### Transfer sidechain one to sidechain two
+
+- Run `ts-node pos-sidechain-example-one/config/scripts/transfer_sidechain_two.ts` from `interop` folder.
+- Check balance for `lskx5uqu2zzybdwrqswd8c6b5v5aj77yytn4k6mv6` using `token_getBalances` RPC on sidechain one.
