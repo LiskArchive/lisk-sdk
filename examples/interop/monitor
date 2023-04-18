@@ -1,0 +1,75 @@
+#!/bin/sh
+
+if ! command -v jq &> /dev/null
+then
+    echo "jq Not installed in this computer."
+    echo "Please go to https://stedolan.github.io/jq/"
+    exit
+fi
+
+while [ true ]
+do
+	now=$(date +"%T")
+	echo "Captured At: $now"
+
+	#mainchain 1
+  RESULT=$(curl --location -s 'http://127.0.0.1:7881/rpc' \
+  --header 'Content-Type: text/plain' \
+  --data '{
+      "jsonrpc": "2.0",
+      "id": 1,
+      "method": "interoperability_getAllChainAccounts",
+      "params": {
+          "chainID": "00000000"
+      }
+  }')
+  echo "- Mainchain_1:"
+	echo "$(echo $RESULT | jq '.result.chains[0].name') : Height: $(echo $RESULT | jq '.result.chains[0].lastCertificate.height') | Status: $(echo $RESULT | jq '.result.chains[0].status')"
+	echo "$(echo $RESULT | jq '.result.chains[1].name') : Height: $(echo $RESULT | jq '.result.chains[0].lastCertificate.height') | Status: $(echo $RESULT | jq '.result.chains[1].status')"
+
+	#mainchain 2
+  RESULT=$(curl --location -s 'http://127.0.0.1:7882/rpc' \
+  --header 'Content-Type: text/plain' \
+  --data '{
+      "jsonrpc": "2.0",
+      "id": 1,
+      "method": "interoperability_getAllChainAccounts",
+      "params": {
+          "chainID": "00000000"
+      }
+  }')
+  echo "- Mainchain_2:"
+  echo "$(echo $RESULT | jq '.result.chains[0].name') : Height: $(echo $RESULT | jq '.result.chains[0].lastCertificate.height') | Status: $(echo $RESULT | jq '.result.chains[0].status')"
+  echo "$(echo $RESULT | jq '.result.chains[1].name') : Height: $(echo $RESULT | jq '.result.chains[0].lastCertificate.height') | Status: $(echo $RESULT | jq '.result.chains[1].status')"
+
+	#sidechain 1
+  RESULT=$(curl --location -s 'http://127.0.0.1:7885/rpc' \
+  --header 'Content-Type: text/plain' \
+  --data '{
+      "jsonrpc": "2.0",
+      "id": 1,
+      "method": "interoperability_getAllChainAccounts",
+      "params": {
+          "chainID": "00000000"
+      }
+  }')
+  echo "- Sidechain_1:"
+  echo "$(echo $RESULT | jq '.result.chains[0].name') : Height: $(echo $RESULT | jq '.result.chains[0].lastCertificate.height') | Status: $(echo $RESULT | jq '.result.chains[0].status')"
+
+	#sidechain 2
+	RESULT=$(curl --location -s 'http://127.0.0.1:7886/rpc' \
+	--header 'Content-Type: text/plain' \
+	--data '{
+			"jsonrpc": "2.0",
+			"id": 1,
+			"method": "interoperability_getAllChainAccounts",
+			"params": {
+					"chainID": "00000000"
+			}
+	}')
+	echo "- Sidechain 2:"
+	echo "$(echo $RESULT | jq '.result.chains[0].name') : Height: $(echo $RESULT | jq '.result.chains[0].lastCertificate.height') | Status: $(echo $RESULT | jq '.result.chains[0].status')"
+
+	echo "====================================="
+	sleep 5;
+done
