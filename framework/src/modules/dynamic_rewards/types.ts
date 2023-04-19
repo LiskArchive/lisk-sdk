@@ -68,3 +68,10 @@ export interface PoSMethod {
 export interface DefaultReward {
 	reward: string;
 }
+
+export interface GetExpectedValidatorRewardsResponse {
+	blockReward: string;
+	dailyReward: string;
+	monthlyReward: string;
+	yearlyReward: string;
+}
