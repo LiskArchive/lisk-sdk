@@ -133,7 +133,10 @@ export const selectStandbyValidators = (
 	const numberOfCandidates = 1 + (randomSeed2 !== undefined ? 1 : 0);
 	// if validator weights is smaller than number selecting, select all
 	if (validatorWeights.length <= numberOfCandidates) {
-		return validatorWeights;
+		return validatorWeights.map(v => ({
+			address: v.address,
+			weight: BigInt(0),
+		}));
 	}
 	const result: ValidatorWeight[] = [];
 	const index = pickStandByValidator(validatorWeights, randomSeed1);

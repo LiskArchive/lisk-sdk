@@ -550,6 +550,95 @@ describe('PoS module', () => {
 			}
 		});
 
+		describe('when there are exactly 103 eligible validators', () => {
+			const defaultRound = 123;
+			let validatorMethod: ValidatorsMethod;
+			let blockContext: BlockContext;
+
+			const scenario = forgerSelectionTwoStandbyScenario;
+
+			beforeEach(async () => {
+				// Forger selection relies on stake weight to be sorted
+				const validators: { address: Buffer; weight: bigint }[] = [
+					...scenario.testCases.input.validatorWeights.map(d => ({
+						address: Buffer.from(d.address, 'hex'),
+						weight: BigInt(d.validatorWeight),
+					})),
+				];
+				sortValidatorsByWeightDesc(validators);
+
+				const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+				blockContext = createBlockContext({
+					header: createFakeBlockHeader({
+						height: (defaultRound - 1) * defaultConfig.roundLength,
+					}),
+					stateStore,
+				});
+				await pos.stores
+					.get(GenesisDataStore)
+					.set(blockContext.getBlockExecuteContext(), EMPTY_KEY, {
+						height: 0,
+						initRounds: 3,
+						initValidators: [],
+					});
+				const snapshotStore = pos.stores.get(SnapshotStore);
+				await snapshotStore.set(
+					blockContext.getBlockExecuteContext(),
+					utils.intToBuffer(defaultRound, 4),
+					{
+						validatorWeightSnapshot: validators,
+					},
+				);
+				const randomMethod = {
+					getRandomBytes: jest
+						.fn()
+						.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed1, 'hex'))
+						.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed2, 'hex')),
+				};
+				validatorMethod = {
+					setValidatorGeneratorKey: jest.fn(),
+					registerValidatorKeys: jest.fn(),
+					registerValidatorWithoutBLSKey: jest.fn(),
+					getValidatorKeys: jest.fn().mockResolvedValue({
+						blsKey: utils.getRandomBytes(48),
+						generatorKey: utils.getRandomBytes(32),
+					}),
+					getGeneratorsBetweenTimestamps: jest.fn(),
+					setValidatorsParams: jest.fn(),
+				};
+				const tokenMethod = {
+					lock: jest.fn(),
+					unlock: jest.fn(),
+					getAvailableBalance: jest.fn(),
+					burn: jest.fn(),
+					getMinRemainingBalance: jest.fn(),
+					transfer: jest.fn(),
+					getLockedAmount: jest.fn(),
+				};
+
+				const feeMethod = {
+					payFee: jest.fn(),
+				};
+
+				pos.addDependencies(randomMethod, validatorMethod, tokenMethod, feeMethod);
+
+				await pos['_updateValidators'](blockContext.getBlockAfterExecuteContext());
+			});
+
+			it('should have activeValidators + standbyValidators validators in the generators list', () => {
+				expect((validatorMethod.setValidatorsParams as jest.Mock).mock.calls[0][4]).toHaveLength(
+					defaultConfig.roundLength,
+				);
+			});
+
+			it('should have standbyValidators BFTWeight as zero', () => {
+				const standbyValidators = (
+					validatorMethod.setValidatorsParams as jest.Mock
+				).mock.calls[0][4].filter((v: any) => v.bftWeight === BigInt(0));
+				expect(standbyValidators).toHaveLength(2);
+			});
+		});
+
 		describe('when there are enough standby validators', () => {
 			const defaultRound = 123;
 			let validatorMethod: ValidatorsMethod;
