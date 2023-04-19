@@ -644,7 +644,7 @@ export class PoSModule extends BaseModule {
 		);
 		// select standby validators
 		let standbyValidators: ValidatorWeight[] = [];
-		if (nextRound > genesisData.initRounds + this._moduleConfig.numberActiveValidators) {
+		if (nextRound >= genesisData.initRounds + this._moduleConfig.numberActiveValidators) {
 			const candidates = snapshot.validatorWeightSnapshot.filter(
 				v => !activeValidatorMap.has(v.address),
 			);
