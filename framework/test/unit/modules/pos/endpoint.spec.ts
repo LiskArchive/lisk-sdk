@@ -786,4 +786,46 @@ describe('PosModuleEndpoint', () => {
 			expect(response).toEqual({ fee: config.validatorRegistrationFee.toString() });
 		});
 	});
+
+	describe('getExpectedSharedRewards', () => {
+		beforeEach(async () => {
+			const context = createStoreGetter(stateStore);
+			await validatorSubStore.set(context, address, {
+				...validatorData,
+				commission: 5000,
+				totalStake: BigInt('100000000000'),
+			});
+		});
+
+		it('should return error when request is invalid', async () => {
+			await expect(
+				posEndpoint.getExpectedSharedRewards(
+					createTransientModuleEndpointContext({
+						stateStore,
+						params: {
+							validatorAddress: 'invalid address',
+							validatorReward: '100',
+							stake: '200',
+						},
+					}),
+				),
+			).rejects.toThrow("Property '.validatorAddress' must match format");
+		});
+
+		it('should return expected reward', async () => {
+			const response = await posEndpoint.getExpectedSharedRewards(
+				createTransientModuleEndpointContext({
+					stateStore,
+					params: {
+						validatorAddress: cryptoAddress.getLisk32AddressFromAddress(address),
+						validatorReward: '500000000',
+						stake: '100000000000',
+					},
+				}),
+			);
+
+			// 50% of sharing reward (25%)
+			expect(response).toEqual({ reward: '124999999' });
+		});
+	});
 });

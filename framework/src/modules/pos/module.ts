@@ -55,6 +55,8 @@ import {
 	getStakerRequestSchema,
 	getStakerResponseSchema,
 	getRegistrationFeeResponseSchema,
+	getExpectedSharedRewardsRequestSchema,
+	getExpectedSharedRewardsResponseSchema,
 } from './schemas';
 import {
 	RandomMethod,
@@ -239,6 +241,11 @@ export class PoSModule extends BaseModule {
 				{
 					name: this.endpoint.getRegistrationFee.name,
 					response: getRegistrationFeeResponseSchema,
+				},
+				{
+					name: this.endpoint.getExpectedSharedRewards.name,
+					request: getExpectedSharedRewardsRequestSchema,
+					response: getExpectedSharedRewardsResponseSchema,
 				},
 			],
 			assets: [
