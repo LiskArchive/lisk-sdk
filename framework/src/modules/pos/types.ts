@@ -293,3 +293,9 @@ export interface ClaimableReward {
 	tokenID: string;
 	reward: string;
 }
+
+export interface GetExpectedSharedRewardsRequest {
+	validatorAddress: string;
+	validatorReward: string;
+	stake: string;
+}
