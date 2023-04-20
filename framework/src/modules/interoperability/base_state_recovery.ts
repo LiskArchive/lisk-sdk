@@ -154,7 +154,7 @@ export class BaseStateRecoveryCommand<
 					...context,
 					module,
 					terminatedChainID: chainID,
-					substorePrefix: storePrefix,
+					substorePrefix: entry.substorePrefix,
 					storeKey: entry.storeKey,
 					storeValue: entry.storeValue,
 				});
