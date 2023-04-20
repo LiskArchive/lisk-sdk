@@ -21,6 +21,7 @@ import { when } from 'jest-when';
 import { BFTParameterNotFoundError } from '../../../../../src/engine/bft/errors';
 import { CommitPool } from '../../../../../src/engine/consensus/certificate_generation/commit_pool';
 import {
+	EMPTY_BUFFER,
 	COMMIT_RANGE_STORED,
 	MESSAGE_TAG_CERTIFICATE,
 	NETWORK_EVENT_COMMIT_MESSAGES,
@@ -98,6 +99,7 @@ describe('CommitPool', () => {
 	describe('constructor', () => {
 		it.todo('');
 	});
+
 	describe('job', () => {
 		const dbMock = {
 			get: jest.fn(),
@@ -384,6 +386,7 @@ describe('CommitPool', () => {
 			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(5);
 		});
 	});
+
 	describe('addCommit', () => {
 		let nonGossipedCommits: SingleCommit[];
 		let height: number;
@@ -393,12 +396,14 @@ describe('CommitPool', () => {
 
 			height = 1031;
 
-			nonGossipedCommits = Array.from({ length: 1 }, () => ({
-				blockID,
-				certificateSignature: utils.getRandomBytes(96),
-				height,
-				validatorAddress: utils.getRandomBytes(20),
-			}));
+			nonGossipedCommits = [
+				{
+					blockID,
+					certificateSignature: utils.getRandomBytes(96),
+					height,
+					validatorAddress: utils.getRandomBytes(20),
+				},
+			];
 
 			// We add commits by .add() method because properties are readonly
 			commitPool['_nonGossipedCommits'].add(nonGossipedCommits[0]);
@@ -443,6 +448,7 @@ describe('CommitPool', () => {
 			expect(commitPool['_nonGossipedCommits'].getByHeight(height)).toEqual([newCommit]);
 		});
 	});
+
 	describe('validateCommit', () => {
 		let stateStore: StateStore;
 		let commit: SingleCommit;
@@ -493,7 +499,7 @@ describe('CommitPool', () => {
 
 			chain.finalizedHeight = commit.height - 1;
 
-			weights = Array.from({ length: 103 }, _ => 1);
+			weights = Array(103).fill(1);
 			validators = weights.map(weight => ({
 				address: utils.getRandomBytes(20),
 				bftWeight: BigInt(weight),
@@ -687,6 +693,7 @@ describe('CommitPool', () => {
 			);
 		});
 	});
+
 	describe('getCommitsByHeight', () => {
 		let nonGossipedCommits: SingleCommit[];
 		let gossipedCommits: SingleCommit[];
@@ -697,19 +704,23 @@ describe('CommitPool', () => {
 
 			height = 1031;
 
-			nonGossipedCommits = Array.from({ length: 1 }, () => ({
-				blockID,
-				certificateSignature: utils.getRandomBytes(96),
-				height,
-				validatorAddress: utils.getRandomBytes(20),
-			}));
+			nonGossipedCommits = [
+				{
+					blockID,
+					certificateSignature: utils.getRandomBytes(96),
+					height,
+					validatorAddress: utils.getRandomBytes(20),
+				},
+			];
 
-			gossipedCommits = Array.from({ length: 1 }, () => ({
-				blockID,
-				certificateSignature: utils.getRandomBytes(96),
-				height,
-				validatorAddress: utils.getRandomBytes(20),
-			}));
+			gossipedCommits = [
+				{
+					blockID,
+					certificateSignature: utils.getRandomBytes(96),
+					height,
+					validatorAddress: utils.getRandomBytes(20),
+				},
+			];
 
 			// We add commits by .set() method because properties are readonly
 			commitPool['_nonGossipedCommits'].add(nonGossipedCommits[0]);
@@ -730,12 +741,14 @@ describe('CommitPool', () => {
 
 		it('should return just gossiped commits when just gossiped commits set for that height', () => {
 			height = 1032;
-			gossipedCommits = Array.from({ length: 1 }, () => ({
-				blockID: utils.getRandomBytes(32),
-				certificateSignature: utils.getRandomBytes(96),
-				height,
-				validatorAddress: utils.getRandomBytes(20),
-			}));
+			gossipedCommits = [
+				{
+					blockID: utils.getRandomBytes(32),
+					certificateSignature: utils.getRandomBytes(96),
+					height,
+					validatorAddress: utils.getRandomBytes(20),
+				},
+			];
 			commitPool['_gossipedCommits'].add(gossipedCommits[0]);
 
 			const commitsByHeight = commitPool.getCommitsByHeight(height);
@@ -745,12 +758,14 @@ describe('CommitPool', () => {
 
 		it('should return just non-gossiped commits when just non-gossiped commits set for that height', () => {
 			height = 1032;
-			nonGossipedCommits = Array.from({ length: 1 }, () => ({
-				blockID: utils.getRandomBytes(32),
-				certificateSignature: utils.getRandomBytes(96),
-				height,
-				validatorAddress: utils.getRandomBytes(20),
-			}));
+			nonGossipedCommits = [
+				{
+					blockID: utils.getRandomBytes(32),
+					certificateSignature: utils.getRandomBytes(96),
+					height,
+					validatorAddress: utils.getRandomBytes(20),
+				},
+			];
 			commitPool['_nonGossipedCommits'].add(nonGossipedCommits[0]);
 
 			const commitsByHeight = commitPool.getCommitsByHeight(height);
@@ -798,14 +813,13 @@ describe('CommitPool', () => {
 		let stateStore: StateStore;
 		let aggregateCommit: AggregateCommit;
 		let unsignedCertificate: UnsignedCertificate;
-		let keysList: Buffer[];
 		let privateKeys: Buffer[];
 		let publicKeys: Buffer[];
 		let weights: number[];
 		let threshold: number;
 		let signatures: Buffer[];
 		let pubKeySignaturePairs: { publicKey: Buffer; signature: Buffer }[];
-		let aggregateSignature: Buffer;
+		let certificateSignature: Buffer;
 		let aggregationBits: Buffer;
 		let validators: any;
 		let blockHeader: BlockHeader;
@@ -826,10 +840,9 @@ describe('CommitPool', () => {
 			privateKeys = Array.from({ length: 103 }, _ =>
 				bls.generatePrivateKey(utils.getRandomBytes(32)),
 			);
-			publicKeys = privateKeys.map(priv => bls.getPublicKeyFromPrivateKey(priv));
+			publicKeys = privateKeys.map(privateKey => bls.getPublicKeyFromPrivateKey(privateKey));
 
-			keysList = [...publicKeys];
-			weights = Array.from({ length: 103 }, _ => 1);
+			weights = Array(103).fill(1);
 			threshold = 33;
 
 			unsignedCertificate = {
@@ -851,21 +864,21 @@ describe('CommitPool', () => {
 				signature: signatures[i],
 			}));
 
-			({ aggregationBits, signature: aggregateSignature } = bls.createAggSig(
+			({ aggregationBits, signature: certificateSignature } = bls.createAggSig(
 				publicKeys,
 				pubKeySignaturePairs,
 			));
 
 			aggregateCommit = {
 				aggregationBits,
-				certificateSignature: aggregateSignature,
+				certificateSignature,
 				height,
 			};
 
 			validators = weights.map((weight, i) => ({
 				address: utils.getRandomBytes(20),
 				bftWeight: BigInt(weight),
-				blsKey: keysList[i],
+				blsKey: publicKeys[i],
 			}));
 
 			when(chain.dataAccess.getBlockHeaderByHeight).calledWith(height).mockReturnValue(blockHeader);
@@ -887,19 +900,45 @@ describe('CommitPool', () => {
 				});
 		});
 
-		it('should return true with proper parameters', async () => {
+		it('should return false when provided aggregate commit is INVALID', async () => {
+			const invalidAggregateCommit = {
+				...aggregateCommit,
+				certificateSignature: utils.getRandomBytes(96),
+			};
+
+			const isCommitVerified = await commitPool.verifyAggregateCommit(
+				stateStore,
+				invalidAggregateCommit,
+			);
+
+			expect(isCommitVerified).toBeFalse();
+		});
+
+		it('should return true when provided aggregate commit is VALID', async () => {
 			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
 
 			expect(isCommitVerified).toBeTrue();
 		});
 
-		it('should return false when aggregate commit is not signed at height maxHeightCertified', async () => {
-			maxHeightCertified = 1080;
-			maxHeightPrecommitted = 1100;
+		it('should return true when aggregateCommit is empty, and height is equal to maxHeightCertified', async () => {
+			const emptyAggregateCommit = {
+				aggregationBits: EMPTY_BUFFER,
+				certificateSignature: EMPTY_BUFFER,
+				height: maxHeightCertified,
+			};
 
+			const isCommitVerified = await commitPool.verifyAggregateCommit(
+				stateStore,
+				emptyAggregateCommit,
+			);
+
+			expect(isCommitVerified).toBeTrue();
+		});
+
+		it('should return false when aggregate commit is not signed at height maxHeightCertified', async () => {
 			bftMethod.getBFTHeights.mockReturnValue({
-				maxHeightCertified,
-				maxHeightPrecommitted,
+				maxHeightCertified: 1080,
+				maxHeightPrecommitted: 1100,
 			});
 
 			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
@@ -922,7 +961,7 @@ describe('CommitPool', () => {
 		it('should return false when aggregationBits empty', async () => {
 			aggregateCommit = {
 				aggregationBits: Buffer.alloc(0),
-				certificateSignature: aggregateSignature,
+				certificateSignature,
 				height,
 			};
 
@@ -934,8 +973,8 @@ describe('CommitPool', () => {
 		it('should return false when aggregateCommit height is lesser than equal to maxHeightCertified', async () => {
 			aggregateCommit = {
 				aggregationBits,
-				certificateSignature: aggregateSignature,
-				height: 5000,
+				certificateSignature,
+				height: maxHeightCertified - 10,
 			};
 
 			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
@@ -946,8 +985,8 @@ describe('CommitPool', () => {
 		it('should return false when aggregateCommit height is more than maxHeightPrecommitted', async () => {
 			aggregateCommit = {
 				aggregationBits,
-				certificateSignature: aggregateSignature,
-				height: 15000,
+				certificateSignature,
+				height: maxHeightPrecommitted + 10,
 			};
 
 			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
@@ -958,7 +997,7 @@ describe('CommitPool', () => {
 		it('should return false when aggregateCommit height is above nextBFTParameter height minus 1', async () => {
 			when(bftMethod.getNextHeightBFTParameters)
 				.calledWith(stateStore, maxHeightCertified + 1)
-				.mockReturnValue(1020);
+				.mockReturnValue(aggregateCommit.height - 10);
 
 			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
 
@@ -968,7 +1007,7 @@ describe('CommitPool', () => {
 		it('should return true when aggregateCommit height is equal nextBFTParameter height minus 1', async () => {
 			when(bftMethod.getNextHeightBFTParameters)
 				.calledWith(stateStore, maxHeightCertified + 1)
-				.mockReturnValue(height + 1);
+				.mockReturnValue(aggregateCommit.height + 1);
 
 			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
 
@@ -978,16 +1017,18 @@ describe('CommitPool', () => {
 		it('should return true when aggregateCommit height is below nextBFTParameter height minus 1', async () => {
 			when(bftMethod.getNextHeightBFTParameters)
 				.calledWith(stateStore, maxHeightCertified + 1)
-				.mockReturnValue(height + 10);
+				.mockReturnValue(aggregateCommit.height + 10);
 
 			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
 
 			expect(isCommitVerified).toBeTrue();
 		});
 	});
+
 	describe('getAggregateCommit', () => {
 		it.todo('');
 	});
+
 	describe('_getMaxRemovalHeight', () => {
 		let blockHeader: BlockHeader;
 		const finalizedHeight = 1010;
@@ -1021,6 +1062,7 @@ describe('CommitPool', () => {
 			await expect(commitPool['_getMaxRemovalHeight']()).rejects.toThrow(NotFoundError);
 		});
 	});
+
 	describe('_aggregateSingleCommits', () => {
 		it.todo('');
 	});
