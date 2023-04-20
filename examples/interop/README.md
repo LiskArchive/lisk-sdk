@@ -117,3 +117,14 @@ When the finalized height is reached, check chain status as described above and 
 
 - Run `ts-node pos-sidechain-example-one/config/scripts/transfer_sidechain_two.ts` from `interop` folder.
 - Check balance for `lskx5uqu2zzybdwrqswd8c6b5v5aj77yytn4k6mv6` using `token_getBalances` RPC on sidechain one.
+
+### Helper Scripts
+
+#### start_example
+
+- It build 4 chains, starts with pm2, and register chains
+- If you want to restart everything from scratch, run `./start_example --reset`
+
+#### monitor
+
+- Calls 4 chain's getAllChainAccounts at the same time, at 5s interval
