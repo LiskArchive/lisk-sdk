@@ -53,6 +53,7 @@ export const inclusionProofsSchema = {
 							},
 						},
 					},
+					stateRoot: { dataType: 'bytes', fieldNumber: 3 },
 				},
 			},
 		},
@@ -76,6 +77,7 @@ type Replaced<T, TReplace, TWith, TKeep = Primitive> = T extends TReplace | TKee
 export type JSONObject<T> = Replaced<T, bigint | Buffer, string>;
 interface InclusionProof {
 	height: number;
+	stateRoot: Buffer;
 	inclusionProof: OutboxRootWitness & { key: Buffer; value: Buffer };
 }
 interface StoreEntry {
@@ -216,14 +218,23 @@ type ProveResponseJSON = JSONObject<ProveResponse>;
 		console.log(
 			`\nReceived new block on sidechain ${sidechainNodeInfo.chainID} with height ${newBlockHeader.height}\n`,
 		);
+		const LSK_TOKEN_ID = Buffer.from('0400000000000000', 'hex');
 		const keyToBeRecovered = Buffer.concat([
 			Buffer.from('3c469e9d0000', 'hex'),
-			utils.hash(sidechainBinaryAddress),
+			utils.hash(Buffer.concat([sidechainBinaryAddress, LSK_TOKEN_ID])),
 		]);
+		console.log('keyToBeRecovered>>>>>>>>>>>>>>>>>>>>>', keyToBeRecovered);
 
 		const { proof } = await getProofForMonitoringKey(sidechainClient, keyToBeRecovered);
 
-		const outboxRootWitness = {
+		const smt = new db.SparseMerkleTree();
+
+		console.log(
+			'Proving>>>>> ',
+			await smt.verify(newBlockHeader.stateRoot, [proof.queries[0].key], proof),
+		);
+
+		const inclusionProof = {
 			key: proof.queries[0].key,
 			value: proof.queries[0].value,
 			bitmap: proof.queries[0].bitmap,
@@ -231,8 +242,9 @@ type ProveResponseJSON = JSONObject<ProveResponse>;
 		};
 
 		await recoveryDB.setInclusionProof({
-			inclusionProof: outboxRootWitness,
+			inclusionProof,
 			height: newBlockHeader.height,
+			stateRoot: newBlockHeader.stateRoot,
 		});
 		console.log(`Successfully stored inclusion proof at height ${newBlockHeader.height}!\n`);
 	});
@@ -246,7 +258,7 @@ type ProveResponseJSON = JSONObject<ProveResponse>;
 		if (lastCertificateOfSidechain.status !== ChainStatus.TERMINATED) {
 			// Delete all the inclusion proofs until lastCertificate height
 			await recoveryDB.deleteInclusionProofsUntilHeight(
-				lastCertificateOfSidechain.lastCertificate.height,
+				lastCertificateOfSidechain.lastCertificate.height - 1,
 			);
 			console.log(
 				`Successfully deleted all the inclusion proofs before last certifcate height ${lastCertificateOfSidechain.lastCertificate.height}!`,
@@ -261,13 +273,14 @@ type ProveResponseJSON = JSONObject<ProveResponse>;
 			});
 
 			const siblingHashesAfterLastCertificate = await recoveryDB.getInclusionProofByHeight(
-				lastCertificateOfSidechain.lastCertificate.height + 1,
+				lastCertificateOfSidechain.lastCertificate.height,
 			);
 			if (!siblingHashesAfterLastCertificate) {
 				throw new Error(
 					`No siblingHash exists at a given height: ${lastCertificateOfSidechain.lastCertificate.height}`,
 				);
 			}
+			const LSK_TOKEN_ID = Buffer.from('0400000000000000', 'hex');
 			const stateRecoveryParams: StateRecoveryParams = {
 				chainID: Buffer.from(sidechainNodeInfo.chainID as string, 'hex'),
 				module: 'token',
@@ -275,7 +288,7 @@ type ProveResponseJSON = JSONObject<ProveResponse>;
 				storeEntries: [
 					{
 						bitmap: siblingHashesAfterLastCertificate.inclusionProof.bitmap,
-						storeKey: siblingHashesAfterLastCertificate.inclusionProof.key,
+						storeKey: Buffer.concat([sidechainBinaryAddress, LSK_TOKEN_ID]),
 						storeValue: siblingHashesAfterLastCertificate.inclusionProof.value,
 						substorePrefix: Buffer.from('0000', 'hex'),
 					},
