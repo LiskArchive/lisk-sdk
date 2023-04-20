@@ -230,7 +230,6 @@ export class CommitPool {
 			aggregationBits: aggregateCommit.aggregationBits,
 			signature: aggregateCommit.certificateSignature,
 		};
-		const { chainID } = this._chain;
 		const { validators, certificateThreshold } = await this._bftMethod.getBFTParameters(
 			stateStore,
 			aggregateCommit.height,
@@ -239,7 +238,7 @@ export class CommitPool {
 		return verifyAggregateCertificateSignature(
 			validators,
 			certificateThreshold,
-			chainID,
+			this._chain.chainID,
 			certificate,
 		);
 	}
