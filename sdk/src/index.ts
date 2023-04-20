@@ -25,5 +25,3 @@ export * as db from '@liskhq/lisk-db';
 export * as chain from '@liskhq/lisk-chain';
 export { codec, Schema } from '@liskhq/lisk-codec';
 export * from 'lisk-framework';
-
-export { genesisBlockDevnet, configDevnet } from './samples';
