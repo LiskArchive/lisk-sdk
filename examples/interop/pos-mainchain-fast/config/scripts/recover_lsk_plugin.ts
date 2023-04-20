@@ -54,6 +54,37 @@ export const inclusionProofsSchema = {
 						},
 					},
 					stateRoot: { dataType: 'bytes', fieldNumber: 3 },
+					storeValue: { dataType: 'bytes', fieldNumber: 4 },
+					storeKey: { dataType: 'bytes', fieldNumber: 5 },
+				},
+			},
+		},
+	},
+};
+
+export const MIN_MODULE_NAME_LENGTH = 1;
+export const MAX_MODULE_NAME_LENGTH = 32;
+
+const userStoreSchema = {
+	$id: '/token/store/user',
+	type: 'object',
+	required: ['availableBalance', 'lockedBalances'],
+	properties: {
+		availableBalance: { dataType: 'uint64', fieldNumber: 1 },
+		lockedBalances: {
+			type: 'array',
+			fieldNumber: 2,
+			items: {
+				type: 'object',
+				required: ['module', 'amount'],
+				properties: {
+					module: {
+						dataType: 'string',
+						fieldNumber: 1,
+						minLength: MIN_MODULE_NAME_LENGTH,
+						maxLength: MAX_MODULE_NAME_LENGTH,
+					},
+					amount: { dataType: 'uint64', fieldNumber: 2 },
 				},
 			},
 		},
@@ -79,6 +110,8 @@ interface InclusionProof {
 	height: number;
 	stateRoot: Buffer;
 	inclusionProof: OutboxRootWitness & { key: Buffer; value: Buffer };
+	storeValue: Buffer;
+	storeKey: Buffer;
 }
 interface StoreEntry {
 	substorePrefix: Buffer;
@@ -192,7 +225,7 @@ type ProveResponseJSON = JSONObject<ProveResponse>;
 
 		process.exit();
 	}
-	// const senderLSKAddress = 'lskxz85sur2yo22dmcxybe39uvh2fg7s2ezxq4ny9';
+	const senderLSKAddress = 'lskxz85sur2yo22dmcxybe39uvh2fg7s2ezxq4ny9';
 	const sidechainBinaryAddress = address.getAddressFromPublicKey(
 		Buffer.from('2136cd87c5b60224291b0c374f315d325fd58ce10ca4d5989d1e2d371dc428ef', 'hex'),
 	);
@@ -210,6 +243,27 @@ type ProveResponseJSON = JSONObject<ProveResponse>;
 		return proveResponseJSONToObj(proof);
 	};
 
+	const getBalances = async (client: apiClient.APIClient, lskAddress: string, tokenID: Buffer) => {
+		const balance = await client.invoke<{
+			availableBalance: string;
+			lockedBalances: {
+				module: string;
+				amount: string;
+			}[];
+		}>('token_getBalance', {
+			address: lskAddress,
+			tokenID: tokenID.toString('hex'),
+		});
+
+		return {
+			availableBalance: BigInt(balance.availableBalance),
+			lockedBalances: balance.lockedBalances.map(b => ({
+				amount: BigInt(b.amount),
+				module: b.module,
+			})),
+		};
+	};
+
 	// Collect inclusion proofs on sidechain and save it in recoveryDB
 	sidechainClient.subscribe('chain_newBlock', async (data?: Record<string, unknown>) => {
 		const { blockHeader: receivedBlock } = data as unknown as Data;
@@ -219,9 +273,10 @@ type ProveResponseJSON = JSONObject<ProveResponse>;
 			`\nReceived new block on sidechain ${sidechainNodeInfo.chainID} with height ${newBlockHeader.height}\n`,
 		);
 		const LSK_TOKEN_ID = Buffer.from('0400000000000000', 'hex');
+		const storeKey = Buffer.concat([sidechainBinaryAddress, LSK_TOKEN_ID]);
 		const keyToBeRecovered = Buffer.concat([
 			Buffer.from('3c469e9d0000', 'hex'),
-			utils.hash(Buffer.concat([sidechainBinaryAddress, LSK_TOKEN_ID])),
+			utils.hash(storeKey),
 		]);
 		console.log('keyToBeRecovered>>>>>>>>>>>>>>>>>>>>>', keyToBeRecovered);
 
@@ -241,10 +296,17 @@ type ProveResponseJSON = JSONObject<ProveResponse>;
 			siblingHashes: proof.siblingHashes,
 		};
 
+		const userBalance = await getBalances(sidechainClient, senderLSKAddress, LSK_TOKEN_ID);
+		console.log('User balance---->', userBalance);
+		const storeValue = codec.encode(userStoreSchema, userBalance);
+		console.log('StoreValue ------>', storeValue);
+
 		await recoveryDB.setInclusionProof({
 			inclusionProof,
 			height: newBlockHeader.height,
 			stateRoot: newBlockHeader.stateRoot,
+			storeKey,
+			storeValue,
 		});
 		console.log(`Successfully stored inclusion proof at height ${newBlockHeader.height}!\n`);
 	});
@@ -266,7 +328,7 @@ type ProveResponseJSON = JSONObject<ProveResponse>;
 		} else {
 			// Create recovery transaction
 			const relayerkeyInfo = keys[4];
-			const { nonce } = await sidechainClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
+			const { nonce } = await mainchainClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
 				address: address.getLisk32AddressFromPublicKey(
 					Buffer.from(relayerkeyInfo.publicKey, 'hex'),
 				),
@@ -281,6 +343,41 @@ type ProveResponseJSON = JSONObject<ProveResponse>;
 				);
 			}
 			const LSK_TOKEN_ID = Buffer.from('0400000000000000', 'hex');
+			const keyToBeRecovered = Buffer.concat([
+				Buffer.from('3c469e9d0000', 'hex'),
+				utils.hash(Buffer.concat([sidechainBinaryAddress, LSK_TOKEN_ID])),
+			]);
+			console.log(
+				'siblingHashesAfterLastCertificate------',
+				siblingHashesAfterLastCertificate.height,
+			);
+			const smt = new db.SparseMerkleTree();
+			console.log(
+				'Proving>here>>>> ',
+				await smt.verify(siblingHashesAfterLastCertificate.stateRoot, [keyToBeRecovered], {
+					siblingHashes: siblingHashesAfterLastCertificate.inclusionProof.siblingHashes,
+					queries: [
+						{
+							bitmap: siblingHashesAfterLastCertificate.inclusionProof.bitmap,
+							key: siblingHashesAfterLastCertificate.inclusionProof.key,
+							value: siblingHashesAfterLastCertificate.inclusionProof.value,
+						},
+					],
+				}),
+			);
+
+			console.log('State Root -> ', siblingHashesAfterLastCertificate.stateRoot.toString('hex'));
+			console.log('keyToBeRecovered -> ', keyToBeRecovered.toString('hex'));
+			console.log(
+				'siblingHashes -> ',
+				siblingHashesAfterLastCertificate.inclusionProof.siblingHashes,
+			);
+			console.log('queries -> ', {
+				bitmap: siblingHashesAfterLastCertificate.inclusionProof.bitmap,
+				key: siblingHashesAfterLastCertificate.inclusionProof.key,
+				value: siblingHashesAfterLastCertificate.inclusionProof.value,
+			});
+
 			const stateRecoveryParams: StateRecoveryParams = {
 				chainID: Buffer.from(sidechainNodeInfo.chainID as string, 'hex'),
 				module: 'token',
@@ -288,17 +385,31 @@ type ProveResponseJSON = JSONObject<ProveResponse>;
 				storeEntries: [
 					{
 						bitmap: siblingHashesAfterLastCertificate.inclusionProof.bitmap,
-						storeKey: Buffer.concat([sidechainBinaryAddress, LSK_TOKEN_ID]),
-						storeValue: siblingHashesAfterLastCertificate.inclusionProof.value,
+						storeKey: siblingHashesAfterLastCertificate.storeKey,
+						storeValue: siblingHashesAfterLastCertificate.storeValue,
 						substorePrefix: Buffer.from('0000', 'hex'),
 					},
 				],
 			};
+			console.log('keyToBeRecovered>>>>>>>>>>>>>>>>>>>>>', keyToBeRecovered);
+
+			console.log(
+				'stateRecoveryParams, ',
+				stateRecoveryParams.chainID.toString('hex'),
+				stateRecoveryParams.module,
+				stateRecoveryParams.siblingHashes.map(s => s.toString('hex')),
+				stateRecoveryParams.storeEntries.map(entry => ({
+					bitmap: entry.bitmap.toString('hex'),
+					storeKey: entry.storeKey.toString('hex'),
+					storeValue: entry.storeValue.toString('hex'),
+					substorePrefix: entry.substorePrefix.toString('hex'),
+				})),
+			);
 
 			const tx = new Transaction({
 				module: 'interoperability',
 				command: 'recoverState',
-				fee: BigInt(500000000),
+				fee: BigInt(1000000000),
 				params: codec.encodeJSON(stateRecoveryParamsSchema, stateRecoveryParams),
 				nonce: BigInt(nonce),
 				senderPublicKey: Buffer.from(relayerkeyInfo.publicKey, 'hex'),
