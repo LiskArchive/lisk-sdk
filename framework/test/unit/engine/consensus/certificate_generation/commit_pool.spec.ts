@@ -21,6 +21,7 @@ import { when } from 'jest-when';
 import { BFTParameterNotFoundError } from '../../../../../src/engine/bft/errors';
 import { CommitPool } from '../../../../../src/engine/consensus/certificate_generation/commit_pool';
 import {
+	EMPTY_BUFFER,
 	COMMIT_RANGE_STORED,
 	MESSAGE_TAG_CERTIFICATE,
 	NETWORK_EVENT_COMMIT_MESSAGES,
@@ -98,6 +99,7 @@ describe('CommitPool', () => {
 	describe('constructor', () => {
 		it.todo('');
 	});
+
 	describe('job', () => {
 		const dbMock = {
 			get: jest.fn(),
@@ -384,6 +386,7 @@ describe('CommitPool', () => {
 			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(5);
 		});
 	});
+
 	describe('addCommit', () => {
 		let nonGossipedCommits: SingleCommit[];
 		let height: number;
@@ -443,6 +446,7 @@ describe('CommitPool', () => {
 			expect(commitPool['_nonGossipedCommits'].getByHeight(height)).toEqual([newCommit]);
 		});
 	});
+
 	describe('validateCommit', () => {
 		let stateStore: StateStore;
 		let commit: SingleCommit;
@@ -687,6 +691,7 @@ describe('CommitPool', () => {
 			);
 		});
 	});
+
 	describe('getCommitsByHeight', () => {
 		let nonGossipedCommits: SingleCommit[];
 		let gossipedCommits: SingleCommit[];
@@ -887,8 +892,36 @@ describe('CommitPool', () => {
 				});
 		});
 
-		it('should return true with proper parameters', async () => {
+		it('should return false when provided aggregate commit is INVALID', async () => {
+			const invalidAggregateCommit = {
+				...aggregateCommit,
+				certificateSignature: utils.getRandomBytes(96),
+			};
+			const isCommitVerified = await commitPool.verifyAggregateCommit(
+				stateStore,
+				invalidAggregateCommit,
+			);
+
+			expect(isCommitVerified).toBeFalse();
+		});
+
+		it('should return true when provided aggregate commit is VALID', async () => {
 			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
+
+			expect(isCommitVerified).toBeTrue();
+		});
+
+		it('should return true when aggregateCommit is empty, and height is equal to maxHeightCertified', async () => {
+			const emptyAggregateCommit = {
+				aggregationBits: EMPTY_BUFFER,
+				certificateSignature: EMPTY_BUFFER,
+				height: maxHeightCertified,
+			};
+
+			const isCommitVerified = await commitPool.verifyAggregateCommit(
+				stateStore,
+				emptyAggregateCommit,
+			);
 
 			expect(isCommitVerified).toBeTrue();
 		});
@@ -985,9 +1018,11 @@ describe('CommitPool', () => {
 			expect(isCommitVerified).toBeTrue();
 		});
 	});
+
 	describe('getAggregateCommit', () => {
 		it.todo('');
 	});
+
 	describe('_getMaxRemovalHeight', () => {
 		let blockHeader: BlockHeader;
 		const finalizedHeight = 1010;
@@ -1021,6 +1056,7 @@ describe('CommitPool', () => {
 			await expect(commitPool['_getMaxRemovalHeight']()).rejects.toThrow(NotFoundError);
 		});
 	});
+
 	describe('_aggregateSingleCommits', () => {
 		it.todo('');
 	});
