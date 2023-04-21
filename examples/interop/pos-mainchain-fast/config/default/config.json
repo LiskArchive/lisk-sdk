@@ -25,8 +25,8 @@
 		"block": {
 			"fromFile": "./config/genesis_block.blob"
 		},
-		"blockTime": 5,
-		"bftBatchSize": 5,
+		"blockTime": 10,
+		"bftBatchSize": 103,
 		"maxTransactionsSize": 15360,
 		"chainID": "04000000"
 	},
