@@ -87,7 +87,7 @@ Interact with applications using `pm2`
 - Run `./bin/run endpoint:invoke 'interoperability_getChainAccount' '{"chainID": "04000000" }'` to check chain status of mainchain account on sidechain. It should show lastCertificate with height 0 and status 0 if no CCU was sent yet.
 - Run `./bin/run endpoint:invoke 'interoperability_getChainAccount' '{"chainID": "04000001" }'` to check chain status of sidechain account on mainchain. It should show lastCertificate with height 0 and status 0 if no CCU was sent yet.
 
-Now observe logs, intially it will log `No valid CCU can be generated for the height: ${newBlockHeader.height}` until first finalized height is reached.
+Now observe logs, initially it will log `No valid CCU can be generated for the height: ${newBlockHeader.height}` until first finalized height is reached.
 
 When the finalized height is reached, check chain status as described above and it should update lastCertificate height > 0 and status to 1 which means the CCU was sent successfully and chain is active now.
 
