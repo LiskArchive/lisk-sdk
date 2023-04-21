@@ -16,7 +16,7 @@ on:
     branches: [ "development", feature/*, hotfix/*, main, release/* ]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ "development" ]
+    branches: [ "development", feature/*, hotfix/*, main, release/* ]
   schedule:
     - cron: '30 3 * * 2'
 
