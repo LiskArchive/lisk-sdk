@@ -128,3 +128,9 @@ When the finalized height is reached, check chain status as described above and 
 #### monitor
 
 - Calls 4 chain's getAllChainAccounts at the same time, at 5s interval
+
+#### Other options
+
+There are `genesis_assets_103_validators.json` file under config folder of each app. You can also use this genesis-assets if you want to run an application for 103 validators. In order to do so follow these steps:
+
+- Update genesis block using command: `./bin/run genesis-block:create --output config/default/ --assets-file config/default/genesis_assets_103_validators.json`
