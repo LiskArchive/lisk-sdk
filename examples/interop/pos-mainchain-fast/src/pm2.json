@@ -1,9 +1,0 @@
-{
-	"apps": [
-		{
-			"name": "mainchain-pos",
-			"script": "npm",
-			"args": ["run", "app"]
-		}
-	]
-}

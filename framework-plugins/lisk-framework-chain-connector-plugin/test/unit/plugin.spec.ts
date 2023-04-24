@@ -119,7 +119,7 @@ describe('ChainConnectorPlugin', () => {
 		},
 	};
 
-	const getTestBlock = async () => {
+	const getTestBlock = async (height = 1) => {
 		return testing.createBlock({
 			chainID: Buffer.from('00001111', 'hex'),
 			privateKey: Buffer.from(
@@ -128,6 +128,7 @@ describe('ChainConnectorPlugin', () => {
 			),
 			previousBlockID: cryptography.utils.getRandomBytes(20),
 			timestamp: Math.floor(Date.now() / 1000),
+			header: { height },
 		});
 	};
 
@@ -451,7 +452,11 @@ describe('ChainConnectorPlugin', () => {
 
 			// call handler with expected Block having one of stored block headers height
 			const block = await getTestBlock();
+			// non-empty aggregate commit with height 1 should be deleted
+			block.header.aggregateCommit.height = 1;
+			block.header.aggregateCommit.aggregationBits = Buffer.alloc(1);
 			expect(block.header.height).toBe(1);
+			expect(block.header.aggregateCommit.height).toBe(1);
 
 			await (chainConnectorPlugin as any)['_deleteBlockHandler']({
 				blockHeader: block.header.toJSON(),
@@ -492,9 +497,21 @@ describe('ChainConnectorPlugin', () => {
 				});
 			};
 
-			const block = await getTestBlock();
+			const newBlock = await getTestBlock();
 
-			const someValidatorsHashPreimage = getSomeValidatorsHashPreimage(4, block);
+			const someValidatorsHashPreimage = getSomeValidatorsHashPreimage(4, newBlock);
+			const blocks = await Promise.all(
+				someValidatorsHashPreimage.slice(1).map(async (vHash, index) => {
+					const block = await getTestBlock(index + 2);
+					block.header.validatorsHash = vHash.validatorsHash;
+
+					return block;
+				}),
+			);
+			await chainConnectorPlugin['_chainConnectorStore'].setBlockHeaders(
+				blocks.map(b => b.header.toObject()),
+			);
+
 			await chainConnectorPlugin['_chainConnectorStore'].setValidatorsHashPreimage(
 				someValidatorsHashPreimage,
 			);
@@ -502,12 +519,12 @@ describe('ChainConnectorPlugin', () => {
 				chainConnectorPlugin['_chainConnectorStore'].getValidatorsHashPreimage(),
 			).resolves.toHaveLength(4);
 
-			expect(block.header.validatorsHash as Buffer).toEqual(
+			expect(newBlock.header.validatorsHash as Buffer).toEqual(
 				someValidatorsHashPreimage[0].validatorsHash,
 			);
 
 			await (chainConnectorPlugin as any)['_deleteBlockHandler']({
-				blockHeader: block.header.toJSON(),
+				blockHeader: newBlock.header.toJSON(),
 			});
 
 			await expect(
@@ -807,9 +824,8 @@ describe('ChainConnectorPlugin', () => {
 			/**
 			 * Two calls to below RPC through receivingChainAPIClient
 			 * 1. interoperability_getChainAccount: in load() function
-			 * 2. interoperability_getChainAccount: at the end of newBlockHandler()
 			 */
-			expect(receivingChainAPIClientMock.invoke).toHaveBeenCalledTimes(2);
+			expect(receivingChainAPIClientMock.invoke).toHaveBeenCalledTimes(1);
 
 			const savedCCMs = await chainConnectorPlugin['_chainConnectorStore'].getCrossChainMessages();
 
@@ -895,6 +911,7 @@ describe('ChainConnectorPlugin', () => {
 				.mockResolvedValue([
 					{
 						certificateThreshold: 5,
+						validatorsHash: cryptography.utils.getRandomBytes(54),
 					},
 				] as never);
 			blockHeader1 = testing.createFakeBlockHeader({ height: 5 }).toObject();
