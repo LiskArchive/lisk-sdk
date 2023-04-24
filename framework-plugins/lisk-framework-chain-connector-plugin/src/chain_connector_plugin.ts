@@ -240,12 +240,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 						`No valid CCU can be generated for the height: ${newBlockHeader.height}`,
 					);
 				}
-				// If the CCU was sent successfully then update the last certified height and do the cleanup
-				chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
-					'interoperability_getChainAccount',
-					{ chainID: this._ownChainID.toString('hex') },
-				);
-				this._lastCertificate = chainAccountDataJSONToObj(chainAccountJSON).lastCertificate;
 				await this._cleanup();
 			}
 		} catch (error) {
@@ -628,10 +622,18 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private async _deleteBlockHandler(data?: Record<string, unknown>) {
 		const { blockHeader: receivedBlock } = data as unknown as Data;
 
-		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock).toObject();
+		const deletedBlockHeader = chain.BlockHeader.fromJSON(receivedBlock).toObject();
+
+		// Delete ccmEvents for the height of blockHeader
+		const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
+		const indexForCCMEvents = crossChainMessages.findIndex(
+			ccm => ccm.height === deletedBlockHeader.height,
+		);
+		crossChainMessages.splice(indexForCCMEvents, 1);
+		await this._chainConnectorStore.setCrossChainMessages(crossChainMessages);
 
 		const findIndexByHeight = (someData: { height: number }[]): number =>
-			someData.findIndex(datum => datum.height === newBlockHeader.height);
+			someData.findIndex(datum => datum.height === deletedBlockHeader.height);
 
 		const blockHeaders = await this._chainConnectorStore.getBlockHeaders();
 		const blockHeaderIndex = findIndexByHeight(blockHeaders);
@@ -640,20 +642,31 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			await this._chainConnectorStore.setBlockHeaders(blockHeaders);
 		}
 
-		const aggregateCommits = await this._chainConnectorStore.getAggregateCommits();
-		const aggregateCommitIndex = findIndexByHeight(aggregateCommits);
-		if (aggregateCommitIndex !== -1) {
-			aggregateCommits.splice(aggregateCommitIndex, 1);
+		if (
+			!deletedBlockHeader.aggregateCommit.aggregationBits.equals(EMPTY_BYTES) ||
+			!deletedBlockHeader.aggregateCommit.certificateSignature.equals(EMPTY_BYTES)
+		) {
+			const aggregateCommits = await this._chainConnectorStore.getAggregateCommits();
+			const aggregateCommitIndex = aggregateCommits.findIndex(
+				commit => commit.height === deletedBlockHeader.aggregateCommit.height,
+			);
+			if (aggregateCommitIndex > -1) {
+				aggregateCommits.splice(aggregateCommitIndex, 1);
+			}
 			await this._chainConnectorStore.setAggregateCommits(aggregateCommits);
 		}
 
 		const validatorsHashPreimage = await this._chainConnectorStore.getValidatorsHashPreimage();
-		const validatorsHashPreimageIndex = validatorsHashPreimage.findIndex(v =>
-			v.validatorsHash.equals(newBlockHeader.validatorsHash),
+		const validatorsHashMap = blockHeaders.reduce((prev: Record<string, boolean>, curr) => {
+			// eslint-disable-next-line no-param-reassign
+			prev[curr.validatorsHash.toString('hex')] = true;
+			return prev;
+		}, {});
+		const updatedValidatorsHashPreimages = validatorsHashPreimage.filter(
+			vhp => validatorsHashMap[vhp.validatorsHash.toString('hex')],
 		);
-		if (validatorsHashPreimageIndex !== -1) {
-			validatorsHashPreimage.splice(validatorsHashPreimageIndex, 1);
-			await this._chainConnectorStore.setValidatorsHashPreimage(validatorsHashPreimage);
+		if (updatedValidatorsHashPreimages.length !== validatorsHashPreimage.length) {
+			await this._chainConnectorStore.setValidatorsHashPreimage(updatedValidatorsHashPreimages);
 		}
 	}
 
@@ -669,9 +682,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		// Delete blockHeaders
 		const blockHeaders = await this._chainConnectorStore.getBlockHeaders();
 
-		await this._chainConnectorStore.setBlockHeaders(
-			blockHeaders.filter(blockHeader => blockHeader.height >= this._lastCertificate.height),
+		const updatedBlockHeaders = blockHeaders.filter(
+			blockHeader => blockHeader.height >= this._lastCertificate.height,
 		);
+		await this._chainConnectorStore.setBlockHeaders(updatedBlockHeaders);
 
 		// Delete aggregateCommits
 		const aggregateCommits = await this._chainConnectorStore.getAggregateCommits();
@@ -683,13 +697,17 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		);
 		// Delete validatorsHashPreimage
 		const validatorsHashPreimage = await this._chainConnectorStore.getValidatorsHashPreimage();
-
-		await this._chainConnectorStore.setValidatorsHashPreimage(
-			validatorsHashPreimage.filter(
-				validatorsData =>
-					validatorsData.certificateThreshold >= BigInt(this._lastCertificate.height),
-			),
+		const validatorsHashMap = updatedBlockHeaders.reduce((prev: Record<string, boolean>, curr) => {
+			// eslint-disable-next-line no-param-reassign
+			prev[curr.validatorsHash.toString('hex')] = true;
+			return prev;
+		}, {});
+		const updatedValidatorsHashPreimages = validatorsHashPreimage.filter(
+			vhp => validatorsHashMap[vhp.validatorsHash.toString('hex')],
 		);
+		if (updatedValidatorsHashPreimages.length !== validatorsHashPreimage.length) {
+			await this._chainConnectorStore.setValidatorsHashPreimage(updatedValidatorsHashPreimages);
+		}
 		// Delete CCUs
 		// When given -1 then there is no limit
 		if (this._ccuSaveLimit !== -1) {
