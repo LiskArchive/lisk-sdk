@@ -1,0 +1,49 @@
+{
+	"system": {
+		"dataPath": "~/.lisk/pos-sidechain-example-one",
+		"keepEventsForHeights": 300,
+		"logLevel": "info"
+	},
+	"rpc": {
+		"modes": ["ipc"],
+		"port": 7885,
+		"host": "127.0.0.1"
+	},
+	"network": {
+		"version": "1.0",
+		"seedPeers": [],
+		"port": 7665
+	},
+	"transactionPool": {
+		"maxTransactions": 4096,
+		"maxTransactionsPerAccount": 64,
+		"transactionExpiryTime": 10800000,
+		"minEntranceFeePriority": "0",
+		"minReplacementFeeDifference": "10"
+	},
+	"genesis": {
+		"block": {
+			"fromFile": "./config/genesis_block.blob"
+		},
+		"blockTime": 10,
+		"bftBatchSize": 103,
+		"maxTransactionsSize": 15360,
+		"chainID": "04000001"
+	},
+	"generator": {
+		"keys": {
+			"fromFile": "./config/dev-validators.json"
+		}
+	},
+	"modules": {},
+	"plugins": {
+		"chainConnector": {
+			"receivingChainID": "04000000",
+			"encryptedPrivateKey": "kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=6b8bf721b8d7dd003f6650d7002682adbf5e636b2da7606d316b884dae498ac7c06871300fa446c5e3f98a4242b37652ff7c27c7a62993a633881e2f8882ecfeac12ffc0b398dd196702b6cbb01d4964cd0005b5377f6e7cddccb5bdbd7f9c8075fefbc20093a3c9660dba8d5297ad8e5942f5780d2ad4369b57c27f0f2e1693&mac=dc1974d410accb5c2a33c9353b9f065d1b9e6fbc4c2fb4294380537bc0984039&salt=9177658f87a35f6c040ea280503d0f49&iv=e27b84a0c554c65b029b54aa&tag=a5b776d56a579a39ac0aa0fbcfffdece&iterations=1&parallelism=4&memorySize=2024",
+			"password": "lisk",
+			"ccuFee": "500000000",
+			"receivingChainIPCPath": "~/.lisk/mainchain-node-one",
+			"registrationHeight": 10
+		}
+	}
+}

@@ -1,8 +1,8 @@
 {
-	"name": "pos-mainchain-fast",
+	"name": "pos-sidechain-example-two",
 	"version": "0.1.0",
-	"description": "POS mainchain application with small set of validators",
-	"author": "Lisk Foundation &lt;admin@lisk.com&gt;, lightcurve GmbH &lt;admin@lightcurve.io&gt;",
+	"description": "Lisk-SDK Application",
+	"author": "Lisk Foundation &amp;lt;admin@lisk.com&amp;gt;, lightcurve GmbH &amp;lt;admin@lightcurve.io&amp;gt;",
 	"license": "Apache-2.0",
 	"keywords": [
 		"blockchain",
@@ -34,13 +34,13 @@
 		"app": "./bin/run start --api-ipc --api-http --log debug --enable-chain-connector-plugin"
 	},
 	"bin": {
-		"pos-mainchain-fast": "./bin/run"
+		"pos-sidechain-example-two": "./bin/run"
 	},
 	"lisk": {
 		"addressPrefix": "lsk"
 	},
 	"oclif": {
-		"bin": "pos-mainchain-fast",
+		"bin": "pos-sidechain-example-two",
 		"commands": "./dist/commands",
 		"plugins": [
 			"@oclif/plugin-help",
@@ -56,40 +56,40 @@
 		"topicSeparator": " ",
 		"topics": {
 			"block": {
-				"description": "Commands relating to pos-mainchain-fast blocks."
+				"description": "Commands relating to pos-sidechain-example-two blocks."
 			},
 			"blockchain": {
-				"description": "Commands relating to pos-mainchain-fast blockchain data."
+				"description": "Commands relating to pos-sidechain-example-two blockchain data."
 			},
 			"console": {
-				"description": "pos-mainchain-fast interactive REPL session to run commands."
+				"description": "pos-sidechain-example-two interactive REPL session to run commands."
 			},
 			"config": {
-				"description": "Commands relating to pos-mainchain-fast node configuration."
+				"description": "Commands relating to pos-sidechain-example-two node configuration."
 			},
 			"keys": {
-				"description": "Commands relating to pos-mainchain-fast key generation."
+				"description": "Commands relating to pos-sidechain-example-two key generation."
 			},
 			"generator": {
-				"description": "Commands relating to pos-mainchain-fast block generator."
+				"description": "Commands relating to pos-sidechain-example-two block generator."
 			},
 			"hash-onion": {
 				"description": "Create hash onions to be used by the forger."
 			},
 			"system": {
-				"description": "Commands relating to pos-mainchain-fast node."
+				"description": "Commands relating to pos-sidechain-example-two node."
 			},
 			"passphrase": {
-				"description": "Commands relating to pos-mainchain-fast passphrases."
+				"description": "Commands relating to pos-sidechain-example-two passphrases."
 			},
 			"endpoint": {
-				"description": "Commands relating to pos-mainchain-fast endpoint."
+				"description": "Commands relating to pos-sidechain-example-two endpoint."
 			},
 			"sdk": {
 				"description": "Commands relating to Lisk SDK development."
 			},
 			"transaction": {
-				"description": "Commands relating to pos-mainchain-fast transactions."
+				"description": "Commands relating to pos-sidechain-example-two transactions."
 			}
 		}
 	},
@@ -148,6 +148,6 @@
 		"prettier": "2.8.0",
 		"ts-jest": "29.0.3",
 		"ts-node": "10.9.1",
-		"typescript": "4.9.3"
+		"typescript": "5.0.2"
 	}
 }

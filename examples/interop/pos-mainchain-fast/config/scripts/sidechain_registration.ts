@@ -5,60 +5,73 @@ import { sidechainRegParams } from 'lisk-framework';
 (async () => {
 	const { address } = cryptography;
 
-	const sidechainClient = await apiClient.createIPCClient('~/.lisk/pos-sidechain-fast');
-	const mainchainClient = await apiClient.createIPCClient('~/.lisk/pos-mainchain-fast');
+	const SIDECHAIN_ARRAY = ['one', 'two'];
+	let i = 0;
+	for (const nodeAlias of SIDECHAIN_ARRAY) {
+		const sidechainClient = await apiClient.createIPCClient(
+			`~/.lisk/pos-sidechain-example-${nodeAlias}`,
+		);
+		const mainchainClient = await apiClient.createIPCClient(`~/.lisk/mainchain-node-${nodeAlias}`);
 
-	const sidechainNodeInfo = await sidechainClient.invoke('system_getNodeInfo');
-	const mainchainNodeInfo = await mainchainClient.invoke('system_getNodeInfo');
-	// Get active validators from sidechainchain
-	const { validators: sidehcainActiveValidators, certificateThreshold } =
-		await sidechainClient.invoke('consensus_getBFTParameters', {
-			height: sidechainNodeInfo.height,
+		const sidechainNodeInfo = await sidechainClient.invoke('system_getNodeInfo');
+		const mainchainNodeInfo = await mainchainClient.invoke('system_getNodeInfo');
+		// Get active validators from sidechainchain
+		const { validators: sidehcainActiveValidators, certificateThreshold } =
+			await sidechainClient.invoke('consensus_getBFTParameters', {
+				height: sidechainNodeInfo.height,
+			});
+
+		(sidehcainActiveValidators as { blsKey: string; bftWeight: string }[]).sort((a, b) =>
+			Buffer.from(a.blsKey, 'hex').compare(Buffer.from(b.blsKey, 'hex')),
+		);
+
+		const params = {
+			sidechainCertificateThreshold: certificateThreshold,
+			sidechainValidators: sidehcainActiveValidators,
+			chainID: sidechainNodeInfo.chainID,
+			name: `sidechain_example_${nodeAlias}`,
+		};
+
+		const relayerkeyInfo = keys[2];
+		const { nonce } = await mainchainClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
+			address: address.getLisk32AddressFromPublicKey(Buffer.from(relayerkeyInfo.publicKey, 'hex')),
 		});
 
-	(sidehcainActiveValidators as { blsKey: string; bftWeight: string }[]).sort((a, b) =>
-		Buffer.from(a.blsKey, 'hex').compare(Buffer.from(b.blsKey, 'hex')),
-	);
+		const tx = new Transaction({
+			module: 'interoperability',
+			command: 'registerSidechain',
+			fee: BigInt(2000000000),
+			params: codec.encodeJSON(sidechainRegParams, params),
+			nonce: BigInt(nonce),
+			senderPublicKey: Buffer.from(relayerkeyInfo.publicKey, 'hex'),
+			signatures: [],
+		});
 
-	const params = {
-		sidechainCertificateThreshold: certificateThreshold,
-		sidechainValidators: sidehcainActiveValidators,
-		chainID: sidechainNodeInfo.chainID,
-		name: 'lisk_sidechain',
-	};
+		tx.sign(
+			Buffer.from(mainchainNodeInfo.chainID as string, 'hex'),
+			Buffer.from(relayerkeyInfo.privateKey, 'hex'),
+		);
 
-	const relayerkeyInfo = keys[0];
-	const { nonce } = await mainchainClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
-		address: address.getLisk32AddressFromPublicKey(Buffer.from(relayerkeyInfo.publicKey, 'hex')),
-	});
+		const result = await mainchainClient.invoke<{
+			transactionId: string;
+		}>('txpool_postTransaction', {
+			transaction: tx.getBytes().toString('hex'),
+		});
 
-	const tx = new Transaction({
-		module: 'interoperability',
-		command: 'registerSidechain',
-		fee: BigInt(2000000000),
-		params: codec.encodeJSON(sidechainRegParams, params),
-		nonce: BigInt(nonce),
-		senderPublicKey: Buffer.from(relayerkeyInfo.publicKey, 'hex'),
-		signatures: [],
-	});
+		console.log(
+			`Sent sidechain registration transaction on mainchain node ${nodeAlias}. Result from transaction pool is: `,
+			result,
+		);
+		i += 1;
 
-	tx.sign(
-		Buffer.from(mainchainNodeInfo.chainID as string, 'hex'),
-		Buffer.from(relayerkeyInfo.privateKey, 'hex'),
-	);
-
-	const result = await mainchainClient.invoke<{
-		transactionId: string;
-	}>('txpool_postTransaction', {
-		transaction: tx.getBytes().toString('hex'),
-	});
-
-	console.log('Sent sidechain registration transaction. Result from transaction pool is: ', result);
+		const wait = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+		if (i < SIDECHAIN_ARRAY.length) {
+			const WAIT_PERIOD = 10000;
+			console.log(`Waiting for ${WAIT_PERIOD} ms to send another sidechain registration`);
+			// Wait for 2 seconds before next registration
+			await wait(WAIT_PERIOD);
+		}
+	}
 
 	process.exit(0);
 })();
-
-/*
-    Alternatively you can use below command on command line to create transaction.
-    "./bin/run transaction:create interoperability registerMainchain 20000000 --pretty --passphrase="void erosion dynamic eye glory draft that year forward have pyramid lava lyrics tank nasty knee fresh kite grow garlic illegal level stage physical" -f ../../scripts/src/configs/mainchain_reg_params.json"
-*/
