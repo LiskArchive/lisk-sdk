@@ -51,7 +51,7 @@ export const calculateActiveValidatorsUpdate = (
 		validatorDataAtCertificate.certificateThreshold ===
 		validatorDataAtLastCertificate.certificateThreshold
 	) {
-		certificateThreshold = BigInt(0);
+		certificateThreshold = validatorDataAtLastCertificate.certificateThreshold;
 	} else {
 		certificateThreshold = validatorDataAtCertificate.certificateThreshold;
 	}
