@@ -627,7 +627,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		// Delete ccmEvents for the height of blockHeader
 		const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
 		const indexForCCMEvents = crossChainMessages.findIndex(
-			ccm => ccm.height >= deletedBlockHeader.height,
+			ccm => ccm.height === deletedBlockHeader.height,
 		);
 		crossChainMessages.splice(indexForCCMEvents, 1);
 		await this._chainConnectorStore.setCrossChainMessages(crossChainMessages);
@@ -657,20 +657,17 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 
 		const validatorsHashPreimage = await this._chainConnectorStore.getValidatorsHashPreimage();
-		const activeValidatorsHashes = validatorsHashPreimage.map(b => b.validatorsHash);
-		for (const validatorHash of activeValidatorsHashes) {
-			const doesValidatorsHashExist = blockHeaders.some(b =>
-				validatorHash.equals(b.validatorsHash),
-			);
-			if (!doesValidatorsHashExist) {
-				const indexOfValidatorHash = validatorsHashPreimage.findIndex(vHash =>
-					vHash.validatorsHash.equals(validatorHash),
-				);
-				validatorsHashPreimage.splice(indexOfValidatorHash, 1);
-			}
+		const validatorsHashMap = blockHeaders.reduce((prev: Record<string, boolean>, curr) => {
+			// eslint-disable-next-line no-param-reassign
+			prev[curr.validatorsHash.toString('hex')] = true;
+			return prev;
+		}, {});
+		const updatedValidatorsHashPreimages = validatorsHashPreimage.filter(
+			vhp => validatorsHashMap[vhp.validatorsHash.toString('hex')],
+		);
+		if (updatedValidatorsHashPreimages.length !== validatorsHashPreimage.length) {
+			await this._chainConnectorStore.setValidatorsHashPreimage(updatedValidatorsHashPreimages);
 		}
-
-		await this._chainConnectorStore.setValidatorsHashPreimage(validatorsHashPreimage);
 	}
 
 	private async _cleanup() {
@@ -700,21 +697,17 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		);
 		// Delete validatorsHashPreimage
 		const validatorsHashPreimage = await this._chainConnectorStore.getValidatorsHashPreimage();
-
-		const activeValidatorsHashes = validatorsHashPreimage.map(b => b.validatorsHash);
-		// Find validatorsHash that is not used in any blockHeaders and delete it
-		for (const validatorHash of activeValidatorsHashes) {
-			const doesValidatorsHashExist = updatedBlockHeaders.some(b =>
-				validatorHash.equals(b.validatorsHash),
-			);
-			if (!doesValidatorsHashExist) {
-				const indexOfValidatorHash = validatorsHashPreimage.findIndex(vHash =>
-					vHash.validatorsHash.equals(validatorHash),
-				);
-				validatorsHashPreimage.splice(indexOfValidatorHash, 1);
-			}
+		const validatorsHashMap = updatedBlockHeaders.reduce((prev: Record<string, boolean>, curr) => {
+			// eslint-disable-next-line no-param-reassign
+			prev[curr.validatorsHash.toString('hex')] = true;
+			return prev;
+		}, {});
+		const updatedValidatorsHashPreimages = validatorsHashPreimage.filter(
+			vhp => validatorsHashMap[vhp.validatorsHash.toString('hex')],
+		);
+		if (updatedValidatorsHashPreimages.length !== validatorsHashPreimage.length) {
+			await this._chainConnectorStore.setValidatorsHashPreimage(updatedValidatorsHashPreimages);
 		}
-		await this._chainConnectorStore.setValidatorsHashPreimage(validatorsHashPreimage);
 		// Delete CCUs
 		// When given -1 then there is no limit
 		if (this._ccuSaveLimit !== -1) {
