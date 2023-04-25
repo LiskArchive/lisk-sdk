@@ -175,6 +175,34 @@ describe('PosModuleEndpoint', () => {
 				expect(stakerDataReturned.pendingUnlocks[0].amount).toBeString();
 			});
 		});
+
+		describe('when staker address is invalid', () => {
+			it.each([
+				{
+					input: "lisk1'0",
+					expected: 'Address length does not match requirements. Expected 41 characters.',
+				},
+				{
+					input: 'invalidAddress',
+					expected: 'Address length does not match requirements. Expected 41 characters.',
+				},
+				{
+					input: '',
+					expected: 'Address length does not match requirements. Expected 41 characters.',
+				},
+			])(`should throw error when address is invalid`, async ({ input, expected }) => {
+				await expect(
+					posEndpoint.getStaker(
+						createTransientModuleEndpointContext({
+							stateStore,
+							params: {
+								address: input,
+							},
+						}),
+					),
+				).rejects.toThrow(expected);
+			});
+		});
 	});
 
 	describe('getValidator', () => {
@@ -226,6 +254,34 @@ describe('PosModuleEndpoint', () => {
 
 				expect(validatorDataReturned.totalStake).toBeString();
 				expect(validatorDataReturned.selfStake).toBeString();
+			});
+		});
+
+		describe('when validator address is invalid', () => {
+			it.each([
+				{
+					input: "lisk1'0",
+					expected: 'Address length does not match requirements. Expected 41 characters.',
+				},
+				{
+					input: 'invalidAddress',
+					expected: 'Address length does not match requirements. Expected 41 characters.',
+				},
+				{
+					input: '',
+					expected: 'Address length does not match requirements. Expected 41 characters.',
+				},
+			])(`should throw error when address is invalid`, async ({ input, expected }) => {
+				await expect(
+					posEndpoint.getStaker(
+						createTransientModuleEndpointContext({
+							stateStore,
+							params: {
+								address: input,
+							},
+						}),
+					),
+				).rejects.toThrow(expected);
 			});
 		});
 	});
