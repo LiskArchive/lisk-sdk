@@ -43,17 +43,9 @@ describe('genesis creation', () => {
 				})),
 				chainID,
 			});
-			expect(genesisBlock.assets.toJSON().map(a => a.module)).toEqual([
-				'interoperability',
-				'pos',
-				'token',
-			]);
-			expect(
-				genesisBlock.assets
-					.toJSON()
-					.map(a => a.data)
-					.every(d => typeof d === 'string'),
-			).toBe(true);
+			const assetsJSON = genesisBlock.assets.toJSON();
+			expect(assetsJSON.map(a => a.module)).toEqual(['interoperability', 'pos', 'token']);
+			expect(assetsJSON.map(a => a.data).every(d => typeof d === 'string')).toBe(true);
 		});
 	});
 });
