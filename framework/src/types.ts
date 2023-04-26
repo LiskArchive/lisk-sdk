@@ -64,6 +64,7 @@ export interface GenesisConfig {
 	maxTransactionsSize: number;
 	blockTime: number;
 	bftBatchSize: number;
+	minimumCertifyHeight: number;
 }
 
 export interface TransactionPoolConfig {

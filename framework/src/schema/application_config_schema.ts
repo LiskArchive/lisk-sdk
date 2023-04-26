@@ -255,6 +255,11 @@ export const applicationConfigSchema = {
 					maximum: 30 * 1024, // Kilo Bytes
 					description: 'Maximum number of transactions allowed per block',
 				},
+				minimumCertifyHeight: {
+					type: 'integer',
+					minimum: 0,
+					description: 'Minimum block height which can be certified',
+				},
 			},
 			additionalProperties: false,
 		},
@@ -321,6 +326,7 @@ export const applicationConfigSchema = {
 			blockTime: 10,
 			bftBatchSize: 103,
 			maxTransactionsSize: 15 * 1024, // Kilo Bytes
+			minimumCertifyHeight: 0,
 		},
 		generator: {
 			keys: {},
