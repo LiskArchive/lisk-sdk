@@ -291,7 +291,7 @@ describe('token module', () => {
 			);
 		});
 
-		it('should reject if supply exceed max balance', async () => {
+		it('should reject if supply exceeds maximum range allowed', async () => {
 			await expect(
 				method.mint(
 					methodContext,
