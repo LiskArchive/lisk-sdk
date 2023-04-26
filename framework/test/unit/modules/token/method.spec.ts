@@ -237,22 +237,41 @@ describe('token module', () => {
 		const tokenID = Buffer.concat([ownChainID, Buffer.alloc(4, 255)]);
 
 		it('should reject if token is not native', async () => {
-			await expect(
-				method.initializeToken(methodContext, Buffer.from([2, 0, 0, 0, 0, 0, 0, 0])),
-			).rejects.toThrow('Only native token can be initialized');
+			try {
+				await method.initializeToken(methodContext, Buffer.from([2, 0, 0, 0, 0, 0, 0, 0]));
+				checkEventResult(
+					methodContext.eventQueue,
+					InitializeTokenEvent,
+					TokenEventResult.TOKEN_ID_NOT_NATIVE,
+				);
+			} catch (e: any) {
+				expect(e.message).toBe('Only native token can be initialized.');
+				checkEventResult(
+					methodContext.eventQueue,
+					InitializeTokenEvent,
+					TokenEventResult.TOKEN_ID_NOT_NATIVE,
+				);
+			}
 		});
 
 		it('should reject if there is no available local ID', async () => {
-			const supplyStore = tokenModule.stores.get(SupplyStore);
-			await supplyStore.set(methodContext, tokenID, {
-				totalSupply: defaultTotalSupply,
-			});
-			await expect(method.initializeToken(methodContext, tokenID)).rejects.toThrow(
-				'The specified token ID is not available',
-			);
+			try {
+				const supplyStore = tokenModule.stores.get(SupplyStore);
+				await supplyStore.set(methodContext, tokenID, {
+					totalSupply: defaultTotalSupply,
+				});
+				await method.initializeToken(methodContext, tokenID);
+			} catch (e: any) {
+				expect(e.message).toBe('The specified token ID is not available.');
+				checkEventResult(
+					methodContext.eventQueue,
+					InitializeTokenEvent,
+					TokenEventResult.TOKEN_ID_NOT_AVAILABLE,
+				);
+			}
 		});
 
-		it('log initialize token event', async () => {
+		it('logs initialize token event', async () => {
 			await method.initializeToken(methodContext, tokenID);
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 			checkEventResult(methodContext.eventQueue, InitializeTokenEvent, TokenEventResult.SUCCESSFUL);
