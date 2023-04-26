@@ -1241,4 +1241,14 @@ describe('token module', () => {
 			).resolves.toBeTrue();
 		});
 	});
+
+	describe('isTokenIDAvailable', () => {
+		it('should return true if provided tokenID exists in SupplyStore', async () => {
+			await expect(method.isTokenSupported(methodContext, defaultTokenID)).resolves.toBeTrue();
+		});
+
+		it('should return false if provided tokenID does not exist in SupplyStore', async () => {
+			await expect(method.isTokenSupported(methodContext, Buffer.alloc(8, 1))).resolves.toBeFalse();
+		});
+	});
 });
