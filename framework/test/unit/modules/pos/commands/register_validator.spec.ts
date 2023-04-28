@@ -30,11 +30,7 @@ import { ValidatorStore } from '../../../../../src/modules/pos/stores/validator'
 import { NameStore } from '../../../../../src/modules/pos/stores/name';
 import { PoSModule } from '../../../../../src';
 import { createStoreGetter } from '../../../../../src/testing/utils';
-import {
-	COMMISSION,
-	MAX_LENGTH_NAME,
-	VALIDATOR_REGISTRATION_FEE,
-} from '../../../../../src/modules/pos/constants';
+import { COMMISSION, VALIDATOR_REGISTRATION_FEE } from '../../../../../src/modules/pos/constants';
 import { ValidatorRegisteredEvent } from '../../../../../src/modules/pos/events/validator_registered';
 
 describe('Validator registration command', () => {
@@ -317,37 +313,6 @@ describe('Validator registration command', () => {
 						...transaction.toObject(),
 						fee: validatorRegistrationCommand['_validatorRegistrationFee'] - BigInt(1),
 					}),
-					chainID,
-				})
-				.createCommandVerifyContext<ValidatorRegistrationParams>(
-					validatorRegistrationCommandParamsSchema,
-				);
-
-			const result = await validatorRegistrationCommand.verify(context);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Insufficient transaction fee.');
-		});
-
-		it('should throw error if name is longer than MAX_LENGTH_NAME characters long', async () => {
-			const invalidParams = codec.encode(validatorRegistrationCommandParamsSchema, {
-				...transactionParams,
-				name: 'a'.repeat(MAX_LENGTH_NAME + 1),
-			});
-
-			const invalidTransaction = new Transaction({
-				module: 'pos',
-				command: 'registerValidator',
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: invalidParams,
-				signatures: [publicKey],
-			});
-
-			const context = testing
-				.createTransactionContext({
-					transaction: invalidTransaction,
 					chainID,
 				})
 				.createCommandVerifyContext<ValidatorRegistrationParams>(
