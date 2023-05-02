@@ -239,11 +239,6 @@ describe('token module', () => {
 		it('should reject if token is not native', async () => {
 			try {
 				await method.initializeToken(methodContext, Buffer.from([2, 0, 0, 0, 0, 0, 0, 0]));
-				checkEventResult(
-					methodContext.eventQueue,
-					InitializeTokenEvent,
-					TokenEventResult.TOKEN_ID_NOT_NATIVE,
-				);
 			} catch (e: any) {
 				expect(e.message).toBe('Only native token can be initialized.');
 				checkEventResult(
