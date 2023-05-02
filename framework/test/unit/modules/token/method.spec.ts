@@ -237,22 +237,36 @@ describe('token module', () => {
 		const tokenID = Buffer.concat([ownChainID, Buffer.alloc(4, 255)]);
 
 		it('should reject if token is not native', async () => {
-			await expect(
-				method.initializeToken(methodContext, Buffer.from([2, 0, 0, 0, 0, 0, 0, 0])),
-			).rejects.toThrow('Only native token can be initialized');
+			try {
+				await method.initializeToken(methodContext, Buffer.from([2, 0, 0, 0, 0, 0, 0, 0]));
+			} catch (e: any) {
+				expect(e.message).toBe('Only native token can be initialized.');
+				checkEventResult(
+					methodContext.eventQueue,
+					InitializeTokenEvent,
+					TokenEventResult.TOKEN_ID_NOT_NATIVE,
+				);
+			}
 		});
 
 		it('should reject if there is no available local ID', async () => {
-			const supplyStore = tokenModule.stores.get(SupplyStore);
-			await supplyStore.set(methodContext, tokenID, {
-				totalSupply: defaultTotalSupply,
-			});
-			await expect(method.initializeToken(methodContext, tokenID)).rejects.toThrow(
-				'The specified token ID is not available',
-			);
+			try {
+				const supplyStore = tokenModule.stores.get(SupplyStore);
+				await supplyStore.set(methodContext, tokenID, {
+					totalSupply: defaultTotalSupply,
+				});
+				await method.initializeToken(methodContext, tokenID);
+			} catch (e: any) {
+				expect(e.message).toBe('The specified token ID is not available.');
+				checkEventResult(
+					methodContext.eventQueue,
+					InitializeTokenEvent,
+					TokenEventResult.TOKEN_ID_NOT_AVAILABLE,
+				);
+			}
 		});
 
-		it('log initialize token event', async () => {
+		it('logs initialize token event', async () => {
 			await method.initializeToken(methodContext, tokenID);
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 			checkEventResult(methodContext.eventQueue, InitializeTokenEvent, TokenEventResult.SUCCESSFUL);
@@ -291,7 +305,7 @@ describe('token module', () => {
 			);
 		});
 
-		it('should reject if supply exceed max balance', async () => {
+		it('should reject if supply exceeds maximum range allowed', async () => {
 			await expect(
 				method.mint(
 					methodContext,
@@ -1132,8 +1146,10 @@ describe('token module', () => {
 
 	describe('supportAllTokens', () => {
 		it('should call support all token', async () => {
+			const supportAllSpy = jest.spyOn(tokenModule.stores.get(SupportedTokensStore), 'supportAll');
 			await expect(method.supportAllTokens(methodContext)).resolves.toBeUndefined();
 
+			expect(supportAllSpy).toHaveBeenCalledOnce();
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
 				new AllTokensSupportedEvent('token').name,
@@ -1143,9 +1159,13 @@ describe('token module', () => {
 
 	describe('removeAllTokensSupport', () => {
 		it('should call remove support all token', async () => {
-			await tokenModule.stores.get(SupportedTokensStore).supportAll(methodContext);
+			const supportedTokensStore = tokenModule.stores.get(SupportedTokensStore);
+
+			await supportedTokensStore.supportAll(methodContext);
+			const removeAllSpy = jest.spyOn(supportedTokensStore, 'removeAll');
 			await expect(method.removeAllTokensSupport(methodContext)).resolves.toBeUndefined();
 
+			expect(removeAllSpy).toHaveBeenCalledOnce();
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
 				new AllTokensSupportRemovedEvent('token').name,
@@ -1155,10 +1175,15 @@ describe('token module', () => {
 
 	describe('supportAllTokensFromChainID', () => {
 		it('should call support chain', async () => {
+			const supportChainSpy = jest.spyOn(
+				tokenModule.stores.get(SupportedTokensStore),
+				'supportChain',
+			);
 			await expect(
 				method.supportAllTokensFromChainID(methodContext, Buffer.from([1, 2, 3, 4])),
 			).resolves.toBeUndefined();
 
+			expect(supportChainSpy).toHaveBeenCalledOnce();
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
 				new AllTokensFromChainSupportedEvent('token').name,
@@ -1168,6 +1193,8 @@ describe('token module', () => {
 
 	describe('removeAllTokensSupportFromChainID', () => {
 		it('should call remove support from chain', async () => {
+			const supportedTokenStore = tokenModule.stores.get(SupportedTokensStore);
+			const removeSupportForChainSpy = jest.spyOn(supportedTokenStore, 'removeSupportForChain');
 			await tokenModule.stores
 				.get(SupportedTokensStore)
 				.supportChain(methodContext, Buffer.from([1, 2, 3, 4]));
@@ -1175,6 +1202,7 @@ describe('token module', () => {
 				method.removeAllTokensSupportFromChainID(methodContext, Buffer.from([1, 2, 3, 4])),
 			).resolves.toBeUndefined();
 
+			expect(removeSupportForChainSpy).toHaveBeenCalledOnce();
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
 				new AllTokensFromChainSupportRemovedEvent('token').name,
@@ -1184,10 +1212,15 @@ describe('token module', () => {
 
 	describe('supportTokenID', () => {
 		it('should call support token', async () => {
+			const supportTokenSpy = jest.spyOn(
+				tokenModule.stores.get(SupportedTokensStore),
+				'supportToken',
+			);
 			await expect(
 				method.supportTokenID(methodContext, Buffer.from([1, 2, 3, 4, 0, 0, 0, 0])),
 			).resolves.toBeUndefined();
 
+			expect(supportTokenSpy).toHaveBeenCalledOnce();
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
 				new TokenIDSupportedEvent('token').name,
@@ -1197,13 +1230,14 @@ describe('token module', () => {
 
 	describe('removeSupportTokenID', () => {
 		it('should call remove support for token', async () => {
-			await tokenModule.stores
-				.get(SupportedTokensStore)
-				.supportToken(methodContext, Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]));
+			const supportedTokensStore = tokenModule.stores.get(SupportedTokensStore);
+			await supportedTokensStore.supportToken(methodContext, Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]));
+			const removeSupportForTokenSpy = jest.spyOn(supportedTokensStore, 'removeSupportForToken');
 			await expect(
 				method.removeSupportTokenID(methodContext, Buffer.from([1, 2, 3, 4, 0, 0, 0, 0])),
 			).resolves.toBeUndefined();
 
+			expect(removeSupportForTokenSpy).toHaveBeenCalledOnce();
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
 				new TokenIDSupportRemovedEvent('token').name,
@@ -1239,6 +1273,16 @@ describe('token module', () => {
 			await expect(
 				method.escrowSubstoreExists(methodContext, escrowChainID, defaultTokenID),
 			).resolves.toBeTrue();
+		});
+	});
+
+	describe('isTokenIDAvailable', () => {
+		it('should return true if provided tokenID exists in SupplyStore', async () => {
+			await expect(method.isTokenSupported(methodContext, defaultTokenID)).resolves.toBeTrue();
+		});
+
+		it('should return false if provided tokenID does not exist in SupplyStore', async () => {
+			await expect(method.isTokenSupported(methodContext, Buffer.alloc(8, 1))).resolves.toBeFalse();
 		});
 	});
 });
