@@ -338,18 +338,6 @@ describe('CCTransfer command', () => {
 				},
 			);
 
-			await userStore.save(
-				insufficientBalanceContext.createCommandExecuteContext<Params>(
-					crossChainTransferParamsSchema,
-				),
-				insufficientBalanceContext.transaction.senderAddress,
-				messageFeeTokenID,
-				{
-					availableBalance: amount,
-					lockedBalances: [],
-				},
-			);
-
 			expectSchemaValidationError(
 				await command.verify(
 					insufficientBalanceContext.createCommandVerifyContext(crossChainTransferParamsSchema),
