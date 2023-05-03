@@ -415,7 +415,7 @@ describe('Register Multisignature command', () => {
 			authStore = authModule.stores.get(AuthAccountStore);
 		});
 
-		it('should not throw when registering for first time', async () => {
+		it('should not throw when registering for the first time', async () => {
 			await authStore.set(
 				{
 					getStore: (storePrefix: Buffer, substorePrefix: Buffer) =>
@@ -460,7 +460,7 @@ describe('Register Multisignature command', () => {
 			);
 		});
 
-		it('should throw when incorrect signature', async () => {
+		it('should throw when the signature is incorrect', async () => {
 			const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
 			const multiSignatureTx = Transaction.fromBytes(buffer);
 			const multiSignatureTxDecodedParams = codec.decode<RegisterMultisignatureParams>(
