@@ -211,13 +211,17 @@ export class CommitPool {
 			return false;
 		}
 
+		// The heights of aggregate commits must be at least MIN_CERTIFY_HEIGHT.
+		if (aggregateCommit.height < this._minCertifyHeight) {
+			return false;
+		}
+
 		try {
 			let heightNextBFTParameters = await this._bftMethod.getNextHeightBFTParameters(
 				stateStore,
 				maxHeightCertified + 1,
 			);
-
-			heightNextBFTParameters = Math.max(heightNextBFTParameters, this._minCertifyHeight);
+			heightNextBFTParameters = Math.max(heightNextBFTParameters, this._minCertifyHeight + 1);
 
 			if (aggregateCommit.height > heightNextBFTParameters - 1) {
 				return false;
@@ -311,16 +315,16 @@ export class CommitPool {
 				methodContext,
 				maxHeightCertified + 1,
 			);
+			heightNextBFTParameters = Math.max(heightNextBFTParameters, this._minCertifyHeight + 1);
 			nextHeight = Math.min(heightNextBFTParameters - 1, maxHeightPrecommitted);
-			nextHeight = Math.max(nextHeight, this._minCertifyHeight - 1);
 		} catch (err) {
 			if (!(err instanceof BFTParameterNotFoundError)) {
 				throw err;
 			}
 			nextHeight = maxHeightPrecommitted;
 		}
-
-		while (nextHeight > maxHeightCertified) {
+		const certifyUptoHeight = Math.max(maxHeightCertified, this._minCertifyHeight - 1);
+		while (nextHeight > certifyUptoHeight) {
 			const singleCommits = [
 				...this._nonGossipedCommits.getByHeight(nextHeight),
 				...this._nonGossipedCommitsLocal.getByHeight(nextHeight),

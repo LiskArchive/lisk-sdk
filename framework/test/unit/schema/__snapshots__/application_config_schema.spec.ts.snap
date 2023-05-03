@@ -15,7 +15,7 @@ exports[`schema/application_config_schema.js application config schema must matc
       },
       "blockTime": 10,
       "maxTransactionsSize": 15360,
-      "minimumCertifyHeight": 0,
+      "minimumCertifyHeight": 1,
     },
     "legacy": {
       "brackets": [],

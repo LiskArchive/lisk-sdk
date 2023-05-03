@@ -924,8 +924,16 @@ describe('CommitPool', () => {
 			expect(isCommitVerified).toBeTrue();
 		});
 
-		it('should return true when heightNextBFTParameters is low, but minCertifyHeight is set', async () => {
+		it('should return false when aggregate commit height is lower than minCertifyHeight', async () => {
 			(commitPool['_minCertifyHeight'] as any) = height + 1;
+
+			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
+
+			expect(isCommitVerified).toBeFalse();
+		});
+
+		it('should return true when heightNextBFTParameters is low, but minCertifyHeight is set', async () => {
+			(commitPool['_minCertifyHeight'] as any) = height;
 			bftMethod.getBFTHeights.mockReturnValue({
 				maxHeightCertified: 0,
 				maxHeightPrecommitted,
@@ -1406,7 +1414,7 @@ describe('CommitPool', () => {
 		it('should certify the minCertifyHeight even when heightNextBFTParameters is lower', async () => {
 			// Arrange
 			bftMethod.getNextHeightBFTParameters.mockResolvedValue(309);
-			(commitPool['_minCertifyHeight'] as any) = heightNextBFTParameters;
+			(commitPool['_minCertifyHeight'] as any) = heightNextBFTParameters - 1;
 
 			// Act
 			await commitPool['_selectAggregateCommit'](stateStore);

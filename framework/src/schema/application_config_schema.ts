@@ -326,7 +326,7 @@ export const applicationConfigSchema = {
 			blockTime: 10,
 			bftBatchSize: 103,
 			maxTransactionsSize: 15 * 1024, // Kilo Bytes
-			minimumCertifyHeight: 0,
+			minimumCertifyHeight: 1,
 		},
 		generator: {
 			keys: {},
