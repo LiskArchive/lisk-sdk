@@ -96,6 +96,12 @@ describe('SupportedTokensStore', () => {
 				store.isSupported(context, Buffer.from([1, 1, 1, 1, 0, 0, 0, 0])),
 			).resolves.toBeTrue();
 		});
+
+		it('should return true if all tokens are supported', async () => {
+			await store.allSupported(context);
+
+			await expect(store.isSupported(context, Buffer.alloc(8))).resolves.toBeTrue();
+		});
 	});
 
 	describe('supportAll', () => {
