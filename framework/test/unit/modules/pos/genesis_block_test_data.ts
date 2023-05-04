@@ -750,4 +750,51 @@ export const invalidAssets: any[] = [
 		},
 		'Init validators is greater than number of active validators',
 	],
+	[
+		'when genesis block initValidators contains more validators than round length',
+		{
+			validators,
+			stakers: [
+				{
+					address: validators[0].address,
+					stakes: [
+						{
+							validatorAddress: validators[0].address,
+							amount: BigInt(1000) * BigInt(100000000),
+							sharingCoefficients: [],
+						},
+					],
+					pendingUnlocks: [
+						{
+							validatorAddress: validators[0].address,
+							amount: BigInt(10) * BigInt(100000000),
+							unstakeHeight: 0,
+						},
+					],
+				},
+				{
+					address: validators[1].address,
+					stakes: [
+						{
+							validatorAddress: validators[0].address,
+							amount: BigInt(1000) * BigInt(100000000),
+							sharingCoefficients: [],
+						},
+					],
+					pendingUnlocks: [
+						{
+							validatorAddress: validators[0].address,
+							amount: BigInt(10) * BigInt(100000000),
+							unstakeHeight: 0,
+						},
+					],
+				},
+			],
+			genesisData: {
+				initRounds: 3,
+				initValidators: validators.slice(0, 105).map(v => v.address),
+			},
+		},
+		'Init validators is greater than number of active validators 101.',
+	],
 ];
