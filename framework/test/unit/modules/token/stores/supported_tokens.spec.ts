@@ -98,7 +98,7 @@ describe('SupportedTokensStore', () => {
 		});
 
 		it('should return true if all tokens are supported', async () => {
-			await store.allSupported(context);
+			await store.supportAll(context);
 
 			await expect(store.isSupported(context, Buffer.alloc(8))).resolves.toBeTrue();
 		});
@@ -152,7 +152,13 @@ describe('SupportedTokensStore', () => {
 		});
 
 		it('should insert data with empty list', async () => {
-			await store.supportChain(context, Buffer.from([2, 0, 0, 0]));
+			const chainID = Buffer.from([2, 0, 0, 0]);
+
+			await store.supportChain(context, chainID);
+
+			const supportedChainStoreData = await store.get(context, chainID);
+
+			expect(supportedChainStoreData.supportedTokenIDs).toEqual([]);
 
 			await expect(
 				store.isSupported(context, Buffer.from([2, 0, 0, 0, 0, 0, 0, 0])),
