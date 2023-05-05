@@ -264,12 +264,14 @@ describe('SupportedTokensStore', () => {
 
 	describe('removeSupportForToken', () => {
 		it('should reject if chain is native', async () => {
-			await store.set(context, Buffer.from([1, 1, 1, 1]), {
-				supportedTokenIDs: [Buffer.from([1, 1, 1, 1, 0, 0, 0, 0])],
-			});
-
 			await expect(
 				store.removeSupportForToken(context, Buffer.concat([ownChainID, Buffer.alloc(4)])),
+			).rejects.toThrow('Cannot remove support for LSK or native token.');
+		});
+
+		it('should reject if token is LSK', async () => {
+			await expect(
+				store.removeSupportForToken(context, Buffer.from([1, 0, 0, 0, 0, 0, 0, 0])),
 			).rejects.toThrow('Cannot remove support for LSK or native token.');
 		});
 
