@@ -24,27 +24,34 @@ import { VerifyStatus } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { AuthModule } from '../../../../src/modules/auth';
-import { AuthAccountStore } from '../../../../src/modules/auth/stores/auth_account';
+import { AuthAccount, AuthAccountStore } from '../../../../src/modules/auth/stores/auth_account';
 import { InvalidSignatureEvent } from '../../../../src/modules/auth/events/invalid_signature';
 import { MultisignatureRegistrationEvent } from '../../../../src/modules/auth/events/multisignature_registration';
 
 describe('Register Multisignature command', () => {
 	let registerMultisignatureCommand: RegisterMultisignatureCommand;
 	let stateStore: PrefixedStateReadWriter;
-	let authStore: AuthAccountStore;
+	let authAccountStore: AuthAccountStore;
 	let transaction: Transaction;
 	let decodedParams: RegisterMultisignatureParams;
 
 	const authModule = new AuthModule();
 	const defaultTestCase = fixtures.testCases[0];
 	const chainID = Buffer.from(defaultTestCase.input.chainID, 'hex');
+	const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
+
+	const defaultAuthAccount: AuthAccount = {
+		optionalKeys: [],
+		mandatoryKeys: [],
+		numberOfSignatures: 0,
+		nonce: BigInt(0),
+	};
 
 	beforeEach(() => {
 		registerMultisignatureCommand = new RegisterMultisignatureCommand(
 			authModule.stores,
 			authModule.events,
 		);
-		const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
 		transaction = Transaction.fromBytes(buffer);
 		decodedParams = codec.decode<RegisterMultisignatureParams>(
 			registerMultisignatureParamsSchema,
@@ -412,23 +419,10 @@ describe('Register Multisignature command', () => {
 
 		beforeEach(() => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			authStore = authModule.stores.get(AuthAccountStore);
+			authAccountStore = authModule.stores.get(AuthAccountStore);
 		});
 
-		it('should not throw when registering for the first time', async () => {
-			await authStore.set(
-				{
-					getStore: (storePrefix: Buffer, substorePrefix: Buffer) =>
-						stateStore.getStore(storePrefix, substorePrefix),
-				},
-				transaction.senderAddress,
-				{
-					optionalKeys: [],
-					mandatoryKeys: [],
-					numberOfSignatures: 0,
-					nonce: BigInt(0),
-				},
-			);
+		it('should not throw when registering for the first time and signatures are valid', async () => {
 			const context = testing
 				.createTransactionContext({
 					stateStore,
@@ -439,16 +433,18 @@ describe('Register Multisignature command', () => {
 					registerMultisignatureParamsSchema,
 				);
 
-			context.eventQueue = eventQueueMock;
+			await authAccountStore.set(context, transaction.senderAddress, defaultAuthAccount);
 
+			context.eventQueue = eventQueueMock;
 			jest.spyOn(authModule.events.get(MultisignatureRegistrationEvent), 'log');
 
 			await expect(registerMultisignatureCommand.execute(context)).resolves.toBeUndefined();
-			const updatedStore = authModule.stores.get(AuthAccountStore);
-			const updatedData = await updatedStore.get(context, transaction.senderAddress);
-			expect(updatedData.numberOfSignatures).toBe(decodedParams.numberOfSignatures);
-			expect(updatedData.mandatoryKeys).toEqual(decodedParams.mandatoryKeys);
-			expect(updatedData.optionalKeys).toEqual(decodedParams.optionalKeys);
+
+			const authAccount = await authAccountStore.get(context, transaction.senderAddress);
+
+			expect(authAccount.numberOfSignatures).toBe(decodedParams.numberOfSignatures);
+			expect(authAccount.mandatoryKeys).toEqual(decodedParams.mandatoryKeys);
+			expect(authAccount.optionalKeys).toEqual(decodedParams.optionalKeys);
 			expect(authModule.events.get(MultisignatureRegistrationEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
 				transaction.senderAddress,
@@ -461,22 +457,12 @@ describe('Register Multisignature command', () => {
 		});
 
 		it('should throw when the signature is incorrect', async () => {
-			const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
-			const multiSignatureTx = Transaction.fromBytes(buffer);
-			const multiSignatureTxDecodedParams = codec.decode<RegisterMultisignatureParams>(
-				registerMultisignatureParamsSchema,
-				multiSignatureTx.params,
-			);
 			const invalidSignature = utils.getRandomBytes(64);
-			multiSignatureTxDecodedParams.signatures[0] = invalidSignature;
+			decodedParams.signatures[0] = invalidSignature;
 
-			const paramsBytes = codec.encode(
-				registerMultisignatureParamsSchema,
-				multiSignatureTxDecodedParams,
-			);
 			const invalidTransaction = new Transaction({
-				...multiSignatureTx.toObject(),
-				params: paramsBytes,
+				...transaction.toObject(),
+				params: codec.encode(registerMultisignatureParamsSchema, decodedParams),
 			});
 
 			const context = testing
@@ -489,16 +475,10 @@ describe('Register Multisignature command', () => {
 					registerMultisignatureParamsSchema,
 				);
 
-			await authStore.set(context, transaction.senderAddress, {
-				optionalKeys: [],
-				mandatoryKeys: [],
-				numberOfSignatures: 0,
-				nonce: BigInt(0),
-			});
-
+			await authAccountStore.set(context, transaction.senderAddress, defaultAuthAccount);
 			context.eventQueue = eventQueueMock;
-
 			jest.spyOn(authModule.events.get(InvalidSignatureEvent), 'error');
+
 			await expect(registerMultisignatureCommand.execute(context)).rejects.toThrow(
 				`Invalid signature for public key ${context.params.mandatoryKeys[0].toString('hex')}.`,
 			);
