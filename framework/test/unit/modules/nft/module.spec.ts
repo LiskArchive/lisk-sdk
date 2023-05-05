@@ -11,4 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-describe('nft module', () => {});
+describe('nft module', () => {
+	it('should be implemented', () => {
+		expect(true).toBeTrue();
+	});
+});
