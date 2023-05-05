@@ -295,7 +295,7 @@ describe('SupportedTokensStore', () => {
 			await expect(store.has(context, Buffer.from([1, 1, 1, 1]))).resolves.toBeFalse();
 		});
 
-		it('should remove data if the tokenID and keep other supported tokens', async () => {
+		it('should remove supported tokenID and keep other supported tokens', async () => {
 			const tokenID = Buffer.from([1, 1, 1, 1, 1, 0, 0, 0]);
 			await store.set(context, Buffer.from([1, 1, 1, 1]), {
 				supportedTokenIDs: [
@@ -313,6 +313,24 @@ describe('SupportedTokensStore', () => {
 					Buffer.from([1, 1, 1, 1, 1, 0, 0, 1]),
 				],
 			});
+		});
+
+		it('should not modify supported tokens store if a token that is not supported is removed', async () => {
+			const chainID = Buffer.from([1, 1, 1, 1]);
+			const notSupportedToken = Buffer.concat([chainID, Buffer.from([1, 0, 0, 0])]);
+
+			const supportedTokensStoreState = {
+				supportedTokenIDs: [
+					Buffer.concat([chainID, Buffer.from([0, 0, 1, 1])]),
+					Buffer.concat([chainID, Buffer.from([1, 0, 1, 1])]),
+				],
+			};
+
+			await store.set(context, chainID, supportedTokensStoreState);
+
+			await store.removeSupportForToken(context, notSupportedToken);
+
+			await expect(store.get(context, chainID)).resolves.toEqual(supportedTokensStoreState);
 		});
 
 		it('should return undefined if support does not exist', async () => {
