@@ -100,6 +100,16 @@ export class UsedHashOnionsStore extends BaseOffchainStore<UsedHashOnionStoreObj
 
 		if (index === -1) {
 			originalUsedHashOnions.push(usedHashOnion);
+			// if newly inserted entry has count 0, then cleanup previous entries
+			if (usedHashOnion.count === 0) {
+				const newUsedHashonions = [usedHashOnion];
+				await this.set(
+					ctx,
+					address,
+					this._filterUsedHashOnions(newUsedHashonions, finalizedHeight),
+				);
+				return;
+			}
 		} else {
 			// eslint-disable-next-line no-param-reassign
 			originalUsedHashOnions[index] = usedHashOnion;
