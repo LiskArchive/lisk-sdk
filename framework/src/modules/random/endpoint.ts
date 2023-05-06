@@ -141,24 +141,24 @@ export class RandomEndpoint extends BaseEndpoint {
 		const seed = hashOnion.hashes[hashOnion.hashes.length - 1].toString('hex');
 
 		const usedHashOnionStore = this.offchainStores.get(UsedHashOnionsStore);
-		const usedHashOnion = await usedHashOnionStore.getLatest(ctx, address);
+		const usedHashOnion = await usedHashOnionStore.get(ctx, address);
 		if (!usedHashOnion) {
 			return {
-				count: 0,
-				height: 0,
+				usedHashOnions: [{ count: 0, height: 0 }],
 				seed,
 			};
 		}
 
-		return { height: usedHashOnion.height, count: usedHashOnion.count, seed };
+		return { usedHashOnions: usedHashOnion.usedHashOnions, seed };
 	}
 
 	public async setHashOnionUsage(ctx: ModuleEndpointContext): Promise<void> {
 		validator.validate<SetHashOnionUsageRequest>(setHashOnionUsageRequest, ctx.params);
-		const { count, height } = ctx.params;
-		const address = cryptography.address.getAddressFromLisk32Address(ctx.params.address);
+
+		const { address, usedHashOnions } = ctx.params;
+		const generatorAddress = cryptography.address.getAddressFromLisk32Address(address);
 
 		const usedHashOnionStore = this.offchainStores.get(UsedHashOnionsStore);
-		await usedHashOnionStore.set(ctx, address, { usedHashOnions: [{ count, height }] });
+		await usedHashOnionStore.set(ctx, generatorAddress, { usedHashOnions });
 	}
 }
