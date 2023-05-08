@@ -369,7 +369,7 @@ export const invalidGenesisAssets = [
 				{
 					chainID: Buffer.from([0, 0, 0, 4]),
 					supportedTokenIDs: [
-						Buffer.from([0, 0, 0, 4, 0, 0, 0, 0]),
+						Buffer.from([0, 0, 0, 4, 0, 0, 0, 1]),
 						Buffer.from([0, 0, 0, 4, 0, 0, 0, 0]),
 					],
 				},
