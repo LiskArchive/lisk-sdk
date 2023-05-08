@@ -64,6 +64,22 @@ export const validGenesisAssets = [['Valid genesis asset', validData]];
 
 export const invalidGenesisAssets = [
 	[
+		'minimum token id length not satisfied',
+		{
+			...validData,
+			userSubstore: [
+				{
+					address: Buffer.alloc(20, 0),
+					tokenID: Buffer.from([9, 0, 0]),
+					availableBalance: oneUnit,
+					lockedBalances: [{ module: 'pos', amount: oneUnit }],
+				},
+				...validData.userSubstore.slice(1),
+			],
+		},
+		"tokenID' minLength not satisfied",
+	],
+	[
 		'Invalid address length',
 		{
 			...validData,
@@ -80,7 +96,7 @@ export const invalidGenesisAssets = [
 		".address' address length invalid",
 	],
 	[
-		'Invalid token id length',
+		'maximum token id length',
 		{
 			...validData,
 			userSubstore: [
