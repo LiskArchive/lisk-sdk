@@ -315,6 +315,24 @@ describe('token endpoint', () => {
 	});
 
 	describe('isSupported', () => {
+		it('should return true for a native token', async () => {
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { tokenID: nativeTokenID.toString('hex') },
+			});
+
+			expect(await endpoint.isSupported(moduleEndpointContext)).toEqual({ supported: true });
+		});
+
+		it('should return true for LSK', async () => {
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: { tokenID: mainChainTokenID.toString('hex') },
+			});
+
+			expect(await endpoint.isSupported(moduleEndpointContext)).toEqual({ supported: true });
+		});
+
 		it('should return true for a supported token', async () => {
 			await supportedTokensStore.set(methodContext, foreignChainID, {
 				supportedTokenIDs: supportedForeignChainTokenIDs,
