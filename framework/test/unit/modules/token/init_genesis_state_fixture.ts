@@ -264,6 +264,66 @@ export const invalidGenesisAssets = [
 		'SupplySubstore must be sorted by tokenID',
 	],
 	[
+		'escrowChainID minimum length not satisified for escrowSubstore',
+		{
+			...validData,
+			escrowSubstore: [
+				...validData.escrowSubstore,
+				{
+					escrowChainID: Buffer.from([0, 0, 0]),
+					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 1, 0]),
+					amount: oneUnit,
+				},
+			],
+		},
+		".escrowChainID' minLength not satisfied",
+	],
+	[
+		'escrowChainID maximum length not exceeded for escrowSubstore',
+		{
+			...validData,
+			escrowSubstore: [
+				...validData.escrowSubstore,
+				{
+					escrowChainID: Buffer.from([0, 0, 0, 0, 0]),
+					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 1, 0]),
+					amount: oneUnit,
+				},
+			],
+		},
+		".escrowChainID' maxLength exceeded",
+	],
+	[
+		'tokenID minimum length not satisfied for escrowSubstore',
+		{
+			...validData,
+			escrowSubstore: [
+				...validData.escrowSubstore,
+				{
+					escrowChainID: Buffer.from([0, 0, 0, 0, 0]),
+					tokenID: Buffer.from([0, 0, 0, 0, 0]),
+					amount: oneUnit,
+				},
+			],
+		},
+		".tokenID' minLength not satisfied",
+	],
+	[
+		'tokenID maximum length exceeded for escrowSubstore',
+		{
+			...validData,
+			escrowSubstore: [
+				...validData.escrowSubstore,
+				{
+					escrowChainID: Buffer.from([0, 0, 0, 0, 0]),
+					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+					amount: oneUnit,
+				},
+			],
+		},
+		".tokenID' maxLength exceeded",
+	],
+	[
 		'Duplicate escrow store',
 		{
 			...validData,
