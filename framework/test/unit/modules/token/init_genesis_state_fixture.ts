@@ -209,7 +209,7 @@ export const invalidGenesisAssets = [
 				},
 			],
 		},
-		'minLength not satisfied',
+		"tokenID' minLength not satisfied",
 	],
 	[
 		'maximum tokenID length for supplyStore',
@@ -223,7 +223,7 @@ export const invalidGenesisAssets = [
 				},
 			],
 		},
-		'maxLength exceeded',
+		"tokenID' maxLength exceeded",
 	],
 	[
 		'Duplicate supply store',
