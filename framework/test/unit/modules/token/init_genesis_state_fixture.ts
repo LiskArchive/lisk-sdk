@@ -198,6 +198,34 @@ export const invalidGenesisAssets = [
 		'has empty data',
 	],
 	[
+		'minimum tokenID length not satisfied for supplyStore',
+		{
+			...validData,
+			supplySubstore: [
+				...validData.supplySubstore,
+				{
+					tokenID: Buffer.alloc(1, 0),
+					totalSupply: oneUnit * BigInt(2),
+				},
+			],
+		},
+		'minLength not satisfied',
+	],
+	[
+		'maximum tokenID length for supplyStore',
+		{
+			...validData,
+			supplySubstore: [
+				...validData.supplySubstore,
+				{
+					tokenID: Buffer.alloc(10, 0),
+					totalSupply: oneUnit * BigInt(2),
+				},
+			],
+		},
+		'maxLength exceeded',
+	],
+	[
 		'Duplicate supply store',
 		{
 			...validData,
