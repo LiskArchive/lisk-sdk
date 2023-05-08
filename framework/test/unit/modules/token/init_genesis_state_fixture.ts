@@ -421,6 +421,58 @@ export const invalidGenesisAssets = [
 		'Stored total supply is non zero but cannot be computed',
 	],
 	[
+		'chainID minLength not satisfied for supportedTOkensSubstore',
+		{
+			...validData,
+			supportedTokensSubstore: [
+				{
+					chainID: Buffer.from([0, 0]),
+					supportedTokenIDs: [],
+				},
+			],
+		},
+		"chainID' minLength not satisfied",
+	],
+	[
+		'chainID maxLength exceeded for supportedTOkensSubstore',
+		{
+			...validData,
+			supportedTokensSubstore: [
+				{
+					chainID: Buffer.from([0, 0, 0, 0, 0]),
+					supportedTokenIDs: [],
+				},
+			],
+		},
+		"chainID' maxLength exceeded",
+	],
+	[
+		'tokenID minLength not satisfied for supportedTOkensSubstore',
+		{
+			...validData,
+			supportedTokensSubstore: [
+				{
+					chainID: Buffer.from([0, 0, 0, 2]),
+					supportedTokenIDs: [Buffer.from([1, 0])],
+				},
+			],
+		},
+		"supportedTokenIDs.0' minLength not satisfied",
+	],
+	[
+		'tokenID maxLength exceeded for supportedTOkensSubstore',
+		{
+			...validData,
+			supportedTokensSubstore: [
+				{
+					chainID: Buffer.from([0, 0, 0, 2]),
+					supportedTokenIDs: [Buffer.from([1, 0, 0, 0, 0, 0, 0, 0, 0])],
+				},
+			],
+		},
+		"supportedTokenIDs.0' maxLength exceeded",
+	],
+	[
 		'Supported tokens store has duplicate chainID on supported ID',
 		{
 			...validData,
