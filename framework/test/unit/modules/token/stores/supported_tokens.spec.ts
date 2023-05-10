@@ -315,7 +315,7 @@ describe('SupportedTokensStore', () => {
 			});
 		});
 
-		it('should not modify supported tokens store if a token that is not supported is removed', async () => {
+		it('should not modify supported tokens store if a token that is not supported is the input', async () => {
 			const chainID = Buffer.from([1, 1, 1, 1]);
 			const notSupportedToken = Buffer.concat([chainID, Buffer.from([1, 0, 0, 0])]);
 
