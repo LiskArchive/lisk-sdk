@@ -234,6 +234,7 @@ export class Consensus {
 			) {
 				throw new Error('Genesis block validators hash is invalid');
 			}
+			await this._verifyValidatorsHash(stateStore, args.genesisBlock);
 			await this._verifyEventRoot(args.genesisBlock, genesisEvents);
 
 			const batch = new Batch();
