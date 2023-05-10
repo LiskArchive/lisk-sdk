@@ -108,18 +108,17 @@ export const getHashOnionUsageResponse = {
 	properties: {
 		usedHashOnions: {
 			type: 'array',
-			fieldNumber: 1,
 			items: {
 				type: 'object',
 				required: ['count', 'height'],
 				properties: {
 					count: {
-						dataType: 'uint32',
-						fieldNumber: 1,
+						type: 'integer',
+						format: 'uint32',
 					},
 					height: {
-						dataType: 'uint32',
-						fieldNumber: 2,
+						type: 'integer',
+						format: 'uint32',
 					},
 				},
 			},
@@ -127,7 +126,6 @@ export const getHashOnionUsageResponse = {
 		seed: {
 			type: 'string',
 			format: 'hex',
-			fieldNumber: 2,
 		},
 	},
 };
@@ -144,23 +142,21 @@ export const setHashOnionUsageRequest = {
 		address: {
 			type: 'string',
 			format: 'lisk32',
-			fieldNumber: 1,
 		},
 		usedHashOnions: {
 			type: 'array',
-			fieldNumber: 2,
 			items: {
 				type: 'object',
 				required: ['count', 'height'],
 				properties: {
 					count: {
-						dataType: 'uint32',
-						fieldNumber: 1,
+						type: 'integer',
+						format: 'uint32',
 						minimum: 1,
 					},
 					height: {
-						dataType: 'uint32',
-						fieldNumber: 2,
+						type: 'integer',
+						format: 'uint32',
 					},
 				},
 			},

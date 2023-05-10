@@ -540,7 +540,7 @@ describe('RandomModuleEndpoint', () => {
 
 			// Act & Assert
 			await expect(randomEndpoint.setHashOnionUsage(context)).rejects.toThrow(
-				'Lisk validator found 1 error[s]:\nProperty \'.usedHashOnions.0.count\' should pass "dataType" keyword validation',
+				"Lisk validator found 2 error[s]:\nProperty '.usedHashOnions.0.count' should be of type 'integer'\nProperty '.usedHashOnions.0.count' must match format \"uint32\"",
 			);
 		});
 
@@ -555,7 +555,7 @@ describe('RandomModuleEndpoint', () => {
 
 			// Act & Assert
 			await expect(randomEndpoint.setHashOnionUsage(context)).rejects.toThrow(
-				'Lisk validator found 1 error[s]:\nProperty \'.usedHashOnions.0.height\' should pass "dataType" keyword validation',
+				"Lisk validator found 2 error[s]:\nProperty '.usedHashOnions.0.height' should be of type 'integer'\nProperty '.usedHashOnions.0.height' must match format \"uint32\"",
 			);
 		});
 

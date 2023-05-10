@@ -14,6 +14,7 @@
 
 import { validator } from '@liskhq/lisk-validator';
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { NotFoundError } from '@liskhq/lisk-db';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { ADDRESS_LENGTH, EMPTY_KEY } from './constants';
@@ -33,7 +34,7 @@ import {
 import { ValidatorRevealsStore } from './stores/validator_reveals';
 import { getSeedRevealValidity } from './utils';
 import { HashOnionStore } from './stores/hash_onion';
-import { UsedHashOnionsStore } from './stores/used_hash_onions';
+import { UsedHashOnionStoreObject, UsedHashOnionsStore } from './stores/used_hash_onions';
 
 export class RandomEndpoint extends BaseEndpoint {
 	public async isSeedRevealValid(ctx: ModuleEndpointContext): Promise<{ valid: boolean }> {
@@ -141,12 +142,18 @@ export class RandomEndpoint extends BaseEndpoint {
 		const seed = hashOnion.hashes[hashOnion.hashes.length - 1].toString('hex');
 
 		const usedHashOnionStore = this.offchainStores.get(UsedHashOnionsStore);
-		const usedHashOnion = await usedHashOnionStore.get(ctx, address);
-		if (!usedHashOnion) {
-			return {
-				usedHashOnions: [{ count: 0, height: 0 }],
-				seed,
-			};
+
+		let usedHashOnion: UsedHashOnionStoreObject;
+		try {
+			usedHashOnion = await usedHashOnionStore.get(ctx, address);
+		} catch (error) {
+			if (error instanceof NotFoundError) {
+				return {
+					usedHashOnions: [{ count: 0, height: 0 }],
+					seed,
+				};
+			}
+			throw error;
 		}
 
 		return { usedHashOnions: usedHashOnion.usedHashOnions, seed };
