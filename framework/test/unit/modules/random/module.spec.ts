@@ -261,7 +261,7 @@ describe('RandomModule', () => {
 
 		const targetValidatorAddress = address.getAddressFromLisk32Address(targetValidator.address);
 
-		it('should assign seed reveal to block header asset and update the used hash onion', async () => {
+		it('should assign seed reveal to block header asset, update and overwrite the used hash onion when forging the same height', async () => {
 			// Arrange
 			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
 				assets: assetStub,
@@ -276,65 +276,6 @@ describe('RandomModule', () => {
 			await randomModule.offchainStores
 				.get(UsedHashOnionsStore)
 				.set(blockGenerateContext, targetValidatorAddress, defaultUsedHashOnion);
-
-			const seed = targetValidator.hashOnion.hashes[1];
-			const hashes = utils.hashOnion(
-				Buffer.from(seed, 'hex'),
-				targetValidator.hashOnion.distance,
-				1,
-			);
-
-			// Act
-			await randomModule.init({
-				genesisConfig: {} as GenesisConfig,
-				moduleConfig: {},
-			});
-			await randomModule.insertAssets(blockGenerateContext);
-
-			// Assert
-			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
-			expect(assetStub.setAsset).toHaveBeenCalledWith(
-				randomModule.name,
-				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
-			);
-			await expect(
-				randomModule.offchainStores
-					.get(UsedHashOnionsStore)
-					.get(blockGenerateContext, targetValidatorAddress),
-			).resolves.toEqual(defaultUsedHashOnionUpdated);
-		});
-
-		it('should overwrite the used hash onion when forging the same height', async () => {
-			// Arrange
-			const usedHashOnionInput: UsedHashOnionStoreObject = {
-				usedHashOnions: [
-					{
-						count: 5,
-						height: 9,
-					},
-					{
-						count: 6,
-						height: 12,
-					},
-					{
-						count: 7,
-						height: 15,
-					},
-				],
-			};
-
-			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
-				assets: assetStub,
-				logger: testing.mocks.loggerMock,
-				chainID: defaultChainID,
-				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
-				getMethodContext: jest.fn() as any,
-				getStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: targetValidatorAddress } as any,
-			});
-			await randomModule.offchainStores
-				.get(UsedHashOnionsStore)
-				.set(blockGenerateContext, targetValidatorAddress, usedHashOnionInput);
 
 			const seed = targetValidator.hashOnion.hashes[1];
 			const hashes = utils.hashOnion(
