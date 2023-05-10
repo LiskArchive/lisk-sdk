@@ -248,6 +248,15 @@ describe('block_header', () => {
 				);
 			});
 
+			it('should throw error if maxHeightGenerated is not zero', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({ ...block, maxHeightGenerated: 10 });
+
+				expect(() => blockHeader.validateGenesis()).toThrow(
+					'Genesis block header maxHeightGenerated must equal 0',
+				);
+			});
+
 			it('should throw error if maxHeightPrevoted is not equal to header.height', () => {
 				const block = getGenesisBlockAttrs();
 				const blockHeader = new BlockHeader({ ...block, maxHeightPrevoted: 10 });
@@ -293,6 +302,18 @@ describe('block_header', () => {
 
 				expect(() => blockHeader.validateGenesis()).toThrow(
 					'Genesis block header aggregateCommit.aggregationBits must be empty bytes',
+				);
+			});
+
+			it('should throw error if impliesMaxPrevotes is false', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({
+					...block,
+					impliesMaxPrevotes: false,
+				});
+
+				expect(() => blockHeader.validateGenesis()).toThrow(
+					'Genesis block header impliesMaxPrevotes must be true',
 				);
 			});
 
