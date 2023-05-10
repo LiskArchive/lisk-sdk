@@ -127,7 +127,7 @@ exports[`schema/application_config_schema.js application config schema must matc
         },
         "minimumCertifyHeight": {
           "description": "Minimum block height which can be certified",
-          "minimum": 0,
+          "minimum": 1,
           "type": "integer",
         },
       },

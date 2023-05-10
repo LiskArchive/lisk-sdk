@@ -257,7 +257,7 @@ export const applicationConfigSchema = {
 				},
 				minimumCertifyHeight: {
 					type: 'integer',
-					minimum: 0,
+					minimum: 1,
 					description: 'Minimum block height which can be certified',
 				},
 			},
