@@ -1411,9 +1411,37 @@ describe('CommitPool', () => {
 			});
 		});
 
-		it('should certify the minCertifyHeight even when heightNextBFTParameters is lower', async () => {
+		it('should certify the singleCommit1 when nextBFTParameter is lower and minCertifyHeight is the same as singleCommit1', async () => {
 			// Arrange
 			bftMethod.getNextHeightBFTParameters.mockResolvedValue(309);
+			(commitPool['_minCertifyHeight'] as any) = singleCommit1.height;
+
+			// Act
+			await commitPool['_selectAggregateCommit'](stateStore);
+
+			// Assert
+			expect(commitPool['aggregateSingleCommits']).toHaveBeenCalledWith(stateStore, [
+				singleCommit1,
+			]);
+		});
+
+		it('should certify the singleCommit2 even when heightNextBFTParameters is lower than minCerfifyHeight', async () => {
+			// Arrange
+			bftMethod.getNextHeightBFTParameters.mockResolvedValue(heightNextBFTParameters - 1);
+			(commitPool['_minCertifyHeight'] as any) = heightNextBFTParameters - 1;
+
+			// Act
+			await commitPool['_selectAggregateCommit'](stateStore);
+
+			// Assert
+			expect(commitPool['aggregateSingleCommits']).toHaveBeenCalledWith(stateStore, [
+				singleCommit2,
+			]);
+		});
+
+		it('should certify the singleCommit2 even when heightNextBFTParameters is equal to minCerfifyHeight', async () => {
+			// Arrange
+			bftMethod.getNextHeightBFTParameters.mockResolvedValue(heightNextBFTParameters - 1);
 			(commitPool['_minCertifyHeight'] as any) = heightNextBFTParameters - 1;
 
 			// Act
