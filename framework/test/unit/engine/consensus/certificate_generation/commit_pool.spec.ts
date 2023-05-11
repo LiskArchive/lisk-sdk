@@ -1427,7 +1427,7 @@ describe('CommitPool', () => {
 
 		it('should certify the singleCommit2 even when heightNextBFTParameters is lower than minCerfifyHeight', async () => {
 			// Arrange
-			bftMethod.getNextHeightBFTParameters.mockResolvedValue(heightNextBFTParameters - 1);
+			bftMethod.getNextHeightBFTParameters.mockResolvedValue(heightNextBFTParameters - 2);
 			(commitPool['_minCertifyHeight'] as any) = heightNextBFTParameters - 1;
 
 			// Act
