@@ -211,7 +211,7 @@ export class CommitPool {
 			return false;
 		}
 
-		// The heights of aggregate commits must be at least MIN_CERTIFY_HEIGHT.
+		// The heights of aggregate commits must be greater than or equal to MIN_CERTIFY_HEIGHT.
 		if (aggregateCommit.height < this._minCertifyHeight) {
 			return false;
 		}
