@@ -762,14 +762,14 @@ describe('consensus', () => {
 					const invalidBlock = { ...block };
 					(invalidBlock.header as any).height = consensus['_chain'].lastBlock.header.height;
 
-					expect(() => consensus['_verifyAssetsHeight'](invalidBlock as any)).toThrow(
+					expect(() => consensus['_verifyBlockHeight'](invalidBlock as any)).toThrow(
 						`Invalid height ${
 							invalidBlock.header.height
 						} of the block with id: ${invalidBlock.header.id.toString('hex')}`,
 					);
 				});
 				it('should be success when block has [height===lastBlock.height+1]', () => {
-					expect(consensus['_verifyAssetsHeight'](block as any)).toBeUndefined();
+					expect(consensus['_verifyBlockHeight'](block as any)).toBeUndefined();
 				});
 			});
 
@@ -887,7 +887,7 @@ describe('consensus', () => {
 						} as never);
 
 					await expect(
-						consensus['_verifyAssetsSignature'](stateStore, block as any),
+						consensus['_verifyBlockSignature'](stateStore, block as any),
 					).rejects.toThrow(
 						`Invalid signature ${block.header.signature.toString(
 							'hex',
@@ -917,7 +917,7 @@ describe('consensus', () => {
 						} as never);
 
 					await expect(
-						consensus['_verifyAssetsSignature'](stateStore, validBlock as any),
+						consensus['_verifyBlockSignature'](stateStore, validBlock as any),
 					).resolves.toBeUndefined();
 				});
 			});

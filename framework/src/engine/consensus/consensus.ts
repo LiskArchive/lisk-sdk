@@ -661,11 +661,11 @@ export class Consensus {
 		const stateStore = new StateStore(this._db);
 
 		this._verifyTimestamp(block);
-		this._verifyAssetsHeight(block);
+		this._verifyBlockHeight(block);
 		this._verifyPreviousBlockID(block);
 		await this._verifyGeneratorAddress(stateStore, block);
 		await this._verifyBFTProperties(stateStore, block);
-		await this._verifyAssetsSignature(stateStore, block);
+		await this._verifyBlockSignature(stateStore, block);
 		await this._verifyAggregateCommit(stateStore, block);
 	}
 
@@ -706,7 +706,7 @@ export class Consensus {
 		}
 	}
 
-	private _verifyAssetsHeight(block: Block): void {
+	private _verifyBlockHeight(block: Block): void {
 		const { lastBlock } = this._chain;
 
 		if (block.header.height !== lastBlock.header.height + 1) {
@@ -772,7 +772,7 @@ export class Consensus {
 		}
 	}
 
-	private async _verifyAssetsSignature(stateStore: StateStore, block: Block): Promise<void> {
+	private async _verifyBlockSignature(stateStore: StateStore, block: Block): Promise<void> {
 		const bftParams = await this._bft.method.getBFTParameters(stateStore, block.header.height);
 		const generator = bftParams.validators.find(validator =>
 			validator.address.equals(block.header.generatorAddress),
