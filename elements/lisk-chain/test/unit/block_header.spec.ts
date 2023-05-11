@@ -224,7 +224,7 @@ describe('block_header', () => {
 				);
 			});
 
-			it('should throw error if generatorAddress is zero bytes', () => {
+			it('should throw error if generatorAddress is not zero bytes', () => {
 				const block = getGenesisBlockAttrs();
 				const blockHeader = new BlockHeader({
 					...block,
