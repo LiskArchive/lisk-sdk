@@ -734,9 +734,12 @@ describe('consensus', () => {
 				it('should throw error when block timestamp is from future', () => {
 					const invalidBlock = { ...block };
 
-					jest.spyOn(bft.method, 'getSlotNumber').mockReturnValue(Math.floor(Date.now() / 10));
-
-					(invalidBlock.header as any).timestamp = Math.floor((Date.now() + 10000) / 1000);
+					jest
+						.spyOn(bft.method, 'getSlotNumber')
+						// return blockSlotNumber in the future
+						.mockReturnValueOnce(Math.floor(Date.now() / 1000 / 10) + 10000)
+						// return blockSlotNumber for the currrent value
+						.mockReturnValueOnce(Math.floor(Date.now() / 1000 / 10));
 
 					expect(() => consensus['_verifyTimestamp'](invalidBlock as any)).toThrow(
 						`Invalid timestamp ${
@@ -872,6 +875,20 @@ describe('consensus', () => {
 					);
 				});
 
+				it('should throw error if the header impliesMaxPrevotes is not the same as the computed value', async () => {
+					when(consensus['_bft'].method.getBFTHeights as never)
+						.calledWith(stateStore)
+						.mockResolvedValue({ maxHeightPrevoted: block.header.maxHeightPrevoted } as never);
+
+					when(consensus['_bft'].method.impliesMaximalPrevotes as never)
+						.calledWith(stateStore, block.header)
+						.mockResolvedValue(false as never);
+
+					await expect(consensus['_verifyBFTProperties'](stateStore, block as any)).rejects.toThrow(
+						'Invalid imply max prevote',
+					);
+				});
+
 				it('should be success if maxHeightPrevoted is valid and header is not contradicting', async () => {
 					when(consensus['_bft'].method.getBFTHeights as never)
 						.calledWith(stateStore)
@@ -880,6 +897,10 @@ describe('consensus', () => {
 					when(consensus['_bft'].method.isHeaderContradictingChain as never)
 						.calledWith(stateStore, block.header)
 						.mockResolvedValue(false as never);
+
+					when(consensus['_bft'].method.impliesMaximalPrevotes as never)
+						.calledWith(stateStore, block.header)
+						.mockResolvedValue(true as never);
 
 					await expect(
 						consensus['_verifyBFTProperties'](stateStore, block as any),

@@ -13,20 +13,25 @@
  */
 import { utils } from '@liskhq/lisk-cryptography';
 import { Transaction } from '../../src/transaction';
+import { TRANSACTION_MAX_PARAMS_SIZE } from '../../src/constants';
 
 describe('blocks/transactions', () => {
-	describe('transaction', () => {
-		it.todo('should have id');
-		it.todo('should have senderAddress');
-		it.todo('should throw when module is invalid');
-		it.todo('should throw when command is invalid');
-		it.todo('should throw when sender public key is invalid');
-		it.todo('should throw when nonce is invalid');
-		it.todo('should throw when fee is invalid');
-		it.todo('should throw when params is invalid');
-	});
 	describe('#validateTransaction', () => {
 		let transaction: Transaction;
+
+		it('should not throw transaction is valid', () => {
+			transaction = new Transaction({
+				module: 'token',
+				command: 'transfer',
+				fee: BigInt(613000),
+				// 126 is the size of other properties
+				params: utils.getRandomBytes(TRANSACTION_MAX_PARAMS_SIZE),
+				nonce: BigInt(2),
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [utils.getRandomBytes(64)],
+			});
+			expect(() => transaction.validate()).not.toThrow();
+		});
 
 		it('should throw when module name is invalid', () => {
 			transaction = new Transaction({
@@ -52,6 +57,20 @@ describe('blocks/transactions', () => {
 				signatures: [utils.getRandomBytes(64)],
 			});
 			expect(() => transaction.validate()).toThrow('Invalid command name');
+		});
+
+		it('should throw when transaction is too big', () => {
+			transaction = new Transaction({
+				module: 'token',
+				command: 'transfer',
+				fee: BigInt(613000),
+				// 126 is the size of other properties
+				params: utils.getRandomBytes(TRANSACTION_MAX_PARAMS_SIZE + 1),
+				nonce: BigInt(2),
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [utils.getRandomBytes(64)],
+			});
+			expect(() => transaction.validate()).toThrow('Params exceeds max size allowed');
 		});
 
 		it('should throw when sender public key is not 32 bytes', () => {
