@@ -232,7 +232,7 @@ describe('block_header', () => {
 				});
 
 				expect(() => blockHeader.validateGenesis()).toThrow(
-					'Genesis block header generator address must be empty bytes',
+					'Genesis block header generator address must only contain zero bytes',
 				);
 			});
 

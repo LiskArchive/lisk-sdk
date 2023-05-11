@@ -213,7 +213,7 @@ export class BlockHeader {
 
 		if (!header.generatorAddress.equals(Buffer.alloc(LENGTH_ADDRESS))) {
 			errors.push({
-				message: 'Genesis block header generator address must be empty bytes',
+				message: 'Genesis block header generator address must only contain zero bytes',
 				keyword: 'const',
 				dataPath: 'header.generatorAddress',
 				schemaPath: 'properties.generatorAddress',
