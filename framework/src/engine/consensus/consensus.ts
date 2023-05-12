@@ -147,6 +147,7 @@ export class Consensus {
 		this._commitPool = new CommitPool({
 			db: this._db,
 			blockTime: this._genesisConfig.blockTime,
+			minCertifyHeight: this._genesisConfig.minimumCertifyHeight,
 			bftMethod: this._bft.method,
 			chain: this._chain,
 			network: this._network,
@@ -234,6 +235,7 @@ export class Consensus {
 			) {
 				throw new Error('Genesis block validators hash is invalid');
 			}
+			await this._verifyValidatorsHash(stateStore, args.genesisBlock);
 			await this._verifyEventRoot(args.genesisBlock, genesisEvents);
 
 			const batch = new Batch();

@@ -40,6 +40,7 @@ export class CommitPool {
 	private readonly _gossipedCommits: CommitList;
 	private readonly _blockTime: number;
 	private readonly _bftMethod: BFTMethod;
+	private readonly _minCertifyHeight: number;
 	private readonly _chain: Chain;
 	private readonly _network: Network;
 	private readonly _db: Database;
@@ -56,6 +57,7 @@ export class CommitPool {
 	public constructor(config: CommitPoolConfig) {
 		this._blockTime = config.blockTime;
 		this._bftMethod = config.bftMethod;
+		this._minCertifyHeight = config.minCertifyHeight;
 		this._chain = config.chain;
 		this._network = config.network;
 		this._db = config.db;
@@ -209,11 +211,17 @@ export class CommitPool {
 			return false;
 		}
 
+		// The heights of aggregate commits must be greater than or equal to MIN_CERTIFY_HEIGHT.
+		if (aggregateCommit.height < this._minCertifyHeight) {
+			return false;
+		}
+
 		try {
-			const heightNextBFTParameters = await this._bftMethod.getNextHeightBFTParameters(
+			let heightNextBFTParameters = await this._bftMethod.getNextHeightBFTParameters(
 				stateStore,
 				maxHeightCertified + 1,
 			);
+			heightNextBFTParameters = Math.max(heightNextBFTParameters, this._minCertifyHeight + 1);
 
 			if (aggregateCommit.height > heightNextBFTParameters - 1) {
 				return false;
@@ -307,6 +315,7 @@ export class CommitPool {
 				methodContext,
 				maxHeightCertified + 1,
 			);
+			heightNextBFTParameters = Math.max(heightNextBFTParameters, this._minCertifyHeight + 1);
 			nextHeight = Math.min(heightNextBFTParameters - 1, maxHeightPrecommitted);
 		} catch (err) {
 			if (!(err instanceof BFTParameterNotFoundError)) {
@@ -314,8 +323,8 @@ export class CommitPool {
 			}
 			nextHeight = maxHeightPrecommitted;
 		}
-
-		while (nextHeight > maxHeightCertified) {
+		const certifyUptoHeight = Math.max(maxHeightCertified, this._minCertifyHeight - 1);
+		while (nextHeight > certifyUptoHeight) {
 			const singleCommits = [
 				...this._nonGossipedCommits.getByHeight(nextHeight),
 				...this._nonGossipedCommitsLocal.getByHeight(nextHeight),

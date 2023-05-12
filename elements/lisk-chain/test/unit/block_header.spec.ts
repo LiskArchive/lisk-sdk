@@ -224,6 +224,18 @@ describe('block_header', () => {
 				);
 			});
 
+			it('should throw error if generatorAddress is not zero bytes', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({
+					...block,
+					generatorAddress: utils.getRandomBytes(20),
+				});
+
+				expect(() => blockHeader.validateGenesis()).toThrow(
+					'Genesis block header generator address must only contain zero bytes',
+				);
+			});
+
 			it('should throw error if transactionRoot is not empty hash', () => {
 				const block = getGenesisBlockAttrs();
 				const blockHeader = new BlockHeader({

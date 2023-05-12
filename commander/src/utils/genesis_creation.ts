@@ -16,6 +16,8 @@
 import { Schema } from '@liskhq/lisk-codec';
 import { address } from '@liskhq/lisk-cryptography';
 import {
+	genesisInteroperabilitySchema,
+	MODULE_NAME_INTEROPERABILITY,
 	posGenesisStoreSchema,
 	PoSModule,
 	tokenGenesisStoreSchema,
@@ -132,6 +134,17 @@ export const generateGenesisBlockDefaultPoSAssets = (input: GenesisBlockDefaultA
 				},
 			} as Record<string, unknown>,
 			schema: posGenesisStoreSchema,
+		},
+		{
+			module: MODULE_NAME_INTEROPERABILITY,
+			data: {
+				ownChainName: '',
+				ownChainNonce: 0,
+				chainInfos: [],
+				terminatedStateAccounts: [],
+				terminatedOutboxAccounts: [],
+			},
+			schema: genesisInteroperabilitySchema,
 		},
 	];
 
