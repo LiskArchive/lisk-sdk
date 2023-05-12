@@ -41,6 +41,7 @@ export interface SingleCommit {
 export interface CommitPoolConfig {
 	readonly network: Network;
 	readonly blockTime: number;
+	readonly minCertifyHeight: number;
 	readonly bftMethod: BFTMethod;
 	readonly chain: Chain;
 	readonly db: Database;
