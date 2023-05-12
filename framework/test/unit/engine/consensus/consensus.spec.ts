@@ -704,6 +704,14 @@ describe('consensus', () => {
 				expect(savingEvents).toHaveLength(3);
 				savingEvents.forEach((e: Event, i: number) => expect(e.toObject().index).toEqual(i));
 			});
+
+			it('should reject when ABI.commit fails and it should not store the block', async () => {
+				jest.spyOn(chain, 'saveBlock');
+				jest.spyOn(consensus['_abi'], 'commit').mockRejectedValue(new Error('fail to commit'));
+
+				await expect(consensus['_executeValidated'](block)).rejects.toThrow('fail to commit');
+				expect(chain.saveBlock).not.toHaveBeenCalled();
+			});
 		});
 
 		describe('block verification', () => {
