@@ -33,6 +33,7 @@ import {
 	DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	DEFAULT_MIN_BLOCK_HEADER_CACHE,
 } from '../../src/constants';
+import { BlockAssets, BlockHeader, Transaction } from '../../src';
 
 describe('chain', () => {
 	const constants = {
@@ -299,8 +300,14 @@ describe('chain', () => {
 			block = await createValidDefaultBlock({
 				transactions: txs,
 			});
+			jest.spyOn(BlockHeader.prototype, 'validate');
+			jest.spyOn(BlockAssets.prototype, 'validate');
+			jest.spyOn(Transaction.prototype, 'validate');
 			// Act & assert
 			expect(() => chainInstance.validateBlock(block, { version: 2 })).not.toThrow();
+			expect(BlockHeader.prototype.validate).toHaveBeenCalledTimes(1);
+			expect(BlockAssets.prototype.validate).toHaveBeenCalledTimes(1);
+			expect(Transaction.prototype.validate).toHaveBeenCalledTimes(txs.length);
 		});
 
 		it('should throw error if transaction root does not match', async () => {
@@ -336,6 +343,42 @@ describe('chain', () => {
 			expect(() => chainInstance.validateBlock(block, { version: 2 })).toThrow(
 				'Block version must be 2.',
 			);
+		});
+
+		it('should throw error if block header validation fails', async () => {
+			const txs = new Array(20).fill(0).map(() => getTransaction());
+			block = await createValidDefaultBlock({
+				transactions: txs,
+			});
+			jest.spyOn(BlockHeader.prototype, 'validate').mockImplementation(() => {
+				throw new Error('invalid header');
+			});
+			// Act & assert
+			expect(() => chainInstance.validateBlock(block, { version: 2 })).toThrow('invalid header');
+		});
+
+		it('should throw error if block asset validation fails', async () => {
+			const txs = new Array(20).fill(0).map(() => getTransaction());
+			block = await createValidDefaultBlock({
+				transactions: txs,
+			});
+			jest.spyOn(BlockAssets.prototype, 'validate').mockImplementation(() => {
+				throw new Error('invalid assets');
+			});
+			// Act & assert
+			expect(() => chainInstance.validateBlock(block, { version: 2 })).toThrow('invalid assets');
+		});
+
+		it('should throw error if transaction validation fails', async () => {
+			const txs = new Array(20).fill(0).map(() => getTransaction());
+			block = await createValidDefaultBlock({
+				transactions: txs,
+			});
+			jest.spyOn(Transaction.prototype, 'validate').mockImplementation(() => {
+				throw new Error('invalid tx');
+			});
+			// Act & assert
+			expect(() => chainInstance.validateBlock(block, { version: 2 })).toThrow('invalid tx');
 		});
 	});
 });
