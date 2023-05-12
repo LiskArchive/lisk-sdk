@@ -57,6 +57,7 @@ describe('CommitPool', () => {
 	let commitPool: CommitPool;
 	let bftMethod: any;
 	let blockTime: number;
+	let minCertifyHeight: number;
 	let chain: any;
 	let network: any;
 	let getBlockHeaderByHeight: any;
@@ -72,6 +73,7 @@ describe('CommitPool', () => {
 		};
 
 		blockTime = 10;
+		minCertifyHeight = 0;
 
 		getBlockHeaderByHeight = jest.fn();
 
@@ -90,6 +92,7 @@ describe('CommitPool', () => {
 		commitPool = new CommitPool({
 			bftMethod,
 			blockTime,
+			minCertifyHeight,
 			chain,
 			network,
 			db: jest.fn() as any,
@@ -146,6 +149,7 @@ describe('CommitPool', () => {
 			commitPool = new CommitPool({
 				bftMethod,
 				blockTime,
+				minCertifyHeight,
 				chain,
 				network,
 				db: dbMock as any,
@@ -920,6 +924,30 @@ describe('CommitPool', () => {
 			expect(isCommitVerified).toBeTrue();
 		});
 
+		it('should return false when aggregate commit height is lower than minCertifyHeight', async () => {
+			(commitPool['_minCertifyHeight'] as any) = height + 1;
+
+			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
+
+			expect(isCommitVerified).toBeFalse();
+		});
+
+		it('should return true when heightNextBFTParameters is low, but minCertifyHeight is set', async () => {
+			(commitPool['_minCertifyHeight'] as any) = height;
+			bftMethod.getBFTHeights.mockReturnValue({
+				maxHeightCertified: 0,
+				maxHeightPrecommitted,
+			});
+
+			when(bftMethod.getNextHeightBFTParameters)
+				.calledWith(stateStore, 0 + 1)
+				.mockResolvedValue(309 as never);
+
+			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
+
+			expect(isCommitVerified).toBeTrue();
+		});
+
 		it('should return true when aggregateCommit is empty, and height is equal to maxHeightCertified', async () => {
 			const emptyAggregateCommit = {
 				aggregationBits: EMPTY_BUFFER,
@@ -1158,6 +1186,7 @@ describe('CommitPool', () => {
 			commitPool = new CommitPool({
 				bftMethod,
 				blockTime,
+				minCertifyHeight,
 				network,
 				chain,
 				db: jest.fn() as any,
@@ -1278,6 +1307,7 @@ describe('CommitPool', () => {
 			commitPool = new CommitPool({
 				bftMethod,
 				blockTime,
+				minCertifyHeight,
 				network,
 				chain,
 				db: jest.fn() as any,
@@ -1379,6 +1409,48 @@ describe('CommitPool', () => {
 				aggregationBits: Buffer.alloc(0),
 				certificateSignature: Buffer.alloc(0),
 			});
+		});
+
+		it('should certify the singleCommit1 when nextBFTParameter is lower and minCertifyHeight is the same as singleCommit1', async () => {
+			// Arrange
+			bftMethod.getNextHeightBFTParameters.mockResolvedValue(309);
+			(commitPool['_minCertifyHeight'] as any) = singleCommit1.height;
+
+			// Act
+			await commitPool['_selectAggregateCommit'](stateStore);
+
+			// Assert
+			expect(commitPool['aggregateSingleCommits']).toHaveBeenCalledWith(stateStore, [
+				singleCommit1,
+			]);
+		});
+
+		it('should certify the singleCommit2 even when heightNextBFTParameters is lower than minCerfifyHeight', async () => {
+			// Arrange
+			bftMethod.getNextHeightBFTParameters.mockResolvedValue(heightNextBFTParameters - 2);
+			(commitPool['_minCertifyHeight'] as any) = heightNextBFTParameters - 1;
+
+			// Act
+			await commitPool['_selectAggregateCommit'](stateStore);
+
+			// Assert
+			expect(commitPool['aggregateSingleCommits']).toHaveBeenCalledWith(stateStore, [
+				singleCommit2,
+			]);
+		});
+
+		it('should certify the singleCommit2 even when heightNextBFTParameters is equal to minCerfifyHeight', async () => {
+			// Arrange
+			bftMethod.getNextHeightBFTParameters.mockResolvedValue(heightNextBFTParameters - 1);
+			(commitPool['_minCertifyHeight'] as any) = heightNextBFTParameters - 1;
+
+			// Act
+			await commitPool['_selectAggregateCommit'](stateStore);
+
+			// Assert
+			expect(commitPool['aggregateSingleCommits']).toHaveBeenCalledWith(stateStore, [
+				singleCommit2,
+			]);
 		});
 	});
 });
