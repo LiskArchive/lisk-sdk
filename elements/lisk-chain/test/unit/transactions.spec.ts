@@ -19,7 +19,7 @@ describe('blocks/transactions', () => {
 	describe('#validateTransaction', () => {
 		let transaction: Transaction;
 
-		it('should not throw transaction is valid', () => {
+		it('should not throw when transaction is valid', () => {
 			transaction = new Transaction({
 				module: 'token',
 				command: 'transfer',
