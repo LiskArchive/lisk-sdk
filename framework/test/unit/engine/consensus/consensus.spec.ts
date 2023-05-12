@@ -220,6 +220,13 @@ describe('consensus', () => {
 			} as never);
 			await expect(initConsensus()).rejects.toThrow('Genesis block validators hash is invalid');
 		});
+
+		it('should fail initialization if ABI.commit fails', async () => {
+			// Arrange
+			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
+			jest.spyOn(consensus['_abi'], 'commit').mockRejectedValue(new Error('fail to commit'));
+			await expect(initConsensus()).rejects.toThrow('fail to commit');
+		});
 	});
 
 	describe('certifySingleCommit', () => {
