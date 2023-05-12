@@ -413,7 +413,7 @@ describe('Validator registration command', () => {
 			const result = await validatorRegistrationCommand.verify(context);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude("'name' is in an unsupported format: ");
+			expect(result.error?.message).toInclude("'.name' must NOT have fewer than 1 characters");
 		});
 	});
 
