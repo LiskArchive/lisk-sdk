@@ -39,7 +39,7 @@ describe('BFT votes', () => {
 	beforeEach(() => {
 		accounts = [utils.getRandomBytes(20), utils.getRandomBytes(20), utils.getRandomBytes(20)];
 		bftVotes = {
-			maxHeightPrevoted: 103,
+			maxHeightPrevoted: 149,
 			maxHeightPrecommitted: 56,
 			maxHeightCertified: 5,
 			blockBFTInfos: [
@@ -237,7 +237,60 @@ describe('BFT votes', () => {
 			expect(paramsCache.getParameters).not.toHaveBeenCalled();
 		});
 
-		it('should not stake on blocks if generator is not in the validators', async () => {
+		it('should vote on blocks with more than 1 BFT weight when validator holds more BFT weight', async () => {
+			const stateStore = new StateStore(new InMemoryDatabase());
+			const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
+			await paramsStore.setWithSchema(
+				utils.intToBuffer(101, 4),
+				{
+					prevoteThreshold: BigInt(68),
+					precommitThreshold: BigInt(68),
+					certificateThreshold: BigInt(68),
+					validators: [
+						{
+							address: accounts[0],
+							bftWeight: BigInt(40),
+							blsKey: utils.getRandomBytes(48),
+							generatorKey: utils.getRandomBytes(32),
+						},
+						{
+							address: accounts[1],
+							bftWeight: BigInt(0),
+							blsKey: utils.getRandomBytes(48),
+							generatorKey: utils.getRandomBytes(32),
+						},
+						{
+							address: accounts[2],
+							bftWeight: BigInt(20),
+							blsKey: utils.getRandomBytes(48),
+							generatorKey: utils.getRandomBytes(32),
+						},
+					],
+					validatorsHash: utils.getRandomBytes(32),
+				},
+				bftParametersSchema,
+			);
+			paramsCache = new BFTParametersCache(paramsStore);
+			insertBlockBFTInfo(
+				bftVotes,
+				createFakeBlockHeader({
+					height: 152,
+					maxHeightGenerated: 151,
+					generatorAddress: accounts[0],
+				}),
+				5,
+			);
+			await updatePrevotesPrecommits(bftVotes, paramsCache);
+
+			expect(bftVotes.blockBFTInfos[0].prevoteWeight).toEqual(BigInt(40));
+			expect(bftVotes.blockBFTInfos[3].precommitWeight).toEqual(BigInt(104));
+			expect(bftVotes.blockBFTInfos[4].precommitWeight).toEqual(BigInt(107));
+			// accounts[0] already voted on blockBFTInfos[1], so after this it should not get affected
+			expect(bftVotes.blockBFTInfos[1].prevoteWeight).toEqual(BigInt(65));
+			expect(bftVotes.blockBFTInfos[2].prevoteWeight).toEqual(BigInt(65));
+		});
+
+		it('should not vote on blocks if generator is not in the validators', async () => {
 			jest.spyOn(paramsCache, 'getParameters');
 			insertBlockBFTInfo(
 				bftVotes,
@@ -323,7 +376,7 @@ describe('BFT votes', () => {
 				bftVotes,
 				createFakeBlockHeader({
 					height: 152,
-					maxHeightGenerated: 0,
+					maxHeightGenerated: 152,
 					generatorAddress: accounts[2],
 				}),
 				5,
@@ -337,13 +390,13 @@ describe('BFT votes', () => {
 	describe('updateMaxHeightPrevoted', () => {
 		let paramsCache: BFTParametersCache;
 
-		it('should store maximum height where prevote exceeds threshold', async () => {
+		it('should store maxHeightPrevoted where prevote exceeds threshold', async () => {
 			const stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
 				utils.intToBuffer(101, 4),
 				{
-					prevoteThreshold: BigInt(68),
+					prevoteThreshold: BigInt(65),
 					precommitThreshold: BigInt(68),
 					certificateThreshold: BigInt(68),
 					validators: [
@@ -372,7 +425,7 @@ describe('BFT votes', () => {
 			);
 			paramsCache = new BFTParametersCache(paramsStore);
 			await expect(updateMaxHeightPrevoted(bftVotes, paramsCache)).toResolve();
-			expect(bftVotes.maxHeightPrevoted).toBe(149);
+			expect(bftVotes.maxHeightPrevoted).toBe(151);
 		});
 
 		it('should not update maxHeightPrevoted if no block info exceeds threshold', async () => {
@@ -410,14 +463,14 @@ describe('BFT votes', () => {
 			);
 			paramsCache = new BFTParametersCache(paramsStore);
 			await expect(updateMaxHeightPrevoted(bftVotes, paramsCache)).toResolve();
-			expect(bftVotes.maxHeightPrevoted).toBe(103);
+			expect(bftVotes.maxHeightPrevoted).toBe(149);
 		});
 	});
 
 	describe('updateMaxHeightPrecommitted', () => {
 		let paramsCache: BFTParametersCache;
 
-		it('should store maximum height where prevote exceeds threshold', async () => {
+		it('should store maxHeightPrecommitted where prevote exceeds threshold', async () => {
 			const stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
@@ -455,14 +508,14 @@ describe('BFT votes', () => {
 			expect(bftVotes.maxHeightPrecommitted).toBe(148);
 		});
 
-		it('should not update maxHeightPrevoted if no block info exceeds threshold', async () => {
+		it('should not update maxHeightPrecommitted if no block info exceeds threshold', async () => {
 			const stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
 				utils.intToBuffer(101, 4),
 				{
 					prevoteThreshold: BigInt(68),
-					precommitThreshold: BigInt(103),
+					precommitThreshold: BigInt(69),
 					certificateThreshold: BigInt(68),
 					validators: [
 						{
@@ -519,6 +572,7 @@ describe('BFT votes', () => {
 					aggregateCommit: {
 						aggregationBits: Buffer.alloc(0),
 						certificateSignature: Buffer.alloc(0),
+						// this should never happen, because in the validation this height is required to be the same as bftVotes.maxheightCertified.
 						height: 10,
 					},
 				}),
