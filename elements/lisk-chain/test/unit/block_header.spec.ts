@@ -212,6 +212,14 @@ describe('block_header', () => {
 		});
 
 		describe('validateGenesis', () => {
+			it('should not throw when genesis block is valid', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({
+					...block,
+				});
+
+				expect(() => blockHeader.validateGenesis()).not.toThrow();
+			});
 			it('should throw error if previousBlockID is not 32 bytes', () => {
 				const block = getGenesisBlockAttrs();
 				const blockHeader = new BlockHeader({
