@@ -526,11 +526,11 @@ export class Consensus {
 					throw new ApplyPenaltyError(error);
 				}
 
+				const previousLastBlock = objects.cloneDeep(lastBlock);
 				await this._deleteBlock(lastBlock);
 				try {
 					await this._executeValidated(block);
 				} catch (err) {
-					const previousLastBlock = objects.cloneDeep(lastBlock);
 					this._logger.error(
 						{
 							id: block.header.id,
