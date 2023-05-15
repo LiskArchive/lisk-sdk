@@ -101,7 +101,7 @@ export class BlockAssets {
 			}
 			if (last.module > asset.module) {
 				throw new Error(
-					'Assets Assets are not sorted by the module property value in lexicographical order.',
+					'Assets are not sorted by the module property value in lexicographical order.',
 				);
 			}
 			// Check for duplicates

@@ -297,6 +297,8 @@ describe('chain', () => {
 
 		it('should not throw error with a valid block', async () => {
 			const txs = new Array(20).fill(0).map(() => getTransaction());
+			const totalSize = txs.reduce((prev, curr) => prev + curr.getBytes().length, 0);
+			(chainInstance as any).constants.maxTransactionsSize = totalSize;
 			block = await createValidDefaultBlock({
 				transactions: txs,
 			});
@@ -324,12 +326,13 @@ describe('chain', () => {
 
 		it('should throw error if transactions exceeds max transactions length', async () => {
 			// Arrange
-			(chainInstance as any).constants.maxTransactionsSize = 100;
 			const txs = new Array(200).fill(0).map(() => getTransaction());
+			const totalSize = txs.reduce((prev, curr) => prev + curr.getBytes().length, 0);
+			(chainInstance as any).constants.maxTransactionsSize = totalSize - 1;
 			block = await createValidDefaultBlock({ transactions: txs });
 			// Act & assert
 			expect(() => chainInstance.validateBlock(block, { version: 2 })).toThrow(
-				'Transactions length is longer than configured length: 100.',
+				`Transactions length is longer than configured length: ${totalSize - 1}.`,
 			);
 		});
 
