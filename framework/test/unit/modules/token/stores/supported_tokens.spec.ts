@@ -269,7 +269,7 @@ describe('SupportedTokensStore', () => {
 			).rejects.toThrow('Cannot remove support for LSK or native token.');
 		});
 
-		it('should not do anything if all tokens are supported', async () => {
+		it('should reject if all tokens are supported', async () => {
 			await store.set(context, ALL_SUPPORTED_TOKENS_KEY, { supportedTokenIDs: [] });
 			const tokenID = Buffer.from([2, 0, 0, 0, 1, 0, 0, 0]);
 			await expect(store.removeSupportForToken(context, tokenID)).rejects.toThrow(
