@@ -327,10 +327,19 @@ describe('SupportedTokensStore', () => {
 			await expect(store.get(context, chainID)).resolves.toEqual(supportedTokensStoreState);
 		});
 
-		it('should return undefined if support does not exist', async () => {
+		it('should not modify store if support does not exist', async () => {
 			await expect(
 				store.removeSupportForToken(context, Buffer.from([1, 1, 1, 1, 1, 0, 0, 0])),
 			).resolves.toBeUndefined();
+
+			const chainID = Buffer.from([1, 1, 1, 1]);
+			const tokenID = Buffer.from([1, 0, 0, 0]);
+
+			await expect(
+				store.removeSupportForToken(context, Buffer.concat([chainID, tokenID])),
+			).resolves.toBeUndefined();
+
+			await expect(store.has(context, chainID)).resolves.toBeFalse();
 		});
 
 		it('should reject if the supported tokens array length is 0', async () => {
