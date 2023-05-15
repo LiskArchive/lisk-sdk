@@ -152,7 +152,6 @@ export const setHashOnionUsageRequest = {
 					count: {
 						type: 'integer',
 						format: 'uint32',
-						minimum: 1,
 					},
 					height: {
 						type: 'integer',

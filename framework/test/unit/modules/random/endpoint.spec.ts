@@ -558,20 +558,5 @@ describe('RandomModuleEndpoint', () => {
 				"Lisk validator found 2 error[s]:\nProperty '.usedHashOnions.0.height' should be of type 'integer'\nProperty '.usedHashOnions.0.height' must match format \"uint32\"",
 			);
 		});
-
-		it('should throw error when count is less than 1', async () => {
-			// Arrange
-			const { address } = genesisValidators.validators[0];
-			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
-			const count = 0;
-			const distance = 1000;
-			const height = 50;
-			context.params = { address, seed, distance, usedHashOnions: [{ count, height }] };
-
-			// Act & Assert
-			await expect(randomEndpoint.setHashOnionUsage(context)).rejects.toThrow(
-				'Lisk validator found 1 error[s]:\nmust be >= 1',
-			);
-		});
 	});
 });
