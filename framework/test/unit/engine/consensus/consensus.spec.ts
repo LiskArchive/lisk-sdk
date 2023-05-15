@@ -180,9 +180,13 @@ describe('consensus', () => {
 			jest.spyOn(consensus['_bft'].method, 'getBFTParameters').mockResolvedValue({
 				validatorsHash: genesis.header.validatorsHash,
 			} as never);
+			jest.spyOn(consensus, '_verifyEventRoot' as never);
+			jest.spyOn(consensus, '_verifyValidatorsHash' as never);
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
 			await initConsensus();
 
+			expect(consensus['_verifyEventRoot']).toHaveBeenCalledTimes(1);
+			expect(consensus['_verifyValidatorsHash']).toHaveBeenCalledTimes(1);
 			expect(genesis.validateGenesis).toHaveBeenCalledTimes(1);
 			expect(chain.saveBlock).toHaveBeenCalledTimes(1);
 			expect(chain.loadLastBlocks).toHaveBeenCalledTimes(1);

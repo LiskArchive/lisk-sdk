@@ -15,6 +15,7 @@ exports[`schema/application_config_schema.js application config schema must matc
       },
       "blockTime": 10,
       "maxTransactionsSize": 15360,
+      "minimumCertifyHeight": 1,
     },
     "legacy": {
       "brackets": [],
@@ -122,6 +123,11 @@ exports[`schema/application_config_schema.js application config schema must matc
           "description": "Maximum number of transactions allowed per block",
           "maximum": 30720,
           "minimum": 10240,
+          "type": "integer",
+        },
+        "minimumCertifyHeight": {
+          "description": "Minimum block height which can be certified",
+          "minimum": 1,
           "type": "integer",
         },
       },
