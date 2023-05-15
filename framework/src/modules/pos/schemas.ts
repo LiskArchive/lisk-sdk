@@ -19,6 +19,7 @@ import {
 	BLS_PUBLIC_KEY_LENGTH,
 	BLS_POP_LENGTH,
 	ED25519_PUBLIC_KEY_LENGTH,
+	MAX_LENGTH_NAME,
 } from './constants';
 
 export const validatorRegistrationCommandParamsSchema = {
@@ -29,6 +30,8 @@ export const validatorRegistrationCommandParamsSchema = {
 		name: {
 			dataType: 'string',
 			fieldNumber: 1,
+			minLength: 1,
+			maxLength: MAX_LENGTH_NAME,
 		},
 		blsKey: {
 			dataType: 'bytes',
