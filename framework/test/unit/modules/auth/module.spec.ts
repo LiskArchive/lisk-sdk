@@ -11,19 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { codec } from '@liskhq/lisk-codec';
-import { utils, ed, address as cryptoAddress, legacy } from '@liskhq/lisk-cryptography';
-import {
-	Transaction,
-	transactionSchema,
-	TAG_TRANSACTION,
-	BlockAssets,
-	EMPTY_BUFFER,
-} from '@liskhq/lisk-chain';
+import { utils, address as cryptoAddress } from '@liskhq/lisk-cryptography';
+import { Transaction, BlockAssets, EMPTY_BUFFER } from '@liskhq/lisk-chain';
 import { when } from 'jest-when';
 import { AuthModule } from '../../../../src/modules/auth';
-import * as fixtures from './fixtures.json';
 import * as testing from '../../../../src/testing';
 import { genesisAuthStoreSchema } from '../../../../src/modules/auth/schemas';
 import { TransactionExecuteContext, VerifyStatus } from '../../../../src/state_machine';
@@ -35,59 +27,24 @@ import {
 	authAccountSchema,
 	AuthAccountStore,
 } from '../../../../src/modules/auth/stores/auth_account';
+import {
+	chainID,
+	registerMultisigTx,
+	multisigAddress,
+	keyPairs,
+	multisigParams,
+} from './multisig_fixture';
 
 describe('AuthModule', () => {
-	let decodedMultiSignature: any;
-	let validTestTransaction: any;
 	let stateStore: any;
 	let authModule: AuthModule;
-	let decodedBaseTransaction: any;
-	let senderAddress: any;
-
-	const passphrase = Mnemonic.generateMnemonic();
-	const passphraseDerivedKeys = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
-	const address = cryptoAddress.getAddressFromPublicKey(passphraseDerivedKeys.publicKey);
 
 	const authAccountStoreMock = jest.fn();
 	const storeMock = jest.fn().mockReturnValue({ getWithSchema: authAccountStoreMock });
 
-	const defaultTestCase = fixtures.testCases[0];
-	const chainID = Buffer.from(defaultTestCase.input.chainID, 'hex');
-
 	beforeEach(() => {
 		authModule = new AuthModule();
-		const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
-		const id = utils.hash(buffer);
-		decodedBaseTransaction = codec.decode<Transaction>(transactionSchema, buffer);
-
-		decodedMultiSignature = {
-			...decodedBaseTransaction,
-			id,
-		};
-
-		validTestTransaction = new Transaction(decodedMultiSignature);
-
 		stateStore = { getStore: storeMock };
-
-		senderAddress = Buffer.from(defaultTestCase.input.account.address, 'hex');
-
-		when(authAccountStoreMock)
-			.calledWith(senderAddress, authAccountSchema)
-			.mockReturnValue({
-				mandatoryKeys: [],
-				optionalKeys: [],
-				nonce: BigInt(1),
-				numberOfSignatures: 0,
-			});
-
-		when(authAccountStoreMock)
-			.calledWith(address, authAccountSchema)
-			.mockReturnValue({
-				mandatoryKeys: [],
-				optionalKeys: [],
-				nonce: BigInt(0),
-				numberOfSignatures: 0,
-			});
 	});
 
 	describe('initGenesisState', () => {
@@ -306,7 +263,7 @@ describe('AuthModule', () => {
 			it('should return FAIL status with error when trx nonce is lower than account nonce', async () => {
 				const accountNonce = BigInt(2);
 
-				when(authAccountStoreMock).calledWith(senderAddress, authAccountSchema).mockReturnValue({
+				when(authAccountStoreMock).calledWith(multisigAddress, authAccountSchema).mockReturnValue({
 					mandatoryKeys: [],
 					optionalKeys: [],
 					nonce: accountNonce,
@@ -316,7 +273,7 @@ describe('AuthModule', () => {
 				const context = testing
 					.createTransactionContext({
 						stateStore,
-						transaction: validTestTransaction,
+						transaction: registerMultisigTx,
 						chainID,
 					})
 					.createTransactionVerifyContext();
@@ -324,10 +281,10 @@ describe('AuthModule', () => {
 				await expect(authModule.verifyTransaction(context)).rejects.toThrow(
 					new InvalidNonceError(
 						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-						`Transaction with id:${validTestTransaction.id.toString(
+						`Transaction with id:${registerMultisigTx.id.toString(
 							'hex',
 						)} nonce is lower than account nonce.`,
-						validTestTransaction.nonce,
+						registerMultisigTx.nonce,
 						accountNonce,
 					),
 				);
@@ -339,21 +296,12 @@ describe('AuthModule', () => {
 					command: 'transfer',
 					nonce: BigInt('2'),
 					fee: BigInt('100000000'),
-					senderPublicKey: passphraseDerivedKeys.publicKey,
+					senderPublicKey: keyPairs[1].publicKey,
 					params: utils.getRandomBytes(100),
 					signatures: [],
 				});
 
-				validTestTransaction = new Transaction(decodedMultiSignature);
-
-				const signature = ed.signDataWithPrivateKey(
-					TAG_TRANSACTION,
-					chainID,
-					transaction.getBytes(),
-					passphraseDerivedKeys.privateKey,
-				);
-
-				transaction.signatures.push(signature);
+				transaction.sign(chainID, keyPairs[1].privateKey);
 
 				const context = testing
 					.createTransactionContext({
@@ -370,11 +318,22 @@ describe('AuthModule', () => {
 		});
 
 		describe('Multi-signature registration transaction', () => {
-			it('should not throw for valid transaction', async () => {
+			registerMultisigTx.sign(chainID, keyPairs[0].privateKey);
+
+			it('should not throw for a valid transaction', async () => {
+				when(authAccountStoreMock)
+					.calledWith(multisigAddress, authAccountSchema)
+					.mockReturnValue({
+						mandatoryKeys: [],
+						optionalKeys: [],
+						nonce: BigInt(0),
+						numberOfSignatures: 0,
+					});
+
 				const context = testing
 					.createTransactionContext({
 						stateStore,
-						transaction: validTestTransaction,
+						transaction: registerMultisigTx,
 						chainID,
 					})
 					.createTransactionVerifyContext();
@@ -387,7 +346,17 @@ describe('AuthModule', () => {
 
 		describe('Transaction from a single signature account', () => {
 			let transaction: Transaction;
-			let signature: Buffer;
+
+			const singleSigAddress = cryptoAddress.getAddressFromPublicKey(keyPairs[1].publicKey);
+
+			when(authAccountStoreMock)
+				.calledWith(singleSigAddress, authAccountSchema)
+				.mockReturnValue({
+					mandatoryKeys: [],
+					optionalKeys: [],
+					nonce: BigInt(0),
+					numberOfSignatures: 0,
+				});
 
 			beforeEach(() => {
 				transaction = new Transaction({
@@ -395,22 +364,15 @@ describe('AuthModule', () => {
 					command: 'transfer',
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: passphraseDerivedKeys.publicKey,
+					senderPublicKey: keyPairs[1].publicKey,
 					params: utils.getRandomBytes(100),
 					signatures: [],
 				});
 
-				signature = ed.signDataWithPrivateKey(
-					TAG_TRANSACTION,
-					chainID,
-					transaction.getBytes(),
-					passphraseDerivedKeys.privateKey,
-				);
+				transaction.sign(chainID, keyPairs[1].privateKey);
 			});
 
-			it('should not throw for valid transaction', async () => {
-				transaction.signatures.push(signature);
-
+			it('should not throw for a valid transaction', async () => {
 				const context = testing
 					.createTransactionContext({
 						stateStore,
@@ -425,6 +387,8 @@ describe('AuthModule', () => {
 			});
 
 			it('should throw if signature is missing', async () => {
+				transaction.signatures.pop();
+
 				const context = testing
 					.createTransactionContext({
 						stateStore,
@@ -439,7 +403,7 @@ describe('AuthModule', () => {
 			});
 
 			it('should throw error if account is not multi signature and more than one signature present', async () => {
-				transaction.signatures.push(signature, signature);
+				transaction.signatures.push(transaction.signatures[0]);
 
 				const context = testing
 					.createTransactionContext({
@@ -456,56 +420,20 @@ describe('AuthModule', () => {
 		});
 
 		describe('Transaction from a multi-signature account', () => {
-			interface memberFixture {
-				passphrase: string;
-				keys?: {
-					privateKey: Buffer;
-					publicKey: Buffer;
-				};
-				address?: Buffer;
-			}
-
-			interface membersFixture {
-				[key: string]: memberFixture;
-			}
-
-			const members: membersFixture = {
-				mainAccount: {
-					passphrase: 'order trip this crop race amused climb rather taxi morning holiday team',
-				},
-				mandatoryA: {
-					passphrase:
-						'clock cradle permit opinion hobby excite athlete weird soap mesh valley belt',
-				},
-				mandatoryB: {
-					passphrase:
-						'team dignity frost rookie gesture gaze piano daring fruit patrol chalk hidden',
-				},
-				optionalA: {
-					passphrase:
-						'welcome hello ostrich country drive car river jaguar warfare color tell risk',
-				},
-				optionalB: {
-					passphrase: 'beef volcano emotion say lab reject small repeat reveal napkin bunker make',
-				},
-			};
-
-			for (const aMember of Object.values(members)) {
-				aMember.keys = {
-					...legacy.getPrivateAndPublicKeyFromPassphrase(aMember.passphrase),
-				};
-				aMember.address = cryptoAddress.getAddressFromPublicKey(aMember.keys.publicKey);
-			}
-
 			let transaction: Transaction;
+
+			const privateKeys = {
+				mandatory: [keyPairs[0].privateKey, keyPairs[1].privateKey],
+				optional: [keyPairs[2].privateKey, keyPairs[3].privateKey],
+			};
 
 			beforeEach(() => {
 				when(authAccountStoreMock)
-					.calledWith(members.mainAccount.address, authAccountSchema)
+					.calledWith(multisigAddress, authAccountSchema)
 					.mockResolvedValue({
 						numberOfSignatures: 3,
-						mandatoryKeys: [members.mandatoryA.keys?.publicKey, members.mandatoryB.keys?.publicKey],
-						optionalKeys: [members.optionalA.keys?.publicKey, members.optionalB.keys?.publicKey],
+						mandatoryKeys: multisigParams.mandatoryKeys,
+						optionalKeys: multisigParams.optionalKeys,
 						nonce: BigInt(0),
 					});
 
@@ -514,67 +442,24 @@ describe('AuthModule', () => {
 					command: 'transfer',
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: (members as any).mainAccount.keys.publicKey,
+					senderPublicKey: multisigParams.mandatoryKeys[0],
 					params: utils.getRandomBytes(100),
 					signatures: [],
 				});
 			});
 
-			it('should verify a valid transaction from a 3-of-4 multisig account with 2 mandatory signers', async () => {
-				transaction.signatures.push(
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryA.keys.privateKey,
-					),
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryB.keys.privateKey,
-					),
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).optionalA.keys.privateKey,
-					),
-					EMPTY_BUFFER,
-				);
-
-				const context = testing
-					.createTransactionContext({
-						stateStore,
-						transaction,
-						chainID,
-					})
-					.createTransactionVerifyContext();
-
-				await expect(authModule.verifyTransaction(context)).resolves.toEqual({
-					status: VerifyStatus.OK,
-				});
-			});
-
 			it('should verify a valid transaction from a 1-of-2 multisig account with 0 mandatory signers', async () => {
 				when(authAccountStoreMock)
-					.calledWith(members.mainAccount.address, authAccountSchema)
+					.calledWith(multisigAddress, authAccountSchema)
 					.mockResolvedValue({
 						numberOfSignatures: 1,
 						mandatoryKeys: [],
-						optionalKeys: [members.optionalA.keys?.publicKey, members.optionalB.keys?.publicKey],
+						optionalKeys: multisigParams.optionalKeys,
 						nonce: BigInt(0),
 					});
 
-				transaction.signatures.push(
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).optionalA.keys.privateKey,
-					),
-					EMPTY_BUFFER,
-				);
+				transaction.sign(chainID, privateKeys.optional[0]);
+				transaction.signatures.push(EMPTY_BUFFER);
 
 				const context = testing
 					.createTransactionContext({
@@ -590,27 +475,10 @@ describe('AuthModule', () => {
 			});
 
 			it('should verify a valid transaction from 3-of-4 multisig account with 2 mandatory signers, when the first optional signature is present', async () => {
-				transaction.signatures.push(
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryA.keys.privateKey,
-					),
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryB.keys.privateKey,
-					),
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).optionalA.keys.privateKey,
-					),
-					EMPTY_BUFFER,
-				);
+				transaction.sign(chainID, privateKeys.mandatory[0]);
+				transaction.sign(chainID, privateKeys.mandatory[1]);
+				transaction.sign(chainID, privateKeys.optional[0]);
+				transaction.signatures.push(EMPTY_BUFFER);
 
 				const context = testing
 					.createTransactionContext({
@@ -626,27 +494,10 @@ describe('AuthModule', () => {
 			});
 
 			it('should verify a valid transaction from 3-of-4 multisig account with 2 mandatory signers, when the second optional signature is present', async () => {
-				transaction.signatures.push(
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryA.keys.privateKey,
-					),
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryB.keys.privateKey,
-					),
-					EMPTY_BUFFER,
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).optionalB.keys.privateKey,
-					),
-				);
+				transaction.sign(chainID, privateKeys.mandatory[0]);
+				transaction.sign(chainID, privateKeys.mandatory[1]);
+				transaction.signatures.push(EMPTY_BUFFER);
+				transaction.sign(chainID, privateKeys.optional[1]);
 
 				const context = testing
 					.createTransactionContext({
@@ -662,26 +513,9 @@ describe('AuthModule', () => {
 			});
 
 			it('should throw when an optional absent signature is not replaced by an empty buffer', async () => {
-				transaction.signatures.push(
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryA.keys.privateKey,
-					),
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryB.keys.privateKey,
-					),
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).optionalB.keys.privateKey,
-					),
-				);
+				transaction.sign(chainID, privateKeys.mandatory[0]);
+				transaction.sign(chainID, privateKeys.mandatory[1]);
+				transaction.sign(chainID, privateKeys.optional[1]);
 
 				const context = testing
 					.createTransactionContext({
@@ -699,32 +533,10 @@ describe('AuthModule', () => {
 			});
 
 			it('should throw when a transaction from 3-of-4 multisig account has 4 signatures', async () => {
-				transaction.signatures.push(
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryA.keys.privateKey,
-					),
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryB.keys.privateKey,
-					),
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).optionalA.keys.privateKey,
-					),
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).optionalB.keys.privateKey,
-					),
-				);
+				transaction.sign(chainID, privateKeys.mandatory[0]);
+				transaction.sign(chainID, privateKeys.mandatory[1]);
+				transaction.sign(chainID, privateKeys.optional[0]);
+				transaction.sign(chainID, privateKeys.optional[1]);
 
 				const context = testing
 					.createTransactionContext({
@@ -741,22 +553,11 @@ describe('AuthModule', () => {
 				);
 			});
 
-			it('should throw when a transaction from 3-of-4 multisig account has 2 signatures', async () => {
-				transaction.signatures.push(
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryA.keys.privateKey,
-					),
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryB.keys.privateKey,
-					),
-					EMPTY_BUFFER,
-				);
+			it('should throw when a transaction from 3-of-4 multisig account with 2 mandatory signers has only 2 mandatory signatures', async () => {
+				transaction.sign(chainID, privateKeys.mandatory[0]);
+				transaction.sign(chainID, privateKeys.mandatory[1]);
+				transaction.signatures.push(EMPTY_BUFFER);
+				transaction.signatures.push(EMPTY_BUFFER);
 
 				const context = testing
 					.createTransactionContext({
@@ -774,27 +575,10 @@ describe('AuthModule', () => {
 			});
 
 			it('should throw if a mandatory signature is absent', async () => {
-				transaction.signatures.push(
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryA.keys.privateKey,
-					),
-					EMPTY_BUFFER,
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).optionalA.keys.privateKey,
-					),
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).optionalB.keys.privateKey,
-					),
-				);
+				transaction.sign(chainID, privateKeys.mandatory[0]);
+				transaction.signatures.push(EMPTY_BUFFER);
+				transaction.sign(chainID, privateKeys.optional[0]);
+				transaction.sign(chainID, privateKeys.optional[1]);
 
 				const context = testing
 					.createTransactionContext({
@@ -810,22 +594,10 @@ describe('AuthModule', () => {
 			});
 
 			it('should throw if a mandatory signature is invalid', async () => {
-				transaction.signatures.push(
-					utils.getRandomBytes(64),
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryB.keys.privateKey,
-					),
-					EMPTY_BUFFER,
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).optionalB.keys.privateKey,
-					),
-				);
+				transaction.signatures.push(utils.getRandomBytes(64));
+				transaction.sign(chainID, privateKeys.mandatory[1]);
+				transaction.signatures.push(EMPTY_BUFFER);
+				transaction.sign(chainID, privateKeys.optional[1]);
 
 				const context = testing
 					.createTransactionContext({
@@ -841,22 +613,10 @@ describe('AuthModule', () => {
 			});
 
 			it('should throw if an optional signature is invalid', async () => {
-				transaction.signatures.push(
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryA.keys.privateKey,
-					),
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryB.keys.privateKey,
-					),
-					utils.getRandomBytes(64),
-					EMPTY_BUFFER,
-				);
+				transaction.sign(chainID, privateKeys.mandatory[0]);
+				transaction.sign(chainID, privateKeys.mandatory[1]);
+				transaction.signatures.push(utils.getRandomBytes(64));
+				transaction.signatures.push(EMPTY_BUFFER);
 
 				const context = testing
 					.createTransactionContext({
@@ -872,27 +632,10 @@ describe('AuthModule', () => {
 			});
 
 			it('should throw if mandatory signatures are not in order', async () => {
-				transaction.signatures.push(
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryB.keys.privateKey,
-					),
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryA.keys.privateKey,
-					),
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).optionalA.keys.privateKey,
-					),
-					EMPTY_BUFFER,
-				);
+				transaction.sign(chainID, privateKeys.mandatory[1]);
+				transaction.sign(chainID, privateKeys.mandatory[0]);
+				transaction.signatures.push(EMPTY_BUFFER);
+				transaction.sign(chainID, privateKeys.optional[1]);
 
 				const context = testing
 					.createTransactionContext({
@@ -910,27 +653,10 @@ describe('AuthModule', () => {
 			});
 
 			it('should throw if optional signatures are not in order', async () => {
-				transaction.signatures.push(
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryA.keys.privateKey,
-					),
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).mandatoryB.keys.privateKey,
-					),
-					EMPTY_BUFFER,
-					ed.signDataWithPrivateKey(
-						TAG_TRANSACTION,
-						chainID,
-						transaction.getSigningBytes(),
-						(members as any).optionalA.keys.privateKey,
-					),
-				);
+				transaction.sign(chainID, privateKeys.mandatory[0]);
+				transaction.sign(chainID, privateKeys.mandatory[1]);
+				transaction.signatures.push(EMPTY_BUFFER);
+				transaction.sign(chainID, privateKeys.optional[0]);
 
 				const context = testing
 					.createTransactionContext({
@@ -960,7 +686,7 @@ describe('AuthModule', () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
-					transaction: validTestTransaction,
+					transaction: registerMultisigTx,
 					chainID,
 				})
 				.createTransactionExecuteContext();
@@ -968,12 +694,12 @@ describe('AuthModule', () => {
 
 		it('should increment account nonce after a transaction', async () => {
 			const authAccountBeforeTransaction = {
-				nonce: BigInt(validTestTransaction.nonce),
+				nonce: BigInt(registerMultisigTx.nonce),
 				numberOfSignatures: 4,
-				mandatoryKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
-				optionalKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
+				mandatoryKeys: multisigParams.mandatoryKeys,
+				optionalKeys: multisigParams.optionalKeys,
 			};
-			await authAccountStore.set(context, senderAddress, authAccountBeforeTransaction);
+			await authAccountStore.set(context, multisigAddress, authAccountBeforeTransaction);
 
 			await authModule.beforeCommandExecute(context);
 
