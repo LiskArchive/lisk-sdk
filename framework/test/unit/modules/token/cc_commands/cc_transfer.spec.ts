@@ -738,7 +738,7 @@ describe('CrossChain Transfer Command', () => {
 			});
 		});
 
-		it('should throw when the fee to initialize an account is insufficient', async () => {
+		it('should throw when escrow account has insufficient balance', async () => {
 			// Arrange
 			const params = codec.encode(crossChainTransferMessageParams, {
 				tokenID: defaultTokenID,
@@ -783,6 +783,16 @@ describe('CrossChain Transfer Command', () => {
 
 			// Act && Assert
 			await expect(command.execute(ctx)).rejects.toThrow('Insufficient balance in escrow account.');
+		});
+
+		it('should throw if escrow account does not exist', async () => {
+			const escrowAccountNotExistingContext = createTransactionContextWithOverridingCCMAndParams({
+				params: { tokenID: Buffer.from([0, 0, 0, 1, 0, 2, 3, 8]) },
+			});
+
+			await expect(command.execute(escrowAccountNotExistingContext)).rejects.toThrow(
+				'does not exist',
+			);
 		});
 	});
 });
