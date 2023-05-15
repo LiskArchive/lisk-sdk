@@ -365,8 +365,6 @@ describe('AuthModule', () => {
 					signatures: [],
 				});
 
-				transaction.sign(chainID, keyPairs[1].privateKey);
-
 				when(authAccountStoreMock)
 					.calledWith(singleSigAddress, authAccountSchema)
 					.mockReturnValue({
@@ -378,6 +376,8 @@ describe('AuthModule', () => {
 			});
 
 			it('should not throw for a valid transaction', async () => {
+				transaction.sign(chainID, keyPairs[1].privateKey);
+
 				const context = testing
 					.createTransactionContext({
 						stateStore,
@@ -391,9 +391,23 @@ describe('AuthModule', () => {
 				});
 			});
 
-			it('should throw if signature is missing', async () => {
-				transaction.signatures.pop();
+			it('should throw if signature is invalid', async () => {
+				transaction.signatures.push(utils.getRandomBytes(64));
 
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						chainID,
+					})
+					.createTransactionVerifyContext();
+
+				await expect(authModule.verifyTransaction(context)).rejects.toThrow(
+					'Failed to validate signature',
+				);
+			});
+
+			it('should throw if signature is missing', async () => {
 				const context = testing
 					.createTransactionContext({
 						stateStore,
@@ -408,7 +422,8 @@ describe('AuthModule', () => {
 			});
 
 			it('should throw error if account is not multi signature and more than one signature present', async () => {
-				transaction.signatures.push(transaction.signatures[0]);
+				transaction.sign(chainID, keyPairs[1].privateKey);
+				transaction.signatures.push(utils.getRandomBytes(64));
 
 				const context = testing
 					.createTransactionContext({
@@ -466,7 +481,24 @@ describe('AuthModule', () => {
 				transaction.sign(chainID, privateKeys.optional[0]);
 				transaction.signatures.push(EMPTY_BUFFER);
 
-				const context = testing
+				let context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						chainID,
+					})
+					.createTransactionVerifyContext();
+
+				await expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.OK,
+				});
+
+				// now do the same, but with the other optional signature present
+				transaction.signatures.splice(0, 2);
+				transaction.signatures.push(EMPTY_BUFFER);
+				transaction.sign(chainID, privateKeys.optional[1]);
+
+				context = testing
 					.createTransactionContext({
 						stateStore,
 						transaction,
@@ -563,6 +595,27 @@ describe('AuthModule', () => {
 				transaction.sign(chainID, privateKeys.mandatory[1]);
 				transaction.signatures.push(EMPTY_BUFFER);
 				transaction.signatures.push(EMPTY_BUFFER);
+
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						chainID,
+					})
+					.createTransactionVerifyContext();
+
+				await expect(authModule.verifyTransaction(context)).rejects.toThrow(
+					`Transaction signatures does not match required number of signatures: '3' for transaction with id '${transaction.id.toString(
+						'hex',
+					)}'`,
+				);
+			});
+
+			it('should throw when a transaction from 3-of-4 multisig account with 2 mandatory signers has only 2 optional signatures', async () => {
+				transaction.signatures.push(EMPTY_BUFFER);
+				transaction.signatures.push(EMPTY_BUFFER);
+				transaction.sign(chainID, privateKeys.optional[0]);
+				transaction.sign(chainID, privateKeys.optional[1]);
 
 				const context = testing
 					.createTransactionContext({
