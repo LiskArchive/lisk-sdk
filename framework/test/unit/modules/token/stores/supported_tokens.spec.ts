@@ -130,14 +130,8 @@ describe('SupportedTokensStore', () => {
 
 	describe('supportChain', () => {
 		it('should not insert data if chainID is LSK', async () => {
-			const chainID = Buffer.from([2, 0, 0, 0]);
-			await store.supportChain(context, chainID);
+			await store.supportChain(context, Buffer.from([1, 0, 0, 0]));
 
-			await store.supportChain(context, chainID);
-
-			const supportedChainStoreData = await store.get(context, chainID);
-
-			expect(supportedChainStoreData.supportedTokenIDs).toEqual([]);
 			await expect(store.has(context, Buffer.from([1, 0, 0, 0]))).resolves.toBeFalse();
 		});
 
