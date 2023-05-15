@@ -16,7 +16,13 @@ import { ed, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { LiskErrorObject } from '@liskhq/lisk-validator/dist-node/types';
-import { EMPTY_BUFFER, EMPTY_HASH, SIGNATURE_LENGTH_BYTES, TAG_BLOCK_HEADER } from './constants';
+import {
+	EMPTY_BUFFER,
+	EMPTY_HASH,
+	LENGTH_ADDRESS,
+	SIGNATURE_LENGTH_BYTES,
+	TAG_BLOCK_HEADER,
+} from './constants';
 import { blockHeaderSchema, blockHeaderSchemaWithId, signingBlockHeaderSchema } from './schema';
 import { JSONObject } from './types';
 
@@ -202,6 +208,16 @@ export class BlockHeader {
 				dataPath: 'header.previousBlockID',
 				schemaPath: 'properties.previousBlockID',
 				params: {},
+			});
+		}
+
+		if (!header.generatorAddress.equals(Buffer.alloc(LENGTH_ADDRESS))) {
+			errors.push({
+				message: 'Genesis block header generator address must only contain zero bytes',
+				keyword: 'const',
+				dataPath: 'header.generatorAddress',
+				schemaPath: 'properties.generatorAddress',
+				params: { allowedValue: Buffer.alloc(LENGTH_ADDRESS) },
 			});
 		}
 
