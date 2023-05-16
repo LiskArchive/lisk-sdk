@@ -99,7 +99,7 @@ export class TransferCrossChainCommand extends BaseCommand {
 
 			balanceCheck.set(
 				messageFeeTokenID,
-				(balanceCheck.get(messageFeeTokenID) ?? BigInt(0)) + params.amount,
+				(balanceCheck.get(messageFeeTokenID) ?? BigInt(0)) + params.messageFee,
 			);
 
 			for (const [tokenID, amount] of balanceCheck.entries()) {
