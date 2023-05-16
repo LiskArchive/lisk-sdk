@@ -215,6 +215,14 @@ describe('block_header', () => {
 		});
 
 		describe('validateGenesis', () => {
+			it('should not throw when genesis block is valid', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({
+					...block,
+				});
+
+				expect(() => blockHeader.validateGenesis()).not.toThrow();
+			});
 			it('should throw error if previousBlockID is not 32 bytes', () => {
 				const block = getGenesisBlockAttrs();
 				const blockHeader = new BlockHeader({
@@ -248,6 +256,15 @@ describe('block_header', () => {
 
 				expect(() => blockHeader.validateGenesis()).toThrow(
 					'Genesis block header transaction root must be empty hash',
+				);
+			});
+
+			it('should throw error if maxHeightGenerated is not zero', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({ ...block, maxHeightGenerated: 10 });
+
+				expect(() => blockHeader.validateGenesis()).toThrow(
+					'Genesis block header maxHeightGenerated must equal 0',
 				);
 			});
 
@@ -296,6 +313,18 @@ describe('block_header', () => {
 
 				expect(() => blockHeader.validateGenesis()).toThrow(
 					'Genesis block header aggregateCommit.aggregationBits must be empty bytes',
+				);
+			});
+
+			it('should throw error if impliesMaxPrevotes is false', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({
+					...block,
+					impliesMaxPrevotes: false,
+				});
+
+				expect(() => blockHeader.validateGenesis()).toThrow(
+					'Genesis block header impliesMaxPrevotes must be true',
 				);
 			});
 
