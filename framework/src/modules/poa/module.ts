@@ -13,12 +13,12 @@
  */
 
 import { BaseModule, ModuleMetadata } from '../base_module';
-import { AuthMethod } from '../auth';
-import { AuthEndpoint } from '../auth/endpoint';
+import { PoAMethod } from './method';
+import { PoAEndpoint } from './endpoint';
 
 export class PoAModule extends BaseModule {
-	public method = new AuthMethod(this.stores, this.events);
-	public endpoint = new AuthEndpoint(this.name, this.stores, this.offchainStores);
+	public method = new PoAMethod(this.stores, this.events);
+	public endpoint = new PoAEndpoint(this.stores, this.offchainStores);
 
 	public metadata(): ModuleMetadata {
 		return {
