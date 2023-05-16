@@ -184,6 +184,7 @@ describe('state_machine', () => {
 				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),
 			});
+			expect(mod.commands[0].execute).toHaveBeenCalledTimes(1);
 			expect(mod.afterCommandExecute).toHaveBeenCalledTimes(1);
 		});
 

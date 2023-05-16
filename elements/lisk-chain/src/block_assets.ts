@@ -100,7 +100,9 @@ export class BlockAssets {
 				);
 			}
 			if (last.module > asset.module) {
-				throw new Error('Assets are not sorted in the increasing values of moduleID.');
+				throw new Error(
+					'Assets are not sorted by the module property value in lexicographical order.',
+				);
 			}
 			// Check for duplicates
 			if (i > 0 && asset.module === last.module) {
@@ -118,7 +120,9 @@ export class BlockAssets {
 			validator.validate(blockAssetSchema, asset);
 
 			if (last.module > asset.module) {
-				throw new Error('Assets are not sorted in the increasing values of moduleID.');
+				throw new Error(
+					'Assets are not sorted by the module property value in lexicographical order.',
+				);
 			}
 			if (i > 0 && asset.module === last.module) {
 				throw new Error(`Module with ID ${this._assets[i].module} has duplicate entries.`);
