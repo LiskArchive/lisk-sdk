@@ -354,7 +354,8 @@ describe('CCTransfer command', () => {
 		it('should fail when sender balance is insufficient for messageFeeTokenID', async () => {
 			const userStore = module.stores.get(UserStore);
 			const amount = BigInt(50);
-			const senderBalance = BigInt(49);
+			const messageFee = BigInt(5);
+			const messageTokenBalance = BigInt(4);
 
 			const tokenID = Buffer.concat([defaultOwnChainID, Buffer.from([0, 0, 0, 0])]);
 			const messageFeeTokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 1]);
@@ -363,6 +364,7 @@ describe('CCTransfer command', () => {
 				amount,
 				tokenID,
 				messageFeeTokenID,
+				messageFee,
 			});
 
 			jest
@@ -388,6 +390,48 @@ describe('CCTransfer command', () => {
 				insufficientBalanceContext.transaction.senderAddress,
 				messageFeeTokenID,
 				{
+					availableBalance: messageTokenBalance,
+					lockedBalances: [],
+				},
+			);
+
+			expectSchemaValidationError(
+				await command.verify(
+					insufficientBalanceContext.createCommandVerifyContext(crossChainTransferParamsSchema),
+				),
+				createInsufficientBalanceError(
+					insufficientBalanceContext.transaction.senderAddress,
+					messageTokenBalance,
+					messageFeeTokenID,
+					messageFee,
+				),
+			);
+		});
+
+		it('should fail when sender balance is insufficient for amount when params.tokenID and messageFeeTokenID are same', async () => {
+			const userStore = module.stores.get(UserStore);
+			const amount = BigInt(10);
+			const senderBalance = BigInt(9);
+			const messageFee = BigInt(0);
+
+			const tokenID = Buffer.concat([defaultOwnChainID, Buffer.from([0, 0, 0, 0])]);
+
+			const insufficientBalanceContext = createTransactionContextWithOverridingParams({
+				amount,
+				tokenID,
+				messageFeeTokenID: tokenID,
+				messageFee,
+			});
+
+			jest.spyOn(interoperabilityMethod, 'getMessageFeeTokenID').mockResolvedValue(tokenID);
+
+			await userStore.save(
+				insufficientBalanceContext.createCommandExecuteContext<Params>(
+					crossChainTransferParamsSchema,
+				),
+				insufficientBalanceContext.transaction.senderAddress,
+				tokenID,
+				{
 					availableBalance: senderBalance,
 					lockedBalances: [],
 				},
@@ -400,8 +444,50 @@ describe('CCTransfer command', () => {
 				createInsufficientBalanceError(
 					insufficientBalanceContext.transaction.senderAddress,
 					senderBalance,
-					messageFeeTokenID,
-					amount,
+					tokenID,
+					amount + messageFee,
+				),
+			);
+		});
+
+		it('should fail when sender balance is insufficient for messageFee when params.tokenID and messageFeeTokenID are same', async () => {
+			const userStore = module.stores.get(UserStore);
+			const amount = BigInt(10);
+			const senderBalance = BigInt(5);
+			const messageFee = BigInt(2);
+
+			const tokenID = Buffer.concat([defaultOwnChainID, Buffer.from([0, 0, 0, 0])]);
+
+			const insufficientBalanceContext = createTransactionContextWithOverridingParams({
+				amount,
+				tokenID,
+				messageFeeTokenID: tokenID,
+				messageFee,
+			});
+
+			jest.spyOn(interoperabilityMethod, 'getMessageFeeTokenID').mockResolvedValue(tokenID);
+
+			await userStore.save(
+				insufficientBalanceContext.createCommandExecuteContext<Params>(
+					crossChainTransferParamsSchema,
+				),
+				insufficientBalanceContext.transaction.senderAddress,
+				tokenID,
+				{
+					availableBalance: senderBalance,
+					lockedBalances: [],
+				},
+			);
+
+			expectSchemaValidationError(
+				await command.verify(
+					insufficientBalanceContext.createCommandVerifyContext(crossChainTransferParamsSchema),
+				),
+				createInsufficientBalanceError(
+					insufficientBalanceContext.transaction.senderAddress,
+					senderBalance,
+					tokenID,
+					amount + messageFee,
 				),
 			);
 		});
