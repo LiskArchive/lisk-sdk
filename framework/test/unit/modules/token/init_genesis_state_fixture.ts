@@ -144,6 +144,22 @@ export const invalidGenesisAssets = [
 		'UserSubstore must be sorted by address and tokenID',
 	],
 	[
+		'Unsorted tokens in userstore by address',
+		{
+			...validData,
+			userSubstore: [
+				{
+					address: Buffer.alloc(20, 1),
+					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
+					availableBalance: BigInt('1000'),
+					lockedBalances: [{ module: 'pos', amount: oneUnit }],
+				},
+				...validData.userSubstore.slice(1),
+			],
+		},
+		'UserSubstore must be sorted by address and tokenID',
+	],
+	[
 		'Locked balances is not sorted',
 		{
 			...validData,
