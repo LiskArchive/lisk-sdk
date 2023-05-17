@@ -39,6 +39,7 @@ export interface GeneratorStore {
 
 export interface Consensus {
 	execute: (block: Block) => Promise<void>;
+	syncing(): boolean;
 	isSynced: (height: number, maxHeightPrevoted: number) => boolean;
 	finalizedHeight: () => number;
 	getAggregateCommit: (stateStore: StateStore) => Promise<AggregateCommit>;
