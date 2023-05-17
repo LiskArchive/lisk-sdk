@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-framework-monitor-plugin",
-	"version": "0.3.0-beta.0",
+	"version": "0.3.0-beta.1",
 	"description": "A plugin for lisk-framework that provides network statistics of the running node",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -40,7 +40,7 @@
 		"express": "4.18.2",
 		"express-rate-limit": "6.7.0",
 		"ip": "1.1.5",
-		"lisk-sdk": "^6.0.0-beta.0"
+		"lisk-sdk": "^6.0.0-beta.1"
 	},
 	"devDependencies": {
 		"@types/cors": "2.8.12",

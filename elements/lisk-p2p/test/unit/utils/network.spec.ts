@@ -22,8 +22,11 @@ import {
 	NETWORK,
 	getBucketId,
 	PEER_TYPE,
+	expirePeerFromBucket,
 } from '../../../src/utils';
-import { DEFAULT_RANDOM_SECRET } from '../../../src/constants';
+import { DEFAULT_EVICTION_THRESHOLD_TIME, DEFAULT_RANDOM_SECRET } from '../../../src/constants';
+import { initPeerInfoList } from '../../utils/peers';
+import { P2PEnhancedPeerInfo } from '../../../src/types';
 
 describe('utils/network', () => {
 	const MAX_GROUP_NUM = 255;
@@ -140,11 +143,51 @@ describe('utils/network', () => {
 	});
 
 	describe('#expirePeerFromBucket', () => {
-		describe('when bucket contains old peers', () => {
-			it.todo('should return the evicted peer info');
+		let peerBucket: Map<string, P2PEnhancedPeerInfo>;
+		const peers = initPeerInfoList();
+
+		beforeEach(() => {
+			peerBucket = new Map<string, P2PEnhancedPeerInfo>();
+
+			for (const p of peers) {
+				peerBucket.set(p?.peerId, {
+					...p,
+					dateAdded: new Date(),
+				});
+			}
 		});
-		describe('when bucket does not contains old peers', () => {
-			it.todo('should return undefined');
+
+		it('should return the evicted peer info when bucket contains old peers', () => {
+			const peer1 = peerBucket.get(peers[0].peerId) as P2PEnhancedPeerInfo;
+			const timeNow = new Date();
+			const oneDayOldTime = new Date(timeNow.getTime() - (DEFAULT_EVICTION_THRESHOLD_TIME + 1000));
+			const oldPeer = {
+				...peer1,
+				dateAdded: oneDayOldTime,
+			};
+			peerBucket.set(peer1?.peerId, oldPeer);
+			expect(expirePeerFromBucket(peerBucket, DEFAULT_EVICTION_THRESHOLD_TIME)).toEqual(oldPeer);
+		});
+
+		it('should return undefined when bucket does not contains old peers', () => {
+			for (const p of peers) {
+				peerBucket.set(p?.peerId, {
+					...p,
+					dateAdded: new Date(),
+				});
+			}
+			expect(expirePeerFromBucket(peerBucket, DEFAULT_EVICTION_THRESHOLD_TIME)).toBeUndefined();
+		});
+
+		it("should return undefined when peers don't have dateAdded field", () => {
+			const peerBucketWithoutDateAdded = new Map<string, P2PEnhancedPeerInfo>();
+			const peerInfoList = initPeerInfoList();
+			for (const p of peerInfoList) {
+				peerBucketWithoutDateAdded.set(p?.peerId, p);
+			}
+			expect(
+				expirePeerFromBucket(peerBucketWithoutDateAdded, DEFAULT_EVICTION_THRESHOLD_TIME),
+			).toBeUndefined();
 		});
 	});
 
