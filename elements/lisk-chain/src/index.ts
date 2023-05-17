@@ -34,6 +34,7 @@ export {
 	MAX_MODULE_NAME_LENGTH,
 	MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH,
 	MIN_MODULE_NAME_LENGTH,
+	EMPTY_BUFFER,
 } from './constants';
 export * from './db_keys';
 export type { RawBlock } from './types';
