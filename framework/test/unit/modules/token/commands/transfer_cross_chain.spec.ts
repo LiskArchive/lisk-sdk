@@ -389,51 +389,10 @@ describe('CCTransfer command', () => {
 			);
 		});
 
-		it('should fail when sender balance is insufficient for amount when params.tokenID and messageFeeTokenID are same', async () => {
+		it('should fail when sender balance is insufficient for (amount + messageFee) when params.tokenID and messageFeeTokenID are same', async () => {
 			const userStore = module.stores.get(UserStore);
-			const amount = BigInt(10);
 			const senderBalance = BigInt(9);
-			const messageFee = BigInt(0);
-
-			const tokenID = Buffer.concat([defaultOwnChainID, Buffer.from([0, 0, 0, 0])]);
-
-			const insufficientBalanceContext = createTransactionContextWithOverridingParams({
-				amount,
-				tokenID,
-				messageFeeTokenID: tokenID,
-				messageFee,
-			});
-
-			jest.spyOn(interoperabilityMethod, 'getMessageFeeTokenID').mockResolvedValue(tokenID);
-
-			await userStore.save(
-				insufficientBalanceContext.createCommandExecuteContext<Params>(
-					crossChainTransferParamsSchema,
-				),
-				insufficientBalanceContext.transaction.senderAddress,
-				tokenID,
-				{
-					availableBalance: senderBalance,
-					lockedBalances: [],
-				},
-			);
-			expectSchemaValidationError(
-				await command.verify(
-					insufficientBalanceContext.createCommandVerifyContext(crossChainTransferParamsSchema),
-				),
-				createInsufficientBalanceError(
-					insufficientBalanceContext.transaction.senderAddress,
-					senderBalance,
-					tokenID,
-					amount + messageFee,
-				),
-			);
-		});
-
-		it('should fail when sender balance is insufficient for messageFee when params.tokenID and messageFeeTokenID are same', async () => {
-			const userStore = module.stores.get(UserStore);
-			const amount = BigInt(10);
-			const senderBalance = BigInt(5);
+			const amount = BigInt(8);
 			const messageFee = BigInt(2);
 
 			const tokenID = Buffer.concat([defaultOwnChainID, Buffer.from([0, 0, 0, 0])]);
@@ -458,7 +417,6 @@ describe('CCTransfer command', () => {
 					lockedBalances: [],
 				},
 			);
-
 			expectSchemaValidationError(
 				await command.verify(
 					insufficientBalanceContext.createCommandVerifyContext(crossChainTransferParamsSchema),
