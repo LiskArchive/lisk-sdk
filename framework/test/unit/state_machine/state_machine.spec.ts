@@ -314,6 +314,23 @@ describe('state_machine', () => {
 			// expect(systemMod.verifyAssets).toHaveBeenCalledTimes(1);
 			expect(mod.verifyAssets).toHaveBeenCalledTimes(1);
 		});
+
+		it('should fail if module is not registered', async () => {
+			await expect(
+				stateMachine.verifyAssets(
+					new BlockContext({
+						eventQueue,
+						logger,
+						stateStore,
+						contextStore,
+						header,
+						assets: new BlockAssets([{ module: 'unknown', data: Buffer.alloc(30) }]),
+						chainID,
+						transactions: [transaction],
+					}),
+				),
+			).rejects.toThrow('Module unknown is not registered');
+		});
 	});
 
 	describe('beforeExecuteBlock', () => {
