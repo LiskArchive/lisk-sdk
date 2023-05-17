@@ -112,7 +112,7 @@ describe('Register Multisignature command', () => {
 			expect(result.status).toBe(VerifyStatus.OK);
 		});
 
-		it('should return status OK when the total number of keys between mandatory and optional is 64', async () => {
+		it('should return status OK when the total number of mandatory and optional keys is 64', async () => {
 			const mandatoryKeys = [...Array(20).keys()].map(() => utils.getRandomBytes(32));
 			const optionalKeys = [...Array(44).keys()].map(() => utils.getRandomBytes(32));
 
