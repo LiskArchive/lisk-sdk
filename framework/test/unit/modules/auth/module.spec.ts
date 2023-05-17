@@ -36,15 +36,17 @@ import {
 } from './multisig_fixture';
 
 describe('AuthModule', () => {
+	let authAccountStoreMock: jest.Mock;
+	let storeMock: jest.Mock;
 	let stateStore: any;
 	let authModule: AuthModule;
 
 	const registerMultisigTx = new Transaction(unsignedRegisterMultisigTx);
 
-	const authAccountStoreMock = jest.fn();
-	const storeMock = jest.fn().mockReturnValue({ getWithSchema: authAccountStoreMock });
-
 	beforeEach(() => {
+		authAccountStoreMock = jest.fn();
+		storeMock = jest.fn().mockReturnValue({ getWithSchema: authAccountStoreMock });
+
 		authModule = new AuthModule();
 		stateStore = { getStore: storeMock };
 	});
@@ -262,16 +264,18 @@ describe('AuthModule', () => {
 
 	describe('verifyTransaction', () => {
 		describe('Invalid nonce errors', () => {
-			it('should return FAIL status with error when trx nonce is lower than account nonce', async () => {
-				const accountNonce = BigInt(2);
+			const accountNonce = BigInt(2);
 
+			beforeEach(() => {
 				when(authAccountStoreMock).calledWith(multisigAddress, authAccountSchema).mockReturnValue({
 					mandatoryKeys: [],
 					optionalKeys: [],
 					nonce: accountNonce,
 					numberOfSignatures: 0,
 				});
+			});
 
+			it('should return FAIL status with error when trx nonce is lower than account nonce', async () => {
 				const context = testing
 					.createTransactionContext({
 						stateStore,
@@ -282,7 +286,6 @@ describe('AuthModule', () => {
 
 				await expect(authModule.verifyTransaction(context)).rejects.toThrow(
 					new InvalidNonceError(
-						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 						`Transaction with id:${registerMultisigTx.id.toString(
 							'hex',
 						)} nonce is lower than account nonce.`,
@@ -296,14 +299,14 @@ describe('AuthModule', () => {
 				const transaction = new Transaction({
 					module: 'token',
 					command: 'transfer',
-					nonce: BigInt('2'),
-					fee: BigInt('100000000'),
-					senderPublicKey: keyPairs[1].publicKey,
+					nonce: BigInt(4),
+					fee: BigInt(100_000_000),
+					senderPublicKey: keyPairs[0].publicKey,
 					params: utils.getRandomBytes(100),
 					signatures: [],
 				});
 
-				transaction.sign(chainID, keyPairs[1].privateKey);
+				transaction.sign(chainID, keyPairs[0].privateKey);
 
 				const context = testing
 					.createTransactionContext({
@@ -351,27 +354,27 @@ describe('AuthModule', () => {
 
 			const singleSigAddress = cryptoAddress.getAddressFromPublicKey(keyPairs[1].publicKey);
 
-			when(authAccountStoreMock)
-				.calledWith(singleSigAddress, authAccountSchema)
-				.mockReturnValue({
-					mandatoryKeys: [],
-					optionalKeys: [],
-					nonce: BigInt(0),
-					numberOfSignatures: 0,
-				});
-
 			beforeEach(() => {
 				transaction = new Transaction({
 					module: 'token',
 					command: 'transfer',
-					nonce: BigInt('0'),
-					fee: BigInt('100000000'),
+					nonce: BigInt(0),
+					fee: BigInt(100_000_000),
 					senderPublicKey: keyPairs[1].publicKey,
 					params: utils.getRandomBytes(100),
 					signatures: [],
 				});
 
 				transaction.sign(chainID, keyPairs[1].privateKey);
+
+				when(authAccountStoreMock)
+					.calledWith(singleSigAddress, authAccountSchema)
+					.mockReturnValue({
+						mandatoryKeys: [],
+						optionalKeys: [],
+						nonce: BigInt(0),
+						numberOfSignatures: 0,
+					});
 			});
 
 			it('should not throw for a valid transaction', async () => {
@@ -442,8 +445,8 @@ describe('AuthModule', () => {
 				transaction = new Transaction({
 					module: 'token',
 					command: 'transfer',
-					nonce: BigInt('0'),
-					fee: BigInt('100000000'),
+					nonce: BigInt(0),
+					fee: BigInt(100_000_000),
 					senderPublicKey: multisigParams.mandatoryKeys[0],
 					params: utils.getRandomBytes(100),
 					signatures: [],
