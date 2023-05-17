@@ -441,6 +441,7 @@ export class Consensus {
 				});
 				return;
 			}
+
 			if (forkStatus === ForkStatus.IDENTICAL_BLOCK) {
 				this._logger.debug(
 					{ id: block.header.id, height: block.header.height },
@@ -448,6 +449,7 @@ export class Consensus {
 				);
 				return;
 			}
+
 			if (forkStatus === ForkStatus.DOUBLE_FORGING) {
 				this._logger.warn(
 					{
@@ -472,6 +474,7 @@ export class Consensus {
 				});
 				return;
 			}
+
 			// Discard block and move to different chain
 			if (forkStatus === ForkStatus.DIFFERENT_CHAIN) {
 				this._logger.debug(
@@ -496,6 +499,7 @@ export class Consensus {
 				await this._sync(block, peerID);
 				return;
 			}
+
 			// Replacing a block
 			if (forkStatus === ForkStatus.TIE_BREAK) {
 				this._logger.info(
@@ -516,9 +520,14 @@ export class Consensus {
 					block,
 				});
 
-				this._chain.validateBlock(block, {
-					version: BLOCK_VERSION,
-				});
+				try {
+					this._chain.validateBlock(block, {
+						version: BLOCK_VERSION,
+					});
+				} catch (error) {
+					throw new ApplyPenaltyError(error);
+				}
+
 				const previousLastBlock = objects.cloneDeep(lastBlock);
 				await this._deleteBlock(lastBlock);
 				try {
@@ -543,9 +552,13 @@ export class Consensus {
 				{ id: block.header.id, height: block.header.height },
 				'Processing valid block',
 			);
-			this._chain.validateBlock(block, {
-				version: BLOCK_VERSION,
-			});
+			try {
+				this._chain.validateBlock(block, {
+					version: BLOCK_VERSION,
+				});
+			} catch (error) {
+				throw new ApplyPenaltyError(error);
+			}
 			await this._executeValidated(block);
 
 			// Since legacy property is optional we don't need to send it here
@@ -570,8 +583,14 @@ export class Consensus {
 		} = {},
 	): Promise<Block> {
 		const stateStore = new StateStore(this._db);
-		await this._verify(block);
-		const contextID = await this._verifyAssets(block);
+		let contextID: Buffer;
+
+		try {
+			await this._verify(block);
+			contextID = await this._verifyAssets(block);
+		} catch (error) {
+			throw new ApplyPenaltyError(error);
+		}
 
 		if (!options.skipBroadcast) {
 			this._network.send({
@@ -643,25 +662,12 @@ export class Consensus {
 	private async _verify(block: Block): Promise<void> {
 		const stateStore = new StateStore(this._db);
 
-		// Verify timestamp
 		this._verifyTimestamp(block);
-
-		// Verify height
-		this._verifyAssetsHeight(block);
-
-		// Verify previousBlockID
+		this._verifyBlockHeight(block);
 		this._verifyPreviousBlockID(block);
-
-		// Verify generatorAddress
 		await this._verifyGeneratorAddress(stateStore, block);
-
-		// Verify BFT Properties
 		await this._verifyBFTProperties(stateStore, block);
-
-		// verify Block signature
-		await this._verifyAssetsSignature(stateStore, block);
-
-		// verify aggregate commits
+		await this._verifyBlockSignature(stateStore, block);
 		await this._verifyAggregateCommit(stateStore, block);
 	}
 
@@ -678,7 +684,7 @@ export class Consensus {
 			);
 		}
 
-		// Check that block slot is strictly larger than the block slot of previousBlock
+		// Check that the provided block slot is strictly higher than the block slot of previousBlock
 		const { lastBlock } = this._chain;
 		const previousBlockSlotNumber = this._bft.method.getSlotNumber(lastBlock.header.timestamp);
 		if (blockSlotNumber <= previousBlockSlotNumber) {
@@ -702,7 +708,7 @@ export class Consensus {
 		}
 	}
 
-	private _verifyAssetsHeight(block: Block): void {
+	private _verifyBlockHeight(block: Block): void {
 		const { lastBlock } = this._chain;
 
 		if (block.header.height !== lastBlock.header.height + 1) {
@@ -723,13 +729,14 @@ export class Consensus {
 				)} of the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
-		const generator = await this._bft.method.getGeneratorAtTimestamp(
+		const expectedGenerator = await this._bft.method.getGeneratorAtTimestamp(
 			stateStore,
 			block.header.height,
 			block.header.timestamp,
 		);
+
 		// Check that the block generator is eligible to generate in this block slot.
-		if (!block.header.generatorAddress.equals(generator.address)) {
+		if (!block.header.generatorAddress.equals(expectedGenerator.address)) {
 			throw new Error(
 				`Generator with address ${block.header.generatorAddress.toString(
 					'hex',
@@ -750,6 +757,7 @@ export class Consensus {
 				} of the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
+
 		const isContradictingHeaders = await this._bft.method.isHeaderContradictingChain(
 			stateStore,
 			block.header,
@@ -759,13 +767,14 @@ export class Consensus {
 				`Contradicting headers for the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
+
 		const implyMaxPrevote = await this._bft.method.impliesMaximalPrevotes(stateStore, block.header);
 		if (block.header.impliesMaxPrevotes !== implyMaxPrevote) {
 			throw new Error('Invalid imply max prevote.');
 		}
 	}
 
-	private async _verifyAssetsSignature(stateStore: StateStore, block: Block): Promise<void> {
+	private async _verifyBlockSignature(stateStore: StateStore, block: Block): Promise<void> {
 		const bftParams = await this._bft.method.getBFTParameters(stateStore, block.header.height);
 		const generator = bftParams.validators.find(validator =>
 			validator.address.equals(block.header.generatorAddress),
@@ -795,6 +804,7 @@ export class Consensus {
 				`Aggregate Commit is "undefined" for the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
+
 		const isVerified = await this._commitPool.verifyAggregateCommit(
 			stateStore,
 			block.header.aggregateCommit,
@@ -812,11 +822,11 @@ export class Consensus {
 				`Validators hash is "undefined" for the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
+
 		const { validatorsHash } = await this._bft.method.getBFTParameters(
 			methodContext,
 			block.header.height + 1,
 		);
-
 		if (!block.header.validatorsHash.equals(validatorsHash)) {
 			throw new Error(
 				`Invalid validatorsHash ${block.header.validatorsHash?.toString(
