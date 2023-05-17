@@ -174,14 +174,14 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 			}
 		}
 
-		const authAccountStore = this.stores.get(AuthAccountStore);
-		const senderAccount = await authAccountStore.get(context, transaction.senderAddress);
+		const authSubstore = this.stores.get(AuthAccountStore);
+		const senderAccount = await authSubstore.get(context, transaction.senderAddress);
 
 		senderAccount.mandatoryKeys = params.mandatoryKeys;
 		senderAccount.optionalKeys = params.optionalKeys;
 		senderAccount.numberOfSignatures = params.numberOfSignatures;
 
-		await authAccountStore.set(context, transaction.senderAddress, senderAccount);
+		await authSubstore.set(context, transaction.senderAddress, senderAccount);
 
 		this.events.get(MultisignatureRegistrationEvent).log(context, transaction.senderAddress, {
 			numberOfSignatures: params.numberOfSignatures,
