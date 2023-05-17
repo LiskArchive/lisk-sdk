@@ -80,7 +80,7 @@ export const decodedParams: RegisterMultisignatureParams = {
 };
 const encodedParams = codec.encode(registerMultisignatureParamsSchema, decodedParams);
 
-export const registerMultisigTx = new Transaction({
+export const unsignedRegisterMultisigTx = new Transaction({
 	module: 'auth',
 	command: 'registerMultisignature',
 	fee: BigInt('100000000'),

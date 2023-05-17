@@ -26,12 +26,7 @@ import { AuthModule } from '../../../../src/modules/auth';
 import { AuthAccount, AuthAccountStore } from '../../../../src/modules/auth/stores/auth_account';
 import { InvalidSignatureEvent } from '../../../../src/modules/auth/events/invalid_signature';
 import { MultisignatureRegistrationEvent } from '../../../../src/modules/auth/events/multisignature_registration';
-import {
-	chainID,
-	decodedParams,
-	keyPairs,
-	registerMultisigTx as transaction,
-} from './multisig_fixture';
+import { chainID, decodedParams, keyPairs, unsignedRegisterMultisigTx } from './multisig_fixture';
 
 describe('Register Multisignature command', () => {
 	let registerMultisignatureCommand: RegisterMultisignatureCommand;
@@ -47,6 +42,7 @@ describe('Register Multisignature command', () => {
 		nonce: BigInt(0),
 	};
 
+	const transaction = new Transaction(unsignedRegisterMultisigTx);
 	transaction.sign(chainID, keyPairs[0].privateKey);
 
 	beforeEach(() => {

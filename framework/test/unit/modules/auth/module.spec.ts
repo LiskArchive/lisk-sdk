@@ -29,7 +29,7 @@ import {
 } from '../../../../src/modules/auth/stores/auth_account';
 import {
 	chainID,
-	registerMultisigTx,
+	unsignedRegisterMultisigTx,
 	multisigAddress,
 	keyPairs,
 	multisigParams,
@@ -38,6 +38,8 @@ import {
 describe('AuthModule', () => {
 	let stateStore: any;
 	let authModule: AuthModule;
+
+	const registerMultisigTx = new Transaction(unsignedRegisterMultisigTx);
 
 	const authAccountStoreMock = jest.fn();
 	const storeMock = jest.fn().mockReturnValue({ getWithSchema: authAccountStoreMock });
