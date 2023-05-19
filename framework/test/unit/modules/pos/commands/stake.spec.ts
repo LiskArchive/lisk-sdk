@@ -27,7 +27,11 @@ import { InternalMethod } from '../../../../../src/modules/pos/internal_method';
 import { ValidatorAccount, ValidatorStore } from '../../../../../src/modules/pos/stores/validator';
 import { EligibleValidatorsStore } from '../../../../../src/modules/pos/stores/eligible_validators';
 import { StakerStore } from '../../../../../src/modules/pos/stores/staker';
-import { StakeObject, StakeTransactionParams } from '../../../../../src/modules/pos/types';
+import {
+	StakeObject,
+	StakerData,
+	StakeTransactionParams,
+} from '../../../../../src/modules/pos/types';
 import { EventQueue, MethodContext } from '../../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 
@@ -594,6 +598,54 @@ describe('StakeCommand', () => {
 
 				expect(totalStake1).toBe(validator1StakeAmount);
 				expect(totalStake2).toBe(validator2StakeAmount);
+			});
+
+			it("should increase staker's stakes.amount and validator's totalStake when an existing staker further increases their stake", async () => {
+				const previousStakeAmount = liskToBeddows(120);
+				const newStakeAmount = liskToBeddows(88);
+
+				const validatorAccount: ValidatorAccount = {
+					...validator1,
+					totalStake: previousStakeAmount,
+					selfStake: liskToBeddows(50),
+				};
+				const stakerData: StakerData = {
+					stakes: [
+						{
+							validatorAddress: validatorAddress1,
+							amount: previousStakeAmount,
+							sharingCoefficients: validatorAccount.sharingCoefficients,
+						},
+					],
+					pendingUnlocks: [],
+				};
+
+				await stakerStore.set(createStoreGetter(stateStore), senderAddress, stakerData);
+				await validatorStore.set(
+					createStoreGetter(stateStore),
+					validatorAddress1,
+					validatorAccount,
+				);
+
+				transactionParamsDecoded = {
+					stakes: [{ validatorAddress: validatorAddress1, amount: newStakeAmount }],
+				};
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
+				context = createTransactionContext({
+					transaction,
+					stateStore,
+				}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
+
+				await command.execute(context);
+
+				const { totalStake } = await validatorStore.get(
+					createStoreGetter(stateStore),
+					validatorAddress1,
+				);
+				const { stakes } = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
+
+				expect(totalStake).toBe(previousStakeAmount + newStakeAmount);
+				expect(stakes[0].amount).toBe(previousStakeAmount + newStakeAmount);
 			});
 
 			it('should create a new entry in staker store, when a new staker upstakes', async () => {
