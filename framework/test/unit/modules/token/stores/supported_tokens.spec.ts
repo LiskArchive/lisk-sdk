@@ -157,6 +157,21 @@ describe('SupportedTokensStore', () => {
 			await expect(
 				store.isSupported(context, Buffer.from([2, 0, 0, 0, 0, 0, 0, 0])),
 			).resolves.toBeTrue();
+
+			await expect(store.get(context, Buffer.from([2, 0, 0, 0]))).resolves.toEqual({
+				supportedTokenIDs: [],
+			});
+		});
+
+		it('should update data with empty list if tokens are supported', async () => {
+			const chainID = Buffer.from([2, 0, 0, 0]);
+			const tokenID = Buffer.concat([chainID, Buffer.from([1, 1, 1, 1])]);
+
+			await store.set(context, chainID, { supportedTokenIDs: [tokenID] });
+
+			await store.supportChain(context, chainID);
+
+			await expect(store.get(context, chainID)).resolves.toEqual({ supportedTokenIDs: [] });
 		});
 	});
 
