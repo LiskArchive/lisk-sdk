@@ -11,3 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+export enum UpdateAuthorityEnum {
+	UPDATE_AUTHORITY_SUCCESS,
+	UPDATE_AUTHORITY_FAIL_INVALID_SIGNATURE,
+}
