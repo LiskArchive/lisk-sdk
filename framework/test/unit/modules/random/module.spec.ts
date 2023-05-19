@@ -261,7 +261,7 @@ describe('RandomModule', () => {
 
 		const targetValidatorAddress = address.getAddressFromLisk32Address(targetValidator.address);
 
-		it('should assign seed reveal to block header asset', async () => {
+		it('should assign seed reveal to block header asset, update and overwrite the used hash onion when forging the same height', async () => {
 			// Arrange
 			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
 				assets: assetStub,
@@ -304,64 +304,30 @@ describe('RandomModule', () => {
 			).resolves.toEqual(defaultUsedHashOnionUpdated);
 		});
 
-		it('should update the used hash onion', async () => {
+		it('should remove other used hash onions except count 0 at current height if all entries in the used hash onion array have height greater than the current block height', async () => {
 			// Arrange
-
-			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
-				assets: assetStub,
-				logger: testing.mocks.loggerMock,
-				chainID: defaultChainID,
-				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
-				getMethodContext: jest.fn() as any,
-				getStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: targetValidatorAddress } as any,
-			});
-
-			await randomModule.offchainStores
-				.get(UsedHashOnionsStore)
-				.set(blockGenerateContext, targetValidatorAddress, defaultUsedHashOnion);
-
-			const seed = targetValidator.hashOnion.hashes[1];
-			const hashes = utils.hashOnion(
-				Buffer.from(seed, 'hex'),
-				targetValidator.hashOnion.distance,
-				1,
-			);
-
-			// Act
-			await randomModule.init({
-				genesisConfig: {} as GenesisConfig,
-				moduleConfig: {},
-			});
-			await randomModule.insertAssets(blockGenerateContext);
-
-			// Assert
-			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
-			expect(assetStub.setAsset).toHaveBeenCalledWith(
-				randomModule.name,
-				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
-			);
-			await expect(
-				randomModule.offchainStores
-					.get(UsedHashOnionsStore)
-					.get(blockGenerateContext, targetValidatorAddress),
-			).resolves.toEqual(defaultUsedHashOnionUpdated);
-		});
-
-		it('should overwrite the used hash onion when forging the same height', async () => {
-			// Arrange
+			// when all entries have height more than the current block height, an entry with count 0 will be initialzed in the used hash onions array
 			const usedHashOnionInput: UsedHashOnionStoreObject = {
 				usedHashOnions: [
 					{
 						count: 5,
-						height: 9,
+						height: 17,
 					},
 					{
 						count: 6,
-						height: 12,
+						height: 21,
 					},
 					{
 						count: 7,
+						height: 25,
+					},
+				],
+			};
+			// all entries except count 0 at current block height removed
+			const usedHashOnionUpdated: UsedHashOnionStoreObject = {
+				usedHashOnions: [
+					{
+						count: 0,
 						height: 15,
 					},
 				],
@@ -398,13 +364,159 @@ describe('RandomModule', () => {
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledWith(
 				randomModule.name,
-				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
+				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[0] }),
 			);
 			await expect(
 				randomModule.offchainStores
 					.get(UsedHashOnionsStore)
 					.get(blockGenerateContext, targetValidatorAddress),
-			).resolves.toEqual(defaultUsedHashOnionUpdated);
+			).resolves.toEqual(usedHashOnionUpdated);
+		});
+
+		it('should remove other used hash onions except count 0 at current height if there is no entry in the used hash onion array with height less than the current block height', async () => {
+			// Arrange
+			// when all entries have height more than or equal to the current block height, an entry with count 0 will be initialzed in the used hash onions array
+			const usedHashOnionInput: UsedHashOnionStoreObject = {
+				usedHashOnions: [
+					{
+						count: 5,
+						height: 15,
+					},
+					{
+						count: 6,
+						height: 21,
+					},
+					{
+						count: 7,
+						height: 25,
+					},
+				],
+			};
+			// all entries except count 0 at current block height removed
+			const usedHashOnionUpdated: UsedHashOnionStoreObject = {
+				usedHashOnions: [
+					{
+						count: 0,
+						height: 15,
+					},
+				],
+			};
+
+			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
+				assets: assetStub,
+				logger: testing.mocks.loggerMock,
+				chainID: defaultChainID,
+				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
+				getMethodContext: jest.fn() as any,
+				getStore: jest.fn() as any,
+				header: { height: 15, generatorAddress: targetValidatorAddress } as any,
+			});
+			await randomModule.offchainStores
+				.get(UsedHashOnionsStore)
+				.set(blockGenerateContext, targetValidatorAddress, usedHashOnionInput);
+
+			const seed = targetValidator.hashOnion.hashes[1];
+			const hashes = utils.hashOnion(
+				Buffer.from(seed, 'hex'),
+				targetValidator.hashOnion.distance,
+				1,
+			);
+
+			// Act
+			await randomModule.init({
+				genesisConfig: {} as GenesisConfig,
+				moduleConfig: {},
+			});
+			await randomModule.insertAssets(blockGenerateContext);
+
+			// Assert
+			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
+			expect(assetStub.setAsset).toHaveBeenCalledWith(
+				randomModule.name,
+				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[0] }),
+			);
+			await expect(
+				randomModule.offchainStores
+					.get(UsedHashOnionsStore)
+					.get(blockGenerateContext, targetValidatorAddress),
+			).resolves.toEqual(usedHashOnionUpdated);
+		});
+
+		it('should not remove other used hash onions if there is atleast one entry in the used hash onion array with height less than the current block height', async () => {
+			// Arrange
+			// when there is atleast one entry with height less than or equal to the current block height, no entry with count 0 will be initialzed in the used hash onions array
+			const usedHashOnionInput: UsedHashOnionStoreObject = {
+				usedHashOnions: [
+					{
+						count: 5,
+						height: 12,
+					},
+					{
+						count: 6,
+						height: 21,
+					},
+					{
+						count: 7,
+						height: 25,
+					},
+				],
+			};
+			// no entry removed and current height updated
+			const usedHashOnionUpdated: UsedHashOnionStoreObject = {
+				usedHashOnions: [
+					{
+						count: 5,
+						height: 12,
+					},
+					{
+						count: 6,
+						height: 15,
+					},
+					{
+						count: 7,
+						height: 25,
+					},
+				],
+			};
+
+			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
+				assets: assetStub,
+				logger: testing.mocks.loggerMock,
+				chainID: defaultChainID,
+				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
+				getMethodContext: jest.fn() as any,
+				getStore: jest.fn() as any,
+				header: { height: 15, generatorAddress: targetValidatorAddress } as any,
+			});
+			await randomModule.offchainStores
+				.get(UsedHashOnionsStore)
+				.set(blockGenerateContext, targetValidatorAddress, usedHashOnionInput);
+
+			const seed = targetValidator.hashOnion.hashes[1];
+			const hashes = utils.hashOnion(
+				Buffer.from(seed, 'hex'),
+				targetValidator.hashOnion.distance,
+				1,
+			);
+
+			// Act
+			await randomModule.init({
+				genesisConfig: {} as GenesisConfig,
+				moduleConfig: {},
+			});
+			await randomModule.insertAssets(blockGenerateContext);
+
+			// Assert
+			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
+			expect(assetStub.setAsset).toHaveBeenCalledWith(
+				randomModule.name,
+				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[6] }),
+			);
+			await expect(
+				randomModule.offchainStores
+					.get(UsedHashOnionsStore)
+					.get(blockGenerateContext, targetValidatorAddress),
+			).resolves.toEqual(usedHashOnionUpdated);
 		});
 
 		it('should remove all used hash onions before finality height', async () => {

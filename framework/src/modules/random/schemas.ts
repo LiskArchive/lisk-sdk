@@ -13,6 +13,7 @@
  */
 
 import { ADDRESS_LENGTH, SEED_LENGTH } from './constants';
+import { UsedHashOnion } from './stores/used_hash_onions';
 
 interface AddressRequest {
 	address: string;
@@ -94,8 +95,7 @@ export const hasHashOnionResponseSchema = {
 };
 
 export interface GetHashOnionUsageResponse {
-	height: number;
-	count: number;
+	readonly usedHashOnions: UsedHashOnion[];
 	seed: string;
 }
 
@@ -104,15 +104,24 @@ export type GetHashOnionUsageRequest = AddressRequest;
 export const getHashOnionUsageResponse = {
 	$id: 'lisk/random/getHashOnionUsageResponse',
 	type: 'object',
-	required: ['count', 'height', 'seed'],
+	required: ['usedHashOnions', 'seed'],
 	properties: {
-		count: {
-			type: 'integer',
-			format: 'uint32',
-		},
-		height: {
-			type: 'integer',
-			format: 'uint32',
+		usedHashOnions: {
+			type: 'array',
+			items: {
+				type: 'object',
+				required: ['count', 'height'],
+				properties: {
+					count: {
+						type: 'integer',
+						format: 'uint32',
+					},
+					height: {
+						type: 'integer',
+						format: 'uint32',
+					},
+				},
+			},
 		},
 		seed: {
 			type: 'string',
@@ -122,26 +131,34 @@ export const getHashOnionUsageResponse = {
 };
 
 export interface SetHashOnionUsageRequest extends AddressRequest {
-	height: number;
-	count: number;
+	usedHashOnions: UsedHashOnion[];
 }
 
 export const setHashOnionUsageRequest = {
 	$id: 'lisk/random/setHashOnionUsageRequest',
 	type: 'object',
-	required: ['address', 'count', 'height'],
+	required: ['address', 'usedHashOnions'],
 	properties: {
 		address: {
 			type: 'string',
 			format: 'lisk32',
 		},
-		count: {
-			type: 'integer',
-			minimum: 1,
-		},
-		height: {
-			type: 'integer',
-			format: 'uint32',
+		usedHashOnions: {
+			type: 'array',
+			items: {
+				type: 'object',
+				required: ['count', 'height'],
+				properties: {
+					count: {
+						type: 'integer',
+						format: 'uint32',
+					},
+					height: {
+						type: 'integer',
+						format: 'uint32',
+					},
+				},
+			},
 		},
 	},
 };

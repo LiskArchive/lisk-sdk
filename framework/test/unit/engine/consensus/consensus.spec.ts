@@ -38,7 +38,6 @@ import {
 } from '../../../fixtures';
 import * as forkchoice from '../../../../src/engine/consensus/fork_choice/fork_choice_rule';
 import { postBlockEventSchema } from '../../../../src/engine/consensus/schema';
-import { fakeLogger } from '../../../utils/mocks';
 import { BFTModule } from '../../../../src/engine/bft';
 import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../../../src/abi';
 import {
@@ -274,7 +273,7 @@ describe('consensus', () => {
 			expect(network.applyPenaltyOnPeer).not.toHaveBeenCalled();
 		});
 
-		it('should apply when data is not Buffer', async () => {
+		it('should apply penalty when data is not Buffer', async () => {
 			await consensus.onBlockReceive('not buffer', peerID);
 			expect(network.applyPenaltyOnPeer).toHaveBeenCalledTimes(1);
 		});
@@ -604,12 +603,7 @@ describe('consensus', () => {
 		let stateStore: StateStore;
 
 		beforeEach(async () => {
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-				legacyDB: dbMock,
-			});
+			await initConsensus();
 			jest.spyOn(abi, 'verifyTransaction').mockResolvedValue({
 				result: TransactionVerifyResult.OK,
 				errorMessage: '',
@@ -740,12 +734,7 @@ describe('consensus', () => {
 				consensus['_db'] = dbMock;
 				consensus['_verifyEventRoot'] = jest.fn().mockReturnValue(undefined);
 
-				await consensus.init({
-					db: dbMock,
-					genesisBlock: genesis,
-					logger: fakeLogger,
-					legacyDB: dbMock,
-				});
+				await initConsensus();
 				jest.spyOn(consensus['_commitPool'], 'verifyAggregateCommit');
 			});
 
@@ -795,14 +784,14 @@ describe('consensus', () => {
 					const invalidBlock = { ...block };
 					(invalidBlock.header as any).height = consensus['_chain'].lastBlock.header.height;
 
-					expect(() => consensus['_verifyAssetsHeight'](invalidBlock as any)).toThrow(
+					expect(() => consensus['_verifyBlockHeight'](invalidBlock as any)).toThrow(
 						`Invalid height ${
 							invalidBlock.header.height
 						} of the block with id: ${invalidBlock.header.id.toString('hex')}`,
 					);
 				});
 				it('should be success when block has [height===lastBlock.height+1]', () => {
-					expect(consensus['_verifyAssetsHeight'](block as any)).toBeUndefined();
+					expect(consensus['_verifyBlockHeight'](block as any)).toBeUndefined();
 				});
 			});
 
@@ -938,7 +927,7 @@ describe('consensus', () => {
 						} as never);
 
 					await expect(
-						consensus['_verifyAssetsSignature'](stateStore, block as any),
+						consensus['_verifyBlockSignature'](stateStore, block as any),
 					).rejects.toThrow(
 						`Invalid signature ${block.header.signature.toString(
 							'hex',
@@ -968,7 +957,7 @@ describe('consensus', () => {
 						} as never);
 
 					await expect(
-						consensus['_verifyAssetsSignature'](stateStore, validBlock as any),
+						consensus['_verifyBlockSignature'](stateStore, validBlock as any),
 					).resolves.toBeUndefined();
 				});
 			});
@@ -1081,6 +1070,46 @@ describe('consensus', () => {
 				block.header.eventRoot = utils.hash(Buffer.alloc(0));
 				await expect(consensus['_verifyEventRoot'](block as any, [])).resolves.toBeUndefined();
 			});
+		});
+	});
+
+	describe('when a block is invalid', () => {
+		const invalidBlockID = Buffer.from('invalid');
+		let invalidBlock: Block;
+
+		beforeEach(async () => {
+			await initConsensus();
+			invalidBlock = await createValidDefaultBlock({
+				header: {
+					height: 2,
+					previousBlockID: invalidBlockID,
+					timestamp: consensus['_chain'].lastBlock.header.timestamp + 10,
+				},
+			});
+		});
+
+		it('should throw ApplyPenaltyError from _executeValidated()', async () => {
+			const errorMessage = `Error: Invalid previousBlockID ${invalidBlockID.toString(
+				'hex',
+			)} of the block with id: ${invalidBlock.header.id.toString('hex')}`;
+
+			await expect(consensus['_executeValidated'](invalidBlock)).rejects.toThrow(
+				new ApplyPenaltyError(errorMessage),
+			);
+		});
+
+		it('should throw ApplyPenaltyError from _execute() when fork status is VALID_BLOCK or TIE_BREAK', async () => {
+			jest.spyOn(chain, 'validateBlock').mockImplementation(() => {
+				throw new Error();
+			});
+
+			const peerID = 'peer';
+
+			jest.spyOn(forkchoice, 'forkChoice').mockReturnValue(forkchoice.ForkStatus.VALID_BLOCK);
+			await expect(consensus['_execute'](invalidBlock, peerID)).rejects.toThrow(ApplyPenaltyError);
+
+			jest.spyOn(forkchoice, 'forkChoice').mockReturnValue(forkchoice.ForkStatus.TIE_BREAK);
+			await expect(consensus['_execute'](invalidBlock, peerID)).rejects.toThrow(ApplyPenaltyError);
 		});
 	});
 });
