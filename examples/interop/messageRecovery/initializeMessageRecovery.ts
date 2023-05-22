@@ -332,7 +332,7 @@ const getModuleMetadata = async (mainchainClient: apiClient.APIClient) => {
  * Steps:
  * cd examples/interop/
  *
- * make sure `exports.LIVENESS_LIMIT = 2592000;` in `lisk-framework/dist-node/modules/interoperability/constants.js`
+ * make sure `exports.LIVENESS_LIMIT = 2592000;` in `examples/interop/pos-mainchain-fast/node_modules/lisk-framework/dist-node/modules/interoperability/constants.js`
  * ./start_example  (script to configure & register chains)
  *
  * Call `chainConnector_getSentCCUs` to see if any CCU was sent (sidechain status must change to ACTIVE after first CCU)
