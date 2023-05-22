@@ -452,9 +452,6 @@ const getModuleMetadata = async (mainchainClient: apiClient.APIClient) => {
 		let lastCertifiedHeight = sidechainAccount.lastCertificate.height;
 		console.log(`sidechainAccount.lastCertificate.height: ${lastCertifiedHeight}`);
 
-		if (sidechainAccount.status !== ChainStatus.TERMINATED) {
-		}
-
 		if (sidechainAccount.status === ChainStatus.TERMINATED) {
 			// Create recovery transaction
 			const inclusionProofAtLastCertifiedHeight = await inclusionProofModel.getByHeight(
