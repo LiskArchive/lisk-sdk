@@ -405,8 +405,6 @@ const getModuleMetadata = async (mainchainClient: apiClient.APIClient) => {
 			`Received new block ${newBlockHeader.height} on sidechain ${sidechainNodeInfo.chainID}`,
 		);
 
-		// await printEvents(newBlockHeader as BlockHeader, 'sidechain Events => ');
-
 		// Returns proof for sidechain lastBlock header stateRoot (which is state root of the last block that was forged)
 		const proof = proveResponseJSONToObj(
 			await sidechainClient.invoke<ProveResponseJSON>('state_prove', {
