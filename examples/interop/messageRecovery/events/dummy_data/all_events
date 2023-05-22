@@ -1,0 +1,88 @@
+
+mainchainClient [
+  {
+    data: '0a14d6a3789ad0ca09044cac3bead52f652d2d8fb4e612036665651a080400000000000000208084af5f2800',
+    index: 0,
+    module: 'token',
+    name: 'lock',
+    topics: [
+      '2632394e6cef184ac80f625d8aa933b85d79f689bbebabf30e34ce470d134435',
+      'd6a3789ad0ca09044cac3bead52f652d2d8fb4e6'
+    ],
+    height: 163
+  },
+  {
+    data: '0a320a05746f6b656e12127472616e7366657243726f7373436861696e18032080ade2042a04040000003204040000013a0040001001',
+    index: 1,
+    module: 'interoperability',
+    name: 'ccmSentFailed',
+    topics: [
+      '2632394e6cef184ac80f625d8aa933b85d79f689bbebabf30e34ce470d134435'
+    ],
+    height: 163
+  },
+  {
+    data: '0a14d6a3789ad0ca09044cac3bead52f652d2d8fb4e612036665651a080400000000000000208084af5f2800',
+    index: 2,
+    module: 'token',
+    name: 'unlock',
+    topics: [
+      '2632394e6cef184ac80f625d8aa933b85d79f689bbebabf30e34ce470d134435',
+      'd6a3789ad0ca09044cac3bead52f652d2d8fb4e6'
+    ],
+    height: 163
+  },
+  {
+    data: '0a14d6a3789ad0ca09044cac3bead52f652d2d8fb4e6121402f1d1ca978406f16011b5cd0e8b2bb66b4146791a08040000000000000020c0eca15f2800',
+    index: 3,
+    module: 'token',
+    name: 'transfer',
+    topics: [
+      '2632394e6cef184ac80f625d8aa933b85d79f689bbebabf30e34ce470d134435',
+      'd6a3789ad0ca09044cac3bead52f652d2d8fb4e6',
+      '02f1d1ca978406f16011b5cd0e8b2bb66b414679'
+    ],
+    height: 163
+  },
+  {
+    data: '0a14d6a3789ad0ca09044cac3bead52f652d2d8fb4e61208040000000000000018c0970d2000',
+    index: 4,
+    module: 'token',
+    name: 'burn',
+    topics: [
+      '2632394e6cef184ac80f625d8aa933b85d79f689bbebabf30e34ce470d134435',
+      'd6a3789ad0ca09044cac3bead52f652d2d8fb4e6'
+    ],
+    height: 163
+  },
+  {
+    data: '0a14d6a3789ad0ca09044cac3bead52f652d2d8fb4e6121402f1d1ca978406f16011b5cd0e8b2bb66b41467918c0970d20c0eca15f',
+    index: 5,
+    module: 'fee',
+    name: 'generatorFeeProcessed',
+    topics: [
+      '2632394e6cef184ac80f625d8aa933b85d79f689bbebabf30e34ce470d134435',
+      'd6a3789ad0ca09044cac3bead52f652d2d8fb4e6',
+      '02f1d1ca978406f16011b5cd0e8b2bb66b414679'
+    ],
+    height: 163
+  },
+  {
+    data: '0800',
+    index: 6,
+    module: 'token',
+    name: 'commandExecutionResult',
+    topics: [
+      '2632394e6cef184ac80f625d8aa933b85d79f689bbebabf30e34ce470d134435'
+    ],
+    height: 163
+  },
+  {
+    data: '08001001',
+    index: 7,
+    module: 'dynamicReward',
+    name: 'rewardMinted',
+    topics: [ '03', '02f1d1ca978406f16011b5cd0e8b2bb66b414679' ],
+    height: 163
+  }
+]

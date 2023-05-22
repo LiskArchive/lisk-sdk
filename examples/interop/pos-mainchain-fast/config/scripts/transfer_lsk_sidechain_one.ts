@@ -34,11 +34,11 @@ type ModulesMetadata = [
 
 	const params = {
 		tokenID,
-		amount: BigInt('10000000000'),
+		amount: BigInt('10000000004'),
 		receivingChainID: sidechainID,
 		recipientAddress,
-		data: 'cc transfer testing',
-		messageFee: BigInt('10000000'),
+		data: 'cc transfer testing 1234',
+		messageFee: BigInt('10000004'),
 		messageFeeTokenID: tokenID,
 	};
 
@@ -50,7 +50,7 @@ type ModulesMetadata = [
 	const tx = new Transaction({
 		module: 'token',
 		command: 'transferCrossChain',
-		fee: BigInt(200000000),
+		fee: BigInt(200000004),
 		params: codec.encode(ccTransferCMDSchema, params),
 		nonce: BigInt(nonce),
 		senderPublicKey: Buffer.from(relayerkeyInfo.publicKey, 'hex'),

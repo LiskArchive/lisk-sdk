@@ -1,0 +1,10 @@
+ ccm: {
+    module: 'token',
+    crossChainCommand: 'transferCrossChain',
+    nonce: 2n,
+    fee: 10000004n,
+    sendingChainID: <Buffer 04 00 00 00>,
+    receivingChainID: <Buffer 04 00 00 01>,
+    params: <Buffer >,
+    status: 0
+  },

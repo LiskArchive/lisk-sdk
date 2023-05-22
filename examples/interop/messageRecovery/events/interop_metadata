@@ -1,0 +1,69 @@
+{
+  commands: [
+    { name: 'submitMainchainCrossChainUpdate', params: [Object] },
+    { name: 'initializeMessageRecovery', params: [Object] },
+    { name: 'recoverMessage', params: [Object] },
+    { name: 'registerSidechain', params: [Object] },
+    { name: 'recoverState', params: [Object] },
+    { name: 'terminateSidechainForLiveness', params: [Object] }
+  ],
+  events: [
+    { name: 'chainAccountUpdated', data: [Object] },
+    { name: 'ccmProcessed', data: [Object] },
+    { name: 'ccmSendSuccess', data: [Object] },
+    { name: 'ccmSentFailed', data: [Object] },
+    { name: 'invalidRegistrationSignature', data: [Object] },
+    { name: 'terminatedStateCreated', data: [Object] },
+    { name: 'terminatedOutboxCreated', data: [Object] },
+    { name: 'invalidCertificateSignature', data: [Object] }
+  ],
+  stores: [
+    { key: '83ed0d250000', data: [Object] },
+    { key: '83ed0d258000', data: [Object] },
+    { key: '83ed0d25b000', data: [Object] },
+    { key: '83ed0d25a000', data: [Object] },
+    { key: '83ed0d259000', data: [Object] },
+    { key: '83ed0d25c000', data: [Object] },
+    { key: '83ed0d25d000', data: [Object] },
+    { key: '83ed0d25e000', data: [Object] }
+  ],
+  endpoints: [
+    { name: 'getChainAccount', request: [Object], response: [Object] },
+    {
+      name: 'getAllChainAccounts',
+      request: [Object],
+      response: [Object]
+    },
+    { name: 'getChannel', request: [Object], response: [Object] },
+    { name: 'getOwnChainAccount', response: [Object] },
+    {
+      name: 'getTerminatedStateAccount',
+      request: [Object],
+      response: [Object]
+    },
+    {
+      name: 'getTerminatedOutboxAccount',
+      request: [Object],
+      response: [Object]
+    },
+    { name: 'getRegistrationFee', response: [Object] },
+    { name: 'getMinimumMessageFee', response: [Object] },
+    {
+      name: 'getChainValidators',
+      request: [Object],
+      response: [Object]
+    },
+    {
+      name: 'isChainIDAvailable',
+      request: [Object],
+      response: [Object]
+    },
+    {
+      name: 'isChainNameAvailable',
+      request: [Object],
+      response: [Object]
+    }
+  ],
+  assets: [ { version: 0, data: [Object] } ],
+  name: 'interoperability'
+}

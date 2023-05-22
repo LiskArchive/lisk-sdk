@@ -5,7 +5,7 @@ import { sidechainRegParams } from 'lisk-framework';
 (async () => {
 	const { address } = cryptography;
 
-	const SIDECHAIN_ARRAY = ['one', 'two'];
+	const SIDECHAIN_ARRAY = ['one'];
 	let i = 0;
 	for (const nodeAlias of SIDECHAIN_ARRAY) {
 		const sidechainClient = await apiClient.createIPCClient(

@@ -17,6 +17,7 @@ import {
 	db,
 	ProveResponse,
 	OutboxRootWitness,
+	// CCMsg,
 } from 'lisk-sdk';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
@@ -302,6 +303,31 @@ const relayerKeyInfo = {
 	encrypted: {},
 };
 
+/*
+type ModuleMetadata = {
+	stores: { key: string; data: Schema }[];
+	events: { name: string; data: Schema }[];
+	name: string;
+};
+
+type ModulesMetadata = [
+	ModuleMetadata
+];
+
+const getModuleMetadata = async (mainchainClient: apiClient.APIClient) => {
+	const { modules: modulesMetadata } = await mainchainClient.invoke<{ modules: ModulesMetadata; }>(
+		'system_getMetadata'
+	);
+	const interoperabilityMetadata = modulesMetadata.find(
+		metadata => metadata.name === MODULE_NAME_INTEROPERABILITY,
+	);
+	if (!interoperabilityMetadata) {
+		throw new Error(`No metadata found for ${MODULE_NAME_INTEROPERABILITY} module.`);
+	}
+	return interoperabilityMetadata;
+};
+*/
+
 /**
  * Steps:
  * cd examples/interop/
@@ -324,7 +350,7 @@ const relayerKeyInfo = {
  * pm2 stop all
 
  * terminate sidechain
- * // Before terminating a sidechain, make sure, `sidechainAccount.lastCertificate.height` (on mainchain) has reached `Successfully stored inclusion proof at height x` (from sidechain)
+ * // Before terminating a sidechain, make sure, `sidechainAccount.lastCertificate.height` (on mainchain) has reached `Successfully stored inclusion proof at height x` (x is the first height on sidechain)
  *
  * pwd
  * /examples/interop/pos-mainchain-fast
@@ -352,7 +378,7 @@ const relayerKeyInfo = {
 	let inclusionProofModel: InclusionProofModel;
 	try {
 		inclusionProofModel = new InclusionProofModel(await getDBInstance('~/.lisk'));
-		console.log('DB is initialized.');
+		// console.log('DB is initialized.');
 	} catch (error) {
 		console.log('Error occurred while initializing DB', error);
 		process.exit();
@@ -369,15 +395,17 @@ const relayerKeyInfo = {
 		SUBSTORE_PREFIX_CHANNEL_DATA,
 		cryptography.utils.hash(Buffer.from(mainchainNodeInfo.chainID as string, 'hex')),
 	]);
-	console.log('recoveryKey: ', recoveryKey);
+	// console.log('recoveryKey: ', recoveryKey);
 
 	// Collect inclusion proofs on sidechain and save it in recoveryDB
 	sidechainClient.subscribe('chain_newBlock', async (data?: Record<string, unknown>) => {
 		const { blockHeader: receivedBlock } = data as unknown as Data;
 		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock).toObject();
 		console.log(
-			`Received new block on sidechain ${sidechainNodeInfo.chainID} with height ${newBlockHeader.height}`,
+			`Received new block ${newBlockHeader.height} on sidechain ${sidechainNodeInfo.chainID}`,
 		);
+
+		// await printEvents(newBlockHeader as BlockHeader, 'sidechain Events => ');
 
 		// Returns proof for sidechain lastBlock header stateRoot (which is state root of the last block that was forged)
 		const proof = proveResponseJSONToObj(
@@ -385,15 +413,12 @@ const relayerKeyInfo = {
 				queryKeys: [recoveryKey.toString('hex')], // `queryKey` is `string`
 			}),
 		).proof;
-		console.log('proof: ', proof);
+		// console.log('proof: ', proof);
 
 		// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0039.md#proof-verification
 		// To check the proof, the Verifier calls ```verify(queryKeys, proof, merkleRoot) function```
-		const smt = new db.SparseMerkleTree();
-		console.log(
-			'smt.verify: ',
-			await smt.verify(newBlockHeader.stateRoot, [proof.queries[0].key], proof),
-		);
+		// const smt = new db.SparseMerkleTree();
+		// console.log('smt.verify: ', await smt.verify(newBlockHeader.stateRoot, [proof.queries[0].key], proof));
 
 		const inclusionProof = {
 			key: proof.queries[0].key,
@@ -412,7 +437,102 @@ const relayerKeyInfo = {
 		console.log(`Successfully stored inclusion proof at height ${newBlockHeader.height}`);
 	});
 
-	mainchainClient.subscribe('chain_newBlock', async (_data?: Record<string, unknown>) => {
+	// saves CCMs from new block events
+	/* const saveDataOnNewBlock = async (newBlockHeader: BlockHeader) => {
+
+		// const interoperabilityMetadata = await getModuleMetadata(mainchainClient);
+
+		// Check for events if any and store them
+		const events = await mainchainClient.invoke<JSONObject<chain.EventAttr[]>>(
+			'chain_getEvents',
+			{ height: newBlockHeader.height },
+		);
+		console.log(events);
+
+		// const ccmsFromEvents = [];
+
+		// eslint-disable-next-line no-restricted-syntax, no-labels
+		// ccmInEventsCheck: if (events && events.length > 0) {
+
+
+			/!* const ccmSendSuccessEvents = events.filter(
+				eventAttr =>
+					eventAttr.name === CCM_SEND_SUCCESS && eventAttr.module === MODULE_NAME_INTEROPERABILITY,
+			);
+
+			const ccmProcessedEvents = events.filter(
+				eventAttr =>
+					eventAttr.name === CCM_PROCESSED && eventAttr.module === MODULE_NAME_INTEROPERABILITY,
+			);
+
+			if (ccmSendSuccessEvents.length === 0 && ccmProcessedEvents.length === 0) {
+				// If there are no CCMs present in the events for the height then skip CCM saving part
+				// eslint-disable-next-line no-labels
+				break ccmInEventsCheck;
+			} *!/
+
+			// Save ccm send success events
+			/!* if (ccmSendSuccessEvents.length > 0) {
+				const ccmSendSuccessEventInfo = interoperabilityMetadata.events.filter(
+					event => event.name === CCM_SEND_SUCCESS,
+				);
+				if (!ccmSendSuccessEventInfo?.[0]?.data) {
+					throw new Error('No schema found for "ccmSendSuccess" event data.');
+				}
+
+				for (const ccmSendSuccessEvent of ccmSendSuccessEvents) {
+					const eventData = codec.decode<CcmSendSuccessEventData>(
+						ccmSendSuccessEventInfo[0].data,
+						Buffer.from(ccmSendSuccessEvent.data, 'hex'),
+					);
+					ccmsFromEvents.push(eventData.ccm);
+				}
+			} *!/
+
+			// Save ccm processed events based on CCMProcessedResult FORWARDED = 1
+			/!* if (ccmProcessedEvents.length > 0) {
+				const ccmProcessedEventInfo = interoperabilityMetadata.events.filter(
+					event => event.name === CCM_PROCESSED,
+				);
+
+				if (!ccmProcessedEventInfo?.[0]?.data) {
+					throw new Error('No schema found for "ccmProcessed" event data.');
+				}
+
+				for (const ccmProcessedEvent of ccmProcessedEvents) {
+					const eventData = codec.decode<CcmProcessedEventData>(
+						ccmProcessedEventInfo[0].data,
+						Buffer.from(ccmProcessedEvent.data, 'hex'),
+					);
+					if (eventData.result === CCMProcessedResult.FORWARDED) {
+						ccmsFromEvents.push(eventData.ccm);
+					}
+				}
+			} *!/
+		// }
+
+		/!*
+		const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
+		crossChainMessages.push({
+			ccms: this._isReceivingChainMainchain
+				? ccmsFromEvents
+				: ccmsFromEvents.filter(ccm => ccm.receivingChainID.equals(this._receivingChainID)),
+			height: newBlockHeader.height,
+			inclusionProof: outboxRootWitness,
+		});
+		*!/
+	}; */
+
+	mainchainClient.subscribe('chain_newBlock', async (data?: Record<string, unknown>) => {
+		const { blockHeader: receivedBlock } = data as unknown as Data;
+		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock).toObject();
+		console.log(
+			'\nReceived new block ' +
+				newBlockHeader.height +
+				' on mainchain ' +
+				mainchainNodeInfo.chainID,
+		);
+
 		const sidechainAccount = await mainchainClient.invoke<ChainAccountJSON>(
 			'interoperability_getChainAccount',
 			{ chainID: sidechainNodeInfo.chainID },
@@ -420,28 +540,26 @@ const relayerKeyInfo = {
 		let lastCertifiedHeight = sidechainAccount.lastCertificate.height;
 		console.log(`sidechainAccount.lastCertificate.height: ${lastCertifiedHeight}`);
 
+		if (sidechainAccount.status !== ChainStatus.TERMINATED) {
+		}
+
 		if (sidechainAccount.status === ChainStatus.TERMINATED) {
 			// Create recovery transaction
 			const inclusionProofAtLastCertifiedHeight = await inclusionProofModel.getByHeight(
 				lastCertifiedHeight,
 			);
-			console.log(`inclusionProofAtLastCertifiedHeight: ${inclusionProofAtLastCertifiedHeight}`);
+			// console.log('inclusionProofAtLastCertifiedHeight: ', inclusionProofAtLastCertifiedHeight);
 			if (!inclusionProofAtLastCertifiedHeight) {
 				console.log(`No inclusionProof exists at a given height: ${lastCertifiedHeight}`);
 			}
 
 			if (inclusionProofAtLastCertifiedHeight) {
+				/*
 				const smt = new db.SparseMerkleTree();
 
-				console.log(
-					'State Root -> ',
-					inclusionProofAtLastCertifiedHeight.stateRoot.toString('hex'),
-				);
+				console.log('State Root -> ', inclusionProofAtLastCertifiedHeight.stateRoot.toString('hex'));
 				console.log('recoveryKey -> ', recoveryKey.toString('hex'));
-				console.log(
-					'siblingHashes -> ',
-					inclusionProofAtLastCertifiedHeight.inclusionProof.siblingHashes,
-				);
+				console.log('siblingHashes -> ', inclusionProofAtLastCertifiedHeight.inclusionProof.siblingHashes);
 				console.log('queries -> ', {
 					bitmap: inclusionProofAtLastCertifiedHeight.inclusionProof.bitmap,
 					key: inclusionProofAtLastCertifiedHeight.inclusionProof.key,
@@ -460,7 +578,7 @@ const relayerKeyInfo = {
 							},
 						],
 					}),
-				);
+				); */
 
 				const messageRecoveryInitializationParams: MessageRecoveryInitializationParams = {
 					// chainID: The ID of the sidechain whose terminated outbox account is to be initialized.
@@ -507,6 +625,7 @@ const relayerKeyInfo = {
 				);
 
 				console.log(tx.getBytes().toString('hex'));
+				// TODO: post this tx to txpool & then call `interoperability_getTerminatedStateAccount` for verification
 			}
 
 			await inclusionProofModel.deleteProofsUntilHeight(lastCertifiedHeight);

@@ -1,0 +1,35 @@
+
+pm2 stop all
+rm -rf ~/.lisk;
+./start_example
+ts-node ./messageRecovery/events/parse_events.ts
+
+// start saving inclusion proofs
+ts-node ./messageRecovery/initializeMessageRecovery.ts
+
+// Make sure ```exports.LIVENESS_LIMIT = 2592000;``` in ```lisk-framework/dist-node/modules/interoperability/constants.js```
+
+ts-node pos-mainchain-fast/config/scripts/sidechain_registration.ts
+ts-node pos-sidechain-example-one/config/scripts/mainchain_registration.ts
+
+// wait till chain status changes to ACTIVE (check `interoperability_getChainAccount` endpoint)
+ts-node ./messageRecovery/initializeMessageRecovery.ts
+
+
+// change constant in ```exports.LIVENESS_LIMIT = 30;``` in ```lisk-framework/dist-node/modules/interoperability/constants.js```
+// wait for 30 sec
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
