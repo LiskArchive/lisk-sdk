@@ -14,4 +14,4 @@
 
 import { BaseMethod } from '../base_method';
 
-export class PoAMethod extends BaseMethod {}
+export class PoAInternalMethod extends BaseMethod {}
