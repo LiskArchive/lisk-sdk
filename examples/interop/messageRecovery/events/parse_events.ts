@@ -34,7 +34,6 @@ import {
 import { join } from 'path';
 import * as os from 'os';
 import { ensureDir } from 'fs-extra';
-import { CcmSentFailedEventData } from 'lisk-framework/dist-node/modules/interoperability/events/ccm_send_fail';
 
 export const checkDBError = (error: Error | unknown) => {
 	if (!(error instanceof liskDB.NotFoundError)) {
@@ -156,13 +155,13 @@ class EventsModel {
 			'chain_getEvents',
 			{ height: newBlockHeader.height },
 		);
-		console.log('blockEvents => ', blockEvents);
+		// console.log('blockEvents => ', blockEvents);
 
 		const ccmsFromEvents: CCMsg[] = [];
 		const interopMetadata = (await getInteropAndTokenModulesMetadata(mainchainClient))[0];
 		// console.log(interopMetadata);
 
-		const parseCcmSentFailedEvents = async () => {
+		/* const parseCcmSentFailedEvents = async () => {
 			const ccmSentFailedEvents = blockEvents.filter(
 				eventAttr =>
 					eventAttr.module === MODULE_NAME_INTEROPERABILITY && eventAttr.name === 'ccmSentFailed',
@@ -192,27 +191,29 @@ class EventsModel {
 					}
 				}
 			}
+		}; */
+
+		const getEventsByName = (name: string) => {
+			return blockEvents.filter(
+				eventAttr => eventAttr.module === MODULE_NAME_INTEROPERABILITY && eventAttr.name === name,
+			);
+		};
+
+		const getEventData = (name: string): Schema => {
+			const eventInfo = interopMetadata.events.filter(event => event.name === name);
+			if (!eventInfo?.[0]?.data) {
+				throw new Error(`No schema found for ${name} event data.`);
+			}
+			return eventInfo?.[0]?.data;
 		};
 
 		const parseCcmSendSuccessEvents = () => {
-			const ccmSendSuccessEvents = blockEvents.filter(
-				eventAttr =>
-					eventAttr.module === MODULE_NAME_INTEROPERABILITY && eventAttr.name === 'ccmSendSuccess',
-			);
-			if (ccmSendSuccessEvents.length > 0) {
-				console.log('ccmSendSuccessEvents', ccmSendSuccessEvents);
-
-				// ccmSentSuccessEventInfo
-				const ccmSentSuccessEventInfo = interopMetadata.events.filter(
-					event => event.name === 'ccmSendSuccess',
-				);
-				if (!ccmSentSuccessEventInfo?.[0]?.data) {
-					throw new Error(`No schema found for ${EVENT_NAME_CCM_SEND_SUCCESS} event data.`);
-				}
-
-				for (const ccmSentSuccessEvent of ccmSendSuccessEvents) {
+			const eventsByName = getEventsByName('ccmSendSuccess');
+			if (eventsByName) {
+				const data = getEventData('ccmSendSuccess');
+				for (const ccmSentSuccessEvent of eventsByName) {
 					const ccmSendSuccessEventData = codec.decode<CcmSendSuccessEventData>(
-						ccmSentSuccessEventInfo[0].data,
+						data,
 						Buffer.from(ccmSentSuccessEvent.data, 'hex'),
 					);
 					console.log('ccmSendSuccessEventData => ', ccmSendSuccessEventData);
@@ -228,27 +229,12 @@ class EventsModel {
 		};
 
 		const parseCcmProcessedEvents = () => {
-			const ccmProcessedEvents = blockEvents.filter(
-				eventAttr =>
-					eventAttr.module === MODULE_NAME_INTEROPERABILITY &&
-					eventAttr.name === EVENT_NAME_CCM_PROCESSED,
-			);
-			if (ccmProcessedEvents.length > 0) {
-				console.log('\n******************** ccmProcessedEvents **************************\n');
-				console.log('ccmProcessedEvents.length: ', ccmProcessedEvents.length);
-				console.log('ccmProcessedEvents => ', ccmProcessedEvents);
-
-				const ccmProcessedEventInfo = interopMetadata.events.filter(
-					event => event.name === EVENT_NAME_CCM_PROCESSED,
-				);
-				// console.log("ccmProcessedEventInfo", ccmProcessedEventInfo);
-				if (!ccmProcessedEventInfo?.[0]?.data) {
-					throw new Error(`No schema found for ${EVENT_NAME_CCM_PROCESSED} event data.`);
-				}
-
-				for (const ccmProcessedEvent of ccmProcessedEvents) {
+			const eventsByName = getEventsByName(EVENT_NAME_CCM_PROCESSED);
+			if (eventsByName) {
+				const data = getEventData(EVENT_NAME_CCM_PROCESSED);
+				for (const ccmProcessedEvent of eventsByName) {
 					const ccmProcessedEventData = codec.decode<CcmProcessedEventData>(
-						ccmProcessedEventInfo[0].data,
+						data,
 						Buffer.from(ccmProcessedEvent.data, 'hex'),
 					);
 					console.log('ccmProcessedEventData => ', ccmProcessedEventData);
@@ -262,7 +248,7 @@ class EventsModel {
 			}
 		};
 
-		await parseCcmSentFailedEvents();
+		// await parseCcmSentFailedEvents();
 		await parseCcmSendSuccessEvents();
 		await parseCcmProcessedEvents();
 
