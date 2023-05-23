@@ -29,11 +29,13 @@ interface CCMsInfo {
 	ccms: CCMsg[];
 }
 
+/*
 export interface Proof {
 	readonly siblingHashes: ReadonlyArray<Buffer>;
 	readonly idxs: ReadonlyArray<number>;
 	readonly size: number;
 }
+*/
 
 (async () => {
 	/*
@@ -98,11 +100,6 @@ export interface Proof {
 			}
 			return ccms;
 		}
-
-		public async setCCMs(ccms: CCMsg[]) {
-			const encodedInfo = codec.encode(ccmsInfoSchema, { ccms });
-			await this._db.set(DB_KEY_EVENTS, encodedInfo);
-		}
 	}
 
 	const getDBInstance = async (dataPath: string, dbName = 'events.db'): Promise<KVStore> => {
@@ -113,29 +110,41 @@ export interface Proof {
 		return new db.Database(dirPath);
 	};
 
-	const eventsDb = await getDBInstance('~/.lisk');
-	const eventsModel = new EventsModel(eventsDb);
+	const toBytes = (ccm: CCMsg) => codec.encode(ccmSchema, ccm);
+
+	const eventsModel = new EventsModel(await getDBInstance('~/.lisk'));
 	const merkleTree = new MerkleTree();
+
 	const ccms = await eventsModel.getCCMs();
-	// console.log(ccms);
+	console.log(ccms);
 
-	const ccmsWithoutTokenTransfer = ccms.filter(
-		ccm => ccm.crossChainCommand !== 'transferCrossChain',
-	);
-	console.log('All stored CCMs so far: ', ccmsWithoutTokenTransfer);
-
-	const transferCrossChainCcm = ccms.filter(ccm => ccm.crossChainCommand === 'transferCrossChain');
+	const transferCrossChainCcm = ccms.filter(
+		ccm => ccm.crossChainCommand === 'transferCrossChain',
+	)[0];
 	console.log('Pending token transfer CCM to recover: ', transferCrossChainCcm);
 
-	for (const ccm of ccmsWithoutTokenTransfer) {
-		await merkleTree.append(codec.encode(ccmSchema, ccm));
-	}
-	const queryHash = utils.hash(codec.encode(ccmSchema, transferCrossChainCcm[0]));
+	await merkleTree.init(ccms.map(ccm => toBytes(ccm)));
+	console.log('merkleTree.root: ', merkleTree.root);
+
+	/* const ccmsWithoutTokenTransfer = ccms.filter(
+		ccm => ccm.crossChainCommand !== 'transferCrossChain',
+	);
+	console.log('All stored CCMs so far: ', ccmsWithoutTokenTransfer); */
+
+	/* for (const ccm of ccms) {
+		await merkleTree.append(toBytes(ccm));
+	} */
+
+	const queryHash = utils.hash(toBytes(ccms[2]));
 	const queryHashes = [queryHash];
 	console.log('queryHashes: ', queryHashes);
 
-	const result = await merkleTree.generateProof(queryHashes);
-	console.log('merkleTree.generateProof: ', result);
+	/* const witness = await merkleTree.generateRightWitness(2);
+	console.log("witness: ", witness); */
+
+	const proof = await merkleTree.generateProof(queryHashes);
+	console.log('merkleTree: ', merkleTree);
+	console.log('merkleTree.generateProof: ', proof);
 
 	/* interface MessageRecoveryParams {
 		chainID: Buffer;

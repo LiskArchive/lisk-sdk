@@ -139,6 +139,7 @@ class EventsModel {
 	mainchainClient.subscribe('chain_newBlock', async (data?: Record<string, unknown>) => {
 		const { blockHeader: receivedBlock } = data as unknown as Data;
 		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock).toObject();
+		console.log('\n');
 		console.log(
 			`Received new block ${newBlockHeader.height} on mainchain ${mainchainNodeInfo.chainID}`,
 		);
