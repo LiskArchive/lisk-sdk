@@ -204,7 +204,7 @@ export const App: React.FC = () => {
 				</div>
 			</section>
 			<footer>
-				<p className={styles.copyright}>© 2021 Lisk Foundation</p>
+				<p className={styles.copyright}>© 2023 Lisk Foundation</p>
 			</footer>
 		</div>
 	);
