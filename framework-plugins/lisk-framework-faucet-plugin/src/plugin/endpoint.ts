@@ -61,16 +61,11 @@ export class Endpoint extends BasePluginEndpoint {
 
 			const publicKey = cryptography.ed.getPublicKeyFromPrivateKey(privateKey);
 
-			this._state = enable
-				? {
-						publicKey,
-						privateKey,
-						address: cryptography.address.getLisk32AddressFromPublicKey(
-							publicKey,
-							this._config.tokenPrefix,
-						),
-				  }
-				: {};
+			this._state.privateKey = enable ? privateKey : undefined;
+			this._state.publicKey = enable ? publicKey : undefined;
+			this._state.address = enable
+				? cryptography.address.getLisk32AddressFromPublicKey(publicKey, this._config.tokenPrefix)
+				: undefined;
 			const changedState = enable ? 'enabled' : 'disabled';
 
 			return {
