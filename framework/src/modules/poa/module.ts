@@ -15,10 +15,16 @@
 import { BaseModule, ModuleMetadata } from '../base_module';
 import { PoAMethod } from './method';
 import { PoAEndpoint } from './endpoint';
+import { AuthorityUpdateEvent } from './events/authority_update';
 
 export class PoAModule extends BaseModule {
 	public method = new PoAMethod(this.stores, this.events);
 	public endpoint = new PoAEndpoint(this.stores, this.offchainStores);
+
+	public constructor() {
+		super();
+		this.events.register(AuthorityUpdateEvent, new AuthorityUpdateEvent(this.name));
+	}
 
 	public metadata(): ModuleMetadata {
 		return {
