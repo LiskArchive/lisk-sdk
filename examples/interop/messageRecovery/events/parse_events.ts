@@ -27,10 +27,7 @@ import {
 } from 'lisk-sdk';
 import { codec } from '@liskhq/lisk-codec';
 import { CcmSendSuccessEventData, CcmProcessedEventData, ccmSchema } from 'lisk-framework';
-import {
-	EVENT_NAME_CCM_SEND_SUCCESS,
-	EVENT_NAME_CCM_PROCESSED,
-} from 'lisk-framework/dist-node/modules/interoperability/constants';
+import { EVENT_NAME_CCM_PROCESSED } from 'lisk-framework/dist-node/modules/interoperability/constants';
 import { join } from 'path';
 import * as os from 'os';
 import { ensureDir } from 'fs-extra';
