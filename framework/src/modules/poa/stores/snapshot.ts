@@ -24,7 +24,7 @@ export interface SnapshotObject {
 }
 
 export const snapshotStoreSchema = {
-	$id: 'lisk/poa/validatorAddress',
+	$id: '/poa/snapshot',
 	type: 'object',
 	required: ['validators', 'threshold'],
 	properties: {

@@ -16,6 +16,7 @@ import { BaseModule, ModuleMetadata } from '../base_module';
 import { PoAMethod } from './method';
 import { PoAEndpoint } from './endpoint';
 import { AuthorityUpdateEvent } from './events/authority_update';
+import { ChainPropertiesStore, ValidatorStore, NameStore, SnapshotStore } from './stores';
 
 export class PoAModule extends BaseModule {
 	public method = new PoAMethod(this.stores, this.events);
@@ -24,6 +25,10 @@ export class PoAModule extends BaseModule {
 	public constructor() {
 		super();
 		this.events.register(AuthorityUpdateEvent, new AuthorityUpdateEvent(this.name));
+		this.stores.register(ValidatorStore, new ValidatorStore(this.name, 0));
+		this.stores.register(ChainPropertiesStore, new ChainPropertiesStore(this.name, 1));
+		this.stores.register(NameStore, new NameStore(this.name, 2));
+		this.stores.register(SnapshotStore, new SnapshotStore(this.name, 3));
 	}
 
 	public metadata(): ModuleMetadata {

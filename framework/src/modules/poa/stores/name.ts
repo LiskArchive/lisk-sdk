@@ -19,7 +19,7 @@ export interface ValidatorAddress {
 }
 
 export const validatorAddressSchema = {
-	$id: 'lisk/poa/validatorAddress',
+	$id: '/poa/validatorAddress',
 	type: 'object',
 	required: ['address'],
 	properties: {
@@ -32,6 +32,6 @@ export const validatorAddressSchema = {
 	},
 };
 
-export class ValidatorStore extends BaseStore<ValidatorAddress> {
+export class NameStore extends BaseStore<ValidatorAddress> {
 	public schema = validatorAddressSchema;
 }

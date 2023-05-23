@@ -14,12 +14,12 @@
 import { BaseStore } from '../../base_store';
 import { MAX_LENGTH_NAME } from '../constants';
 
-export interface ValidatorObject {
+export interface ValidatorName {
 	name: string;
 }
 
-export const validatorObjectSchema = {
-	$id: 'lisk/poa/validatorObject',
+export const validatorNameSchema = {
+	$id: '/poa/validatorName',
 	type: 'object',
 	required: ['name'],
 	properties: {
@@ -32,6 +32,6 @@ export const validatorObjectSchema = {
 	},
 };
 
-export class ValidatorStore extends BaseStore<ValidatorObject> {
-	public schema = validatorObjectSchema;
+export class ValidatorStore extends BaseStore<ValidatorName> {
+	public schema = validatorNameSchema;
 }

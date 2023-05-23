@@ -13,13 +13,13 @@
  */
 import { BaseStore } from '../../base_store';
 
-export interface ChainPropsObject {
+export interface ChainProperties {
 	roundEndHeight: number;
 	validatorsUpdateNonce: number;
 }
 
-export const chainPropsSchema = {
-	$id: 'lisk/poa/validatorAddress',
+export const chainPropertiesSchema = {
+	$id: '/poa/chainProperties',
 	type: 'object',
 	required: ['roundEndHeight', 'validatorsUpdateNonce'],
 	properties: {
@@ -34,6 +34,6 @@ export const chainPropsSchema = {
 	},
 };
 
-export class SnapshotStore extends BaseStore<ChainPropsObject> {
-	public schema = chainPropsSchema;
+export class ChainPropertiesStore extends BaseStore<ChainProperties> {
+	public schema = chainPropertiesSchema;
 }
