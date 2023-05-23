@@ -29,7 +29,7 @@ import { FaucetPluginConfig, State } from './types';
 const validator: liskValidator.LiskValidator = liskValidator.validator;
 
 export class Endpoint extends BasePluginEndpoint {
-	private _state: State = { publicKey: undefined, passphrase: undefined };
+	private _state: State = { publicKey: undefined, privateKey: undefined, address: undefined };
 	private _client!: BasePlugin['apiClient'];
 	private _config!: FaucetPluginConfig;
 
@@ -40,25 +40,37 @@ export class Endpoint extends BasePluginEndpoint {
 	}
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async authorize(context: PluginEndpointContext): Promise<{ result: string }> {
-		validator.validate(authorizeParamsSchema, context.params);
+		validator.validate<{ enable: boolean; password: string }>(
+			authorizeParamsSchema,
+			context.params,
+		);
 
 		const { enable, password } = context.params;
 
 		try {
-			const parsedEncryptedPassphrase = cryptography.encrypt.parseEncryptedMessage(
-				this._config.encryptedPassphrase,
+			const parsedEncryptedKey = cryptography.encrypt.parseEncryptedMessage(
+				this._config.encryptedPrivateKey,
 			);
 
-			const passphrase = await cryptography.encrypt.decryptMessageWithPassword(
-				parsedEncryptedPassphrase,
-				password as string,
+			const privateKeyStr = await cryptography.encrypt.decryptMessageWithPassword(
+				parsedEncryptedKey,
+				password,
 				'utf-8',
 			);
+			const privateKey = Buffer.from(privateKeyStr, 'hex');
 
-			const { publicKey } = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+			const publicKey = cryptography.ed.getPublicKeyFromPrivateKey(privateKey);
 
-			this._state.publicKey = enable ? publicKey : undefined;
-			this._state.passphrase = enable ? passphrase : undefined;
+			this._state = enable
+				? {
+						publicKey,
+						privateKey,
+						address: cryptography.address.getLisk32AddressFromPublicKey(
+							publicKey,
+							this._config.tokenPrefix,
+						),
+				  }
+				: {};
 			const changedState = enable ? 'enabled' : 'disabled';
 
 			return {
@@ -73,7 +85,7 @@ export class Endpoint extends BasePluginEndpoint {
 		validator.validate(fundParamsSchema, context.params);
 		const { address, token } = context.params;
 
-		if (!this._state.publicKey || !this._state.passphrase) {
+		if (!this._state.publicKey || !this._state.privateKey) {
 			throw new Error('Faucet is not enabled.');
 		}
 
@@ -113,7 +125,7 @@ export class Endpoint extends BasePluginEndpoint {
 				fee: transactions.convertLSKToBeddows(this._config.fee), // TODO: The static fee should be replaced by fee estimation calculation
 				params: transferTransactionParams,
 			},
-			this._state.passphrase as string,
+			this._state.privateKey?.toString('hex') as string,
 		);
 
 		await this._client.transaction.send(transaction);

@@ -24,8 +24,8 @@ const validPluginOptions = {
 	...configSchema.default,
 	captchaSitekey: '123',
 	captchaSecretkey: '123',
-	encryptedPassphrase:
-		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
+	encryptedPrivateKey:
+		'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=99053afb5eb03999f06201a0099912cec7826cdc8d9f41fc64d575670128a532f922961353253b4e73815890ed210f637a98e5084e4521a1495f0b793184c5385a965fe70837a8a638f0667c8f803d84872274c4ddc046591c03bed5d141b2193358da2b8db4548ff2dd137dbc796b6fb29acc53362c3a1ea8dd212270a9e2c1&mac=909eba6a8b1b42812f3de13fcdcbe124acd52a40b7ca7e3e9179a2cb8bffa452&salt=082b9d532290492caa842b804517def0&iv=a2947e6a05031e5b4d250604&tag=ca7dab52dccfa9cdb6a74906e84ed625&iterations=1&parallelism=4&memorySize=2024',
 	dataPath: '/my/app',
 };
 
@@ -43,8 +43,6 @@ describe('auth action', () => {
 		await faucetPlugin.init({
 			config: {
 				...validPluginOptions,
-				encryptedPassphrase:
-					'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=bd65587de1b7b42e289693e8ac14561c7c77370ff158133c6eb512849353446b339f04c8f45b6b8cc72e5e8485dab4031d9f5e2d7cb9d424076401ea58dad6d4a348fc1f013ceb5d8bb314&mac=6e017e6b2a341db10b91440462fc2626fe6e4b711ea09f8df3ac1df42a6de572&salt=e9f564ce7f8392acb2691fb4953e17c0&iv=57124bb910dbf9e24e37d401&tag=b769dcbd4ad0d3f44041afe5322aad82&iterations=1&parallelism=4&memorySize=2024',
 			},
 			appConfig: appConfigForPlugin,
 			logger,
@@ -74,7 +72,7 @@ describe('auth action', () => {
 	it('should fail when encrypted passphrase does not match with password given', async () => {
 		const params = {
 			enable: true,
-			password: '1234',
+			password: '123',
 		};
 
 		await expect(faucetPlugin.endpoint.authorize({ params } as any)).rejects.toThrow(

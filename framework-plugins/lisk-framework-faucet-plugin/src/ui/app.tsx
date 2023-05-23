@@ -135,7 +135,7 @@ export const App: React.FC = () => {
 		}
 		try {
 			const client = await apiClient.createWSClient(config.applicationUrl);
-			await client.invoke('faucet:fundTokens', {
+			await client.invoke('faucet_fundTokens', {
 				address: cryptography.address
 					.getAddressFromLisk32Address(input, config.tokenPrefix)
 					.toString('hex'),

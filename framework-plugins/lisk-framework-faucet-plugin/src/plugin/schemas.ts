@@ -25,10 +25,9 @@ export const configSchema = {
 			type: 'string',
 			format: 'ip',
 		},
-		encryptedPassphrase: {
+		encryptedPrivateKey: {
 			type: 'string',
-			format: 'encryptedPassphrase',
-			description: 'Encrypted passphrase of the genesis account',
+			description: 'Encrypted private key of the faucet account',
 		},
 		applicationUrl: {
 			type: 'string',
@@ -61,7 +60,7 @@ export const configSchema = {
 			description: 'The re-captcha site key',
 		},
 	},
-	required: ['encryptedPassphrase', 'captchaSecretkey', 'captchaSitekey'],
+	required: ['encryptedPrivateKey', 'captchaSecretkey', 'captchaSitekey'],
 	default: {
 		port: 4004,
 		host: '127.0.0.1',
