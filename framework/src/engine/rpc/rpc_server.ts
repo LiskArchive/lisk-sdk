@@ -68,6 +68,7 @@ export class RPCServer {
 				path: '/rpc-ws',
 				port: this._config.port,
 				host: this._config.host,
+				accessControlAllowOrigin: this._config.accessControlAllowOrigin,
 			});
 		}
 
@@ -77,6 +78,7 @@ export class RPCServer {
 				port: this._config.port,
 				path: '/rpc',
 				ignorePaths: ['/rpc-ws'],
+				accessControlAllowOrigin: this._config.accessControlAllowOrigin,
 			});
 		}
 	}
@@ -316,12 +318,15 @@ export class RPCServer {
 	}
 
 	private _isDisabledMethod(namespace: string, method: string): boolean {
-		const { disabledMethods } = this._config;
-		if (!disabledMethods) {
+		const { allowedMethods } = this._config;
+		if (!allowedMethods || allowedMethods.length === 0) {
+			return true;
+		}
+		if (allowedMethods.includes('*')) {
 			return false;
 		}
-		return (
-			disabledMethods.includes(namespace) || disabledMethods.includes(`${namespace}_${method}`)
+		return !(
+			allowedMethods.includes(namespace) || allowedMethods.includes(`${namespace}_${method}`)
 		);
 	}
 }
