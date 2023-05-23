@@ -5,7 +5,7 @@ exports[`FaucetPlugin configSchema should return valid config schema with defaul
   "$id": "#/plugins/liskFaucet/config",
   "default": {
     "amount": "100",
-    "applicationUrl": "ws://localhost:8080/ws",
+    "applicationUrl": "ws://localhost:7887/rpc-ws",
     "fee": "0.1",
     "host": "127.0.0.1",
     "port": 4004,
@@ -51,12 +51,18 @@ exports[`FaucetPlugin configSchema should return valid config schema with defaul
       "minimum": 1,
       "type": "integer",
     },
+    "tokenID": {
+      "description": "TokenID of faucet",
+      "format": "hex",
+      "type": "string",
+    },
     "tokenPrefix": {
       "description": "The token prefix associated with your application",
       "type": "string",
     },
   },
   "required": [
+    "tokenID",
     "encryptedPrivateKey",
     "captchaSecretkey",
     "captchaSitekey",
@@ -68,13 +74,14 @@ exports[`FaucetPlugin configSchema should return valid config schema with defaul
 exports[`FaucetPlugin init should load default config 1`] = `
 {
   "amount": "100",
-  "applicationUrl": "ws://localhost:8080/ws",
+  "applicationUrl": "ws://localhost:7887/rpc-ws",
   "captchaSecretkey": "123",
   "captchaSitekey": "123",
   "encryptedPrivateKey": "kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=99053afb5eb03999f06201a0099912cec7826cdc8d9f41fc64d575670128a532f922961353253b4e73815890ed210f637a98e5084e4521a1495f0b793184c5385a965fe70837a8a638f0667c8f803d84872274c4ddc046591c03bed5d141b2193358da2b8db4548ff2dd137dbc796b6fb29acc53362c3a1ea8dd212270a9e2c1&mac=909eba6a8b1b42812f3de13fcdcbe124acd52a40b7ca7e3e9179a2cb8bffa452&salt=082b9d532290492caa842b804517def0&iv=a2947e6a05031e5b4d250604&tag=ca7dab52dccfa9cdb6a74906e84ed625&iterations=1&parallelism=4&memorySize=2024",
   "fee": "0.1",
   "host": "127.0.0.1",
   "port": 4004,
+  "tokenID": "0400000000000000",
   "tokenPrefix": "lsk",
 }
 `;
