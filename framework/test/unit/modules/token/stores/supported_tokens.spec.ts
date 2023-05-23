@@ -255,7 +255,7 @@ describe('SupportedTokensStore', () => {
 			expect(supportedTokens.supportedTokenIDs[0]).toEqual(tokenID);
 		});
 
-		it('should not update store for the chain if provide token is already supported', async () => {
+		it('should not update store for the chain if provided token is already supported', async () => {
 			const tokenID = Buffer.from([2, 0, 0, 0, 1, 0, 0, 1]);
 			const supportedTokensState = {
 				supportedTokenIDs: [tokenID],

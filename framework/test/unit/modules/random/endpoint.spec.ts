@@ -16,7 +16,10 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import { ModuleEndpointContext, RandomModule } from '../../../../src';
 import { RandomEndpoint } from '../../../../src/modules/random/endpoint';
 import { HashOnionStore } from '../../../../src/modules/random/stores/hash_onion';
-import { UsedHashOnionsStore } from '../../../../src/modules/random/stores/used_hash_onions';
+import {
+	UsedHashOnionStoreObject,
+	UsedHashOnionsStore,
+} from '../../../../src/modules/random/stores/used_hash_onions';
 import { ValidatorRevealsStore } from '../../../../src/modules/random/stores/validator_reveals';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { createTransientModuleEndpointContext } from '../../../../src/testing';
@@ -55,6 +58,22 @@ describe('RandomModuleEndpoint', () => {
 	];
 
 	const emptyBytes = Buffer.alloc(0);
+	const defaultUsedHashOnion: UsedHashOnionStoreObject = {
+		usedHashOnions: [
+			{
+				count: 5,
+				height: 9,
+			},
+			{
+				count: 6,
+				height: 12,
+			},
+			{
+				count: 7,
+				height: 15,
+			},
+		],
+	};
 
 	beforeEach(async () => {
 		const randomModule = new RandomModule();
@@ -410,15 +429,15 @@ describe('RandomModuleEndpoint', () => {
 	});
 
 	describe('getHashOnionUsage', () => {
+		const seed = genesisValidators.validators[0].hashOnion.hashes[1];
+		const count = 1000;
+		const distance = 10;
 		let address: string;
 		let address2: string;
 
 		beforeEach(async () => {
 			// Arrange
 			address = genesisValidators.validators[0].address;
-			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
-			const count = 1000;
-			const distance = 10;
 			address2 = genesisValidators.validators[1].address;
 
 			await randomEndpoint.setHashOnion({ ...context, params: { address, seed, count, distance } });
@@ -431,9 +450,7 @@ describe('RandomModuleEndpoint', () => {
 			await usedHashOnionStore.set(
 				context,
 				cryptography.address.getAddressFromLisk32Address(address),
-				{
-					usedHashOnions: [{ count: 20, height: 2121 }],
-				},
+				defaultUsedHashOnion,
 			);
 		});
 
@@ -453,8 +470,7 @@ describe('RandomModuleEndpoint', () => {
 
 			// Assert
 			expect(seedUsage).toEqual({
-				count: 20,
-				height: 2121,
+				usedHashOnions: defaultUsedHashOnion.usedHashOnions,
 				seed: genesisValidators.validators[0].hashOnion.hashes[1],
 			});
 		});
@@ -468,8 +484,7 @@ describe('RandomModuleEndpoint', () => {
 
 			// Assert
 			expect(seedUsage).toEqual({
-				count: 0,
-				height: 0,
+				usedHashOnions: [{ count: 0, height: 0 }],
 				seed: expect.any(String),
 			});
 		});
@@ -479,9 +494,7 @@ describe('RandomModuleEndpoint', () => {
 		it('should store the appropriate params in the offchain store', async () => {
 			// Arrange
 			const { address } = genesisValidators.validators[0];
-			const count = 1000;
-			const height = 50;
-			context.params = { address, count, height };
+			context.params = { address, usedHashOnions: defaultUsedHashOnion.usedHashOnions };
 
 			// Act
 			await randomEndpoint.setHashOnionUsage(context);
@@ -494,12 +507,7 @@ describe('RandomModuleEndpoint', () => {
 
 			// Assert
 			expect(usedOnionData).toEqual({
-				usedHashOnions: [
-					{
-						count: 1000,
-						height: 50,
-					},
-				],
+				usedHashOnions: defaultUsedHashOnion.usedHashOnions,
 			});
 		});
 
@@ -507,10 +515,13 @@ describe('RandomModuleEndpoint', () => {
 			// Arrange
 			const address = ['address'];
 			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
-			const count = 1000;
 			const distance = 1000;
-			const height = 50;
-			context.params = { address, seed, count, distance, height };
+			context.params = {
+				address,
+				seed,
+				distance,
+				usedHashOnions: defaultUsedHashOnion.usedHashOnions,
+			};
 
 			// Act & Assert
 			await expect(randomEndpoint.setHashOnionUsage(context)).rejects.toThrow(
@@ -525,11 +536,11 @@ describe('RandomModuleEndpoint', () => {
 			const count = 'count';
 			const distance = 1000;
 			const height = 50;
-			context.params = { address, seed, count, distance, height };
+			context.params = { address, seed, distance, usedHashOnions: [{ count, height }] };
 
 			// Act & Assert
 			await expect(randomEndpoint.setHashOnionUsage(context)).rejects.toThrow(
-				"Lisk validator found 1 error[s]:\nProperty '.count' should be of type 'integer'",
+				"Lisk validator found 2 error[s]:\nProperty '.usedHashOnions.0.count' should be of type 'integer'\nProperty '.usedHashOnions.0.count' must match format \"uint32\"",
 			);
 		});
 
@@ -540,26 +551,11 @@ describe('RandomModuleEndpoint', () => {
 			const count = 1000;
 			const distance = 1000;
 			const height = 'height';
-			context.params = { address, seed, count, distance, height };
+			context.params = { address, seed, distance, usedHashOnions: [{ count, height }] };
 
 			// Act & Assert
 			await expect(randomEndpoint.setHashOnionUsage(context)).rejects.toThrow(
-				"Lisk validator found 2 error[s]:\nProperty '.height' should be of type 'integer'\nProperty '.height' must match format \"uint32\"",
-			);
-		});
-
-		it('should throw error when count is less than 1', async () => {
-			// Arrange
-			const { address } = genesisValidators.validators[0];
-			const seed = genesisValidators.validators[0].hashOnion.hashes[1];
-			const count = 0;
-			const distance = 1000;
-			const height = 50;
-			context.params = { address, seed, count, distance, height };
-
-			// Act & Assert
-			await expect(randomEndpoint.setHashOnionUsage(context)).rejects.toThrow(
-				'Lisk validator found 1 error[s]:\nmust be >= 1',
+				"Lisk validator found 2 error[s]:\nProperty '.usedHashOnions.0.height' should be of type 'integer'\nProperty '.usedHashOnions.0.height' must match format \"uint32\"",
 			);
 		});
 	});

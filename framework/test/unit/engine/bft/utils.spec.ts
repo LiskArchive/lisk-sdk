@@ -38,11 +38,13 @@ describe('bft utils', () => {
 			const header1 = createFakeBlockHeader({
 				height: 10999,
 				maxHeightPrevoted: 1099,
+				maxHeightGenerated: 0,
 				generatorAddress,
 			});
 			const header2 = createFakeBlockHeader({
 				height: 10999,
 				maxHeightPrevoted: 1099,
+				maxHeightGenerated: 0,
 				generatorAddress,
 			});
 
@@ -53,11 +55,13 @@ describe('bft utils', () => {
 			const header1 = createFakeBlockHeader({
 				height: 10999,
 				maxHeightPrevoted: 1099,
+				maxHeightGenerated: 0,
 				generatorAddress,
 			});
 			const header2 = createFakeBlockHeader({
 				height: 11999,
 				maxHeightPrevoted: 1099,
+				maxHeightGenerated: 0,
 				generatorAddress,
 			});
 
@@ -68,10 +72,13 @@ describe('bft utils', () => {
 			const header1 = createFakeBlockHeader({
 				generatorAddress,
 				height: 120,
+				maxHeightPrevoted: 0,
+				maxHeightGenerated: 0,
 			});
 			const header2 = createFakeBlockHeader({
 				generatorAddress,
 				height: 123,
+				maxHeightPrevoted: 0,
 				maxHeightGenerated: 98,
 			});
 
@@ -83,11 +90,13 @@ describe('bft utils', () => {
 				generatorAddress,
 				height: 133,
 				maxHeightPrevoted: 101,
+				maxHeightGenerated: 0,
 			});
 			const header2 = createFakeBlockHeader({
 				generatorAddress,
 				height: 123,
 				maxHeightPrevoted: 98,
+				maxHeightGenerated: 0,
 			});
 
 			expect(areDistinctHeadersContradicting(header1, header2)).toBeTrue();

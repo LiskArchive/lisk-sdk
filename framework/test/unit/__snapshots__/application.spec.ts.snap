@@ -13,6 +13,7 @@ exports[`Application #constructor should set internal variables 1`] = `
     "blockTime": 10,
     "chainID": "10000000",
     "maxTransactionsSize": 15360,
+    "minimumCertifyHeight": 1,
   },
   "legacy": {
     "brackets": [],

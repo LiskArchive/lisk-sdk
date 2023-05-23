@@ -41,6 +41,7 @@ describe('PoSMethod', () => {
 	let validatorSubStore: ValidatorStore;
 	let nameSubStore: NameStore;
 	const address = utils.getRandomBytes(20);
+	const invalidAddress = Buffer.alloc(0);
 	const stakerData = {
 		stakes: [
 			{
@@ -139,6 +140,14 @@ describe('PoSMethod', () => {
 				expect(stakerDataReturned).toStrictEqual(stakerData);
 			});
 		});
+
+		describe('when input address is invalid', () => {
+			it('should throw error', async () => {
+				await expect(posMethod.getStaker(methodContext, invalidAddress)).rejects.toThrow(
+					invalidAddress.toString('hex'),
+				);
+			});
+		});
 	});
 
 	describe('getValidator', () => {
@@ -148,6 +157,14 @@ describe('PoSMethod', () => {
 				const validatorDataReturned = await posMethod.getValidator(methodContext, address);
 
 				expect(validatorDataReturned).toStrictEqual(validatorData);
+			});
+		});
+
+		describe('when input address is invalid', () => {
+			it('should throw error', async () => {
+				await expect(posMethod.getValidator(methodContext, invalidAddress)).rejects.toThrow(
+					invalidAddress.toString('hex'),
+				);
 			});
 		});
 	});

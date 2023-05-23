@@ -93,7 +93,7 @@ describe('BFT Method', () => {
 			await votesStore.setWithSchema(
 				EMPTY_KEY,
 				{
-					maxHeightPrevoted: 10,
+					maxHeightPrevoted: 0,
 					maxHeightPrecommitted: 0,
 					maxHeightCertified: 0,
 					blockBFTInfos: [
@@ -230,10 +230,12 @@ describe('BFT Method', () => {
 
 		it('should return BFT parameters if it exists for the lower height', async () => {
 			await expect(bftMethod.getBFTParameters(stateStore, 25)).resolves.toEqual(params20);
+			await expect(bftMethod.getBFTParameters(stateStore, 29)).resolves.toEqual(params20);
 		});
 
 		it('should return BFT parameters if it exists for the height', async () => {
 			await expect(bftMethod.getBFTParameters(stateStore, 20)).resolves.toEqual(params20);
+			await expect(bftMethod.getBFTParameters(stateStore, 30)).resolves.toEqual(params30);
 		});
 
 		it('should throw if the BFT parameter does not exist for the height or lower', async () => {
@@ -603,6 +605,7 @@ describe('BFT Method', () => {
 		});
 
 		it('should return the next height strictly higher than the input where BFT parameter exists', async () => {
+			await expect(bftMethod.getNextHeightBFTParameters(stateStore, 19)).resolves.toBe(20);
 			await expect(bftMethod.getNextHeightBFTParameters(stateStore, 20)).resolves.toBe(30);
 		});
 
@@ -1055,6 +1058,61 @@ describe('BFT Method', () => {
 					),
 				);
 			});
+		});
+	});
+
+	describe('getGeneratorAtTimestamp', () => {
+		const validators = new Array(103).fill(0).map(() => ({
+			address: utils.getRandomBytes(20),
+			bftWeight: BigInt(1),
+			generatorKey: utils.getRandomBytes(32),
+			blsKey: utils.getRandomBytes(48),
+		}));
+
+		beforeEach(async () => {
+			const bftParamsStore = stateStore.getStore(
+				MODULE_STORE_PREFIX_BFT,
+				STORE_PREFIX_BFT_PARAMETERS,
+			);
+			await bftParamsStore.setWithSchema(
+				utils.intToBuffer(20, 4),
+				{
+					prevoteThreshold: BigInt(68),
+					precommitThreshold: BigInt(68),
+					certificateThreshold: BigInt(68),
+					validators,
+					validatorsHash: utils.getRandomBytes(32),
+				},
+				bftParametersSchema,
+			);
+		});
+
+		it('should return a validator in round robin', async () => {
+			for (let i = 0; i < 103; i += 1) {
+				// timestamp is computed to cover all possible modulo of 103
+				await expect(
+					bftMethod.getGeneratorAtTimestamp(stateStore, 20, (103 * 1000000 + i) * 10),
+				).resolves.toEqual(validators[i]);
+			}
+		});
+	});
+
+	describe('getSlotNumber', () => {
+		it.each([
+			{
+				input: 1683057470,
+				expected: 168305747,
+			},
+			{
+				input: 1683057475,
+				expected: 168305747,
+			},
+			{
+				input: 1683057479,
+				expected: 168305747,
+			},
+		])('should return expected value', ({ input, expected }) => {
+			expect(bftMethod.getSlotNumber(input)).toBe(expected);
 		});
 	});
 });
