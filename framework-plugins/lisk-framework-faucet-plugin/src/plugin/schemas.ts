@@ -29,6 +29,11 @@ export const configSchema = {
 			type: 'string',
 			description: 'Encrypted private key of the faucet account',
 		},
+		tokenID: {
+			type: 'string',
+			format: 'hex',
+			description: 'TokenID of faucet',
+		},
 		applicationUrl: {
 			type: 'string',
 			format: 'uri',
@@ -60,11 +65,11 @@ export const configSchema = {
 			description: 'The re-captcha site key',
 		},
 	},
-	required: ['encryptedPrivateKey', 'captchaSecretkey', 'captchaSitekey'],
+	required: ['tokenID', 'encryptedPrivateKey', 'captchaSecretkey', 'captchaSitekey'],
 	default: {
 		port: 4004,
 		host: '127.0.0.1',
-		applicationUrl: 'ws://localhost:8080/ws',
+		applicationUrl: 'ws://localhost:7887/rpc-ws',
 		fee: '0.1',
 		amount: '100',
 		tokenPrefix: 'lsk',

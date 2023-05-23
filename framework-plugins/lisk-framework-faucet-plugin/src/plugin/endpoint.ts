@@ -112,8 +112,11 @@ export class Endpoint extends BasePluginEndpoint {
 
 	private async _transferFunds(address: string): Promise<void> {
 		const transferTransactionParams = {
+			tokenID: this._config.tokenID,
 			amount: transactions.convertLSKToBeddows(this._config.amount),
-			recipientAddress: address,
+			recipientAddress: cryptography.address.getLisk32AddressFromAddress(
+				Buffer.from(address, 'hex'),
+			),
 			data: '',
 		};
 

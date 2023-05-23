@@ -16,6 +16,7 @@ export interface FaucetPluginConfig {
 	port: number;
 	host: string;
 	encryptedPrivateKey: string;
+	tokenID: string;
 	captchaSitekey: string;
 	captchaSecretkey: string;
 	applicationUrl: string;
