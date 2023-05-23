@@ -24,3 +24,4 @@ export enum NETWORK {
 }
 export const DEFAULT_NETWORK = NETWORK.DEFAULT;
 export const RELEASE_URL = 'https://downloads.lisk.com/lisk';
+export const OWNER_READ_WRITE = 0o600;
