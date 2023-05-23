@@ -540,5 +540,81 @@ describe('decode', () => {
 
 			expect(result).toEqual(object);
 		});
+
+		describe('invalid transaction like bytes', () => {
+			const testSchema = {
+				$id: '/lisk/transaction-mock',
+				type: 'object',
+				required: ['module', 'command', 'nonce', 'fee', 'senderPublicKey', 'params'],
+				properties: {
+					module: {
+						dataType: 'string',
+						fieldNumber: 1,
+						minLength: 1,
+						maxLength: 32,
+					},
+					command: {
+						dataType: 'string',
+						fieldNumber: 2,
+						minLength: 1,
+						maxLength: 32,
+					},
+					nonce: {
+						dataType: 'uint64',
+						fieldNumber: 3,
+					},
+					fee: {
+						dataType: 'uint64',
+						fieldNumber: 4,
+					},
+					senderPublicKey: {
+						dataType: 'bytes',
+						fieldNumber: 5,
+						minLength: 32,
+						maxLength: 32,
+					},
+					params: {
+						dataType: 'bytes',
+						fieldNumber: 6,
+					},
+					signatures: {
+						type: 'array',
+						items: {
+							dataType: 'bytes',
+						},
+						fieldNumber: 7,
+					},
+				},
+			};
+			const testCases = [
+				// Valid sequences
+				{
+					input:
+						'0a05746f6b656e12087472616e73669f0e18362080ade2042a20dd4ff255fe04dd01594c68e9e9c8872c4f4466220f7e326377a0ceb9df2fa21a321d0880ade2041214654087c2df870402ab0b19c4616fd3355d61f62c1a003a4079cb29dca7bb9f5173a1e8ca28264f779074d259c341b536bae9a5ae0a2e4713580fcb192f9f15f43730650d69bb1f3dcfb4cb6da7d69ca990a763ed78569700',
+					error: 'The encoded data was not valid for encoding utf-8',
+				},
+				{
+					input: '080010001a302030281430303030303030303030303030303030303030303000',
+					error: 'Invalid wiretype while decoding',
+				},
+				{
+					input: '0a001200183020302a00328000',
+					error: 'invalid varint bytes. vartint must be in shortest form',
+				},
+				{
+					input: '0a0012001830208c002a003200',
+					error: 'invalid varint bytes. vartint must be in shortest form',
+				},
+				{
+					input: '0a00120018302030aa00003200',
+					error: 'invalid varint bytes. vartint must be in shortest form',
+				},
+			];
+
+			it.each(testCases)('given $input should return $expected', ({ input, error }) => {
+				const buffer = Buffer.from(input, 'hex');
+				expect(() => codec.decode(testSchema, buffer)).toThrow(error);
+			});
+		});
 	});
 });
