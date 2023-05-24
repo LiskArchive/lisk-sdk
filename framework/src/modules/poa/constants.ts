@@ -16,3 +16,5 @@ export enum UpdateAuthority {
 	SUCCESS = 0,
 	FAIL_INVALID_SIGNATURE,
 }
+export const MAX_LENGTH_NAME = 20;
+export const NUM_BYTES_ADDRESS = 20;
