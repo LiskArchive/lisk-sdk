@@ -35,7 +35,7 @@ export class HTTPServer {
 		host?: string;
 		path?: string;
 		ignorePaths?: string[];
-		accessControlAllowOrigin: string;
+		accessControlAllowOrigin?: string;
 	}) {
 		this._host = options.host;
 		this._port = options.port;

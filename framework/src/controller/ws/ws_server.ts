@@ -41,7 +41,7 @@ export class WSServer {
 		port: number;
 		host?: string;
 		path: string;
-		accessControlAllowOrigin: string;
+		accessControlAllowOrigin?: string;
 	}) {
 		this._port = options.port;
 		this._host = options.host;
@@ -79,21 +79,24 @@ export class WSServer {
 			});
 		}
 
-		this.server.on('connection', socket =>
-			this._handleConnection(socket as WebSocketWithTracking, messageHandler),
-		);
+		this.server.on('connection', (socket, req) => {
+			const { origin } = req.headers;
+			if (
+				origin &&
+				this._accessControlAllowOrigin !== '*' &&
+				!this._accessControlAllowOrigin.includes(origin)
+			) {
+				socket.close();
+				return;
+			}
+
+			this._handleConnection(socket as WebSocketWithTracking, messageHandler);
+		});
+
 		this.server.on('error', error => {
 			this._logger.error(error);
 		});
-		this.server.on('headers', (_headers, request) => {
-			if (
-				request.headers.origin &&
-				this._accessControlAllowOrigin !== '*' &&
-				!this._accessControlAllowOrigin.includes(request.headers.origin)
-			) {
-				this._logger.error('Origin is not allowed');
-			}
-		});
+
 		this.server.on('listening', () => {
 			this._logger.info(
 				{ host: this._host, port: this._port, path: this._path },
