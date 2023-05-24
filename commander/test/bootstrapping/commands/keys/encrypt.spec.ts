@@ -21,6 +21,7 @@ import * as appUtils from '../../../../src/utils/application';
 import { EncryptCommand } from '../../../../src/bootstrapping/commands/keys/encrypt';
 import { getConfig } from '../../../helpers/config';
 import { Awaited } from '../../../types';
+import { OWNER_READ_WRITE } from '../../../../src/constants';
 
 describe('keys:encrypt', () => {
 	const defaultPassword = 'elephant tree paris dragon chair galaxy';
@@ -108,6 +109,7 @@ describe('keys:encrypt', () => {
 				expect(fs.writeJSONSync).toHaveBeenCalledTimes(1);
 				expect(fs.writeJSONSync).toHaveBeenCalledWith('/my/path/keys.json', expect.anything(), {
 					spaces: ' ',
+					mode: OWNER_READ_WRITE,
 				});
 			});
 		});

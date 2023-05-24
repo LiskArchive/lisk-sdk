@@ -19,6 +19,7 @@ import { Command, Flags as flagParser } from '@oclif/core';
 import * as fs from 'fs-extra';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPasswordFromPrompt } from '../../../utils/reader';
+import { OWNER_READ_WRITE } from '../../../constants';
 
 interface KeysWithoutEncryption {
 	keys: [
@@ -102,6 +103,6 @@ export class EncryptCommand extends Command {
 			});
 		}
 
-		fs.writeJSONSync(flags['file-path'], { keys }, { spaces: ' ' });
+		fs.writeJSONSync(flags['file-path'], { keys }, { spaces: ' ', mode: OWNER_READ_WRITE });
 	}
 }
