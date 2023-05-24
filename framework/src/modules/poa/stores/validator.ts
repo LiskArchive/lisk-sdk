@@ -11,8 +11,27 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { BaseStore } from '../../base_store';
+import { MAX_LENGTH_NAME } from '../constants';
 
-export * from './chain_properties';
-export * from './name';
-export * from './snapshot';
-export * from './validator';
+export interface ValidatorName {
+	name: string;
+}
+
+export const validatorNameSchema = {
+	$id: '/poa/validatorName',
+	type: 'object',
+	required: ['name'],
+	properties: {
+		name: {
+			type: 'string',
+			fieldNumber: 1,
+			minLength: 1,
+			maxLength: MAX_LENGTH_NAME,
+		},
+	},
+};
+
+export class ValidatorStore extends BaseStore<ValidatorName> {
+	public schema = validatorNameSchema;
+}
