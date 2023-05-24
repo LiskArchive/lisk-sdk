@@ -23,7 +23,7 @@ export interface SnapshotObject {
 	threshold: bigint;
 }
 
-export const snapshotStoreSchema = {
+export const snapshotSchema = {
 	$id: '/poa/snapshot',
 	type: 'object',
 	required: ['validators', 'threshold'],
@@ -56,5 +56,5 @@ export const snapshotStoreSchema = {
 };
 
 export class SnapshotStore extends BaseStore<SnapshotObject> {
-	public schema = snapshotStoreSchema;
+	public schema = snapshotSchema;
 }
