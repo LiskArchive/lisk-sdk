@@ -86,6 +86,15 @@ describe('bls_lib', () => {
 				});
 			},
 		);
+
+		it('returns expected signature when secret key is zero', () => {
+			const sk = Buffer.alloc(32);
+			const message = Buffer.from('Hello, World!');
+
+			const signature = blsSign(sk, message);
+
+			expect(signature).toEqual(Buffer.concat([Buffer.from([192]), Buffer.alloc(95)]));
+		});
 	});
 
 	describe('blsVerify', () => {
