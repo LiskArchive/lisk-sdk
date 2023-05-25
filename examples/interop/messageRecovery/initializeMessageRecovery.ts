@@ -1,5 +1,3 @@
-import { HASH_LENGTH } from 'lisk-framework/dist-node/modules/interoperability/constants';
-import { TOKEN_ID_LENGTH } from 'lisk-framework/dist-node/modules/token/constants';
 import {
 	apiClient,
 	chain,
@@ -25,6 +23,11 @@ import * as os from 'os';
 // LIP 45
 const STORE_PREFIX_INTEROPERABILITY = Buffer.from('83ed0d25', 'hex');
 const SUBSTORE_PREFIX_CHANNEL_DATA = Buffer.from('a000', 'hex');
+
+const HASH_LENGTH = 32;
+const CHAIN_ID_LENGTH = 4;
+const LOCAL_ID_LENGTH = 4;
+const TOKEN_ID_LENGTH = CHAIN_ID_LENGTH + LOCAL_ID_LENGTH;
 
 const getDBInstance = async (
 	dataPath: string,
