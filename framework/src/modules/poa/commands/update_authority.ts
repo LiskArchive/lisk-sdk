@@ -36,7 +36,7 @@ import { ChainPropertiesStore, NameStore, SnapshotStore } from '../stores';
 import { ValidatorsMethod } from '../../pos/types';
 import { AuthorityUpdateEvent } from '../events/authority_update';
 
-export class updateAuthority extends BaseCommand {
+export class updateAuthorityCommand extends BaseCommand {
 	public schema = updateAuthorityValidatorParamsSchema;
 	private _validatorsMethod!: ValidatorsMethod;
 

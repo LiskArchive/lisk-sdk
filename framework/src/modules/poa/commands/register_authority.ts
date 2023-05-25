@@ -28,7 +28,7 @@ import { ValidatorStore, NameStore } from '../stores';
 import { ValidatorsMethod } from '../../pos/types';
 import { getSenderAddress } from '../utils';
 
-export class registerAuthorityCommand extends BaseCommand {
+export class RegisterAuthorityCommand extends BaseCommand {
 	public schema = registerAuthorityParamsSchema;
 	private _validatorsMethod!: ValidatorsMethod;
 	private _feeMethod!: FeeMethod;
