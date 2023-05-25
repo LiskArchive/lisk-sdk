@@ -91,6 +91,11 @@ export class Endpoint extends BasePluginEndpoint {
 				secret: this._config.captchaSecretkey,
 				response: token,
 			},
+			headers: {
+				Accept: 'application/json',
+				'Accept-Encoding': 'identity',
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
