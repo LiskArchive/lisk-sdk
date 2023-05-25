@@ -20,6 +20,7 @@ export interface TransferCrossChainEventData {
 	recipientAddress: Buffer;
 	receivingChainID: Buffer;
 	nftID: Buffer;
+	includeAttributes: boolean;
 }
 
 export const transferCrossChainEventSchema = {
