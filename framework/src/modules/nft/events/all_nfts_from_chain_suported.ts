@@ -15,6 +15,10 @@
 import { BaseEvent, EventQueuer } from '../../base_event';
 import { LENGTH_CHAIN_ID } from '../constants';
 
+export interface AllNFTsFromChainSupportedEventData {
+	chainID: Buffer;
+}
+
 export const allNFTsFromChainSupportedEventSchema = {
 	$id: '/nft/events/allNFTsFromChainSupported',
 	type: 'object',
@@ -29,10 +33,10 @@ export const allNFTsFromChainSupportedEventSchema = {
 	},
 };
 
-export class AllNFTsFromChainSupportedEvent extends BaseEvent<Buffer> {
+export class AllNFTsFromChainSupportedEvent extends BaseEvent<AllNFTsFromChainSupportedEventData> {
 	public schema = allNFTsFromChainSupportedEventSchema;
 
-	public log(ctx: EventQueuer, chainID: Buffer): void {
-		this.add(ctx, chainID, [chainID]);
+	public log(ctx: EventQueuer, data: AllNFTsFromChainSupportedEventData): void {
+		this.add(ctx, data, [data.chainID]);
 	}
 }
