@@ -21,7 +21,7 @@ export interface UserStoreData {
 export const userStoreSchema = {
 	$id: '/nft/store/user',
 	type: 'object',
-	required: ['lockinModule'],
+	required: ['lockingModule'],
 	properties: {
 		lockingModule: {
 			dataType: 'string',
