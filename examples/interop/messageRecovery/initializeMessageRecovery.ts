@@ -127,8 +127,6 @@ const inclusionProofsWithHeightAndStateRootSchema = {
 						},
 					},
 					stateRoot: { dataType: 'bytes', fieldNumber: 3 },
-					/* storeValue: { dataType: 'bytes', fieldNumber: 4 },
-					storeKey: { dataType: 'bytes', fieldNumber: 5 }, */
 				},
 			},
 		},
@@ -158,7 +156,6 @@ const inboxOutboxProps = {
 	},
 };
 
-// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#cross-chain-message-schema
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#channel-data-substore
 const channelSchema = {
 	$id: '/modules/interoperability/channel',
@@ -433,23 +430,20 @@ const relayerKeyInfo = {
 			if (inclusionProofAtLastCertifiedHeight) {
 				const smt = new db.SparseMerkleTree();
 
+				console.log('State Root: ', inclusionProofAtLastCertifiedHeight.stateRoot.toString('hex'));
+				console.log('recoveryKey: ', recoveryKey.toString('hex'));
 				console.log(
-					'State Root -> ',
-					inclusionProofAtLastCertifiedHeight.stateRoot.toString('hex'),
-				);
-				console.log('recoveryKey -> ', recoveryKey.toString('hex'));
-				console.log(
-					'siblingHashes -> ',
+					'siblingHashes: ',
 					inclusionProofAtLastCertifiedHeight.inclusionProof.siblingHashes,
 				);
-				console.log('queries -> ', {
+				console.log('queries: ', {
 					bitmap: inclusionProofAtLastCertifiedHeight.inclusionProof.bitmap,
 					key: inclusionProofAtLastCertifiedHeight.inclusionProof.key,
 					value: inclusionProofAtLastCertifiedHeight.inclusionProof.value,
 				});
 
 				console.log(
-					'Proving>here>>>> ',
+					'smt.verify: ',
 					await smt.verify(inclusionProofAtLastCertifiedHeight.stateRoot, [recoveryKey], {
 						siblingHashes: inclusionProofAtLastCertifiedHeight.inclusionProof.siblingHashes,
 						queries: [
@@ -466,7 +460,6 @@ const relayerKeyInfo = {
 					// chainID: The ID of the sidechain whose terminated outbox account is to be initialized.
 					chainID: Buffer.from(sidechainNodeInfo.chainID as string, 'hex'),
 					// channel: The channel of this chain stored on the terminated sidechain.
-					// Here, `this` refers to mainchain
 					channel: codec.encode(
 						channelSchema,
 						channelDataJSONToObj(
@@ -506,10 +499,11 @@ const relayerKeyInfo = {
 					Buffer.from(relayerKeyInfo.privateKey, 'hex'),
 				);
 
-				console.log(tx.getBytes().toString('hex'));
+				console.log('Final transaction to be sent to tx_pool: ', tx.getBytes().toString('hex'));
 			}
 
 			await inclusionProofModel.deleteProofsUntilHeight(lastCertifiedHeight);
+			process.exit(0);
 		}
 	});
 })();
