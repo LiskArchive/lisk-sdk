@@ -36,7 +36,7 @@ export const allNFTsFromChainSupportRemovedEventSchema = {
 export class AllNFTsFromChainSupportRemovedEvent extends BaseEvent<AllNFTsFromChainSupportRemovedEventData> {
 	public schema = allNFTsFromChainSupportRemovedEventSchema;
 
-	public log(ctx: EventQueuer, data: AllNFTsFromChainSupportRemovedEventData): void {
-		this.add(ctx, data, [data.chainID]);
+	public log(ctx: EventQueuer, chainID: Buffer): void {
+		this.add(ctx, { chainID }, [chainID]);
 	}
 }
