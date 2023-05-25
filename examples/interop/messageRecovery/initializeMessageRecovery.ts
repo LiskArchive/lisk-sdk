@@ -344,7 +344,7 @@ const relayerKeyInfo = {
  */
 
 (async () => {
-	console.log('Starting message recovery plugin...');
+	console.log('Starting init message recovery script...');
 
 	let inclusionProofModel: InclusionProofModel;
 	try {
