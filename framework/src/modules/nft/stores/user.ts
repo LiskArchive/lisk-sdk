@@ -35,4 +35,8 @@ export const userStoreSchema = {
 
 export class UserStore extends BaseStore<UserStoreData> {
 	public schema = userStoreSchema;
+
+	public getKey(address: Buffer, tokenID: Buffer): Buffer {
+		return Buffer.concat([address, tokenID]);
+	}
 }
