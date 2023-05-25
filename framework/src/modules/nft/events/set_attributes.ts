@@ -20,11 +20,6 @@ export interface SetAttributesEventData {
 	attributes: Buffer;
 }
 
-export const SetAttributesEventData = {
-	nftID: Buffer,
-	attribute: Buffer,
-};
-
 export const setAttributesEventSchema = {
 	$id: '/nft/events/setAttributes',
 	type: 'object',
