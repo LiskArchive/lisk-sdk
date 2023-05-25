@@ -12,24 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface RegisterAuthorityParams {
-	name: string;
-	blsKey: Buffer;
-	generatorKey: Buffer;
-	proofOfPossession: Buffer;
-}
+import { utils } from '@liskhq/lisk-cryptography';
+import { NUM_BYTES_ADDRESS } from './constants';
 
-export interface UpdateGeneratorKeyParams {
-	generatorKey: Buffer;
-}
-
-export interface UpdateAuthorityValidatorParams {
-	newValidators: {
-		address: Buffer;
-		weight: bigint;
-	}[];
-	threshold: bigint;
-	validatorsUpdateNonce: number;
-	signature: Buffer;
-	aggregationBits: Buffer;
-}
+export const getSenderAddress = (senderPublicKey: Buffer) =>
+	utils.hash(senderPublicKey).slice(0, NUM_BYTES_ADDRESS);

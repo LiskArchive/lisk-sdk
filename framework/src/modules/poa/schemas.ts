@@ -11,3 +11,135 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import {
+	LENGTH_BLS_KEY,
+	LENGTH_GENERATOR_KEY,
+	LENGTH_PROOF_OF_POSSESSION,
+	MAX_LENGTH_NAME,
+	NUM_BYTES_ADDRESS,
+} from './constants';
+
+export const registerAuthorityParamsSchema = {
+	$id: '/poa/command/registerAuthority',
+	type: 'object',
+	required: ['name', 'blsKey', 'proofOfPossession', 'generatorKey'],
+	properties: {
+		name: {
+			dataType: 'string',
+			minLength: 1,
+			maxLength: MAX_LENGTH_NAME,
+			fieldNumber: 1,
+		},
+		blsKey: {
+			dataType: 'bytes',
+			minLength: LENGTH_BLS_KEY,
+			maxLength: LENGTH_BLS_KEY,
+			fieldNumber: 2,
+		},
+		proofOfPossession: {
+			dataType: 'bytes',
+			minLength: LENGTH_PROOF_OF_POSSESSION,
+			maxLength: LENGTH_PROOF_OF_POSSESSION,
+			fieldNumber: 3,
+		},
+		generatorKey: {
+			dataType: 'bytes',
+			minLength: LENGTH_GENERATOR_KEY,
+			maxLength: LENGTH_GENERATOR_KEY,
+			fieldNumber: 4,
+		},
+	},
+};
+
+export const updateGeneratorKeyParamsSchema = {
+	$id: '/poa/command/updateGeneratorKey',
+	type: 'object',
+	required: ['generatorKey'],
+	properties: {
+		generatorKey: {
+			dataType: 'bytes',
+			minLength: LENGTH_GENERATOR_KEY,
+			maxLength: LENGTH_GENERATOR_KEY,
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const updateAuthorityValidatorParamsSchema = {
+	$id: '/poa/command/updateAuthorityValidator',
+	type: 'object',
+	required: ['newValidators', 'threshold', 'validatorsUpdateNonce', 'signature', 'aggregationBits'],
+	properties: {
+		newValidators: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['address', 'weight'],
+				properties: {
+					address: {
+						dataType: 'bytes',
+						length: NUM_BYTES_ADDRESS,
+						fieldNumber: 1,
+					},
+					weight: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		threshold: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		validatorsUpdateNonce: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+		signature: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+		aggregationBits: {
+			dataType: 'bytes',
+			fieldNumber: 5,
+		},
+	},
+};
+
+export const validatorSignatureMessageSchema = {
+	$id: '/poa/command/validatorSignatureMessage',
+	type: 'object',
+	required: ['newValidators', 'threshold', 'validatorsUpdateNonce'],
+	properties: {
+		newValidators: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['address', 'weight'],
+				properties: {
+					address: {
+						dataType: 'bytes',
+						length: NUM_BYTES_ADDRESS,
+						fieldNumber: 1,
+					},
+					weight: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		threshold: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		validatorsUpdateNonce: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+	},
+};
