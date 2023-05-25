@@ -20,7 +20,7 @@ export interface RecoverEventData {
 	nftID: Buffer;
 }
 
-export const recoverEventDataSchema = {
+export const recoverEventSchema = {
 	$id: '/nft/events/recover',
 	type: 'object',
 	required: ['terminatedChainID', 'nftID', 'result'],
@@ -45,7 +45,7 @@ export const recoverEventDataSchema = {
 };
 
 export class RecoverEvent extends BaseEvent<RecoverEventData & { result: NftEventResult }> {
-	public schema = recoverEventDataSchema;
+	public schema = recoverEventSchema;
 
 	public log(ctx: EventQueuer, data: RecoverEventData): void {
 		this.add(ctx, { ...data, result: NftEventResult.SUCCESSFUL }, [data.nftID]);

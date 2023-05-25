@@ -25,7 +25,7 @@ export const SetAttributesEventData = {
 	attribute: Buffer,
 };
 
-export const setAttributesEventDataSchema = {
+export const setAttributesEventSchema = {
 	$id: '/nft/events/setAttributes',
 	type: 'object',
 	required: ['nftID', 'attributes', 'result'],
@@ -50,7 +50,7 @@ export const setAttributesEventDataSchema = {
 export class SetAttributesEvent extends BaseEvent<
 	SetAttributesEventData & { result: NftEventResult }
 > {
-	public schema = setAttributesEventDataSchema;
+	public schema = setAttributesEventSchema;
 
 	public log(ctx: EventQueuer, data: SetAttributesEventData): void {
 		this.add(ctx, { ...data, result: NftEventResult.SUCCESSFUL }, [data.nftID]);

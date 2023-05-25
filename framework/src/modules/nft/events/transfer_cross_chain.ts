@@ -22,7 +22,7 @@ export interface TransferCrossChainEventData {
 	nftID: Buffer;
 }
 
-export const transferCrossChainEventDataSchema = {
+export const transferCrossChainEventSchema = {
 	$id: '/nft/events/transferCrossChain',
 	type: 'object',
 	required: ['senderAddress', 'recipientAddress', 'nftID', 'receivingChainID', 'result'],
@@ -63,7 +63,7 @@ export const transferCrossChainEventDataSchema = {
 export class TransferCrossChainEvent extends BaseEvent<
 	TransferCrossChainEventData & { result: NftEventResult }
 > {
-	public schema = transferCrossChainEventDataSchema;
+	public schema = transferCrossChainEventSchema;
 
 	public log(ctx: EventQueuer, data: TransferCrossChainEventData): void {
 		this.add(ctx, { ...data, result: NftEventResult.SUCCESSFUL }, [

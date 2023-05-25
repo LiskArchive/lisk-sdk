@@ -19,8 +19,8 @@ export interface AllNFTsFromChainSupportRemovedEventData {
 	chainID: Buffer;
 }
 
-export const removeSupportAllNFTsFromChainEventDataSchema = {
-	$id: '/nft/events/removeSupportAllNFTsFromChain',
+export const allNFTsFromChainSupportRemovedEventSchema = {
+	$id: '/nft/events/allNFTsFromChainSupportRemoved',
 	type: 'object',
 	required: ['chainID'],
 	properties: {
@@ -34,7 +34,7 @@ export const removeSupportAllNFTsFromChainEventDataSchema = {
 };
 
 export class AllNFTsFromChainSupportRemovedEvent extends BaseEvent<AllNFTsFromChainSupportRemovedEventData> {
-	public schema = removeSupportAllNFTsFromChainEventDataSchema;
+	public schema = allNFTsFromChainSupportRemovedEventSchema;
 
 	public log(ctx: EventQueuer, data: AllNFTsFromChainSupportRemovedEventData): void {
 		this.add(ctx, data, [data.chainID]);

@@ -25,7 +25,7 @@ export interface UnlockEventData {
 	nftID: Buffer;
 }
 
-export const unlockEventDataSchema = {
+export const unlockEventSchema = {
 	$id: '/nft/events/unlock',
 	type: 'object',
 	required: ['module', 'nftID', 'result'],
@@ -50,7 +50,7 @@ export const unlockEventDataSchema = {
 };
 
 export class UnlockEvent extends BaseEvent<UnlockEventData & { result: NftEventResult }> {
-	public schema = unlockEventDataSchema;
+	public schema = unlockEventSchema;
 
 	public log(ctx: EventQueuer, data: UnlockEventData): void {
 		this.add(ctx, { ...data, result: NftEventResult.SUCCESSFUL }, [

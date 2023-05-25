@@ -21,7 +21,7 @@ export interface CCMTransferEventData {
 	nftID: Buffer;
 }
 
-export const ccmTransferEventDataSchema = {
+export const ccmTransferEventSchema = {
 	$id: '/nft/events/ccmTransfer',
 	type: 'object',
 	required: ['senderAddress', 'recipientAddress', 'nftID', 'result'],
@@ -50,7 +50,7 @@ export const ccmTransferEventDataSchema = {
 };
 
 export class CcmTransferEvent extends BaseEvent<CCMTransferEventData & { result: NftEventResult }> {
-	public schema = ccmTransferEventDataSchema;
+	public schema = ccmTransferEventSchema;
 
 	public log(ctx: EventQueuer, data: CCMTransferEventData): void {
 		this.add(ctx, { ...data, result: NftEventResult.SUCCESSFUL }, [

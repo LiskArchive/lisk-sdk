@@ -21,7 +21,7 @@ export interface TransferEventData {
 	nftID: Buffer;
 }
 
-export const transferEventDataSchema = {
+export const transferEventSchema = {
 	$id: '/nft/events/transfer',
 	type: 'object',
 	required: ['senderAddress', 'recipientAddress', 'nftID', 'result'],
@@ -50,7 +50,7 @@ export const transferEventDataSchema = {
 };
 
 export class TransferEvent extends BaseEvent<TransferEventData & { result: NftEventResult }> {
-	public schema = transferEventDataSchema;
+	public schema = transferEventSchema;
 
 	public log(ctx: EventQueuer, data: TransferEventData): void {
 		this.add(ctx, { ...data, result: NftEventResult.SUCCESSFUL }, [

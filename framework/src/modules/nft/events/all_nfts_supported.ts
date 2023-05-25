@@ -14,8 +14,8 @@
 
 import { BaseEvent, EventQueuer } from '../../base_event';
 
-export class AllNFTsSupportedEvent extends BaseEvent<{}> {
+export class AllNFTsSupportedEvent extends BaseEvent<undefined> {
 	public log(ctx: EventQueuer): void {
-		this.add(ctx, {});
+		this.add(ctx, undefined);
 	}
 }

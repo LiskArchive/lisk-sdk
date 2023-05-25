@@ -25,7 +25,7 @@ export interface LockEventData {
 	nftID: Buffer;
 }
 
-export const lockEventDataSchema = {
+export const lockEventSchema = {
 	$id: '/nft/events/lock',
 	type: 'object',
 	required: ['module', 'nftID', 'result'],
@@ -50,7 +50,7 @@ export const lockEventDataSchema = {
 };
 
 export class LockEvent extends BaseEvent<LockEventData & { result: NftEventResult }> {
-	public schema = lockEventDataSchema;
+	public schema = lockEventSchema;
 
 	public log(ctx: EventQueuer, data: LockEventData): void {
 		this.add(ctx, { ...data, result: NftEventResult.SUCCESSFUL }, [

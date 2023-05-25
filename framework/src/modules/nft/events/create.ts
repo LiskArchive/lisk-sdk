@@ -21,7 +21,7 @@ export interface CreateEventData {
 	collectionID: Buffer;
 }
 
-export const createEventDataSchema = {
+export const createEventSchema = {
 	$id: '/nft/events/create',
 	type: 'object',
 	required: ['address', 'nftID', 'collectionID', 'result'],
@@ -51,7 +51,7 @@ export const createEventDataSchema = {
 };
 
 export class CreateEvent extends BaseEvent<CreateEventData & { result: NftEventResult }> {
-	public schema = createEventDataSchema;
+	public schema = createEventSchema;
 
 	public log(ctx: EventQueuer, data: CreateEventData): void {
 		this.add(ctx, { ...data, result: NftEventResult.SUCCESSFUL }, [data.address, data.nftID]);

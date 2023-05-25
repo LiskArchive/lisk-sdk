@@ -20,8 +20,8 @@ export interface AllNFTsFromCollectionSupportedEventData {
 	collectionID: Buffer;
 }
 
-export const supportAllNFTsFromCollectionEventDataSchema = {
-	$id: '/nft/events/supportAllNFTsFromCollection',
+export const allNFTsFromCollectionSupportedEventSchema = {
+	$id: '/nft/events/allNFTsFromCollectionSupported',
 	type: 'object',
 	required: ['chainID', 'collectionID'],
 	properties: {
@@ -41,7 +41,7 @@ export const supportAllNFTsFromCollectionEventDataSchema = {
 };
 
 export class AllNFTsFromCollectionSupportedEvent extends BaseEvent<AllNFTsFromCollectionSupportedEventData> {
-	public schema = supportAllNFTsFromCollectionEventDataSchema;
+	public schema = allNFTsFromCollectionSupportedEventSchema;
 
 	public log(ctx: EventQueuer, data: AllNFTsFromCollectionSupportedEventData): void {
 		this.add(ctx, data, [data.chainID, data.collectionID]);
