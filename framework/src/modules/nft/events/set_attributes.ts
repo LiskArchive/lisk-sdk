@@ -48,6 +48,6 @@ export class SetAttributesEvent extends BaseEvent<
 	public schema = setAttributesEventSchema;
 
 	public log(ctx: EventQueuer, data: SetAttributesEventData): void {
-		this.add(ctx, { ...data, result: NftEventResult.SUCCESSFUL }, [data.nftID]);
+		this.add(ctx, { ...data, result: NftEventResult.RESULT_SUCCESSFUL }, [data.nftID]);
 	}
 }

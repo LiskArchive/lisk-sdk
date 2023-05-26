@@ -53,7 +53,7 @@ export class CcmTransferEvent extends BaseEvent<CCMTransferEventData & { result:
 	public schema = ccmTransferEventSchema;
 
 	public log(ctx: EventQueuer, data: CCMTransferEventData): void {
-		this.add(ctx, { ...data, result: NftEventResult.SUCCESSFUL }, [
+		this.add(ctx, { ...data, result: NftEventResult.RESULT_SUCCESSFUL }, [
 			data.senderAddress,
 			data.recipientAddress,
 		]);

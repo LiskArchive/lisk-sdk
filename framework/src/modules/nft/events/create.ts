@@ -54,6 +54,9 @@ export class CreateEvent extends BaseEvent<CreateEventData & { result: NftEventR
 	public schema = createEventSchema;
 
 	public log(ctx: EventQueuer, data: CreateEventData): void {
-		this.add(ctx, { ...data, result: NftEventResult.SUCCESSFUL }, [data.address, data.nftID]);
+		this.add(ctx, { ...data, result: NftEventResult.RESULT_SUCCESSFUL }, [
+			data.address,
+			data.nftID,
+		]);
 	}
 }

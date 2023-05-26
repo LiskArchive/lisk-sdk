@@ -53,7 +53,7 @@ export class TransferEvent extends BaseEvent<TransferEventData & { result: NftEv
 	public schema = transferEventSchema;
 
 	public log(ctx: EventQueuer, data: TransferEventData): void {
-		this.add(ctx, { ...data, result: NftEventResult.SUCCESSFUL }, [
+		this.add(ctx, { ...data, result: NftEventResult.RESULT_SUCCESSFUL }, [
 			data.senderAddress,
 			data.recipientAddress,
 		]);

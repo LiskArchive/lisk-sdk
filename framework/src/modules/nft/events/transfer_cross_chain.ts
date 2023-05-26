@@ -67,7 +67,7 @@ export class TransferCrossChainEvent extends BaseEvent<
 	public schema = transferCrossChainEventSchema;
 
 	public log(ctx: EventQueuer, data: TransferCrossChainEventData): void {
-		this.add(ctx, { ...data, result: NftEventResult.SUCCESSFUL }, [
+		this.add(ctx, { ...data, result: NftEventResult.RESULT_SUCCESSFUL }, [
 			data.senderAddress,
 			data.recipientAddress,
 			data.receivingChainID,

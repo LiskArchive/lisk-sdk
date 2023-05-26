@@ -47,6 +47,9 @@ export class DestroyEvent extends BaseEvent<DestroyEventData & { result: NftEven
 	public schema = createEventSchema;
 
 	public log(ctx: EventQueuer, data: DestroyEventData): void {
-		this.add(ctx, { ...data, result: NftEventResult.SUCCESSFUL }, [data.address, data.nftID]);
+		this.add(ctx, { ...data, result: NftEventResult.RESULT_SUCCESSFUL }, [
+			data.address,
+			data.nftID,
+		]);
 	}
 }

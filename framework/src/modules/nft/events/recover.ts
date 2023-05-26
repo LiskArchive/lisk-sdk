@@ -48,6 +48,6 @@ export class RecoverEvent extends BaseEvent<RecoverEventData & { result: NftEven
 	public schema = recoverEventSchema;
 
 	public log(ctx: EventQueuer, data: RecoverEventData): void {
-		this.add(ctx, { ...data, result: NftEventResult.SUCCESSFUL }, [data.nftID]);
+		this.add(ctx, { ...data, result: NftEventResult.RESULT_SUCCESSFUL }, [data.nftID]);
 	}
 }
