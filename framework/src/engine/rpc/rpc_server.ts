@@ -233,7 +233,7 @@ export class RPCServer {
 
 		try {
 			const request = Request.fromJSONRPCRequest(requestObj);
-			if (this._isAllowedMethod(request.namespace, request.name)) {
+			if (!this._isAllowedMethod(request.namespace, request.name)) {
 				const disabledMethodErrorMessage =
 					'Requested method or namespace is disabled in node config.';
 				throw new JSONRPC.JSONRPCError(
