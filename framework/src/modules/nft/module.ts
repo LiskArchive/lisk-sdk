@@ -34,6 +34,10 @@ import { TransferCrossChainEvent } from './events/transfer_cross_chain';
 import { UnlockEvent } from './events/unlock';
 import { InternalMethod } from './internal_method';
 import { NFTMethod } from './method';
+import { EscrowStore } from './stores/escrow';
+import { NFTStore } from './stores/nft';
+import { SupportedNFTsStore } from './stores/supported_nfts';
+import { UserStore } from './stores/user';
 import { FeeMethod } from './types';
 
 export class NFTModule extends BaseInteroperableModule {
@@ -74,6 +78,10 @@ export class NFTModule extends BaseInteroperableModule {
 			AllNFTsFromCollectionSupportRemovedEvent,
 			new AllNFTsFromCollectionSupportRemovedEvent(this.name),
 		);
+		this.stores.register(NFTStore, new NFTStore(this.name, 1));
+		this.stores.register(UserStore, new UserStore(this.name, 2));
+		this.stores.register(EscrowStore, new EscrowStore(this.name, 3));
+		this.stores.register(SupportedNFTsStore, new SupportedNFTsStore(this.name, 4));
 	}
 
 	public addDependencies(interoperabilityMethod: InteroperabilityMethod, _feeMethod: FeeMethod) {
