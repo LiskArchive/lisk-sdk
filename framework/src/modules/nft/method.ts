@@ -14,6 +14,10 @@
 import { BaseMethod } from '../base_method';
 import { InteroperabilityMethod, ModuleConfig } from './types';
 import { InternalMethod } from './internal_method';
+import { NFTStore } from './stores/nft';
+import { ImmutableMethodContext } from '../../state_machine';
+import { LENGTH_CHAIN_ID } from './constants';
+import { UserStore } from './stores/user';
 
 export class NFTMethod extends BaseMethod {
 	// @ts-expect-error TODO: unused error. Remove when implementing.
@@ -33,5 +37,43 @@ export class NFTMethod extends BaseMethod {
 	) {
 		this._interoperabilityMethod = interoperabilityMethod;
 		this._internalMethod = internalMethod;
+	}
+
+	public async getNFTOwner(methodContext: ImmutableMethodContext, nftID: Buffer): Promise<Buffer> {
+		const nftStore = this.stores.get(NFTStore);
+
+		const nftExists = await nftStore.has(methodContext, nftID);
+
+		if (!nftExists) {
+			throw new Error('NFT substore entry does not exist');
+		}
+
+		const data = await nftStore.get(methodContext, nftID);
+
+		return data.owner;
+	}
+
+	public async getLockingModule(
+		methodContext: ImmutableMethodContext,
+		nftID: Buffer,
+	): Promise<string> {
+		const nftStore = this.stores.get(NFTStore);
+
+		const nftExists = await nftStore.has(methodContext, nftID);
+
+		if (!nftExists) {
+			throw new Error('NFT substore entry does not exist');
+		}
+
+		const owner = await this.getNFTOwner(methodContext, nftID);
+
+		if (owner.length === LENGTH_CHAIN_ID) {
+			throw new Error('NFT is escrowed to another chain');
+		}
+
+		const userStore = this.stores.get(UserStore);
+		const userData = await userStore.get(methodContext, userStore.getKey(owner, nftID));
+
+		return userData.lockingModule;
 	}
 }
