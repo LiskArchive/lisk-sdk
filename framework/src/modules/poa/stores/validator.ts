@@ -24,7 +24,7 @@ export const validatorNameSchema = {
 	required: ['name'],
 	properties: {
 		name: {
-			type: 'string',
+			dataType: 'string',
 			fieldNumber: 1,
 			minLength: 1,
 			maxLength: MAX_LENGTH_NAME,

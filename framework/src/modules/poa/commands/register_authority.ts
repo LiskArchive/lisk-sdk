@@ -55,19 +55,19 @@ export class RegisterAuthorityCommand extends BaseCommand {
 			};
 		}
 
-		if (!name || name === '' || !/^[a-z0-9!@$&_.]+$/g.test(name)) {
+		if (!/^[a-z0-9!@$&_.]+$/g.test(name)) {
 			throw new Error('Invalid name');
 		}
 
-		const isNameExist = await this.stores.get(ValidatorStore).has(context, Buffer.from(name));
+		const isNameExist = await this.stores.get(NameStore).has(context, Buffer.from(name));
 		if (isNameExist) {
-			throw new Error('name exist');
+			throw new Error('name already exist');
 		}
 
 		const senderAddress = getSenderAddress(context.transaction.senderPublicKey);
-		const isValidatorExist = await this.stores.get(NameStore).has(context, senderAddress);
+		const isValidatorExist = await this.stores.get(ValidatorStore).has(context, senderAddress);
 		if (isValidatorExist) {
-			throw new Error('validator exist');
+			throw new Error('validator already exist');
 		}
 
 		return {
