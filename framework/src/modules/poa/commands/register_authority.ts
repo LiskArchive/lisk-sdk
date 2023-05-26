@@ -21,11 +21,9 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../state_machine';
-import { RegisterAuthorityParams } from '../types';
+import { FeeMethod, RegisterAuthorityParams, ValidatorsMethod } from '../types';
 import { COMMAND_REGISTER_AUTHORITY, REGISTRATION_FEE } from '../constants';
-import { FeeMethod } from '../../interoperability/types';
 import { ValidatorStore, NameStore } from '../stores';
-import { ValidatorsMethod } from '../../pos/types';
 import { getSenderAddress } from '../utils';
 
 export class RegisterAuthorityCommand extends BaseCommand {

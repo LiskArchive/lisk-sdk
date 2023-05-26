@@ -12,6 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { ImmutableMethodContext, MethodContext } from '../../state_machine';
+import { NextValidatorsSetter } from '../../state_machine/types';
+import { ValidatorKeys } from '../pos/types';
+
 export interface RegisterAuthorityParams {
 	name: string;
 	blsKey: Buffer;
@@ -19,17 +23,39 @@ export interface RegisterAuthorityParams {
 	proofOfPossession: Buffer;
 }
 
-export interface UpdateGeneratorKeyParams {
-	generatorKey: Buffer;
+export interface ValidatorsMethod {
+	setValidatorGeneratorKey(
+		methodContext: MethodContext,
+		validatorAddress: Buffer,
+		generatorKey: Buffer,
+	): Promise<boolean>;
+	registerValidatorKeys(
+		methodContext: MethodContext,
+		validatorAddress: Buffer,
+		blsKey: Buffer,
+		generatorKey: Buffer,
+		proofOfPossession: Buffer,
+	): Promise<boolean>;
+	registerValidatorWithoutBLSKey(
+		methodContext: MethodContext,
+		validatorAddress: Buffer,
+		generatorKey: Buffer,
+	): Promise<boolean>;
+	getValidatorKeys(methodContext: ImmutableMethodContext, address: Buffer): Promise<ValidatorKeys>;
+	getGeneratorsBetweenTimestamps(
+		methodContext: ImmutableMethodContext,
+		startTimestamp: number,
+		endTimestamp: number,
+	): Promise<Record<string, number>>;
+	setValidatorsParams(
+		methodContext: MethodContext,
+		validatorSetter: NextValidatorsSetter,
+		preCommitThreshold: bigint,
+		certificateThreshold: bigint,
+		validators: { address: Buffer; bftWeight: bigint }[],
+	): Promise<void>;
 }
 
-export interface UpdateAuthorityValidatorParams {
-	newValidators: {
-		address: Buffer;
-		weight: bigint;
-	}[];
-	threshold: bigint;
-	validatorsUpdateNonce: number;
-	signature: Buffer;
-	aggregationBits: Buffer;
+export interface FeeMethod {
+	payFee(methodContext: MethodContext, amount: bigint): void;
 }

@@ -24,15 +24,17 @@ import {
 	PoAModule,
 } from '../../../../../src';
 import { RegisterAuthorityCommand } from '../../../../../src/modules/poa/commands/register_authority';
-import { ValidatorsMethod } from '../../../../../src/modules/pos/types';
-import { FeeMethod } from '../../../../../src/modules/interoperability/types';
 import {
 	COMMAND_REGISTER_AUTHORITY,
 	REGISTRATION_FEE,
 } from '../../../../../src/modules/poa/constants';
 
 import { registerAuthorityParamsSchema } from '../../../../../src/modules/poa/schemas';
-import { RegisterAuthorityParams } from '../../../../../src/modules/poa/types';
+import {
+	RegisterAuthorityParams,
+	ValidatorsMethod,
+	FeeMethod,
+} from '../../../../../src/modules/poa/types';
 
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import { NameStore, ValidatorStore } from '../../../../../src/modules/poa/stores';
