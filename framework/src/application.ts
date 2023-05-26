@@ -20,7 +20,7 @@ import { Block } from '@liskhq/lisk-chain';
 import { Database, StateDB } from '@liskhq/lisk-db';
 import { validator } from '@liskhq/lisk-validator';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
-import { APP_EVENT_SHUTDOWN, APP_EVENT_READY } from './constants';
+import { APP_EVENT_SHUTDOWN, APP_EVENT_READY, OWNER_READ_WRITE } from './constants';
 import {
 	ApplicationConfig,
 	PluginConfig,
@@ -415,7 +415,7 @@ export class Application {
 				throw new DuplicateAppInstanceError(this.config.system.dataPath, pidPath);
 			}
 		}
-		await fs.writeFile(pidPath, process.pid.toString());
+		await fs.writeFile(pidPath, process.pid.toString(), { mode: OWNER_READ_WRITE });
 	}
 
 	private _clearControllerPidFile() {

@@ -25,10 +25,14 @@ export const configSchema = {
 			type: 'string',
 			format: 'ip',
 		},
-		encryptedPassphrase: {
+		encryptedPrivateKey: {
 			type: 'string',
-			format: 'encryptedPassphrase',
-			description: 'Encrypted passphrase of the genesis account',
+			description: 'Encrypted private key of the faucet account',
+		},
+		tokenID: {
+			type: 'string',
+			format: 'hex',
+			description: 'TokenID of faucet',
 		},
 		applicationUrl: {
 			type: 'string',
@@ -61,11 +65,11 @@ export const configSchema = {
 			description: 'The re-captcha site key',
 		},
 	},
-	required: ['encryptedPassphrase', 'captchaSecretkey', 'captchaSitekey'],
+	required: ['tokenID', 'encryptedPrivateKey', 'captchaSecretkey', 'captchaSitekey'],
 	default: {
 		port: 4004,
 		host: '127.0.0.1',
-		applicationUrl: 'ws://localhost:8080/ws',
+		applicationUrl: 'ws://localhost:7887/rpc-ws',
 		fee: '0.1',
 		amount: '100',
 		tokenPrefix: 'lsk',
