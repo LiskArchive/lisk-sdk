@@ -34,7 +34,8 @@ export const genesisPoAStoreSchema = {
 				properties: {
 					address: {
 						dataType: 'bytes',
-						length: NUM_BYTES_ADDRESS,
+						minLength: NUM_BYTES_ADDRESS,
+						maxLength: NUM_BYTES_ADDRESS,
 						fieldNumber: 1,
 					},
 					name: {
@@ -45,17 +46,20 @@ export const genesisPoAStoreSchema = {
 					},
 					blsKey: {
 						dataType: 'bytes',
-						length: LENGTH_BLS_KEY,
+						minLength: LENGTH_BLS_KEY,
+						maxLength: LENGTH_BLS_KEY,
 						fieldNumber: 3,
 					},
 					proofOfPossession: {
 						dataType: 'bytes',
-						length: LENGTH_PROOF_OF_POSSESSION,
+						minLength: LENGTH_PROOF_OF_POSSESSION,
+						maxLength: LENGTH_PROOF_OF_POSSESSION,
 						fieldNumber: 4,
 					},
 					generatorKey: {
 						dataType: 'bytes',
-						length: LENGTH_GENERATOR_KEY,
+						minLength: LENGTH_GENERATOR_KEY,
+						maxLength: LENGTH_GENERATOR_KEY,
 						fieldNumber: 5,
 					},
 				},
@@ -73,7 +77,8 @@ export const genesisPoAStoreSchema = {
 						properties: {
 							address: {
 								dataType: 'bytes',
-								length: NUM_BYTES_ADDRESS,
+								minLength: NUM_BYTES_ADDRESS,
+								maxLength: NUM_BYTES_ADDRESS,
 								fieldNumber: 1,
 							},
 							weight: {
