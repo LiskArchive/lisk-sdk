@@ -13,7 +13,10 @@
  */
 
 import { BaseMethod } from '../base_method';
+import { NFTStore } from './stores/nft';
 import { ModuleConfig } from './types';
+import { MethodContext } from '../../state_machine';
+import { TransferEvent } from './events/transfer';
 
 export class InternalMethod extends BaseMethod {
 	// @ts-expect-error TODO: unused error. Remove when implementing.
@@ -21,5 +24,39 @@ export class InternalMethod extends BaseMethod {
 
 	public init(config: ModuleConfig): void {
 		this._config = config;
+	}
+
+	public async createNFTEntry(
+		methodContext: MethodContext,
+		address: Buffer,
+		nftID: Buffer,
+		attributesArray: { module: string; attributes: Buffer }[],
+	): Promise<void> {
+		const nftStore = this.stores.get(NFTStore);
+		await nftStore.save(methodContext, nftID, {
+			owner: address,
+			attributesArray,
+		});
+	}
+
+	public async transferInternal(
+		methodContext: MethodContext,
+		recipientAddress: Buffer,
+		nftID: Buffer,
+	): Promise<void> {
+		const nftStore = this.stores.get(NFTStore);
+
+		const data = await nftStore.get(methodContext, nftID);
+		const senderAddress = data.owner;
+
+		data.owner = recipientAddress;
+
+		await nftStore.set(methodContext, nftID, data);
+
+		this.events.get(TransferEvent).log(methodContext, {
+			senderAddress,
+			recipientAddress,
+			nftID,
+		});
 	}
 }
