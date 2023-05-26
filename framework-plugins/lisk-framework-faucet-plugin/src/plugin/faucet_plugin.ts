@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BasePlugin, PluginInitContext, cryptography } from 'lisk-sdk';
+import { BasePlugin, PluginInitContext } from 'lisk-sdk';
 import * as express from 'express';
 import { join } from 'path';
 import { Server } from 'http';
@@ -24,7 +24,11 @@ export class FaucetPlugin extends BasePlugin<FaucetPluginConfig> {
 	public endpoint = new Endpoint();
 
 	private _server!: Server;
-	private readonly _state: State = { publicKey: undefined, passphrase: undefined };
+	private readonly _state: State = {
+		publicKey: undefined,
+		privateKey: undefined,
+		address: undefined,
+	};
 
 	public get nodeModulePath(): string {
 		return __filename;
@@ -45,9 +49,7 @@ export class FaucetPlugin extends BasePlugin<FaucetPluginConfig> {
 				tokenPrefix: this.config.tokenPrefix,
 				captchaSitekey: this.config.captchaSitekey,
 				logoURL: this.config.logoURL,
-				faucetAddress: this._state.publicKey
-					? cryptography.address.getLisk32AddressFromPublicKey(this._state.publicKey)
-					: undefined,
+				faucetAddress: this._state.address,
 			};
 			res.json(config);
 		});
