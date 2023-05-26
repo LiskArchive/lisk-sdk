@@ -117,38 +117,40 @@ export const readSInt64 = (buffer: Buffer, offset: number): [bigint, number] => 
 	return [-(varInt + BigInt(1)) / BigInt(2), size];
 };
 
-const log2 = (n: bigint) => {
-	if (n < BigInt(1)) {
-		throw new Error('Argument must be greater than 0.');
+const varintMinLength = (n: bigint): number => {
+	if (n < BigInt(1) << BigInt(7 * 1)) {
+		return 1;
 	}
-
-	let low = BigInt(0);
-	let high = BigInt(1024); // This should be enough for any practical use case
-
-	while (low < high) {
-		const mid = (low + high + BigInt(1)) / BigInt(2);
-
-		if (BigInt(2) ** mid > n) {
-			high = mid - BigInt(1);
-		} else {
-			low = mid;
-		}
+	if (n < BigInt(1) << BigInt(7 * 2)) {
+		return 2;
 	}
-
-	return low;
-};
-
-const isVarintShortestForm = (result: bigint, size: number) => {
-	if (result === BigInt(0)) {
-		return size === 1;
+	if (n < BigInt(1) << BigInt(7 * 3)) {
+		return 3;
 	}
-	const log2n = log2(result);
-	const expectedSize = Math.ceil(Number((log2n + BigInt(7)) / BigInt(7)));
-	return expectedSize === size;
+	if (n < BigInt(1) << BigInt(7 * 4)) {
+		return 4;
+	}
+	if (n < BigInt(1) << BigInt(7 * 5)) {
+		return 5;
+	}
+	if (n < BigInt(1) << BigInt(7 * 6)) {
+		return 6;
+	}
+	if (n < BigInt(1) << BigInt(7 * 7)) {
+		return 7;
+	}
+	if (n < BigInt(1) << BigInt(7 * 8)) {
+		return 8;
+	}
+	if (n < BigInt(1) << BigInt(7 * 9)) {
+		return 9;
+	}
+	return 10;
 };
 
 const validateVarintSize = (result: bigint, size: number) => {
-	if (!isVarintShortestForm(result, size)) {
+	const expectedSize = varintMinLength(result);
+	if (expectedSize !== size) {
 		throw new Error('invalid varint bytes. vartint must be in shortest form.');
 	}
 };
