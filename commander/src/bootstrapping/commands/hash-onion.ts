@@ -19,6 +19,7 @@ import * as path from 'path';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as validator from '@liskhq/lisk-validator';
 import { flagsWithParser } from '../../utils/flags';
+import { OWNER_READ_WRITE } from '../../constants';
 
 export class HashOnionCommand extends Command {
 	static description = 'Create hash onions to be used by the forger.';
@@ -73,9 +74,9 @@ export class HashOnionCommand extends Command {
 
 		if (output) {
 			if (pretty) {
-				fs.writeJSONSync(output, result, { spaces: ' ' });
+				fs.writeJSONSync(output, result, { spaces: ' ', mode: OWNER_READ_WRITE });
 			} else {
-				fs.writeJSONSync(output, result);
+				fs.writeJSONSync(output, result, { mode: OWNER_READ_WRITE });
 			}
 		} else {
 			this.printJSON(result, pretty);

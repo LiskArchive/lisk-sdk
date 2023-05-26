@@ -19,6 +19,7 @@ import * as path from 'path';
 import { encryptPassphrase } from '../../../utils/commons';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt, getPasswordFromPrompt } from '../../../utils/reader';
+import { OWNER_READ_WRITE } from '../../../constants';
 
 const outputPublicKeyOptionDescription =
 	'Includes the public key in the output. This option is provided for the convenience of node operators.';
@@ -63,7 +64,7 @@ export class EncryptCommand extends Command {
 		const result = await encryptPassphrase(passphrase, password, outputPublicKey);
 
 		if (output) {
-			fs.writeJSONSync(output, result, { spaces: ' ' });
+			fs.writeJSONSync(output, result, { spaces: ' ', mode: OWNER_READ_WRITE });
 		} else {
 			this.log(JSON.stringify(result, undefined, '  '));
 		}
