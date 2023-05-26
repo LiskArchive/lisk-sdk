@@ -18,3 +18,7 @@ export enum UpdateAuthority {
 }
 export const MAX_LENGTH_NAME = 20;
 export const NUM_BYTES_ADDRESS = 20;
+
+export const LENGTH_BLS_KEY = 48;
+export const LENGTH_PROOF_OF_POSSESSION = 96;
+export const LENGTH_GENERATOR_KEY = 32;
