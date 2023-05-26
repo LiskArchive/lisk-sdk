@@ -220,13 +220,13 @@ describe('RPC server', () => {
 	});
 
 	describe('_handleRequest()', () => {
-		it('should throw for a enabled method', async () => {
+		it('should throw for a non enabled method', async () => {
 			rpcServer = new RPCServer(dataPath, {
 				modes: ['ipc'],
 				host: '0.0.0.0',
 				port: 7887,
 				accessControlAllowOrigin: '*',
-				allowedMethods: ['token_getBalance'],
+				allowedMethods: ['token_transfer'],
 			});
 
 			const request = JSON.stringify({
