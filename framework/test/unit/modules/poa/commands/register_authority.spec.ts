@@ -59,7 +59,7 @@ describe('RegisterAuthority', () => {
 	};
 
 	const publicKey = utils.getRandomBytes(32);
-	const chainID = utils.getRandomBytes(32);
+	const chainID = Buffer.from([0, 0, 0, 1]);
 
 	const buildTransaction = (transaction: Partial<TransactionAttrs>): Transaction => {
 		return new Transaction({
