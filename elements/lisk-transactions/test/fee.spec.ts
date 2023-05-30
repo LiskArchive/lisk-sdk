@@ -113,9 +113,9 @@ describe('fee', () => {
 			// Arrange
 			const validatorRegisterTransaction = {
 				...validTransaction,
-				module: 'toke',
-				command: 'transfer',
-				params: { username: 'validator1' },
+				module: 'pos',
+				command: 'register',
+				params: { username: 'validator11' },
 				signatures: [],
 			};
 			const additionalFee = BigInt(1000000000);
