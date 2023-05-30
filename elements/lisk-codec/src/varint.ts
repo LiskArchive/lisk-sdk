@@ -117,40 +117,15 @@ export const readSInt64 = (buffer: Buffer, offset: number): [bigint, number] => 
 	return [-(varInt + BigInt(1)) / BigInt(2), size];
 };
 
-const varintMinLength = (n: bigint): number => {
-	if (n < BigInt(1) << BigInt(7 * 1)) {
-		return 1;
-	}
-	if (n < BigInt(1) << BigInt(7 * 2)) {
-		return 2;
-	}
-	if (n < BigInt(1) << BigInt(7 * 3)) {
-		return 3;
-	}
-	if (n < BigInt(1) << BigInt(7 * 4)) {
-		return 4;
-	}
-	if (n < BigInt(1) << BigInt(7 * 5)) {
-		return 5;
-	}
-	if (n < BigInt(1) << BigInt(7 * 6)) {
-		return 6;
-	}
-	if (n < BigInt(1) << BigInt(7 * 7)) {
-		return 7;
-	}
-	if (n < BigInt(1) << BigInt(7 * 8)) {
-		return 8;
-	}
-	if (n < BigInt(1) << BigInt(7 * 9)) {
-		return 9;
-	}
-	return 10;
-};
-
 const validateVarintSize = (result: bigint, size: number) => {
-	const expectedSize = varintMinLength(result);
-	if (expectedSize !== size) {
+	// when result is 0, size must be 1, but the below condition only supports result greater than 1.
+	if (result === BigInt(0) && size === 1) {
+		return;
+	}
+
+	const min = BigInt(1) << BigInt(7 * (size - 1));
+	const max = BigInt(1) << BigInt(7 * size);
+	if (result < min || result >= max) {
 		throw new Error('invalid varint bytes. vartint must be in shortest form.');
 	}
 };

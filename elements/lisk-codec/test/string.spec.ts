@@ -51,7 +51,7 @@ describe('string', () => {
 			expect(readString(data, 0)).toEqual(['', message.length + 1]);
 		});
 
-		describe('invalid utf-8 code', () => {
+		describe('utf-8 code', () => {
 			const testCases = [
 				// Valid sequences
 				{ input: [0x00], expected: true }, // 1-byte sequence
@@ -92,15 +92,13 @@ describe('string', () => {
 			});
 		});
 
-		describe('unnormalized utf-8 code', () => {
+		describe('normalize utf-8 code', () => {
 			const testCases = [
-				// Valid sequences (NFC)
+				// Characters which are different in NFC and NFD
 				{ input: 'Amélie'.normalize('NFC'), expected: true }, // "Amélie" in composed form (NFC)
-				{ input: 'Ame\u0301lie', expected: false }, // "Amélie" in decomposed form (NFD)
-
-				// Invalid sequences (NFD)
-				{ input: 'Straße'.normalize('NFC'), expected: true }, // "Straße" in composed form (NFC)
-				{ input: 'Strasse\u0308', expected: false }, // "Straße" in decomposed form (NFD)
+				{ input: 'Amélie'.normalize('NFD'), expected: false }, // "Amélie" in decomposed form (NFD)
+				{ input: 'Schön'.normalize('NFC'), expected: true }, // "Straße" in composed form (NFC)
+				{ input: 'Schön'.normalize('NFD'), expected: false }, // "Straße" in decomposed form (NFD)
 
 				// Examples of other languages (These languages have characters that can be decomposed)
 				// Korean: "한국어" (Composed vs Decomposed)

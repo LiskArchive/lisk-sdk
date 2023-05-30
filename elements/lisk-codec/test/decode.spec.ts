@@ -541,7 +541,7 @@ describe('decode', () => {
 			expect(result).toEqual(object);
 		});
 
-		describe('invalid transaction like bytes', () => {
+		describe('invalid transaction like bytes found by fuzz testing', () => {
 			const testSchema = {
 				$id: '/lisk/transaction-mock',
 				type: 'object',
@@ -587,8 +587,8 @@ describe('decode', () => {
 				},
 			};
 			const testCases = [
-				// Valid sequences
 				{
+					// input bytes include invalid utf-8 chars
 					input:
 						'0a05746f6b656e12087472616e73669f0e18362080ade2042a20dd4ff255fe04dd01594c68e9e9c8872c4f4466220f7e326377a0ceb9df2fa21a321d0880ade2041214654087c2df870402ab0b19c4616fd3355d61f62c1a003a4079cb29dca7bb9f5173a1e8ca28264f779074d259c341b536bae9a5ae0a2e4713580fcb192f9f15f43730650d69bb1f3dcfb4cb6da7d69ca990a763ed78569700',
 					error: 'The encoded data was not valid for encoding utf-8',
