@@ -219,6 +219,53 @@ describe('decode', () => {
 			expect(() => codec.decode(schema, encodedValue)).toThrow('Invalid terminate index.');
 		});
 
+		it('should fail when decoding bytes where wiretype does not match the type', () => {
+			const schema = {
+				$id: 'invalid/wiretype',
+				type: 'object',
+				properties: {
+					data: {
+						dataType: 'uint32',
+						fieldNumber: 1,
+					},
+				},
+			};
+			// wiretype for uint32 is 0 but using 2
+			// eslint-disable-next-line no-bitwise
+			const key = writeUInt32((1 << 3) | 2);
+			const intVal1 = writeUInt32(20);
+
+			const keypair = Buffer.concat([key, intVal1]);
+
+			expect(() => codec.decode(schema, keypair)).toThrow('Invalid wiretype while decoding.');
+		});
+
+		it('should fail when decoding bytes where varint is not in the shortest form', () => {
+			const schema = {
+				$id: 'invalid/wiretype',
+				type: 'object',
+				properties: {
+					data: {
+						dataType: 'uint32',
+						fieldNumber: 1,
+					},
+				},
+			};
+			const key = generateKey(schema.properties.data);
+			const values = [
+				Buffer.from([0x80, 0x00]), // 0
+				Buffer.from([0x81, 0x00]), // 1
+				Buffer.from([0xff, 0x00]), // 127
+				Buffer.from([0x81, 0x80, 0x00]), // 128
+			];
+			for (const val of values) {
+				const keypair = Buffer.concat([key, val]);
+				expect(() => codec.decode(schema, keypair)).toThrow(
+					'invalid varint bytes. vartint must be in shortest form.',
+				);
+			}
+		});
+
 		it('should decode a binary message where the fieldNumbers in the schema are not sequential', () => {
 			const schema = {
 				$id: 'duplicate/nonSequential',
