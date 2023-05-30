@@ -29,6 +29,8 @@ exports[`schema/application_config_schema.js application config schema must matc
     },
     "plugins": {},
     "rpc": {
+      "accessControlAllowOrigin": "*",
+      "allowedMethods": [],
       "host": "127.0.0.1",
       "modes": [
         "ipc",
@@ -283,7 +285,10 @@ exports[`schema/application_config_schema.js application config schema must matc
     },
     "rpc": {
       "properties": {
-        "disabledMethods": {
+        "accessControlAllowOrigin": {
+          "type": "string",
+        },
+        "allowedMethods": {
           "items": {
             "type": "string",
           },

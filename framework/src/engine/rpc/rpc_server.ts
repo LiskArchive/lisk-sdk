@@ -68,6 +68,7 @@ export class RPCServer {
 				path: '/rpc-ws',
 				port: this._config.port,
 				host: this._config.host,
+				accessControlAllowOrigin: this._config.accessControlAllowOrigin,
 			});
 		}
 
@@ -77,6 +78,7 @@ export class RPCServer {
 				port: this._config.port,
 				path: '/rpc',
 				ignorePaths: ['/rpc-ws'],
+				accessControlAllowOrigin: this._config.accessControlAllowOrigin,
 			});
 		}
 	}
@@ -231,7 +233,7 @@ export class RPCServer {
 
 		try {
 			const request = Request.fromJSONRPCRequest(requestObj);
-			if (this._isDisabledMethod(request.namespace, request.name)) {
+			if (!this._isAllowedMethod(request.namespace, request.name)) {
 				const disabledMethodErrorMessage =
 					'Requested method or namespace is disabled in node config.';
 				throw new JSONRPC.JSONRPCError(
@@ -315,13 +317,14 @@ export class RPCServer {
 		return existingMethod;
 	}
 
-	private _isDisabledMethod(namespace: string, method: string): boolean {
-		const { disabledMethods } = this._config;
-		if (!disabledMethods) {
+	private _isAllowedMethod(namespace: string, method: string): boolean {
+		const { allowedMethods } = this._config;
+		if (!allowedMethods || allowedMethods.length === 0) {
 			return false;
 		}
-		return (
-			disabledMethods.includes(namespace) || disabledMethods.includes(`${namespace}_${method}`)
-		);
+		if (allowedMethods.includes('*')) {
+			return true;
+		}
+		return allowedMethods.includes(namespace) || allowedMethods.includes(`${namespace}_${method}`);
 	}
 }

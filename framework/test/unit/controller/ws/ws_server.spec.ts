@@ -28,6 +28,7 @@ describe('WSServer', () => {
 	const config = {
 		port: 8888,
 		path: '/ws',
+		accessControlAllowOrigin: '*',
 	};
 	let wsServerInstance: WSServer;
 	const wsMessageHandler = jest.fn();
