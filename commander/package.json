@@ -142,7 +142,7 @@
 		"@types/jest-when": "3.5.2",
 		"@types/jquery": "3.3.33",
 		"@types/listr": "0.14.2",
-		"@types/node": "16.18.3",
+		"@types/node": "18.15.3",
 		"@types/progress": "2.0.3",
 		"@types/semver": "7.3.13",
 		"@types/strip-ansi": "5.2.1",

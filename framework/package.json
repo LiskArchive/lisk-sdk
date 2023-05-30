@@ -68,7 +68,7 @@
 		"@types/bunyan": "1.8.6",
 		"@types/jest": "29.2.3",
 		"@types/jest-when": "3.5.2",
-		"@types/node": "16.18.3",
+		"@types/node": "18.15.3",
 		"@typescript-eslint/eslint-plugin": "5.44.0",
 		"@typescript-eslint/parser": "5.44.0",
 		"axios": "1.2.0",

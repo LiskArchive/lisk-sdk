@@ -44,7 +44,7 @@ describe('WSChannel', () => {
 					resolve(undefined);
 				});
 			});
-			const channel = new WSChannel('ws://localhost:65535/my-path');
+			const channel = new WSChannel('ws://127.0.0.1:65535/my-path');
 
 			try {
 				await expect(channel.connect()).resolves.toBeUndefined();
@@ -73,7 +73,7 @@ describe('WSChannel', () => {
 
 			http.listen(65535);
 
-			const channel = new WSChannel('ws://localhost:65535/my-path');
+			const channel = new WSChannel('ws://127.0.0.1:65535/my-path');
 
 			try {
 				await expect(channel.connect()).rejects.toThrow('Could not connect in 2000ms');
@@ -86,7 +86,7 @@ describe('WSChannel', () => {
 		}, 5000);
 
 		it('should throw error if server is not running', async () => {
-			const channel = new WSChannel('ws://localhost:65534/my-path');
+			const channel = new WSChannel('ws://127.0.0.1:65534/my-path');
 
 			await expect(channel.connect()).rejects.toThrow('connect ECONNREFUSED 127.0.0.1:65534');
 		});
@@ -95,7 +95,7 @@ describe('WSChannel', () => {
 	describe('disconnect', () => {
 		it('should close ws connection', async () => {
 			const server = new WebSocket.Server({ path: '/my-path', port: 65535 });
-			const channel = new WSChannel('ws://localhost:65535/my-path');
+			const channel = new WSChannel('ws://127.0.0.1:65535/my-path');
 
 			await channel.connect();
 
