@@ -59,6 +59,7 @@ export class InternalMethod extends BaseMethod {
 		nftID: Buffer,
 	): Promise<void> {
 		const nftStore = this.stores.get(NFTStore);
+		const userStore = this.stores.get(UserStore);
 
 		const data = await nftStore.get(methodContext, nftID);
 		const senderAddress = data.owner;
@@ -66,6 +67,9 @@ export class InternalMethod extends BaseMethod {
 		data.owner = recipientAddress;
 
 		await nftStore.set(methodContext, nftID, data);
+
+		await userStore.del(methodContext, userStore.getKey(senderAddress, nftID));
+		await this.createUserEntry(methodContext, recipientAddress, nftID);
 
 		this.events.get(TransferEvent).log(methodContext, {
 			senderAddress,

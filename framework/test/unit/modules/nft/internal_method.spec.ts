@@ -114,9 +114,15 @@ describe('InternalMethod', () => {
 			const recipientAddress = utils.getRandomBytes(LENGTH_ADDRESS);
 			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
 
+			const userStore = module.stores.get(UserStore);
+
 			await module.stores.get(NFTStore).save(methodContext, nftID, {
 				owner: senderAddress,
 				attributesArray: [],
+			});
+
+			await userStore.set(methodContext, userStore.getKey(senderAddress, nftID), {
+				lockingModule: NFT_NOT_LOCKED,
 			});
 
 			await internalMethod.transferInternal(methodContext, recipientAddress, nftID);
@@ -124,6 +130,16 @@ describe('InternalMethod', () => {
 			await expect(module.stores.get(NFTStore).get(methodContext, nftID)).resolves.toEqual({
 				owner: recipientAddress,
 				attributesArray: [],
+			});
+
+			await expect(
+				userStore.has(methodContext, userStore.getKey(senderAddress, nftID)),
+			).resolves.toBeFalse();
+
+			await expect(
+				userStore.get(methodContext, userStore.getKey(recipientAddress, nftID)),
+			).resolves.toEqual({
+				lockingModule: NFT_NOT_LOCKED,
 			});
 
 			checkEventResult(methodContext.eventQueue, 1, TransferEvent, 0, {
