@@ -19,10 +19,15 @@ import { InternalMethod } from '../../../../src/modules/nft/internal_method';
 import { EventQueue, createMethodContext } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
-import { LENGTH_ADDRESS, LENGTH_NFT_ID } from '../../../../src/modules/nft/constants';
+import {
+	LENGTH_ADDRESS,
+	LENGTH_NFT_ID,
+	NFT_NOT_LOCKED,
+} from '../../../../src/modules/nft/constants';
 import { NFTStore } from '../../../../src/modules/nft/stores/nft';
 import { MethodContext } from '../../../../src/state_machine/method_context';
 import { TransferEvent } from '../../../../src/modules/nft/events/transfer';
+import { UserStore } from '../../../../src/modules/nft/stores/user';
 
 describe('InternalMethod', () => {
 	const module = new NFTModule();
@@ -82,6 +87,24 @@ describe('InternalMethod', () => {
 				owner: address,
 				attributesArray: sortedAttributesArray,
 			});
+		});
+	});
+
+	describe('createUserEntry', () => {
+		it('should create an entry for an unlocked NFT in UserStore', async () => {
+			const address = utils.getRandomBytes(LENGTH_ADDRESS);
+			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
+			const userStore = module.stores.get(UserStore);
+
+			await expect(
+				internalMethod.createUserEntry(methodContext, address, nftID),
+			).resolves.toBeUndefined();
+
+			await expect(userStore.get(methodContext, userStore.getKey(address, nftID))).resolves.toEqual(
+				{
+					lockingModule: NFT_NOT_LOCKED,
+				},
+			);
 		});
 	});
 

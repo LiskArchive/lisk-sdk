@@ -17,6 +17,8 @@ import { NFTStore } from './stores/nft';
 import { ModuleConfig } from './types';
 import { MethodContext } from '../../state_machine';
 import { TransferEvent } from './events/transfer';
+import { UserStore } from './stores/user';
+import { NFT_NOT_LOCKED } from './constants';
 
 export class InternalMethod extends BaseMethod {
 	// @ts-expect-error TODO: unused error. Remove when implementing.
@@ -24,6 +26,18 @@ export class InternalMethod extends BaseMethod {
 
 	public init(config: ModuleConfig): void {
 		this._config = config;
+	}
+
+	public async createUserEntry(
+		methodContext: MethodContext,
+		address: Buffer,
+		nftID: Buffer,
+	): Promise<void> {
+		const userStore = this.stores.get(UserStore);
+
+		await userStore.set(methodContext, userStore.getKey(address, nftID), {
+			lockingModule: NFT_NOT_LOCKED,
+		});
 	}
 
 	public async createNFTEntry(
