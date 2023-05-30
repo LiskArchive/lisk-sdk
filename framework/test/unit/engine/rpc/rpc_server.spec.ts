@@ -226,7 +226,14 @@ describe('RPC server', () => {
 				host: '0.0.0.0',
 				port: 7887,
 				accessControlAllowOrigin: '*',
-				allowedMethods: ['token_transfer'],
+				allowedMethods: ['system_getNodeInfo'],
+			});
+			rpcServer.init({ logger: fakeLogger, chainID: Buffer.alloc(0) });
+			// eslint-disable-next-line @typescript-eslint/require-await
+			rpcServer.registerEndpoint('system', 'getNodeInfo', async () => {
+				return {
+					success: true,
+				};
 			});
 
 			const request = JSON.stringify({
