@@ -18,6 +18,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { flagsWithParser } from '../../../utils/flags';
 import { BaseIPCClientCommand } from '../base_ipc_client';
+import { OWNER_READ_WRITE } from '../../../constants';
 
 interface EncryptedMessageObject {
 	readonly version: string;
@@ -117,7 +118,7 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 		};
 
 		if (flags.output) {
-			fs.writeJSONSync(flags.output, output, { spaces: ' ' });
+			fs.writeJSONSync(flags.output, output, { spaces: ' ', mode: OWNER_READ_WRITE });
 		} else {
 			this.log(JSON.stringify(output, undefined, '  '));
 		}

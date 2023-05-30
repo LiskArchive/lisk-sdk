@@ -88,6 +88,7 @@ describe('generator', () => {
 		consensusEvent = new EventEmitter();
 		consensus = {
 			execute: jest.fn(),
+			syncing: jest.fn().mockReturnValue(false),
 			getAggregateCommit: jest.fn(),
 			certifySingleCommit: jest.fn(),
 			getConsensusParams: jest.fn().mockResolvedValue({
@@ -379,6 +380,22 @@ describe('generator', () => {
 				logger,
 				genesisHeight: 0,
 			});
+		});
+
+		it('should verify if node is syncing', async () => {
+			await generator['_generateLoop']();
+
+			expect(consensus.syncing).toHaveBeenCalledOnce();
+		});
+
+		it('should not generate if node is syncing', async () => {
+			consensus.syncing = jest.fn().mockReturnValue(true);
+
+			await generator['_generateLoop']();
+
+			expect(consensus.syncing).toHaveBeenCalledOnce();
+
+			expect(bft.method.getGeneratorAtTimestamp).not.toHaveBeenCalled();
 		});
 
 		it('should not generate if current block slot is same as last block slot', async () => {

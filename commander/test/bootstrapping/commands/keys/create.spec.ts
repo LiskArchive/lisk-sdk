@@ -20,6 +20,7 @@ import * as readerUtils from '../../../../src/utils/reader';
 import { CreateCommand } from '../../../../src/bootstrapping/commands/keys/create';
 import { getConfig } from '../../../helpers/config';
 import { Awaited } from '../../../types';
+import { OWNER_READ_WRITE } from '../../../../src/constants';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -285,6 +286,7 @@ describe('keys:create command', () => {
 			expect(fs.ensureDirSync).toHaveBeenCalledWith('/tmp');
 			expect(fs.writeJSONSync).toHaveBeenCalledWith('/tmp/keys.json', expect.anything(), {
 				spaces: ' ',
+				mode: OWNER_READ_WRITE,
 			});
 		});
 	});

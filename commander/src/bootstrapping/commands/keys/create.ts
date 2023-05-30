@@ -20,6 +20,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt, getPasswordFromPrompt } from '../../../utils/reader';
+import { OWNER_READ_WRITE } from '../../../constants';
 
 export const plainGeneratorKeysSchema = {
 	$id: '/commander/plainGeneratorKeys',
@@ -158,7 +159,7 @@ export class CreateCommand extends Command {
 		}
 
 		if (output) {
-			fs.writeJSONSync(output, { keys }, { spaces: ' ' });
+			fs.writeJSONSync(output, { keys }, { spaces: ' ', mode: OWNER_READ_WRITE });
 		} else {
 			this.log(JSON.stringify({ keys }, undefined, '  '));
 		}
