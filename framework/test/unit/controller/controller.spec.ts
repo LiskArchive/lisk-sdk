@@ -107,9 +107,7 @@ describe('Controller Class', () => {
 		moduleDB: new InMemoryDatabase() as unknown as Database,
 		logger: loggerMock,
 		events: ['app_start', 'app_blockNew'],
-		endpoints: {
-			getBlockByID: jest.fn(),
-		} as EndpointHandlers,
+		endpoints: new Map([['getBlockByID', jest.fn()]]) as EndpointHandlers,
 		chainID: Buffer.alloc(0),
 	};
 
@@ -129,8 +127,8 @@ describe('Controller Class', () => {
 			name: 'plugin2',
 		});
 
-		controller.registerEndpoint('pos', {});
-		controller.registerEndpoint('auth', {});
+		controller.registerEndpoint('pos', new Map());
+		controller.registerEndpoint('auth', new Map());
 		controller.registerPlugin(inMemoryPlugin, { loadAsChildProcess: false });
 		controller.registerPlugin(childProcessPlugin, { loadAsChildProcess: true });
 		jest

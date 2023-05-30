@@ -176,7 +176,7 @@ export type EndpointHandler = (
 	context: PluginEndpointContext | ModuleEndpointContext,
 ) => Promise<unknown>;
 
-export type EndpointHandlers = Record<string, EndpointHandler>;
+export type EndpointHandlers = Map<string, EndpointHandler>;
 
 type Primitive = string | number | bigint | boolean | null | undefined;
 type Replaced<T, TReplace, TWith, TKeep = Primitive> = T extends TReplace | TKeep

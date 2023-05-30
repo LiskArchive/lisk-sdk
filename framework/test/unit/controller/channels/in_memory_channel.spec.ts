@@ -34,11 +34,11 @@ describe('InMemoryChannel Channel', () => {
 			write: jest.fn(),
 		} as never,
 		events: ['event1', 'event2'],
-		endpoints: {
-			action1: jest.fn(),
-			action2: jest.fn(),
-			action3: jest.fn(),
-		},
+		endpoints: new Map([
+			['action1', jest.fn()],
+			['action2', jest.fn()],
+			['action3', jest.fn()],
+		]),
 		options: {},
 	};
 	const config: any = {};
@@ -186,7 +186,7 @@ describe('InMemoryChannel Channel', () => {
 			await inMemoryChannel.invoke({ methodName: actionFullName, context: {} });
 
 			// Assert
-			expect(params.endpoints.action1).toHaveBeenCalled();
+			expect(params.endpoints.get('action1')).toHaveBeenCalled();
 		});
 
 		it('should execute the endpoint with PrefixedStateReadWriter', async () => {
@@ -198,13 +198,13 @@ describe('InMemoryChannel Channel', () => {
 
 			// Assert
 			expect(
-				params.endpoints.action1.mock.calls[0][0].getStore(
+				(params.endpoints.get('action1') as jest.Mock).mock.calls[0][0].getStore(
 					Buffer.from([0, 0, 0, 0]),
 					Buffer.from([0, 0, 0, 0]),
 				),
 			).toBeInstanceOf(PrefixedStateReadWriter);
 			expect(
-				params.endpoints.action1.mock.calls[0][0]
+				(params.endpoints.get('action1') as jest.Mock).mock.calls[0][0]
 					.getImmutableMethodContext()
 					.getStore(Buffer.from([0, 0, 0, 0]), Buffer.from([0, 0, 0, 0])),
 			).toBeInstanceOf(PrefixedStateReadWriter);
