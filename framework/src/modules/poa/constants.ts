@@ -16,6 +16,8 @@ export enum UpdateAuthority {
 	SUCCESS = 0,
 	FAIL_INVALID_SIGNATURE,
 }
+
+export const MODULE_NAME_POA = 'poa';
 export const MAX_LENGTH_NAME = 20;
 export const LENGTH_BLS_KEY = 48;
 export const LENGTH_PROOF_OF_POSSESSION = 96;
@@ -23,9 +25,10 @@ export const LENGTH_GENERATOR_KEY = 32;
 export const NUM_BYTES_ADDRESS = 20;
 export const MAX_NUM_VALIDATORS = 199;
 
+export const POA_VALIDATOR_NAME_REGEX = /^[a-z0-9!@$&_.]+$/;
 export const MESSAGE_TAG_POA = 'LSK_POA_';
 
-export const REGISTRATION_FEE = BigInt(1000000000); // TBA
+export const AUTHORITY_REGISTRATION_FEE = BigInt(1000000000); // TBA
 
 export const EMPTY_BYTES = Buffer.alloc(0);
 

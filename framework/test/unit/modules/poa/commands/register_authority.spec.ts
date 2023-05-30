@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { address, utils } from '@liskhq/lisk-cryptography';
 import { TransactionAttrs } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { utils } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../../../src/testing';
 import {
 	CommandExecuteContext,
@@ -26,58 +26,57 @@ import {
 import { RegisterAuthorityCommand } from '../../../../../src/modules/poa/commands/register_authority';
 import {
 	COMMAND_REGISTER_AUTHORITY,
-	REGISTRATION_FEE,
+	AUTHORITY_REGISTRATION_FEE,
+	LENGTH_BLS_KEY,
+	LENGTH_PROOF_OF_POSSESSION,
+	LENGTH_GENERATOR_KEY,
+	MODULE_NAME_POA,
+	POA_VALIDATOR_NAME_REGEX,
 } from '../../../../../src/modules/poa/constants';
 
-import { registerAuthorityParamsSchema } from '../../../../../src/modules/poa/schemas';
-import {
-	RegisterAuthorityParams,
-	ValidatorsMethod,
-	FeeMethod,
-} from '../../../../../src/modules/poa/types';
+import { registerAuthoritySchema } from '../../../../../src/modules/poa/schemas';
+import { RegisterAuthorityParams, ValidatorsMethod } from '../../../../../src/modules/poa/types';
 
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import { NameStore, ValidatorStore } from '../../../../../src/modules/poa/stores';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing';
-import { getSenderAddress } from '../../../../../src/modules/poa/utils';
 
 describe('RegisterAuthority', () => {
-	const poa = new PoAModule();
+	const poaModule = new PoAModule();
 	let registerAuthorityCommand: RegisterAuthorityCommand;
 	let mockValidatorsMethod: ValidatorsMethod;
-	let mockFeeMethod: FeeMethod;
+	let mockFeeMethod: any;
 	let stateStore: PrefixedStateReadWriter;
-	let validatorSubstore: ValidatorStore;
-	let nameSubstore: NameStore;
+	let validatorStore: ValidatorStore;
+	let nameStore: NameStore;
 
-	const transactionParams = {
+	const registerAuthorityTransactionParams = {
 		name: 'max',
-		blsKey: utils.getRandomBytes(48),
-		proofOfPossession: utils.getRandomBytes(96),
-		generatorKey: utils.getRandomBytes(32),
+		blsKey: utils.getRandomBytes(LENGTH_BLS_KEY),
+		proofOfPossession: utils.getRandomBytes(LENGTH_PROOF_OF_POSSESSION),
+		generatorKey: utils.getRandomBytes(LENGTH_GENERATOR_KEY),
 	};
 
 	const publicKey = utils.getRandomBytes(32);
-	const chainID = Buffer.from(
-		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
-		'hex',
-	);
+	const chainID = utils.getRandomBytes(32);
 
 	const buildTransaction = (transaction: Partial<TransactionAttrs>): Transaction => {
 		return new Transaction({
-			module: transaction.module ?? 'poa',
+			module: transaction.module ?? MODULE_NAME_POA,
 			command: transaction.command ?? COMMAND_REGISTER_AUTHORITY,
 			senderPublicKey: transaction.senderPublicKey ?? publicKey,
 			nonce: transaction.nonce ?? BigInt(0),
-			fee: transaction.fee ?? BigInt(1000000000),
-			params: transaction.params ?? codec.encode(registerAuthorityParamsSchema, transactionParams),
+			fee: transaction.fee ?? AUTHORITY_REGISTRATION_FEE,
+			params:
+				transaction.params ??
+				codec.encode(registerAuthoritySchema, registerAuthorityTransactionParams),
 			signatures: transaction.signatures ?? [publicKey],
 		});
 	};
 
 	beforeEach(() => {
-		registerAuthorityCommand = new RegisterAuthorityCommand(poa.stores, poa.events);
+		registerAuthorityCommand = new RegisterAuthorityCommand(poaModule.stores, poaModule.events);
 		mockValidatorsMethod = {
 			setValidatorGeneratorKey: jest.fn(),
 			registerValidatorKeys: jest.fn(),
@@ -92,8 +91,8 @@ describe('RegisterAuthority', () => {
 		registerAuthorityCommand.addDependencies(mockValidatorsMethod, mockFeeMethod);
 
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		validatorSubstore = poa.stores.get(ValidatorStore);
-		nameSubstore = poa.stores.get(NameStore);
+		validatorStore = poaModule.stores.get(ValidatorStore);
+		nameStore = poaModule.stores.get(NameStore);
 	});
 
 	describe('verify', () => {
@@ -105,7 +104,7 @@ describe('RegisterAuthority', () => {
 					transaction: buildTransaction({}),
 					chainID,
 				})
-				.createCommandVerifyContext<RegisterAuthorityParams>(registerAuthorityParamsSchema);
+				.createCommandVerifyContext<RegisterAuthorityParams>(registerAuthoritySchema);
 		});
 
 		it('should return error when name does not comply regex', async () => {
@@ -113,33 +112,45 @@ describe('RegisterAuthority', () => {
 				.createTransactionContext({
 					stateStore,
 					transaction: buildTransaction({
-						params: codec.encode(registerAuthorityParamsSchema, {
-							...transactionParams,
+						params: codec.encode(registerAuthoritySchema, {
+							...registerAuthorityTransactionParams,
 							name: '###',
 						}),
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<RegisterAuthorityParams>(registerAuthorityParamsSchema);
+				.createCommandVerifyContext<RegisterAuthorityParams>(registerAuthoritySchema);
 
-			await expect(registerAuthorityCommand.verify(context)).rejects.toThrow('Invalid name');
+			await expect(registerAuthorityCommand.verify(context)).rejects.toThrow(
+				`Name does not comply with format ${POA_VALIDATOR_NAME_REGEX.toString()}.`,
+			);
 		});
 
 		it('should return error when name already exist', async () => {
-			await nameSubstore.set(createStoreGetter(stateStore), Buffer.from(transactionParams.name), {
-				address: getSenderAddress(context.transaction.senderPublicKey),
-			});
+			await nameStore.set(
+				createStoreGetter(stateStore),
+				Buffer.from(registerAuthorityTransactionParams.name),
+				{
+					address: address.getAddressFromPublicKey(context.transaction.senderPublicKey),
+				},
+			);
 
-			await expect(registerAuthorityCommand.verify(context)).rejects.toThrow('name already exist');
+			await expect(registerAuthorityCommand.verify(context)).rejects.toThrow(
+				'Name already exists.',
+			);
 		});
 
 		it('should return error when senderAddress already exist', async () => {
-			await validatorSubstore.set(createStoreGetter(stateStore), getSenderAddress(publicKey), {
-				name: transactionParams.name,
-			});
+			await validatorStore.set(
+				createStoreGetter(stateStore),
+				address.getAddressFromPublicKey(publicKey),
+				{
+					name: registerAuthorityTransactionParams.name,
+				},
+			);
 
 			await expect(registerAuthorityCommand.verify(context)).rejects.toThrow(
-				'validator already exist',
+				'Validator already exists.',
 			);
 		});
 
@@ -159,22 +170,31 @@ describe('RegisterAuthority', () => {
 					transaction: buildTransaction({}),
 					chainID,
 				})
-				.createCommandExecuteContext(registerAuthorityParamsSchema);
+				.createCommandExecuteContext(registerAuthoritySchema);
 		});
 
 		it('should call registerValidatorKeys', async () => {
 			await registerAuthorityCommand.execute(context);
 
-			expect(mockFeeMethod.payFee).toHaveBeenCalledWith(expect.anything(), REGISTRATION_FEE);
+			expect(mockFeeMethod.payFee).toHaveBeenCalledWith(
+				expect.anything(),
+				AUTHORITY_REGISTRATION_FEE,
+			);
 			await expect(
-				validatorSubstore.has(createStoreGetter(stateStore), getSenderAddress(publicKey)),
+				validatorStore.has(
+					createStoreGetter(stateStore),
+					address.getAddressFromPublicKey(publicKey),
+				),
 			).resolves.toBe(true);
 			await expect(
-				nameSubstore.has(createStoreGetter(stateStore), Buffer.from(transactionParams.name)),
+				nameStore.has(
+					createStoreGetter(stateStore),
+					Buffer.from(registerAuthorityTransactionParams.name),
+				),
 			).resolves.toBe(true);
 			expect(mockValidatorsMethod.registerValidatorKeys).toHaveBeenCalledWith(
 				expect.anything(),
-				getSenderAddress(publicKey),
+				address.getAddressFromPublicKey(publicKey),
 				context.params.proofOfPossession,
 				context.params.generatorKey,
 				context.params.blsKey,

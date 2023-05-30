@@ -20,7 +20,25 @@ import {
 	NUM_BYTES_ADDRESS,
 } from './constants';
 
-export const registerAuthorityParamsSchema = {
+const validator = {
+	type: 'object',
+	required: ['address', 'weight'],
+	properties: {
+		address: {
+			dataType: 'bytes',
+			minLength: NUM_BYTES_ADDRESS,
+			maxLength: NUM_BYTES_ADDRESS,
+			fieldNumber: 1,
+		},
+		weight: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+	},
+};
+
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0047.md#register-authority-command
+export const registerAuthoritySchema = {
 	$id: '/poa/command/registerAuthority',
 	type: 'object',
 	required: ['name', 'blsKey', 'proofOfPossession', 'generatorKey'],
@@ -52,7 +70,7 @@ export const registerAuthorityParamsSchema = {
 	},
 };
 
-export const updateGeneratorKeyParamsSchema = {
+export const updateGeneratorKeySchema = {
 	$id: '/poa/command/updateGeneratorKey',
 	type: 'object',
 	required: ['generatorKey'],
@@ -66,7 +84,7 @@ export const updateGeneratorKeyParamsSchema = {
 	},
 };
 
-export const updateAuthorityValidatorParamsSchema = {
+export const updateAuthorityValidatorSchema = {
 	$id: '/poa/command/updateAuthorityValidator',
 	type: 'object',
 	required: ['newValidators', 'threshold', 'validatorsUpdateNonce', 'signature', 'aggregationBits'],
@@ -74,21 +92,7 @@ export const updateAuthorityValidatorParamsSchema = {
 		newValidators: {
 			type: 'array',
 			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['address', 'weight'],
-				properties: {
-					address: {
-						dataType: 'bytes',
-						length: NUM_BYTES_ADDRESS,
-						fieldNumber: 1,
-					},
-					weight: {
-						dataType: 'uint64',
-						fieldNumber: 2,
-					},
-				},
-			},
+			items: validator,
 		},
 		threshold: {
 			dataType: 'uint64',
@@ -117,21 +121,7 @@ export const validatorSignatureMessageSchema = {
 		newValidators: {
 			type: 'array',
 			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['address', 'weight'],
-				properties: {
-					address: {
-						dataType: 'bytes',
-						length: NUM_BYTES_ADDRESS,
-						fieldNumber: 1,
-					},
-					weight: {
-						dataType: 'uint64',
-						fieldNumber: 2,
-					},
-				},
-			},
+			items: validator,
 		},
 		threshold: {
 			dataType: 'uint64',

@@ -24,11 +24,13 @@ export interface RegisterAuthorityParams {
 }
 
 export interface ValidatorsMethod {
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0044.md#setvalidatorgeneratorkey
 	setValidatorGeneratorKey(
 		methodContext: MethodContext,
 		validatorAddress: Buffer,
 		generatorKey: Buffer,
 	): Promise<boolean>;
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0044.md#registervalidatorkeys
 	registerValidatorKeys(
 		methodContext: MethodContext,
 		validatorAddress: Buffer,
@@ -36,12 +38,15 @@ export interface ValidatorsMethod {
 		generatorKey: Buffer,
 		proofOfPossession: Buffer,
 	): Promise<boolean>;
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0044.md#registervalidatorwithoutblskey
 	registerValidatorWithoutBLSKey(
 		methodContext: MethodContext,
 		validatorAddress: Buffer,
 		generatorKey: Buffer,
 	): Promise<boolean>;
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0044.md#getvalidatorkeys
 	getValidatorKeys(methodContext: ImmutableMethodContext, address: Buffer): Promise<ValidatorKeys>;
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0044.md#getgeneratorsbetweentimestamps
 	getGeneratorsBetweenTimestamps(
 		methodContext: ImmutableMethodContext,
 		startTimestamp: number,
@@ -54,8 +59,4 @@ export interface ValidatorsMethod {
 		certificateThreshold: bigint,
 		validators: { address: Buffer; bftWeight: bigint }[],
 	): Promise<void>;
-}
-
-export interface FeeMethod {
-	payFee(methodContext: MethodContext, amount: bigint): void;
 }

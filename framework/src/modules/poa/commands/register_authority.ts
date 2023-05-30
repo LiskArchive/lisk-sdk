@@ -12,22 +12,28 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { address } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseCommand } from '../../base_command';
-import { registerAuthorityParamsSchema } from '../schemas';
+import { registerAuthoritySchema } from '../schemas';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
 	VerificationResult,
 	VerifyStatus,
 } from '../../../state_machine';
-import { FeeMethod, RegisterAuthorityParams, ValidatorsMethod } from '../types';
-import { COMMAND_REGISTER_AUTHORITY, REGISTRATION_FEE } from '../constants';
+import { RegisterAuthorityParams, ValidatorsMethod } from '../types';
+import {
+	COMMAND_REGISTER_AUTHORITY,
+	POA_VALIDATOR_NAME_REGEX,
+	AUTHORITY_REGISTRATION_FEE,
+} from '../constants';
 import { ValidatorStore, NameStore } from '../stores';
-import { getSenderAddress } from '../utils';
+import { FeeMethod } from '../../..';
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0047.md#register-authority-command
 export class RegisterAuthorityCommand extends BaseCommand {
-	public schema = registerAuthorityParamsSchema;
+	public schema = registerAuthoritySchema;
 	private _validatorsMethod!: ValidatorsMethod;
 	private _feeMethod!: FeeMethod;
 
@@ -45,7 +51,7 @@ export class RegisterAuthorityCommand extends BaseCommand {
 	): Promise<VerificationResult> {
 		const { name } = context.params;
 		try {
-			validator.validate(registerAuthorityParamsSchema, context.params);
+			validator.validate(registerAuthoritySchema, context.params);
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -53,19 +59,19 @@ export class RegisterAuthorityCommand extends BaseCommand {
 			};
 		}
 
-		if (!/^[a-z0-9!@$&_.]+$/g.test(name)) {
-			throw new Error('Invalid name');
+		if (!POA_VALIDATOR_NAME_REGEX.test(name)) {
+			throw new Error(`Name does not comply with format ${POA_VALIDATOR_NAME_REGEX.toString()}.`);
 		}
 
 		const isNameExist = await this.stores.get(NameStore).has(context, Buffer.from(name));
 		if (isNameExist) {
-			throw new Error('name already exist');
+			throw new Error('Name already exists.');
 		}
 
-		const senderAddress = getSenderAddress(context.transaction.senderPublicKey);
+		const senderAddress = address.getAddressFromPublicKey(context.transaction.senderPublicKey);
 		const isValidatorExist = await this.stores.get(ValidatorStore).has(context, senderAddress);
 		if (isValidatorExist) {
-			throw new Error('validator already exist');
+			throw new Error('Validator already exists.');
 		}
 
 		return {
@@ -76,8 +82,8 @@ export class RegisterAuthorityCommand extends BaseCommand {
 	public async execute(context: CommandExecuteContext<RegisterAuthorityParams>): Promise<void> {
 		const { params } = context;
 
-		const senderAddress = getSenderAddress(context.transaction.senderPublicKey);
-		this._feeMethod.payFee(context, REGISTRATION_FEE);
+		const senderAddress = address.getAddressFromPublicKey(context.transaction.senderPublicKey);
+		this._feeMethod.payFee(context, AUTHORITY_REGISTRATION_FEE);
 
 		await this.stores.get(ValidatorStore).set(context, senderAddress, {
 			name: params.name,
