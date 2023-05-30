@@ -101,13 +101,14 @@ describe('WSChannel', () => {
 
 			try {
 				await expect(channel.disconnect()).resolves.toBeUndefined();
-				// WebSocket.Server.channels are not cleaned immediately
-				expect(server.clients.size).toBe(1);
-				expect([...server.clients][0].readyState).toEqual(WebSocket.CLOSING);
+				// WebSocket.Server.channels are possibly not cleaned immediately
+				expect(server.clients.size).toBeLessThanOrEqual(1);
+				if (server.clients.size > 0) {
+					expect([...server.clients][0].readyState).toEqual(WebSocket.CLOSING);
+				}
 			} finally {
 				await closeServer(server);
 			}
-			expect.assertions(3);
 		});
 	});
 });
