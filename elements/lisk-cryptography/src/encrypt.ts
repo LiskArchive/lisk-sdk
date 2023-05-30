@@ -165,7 +165,7 @@ export const encryptAES256GCMWithPassword = async (
 	const iterations =
 		kdf === KDF.ARGON2 ? ARGON2_ITERATIONS : options?.kdfparams?.iterations ?? PBKDF2_ITERATIONS;
 	const parallelism = options?.kdfparams?.parallelism ?? ARGON2_PARALLELISM;
-	const memorySize = options?.kdfparams?.parallelism ?? ARGON2_MEMORY;
+	const memorySize = options?.kdfparams?.memorySize ?? ARGON2_MEMORY;
 	const key =
 		kdf === KDF.ARGON2
 			? await getKeyFromPasswordWithArgon2({
