@@ -97,8 +97,8 @@ describe('string', () => {
 				// Characters which are different in NFC and NFD
 				{ input: 'Amélie'.normalize('NFC'), expected: true }, // "Amélie" in composed form (NFC)
 				{ input: 'Amélie'.normalize('NFD'), expected: false }, // "Amélie" in decomposed form (NFD)
-				{ input: 'Schön'.normalize('NFC'), expected: true }, // "Straße" in composed form (NFC)
-				{ input: 'Schön'.normalize('NFD'), expected: false }, // "Straße" in decomposed form (NFD)
+				{ input: 'Schön'.normalize('NFC'), expected: true }, // "Schön" in composed form (NFC)
+				{ input: 'Schön'.normalize('NFD'), expected: false }, // "Schön" in decomposed form (NFD)
 
 				// Examples of other languages (These languages have characters that can be decomposed)
 				// Korean: "한국어" (Composed vs Decomposed)
