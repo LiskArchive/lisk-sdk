@@ -86,7 +86,7 @@ describe('InMemoryChannel Channel', () => {
 			expect(inMemoryChannel['bus'].registerChannel).toHaveBeenCalledWith(
 				inMemoryChannel.namespace,
 				inMemoryChannel.eventsList,
-				Object.keys(params.endpoints).reduce(
+				[...params.endpoints.keys()].reduce(
 					(prev, key) => ({
 						...prev,
 						[key]: {
