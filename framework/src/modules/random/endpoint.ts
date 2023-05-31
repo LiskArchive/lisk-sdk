@@ -17,7 +17,7 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import { NotFoundError } from '@liskhq/lisk-db';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
-import { ADDRESS_LENGTH, EMPTY_KEY } from './constants';
+import { ADDRESS_LENGTH, EMPTY_KEY, MAX_HASH_COMPUTATION } from './constants';
 import {
 	GetSeedsResponse,
 	GetHashOnionUsageRequest,
@@ -63,10 +63,36 @@ export class RandomEndpoint extends BaseEndpoint {
 		const seed = ctx.params.seed
 			? Buffer.from(ctx.params.seed, 'hex')
 			: cryptography.utils.generateHashOnionSeed();
-		const count = ctx.params.count ?? 1000000;
+		const count = ctx.params.count ?? MAX_HASH_COMPUTATION;
 		const distance = ctx.params.distance ?? 1000;
 
-		const hashes = cryptography.utils.hashOnion(seed, count, distance) as Buffer[];
+		if (distance > count) {
+			throw new Error('Invalid distance. Distance must be less than or equal to count.');
+		}
+
+		let hashes: Buffer[];
+		if (ctx.params.hashes) {
+			// when hashes is provided, count and distance must be provided together
+			if (!ctx.params.count || !ctx.params.distance) {
+				throw new Error('Hashes must be provided with count and distance.');
+			}
+			if (count % distance !== 0) {
+				throw new Error('Invalid count. Count must be multiple of distance.');
+			}
+			const expectedLength = count / distance + 1;
+			if (ctx.params.hashes.length !== expectedLength) {
+				throw new Error(`Invalid length of hashes. hashes must have ${expectedLength} elements.`);
+			}
+			hashes = ctx.params.hashes.map(h => Buffer.from(h, 'hex'));
+		} else {
+			if (count > MAX_HASH_COMPUTATION) {
+				throw new Error(
+					`Count is too big. In order to set count greater than ${MAX_HASH_COMPUTATION}, please compute locally and request with "hashes".`,
+				);
+			}
+			hashes = cryptography.utils.hashOnion(seed, count, distance) as Buffer[];
+		}
+
 		const hashOnion = { count, distance, hashes };
 
 		const hashOnionStore = this.offchainStores.get(HashOnionStore);
