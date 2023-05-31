@@ -443,6 +443,10 @@ export class Generator {
 	}
 
 	private async _generateLoop(): Promise<void> {
+		if (this._consensus.syncing()) {
+			return;
+		}
+
 		const stateStore = new StateStore(this._blockchainDB);
 
 		const MS_IN_A_SEC = 1000;
