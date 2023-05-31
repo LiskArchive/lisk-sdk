@@ -54,11 +54,12 @@ export const applicationConfigSchema = {
 				},
 				host: { type: 'string' },
 				port: { type: 'number', minimum: 1024, maximum: 65535 },
-				disabledMethods: {
+				allowedMethods: {
 					type: 'array',
 					items: { type: 'string' },
 					uniqueItems: true,
 				},
+				accessControlAllowOrigin: { type: 'string' },
 			},
 		},
 		legacy: {
@@ -302,6 +303,8 @@ export const applicationConfigSchema = {
 			modes: ['ipc'],
 			port: DEFAULT_PORT_RPC,
 			host: DEFAULT_HOST,
+			allowedMethods: [],
+			accessControlAllowOrigin: '*',
 		},
 		legacy: {
 			sync: false,

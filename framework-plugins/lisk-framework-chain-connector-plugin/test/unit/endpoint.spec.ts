@@ -41,6 +41,7 @@ describe('endpoints', () => {
 			modes: ['ipc'],
 			port: 8080,
 			host: '127.0.0.1',
+			accessControlAllowOrigin: '*',
 		},
 		network: {
 			seedPeers: [],
