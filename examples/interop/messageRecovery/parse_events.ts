@@ -197,8 +197,8 @@ class EventsModel {
 			}
 		};
 
-		await parseCcmSendSuccessEvents();
-		await parseCcmProcessedEvents();
+		parseCcmSendSuccessEvents();
+		parseCcmProcessedEvents();
 
 		for (const ccmFromEvent of ccmsFromEvents) {
 			allCCMs.push(ccmFromEvent);
