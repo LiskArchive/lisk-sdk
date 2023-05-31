@@ -23,6 +23,7 @@ import {
 	Cipher,
 	parseEncryptedMessage,
 	stringifyEncryptedMessage,
+	ARGON2_MEMORY,
 } from '../src/encrypt';
 import * as utils from '../src/utils';
 
@@ -462,7 +463,7 @@ describe('encrypt', () => {
 				kdfparams: {
 					salt: 'e8c7dae4c893e458e0ebb8bff9a36d84',
 					iterations: 1,
-					memorySize: 2024,
+					memorySize: ARGON2_MEMORY,
 					parallelism: 4,
 				},
 				cipher: 'aes-256-gcm',
@@ -486,7 +487,7 @@ describe('encrypt', () => {
 				kdfparams: {
 					salt: 'e8c7dae4c893e458e0ebb8bff9a36d84',
 					iterations: 12,
-					memorySize: 2024,
+					memorySize: ARGON2_MEMORY,
 					parallelism: 4,
 				},
 				cipher: 'aes-256-gcm',

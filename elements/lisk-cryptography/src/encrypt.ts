@@ -26,7 +26,7 @@ const ENCRYPTION_VERSION = '1';
 const HASH_LENGTH = 32;
 const ARGON2_ITERATIONS = 1;
 const ARGON2_PARALLELISM = 4;
-const ARGON2_MEMORY = 2024;
+export const ARGON2_MEMORY = 2097023;
 
 export interface EncryptedMessageWithNonce {
 	readonly encryptedMessage: string;
