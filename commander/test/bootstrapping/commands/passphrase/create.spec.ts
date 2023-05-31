@@ -19,6 +19,7 @@ import * as fs from 'fs-extra';
 import { CreateCommand } from '../../../../src/bootstrapping/commands/passphrase/create';
 import { getConfig } from '../../../helpers/config';
 import { Awaited } from '../../../types';
+import { OWNER_READ_WRITE } from '../../../../src/constants';
 
 describe('passphrase:create command', () => {
 	const consoleWarnSpy = jest.spyOn(console, 'warn');
@@ -57,6 +58,7 @@ describe('passphrase:create command', () => {
 			expect(fs.ensureDirSync).toHaveBeenCalledWith('/tmp');
 			expect(fs.writeJSONSync).toHaveBeenCalledWith('/tmp/passphrase.json', expect.anything(), {
 				spaces: ' ',
+				mode: OWNER_READ_WRITE,
 			});
 		});
 	});

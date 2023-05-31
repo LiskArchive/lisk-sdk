@@ -18,6 +18,7 @@ import * as readerUtils from '../../../../src/utils/reader';
 import { EncryptCommand } from '../../../../src/bootstrapping/commands/passphrase/encrypt';
 import { getConfig } from '../../../helpers/config';
 import { Awaited } from '../../../types';
+import { OWNER_READ_WRITE } from '../../../../src/constants';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -107,6 +108,7 @@ describe('passphrase:encrypt', () => {
 				},
 				{
 					spaces: ' ',
+					mode: OWNER_READ_WRITE,
 				},
 			);
 		});
@@ -135,6 +137,7 @@ describe('passphrase:encrypt', () => {
 				},
 				{
 					spaces: ' ',
+					mode: OWNER_READ_WRITE,
 				},
 			);
 		});
@@ -164,6 +167,7 @@ describe('passphrase:encrypt', () => {
 				},
 				{
 					spaces: ' ',
+					mode: OWNER_READ_WRITE,
 				},
 			);
 		});
