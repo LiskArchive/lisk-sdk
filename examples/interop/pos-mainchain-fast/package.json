@@ -128,7 +128,7 @@
 	"devDependencies": {
 		"@oclif/test": "2.2.12",
 		"@types/fs-extra": "9.0.13",
-		"@types/node": "16.18.3",
+		"@types/node": "18.15.3",
 		"@types/tar": "6.1.3",
 		"@types/jest": "29.2.3",
 		"@types/jest-when": "3.5.2",
