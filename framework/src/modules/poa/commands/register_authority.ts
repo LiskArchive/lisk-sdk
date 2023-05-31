@@ -63,14 +63,14 @@ export class RegisterAuthorityCommand extends BaseCommand {
 			throw new Error(`Name does not comply with format ${POA_VALIDATOR_NAME_REGEX.toString()}.`);
 		}
 
-		const isNameExist = await this.stores.get(NameStore).has(context, Buffer.from(name));
-		if (isNameExist) {
+		const nameExists = await this.stores.get(NameStore).has(context, Buffer.from(name));
+		if (nameExists) {
 			throw new Error('Name already exists.');
 		}
 
 		const senderAddress = address.getAddressFromPublicKey(context.transaction.senderPublicKey);
-		const isValidatorExist = await this.stores.get(ValidatorStore).has(context, senderAddress);
-		if (isValidatorExist) {
+		const validatorExists = await this.stores.get(ValidatorStore).has(context, senderAddress);
+		if (validatorExists) {
 			throw new Error('Validator already exists.');
 		}
 
