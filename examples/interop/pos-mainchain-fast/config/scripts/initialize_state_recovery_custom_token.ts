@@ -283,7 +283,7 @@ type ProveResponseJSON = JSONObject<ProveResponse>;
 
 	const mainchainClient = await apiClient.createIPCClient(`~/.lisk/mainchain-node-one`);
 	const sidechainOneClient = await apiClient.createIPCClient(`~/.lisk/pos-sidechain-example-one`);
-	const sidechainTwoClient = await apiClient.createIPCClient(`~/.lisk/pos-sidechain-example-one`);
+	const sidechainTwoClient = await apiClient.createIPCClient(`~/.lisk/pos-sidechain-example-two`);
 	const sidechainOneNodeInfo = await sidechainOneClient.invoke('system_getNodeInfo');
 	const sidechainTwoNodeInfo = await sidechainTwoClient.invoke('system_getNodeInfo');
 
