@@ -127,8 +127,4 @@ const validateVarintSize = (result: bigint, size: number) => {
 	if (result < min) {
 		throw new Error('invalid varint bytes. vartint must be in shortest form.');
 	}
-	const max = BigInt(1) << BigInt(7 * size);
-	if (result >= max) {
-		throw new Error('invalid varint bytes. vartint must be in shortest form.');
-	}
 };
