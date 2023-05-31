@@ -27,6 +27,7 @@ import { writeString, readString } from './string';
 import { writeBytes, readBytes } from './bytes';
 import { writeBoolean, readBoolean } from './boolean';
 import { readKey } from './keys';
+import { getWireType } from './utils';
 
 const _readers: {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -139,10 +140,13 @@ export const readObject = (
 				index = nextOffset;
 			} else if (typeSchema[0].schemaProp.type === 'object') {
 				const [key, keySize] = readUInt32(message, index);
-				const [fieldNumber] = readKey(key);
+				const [fieldNumber, wireType] = readKey(key);
 				// case where field number reading is not as expected from schema
 				if (fieldNumber !== typeSchema[0].schemaProp.fieldNumber) {
 					throw new Error('Invalid field number while decoding.');
+				}
+				if (getWireType(typeSchema[0].schemaProp) !== wireType) {
+					throw new Error('Invalid wiretype while decoding.');
 				}
 
 				index += keySize;
@@ -169,9 +173,12 @@ export const readObject = (
 		}
 		// Takeout the root wireType and field number
 		const [key, keySize] = readUInt32(message, index);
-		const [fieldNumber] = readKey(key);
+		const [fieldNumber, wireType] = readKey(key);
 		if (fieldNumber !== typeSchema.schemaProp.fieldNumber) {
 			throw new Error('Invalid field number while decoding.');
+		}
+		if (getWireType(typeSchema.schemaProp) !== wireType) {
+			throw new Error('Invalid wiretype while decoding.');
 		}
 		// Index is only incremented when the key is actually used
 		index += keySize;

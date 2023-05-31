@@ -48,6 +48,7 @@ describe('RPC server', () => {
 				modes: ['ipc'],
 				host: '0.0.0.0',
 				port: 7887,
+				accessControlAllowOrigin: '*',
 			});
 			expect(rpcServer['_ipcServer']).toBeDefined();
 		});
@@ -57,6 +58,7 @@ describe('RPC server', () => {
 				modes: ['ws'],
 				host: '0.0.0.0',
 				port: 7887,
+				accessControlAllowOrigin: '*',
 			});
 			expect(rpcServer['_wsServer']).toBeDefined();
 		});
@@ -66,6 +68,7 @@ describe('RPC server', () => {
 				modes: ['http'],
 				host: '0.0.0.0',
 				port: 7887,
+				accessControlAllowOrigin: '*',
 			});
 			expect(rpcServer['_httpServer']).toBeDefined();
 		});
@@ -77,6 +80,7 @@ describe('RPC server', () => {
 				modes: ['ipc', 'http', 'ws'],
 				host: '0.0.0.0',
 				port: 7887,
+				accessControlAllowOrigin: '*',
 			});
 			rpcServer.init({ logger: fakeLogger, chainID: Buffer.alloc(0) });
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -129,6 +133,7 @@ describe('RPC server', () => {
 				modes: ['ipc', 'http', 'ws'],
 				host: '0.0.0.0',
 				port: 7887,
+				accessControlAllowOrigin: '*',
 			});
 			rpcServer.init({ logger: fakeLogger, chainID: Buffer.alloc(0) });
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -165,58 +170,70 @@ describe('RPC server', () => {
 		});
 	});
 
-	describe('_isDisabledMethod', () => {
-		it('should return true for a disabled method', () => {
+	describe('_isAllowedMethod', () => {
+		it('should return true for a enabled method', () => {
 			rpcServer = new RPCServer(dataPath, {
 				modes: ['ipc'],
 				host: '0.0.0.0',
 				port: 7887,
-				disabledMethods: ['token_transfer'],
+				accessControlAllowOrigin: '*',
+				allowedMethods: ['token_transfer'],
 			});
 
-			expect(rpcServer['_isDisabledMethod']('token', 'transfer')).toBeTrue();
+			expect(rpcServer['_isAllowedMethod']('token', 'transfer')).toBeTrue();
 		});
 
-		it('should return true for method from a disabled namespace', () => {
+		it('should return true for method from a enabled namespace', () => {
 			rpcServer = new RPCServer(dataPath, {
 				modes: ['ipc'],
 				host: '0.0.0.0',
 				port: 7887,
-				disabledMethods: ['token'],
+				accessControlAllowOrigin: '*',
+				allowedMethods: ['token'],
 			});
 
-			expect(rpcServer['_isDisabledMethod']('token', 'transfer')).toBeTrue();
+			expect(rpcServer['_isAllowedMethod']('token', 'transfer')).toBeTrue();
 		});
 
-		it('should return false if a method is not disabled', () => {
+		it('should return false if a method is not enabled', () => {
 			rpcServer = new RPCServer(dataPath, {
 				modes: ['ipc'],
 				host: '0.0.0.0',
 				port: 7887,
-				disabledMethods: ['auth'],
+				accessControlAllowOrigin: '*',
+				allowedMethods: ['token_getBalance'],
 			});
 
-			expect(rpcServer['_isDisabledMethod']('token', 'transfer')).toBeFalse();
+			expect(rpcServer['_isAllowedMethod']('token', 'transfer')).toBeFalse();
 		});
 
-		it('should return false when disabledMethods configuration is absent', () => {
+		it('should return false when allowedMethods configuration is absent', () => {
 			rpcServer = new RPCServer(dataPath, {
 				modes: ['ipc'],
 				host: '0.0.0.0',
 				port: 7887,
+				accessControlAllowOrigin: '*',
 			});
 
-			expect(rpcServer['_isDisabledMethod']('token', 'transfer')).toBeFalse();
+			expect(rpcServer['_isAllowedMethod']('token', 'transfer')).toBeFalse();
 		});
 	});
 
 	describe('_handleRequest()', () => {
-		it('should throw for a disabled method', async () => {
+		it('should throw for a non enabled method', async () => {
 			rpcServer = new RPCServer(dataPath, {
 				modes: ['ipc'],
 				host: '0.0.0.0',
 				port: 7887,
-				disabledMethods: ['token_getBalance'],
+				accessControlAllowOrigin: '*',
+				allowedMethods: ['system_getNodeInfo'],
+			});
+			rpcServer.init({ logger: fakeLogger, chainID: Buffer.alloc(0) });
+			// eslint-disable-next-line @typescript-eslint/require-await
+			rpcServer.registerEndpoint('system', 'getNodeInfo', async () => {
+				return {
+					success: true,
+				};
 			});
 
 			const request = JSON.stringify({

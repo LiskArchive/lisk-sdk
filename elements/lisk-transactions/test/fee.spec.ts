@@ -13,7 +13,7 @@
  *
  */
 
-import { utils, legacy } from '@liskhq/lisk-cryptography';
+import { legacy } from '@liskhq/lisk-cryptography';
 import { computeMinFee, getBytes } from '../src';
 
 describe('fee', () => {
@@ -113,9 +113,9 @@ describe('fee', () => {
 			// Arrange
 			const validatorRegisterTransaction = {
 				...validTransaction,
-				module: utils.intToBuffer(5, 4),
-				command: 'transfer',
-				params: { username: 'validator1' },
+				module: 'pos',
+				command: 'register',
+				params: { username: 'validator11' },
 				signatures: [],
 			};
 			const additionalFee = BigInt(1000000000);

@@ -55,7 +55,7 @@ describe('WSServer', () => {
 
 	describe('topic subscription', () => {
 		it('should not receive any events unless subscribed', async () => {
-			const client = new WebSocket(`ws://localhost:${port}/ws`);
+			const client = new WebSocket(`ws://127.0.0.1:${port}/ws`);
 
 			await expect(
 				new Promise((resolve, reject) => {
@@ -68,7 +68,7 @@ describe('WSServer', () => {
 		});
 
 		it('should receive only events subscribed', async () => {
-			const client = new WebSocket(`ws://localhost:${port}/ws`);
+			const client = new WebSocket(`ws://127.0.0.1:${port}/ws`);
 			client.on('open', () => {
 				client.send(
 					JSON.stringify({
@@ -100,7 +100,7 @@ describe('WSServer', () => {
 		});
 
 		it('should not receive unsubscribed events', async () => {
-			const client = new WebSocket(`ws://localhost:${port}/ws`);
+			const client = new WebSocket(`ws://127.0.0.1:${port}/ws`);
 			client.on('open', () => {
 				client.send(
 					JSON.stringify({
