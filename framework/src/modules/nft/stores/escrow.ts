@@ -25,4 +25,8 @@ type EscrowStoreData = Record<string, never>;
 
 export class EscrowStore extends BaseStore<EscrowStoreData> {
 	public schema = escrowStoreSchema;
+
+	public getKey(receivingChainID: Buffer, nftID: Buffer): Buffer {
+		return Buffer.concat([receivingChainID, nftID]);
+	}
 }
