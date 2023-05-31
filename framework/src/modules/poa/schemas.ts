@@ -22,6 +22,7 @@ import {
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0047.md#genesis-poa-store-schema
 export const genesisPoAStoreSchema = {
+	$id: '/poa/genesis/genesisPoAStoreSchema',
 	type: 'object',
 	required: ['validators', 'snapshotSubstore'],
 	properties: {
