@@ -13,13 +13,80 @@
  */
 
 import { BaseMethod } from '../base_method';
-import { ModuleConfig } from './types';
+import { NFTStore, NFTAttributes } from './stores/nft';
+import { InteroperabilityMethod, ModuleConfig } from './types';
+import { MethodContext } from '../../state_machine';
+import { TransferEvent } from './events/transfer';
+import { UserStore } from './stores/user';
+import { NFT_NOT_LOCKED } from './constants';
+import { NFTMethod } from './method';
 
 export class InternalMethod extends BaseMethod {
 	// @ts-expect-error TODO: unused error. Remove when implementing.
 	private _config!: ModuleConfig;
 
+	// @ts-expect-error TODO: unused error. Remove when implementing.
+	private _method!: NFTMethod;
+
+	// @ts-expect-error TODO: unused error. Remove when implementing.
+	private _interoperabilityMethod!: InteroperabilityMethod;
+
 	public init(config: ModuleConfig): void {
 		this._config = config;
+	}
+
+	public addDependencies(method: NFTMethod, interoperabilityMethod: InteroperabilityMethod) {
+		this._method = method;
+		this._interoperabilityMethod = interoperabilityMethod;
+	}
+
+	public async createUserEntry(
+		methodContext: MethodContext,
+		address: Buffer,
+		nftID: Buffer,
+	): Promise<void> {
+		const userStore = this.stores.get(UserStore);
+
+		await userStore.set(methodContext, userStore.getKey(address, nftID), {
+			lockingModule: NFT_NOT_LOCKED,
+		});
+	}
+
+	public async createNFTEntry(
+		methodContext: MethodContext,
+		address: Buffer,
+		nftID: Buffer,
+		attributesArray: NFTAttributes[],
+	): Promise<void> {
+		const nftStore = this.stores.get(NFTStore);
+		await nftStore.save(methodContext, nftID, {
+			owner: address,
+			attributesArray,
+		});
+	}
+
+	public async transferInternal(
+		methodContext: MethodContext,
+		recipientAddress: Buffer,
+		nftID: Buffer,
+	): Promise<void> {
+		const nftStore = this.stores.get(NFTStore);
+		const userStore = this.stores.get(UserStore);
+
+		const data = await nftStore.get(methodContext, nftID);
+		const senderAddress = data.owner;
+
+		data.owner = recipientAddress;
+
+		await nftStore.set(methodContext, nftID, data);
+
+		await userStore.del(methodContext, userStore.getKey(senderAddress, nftID));
+		await this.createUserEntry(methodContext, recipientAddress, nftID);
+
+		this.events.get(TransferEvent).log(methodContext, {
+			senderAddress,
+			recipientAddress,
+			nftID,
+		});
 	}
 }

@@ -15,12 +15,14 @@
 import { BaseStore, StoreGetter } from '../../base_store';
 import { MAX_LENGTH_MODULE_NAME, MIN_LENGTH_MODULE_NAME } from '../constants';
 
+export interface NFTAttributes {
+	module: string;
+	attributes: Buffer;
+}
+
 export interface NFTStoreData {
 	owner: Buffer;
-	attributesArray: {
-		module: string;
-		attributes: Buffer;
-	}[];
+	attributesArray: NFTAttributes[];
 }
 
 export const nftStoreSchema = {
