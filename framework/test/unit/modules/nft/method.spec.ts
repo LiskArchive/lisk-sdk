@@ -33,7 +33,15 @@ describe('NFTMethods', () => {
 
 	let methodContext!: MethodContext;
 
+	const nftStore = module.stores.get(NFTStore);
+	const userStore = module.stores.get(UserStore);
+
+	const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
+	let owner: Buffer;
+
 	beforeEach(() => {
+		owner = utils.getRandomBytes(LENGTH_ADDRESS);
+
 		methodContext = createMethodContext({
 			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
 			eventQueue: new EventQueue(0),
@@ -43,18 +51,13 @@ describe('NFTMethods', () => {
 
 	describe('getNFTOwner', () => {
 		it('should fail if NFT does not exist', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-
 			await expect(method.getNFTOwner(methodContext, nftID)).rejects.toThrow(
 				'NFT substore entry does not exist',
 			);
 		});
 
 		it('should return the owner if NFT exists', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-			const owner = utils.getRandomBytes(LENGTH_ADDRESS);
-
-			await module.stores.get(NFTStore).save(methodContext, nftID, {
+			await nftStore.save(methodContext, nftID, {
 				owner,
 				attributesArray: [],
 			});
@@ -65,18 +68,15 @@ describe('NFTMethods', () => {
 
 	describe('getLockingModule', () => {
 		it('should fail if NFT does not exist', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-
 			await expect(method.getLockingModule(methodContext, nftID)).rejects.toThrow(
 				'NFT substore entry does not exist',
 			);
 		});
 
 		it('should fail if NFT is escrowed', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-			const owner = utils.getRandomBytes(LENGTH_CHAIN_ID);
+			owner = utils.getRandomBytes(LENGTH_CHAIN_ID);
 
-			await module.stores.get(NFTStore).save(methodContext, nftID, {
+			await nftStore.save(methodContext, nftID, {
 				owner,
 				attributesArray: [],
 			});
@@ -87,17 +87,14 @@ describe('NFTMethods', () => {
 		});
 
 		it('should return the lockingModule for the owner of the NFT', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-			const owner = utils.getRandomBytes(LENGTH_ADDRESS);
 			const lockingModule = 'nft';
 
-			await module.stores.get(NFTStore).save(methodContext, nftID, {
+			await nftStore.save(methodContext, nftID, {
 				owner,
 				attributesArray: [],
 			});
 
-			const userStore = module.stores.get(UserStore);
-			await module.stores.get(UserStore).set(methodContext, userStore.getKey(owner, nftID), {
+			await userStore.set(methodContext, userStore.getKey(owner, nftID), {
 				lockingModule,
 			});
 
