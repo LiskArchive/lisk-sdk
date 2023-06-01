@@ -85,7 +85,6 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 			crossChainTransferMessageParams,
 			ccm.params,
 		);
-		validator.validate(crossChainTransferMessageParams, params);
 		const { tokenID, amount, senderAddress } = params;
 		recipientAddress = params.recipientAddress;
 		const [tokenChainID] = splitTokenID(tokenID);

@@ -161,32 +161,6 @@ describe('Transfer command', () => {
 			).rejects.toThrow(".data' must NOT have more than 64 characters");
 		});
 
-		it('should success when all parameters are valid', async () => {
-			jest
-				.spyOn(command['_method'], 'getAvailableBalance')
-				.mockResolvedValue(BigInt(100000000 + 1));
-
-			const context = createTransactionContext({
-				transaction: new Transaction({
-					module: 'token',
-					command: 'transfer',
-					fee: BigInt(5000000),
-					nonce: BigInt(0),
-					senderPublicKey: utils.getRandomBytes(32),
-					params: codec.encode(transferParamsSchema, {
-						tokenID: Buffer.from('0000000100000000', 'hex'),
-						amount: BigInt(100000000),
-						recipientAddress: utils.getRandomBytes(20),
-						data: '1'.repeat(64),
-					}),
-					signatures: [utils.getRandomBytes(64)],
-				}),
-			});
-			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
-
-			expect(result.status).toEqual(VerifyStatus.OK);
-		});
-
 		it('should fail if balance for the provided tokenID is insufficient', async () => {
 			const amount = BigInt(100000000);
 			const availableBalance = amount - BigInt(1);
@@ -214,7 +188,7 @@ describe('Transfer command', () => {
 			).rejects.toThrow(`balance ${availableBalance} is not sufficient for ${amount}`);
 		});
 
-		it('should pass if balance for the provided tokenID is sufficient', async () => {
+		it('should pass if parameters are valid and balance for the provided tokenID is sufficient', async () => {
 			const amount = BigInt(100000000);
 
 			jest.spyOn(command['_method'], 'getAvailableBalance').mockResolvedValue(amount);
