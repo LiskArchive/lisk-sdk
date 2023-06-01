@@ -28,7 +28,7 @@ export const MAX_NUM_VALIDATORS = 199;
 export const POA_VALIDATOR_NAME_REGEX = /^[a-z0-9!@$&_.]+$/;
 export const MESSAGE_TAG_POA = 'LSK_POA_';
 
-export const AUTHORITY_REGISTRATION_FEE = BigInt(1000000000); // TBA
+export const AUTHORITY_REGISTRATION_FEE = BigInt(1000000000); // Determined by Operator
 
 export const EMPTY_BYTES = Buffer.alloc(0);
 

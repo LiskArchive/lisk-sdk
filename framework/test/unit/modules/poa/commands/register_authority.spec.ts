@@ -41,6 +41,7 @@ import { createStoreGetter } from '../../../../../src/testing/utils';
 import { NameStore, ValidatorStore } from '../../../../../src/modules/poa/stores';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing';
+import { ED25519_PUBLIC_KEY_LENGTH } from '../../../../../src/modules/validators/constants';
 
 describe('RegisterAuthority', () => {
 	const poaModule = new PoAModule();
@@ -58,7 +59,7 @@ describe('RegisterAuthority', () => {
 		generatorKey: utils.getRandomBytes(LENGTH_GENERATOR_KEY),
 	};
 
-	const publicKey = utils.getRandomBytes(32);
+	const publicKey = utils.getRandomBytes(ED25519_PUBLIC_KEY_LENGTH);
 	const chainID = Buffer.from([0, 0, 0, 1]);
 
 	const buildTransaction = (transaction: Partial<TransactionAttrs>): Transaction => {
