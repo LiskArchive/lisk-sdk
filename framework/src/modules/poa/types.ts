@@ -11,3 +11,26 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+interface PoAValidator {
+	address: Buffer;
+	name: string;
+	blsKey: Buffer;
+	proofOfPossession: Buffer;
+	generatorKey: Buffer;
+}
+
+interface ActiveValidator {
+	address: Buffer;
+	weight: bigint;
+}
+
+interface SnapshotSubstore {
+	activeValidators: ActiveValidator[];
+	threshold: bigint;
+}
+
+export interface GenesisPoAStore {
+	validators: PoAValidator[];
+	snapshotSubstore: SnapshotSubstore;
+}
