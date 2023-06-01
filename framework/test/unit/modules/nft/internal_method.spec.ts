@@ -20,9 +20,11 @@ import { EventQueue, createMethodContext } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import {
+	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	LENGTH_ADDRESS,
 	LENGTH_CHAIN_ID,
 	LENGTH_NFT_ID,
+	MODULE_NAME_NFT,
 	NFT_NOT_LOCKED,
 } from '../../../../src/modules/nft/constants';
 import { NFTStore } from '../../../../src/modules/nft/stores/nft';
@@ -30,10 +32,26 @@ import { MethodContext } from '../../../../src/state_machine/method_context';
 import { TransferEvent, TransferEventData } from '../../../../src/modules/nft/events/transfer';
 import { UserStore } from '../../../../src/modules/nft/stores/user';
 import { EscrowStore } from '../../../../src/modules/nft/stores/escrow';
+import { NFTMethod } from '../../../../src/modules/nft/method';
+import { InteroperabilityMethod } from '../../../../src/modules/nft/types';
+import {
+	TransferCrossChainEvent,
+	TransferCrossChainEventData,
+} from '../../../../src/modules/nft/events/transfer_cross_chain';
+import { DestroyEvent, DestroyEventData } from '../../../../src/modules/nft/events/destroy';
+import { CCM_STATUS_OK } from '../../../../src/modules/token/constants';
+import { crossChainNFTTransferMessageParamsSchema } from '../../../../src/modules/nft/schemas';
 
 describe('InternalMethod', () => {
 	const module = new NFTModule();
 	const internalMethod = new InternalMethod(module.stores, module.events);
+	const method = new NFTMethod(module.stores, module.events);
+	let interoperabilityMethod!: InteroperabilityMethod;
+	internalMethod.addDependencies(method, interoperabilityMethod);
+
+	const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+	internalMethod.init({ ownChainID });
+
 	let methodContext!: MethodContext;
 
 	const checkEventResult = <EventDataType>(
@@ -62,7 +80,7 @@ describe('InternalMethod', () => {
 	const address = utils.getRandomBytes(LENGTH_ADDRESS);
 	const senderAddress = utils.getRandomBytes(LENGTH_ADDRESS);
 	const recipientAddress = utils.getRandomBytes(LENGTH_ADDRESS);
-	const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
+	let nftID = utils.getRandomBytes(LENGTH_NFT_ID);
 
 	beforeEach(() => {
 		methodContext = createMethodContext({
@@ -163,6 +181,333 @@ describe('InternalMethod', () => {
 			await expect(
 				internalMethod.transferInternal(methodContext, recipientAddress, nftID),
 			).rejects.toThrow('does not exist');
+		});
+	});
+
+	describe('transferCrossChainInternal', () => {
+		let receivingChainID: Buffer;
+		const messageFee = BigInt(1000);
+		const data = '';
+
+		beforeEach(() => {
+			receivingChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+			interoperabilityMethod = {
+				send: jest.fn().mockResolvedValue(Promise.resolve()),
+				error: jest.fn().mockResolvedValue(Promise.resolve()),
+				terminateChain: jest.fn().mockRejectedValue(Promise.resolve()),
+			};
+
+			internalMethod.addDependencies(method, interoperabilityMethod);
+		});
+
+		describe('if attributes are not included ccm contains empty attributes', () => {
+			const includeAttributes = false;
+
+			it('should transfer the ownership of the NFT to the receiving chain and escrow it for a native NFT', async () => {
+				const chainID = ownChainID;
+				nftID = Buffer.concat([chainID, utils.getRandomBytes(LENGTH_NFT_ID - LENGTH_CHAIN_ID)]);
+
+				const ccmParameters = codec.encode(crossChainNFTTransferMessageParamsSchema, {
+					nftID,
+					senderAddress,
+					recipientAddress,
+					attributes: [],
+					data,
+				});
+
+				await nftStore.save(methodContext, nftID, {
+					owner: senderAddress,
+					attributesArray: [],
+				});
+
+				await userStore.set(methodContext, userStore.getKey(senderAddress, nftID), {
+					lockingModule: NFT_NOT_LOCKED,
+				});
+
+				await expect(
+					internalMethod.transferCrossChainInternal(
+						methodContext,
+						senderAddress,
+						recipientAddress,
+						nftID,
+						receivingChainID,
+						messageFee,
+						data,
+						includeAttributes,
+					),
+				).resolves.toBeUndefined();
+
+				await expect(nftStore.get(methodContext, nftID)).resolves.toEqual({
+					owner: receivingChainID,
+					attributesArray: [],
+				});
+
+				await expect(
+					userStore.has(methodContext, userStore.getKey(senderAddress, nftID)),
+				).resolves.toBeFalse();
+
+				await expect(
+					escrowStore.get(methodContext, escrowStore.getKey(receivingChainID, nftID)),
+				).resolves.toEqual({});
+
+				checkEventResult<TransferCrossChainEventData>(
+					methodContext.eventQueue,
+					1,
+					TransferCrossChainEvent,
+					0,
+					{
+						senderAddress,
+						recipientAddress,
+						nftID,
+						receivingChainID,
+						includeAttributes,
+					},
+				);
+
+				expect(internalMethod['_interoperabilityMethod'].send).toHaveBeenCalledOnce();
+				expect(internalMethod['_interoperabilityMethod'].send).toHaveBeenNthCalledWith(
+					1,
+					expect.anything(),
+					senderAddress,
+					MODULE_NAME_NFT,
+					CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+					receivingChainID,
+					messageFee,
+					CCM_STATUS_OK,
+					ccmParameters,
+				);
+			});
+
+			it('should destroy NFT if the chain ID of the NFT is the same as receiving chain', async () => {
+				nftID = Buffer.concat([
+					receivingChainID,
+					utils.getRandomBytes(LENGTH_NFT_ID - LENGTH_CHAIN_ID),
+				]);
+
+				const ccmParameters = codec.encode(crossChainNFTTransferMessageParamsSchema, {
+					nftID,
+					senderAddress,
+					recipientAddress,
+					attributes: [],
+					data,
+				});
+
+				await nftStore.save(methodContext, nftID, {
+					owner: senderAddress,
+					attributesArray: [],
+				});
+
+				await userStore.set(methodContext, userStore.getKey(senderAddress, nftID), {
+					lockingModule: NFT_NOT_LOCKED,
+				});
+
+				await expect(
+					internalMethod.transferCrossChainInternal(
+						methodContext,
+						senderAddress,
+						recipientAddress,
+						nftID,
+						receivingChainID,
+						messageFee,
+						data,
+						includeAttributes,
+					),
+				).resolves.toBeUndefined();
+
+				checkEventResult<DestroyEventData>(methodContext.eventQueue, 2, DestroyEvent, 0, {
+					address: senderAddress,
+					nftID,
+				});
+
+				checkEventResult<TransferCrossChainEventData>(
+					methodContext.eventQueue,
+					2,
+					TransferCrossChainEvent,
+					1,
+					{
+						senderAddress,
+						recipientAddress,
+						nftID,
+						receivingChainID,
+						includeAttributes,
+					},
+				);
+
+				expect(internalMethod['_interoperabilityMethod'].send).toHaveBeenCalledOnce();
+				expect(internalMethod['_interoperabilityMethod'].send).toHaveBeenNthCalledWith(
+					1,
+					expect.anything(),
+					senderAddress,
+					MODULE_NAME_NFT,
+					CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+					receivingChainID,
+					messageFee,
+					CCM_STATUS_OK,
+					ccmParameters,
+				);
+			});
+		});
+
+		describe('if attributes are included ccm contains attributes of the NFT', () => {
+			const includeAttributes = true;
+
+			it('should transfer the ownership of the NFT to the receiving chain and escrow it for a native NFT', async () => {
+				const chainID = ownChainID;
+				nftID = Buffer.concat([chainID, utils.getRandomBytes(LENGTH_NFT_ID - LENGTH_CHAIN_ID)]);
+
+				const attributesArray = [
+					{
+						module: 'pos',
+						attributes: utils.getRandomBytes(20),
+					},
+				];
+
+				const ccmParameters = codec.encode(crossChainNFTTransferMessageParamsSchema, {
+					nftID,
+					senderAddress,
+					recipientAddress,
+					attributes: attributesArray,
+					data,
+				});
+
+				await nftStore.save(methodContext, nftID, {
+					owner: senderAddress,
+					attributesArray,
+				});
+
+				await userStore.set(methodContext, userStore.getKey(senderAddress, nftID), {
+					lockingModule: NFT_NOT_LOCKED,
+				});
+
+				await expect(
+					internalMethod.transferCrossChainInternal(
+						methodContext,
+						senderAddress,
+						recipientAddress,
+						nftID,
+						receivingChainID,
+						messageFee,
+						data,
+						includeAttributes,
+					),
+				).resolves.toBeUndefined();
+
+				await expect(nftStore.get(methodContext, nftID)).resolves.toEqual({
+					owner: receivingChainID,
+					attributesArray,
+				});
+
+				await expect(
+					userStore.has(methodContext, userStore.getKey(senderAddress, nftID)),
+				).resolves.toBeFalse();
+
+				await expect(
+					escrowStore.get(methodContext, escrowStore.getKey(receivingChainID, nftID)),
+				).resolves.toEqual({});
+
+				checkEventResult<TransferCrossChainEventData>(
+					methodContext.eventQueue,
+					1,
+					TransferCrossChainEvent,
+					0,
+					{
+						senderAddress,
+						recipientAddress,
+						nftID,
+						receivingChainID,
+						includeAttributes,
+					},
+				);
+
+				expect(internalMethod['_interoperabilityMethod'].send).toHaveBeenCalledOnce();
+				expect(internalMethod['_interoperabilityMethod'].send).toHaveBeenNthCalledWith(
+					1,
+					expect.anything(),
+					senderAddress,
+					MODULE_NAME_NFT,
+					CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+					receivingChainID,
+					messageFee,
+					CCM_STATUS_OK,
+					ccmParameters,
+				);
+			});
+
+			it('should destroy NFT if the chain ID of the NFT is the same as receiving chain', async () => {
+				nftID = Buffer.concat([
+					receivingChainID,
+					utils.getRandomBytes(LENGTH_NFT_ID - LENGTH_CHAIN_ID),
+				]);
+
+				const attributesArray = [
+					{
+						module: 'pos',
+						attributes: utils.getRandomBytes(20),
+					},
+				];
+
+				const ccmParameters = codec.encode(crossChainNFTTransferMessageParamsSchema, {
+					nftID,
+					senderAddress,
+					recipientAddress,
+					attributes: attributesArray,
+					data,
+				});
+
+				await nftStore.save(methodContext, nftID, {
+					owner: senderAddress,
+					attributesArray,
+				});
+
+				await userStore.set(methodContext, userStore.getKey(senderAddress, nftID), {
+					lockingModule: NFT_NOT_LOCKED,
+				});
+
+				await expect(
+					internalMethod.transferCrossChainInternal(
+						methodContext,
+						senderAddress,
+						recipientAddress,
+						nftID,
+						receivingChainID,
+						messageFee,
+						data,
+						includeAttributes,
+					),
+				).resolves.toBeUndefined();
+
+				checkEventResult<DestroyEventData>(methodContext.eventQueue, 2, DestroyEvent, 0, {
+					address: senderAddress,
+					nftID,
+				});
+
+				checkEventResult<TransferCrossChainEventData>(
+					methodContext.eventQueue,
+					2,
+					TransferCrossChainEvent,
+					1,
+					{
+						senderAddress,
+						recipientAddress,
+						nftID,
+						receivingChainID,
+						includeAttributes,
+					},
+				);
+
+				expect(internalMethod['_interoperabilityMethod'].send).toHaveBeenCalledOnce();
+				expect(internalMethod['_interoperabilityMethod'].send).toHaveBeenNthCalledWith(
+					1,
+					expect.anything(),
+					senderAddress,
+					MODULE_NAME_NFT,
+					CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+					receivingChainID,
+					messageFee,
+					CCM_STATUS_OK,
+					ccmParameters,
+				);
+			});
 		});
 	});
 });

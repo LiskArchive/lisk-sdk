@@ -12,24 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import { BaseMethod } from '../base_method';
 import { NFTStore, NFTAttributes } from './stores/nft';
 import { InteroperabilityMethod, ModuleConfig } from './types';
 import { MethodContext } from '../../state_machine';
 import { TransferEvent } from './events/transfer';
 import { UserStore } from './stores/user';
-import { NFT_NOT_LOCKED } from './constants';
+import { CROSS_CHAIN_COMMAND_NAME_TRANSFER, MODULE_NAME_NFT, NFT_NOT_LOCKED } from './constants';
 import { NFTMethod } from './method';
 import { EscrowStore } from './stores/escrow';
+import { TransferCrossChainEvent } from './events/transfer_cross_chain';
+import { CCM_STATUS_OK } from '../token/constants';
+import { crossChainNFTTransferMessageParamsSchema } from './schemas';
 
 export class InternalMethod extends BaseMethod {
-	// @ts-expect-error TODO: unused error. Remove when implementing.
 	private _config!: ModuleConfig;
-
-	// @ts-expect-error TODO: unused error. Remove when implementing.
 	private _method!: NFTMethod;
-
-	// @ts-expect-error TODO: unused error. Remove when implementing.
 	private _interoperabilityMethod!: InteroperabilityMethod;
 
 	public init(config: ModuleConfig): void {
@@ -99,5 +98,74 @@ export class InternalMethod extends BaseMethod {
 			recipientAddress,
 			nftID,
 		});
+	}
+
+	public async transferCrossChainInternal(
+		methodContext: MethodContext,
+		senderAddress: Buffer,
+		recipientAddress: Buffer,
+		nftID: Buffer,
+		receivingChainID: Buffer,
+		messageFee: bigint,
+		data: string,
+		includeAttributes: boolean,
+	): Promise<void> {
+		const chainID = this._method.getChainID(nftID);
+		const nftStore = this.stores.get(NFTStore);
+		const nft = await nftStore.get(methodContext, nftID);
+
+		if (chainID.equals(this._config.ownChainID)) {
+			const escrowStore = this.stores.get(EscrowStore);
+			const userStore = this.stores.get(UserStore);
+
+			nft.owner = receivingChainID;
+			await nftStore.save(methodContext, nftID, nft);
+
+			await userStore.del(methodContext, userStore.getKey(senderAddress, nftID));
+
+			const escrowExists = await escrowStore.has(
+				methodContext,
+				escrowStore.getKey(receivingChainID, nftID),
+			);
+
+			if (!escrowExists) {
+				await this.createEscrowEntry(methodContext, receivingChainID, nftID);
+			}
+		}
+
+		if (chainID.equals(receivingChainID)) {
+			await this._method.destroy(methodContext, senderAddress, nftID);
+		}
+
+		let attributes: { module: string; attributes: Buffer }[] = [];
+
+		if (includeAttributes) {
+			attributes = nft.attributesArray;
+		}
+
+		this.events.get(TransferCrossChainEvent).log(methodContext, {
+			senderAddress,
+			recipientAddress,
+			nftID,
+			receivingChainID,
+			includeAttributes,
+		});
+
+		await this._interoperabilityMethod.send(
+			methodContext,
+			senderAddress,
+			MODULE_NAME_NFT,
+			CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+			receivingChainID,
+			messageFee,
+			CCM_STATUS_OK,
+			codec.encode(crossChainNFTTransferMessageParamsSchema, {
+				nftID,
+				senderAddress,
+				recipientAddress,
+				attributes,
+				data,
+			}),
+		);
 	}
 }
