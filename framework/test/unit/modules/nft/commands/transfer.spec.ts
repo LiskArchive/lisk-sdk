@@ -16,7 +16,7 @@ import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils, address } from '@liskhq/lisk-cryptography';
 import { NFTModule } from '../../../../../src/modules/nft/module';
-import { TransferCommand } from '../../../../../src/modules/nft/commands/transfer';
+import { TransferCommand, Params } from '../../../../../src/modules/nft/commands/transfer';
 import { createTransactionContext } from '../../../../../src/testing';
 import { transferParamsSchema } from '../../../../../src/modules/nft/schemas';
 import {
@@ -33,12 +33,6 @@ import { NFTMethod } from '../../../../../src/modules/nft/method';
 import { UserStore } from '../../../../../src/modules/nft/stores/user';
 import { EventQueue } from '../../../../../src/state_machine';
 import { TransferEvent } from '../../../../../src/modules/nft/events/transfer';
-
-interface Params {
-	nftID: Buffer;
-	recipientAddress: Buffer;
-	data: string;
-}
 
 describe('Transfer command', () => {
 	const module = new NFTModule();

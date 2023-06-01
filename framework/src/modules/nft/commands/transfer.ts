@@ -26,7 +26,7 @@ import { NFTMethod } from '../method';
 import { LENGTH_CHAIN_ID, NFT_NOT_LOCKED } from '../constants';
 import { InternalMethod } from '../internal_method';
 
-interface Params {
+export interface Params {
 	nftID: Buffer;
 	recipientAddress: Buffer;
 	data: string;
