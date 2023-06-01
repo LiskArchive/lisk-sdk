@@ -12,8 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ImmutableMethodContext, MethodContext } from '../../state_machine';
-import { NextValidatorsSetter } from '../../state_machine/types';
+import {
+	ImmutableMethodContext,
+	MethodContext,
+	NextValidatorsSetter,
+} from '../../state_machine/types';
 
 export interface RegisterAuthorityParams {
 	name: string;
