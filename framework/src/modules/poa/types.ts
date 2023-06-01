@@ -60,3 +60,26 @@ export interface ValidatorsMethod {
 		validators: { address: Buffer; bftWeight: bigint }[],
 	): Promise<void>;
 }
+
+interface PoAValidator {
+	address: Buffer;
+	name: string;
+	blsKey: Buffer;
+	proofOfPossession: Buffer;
+	generatorKey: Buffer;
+}
+
+interface ActiveValidator {
+	address: Buffer;
+	weight: bigint;
+}
+
+interface SnapshotSubstore {
+	activeValidators: ActiveValidator[];
+	threshold: bigint;
+}
+
+export interface GenesisPoAStore {
+	validators: PoAValidator[];
+	snapshotSubstore: SnapshotSubstore;
+}
