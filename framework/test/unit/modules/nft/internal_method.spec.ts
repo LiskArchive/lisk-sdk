@@ -27,7 +27,7 @@ import {
 } from '../../../../src/modules/nft/constants';
 import { NFTStore } from '../../../../src/modules/nft/stores/nft';
 import { MethodContext } from '../../../../src/state_machine/method_context';
-import { TransferEvent } from '../../../../src/modules/nft/events/transfer';
+import { TransferEvent, TransferEventData } from '../../../../src/modules/nft/events/transfer';
 import { UserStore } from '../../../../src/modules/nft/stores/user';
 import { EscrowStore } from '../../../../src/modules/nft/stores/escrow';
 
@@ -36,12 +36,12 @@ describe('InternalMethod', () => {
 	const internalMethod = new InternalMethod(module.stores, module.events);
 	let methodContext!: MethodContext;
 
-	const checkEventResult = (
+	const checkEventResult = <EventDataType>(
 		eventQueue: EventQueue,
 		length: number,
 		EventClass: any,
 		index: number,
-		expectedResult: any,
+		expectedResult: EventDataType,
 		result: any = 0,
 	) => {
 		expect(eventQueue.getEvents()).toHaveLength(length);
@@ -152,7 +152,7 @@ describe('InternalMethod', () => {
 				lockingModule: NFT_NOT_LOCKED,
 			});
 
-			checkEventResult(methodContext.eventQueue, 1, TransferEvent, 0, {
+			checkEventResult<TransferEventData>(methodContext.eventQueue, 1, TransferEvent, 0, {
 				senderAddress,
 				recipientAddress,
 				nftID,
