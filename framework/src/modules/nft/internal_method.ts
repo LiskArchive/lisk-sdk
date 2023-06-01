@@ -20,6 +20,7 @@ import { TransferEvent } from './events/transfer';
 import { UserStore } from './stores/user';
 import { NFT_NOT_LOCKED } from './constants';
 import { NFTMethod } from './method';
+import { EscrowStore } from './stores/escrow';
 
 export class InternalMethod extends BaseMethod {
 	// @ts-expect-error TODO: unused error. Remove when implementing.
@@ -38,6 +39,16 @@ export class InternalMethod extends BaseMethod {
 	public addDependencies(method: NFTMethod, interoperabilityMethod: InteroperabilityMethod) {
 		this._method = method;
 		this._interoperabilityMethod = interoperabilityMethod;
+	}
+
+	public async createEscrowEntry(
+		methodContext: MethodContext,
+		receivingChainID: Buffer,
+		nftID: Buffer,
+	): Promise<void> {
+		const escrowStore = this.stores.get(EscrowStore);
+
+		await escrowStore.set(methodContext, escrowStore.getKey(receivingChainID, nftID), {});
 	}
 
 	public async createUserEntry(

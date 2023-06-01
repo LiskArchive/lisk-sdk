@@ -21,6 +21,7 @@ import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import {
 	LENGTH_ADDRESS,
+	LENGTH_CHAIN_ID,
 	LENGTH_NFT_ID,
 	NFT_NOT_LOCKED,
 } from '../../../../src/modules/nft/constants';
@@ -28,6 +29,7 @@ import { NFTStore } from '../../../../src/modules/nft/stores/nft';
 import { MethodContext } from '../../../../src/state_machine/method_context';
 import { TransferEvent } from '../../../../src/modules/nft/events/transfer';
 import { UserStore } from '../../../../src/modules/nft/stores/user';
+import { EscrowStore } from '../../../../src/modules/nft/stores/escrow';
 
 describe('InternalMethod', () => {
 	const module = new NFTModule();
@@ -55,6 +57,7 @@ describe('InternalMethod', () => {
 
 	const userStore = module.stores.get(UserStore);
 	const nftStore = module.stores.get(NFTStore);
+	const escrowStore = module.stores.get(EscrowStore);
 
 	const address = utils.getRandomBytes(LENGTH_ADDRESS);
 	const senderAddress = utils.getRandomBytes(LENGTH_ADDRESS);
@@ -66,6 +69,18 @@ describe('InternalMethod', () => {
 			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
 			eventQueue: new EventQueue(0),
 			contextStore: new Map(),
+		});
+	});
+
+	describe('createEscrowEntry', () => {
+		it('should create an entry in EscrowStore', async () => {
+			const receivingChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+
+			await internalMethod.createEscrowEntry(methodContext, receivingChainID, nftID);
+
+			await expect(
+				escrowStore.get(methodContext, escrowStore.getKey(receivingChainID, nftID)),
+			).resolves.toEqual({});
 		});
 	});
 
