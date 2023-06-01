@@ -46,7 +46,7 @@ export class NFTModule extends BaseInteroperableModule {
 	public crossChainMethod = new NFTInteroperableMethod(this.stores, this.events);
 
 	private readonly _internalMethod = new InternalMethod(this.stores, this.events);
-	// @ts-expect-error TODO: unused error. Remove when implementing.
+
 	private _interoperabilityMethod!: InteroperabilityMethod;
 
 	public commands = [];
@@ -86,7 +86,8 @@ export class NFTModule extends BaseInteroperableModule {
 
 	public addDependencies(interoperabilityMethod: InteroperabilityMethod, _feeMethod: FeeMethod) {
 		this._interoperabilityMethod = interoperabilityMethod;
-		this.method.addDependencies(interoperabilityMethod, this._internalMethod);
+		this.method.addDependencies(interoperabilityMethod);
+		this._internalMethod.addDependencies(this.method, this._interoperabilityMethod);
 		this.crossChainMethod.addDependencies(interoperabilityMethod);
 	}
 

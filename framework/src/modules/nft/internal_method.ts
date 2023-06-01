@@ -14,18 +14,30 @@
 
 import { BaseMethod } from '../base_method';
 import { NFTStore, NFTAttributes } from './stores/nft';
-import { ModuleConfig } from './types';
+import { InteroperabilityMethod, ModuleConfig } from './types';
 import { MethodContext } from '../../state_machine';
 import { TransferEvent } from './events/transfer';
 import { UserStore } from './stores/user';
 import { NFT_NOT_LOCKED } from './constants';
+import { NFTMethod } from './method';
 
 export class InternalMethod extends BaseMethod {
 	// @ts-expect-error TODO: unused error. Remove when implementing.
 	private _config!: ModuleConfig;
 
+	// @ts-expect-error TODO: unused error. Remove when implementing.
+	private _method!: NFTMethod;
+
+	// @ts-expect-error TODO: unused error. Remove when implementing.
+	private _interoperabilityMethod!: InteroperabilityMethod;
+
 	public init(config: ModuleConfig): void {
 		this._config = config;
+	}
+
+	public addDependencies(method: NFTMethod, interoperabilityMethod: InteroperabilityMethod) {
+		this._method = method;
+		this._interoperabilityMethod = interoperabilityMethod;
 	}
 
 	public async createUserEntry(

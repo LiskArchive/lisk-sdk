@@ -13,7 +13,6 @@
  */
 import { BaseMethod } from '../base_method';
 import { InteroperabilityMethod, ModuleConfig } from './types';
-import { InternalMethod } from './internal_method';
 import { NFTStore } from './stores/nft';
 import { ImmutableMethodContext } from '../../state_machine';
 import { LENGTH_CHAIN_ID } from './constants';
@@ -24,19 +23,13 @@ export class NFTMethod extends BaseMethod {
 	private _config!: ModuleConfig;
 	// @ts-expect-error TODO: unused error. Remove when implementing.
 	private _interoperabilityMethod!: InteroperabilityMethod;
-	// @ts-expect-error TODO: unused error. Remove when implementing.
-	private _internalMethod!: InternalMethod;
 
 	public init(config: ModuleConfig): void {
 		this._config = config;
 	}
 
-	public addDependencies(
-		interoperabilityMethod: InteroperabilityMethod,
-		internalMethod: InternalMethod,
-	) {
+	public addDependencies(interoperabilityMethod: InteroperabilityMethod) {
 		this._interoperabilityMethod = interoperabilityMethod;
-		this._internalMethod = internalMethod;
 	}
 
 	public async getNFTOwner(methodContext: ImmutableMethodContext, nftID: Buffer): Promise<Buffer> {
