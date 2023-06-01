@@ -49,6 +49,18 @@ describe('NFTMethods', () => {
 		});
 	});
 
+	describe('getChainID', () => {
+		it('should throw if nftID has invalid length', () => {
+			expect(() => {
+				method.getChainID(utils.getRandomBytes(LENGTH_NFT_ID - 1));
+			}).toThrow(`NFT ID must have length ${LENGTH_NFT_ID}`);
+		});
+
+		it('should return the first bytes of length LENGTH_CHAIN_ID from provided nftID', () => {
+			expect(method.getChainID(nftID)).toEqual(nftID.slice(0, LENGTH_CHAIN_ID));
+		});
+	});
+
 	describe('getNFTOwner', () => {
 		it('should fail if NFT does not exist', async () => {
 			await expect(method.getNFTOwner(methodContext, nftID)).rejects.toThrow(

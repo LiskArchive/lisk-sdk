@@ -15,7 +15,7 @@ import { BaseMethod } from '../base_method';
 import { InteroperabilityMethod, ModuleConfig } from './types';
 import { NFTStore } from './stores/nft';
 import { ImmutableMethodContext } from '../../state_machine';
-import { LENGTH_CHAIN_ID } from './constants';
+import { LENGTH_CHAIN_ID, LENGTH_NFT_ID } from './constants';
 import { UserStore } from './stores/user';
 
 export class NFTMethod extends BaseMethod {
@@ -30,6 +30,14 @@ export class NFTMethod extends BaseMethod {
 
 	public addDependencies(interoperabilityMethod: InteroperabilityMethod) {
 		this._interoperabilityMethod = interoperabilityMethod;
+	}
+
+	public getChainID(nftID: Buffer): Buffer {
+		if (nftID.length !== LENGTH_NFT_ID) {
+			throw new Error(`NFT ID must have length ${LENGTH_NFT_ID}`);
+		}
+
+		return nftID.slice(0, LENGTH_CHAIN_ID);
 	}
 
 	public async getNFTOwner(methodContext: ImmutableMethodContext, nftID: Buffer): Promise<Buffer> {
