@@ -84,7 +84,7 @@ export const updateGeneratorKeySchema = {
 	},
 };
 
-export const updateAuthorityValidatorSchema = {
+export const updateAuthoritySchema = {
 	$id: '/poa/command/updateAuthority',
 	type: 'object',
 	required: ['newValidators', 'threshold', 'validatorsUpdateNonce', 'signature', 'aggregationBits'],
