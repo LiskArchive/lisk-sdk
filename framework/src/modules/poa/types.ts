@@ -22,6 +22,11 @@ export interface RegisterAuthorityParams {
 	proofOfPossession: Buffer;
 }
 
+export interface ValidatorWeight {
+	readonly address: Buffer;
+	weight: bigint;
+}
+
 export interface ValidatorsMethod {
 	setValidatorGeneratorKey(
 		methodContext: MethodContext,

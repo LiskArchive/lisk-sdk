@@ -17,16 +17,11 @@ import { BaseModule, ModuleMetadata } from '../base_module';
 import { PoAMethod } from './method';
 import { PoAEndpoint } from './endpoint';
 import { AuthorityUpdateEvent } from './events/authority_update';
-import {
-	ChainPropertiesStore,
-	ValidatorStore,
-	NameStore,
-	SnapshotStore,
-	Validator,
-} from './stores';
+import { ChainPropertiesStore, ValidatorStore, NameStore, SnapshotStore } from './stores';
 import { BlockAfterExecuteContext } from '../../state_machine';
 import { EMPTY_BYTES } from './constants';
 import { FeeMethod, RandomMethod, ValidatorsMethod } from './types';
+import { shuffleValidatorList } from './utils';
 
 export class PoAModule extends BaseModule {
 	public method = new PoAMethod(this.stores, this.events);
@@ -55,7 +50,7 @@ export class PoAModule extends BaseModule {
 
 		// TODO: Remove it after the usage of these methods is implemented
 		// eslint-disable-next-line no-console
-		console.log(this._validatorsMethod, this._feeMethod);
+		console.log(!this._validatorsMethod, !this._feeMethod);
 	}
 
 	public metadata(): ModuleMetadata {
@@ -74,11 +69,13 @@ export class PoAModule extends BaseModule {
 			const firstSnapshot = await snapshotStore.get(context, utils.intToBuffer(0, 4));
 			const previousLengthValidators = firstSnapshot.validators.length;
 
+			const secondSnapshot = await snapshotStore.get(context, utils.intToBuffer(1, 4));
 			// Update the chain information for the next round
-			await snapshotStore.set(context, utils.intToBuffer(0, 4), firstSnapshot);
-			const secondSnapshot = await snapshotStore.get(context, utils.intToBuffer(0, 4));
-			await snapshotStore.set(context, utils.intToBuffer(1, 4), secondSnapshot);
-			// const thirdSnapshot = await snapshotStore.get(context, utils.intToBuffer(0, 4));
+			// snapshotAtZero=snapshotAtOne
+			await snapshotStore.set(context, utils.intToBuffer(0, 4), secondSnapshot);
+			const thirdSnapshot = await snapshotStore.get(context, utils.intToBuffer(2, 4));
+			// snapshotAtOne=snapshotAtTwo
+			await snapshotStore.set(context, utils.intToBuffer(1, 4), thirdSnapshot);
 
 			// Reshuffle the list of validators and pass it to the Validators module
 			const roundStartHeight = chainProperties.roundEndHeight - previousLengthValidators + 1;
@@ -92,7 +89,7 @@ export class PoAModule extends BaseModule {
 			for (const validator of firstSnapshot.validators) {
 				validators.push(validator);
 			}
-			const nextValidators = this._shuffleValidatorsList(validators, randomSeed);
+			const nextValidators = shuffleValidatorList(randomSeed, validators);
 
 			await this._validatorsMethod.setValidatorsParams(
 				context,
@@ -105,26 +102,5 @@ export class PoAModule extends BaseModule {
 				})),
 			);
 		}
-	}
-
-	private _shuffleValidatorsList(validators: Validator[], randomSeed: Buffer) {
-		const roundHash: Record<string, Buffer> = {};
-
-		for (const { address } of validators) {
-			roundHash[address.toString('hex')] = utils.hash(Buffer.concat([randomSeed, address]));
-		}
-
-		validators.sort((a, b) => {
-			if (
-				roundHash[a.address.toString('hex')].compare(roundHash[b.address.toString('hex')]) === 1 ||
-				(roundHash[a.address.toString('hex')].compare(roundHash[b.address.toString('hex')]) === 0 &&
-					a.address.compare(b.address) === 1)
-			) {
-				return 1;
-			}
-			return -1;
-		});
-
-		return validators;
 	}
 }
