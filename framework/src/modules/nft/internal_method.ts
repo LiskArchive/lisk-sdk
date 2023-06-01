@@ -13,7 +13,7 @@
  */
 
 import { BaseMethod } from '../base_method';
-import { NFTStore } from './stores/nft';
+import { NFTStore, NFTAttributes } from './stores/nft';
 import { ModuleConfig } from './types';
 import { MethodContext } from '../../state_machine';
 import { TransferEvent } from './events/transfer';
@@ -44,7 +44,7 @@ export class InternalMethod extends BaseMethod {
 		methodContext: MethodContext,
 		address: Buffer,
 		nftID: Buffer,
-		attributesArray: { module: string; attributes: Buffer }[],
+		attributesArray: NFTAttributes[],
 	): Promise<void> {
 		const nftStore = this.stores.get(NFTStore);
 		await nftStore.save(methodContext, nftID, {
