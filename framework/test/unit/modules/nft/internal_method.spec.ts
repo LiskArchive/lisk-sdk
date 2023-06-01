@@ -53,6 +53,14 @@ describe('InternalMethod', () => {
 		expect(eventData).toEqual({ ...expectedResult, result });
 	};
 
+	const userStore = module.stores.get(UserStore);
+	const nftStore = module.stores.get(NFTStore);
+
+	const address = utils.getRandomBytes(LENGTH_ADDRESS);
+	const senderAddress = utils.getRandomBytes(LENGTH_ADDRESS);
+	const recipientAddress = utils.getRandomBytes(LENGTH_ADDRESS);
+	const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
+
 	beforeEach(() => {
 		methodContext = createMethodContext({
 			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
@@ -63,9 +71,6 @@ describe('InternalMethod', () => {
 
 	describe('createNFTEntry', () => {
 		it('should create an entry in NFStore with attributes sorted by module', async () => {
-			const address = utils.getRandomBytes(LENGTH_ADDRESS);
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-
 			const unsortedAttributesArray = [
 				{
 					module: 'token',
@@ -83,7 +88,7 @@ describe('InternalMethod', () => {
 
 			await internalMethod.createNFTEntry(methodContext, address, nftID, unsortedAttributesArray);
 
-			await expect(module.stores.get(NFTStore).get(methodContext, nftID)).resolves.toEqual({
+			await expect(nftStore.get(methodContext, nftID)).resolves.toEqual({
 				owner: address,
 				attributesArray: sortedAttributesArray,
 			});
@@ -92,10 +97,6 @@ describe('InternalMethod', () => {
 
 	describe('createUserEntry', () => {
 		it('should create an entry for an unlocked NFT in UserStore', async () => {
-			const address = utils.getRandomBytes(LENGTH_ADDRESS);
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-			const userStore = module.stores.get(UserStore);
-
 			await expect(
 				internalMethod.createUserEntry(methodContext, address, nftID),
 			).resolves.toBeUndefined();
@@ -110,12 +111,6 @@ describe('InternalMethod', () => {
 
 	describe('transferInternal', () => {
 		it('should transfer NFT from sender to recipient and emit Transfer event', async () => {
-			const senderAddress = utils.getRandomBytes(LENGTH_ADDRESS);
-			const recipientAddress = utils.getRandomBytes(LENGTH_ADDRESS);
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-
-			const userStore = module.stores.get(UserStore);
-
 			await module.stores.get(NFTStore).save(methodContext, nftID, {
 				owner: senderAddress,
 				attributesArray: [],
@@ -150,9 +145,6 @@ describe('InternalMethod', () => {
 		});
 
 		it('should fail if NFT does not exist', async () => {
-			const recipientAddress = utils.getRandomBytes(LENGTH_ADDRESS);
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-
 			await expect(
 				internalMethod.transferInternal(methodContext, recipientAddress, nftID),
 			).rejects.toThrow('does not exist');
