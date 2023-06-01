@@ -25,7 +25,7 @@ import {
 	LENGTH_NFT_ID,
 	NFT_NOT_LOCKED,
 } from '../../../../../src/modules/nft/constants';
-import { NFTStore } from '../../../../../src/modules/nft/stores/nft';
+import { NFTAttributes, NFTStore } from '../../../../../src/modules/nft/stores/nft';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import { VerifyStatus } from '../../../../../src';
 import { InternalMethod } from '../../../../../src/modules/nft/internal_method';
@@ -85,6 +85,14 @@ describe('Transfer command', () => {
 			}),
 		});
 
+	const nftStore = module.stores.get(NFTStore);
+	const userStore = module.stores.get(UserStore);
+
+	const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
+	const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+	const senderPublicKey = utils.getRandomBytes(32);
+	const owner = address.getAddressFromPublicKey(senderPublicKey);
+
 	beforeEach(() => {
 		command = new TransferCommand(module.stores, module.events);
 		command.init({ method, internalMethod });
@@ -142,15 +150,11 @@ describe('Transfer command', () => {
 		});
 
 		it('should fail if NFT is escrowed to another chain', async () => {
-			const escrowedNFTID = utils.getRandomBytes(LENGTH_NFT_ID);
-			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-
 			const nftEscrowedContext = createTransactionContextWithOverridingParams({
-				nftID: escrowedNFTID,
+				nftID,
 			});
 
-			const nftStore = module.stores.get(NFTStore);
-			await nftStore.set(createStoreGetter(nftEscrowedContext.stateStore), escrowedNFTID, {
+			await nftStore.set(createStoreGetter(nftEscrowedContext.stateStore), nftID, {
 				owner: chainID,
 				attributesArray: [],
 			});
@@ -161,13 +165,10 @@ describe('Transfer command', () => {
 		});
 
 		it('should fail if owner of the NFT is not the sender', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-
 			const nftIncorrectOwnerContext = createTransactionContextWithOverridingParams({
 				nftID,
 			});
 
-			const nftStore = module.stores.get(NFTStore);
 			await nftStore.save(createStoreGetter(nftIncorrectOwnerContext.stateStore), nftID, {
 				owner: utils.getRandomBytes(LENGTH_ADDRESS),
 				attributesArray: [],
@@ -179,25 +180,19 @@ describe('Transfer command', () => {
 		});
 
 		it('should fail if NFT exists and is locked by its owner', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-			const senderPublicKey = utils.getRandomBytes(32);
-			const ownerID = address.getAddressFromPublicKey(senderPublicKey);
-
 			const lockedNFTContext = createTransactionContextWithOverridingParams(
 				{ nftID },
 				{ senderPublicKey },
 			);
 
-			const nftStore = module.stores.get(NFTStore);
 			await nftStore.save(createStoreGetter(lockedNFTContext.stateStore), nftID, {
-				owner: ownerID,
+				owner,
 				attributesArray: [],
 			});
 
-			const userStore = module.stores.get(UserStore);
 			await userStore.set(
 				createStoreGetter(lockedNFTContext.stateStore),
-				userStore.getKey(ownerID, nftID),
+				userStore.getKey(owner, nftID),
 				{
 					lockingModule: 'token',
 				},
@@ -209,25 +204,19 @@ describe('Transfer command', () => {
 		});
 
 		it('should verify if unlocked NFT exists and its owner is performing the transfer', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-			const senderPublicKey = utils.getRandomBytes(32);
-			const ownerID = address.getAddressFromPublicKey(senderPublicKey);
-
 			const validContext = createTransactionContextWithOverridingParams(
 				{ nftID },
 				{ senderPublicKey },
 			);
 
-			const nftStore = module.stores.get(NFTStore);
 			await nftStore.save(createStoreGetter(validContext.stateStore), nftID, {
-				owner: ownerID,
+				owner,
 				attributesArray: [],
 			});
 
-			const userStore = module.stores.get(UserStore);
 			await userStore.set(
 				createStoreGetter(validContext.stateStore),
-				userStore.getKey(ownerID, nftID),
+				userStore.getKey(owner, nftID),
 				{
 					lockingModule: NFT_NOT_LOCKED,
 				},
@@ -241,24 +230,20 @@ describe('Transfer command', () => {
 
 	describe('execute', () => {
 		it('should transfer NFT and emit Transfer event', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
+			const senderAddress = owner;
 			const recipientAddress = utils.getRandomBytes(LENGTH_ADDRESS);
-			const senderPublicKey = utils.getRandomBytes(32);
-			const senderAddress = address.getAddressFromPublicKey(senderPublicKey);
-			const attributesArray: { module: string; attributes: Buffer }[] = [];
+			const attributesArray: NFTAttributes[] = [];
 
 			const validContext = createTransactionContextWithOverridingParams(
 				{ nftID, recipientAddress },
 				{ senderPublicKey },
 			);
 
-			const nftStore = module.stores.get(NFTStore);
 			await nftStore.save(createStoreGetter(validContext.stateStore), nftID, {
 				owner: senderAddress,
 				attributesArray,
 			});
 
-			const userStore = module.stores.get(UserStore);
 			await userStore.set(
 				createStoreGetter(validContext.stateStore),
 				userStore.getKey(senderAddress, nftID),
