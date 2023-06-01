@@ -14,9 +14,10 @@
 import { BaseMethod } from '../base_method';
 import { InteroperabilityMethod, ModuleConfig } from './types';
 import { NFTStore } from './stores/nft';
-import { ImmutableMethodContext } from '../../state_machine';
-import { LENGTH_CHAIN_ID, LENGTH_NFT_ID } from './constants';
+import { ImmutableMethodContext, MethodContext } from '../../state_machine';
+import { LENGTH_CHAIN_ID, LENGTH_NFT_ID, NFT_NOT_LOCKED, NftEventResult } from './constants';
 import { UserStore } from './stores/user';
+import { DestroyEvent } from './events/destroy';
 
 export class NFTMethod extends BaseMethod {
 	// @ts-expect-error TODO: unused error. Remove when implementing.
@@ -68,5 +69,82 @@ export class NFTMethod extends BaseMethod {
 		const userData = await userStore.get(methodContext, userStore.getKey(owner, nftID));
 
 		return userData.lockingModule;
+	}
+
+	public async destroy(
+		methodContext: MethodContext,
+		address: Buffer,
+		nftID: Buffer,
+	): Promise<void> {
+		const nftStore = this.stores.get(NFTStore);
+
+		const nftExists = await nftStore.has(methodContext, nftID);
+
+		if (!nftExists) {
+			this.events.get(DestroyEvent).log(
+				methodContext,
+				{
+					address,
+					nftID,
+				},
+				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+			);
+
+			throw new Error('NFT substore entry does not exist');
+		}
+
+		const owner = await this.getNFTOwner(methodContext, nftID);
+
+		if (!owner.equals(address)) {
+			this.events.get(DestroyEvent).log(
+				methodContext,
+				{
+					address,
+					nftID,
+				},
+				NftEventResult.RESULT_INITIATED_BY_NONOWNER,
+			);
+
+			throw new Error('Not initiated by the NFT owner');
+		}
+
+		const userStore = this.stores.get(UserStore);
+		const userKey = userStore.getKey(owner, nftID);
+		const { lockingModule } = await userStore.get(methodContext, userKey);
+
+		if (lockingModule !== NFT_NOT_LOCKED) {
+			this.events.get(DestroyEvent).log(
+				methodContext,
+				{
+					address,
+					nftID,
+				},
+				NftEventResult.RESULT_NFT_LOCKED,
+			);
+
+			throw new Error('Locked NFTs cannot be destroyed');
+		}
+
+		if (owner.length === LENGTH_CHAIN_ID) {
+			this.events.get(DestroyEvent).log(
+				methodContext,
+				{
+					address,
+					nftID,
+				},
+				NftEventResult.RESULT_NFT_ESCROWED,
+			);
+
+			throw new Error('NFT is escrowed to another chain');
+		}
+
+		await nftStore.del(methodContext, nftID);
+
+		await userStore.del(methodContext, userKey);
+
+		this.events.get(DestroyEvent).log(methodContext, {
+			address,
+			nftID,
+		});
 	}
 }
