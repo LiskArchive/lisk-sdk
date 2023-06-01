@@ -57,14 +57,6 @@ export class NFTMethod extends BaseMethod {
 		methodContext: ImmutableMethodContext,
 		nftID: Buffer,
 	): Promise<string> {
-		const nftStore = this.stores.get(NFTStore);
-
-		const nftExists = await nftStore.has(methodContext, nftID);
-
-		if (!nftExists) {
-			throw new Error('NFT substore entry does not exist');
-		}
-
 		const owner = await this.getNFTOwner(methodContext, nftID);
 
 		if (owner.length === LENGTH_CHAIN_ID) {
