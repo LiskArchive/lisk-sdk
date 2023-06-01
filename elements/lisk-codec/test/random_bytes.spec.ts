@@ -86,7 +86,7 @@ describe('random bytes', () => {
 	});
 
 	describe('decode and encode', () => {
-		const testCases = [Buffer.from('80000000008000e348328000000000804800', 'hex')];
+		const testCases = [Buffer.from('10000000008000e348328000000000804800', 'hex')];
 
 		it('should fail to decode random bytes', () => {
 			expect.assertions(testCases.length);

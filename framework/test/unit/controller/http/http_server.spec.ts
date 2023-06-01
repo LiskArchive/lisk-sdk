@@ -19,6 +19,7 @@ describe('HTTPServer', () => {
 	const logger = fakeLogger;
 	const config = {
 		port: 8000,
+		accessControlAllowOrigin: '*',
 	};
 	let httpServerInstance: HTTPServer;
 	const httpRequestListener = jest.fn();

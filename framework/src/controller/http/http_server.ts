@@ -20,13 +20,14 @@ export type HTTPRequestListener = (
 	message: string,
 ) => void;
 
-const ALLOWED_METHODS = ['GET', 'POST'];
+const ALLOWED_METHOD = 'POST';
 export class HTTPServer {
 	public server!: HTTP.Server;
 	private readonly _port: number;
 	private readonly _host?: string;
 	private readonly _path: string;
 	private readonly _ignorePaths: string[];
+	private readonly _accessControlAllowOrigin: string;
 	private _logger!: Logger;
 
 	public constructor(options: {
@@ -34,11 +35,13 @@ export class HTTPServer {
 		host?: string;
 		path?: string;
 		ignorePaths?: string[];
+		accessControlAllowOrigin?: string;
 	}) {
 		this._host = options.host;
 		this._port = options.port;
 		this._path = options.path ?? '/rpc';
 		this._ignorePaths = options.ignorePaths ?? [];
+		this._accessControlAllowOrigin = options.accessControlAllowOrigin ?? '*';
 	}
 
 	public start(logger: Logger, httpRequestListener: HTTPRequestListener): HTTP.Server {
@@ -49,8 +52,8 @@ export class HTTPServer {
 				return undefined;
 			}
 			const headers = {
-				'Access-Control-Allow-Origin': '*',
-				'Access-Control-Allow-Methods': ALLOWED_METHODS.join(','),
+				'Access-Control-Allow-Origin': this._accessControlAllowOrigin,
+				'Access-Control-Allow-Methods': ALLOWED_METHOD,
 				'Content-Type': 'application/json',
 			};
 			if (req.url !== this._path) {
@@ -58,7 +61,7 @@ export class HTTPServer {
 				return res.end(`${req.url ?? ''} not found.`);
 			}
 
-			if (ALLOWED_METHODS.includes(req.method as string)) {
+			if ((req.method as string) === ALLOWED_METHOD) {
 				res.writeHead(200, headers);
 
 				const buffers = [];

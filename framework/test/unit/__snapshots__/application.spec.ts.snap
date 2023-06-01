@@ -36,6 +36,8 @@ exports[`Application #constructor should set internal variables 1`] = `
     },
   },
   "rpc": {
+    "accessControlAllowOrigin": "*",
+    "allowedMethods": [],
     "host": "127.0.0.1",
     "modes": [
       "ipc",

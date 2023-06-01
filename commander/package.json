@@ -20,7 +20,7 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=16.14.1 <=16",
+		"node": ">=18.12.0 <=18",
 		"npm": ">=8.1.0"
 	},
 	"main": "dist/index.js",
@@ -106,7 +106,7 @@
 		"@liskhq/lisk-client": "^6.0.0-beta.1",
 		"@liskhq/lisk-codec": "^0.3.0-beta.1",
 		"@liskhq/lisk-cryptography": "^4.0.0-beta.1",
-		"@liskhq/lisk-db": "0.3.5",
+		"@liskhq/lisk-db": "0.3.6",
 		"@liskhq/lisk-passphrase": "^4.0.0-beta.1",
 		"@liskhq/lisk-transactions": "^6.0.0-beta.1",
 		"@liskhq/lisk-utils": "^0.3.0-beta.1",
@@ -142,7 +142,7 @@
 		"@types/jest-when": "3.5.2",
 		"@types/jquery": "3.3.33",
 		"@types/listr": "0.14.2",
-		"@types/node": "16.18.3",
+		"@types/node": "18.15.3",
 		"@types/progress": "2.0.3",
 		"@types/semver": "7.3.13",
 		"@types/strip-ansi": "5.2.1",
