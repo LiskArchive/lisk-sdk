@@ -23,6 +23,17 @@ export interface RegisterAuthorityParams {
 	proofOfPossession: Buffer;
 }
 
+export interface UpdateAuthorityValidatorParams {
+	newValidators: {
+		address: Buffer;
+		weight: bigint;
+	}[];
+	threshold: bigint;
+	validatorsUpdateNonce: number;
+	signature: Buffer;
+	aggregationBits: Buffer;
+}
+
 export interface ValidatorsMethod {
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0044.md#setvalidatorgeneratorkey
 	setValidatorGeneratorKey(
