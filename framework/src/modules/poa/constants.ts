@@ -26,14 +26,10 @@ export const LENGTH_PROOF_OF_POSSESSION = 96;
 export const LENGTH_GENERATOR_KEY = 32;
 export const NUM_BYTES_ADDRESS = 20;
 export const MAX_NUM_VALIDATORS = 199;
-
 export const POA_VALIDATOR_NAME_REGEX = /^[a-z0-9!@$&_.]+$/;
 export const MESSAGE_TAG_POA = 'LSK_POA_';
-
 export const AUTHORITY_REGISTRATION_FEE = BigInt(1000000000); // Determined by Operator
-
 export const EMPTY_BYTES = Buffer.alloc(0);
-
 export const COMMAND_REGISTER_AUTHORITY = 'registerAuthority';
 export const COMMAND_UPDATE_KEY = 'updateKey';
 export const COMMAND_UPDATE_AUTHORITY = 'updateAuthority';
