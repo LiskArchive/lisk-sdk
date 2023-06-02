@@ -94,3 +94,7 @@ export interface GenesisPoAStore {
 	validators: PoAValidator[];
 	snapshotSubstore: SnapshotSubstore;
 }
+
+export interface UpdateGeneratorKeyParams {
+	generatorKey: Buffer;
+}
