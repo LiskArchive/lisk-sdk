@@ -100,12 +100,12 @@ interface PoAValidator {
 	generatorKey: Buffer;
 }
 
-interface ActiveValidator {
+export interface ActiveValidator {
 	address: Buffer;
 	weight: bigint;
 }
 
-interface SnapshotSubstore {
+export interface SnapshotSubstore {
 	activeValidators: ActiveValidator[];
 	threshold: bigint;
 }
