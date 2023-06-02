@@ -305,14 +305,14 @@ describe('RandomModuleEndpoint', () => {
 
 			// Act & Assert
 			await expect(randomEndpoint.setHashOnion(context)).rejects.toThrow(
-				'Invalid distance. Distance must be less than or equal to count',
+				'Invalid count. Count must be multiple of distance',
 			);
 		});
 
 		it('should throw error when hashes is provided but not count', async () => {
 			// Arrange
 			const { address } = genesisValidators.validators[0];
-			const distance = 1001;
+			const distance = 1000;
 			context.params = { address, hashes: ['7c73f00f64fcebbab49a6145ef14a843'], distance };
 
 			// Act & Assert
@@ -333,27 +333,27 @@ describe('RandomModuleEndpoint', () => {
 			);
 		});
 
-		it('should throw error when hashes empty', async () => {
+		it('should throw error when hashes property is empty', async () => {
 			// Arrange
 			const { address } = genesisValidators.validators[0];
 			const count = MAX_HASH_COMPUTATION * 10;
 			context.params = {
 				address,
-				hashes: ['7c73f00f64fcebbab49a6145ef14a843', '7c73f00f64fcebbab49a6145ef14a84300'],
+				hashes: [],
 				count,
 				distance: 1,
 			};
 
 			// Act & Assert
 			await expect(randomEndpoint.setHashOnion(context)).rejects.toThrow(
-				'must NOT have more than 32 characters',
+				'must NOT have fewer than 1 items',
 			);
 		});
 
 		it('should throw error when count is not multiple of distance', async () => {
 			// Arrange
 			const { address } = genesisValidators.validators[0];
-			const count = MAX_HASH_COMPUTATION * 10;
+			const count = 10;
 			context.params = {
 				address,
 				hashes: ['7c73f00f64fcebbab49a6145ef14a843'],
@@ -392,11 +392,12 @@ describe('RandomModuleEndpoint', () => {
 			// Arrange
 			const { address } = genesisValidators.validators[0];
 			const count = 1000000;
-			context.params = { address, hashes: ['7c73f00f64fcebbab49a6145ef14a843'], count };
+			const distance = 10000;
+			context.params = { address, hashes: ['7c73f00f64fcebbab49a6145ef14a84300'], count, distance };
 
 			// Act & Assert
 			await expect(randomEndpoint.setHashOnion(context)).rejects.toThrow(
-				'Hashes must be provided with count and distance.',
+				"Lisk validator found 1 error[s]:\nProperty '.hashes.0' must NOT have more than 32 characters",
 			);
 		});
 
@@ -404,7 +405,7 @@ describe('RandomModuleEndpoint', () => {
 			// Arrange
 			const { address } = genesisValidators.validators[0];
 			const count = MAX_HASH_COMPUTATION + 1;
-			context.params = { address, count };
+			context.params = { address, count, distance: 1 };
 
 			// Act & Assert
 			await expect(randomEndpoint.setHashOnion(context)).rejects.toThrow(

@@ -66,8 +66,8 @@ export class RandomEndpoint extends BaseEndpoint {
 		const count = ctx.params.count ?? MAX_HASH_COMPUTATION;
 		const distance = ctx.params.distance ?? 1000;
 
-		if (distance > count) {
-			throw new Error('Invalid distance. Distance must be less than or equal to count.');
+		if (count % distance !== 0) {
+			throw new Error('Invalid count. Count must be multiple of distance.');
 		}
 
 		let hashes: Buffer[];
@@ -76,9 +76,7 @@ export class RandomEndpoint extends BaseEndpoint {
 			if (!ctx.params.count || !ctx.params.distance) {
 				throw new Error('Hashes must be provided with count and distance.');
 			}
-			if (count % distance !== 0) {
-				throw new Error('Invalid count. Count must be multiple of distance.');
-			}
+
 			const expectedLength = count / distance + 1;
 			if (ctx.params.hashes.length !== expectedLength) {
 				throw new Error(`Invalid length of hashes. hashes must have ${expectedLength} elements.`);
