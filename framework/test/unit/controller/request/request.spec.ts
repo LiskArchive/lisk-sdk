@@ -30,6 +30,13 @@ describe('Request class', () => {
 			);
 		});
 
+		it('should throw error with control characters', () => {
+			// Act & Assert
+			expect(() => new Request(0, 'invalid char \n\r \t')).toThrow(
+				`Request name "invalid char  " must be a valid name with module name and action name.`,
+			);
+		});
+
 		it('should initialize the instance correctly when valid arguments were provided.', () => {
 			// Act
 			const action = new Request(0, VALID_ACTION_NAME_ARG, PARAMS);

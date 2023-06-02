@@ -48,7 +48,7 @@ export class InMemoryChannel extends BaseChannel {
 
 	public async registerToBus(bus: Bus): Promise<void> {
 		this.bus = bus;
-		const endpointInfo = Object.keys(this.endpointHandlers).reduce(
+		const endpointInfo = [...this.endpointHandlers.keys()].reduce(
 			(prev, methodName) => ({
 				...prev,
 				[methodName]: {
@@ -97,15 +97,11 @@ export class InMemoryChannel extends BaseChannel {
 		const request = new Request(this._getNextRequestId(), req.methodName, req.params);
 
 		if (request.namespace === this.namespace) {
-			if (this.endpointHandlers[request.name] === undefined) {
+			const handler = this.endpointHandlers.get(request.name);
+			if (!handler) {
 				throw new Error(
 					`The action '${request.name}' on module '${this.namespace}' does not exist.`,
 				);
-			}
-
-			const handler = this.endpointHandlers[request.name];
-			if (!handler) {
-				throw new Error('Handler does not exist.');
 			}
 
 			const offchainStore = new StateStore(this._moduleDB);
