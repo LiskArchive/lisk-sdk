@@ -17,7 +17,7 @@ import { address, bls } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { BaseCommand } from '../../base_command';
-import { updateAuthorityValidatorSchema, validatorSignatureMessageSchema } from '../schemas';
+import { updateAuthoritySchema, validatorSignatureMessageSchema } from '../schemas';
 import {
 	COMMAND_UPDATE_AUTHORITY,
 	MAX_NUM_VALIDATORS,
@@ -37,7 +37,7 @@ import { ValidatorsMethod } from '../../pos/types';
 import { AuthorityUpdateEvent } from '../events/authority_update';
 
 export class UpdateAuthorityCommand extends BaseCommand {
-	public schema = updateAuthorityValidatorSchema;
+	public schema = updateAuthoritySchema;
 	private _validatorsMethod!: ValidatorsMethod;
 
 	public get name(): string {
@@ -53,7 +53,7 @@ export class UpdateAuthorityCommand extends BaseCommand {
 	): Promise<VerificationResult> {
 		const { newValidators, threshold, validatorsUpdateNonce } = context.params;
 		try {
-			validator.validate(updateAuthorityValidatorSchema, context.params);
+			validator.validate(updateAuthoritySchema, context.params);
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,

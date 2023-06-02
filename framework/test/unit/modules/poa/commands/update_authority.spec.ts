@@ -22,7 +22,7 @@ import {
 	MODULE_NAME_POA,
 	UpdateAuthority,
 } from '../../../../../src/modules/poa/constants';
-import { updateAuthorityValidatorSchema } from '../../../../../src/modules/poa/schemas';
+import { updateAuthoritySchema } from '../../../../../src/modules/poa/schemas';
 import * as testing from '../../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
@@ -68,7 +68,7 @@ describe('UpdateAuthority', () => {
 	const buildUpdateAuthorityValidatorParams = (
 		params: Partial<UpdateAuthorityValidatorParams>,
 	): Buffer =>
-		codec.encode(updateAuthorityValidatorSchema, {
+		codec.encode(updateAuthoritySchema, {
 			newValidators: params.newValidators ?? updateAuthorityValidatorParams.newValidators,
 			threshold: params.threshold ?? updateAuthorityValidatorParams.threshold,
 			validatorsUpdateNonce:
@@ -88,8 +88,7 @@ describe('UpdateAuthority', () => {
 			nonce: transaction.nonce ?? BigInt(0),
 			fee: transaction.fee ?? AUTHORITY_REGISTRATION_FEE,
 			params:
-				transaction.params ??
-				codec.encode(updateAuthorityValidatorSchema, updateAuthorityValidatorParams),
+				transaction.params ?? codec.encode(updateAuthoritySchema, updateAuthorityValidatorParams),
 			signatures: transaction.signatures ?? [publicKey],
 		});
 	};
@@ -132,7 +131,7 @@ describe('UpdateAuthority', () => {
 					transaction: buildTransaction({}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthorityValidatorSchema);
+				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
 		});
 
 		it('should return error when length of newValidators less than 1', async () => {
@@ -146,7 +145,7 @@ describe('UpdateAuthority', () => {
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthorityValidatorSchema);
+				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
 				'Invalid number of newValidators.',
@@ -167,7 +166,7 @@ describe('UpdateAuthority', () => {
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthorityValidatorSchema);
+				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
 				'Invalid number of newValidators.',
@@ -194,7 +193,7 @@ describe('UpdateAuthority', () => {
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthorityValidatorSchema);
+				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
 				'Addresses in newValidators are not lexicographical ordered.',
@@ -218,7 +217,7 @@ describe('UpdateAuthority', () => {
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthorityValidatorSchema);
+				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
 				`${address.getLisk32AddressFromPublicKey(validator2)} is not a valid validator.`,
@@ -245,7 +244,7 @@ describe('UpdateAuthority', () => {
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthorityValidatorSchema);
+				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
 				'TotalWeight out of range.',
@@ -263,7 +262,7 @@ describe('UpdateAuthority', () => {
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthorityValidatorSchema);
+				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow('Invalid threshold.');
 		});
@@ -279,7 +278,7 @@ describe('UpdateAuthority', () => {
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthorityValidatorSchema);
+				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow('Invalid threshold.');
 		});
@@ -295,7 +294,7 @@ describe('UpdateAuthority', () => {
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthorityValidatorSchema);
+				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
 				'Invalid validatorsUpdateNonce.',
@@ -335,9 +334,7 @@ describe('UpdateAuthority', () => {
 					transaction: buildTransaction({}),
 					chainID,
 				})
-				.createCommandExecuteContext<UpdateAuthorityValidatorParams>(
-					updateAuthorityValidatorSchema,
-				);
+				.createCommandExecuteContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
 
 			await snapshotStore.set(createStoreGetter(stateStore), Buffer.from([0]), {
 				validators: [],
