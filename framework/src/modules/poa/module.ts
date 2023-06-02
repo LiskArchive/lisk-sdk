@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { utils } from '@liskhq/lisk-cryptography';
+import { codec } from '@liskhq/lisk-codec';
 import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleMetadata } from '../base_module';
@@ -19,12 +21,11 @@ import { PoAMethod } from './method';
 import { PoAEndpoint } from './endpoint';
 import { AuthorityUpdateEvent } from './events/authority_update';
 import { ChainPropertiesStore, ValidatorStore, NameStore, SnapshotStore } from './stores';
-import { BlockAfterExecuteContext } from '../../state_machine';
+import { BlockAfterExecuteContext, GenesisBlockExecuteContext } from '../../state_machine';
 import { MODULE_NAME_POA, EMPTY_BYTES, KEY_SNAPSHOT_0, KEY_SNAPSHOT_1, KEY_SNAPSHOT_2 } from './constants';
 import { shuffleValidatorList } from './utils';
 import { NextValidatorsSetter, MethodContext } from '../../state_machine/types';
-import { GenesisBlockExecuteContext } from '../../state_machine';
-import { FeeMethod, GenesisPoAStore, RandomMethod, ValidatorsMethod } from './types';
+import { FeeMethod, GenesisPoAStore, ValidatorsMethod, RandomMethod } from './types';
 import { genesisPoAStoreSchema } from './schemas';
 
 export class PoAModule extends BaseModule {
@@ -54,7 +55,7 @@ export class PoAModule extends BaseModule {
 
 		// TODO: Remove it after the usage of these methods is implemented
 		// eslint-disable-next-line no-console
-		console.log(this._validatorsMethod, this._feeMethod);
+		console.log(this._validatorsMethod, this._feeMethod, this._randomMethod);
 	}
 
 	public metadata(): ModuleMetadata {
@@ -116,79 +117,75 @@ export class PoAModule extends BaseModule {
 		if (!genesisBlockAssetBytes) {
 			return;
 		}
-		const asset = codec.decode<GenesisPoAStore>(
-			genesisPoAStoreSchema,
-			genesisBlockAssetBytes,
-		);
-		validator.validate<GenesisPoAStore>(
-			genesisPoAStoreSchema,
-			asset,
-		);
+		const asset = codec.decode<GenesisPoAStore>(genesisPoAStoreSchema, genesisBlockAssetBytes);
+		validator.validate<GenesisPoAStore>(genesisPoAStoreSchema, asset);
 
 		const { validators, snapshotSubstore } = asset;
 
 		// Check that the name property of all entries in the validators array are pairwise distinct.
 		const validatorNames = validators.map(v => v.name);
 		if (validatorNames.length !== new Set(validatorNames).size) {
-			throw new Error('`name` property of all entries in the validators of poa genesis asset must be distinct.');
+			throw new Error('`name` property of all entries in the validators must be distinct.');
 		}
 
 		// Check that the address properties of all entries in the validators array are pairwise distinct.
 		const validatorAddresses = validators.map(v => v.address);
 		if (!objects.bufferArrayUniqueItems(validatorAddresses)) {
-			throw new Error('`address` property of all entries in validators of poa genesis asset must be distinct.');
+			throw new Error('`address` property of all entries in validators must be distinct.');
 		}
 
 		const sortedValidatorsByAddress = [...validatorAddresses].sort((a, b) => a.compare(b));
 		for (let i = 0; i < validators.length; i += 1) {
-			// Check that entries in the validators array are ordered lexicographically according to address.			
+			// Check that entries in the validators array are ordered lexicographically according to address.
 			if (!validatorAddresses[i].equals(sortedValidatorsByAddress[i])) {
-				throw new Error('`validators` of PoA genesis asset must be ordered lexicographically by address.');
+				throw new Error('`validators` must be ordered lexicographically by address.');
 			}
 
 			if (!/^[a-z0-9!@$&_.]+$/g.test(validators[i].name)) {
-				throw new Error('`name` property is invalid for validator in poa genesis asset. Must contain only characters a-z0-9!@$&_.');
+				throw new Error('`name` property is invalid. Must contain only characters a-z0-9!@$&_.');
 			}
 		}
 
 		const { activeValidators, threshold } = snapshotSubstore;
 		const activeValidatorAddresses = activeValidators.map(v => v.address);
-		const sortedActiveValidatorsByAddress = [...activeValidatorAddresses].sort((a, b) => a.compare(b));
+		const sortedActiveValidatorsByAddress = [...activeValidatorAddresses].sort((a, b) =>
+			a.compare(b),
+		);
 		let totalWeight = BigInt(0);
 
 		// Check that the address properties of entries in the snapshotSubstore.activeValidators are pairwise distinct.
 		if (!objects.bufferArrayUniqueItems(activeValidatorAddresses)) {
-			throw new Error('All address properties in active validators must be distinct.');
+			throw new Error('`address` properties in `activeValidators` must be distinct.');
 		}
 
 		for (let i = 0; i < activeValidators.length; i += 1) {
 			// Check that entries in the snapshotSubstore.activeValidators array are ordered lexicographically according to address.
 			if (!activeValidators[i].address.equals(sortedActiveValidatorsByAddress[i])) {
-				throw new Error('Active validators must be ordered lexicographically by address property.');
+				throw new Error(
+					'`activeValidators` must be ordered lexicographically by address property.',
+				);
 			}
 
 			// Check that for every element activeValidator in the snapshotSubstore.activeValidators array, there is an entry validator in the validators array with validator.address == activeValidator.address.
 			if (validatorAddresses.includes(activeValidators[i].address)) {
-				throw new Error('Active validator address is missing from validators array.');
+				throw new Error('An item from `activeValidators` is missing from validators array.');
 			}
 
 			// Check that the weight property of every entry in the snapshotSubstore.activeValidators array is a positive integer.
 			if (activeValidators[i].weight <= BigInt(0)) {
-				throw new Error('Active validator weight must be positive integer.');
+				throw new Error('`activeValidators` weight must be positive integer.');
 			}
 
 			totalWeight += activeValidators[i].weight;
-			
+
 			if (totalWeight > MAX_UINT64) {
-				throw new Error('Total weight exceeds maximum value.');
+				throw new Error('Total weight `activeValidators` exceeds maximum value.');
 			}
 		}
 
-		// Check that the value of snapshotSubstore.threshold is within range 
-		if (
-			threshold < totalWeight / BigInt(3) + BigInt(1) || threshold > totalWeight
-		) {
-			throw new Error('Invalid threshold value in snapshotSubstore.');
+		// Check that the value of snapshotSubstore.threshold is within range
+		if (threshold < totalWeight / BigInt(3) + BigInt(1) || threshold > totalWeight) {
+			throw new Error('Invalid `threshold` value in `snapshotSubstore`.');
 		}
 
 		// Create an entry in the validator substore for each entry validator in the validators
@@ -198,18 +195,24 @@ export class PoAModule extends BaseModule {
 
 		for (const currentValidator of validators) {
 			await validatorStore.set(context, currentValidator.address, currentValidator);
-			await nameStore.set(context, currentValidator.name, { address: currentValidator.address });
+			await nameStore.set(context, Buffer.from(currentValidator.name, 'utf-8'), {
+				address: currentValidator.address,
+			});
 		}
 
 		// Create three entries in the snapshot substore indicating a snapshot of the next rounds of validators
 		const snapshotStore = this.stores.get(SnapshotStore);
-		await snapshotStore.set(context, uint32BE(0), snapshotSubstore);
-		await snapshotStore.set(context, uint32BE(1), snapshotSubstore);
-		await snapshotStore.set(context, uint32BE(2), snapshotSubstore);
+
+		await snapshotStore.set(context, utils.intToBuffer(0, 4), snapshotSubstore);
+		await snapshotStore.set(context, utils.intToBuffer(1, 4), snapshotSubstore);
+		await snapshotStore.set(context, utils.intToBuffer(2, 4), snapshotSubstore);
 
 		// Create an entry in the chain properties substore
 		const { header } = context;
 		const chainPropertiesStore = this.stores.get(ChainPropertiesStore);
-		await chainPropertiesStore.set(context, EMPTY_BYTES, { roundEndHeight: header.height, validatorsUpdateNonce: 0 });
+		await chainPropertiesStore.set(context, EMPTY_BYTES, {
+			roundEndHeight: header.height,
+			validatorsUpdateNonce: 0,
+		});
 	}
 }
