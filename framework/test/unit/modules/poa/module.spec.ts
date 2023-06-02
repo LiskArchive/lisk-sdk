@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { bls, utils } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { BlockAssets } from '@liskhq/lisk-chain';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB, createBlockContext, createGenesisBlockContext, createTransientMethodContext } from '../../../../src/testing';
@@ -268,27 +268,11 @@ describe('PoA module', () => {
 	describe('initGenesisState', () => {
 		let stateStore: PrefixedStateReadWriter;
 		let poa: PoAModule;
-		let privateKeys: Buffer[];
-		let validators: any[];
 
 		beforeEach(() => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			poa = new PoAModule();
 			poa.addDependencies(validatorMethod, feeMethod, randomMethod);
-			privateKeys = Array.from({ length: 103 }, _ =>
-				bls.generatePrivateKey(utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH)),
-			);
-			validators = privateKeys.map(
-				(privateKey, i) =>
-				({
-					address: utils.getRandomBytes(20),
-					name: `${i}`,
-					blsKey: bls.getPublicKeyFromPrivateKey(privateKey),
-					proofOfPosession: utils.getRandomBytes(LENGTH_PROOF_OF_POSSESSION),
-					generatorKey: utils.getRandomBytes(LENGTH_GENERATOR_KEY),
-				} as any),
-			);
-			validators.sort((a, b) => a.address.compare(b.address));
 		});
 
 		it('should not throw error if asset does not exist', async () => {
