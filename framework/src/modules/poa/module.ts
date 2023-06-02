@@ -44,6 +44,10 @@ export class PoAModule extends BaseModule {
 		this.stores.register(SnapshotStore, new SnapshotStore(this.name, 3));
 	}
 
+	public get name() {
+		return 'poa';
+	}
+
 	public addDependencies(
 		validatorsMethod: ValidatorsMethod,
 		feeMethod: FeeMethod,
@@ -151,6 +155,7 @@ export class PoAModule extends BaseModule {
 		const sortedActiveValidatorsByAddress = [...activeValidatorAddresses].sort((a, b) =>
 			a.compare(b),
 		);
+		const validatorAddressesString = validatorAddresses.map(a => a.toString('hex'));
 		let totalWeight = BigInt(0);
 
 		// Check that the address properties of entries in the snapshotSubstore.activeValidators are pairwise distinct.
@@ -167,8 +172,8 @@ export class PoAModule extends BaseModule {
 			}
 
 			// Check that for every element activeValidator in the snapshotSubstore.activeValidators array, there is an entry validator in the validators array with validator.address == activeValidator.address.
-			if (validatorAddresses.includes(activeValidators[i].address)) {
-				throw new Error('An item from `activeValidators` is missing from validators array.');
+			if (!validatorAddressesString.includes(activeValidators[i].address.toString('hex'))) {
+				throw new Error('`activeValidator` address is missing from validators array.');
 			}
 
 			// Check that the weight property of every entry in the snapshotSubstore.activeValidators array is a positive integer.
@@ -185,7 +190,7 @@ export class PoAModule extends BaseModule {
 
 		// Check that the value of snapshotSubstore.threshold is within range
 		if (threshold < totalWeight / BigInt(3) + BigInt(1) || threshold > totalWeight) {
-			throw new Error('Invalid `threshold` value in `snapshotSubstore`.');
+			throw new Error('`threshold` in snapshot substore is not within range.');
 		}
 
 		// Create an entry in the validator substore for each entry validator in the validators
@@ -194,7 +199,7 @@ export class PoAModule extends BaseModule {
 		const nameStore = this.stores.get(NameStore);
 
 		for (const currentValidator of validators) {
-			await validatorStore.set(context, currentValidator.address, currentValidator);
+			await validatorStore.set(context, currentValidator.address, { name: currentValidator.name });
 			await nameStore.set(context, Buffer.from(currentValidator.name, 'utf-8'), {
 				address: currentValidator.address,
 			});
@@ -202,7 +207,6 @@ export class PoAModule extends BaseModule {
 
 		// Create three entries in the snapshot substore indicating a snapshot of the next rounds of validators
 		const snapshotStore = this.stores.get(SnapshotStore);
-
 		await snapshotStore.set(context, utils.intToBuffer(0, 4), snapshotSubstore);
 		await snapshotStore.set(context, utils.intToBuffer(1, 4), snapshotSubstore);
 		await snapshotStore.set(context, utils.intToBuffer(2, 4), snapshotSubstore);

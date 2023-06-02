@@ -183,6 +183,7 @@ export const genesisPoAStoreSchema = {
 		},
 		snapshotSubstore: {
 			type: 'object',
+			fieldNumber: 2,
 			properties: {
 				activeValidators: {
 					type: 'array',

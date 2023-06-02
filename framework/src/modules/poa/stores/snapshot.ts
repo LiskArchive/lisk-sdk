@@ -20,16 +20,16 @@ export interface Validator {
 	weight: bigint;
 }
 export interface SnapshotObject {
-	activeValidators: ActiveValidator[];
+	validators: ActiveValidator[];
 	threshold: bigint;
 }
 
 export const snapshotSchema = {
 	$id: '/poa/snapshot',
 	type: 'object',
-	required: ['validators', 'threshold'],
+	required: ['activeValidators', 'threshold'],
 	properties: {
-		validators: {
+		activeValidators: {
 			type: 'array',
 			fieldNumber: 1,
 			items: {
