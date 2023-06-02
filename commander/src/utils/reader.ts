@@ -14,7 +14,6 @@
  *
  */
 import { Schema } from '@liskhq/lisk-codec';
-import * as liskPassphrase from '@liskhq/lisk-passphrase';
 
 import * as path from 'path';
 import * as fs from 'fs';
@@ -22,11 +21,6 @@ import * as inquirer from 'inquirer';
 import * as readline from 'readline';
 
 import { FileSystemError, ValidationError } from './error';
-
-interface MnemonicError {
-	readonly code: string;
-	readonly message: string;
-}
 
 interface PropertyValue {
 	readonly dataType: string;
@@ -91,27 +85,6 @@ export const getPassphraseFromPrompt = async (
 	if (!passphrase || (shouldConfirm && passphrase !== passphraseRepeat)) {
 		throw new ValidationError(getPromptVerificationFailError(displayName));
 	}
-
-	const passphraseErrors = [passphrase]
-		.filter(Boolean)
-		.map(pass =>
-			liskPassphrase.validation
-				.getPassphraseValidationErrors(pass as string)
-				.filter((error: MnemonicError) => error.message),
-		);
-
-	passphraseErrors.forEach(errors => {
-		if (errors.length > 0) {
-			const passphraseWarning = errors
-				.filter((error: MnemonicError) => error.code !== 'INVALID_MNEMONIC')
-				.reduce(
-					(accumulator: string, error: MnemonicError) =>
-						accumulator.concat(`${error.message.replace(' Please check the passphrase.', '')} `),
-					'Warning: ',
-				);
-			console.warn(passphraseWarning);
-		}
-	});
 
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 	return passphrase;
