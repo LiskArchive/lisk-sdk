@@ -43,7 +43,7 @@ export const transferParamsSchema = {
 export const crossChainNFTTransferMessageParamsSchema = {
 	$id: '/lisk/crossChainNFTTransferMessageParamsSchmema',
 	type: 'object',
-	required: ['nftID', 'senderAddress', 'recipientAddress', 'attributes', 'data'],
+	required: ['nftID', 'senderAddress', 'recipientAddress', 'attributesArray', 'data'],
 	properties: {
 		nftID: {
 			dataType: 'bytes',
@@ -61,7 +61,7 @@ export const crossChainNFTTransferMessageParamsSchema = {
 			format: 'lisk32',
 			fieldNumber: 3,
 		},
-		attributes: {
+		attributesArray: {
 			type: 'array',
 			fieldNumber: 4,
 			items: {
@@ -89,3 +89,11 @@ export const crossChainNFTTransferMessageParamsSchema = {
 		},
 	},
 };
+
+export interface CCTransferMessageParams {
+	nftID: Buffer;
+	attributes: { module: string; attributes: Buffer }[];
+	senderAddress: Buffer;
+	recipientAddress: Buffer;
+	data: string;
+}

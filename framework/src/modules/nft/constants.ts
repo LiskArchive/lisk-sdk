@@ -21,6 +21,10 @@ export const LENGTH_ADDRESS = 20;
 export const MODULE_NAME_NFT = 'nft';
 export const NFT_NOT_LOCKED = MODULE_NAME_NFT;
 export const CROSS_CHAIN_COMMAND_NAME_TRANSFER = 'crossChainTransfer';
+export const CCM_STATUS_CODE_OK = 0;
+export const EMPTY_BYTES = Buffer.alloc(0);
+export const ALL_SUPPORTED_NFTS_KEY = EMPTY_BYTES;
+export const FEE_CREATE_NFT = 5000000;
 
 export const enum NftEventResult {
 	RESULT_SUCCESSFUL = 0,

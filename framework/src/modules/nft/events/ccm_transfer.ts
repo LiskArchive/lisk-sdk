@@ -58,4 +58,8 @@ export class CcmTransferEvent extends BaseEvent<CCMTransferEventData & { result:
 			data.recipientAddress,
 		]);
 	}
+
+	public error(ctx: EventQueuer, data: CCMTransferEventData, result: NftEventResult): void {
+		this.add(ctx, { ...data, result }, [data.senderAddress, data.recipientAddress], true);
+	}
 }

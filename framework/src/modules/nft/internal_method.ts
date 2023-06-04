@@ -168,4 +168,8 @@ export class InternalMethod extends BaseMethod {
 			}),
 		);
 	}
+
+	public getOwnChainID(): Buffer {
+		return this._config.ownChainID;
+	}
 }
