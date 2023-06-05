@@ -103,6 +103,11 @@ describe('keys:export', () => {
 				data: await encrypt.encryptAES256GCMWithPassword(
 					codec.encode(plainGeneratorKeysSchema, defaultKeys),
 					defaultPassword,
+					{
+						kdfparams: {
+							memorySize: 2048,
+						},
+					},
 				),
 			};
 		});

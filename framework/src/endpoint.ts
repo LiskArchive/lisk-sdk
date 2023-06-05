@@ -20,7 +20,7 @@ export const isReservedEndpointFunction = (key: string): boolean =>
 	key.startsWith('_') || reservedEndpointName.includes(key);
 
 export const getEndpointHandlers = (endpoint: Record<string, unknown>): EndpointHandlers => {
-	const endpointHandlers: EndpointHandlers = {};
+	const endpointHandlers: EndpointHandlers = new Map();
 	let isBaseEndpoint;
 	let localEndpoint = endpoint;
 
@@ -29,7 +29,7 @@ export const getEndpointHandlers = (endpoint: Record<string, unknown>): Endpoint
 		for (const key of Object.getOwnPropertyNames(localEndpoint)) {
 			const val = localEndpoint[key];
 			if (!isReservedEndpointFunction(key) && typeof val === 'function') {
-				endpointHandlers[key] = val.bind(endpoint) as EndpointHandler;
+				endpointHandlers.set(key, val.bind(endpoint) as EndpointHandler);
 			}
 		}
 
@@ -42,12 +42,6 @@ export const getEndpointHandlers = (endpoint: Record<string, unknown>): Endpoint
 };
 
 export const mergeEndpointHandlers = (...handlers: EndpointHandlers[]): EndpointHandlers =>
-	handlers.reduce(
-		(prev, curr) => ({
-			...prev,
-			...curr,
-		}),
-		{},
-	);
+	handlers.reduce<EndpointHandlers>((prev, curr) => new Map([...prev, ...curr]), new Map());
 
 export const getEndpointPath = (namespace: string, method: string) => `${namespace}_${method}`;

@@ -18,7 +18,7 @@ import { createLogger, Logger } from '../logger';
 import { getEndpointHandlers } from '../endpoint';
 import { BasePlugin } from '../plugins/base_plugin';
 import { systemDirs } from '../system_dirs';
-import { ApplicationConfigForPlugin, PluginConfig, SocketPaths } from '../types';
+import { ApplicationConfigForPlugin, EndpointHandler, PluginConfig, SocketPaths } from '../types';
 import { IPCChannel } from './channels';
 
 type InstantiablePlugin<T extends BasePlugin = BasePlugin> = new () => T;
@@ -47,7 +47,7 @@ const _loadPlugin = async (
 		logger,
 		pluginName,
 		plugin.events,
-		plugin.endpoint ? getEndpointHandlers(plugin.endpoint) : {},
+		plugin.endpoint ? getEndpointHandlers(plugin.endpoint) : new Map<string, EndpointHandler>(),
 		Buffer.from(appConfig.genesis.chainID, 'hex'),
 		{
 			socketsPath: dirs.sockets,
