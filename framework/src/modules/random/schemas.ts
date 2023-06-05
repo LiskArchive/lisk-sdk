@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ADDRESS_LENGTH, SEED_LENGTH } from './constants';
+import { ADDRESS_LENGTH, MAX_HASH_COMPUTATION, SEED_LENGTH } from './constants';
 import { UsedHashOnion } from './stores/used_hash_onions';
 
 interface AddressRequest {
@@ -23,6 +23,7 @@ export interface SetHashOnionRequest extends AddressRequest {
 	seed?: string | undefined;
 	count?: number | undefined;
 	distance?: number | undefined;
+	hashes?: string[] | undefined;
 }
 
 export const hashOnionSchema = {
@@ -38,14 +39,27 @@ export const hashOnionSchema = {
 		seed: {
 			type: 'string',
 			format: 'hex',
+			minLength: SEED_LENGTH * 2,
+			maxLength: SEED_LENGTH * 2,
 		},
 		count: {
 			type: 'integer',
 			minimum: 1,
+			maximum: MAX_HASH_COMPUTATION * 1000,
 		},
 		distance: {
 			type: 'integer',
 			minimum: 1,
+		},
+		hashes: {
+			type: 'array',
+			minItems: 1,
+			items: {
+				type: 'string',
+				format: 'hex',
+				minLength: SEED_LENGTH * 2,
+				maxLength: SEED_LENGTH * 2,
+			},
 		},
 	},
 };
