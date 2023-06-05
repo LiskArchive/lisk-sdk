@@ -13,7 +13,7 @@
  */
 
 import { strict as assert } from 'assert';
-import { actionWithModuleNameReg } from '../constants';
+import { actionWithModuleNameReg, controlReg } from '../constants';
 import { getEndpointPath } from '../endpoint';
 import {
 	ID,
@@ -33,7 +33,10 @@ export class Request {
 	public constructor(id: ID, name: string, params?: Record<string, unknown>) {
 		assert(
 			actionWithModuleNameReg.test(name),
-			`Request name "${name}" must be a valid name with module name and action name.`,
+			`Request name "${name.replace(
+				controlReg,
+				'',
+			)}" must be a valid name with module name and action name.`,
 		);
 
 		this.id = id;

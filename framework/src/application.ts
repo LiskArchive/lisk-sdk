@@ -373,13 +373,13 @@ export class Application {
 	}
 
 	private _rootEndpoints(): EndpointHandlers {
-		const applicationEndpoint: EndpointHandlers = {
+		const applicationEndpoint: EndpointHandlers = new Map([
 			// eslint-disable-next-line @typescript-eslint/require-await
-			getRegisteredActions: async (_: PluginEndpointContext) => this._controller.getEndpoints(),
+			['getRegisteredActions', async (_: PluginEndpointContext) => this._controller.getEndpoints()],
 			// eslint-disable-next-line @typescript-eslint/require-await
-			getRegisteredEvents: async (_: PluginEndpointContext) => this._controller.getEvents(),
-		};
-		return mergeEndpointHandlers(applicationEndpoint, {});
+			['getRegisteredEvents', async (_: PluginEndpointContext) => this._controller.getEvents()],
+		]);
+		return mergeEndpointHandlers(applicationEndpoint, new Map());
 	}
 
 	private async _setupDirectories(): Promise<void> {
