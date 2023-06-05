@@ -15,7 +15,6 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
-import { validator } from '@liskhq/lisk-validator';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -49,18 +48,6 @@ export class InitializeMessageRecoveryCommand extends BaseInteroperabilityComman
 		context: CommandVerifyContext<MessageRecoveryInitializationParams>,
 	): Promise<VerificationResult> {
 		const { params } = context;
-
-		try {
-			validator.validate<MessageRecoveryInitializationParams>(
-				messageRecoveryInitializationParamsSchema,
-				context.params,
-			);
-		} catch (err) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: err as Error,
-			};
-		}
 
 		const ownchainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
 		const mainchainID = getMainchainID(ownchainAccount.chainID);

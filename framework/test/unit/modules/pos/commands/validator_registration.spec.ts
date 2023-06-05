@@ -13,6 +13,7 @@
  */
 
 import { Transaction } from '@liskhq/lisk-chain';
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../../../src/testing';
@@ -126,6 +127,57 @@ describe('Validator registration command', () => {
 		jest.spyOn(validatorRegisteredEvent, 'log');
 	});
 
+	describe('verify schema', () => {
+		it('should return error if name is longer than MAX_LENGTH_NAME characters long', () => {
+			expect(() =>
+				validator.validate(validatorRegistrationCommand.schema, {
+					...transactionParams,
+					name: 'esdfgvhbjnkljdseasexdcrfgvhbjkhbgvfcdxszasdfghjkhnbgvfcdsxsdfcgvhb',
+				}),
+			).toThrow(
+				"Lisk validator found 1 error[s]:\nProperty '.name' must NOT have more than 20 characters",
+			);
+		});
+
+		it('should return error if name is less than 1 character long', () => {
+			expect(() =>
+				validator.validate(validatorRegistrationCommand.schema, {
+					...transactionParams,
+					name: '',
+				}),
+			).toThrow(
+				"Lisk validator found 1 error[s]:\nProperty '.name' must NOT have fewer than 1 characters",
+			);
+		});
+
+		it('should return error if generatorKey is invalid', () => {
+			expect(() =>
+				validator.validate(validatorRegistrationCommand.schema, {
+					...transactionParams,
+					generatorKey: utils.getRandomBytes(64),
+				}),
+			).toThrow("Property '.generatorKey' maxLength exceeded");
+		});
+
+		it('should return error if blsKey is invalid', () => {
+			expect(() =>
+				validator.validate(validatorRegistrationCommand.schema, {
+					...transactionParams,
+					blsKey: utils.getRandomBytes(64),
+				}),
+			).toThrow("Property '.blsKey' maxLength exceeded");
+		});
+
+		it('should return error if proofOfPossession is invalid', () => {
+			expect(() =>
+				validator.validate(validatorRegistrationCommand.schema, {
+					...transactionParams,
+					proofOfPossession: utils.getRandomBytes(64),
+				}),
+			).toThrow("'.proofOfPossession' minLength not satisfied");
+		});
+	});
+
 	describe('verify', () => {
 		it('should return status OK for valid params', async () => {
 			const context = testing
@@ -167,150 +219,6 @@ describe('Validator registration command', () => {
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude("'name' is in an unsupported format");
-		});
-
-		it('should return error if name is longer than MAX_LENGTH_NAME characters long', async () => {
-			const invalidParams = codec.encode(validatorRegistrationCommandParamsSchema, {
-				...transactionParams,
-				name: 'esdfgvhbjnkljdseasexdcrfgvhbjkhbgvfcdxszasdfghjkhnbgvfcdsxsdfcgvhb',
-			});
-			const invalidTransaction = new Transaction({
-				module: 'pos',
-				command: 'registerValidator',
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: invalidParams,
-				signatures: [publicKey],
-			});
-			const context = testing
-				.createTransactionContext({
-					transaction: invalidTransaction,
-					chainID,
-				})
-				.createCommandVerifyContext<ValidatorRegistrationParams>(
-					validatorRegistrationCommandParamsSchema,
-				);
-			const result = await validatorRegistrationCommand.verify(context);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				"Lisk validator found 1 error[s]:\nProperty '.name' must NOT have more than 20 characters",
-			);
-		});
-
-		it('should return error if name is less than 1 character long', async () => {
-			const invalidParams = codec.encode(validatorRegistrationCommandParamsSchema, {
-				...transactionParams,
-				name: '',
-			});
-			const invalidTransaction = new Transaction({
-				module: 'pos',
-				command: 'registerValidator',
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: invalidParams,
-				signatures: [publicKey],
-			});
-			const context = testing
-				.createTransactionContext({
-					transaction: invalidTransaction,
-					chainID,
-				})
-				.createCommandVerifyContext<ValidatorRegistrationParams>(
-					validatorRegistrationCommandParamsSchema,
-				);
-			const result = await validatorRegistrationCommand.verify(context);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				"Lisk validator found 1 error[s]:\nProperty '.name' must NOT have fewer than 1 characters",
-			);
-		});
-
-		it('should return error if generatorKey is invalid', async () => {
-			const invalidParams = codec.encode(validatorRegistrationCommandParamsSchema, {
-				...transactionParams,
-				generatorKey: utils.getRandomBytes(64),
-			});
-			const invalidTransaction = new Transaction({
-				module: 'pos',
-				command: 'registerValidator',
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: invalidParams,
-				signatures: [publicKey],
-			});
-			const context = testing
-				.createTransactionContext({
-					transaction: invalidTransaction,
-					chainID,
-				})
-				.createCommandVerifyContext<ValidatorRegistrationParams>(
-					validatorRegistrationCommandParamsSchema,
-				);
-			const result = await validatorRegistrationCommand.verify(context);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude("Property '.generatorKey' maxLength exceeded");
-		});
-
-		it('should return error if blsKey is invalid', async () => {
-			const invalidParams = codec.encode(validatorRegistrationCommandParamsSchema, {
-				...transactionParams,
-				blsKey: utils.getRandomBytes(64),
-			});
-			const invalidTransaction = new Transaction({
-				module: 'pos',
-				command: 'registerValidator',
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: invalidParams,
-				signatures: [publicKey],
-			});
-			const context = testing
-				.createTransactionContext({
-					transaction: invalidTransaction,
-					chainID,
-				})
-				.createCommandVerifyContext<ValidatorRegistrationParams>(
-					validatorRegistrationCommandParamsSchema,
-				);
-			const result = await validatorRegistrationCommand.verify(context);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude("Property '.blsKey' maxLength exceeded");
-		});
-
-		it('should return error if proofOfPossession is invalid', async () => {
-			const invalidParams = codec.encode(validatorRegistrationCommandParamsSchema, {
-				...transactionParams,
-				proofOfPossession: utils.getRandomBytes(64),
-			});
-			const invalidTransaction = new Transaction({
-				module: 'pos',
-				command: 'registerValidator',
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: invalidParams,
-				signatures: [publicKey],
-			});
-			const context = testing
-				.createTransactionContext({
-					transaction: invalidTransaction,
-					chainID,
-				})
-				.createCommandVerifyContext<ValidatorRegistrationParams>(
-					validatorRegistrationCommandParamsSchema,
-				);
-			const result = await validatorRegistrationCommand.verify(context);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude("'.proofOfPossession' minLength not satisfied");
 		});
 
 		it('should return error if store key name already exists in name store', async () => {

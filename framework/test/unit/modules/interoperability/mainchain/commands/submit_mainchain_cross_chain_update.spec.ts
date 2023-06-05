@@ -14,6 +14,7 @@
 /* eslint-disable max-classes-per-file */
 
 import { bls, utils } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import {
 	CommandExecuteContext,
@@ -283,6 +284,17 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 		jest.spyOn(bls, 'verifyWeightedAggSig').mockReturnValue(true);
 	});
 
+	describe('verify schema', () => {
+		it('should reject when ccu params validation fails', () => {
+			expect(() =>
+				validator.validate(mainchainCCUUpdateCommand.schema, {
+					...params,
+					sendingChainID: 2,
+				}),
+			).toThrow('.sendingChainID');
+		});
+	});
+
 	describe('verify', () => {
 		const activeValidators = [
 			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) },
@@ -309,15 +321,6 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			jest
 				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'isLive')
 				.mockResolvedValue(true);
-		});
-
-		it('should reject when ccu params validation fails', async () => {
-			await expect(
-				mainchainCCUUpdateCommand.verify({
-					...verifyContext,
-					params: { ...params, sendingChainID: 2 } as any,
-				}),
-			).rejects.toThrow('.sendingChainID');
 		});
 
 		it('should reject when certificate and inboxUpdate are empty', async () => {

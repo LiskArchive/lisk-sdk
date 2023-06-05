@@ -14,6 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 import { CommandExecuteContext } from '../../state_machine';
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
@@ -205,8 +206,28 @@ export abstract class BaseCrossChainUpdateCommand<
 			);
 			return;
 		}
+
+		try {
+			validator.validate(command.schema, codec.decode(command.schema, context.ccm.params));
+		} catch (error) {
+			logger.info(
+				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+				'Invalid CCM params.',
+			);
+			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccm,
+				result: CCMProcessedResult.DISCARDED,
+				code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+			});
+			return;
+		}
+
 		if (command.verify) {
 			try {
+				if (command.schema) {
+					validator.validate(command.schema, context.ccm.params);
+				}
 				await command.verify(context);
 			} catch (error) {
 				logger.info(

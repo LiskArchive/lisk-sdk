@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { CCMStatusCode, CROSS_CHAIN_COMMAND_REGISTRATION, EMPTY_BYTES } from '../constants';
-import { registrationCCMParamsSchema } from '../schemas';
+import { registrationCCMParamsSchema, crossChainUpdateTransactionParams } from '../schemas';
 import {
 	CCMRegistrationParams,
 	CCUpdateParams,
@@ -28,7 +28,6 @@ import { ChannelDataStore } from '../stores/channel_data';
 import { ChainAccountStore, ChainStatus } from '../stores/chain_account';
 import { BaseInteroperabilityInternalMethod } from '../base_interoperability_internal_methods';
 import { getMainchainID } from '../utils';
-import { crossChainUpdateTransactionParams } from '../schemas';
 
 export abstract class BaseCCRegistrationCommand<
 	T extends BaseInteroperabilityInternalMethod,
@@ -56,6 +55,7 @@ export abstract class BaseCCRegistrationCommand<
 			registrationCCMParamsSchema,
 			ccm.params,
 		);
+
 		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(ctx, EMPTY_BYTES);
 
 		const chainAccount = await this.stores.get(ChainAccountStore).get(ctx, ccm.sendingChainID);

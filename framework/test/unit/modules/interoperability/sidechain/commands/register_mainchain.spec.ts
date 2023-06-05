@@ -16,7 +16,8 @@ import { utils } from '@liskhq/lisk-cryptography';
 import * as crypto from '@liskhq/lisk-cryptography';
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { LiskValidationError } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
+import { objects } from '@liskhq/lisk-utils';
 import { RegisterMainchainCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/register_mainchain';
 import {
 	CCMStatusCode,
@@ -128,6 +129,68 @@ describe('RegisterMainchainCommand', () => {
 		chainAccountSubstore = interopMod.stores.get(ChainAccountStore);
 	});
 
+	describe('verify schema', () => {
+		it('should return error if own chain id is greater than 4 bytes', () => {
+			expect(() =>
+				validator.validate(mainchainRegistrationCommand.schema, {
+					...transactionParams,
+					ownChainID: utils.getRandomBytes(5),
+				}),
+			).toThrow(`Property '.ownChainID' maxLength exceeded`);
+		});
+
+		it('should return error if bls key is not 48 bytes', () => {
+			const invalidValidators = objects.cloneDeep(transactionParams.mainchainValidators);
+			invalidValidators[1].blsKey = utils.getRandomBytes(47);
+
+			expect(() =>
+				validator.validate(mainchainRegistrationCommand.schema, {
+					...transactionParams,
+					mainchainValidators: invalidValidators,
+				}),
+			).toThrow(`Property '.mainchainValidators.1.blsKey' minLength not satisfied`);
+		});
+
+		it('should return error if name is greater than max length of name', () => {
+			expect(() =>
+				validator.validate(mainchainRegistrationCommand.schema, {
+					...transactionParams,
+					ownName: utils.getRandomBytes(21).toString('hex'),
+				}),
+			).toThrow(`Property '.ownName' must NOT have more than 32 characters`);
+		});
+
+		it('should return error if name is empty', () => {
+			expect(() =>
+				validator.validate(mainchainRegistrationCommand.schema, {
+					...transactionParams,
+					ownName: '',
+				}),
+			).toThrow(`Property '.ownName' must NOT have fewer than 1 characters`);
+		});
+
+		it('should return error if number of mainchain validators is zero', () => {
+			expect(() =>
+				validator.validate(mainchainRegistrationCommand.schema, {
+					...transactionParams,
+					mainchainValidators: [],
+				}),
+			).toThrow(`must NOT have fewer than 1 items`);
+		});
+
+		it(`should return error if mainchainValidators array has more than ${NUMBER_ACTIVE_VALIDATORS_MAINCHAIN} elements`, () => {
+			expect(() =>
+				validator.validate(mainchainRegistrationCommand.schema, {
+					...transactionParams,
+					mainchainValidators: [
+						...transactionParams.mainchainValidators,
+						{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) },
+					],
+				}),
+			).toThrow(`must NOT have more than ${NUMBER_ACTIVE_VALIDATORS_MAINCHAIN} items`);
+		});
+	});
+
 	describe('verify', () => {
 		beforeEach(() => {
 			jest.spyOn(ownChainAccountSubstore, 'get').mockResolvedValue({
@@ -155,30 +218,6 @@ describe('RegisterMainchainCommand', () => {
 			expect(result.error?.message).toInclude(`Mainchain has already been registered.`);
 		});
 
-		it('should return error if own chain id is greater than 4 bytes', async () => {
-			verifyContext.params.ownChainID = utils.getRandomBytes(5);
-			const result = await mainchainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(`Property '.ownChainID' maxLength exceeded`);
-		});
-
-		it('should return error if bls key is not 48 bytes', async () => {
-			verifyContext.params.mainchainValidators[1].blsKey = utils.getRandomBytes(47);
-			const result = await mainchainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error).toBeInstanceOf(LiskValidationError);
-		});
-
-		it('should return error if name is greater than max length of name', async () => {
-			verifyContext.params.ownName = utils.getRandomBytes(21).toString('hex');
-			const result = await mainchainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error).toBeInstanceOf(LiskValidationError);
-		});
-
 		it('should return error if own chain id does not match own chain account id', async () => {
 			verifyContext.params.ownChainID = Buffer.from([0, 9, 9, 9]);
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
@@ -195,33 +234,6 @@ describe('RegisterMainchainCommand', () => {
 			expect(result.error?.message).toInclude(
 				`Invalid ownName property. It should contain only characters from the set [a-z0-9!@$&_.].`,
 			);
-		});
-
-		it('should return error if name is empty', async () => {
-			verifyContext.params.ownName = '';
-			const result = await mainchainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error).toBeInstanceOf(LiskValidationError);
-		});
-
-		it('should return error if number of mainchain validators is zero', async () => {
-			verifyContext.params.mainchainValidators = [];
-			const result = await mainchainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error).toBeInstanceOf(LiskValidationError);
-		});
-
-		it(`should return error if mainchainValidators array has more than ${NUMBER_ACTIVE_VALIDATORS_MAINCHAIN} elements`, async () => {
-			verifyContext.params.mainchainValidators = [
-				...mainchainValidators,
-				{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) },
-			];
-			const result = await mainchainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error).toBeInstanceOf(LiskValidationError);
 		});
 
 		it('should return error if bls keys are not lexicographically ordered', async () => {
