@@ -79,7 +79,7 @@ describe('validation', () => {
 	describe('#isHexString', () => {
 		it('should return true when valid hex was provided', () => {
 			return expect(
-				isHexString('215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc'),
+				isHexString('215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b'),
 			).toBeTrue();
 		});
 
@@ -91,6 +91,14 @@ describe('validation', () => {
 			return expect(
 				isHexString('zzzzzzza32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc'),
 			).toBeFalse();
+		});
+
+		it('should return true when input is empty', () => {
+			return expect(isHexString('')).toBeTrue();
+		});
+
+		it('should return false when input length is odd', () => {
+			return expect(isHexString('ff1')).toBeFalse();
 		});
 	});
 
