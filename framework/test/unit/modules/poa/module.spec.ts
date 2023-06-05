@@ -330,25 +330,28 @@ describe('PoA module', () => {
 			it('should store snapshot current round', async () => {
 				await expect(poa.initGenesisState(context)).toResolve();
 				const snapshotStore = poa.stores.get(SnapshotStore);
-				await expect(snapshotStore.get(context, utils.intToBuffer(0, 4))).resolves.toEqual(
-					validAsset.snapshotSubstore,
-				);
+				await expect(snapshotStore.get(context, utils.intToBuffer(0, 4))).resolves.toEqual({
+					validators: validAsset.snapshotSubstore.activeValidators,
+					threshold: validAsset.snapshotSubstore.threshold,
+				});
 			});
 
 			it('should store snapshot current round + 1', async () => {
 				await expect(poa.initGenesisState(context)).toResolve();
 				const snapshotStore = poa.stores.get(SnapshotStore);
-				await expect(snapshotStore.get(context, utils.intToBuffer(1, 4))).resolves.toEqual(
-					validAsset.snapshotSubstore,
-				);
+				await expect(snapshotStore.get(context, utils.intToBuffer(1, 4))).resolves.toEqual({
+					validators: validAsset.snapshotSubstore.activeValidators,
+					threshold: validAsset.snapshotSubstore.threshold,
+				});
 			});
 
 			it('should store snapshot current round + 2', async () => {
 				await expect(poa.initGenesisState(context)).toResolve();
 				const snapshotStore = poa.stores.get(SnapshotStore);
-				await expect(snapshotStore.get(context, utils.intToBuffer(2, 4))).resolves.toEqual(
-					validAsset.snapshotSubstore,
-				);
+				await expect(snapshotStore.get(context, utils.intToBuffer(2, 4))).resolves.toEqual({
+					validators: validAsset.snapshotSubstore.activeValidators,
+					threshold: validAsset.snapshotSubstore.threshold,
+				});
 			});
 
 			it('should store chain properties', async () => {

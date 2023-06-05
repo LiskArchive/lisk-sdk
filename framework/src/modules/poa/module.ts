@@ -207,9 +207,18 @@ export class PoAModule extends BaseModule {
 
 		// Create three entries in the snapshot substore indicating a snapshot of the next rounds of validators
 		const snapshotStore = this.stores.get(SnapshotStore);
-		await snapshotStore.set(context, utils.intToBuffer(0, 4), snapshotSubstore);
-		await snapshotStore.set(context, utils.intToBuffer(1, 4), snapshotSubstore);
-		await snapshotStore.set(context, utils.intToBuffer(2, 4), snapshotSubstore);
+		await snapshotStore.set(context, utils.intToBuffer(0, 4), {
+			...snapshotSubstore,
+			validators: activeValidators,
+		});
+		await snapshotStore.set(context, utils.intToBuffer(1, 4), {
+			...snapshotSubstore,
+			validators: activeValidators,
+		});
+		await snapshotStore.set(context, utils.intToBuffer(2, 4), {
+			...snapshotSubstore,
+			validators: activeValidators,
+		});
 
 		// Create an entry in the chain properties substore
 		const { header } = context;

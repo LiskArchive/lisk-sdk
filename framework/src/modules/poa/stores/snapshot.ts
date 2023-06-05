@@ -27,9 +27,9 @@ export interface SnapshotObject {
 export const snapshotSchema = {
 	$id: '/poa/snapshot',
 	type: 'object',
-	required: ['activeValidators', 'threshold'],
+	required: ['validators', 'threshold'],
 	properties: {
-		activeValidators: {
+		validators: {
 			type: 'array',
 			fieldNumber: 1,
 			items: {
