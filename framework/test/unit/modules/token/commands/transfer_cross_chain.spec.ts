@@ -254,6 +254,34 @@ describe('CCTransfer command', () => {
 			);
 		});
 
+		it('should fail when messageFeeTokenID does not have valid length', async () => {
+			const messageFeeTokenIDMinLengthContext = createTransactionContextWithOverridingParams({
+				messageFeeTokenID: Buffer.from('00', 'hex'),
+			});
+
+			const messageFeeTokenIDMaxLengthContext = createTransactionContextWithOverridingParams({
+				messageFeeTokenID: Buffer.from('00000000000000000000000000', 'hex'),
+			});
+
+			expectSchemaValidationError(
+				await command.verify(
+					messageFeeTokenIDMinLengthContext.createCommandExecuteContext(
+						crossChainTransferParamsSchema,
+					),
+				),
+				"'.messageFeeTokenID' minLength not satisfied",
+			);
+
+			expectSchemaValidationError(
+				await command.verify(
+					messageFeeTokenIDMaxLengthContext.createCommandVerifyContext(
+						crossChainTransferParamsSchema,
+					),
+				),
+				"'.messageFeeTokenID' maxLength exceeded",
+			);
+		});
+
 		it('should fail when chainID of the tokenID is other than ownChainID or receivingChainID', async () => {
 			const invalidtokenChainIDContext = createTransactionContextWithOverridingParams({
 				tokenID: Buffer.from([0, 0, 1, 1, 0, 0, 0, 0]),
@@ -306,18 +334,6 @@ describe('CCTransfer command', () => {
 				tokenID,
 				{
 					availableBalance: senderBalance,
-					lockedBalances: [],
-				},
-			);
-
-			await userStore.save(
-				insufficientBalanceContext.createCommandExecuteContext<Params>(
-					crossChainTransferParamsSchema,
-				),
-				insufficientBalanceContext.transaction.senderAddress,
-				messageFeeTokenID,
-				{
-					availableBalance: amount,
 					lockedBalances: [],
 				},
 			);
