@@ -12,6 +12,55 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { ImmutableMethodContext, MethodContext } from '../../state_machine';
+import { NextValidatorsSetter } from '../../state_machine/types';
+import { ValidatorKeys } from '../pos/types';
+
+export interface RegisterAuthorityParams {
+	name: string;
+	blsKey: Buffer;
+	generatorKey: Buffer;
+	proofOfPossession: Buffer;
+}
+
+export interface ValidatorsMethod {
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0044.md#setvalidatorgeneratorkey
+	setValidatorGeneratorKey(
+		methodContext: MethodContext,
+		validatorAddress: Buffer,
+		generatorKey: Buffer,
+	): Promise<boolean>;
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0044.md#registervalidatorkeys
+	registerValidatorKeys(
+		methodContext: MethodContext,
+		validatorAddress: Buffer,
+		blsKey: Buffer,
+		generatorKey: Buffer,
+		proofOfPossession: Buffer,
+	): Promise<boolean>;
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0044.md#registervalidatorwithoutblskey
+	registerValidatorWithoutBLSKey(
+		methodContext: MethodContext,
+		validatorAddress: Buffer,
+		generatorKey: Buffer,
+	): Promise<boolean>;
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0044.md#getvalidatorkeys
+	getValidatorKeys(methodContext: ImmutableMethodContext, address: Buffer): Promise<ValidatorKeys>;
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0044.md#getgeneratorsbetweentimestamps
+	getGeneratorsBetweenTimestamps(
+		methodContext: ImmutableMethodContext,
+		startTimestamp: number,
+		endTimestamp: number,
+	): Promise<Record<string, number>>;
+	setValidatorsParams(
+		methodContext: MethodContext,
+		validatorSetter: NextValidatorsSetter,
+		preCommitThreshold: bigint,
+		certificateThreshold: bigint,
+		validators: { address: Buffer; bftWeight: bigint }[],
+	): Promise<void>;
+}
+
 interface PoAValidator {
 	address: Buffer;
 	name: string;
