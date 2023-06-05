@@ -35,11 +35,11 @@ describe('Base Channel', () => {
 		namespace: 'name',
 		logger: fakeLogger,
 		events: ['event1', 'event2'],
-		endpoints: {
-			action1: jest.fn(),
-			action2: jest.fn(),
-			action3: jest.fn(),
-		},
+		endpoints: new Map([
+			['action1', jest.fn()],
+			['action2', jest.fn()],
+			['action3', jest.fn()],
+		]),
 		options: {},
 	};
 	let baseChannel: BaseChannel;
@@ -53,7 +53,7 @@ describe('Base Channel', () => {
 		it('should create the instance with given arguments.', () => {
 			// Assert
 			expect(baseChannel.namespace).toBe(params.namespace);
-			expect(baseChannel.endpointsList).toEqual(Object.keys(params.endpoints));
+			expect(baseChannel.endpointsList).toEqual([...params.endpoints.keys()]);
 		});
 	});
 

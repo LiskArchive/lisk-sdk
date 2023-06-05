@@ -172,7 +172,7 @@ describe.skip('IPCChannel', () => {
 					{} as any,
 					omegaName,
 					[omegaEventName],
-					{},
+					new Map(),
 					config.genesisConfig.chainID,
 				);
 
@@ -206,7 +206,7 @@ describe.skip('IPCChannel', () => {
 						messageCount += 1;
 					});
 					setTimeout(() => {
-						expect(messageCount).toEqual(1);
+						expect(messageCount).toBe(1);
 						resolve();
 					}, 200);
 				});
@@ -272,7 +272,7 @@ describe.skip('IPCChannel', () => {
 						methodName: `${beta.namespace}:divideByTwo`,
 						params: { val: 4 },
 					}),
-				).resolves.toEqual(2);
+				).resolves.toBe(2);
 
 				await expect(
 					alphaChannel.invoke<number>({
@@ -280,7 +280,7 @@ describe.skip('IPCChannel', () => {
 						methodName: `${beta.namespace}:divideByThree`,
 						params: { val: 9 },
 					}),
-				).resolves.toEqual(3);
+				).resolves.toBe(3);
 			});
 
 			it('should throw error when trying to invoke an invalid action.', async () => {
