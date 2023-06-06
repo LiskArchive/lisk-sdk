@@ -20,9 +20,9 @@ export const configSchema = {
 			type: 'integer',
 			description: 'Frequency of cleaning up the outdated data in second.',
 		},
-		encryptedPassphrase: {
+		encryptedPrivateKey: {
 			type: 'string',
-			format: 'encryptedPassphrase',
+			description: 'Encrypted private key of the account sending transaction',
 		},
 		defaultPassword: {
 			type: 'string',
@@ -35,7 +35,7 @@ export const configSchema = {
 	required: [],
 	default: {
 		clearBlockHeadersInterval: 60000,
-		encryptedPassphrase: '',
+		encryptedPrivateKey: '',
 		defaultPassword: '',
 		fee: 100000000,
 	},

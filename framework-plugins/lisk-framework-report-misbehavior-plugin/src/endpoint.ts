@@ -24,7 +24,7 @@ import { ReportMisbehaviorPluginConfig, State } from './types';
 // eslint-disable-next-line prefer-destructuring
 const validator: liskValidator.LiskValidator = liskValidator.validator;
 
-const { encrypt, legacy } = cryptography;
+const { encrypt, ed } = cryptography;
 
 export class Endpoint extends BasePluginEndpoint {
 	private _state!: State;
@@ -37,22 +37,23 @@ export class Endpoint extends BasePluginEndpoint {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async authorize(context: PluginEndpointContext): Promise<{ result: string }> {
-		validator.validate(actionParamsSchema, context.params);
+		validator.validate<{ enable: boolean; password: string }>(actionParamsSchema, context.params);
 
 		const { enable, password } = context.params;
 
 		try {
-			const parsedEncryptedPassphrase = encrypt.parseEncryptedMessage(
-				this._config.encryptedPassphrase,
+			const parsedEncryptedPrivateKey = encrypt.parseEncryptedMessage(
+				this._config.encryptedPrivateKey,
 			);
 
-			const passphrase = await encrypt.decryptMessageWithPassword(
-				parsedEncryptedPassphrase as any,
-				password as string,
+			const privateKeyStr = await encrypt.decryptMessageWithPassword(
+				parsedEncryptedPrivateKey,
+				password,
 				'utf-8',
 			);
+			const privateKey = Buffer.from(privateKeyStr, 'hex');
 
-			const { publicKey, privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+			const publicKey = ed.getPublicKeyFromPrivateKey(privateKey);
 
 			this._state.publicKey = enable ? publicKey : undefined;
 			this._state.privateKey = enable ? privateKey : undefined;

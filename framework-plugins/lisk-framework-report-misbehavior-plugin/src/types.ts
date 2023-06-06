@@ -13,7 +13,7 @@
  */
 
 export interface ReportMisbehaviorPluginConfig {
-	readonly encryptedPassphrase: string;
+	readonly encryptedPrivateKey: string;
 	readonly defaultPassword: string;
 	readonly fee: number;
 	readonly clearBlockHeadersInterval: number;

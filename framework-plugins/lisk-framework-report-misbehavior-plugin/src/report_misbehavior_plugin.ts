@@ -127,15 +127,11 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		decodedBlockHeader: chain.BlockHeader,
 	): Promise<string> {
 		// ModuleID:13 (PoS), CommandID:3 (PoMCommand)
-		const posMeta = this.apiClient.metadata.find(
-			m => m.id === Buffer.from([0, 0, 0, 13]).toString('hex'),
-		);
+		const posMeta = this.apiClient.metadata.find(m => m.name === 'pos');
 		if (!posMeta) {
 			throw new Error('PoS module is not registered in the application.');
 		}
-		const pomParamsInfo = posMeta.commands.find(
-			m => m.id === Buffer.from([0, 0, 0, 3]).toString('hex'),
-		);
+		const pomParamsInfo = posMeta.commands.find(m => m.name === 'reportMisbehavior');
 		if (!pomParamsInfo?.params) {
 			throw new Error('PoM params schema is not registered in the application.');
 		}
@@ -146,12 +142,12 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		}
 
 		const authAccount = await this.apiClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
-			address: address.getAddressFromPublicKey(this._state.publicKey).toString('hex'),
+			address: address.getLisk32AddressFromPublicKey(this._state.publicKey),
 		});
 
 		const pomTransactionParams = {
-			header1: decodedBlockHeader,
-			header2: contradictingBlock,
+			header1: decodedBlockHeader.getBytes(),
+			header2: contradictingBlock.getBytes(),
 		};
 
 		const { chainID } = await this.apiClient.invoke<{ chainID: string }>('system_getNodeInfo');
