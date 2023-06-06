@@ -22,8 +22,8 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 
 const validPluginOptions = {
 	...configSchema.default,
-	encryptedPassphrase:
-		'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=11ac52fe63e95e996a845dbe01de2913fe16d7722008a998fbfb5722be1cb358d67810c7a71b22be167715018458d5705a8242ca18fcb9faa00b3b0dce57c2b7aa4c835b41529a0203598f10f5b8e911&mac=9f7f88d5f4e488dcc27d3d4a1176086e04a0f6ddf2f5bd90890e5002156dd096&salt=8e65503565a1f2352c13cf42c22e6f7c&iv=303a8a37e47fa8517c50fc00&tag=1f9c18ea7cb1dc64c5cabb7fa3ba73f5&iterations=1&parallelism=4&memorySize=2024',
+	encryptedPrivateKey:
+		'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=35ab87e625765cb46a2fa07c46321f79451587fb22407b535c3ce3d395ce955892e41c93cec994c9292d471b383f5fdee8a33d5e5d685bf2d9e3a88e93ea9117b6cf1feed9d87e8ca31dea6ae7bf28139ce6fa688b3cda97adf892a0b4e2b9b6d46ac26b2f3874f740c102ad4cc75f0ff3ddc2d09fab24ed3c0ae7f0cc16f10a&mac=56e406e2a3e79c518f697c9a7652abd1b6e40f4ae64471050981d109a95b64b0&salt=c56842e8189a53b26517fb284075c77e&iv=593b08e0ae2239e57e1fba51&tag=a04e2e1617581eb95fb17cc14877202c&iterations=1&parallelism=4&memorySize=2024',
 	dataPath: '/my/app',
 };
 
