@@ -118,11 +118,11 @@ export const getContradictingBlockHeader = async (
 			});
 	});
 	for (const header2 of existingHeaders) {
-		const contradicting = await apiClient.invoke('bft_areHeadersContradicting', {
+		const { valid } = await apiClient.invoke<{ valid: boolean }>('chain_areHeadersContradicting', {
 			header1,
 			header2,
 		});
-		if (contradicting) {
+		if (valid) {
 			return BlockHeader.fromBytes(Buffer.from(header2, 'hex'));
 		}
 	}

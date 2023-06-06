@@ -254,10 +254,13 @@ export class ChainEndpoint {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async areHeadersContradicting(context: RequestContext): Promise<{ valid: boolean }> {
-		validator.validate(areHeadersContradictingRequestSchema, context.params);
+		validator.validate<{ header1: string; header2: string }>(
+			areHeadersContradictingRequestSchema,
+			context.params,
+		);
 
-		const bftHeader1 = BlockHeader.fromBytes(Buffer.from(context.params.header1 as string, 'hex'));
-		const bftHeader2 = BlockHeader.fromBytes(Buffer.from(context.params.header2 as string, 'hex'));
+		const bftHeader1 = BlockHeader.fromBytes(Buffer.from(context.params.header1, 'hex'));
+		const bftHeader2 = BlockHeader.fromBytes(Buffer.from(context.params.header2, 'hex'));
 
 		if (bftHeader1.id.equals(bftHeader2.id)) {
 			return { valid: false };
