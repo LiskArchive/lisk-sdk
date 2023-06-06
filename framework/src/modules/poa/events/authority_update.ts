@@ -34,7 +34,7 @@ export const authorityUpdateDataSchema = {
 export class AuthorityUpdateEvent extends BaseEvent<AuthorityUpdateData> {
 	public schema = authorityUpdateDataSchema;
 
-	public log(ctx: EventQueuer, data: AuthorityUpdateData): void {
-		this.add(ctx, data, []);
+	public log(ctx: EventQueuer, data: AuthorityUpdateData, noRevert: boolean): void {
+		this.add(ctx, data, [], noRevert);
 	}
 }

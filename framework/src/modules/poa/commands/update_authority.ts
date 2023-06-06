@@ -36,6 +36,7 @@ import { ChainPropertiesStore, SnapshotStore, ValidatorStore } from '../stores';
 import { ValidatorsMethod } from '../../pos/types';
 import { AuthorityUpdateEvent } from '../events/authority_update';
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0047.md#update-authority-command
 export class UpdateAuthorityCommand extends BaseCommand {
 	public schema = updateAuthoritySchema;
 	private _validatorsMethod!: ValidatorsMethod;
@@ -60,43 +61,50 @@ export class UpdateAuthorityCommand extends BaseCommand {
 				error: err as Error,
 			};
 		}
+
 		if (newValidators.length < 1 || newValidators.length > MAX_NUM_VALIDATORS) {
-			throw new Error('Invalid number of newValidators.');
+			throw new Error(`NewValidators length must be between 1 and ${MAX_NUM_VALIDATORS}.`);
 		}
-		if (
-			!objectUtils.bufferArrayOrderByLex(newValidators.map(newValidator => newValidator.address))
-		) {
+
+		const newValidatorsAddresses = newValidators.map(newValidator => newValidator.address);
+		if (!objectUtils.bufferArrayOrderByLex(newValidatorsAddresses)) {
 			throw new Error('Addresses in newValidators are not lexicographical ordered.');
 		}
 
+		if (!objectUtils.bufferArrayUniqueItems(newValidatorsAddresses)) {
+			throw new Error('Addresses in newValidators are not unique.');
+		}
+
+		const validatorStore = this.stores.get(ValidatorStore);
 		let totalWeight = BigInt(0);
 		for (const newValidator of newValidators) {
-			const validatorExists = await this.stores
-				.get(ValidatorStore)
-				.has(context, newValidator.address);
+			const validatorExists = await validatorStore.has(context, newValidator.address);
 			if (!validatorExists) {
 				throw new Error(
 					`${address.getLisk32AddressFromPublicKey(
 						newValidator.address,
-					)} is not a valid validator.`,
+					)} does not exist in validator store.`,
 				);
 			}
 			totalWeight += newValidator.weight;
 		}
 
 		if (totalWeight > MAX_UINT64) {
-			throw new Error('TotalWeight out of range.');
+			throw new Error(`Validators total weight exceeds ${MAX_UINT64}.`);
 		}
 
-		if (threshold < totalWeight / BigInt(3) + BigInt(1) || threshold > totalWeight) {
-			throw new Error('Invalid threshold.');
+		const minThreshold = totalWeight / BigInt(3) + BigInt(1);
+		if (threshold < minThreshold || threshold > totalWeight) {
+			throw new Error(`Threshold must be between ${minThreshold} and ${totalWeight}.`);
 		}
 
 		const chainPropertiesStore = await this.stores
 			.get(ChainPropertiesStore)
 			.get(context, EMPTY_BYTES);
 		if (validatorsUpdateNonce !== chainPropertiesStore.validatorsUpdateNonce) {
-			throw new Error('Invalid validatorsUpdateNonce.');
+			throw new Error(
+				`validatorsUpdateNonce must be equal to ${chainPropertiesStore.validatorsUpdateNonce}.`,
+			);
 		}
 
 		return {
@@ -114,46 +122,62 @@ export class UpdateAuthorityCommand extends BaseCommand {
 			threshold,
 			validatorsUpdateNonce,
 		});
-		const validatorInfos = [];
-		const snapshotStore = await this.stores.get(SnapshotStore).get(context, Buffer.from([0]));
-		for (const snapshotValidator of snapshotStore.validators) {
-			const key = await this._validatorsMethod.getValidatorKeys(context, snapshotValidator.address);
-			validatorInfos.push({
-				key: key.blsKey,
+
+		const validatorsInfos = [];
+		const snapshotStore = this.stores.get(SnapshotStore);
+		const snapshot0 = await snapshotStore.get(context, Buffer.from([0]));
+		for (const snapshotValidator of snapshot0.validators) {
+			const keys = await this._validatorsMethod.getValidatorKeys(
+				context,
+				snapshotValidator.address,
+			);
+			validatorsInfos.push({
+				key: keys.blsKey,
 				weight: snapshotValidator.weight,
 			});
 		}
 
-		validatorInfos.sort((a, b) => a.key.compare(b.key));
+		validatorsInfos.sort((a, b) => a.key.compare(b.key));
 		const verified = bls.verifyWeightedAggSig(
-			validatorInfos.map(validatorInfo => validatorInfo.key),
+			validatorsInfos.map(validatorInfo => validatorInfo.key),
 			aggregationBits,
 			signature,
 			MESSAGE_TAG_POA,
 			context.chainID,
 			message,
-			validatorInfos.map(validatorInfo => validatorInfo.weight),
-			snapshotStore.threshold,
+			validatorsInfos.map(validatorInfo => validatorInfo.weight),
+			snapshot0.threshold,
 		);
+
+		const authorityUpdateEvent = this.events.get(AuthorityUpdateEvent);
 		if (!verified) {
-			this.events.get(AuthorityUpdateEvent).log(context, {
-				result: UpdateAuthority.FAIL_INVALID_SIGNATURE,
-			});
+			authorityUpdateEvent.log(
+				context,
+				{
+					result: UpdateAuthority.FAIL_INVALID_SIGNATURE,
+				},
+				true,
+			);
 			throw new Error('Invalid Signature.');
 		}
-		await this.stores.get(SnapshotStore).set(context, Buffer.from([2]), {
+		await snapshotStore.set(context, Buffer.from([2]), {
 			validators: newValidators,
 			threshold,
 		});
 
-		const chainProperties = await this.stores.get(ChainPropertiesStore).get(context, EMPTY_BYTES);
-		await this.stores.get(ChainPropertiesStore).set(context, EMPTY_BYTES, {
+		const chainPropertiesStore = this.stores.get(ChainPropertiesStore);
+		const chainProperties = await chainPropertiesStore.get(context, EMPTY_BYTES);
+		await chainPropertiesStore.set(context, EMPTY_BYTES, {
 			...chainProperties,
 			validatorsUpdateNonce: chainProperties.validatorsUpdateNonce + 1,
 		});
 
-		this.events.get(AuthorityUpdateEvent).log(context, {
-			result: UpdateAuthority.SUCCESS,
-		});
+		authorityUpdateEvent.log(
+			context,
+			{
+				result: UpdateAuthority.SUCCESS,
+			},
+			false,
+		);
 	}
 }
