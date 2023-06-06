@@ -13,7 +13,7 @@
  */
 
 import { MAX_UINT64, validator } from '@liskhq/lisk-validator';
-import { address, bls } from '@liskhq/lisk-cryptography';
+import { address, bls, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { BaseCommand } from '../../base_command';
@@ -125,7 +125,7 @@ export class UpdateAuthorityCommand extends BaseCommand {
 
 		const validatorsInfos = [];
 		const snapshotStore = this.stores.get(SnapshotStore);
-		const snapshot0 = await snapshotStore.get(context, Buffer.from([0]));
+		const snapshot0 = await snapshotStore.get(context, utils.intToBuffer(0, 4));
 		for (const snapshotValidator of snapshot0.validators) {
 			const keys = await this._validatorsMethod.getValidatorKeys(
 				context,
@@ -160,7 +160,7 @@ export class UpdateAuthorityCommand extends BaseCommand {
 			);
 			throw new Error('Invalid Signature.');
 		}
-		await snapshotStore.set(context, Buffer.from([2]), {
+		await snapshotStore.set(context, utils.intToBuffer(2, 4), {
 			validators: newValidators,
 			threshold,
 		});

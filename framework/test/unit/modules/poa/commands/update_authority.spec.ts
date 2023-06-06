@@ -134,7 +134,7 @@ describe('UpdateAuthority', () => {
 				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
 		});
 
-		it('should return error when length of newValidators less than 1', async () => {
+		it('should return error when length of newValidators is less than 1', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -152,7 +152,7 @@ describe('UpdateAuthority', () => {
 			);
 		});
 
-		it('should return error when length of newValidators greater than MAX_NUM_VALIDATORS', async () => {
+		it('should return error when length of newValidators is greater than MAX_NUM_VALIDATORS', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -200,7 +200,7 @@ describe('UpdateAuthority', () => {
 			);
 		});
 
-		it('should return error when addresses in newValidators are not unique', async () => {
+		it('should return error when addresses are in newValidators are not unique', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -231,7 +231,7 @@ describe('UpdateAuthority', () => {
 			);
 		});
 
-		it('should return error when validator not in ValidatorStore', async () => {
+		it('should return error when validator is not in ValidatorStore', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -255,7 +255,7 @@ describe('UpdateAuthority', () => {
 			);
 		});
 
-		it('should return error when total weight greater than MAX_UINT64', async () => {
+		it('should return error when totalWeight is greater than MAX_UINT64', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -282,7 +282,7 @@ describe('UpdateAuthority', () => {
 			);
 		});
 
-		it('should return error when trsParams.threshold less than (total weight / 3) + 1 ', async () => {
+		it('should return error when trsParams.threshold less than (totalWeight / 3) + 1 ', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -305,7 +305,7 @@ describe('UpdateAuthority', () => {
 			);
 		});
 
-		it('should return error when trsParams.threshold greater than total weight', async () => {
+		it('should return error when trsParams.threshold us greater than totalWeight', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -328,7 +328,7 @@ describe('UpdateAuthority', () => {
 			);
 		});
 
-		it('should return error when trsParams.validatorsUpdateNonce not equal to chainProperties.validatorsUpdateNonce', async () => {
+		it('should return error when trsParams.validatorsUpdateNonce does not equal to chainProperties.validatorsUpdateNonce', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
