@@ -88,9 +88,9 @@ describe('PoA module', () => {
 		let context: BlockAfterExecuteContext;
 		let currentTimestamp: number;
 		let height: number;
-		let firstSnapshot: SnapshotObject;
-		let secondSnapshot: SnapshotObject;
-		let thirdSnapshot: SnapshotObject;
+		let snapshot0: SnapshotObject;
+		let snapshot1: SnapshotObject;
+		let snapshot2: SnapshotObject;
 		let chainPropertiesStore: ChainPropertiesStore;
 		let snapshotStore: SnapshotStore;
 		let methodContext: MethodContext;
@@ -116,7 +116,7 @@ describe('PoA module', () => {
 				roundEndHeight: height - 1,
 				validatorsUpdateNonce: 4,
 			});
-			firstSnapshot = {
+			snapshot0 = {
 				threshold: BigInt(4),
 				validators: [
 					{
@@ -142,7 +142,7 @@ describe('PoA module', () => {
 				],
 			};
 
-			secondSnapshot = {
+			snapshot1 = {
 				threshold: BigInt(4),
 				validators: [
 					{
@@ -168,7 +168,7 @@ describe('PoA module', () => {
 				],
 			};
 
-			thirdSnapshot = {
+			snapshot2 = {
 				threshold: BigInt(4),
 				validators: [
 					{
@@ -195,9 +195,9 @@ describe('PoA module', () => {
 			};
 
 			snapshotStore = poaModule.stores.get(SnapshotStore);
-			await snapshotStore.set(methodContext, utils.intToBuffer(0, 4), firstSnapshot);
-			await snapshotStore.set(methodContext, utils.intToBuffer(1, 4), secondSnapshot);
-			await snapshotStore.set(methodContext, utils.intToBuffer(2, 4), thirdSnapshot);
+			await snapshotStore.set(methodContext, utils.intToBuffer(0, 4), snapshot0);
+			await snapshotStore.set(methodContext, utils.intToBuffer(1, 4), snapshot1);
+			await snapshotStore.set(methodContext, utils.intToBuffer(2, 4), snapshot2);
 			randomSeed = utils.getRandomBytes(20);
 			jest.spyOn(snapshotStore, 'set');
 			jest.spyOn(randomMethod, 'getRandomBytes').mockResolvedValue(randomSeed);
@@ -215,9 +215,9 @@ describe('PoA module', () => {
 				roundEndHeight: height,
 				validatorsUpdateNonce: 4,
 			});
-			const roundStartHeight = height - firstSnapshot.validators.length + 1;
+			const roundStartHeight = height - snapshot0.validators.length + 1;
 			const validators = [];
-			for (const validator of secondSnapshot.validators) {
+			for (const validator of snapshot1.validators) {
 				validators.push(validator);
 			}
 			const nextValidators = shuffleValidatorList(randomSeed, validators);
@@ -225,23 +225,23 @@ describe('PoA module', () => {
 			expect(poaModule.stores.get(SnapshotStore).set).toHaveBeenCalledWith(
 				context,
 				utils.intToBuffer(0, 4),
-				secondSnapshot,
+				snapshot1,
 			);
 			expect(poaModule.stores.get(SnapshotStore).set).toHaveBeenCalledWith(
 				context,
 				utils.intToBuffer(1, 4),
-				thirdSnapshot,
+				snapshot2,
 			);
 			expect(randomMethod.getRandomBytes).toHaveBeenCalledWith(
 				context,
 				roundStartHeight,
-				firstSnapshot.validators.length,
+				snapshot0.validators.length,
 			);
 			expect(validatorMethod.setValidatorsParams).toHaveBeenCalledWith(
 				context,
 				context,
-				secondSnapshot.threshold,
-				secondSnapshot.threshold,
+				snapshot1.threshold,
+				snapshot1.threshold,
 				nextValidators.map(v => ({
 					address: v.address,
 					bftWeight: v.weight,
