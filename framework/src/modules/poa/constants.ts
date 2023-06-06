@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { utils } from '@liskhq/lisk-cryptography';
+
 export enum UpdateAuthority {
 	SUCCESS = 0,
 	FAIL_INVALID_SIGNATURE,
@@ -35,3 +37,7 @@ export const EMPTY_BYTES = Buffer.alloc(0);
 export const COMMAND_REGISTER_AUTHORITY = 'registerAuthority';
 export const COMMAND_UPDATE_KEY = 'updateKey';
 export const COMMAND_UPDATE_AUTHORITY = 'updateAuthority';
+// Store key
+export const KEY_SNAPSHOT_1 = utils.intToBuffer(0, 4);
+export const KEY_SNAPSHOT_2 = utils.intToBuffer(1, 4);
+export const KEY_SNAPSHOT_3 = utils.intToBuffer(2, 4);

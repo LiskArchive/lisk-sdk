@@ -19,7 +19,7 @@ import { PoAEndpoint } from './endpoint';
 import { AuthorityUpdateEvent } from './events/authority_update';
 import { ChainPropertiesStore, ValidatorStore, NameStore, SnapshotStore } from './stores';
 import { BlockAfterExecuteContext } from '../../state_machine';
-import { EMPTY_BYTES } from './constants';
+import { EMPTY_BYTES, KEY_SNAPSHOT_1, KEY_SNAPSHOT_2, KEY_SNAPSHOT_3 } from './constants';
 import { FeeMethod, RandomMethod, ValidatorsMethod } from './types';
 import { shuffleValidatorList } from './utils';
 
@@ -64,18 +64,20 @@ export class PoAModule extends BaseModule {
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
 		const chainPropertiesStore = this.stores.get(ChainPropertiesStore);
 		const chainProperties = await chainPropertiesStore.get(context, EMPTY_BYTES);
+
 		if (context.header.height === chainProperties.roundEndHeight) {
 			const snapshotStore = this.stores.get(SnapshotStore);
-			const firstSnapshot = await snapshotStore.get(context, utils.intToBuffer(0, 4));
-			const previousLengthValidators = firstSnapshot.validators.length;
+			const snapshot1 = await snapshotStore.get(context, KEY_SNAPSHOT_1);
+			const previousLengthValidators = snapshot1.validators.length;
 
-			const secondSnapshot = await snapshotStore.get(context, utils.intToBuffer(1, 4));
+			const snapshot2 = await snapshotStore.get(context, KEY_SNAPSHOT_2);
 			// Update the chain information for the next round
-			// snapshotAtZero=snapshotAtOne
-			await snapshotStore.set(context, utils.intToBuffer(0, 4), secondSnapshot);
-			const thirdSnapshot = await snapshotStore.get(context, utils.intToBuffer(2, 4));
-			// snapshotAtOne=snapshotAtTwo
-			await snapshotStore.set(context, utils.intToBuffer(1, 4), thirdSnapshot);
+
+			// Snapshot1 = snapshot2
+			await snapshotStore.set(context, KEY_SNAPSHOT_1, snapshot2);
+			const snapshot3 = await snapshotStore.get(context, KEY_SNAPSHOT_3);
+			// Snapshot2 = snapshot3
+			await snapshotStore.set(context, KEY_SNAPSHOT_2, snapshot3);
 
 			// Reshuffle the list of validators and pass it to the Validators module
 			const roundStartHeight = chainProperties.roundEndHeight - previousLengthValidators + 1;
@@ -86,7 +88,7 @@ export class PoAModule extends BaseModule {
 			);
 
 			const validators = [];
-			for (const validator of firstSnapshot.validators) {
+			for (const validator of snapshot2.validators) {
 				validators.push(validator);
 			}
 			const nextValidators = shuffleValidatorList(randomSeed, validators);
@@ -94,8 +96,8 @@ export class PoAModule extends BaseModule {
 			await this._validatorsMethod.setValidatorsParams(
 				context,
 				context,
-				firstSnapshot.threshold,
-				firstSnapshot.threshold,
+				snapshot2.threshold,
+				snapshot2.threshold,
 				nextValidators.map(v => ({
 					address: v.address,
 					bftWeight: v.weight,

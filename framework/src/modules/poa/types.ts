@@ -27,6 +27,12 @@ export interface ValidatorWeight {
 	weight: bigint;
 }
 
+export interface ValidatorWeightWithRandomHash {
+	readonly address: Buffer;
+	weight: bigint;
+	roundHash: Buffer;
+}
+
 export interface ValidatorsMethod {
 	setValidatorGeneratorKey(
 		methodContext: MethodContext,
@@ -76,7 +82,6 @@ export interface ValidatorKeys {
 export interface FeeMethod {
 	payFee(methodContext: MethodContext, amount: bigint): void;
 }
-
 
 interface PoAValidator {
 	address: Buffer;

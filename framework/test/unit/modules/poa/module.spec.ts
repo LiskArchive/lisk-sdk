@@ -27,7 +27,11 @@ import {
 	createTransientMethodContext,
 } from '../../../../src/testing';
 import { BlockAfterExecuteContext, MethodContext } from '../../../../src';
-import { EMPTY_BYTES } from '../../../../src/modules/poa/constants';
+import {
+	EMPTY_BYTES,
+	LENGTH_BLS_KEY,
+	LENGTH_GENERATOR_KEY,
+} from '../../../../src/modules/poa/constants';
 import { shuffleValidatorList } from '../../../../src/modules/poa/utils';
 
 describe('PoA module', () => {
@@ -46,8 +50,8 @@ describe('PoA module', () => {
 			registerValidatorKeys: jest.fn().mockResolvedValue(true),
 			registerValidatorWithoutBLSKey: jest.fn().mockResolvedValue(true),
 			getValidatorKeys: jest.fn().mockResolvedValue({
-				blsKey: utils.getRandomBytes(48),
-				generatorKey: utils.getRandomBytes(32),
+				blsKey: utils.getRandomBytes(LENGTH_BLS_KEY),
+				generatorKey: utils.getRandomBytes(LENGTH_GENERATOR_KEY),
 			}),
 			getGeneratorsBetweenTimestamps: jest.fn(),
 			setValidatorsParams: jest.fn(),
