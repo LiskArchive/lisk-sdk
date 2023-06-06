@@ -74,12 +74,7 @@ export const isHexString = (data: unknown): boolean => {
 		return false;
 	}
 
-	// if data is not empty, and length is not even, it's not valid hex string
-	if (data.length > 0 && data.length % 2 !== 0) {
-		return false;
-	}
-
-	return data === '' || /^[a-f0-9]+$/i.test(data);
+	return data === '' || /^([0-9a-fA-F]{2})+$/i.test(data);
 };
 
 export const isEncryptedPassphrase = (data: string): boolean => {
