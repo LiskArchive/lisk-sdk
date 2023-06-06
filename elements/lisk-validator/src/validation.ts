@@ -74,7 +74,7 @@ export const isHexString = (data: unknown): boolean => {
 		return false;
 	}
 
-	return data === '' || /^[a-f0-9]+$/i.test(data);
+	return data === '' || /^([0-9a-f]{2})+$/i.test(data);
 };
 
 export const isEncryptedPassphrase = (data: string): boolean => {
