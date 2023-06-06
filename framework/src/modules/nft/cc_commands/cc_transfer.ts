@@ -104,6 +104,8 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 			const storeData = await nftStore.get(getMethodContext(), nftID);
 			if (status === CCM_STATUS_CODE_OK) {
 				storeData.owner = recipientAddress;
+				// commented line below can be used by custom modules when defining their own logic for getNewAttributes function
+				// storeData.attributesArray = this._internalMethod.getNewAttributes(nftID, storeData.attributesArray, params.attributesArray);
 				await nftStore.save(getMethodContext(), nftID, storeData);
 				await this._internalMethod.createUserEntry(getMethodContext(), recipientAddress, nftID);
 				await escrowStore.del(getMethodContext(), escrowStore.getKey(sendingChainID, nftID));

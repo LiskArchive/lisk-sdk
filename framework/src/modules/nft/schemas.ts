@@ -92,7 +92,7 @@ export const crossChainNFTTransferMessageParamsSchema = {
 
 export interface CCTransferMessageParams {
 	nftID: Buffer;
-	attributes: { module: string; attributes: Buffer }[];
+	attributesArray: { module: string; attributes: Buffer }[];
 	senderAddress: Buffer;
 	recipientAddress: Buffer;
 	data: string;

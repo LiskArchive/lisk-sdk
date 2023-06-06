@@ -172,4 +172,13 @@ export class InternalMethod extends BaseMethod {
 	public getOwnChainID(): Buffer {
 		return this._config.ownChainID;
 	}
+
+	// template for custom module to be able to define their own logic as described in https://github.com/LiskHQ/lips/blob/main/proposals/lip-0052.md#attributes
+	public getNewAttributes(
+		_nftID: Buffer,
+		storedAttributes: NFTAttributes[],
+		_receivedAttributes: NFTAttributes[],
+	): NFTAttributes[] {
+		return storedAttributes;
+	}
 }
