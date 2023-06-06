@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
 import { utils } from '@liskhq/lisk-cryptography';
 
 export enum UpdateAuthorityResult {
@@ -33,6 +32,8 @@ export const EMPTY_BYTES = Buffer.alloc(0);
 export const COMMAND_REGISTER_AUTHORITY = 'registerAuthority';
 export const COMMAND_UPDATE_KEY = 'updateKey';
 export const COMMAND_UPDATE_AUTHORITY = 'updateAuthority';
+export const MAX_UINT64 = BigInt(2) ** BigInt(64) - BigInt(1);
+export const LENGTH_PROOF_OF_POSESSION = 96;
 // Store key
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0047.md#uint32be-function
 export const KEY_SNAPSHOT_0 = utils.intToBuffer(0, 4);

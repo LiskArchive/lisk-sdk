@@ -172,14 +172,13 @@ export const invalidAssets: any[] = [
 			validators,
 			snapshotSubstore: {
 				activeValidators: [
-					{ ...activeValidators[0], weight: BigInt(-1) },
+					{ ...activeValidators[0], weight: BigInt(0) },
 					...activeValidators.slice(1, activeValidators.length),
 				],
 				threshold,
 			},
 		},
-		// This is the error message returned from schema validation
-		'Invalid terminate index. Index is 22580 but terminateIndex is 22579',
+		'`activeValidators` weight must be positive integer.',
 	],
 	[
 		'active validators total weight must be within range',
