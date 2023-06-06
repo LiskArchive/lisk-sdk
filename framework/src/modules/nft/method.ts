@@ -121,10 +121,7 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('Not initiated by the NFT owner');
 		}
 
-		const userStore = this.stores.get(UserStore);
-		const userKey = userStore.getKey(owner, nftID);
-		const { lockingModule } = await userStore.get(methodContext, userKey);
-
+		const lockingModule = await this.getLockingModule(methodContext, nftID);
 		if (lockingModule !== NFT_NOT_LOCKED) {
 			this.events.get(DestroyEvent).log(
 				methodContext,
@@ -137,6 +134,9 @@ export class NFTMethod extends BaseMethod {
 
 			throw new Error('Locked NFTs cannot be destroyed');
 		}
+
+		const userStore = this.stores.get(UserStore);
+		const userKey = userStore.getKey(owner, nftID);
 
 		await nftStore.del(methodContext, nftID);
 
