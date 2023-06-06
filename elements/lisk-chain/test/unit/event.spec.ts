@@ -104,4 +104,44 @@ describe('event', () => {
 			expect(event.toObject()).toEqual(eventObj);
 		});
 	});
+
+	describe('_getIndexBytes', () => {
+		const testCases = [
+			{
+				eventIndex: 0,
+				index: 0,
+				expected: '00000000',
+			},
+			{
+				eventIndex: 100,
+				index: 2,
+				expected: '00000192',
+			},
+			{
+				eventIndex: 2 ** 29,
+				index: 1,
+				expected: '80000001',
+			},
+			{
+				eventIndex: 2 ** 30 - 1,
+				index: 3,
+				expected: 'ffffffff',
+			},
+		];
+
+		it.each(testCases)(
+			'given $eventIndex and $index should return $expected',
+			({ eventIndex, index, expected }) => {
+				const event = new Event({
+					index: eventIndex,
+					data: Buffer.from([7, 7, 8]),
+					height: 10,
+					module: 'random',
+					name: 'event',
+					topics: [],
+				});
+				expect(event['_getIndexBytes'](index)).toEqual(Buffer.from(expected, 'hex'));
+			},
+		);
+	});
 });

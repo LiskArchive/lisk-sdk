@@ -13,42 +13,19 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { encrypt, legacy } from '@liskhq/lisk-cryptography';
-import { Flags as flagParser } from '@oclif/core';
+import { encrypt } from '@liskhq/lisk-cryptography';
+import { Command, Flags as flagParser } from '@oclif/core';
 
-import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
-import { flags as commonFlags } from '../../utils/flags';
+import { flags as commonFlags, flagsWithParser } from '../../utils/flags';
 import { getPassphraseFromPrompt, isFileSource, readFileSource } from '../../utils/reader';
 
 interface Args {
 	readonly message?: string;
-	readonly recipientPublicKey: string;
 }
 
-const processInputs = (recipientPublicKey: string, passphrase: string, message?: string) => {
-	if (!message) {
-		throw new ValidationError('No message was provided.');
-	}
-	const keys = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
-
-	return {
-		...encrypt.encryptMessageWithPrivateKey(
-			message,
-			keys.privateKey,
-			Buffer.from(recipientPublicKey, 'hex'),
-		),
-		recipientPublicKey,
-	};
-};
-
-export default class EncryptCommand extends BaseCommand {
+export default class EncryptCommand extends Command {
 	static args = [
-		{
-			name: 'recipientPublicKey',
-			description: 'Public key of the recipient of the message.',
-			required: true,
-		},
 		{
 			name: 'message',
 			description: 'Message to encrypt.',
@@ -56,37 +33,50 @@ export default class EncryptCommand extends BaseCommand {
 	];
 
 	static description = `
-	Encrypts a message for a given recipient public key using your secret passphrase.
+	Encrypts a message with a password provided.
 	`;
 
-	static examples = [
-		'message:encrypt bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 "Hello world"',
-	];
+	static examples = ['message:encrypt "Hello world"'];
 
 	static flags = {
-		...BaseCommand.flags,
-		passphrase: flagParser.string(commonFlags.passphrase),
+		password: flagParser.string(commonFlags.password),
 		message: flagParser.string(commonFlags.message),
+		pretty: flagsWithParser.pretty,
+		stringify: flagParser.boolean({
+			description: 'Display encrypted message in stringified format',
+			char: 's',
+		}),
 	};
 
 	async run(): Promise<void> {
 		const {
 			args,
-			flags: { passphrase: passphraseSource, message: messageSource },
+			flags: { password: passwordSource, message: messageSource, stringify, pretty },
 		} = await this.parse(EncryptCommand);
 
-		const { recipientPublicKey, message } = args as Args;
+		const { message } = args as Args;
 
 		if (!message && !messageSource) {
 			throw new ValidationError('No message was provided.');
 		}
-		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
+		const password = passwordSource ?? (await getPassphraseFromPrompt('password', true));
 		const dataFromSource =
 			messageSource && isFileSource(messageSource)
 				? await readFileSource(messageSource)
 				: messageSource;
 
-		const result = processInputs(recipientPublicKey, passphrase, message ?? dataFromSource);
-		this.print(result);
+		if (!message && !dataFromSource) {
+			this.error('Message must be provided through the argument or the flag ');
+		}
+
+		const result = await encrypt.encryptMessageWithPassword(
+			message ?? (dataFromSource as string),
+			password,
+		);
+		if (stringify) {
+			this.log(encrypt.stringifyEncryptedMessage(result));
+			return;
+		}
+		this.log(!pretty ? JSON.stringify(result) : JSON.stringify(result, undefined, '  '));
 	}
 }

@@ -11,8 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { utils } from '@liskhq/lisk-cryptography';
 import { testing, chain, ApplicationConfigForPlugin } from 'lisk-sdk';
 import { when } from 'jest-when';
 
@@ -89,25 +87,21 @@ describe('Send PoM transaction', () => {
 			},
 			metadata: [
 				{
-					id: utils.intToBuffer(13, 4).toString('hex'),
 					name: 'pos',
 					commands: [
 						{
-							id: utils.intToBuffer(3, 4).toString('hex'),
-							name: 'reportValidatorMisbehavior',
+							name: 'reportMisbehavior',
 							params: {
 								$id: '/lisk/pos/pom',
 								type: 'object',
 								required: ['header1', 'header2'],
 								properties: {
 									header1: {
-										...chain.blockHeaderSchema,
-										$id: 'blockHeader1',
+										dataType: 'bytes',
 										fieldNumber: 1,
 									},
 									header2: {
-										...chain.blockHeaderSchema,
-										$id: 'blockHeader2',
+										dataType: 'bytes',
 										fieldNumber: 2,
 									},
 								},
@@ -150,7 +144,6 @@ describe('Send PoM transaction', () => {
 			},
 			metadata: [
 				{
-					id: utils.intToBuffer(13, 4).toString('hex'),
 					name: 'pos',
 					commands: [],
 				},

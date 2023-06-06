@@ -18,6 +18,7 @@ export const STORE_PREFIX_USED_HASH_ONION = Buffer.from('01', 'hex');
 export const EMPTY_KEY = Buffer.alloc(0);
 export const SEED_LENGTH = 16;
 export const ADDRESS_LENGTH = 20;
+export const MAX_HASH_COMPUTATION = 10000;
 
 export const defaultConfig = {
 	maxLengthReveals: DEFAULT_MAX_LENGTH_REVEALS,
