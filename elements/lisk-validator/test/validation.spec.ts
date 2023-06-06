@@ -78,8 +78,11 @@ describe('validation', () => {
 
 	describe('#isHexString', () => {
 		it('should return true when valid hex was provided', () => {
-			return expect(
+			expect(
 				isHexString('215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b'),
+			).toBeTrue();
+			expect(
+				isHexString('215B667A32a5cd51A94c9c2046c11fffb08c65748febec099451e3b164452B'),
 			).toBeTrue();
 		});
 
