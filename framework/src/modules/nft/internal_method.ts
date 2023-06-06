@@ -137,10 +137,10 @@ export class InternalMethod extends BaseMethod {
 			await this._method.destroy(methodContext, senderAddress, nftID);
 		}
 
-		let attributes: { module: string; attributes: Buffer }[] = [];
+		let attributesArray: { module: string; attributes: Buffer }[] = [];
 
 		if (includeAttributes) {
-			attributes = nft.attributesArray;
+			attributesArray = nft.attributesArray;
 		}
 
 		this.events.get(TransferCrossChainEvent).log(methodContext, {
@@ -163,7 +163,7 @@ export class InternalMethod extends BaseMethod {
 				nftID,
 				senderAddress,
 				recipientAddress,
-				attributes,
+				attributesArray,
 				data,
 			}),
 		);

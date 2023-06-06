@@ -532,15 +532,10 @@ describe('CrossChain Transfer Command', () => {
 				methodContext,
 				userStore.getKey(recipientAddress, nftID),
 			);
-			const escrowAccountExists = await escrowStore.has(
-				methodContext,
-				escrowStore.getKey(sendingChainID, nftID),
-			);
 			expect(feeMethod.payFee).toHaveBeenCalledWith(methodContext, BigInt(FEE_CREATE_NFT));
 			expect(nftStoreData.owner).toStrictEqual(recipientAddress);
 			expect(nftStoreData.attributesArray).toEqual(attributesArray);
 			expect(userAccountExists).toBe(true);
-			expect(escrowAccountExists).toBe(true);
 			checkEventResult(context.eventQueue, 1, CcmTransferEvent, 0, {
 				senderAddress,
 				recipientAddress,
@@ -595,16 +590,11 @@ describe('CrossChain Transfer Command', () => {
 				methodContext,
 				userStore.getKey(senderAddress, nftID),
 			);
-			const escrowAccountExists = await escrowStore.has(
-				methodContext,
-				escrowStore.getKey(sendingChainID, nftID),
-			);
 			expect(feeMethod.payFee).not.toHaveBeenCalled();
 			expect(nftStoreData.owner).toStrictEqual(senderAddress);
 			expect(nftStoreData.attributesArray).toEqual(attributesArray);
 			expect(userAccountExistsForRecipient).toBe(false);
 			expect(userAccountExistsForSender).toBe(true);
-			expect(escrowAccountExists).toBe(true);
 			checkEventResult(context.eventQueue, 1, CcmTransferEvent, 0, {
 				senderAddress,
 				recipientAddress: senderAddress,

@@ -211,7 +211,7 @@ describe('InternalMethod', () => {
 					nftID,
 					senderAddress,
 					recipientAddress,
-					attributes: [],
+					attributesArray: [],
 					data,
 				});
 
@@ -288,7 +288,7 @@ describe('InternalMethod', () => {
 					nftID,
 					senderAddress,
 					recipientAddress,
-					attributes: [],
+					attributesArray: [],
 					data,
 				});
 
@@ -366,7 +366,7 @@ describe('InternalMethod', () => {
 					nftID,
 					senderAddress,
 					recipientAddress,
-					attributes: attributesArray,
+					attributesArray,
 					data,
 				});
 
@@ -450,7 +450,7 @@ describe('InternalMethod', () => {
 					nftID,
 					senderAddress,
 					recipientAddress,
-					attributes: attributesArray,
+					attributesArray,
 					data,
 				});
 
