@@ -76,11 +76,11 @@ describe.skip('IPCChannel Channel', () => {
 		namespace: 'namespace',
 		logger: fakeLogger,
 		events: ['event1', 'event2'],
-		endpoints: {
-			action1: jest.fn(),
-			action2: jest.fn(),
-			action3: jest.fn(),
-		},
+		endpoints: new Map([
+			['action1', jest.fn()],
+			['action2', jest.fn()],
+			['action3', jest.fn()],
+		]),
 		options: {
 			socketsPath: 'socketPath',
 		},
@@ -257,7 +257,7 @@ describe.skip('IPCChannel Channel', () => {
 			});
 
 			// Assert
-			expect(params.endpoints.action1).toHaveBeenCalled();
+			expect(params.endpoints.get('action1')).toHaveBeenCalled();
 		});
 
 		it('should execute the action straight away if the plugins are the same and action is an Action object', async () => {
@@ -271,7 +271,7 @@ describe.skip('IPCChannel Channel', () => {
 			});
 
 			// Assert
-			expect(params.endpoints.action1).toHaveBeenCalledWith(action.params);
+			expect(params.endpoints.get('action1')).toHaveBeenCalledWith(action.params);
 		});
 	});
 

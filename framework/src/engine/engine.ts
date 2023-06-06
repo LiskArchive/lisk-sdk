@@ -255,28 +255,28 @@ export class Engine {
 			chain: this._chain,
 		});
 
-		for (const [name, handler] of Object.entries(getEndpointHandlers(legacyEndpoint))) {
+		for (const [name, handler] of getEndpointHandlers(legacyEndpoint)) {
 			this._rpcServer.registerEndpoint('legacy', name, handler);
 		}
-		for (const [name, handler] of Object.entries(getEndpointHandlers(chainEndpoint))) {
+		for (const [name, handler] of getEndpointHandlers(chainEndpoint)) {
 			this._rpcServer.registerEndpoint('chain', name, handler);
 		}
-		for (const [name, handler] of Object.entries(getEndpointHandlers(consensusEndpoint))) {
+		for (const [name, handler] of getEndpointHandlers(consensusEndpoint)) {
 			this._rpcServer.registerEndpoint('consensus', name, handler);
 		}
-		for (const [name, handler] of Object.entries(getEndpointHandlers(stateEndpoint))) {
+		for (const [name, handler] of getEndpointHandlers(stateEndpoint)) {
 			this._rpcServer.registerEndpoint('state', name, handler);
 		}
-		for (const [name, handler] of Object.entries(getEndpointHandlers(systemEndpoint))) {
+		for (const [name, handler] of getEndpointHandlers(systemEndpoint)) {
 			this._rpcServer.registerEndpoint('system', name, handler);
 		}
-		for (const [name, handler] of Object.entries(getEndpointHandlers(txpoolEndpoint))) {
+		for (const [name, handler] of getEndpointHandlers(txpoolEndpoint)) {
 			this._rpcServer.registerEndpoint('txpool', name, handler);
 		}
-		for (const [name, handler] of Object.entries(getEndpointHandlers(this._generator.endpoint))) {
+		for (const [name, handler] of getEndpointHandlers(this._generator.endpoint)) {
 			this._rpcServer.registerEndpoint('generator', name, handler);
 		}
-		for (const [name, handler] of Object.entries(getEndpointHandlers(this._network.endpoint))) {
+		for (const [name, handler] of getEndpointHandlers(this._network.endpoint)) {
 			this._rpcServer.registerEndpoint('network', name, handler);
 		}
 		this._rpcServer.registerNotFoundEndpoint(

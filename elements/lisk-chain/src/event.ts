@@ -72,13 +72,9 @@ export class Event {
 		const result = [];
 		const value = utils.hash(this.getBytes());
 		for (let i = 0; i < this._topics.length; i += 1) {
-			// eslint-disable-next-line no-bitwise
-			const indexBit = (this._index << EVENT_TOPIC_INDEX_LENGTH_BITS) + i;
-			const indexBytes = Buffer.alloc(EVENT_TOTAL_INDEX_LENGTH_BYTES);
-			indexBytes.writeUIntBE(indexBit, 0, EVENT_TOTAL_INDEX_LENGTH_BYTES);
 			const key = Buffer.concat([
-				utils.hash(this._topics[i]).slice(0, EVENT_TOPIC_HASH_LENGTH_BYTES),
-				indexBytes,
+				utils.hash(this._topics[i]).subarray(0, EVENT_TOPIC_HASH_LENGTH_BYTES),
+				this._getIndexBytes(i),
 			]);
 			result.push({
 				key,
@@ -94,6 +90,14 @@ export class Event {
 
 	public toObject(): EventAttr {
 		return this._getAllProps();
+	}
+
+	private _getIndexBytes(index: number): Buffer {
+		const indexBytes = Buffer.alloc(EVENT_TOTAL_INDEX_LENGTH_BYTES);
+		// eslint-disable-next-line no-bitwise
+		const indexBit = ((this._index << EVENT_TOPIC_INDEX_LENGTH_BITS) >>> 0) + index;
+		indexBytes.writeUint32BE(indexBit, 0);
+		return indexBytes;
 	}
 
 	private _getAllProps(): EventAttr {

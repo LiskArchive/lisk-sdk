@@ -15,6 +15,8 @@
 export const eventWithModuleNameReg = /^[a-zA-Z]\w*_[a-zA-Z][a-zA-Z0-9]*$/;
 export const moduleNameReg = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 export const actionWithModuleNameReg = /^[a-zA-Z][a-zA-Z0-9_]*_[a-zA-Z][a-zA-Z0-9]*$/;
+// eslint-disable-next-line no-control-regex
+export const controlReg = /[\x00-\x1F\x7F]/g;
 export const APP_IDENTIFIER = 'app';
 
 export const APP_EVENT_READY = 'app_ready';
