@@ -217,7 +217,7 @@ describe('PoA module', () => {
 			});
 			const roundStartHeight = height - firstSnapshot.validators.length + 1;
 			const validators = [];
-			for (const validator of firstSnapshot.validators) {
+			for (const validator of secondSnapshot.validators) {
 				validators.push(validator);
 			}
 			const nextValidators = shuffleValidatorList(randomSeed, validators);
@@ -240,8 +240,8 @@ describe('PoA module', () => {
 			expect(validatorMethod.setValidatorsParams).toHaveBeenCalledWith(
 				context,
 				context,
-				firstSnapshot.threshold,
-				firstSnapshot.threshold,
+				secondSnapshot.threshold,
+				secondSnapshot.threshold,
 				nextValidators.map(v => ({
 					address: v.address,
 					bftWeight: v.weight,

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
 import { BaseModule, ModuleMetadata } from '../base_module';
 import { PoAMethod } from './method';
 import { PoAEndpoint } from './endpoint';
