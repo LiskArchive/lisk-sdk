@@ -127,7 +127,7 @@ describe('CrossChain Transfer Command', () => {
 
 	beforeEach(async () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		method.addDependencies(interopMethod);
+		method.addDependencies(interopMethod, feeMethod);
 		method.init(config);
 		internalMethod.addDependencies(method, interopMethod);
 		internalMethod.init(config);

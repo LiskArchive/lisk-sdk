@@ -12,11 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseMethod } from '../base_method';
-import { InteroperabilityMethod, ModuleConfig } from './types';
-import { NFTStore } from './stores/nft';
+import { FeeMethod, InteroperabilityMethod, ModuleConfig } from './types';
+import { NFTAttributes, NFTStore } from './stores/nft';
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import {
 	ALL_SUPPORTED_NFTS_KEY,
+	FEE_CREATE_NFT,
 	LENGTH_CHAIN_ID,
 	LENGTH_COLLECTION_ID,
 	LENGTH_NFT_ID,
@@ -26,18 +27,21 @@ import {
 import { UserStore } from './stores/user';
 import { DestroyEvent } from './events/destroy';
 import { SupportedNFTsStore } from './stores/supported_nfts';
+import { CreateEvent } from './events/create';
 
 export class NFTMethod extends BaseMethod {
 	private _config!: ModuleConfig;
 	// @ts-expect-error TODO: unused error. Remove when implementing.
 	private _interoperabilityMethod!: InteroperabilityMethod;
+	private _feeMethod!: FeeMethod;
 
 	public init(config: ModuleConfig): void {
 		this._config = config;
 	}
 
-	public addDependencies(interoperabilityMethod: InteroperabilityMethod) {
+	public addDependencies(interoperabilityMethod: InteroperabilityMethod, feeMethod: FeeMethod) {
 		this._interoperabilityMethod = interoperabilityMethod;
+		this._feeMethod = feeMethod;
 	}
 
 	public getChainID(nftID: Buffer): Buffer {
@@ -202,5 +206,93 @@ export class NFTMethod extends BaseMethod {
 		}
 
 		return false;
+	}
+
+	public async getAttributesArray(
+		methodContext: MethodContext,
+		nftID: Buffer,
+	): Promise<NFTAttributes[]> {
+		const nftStore = this.stores.get(NFTStore);
+		const nftExists = await nftStore.has(methodContext, nftID);
+		if (!nftExists) {
+			throw new Error('NFT substore entry does not exist');
+		}
+
+		const storeData = await nftStore.get(methodContext, nftID);
+		return storeData.attributesArray;
+	}
+
+	public async getAttributes(
+		methodContext: MethodContext,
+		module: string,
+		nftID: Buffer,
+	): Promise<Buffer> {
+		const nftStore = this.stores.get(NFTStore);
+		const nftExists = await nftStore.has(methodContext, nftID);
+		if (!nftExists) {
+			throw new Error('NFT substore entry does not exist');
+		}
+
+		const storeData = await nftStore.get(methodContext, nftID);
+
+		for (const nftAttributes of storeData.attributesArray) {
+			if (nftAttributes.module === module) {
+				return nftAttributes.attributes;
+			}
+		}
+
+		throw new Error('Specific module did not set any attributes.');
+	}
+
+	public async getNextAvailableIndex(
+		methodContext: MethodContext,
+		collectionID: Buffer,
+	): Promise<number> {
+		const nftStore = this.stores.get(NFTStore);
+		const nftStoreData = await nftStore.iterate(methodContext, {
+			gte: Buffer.alloc(LENGTH_NFT_ID, 0),
+			lte: Buffer.alloc(LENGTH_NFT_ID, 255),
+		});
+
+		let count = 0;
+		for (const { key } of nftStoreData) {
+			if (key.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID).equals(collectionID)) {
+				count += 1;
+			}
+		}
+
+		return count;
+	}
+
+	public async create(
+		methodContext: MethodContext,
+		address: Buffer,
+		collectionID: Buffer,
+		attributesArray: NFTAttributes[],
+	): Promise<void> {
+		const index = await this.getNextAvailableIndex(methodContext, collectionID);
+		const nftID = Buffer.concat([
+			this._config.ownChainID,
+			collectionID,
+			Buffer.from(index.toString()),
+		]);
+		this._feeMethod.payFee(methodContext, BigInt(FEE_CREATE_NFT));
+
+		const nftStore = this.stores.get(NFTStore);
+		await nftStore.save(methodContext, nftID, {
+			owner: address,
+			attributesArray,
+		});
+
+		const userStore = this.stores.get(UserStore);
+		await userStore.set(methodContext, userStore.getKey(address, nftID), {
+			lockingModule: NFT_NOT_LOCKED,
+		});
+
+		this.events.get(CreateEvent).log(methodContext, {
+			address,
+			nftID,
+			collectionID,
+		});
 	}
 }
