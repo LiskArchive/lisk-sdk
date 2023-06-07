@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MAX_UINT64, validator } from '@liskhq/lisk-validator';
+import { MAX_UINT64 } from '@liskhq/lisk-validator';
 import { address, bls, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
@@ -23,7 +23,8 @@ import {
 	MAX_NUM_VALIDATORS,
 	MESSAGE_TAG_POA,
 	EMPTY_BYTES,
-	UpdateAuthority,
+	UpdateAuthorityResult,
+	KEY_SNAPSHOT_0,
 } from '../constants';
 import {
 	CommandExecuteContext,
@@ -31,7 +32,7 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../state_machine';
-import { UpdateAuthorityValidatorParams } from '../types';
+import { UpdateAuthorityParams } from '../types';
 import { ChainPropertiesStore, SnapshotStore, ValidatorStore } from '../stores';
 import { ValidatorsMethod } from '../../pos/types';
 import { AuthorityUpdateEvent } from '../events/authority_update';
@@ -50,25 +51,19 @@ export class UpdateAuthorityCommand extends BaseCommand {
 	}
 
 	public async verify(
-		context: CommandVerifyContext<UpdateAuthorityValidatorParams>,
+		context: CommandVerifyContext<UpdateAuthorityParams>,
 	): Promise<VerificationResult> {
 		const { newValidators, threshold, validatorsUpdateNonce } = context.params;
-		try {
-			validator.validate(updateAuthoritySchema, context.params);
-		} catch (err) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: err as Error,
-			};
-		}
 
 		if (newValidators.length < 1 || newValidators.length > MAX_NUM_VALIDATORS) {
-			throw new Error(`NewValidators length must be between 1 and ${MAX_NUM_VALIDATORS}.`);
+			throw new Error(
+				`newValidators length must be between 1 and ${MAX_NUM_VALIDATORS} (inclusive).`,
+			);
 		}
 
 		const newValidatorsAddresses = newValidators.map(newValidator => newValidator.address);
 		if (!objectUtils.bufferArrayOrderByLex(newValidatorsAddresses)) {
-			throw new Error('Addresses in newValidators are not lexicographical ordered.');
+			throw new Error('Addresses in newValidators are not lexicographically ordered.');
 		}
 
 		if (!objectUtils.bufferArrayUniqueItems(newValidatorsAddresses)) {
@@ -95,7 +90,7 @@ export class UpdateAuthorityCommand extends BaseCommand {
 
 		const minThreshold = totalWeight / BigInt(3) + BigInt(1);
 		if (threshold < minThreshold || threshold > totalWeight) {
-			throw new Error(`Threshold must be between ${minThreshold} and ${totalWeight}.`);
+			throw new Error(`Threshold must be between ${minThreshold} and ${totalWeight} (inclusive).`);
 		}
 
 		const chainPropertiesStore = await this.stores
@@ -112,9 +107,7 @@ export class UpdateAuthorityCommand extends BaseCommand {
 		};
 	}
 
-	public async execute(
-		context: CommandExecuteContext<UpdateAuthorityValidatorParams>,
-	): Promise<void> {
+	public async execute(context: CommandExecuteContext<UpdateAuthorityParams>): Promise<void> {
 		const { newValidators, threshold, validatorsUpdateNonce, aggregationBits, signature } =
 			context.params;
 		const message = codec.encode(validatorSignatureMessageSchema, {
@@ -125,7 +118,7 @@ export class UpdateAuthorityCommand extends BaseCommand {
 
 		const validatorsInfos = [];
 		const snapshotStore = this.stores.get(SnapshotStore);
-		const snapshot0 = await snapshotStore.get(context, utils.intToBuffer(0, 4));
+		const snapshot0 = await snapshotStore.get(context, KEY_SNAPSHOT_0);
 		for (const snapshotValidator of snapshot0.validators) {
 			const keys = await this._validatorsMethod.getValidatorKeys(
 				context,
@@ -154,7 +147,7 @@ export class UpdateAuthorityCommand extends BaseCommand {
 			authorityUpdateEvent.log(
 				context,
 				{
-					result: UpdateAuthority.FAIL_INVALID_SIGNATURE,
+					result: UpdateAuthorityResult.FAIL_INVALID_SIGNATURE,
 				},
 				true,
 			);
@@ -175,7 +168,7 @@ export class UpdateAuthorityCommand extends BaseCommand {
 		authorityUpdateEvent.log(
 			context,
 			{
-				result: UpdateAuthority.SUCCESS,
+				result: UpdateAuthorityResult.SUCCESS,
 			},
 			false,
 		);

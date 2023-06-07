@@ -23,7 +23,7 @@ export interface RegisterAuthorityParams {
 	proofOfPossession: Buffer;
 }
 
-export interface UpdateAuthorityValidatorParams {
+export interface UpdateAuthorityParams {
 	newValidators: {
 		address: Buffer;
 		weight: bigint;

@@ -13,10 +13,10 @@
  */
 
 import { BaseEvent, EventQueuer } from '../../base_event';
-import { UpdateAuthority } from '../constants';
+import { UpdateAuthorityResult } from '../constants';
 
 export interface AuthorityUpdateData {
-	result: UpdateAuthority;
+	result: UpdateAuthorityResult;
 }
 
 export const authorityUpdateDataSchema = {

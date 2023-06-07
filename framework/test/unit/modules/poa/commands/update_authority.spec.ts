@@ -10,17 +10,15 @@ import {
 	VerifyStatus,
 } from '../../../../../src';
 import { UpdateAuthorityCommand } from '../../../../../src/modules/poa/commands/update_authority';
-import {
-	UpdateAuthorityValidatorParams,
-	ValidatorsMethod,
-} from '../../../../../src/modules/poa/types';
+import { UpdateAuthorityParams, ValidatorsMethod } from '../../../../../src/modules/poa/types';
 import {
 	AUTHORITY_REGISTRATION_FEE,
 	COMMAND_UPDATE_AUTHORITY,
 	EMPTY_BYTES,
+	KEY_SNAPSHOT_0,
 	MAX_NUM_VALIDATORS,
 	MODULE_NAME_POA,
-	UpdateAuthority,
+	UpdateAuthorityResult,
 } from '../../../../../src/modules/poa/constants';
 import { updateAuthoritySchema } from '../../../../../src/modules/poa/schemas';
 import * as testing from '../../../../../src/testing';
@@ -34,6 +32,7 @@ import {
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import { AuthorityUpdateEvent } from '../../../../../src/modules/poa/events/authority_update';
 import { EventQueue } from '../../../../../src/state_machine';
+import { ED25519_PUBLIC_KEY_LENGTH } from '../../../../../src/modules/validators/constants';
 
 describe('UpdateAuthority', () => {
 	const poaModule = new PoAModule();
@@ -48,7 +47,7 @@ describe('UpdateAuthority', () => {
 	const address1 = Buffer.from('0000000000000000000000000000000000000001', 'hex');
 	const address2 = Buffer.from('0000000000000000000000000000000000000002', 'hex');
 
-	const updateAuthorityValidatorParams: UpdateAuthorityValidatorParams = {
+	const updateAuthorityValidatorParams: UpdateAuthorityParams = {
 		newValidators: [
 			{
 				address: address0,
@@ -65,9 +64,7 @@ describe('UpdateAuthority', () => {
 		aggregationBits: Buffer.from([0]),
 	};
 
-	const buildUpdateAuthorityValidatorParams = (
-		params: Partial<UpdateAuthorityValidatorParams>,
-	): Buffer =>
+	const buildUpdateAuthorityValidatorParams = (params: Partial<UpdateAuthorityParams>): Buffer =>
 		codec.encode(updateAuthoritySchema, {
 			newValidators: params.newValidators ?? updateAuthorityValidatorParams.newValidators,
 			threshold: params.threshold ?? updateAuthorityValidatorParams.threshold,
@@ -77,7 +74,7 @@ describe('UpdateAuthority', () => {
 			aggregationBits: params.aggregationBits ?? updateAuthorityValidatorParams.aggregationBits,
 		});
 
-	const publicKey = utils.getRandomBytes(32);
+	const publicKey = utils.getRandomBytes(ED25519_PUBLIC_KEY_LENGTH);
 	const chainID = Buffer.from([0, 0, 0, 1]);
 
 	const buildTransaction = (transaction: Partial<TransactionAttrs>): Transaction => {
@@ -123,7 +120,7 @@ describe('UpdateAuthority', () => {
 	});
 
 	describe('verify', () => {
-		let context: CommandVerifyContext<UpdateAuthorityValidatorParams>;
+		let context: CommandVerifyContext<UpdateAuthorityParams>;
 		beforeEach(() => {
 			context = testing
 				.createTransactionContext({
@@ -131,10 +128,10 @@ describe('UpdateAuthority', () => {
 					transaction: buildTransaction({}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
+				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 		});
 
-		it('should return error when length of newValidators is less than 1', async () => {
+		it('should throw error when length of newValidators is less than 1', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -145,14 +142,14 @@ describe('UpdateAuthority', () => {
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
+				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
-				'NewValidators length must be between 1 and 199.',
+				`NewValidators length must be between 1 and ${MAX_NUM_VALIDATORS}.`,
 			);
 		});
 
-		it('should return error when length of newValidators is greater than MAX_NUM_VALIDATORS', async () => {
+		it('should throw error when length of newValidators is greater than MAX_NUM_VALIDATORS', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -166,14 +163,14 @@ describe('UpdateAuthority', () => {
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
+				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
 				'NewValidators length must be between 1 and 199.',
 			);
 		});
 
-		it('should return error when newValidators are not lexicographically ordered', async () => {
+		it('should throw error when newValidators are not lexicographically ordered', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -193,14 +190,14 @@ describe('UpdateAuthority', () => {
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
+				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
-				'Addresses in newValidators are not lexicographical ordered.',
+				'Addresses in newValidators are not lexicographically ordered.',
 			);
 		});
 
-		it('should return error when addresses are in newValidators are not unique', async () => {
+		it('should throw error when addresses are in newValidators are not unique', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -224,14 +221,14 @@ describe('UpdateAuthority', () => {
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
+				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
 				'Addresses in newValidators are not unique.',
 			);
 		});
 
-		it('should return error when validator is not in ValidatorStore', async () => {
+		it('should throw error when validator is not in ValidatorStore', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -248,14 +245,14 @@ describe('UpdateAuthority', () => {
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
+				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
 				`${address.getLisk32AddressFromPublicKey(address2)} does not exist in validator store.`,
 			);
 		});
 
-		it('should return error when totalWeight is greater than MAX_UINT64', async () => {
+		it('should throw error when totalWeight is greater than MAX_UINT64', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -275,14 +272,14 @@ describe('UpdateAuthority', () => {
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
+				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
 				`Validators total weight exceeds ${MAX_UINT64}`,
 			);
 		});
 
-		it('should return error when trsParams.threshold less than (totalWeight / 3) + 1 ', async () => {
+		it('should throw error when trsParams.threshold is less than (totalWeight / 3) + 1 ', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -293,7 +290,7 @@ describe('UpdateAuthority', () => {
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
+				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
 			const totalWeight = updateAuthorityValidatorParams.newValidators.reduce(
 				(acc, validator) => acc + validator.weight,
@@ -305,7 +302,7 @@ describe('UpdateAuthority', () => {
 			);
 		});
 
-		it('should return error when trsParams.threshold us greater than totalWeight', async () => {
+		it('should throw error when trsParams.threshold is greater than totalWeight', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -316,7 +313,7 @@ describe('UpdateAuthority', () => {
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
+				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
 			const totalWeight = updateAuthorityValidatorParams.newValidators.reduce(
 				(acc, validator) => acc + validator.weight,
@@ -328,7 +325,7 @@ describe('UpdateAuthority', () => {
 			);
 		});
 
-		it('should return error when trsParams.validatorsUpdateNonce does not equal to chainProperties.validatorsUpdateNonce', async () => {
+		it('should throw error when trsParams.validatorsUpdateNonce does not equal to chainProperties.validatorsUpdateNonce', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -339,7 +336,7 @@ describe('UpdateAuthority', () => {
 					}),
 					chainID,
 				})
-				.createCommandVerifyContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
+				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
 			const chainProperties = await chainPropertiesStore.get(context, EMPTY_BYTES);
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
@@ -355,12 +352,12 @@ describe('UpdateAuthority', () => {
 	});
 
 	describe('execute', () => {
-		let context: CommandExecuteContext<UpdateAuthorityValidatorParams>;
+		let context: CommandExecuteContext<UpdateAuthorityParams>;
 
 		const checkEventResult = (
 			eventQueue: EventQueue,
 			BaseEvent: any,
-			expectedResult: UpdateAuthority,
+			expectedResult: UpdateAuthorityResult,
 			length = 1,
 			index = 0,
 		) => {
@@ -380,15 +377,15 @@ describe('UpdateAuthority', () => {
 					transaction: buildTransaction({}),
 					chainID,
 				})
-				.createCommandExecuteContext<UpdateAuthorityValidatorParams>(updateAuthoritySchema);
+				.createCommandExecuteContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
-			await snapshotStore.set(createStoreGetter(stateStore), Buffer.from([0]), {
+			await snapshotStore.set(createStoreGetter(stateStore), KEY_SNAPSHOT_0, {
 				validators: [],
 				threshold: BigInt(0),
 			});
 		});
 
-		it('should emit event and return error when verifyWeightedAggSig failed', async () => {
+		it('should emit event and throw error when verifyWeightedAggSig failed', async () => {
 			jest.spyOn(bls, 'verifyWeightedAggSig').mockReturnValue(false);
 
 			await expect(updateAuthorityCommand.execute(context)).rejects.toThrow('Invalid Signature.');
@@ -396,7 +393,7 @@ describe('UpdateAuthority', () => {
 			checkEventResult(
 				context.eventQueue,
 				AuthorityUpdateEvent,
-				UpdateAuthority.FAIL_INVALID_SIGNATURE,
+				UpdateAuthorityResult.FAIL_INVALID_SIGNATURE,
 			);
 		});
 
@@ -405,7 +402,7 @@ describe('UpdateAuthority', () => {
 
 			await updateAuthorityCommand.execute(context);
 
-			expect(await snapshotStore.get(context, Buffer.from([2]))).toStrictEqual({
+			expect(await snapshotStore.get(context, utils.intToBuffer(2, 4))).toStrictEqual({
 				validators: updateAuthorityValidatorParams.newValidators,
 				threshold: updateAuthorityValidatorParams.threshold,
 			});
@@ -414,7 +411,7 @@ describe('UpdateAuthority', () => {
 				validatorsUpdateNonce: 1,
 			});
 
-			checkEventResult(context.eventQueue, AuthorityUpdateEvent, UpdateAuthority.SUCCESS);
+			checkEventResult(context.eventQueue, AuthorityUpdateEvent, UpdateAuthorityResult.SUCCESS);
 		});
 	});
 });
