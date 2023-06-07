@@ -145,7 +145,7 @@ describe('UpdateAuthority', () => {
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
-				`NewValidators length must be between 1 and ${MAX_NUM_VALIDATORS}.`,
+				`newValidators length must be between 1 and ${MAX_NUM_VALIDATORS} (inclusive).`,
 			);
 		});
 
@@ -166,7 +166,7 @@ describe('UpdateAuthority', () => {
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
-				'NewValidators length must be between 1 and 199.',
+				`newValidators length must be between 1 and ${MAX_NUM_VALIDATORS} (inclusive)`,
 			);
 		});
 
@@ -298,7 +298,7 @@ describe('UpdateAuthority', () => {
 			);
 			const minThreshold = totalWeight / BigInt(3) + BigInt(1);
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
-				`Threshold must be between ${minThreshold} and ${totalWeight}`,
+				`Threshold must be between ${minThreshold} and ${totalWeight} (inclusive).`,
 			);
 		});
 
@@ -388,7 +388,9 @@ describe('UpdateAuthority', () => {
 		it('should emit event and throw error when verifyWeightedAggSig failed', async () => {
 			jest.spyOn(bls, 'verifyWeightedAggSig').mockReturnValue(false);
 
-			await expect(updateAuthorityCommand.execute(context)).rejects.toThrow('Invalid Signature.');
+			await expect(updateAuthorityCommand.execute(context)).rejects.toThrow(
+				'Invalid weighted aggregated signature.',
+			);
 
 			checkEventResult(
 				context.eventQueue,

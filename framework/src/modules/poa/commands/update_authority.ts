@@ -110,6 +110,8 @@ export class UpdateAuthorityCommand extends BaseCommand {
 	public async execute(context: CommandExecuteContext<UpdateAuthorityParams>): Promise<void> {
 		const { newValidators, threshold, validatorsUpdateNonce, aggregationBits, signature } =
 			context.params;
+
+		// Verify weighted aggregated signature.
 		const message = codec.encode(validatorSignatureMessageSchema, {
 			newValidators,
 			threshold,
@@ -151,7 +153,7 @@ export class UpdateAuthorityCommand extends BaseCommand {
 				},
 				true,
 			);
-			throw new Error('Invalid Signature.');
+			throw new Error('Invalid weighted aggregated signature.');
 		}
 		await snapshotStore.set(context, utils.intToBuffer(2, 4), {
 			validators: newValidators,
