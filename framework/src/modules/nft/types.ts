@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MethodContext } from '../../state_machine';
+import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import { CCMsg } from '../interoperability';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -34,6 +34,7 @@ export interface InteroperabilityMethod {
 	): Promise<void>;
 	error(methodContext: MethodContext, ccm: CCMsg, code: number): Promise<void>;
 	terminateChain(methodContext: MethodContext, chainID: Buffer): Promise<void>;
+	getMessageFeeTokenID(methodContext: ImmutableMethodContext, chainID: Buffer): Promise<Buffer>;
 }
 
 export interface FeeMethod {
