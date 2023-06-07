@@ -13,7 +13,7 @@
  */
 
 import { MAX_UINT64 } from '@liskhq/lisk-validator';
-import { address, bls, utils } from '@liskhq/lisk-cryptography';
+import { bls } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { BaseCommand } from '../../base_command';
@@ -25,6 +25,7 @@ import {
 	EMPTY_BYTES,
 	UpdateAuthorityResult,
 	KEY_SNAPSHOT_0,
+	KEY_SNAPSHOT_2,
 } from '../constants';
 import {
 	CommandExecuteContext,
@@ -76,9 +77,7 @@ export class UpdateAuthorityCommand extends BaseCommand {
 			const validatorExists = await validatorStore.has(context, newValidator.address);
 			if (!validatorExists) {
 				throw new Error(
-					`${address.getLisk32AddressFromPublicKey(
-						newValidator.address,
-					)} does not exist in validator store.`,
+					`${newValidator.address.toString('hex')} does not exist in validator store.`,
 				);
 			}
 			totalWeight += newValidator.weight;
@@ -155,7 +154,7 @@ export class UpdateAuthorityCommand extends BaseCommand {
 			);
 			throw new Error('Invalid weighted aggregated signature.');
 		}
-		await snapshotStore.set(context, utils.intToBuffer(2, 4), {
+		await snapshotStore.set(context, KEY_SNAPSHOT_2, {
 			validators: newValidators,
 			threshold,
 		});

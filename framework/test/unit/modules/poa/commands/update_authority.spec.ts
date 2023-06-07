@@ -1,4 +1,4 @@
-import { address, bls, utils } from '@liskhq/lisk-cryptography';
+import { bls, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { TransactionAttrs } from '@liskhq/lisk-chain';
 import { MAX_UINT64 } from '@liskhq/lisk-validator';
@@ -16,6 +16,7 @@ import {
 	COMMAND_UPDATE_AUTHORITY,
 	EMPTY_BYTES,
 	KEY_SNAPSHOT_0,
+	KEY_SNAPSHOT_2,
 	MAX_NUM_VALIDATORS,
 	MODULE_NAME_POA,
 	UpdateAuthorityResult,
@@ -248,7 +249,7 @@ describe('UpdateAuthority', () => {
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
-				`${address.getLisk32AddressFromPublicKey(address2)} does not exist in validator store.`,
+				`${address2.toString('hex')} does not exist in validator store.`,
 			);
 		});
 
@@ -404,7 +405,7 @@ describe('UpdateAuthority', () => {
 
 			await updateAuthorityCommand.execute(context);
 
-			expect(await snapshotStore.get(context, utils.intToBuffer(2, 4))).toStrictEqual({
+			expect(await snapshotStore.get(context, KEY_SNAPSHOT_2)).toStrictEqual({
 				validators: updateAuthorityValidatorParams.newValidators,
 				threshold: updateAuthorityValidatorParams.threshold,
 			});
