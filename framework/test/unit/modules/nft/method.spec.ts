@@ -233,7 +233,7 @@ describe('NFTMethod', () => {
 		it('should fail and emit Destroy event if NFT is escrowed', async () => {
 			await expect(
 				method.destroy(methodContext, escrowedNFT.owner, escrowedNFT.nftID),
-			).rejects.toThrow();
+			).rejects.toThrow('NFT is escrowed to another chain');
 
 			checkEventResult<DestroyEventData>(
 				methodContext.eventQueue,
