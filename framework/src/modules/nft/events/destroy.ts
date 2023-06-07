@@ -13,7 +13,7 @@
  */
 
 import { BaseEvent, EventQueuer } from '../../base_event';
-import { LENGTH_NFT_ID, NftEventResult } from '../constants';
+import { LENGTH_NFT_ID, NftErrorEventResult, NftEventResult } from '../constants';
 
 export interface DestroyEventData {
 	address: Buffer;
@@ -46,11 +46,14 @@ export const createEventSchema = {
 export class DestroyEvent extends BaseEvent<DestroyEventData & { result: NftEventResult }> {
 	public schema = createEventSchema;
 
-	public log(
-		ctx: EventQueuer,
-		data: DestroyEventData,
-		result: NftEventResult = NftEventResult.RESULT_SUCCESSFUL,
-	): void {
+	public log(ctx: EventQueuer, data: DestroyEventData): void {
+		this.add(ctx, { ...data, result: NftEventResult.RESULT_SUCCESSFUL }, [
+			data.address,
+			data.nftID,
+		]);
+	}
+
+	public error(ctx: EventQueuer, data: DestroyEventData, result: NftErrorEventResult): void {
 		this.add(ctx, { ...data, result }, [data.address, data.nftID]);
 	}
 }

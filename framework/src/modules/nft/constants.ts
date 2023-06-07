@@ -44,7 +44,4 @@ export const enum NftEventResult {
 	RESULT_DATA_TOO_LONG = 13,
 }
 
-export type NftErrorEventResult = Exclude<
-	NftEventResult,
-	NftEventResult.RESULT_NFT_ESCROWED | NftEventResult.RESULT_SUCCESSFUL
->;
+export type NftErrorEventResult = Exclude<NftEventResult, NftEventResult.RESULT_SUCCESSFUL>;
