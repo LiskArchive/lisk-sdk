@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { address } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseCommand } from '../../base_command';
 import { updateGeneratorKeySchema } from '../schemas';
@@ -26,6 +25,7 @@ import {
 import { UpdateGeneratorKeyParams, ValidatorsMethod } from '../types';
 import { ValidatorStore } from '../stores';
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0047.md#update-generator-key-command
 export class UpdateGeneratorKeyCommand extends BaseCommand {
 	public schema = updateGeneratorKeySchema;
 	private _validatorsMethod!: ValidatorsMethod;
@@ -65,7 +65,10 @@ export class UpdateGeneratorKeyCommand extends BaseCommand {
 	public async execute(context: CommandExecuteContext<UpdateGeneratorKeyParams>): Promise<void> {
 		const { generatorKey } = context.params;
 
-		const senderAddress = address.getAddressFromPublicKey(context.transaction.senderPublicKey);
-		await this._validatorsMethod.setValidatorGeneratorKey(context, senderAddress, generatorKey);
+		await this._validatorsMethod.setValidatorGeneratorKey(
+			context,
+			context.transaction.senderAddress,
+			generatorKey,
+		);
 	}
 }
