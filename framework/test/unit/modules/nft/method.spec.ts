@@ -35,6 +35,7 @@ import { UserStore } from '../../../../src/modules/nft/stores/user';
 import { DestroyEvent, DestroyEventData } from '../../../../src/modules/nft/events/destroy';
 import { SupportedNFTsStore } from '../../../../src/modules/nft/stores/supported_nfts';
 import { CreateEvent } from '../../../../src/modules/nft/events/create';
+import { LockEvent, LockEventData } from '../../../../src/modules/nft/events/lock';
 
 describe('NFTMethod', () => {
 	const module = new NFTModule();
@@ -67,13 +68,64 @@ describe('NFTMethod', () => {
 		expect(eventData).toEqual({ ...expectedResult, result });
 	};
 
-	beforeEach(() => {
+	let existingNFT: { nftID: any; owner: any };
+	let lockedExistingNFT: { nftID: any; owner: any; lockingModule: string };
+	let escrowedNFT: { nftID: any; owner: any };
+
+	beforeEach(async () => {
 		owner = utils.getRandomBytes(LENGTH_ADDRESS);
 
 		methodContext = createMethodContext({
 			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
 			eventQueue: new EventQueue(0),
 			contextStore: new Map(),
+		});
+
+		existingNFT = {
+			owner: utils.getRandomBytes(LENGTH_ADDRESS),
+			nftID: utils.getRandomBytes(LENGTH_NFT_ID),
+		};
+
+		lockedExistingNFT = {
+			owner: utils.getRandomBytes(LENGTH_ADDRESS),
+			nftID: utils.getRandomBytes(LENGTH_NFT_ID),
+			lockingModule: 'token',
+		};
+
+		escrowedNFT = {
+			owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
+			nftID: utils.getRandomBytes(LENGTH_NFT_ID),
+		};
+
+		await nftStore.save(methodContext, existingNFT.nftID, {
+			owner: existingNFT.owner,
+			attributesArray: [],
+		});
+
+		await userStore.set(methodContext, userStore.getKey(existingNFT.owner, existingNFT.nftID), {
+			lockingModule: NFT_NOT_LOCKED,
+		});
+
+		await nftStore.save(methodContext, lockedExistingNFT.nftID, {
+			owner: lockedExistingNFT.owner,
+			attributesArray: [],
+		});
+
+		await userStore.set(
+			methodContext,
+			userStore.getKey(lockedExistingNFT.owner, lockedExistingNFT.nftID),
+			{
+				lockingModule: lockedExistingNFT.lockingModule,
+			},
+		);
+
+		await nftStore.save(methodContext, escrowedNFT.nftID, {
+			owner: escrowedNFT.owner,
+			attributesArray: [],
+		});
+
+		await userStore.set(methodContext, userStore.getKey(escrowedNFT.owner, escrowedNFT.nftID), {
+			lockingModule: NFT_NOT_LOCKED,
 		});
 	});
 
@@ -143,58 +195,6 @@ describe('NFTMethod', () => {
 	});
 
 	describe('destroy', () => {
-		let existingNFT: { nftID: any; owner: any };
-		let lockedExistingNFT: { nftID: any; owner: any };
-		let escrowedNFT: { nftID: any; owner: any };
-
-		beforeEach(async () => {
-			existingNFT = {
-				owner: utils.getRandomBytes(LENGTH_ADDRESS),
-				nftID: utils.getRandomBytes(LENGTH_NFT_ID),
-			};
-
-			lockedExistingNFT = {
-				owner: utils.getRandomBytes(LENGTH_ADDRESS),
-				nftID: utils.getRandomBytes(LENGTH_NFT_ID),
-			};
-
-			escrowedNFT = {
-				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
-				nftID: utils.getRandomBytes(LENGTH_NFT_ID),
-			};
-
-			await nftStore.save(methodContext, existingNFT.nftID, {
-				owner: existingNFT.owner,
-				attributesArray: [],
-			});
-
-			await userStore.set(methodContext, userStore.getKey(existingNFT.owner, existingNFT.nftID), {
-				lockingModule: NFT_NOT_LOCKED,
-			});
-
-			await nftStore.save(methodContext, lockedExistingNFT.nftID, {
-				owner: lockedExistingNFT.owner,
-				attributesArray: [],
-			});
-
-			await userStore.set(
-				methodContext,
-				userStore.getKey(lockedExistingNFT.owner, lockedExistingNFT.nftID),
-				{
-					lockingModule: 'token',
-				},
-			);
-
-			await nftStore.save(methodContext, escrowedNFT.nftID, {
-				owner: escrowedNFT.owner,
-				attributesArray: [],
-			});
-
-			await userStore.set(methodContext, userStore.getKey(escrowedNFT.owner, escrowedNFT.nftID), {
-				lockingModule: NFT_NOT_LOCKED,
-			});
-		});
-
 		it('should fail and emit Destroy event if NFT does not exist', async () => {
 			const address = utils.getRandomBytes(LENGTH_ADDRESS);
 
@@ -589,6 +589,187 @@ describe('NFTMethod', () => {
 				nftID: expectedKey,
 				collectionID,
 			});
+		});
+	});
+
+	describe('lock', () => {
+		it('should throw and log LockEvent if NFT does not exist', async () => {
+			await expect(method.lock(methodContext, module.name, nftID)).rejects.toThrow(
+				'NFT substore entry does not exist',
+			);
+
+			checkEventResult<LockEventData>(
+				methodContext.eventQueue,
+				1,
+				LockEvent,
+				0,
+				{
+					module: module.name,
+					nftID,
+				},
+				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+			);
+		});
+
+		it('should throw and log LockEvent if NFT is escrowed', async () => {
+			await expect(method.lock(methodContext, module.name, escrowedNFT.nftID)).rejects.toThrow(
+				'NFT is escrowed to another chain',
+			);
+
+			checkEventResult<LockEventData>(
+				methodContext.eventQueue,
+				1,
+				LockEvent,
+				0,
+				{
+					module: module.name,
+					nftID: escrowedNFT.nftID,
+				},
+				NftEventResult.RESULT_NFT_ESCROWED,
+			);
+		});
+
+		it('should throw and log LockEvent if NFT is locked', async () => {
+			await expect(
+				method.lock(methodContext, module.name, lockedExistingNFT.nftID),
+			).rejects.toThrow('NFT is already locked');
+
+			checkEventResult<LockEventData>(
+				methodContext.eventQueue,
+				1,
+				LockEvent,
+				0,
+				{
+					module: module.name,
+					nftID: lockedExistingNFT.nftID,
+				},
+				NftEventResult.RESULT_NFT_LOCKED,
+			);
+		});
+
+		it('should update the locking module and log LockEvent', async () => {
+			const expectedLockingModule = 'lockingModule';
+			await expect(
+				method.lock(methodContext, expectedLockingModule, existingNFT.nftID),
+			).resolves.toBeUndefined();
+
+			checkEventResult<LockEventData>(
+				methodContext.eventQueue,
+				1,
+				LockEvent,
+				0,
+				{
+					module: expectedLockingModule,
+					nftID: existingNFT.nftID,
+				},
+				NftEventResult.RESULT_SUCCESSFUL,
+			);
+
+			const { lockingModule } = await userStore.get(
+				methodContext,
+				userStore.getKey(existingNFT.owner, existingNFT.nftID),
+			);
+
+			expect(lockingModule).toEqual(expectedLockingModule);
+		});
+	});
+
+	describe('unlock', () => {
+		it('should throw and log LockEvent if NFT does not exist', async () => {
+			await expect(method.unlock(methodContext, module.name, nftID)).rejects.toThrow(
+				'NFT substore entry does not exist',
+			);
+
+			checkEventResult<LockEventData>(
+				methodContext.eventQueue,
+				1,
+				LockEvent,
+				0,
+				{
+					module: module.name,
+					nftID,
+				},
+				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+			);
+		});
+
+		it('should throw and log LockEvent if NFT is escrowed', async () => {
+			await expect(method.unlock(methodContext, module.name, escrowedNFT.nftID)).rejects.toThrow(
+				'NFT is escrowed to another chain',
+			);
+
+			checkEventResult<LockEventData>(
+				methodContext.eventQueue,
+				1,
+				LockEvent,
+				0,
+				{
+					module: module.name,
+					nftID: escrowedNFT.nftID,
+				},
+				NftEventResult.RESULT_NFT_ESCROWED,
+			);
+		});
+
+		it('should throw and log LockEvent if NFT is unlocked', async () => {
+			await expect(method.unlock(methodContext, module.name, existingNFT.nftID)).rejects.toThrow(
+				'NFT is already locked',
+			);
+
+			checkEventResult<LockEventData>(
+				methodContext.eventQueue,
+				1,
+				LockEvent,
+				0,
+				{
+					module: module.name,
+					nftID: existingNFT.nftID,
+				},
+				NftEventResult.RESULT_NFT_NOT_LOCKED,
+			);
+		});
+
+		it('should throw and log LockEvent if unlocking module is not the locking module', async () => {
+			await expect(
+				method.unlock(methodContext, module.name, lockedExistingNFT.nftID),
+			).rejects.toThrow('Unlocking NFT via module that did not lock it');
+
+			checkEventResult<LockEventData>(
+				methodContext.eventQueue,
+				1,
+				LockEvent,
+				0,
+				{
+					module: module.name,
+					nftID: lockedExistingNFT.nftID,
+				},
+				NftEventResult.RESULT_UNAUTHORIZED_UNLOCK,
+			);
+		});
+
+		it('should unlock and log LockEvent', async () => {
+			await expect(
+				method.unlock(methodContext, lockedExistingNFT.lockingModule, lockedExistingNFT.nftID),
+			).resolves.toBeUndefined();
+
+			checkEventResult<LockEventData>(
+				methodContext.eventQueue,
+				1,
+				LockEvent,
+				0,
+				{
+					module: lockedExistingNFT.lockingModule,
+					nftID: lockedExistingNFT.nftID,
+				},
+				NftEventResult.RESULT_SUCCESSFUL,
+			);
+
+			const { lockingModule } = await userStore.get(
+				methodContext,
+				userStore.getKey(lockedExistingNFT.owner, lockedExistingNFT.nftID),
+			);
+
+			expect(lockingModule).toEqual(NFT_NOT_LOCKED);
 		});
 	});
 });

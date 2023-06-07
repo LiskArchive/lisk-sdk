@@ -28,6 +28,7 @@ import { UserStore } from './stores/user';
 import { DestroyEvent } from './events/destroy';
 import { SupportedNFTsStore } from './stores/supported_nfts';
 import { CreateEvent } from './events/create';
+import { LockEvent } from './events/lock';
 
 export class NFTMethod extends BaseMethod {
 	private _config!: ModuleConfig;
@@ -293,6 +294,139 @@ export class NFTMethod extends BaseMethod {
 			address,
 			nftID,
 			collectionID,
+		});
+	}
+
+	public async lock(methodContext: MethodContext, module: string, nftID: Buffer): Promise<void> {
+		const nftStore = this.stores.get(NFTStore);
+
+		const nftExists = await nftStore.has(methodContext, nftID);
+
+		if (!nftExists) {
+			this.events.get(LockEvent).error(
+				methodContext,
+				{
+					module,
+					nftID,
+				},
+				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+			);
+
+			throw new Error('NFT substore entry does not exist');
+		}
+
+		const owner = await this.getNFTOwner(methodContext, nftID);
+
+		if (owner.length === LENGTH_CHAIN_ID) {
+			this.events.get(LockEvent).error(
+				methodContext,
+				{
+					module,
+					nftID,
+				},
+				NftEventResult.RESULT_NFT_ESCROWED,
+			);
+
+			throw new Error('NFT is escrowed to another chain');
+		}
+
+		const userStore = this.stores.get(UserStore);
+		const userKey = userStore.getKey(owner, nftID);
+		const userData = await userStore.get(methodContext, userKey);
+
+		if (userData.lockingModule !== NFT_NOT_LOCKED) {
+			this.events.get(LockEvent).error(
+				methodContext,
+				{
+					module,
+					nftID,
+				},
+				NftEventResult.RESULT_NFT_LOCKED,
+			);
+
+			throw new Error('NFT is already locked');
+		}
+
+		userData.lockingModule = module;
+
+		await userStore.set(methodContext, userKey, userData);
+
+		this.events.get(LockEvent).log(methodContext, {
+			module,
+			nftID,
+		});
+	}
+
+	public async unlock(methodContext: MethodContext, module: string, nftID: Buffer): Promise<void> {
+		const nftStore = this.stores.get(NFTStore);
+
+		const nftExists = await nftStore.has(methodContext, nftID);
+
+		if (!nftExists) {
+			this.events.get(LockEvent).error(
+				methodContext,
+				{
+					module,
+					nftID,
+				},
+				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+			);
+
+			throw new Error('NFT substore entry does not exist');
+		}
+
+		const owner = await this.getNFTOwner(methodContext, nftID);
+
+		if (owner.length === LENGTH_CHAIN_ID) {
+			this.events.get(LockEvent).error(
+				methodContext,
+				{
+					module,
+					nftID,
+				},
+				NftEventResult.RESULT_NFT_ESCROWED,
+			);
+
+			throw new Error('NFT is escrowed to another chain');
+		}
+
+		const userStore = this.stores.get(UserStore);
+		const userKey = userStore.getKey(owner, nftID);
+		const userData = await userStore.get(methodContext, userKey);
+
+		if (userData.lockingModule === NFT_NOT_LOCKED) {
+			this.events.get(LockEvent).error(
+				methodContext,
+				{
+					module,
+					nftID,
+				},
+				NftEventResult.RESULT_NFT_NOT_LOCKED,
+			);
+
+			throw new Error('NFT is already locked');
+		}
+
+		if (userData.lockingModule !== module) {
+			this.events.get(LockEvent).error(
+				methodContext,
+				{
+					module,
+					nftID,
+				},
+				NftEventResult.RESULT_UNAUTHORIZED_UNLOCK,
+			);
+
+			throw new Error('Unlocking NFT via module that did not lock it');
+		}
+
+		userData.lockingModule = NFT_NOT_LOCKED;
+
+		await userStore.set(methodContext, userKey, userData);
+
+		this.events.get(LockEvent).log(methodContext, {
+			module,
+			nftID,
 		});
 	}
 }
