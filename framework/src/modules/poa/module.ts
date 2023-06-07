@@ -21,6 +21,7 @@ import { BlockAfterExecuteContext } from '../../state_machine';
 import { EMPTY_BYTES, KEY_SNAPSHOT_0, KEY_SNAPSHOT_1, KEY_SNAPSHOT_2 } from './constants';
 import { FeeMethod, RandomMethod, ValidatorsMethod } from './types';
 import { shuffleValidatorList } from './utils';
+import { NextValidatorsSetter, MethodContext } from '../../state_machine/types';
 
 export class PoAModule extends BaseModule {
 	public method = new PoAMethod(this.stores, this.events);
@@ -89,8 +90,8 @@ export class PoAModule extends BaseModule {
 			const nextValidators = shuffleValidatorList(randomSeed, snapshot1.validators);
 
 			await this._validatorsMethod.setValidatorsParams(
-				context,
-				context,
+				context as MethodContext,
+				context as NextValidatorsSetter,
 				snapshot1.threshold,
 				snapshot1.threshold,
 				nextValidators.map(v => ({
