@@ -86,11 +86,7 @@ export class PoAModule extends BaseModule {
 				previousLengthValidators,
 			);
 
-			const validators = [];
-			for (const validator of snapshot1.validators) {
-				validators.push(validator);
-			}
-			const nextValidators = shuffleValidatorList(randomSeed, validators);
+			const nextValidators = shuffleValidatorList(randomSeed, snapshot1.validators);
 
 			await this._validatorsMethod.setValidatorsParams(
 				context,
@@ -102,6 +98,10 @@ export class PoAModule extends BaseModule {
 					bftWeight: v.weight,
 				})),
 			);
+
+			chainProperties.roundEndHeight += snapshot1.validators.length;
+
+			await chainPropertiesStore.set(context, EMPTY_BYTES, chainProperties);
 		}
 	}
 }

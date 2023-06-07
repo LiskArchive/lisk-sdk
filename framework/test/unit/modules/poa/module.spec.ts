@@ -15,6 +15,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { PoAModule } from '../../../../src/modules/poa';
 import { FeeMethod, RandomMethod, ValidatorsMethod } from '../../../../src/modules/poa/types';
 import {
+	ChainProperties,
 	ChainPropertiesStore,
 	SnapshotObject,
 	SnapshotStore,
@@ -95,6 +96,7 @@ describe('PoA module', () => {
 		let snapshotStore: SnapshotStore;
 		let methodContext: MethodContext;
 		let randomSeed: Buffer;
+		let chainProperties: ChainProperties;
 
 		beforeEach(async () => {
 			poaModule = new PoAModule();
@@ -111,11 +113,12 @@ describe('PoA module', () => {
 				}),
 			}).getBlockAfterExecuteContext();
 			methodContext = createTransientMethodContext({ stateStore });
-			chainPropertiesStore = poaModule.stores.get(ChainPropertiesStore);
-			await chainPropertiesStore.set(methodContext, EMPTY_BYTES, {
+			chainProperties = {
 				roundEndHeight: height - 1,
 				validatorsUpdateNonce: 4,
-			});
+			};
+			chainPropertiesStore = poaModule.stores.get(ChainPropertiesStore);
+			await chainPropertiesStore.set(methodContext, EMPTY_BYTES, chainProperties);
 			snapshot0 = {
 				threshold: BigInt(4),
 				validators: [
@@ -211,10 +214,11 @@ describe('PoA module', () => {
 		});
 
 		it('should set snapshots and call validatorsMethod.setValidatorsParams when context.header.height === chainProperties.roundEndHeight', async () => {
-			await chainPropertiesStore.set(methodContext, EMPTY_BYTES, {
+			chainProperties = {
+				...chainProperties,
 				roundEndHeight: height,
-				validatorsUpdateNonce: 4,
-			});
+			};
+			await chainPropertiesStore.set(methodContext, EMPTY_BYTES, chainProperties);
 			const roundStartHeight = height - snapshot0.validators.length + 1;
 			const validators = [];
 			for (const validator of snapshot1.validators) {
@@ -247,6 +251,10 @@ describe('PoA module', () => {
 					bftWeight: v.weight,
 				})),
 			);
+			await expect(chainPropertiesStore.get(context, EMPTY_BYTES)).resolves.toEqual({
+				...chainProperties,
+				roundEndHeight: chainProperties.roundEndHeight + snapshot1.validators.length,
+			});
 		});
 	});
 });

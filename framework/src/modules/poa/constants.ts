@@ -38,6 +38,7 @@ export const COMMAND_REGISTER_AUTHORITY = 'registerAuthority';
 export const COMMAND_UPDATE_KEY = 'updateKey';
 export const COMMAND_UPDATE_AUTHORITY = 'updateAuthority';
 // Store key
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0047.md#uint32be-function
 export const KEY_SNAPSHOT_0 = utils.intToBuffer(0, 4);
 export const KEY_SNAPSHOT_1 = utils.intToBuffer(1, 4);
 export const KEY_SNAPSHOT_2 = utils.intToBuffer(2, 4);
