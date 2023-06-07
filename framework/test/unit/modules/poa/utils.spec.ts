@@ -20,7 +20,7 @@ import * as validatorShufflingScenario from '../../../fixtures/pos_validator_shu
 describe('utils', () => {
 	describe('shuffleValidatorList', () => {
 		const { previousRoundSeed1 } = validatorShufflingScenario.testCases.input;
-		const addressList = [...validatorShufflingScenario.testCases.input.validatorList].map(
+		const validatorsList = [...validatorShufflingScenario.testCases.input.validatorList].map(
 			address => ({
 				address: Buffer.from(address, 'hex'),
 				weight: BigInt(1),
@@ -29,14 +29,17 @@ describe('utils', () => {
 		it('should return a list of uniformly shuffled list of validators', () => {
 			const shuffledValidatorList = shuffleValidatorList(
 				Buffer.from(previousRoundSeed1, 'hex'),
-				addressList,
+				validatorsList,
+			);
+			const lisk32Addresses = validatorsList.map(a =>
+				cryptoAddress.getLisk32AddressFromAddress(a.address),
 			);
 
-			expect(shuffledValidatorList).toHaveLength(addressList.length);
+			expect(shuffledValidatorList).toHaveLength(validatorsList.length);
 			shuffledValidatorList.forEach(validator =>
-				expect(
-					addressList.map(a => cryptoAddress.getLisk32AddressFromAddress(a.address)),
-				).toContain(cryptoAddress.getLisk32AddressFromAddress(validator.address)),
+				expect(lisk32Addresses).toContain(
+					cryptoAddress.getLisk32AddressFromAddress(validator.address),
+				),
 			);
 
 			expect(shuffledValidatorList.map(b => b.address.toString('hex'))).toEqual(

@@ -30,6 +30,9 @@ import {
 import { BlockAfterExecuteContext, MethodContext } from '../../../../src';
 import {
 	EMPTY_BYTES,
+	KEY_SNAPSHOT_0,
+	KEY_SNAPSHOT_1,
+	KEY_SNAPSHOT_2,
 	LENGTH_BLS_KEY,
 	LENGTH_GENERATOR_KEY,
 } from '../../../../src/modules/poa/constants';
@@ -198,9 +201,9 @@ describe('PoA module', () => {
 			};
 
 			snapshotStore = poaModule.stores.get(SnapshotStore);
-			await snapshotStore.set(methodContext, utils.intToBuffer(0, 4), snapshot0);
-			await snapshotStore.set(methodContext, utils.intToBuffer(1, 4), snapshot1);
-			await snapshotStore.set(methodContext, utils.intToBuffer(2, 4), snapshot2);
+			await snapshotStore.set(methodContext, KEY_SNAPSHOT_0, snapshot0);
+			await snapshotStore.set(methodContext, KEY_SNAPSHOT_1, snapshot1);
+			await snapshotStore.set(methodContext, KEY_SNAPSHOT_2, snapshot2);
 			randomSeed = utils.getRandomBytes(20);
 			jest.spyOn(snapshotStore, 'set');
 			jest.spyOn(randomMethod, 'getRandomBytes').mockResolvedValue(randomSeed);
@@ -228,12 +231,12 @@ describe('PoA module', () => {
 			await poaModule.afterTransactionsExecute(context);
 			expect(poaModule.stores.get(SnapshotStore).set).toHaveBeenCalledWith(
 				context,
-				utils.intToBuffer(0, 4),
+				KEY_SNAPSHOT_0,
 				snapshot1,
 			);
 			expect(poaModule.stores.get(SnapshotStore).set).toHaveBeenCalledWith(
 				context,
-				utils.intToBuffer(1, 4),
+				KEY_SNAPSHOT_1,
 				snapshot2,
 			);
 			expect(randomMethod.getRandomBytes).toHaveBeenCalledWith(

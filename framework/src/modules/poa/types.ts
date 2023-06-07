@@ -22,7 +22,7 @@ export interface RegisterAuthorityParams {
 	proofOfPossession: Buffer;
 }
 
-export interface ValidatorWeightWithRandomHash {
+export interface ValidatorWeightWithRoundHash {
 	readonly address: Buffer;
 	weight: bigint;
 	roundHash: Buffer;

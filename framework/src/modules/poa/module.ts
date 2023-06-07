@@ -61,6 +61,7 @@ export class PoAModule extends BaseModule {
 		};
 	}
 
+	// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0047.md#after-transactions-execution
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
 		const chainPropertiesStore = this.stores.get(ChainPropertiesStore);
 		const chainProperties = await chainPropertiesStore.get(context, EMPTY_BYTES);
