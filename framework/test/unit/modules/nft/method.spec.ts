@@ -21,8 +21,10 @@ import { MethodContext, createMethodContext } from '../../../../src/state_machin
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import {
+	ALL_SUPPORTED_NFTS_KEY,
 	LENGTH_ADDRESS,
 	LENGTH_CHAIN_ID,
+	LENGTH_COLLECTION_ID,
 	LENGTH_NFT_ID,
 	NFT_NOT_LOCKED,
 	NftEventResult,
@@ -30,6 +32,7 @@ import {
 import { NFTStore } from '../../../../src/modules/nft/stores/nft';
 import { UserStore } from '../../../../src/modules/nft/stores/user';
 import { DestroyEvent, DestroyEventData } from '../../../../src/modules/nft/events/destroy';
+import { SupportedNFTsStore } from '../../../../src/modules/nft/stores/supported_nfts';
 
 describe('NFTMethod', () => {
 	const module = new NFTModule();
@@ -280,6 +283,127 @@ describe('NFTMethod', () => {
 				address: existingNFT.owner,
 				nftID: existingNFT.nftID,
 			});
+		});
+	});
+
+	describe('getCollectionID', () => {
+		it('should throw if entry does not exist in the nft substore for the nft id', async () => {
+			await expect(method.getCollectionID(methodContext, nftID)).rejects.toThrow(
+				'NFT substore entry does not exist',
+			);
+		});
+
+		it('should return the first bytes of length LENGTH_CHAIN_ID from provided nftID', async () => {
+			await nftStore.save(methodContext, nftID, {
+				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
+				attributesArray: [],
+			});
+			const expectedValue = nftID.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
+			const receivedValue = await method.getCollectionID(methodContext, nftID);
+			expect(receivedValue).toEqual(expectedValue);
+		});
+	});
+
+	describe('isNFTSupported', () => {
+		beforeEach(async () => {
+			await nftStore.save(methodContext, nftID, {
+				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
+				attributesArray: [],
+			});
+		});
+
+		it('should throw if entry does not exist in the nft substore for the nft id', async () => {
+			await nftStore.del(methodContext, nftID);
+			await expect(method.isNFTSupported(methodContext, nftID)).rejects.toThrow(
+				'NFT substore entry does not exist',
+			);
+		});
+
+		it('should return true if nft chain id equals own chain id', async () => {
+			const ownChainID = nftID.slice(0, LENGTH_CHAIN_ID);
+			const config = {
+				ownChainID,
+				escrowAccountInitializationFee: BigInt(50000000),
+				userAccountInitializationFee: BigInt(50000000),
+			};
+			method.init(config);
+
+			const isSupported = await method.isNFTSupported(methodContext, nftID);
+			expect(isSupported).toBe(true);
+		});
+
+		it('should return true if nft chain id does not equal own chain id but all nft keys are supported', async () => {
+			const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+			const config = {
+				ownChainID,
+				escrowAccountInitializationFee: BigInt(50000000),
+				userAccountInitializationFee: BigInt(50000000),
+			};
+			method.init(config);
+			const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
+			await supportedNFTsStore.set(methodContext, ALL_SUPPORTED_NFTS_KEY, {
+				supportedCollectionIDArray: [],
+			});
+
+			const isSupported = await method.isNFTSupported(methodContext, nftID);
+			expect(isSupported).toBe(true);
+		});
+
+		it('should return true if nft chain id does not equal own chain id but nft chain id is supported and corresponding supported collection id array is empty', async () => {
+			const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+			const config = {
+				ownChainID,
+				escrowAccountInitializationFee: BigInt(50000000),
+				userAccountInitializationFee: BigInt(50000000),
+			};
+			method.init(config);
+			const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
+			await supportedNFTsStore.set(methodContext, nftID.slice(0, LENGTH_CHAIN_ID), {
+				supportedCollectionIDArray: [],
+			});
+
+			const isSupported = await method.isNFTSupported(methodContext, nftID);
+			expect(isSupported).toBe(true);
+		});
+
+		it('should return true if nft chain id does not equal own chain id but nft chain id is supported and corresponding supported collection id array includes collection id for nft id', async () => {
+			const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+			const config = {
+				ownChainID,
+				escrowAccountInitializationFee: BigInt(50000000),
+				userAccountInitializationFee: BigInt(50000000),
+			};
+			method.init(config);
+			const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
+			await supportedNFTsStore.set(methodContext, nftID.slice(0, LENGTH_CHAIN_ID), {
+				supportedCollectionIDArray: [
+					{ collectionID: nftID.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID) },
+					{ collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID) },
+				],
+			});
+
+			const isSupported = await method.isNFTSupported(methodContext, nftID);
+			expect(isSupported).toBe(true);
+		});
+
+		it('should return false if nft chain id does not equal own chain id and nft chain id is supported but corresponding supported collection id array does not include collection id for nft id', async () => {
+			const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+			const config = {
+				ownChainID,
+				escrowAccountInitializationFee: BigInt(50000000),
+				userAccountInitializationFee: BigInt(50000000),
+			};
+			method.init(config);
+			const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
+			await supportedNFTsStore.set(methodContext, nftID.slice(0, LENGTH_CHAIN_ID), {
+				supportedCollectionIDArray: [
+					{ collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID) },
+					{ collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID) },
+				],
+			});
+
+			const isSupported = await method.isNFTSupported(methodContext, nftID);
+			expect(isSupported).toBe(false);
 		});
 	});
 });

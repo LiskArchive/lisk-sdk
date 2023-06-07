@@ -15,12 +15,19 @@ import { BaseMethod } from '../base_method';
 import { InteroperabilityMethod, ModuleConfig } from './types';
 import { NFTStore } from './stores/nft';
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
-import { LENGTH_CHAIN_ID, LENGTH_NFT_ID, NFT_NOT_LOCKED, NftEventResult } from './constants';
+import {
+	ALL_SUPPORTED_NFTS_KEY,
+	LENGTH_CHAIN_ID,
+	LENGTH_COLLECTION_ID,
+	LENGTH_NFT_ID,
+	NFT_NOT_LOCKED,
+	NftEventResult,
+} from './constants';
 import { UserStore } from './stores/user';
 import { DestroyEvent } from './events/destroy';
+import { SupportedNFTsStore } from './stores/supported_nfts';
 
 export class NFTMethod extends BaseMethod {
-	// @ts-expect-error TODO: unused error. Remove when implementing.
 	private _config!: ModuleConfig;
 	// @ts-expect-error TODO: unused error. Remove when implementing.
 	private _interoperabilityMethod!: InteroperabilityMethod;
@@ -146,5 +153,54 @@ export class NFTMethod extends BaseMethod {
 			address,
 			nftID,
 		});
+	}
+
+	public async getCollectionID(methodContext: MethodContext, nftID: Buffer): Promise<Buffer> {
+		const nftStore = this.stores.get(NFTStore);
+		const nftExists = await nftStore.has(methodContext, nftID);
+		if (!nftExists) {
+			throw new Error('NFT substore entry does not exist');
+		}
+		return nftID.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
+	}
+
+	public async isNFTSupported(methodContext: MethodContext, nftID: Buffer): Promise<boolean> {
+		const nftStore = this.stores.get(NFTStore);
+		const nftExists = await nftStore.has(methodContext, nftID);
+		if (!nftExists) {
+			throw new Error('NFT substore entry does not exist');
+		}
+
+		const nftChainID = this.getChainID(nftID);
+		if (nftChainID.equals(this._config.ownChainID)) {
+			return true;
+		}
+
+		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
+		const supportForAllKeysExists = await supportedNFTsStore.has(
+			methodContext,
+			ALL_SUPPORTED_NFTS_KEY,
+		);
+		if (supportForAllKeysExists) {
+			return true;
+		}
+
+		const supportForNftChainIdExists = await supportedNFTsStore.has(methodContext, nftChainID);
+		if (supportForNftChainIdExists) {
+			const supportedNFTsStoreData = await supportedNFTsStore.get(methodContext, nftChainID);
+			if (supportedNFTsStoreData.supportedCollectionIDArray.length === 0) {
+				return true;
+			}
+			const collectionID = await this.getCollectionID(methodContext, nftID);
+			if (
+				supportedNFTsStoreData.supportedCollectionIDArray.some(id =>
+					collectionID.equals(id.collectionID),
+				)
+			) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
