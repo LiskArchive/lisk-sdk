@@ -23,8 +23,7 @@ import { bitwiseXOR } from '../../../../src/modules/random/utils';
 import { MethodContext } from '../../../../src/state_machine';
 import { createTransientMethodContext } from '../../../../src/testing';
 import * as genesisValidators from '../../../fixtures/genesis_validators.json';
-import { testCases } from './pos_random_seed_generation/pos_random_seed_generation_other_rounds.json';
-import * as randomSeedsMultipleRounds from '../../../fixtures/pos_random_seed_generation/pos_random_seed_generation_other_rounds.json';
+import { testCases } from '../../../fixtures/pos_random_seed_generation/pos_random_seed_generation_other_rounds.json';
 import { RandomModule } from '../../../../src/modules/random';
 import {
 	ValidatorRevealsStore,
@@ -319,9 +318,9 @@ describe('RandomModuleMethod', () => {
 			);
 		});
 
-		it('should return XOR random bytes as 16 bytes value for height=11, numberOfSeeds=2', async () => {
+		it('should return XOR random bytes as 16 bytes value for height=11, numberOfSeeds=3', async () => {
 			const height = 11;
-			const numberOfSeeds = 2;
+			const numberOfSeeds = 3;
 			// Create a buffer from height + numberOfSeeds
 			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
@@ -341,9 +340,9 @@ describe('RandomModuleMethod', () => {
 			);
 		});
 
-		it('should return XOR random bytes for height=11, numberOfSeeds=3', async () => {
+		it('should return XOR random bytes for height=11, numberOfSeeds=4', async () => {
 			const height = 11;
-			const numberOfSeeds = 3;
+			const numberOfSeeds = 4;
 			// Create a buffer from height + numberOfSeeds
 			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
@@ -385,9 +384,9 @@ describe('RandomModuleMethod', () => {
 			);
 		});
 
-		it('should return XOR random bytes for height=8, numberOfSeeds=3', async () => {
+		it('should return XOR random bytes for height=8, numberOfSeeds=4', async () => {
 			const height = 8;
-			const numberOfSeeds = 3;
+			const numberOfSeeds = 4;
 			// Create a buffer from height + numberOfSeeds
 			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
@@ -423,67 +422,68 @@ describe('RandomModuleMethod', () => {
 		});
 	});
 
-	describe('generateRandomSeeds', () => {
-		describe.each(
-			[...randomSeedsMultipleRounds.testCases].map(testCase => [testCase.description, testCase]),
-		)('%s', (_description, testCase) => {
-			// Arrange
-			const { config, input, output } = testCase as any;
-			const validators: ValidatorSeedReveal[] = [];
-
-			for (const generator of input.blocks) {
-				const generatorAddress = cryptography.address.getAddressFromPublicKey(
-					Buffer.from(generator.generatorPublicKey, 'hex'),
-				);
-				const seedReveal = Buffer.from(generator.asset.seedReveal, 'hex');
-
-				validators.push({
-					generatorAddress,
-					seedReveal,
-					height: generator.height,
-					valid: true,
-				});
-			}
-
-			beforeEach(async () => {
-				randomMethod = new RandomMethod(
-					randomModule.stores,
-					randomModule.events,
-					randomModule.name,
-				);
-				context = createTransientMethodContext({});
-				randomStore = randomModule.stores.get(ValidatorRevealsStore);
-				await randomStore.set(context, emptyBytes, { validatorReveals: validators });
-			});
-
-			it('should generate correct random seeds', async () => {
+	describe('getRandomBytes from protocol specs', () => {
+		describe.each([...testCases].map(testCase => [testCase.description, testCase]))(
+			'%s',
+			(_description, testCase) => {
 				// Arrange
-				// For randomSeed 1
-				const round = Math.floor(
-					input.blocks[input.blocks.length - 1].height / config.blocksPerRound,
-				);
-				const middleThreshold = Math.floor(config.blocksPerRound / 2);
-				const startOfRound = config.blocksPerRound * (round - 1) + 1;
-				// To validate seed reveal of any block in the last round we have to check till second last round that doesn't exist for last round
-				const heightForSeed1 = startOfRound - (round === 2 ? 0 : middleThreshold);
-				// For randomSeed 2
-				const endOfLastRound = startOfRound - 1;
-				const startOfLastRound = endOfLastRound - config.blocksPerRound + 1;
-				// Act
-				const randomSeed1 = await randomMethod.getRandomBytes(
-					context,
-					heightForSeed1,
-					round === 2 ? middleThreshold : middleThreshold * 2,
-				);
-				// There is previous round for last round when round is 2
-				const randomSeed2 =
-					round === 2
-						? strippedHashOfIntegerBuffer(endOfLastRound)
-						: await randomMethod.getRandomBytes(context, startOfLastRound, middleThreshold * 2);
-				// Assert
-				expect(randomSeed1.toString('hex')).toEqual(output.randomSeed1);
-				expect(randomSeed2.toString('hex')).toEqual(output.randomSeed2);
-			});
-		});
+				const { config, input, output } = testCase as any;
+				const validators: ValidatorSeedReveal[] = [];
+
+				for (const generator of input.blocks) {
+					const generatorAddress = cryptography.address.getAddressFromPublicKey(
+						Buffer.from(generator.generatorPublicKey, 'hex'),
+					);
+					const seedReveal = Buffer.from(generator.asset.seedReveal, 'hex');
+
+					validators.push({
+						generatorAddress,
+						seedReveal,
+						height: generator.height,
+						valid: true,
+					});
+				}
+
+				beforeEach(async () => {
+					randomMethod = new RandomMethod(
+						randomModule.stores,
+						randomModule.events,
+						randomModule.name,
+					);
+					context = createTransientMethodContext({});
+					randomStore = randomModule.stores.get(ValidatorRevealsStore);
+					await randomStore.set(context, emptyBytes, { validatorReveals: validators });
+				});
+
+				it('should generate correct random seeds', async () => {
+					// Arrange
+					// For randomSeed 1
+					const round = Math.floor(
+						input.blocks[input.blocks.length - 1].height / config.blocksPerRound,
+					);
+					const middleThreshold = Math.floor(config.blocksPerRound / 2);
+					const startOfRound = config.blocksPerRound * (round - 1) + 1;
+					// To validate seed reveal of any block in the last round we have to check till second last round that doesn't exist for last round
+					const heightForSeed1 = startOfRound - (round === 2 ? 0 : middleThreshold);
+					// For randomSeed 2
+					const endOfLastRound = startOfRound - 1;
+					const startOfLastRound = endOfLastRound - config.blocksPerRound + 1;
+					// Act
+					const randomSeed1 = await randomMethod.getRandomBytes(
+						context,
+						heightForSeed1,
+						round === 2 ? middleThreshold : middleThreshold * 2,
+					);
+					// There is previous round for last round when round is 2
+					const randomSeed2 =
+						round === 2
+							? strippedHashOfIntegerBuffer(endOfLastRound)
+							: await randomMethod.getRandomBytes(context, startOfLastRound, middleThreshold * 2);
+					// Assert
+					expect(randomSeed1.toString('hex')).toEqual(output.randomSeed1);
+					expect(randomSeed2.toString('hex')).toEqual(output.randomSeed2);
+				});
+			},
+		);
 	});
 });
