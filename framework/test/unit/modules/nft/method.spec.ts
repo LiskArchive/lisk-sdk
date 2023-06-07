@@ -230,6 +230,24 @@ describe('NFTMethod', () => {
 			);
 		});
 
+		it('should fail and emit Destroy event if NFT is escrowed', async () => {
+			await expect(
+				method.destroy(methodContext, escrowedNFT.owner, escrowedNFT.nftID),
+			).rejects.toThrow();
+
+			checkEventResult<DestroyEventData>(
+				methodContext.eventQueue,
+				1,
+				DestroyEvent,
+				0,
+				{
+					address: escrowedNFT.owner,
+					nftID: escrowedNFT.nftID,
+				},
+				NftEventResult.RESULT_NFT_ESCROWED,
+			);
+		});
+
 		it('should fail and emit Destroy event if NFT is locked', async () => {
 			await expect(
 				method.destroy(methodContext, lockedExistingNFT.owner, lockedExistingNFT.nftID),
