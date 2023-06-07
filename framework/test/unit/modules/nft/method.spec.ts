@@ -161,7 +161,7 @@ describe('NFTMethod', () => {
 				nftID: utils.getRandomBytes(LENGTH_NFT_ID),
 			};
 
-			await module.stores.get(NFTStore).save(methodContext, existingNFT.nftID, {
+			await nftStore.save(methodContext, existingNFT.nftID, {
 				owner: existingNFT.owner,
 				attributesArray: [],
 			});
@@ -170,7 +170,7 @@ describe('NFTMethod', () => {
 				lockingModule: NFT_NOT_LOCKED,
 			});
 
-			await module.stores.get(NFTStore).save(methodContext, lockedExistingNFT.nftID, {
+			await nftStore.save(methodContext, lockedExistingNFT.nftID, {
 				owner: lockedExistingNFT.owner,
 				attributesArray: [],
 			});
@@ -183,7 +183,7 @@ describe('NFTMethod', () => {
 				},
 			);
 
-			await module.stores.get(NFTStore).save(methodContext, escrowedNFT.nftID, {
+			await nftStore.save(methodContext, escrowedNFT.nftID, {
 				owner: escrowedNFT.owner,
 				attributesArray: [],
 			});
@@ -233,6 +233,24 @@ describe('NFTMethod', () => {
 			);
 		});
 
+		it('should fail and emit Destroy event if NFT is escrowed', async () => {
+			await expect(
+				method.destroy(methodContext, escrowedNFT.owner, escrowedNFT.nftID),
+			).rejects.toThrow('NFT is escrowed to another chain');
+
+			checkEventResult<DestroyEventData>(
+				methodContext.eventQueue,
+				1,
+				DestroyEvent,
+				0,
+				{
+					address: escrowedNFT.owner,
+					nftID: escrowedNFT.nftID,
+				},
+				NftEventResult.RESULT_NFT_ESCROWED,
+			);
+		});
+
 		it('should fail and emit Destroy event if NFT is locked', async () => {
 			await expect(
 				method.destroy(methodContext, lockedExistingNFT.owner, lockedExistingNFT.nftID),
@@ -251,36 +269,14 @@ describe('NFTMethod', () => {
 			);
 		});
 
-		it('should fail and emit Destroy event if NFT is escrowed', async () => {
-			await expect(
-				method.destroy(methodContext, escrowedNFT.owner, escrowedNFT.nftID),
-			).rejects.toThrow();
-
-			checkEventResult<DestroyEventData>(
-				methodContext.eventQueue,
-				1,
-				DestroyEvent,
-				0,
-				{
-					address: escrowedNFT.owner,
-					nftID: escrowedNFT.nftID,
-				},
-				NftEventResult.RESULT_NFT_ESCROWED,
-			);
-		});
-
 		it('should delete NFTStore and UserStore entry and emit Destroy event', async () => {
 			await expect(
 				method.destroy(methodContext, existingNFT.owner, existingNFT.nftID),
 			).resolves.toBeUndefined();
 
+			await expect(nftStore.has(methodContext, existingNFT.nftID)).resolves.toBeFalse();
 			await expect(
-				module.stores.get(NFTStore).has(methodContext, existingNFT.nftID),
-			).resolves.toBeFalse();
-			await expect(
-				module.stores
-					.get(UserStore)
-					.has(methodContext, Buffer.concat([existingNFT.owner, escrowedNFT.nftID])),
+				userStore.has(methodContext, Buffer.concat([existingNFT.owner, escrowedNFT.nftID])),
 			).resolves.toBeFalse();
 
 			checkEventResult<DestroyEventData>(methodContext.eventQueue, 1, DestroyEvent, 0, {

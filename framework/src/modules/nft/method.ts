@@ -102,6 +102,19 @@ export class NFTMethod extends BaseMethod {
 
 		const owner = await this.getNFTOwner(methodContext, nftID);
 
+		if (owner.length === LENGTH_CHAIN_ID) {
+			this.events.get(DestroyEvent).log(
+				methodContext,
+				{
+					address,
+					nftID,
+				},
+				NftEventResult.RESULT_NFT_ESCROWED,
+			);
+
+			throw new Error('NFT is escrowed to another chain');
+		}
+
 		if (!owner.equals(address)) {
 			this.events.get(DestroyEvent).log(
 				methodContext,
@@ -130,19 +143,6 @@ export class NFTMethod extends BaseMethod {
 			);
 
 			throw new Error('Locked NFTs cannot be destroyed');
-		}
-
-		if (owner.length === LENGTH_CHAIN_ID) {
-			this.events.get(DestroyEvent).log(
-				methodContext,
-				{
-					address,
-					nftID,
-				},
-				NftEventResult.RESULT_NFT_ESCROWED,
-			);
-
-			throw new Error('NFT is escrowed to another chain');
 		}
 
 		await nftStore.del(methodContext, nftID);
