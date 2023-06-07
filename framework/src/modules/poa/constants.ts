@@ -12,7 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export enum UpdateAuthority {
+import { utils } from '@liskhq/lisk-cryptography';
+
+export enum UpdateAuthorityResult {
 	SUCCESS = 0,
 	FAIL_INVALID_SIGNATURE,
 }
@@ -24,6 +26,8 @@ export const LENGTH_PROOF_OF_POSSESSION = 96;
 export const LENGTH_GENERATOR_KEY = 32;
 export const NUM_BYTES_ADDRESS = 20;
 export const MAX_NUM_VALIDATORS = 199;
+
+export const KEY_SNAPSHOT_0 = utils.intToBuffer(0, 4);
 
 export const POA_VALIDATOR_NAME_REGEX = /^[a-z0-9!@$&_.]+$/;
 export const MESSAGE_TAG_POA = 'LSK_POA_';
