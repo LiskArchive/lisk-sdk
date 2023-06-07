@@ -33,7 +33,7 @@ export const createEventSchema = {
 		nftID: {
 			dataType: 'bytes',
 			minLength: LENGTH_NFT_ID,
-			maxLenght: LENGTH_NFT_ID,
+			maxLength: LENGTH_NFT_ID,
 			fieldNumber: 2,
 		},
 		result: {
@@ -46,10 +46,11 @@ export const createEventSchema = {
 export class DestroyEvent extends BaseEvent<DestroyEventData & { result: NftEventResult }> {
 	public schema = createEventSchema;
 
-	public log(ctx: EventQueuer, data: DestroyEventData): void {
-		this.add(ctx, { ...data, result: NftEventResult.RESULT_SUCCESSFUL }, [
-			data.address,
-			data.nftID,
-		]);
+	public log(
+		ctx: EventQueuer,
+		data: DestroyEventData,
+		result: NftEventResult = NftEventResult.RESULT_SUCCESSFUL,
+	): void {
+		this.add(ctx, { ...data, result }, [data.address, data.nftID]);
 	}
 }

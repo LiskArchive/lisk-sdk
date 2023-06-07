@@ -16,7 +16,9 @@ import { MethodContext } from '../../state_machine';
 import { CCMsg } from '../interoperability';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ModuleConfig {}
+export interface ModuleConfig {
+	ownChainID: Buffer;
+}
 
 export interface InteroperabilityMethod {
 	send(

@@ -18,7 +18,9 @@ export const LENGTH_COLLECTION_ID = 4;
 export const MIN_LENGTH_MODULE_NAME = 1;
 export const MAX_LENGTH_MODULE_NAME = 32;
 export const LENGTH_ADDRESS = 20;
-export const NFT_NOT_LOCKED = 'nft';
+export const MODULE_NAME_NFT = 'nft';
+export const NFT_NOT_LOCKED = MODULE_NAME_NFT;
+export const CROSS_CHAIN_COMMAND_NAME_TRANSFER = 'crossChainTransfer';
 
 export const enum NftEventResult {
 	RESULT_SUCCESSFUL = 0,
