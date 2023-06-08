@@ -11,23 +11,20 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { PoAModule } from '../../../../src/modules/poa';
-import { FeeMethod, RandomMethod, ValidatorsMethod } from '../../../../src/modules/poa/types';
-import {
-	ChainProperties,
-	ChainPropertiesStore,
-	SnapshotObject,
-	SnapshotStore,
-} from '../../../../src/modules/poa/stores';
+import { BlockAssets } from '@liskhq/lisk-chain';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import {
 	InMemoryPrefixedStateDB,
 	createBlockContext,
-	createFakeBlockHeader,
+	createGenesisBlockContext,
 	createTransientMethodContext,
 } from '../../../../src/testing';
-import { BlockAfterExecuteContext, MethodContext } from '../../../../src';
+import { invalidAssets, validAsset } from './genesis_block_test_data';
+import { PoAModule } from '../../../../src/modules/poa/module';
+import { genesisPoAStoreSchema } from '../../../../src/modules/poa/schemas';
 import {
 	EMPTY_BYTES,
 	KEY_SNAPSHOT_0,
@@ -36,6 +33,22 @@ import {
 	LENGTH_BLS_KEY,
 	LENGTH_GENERATOR_KEY,
 } from '../../../../src/modules/poa/constants';
+import { FeeMethod, RandomMethod, ValidatorsMethod } from '../../../../src/modules/poa/types';
+import { createFakeBlockHeader } from '../../../fixtures';
+import {
+	BlockAfterExecuteContext,
+	GenesisBlockContext,
+	GenesisBlockExecuteContext,
+	MethodContext,
+} from '../../../../src/state_machine';
+import {
+	ValidatorStore,
+	SnapshotStore,
+	NameStore,
+	ChainPropertiesStore,
+	SnapshotObject,
+	ChainProperties,
+} from '../../../../src/modules/poa/stores';
 import { shuffleValidatorList } from '../../../../src/modules/poa/utils';
 
 describe('PoA module', () => {
@@ -64,7 +77,6 @@ describe('PoA module', () => {
 			payFee: jest.fn(),
 		};
 	});
-
 	describe('constructor', () => {});
 
 	describe('init', () => {
@@ -258,6 +270,168 @@ describe('PoA module', () => {
 				...chainProperties,
 				roundEndHeight: chainProperties.roundEndHeight + snapshot1.validators.length,
 			});
+		});
+	});
+
+	describe('initGenesisState', () => {
+		let stateStore: PrefixedStateReadWriter;
+		let poa: PoAModule;
+
+		beforeEach(() => {
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+			poa = new PoAModule();
+			poa.addDependencies(validatorMethod, feeMethod, randomMethod);
+		});
+
+		it('should not throw error if asset does not exist', async () => {
+			const context = createGenesisBlockContext({
+				stateStore,
+			}).createInitGenesisStateContext();
+			jest.spyOn(context, 'getStore');
+
+			await expect(poa.initGenesisState(context)).toResolve();
+			expect(context.getStore).not.toHaveBeenCalled();
+		});
+
+		describe.each(invalidAssets)('%p', (_, data, errString) => {
+			it('should throw error when asset is invalid', async () => {
+				const assetBytes = codec.encode(genesisPoAStoreSchema, data as object);
+				const context = createGenesisBlockContext({
+					stateStore,
+					header: createFakeBlockHeader({ height: 12345 }),
+					assets: new BlockAssets([{ module: poa.name, data: assetBytes }]),
+				}).createInitGenesisStateContext();
+
+				await expect(poa.initGenesisState(context)).rejects.toThrow(errString as string);
+			});
+		});
+
+		describe('when the genesis asset is valid', () => {
+			let genesisContext: GenesisBlockContext;
+			let context: GenesisBlockExecuteContext;
+
+			beforeEach(() => {
+				const assetBytes = codec.encode(genesisPoAStoreSchema, validAsset);
+				genesisContext = createGenesisBlockContext({
+					stateStore,
+					assets: new BlockAssets([{ module: poa.name, data: assetBytes }]),
+				});
+				context = genesisContext.createInitGenesisStateContext();
+			});
+
+			it('should store all the validators', async () => {
+				await expect(poa.initGenesisState(context)).resolves.toBeUndefined();
+				const nameStore = poa.stores.get(NameStore);
+				const allNames = await nameStore.iterate(context, {
+					gte: Buffer.from([0]),
+					lte: Buffer.from([255]),
+				});
+				expect(allNames).toHaveLength(validAsset.validators.length);
+				const validatorStore = poa.stores.get(ValidatorStore);
+				const allValidators = await validatorStore.iterate(context, {
+					gte: Buffer.alloc(20, 0),
+					lte: Buffer.alloc(20, 255),
+				});
+				expect(allValidators).toHaveLength(validAsset.validators.length);
+			});
+
+			it('should store snapshot current round', async () => {
+				await expect(poa.initGenesisState(context)).toResolve();
+				const snapshotStore = poa.stores.get(SnapshotStore);
+				await expect(snapshotStore.get(context, KEY_SNAPSHOT_0)).resolves.toEqual({
+					validators: validAsset.snapshotSubstore.activeValidators,
+					threshold: validAsset.snapshotSubstore.threshold,
+				});
+			});
+
+			it('should store snapshot current round + 1', async () => {
+				await expect(poa.initGenesisState(context)).toResolve();
+				const snapshotStore = poa.stores.get(SnapshotStore);
+				await expect(snapshotStore.get(context, KEY_SNAPSHOT_1)).resolves.toEqual({
+					validators: validAsset.snapshotSubstore.activeValidators,
+					threshold: validAsset.snapshotSubstore.threshold,
+				});
+			});
+
+			it('should store snapshot current round + 2', async () => {
+				await expect(poa.initGenesisState(context)).toResolve();
+				const snapshotStore = poa.stores.get(SnapshotStore);
+				await expect(snapshotStore.get(context, KEY_SNAPSHOT_2)).resolves.toEqual({
+					validators: validAsset.snapshotSubstore.activeValidators,
+					threshold: validAsset.snapshotSubstore.threshold,
+				});
+			});
+
+			it('should store chain properties', async () => {
+				await expect(poa.initGenesisState(context)).toResolve();
+				const chainPropertiesStore = poa.stores.get(ChainPropertiesStore);
+				await expect(chainPropertiesStore.get(context, EMPTY_BYTES)).resolves.toEqual({
+					roundEndHeight: context.header.height,
+					validatorsUpdateNonce: 0,
+				});
+			});
+		});
+	});
+
+	describe('finalizeGenesisState', () => {
+		let genesisContext: GenesisBlockContext;
+		let context: GenesisBlockExecuteContext;
+		let snapshotStore: SnapshotStore;
+		let chainPropertiesStore: ChainPropertiesStore;
+		let stateStore: PrefixedStateReadWriter;
+		let poa: PoAModule;
+
+		beforeEach(async () => {
+			poa = new PoAModule();
+			poa.addDependencies(validatorMethod, feeMethod, randomMethod);
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+			const assetBytes = codec.encode(genesisPoAStoreSchema, validAsset);
+			genesisContext = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([{ module: poa.name, data: assetBytes }]),
+			});
+			context = genesisContext.createInitGenesisStateContext();
+			snapshotStore = poa.stores.get(SnapshotStore);
+			await snapshotStore.set(context, KEY_SNAPSHOT_0, {
+				...validAsset.snapshotSubstore,
+				validators: validAsset.snapshotSubstore.activeValidators,
+			});
+			chainPropertiesStore = poa.stores.get(ChainPropertiesStore);
+			await chainPropertiesStore.set(context, EMPTY_BYTES, {
+				roundEndHeight: context.header.height,
+				validatorsUpdateNonce: 0,
+			});
+		});
+
+		it('should store updated chain properties', async () => {
+			await expect(poa.finalizeGenesisState(context)).toResolve();
+			poa.stores.get(ChainPropertiesStore);
+			await expect(chainPropertiesStore.get(context, EMPTY_BYTES)).resolves.toEqual({
+				roundEndHeight: context.header.height + validAsset.snapshotSubstore.activeValidators.length,
+				validatorsUpdateNonce: 0,
+			});
+		});
+
+		it('should register all active validators as BFT validators', async () => {
+			await expect(poa.finalizeGenesisState(context)).toResolve();
+			expect(poa['_validatorsMethod'].setValidatorsParams).toHaveBeenCalledWith(
+				expect.any(Object),
+				expect.any(Object),
+				BigInt(validAsset.snapshotSubstore.threshold),
+				BigInt(validAsset.snapshotSubstore.threshold),
+				validAsset.snapshotSubstore.activeValidators.map(d => ({
+					address: d.address,
+					bftWeight: d.weight,
+				})),
+			);
+		});
+
+		it('should fail if registerValidatorKeys return false', async () => {
+			(poa['_validatorsMethod'].registerValidatorKeys as jest.Mock).mockResolvedValue(false);
+
+			await expect(poa.finalizeGenesisState(context)).rejects.toThrow(
+				'Invalid validator key found in poa genesis asset validators.',
+			);
 		});
 	});
 });
