@@ -404,7 +404,7 @@ export class NFTMethod extends BaseMethod {
 				NftEventResult.RESULT_NFT_NOT_LOCKED,
 			);
 
-			throw new Error('NFT is already locked');
+			throw new Error('NFT is not locked');
 		}
 
 		if (userData.lockingModule !== module) {

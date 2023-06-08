@@ -711,9 +711,9 @@ describe('NFTMethod', () => {
 			);
 		});
 
-		it('should throw and log LockEvent if NFT is unlocked', async () => {
+		it('should throw and log LockEvent if NFT is not locked', async () => {
 			await expect(method.unlock(methodContext, module.name, existingNFT.nftID)).rejects.toThrow(
-				'NFT is already locked',
+				'NFT is not locked',
 			);
 
 			checkEventResult<LockEventData>(
