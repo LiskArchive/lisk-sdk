@@ -14,7 +14,7 @@
 import { BaseStore } from '../../base_store';
 import { NUM_BYTES_ADDRESS } from '../constants';
 
-interface Validator {
+export interface Validator {
 	address: Buffer;
 	weight: bigint;
 }
