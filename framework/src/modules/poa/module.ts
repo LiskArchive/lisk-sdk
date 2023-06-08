@@ -65,7 +65,7 @@ export class PoAModule extends BaseModule {
 
 		// TODO: Remove it after the usage of these methods is implemented
 		// eslint-disable-next-line no-console
-		console.log(this._validatorsMethod, this._feeMethod, this._randomMethod);
+		console.log(this._feeMethod);
 	}
 
 	public metadata(): ModuleMetadata {
