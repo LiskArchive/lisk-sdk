@@ -14,7 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 
-export enum UpdateAuthority {
+export enum UpdateAuthorityResult {
 	SUCCESS = 0,
 	FAIL_INVALID_SIGNATURE,
 }

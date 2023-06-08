@@ -22,6 +22,17 @@ export interface RegisterAuthorityParams {
 	proofOfPossession: Buffer;
 }
 
+export interface UpdateAuthorityParams {
+	newValidators: {
+		address: Buffer;
+		weight: bigint;
+	}[];
+	threshold: bigint;
+	validatorsUpdateNonce: number;
+	signature: Buffer;
+	aggregationBits: Buffer;
+}
+
 export interface ValidatorWeightWithRoundHash {
 	readonly address: Buffer;
 	weight: bigint;

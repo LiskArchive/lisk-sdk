@@ -13,10 +13,10 @@
  */
 
 import { BaseEvent, EventQueuer } from '../../base_event';
-import { UpdateAuthority } from '../constants';
+import { UpdateAuthorityResult } from '../constants';
 
 export interface AuthorityUpdateData {
-	result: UpdateAuthority;
+	result: UpdateAuthorityResult;
 }
 
 export const authorityUpdateDataSchema = {
@@ -34,7 +34,7 @@ export const authorityUpdateDataSchema = {
 export class AuthorityUpdateEvent extends BaseEvent<AuthorityUpdateData> {
 	public schema = authorityUpdateDataSchema;
 
-	public log(ctx: EventQueuer, data: AuthorityUpdateData): void {
-		this.add(ctx, data, []);
+	public log(ctx: EventQueuer, data: AuthorityUpdateData, noRevert: boolean): void {
+		this.add(ctx, data, [], noRevert);
 	}
 }
