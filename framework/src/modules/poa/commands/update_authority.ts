@@ -77,7 +77,7 @@ export class UpdateAuthorityCommand extends BaseCommand {
 			const validatorExists = await validatorStore.has(context, newValidator.address);
 			if (!validatorExists) {
 				throw new Error(
-					`${newValidator.address.toString('hex')} does not exist in validator store.`,
+					`No validator found for given address ${newValidator.address.toString('hex')}.`,
 				);
 			}
 			totalWeight += newValidator.weight;

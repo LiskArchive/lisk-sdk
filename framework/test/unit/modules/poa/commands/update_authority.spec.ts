@@ -249,7 +249,7 @@ describe('UpdateAuthority', () => {
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
 			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
-				`${address2.toString('hex')} does not exist in validator store.`,
+				`No validator found for given address ${address2.toString('hex')}.`,
 			);
 		});
 
