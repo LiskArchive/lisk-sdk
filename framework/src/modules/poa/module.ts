@@ -12,16 +12,27 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
+import { objects } from '@liskhq/lisk-utils';
+import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleMetadata } from '../base_module';
 import { PoAMethod } from './method';
 import { PoAEndpoint } from './endpoint';
 import { AuthorityUpdateEvent } from './events/authority_update';
 import { ChainPropertiesStore, ValidatorStore, NameStore, SnapshotStore } from './stores';
-import { BlockAfterExecuteContext } from '../../state_machine';
-import { EMPTY_BYTES, KEY_SNAPSHOT_0, KEY_SNAPSHOT_1, KEY_SNAPSHOT_2 } from './constants';
-import { FeeMethod, RandomMethod, ValidatorsMethod } from './types';
+import { BlockAfterExecuteContext, GenesisBlockExecuteContext } from '../../state_machine';
+import {
+	MODULE_NAME_POA,
+	EMPTY_BYTES,
+	KEY_SNAPSHOT_0,
+	KEY_SNAPSHOT_1,
+	KEY_SNAPSHOT_2,
+	MAX_UINT64,
+} from './constants';
 import { shuffleValidatorList } from './utils';
 import { NextValidatorsSetter, MethodContext } from '../../state_machine/types';
+import { FeeMethod, GenesisPoAStore, ValidatorsMethod, RandomMethod } from './types';
+import { genesisPoAStoreSchema } from './schemas';
 
 export class PoAModule extends BaseModule {
 	public method = new PoAMethod(this.stores, this.events);
@@ -39,6 +50,10 @@ export class PoAModule extends BaseModule {
 		this.stores.register(SnapshotStore, new SnapshotStore(this.name, 3));
 	}
 
+	public get name() {
+		return 'poa';
+	}
+
 	public addDependencies(
 		validatorsMethod: ValidatorsMethod,
 		feeMethod: FeeMethod,
@@ -50,7 +65,7 @@ export class PoAModule extends BaseModule {
 
 		// TODO: Remove it after the usage of these methods is implemented
 		// eslint-disable-next-line no-console
-		console.log(!this._validatorsMethod, !this._feeMethod);
+		console.log(this._feeMethod);
 	}
 
 	public metadata(): ModuleMetadata {
@@ -104,6 +119,161 @@ export class PoAModule extends BaseModule {
 			chainProperties.roundEndHeight += snapshot1.validators.length;
 
 			await chainPropertiesStore.set(context, EMPTY_BYTES, chainProperties);
+		}
+	}
+
+	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
+		const genesisBlockAssetBytes = context.assets.getAsset(MODULE_NAME_POA);
+		if (!genesisBlockAssetBytes) {
+			return;
+		}
+		const asset = codec.decode<GenesisPoAStore>(genesisPoAStoreSchema, genesisBlockAssetBytes);
+		validator.validate<GenesisPoAStore>(genesisPoAStoreSchema, asset);
+
+		const { validators, snapshotSubstore } = asset;
+
+		// Check that the name property of all entries in the validators array are pairwise distinct.
+		const validatorNames = validators.map(v => v.name);
+		if (validatorNames.length !== new Set(validatorNames).size) {
+			throw new Error('`name` property of all entries in the validators must be distinct.');
+		}
+
+		// Check that the address properties of all entries in the validators array are pairwise distinct.
+		const validatorAddresses = validators.map(v => v.address);
+		if (!objects.bufferArrayUniqueItems(validatorAddresses)) {
+			throw new Error('`address` property of all entries in validators must be distinct.');
+		}
+
+		const sortedValidatorsByAddress = [...validatorAddresses].sort((a, b) => a.compare(b));
+		for (let i = 0; i < validators.length; i += 1) {
+			// Check that entries in the validators array are ordered lexicographically according to address.
+			if (!validatorAddresses[i].equals(sortedValidatorsByAddress[i])) {
+				throw new Error('`validators` must be ordered lexicographically by address.');
+			}
+
+			if (!/^[a-z0-9!@$&_.]+$/g.test(validators[i].name)) {
+				throw new Error('`name` property is invalid. Must contain only characters a-z0-9!@$&_.');
+			}
+		}
+
+		const { activeValidators, threshold } = snapshotSubstore;
+		const activeValidatorAddresses = activeValidators.map(v => v.address);
+		const sortedActiveValidatorsByAddress = [...activeValidatorAddresses].sort((a, b) =>
+			a.compare(b),
+		);
+		const validatorAddressesString = validatorAddresses.map(a => a.toString('hex'));
+		let totalWeight = BigInt(0);
+
+		// Check that the address properties of entries in the snapshotSubstore.activeValidators are pairwise distinct.
+		if (!objects.bufferArrayUniqueItems(activeValidatorAddresses)) {
+			throw new Error('`address` properties in `activeValidators` must be distinct.');
+		}
+
+		for (let i = 0; i < activeValidators.length; i += 1) {
+			// Check that entries in the snapshotSubstore.activeValidators array are ordered lexicographically according to address.
+			if (!activeValidators[i].address.equals(sortedActiveValidatorsByAddress[i])) {
+				throw new Error(
+					'`activeValidators` must be ordered lexicographically by address property.',
+				);
+			}
+
+			// Check that for every element activeValidator in the snapshotSubstore.activeValidators array, there is an entry validator in the validators array with validator.address == activeValidator.address.
+			if (!validatorAddressesString.includes(activeValidators[i].address.toString('hex'))) {
+				throw new Error('`activeValidator` address is missing from validators array.');
+			}
+
+			// Check that the weight property of every entry in the snapshotSubstore.activeValidators array is a positive integer.
+			if (activeValidators[i].weight <= BigInt(0)) {
+				throw new Error('`activeValidators` weight must be positive integer.');
+			}
+
+			totalWeight += activeValidators[i].weight;
+		}
+
+		if (totalWeight > MAX_UINT64) {
+			throw new Error('Total weight `activeValidators` exceeds maximum value.');
+		}
+
+		// Check that the value of snapshotSubstore.threshold is within range
+		if (threshold < totalWeight / BigInt(3) + BigInt(1) || threshold > totalWeight) {
+			throw new Error('`threshold` in snapshot substore is not within range.');
+		}
+
+		// Create an entry in the validator substore for each entry validator in the validators
+		// Create an entry in the name substore for each entry validator in the validators
+		const validatorStore = this.stores.get(ValidatorStore);
+		const nameStore = this.stores.get(NameStore);
+
+		for (const currentValidator of validators) {
+			await validatorStore.set(context, currentValidator.address, { name: currentValidator.name });
+			await nameStore.set(context, Buffer.from(currentValidator.name, 'utf-8'), {
+				address: currentValidator.address,
+			});
+		}
+
+		// Create three entries in the snapshot substore indicating a snapshot of the next rounds of validators
+		const snapshotStore = this.stores.get(SnapshotStore);
+		await snapshotStore.set(context, KEY_SNAPSHOT_0, {
+			...snapshotSubstore,
+			validators: activeValidators,
+		});
+		await snapshotStore.set(context, KEY_SNAPSHOT_1, {
+			...snapshotSubstore,
+			validators: activeValidators,
+		});
+		await snapshotStore.set(context, KEY_SNAPSHOT_2, {
+			...snapshotSubstore,
+			validators: activeValidators,
+		});
+
+		// Create an entry in the chain properties substore
+		const { header } = context;
+		const chainPropertiesStore = this.stores.get(ChainPropertiesStore);
+		await chainPropertiesStore.set(context, EMPTY_BYTES, {
+			roundEndHeight: header.height,
+			validatorsUpdateNonce: 0,
+		});
+	}
+
+	public async finalizeGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
+		const genesisBlockAssetBytes = context.assets.getAsset(MODULE_NAME_POA);
+		if (!genesisBlockAssetBytes) {
+			return;
+		}
+		const asset = codec.decode<GenesisPoAStore>(genesisPoAStoreSchema, genesisBlockAssetBytes);
+		const snapshotStore = this.stores.get(SnapshotStore);
+		const currentRoundSnapshot = await snapshotStore.get(context, KEY_SNAPSHOT_0);
+		const chainPropertiesStore = this.stores.get(ChainPropertiesStore);
+		const chainProperties = await chainPropertiesStore.get(context, EMPTY_BYTES);
+
+		await chainPropertiesStore.set(context, EMPTY_BYTES, {
+			...chainProperties,
+			roundEndHeight: chainProperties.roundEndHeight + currentRoundSnapshot.validators.length,
+		});
+
+		// Pass the required information to the Validators module.
+		const methodContext = context.getMethodContext();
+		await this._validatorsMethod.setValidatorsParams(
+			methodContext,
+			context,
+			currentRoundSnapshot.threshold,
+			currentRoundSnapshot.threshold,
+			currentRoundSnapshot.validators.map(v => ({ address: v.address, bftWeight: v.weight })),
+		);
+
+		// Pass the BLS keys and generator keys to the Validators module.
+		for (const v of asset.validators) {
+			const isValid = await this._validatorsMethod.registerValidatorKeys(
+				methodContext,
+				v.address,
+				v.blsKey,
+				v.generatorKey,
+				v.proofOfPossession,
+			);
+
+			if (!isValid) {
+				throw new Error('Invalid validator key found in poa genesis asset validators.');
+			}
 		}
 	}
 }
