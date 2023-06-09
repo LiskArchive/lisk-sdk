@@ -375,23 +375,14 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('NFT substore entry does not exist');
 		}
 
-		const owner = await this.getNFTOwner(methodContext, nftID);
+		const nftData = await nftStore.get(methodContext, nftID);
 
-		if (owner.length === LENGTH_CHAIN_ID) {
-			this.events.get(LockEvent).error(
-				methodContext,
-				{
-					module,
-					nftID,
-				},
-				NftEventResult.RESULT_NFT_ESCROWED,
-			);
-
+		if (nftData.owner.length === LENGTH_CHAIN_ID) {
 			throw new Error('NFT is escrowed to another chain');
 		}
 
 		const userStore = this.stores.get(UserStore);
-		const userKey = userStore.getKey(owner, nftID);
+		const userKey = userStore.getKey(nftData.owner, nftID);
 		const userData = await userStore.get(methodContext, userKey);
 
 		if (userData.lockingModule === NFT_NOT_LOCKED) {

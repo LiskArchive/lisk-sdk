@@ -693,21 +693,9 @@ describe('NFTMethod', () => {
 			);
 		});
 
-		it('should throw and log LockEvent if NFT is escrowed', async () => {
+		it('should throw if NFT is escrowed', async () => {
 			await expect(method.unlock(methodContext, module.name, escrowedNFT.nftID)).rejects.toThrow(
 				'NFT is escrowed to another chain',
-			);
-
-			checkEventResult<LockEventData>(
-				methodContext.eventQueue,
-				1,
-				LockEvent,
-				0,
-				{
-					module: module.name,
-					nftID: escrowedNFT.nftID,
-				},
-				NftEventResult.RESULT_NFT_ESCROWED,
 			);
 		});
 
