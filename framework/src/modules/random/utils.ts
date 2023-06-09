@@ -73,9 +73,6 @@ export const getRandomSeed = (
 	if (height < 0 || numberOfSeeds < 0) {
 		throw new Error('Height or number of seeds cannot be negative.');
 	}
-	if (numberOfSeeds > 1000) {
-		throw new Error('Number of seeds cannot be greater than 1000.');
-	}
 	const initRandomBuffer = utils.intToBuffer(height + numberOfSeeds, 4);
 	let randomSeed = cryptography.utils.hash(initRandomBuffer).slice(0, 16);
 
