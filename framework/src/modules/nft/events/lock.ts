@@ -17,6 +17,7 @@ import {
 	LENGTH_NFT_ID,
 	MAX_LENGTH_MODULE_NAME,
 	MIN_LENGTH_MODULE_NAME,
+	NftErrorEventResult,
 	NftEventResult,
 } from '../constants';
 
@@ -57,5 +58,9 @@ export class LockEvent extends BaseEvent<LockEventData & { result: NftEventResul
 			Buffer.from(data.module),
 			data.nftID,
 		]);
+	}
+
+	public error(ctx: EventQueuer, data: LockEventData, result: NftErrorEventResult) {
+		this.add(ctx, { ...data, result }, [Buffer.from(data.module), data.nftID]);
 	}
 }
