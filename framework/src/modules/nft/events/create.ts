@@ -34,13 +34,13 @@ export const createEventSchema = {
 		nftID: {
 			dataType: 'bytes',
 			minLength: LENGTH_NFT_ID,
-			maxLenght: LENGTH_NFT_ID,
+			maxLength: LENGTH_NFT_ID,
 			fieldNumber: 2,
 		},
 		collectionID: {
 			dataType: 'bytes',
 			minLength: LENGTH_COLLECTION_ID,
-			maxLenght: LENGTH_COLLECTION_ID,
+			maxLength: LENGTH_COLLECTION_ID,
 			fieldNumber: 3,
 		},
 		result: {

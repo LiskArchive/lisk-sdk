@@ -84,9 +84,9 @@ export class NFTModule extends BaseInteroperableModule {
 		this.stores.register(SupportedNFTsStore, new SupportedNFTsStore(this.name, 4));
 	}
 
-	public addDependencies(interoperabilityMethod: InteroperabilityMethod, _feeMethod: FeeMethod) {
+	public addDependencies(interoperabilityMethod: InteroperabilityMethod, feeMethod: FeeMethod) {
 		this._interoperabilityMethod = interoperabilityMethod;
-		this.method.addDependencies(interoperabilityMethod);
+		this.method.addDependencies(interoperabilityMethod, feeMethod);
 		this._internalMethod.addDependencies(this.method, this._interoperabilityMethod);
 		this.crossChainMethod.addDependencies(interoperabilityMethod);
 	}
