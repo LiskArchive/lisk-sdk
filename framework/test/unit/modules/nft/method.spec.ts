@@ -519,6 +519,7 @@ describe('NFTMethod', () => {
 			send: jest.fn(),
 			error: jest.fn(),
 			terminateChain: jest.fn(),
+			getMessageFeeTokenID: jest.fn(),
 		};
 		const feeMethod = { payFee: jest.fn() };
 		const attributesArray1 = [
