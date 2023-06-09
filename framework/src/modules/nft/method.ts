@@ -92,7 +92,7 @@ export class NFTMethod extends BaseMethod {
 		const nftExists = await nftStore.has(methodContext, nftID);
 
 		if (!nftExists) {
-			this.events.get(DestroyEvent).log(
+			this.events.get(DestroyEvent).error(
 				methodContext,
 				{
 					address,
@@ -107,7 +107,7 @@ export class NFTMethod extends BaseMethod {
 		const owner = await this.getNFTOwner(methodContext, nftID);
 
 		if (owner.length === LENGTH_CHAIN_ID) {
-			this.events.get(DestroyEvent).log(
+			this.events.get(DestroyEvent).error(
 				methodContext,
 				{
 					address,
@@ -120,7 +120,7 @@ export class NFTMethod extends BaseMethod {
 		}
 
 		if (!owner.equals(address)) {
-			this.events.get(DestroyEvent).log(
+			this.events.get(DestroyEvent).error(
 				methodContext,
 				{
 					address,
@@ -137,7 +137,7 @@ export class NFTMethod extends BaseMethod {
 		const { lockingModule } = await userStore.get(methodContext, userKey);
 
 		if (lockingModule !== NFT_NOT_LOCKED) {
-			this.events.get(DestroyEvent).log(
+			this.events.get(DestroyEvent).error(
 				methodContext,
 				{
 					address,

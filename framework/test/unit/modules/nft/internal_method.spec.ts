@@ -26,6 +26,7 @@ import {
 	LENGTH_NFT_ID,
 	MODULE_NAME_NFT,
 	NFT_NOT_LOCKED,
+	LENGTH_TOKEN_ID,
 } from '../../../../src/modules/nft/constants';
 import { NFTStore } from '../../../../src/modules/nft/stores/nft';
 import { MethodContext } from '../../../../src/state_machine/method_context';
@@ -195,6 +196,9 @@ describe('InternalMethod', () => {
 				send: jest.fn().mockResolvedValue(Promise.resolve()),
 				error: jest.fn().mockResolvedValue(Promise.resolve()),
 				terminateChain: jest.fn().mockRejectedValue(Promise.resolve()),
+				getMessageFeeTokenID: jest
+					.fn()
+					.mockResolvedValue(Promise.resolve(utils.getRandomBytes(LENGTH_TOKEN_ID))),
 			};
 
 			internalMethod.addDependencies(method, interoperabilityMethod);

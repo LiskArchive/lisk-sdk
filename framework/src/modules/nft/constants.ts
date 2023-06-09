@@ -25,6 +25,7 @@ export const CCM_STATUS_CODE_OK = 0;
 export const EMPTY_BYTES = Buffer.alloc(0);
 export const ALL_SUPPORTED_NFTS_KEY = EMPTY_BYTES;
 export const FEE_CREATE_NFT = 5000000;
+export const LENGTH_TOKEN_ID = 8;
 
 export const enum NftEventResult {
 	RESULT_SUCCESSFUL = 0,
@@ -43,7 +44,4 @@ export const enum NftEventResult {
 	RESULT_DATA_TOO_LONG = 13,
 }
 
-export type NftErrorEventResult = Exclude<
-	NftEventResult,
-	NftEventResult.RESULT_NFT_ESCROWED | NftEventResult.RESULT_SUCCESSFUL
->;
+export type NftErrorEventResult = Exclude<NftEventResult, NftEventResult.RESULT_SUCCESSFUL>;
