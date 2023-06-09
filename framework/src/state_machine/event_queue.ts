@@ -43,9 +43,7 @@ export class EventQueue {
 				`Max size of event data is ${EVENT_MAX_EVENT_SIZE_BYTES} but received ${data.length}`,
 			);
 		}
-		if (!allTopics.length) {
-			throw new Error('Topics must have at least one element.');
-		}
+
 		if (allTopics.length > EVENT_MAX_TOPICS_PER_EVENT) {
 			throw new Error(
 				`Max topics per event is ${EVENT_MAX_TOPICS_PER_EVENT} but received ${allTopics.length}`,
