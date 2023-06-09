@@ -40,11 +40,14 @@ import { LockEvent, LockEventData } from '../../../../src/modules/nft/events/loc
 describe('NFTMethod', () => {
 	const module = new NFTModule();
 	const method = new NFTMethod(module.stores, module.events);
+	const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 
+	method.init({ ownChainID });
 	let methodContext!: MethodContext;
 
 	const nftStore = module.stores.get(NFTStore);
 	const userStore = module.stores.get(UserStore);
+	const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
 
 	const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
 	let owner: Buffer;
@@ -69,6 +72,7 @@ describe('NFTMethod', () => {
 	};
 
 	let existingNFT: { nftID: any; owner: any };
+	let existingNativeNFT: { nftID: any; owner: any };
 	let lockedExistingNFT: { nftID: any; owner: any; lockingModule: string };
 	let escrowedNFT: { nftID: any; owner: any };
 
@@ -86,6 +90,11 @@ describe('NFTMethod', () => {
 			nftID: utils.getRandomBytes(LENGTH_NFT_ID),
 		};
 
+		existingNativeNFT = {
+			owner: utils.getRandomBytes(LENGTH_ADDRESS),
+			nftID: Buffer.concat([ownChainID, Buffer.alloc(LENGTH_NFT_ID - LENGTH_CHAIN_ID)]),
+		};
+
 		lockedExistingNFT = {
 			owner: utils.getRandomBytes(LENGTH_ADDRESS),
 			nftID: utils.getRandomBytes(LENGTH_NFT_ID),
@@ -99,6 +108,11 @@ describe('NFTMethod', () => {
 
 		await nftStore.save(methodContext, existingNFT.nftID, {
 			owner: existingNFT.owner,
+			attributesArray: [],
+		});
+
+		await nftStore.save(methodContext, existingNativeNFT.nftID, {
+			owner: existingNativeNFT.owner,
 			attributesArray: [],
 		});
 
@@ -322,27 +336,11 @@ describe('NFTMethod', () => {
 		});
 
 		it('should return true if nft chain id equals own chain id', async () => {
-			const ownChainID = nftID.slice(0, LENGTH_CHAIN_ID);
-			const config = {
-				ownChainID,
-				escrowAccountInitializationFee: BigInt(50000000),
-				userAccountInitializationFee: BigInt(50000000),
-			};
-			method.init(config);
-
-			const isSupported = await method.isNFTSupported(methodContext, nftID);
+			const isSupported = await method.isNFTSupported(methodContext, existingNativeNFT.nftID);
 			expect(isSupported).toBe(true);
 		});
 
 		it('should return true if nft chain id does not equal own chain id but all nft keys are supported', async () => {
-			const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-			const config = {
-				ownChainID,
-				escrowAccountInitializationFee: BigInt(50000000),
-				userAccountInitializationFee: BigInt(50000000),
-			};
-			method.init(config);
-			const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
 			await supportedNFTsStore.set(methodContext, ALL_SUPPORTED_NFTS_KEY, {
 				supportedCollectionIDArray: [],
 			});
@@ -352,14 +350,6 @@ describe('NFTMethod', () => {
 		});
 
 		it('should return true if nft chain id does not equal own chain id but nft chain id is supported and corresponding supported collection id array is empty', async () => {
-			const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-			const config = {
-				ownChainID,
-				escrowAccountInitializationFee: BigInt(50000000),
-				userAccountInitializationFee: BigInt(50000000),
-			};
-			method.init(config);
-			const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
 			await supportedNFTsStore.set(methodContext, nftID.slice(0, LENGTH_CHAIN_ID), {
 				supportedCollectionIDArray: [],
 			});
@@ -369,14 +359,6 @@ describe('NFTMethod', () => {
 		});
 
 		it('should return true if nft chain id does not equal own chain id but nft chain id is supported and corresponding supported collection id array includes collection id for nft id', async () => {
-			const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-			const config = {
-				ownChainID,
-				escrowAccountInitializationFee: BigInt(50000000),
-				userAccountInitializationFee: BigInt(50000000),
-			};
-			method.init(config);
-			const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
 			await supportedNFTsStore.set(methodContext, nftID.slice(0, LENGTH_CHAIN_ID), {
 				supportedCollectionIDArray: [
 					{ collectionID: nftID.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID) },
@@ -389,14 +371,6 @@ describe('NFTMethod', () => {
 		});
 
 		it('should return false if nft chain id does not equal own chain id and nft chain id is supported but corresponding supported collection id array does not include collection id for nft id', async () => {
-			const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-			const config = {
-				ownChainID,
-				escrowAccountInitializationFee: BigInt(50000000),
-				userAccountInitializationFee: BigInt(50000000),
-			};
-			method.init(config);
-			const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
 			await supportedNFTsStore.set(methodContext, nftID.slice(0, LENGTH_CHAIN_ID), {
 				supportedCollectionIDArray: [
 					{ collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID) },
@@ -528,22 +502,17 @@ describe('NFTMethod', () => {
 		];
 		const attributesArray2 = [{ module: 'customMod3', attributes: Buffer.alloc(7) }];
 		const attributesArray3 = [{ module: 'customMod3', attributes: Buffer.alloc(9) }];
-		const config = {
-			ownChainID: Buffer.alloc(LENGTH_CHAIN_ID, 1),
-			escrowAccountInitializationFee: BigInt(50000000),
-			userAccountInitializationFee: BigInt(50000000),
-		};
+
 		const collectionID = nftID.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
 		const address = utils.getRandomBytes(LENGTH_ADDRESS);
 
 		beforeEach(() => {
 			method.addDependencies(interopMethod, feeMethod);
-			method.init(config);
 			jest.spyOn(feeMethod, 'payFee');
 		});
 
 		it('should set data to stores with correct key and emit successfull create event when there is no entry in the nft substore', async () => {
-			const expectedKey = Buffer.concat([config.ownChainID, collectionID, Buffer.from('0')]);
+			const expectedKey = Buffer.concat([ownChainID, collectionID, Buffer.from('0')]);
 
 			await method.create(methodContext, address, collectionID, attributesArray3);
 			const nftStoreData = await nftStore.get(methodContext, expectedKey);
@@ -572,7 +541,7 @@ describe('NFTMethod', () => {
 				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
 				attributesArray: attributesArray2,
 			});
-			const expectedKey = Buffer.concat([config.ownChainID, collectionID, Buffer.from('2')]);
+			const expectedKey = Buffer.concat([ownChainID, collectionID, Buffer.from('2')]);
 
 			await method.create(methodContext, address, collectionID, attributesArray3);
 			const nftStoreData = await nftStore.get(methodContext, expectedKey);
