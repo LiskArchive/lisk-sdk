@@ -204,63 +204,6 @@ describe('TransferCrossChainComand', () => {
 	});
 
 	describe('verify', () => {
-		// let existingNFT: { nftID: any; owner: any };
-		// let lockedExistingNFT: { nftID: any; owner: any };
-		// let escrowedNFT: { nftID: any; owner: any };
-
-		// beforeEach(async () => {
-		// 	existingNFT = {
-		// 		owner,
-		// 		nftID: Buffer.concat([ownChainID, utils.getRandomBytes(LENGTH_NFT_ID - LENGTH_CHAIN_ID)]),
-		// 	};
-
-		// 	lockedExistingNFT = {
-		// 		owner,
-		// 		nftID: Buffer.concat([ownChainID, utils.getRandomBytes(LENGTH_NFT_ID - LENGTH_CHAIN_ID)]),
-		// 	};
-
-		// 	escrowedNFT = {
-		// 		owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
-		// 		nftID: utils.getRandomBytes(LENGTH_NFT_ID),
-		// 	};
-
-		// 	await nftStore.save(methodContext, existingNFT.nftID, {
-		// 		owner: existingNFT.owner,
-		// 		attributesArray: [],
-		// 	});
-
-		// 	await userStore.set(methodContext, userStore.getKey(existingNFT.owner, existingNFT.nftID), {
-		// 		lockingModule: NFT_NOT_LOCKED,
-		// 	});
-
-		// 	await module.stores.get(NFTStore).save(methodContext, lockedExistingNFT.nftID, {
-		// 		owner: lockedExistingNFT.owner,
-		// 		attributesArray: [],
-		// 	});
-
-		// 	await userStore.set(
-		// 		methodContext,
-		// 		userStore.getKey(lockedExistingNFT.owner, lockedExistingNFT.nftID),
-		// 		{
-		// 			lockingModule: 'token',
-		// 		},
-		// 	);
-
-		// 	await module.stores.get(NFTStore).save(methodContext, escrowedNFT.nftID, {
-		// 		owner: escrowedNFT.owner,
-		// 		attributesArray: [],
-		// 	});
-
-		// 	await userStore.set(methodContext, userStore.getKey(escrowedNFT.owner, escrowedNFT.nftID), {
-		// 		lockingModule: NFT_NOT_LOCKED,
-		// 	});
-
-		// 	await tokenUserStore.set(methodContext, tokenUserStore.getKey(owner, messageFeeTokenID), {
-		// 		availableBalance,
-		// 		lockedBalances: []
-		// 	});
-		// });
-
 		it('should fail if NFT does not have valid length', async () => {
 			const nftMinLengthContext = createTransactionContextWithOverridingParams({
 				nftID: utils.getRandomBytes(LENGTH_NFT_ID - 1),
