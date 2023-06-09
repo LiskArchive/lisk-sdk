@@ -101,14 +101,16 @@ export const bitwiseXOR = (bufferArray: Buffer[]): Buffer => {
 		return bufferArray[0];
 	}
 
-	const bufferSizes = new Set(bufferArray.map(buffer => buffer.length));
-	if (bufferSizes.size > 1) {
-		throw new Error('All input for XOR should be same size');
+	const size = bufferArray[0].length;
+	for (let i = 1; i < bufferArray.length; i += 1) {
+		if (bufferArray[i].length !== size) {
+			throw new Error('All input for XOR should be same size');
+		}
 	}
-	const outputSize = [...bufferSizes][0];
-	const result = Buffer.alloc(outputSize, 0);
 
-	for (let i = 0; i < outputSize; i += 1) {
+	const result = Buffer.alloc(size);
+
+	for (let i = 0; i < size; i += 1) {
 		// eslint-disable-next-line no-bitwise
 		result[i] = bufferArray.map(b => b[i]).reduce((a, b) => a ^ b, 0);
 	}
