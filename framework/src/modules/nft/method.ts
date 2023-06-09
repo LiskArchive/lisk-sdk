@@ -29,6 +29,8 @@ import { DestroyEvent } from './events/destroy';
 import { SupportedNFTsStore } from './stores/supported_nfts';
 import { CreateEvent } from './events/create';
 import { LockEvent } from './events/lock';
+import { AllNFTsSupportedEvent } from './events/all_nfts_supported';
+import { AllNFTsSupportRemovedEvent } from './events/all_nfts_support_removed';
 
 export class NFTMethod extends BaseMethod {
 	private _config!: ModuleConfig;
@@ -419,5 +421,33 @@ export class NFTMethod extends BaseMethod {
 			module,
 			nftID,
 		});
+	}
+
+	public async supportAllNFTs(methodContext: MethodContext): Promise<void> {
+		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
+
+		const allSupprtedNFTs = await supportedNFTsStore.getAll(methodContext);
+
+		for (const { key } of allSupprtedNFTs) {
+			await supportedNFTsStore.del(methodContext, key);
+		}
+
+		await supportedNFTsStore.set(methodContext, ALL_SUPPORTED_NFTS_KEY, {
+			supportedCollectionIDArray: [],
+		});
+
+		this.events.get(AllNFTsSupportedEvent).log(methodContext);
+	}
+
+	public async removeSupportAllNFTs(methodContext: MethodContext): Promise<void> {
+		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
+
+		const allSupprtedNFTs = await supportedNFTsStore.getAll(methodContext);
+
+		for (const { key } of allSupprtedNFTs) {
+			await supportedNFTsStore.del(methodContext, key);
+		}
+
+		this.events.get(AllNFTsSupportRemovedEvent).log(methodContext);
 	}
 }

@@ -36,6 +36,8 @@ import { DestroyEvent, DestroyEventData } from '../../../../src/modules/nft/even
 import { SupportedNFTsStore } from '../../../../src/modules/nft/stores/supported_nfts';
 import { CreateEvent } from '../../../../src/modules/nft/events/create';
 import { LockEvent, LockEventData } from '../../../../src/modules/nft/events/lock';
+import { AllNFTsSupportedEvent } from '../../../../src/modules/nft/events/all_nfts_supported';
+import { AllNFTsSupportRemovedEvent } from '../../../../src/modules/nft/events/all_nfts_support_removed';
 
 describe('NFTMethod', () => {
 	const module = new NFTModule();
@@ -68,7 +70,9 @@ describe('NFTMethod', () => {
 			eventQueue.getEvents()[index].toObject().data,
 		);
 
-		expect(eventData).toEqual({ ...expectedResult, result });
+		if (result !== null) {
+			expect(eventData).toEqual({ ...expectedResult, result });
+		}
 	};
 
 	let existingNFT: { nftID: any; owner: any };
@@ -727,6 +731,40 @@ describe('NFTMethod', () => {
 			);
 
 			expect(lockingModule).toEqual(NFT_NOT_LOCKED);
+		});
+	});
+
+	describe('supportAllNFTs', () => {
+		it('should remove all existing entries, add ALL_SUPPORTED_NFTS_KEY entry and log AllNFTsSupportedEvent', async () => {
+			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+			await supportedNFTsStore.save(methodContext, chainID, {
+				supportedCollectionIDArray: [],
+			});
+
+			await expect(method.supportAllNFTs(methodContext)).resolves.toBeUndefined();
+			await expect(
+				supportedNFTsStore.has(methodContext, ALL_SUPPORTED_NFTS_KEY),
+			).resolves.toBeTrue();
+
+			await expect(supportedNFTsStore.has(methodContext, chainID)).resolves.toBeFalse();
+
+			checkEventResult(methodContext.eventQueue, 1, AllNFTsSupportedEvent, 0, {}, null);
+		});
+	});
+
+	describe('removeSupportAllNFTs', () => {
+		it('should remove all existing entries and log AllNFTsSupportRemovedEvent', async () => {
+			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+
+			await supportedNFTsStore.save(methodContext, utils.getRandomBytes(LENGTH_CHAIN_ID), {
+				supportedCollectionIDArray: [],
+			});
+
+			await expect(method.removeSupportAllNFTs(methodContext)).resolves.toBeUndefined();
+
+			await expect(supportedNFTsStore.has(methodContext, chainID)).resolves.toBeFalse();
+
+			checkEventResult(methodContext.eventQueue, 1, AllNFTsSupportRemovedEvent, 0, {}, null);
 		});
 	});
 });
