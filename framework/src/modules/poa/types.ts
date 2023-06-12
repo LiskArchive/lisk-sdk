@@ -118,3 +118,9 @@ export interface GenesisPoAStore {
 export interface UpdateGeneratorKeyParams {
 	generatorKey: Buffer;
 }
+
+export interface ValidatorEndpoint {
+	address: string;
+	name: string;
+	weight: string;
+}

@@ -216,3 +216,50 @@ export const genesisPoAStoreSchema = {
 		},
 	},
 };
+
+const validatorJSONSchema = {
+	type: 'object',
+	required: ['address', 'name', 'weight'],
+	properties: {
+		address: {
+			type: 'string',
+			format: 'lisk32',
+		},
+		name: {
+			type: 'string',
+		},
+		weight: {
+			type: 'string',
+			format: 'uint64',
+		},
+	},
+};
+
+export const getValidatorRequestSchema = {
+	$id: 'modules/poa/endpoint/getValidatorRequest',
+	type: 'object',
+	required: ['address'],
+	properties: {
+		address: {
+			dataType: 'string',
+			format: 'lisk32',
+		},
+	},
+};
+
+export const getValidatorResponseSchema = {
+	$id: 'modules/poa/endpoint/getValidatorResponse',
+	...validatorJSONSchema,
+};
+
+export const getAllValidatorsResponseSchema = {
+	$id: 'modules/pos/endpoint/getAllValidatorsResponse',
+	type: 'object',
+	required: ['validators'],
+	properties: {
+		validators: {
+			type: 'array',
+			items: validatorJSONSchema,
+		},
+	},
+};

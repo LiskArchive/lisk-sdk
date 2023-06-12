@@ -32,7 +32,12 @@ import {
 import { shuffleValidatorList } from './utils';
 import { NextValidatorsSetter, MethodContext } from '../../state_machine/types';
 import { FeeMethod, GenesisPoAStore, ValidatorsMethod, RandomMethod } from './types';
-import { genesisPoAStoreSchema } from './schemas';
+import {
+	genesisPoAStoreSchema,
+	getAllValidatorsResponseSchema,
+	getValidatorRequestSchema,
+	getValidatorResponseSchema,
+} from './schemas';
 
 export class PoAModule extends BaseModule {
 	public method = new PoAMethod(this.stores, this.events);
@@ -71,7 +76,17 @@ export class PoAModule extends BaseModule {
 	public metadata(): ModuleMetadata {
 		return {
 			...this.baseMetadata(),
-			endpoints: [],
+			endpoints: [
+				{
+					name: this.endpoint.getValidator.name,
+					request: getValidatorRequestSchema,
+					response: getValidatorResponseSchema,
+				},
+				{
+					name: this.endpoint.getAllValidators.name,
+					response: getAllValidatorsResponseSchema,
+				},
+			],
 			assets: [],
 		};
 	}
