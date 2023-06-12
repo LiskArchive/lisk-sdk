@@ -188,14 +188,16 @@ export class TokenMethod extends BaseMethod {
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
+		if (amount <= BigInt(0)) {
+			return;
+		}
+
 		const eventData = {
 			address,
 			tokenID,
 			amount,
 		};
-		if (amount === BigInt(0)) {
-			return;
-		}
+
 		if (!this.isNativeToken(tokenID)) {
 			this.events
 				.get(MintEvent)
@@ -261,6 +263,10 @@ export class TokenMethod extends BaseMethod {
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
+		if (amount <= BigInt(0)) {
+			return;
+		}
+
 		const userStore = this.stores.get(UserStore);
 		const eventData = {
 			address,
@@ -269,9 +275,6 @@ export class TokenMethod extends BaseMethod {
 		};
 		let userAccount: UserStoreData;
 		try {
-			if (amount === BigInt(0)) {
-				return;
-			}
 			userAccount = await userStore.get(methodContext, userStore.getKey(address, tokenID));
 			if (userAccount.availableBalance < amount) {
 				this.events
@@ -350,6 +353,10 @@ export class TokenMethod extends BaseMethod {
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
+		if (amount <= BigInt(0)) {
+			return;
+		}
+
 		const userStore = this.stores.get(UserStore);
 		const eventData = {
 			senderAddress,
@@ -404,6 +411,10 @@ export class TokenMethod extends BaseMethod {
 		messageFee: bigint,
 		data: string,
 	): Promise<void> {
+		if (amount <= BigInt(0)) {
+			return;
+		}
+
 		const eventData = {
 			senderAddress,
 			recipientAddress,
@@ -514,6 +525,10 @@ export class TokenMethod extends BaseMethod {
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
+		if (amount <= BigInt(0)) {
+			return;
+		}
+
 		const userStore = this.stores.get(UserStore);
 		const eventData = {
 			address,
@@ -523,9 +538,6 @@ export class TokenMethod extends BaseMethod {
 		};
 		let account: UserStoreData;
 		try {
-			if (amount === BigInt(0)) {
-				return;
-			}
 			account = await userStore.get(methodContext, userStore.getKey(address, tokenID));
 			if (account.availableBalance < amount) {
 				this.events
@@ -570,9 +582,10 @@ export class TokenMethod extends BaseMethod {
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
-		if (amount === BigInt(0)) {
+		if (amount <= BigInt(0)) {
 			return;
 		}
+
 		const userStore = this.stores.get(UserStore);
 		const eventData = {
 			address,
