@@ -207,8 +207,10 @@ export abstract class BaseCrossChainUpdateCommand<
 			return;
 		}
 
+		let params;
 		try {
-			validator.validate(command.schema, codec.decode(command.schema, context.ccm.params));
+			params = codec.decode(command.schema, context.ccm.params);
+			validator.validate(command.schema, params);
 		} catch (error) {
 			logger.info(
 				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
@@ -291,7 +293,6 @@ export abstract class BaseCrossChainUpdateCommand<
 			 * This is not necessarily a violation of the protocol, since the message
 			 * could have been sent before the direct channel was opened.
 			 */
-			const params = command.schema ? codec.decode(command.schema, context.ccm.params) : {};
 
 			const isSendingChainExist = await this.stores
 				.get(ChainAccountStore)
