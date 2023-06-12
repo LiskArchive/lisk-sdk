@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
-import { BaseModule, ModuleMetadata } from '../base_module';
+import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { PoAMethod } from './method';
 import { PoAEndpoint } from './endpoint';
 import { AuthorityUpdateEvent } from './events/authority_update';
@@ -28,17 +28,29 @@ import {
 	KEY_SNAPSHOT_1,
 	KEY_SNAPSHOT_2,
 	MAX_UINT64,
+	defaultConfig,
 } from './constants';
 import { shuffleValidatorList } from './utils';
 import { NextValidatorsSetter, MethodContext } from '../../state_machine/types';
-import { FeeMethod, GenesisPoAStore, ValidatorsMethod, RandomMethod } from './types';
 import {
+	configSchema,
 	genesisPoAStoreSchema,
 	getAllValidatorsResponseSchema,
 	getRegistrationFeeResponseSchema,
 	getValidatorRequestSchema,
 	getValidatorResponseSchema,
 } from './schemas';
+import {
+	FeeMethod,
+	GenesisPoAStore,
+	ValidatorsMethod,
+	RandomMethod,
+	ModuleConfigJSON,
+	ModuleConfig,
+} from './types';
+import { RegisterAuthorityCommand } from './commands/register_authority';
+import { UpdateAuthorityCommand } from './commands/update_authority';
+import { UpdateGeneratorKeyCommand } from './commands/update_generator_key';
 
 export class PoAModule extends BaseModule {
 	public method = new PoAMethod(this.stores, this.events);
@@ -46,6 +58,16 @@ export class PoAModule extends BaseModule {
 	private _randomMethod!: RandomMethod;
 	private _validatorsMethod!: ValidatorsMethod;
 	private _feeMethod!: FeeMethod;
+	private readonly _registerAuthorityCommand = new RegisterAuthorityCommand(
+		this.stores,
+		this.events,
+	);
+	private readonly _updateAuthorityCommand = new UpdateAuthorityCommand(this.stores, this.events);
+	private readonly _updateGeneratorKeyCommand = new UpdateGeneratorKeyCommand(
+		this.stores,
+		this.events,
+	);
+	private _moduleConfig!: ModuleConfig;
 
 	public constructor() {
 		super();
@@ -69,9 +91,10 @@ export class PoAModule extends BaseModule {
 		this._feeMethod = feeMethod;
 		this._randomMethod = randomMethod;
 
-		// TODO: Remove it after the usage of these methods is implemented
-		// eslint-disable-next-line no-console
-		console.log(this._feeMethod);
+		// Add dependencies to commands
+		this._registerAuthorityCommand.addDependencies(this._validatorsMethod, this._feeMethod);
+		this._updateAuthorityCommand.addDependencies(this._validatorsMethod);
+		this._updateGeneratorKeyCommand.addDependencies(this._validatorsMethod);
 	}
 
 	public metadata(): ModuleMetadata {
@@ -94,6 +117,18 @@ export class PoAModule extends BaseModule {
 			],
 			assets: [],
 		};
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async init(args: ModuleInitArgs) {
+		const config = objects.mergeDeep({}, { ...defaultConfig }, args.moduleConfig);
+		validator.validate<ModuleConfigJSON>(configSchema, config);
+
+		this._moduleConfig = {
+			...config,
+			authorityRegistrationFee: BigInt(config.authorityRegistrationFee),
+		};
+		this._registerAuthorityCommand.init(this._moduleConfig);
 	}
 
 	// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0047.md#after-transactions-execution

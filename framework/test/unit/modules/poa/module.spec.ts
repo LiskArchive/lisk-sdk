@@ -26,6 +26,7 @@ import { invalidAssets, validAsset } from './genesis_block_test_data';
 import { PoAModule } from '../../../../src/modules/poa/module';
 import { genesisPoAStoreSchema } from '../../../../src/modules/poa/schemas';
 import {
+	AUTHORITY_REGISTRATION_FEE,
 	EMPTY_BYTES,
 	KEY_SNAPSHOT_0,
 	KEY_SNAPSHOT_1,
@@ -33,7 +34,12 @@ import {
 	LENGTH_BLS_KEY,
 	LENGTH_GENERATOR_KEY,
 } from '../../../../src/modules/poa/constants';
-import { FeeMethod, RandomMethod, ValidatorsMethod } from '../../../../src/modules/poa/types';
+import {
+	FeeMethod,
+	ModuleConfigJSON,
+	RandomMethod,
+	ValidatorsMethod,
+} from '../../../../src/modules/poa/types';
 import { createFakeBlockHeader } from '../../../fixtures';
 import {
 	BlockAfterExecuteContext,
@@ -80,16 +86,69 @@ describe('PoA module', () => {
 	describe('constructor', () => {});
 
 	describe('init', () => {
-		it.todo('test all the assignments and initialization');
+		let genesisConfig: any;
+		let moduleConfigJSON: ModuleConfigJSON;
+
+		beforeEach(() => {
+			genesisConfig = {};
+			moduleConfigJSON = {
+				authorityRegistrationFee: AUTHORITY_REGISTRATION_FEE.toString(),
+			};
+		});
+		it('should assign authorityRegistrationFee from config if given', async () => {
+			jest.spyOn(poaModule['_registerAuthorityCommand'], 'init');
+			await poaModule.init({
+				genesisConfig,
+				moduleConfig: {
+					...moduleConfigJSON,
+					authorityRegistrationFee: '20000',
+				},
+			});
+
+			expect(poaModule['_moduleConfig'].authorityRegistrationFee).toEqual(BigInt('20000'));
+			expect(poaModule['_registerAuthorityCommand'].init).toHaveBeenCalledWith(
+				poaModule['_moduleConfig'],
+			);
+		});
+
+		it('should assign default value for authorityRegistrationFee when not given in config', async () => {
+			jest.spyOn(poaModule['_registerAuthorityCommand'], 'init');
+			await poaModule.init({
+				genesisConfig,
+				moduleConfig: { ...moduleConfigJSON },
+			});
+
+			expect(poaModule['_moduleConfig'].authorityRegistrationFee).toEqual(
+				AUTHORITY_REGISTRATION_FEE,
+			);
+			expect(poaModule['_registerAuthorityCommand'].init).toHaveBeenCalledWith(
+				poaModule['_moduleConfig'],
+			);
+		});
 	});
 
 	describe('addDependencies', () => {
 		it('should add all the dependencies', () => {
+			jest.spyOn(poaModule['_registerAuthorityCommand'], 'addDependencies');
+			jest.spyOn(poaModule['_updateAuthorityCommand'], 'addDependencies');
+			jest.spyOn(poaModule['_updateGeneratorKeyCommand'], 'addDependencies');
 			poaModule.addDependencies(validatorMethod, feeMethod, randomMethod);
 
 			expect(poaModule['_validatorsMethod']).toBeDefined();
 			expect(poaModule['_feeMethod']).toBeDefined();
 			expect(poaModule['_randomMethod']).toBeDefined();
+
+			// Check command dependencies
+			expect(poaModule['_registerAuthorityCommand'].addDependencies).toHaveBeenCalledWith(
+				poaModule['_validatorsMethod'],
+				poaModule['_feeMethod'],
+			);
+			expect(poaModule['_updateAuthorityCommand'].addDependencies).toHaveBeenCalledWith(
+				poaModule['_validatorsMethod'],
+			);
+			expect(poaModule['_updateGeneratorKeyCommand'].addDependencies).toHaveBeenCalledWith(
+				poaModule['_validatorsMethod'],
+			);
 		});
 	});
 
