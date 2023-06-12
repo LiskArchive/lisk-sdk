@@ -73,7 +73,7 @@ export const getRandomSeed = (
 		throw new Error('Number of seeds cannot be greater than 1000.');
 	}
 	const initRandomBuffer = utils.intToBuffer(height + numberOfSeeds, 4);
-	let randomSeed = utils.hash(initRandomBuffer).slice(0, 16);
+	let randomSeed = utils.hash(initRandomBuffer).slice(0, SEED_LENGTH);
 
 	let isInFuture = true;
 	const currentSeeds = [];
