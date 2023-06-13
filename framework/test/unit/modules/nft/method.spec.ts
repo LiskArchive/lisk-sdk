@@ -795,7 +795,7 @@ describe('NFTMethod', () => {
 	});
 
 	describe('supportAllNFTsFromChain', () => {
-		it('should not update SupportedNFTsStore if provided chainID is native', async () => {
+		it('should not update SupportedNFTsStore if provided chainID is equal to ownChainID', async () => {
 			await expect(
 				method.supportAllNFTsFromChain(methodContext, ownChainID),
 			).resolves.toBeUndefined();
@@ -803,7 +803,7 @@ describe('NFTMethod', () => {
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
 		});
 
-		it('should not update SupportedNFTsStore if provided chainID is native and all NFTs are supported', async () => {
+		it('should not update SupportedNFTsStore if provided chainID equal to ownChainID', async () => {
 			await supportedNFTsStore.save(methodContext, ALL_SUPPORTED_NFTS_KEY, {
 				supportedCollectionIDArray: [],
 			});
@@ -848,7 +848,7 @@ describe('NFTMethod', () => {
 			);
 		});
 
-		it('should update SupportedNFTStore if provided chainID is native and has supported collections', async () => {
+		it('should update SupportedNFTStore if provided chainID is equal to ownChainID and has supported collections', async () => {
 			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 
 			await supportedNFTsStore.save(methodContext, chainID, {
@@ -879,7 +879,7 @@ describe('NFTMethod', () => {
 	});
 
 	describe('removeSupportAllNFTsFromChain', () => {
-		it('should throw if support for native chain is removed', async () => {
+		it('should throw if provided chainID is equal to ownChainID', async () => {
 			await expect(method.removeSupportAllNFTsFromChain(methodContext, ownChainID)).rejects.toThrow(
 				'Support for native NFTs cannot be removed',
 			);
@@ -930,7 +930,7 @@ describe('NFTMethod', () => {
 	});
 
 	describe('supportAllNFTsFromCollection', () => {
-		it('should not update SupportedNFTsStore if support for native chain is native', async () => {
+		it('should not update SupportedNFTsStore if provided chainID is not equal to ownChainID', async () => {
 			await expect(
 				method.supportAllNFTsFromCollection(
 					methodContext,
