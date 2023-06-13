@@ -1065,6 +1065,18 @@ describe('NFTMethod', () => {
 	});
 
 	describe('removeSupportAllNFTsFromCollection', () => {
+		it('should not update SupportedNFTsStore if provided chainID is equal to ownChainID', async () => {
+			await expect(
+				method.removeSupportAllNFTsFromCollection(
+					methodContext,
+					ownChainID,
+					utils.getRandomBytes(LENGTH_CHAIN_ID),
+				),
+			).resolves.toBeUndefined();
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
 		it('should throw if all NFTs are supported', async () => {
 			await supportedNFTsStore.save(methodContext, ALL_SUPPORTED_NFTS_KEY, {
 				supportedCollectionIDArray: [],

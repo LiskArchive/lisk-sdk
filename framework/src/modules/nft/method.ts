@@ -585,6 +585,10 @@ export class NFTMethod extends BaseMethod {
 		chainID: Buffer,
 		collectionID: Buffer,
 	): Promise<void> {
+		if (chainID.equals(this._config.ownChainID)) {
+			return;
+		}
+
 		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
 
 		const allNFTsSupported = await supportedNFTsStore.has(methodContext, ALL_SUPPORTED_NFTS_KEY);
