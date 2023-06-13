@@ -39,7 +39,7 @@ describe('RandomModuleMethod', () => {
 	let randomStore: ValidatorRevealsStore;
 
 	const randomModule = new RandomModule();
-	const emptyBytes = Buffer.alloc(0);
+	const EMPTY_BYTES = Buffer.alloc(0);
 
 	describe('isSeedRevealValid', () => {
 		const twoRoundsValidators: ValidatorSeedReveal[] = [];
@@ -68,7 +68,7 @@ describe('RandomModuleMethod', () => {
 			randomMethod = new RandomMethod(randomModule.stores, randomModule.events, randomModule.name);
 			context = createTransientMethodContext({});
 			randomStore = randomModule.stores.get(ValidatorRevealsStore);
-			await randomStore.set(context, emptyBytes, {
+			await randomStore.set(context, EMPTY_BYTES, {
 				validatorReveals: twoRoundsValidators.slice(0, 103),
 			});
 		});
@@ -110,7 +110,7 @@ describe('RandomModuleMethod', () => {
 
 		it('should return true if no last seed reveal found', async () => {
 			// Arrange
-			await randomStore.set(context, emptyBytes, { validatorReveals: [] });
+			await randomStore.set(context, EMPTY_BYTES, { validatorReveals: [] });
 			for (const [address, hashes] of Object.entries(twoRoundsValidatorsHashes)) {
 				const blockAsset: BlockAsset = {
 					module: randomModule.name,
@@ -128,7 +128,7 @@ describe('RandomModuleMethod', () => {
 		});
 
 		it('should return false if there is a last revealed seed by generatorAddress in validatorReveals array but it is not equal to the hash of seedReveal', async () => {
-			await randomStore.set(context, emptyBytes, { validatorReveals: twoRoundsValidators });
+			await randomStore.set(context, EMPTY_BYTES, { validatorReveals: twoRoundsValidators });
 			for (const [address, hashes] of Object.entries(twoRoundsValidatorsHashes)) {
 				// Arrange
 				const blockAsset: BlockAsset = {
@@ -151,7 +151,7 @@ describe('RandomModuleMethod', () => {
 			const { generatorAddress } = twoRoundsValidators[5];
 			const twoRoundsValidatorsClone1 = objects.cloneDeep(twoRoundsValidators);
 			twoRoundsValidatorsClone1[5].generatorAddress = Buffer.alloc(0);
-			await randomStore.set(context, emptyBytes, {
+			await randomStore.set(context, EMPTY_BYTES, {
 				validatorReveals: twoRoundsValidatorsClone1.slice(0, 103),
 			});
 			const hashes = twoRoundsValidatorsHashes[generatorAddress.toString('hex')];
@@ -174,7 +174,7 @@ describe('RandomModuleMethod', () => {
 			const { generatorAddress } = twoRoundsValidators[5];
 			const twoRoundsValidatorsClone2 = twoRoundsValidators;
 			twoRoundsValidatorsClone2[5].seedReveal = cryptography.utils.getRandomBytes(17);
-			await randomStore.set(context, emptyBytes, {
+			await randomStore.set(context, EMPTY_BYTES, {
 				validatorReveals: twoRoundsValidatorsClone2.slice(0, 103),
 			});
 			const hashes = twoRoundsValidatorsHashes[generatorAddress.toString('hex')];
@@ -197,7 +197,7 @@ describe('RandomModuleMethod', () => {
 			const generatorAddress = cryptography.utils.getRandomBytes(21);
 			const twoRoundsValidatorsClone3 = objects.cloneDeep(twoRoundsValidators);
 			twoRoundsValidatorsClone3[5].generatorAddress = generatorAddress;
-			await randomStore.set(context, emptyBytes, {
+			await randomStore.set(context, EMPTY_BYTES, {
 				validatorReveals: twoRoundsValidatorsClone3.slice(0, 103),
 			});
 			const hashes =
@@ -261,7 +261,7 @@ describe('RandomModuleMethod', () => {
 			randomMethod = new RandomMethod(randomModule.stores, randomModule.events, randomModule.name);
 			context = createTransientMethodContext({});
 			randomStore = randomModule.stores.get(ValidatorRevealsStore);
-			await randomStore.set(context, emptyBytes, { validatorReveals: validatorsData });
+			await randomStore.set(context, EMPTY_BYTES, { validatorReveals: validatorsData });
 		});
 
 		it('should throw error when height is negative', async () => {
@@ -362,9 +362,9 @@ describe('RandomModuleMethod', () => {
 			);
 		});
 
-		it('should return XOR random bytes for height=11, numberOfSeeds=4 excluding invalid seed reveal', async () => {
+		it('should return XOR random bytes for height=11, numberOfSeeds=5 excluding invalid seed reveal', async () => {
 			const height = 11;
-			const numberOfSeeds = 4;
+			const numberOfSeeds = 5;
 			// Create a buffer from height + numberOfSeeds
 			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
@@ -452,7 +452,7 @@ describe('RandomModuleMethod', () => {
 					);
 					context = createTransientMethodContext({});
 					randomStore = randomModule.stores.get(ValidatorRevealsStore);
-					await randomStore.set(context, emptyBytes, { validatorReveals: validators });
+					await randomStore.set(context, EMPTY_BYTES, { validatorReveals: validators });
 				});
 
 				it('should generate correct random seeds', async () => {
