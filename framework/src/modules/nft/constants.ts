@@ -26,6 +26,7 @@ export const EMPTY_BYTES = Buffer.alloc(0);
 export const ALL_SUPPORTED_NFTS_KEY = EMPTY_BYTES;
 export const FEE_CREATE_NFT = 5000000;
 export const LENGTH_TOKEN_ID = 8;
+export const MAX_LENGTH_DATA = 64;
 
 export const enum NftEventResult {
 	RESULT_SUCCESSFUL = 0,
@@ -42,6 +43,8 @@ export const enum NftEventResult {
 	RESULT_RECOVER_FAIL_INVALID_INPUTS = 11,
 	RESULT_INSUFFICIENT_BALANCE = 12,
 	RESULT_DATA_TOO_LONG = 13,
+	INVALID_RECEIVING_CHAIN = 14,
+	RESULT_INVALID_ACCOUNT = 15,
 }
 
 export type NftErrorEventResult = Exclude<NftEventResult, NftEventResult.RESULT_SUCCESSFUL>;

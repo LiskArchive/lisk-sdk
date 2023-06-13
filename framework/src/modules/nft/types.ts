@@ -40,3 +40,16 @@ export interface InteroperabilityMethod {
 export interface FeeMethod {
 	payFee(methodContext: MethodContext, amount: bigint): void;
 }
+
+export interface TokenMethod {
+	getAvailableBalance(
+		methodContext: MethodContext,
+		address: Buffer,
+		tokenID: Buffer,
+	): Promise<bigint>;
+}
+
+export interface NFTMethod {
+	getChainID(nftID: Buffer): Buffer;
+	destroy(methodContext: MethodContext, address: Buffer, nftID: Buffer): Promise<void>;
+}

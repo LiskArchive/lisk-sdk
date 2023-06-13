@@ -13,7 +13,7 @@
  */
 
 import { BaseEvent, EventQueuer } from '../../base_event';
-import { LENGTH_NFT_ID, LENGTH_CHAIN_ID, NftEventResult } from '../constants';
+import { LENGTH_NFT_ID, LENGTH_CHAIN_ID, NftEventResult, NftErrorEventResult } from '../constants';
 
 export interface RecoverEventData {
 	terminatedChainID: Buffer;
@@ -49,5 +49,9 @@ export class RecoverEvent extends BaseEvent<RecoverEventData & { result: NftEven
 
 	public log(ctx: EventQueuer, data: RecoverEventData): void {
 		this.add(ctx, { ...data, result: NftEventResult.RESULT_SUCCESSFUL }, [data.nftID]);
+	}
+
+	public error(ctx: EventQueuer, data: RecoverEventData, result: NftErrorEventResult): void {
+		this.add(ctx, { ...data, result }, [data.nftID], true);
 	}
 }

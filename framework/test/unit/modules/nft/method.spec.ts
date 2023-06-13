@@ -14,6 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
+import { when } from 'jest-when';
 import { NFTMethod } from '../../../../src/modules/nft/method';
 import { NFTModule } from '../../../../src/modules/nft/module';
 import { EventQueue } from '../../../../src/state_machine';
@@ -27,6 +28,7 @@ import {
 	LENGTH_CHAIN_ID,
 	LENGTH_COLLECTION_ID,
 	LENGTH_NFT_ID,
+	LENGTH_TOKEN_ID,
 	NFT_NOT_LOCKED,
 	NftEventResult,
 } from '../../../../src/modules/nft/constants';
@@ -36,10 +38,33 @@ import { DestroyEvent, DestroyEventData } from '../../../../src/modules/nft/even
 import { SupportedNFTsStore } from '../../../../src/modules/nft/stores/supported_nfts';
 import { CreateEvent } from '../../../../src/modules/nft/events/create';
 import { LockEvent, LockEventData } from '../../../../src/modules/nft/events/lock';
+import { InternalMethod } from '../../../../src/modules/nft/internal_method';
+import { TransferEvent, TransferEventData } from '../../../../src/modules/nft/events/transfer';
+import {
+	TransferCrossChainEvent,
+	TransferCrossChainEventData,
+} from '../../../../src/modules/nft/events/transfer_cross_chain';
 
 describe('NFTMethod', () => {
 	const module = new NFTModule();
 	const method = new NFTMethod(module.stores, module.events);
+	const internalMethod = new InternalMethod(module.stores, module.events);
+	const messageFeeTokenID = utils.getRandomBytes(LENGTH_TOKEN_ID);
+	const interopMethod = {
+		send: jest.fn(),
+		error: jest.fn(),
+		terminateChain: jest.fn(),
+		getMessageFeeTokenID: jest.fn().mockResolvedValue(Promise.resolve(messageFeeTokenID)),
+	};
+	const feeMethod = { payFee: jest.fn() };
+	const tokenMethod = {
+		getAvailableBalance: jest.fn(),
+	};
+	const config = {
+		ownChainID: Buffer.alloc(LENGTH_CHAIN_ID, 1),
+		escrowAccountInitializationFee: BigInt(50000000),
+		userAccountInitializationFee: BigInt(50000000),
+	};
 
 	let methodContext!: MethodContext;
 
@@ -73,6 +98,10 @@ describe('NFTMethod', () => {
 	let escrowedNFT: { nftID: any; owner: any };
 
 	beforeEach(async () => {
+		method.addDependencies(interopMethod, internalMethod, feeMethod, tokenMethod);
+		method.init(config);
+		internalMethod.addDependencies(method, interopMethod);
+		internalMethod.init(config);
 		owner = utils.getRandomBytes(LENGTH_ADDRESS);
 
 		methodContext = createMethodContext({
@@ -307,6 +336,7 @@ describe('NFTMethod', () => {
 	});
 
 	describe('isNFTSupported', () => {
+		const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
 		beforeEach(async () => {
 			await nftStore.save(methodContext, nftID, {
 				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
@@ -322,27 +352,16 @@ describe('NFTMethod', () => {
 		});
 
 		it('should return true if nft chain id equals own chain id', async () => {
-			const ownChainID = nftID.slice(0, LENGTH_CHAIN_ID);
-			const config = {
-				ownChainID,
-				escrowAccountInitializationFee: BigInt(50000000),
-				userAccountInitializationFee: BigInt(50000000),
-			};
-			method.init(config);
-
-			const isSupported = await method.isNFTSupported(methodContext, nftID);
+			const newNftID = Buffer.alloc(LENGTH_NFT_ID, 1);
+			await nftStore.save(methodContext, newNftID, {
+				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
+				attributesArray: [],
+			});
+			const isSupported = await method.isNFTSupported(methodContext, newNftID);
 			expect(isSupported).toBe(true);
 		});
 
 		it('should return true if nft chain id does not equal own chain id but all nft keys are supported', async () => {
-			const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-			const config = {
-				ownChainID,
-				escrowAccountInitializationFee: BigInt(50000000),
-				userAccountInitializationFee: BigInt(50000000),
-			};
-			method.init(config);
-			const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
 			await supportedNFTsStore.set(methodContext, ALL_SUPPORTED_NFTS_KEY, {
 				supportedCollectionIDArray: [],
 			});
@@ -352,14 +371,6 @@ describe('NFTMethod', () => {
 		});
 
 		it('should return true if nft chain id does not equal own chain id but nft chain id is supported and corresponding supported collection id array is empty', async () => {
-			const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-			const config = {
-				ownChainID,
-				escrowAccountInitializationFee: BigInt(50000000),
-				userAccountInitializationFee: BigInt(50000000),
-			};
-			method.init(config);
-			const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
 			await supportedNFTsStore.set(methodContext, nftID.slice(0, LENGTH_CHAIN_ID), {
 				supportedCollectionIDArray: [],
 			});
@@ -369,14 +380,6 @@ describe('NFTMethod', () => {
 		});
 
 		it('should return true if nft chain id does not equal own chain id but nft chain id is supported and corresponding supported collection id array includes collection id for nft id', async () => {
-			const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-			const config = {
-				ownChainID,
-				escrowAccountInitializationFee: BigInt(50000000),
-				userAccountInitializationFee: BigInt(50000000),
-			};
-			method.init(config);
-			const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
 			await supportedNFTsStore.set(methodContext, nftID.slice(0, LENGTH_CHAIN_ID), {
 				supportedCollectionIDArray: [
 					{ collectionID: nftID.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID) },
@@ -389,14 +392,6 @@ describe('NFTMethod', () => {
 		});
 
 		it('should return false if nft chain id does not equal own chain id and nft chain id is supported but corresponding supported collection id array does not include collection id for nft id', async () => {
-			const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-			const config = {
-				ownChainID,
-				escrowAccountInitializationFee: BigInt(50000000),
-				userAccountInitializationFee: BigInt(50000000),
-			};
-			method.init(config);
-			const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
 			await supportedNFTsStore.set(methodContext, nftID.slice(0, LENGTH_CHAIN_ID), {
 				supportedCollectionIDArray: [
 					{ collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID) },
@@ -515,30 +510,16 @@ describe('NFTMethod', () => {
 	});
 
 	describe('create', () => {
-		const interopMethod = {
-			send: jest.fn(),
-			error: jest.fn(),
-			terminateChain: jest.fn(),
-			getMessageFeeTokenID: jest.fn(),
-		};
-		const feeMethod = { payFee: jest.fn() };
 		const attributesArray1 = [
 			{ module: 'customMod1', attributes: Buffer.alloc(5) },
 			{ module: 'customMod2', attributes: Buffer.alloc(2) },
 		];
 		const attributesArray2 = [{ module: 'customMod3', attributes: Buffer.alloc(7) }];
 		const attributesArray3 = [{ module: 'customMod3', attributes: Buffer.alloc(9) }];
-		const config = {
-			ownChainID: Buffer.alloc(LENGTH_CHAIN_ID, 1),
-			escrowAccountInitializationFee: BigInt(50000000),
-			userAccountInitializationFee: BigInt(50000000),
-		};
 		const collectionID = nftID.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
 		const address = utils.getRandomBytes(LENGTH_ADDRESS);
 
 		beforeEach(() => {
-			method.addDependencies(interopMethod, feeMethod);
-			method.init(config);
 			jest.spyOn(feeMethod, 'payFee');
 		});
 
@@ -758,6 +739,289 @@ describe('NFTMethod', () => {
 			);
 
 			expect(lockingModule).toEqual(NFT_NOT_LOCKED);
+		});
+	});
+
+	describe('transfer', () => {
+		const senderAddress = utils.getRandomBytes(LENGTH_ADDRESS);
+		const recipientAddress = utils.getRandomBytes(LENGTH_ADDRESS);
+
+		it('should throw and emit error transfer event if nft does not exist', async () => {
+			await expect(
+				method.transfer(methodContext, senderAddress, recipientAddress, nftID),
+			).rejects.toThrow('NFT substore entry does not exist');
+			checkEventResult<TransferEventData>(
+				methodContext.eventQueue,
+				1,
+				TransferEvent,
+				0,
+				{
+					senderAddress,
+					recipientAddress,
+					nftID,
+				},
+				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+			);
+		});
+
+		it('should throw and emit error transfer event if nft is escrowed', async () => {
+			await expect(
+				method.transfer(methodContext, senderAddress, recipientAddress, escrowedNFT.nftID),
+			).rejects.toThrow('NFT is escrowed to another chain');
+			checkEventResult<TransferEventData>(
+				methodContext.eventQueue,
+				1,
+				TransferEvent,
+				0,
+				{
+					senderAddress,
+					recipientAddress,
+					nftID: escrowedNFT.nftID,
+				},
+				NftEventResult.RESULT_NFT_ESCROWED,
+			);
+		});
+
+		it('should throw and emit error transfer event if transfer is not initiated by the nft owner', async () => {
+			await expect(
+				method.transfer(methodContext, senderAddress, recipientAddress, existingNFT.nftID),
+			).rejects.toThrow('Transfer not initiated by the NFT owner');
+			checkEventResult<TransferEventData>(
+				methodContext.eventQueue,
+				1,
+				TransferEvent,
+				0,
+				{
+					senderAddress,
+					recipientAddress,
+					nftID: existingNFT.nftID,
+				},
+				NftEventResult.RESULT_INITIATED_BY_NONOWNER,
+			);
+		});
+
+		it('should throw and emit error transfer event if nft is locked', async () => {
+			await expect(
+				method.transfer(
+					methodContext,
+					lockedExistingNFT.owner,
+					recipientAddress,
+					lockedExistingNFT.nftID,
+				),
+			).rejects.toThrow('Locked NFTs cannot be transferred');
+			checkEventResult<TransferEventData>(
+				methodContext.eventQueue,
+				1,
+				TransferEvent,
+				0,
+				{
+					senderAddress: lockedExistingNFT.owner,
+					recipientAddress,
+					nftID: lockedExistingNFT.nftID,
+				},
+				NftEventResult.RESULT_NFT_LOCKED,
+			);
+		});
+
+		it('should resolve if all params are valid', async () => {
+			jest.spyOn(internalMethod, 'transferInternal');
+
+			await expect(
+				method.transfer(methodContext, existingNFT.owner, recipientAddress, existingNFT.nftID),
+			).resolves.toBeUndefined();
+			expect(internalMethod['transferInternal']).toHaveBeenCalledWith(
+				methodContext,
+				recipientAddress,
+				existingNFT.nftID,
+			);
+		});
+	});
+
+	describe('transferCrossChain', () => {
+		const senderAddress = utils.getRandomBytes(LENGTH_ADDRESS);
+		const recipientAddress = utils.getRandomBytes(LENGTH_ADDRESS);
+		const receivingChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+		const messageFee = BigInt(1000);
+		const data = '';
+		const includeAttributes = false;
+
+		it('should throw and emit error transfer cross chain event if nft does not exist', async () => {
+			await expect(
+				method.transferCrossChain(
+					methodContext,
+					senderAddress,
+					recipientAddress,
+					nftID,
+					receivingChainID,
+					messageFee,
+					data,
+					includeAttributes,
+				),
+			).rejects.toThrow('NFT substore entry does not exist');
+			checkEventResult<TransferCrossChainEventData>(
+				methodContext.eventQueue,
+				1,
+				TransferCrossChainEvent,
+				0,
+				{
+					senderAddress,
+					recipientAddress,
+					receivingChainID,
+					nftID,
+					includeAttributes,
+				},
+				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+			);
+		});
+
+		it('should throw and emit error transfer cross chain event if nft is escrowed', async () => {
+			await expect(
+				method.transferCrossChain(
+					methodContext,
+					senderAddress,
+					recipientAddress,
+					escrowedNFT.nftID,
+					receivingChainID,
+					messageFee,
+					data,
+					includeAttributes,
+				),
+			).rejects.toThrow('NFT is escrowed to another chain');
+			checkEventResult<TransferCrossChainEventData>(
+				methodContext.eventQueue,
+				1,
+				TransferCrossChainEvent,
+				0,
+				{
+					senderAddress,
+					recipientAddress,
+					receivingChainID,
+					nftID: escrowedNFT.nftID,
+					includeAttributes,
+				},
+				NftEventResult.RESULT_NFT_ESCROWED,
+			);
+		});
+
+		it('should throw and emit error transfer cross chain event if transfer is not initiated by the nft owner', async () => {
+			await expect(
+				method.transferCrossChain(
+					methodContext,
+					senderAddress,
+					recipientAddress,
+					existingNFT.nftID,
+					receivingChainID,
+					messageFee,
+					data,
+					includeAttributes,
+				),
+			).rejects.toThrow('Transfer not initiated by the NFT owner');
+			checkEventResult<TransferCrossChainEventData>(
+				methodContext.eventQueue,
+				1,
+				TransferCrossChainEvent,
+				0,
+				{
+					senderAddress,
+					recipientAddress,
+					receivingChainID,
+					nftID: existingNFT.nftID,
+					includeAttributes,
+				},
+				NftEventResult.RESULT_INITIATED_BY_NONOWNER,
+			);
+		});
+
+		it('should throw and emit error transfer cross chain event if nft is locked', async () => {
+			await expect(
+				method.transferCrossChain(
+					methodContext,
+					lockedExistingNFT.owner,
+					recipientAddress,
+					lockedExistingNFT.nftID,
+					receivingChainID,
+					messageFee,
+					data,
+					includeAttributes,
+				),
+			).rejects.toThrow('Locked NFTs cannot be transferred');
+			checkEventResult<TransferCrossChainEventData>(
+				methodContext.eventQueue,
+				1,
+				TransferCrossChainEvent,
+				0,
+				{
+					senderAddress: lockedExistingNFT.owner,
+					recipientAddress,
+					receivingChainID,
+					nftID: lockedExistingNFT.nftID,
+					includeAttributes,
+				},
+				NftEventResult.RESULT_NFT_LOCKED,
+			);
+		});
+
+		it('should throw and emit error transfer cross chain event if balance is less than message fee', async () => {
+			when(tokenMethod.getAvailableBalance)
+				.calledWith(methodContext, existingNFT.owner, messageFeeTokenID)
+				.mockResolvedValue(messageFee - BigInt(10));
+
+			await expect(
+				method.transferCrossChain(
+					methodContext,
+					existingNFT.owner,
+					recipientAddress,
+					existingNFT.nftID,
+					receivingChainID,
+					messageFee,
+					data,
+					includeAttributes,
+				),
+			).rejects.toThrow('Insufficient balance for the message fee');
+			checkEventResult<TransferCrossChainEventData>(
+				methodContext.eventQueue,
+				1,
+				TransferCrossChainEvent,
+				0,
+				{
+					senderAddress: existingNFT.owner,
+					recipientAddress,
+					receivingChainID,
+					nftID: existingNFT.nftID,
+					includeAttributes,
+				},
+				NftEventResult.RESULT_INSUFFICIENT_BALANCE,
+			);
+		});
+
+		it('should resolve if all params are valid', async () => {
+			jest.spyOn(internalMethod, 'transferCrossChainInternal');
+			when(tokenMethod.getAvailableBalance)
+				.calledWith(methodContext, existingNFT.owner, messageFeeTokenID)
+				.mockResolvedValue(messageFee + BigInt(10));
+
+			await expect(
+				method.transferCrossChain(
+					methodContext,
+					existingNFT.owner,
+					recipientAddress,
+					existingNFT.nftID,
+					receivingChainID,
+					messageFee,
+					data,
+					includeAttributes,
+				),
+			).resolves.toBeUndefined();
+			expect(internalMethod['transferCrossChainInternal']).toHaveBeenCalledWith(
+				methodContext,
+				existingNFT.owner,
+				recipientAddress,
+				existingNFT.nftID,
+				receivingChainID,
+				messageFee,
+				data,
+				includeAttributes,
+			);
 		});
 	});
 });
