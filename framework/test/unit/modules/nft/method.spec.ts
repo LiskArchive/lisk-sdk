@@ -803,7 +803,7 @@ describe('NFTMethod', () => {
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
 		});
 
-		it('should not update SupportedNFTsStore if provided chainID equal to ownChainID', async () => {
+		it('should not update SupportedNFTsStore if ALL_SUPPORTED_NFTS_KEY entry exists', async () => {
 			await supportedNFTsStore.save(methodContext, ALL_SUPPORTED_NFTS_KEY, {
 				supportedCollectionIDArray: [],
 			});
@@ -848,7 +848,7 @@ describe('NFTMethod', () => {
 			);
 		});
 
-		it('should update SupportedNFTStore if provided chainID is equal to ownChainID and has supported collections', async () => {
+		it('should update SupportedNFTStore if provided chainID has supported collections', async () => {
 			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 
 			await supportedNFTsStore.save(methodContext, chainID, {
@@ -930,7 +930,7 @@ describe('NFTMethod', () => {
 	});
 
 	describe('supportAllNFTsFromCollection', () => {
-		it('should not update SupportedNFTsStore if provided chainID is not equal to ownChainID', async () => {
+                it('should not update SupportedNFTsStore if provided chainID is equal to ownChainID', async () => {
 			await expect(
 				method.supportAllNFTsFromCollection(
 					methodContext,
