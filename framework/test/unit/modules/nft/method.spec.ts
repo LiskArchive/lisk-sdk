@@ -943,10 +943,14 @@ describe('NFTMethod', () => {
 		});
 
 		it('should not update SupportedNFTsStore if all NFTs are supported', async () => {
+			await supportedNFTsStore.save(methodContext, ALL_SUPPORTED_NFTS_KEY, {
+				supportedCollectionIDArray: [],
+			});
+
 			await expect(
 				method.supportAllNFTsFromCollection(
 					methodContext,
-					ownChainID,
+					utils.getRandomBytes(LENGTH_CHAIN_ID),
 					utils.getRandomBytes(LENGTH_COLLECTION_ID),
 				),
 			).resolves.toBeUndefined();
@@ -955,10 +959,16 @@ describe('NFTMethod', () => {
 		});
 
 		it('should not update SupportedNFTsStore if all collections of the provided chain are supported', async () => {
+			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+
+			await supportedNFTsStore.save(methodContext, chainID, {
+				supportedCollectionIDArray: [],
+			});
+
 			await expect(
 				method.supportAllNFTsFromCollection(
 					methodContext,
-					ownChainID,
+					chainID,
 					utils.getRandomBytes(LENGTH_COLLECTION_ID),
 				),
 			).resolves.toBeUndefined();
