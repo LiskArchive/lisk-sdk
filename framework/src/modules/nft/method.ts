@@ -34,6 +34,7 @@ import { AllNFTsSupportRemovedEvent } from './events/all_nfts_support_removed';
 import { AllNFTsFromChainSupportedEvent } from './events/all_nfts_from_chain_suported';
 import { AllNFTsFromCollectionSupportedEvent } from './events/all_nfts_from_collection_suppported';
 import { AllNFTsFromCollectionSupportRemovedEvent } from './events/all_nfts_from_collection_support_removed';
+import { AllNFTsFromChainSupportRemovedEvent } from './events/all_nfts_from_chain_support_removed';
 
 export class NFTMethod extends BaseMethod {
 	private _config!: ModuleConfig;
@@ -510,7 +511,7 @@ export class NFTMethod extends BaseMethod {
 
 		await supportedNFTsStore.del(methodContext, chainID);
 
-		this.events.get(AllNFTsFromChainSupportedEvent).log(methodContext, chainID);
+		this.events.get(AllNFTsFromChainSupportRemovedEvent).log(methodContext, chainID);
 	}
 
 	public async supportAllNFTsFromCollection(

@@ -50,6 +50,10 @@ import {
 	AllNFTsFromCollectionSupportedEvent,
 	AllNFTsFromCollectionSupportedEventData,
 } from '../../../../src/modules/nft/events/all_nfts_from_collection_suppported';
+import {
+	AllNFTsFromChainSupportRemovedEvent,
+	AllNFTsFromChainSupportRemovedEventData,
+} from '../../../../src/modules/nft/events/all_nfts_from_chain_support_removed';
 
 describe('NFTMethod', () => {
 	const module = new NFTModule();
@@ -900,10 +904,10 @@ describe('NFTMethod', () => {
 				method.removeSupportAllNFTsFromChain(methodContext, chainID),
 			).resolves.toBeUndefined();
 
-			checkEventResult<AllNFTsFromChainSupportedEventData>(
+			checkEventResult<AllNFTsFromChainSupportRemovedEventData>(
 				methodContext.eventQueue,
 				1,
-				AllNFTsFromChainSupportedEvent,
+				AllNFTsFromChainSupportRemovedEvent,
 				0,
 				{
 					chainID,
