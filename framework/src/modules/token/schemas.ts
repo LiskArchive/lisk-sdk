@@ -590,7 +590,7 @@ export const getEscrowedAmountsResponseSchema = {
 			type: 'array',
 			items: {
 				type: 'object',
-				required: ['escrowChainID', 'totalSupply', 'tokenID'],
+				required: ['escrowChainID', 'amount', 'tokenID'],
 				properties: {
 					escrowChainID: {
 						type: 'string',

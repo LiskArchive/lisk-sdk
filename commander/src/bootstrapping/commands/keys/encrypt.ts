@@ -38,6 +38,7 @@ interface KeysWithoutEncryption {
 const plainGeneratorKeysSchema = {
 	$id: '/commander/plainGeneratorKeys',
 	type: 'object',
+	required: ['generatorKey', 'generatorPrivateKey', 'blsKey', 'blsPrivateKey'],
 	properties: {
 		generatorKey: {
 			dataType: 'bytes',
