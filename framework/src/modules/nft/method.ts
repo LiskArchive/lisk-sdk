@@ -29,6 +29,12 @@ import { DestroyEvent } from './events/destroy';
 import { SupportedNFTsStore } from './stores/supported_nfts';
 import { CreateEvent } from './events/create';
 import { LockEvent } from './events/lock';
+import { AllNFTsSupportedEvent } from './events/all_nfts_supported';
+import { AllNFTsSupportRemovedEvent } from './events/all_nfts_support_removed';
+import { AllNFTsFromChainSupportedEvent } from './events/all_nfts_from_chain_suported';
+import { AllNFTsFromCollectionSupportedEvent } from './events/all_nfts_from_collection_suppported';
+import { AllNFTsFromCollectionSupportRemovedEvent } from './events/all_nfts_from_collection_support_removed';
+import { AllNFTsFromChainSupportRemovedEvent } from './events/all_nfts_from_chain_support_removed';
 
 export class NFTMethod extends BaseMethod {
 	private _config!: ModuleConfig;
@@ -418,6 +424,212 @@ export class NFTMethod extends BaseMethod {
 		this.events.get(LockEvent).log(methodContext, {
 			module,
 			nftID,
+		});
+	}
+
+	public async supportAllNFTs(methodContext: MethodContext): Promise<void> {
+		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
+
+		const alreadySupported = await supportedNFTsStore.has(methodContext, ALL_SUPPORTED_NFTS_KEY);
+
+		if (alreadySupported) {
+			return;
+		}
+
+		const allSupportedNFTs = await supportedNFTsStore.getAll(methodContext);
+
+		for (const { key } of allSupportedNFTs) {
+			await supportedNFTsStore.del(methodContext, key);
+		}
+
+		await supportedNFTsStore.set(methodContext, ALL_SUPPORTED_NFTS_KEY, {
+			supportedCollectionIDArray: [],
+		});
+
+		this.events.get(AllNFTsSupportedEvent).log(methodContext);
+	}
+
+	public async removeSupportAllNFTs(methodContext: MethodContext): Promise<void> {
+		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
+
+		const allSupportedNFTs = await supportedNFTsStore.getAll(methodContext);
+
+		for (const { key } of allSupportedNFTs) {
+			await supportedNFTsStore.del(methodContext, key);
+		}
+
+		this.events.get(AllNFTsSupportRemovedEvent).log(methodContext);
+	}
+
+	public async supportAllNFTsFromChain(
+		methodContext: MethodContext,
+		chainID: Buffer,
+	): Promise<void> {
+		if (chainID.equals(this._config.ownChainID)) {
+			return;
+		}
+
+		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
+		const allNFTsSuppported = await supportedNFTsStore.has(methodContext, ALL_SUPPORTED_NFTS_KEY);
+
+		if (allNFTsSuppported) {
+			return;
+		}
+
+		const chainSupportExists = await supportedNFTsStore.has(methodContext, chainID);
+
+		if (chainSupportExists) {
+			const supportedCollections = await supportedNFTsStore.get(methodContext, chainID);
+
+			if (supportedCollections.supportedCollectionIDArray.length === 0) {
+				return;
+			}
+		}
+
+		await supportedNFTsStore.save(methodContext, chainID, {
+			supportedCollectionIDArray: [],
+		});
+
+		this.events.get(AllNFTsFromChainSupportedEvent).log(methodContext, chainID);
+	}
+
+	public async removeSupportAllNFTsFromChain(
+		methodContext: MethodContext,
+		chainID: Buffer,
+	): Promise<void> {
+		if (chainID.equals(this._config.ownChainID)) {
+			throw new Error('Support for native NFTs cannot be removed');
+		}
+
+		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
+
+		const allNFTsSupported = await supportedNFTsStore.has(methodContext, ALL_SUPPORTED_NFTS_KEY);
+
+		if (allNFTsSupported) {
+			throw new Error('All NFTs from all chains are supported');
+		}
+
+		const isChainSupported = await supportedNFTsStore.has(methodContext, chainID);
+
+		if (!isChainSupported) {
+			return;
+		}
+
+		await supportedNFTsStore.del(methodContext, chainID);
+
+		this.events.get(AllNFTsFromChainSupportRemovedEvent).log(methodContext, chainID);
+	}
+
+	public async supportAllNFTsFromCollection(
+		methodContext: MethodContext,
+		chainID: Buffer,
+		collectionID: Buffer,
+	): Promise<void> {
+		if (chainID.equals(this._config.ownChainID)) {
+			return;
+		}
+
+		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
+		const allNFTsSupported = await supportedNFTsStore.has(methodContext, ALL_SUPPORTED_NFTS_KEY);
+
+		if (allNFTsSupported) {
+			return;
+		}
+
+		const isChainSupported = await supportedNFTsStore.has(methodContext, chainID);
+
+		let supportedChainData;
+		if (isChainSupported) {
+			supportedChainData = await supportedNFTsStore.get(methodContext, chainID);
+
+			if (supportedChainData.supportedCollectionIDArray.length === 0) {
+				return;
+			}
+
+			if (
+				supportedChainData.supportedCollectionIDArray.some(collection =>
+					collection.collectionID.equals(collectionID),
+				)
+			) {
+				return;
+			}
+
+			supportedChainData.supportedCollectionIDArray.push({ collectionID });
+
+			await supportedNFTsStore.save(methodContext, chainID, supportedChainData);
+
+			this.events.get(AllNFTsFromCollectionSupportedEvent).log(methodContext, {
+				chainID,
+				collectionID,
+			});
+
+			return;
+		}
+
+		await supportedNFTsStore.save(methodContext, chainID, {
+			supportedCollectionIDArray: [
+				{
+					collectionID,
+				},
+			],
+		});
+
+		this.events.get(AllNFTsFromCollectionSupportedEvent).log(methodContext, {
+			chainID,
+			collectionID,
+		});
+	}
+
+	public async removeSupportAllNFTsFromCollection(
+		methodContext: MethodContext,
+		chainID: Buffer,
+		collectionID: Buffer,
+	): Promise<void> {
+		if (chainID.equals(this._config.ownChainID)) {
+			return;
+		}
+
+		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
+
+		const allNFTsSupported = await supportedNFTsStore.has(methodContext, ALL_SUPPORTED_NFTS_KEY);
+
+		if (allNFTsSupported) {
+			throw new Error('All NFTs from all chains are supported');
+		}
+
+		const isChainSupported = await supportedNFTsStore.has(methodContext, chainID);
+
+		if (!isChainSupported) {
+			return;
+		}
+		const supportedChainData = await supportedNFTsStore.get(methodContext, chainID);
+
+		if (supportedChainData.supportedCollectionIDArray.length === 0) {
+			throw new Error('All NFTs from the specified chain are supported');
+		}
+
+		if (
+			supportedChainData.supportedCollectionIDArray.some(supportedCollection =>
+				supportedCollection.collectionID.equals(collectionID),
+			)
+		) {
+			supportedChainData.supportedCollectionIDArray =
+				supportedChainData.supportedCollectionIDArray.filter(
+					supportedCollection => !supportedCollection.collectionID.equals(collectionID),
+				);
+		}
+
+		if (supportedChainData.supportedCollectionIDArray.length === 0) {
+			await supportedNFTsStore.del(methodContext, chainID);
+		} else {
+			await supportedNFTsStore.save(methodContext, chainID, {
+				...supportedChainData,
+			});
+		}
+
+		this.events.get(AllNFTsFromCollectionSupportRemovedEvent).log(methodContext, {
+			chainID,
+			collectionID,
 		});
 	}
 }

@@ -12,11 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { utils } from '@liskhq/lisk-cryptography';
 import { SupportedNFTsStore } from '../../../../../src/modules/nft/stores/supported_nfts';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing';
 import { createStoreGetter } from '../../../../../src/testing/utils';
-import { LENGTH_COLLECTION_ID } from '../../../../../src/modules/nft/constants';
+import { LENGTH_CHAIN_ID, LENGTH_COLLECTION_ID } from '../../../../../src/modules/nft/constants';
 import { CHAIN_ID_LENGTH, StoreGetter } from '../../../../../src';
 
 describe('NFTStore', () => {
@@ -60,6 +61,26 @@ describe('NFTStore', () => {
 			await expect(store.get(context, chainID)).resolves.toEqual({
 				supportedCollectionIDArray: sortedSupportedCollections,
 			});
+		});
+	});
+
+	describe('getAll', () => {
+		it('should retrieve all NFTs with key between 0 and maximum value for Buffer of length LENGTH_CHAIN_ID', async () => {
+			await store.save(context, Buffer.alloc(LENGTH_CHAIN_ID, 0), {
+				supportedCollectionIDArray: [],
+			});
+
+			await store.save(context, Buffer.alloc(LENGTH_CHAIN_ID, 1), {
+				supportedCollectionIDArray: [],
+			});
+
+			await store.save(context, utils.getRandomBytes(LENGTH_CHAIN_ID), {
+				supportedCollectionIDArray: [],
+			});
+
+			const allSupportedNFTs = await store.getAll(context);
+
+			expect([...allSupportedNFTs.keys()]).toHaveLength(3);
 		});
 	});
 });
