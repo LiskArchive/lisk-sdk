@@ -930,7 +930,7 @@ describe('NFTMethod', () => {
 	});
 
 	describe('supportAllNFTsFromCollection', () => {
-                it('should not update SupportedNFTsStore if provided chainID is equal to ownChainID', async () => {
+		it('should not update SupportedNFTsStore if provided chainID is equal to ownChainID', async () => {
 			await expect(
 				method.supportAllNFTsFromCollection(
 					methodContext,
