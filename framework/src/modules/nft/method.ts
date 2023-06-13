@@ -430,6 +430,12 @@ export class NFTMethod extends BaseMethod {
 	public async supportAllNFTs(methodContext: MethodContext): Promise<void> {
 		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
 
+		const alreadySupported = await supportedNFTsStore.has(methodContext, ALL_SUPPORTED_NFTS_KEY);
+
+		if (alreadySupported) {
+			return;
+		}
+
 		const allSupportedNFTs = await supportedNFTsStore.getAll(methodContext);
 
 		for (const { key } of allSupportedNFTs) {
