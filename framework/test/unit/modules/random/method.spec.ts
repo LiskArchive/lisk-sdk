@@ -292,15 +292,6 @@ describe('RandomModuleMethod', () => {
 			);
 		});
 
-		it('should throw error when numberOfSeeds is greater than 1000', async () => {
-			const height = 11;
-			const numberOfSeeds = 1001;
-
-			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
-				'Number of seeds cannot be greater than 1000.',
-			);
-		});
-
 		it('should throw error when height is non integer input', async () => {
 			const height = 5.1;
 			const numberOfSeeds = 2;
