@@ -220,6 +220,19 @@ describe('StakeCommand', () => {
 			).toThrow('must NOT have more than 20 items');
 		});
 
+		it('should return errors when transaction.params.stakes includes invalid address', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					stakes: Array(20)
+						.fill(0)
+						.map(() => ({
+							validatorAddress: utils.getRandomBytes(21),
+							amount: liskToBeddows(0),
+						})),
+				}),
+			).toThrow('address length invalid');
+		});
+
 		it('should return errors when transaction.params.stakes includes amount which is less than int64 range', () => {
 			expect(() =>
 				validator.validate(command.schema, {

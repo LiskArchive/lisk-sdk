@@ -33,6 +33,7 @@ import {
 	MESSAGE_TAG_CHAIN_REG,
 	MAX_UINT64,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
+	BLS_SIGNATURE_LENGTH,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	mainchainRegParams,
@@ -188,6 +189,15 @@ describe('RegisterMainchainCommand', () => {
 					],
 				}),
 			).toThrow(`must NOT have more than ${NUMBER_ACTIVE_VALIDATORS_MAINCHAIN} items`);
+		});
+
+		it('should return error if signature has invalid length', () => {
+			expect(() =>
+				validator.validate(mainchainRegistrationCommand.schema, {
+					...transactionParams,
+					signature: Buffer.alloc(BLS_SIGNATURE_LENGTH - 1, 255),
+				}),
+			).toThrow(`Property '.signature' minLength not satisfied`);
 		});
 	});
 
