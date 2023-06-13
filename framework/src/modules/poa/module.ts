@@ -35,6 +35,7 @@ import { FeeMethod, GenesisPoAStore, ValidatorsMethod, RandomMethod } from './ty
 import {
 	genesisPoAStoreSchema,
 	getAllValidatorsResponseSchema,
+	getRegistrationFeeResponseSchema,
 	getValidatorRequestSchema,
 	getValidatorResponseSchema,
 } from './schemas';
@@ -85,6 +86,10 @@ export class PoAModule extends BaseModule {
 				{
 					name: this.endpoint.getAllValidators.name,
 					response: getAllValidatorsResponseSchema,
+				},
+				{
+					name: this.endpoint.getRegistrationFee.name,
+					response: getRegistrationFeeResponseSchema,
 				},
 			],
 			assets: [],

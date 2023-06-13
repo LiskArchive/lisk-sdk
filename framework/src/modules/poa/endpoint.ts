@@ -17,7 +17,7 @@ import { NotFoundError } from '@liskhq/lisk-db';
 import { BaseEndpoint } from '../base_endpoint';
 import { ValidatorStore } from './stores/validator';
 import { ModuleEndpointContext } from '../../types';
-import { KEY_SNAPSHOT_0 } from './constants';
+import { KEY_SNAPSHOT_0, AUTHORITY_REGISTRATION_FEE } from './constants';
 import { SnapshotStore } from './stores';
 import { ValidatorEndpoint } from './types';
 
@@ -88,5 +88,11 @@ export class PoAEndpoint extends BaseEndpoint {
 		}
 
 		return { validators: response };
+	}
+
+	public getRegistrationFee(): { fee: string } {
+		return {
+			fee: AUTHORITY_REGISTRATION_FEE.toString(),
+		};
 	}
 }

@@ -22,7 +22,7 @@ import {
 	createTransientModuleEndpointContext,
 } from '../../../../src/testing';
 import { createStoreGetter } from '../../../../src/testing/utils';
-import { KEY_SNAPSHOT_0 } from '../../../../src/modules/poa/constants';
+import { AUTHORITY_REGISTRATION_FEE, KEY_SNAPSHOT_0 } from '../../../../src/modules/poa/constants';
 
 describe('PoAModuleEndpoint', () => {
 	const poa = new PoAModule();
@@ -152,6 +152,14 @@ describe('PoAModuleEndpoint', () => {
 
 			expect(validatorsDataReturned[0].weight).toBeString();
 			expect(validatorsDataReturned[1].weight).toBeString();
+		});
+	});
+
+	describe('getRegistrationFee', () => {
+		it('should return the registration fee', () => {
+			const response = poaEndpoint.getRegistrationFee();
+
+			expect(response).toEqual({ fee: AUTHORITY_REGISTRATION_FEE.toString() });
 		});
 	});
 });

@@ -253,13 +253,24 @@ export const getValidatorResponseSchema = {
 };
 
 export const getAllValidatorsResponseSchema = {
-	$id: 'modules/pos/endpoint/getAllValidatorsResponse',
+	$id: 'modules/poa/endpoint/getAllValidatorsResponse',
 	type: 'object',
 	required: ['validators'],
 	properties: {
 		validators: {
 			type: 'array',
 			items: validatorJSONSchema,
+		},
+	},
+};
+
+export const getRegistrationFeeResponseSchema = {
+	$id: 'modules/poa/endpoint/getRegistrationFeeResponse',
+	type: 'object',
+	required: ['fee'],
+	properties: {
+		fee: {
+			type: 'string',
 		},
 	},
 };
