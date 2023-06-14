@@ -28,7 +28,7 @@ import {
 export { blockHeaderSchema, blockSchema };
 
 export const eventSchema = {
-	$id: '/block/event',
+	$id: '/abi/block/event',
 	type: 'object',
 	required: ['module', 'name', 'data', 'topics', 'height', 'index'],
 	properties: {

@@ -20,7 +20,7 @@ import {
 } from '../../../../src/utils/reader';
 import {
 	tokenTransferParamsSchema,
-	keysRegisterParamsSchema,
+	registerMultisignatureParamsSchema,
 	posVoteParamsSchema,
 } from '../../../helpers/transactions';
 
@@ -43,11 +43,12 @@ describe('prompt', () => {
 
 	describe('transformAsset', () => {
 		it('should transform result according to asset schema', () => {
-			const questions = prepareQuestions(keysRegisterParamsSchema);
-			const transformedAsset = transformAsset(keysRegisterParamsSchema, {
+			const questions = prepareQuestions(registerMultisignatureParamsSchema);
+			const transformedAsset = transformAsset(registerMultisignatureParamsSchema, {
 				numberOfSignatures: '4',
 				mandatoryKeys: 'a,b',
 				optionalKeys: 'c,d',
+				signatures: '',
 			});
 			expect(questions).toEqual([
 				{

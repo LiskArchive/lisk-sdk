@@ -47,7 +47,7 @@ const requestSchema = {
 };
 
 const notificationSchema = {
-	$id: '/jsonRPCRequestSchema',
+	$id: '/jsonRPCNotificationSchema',
 	type: 'object',
 	required: ['jsonrpc', 'method'],
 	properties: {

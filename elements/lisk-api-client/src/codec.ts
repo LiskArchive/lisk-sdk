@@ -39,7 +39,7 @@ import {
 const EVENT_COMMAND_EXECUTION_RESULT = 'commandExecutionResult';
 
 const standardEventDataSchema = {
-	$id: '/block/event/standard',
+	$id: '/block/event/standard/ui',
 	type: 'object',
 	required: ['success'],
 	properties: {
