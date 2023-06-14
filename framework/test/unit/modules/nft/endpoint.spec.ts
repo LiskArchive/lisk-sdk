@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { address, utils } from '@liskhq/lisk-cryptography';
 import { NFTEndpoint } from '../../../../src/modules/nft/endpoint';
 import { NFTMethod } from '../../../../src/modules/nft/method';
@@ -36,6 +37,15 @@ import {
 import { NFT } from '../../../../src/modules/nft/types';
 import { JSONObject } from '../../../../src';
 import { SupportedNFTsStore } from '../../../../src/modules/nft/stores/supported_nfts';
+import {
+	collectionExistsResponseSchema,
+	getCollectionIDsResponseSchema,
+	getEscrowedNFTIDsResponseSchema,
+	getNFTResponseSchema,
+	getNFTsResponseSchema,
+	hasNFTResponseSchema,
+	isNFTSupportedResponseSchema,
+} from '../../../../src/modules/nft/schemas';
 
 type NFTofOwner = Omit<NFT, 'owner'> & { id: Buffer };
 
@@ -122,6 +132,8 @@ describe('NFTEndpoint', () => {
 			});
 
 			await expect(endpoint.getNFTs(context)).resolves.toEqual({ nfts: [] });
+
+			validator.validate(getNFTsResponseSchema, { nfts: [] });
 		});
 
 		it('should return NFTs for the provided owner lexicograhpically per id', async () => {
@@ -146,6 +158,8 @@ describe('NFTEndpoint', () => {
 			};
 
 			await expect(endpoint.getNFTs(context)).resolves.toEqual(expectedNFTs);
+
+			validator.validate(getNFTsResponseSchema, expectedNFTs);
 		});
 	});
 
@@ -200,6 +214,8 @@ describe('NFTEndpoint', () => {
 			});
 
 			await expect(endpoint.hasNFT(context)).resolves.toEqual({ hasNFT: false });
+
+			validator.validate(hasNFTResponseSchema, { hasNFT: false });
 		});
 
 		it('should return false if provided NFT is not owned by the provided address', async () => {
@@ -217,6 +233,8 @@ describe('NFTEndpoint', () => {
 			});
 
 			await expect(endpoint.hasNFT(context)).resolves.toEqual({ hasNFT: false });
+
+			validator.validate(hasNFTResponseSchema, { hasNFT: false });
 		});
 
 		it('should return true if provided is owned by the provided address', async () => {
@@ -234,6 +252,8 @@ describe('NFTEndpoint', () => {
 			});
 
 			await expect(endpoint.hasNFT(context)).resolves.toEqual({ hasNFT: true });
+
+			validator.validate(hasNFTResponseSchema, { hasNFT: true });
 		});
 	});
 
@@ -306,6 +326,8 @@ describe('NFTEndpoint', () => {
 			};
 
 			await expect(endpoint.getNFT(context)).resolves.toEqual(expectedNFT);
+
+			validator.validate(getNFTResponseSchema, expectedNFT);
 		});
 	});
 
@@ -377,6 +399,8 @@ describe('NFTEndpoint', () => {
 			await expect(endpoint.getCollectionIDs(context)).resolves.toEqual(
 				expectedSupportedCollection,
 			);
+
+			validator.validate(getCollectionIDsResponseSchema, expectedSupportedCollection);
 		});
 	});
 
@@ -445,6 +469,8 @@ describe('NFTEndpoint', () => {
 			await expect(endpoint.collectionExists(context)).resolves.toEqual({
 				collectionExists: false,
 			});
+
+			validator.validate(collectionExistsResponseSchema, { collectionExists: false });
 		});
 
 		it('should return false if provided collectionID does not exist for the provided chainID', async () => {
@@ -490,6 +516,8 @@ describe('NFTEndpoint', () => {
 			});
 
 			await expect(endpoint.collectionExists(context)).resolves.toEqual({ collectionExists: true });
+
+			validator.validate(collectionExistsResponseSchema, { collectionExists: true });
 		});
 	});
 
@@ -529,6 +557,8 @@ describe('NFTEndpoint', () => {
 			});
 
 			await expect(endpoint.getEscrowedNFTIDs(context)).resolves.toEqual({ escrowedNFTIDs: [] });
+
+			validator.validate(getEscrowedNFTIDsResponseSchema, { escrowedNFTIDs: [] });
 		});
 
 		it('should return list of escrowed NFTs for the chainID', async () => {
@@ -552,6 +582,8 @@ describe('NFTEndpoint', () => {
 			const expectedNFTIDs = { escrowedNFTIDs: nftIDs.map(nftID => nftID.toString('hex')) };
 
 			await expect(endpoint.getEscrowedNFTIDs(context)).resolves.toEqual(expectedNFTIDs);
+
+			validator.validate(getEscrowedNFTIDsResponseSchema, expectedNFTIDs);
 		});
 	});
 
@@ -589,6 +621,8 @@ describe('NFTEndpoint', () => {
 			});
 
 			await expect(endpoint.isNFTSupported(context)).resolves.toEqual({ isNFTSupported: false });
+
+			validator.validate(isNFTSupportedResponseSchema, { isNFTSupported: false });
 		});
 
 		it('should return true if chainID of NFT is equal to ownChainID', async () => {
@@ -607,6 +641,8 @@ describe('NFTEndpoint', () => {
 			});
 
 			await expect(endpoint.isNFTSupported(context)).resolves.toEqual({ isNFTSupported: true });
+
+			validator.validate(isNFTSupportedResponseSchema, { isNFTSupported: true });
 		});
 
 		it('should return true if all NFTs are supported', async () => {
