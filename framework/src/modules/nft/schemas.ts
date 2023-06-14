@@ -178,27 +178,29 @@ export const getNFTsResponseSchema = {
 			type: 'array',
 			items: {
 				type: 'object',
-				id: {
-					type: 'string',
-					format: 'hex',
-				},
-				attributesArray: {
-					type: 'array',
-					items: {
-						type: 'object',
-						properties: {
-							module: {
-								type: 'string',
-							},
-							attributes: {
-								type: 'string',
-								format: 'hex',
+				properties: {
+					id: {
+						type: 'string',
+						format: 'hex',
+					},
+					attributesArray: {
+						type: 'array',
+						items: {
+							type: 'object',
+							properties: {
+								module: {
+									type: 'string',
+								},
+								attributes: {
+									type: 'string',
+									format: 'hex',
+								},
 							},
 						},
 					},
-				},
-				lockingModule: {
-					type: 'string',
+					lockingModule: {
+						type: 'string',
+					},
 				},
 			},
 		},
