@@ -129,6 +129,7 @@ export class PoAModule extends BaseModule {
 			authorityRegistrationFee: BigInt(config.authorityRegistrationFee),
 		};
 		this._registerAuthorityCommand.init(this._moduleConfig);
+		this.endpoint.init(this._moduleConfig.authorityRegistrationFee);
 	}
 
 	// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0047.md#after-transactions-execution

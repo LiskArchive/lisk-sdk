@@ -17,11 +17,16 @@ import { NotFoundError } from '@liskhq/lisk-db';
 import { BaseEndpoint } from '../base_endpoint';
 import { ValidatorStore } from './stores/validator';
 import { ModuleEndpointContext } from '../../types';
-import { KEY_SNAPSHOT_0, AUTHORITY_REGISTRATION_FEE } from './constants';
+import { KEY_SNAPSHOT_0 } from './constants';
 import { SnapshotStore } from './stores';
 import { ValidatorEndpoint } from './types';
 
 export class PoAEndpoint extends BaseEndpoint {
+	private _authorityRegistrationFee!: bigint;
+
+	public init(authorityRegistrationFee: bigint) {
+		this._authorityRegistrationFee = authorityRegistrationFee;
+	}
 	public async getValidator(context: ModuleEndpointContext): Promise<ValidatorEndpoint> {
 		const validatorSubStore = this.stores.get(ValidatorStore);
 		const { address } = context.params;
@@ -92,7 +97,7 @@ export class PoAEndpoint extends BaseEndpoint {
 
 	public getRegistrationFee(): { fee: string } {
 		return {
-			fee: AUTHORITY_REGISTRATION_FEE.toString(),
+			fee: this._authorityRegistrationFee.toString(),
 		};
 	}
 }

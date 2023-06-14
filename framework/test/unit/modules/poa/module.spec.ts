@@ -97,6 +97,7 @@ describe('PoA module', () => {
 		});
 		it('should assign authorityRegistrationFee from config if given', async () => {
 			jest.spyOn(poaModule['_registerAuthorityCommand'], 'init');
+			jest.spyOn(poaModule.endpoint, 'init');
 			await poaModule.init({
 				genesisConfig,
 				moduleConfig: {
@@ -109,10 +110,14 @@ describe('PoA module', () => {
 			expect(poaModule['_registerAuthorityCommand'].init).toHaveBeenCalledWith(
 				poaModule['_moduleConfig'],
 			);
+			expect(poaModule.endpoint.init).toHaveBeenCalledWith(
+				poaModule['_moduleConfig'].authorityRegistrationFee,
+			);
 		});
 
 		it('should assign default value for authorityRegistrationFee when not given in config', async () => {
 			jest.spyOn(poaModule['_registerAuthorityCommand'], 'init');
+			jest.spyOn(poaModule.endpoint, 'init');
 			await poaModule.init({
 				genesisConfig,
 				moduleConfig: { ...moduleConfigJSON },
@@ -123,6 +128,9 @@ describe('PoA module', () => {
 			);
 			expect(poaModule['_registerAuthorityCommand'].init).toHaveBeenCalledWith(
 				poaModule['_moduleConfig'],
+			);
+			expect(poaModule.endpoint.init).toHaveBeenCalledWith(
+				poaModule['_moduleConfig'].authorityRegistrationFee,
 			);
 		});
 	});
