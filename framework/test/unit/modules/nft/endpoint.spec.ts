@@ -253,11 +253,11 @@ describe('NFTEndpoint', () => {
 				},
 			});
 
-			await expect(endpoint.hasNFT(minLengthContext)).rejects.toThrow(
+			await expect(endpoint.getNFT(minLengthContext)).rejects.toThrow(
 				`'.id' must NOT have fewer than 32 characters`,
 			);
 
-			await expect(endpoint.hasNFT(maxLengthContext)).rejects.toThrow(
+			await expect(endpoint.getNFT(maxLengthContext)).rejects.toThrow(
 				`'.id' must NOT have more than 32 characters`,
 			);
 		});
