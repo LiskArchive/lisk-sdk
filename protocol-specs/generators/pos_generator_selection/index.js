@@ -171,8 +171,8 @@ const forgerSelectionWithMoreThan2EligibleStandBy = () => ({
 	title: 'Forger selection with more than 2 standby validators',
 	summary: 'A set of validatorWeights which include more than 2 eligible standby validators',
 	config: 'devnet',
-	runner: 'pos_forger_selection',
-	handler: 'pos_forger_selection_more_than_2_standby',
+	runner: 'pos_generator_selection',
+	handler: 'pos_generator_selection_more_than_2_standby',
 	testCases: generateForgerSelectionWithMoreThan2EligibleStandBy(),
 });
 
@@ -180,8 +180,8 @@ const forgerSelectionWithExactly2EligibleStandBy = () => ({
 	title: 'Forger selection with more than 1 standby validator',
 	summary: 'A set of validatorWeights which include 2 eligible standby validators',
 	config: 'devnet',
-	runner: 'pos_forger_selection',
-	handler: 'pos_forger_selection_exactly_2_standby',
+	runner: 'pos_generator_selection',
+	handler: 'pos_generator_selection_exactly_2_standby',
 	testCases: generateForgerSelectionWithExactly2EligibleStandBy(),
 });
 
@@ -189,8 +189,8 @@ const forgerSelectionWithExactly1EligibleStandBy = () => ({
 	title: 'Forger selection with exactly 1 standby validator',
 	summary: 'A set of validatorWeights which include 1 eligible standby validator',
 	config: 'devnet',
-	runner: 'pos_forger_selection',
-	handler: 'pos_forger_selection_exactly_1_standby',
+	runner: 'pos_generator_selection',
+	handler: 'pos_generator_selection_exactly_1_standby',
 	testCases: generateForgerSelectionWithExactly1EligibleStandBy(),
 });
 
@@ -198,8 +198,8 @@ const forgerSelectionWithExactly0EligibleStandBy = () => ({
 	title: 'Forger selection with 0 standby validators',
 	summary: 'A set of validatorWeights which include no eligible standby validators',
 	config: 'devnet',
-	runner: 'pos_forger_selection',
-	handler: 'pos_forger_selection_0_standby',
+	runner: 'pos_generator_selection',
+	handler: 'pos_generator_selection_0_standby',
 	testCases: generateForgerSelectionWithExactly0EligibleStandBy(),
 });
 
@@ -207,12 +207,12 @@ const forgerSelectionWithLessThan103Validators = () => ({
 	title: 'Forger selection with less than 103 validators',
 	summary: 'A set of validatorWeights which include less than 103 validators',
 	config: 'devnet',
-	runner: 'pos_forger_selection',
-	handler: 'pos_forger_selection_less_than_103',
+	runner: 'pos_generator_selection',
+	handler: 'pos_generator_selection_less_than_103',
 	testCases: generateForgerSelectionWithLessThan103Validators(),
 });
 
-module.exports = BaseGenerator.runGenerator('pos_forger_selection', [
+module.exports = BaseGenerator.runGenerator('pos_generator_selection', [
 	forgerSelectionWithMoreThan2EligibleStandBy,
 	forgerSelectionWithExactly2EligibleStandBy,
 	forgerSelectionWithExactly1EligibleStandBy,
