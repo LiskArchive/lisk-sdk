@@ -77,7 +77,7 @@ describe('RandomModule', () => {
 		it('should initialize config with default value when module config is empty', async () => {
 			await expect(
 				randomModule.init({
-					genesisConfig: {} as any,
+					genesisConfig: {} as GenesisConfig,
 					moduleConfig: {},
 				}),
 			).toResolve();
