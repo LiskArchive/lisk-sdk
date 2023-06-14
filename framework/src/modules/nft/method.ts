@@ -558,6 +558,23 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('NFT is escrowed to another chain');
 		}
 
+		const nftChainID = this.getChainID(nftID);
+		const ownChainID = this._internalMethod.getOwnChainID();
+		if (![ownChainID, receivingChainID].some(allowedChainID => nftChainID.equals(allowedChainID))) {
+			this.events.get(TransferCrossChainEvent).error(
+				methodContext,
+				{
+					senderAddress,
+					recipientAddress,
+					receivingChainID,
+					nftID,
+					includeAttributes,
+				},
+				NftEventResult.RESULT_NFT_NOT_NATIVE,
+			);
+			throw new Error('NFT must be native either to the sending chain or the receiving chain');
+		}
+
 		if (!owner.equals(senderAddress)) {
 			this.events.get(TransferCrossChainEvent).error(
 				methodContext,

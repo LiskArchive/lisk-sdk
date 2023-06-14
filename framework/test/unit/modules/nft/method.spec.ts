@@ -840,12 +840,17 @@ describe('NFTMethod', () => {
 	describe('transferCrossChain', () => {
 		const senderAddress = utils.getRandomBytes(LENGTH_ADDRESS);
 		const recipientAddress = utils.getRandomBytes(LENGTH_ADDRESS);
-		const receivingChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 		const messageFee = BigInt(1000);
 		const data = '';
 		const includeAttributes = false;
+		let receivingChainID: Buffer;
+
+		beforeEach(() => {
+			receivingChainID = existingNFT.nftID.slice(0, LENGTH_CHAIN_ID);
+		});
 
 		it('should throw and emit error transfer cross chain event if nft does not exist', async () => {
+			receivingChainID = nftID.slice(0, LENGTH_CHAIN_ID);
 			await expect(
 				method.transferCrossChain(
 					methodContext,
@@ -875,6 +880,7 @@ describe('NFTMethod', () => {
 		});
 
 		it('should throw and emit error transfer cross chain event if nft is escrowed', async () => {
+			receivingChainID = escrowedNFT.nftID.slice(0, LENGTH_CHAIN_ID);
 			await expect(
 				method.transferCrossChain(
 					methodContext,
@@ -900,6 +906,35 @@ describe('NFTMethod', () => {
 					includeAttributes,
 				},
 				NftEventResult.RESULT_NFT_ESCROWED,
+			);
+		});
+
+		it('should throw and emit error transfer cross chain event if nft chain id is equal to neither own chain id or receiving chain id', async () => {
+			await expect(
+				method.transferCrossChain(
+					methodContext,
+					lockedExistingNFT.owner,
+					recipientAddress,
+					lockedExistingNFT.nftID,
+					receivingChainID,
+					messageFee,
+					data,
+					includeAttributes,
+				),
+			).rejects.toThrow('NFT must be native either to the sending chain or the receiving chain');
+			checkEventResult<TransferCrossChainEventData>(
+				methodContext.eventQueue,
+				1,
+				TransferCrossChainEvent,
+				0,
+				{
+					senderAddress: lockedExistingNFT.owner,
+					recipientAddress,
+					receivingChainID,
+					nftID: lockedExistingNFT.nftID,
+					includeAttributes,
+				},
+				NftEventResult.RESULT_NFT_NOT_NATIVE,
 			);
 		});
 
@@ -933,6 +968,7 @@ describe('NFTMethod', () => {
 		});
 
 		it('should throw and emit error transfer cross chain event if nft is locked', async () => {
+			receivingChainID = lockedExistingNFT.nftID.slice(0, LENGTH_CHAIN_ID);
 			await expect(
 				method.transferCrossChain(
 					methodContext,
