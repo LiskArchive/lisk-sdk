@@ -66,11 +66,17 @@ describe('prompt', () => {
 					name: 'optionalKeys',
 					message: 'Please enter: optionalKeys(comma separated values (a,b)): ',
 				},
+				{
+					type: 'input',
+					name: 'signatures',
+					message: 'Please enter: signatures(comma separated values (a,b)): ',
+				},
 			]);
 			expect(transformedAsset).toEqual({
 				numberOfSignatures: 4,
 				mandatoryKeys: ['a', 'b'],
 				optionalKeys: ['c', 'd'],
+				signatures: [''],
 			});
 		});
 	});
