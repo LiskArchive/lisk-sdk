@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-client",
-	"version": "6.0.0-beta.1",
+	"version": "6.0.0-beta.2",
 	"description": "A default set of Elements for use by clients of the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -56,14 +56,14 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"@liskhq/lisk-api-client": "^6.0.0-beta.1",
-		"@liskhq/lisk-codec": "^0.3.0-beta.1",
-		"@liskhq/lisk-cryptography": "^4.0.0-beta.1",
-		"@liskhq/lisk-passphrase": "^4.0.0-beta.1",
-		"@liskhq/lisk-transactions": "^6.0.0-beta.1",
-		"@liskhq/lisk-tree": "^0.3.0-beta.1",
-		"@liskhq/lisk-utils": "^0.3.0-beta.1",
-		"@liskhq/lisk-validator": "^0.7.0-beta.1",
+		"@liskhq/lisk-api-client": "^6.0.0-beta.2",
+		"@liskhq/lisk-codec": "^0.3.0-beta.2",
+		"@liskhq/lisk-cryptography": "^4.0.0-beta.2",
+		"@liskhq/lisk-passphrase": "^4.0.0-beta.2",
+		"@liskhq/lisk-transactions": "^6.0.0-beta.2",
+		"@liskhq/lisk-tree": "^0.3.0-beta.2",
+		"@liskhq/lisk-utils": "^0.3.0-beta.2",
+		"@liskhq/lisk-validator": "^0.7.0-beta.2",
 		"buffer": "6.0.3"
 	},
 	"devDependencies": {
