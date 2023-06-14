@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseStore, StoreGetter } from '../../base_store';
-import { LENGTH_COLLECTION_ID } from '../constants';
+import { BaseStore, ImmutableStoreGetter, StoreGetter } from '../../base_store';
+import { LENGTH_COLLECTION_ID, LENGTH_CHAIN_ID } from '../constants';
 
 export interface SupportedNFTsStoreData {
 	supportedCollectionIDArray: {
@@ -58,5 +58,14 @@ export class SupportedNFTsStore extends BaseStore<SupportedNFTsStoreData> {
 		);
 
 		await this.set(context, chainID, { supportedCollectionIDArray });
+	}
+
+	public async getAll(
+		context: ImmutableStoreGetter,
+	): Promise<{ key: Buffer; value: SupportedNFTsStoreData }[]> {
+		return this.iterate(context, {
+			gte: Buffer.alloc(LENGTH_CHAIN_ID, 0),
+			lte: Buffer.alloc(LENGTH_CHAIN_ID, 255),
+		});
 	}
 }

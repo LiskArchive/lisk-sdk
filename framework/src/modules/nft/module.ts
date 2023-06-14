@@ -19,6 +19,7 @@ import { InteroperabilityMethod } from '../token/types';
 import { NFTInteroperableMethod } from './cc_method';
 import { NFTEndpoint } from './endpoint';
 import { AllNFTsFromChainSupportedEvent } from './events/all_nfts_from_chain_suported';
+import { AllNFTsFromChainSupportRemovedEvent } from './events/all_nfts_from_chain_support_removed';
 import { AllNFTsFromCollectionSupportRemovedEvent } from './events/all_nfts_from_collection_support_removed';
 import { AllNFTsFromCollectionSupportedEvent } from './events/all_nfts_from_collection_suppported';
 import { AllNFTsSupportRemovedEvent } from './events/all_nfts_support_removed';
@@ -75,6 +76,10 @@ export class NFTModule extends BaseInteroperableModule {
 		this.events.register(
 			AllNFTsFromChainSupportedEvent,
 			new AllNFTsFromChainSupportedEvent(this.name),
+		);
+		this.events.register(
+			AllNFTsFromChainSupportRemovedEvent,
+			new AllNFTsFromChainSupportRemovedEvent(this.name),
 		);
 		this.events.register(
 			AllNFTsFromCollectionSupportedEvent,
