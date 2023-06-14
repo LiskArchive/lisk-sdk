@@ -34,6 +34,10 @@ export const COMMAND_UPDATE_KEY = 'updateKey';
 export const COMMAND_UPDATE_AUTHORITY = 'updateAuthority';
 export const MAX_UINT64 = BigInt(2) ** BigInt(64) - BigInt(1);
 export const LENGTH_PROOF_OF_POSESSION = 96;
+export const defaultConfig = {
+	authorityRegistrationFee: AUTHORITY_REGISTRATION_FEE.toString(),
+};
+
 // Store key
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0047.md#uint32be-function
 export const KEY_SNAPSHOT_0 = utils.intToBuffer(0, 4);

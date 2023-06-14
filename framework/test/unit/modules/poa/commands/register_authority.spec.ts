@@ -76,7 +76,7 @@ describe('RegisterAuthority', () => {
 		});
 	};
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		registerAuthorityCommand = new RegisterAuthorityCommand(poaModule.stores, poaModule.events);
 		mockValidatorsMethod = {
 			setValidatorGeneratorKey: jest.fn(),
@@ -89,6 +89,11 @@ describe('RegisterAuthority', () => {
 		mockFeeMethod = {
 			payFee: jest.fn(),
 		};
+		(poaModule as any)['_registerAuthorityCommand'] = registerAuthorityCommand;
+		await poaModule.init({
+			genesisConfig: {} as any,
+			moduleConfig: { authorityRegistrationFee: AUTHORITY_REGISTRATION_FEE.toString() },
+		});
 		registerAuthorityCommand.addDependencies(mockValidatorsMethod, mockFeeMethod);
 
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());

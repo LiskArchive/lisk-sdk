@@ -58,6 +58,7 @@ describe('PoAModuleEndpoint', () => {
 
 	beforeEach(() => {
 		poaEndpoint = new PoAEndpoint(poa.stores, poa.offchainStores);
+		poaEndpoint.init(AUTHORITY_REGISTRATION_FEE);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		validatorStore = poa.stores.get(ValidatorStore);
 		snapshotStore = poa.stores.get(SnapshotStore);
@@ -156,10 +157,18 @@ describe('PoAModuleEndpoint', () => {
 	});
 
 	describe('getRegistrationFee', () => {
-		it('should return the registration fee', () => {
+		it('should return the default registration fee', () => {
 			const response = poaEndpoint.getRegistrationFee();
 
 			expect(response).toEqual({ fee: AUTHORITY_REGISTRATION_FEE.toString() });
+		});
+
+		it('should return the configured registration fee', () => {
+			const authorityRegistrationFee = BigInt(200000);
+			poaEndpoint.init(authorityRegistrationFee);
+			const response = poaEndpoint.getRegistrationFee();
+
+			expect(response).toEqual({ fee: authorityRegistrationFee.toString() });
 		});
 	});
 });
