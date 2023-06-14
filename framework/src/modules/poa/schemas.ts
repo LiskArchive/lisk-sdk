@@ -21,6 +21,17 @@ import {
 	MAX_NUM_VALIDATORS,
 } from './constants';
 
+export const configSchema = {
+	$id: '/poa/config',
+	type: 'object',
+	properties: {
+		authorityRegistrationFee: {
+			type: 'string',
+			format: 'uint64',
+		},
+	},
+};
+
 const validator = {
 	type: 'object',
 	required: ['address', 'weight'],

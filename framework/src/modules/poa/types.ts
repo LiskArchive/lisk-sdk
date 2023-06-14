@@ -17,7 +17,13 @@ import {
 	MethodContext,
 	NextValidatorsSetter,
 } from '../../state_machine/types';
+import { JSONObject } from '../../types';
 
+export interface ModuleConfig {
+	authorityRegistrationFee: bigint;
+}
+
+export type ModuleConfigJSON = JSONObject<ModuleConfig>;
 export interface RegisterAuthorityParams {
 	name: string;
 	blsKey: Buffer;
