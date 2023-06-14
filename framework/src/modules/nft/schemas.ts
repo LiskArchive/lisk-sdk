@@ -380,7 +380,7 @@ export const isNFTSupportedResponseSchema = {
 	$id: '/nft/endpoint/isNFTSupportedResponse',
 	type: 'object',
 	properties: {
-		isNFTSuppported: {
+		isNFTSupported: {
 			type: 'boolean',
 		},
 	},
