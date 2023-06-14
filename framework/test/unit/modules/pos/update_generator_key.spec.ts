@@ -73,7 +73,7 @@ describe('Update generator key command', () => {
 	});
 
 	describe('verify schema', () => {
-		it('should return error if generatorKey is invalid', () => {
+		it('should return error if generatorKey exceeds maxLength', () => {
 			expect(() =>
 				validator.validate(updateGeneratorCommand.schema, {
 					generatorKey: utils.getRandomBytes(64),

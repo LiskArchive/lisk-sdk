@@ -92,7 +92,7 @@ describe('RegisterMainchainCommand', () => {
 		mainchainValidators,
 		mainchainCertificateThreshold,
 		aggregationBits: Buffer.alloc(0),
-		signature: Buffer.alloc(0),
+		signature: Buffer.alloc(BLS_SIGNATURE_LENGTH),
 	};
 	const encodedTransactionParams = codec.encode(mainchainRegParams, transactionParams);
 	const publicKey = utils.getRandomBytes(32);
@@ -131,7 +131,7 @@ describe('RegisterMainchainCommand', () => {
 	});
 
 	describe('verify schema', () => {
-		it('should return error if own chain id is greater than 4 bytes', () => {
+		it('should throw error if own chain id is greater than 4 bytes', () => {
 			expect(() =>
 				validator.validate(mainchainRegistrationCommand.schema, {
 					...transactionParams,
@@ -140,7 +140,7 @@ describe('RegisterMainchainCommand', () => {
 			).toThrow(`Property '.ownChainID' maxLength exceeded`);
 		});
 
-		it('should return error if bls key is not 48 bytes', () => {
+		it('should throw error if bls key is not 48 bytes', () => {
 			const invalidValidators = objects.cloneDeep(transactionParams.mainchainValidators);
 			invalidValidators[1].blsKey = utils.getRandomBytes(47);
 
@@ -152,16 +152,16 @@ describe('RegisterMainchainCommand', () => {
 			).toThrow(`Property '.mainchainValidators.1.blsKey' minLength not satisfied`);
 		});
 
-		it('should return error if name is greater than max length of name', () => {
+		it('should throw error if name is greater than max length of name', () => {
 			expect(() =>
 				validator.validate(mainchainRegistrationCommand.schema, {
 					...transactionParams,
-					ownName: utils.getRandomBytes(21).toString('hex'),
+					ownName: 'x'.repeat(33),
 				}),
 			).toThrow(`Property '.ownName' must NOT have more than 32 characters`);
 		});
 
-		it('should return error if name is empty', () => {
+		it('should throw error if name is empty', () => {
 			expect(() =>
 				validator.validate(mainchainRegistrationCommand.schema, {
 					...transactionParams,
@@ -170,7 +170,7 @@ describe('RegisterMainchainCommand', () => {
 			).toThrow(`Property '.ownName' must NOT have fewer than 1 characters`);
 		});
 
-		it('should return error if number of mainchain validators is zero', () => {
+		it('should throw error if number of mainchain validators is zero', () => {
 			expect(() =>
 				validator.validate(mainchainRegistrationCommand.schema, {
 					...transactionParams,
@@ -179,7 +179,7 @@ describe('RegisterMainchainCommand', () => {
 			).toThrow(`must NOT have fewer than 1 items`);
 		});
 
-		it(`should return error if mainchainValidators array has more than ${NUMBER_ACTIVE_VALIDATORS_MAINCHAIN} elements`, () => {
+		it(`should throw error if mainchainValidators array has more than ${NUMBER_ACTIVE_VALIDATORS_MAINCHAIN} elements`, () => {
 			expect(() =>
 				validator.validate(mainchainRegistrationCommand.schema, {
 					...transactionParams,
@@ -191,7 +191,7 @@ describe('RegisterMainchainCommand', () => {
 			).toThrow(`must NOT have more than ${NUMBER_ACTIVE_VALIDATORS_MAINCHAIN} items`);
 		});
 
-		it('should return error if signature has invalid length', () => {
+		it('should throw error if signature has invalid length', () => {
 			expect(() =>
 				validator.validate(mainchainRegistrationCommand.schema, {
 					...transactionParams,
@@ -310,7 +310,7 @@ describe('RegisterMainchainCommand', () => {
 			ownName: 'testchain',
 			mainchainValidators,
 			aggregationBits: Buffer.alloc(0),
-			signature: Buffer.alloc(0),
+			signature: Buffer.alloc(BLS_SIGNATURE_LENGTH),
 		};
 		const chainAccount = {
 			name: CHAIN_NAME_MAINCHAIN,

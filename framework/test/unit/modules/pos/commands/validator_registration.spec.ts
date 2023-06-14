@@ -31,7 +31,11 @@ import { ValidatorStore } from '../../../../../src/modules/pos/stores/validator'
 import { NameStore } from '../../../../../src/modules/pos/stores/name';
 import { PoSModule } from '../../../../../src';
 import { createStoreGetter } from '../../../../../src/testing/utils';
-import { COMMISSION, VALIDATOR_REGISTRATION_FEE } from '../../../../../src/modules/pos/constants';
+import {
+	COMMISSION,
+	MAX_LENGTH_NAME,
+	VALIDATOR_REGISTRATION_FEE,
+} from '../../../../../src/modules/pos/constants';
 import { ValidatorRegisteredEvent } from '../../../../../src/modules/pos/events/validator_registered';
 
 describe('Validator registration command', () => {
@@ -132,10 +136,10 @@ describe('Validator registration command', () => {
 			expect(() =>
 				validator.validate(validatorRegistrationCommand.schema, {
 					...transactionParams,
-					name: 'esdfgvhbjnkljdseasexdcrfgvhbjkhbgvfcdxszasdfghjkhnbgvfcdsxsdfcgvhb',
+					name: '1'.repeat(MAX_LENGTH_NAME + 1),
 				}),
 			).toThrow(
-				"Lisk validator found 1 error[s]:\nProperty '.name' must NOT have more than 20 characters",
+				`Lisk validator found 1 error[s]:\nProperty '.name' must NOT have more than ${MAX_LENGTH_NAME} characters`,
 			);
 		});
 

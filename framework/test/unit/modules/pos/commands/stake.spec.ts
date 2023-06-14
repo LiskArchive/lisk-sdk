@@ -233,7 +233,7 @@ describe('StakeCommand', () => {
 			).toThrow('address length invalid');
 		});
 
-		it('should return errors when transaction.params.stakes includes amount which is less than int64 range', () => {
+		it('should return errors when transaction.params.stakes includes amount which is less than sint64 range', () => {
 			expect(() =>
 				validator.validate(command.schema, {
 					stakes: [
@@ -246,7 +246,7 @@ describe('StakeCommand', () => {
 			).toThrow('should pass "dataType" keyword validation');
 		});
 
-		it('should return errors when transaction.params.stakes includes amount which is greater than int64 range', () => {
+		it('should return errors when transaction.params.stakes includes amount which is greater than sint64 range', () => {
 			expect(() =>
 				validator.validate(command.schema, {
 					stakes: [

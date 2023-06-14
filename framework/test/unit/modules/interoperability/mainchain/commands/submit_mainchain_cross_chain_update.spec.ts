@@ -292,7 +292,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 					...params,
 					sendingChainID: Buffer.from([1, 0, 0, 0, 255]),
 				}),
-			).toThrow('.sendingChainID');
+			).toThrow("'.sendingChainID' maxLength exceeded");
 		});
 
 		it('should reject when activeValidatorsUpdate.blsKeysUpdate has invalid length', () => {
@@ -307,7 +307,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 						],
 					},
 				}),
-			).toThrow('.blsKeysUpdate');
+			).toThrow("'.activeValidatorsUpdate.blsKeysUpdate.4' maxLength exceeded");
 		});
 
 		it('should reject when inboxUpdate.messageWitnessHashes has invalid length', () => {
@@ -322,7 +322,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 						],
 					},
 				}),
-			).toThrow('.messageWitnessHashes');
+			).toThrow("'.inboxUpdate.messageWitnessHashes.1' maxLength exceeded");
 		});
 
 		it('should reject when inboxUpdate.outboxRootWitness.siblingHashes has invalid length', () => {
@@ -339,7 +339,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 						},
 					},
 				}),
-			).toThrow('.siblingHashes');
+			).toThrow("'.inboxUpdate.outboxRootWitness.siblingHashes.1' maxLength exceeded");
 		});
 	});
 
