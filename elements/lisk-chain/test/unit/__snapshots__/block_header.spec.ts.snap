@@ -2,7 +2,7 @@
 
 exports[`block_header blockHeaderSchema should be valid schema with signature but without id 1`] = `
 {
-  "$id": "/block/header/3",
+  "$id": "/block/header/3/without-id",
   "properties": {
     "aggregateCommit": {
       "fieldNumber": 14,
