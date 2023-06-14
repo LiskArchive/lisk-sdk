@@ -18,11 +18,11 @@ import { when } from 'jest-when';
 import { codec } from '@liskhq/lisk-codec';
 import { GenesisConfig } from '../../../../src/types';
 import { PoSModule } from '../../../../src/modules/pos';
-import * as forgerSelectionLessTHan103Scenario from '../../../fixtures/pos_forger_selection/pos_forger_selection_less_than_103.json';
-import * as forgerSelectionZeroStandbyScenario from '../../../fixtures/pos_forger_selection/pos_forger_selection_0_standby.json';
-import * as forgerSelectionOneStandbyScenario from '../../../fixtures/pos_forger_selection/pos_forger_selection_exactly_1_standby.json';
-import * as forgerSelectionTwoStandbyScenario from '../../../fixtures/pos_forger_selection/pos_forger_selection_exactly_2_standby.json';
-import * as forgerSelectionMoreThan2StandByScenario from '../../../fixtures/pos_forger_selection/pos_forger_selection_more_than_2_standby.json';
+import * as forgerSelectionLessTHan103Scenario from '../../../fixtures/pos_generator_selection/pos_generator_selection_less_than_103.json';
+import * as forgerSelectionZeroStandbyScenario from '../../../fixtures/pos_generator_selection/pos_generator_selection_0_standby.json';
+import * as forgerSelectionOneStandbyScenario from '../../../fixtures/pos_generator_selection/pos_generator_selection_exactly_1_standby.json';
+import * as forgerSelectionTwoStandbyScenario from '../../../fixtures/pos_generator_selection/pos_generator_selection_exactly_2_standby.json';
+import * as forgerSelectionMoreThan2StandByScenario from '../../../fixtures/pos_generator_selection/pos_generator_selection_more_than_2_standby.json';
 import {
 	BlockAfterExecuteContext,
 	BlockContext,
