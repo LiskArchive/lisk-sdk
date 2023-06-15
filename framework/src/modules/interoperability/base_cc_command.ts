@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Schema } from '@liskhq/lisk-codec';
+import { Schema, emptySchema } from '@liskhq/lisk-codec';
 import { NamedRegistry } from '../named_registry';
 import { CCCommandExecuteContext, ImmutableCrossChainMessageContext } from './types';
 
 export abstract class BaseCCCommand<T = unknown> {
-	public schema?: Schema;
+	public schema: Schema = emptySchema;
 
 	public get name(): string {
 		const name = this.constructor.name.replace('CCCommand', '');

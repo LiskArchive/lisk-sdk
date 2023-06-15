@@ -13,7 +13,6 @@
  */
 
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { validator } from '@liskhq/lisk-validator';
 import { BaseCommand } from '../../base_command';
 import {
 	CommandExecuteContext,
@@ -47,7 +46,6 @@ export class TransferCommand extends BaseCommand {
 	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
 		const { params } = context;
 
-		validator.validate<Params>(transferParamsSchema, params);
 		const availableBalance = await this._method.getAvailableBalance(
 			context.getMethodContext(),
 			context.transaction.senderAddress,

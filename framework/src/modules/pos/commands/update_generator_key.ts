@@ -11,8 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { validator } from '@liskhq/lisk-validator';
 import {
 	CommandVerifyContext,
 	VerificationResult,
@@ -37,15 +35,6 @@ export class UpdateGeneratorKeyCommand extends BaseCommand {
 		context: CommandVerifyContext<UpdateGeneratorKeyParams>,
 	): Promise<VerificationResult> {
 		const { transaction } = context;
-
-		try {
-			validator.validate(updateGeneratorKeyCommandParamsSchema, context.params);
-		} catch (err) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: err as Error,
-			};
-		}
 
 		const validatorSubstore = this.stores.get(ValidatorStore);
 		const entryExists = await validatorSubstore.has(context, transaction.senderAddress);
