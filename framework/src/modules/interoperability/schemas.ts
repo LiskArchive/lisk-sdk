@@ -178,8 +178,8 @@ export const mainchainRegParams = {
 		signature: {
 			dataType: 'bytes',
 			fieldNumber: 5,
-			minItems: BLS_SIGNATURE_LENGTH,
-			maxItems: BLS_SIGNATURE_LENGTH,
+			minLength: BLS_SIGNATURE_LENGTH,
+			maxLength: BLS_SIGNATURE_LENGTH,
 		},
 		aggregationBits: {
 			dataType: 'bytes',

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { validator } from '@liskhq/lisk-validator';
 import { BlockHeader } from '@liskhq/lisk-chain';
 import {
 	CommandVerifyContext,
@@ -66,15 +65,6 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 		context: CommandVerifyContext<PomTransactionParams>,
 	): Promise<VerificationResult> {
 		const { chainID, getMethodContext, params, header } = context;
-
-		try {
-			validator.validate(this.schema, params);
-		} catch (err) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: err as Error,
-			};
-		}
 
 		const currentHeight = header.height;
 		const header1 = BlockHeader.fromBytes(params.header1);

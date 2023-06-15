@@ -1,0 +1,84 @@
+rules:
+  - id: schema_with_required_that_is_not_a_property
+    message: The required property $PROP does not exist
+    languages: [typescript]
+    severity: WARNING
+    patterns:
+      - pattern-inside: |
+          {
+            ...,
+            required: [..., "$PROP", ...],
+            ...,
+          }
+      - pattern-not: |
+          {
+            ...,
+            properties: {
+              ...,
+              "$PROP": {...},
+              ...
+            },
+            ...
+          }
+      - focus-metavariable:
+        - $PROP
+  - id: schema_with_datatype_not_required
+    message: The property $PROP with dataType is not in the required array
+    languages: [typescript]
+    severity: WARNING
+    patterns:
+      - pattern-inside: |
+          {
+            "properties": {
+              ...,
+              "$PROP": {
+                "dataType": "...",
+                ...
+              },
+              ...
+            },
+            ...
+          }
+      - pattern-not-inside: |
+          {
+            "properties": {
+              ...,
+              "$PROP": {
+                "dataType": "...",
+                ...
+              },
+              ...
+            },
+            "required": [..., "$PROP", ...],
+            ...
+          }
+      - focus-metavariable:
+        - "$PROP"
+  - id: array_type_with_minlength_or_maxlength
+    message: Array type has minLength or maxLength
+    languages: [typescript]
+    severity: WARNING
+    patterns:
+      - pattern-inside: |
+          {
+            ...,
+            "type": "array",
+            ...
+          }
+      - pattern-either:
+        - pattern: |
+            {
+              ...,
+            	"type": "array",
+              ...,
+              "minLength": $X,
+              ...
+            }
+        - pattern: |
+            {
+              ...,
+            	"type": "array",
+              ...,
+              "maxLength": $Y,
+              ...
+            }

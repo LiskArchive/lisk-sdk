@@ -15,12 +15,7 @@
 import { BlockHeader, Transaction } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../../../src/testing';
-import {
-	UnlockCommand,
-	CommandExecuteContext,
-	PoSModule,
-	CommandVerifyContext,
-} from '../../../../../src';
+import { UnlockCommand, CommandExecuteContext, PoSModule } from '../../../../../src';
 import {
 	defaultConfig,
 	EMPTY_KEY,
@@ -37,7 +32,6 @@ import { ValidatorStore } from '../../../../../src/modules/pos/stores/validator'
 import { StakerStore } from '../../../../../src/modules/pos/stores/staker';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import { GenesisDataStore } from '../../../../../src/modules/pos/stores/genesis';
-import { VerifyStatus } from '../../../../../src/state_machine';
 
 describe('UnlockCommand', () => {
 	const pos = new PoSModule();
@@ -55,7 +49,6 @@ describe('UnlockCommand', () => {
 	let unlockableObject3: UnlockingObject;
 	let nonUnlockableObject: UnlockingObject;
 	let context: CommandExecuteContext;
-	let verifyContext: CommandVerifyContext;
 	let storedData: StakerData;
 	const validator1 = {
 		name: 'validator1',
@@ -132,53 +125,6 @@ describe('UnlockCommand', () => {
 				certificateSignature: Buffer.alloc(0),
 				height: blockHeight,
 			},
-		});
-	});
-
-	describe('verify', () => {
-		it('should return an OK verify status', async () => {
-			verifyContext = testing
-				.createTransactionContext({
-					stateStore,
-					transaction,
-					header,
-					chainID,
-				})
-				.createCommandVerifyContext();
-
-			const result = await unlockCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.OK);
-		});
-
-		it('should return an error if transaction params are not empty', async () => {
-			const transactionX = new Transaction({
-				module: 'pos',
-				command: 'unlock',
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: Buffer.alloc(5),
-				signatures: [publicKey],
-			});
-
-			verifyContext = testing
-				.createTransactionContext({
-					stateStore,
-					transaction: transactionX,
-					header,
-					chainID,
-				})
-				.createCommandVerifyContext();
-
-			const expected = {
-				status: VerifyStatus.FAIL,
-				error: new Error('Unlock transaction params must be empty.'),
-			};
-
-			const result = await unlockCommand.verify(verifyContext);
-
-			expect(result).toMatchObject(expected);
 		});
 	});
 

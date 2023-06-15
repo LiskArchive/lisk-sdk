@@ -15,6 +15,7 @@
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 import { TokenModule, VerifyStatus } from '../../../../../src';
 import { TokenMethod } from '../../../../../src/modules/token/method';
 import { TransferCommand } from '../../../../../src/modules/token/commands/transfer';
@@ -92,8 +93,47 @@ describe('Transfer command', () => {
 		});
 	});
 
+	describe('verify schema', () => {
+		it('should fail when tokenID does not have valid length', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					tokenID: Buffer.from('0000000100', 'hex'),
+					amount: BigInt(100000000),
+					recipientAddress: utils.getRandomBytes(20),
+					data: '',
+				}),
+			).toThrow(".tokenID' minLength not satisfied");
+		});
+
+		it('should fail when recipientAddress is not 20 btyes', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					tokenID: Buffer.from('000000010000', 'hex'),
+					amount: BigInt(100000000),
+					recipientAddress: utils.getRandomBytes(30),
+					data: '',
+				}),
+			).toThrow(".recipientAddress' address length invalid");
+		});
+
+		it('should fail when data is more than 64 characters', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					tokenID: Buffer.from('000000010000', 'hex'),
+					amount: BigInt(100000000),
+					recipientAddress: utils.getRandomBytes(20),
+					data: '1'.repeat(65),
+				}),
+			).toThrow(".data' must NOT have more than 64 characters");
+		});
+	});
+
 	describe('verify', () => {
-		it('should fail when tokenID does not have valid length', async () => {
+		it('should success when all parameters are valid', async () => {
+			jest
+				.spyOn(command['_method'], 'getAvailableBalance')
+				.mockResolvedValue(BigInt(100000000 + 1));
+
 			const context = createTransactionContext({
 				transaction: new Transaction({
 					module: 'token',
@@ -102,63 +142,17 @@ describe('Transfer command', () => {
 					nonce: BigInt(0),
 					senderPublicKey: utils.getRandomBytes(32),
 					params: codec.encode(transferParamsSchema, {
-						tokenID: Buffer.from('0000000100', 'hex'),
+						tokenID: Buffer.from('0000000100000000', 'hex'),
 						amount: BigInt(100000000),
 						recipientAddress: utils.getRandomBytes(20),
-						data: '',
+						data: '1'.repeat(64),
 					}),
 					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
-			await expect(
-				command.verify(context.createCommandVerifyContext(transferParamsSchema)),
-			).rejects.toThrow(".tokenID' minLength not satisfied");
-		});
+			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
 
-		it('should fail when recipientAddress is not 20 btyes', async () => {
-			const context = createTransactionContext({
-				transaction: new Transaction({
-					module: 'token',
-					command: 'transfer',
-					fee: BigInt(5000000),
-					nonce: BigInt(0),
-					senderPublicKey: utils.getRandomBytes(32),
-					params: codec.encode(transferParamsSchema, {
-						tokenID: Buffer.from('000000010000', 'hex'),
-						amount: BigInt(100000000),
-						recipientAddress: utils.getRandomBytes(30),
-						data: '',
-					}),
-					signatures: [utils.getRandomBytes(64)],
-				}),
-			});
-
-			await expect(
-				command.verify(context.createCommandVerifyContext(transferParamsSchema)),
-			).rejects.toThrow(".recipientAddress' address length invalid");
-		});
-
-		it('should fail when data is more than 64 characters', async () => {
-			const context = createTransactionContext({
-				transaction: new Transaction({
-					module: 'token',
-					command: 'transfer',
-					fee: BigInt(5000000),
-					nonce: BigInt(0),
-					senderPublicKey: utils.getRandomBytes(32),
-					params: codec.encode(transferParamsSchema, {
-						tokenID: Buffer.from('000000010000', 'hex'),
-						amount: BigInt(100000000),
-						recipientAddress: utils.getRandomBytes(20),
-						data: '1'.repeat(65),
-					}),
-					signatures: [utils.getRandomBytes(64)],
-				}),
-			});
-
-			await expect(
-				command.verify(context.createCommandVerifyContext(transferParamsSchema)),
-			).rejects.toThrow(".data' must NOT have more than 64 characters");
+			expect(result.status).toEqual(VerifyStatus.OK);
 		});
 
 		it('should fail if balance for the provided tokenID is insufficient', async () => {

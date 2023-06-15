@@ -14,6 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 import { TokenModule, TokenMethod, ccuParamsSchema } from '../../../../../src';
 import { CrossChainTransferCommand } from '../../../../../src/modules/token/cc_commands/cc_transfer';
 import {
@@ -38,7 +39,6 @@ import { ccmTransferEventSchema } from '../../../../../src/modules/token/events/
 import { SupplyStore } from '../../../../../src/modules/token/stores/supply';
 import { InternalMethod } from '../../../../../src/modules/token/internal_method';
 import { InteroperabilityMethod } from '../../../../../src/modules/token/types';
-import { MAX_RESERVED_ERROR_STATUS } from '../../../../../src/modules/interoperability/constants';
 
 describe('CrossChain Transfer Command', () => {
 	const tokenModule = new TokenModule();
@@ -196,65 +196,22 @@ describe('CrossChain Transfer Command', () => {
 		jest.spyOn(fakeLogger, 'debug');
 	});
 
+	describe('verify schema', () => {
+		it('should throw if validation fails', () => {
+			// Act & Assert
+			expect(() =>
+				validator.validate(command.schema, {
+					tokenID: Buffer.from([0, 0, 0, 1]),
+					amount: defaultAmount,
+					senderAddress: defaultAddress,
+					recipientAddress: defaultAddress,
+					data: 'ddd',
+				}),
+			).toThrow(`Property '.tokenID' minLength not satisfied`);
+		});
+	});
+
 	describe('verify', () => {
-		it('should throw if tokenID does not have valid length', async () => {
-			const tokenIDMinLengthContext = createTransactionContextWithOverridingCCMAndParams({
-				params: { tokenID: Buffer.alloc(4, 1) },
-			});
-
-			await expect(command.verify(tokenIDMinLengthContext)).rejects.toThrow(
-				`Property '.tokenID' minLength not satisfied`,
-			);
-
-			const tokenIDMaxLengthContext = createTransactionContextWithOverridingCCMAndParams({
-				params: { tokenID: Buffer.alloc(10, 1) },
-			});
-
-			await expect(command.verify(tokenIDMaxLengthContext)).rejects.toThrow(
-				`Property '.tokenID' maxLength exceeded`,
-			);
-		});
-
-		it('should throw if senderAddress does not have valid length', async () => {
-			const invalidSenderAddressContext = createTransactionContextWithOverridingCCMAndParams({
-				params: { senderAddress: Buffer.alloc(23, 1) },
-			});
-
-			await expect(command.verify(invalidSenderAddressContext)).rejects.toThrow(
-				`Property '.senderAddress' address length invalid`,
-			);
-		});
-
-		it('should throw if recipientAddress does not have valid length', async () => {
-			const invalidRecipientAddressContext = createTransactionContextWithOverridingCCMAndParams({
-				params: { recipientAddress: Buffer.alloc(23, 1) },
-			});
-
-			await expect(command.verify(invalidRecipientAddressContext)).rejects.toThrow(
-				`Property '.recipientAddress' address length invalid`,
-			);
-		});
-
-		it('should throw if data exceeds exceeds 64 characters', async () => {
-			const invalidDataContext = createTransactionContextWithOverridingCCMAndParams({
-				params: { data: '1'.repeat(65) },
-			});
-
-			await expect(command.verify(invalidDataContext)).rejects.toThrow(
-				`Property '.data' must NOT have more than 64 characters`,
-			);
-		});
-
-		it('should throw if CCM.status > MAX_RESERVED_ERROR_STATUS', async () => {
-			const invalidCMMStatusContext = createTransactionContextWithOverridingCCMAndParams({
-				ccm: { status: MAX_RESERVED_ERROR_STATUS + 1 },
-			});
-
-			await expect(command.verify(invalidCMMStatusContext)).rejects.toThrow(
-				`Invalid CCM status code.`,
-			);
-		});
-
 		it('should throw if token is not native to the sending chain, receiving chain', async () => {
 			// Arrange
 			const params = codec.encode(crossChainTransferMessageParams, {

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { codec } from '@liskhq/lisk-codec';
-import { validator } from '@liskhq/lisk-validator';
-// import { NotFoundError } from '@liskhq/lisk-db';
 import { BaseCCCommand } from '../../interoperability/base_cc_command';
 import { CrossChainMessageContext } from '../../interoperability/types';
 import { TokenMethod } from '../method';
@@ -50,7 +48,6 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 			crossChainTransferMessageParams,
 			ccm.params,
 		);
-		validator.validate(crossChainTransferMessageParams, params);
 
 		if (ccm.status > MAX_RESERVED_ERROR_STATUS) {
 			throw new Error('Invalid CCM status code.');
