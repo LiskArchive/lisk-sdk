@@ -21,6 +21,11 @@
 		"node": ">=18.12.0 <=18",
 		"npm": ">=8.1.0"
 	},
+	"files": [
+		"/dist-node",
+		"/build",
+		"/public"
+	],
 	"main": "dist-node/index.js",
 	"scripts": {
 		"clean": "./scripts/clean.sh",
