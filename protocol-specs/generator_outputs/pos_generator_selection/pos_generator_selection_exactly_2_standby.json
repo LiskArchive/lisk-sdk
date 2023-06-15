@@ -2,8 +2,8 @@
 	"title": "Forger selection with more than 1 standby validator",
 	"summary": "A set of validatorWeights which include 2 eligible standby validators",
 	"config": "devnet",
-	"runner": "pos_forger_selection",
-	"handler": "pos_forger_selection_exactly_2_standby",
+	"runner": "pos_generator_selection",
+	"handler": "pos_generator_selection_exactly_2_standby",
 	"testCases": {
 		"input": {
 			"randomSeed1": "eb596af61f13f2dcb043ac23b9e48987",

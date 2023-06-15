@@ -24,7 +24,7 @@ export interface BLSKeyRegData {
 export const blsKeyRegDataSchema = {
 	$id: '/validators/event/blsKeyRegData',
 	type: 'object',
-	required: ['blsKey', 'result'],
+	required: ['blsKey', 'proofOfPossession', 'result'],
 	properties: {
 		blsKey: {
 			dataType: 'bytes',

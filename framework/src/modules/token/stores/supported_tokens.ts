@@ -197,6 +197,12 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 			return true;
 		}
 
-		return chainID[0] === this._ownChainID[0] && getMainchainID(chainID).equals(chainID);
+		return (
+			chainID[0] === this._ownChainID[0] &&
+			getMainchainID(chainID).equals(chainID) &&
+			tokenID.equals(
+				Buffer.concat([Buffer.from([chainID[0], 0, 0, 0]), Buffer.alloc(LOCAL_ID_LENGTH, 0)]),
+			)
+		);
 	}
 }

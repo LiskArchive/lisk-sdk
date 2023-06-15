@@ -15,7 +15,6 @@
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { dataStructures } from '@liskhq/lisk-utils';
-import { validator } from '@liskhq/lisk-validator';
 import { BaseCommand } from '../../base_command';
 import {
 	CommandExecuteContext,
@@ -71,8 +70,6 @@ export class TransferCrossChainCommand extends BaseCommand {
 		const { params } = context;
 
 		try {
-			validator.validate(this.schema, params);
-
 			const [tokenChainID, _] = splitTokenID(params.tokenID);
 
 			if (params.receivingChainID.equals(context.chainID)) {

@@ -33,6 +33,7 @@ export const forgerInfoSchema = {
 			fieldNumber: 4,
 			items: {
 				type: 'object',
+				required: ['address', 'amount'],
 				properties: {
 					address: {
 						dataType: 'bytes',
@@ -44,7 +45,6 @@ export const forgerInfoSchema = {
 					},
 				},
 			},
-			required: ['address', 'amount'],
 		},
 	},
 	required: ['totalProducedBlocks', 'totalReceivedFees', 'totalReceivedRewards', 'stakeReceived'],
