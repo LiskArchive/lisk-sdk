@@ -91,6 +91,10 @@ export const getRandomSeed = (
 };
 
 export const bitwiseXOR = (bufferArray: Buffer[]): Buffer => {
+	if (bufferArray.length === 0) {
+		throw new Error('No inputs to XOR');
+	}
+
 	if (bufferArray.length === 1) {
 		return bufferArray[0];
 	}
