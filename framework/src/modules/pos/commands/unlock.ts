@@ -12,12 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	CommandExecuteContext,
-	CommandVerifyContext,
-	VerificationResult,
-	VerifyStatus,
-} from '../../../state_machine';
+import { CommandExecuteContext } from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
 import { EMPTY_KEY, MODULE_NAME_POS } from '../constants';
 import { ValidatorStore } from '../stores/validator';
@@ -38,22 +33,6 @@ export class UnlockCommand extends BaseCommand {
 	public init(args: { posTokenID: TokenID; roundLength: number }) {
 		this._posTokenID = args.posTokenID;
 		this._roundLength = args.roundLength;
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async verify(context: CommandVerifyContext): Promise<VerificationResult> {
-		const { transaction } = context;
-
-		if (transaction.params.length !== 0) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Unlock transaction params must be empty.'),
-			};
-		}
-
-		return {
-			status: VerifyStatus.OK,
-		};
 	}
 
 	public async execute(context: CommandExecuteContext): Promise<void> {

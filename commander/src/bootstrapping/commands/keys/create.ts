@@ -25,6 +25,7 @@ import { OWNER_READ_WRITE } from '../../../constants';
 export const plainGeneratorKeysSchema = {
 	$id: '/commander/plainGeneratorKeys',
 	type: 'object',
+	required: ['generatorKey', 'generatorPrivateKey', 'blsKey', 'blsPrivateKey'],
 	properties: {
 		generatorKey: {
 			dataType: 'bytes',

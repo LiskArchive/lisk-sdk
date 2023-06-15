@@ -14,7 +14,6 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { validator } from '@liskhq/lisk-validator';
 import { certificateSchema } from '../../../../engine/consensus/certificate_generation/schema';
 import { Certificate } from '../../../../engine/consensus/certificate_generation/types';
 import {
@@ -38,10 +37,7 @@ import {
 	CcmProcessedEvent,
 	CCMProcessedResult,
 } from '../../events/ccm_processed';
-import {
-	crossChainUpdateTransactionParams,
-	sidechainTerminatedCCMParamsSchema,
-} from '../../schemas';
+import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
 import { ChainAccount, ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { CrossChainMessageContext, CrossChainUpdateTransactionParams } from '../../types';
@@ -58,10 +54,6 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
 		const { params } = context;
-		validator.validate<CrossChainUpdateTransactionParams>(
-			crossChainUpdateTransactionParams,
-			context.params,
-		);
 
 		if (params.certificate.length === 0 && isInboxUpdateEmpty(params.inboxUpdate)) {
 			throw new Error(

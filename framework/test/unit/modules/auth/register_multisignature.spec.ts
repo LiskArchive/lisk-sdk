@@ -15,6 +15,7 @@
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 import * as testing from '../../../../src/testing';
 import { RegisterMultisignatureCommand } from '../../../../src/modules/auth/commands/register_multisignature';
 import { registerMultisignatureParamsSchema } from '../../../../src/modules/auth/schemas';
@@ -50,6 +51,117 @@ describe('Register Multisignature command', () => {
 			authModule.stores,
 			authModule.events,
 		);
+	});
+	describe('verify schema', () => {
+		it('should return error if params has numberOfSignatures > 64', () => {
+			expect(() =>
+				validator.validate(registerMultisignatureCommand.schema, {
+					numberOfSignatures: 100,
+					mandatoryKeys: [utils.getRandomBytes(32)],
+					optionalKeys: [utils.getRandomBytes(32)],
+					signatures: [utils.getRandomBytes(64)],
+				}),
+			).toThrow('must be <= 64');
+		});
+
+		it('should return error if params has numberOfSignatures < 1', () => {
+			expect(() =>
+				validator.validate(registerMultisignatureCommand.schema, {
+					numberOfSignatures: 0,
+					mandatoryKeys: [utils.getRandomBytes(32)],
+					optionalKeys: [utils.getRandomBytes(32)],
+					signatures: [utils.getRandomBytes(64)],
+				}),
+			).toThrow('must be >= 1');
+		});
+
+		it('should return error if params has more than 64 mandatory keys', () => {
+			expect(() =>
+				validator.validate(registerMultisignatureCommand.schema, {
+					numberOfSignatures: 2,
+					mandatoryKeys: [...Array(65).keys()].map(() => utils.getRandomBytes(32)),
+					optionalKeys: [],
+					signatures: [utils.getRandomBytes(64)],
+				}),
+			).toThrow('must NOT have more than 64 items');
+		});
+
+		it('should return error if params mandatory keys contains items with length bigger than 32 bytes', () => {
+			expect(() =>
+				validator.validate(registerMultisignatureCommand.schema, {
+					numberOfSignatures: 2,
+					mandatoryKeys: [utils.getRandomBytes(32), utils.getRandomBytes(64)],
+					optionalKeys: [],
+					signatures: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
+				}),
+			).toThrow("Property '.mandatoryKeys.1' maxLength exceeded");
+		});
+
+		it('should return error if params mandatory keys contains items with length smaller than 32 bytes', () => {
+			expect(() =>
+				validator.validate(registerMultisignatureCommand.schema, {
+					numberOfSignatures: 2,
+					mandatoryKeys: [utils.getRandomBytes(10), utils.getRandomBytes(32)],
+					optionalKeys: [],
+					signatures: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
+				}),
+			).toThrow('minLength not satisfied');
+		});
+
+		it('should return error if params optional keys contains items with length bigger than 32 bytes', () => {
+			expect(() =>
+				validator.validate(registerMultisignatureCommand.schema, {
+					numberOfSignatures: 1,
+					mandatoryKeys: [],
+					optionalKeys: [utils.getRandomBytes(64)],
+					signatures: [utils.getRandomBytes(64)],
+				}),
+			).toThrow('maxLength exceeded');
+		});
+
+		it('should return error if params optional keys contains items with length smaller than 32 bytes', () => {
+			expect(() =>
+				validator.validate(registerMultisignatureCommand.schema, {
+					numberOfSignatures: 1,
+					mandatoryKeys: [],
+					optionalKeys: [utils.getRandomBytes(31)],
+					signatures: [utils.getRandomBytes(64)],
+				}),
+			).toThrow('minLength not satisfied');
+		});
+
+		it('should return error if params has more than 64 optional keys', () => {
+			expect(() =>
+				validator.validate(registerMultisignatureCommand.schema, {
+					numberOfSignatures: 2,
+					mandatoryKeys: [],
+					optionalKeys: [...Array(65).keys()].map(() => utils.getRandomBytes(32)),
+					signatures: [utils.getRandomBytes(64)],
+				}),
+			).toThrow('must NOT have more than 64 items');
+		});
+
+		it('should return error when the number of optional and mandatory keys is more than 64', () => {
+			expect(() =>
+				validator.validate(registerMultisignatureCommand.schema, {
+					numberOfSignatures: 2,
+					optionalKeys: [...Array(65).keys()].map(() => utils.getRandomBytes(32)),
+					mandatoryKeys: [...Array(65).keys()].map(() => utils.getRandomBytes(32)),
+					signatures: [utils.getRandomBytes(64)],
+				}),
+			).toThrow('must NOT have more than 64 item');
+		});
+
+		it('should return error when the number of optional and mandatory keys is less than 1', () => {
+			expect(() =>
+				validator.validate(registerMultisignatureCommand.schema, {
+					optionalKeys: [],
+					mandatoryKeys: [],
+					numberOfSignatures: 0,
+					signatures: [utils.getRandomBytes(64)],
+				}),
+			).toThrow('must be >= 1');
+		});
 	});
 
 	describe('verify', () => {
@@ -138,166 +250,6 @@ describe('Register Multisignature command', () => {
 			const result = await registerMultisignatureCommand.verify(context);
 
 			expect(result.status).toBe(VerifyStatus.OK);
-		});
-
-		it('should return error if params has numberOfSignatures > 64', async () => {
-			const params = codec.encode(registerMultisignatureParamsSchema, {
-				...decodedParams,
-				numberOfSignatures: 100,
-			});
-
-			const context = testing
-				.createTransactionContext({
-					transaction: new Transaction({ ...transaction.toObject(), params }),
-					chainID,
-				})
-				.createCommandVerifyContext<RegisterMultisignatureParams>(
-					registerMultisignatureParamsSchema,
-				);
-
-			const result = await registerMultisignatureCommand.verify(context);
-
-			expect(result.error?.message).toInclude('must be <= 64');
-		});
-
-		it('should return error if params has numberOfSignatures < 1', async () => {
-			const params = codec.encode(registerMultisignatureParamsSchema, {
-				...decodedParams,
-				numberOfSignatures: 0,
-			});
-
-			const context = testing
-				.createTransactionContext({
-					transaction: new Transaction({ ...transaction.toObject(), params }),
-					chainID,
-				})
-				.createCommandVerifyContext<RegisterMultisignatureParams>(
-					registerMultisignatureParamsSchema,
-				);
-
-			const result = await registerMultisignatureCommand.verify(context);
-
-			expect(result.error?.message).toInclude('must be >= 1');
-		});
-
-		it('should return error if params has more than 64 mandatory keys', async () => {
-			const params = codec.encode(registerMultisignatureParamsSchema, {
-				...decodedParams,
-				mandatoryKeys: [...Array(65).keys()].map(() => utils.getRandomBytes(32)),
-			});
-
-			const context = testing
-				.createTransactionContext({
-					transaction: new Transaction({ ...transaction.toObject(), params }),
-					chainID,
-				})
-				.createCommandVerifyContext<RegisterMultisignatureParams>(
-					registerMultisignatureParamsSchema,
-				);
-
-			const result = await registerMultisignatureCommand.verify(context);
-
-			expect(result.error?.message).toInclude('must NOT have more than 64 items');
-		});
-
-		it('should return error if params has more than 64 optional keys', async () => {
-			const params = codec.encode(registerMultisignatureParamsSchema, {
-				...decodedParams,
-				optionalKeys: [...Array(65).keys()].map(() => utils.getRandomBytes(32)),
-			});
-
-			const context = testing
-				.createTransactionContext({
-					transaction: new Transaction({ ...transaction.toObject(), params }),
-					chainID,
-				})
-				.createCommandVerifyContext<RegisterMultisignatureParams>(
-					registerMultisignatureParamsSchema,
-				);
-
-			const result = await registerMultisignatureCommand.verify(context);
-
-			expect(result.error?.message).toInclude('must NOT have more than 64 items');
-		});
-
-		it('should return error if params mandatory keys contains items with length bigger than 32 bytes', async () => {
-			const params = codec.encode(registerMultisignatureParamsSchema, {
-				...decodedParams,
-				mandatoryKeys: [utils.getRandomBytes(32), utils.getRandomBytes(64)],
-			});
-
-			const context = testing
-				.createTransactionContext({
-					transaction: new Transaction({ ...transaction.toObject(), params }),
-					chainID,
-				})
-				.createCommandVerifyContext<RegisterMultisignatureParams>(
-					registerMultisignatureParamsSchema,
-				);
-
-			const result = await registerMultisignatureCommand.verify(context);
-
-			expect(result.error?.message).toInclude("Property '.mandatoryKeys.1' maxLength exceeded");
-		});
-
-		it('should return error if params mandatory keys contains items with length smaller than 32 bytes', async () => {
-			const params = codec.encode(registerMultisignatureParamsSchema, {
-				...decodedParams,
-				mandatoryKeys: [utils.getRandomBytes(10), utils.getRandomBytes(32)],
-			});
-
-			const context = testing
-				.createTransactionContext({
-					transaction: new Transaction({ ...transaction.toObject(), params }),
-					chainID,
-				})
-				.createCommandVerifyContext<RegisterMultisignatureParams>(
-					registerMultisignatureParamsSchema,
-				);
-
-			const result = await registerMultisignatureCommand.verify(context);
-
-			expect(result.error?.message).toInclude('minLength not satisfied');
-		});
-
-		it('should return error if params optional keys contains items with length bigger than 32 bytes', async () => {
-			const params = codec.encode(registerMultisignatureParamsSchema, {
-				...decodedParams,
-				optionalKeys: [utils.getRandomBytes(64)],
-			});
-
-			const context = testing
-				.createTransactionContext({
-					transaction: new Transaction({ ...transaction.toObject(), params }),
-					chainID,
-				})
-				.createCommandVerifyContext<RegisterMultisignatureParams>(
-					registerMultisignatureParamsSchema,
-				);
-
-			const result = await registerMultisignatureCommand.verify(context);
-
-			expect(result.error?.message).toInclude('maxLength exceeded');
-		});
-
-		it('should return error if params optional keys contains items with length smaller than 32 bytes', async () => {
-			const params = codec.encode(registerMultisignatureParamsSchema, {
-				...decodedParams,
-				optionalKeys: [utils.getRandomBytes(31)],
-			});
-
-			const context = testing
-				.createTransactionContext({
-					transaction: new Transaction({ ...transaction.toObject(), params }),
-					chainID,
-				})
-				.createCommandVerifyContext<RegisterMultisignatureParams>(
-					registerMultisignatureParamsSchema,
-				);
-
-			const result = await registerMultisignatureCommand.verify(context);
-
-			expect(result.error?.message).toInclude('minLength not satisfied');
 		});
 
 		it('should return error when there are duplicated mandatory keys', async () => {
@@ -447,117 +399,6 @@ describe('Register Multisignature command', () => {
 			const result = await registerMultisignatureCommand.verify(context);
 
 			expect(result.error?.message).toBe('Optional keys should be sorted lexicographically.');
-		});
-
-		it('should return error when both mandatory and optional keys sets are not sorted', async () => {
-			const params = codec.encode(registerMultisignatureParamsSchema, {
-				...decodedParams,
-				mandatoryKeys: [keyPairs[1].publicKey, keyPairs[0].publicKey],
-				optionalKeys: [keyPairs[3].publicKey, keyPairs[2].publicKey],
-			});
-
-			const context = testing
-				.createTransactionContext({
-					transaction: new Transaction({ ...transaction.toObject(), params }),
-					chainID,
-				})
-				.createCommandVerifyContext<RegisterMultisignatureParams>(
-					registerMultisignatureParamsSchema,
-				);
-
-			const result = await registerMultisignatureCommand.verify(context);
-
-			expect(result.error?.message).toBe('Mandatory keys should be sorted lexicographically.');
-		});
-
-		it('should return error when the number of both mandatory and optional keys is more than 64 each', async () => {
-			const params = codec.encode(registerMultisignatureParamsSchema, {
-				...decodedParams,
-				mandatoryKeys: [...Array(65).keys()].map(() => utils.getRandomBytes(32)),
-				optionalKeys: [...Array(65).keys()].map(() => utils.getRandomBytes(32)),
-			});
-
-			const context = testing
-				.createTransactionContext({
-					transaction: new Transaction({ ...transaction.toObject(), params }),
-					chainID,
-				})
-				.createCommandVerifyContext<RegisterMultisignatureParams>(
-					registerMultisignatureParamsSchema,
-				);
-
-			const result = await registerMultisignatureCommand.verify(context);
-
-			expect(result.error?.message).toInclude('must NOT have more than 64 item');
-		});
-
-		it('should return error when no keys are provided', async () => {
-			const params = codec.encode(registerMultisignatureParamsSchema, {
-				...decodedParams,
-				mandatoryKeys: [],
-				optionalKeys: [],
-			});
-
-			const context = testing
-				.createTransactionContext({
-					transaction: new Transaction({ ...transaction.toObject(), params }),
-					chainID,
-				})
-				.createCommandVerifyContext<RegisterMultisignatureParams>(
-					registerMultisignatureParamsSchema,
-				);
-
-			const result = await registerMultisignatureCommand.verify(context);
-
-			expect(result.error?.message).toBe(
-				'The numberOfSignatures is bigger than the count of Mandatory and Optional keys.',
-			);
-		});
-
-		it('should return error when no signatures are provided', async () => {
-			const params = codec.encode(registerMultisignatureParamsSchema, {
-				...decodedParams,
-				signatures: [],
-			});
-
-			const context = testing
-				.createTransactionContext({
-					transaction: new Transaction({ ...transaction.toObject(), params }),
-					chainID,
-				})
-				.createCommandVerifyContext<RegisterMultisignatureParams>(
-					registerMultisignatureParamsSchema,
-				);
-
-			const result = await registerMultisignatureCommand.verify(context);
-
-			expect(result.error?.message).toBe(
-				'The number of mandatory and optional keys should match the number of signatures',
-			);
-		});
-
-		it('should return error when registering an account with 2 mandatory keys, but only 1 signature is present', async () => {
-			const params = codec.encode(registerMultisignatureParamsSchema, {
-				...decodedParams,
-				optionalKeys: [],
-				numberOfSignatures: 2,
-				signatures: [utils.getRandomBytes(64)],
-			});
-
-			const context = testing
-				.createTransactionContext({
-					transaction: new Transaction({ ...transaction.toObject(), params }),
-					chainID,
-				})
-				.createCommandVerifyContext<RegisterMultisignatureParams>(
-					registerMultisignatureParamsSchema,
-				);
-
-			const result = await registerMultisignatureCommand.verify(context);
-
-			expect(result.error?.message).toBe(
-				'The number of mandatory and optional keys should match the number of signatures',
-			);
 		});
 	});
 

@@ -58,9 +58,17 @@ describe('SupportedTokensStore', () => {
 		});
 
 		it('should return true if tokenID is LSK', async () => {
+			await store.set(context, Buffer.from([1, 0, 0, 0]), { supportedTokenIDs: [] });
+
 			await expect(
 				store.isSupported(context, Buffer.from([1, 0, 0, 0, 0, 0, 0, 0])),
 			).resolves.toBeTrue();
+		});
+
+		it('should return false if token is from mainchain but not LSK', async () => {
+			await expect(
+				store.isSupported(context, Buffer.from([1, 0, 0, 0, 0, 0, 0, 1])),
+			).resolves.toBeFalse();
 		});
 
 		it('should return false if tokenID is LSK but different network', async () => {
@@ -130,6 +138,7 @@ describe('SupportedTokensStore', () => {
 
 	describe('supportChain', () => {
 		it('should not insert data if chainID is LSK', async () => {
+			await store.set(context, ALL_SUPPORTED_TOKENS_KEY, { supportedTokenIDs: [] });
 			await store.supportChain(context, Buffer.from([1, 0, 0, 0]));
 
 			await expect(store.has(context, Buffer.from([1, 0, 0, 0]))).resolves.toBeFalse();
@@ -212,6 +221,7 @@ describe('SupportedTokensStore', () => {
 
 	describe('supportToken', () => {
 		it('should not insert data if chainID is LSK', async () => {
+			await store.set(context, ALL_SUPPORTED_TOKENS_KEY, { supportedTokenIDs: [] });
 			await store.supportToken(context, Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]));
 
 			await expect(store.has(context, Buffer.from([1, 0, 0, 0]))).resolves.toBeFalse();

@@ -35,7 +35,7 @@ export const nodeInfoSchema = {
 			fieldNumber: 4,
 		},
 	},
-	required: ['chainID', 'networkVersion', 'nonce'],
+	required: ['chainID', 'networkVersion', 'nonce', 'advertiseAddress'],
 };
 
 export const peerInfoSchema = {

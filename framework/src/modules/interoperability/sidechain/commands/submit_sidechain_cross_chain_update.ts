@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { validator } from '@liskhq/lisk-validator';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -21,7 +20,6 @@ import {
 } from '../../../../state_machine';
 import { BaseCrossChainUpdateCommand } from '../../base_cross_chain_update_command';
 import { CONTEXT_STORE_KEY_CCM_PROCESSING } from '../../constants';
-import { crossChainUpdateTransactionParams } from '../../schemas';
 import { ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { CrossChainUpdateTransactionParams } from '../../types';
@@ -33,10 +31,6 @@ export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdate
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
 		const { params } = context;
-		validator.validate<CrossChainUpdateTransactionParams>(
-			crossChainUpdateTransactionParams,
-			context.params,
-		);
 
 		if (params.certificate.length === 0 && isInboxUpdateEmpty(params.inboxUpdate)) {
 			throw new Error(

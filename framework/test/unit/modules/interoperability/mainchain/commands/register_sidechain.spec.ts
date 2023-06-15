@@ -14,6 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { Transaction } from '@liskhq/lisk-chain';
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import * as testing from '../../../../../../src/testing';
 import { RegisterSidechainCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/register_sidechain';
@@ -180,6 +181,66 @@ describe('RegisterSidechainCommand', () => {
 		jest.spyOn(ownChainAccountSubstore, 'set');
 	});
 
+	describe('verify schema', () => {
+		it(`should return error if sidechainValidators array count exceeds ${MAX_NUM_VALIDATORS}`, () => {
+			expect(() =>
+				validator.validate(sidechainRegistrationCommand.schema, {
+					...transactionParams,
+					sidechainValidators: new Array(MAX_NUM_VALIDATORS + 2).fill({
+						blsKey: utils.getRandomBytes(48),
+						bftWeight: BigInt(1),
+					}),
+				}),
+			).toThrow(`must NOT have more than ${MAX_NUM_VALIDATORS} items`);
+		});
+
+		it('should return error if sidechainValidators array does not have any elements', () => {
+			expect(() =>
+				validator.validate(sidechainRegistrationCommand.schema, {
+					...transactionParams,
+					sidechainValidators: [],
+				}),
+			).toThrow('must NOT have fewer than 1 items');
+		});
+
+		it('should return error if bls key is below minimum length', () => {
+			expect(() =>
+				validator.validate(sidechainRegistrationCommand.schema, {
+					...transactionParams,
+					sidechainValidators: [
+						{
+							blsKey: utils.getRandomBytes(2),
+							bftWeight: BigInt(10),
+						},
+					],
+				}),
+			).toThrow("Property '.sidechainValidators.0.blsKey' minLength not satisfied");
+		});
+
+		it('should return error if bls key is above maximum length', () => {
+			expect(() =>
+				validator.validate(sidechainRegistrationCommand.schema, {
+					...transactionParams,
+					sidechainValidators: [
+						{
+							blsKey: utils.getRandomBytes(50),
+							bftWeight: BigInt(10),
+						},
+					],
+				}),
+			).toThrow("Property '.sidechainValidators.0.blsKey' maxLength exceeded");
+		});
+
+		it(`should return error if name is more than ${MAX_CHAIN_NAME_LENGTH} characters long`, () => {
+			expect(() =>
+				validator.validate(sidechainRegistrationCommand.schema, {
+					...transactionParams,
+					name: new Array(MAX_CHAIN_NAME_LENGTH + 2).join('a'),
+				}),
+			).toThrow(`Property '.name' must NOT have more than ${MAX_CHAIN_NAME_LENGTH} characters`);
+		});
+	});
+
 	describe('verify', () => {
 		beforeEach(() => {
 			verifyContext = testing
@@ -203,16 +264,6 @@ describe('RegisterSidechainCommand', () => {
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
 				`Invalid name property. It should contain only characters from the set [a-z0-9!@$&_.].`,
-			);
-		});
-
-		it(`should return error if name is more than ${MAX_CHAIN_NAME_LENGTH} characters long`, async () => {
-			verifyContext.params.name = new Array(MAX_CHAIN_NAME_LENGTH + 2).join('a');
-			const result = await sidechainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				`Property '.name' must NOT have more than ${MAX_CHAIN_NAME_LENGTH} characters`,
 			);
 		});
 
@@ -261,60 +312,6 @@ describe('RegisterSidechainCommand', () => {
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude('Chain ID cannot be the mainchain chain ID.');
-		});
-
-		it(`should return error if sidechainValidators array count exceeds ${MAX_NUM_VALIDATORS}`, async () => {
-			verifyContext.params.sidechainValidators = new Array(MAX_NUM_VALIDATORS + 2).fill({
-				blsKey: utils.getRandomBytes(48),
-				bftWeight: BigInt(1),
-			});
-			const result = await sidechainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				`must NOT have more than ${MAX_NUM_VALIDATORS} items`,
-			);
-		});
-
-		it('should return error if sidechainValidators array does not have any elements', async () => {
-			verifyContext.params.sidechainValidators = [];
-
-			const result = await sidechainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('must NOT have fewer than 1 items');
-		});
-
-		it('should return error if bls key is below minimum length', async () => {
-			verifyContext.params.sidechainValidators = [
-				{
-					blsKey: utils.getRandomBytes(2),
-					bftWeight: BigInt(10),
-				},
-			];
-
-			const result = await sidechainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				"Property '.sidechainValidators.0.blsKey' minLength not satisfied",
-			);
-		});
-
-		it('should return error if bls key is above maximum length', async () => {
-			verifyContext.params.sidechainValidators = [
-				{
-					blsKey: utils.getRandomBytes(50),
-					bftWeight: BigInt(10),
-				},
-			];
-
-			const result = await sidechainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				"Property '.sidechainValidators.0.blsKey' maxLength exceeded",
-			);
 		});
 
 		it('should return error if bls keys are not lexicographically ordered', async () => {

@@ -13,7 +13,6 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { validator } from '@liskhq/lisk-validator';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
@@ -67,15 +66,6 @@ export class RegisterSidechainCommand extends BaseInteroperabilityCommand<Mainch
 			transaction,
 			params: { sidechainValidators, sidechainCertificateThreshold, chainID, name },
 		} = context;
-
-		try {
-			validator.validate<SidechainRegistrationParams>(sidechainRegParams, context.params);
-		} catch (err) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: err as Error,
-			};
-		}
 
 		// 	The sidechain name property has to contain only characters from the set [a-z0-9!@$&_.]
 		if (!isValidName(name)) {

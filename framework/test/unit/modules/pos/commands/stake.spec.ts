@@ -15,7 +15,7 @@
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { address, utils } from '@liskhq/lisk-cryptography';
-import { validator as schemaValidator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { StakeCommand, VerifyStatus, PoSModule } from '../../../../../src';
 import {
 	MAX_NUMBER_PENDING_UNLOCKS,
@@ -196,85 +196,78 @@ describe('StakeCommand', () => {
 		});
 	});
 
+	describe('verify schema', () => {
+		it('should return errors when transaction.params.stakes does not include any stake', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					stakes: [],
+				}),
+			).toThrow('must NOT have fewer than 1 items');
+		});
+
+		it('should return errors when transaction.params.stakes includes more than 20 elements', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					stakes: Array(21)
+						.fill(0)
+						.map(() => ({
+							validatorAddress: utils.getRandomBytes(20),
+							amount: liskToBeddows(0),
+						})),
+				}),
+			).toThrow('must NOT have more than 20 items');
+		});
+
+		it('should return errors when transaction.params.stakes includes invalid address', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					stakes: Array(20)
+						.fill(0)
+						.map(() => ({
+							validatorAddress: utils.getRandomBytes(21),
+							amount: liskToBeddows(0),
+						})),
+				}),
+			).toThrow('address length invalid');
+		});
+
+		it('should return errors when transaction.params.stakes includes amount which is less than sint64 range', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					stakes: [
+						{
+							validatorAddress: utils.getRandomBytes(20),
+							amount: BigInt(-1) * BigInt(2) ** BigInt(63) - BigInt(1),
+						},
+					],
+				}),
+			).toThrow('should pass "dataType" keyword validation');
+		});
+
+		it('should return errors when transaction.params.stakes includes amount which is greater than sint64 range', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					stakes: [
+						{
+							validatorAddress: utils.getRandomBytes(20),
+							amount: BigInt(2) ** BigInt(63) + BigInt(1),
+						},
+					],
+				}),
+			).toThrow('should pass "dataType" keyword validation');
+		});
+	});
+
 	describe('verify', () => {
-		describe('schema validation', () => {
-			describe('when transaction.params.stakes does not include any stake', () => {
-				beforeEach(() => {
-					transactionParamsDecoded = {
-						stakes: [],
-					};
-					transaction.params = codec.encode(command.schema, transactionParamsDecoded);
-					context = createTransactionContext({
-						transaction,
-						stateStore,
-					}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
-				});
-
-				it('should return errors', async () => {
-					const verificationResult = await command.verify(context);
-					expect((verificationResult.error as any).value.message).toInclude(
-						'must NOT have fewer than 1 items',
-					);
-				});
-			});
-
-			describe('when transaction.params.stakes includes more than 20 elements', () => {
-				beforeEach(() => {
-					transactionParamsDecoded = {
-						stakes: Array(21)
-							.fill(0)
-							.map(() => ({
-								validatorAddress: utils.getRandomBytes(20),
-								amount: liskToBeddows(0),
-							})),
-					};
-					transaction.params = codec.encode(command.schema, transactionParamsDecoded);
-					context = createTransactionContext({
-						transaction,
-						stateStore,
-					}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
-				});
-
-				it('should return errors', async () => {
-					const verificationResult = await command.verify(context);
-					expect((verificationResult.error as any).value.message).toInclude(
-						'must NOT have more than 20 items',
-					);
-				});
-			});
-
-			describe('when transaction.params.stakes includes amount which is less than int64 range', () => {
-				it('should return errors', () => {
-					transactionParamsDecoded = {
-						stakes: [
-							{
-								validatorAddress: utils.getRandomBytes(20),
-								amount: BigInt(-1) * BigInt(2) ** BigInt(63) - BigInt(1),
-							},
-						],
-					};
-
-					expect(() => schemaValidator.validate(command.schema, transactionParamsDecoded)).toThrow(
-						'should pass "dataType" keyword validation',
-					);
-				});
-			});
-
-			describe('when transaction.params.stakes includes amount which is greater than int64 range', () => {
-				it('should return errors', () => {
-					transactionParamsDecoded = {
-						stakes: [
-							{
-								validatorAddress: utils.getRandomBytes(20),
-								amount: BigInt(2) ** BigInt(63) + BigInt(1),
-							},
-						],
-					};
-
-					expect(() => schemaValidator.validate(command.schema, transactionParamsDecoded)).toThrow(
-						'should pass "dataType" keyword validation',
-					);
-				});
+		beforeEach(() => {
+			transaction = new Transaction({
+				module: 'pos',
+				command: 'stake',
+				fee: BigInt(1500000),
+				nonce: BigInt(0),
+				params: Buffer.alloc(0),
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [],
 			});
 		});
 
@@ -771,7 +764,7 @@ describe('StakeCommand', () => {
 				const stakerData = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
 
 				expect(
-					stakerData.stakes.find(validator => validator.validatorAddress.equals(validatorAddress1)),
+					stakerData.stakes.find(val => val.validatorAddress.equals(validatorAddress1)),
 				).toEqual({
 					validatorAddress: validatorAddress1,
 					amount: validator1StakeAmount - downStakeAmount,
@@ -956,13 +949,13 @@ describe('StakeCommand', () => {
 				const validatorAddress = utils.getRandomBytes(20);
 				const selfStake = BigInt(2) + BigInt(defaultConfig.minWeightStandby);
 
-				const validator = {
+				const val = {
 					...validator1,
 					selfStake,
 					totalStake: BigInt(1) + BigInt(100) * BigInt(defaultConfig.minWeightStandby),
 				};
 				const expectedWeight = BigInt(10) * selfStake;
-				await validatorStore.set(createStoreGetter(stateStore), validatorAddress, validator);
+				await validatorStore.set(createStoreGetter(stateStore), validatorAddress, val);
 
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress, amount: positiveStakeValidator1 }],

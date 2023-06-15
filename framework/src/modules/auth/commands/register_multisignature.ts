@@ -14,7 +14,6 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
-import { validator } from '@liskhq/lisk-validator';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { BaseCommand } from '../..';
 import {
@@ -38,14 +37,6 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 		context: CommandVerifyContext<RegisterMultisignatureParams>,
 	): Promise<VerificationResult> {
 		const { mandatoryKeys, optionalKeys, numberOfSignatures, signatures } = context.params;
-		try {
-			validator.validate(registerMultisignatureParamsSchema, context.params);
-		} catch (err) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: err as Error,
-			};
-		}
 
 		if (!objectUtils.bufferArrayUniqueItems(mandatoryKeys)) {
 			return {

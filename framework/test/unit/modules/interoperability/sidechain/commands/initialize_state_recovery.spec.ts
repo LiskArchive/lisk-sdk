@@ -1,6 +1,20 @@
+/*
+ * Copyright © 2023 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 import { when } from 'jest-when';
 import { Transaction } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
 import {
@@ -149,6 +163,26 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 		jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(true);
 	});
 
+	describe('verify schema', () => {
+		it('should reject when chain id has invalid length', () => {
+			expect(() =>
+				validator.validate(stateRecoveryInitCommand.schema, {
+					...transactionParams,
+					chainID: Buffer.alloc(20, 255),
+				}),
+			).toThrow("Property '.chainID' maxLength exceeded");
+		});
+
+		it('should reject when siblingHashes contains bytes with invalid length', () => {
+			expect(() =>
+				validator.validate(stateRecoveryInitCommand.schema, {
+					...transactionParams,
+					siblingHashes: [Buffer.alloc(100, 255)],
+				}),
+			).toThrow("Property '.siblingHashes.0' maxLength exceeded");
+		});
+	});
+
 	describe('verify', () => {
 		let ownChainAccount: OwnChainAccount;
 		beforeEach(() => {
@@ -176,50 +210,6 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 			commandVerifyContext = transactionContext.createCommandVerifyContext<StateRecoveryInitParams>(
 				stateRecoveryInitParamsSchema,
 			);
-		});
-
-		it('should reject when chain id has invalid length', async () => {
-			await expect(
-				stateRecoveryInitCommand.verify(
-					createTransactionContext({
-						transaction: new Transaction({
-							module: MODULE_NAME_INTEROPERABILITY,
-							command: COMMAND_NAME_STATE_RECOVERY_INIT,
-							fee: BigInt(100000000),
-							nonce: BigInt(0),
-							params: codec.encode(stateRecoveryInitParamsSchema, {
-								...transactionParams,
-								chainID: Buffer.alloc(20, 255),
-							}),
-							senderPublicKey: utils.getRandomBytes(32),
-							signatures: [],
-						}),
-						stateStore,
-					}).createCommandVerifyContext(stateRecoveryInitParamsSchema),
-				),
-			).rejects.toThrow("Property '.chainID' maxLength exceeded");
-		});
-
-		it('should reject when siblingHashes contains bytes with invalid length', async () => {
-			await expect(
-				stateRecoveryInitCommand.verify(
-					createTransactionContext({
-						transaction: new Transaction({
-							module: MODULE_NAME_INTEROPERABILITY,
-							command: COMMAND_NAME_STATE_RECOVERY_INIT,
-							fee: BigInt(100000000),
-							nonce: BigInt(0),
-							params: codec.encode(stateRecoveryInitParamsSchema, {
-								...transactionParams,
-								siblingHashes: [Buffer.alloc(100, 255)],
-							}),
-							senderPublicKey: utils.getRandomBytes(32),
-							signatures: [],
-						}),
-						stateStore,
-					}).createCommandVerifyContext(stateRecoveryInitParamsSchema),
-				),
-			).rejects.toThrow("Property '.siblingHashes.0' maxLength exceeded");
 		});
 
 		it('should return status OK for valid params', async () => {

@@ -13,6 +13,7 @@
  */
 
 import { Transaction } from '@liskhq/lisk-chain';
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { utils, address } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../../../src/testing';
@@ -100,6 +101,16 @@ describe('Change Commission command', () => {
 
 		commissionChangedEvent = pos.events.get(CommissionChangeEvent);
 		jest.spyOn(commissionChangedEvent, 'log');
+	});
+
+	describe('verify schema', () => {
+		it('should not allow the commission to be set higher than 100%', () => {
+			expect(() =>
+				validator.validate(changeCommissionCommand.schema, {
+					newCommission: MAX_COMMISSION + 1,
+				}),
+			).toThrow(`must be <= ${MAX_COMMISSION}`);
+		});
 	});
 
 	describe('verify', () => {
@@ -221,25 +232,6 @@ describe('Change Commission command', () => {
 				`Invalid argument: Commission increase larger than ${MAX_COMMISSION_INCREASE_RATE}.`,
 			);
 		});
-
-		it('should not allow the commission to be set higher than 100%', async () => {
-			const newCommission = MAX_COMMISSION + 1;
-			const params = codec.encode(schema, { newCommission });
-			const transaction = new Transaction({ ...transactionTemplate, params });
-
-			const context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction,
-					header: createFakeBlockHeader({ height: COMMISSION_INCREASE_PERIOD + 1 }),
-				})
-				.createCommandVerifyContext<ChangeCommissionParams>(schema);
-
-			const result = await changeCommissionCommand.verify(context);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(`must be <= ${MAX_COMMISSION}`);
-		});
 	});
 
 	describe('execute', () => {
@@ -257,10 +249,10 @@ describe('Change Commission command', () => {
 				.createCommandExecuteContext<ChangeCommissionParams>(schema);
 
 			await changeCommissionCommand.execute(context);
-			const validator = await validatorStore.get(context, transaction.senderAddress);
+			const validatorAccount = await validatorStore.get(context, transaction.senderAddress);
 
-			expect(validator.commission).toBe(newCommission);
-			expect(validator.lastCommissionIncreaseHeight).toBe(COMMISSION_INCREASE_PERIOD + 1);
+			expect(validatorAccount.commission).toBe(newCommission);
+			expect(validatorAccount.lastCommissionIncreaseHeight).toBe(COMMISSION_INCREASE_PERIOD + 1);
 		});
 
 		it('should NOT update last commission increase height in the validator store after DECREASING commission', async () => {
@@ -277,10 +269,10 @@ describe('Change Commission command', () => {
 				.createCommandExecuteContext<ChangeCommissionParams>(schema);
 
 			await changeCommissionCommand.execute(context);
-			const validator = await validatorStore.get(context, transaction.senderAddress);
+			const validatorAccount = await validatorStore.get(context, transaction.senderAddress);
 
-			expect(validator.commission).toBe(newCommission);
-			expect(validator.lastCommissionIncreaseHeight).toBe(0);
+			expect(validatorAccount.commission).toBe(newCommission);
+			expect(validatorAccount.lastCommissionIncreaseHeight).toBe(0);
 		});
 
 		it('should update last commission increase height when new commission is equal to the previous commission', async () => {
@@ -297,10 +289,10 @@ describe('Change Commission command', () => {
 				.createCommandExecuteContext<ChangeCommissionParams>(schema);
 
 			await changeCommissionCommand.execute(context);
-			const validator = await validatorStore.get(context, transaction.senderAddress);
+			const validatorAccount = await validatorStore.get(context, transaction.senderAddress);
 
-			expect(validator.commission).toBe(newCommission);
-			expect(validator.lastCommissionIncreaseHeight).toBe(COMMISSION_INCREASE_PERIOD + 1);
+			expect(validatorAccount.commission).toBe(newCommission);
+			expect(validatorAccount.lastCommissionIncreaseHeight).toBe(COMMISSION_INCREASE_PERIOD + 1);
 		});
 
 		it('should emit event after changing commission', async () => {

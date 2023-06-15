@@ -196,8 +196,9 @@ export const randomModuleGeneratorConfig = {
 	properties: {
 		hashOnions: {
 			type: 'array',
-			required: ['address', 'hashOnion'],
 			items: {
+				type: 'object',
+				required: ['address', 'hashOnion'],
 				properties: {
 					address: {
 						type: 'string',
