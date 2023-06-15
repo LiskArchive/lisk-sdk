@@ -13,7 +13,7 @@
  */
 
 import { BaseEvent, EventQueuer } from '../../base_event';
-import { LENGTH_NFT_ID, LENGTH_CHAIN_ID, NftEventResult } from '../constants';
+import { LENGTH_NFT_ID, LENGTH_CHAIN_ID, NftEventResult, NftErrorEventResult } from '../constants';
 
 export interface TransferCrossChainEventData {
 	senderAddress: Buffer;
@@ -72,5 +72,18 @@ export class TransferCrossChainEvent extends BaseEvent<
 			data.recipientAddress,
 			data.receivingChainID,
 		]);
+	}
+
+	public error(
+		ctx: EventQueuer,
+		data: TransferCrossChainEventData,
+		result: NftErrorEventResult,
+	): void {
+		this.add(
+			ctx,
+			{ ...data, result },
+			[data.senderAddress, data.recipientAddress, data.receivingChainID],
+			true,
+		);
 	}
 }

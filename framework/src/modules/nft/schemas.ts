@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MAX_DATA_LENGTH } from '../token/constants';
 import {
 	LENGTH_CHAIN_ID,
 	LENGTH_NFT_ID,
 	LENGTH_TOKEN_ID,
 	MAX_LENGTH_MODULE_NAME,
 	MIN_LENGTH_MODULE_NAME,
+	MAX_LENGTH_DATA,
 } from './constants';
 
 export const transferParamsSchema = {
@@ -40,7 +40,7 @@ export const transferParamsSchema = {
 		data: {
 			dataType: 'string',
 			minLength: 0,
-			maxLength: MAX_DATA_LENGTH,
+			maxLength: MAX_LENGTH_DATA,
 			fieldNumber: 3,
 		},
 	},
@@ -90,7 +90,7 @@ export const crossChainNFTTransferMessageParamsSchema = {
 		},
 		data: {
 			dataType: 'string',
-			maxLength: MAX_DATA_LENGTH,
+			maxLength: MAX_LENGTH_DATA,
 			fieldNumber: 5,
 		},
 	},
@@ -137,7 +137,7 @@ export const crossChainTransferParamsSchema = {
 		data: {
 			dataType: 'string',
 			minLength: 0,
-			maxLength: MAX_DATA_LENGTH,
+			maxLength: MAX_LENGTH_DATA,
 			fieldNumber: 4,
 		},
 		messageFee: {

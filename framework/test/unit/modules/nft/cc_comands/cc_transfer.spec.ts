@@ -47,6 +47,9 @@ describe('CrossChain Transfer Command', () => {
 	const method = new NFTMethod(module.stores, module.events);
 	const internalMethod = new InternalMethod(module.stores, module.events);
 	const feeMethod = { payFee: jest.fn() };
+	const tokenMethod = {
+		getAvailableBalance: jest.fn(),
+	};
 	const checkEventResult = (
 		eventQueue: EventQueue,
 		length: number,
@@ -128,7 +131,7 @@ describe('CrossChain Transfer Command', () => {
 
 	beforeEach(async () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		method.addDependencies(interopMethod, feeMethod);
+		method.addDependencies(interopMethod, internalMethod, feeMethod, tokenMethod);
 		method.init(config);
 		internalMethod.addDependencies(method, interopMethod);
 		internalMethod.init(config);

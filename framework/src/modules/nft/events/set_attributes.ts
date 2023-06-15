@@ -13,7 +13,7 @@
  */
 
 import { BaseEvent, EventQueuer } from '../../base_event';
-import { LENGTH_NFT_ID, NftEventResult } from '../constants';
+import { LENGTH_NFT_ID, NftErrorEventResult, NftEventResult } from '../constants';
 
 export interface SetAttributesEventData {
 	nftID: Buffer;
@@ -49,5 +49,9 @@ export class SetAttributesEvent extends BaseEvent<
 
 	public log(ctx: EventQueuer, data: SetAttributesEventData): void {
 		this.add(ctx, { ...data, result: NftEventResult.RESULT_SUCCESSFUL }, [data.nftID]);
+	}
+
+	public error(ctx: EventQueuer, data: SetAttributesEventData, result: NftErrorEventResult): void {
+		this.add(ctx, { ...data, result }, [data.nftID], true);
 	}
 }

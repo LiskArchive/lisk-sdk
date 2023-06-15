@@ -39,18 +39,24 @@ import { EscrowStore } from './stores/escrow';
 import { NFTStore } from './stores/nft';
 import { SupportedNFTsStore } from './stores/supported_nfts';
 import { UserStore } from './stores/user';
-import { FeeMethod } from './types';
+import { FeeMethod, TokenMethod } from './types';
+import { CrossChainTransferCommand as CrossChainTransferMessageCommand } from './cc_commands/cc_transfer';
+import { TransferCrossChainCommand } from './commands/transfer_cross_chain';
+import { TransferCommand } from './commands/transfer';
 
 export class NFTModule extends BaseInteroperableModule {
 	public method = new NFTMethod(this.stores, this.events);
 	public endpoint = new NFTEndpoint(this.stores, this.offchainStores);
 	public crossChainMethod = new NFTInteroperableMethod(this.stores, this.events);
+	public crossChainTransferCommand = new CrossChainTransferMessageCommand(this.stores, this.events);
+	public crossChainCommand = [this.crossChainTransferCommand];
 
+	private readonly _transferCommand = new TransferCommand(this.stores, this.events);
+	private readonly _ccTransferCommand = new TransferCrossChainCommand(this.stores, this.events);
 	private readonly _internalMethod = new InternalMethod(this.stores, this.events);
-
 	private _interoperabilityMethod!: InteroperabilityMethod;
 
-	public commands = [];
+	public commands = [this._transferCommand, this._ccTransferCommand];
 
 	// eslint-disable-next-line no-useless-constructor
 	public constructor() {
@@ -89,9 +95,18 @@ export class NFTModule extends BaseInteroperableModule {
 		this.stores.register(SupportedNFTsStore, new SupportedNFTsStore(this.name, 4));
 	}
 
-	public addDependencies(interoperabilityMethod: InteroperabilityMethod, feeMethod: FeeMethod) {
+	public addDependencies(
+		interoperabilityMethod: InteroperabilityMethod,
+		feeMethod: FeeMethod,
+		tokenMethod: TokenMethod,
+	) {
 		this._interoperabilityMethod = interoperabilityMethod;
-		this.method.addDependencies(interoperabilityMethod, feeMethod);
+		this.method.addDependencies(
+			interoperabilityMethod,
+			this._internalMethod,
+			feeMethod,
+			tokenMethod,
+		);
 		this._internalMethod.addDependencies(this.method, this._interoperabilityMethod);
 		this.crossChainMethod.addDependencies(interoperabilityMethod);
 	}

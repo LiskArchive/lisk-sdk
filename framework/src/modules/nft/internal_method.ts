@@ -15,12 +15,11 @@
 import { codec } from '@liskhq/lisk-codec';
 import { BaseMethod } from '../base_method';
 import { NFTStore, NFTAttributes } from './stores/nft';
-import { InteroperabilityMethod, ModuleConfig } from './types';
+import { InteroperabilityMethod, ModuleConfig, NFTMethod } from './types';
 import { MethodContext } from '../../state_machine';
 import { TransferEvent } from './events/transfer';
 import { UserStore } from './stores/user';
 import { CROSS_CHAIN_COMMAND_NAME_TRANSFER, MODULE_NAME_NFT, NFT_NOT_LOCKED } from './constants';
-import { NFTMethod } from './method';
 import { EscrowStore } from './stores/escrow';
 import { TransferCrossChainEvent } from './events/transfer_cross_chain';
 import { CCM_STATUS_OK } from '../token/constants';
