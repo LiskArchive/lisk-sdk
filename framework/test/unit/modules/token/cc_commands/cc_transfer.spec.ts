@@ -14,6 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 import { TokenModule, TokenMethod, ccuParamsSchema } from '../../../../../src';
 import { CrossChainTransferCommand } from '../../../../../src/modules/token/cc_commands/cc_transfer';
 import {
@@ -141,56 +142,22 @@ describe('CrossChain Transfer Command', () => {
 		jest.spyOn(fakeLogger, 'debug');
 	});
 
-	describe('verify', () => {
-		it('should throw if validation fails', async () => {
-			// Arrange
-			const params = codec.encode(crossChainTransferMessageParams, {
-				tokenID: Buffer.from([0, 0, 0, 1]),
-				amount: defaultAmount,
-				senderAddress: defaultAddress,
-				recipientAddress: defaultAddress,
-				data: 'ddd',
-			});
-
-			const ccm = {
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-				module: tokenModule.name,
-				nonce: BigInt(1),
-				sendingChainID: Buffer.from([3, 0, 0, 0]),
-				receivingChainID: Buffer.from([0, 0, 0, 1]),
-				fee: BigInt(30000),
-				status: CCM_STATUS_OK,
-				params,
-			};
-
-			const ctx = {
-				ccm,
-				feeAddress: defaultAddress,
-				transaction: {
-					senderAddress: defaultAddress,
-					fee: BigInt(0),
-					params: defaultEncodedCCUParams,
-				},
-				header: {
-					height: 0,
-					timestamp: 0,
-				},
-				stateStore,
-				contextStore: new Map(),
-				getMethodContext: () => methodContext,
-				eventQueue: new EventQueue(0),
-				ccmSize: BigInt(30),
-				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-				logger: fakeLogger,
-				chainID: utils.getRandomBytes(32),
-			};
-
+	describe('verify schema', () => {
+		it('should throw if validation fails', () => {
 			// Act & Assert
-			await expect(command.verify(ctx)).rejects.toThrow(
-				`Property '.tokenID' minLength not satisfied`,
-			);
+			expect(() =>
+				validator.validate(command.schema, {
+					tokenID: Buffer.from([0, 0, 0, 1]),
+					amount: defaultAmount,
+					senderAddress: defaultAddress,
+					recipientAddress: defaultAddress,
+					data: 'ddd',
+				}),
+			).toThrow(`Property '.tokenID' minLength not satisfied`);
 		});
+	});
 
+	describe('verify', () => {
 		it('should throw if token is not native to the sending chain, receiving chain', async () => {
 			// Arrange
 			const params = codec.encode(crossChainTransferMessageParams, {

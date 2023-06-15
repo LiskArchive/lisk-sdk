@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -30,15 +29,15 @@ export class TerminateSidechainForLivenessCommand extends BaseInteroperabilityCo
 	public async verify(
 		context: CommandVerifyContext<TerminateSidechainForLivenessParams>,
 	): Promise<VerificationResult> {
-		const {
-			params: { chainID },
-		} = context;
-		const doesChainAccountExist = await this.stores.get(ChainAccountStore).has(context, chainID);
+		const { params } = context;
+		const doesChainAccountExist = await this.stores
+			.get(ChainAccountStore)
+			.has(context, params.chainID);
 
 		if (!doesChainAccountExist) {
 			throw new Error('Chain account does not exist.');
 		}
-		const chainAccount = await this.stores.get(ChainAccountStore).get(context, chainID);
+		const chainAccount = await this.stores.get(ChainAccountStore).get(context, params.chainID);
 
 		// The commands fails if the sidechain is already terminated.
 		if (chainAccount.status === ChainStatus.TERMINATED) {
@@ -48,7 +47,7 @@ export class TerminateSidechainForLivenessCommand extends BaseInteroperabilityCo
 		// Or if the sidechain did not violate the liveness condition.
 		const isChainAccountLive = await this.internalMethod.isLive(
 			context,
-			chainID,
+			params.chainID,
 			context.header.timestamp,
 		);
 

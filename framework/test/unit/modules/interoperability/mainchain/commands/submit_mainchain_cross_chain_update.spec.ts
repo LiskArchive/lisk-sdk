@@ -14,6 +14,7 @@
 /* eslint-disable max-classes-per-file */
 
 import { bls, utils } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import {
 	CommandExecuteContext,
@@ -42,6 +43,7 @@ import {
 	sidechainTerminatedCCMParamsSchema,
 } from '../../../../../../src/modules/interoperability/schemas';
 import {
+	BLS_PUBLIC_KEY_LENGTH,
 	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
@@ -283,6 +285,64 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 		jest.spyOn(bls, 'verifyWeightedAggSig').mockReturnValue(true);
 	});
 
+	describe('verify schema', () => {
+		it('should reject when sendingChainID has invalid length', () => {
+			expect(() =>
+				validator.validate(mainchainCCUUpdateCommand.schema, {
+					...params,
+					sendingChainID: Buffer.from([1, 0, 0, 0, 255]),
+				}),
+			).toThrow("'.sendingChainID' maxLength exceeded");
+		});
+
+		it('should reject when activeValidatorsUpdate.blsKeysUpdate has invalid length', () => {
+			expect(() =>
+				validator.validate(mainchainCCUUpdateCommand.schema, {
+					...params,
+					activeValidatorsUpdate: {
+						...params.activeValidatorsUpdate,
+						blsKeysUpdate: [
+							...params.activeValidatorsUpdate.blsKeysUpdate,
+							Buffer.alloc(BLS_PUBLIC_KEY_LENGTH + 1, 255),
+						],
+					},
+				}),
+			).toThrow("'.activeValidatorsUpdate.blsKeysUpdate.4' maxLength exceeded");
+		});
+
+		it('should reject when inboxUpdate.messageWitnessHashes has invalid length', () => {
+			expect(() =>
+				validator.validate(mainchainCCUUpdateCommand.schema, {
+					...params,
+					inboxUpdate: {
+						...params.inboxUpdate,
+						messageWitnessHashes: [
+							...params.inboxUpdate.messageWitnessHashes,
+							Buffer.alloc(HASH_LENGTH + 1, 255),
+						],
+					},
+				}),
+			).toThrow("'.inboxUpdate.messageWitnessHashes.1' maxLength exceeded");
+		});
+
+		it('should reject when inboxUpdate.outboxRootWitness.siblingHashes has invalid length', () => {
+			expect(() =>
+				validator.validate(mainchainCCUUpdateCommand.schema, {
+					...params,
+					inboxUpdate: {
+						...params.inboxUpdate,
+						outboxRootWitness: {
+							siblingHashes: [
+								...params.inboxUpdate.outboxRootWitness.siblingHashes,
+								Buffer.alloc(HASH_LENGTH + 1, 255),
+							],
+						},
+					},
+				}),
+			).toThrow("'.inboxUpdate.outboxRootWitness.siblingHashes.1' maxLength exceeded");
+		});
+	});
+
 	describe('verify', () => {
 		const activeValidators = [
 			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) },
@@ -309,15 +369,6 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			jest
 				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'isLive')
 				.mockResolvedValue(true);
-		});
-
-		it('should reject when ccu params validation fails', async () => {
-			await expect(
-				mainchainCCUUpdateCommand.verify({
-					...verifyContext,
-					params: { ...params, sendingChainID: 2 } as any,
-				}),
-			).rejects.toThrow('.sendingChainID');
 		});
 
 		it('should reject when certificate and inboxUpdate are empty', async () => {

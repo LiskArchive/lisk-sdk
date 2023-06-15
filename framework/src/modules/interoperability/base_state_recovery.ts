@@ -15,7 +15,6 @@
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
 import { utils } from '@liskhq/lisk-cryptography';
-import { validator } from '@liskhq/lisk-validator';
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
 import { EMPTY_BYTES, EMPTY_HASH } from './constants';
 import { stateRecoveryParamsSchema } from './schemas';
@@ -42,15 +41,6 @@ export class BaseStateRecoveryCommand<
 		const {
 			params: { chainID, storeEntries, siblingHashes, module },
 		} = context;
-
-		try {
-			validator.validate(this.schema, context.params);
-		} catch (err) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: err as Error,
-			};
-		}
 
 		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
 		const terminatedStateAccountExists = await terminatedStateSubstore.has(context, chainID);
