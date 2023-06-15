@@ -69,16 +69,16 @@ export const getRandomSeed = (
 	if (height < 0 || numberOfSeeds < 0) {
 		throw new Error('Height or number of seeds cannot be negative.');
 	}
-	const initRandomBuffer = utils.intToBuffer(height + numberOfSeeds, 4);
-	let randomSeed = utils.hash(initRandomBuffer).slice(0, SEED_LENGTH);
 
+    const initRandomBuffer = utils.intToBuffer(height + numberOfSeeds, 4);
+	const currentSeeds = [utils.hash(initRandomBuffer).slice(0, 16)];
 	let isInFuture = true;
-	const currentSeeds = [];
+
 	for (const validatorReveal of validatorsReveal) {
 		if (validatorReveal.height >= height) {
 			isInFuture = false;
-			if (validatorReveal.height < height + numberOfSeeds) {
-				currentSeeds.push(validatorReveal);
+			if (validatorReveal.height < height + numberOfSeeds && validatorReveal.valid) {
+				currentSeeds.push(validatorReveal.seedReveal);
 			}
 		}
 	}
@@ -87,13 +87,7 @@ export const getRandomSeed = (
 		throw new Error('Height is in the future.');
 	}
 
-	for (const seedObject of currentSeeds) {
-		if (seedObject.valid) {
-			randomSeed = bitwiseXOR([randomSeed, seedObject.seedReveal]);
-		}
-	}
-
-	return randomSeed;
+	return bitwiseXOR(currentSeeds);
 };
 
 export const bitwiseXOR = (bufferArray: Buffer[]): Buffer => {
