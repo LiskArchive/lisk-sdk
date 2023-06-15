@@ -51,7 +51,7 @@ export const bftParametersSchema = {
 			fieldNumber: 4,
 			items: {
 				type: 'object',
-				required: ['address', 'bftWeight', 'blsKey'],
+				required: ['address', 'bftWeight', 'generatorKey', 'blsKey'],
 				properties: {
 					address: {
 						dataType: 'bytes',

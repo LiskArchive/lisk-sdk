@@ -700,7 +700,7 @@ export const getPendingUnlocksRequestSchema = {
 export const getPendingUnlocksResponseSchema = {
 	$id: 'modules/pos/endpoint/getPendingUnlocksResponse',
 	type: 'object',
-	required: ['amount'],
+	required: ['pendingUnlocks'],
 	properties: {
 		pendingUnlocks: {
 			type: 'array',

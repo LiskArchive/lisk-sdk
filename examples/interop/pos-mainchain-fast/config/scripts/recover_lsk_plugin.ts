@@ -26,11 +26,13 @@ export const inclusionProofsSchema = {
 			fieldNumber: 1,
 			items: {
 				type: 'object',
+				required: ['height', 'inclusionProof', 'stateRoot', 'storeValue', 'storeKey'],
 				properties: {
 					height: { dataType: 'uint32', fieldNumber: 1 },
 					inclusionProof: {
 						type: 'object',
 						fieldNumber: 2,
+						required: ['siblingHashes', 'bitmap', 'key', 'value'],
 						properties: {
 							siblingHashes: {
 								type: 'array',
