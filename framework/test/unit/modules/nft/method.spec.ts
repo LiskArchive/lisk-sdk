@@ -32,7 +32,7 @@ import {
 	NFT_NOT_LOCKED,
 	NftEventResult,
 } from '../../../../src/modules/nft/constants';
-import { NFTStore } from '../../../../src/modules/nft/stores/nft';
+import { NFTStore, nftStoreSchema } from '../../../../src/modules/nft/stores/nft';
 import { UserStore } from '../../../../src/modules/nft/stores/user';
 import { DestroyEvent, DestroyEventData } from '../../../../src/modules/nft/events/destroy';
 import { SupportedNFTsStore } from '../../../../src/modules/nft/stores/supported_nfts';
@@ -62,6 +62,12 @@ import {
 	AllNFTsFromChainSupportRemovedEvent,
 	AllNFTsFromChainSupportRemovedEventData,
 } from '../../../../src/modules/nft/events/all_nfts_from_chain_support_removed';
+import { RecoverEvent, RecoverEventData } from '../../../../src/modules/nft/events/recover';
+import {
+	SetAttributesEvent,
+	SetAttributesEventData,
+} from '../../../../src/modules/nft/events/set_attributes';
+import { EscrowStore } from '../../../../src/modules/nft/stores/escrow';
 
 describe('NFTMethod', () => {
 	const module = new NFTModule();
@@ -1536,6 +1542,271 @@ describe('NFTMethod', () => {
 				},
 				null,
 			);
+		});
+	});
+
+	describe('recover', () => {
+		const terminatedChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+		const substorePrefix = Buffer.from('8000', 'hex');
+		const storeKey = utils.getRandomBytes(LENGTH_NFT_ID);
+		const storeValue = codec.encode(nftStoreSchema, {
+			owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
+			attributesArray: [],
+		});
+
+		it('should throw and emit error recover event if substore prefix is not valid', async () => {
+			await expect(
+				method.recover(methodContext, terminatedChainID, Buffer.alloc(2, 2), storeKey, storeValue),
+			).rejects.toThrow('Invalid inputs');
+			checkEventResult<RecoverEventData>(
+				methodContext.eventQueue,
+				1,
+				RecoverEvent,
+				0,
+				{
+					terminatedChainID,
+					nftID: storeKey,
+				},
+				NftEventResult.RESULT_RECOVER_FAIL_INVALID_INPUTS,
+			);
+		});
+
+		it('should throw and emit error recover event if store key length is not valid', async () => {
+			const newStoreKey = utils.getRandomBytes(LENGTH_NFT_ID + 1);
+
+			await expect(
+				method.recover(methodContext, terminatedChainID, substorePrefix, newStoreKey, storeValue),
+			).rejects.toThrow('Invalid inputs');
+			checkEventResult<RecoverEventData>(
+				methodContext.eventQueue,
+				1,
+				RecoverEvent,
+				0,
+				{
+					terminatedChainID,
+					nftID: newStoreKey,
+				},
+				NftEventResult.RESULT_RECOVER_FAIL_INVALID_INPUTS,
+			);
+		});
+
+		it('should throw and emit error recover event if store value is not valid', async () => {
+			await expect(
+				method.recover(
+					methodContext,
+					terminatedChainID,
+					substorePrefix,
+					storeKey,
+					Buffer.from('asfas'),
+				),
+			).rejects.toThrow('Invalid inputs');
+			checkEventResult<RecoverEventData>(
+				methodContext.eventQueue,
+				1,
+				RecoverEvent,
+				0,
+				{
+					terminatedChainID,
+					nftID: storeKey,
+				},
+				NftEventResult.RESULT_RECOVER_FAIL_INVALID_INPUTS,
+			);
+		});
+
+		it('should throw and emit error recover event if nft chain id is not same as own chain id', async () => {
+			await expect(
+				method.recover(methodContext, terminatedChainID, substorePrefix, storeKey, storeValue),
+			).rejects.toThrow('Recovery called by a foreign chain');
+			checkEventResult<RecoverEventData>(
+				methodContext.eventQueue,
+				1,
+				RecoverEvent,
+				0,
+				{
+					terminatedChainID,
+					nftID: storeKey,
+				},
+				NftEventResult.RESULT_INITIATED_BY_NONNATIVE_CHAIN,
+			);
+		});
+
+		it('should throw and emit error recover event if nft is not escrowed to terminated chain', async () => {
+			const newStoreKey = Buffer.alloc(LENGTH_NFT_ID, 1);
+			await nftStore.save(methodContext, newStoreKey, {
+				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
+				attributesArray: [],
+			});
+
+			await expect(
+				method.recover(methodContext, terminatedChainID, substorePrefix, newStoreKey, storeValue),
+			).rejects.toThrow('NFT was not escrowed to terminated chain');
+			checkEventResult<RecoverEventData>(
+				methodContext.eventQueue,
+				1,
+				RecoverEvent,
+				0,
+				{
+					terminatedChainID,
+					nftID: newStoreKey,
+				},
+				NftEventResult.RESULT_NFT_NOT_ESCROWED,
+			);
+		});
+
+		it('should throw and emit error recover event if store value owner length is invalid', async () => {
+			const newStoreKey = Buffer.alloc(LENGTH_NFT_ID, 1);
+			await nftStore.save(methodContext, newStoreKey, {
+				owner: terminatedChainID,
+				attributesArray: [],
+			});
+
+			await expect(
+				method.recover(methodContext, terminatedChainID, substorePrefix, newStoreKey, storeValue),
+			).rejects.toThrow('Invalid account information');
+			checkEventResult<RecoverEventData>(
+				methodContext.eventQueue,
+				1,
+				RecoverEvent,
+				0,
+				{
+					terminatedChainID,
+					nftID: newStoreKey,
+				},
+				NftEventResult.RESULT_INVALID_ACCOUNT,
+			);
+		});
+
+		it('should set appropriate values to stores and resolve with emitting success recover event if params are valid', async () => {
+			const newStoreKey = Buffer.alloc(LENGTH_NFT_ID, 1);
+			const storeValueOwner = utils.getRandomBytes(LENGTH_ADDRESS);
+			const newStoreValue = codec.encode(nftStoreSchema, {
+				owner: storeValueOwner,
+				attributesArray: [],
+			});
+			await nftStore.save(methodContext, newStoreKey, {
+				owner: terminatedChainID,
+				attributesArray: [],
+			});
+			jest.spyOn(internalMethod, 'createUserEntry');
+
+			await expect(
+				method.recover(
+					methodContext,
+					terminatedChainID,
+					substorePrefix,
+					newStoreKey,
+					newStoreValue,
+				),
+			).resolves.toBeUndefined();
+			checkEventResult<RecoverEventData>(
+				methodContext.eventQueue,
+				1,
+				RecoverEvent,
+				0,
+				{
+					terminatedChainID,
+					nftID: newStoreKey,
+				},
+				NftEventResult.RESULT_SUCCESSFUL,
+			);
+			const nftStoreData = await nftStore.get(methodContext, newStoreKey);
+			const escrowStore = module.stores.get(EscrowStore);
+			const escrowAccountExists = await escrowStore.has(
+				methodContext,
+				escrowStore.getKey(terminatedChainID, newStoreKey),
+			);
+			expect(nftStoreData.owner).toStrictEqual(storeValueOwner);
+			expect(nftStoreData.attributesArray).toEqual([]);
+			expect(internalMethod['createUserEntry']).toHaveBeenCalledWith(
+				methodContext,
+				storeValueOwner,
+				newStoreKey,
+			);
+			expect(escrowAccountExists).toBe(false);
+		});
+	});
+
+	describe('setAttributes', () => {
+		it('should throw and log LockEvent if NFT does not exist', async () => {
+			const attributes = Buffer.alloc(9);
+
+			await expect(
+				method.setAttributes(methodContext, module.name, nftID, attributes),
+			).rejects.toThrow('NFT substore entry does not exist');
+			checkEventResult<SetAttributesEventData>(
+				methodContext.eventQueue,
+				1,
+				SetAttributesEvent,
+				0,
+				{
+					nftID,
+					attributes,
+				},
+				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+			);
+		});
+
+		it('should set attributes if NFT exists and no entry exists for the given module', async () => {
+			const attributes = Buffer.alloc(7);
+
+			await expect(
+				method.setAttributes(methodContext, module.name, existingNFT.nftID, attributes),
+			).resolves.toBeUndefined();
+			checkEventResult<SetAttributesEventData>(
+				methodContext.eventQueue,
+				1,
+				SetAttributesEvent,
+				0,
+				{
+					nftID: existingNFT.nftID,
+					attributes,
+				},
+				NftEventResult.RESULT_SUCCESSFUL,
+			);
+			const storedAttributes = await method.getAttributes(
+				methodContext,
+				module.name,
+				existingNFT.nftID,
+			);
+			expect(storedAttributes).toStrictEqual(attributes);
+		});
+
+		it('should update attributes if NFT exists and an entry already exists for the given module', async () => {
+			const newAttributes = Buffer.alloc(12);
+			const attributesArray1 = [
+				{ module: 'customMod1', attributes: Buffer.alloc(5) },
+				{ module: 'customMod2', attributes: Buffer.alloc(2) },
+			];
+			await nftStore.save(methodContext, nftID, {
+				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
+				attributesArray: attributesArray1,
+			});
+
+			await expect(
+				method.setAttributes(
+					methodContext,
+					attributesArray1[0].module,
+					existingNFT.nftID,
+					newAttributes,
+				),
+			).resolves.toBeUndefined();
+			checkEventResult<SetAttributesEventData>(
+				methodContext.eventQueue,
+				1,
+				SetAttributesEvent,
+				0,
+				{
+					nftID: existingNFT.nftID,
+					attributes: newAttributes,
+				},
+				NftEventResult.RESULT_SUCCESSFUL,
+			);
+			const storedAttributes = await method.getAttributes(
+				methodContext,
+				attributesArray1[0].module,
+				existingNFT.nftID,
+			);
+			expect(storedAttributes).toStrictEqual(newAttributes);
 		});
 	});
 });
