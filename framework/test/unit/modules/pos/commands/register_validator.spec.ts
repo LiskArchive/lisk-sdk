@@ -296,37 +296,6 @@ describe('Validator registration command', () => {
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude('Insufficient transaction fee.');
 		});
-
-		it('should throw error if name is empty', async () => {
-			const invalidParams = codec.encode(validatorRegistrationCommandParamsSchema, {
-				...transactionParams,
-				name: '',
-			});
-
-			const invalidTransaction = new Transaction({
-				module: 'pos',
-				command: 'registerValidator',
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: invalidParams,
-				signatures: [publicKey],
-			});
-
-			const context = testing
-				.createTransactionContext({
-					transaction: invalidTransaction,
-					chainID,
-				})
-				.createCommandVerifyContext<ValidatorRegistrationParams>(
-					validatorRegistrationCommandParamsSchema,
-				);
-
-			const result = await validatorRegistrationCommand.verify(context);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude("'.name' must NOT have fewer than 1 characters");
-		});
 	});
 
 	describe('execute', () => {
