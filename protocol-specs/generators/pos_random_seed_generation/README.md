@@ -6,7 +6,7 @@ A set of test generators for random seed generation by LIP-0022
 
 #### Input
 
-- blocksPerRound: Number of rounds per blocks
+- blocksPerRound: Number of blocks per round
 - blocks: Blocks of at least last 3 rounds
 
 #### Output
