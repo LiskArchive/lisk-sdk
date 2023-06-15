@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as cryptography from '@liskhq/lisk-cryptography';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SEED_LENGTH } from './constants';
 import { ValidatorSeedReveal } from './stores/validator_reveals';
@@ -35,7 +34,7 @@ export const isSeedValidInput = (
 	if (!lastSeed) {
 		return false;
 	}
-	return lastSeed.seedReveal.equals(cryptography.utils.hash(seedReveal).slice(0, SEED_LENGTH));
+	return lastSeed.seedReveal.equals(utils.hash(seedReveal).slice(0, SEED_LENGTH));
 };
 
 export const getSeedRevealValidity = (
@@ -56,10 +55,7 @@ export const getSeedRevealValidity = (
 		}
 	}
 
-	return (
-		!lastSeed ||
-		lastSeed.seedReveal.equals(cryptography.utils.hash(seedReveal).slice(0, SEED_LENGTH))
-	);
+	return !lastSeed || lastSeed.seedReveal.equals(utils.hash(seedReveal).slice(0, SEED_LENGTH));
 };
 
 export const getRandomSeed = (
@@ -77,14 +73,14 @@ export const getRandomSeed = (
 		throw new Error('Number of seeds cannot be greater than 1000.');
 	}
 	const initRandomBuffer = utils.intToBuffer(height + numberOfSeeds, 4);
-	let randomSeed = cryptography.utils.hash(initRandomBuffer).slice(0, 16);
+	let randomSeed = utils.hash(initRandomBuffer).slice(0, SEED_LENGTH);
 
 	let isInFuture = true;
 	const currentSeeds = [];
 	for (const validatorReveal of validatorsReveal) {
 		if (validatorReveal.height >= height) {
 			isInFuture = false;
-			if (validatorReveal.height <= height + numberOfSeeds) {
+			if (validatorReveal.height < height + numberOfSeeds) {
 				currentSeeds.push(validatorReveal);
 			}
 		}

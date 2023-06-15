@@ -2,8 +2,8 @@
 	"title": "Forger selection with less than 103 validators",
 	"summary": "A set of validatorWeights which include less than 103 validators",
 	"config": "devnet",
-	"runner": "pos_forger_selection",
-	"handler": "pos_forger_selection_less_than_103",
+	"runner": "pos_generator_selection",
+	"handler": "pos_generator_selection_less_than_103",
 	"testCases": {
 		"input": {
 			"randomSeed1": "225723ef50cbad5e11dd4edf23da652c",

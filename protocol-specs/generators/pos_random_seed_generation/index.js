@@ -131,7 +131,7 @@ const isValidSeedReveal = (seedReveal, previousSeedReveal) =>
 const selectSeedReveal = ({ fromHeight, toHeight, blocksMap, blocksPerRound }) => {
 	const selected = [];
 
-	for (let i = fromHeight; i >= toHeight; i -= 1) {
+	for (let i = fromHeight - 1; i >= toHeight; i -= 1) {
 		const block = blocksMap[i];
 		const blockRound = calcRound(block.height, blocksPerRound);
 
