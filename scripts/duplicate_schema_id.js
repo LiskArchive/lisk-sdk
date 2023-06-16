@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-function extractSchemaIdsFromFile(filePath) {
+const extractSchemaIdsFromFile = filePath => {
 	const content = fs.readFileSync(filePath, 'utf-8');
 	const schemaIdRegex = /\$id:\s*['"]([^'"\s,]+)['"]/g;
 	let match;
@@ -13,9 +13,9 @@ function extractSchemaIdsFromFile(filePath) {
 		ids.push({ id: match[1], file: filePath, line: line });
 	}
 	return ids;
-}
+};
 
-function checkDuplicateIds(directoryPath) {
+const getDuplicateIDs = directoryPath => {
 	const output = execSync('git ls-files **/*.ts', { cwd: directoryPath }).toString();
 	const filePaths = output.split('\n').map(line => path.join(directoryPath, line));
 	const allIds = [];
@@ -52,20 +52,23 @@ function checkDuplicateIds(directoryPath) {
 			allIds.push({ id, file, line });
 		}
 	}
+	return duplicateIds;
+};
 
-	if (duplicateIds.length > 0) {
-		console.log(`${duplicateIds.length} duplicate schema ids found:`);
-		for (const { id, occurrences } of duplicateIds) {
-			console.log(`$id: ${id}`);
-			for (const { file, line } of occurrences) {
-				console.log(`  File: ${file}:${line}`);
-			}
-		}
-		process.exit(1);
+const logAndExitDuplicateIDs = duplicateIDs => {
+	if (duplicateIDs.length === 0) {
+		console.log('No duplicate schema ids found');
+		process.exit(0);
 	}
-	console.log('No duplicate schema ids found');
-	process.exit(0);
-}
+	console.log(`${duplicateIDs.length} duplicate schema ids found:`);
+	for (const { id, occurrences } of duplicateIDs) {
+		console.log(`$id: ${id}`);
+		for (const { file, line } of occurrences) {
+			console.log(`  File: ${file}:${line}`);
+		}
+	}
+	process.exit(1);
+};
 
 const [, , arg2] = process.argv;
 if (!arg2) {
@@ -77,4 +80,4 @@ const searchPath = path.resolve(arg2);
 console.log(`Searching: ${searchPath}`);
 
 // Run the check
-checkDuplicateIds(searchPath); // Replace with your directory path
+logAndExitDuplicateIDs(getDuplicateIDs(searchPath));
