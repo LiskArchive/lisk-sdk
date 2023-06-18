@@ -19,43 +19,23 @@ import { ValidatorSeedReveal } from './stores/validator_reveals';
 export const isSeedValidInput = (
 	generatorAddress: Buffer,
 	seedReveal: Buffer,
-	validatorsReveal: ValidatorSeedReveal[],
+	validatorReveals: ValidatorSeedReveal[],
+	previousSeedRequired = true,
 ) => {
 	let lastSeed: ValidatorSeedReveal | undefined;
 	// by construction, validatorsReveal is order by height asc. Therefore, looping from end will give highest value.
-	for (let i = validatorsReveal.length - 1; i >= 0; i -= 1) {
-		const validatorReveal = validatorsReveal[i];
+	for (let i = validatorReveals.length - 1; i >= 0; i -= 1) {
+		const validatorReveal = validatorReveals[i];
 		if (validatorReveal.generatorAddress.equals(generatorAddress)) {
 			lastSeed = validatorReveal;
 			break;
 		}
 	}
-	// if the last seed is does not exist, seed reveal is invalid for use
+
 	if (!lastSeed) {
-		return false;
+		return !previousSeedRequired;
 	}
 	return lastSeed.seedReveal.equals(utils.hash(seedReveal).slice(0, SEED_LENGTH));
-};
-
-export const getSeedRevealValidity = (
-	generatorAddress: Buffer,
-	seedReveal: Buffer,
-	validatorsReveal: ValidatorSeedReveal[],
-) => {
-	let lastSeed: ValidatorSeedReveal | undefined;
-	let maxheight = 0;
-	for (const validatorReveal of validatorsReveal) {
-		if (
-			validatorReveal.generatorAddress.equals(generatorAddress) &&
-			validatorReveal.height > maxheight
-		) {
-			maxheight = validatorReveal.height;
-
-			lastSeed = validatorReveal;
-		}
-	}
-
-	return !lastSeed || lastSeed.seedReveal.equals(utils.hash(seedReveal).slice(0, SEED_LENGTH));
 };
 
 export const getRandomSeed = (
