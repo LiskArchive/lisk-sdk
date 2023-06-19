@@ -47,8 +47,8 @@ describe('prompt', () => {
 			const transformedAsset = transformAsset(registerMultisignatureParamsSchema, {
 				numberOfSignatures: '4',
 				mandatoryKeys: 'a,b',
-				optionalKeys: 'c,d',
-				signatures: '',
+				optionalKeys: '',
+				signatures: 'c,d',
 			});
 			expect(questions).toEqual([
 				{
@@ -75,8 +75,8 @@ describe('prompt', () => {
 			expect(transformedAsset).toEqual({
 				numberOfSignatures: 4,
 				mandatoryKeys: ['a', 'b'],
-				optionalKeys: ['c', 'd'],
-				signatures: [''],
+				optionalKeys: [],
+				signatures: ['c', 'd'],
 			});
 		});
 	});
