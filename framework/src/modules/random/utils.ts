@@ -70,7 +70,7 @@ export const getRandomSeed = (
 		throw new Error('Height or number of seeds cannot be negative.');
 	}
 
-    const initRandomBuffer = utils.intToBuffer(height + numberOfSeeds, 4);
+	const initRandomBuffer = utils.intToBuffer(height + numberOfSeeds, 4);
 	const currentSeeds = [utils.hash(initRandomBuffer).slice(0, 16)];
 	let isInFuture = true;
 
