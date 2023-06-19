@@ -936,6 +936,14 @@ export class NFTMethod extends BaseMethod {
 
 		const escrowStore = this.stores.get(EscrowStore);
 		nftData.owner = storeValueOwner;
+		const storedAttributes = nftData.attributesArray;
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		const receivedAttributes = decodedValue!.attributesArray;
+		nftData.attributesArray = this._internalMethod.getNewAttributes(
+			nftID,
+			storedAttributes,
+			receivedAttributes,
+		);
 		await nftStore.save(methodContext, nftID, nftData);
 		await this._internalMethod.createUserEntry(methodContext, nftData.owner, nftID);
 		await escrowStore.del(methodContext, escrowStore.getKey(terminatedChainID, nftID));
