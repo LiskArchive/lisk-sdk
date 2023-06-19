@@ -25,3 +25,26 @@ export enum NETWORK {
 export const DEFAULT_NETWORK = NETWORK.DEFAULT;
 export const RELEASE_URL = 'https://downloads.lisk.com/lisk';
 export const OWNER_READ_WRITE = 0o600;
+
+export const plainGeneratorKeysSchema = {
+	$id: '/commander/plainGeneratorKeys',
+	type: 'object',
+	properties: {
+		generatorKey: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		generatorPrivateKey: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+		blsKey: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		blsPrivateKey: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+	},
+};

@@ -24,10 +24,10 @@ import {
 	TokenEventResult,
 	MAX_DATA_LENGTH,
 } from './constants';
-import { crossChainTransferMessageParams, UserStoreData } from './schemas';
+import { crossChainTransferMessageParams } from './schemas';
 import { InteroperabilityMethod, ModuleConfig } from './types';
 import { splitTokenID } from './utils';
-import { UserStore } from './stores/user';
+import { UserStore, UserStoreData } from './stores/user';
 import { EscrowStore } from './stores/escrow';
 import { SupplyStore, SupplyStoreData } from './stores/supply';
 import { NamedRegistry } from '../named_registry';

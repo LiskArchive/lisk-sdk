@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ADDRESS_LENGTH, MAX_HASH_COMPUTATION, SEED_LENGTH } from './constants';
+import { MAX_HASH_COMPUTATION, SEED_LENGTH } from './constants';
 import { UsedHashOnion } from './stores/used_hash_onions';
 
 interface AddressRequest {
@@ -225,44 +225,6 @@ export const randomModuleGeneratorConfig = {
 	},
 };
 
-export const seedRevealSchema = {
-	$id: '/modules/random/seedReveal',
-	type: 'object',
-	required: ['validatorReveals'],
-	properties: {
-		validatorReveals: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['generatorAddress', 'seedReveal', 'height', 'valid'],
-				properties: {
-					generatorAddress: {
-						dataType: 'bytes',
-						minLength: ADDRESS_LENGTH,
-						maxLength: ADDRESS_LENGTH,
-						fieldNumber: 1,
-					},
-					seedReveal: {
-						dataType: 'bytes',
-						minLength: SEED_LENGTH,
-						maxLength: SEED_LENGTH,
-						fieldNumber: 2,
-					},
-					height: {
-						dataType: 'uint32',
-						fieldNumber: 3,
-					},
-					valid: {
-						dataType: 'boolean',
-						fieldNumber: 4,
-					},
-				},
-			},
-		},
-	},
-};
-
 export const blockHeaderAssetRandomModule = {
 	$id: '/modules/random/block/header/asset',
 	type: 'object',
@@ -305,38 +267,6 @@ export const registeredHashOnionsStoreSchema = {
 	},
 };
 
-export const usedHashOnionsStoreSchema = {
-	title: 'Used hash onion',
-	$id: '/node/forger/usedHashOnion',
-	type: 'object',
-	required: ['usedHashOnions'],
-	properties: {
-		usedHashOnions: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['address', 'count', 'height'],
-				properties: {
-					address: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-						format: 'lisk32',
-					},
-					count: {
-						dataType: 'uint32',
-						fieldNumber: 2,
-					},
-					height: {
-						dataType: 'uint32',
-						fieldNumber: 3,
-					},
-				},
-			},
-		},
-	},
-};
-
 export const isSeedRevealValidRequestSchema = {
 	$id: '/modules/random/endpoint/isSeedRevealRequest',
 	type: 'object',
@@ -354,7 +284,7 @@ export const isSeedRevealValidRequestSchema = {
 };
 
 export const isSeedRevealValidResponseSchema = {
-	$id: '/modules/random/endpoint/isSeedRevealRequest',
+	$id: '/modules/random/endpoint/isSeedRevealResponse',
 	type: 'object',
 	required: ['valid'],
 	properties: {

@@ -157,7 +157,7 @@ export const metadata: ModuleMetadata[] = [
 			{
 				name: 'validatorStaked',
 				data: {
-					$id: '/pos/events/validatorStakedData',
+					$id: '/test/pos/events/validatorStakedData',
 					type: 'object',
 					required: ['senderAddress', 'validatorAddress', 'amount', 'result'],
 					properties: {
