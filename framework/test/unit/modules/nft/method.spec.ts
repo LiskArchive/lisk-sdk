@@ -1727,7 +1727,7 @@ describe('NFTMethod', () => {
 	});
 
 	describe('setAttributes', () => {
-		it('should throw and log LockEvent if NFT does not exist', async () => {
+		it('should throw and log SetAttributesEvent if NFT does not exist', async () => {
 			const attributes = Buffer.alloc(9);
 
 			await expect(
