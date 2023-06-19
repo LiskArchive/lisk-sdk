@@ -35,6 +35,22 @@ import { TransferCrossChainEvent } from './events/transfer_cross_chain';
 import { UnlockEvent } from './events/unlock';
 import { InternalMethod } from './internal_method';
 import { NFTMethod } from './method';
+import {
+	collectionExistsRequestSchema,
+	collectionExistsResponseSchema,
+	getCollectionIDsRequestSchema,
+	getCollectionIDsResponseSchema,
+	getEscrowedNFTIDsRequestSchema,
+	getEscrowedNFTIDsResponseSchema,
+	getNFTRequestSchema,
+	getNFTResponseSchema,
+	getNFTsRequestSchema,
+	getNFTsResponseSchema,
+	hasNFTRequestSchema,
+	hasNFTResponseSchema,
+	isNFTSupportedRequestSchema,
+	isNFTSupportedResponseSchema,
+} from './schemas';
 import { EscrowStore } from './stores/escrow';
 import { NFTStore } from './stores/nft';
 import { SupportedNFTsStore } from './stores/supported_nfts';
@@ -114,7 +130,43 @@ export class NFTModule extends BaseInteroperableModule {
 	public metadata(): ModuleMetadata {
 		return {
 			...this.baseMetadata(),
-			endpoints: [],
+			endpoints: [
+				{
+					name: this.endpoint.collectionExists.name,
+					request: collectionExistsRequestSchema,
+					response: collectionExistsResponseSchema,
+				},
+				{
+					name: this.endpoint.getCollectionIDs.name,
+					request: getCollectionIDsRequestSchema,
+					response: getCollectionIDsResponseSchema,
+				},
+				{
+					name: this.endpoint.getEscrowedNFTIDs.name,
+					request: getEscrowedNFTIDsRequestSchema,
+					response: getEscrowedNFTIDsResponseSchema,
+				},
+				{
+					name: this.endpoint.getNFT.name,
+					request: getNFTRequestSchema,
+					response: getNFTResponseSchema,
+				},
+				{
+					name: this.endpoint.getNFTs.name,
+					request: getNFTsRequestSchema,
+					response: getNFTsResponseSchema,
+				},
+				{
+					name: this.endpoint.hasNFT.name,
+					request: hasNFTRequestSchema,
+					response: hasNFTResponseSchema,
+				},
+				{
+					name: this.endpoint.isNFTSupported.name,
+					request: isNFTSupportedRequestSchema,
+					response: isNFTSupportedResponseSchema,
+				},
+			],
 			assets: [],
 		};
 	}

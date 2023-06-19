@@ -14,6 +14,7 @@
 
 import {
 	LENGTH_CHAIN_ID,
+	LENGTH_COLLECTION_ID,
 	LENGTH_NFT_ID,
 	LENGTH_TOKEN_ID,
 	MAX_LENGTH_MODULE_NAME,
@@ -153,6 +154,236 @@ export const crossChainTransferParamsSchema = {
 		includeAttributes: {
 			dataType: 'boolean',
 			fieldNumber: 7,
+		},
+	},
+};
+
+export const getNFTsRequestSchema = {
+	$id: '/nft/endpoint/getNFTsRequest',
+	type: 'object',
+	properties: {
+		address: {
+			type: 'string',
+			format: 'lisk32',
+		},
+	},
+	required: ['address'],
+};
+
+export const getNFTsResponseSchema = {
+	$id: '/nft/endpoint/getNFTsResponse',
+	type: 'object',
+	properties: {
+		nfts: {
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					id: {
+						type: 'string',
+						format: 'hex',
+					},
+					attributesArray: {
+						type: 'array',
+						items: {
+							type: 'object',
+							properties: {
+								module: {
+									type: 'string',
+								},
+								attributes: {
+									type: 'string',
+									format: 'hex',
+								},
+							},
+						},
+					},
+					lockingModule: {
+						type: 'string',
+					},
+				},
+			},
+		},
+	},
+};
+
+export const hasNFTRequestSchema = {
+	$id: '/nft/endpoint/hasNFTRequest',
+	type: 'object',
+	properties: {
+		address: {
+			type: 'string',
+			format: 'lisk32',
+		},
+		id: {
+			type: 'string',
+			format: 'hex',
+			minLength: LENGTH_NFT_ID * 2,
+			maxLength: LENGTH_NFT_ID * 2,
+		},
+	},
+	required: ['address', 'id'],
+};
+
+export const hasNFTResponseSchema = {
+	$id: '/nft/endpoint/hasNFTResponse',
+	type: 'object',
+	properties: {
+		hasNFT: {
+			type: 'boolean',
+		},
+	},
+};
+
+export const getNFTRequestSchema = {
+	$id: '/nft/endpoint/getNFTRequest',
+	type: 'object',
+	properties: {
+		id: {
+			type: 'string',
+			format: 'hex',
+			minLength: LENGTH_NFT_ID * 2,
+			maxLength: LENGTH_NFT_ID * 2,
+		},
+	},
+	required: ['id'],
+};
+
+export const getNFTResponseSchema = {
+	$id: '/nft/endpoint/getNFTResponse',
+	type: 'object',
+	properties: {
+		owner: {
+			type: 'string',
+			format: 'hex',
+		},
+		attributesArray: {
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					module: {
+						type: 'string',
+					},
+					attributes: {
+						type: 'string',
+						format: 'hex',
+					},
+				},
+			},
+		},
+		lockingModule: {
+			type: 'string',
+		},
+	},
+};
+
+export const getCollectionIDsRequestSchema = {
+	$id: '/nft/endpoint/getCollectionIDsRequest',
+	type: 'object',
+	properties: {
+		chainID: {
+			type: 'string',
+			format: 'hex',
+			minLength: LENGTH_CHAIN_ID * 2,
+			maxLength: LENGTH_CHAIN_ID * 2,
+		},
+	},
+	required: ['chainID'],
+};
+
+export const getCollectionIDsResponseSchema = {
+	$id: '/nft/endpoint/getCollectionIDsRespone',
+	type: 'object',
+	properties: {
+		collectionIDs: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'hex',
+			},
+		},
+	},
+};
+
+export const collectionExistsRequestSchema = {
+	$id: '/nft/endpoint/collectionExistsRequest',
+	type: 'object',
+	properties: {
+		chainID: {
+			type: 'string',
+			format: 'hex',
+			minLength: LENGTH_CHAIN_ID * 2,
+			maxLength: LENGTH_CHAIN_ID * 2,
+		},
+		collectionID: {
+			type: 'string',
+			format: 'hex',
+			minLength: LENGTH_COLLECTION_ID * 2,
+			maxLength: LENGTH_COLLECTION_ID * 2,
+		},
+	},
+	required: ['chainID', 'collectionID'],
+};
+
+export const collectionExistsResponseSchema = {
+	$id: '/nft/endpoint/collectionExistsResponse',
+	type: 'object',
+	properties: {
+		collectionExists: {
+			type: 'boolean',
+		},
+	},
+};
+
+export const getEscrowedNFTIDsRequestSchema = {
+	$id: '/nft/endpoint/getEscrowedNFTIDsRequest',
+	type: 'object',
+	properties: {
+		chainID: {
+			type: 'string',
+			format: 'hex',
+			minLength: LENGTH_CHAIN_ID * 2,
+			maxLength: LENGTH_CHAIN_ID * 2,
+		},
+	},
+	required: ['chainID'],
+};
+
+export const getEscrowedNFTIDsResponseSchema = {
+	$id: '/nft/endpoint/getEscrowedNFTIDsResponse',
+	type: 'object',
+	properties: {
+		escrowedNFTIDs: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'hex',
+			},
+		},
+	},
+};
+
+export const isNFTSupportedRequestSchema = {
+	$id: '/nft/endpoint/isNFTSupportedRequest',
+	type: 'object',
+	properties: {
+		id: {
+			type: 'string',
+			format: 'hex',
+			minLength: LENGTH_NFT_ID * 2,
+			maxLength: LENGTH_NFT_ID * 2,
+		},
+	},
+	required: ['id'],
+};
+
+export const isNFTSupportedResponseSchema = {
+	$id: '/nft/endpoint/isNFTSupportedResponse',
+	type: 'object',
+	properties: {
+		isNFTSupported: {
+			type: 'boolean',
 		},
 	},
 };
