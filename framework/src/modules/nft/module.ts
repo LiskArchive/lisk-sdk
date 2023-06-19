@@ -12,6 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { dataStructures } from '@liskhq/lisk-utils';
+import { codec } from '@liskhq/lisk-codec';
+import { validator } from '@liskhq/lisk-validator';
 import { GenesisBlockExecuteContext } from '../../state_machine';
 import { ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { BaseInteroperableModule } from '../interoperability';
@@ -50,15 +53,17 @@ import {
 	hasNFTResponseSchema,
 	isNFTSupportedRequestSchema,
 	isNFTSupportedResponseSchema,
+	genesisNFTStoreSchema,
 } from './schemas';
 import { EscrowStore } from './stores/escrow';
 import { NFTStore } from './stores/nft';
 import { SupportedNFTsStore } from './stores/supported_nfts';
 import { UserStore } from './stores/user';
-import { FeeMethod, TokenMethod } from './types';
+import { FeeMethod, GenesisNFTStore, TokenMethod } from './types';
 import { CrossChainTransferCommand as CrossChainTransferMessageCommand } from './cc_commands/cc_transfer';
 import { TransferCrossChainCommand } from './commands/transfer_cross_chain';
 import { TransferCommand } from './commands/transfer';
+import { ALL_SUPPORTED_NFTS_KEY, LENGTH_ADDRESS, LENGTH_CHAIN_ID } from './constants';
 
 export class NFTModule extends BaseInteroperableModule {
 	public method = new NFTMethod(this.stores, this.events);
@@ -174,6 +179,149 @@ export class NFTModule extends BaseInteroperableModule {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async init(_args: ModuleInitArgs) {}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public async initGenesisState(_context: GenesisBlockExecuteContext): Promise<void> {}
+	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
+		const assetBytes = context.assets.getAsset(this.name);
+
+		if (!assetBytes) {
+			return;
+		}
+
+		const genesisStore = codec.decode<GenesisNFTStore>(genesisNFTStoreSchema, assetBytes);
+		validator.validate(genesisNFTStoreSchema, genesisStore);
+
+		const nftIDKeySet = new dataStructures.BufferSet();
+
+		for (const nft of genesisStore.nftSubstore) {
+			if (![LENGTH_CHAIN_ID, LENGTH_ADDRESS].includes(nft.owner.length)) {
+				throw new Error(`nftID ${nft.nftID.toString('hex')} has invalid owner`);
+			}
+			if (nftIDKeySet.has(nft.nftID)) {
+				throw new Error(`nftID ${nft.nftID.toString('hex')} duplicated`);
+			}
+
+			nftIDKeySet.add(nft.nftID);
+		}
+
+		for (const nft of genesisStore.nftSubstore) {
+			const ownerUsers = genesisStore.userSubstore.filter(userEntry =>
+				userEntry.nftID.equals(nft.nftID),
+			);
+			const ownerChains = genesisStore.escrowSubstore.filter(escrowEntry =>
+				escrowEntry.nftID.equals(nft.nftID),
+			);
+
+			if (ownerUsers.length === 0 && ownerChains.length === 0) {
+				throw new Error(
+					`nftID ${nft.nftID.toString(
+						'hex',
+					)} has no corresponding entry for UserSubstore or EscrowSubstore`,
+				);
+			}
+
+			if (ownerUsers.length > 0 && ownerChains.length > 0) {
+				throw new Error(
+					`nftID ${nft.nftID.toString(
+						'hex',
+					)} has an entry for both UserSubstore and EscrowSubstore`,
+				);
+			}
+
+			if (ownerUsers.length > 1) {
+				throw new Error(`nftID ${nft.nftID.toString('hex')} has multiple entries for UserSubstore`);
+			}
+
+			if (ownerChains.length > 1) {
+				throw new Error(
+					`nftID ${nft.nftID.toString('hex')} has multiple entries for EscrowSubstore`,
+				);
+			}
+
+			if (nft.owner.length === LENGTH_CHAIN_ID && ownerChains.length !== 1) {
+				throw new Error(
+					`nftID ${nft.nftID.toString(
+						'hex',
+					)} should have a corresponding entry for EscrowSubstore only`,
+				);
+			}
+
+			const attributeSet: Record<string, number> = {};
+
+			for (const attribute of nft.attributesArray) {
+				attributeSet[attribute.module] = (attributeSet[attribute.module] ?? 0) + 1;
+
+				if (attributeSet[attribute.module] > 1) {
+					throw new Error(
+						`nftID ${nft.nftID.toString('hex')} has a duplicate attribute for ${
+							attribute.module
+						} module`,
+					);
+				}
+			}
+		}
+
+		if (genesisStore.supportedNFTsSubstore.length === 0) {
+			return;
+		}
+
+		const allNFTsSupported = genesisStore.supportedNFTsSubstore.some(supportedNFTs =>
+			supportedNFTs.chainID.equals(ALL_SUPPORTED_NFTS_KEY),
+		);
+
+		if (genesisStore.supportedNFTsSubstore.length > 1 && allNFTsSupported) {
+			throw new Error(
+				'SupportedNFTsSubstore should contain only one entry if all NFTs are supported',
+			);
+		}
+
+		if (
+			allNFTsSupported &&
+			genesisStore.supportedNFTsSubstore[0].supportedCollectionIDArray.length !== 0
+		) {
+			throw new Error('supportedCollectionIDArray must be empty if all NFTs are supported');
+		}
+
+		const supportedChainsKeySet = new dataStructures.BufferSet();
+		for (const supportedNFT of genesisStore.supportedNFTsSubstore) {
+			if (supportedChainsKeySet.has(supportedNFT.chainID)) {
+				throw new Error(`chainID ${supportedNFT.chainID.toString('hex')} duplicated`);
+			}
+
+			supportedChainsKeySet.add(supportedNFT.chainID);
+		}
+
+		const nftStore = this.stores.get(NFTStore);
+		for (const nft of genesisStore.nftSubstore) {
+			const { nftID, owner, attributesArray } = nft;
+
+			await nftStore.save(context, nftID, {
+				owner,
+				attributesArray,
+			});
+		}
+
+		const userStore = this.stores.get(UserStore);
+		for (const user of genesisStore.userSubstore) {
+			const { address, nftID, lockingModule } = user;
+
+			await userStore.set(context, userStore.getKey(address, nftID), {
+				lockingModule,
+			});
+		}
+
+		const escrowStore = this.stores.get(EscrowStore);
+		for (const escrow of genesisStore.escrowSubstore) {
+			const { escrowedChainID, nftID } = escrow;
+
+			await escrowStore.set(context, escrowStore.getKey(escrowedChainID, nftID), {});
+		}
+
+		for (const supportedNFT of genesisStore.supportedNFTsSubstore) {
+			const { chainID, supportedCollectionIDArray } = supportedNFT;
+			const supportedNFTsSubstore = this.stores.get(SupportedNFTsStore);
+
+			await supportedNFTsSubstore.save(context, chainID, {
+				supportedCollectionIDArray,
+			});
+		}
+	}
 }
