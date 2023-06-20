@@ -53,3 +53,14 @@ export interface NFTMethod {
 	getChainID(nftID: Buffer): Buffer;
 	destroy(methodContext: MethodContext, address: Buffer, nftID: Buffer): Promise<void>;
 }
+
+export interface NFTAttributes {
+	module: string;
+	attributes: Buffer;
+}
+
+export interface NFT {
+	owner: string;
+	attributesArray: NFTAttributes[];
+	lockingModule: string;
+}
