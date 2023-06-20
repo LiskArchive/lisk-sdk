@@ -23,6 +23,7 @@ import {
 
 const nftID1 = utils.getRandomBytes(LENGTH_NFT_ID);
 const nftID2 = utils.getRandomBytes(LENGTH_NFT_ID);
+const nftID3 = utils.getRandomBytes(LENGTH_NFT_ID);
 const owner = utils.getRandomBytes(LENGTH_ADDRESS);
 const escrowedChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 
@@ -56,6 +57,11 @@ export const validData: GenesisNFTStore = {
 				},
 			],
 		},
+		{
+			nftID: nftID3,
+			owner: escrowedChainID,
+			attributesArray: [],
+		},
 	],
 	userSubstore: [
 		{
@@ -72,7 +78,7 @@ export const validData: GenesisNFTStore = {
 	escrowSubstore: [
 		{
 			escrowedChainID,
-			nftID: utils.getRandomBytes(LENGTH_NFT_ID),
+			nftID: nftID3,
 		},
 	],
 	supportedNFTsSubstore: [
