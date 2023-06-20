@@ -17,6 +17,12 @@ import { bitwiseXORFixtures } from './bitwise_xor_fixtures';
 
 describe('Random module utils', () => {
 	describe('bitwiseXOR', () => {
+		it('should throw if an empty array is provided as an argument', () => {
+			expect(() => bitwiseXOR([])).toThrow(
+				'bitwiseXOR requires at least one buffer for the input.',
+			);
+		});
+
 		it('should return the first element if there are no other elements', () => {
 			const buffer = Buffer.from([0, 1, 1, 1]);
 			const input = [buffer];

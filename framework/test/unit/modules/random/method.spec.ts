@@ -320,10 +320,7 @@ describe('RandomModuleMethod', () => {
 				Buffer.from(genesisValidators.validators[0].hashOnion.hashes[2], 'hex'),
 			];
 			// Do XOR of randomSeed with hashes of seed reveal with height >= randomStoreValidator.height >= height + numberOfSeeds
-			const xorExpected = bitwiseXOR([
-				bitwiseXOR([randomSeed, hashesExpected[0]]),
-				hashesExpected[1],
-			]);
+			const xorExpected = bitwiseXOR([randomSeed, ...hashesExpected]);
 
 			expect(xorExpected).toHaveLength(16);
 			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
@@ -343,10 +340,7 @@ describe('RandomModuleMethod', () => {
 				Buffer.from(genesisValidators.validators[1].hashOnion.hashes[1], 'hex'),
 			];
 			// Do XOR of randomSeed with hashes of seed reveal with height >= randomStoreValidator.height >= height + numberOfSeeds
-			const xorExpected = bitwiseXOR([
-				bitwiseXOR([bitwiseXOR([randomSeed, hashesExpected[0]]), hashesExpected[1]]),
-				hashesExpected[2],
-			]);
+			const xorExpected = bitwiseXOR([randomSeed, ...hashesExpected]);
 
 			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				xorExpected,
@@ -385,7 +379,7 @@ describe('RandomModuleMethod', () => {
 				Buffer.from(genesisValidators.validators[0].hashOnion.hashes[1], 'hex'),
 			];
 			// Do XOR of randomSeed with hashes of seed reveal with height >= randomStoreValidator.height >= height + numberOfSeeds
-			const xorExpected = bitwiseXOR([randomSeed, hashesExpected[0]]);
+			const xorExpected = bitwiseXOR([randomSeed, ...hashesExpected]);
 
 			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				xorExpected,
