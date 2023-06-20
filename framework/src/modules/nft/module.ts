@@ -259,10 +259,6 @@ export class NFTModule extends BaseInteroperableModule {
 			}
 		}
 
-		if (genesisStore.supportedNFTsSubstore.length === 0) {
-			return;
-		}
-
 		const allNFTsSupported = genesisStore.supportedNFTsSubstore.some(supportedNFTs =>
 			supportedNFTs.chainID.equals(ALL_SUPPORTED_NFTS_KEY),
 		);
