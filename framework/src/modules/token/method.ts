@@ -38,7 +38,11 @@ import { BurnEvent } from './events/burn';
 import { LockEvent } from './events/lock';
 import { UnlockEvent } from './events/unlock';
 import { TransferCrossChainEvent } from './events/transfer_cross_chain';
-import { SupportedTokensStore } from './stores/supported_tokens';
+import {
+	ALL_SUPPORTED_TOKENS_KEY,
+	SupportedTokensStore,
+	SupportedTokensStoreData,
+} from './stores/supported_tokens';
 import { AllTokensSupportedEvent } from './events/all_tokens_supported';
 import { AllTokensSupportRemovedEvent } from './events/all_tokens_supported_removed';
 import { TokenIDSupportedEvent } from './events/token_id_supported';
@@ -689,7 +693,20 @@ export class TokenMethod extends BaseMethod {
 		methodContext: MethodContext,
 		chainID: Buffer,
 	): Promise<void> {
-		await this.stores.get(SupportedTokensStore).supportChain(methodContext, chainID);
+		const allTokensSupported = await this._isAllTokensSupported(methodContext);
+
+		if (allTokensSupported) {
+			return;
+		}
+
+		if (chainID.equals(this._config.ownChainID)) {
+			return;
+		}
+
+		await this.stores
+			.get(SupportedTokensStore)
+			.set(methodContext, chainID, { supportedTokenIDs: [] });
+
 		this.events.get(AllTokensFromChainSupportedEvent).log(methodContext, chainID);
 	}
 
@@ -697,7 +714,26 @@ export class TokenMethod extends BaseMethod {
 		methodContext: MethodContext,
 		chainID: Buffer,
 	): Promise<void> {
-		await this.stores.get(SupportedTokensStore).removeSupportForChain(methodContext, chainID);
+		const allTokensSupported = await this._isAllTokensSupported(methodContext);
+
+		if (allTokensSupported) {
+			throw new Error('Invalid operation. All tokens from all chains are supported.');
+		}
+
+		if (chainID.equals(this._config.ownChainID)) {
+			throw new Error(
+				'Invalid operation. All tokens from all the specified chain should be supported.',
+			);
+		}
+
+		const supportedTokens = await this._getSupportedTokens(methodContext, chainID);
+
+		if (!supportedTokens) {
+			return;
+		}
+
+		await this.stores.get(SupportedTokensStore).del(methodContext, chainID);
+
 		this.events.get(AllTokensFromChainSupportRemovedEvent).log(methodContext, chainID);
 	}
 
@@ -706,8 +742,37 @@ export class TokenMethod extends BaseMethod {
 		this.events.get(TokenIDSupportedEvent).log(methodContext, tokenID);
 	}
 
-	public async removeSupportTokenID(methodContext: MethodContext, tokenID: Buffer): Promise<void> {
-		await this.stores.get(SupportedTokensStore).removeSupportForToken(methodContext, tokenID);
+	public async removeSupport(methodContext: MethodContext, tokenID: Buffer): Promise<void> {
+		const [chainID] = splitTokenID(tokenID);
+
+		const allTokensSupported = await this._isAllTokensSupported(methodContext);
+
+		if (allTokensSupported) {
+			throw new Error('All tokens are supported.');
+		}
+
+		if (tokenID.equals(this.getMainchainTokenID()) || chainID.equals(this._config.ownChainID)) {
+			throw new Error('Cannot remove support for the specified token.');
+		}
+
+		const supportedTokens = await this._getSupportedTokens(methodContext, chainID);
+
+		if (supportedTokens) {
+			if (supportedTokens.supportedTokenIDs.length === 0) {
+				throw new Error('All tokens from the specified chain are supported.');
+			}
+
+			const tokenIndex = supportedTokens.supportedTokenIDs.indexOf(tokenID);
+
+			if (tokenIndex !== -1) {
+				supportedTokens.supportedTokenIDs.splice(tokenIndex, 1);
+
+				if (supportedTokens.supportedTokenIDs.length === 0) {
+					await this.stores.get(SupportedTokensStore).del(methodContext, chainID);
+				}
+			}
+		}
+
 		this.events.get(TokenIDSupportRemovedEvent).log(methodContext, tokenID);
 	}
 
@@ -733,5 +798,29 @@ export class TokenMethod extends BaseMethod {
 		return this.stores
 			.get(EscrowStore)
 			.has(methodContext, this.stores.get(EscrowStore).getKey(chainID, tokenID));
+	}
+
+	private async _isAllTokensSupported(methodContext: MethodContext): Promise<boolean> {
+		const supportedTokensStore = this.stores.get(SupportedTokensStore);
+
+		return supportedTokensStore.has(methodContext, ALL_SUPPORTED_TOKENS_KEY);
+	}
+
+	private async _getSupportedTokens(
+		methodContext: MethodContext,
+		chainID: Buffer,
+	): Promise<SupportedTokensStoreData> {
+		if (chainID.length === 0 || !chainID) {
+			throw new Error('Chain ID is required.');
+		}
+
+		const supportedTokensStore = this.stores.get(SupportedTokensStore);
+		const supportedTokens = await supportedTokensStore.get(methodContext, chainID);
+
+		if (!supportedTokens) {
+			throw new Error('No supported tokens found.');
+		}
+
+		return supportedTokens;
 	}
 }
