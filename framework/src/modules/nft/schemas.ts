@@ -20,7 +20,6 @@ import {
 	MAX_LENGTH_MODULE_NAME,
 	MIN_LENGTH_MODULE_NAME,
 	MAX_LENGTH_DATA,
-	LENGTH_ADDRESS,
 } from './constants';
 
 export const transferParamsSchema = {
@@ -409,8 +408,6 @@ export const genesisNFTStoreSchema = {
 					},
 					owner: {
 						dataType: 'bytes',
-						minLength: LENGTH_CHAIN_ID,
-						maxLength: LENGTH_ADDRESS,
 						fieldNumber: 2,
 					},
 					attributesArray: {

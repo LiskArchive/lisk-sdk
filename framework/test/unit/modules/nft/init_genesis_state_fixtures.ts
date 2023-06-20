@@ -115,34 +115,6 @@ export const invalidSchemaNFTSubstoreGenesisAssets = [
 		`nftID' maxLength exceeded`,
 	],
 	[
-		'Invalid owner - minimum length not satisfied',
-		{
-			...validData,
-			nftSubstore: [
-				{
-					nftID: utils.getRandomBytes(LENGTH_NFT_ID),
-					owner: utils.getRandomBytes(LENGTH_CHAIN_ID - 1),
-					attributesArray: [],
-				},
-			],
-		},
-		`owner' minLength not satisfied`,
-	],
-	[
-		'Invalid owner - maximum length exceeded',
-		{
-			...validData,
-			nftSubstore: [
-				{
-					nftID: utils.getRandomBytes(LENGTH_NFT_ID),
-					owner: utils.getRandomBytes(LENGTH_ADDRESS + 1),
-					attributesArray: [],
-				},
-			],
-		},
-		`owner' maxLength exceeded`,
-	],
-	[
 		'Invalid attributesArray.module - minimum length not satisfied',
 		{
 			...validData,
