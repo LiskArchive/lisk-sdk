@@ -24,7 +24,7 @@ import { Status, Transaction, TransactionStatus } from './types';
 
 const debug = createDebug('lisk:transaction_pool');
 
-type ApplyFunction = (transactions: ReadonlyArray<Transaction>) => Promise<void>;
+type VerifyFunction = (transaction: Transaction) => Promise<TransactionStatus>;
 
 export interface TransactionPoolConfig {
 	readonly maxTransactions?: number;
@@ -34,13 +34,7 @@ export interface TransactionPoolConfig {
 	readonly transactionReorganizationInterval?: number;
 	readonly minReplacementFeeDifference?: bigint;
 	readonly maxPayloadLength: number;
-	applyTransactions(transactions: ReadonlyArray<Transaction>): Promise<void>;
-}
-
-interface TransactionFailedResponse {
-	readonly code: string;
-	readonly id: Buffer;
-	readonly transactionError: Error & { code: string };
+	verifyTransaction(transaction: Transaction): Promise<number>;
 }
 
 interface AddTransactionResponse {
@@ -59,15 +53,13 @@ export const events = {
 	EVENT_TRANSACTION_REMOVED: 'EVENT_TRANSACTION_REMOVED',
 	EVENT_TRANSACTION_ADDED: 'EVENT_TRANSACTION_ADDED',
 };
-const ERR_NONCE_OUT_OF_BOUNDS_CODE = 'ERR_NONCE_OUT_OF_BOUNDS';
-const ERR_TRANSACTION_VERIFICATION_FAIL = 'ERR_TRANSACTION_VERIFICATION_FAIL';
 
 export class TransactionPool {
 	public events: EventEmitter;
 
 	private readonly _allTransactions: dataStructures.BufferMap<Transaction>;
 	private readonly _transactionList: dataStructures.BufferMap<TransactionList>;
-	private readonly _applyFunction: ApplyFunction;
+	private readonly _verifyFunction: VerifyFunction;
 	private readonly _maxTransactions: number;
 	private readonly _maxTransactionsPerAccount: number;
 	private readonly _transactionExpiryTime: number;
@@ -85,7 +77,7 @@ export class TransactionPool {
 		this._allTransactions = new dataStructures.BufferMap<Transaction>();
 		this._transactionList = new dataStructures.BufferMap<TransactionList>();
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		this._applyFunction = config.applyTransactions;
+		this._verifyFunction = config.verifyTransaction;
 		this._maxTransactions = config.maxTransactions ?? DEFAULT_MAX_TRANSACTIONS;
 		this._maxTransactionsPerAccount =
 			config.maxTransactionsPerAccount ?? DEFAULT_MAX_TRANSACTIONS_PER_ACCOUNT;
@@ -203,19 +195,12 @@ export class TransactionPool {
 		const incomingTxAddress = address.getAddressFromPublicKey(incomingTx.senderPublicKey);
 
 		// _applyFunction is injected from chain module applyTransaction
-		let txStatus;
-		try {
-			await this._applyFunction([incomingTx]);
-			txStatus = TransactionStatus.PROCESSABLE;
-		} catch (err) {
-			txStatus = this._getStatus(err as TransactionFailedResponse);
-			// If applyTransaction fails for the transaction then throw error
-			if (txStatus === TransactionStatus.INVALID) {
-				return {
-					status: Status.FAIL,
-					error: err as Error,
-				};
-			}
+		const txStatus = await this._verifyFunction(incomingTx);
+		if (txStatus === TransactionStatus.INVALID) {
+			return {
+				status: Status.FAIL,
+				error: new Error('Invalid transaction'),
+			};
 		}
 		/*
 			Evict transactions if pool is full
@@ -322,20 +307,6 @@ export class TransactionPool {
 		return trx.fee / BigInt(trx.getBytes().length);
 	}
 
-	private _getStatus(errorResponse: TransactionFailedResponse): TransactionStatus {
-		if (
-			errorResponse.code === ERR_TRANSACTION_VERIFICATION_FAIL &&
-			errorResponse.transactionError.code === ERR_NONCE_OUT_OF_BOUNDS_CODE
-		) {
-			debug('Received UNPROCESSABLE transaction');
-
-			return TransactionStatus.UNPROCESSABLE;
-		}
-
-		debug('Received INVALID transaction');
-		return TransactionStatus.INVALID;
-	}
-
 	private _evictUnprocessable(): boolean {
 		const unprocessableFeePriorityHeap = new dataStructures.MinHeap<Transaction>();
 		// Loop through tx lists and push unprocessable tx to fee priority heap
@@ -414,14 +385,23 @@ export class TransactionPool {
 			const processableTransactions = txList.getProcessable();
 			const allTransactions = [...processableTransactions, ...promotableTransactions];
 			let firstInvalidTransaction: { id: Buffer; status: TransactionStatus } | undefined;
-			try {
-				await this._applyFunction(allTransactions);
-			} catch (error) {
-				const failedStatus = this._getStatus(error as TransactionFailedResponse);
-				firstInvalidTransaction = {
-					id: (error as TransactionFailedResponse).id,
-					status: failedStatus,
-				};
+			for (const transaction of allTransactions) {
+				try {
+					const status = await this._verifyFunction(transaction);
+					if (status !== TransactionStatus.PROCESSABLE) {
+						firstInvalidTransaction = {
+							id: transaction.id,
+							status,
+						};
+						break;
+					}
+				} catch (error) {
+					firstInvalidTransaction = {
+						id: transaction.id,
+						status: TransactionStatus.INVALID,
+					};
+					break;
+				}
 			}
 
 			const successfulTransactionIds: Buffer[] = [];
