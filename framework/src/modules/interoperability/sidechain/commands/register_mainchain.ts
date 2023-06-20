@@ -14,7 +14,6 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { bls } from '@liskhq/lisk-cryptography';
-import { validator } from '@liskhq/lisk-validator';
 import {
 	EMPTY_HASH,
 	MODULE_NAME_INTEROPERABILITY,
@@ -72,14 +71,6 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 	): Promise<VerificationResult> {
 		const { ownName, mainchainValidators, mainchainCertificateThreshold, ownChainID } =
 			context.params;
-		try {
-			validator.validate<MainchainRegistrationParams>(mainchainRegParams, context.params);
-		} catch (err) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: err as Error,
-			};
-		}
 
 		const mainchainID = getMainchainID(context.chainID);
 		const chainAccountSubstore = this.stores.get(ChainAccountStore);

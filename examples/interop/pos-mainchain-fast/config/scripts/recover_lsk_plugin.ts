@@ -26,11 +26,13 @@ export const inclusionProofsSchema = {
 			fieldNumber: 1,
 			items: {
 				type: 'object',
+				required: ['height', 'inclusionProof', 'stateRoot', 'storeValue', 'storeKey'],
 				properties: {
 					height: { dataType: 'uint32', fieldNumber: 1 },
 					inclusionProof: {
 						type: 'object',
 						fieldNumber: 2,
+						required: ['siblingHashes', 'bitmap', 'key', 'value'],
 						properties: {
 							siblingHashes: {
 								type: 'array',
@@ -66,7 +68,7 @@ export const MIN_MODULE_NAME_LENGTH = 1;
 export const MAX_MODULE_NAME_LENGTH = 32;
 
 const userStoreSchema = {
-	$id: '/token/store/user',
+	$id: '/recover-lsk-plugin/token/store/user',
 	type: 'object',
 	required: ['availableBalance', 'lockedBalances'],
 	properties: {

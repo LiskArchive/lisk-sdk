@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { standardEventDataSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { TransactionExecutionResult } from '../abi';
@@ -109,6 +110,9 @@ export class StateMachine {
 			}
 			const command = this._getCommand(ctx.transaction.module, ctx.transaction.command);
 			const commandContext = ctx.createCommandVerifyContext(command.schema);
+
+			validator.validate(command.schema, commandContext.params);
+
 			if (command.verify) {
 				this._logger.debug(
 					{ commandName: command.name, moduleName: ctx.transaction.module },

@@ -54,12 +54,14 @@ export const channelSchema = {
 		inbox: {
 			type: 'object',
 			fieldNumber: 1,
+			// nosemgrep: schema_with_required_that_is_not_a_property
 			required: ['appendPath', 'size', 'root'],
 			properties: inboxOutboxProps,
 		},
 		outbox: {
 			type: 'object',
 			fieldNumber: 2,
+			// nosemgrep: schema_with_required_that_is_not_a_property
 			required: ['appendPath', 'size', 'root'],
 			properties: inboxOutboxProps,
 		},

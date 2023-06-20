@@ -103,7 +103,7 @@ export const signingBlockHeaderSchema = {
 
 export const blockHeaderSchema = {
 	...signingBlockHeaderSchema,
-	$id: '/block/header/3',
+	$id: '/block/header/3/without-id',
 	required: [...signingBlockHeaderSchema.required, 'signature'],
 	properties: {
 		...signingBlockHeaderSchema.properties,
@@ -147,6 +147,7 @@ export const stateDiffSchema = {
 			fieldNumber: 1,
 			items: {
 				type: 'object',
+				required: ['key', 'value'],
 				properties: {
 					key: {
 						dataType: 'bytes',
@@ -171,6 +172,7 @@ export const stateDiffSchema = {
 			fieldNumber: 3,
 			items: {
 				type: 'object',
+				required: ['key', 'value'],
 				properties: {
 					key: {
 						dataType: 'bytes',

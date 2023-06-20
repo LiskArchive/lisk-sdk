@@ -62,6 +62,7 @@ export const blockHeaderSchemaV2 = {
 		},
 		reward: { dataType: 'uint64', fieldNumber: 7 },
 		asset: { dataType: 'bytes', fieldNumber: 8 },
+		// nosemgrep: schema_with_datatype_not_required
 		signature: {
 			dataType: 'bytes',
 			fieldNumber: 9,

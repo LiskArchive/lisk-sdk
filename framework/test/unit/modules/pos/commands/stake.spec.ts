@@ -198,6 +198,68 @@ describe('StakeCommand', () => {
 		});
 	});
 
+	describe('verify schema', () => {
+		it('should return errors when transaction.params.stakes does not include any stake', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					stakes: [],
+				}),
+			).toThrow('must NOT have fewer than 1 items');
+		});
+
+		it('should return errors when transaction.params.stakes includes more than 20 elements', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					stakes: Array(21)
+						.fill(0)
+						.map(() => ({
+							validatorAddress: utils.getRandomBytes(20),
+							amount: liskToBeddows(0),
+						})),
+				}),
+			).toThrow('must NOT have more than 20 items');
+		});
+
+		it('should return errors when transaction.params.stakes includes invalid address', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					stakes: Array(20)
+						.fill(0)
+						.map(() => ({
+							validatorAddress: utils.getRandomBytes(21),
+							amount: liskToBeddows(0),
+						})),
+				}),
+			).toThrow('address length invalid');
+		});
+
+		it('should return errors when transaction.params.stakes includes amount which is less than sint64 range', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					stakes: [
+						{
+							validatorAddress: utils.getRandomBytes(20),
+							amount: BigInt(-1) * BigInt(2) ** BigInt(63) - BigInt(1),
+						},
+					],
+				}),
+			).toThrow('should pass "dataType" keyword validation');
+		});
+
+		it('should return errors when transaction.params.stakes includes amount which is greater than sint64 range', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					stakes: [
+						{
+							validatorAddress: utils.getRandomBytes(20),
+							amount: BigInt(2) ** BigInt(63) + BigInt(1),
+						},
+					],
+				}),
+			).toThrow('should pass "dataType" keyword validation');
+		});
+	});
+
 	describe('verify', () => {
 		beforeEach(() => {
 			transaction = new Transaction({
@@ -208,99 +270,6 @@ describe('StakeCommand', () => {
 				params: Buffer.alloc(0),
 				senderPublicKey: utils.getRandomBytes(32),
 				signatures: [],
-			});
-		});
-
-		describe('schema validation', () => {
-			describe('when transaction.params.stakes does not include any stake', () => {
-				beforeEach(() => {
-					transactionParamsDecoded = {
-						stakes: [],
-					};
-
-					transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-					transaction.params = transactionParams;
-
-					context = createTransactionContext({
-						transaction,
-						stateStore,
-					}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
-				});
-
-				it('should return errors', async () => {
-					const verificationResult = await command.verify(context);
-					expect((verificationResult.error as any).value.message).toInclude(
-						'must NOT have fewer than 1 items',
-					);
-				});
-			});
-
-			describe('when transaction.params.stakes includes more than 20 elements', () => {
-				beforeEach(() => {
-					transactionParamsDecoded = {
-						stakes: Array(21)
-							.fill(0)
-							.map(() => ({
-								validatorAddress: utils.getRandomBytes(20),
-								amount: liskToBeddows(0),
-							})),
-					};
-
-					transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-					transaction.params = transactionParams;
-
-					context = createTransactionContext({
-						transaction,
-						stateStore,
-					}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
-				});
-
-				it('should return errors', async () => {
-					const verificationResult = await command.verify(context);
-					expect((verificationResult.error as any).value.message).toInclude(
-						'must NOT have more than 20 items',
-					);
-				});
-			});
-
-			describe('when transaction.params.stakes includes amount which is less than int64 range', () => {
-				beforeEach(() => {
-					transactionParamsDecoded = {
-						stakes: [
-							{
-								validatorAddress: utils.getRandomBytes(20),
-								amount: BigInt(-1) * BigInt(2) ** BigInt(63) - BigInt(1),
-							},
-						],
-					};
-				});
-
-				it('should return errors', () => {
-					expect(() => validator.validate(command.schema, transactionParamsDecoded)).toThrow(
-						'should pass "dataType" keyword validation',
-					);
-				});
-			});
-
-			describe('when transaction.params.stakes includes amount which is greater than int64 range', () => {
-				beforeEach(() => {
-					transactionParamsDecoded = {
-						stakes: [
-							{
-								validatorAddress: utils.getRandomBytes(20),
-								amount: BigInt(2) ** BigInt(63) + BigInt(1),
-							},
-						],
-					};
-				});
-
-				it('should return errors', () => {
-					expect(() => validator.validate(command.schema, transactionParamsDecoded)).toThrow(
-						'should pass "dataType" keyword validation',
-					);
-				});
 			});
 		});
 

@@ -50,7 +50,6 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 			crossChainTransferMessageParams,
 			ccm.params,
 		);
-		validator.validate(crossChainTransferMessageParams, params);
 
 		if (ccm.status > MAX_RESERVED_ERROR_STATUS) {
 			throw new Error('Invalid CCM status code.');

@@ -11,8 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { validator } from '@liskhq/lisk-validator';
 import {
 	CommandVerifyContext,
 	VerificationResult,
@@ -39,15 +37,6 @@ export class ChangeCommissionCommand extends BaseCommand {
 	public async verify(
 		context: CommandVerifyContext<ChangeCommissionParams>,
 	): Promise<VerificationResult> {
-		try {
-			validator.validate(changeCommissionCommandParamsSchema, context.params);
-		} catch (err) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: err as Error,
-			};
-		}
-
 		const validatorStore = this.stores.get(ValidatorStore);
 		const validatorExists = await validatorStore.has(context, context.transaction.senderAddress);
 

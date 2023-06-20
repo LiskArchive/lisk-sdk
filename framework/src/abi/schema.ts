@@ -28,7 +28,7 @@ import {
 export { blockHeaderSchema, blockSchema };
 
 export const eventSchema = {
-	$id: '/block/event',
+	$id: '/abi/block/event',
 	type: 'object',
 	required: ['module', 'name', 'data', 'topics', 'height', 'index'],
 	properties: {
@@ -352,7 +352,7 @@ export const verifyTransactionRequestSchema = {
 export const verifyTransactionResponseSchema = {
 	$id: '/abi/verifyTransactionResponse',
 	type: 'object',
-	required: ['result'],
+	required: ['result', 'errorMessage'],
 	properties: {
 		result: {
 			fieldNumber: 1,
@@ -442,6 +442,7 @@ export const commitRequestSchema = {
 export const commitResponseSchema = {
 	$id: '/abi/commitResponse',
 	type: 'object',
+	required: ['stateRoot'],
 	properties: {
 		stateRoot: {
 			fieldNumber: 1,

@@ -19,7 +19,7 @@ import { Command, Flags as flagParser } from '@oclif/core';
 import * as fs from 'fs-extra';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPasswordFromPrompt } from '../../../utils/reader';
-import { OWNER_READ_WRITE } from '../../../constants';
+import { OWNER_READ_WRITE, plainGeneratorKeysSchema } from '../../../constants';
 
 interface KeysWithoutEncryption {
 	keys: [
@@ -34,29 +34,6 @@ interface KeysWithoutEncryption {
 		},
 	];
 }
-
-const plainGeneratorKeysSchema = {
-	$id: '/commander/plainGeneratorKeys',
-	type: 'object',
-	properties: {
-		generatorKey: {
-			dataType: 'bytes',
-			fieldNumber: 1,
-		},
-		generatorPrivateKey: {
-			dataType: 'bytes',
-			fieldNumber: 2,
-		},
-		blsKey: {
-			dataType: 'bytes',
-			fieldNumber: 3,
-		},
-		blsPrivateKey: {
-			dataType: 'bytes',
-			fieldNumber: 4,
-		},
-	},
-};
 
 export class EncryptCommand extends Command {
 	static description = 'Encrypt keys from a file and overwrite the file';

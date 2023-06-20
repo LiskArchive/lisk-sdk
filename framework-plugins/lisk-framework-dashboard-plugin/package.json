@@ -22,6 +22,11 @@
 		"npm": ">=8.1.0"
 	},
 	"main": "dist-node/index.js",
+	"files": [
+		"/dist-node",
+		"/build",
+		"/public"
+	],
 	"scripts": {
 		"clean": "./scripts/clean.sh",
 		"format": "prettier --write '**/*'",
