@@ -21,7 +21,7 @@ import {
 	invalidSchemaEscrowSubstoreGenesisAssets,
 	invalidSchemaNFTSubstoreGenesisAssets,
 	invalidSchemaSupportedNFTsSubstoreGenesisAssets,
-	invalidSchemaUserSubstoreGenesisAssests,
+	invalidSchemaUserSubstoreGenesisAssets,
 	validData,
 } from './init_genesis_state_fixtures';
 import { genesisNFTStoreSchema } from '../../../../src/modules/nft/schemas';
@@ -55,7 +55,7 @@ describe('nft module', () => {
 		return context;
 	};
 
-	describe('iniGenesisState', () => {
+	describe('initGenesisState', () => {
 		describe('validate nftSubstore schema', () => {
 			it.each(invalidSchemaNFTSubstoreGenesisAssets)('%s', async (_, input, err) => {
 				if (typeof input === 'string') {
@@ -73,7 +73,7 @@ describe('nft module', () => {
 		});
 
 		describe('validate userSubstore schema', () => {
-			it.each(invalidSchemaUserSubstoreGenesisAssests)('%s', async (_, input, err) => {
+			it.each(invalidSchemaUserSubstoreGenesisAssets)('%s', async (_, input, err) => {
 				if (typeof input === 'string') {
 					return;
 				}

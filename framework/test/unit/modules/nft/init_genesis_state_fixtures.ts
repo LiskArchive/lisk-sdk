@@ -179,7 +179,7 @@ export const invalidSchemaNFTSubstoreGenesisAssets = [
 	],
 ];
 
-export const invalidSchemaUserSubstoreGenesisAssests = [
+export const invalidSchemaUserSubstoreGenesisAssets = [
 	[
 		'Invalid owner address',
 		{
