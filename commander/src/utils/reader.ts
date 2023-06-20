@@ -221,8 +221,7 @@ const castValue = (
 		return JSON.parse(val);
 	}
 	if (schemaType === 'array') {
-		if (val === '') return [];
-		return val.split(',');
+		return val !== '' ? val.split(',') : [];
 	}
 	if (schemaType === 'uint64' || schemaType === 'sint64') {
 		return BigInt(val);
