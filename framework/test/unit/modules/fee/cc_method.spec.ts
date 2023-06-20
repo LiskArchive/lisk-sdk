@@ -33,12 +33,14 @@ describe('FeeInteroperableMethod', () => {
 		status: 1,
 	};
 	const messageFeeTokenID = Buffer.from('0000000000000002', 'hex');
+	const feePoolAddress = utils.getRandomBytes(20);
 
 	let feeMethod: FeeInteroperableMethod;
 	let context: CrossChainMessageContext;
 
 	beforeEach(() => {
 		feeMethod = new FeeInteroperableMethod(feeModule.stores, feeModule.events, feeModule.name);
+		feeMethod.init({ feePoolAddress } as any);
 		feeMethod.addDependencies(
 			{
 				getMessageFeeTokenID: jest.fn().mockResolvedValue(messageFeeTokenID),
@@ -83,10 +85,11 @@ describe('FeeInteroperableMethod', () => {
 		beforeEach(async () => {
 			jest.spyOn(feeMethod['events'].get(RelayerFeeProcessedEvent), 'log');
 			context.contextStore.set(CONTEXT_STORE_KEY_AVAILABLE_CCM_FEE, availableFee);
-			await feeMethod.afterCrossChainCommandExecute(context);
 		});
 
-		it('should unlock ccm fee from sender', () => {
+		it('should unlock ccm fee from sender', async () => {
+			await feeMethod.afterCrossChainCommandExecute(context);
+
 			expect(feeMethod['_tokenMethod'].unlock).toHaveBeenCalledWith(
 				expect.anything(),
 				context.transaction.senderAddress,
@@ -96,7 +99,23 @@ describe('FeeInteroperableMethod', () => {
 			);
 		});
 
-		it('should burn the used fee', () => {
+		it('should transfer the used fee to fee pool address if it exists and is initialized for the cross-chain message fee token', async () => {
+			feeMethod['_tokenMethod'].userAccountExists = jest.fn().mockResolvedValue(true);
+			await feeMethod.afterCrossChainCommandExecute(context);
+
+			expect(feeMethod['_tokenMethod'].transfer).toHaveBeenCalledWith(
+				expect.anything(),
+				context.transaction.senderAddress,
+				feePoolAddress,
+				messageFeeTokenID,
+				ccm.fee - availableFee,
+			);
+		});
+
+		it('should burn the used fee', async () => {
+			feeMethod['_tokenMethod'].userAccountExists = jest.fn().mockResolvedValue(false);
+			await feeMethod.afterCrossChainCommandExecute(context);
+
 			expect(feeMethod['_tokenMethod'].burn).toHaveBeenCalledWith(
 				expect.anything(),
 				context.transaction.senderAddress,
@@ -105,7 +124,9 @@ describe('FeeInteroperableMethod', () => {
 			);
 		});
 
-		it('should log event', () => {
+		it('should log event', async () => {
+			await feeMethod.afterCrossChainCommandExecute(context);
+
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
 			expect(feeMethod['events'].get(RelayerFeeProcessedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
@@ -118,7 +139,9 @@ describe('FeeInteroperableMethod', () => {
 			);
 		});
 
-		it('should reset the context store', () => {
+		it('should reset the context store', async () => {
+			await feeMethod.afterCrossChainCommandExecute(context);
+
 			expect(context.contextStore.get(CONTEXT_STORE_KEY_AVAILABLE_CCM_FEE)).toBeUndefined();
 		});
 	});
