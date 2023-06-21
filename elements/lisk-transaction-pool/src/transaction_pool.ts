@@ -391,6 +391,7 @@ export class TransactionPool {
 					veirfyResults.push({
 						id: transaction.id,
 						status,
+						transaction,
 					});
 					if (status === TransactionStatus.INVALID) {
 						break;
@@ -399,15 +400,27 @@ export class TransactionPool {
 					veirfyResults.push({
 						id: transaction.id,
 						status: TransactionStatus.INVALID,
+						transaction,
 					});
 					break;
 				}
 			}
 			const successfulTransactionIds: Buffer[] = [];
 
-			for (const result of veirfyResults) {
+			for (let i = 0; i < veirfyResults.length; i += 1) {
+				const result = veirfyResults[i];
 				if (result.status === TransactionStatus.INVALID) {
 					break;
+				}
+				if (result.status === TransactionStatus.UNPROCESSABLE) {
+					// if the first transaction is unprocessable, then it's not processable
+					if (successfulTransactionIds.length === 0) {
+						break;
+					}
+					// if the nonce is not sequential from the previous successful one, then it's not processable
+					if (veirfyResults[i - 1].transaction.nonce + BigInt(1) !== result.transaction.nonce) {
+						break;
+					}
 				}
 				successfulTransactionIds.push(result.id);
 			}
