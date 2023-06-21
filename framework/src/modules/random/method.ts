@@ -20,7 +20,7 @@ import { EMPTY_KEY } from '../validators/constants';
 import { blockHeaderAssetRandomModule } from './schemas';
 import { ValidatorRevealsStore } from './stores/validator_reveals';
 import { BlockHeaderAssetRandomModule } from './types';
-import { getSeedRevealValidity, getRandomSeed } from './utils';
+import { isSeedValidInput, getRandomSeed } from './utils';
 
 export class RandomMethod extends BaseMethod {
 	private readonly _moduleName: string;
@@ -47,7 +47,7 @@ export class RandomMethod extends BaseMethod {
 			asset,
 		);
 
-		return getSeedRevealValidity(generatorAddress, seedReveal, validatorReveals);
+		return isSeedValidInput(generatorAddress, seedReveal, validatorReveals, false);
 	}
 
 	public async getRandomBytes(
