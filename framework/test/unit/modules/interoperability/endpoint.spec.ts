@@ -190,8 +190,8 @@ describe('Test interoperability endpoint', () => {
 			getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
 			getImmutableMethodContext: jest.fn(),
 			getOffchainStore: jest.fn(),
-			chainID: Buffer.alloc(0),
-			params: { chainID: '00000001' },
+			chainID: utils.intToBuffer(1, 4),
+			params: { chainID: utils.intToBuffer(1, 4) },
 			logger: {} as any,
 			header: { aggregateCommit: { height: 10 }, height: 12, timestamp: Date.now() },
 		};
