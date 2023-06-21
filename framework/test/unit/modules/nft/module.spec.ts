@@ -213,6 +213,7 @@ describe('nft module', () => {
 
 		it('should throw if NFT has an entry for both user and escrow store', async () => {
 			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
+			// const owner = utils.getRandomBytes(LENGTH_ADDRESS);
 
 			const genesisAssets = {
 				...validData,
@@ -247,28 +248,30 @@ describe('nft module', () => {
 
 		it('should throw if NFT has multiple entries for user store', async () => {
 			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
+			const owner = utils.getRandomBytes(LENGTH_ADDRESS);
 
 			const genesisAssets = {
 				...validData,
 				nftSubstore: [
 					{
 						nftID,
-						owner: utils.getRandomBytes(LENGTH_ADDRESS),
+						owner,
 						attributesArray: [],
 					},
 				],
 				userSubstore: [
 					{
-						address: utils.getRandomBytes(LENGTH_ADDRESS),
+						address: owner,
 						nftID,
 						lockingModule: 'pos',
 					},
 					{
-						address: utils.getRandomBytes(LENGTH_ADDRESS),
+						address: owner,
 						nftID,
 						lockingModule: 'token',
 					},
 				],
+				escrowSubstore: [],
 			};
 
 			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
@@ -280,23 +283,25 @@ describe('nft module', () => {
 
 		it('should throw if NFT has multiple entries for escrow store', async () => {
 			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
+			const escrowedChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 
 			const genesisAssets = {
 				...validData,
 				nftSubstore: [
 					{
 						nftID,
-						owner: utils.getRandomBytes(LENGTH_ADDRESS),
+						owner: escrowedChainID,
 						attributesArray: [],
 					},
 				],
+				userSubstore: [],
 				escrowSubstore: [
 					{
-						escrowedChainID: utils.getRandomBytes(LENGTH_CHAIN_ID),
+						escrowedChainID,
 						nftID,
 					},
 					{
-						escrowedChainID: utils.getRandomBytes(LENGTH_CHAIN_ID),
+						escrowedChainID,
 						nftID,
 					},
 				],
@@ -328,6 +333,7 @@ describe('nft module', () => {
 						lockingModule: 'pos',
 					},
 				],
+				escrowSubstore: [],
 			};
 
 			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
@@ -372,6 +378,82 @@ describe('nft module', () => {
 
 			await expect(module.initGenesisState(context)).rejects.toThrow(
 				`nftID ${nftID.toString('hex')} has a duplicate attribute for pos module`,
+			);
+		});
+
+		it('should throw if an NFT in user store has no corresponding entry for nft store', async () => {
+			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
+			const owner = utils.getRandomBytes(LENGTH_ADDRESS);
+
+			const additionalNFTID = utils.getRandomBytes(LENGTH_NFT_ID);
+
+			const genesisAssets = {
+				...validData,
+				nftSubstore: [
+					{
+						nftID,
+						owner,
+						attributesArray: [],
+					},
+				],
+				userSubstore: [
+					{
+						address: owner,
+						nftID,
+						lockingModule: 'pos',
+					},
+					{
+						address: utils.getRandomBytes(LENGTH_ADDRESS),
+						nftID: additionalNFTID,
+						lockingModule: 'pos',
+					},
+				],
+				escrowSubstore: [],
+			};
+
+			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
+
+			await expect(module.initGenesisState(context)).rejects.toThrow(
+				`nftID ${additionalNFTID.toString(
+					'hex',
+				)} in UserSubstore has no corresponding entry for NFTSubstore`,
+			);
+		});
+
+		it('should throw if an NFT in escrow store has no corresponding entry for nft store', async () => {
+			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
+			const escrowedChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+
+			const additionalNFTID = utils.getRandomBytes(LENGTH_NFT_ID);
+
+			const genesisAssets = {
+				...validData,
+				nftSubstore: [
+					{
+						nftID,
+						owner: escrowedChainID,
+						attributesArray: [],
+					},
+				],
+				userSubstore: [],
+				escrowSubstore: [
+					{
+						nftID,
+						escrowedChainID,
+					},
+					{
+						nftID: additionalNFTID,
+						escrowedChainID,
+					},
+				],
+			};
+
+			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
+
+			await expect(module.initGenesisState(context)).rejects.toThrow(
+				`nftID ${additionalNFTID.toString(
+					'hex',
+				)} in EscrowSubstore has no corresponding entry for NFTSubstore`,
 			);
 		});
 
@@ -473,6 +555,7 @@ describe('nft module', () => {
 						lockingModule: 'pos',
 					},
 				],
+				escrowSubstore: [],
 			};
 
 			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
@@ -517,6 +600,7 @@ describe('nft module', () => {
 						lockingModule: 'pos',
 					},
 				],
+				escrowSubstore: [],
 			};
 
 			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
@@ -552,6 +636,7 @@ describe('nft module', () => {
 						lockingModule: 'token',
 					},
 				],
+				escrowSubstore: [],
 			};
 
 			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
@@ -648,6 +733,11 @@ describe('nft module', () => {
 					},
 					{
 						nftID: escrowedNFTID1,
+						owner: escrowedChainID,
+						attributesArray: [],
+					},
+					{
+						nftID: escrowedNFTID2,
 						owner: escrowedChainID,
 						attributesArray: [],
 					},

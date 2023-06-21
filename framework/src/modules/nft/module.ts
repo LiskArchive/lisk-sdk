@@ -203,14 +203,15 @@ export class NFTModule extends BaseInteroperableModule {
 		}
 
 		for (const nft of genesisStore.nftSubstore) {
-			const ownerUsers = genesisStore.userSubstore.filter(userEntry =>
-				userEntry.nftID.equals(nft.nftID),
+			const userStoreEntries = genesisStore.userSubstore.filter(userStoreEntry =>
+				userStoreEntry.nftID.equals(nft.nftID),
 			);
-			const ownerChains = genesisStore.escrowSubstore.filter(escrowEntry =>
+
+			const escrowStoreEntries = genesisStore.escrowSubstore.filter(escrowEntry =>
 				escrowEntry.nftID.equals(nft.nftID),
 			);
 
-			if (ownerUsers.length === 0 && ownerChains.length === 0) {
+			if (userStoreEntries.length === 0 && escrowStoreEntries.length === 0) {
 				throw new Error(
 					`nftID ${nft.nftID.toString(
 						'hex',
@@ -218,13 +219,22 @@ export class NFTModule extends BaseInteroperableModule {
 				);
 			}
 
-			if (ownerUsers.length > 0 && ownerChains.length > 0) {
+			if (userStoreEntries.length > 0 && escrowStoreEntries.length > 0) {
 				throw new Error(
 					`nftID ${nft.nftID.toString(
 						'hex',
 					)} has an entry for both UserSubstore and EscrowSubstore`,
 				);
 			}
+
+			const ownerUsers = genesisStore.userSubstore.filter(
+				userEntry => userEntry.nftID.equals(nft.nftID) && userEntry.address.equals(nft.owner),
+			);
+
+			const ownerChains = genesisStore.escrowSubstore.filter(
+				escrowEntry =>
+					escrowEntry.nftID.equals(nft.nftID) && escrowEntry.escrowedChainID.equals(nft.owner),
+			);
 
 			if (ownerUsers.length > 1) {
 				throw new Error(`nftID ${nft.nftID.toString('hex')} has multiple entries for UserSubstore`);
@@ -256,6 +266,26 @@ export class NFTModule extends BaseInteroperableModule {
 						} module`,
 					);
 				}
+			}
+		}
+
+		for (const user of genesisStore.userSubstore) {
+			if (!genesisStore.nftSubstore.some(nft => nft.nftID.equals(user.nftID))) {
+				throw new Error(
+					`nftID ${user.nftID.toString(
+						'hex',
+					)} in UserSubstore has no corresponding entry for NFTSubstore`,
+				);
+			}
+		}
+
+		for (const escrow of genesisStore.escrowSubstore) {
+			if (!genesisStore.nftSubstore.some(nft => nft.nftID.equals(escrow.nftID))) {
+				throw new Error(
+					`nftID ${escrow.nftID.toString(
+						'hex',
+					)} in EscrowSubstore has no corresponding entry for NFTSubstore`,
+				);
 			}
 		}
 
