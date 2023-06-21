@@ -134,7 +134,7 @@ describe('PoS module', () => {
 			};
 			const validatorMethod = {
 				setValidatorGeneratorKey: jest.fn(),
-				registerValidatorKeys: jest.fn().mockResolvedValue(true),
+				registerValidatorKeys: jest.fn(),
 				registerValidatorWithoutBLSKey: jest.fn().mockResolvedValue(true),
 				getValidatorKeys: jest.fn().mockResolvedValue({
 					blsKey: utils.getRandomBytes(48),
@@ -276,11 +276,12 @@ describe('PoS module', () => {
 				);
 			});
 
-			it('should fail if registerValidatorKeys return false', async () => {
-				(pos['_validatorsMethod'].registerValidatorKeys as jest.Mock).mockResolvedValue(false);
-
+			it('should fail if registerValidatorKeys throws an error', async () => {
+				(pos['_validatorsMethod'].registerValidatorKeys as jest.Mock).mockRejectedValue(
+					new Error('error'),
+				);
 				await expect(pos.initGenesisState(context)).toResolve();
-				await expect(pos.finalizeGenesisState(context)).rejects.toThrow('Invalid validator key');
+				await expect(pos.finalizeGenesisState(context)).rejects.toThrow('error');
 			});
 
 			it('should fail if getLockedAmount return different value', async () => {

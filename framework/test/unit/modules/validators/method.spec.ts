@@ -113,15 +113,14 @@ describe('ValidatorsModuleMethod', () => {
 				result: KeyRegResult.SUCCESS,
 			});
 
-			await expect(
-				validatorsModule.method.registerValidatorKeys(
-					methodContext,
-					address,
-					blsKey,
-					generatorKey,
-					proofOfPossession,
-				),
-			).resolves.toBe(true);
+			await validatorsModule.method.registerValidatorKeys(
+				methodContext,
+				address,
+				blsKey,
+				generatorKey,
+				proofOfPossession,
+			);
+
 			const returnedAccount = await validatorsSubStore.get(methodContext, address);
 			const returnedAddress = await blsKeysSubStore.get(methodContext, blsKey);
 			expect(returnedAccount).toStrictEqual({ generatorKey, blsKey });
