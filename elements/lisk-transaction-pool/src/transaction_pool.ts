@@ -384,44 +384,44 @@ export class TransactionPool {
 			}
 			const processableTransactions = txList.getProcessable();
 			const allTransactions = [...processableTransactions, ...promotableTransactions];
-			let firstInvalidTransaction: { id: Buffer; status: TransactionStatus } | undefined;
+			const veirfyResults = [];
 			for (const transaction of allTransactions) {
 				try {
 					const status = await this._verifyFunction(transaction);
-					if (status !== TransactionStatus.PROCESSABLE) {
-						firstInvalidTransaction = {
-							id: transaction.id,
-							status,
-						};
+					veirfyResults.push({
+						id: transaction.id,
+						status,
+					});
+					if (status === TransactionStatus.INVALID) {
 						break;
 					}
 				} catch (error) {
-					firstInvalidTransaction = {
+					veirfyResults.push({
 						id: transaction.id,
 						status: TransactionStatus.INVALID,
-					};
+					});
 					break;
 				}
 			}
-
 			const successfulTransactionIds: Buffer[] = [];
 
-			for (const tx of allTransactions) {
-				// If a tx is invalid, all subsequent are also invalid, so exit loop.
-				if (firstInvalidTransaction && tx.id.equals(firstInvalidTransaction.id)) {
+			for (const result of veirfyResults) {
+				if (result.status === TransactionStatus.INVALID) {
 					break;
 				}
-				successfulTransactionIds.push(tx.id);
+				successfulTransactionIds.push(result.id);
 			}
 
 			// Promote all transactions which were successful
 			txList.promote(promotableTransactions.filter(tx => successfulTransactionIds.includes(tx.id)));
 
 			// Remove invalid transaction and all subsequent transactions
-			const invalidTransaction =
-				firstInvalidTransaction && firstInvalidTransaction.status === TransactionStatus.INVALID
-					? allTransactions.find(tx => tx.id.equals(firstInvalidTransaction?.id as Buffer))
-					: undefined;
+			const firstInvalidTransaction = veirfyResults.find(
+				r => r.status === TransactionStatus.INVALID,
+			);
+			const invalidTransaction = firstInvalidTransaction
+				? allTransactions.find(tx => tx.id.equals(firstInvalidTransaction.id))
+				: undefined;
 
 			if (invalidTransaction) {
 				for (const tx of allTransactions) {
