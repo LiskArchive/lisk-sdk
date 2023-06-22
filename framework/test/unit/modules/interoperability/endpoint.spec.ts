@@ -219,6 +219,28 @@ describe('Test interoperability endpoint', () => {
 			chainAccountResult = await testInteroperabilityEndpoint.getChainAccount(moduleContext);
 		});
 
+		it('should reject if chainID is not in bytes format', async () => {
+			await expect(
+				testInteroperabilityEndpoint.getChainAccount({
+					...moduleContext,
+					params: { chainID: '00000001' },
+				}),
+			).rejects.toThrow(
+				'Lisk validator found 2 error[s]:\n' +
+					'Property \'.chainID\' should pass "dataType" keyword validation\n' +
+					"Property '.chainID' must NOT have more than 4 characters",
+			);
+		});
+
+		it('should reject if chainID has invalid length', async () => {
+			await expect(
+				testInteroperabilityEndpoint.getChainAccount({
+					...moduleContext,
+					params: { chainID: utils.intToBuffer(1, 5) },
+				}),
+			).rejects.toThrow("Property '.chainID' maxLength exceeded");
+		});
+
 		it('should call getChainAccount', () => {
 			expect(chainAccountStoreMock.get).toHaveBeenCalledWith(expect.anything(), chainID);
 		});
