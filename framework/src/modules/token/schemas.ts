@@ -426,8 +426,6 @@ export const genesisTokenStoreSchema = {
 				properties: {
 					chainID: {
 						dataType: 'bytes',
-						minLength: CHAIN_ID_LENGTH,
-						maxLength: CHAIN_ID_LENGTH,
 						fieldNumber: 1,
 					},
 					supportedTokenIDs: {

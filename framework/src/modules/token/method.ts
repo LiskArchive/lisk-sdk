@@ -414,6 +414,9 @@ export class TokenMethod extends BaseMethod {
 		};
 
 		if (this._config.ownChainID.equals(receivingChainID)) {
+			this.events
+				.get(TransferCrossChainEvent)
+				.error(methodContext, eventData, TokenEventResult.INVALID_RECEIVING_CHAIN);
 			throw new Error('Receiving chain cannot be the sending chain.');
 		}
 

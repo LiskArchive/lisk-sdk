@@ -882,6 +882,36 @@ describe('NFTMethod', () => {
 			receivingChainID = existingNFT.nftID.slice(0, LENGTH_CHAIN_ID);
 		});
 
+		it('should throw and emit error transfer cross chain event if receiving chain id is same as the own chain id', async () => {
+			receivingChainID = config.ownChainID;
+			await expect(
+				method.transferCrossChain(
+					methodContext,
+					existingNFT.owner,
+					recipientAddress,
+					existingNFT.nftID,
+					receivingChainID,
+					messageFee,
+					data,
+					includeAttributes,
+				),
+			).rejects.toThrow('Receiving chain cannot be the sending chain');
+			checkEventResult<TransferCrossChainEventData>(
+				methodContext.eventQueue,
+				1,
+				TransferCrossChainEvent,
+				0,
+				{
+					senderAddress: existingNFT.owner,
+					recipientAddress,
+					receivingChainID,
+					nftID: existingNFT.nftID,
+					includeAttributes,
+				},
+				NftEventResult.INVALID_RECEIVING_CHAIN,
+			);
+		});
+
 		it('should throw and emit error transfer cross chain event if nft does not exist', async () => {
 			receivingChainID = nftID.slice(0, LENGTH_CHAIN_ID);
 			await expect(
