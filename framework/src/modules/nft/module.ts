@@ -63,7 +63,12 @@ import { FeeMethod, GenesisNFTStore, TokenMethod } from './types';
 import { CrossChainTransferCommand as CrossChainTransferMessageCommand } from './cc_commands/cc_transfer';
 import { TransferCrossChainCommand } from './commands/transfer_cross_chain';
 import { TransferCommand } from './commands/transfer';
-import { ALL_SUPPORTED_NFTS_KEY, LENGTH_ADDRESS, LENGTH_CHAIN_ID } from './constants';
+import {
+	ALL_SUPPORTED_NFTS_KEY,
+	LENGTH_ADDRESS,
+	LENGTH_CHAIN_ID,
+	NFT_NOT_LOCKED,
+} from './constants';
 
 export class NFTModule extends BaseInteroperableModule {
 	public method = new NFTMethod(this.stores, this.events);
@@ -195,63 +200,9 @@ export class NFTModule extends BaseInteroperableModule {
 			if (![LENGTH_CHAIN_ID, LENGTH_ADDRESS].includes(nft.owner.length)) {
 				throw new Error(`nftID ${nft.nftID.toString('hex')} has invalid owner`);
 			}
+
 			if (nftIDKeySet.has(nft.nftID)) {
 				throw new Error(`nftID ${nft.nftID.toString('hex')} duplicated`);
-			}
-
-			nftIDKeySet.add(nft.nftID);
-		}
-
-		for (const nft of genesisStore.nftSubstore) {
-			const userStoreEntries = genesisStore.userSubstore.filter(userStoreEntry =>
-				userStoreEntry.nftID.equals(nft.nftID),
-			);
-
-			const escrowStoreEntries = genesisStore.escrowSubstore.filter(escrowEntry =>
-				escrowEntry.nftID.equals(nft.nftID),
-			);
-
-			if (userStoreEntries.length === 0 && escrowStoreEntries.length === 0) {
-				throw new Error(
-					`nftID ${nft.nftID.toString(
-						'hex',
-					)} has no corresponding entry for UserSubstore or EscrowSubstore`,
-				);
-			}
-
-			if (userStoreEntries.length > 0 && escrowStoreEntries.length > 0) {
-				throw new Error(
-					`nftID ${nft.nftID.toString(
-						'hex',
-					)} has an entry for both UserSubstore and EscrowSubstore`,
-				);
-			}
-
-			const ownerUsers = genesisStore.userSubstore.filter(
-				userEntry => userEntry.nftID.equals(nft.nftID) && userEntry.address.equals(nft.owner),
-			);
-
-			const ownerChains = genesisStore.escrowSubstore.filter(
-				escrowEntry =>
-					escrowEntry.nftID.equals(nft.nftID) && escrowEntry.escrowedChainID.equals(nft.owner),
-			);
-
-			if (ownerUsers.length > 1) {
-				throw new Error(`nftID ${nft.nftID.toString('hex')} has multiple entries for UserSubstore`);
-			}
-
-			if (ownerChains.length > 1) {
-				throw new Error(
-					`nftID ${nft.nftID.toString('hex')} has multiple entries for EscrowSubstore`,
-				);
-			}
-
-			if (nft.owner.length === LENGTH_CHAIN_ID && ownerChains.length !== 1) {
-				throw new Error(
-					`nftID ${nft.nftID.toString(
-						'hex',
-					)} should have a corresponding entry for EscrowSubstore only`,
-				);
 			}
 
 			const attributeSet: Record<string, number> = {};
@@ -267,26 +218,8 @@ export class NFTModule extends BaseInteroperableModule {
 					);
 				}
 			}
-		}
 
-		for (const user of genesisStore.userSubstore) {
-			if (!genesisStore.nftSubstore.some(nft => nft.nftID.equals(user.nftID))) {
-				throw new Error(
-					`nftID ${user.nftID.toString(
-						'hex',
-					)} in UserSubstore has no corresponding entry for NFTSubstore`,
-				);
-			}
-		}
-
-		for (const escrow of genesisStore.escrowSubstore) {
-			if (!genesisStore.nftSubstore.some(nft => nft.nftID.equals(escrow.nftID))) {
-				throw new Error(
-					`nftID ${escrow.nftID.toString(
-						'hex',
-					)} in EscrowSubstore has no corresponding entry for NFTSubstore`,
-				);
-			}
+			nftIDKeySet.add(nft.nftID);
 		}
 
 		const allNFTsSupported = genesisStore.supportedNFTsSubstore.some(supportedNFTs =>
@@ -316,29 +249,24 @@ export class NFTModule extends BaseInteroperableModule {
 		}
 
 		const nftStore = this.stores.get(NFTStore);
+		const escrowStore = this.stores.get(EscrowStore);
+		const userStore = this.stores.get(UserStore);
+
 		for (const nft of genesisStore.nftSubstore) {
-			const { nftID, owner, attributesArray } = nft;
+			const { owner, nftID, attributesArray } = nft;
 
 			await nftStore.save(context, nftID, {
 				owner,
 				attributesArray,
 			});
-		}
 
-		const userStore = this.stores.get(UserStore);
-		for (const user of genesisStore.userSubstore) {
-			const { address, nftID, lockingModule } = user;
-
-			await userStore.set(context, userStore.getKey(address, nftID), {
-				lockingModule,
-			});
-		}
-
-		const escrowStore = this.stores.get(EscrowStore);
-		for (const escrow of genesisStore.escrowSubstore) {
-			const { escrowedChainID, nftID } = escrow;
-
-			await escrowStore.set(context, escrowStore.getKey(escrowedChainID, nftID), {});
+			if (owner.length === LENGTH_CHAIN_ID) {
+				await escrowStore.set(context, escrowStore.getKey(owner, nftID), {});
+			} else {
+				await userStore.set(context, userStore.getKey(owner, nftID), {
+					lockingModule: NFT_NOT_LOCKED,
+				});
+			}
 		}
 
 		for (const supportedNFT of genesisStore.supportedNFTsSubstore) {

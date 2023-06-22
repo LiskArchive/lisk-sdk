@@ -74,15 +74,6 @@ export interface GenesisNFTStore {
 			attributes: Buffer;
 		}[];
 	}[];
-	userSubstore: {
-		address: Buffer;
-		nftID: Buffer;
-		lockingModule: string;
-	}[];
-	escrowSubstore: {
-		escrowedChainID: Buffer;
-		nftID: Buffer;
-	}[];
 	supportedNFTsSubstore: {
 		chainID: Buffer;
 		supportedCollectionIDArray: {

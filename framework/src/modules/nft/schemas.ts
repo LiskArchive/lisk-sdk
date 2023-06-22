@@ -391,7 +391,7 @@ export const isNFTSupportedResponseSchema = {
 export const genesisNFTStoreSchema = {
 	$id: '/nft/module/genesis',
 	type: 'object',
-	required: ['nftSubstore', 'userSubstore', 'escrowSubstore', 'supportedNFTsSubstore'],
+	required: ['nftSubstore', 'supportedNFTsSubstore'],
 	properties: {
 		nftSubstore: {
 			type: 'array',
@@ -434,59 +434,9 @@ export const genesisNFTStoreSchema = {
 				},
 			},
 		},
-		userSubstore: {
-			type: 'array',
-			fieldNumber: 2,
-			items: {
-				type: 'object',
-				required: ['address', 'nftID', 'lockingModule'],
-				properties: {
-					address: {
-						dataType: 'bytes',
-						format: 'lisk32',
-						fieldNumber: 1,
-					},
-					nftID: {
-						dataType: 'bytes',
-						minLength: LENGTH_NFT_ID,
-						maxLength: LENGTH_NFT_ID,
-						fieldNumber: 2,
-					},
-					lockingModule: {
-						dataType: 'string',
-						minLength: MIN_LENGTH_MODULE_NAME,
-						maxLength: MAX_LENGTH_MODULE_NAME,
-						pattern: '^[a-zA-Z0-9]*$',
-						fieldNumber: 3,
-					},
-				},
-			},
-		},
-		escrowSubstore: {
-			type: 'array',
-			fieldNumber: 3,
-			items: {
-				type: 'object',
-				required: ['escrowedChainID', 'nftID'],
-				properties: {
-					escrowedChainID: {
-						dataType: 'bytes',
-						minLength: LENGTH_CHAIN_ID,
-						maxLength: LENGTH_CHAIN_ID,
-						fieldNumber: 1,
-					},
-					nftID: {
-						dataType: 'bytes',
-						minLength: LENGTH_NFT_ID,
-						maxLength: LENGTH_NFT_ID,
-						fieldNumber: 2,
-					},
-				},
-			},
-		},
 		supportedNFTsSubstore: {
 			type: 'array',
-			fieldNumber: 4,
+			fieldNumber: 2,
 			items: {
 				type: 'object',
 				required: ['chainID', 'supportedCollectionIDArray'],

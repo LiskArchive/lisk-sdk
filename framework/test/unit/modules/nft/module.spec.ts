@@ -18,10 +18,8 @@ import { BlockAssets } from '@liskhq/lisk-chain';
 import { NFTModule } from '../../../../src/modules/nft/module';
 import { createGenesisBlockContext } from '../../../../src/testing';
 import {
-	invalidSchemaEscrowSubstoreGenesisAssets,
 	invalidSchemaNFTSubstoreGenesisAssets,
 	invalidSchemaSupportedNFTsSubstoreGenesisAssets,
-	invalidSchemaUserSubstoreGenesisAssets,
 	validData,
 } from './init_genesis_state_fixtures';
 import { genesisNFTStoreSchema } from '../../../../src/modules/nft/schemas';
@@ -31,6 +29,7 @@ import {
 	LENGTH_CHAIN_ID,
 	LENGTH_COLLECTION_ID,
 	LENGTH_NFT_ID,
+	NFT_NOT_LOCKED,
 } from '../../../../src/modules/nft/constants';
 import { NFTStore } from '../../../../src/modules/nft/stores/nft';
 import { SupportedNFTsStore } from '../../../../src/modules/nft/stores/supported_nfts';
@@ -42,8 +41,8 @@ describe('nft module', () => {
 
 	const nftStore = module.stores.get(NFTStore);
 	const userStore = module.stores.get(UserStore);
-	const supportedNFTsSubstore = module.stores.get(SupportedNFTsStore);
 	const escrowStore = module.stores.get(EscrowStore);
+	const supportedNFTsSubstore = module.stores.get(SupportedNFTsStore);
 
 	const createGenesisBlockContextFromGenesisAssets = (genesisAssets: object) => {
 		const encodedAsset = codec.encode(genesisNFTStoreSchema, genesisAssets);
@@ -58,38 +57,6 @@ describe('nft module', () => {
 	describe('initGenesisState', () => {
 		describe('validate nftSubstore schema', () => {
 			it.each(invalidSchemaNFTSubstoreGenesisAssets)('%s', async (_, input, err) => {
-				if (typeof input === 'string') {
-					return;
-				}
-
-				const encodedAsset = codec.encode(genesisNFTStoreSchema, input);
-
-				const context = createGenesisBlockContext({
-					assets: new BlockAssets([{ module: module.name, data: encodedAsset }]),
-				}).createInitGenesisStateContext();
-
-				await expect(module.initGenesisState(context)).rejects.toThrow(err as string);
-			});
-		});
-
-		describe('validate userSubstore schema', () => {
-			it.each(invalidSchemaUserSubstoreGenesisAssets)('%s', async (_, input, err) => {
-				if (typeof input === 'string') {
-					return;
-				}
-
-				const encodedAsset = codec.encode(genesisNFTStoreSchema, input);
-
-				const context = createGenesisBlockContext({
-					assets: new BlockAssets([{ module: module.name, data: encodedAsset }]),
-				}).createInitGenesisStateContext();
-
-				await expect(module.initGenesisState(context)).rejects.toThrow(err as string);
-			});
-		});
-
-		describe('validate escrowSubstore schema', () => {
-			it.each(invalidSchemaEscrowSubstoreGenesisAssets)('%s', async (_, input, err) => {
 				if (typeof input === 'string') {
 					return;
 				}
@@ -188,162 +155,7 @@ describe('nft module', () => {
 			);
 		});
 
-		it('should throw if NFT does not have a corresponding entry for user or escrow store', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-
-			const genesisAssets = {
-				...validData,
-				nftSubstore: [
-					{
-						nftID,
-						owner: utils.getRandomBytes(LENGTH_ADDRESS),
-						attributesArray: [],
-					},
-				],
-			};
-
-			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
-
-			await expect(module.initGenesisState(context)).rejects.toThrow(
-				`nftID ${nftID.toString(
-					'hex',
-				)} has no corresponding entry for UserSubstore or EscrowSubstore`,
-			);
-		});
-
-		it('should throw if NFT has an entry for both user and escrow store', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-			// const owner = utils.getRandomBytes(LENGTH_ADDRESS);
-
-			const genesisAssets = {
-				...validData,
-				nftSubstore: [
-					{
-						nftID,
-						owner: utils.getRandomBytes(LENGTH_ADDRESS),
-						attributesArray: [],
-					},
-				],
-				userSubstore: [
-					{
-						address: utils.getRandomBytes(LENGTH_ADDRESS),
-						nftID,
-						lockingModule: 'pos',
-					},
-				],
-				escrowSubstore: [
-					{
-						escrowedChainID: utils.getRandomBytes(LENGTH_CHAIN_ID),
-						nftID,
-					},
-				],
-			};
-
-			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
-
-			await expect(module.initGenesisState(context)).rejects.toThrow(
-				`nftID ${nftID.toString('hex')} has an entry for both UserSubstore and EscrowSubstore`,
-			);
-		});
-
-		it('should throw if NFT has multiple entries for user store', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-			const owner = utils.getRandomBytes(LENGTH_ADDRESS);
-
-			const genesisAssets = {
-				...validData,
-				nftSubstore: [
-					{
-						nftID,
-						owner,
-						attributesArray: [],
-					},
-				],
-				userSubstore: [
-					{
-						address: owner,
-						nftID,
-						lockingModule: 'pos',
-					},
-					{
-						address: owner,
-						nftID,
-						lockingModule: 'token',
-					},
-				],
-				escrowSubstore: [],
-			};
-
-			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
-
-			await expect(module.initGenesisState(context)).rejects.toThrow(
-				`nftID ${nftID.toString('hex')} has multiple entries for UserSubstore`,
-			);
-		});
-
-		it('should throw if NFT has multiple entries for escrow store', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-			const escrowedChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-
-			const genesisAssets = {
-				...validData,
-				nftSubstore: [
-					{
-						nftID,
-						owner: escrowedChainID,
-						attributesArray: [],
-					},
-				],
-				userSubstore: [],
-				escrowSubstore: [
-					{
-						escrowedChainID,
-						nftID,
-					},
-					{
-						escrowedChainID,
-						nftID,
-					},
-				],
-			};
-
-			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
-
-			await expect(module.initGenesisState(context)).rejects.toThrow(
-				`nftID ${nftID.toString('hex')} has multiple entries for EscrowSubstore`,
-			);
-		});
-
-		it('should throw if escrowed NFT has no corresponding entry for escrow store', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-
-			const genesisAssets = {
-				...validData,
-				nftSubstore: [
-					{
-						nftID,
-						owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
-						attributesArray: [],
-					},
-				],
-				userSubstore: [
-					{
-						address: utils.getRandomBytes(LENGTH_ADDRESS),
-						nftID,
-						lockingModule: 'pos',
-					},
-				],
-				escrowSubstore: [],
-			};
-
-			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
-
-			await expect(module.initGenesisState(context)).rejects.toThrow(
-				`nftID ${nftID.toString('hex')} should have a corresponding entry for EscrowSubstore only`,
-			);
-		});
-
-		it('should throw if NFT has duplicate attribute for an array', async () => {
+		it('should throw if NFT has duplicate attribute for a module', async () => {
 			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
 			const moduleName = 'pos';
 
@@ -365,95 +177,12 @@ describe('nft module', () => {
 						],
 					},
 				],
-				userSubstore: [
-					{
-						address: utils.getRandomBytes(LENGTH_ADDRESS),
-						nftID,
-						lockingModule: 'pos',
-					},
-				],
 			};
 
 			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
 
 			await expect(module.initGenesisState(context)).rejects.toThrow(
 				`nftID ${nftID.toString('hex')} has a duplicate attribute for pos module`,
-			);
-		});
-
-		it('should throw if an NFT in user store has no corresponding entry for nft store', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-			const owner = utils.getRandomBytes(LENGTH_ADDRESS);
-
-			const additionalNFTID = utils.getRandomBytes(LENGTH_NFT_ID);
-
-			const genesisAssets = {
-				...validData,
-				nftSubstore: [
-					{
-						nftID,
-						owner,
-						attributesArray: [],
-					},
-				],
-				userSubstore: [
-					{
-						address: owner,
-						nftID,
-						lockingModule: 'pos',
-					},
-					{
-						address: utils.getRandomBytes(LENGTH_ADDRESS),
-						nftID: additionalNFTID,
-						lockingModule: 'pos',
-					},
-				],
-				escrowSubstore: [],
-			};
-
-			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
-
-			await expect(module.initGenesisState(context)).rejects.toThrow(
-				`nftID ${additionalNFTID.toString(
-					'hex',
-				)} in UserSubstore has no corresponding entry for NFTSubstore`,
-			);
-		});
-
-		it('should throw if an NFT in escrow store has no corresponding entry for nft store', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
-			const escrowedChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-
-			const additionalNFTID = utils.getRandomBytes(LENGTH_NFT_ID);
-
-			const genesisAssets = {
-				...validData,
-				nftSubstore: [
-					{
-						nftID,
-						owner: escrowedChainID,
-						attributesArray: [],
-					},
-				],
-				userSubstore: [],
-				escrowSubstore: [
-					{
-						nftID,
-						escrowedChainID,
-					},
-					{
-						nftID: additionalNFTID,
-						escrowedChainID,
-					},
-				],
-			};
-
-			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
-
-			await expect(module.initGenesisState(context)).rejects.toThrow(
-				`nftID ${additionalNFTID.toString(
-					'hex',
-				)} in EscrowSubstore has no corresponding entry for NFTSubstore`,
 			);
 		});
 
@@ -525,6 +254,41 @@ describe('nft module', () => {
 			);
 		});
 
+		it('should create NFTs, their corresponding user or escrow entries and supported chains', async () => {
+			const context = createGenesisBlockContextFromGenesisAssets(validData);
+
+			await expect(module.initGenesisState(context)).resolves.toBeUndefined();
+
+			for (const nft of validData.nftSubstore) {
+				const { nftID, owner, attributesArray } = nft;
+
+				await expect(nftStore.get(context.getMethodContext(), nftID)).resolves.toEqual({
+					owner,
+					attributesArray,
+				});
+
+				if (owner.length === LENGTH_CHAIN_ID) {
+					await expect(
+						escrowStore.get(context.getMethodContext(), escrowStore.getKey(owner, nftID)),
+					).resolves.toEqual({});
+				} else {
+					await expect(
+						userStore.get(context.getMethodContext(), userStore.getKey(owner, nftID)),
+					).resolves.toEqual({
+						lockingModule: NFT_NOT_LOCKED,
+					});
+				}
+			}
+
+			for (const supportedChain of validData.supportedNFTsSubstore) {
+				const { chainID, supportedCollectionIDArray } = supportedChain;
+
+				await expect(
+					supportedNFTsSubstore.get(context.getMethodContext(), chainID),
+				).resolves.toEqual({ supportedCollectionIDArray });
+			}
+		});
+
 		it('should create entries for all NFTs lexicographically', async () => {
 			const nftID1 = Buffer.alloc(LENGTH_NFT_ID, 1);
 			const nftID2 = Buffer.alloc(LENGTH_NFT_ID, 0);
@@ -543,19 +307,6 @@ describe('nft module', () => {
 						attributesArray: [],
 					},
 				],
-				userSubstore: [
-					{
-						address: utils.getRandomBytes(LENGTH_ADDRESS),
-						nftID: nftID1,
-						lockingModule: 'pos',
-					},
-					{
-						address: utils.getRandomBytes(LENGTH_ADDRESS),
-						nftID: nftID2,
-						lockingModule: 'pos',
-					},
-				],
-				escrowSubstore: [],
 			};
 
 			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
@@ -593,14 +344,6 @@ describe('nft module', () => {
 						],
 					},
 				],
-				userSubstore: [
-					{
-						address: utils.getRandomBytes(LENGTH_ADDRESS),
-						nftID,
-						lockingModule: 'pos',
-					},
-				],
-				escrowSubstore: [],
 			};
 
 			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
@@ -629,14 +372,6 @@ describe('nft module', () => {
 						],
 					},
 				],
-				userSubstore: [
-					{
-						address: utils.getRandomBytes(LENGTH_ADDRESS),
-						nftID,
-						lockingModule: 'token',
-					},
-				],
-				escrowSubstore: [],
 			};
 
 			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
@@ -698,108 +433,6 @@ describe('nft module', () => {
 			const expectedKeys = [chainID2, chainID1];
 
 			expect(expectedKeys).toEqual(allSupportedNFTs.map(supportedNFTs => supportedNFTs.key));
-		});
-
-		it('should create entries for user and escrow store', async () => {
-			const nftID1 = utils.getRandomBytes(LENGTH_NFT_ID);
-			const nftID2 = utils.getRandomBytes(LENGTH_NFT_ID);
-			const nftID3 = utils.getRandomBytes(LENGTH_NFT_ID);
-
-			const escrowedNFTID1 = utils.getRandomBytes(LENGTH_NFT_ID);
-			const escrowedNFTID2 = utils.getRandomBytes(LENGTH_NFT_ID);
-
-			const owner1 = utils.getRandomBytes(LENGTH_ADDRESS);
-			const owner2 = utils.getRandomBytes(LENGTH_ADDRESS);
-
-			const escrowedChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-
-			const genesisAssets = {
-				...validData,
-				nftSubstore: [
-					{
-						nftID: nftID1,
-						owner: owner1,
-						attributesArray: [],
-					},
-					{
-						nftID: nftID2,
-						owner: owner1,
-						attributesArray: [],
-					},
-					{
-						nftID: nftID3,
-						owner: owner2,
-						attributesArray: [],
-					},
-					{
-						nftID: escrowedNFTID1,
-						owner: escrowedChainID,
-						attributesArray: [],
-					},
-					{
-						nftID: escrowedNFTID2,
-						owner: escrowedChainID,
-						attributesArray: [],
-					},
-				],
-				userSubstore: [
-					{
-						address: owner1,
-						nftID: nftID1,
-						lockingModule: 'pos',
-					},
-					{
-						address: owner1,
-						nftID: nftID2,
-						lockingModule: 'token',
-					},
-					{
-						address: owner2,
-						nftID: nftID3,
-						lockingModule: 'auth',
-					},
-				],
-				escrowSubstore: [
-					{
-						escrowedChainID,
-						nftID: escrowedNFTID1,
-					},
-					{
-						escrowedChainID,
-						nftID: escrowedNFTID2,
-					},
-				],
-			};
-
-			const context = createGenesisBlockContextFromGenesisAssets(genesisAssets);
-
-			await expect(module.initGenesisState(context)).resolves.toBeUndefined();
-
-			await expect(
-				userStore.get(context.getMethodContext(), userStore.getKey(owner1, nftID1)),
-			).resolves.toEqual({ lockingModule: 'pos' });
-
-			await expect(
-				userStore.get(context.getMethodContext(), userStore.getKey(owner1, nftID2)),
-			).resolves.toEqual({ lockingModule: 'token' });
-
-			await expect(
-				userStore.get(context.getMethodContext(), userStore.getKey(owner2, nftID3)),
-			).resolves.toEqual({ lockingModule: 'auth' });
-
-			await expect(
-				escrowStore.get(
-					context.getMethodContext(),
-					escrowStore.getKey(escrowedChainID, escrowedNFTID1),
-				),
-			).resolves.toEqual({});
-
-			await expect(
-				escrowStore.get(
-					context.getMethodContext(),
-					escrowStore.getKey(escrowedChainID, escrowedNFTID2),
-				),
-			).resolves.toEqual({});
 		});
 
 		it('should create an entry for supported chains with supportedCollectionIDArray sorted lexicographically', async () => {
