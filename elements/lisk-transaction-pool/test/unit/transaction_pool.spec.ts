@@ -33,7 +33,7 @@ describe('TransactionPool class', () => {
 	});
 
 	describe('constructor', () => {
-		describe('when only applyTransaction is given', () => {
+		describe('when only verifyTransaction is given', () => {
 			it('should set default values', () => {
 				expect((transactionPool as any)._maxTransactions).toBe(4096);
 				expect((transactionPool as any)._maxTransactionsPerAccount).toBe(64);
@@ -359,8 +359,8 @@ describe('TransactionPool class', () => {
 				maxPayloadLength: 15360,
 			});
 
-			const tempApplyTransactionsStub = jest.fn();
-			(transactionPool as any)._verifyFunction = tempApplyTransactionsStub;
+			const tempVerifyTransactionsStub = jest.fn();
+			(transactionPool as any)._verifyFunction = tempVerifyTransactionsStub;
 
 			txGetBytesStub = jest.fn();
 			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
@@ -374,7 +374,7 @@ describe('TransactionPool class', () => {
 					Buffer.from(new Array(MAX_TRANSACTIONS + i)),
 				);
 
-				tempApplyTransactionsStub.mockResolvedValue(TransactionStatus.PROCESSABLE);
+				tempVerifyTransactionsStub.mockResolvedValue(TransactionStatus.PROCESSABLE);
 
 				await transactionPool.add(tempTx);
 			}
@@ -392,7 +392,7 @@ describe('TransactionPool class', () => {
 				Buffer.from(new Array(MAX_TRANSACTIONS)),
 			);
 
-			tempApplyTransactionsStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
+			tempVerifyTransactionsStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
 			jest.spyOn(transactionPool, '_evictProcessable' as any);
 
 			// Act
@@ -521,8 +521,8 @@ describe('TransactionPool class', () => {
 				maxPayloadLength: 15360,
 			});
 
-			const tempApplyTransactionsStub = jest.fn();
-			(transactionPool as any)._verifyFunction = tempApplyTransactionsStub;
+			const tempVerifyTransactionsStub = jest.fn();
+			(transactionPool as any)._verifyFunction = tempVerifyTransactionsStub;
 			txGetBytesStub = jest.fn();
 			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
 				const tempTx = {
@@ -537,14 +537,14 @@ describe('TransactionPool class', () => {
 
 				// half the trx are unprocessable
 				if (i < 5) {
-					when(tempApplyTransactionsStub)
+					when(tempVerifyTransactionsStub)
 						.calledWith([tempTx])
 						.mockRejectedValue({
 							transactionError: { code: 'ERR_NONCE_OUT_OF_BOUNDS' },
 							code: 'ERR_TRANSACTION_VERIFICATION_FAIL',
 						});
 				} else {
-					when(tempApplyTransactionsStub)
+					when(tempVerifyTransactionsStub)
 						.calledWith([tempTx])
 						.mockResolvedValue([{ status: Status.OK, errors: [] }]);
 				}
@@ -565,7 +565,7 @@ describe('TransactionPool class', () => {
 				Buffer.from(new Array(MAX_TRANSACTIONS + 10)),
 			);
 
-			when(tempApplyTransactionsStub)
+			when(tempVerifyTransactionsStub)
 				.calledWith([lowFeePriorityTx])
 				.mockResolvedValue([{ status: Status.OK, errors: [] }]);
 

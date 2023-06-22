@@ -194,7 +194,7 @@ export class TransactionPool {
 
 		const incomingTxAddress = address.getAddressFromPublicKey(incomingTx.senderPublicKey);
 
-		// _applyFunction is injected from chain module applyTransaction
+		// _verifyFunction is injected from user through constructor
 		const txStatus = await this._verifyFunction(incomingTx);
 		if (txStatus === TransactionStatus.INVALID) {
 			return {
@@ -384,11 +384,14 @@ export class TransactionPool {
 			}
 			const processableTransactions = txList.getProcessable();
 			const allTransactions = [...processableTransactions, ...promotableTransactions];
-			const veirfyResults = [];
-			for (const transaction of allTransactions) {
+			const verifyResults = [];
+			const successfulTransactionIDs: Buffer[] = [];
+
+			for (let i = 0; i < allTransactions.length; i += 1) {
+				const transaction = allTransactions[i];
 				try {
 					const status = await this._verifyFunction(transaction);
-					veirfyResults.push({
+					verifyResults.push({
 						id: transaction.id,
 						status,
 						transaction,
@@ -396,8 +399,20 @@ export class TransactionPool {
 					if (status === TransactionStatus.INVALID) {
 						break;
 					}
+					if (status === TransactionStatus.UNPROCESSABLE) {
+						// if the first transaction is unprocessable, then it's not processable
+						if (successfulTransactionIDs.length === 0) {
+							break;
+						}
+						// if the nonce is not sequential from the previous successful one, then it's not processable
+						// at least 1 successfulTransactionIDs means at least one verifyResults
+						if (verifyResults[i - 1].transaction.nonce + BigInt(1) !== transaction.nonce) {
+							break;
+						}
+					}
+					successfulTransactionIDs.push(transaction.id);
 				} catch (error) {
-					veirfyResults.push({
+					verifyResults.push({
 						id: transaction.id,
 						status: TransactionStatus.INVALID,
 						transaction,
@@ -405,31 +420,12 @@ export class TransactionPool {
 					break;
 				}
 			}
-			const successfulTransactionIds: Buffer[] = [];
-
-			for (let i = 0; i < veirfyResults.length; i += 1) {
-				const result = veirfyResults[i];
-				if (result.status === TransactionStatus.INVALID) {
-					break;
-				}
-				if (result.status === TransactionStatus.UNPROCESSABLE) {
-					// if the first transaction is unprocessable, then it's not processable
-					if (successfulTransactionIds.length === 0) {
-						break;
-					}
-					// if the nonce is not sequential from the previous successful one, then it's not processable
-					if (veirfyResults[i - 1].transaction.nonce + BigInt(1) !== result.transaction.nonce) {
-						break;
-					}
-				}
-				successfulTransactionIds.push(result.id);
-			}
 
 			// Promote all transactions which were successful
-			txList.promote(promotableTransactions.filter(tx => successfulTransactionIds.includes(tx.id)));
+			txList.promote(promotableTransactions.filter(tx => successfulTransactionIDs.includes(tx.id)));
 
 			// Remove invalid transaction and all subsequent transactions
-			const firstInvalidTransaction = veirfyResults.find(
+			const firstInvalidTransaction = verifyResults.find(
 				r => r.status === TransactionStatus.INVALID,
 			);
 			const invalidTransaction = firstInvalidTransaction
@@ -443,7 +439,7 @@ export class TransactionPool {
 							id: tx.id,
 							nonce: tx.nonce.toString(),
 							senderPublicKey: tx.senderPublicKey,
-							reason: `Invalid transaction ${invalidTransaction.id.toString('binary')}`,
+							reason: `Invalid transaction ${invalidTransaction.id.toString('hex')}`,
 						});
 						this.remove(tx);
 					}
