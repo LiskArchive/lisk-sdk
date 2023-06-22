@@ -25,7 +25,7 @@ describe('TransactionPool class', () => {
 	beforeEach(() => {
 		jest.useFakeTimers();
 		transactionPool = new TransactionPool({
-			applyTransactions: jest.fn(),
+			verifyTransaction: jest.fn().mockResolvedValue(TransactionStatus.PROCESSABLE),
 			transactionReorganizationInterval: 1,
 			maxPayloadLength: 15360,
 		});
@@ -33,7 +33,7 @@ describe('TransactionPool class', () => {
 	});
 
 	describe('constructor', () => {
-		describe('when only applyTransaction is given', () => {
+		describe('when only verifyTransaction is given', () => {
 			it('should set default values', () => {
 				expect((transactionPool as any)._maxTransactions).toBe(4096);
 				expect((transactionPool as any)._maxTransactionsPerAccount).toBe(64);
@@ -46,7 +46,7 @@ describe('TransactionPool class', () => {
 		describe('when all the config properties are given', () => {
 			it('should set the value to given option values', () => {
 				transactionPool = new TransactionPool({
-					applyTransactions: jest.fn(),
+					verifyTransaction: jest.fn(),
 					maxTransactions: 2048,
 					maxTransactionsPerAccount: 32,
 					minReplacementFeeDifference: BigInt(100),
@@ -259,10 +259,9 @@ describe('TransactionPool class', () => {
 
 		it('should add a valid higher nonce transaction to the transaction list as unprocessable', async () => {
 			// Arrange
-			(transactionPool['_applyFunction'] as jest.Mock).mockRejectedValue({
-				code: 'ERR_TRANSACTION_VERIFICATION_FAIL',
-				transactionError: { code: 'ERR_NONCE_OUT_OF_BOUNDS', actual: '123', expected: '2' },
-			});
+			(transactionPool['_verifyFunction'] as jest.Mock).mockResolvedValue(
+				TransactionStatus.UNPROCESSABLE,
+			);
 
 			// Act
 			const { status } = await transactionPool.add(tx);
@@ -300,32 +299,28 @@ describe('TransactionPool class', () => {
 
 		it('should throw when a transaction is invalid', async () => {
 			// Arrange
-			jest.spyOn(transactionPool, '_getStatus' as any);
-			(transactionPool['_applyFunction'] as jest.Mock).mockRejectedValue(
-				new Error('Invalid transaction'),
+			(transactionPool['_verifyFunction'] as jest.Mock).mockResolvedValue(
+				TransactionStatus.INVALID,
 			);
 
 			// Act
 			const result = await transactionPool.add(tx);
 
 			// Assert
-			expect(transactionPool['_getStatus']).toHaveReturnedWith(TransactionStatus.INVALID);
 			expect(result.status).toEqual(Status.FAIL);
 			expect(result.error?.message).toBe('Invalid transaction');
 		});
 
 		it('should throw when a transaction is invalid but not include higher nonce error', async () => {
 			// Arrange
-			jest.spyOn(transactionPool, '_getStatus' as any);
-			(transactionPool['_applyFunction'] as jest.Mock).mockRejectedValue(
-				new Error('Invalid transaction'),
+			(transactionPool['_verifyFunction'] as jest.Mock).mockResolvedValue(
+				TransactionStatus.INVALID,
 			);
 
 			// Act
 			const result = await transactionPool.add(tx);
 
 			// Assert
-			expect(transactionPool['_getStatus']).toHaveReturnedWith(TransactionStatus.INVALID);
 			expect(result.status).toEqual(Status.FAIL);
 			expect(result.error?.message).toBe('Invalid transaction');
 		});
@@ -333,7 +328,7 @@ describe('TransactionPool class', () => {
 		it('should reject a transaction with lower fee than minEntranceFee', async () => {
 			// Arrange
 			transactionPool = new TransactionPool({
-				applyTransactions: jest.fn(),
+				verifyTransaction: jest.fn(),
 				minEntranceFeePriority: BigInt(400),
 				maxPayloadLength: 15360,
 			});
@@ -358,14 +353,14 @@ describe('TransactionPool class', () => {
 			// Arrange
 			const MAX_TRANSACTIONS = 10;
 			transactionPool = new TransactionPool({
-				applyTransactions: jest.fn(),
+				verifyTransaction: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
 				maxPayloadLength: 15360,
 			});
 
-			const tempApplyTransactionsStub = jest.fn();
-			(transactionPool as any)._applyFunction = tempApplyTransactionsStub;
+			const tempVerifyTransactionsStub = jest.fn();
+			(transactionPool as any)._verifyFunction = tempVerifyTransactionsStub;
 
 			txGetBytesStub = jest.fn();
 			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
@@ -379,7 +374,7 @@ describe('TransactionPool class', () => {
 					Buffer.from(new Array(MAX_TRANSACTIONS + i)),
 				);
 
-				tempApplyTransactionsStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
+				tempVerifyTransactionsStub.mockResolvedValue(TransactionStatus.PROCESSABLE);
 
 				await transactionPool.add(tempTx);
 			}
@@ -397,7 +392,7 @@ describe('TransactionPool class', () => {
 				Buffer.from(new Array(MAX_TRANSACTIONS)),
 			);
 
-			tempApplyTransactionsStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
+			tempVerifyTransactionsStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
 			jest.spyOn(transactionPool, '_evictProcessable' as any);
 
 			// Act
@@ -411,14 +406,11 @@ describe('TransactionPool class', () => {
 		it('should evict the unprocessable trx with the lowest feePriority from the pool when txPool is full and not all trxs are processable', async () => {
 			const MAX_TRANSACTIONS = 10;
 			transactionPool = new TransactionPool({
-				applyTransactions: jest.fn(),
+				verifyTransaction: jest.fn().mockResolvedValue(TransactionStatus.PROCESSABLE),
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
 				maxPayloadLength: 15360,
 			});
-
-			const tempApplyTransactionsStub = jest.fn();
-			(transactionPool as any)._applyFunction = tempApplyTransactionsStub;
 
 			txGetBytesStub = jest.fn();
 			for (let i = 0; i < MAX_TRANSACTIONS - 1; i += 1) {
@@ -445,10 +437,9 @@ describe('TransactionPool class', () => {
 			nonSequentialTx.getBytes = txGetBytesStub.mockReturnValue(
 				Buffer.from(new Array(MAX_TRANSACTIONS)),
 			);
-			tempApplyTransactionsStub.mockRejectedValue({
-				code: 'ERR_TRANSACTION_VERIFICATION_FAIL',
-				transactionError: { code: 'ERR_NONCE_OUT_OF_BOUNDS' },
-			});
+			(transactionPool['_verifyFunction'] as jest.Mock).mockResolvedValue(
+				TransactionStatus.UNPROCESSABLE,
+			);
 			await transactionPool.add(nonSequentialTx);
 
 			expect(transactionPool.getAll()).toContain(nonSequentialTx);
@@ -465,7 +456,9 @@ describe('TransactionPool class', () => {
 				Buffer.from(new Array(MAX_TRANSACTIONS)),
 			);
 
-			tempApplyTransactionsStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
+			(transactionPool['_verifyFunction'] as jest.Mock).mockResolvedValue(
+				TransactionStatus.PROCESSABLE,
+			);
 			jest.spyOn(transactionPool, '_evictUnprocessable' as any);
 
 			const { status } = await transactionPool.add(highFeePriorityTx);
@@ -477,14 +470,14 @@ describe('TransactionPool class', () => {
 		it('should reject a transaction with a lower feePriority than the lowest feePriority present in TxPool', async () => {
 			const MAX_TRANSACTIONS = 10;
 			transactionPool = new TransactionPool({
-				applyTransactions: jest.fn(),
+				verifyTransaction: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
 				maxPayloadLength: 15360,
 			});
-
-			const tempApplyTransactionsStub = jest.fn();
-			(transactionPool as any)._applyFunction = tempApplyTransactionsStub;
+			(transactionPool['_verifyFunction'] as jest.Mock).mockResolvedValue(
+				TransactionStatus.PROCESSABLE,
+			);
 
 			txGetBytesStub = jest.fn();
 			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
@@ -514,8 +507,6 @@ describe('TransactionPool class', () => {
 				Buffer.from(new Array(2 * MAX_TRANSACTIONS)),
 			);
 
-			tempApplyTransactionsStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
-
 			const { status } = await transactionPool.add(lowFeePriorityTx);
 
 			expect(status).toEqual(Status.FAIL);
@@ -524,14 +515,14 @@ describe('TransactionPool class', () => {
 		it('should accept a transaction with a lower feePriority than the unprocessable trx with lowest feePriority present in TxPool', async () => {
 			const MAX_TRANSACTIONS = 10;
 			transactionPool = new TransactionPool({
-				applyTransactions: jest.fn(),
+				verifyTransaction: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
 				maxPayloadLength: 15360,
 			});
 
-			const tempApplyTransactionsStub = jest.fn();
-			(transactionPool as any)._applyFunction = tempApplyTransactionsStub;
+			const tempVerifyTransactionsStub = jest.fn();
+			(transactionPool as any)._verifyFunction = tempVerifyTransactionsStub;
 			txGetBytesStub = jest.fn();
 			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
 				const tempTx = {
@@ -546,14 +537,14 @@ describe('TransactionPool class', () => {
 
 				// half the trx are unprocessable
 				if (i < 5) {
-					when(tempApplyTransactionsStub)
+					when(tempVerifyTransactionsStub)
 						.calledWith([tempTx])
 						.mockRejectedValue({
 							transactionError: { code: 'ERR_NONCE_OUT_OF_BOUNDS' },
 							code: 'ERR_TRANSACTION_VERIFICATION_FAIL',
 						});
 				} else {
-					when(tempApplyTransactionsStub)
+					when(tempVerifyTransactionsStub)
 						.calledWith([tempTx])
 						.mockResolvedValue([{ status: Status.OK, errors: [] }]);
 				}
@@ -574,7 +565,7 @@ describe('TransactionPool class', () => {
 				Buffer.from(new Array(MAX_TRANSACTIONS + 10)),
 			);
 
-			when(tempApplyTransactionsStub)
+			when(tempVerifyTransactionsStub)
 				.calledWith([lowFeePriorityTx])
 				.mockResolvedValue([{ status: Status.OK, errors: [] }]);
 
@@ -689,7 +680,7 @@ describe('TransactionPool class', () => {
 
 		beforeEach(async () => {
 			transactionPool = new TransactionPool({
-				applyTransactions: jest.fn().mockResolvedValue([{ status: Status.OK, errors: [] }]),
+				verifyTransaction: jest.fn().mockResolvedValue([{ status: Status.OK, errors: [] }]),
 				transactionReorganizationInterval: 1,
 				maxTransactions: 2,
 				maxPayloadLength: 15360,
@@ -764,7 +755,7 @@ describe('TransactionPool class', () => {
 
 		beforeEach(async () => {
 			transactionPool = new TransactionPool({
-				applyTransactions: jest.fn().mockResolvedValue([{ status: Status.OK, errors: [] }]),
+				verifyTransaction: jest.fn().mockResolvedValue(TransactionStatus.PROCESSABLE),
 				transactionReorganizationInterval: 1,
 				maxTransactions: 2,
 				maxPayloadLength: 15360,
@@ -847,7 +838,7 @@ describe('TransactionPool class', () => {
 
 		beforeEach(async () => {
 			transactionPool = new TransactionPool({
-				applyTransactions: jest.fn(),
+				verifyTransaction: jest.fn().mockResolvedValue(TransactionStatus.PROCESSABLE),
 				transactionReorganizationInterval: 1,
 				maxPayloadLength: 15360,
 			});
@@ -882,21 +873,23 @@ describe('TransactionPool class', () => {
 			// First transaction is processable
 			jest.advanceTimersByTime(2);
 
-			expect(transactionPool['_applyFunction']).toHaveBeenCalledWith(transactionsFromSender1);
-			expect(transactionPool['_applyFunction']).toHaveBeenCalledWith(transactionsFromSender2);
+			expect(transactionPool['_verifyFunction']).toHaveBeenCalledWith(transactionsFromSender1[0]);
+			expect(transactionPool['_verifyFunction']).toHaveBeenCalledWith(transactionsFromSender1[1]);
+			expect(transactionPool['_verifyFunction']).toHaveBeenCalledWith(transactionsFromSender1[2]);
+			expect(transactionPool['_verifyFunction']).toHaveBeenCalledWith(transactionsFromSender2[0]);
 		});
 
 		it('should not remove unprocessable transaction but also does not promote', () => {
 			// Arrange
-			when(transactionPool['_applyFunction'] as jest.Mock)
-				.calledWith(transactionsFromSender1)
-				.mockRejectedValue({
-					id: Buffer.from('2'),
-					code: 'ERR_TRANSACTION_VERIFICATION_FAIL',
-					transactionError: {
-						code: 'ERR_NONCE_OUT_OF_BOUNDS',
-					},
-				} as never);
+			(transactionPool['_verifyFunction'] as jest.Mock).mockImplementation(async input => {
+				if (
+					input.id.equals(transactionsFromSender1[1].id) ||
+					input.id.equals(transactionsFromSender1[2].id)
+				) {
+					return Promise.resolve(TransactionStatus.UNPROCESSABLE);
+				}
+				return Promise.resolve(TransactionStatus.PROCESSABLE);
+			});
 
 			jest.advanceTimersByTime(2);
 			// Assert
@@ -904,7 +897,7 @@ describe('TransactionPool class', () => {
 			// Unprocessable trx should not be removed
 			expect(transactionPool['_allTransactions'].get(transactionsFromSender1[1].id)).toBeDefined();
 			expect(transactionPool['_allTransactions'].get(transactionsFromSender1[2].id)).toBeDefined();
-			// Unprocessable trx should not be promoted
+
 			expect(
 				transactionPool
 					.getProcessableTransactions()
