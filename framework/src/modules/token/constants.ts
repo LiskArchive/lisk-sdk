@@ -57,7 +57,6 @@ export const enum TokenEventResult {
 	TOKEN_ID_NOT_AVAILABLE = 11,
 	TOKEN_ID_NOT_NATIVE = 12,
 	INSUFFICIENT_ESCROW_BALANCE = 13,
-	INVALID_RECEIVING_CHAIN = 14,
 }
 
 export type TokenErrorEventResult = Exclude<TokenEventResult, TokenEventResult.SUCCESSFUL>;

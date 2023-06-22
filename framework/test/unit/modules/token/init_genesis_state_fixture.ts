@@ -1,5 +1,3 @@
-import { CHAIN_ID_LENGTH } from '../../../../src/modules/token/constants';
-
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -62,28 +60,7 @@ const validData = {
 	],
 };
 
-export const validGenesisAssets = [
-	['Valid genesis asset', validData],
-	[
-		'Valid genesis asset',
-		{
-			...validData,
-			supportedTokensSubstore: [
-				{
-					chainID: Buffer.alloc(0),
-					supportedTokenIDs: [],
-				},
-			],
-		},
-	],
-	[
-		'Valid genesis asset',
-		{
-			...validData,
-			supportedTokensSubstore: [],
-		},
-	],
-];
+export const validGenesisAssets = [['Valid genesis asset', validData]];
 
 export const invalidGenesisAssets = [
 	[
@@ -338,33 +315,6 @@ export const invalidGenesisAssets = [
 			],
 		},
 		'Stored total supply is non zero but cannot be computed',
-	],
-	[
-		'Supported tokens store has tokenIDs not an empty array when all tokens are supported',
-		{
-			...validData,
-			supportedTokensSubstore: [
-				{
-					chainID: Buffer.alloc(0),
-					supportedTokenIDs: [Buffer.from([0, 0, 0, 4, 0, 0, 0, 0])],
-				},
-			],
-		},
-		'supportedTokenIds must be an empty array when all tokens are supported.',
-	],
-	[
-		'Supported tokens store has chainID with length different than CHAIN_ID_LENGTH',
-		{
-			...validData,
-			supportedTokensSubstore: [
-				...validData.supportedTokensSubstore,
-				{
-					chainID: Buffer.from([0, 0, 3]),
-					supportedTokenIDs: [],
-				},
-			],
-		},
-		`supportedTokensSubstore chainIDs must be of length ${CHAIN_ID_LENGTH}.`,
 	],
 	[
 		'Supported tokens store has duplicate chainID on supported ID',
