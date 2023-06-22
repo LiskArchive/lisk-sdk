@@ -250,7 +250,9 @@ describe('Test interoperability endpoint', () => {
 		});
 
 		it('should pass validation for response', () => {
-			validator.validate(getChainAccountResponseSchema, chainAccountResult);
+			expect(() =>
+				validator.validate(getChainAccountResponseSchema, chainAccountResult),
+			).not.toThrow();
 		});
 	});
 
