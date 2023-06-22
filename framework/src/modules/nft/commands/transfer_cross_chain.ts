@@ -66,8 +66,7 @@ export class TransferCrossChainCommand extends BaseCommand {
 		const nftStore = this.stores.get(NFTStore);
 		const nftExists = await nftStore.has(context.getMethodContext(), params.nftID);
 
-		const ownChainID = this._internalMethod.getOwnChainID();
-		if (params.receivingChainID.equals(ownChainID)) {
+		if (params.receivingChainID.equals(context.chainID)) {
 			throw new Error('Receiving chain cannot be the sending chain');
 		}
 
