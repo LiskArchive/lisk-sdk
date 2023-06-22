@@ -104,7 +104,24 @@ describe('InternalMethod', () => {
 	});
 
 	describe('createNFTEntry', () => {
-		it('should create an entry in NFStore with attributes sorted by module', async () => {
+		it('should throw for duplicate module names in attributes array', async () => {
+			const attributesArray = [
+				{
+					module: 'token',
+					attributes: Buffer.alloc(8, 1),
+				},
+				{
+					module: 'token',
+					attributes: Buffer.alloc(8, 2),
+				},
+			];
+
+			await expect(
+				internalMethod.createNFTEntry(methodContext, address, nftID, attributesArray),
+			).rejects.toThrow('Invalid attributes array provided');
+		});
+
+		it('should create an entry in NFStore with attributes sorted by module if there is no duplicate module name', async () => {
 			const unsortedAttributesArray = [
 				{
 					module: 'token',

@@ -556,6 +556,23 @@ describe('NFTMethod', () => {
 			jest.spyOn(feeMethod, 'payFee');
 		});
 
+		it('should throw for duplicate module names in attributes array', async () => {
+			const attributesArray = [
+				{
+					module: 'token',
+					attributes: Buffer.alloc(8, 1),
+				},
+				{
+					module: 'token',
+					attributes: Buffer.alloc(8, 2),
+				},
+			];
+
+			await expect(
+				method.create(methodContext, address, collectionID, attributesArray),
+			).rejects.toThrow('Invalid attributes array provided');
+		});
+
 		it('should set data to stores with correct key and emit successfull create event when there is no entry in the nft substore', async () => {
 			const expectedKey = Buffer.concat([config.ownChainID, collectionID, Buffer.from('0')]);
 
