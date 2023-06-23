@@ -68,7 +68,7 @@ export const MIN_MODULE_NAME_LENGTH = 1;
 export const MAX_MODULE_NAME_LENGTH = 32;
 
 const userStoreSchema = {
-	$id: '/token/store/user',
+	$id: '/recover-lsk-plugin/token/store/user',
 	type: 'object',
 	required: ['availableBalance', 'lockedBalances'],
 	properties: {

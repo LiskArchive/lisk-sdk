@@ -24,10 +24,10 @@ import {
 	TokenEventResult,
 	MAX_DATA_LENGTH,
 } from './constants';
-import { crossChainTransferMessageParams, UserStoreData } from './schemas';
+import { crossChainTransferMessageParams } from './schemas';
 import { InteroperabilityMethod, ModuleConfig } from './types';
 import { splitTokenID } from './utils';
-import { UserStore } from './stores/user';
+import { UserStore, UserStoreData } from './stores/user';
 import { EscrowStore } from './stores/escrow';
 import { SupplyStore, SupplyStoreData } from './stores/supply';
 import { NamedRegistry } from '../named_registry';
@@ -425,6 +425,9 @@ export class TokenMethod extends BaseMethod {
 		};
 
 		if (this._config.ownChainID.equals(receivingChainID)) {
+			this.events
+				.get(TransferCrossChainEvent)
+				.error(methodContext, eventData, TokenEventResult.INVALID_RECEIVING_CHAIN);
 			throw new Error('Receiving chain cannot be the sending chain.');
 		}
 

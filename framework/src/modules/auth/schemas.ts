@@ -19,46 +19,6 @@ import {
 	MAX_NUMBER_OF_SIGNATURES,
 } from './constants';
 
-export const authAccountSchema = {
-	$id: '/auth/account',
-	type: 'object',
-	properties: {
-		nonce: {
-			dataType: 'uint64',
-			fieldNumber: 1,
-		},
-		numberOfSignatures: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-			minimum: 0,
-			maximum: MAX_NUMBER_OF_SIGNATURES,
-		},
-		mandatoryKeys: {
-			type: 'array',
-			items: {
-				dataType: 'bytes',
-				minLength: ED25519_PUBLIC_KEY_LENGTH,
-				maxLength: ED25519_PUBLIC_KEY_LENGTH,
-			},
-			minItems: 0,
-			maxItems: MAX_NUMBER_OF_SIGNATURES,
-			fieldNumber: 3,
-		},
-		optionalKeys: {
-			type: 'array',
-			items: {
-				dataType: 'bytes',
-				minLength: ED25519_PUBLIC_KEY_LENGTH,
-				maxLength: ED25519_PUBLIC_KEY_LENGTH,
-			},
-			minItems: 0,
-			maxItems: MAX_NUMBER_OF_SIGNATURES,
-			fieldNumber: 4,
-		},
-	},
-	required: ['nonce', 'numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
-};
-
 export const registerMultisignatureParamsSchema = {
 	$id: '/auth/command/regMultisig',
 	type: 'object',

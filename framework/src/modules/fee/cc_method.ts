@@ -14,7 +14,7 @@
 
 import { BaseCCMethod } from '../interoperability/base_cc_method';
 import { CrossChainMessageContext } from '../interoperability/types';
-import { InteroperabilityMethod, TokenMethod } from './types';
+import { InteroperabilityMethod, ModuleConfig, TokenMethod } from './types';
 import { NamedRegistry } from '../named_registry';
 import { CONTEXT_STORE_KEY_AVAILABLE_CCM_FEE } from './constants';
 import { getContextStoreBigInt } from '../../state_machine';
@@ -27,10 +27,15 @@ export class FeeInteroperableMethod extends BaseCCMethod {
 
 	private _interopMethod!: InteroperabilityMethod;
 	private _tokenMethod!: TokenMethod;
+	private _feePoolAddress?: Buffer;
 
 	public constructor(stores: NamedRegistry, events: NamedRegistry, moduleName: string) {
 		super(stores, events);
 		this._moduleName = moduleName;
+	}
+
+	public init(config: ModuleConfig): void {
+		this._feePoolAddress = config.feePoolAddress;
 	}
 
 	public addDependencies(interoperabilityMethod: InteroperabilityMethod, tokenMethod: TokenMethod) {
@@ -71,12 +76,27 @@ export class FeeInteroperableMethod extends BaseCCMethod {
 			CONTEXT_STORE_KEY_AVAILABLE_CCM_FEE,
 		);
 		const burntAmount = ctx.ccm.fee - availableFee;
-		await this._tokenMethod.burn(
-			ctx.getMethodContext(),
-			ctx.transaction.senderAddress,
-			messageTokenID,
-			burntAmount,
-		);
+
+		if (
+			this._feePoolAddress &&
+			(await this._tokenMethod.userAccountExists(ctx, this._feePoolAddress, messageTokenID))
+		) {
+			await this._tokenMethod.transfer(
+				ctx.getMethodContext(),
+				ctx.transaction.senderAddress,
+				this._feePoolAddress,
+				messageTokenID,
+				burntAmount,
+			);
+		} else {
+			await this._tokenMethod.burn(
+				ctx.getMethodContext(),
+				ctx.transaction.senderAddress,
+				messageTokenID,
+				burntAmount,
+			);
+		}
+
 		const { ccmID } = getEncodedCCMAndID(ctx.ccm);
 
 		this.events.get(RelayerFeeProcessedEvent).log(ctx, {

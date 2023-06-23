@@ -96,6 +96,7 @@ export class FeeModule extends BaseInteroperableModule {
 		};
 		this.method.init(moduleConfig);
 		this.endpoint.init(moduleConfig);
+		this.crossChainMethod.init(moduleConfig);
 
 		this._tokenID = moduleConfig.feeTokenID;
 		this._minFeePerByte = moduleConfig.minFeePerByte;
