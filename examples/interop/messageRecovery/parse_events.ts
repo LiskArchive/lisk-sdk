@@ -12,11 +12,12 @@ import {
 	db as liskDB,
 } from 'lisk-sdk';
 import { codec } from '@liskhq/lisk-codec';
-import { CcmSendSuccessEventData, CcmProcessedEventData, ccmSchema } from 'lisk-framework';
+import { CcmSendSuccessEventData, CcmProcessedEventData } from 'lisk-framework';
 import { EVENT_NAME_CCM_PROCESSED } from 'lisk-framework/dist-node/modules/interoperability/constants';
 import { join } from 'path';
 import * as os from 'os';
 import { ensureDir } from 'fs-extra';
+import { ccmsInfoSchema } from './schema';
 
 export const checkDBError = (error: Error | unknown) => {
 	if (!(error instanceof liskDB.NotFoundError)) {
@@ -64,20 +65,6 @@ const getDBInstance = async (dataPath: string, dbName = 'events.db'): Promise<KV
 
 	await ensureDir(dirPath);
 	return new db.Database(dirPath);
-};
-
-const ccmsInfoSchema = {
-	$id: 'msgRecoveryPlugin/ccmsFromEvents',
-	type: 'object',
-	properties: {
-		ccms: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				...ccmSchema,
-			},
-		},
-	},
 };
 
 interface CCMsInfo {
