@@ -1,5 +1,3 @@
-import { CHAIN_ID_LENGTH } from '../../../../src/modules/token/constants';
-
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -13,6 +11,9 @@ import { CHAIN_ID_LENGTH } from '../../../../src/modules/token/constants';
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import { CHAIN_ID_LENGTH } from '../../../../src/modules/token/constants';
+
 const oneUnit = BigInt('100000000');
 
 const validData = {
