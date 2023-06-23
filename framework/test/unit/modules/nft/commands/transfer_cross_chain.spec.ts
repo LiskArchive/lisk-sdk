@@ -204,6 +204,18 @@ describe('TransferCrossChainComand', () => {
 	});
 
 	describe('verify', () => {
+		it('should fail if receiving chain id is same as the own chain id', async () => {
+			const receivingChainIDContext = createTransactionContextWithOverridingParams({
+				receivingChainID: ownChainID,
+			});
+
+			await expect(
+				command.verify(
+					receivingChainIDContext.createCommandVerifyContext(crossChainTransferParamsSchema),
+				),
+			).rejects.toThrow('Receiving chain cannot be the sending chain');
+		});
+
 		it('should fail if NFT does not have valid length', async () => {
 			const nftMinLengthContext = createTransactionContextWithOverridingParams({
 				nftID: utils.getRandomBytes(LENGTH_NFT_ID - 1),
