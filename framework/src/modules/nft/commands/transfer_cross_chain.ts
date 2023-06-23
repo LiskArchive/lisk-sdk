@@ -66,6 +66,10 @@ export class TransferCrossChainCommand extends BaseCommand {
 		const nftStore = this.stores.get(NFTStore);
 		const nftExists = await nftStore.has(context.getMethodContext(), params.nftID);
 
+		if (params.receivingChainID.equals(context.chainID)) {
+			throw new Error('Receiving chain cannot be the sending chain');
+		}
+
 		if (!nftExists) {
 			throw new Error('NFT substore entry does not exist');
 		}

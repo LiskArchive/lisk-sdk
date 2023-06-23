@@ -12,13 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import { BaseMethod } from '../base_method';
 import { FeeMethod, InteroperabilityMethod, ModuleConfig, TokenMethod } from './types';
-import { NFTAttributes, NFTStore } from './stores/nft';
+import { NFTAttributes, NFTStore, NFTStoreData, nftStoreSchema } from './stores/nft';
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import {
 	ALL_SUPPORTED_NFTS_KEY,
 	FEE_CREATE_NFT,
+	LENGTH_ADDRESS,
 	LENGTH_CHAIN_ID,
 	LENGTH_COLLECTION_ID,
 	LENGTH_NFT_ID,
@@ -40,6 +42,9 @@ import { AllNFTsFromChainSupportedEvent } from './events/all_nfts_from_chain_sup
 import { AllNFTsFromCollectionSupportedEvent } from './events/all_nfts_from_collection_suppported';
 import { AllNFTsFromCollectionSupportRemovedEvent } from './events/all_nfts_from_collection_support_removed';
 import { AllNFTsFromChainSupportRemovedEvent } from './events/all_nfts_from_chain_support_removed';
+import { RecoverEvent } from './events/recover';
+import { EscrowStore } from './stores/escrow';
+import { SetAttributesEvent } from './events/set_attributes';
 
 export class NFTMethod extends BaseMethod {
 	private _config!: ModuleConfig;
@@ -522,6 +527,22 @@ export class NFTMethod extends BaseMethod {
 		data: string,
 		includeAttributes: boolean,
 	): Promise<void> {
+		const ownChainID = this._internalMethod.getOwnChainID();
+		if (receivingChainID.equals(ownChainID)) {
+			this.events.get(TransferCrossChainEvent).error(
+				methodContext,
+				{
+					senderAddress,
+					recipientAddress,
+					receivingChainID,
+					nftID,
+					includeAttributes,
+				},
+				NftEventResult.INVALID_RECEIVING_CHAIN,
+			);
+			throw new Error('Receiving chain cannot be the sending chain');
+		}
+
 		if (data.length > MAX_LENGTH_DATA) {
 			this.events.get(TransferCrossChainEvent).error(
 				methodContext,
@@ -571,7 +592,6 @@ export class NFTMethod extends BaseMethod {
 		}
 
 		const nftChainID = this.getChainID(nftID);
-		const ownChainID = this._internalMethod.getOwnChainID();
 		if (![ownChainID, receivingChainID].some(allowedChainID => nftChainID.equals(allowedChainID))) {
 			this.events.get(TransferCrossChainEvent).error(
 				methodContext,
@@ -858,6 +878,135 @@ export class NFTMethod extends BaseMethod {
 		this.events.get(AllNFTsFromCollectionSupportRemovedEvent).log(methodContext, {
 			chainID,
 			collectionID,
+		});
+	}
+
+	public async recover(
+		methodContext: MethodContext,
+		terminatedChainID: Buffer,
+		substorePrefix: Buffer,
+		storeKey: Buffer,
+		storeValue: Buffer,
+	): Promise<void> {
+		const nftStore = this.stores.get(NFTStore);
+		const nftID = storeKey;
+		let isDecodable = true;
+		let decodedValue: NFTStoreData;
+		try {
+			decodedValue = codec.decode<NFTStoreData>(nftStoreSchema, storeValue);
+		} catch (error) {
+			isDecodable = false;
+		}
+
+		if (
+			!substorePrefix.equals(nftStore.subStorePrefix) ||
+			storeKey.length !== LENGTH_NFT_ID ||
+			!isDecodable
+		) {
+			this.events.get(RecoverEvent).error(
+				methodContext,
+				{
+					terminatedChainID,
+					nftID,
+				},
+				NftEventResult.RESULT_RECOVER_FAIL_INVALID_INPUTS,
+			);
+			throw new Error('Invalid inputs');
+		}
+
+		const nftChainID = this.getChainID(nftID);
+		const ownChainID = this._internalMethod.getOwnChainID();
+		if (!nftChainID.equals(ownChainID)) {
+			this.events.get(RecoverEvent).error(
+				methodContext,
+				{
+					terminatedChainID,
+					nftID,
+				},
+				NftEventResult.RESULT_INITIATED_BY_NONNATIVE_CHAIN,
+			);
+			throw new Error('Recovery called by a foreign chain');
+		}
+
+		const nftData = await nftStore.get(methodContext, nftID);
+		if (!nftData.owner.equals(terminatedChainID)) {
+			this.events.get(RecoverEvent).error(
+				methodContext,
+				{
+					terminatedChainID,
+					nftID,
+				},
+				NftEventResult.RESULT_NFT_NOT_ESCROWED,
+			);
+			throw new Error('NFT was not escrowed to terminated chain');
+		}
+
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		const storeValueOwner = decodedValue!.owner;
+		if (storeValueOwner.length !== LENGTH_ADDRESS) {
+			this.events.get(RecoverEvent).error(
+				methodContext,
+				{
+					terminatedChainID,
+					nftID,
+				},
+				NftEventResult.RESULT_INVALID_ACCOUNT,
+			);
+			throw new Error('Invalid account information');
+		}
+
+		const escrowStore = this.stores.get(EscrowStore);
+		nftData.owner = storeValueOwner;
+		const storedAttributes = nftData.attributesArray;
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		const receivedAttributes = decodedValue!.attributesArray;
+		nftData.attributesArray = this._internalMethod.getNewAttributes(
+			nftID,
+			storedAttributes,
+			receivedAttributes,
+		);
+		await nftStore.save(methodContext, nftID, nftData);
+		await this._internalMethod.createUserEntry(methodContext, nftData.owner, nftID);
+		await escrowStore.del(methodContext, escrowStore.getKey(terminatedChainID, nftID));
+
+		this.events.get(RecoverEvent).log(methodContext, {
+			terminatedChainID,
+			nftID,
+		});
+	}
+
+	public async setAttributes(
+		methodContext: MethodContext,
+		module: string,
+		nftID: Buffer,
+		attributes: Buffer,
+	): Promise<void> {
+		const nftStore = this.stores.get(NFTStore);
+		const nftExists = await nftStore.has(methodContext, nftID);
+		if (!nftExists) {
+			this.events.get(SetAttributesEvent).error(
+				methodContext,
+				{
+					nftID,
+					attributes,
+				},
+				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+			);
+			throw new Error('NFT substore entry does not exist');
+		}
+
+		const nftData = await nftStore.get(methodContext, nftID);
+		const index = nftData.attributesArray.findIndex(attr => attr.module === module);
+		if (index > -1) {
+			nftData.attributesArray[index] = { module, attributes };
+		} else {
+			nftData.attributesArray.push({ module, attributes });
+		}
+		await nftStore.save(methodContext, nftID, nftData);
+
+		this.events.get(SetAttributesEvent).log(methodContext, {
+			nftID,
+			attributes,
 		});
 	}
 }

@@ -62,7 +62,7 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 		const { nftID } = params;
 		const { sendingChainID } = ccm;
 		const nftChainID = this._method.getChainID(nftID);
-		const ownChainID = this._internalMethod.getOwnChainID();
+		const ownChainID = context.chainID;
 
 		if (![ownChainID, sendingChainID].some(allowedChainID => nftChainID.equals(allowedChainID))) {
 			throw new Error('NFT is not native to either the sending chain or the receiving chain');
@@ -94,7 +94,7 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 		const { sendingChainID, status } = ccm;
 		const { nftID, senderAddress, attributesArray: receivedAttributes } = params;
 		const nftChainID = this._method.getChainID(nftID);
-		const ownChainID = this._internalMethod.getOwnChainID();
+		const ownChainID = context.chainID;
 		const nftStore = this.stores.get(NFTStore);
 		const escrowStore = this.stores.get(EscrowStore);
 		let recipientAddress: Buffer;
@@ -104,8 +104,12 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 			const storeData = await nftStore.get(getMethodContext(), nftID);
 			if (status === CCM_STATUS_CODE_OK) {
 				storeData.owner = recipientAddress;
-				// commented line below can be used by custom modules when defining their own logic for getNewAttributes function
-				// storeData.attributesArray = this._internalMethod.getNewAttributes(nftID, storeData.attributesArray, params.attributesArray);
+				const storedAttributes = storeData.attributesArray;
+				storeData.attributesArray = this._internalMethod.getNewAttributes(
+					nftID,
+					storedAttributes,
+					receivedAttributes,
+				);
 				await nftStore.save(getMethodContext(), nftID, storeData);
 				await this._internalMethod.createUserEntry(getMethodContext(), recipientAddress, nftID);
 				await escrowStore.del(getMethodContext(), escrowStore.getKey(sendingChainID, nftID));

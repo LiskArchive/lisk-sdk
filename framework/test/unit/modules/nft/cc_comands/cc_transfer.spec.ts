@@ -174,7 +174,7 @@ describe('CrossChain Transfer Command', () => {
 			eventQueue: new EventQueue(0),
 			getStore,
 			logger: fakeLogger,
-			chainID,
+			chainID: ownChainID,
 		};
 	});
 
@@ -315,6 +315,18 @@ describe('CrossChain Transfer Command', () => {
 			method.init(newConfig);
 			internalMethod.addDependencies(method, interopMethod);
 			internalMethod.init(newConfig);
+			context = {
+				ccm,
+				transaction: defaultTransaction,
+				header: defaultHeader,
+				stateStore,
+				contextStore,
+				getMethodContext,
+				eventQueue: new EventQueue(0),
+				getStore,
+				logger: fakeLogger,
+				chainID: newConfig.ownChainID,
+			};
 
 			await expect(command.verify(context)).rejects.toThrow('NFT substore entry already exists');
 		});
@@ -435,7 +447,7 @@ describe('CrossChain Transfer Command', () => {
 				eventQueue: new EventQueue(0),
 				getStore,
 				logger: fakeLogger,
-				chainID,
+				chainID: ownChainID,
 			};
 
 			await expect(command.execute(context)).resolves.toBeUndefined();
@@ -524,6 +536,18 @@ describe('CrossChain Transfer Command', () => {
 			method.init(newConfig);
 			internalMethod.addDependencies(method, interopMethod);
 			internalMethod.init(newConfig);
+			context = {
+				ccm,
+				transaction: defaultTransaction,
+				header: defaultHeader,
+				stateStore,
+				contextStore,
+				getMethodContext,
+				eventQueue: new EventQueue(0),
+				getStore,
+				logger: fakeLogger,
+				chainID: newConfig.ownChainID,
+			};
 			const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
 			await supportedNFTsStore.set(methodContext, ALL_SUPPORTED_NFTS_KEY, {
 				supportedCollectionIDArray: [],
