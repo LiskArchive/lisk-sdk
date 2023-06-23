@@ -564,8 +564,10 @@ export const getChainAccountRequestSchema = {
 	required: ['chainID'],
 	properties: {
 		chainID: {
-			type: 'string',
-			format: 'hex',
+			dataType: 'bytes',
+			fieldNumber: 1,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 	},
 };
