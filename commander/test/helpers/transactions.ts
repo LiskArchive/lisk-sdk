@@ -24,7 +24,7 @@ const account = {
 	address: '9cabee3d27426676b852ce6b804cb2fdff7cd0b5',
 };
 export const multisigRegMsgSchema = {
-	$id: '/auth/command/regMultisigMsg',
+	$id: '/test/auth/command/regMultisigMsg',
 	type: 'object',
 	required: ['address', 'nonce', 'numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
 	properties: {
@@ -64,7 +64,7 @@ export const multisigRegMsgSchema = {
 };
 
 export const registerMultisignatureParamsSchema = {
-	$id: '/auth/command/regMultisig',
+	$id: '/test/auth/command/regMultisig',
 	type: 'object',
 	properties: {
 		numberOfSignatures: {
@@ -109,7 +109,7 @@ export const registerMultisignatureParamsSchema = {
 };
 
 export const tokenTransferParamsSchema = {
-	$id: '/lisk/transferCommand',
+	$id: '/test/lisk/transferCommand',
 	title: 'Transfer transaction command',
 	type: 'object',
 	required: ['tokenID', 'amount', 'recipientAddress', 'data'],
@@ -136,43 +136,8 @@ export const tokenTransferParamsSchema = {
 	},
 };
 
-export const keysRegisterParamsSchema = {
-	$id: '/auth/command/regMultisig',
-	type: 'object',
-	properties: {
-		numberOfSignatures: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-			minimum: 1,
-			maximum: 64,
-		},
-		mandatoryKeys: {
-			type: 'array',
-			items: {
-				dataType: 'bytes',
-				minLength: 32,
-				maxLength: 32,
-			},
-			fieldNumber: 2,
-			minItems: 0,
-			maxItems: 64,
-		},
-		optionalKeys: {
-			type: 'array',
-			items: {
-				dataType: 'bytes',
-				minLength: 32,
-				maxLength: 32,
-			},
-			fieldNumber: 3,
-			minItems: 0,
-			maxItems: 64,
-		},
-	},
-	required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
-};
 export const posVoteParamsSchema = {
-	$id: '/pos/command/stakeParams',
+	$id: '/test/pos/command/stakeParams',
 	type: 'object',
 	required: ['stakes'],
 	properties: {

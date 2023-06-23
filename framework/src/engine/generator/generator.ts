@@ -26,7 +26,7 @@ import {
 import { codec } from '@liskhq/lisk-codec';
 import { address as addressUtil } from '@liskhq/lisk-cryptography';
 import { Database, Batch, SparseMerkleTree } from '@liskhq/lisk-db';
-import { TransactionPool, events } from '@liskhq/lisk-transaction-pool';
+import { TransactionPool, events, TransactionStatus } from '@liskhq/lisk-transaction-pool';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { dataStructures, jobHandlers } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
@@ -125,8 +125,7 @@ export class Generator {
 		this._keypairs = new dataStructures.BufferMap();
 		this._pool = new TransactionPool({
 			maxPayloadLength: args.config.genesis.maxTransactionsSize,
-			applyTransactions: async (transactions: Transaction[]) =>
-				this._verifyTransactions(transactions),
+			verifyTransaction: async (transaction: Transaction) => this._verifyTransaction(transaction),
 		});
 		this._config = args.config;
 		this._blockTime = args.config.genesis.blockTime;
@@ -323,17 +322,13 @@ export class Generator {
 		}
 	}
 
-	private async _verifyTransactions(transactions: Transaction[]): Promise<void> {
-		for (const transaction of transactions) {
-			const { result } = await this._abi.verifyTransaction({
-				contextID: Buffer.alloc(0),
-				transaction,
-				header: this._chain.lastBlock.header.toObject(),
-			});
-			if (result === TransactionVerifyResult.INVALID) {
-				throw new Error('Transaction is not valid');
-			}
-		}
+	private async _verifyTransaction(transaction: Transaction): Promise<TransactionStatus> {
+		const { result } = await this._abi.verifyTransaction({
+			contextID: Buffer.alloc(0),
+			transaction,
+			header: this._chain.lastBlock.header.toObject(),
+		});
+		return result;
 	}
 
 	private async _saveKeysFromFile(): Promise<void> {

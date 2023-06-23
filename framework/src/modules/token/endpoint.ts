@@ -25,12 +25,10 @@ import {
 	hasEscrowAccountRequestSchema,
 	hasUserAccountRequestSchema,
 	isSupportedRequestSchema,
-	SupplyStoreData,
-	UserStoreData,
 } from './schemas';
 import { EscrowStore, EscrowStoreData } from './stores/escrow';
-import { SupplyStore } from './stores/supply';
-import { UserStore } from './stores/user';
+import { SupplyStore, SupplyStoreData } from './stores/supply';
+import { UserStore, UserStoreData } from './stores/user';
 import { SupportedTokensStore } from './stores/supported_tokens';
 
 export class TokenEndpoint extends BaseEndpoint {

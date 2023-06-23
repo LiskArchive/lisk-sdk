@@ -18,6 +18,7 @@ import { checkDBError } from '@liskhq/lisk-framework-chain-connector-plugin/dist
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { utils } from '@liskhq/lisk-cryptography';
 import * as os from 'os';
+import { ccmsInfoSchema } from './schema';
 
 export const relayerKeyInfo = {
 	address: 'lsk952ztknjoa3h58es4vgu5ovnoscv3amo7zg4zz',
@@ -38,20 +39,6 @@ export const relayerKeyInfo = {
 		blsPrivateKey: '3d34f3e44a5ce6b2a3c7b79be6ab76ece0fa46749cf66c41e4d000c6ae3353b6',
 	},
 	encrypted: {},
-};
-
-const ccmsInfoSchema = {
-	$id: 'msgRecoveryPlugin/ccmsFromEvents',
-	type: 'object',
-	properties: {
-		ccms: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				...ccmSchema,
-			},
-		},
-	},
 };
 
 interface CCMsInfo {

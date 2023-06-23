@@ -103,7 +103,7 @@ export const signingBlockHeaderSchema = {
 
 export const blockHeaderSchema = {
 	...signingBlockHeaderSchema,
-	$id: '/block/header/3',
+	$id: '/block/header/3/without-id',
 	required: [...signingBlockHeaderSchema.required, 'signature'],
 	properties: {
 		...signingBlockHeaderSchema.properties,

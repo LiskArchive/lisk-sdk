@@ -161,7 +161,7 @@ const inboxOutboxProps = {
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#channel-data-substore
 const channelSchema = {
-	$id: '/modules/interoperability/channel',
+	$id: '/example/modules/interoperability/channel',
 	type: 'object',
 	required: [
 		'inbox',
