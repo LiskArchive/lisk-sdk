@@ -535,6 +535,22 @@ export class NFTMethod extends BaseMethod {
 		data: string,
 		includeAttributes: boolean,
 	): Promise<void> {
+		const ownChainID = this._internalMethod.getOwnChainID();
+		if (receivingChainID.equals(ownChainID)) {
+			this.events.get(TransferCrossChainEvent).error(
+				methodContext,
+				{
+					senderAddress,
+					recipientAddress,
+					receivingChainID,
+					nftID,
+					includeAttributes,
+				},
+				NftEventResult.INVALID_RECEIVING_CHAIN,
+			);
+			throw new Error('Receiving chain cannot be the sending chain');
+		}
+
 		if (data.length > MAX_LENGTH_DATA) {
 			this.events.get(TransferCrossChainEvent).error(
 				methodContext,
@@ -584,7 +600,6 @@ export class NFTMethod extends BaseMethod {
 		}
 
 		const nftChainID = this.getChainID(nftID);
-		const ownChainID = this._internalMethod.getOwnChainID();
 		if (![ownChainID, receivingChainID].some(allowedChainID => nftChainID.equals(allowedChainID))) {
 			this.events.get(TransferCrossChainEvent).error(
 				methodContext,

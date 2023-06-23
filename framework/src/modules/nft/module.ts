@@ -12,6 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { dataStructures } from '@liskhq/lisk-utils';
+import { codec } from '@liskhq/lisk-codec';
+import { validator } from '@liskhq/lisk-validator';
 import { GenesisBlockExecuteContext } from '../../state_machine';
 import { ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { BaseInteroperableModule } from '../interoperability';
@@ -50,15 +53,22 @@ import {
 	hasNFTResponseSchema,
 	isNFTSupportedRequestSchema,
 	isNFTSupportedResponseSchema,
+	genesisNFTStoreSchema,
 } from './schemas';
 import { EscrowStore } from './stores/escrow';
 import { NFTStore } from './stores/nft';
 import { SupportedNFTsStore } from './stores/supported_nfts';
 import { UserStore } from './stores/user';
-import { FeeMethod, TokenMethod } from './types';
+import { FeeMethod, GenesisNFTStore, TokenMethod } from './types';
 import { CrossChainTransferCommand as CrossChainTransferMessageCommand } from './cc_commands/cc_transfer';
 import { TransferCrossChainCommand } from './commands/transfer_cross_chain';
 import { TransferCommand } from './commands/transfer';
+import {
+	ALL_SUPPORTED_NFTS_KEY,
+	LENGTH_ADDRESS,
+	LENGTH_CHAIN_ID,
+	NFT_NOT_LOCKED,
+} from './constants';
 
 export class NFTModule extends BaseInteroperableModule {
 	public method = new NFTMethod(this.stores, this.events);
@@ -174,6 +184,98 @@ export class NFTModule extends BaseInteroperableModule {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async init(_args: ModuleInitArgs) {}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public async initGenesisState(_context: GenesisBlockExecuteContext): Promise<void> {}
+	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
+		const assetBytes = context.assets.getAsset(this.name);
+
+		if (!assetBytes) {
+			return;
+		}
+
+		const genesisStore = codec.decode<GenesisNFTStore>(genesisNFTStoreSchema, assetBytes);
+		validator.validate(genesisNFTStoreSchema, genesisStore);
+
+		const nftIDKeySet = new dataStructures.BufferSet();
+
+		for (const nft of genesisStore.nftSubstore) {
+			if (![LENGTH_CHAIN_ID, LENGTH_ADDRESS].includes(nft.owner.length)) {
+				throw new Error(`nftID ${nft.nftID.toString('hex')} has invalid owner`);
+			}
+
+			if (nftIDKeySet.has(nft.nftID)) {
+				throw new Error(`nftID ${nft.nftID.toString('hex')} duplicated`);
+			}
+
+			const attributeSet: Record<string, number> = {};
+
+			for (const attribute of nft.attributesArray) {
+				attributeSet[attribute.module] = (attributeSet[attribute.module] ?? 0) + 1;
+
+				if (attributeSet[attribute.module] > 1) {
+					throw new Error(
+						`nftID ${nft.nftID.toString('hex')} has a duplicate attribute for ${
+							attribute.module
+						} module`,
+					);
+				}
+			}
+
+			nftIDKeySet.add(nft.nftID);
+		}
+
+		const allNFTsSupported = genesisStore.supportedNFTsSubstore.some(supportedNFTs =>
+			supportedNFTs.chainID.equals(ALL_SUPPORTED_NFTS_KEY),
+		);
+
+		if (genesisStore.supportedNFTsSubstore.length > 1 && allNFTsSupported) {
+			throw new Error(
+				'SupportedNFTsSubstore should contain only one entry if all NFTs are supported',
+			);
+		}
+
+		if (
+			allNFTsSupported &&
+			genesisStore.supportedNFTsSubstore[0].supportedCollectionIDArray.length !== 0
+		) {
+			throw new Error('supportedCollectionIDArray must be empty if all NFTs are supported');
+		}
+
+		const supportedChainsKeySet = new dataStructures.BufferSet();
+		for (const supportedNFT of genesisStore.supportedNFTsSubstore) {
+			if (supportedChainsKeySet.has(supportedNFT.chainID)) {
+				throw new Error(`chainID ${supportedNFT.chainID.toString('hex')} duplicated`);
+			}
+
+			supportedChainsKeySet.add(supportedNFT.chainID);
+		}
+
+		const nftStore = this.stores.get(NFTStore);
+		const escrowStore = this.stores.get(EscrowStore);
+		const userStore = this.stores.get(UserStore);
+
+		for (const nft of genesisStore.nftSubstore) {
+			const { owner, nftID, attributesArray } = nft;
+
+			await nftStore.save(context, nftID, {
+				owner,
+				attributesArray,
+			});
+
+			if (owner.length === LENGTH_CHAIN_ID) {
+				await escrowStore.set(context, escrowStore.getKey(owner, nftID), {});
+			} else {
+				await userStore.set(context, userStore.getKey(owner, nftID), {
+					lockingModule: NFT_NOT_LOCKED,
+				});
+			}
+		}
+
+		for (const supportedNFT of genesisStore.supportedNFTsSubstore) {
+			const { chainID, supportedCollectionIDArray } = supportedNFT;
+			const supportedNFTsSubstore = this.stores.get(SupportedNFTsStore);
+
+			await supportedNFTsSubstore.save(context, chainID, {
+				supportedCollectionIDArray,
+			});
+		}
+	}
 }

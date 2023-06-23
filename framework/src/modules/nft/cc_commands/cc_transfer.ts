@@ -62,7 +62,7 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 		const { nftID } = params;
 		const { sendingChainID } = ccm;
 		const nftChainID = this._method.getChainID(nftID);
-		const ownChainID = this._internalMethod.getOwnChainID();
+		const ownChainID = context.chainID;
 
 		if (![ownChainID, sendingChainID].some(allowedChainID => nftChainID.equals(allowedChainID))) {
 			throw new Error('NFT is not native to either the sending chain or the receiving chain');
@@ -94,7 +94,7 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 		const { sendingChainID, status } = ccm;
 		const { nftID, senderAddress, attributesArray: receivedAttributes } = params;
 		const nftChainID = this._method.getChainID(nftID);
-		const ownChainID = this._internalMethod.getOwnChainID();
+		const ownChainID = context.chainID;
 		const nftStore = this.stores.get(NFTStore);
 		const escrowStore = this.stores.get(EscrowStore);
 		let recipientAddress: Buffer;
