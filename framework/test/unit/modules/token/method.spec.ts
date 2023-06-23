@@ -859,6 +859,11 @@ describe('token module', () => {
 					'data',
 				),
 			).rejects.toThrow('Receiving chain cannot be the sending chain.');
+			checkEventResult(
+				methodContext.eventQueue,
+				TransferCrossChainEvent,
+				TokenEventResult.INVALID_RECEIVING_CHAIN,
+			);
 		});
 
 		it('should debit amount from sender and move to escrow', async () => {
