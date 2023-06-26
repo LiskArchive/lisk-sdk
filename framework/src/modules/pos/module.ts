@@ -498,16 +498,13 @@ export class PoSModule extends BaseModule {
 			}
 		} else {
 			for (const posValidator of genesisStore.validators) {
-				const valid = await this._validatorsMethod.registerValidatorKeys(
+				await this._validatorsMethod.registerValidatorKeys(
 					methodContext,
 					posValidator.address,
 					posValidator.blsKey,
 					posValidator.generatorKey,
 					posValidator.proofOfPossession,
 				);
-				if (!valid) {
-					throw new Error('Invalid validator key.');
-				}
 			}
 		}
 		const stakerStore = this.stores.get(StakerStore);

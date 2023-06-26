@@ -91,17 +91,13 @@ export class RegisterValidatorCommand extends BaseCommand {
 		} = context;
 		const methodContext = context.getMethodContext();
 
-		const isRegistered = await this._validatorsMethod.registerValidatorKeys(
+		await this._validatorsMethod.registerValidatorKeys(
 			methodContext,
 			transaction.senderAddress,
 			blsKey,
 			generatorKey,
 			proofOfPossession,
 		);
-
-		if (!isRegistered) {
-			throw new Error('Failed to register validator keys');
-		}
 
 		this._feeMethod.payFee(context, this._validatorRegistrationFee);
 

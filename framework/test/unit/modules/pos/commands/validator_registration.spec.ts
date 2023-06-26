@@ -113,7 +113,7 @@ describe('Validator registration command', () => {
 		});
 		mockValidatorsMethod = {
 			setValidatorGeneratorKey: jest.fn(),
-			registerValidatorKeys: jest.fn().mockResolvedValue(true),
+			registerValidatorKeys: jest.fn(),
 			registerValidatorWithoutBLSKey: jest.fn().mockResolvedValue(true),
 			getValidatorKeys: jest.fn(),
 			getGeneratorsBetweenTimestamps: jest.fn(),
