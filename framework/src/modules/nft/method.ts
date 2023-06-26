@@ -301,6 +301,14 @@ export class NFTMethod extends BaseMethod {
 		collectionID: Buffer,
 		attributesArray: NFTAttributes[],
 	): Promise<void> {
+		const moduleNames = [];
+		for (const item of attributesArray) {
+			moduleNames.push(item.module);
+		}
+		if (new Set(moduleNames).size !== attributesArray.length) {
+			throw new Error('Invalid attributes array provided');
+		}
+
 		const index = await this.getNextAvailableIndex(methodContext, collectionID);
 		const nftID = Buffer.concat([
 			this._config.ownChainID,

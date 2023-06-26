@@ -67,6 +67,15 @@ export class InternalMethod extends BaseMethod {
 		nftID: Buffer,
 		attributesArray: NFTAttributes[],
 	): Promise<void> {
+		const moduleNames = [];
+		for (const item of attributesArray) {
+			moduleNames.push(item.module);
+		}
+
+		if (new Set(moduleNames).size !== attributesArray.length) {
+			throw new Error('Invalid attributes array provided');
+		}
+
 		const nftStore = this.stores.get(NFTStore);
 		await nftStore.save(methodContext, nftID, {
 			owner: address,
