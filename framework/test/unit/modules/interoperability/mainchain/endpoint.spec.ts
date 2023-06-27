@@ -138,7 +138,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 		it('should return false when chainID equals mainchainID', async () => {
 			context = createTransientModuleEndpointContext({
 				params: {
-					chainID: Buffer.from('00000000', 'hex'),
+					chainID: '00000000',
 				},
 			});
 			const isAvailable = await endpoint.isChainIDAvailable(context);
@@ -148,7 +148,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 		it('should return false when chainID is not on the mainchain network', async () => {
 			context = createTransientModuleEndpointContext({
 				params: {
-					chainID: Buffer.from('11111111', 'hex'),
+					chainID: '11111111',
 				},
 			});
 			const isAvailable = await endpoint.isChainIDAvailable(context);
@@ -158,7 +158,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 		it('should return false when the chainID exists', async () => {
 			context = createTransientModuleEndpointContext({
 				params: {
-					chainID: Buffer.from('00000001', 'hex'),
+					chainID: '00000001',
 				},
 			});
 			chainAccountStore.has.mockResolvedValue(true);

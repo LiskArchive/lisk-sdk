@@ -191,7 +191,7 @@ describe('Test interoperability endpoint', () => {
 			getImmutableMethodContext: jest.fn(),
 			getOffchainStore: jest.fn(),
 			chainID: utils.intToBuffer(1, 4),
-			params: { chainID: utils.intToBuffer(1, 4) },
+			params: { chainID: '00000001' },
 			logger: {} as any,
 			header: { aggregateCommit: { height: 10 }, height: 12, timestamp: Date.now() },
 		};
@@ -219,16 +219,14 @@ describe('Test interoperability endpoint', () => {
 			chainAccountResult = await testInteroperabilityEndpoint.getChainAccount(moduleContext);
 		});
 
-		it('should reject if chainID is not in bytes format', async () => {
+		it('should reject if chainID is not in hex string format', async () => {
 			await expect(
 				testInteroperabilityEndpoint.getChainAccount({
 					...moduleContext,
-					params: { chainID: '00000001' },
+					params: { chainID: 'zy000001' },
 				}),
 			).rejects.toThrow(
-				'Lisk validator found 2 error[s]:\n' +
-					'Property \'.chainID\' should pass "dataType" keyword validation\n' +
-					"Property '.chainID' must NOT have more than 4 characters",
+				'Lisk validator found 1 error[s]:\nProperty \'.chainID\' must match format "hex"',
 			);
 		});
 
@@ -236,9 +234,11 @@ describe('Test interoperability endpoint', () => {
 			await expect(
 				testInteroperabilityEndpoint.getChainAccount({
 					...moduleContext,
-					params: { chainID: utils.intToBuffer(1, 5) },
+					params: { chainID: '0400000001' },
 				}),
-			).rejects.toThrow("Property '.chainID' maxLength exceeded");
+			).rejects.toThrow(
+				"Lisk validator found 1 error[s]:\nProperty '.chainID' must NOT have more than 8 characters",
+			);
 		});
 
 		it('should call getChainAccount', () => {
