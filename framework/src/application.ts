@@ -43,7 +43,6 @@ import { TokenModule, TokenMethod } from './modules/token';
 import { AuthModule, AuthMethod } from './modules/auth';
 import { FeeModule, FeeMethod } from './modules/fee';
 import { RandomModule, RandomMethod } from './modules/random';
-import { PoSModule, PoSMethod } from './modules/pos';
 import { generateGenesisBlock, GenesisBlockGenerateInput } from './genesis_block';
 import { StateMachine } from './state_machine';
 import { ABIHandler } from './abi_handler/abi_handler';
@@ -53,8 +52,8 @@ import {
 	SidechainInteroperabilityMethod,
 	MainchainInteroperabilityMethod,
 } from './modules/interoperability';
-import { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_rewards';
 import { Engine } from './engine';
+import { PoAMethod, PoAModule } from './modules/poa';
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -110,8 +109,7 @@ interface DefaultApplication {
 		token: TokenMethod;
 		fee: FeeMethod;
 		random: RandomMethod;
-		reward: DynamicRewardMethod;
-		pos: PoSMethod;
+		poa: PoAMethod;
 		interoperability: SidechainInteroperabilityMethod | MainchainInteroperabilityMethod;
 	};
 }
@@ -164,10 +162,9 @@ export class Application {
 		const authModule = new AuthModule();
 		const tokenModule = new TokenModule();
 		const feeModule = new FeeModule();
-		const dynamicRewardModule = new DynamicRewardModule();
 		const randomModule = new RandomModule();
 		const validatorModule = new ValidatorsModule();
-		const posModule = new PoSModule();
+		const poaModule = new PoAModule();
 		let interoperabilityModule;
 		if (mainchain) {
 			interoperabilityModule = new MainchainInteroperabilityModule();
@@ -179,18 +176,7 @@ export class Application {
 
 		// resolve dependencies
 		feeModule.addDependencies(tokenModule.method, interoperabilityModule.method);
-		dynamicRewardModule.addDependencies(
-			tokenModule.method,
-			randomModule.method,
-			validatorModule.method,
-			posModule.method,
-		);
-		posModule.addDependencies(
-			randomModule.method,
-			validatorModule.method,
-			tokenModule.method,
-			feeModule.method,
-		);
+		poaModule.addDependencies(validatorModule.method, feeModule.method, randomModule.method);
 		tokenModule.addDependencies(interoperabilityModule.method, feeModule.method);
 
 		// resolve interoperability dependencies
@@ -203,9 +189,10 @@ export class Application {
 		application._registerModule(tokenModule);
 		application._registerModule(feeModule);
 		application._registerModule(interoperabilityModule);
-		application._registerModule(posModule);
+
+		// Replacing PoS to PoA
+		application._registerModule(poaModule);
 		application._registerModule(randomModule);
-		application._registerModule(dynamicRewardModule);
 
 		return {
 			app: application,
@@ -214,9 +201,8 @@ export class Application {
 				token: tokenModule.method,
 				auth: authModule.method,
 				fee: feeModule.method,
-				pos: posModule.method,
+				poa: poaModule.method,
 				random: randomModule.method,
-				reward: dynamicRewardModule.method,
 				interoperability: interoperabilityModule.method,
 			},
 		};
