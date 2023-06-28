@@ -134,7 +134,7 @@ export class StartCommand extends BaseStartCommand {
 			app.registerPlugin(new DashboardPlugin(), { loadAsChildProcess: true });
 		}
 		if (flags['enable-chain-connector-plugin']) {
-			app.registerPlugin(new ChainConnectorPlugin(), { loadAsChildProcess: true });
+			app.registerPlugin(new ChainConnectorPlugin(), { loadAsChildProcess: false });
 		}
 
 		return app;
