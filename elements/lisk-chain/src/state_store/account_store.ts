@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { NotFoundError, BatchChain } from '@liskhq/lisk-db';
+import { NotFoundError, Batch } from '@liskhq/lisk-db';
 import { objects, dataStructures } from '@liskhq/lisk-utils';
 import { DataAccess } from '../data_access';
 import { StateDiff, Account, AccountDefaultProps } from '../types';
@@ -142,14 +142,14 @@ export class AccountStore {
 		this._data.delete(address);
 	}
 
-	public finalize(batch: BatchChain): StateDiff {
+	public finalize(batch: Batch): StateDiff {
 		const stateDiff = { updated: [], created: [], deleted: [] } as StateDiff;
 
 		for (const updatedAccount of this._data.values()) {
 			if (this._updatedKeys.has(updatedAccount.address)) {
 				const encodedAccount = this._dataAccess.encodeAccount(updatedAccount);
 				const dbKey = `${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(updatedAccount.address)}`;
-				batch.put(dbKey, encodedAccount);
+				batch.set(Buffer.from(dbKey), encodedAccount);
 
 				const initialAccount = this._initialAccountValue.get(updatedAccount.address);
 				if (initialAccount !== undefined && !initialAccount.equals(encodedAccount)) {
@@ -168,7 +168,7 @@ export class AccountStore {
 				throw new Error('Deleting account should have initial account');
 			}
 			const dbKey = `${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(deletedAddress)}`;
-			batch.del(dbKey);
+			batch.del(Buffer.from(dbKey));
 			stateDiff.deleted.push({
 				key: dbKey,
 				value: initialAccount,

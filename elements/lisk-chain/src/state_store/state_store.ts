@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { BatchChain } from '@liskhq/lisk-db';
+import { Batch } from '@liskhq/lisk-db';
 import { BlockHeader, StateDiff, UpdatedDiff } from '../types';
 import { AccountStore } from './account_store';
 import { ChainStateStore } from './chain_state_store';
@@ -32,7 +32,7 @@ interface AdditionalInformation {
 const saveDiff = (
 	height: string,
 	stateDiffs: Array<Readonly<StateDiff>>,
-	batch: BatchChain,
+	batch: Batch,
 ): void => {
 	const diffToEncode: { updated: UpdatedDiff[]; created: string[]; deleted: UpdatedDiff[] } = {
 		updated: [],
@@ -47,7 +47,7 @@ const saveDiff = (
 	}
 
 	const encodedDiff = codec.encode(stateDiffSchema, diffToEncode);
-	batch.put(`${DB_KEY_DIFF_STATE}:${height}`, encodedDiff);
+	batch.set(Buffer.from(`${DB_KEY_DIFF_STATE}:${height}`), encodedDiff);
 };
 
 export class StateStore {
@@ -79,7 +79,7 @@ export class StateStore {
 		this.chain.restoreSnapshot();
 	}
 
-	public finalize(height: string, batch: BatchChain): void {
+	public finalize(height: string, batch: Batch): void {
 		const accountStateDiff = this.account.finalize(batch);
 		const chainStateDiff = this.chain.finalize(batch);
 		const consensusStateDiff = this.consensus.finalize(batch);

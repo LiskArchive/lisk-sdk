@@ -14,7 +14,7 @@
 
 import { Readable } from 'stream';
 import { when } from 'jest-when';
-import { KVStore, NotFoundError, formatInt } from '@liskhq/lisk-db';
+import { Batch, Database, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { Chain } from '../../src/chain';
@@ -31,6 +31,7 @@ import { Block, Validator } from '../../src/types';
 import { createFakeDefaultAccount, defaultAccountModules } from '../utils/account';
 import { getTransaction } from '../utils/transaction';
 import { genesisInfoSchema, stateDiffSchema, validatorsSchema } from '../../src/schema';
+import { formatInt } from '../../src/data_access/storage';
 import { createStateStore } from '../utils/state_store';
 import { CONSENSUS_STATE_GENESIS_INFO, CONSENSUS_STATE_VALIDATORS_KEY } from '../../src/constants';
 
@@ -65,8 +66,7 @@ describe('chain', () => {
 
 	beforeEach(() => {
 		// Arrange
-		db = new KVStore('temp');
-		(formatInt as jest.Mock).mockImplementation(n => n);
+		db = new Database('temp');
 		(db.createReadStream as jest.Mock).mockReturnValue(Readable.from([]));
 
 		chainInstance = new Chain({
@@ -106,11 +106,11 @@ describe('chain', () => {
 			);
 			when(db.get)
 				.mockRejectedValue(new NotFoundError('Data not found') as never)
-				.calledWith(`blocks:height:${formatInt(1)}`)
+				.calledWith(Buffer.from(`blocks:height:${formatInt(1)}`))
 				.mockResolvedValue(genesisBlock.header.id as never)
-				.calledWith(`blocks:id:${genesisBlock.header.id.toString('binary')}`)
+				.calledWith(Buffer.from(`blocks:id:${genesisBlock.header.id.toString('binary')}`))
 				.mockResolvedValue(encodeGenesisBlockHeader(genesisBlock.header) as never)
-				.calledWith(`blocks:id:${lastBlock.header.id.toString('binary')}`)
+				.calledWith(Buffer.from(`blocks:id:${lastBlock.header.id.toString('binary')}`))
 				.mockResolvedValue(encodeDefaultBlockHeader(lastBlock.header) as never);
 			jest.spyOn(chainInstance.dataAccess, 'getBlockHeadersByHeightBetween').mockResolvedValue([]);
 		});
@@ -179,19 +179,14 @@ describe('chain', () => {
 
 	describe('saveBlock', () => {
 		let stateStoreStub: StateStore;
-		let batchMock: any;
 		let savingBlock: Block;
 
 		const fakeAccounts = [createFakeDefaultAccount(), createFakeDefaultAccount()];
 
 		beforeEach(() => {
 			savingBlock = createValidDefaultBlock({ header: { height: 300 } });
-			batchMock = {
-				put: jest.fn(),
-				del: jest.fn(),
-				write: jest.fn(),
-			};
-			(db.batch as jest.Mock).mockReturnValue(batchMock);
+			jest.spyOn(Batch.prototype, 'set');
+			jest.spyOn(Batch.prototype, 'del');
 			stateStoreStub = {
 				finalize: jest.fn(),
 				account: {
@@ -205,8 +200,8 @@ describe('chain', () => {
 				removeFromTempTable: true,
 			});
 			expect(db.clear).toHaveBeenCalledWith({
-				gte: `diff:${formatInt(0)}`,
-				lt: `diff:${formatInt(100)}`,
+				gte: Buffer.from(`diff:${formatInt(0)}`),
+				lte: Buffer.from(`diff:${formatInt(99)}`),
 			});
 		});
 
@@ -214,20 +209,20 @@ describe('chain', () => {
 			await chainInstance.saveBlock(savingBlock, stateStoreStub, 0, {
 				removeFromTempTable: true,
 			});
-			expect(batchMock.del).toHaveBeenCalledWith(
-				`tempBlocks:height:${formatInt(savingBlock.header.height)}`,
+			expect(Batch.prototype.del).toHaveBeenCalledWith(
+				Buffer.from(`tempBlocks:height:${formatInt(savingBlock.header.height)}`),
 			);
 			expect(stateStoreStub.finalize).toHaveBeenCalledTimes(1);
 		});
 
 		it('should save block', async () => {
 			await chainInstance.saveBlock(savingBlock, stateStoreStub, 0);
-			expect(batchMock.put).toHaveBeenCalledWith(
-				`blocks:id:${savingBlock.header.id.toString('binary')}`,
+			expect(Batch.prototype.set).toHaveBeenCalledWith(
+				Buffer.from(`blocks:id:${savingBlock.header.id.toString('binary')}`),
 				expect.anything(),
 			);
-			expect(batchMock.put).toHaveBeenCalledWith(
-				`blocks:height:${formatInt(savingBlock.header.height)}`,
+			expect(Batch.prototype.set).toHaveBeenCalledWith(
+				Buffer.from(`blocks:height:${formatInt(savingBlock.header.height)}`),
 				expect.anything(),
 			);
 			expect(stateStoreStub.finalize).toHaveBeenCalledTimes(1);
@@ -253,15 +248,9 @@ describe('chain', () => {
 		const fakeAccounts = [createFakeDefaultAccount(), createFakeDefaultAccount()];
 
 		let stateStoreStub: StateStore;
-		let batchMock: any;
 
 		beforeEach(() => {
-			batchMock = {
-				put: jest.fn(),
-				del: jest.fn(),
-				write: jest.fn(),
-			};
-			(db.batch as jest.Mock).mockReturnValue(batchMock);
+			jest.spyOn(Batch.prototype, 'set');
 			stateStoreStub = {
 				finalize: jest.fn(),
 				account: {
@@ -293,11 +282,12 @@ describe('chain', () => {
 
 			const block = createValidDefaultBlock();
 			when(db.get)
-				.calledWith(`diff:${formatInt(block.header.height)}`)
+				.calledWith(Buffer.from(`diff:${formatInt(block.header.height)}`))
 				.mockResolvedValue(emptyEncodedDiff as never);
 
 			const deleteBlockError = new Error('Delete block failed');
-			batchMock.write.mockRejectedValue(deleteBlockError);
+
+			db.write.mockRejectedValue(deleteBlockError);
 
 			// Act & Assert
 			await expect(chainInstance.removeBlock(block, stateStoreStub)).rejects.toEqual(
@@ -310,13 +300,13 @@ describe('chain', () => {
 			jest.spyOn(chainInstance.dataAccess, 'getBlockByID').mockResolvedValue(genesisBlock as never);
 			const block = createValidDefaultBlock();
 			when(db.get)
-				.calledWith(`diff:${formatInt(block.header.height)}`)
+				.calledWith(Buffer.from(`diff:${formatInt(block.header.height)}`))
 				.mockResolvedValue(emptyEncodedDiff as never);
 			// Act
 			await chainInstance.removeBlock(block, stateStoreStub);
 			// Assert
-			expect(batchMock.put).not.toHaveBeenCalledWith(
-				`tempBlocks:height:${formatInt(block.header.height)}`,
+			expect(Batch.prototype.set).not.toHaveBeenCalledWith(
+				Buffer.from(`tempBlocks:height:${formatInt(block.header.height)}`),
 				block,
 			);
 		});
@@ -327,15 +317,15 @@ describe('chain', () => {
 			const tx = getTransaction();
 			const block = createValidDefaultBlock({ payload: [tx] });
 			when(db.get)
-				.calledWith(`diff:${formatInt(block.header.height)}`)
+				.calledWith(Buffer.from(`diff:${formatInt(block.header.height)}`))
 				.mockResolvedValue(emptyEncodedDiff as never);
 			// Act
 			await chainInstance.removeBlock(block, stateStoreStub, {
 				saveTempBlock: true,
 			});
 			// Assert
-			expect(batchMock.put).toHaveBeenCalledWith(
-				`tempBlocks:height:${formatInt(block.header.height)}`,
+			expect(Batch.prototype.set).toHaveBeenCalledWith(
+				Buffer.from(`tempBlocks:height:${formatInt(block.header.height)}`),
 				encodedDefaultBlock(block),
 			);
 		});
@@ -374,7 +364,7 @@ describe('chain', () => {
 				validators,
 			});
 			when(db.get)
-				.calledWith(`consensus:${CONSENSUS_STATE_VALIDATORS_KEY}`)
+				.calledWith(Buffer.from(`consensus:${CONSENSUS_STATE_VALIDATORS_KEY}`))
 				.mockResolvedValue(validatorBuffer as never);
 		});
 
@@ -402,7 +392,7 @@ describe('chain', () => {
 				validators,
 			});
 			when(db.get)
-				.calledWith(`consensus:${CONSENSUS_STATE_VALIDATORS_KEY}`)
+				.calledWith(Buffer.from(`consensus:${CONSENSUS_STATE_VALIDATORS_KEY}`))
 				.mockResolvedValue(validatorBuffer as never);
 		});
 
@@ -440,9 +430,9 @@ describe('chain', () => {
 			});
 
 			when(db.get)
-				.calledWith(`consensus:${CONSENSUS_STATE_VALIDATORS_KEY}`)
+				.calledWith(Buffer.from(`consensus:${CONSENSUS_STATE_VALIDATORS_KEY}`))
 				.mockResolvedValue(validatorBuffer as never)
-				.calledWith(`consensus:${CONSENSUS_STATE_GENESIS_INFO}`)
+				.calledWith(Buffer.from(`consensus:${CONSENSUS_STATE_GENESIS_INFO}`))
 				.mockResolvedValue(genesisInfoBufer as never);
 		});
 

@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { KVStore, formatInt, getFirstPrefix, getLastPrefix, NotFoundError } from '@liskhq/lisk-db';
+import { Batch, Database, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
 import { RawBlock, StateDiff } from '../types';
@@ -31,10 +31,31 @@ import {
 import { keyString } from '../utils';
 import { stateDiffSchema } from '../schema';
 
-export class Storage {
-	private readonly _db: KVStore;
+export const formatInt = (num: number | bigint): string => {
+	let buf: Buffer;
+	if (typeof num === 'bigint') {
+		if (num < BigInt(0)) {
+			throw new Error('Negative number cannot be formatted');
+		}
+		buf = Buffer.alloc(8);
+		buf.writeBigUInt64BE(num);
+	} else {
+		if (num < 0) {
+			throw new Error('Negative number cannot be formatted');
+		}
+		buf = Buffer.alloc(4);
+		buf.writeUInt32BE(num, 0);
+	}
+	return buf.toString('binary');
+};
 
-	public constructor(db: KVStore) {
+export const getFirstPrefix = (prefix: string): Buffer => Buffer.from(`${prefix}\x00`);
+export const getLastPrefix = (prefix: string): Buffer => Buffer.from(`${prefix}\xFF`);
+
+export class Storage {
+	private readonly _db: Database;
+
+	public constructor(db: Database) {
 		this._db = db;
 	}
 
@@ -42,7 +63,7 @@ export class Storage {
 		Block headers
 	*/
 	public async getBlockHeaderByID(id: Buffer): Promise<Buffer> {
-		const block = await this._db.get(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`);
+		const block = await this._db.get(Buffer.from(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`));
 		return block;
 	}
 
@@ -50,7 +71,7 @@ export class Storage {
 		const blocks = [];
 		for (const id of arrayOfBlockIds) {
 			try {
-				const block = await this._db.get(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`);
+				const block = await this._db.get(Buffer.from(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`));
 				blocks.push(block);
 			} catch (dbError) {
 				if (dbError instanceof NotFoundError) {
@@ -64,7 +85,7 @@ export class Storage {
 
 	public async getBlockHeaderByHeight(height: number): Promise<Buffer> {
 		const stringHeight = formatInt(height);
-		const id = await this._db.get(`${DB_KEY_BLOCKS_HEIGHT}:${stringHeight}`);
+		const id = await this._db.get(Buffer.from(`${DB_KEY_BLOCKS_HEIGHT}:${stringHeight}`));
 		return this.getBlockHeaderByID(id);
 	}
 
@@ -73,8 +94,8 @@ export class Storage {
 		toHeight: number,
 	): Promise<Buffer[]> {
 		const stream = this._db.createReadStream({
-			gte: `${DB_KEY_BLOCKS_HEIGHT}:${formatInt(fromHeight)}`,
-			lte: `${DB_KEY_BLOCKS_HEIGHT}:${formatInt(toHeight)}`,
+			gte: Buffer.from(`${DB_KEY_BLOCKS_HEIGHT}:${formatInt(fromHeight)}`),
+			lte: Buffer.from(`${DB_KEY_BLOCKS_HEIGHT}:${formatInt(toHeight)}`),
 			reverse: true,
 		});
 		const blockIDs = await new Promise<Buffer[]>((resolve, reject) => {
@@ -112,8 +133,8 @@ export class Storage {
 
 	public async getLastBlockHeader(): Promise<Buffer> {
 		const stream = this._db.createReadStream({
-			gte: getFirstPrefix(DB_KEY_BLOCKS_HEIGHT),
-			lte: getLastPrefix(DB_KEY_BLOCKS_HEIGHT),
+			gte: Buffer.from(getFirstPrefix(DB_KEY_BLOCKS_HEIGHT)),
+			lte: Buffer.from(getLastPrefix(DB_KEY_BLOCKS_HEIGHT)),
 			reverse: true,
 			limit: 1,
 		});
@@ -257,7 +278,7 @@ export class Storage {
 	}
 
 	public async isBlockPersisted(blockID: Buffer): Promise<boolean> {
-		return this._db.exists(`${DB_KEY_BLOCKS_ID}:${keyString(blockID)}`);
+		return this._db.has(Buffer.from(`${DB_KEY_BLOCKS_ID}:${keyString(blockID)}`));
 	}
 
 	/*
@@ -265,7 +286,7 @@ export class Storage {
 	*/
 	public async getChainState(key: string): Promise<Buffer | undefined> {
 		try {
-			const value = await this._db.get(`${DB_KEY_CHAIN_STATE}:${key}`);
+			const value = await this._db.get(Buffer.from(`${DB_KEY_CHAIN_STATE}:${key}`));
 
 			return value;
 		} catch (error) {
@@ -281,7 +302,7 @@ export class Storage {
 	*/
 	public async getConsensusState(key: string): Promise<Buffer | undefined> {
 		try {
-			const value = await this._db.get(`${DB_KEY_CONSENSUS_STATE}:${key}`);
+			const value = await this._db.get(Buffer.from(`${DB_KEY_CONSENSUS_STATE}:${key}`));
 
 			return value;
 		} catch (error) {
@@ -296,14 +317,14 @@ export class Storage {
 	// Warning: This function should never be used. This exist only for migration purpose.
 	// Specifically, only to set genesis state between 5.1.2 => 5.1.3
 	public async setConsensusState(key: string, val: Buffer): Promise<void> {
-		await this._db.put(`${DB_KEY_CONSENSUS_STATE}:${key}`, val);
+		await this._db.set(Buffer.from(`${DB_KEY_CONSENSUS_STATE}:${key}`), val);
 	}
 
 	/*
 		Accounts
 	*/
 	public async getAccountByAddress(address: Buffer): Promise<Buffer> {
-		const account = await this._db.get(`${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(address)}`);
+		const account = await this._db.get(Buffer.from(`${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(address)}`));
 		return account;
 	}
 
@@ -334,7 +355,7 @@ export class Storage {
 		Transactions
 	*/
 	public async getTransactionByID(id: Buffer): Promise<Buffer> {
-		const transaction = await this._db.get(`${DB_KEY_TRANSACTIONS_ID}:${keyString(id)}`);
+		const transaction = await this._db.get(Buffer.from(`${DB_KEY_TRANSACTIONS_ID}:${keyString(id)}`));
 
 		return transaction;
 	}
@@ -359,7 +380,7 @@ export class Storage {
 	}
 
 	public async isTransactionPersisted(transactionId: Buffer): Promise<boolean> {
-		return this._db.exists(`${DB_KEY_TRANSACTIONS_ID}:${keyString(transactionId)}`);
+		return this._db.has(Buffer.from(`${DB_KEY_TRANSACTIONS_ID}:${keyString(transactionId)}`));
 	}
 
 	/*
@@ -375,22 +396,22 @@ export class Storage {
 		removeFromTemp = false,
 	): Promise<void> {
 		const heightStr = formatInt(height);
-		const batch = this._db.batch();
-		batch.put(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`, header);
-		batch.put(`${DB_KEY_BLOCKS_HEIGHT}:${heightStr}`, id);
+		const batch = new Batch();
+		batch.set(Buffer.from(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`), header);
+		batch.set(Buffer.from(`${DB_KEY_BLOCKS_HEIGHT}:${heightStr}`), id);
 		if (payload.length > 0) {
 			const ids = [];
 			for (const { id: txID, value } of payload) {
 				ids.push(txID);
-				batch.put(`${DB_KEY_TRANSACTIONS_ID}:${keyString(txID)}`, value);
+				batch.set(Buffer.from(`${DB_KEY_TRANSACTIONS_ID}:${keyString(txID)}`), value);
 			}
-			batch.put(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(id)}`, Buffer.concat(ids));
+			batch.set(Buffer.from(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(id)}`), Buffer.concat(ids));
 		}
 		if (removeFromTemp) {
-			batch.del(`${DB_KEY_TEMPBLOCKS_HEIGHT}:${heightStr}`);
+			batch.del(Buffer.from(`${DB_KEY_TEMPBLOCKS_HEIGHT}:${heightStr}`));
 		}
 		stateStore.finalize(heightStr, batch);
-		await batch.write();
+		await this._db.write(batch);
 		await this._cleanUntil(finalizedHeight);
 	}
 
@@ -402,24 +423,24 @@ export class Storage {
 		stateStore: StateStore,
 		saveToTemp = false,
 	): Promise<StateDiff> {
-		const batch = this._db.batch();
+		const batch = new Batch();
 		const heightStr = formatInt(height);
-		batch.del(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`);
-		batch.del(`${DB_KEY_BLOCKS_HEIGHT}:${heightStr}`);
+		batch.del(Buffer.from(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`));
+		batch.del(Buffer.from(`${DB_KEY_BLOCKS_HEIGHT}:${heightStr}`));
 		if (txIDs.length > 0) {
 			for (const txID of txIDs) {
-				batch.del(`${DB_KEY_TRANSACTIONS_ID}:${keyString(txID)}`);
+				batch.del(Buffer.from(`${DB_KEY_TRANSACTIONS_ID}:${keyString(txID)}`));
 			}
-			batch.del(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(id)}`);
+			batch.del(Buffer.from(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(id)}`));
 		}
 		if (saveToTemp) {
-			batch.put(`${DB_KEY_TEMPBLOCKS_HEIGHT}:${heightStr}`, fullBlock);
+			batch.set(Buffer.from(`${DB_KEY_TEMPBLOCKS_HEIGHT}:${heightStr}`), fullBlock);
 		}
 		// Take the diff to revert back states
 		const diffKey = `${DB_KEY_DIFF_STATE}:${heightStr}`;
 
 		// If there is no diff, the key might not exist
-		const stateDiff = await this._db.get(diffKey);
+		const stateDiff = await this._db.get(Buffer.from(diffKey));
 
 		const {
 			created: createdStates,
@@ -428,22 +449,22 @@ export class Storage {
 		} = codec.decode<StateDiff>(stateDiffSchema, stateDiff);
 		// Delete all the newly created states
 		for (const key of createdStates) {
-			batch.del(key);
+			batch.del(Buffer.from(key));
 		}
 		// Revert all deleted values
 		for (const { key, value: previousValue } of deletedStates) {
-			batch.put(key, previousValue);
+			batch.set(Buffer.from(key), previousValue);
 		}
 		for (const { key, value: previousValue } of updatedStates) {
-			batch.put(key, previousValue);
+			batch.set(Buffer.from(key), previousValue);
 		}
 		stateStore.finalize(heightStr, batch);
 
 		// Delete stored diff at particular height
-		batch.del(diffKey);
+		batch.del(Buffer.from(diffKey));
 
 		// Persist the whole batch
-		await batch.write();
+		await this._db.write(batch);
 		return {
 			deleted: deletedStates,
 			created: createdStates,
@@ -453,16 +474,17 @@ export class Storage {
 
 	// This function is out of batch, but even if it fails, it will run again next time
 	private async _cleanUntil(height: number): Promise<void> {
+		const max = Math.max(0, height - 1);
 		await this._db.clear({
-			gte: `${DB_KEY_DIFF_STATE}:${formatInt(0)}`,
-			lt: `${DB_KEY_DIFF_STATE}:${formatInt(height)}`,
+			gte: Buffer.from(`${DB_KEY_DIFF_STATE}:${formatInt(0)}`),
+			lte: Buffer.from(`${DB_KEY_DIFF_STATE}:${formatInt(max)}`),
 		});
 	}
 
 	private async _getTransactions(blockID: Buffer): Promise<Buffer[]> {
 		const txIDs: Buffer[] = [];
 		try {
-			const ids = await this._db.get(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(blockID)}`);
+			const ids = await this._db.get(Buffer.from(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(blockID)}`));
 			const idLength = 32;
 			for (let i = 0; i < ids.length; i += idLength) {
 				txIDs.push(ids.slice(i, i + idLength));
@@ -477,7 +499,7 @@ export class Storage {
 		}
 		const transactions = [];
 		for (const txID of txIDs) {
-			const tx = await this._db.get(`${DB_KEY_TRANSACTIONS_ID}:${keyString(txID)}`);
+			const tx = await this._db.get(Buffer.from(`${DB_KEY_TRANSACTIONS_ID}:${keyString(txID)}`));
 			transactions.push(tx);
 		}
 

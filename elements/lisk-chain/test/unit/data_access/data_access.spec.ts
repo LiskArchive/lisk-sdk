@@ -13,7 +13,7 @@
  */
 import { Readable } from 'stream';
 import { when } from 'jest-when';
-import { KVStore, formatInt, NotFoundError, getFirstPrefix, getLastPrefix } from '@liskhq/lisk-db';
+import { Database, NotFoundError } from '@liskhq/lisk-db';
 import { DataAccess } from '../../../src/data_access';
 import {
 	createFakeBlockHeader,
@@ -29,6 +29,7 @@ import {
 	defaultAccountSchema,
 } from '../../utils/account';
 import { getGenesisBlockHeaderAssetSchema, blockHeaderAssetSchema } from '../../../src/schema';
+import { formatInt } from '../../../src/data_access/storage';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -38,11 +39,9 @@ describe('data_access', () => {
 	let block: Block;
 
 	beforeEach(() => {
-		db = new KVStore('temp');
+		db = new Database('temp');
 		(db.createReadStream as jest.Mock).mockReturnValue(Readable.from([]));
-		(formatInt as jest.Mock).mockImplementation(num => num);
-		(getFirstPrefix as jest.Mock).mockImplementation(str => str);
-		(getLastPrefix as jest.Mock).mockImplementation(str => str);
+
 		dataAccess = new DataAccess({
 			db,
 			accountSchema: defaultAccountSchema,
@@ -121,17 +120,17 @@ describe('data_access', () => {
 				]),
 			);
 			when(db.get)
-				.calledWith(`blocks:height:${formatInt(block.header.height)}`)
+				.calledWith(Buffer.from(`blocks:height:${formatInt(block.header.height)}`))
 				.mockResolvedValue(block.header.id as never)
-				.calledWith(`blocks:id:${block.header.id.toString('binary')}`)
+				.calledWith(Buffer.from(`blocks:id:${block.header.id.toString('binary')}`))
 				.mockResolvedValue(encodeDefaultBlockHeader(block.header) as never);
 			// Act
 			await dataAccess.getBlockHeaderByHeight(1);
 
 			// Assert
 			expect(db.get).toHaveBeenCalledTimes(2);
-			expect(db.get).toHaveBeenCalledWith(`blocks:height:${formatInt(block.header.height)}`);
-			expect(db.get).toHaveBeenCalledWith(`blocks:id:${block.header.id.toString('binary')}`);
+			expect(db.get).toHaveBeenCalledWith(Buffer.from(`blocks:height:${formatInt(block.header.height)}`));
+			expect(db.get).toHaveBeenCalledWith(Buffer.from(`blocks:id:${block.header.id.toString('binary')}`));
 		});
 	});
 
@@ -184,17 +183,17 @@ describe('data_access', () => {
 		it('should return persisted blocks if cache does not exist', async () => {
 			// Arrange
 			when(db.get)
-				.calledWith(`blocks:height:${formatInt(block.header.height)}`)
+				.calledWith(Buffer.from(`blocks:height:${formatInt(block.header.height)}`))
 				.mockResolvedValue(block.header.id as never)
-				.calledWith(`blocks:id:${block.header.id.toString('binary')}`)
+				.calledWith(Buffer.from(`blocks:id:${block.header.id.toString('binary')}`))
 				.mockResolvedValue(encodeDefaultBlockHeader(block.header) as never);
 			// Act
 			await dataAccess.getBlockHeadersWithHeights([1]);
 
 			// Assert
 			expect(db.get).toHaveBeenCalledTimes(2);
-			expect(db.get).toHaveBeenCalledWith(`blocks:height:${formatInt(block.header.height)}`);
-			expect(db.get).toHaveBeenCalledWith(`blocks:id:${block.header.id.toString('binary')}`);
+			expect(db.get).toHaveBeenCalledWith(Buffer.from(`blocks:height:${formatInt(block.header.height)}`));
+			expect(db.get).toHaveBeenCalledWith(Buffer.from(`blocks:id:${block.header.id.toString('binary')}`));
 		});
 	});
 
@@ -226,7 +225,7 @@ describe('data_access', () => {
 			// Assert
 			expect(db.get).toHaveBeenCalledTimes(1);
 			expect(db.createReadStream).toHaveBeenCalledTimes(1);
-			expect(db.get).toHaveBeenCalledWith(`blocks:id:${block.header.id.toString('binary')}`);
+			expect(db.get).toHaveBeenCalledWith(Buffer.from(`blocks:id:${block.header.id.toString('binary')}`));
 		});
 	});
 
@@ -317,13 +316,13 @@ describe('data_access', () => {
 			// Arrange
 			when(db.get)
 				.mockRejectedValue(new NotFoundError('Data not found') as never)
-				.calledWith('blocks:id:1')
+				.calledWith(Buffer.from('blocks:id:1'))
 				.mockResolvedValue(encodeDefaultBlockHeader(block.header) as never);
 			// Act
 			await dataAccess.getBlocksByIDs([Buffer.from('1')]);
 
 			// Assert
-			expect(db.get).toHaveBeenCalledWith('blocks:id:1');
+			expect(db.get).toHaveBeenCalledWith(Buffer.from('blocks:id:1'));
 		});
 	});
 
@@ -339,7 +338,7 @@ describe('data_access', () => {
 			);
 			when(db.get)
 				.mockRejectedValue(new NotFoundError('Data not found') as never)
-				.calledWith(`blocks:id:${block.header.id.toString('binary')}`)
+				.calledWith(Buffer.from(`blocks:id:${block.header.id.toString('binary')}`))
 				.mockResolvedValue(encodeDefaultBlockHeader(block.header) as never);
 			// Act
 			await dataAccess.getBlocksByHeightBetween(1, 2);
@@ -362,7 +361,7 @@ describe('data_access', () => {
 			);
 			when(db.get)
 				.mockRejectedValue(new NotFoundError('Data not found') as never)
-				.calledWith(`blocks:id:${block.header.id.toString('binary')}`)
+				.calledWith(Buffer.from(`blocks:id:${block.header.id.toString('binary')}`))
 				.mockResolvedValue(encodeDefaultBlockHeader(block.header) as never);
 			// Act
 			await dataAccess.getLastBlock();
@@ -379,7 +378,7 @@ describe('data_access', () => {
 			await dataAccess.isBlockPersisted(block.header.id);
 
 			// Assert
-			expect(db.exists).toHaveBeenCalledWith(`blocks:id:${block.header.id.toString('binary')}`);
+			expect(db.has).toHaveBeenCalledWith(Buffer.from(`blocks:id:${block.header.id.toString('binary')}`));
 		});
 	});
 
@@ -439,8 +438,8 @@ describe('data_access', () => {
 			// Assert
 			expect(db.clear).toHaveBeenCalledTimes(1);
 			expect(db.clear).toHaveBeenCalledWith({
-				gte: expect.stringContaining('tempBlocks:height'),
-				lte: expect.stringContaining('tempBlocks:height'),
+				gte: Buffer.from('tempBlocks:height\x00'),
+				lte: Buffer.from('tempBlocks:height\xff'),
 			});
 		});
 	});
@@ -458,7 +457,7 @@ describe('data_access', () => {
 				},
 			});
 			when(db.get)
-				.calledWith(`accounts:address:${account.address.toString('binary')}`)
+				.calledWith(Buffer.from(`accounts:address:${account.address.toString('binary')}`))
 				.mockResolvedValue(encodeDefaultAccount(account) as never);
 			// Act
 			const result = await dataAccess.getAccountByAddress<{ token: { balance: bigint } }>(
@@ -466,7 +465,7 @@ describe('data_access', () => {
 			);
 
 			// Assert
-			expect(db.get).toHaveBeenCalledWith(`accounts:address:${account.address.toString('binary')}`);
+			expect(db.get).toHaveBeenCalledWith(Buffer.from(`accounts:address:${account.address.toString('binary')}`));
 			expect(typeof result.token.balance).toEqual('bigint');
 		});
 	});
@@ -495,9 +494,9 @@ describe('data_access', () => {
 				}),
 			];
 			when(db.get)
-				.calledWith(`accounts:address:${accounts[0].address.toString('binary')}`)
+				.calledWith(Buffer.from(`accounts:address:${accounts[0].address.toString('binary')}`))
 				.mockResolvedValue(encodeDefaultAccount(accounts[0]) as never)
-				.calledWith(`accounts:address:${accounts[1].address.toString('binary')}`)
+				.calledWith(Buffer.from(`accounts:address:${accounts[1].address.toString('binary')}`))
 				.mockResolvedValue(encodeDefaultAccount(accounts[1]) as never);
 			// Act
 			const result = await dataAccess.getAccountsByAddress<{ token: { balance: bigint } }>(
@@ -531,13 +530,13 @@ describe('data_access', () => {
 			});
 			// Arrange
 			when(db.get)
-				.calledWith(`transactions:id:${tx.id.toString('binary')}`)
+				.calledWith(Buffer.from(`transactions:id:${tx.id.toString('binary')}`))
 				.mockResolvedValue(tx.getBytes() as never);
 			// Act
 			const [result] = await dataAccess.getTransactionsByIDs([tx.id]);
 
 			// Assert
-			expect(db.get).toHaveBeenCalledWith(`transactions:id:${tx.id.toString('binary')}`);
+			expect(db.get).toHaveBeenCalledWith(Buffer.from(`transactions:id:${tx.id.toString('binary')}`));
 			expect(typeof result.fee).toBe('bigint');
 		});
 	});
@@ -548,7 +547,7 @@ describe('data_access', () => {
 			await dataAccess.isTransactionPersisted(Buffer.from('1'));
 
 			// Assert
-			expect(db.exists).toHaveBeenCalledWith('transactions:id:1');
+			expect(db.has).toHaveBeenCalledWith(Buffer.from('transactions:id:1'));
 		});
 	});
 

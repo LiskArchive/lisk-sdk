@@ -33,7 +33,7 @@ import {
 import { EVENT_BFT_BLOCK_FINALIZED, BFT } from '@liskhq/lisk-bft';
 import { getNetworkIdentifier, hash } from '@liskhq/lisk-cryptography';
 import { TransactionPool, events as txPoolEvents } from '@liskhq/lisk-transaction-pool';
-import { KVStore, NotFoundError } from '@liskhq/lisk-db';
+import { Database, NotFoundError } from '@liskhq/lisk-db';
 import { jobHandlers } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
 import {
@@ -88,9 +88,9 @@ interface NodeInitInput {
 	readonly genesisBlockJSON: Record<string, unknown>;
 	readonly logger: Logger;
 	readonly channel: InMemoryChannel;
-	readonly forgerDB: KVStore;
-	readonly blockchainDB: KVStore;
-	readonly nodeDB: KVStore;
+	readonly forgerDB: Database;
+	readonly blockchainDB: Database;
+	readonly nodeDB: Database;
 	readonly bus: Bus;
 }
 
@@ -104,11 +104,12 @@ export class Node {
 	private readonly _options: NodeOptions;
 	private readonly _registeredModules: BaseModule[] = [];
 	private _bus!: Bus;
+	private _dataPath!: string;
 	private _channel!: InMemoryChannel;
 	private _logger!: Logger;
-	private _nodeDB!: KVStore;
-	private _forgerDB!: KVStore;
-	private _blockchainDB!: KVStore;
+	private _nodeDB!: Database;
+	private _forgerDB!: Database;
+	private _blockchainDB!: Database;
 	private _networkIdentifier!: Buffer;
 	private _registeredAccountSchemas: { [moduleName: string]: AccountSchema } = {};
 	private _networkModule!: Network;
@@ -240,6 +241,7 @@ export class Node {
 		this._forgerDB = forgerDB;
 		this._nodeDB = nodeDB;
 		this._bus = bus;
+		this._dataPath = configPath;
 
 		// read from compiled genesis block if exist
 		const genesisBlock = this._readGenesisBlock(genesisBlockJSON, configPath);
@@ -589,9 +591,9 @@ export class Node {
 				return this._processor.verifyTransactions(transactions, stateStore);
 			},
 			...this._options.transactionPool,
-			minEntranceFeePriority: BigInt(this._options.transactionPool.minEntranceFeePriority),
+			minEntranceFeePriority: BigInt(this._options.transactionPool.minEntranceFeePriority ?? 0),
 			minReplacementFeeDifference: BigInt(
-				this._options.transactionPool.minReplacementFeeDifference,
+				this._options.transactionPool.minReplacementFeeDifference ?? 0,
 			),
 			maxPayloadLength: this._options.genesisConfig.maxPayloadLength,
 		});
@@ -723,6 +725,11 @@ export class Node {
 						this._chain.dataAccess.encodeAccount(acc).toString('hex'),
 					),
 				});
+
+				if (this._options.backup.height > 0 && this._options.backup.height === block.header.height) {
+					const backupPath = path.resolve(this._dataPath, 'backup');
+					this._blockchainDB.checkpoint(backupPath).catch(err => this._logger.fatal({ err: err as Error, height: this._options.backup.height, path: backupPath }, 'Fail to create backup'));
+				}
 
 				// Remove any transactions from the pool on new block
 				if (block.payload.length) {

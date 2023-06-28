@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BatchChain } from '@liskhq/lisk-db';
+import { Batch } from '@liskhq/lisk-db';
 import { StateDiff } from '../types';
 import { DB_KEY_CONSENSUS_STATE } from '../data_access/constants';
 import { DataAccess } from '../data_access';
@@ -85,7 +85,7 @@ export class ConsensusStateStore {
 		this._updatedKeys.add(key);
 	}
 
-	public finalize(batch: BatchChain): StateDiff {
+	public finalize(batch: Batch): StateDiff {
 		const stateDiff = { updated: [], created: [], deleted: [] } as StateDiff;
 
 		if (this._updatedKeys.size === 0) {
@@ -95,7 +95,7 @@ export class ConsensusStateStore {
 		for (const key of Array.from(this._updatedKeys)) {
 			const dbKey = `${DB_KEY_CONSENSUS_STATE}:${key}`;
 			const updatedValue = this._data[key] as Buffer;
-			batch.put(dbKey, updatedValue);
+			batch.set(Buffer.from(dbKey), updatedValue);
 
 			// finalized height should never be saved to diff, since it will not changed
 			if (key === CONSENSUS_STATE_FINALIZED_HEIGHT_KEY) {

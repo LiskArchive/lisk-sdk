@@ -14,9 +14,9 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { KVStore, formatInt, NotFoundError } from '@liskhq/lisk-db';
+import { Batch, Database, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { Storage } from '../../../src/data_access/storage';
+import { Storage, formatInt } from '../../../src/data_access/storage';
 import {
 	createValidDefaultBlock,
 	encodeDefaultBlockHeader,
@@ -36,7 +36,7 @@ describe('dataAccess.blocks', () => {
 		updated: [],
 		deleted: [],
 	});
-	let db: KVStore;
+	let db: Database;
 	let storage: Storage;
 	let dataAccess: DataAccess;
 	let blocks: Block[];
@@ -44,7 +44,7 @@ describe('dataAccess.blocks', () => {
 	beforeAll(() => {
 		const parentPath = path.join(__dirname, '../../tmp/blocks');
 		fs.ensureDirSync(parentPath);
-		db = new KVStore(path.join(parentPath, '/test-blocks.db'));
+		db = new Database(path.join(parentPath, '/test-blocks.db'));
 		storage = new Storage(db);
 	});
 
@@ -72,36 +72,36 @@ describe('dataAccess.blocks', () => {
 		const block303 = createValidDefaultBlock({ header: { height: 303 } });
 
 		blocks = [block300, block301, block302, block303];
-		const batch = db.batch();
+		const batch = new Batch();
 		for (const block of blocks) {
 			const { payload, header } = block;
-			batch.put(`blocks:id:${header.id.toString('binary')}`, encodeDefaultBlockHeader(header));
-			batch.put(`blocks:height:${formatInt(header.height)}`, header.id);
+			batch.set(Buffer.from(`blocks:id:${header.id.toString('binary')}`), encodeDefaultBlockHeader(header));
+			batch.set(Buffer.from(`blocks:height:${formatInt(header.height)}`), header.id);
 			if (payload.length) {
-				batch.put(
-					`transactions:blockID:${header.id.toString('binary')}`,
+				batch.set(
+					Buffer.from(`transactions:blockID:${header.id.toString('binary')}`),
 					Buffer.concat(payload.map(tx => tx.id)),
 				);
 				for (const tx of payload) {
-					batch.put(`transactions:id:${tx.id.toString('binary')}`, tx.getBytes());
+					batch.set(Buffer.from(`transactions:id:${tx.id.toString('binary')}`), tx.getBytes());
 				}
 			}
-			batch.put(
-				`tempBlocks:height:${formatInt(blocks[2].header.height)}`,
+			batch.set(
+				Buffer.from(`tempBlocks:height:${formatInt(blocks[2].header.height)}`),
 				encodedDefaultBlock(blocks[2]),
 			);
-			batch.put(
-				`tempBlocks:height:${formatInt(blocks[3].header.height)}`,
+			batch.set(
+				Buffer.from(`tempBlocks:height:${formatInt(blocks[3].header.height)}`),
 				encodedDefaultBlock(blocks[3]),
 			);
-			batch.put(
+			batch.set(
 				// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-				`tempBlocks:height:${formatInt(blocks[3].header.height + 1)}`,
+				Buffer.from(`tempBlocks:height:${formatInt(blocks[3].header.height + 1)}`),
 				encodedDefaultBlock(blocks[3]),
 			);
-			batch.put(`diff:${formatInt(block.header.height)}`, emptyEncodedDiff);
+			batch.set(Buffer.from(`diff:${formatInt(block.header.height)}`), emptyEncodedDiff);
 		}
-		await batch.write();
+		await db.write(batch);
 		dataAccess.resetBlockHeaderCache();
 	});
 
@@ -333,22 +333,22 @@ describe('dataAccess.blocks', () => {
 			await dataAccess.saveBlock(block, stateStore as any, 0);
 
 			await expect(
-				db.exists(`blocks:id:${block.header.id.toString('binary')}`),
+				db.has(Buffer.from(`blocks:id:${block.header.id.toString('binary')}`)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`blocks:height:${formatInt(block.header.height)}`),
+				db.has(Buffer.from(`blocks:height:${formatInt(block.header.height)}`)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`transactions:blockID:${block.header.id.toString('binary')}`),
+				db.has(Buffer.from(`transactions:blockID:${block.header.id.toString('binary')}`)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`transactions:id:${block.payload[0].id.toString('binary')}`),
+				db.has(Buffer.from(`transactions:id:${block.payload[0].id.toString('binary')}`)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`transactions:id:${block.payload[1].id.toString('binary')}`),
+				db.has(Buffer.from(`transactions:id:${block.payload[1].id.toString('binary')}`)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`tempBlocks:height:${formatInt(block.header.height)}`),
+				db.has(Buffer.from(`tempBlocks:height:${formatInt(block.header.height)}`)),
 			).resolves.toBeTrue();
 			const createdBlock = await dataAccess.getBlockByID(block.header.id);
 			expect(createdBlock.header).toStrictEqual(block.header);
@@ -362,22 +362,22 @@ describe('dataAccess.blocks', () => {
 			await dataAccess.saveBlock(block, stateStore as any, 0, true);
 
 			await expect(
-				db.exists(`blocks:id:${block.header.id.toString('binary')}`),
+				db.has(Buffer.from(`blocks:id:${block.header.id.toString('binary')}`)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`blocks:height:${formatInt(block.header.height)}`),
+				db.has(Buffer.from(`blocks:height:${formatInt(block.header.height)}`)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`transactions:blockID:${block.header.id.toString('binary')}`),
+				db.has(Buffer.from(`transactions:blockID:${block.header.id.toString('binary')}`)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`transactions:id:${block.payload[0].id.toString('binary')}`),
+				db.has(Buffer.from(`transactions:id:${block.payload[0].id.toString('binary')}`)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`transactions:id:${block.payload[1].id.toString('binary')}`),
+				db.has(Buffer.from(`transactions:id:${block.payload[1].id.toString('binary')}`)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`tempBlocks:height:${formatInt(block.header.height)}`),
+				db.has(Buffer.from(`tempBlocks:height:${formatInt(block.header.height)}`)),
 			).resolves.toBeFalse();
 			const createdBlock = await dataAccess.getBlockByID(block.header.id);
 			expect(createdBlock.header).toStrictEqual(block.header);
@@ -388,12 +388,12 @@ describe('dataAccess.blocks', () => {
 		});
 
 		it('should delete diff before the finalized height', async () => {
-			await db.put(`diff:${formatInt(99)}`, Buffer.from('random diff'));
-			await db.put(`diff:${formatInt(100)}`, Buffer.from('random diff 2'));
+			await db.set(Buffer.from(`diff:${formatInt(99)}`), Buffer.from('random diff'));
+			await db.set(Buffer.from(`diff:${formatInt(100)}`), Buffer.from('random diff 2'));
 			await dataAccess.saveBlock(block, stateStore as any, 100, true);
 
-			await expect(db.exists(`diff:${formatInt(100)}`)).resolves.toBeTrue();
-			await expect(db.exists(`diff:${formatInt(99)}`)).resolves.toBeFalse();
+			await expect(db.has(Buffer.from(`diff:${formatInt(100)}`))).resolves.toBeTrue();
+			await expect(db.has(Buffer.from(`diff:${formatInt(99)}`))).resolves.toBeFalse();
 		});
 	});
 
@@ -407,22 +407,22 @@ describe('dataAccess.blocks', () => {
 			await dataAccess.deleteBlock(blocks[2], stateStore as any);
 
 			await expect(
-				db.exists(`blocks:id:${blocks[2].header.id.toString('binary')}`),
+				db.has(Buffer.from(`blocks:id:${blocks[2].header.id.toString('binary')}`)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`blocks:height:${formatInt(blocks[2].header.height)}`),
+				db.has(Buffer.from(`blocks:height:${formatInt(blocks[2].header.height)}`)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`transactions:blockID:${blocks[2].header.id.toString('binary')}`),
+				db.has(Buffer.from(`transactions:blockID:${blocks[2].header.id.toString('binary')}`)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`transactions:id:${blocks[2].payload[0].id.toString('binary')}`),
+				db.has(Buffer.from(`transactions:id:${blocks[2].payload[0].id.toString('binary')}`)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`transactions:id:${blocks[2].payload[1].id.toString('binary')}`),
+				db.has(Buffer.from(`transactions:id:${blocks[2].payload[1].id.toString('binary')}`)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`tempBlocks:height:${formatInt(blocks[2].header.height)}`),
+				db.has(Buffer.from(`tempBlocks:height:${formatInt(blocks[2].header.height)}`)),
 			).resolves.toBeFalse();
 		});
 
@@ -439,8 +439,8 @@ describe('dataAccess.blocks', () => {
 					balance: BigInt(100000000),
 				},
 			});
-			await db.put(
-				`diff:${formatInt(blocks[2].header.height)}`,
+			await db.set(
+				Buffer.from(`diff:${formatInt(blocks[2].header.height)}`),
 				codec.encode(stateDiffSchema, {
 					created: [],
 					updated: [
@@ -470,11 +470,11 @@ describe('dataAccess.blocks', () => {
 
 		it('should throw an error when there is no diff', async () => {
 			// Deleting temp blocks to test the saving
-			await db.del(`diff:${formatInt(blocks[2].header.height)}`);
+			await db.del(Buffer.from(`diff:${formatInt(blocks[2].header.height)}`));
 			await dataAccess.clearTempBlocks();
 
 			await expect(dataAccess.deleteBlock(blocks[2], stateStore as any)).rejects.toThrow(
-				'Specified key diff:0000012e does not exist',
+				'Specified key 646966663a0000012e does not exist',
 			);
 		});
 
@@ -484,22 +484,22 @@ describe('dataAccess.blocks', () => {
 			await dataAccess.deleteBlock(blocks[2], stateStore as any, true);
 
 			await expect(
-				db.exists(`blocks:id:${blocks[2].header.id.toString('binary')}`),
+				db.has(Buffer.from(`blocks:id:${blocks[2].header.id.toString('binary')}`)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`blocks:height:${formatInt(blocks[2].header.height)}`),
+				db.has(Buffer.from(`blocks:height:${formatInt(blocks[2].header.height)}`)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`transactions:blockID:${blocks[2].header.id.toString('binary')}`),
+				db.has(Buffer.from(`transactions:blockID:${blocks[2].header.id.toString('binary')}`)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`transactions:id:${blocks[2].payload[0].id.toString('binary')}`),
+				db.has(Buffer.from(`transactions:id:${blocks[2].payload[0].id.toString('binary')}`)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`transactions:id:${blocks[2].payload[1].id.toString('binary')}`),
+				db.has(Buffer.from(`transactions:id:${blocks[2].payload[1].id.toString('binary')}`)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`tempBlocks:height:${formatInt(blocks[2].header.height)}`),
+				db.has(Buffer.from(`tempBlocks:height:${formatInt(blocks[2].header.height)}`)),
 			).resolves.toBeTrue();
 
 			const tempBlocks = await dataAccess.getTempBlocks();

@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { StateStore } from '../../src/state_store';
 import { DataAccess } from '../../src/data_access';
 import { defaultAccountSchema, defaultAccount } from './account';
 import { registeredBlockHeaders, defaultNetworkIdentifier } from './block';
 import { BlockHeader } from '../../src';
 
-export const createStateStore = (db: KVStore, lastBlockHeaders: BlockHeader[] = []): StateStore => {
+export const createStateStore = (db: Database, lastBlockHeaders: BlockHeader[] = []): StateStore => {
 	const dataAccess = new DataAccess({
 		db,
 		accountSchema: defaultAccountSchema,

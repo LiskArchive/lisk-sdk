@@ -15,7 +15,7 @@
 import { BlockHeader } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { KVStore, NotFoundError } from '@liskhq/lisk-db';
+import { Database, NotFoundError } from '@liskhq/lisk-db';
 import { dataStructures } from '@liskhq/lisk-utils';
 import {
 	DB_KEY_FORGER_PREVIOUSLY_FORGED,
@@ -159,12 +159,12 @@ export interface PreviouslyForgedInfoStoreObject {
 }
 
 export const getRegisteredHashOnionSeeds = async (
-	db: KVStore,
+	db: Database,
 ): Promise<dataStructures.BufferMap<Buffer>> => {
 	try {
 		const registeredHashes = codec.decode<RegisteredHashOnionStoreObject>(
 			registeredHashOnionsStoreSchema,
-			await db.get(DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS),
+			await db.get(Buffer.from(DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS)),
 		);
 
 		const result = new dataStructures.BufferMap<Buffer>();
@@ -179,7 +179,7 @@ export const getRegisteredHashOnionSeeds = async (
 };
 
 export const setRegisteredHashOnionSeeds = async (
-	db: KVStore,
+	db: Database,
 	registeredHashOnionSeeds: dataStructures.BufferMap<Buffer>,
 ): Promise<void> => {
 	const savingData: RegisteredHashOnionStoreObject = {
@@ -194,14 +194,14 @@ export const setRegisteredHashOnionSeeds = async (
 	}
 	const registeredHashOnionSeedsBuffer = codec.encode(registeredHashOnionsStoreSchema, savingData);
 
-	await db.put(DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS, registeredHashOnionSeedsBuffer);
+	await db.set(Buffer.from(DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS), registeredHashOnionSeedsBuffer);
 };
 
-export const getUsedHashOnions = async (db: KVStore): Promise<UsedHashOnion[]> => {
+export const getUsedHashOnions = async (db: Database): Promise<UsedHashOnion[]> => {
 	try {
 		return codec.decode<UsedHashOnionStoreObject>(
 			usedHashOnionsStoreSchema,
-			await db.get(DB_KEY_FORGER_USED_HASH_ONION),
+			await db.get(Buffer.from(DB_KEY_FORGER_USED_HASH_ONION)),
 		).usedHashOnions;
 	} catch (error) {
 		return [];
@@ -209,22 +209,22 @@ export const getUsedHashOnions = async (db: KVStore): Promise<UsedHashOnion[]> =
 };
 
 export const setUsedHashOnions = async (
-	db: KVStore,
+	db: Database,
 	usedHashOnions: UsedHashOnion[],
 ): Promise<void> => {
 	const usedHashOnionObject: UsedHashOnionStoreObject = { usedHashOnions };
 
-	await db.put(
-		DB_KEY_FORGER_USED_HASH_ONION,
+	await db.set(
+		Buffer.from(DB_KEY_FORGER_USED_HASH_ONION),
 		codec.encode(usedHashOnionsStoreSchema, usedHashOnionObject),
 	);
 };
 
 export const getPreviouslyForgedMap = async (
-	db: KVStore,
+	db: Database,
 ): Promise<dataStructures.BufferMap<ForgedInfo>> => {
 	try {
-		const previouslyForgedBuffer = await db.get(DB_KEY_FORGER_PREVIOUSLY_FORGED);
+		const previouslyForgedBuffer = await db.get(Buffer.from(DB_KEY_FORGER_PREVIOUSLY_FORGED));
 		const parsedMap = codec.decode<PreviouslyForgedInfoStoreObject>(
 			previouslyForgedInfoSchema,
 			previouslyForgedBuffer,
@@ -244,7 +244,7 @@ export const getPreviouslyForgedMap = async (
 };
 
 export const setPreviouslyForgedMap = async (
-	db: KVStore,
+	db: Database,
 	previouslyForgedMap: dataStructures.BufferMap<ForgedInfo>,
 ): Promise<void> => {
 	const previouslyForgedStoreObject: PreviouslyForgedInfoStoreObject = { previouslyForgedInfo: [] };
@@ -256,8 +256,8 @@ export const setPreviouslyForgedMap = async (
 		a.generatorAddress.compare(b.generatorAddress),
 	);
 
-	await db.put(
-		DB_KEY_FORGER_PREVIOUSLY_FORGED,
+	await db.set(
+		Buffer.from(DB_KEY_FORGER_PREVIOUSLY_FORGED),
 		codec.encode(previouslyForgedInfoSchema, previouslyForgedStoreObject),
 	);
 };
@@ -267,7 +267,7 @@ export const setPreviouslyForgedMap = async (
  * so it needs to be outside of the DB transaction
  */
 export const saveMaxHeightPreviouslyForged = async (
-	db: KVStore,
+	db: Database,
 	header: BlockHeader,
 	previouslyForgedMap: dataStructures.BufferMap<ForgedInfo>,
 ): Promise<void> => {

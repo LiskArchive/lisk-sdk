@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { KVStore, NotFoundError } from '@liskhq/lisk-db';
+import { Database, NotFoundError } from '@liskhq/lisk-db';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { Transaction } from '../transaction';
 import { BlockHeader, Block, RawBlock, Account, BlockHeaderAsset } from '../types';
@@ -24,7 +24,7 @@ import { blockHeaderSchema, blockSchema } from '../schema';
 import { DB_KEY_ACCOUNTS_ADDRESS } from './constants';
 
 interface DAConstructor {
-	readonly db: KVStore;
+	readonly db: Database;
 	readonly registeredBlockHeaders: {
 		readonly [key: number]: Schema;
 	};

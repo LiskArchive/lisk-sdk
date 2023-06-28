@@ -15,7 +15,7 @@
 export const applicationConfigSchema = {
 	$id: '#/config',
 	type: 'object',
-	required: ['version', 'networkVersion', 'rpc', 'genesisConfig', 'forging', 'network', 'plugins'],
+	required: ['version', 'networkVersion', 'system', 'rpc', 'genesisConfig', 'forging', 'network', 'plugins'],
 	properties: {
 		label: {
 			type: 'string',
@@ -40,6 +40,17 @@ export const applicationConfigSchema = {
 			examples: ['~/.lisk'],
 			description:
 				'The root path for storing temporary pid and socket file and data. Restricted length due to unix domain socket path length limitations.',
+		},
+		backup: {
+			type: 'object',
+			required: ['height'],
+			properties: {
+				height: {
+					type: 'integer',
+					min: 0,
+					description: 'Height at which the DB backup should be taken.',
+				},
+			},
 		},
 		logger: {
 			type: 'object',
@@ -379,6 +390,9 @@ export const applicationConfigSchema = {
 			mode: 'ipc',
 			port: 8080,
 			host: '127.0.0.1',
+		},
+		backup: {
+			height: 0,
 		},
 		genesisConfig: {
 			blockTime: 10,

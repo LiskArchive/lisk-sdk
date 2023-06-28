@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { KVStore, NotFoundError } from '@liskhq/lisk-db';
+import { Database, NotFoundError } from '@liskhq/lisk-db';
 import { EventEmitter } from 'events';
 import * as liskP2P from '@liskhq/lisk-p2p';
 
@@ -74,7 +74,7 @@ interface NetworkConstructor {
 	readonly options: NetworkConfig;
 	readonly channel: InMemoryChannel;
 	readonly logger: Logger;
-	readonly nodeDB: KVStore;
+	readonly nodeDB: Database;
 	readonly networkVersion: string;
 }
 
@@ -106,7 +106,7 @@ export class Network {
 	private readonly _options: NetworkConfig;
 	private readonly _channel: InMemoryChannel;
 	private readonly _logger: Logger;
-	private readonly _nodeDB: KVStore;
+	private readonly _nodeDB: Database;
 	private readonly _networkVersion: string;
 	private _networkID!: string;
 	private _secret: number | undefined;
@@ -129,7 +129,7 @@ export class Network {
 		let previousPeers: ReadonlyArray<liskP2P.p2pTypes.ProtocolPeerInfo> = [];
 		try {
 			// Load peers from the database that were tried or connected the last time node was running
-			const previousPeersBuffer = await this._nodeDB.get(DB_KEY_NETWORK_TRIED_PEERS_LIST);
+			const previousPeersBuffer = await this._nodeDB.get(Buffer.from(DB_KEY_NETWORK_TRIED_PEERS_LIST));
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			previousPeers = JSON.parse(previousPeersBuffer.toString('utf8'));
 		} catch (error) {
@@ -141,7 +141,7 @@ export class Network {
 		// Get previous secret if exists
 		let secret: Buffer | undefined;
 		try {
-			secret = await this._nodeDB.get(DB_KEY_NETWORK_NODE_SECRET);
+			secret = await this._nodeDB.get(Buffer.from(DB_KEY_NETWORK_NODE_SECRET));
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				this._logger.error({ err: error as Error }, 'Error while querying nodeDB');
@@ -150,7 +150,7 @@ export class Network {
 
 		if (!secret) {
 			secret = getRandomBytes(4);
-			await this._nodeDB.put(DB_KEY_NETWORK_NODE_SECRET, secret);
+			await this._nodeDB.set(Buffer.from(DB_KEY_NETWORK_NODE_SECRET), secret);
 		}
 
 		this._secret = secret?.readUInt32BE(0);
@@ -353,7 +353,7 @@ export class Network {
 					{ err: error as Error, procedure: request.procedure },
 					'Peer request not fulfilled event: Could not respond to peer request',
 				);
-				request.error(error); // Send an error back to the peer.
+				request.error(error as Error); // Send an error back to the peer.
 			}
 		});
 
@@ -394,8 +394,8 @@ export class Network {
 		setInterval(async () => {
 			const triedPeers = this._p2p.getTriedPeers();
 			if (triedPeers.length) {
-				await this._nodeDB.put(
-					DB_KEY_NETWORK_TRIED_PEERS_LIST,
+				await this._nodeDB.set(
+					Buffer.from(DB_KEY_NETWORK_TRIED_PEERS_LIST),
 					Buffer.from(JSON.stringify(triedPeers), 'utf8'),
 				);
 			}
