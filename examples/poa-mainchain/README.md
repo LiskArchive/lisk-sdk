@@ -1,4 +1,4 @@
-# Getting Started with Lisk Blockchain Client
+# PoA Example
 
 This project was bootstrapped with [Lisk SDK](https://github.com/LiskHQ/lisk-sdk)
 
