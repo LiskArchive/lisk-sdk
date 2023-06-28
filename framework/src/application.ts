@@ -55,7 +55,6 @@ import {
 } from './modules/interoperability';
 import { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_rewards';
 import { Engine } from './engine';
-import { NFTMethod, NFTModule } from './modules/nft';
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -109,7 +108,6 @@ interface DefaultApplication {
 		validator: ValidatorsMethod;
 		auth: AuthMethod;
 		token: TokenMethod;
-		nft: NFTMethod;
 		fee: FeeMethod;
 		random: RandomMethod;
 		reward: DynamicRewardMethod;
@@ -165,7 +163,6 @@ export class Application {
 		// create module instances
 		const authModule = new AuthModule();
 		const tokenModule = new TokenModule();
-		const nftModule = new NFTModule();
 		const feeModule = new FeeModule();
 		const rewardModule = new DynamicRewardModule();
 		const randomModule = new RandomModule();
@@ -195,11 +192,9 @@ export class Application {
 			feeModule.method,
 		);
 		tokenModule.addDependencies(interoperabilityModule.method, feeModule.method);
-		nftModule.addDependencies(interoperabilityModule.method, feeModule.method, tokenModule.method);
 
 		// resolve interoperability dependencies
 		interoperabilityModule.registerInteroperableModule(tokenModule);
-		interoperabilityModule.registerInteroperableModule(nftModule);
 		interoperabilityModule.registerInteroperableModule(feeModule);
 
 		// register modules
@@ -207,7 +202,6 @@ export class Application {
 		application._registerModule(authModule);
 		application._registerModule(validatorModule);
 		application._registerModule(tokenModule);
-		application._registerModule(nftModule);
 		application._registerModule(rewardModule);
 		application._registerModule(randomModule);
 		application._registerModule(posModule);
@@ -218,7 +212,6 @@ export class Application {
 			method: {
 				validator: validatorModule.method,
 				token: tokenModule.method,
-				nft: nftModule.method,
 				auth: authModule.method,
 				fee: feeModule.method,
 				pos: posModule.method,

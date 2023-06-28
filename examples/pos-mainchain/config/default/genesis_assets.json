@@ -1102,9 +1102,7 @@
 							"properties": {
 								"chainID": {
 									"dataType": "bytes",
-									"fieldNumber": 1,
-									"minLength": 8,
-									"maxLength": 8
+									"fieldNumber": 1
 								},
 								"supportedCollectionIDArray": {
 									"type": "array",
