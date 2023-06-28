@@ -15,7 +15,7 @@
 export const applicationConfigSchema = {
 	$id: '#/config',
 	type: 'object',
-	required: ['version', 'networkVersion', 'system', 'rpc', 'genesisConfig', 'forging', 'network', 'plugins'],
+	required: ['version', 'networkVersion', 'backup', 'rpc', 'genesisConfig', 'forging', 'network', 'plugins'],
 	properties: {
 		label: {
 			type: 'string',
