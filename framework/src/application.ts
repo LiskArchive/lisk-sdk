@@ -54,6 +54,8 @@ import {
 } from './modules/interoperability';
 import { Engine } from './engine';
 import { PoAMethod, PoAModule } from './modules/poa';
+import { PoSMethod, PoSModule } from './modules/pos';
+import { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_rewards';
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -109,10 +111,22 @@ interface DefaultApplication {
 		token: TokenMethod;
 		fee: FeeMethod;
 		random: RandomMethod;
-		poa: PoAMethod;
 		interoperability: SidechainInteroperabilityMethod | MainchainInteroperabilityMethod;
 	};
 }
+
+type DefaultApplicationPoS = DefaultApplication & {
+	method: {
+		reward: DynamicRewardMethod;
+		pos: PoSMethod;
+	};
+};
+
+type DefaultApplicationPoA = DefaultApplication & {
+	method: {
+		poa: PoAMethod;
+	};
+};
 
 export class Application {
 	public config: ApplicationConfig;
@@ -156,14 +170,17 @@ export class Application {
 	public static defaultApplication(
 		config: PartialApplicationConfig = {},
 		mainchain = false,
-	): DefaultApplication {
+		usePoA = false,
+	): DefaultApplicationPoS | DefaultApplicationPoA {
 		const application = new Application(config);
 		// create module instances
 		const authModule = new AuthModule();
 		const tokenModule = new TokenModule();
 		const feeModule = new FeeModule();
+		const dynamicRewardModule = new DynamicRewardModule();
 		const randomModule = new RandomModule();
 		const validatorModule = new ValidatorsModule();
+		const posModule = new PoSModule();
 		const poaModule = new PoAModule();
 		let interoperabilityModule;
 		if (mainchain) {
@@ -173,10 +190,24 @@ export class Application {
 			interoperabilityModule = new SidechainInteroperabilityModule();
 			interoperabilityModule.addDependencies(validatorModule.method, tokenModule.method);
 		}
-
 		// resolve dependencies
 		feeModule.addDependencies(tokenModule.method, interoperabilityModule.method);
-		poaModule.addDependencies(validatorModule.method, feeModule.method, randomModule.method);
+		if (usePoA) {
+			poaModule.addDependencies(validatorModule.method, feeModule.method, randomModule.method);
+		} else {
+			dynamicRewardModule.addDependencies(
+				tokenModule.method,
+				randomModule.method,
+				validatorModule.method,
+				posModule.method,
+			);
+			posModule.addDependencies(
+				randomModule.method,
+				validatorModule.method,
+				tokenModule.method,
+				feeModule.method,
+			);
+		}
 		tokenModule.addDependencies(interoperabilityModule.method, feeModule.method);
 
 		// resolve interoperability dependencies
@@ -189,10 +220,27 @@ export class Application {
 		application._registerModule(tokenModule);
 		application._registerModule(feeModule);
 		application._registerModule(interoperabilityModule);
-
-		// Replacing PoS to PoA
-		application._registerModule(poaModule);
+		if (usePoA) {
+			application._registerModule(poaModule);
+		} else {
+			application._registerModule(posModule);
+		}
 		application._registerModule(randomModule);
+
+		if (usePoA) {
+			return {
+				app: application,
+				method: {
+					validator: validatorModule.method,
+					token: tokenModule.method,
+					auth: authModule.method,
+					fee: feeModule.method,
+					poa: poaModule.method,
+					random: randomModule.method,
+					interoperability: interoperabilityModule.method,
+				},
+			};
+		}
 
 		return {
 			app: application,
@@ -201,8 +249,9 @@ export class Application {
 				token: tokenModule.method,
 				auth: authModule.method,
 				fee: feeModule.method,
-				poa: poaModule.method,
+				pos: posModule.method,
 				random: randomModule.method,
+				reward: dynamicRewardModule.method,
 				interoperability: interoperabilityModule.method,
 			},
 		};
