@@ -32,7 +32,8 @@
 		"test:ci": "jest --passWithNoTests --coverage=true --coverage-reporters=json",
 		"version": "oclif readme --multi --dir=docs/commands && git add README.md docs",
 		"prepublishOnly": "npm ci && npm run lint && npm run build",
-		"app": "./bin/run start --api-http --api-ipc"
+		"app": "./bin/run start --api-http --api-ipc",
+		"init-genesis": "./bin/run genesis-block:create --output config/default --assets-file ./config/default/genesis_assets.json"
 	},
 	"bin": {
 		"pos-mainchain": "./bin/run"
@@ -41,7 +42,7 @@
 		"addressPrefix": "lsk"
 	},
 	"oclif": {
-		"bin": "pos-mainchain",
+		"bin": "poa-mainchain",
 		"commands": "./dist/commands",
 		"plugins": [
 			"@oclif/plugin-help",
@@ -57,19 +58,19 @@
 		"topicSeparator": " ",
 		"topics": {
 			"account": {
-				"description": "Commands relating to pos-mainchain accounts."
+				"description": "Commands relating to poa-mainchain accounts."
 			},
 			"block": {
-				"description": "Commands relating to pos-mainchain blocks."
+				"description": "Commands relating to poa-mainchain blocks."
 			},
 			"blockchain": {
-				"description": "Commands relating to pos-mainchain blockchain data."
+				"description": "Commands relating to poa-mainchain blockchain data."
 			},
 			"console": {
-				"description": "pos-mainchain interactive REPL session to run commands."
+				"description": "poa-mainchain interactive REPL session to run commands."
 			},
 			"config": {
-				"description": "Commands relating to pos-mainchain node configuration."
+				"description": "Commands relating to poa-mainchain node configuration."
 			},
 			"endpoint": {
 				"description": "Commands relating to endpoints."
@@ -78,22 +79,22 @@
 				"description": "Commands relating to account, generator and bls keys."
 			},
 			"generator": {
-				"description": "Commands relating to pos-mainchain forging and generator-info data."
+				"description": "Commands relating to poa-mainchain forging and generator-info data."
 			},
 			"hash-onion": {
 				"description": "Create hash onions to be used by the forger."
 			},
 			"system": {
-				"description": "Commands relating to pos-mainchain node."
+				"description": "Commands relating to poa-mainchain node."
 			},
 			"passphrase": {
-				"description": "Commands relating to pos-mainchain passphrases."
+				"description": "Commands relating to poa-mainchain passphrases."
 			},
 			"sdk": {
 				"description": "Commands relating to Lisk SDK development."
 			},
 			"transaction": {
-				"description": "Commands relating to pos-mainchain transactions."
+				"description": "Commands relating to poa-mainchain transactions."
 			}
 		}
 	},
