@@ -91,20 +91,25 @@ export class StateMachine {
 		}
 	}
 
-	public async verifyTransaction(ctx: TransactionContext): Promise<VerificationResult> {
+	public async verifyTransaction(
+		ctx: TransactionContext,
+		onlyCommand = false,
+	): Promise<VerificationResult> {
 		const transactionContext = ctx.createTransactionVerifyContext();
 		try {
-			for (const mod of this._modules) {
-				if (mod.verifyTransaction) {
-					this._logger.debug({ moduleName: mod.name }, 'Executing verifyTransaction');
-					const result = await mod.verifyTransaction(transactionContext);
-					this._logger.debug({ moduleName: mod.name }, 'Executed verifyTransaction');
-					if (result.status !== VerifyStatus.OK) {
-						this._logger.debug(
-							{ err: result.error, moduleName: mod.name },
-							'Transaction verification failed',
-						);
-						return result;
+			if (!onlyCommand) {
+				for (const mod of this._modules) {
+					if (mod.verifyTransaction) {
+						this._logger.debug({ moduleName: mod.name }, 'Executing verifyTransaction');
+						const result = await mod.verifyTransaction(transactionContext);
+						this._logger.debug({ moduleName: mod.name }, 'Executed verifyTransaction');
+						if (result.status !== VerifyStatus.OK) {
+							this._logger.debug(
+								{ err: result.error, moduleName: mod.name },
+								'Transaction verification failed',
+							);
+							return result;
+						}
 					}
 				}
 			}

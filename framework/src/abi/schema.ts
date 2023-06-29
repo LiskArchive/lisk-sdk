@@ -332,7 +332,7 @@ export const afterTransactionsExecuteResponseSchema = {
 export const verifyTransactionRequestSchema = {
 	$id: '/abi/verifyTransactionRequest',
 	type: 'object',
-	required: ['contextID', 'transaction', 'header'],
+	required: ['contextID', 'transaction', 'header', 'onlyCommand'],
 	properties: {
 		contextID: {
 			fieldNumber: 1,
@@ -345,6 +345,10 @@ export const verifyTransactionRequestSchema = {
 		header: {
 			fieldNumber: 3,
 			...blockHeaderSchema,
+		},
+		onlyCommand: {
+			fieldNumber: 4,
+			dataType: 'boolean',
 		},
 	},
 };

@@ -60,6 +60,7 @@ const getTxMock = (
 			contextID: expect.any(Buffer),
 			transaction: tx.toObject(),
 			header: expect.any(Object),
+			onlyCommand: false,
 		})
 		.mockResolvedValueOnce({
 			result: valid === false ? TransactionVerifyResult.PENDING : TransactionVerifyResult.OK,

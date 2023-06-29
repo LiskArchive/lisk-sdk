@@ -253,6 +253,7 @@ export const previouslyGeneratedInfoSchema = {
 export interface DryRunTransactionRequest {
 	transaction: string;
 	skipVerify: boolean;
+	strict: boolean;
 }
 
 export interface DryRunTransactionResponse {
@@ -272,6 +273,10 @@ export const dryRunTransactionRequestSchema = {
 			format: 'hex',
 		},
 		skipVerify: {
+			type: 'boolean',
+			default: false,
+		},
+		strict: {
 			type: 'boolean',
 			default: false,
 		},

@@ -324,6 +324,51 @@ describe('txpool endpoint', () => {
 			});
 		});
 
+		describe('when strict is false', () => {
+			it('should call verifyTransaction with onlyCommand true', async () => {
+				(abi.executeTransaction as jest.Mock).mockResolvedValue({
+					result: TransactionExecutionResult.OK,
+					events,
+				});
+				await endpoint.dryRunTransaction({
+					logger,
+					params: {
+						transaction: tx.getBytes().toString('hex'),
+					},
+					chainID,
+				});
+
+				expect(abi.verifyTransaction).toHaveBeenCalledWith({
+					contextID: expect.anything(),
+					transaction: expect.anything(),
+					onlyCommand: true,
+				});
+			});
+		});
+
+		describe('when strict is true', () => {
+			it('should call verifyTransaction with onlyCommand false', async () => {
+				(abi.executeTransaction as jest.Mock).mockResolvedValue({
+					result: TransactionExecutionResult.OK,
+					events,
+				});
+				await endpoint.dryRunTransaction({
+					logger,
+					params: {
+						transaction: tx.getBytes().toString('hex'),
+						strict: true,
+					},
+					chainID,
+				});
+
+				expect(abi.verifyTransaction).toHaveBeenCalledWith({
+					contextID: expect.anything(),
+					transaction: expect.anything(),
+					onlyCommand: false,
+				});
+			});
+		});
+
 		it('should not verify transaction when skipVerify', async () => {
 			(abi.verifyTransaction as jest.Mock).mockResolvedValue({
 				result: TransactionVerifyResult.OK,
