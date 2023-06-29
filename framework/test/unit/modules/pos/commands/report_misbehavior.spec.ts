@@ -83,6 +83,7 @@ describe('ReportMisbehaviorCommand', () => {
 	beforeEach(async () => {
 		pos.stores.get(EligibleValidatorsStore).init({
 			...defaultConfig,
+			roundLength: defaultConfig.numberActiveValidators + defaultConfig.numberStandbyValidators,
 			minWeightStandby: BigInt(defaultConfig.minWeightStandby),
 			posTokenID: Buffer.alloc(8),
 			validatorRegistrationFee: BigInt(defaultConfig.validatorRegistrationFee),

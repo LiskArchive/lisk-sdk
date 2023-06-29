@@ -56,6 +56,7 @@ describe('utils', () => {
 		it('converts ModuleConfigJSON to ModuleConfg', () => {
 			const expected: ModuleConfig = {
 				...defaultConfig,
+				roundLength: defaultConfig.numberActiveValidators + defaultConfig.numberStandbyValidators,
 				minWeightStandby: BigInt(defaultConfig.minWeightStandby),
 				posTokenID: Buffer.alloc(TOKEN_ID_LENGTH),
 				validatorRegistrationFee: BigInt(defaultConfig.validatorRegistrationFee),
@@ -63,6 +64,7 @@ describe('utils', () => {
 
 			const actual: ModuleConfig = getModuleConfig({
 				...defaultConfig,
+				roundLength: defaultConfig.numberActiveValidators + defaultConfig.numberStandbyValidators,
 				posTokenID: '0000000000000000',
 			});
 

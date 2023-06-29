@@ -110,7 +110,7 @@ describe('UnlockCommand', () => {
 			tokenMethod: mockTokenMethod,
 		});
 		unlockCommand.init({
-			roundLength: defaultConfig.roundLength,
+			roundLength: defaultConfig.numberActiveValidators + defaultConfig.numberStandbyValidators,
 			posTokenID: Buffer.alloc(8),
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());

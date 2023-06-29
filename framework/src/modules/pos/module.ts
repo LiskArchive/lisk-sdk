@@ -265,6 +265,7 @@ export class PoSModule extends BaseModule {
 			{},
 			{
 				...defaultConfig,
+				roundLength: defaultConfig.numberActiveValidators + defaultConfig.numberStandbyValidators,
 				posTokenID: defaultPoSTokenID,
 			},
 			moduleConfig,

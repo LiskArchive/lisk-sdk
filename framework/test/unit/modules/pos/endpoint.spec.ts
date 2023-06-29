@@ -119,6 +119,7 @@ describe('PosModuleEndpoint', () => {
 
 	const config: ModuleConfig = {
 		...defaultConfig,
+		roundLength: defaultConfig.numberActiveValidators + defaultConfig.numberStandbyValidators,
 		minWeightStandby: BigInt(defaultConfig.minWeightStandby),
 		posTokenID: Buffer.from('1000000000000002', 'hex'),
 		validatorRegistrationFee: BigInt(defaultConfig.validatorRegistrationFee),
@@ -305,6 +306,7 @@ describe('PosModuleEndpoint', () => {
 
 			expect(constants).toStrictEqual({
 				...defaultConfig,
+				roundLength: defaultConfig.numberActiveValidators + defaultConfig.numberStandbyValidators,
 				posTokenID: config.posTokenID.toString('hex'),
 			});
 		});

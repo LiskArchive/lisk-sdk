@@ -61,6 +61,7 @@ describe('EligibleValidatorsStore', () => {
 		eligibleValidatorsStore = new EligibleValidatorsStore('pos', 6);
 		eligibleValidatorsStore.init({
 			...defaultConfig,
+			roundLength: defaultConfig.numberActiveValidators + defaultConfig.numberStandbyValidators,
 			minWeightStandby: BigInt(defaultConfig.minWeightStandby),
 			posTokenID: Buffer.alloc(TOKEN_ID_LENGTH),
 			validatorRegistrationFee: BigInt(defaultConfig.validatorRegistrationFee),

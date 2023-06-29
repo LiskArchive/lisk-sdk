@@ -58,7 +58,6 @@ export const defaultConfig = {
 	failSafeMissedBlocks: 50,
 	failSafeInactiveWindow: 260000,
 	punishmentWindow: PUNISHMENT_PERIOD,
-	roundLength: 103,
 	minWeightStandby: '100000000000',
 	numberActiveValidators: 101,
 	numberStandbyValidators: 2,
