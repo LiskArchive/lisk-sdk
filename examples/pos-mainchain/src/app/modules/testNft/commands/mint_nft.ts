@@ -12,16 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { validator } from '@liskhq/lisk-validator';
-import {
-	BaseCommand,
-	CommandVerifyContext,
-	CommandExecuteContext,
-	VerificationResult,
-	VerifyStatus,
-	NFTMethod,
-} from 'lisk-sdk';
-import { NFTAttributes, mintNftParamsSchema } from '../types';
+import { BaseCommand, CommandExecuteContext, NFTMethod } from 'lisk-sdk';
+import { NFTAttributes } from '../types';
 
 interface Params {
 	address: Buffer;
@@ -30,22 +22,10 @@ interface Params {
 }
 
 export class MintNftCommand extends BaseCommand {
-	public schema = mintNftParamsSchema;
 	private _nftMethod!: NFTMethod;
 
 	public init(args: { nftMethod: NFTMethod }): void {
 		this._nftMethod = args.nftMethod;
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
-		const { params } = context;
-
-		validator.validate<Params>(this.schema, params);
-
-		return {
-			status: VerifyStatus.OK,
-		};
 	}
 
 	public async execute(context: CommandExecuteContext<Params>): Promise<void> {
