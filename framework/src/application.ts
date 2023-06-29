@@ -56,6 +56,7 @@ import { Engine } from './engine';
 import { PoAMethod, PoAModule } from './modules/poa';
 import { PoSMethod, PoSModule } from './modules/pos';
 import { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_rewards';
+import { RewardMethod, RewardModule } from './modules/reward';
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -124,6 +125,7 @@ type DefaultApplicationPoS = DefaultApplication & {
 
 type DefaultApplicationPoA = DefaultApplication & {
 	method: {
+		reward: RewardMethod;
 		poa: PoAMethod;
 	};
 };
@@ -177,6 +179,7 @@ export class Application {
 		const authModule = new AuthModule();
 		const tokenModule = new TokenModule();
 		const feeModule = new FeeModule();
+		const rewardModule = new RewardModule();
 		const dynamicRewardModule = new DynamicRewardModule();
 		const randomModule = new RandomModule();
 		const validatorModule = new ValidatorsModule();
@@ -193,6 +196,7 @@ export class Application {
 		// resolve dependencies
 		feeModule.addDependencies(tokenModule.method, interoperabilityModule.method);
 		if (usePoA) {
+			rewardModule.addDependencies(tokenModule.method, randomModule.method);
 			poaModule.addDependencies(validatorModule.method, feeModule.method, randomModule.method);
 		} else {
 			dynamicRewardModule.addDependencies(
@@ -237,6 +241,7 @@ export class Application {
 					fee: feeModule.method,
 					poa: poaModule.method,
 					random: randomModule.method,
+					reward: rewardModule.method,
 					interoperability: interoperabilityModule.method,
 				},
 			};
