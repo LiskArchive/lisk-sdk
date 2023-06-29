@@ -10,6 +10,7 @@ import { MonitorPlugin } from '@liskhq/lisk-framework-monitor-plugin';
 import { ReportMisbehaviorPlugin } from '@liskhq/lisk-framework-report-misbehavior-plugin';
 import { DashboardPlugin } from '@liskhq/lisk-framework-dashboard-plugin';
 import { FaucetPlugin } from '@liskhq/lisk-framework-faucet-plugin';
+import { ChainConnectorPlugin } from '@liskhq/lisk-framework-chain-connector-plugin';
 import { join } from 'path';
 import { getApplication } from '../app/app';
 
@@ -121,6 +122,9 @@ export class StartCommand extends BaseStartCommand {
 		}
 		if (flags['enable-dashboard-plugin']) {
 			app.registerPlugin(new DashboardPlugin(), { loadAsChildProcess: true });
+		}
+		if (flags['enable-chain-connector-plugin']) {
+			app.registerPlugin(new ChainConnectorPlugin(), { loadAsChildProcess: true });
 		}
 
 		return app;

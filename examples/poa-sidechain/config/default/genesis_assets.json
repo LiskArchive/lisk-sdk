@@ -3,7 +3,7 @@
 		{
 			"module": "interoperability",
 			"data": {
-				"ownChainName": "lisk_mainchain",
+				"ownChainName": "",
 				"ownChainNonce": 0,
 				"chainInfos": [],
 				"terminatedStateAccounts": [],
