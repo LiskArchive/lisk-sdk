@@ -122,6 +122,10 @@ export class NFTModule extends BaseInteroperableModule {
 		this.stores.register(SupportedNFTsStore, new SupportedNFTsStore(this.name, 4));
 	}
 
+	public get name(): string {
+		return 'nft';
+	}
+
 	public addDependencies(
 		interoperabilityMethod: InteroperabilityMethod,
 		feeMethod: FeeMethod,
