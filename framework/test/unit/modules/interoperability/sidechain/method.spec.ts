@@ -127,11 +127,6 @@ describe('Sidechain Method', () => {
 				status: ChainStatus.ACTIVE,
 			});
 
-			chainAccountStoreMock.get.mockResolvedValue({
-				chainID: mainchainID,
-				status: ChainStatus.ACTIVE,
-			});
-
 			terminatedStateStoreMock.has.mockResolvedValue(false);
 			const result = await sidechainInteroperabilityMethod.isChannelActive(methodContext, chainID);
 
