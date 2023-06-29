@@ -24,11 +24,13 @@ import {
 	LOCKING_PERIOD_SELF_STAKING,
 	MODULE_NAME_POS,
 	REPORTING_PUNISHMENT_REWARD,
+	TOKEN_ID_LENGTH,
 } from '../../../../../src/modules/pos/constants';
 import {
 	TokenMethod,
 	ValidatorsMethod,
 	PomTransactionParams,
+	ModuleConfigJSON,
 } from '../../../../../src/modules/pos/types';
 import { DEFAULT_LOCAL_ID } from '../../../../utils/mocks/transaction';
 import * as bftUtil from '../../../../../src/engine/bft/utils';
@@ -39,7 +41,7 @@ import { createStoreGetter } from '../../../../../src/testing/utils';
 import { EligibleValidatorsStore } from '../../../../../src/modules/pos/stores/eligible_validators';
 import { StakerStore } from '../../../../../src/modules/pos/stores/staker';
 import { liskToBeddows } from '../../../../utils/assets';
-import { getValidatorWeight } from '../../../../../src/modules/pos/utils';
+import { getModuleConfig, getValidatorWeight } from '../../../../../src/modules/pos/utils';
 
 describe('ReportMisbehaviorCommand', () => {
 	const pos = new PoSModule();
@@ -79,15 +81,13 @@ describe('ReportMisbehaviorCommand', () => {
 		lastCommissionIncreaseHeight: 0,
 		sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 	};
+	const config = getModuleConfig({
+		...defaultConfig,
+		posTokenID: '00'.repeat(TOKEN_ID_LENGTH),
+	} as ModuleConfigJSON);
 
 	beforeEach(async () => {
-		pos.stores.get(EligibleValidatorsStore).init({
-			...defaultConfig,
-			roundLength: defaultConfig.numberActiveValidators + defaultConfig.numberStandbyValidators,
-			minWeightStandby: BigInt(defaultConfig.minWeightStandby),
-			posTokenID: Buffer.alloc(8),
-			validatorRegistrationFee: BigInt(defaultConfig.validatorRegistrationFee),
-		});
+		pos.stores.get(EligibleValidatorsStore).init(config);
 		pomCommand = new ReportMisbehaviorCommand(pos.stores, pos.events);
 		mockTokenMethod = {
 			lock: jest.fn(),

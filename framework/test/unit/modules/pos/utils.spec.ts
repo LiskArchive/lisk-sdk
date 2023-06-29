@@ -14,7 +14,11 @@
 import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { math } from '@liskhq/lisk-utils';
 import { defaultConfig, TOKEN_ID_LENGTH } from '../../../../src/modules/pos/constants';
-import { ModuleConfig, StakeSharingCoefficient } from '../../../../src/modules/pos/types';
+import {
+	ModuleConfig,
+	ModuleConfigJSON,
+	StakeSharingCoefficient,
+} from '../../../../src/modules/pos/types';
 import {
 	calculateStakeRewards,
 	getModuleConfig,
@@ -53,7 +57,7 @@ describe('utils', () => {
 	});
 
 	describe('getModuleConfig', () => {
-		it('converts ModuleConfigJSON to ModuleConfg', () => {
+		it('converts ModuleConfigJSON to ModuleConfig', () => {
 			const expected: ModuleConfig = {
 				...defaultConfig,
 				roundLength: defaultConfig.numberActiveValidators + defaultConfig.numberStandbyValidators,
@@ -64,9 +68,8 @@ describe('utils', () => {
 
 			const actual: ModuleConfig = getModuleConfig({
 				...defaultConfig,
-				roundLength: defaultConfig.numberActiveValidators + defaultConfig.numberStandbyValidators,
-				posTokenID: '0000000000000000',
-			});
+				posTokenID: '00'.repeat(TOKEN_ID_LENGTH),
+			} as ModuleConfigJSON);
 
 			expect(actual).toStrictEqual(expected);
 		});

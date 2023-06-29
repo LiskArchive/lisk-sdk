@@ -25,7 +25,6 @@ export const MAX_LENGTH_NAME = 20;
 export const BASE_STAKE_AMOUNT = BigInt(10) * BigInt(10) ** BigInt(8);
 export const MAX_NUMBER_SENT_STAKES = 10;
 export const MAX_NUMBER_PENDING_UNLOCKS = 20;
-export const TOKEN_ID_POS = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 export const VALIDATOR_REGISTRATION_FEE = BigInt(10) * BigInt(10) ** BigInt(8);
 export const MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE = 260000;
 export const REPORT_MISBEHAVIOR_LIMIT_BANNED = 5;

@@ -26,7 +26,7 @@ import { PoSEndpoint } from '../../../../src/modules/pos/endpoint';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import {
-	ModuleConfig,
+	ModuleConfigJSON,
 	StakerData,
 	StakeSharingCoefficient,
 } from '../../../../src/modules/pos/types';
@@ -40,7 +40,7 @@ import {
 } from '../../../../src/testing';
 import { GenesisDataStore } from '../../../../src/modules/pos/stores/genesis';
 import { EligibleValidatorsStore } from '../../../../src/modules/pos/stores/eligible_validators';
-import { calculateStakeRewards } from '../../../../src/modules/pos/utils';
+import { calculateStakeRewards, getModuleConfig } from '../../../../src/modules/pos/utils';
 
 const { q96 } = math;
 
@@ -117,13 +117,10 @@ describe('PosModuleEndpoint', () => {
 		sharingCoefficients: [validatorSharingCoefficient1, validatorSharingCoefficient2],
 	};
 
-	const config: ModuleConfig = {
+	const config = getModuleConfig({
 		...defaultConfig,
-		roundLength: defaultConfig.numberActiveValidators + defaultConfig.numberStandbyValidators,
-		minWeightStandby: BigInt(defaultConfig.minWeightStandby),
-		posTokenID: Buffer.from('1000000000000002', 'hex'),
-		validatorRegistrationFee: BigInt(defaultConfig.validatorRegistrationFee),
-	};
+		posTokenID: '1000000000000002',
+	} as ModuleConfigJSON);
 
 	beforeEach(() => {
 		posEndpoint = new PoSEndpoint(pos.stores, pos.offchainStores);

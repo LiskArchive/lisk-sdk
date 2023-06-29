@@ -23,8 +23,14 @@ import {
 	PUNISHMENT_WINDOW_STAKING,
 	LOCKING_PERIOD_SELF_STAKING,
 	LOCKING_PERIOD_STAKING,
+	TOKEN_ID_LENGTH,
 } from '../../../../../src/modules/pos/constants';
-import { TokenMethod, UnlockingObject, StakerData } from '../../../../../src/modules/pos/types';
+import {
+	TokenMethod,
+	UnlockingObject,
+	StakerData,
+	ModuleConfigJSON,
+} from '../../../../../src/modules/pos/types';
 import { liskToBeddows } from '../../../../utils/assets';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing';
@@ -32,6 +38,7 @@ import { ValidatorStore } from '../../../../../src/modules/pos/stores/validator'
 import { StakerStore } from '../../../../../src/modules/pos/stores/staker';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import { GenesisDataStore } from '../../../../../src/modules/pos/stores/genesis';
+import { getModuleConfig } from '../../../../../src/modules/pos/utils';
 
 describe('UnlockCommand', () => {
 	const pos = new PoSModule();
@@ -95,6 +102,10 @@ describe('UnlockCommand', () => {
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 		'hex',
 	);
+	const config = getModuleConfig({
+		...defaultConfig,
+		posTokenID: '00'.repeat(TOKEN_ID_LENGTH),
+	} as ModuleConfigJSON);
 
 	beforeEach(() => {
 		unlockCommand = new UnlockCommand(pos.stores, pos.events);
@@ -109,10 +120,7 @@ describe('UnlockCommand', () => {
 		unlockCommand.addDependencies({
 			tokenMethod: mockTokenMethod,
 		});
-		unlockCommand.init({
-			roundLength: defaultConfig.numberActiveValidators + defaultConfig.numberStandbyValidators,
-			posTokenID: Buffer.alloc(8),
-		});
+		unlockCommand.init(config);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		validatorSubstore = pos.stores.get(ValidatorStore);
 		stakerSubstore = pos.stores.get(StakerStore);
