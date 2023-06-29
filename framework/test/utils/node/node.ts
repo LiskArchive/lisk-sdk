@@ -13,7 +13,7 @@
  *
  */
 
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 import { nodeConfig } from '../configs';
 import { createMockChannel, createMockBus } from '../channel';
@@ -53,8 +53,8 @@ export const fakeLogger = createLogger({
 /* eslint-enable @typescript-eslint/no-empty-function, @typescript-eslint/explicit-module-boundary-types */
 
 export const createAndLoadNode = async (
-	blockchainDB: KVStore,
-	forgerDB: KVStore,
+	blockchainDB: Database,
+	forgerDB: Database,
 	logger: Logger = fakeLogger,
 	channel?: InMemoryChannel,
 	options?: NodeOptions,
@@ -65,7 +65,7 @@ export const createAndLoadNode = async (
 	const nodeDB = ({
 		get: jest.fn(),
 		put: jest.fn(),
-	} as unknown) as KVStore;
+	} as unknown) as Database;
 	await chainModule.init({
 		genesisBlockJSON,
 		dataPath: defaultPath,

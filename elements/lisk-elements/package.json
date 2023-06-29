@@ -41,7 +41,6 @@
 		"@liskhq/lisk-chain": "^0.3.4",
 		"@liskhq/lisk-codec": "^0.2.2",
 		"@liskhq/lisk-cryptography": "^3.2.1",
-		"@liskhq/lisk-db": "^0.2.1",
 		"@liskhq/lisk-genesis": "^0.2.4",
 		"@liskhq/lisk-p2p": "^0.7.3",
 		"@liskhq/lisk-passphrase": "^3.1.1",

@@ -34,7 +34,7 @@
 		"@liskhq/lisk-chain": "^0.3.4",
 		"@liskhq/lisk-codec": "^0.2.2",
 		"@liskhq/lisk-cryptography": "^3.2.1",
-		"@liskhq/lisk-db": "^0.2.1",
+		"@liskhq/lisk-db": "^0.3.6",
 		"@liskhq/lisk-framework-forger-plugin": "^0.2.7",
 		"@liskhq/lisk-framework-http-api-plugin": "^0.2.7",
 		"@liskhq/lisk-framework-monitor-plugin": "^0.2.7",

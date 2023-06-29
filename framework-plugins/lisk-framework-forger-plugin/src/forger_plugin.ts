@@ -13,7 +13,7 @@
  */
 
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import {
 	ActionsDefinition,
 	BasePlugin,
@@ -79,7 +79,7 @@ const getBinaryAddress = (hexAddressStr: string) =>
 const getAddressBuffer = (hexAddressStr: string) => Buffer.from(hexAddressStr, 'hex');
 
 export class ForgerPlugin extends BasePlugin {
-	private _forgerPluginDB!: KVStore;
+	private _forgerPluginDB!: Database;
 	private _channel!: BaseChannel;
 	private _forgersList!: dataStructures.BufferMap<boolean>;
 	private _transactionFees!: TransactionFees;
@@ -146,8 +146,9 @@ export class ForgerPlugin extends BasePlugin {
 		});
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async unload(): Promise<void> {
-		await this._forgerPluginDB.close();
+		this._forgerPluginDB.close();
 	}
 
 	private async _setForgersList(): Promise<void> {

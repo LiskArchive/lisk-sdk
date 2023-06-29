@@ -47,7 +47,7 @@ export const applicationConfigSchema = {
 			properties: {
 				height: {
 					type: 'integer',
-					min: 0,
+					minimum: 0,
 					description: 'Height at which the DB backup should be taken.',
 				},
 			},

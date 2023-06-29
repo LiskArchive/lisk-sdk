@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { P2P } from '@liskhq/lisk-p2p';
 import { Network } from '../../../../src/node/network';
 import { Logger } from '../../../../src/logger';
@@ -26,7 +26,7 @@ describe('network', () => {
 	let network: Network;
 	jest.useFakeTimers();
 	beforeEach(() => {
-		const db = new KVStore('~/.lisk/stubbed');
+		const db = new Database('~/.lisk/stubbed');
 		network = new Network({
 			nodeDB: db,
 			networkVersion: '2.0',
@@ -165,7 +165,7 @@ describe('network', () => {
 
 		describe('previousPeers', () => {
 			const getDBStub = jest.fn();
-			const putDBStub = jest.fn();
+			const setDBStub = jest.fn();
 
 			const previousPeers = [
 				{
@@ -181,10 +181,10 @@ describe('network', () => {
 			const previousPeersBuffer = Buffer.from(JSON.stringify(previousPeers), 'utf8');
 
 			beforeEach(() => {
-				const db = new KVStore('~/.lisk/stubbed');
+				const db = new Database('~/.lisk/stubbed');
 
 				db.get = getDBStub;
-				db.put = putDBStub;
+				db.set = setDBStub;
 
 				getDBStub.mockResolvedValue(previousPeersBuffer);
 
@@ -218,7 +218,7 @@ describe('network', () => {
 					} as any;
 
 					jest.advanceTimersByTime(600000);
-					expect(putDBStub).toHaveBeenCalledTimes(1);
+					expect(setDBStub).toHaveBeenCalledTimes(1);
 				});
 			});
 		});
