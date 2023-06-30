@@ -141,6 +141,7 @@ describe('TransferCrossChainComand', () => {
 			error: jest.fn().mockResolvedValue(Promise.resolve()),
 			terminateChain: jest.fn().mockResolvedValue(Promise.resolve()),
 			getMessageFeeTokenID: jest.fn().mockResolvedValue(Promise.resolve(messageFeeTokenID)),
+			isChannelActive: jest.fn().mockResolvedValue(true),
 		};
 
 		internalMethod.init({
@@ -214,6 +215,17 @@ describe('TransferCrossChainComand', () => {
 					receivingChainIDContext.createCommandVerifyContext(crossChainTransferParamsSchema),
 				),
 			).rejects.toThrow('Receiving chain cannot be the sending chain');
+		});
+
+		it('should fail if receiving chain is not active', async () => {
+			jest.spyOn(interoperabilityMethod, 'isChannelActive').mockResolvedValueOnce(false);
+			const context = createTransactionContextWithOverridingParams({
+				validParams,
+			});
+
+			await expect(
+				command.verify(context.createCommandVerifyContext(crossChainTransferParamsSchema)),
+			).rejects.toThrow('Receiving chain is not active');
 		});
 
 		it('should fail if NFT does not have valid length', async () => {

@@ -91,6 +91,7 @@ describe('CrossChain Transfer Command', () => {
 		error: jest.fn(),
 		terminateChain: jest.fn(),
 		getMessageFeeTokenID: jest.fn(),
+		isChannelActive: jest.fn(),
 	};
 	const defaultHeader = {
 		height: 0,

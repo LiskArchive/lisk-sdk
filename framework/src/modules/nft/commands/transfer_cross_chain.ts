@@ -70,6 +70,14 @@ export class TransferCrossChainCommand extends BaseCommand {
 			throw new Error('Receiving chain cannot be the sending chain');
 		}
 
+		const isChannelActive = await this._interoperabilityMethod.isChannelActive(
+			context.getMethodContext(),
+			params.receivingChainID,
+		);
+		if (!isChannelActive) {
+			throw new Error('Receiving chain is not active');
+		}
+
 		if (!nftExists) {
 			throw new Error('NFT substore entry does not exist');
 		}

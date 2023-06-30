@@ -35,6 +35,11 @@ export interface InteroperabilityMethod {
 	error(methodContext: MethodContext, ccm: CCMsg, code: number): Promise<void>;
 	terminateChain(methodContext: MethodContext, chainID: Buffer): Promise<void>;
 	getMessageFeeTokenID(methodContext: ImmutableMethodContext, chainID: Buffer): Promise<Buffer>;
+	isChannelActive(
+		methodContext: ImmutableMethodContext,
+		chainID: Buffer,
+		timestamp?: number,
+	): Promise<boolean>;
 }
 
 export interface FeeMethod {

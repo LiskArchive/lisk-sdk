@@ -216,6 +216,7 @@ describe('InternalMethod', () => {
 				getMessageFeeTokenID: jest
 					.fn()
 					.mockResolvedValue(Promise.resolve(utils.getRandomBytes(LENGTH_TOKEN_ID))),
+				isChannelActive: jest.fn(),
 			};
 
 			internalMethod.addDependencies(method, interoperabilityMethod);

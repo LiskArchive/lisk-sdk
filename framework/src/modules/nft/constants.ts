@@ -45,6 +45,7 @@ export const enum NftEventResult {
 	RESULT_DATA_TOO_LONG = 13,
 	INVALID_RECEIVING_CHAIN = 14,
 	RESULT_INVALID_ACCOUNT = 15,
+	RECEIVING_CHAIN_NOT_ACTIVE = 16,
 }
 
 export type NftErrorEventResult = Exclude<NftEventResult, NftEventResult.RESULT_SUCCESSFUL>;

@@ -79,6 +79,7 @@ describe('NFTMethod', () => {
 		error: jest.fn(),
 		terminateChain: jest.fn(),
 		getMessageFeeTokenID: jest.fn().mockResolvedValue(Promise.resolve(messageFeeTokenID)),
+		isChannelActive: jest.fn().mockResolvedValue(true),
 	};
 	const feeMethod = { payFee: jest.fn() };
 	const tokenMethod = {
@@ -926,6 +927,36 @@ describe('NFTMethod', () => {
 					includeAttributes,
 				},
 				NftEventResult.INVALID_RECEIVING_CHAIN,
+			);
+		});
+
+		it('should throw and emit error transfer cross chain event if receiving chain is not active', async () => {
+			jest.spyOn(interopMethod, 'isChannelActive').mockResolvedValueOnce(false);
+			await expect(
+				method.transferCrossChain(
+					methodContext,
+					existingNFT.owner,
+					recipientAddress,
+					existingNFT.nftID,
+					receivingChainID,
+					messageFee,
+					data,
+					includeAttributes,
+				),
+			).rejects.toThrow('Receiving chain is not active');
+			checkEventResult<TransferCrossChainEventData>(
+				methodContext.eventQueue,
+				1,
+				TransferCrossChainEvent,
+				0,
+				{
+					senderAddress: existingNFT.owner,
+					recipientAddress,
+					receivingChainID,
+					nftID: existingNFT.nftID,
+					includeAttributes,
+				},
+				NftEventResult.RECEIVING_CHAIN_NOT_ACTIVE,
 			);
 		});
 

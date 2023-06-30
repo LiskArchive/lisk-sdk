@@ -551,6 +551,25 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('Receiving chain cannot be the sending chain');
 		}
 
+		const isChannelActive = await this._interoperabilityMethod.isChannelActive(
+			methodContext,
+			receivingChainID,
+		);
+		if (!isChannelActive) {
+			this.events.get(TransferCrossChainEvent).error(
+				methodContext,
+				{
+					senderAddress,
+					recipientAddress,
+					receivingChainID,
+					nftID,
+					includeAttributes,
+				},
+				NftEventResult.RECEIVING_CHAIN_NOT_ACTIVE,
+			);
+			throw new Error('Receiving chain is not active');
+		}
+
 		if (data.length > MAX_LENGTH_DATA) {
 			this.events.get(TransferCrossChainEvent).error(
 				methodContext,
