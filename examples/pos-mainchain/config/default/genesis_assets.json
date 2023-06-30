@@ -1079,7 +1079,7 @@
 											"module": {
 												"dataType": "string",
 												"minLength": 1,
-												"maxLength": 1,
+												"maxLength": 32,
 												"pattern": "^[a-zA-Z0-9]*$",
 												"fieldNumber": 1
 											},
@@ -1102,6 +1102,8 @@
 							"properties": {
 								"chainID": {
 									"dataType": "bytes",
+									"minLength": 4,
+									"maxLength": 4,
 									"fieldNumber": 1
 								},
 								"supportedCollectionIDArray": {
