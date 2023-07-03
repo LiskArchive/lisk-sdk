@@ -121,11 +121,6 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 		if (allSupported) {
 			throw new Error('Invalid operation. All tokens from all chains are supported.');
 		}
-		if (chainID.equals(this._ownChainID)) {
-			throw new Error(
-				'Invalid operation. All tokens from all the specified chain should be supported.',
-			);
-		}
 		const supportExist = await this.has(context, chainID);
 		if (!supportExist) {
 			return;
