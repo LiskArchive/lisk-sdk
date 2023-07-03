@@ -102,19 +102,22 @@ export abstract class BaseInteroperabilityMethod<
 		return (await this.getChannel(context, updatedChainID)).messageFeeTokenID;
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#getminreturnfeeperbyte
 	public async getMinReturnFeePerByte(
 		context: ImmutableMethodContext,
 		chainID: Buffer,
 	): Promise<bigint> {
-		const ownChainAccount = await this.getOwnChainAccount(context);
 		const mainchainID = getMainchainID(chainID);
-		const updatedChainID =
-			!ownChainAccount.chainID.equals(mainchainID) &&
-			!(await this.stores.get(ChainAccountStore).has(context, chainID))
-				? mainchainID
-				: chainID;
+		const ownChainAccount = await this.getOwnChainAccount(context);
+		const hasChainAccount = await this.stores.get(ChainAccountStore).has(context, chainID);
 
-		if (!(await this.stores.get(ChannelDataStore).has(context, updatedChainID))) {
+		let updatedChainID = chainID;
+		if (!ownChainAccount.chainID.equals(mainchainID) && !hasChainAccount) {
+			updatedChainID = mainchainID;
+		}
+
+		const hasChannel = await this.stores.get(ChannelDataStore).has(context, updatedChainID);
+		if (!hasChannel) {
 			throw new Error('Channel does not exist.');
 		}
 
