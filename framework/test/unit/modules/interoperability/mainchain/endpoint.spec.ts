@@ -12,7 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MainchainInteroperabilityModule, ModuleEndpointContext } from '../../../../../src';
+import {
+	MainchainInteroperabilityModule,
+	ModuleEndpointContext,
+	MAX_CHAIN_NAME_LENGTH,
+	MIN_CHAIN_NAME_LENGTH,
+} from '../../../../../src';
 import {
 	CHAIN_REGISTRATION_FEE,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
@@ -87,6 +92,20 @@ describe('MainchainInteroperabilityEndpoint', () => {
 			// Assert
 			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(
 				`Invalid name property. It should contain only characters from the set [a-z0-9!@$&_.].`,
+			);
+		});
+
+		it('should throw error if name has 0 length', async () => {
+			// Arrange
+			const context = createTransientModuleEndpointContext({
+				params: {
+					name: 'dummy'.repeat(MAX_CHAIN_NAME_LENGTH + 1),
+				},
+			});
+
+			// Assert
+			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(
+				`Invalid name property. Length should be > ${MIN_CHAIN_NAME_LENGTH} and < ${MAX_CHAIN_NAME_LENGTH}.`,
 			);
 		});
 
