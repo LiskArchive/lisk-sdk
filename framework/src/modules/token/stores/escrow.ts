@@ -66,7 +66,7 @@ export class EscrowStore extends BaseStore<EscrowStoreData> {
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
-		const escrowKey = Buffer.concat([chainID, tokenID]);
+		const escrowKey = this.getKey(chainID, tokenID);
 		const escrowData = await this.getOrDefault(context, escrowKey);
 		escrowData.amount += amount;
 		await this.set(context, escrowKey, escrowData);
@@ -80,7 +80,7 @@ export class EscrowStore extends BaseStore<EscrowStoreData> {
 		amount: bigint,
 	): Promise<void> {
 		let escrowData: EscrowStoreData;
-		const escrowKey = Buffer.concat([sendingChainID, tokenID]);
+		const escrowKey = this.getKey(sendingChainID, tokenID);
 		try {
 			escrowData = await this.get(context, escrowKey);
 		} catch (error) {
