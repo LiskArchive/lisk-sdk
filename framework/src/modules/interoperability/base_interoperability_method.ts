@@ -92,7 +92,7 @@ export abstract class BaseInteroperabilityMethod<
 		return this.stores.get(TerminatedOutboxStore).get(context, chainID);
 	}
 
-	private async _getChannel(context: ImmutableMethodContext, chainID: Buffer) {
+	public async getChannelCommon(context: ImmutableMethodContext, chainID: Buffer) {
 		const mainchainID = getMainchainID(chainID);
 		const ownChainAccount = await this.getOwnChainAccount(context);
 		const hasChainAccount = await this.stores.get(ChainAccountStore).has(context, chainID);
@@ -110,14 +110,13 @@ export abstract class BaseInteroperabilityMethod<
 		return this.getChannel(context, updatedChainID);
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#getmessagefeetokenid
 	public async getMessageFeeTokenID(
 		context: ImmutableMethodContext,
 		chainID: Buffer,
 	): Promise<Buffer> {
-		const updatedChainID = !(await this.stores.get(ChainAccountStore).has(context, chainID))
-			? getMainchainID(chainID)
-			: chainID;
-		return (await this.getChannel(context, updatedChainID)).messageFeeTokenID;
+		const channel = await this.getChannelCommon(context, chainID);
+		return channel.messageFeeTokenID;
 	}
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#getminreturnfeeperbyte
@@ -125,7 +124,7 @@ export abstract class BaseInteroperabilityMethod<
 		context: ImmutableMethodContext,
 		chainID: Buffer,
 	): Promise<bigint> {
-		const channel = await this._getChannel(context, chainID);
+		const channel = await this.getChannelCommon(context, chainID);
 		return channel.minReturnFeePerByte;
 	}
 

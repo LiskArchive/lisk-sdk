@@ -14,7 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import { MainchainInteroperabilityModule, TokenMethod } from '../../../../src';
+import { MainchainInteroperabilityModule, TokenMethod, ChannelData } from '../../../../src';
 import { BaseInteroperabilityMethod } from '../../../../src/modules/interoperability/base_interoperability_method';
 import {
 	CCMStatusCode,
@@ -89,8 +89,15 @@ describe('Sample Method', () => {
 	let tokenMethodMock: TokenMethod;
 	let ccmSendFailEventMock: CcmSentFailedEvent;
 	let ccmSendSuccessEventMock: CcmSendSuccessEvent;
+	let sampleChannelData: ChannelData;
 
 	beforeEach(() => {
+		sampleChannelData = {
+			minReturnFeePerByte: Buffer.from('10000000', 'hex'),
+			messageFeeTokenID: {
+				localID: Buffer.from('10000000', 'hex'),
+			},
+		} as any;
 		const defaultEventQueue = new EventQueue(0, [], [utils.hash(utils.getRandomBytes(32))]);
 		methodContext = createTransientMethodContext({ eventQueue: defaultEventQueue });
 		tokenMethodMock = {
@@ -431,40 +438,18 @@ describe('Sample Method', () => {
 		});
 	});
 
-	describe('getMessageFeeTokenID', () => {
-		const newChainID = Buffer.from('1234', 'hex');
-		beforeEach(() => {
-			jest.spyOn(channelStoreMock, 'get').mockResolvedValue({
-				messageFeeTokenID: {
-					localID: Buffer.from('10000000', 'hex'),
-				},
-			} as never);
-		});
-
-		it('should assign chainID as mainchain ID if chainAccount not found', async () => {
-			await sampleInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
-			expect(channelStoreMock.get).toHaveBeenCalledWith(
-				expect.anything(),
-				getMainchainID(newChainID),
-			);
-		});
-
-		it('should process with input chainID', async () => {
-			jest.spyOn(chainAccountStoreMock, 'has').mockResolvedValue(true);
-
-			await sampleInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
-			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), newChainID);
-		});
-	});
-
-	describe('getMinReturnFeePerByte', () => {
+	// both `getMessageFeeTokenID` & `getMinReturnFeePerByte` are covered here
+	describe('getChannelCommon', () => {
 		const newChainID = Buffer.from('00000000', 'hex');
 		beforeEach(() => {
 			jest.spyOn(channelStoreMock, 'has').mockResolvedValue(true);
 		});
+		beforeEach(() => {
+			jest.spyOn(channelStoreMock, 'get').mockResolvedValue(sampleChannelData);
+		});
 
 		it('should assign chainID as mainchain ID if ownchain ID is not mainchain ID and chainAccount not found', async () => {
-			await sampleInteroperabilityMethod.getMinReturnFeePerByte(methodContext, newChainID);
+			await sampleInteroperabilityMethod.getChannelCommon(methodContext, newChainID);
 			expect(channelStoreMock.get).toHaveBeenCalledWith(
 				expect.anything(),
 				getMainchainID(newChainID),
@@ -474,7 +459,7 @@ describe('Sample Method', () => {
 		it('should process with input chainID', async () => {
 			jest.spyOn(chainAccountStoreMock, 'has').mockResolvedValue(true);
 
-			await sampleInteroperabilityMethod.getMinReturnFeePerByte(methodContext, newChainID);
+			await sampleInteroperabilityMethod.getChannelCommon(methodContext, newChainID);
 			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), newChainID);
 		});
 
@@ -482,8 +467,16 @@ describe('Sample Method', () => {
 			jest.spyOn(channelStoreMock, 'has').mockResolvedValue(false);
 
 			await expect(
-				sampleInteroperabilityMethod.getMinReturnFeePerByte(methodContext, newChainID),
+				sampleInteroperabilityMethod.getChannelCommon(methodContext, newChainID),
 			).rejects.toThrow('Channel does not exist.');
+		});
+
+		it('should return channel data', async () => {
+			const channelData = await sampleInteroperabilityMethod.getChannelCommon(
+				methodContext,
+				newChainID,
+			);
+			expect(channelData).toBe(sampleChannelData);
 		});
 	});
 
