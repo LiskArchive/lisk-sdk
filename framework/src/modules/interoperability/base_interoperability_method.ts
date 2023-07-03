@@ -92,6 +92,24 @@ export abstract class BaseInteroperabilityMethod<
 		return this.stores.get(TerminatedOutboxStore).get(context, chainID);
 	}
 
+	private async _getChannel(context: ImmutableMethodContext, chainID: Buffer) {
+		const mainchainID = getMainchainID(chainID);
+		const ownChainAccount = await this.getOwnChainAccount(context);
+		const hasChainAccount = await this.stores.get(ChainAccountStore).has(context, chainID);
+
+		let updatedChainID = chainID;
+		if (!ownChainAccount.chainID.equals(mainchainID) && !hasChainAccount) {
+			updatedChainID = mainchainID;
+		}
+
+		const hasChannel = await this.stores.get(ChannelDataStore).has(context, updatedChainID);
+		if (!hasChannel) {
+			throw new Error('Channel does not exist.');
+		}
+
+		return this.getChannel(context, updatedChainID);
+	}
+
 	public async getMessageFeeTokenID(
 		context: ImmutableMethodContext,
 		chainID: Buffer,
@@ -107,21 +125,8 @@ export abstract class BaseInteroperabilityMethod<
 		context: ImmutableMethodContext,
 		chainID: Buffer,
 	): Promise<bigint> {
-		const mainchainID = getMainchainID(chainID);
-		const ownChainAccount = await this.getOwnChainAccount(context);
-		const hasChainAccount = await this.stores.get(ChainAccountStore).has(context, chainID);
-
-		let updatedChainID = chainID;
-		if (!ownChainAccount.chainID.equals(mainchainID) && !hasChainAccount) {
-			updatedChainID = mainchainID;
-		}
-
-		const hasChannel = await this.stores.get(ChannelDataStore).has(context, updatedChainID);
-		if (!hasChannel) {
-			throw new Error('Channel does not exist.');
-		}
-
-		return (await this.getChannel(context, updatedChainID)).minReturnFeePerByte;
+		const channel = await this._getChannel(context, chainID);
+		return channel.minReturnFeePerByte;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
