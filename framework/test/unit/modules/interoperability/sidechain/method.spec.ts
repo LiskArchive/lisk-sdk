@@ -75,7 +75,7 @@ describe('Sidechain Method', () => {
 			expect(result).toBeFalse();
 		});
 
-		it('should return true if chain status is active', async () => {
+		it('should return true if chain status is active and live', async () => {
 			chainAccountStoreMock.has.mockResolvedValue(true);
 			chainAccountStoreMock.get.mockResolvedValue(chainAccount);
 			const result = await sidechainInteroperabilityMethod.isChannelActive(methodContext, chainID);

@@ -100,10 +100,10 @@ describe('Mainchain Method', () => {
 			expect(result).toBeFalse();
 		});
 
-		it('should return true if chain is live and chain status is not active', async () => {
+		it('should return true if chain is live and chain status is active', async () => {
 			chainAccountStoreMock.get.mockResolvedValue({
 				...chainAccount,
-				status: ChainStatus.TERMINATED,
+				status: ChainStatus.ACTIVE,
 			});
 			const result = await mainchainInteroperabilityMethod.isChannelActive(
 				methodContext,
@@ -111,7 +111,7 @@ describe('Mainchain Method', () => {
 				timestamp,
 			);
 
-			expect(result).toBeFalse();
+			expect(result).toBeTrue();
 		});
 	});
 });
