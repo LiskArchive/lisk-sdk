@@ -65,6 +65,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 				offchainStoresMock as any,
 			);
 			interopMod.stores.register(RegisteredNamesStore, registeredNamesStore as never);
+			jest.spyOn(registeredNamesStore, 'has').mockResolvedValue(true);
 		});
 
 		it('should throw error if name is not a string', async () => {
@@ -100,8 +101,29 @@ describe('MainchainInteroperabilityEndpoint', () => {
 			);
 		});
 
+		it(`should not throw error if name length equals ${MIN_CHAIN_NAME_LENGTH}`, async () => {
+			const context = createTransientModuleEndpointContext({
+				params: {
+					name: 'a',
+				},
+			});
+			await expect(endpoint.isChainNameAvailable(context)).resolves.toStrictEqual({
+				result: false,
+			});
+		});
+
+		it(`should not throw error if name length equals ${MAX_CHAIN_NAME_LENGTH}`, async () => {
+			const context = createTransientModuleEndpointContext({
+				params: {
+					name: 'a'.repeat(MAX_CHAIN_NAME_LENGTH),
+				},
+			});
+			await expect(endpoint.isChainNameAvailable(context)).resolves.toStrictEqual({
+				result: false,
+			});
+		});
+
 		it('should return false if name exists in the store', async () => {
-			jest.spyOn(registeredNamesStore, 'has').mockResolvedValue(true);
 			const context = createTransientModuleEndpointContext({
 				params: {
 					name: 'sidechain',
