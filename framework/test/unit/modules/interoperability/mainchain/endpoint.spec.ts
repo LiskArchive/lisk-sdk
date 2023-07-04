@@ -68,72 +68,57 @@ describe('MainchainInteroperabilityEndpoint', () => {
 		});
 
 		it('should throw error if name is not a string', async () => {
-			// Arrange
 			const context = createTransientModuleEndpointContext({
 				params: {
 					name: 1,
 				},
 			});
-
-			// Assert
 			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(
 				'Chain name must be a string.',
 			);
 		});
 
-		it('should throw error if name is invalid format', async () => {
-			// Arrange
+		it('should throw error if name has invalid chars', async () => {
 			const context = createTransientModuleEndpointContext({
 				params: {
-					name: '@*#$*%&@((%$#@((',
+					name: '@*#(',
 				},
 			});
-
-			// Assert
 			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(
 				`Invalid name property. It should contain only characters from the set [a-z0-9!@$&_.].`,
 			);
 		});
 
-		it('should throw error if name has 0 length', async () => {
-			// Arrange
+		it(`should throw error if name length exceeds ${MAX_CHAIN_NAME_LENGTH}`, async () => {
 			const context = createTransientModuleEndpointContext({
 				params: {
-					name: 'dummy'.repeat(MAX_CHAIN_NAME_LENGTH + 1),
+					name: 'a'.repeat(MAX_CHAIN_NAME_LENGTH + 1),
 				},
 			});
-
-			// Assert
 			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(
 				`Invalid name property. Length should be > ${MIN_CHAIN_NAME_LENGTH} and < ${MAX_CHAIN_NAME_LENGTH}.`,
 			);
 		});
 
 		it('should return false if name exists in the store', async () => {
-			// Arrange
 			jest.spyOn(registeredNamesStore, 'has').mockResolvedValue(true);
 			const context = createTransientModuleEndpointContext({
 				params: {
 					name: 'sidechain',
 				},
 			});
-
-			// Assert
 			await expect(endpoint.isChainNameAvailable(context)).resolves.toStrictEqual({
 				result: false,
 			});
 		});
 
 		it('should return true if name does not exist in the store', async () => {
-			// Arrange
 			jest.spyOn(registeredNamesStore, 'has').mockResolvedValue(false);
 			const context = createTransientModuleEndpointContext({
 				params: {
 					name: 'mitsuchain',
 				},
 			});
-
-			// Assert
 			await expect(endpoint.isChainNameAvailable(context)).resolves.toStrictEqual({ result: true });
 		});
 	});
