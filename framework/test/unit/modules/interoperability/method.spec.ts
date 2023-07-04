@@ -63,7 +63,7 @@ describe('Sample Method', () => {
 		set: jest.fn(),
 		has: jest.fn(),
 	};
-	const channelStoreMock = {
+	const channelDataStoreMock = {
 		get: jest.fn(),
 		set: jest.fn(),
 		has: jest.fn(),
@@ -121,7 +121,7 @@ describe('Sample Method', () => {
 		sampleInteroperabilityMethod.addDependencies(tokenMethodMock as any);
 
 		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
-		interopMod.stores.register(ChannelDataStore, channelStoreMock as never);
+		interopMod.stores.register(ChannelDataStore, channelDataStoreMock as never);
 		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
 		interopMod.stores.register(TerminatedStateStore, terminatedStateAccountStoreMock as never);
 		interopMod.stores.register(TerminatedOutboxStore, terminatedOutboxAccountMock as never);
@@ -139,7 +139,7 @@ describe('Sample Method', () => {
 		it('should call getChannel', async () => {
 			await sampleInteroperabilityMethod.getChannel(methodContext, chainID);
 
-			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), chainID);
+			expect(channelDataStoreMock.get).toHaveBeenCalledWith(expect.anything(), chainID);
 		});
 	});
 
@@ -442,15 +442,18 @@ describe('Sample Method', () => {
 	describe('getChannelCommon', () => {
 		const newChainID = Buffer.from('00000000', 'hex');
 		beforeEach(() => {
-			jest.spyOn(channelStoreMock, 'has').mockResolvedValue(true);
+			jest.spyOn(channelDataStoreMock, 'has').mockResolvedValue(true);
 		});
 		beforeEach(() => {
-			jest.spyOn(channelStoreMock, 'get').mockResolvedValue(sampleChannelData);
+			jest.spyOn(channelDataStoreMock, 'get').mockResolvedValue(sampleChannelData);
+			jest.spyOn(ownChainAccountStoreMock, 'get').mockResolvedValue({
+				chainID: Buffer.from('01234567', 'hex'),
+			});
 		});
 
 		it('should assign chainID as mainchain ID if ownchain ID is not mainchain ID and chainAccount not found', async () => {
 			await sampleInteroperabilityMethod.getChannelCommon(methodContext, newChainID);
-			expect(channelStoreMock.get).toHaveBeenCalledWith(
+			expect(channelDataStoreMock.get).toHaveBeenCalledWith(
 				expect.anything(),
 				getMainchainID(newChainID),
 			);
@@ -460,18 +463,18 @@ describe('Sample Method', () => {
 			jest.spyOn(chainAccountStoreMock, 'has').mockResolvedValue(true);
 
 			await sampleInteroperabilityMethod.getChannelCommon(methodContext, newChainID);
-			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), newChainID);
+			expect(channelDataStoreMock.get).toHaveBeenCalledWith(expect.anything(), newChainID);
 		});
 
 		it('should throw error if channel is not found', async () => {
-			jest.spyOn(channelStoreMock, 'has').mockResolvedValue(false);
+			jest.spyOn(channelDataStoreMock, 'has').mockResolvedValue(false);
 
 			await expect(
 				sampleInteroperabilityMethod.getChannelCommon(methodContext, newChainID),
 			).rejects.toThrow('Channel does not exist.');
 		});
 
-		it('should return channel data', async () => {
+		it('should return channel data for `getMessageFeeTokenID` & `getMinReturnFeePerByte`', async () => {
 			const channelData = await sampleInteroperabilityMethod.getChannelCommon(
 				methodContext,
 				newChainID,
