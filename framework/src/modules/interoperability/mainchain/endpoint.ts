@@ -84,7 +84,7 @@ export class MainchainInteroperabilityEndpoint extends BaseInteroperabilityEndpo
 
 		if (name.length < MIN_CHAIN_NAME_LENGTH || name.length > MAX_CHAIN_NAME_LENGTH) {
 			throw new Error(
-				`Invalid name property. Length should be > ${MIN_CHAIN_NAME_LENGTH} and < ${MAX_CHAIN_NAME_LENGTH}.`,
+				`Invalid name property. Length should be >= ${MIN_CHAIN_NAME_LENGTH} and <= ${MAX_CHAIN_NAME_LENGTH}.`,
 			);
 		}
 

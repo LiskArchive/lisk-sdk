@@ -97,7 +97,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 				},
 			});
 			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(
-				`Invalid name property. Length should be > ${MIN_CHAIN_NAME_LENGTH} and < ${MAX_CHAIN_NAME_LENGTH}.`,
+				`Invalid name property. Length should be >= ${MIN_CHAIN_NAME_LENGTH} and <= ${MAX_CHAIN_NAME_LENGTH}.`,
 			);
 		});
 
