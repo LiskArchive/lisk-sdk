@@ -1,32 +1,41 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import {
 	Application,
-	FeeMethod,
+	AuthModule,
+	FeeModule,
+	PartialApplicationConfig,
 	PoAModule,
-	PoSMethod,
-	RandomMethod,
-	RewardModule,
-	TokenMethod,
-	ValidatorsMethod,
-	PoAMethod,
+	RandomModule,
+	SidechainInteroperabilityModule,
+	TokenModule,
+	ValidatorsModule,
 } from 'lisk-sdk';
 
-export const registerModules = (
-	_app: Application,
-	method: {
-		validator: ValidatorsMethod;
-		token: TokenMethod;
-		fee: FeeMethod;
-		random: RandomMethod;
-		pos: PoSMethod;
-		poa?: PoAMethod;
-	},
-): void => {
-	const rewardModule = new RewardModule();
+export const registerModules = (config: PartialApplicationConfig): Application => {
+	const application = new Application(config);
+	// create module instances
+	const authModule = new AuthModule();
+	const tokenModule = new TokenModule();
+	const feeModule = new FeeModule();
+	const randomModule = new RandomModule();
+	const validatorModule = new ValidatorsModule();
 	const poaModule = new PoAModule();
+	const interoperabilityModule = new SidechainInteroperabilityModule();
+	interoperabilityModule.addDependencies(validatorModule.method, tokenModule.method);
 
-	rewardModule.addDependencies(method.token, method.random);
-	poaModule.addDependencies(method.validator, method.fee, method.random);
+	feeModule.addDependencies(tokenModule.method, interoperabilityModule.method);
+	poaModule.addDependencies(validatorModule.method, feeModule.method, randomModule.method);
 
-	_app.registerModule(poaModule);
+	interoperabilityModule.registerInteroperableModule(tokenModule);
+	interoperabilityModule.registerInteroperableModule(feeModule);
+
+	// Register modules in the sequence defined in LIP0063 https://github.com/LiskHQ/lips/blob/main/proposals/lip-0063.md#modules
+	application.registerModule(authModule);
+	application.registerModule(validatorModule);
+	application.registerModule(tokenModule);
+	application.registerModule(feeModule);
+	application.registerModule(interoperabilityModule);
+	application.registerModule(poaModule);
+	application.registerModule(randomModule);
+
+	return application;
 };

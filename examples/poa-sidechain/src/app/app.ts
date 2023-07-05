@@ -3,8 +3,7 @@ import { registerModules } from './modules';
 import { registerPlugins } from './plugins';
 
 export const getApplication = (config: PartialApplicationConfig): Application => {
-	const { app, method } = Application.defaultApplication(config, false);
-	registerModules(app, method);
+	const app = registerModules(config);
 	registerPlugins(app);
 
 	return app;
