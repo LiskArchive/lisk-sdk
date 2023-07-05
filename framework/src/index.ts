@@ -142,7 +142,7 @@ export {
 export { RewardMethod, RewardModule } from './modules/reward';
 export { FeeMethod, FeeModule } from './modules/fee';
 export { RandomMethod, RandomModule } from './modules/random';
-export { PoAModule } from './modules/poa';
+export { PoAModule, PoAMethod } from './modules/poa';
 export {
 	GenesisBlockExecuteContext,
 	InsertAssetContext,
