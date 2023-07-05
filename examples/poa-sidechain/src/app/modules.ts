@@ -5,6 +5,7 @@ import {
 	PartialApplicationConfig,
 	PoAModule,
 	RandomModule,
+	RewardModule,
 	SidechainInteroperabilityModule,
 	TokenModule,
 	ValidatorsModule,
@@ -16,12 +17,14 @@ export const registerModules = (config: PartialApplicationConfig): Application =
 	const authModule = new AuthModule();
 	const tokenModule = new TokenModule();
 	const feeModule = new FeeModule();
+	const rewardModule = new RewardModule();
 	const randomModule = new RandomModule();
 	const validatorModule = new ValidatorsModule();
 	const poaModule = new PoAModule();
 	const interoperabilityModule = new SidechainInteroperabilityModule();
-	interoperabilityModule.addDependencies(validatorModule.method, tokenModule.method);
 
+	interoperabilityModule.addDependencies(validatorModule.method, tokenModule.method);
+	rewardModule.addDependencies(tokenModule.method, randomModule.method);
 	feeModule.addDependencies(tokenModule.method, interoperabilityModule.method);
 	poaModule.addDependencies(validatorModule.method, feeModule.method, randomModule.method);
 
