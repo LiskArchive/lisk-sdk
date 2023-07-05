@@ -1,24 +1,20 @@
-import {
-	Application,
-	FeeModule,
-	MainchainInteroperabilityModule,
-	PartialApplicationConfig,
-	TokenModule,
-	NFTModule,
-} from 'lisk-sdk';
-import { registerModules } from './modules';
-import { registerPlugins } from './plugins';
+import { Application, PartialApplicationConfig, NFTModule } from 'lisk-sdk';
+import { TestNftModule } from './modules/testNft/module';
 
 export const getApplication = (config: PartialApplicationConfig): Application => {
-	const { app } = Application.defaultApplication(config, true);
-	const tokenModule = new TokenModule();
+	const { app, method } = Application.defaultApplication(config, true);
 	const nftModule = new NFTModule();
-	const feeModule = new FeeModule();
-	const interoperabilityModule = new MainchainInteroperabilityModule();
+	const testNftModule = new TestNftModule();
+	// eslint-disable-next-line @typescript-eslint/dot-notation
+	const interoperabilityModule = app['_registeredModules'].find(
+		mod => mod.name === 'interoperability',
+	);
 	interoperabilityModule.registerInteroperableModule(nftModule);
-	nftModule.addDependencies(interoperabilityModule.method, feeModule.method, tokenModule.method);
-	registerModules(app);
-	registerPlugins(app);
+	nftModule.addDependencies(method.interoperability, method.fee, method.token);
+	testNftModule.addDependencies(nftModule.method);
+
+	app.registerModule(nftModule);
+	app.registerModule(testNftModule);
 
 	return app;
 };
