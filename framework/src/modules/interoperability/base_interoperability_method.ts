@@ -121,6 +121,7 @@ export abstract class BaseInteroperabilityMethod<
 		return (await this.getChannel(context, updatedChainID)).minReturnFeePerByte;
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#send
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async send(
 		context: MethodContext,
@@ -129,7 +130,6 @@ export abstract class BaseInteroperabilityMethod<
 		crossChainCommand: string,
 		receivingChainID: Buffer,
 		fee: bigint,
-		status: number,
 		params: Buffer,
 		timestamp?: number,
 	): Promise<void> {
@@ -140,7 +140,7 @@ export abstract class BaseInteroperabilityMethod<
 			crossChainCommand,
 			receivingChainID,
 			fee,
-			status,
+			CCMStatusCode.OK,
 			params,
 			timestamp,
 		);
@@ -160,7 +160,6 @@ export abstract class BaseInteroperabilityMethod<
 			ccm.crossChainCommand,
 			ccm.sendingChainID,
 			BigInt(0),
-			errorStatus,
 			ccm.params,
 		);
 	}
