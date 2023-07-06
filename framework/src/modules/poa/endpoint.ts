@@ -82,7 +82,7 @@ export class PoAEndpoint extends BaseEndpoint {
 			const address = cryptoAddress.getLisk32AddressFromAddress(data.key);
 			const name = await validatorStore.get(context, data.key);
 			const activeValidator = currentRoundSnapshot.validators.find(
-				v => v.address.toString('hex') === address,
+				v => cryptoAddress.getLisk32AddressFromAddress(v.address) === address,
 			);
 			const validatorJSON = {
 				...name,
