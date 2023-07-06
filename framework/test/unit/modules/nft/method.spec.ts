@@ -574,7 +574,13 @@ describe('NFTMethod', () => {
 		});
 
 		it('should set data to stores with correct key and emit successfull create event when there is no entry in the nft substore', async () => {
-			const expectedKey = Buffer.concat([config.ownChainID, collectionID, Buffer.from('0')]);
+			const index = Buffer.from('0');
+			const expectedKey = Buffer.concat([
+				config.ownChainID,
+				collectionID,
+				Buffer.alloc(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID - index.length, 0),
+				index,
+			]);
 
 			await method.create(methodContext, address, collectionID, attributesArray3);
 			const nftStoreData = await nftStore.get(methodContext, expectedKey);
@@ -594,6 +600,7 @@ describe('NFTMethod', () => {
 		});
 
 		it('should set data to stores with correct key and emit successfull create event when there is some entry in the nft substore', async () => {
+			const index = Buffer.from('2');
 			await nftStore.save(methodContext, nftID, {
 				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
 				attributesArray: attributesArray1,
@@ -603,7 +610,12 @@ describe('NFTMethod', () => {
 				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
 				attributesArray: attributesArray2,
 			});
-			const expectedKey = Buffer.concat([config.ownChainID, collectionID, Buffer.from('2')]);
+			const expectedKey = Buffer.concat([
+				config.ownChainID,
+				collectionID,
+				Buffer.alloc(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID - index.length, 0),
+				index,
+			]);
 
 			await method.create(methodContext, address, collectionID, attributesArray3);
 			const nftStoreData = await nftStore.get(methodContext, expectedKey);
