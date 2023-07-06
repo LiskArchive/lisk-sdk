@@ -5,7 +5,6 @@ export const getApplication = (config: PartialApplicationConfig): Application =>
 	const { app, method } = Application.defaultApplication(config, true);
 	const nftModule = new NFTModule();
 	const testNftModule = new TestNftModule();
-	// eslint-disable-next-line @typescript-eslint/dot-notation
 	const interoperabilityModule = app['_registeredModules'].find(
 		mod => mod.name === 'interoperability',
 	);
