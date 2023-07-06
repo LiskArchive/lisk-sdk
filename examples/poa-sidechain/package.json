@@ -33,7 +33,8 @@
 		"version": "oclif readme --multi --dir=docs/commands && git add README.md docs",
 		"prepublishOnly": "npm ci && npm run lint && npm run build",
 		"app": "./bin/run start --api-http --api-ipc",
-		"init-genesis": "./bin/run genesis-block:create --output config/default --assets-file ./config/default/genesis_assets.json"
+		"init-genesis": "./bin/run genesis-block:create --output config/default --assets-file ./config/default/genesis_assets.json",
+		"updateAuthority": "./node_modules/.bin/ts-node scripts/updateAuthority.ts"
 	},
 	"bin": {
 		"pos-mainchain": "./bin/run"
