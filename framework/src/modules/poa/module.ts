@@ -309,13 +309,6 @@ export class PoAModule extends BaseModule {
 
 		// Pass the required information to the Validators module.
 		const methodContext = context.getMethodContext();
-		await this._validatorsMethod.setValidatorsParams(
-			methodContext,
-			context,
-			currentRoundSnapshot.threshold,
-			currentRoundSnapshot.threshold,
-			currentRoundSnapshot.validators.map(v => ({ address: v.address, bftWeight: v.weight })),
-		);
 
 		// Pass the BLS keys and generator keys to the Validators module.
 		for (const v of asset.validators) {
@@ -331,5 +324,13 @@ export class PoAModule extends BaseModule {
 				throw new Error('Invalid validator key found in poa genesis asset validators.');
 			}
 		}
+
+		await this._validatorsMethod.setValidatorsParams(
+			methodContext,
+			context,
+			currentRoundSnapshot.threshold,
+			currentRoundSnapshot.threshold,
+			currentRoundSnapshot.validators.map(v => ({ address: v.address, bftWeight: v.weight })),
+		);
 	}
 }
