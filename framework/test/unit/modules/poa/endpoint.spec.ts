@@ -151,8 +151,8 @@ describe('PoAModuleEndpoint', () => {
 				createTransientModuleEndpointContext({ stateStore }),
 			);
 
-			expect(validatorsDataReturned[0].weight).toBeString();
-			expect(validatorsDataReturned[1].weight).toBeString();
+			expect(validatorsDataReturned[0].weight).toBe(snapshot.validators[0].weight.toString());
+			expect(validatorsDataReturned[1].weight).toBe(snapshot.validators[1].weight.toString());
 		});
 	});
 
