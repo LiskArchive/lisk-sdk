@@ -205,6 +205,7 @@ export class NFTModule extends BaseInteroperableModule {
 			nftMethod: this.method,
 			tokenMethod: this._tokenMethod,
 		});
+		this._transferCommand.init({ method: this.method, internalMethod: this._internalMethod });
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {

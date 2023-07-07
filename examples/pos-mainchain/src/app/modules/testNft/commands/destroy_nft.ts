@@ -13,18 +13,16 @@
  */
 
 import { BaseCommand, CommandExecuteContext, NFTMethod } from 'lisk-sdk';
-import { NFTAttributes } from '../types';
-import { mintNftParamsSchema } from '../schema';
+import { destroyNftParamsSchema } from '../schema';
 
 interface Params {
 	address: Buffer;
-	collectionID: Buffer;
-	attributesArray: NFTAttributes[];
+	nftID: Buffer;
 }
 
-export class MintNftCommand extends BaseCommand {
+export class DestroyNftCommand extends BaseCommand {
 	private _nftMethod!: NFTMethod;
-	public schema = mintNftParamsSchema;
+	public schema = destroyNftParamsSchema;
 
 	public init(args: { nftMethod: NFTMethod }): void {
 		this._nftMethod = args.nftMethod;
@@ -33,11 +31,6 @@ export class MintNftCommand extends BaseCommand {
 	public async execute(context: CommandExecuteContext<Params>): Promise<void> {
 		const { params } = context;
 
-		await this._nftMethod.create(
-			context.getMethodContext(),
-			params.address,
-			params.collectionID,
-			params.attributesArray,
-		);
+		await this._nftMethod.destroy(context.getMethodContext(), params.address, params.nftID);
 	}
 }
