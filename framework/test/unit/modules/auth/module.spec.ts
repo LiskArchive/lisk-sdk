@@ -30,6 +30,7 @@ import {
 	authAccountSchema,
 	AuthAccountStore,
 } from '../../../../src/modules/auth/stores/auth_account';
+import { ADDRESS_LENGTH } from '../../../../src/modules/auth/constants';
 
 describe('AuthModule', () => {
 	let decodedMultiSignature: any;
@@ -93,7 +94,7 @@ describe('AuthModule', () => {
 	});
 
 	describe('initGenesisState', () => {
-		const address = utils.getRandomBytes(20);
+		const address = utils.getRandomBytes(ADDRESS_LENGTH);
 		const publicKey = utils.getRandomBytes(32);
 		const validAsset = {
 			authDataSubstore: [
@@ -107,7 +108,7 @@ describe('AuthModule', () => {
 					},
 				},
 				{
-					storeKey: utils.getRandomBytes(20),
+					storeKey: utils.getRandomBytes(ADDRESS_LENGTH),
 					storeValue: {
 						numberOfSignatures: 3,
 						mandatoryKeys: [utils.getRandomBytes(32), utils.getRandomBytes(32)].sort((a, b) =>
@@ -143,7 +144,7 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: utils.getRandomBytes(20),
+							storeKey: utils.getRandomBytes(ADDRESS_LENGTH),
 							storeValue: {
 								numberOfSignatures: 3,
 								mandatoryKeys: [utils.getRandomBytes(32), utils.getRandomBytes(32)].sort((a, b) =>
@@ -161,7 +162,7 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: utils.getRandomBytes(20),
+							storeKey: utils.getRandomBytes(ADDRESS_LENGTH),
 							storeValue: {
 								numberOfSignatures: 2,
 								mandatoryKeys: [publicKey, publicKey],
@@ -177,7 +178,7 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: utils.getRandomBytes(20),
+							storeKey: utils.getRandomBytes(ADDRESS_LENGTH),
 							storeValue: {
 								numberOfSignatures: 3,
 								mandatoryKeys: [],
@@ -195,7 +196,7 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: utils.getRandomBytes(20),
+							storeKey: utils.getRandomBytes(ADDRESS_LENGTH),
 							storeValue: {
 								numberOfSignatures: 2,
 								mandatoryKeys: [],
@@ -211,7 +212,7 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: utils.getRandomBytes(20),
+							storeKey: utils.getRandomBytes(ADDRESS_LENGTH),
 							storeValue: {
 								numberOfSignatures: 36,
 								mandatoryKeys: Array.from({ length: 33 }, () => utils.getRandomBytes(32)).sort(
@@ -231,7 +232,7 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: utils.getRandomBytes(20),
+							storeKey: utils.getRandomBytes(ADDRESS_LENGTH),
 							storeValue: {
 								numberOfSignatures: 3,
 								mandatoryKeys: [],
@@ -249,7 +250,7 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: utils.getRandomBytes(20),
+							storeKey: utils.getRandomBytes(ADDRESS_LENGTH),
 							storeValue: {
 								numberOfSignatures: 1,
 								mandatoryKeys: [utils.getRandomBytes(32), utils.getRandomBytes(32)].sort((a, b) =>

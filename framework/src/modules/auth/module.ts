@@ -24,7 +24,7 @@ import {
 	VerifyStatus,
 } from '../../state_machine';
 import { AuthMethod } from './method';
-import { MAX_NUMBER_OF_SIGNATURES } from './constants';
+import { MAX_NUMBER_OF_SIGNATURES, ADDRESS_LENGTH } from './constants';
 import { AuthEndpoint } from './endpoint';
 import {
 	addressRequestSchema,
@@ -113,7 +113,7 @@ export class AuthModule extends BaseModule {
 		const store = this.stores.get(AuthAccountStore);
 		const keys = [];
 		for (const { storeKey, storeValue } of genesisStore.authDataSubstore) {
-			if (storeKey.length !== 20) {
+			if (storeKey.length !== ADDRESS_LENGTH) {
 				throw new Error('Invalid store key length for auth module.');
 			}
 			keys.push(storeKey);
