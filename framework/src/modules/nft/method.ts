@@ -310,10 +310,13 @@ export class NFTMethod extends BaseMethod {
 		}
 
 		const index = await this.getNextAvailableIndex(methodContext, collectionID);
+		const indexBytes = Buffer.from(index.toString());
+
 		const nftID = Buffer.concat([
 			this._config.ownChainID,
 			collectionID,
-			Buffer.from(index.toString()),
+			Buffer.alloc(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID - indexBytes.length, 0),
+			indexBytes,
 		]);
 		this._feeMethod.payFee(methodContext, BigInt(FEE_CREATE_NFT));
 
