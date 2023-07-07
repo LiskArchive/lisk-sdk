@@ -470,7 +470,7 @@ describe('Sample Method', () => {
 			jest.spyOn(channelDataStoreMock, 'has').mockResolvedValue(false);
 
 			await expect(
-				await sampleInteroperabilityMethod['_getChannelCommon'](methodContext, newChainID),
+				sampleInteroperabilityMethod['_getChannelCommon'](methodContext, newChainID),
 			).rejects.toThrow('Channel does not exist.');
 		});
 
