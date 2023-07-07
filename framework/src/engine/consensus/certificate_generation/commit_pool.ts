@@ -189,16 +189,16 @@ export class CommitPool {
 		);
 
 		if (
-			aggregateCommit.aggregationBits.length === 0 &&
-			aggregateCommit.certificateSignature.length === 0 &&
+			aggregateCommit.aggregationBits.equals(EMPTY_BUFFER) &&
+			aggregateCommit.certificateSignature.equals(EMPTY_BUFFER) &&
 			aggregateCommit.height === maxHeightCertified
 		) {
 			return true;
 		}
 
 		if (
-			aggregateCommit.aggregationBits.length === 0 ||
-			aggregateCommit.certificateSignature.length === 0
+			aggregateCommit.aggregationBits.equals(EMPTY_BUFFER) ||
+			aggregateCommit.certificateSignature.equals(EMPTY_BUFFER)
 		) {
 			return false;
 		}
