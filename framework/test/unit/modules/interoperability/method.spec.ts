@@ -46,14 +46,7 @@ import { TerminatedStateStore } from '../../../../src/modules/interoperability/s
 import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
 import { getMainchainID } from '../../../../src/modules/interoperability/utils';
 
-class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {
-	protected getInteroperabilityInternalMethod = (): MainchainInteroperabilityInternalMethod =>
-		new MainchainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			this.interoperableCCMethods,
-		);
-}
+class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {}
 
 describe('Sample Method', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -489,7 +482,7 @@ describe('Sample Method', () => {
 	});
 
 	describe('error', () => {
-		const errMsg = `Error codes from 0 to ${MAX_RESERVED_ERROR_STATUS} (included) are reserved to the Interoperability module.`;
+		const errMsg = `Error codes from 0 to ${MAX_RESERVED_ERROR_STATUS} (inclusive) are reserved to the Interoperability module.`;
 
 		it('should throw error for errorStatus 0', async () => {
 			await expect(sampleInteroperabilityMethod.error(methodContext, {} as any, 0)).rejects.toThrow(

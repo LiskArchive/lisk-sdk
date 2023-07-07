@@ -149,10 +149,9 @@ export abstract class BaseInteroperabilityMethod<
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#error
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async error(context: MethodContext, ccm: CCMsg, errorStatus: number): Promise<void> {
-		// Error codes from 0 to MAX_RESERVED_ERROR_STATUS (included) are reserved to the Interoperability module.
 		if (errorStatus >= 0 && errorStatus <= MAX_RESERVED_ERROR_STATUS) {
 			throw new Error(
-				`Error codes from 0 to ${MAX_RESERVED_ERROR_STATUS} (included) are reserved to the Interoperability module.`,
+				`Error codes from 0 to ${MAX_RESERVED_ERROR_STATUS} (inclusive) are reserved to the Interoperability module.`,
 			);
 		}
 
