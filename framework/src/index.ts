@@ -67,6 +67,7 @@ export {
 	genesisTokenStoreSchema as tokenGenesisStoreSchema,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 } from './modules/token';
+export { NFTModule, NFTMethod } from './modules/nft';
 export {
 	PoSMethod,
 	PoSModule,

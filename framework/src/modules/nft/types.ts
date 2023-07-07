@@ -15,7 +15,6 @@
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import { CCMsg } from '../interoperability';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ModuleConfig {
 	ownChainID: Buffer;
 }
@@ -43,7 +42,7 @@ export interface FeeMethod {
 
 export interface TokenMethod {
 	getAvailableBalance(
-		methodContext: MethodContext,
+		methodContext: ImmutableMethodContext,
 		address: Buffer,
 		tokenID: Buffer,
 	): Promise<bigint>;

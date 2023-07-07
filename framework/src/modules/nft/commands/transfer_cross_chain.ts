@@ -17,8 +17,7 @@ import { crossChainTransferParamsSchema } from '../schemas';
 import { NFTStore } from '../stores/nft';
 import { NFTMethod } from '../method';
 import { LENGTH_CHAIN_ID, NFT_NOT_LOCKED } from '../constants';
-import { TokenMethod } from '../../token';
-import { InteroperabilityMethod } from '../types';
+import { InteroperabilityMethod, TokenMethod } from '../types';
 import { BaseCommand } from '../../base_command';
 import {
 	CommandExecuteContext,

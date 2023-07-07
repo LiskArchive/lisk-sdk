@@ -81,10 +81,11 @@ export class NFTModule extends BaseInteroperableModule {
 	private readonly _ccTransferCommand = new TransferCrossChainCommand(this.stores, this.events);
 	private readonly _internalMethod = new InternalMethod(this.stores, this.events);
 	private _interoperabilityMethod!: InteroperabilityMethod;
+	private _feeMethod!: FeeMethod;
+	private _tokenMethod!: TokenMethod;
 
 	public commands = [this._transferCommand, this._ccTransferCommand];
 
-	// eslint-disable-next-line no-useless-constructor
 	public constructor() {
 		super();
 		this.events.register(TransferEvent, new TransferEvent(this.name));
@@ -127,6 +128,8 @@ export class NFTModule extends BaseInteroperableModule {
 		tokenMethod: TokenMethod,
 	) {
 		this._interoperabilityMethod = interoperabilityMethod;
+		this._feeMethod = feeMethod;
+		this._tokenMethod = tokenMethod;
 		this.method.addDependencies(
 			interoperabilityMethod,
 			this._internalMethod,
@@ -181,8 +184,25 @@ export class NFTModule extends BaseInteroperableModule {
 		};
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public async init(_args: ModuleInitArgs) {}
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async init(args: ModuleInitArgs) {
+		const ownChainID = Buffer.from(args.genesisConfig.chainID, 'hex');
+		this._internalMethod.init({ ownChainID });
+		this.method.init({ ownChainID });
+		this.crossChainTransferCommand.init({
+			method: this.method,
+			internalMethod: this._internalMethod,
+			feeMethod: this._feeMethod,
+		});
+
+		this._ccTransferCommand.init({
+			internalMethod: this._internalMethod,
+			interoperabilityMethod: this._interoperabilityMethod,
+			nftMethod: this.method,
+			tokenMethod: this._tokenMethod,
+		});
+		this._transferCommand.init({ method: this.method, internalMethod: this._internalMethod });
+	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
 		const assetBytes = context.assets.getAsset(this.name);
