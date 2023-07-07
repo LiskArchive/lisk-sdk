@@ -47,7 +47,7 @@ import { InvalidNonceError } from './errors';
 
 export class AuthModule extends BaseModule {
 	public method = new AuthMethod(this.stores, this.events);
-	public endpoint = new AuthEndpoint(this.name, this.stores, this.offchainStores);
+	public endpoint = new AuthEndpoint(this.stores, this.offchainStores);
 	public configSchema = configSchema;
 	public commands = [new RegisterMultisignatureCommand(this.stores, this.events)];
 
