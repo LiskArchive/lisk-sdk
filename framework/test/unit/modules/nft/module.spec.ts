@@ -54,6 +54,10 @@ describe('nft module', () => {
 		return context;
 	};
 
+	it('should have the name "nft"', () => {
+		expect(module.name).toBe('nft');
+	});
+
 	describe('initGenesisState', () => {
 		describe('validate nftSubstore schema', () => {
 			it.each(invalidSchemaNFTSubstoreGenesisAssets)('%s', async (_, input, err) => {
