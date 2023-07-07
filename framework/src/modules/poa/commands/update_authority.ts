@@ -33,9 +33,8 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../state_machine';
-import { UpdateAuthorityParams } from '../types';
+import { UpdateAuthorityParams, ValidatorsMethod } from '../types';
 import { ChainPropertiesStore, SnapshotStore, ValidatorStore } from '../stores';
-import { ValidatorsMethod } from '../../pos/types';
 import { AuthorityUpdateEvent } from '../events/authority_update';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0047.md#update-authority-command

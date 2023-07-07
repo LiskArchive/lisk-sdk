@@ -69,6 +69,12 @@ export class PoAModule extends BaseModule {
 	);
 	private _moduleConfig!: ModuleConfig;
 
+	public commands = [
+		this._registerAuthorityCommand,
+		this._updateAuthorityCommand,
+		this._updateGeneratorKeyCommand,
+	];
+
 	public constructor() {
 		super();
 		this.events.register(AuthorityUpdateEvent, new AuthorityUpdateEvent(this.name));
