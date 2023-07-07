@@ -13,7 +13,8 @@
  */
 
 import { BaseCommand, CommandExecuteContext, NFTMethod } from 'lisk-sdk';
-import { NFTAttributes, mintNftParamsSchema } from '../types';
+import { NFTAttributes } from '../types';
+import { mintNftParamsSchema } from '../schema';
 
 interface Params {
 	address: Buffer;

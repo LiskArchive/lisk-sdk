@@ -13,7 +13,7 @@
  */
 
 import { BaseCommand, CommandExecuteContext, NFTMethod } from 'lisk-sdk';
-import { destroyNftParamsSchema } from '../types';
+import { destroyNftParamsSchema } from '../schema';
 
 interface Params {
 	address: Buffer;
