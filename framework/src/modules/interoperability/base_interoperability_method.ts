@@ -92,12 +92,13 @@ export abstract class BaseInteroperabilityMethod<
 		return this.stores.get(TerminatedOutboxStore).get(context, chainID);
 	}
 
-	public async getChannelCommon(context: ImmutableMethodContext, chainID: Buffer) {
+	private async _getChannelCommon(context: ImmutableMethodContext, chainID: Buffer) {
 		const mainchainID = getMainchainID(chainID);
 		const ownChainAccount = await this.getOwnChainAccount(context);
 		const hasChainAccount = await this.stores.get(ChainAccountStore).has(context, chainID);
 
 		let updatedChainID = chainID;
+		// Check for direct channel while processing on a sidechain
 		if (!ownChainAccount.chainID.equals(mainchainID) && !hasChainAccount) {
 			updatedChainID = mainchainID;
 		}
@@ -115,7 +116,7 @@ export abstract class BaseInteroperabilityMethod<
 		context: ImmutableMethodContext,
 		chainID: Buffer,
 	): Promise<Buffer> {
-		const channel = await this.getChannelCommon(context, chainID);
+		const channel = await this._getChannelCommon(context, chainID);
 		return channel.messageFeeTokenID;
 	}
 
@@ -124,7 +125,7 @@ export abstract class BaseInteroperabilityMethod<
 		context: ImmutableMethodContext,
 		chainID: Buffer,
 	): Promise<bigint> {
-		const channel = await this.getChannelCommon(context, chainID);
+		const channel = await this._getChannelCommon(context, chainID);
 		return channel.minReturnFeePerByte;
 	}
 

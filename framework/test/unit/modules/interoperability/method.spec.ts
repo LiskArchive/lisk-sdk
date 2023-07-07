@@ -452,7 +452,7 @@ describe('Sample Method', () => {
 		});
 
 		it('should assign chainID as mainchain ID if ownchain ID is not mainchain ID and chainAccount not found', async () => {
-			await sampleInteroperabilityMethod.getChannelCommon(methodContext, newChainID);
+			await sampleInteroperabilityMethod['_getChannelCommon'](methodContext, newChainID);
 			expect(channelDataStoreMock.get).toHaveBeenCalledWith(
 				expect.anything(),
 				getMainchainID(newChainID),
@@ -462,7 +462,7 @@ describe('Sample Method', () => {
 		it('should process with input chainID', async () => {
 			jest.spyOn(chainAccountStoreMock, 'has').mockResolvedValue(true);
 
-			await sampleInteroperabilityMethod.getChannelCommon(methodContext, newChainID);
+			await sampleInteroperabilityMethod['_getChannelCommon'](methodContext, newChainID);
 			expect(channelDataStoreMock.get).toHaveBeenCalledWith(expect.anything(), newChainID);
 		});
 
@@ -470,12 +470,12 @@ describe('Sample Method', () => {
 			jest.spyOn(channelDataStoreMock, 'has').mockResolvedValue(false);
 
 			await expect(
-				sampleInteroperabilityMethod.getChannelCommon(methodContext, newChainID),
+				await sampleInteroperabilityMethod['_getChannelCommon'](methodContext, newChainID),
 			).rejects.toThrow('Channel does not exist.');
 		});
 
 		it('should return channel data for `getMessageFeeTokenID` & `getMinReturnFeePerByte`', async () => {
-			const channelData = await sampleInteroperabilityMethod.getChannelCommon(
+			const channelData = await sampleInteroperabilityMethod['_getChannelCommon'](
 				methodContext,
 				newChainID,
 			);
