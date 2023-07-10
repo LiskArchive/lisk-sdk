@@ -150,13 +150,20 @@ export const configSchema = {
 			type: 'integer',
 			format: 'uint32',
 		},
+		// Minimum and maximum for failSafeInactiveWindow and punishmentWindow are placeholder values
+		// that assume that block time is set to 10 seconds.
+		// During validation in in PoSModule.init(), they are assigned more accurate values at runtime.
 		failSafeInactiveWindow: {
 			type: 'integer',
 			format: 'uint32',
+			minimum: (5 * 60 * 60 * 24) / 10, // 5 days at 10 seconds per block
+			maximum: (365 * 60 * 60 * 24) / 10, // 1 year at 10 seconds per block
 		},
 		punishmentWindow: {
 			type: 'integer',
 			format: 'uint32',
+			minimum: (5 * 60 * 60 * 24) / 10, // 5 days at 10 seconds per block
+			maximum: (365 * 60 * 60 * 24) / 10, // 1 year at 10 seconds per block
 		},
 		roundLength: {
 			type: 'integer',

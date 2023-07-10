@@ -252,14 +252,12 @@ export const getPunishmentPeriod = (
 	return remainingBlocks < 0 ? 0 : remainingBlocks;
 };
 
-export function getModuleConfig(config: ModuleConfigJSON): ModuleConfig {
-	return {
-		...config,
-		minWeightStandby: BigInt(config.minWeightStandby),
-		posTokenID: Buffer.from(config.posTokenID, 'hex'),
-		validatorRegistrationFee: BigInt(config.validatorRegistrationFee),
-	};
-}
+export const getModuleConfig = (config: ModuleConfigJSON): ModuleConfig => ({
+	...config,
+	minWeightStandby: BigInt(config.minWeightStandby),
+	posTokenID: Buffer.from(config.posTokenID, 'hex'),
+	validatorRegistrationFee: BigInt(config.validatorRegistrationFee),
+});
 
 export const getValidatorWeight = (
 	factorSelfStakes: bigint,
