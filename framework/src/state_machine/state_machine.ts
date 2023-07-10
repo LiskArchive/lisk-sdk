@@ -240,7 +240,7 @@ export class StateMachine {
 		}
 	}
 
-	public async beforeExecuteBlock(ctx: BlockContext): Promise<void> {
+	public async beforeTransactionsExecute(ctx: BlockContext): Promise<void> {
 		const blockExecuteContext = ctx.getBlockExecuteContext();
 		for (const mod of this._modules) {
 			if (mod.beforeTransactionsExecute) {
@@ -263,7 +263,7 @@ export class StateMachine {
 	}
 
 	public async executeBlock(ctx: BlockContext): Promise<void> {
-		await this.beforeExecuteBlock(ctx);
+		await this.beforeTransactionsExecute(ctx);
 		for (const tx of ctx.transactions) {
 			const txContext = ctx.getTransactionContext(tx);
 			const verifyResult = await this.verifyTransaction(txContext);
