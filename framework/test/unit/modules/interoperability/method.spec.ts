@@ -226,6 +226,25 @@ describe('Sample Method', () => {
 			);
 		});
 
+		it('should throw error when timestamp not provided in mainchain context', async () => {
+			jest
+				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
+				.mockResolvedValue(ownChainAccountMainchain);
+
+			await expect(
+				sampleInteroperabilityMethod.send(
+					methodContext,
+					sendingAddress,
+					ccm.module,
+					ccm.crossChainCommand,
+					ccm.receivingChainID,
+					ccm.fee,
+					ccm.status,
+					ccm.params,
+				),
+			).rejects.toThrow('Timestamp must be provided in mainchain context.');
+		});
+
 		it('should throw error and emit event when receiving chain is not live', async () => {
 			// Arrange
 			jest

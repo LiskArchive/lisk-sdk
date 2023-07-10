@@ -479,6 +479,12 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			throw new Error('Sending chain cannot be the receiving chain.');
 		}
 		// receivingChainID must correspond to a live chain.
+		// `timestamp` is only used in MainchainInteroperabilityInternalMethod::isLive
+		// but not in SidechainInteroperabilityInternalMethod::isLive
+		const mainchainID = getMainchainID(ownChainAccount.chainID);
+		if (ownChainAccount.chainID.equals(mainchainID) && !timestamp) {
+			throw new Error('Timestamp must be provided in mainchain context.');
+		}
 		const isReceivingChainLive = await this.isLive(context, receivingChainID, timestamp);
 		if (!isReceivingChainLive) {
 			this.events.get(CcmSentFailedEvent).log(
@@ -523,7 +529,6 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			}
 		}
 
-		const mainchainID = getMainchainID(ownChainAccount.chainID);
 		let partnerChainID: Buffer;
 		// Processing on the mainchain.
 		if (ownChainAccount.chainID.equals(mainchainID)) {
