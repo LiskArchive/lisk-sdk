@@ -92,6 +92,7 @@ export class PoAEndpoint extends BaseEndpoint {
 			response.push(validatorJSON);
 		}
 
+		response.sort((v1, v2) => v1.name.localeCompare(v2.name, 'en'));
 		return { validators: response };
 	}
 

@@ -154,6 +154,30 @@ describe('PoAModuleEndpoint', () => {
 			expect(validatorsDataReturned[0].weight).toBe(snapshot.validators[0].weight.toString());
 			expect(validatorsDataReturned[1].weight).toBe(snapshot.validators[1].weight.toString());
 		});
+
+		it('should return json with empty weight for non active validator', async () => {
+			await validatorStore.set(createStoreGetter(stateStore), address1, { name: 'validator1' });
+			await validatorStore.set(createStoreGetter(stateStore), address2, { name: 'validator2' });
+			const currentSnapshot = {
+				threshold: BigInt(2),
+				validators: [
+					{
+						address: address1,
+						weight: BigInt(1),
+					},
+				],
+			};
+			await snapshotStore.set(createStoreGetter(stateStore), KEY_SNAPSHOT_0, currentSnapshot);
+
+			const { validators: validatorsDataReturned } = await poaEndpoint.getAllValidators(
+				createTransientModuleEndpointContext({ stateStore }),
+			);
+
+			expect(validatorsDataReturned[0].weight).toBe(
+				currentSnapshot.validators[0].weight.toString(),
+			);
+			expect(validatorsDataReturned[1].weight).toBe('');
+		});
 	});
 
 	describe('getRegistrationFee', () => {
