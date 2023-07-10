@@ -49,7 +49,7 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 			throw new Error('Chain ID is not valid.');
 		}
 
-		// The commands fails if the sidechain is already terminated on this chain.
+		// The commands fails if the sidechain is already terminated & initialized on this chain.
 		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
 		const terminatedStateAccountExists = await terminatedStateSubstore.has(context, chainID);
 		let terminatedStateAccount: TerminatedStateAccount;
