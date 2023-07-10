@@ -262,24 +262,6 @@ export class StateMachine {
 		}
 	}
 
-	public async executeBlock(ctx: BlockContext): Promise<void> {
-		await this.beforeTransactionsExecute(ctx);
-		for (const tx of ctx.transactions) {
-			const txContext = ctx.getTransactionContext(tx);
-			const verifyResult = await this.verifyTransaction(txContext);
-			if (verifyResult.status !== VerifyStatus.OK) {
-				if (verifyResult.error) {
-					this._logger.debug({ err: verifyResult.error }, 'Transaction verification failed');
-					throw verifyResult.error;
-				}
-				this._logger.debug(`Transaction verification failed. ID ${tx.id.toString('hex')}.`);
-				throw new Error(`Transaction verification failed. ID ${tx.id.toString('hex')}.`);
-			}
-			await this.executeTransaction(txContext);
-		}
-		await this.afterExecuteBlock(ctx);
-	}
-
 	private _findModule(name: string): BaseModule | undefined {
 		const existingModule = this._modules.find(m => m.name === name);
 		if (existingModule) {
