@@ -351,7 +351,7 @@ export class PoSModule extends BaseModule {
 			if (!objectUtils.bufferArrayUniqueItems(staker.stakes.map(v => v.validatorAddress))) {
 				throw new Error('Sent stake validator address is not unique.');
 			}
-			if (!objectUtils.bufferArrayOrderByLex(staker.stakes.map(v => v.validatorAddress))) {
+			if (!objectUtils.isBufferArrayOrdered(staker.stakes.map(v => v.validatorAddress))) {
 				throw new Error('Sent stake validator address is not lexicographically ordered.');
 			}
 			for (const stakes of staker.stakes) {
