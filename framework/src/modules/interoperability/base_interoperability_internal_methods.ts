@@ -641,7 +641,10 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		}
 	}
 
-	// Different in mainchain and sidechain so to be implemented in each module store separately
+	/**
+	 * https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#islive
+	 * Different in mainchain and sidechain so to be implemented in each module store separately
+	 */
 	public abstract isLive(
 		context: ImmutableMethodContext,
 		chainID: Buffer,
