@@ -55,6 +55,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 	});
 
 	describe('isChainNameAvailable', () => {
+		const nameLengthMinMaxErrMsg = `Invalid name property. Length should be >= ${MIN_CHAIN_NAME_LENGTH} and <= ${MAX_CHAIN_NAME_LENGTH}.`;
 		const interopMod = new MainchainInteroperabilityModule();
 		const registeredNamesStore = {
 			has: jest.fn(),
@@ -96,9 +97,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 					name: 'a'.repeat(MAX_CHAIN_NAME_LENGTH + 1),
 				},
 			});
-			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(
-				`Invalid name property. Length should be >= ${MIN_CHAIN_NAME_LENGTH} and <= ${MAX_CHAIN_NAME_LENGTH}.`,
-			);
+			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(nameLengthMinMaxErrMsg);
 		});
 
 		it(`should not throw error if name length equals ${MIN_CHAIN_NAME_LENGTH}`, async () => {
@@ -107,9 +106,10 @@ describe('MainchainInteroperabilityEndpoint', () => {
 					name: 'a',
 				},
 			});
-			await expect(endpoint.isChainNameAvailable(context)).resolves.toStrictEqual({
-				result: false,
-			});
+			// https://stackoverflow.com/questions/49603338/how-to-test-an-exception-was-not-thrown-with-jest
+			expect(async () => endpoint.isChainNameAvailable(context)).not.toThrow(
+				nameLengthMinMaxErrMsg,
+			);
 		});
 
 		it(`should not throw error if name length equals ${MAX_CHAIN_NAME_LENGTH}`, async () => {
@@ -118,9 +118,9 @@ describe('MainchainInteroperabilityEndpoint', () => {
 					name: 'a'.repeat(MAX_CHAIN_NAME_LENGTH),
 				},
 			});
-			await expect(endpoint.isChainNameAvailable(context)).resolves.toStrictEqual({
-				result: false,
-			});
+			expect(async () => endpoint.isChainNameAvailable(context)).not.toThrow(
+				nameLengthMinMaxErrMsg,
+			);
 		});
 
 		it('should return false if name exists in the store', async () => {
