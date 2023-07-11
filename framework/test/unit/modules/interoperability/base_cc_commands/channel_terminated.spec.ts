@@ -104,10 +104,7 @@ describe('BaseCCChannelTerminatedCommand', () => {
 					status: CCMStatusCode.FAILED_CCM,
 				},
 			});
-			expect(createTerminatedStateAccountMock).toHaveBeenCalledWith(
-				sampleExecuteContext,
-				ccm.sendingChainID,
-			);
+			expect(createTerminatedStateAccountMock).toHaveBeenCalledTimes(0);
 		});
 
 		it('should skip if terminatedStateAccount exists', async () => {
