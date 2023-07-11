@@ -51,7 +51,7 @@ describe('PoAModuleEndpoint', () => {
 			},
 			{
 				address: address2,
-				weight: BigInt(1),
+				weight: BigInt(2),
 			},
 		],
 	};
@@ -173,6 +173,7 @@ describe('PoAModuleEndpoint', () => {
 				createTransientModuleEndpointContext({ stateStore }),
 			);
 
+			// Checking against name-sorted values
 			expect(validatorsDataReturned[0].weight).toBe(
 				currentSnapshot.validators[0].weight.toString(),
 			);
