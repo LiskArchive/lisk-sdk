@@ -111,6 +111,12 @@ export class NFTEndpoint extends BaseEndpoint {
 
 		const userStore = this.stores.get(UserStore);
 		const nftData = await nftStore.get(context.getImmutableMethodContext(), nftID);
+		const owner = nftData.owner.toString('hex');
+		const attributesArray = nftData.attributesArray.map(attribute => ({
+			module: attribute.module,
+			attributes: attribute.attributes.toString('hex'),
+		}));
+
 		if (nftData.owner.length === LENGTH_ADDRESS) {
 			const userData = await userStore.get(
 				context.getImmutableMethodContext(),
@@ -118,21 +124,15 @@ export class NFTEndpoint extends BaseEndpoint {
 			);
 
 			return {
-				owner: nftData.owner.toString('hex'),
-				attributesArray: nftData.attributesArray.map(attribute => ({
-					module: attribute.module,
-					attributes: attribute.attributes.toString('hex'),
-				})),
+				owner,
+				attributesArray,
 				lockingModule: userData.lockingModule,
 			};
 		}
 
 		return {
-			owner: nftData.owner.toString('hex'),
-			attributesArray: nftData.attributesArray.map(attribute => ({
-				module: attribute.module,
-				attributes: attribute.attributes.toString('hex'),
-			})),
+			owner,
+			attributesArray,
 		};
 	}
 
