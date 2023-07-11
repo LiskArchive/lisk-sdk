@@ -600,6 +600,8 @@ export const isChainNameAvailableRequestSchema = {
 		name: {
 			dataType: 'string',
 			fieldNumber: 1,
+			minLength: MIN_CHAIN_NAME_LENGTH,
+			maxLength: MAX_CHAIN_NAME_LENGTH,
 		},
 	},
 };
