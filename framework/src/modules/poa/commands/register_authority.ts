@@ -96,9 +96,9 @@ export class RegisterAuthorityCommand extends BaseCommand {
 		await this._validatorsMethod.registerValidatorKeys(
 			context,
 			senderAddress,
-			params.proofOfPossession,
-			params.generatorKey,
 			params.blsKey,
+			params.generatorKey,
+			params.proofOfPossession,
 		);
 	}
 }
