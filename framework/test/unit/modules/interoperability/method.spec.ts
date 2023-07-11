@@ -25,6 +25,7 @@ import {
 	HASH_LENGTH,
 	MAX_CCM_SIZE,
 	MODULE_NAME_INTEROPERABILITY,
+	MAX_RESERVED_ERROR_STATUS,
 } from '../../../../src/modules/interoperability/constants';
 import {
 	CCMSentFailedCode,
@@ -45,14 +46,7 @@ import { TerminatedStateStore } from '../../../../src/modules/interoperability/s
 import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
 import { getMainchainID } from '../../../../src/modules/interoperability/utils';
 
-class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {
-	protected getInteroperabilityInternalMethod = (): MainchainInteroperabilityInternalMethod =>
-		new MainchainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			this.interoperableCCMethods,
-		);
-}
+class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {}
 
 describe('Sample Method', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -216,7 +210,6 @@ describe('Sample Method', () => {
 					invalidSizeCCM.crossChainCommand,
 					invalidSizeCCM.receivingChainID,
 					invalidSizeCCM.fee,
-					invalidSizeCCM.status,
 					invalidSizeCCM.params,
 					Date.now(),
 				),
@@ -248,7 +241,6 @@ describe('Sample Method', () => {
 					ccm.crossChainCommand,
 					ccm.receivingChainID,
 					ccm.fee,
-					ccm.status,
 					ccm.params,
 					Date.now(),
 				),
@@ -288,7 +280,6 @@ describe('Sample Method', () => {
 					ccmOnMainchain.crossChainCommand,
 					ccmOnMainchain.receivingChainID,
 					ccmOnMainchain.fee,
-					ccmOnMainchain.status,
 					ccmOnMainchain.params,
 					Date.now(),
 				),
@@ -323,7 +314,6 @@ describe('Sample Method', () => {
 					ccm.crossChainCommand,
 					ccm.receivingChainID,
 					ccm.fee,
-					ccm.status,
 					ccm.params,
 					Date.now(),
 				),
@@ -363,7 +353,6 @@ describe('Sample Method', () => {
 					ccm.crossChainCommand,
 					ccm.receivingChainID,
 					ccm.fee,
-					ccm.status,
 					ccm.params,
 					Date.now(),
 				),
@@ -410,7 +399,6 @@ describe('Sample Method', () => {
 					ccmOnMainchain.crossChainCommand,
 					ccmOnMainchain.receivingChainID,
 					ccmOnMainchain.fee,
-					ccmOnMainchain.status,
 					ccmOnMainchain.params,
 					Date.now(),
 				),
@@ -484,6 +472,41 @@ describe('Sample Method', () => {
 			await expect(
 				sampleInteroperabilityMethod.getMinReturnFeePerByte(methodContext, newChainID),
 			).rejects.toThrow('Channel does not exist.');
+		});
+	});
+
+	describe('error', () => {
+		const errMsg = `Error codes from 0 to ${MAX_RESERVED_ERROR_STATUS} (inclusive) are reserved to the Interoperability module.`;
+
+		it('should throw error for errorStatus 0', async () => {
+			await expect(sampleInteroperabilityMethod.error(methodContext, {} as any, 0)).rejects.toThrow(
+				errMsg,
+			);
+		});
+
+		it(`should throw error for errorStatus < ${MAX_RESERVED_ERROR_STATUS}`, async () => {
+			await expect(
+				sampleInteroperabilityMethod.error(methodContext, {} as any, MAX_RESERVED_ERROR_STATUS - 1),
+			).rejects.toThrow(errMsg);
+		});
+
+		it(`should throw error for errorStatus ${MAX_RESERVED_ERROR_STATUS}`, async () => {
+			await expect(
+				sampleInteroperabilityMethod.error(methodContext, {} as any, MAX_RESERVED_ERROR_STATUS),
+			).rejects.toThrow(errMsg);
+		});
+
+		it(`should not throw error for errorStatus > ${MAX_RESERVED_ERROR_STATUS}`, async () => {
+			jest.spyOn(sampleInteroperabilityMethod, 'send');
+			try {
+				await sampleInteroperabilityMethod.error(
+					methodContext,
+					{} as any,
+					MAX_RESERVED_ERROR_STATUS + 1,
+				);
+			} catch (err) {
+				expect(sampleInteroperabilityMethod.send).toHaveBeenCalled();
+			}
 		});
 	});
 

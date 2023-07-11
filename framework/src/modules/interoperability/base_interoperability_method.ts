@@ -121,6 +121,7 @@ export abstract class BaseInteroperabilityMethod<
 		return (await this.getChannel(context, updatedChainID)).minReturnFeePerByte;
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#send
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async send(
 		context: MethodContext,
@@ -129,7 +130,6 @@ export abstract class BaseInteroperabilityMethod<
 		crossChainCommand: string,
 		receivingChainID: Buffer,
 		fee: bigint,
-		status: number,
 		params: Buffer,
 		timestamp?: number,
 	): Promise<void> {
@@ -140,17 +140,19 @@ export abstract class BaseInteroperabilityMethod<
 			crossChainCommand,
 			receivingChainID,
 			fee,
-			status,
+			CCMStatusCode.OK,
 			params,
 			timestamp,
 		);
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#error
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async error(context: MethodContext, ccm: CCMsg, errorStatus: number): Promise<void> {
-		// Error codes from 0 to MAX_RESERVED_ERROR_STATUS (included) are reserved to the Interoperability module.
-		if (errorStatus <= 0 && errorStatus <= MAX_RESERVED_ERROR_STATUS) {
-			throw new Error('Invalid error status.');
+		if (errorStatus >= 0 && errorStatus <= MAX_RESERVED_ERROR_STATUS) {
+			throw new Error(
+				`Error codes from 0 to ${MAX_RESERVED_ERROR_STATUS} (inclusive) are reserved to the Interoperability module.`,
+			);
 		}
 
 		await this.send(
@@ -160,7 +162,6 @@ export abstract class BaseInteroperabilityMethod<
 			ccm.crossChainCommand,
 			ccm.sendingChainID,
 			BigInt(0),
-			errorStatus,
 			ccm.params,
 		);
 	}

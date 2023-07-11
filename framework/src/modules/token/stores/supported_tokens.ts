@@ -14,7 +14,7 @@
 import { NotFoundError } from '@liskhq/lisk-db';
 import { BaseStore, ImmutableStoreGetter, StoreGetter } from '../../base_store';
 import { getMainchainID } from '../../interoperability/utils';
-import { CHAIN_ID_LENGTH, LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from '../constants';
+import { LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from '../constants';
 import { splitTokenID } from '../utils';
 
 export interface SupportedTokensStoreData {
@@ -61,7 +61,7 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 		if (allSupported) {
 			return true;
 		}
-		const chainID = tokenID.slice(0, CHAIN_ID_LENGTH);
+		const [chainID] = splitTokenID(tokenID);
 		try {
 			const supported = await this.get(context, chainID);
 			if (
@@ -120,11 +120,6 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 		const allSupported = await this.allSupported(context);
 		if (allSupported) {
 			throw new Error('Invalid operation. All tokens from all chains are supported.');
-		}
-		if (chainID.equals(this._ownChainID)) {
-			throw new Error(
-				'Invalid operation. All tokens from all the specified chain should be supported.',
-			);
 		}
 		const supportExist = await this.has(context, chainID);
 		if (!supportExist) {

@@ -25,10 +25,7 @@ import {
 	VerifyStatus,
 } from '../../../../../src';
 import { TransferCrossChainCommand } from '../../../../../src/modules/token/commands/transfer_cross_chain';
-import {
-	CCM_STATUS_OK,
-	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-} from '../../../../../src/modules/token/constants';
+import { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../../../../../src/modules/token/constants';
 import {
 	CCTransferMessageParams,
 	crossChainTransferMessageParams,
@@ -510,7 +507,6 @@ describe('CCTransfer command', () => {
 					CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 					validParams.receivingChainID,
 					validParams.messageFee,
-					CCM_STATUS_OK,
 					codec.encode(crossChainTransferMessageParams, {
 						tokenID: commonTokenID,
 						amount,
@@ -571,7 +567,6 @@ describe('CCTransfer command', () => {
 				CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 				validParams.receivingChainID,
 				validParams.messageFee,
-				CCM_STATUS_OK,
 				codec.encode(crossChainTransferMessageParams, {
 					tokenID: commonTokenID,
 					amount,

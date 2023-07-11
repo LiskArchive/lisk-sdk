@@ -146,7 +146,7 @@ export class IPCChannel extends BaseChannel {
 		await this.startAndListen();
 		// Register channel details
 		let endpointInfo: { [key: string]: EndpointInfo } = {};
-		endpointInfo = Object.keys(this.endpointHandlers).reduce((accumulator, value: string) => {
+		endpointInfo = Array.from(this.endpointHandlers.keys()).reduce((accumulator, value: string) => {
 			accumulator[value] = {
 				method: value,
 				namespace: this.namespace,
