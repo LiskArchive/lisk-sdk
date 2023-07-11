@@ -142,6 +142,7 @@ export class NFTModule extends BaseInteroperableModule {
 		);
 		this._internalMethod.addDependencies(this.method, this._interoperabilityMethod);
 		this.crossChainMethod.addDependencies(interoperabilityMethod);
+		this.endpoint.addDependencies(this.method);
 	}
 
 	public metadata(): ModuleMetadata {

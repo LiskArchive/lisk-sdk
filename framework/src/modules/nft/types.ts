@@ -61,7 +61,7 @@ export interface NFTAttributes {
 export interface NFT {
 	owner: string;
 	attributesArray: NFTAttributes[];
-	lockingModule: string;
+	lockingModule?: string;
 }
 
 export interface GenesisNFTStore {

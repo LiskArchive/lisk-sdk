@@ -46,6 +46,7 @@ import {
 	hasNFTResponseSchema,
 	isNFTSupportedResponseSchema,
 } from '../../../../src/modules/nft/schemas';
+import { EscrowStore } from '../../../../src/modules/nft/stores/escrow';
 
 type NFTofOwner = Omit<NFT, 'owner'> & { id: Buffer };
 
@@ -60,6 +61,7 @@ describe('NFTEndpoint', () => {
 
 	const nftStore = module.stores.get(NFTStore);
 	const userStore = module.stores.get(UserStore);
+	const escrowStore = module.stores.get(EscrowStore);
 	const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
 
 	let stateStore: PrefixedStateReadWriter;
@@ -67,6 +69,7 @@ describe('NFTEndpoint', () => {
 
 	const owner = utils.getRandomBytes(LENGTH_ADDRESS);
 	const ownerAddress = address.getLisk32AddressFromAddress(owner);
+	const escrowChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 
 	const nfts: NFTofOwner[] = [
 		{
@@ -100,7 +103,8 @@ describe('NFTEndpoint', () => {
 				});
 
 				await userStore.set(methodContext, userStore.getKey(owner, nft.id), {
-					lockingModule: nft.lockingModule,
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+					lockingModule: nft.lockingModule!,
 				});
 			}
 
@@ -160,6 +164,31 @@ describe('NFTEndpoint', () => {
 			await expect(endpoint.getNFTs(context)).resolves.toEqual(expectedNFTs);
 
 			validator.validate(getNFTsResponseSchema, expectedNFTs);
+		});
+
+		it('should return NFT details for escrowed NFT', async () => {
+			await escrowStore.set(methodContext, escrowChainID, {});
+
+			await nftStore.save(methodContext, nfts[0].id, {
+				owner: escrowChainID,
+				attributesArray: [],
+			});
+
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					id: nfts[0].id.toString('hex'),
+				},
+			});
+
+			const expectedNFT: JSONObject<NFT> = {
+				owner: escrowChainID.toString('hex'),
+				attributesArray: [],
+			};
+
+			await expect(endpoint.getNFT(context)).resolves.toEqual(expectedNFT);
+
+			validator.validate(getNFTResponseSchema, expectedNFT);
 		});
 	});
 
