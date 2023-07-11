@@ -30,9 +30,9 @@ import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { TerminatedStateAccount, TerminatedStateStore } from '../../stores/terminated_state';
 import { ChainAccount, StateRecoveryInitParams } from '../../types';
 import { getMainchainID } from '../../utils';
-import { MainchainInteroperabilityInternalMethod } from '../../mainchain/internal_method';
+import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 
-export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
+export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<SidechainInteroperabilityInternalMethod> {
 	public schema = stateRecoveryInitParamsSchema;
 
 	// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#verification-3
