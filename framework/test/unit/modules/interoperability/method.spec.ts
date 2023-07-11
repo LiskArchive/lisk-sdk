@@ -433,7 +433,7 @@ describe('Sample Method', () => {
 	});
 
 	// both `getMessageFeeTokenID` & `getMinReturnFeePerByte` are covered here
-	describe('getChannelCommon', () => {
+	describe('_getChannelCommon', () => {
 		const newChainID = Buffer.from('00000000', 'hex');
 		beforeEach(() => {
 			jest.spyOn(channelDataStoreMock, 'has').mockResolvedValue(true);
@@ -468,12 +468,20 @@ describe('Sample Method', () => {
 			).rejects.toThrow('Channel does not exist.');
 		});
 
-		it('should return channel data for `getMessageFeeTokenID` & `getMinReturnFeePerByte`', async () => {
-			const channelData = await sampleInteroperabilityMethod['_getChannelCommon'](
+		it('should return messageFeeTokenID', async () => {
+			const messageFeeTokenID = await sampleInteroperabilityMethod['getMessageFeeTokenID'](
 				methodContext,
 				newChainID,
 			);
-			expect(channelData).toBe(sampleChannelData);
+			expect(messageFeeTokenID).toBe(sampleChannelData.messageFeeTokenID);
+		});
+
+		it('should return minReturnFeePerByte', async () => {
+			const minReturnFeePerByte = await sampleInteroperabilityMethod['getMinReturnFeePerByte'](
+				methodContext,
+				newChainID,
+			);
+			expect(minReturnFeePerByte).toBe(sampleChannelData.minReturnFeePerByte);
 		});
 	});
 
