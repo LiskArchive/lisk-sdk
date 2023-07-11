@@ -25,6 +25,7 @@ import {
 	HASH_LENGTH,
 	MAX_CCM_SIZE,
 	MODULE_NAME_INTEROPERABILITY,
+	MAX_RESERVED_ERROR_STATUS,
 } from '../../../../src/modules/interoperability/constants';
 import {
 	CCMSentFailedCode,
@@ -45,14 +46,7 @@ import { TerminatedStateStore } from '../../../../src/modules/interoperability/s
 import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
 import { getMainchainID } from '../../../../src/modules/interoperability/utils';
 
-class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {
-	protected getInteroperabilityInternalMethod = (): MainchainInteroperabilityInternalMethod =>
-		new MainchainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			this.interoperableCCMethods,
-		);
-}
+class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {}
 
 describe('Sample Method', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -480,6 +474,41 @@ describe('Sample Method', () => {
 				newChainID,
 			);
 			expect(channelData).toBe(sampleChannelData);
+		});
+	});
+
+	describe('error', () => {
+		const errMsg = `Error codes from 0 to ${MAX_RESERVED_ERROR_STATUS} (inclusive) are reserved to the Interoperability module.`;
+
+		it('should throw error for errorStatus 0', async () => {
+			await expect(sampleInteroperabilityMethod.error(methodContext, {} as any, 0)).rejects.toThrow(
+				errMsg,
+			);
+		});
+
+		it(`should throw error for errorStatus < ${MAX_RESERVED_ERROR_STATUS}`, async () => {
+			await expect(
+				sampleInteroperabilityMethod.error(methodContext, {} as any, MAX_RESERVED_ERROR_STATUS - 1),
+			).rejects.toThrow(errMsg);
+		});
+
+		it(`should throw error for errorStatus ${MAX_RESERVED_ERROR_STATUS}`, async () => {
+			await expect(
+				sampleInteroperabilityMethod.error(methodContext, {} as any, MAX_RESERVED_ERROR_STATUS),
+			).rejects.toThrow(errMsg);
+		});
+
+		it(`should not throw error for errorStatus > ${MAX_RESERVED_ERROR_STATUS}`, async () => {
+			jest.spyOn(sampleInteroperabilityMethod, 'send');
+			try {
+				await sampleInteroperabilityMethod.error(
+					methodContext,
+					{} as any,
+					MAX_RESERVED_ERROR_STATUS + 1,
+				);
+			} catch (err) {
+				expect(sampleInteroperabilityMethod.send).toHaveBeenCalled();
+			}
 		});
 	});
 
