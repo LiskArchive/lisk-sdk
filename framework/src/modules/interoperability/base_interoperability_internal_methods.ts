@@ -481,11 +481,17 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		// receivingChainID must correspond to a live chain.
 		// `timestamp` is only used in MainchainInteroperabilityInternalMethod::isLive
 		// but not in SidechainInteroperabilityInternalMethod::isLive
+		let isReceivingChainLive;
 		const mainchainID = getMainchainID(ownChainAccount.chainID);
-		if (ownChainAccount.chainID.equals(mainchainID) && !timestamp) {
-			throw new Error('Timestamp must be provided in mainchain context.');
+		if (ownChainAccount.chainID.equals(mainchainID)) {
+			if (!timestamp) {
+				throw new Error('Timestamp must be provided in mainchain context.');
+			}
+			isReceivingChainLive = await this.isLive(context, receivingChainID, timestamp);
+		} else {
+			isReceivingChainLive = await this.isLive(context, receivingChainID);
 		}
-		const isReceivingChainLive = await this.isLive(context, receivingChainID, timestamp);
+
 		if (!isReceivingChainLive) {
 			this.events.get(CcmSentFailedEvent).log(
 				context,
