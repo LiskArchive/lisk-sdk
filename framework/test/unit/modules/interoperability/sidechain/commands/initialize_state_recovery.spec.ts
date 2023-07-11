@@ -236,6 +236,43 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 			);
 		});
 
+		it('should return error if sidechain data does not match schema', async () => {
+			const invalidSidechainChainAccountEncoded = codec.encode(chainDataSchema, {
+				...sidechainChainAccount,
+				lastCertificate: {
+					...sidechainChainAccount.lastCertificate,
+					stateRoot: Buffer.alloc(0),
+				},
+			});
+			transactionParams = {
+				chainID: utils.intToBuffer(3, 4),
+				bitmap: Buffer.alloc(0),
+				siblingHashes: [],
+				sidechainAccount: invalidSidechainChainAccountEncoded,
+			};
+			encodedTransactionParams = codec.encode(stateRecoveryInitParamsSchema, transactionParams);
+			transaction = new Transaction({
+				module: MODULE_NAME_INTEROPERABILITY,
+				command: COMMAND_NAME_STATE_RECOVERY_INIT,
+				fee: BigInt(100000000),
+				nonce: BigInt(0),
+				params: encodedTransactionParams,
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [],
+			});
+			transactionContext = createTransactionContext({
+				transaction,
+				stateStore,
+			});
+			commandVerifyContext = transactionContext.createCommandVerifyContext<StateRecoveryInitParams>(
+				stateRecoveryInitParamsSchema,
+			);
+
+			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
+				"Lisk validator found 1 error[s]:\nProperty '.lastCertificate.stateRoot' minLength not satisfied",
+			);
+		});
+
 		it('should return error if the sidechain is not terminated on the mainchain but the sidechain violates the liveness requirement', async () => {
 			const mainchainID = getMainchainID(transactionParams.chainID);
 			when(chainAccountStoreMock.get)
