@@ -15,7 +15,13 @@
 import { validator } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../../../types';
 import { BaseInteroperabilityEndpoint } from '../base_interoperability_endpoint';
-import { CHAIN_REGISTRATION_FEE, EMPTY_BYTES, MIN_RETURN_FEE_PER_BYTE_BEDDOWS } from '../constants';
+import {
+	CHAIN_REGISTRATION_FEE,
+	EMPTY_BYTES,
+	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
+	MIN_CHAIN_NAME_LENGTH,
+	MAX_CHAIN_NAME_LENGTH,
+} from '../constants';
 import { isChainIDAvailableRequestSchema } from '../schemas';
 import { ChainAccountStore } from '../stores/chain_account';
 import { OwnChainAccountStore } from '../stores/own_chain_account';
@@ -73,6 +79,12 @@ export class MainchainInteroperabilityEndpoint extends BaseInteroperabilityEndpo
 		if (!isValidName(name)) {
 			throw new Error(
 				`Invalid name property. It should contain only characters from the set [a-z0-9!@$&_.].`,
+			);
+		}
+
+		if (name.length < MIN_CHAIN_NAME_LENGTH || name.length > MAX_CHAIN_NAME_LENGTH) {
+			throw new Error(
+				`Invalid name property. Length should be >= ${MIN_CHAIN_NAME_LENGTH} and <= ${MAX_CHAIN_NAME_LENGTH}.`,
 			);
 		}
 
