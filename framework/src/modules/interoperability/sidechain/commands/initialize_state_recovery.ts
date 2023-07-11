@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
@@ -64,6 +65,9 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 			chainDataSchema,
 			sidechainAccount,
 		);
+
+		validator.validate(chainDataSchema, deserializedSidechainAccount);
+
 		const mainchainAccount = await this.stores.get(ChainAccountStore).get(context, mainchainID);
 		// The commands fails if the sidechain is not terminated and did not violate the liveness requirement.
 		if (
