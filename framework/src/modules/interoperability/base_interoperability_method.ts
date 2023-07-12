@@ -176,7 +176,7 @@ export abstract class BaseInteroperabilityMethod<
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#terminatechain
 	public async terminateChain(context: MethodContext, chainID: Buffer): Promise<void> {
-		if (await this.getTerminatedStateAccount(context, chainID)) {
+		if (await this.stores.get(TerminatedStateStore).has(context, chainID)) {
 			return;
 		}
 

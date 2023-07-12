@@ -533,6 +533,7 @@ describe('Sample Method', () => {
 		});
 
 		it('should do nothing if chain was already terminated', async () => {
+			jest.spyOn(terminatedStateAccountStoreMock, 'has').mockResolvedValue(true);
 			jest.spyOn(sampleInteroperabilityMethod, 'getTerminatedStateAccount').mockResolvedValue({
 				stateRoot: sidechainChainAccount.lastCertificate.stateRoot,
 				mainchainStateRoot: Buffer.alloc(HASH_LENGTH),
@@ -544,9 +545,7 @@ describe('Sample Method', () => {
 		});
 
 		it('should process with input chainID', async () => {
-			jest
-				.spyOn(sampleInteroperabilityMethod as any, 'getTerminatedStateAccount')
-				.mockResolvedValue(undefined);
+			jest.spyOn(terminatedStateAccountStoreMock, 'has').mockResolvedValue(false);
 
 			await sampleInteroperabilityMethod.terminateChain(methodContext, chainID);
 
