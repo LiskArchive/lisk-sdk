@@ -14,11 +14,13 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { StoreGetter } from '../../../../../src/modules/base_store';
-import { defaultConfig, TOKEN_ID_LENGTH } from '../../../../../src/modules/pos/constants';
+import { TOKEN_ID_LENGTH, defaultConfig } from '../../../../../src/modules/pos/constants';
 import { EligibleValidatorsStore } from '../../../../../src/modules/pos/stores/eligible_validators';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import { createStoreGetter } from '../../../../../src/testing/utils';
+import { getModuleConfig } from '../../../../../src/modules/pos/utils';
+import { ModuleConfigJSON } from '../../../../../src/modules/pos/types';
 
 describe('EligibleValidatorsStore', () => {
 	let stateStore: PrefixedStateReadWriter;
@@ -54,17 +56,16 @@ describe('EligibleValidatorsStore', () => {
 		totalStake: BigInt(250000000000),
 		sharingCoefficients: [],
 	};
+	const config = getModuleConfig({
+		...defaultConfig,
+		posTokenID: '00'.repeat(TOKEN_ID_LENGTH),
+	} as ModuleConfigJSON);
 
 	beforeEach(async () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		context = createStoreGetter(stateStore);
 		eligibleValidatorsStore = new EligibleValidatorsStore('pos', 6);
-		eligibleValidatorsStore.init({
-			...defaultConfig,
-			minWeightStandby: BigInt(defaultConfig.minWeightStandby),
-			posTokenID: Buffer.alloc(TOKEN_ID_LENGTH),
-			validatorRegistrationFee: BigInt(defaultConfig.validatorRegistrationFee),
-		});
+		eligibleValidatorsStore.init(config);
 		for (const eligibleValidator of eligibleValidators) {
 			const key = eligibleValidatorsStore.getKey(
 				eligibleValidator.address,

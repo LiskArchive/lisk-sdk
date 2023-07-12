@@ -260,12 +260,11 @@ export class PoSModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig } = args;
-		const defaultPoSTokenID = `${args.genesisConfig.chainID}${Buffer.alloc(4).toString('hex')}`;
 		const config = objects.mergeDeep(
 			{},
 			{
 				...defaultConfig,
-				posTokenID: defaultPoSTokenID,
+				posTokenID: `${args.genesisConfig.chainID}${Buffer.alloc(4).toString('hex')}`,
 			},
 			moduleConfig,
 		) as ModuleConfigJSON;
