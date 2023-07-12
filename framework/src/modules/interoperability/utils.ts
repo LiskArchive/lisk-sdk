@@ -128,12 +128,6 @@ export const isInboxUpdateEmpty = (inboxUpdate: InboxUpdate) =>
 export const isOutboxRootWitnessEmpty = (outboxRootWitness: OutboxRootWitness) =>
 	outboxRootWitness.siblingHashes.length === 0 || outboxRootWitness.bitmap.length === 0;
 
-export const isCertificateEmpty = (decodedCertificate: Certificate) =>
-	decodedCertificate.blockID.equals(EMPTY_BYTES) ||
-	decodedCertificate.stateRoot.equals(EMPTY_BYTES) ||
-	decodedCertificate.validatorsHash.equals(EMPTY_BYTES) ||
-	decodedCertificate.timestamp === 0;
-
 export const checkLivenessRequirementFirstCCU = (
 	partnerChainAccount: ChainAccount,
 	txParams: CrossChainUpdateTransactionParams,

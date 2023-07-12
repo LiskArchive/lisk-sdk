@@ -23,6 +23,7 @@ import {
 	HASH_LENGTH,
 	LIVENESS_LIMIT,
 	MAX_CCM_SIZE,
+	MAX_LENGTH_AGGREGATION_BITS,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../src/modules/interoperability/constants';
 import {
@@ -36,6 +37,7 @@ import {
 	checkLivenessRequirementFirstCCU,
 	checkValidatorsHashWithCertificate,
 	computeValidatorsHash,
+	validateCertificate,
 	validateFormat,
 	verifyLivenessConditionForRegisteredChains,
 } from '../../../../src/modules/interoperability/utils';
@@ -69,6 +71,54 @@ describe('Utils', () => {
 		bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4), BigInt(3)],
 		bftWeightsUpdateBitmap: Buffer.from([1, 0, 2]),
 	};
+
+	describe('validateCertificate', () => {
+		it('should throw if certificate does not comply schema', () => {
+			expect(() =>
+				validateCertificate({
+					...defaultCertificate,
+					blockID: cryptography.utils.getRandomBytes(HASH_LENGTH + 1),
+				}),
+			).toThrow("Property '.blockID' maxLength exceeded");
+			expect(() =>
+				validateCertificate({
+					...defaultCertificate,
+					stateRoot: Buffer.alloc(HASH_LENGTH + 1),
+				}),
+			).toThrow("Property '.stateRoot' maxLength exceeded");
+			expect(() =>
+				validateCertificate({
+					...defaultCertificate,
+					validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH + 1),
+				}),
+			).toThrow("Property '.validatorsHash' maxLength exceeded");
+			expect(() =>
+				validateCertificate({
+					...defaultCertificate,
+					aggregationBits: cryptography.utils.getRandomBytes(MAX_LENGTH_AGGREGATION_BITS + 1),
+				}),
+			).toThrow("Property '.aggregationBits' maxLength exceeded");
+			expect(() =>
+				validateCertificate({
+					...defaultCertificate,
+					signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH + 1),
+				}),
+			).toThrow("Property '.signature' maxLength exceeded");
+		});
+
+		it('should throw if certificate timestamp is 0', () => {
+			expect(() =>
+				validateCertificate({
+					...defaultCertificate,
+					timestamp: 0,
+				}),
+			).toThrow('Certificate timestamp cannot be 0');
+		});
+
+		it('should pass validateCertificate check', () => {
+			expect(() => validateCertificate(defaultCertificate)).not.toThrow();
+		});
+	});
 
 	describe('checkLivenessRequirementFirstCCU', () => {
 		const partnerChainAccount = {
