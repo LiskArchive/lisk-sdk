@@ -280,9 +280,18 @@ export class NFTMethod extends BaseMethod {
 		collectionID: Buffer,
 	): Promise<number> {
 		const nftStore = this.stores.get(NFTStore);
+
 		const nftStoreData = await nftStore.iterate(methodContext, {
-			gte: Buffer.alloc(LENGTH_NFT_ID, 0),
-			lte: Buffer.alloc(LENGTH_NFT_ID, 255),
+			gte: Buffer.concat([
+				this._config.ownChainID,
+				collectionID,
+				Buffer.alloc(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID, 0),
+			]),
+			lte: Buffer.concat([
+				this._config.ownChainID,
+				collectionID,
+				Buffer.alloc(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID, 255),
+			]),
 		});
 
 		let count = 0;

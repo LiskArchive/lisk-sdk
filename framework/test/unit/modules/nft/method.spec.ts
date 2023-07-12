@@ -96,7 +96,10 @@ describe('NFTMethod', () => {
 	const userStore = module.stores.get(UserStore);
 	const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
 
-	const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
+	const nftID = Buffer.concat([
+		config.ownChainID,
+		utils.getRandomBytes(LENGTH_NFT_ID - LENGTH_CHAIN_ID),
+	]);
 	let owner: Buffer;
 
 	const checkEventResult = <EventDataType>(
@@ -424,14 +427,20 @@ describe('NFTMethod', () => {
 		});
 
 		it('should return false if nft chain id does not equal own chain id and nft chain id is supported but corresponding supported collection id array does not include collection id for nft id', async () => {
-			await supportedNFTsStore.set(methodContext, nftID.slice(0, LENGTH_CHAIN_ID), {
+			const foreignNFT = utils.getRandomBytes(LENGTH_NFT_ID);
+			await nftStore.save(methodContext, foreignNFT, {
+				owner: utils.getRandomBytes(LENGTH_ADDRESS),
+				attributesArray: [],
+			});
+
+			await supportedNFTsStore.set(methodContext, foreignNFT.slice(0, LENGTH_CHAIN_ID), {
 				supportedCollectionIDArray: [
 					{ collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID) },
 					{ collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID) },
 				],
 			});
 
-			const isSupported = await method.isNFTSupported(methodContext, nftID);
+			const isSupported = await method.isNFTSupported(methodContext, foreignNFT);
 			expect(isSupported).toBe(false);
 		});
 	});
@@ -531,7 +540,11 @@ describe('NFTMethod', () => {
 		});
 
 		it('should return non zero index count if entry exists in the nft substore for the nft id and more than 1 key matches the given collection id', async () => {
-			const newKey = Buffer.concat([utils.getRandomBytes(LENGTH_CHAIN_ID), collectionID]);
+			const newKey = Buffer.concat([
+				config.ownChainID,
+				collectionID,
+				utils.getRandomBytes(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID),
+			]);
 			await nftStore.save(methodContext, newKey, {
 				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
 				attributesArray: attributesArray2,
@@ -604,7 +617,11 @@ describe('NFTMethod', () => {
 				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
 				attributesArray: attributesArray1,
 			});
-			const newKey = Buffer.concat([utils.getRandomBytes(LENGTH_CHAIN_ID), collectionID]);
+			const newKey = Buffer.concat([
+				config.ownChainID,
+				collectionID,
+				utils.getRandomBytes(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID),
+			]);
 			await nftStore.save(methodContext, newKey, {
 				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
 				attributesArray: attributesArray2,
@@ -936,13 +953,14 @@ describe('NFTMethod', () => {
 		});
 
 		it('should throw and emit error transfer cross chain event if nft does not exist', async () => {
-			receivingChainID = nftID.slice(0, LENGTH_CHAIN_ID);
+			const nonExistingNFTID = utils.getRandomBytes(LENGTH_NFT_ID);
+			receivingChainID = nonExistingNFTID.slice(0, LENGTH_CHAIN_ID);
 			await expect(
 				method.transferCrossChain(
 					methodContext,
 					senderAddress,
 					recipientAddress,
-					nftID,
+					nonExistingNFTID,
 					receivingChainID,
 					messageFee,
 					data,
@@ -958,7 +976,7 @@ describe('NFTMethod', () => {
 					senderAddress,
 					recipientAddress,
 					receivingChainID,
-					nftID,
+					nftID: nonExistingNFTID,
 					includeAttributes,
 				},
 				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
