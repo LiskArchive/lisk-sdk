@@ -15,11 +15,12 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { VerifyStatus } from '../../../../src';
+import { BLS_SIGNATURE_LENGTH, VerifyStatus } from '../../../../src';
 import {
 	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 	EMPTY_BYTES,
+	HASH_LENGTH,
 	LIVENESS_LIMIT,
 	MAX_CCM_SIZE,
 	MODULE_NAME_INTEROPERABILITY,
@@ -48,6 +49,16 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 }));
 
 describe('Utils', () => {
+	const defaultCertificate = {
+		blockID: cryptography.utils.getRandomBytes(HASH_LENGTH),
+		height: 23,
+		stateRoot: Buffer.alloc(HASH_LENGTH),
+		timestamp: Math.floor(Date.now() / 1000),
+		validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH),
+		aggregationBits: cryptography.utils.getRandomBytes(1),
+		signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
+	};
+
 	const defaultActiveValidatorsUpdate = {
 		blsKeysUpdate: [
 			utils.getRandomBytes(48),
@@ -104,20 +115,12 @@ describe('Utils', () => {
 		};
 
 		const certificate = {
-			blockID: cryptography.utils.getRandomBytes(20),
-			height: 23,
-			stateRoot: Buffer.alloc(2),
-			timestamp: Math.floor(Date.now() / 1000),
-			validatorsHash: cryptography.utils.getRandomBytes(20),
-			aggregationBits: cryptography.utils.getRandomBytes(1),
-			signature: cryptography.utils.getRandomBytes(32),
+			...defaultCertificate,
 		};
 
 		const certificateWithEmptyValues = {
-			blockID: cryptography.utils.getRandomBytes(20),
-			height: 23,
+			...defaultCertificate,
 			stateRoot: EMPTY_BYTES,
-			timestamp: Math.floor(Date.now() / 1000),
 			validatorsHash: EMPTY_BYTES,
 			aggregationBits: EMPTY_BYTES,
 			signature: EMPTY_BYTES,
@@ -214,13 +217,8 @@ describe('Utils', () => {
 		);
 
 		const certificate: Certificate = {
-			aggregationBits: Buffer.alloc(2),
-			signature: Buffer.alloc(2),
+			...defaultCertificate,
 			validatorsHash,
-			blockID: cryptography.utils.getRandomBytes(20),
-			height: 20,
-			stateRoot: cryptography.utils.getRandomBytes(32),
-			timestamp: Math.floor(Date.now() / 1000),
 		};
 
 		const encodedCertificate = codec.encode(certificateSchema, certificate);
@@ -265,13 +263,8 @@ describe('Utils', () => {
 
 		it('should return VerifyStatus.FAIL when validators hash is incorrect', () => {
 			const certificateInvalidValidatorHash: Certificate = {
-				aggregationBits: Buffer.alloc(2),
-				signature: Buffer.alloc(2),
-				validatorsHash: cryptography.utils.getRandomBytes(48),
-				blockID: cryptography.utils.getRandomBytes(20),
-				height: 20,
-				stateRoot: cryptography.utils.getRandomBytes(32),
-				timestamp: Math.floor(Date.now() / 1000),
+				...certificate,
+				validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH),
 			};
 			const invalidEncodedCertificate = codec.encode(
 				certificateSchema,
@@ -405,13 +398,8 @@ describe('Utils', () => {
 
 	describe('verifyLivenessConditionForRegisteredChains', () => {
 		const certificate = {
-			blockID: utils.getRandomBytes(20),
-			height: 23,
-			stateRoot: Buffer.alloc(2),
+			...defaultCertificate,
 			timestamp: 100000,
-			validatorsHash: utils.getRandomBytes(20),
-			aggregationBits: utils.getRandomBytes(1),
-			signature: utils.getRandomBytes(32),
 		};
 		const ccuParams = {
 			activeValidatorsUpdate: {

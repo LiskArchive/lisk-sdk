@@ -35,6 +35,7 @@ import {
 	validateFormat,
 	calculateNewActiveValidators,
 	emptyActiveValidatorsUpdate,
+	validateCertificate,
 } from './utils';
 import { NamedRegistry } from '../named_registry';
 import { OwnChainAccountStore } from './stores/own_chain_account';
@@ -270,6 +271,8 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		ccu: CrossChainUpdateTransactionParams,
 	): Promise<void> {
 		const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
+		validateCertificate(certificate);
+
 		const chainAccountStore = this.stores.get(ChainAccountStore);
 		const chainAccount = await chainAccountStore.get(context, ccu.sendingChainID);
 		const updatedChainAccount = {
@@ -359,6 +362,8 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		}
 
 		const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
+		validateCertificate(certificate);
+
 		const newValidatorsHash = computeValidatorsHash(newActiveValidators, ccu.certificateThreshold);
 		if (!certificate.validatorsHash.equals(newValidatorsHash)) {
 			throw new Error('ValidatorsHash in certificate and the computed values do not match.');
@@ -371,6 +376,8 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		blockTimestamp: number,
 	): Promise<void> {
 		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
+		validateCertificate(certificate);
+
 		const partnerchainAccount = await this.stores
 			.get(ChainAccountStore)
 			.get(context, params.sendingChainID);
@@ -405,6 +412,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		params: CrossChainUpdateTransactionParams,
 	): Promise<void> {
 		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
+		validateCertificate(certificate);
 
 		const chainValidators = await this.stores
 			.get(ChainValidatorsStore)
@@ -634,6 +642,8 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			],
 		};
 		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
+		validateCertificate(certificate);
+
 		const smt = new SparseMerkleTree();
 		const valid = await smt.verify(certificate.stateRoot, [outboxKey], proof);
 		if (!valid) {

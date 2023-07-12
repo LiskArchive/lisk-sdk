@@ -54,6 +54,14 @@ export const validateFormat = (ccm: CCMsg) => {
 	}
 };
 
+export const validateCertificate = (certificate: Certificate) => {
+	validator.validate(certificateSchema, certificate);
+
+	if (certificate.timestamp === 0) {
+		throw new Error('Certificate timestamp cannot be 0');
+	}
+};
+
 export const getCCMSize = (ccm: CCMsg) => {
 	const serializedCCM = codec.encode(ccmSchema, ccm);
 
@@ -160,7 +168,9 @@ export const checkCertificateValidity = (
 	}
 
 	const decodedCertificate = codec.decode<Certificate>(certificateSchema, encodedCertificate);
-	if (isCertificateEmpty(decodedCertificate)) {
+	try {
+		validateCertificate(decodedCertificate);
+	} catch (err) {
 		return {
 			status: VerifyStatus.FAIL,
 			error: new Error('Certificate is missing required values.'),
@@ -214,9 +224,7 @@ export const checkValidatorsHashWithCertificate = (
 		let decodedCertificate: Certificate;
 		try {
 			decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
-			if (isCertificateEmpty(decodedCertificate)) {
-				throw new Error('Invalid empty certificate.');
-			}
+			validateCertificate(decodedCertificate);
 		} catch (error) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -266,6 +274,8 @@ export const verifyLivenessConditionForRegisteredChains = (
 	blockTimestamp: number,
 ) => {
 	const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
+	validateCertificate(certificate);
+
 	const limitSecond = LIVENESS_LIMIT / 2;
 	if (blockTimestamp - certificate.timestamp > limitSecond) {
 		throw new Error(

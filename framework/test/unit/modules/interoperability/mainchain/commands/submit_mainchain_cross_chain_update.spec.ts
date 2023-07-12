@@ -16,6 +16,7 @@
 import { bls, utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -23,6 +24,7 @@ import {
 	SubmitMainchainCrossChainUpdateCommand,
 	MainchainInteroperabilityModule,
 	Transaction,
+	BLS_SIGNATURE_LENGTH,
 } from '../../../../../../src';
 import {
 	ActiveValidator,
@@ -83,13 +85,13 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 	const senderPublicKey = utils.getRandomBytes(32);
 	const messageFeeTokenID = Buffer.alloc(8, 0);
 	const defaultCertificateValues: Certificate = {
-		blockID: utils.getRandomBytes(20),
+		blockID: cryptography.utils.getRandomBytes(HASH_LENGTH),
 		height: 21,
 		timestamp: Math.floor(Date.now() / 1000),
 		stateRoot: utils.getRandomBytes(HASH_LENGTH),
-		validatorsHash: utils.getRandomBytes(48),
-		aggregationBits: utils.getRandomBytes(38),
-		signature: utils.getRandomBytes(32),
+		validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH),
+		aggregationBits: cryptography.utils.getRandomBytes(1),
+		signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
 	};
 
 	const defaultNewCertificateThreshold = BigInt(20);
@@ -476,7 +478,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 						...params,
 						certificate: codec.encode(certificateSchema, {
 							...defaultCertificateValues,
-							timestamp: 0,
+							timestamp: 1,
 						}),
 					},
 				}),

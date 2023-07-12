@@ -19,6 +19,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
 import {
 	BLS_PUBLIC_KEY_LENGTH,
+	BLS_SIGNATURE_LENGTH,
 	EMPTY_BYTES,
 	EMPTY_HASH,
 	HASH_LENGTH,
@@ -77,6 +78,15 @@ describe('Base interoperability internal method', () => {
 		fee: BigInt(1),
 		status: 1,
 		params: Buffer.alloc(0),
+	};
+	const defaultCertificate = {
+		blockID: cryptography.utils.getRandomBytes(HASH_LENGTH),
+		height: 101,
+		stateRoot: Buffer.alloc(HASH_LENGTH),
+		timestamp: Math.floor(Date.now() / 1000),
+		validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH),
+		aggregationBits: cryptography.utils.getRandomBytes(1),
+		signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
 	};
 	const inboxTree = {
 		root: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
@@ -645,19 +655,9 @@ describe('Base interoperability internal method', () => {
 			jest.spyOn(interopMod.events.get(ChainAccountUpdatedEvent), 'log');
 			jest.spyOn(interopMod.stores.get(ChainAccountStore), 'set');
 
-			const certificate = {
-				blockID: cryptoUtils.getRandomBytes(HASH_LENGTH),
-				height: 120,
-				stateRoot: cryptoUtils.getRandomBytes(HASH_LENGTH),
-				timestamp: 1212,
-				validatorsHash: cryptoUtils.getRandomBytes(HASH_LENGTH),
-				aggregationBits: cryptoUtils.getRandomBytes(2),
-				signature: cryptoUtils.getRandomBytes(64),
-			};
-
 			const ccu = {
 				...ccuParams,
-				certificate: codec.encode(certificateSchema, certificate),
+				certificate: codec.encode(certificateSchema, defaultCertificate),
 			};
 
 			await interopMod.stores.get(ChainAccountStore).set(storeContext, ccuParams.sendingChainID, {
@@ -678,10 +678,10 @@ describe('Base interoperability internal method', () => {
 				ccu.sendingChainID,
 				expect.objectContaining({
 					lastCertificate: {
-						height: certificate.height,
-						stateRoot: certificate.stateRoot,
-						timestamp: certificate.timestamp,
-						validatorsHash: certificate.validatorsHash,
+						height: defaultCertificate.height,
+						stateRoot: defaultCertificate.stateRoot,
+						timestamp: defaultCertificate.timestamp,
+						validatorsHash: defaultCertificate.validatorsHash,
 					},
 				}),
 			);
@@ -690,10 +690,10 @@ describe('Base interoperability internal method', () => {
 				ccu.sendingChainID,
 				expect.objectContaining({
 					lastCertificate: {
-						height: certificate.height,
-						stateRoot: certificate.stateRoot,
-						timestamp: certificate.timestamp,
-						validatorsHash: certificate.validatorsHash,
+						height: defaultCertificate.height,
+						stateRoot: defaultCertificate.stateRoot,
+						timestamp: defaultCertificate.timestamp,
+						validatorsHash: defaultCertificate.validatorsHash,
 					},
 				}),
 			);
@@ -744,17 +744,7 @@ describe('Base interoperability internal method', () => {
 	});
 
 	describe('verifyValidatorsUpdate', () => {
-		const certificate = {
-			blockID: cryptoUtils.getRandomBytes(32),
-			height: 120,
-			stateRoot: cryptoUtils.getRandomBytes(32),
-			timestamp: 1212,
-			validatorsHash: cryptoUtils.getRandomBytes(32),
-			aggregationBits: cryptoUtils.getRandomBytes(2),
-			signature: cryptoUtils.getRandomBytes(64),
-		};
-
-		it('shoud reject if the certificate is empty', async () => {
+		it('should reject if the certificate is empty', async () => {
 			const ccu = {
 				...ccuParams,
 				certificate: Buffer.alloc(0),
@@ -765,10 +755,10 @@ describe('Base interoperability internal method', () => {
 			).rejects.toThrow('Certificate must be non-empty if validators have been updated');
 		});
 
-		it('shoud reject if BLS keys are not sorted lexicographically', async () => {
+		it('should reject if BLS keys are not sorted lexicographically', async () => {
 			const ccu = {
 				...ccuParams,
-				certificate: codec.encode(certificateSchema, certificate),
+				certificate: codec.encode(certificateSchema, defaultCertificate),
 				activeValidatorsUpdate: {
 					blsKeysUpdate: [
 						Buffer.from([0, 0, 0, 0]),
@@ -785,10 +775,10 @@ describe('Base interoperability internal method', () => {
 			).rejects.toThrow('Keys are not sorted lexicographic order');
 		});
 
-		it('shoud reject if blsKyesUpdate contains duplicate keys', async () => {
+		it('should reject if blsKyesUpdate contains duplicate keys', async () => {
 			const ccu = {
 				...ccuParams,
-				certificate: codec.encode(certificateSchema, certificate),
+				certificate: codec.encode(certificateSchema, defaultCertificate),
 				activeValidatorsUpdate: {
 					blsKeysUpdate: [
 						Buffer.from([0, 0, 0, 0]),
@@ -809,10 +799,10 @@ describe('Base interoperability internal method', () => {
 			).rejects.toThrow('Keys have duplicated entry');
 		});
 
-		it('shoud reject if BLS keys are not unique', async () => {
+		it('should reject if BLS keys are not unique', async () => {
 			const ccu = {
 				...ccuParams,
-				certificate: codec.encode(certificateSchema, certificate),
+				certificate: codec.encode(certificateSchema, defaultCertificate),
 				activeValidatorsUpdate: {
 					blsKeysUpdate: [
 						Buffer.from([0, 0, 0, 0]),
@@ -833,10 +823,10 @@ describe('Base interoperability internal method', () => {
 			).rejects.toThrow('Keys have duplicated entry');
 		});
 
-		it('shoud reject if bftWeightsUpdateBitmap does not corresponds to the bftWeightsUpdateBitmap', async () => {
+		it('should reject if bftWeightsUpdateBitmap does not corresponds to the bftWeightsUpdateBitmap', async () => {
 			const ccu = {
 				...ccuParams,
-				certificate: codec.encode(certificateSchema, certificate),
+				certificate: codec.encode(certificateSchema, defaultCertificate),
 				activeValidatorsUpdate: {
 					blsKeysUpdate: [
 						Buffer.from([0, 0, 0, 0]),
@@ -860,10 +850,10 @@ describe('Base interoperability internal method', () => {
 			);
 		});
 
-		it('shoud reject if new validator does not have bft weight', async () => {
+		it('should reject if new validator does not have bft weight', async () => {
 			const ccu = {
 				...ccuParams,
-				certificate: codec.encode(certificateSchema, certificate),
+				certificate: codec.encode(certificateSchema, defaultCertificate),
 				activeValidatorsUpdate: {
 					blsKeysUpdate: [
 						Buffer.from([0, 0, 0, 0]),
@@ -885,10 +875,10 @@ describe('Base interoperability internal method', () => {
 			).rejects.toThrow('New validators must have a BFT weight update.');
 		});
 
-		it('shoud reject if new validator have bft weight = 0', async () => {
+		it('should reject if new validator have bft weight = 0', async () => {
 			const ccu = {
 				...ccuParams,
-				certificate: codec.encode(certificateSchema, certificate),
+				certificate: codec.encode(certificateSchema, defaultCertificate),
 				activeValidatorsUpdate: {
 					blsKeysUpdate: [
 						Buffer.from([0, 0, 0, 0]),
@@ -910,10 +900,10 @@ describe('Base interoperability internal method', () => {
 			).rejects.toThrow('New validators must have a positive BFT weight.');
 		});
 
-		it('shoud reject new validatorsHash does not match with certificate', async () => {
+		it('should reject new validatorsHash does not match with certificate', async () => {
 			const ccu = {
 				...ccuParams,
-				certificate: codec.encode(certificateSchema, certificate),
+				certificate: codec.encode(certificateSchema, defaultCertificate),
 				activeValidatorsUpdate: {
 					blsKeysUpdate: [
 						Buffer.from([0, 0, 0, 0]),
@@ -954,10 +944,10 @@ describe('Base interoperability internal method', () => {
 			);
 		});
 
-		it('shoud resolve if updates are valid', async () => {
+		it('should resolve if updates are valid', async () => {
 			const ccu = {
 				...ccuParams,
-				certificate: codec.encode(certificateSchema, certificate),
+				certificate: codec.encode(certificateSchema, defaultCertificate),
 				activeValidatorsUpdate: {
 					blsKeysUpdate: [
 						Buffer.from([0, 0, 0, 0]),
@@ -982,7 +972,7 @@ describe('Base interoperability internal method', () => {
 				{ blsKey: existingKey, bftWeight: BigInt(2) },
 			];
 			jest.spyOn(utils, 'calculateNewActiveValidators').mockReturnValue(newValidators);
-			jest.spyOn(utils, 'computeValidatorsHash').mockReturnValue(certificate.validatorsHash);
+			jest.spyOn(utils, 'computeValidatorsHash').mockReturnValue(defaultCertificate.validatorsHash);
 
 			await expect(
 				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
@@ -1031,13 +1021,8 @@ describe('Base interoperability internal method', () => {
 
 		it('should reject when certificate height is lower than last certificate height', async () => {
 			const certificate: Certificate = {
-				blockID: cryptoUtils.getRandomBytes(20),
+				...defaultCertificate,
 				height: 100,
-				timestamp: Math.floor(Date.now() / 1000),
-				stateRoot: cryptoUtils.getRandomBytes(38),
-				validatorsHash: cryptoUtils.getRandomBytes(48),
-				aggregationBits: cryptoUtils.getRandomBytes(38),
-				signature: cryptoUtils.getRandomBytes(32),
 			};
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
 			await expect(
@@ -1054,13 +1039,9 @@ describe('Base interoperability internal method', () => {
 
 		it('should reject when certificate timestamp is greater than blockTimestamp', async () => {
 			const certificate: Certificate = {
-				blockID: cryptoUtils.getRandomBytes(20),
+				...defaultCertificate,
 				height: 101,
 				timestamp: 1000,
-				stateRoot: cryptoUtils.getRandomBytes(38),
-				validatorsHash: cryptoUtils.getRandomBytes(48),
-				aggregationBits: cryptoUtils.getRandomBytes(38),
-				signature: cryptoUtils.getRandomBytes(32),
 			};
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
 			await expect(
@@ -1086,13 +1067,10 @@ describe('Base interoperability internal method', () => {
 				});
 
 			const certificate: Certificate = {
-				blockID: cryptoUtils.getRandomBytes(20),
+				...defaultCertificate,
 				height: 101,
 				timestamp: 1000,
-				stateRoot: cryptoUtils.getRandomBytes(38),
-				validatorsHash: cryptoUtils.getRandomBytes(48),
-				aggregationBits: cryptoUtils.getRandomBytes(38),
-				signature: cryptoUtils.getRandomBytes(32),
+				validatorsHash: cryptoUtils.getRandomBytes(HASH_LENGTH),
 			};
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
 			await expect(
@@ -1112,13 +1090,8 @@ describe('Base interoperability internal method', () => {
 
 		it('should resolve when certificate is valid', async () => {
 			const certificate: Certificate = {
-				blockID: cryptoUtils.getRandomBytes(20),
-				height: 101,
+				...defaultCertificate,
 				timestamp: 1000,
-				stateRoot: cryptoUtils.getRandomBytes(38),
-				validatorsHash: cryptoUtils.getRandomBytes(48),
-				aggregationBits: cryptoUtils.getRandomBytes(38),
-				signature: cryptoUtils.getRandomBytes(32),
 			};
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
 			await expect(
@@ -1153,15 +1126,7 @@ describe('Base interoperability internal method', () => {
 			bftWeightsUpdateBitmap: Buffer.from([1, 0, 2]),
 		};
 
-		const certificate: Certificate = {
-			blockID: cryptoUtils.getRandomBytes(20),
-			height: 21,
-			timestamp: Math.floor(Date.now() / 1000),
-			stateRoot: cryptoUtils.getRandomBytes(38),
-			validatorsHash: cryptoUtils.getRandomBytes(48),
-			aggregationBits: cryptoUtils.getRandomBytes(38),
-			signature: cryptoUtils.getRandomBytes(32),
-		};
+		const certificate: Certificate = defaultCertificate;
 		const { aggregationBits, signature, ...unsignedCertificate } = certificate;
 		const encodedCertificate = codec.encode(certificateSchema, certificate);
 		const encodedUnsignedCertificate = codec.encode(unsignedCertificateSchema, unsignedCertificate);
@@ -1225,16 +1190,7 @@ describe('Base interoperability internal method', () => {
 	});
 
 	describe('verifyPartnerChainOutboxRoot', () => {
-		const certificate: Certificate = {
-			blockID: cryptoUtils.getRandomBytes(20),
-			height: 21,
-			timestamp: Math.floor(Date.now() / 1000),
-			stateRoot: cryptoUtils.getRandomBytes(38),
-			validatorsHash: cryptoUtils.getRandomBytes(48),
-			aggregationBits: cryptoUtils.getRandomBytes(38),
-			signature: cryptoUtils.getRandomBytes(32),
-		};
-		const encodedCertificate = codec.encode(certificateSchema, certificate);
+		const encodedCertificate = codec.encode(certificateSchema, defaultCertificate);
 		const txParams: CrossChainUpdateTransactionParams = {
 			certificate: encodedCertificate,
 			activeValidatorsUpdate: {
@@ -1408,7 +1364,7 @@ describe('Base interoperability internal method', () => {
 				cryptoUtils.hash(ownChainAccount.chainID),
 			]);
 			expect(SparseMerkleTree.prototype.verify).toHaveBeenCalledWith(
-				certificate.stateRoot,
+				defaultCertificate.stateRoot,
 				[outboxKey],
 				{
 					siblingHashes: txParams.inboxUpdate.outboxRootWitness.siblingHashes,

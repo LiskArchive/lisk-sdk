@@ -46,6 +46,7 @@ import {
 	getEncodedCCMAndID,
 	getMainchainID,
 	isInboxUpdateEmpty,
+	validateCertificate,
 } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
@@ -260,6 +261,8 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): void {
 		const certificate = codec.decode<Certificate>(certificateSchema, context.params.certificate);
+		validateCertificate(certificate);
+
 		if (context.header.timestamp - certificate.timestamp > LIVENESS_LIMIT / 2) {
 			throw new Error(
 				`The first CCU with a non-empty inbox update cannot contain a certificate older than ${
