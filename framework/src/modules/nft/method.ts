@@ -294,14 +294,7 @@ export class NFTMethod extends BaseMethod {
 			]),
 		});
 
-		let count = 0;
-		for (const { key } of nftStoreData) {
-			if (key.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID).equals(collectionID)) {
-				count += 1;
-			}
-		}
-
-		return count;
+		return nftStoreData.length;
 	}
 
 	public async create(
