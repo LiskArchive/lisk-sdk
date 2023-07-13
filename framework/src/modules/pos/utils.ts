@@ -253,8 +253,11 @@ export const getPunishmentPeriod = (
 };
 
 export function getModuleConfig(config: ModuleConfigJSON): ModuleConfig {
+	const roundLength = config.numberActiveValidators + config.numberStandbyValidators;
+
 	return {
 		...config,
+		roundLength,
 		minWeightStandby: BigInt(config.minWeightStandby),
 		posTokenID: Buffer.from(config.posTokenID, 'hex'),
 		validatorRegistrationFee: BigInt(config.validatorRegistrationFee),
