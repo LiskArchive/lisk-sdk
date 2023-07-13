@@ -15,7 +15,6 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { TokenMethod, TokenModule } from '../../../../src/modules/token';
 import {
-	CCM_STATUS_OK,
 	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	TokenEventResult,
@@ -916,7 +915,6 @@ describe('token module', () => {
 				CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 				BigInt('10000'),
-				CCM_STATUS_OK,
 				codec.encode(crossChainTransferMessageParams, {
 					tokenID: defaultTokenID,
 					amount: BigInt('100000'),
