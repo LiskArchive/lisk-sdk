@@ -245,7 +245,6 @@ describe('Sample Method', () => {
 					ccm.crossChainCommand,
 					ccm.receivingChainID,
 					ccm.fee,
-					ccm.status,
 					ccm.params,
 				),
 			).rejects.toThrow('Timestamp must be provided in mainchain context.');
