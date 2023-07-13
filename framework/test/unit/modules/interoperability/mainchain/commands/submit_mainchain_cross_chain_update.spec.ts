@@ -84,7 +84,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 	const chainID = Buffer.alloc(4, 0);
 	const senderPublicKey = utils.getRandomBytes(32);
 	const messageFeeTokenID = Buffer.alloc(8, 0);
-	const defaultCertificateValues: Certificate = {
+	const defaultCertificate: Certificate = {
 		blockID: cryptography.utils.getRandomBytes(HASH_LENGTH),
 		height: 21,
 		timestamp: Math.floor(Date.now() / 1000),
@@ -213,7 +213,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			partnerValidators.certificateThreshold,
 		);
 		encodedDefaultCertificate = codec.encode(certificateSchema, {
-			...defaultCertificateValues,
+			...defaultCertificate,
 			validatorsHash,
 		});
 
@@ -448,7 +448,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 					params: {
 						...params,
 						certificate: codec.encode(certificateSchema, {
-							...defaultCertificateValues,
+							...defaultCertificate,
 							timestamp: 0,
 						}),
 						inboxUpdate: {
@@ -477,7 +477,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 					params: {
 						...params,
 						certificate: codec.encode(certificateSchema, {
-							...defaultCertificateValues,
+							...defaultCertificate,
 							timestamp: 1,
 						}),
 					},

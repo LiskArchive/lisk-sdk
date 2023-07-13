@@ -79,7 +79,7 @@ describe('Base interoperability internal method', () => {
 		status: 1,
 		params: Buffer.alloc(0),
 	};
-	const defaultCertificate = {
+	const defaultCertificate: Certificate = {
 		blockID: cryptography.utils.getRandomBytes(HASH_LENGTH),
 		height: 101,
 		stateRoot: Buffer.alloc(HASH_LENGTH),
@@ -673,29 +673,23 @@ describe('Base interoperability internal method', () => {
 
 			await mainchainInteroperabilityInternalMethod.updateCertificate(methodContext, ccu);
 
+			const lastCertificateObject = {
+				lastCertificate: {
+					height: defaultCertificate.height,
+					stateRoot: defaultCertificate.stateRoot,
+					timestamp: defaultCertificate.timestamp,
+					validatorsHash: defaultCertificate.validatorsHash,
+				},
+			};
 			expect(interopMod.stores.get(ChainAccountStore).set).toHaveBeenCalledWith(
 				expect.anything(),
 				ccu.sendingChainID,
-				expect.objectContaining({
-					lastCertificate: {
-						height: defaultCertificate.height,
-						stateRoot: defaultCertificate.stateRoot,
-						timestamp: defaultCertificate.timestamp,
-						validatorsHash: defaultCertificate.validatorsHash,
-					},
-				}),
+				expect.objectContaining(lastCertificateObject),
 			);
 			expect(interopMod.events.get(ChainAccountUpdatedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
 				ccu.sendingChainID,
-				expect.objectContaining({
-					lastCertificate: {
-						height: defaultCertificate.height,
-						stateRoot: defaultCertificate.stateRoot,
-						timestamp: defaultCertificate.timestamp,
-						validatorsHash: defaultCertificate.validatorsHash,
-					},
-				}),
+				expect.objectContaining(lastCertificateObject),
 			);
 		});
 	});
@@ -823,7 +817,7 @@ describe('Base interoperability internal method', () => {
 			).rejects.toThrow('Keys have duplicated entry');
 		});
 
-		it('should reject if bftWeightsUpdateBitmap does not corresponds to the bftWeightsUpdateBitmap', async () => {
+		it('should reject if bftWeightsUpdateBitmap does not correspond to the bftWeightsUpdateBitmap', async () => {
 			const ccu = {
 				...ccuParams,
 				certificate: codec.encode(certificateSchema, defaultCertificate),
@@ -900,7 +894,7 @@ describe('Base interoperability internal method', () => {
 			).rejects.toThrow('New validators must have a positive BFT weight.');
 		});
 
-		it('should reject new validatorsHash does not match with certificate', async () => {
+		it('should reject if new validatorsHash does not match with certificate', async () => {
 			const ccu = {
 				...ccuParams,
 				certificate: codec.encode(certificateSchema, defaultCertificate),
@@ -1126,9 +1120,8 @@ describe('Base interoperability internal method', () => {
 			bftWeightsUpdateBitmap: Buffer.from([1, 0, 2]),
 		};
 
-		const certificate: Certificate = defaultCertificate;
-		const { aggregationBits, signature, ...unsignedCertificate } = certificate;
-		const encodedCertificate = codec.encode(certificateSchema, certificate);
+		const { aggregationBits, signature, ...unsignedCertificate } = defaultCertificate;
+		const encodedCertificate = codec.encode(certificateSchema, defaultCertificate);
 		const encodedUnsignedCertificate = codec.encode(unsignedCertificateSchema, unsignedCertificate);
 		const txParams: CrossChainUpdateTransactionParams = {
 			certificate: encodedCertificate,
@@ -1166,8 +1159,8 @@ describe('Base interoperability internal method', () => {
 
 			expect(cryptography.bls.verifyWeightedAggSig).toHaveBeenCalledWith(
 				activeValidators.map(v => v.blsKey),
-				certificate.aggregationBits,
-				certificate.signature,
+				defaultCertificate.aggregationBits,
+				defaultCertificate.signature,
 				MESSAGE_TAG_CERTIFICATE,
 				txParams.sendingChainID,
 				encodedUnsignedCertificate,

@@ -51,7 +51,7 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 }));
 
 describe('Utils', () => {
-	const defaultCertificate = {
+	const defaultCertificate: Certificate = {
 		blockID: cryptography.utils.getRandomBytes(HASH_LENGTH),
 		height: 23,
 		stateRoot: Buffer.alloc(HASH_LENGTH),
@@ -112,7 +112,7 @@ describe('Utils', () => {
 					...defaultCertificate,
 					timestamp: 0,
 				}),
-			).toThrow('Certificate timestamp cannot be 0');
+			).toThrow('Certificate timestamp cannot be 0.');
 		});
 
 		it('should pass validateCertificate check', () => {

@@ -58,7 +58,7 @@ export const validateCertificate = (certificate: Certificate) => {
 	validator.validate(certificateSchema, certificate);
 
 	if (certificate.timestamp === 0) {
-		throw new Error('Certificate timestamp cannot be 0');
+		throw new Error('Certificate timestamp cannot be 0.');
 	}
 };
 
@@ -161,9 +161,9 @@ export const checkCertificateValidity = (
 		};
 	}
 
-	const decodedCertificate = codec.decode<Certificate>(certificateSchema, encodedCertificate);
+	const certificate = codec.decode<Certificate>(certificateSchema, encodedCertificate);
 	try {
-		validateCertificate(decodedCertificate);
+		validateCertificate(certificate);
 	} catch (err) {
 		return {
 			status: VerifyStatus.FAIL,
@@ -172,7 +172,7 @@ export const checkCertificateValidity = (
 	}
 
 	// Last certificate height should be less than new certificate height
-	if (partnerChainAccount.lastCertificate.height >= decodedCertificate.height) {
+	if (partnerChainAccount.lastCertificate.height >= certificate.height) {
 		return {
 			status: VerifyStatus.FAIL,
 			error: new Error('Certificate height should be greater than last certificate height.'),
@@ -215,10 +215,10 @@ export const checkValidatorsHashWithCertificate = (
 				),
 			};
 		}
-		let decodedCertificate: Certificate;
+		let certificate: Certificate;
 		try {
-			decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
-			validateCertificate(decodedCertificate);
+			certificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
+			validateCertificate(certificate);
 		} catch (error) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -240,7 +240,7 @@ export const checkValidatorsHashWithCertificate = (
 			txParams.certificateThreshold || partnerValidators.certificateThreshold,
 		);
 
-		if (!decodedCertificate.validatorsHash.equals(validatorsHash)) {
+		if (!certificate.validatorsHash.equals(validatorsHash)) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Validators hash given in the certificate is incorrect.'),
