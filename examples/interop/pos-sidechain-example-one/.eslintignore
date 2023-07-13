@@ -11,3 +11,4 @@ build
 scripts
 config
 test/_setup.js
+src/app/app.ts
