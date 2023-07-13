@@ -192,6 +192,8 @@ describe('Base interoperability internal method', () => {
 		storeContext = createStoreGetter(stateStore);
 		await channelDataSubstore.set(methodContext, chainID, channelData);
 		await ownChainAccountSubstore.set(methodContext, EMPTY_BYTES, ownChainAccount);
+
+		jest.spyOn(interopUtils, 'validateCertificate');
 	});
 
 	describe('appendToInboxTree', () => {
@@ -691,6 +693,7 @@ describe('Base interoperability internal method', () => {
 				ccu.sendingChainID,
 				expect.objectContaining(lastCertificateObject),
 			);
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 	});
 
@@ -766,10 +769,10 @@ describe('Base interoperability internal method', () => {
 
 			await expect(
 				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
-			).rejects.toThrow('Keys are not sorted lexicographic order');
+			).rejects.toThrow('Keys are not sorted in lexicographic order');
 		});
 
-		it('should reject if blsKyesUpdate contains duplicate keys', async () => {
+		it('should reject if blsKeysUpdate contains duplicate keys', async () => {
 			const ccu = {
 				...ccuParams,
 				certificate: codec.encode(certificateSchema, defaultCertificate),
@@ -936,6 +939,7 @@ describe('Base interoperability internal method', () => {
 				newValidators,
 				ccu.certificateThreshold,
 			);
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 
 		it('should resolve if updates are valid', async () => {
@@ -971,6 +975,7 @@ describe('Base interoperability internal method', () => {
 			await expect(
 				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
 			).resolves.toBeUndefined();
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 	});
 
@@ -1029,6 +1034,7 @@ describe('Base interoperability internal method', () => {
 					100,
 				),
 			).rejects.toThrow('Certificate height is not greater than last certificate height');
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 
 		it('should reject when certificate timestamp is greater than blockTimestamp', async () => {
@@ -1050,6 +1056,7 @@ describe('Base interoperability internal method', () => {
 			).rejects.toThrow(
 				'Certificate timestamp is not smaller than timestamp of the block including the CCU',
 			);
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 
 		it('should reject when validatorsHash is not equal but activeValidatorsUpdate and certificateThreshold do not change', async () => {
@@ -1080,6 +1087,7 @@ describe('Base interoperability internal method', () => {
 			).rejects.toThrow(
 				'Certifying an update to the validators hash requires an active validators update',
 			);
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 
 		it('should resolve when certificate is valid', async () => {
@@ -1098,6 +1106,7 @@ describe('Base interoperability internal method', () => {
 					1001,
 				),
 			).resolves.toBeUndefined();
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 	});
 
@@ -1169,6 +1178,7 @@ describe('Base interoperability internal method', () => {
 			);
 
 			expect(interopMod.events.get(InvalidCertificateSignatureEvent).add).toHaveBeenCalledTimes(1);
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 
 		it('should resolve when verifyWeightedAggSig return true', async () => {
@@ -1179,6 +1189,7 @@ describe('Base interoperability internal method', () => {
 			).resolves.toBeUndefined();
 
 			expect(cryptography.bls.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 	});
 
@@ -1318,6 +1329,7 @@ describe('Base interoperability internal method', () => {
 					...txParams,
 				}),
 			).rejects.toThrow('Invalid inclusion proof for inbox update');
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 
 		it('should resolve when certificate is empty and inbox root matches partner outbox root', async () => {
@@ -1370,6 +1382,7 @@ describe('Base interoperability internal method', () => {
 					],
 				},
 			);
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 	});
 });

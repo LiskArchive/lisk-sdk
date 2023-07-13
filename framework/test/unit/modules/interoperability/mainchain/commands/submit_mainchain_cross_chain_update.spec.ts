@@ -284,6 +284,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 
 		jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(true);
 		jest.spyOn(interopUtils, 'computeValidatorsHash').mockReturnValue(validatorsHash);
+		jest.spyOn(interopUtils, 'validateCertificate');
 		jest.spyOn(bls, 'verifyWeightedAggSig').mockReturnValue(true);
 	});
 
@@ -371,6 +372,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			jest
 				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'isLive')
 				.mockResolvedValue(true);
+			jest.spyOn(mainchainCCUUpdateCommand, '_verifyLivenessConditionForRegisteredChains' as never);
 		});
 
 		it('should reject when certificate and inboxUpdate are empty', async () => {
@@ -544,6 +546,35 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			expect(
 				mainchainCCUUpdateCommand['internalMethod'].verifyPartnerChainOutboxRoot,
 			).toHaveBeenCalledTimes(1);
+		});
+
+		it(`should verify liveness condition when sendingChainAccount.status == ${ChainStatus.REGISTERED} and inboxUpdate is not empty`, async () => {
+			await partnerChainStore.set(stateStore, params.sendingChainID, {
+				...partnerChainAccount,
+				status: ChainStatus.REGISTERED,
+			});
+
+			await expect(
+				mainchainCCUUpdateCommand.verify({
+					...verifyContext,
+					params: {
+						...params,
+						inboxUpdate: {
+							crossChainMessages: [utils.getRandomBytes(100)],
+							messageWitnessHashes: [utils.getRandomBytes(32)],
+							outboxRootWitness: {
+								bitmap: utils.getRandomBytes(2),
+								siblingHashes: [utils.getRandomBytes(32)],
+							},
+						},
+					},
+				}),
+			).resolves.toEqual({ status: VerifyStatus.OK });
+
+			expect(
+				mainchainCCUUpdateCommand['_verifyLivenessConditionForRegisteredChains'],
+			).toHaveBeenCalled();
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 	});
 

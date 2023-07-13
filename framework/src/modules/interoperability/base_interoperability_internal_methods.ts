@@ -311,7 +311,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		}
 		const { bftWeightsUpdate, bftWeightsUpdateBitmap, blsKeysUpdate } = ccu.activeValidatorsUpdate;
 		if (!objects.isBufferArrayOrdered(blsKeysUpdate)) {
-			throw new Error('Keys are not sorted lexicographic order.');
+			throw new Error('Keys are not sorted in lexicographic order.');
 		}
 		const { activeValidators } = await this.stores
 			.get(ChainValidatorsStore)

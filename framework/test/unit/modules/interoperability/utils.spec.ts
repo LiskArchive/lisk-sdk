@@ -72,6 +72,10 @@ describe('Utils', () => {
 		bftWeightsUpdateBitmap: Buffer.from([1, 0, 2]),
 	};
 
+	beforeEach(() => {
+		jest.spyOn(interopUtils, 'validateCertificate');
+	});
+
 	describe('validateCertificate', () => {
 		it('should throw if certificate does not comply schema', () => {
 			expect(() =>
@@ -190,6 +194,7 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toBe('Certificate is missing required values.');
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 
 		it('should return VerifyStatus.FAIL when certificate height is less than or equal to last certificate height', () => {
@@ -202,6 +207,7 @@ describe('Utils', () => {
 			expect(error?.message).toBe(
 				'Certificate height should be greater than last certificate height.',
 			);
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 
 		it('should return VerifyStatus.OK when certificate has all values and height greater than last certificate height', () => {
@@ -212,6 +218,7 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.OK);
 			expect(error).toBeUndefined();
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 	});
 
@@ -329,6 +336,7 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toBe('Validators hash given in the certificate is incorrect.');
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 
 		it('should return VerifyStatus.OK when validators hash is correct', () => {
@@ -340,9 +348,10 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.OK);
 			expect(error).toBeUndefined();
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 
-		it('should return VerifyStatus.OK when activeValidatorsUpdateis empty and certificateThreshold === 0', () => {
+		it('should return VerifyStatus.OK when activeValidatorsUpdate is empty and certificateThreshold === 0', () => {
 			const ineligibleTxParams = {
 				...txParams,
 				activeValidatorsUpdate: {
@@ -369,6 +378,7 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.OK);
 			expect(error).toBeUndefined();
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 
 		it('should return VerifyStatus.OK when certificateThreshold > 0 but activeValidatorsUpdate is empty', () => {
@@ -386,6 +396,7 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.OK);
 			expect(error).toBeUndefined();
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 	});
 
@@ -479,6 +490,7 @@ describe('Utils', () => {
 					certificate.timestamp + LIVENESS_LIMIT / 2 + 1,
 				),
 			).toThrow('The first CCU with a non-empty inbox update cannot contain a certificate older');
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 
 		it('should not throw if inbox update is not older than half of liveness limit', () => {
@@ -490,6 +502,7 @@ describe('Utils', () => {
 					certificate.timestamp + LIVENESS_LIMIT / 2,
 				),
 			).toBeUndefined();
+			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 	});
 
