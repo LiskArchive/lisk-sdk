@@ -158,10 +158,6 @@ export const configSchema = {
 			type: 'integer',
 			format: 'uint32',
 		},
-		roundLength: {
-			type: 'integer',
-			format: 'uint32',
-		},
 		minWeightStandby: {
 			type: 'string',
 			format: 'uint64',
@@ -208,7 +204,6 @@ export const configSchema = {
 		'failSafeMissedBlocks',
 		'failSafeInactiveWindow',
 		'punishmentWindow',
-		'roundLength',
 		'minWeightStandby',
 		'numberActiveValidators',
 		'numberStandbyValidators',

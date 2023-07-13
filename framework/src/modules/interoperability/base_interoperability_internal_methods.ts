@@ -307,7 +307,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			throw new Error('Certificate must be non-empty if validators have been updated.');
 		}
 		const { bftWeightsUpdate, bftWeightsUpdateBitmap, blsKeysUpdate } = ccu.activeValidatorsUpdate;
-		if (!objects.bufferArrayOrderByLex(blsKeysUpdate)) {
+		if (!objects.isBufferArrayOrdered(blsKeysUpdate)) {
 			throw new Error('Keys are not sorted lexicographic order.');
 		}
 		const { activeValidators } = await this.stores
