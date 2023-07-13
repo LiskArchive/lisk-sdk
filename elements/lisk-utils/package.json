@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-utils",
-	"version": "0.3.0-beta.2",
+	"version": "0.3.0-beta.3",
 	"description": "Library containing generic utility functions for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",

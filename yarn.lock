@@ -1802,6 +1802,15 @@
   dependencies:
     "@types/node" "11.11.2"
 
+"@liskhq/lisk-codec@0.3.0-beta.2":
+  version "0.3.0-beta.2"
+  resolved "https://npm.lisk.com/@liskhq%2flisk-codec/-/lisk-codec-0.3.0-beta.2.tgz#f989d316f60902511565e8fc36d064ef32fa0eb3"
+  integrity sha512-aMMeuMXAwV8VMGK12bw1pLZNwxd1kv8J3VO+Lj3Y3GZEpBC8ibvVNfE4T5n13iozohUmCRERXituRB7cMD0IDg==
+  dependencies:
+    "@liskhq/lisk-cryptography" "^4.0.0-beta.2"
+    "@liskhq/lisk-utils" "^0.3.0-beta.2"
+    "@liskhq/lisk-validator" "^0.7.0-beta.2"
+
 "@liskhq/lisk-db@0.3.6":
   version "0.3.6"
   resolved "https://registry.yarnpkg.com/@liskhq/lisk-db/-/lisk-db-0.3.6.tgz#d8e3b0c548ae54dfd98b371738ce4dc259303108"
@@ -1811,6 +1820,18 @@
     "@types/node" "^16 || ^18"
     cargo-cp-artifact "^0.1"
     shelljs "^0.8.5"
+
+"@liskhq/lisk-validator@0.7.0-beta.2":
+  version "0.7.0-beta.2"
+  resolved "https://npm.lisk.com/@liskhq%2flisk-validator/-/lisk-validator-0.7.0-beta.2.tgz#7f57471fa5411282f0c23d4f61c677dca0752024"
+  integrity sha512-AoT9Z0dmZLEWgYTXrwWFGDGSgePMr/VW8TNsVC1VC+Q1F8Rvta6qDimfH3OXdvDhFyOAp/aiXUy29EjsQ31EAQ==
+  dependencies:
+    "@liskhq/lisk-cryptography" "^4.0.0-beta.2"
+    ajv "8.1.0"
+    ajv-formats "2.1.1"
+    debug "4.3.4"
+    semver "7.3.8"
+    validator "13.7.0"
 
 "@lmdb/lmdb-darwin-arm64@2.5.2":
   version "2.5.2"
@@ -14173,6 +14194,13 @@ semver@7.3.4:
   version "7.3.4"
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.3.4.tgz#27aaa7d2e4ca76452f98d3add093a72c943edc97"
   integrity sha512-tCfb2WLjqFAtXn4KEdxIhalnRtoKFN7nAwj0B3ZXCbQloV2tq5eDbcTmT68JJD3nRJq24/XgxtQKFIpQdtvmVw==
+  dependencies:
+    lru-cache "^6.0.0"
+
+semver@7.3.8:
+  version "7.3.8"
+  resolved "https://npm.lisk.com/semver/-/semver-7.3.8.tgz#07a78feafb3f7b32347d725e33de7e2a2df67798"
+  integrity sha512-NB1ctGL5rlHrPJtFDVIVzTyQylMLu9N9VICA6HSFJo8MCGVTMW6gfpicwKmmK/dAjTOrqu5l63JJOpDSrAis3A==
   dependencies:
     lru-cache "^6.0.0"
 
