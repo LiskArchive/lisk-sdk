@@ -262,10 +262,10 @@ export const chainAccountToJSON = (chainAccount: ChainAccount) => {
 };
 
 export const verifyLivenessConditionForRegisteredChains = (
-	ccu: CrossChainUpdateTransactionParams,
 	blockTimestamp: number,
+	certificateBuffer: Buffer,
 ) => {
-	const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
+	const certificate = codec.decode<Certificate>(certificateSchema, certificateBuffer);
 	const limitSecond = LIVENESS_LIMIT / 2;
 	if (blockTimestamp - certificate.timestamp > limitSecond) {
 		throw new Error(
