@@ -96,9 +96,12 @@ describe('NFTMethod', () => {
 	const userStore = module.stores.get(UserStore);
 	const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
 
+	const firstIndex = Buffer.alloc(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID, 0);
+	firstIndex.writeBigUInt64BE(BigInt(0));
 	const nftID = Buffer.concat([
 		config.ownChainID,
-		utils.getRandomBytes(LENGTH_NFT_ID - LENGTH_CHAIN_ID),
+		utils.getRandomBytes(LENGTH_CHAIN_ID),
+		firstIndex,
 	]);
 	let owner: Buffer;
 
@@ -503,27 +506,23 @@ describe('NFTMethod', () => {
 	});
 
 	describe('getNextAvailableIndex', () => {
-		const attributesArray1 = [
+		const attributesArray = [
 			{ module: 'customMod1', attributes: Buffer.alloc(5) },
 			{ module: 'customMod2', attributes: Buffer.alloc(2) },
 		];
-		const attributesArray2 = [{ module: 'customMod3', attributes: Buffer.alloc(7) }];
 		const collectionID = nftID.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
 
 		beforeEach(async () => {
 			await nftStore.save(methodContext, nftID, {
 				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
-				attributesArray: attributesArray1,
+				attributesArray,
 			});
 		});
 
-		it('should return index count 0 if entry does not exist in the nft substore for the nft id', async () => {
+		it('should return index count 0 if there is no entry in nft substore', async () => {
 			await nftStore.del(methodContext, nftID);
-			const returnedIndex = await method.getNextAvailableIndex(
-				methodContext,
-				utils.getRandomBytes(LENGTH_COLLECTION_ID),
-			);
-			expect(returnedIndex).toBe(0);
+			const returnedIndex = await method.getNextAvailableIndex(methodContext, collectionID);
+			expect(returnedIndex).toBe(BigInt(0));
 		});
 
 		it('should return index count 0 if entry exists in the nft substore for the nft id and no key matches the given collection id', async () => {
@@ -531,36 +530,40 @@ describe('NFTMethod', () => {
 				methodContext,
 				utils.getRandomBytes(LENGTH_COLLECTION_ID),
 			);
-			expect(returnedIndex).toBe(0);
+			expect(returnedIndex).toBe(BigInt(0));
 		});
 
-		it('should return index count 1 if entry exists in the nft substore for the nft id and a key matches the given collection id', async () => {
-			const returnedIndex = await method.getNextAvailableIndex(methodContext, collectionID);
-			expect(returnedIndex).toBe(1);
-		});
-
-		it('should return non zero index count if entry exists in the nft substore for the nft id and more than 1 key matches the given collection id', async () => {
-			const newKey = Buffer.concat([
-				config.ownChainID,
-				collectionID,
-				utils.getRandomBytes(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID),
-			]);
-			await nftStore.save(methodContext, newKey, {
+		it('should return existing highest index incremented by 1 within the given collection id', async () => {
+			const highestIndex = Buffer.alloc(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID, 0);
+			highestIndex.writeBigUInt64BE(BigInt(419));
+			const nftIDHighestIndex = Buffer.concat([config.ownChainID, collectionID, highestIndex]);
+			await nftStore.save(methodContext, nftIDHighestIndex, {
 				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
-				attributesArray: attributesArray2,
+				attributesArray,
 			});
+
 			const returnedIndex = await method.getNextAvailableIndex(methodContext, collectionID);
-			expect(returnedIndex).toBe(2);
+			expect(returnedIndex).toBe(BigInt(420));
+		});
+
+		it('should throw if indexes within a collection are consumed', async () => {
+			const largestIndex = Buffer.alloc(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID, 0);
+			largestIndex.writeBigUInt64BE(BigInt(BigInt(2 ** 64) - BigInt(1)));
+			const nftIDHighestIndex = Buffer.concat([config.ownChainID, collectionID, largestIndex]);
+			await nftStore.save(methodContext, nftIDHighestIndex, {
+				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
+				attributesArray,
+			});
+
+			await expect(method.getNextAvailableIndex(methodContext, collectionID)).rejects.toThrow(
+				'No more available indexes',
+			);
 		});
 	});
 
 	describe('create', () => {
-		const attributesArray1 = [
-			{ module: 'customMod1', attributes: Buffer.alloc(5) },
-			{ module: 'customMod2', attributes: Buffer.alloc(2) },
-		];
-		const attributesArray2 = [{ module: 'customMod3', attributes: Buffer.alloc(7) }];
-		const attributesArray3 = [{ module: 'customMod3', attributes: Buffer.alloc(9) }];
+		const attributesArray1 = [{ module: 'customMod3', attributes: Buffer.alloc(7) }];
+		const attributesArray2 = [{ module: 'customMod3', attributes: Buffer.alloc(9) }];
 		const collectionID = nftID.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
 		const address = utils.getRandomBytes(LENGTH_ADDRESS);
 
@@ -592,7 +595,7 @@ describe('NFTMethod', () => {
 
 			const expectedKey = Buffer.concat([config.ownChainID, collectionID, indexBytes]);
 
-			await method.create(methodContext, address, collectionID, attributesArray3);
+			await method.create(methodContext, address, collectionID, attributesArray2);
 			const nftStoreData = await nftStore.get(methodContext, expectedKey);
 			const userStoreData = await userStore.get(
 				methodContext,
@@ -600,7 +603,7 @@ describe('NFTMethod', () => {
 			);
 			expect(feeMethod.payFee).toHaveBeenCalledWith(methodContext, BigInt(FEE_CREATE_NFT));
 			expect(nftStoreData.owner).toStrictEqual(address);
-			expect(nftStoreData.attributesArray).toEqual(attributesArray3);
+			expect(nftStoreData.attributesArray).toEqual(attributesArray2);
 			expect(userStoreData.lockingModule).toEqual(NFT_NOT_LOCKED);
 			checkEventResult(methodContext.eventQueue, 1, CreateEvent, 0, {
 				address,
@@ -611,24 +614,20 @@ describe('NFTMethod', () => {
 
 		it('should set data to stores with correct key and emit successfull create event when there is some entry in the nft substore', async () => {
 			const indexBytes = Buffer.alloc(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID);
-			indexBytes.writeBigInt64BE(BigInt(2));
-
-			await nftStore.save(methodContext, nftID, {
+			indexBytes.writeBigUint64BE(BigInt(911));
+			const newKey = Buffer.concat([config.ownChainID, collectionID, indexBytes]);
+			await nftStore.save(methodContext, newKey, {
 				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
 				attributesArray: attributesArray1,
 			});
-			const newKey = Buffer.concat([
-				config.ownChainID,
-				collectionID,
-				utils.getRandomBytes(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID),
-			]);
-			await nftStore.save(methodContext, newKey, {
-				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
-				attributesArray: attributesArray2,
-			});
-			const expectedKey = Buffer.concat([config.ownChainID, collectionID, indexBytes]);
 
-			await method.create(methodContext, address, collectionID, attributesArray3);
+			const expectedIndexBytes = Buffer.alloc(
+				LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID,
+			);
+			expectedIndexBytes.writeBigUint64BE(BigInt(912));
+			const expectedKey = Buffer.concat([config.ownChainID, collectionID, expectedIndexBytes]);
+
+			await method.create(methodContext, address, collectionID, attributesArray2);
 			const nftStoreData = await nftStore.get(methodContext, expectedKey);
 			const userStoreData = await userStore.get(
 				methodContext,
@@ -636,7 +635,7 @@ describe('NFTMethod', () => {
 			);
 			expect(feeMethod.payFee).toHaveBeenCalledWith(methodContext, BigInt(FEE_CREATE_NFT));
 			expect(nftStoreData.owner).toStrictEqual(address);
-			expect(nftStoreData.attributesArray).toEqual(attributesArray3);
+			expect(nftStoreData.attributesArray).toEqual(attributesArray2);
 			expect(userStoreData.lockingModule).toEqual(NFT_NOT_LOCKED);
 			checkEventResult(methodContext.eventQueue, 1, CreateEvent, 0, {
 				address,
