@@ -132,16 +132,16 @@ describe('buffer arrays', () => {
 		});
 	});
 
-	describe('bufferArrayOrderByLex', () => {
+	describe('isBufferArrayOrdered', () => {
 		it('should not mutate the original array', () => {
 			const original = [Buffer.from('val2'), Buffer.from('target'), Buffer.from('val1')];
-			bufferArray.bufferArrayOrderByLex(original);
+			bufferArray.isBufferArrayOrdered(original);
 			expect(original[0]).toEqual(Buffer.from('val2'));
 		});
 
 		it('should return true if ordered lexicographically', () => {
 			expect(
-				bufferArray.bufferArrayOrderByLex([
+				bufferArray.isBufferArrayOrdered([
 					Buffer.from('target'),
 					Buffer.from('val1'),
 					Buffer.from('val1'),
@@ -152,13 +152,17 @@ describe('buffer arrays', () => {
 
 		it('should return false if ordered lexicographically', () => {
 			expect(
-				bufferArray.bufferArrayOrderByLex([
+				bufferArray.isBufferArrayOrdered([
 					Buffer.from('val1'),
 					Buffer.from('target'),
 					Buffer.from('val1'),
 					Buffer.from('val2'),
 				]),
 			).toBeFalse();
+		});
+
+		it('should return true if provided array is empty', () => {
+			expect(bufferArray.isBufferArrayOrdered([])).toBeTrue();
 		});
 	});
 
@@ -193,6 +197,10 @@ describe('buffer arrays', () => {
 					Buffer.from('target'),
 				]),
 			).toBeTrue();
+		});
+
+		it('should return true if provided array is empty', () => {
+			expect(bufferArray.bufferArrayUniqueItems([])).toBeTrue();
 		});
 	});
 });
