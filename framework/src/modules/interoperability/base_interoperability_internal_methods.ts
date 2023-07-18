@@ -603,12 +603,12 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		// or both to a non-default value.
 		if (outboxRootWitness.bitmap.length === 0 && outboxRootWitness.siblingHashes.length > 0) {
 			throw new Error(
-				'The bitmap in the outbox root witness must be non-mepty if the sibling hashes are non-empty.',
+				'The bitmap in the outbox root witness must be non-empty if the sibling hashes are non-empty.',
 			);
 		}
 		if (outboxRootWitness.bitmap.length !== 0 && outboxRootWitness.siblingHashes.length === 0) {
 			throw new Error(
-				'The sibling hashes in the outbox root witness must be non-mepty if the bitmap is non-empty.',
+				'The sibling hashes in the outbox root witness must be non-empty if the bitmap is non-empty.',
 			);
 		}
 
