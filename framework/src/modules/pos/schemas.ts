@@ -165,10 +165,6 @@ export const configSchema = {
 			minimum: (5 * 60 * 60 * 24) / 10, // 5 days at 10 seconds per block
 			maximum: (365 * 60 * 60 * 24) / 10, // 1 year at 10 seconds per block
 		},
-		roundLength: {
-			type: 'integer',
-			format: 'uint32',
-		},
 		minWeightStandby: {
 			type: 'string',
 			format: 'uint64',
@@ -215,7 +211,6 @@ export const configSchema = {
 		'failSafeMissedBlocks',
 		'failSafeInactiveWindow',
 		'punishmentWindow',
-		'roundLength',
 		'minWeightStandby',
 		'numberActiveValidators',
 		'numberStandbyValidators',

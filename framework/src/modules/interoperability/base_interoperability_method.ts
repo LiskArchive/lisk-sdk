@@ -92,35 +92,44 @@ export abstract class BaseInteroperabilityMethod<
 		return this.stores.get(TerminatedOutboxStore).get(context, chainID);
 	}
 
+	private async _getChannelCommon(context: ImmutableMethodContext, chainID: Buffer) {
+		const mainchainID = getMainchainID(chainID);
+		const ownChainAccount = await this.getOwnChainAccount(context);
+		const hasChainAccount = await this.stores.get(ChainAccountStore).has(context, chainID);
+
+		let updatedChainID = chainID;
+		// Check for direct channel while processing on a sidechain
+		if (!ownChainAccount.chainID.equals(mainchainID) && !hasChainAccount) {
+			updatedChainID = mainchainID;
+		}
+
+		const hasChannel = await this.stores.get(ChannelDataStore).has(context, updatedChainID);
+		if (!hasChannel) {
+			throw new Error('Channel does not exist.');
+		}
+
+		return this.getChannel(context, updatedChainID);
+	}
+
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#getmessagefeetokenid
 	public async getMessageFeeTokenID(
 		context: ImmutableMethodContext,
 		chainID: Buffer,
 	): Promise<Buffer> {
-		const updatedChainID = !(await this.stores.get(ChainAccountStore).has(context, chainID))
-			? getMainchainID(chainID)
-			: chainID;
-		return (await this.getChannel(context, updatedChainID)).messageFeeTokenID;
+		const channel = await this._getChannelCommon(context, chainID);
+		return channel.messageFeeTokenID;
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#getminreturnfeeperbyte
 	public async getMinReturnFeePerByte(
 		context: ImmutableMethodContext,
 		chainID: Buffer,
 	): Promise<bigint> {
-		const ownChainAccount = await this.getOwnChainAccount(context);
-		const mainchainID = getMainchainID(chainID);
-		const updatedChainID =
-			!ownChainAccount.chainID.equals(mainchainID) &&
-			!(await this.stores.get(ChainAccountStore).has(context, chainID))
-				? mainchainID
-				: chainID;
-
-		if (!(await this.stores.get(ChannelDataStore).has(context, updatedChainID))) {
-			throw new Error('Channel does not exist.');
-		}
-
-		return (await this.getChannel(context, updatedChainID)).minReturnFeePerByte;
+		const channel = await this._getChannelCommon(context, chainID);
+		return channel.minReturnFeePerByte;
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#send
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async send(
 		context: MethodContext,
@@ -129,7 +138,6 @@ export abstract class BaseInteroperabilityMethod<
 		crossChainCommand: string,
 		receivingChainID: Buffer,
 		fee: bigint,
-		status: number,
 		params: Buffer,
 		timestamp?: number,
 	): Promise<void> {
@@ -140,17 +148,19 @@ export abstract class BaseInteroperabilityMethod<
 			crossChainCommand,
 			receivingChainID,
 			fee,
-			status,
+			CCMStatusCode.OK,
 			params,
 			timestamp,
 		);
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#error
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async error(context: MethodContext, ccm: CCMsg, errorStatus: number): Promise<void> {
-		// Error codes from 0 to MAX_RESERVED_ERROR_STATUS (included) are reserved to the Interoperability module.
-		if (errorStatus <= 0 && errorStatus <= MAX_RESERVED_ERROR_STATUS) {
-			throw new Error('Invalid error status.');
+		if (errorStatus >= 0 && errorStatus <= MAX_RESERVED_ERROR_STATUS) {
+			throw new Error(
+				`Error codes from 0 to ${MAX_RESERVED_ERROR_STATUS} (inclusive) are reserved to the Interoperability module.`,
+			);
 		}
 
 		await this.send(
@@ -160,7 +170,6 @@ export abstract class BaseInteroperabilityMethod<
 			ccm.crossChainCommand,
 			ccm.sendingChainID,
 			BigInt(0),
-			errorStatus,
 			ccm.params,
 		);
 	}
