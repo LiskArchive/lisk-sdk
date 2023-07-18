@@ -29,7 +29,7 @@ import {
 	crossChainTransferParamsSchema,
 } from '../schemas';
 import { InteroperabilityMethod } from '../types';
-import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../constants';
+import { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../constants';
 import { splitTokenID } from '../utils';
 import { EscrowStore } from '../stores/escrow';
 import { UserStore } from '../stores/user';
@@ -192,7 +192,6 @@ export class TransferCrossChainCommand extends BaseCommand {
 			CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 			params.receivingChainID,
 			params.messageFee,
-			CCM_STATUS_OK,
 			codec.encode(crossChainTransferMessageParams, transferCCM),
 			context.header.timestamp,
 		);

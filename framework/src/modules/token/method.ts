@@ -18,7 +18,6 @@ import { dataStructures } from '@liskhq/lisk-utils';
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import { BaseMethod } from '../base_method';
 import {
-	CCM_STATUS_OK,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	LOCAL_ID_LENGTH,
 	TokenEventResult,
@@ -510,7 +509,6 @@ export class TokenMethod extends BaseMethod {
 			CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 			receivingChainID,
 			messageFee,
-			CCM_STATUS_OK,
 			codec.encode(crossChainTransferMessageParams, {
 				tokenID,
 				amount,

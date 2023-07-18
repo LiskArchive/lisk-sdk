@@ -35,7 +35,7 @@ import {
 	createTransientMethodContext,
 } from '../../../../src/testing';
 import { genesisStoreSchema } from '../../../../src/modules/pos/schemas';
-import { GenesisData, ValidatorsMethod } from '../../../../src/modules/pos/types';
+import { GenesisData, ModuleConfigJSON, ValidatorsMethod } from '../../../../src/modules/pos/types';
 import { GenesisBlockExecuteContext, Validator } from '../../../../src/state_machine/types';
 import { invalidAssets, validAsset } from './genesis_block_test_data';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
@@ -48,13 +48,18 @@ import { GenesisDataStore } from '../../../../src/modules/pos/stores/genesis';
 import { SnapshotStore } from '../../../../src/modules/pos/stores/snapshot';
 import { createStoreGetter } from '../../../../src/testing/utils';
 import {
+	CHAIN_ID_LENGTH,
 	COMMISSION_INCREASE_PERIOD,
 	MAX_COMMISSION_INCREASE_RATE,
 	TOKEN_ID_LENGTH,
 	WEIGHT_SCALE_FACTOR,
 } from '../../../../src/modules/pos/constants';
 import { EligibleValidatorsStore } from '../../../../src/modules/pos/stores/eligible_validators';
-import { getValidatorWeight, ValidatorWeight } from '../../../../src/modules/pos/utils';
+import {
+	getModuleConfig,
+	getValidatorWeight,
+	ValidatorWeight,
+} from '../../../../src/modules/pos/utils';
 
 describe('PoS module', () => {
 	const EMPTY_KEY = Buffer.alloc(0);
@@ -99,23 +104,23 @@ describe('PoS module', () => {
 		it('should initialize config with default value when module config is empty', async () => {
 			await expect(
 				pos.init({
-					genesisConfig: { chainID: '00000000' } as any,
+					genesisConfig: { chainID: '00'.repeat(CHAIN_ID_LENGTH) } as any,
 					moduleConfig: {},
 				}),
 			).resolves.toBeUndefined();
 
-			expect(pos['_moduleConfig']).toEqual({
+			const expectedConfig = getModuleConfig({
 				...defaultConfig,
-				minWeightStandby: BigInt(defaultConfig.minWeightStandby),
-				posTokenID: Buffer.alloc(TOKEN_ID_LENGTH),
-				validatorRegistrationFee: BigInt(defaultConfig.validatorRegistrationFee),
-			});
+				posTokenID: '00'.repeat(TOKEN_ID_LENGTH),
+			} as ModuleConfigJSON);
+
+			expect(pos['_moduleConfig']).toEqual(expectedConfig);
 		});
 
 		it('should initialize config with given value', async () => {
 			await expect(
 				pos.init({
-					genesisConfig: { chainID: '00000000' } as any,
+					genesisConfig: { chainID: '00'.repeat(CHAIN_ID_LENGTH) } as any,
 					moduleConfig: { ...defaultConfig, maxLengthName: 25 },
 				}),
 			).toResolve();
