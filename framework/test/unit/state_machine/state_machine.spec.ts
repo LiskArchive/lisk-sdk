@@ -327,7 +327,7 @@ describe('state_machine', () => {
 				chainID,
 				transactions: [transaction],
 			});
-			await stateMachine.beforeExecuteBlock(ctx);
+			await stateMachine.beforeTransactionsExecute(ctx);
 			expect(mod.beforeTransactionsExecute).toHaveBeenCalledWith({
 				chainID,
 				logger,
@@ -354,7 +354,7 @@ describe('state_machine', () => {
 				chainID,
 				transactions: [transaction],
 			});
-			await stateMachine.beforeExecuteBlock(ctx);
+			await stateMachine.beforeTransactionsExecute(ctx);
 
 			const events = ctx.eventQueue.getEvents();
 			expect(events).toHaveLength(1);
