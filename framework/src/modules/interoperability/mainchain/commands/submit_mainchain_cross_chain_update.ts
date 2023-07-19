@@ -13,7 +13,6 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { utils } from '@liskhq/lisk-cryptography';
 import { certificateSchema } from '../../../../engine/consensus/certificate_generation/schema';
 import { Certificate } from '../../../../engine/consensus/certificate_generation/types';
 import {
@@ -46,6 +45,7 @@ import {
 	getEncodedCCMAndID,
 	getMainchainID,
 	isInboxUpdateEmpty,
+	getDecodedCCMAndID,
 } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
@@ -127,7 +127,7 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			for (let i = 0; i < decodedCCMs.length; i += 1) {
 				const ccm = decodedCCMs[i];
 				const ccmBytes = params.inboxUpdate.crossChainMessages[i];
-				const ccmID = utils.hash(ccmBytes);
+				const { ccmID } = getDecodedCCMAndID(ccmBytes);
 				const ccmContext = {
 					...context,
 					ccm,

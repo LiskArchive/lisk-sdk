@@ -13,7 +13,6 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { codec } from '@liskhq/lisk-codec';
 import { MainchainInteroperabilityModule, TokenMethod, ChannelData } from '../../../../src';
 import { BaseInteroperabilityMethod } from '../../../../src/modules/interoperability/base_interoperability_method';
 import {
@@ -33,7 +32,6 @@ import {
 } from '../../../../src/modules/interoperability/events/ccm_send_fail';
 import { CcmSendSuccessEvent } from '../../../../src/modules/interoperability/events/ccm_send_success';
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
-import { ccmSchema } from '../../../../src/modules/interoperability/schemas';
 import {
 	ChainAccountStore,
 	ChainStatus,
@@ -44,7 +42,7 @@ import { createTransientMethodContext } from '../../../../src/testing';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
-import { getMainchainID } from '../../../../src/modules/interoperability/utils';
+import { getMainchainID, getEncodedCCMAndID } from '../../../../src/modules/interoperability/utils';
 
 class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {}
 
@@ -413,7 +411,7 @@ describe('Sample Method', () => {
 				.mockResolvedValue(receivingChainAccount);
 
 			interopMod.stores.get(OwnChainAccountStore).set = ownChainAccountStoreMock.set;
-			const ccmID = utils.hash(codec.encode(ccmSchema, ccmOnMainchain));
+			const { ccmID } = getEncodedCCMAndID(ccmOnMainchain);
 
 			// Act & Assert
 			await expect(

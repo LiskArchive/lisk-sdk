@@ -289,7 +289,15 @@ export const getMainchainTokenID = (chainID: Buffer): Buffer => {
 
 export const getEncodedCCMAndID = (ccm: CCMsg) => {
 	const encodedCCM = codec.encode(ccmSchema, ccm);
-	return { ccmID: utils.hash(encodedCCM), encodedCCM };
+	return { encodedCCM, ccmID: utils.hash(encodedCCM) };
+};
+
+export const getDecodedCCMAndID = (ccmBytes: Buffer) => {
+	const decodedCCM = codec.decode<CCMsg>(ccmSchema, ccmBytes);
+	return {
+		decodedCCM,
+		ccmID: utils.hash(ccmBytes),
+	};
 };
 
 export const emptyActiveValidatorsUpdate = (value: ActiveValidatorsUpdate): boolean =>
