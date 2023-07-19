@@ -1606,7 +1606,7 @@ describe('NFTMethod', () => {
 
 	describe('recover', () => {
 		const terminatedChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-		const substorePrefix = Buffer.from('8000', 'hex');
+		const substorePrefix = Buffer.from('0000', 'hex');
 		const storeKey = utils.getRandomBytes(LENGTH_NFT_ID);
 		const storeValue = codec.encode(nftStoreSchema, {
 			owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
