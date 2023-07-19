@@ -300,7 +300,7 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('No more available indexes');
 		}
 
-		return indexBytes.readBigUInt64BE() + BigInt(1);
+		return index + BigInt(1);
 	}
 
 	public async create(
