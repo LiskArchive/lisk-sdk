@@ -99,3 +99,24 @@ export class TransactionApplyError extends Error {
 export class ApplyPenaltyError extends FrameworkError {
 	public code = 'ERR_APPLY_PENALTY';
 }
+
+export class InsufficientBalanceError extends Error {
+	public code = 'ERR_INSUFFICIENT_BALANCE';
+	public constructor(
+		senderAddress: string,
+		availableBalance: string,
+		amount: string,
+		tokenID?: string,
+	) {
+		let errorMessage = `${senderAddress} balance ${availableBalance}`;
+
+		if (tokenID) {
+			errorMessage += ` for ${tokenID}`;
+		}
+
+		errorMessage += ` is not sufficient for ${amount}.`;
+
+		super(errorMessage);
+		this.name = this.constructor.name;
+	}
+}
