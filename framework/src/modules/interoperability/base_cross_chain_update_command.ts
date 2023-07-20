@@ -382,13 +382,11 @@ export abstract class BaseCrossChainUpdateCommand<
 			status: ccmStatusCode,
 			sendingChainID: ccm.receivingChainID,
 			receivingChainID: ccm.sendingChainID,
-			fee: ccmStatusCode === CCMStatusCode.FAILED_CCM ? BigInt(0) : ccm.fee - minFee,
+			// The fee of the bounced ccm is set to 0 because it was assigned to the relayer.
+			fee: BigInt(0),
 		};
 
 		let partnerChainID: Buffer;
-		const doesReceivingChainExist = await this.stores
-			.get(ChainAccountStore)
-			.has(context, bouncedCCM.receivingChainID);
 
 		const mainchainID = getMainchainID(bouncedCCM.receivingChainID);
 		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
@@ -398,14 +396,18 @@ export abstract class BaseCrossChainUpdateCommand<
 			// Processing on a sidechain
 		} else {
 			// Check for direct channel
-			partnerChainID = doesReceivingChainExist ? bouncedCCM.receivingChainID : mainchainID;
+			const receivingChainExists = await this.stores
+				.get(ChainAccountStore)
+				.has(context, bouncedCCM.receivingChainID);
+
+			partnerChainID = !receivingChainExists ? mainchainID : bouncedCCM.receivingChainID;
 		}
 
 		await this.internalMethod.addToOutbox(context, partnerChainID, bouncedCCM);
-		const newCCMID = utils.hash(codec.encode(ccmSchema, bouncedCCM));
+		const newCcmID = utils.hash(codec.encode(ccmSchema, bouncedCCM));
 		this.events
 			.get(CcmSendSuccessEvent)
-			.log(context, bouncedCCM.sendingChainID, bouncedCCM.receivingChainID, newCCMID, {
+			.log(context, bouncedCCM.sendingChainID, bouncedCCM.receivingChainID, newCcmID, {
 				ccm: bouncedCCM,
 			});
 	}
