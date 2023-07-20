@@ -15,9 +15,12 @@
 import { Chain, Transaction, Event, TransactionJSON } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { validator } from '@liskhq/lisk-validator';
+import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { Broadcaster } from '../generator/broadcaster';
 import { InvalidTransactionError } from '../generator/errors';
 import {
+	Address,
+	getTransactionsFromPoolRequestSchema,
 	DryRunTransactionRequest,
 	dryRunTransactionRequestSchema,
 	DryRunTransactionResponse,
@@ -97,8 +100,20 @@ export class TxpoolEndpoint {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getTransactionsFromPool(_context: RequestContext): Promise<TransactionJSON[]> {
-		return (this._pool.getAll() as Transaction[]).map(transaction => transaction.toJSON());
+	public async getTransactionsFromPool(ctx: RequestContext): Promise<TransactionJSON[]> {
+		validator.validate<Address>(getTransactionsFromPoolRequestSchema, ctx.params);
+		const { address } = ctx.params;
+
+		let transactions = this._pool.getAll();
+
+		if (address) {
+			transactions = transactions.filter(
+				transaction =>
+					cryptoAddress.getLisk32AddressFromPublicKey(transaction.senderPublicKey) === address,
+			);
+		}
+
+		return (transactions as Transaction[]).map(transaction => transaction.toJSON());
 	}
 
 	public async dryRunTransaction(ctx: RequestContext): Promise<DryRunTransactionResponse> {

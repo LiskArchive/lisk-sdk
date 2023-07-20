@@ -29,7 +29,7 @@ export const bufferArrayEqual = (arr1: Buffer[], arr2: Buffer[]): boolean =>
 export const bufferArraySubtract = (arr1: Buffer[], arr2: Buffer[]): Buffer[] =>
 	arr1.filter(a => !bufferArrayIncludes(arr2, a));
 
-export const bufferArrayOrderByLex = (arr1: Buffer[]): boolean => {
+export const isBufferArrayOrdered = (arr1: Buffer[]): boolean => {
 	const sortedArray = [...arr1];
 	sortedArray.sort((a, b) => a.compare(b));
 

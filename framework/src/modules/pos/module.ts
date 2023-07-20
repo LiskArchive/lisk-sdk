@@ -260,12 +260,11 @@ export class PoSModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig } = args;
-		const defaultPoSTokenID = `${args.genesisConfig.chainID}${Buffer.alloc(4).toString('hex')}`;
 		const config = objects.mergeDeep(
 			{},
 			{
 				...defaultConfig,
-				posTokenID: defaultPoSTokenID,
+				posTokenID: `${args.genesisConfig.chainID}${Buffer.alloc(4).toString('hex')}`,
 			},
 			moduleConfig,
 		) as ModuleConfigJSON;
@@ -351,7 +350,7 @@ export class PoSModule extends BaseModule {
 			if (!objectUtils.bufferArrayUniqueItems(staker.stakes.map(v => v.validatorAddress))) {
 				throw new Error('Sent stake validator address is not unique.');
 			}
-			if (!objectUtils.bufferArrayOrderByLex(staker.stakes.map(v => v.validatorAddress))) {
+			if (!objectUtils.isBufferArrayOrdered(staker.stakes.map(v => v.validatorAddress))) {
 				throw new Error('Sent stake validator address is not lexicographically ordered.');
 			}
 			for (const stakes of staker.stakes) {

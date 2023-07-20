@@ -346,7 +346,7 @@ export class ABIHandler implements ABI {
 			eventQueue: new EventQueue(this._executionContext.header.height),
 			transactions: [],
 		});
-		await this._stateMachine.beforeExecuteBlock(context);
+		await this._stateMachine.beforeTransactionsExecute(context);
 
 		return {
 			events: context.eventQueue.getEvents().map(e => e.toObject()),

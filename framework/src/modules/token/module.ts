@@ -391,7 +391,7 @@ export class TokenModule extends BaseInteroperableModule {
 					}
 					if (
 						!objects.bufferArrayUniqueItems(supportedTokenIDsData.supportedTokenIDs) ||
-						!objects.bufferArrayOrderByLex(supportedTokenIDsData.supportedTokenIDs)
+						!objects.isBufferArrayOrdered(supportedTokenIDsData.supportedTokenIDs)
 					) {
 						throw new Error(
 							'supportedTokensSubstore tokenIDs must be unique and sorted by lexicographically.',

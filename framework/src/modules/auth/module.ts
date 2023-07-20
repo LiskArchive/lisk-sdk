@@ -121,27 +121,25 @@ export class AuthModule extends BaseModule {
 			validator.validate(authAccountSchema, storeValue);
 
 			const { mandatoryKeys, optionalKeys, numberOfSignatures } = storeValue;
-			if (mandatoryKeys.length > 0) {
-				if (!objectUtils.bufferArrayOrderByLex(mandatoryKeys)) {
-					throw new Error(
-						'Invalid store value for auth module. MandatoryKeys are not sorted lexicographically.',
-					);
-				}
-				if (!objectUtils.bufferArrayUniqueItems(mandatoryKeys)) {
-					throw new Error('Invalid store value for auth module. MandatoryKeys are not unique.');
-				}
+
+			if (!objectUtils.isBufferArrayOrdered(mandatoryKeys)) {
+				throw new Error(
+					'Invalid store value for auth module. MandatoryKeys are not sorted lexicographically.',
+				);
+			}
+			if (!objectUtils.bufferArrayUniqueItems(mandatoryKeys)) {
+				throw new Error('Invalid store value for auth module. MandatoryKeys are not unique.');
 			}
 
-			if (optionalKeys.length > 0) {
-				if (!objectUtils.bufferArrayOrderByLex(optionalKeys)) {
-					throw new Error(
-						'Invalid store value for auth module. OptionalKeys are not sorted lexicographically.',
-					);
-				}
-				if (!objectUtils.bufferArrayUniqueItems(optionalKeys)) {
-					throw new Error('Invalid store value for auth module. OptionalKeys are not unique.');
-				}
+			if (!objectUtils.isBufferArrayOrdered(optionalKeys)) {
+				throw new Error(
+					'Invalid store value for auth module. OptionalKeys are not sorted lexicographically.',
+				);
 			}
+			if (!objectUtils.bufferArrayUniqueItems(optionalKeys)) {
+				throw new Error('Invalid store value for auth module. OptionalKeys are not unique.');
+			}
+
 			if (mandatoryKeys.length + optionalKeys.length > MAX_NUMBER_OF_SIGNATURES) {
 				throw new Error(
 					`The count of Mandatory and Optional keys should be maximum ${MAX_NUMBER_OF_SIGNATURES}.`,
