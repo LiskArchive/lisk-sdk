@@ -116,10 +116,10 @@ export class NFTModule extends BaseInteroperableModule {
 			AllNFTsFromCollectionSupportRemovedEvent,
 			new AllNFTsFromCollectionSupportRemovedEvent(this.name),
 		);
-		this.stores.register(NFTStore, new NFTStore(this.name, 1));
-		this.stores.register(UserStore, new UserStore(this.name, 2));
-		this.stores.register(EscrowStore, new EscrowStore(this.name, 3));
-		this.stores.register(SupportedNFTsStore, new SupportedNFTsStore(this.name, 4));
+		this.stores.register(NFTStore, new NFTStore(this.name, 0));
+		this.stores.register(UserStore, new UserStore(this.name, 1));
+		this.stores.register(EscrowStore, new EscrowStore(this.name, 2));
+		this.stores.register(SupportedNFTsStore, new SupportedNFTsStore(this.name, 3));
 	}
 
 	public get name(): string {
