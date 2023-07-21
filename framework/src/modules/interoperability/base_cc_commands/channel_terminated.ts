@@ -13,7 +13,7 @@
  */
 
 import { BaseInteroperabilityCCCommand } from '../base_interoperability_cc_commands';
-import { CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED } from '../constants';
+import { CCMStatusCode, CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED } from '../constants';
 import { CCCommandExecuteContext } from '../types';
 import { BaseInteroperabilityInternalMethod } from '../base_interoperability_internal_methods';
 import { TerminatedStateStore } from '../stores/terminated_state';
@@ -31,6 +31,10 @@ export abstract class BaseCCChannelTerminatedCommand<
 			throw new Error(
 				`CCM to execute cross chain command '${CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED}' is missing.`,
 			);
+		}
+
+		if (context.ccm.status !== CCMStatusCode.OK) {
+			return;
 		}
 
 		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
