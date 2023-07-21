@@ -19,7 +19,7 @@ import { ValidatorStore } from './stores/validator';
 import { ModuleEndpointContext } from '../../types';
 import { KEY_SNAPSHOT_0 } from './constants';
 import { SnapshotStore } from './stores';
-import { ValidatorEndpoint } from './types';
+import { Validator } from './types';
 
 export class PoAEndpoint extends BaseEndpoint {
 	private _authorityRegistrationFee!: bigint;
@@ -27,7 +27,8 @@ export class PoAEndpoint extends BaseEndpoint {
 	public init(authorityRegistrationFee: bigint) {
 		this._authorityRegistrationFee = authorityRegistrationFee;
 	}
-	public async getValidator(context: ModuleEndpointContext): Promise<ValidatorEndpoint> {
+
+	public async getValidator(context: ModuleEndpointContext): Promise<Validator> {
 		const validatorSubStore = this.stores.get(ValidatorStore);
 		const { address } = context.params;
 		if (typeof address !== 'string') {
@@ -67,7 +68,7 @@ export class PoAEndpoint extends BaseEndpoint {
 
 	public async getAllValidators(
 		context: ModuleEndpointContext,
-	): Promise<{ validators: ValidatorEndpoint[] }> {
+	): Promise<{ validators: Validator[] }> {
 		const validatorStore = this.stores.get(ValidatorStore);
 		const startBuf = Buffer.alloc(20);
 		const endBuf = Buffer.alloc(20, 255);
@@ -75,25 +76,31 @@ export class PoAEndpoint extends BaseEndpoint {
 			gte: startBuf,
 			lte: endBuf,
 		});
+
 		const snapshotStore = this.stores.get(SnapshotStore);
 		const currentRoundSnapshot = await snapshotStore.get(context, KEY_SNAPSHOT_0);
-		const response = [];
+
+		const validatorsData: Validator[] = [];
 		for (const data of validatorStoreData) {
 			const address = cryptoAddress.getLisk32AddressFromAddress(data.key);
-			const name = await validatorStore.get(context, data.key);
+			// `name` comes from type `ValidatorName`
+			const { name } = await validatorStore.get(context, data.key);
 			const activeValidator = currentRoundSnapshot.validators.find(
 				v => cryptoAddress.getLisk32AddressFromAddress(v.address) === address,
 			);
-			const validatorJSON = {
-				...name,
+
+			const validator: Validator = {
+				name,
 				address,
 				weight: activeValidator ? activeValidator.weight.toString() : '',
 			};
-			response.push(validatorJSON);
+			validatorsData.push(validator);
 		}
 
-		response.sort((v1, v2) => v1.name.localeCompare(v2.name, 'en'));
-		return { validators: response };
+		// This is needed since response from this endpoint is returning data in unexpected sorting order on next execution
+		// which can result in potential test/build failure
+		validatorsData.sort((v1, v2) => v1.name.localeCompare(v2.name, 'en'));
+		return { validators: validatorsData };
 	}
 
 	public getRegistrationFee(): { fee: string } {

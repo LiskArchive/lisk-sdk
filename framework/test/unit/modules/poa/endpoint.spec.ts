@@ -132,12 +132,12 @@ describe('PoAModuleEndpoint', () => {
 			await validatorStore.set(createStoreGetter(stateStore), address2, { name: 'validator2' });
 			await snapshotStore.set(createStoreGetter(stateStore), KEY_SNAPSHOT_0, snapshot);
 
-			const { validators: validatorsDataReturned } = await poaEndpoint.getAllValidators(
+			const { validators } = await poaEndpoint.getAllValidators(
 				createTransientModuleEndpointContext({ stateStore }),
 			);
 
-			expect(addresses).toContain(validatorsDataReturned[0].address);
-			expect(addresses).toContain(validatorsDataReturned[1].address);
+			expect(addresses).toContain(validators[0].address);
+			expect(addresses).toContain(validators[1].address);
 		});
 
 		it('should return valid JSON output', async () => {
@@ -147,12 +147,13 @@ describe('PoAModuleEndpoint', () => {
 			await validatorStore.set(createStoreGetter(stateStore), address2, { name: 'validator2' });
 			await snapshotStore.set(createStoreGetter(stateStore), KEY_SNAPSHOT_0, snapshot);
 
-			const { validators: validatorsDataReturned } = await poaEndpoint.getAllValidators(
+			const { validators } = await poaEndpoint.getAllValidators(
 				createTransientModuleEndpointContext({ stateStore }),
 			);
 
-			expect(validatorsDataReturned[0].weight).toBe(snapshot.validators[0].weight.toString());
-			expect(validatorsDataReturned[1].weight).toBe(snapshot.validators[1].weight.toString());
+			// Here we are checking against name sorted values from endpoint
+			expect(validators[0].weight).toBe(snapshot.validators[0].weight.toString());
+			expect(validators[1].weight).toBe(snapshot.validators[1].weight.toString());
 		});
 
 		it('should return json with empty weight for non active validator', async () => {
@@ -169,15 +170,13 @@ describe('PoAModuleEndpoint', () => {
 			};
 			await snapshotStore.set(createStoreGetter(stateStore), KEY_SNAPSHOT_0, currentSnapshot);
 
-			const { validators: validatorsDataReturned } = await poaEndpoint.getAllValidators(
+			const { validators } = await poaEndpoint.getAllValidators(
 				createTransientModuleEndpointContext({ stateStore }),
 			);
 
 			// Checking against name-sorted values
-			expect(validatorsDataReturned[0].weight).toBe(
-				currentSnapshot.validators[0].weight.toString(),
-			);
-			expect(validatorsDataReturned[1].weight).toBe('');
+			expect(validators[0].weight).toBe(currentSnapshot.validators[0].weight.toString());
+			expect(validators[1].weight).toBe('');
 		});
 	});
 
