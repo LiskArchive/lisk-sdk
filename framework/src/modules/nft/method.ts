@@ -278,21 +278,29 @@ export class NFTMethod extends BaseMethod {
 	public async getNextAvailableIndex(
 		methodContext: MethodContext,
 		collectionID: Buffer,
-	): Promise<number> {
+	): Promise<bigint> {
+		const indexLength = LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID;
 		const nftStore = this.stores.get(NFTStore);
+
 		const nftStoreData = await nftStore.iterate(methodContext, {
-			gte: Buffer.alloc(LENGTH_NFT_ID, 0),
-			lte: Buffer.alloc(LENGTH_NFT_ID, 255),
+			gte: Buffer.concat([this._config.ownChainID, collectionID, Buffer.alloc(indexLength, 0)]),
+			lte: Buffer.concat([this._config.ownChainID, collectionID, Buffer.alloc(indexLength, 255)]),
 		});
 
-		let count = 0;
-		for (const { key } of nftStoreData) {
-			if (key.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID).equals(collectionID)) {
-				count += 1;
-			}
+		if (nftStoreData.length === 0) {
+			return BigInt(0);
 		}
 
-		return count;
+		const latestKey = nftStoreData[nftStoreData.length - 1].key;
+		const indexBytes = latestKey.slice(LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID, LENGTH_NFT_ID);
+		const index = indexBytes.readBigUInt64BE();
+		const largestIndex = BigInt(BigInt(2 ** 64) - BigInt(1));
+
+		if (index === largestIndex) {
+			throw new Error('No more available indexes');
+		}
+
+		return index + BigInt(1);
 	}
 
 	public async create(
@@ -311,7 +319,7 @@ export class NFTMethod extends BaseMethod {
 
 		const index = await this.getNextAvailableIndex(methodContext, collectionID);
 		const indexBytes = Buffer.alloc(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID);
-		indexBytes.writeBigInt64BE(BigInt(index));
+		indexBytes.writeBigInt64BE(index);
 
 		const nftID = Buffer.concat([this._config.ownChainID, collectionID, indexBytes]);
 		this._feeMethod.payFee(methodContext, BigInt(FEE_CREATE_NFT));
