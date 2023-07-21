@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
@@ -48,6 +49,10 @@ export class InitializeMessageRecoveryCommand extends BaseInteroperabilityComman
 		context: CommandVerifyContext<MessageRecoveryInitializationParams>,
 	): Promise<VerificationResult> {
 		const { params } = context;
+
+		const deserializedChannel = codec.decode<ChannelData>(channelSchema, params.channel);
+
+		validator.validate(channelSchema, deserializedChannel);
 
 		const ownchainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
 		const mainchainID = getMainchainID(ownchainAccount.chainID);
