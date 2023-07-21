@@ -25,6 +25,7 @@ import { StoreGetter } from '../../../../../src/modules/base_store';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import { NamedRegistry } from '../../../../../src/modules/named_registry';
 import { OwnChainAccountStore } from '../../../../../src/modules/interoperability/stores/own_chain_account';
+import { EMPTY_BYTES } from '../../../../../src/modules/interoperability/constants';
 
 describe('Sidechain interoperability store', () => {
 	const sidechainInterops = new SidechainInteroperabilityModule();
@@ -71,6 +72,17 @@ describe('Sidechain interoperability store', () => {
 	});
 
 	describe('isLive', () => {
+		beforeEach(() => {
+			ownChainAccountStoreMock.get.mockResolvedValue({ chainID: EMPTY_BYTES });
+		});
+
+		it('should return true if chainID equals ownChainAccount ID', async () => {
+			ownChainAccountStoreMock.get.mockResolvedValue({ chainID });
+			const isLive = await sidechainInteroperabilityInternalMethod.isLive(context, chainID);
+
+			expect(isLive).toBe(true);
+		});
+
 		it(`should return false if chain account exists and status is ${ChainStatus.TERMINATED}`, async () => {
 			await chainDataSubstore.set(context, chainID, {
 				...chainAccount,
