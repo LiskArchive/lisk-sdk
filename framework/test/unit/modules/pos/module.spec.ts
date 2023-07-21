@@ -121,11 +121,11 @@ describe('PoS module', () => {
 			await expect(
 				pos.init({
 					genesisConfig: { chainID: '00'.repeat(CHAIN_ID_LENGTH) } as any,
-					moduleConfig: { ...defaultConfig, maxLengthName: 50 },
+					moduleConfig: { ...defaultConfig, maxLengthName: 25 },
 				}),
 			).toResolve();
 
-			expect(pos['_moduleConfig'].maxLengthName).toBe(50);
+			expect(pos['_moduleConfig'].maxLengthName).toBe(25);
 		});
 	});
 

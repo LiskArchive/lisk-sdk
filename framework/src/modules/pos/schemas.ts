@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { MAX_NUM_VALIDATORS } from '../../constants';
 import {
 	MAX_COMMISSION,
 	MAX_NUMBER_BYTES_Q96,
@@ -133,22 +134,30 @@ export const configSchema = {
 		factorSelfStakes: {
 			type: 'integer',
 			format: 'uint32',
+			minimum: 1,
 		},
 		maxLengthName: {
 			type: 'integer',
 			format: 'uint32',
+			minimum: 10,
+			maximum: 30,
 		},
 		maxNumberSentStakes: {
 			type: 'integer',
 			format: 'uint32',
+			minimum: 1,
+			maximum: 20,
 		},
 		maxNumberPendingUnlocks: {
 			type: 'integer',
 			format: 'uint32',
+			minimum: 1,
+			maximum: 40,
 		},
 		failSafeMissedBlocks: {
 			type: 'integer',
 			format: 'uint32',
+			minimum: 2,
 		},
 		failSafeInactiveWindow: {
 			type: 'integer',
@@ -161,14 +170,18 @@ export const configSchema = {
 		minWeightStandby: {
 			type: 'string',
 			format: 'uint64',
+			minimum: 1,
 		},
 		numberActiveValidators: {
 			type: 'integer',
 			format: 'uint32',
+			minimum: 1,
+			maximum: MAX_NUM_VALIDATORS,
 		},
 		numberStandbyValidators: {
 			type: 'integer',
 			format: 'uint32',
+			maximum: 2,
 		},
 		posTokenID: {
 			type: 'string',
@@ -181,8 +194,8 @@ export const configSchema = {
 		maxBFTWeightCap: {
 			type: 'integer',
 			format: 'uint32',
-			minimum: 1,
-			maximum: 9999,
+			minimum: 300,
+			maximum: 10000,
 		},
 		commissionIncreasePeriod: {
 			type: 'integer',
@@ -191,6 +204,8 @@ export const configSchema = {
 		maxCommissionIncreaseRate: {
 			type: 'integer',
 			format: 'uint32',
+			minimum: 100,
+			maximum: 10000,
 		},
 		useInvalidBLSKey: {
 			type: 'boolean',
