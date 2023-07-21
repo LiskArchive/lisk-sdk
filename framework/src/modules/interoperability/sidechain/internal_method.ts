@@ -16,9 +16,16 @@ import { ImmutableStoreGetter } from '../../base_store';
 import { BaseInteroperabilityInternalMethod } from '../base_interoperability_internal_methods';
 import { ChainAccountStore, ChainStatus } from '../stores/chain_account';
 import { TerminatedStateStore } from '../stores/terminated_state';
+import { OwnChainAccountStore } from '../stores/own_chain_account';
+import { EMPTY_BYTES } from '../constants';
 
 export class SidechainInteroperabilityInternalMethod extends BaseInteroperabilityInternalMethod {
 	public async isLive(context: ImmutableStoreGetter, chainID: Buffer): Promise<boolean> {
+		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
+		if (chainID.equals(ownChainAccount.chainID)) {
+			return true;
+		}
+
 		const chainAccountExists = await this.stores.get(ChainAccountStore).has(context, chainID);
 		if (chainAccountExists) {
 			const chainAccount = await this.stores.get(ChainAccountStore).get(context, chainID);
@@ -27,11 +34,7 @@ export class SidechainInteroperabilityInternalMethod extends BaseInteroperabilit
 			}
 		}
 
-		const isTerminated = await this.stores.get(TerminatedStateStore).has(context, chainID);
-		if (isTerminated) {
-			return false;
-		}
-
-		return true;
+		const terminated = await this.stores.get(TerminatedStateStore).has(context, chainID);
+		return !terminated;
 	}
 }
