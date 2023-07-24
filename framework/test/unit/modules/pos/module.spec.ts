@@ -134,28 +134,28 @@ describe('PoS module', () => {
 					genesisConfig: { chainID: '00000000', blockTime: 3 } as any,
 					moduleConfig: { ...defaultConfig, failSafeInactiveWindow: 140_000 },
 				}),
-			).rejects.toThrow();
+			).rejects.toThrow('Lisk validator found 1 error[s]:');
 
 			await expect(
 				pos.init({
 					genesisConfig: { chainID: '00000000', blockTime: 5 } as any,
 					moduleConfig: { ...defaultConfig, failSafeInactiveWindow: 6_400_000 },
 				}),
-			).rejects.toThrow();
+			).rejects.toThrow('Lisk validator found 1 error[s]:');
 
 			await expect(
 				pos.init({
 					genesisConfig: { chainID: '00000000', blockTime: 7 } as any,
 					moduleConfig: { ...defaultConfig, punishmentWindow: 60_000 },
 				}),
-			).rejects.toThrow();
+			).rejects.toThrow('Lisk validator found 1 error[s]:');
 
 			await expect(
 				pos.init({
 					genesisConfig: { chainID: '00000000', blockTime: 8 } as any,
 					moduleConfig: { ...defaultConfig, punishmentWindow: 4_000_000 },
 				}),
-			).rejects.toThrow();
+			).rejects.toThrow('Lisk validator found 1 error[s]:');
 		});
 	});
 
