@@ -163,6 +163,6 @@ export class ChainAccountStore extends BaseStore<ChainAccount> {
 			lte: endBuf,
 		});
 
-		return Promise.all(chainAccounts.map(chainAccount => chainAccount.value));
+		return chainAccounts.map(chainAccount => chainAccount.value);
 	}
 }
