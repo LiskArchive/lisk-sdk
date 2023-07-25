@@ -13,7 +13,7 @@
  *
  */
 import {
-	BASE32_CHARSET,
+	LISK32_CHARSET,
 	BINARY_ADDRESS_LENGTH,
 	DEFAULT_LISK32_ADDRESS_PREFIX,
 	LISK32_ADDRESS_LENGTH,
@@ -50,7 +50,7 @@ const convertUIntArray = (uintArray: number[], fromBits: number, toBits: number)
 };
 
 const convertUInt5ToBase32 = (uint5Array: number[]): string =>
-	uint5Array.map((val: number) => BASE32_CHARSET[val]).join('');
+	uint5Array.map((val: number) => LISK32_CHARSET[val]).join('');
 
 export const getAddressFromPublicKey = (publicKey: Buffer): Buffer => {
 	const buffer = hash(publicKey);
@@ -140,13 +140,13 @@ export const validateLisk32Address = (
 
 	const addressSubstringArray = address.substring(3).split('');
 
-	if (!addressSubstringArray.every(char => BASE32_CHARSET.includes(char))) {
+	if (!addressSubstringArray.every(char => LISK32_CHARSET.includes(char))) {
 		throw new Error(
-			`Invalid character found in address. Only allow characters: '${BASE32_CHARSET}'.`,
+			`Invalid character found in address. Only allow characters: '${LISK32_CHARSET}'.`,
 		);
 	}
 
-	const integerSequence = addressSubstringArray.map(char => BASE32_CHARSET.indexOf(char));
+	const integerSequence = addressSubstringArray.map(char => LISK32_CHARSET.indexOf(char));
 
 	if (!verifyChecksum(integerSequence)) {
 		throw new Error('Invalid checksum for address.');
@@ -167,7 +167,7 @@ export const getAddressFromLisk32Address = (
 	);
 
 	const addressArray = base32AddressNoPrefixNoChecksum.split('');
-	const integerSequence = addressArray.map(char => BASE32_CHARSET.indexOf(char));
+	const integerSequence = addressArray.map(char => LISK32_CHARSET.indexOf(char));
 	const integerSequence8 = convertUIntArray(integerSequence, 5, 8);
 
 	return Buffer.from(integerSequence8);

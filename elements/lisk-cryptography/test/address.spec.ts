@@ -21,7 +21,7 @@ import {
 	getLisk32AddressFromAddress,
 } from '../src/address';
 import {
-	BASE32_CHARSET,
+	LISK32_CHARSET,
 	DEFAULT_LISK32_ADDRESS_PREFIX,
 	LISK32_ADDRESS_LENGTH,
 } from '../src/constants';
@@ -112,7 +112,7 @@ describe('address', () => {
 			const address = 'lsk1aknq582o6fw7sp82bm2hnj7pzp47mpmbmux2g';
 			it('should throw an error', () => {
 				expect(() => validateLisk32Address(address)).toThrow(
-					`Invalid character found in address. Only allow characters: '${BASE32_CHARSET}'.`,
+					`Invalid character found in address. Only allow characters: '${LISK32_CHARSET}'.`,
 				);
 			});
 		});

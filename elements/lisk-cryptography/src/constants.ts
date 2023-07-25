@@ -22,5 +22,5 @@ export const HASH_LENGTH = 32;
 export const L = 8160; // 32 * 255
 export const EMPTY_SALT = Buffer.from(new Array(32).fill(0));
 export const SHA256 = 'sha256';
-export const BASE32_CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
+export const LISK32_CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
 export const LISK32_ADDRESS_LENGTH = 41;
