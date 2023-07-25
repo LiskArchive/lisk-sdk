@@ -619,7 +619,7 @@ describe('TokenInteroperableMethod', () => {
 			checkEventResult(methodContext.eventQueue, RecoverEvent, TokenEventResult.SUCCESSFUL);
 		});
 
-		it('should initialize the account if it does not exist and credit the it for the total recovered amount', async () => {
+		it('should initialize the account if it does not exist and credit it the total recovered amount', async () => {
 			const recipient = utils.getRandomBytes(20);
 
 			await expect(
