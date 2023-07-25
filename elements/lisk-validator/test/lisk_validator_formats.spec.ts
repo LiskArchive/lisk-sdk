@@ -13,35 +13,116 @@
  *
  */
 import { validator } from '../src';
+import { MAX_SINT32, MAX_SINT64, MAX_UINT32, MAX_UINT64 } from '../src/constants';
 
 describe('validator formats', () => {
-	const baseSchemaId = '/test/schema';
-	let baseSchema: Record<string, unknown>;
+	const baseSchema = {
+		$id: '/test/schema',
+		type: 'object',
+	};
 
-	beforeAll(() => {
-		baseSchema = {
-			$id: baseSchemaId,
-			type: 'object',
+	describe('uint32', () => {
+		const uint32IntegerSchema = {
+			...baseSchema,
+			properties: {
+				height: {
+					type: 'integer',
+					format: 'uint32',
+				},
+			},
 		};
+
+		it('should validate a correct uint32', () => {
+			expect(() => validator.validate(uint32IntegerSchema, { height: 8 })).not.toThrow();
+		});
+
+		it('should throw for a negative number', () => {
+			expect(() => validator.validate(uint32IntegerSchema, { height: -1 })).toThrow();
+		});
+
+		it('should throw when the number is too big', () => {
+			expect(() => validator.validate(uint32IntegerSchema, { height: MAX_UINT32 + 1 })).toThrow();
+		});
+	});
+
+	describe('int32', () => {
+		const int32IntegerSchema = {
+			...baseSchema,
+			properties: {
+				height: {
+					type: 'integer',
+					format: 'int32',
+				},
+			},
+		};
+
+		it('should validate a correct int32', () => {
+			expect(() => validator.validate(int32IntegerSchema, { height: 8 })).not.toThrow();
+		});
+
+		it('should throw when the number is too big', () => {
+			expect(() => validator.validate(int32IntegerSchema, { height: MAX_SINT32 + 1 })).toThrow();
+		});
+	});
+
+	describe('uint64', () => {
+		const uint32IntegerSchema = {
+			...baseSchema,
+			properties: {
+				height: {
+					type: 'integer',
+					format: 'uint64',
+				},
+			},
+		};
+
+		it('should validate a correct uint64', () => {
+			expect(() => validator.validate(uint32IntegerSchema, { height: 8 })).not.toThrow();
+		});
+
+		it('should throw for a negative number', () => {
+			expect(() => validator.validate(uint32IntegerSchema, { height: -1 })).toThrow();
+		});
+
+		it('should throw when the number is too big', () => {
+			expect(() =>
+				validator.validate(uint32IntegerSchema, { height: MAX_UINT64 + BigInt(1) }),
+			).toThrow();
+		});
+	});
+
+	describe('int64', () => {
+		const int32IntegerSchema = {
+			...baseSchema,
+			properties: {
+				height: {
+					type: 'integer',
+					format: 'int64',
+				},
+			},
+		};
+
+		it('should validate a correct int64', () => {
+			expect(() => validator.validate(int32IntegerSchema, { height: 8 })).not.toThrow();
+		});
+
+		it('should throw when the number is too big', () => {
+			expect(() =>
+				validator.validate(int32IntegerSchema, { height: MAX_SINT64 + BigInt(1) }),
+			).toThrow();
+		});
 	});
 
 	describe('hex', () => {
-		let schema: Record<string, unknown>;
-		beforeEach(() => {
-			schema = {
-				allOf: [
-					baseSchema,
-					{
-						properties: {
-							target: {
-								type: 'string',
-								format: 'hex',
-							},
-						},
-					},
-				],
-			};
-		});
+		const schema = {
+			...baseSchema,
+			properties: {
+				target: {
+					type: 'string',
+					format: 'hex',
+				},
+			},
+		};
 
 		it('should validate to true when valid hex string is provided', () => {
 			expect(() =>
@@ -53,31 +134,22 @@ describe('validator formats', () => {
 			const expectedError =
 				'Lisk validator found 1 error[s]:\nProperty \'.target\' must match format "hex"';
 
-			expect(() =>
-				validator.validate(schema, {
-					target: 'notValid?!hex-!!@',
-				}),
-			).toThrow(expectedError);
+			expect(() => validator.validate(schema, { target: 'notValid?!hex-!!@' })).toThrow(
+				expectedError,
+			);
 		});
 	});
 
 	describe('lisk32', () => {
-		let schema: Record<string, unknown>;
-		beforeEach(() => {
-			schema = {
-				allOf: [
-					baseSchema,
-					{
-						properties: {
-							target: {
-								type: 'string',
-								format: 'lisk32',
-							},
-						},
-					},
-				],
-			};
-		});
+		const schema = {
+			...baseSchema,
+			properties: {
+				target: {
+					type: 'string',
+					format: 'lisk32',
+				},
+			},
+		};
 
 		it('should validate to true when valid hex string is provided', () => {
 			expect(() =>
@@ -110,6 +182,7 @@ describe('validator formats', () => {
 
 	describe('path', () => {
 		const pathSchema = {
+			...baseSchema,
 			properties: {
 				rootPath: {
 					type: 'string',
@@ -135,6 +208,7 @@ describe('validator formats', () => {
 
 	describe('encryptedPassphrase', () => {
 		const encryptedPassphraseSchema = {
+			...baseSchema,
 			properties: {
 				encryptedPassphrase: {
 					type: 'string',
@@ -173,6 +247,7 @@ describe('validator formats', () => {
 
 	describe('camelCaseRegex', () => {
 		const camelCaseRegexSchema = {
+			...baseSchema,
 			properties: {
 				camelCaseRegex: {
 					type: 'string',
@@ -203,6 +278,7 @@ describe('validator formats', () => {
 
 	describe('version', () => {
 		const versionSchema = {
+			...baseSchema,
 			properties: {
 				version: {
 					type: 'string',

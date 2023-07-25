@@ -228,7 +228,7 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 							commandName: ccm.crossChainCommand,
 							ccmID: ccmID.toString('hex'),
 						},
-						'Execute beforeCrossChainCommandExecute',
+						'Execute beforeCrossChainMessageForwarding',
 					);
 					await method.beforeCrossChainMessageForwarding(context);
 				}
@@ -238,7 +238,7 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			context.stateStore.restoreSnapshot(stateSnapshotID);
 			logger.info(
 				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
-				'Fail to execute beforeCrossChainCommandExecute.',
+				'Fail to execute beforeCrossChainMessageForwarding.',
 			);
 			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
