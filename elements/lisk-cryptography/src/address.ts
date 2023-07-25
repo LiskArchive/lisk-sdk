@@ -120,7 +120,10 @@ export const getLisk32AddressFromPublicKey = (
 	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
 ): string => `${prefix}${addressToLisk32(getAddressFromPublicKey(publicKey))}`;
 
-export const validateLisk32Address = (address: string, prefix = DEFAULT_LISK32_ADDRESS_PREFIX) => {
+export const validateLisk32Address = (
+	address: string,
+	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
+): true | never => {
 	if (address.length !== LISK32_ADDRESS_LENGTH) {
 		throw new Error(
 			`Address length does not match requirements. Expected ${LISK32_ADDRESS_LENGTH} characters.`,
@@ -148,6 +151,8 @@ export const validateLisk32Address = (address: string, prefix = DEFAULT_LISK32_A
 	if (!verifyChecksum(integerSequence)) {
 		throw new Error('Invalid checksum for address.');
 	}
+
+	return true;
 };
 
 export const getAddressFromLisk32Address = (

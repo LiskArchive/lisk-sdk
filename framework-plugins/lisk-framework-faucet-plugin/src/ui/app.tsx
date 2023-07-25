@@ -9,12 +9,10 @@ import styles from './app.module.scss';
 
 const validateAddress = (address: string, prefix: string): boolean => {
 	try {
-		cryptography.address.validateLisk32Address(address, prefix);
+		return cryptography.address.validateLisk32Address(address, prefix);
 	} catch (error) {
 		return false;
 	}
-
-    return true;
 };
 
 interface FaucetConfig {
