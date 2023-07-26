@@ -1812,6 +1812,15 @@
     cargo-cp-artifact "^0.1"
     shelljs "^0.8.5"
 
+"@liskhq/lisk-framework-chain-connector-plugin@0.1.0-beta.0":
+  version "0.1.0-beta.0"
+  resolved "https://registry.yarnpkg.com/@liskhq/lisk-framework-chain-connector-plugin/-/lisk-framework-chain-connector-plugin-0.1.0-beta.0.tgz#ad31836ce7af429499982f13e12474131215ccd0"
+  integrity sha512-hp9YgtkY6povpQC4fiNZve7pgXWDkzBu3+RpIxTr+VbMhlo8yr0yt43SHKL888tk4VxuzuqIznvAFuyDmZP31A==
+  dependencies:
+    debug "4.3.4"
+    fs-extra "11.1.0"
+    lisk-sdk "^6.0.0-beta.0"
+
 "@lmdb/lmdb-darwin-arm64@2.5.2":
   version "2.5.2"
   resolved "https://registry.yarnpkg.com/@lmdb/lmdb-darwin-arm64/-/lmdb-darwin-arm64-2.5.2.tgz#bc66fa43286b5c082e8fee0eacc17995806b6fbe"

@@ -201,9 +201,9 @@ describe('RegisterAuthority', () => {
 			expect(mockValidatorsMethod.registerValidatorKeys).toHaveBeenCalledWith(
 				expect.anything(),
 				address.getAddressFromPublicKey(publicKey),
-				context.params.proofOfPossession,
-				context.params.generatorKey,
 				context.params.blsKey,
+				context.params.generatorKey,
+				context.params.proofOfPossession,
 			);
 		});
 	});
