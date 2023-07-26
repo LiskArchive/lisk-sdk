@@ -125,7 +125,7 @@ export interface UpdateGeneratorKeyParams {
 	generatorKey: Buffer;
 }
 
-export interface ValidatorEndpoint {
+export interface Validator {
 	address: string;
 	name: string;
 	weight: string;
