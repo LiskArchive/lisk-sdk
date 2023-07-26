@@ -7,11 +7,12 @@
 	"rpc": {
 		"modes": ["ipc"],
 		"port": 7882,
-		"host": "127.0.0.1"
+		"host": "127.0.0.1",
+		"allowedMethods": ["*"]
 	},
 	"network": {
 		"version": "1.0",
-		"seedPeers": [
+		"fixedPeers": [
 			{
 				"ip": "127.0.0.1",
 				"port": 7661

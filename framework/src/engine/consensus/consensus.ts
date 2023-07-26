@@ -993,6 +993,7 @@ export class Consensus {
 					contextID,
 					transaction: transaction.toObject(),
 					header: block.header.toObject(),
+					onlyCommand: false,
 				});
 				if (verifyResult !== TransactionVerifyResult.OK) {
 					this._logger.debug(`Failed to verify transaction ${transaction.id.toString('hex')}`);

@@ -253,6 +253,7 @@ export const previouslyGeneratedInfoSchema = {
 export interface DryRunTransactionRequest {
 	transaction: string;
 	skipVerify: boolean;
+	strict: boolean;
 }
 
 export interface DryRunTransactionResponse {
@@ -272,6 +273,10 @@ export const dryRunTransactionRequestSchema = {
 			format: 'hex',
 		},
 		skipVerify: {
+			type: 'boolean',
+			default: false,
+		},
+		strict: {
 			type: 'boolean',
 			default: false,
 		},
@@ -501,7 +506,7 @@ export const setKeysRequestSchema = {
 	],
 };
 
-export type HasKeysRequest = {
+export type Address = {
 	address: string;
 };
 
@@ -510,6 +515,17 @@ export const hasKeysRequestSchema = {
 	type: 'object',
 	// nosemgrep: schema_with_required_that_is_not_a_property
 	required: ['address'],
+	properties: {
+		address: {
+			type: 'string',
+			format: 'lisk32',
+		},
+	},
+};
+
+export const getTransactionsFromPoolRequestSchema = {
+	$id: '/generator/getTransactionsFromPool',
+	type: 'object',
 	properties: {
 		address: {
 			type: 'string',

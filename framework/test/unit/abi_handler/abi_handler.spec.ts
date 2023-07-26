@@ -348,7 +348,7 @@ describe('abi handler', () => {
 		});
 
 		it('should execute beforeTransactionsExecute and resolve the response', async () => {
-			jest.spyOn(abiHandler['_stateMachine'], 'beforeExecuteBlock');
+			jest.spyOn(abiHandler['_stateMachine'], 'beforeTransactionsExecute');
 			const { contextID } = await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
 			});
@@ -356,7 +356,7 @@ describe('abi handler', () => {
 				contextID,
 				assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
 			});
-			expect(abiHandler['_stateMachine'].beforeExecuteBlock).toHaveBeenCalledTimes(1);
+			expect(abiHandler['_stateMachine'].beforeTransactionsExecute).toHaveBeenCalledTimes(1);
 
 			expect(resp.events).toBeArray();
 		});
@@ -427,6 +427,7 @@ describe('abi handler', () => {
 				contextID,
 				transaction: tx.toObject(),
 				header,
+				onlyCommand: false,
 			});
 
 			expect(abiHandler['_stateMachine'].verifyTransaction).toHaveBeenCalledTimes(1);
@@ -460,6 +461,7 @@ describe('abi handler', () => {
 				contextID: Buffer.alloc(0),
 				transaction: tx.toObject(),
 				header,
+				onlyCommand: false,
 			});
 
 			expect(abiHandler['_stateMachine'].verifyTransaction).toHaveBeenCalledTimes(1);
@@ -471,6 +473,37 @@ describe('abi handler', () => {
 			// Expect used state store does not have previous information
 			await expect(usedStateStore.has(key)).resolves.toBeFalse();
 			expect(resp.result).toEqual(TransactionVerifyResult.INVALID);
+		});
+
+		it('should execute verifyTransaction with skip command true', async () => {
+			jest.spyOn(abiHandler['_stateMachine'], 'verifyTransaction');
+			const header = createFakeBlockHeader({ height: 10 }).toObject();
+			await abiHandler.initStateMachine({
+				header,
+			});
+			// Add random data to check if new state store is used or not
+			const key = utils.getRandomBytes(20);
+			await abiHandler['_executionContext']?.stateStore.set(key, utils.getRandomBytes(100));
+			const tx = new Transaction({
+				command: 'transfer',
+				fee: BigInt(30),
+				module: 'token',
+				nonce: BigInt(2),
+				params: utils.getRandomBytes(100),
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [utils.getRandomBytes(64)],
+			});
+			await abiHandler.verifyTransaction({
+				contextID: Buffer.alloc(0),
+				transaction: tx.toObject(),
+				header,
+				onlyCommand: true,
+			});
+
+			expect(abiHandler['_stateMachine'].verifyTransaction).toHaveBeenCalledWith(
+				expect.anything(),
+				true,
+			);
 		});
 	});
 

@@ -327,6 +327,7 @@ export class Generator {
 			contextID: Buffer.alloc(0),
 			transaction,
 			header: this._chain.lastBlock.header.toObject(),
+			onlyCommand: false,
 		});
 		return result;
 	}
@@ -734,6 +735,7 @@ export class Generator {
 					contextID,
 					transaction,
 					header: header.toObject(),
+					onlyCommand: false,
 				});
 				if (verifyResult !== TransactionVerifyResult.OK) {
 					throw new Error('Transaction is not valid');

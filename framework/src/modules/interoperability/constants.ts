@@ -44,6 +44,7 @@ export const MAX_MODULE_NAME_LENGTH = 32;
 export const MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH = 1;
 export const MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH = 32;
 export const CHAIN_ID_LENGTH = 4;
+export const CHAIN_ID_STRING_LENGTH = 2 * CHAIN_ID_LENGTH;
 export const SUBSTORE_PREFIX_LENGTH = 2;
 
 // Value is in beddows

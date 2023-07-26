@@ -128,11 +128,20 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 	});
 
 	describe('execute', () => {
-		it('should update terminatedStateAccount exists and initialized', async () => {
+		const expectedTerminatedStateAccount = {
+			stateRoot: ccmSidechainTerminatedParams.stateRoot,
+			mainchainStateRoot: EMPTY_HASH,
+			initialized: true,
+		};
+
+		it('should do nothing when terminatedStateAccount exists and initialized', async () => {
 			await terminatedStateSubstore.set(
 				createStoreGetter(stateStore),
-				chainID,
-				storedTerminatedState,
+				ccmSidechainTerminatedParams.chainID,
+				{
+					...storedTerminatedState,
+					initialized: false,
+				},
 			);
 
 			await expect(
@@ -145,16 +154,24 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 			expect(
 				ccSidechainTerminatedCommand['internalMethods'].createTerminatedStateAccount,
 			).toHaveBeenCalledTimes(0);
+
 			await expect(
-				terminatedStateSubstore.get(createStoreGetter(stateStore), chainID),
-			).resolves.toStrictEqual(storedTerminatedState);
+				terminatedStateSubstore.get(
+					createStoreGetter(stateStore),
+					ccmSidechainTerminatedParams.chainID,
+				),
+			).resolves.toStrictEqual(expectedTerminatedStateAccount);
 		});
 
-		it('should do nothing when terminatedStateAccount exists and not initialized', async () => {
-			await terminatedStateSubstore.set(createStoreGetter(stateStore), chainID, {
-				...storedTerminatedState,
-				initialized: false,
-			});
+		it('should update when terminatedStateAccount exists and not initialized', async () => {
+			await terminatedStateSubstore.set(
+				createStoreGetter(stateStore),
+				ccmSidechainTerminatedParams.chainID,
+				{
+					...storedTerminatedState,
+					initialized: false,
+				},
+			);
 
 			await expect(
 				ccSidechainTerminatedCommand.execute({
@@ -166,13 +183,13 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 			expect(
 				ccSidechainTerminatedCommand['internalMethods'].createTerminatedStateAccount,
 			).toHaveBeenCalledTimes(0);
+
 			await expect(
-				terminatedStateSubstore.get(createStoreGetter(stateStore), chainID),
-			).resolves.toStrictEqual({
-				stateRoot: ccmSidechainTerminatedParams.stateRoot,
-				mainchainStateRoot: EMPTY_HASH,
-				initialized: true,
-			});
+				terminatedStateSubstore.get(
+					createStoreGetter(stateStore),
+					ccmSidechainTerminatedParams.chainID,
+				),
+			).resolves.toStrictEqual(expectedTerminatedStateAccount);
 		});
 
 		it('should create terminatedStateAccount when terminatedStateAccount does not exist', async () => {

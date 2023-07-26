@@ -207,10 +207,10 @@ export abstract class BaseCrossChainUpdateCommand<
 			return;
 		}
 
-		let params;
+		let decodedParams;
 		try {
-			params = codec.decode(command.schema, context.ccm.params);
-			validator.validate(command.schema, params);
+			decodedParams = codec.decode(command.schema, context.ccm.params);
+			validator.validate(command.schema, decodedParams);
 		} catch (error) {
 			logger.info(
 				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
@@ -227,9 +227,6 @@ export abstract class BaseCrossChainUpdateCommand<
 
 		if (command.verify) {
 			try {
-				if (command.schema) {
-					validator.validate(command.schema, context.ccm.params);
-				}
 				await command.verify(context);
 			} catch (error) {
 				logger.info(
@@ -306,7 +303,7 @@ export abstract class BaseCrossChainUpdateCommand<
 				throw new Error('Cannot receive forwarded messages for a direct channel.');
 			}
 			// Execute the cross-chain command.
-			await command.execute({ ...context, params });
+			await command.execute({ ...context, params: decodedParams });
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccm,
 				result: CCMProcessedResult.APPLIED,

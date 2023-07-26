@@ -243,6 +243,14 @@ describe('SupportedTokensStore', () => {
 			await expect(store.has(context, Buffer.from([2, 0, 0, 0]))).resolves.toBeFalse();
 		});
 
+		it('should return undefined if all tokens are supported', async () => {
+			await store.set(context, ALL_SUPPORTED_TOKENS_KEY, { supportedTokenIDs: [] });
+
+			const tokenID = Buffer.from([2, 0, 0, 0, 1, 0, 0, 0]);
+			await expect(store.supportToken(context, tokenID)).resolves.toBeUndefined();
+			await expect(store.getAll(context)).resolves.toHaveLength(0);
+		});
+
 		it('should insert if there is no previous data', async () => {
 			const tokenID = Buffer.from([2, 0, 0, 0, 1, 0, 0, 0]);
 			await store.supportToken(context, tokenID);

@@ -272,6 +272,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			contextID: EMPTY_BUFFER,
 			transaction: transaction.toObject(),
 			header: this._chain.lastBlock.header.toObject(),
+			onlyCommand: false,
 		});
 		if (result === TransactionVerifyResult.INVALID) {
 			throw new InvalidTransactionError('Transaction verification failed.', transaction.id);

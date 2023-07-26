@@ -84,6 +84,7 @@ export class HighFeeGenerationStrategy {
 					contextID,
 					transaction: lowestNonceHighestFeeTrx.toObject(),
 					header: header.toObject(),
+					onlyCommand: false,
 				});
 				if (verifyResult !== TransactionVerifyResult.OK) {
 					throw new Error('Transaction is not valid');

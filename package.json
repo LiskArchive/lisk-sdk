@@ -27,6 +27,7 @@
 			"framework-plugins/*",
 			"elements/*",
 			"examples/*",
+			"examples/interop/*",
 			"commander",
 			"sdk",
 			"protocol-specs",
