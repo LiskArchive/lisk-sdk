@@ -236,8 +236,7 @@ describe('RegisterSidechainCommand', () => {
 			expect(() =>
 				validator.validate(sidechainRegistrationCommand.schema, {
 					...transactionParams,
-					// ESLint: Operands of '+' operation with any is possible only with string, number, bigint or any(@typescript-eslint/restrict-plus-operands)
-					name: new Array((MAX_CHAIN_NAME_LENGTH as number) + 2).join('a'),
+					name: new Array(MAX_CHAIN_NAME_LENGTH + 2).join('a'),
 				}),
 			).toThrow(`Property '.name' must NOT have more than ${MAX_CHAIN_NAME_LENGTH} characters`);
 		});

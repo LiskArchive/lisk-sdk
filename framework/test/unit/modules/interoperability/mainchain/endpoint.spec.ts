@@ -56,12 +56,8 @@ describe('MainchainInteroperabilityEndpoint', () => {
 	});
 
 	describe('isChainNameAvailable', () => {
-		const nameMinLengthErrMsg = `Property '.name' must NOT have fewer than ${
-			MIN_CHAIN_NAME_LENGTH as number
-		} characters`;
-		const nameMaxLengthErrMsg = `Property '.name' must NOT have more than ${
-			MAX_CHAIN_NAME_LENGTH as number
-		} characters`;
+		const nameMinLengthErrMsg = `Property '.name' must NOT have fewer than ${MIN_CHAIN_NAME_LENGTH} characters`;
+		const nameMaxLengthErrMsg = `Property '.name' must NOT have more than ${MAX_CHAIN_NAME_LENGTH} characters`;
 		const interopMod = new MainchainInteroperabilityModule();
 		const registeredNamesStore = {
 			has: jest.fn(),
@@ -95,7 +91,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(nameMinLengthErrMsg);
 		});
 
-		it(`should not throw error if name length equals ${MIN_CHAIN_NAME_LENGTH as number}`, () => {
+		it(`should not throw error if name length equals ${MIN_CHAIN_NAME_LENGTH}`, () => {
 			const context = createTransientModuleEndpointContext({
 				params: {
 					name: 'a',
@@ -106,7 +102,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 			expect(async () => endpoint.isChainNameAvailable(context)).not.toThrow(nameMinLengthErrMsg);
 		});
 
-		it(`should not throw error if name length equals ${MAX_CHAIN_NAME_LENGTH as number}`, () => {
+		it(`should not throw error if name length equals ${MAX_CHAIN_NAME_LENGTH}`, () => {
 			const context = createTransientModuleEndpointContext({
 				params: {
 					name: 'a'.repeat(MAX_CHAIN_NAME_LENGTH),
@@ -116,11 +112,10 @@ describe('MainchainInteroperabilityEndpoint', () => {
 			expect(async () => endpoint.isChainNameAvailable(context)).not.toThrow(nameMaxLengthErrMsg);
 		});
 
-		it(`should throw error if name length exceeds ${MAX_CHAIN_NAME_LENGTH as number}`, async () => {
+		it(`should throw error if name length exceeds ${MAX_CHAIN_NAME_LENGTH}`, async () => {
 			const context = createTransientModuleEndpointContext({
 				params: {
-					// ESLint: Operands of '+' operation with any is possible only with string, number, bigint or any(@typescript-eslint/restrict-plus-operands)
-					name: 'a'.repeat((MAX_CHAIN_NAME_LENGTH as number) + 1),
+					name: 'a'.repeat(MAX_CHAIN_NAME_LENGTH + 1),
 				},
 			});
 			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(nameMaxLengthErrMsg);
