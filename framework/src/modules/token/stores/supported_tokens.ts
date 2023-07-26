@@ -152,7 +152,6 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 		if (supported.supportedTokenIDs.findIndex(id => id.equals(tokenID)) === -1) {
 			supported.supportedTokenIDs.push(tokenID);
 			supported.supportedTokenIDs.sort((a, b) => a.compare(b));
-			await this.del(context, ALL_SUPPORTED_TOKENS_KEY);
 			await this.set(context, chainID, supported);
 		}
 	}

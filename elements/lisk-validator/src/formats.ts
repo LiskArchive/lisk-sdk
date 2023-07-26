@@ -13,30 +13,21 @@
  *
  */
 import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
-import {
-	isHexString,
-	isBytes,
-	isNumberString,
-	isSInt64,
-	isUInt64,
-	isUInt32,
-	isSInt32,
-	isIP,
-	isIPV4,
-	isEncryptedPassphrase,
-	isSemVer,
-} from './validation';
+import { isHexString, isBytes, isIP, isIPV4, isEncryptedPassphrase, isSemVer } from './validation';
+import { MAX_UINT32, MAX_UINT64 } from './constants';
 
 export const hex = isHexString;
 export const bytes = isBytes;
 
-export const int64 = (data: string): boolean => isNumberString(data) && isSInt64(BigInt(data));
+export const uint64 = {
+	type: 'number',
+	validate: (value: number) => Number.isInteger(value) && value >= 0 && value <= MAX_UINT64,
+};
 
-export const uint64 = (data: string): boolean => isNumberString(data) && isUInt64(BigInt(data));
-
-export const uint32 = (data: string): boolean => isNumberString(data) && isUInt32(Number(data));
-
-export const int32 = (data: string): boolean => isNumberString(data) && isSInt32(Number(data));
+export const uint32 = {
+	type: 'number',
+	validate: (value: number) => Number.isInteger(value) && value >= 0 && value <= MAX_UINT32,
+};
 
 const camelCaseRegex = /^[a-z][0-9]*([A-Z][a-z]*[a-zA-Z0-9]*|[a-z][a-z]*[a-zA-Z0-9]*)?$/;
 
