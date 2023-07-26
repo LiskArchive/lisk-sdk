@@ -165,7 +165,7 @@ describe('initGenesisState', () => {
 			];
 
 			describe('ownChainName', () => {
-				it(`should throw error if doesn't contain character set from ${validNameCharset}`, async () => {
+				it(`should throw error if doesn't contain chars from ${validNameCharset}`, async () => {
 					const context = createInitGenesisStateContext(
 						{
 							...defaultData,
