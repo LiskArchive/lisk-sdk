@@ -66,6 +66,7 @@ import { OwnChainAccountStore } from '../../../../../../src/modules/interoperabi
 import { EMPTY_BYTES } from '../../../../../../src/modules/token/constants';
 import { ChainAccountUpdatedEvent } from '../../../../../../src/modules/interoperability/events/chain_account_updated';
 import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
+import { InvalidNameError } from '../../../../../../src/modules/interoperability/errors';
 
 describe('RegisterSidechainCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -182,7 +183,7 @@ describe('RegisterSidechainCommand', () => {
 	});
 
 	describe('verify schema', () => {
-		it(`should return error if sidechainValidators array count exceeds ${MAX_NUM_VALIDATORS}`, async () => {
+		it(`should return error if sidechainValidators array count exceeds ${MAX_NUM_VALIDATORS}`, () => {
 			expect(() =>
 				validator.validate(sidechainRegistrationCommand.schema, {
 					...transactionParams,
@@ -194,7 +195,7 @@ describe('RegisterSidechainCommand', () => {
 			).toThrow(`must NOT have more than ${MAX_NUM_VALIDATORS} items`);
 		});
 
-		it('should return error if sidechainValidators array does not have any elements', async () => {
+		it('should return error if sidechainValidators array does not have any elements', () => {
 			expect(() =>
 				validator.validate(sidechainRegistrationCommand.schema, {
 					...transactionParams,
@@ -203,7 +204,7 @@ describe('RegisterSidechainCommand', () => {
 			).toThrow('must NOT have fewer than 1 items');
 		});
 
-		it('should return error if bls key is below minimum length', async () => {
+		it('should return error if bls key is below minimum length', () => {
 			expect(() =>
 				validator.validate(sidechainRegistrationCommand.schema, {
 					...transactionParams,
@@ -217,7 +218,7 @@ describe('RegisterSidechainCommand', () => {
 			).toThrow("Property '.sidechainValidators.0.blsKey' minLength not satisfied");
 		});
 
-		it('should return error if bls key is above maximum length', async () => {
+		it('should return error if bls key is above maximum length', () => {
 			expect(() =>
 				validator.validate(sidechainRegistrationCommand.schema, {
 					...transactionParams,
@@ -231,11 +232,12 @@ describe('RegisterSidechainCommand', () => {
 			).toThrow("Property '.sidechainValidators.0.blsKey' maxLength exceeded");
 		});
 
-		it(`should return error if name is more than ${MAX_CHAIN_NAME_LENGTH} characters long`, async () => {
+		it(`should return error if name is more than ${MAX_CHAIN_NAME_LENGTH} characters long`, () => {
 			expect(() =>
 				validator.validate(sidechainRegistrationCommand.schema, {
 					...transactionParams,
-					name: new Array(MAX_CHAIN_NAME_LENGTH + 2).join('a'),
+					// ESLint: Operands of '+' operation with any is possible only with string, number, bigint or any(@typescript-eslint/restrict-plus-operands)
+					name: new Array((MAX_CHAIN_NAME_LENGTH as number) + 2).join('a'),
 				}),
 			).toThrow(`Property '.name' must NOT have more than ${MAX_CHAIN_NAME_LENGTH} characters`);
 		});
@@ -262,9 +264,7 @@ describe('RegisterSidechainCommand', () => {
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				`Invalid name property. It should contain only characters from the set [a-z0-9!@$&_.].`,
-			);
+			expect(result.error?.message).toInclude(new InvalidNameError().message);
 		});
 
 		it('should return error if store key name already exists in name store', async () => {

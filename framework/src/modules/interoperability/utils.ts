@@ -84,10 +84,9 @@ export const handlePromiseErrorWithNull = async <T>(promise: Promise<T>) => {
 	return result;
 };
 
-export const isValidName = (username: string): boolean => /^[a-z0-9!@$&_.]+$/g.test(username);
-// CAUTION!
-// It must hold range from above `isValidName` function (as it's used in relevant error messages)
-export const validNameCharset = 'a-z0-9!@$&_.';
+export const validNameChars = 'a-z0-9!@$&_.';
+export const isValidName = (username: string): boolean =>
+	new RegExp(`^[${validNameChars}]+$`, 'g').test(username);
 
 export const computeValidatorsHash = (
 	initValidators: ActiveValidators[],

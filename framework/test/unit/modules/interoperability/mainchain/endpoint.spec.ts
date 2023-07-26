@@ -27,7 +27,7 @@ import { ChainAccountStore } from '../../../../../src/modules/interoperability/s
 import { OwnChainAccountStore } from '../../../../../src/modules/interoperability/stores/own_chain_account';
 import { RegisteredNamesStore } from '../../../../../src/modules/interoperability/stores/registered_names';
 import { createTransientModuleEndpointContext } from '../../../../../src/testing';
-import { validNameCharset } from '../../../../../src/modules/interoperability/utils';
+import { InvalidNameError } from '../../../../../src/modules/interoperability/errors';
 
 describe('MainchainInteroperabilityEndpoint', () => {
 	let endpoint: MainchainInteroperabilityEndpoint;
@@ -56,8 +56,12 @@ describe('MainchainInteroperabilityEndpoint', () => {
 	});
 
 	describe('isChainNameAvailable', () => {
-		const nameMinLengthErrMsg = `Property '.name' must NOT have fewer than ${MIN_CHAIN_NAME_LENGTH} characters`;
-		const nameMaxLengthErrMsg = `Property '.name' must NOT have more than ${MAX_CHAIN_NAME_LENGTH} characters`;
+		const nameMinLengthErrMsg = `Property '.name' must NOT have fewer than ${
+			MIN_CHAIN_NAME_LENGTH as number
+		} characters`;
+		const nameMaxLengthErrMsg = `Property '.name' must NOT have more than ${
+			MAX_CHAIN_NAME_LENGTH as number
+		} characters`;
 		const interopMod = new MainchainInteroperabilityModule();
 		const registeredNamesStore = {
 			has: jest.fn(),
@@ -101,6 +105,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 			expect(async () => endpoint.isChainNameAvailable(context)).not.toThrow(nameMinLengthErrMsg);
 		});
 
+		// eslint-disable-next-line @typescript-eslint/require-await
 		it(`should not throw error if name length equals ${MAX_CHAIN_NAME_LENGTH}`, () => {
 			const context = createTransientModuleEndpointContext({
 				params: {
@@ -113,7 +118,8 @@ describe('MainchainInteroperabilityEndpoint', () => {
 		it(`should throw error if name length exceeds ${MAX_CHAIN_NAME_LENGTH}`, async () => {
 			const context = createTransientModuleEndpointContext({
 				params: {
-					name: 'a'.repeat(MAX_CHAIN_NAME_LENGTH + 1),
+					// ESLint: Operands of '+' operation with any is possible only with string, number, bigint or any(@typescript-eslint/restrict-plus-operands)
+					name: 'a'.repeat((MAX_CHAIN_NAME_LENGTH as number) + 1),
 				},
 			});
 			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(nameMaxLengthErrMsg);
@@ -126,7 +132,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 				},
 			});
 			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(
-				`Invalid name property. It should contain only characters from the set [${validNameCharset}].`,
+				new InvalidNameError().message,
 			);
 		});
 
