@@ -226,6 +226,10 @@ export class StateStore {
 		this._snapshot = this._cache.copy();
 		this._latestSnapshotId += 1;
 
+		if (this._latestSnapshotId > Number.MAX_SAFE_INTEGER) {
+			this._latestSnapshotId = 0;
+		}
+
 		return this._latestSnapshotId;
 	}
 

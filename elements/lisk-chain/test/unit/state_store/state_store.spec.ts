@@ -332,6 +332,12 @@ describe('state store', () => {
 				'Invalid snapshot ID. Cannot revert to an older snapshot.',
 			);
 		});
+
+		it('should reset the snapshot id to 0 when the limit is reached', () => {
+			stateStore['_latestSnapshotId'] = Number.MAX_SAFE_INTEGER;
+			const snapshotId = stateStore.createSnapshot();
+			expect(snapshotId).toBe(0);
+		});
 	});
 
 	describe('finalize', () => {
