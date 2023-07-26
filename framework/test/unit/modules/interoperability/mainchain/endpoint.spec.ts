@@ -95,27 +95,28 @@ describe('MainchainInteroperabilityEndpoint', () => {
 			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(nameMinLengthErrMsg);
 		});
 
-		it(`should not throw error if name length equals ${MIN_CHAIN_NAME_LENGTH}`, () => {
+		it(`should not throw error if name length equals ${MIN_CHAIN_NAME_LENGTH as number}`, () => {
 			const context = createTransientModuleEndpointContext({
 				params: {
 					name: 'a',
 				},
 			});
 			// https://stackoverflow.com/questions/49603338/how-to-test-an-exception-was-not-thrown-with-jest
+			// eslint-disable-next-line @typescript-eslint/require-await
 			expect(async () => endpoint.isChainNameAvailable(context)).not.toThrow(nameMinLengthErrMsg);
 		});
 
-		// eslint-disable-next-line @typescript-eslint/require-await
-		it(`should not throw error if name length equals ${MAX_CHAIN_NAME_LENGTH}`, () => {
+		it(`should not throw error if name length equals ${MAX_CHAIN_NAME_LENGTH as number}`, () => {
 			const context = createTransientModuleEndpointContext({
 				params: {
 					name: 'a'.repeat(MAX_CHAIN_NAME_LENGTH),
 				},
 			});
+			// eslint-disable-next-line @typescript-eslint/require-await
 			expect(async () => endpoint.isChainNameAvailable(context)).not.toThrow(nameMaxLengthErrMsg);
 		});
 
-		it(`should throw error if name length exceeds ${MAX_CHAIN_NAME_LENGTH}`, async () => {
+		it(`should throw error if name length exceeds ${MAX_CHAIN_NAME_LENGTH as number}`, async () => {
 			const context = createTransientModuleEndpointContext({
 				params: {
 					// ESLint: Operands of '+' operation with any is possible only with string, number, bigint or any(@typescript-eslint/restrict-plus-operands)
