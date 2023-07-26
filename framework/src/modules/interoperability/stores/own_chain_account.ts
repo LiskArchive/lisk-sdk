@@ -13,7 +13,7 @@
  */
 import { BaseStore } from '../../base_store';
 import { CHAIN_ID_LENGTH } from '../../token/constants';
-import { STORE_PREFIX } from '../constants';
+import { MAX_CHAIN_NAME_LENGTH, MIN_CHAIN_NAME_LENGTH, STORE_PREFIX } from '../constants';
 
 export interface OwnChainAccount {
 	name: string;
@@ -29,6 +29,8 @@ export const ownChainAccountSchema = {
 	properties: {
 		name: {
 			dataType: 'string',
+			minLength: MIN_CHAIN_NAME_LENGTH,
+			maxLength: MAX_CHAIN_NAME_LENGTH,
 			fieldNumber: 1,
 		},
 		chainID: {

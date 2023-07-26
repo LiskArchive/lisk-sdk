@@ -24,6 +24,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { GenesisAssetsInput, genesisAssetsSchema } from '../../../utils/genesis_creation';
 import { flagsWithParser } from '../../../utils/flags';
 import { getNetworkConfigFilesPath } from '../../../utils/path';
+import { OWNER_READ_WRITE } from '../../../constants';
 
 export abstract class BaseGenesisBlockCommand extends Command {
 	static description = 'Creates genesis block file.';
@@ -85,7 +86,9 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			chainID: Buffer.from(app.config.genesis.chainID, 'hex'),
 		});
 		fs.mkdirSync(configPath, { recursive: true });
-		fs.writeFileSync(resolve(configPath, 'genesis_block.blob'), genesisBlock.getBytes());
+		fs.writeFileSync(resolve(configPath, 'genesis_block.blob'), genesisBlock.getBytes(), {
+			mode: OWNER_READ_WRITE,
+		});
 		this.log(`Genesis block files saved at: ${configPath}`);
 	}
 

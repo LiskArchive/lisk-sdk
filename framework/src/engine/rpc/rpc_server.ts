@@ -46,7 +46,7 @@ export class RPCServer {
 	private readonly _httpServer?: HTTPServer;
 
 	// <namespace: <method: Handler>>
-	private readonly _rpcHandler: Record<string, Record<string, Handler | undefined>> = {};
+	private readonly _rpcHandler: Map<string, Map<string, Handler>> = new Map();
 	private _notFoundHandler?: NotFoundHandler;
 
 	private _logger!: Logger;
@@ -68,6 +68,7 @@ export class RPCServer {
 				path: '/rpc-ws',
 				port: this._config.port,
 				host: this._config.host,
+				accessControlAllowOrigin: this._config.accessControlAllowOrigin,
 			});
 		}
 
@@ -77,6 +78,7 @@ export class RPCServer {
 				port: this._config.port,
 				path: '/rpc',
 				ignorePaths: ['/rpc-ws'],
+				accessControlAllowOrigin: this._config.accessControlAllowOrigin,
 			});
 		}
 	}
@@ -155,15 +157,15 @@ export class RPCServer {
 	}
 
 	public registerEndpoint(namespace: string, method: string, handler: Handler): void {
-		const existingNamespace = this._rpcHandler[namespace];
-		if (!existingNamespace) {
-			this._rpcHandler[namespace] = {};
+		if (!this._rpcHandler.has(namespace)) {
+			this._rpcHandler.set(namespace, new Map());
 		}
-		const existingMethod = this._rpcHandler[namespace][method];
+		const existingNamespace = this._rpcHandler.get(namespace) as Map<string, Handler>;
+		const existingMethod = this._rpcHandler.get(namespace)?.get(method);
 		if (existingMethod) {
 			throw new Error(`Method ${method} in ${namespace} is already registered.`);
 		}
-		this._rpcHandler[namespace][method] = handler;
+		existingNamespace.set(method, handler);
 		this._logger.info({ method: `${namespace}_${method}` }, `Registered endpoint`);
 	}
 
@@ -231,7 +233,7 @@ export class RPCServer {
 
 		try {
 			const request = Request.fromJSONRPCRequest(requestObj);
-			if (this._isDisabledMethod(request.namespace, request.name)) {
+			if (!this._isAllowedMethod(request.namespace, request.name)) {
 				const disabledMethodErrorMessage =
 					'Requested method or namespace is disabled in node config.';
 				throw new JSONRPC.JSONRPCError(
@@ -304,24 +306,25 @@ export class RPCServer {
 	}
 
 	private _getHandler(namespace: string, method: string): Handler | undefined {
-		const existingNamespace = this._rpcHandler[namespace];
+		const existingNamespace = this._rpcHandler.get(namespace);
 		if (!existingNamespace) {
 			return undefined;
 		}
-		const existingMethod = this._rpcHandler[namespace][method];
+		const existingMethod = existingNamespace.get(method);
 		if (!existingMethod) {
 			return undefined;
 		}
 		return existingMethod;
 	}
 
-	private _isDisabledMethod(namespace: string, method: string): boolean {
-		const { disabledMethods } = this._config;
-		if (!disabledMethods) {
+	private _isAllowedMethod(namespace: string, method: string): boolean {
+		const { allowedMethods } = this._config;
+		if (!allowedMethods || allowedMethods.length === 0) {
 			return false;
 		}
-		return (
-			disabledMethods.includes(namespace) || disabledMethods.includes(`${namespace}_${method}`)
-		);
+		if (allowedMethods.includes('*')) {
+			return true;
+		}
+		return allowedMethods.includes(namespace) || allowedMethods.includes(`${namespace}_${method}`);
 	}
 }

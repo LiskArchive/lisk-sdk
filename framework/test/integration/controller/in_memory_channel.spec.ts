@@ -43,23 +43,23 @@ describe('InMemoryChannel', () => {
 	const alpha = {
 		moduleName: 'alphaName',
 		events: ['alpha1', 'alpha2'],
-		endpoints: {
+		endpoints: new Map([
 			// eslint-disable-next-line @typescript-eslint/require-await
-			multiplyByTwo: async (ctx: any): Promise<unknown> => ctx.params.val * 2,
+			['multiplyByTwo', async (ctx: any): Promise<unknown> => ctx.params.val * 2],
 			// eslint-disable-next-line @typescript-eslint/require-await
-			multiplyByThree: async (ctx: any): Promise<unknown> => ctx.params.val * 3,
-		},
+			['multiplyByThree', async (ctx: any): Promise<unknown> => ctx.params.val * 3],
+		]),
 	};
 
 	const beta = {
 		moduleName: 'betaName',
 		events: ['beta1', 'beta2'],
-		endpoints: {
+		endpoints: new Map([
 			// eslint-disable-next-line @typescript-eslint/require-await
-			divideByTwo: async (ctx: any): Promise<unknown> => ctx.params.val / 2,
+			['divideByTwo', async (ctx: any): Promise<unknown> => ctx.params.val / 2],
 			// eslint-disable-next-line @typescript-eslint/require-await
-			divideByThree: async (ctx: any): Promise<unknown> => ctx.params.val / 3,
-		},
+			['divideByThree', async (ctx: any): Promise<unknown> => ctx.params.val / 3],
+		]),
 	};
 
 	let stateDB: StateDB;
@@ -156,7 +156,7 @@ describe('InMemoryChannel', () => {
 					new InMemoryDatabase() as any,
 					omegaName,
 					[omegaEventName],
-					{},
+					new Map(),
 					config.genesis.chainID,
 				);
 

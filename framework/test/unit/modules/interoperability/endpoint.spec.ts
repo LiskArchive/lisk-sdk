@@ -190,7 +190,7 @@ describe('Test interoperability endpoint', () => {
 			getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
 			getImmutableMethodContext: jest.fn(),
 			getOffchainStore: jest.fn(),
-			chainID: Buffer.alloc(0),
+			chainID: utils.intToBuffer(1, 4),
 			params: { chainID: '00000001' },
 			logger: {} as any,
 			header: { aggregateCommit: { height: 10 }, height: 12, timestamp: Date.now() },
@@ -219,6 +219,28 @@ describe('Test interoperability endpoint', () => {
 			chainAccountResult = await testInteroperabilityEndpoint.getChainAccount(moduleContext);
 		});
 
+		it('should reject if chainID is not in hex string format', async () => {
+			await expect(
+				testInteroperabilityEndpoint.getChainAccount({
+					...moduleContext,
+					params: { chainID: 'zy000001' },
+				}),
+			).rejects.toThrow(
+				'Lisk validator found 1 error[s]:\nProperty \'.chainID\' must match format "hex"',
+			);
+		});
+
+		it('should reject if chainID has invalid length', async () => {
+			await expect(
+				testInteroperabilityEndpoint.getChainAccount({
+					...moduleContext,
+					params: { chainID: '0400000001' },
+				}),
+			).rejects.toThrow(
+				"Lisk validator found 1 error[s]:\nProperty '.chainID' must NOT have more than 8 characters",
+			);
+		});
+
 		it('should call getChainAccount', () => {
 			expect(chainAccountStoreMock.get).toHaveBeenCalledWith(expect.anything(), chainID);
 		});
@@ -228,7 +250,9 @@ describe('Test interoperability endpoint', () => {
 		});
 
 		it('should pass validation for response', () => {
-			validator.validate(getChainAccountResponseSchema, chainAccountResult);
+			expect(() =>
+				validator.validate(getChainAccountResponseSchema, chainAccountResult),
+			).not.toThrow();
 		});
 	});
 

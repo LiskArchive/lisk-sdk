@@ -352,42 +352,61 @@ export class TokenModule extends BaseInteroperableModule {
 		}
 
 		const copiedSupportedTokenIDsStore = [...genesisStore.supportedTokensSubstore];
-		copiedSupportedTokenIDsStore.sort((a, b) => a.chainID.compare(b.chainID));
-
-		const supportedTokenIDsStore = this.stores.get(SupportedTokensStore);
-		const supportedTokenIDsSet = new dataStructures.BufferSet();
-		// eslint-disable-next-line @typescript-eslint/prefer-for-of
-		for (let i = 0; i < genesisStore.supportedTokensSubstore.length; i += 1) {
-			const supportedTokenIDsData = genesisStore.supportedTokensSubstore[i];
-			// validate terminated escrow chain ID/local ID uniqueness
-			if (supportedTokenIDsSet.has(supportedTokenIDsData.chainID)) {
-				throw new Error(
-					`supportedTokenIDsSet chain ID ${supportedTokenIDsData.chainID.toString(
-						'hex',
-					)} is duplicated.`,
-				);
-			}
-			supportedTokenIDsSet.add(supportedTokenIDsData.chainID);
-			// validate terminated escrow chain ID/local ID order
-			if (!supportedTokenIDsData.chainID.equals(copiedSupportedTokenIDsStore[i].chainID)) {
-				throw new Error('supportedTokensSubstore must be sorted by chainID.');
-			}
+		if (copiedSupportedTokenIDsStore.length !== 0) {
 			if (
-				!objects.bufferArrayUniqueItems(supportedTokenIDsData.supportedTokenIDs) ||
-				!objects.bufferArrayOrderByLex(supportedTokenIDsData.supportedTokenIDs)
+				copiedSupportedTokenIDsStore.length === 1 &&
+				copiedSupportedTokenIDsStore[0].chainID.length === 0
 			) {
-				throw new Error(
-					'supportedTokensSubstore tokenIDs must be unique and sorted by lexicographically.',
-				);
-			}
-			for (const tokenID of supportedTokenIDsData.supportedTokenIDs) {
-				if (!tokenID.slice(0, CHAIN_ID_LENGTH).equals(supportedTokenIDsData.chainID)) {
-					throw new Error('supportedTokensSubstore tokenIDs must match the chainID.');
+				if (copiedSupportedTokenIDsStore[0].supportedTokenIDs.length !== 0) {
+					throw new Error(
+						'supportedTokenIds must be an empty array when all tokens are supported.',
+					);
+				}
+			} else {
+				copiedSupportedTokenIDsStore.sort((a, b) => a.chainID.compare(b.chainID));
+
+				const supportedTokenIDsStore = this.stores.get(SupportedTokensStore);
+				const supportedTokenIDsSet = new dataStructures.BufferSet();
+				// eslint-disable-next-line @typescript-eslint/prefer-for-of
+				for (let i = 0; i < genesisStore.supportedTokensSubstore.length; i += 1) {
+					const supportedTokenIDsData = genesisStore.supportedTokensSubstore[i];
+					if (supportedTokenIDsData.chainID.length !== CHAIN_ID_LENGTH) {
+						throw new Error(
+							`supportedTokensSubstore chainIDs must be of length ${CHAIN_ID_LENGTH}.`,
+						);
+					}
+
+					// validate terminated escrow chain ID/local ID uniqueness
+					if (supportedTokenIDsSet.has(supportedTokenIDsData.chainID)) {
+						throw new Error(
+							`supportedTokenIDsSet chain ID ${supportedTokenIDsData.chainID.toString(
+								'hex',
+							)} is duplicated.`,
+						);
+					}
+					supportedTokenIDsSet.add(supportedTokenIDsData.chainID);
+					// validate terminated escrow chain ID/local ID order
+					if (!supportedTokenIDsData.chainID.equals(copiedSupportedTokenIDsStore[i].chainID)) {
+						throw new Error('supportedTokensSubstore must be sorted by chainID.');
+					}
+					if (
+						!objects.bufferArrayUniqueItems(supportedTokenIDsData.supportedTokenIDs) ||
+						!objects.isBufferArrayOrdered(supportedTokenIDsData.supportedTokenIDs)
+					) {
+						throw new Error(
+							'supportedTokensSubstore tokenIDs must be unique and sorted by lexicographically.',
+						);
+					}
+					for (const tokenID of supportedTokenIDsData.supportedTokenIDs) {
+						if (!tokenID.slice(0, CHAIN_ID_LENGTH).equals(supportedTokenIDsData.chainID)) {
+							throw new Error('supportedTokensSubstore tokenIDs must match the chainID.');
+						}
+					}
+					await supportedTokenIDsStore.set(context, supportedTokenIDsData.chainID, {
+						supportedTokenIDs: supportedTokenIDsData.supportedTokenIDs,
+					});
 				}
 			}
-			await supportedTokenIDsStore.set(context, supportedTokenIDsData.chainID, {
-				supportedTokenIDs: supportedTokenIDsData.supportedTokenIDs,
-			});
 		}
 
 		// verify result

@@ -15,7 +15,6 @@
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { dataStructures } from '@liskhq/lisk-utils';
-import { validator } from '@liskhq/lisk-validator';
 import { BaseCommand } from '../../base_command';
 import {
 	CommandExecuteContext,
@@ -30,12 +29,13 @@ import {
 	crossChainTransferParamsSchema,
 } from '../schemas';
 import { InteroperabilityMethod } from '../types';
-import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../constants';
+import { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../constants';
 import { splitTokenID } from '../utils';
 import { EscrowStore } from '../stores/escrow';
 import { UserStore } from '../stores/user';
 import { TransferCrossChainEvent } from '../events/transfer_cross_chain';
 import { InternalMethod } from '../internal_method';
+import { InsufficientBalanceError } from '../../../errors';
 
 interface Params {
 	tokenID: Buffer;
@@ -71,8 +71,6 @@ export class TransferCrossChainCommand extends BaseCommand {
 		const { params } = context;
 
 		try {
-			validator.validate(this.schema, params);
-
 			const [tokenChainID, _] = splitTokenID(params.tokenID);
 
 			if (params.receivingChainID.equals(context.chainID)) {
@@ -99,7 +97,7 @@ export class TransferCrossChainCommand extends BaseCommand {
 
 			balanceCheck.set(
 				messageFeeTokenID,
-				(balanceCheck.get(messageFeeTokenID) ?? BigInt(0)) + params.amount,
+				(balanceCheck.get(messageFeeTokenID) ?? BigInt(0)) + params.messageFee,
 			);
 
 			for (const [tokenID, amount] of balanceCheck.entries()) {
@@ -110,12 +108,11 @@ export class TransferCrossChainCommand extends BaseCommand {
 				);
 
 				if (availableBalance < amount) {
-					throw new Error(
-						`${cryptography.address.getLisk32AddressFromAddress(
-							context.transaction.senderAddress,
-						)} balance ${availableBalance.toString()} for ${tokenID.toString(
-							'hex',
-						)} is not sufficient for ${amount.toString()}.`,
+					throw new InsufficientBalanceError(
+						cryptography.address.getLisk32AddressFromAddress(context.transaction.senderAddress),
+						availableBalance.toString(),
+						amount.toString(),
+						tokenID.toString('hex'),
 					);
 				}
 			}
@@ -155,12 +152,11 @@ export class TransferCrossChainCommand extends BaseCommand {
 		const senderAccount = await userStore.get(context, senderAccountKey);
 
 		if (senderAccount.availableBalance < params.amount) {
-			throw new Error(
-				`${cryptography.address.getLisk32AddressFromAddress(
-					senderAddress,
-				)} balance ${senderAccount.availableBalance.toString()} for ${params.tokenID.toString(
-					'hex',
-				)} is not sufficient for ${params.amount.toString()}.`,
+			throw new InsufficientBalanceError(
+				cryptography.address.getLisk32AddressFromAddress(senderAddress),
+				senderAccount.availableBalance.toString(),
+				params.amount.toString(),
+				params.tokenID.toString('hex'),
 			);
 		}
 
@@ -195,7 +191,6 @@ export class TransferCrossChainCommand extends BaseCommand {
 			CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 			params.receivingChainID,
 			params.messageFee,
-			CCM_STATUS_OK,
 			codec.encode(crossChainTransferMessageParams, transferCCM),
 			context.header.timestamp,
 		);

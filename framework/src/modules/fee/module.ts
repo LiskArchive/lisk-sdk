@@ -96,6 +96,7 @@ export class FeeModule extends BaseInteroperableModule {
 		};
 		this.method.init(moduleConfig);
 		this.endpoint.init(moduleConfig);
+		this.crossChainMethod.init(moduleConfig);
 
 		this._tokenID = moduleConfig.feeTokenID;
 		this._minFeePerByte = moduleConfig.minFeePerByte;
@@ -103,7 +104,6 @@ export class FeeModule extends BaseInteroperableModule {
 		this._feePoolAddress = moduleConfig.feePoolAddress;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
 		const { getMethodContext, transaction, header } = context;
 

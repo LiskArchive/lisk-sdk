@@ -18,7 +18,7 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=16.14.1 <=16",
+		"node": ">=18.12.0 <=18",
 		"npm": ">=8.1.0"
 	},
 	"workspaces": {
@@ -27,6 +27,7 @@
 			"framework-plugins/*",
 			"elements/*",
 			"examples/*",
+			"examples/interop/*",
 			"commander",
 			"sdk",
 			"protocol-specs",
@@ -59,7 +60,7 @@
 		"@parcel/packager-raw-url": "2.8.0",
 		"@parcel/transformer-sass": "2.8.0",
 		"@parcel/transformer-webmanifest": "2.8.0",
-		"@types/node": "16.18.3",
+		"@types/node": "18.15.3",
 		"@typescript-eslint/eslint-plugin": "5.44.0",
 		"@typescript-eslint/parser": "5.44.0",
 		"eslint": "8.28.0",

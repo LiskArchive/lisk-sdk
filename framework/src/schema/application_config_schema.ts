@@ -13,7 +13,13 @@
  *
  */
 
-import { DEFAULT_HOST, DEFAULT_PORT_P2P, DEFAULT_PORT_RPC } from '../constants';
+import {
+	DEFAULT_HOST,
+	DEFAULT_PORT_P2P,
+	DEFAULT_PORT_RPC,
+	MAX_CCM_SIZE,
+	MAX_NUM_VALIDATORS,
+} from '../constants';
 
 export const applicationConfigSchema = {
 	$id: '#/config',
@@ -54,11 +60,12 @@ export const applicationConfigSchema = {
 				},
 				host: { type: 'string' },
 				port: { type: 'number', minimum: 1024, maximum: 65535 },
-				disabledMethods: {
+				allowedMethods: {
 					type: 'array',
 					items: { type: 'string' },
 					uniqueItems: true,
 				},
+				accessControlAllowOrigin: { type: 'string' },
 			},
 		},
 		legacy: {
@@ -234,12 +241,13 @@ export const applicationConfigSchema = {
 				},
 				blockTime: {
 					type: 'number',
-					minimum: 2,
+					minimum: 3,
+					maximum: 30 * 24 * 60 * 60, // 1 block per month
 					description: 'Slot time interval in seconds',
 				},
 				bftBatchSize: {
 					type: 'number',
-					minimum: 1,
+					maximum: MAX_NUM_VALIDATORS + 2,
 					description: 'The length of a round',
 				},
 				chainID: {
@@ -249,11 +257,14 @@ export const applicationConfigSchema = {
 				},
 				maxTransactionsSize: {
 					type: 'integer',
-					// eslint-disable-next-line @typescript-eslint/no-magic-numbers
-					minimum: 10 * 1024, // Kilo Bytes
-					// eslint-disable-next-line @typescript-eslint/no-magic-numbers
+					minimum: MAX_CCM_SIZE + 1024,
 					maximum: 30 * 1024, // Kilo Bytes
 					description: 'Maximum number of transactions allowed per block',
+				},
+				minimumCertifyHeight: {
+					type: 'integer',
+					minimum: 1,
+					description: 'Minimum block height which can be certified',
 				},
 			},
 			additionalProperties: false,
@@ -297,6 +308,8 @@ export const applicationConfigSchema = {
 			modes: ['ipc'],
 			port: DEFAULT_PORT_RPC,
 			host: DEFAULT_HOST,
+			allowedMethods: [],
+			accessControlAllowOrigin: '*',
 		},
 		legacy: {
 			sync: false,
@@ -321,6 +334,7 @@ export const applicationConfigSchema = {
 			blockTime: 10,
 			bftBatchSize: 103,
 			maxTransactionsSize: 15 * 1024, // Kilo Bytes
+			minimumCertifyHeight: 1,
 		},
 		generator: {
 			keys: {},

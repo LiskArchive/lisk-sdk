@@ -15,12 +15,7 @@
 import { BlockHeader, Transaction } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../../../src/testing';
-import {
-	UnlockCommand,
-	CommandExecuteContext,
-	PoSModule,
-	CommandVerifyContext,
-} from '../../../../../src';
+import { UnlockCommand, CommandExecuteContext, PoSModule } from '../../../../../src';
 import {
 	defaultConfig,
 	EMPTY_KEY,
@@ -28,8 +23,14 @@ import {
 	PUNISHMENT_WINDOW_STAKING,
 	LOCKING_PERIOD_SELF_STAKING,
 	LOCKING_PERIOD_STAKING,
+	TOKEN_ID_LENGTH,
 } from '../../../../../src/modules/pos/constants';
-import { TokenMethod, UnlockingObject, StakerData } from '../../../../../src/modules/pos/types';
+import {
+	TokenMethod,
+	UnlockingObject,
+	StakerData,
+	ModuleConfigJSON,
+} from '../../../../../src/modules/pos/types';
 import { liskToBeddows } from '../../../../utils/assets';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing';
@@ -37,7 +38,7 @@ import { ValidatorStore } from '../../../../../src/modules/pos/stores/validator'
 import { StakerStore } from '../../../../../src/modules/pos/stores/staker';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import { GenesisDataStore } from '../../../../../src/modules/pos/stores/genesis';
-import { VerifyStatus } from '../../../../../src/state_machine';
+import { getModuleConfig } from '../../../../../src/modules/pos/utils';
 
 describe('UnlockCommand', () => {
 	const pos = new PoSModule();
@@ -55,7 +56,6 @@ describe('UnlockCommand', () => {
 	let unlockableObject3: UnlockingObject;
 	let nonUnlockableObject: UnlockingObject;
 	let context: CommandExecuteContext;
-	let verifyContext: CommandVerifyContext;
 	let storedData: StakerData;
 	const validator1 = {
 		name: 'validator1',
@@ -102,6 +102,10 @@ describe('UnlockCommand', () => {
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 		'hex',
 	);
+	const config = getModuleConfig({
+		...defaultConfig,
+		posTokenID: '00'.repeat(TOKEN_ID_LENGTH),
+	} as ModuleConfigJSON);
 
 	beforeEach(() => {
 		unlockCommand = new UnlockCommand(pos.stores, pos.events);
@@ -116,10 +120,7 @@ describe('UnlockCommand', () => {
 		unlockCommand.addDependencies({
 			tokenMethod: mockTokenMethod,
 		});
-		unlockCommand.init({
-			roundLength: defaultConfig.roundLength,
-			posTokenID: Buffer.alloc(8),
-		});
+		unlockCommand.init(config);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		validatorSubstore = pos.stores.get(ValidatorStore);
 		stakerSubstore = pos.stores.get(StakerStore);
@@ -132,53 +133,6 @@ describe('UnlockCommand', () => {
 				certificateSignature: Buffer.alloc(0),
 				height: blockHeight,
 			},
-		});
-	});
-
-	describe('verify', () => {
-		it('should return an OK verify status', async () => {
-			verifyContext = testing
-				.createTransactionContext({
-					stateStore,
-					transaction,
-					header,
-					chainID,
-				})
-				.createCommandVerifyContext();
-
-			const result = await unlockCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.OK);
-		});
-
-		it('should return an error if transaction params are not empty', async () => {
-			const transactionX = new Transaction({
-				module: 'pos',
-				command: 'unlock',
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: Buffer.alloc(5),
-				signatures: [publicKey],
-			});
-
-			verifyContext = testing
-				.createTransactionContext({
-					stateStore,
-					transaction: transactionX,
-					header,
-					chainID,
-				})
-				.createCommandVerifyContext();
-
-			const expected = {
-				status: VerifyStatus.FAIL,
-				error: new Error('Unlock transaction params must be empty.'),
-			};
-
-			const result = await unlockCommand.verify(verifyContext);
-
-			expect(result).toMatchObject(expected);
 		});
 	});
 

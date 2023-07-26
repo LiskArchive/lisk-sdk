@@ -15,6 +15,7 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { ChainStatus, MainchainInteroperabilityModule } from '../../../../../src';
 import {
+	CCMStatusCode,
 	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	EMPTY_BYTES,
@@ -95,6 +96,17 @@ describe('BaseCCChannelTerminatedCommand', () => {
 	});
 
 	describe('execute', () => {
+		it('should skip if ccm status is not OK', async () => {
+			await ccChannelTerminatedCommand.execute({
+				...sampleExecuteContext,
+				ccm: {
+					...sampleExecuteContext.ccm,
+					status: CCMStatusCode.FAILED_CCM,
+				},
+			});
+			expect(createTerminatedStateAccountMock).toHaveBeenCalledTimes(0);
+		});
+
 		it('should skip if terminatedStateAccount exists', async () => {
 			terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
 			await terminatedStateSubstore.set(

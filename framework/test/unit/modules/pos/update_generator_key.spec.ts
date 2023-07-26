@@ -15,6 +15,7 @@
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 import * as testing from '../../../../src/testing';
 import { UpdateGeneratorKeyCommand } from '../../../../src/modules/pos/commands/update_generator_key';
 import { updateGeneratorKeyCommandParamsSchema } from '../../../../src/modules/pos/schemas';
@@ -71,6 +72,16 @@ describe('Update generator key command', () => {
 		});
 	});
 
+	describe('verify schema', () => {
+		it('should return error if generatorKey exceeds maxLength', () => {
+			expect(() =>
+				validator.validate(updateGeneratorCommand.schema, {
+					generatorKey: utils.getRandomBytes(64),
+				}),
+			).toThrow("Property '.generatorKey' maxLength exceeded");
+		});
+	});
+
 	describe('verify', () => {
 		it('should return status OK for valid params', async () => {
 			const context = testing
@@ -85,34 +96,6 @@ describe('Update generator key command', () => {
 			const result = await updateGeneratorCommand.verify(context);
 
 			expect(result.status).toBe(VerifyStatus.OK);
-		});
-
-		it('should return error if generatorKey is invalid', async () => {
-			const invalidParams = codec.encode(updateGeneratorKeyCommandParamsSchema, {
-				generatorKey: utils.getRandomBytes(64),
-			});
-			const invalidTransaction = new Transaction({
-				module: 'pos',
-				command: 'updateGeneratorKey',
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: invalidParams,
-				signatures: [publicKey],
-			});
-			const context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction: invalidTransaction,
-					chainID,
-				})
-				.createCommandVerifyContext<UpdateGeneratorKeyParams>(
-					updateGeneratorKeyCommandParamsSchema,
-				);
-			const result = await updateGeneratorCommand.verify(context);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude("Property '.generatorKey' maxLength exceeded");
 		});
 
 		it('should return error if store key address does not exist', async () => {

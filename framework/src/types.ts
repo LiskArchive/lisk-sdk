@@ -64,6 +64,7 @@ export interface GenesisConfig {
 	maxTransactionsSize: number;
 	blockTime: number;
 	bftBatchSize: number;
+	minimumCertifyHeight: number;
 }
 
 export interface TransactionPoolConfig {
@@ -90,7 +91,8 @@ export interface RPCConfig {
 	modes: (typeof RPC_MODES.IPC | typeof RPC_MODES.WS | typeof RPC_MODES.HTTP)[];
 	port: number;
 	host: string;
-	disabledMethods?: string[];
+	allowedMethods?: string[];
+	accessControlAllowOrigin: string;
 }
 
 export interface LegacyConfig {
@@ -174,7 +176,7 @@ export type EndpointHandler = (
 	context: PluginEndpointContext | ModuleEndpointContext,
 ) => Promise<unknown>;
 
-export type EndpointHandlers = Record<string, EndpointHandler>;
+export type EndpointHandlers = Map<string, EndpointHandler>;
 
 type Primitive = string | number | bigint | boolean | null | undefined;
 type Replaced<T, TReplace, TWith, TKeep = Primitive> = T extends TReplace | TKeep

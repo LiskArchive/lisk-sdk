@@ -66,4 +66,15 @@ export default abstract class BaseCommand extends Command {
 			...this.printFlags,
 		}).call(this, result as StringMap);
 	}
+
+	printJSON(message: Record<string, unknown> | string): void {
+		if (typeof message === 'string') {
+			this.log(message);
+		}
+		if (this.printFlags.json) {
+			this.log(JSON.stringify(message, undefined, '  '));
+		} else {
+			this.log(JSON.stringify(message));
+		}
+	}
 }

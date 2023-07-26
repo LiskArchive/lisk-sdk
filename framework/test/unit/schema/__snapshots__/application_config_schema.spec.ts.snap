@@ -15,6 +15,7 @@ exports[`schema/application_config_schema.js application config schema must matc
       },
       "blockTime": 10,
       "maxTransactionsSize": 15360,
+      "minimumCertifyHeight": 1,
     },
     "legacy": {
       "brackets": [],
@@ -28,6 +29,8 @@ exports[`schema/application_config_schema.js application config schema must matc
     },
     "plugins": {},
     "rpc": {
+      "accessControlAllowOrigin": "*",
+      "allowedMethods": [],
       "host": "127.0.0.1",
       "modes": [
         "ipc",
@@ -72,7 +75,7 @@ exports[`schema/application_config_schema.js application config schema must matc
       "properties": {
         "bftBatchSize": {
           "description": "The length of a round",
-          "minimum": 1,
+          "maximum": 201,
           "type": "number",
         },
         "block": {
@@ -110,7 +113,8 @@ exports[`schema/application_config_schema.js application config schema must matc
         },
         "blockTime": {
           "description": "Slot time interval in seconds",
-          "minimum": 2,
+          "maximum": 2592000,
+          "minimum": 3,
           "type": "number",
         },
         "chainID": {
@@ -121,7 +125,12 @@ exports[`schema/application_config_schema.js application config schema must matc
         "maxTransactionsSize": {
           "description": "Maximum number of transactions allowed per block",
           "maximum": 30720,
-          "minimum": 10240,
+          "minimum": 11264,
+          "type": "integer",
+        },
+        "minimumCertifyHeight": {
+          "description": "Minimum block height which can be certified",
+          "minimum": 1,
           "type": "integer",
         },
       },
@@ -277,7 +286,10 @@ exports[`schema/application_config_schema.js application config schema must matc
     },
     "rpc": {
       "properties": {
-        "disabledMethods": {
+        "accessControlAllowOrigin": {
+          "type": "string",
+        },
+        "allowedMethods": {
           "items": {
             "type": "string",
           },

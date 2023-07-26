@@ -15,6 +15,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 import { utils } from '@liskhq/lisk-cryptography';
 import {
 	TokenMethod,
@@ -24,10 +25,7 @@ import {
 	VerifyStatus,
 } from '../../../../../src';
 import { TransferCrossChainCommand } from '../../../../../src/modules/token/commands/transfer_cross_chain';
-import {
-	CCM_STATUS_OK,
-	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-} from '../../../../../src/modules/token/constants';
+import { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../../../../../src/modules/token/constants';
 import {
 	CCTransferMessageParams,
 	crossChainTransferMessageParams,
@@ -158,8 +156,72 @@ describe('CCTransfer command', () => {
 		jest.spyOn(command['_internalMethod'], 'initializeEscrowAccount');
 	});
 
+	describe('verify schema', () => {
+		beforeEach(() => {
+			validParams = {
+				tokenID: defaultTokenID,
+				amount: BigInt(100000000),
+				receivingChainID: defaultReceivingChainID,
+				recipientAddress: utils.getRandomBytes(20),
+				data: '1'.repeat(64),
+				messageFee: BigInt(1000),
+				messageFeeTokenID: defaultTokenID,
+			};
+		});
+
+		it('should fail when tokenID does not have valid length', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					...validParams,
+					tokenID: Buffer.from('00', 'hex'),
+				}),
+			).toThrow("'.tokenID' minLength not satisfied");
+
+			expect(() =>
+				validator.validate(command.schema, {
+					...validParams,
+					tokenID: Buffer.from('00000000000000000000000000', 'hex'),
+				}),
+			).toThrow("'.tokenID' maxLength exceeded");
+		});
+
+		it('should fail when receiving chainID does not have valid length', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					...validParams,
+					receivingChainID: Buffer.from([0, 1]),
+				}),
+			).toThrow("'.receivingChainID' minLength not satisfied");
+
+			expect(() =>
+				validator.validate(command.schema, {
+					...validParams,
+					receivingChainID: Buffer.from([0, 1, 0, 0, 1]),
+				}),
+			).toThrow("'.receivingChainID' maxLength exceed");
+		});
+
+		it('should fail when recipientAddress is not 20 bytes', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					...validParams,
+					recipientAddress: utils.getRandomBytes(32),
+				}),
+			).toThrow("'.recipientAddress' address length invalid");
+		});
+
+		it('should fail when data exceeds 64 characters', () => {
+			expect(() =>
+				validator.validate(command.schema, {
+					...validParams,
+					data: '1'.repeat(65),
+				}),
+			).toThrow("'.data' must NOT have more than 64 characters");
+		});
+	});
+
 	describe('verify', () => {
-		const expectSchemaValidationError = (result: VerificationResult, message: string) => {
+		const expectVerifyErrorError = (result: VerificationResult, message: string) => {
 			expect(result.status).toEqual(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(message);
 		};
@@ -176,90 +238,12 @@ describe('CCTransfer command', () => {
 			};
 		});
 
-		it('should fail when tokenID does not have valid length', async () => {
-			const tokenMinLengthContext = createTransactionContextWithOverridingParams({
-				tokenID: Buffer.from('00', 'hex'),
-			});
-
-			const tokenMaxLengthContext = createTransactionContextWithOverridingParams({
-				tokenID: Buffer.from('00000000000000000000000000', 'hex'),
-			});
-
-			expectSchemaValidationError(
-				await command.verify(
-					tokenMinLengthContext.createCommandVerifyContext(crossChainTransferParamsSchema),
-				),
-				"'.tokenID' minLength not satisfied",
-			);
-
-			expectSchemaValidationError(
-				await command.verify(
-					tokenMaxLengthContext.createCommandExecuteContext(crossChainTransferParamsSchema),
-				),
-				"'.tokenID' maxLength exceeded",
-			);
-		});
-
-		it('should fail when receiving chainID does not have valid length', async () => {
-			const receivingChainIDMinLengthContext = createTransactionContextWithOverridingParams({
-				receivingChainID: Buffer.from([0, 1]),
-			});
-
-			const receivingChainIDMaxLengthContext = createTransactionContextWithOverridingParams({
-				receivingChainID: Buffer.from([0, 1, 0, 0, 1]),
-			});
-
-			expectSchemaValidationError(
-				await command.verify(
-					receivingChainIDMinLengthContext.createCommandVerifyContext(
-						crossChainTransferParamsSchema,
-					),
-				),
-				"'.receivingChainID' minLength not satisfied",
-			);
-
-			expectSchemaValidationError(
-				await command.verify(
-					receivingChainIDMaxLengthContext.createCommandExecuteContext(
-						crossChainTransferParamsSchema,
-					),
-				),
-				"'.receivingChainID' maxLength exceed",
-			);
-		});
-
-		it('should fail when recipientAddress is not 20 bytes', async () => {
-			const invalidRecipientAddressContext = createTransactionContextWithOverridingParams({
-				recipientAddress: utils.getRandomBytes(32),
-			});
-
-			expectSchemaValidationError(
-				await command.verify(
-					invalidRecipientAddressContext.createCommandVerifyContext(crossChainTransferParamsSchema),
-				),
-				"'.recipientAddress' address length invalid",
-			);
-		});
-
-		it('should fail when data exceeds 64 characters', async () => {
-			const invalidDataContext = createTransactionContextWithOverridingParams({
-				data: '1'.repeat(65),
-			});
-
-			expectSchemaValidationError(
-				await command.verify(
-					invalidDataContext.createCommandVerifyContext(crossChainTransferParamsSchema),
-				),
-				"'.data' must NOT have more than 64 characters",
-			);
-		});
-
 		it('should fail when chainID of the tokenID is other than ownChainID or receivingChainID', async () => {
 			const invalidtokenChainIDContext = createTransactionContextWithOverridingParams({
 				tokenID: Buffer.from([0, 0, 1, 1, 0, 0, 0, 0]),
 			});
 
-			expectSchemaValidationError(
+			expectVerifyErrorError(
 				await command.verify(
 					invalidtokenChainIDContext.createCommandExecuteContext(crossChainTransferParamsSchema),
 				),
@@ -272,7 +256,7 @@ describe('CCTransfer command', () => {
 				tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 			});
 
-			expectSchemaValidationError(
+			expectVerifyErrorError(
 				await command.verify(
 					invalidtokenChainIDContext.createCommandExecuteContext(crossChainTransferParamsSchema),
 				),
@@ -322,7 +306,7 @@ describe('CCTransfer command', () => {
 				},
 			);
 
-			expectSchemaValidationError(
+			expectVerifyErrorError(
 				await command.verify(
 					insufficientBalanceContext.createCommandVerifyContext(crossChainTransferParamsSchema),
 				),
@@ -338,21 +322,21 @@ describe('CCTransfer command', () => {
 		it('should fail when sender balance is insufficient for messageFeeTokenID', async () => {
 			const userStore = module.stores.get(UserStore);
 			const amount = BigInt(50);
-			const senderBalance = BigInt(49);
+			const messageFee = BigInt(5);
+			const messageTokenBalance = BigInt(4);
 
 			const tokenID = Buffer.concat([defaultOwnChainID, Buffer.from([0, 0, 0, 0])]);
 			const messageFeeTokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 1]);
-
 			const insufficientBalanceContext = createTransactionContextWithOverridingParams({
 				amount,
 				tokenID,
 				messageFeeTokenID,
+				messageFee,
 			});
 
 			jest
 				.spyOn(interoperabilityMethod, 'getMessageFeeTokenID')
 				.mockResolvedValue(messageFeeTokenID);
-
 			await userStore.save(
 				insufficientBalanceContext.createCommandExecuteContext<Params>(
 					crossChainTransferParamsSchema,
@@ -364,7 +348,6 @@ describe('CCTransfer command', () => {
 					lockedBalances: [],
 				},
 			);
-
 			await userStore.save(
 				insufficientBalanceContext.createCommandExecuteContext<Params>(
 					crossChainTransferParamsSchema,
@@ -372,20 +355,61 @@ describe('CCTransfer command', () => {
 				insufficientBalanceContext.transaction.senderAddress,
 				messageFeeTokenID,
 				{
-					availableBalance: senderBalance,
+					availableBalance: messageTokenBalance,
 					lockedBalances: [],
 				},
 			);
 
-			expectSchemaValidationError(
+			expectVerifyErrorError(
+				await command.verify(
+					insufficientBalanceContext.createCommandVerifyContext(crossChainTransferParamsSchema),
+				),
+				createInsufficientBalanceError(
+					insufficientBalanceContext.transaction.senderAddress,
+					messageTokenBalance,
+					messageFeeTokenID,
+					messageFee,
+				),
+			);
+		});
+
+		it('should fail when sender balance is insufficient for (amount + messageFee) when params.tokenID and messageFeeTokenID are same', async () => {
+			const userStore = module.stores.get(UserStore);
+			const senderBalance = BigInt(9);
+			const amount = BigInt(8);
+			const messageFee = BigInt(2);
+
+			const tokenID = Buffer.concat([defaultOwnChainID, Buffer.from([0, 0, 0, 0])]);
+
+			const insufficientBalanceContext = createTransactionContextWithOverridingParams({
+				amount,
+				tokenID,
+				messageFeeTokenID: tokenID,
+				messageFee,
+			});
+
+			jest.spyOn(interoperabilityMethod, 'getMessageFeeTokenID').mockResolvedValue(tokenID);
+
+			await userStore.save(
+				insufficientBalanceContext.createCommandExecuteContext<Params>(
+					crossChainTransferParamsSchema,
+				),
+				insufficientBalanceContext.transaction.senderAddress,
+				tokenID,
+				{
+					availableBalance: senderBalance,
+					lockedBalances: [],
+				},
+			);
+			expectVerifyErrorError(
 				await command.verify(
 					insufficientBalanceContext.createCommandVerifyContext(crossChainTransferParamsSchema),
 				),
 				createInsufficientBalanceError(
 					insufficientBalanceContext.transaction.senderAddress,
 					senderBalance,
-					messageFeeTokenID,
-					amount,
+					tokenID,
+					amount + messageFee,
 				),
 			);
 		});
@@ -394,8 +418,7 @@ describe('CCTransfer command', () => {
 			const transactionContext = createTransactionContextWithOverridingParams({
 				receivingChainID: defaultOwnChainID,
 			});
-
-			expectSchemaValidationError(
+			expectVerifyErrorError(
 				await command.verify(
 					transactionContext.createCommandVerifyContext(crossChainTransferParamsSchema),
 				),
@@ -484,7 +507,6 @@ describe('CCTransfer command', () => {
 					CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 					validParams.receivingChainID,
 					validParams.messageFee,
-					CCM_STATUS_OK,
 					codec.encode(crossChainTransferMessageParams, {
 						tokenID: commonTokenID,
 						amount,
@@ -545,7 +567,6 @@ describe('CCTransfer command', () => {
 				CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 				validParams.receivingChainID,
 				validParams.messageFee,
-				CCM_STATUS_OK,
 				codec.encode(crossChainTransferMessageParams, {
 					tokenID: commonTokenID,
 					amount,

@@ -135,7 +135,7 @@ export const App: React.FC = () => {
 		}
 		try {
 			const client = await apiClient.createWSClient(config.applicationUrl);
-			await client.invoke('faucet:fundTokens', {
+			await client.invoke('faucet_fundTokens', {
 				address: cryptography.address
 					.getAddressFromLisk32Address(input, config.tokenPrefix)
 					.toString('hex'),
@@ -204,7 +204,7 @@ export const App: React.FC = () => {
 				</div>
 			</section>
 			<footer>
-				<p className={styles.copyright}>© 2021 Lisk Foundation</p>
+				<p className={styles.copyright}>© 2023 Lisk Foundation</p>
 			</footer>
 		</div>
 	);

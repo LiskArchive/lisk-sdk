@@ -45,13 +45,12 @@ export abstract class BaseChannel {
 
 		this.eventsList = events;
 
-		this.endpointHandlers = {};
+		this.endpointHandlers = new Map();
 		this._requestId = 0;
-		for (const methodName of Object.keys(endpoints)) {
-			const handler = endpoints[methodName];
-			this.endpointHandlers[methodName] = handler;
+		for (const [methodName, handler] of endpoints) {
+			this.endpointHandlers.set(methodName, handler);
 		}
-		this.endpointsList = Object.keys(this.endpointHandlers);
+		this.endpointsList = [...this.endpointHandlers.keys()];
 	}
 
 	public isValidEventName(name: string, throwError = true): boolean | never {

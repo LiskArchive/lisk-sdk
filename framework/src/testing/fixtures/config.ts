@@ -27,6 +27,7 @@ export const defaultConfig: ApplicationConfig = {
 	genesis: {
 		block: {},
 		bftBatchSize: 103,
+		minimumCertifyHeight: 0,
 		blockTime: 10,
 		chainID: '10000000',
 		maxTransactionsSize: 15 * 1024, // Kilo Bytes
@@ -53,6 +54,7 @@ export const defaultConfig: ApplicationConfig = {
 		modes: [],
 		port: 8080,
 		host: '127.0.0.1',
+		accessControlAllowOrigin: '*',
 	},
 	legacy: {
 		sync: false,

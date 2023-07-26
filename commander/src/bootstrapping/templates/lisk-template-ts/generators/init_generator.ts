@@ -22,6 +22,7 @@ import * as Generator from 'yeoman-generator';
 import { isHexString } from '@liskhq/lisk-validator';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { generateGenesisBlockDefaultPoSAssets } from '../../../../utils/genesis_creation';
+import { OWNER_READ_WRITE } from '../../../../constants';
 
 interface InitPrompts {
 	name: string;
@@ -109,6 +110,7 @@ export default class InitGenerator extends Generator {
 			{ passphrase },
 			{
 				spaces: '\t',
+				mode: OWNER_READ_WRITE,
 			},
 		);
 		// create keys for initial data using the passphrase
@@ -137,6 +139,7 @@ export default class InitGenerator extends Generator {
 			{ assets: genesisAssets },
 			{
 				spaces: '\t',
+				mode: OWNER_READ_WRITE,
 			},
 		);
 		const createdConfig = fs.readJSONSync(
@@ -149,6 +152,7 @@ export default class InitGenerator extends Generator {
 		};
 		fs.writeJSONSync(this.destinationPath('config/default/config.json'), createdConfig, {
 			spaces: '\t',
+			mode: OWNER_READ_WRITE,
 		});
 
 		// create genesis block using the asset file

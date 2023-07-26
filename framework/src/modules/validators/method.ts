@@ -44,7 +44,7 @@ export class ValidatorsMethod extends BaseMethod {
 		blsKey: Buffer,
 		generatorKey: Buffer,
 		proofOfPossession: Buffer,
-	): Promise<boolean> {
+	): Promise<void> {
 		if (validatorAddress.length !== ADDRESS_LENGTH) {
 			throw new Error(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
 		}
@@ -96,8 +96,6 @@ export class ValidatorsMethod extends BaseMethod {
 			proofOfPossession,
 			result: KeyRegResult.SUCCESS,
 		});
-
-		return true;
 	}
 
 	public async registerValidatorWithoutBLSKey(
@@ -159,8 +157,8 @@ export class ValidatorsMethod extends BaseMethod {
 		methodContext: ImmutableMethodContext,
 		address: Buffer,
 	): Promise<ValidatorKeys> {
-		if (address.length !== 20) {
-			throw new Error('Address is not valid.');
+		if (address.length !== ADDRESS_LENGTH) {
+			throw new Error(`Validator address length must be ${ADDRESS_LENGTH}.`);
 		}
 
 		const validatorsSubStore = this.stores.get(ValidatorKeysStore);

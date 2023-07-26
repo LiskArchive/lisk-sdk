@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-framework-faucet-plugin",
-	"version": "0.2.0-beta.0",
+	"version": "0.2.0-beta.5",
 	"description": "A plugin for distributing testnet tokens from a newly developed blockchain application.",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -18,9 +18,14 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=16.14.1 <=16",
+		"node": ">=18.12.0 <=18",
 		"npm": ">=8.1.0"
 	},
+	"files": [
+		"/dist-node",
+		"/build",
+		"/public"
+	],
 	"main": "dist-node/index.js",
 	"scripts": {
 		"clean": "./scripts/clean.sh",
@@ -42,15 +47,15 @@
 	},
 	"dependencies": {
 		"@csstools/normalize.css": "12.0.0",
-		"@liskhq/lisk-api-client": "^6.0.0-beta.0",
-		"@liskhq/lisk-client": "^6.0.0-beta.0",
-		"@liskhq/lisk-cryptography": "^4.0.0-beta.0",
-		"@liskhq/lisk-transactions": "^6.0.0-beta.0",
-		"@liskhq/lisk-utils": "^0.3.0-beta.0",
-		"@liskhq/lisk-validator": "^0.7.0-beta.0",
+		"@liskhq/lisk-api-client": "^6.0.0-beta.4",
+		"@liskhq/lisk-client": "^6.0.0-beta.4",
+		"@liskhq/lisk-cryptography": "^4.0.0-beta.2",
+		"@liskhq/lisk-transactions": "^6.0.0-beta.3",
+		"@liskhq/lisk-utils": "^0.3.0-beta.3",
+		"@liskhq/lisk-validator": "^0.7.0-beta.3",
 		"axios": "1.2.0",
 		"express": "4.18.2",
-		"lisk-sdk": "^6.0.0-beta.0",
+		"lisk-sdk": "^6.0.0-beta.5",
 		"react": "^17.0.1",
 		"react-dom": "^17.0.1",
 		"react-router-dom": "^5.2.0"
@@ -65,7 +70,7 @@
 		"@types/ip": "1.1.0",
 		"@types/jest": "29.2.3",
 		"@types/jest-when": "3.5.2",
-		"@types/node": "16.18.3",
+		"@types/node": "18.15.3",
 		"@types/react": "^17.0.0",
 		"@types/react-dom": "^17.0.0",
 		"@types/react-router-dom": "5.1.7",
@@ -87,7 +92,7 @@
 		"parcel": "2.8.0",
 		"prettier": "2.8.0",
 		"regenerator-runtime": "0.13.9",
-		"semver": "7.3.8",
+		"semver": "7.5.2",
 		"source-map-support": "0.5.21",
 		"ts-jest": "29.0.3",
 		"ts-node": "10.9.1",

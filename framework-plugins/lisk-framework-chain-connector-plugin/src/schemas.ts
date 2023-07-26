@@ -90,14 +90,14 @@ export const configSchema = {
 export const validatorsDataSchema = {
 	$id: `${pluginSchemaIDPrefix}/validatorsData`,
 	type: 'object',
-	required: ['validators', 'certificateThreshold'],
+	required: ['validators', 'certificateThreshold', 'validatorsHash'],
 	properties: {
 		validators: {
 			type: 'array',
 			fieldNumber: 1,
 			items: {
 				type: 'object',
-				required: ['blsKey', 'bftWeight'],
+				required: ['address', 'blsKey', 'bftWeight'],
 				properties: {
 					address: { dataType: 'bytes', fieldNumber: 1 },
 					blsKey: { dataType: 'bytes', fieldNumber: 2 },
@@ -155,6 +155,7 @@ export const validatorsHashPreimageInfoSchema = {
 export const lastSentCCMWithHeight = {
 	$id: `${pluginSchemaIDPrefix}/lastSentCCMWithHeight`,
 	type: 'object',
+	required: [...ccmSchema.required, 'height'],
 	properties: {
 		...ccmSchema.properties,
 		height: { dataType: 'uint32', fieldNumber: Object.keys(ccmSchema.properties).length + 1 },
@@ -184,6 +185,7 @@ export const ccmsFromEventsSchema = {
 			fieldNumber: 1,
 			items: {
 				type: 'object',
+				required: ['ccms', 'height', 'inclusionProof'],
 				properties: {
 					ccms: {
 						type: 'array',
@@ -196,6 +198,7 @@ export const ccmsFromEventsSchema = {
 					inclusionProof: {
 						type: 'object',
 						fieldNumber: 3,
+						required: ['siblingHashes', 'bitmap'],
 						properties: {
 							siblingHashes: {
 								type: 'array',

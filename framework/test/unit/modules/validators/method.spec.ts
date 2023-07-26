@@ -113,15 +113,14 @@ describe('ValidatorsModuleMethod', () => {
 				result: KeyRegResult.SUCCESS,
 			});
 
-			await expect(
-				validatorsModule.method.registerValidatorKeys(
-					methodContext,
-					address,
-					blsKey,
-					generatorKey,
-					proofOfPossession,
-				),
-			).resolves.toBe(true);
+			await validatorsModule.method.registerValidatorKeys(
+				methodContext,
+				address,
+				blsKey,
+				generatorKey,
+				proofOfPossession,
+			);
+
 			const returnedAccount = await validatorsSubStore.get(methodContext, address);
 			const returnedAddress = await blsKeysSubStore.get(methodContext, blsKey);
 			expect(returnedAccount).toStrictEqual({ generatorKey, blsKey });
@@ -728,7 +727,7 @@ describe('ValidatorsModuleMethod', () => {
 	});
 
 	describe('getValidatorKeys', () => {
-		const validAddress = utils.getRandomBytes(20);
+		const validAddress = utils.getRandomBytes(ADDRESS_LENGTH);
 		let validatorAccount: ValidatorKeys;
 		beforeEach(async () => {
 			methodContext = createNewMethodContext(new InMemoryPrefixedStateDB());
@@ -750,11 +749,11 @@ describe('ValidatorsModuleMethod', () => {
 			expect(receivedValidatorAccount).toEqual(validatorAccount);
 		});
 
-		it('should throw when address length is not 20', async () => {
+		it(`should throw error when address length is not ${ADDRESS_LENGTH}`, async () => {
 			const invalidAddress = utils.getRandomBytes(19);
 			await expect(
 				validatorsMethod.getValidatorKeys(methodContext, invalidAddress),
-			).rejects.toThrow('Address is not valid');
+			).rejects.toThrow(`Validator address length must be ${ADDRESS_LENGTH}.`);
 		});
 
 		it('should throw if address does not exist', async () => {

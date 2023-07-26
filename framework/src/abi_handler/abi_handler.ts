@@ -346,7 +346,7 @@ export class ABIHandler implements ABI {
 			eventQueue: new EventQueue(this._executionContext.header.height),
 			transactions: [],
 		});
-		await this._stateMachine.beforeExecuteBlock(context);
+		await this._stateMachine.beforeTransactionsExecute(context);
 
 		return {
 			events: context.eventQueue.getEvents().map(e => e.toObject()),
@@ -408,7 +408,7 @@ export class ABIHandler implements ABI {
 			chainID: this.chainID,
 			header,
 		});
-		const result = await this._stateMachine.verifyTransaction(context);
+		const result = await this._stateMachine.verifyTransaction(context, req.onlyCommand);
 
 		// If stateStore is transient, close the read writer
 		if (!this._executionContext?.id.equals(req.contextID)) {

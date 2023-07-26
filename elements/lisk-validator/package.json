@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-validator",
-	"version": "0.7.0-beta.0",
+	"version": "0.7.0-beta.3",
 	"description": "Validation library according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -18,7 +18,7 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=16.14.1 <=16",
+		"node": ">=18.12.0 <=18",
 		"npm": ">=8.1.0"
 	},
 	"main": "dist-node/index.js",
@@ -36,17 +36,17 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"@liskhq/lisk-cryptography": "^4.0.0-beta.0",
+		"@liskhq/lisk-cryptography": "^4.0.0-beta.2",
 		"ajv": "8.1.0",
 		"ajv-formats": "2.1.1",
 		"debug": "4.3.4",
-		"semver": "7.3.8",
+		"semver": "7.5.2",
 		"validator": "13.7.0"
 	},
 	"devDependencies": {
 		"@types/jest": "29.2.3",
 		"@types/jest-when": "3.5.2",
-		"@types/node": "16.18.3",
+		"@types/node": "18.15.3",
 		"@types/semver": "7.3.13",
 		"@types/validator": "13.7.10",
 		"@typescript-eslint/eslint-plugin": "5.44.0",

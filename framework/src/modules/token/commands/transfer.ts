@@ -13,7 +13,6 @@
  */
 
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { validator } from '@liskhq/lisk-validator';
 import { BaseCommand } from '../../base_command';
 import {
 	CommandExecuteContext,
@@ -26,6 +25,7 @@ import { transferParamsSchema } from '../schemas';
 import { UserStore } from '../stores/user';
 import { TokenID } from '../types';
 import { InternalMethod } from '../internal_method';
+import { InsufficientBalanceError } from '../../../errors';
 
 interface Params {
 	tokenID: TokenID;
@@ -47,17 +47,16 @@ export class TransferCommand extends BaseCommand {
 	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
 		const { params } = context;
 
-		validator.validate<Params>(transferParamsSchema, params);
 		const availableBalance = await this._method.getAvailableBalance(
 			context.getMethodContext(),
 			context.transaction.senderAddress,
 			params.tokenID,
 		);
 		if (availableBalance < params.amount) {
-			throw new Error(
-				`${cryptography.address.getLisk32AddressFromAddress(
-					context.transaction.senderAddress,
-				)} balance ${availableBalance.toString()} is not sufficient for ${params.amount.toString()}.`,
+			throw new InsufficientBalanceError(
+				cryptography.address.getLisk32AddressFromAddress(context.transaction.senderAddress),
+				availableBalance.toString(),
+				params.amount.toString(),
 			);
 		}
 		return {

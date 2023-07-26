@@ -20,6 +20,7 @@ import { join, resolve } from 'path';
 import * as inquirer from 'inquirer';
 import { isHexString } from '@liskhq/lisk-validator';
 import { defaultConfig } from '../../../utils/config';
+import { OWNER_READ_WRITE } from '../../../constants';
 
 export class CreateCommand extends Command {
 	static description = 'Creates network configuration file.';
@@ -80,11 +81,17 @@ export class CreateCommand extends Command {
 			if (!userResponse.confirm) {
 				this.error('Operation cancelled, config file already present at the desired location');
 			} else {
-				fs.writeJSONSync(resolve(configPath, 'config.json'), defaultConfig, { spaces: '\t' });
+				fs.writeJSONSync(resolve(configPath, 'config.json'), defaultConfig, {
+					spaces: '\t',
+					mode: OWNER_READ_WRITE,
+				});
 			}
 		} else {
 			fs.mkdirSync(configPath, { recursive: true });
-			fs.writeJSONSync(resolve(configPath, 'config.json'), defaultConfig, { spaces: '\t' });
+			fs.writeJSONSync(resolve(configPath, 'config.json'), defaultConfig, {
+				spaces: '\t',
+				mode: OWNER_READ_WRITE,
+			});
 		}
 	}
 }

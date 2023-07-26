@@ -16,6 +16,8 @@ import {
 	MAX_EVENT_NAME_LENGTH,
 	MIN_MODULE_NAME_LENGTH,
 	MIN_EVENT_NAME_LENGTH,
+	MAX_EVENTS_PER_BLOCK,
+	EVENT_MAX_TOPICS_PER_EVENT,
 } from './constants';
 
 export const blockSchema = {
@@ -101,7 +103,7 @@ export const signingBlockHeaderSchema = {
 
 export const blockHeaderSchema = {
 	...signingBlockHeaderSchema,
-	$id: '/block/header/3',
+	$id: '/block/header/3/without-id',
 	required: [...signingBlockHeaderSchema.required, 'signature'],
 	properties: {
 		...signingBlockHeaderSchema.properties,
@@ -145,6 +147,7 @@ export const stateDiffSchema = {
 			fieldNumber: 1,
 			items: {
 				type: 'object',
+				required: ['key', 'value'],
 				properties: {
 					key: {
 						dataType: 'bytes',
@@ -169,6 +172,7 @@ export const stateDiffSchema = {
 			fieldNumber: 3,
 			items: {
 				type: 'object',
+				required: ['key', 'value'],
 				properties: {
 					key: {
 						dataType: 'bytes',
@@ -208,6 +212,7 @@ export const eventSchema = {
 		topics: {
 			type: 'array',
 			fieldNumber: 4,
+			maxItems: EVENT_MAX_TOPICS_PER_EVENT,
 			items: {
 				dataType: 'bytes',
 			},
@@ -219,6 +224,7 @@ export const eventSchema = {
 		index: {
 			dataType: 'uint32',
 			fieldNumber: 6,
+			maximum: MAX_EVENTS_PER_BLOCK - 1,
 		},
 	},
 };

@@ -11,8 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { validator } from '@liskhq/lisk-validator';
 import {
 	CommandVerifyContext,
 	VerificationResult,
@@ -47,15 +45,6 @@ export class RegisterValidatorCommand extends BaseCommand {
 		context: CommandVerifyContext<ValidatorRegistrationParams>,
 	): Promise<VerificationResult> {
 		const { transaction, params } = context;
-
-		try {
-			validator.validate(validatorRegistrationCommandParamsSchema, context.params);
-		} catch (err) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: err as Error,
-			};
-		}
 
 		if (!isUsername(params.name)) {
 			return {
@@ -102,17 +91,13 @@ export class RegisterValidatorCommand extends BaseCommand {
 		} = context;
 		const methodContext = context.getMethodContext();
 
-		const isRegistered = await this._validatorsMethod.registerValidatorKeys(
+		await this._validatorsMethod.registerValidatorKeys(
 			methodContext,
 			transaction.senderAddress,
 			blsKey,
 			generatorKey,
 			proofOfPossession,
 		);
-
-		if (!isRegistered) {
-			throw new Error('Failed to register validator keys');
-		}
 
 		this._feeMethod.payFee(context, this._validatorRegistrationFee);
 

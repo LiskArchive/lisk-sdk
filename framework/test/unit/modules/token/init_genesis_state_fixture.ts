@@ -11,6 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import { CHAIN_ID_LENGTH } from '../../../../src/modules/token/constants';
+
 const oneUnit = BigInt('100000000');
 
 const validData = {
@@ -60,9 +63,46 @@ const validData = {
 	],
 };
 
-export const validGenesisAssets = [['Valid genesis asset', validData]];
+export const validGenesisAssets = [
+	['Valid genesis asset', validData],
+	[
+		'Valid genesis asset',
+		{
+			...validData,
+			supportedTokensSubstore: [
+				{
+					chainID: Buffer.alloc(0),
+					supportedTokenIDs: [],
+				},
+			],
+		},
+	],
+	[
+		'Valid genesis asset',
+		{
+			...validData,
+			supportedTokensSubstore: [],
+		},
+	],
+];
 
 export const invalidGenesisAssets = [
+	[
+		'minimum token id length not satisfied',
+		{
+			...validData,
+			userSubstore: [
+				{
+					address: Buffer.alloc(20, 0),
+					tokenID: Buffer.from([9, 0, 0]),
+					availableBalance: oneUnit,
+					lockedBalances: [{ module: 'pos', amount: oneUnit }],
+				},
+				...validData.userSubstore.slice(1),
+			],
+		},
+		"tokenID' minLength not satisfied",
+	],
 	[
 		'Invalid address length',
 		{
@@ -80,7 +120,7 @@ export const invalidGenesisAssets = [
 		".address' address length invalid",
 	],
 	[
-		'Invalid token id length',
+		'maximum token id length',
 		{
 			...validData,
 			userSubstore: [
@@ -118,6 +158,22 @@ export const invalidGenesisAssets = [
 			userSubstore: [
 				{
 					address: Buffer.alloc(20, 9),
+					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
+					availableBalance: BigInt('1000'),
+					lockedBalances: [{ module: 'pos', amount: oneUnit }],
+				},
+				...validData.userSubstore.slice(1),
+			],
+		},
+		'UserSubstore must be sorted by address and tokenID',
+	],
+	[
+		'Unsorted tokens in userstore by address',
+		{
+			...validData,
+			userSubstore: [
+				{
+					address: Buffer.alloc(20, 1),
 					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 					availableBalance: BigInt('1000'),
 					lockedBalances: [{ module: 'pos', amount: oneUnit }],
@@ -198,6 +254,55 @@ export const invalidGenesisAssets = [
 		'has empty data',
 	],
 	[
+		'Duplicate address and tokenID for userSubstore',
+		{
+			...validData,
+			userSubstore: [
+				{
+					address: Buffer.alloc(20, 0),
+					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
+					availableBalance: oneUnit,
+					lockedBalances: [{ module: 'pos', amount: oneUnit }],
+				},
+				{
+					address: Buffer.alloc(20, 0),
+					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
+					availableBalance: oneUnit,
+					lockedBalances: [{ module: 'pos', amount: oneUnit }],
+				},
+			],
+		},
+		'pair is duplicated',
+	],
+	[
+		'minimum tokenID length not satisfied for supplyStore',
+		{
+			...validData,
+			supplySubstore: [
+				...validData.supplySubstore,
+				{
+					tokenID: Buffer.alloc(1, 0),
+					totalSupply: oneUnit * BigInt(2),
+				},
+			],
+		},
+		"tokenID' minLength not satisfied",
+	],
+	[
+		'maximum tokenID length for supplyStore',
+		{
+			...validData,
+			supplySubstore: [
+				...validData.supplySubstore,
+				{
+					tokenID: Buffer.alloc(10, 0),
+					totalSupply: oneUnit * BigInt(2),
+				},
+			],
+		},
+		"tokenID' maxLength exceeded",
+	],
+	[
 		'Duplicate supply store',
 		{
 			...validData,
@@ -218,6 +323,66 @@ export const invalidGenesisAssets = [
 			],
 		},
 		'SupplySubstore must be sorted by tokenID',
+	],
+	[
+		'escrowChainID minimum length not satisified for escrowSubstore',
+		{
+			...validData,
+			escrowSubstore: [
+				...validData.escrowSubstore,
+				{
+					escrowChainID: Buffer.from([0, 0, 0]),
+					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 1, 0]),
+					amount: oneUnit,
+				},
+			],
+		},
+		".escrowChainID' minLength not satisfied",
+	],
+	[
+		'escrowChainID maximum length not exceeded for escrowSubstore',
+		{
+			...validData,
+			escrowSubstore: [
+				...validData.escrowSubstore,
+				{
+					escrowChainID: Buffer.from([0, 0, 0, 0, 0]),
+					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 1, 0]),
+					amount: oneUnit,
+				},
+			],
+		},
+		".escrowChainID' maxLength exceeded",
+	],
+	[
+		'tokenID minimum length not satisfied for escrowSubstore',
+		{
+			...validData,
+			escrowSubstore: [
+				...validData.escrowSubstore,
+				{
+					escrowChainID: Buffer.from([0, 0, 0, 0, 0]),
+					tokenID: Buffer.from([0, 0, 0, 0, 0]),
+					amount: oneUnit,
+				},
+			],
+		},
+		".tokenID' minLength not satisfied",
+	],
+	[
+		'tokenID maximum length exceeded for escrowSubstore',
+		{
+			...validData,
+			escrowSubstore: [
+				...validData.escrowSubstore,
+				{
+					escrowChainID: Buffer.from([0, 0, 0, 0, 0]),
+					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+					amount: oneUnit,
+				},
+			],
+		},
+		".tokenID' maxLength exceeded",
 	],
 	[
 		'Duplicate escrow store',
@@ -317,6 +482,33 @@ export const invalidGenesisAssets = [
 		'Stored total supply is non zero but cannot be computed',
 	],
 	[
+		'Supported tokens store has tokenIDs not an empty array when all tokens are supported',
+		{
+			...validData,
+			supportedTokensSubstore: [
+				{
+					chainID: Buffer.alloc(0),
+					supportedTokenIDs: [Buffer.from([0, 0, 0, 4, 0, 0, 0, 0])],
+				},
+			],
+		},
+		'supportedTokenIds must be an empty array when all tokens are supported.',
+	],
+	[
+		'Supported tokens store has chainID with length different than CHAIN_ID_LENGTH',
+		{
+			...validData,
+			supportedTokensSubstore: [
+				...validData.supportedTokensSubstore,
+				{
+					chainID: Buffer.from([0, 0, 3]),
+					supportedTokenIDs: [],
+				},
+			],
+		},
+		`supportedTokensSubstore chainIDs must be of length ${CHAIN_ID_LENGTH}.`,
+	],
+	[
 		'Supported tokens store has duplicate chainID on supported ID',
 		{
 			...validData,
@@ -369,7 +561,7 @@ export const invalidGenesisAssets = [
 				{
 					chainID: Buffer.from([0, 0, 0, 4]),
 					supportedTokenIDs: [
-						Buffer.from([0, 0, 0, 4, 0, 0, 0, 0]),
+						Buffer.from([0, 0, 0, 4, 0, 0, 0, 1]),
 						Buffer.from([0, 0, 0, 4, 0, 0, 0, 0]),
 					],
 				},

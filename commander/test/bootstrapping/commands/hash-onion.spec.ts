@@ -18,6 +18,7 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import { HashOnionCommand } from '../../../src/bootstrapping/commands/hash-onion';
 import { getConfig } from '../../helpers/config';
 import { Awaited } from '../../types';
+import { OWNER_READ_WRITE } from '../../../src/constants';
 
 describe('hash-onion command', () => {
 	let stdout: string[];
@@ -57,7 +58,9 @@ describe('hash-onion command', () => {
 				config,
 			);
 			expect(fs.ensureDirSync).toHaveBeenCalledWith('./test');
-			expect(fs.writeJSONSync).toHaveBeenCalledWith('./test/sample.json', expect.anything());
+			expect(fs.writeJSONSync).toHaveBeenCalledWith('./test/sample.json', expect.anything(), {
+				mode: OWNER_READ_WRITE,
+			});
 		});
 
 		it('should write to file in pretty format', async () => {
@@ -68,6 +71,7 @@ describe('hash-onion command', () => {
 			expect(fs.ensureDirSync).toHaveBeenCalledWith('./test');
 			expect(fs.writeJSONSync).toHaveBeenCalledWith('./test/sample.json', expect.anything(), {
 				spaces: ' ',
+				mode: OWNER_READ_WRITE,
 			});
 		});
 	});

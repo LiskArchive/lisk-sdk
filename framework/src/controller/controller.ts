@@ -21,7 +21,12 @@ import { Logger } from '../logger';
 import { getEndpointHandlers } from '../endpoint';
 import { BasePlugin, getPluginExportPath, validatePluginSpec } from '../plugins/base_plugin';
 import { systemDirs } from '../system_dirs';
-import { ApplicationConfigForPlugin, EndpointHandlers, PluginConfig } from '../types';
+import {
+	ApplicationConfigForPlugin,
+	EndpointHandler,
+	EndpointHandlers,
+	PluginConfig,
+} from '../types';
 import { Bus } from './bus';
 import { BaseChannel, InMemoryChannel } from './channels';
 import { IPCServer } from './ipc/ipc_server';
@@ -257,7 +262,7 @@ export class Controller {
 			this._moduleDB,
 			name,
 			plugin.events,
-			plugin.endpoint ? getEndpointHandlers(plugin.endpoint) : {},
+			plugin.endpoint ? getEndpointHandlers(plugin.endpoint) : new Map<string, EndpointHandler>(),
 			this._chainID,
 		);
 		await channel.registerToBus(this._bus);

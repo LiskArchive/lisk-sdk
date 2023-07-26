@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { standardEventDataSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { TransactionExecutionResult } from '../abi';
@@ -90,25 +91,33 @@ export class StateMachine {
 		}
 	}
 
-	public async verifyTransaction(ctx: TransactionContext): Promise<VerificationResult> {
+	public async verifyTransaction(
+		ctx: TransactionContext,
+		onlyCommand = false,
+	): Promise<VerificationResult> {
 		const transactionContext = ctx.createTransactionVerifyContext();
 		try {
-			for (const mod of this._modules) {
-				if (mod.verifyTransaction) {
-					this._logger.debug({ moduleName: mod.name }, 'Executing verifyTransaction');
-					const result = await mod.verifyTransaction(transactionContext);
-					this._logger.debug({ moduleName: mod.name }, 'Executed verifyTransaction');
-					if (result.status !== VerifyStatus.OK) {
-						this._logger.debug(
-							{ err: result.error, moduleName: mod.name },
-							'Transaction verification failed',
-						);
-						return result;
+			if (!onlyCommand) {
+				for (const mod of this._modules) {
+					if (mod.verifyTransaction) {
+						this._logger.debug({ moduleName: mod.name }, 'Executing verifyTransaction');
+						const result = await mod.verifyTransaction(transactionContext);
+						this._logger.debug({ moduleName: mod.name }, 'Executed verifyTransaction');
+						if (result.status !== VerifyStatus.OK) {
+							this._logger.debug(
+								{ err: result.error, moduleName: mod.name },
+								'Transaction verification failed',
+							);
+							return result;
+						}
 					}
 				}
 			}
 			const command = this._getCommand(ctx.transaction.module, ctx.transaction.command);
 			const commandContext = ctx.createCommandVerifyContext(command.schema);
+
+			validator.validate(command.schema, commandContext.params);
+
 			if (command.verify) {
 				this._logger.debug(
 					{ commandName: command.name, moduleName: ctx.transaction.module },
@@ -231,7 +240,7 @@ export class StateMachine {
 		}
 	}
 
-	public async beforeExecuteBlock(ctx: BlockContext): Promise<void> {
+	public async beforeTransactionsExecute(ctx: BlockContext): Promise<void> {
 		const blockExecuteContext = ctx.getBlockExecuteContext();
 		for (const mod of this._modules) {
 			if (mod.beforeTransactionsExecute) {
@@ -251,24 +260,6 @@ export class StateMachine {
 				this._logger.debug({ moduleName: mod.name }, 'Executed afterTransactionsExecute');
 			}
 		}
-	}
-
-	public async executeBlock(ctx: BlockContext): Promise<void> {
-		await this.beforeExecuteBlock(ctx);
-		for (const tx of ctx.transactions) {
-			const txContext = ctx.getTransactionContext(tx);
-			const verifyResult = await this.verifyTransaction(txContext);
-			if (verifyResult.status !== VerifyStatus.OK) {
-				if (verifyResult.error) {
-					this._logger.debug({ err: verifyResult.error }, 'Transaction verification failed');
-					throw verifyResult.error;
-				}
-				this._logger.debug(`Transaction verification failed. ID ${tx.id.toString('hex')}.`);
-				throw new Error(`Transaction verification failed. ID ${tx.id.toString('hex')}.`);
-			}
-			await this.executeTransaction(txContext);
-		}
-		await this.afterExecuteBlock(ctx);
 	}
 
 	private _findModule(name: string): BaseModule | undefined {

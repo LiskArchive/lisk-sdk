@@ -14,7 +14,7 @@
 import { NotFoundError } from '@liskhq/lisk-db';
 import { BaseStore, ImmutableStoreGetter, StoreGetter } from '../../base_store';
 import { getMainchainID } from '../../interoperability/utils';
-import { CHAIN_ID_LENGTH, LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from '../constants';
+import { LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from '../constants';
 import { splitTokenID } from '../utils';
 
 export interface SupportedTokensStoreData {
@@ -61,7 +61,7 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 		if (allSupported) {
 			return true;
 		}
-		const chainID = tokenID.slice(0, CHAIN_ID_LENGTH);
+		const [chainID] = splitTokenID(tokenID);
 		try {
 			const supported = await this.get(context, chainID);
 			if (
@@ -121,11 +121,6 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 		if (allSupported) {
 			throw new Error('Invalid operation. All tokens from all chains are supported.');
 		}
-		if (chainID.equals(this._ownChainID)) {
-			throw new Error(
-				'Invalid operation. All tokens from all the specified chain should be supported.',
-			);
-		}
 		const supportExist = await this.has(context, chainID);
 		if (!supportExist) {
 			return;
@@ -154,10 +149,11 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 				throw error;
 			}
 		}
-		supported.supportedTokenIDs.push(tokenID);
-		supported.supportedTokenIDs.sort((a, b) => a.compare(b));
-		await this.del(context, ALL_SUPPORTED_TOKENS_KEY);
-		await this.set(context, chainID, supported);
+		if (supported.supportedTokenIDs.findIndex(id => id.equals(tokenID)) === -1) {
+			supported.supportedTokenIDs.push(tokenID);
+			supported.supportedTokenIDs.sort((a, b) => a.compare(b));
+			await this.set(context, chainID, supported);
+		}
 	}
 
 	public async removeSupportForToken(context: StoreGetter, tokenID: Buffer): Promise<void> {
@@ -195,6 +191,12 @@ export class SupportedTokensStore extends BaseStore<SupportedTokensStoreData> {
 			return true;
 		}
 
-		return chainID[0] === this._ownChainID[0] && getMainchainID(chainID).equals(chainID);
+		return (
+			chainID[0] === this._ownChainID[0] &&
+			getMainchainID(chainID).equals(chainID) &&
+			tokenID.equals(
+				Buffer.concat([Buffer.from([chainID[0], 0, 0, 0]), Buffer.alloc(LOCAL_ID_LENGTH, 0)]),
+			)
+		);
 	}
 }

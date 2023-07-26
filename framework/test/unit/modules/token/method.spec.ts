@@ -15,7 +15,6 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { TokenMethod, TokenModule } from '../../../../src/modules/token';
 import {
-	CCM_STATUS_OK,
 	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	TokenEventResult,
@@ -321,7 +320,7 @@ describe('token module', () => {
 			);
 		});
 
-		it('should not update balance if amount it zero', async () => {
+		it('should not update balance if amount is zero', async () => {
 			await expect(
 				method.mint(methodContext, defaultAddress, defaultTokenID, BigInt(0)),
 			).resolves.toBeUndefined();
@@ -331,6 +330,12 @@ describe('token module', () => {
 			).resolves.toEqual(defaultAccount.availableBalance);
 
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
+		it('should reject if amount is negative', async () => {
+			await expect(
+				method.mint(methodContext, defaultAddress, defaultTokenID, BigInt(-1)),
+			).resolves.toBeUndefined();
 		});
 
 		it('should initialize account if account does not exist', async () => {
@@ -427,6 +432,12 @@ describe('token module', () => {
 			).resolves.toEqual(defaultAccount.availableBalance);
 
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
+		it('should reject if amount is negative', async () => {
+			await expect(
+				method.burn(methodContext, defaultAddress, defaultTokenID, BigInt(-1)),
+			).resolves.toBeUndefined();
 		});
 
 		it('should update address balance and total supply', async () => {
@@ -644,6 +655,18 @@ describe('token module', () => {
 				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
 			).resolves.toEqual(defaultAccount.availableBalance - BigInt(100));
 		});
+
+		it('should reject if amount is zero', async () => {
+			await expect(
+				method.transfer(methodContext, defaultAddress, defaultAddress, defaultTokenID, BigInt(0)),
+			).resolves.toBeUndefined();
+		});
+
+		it('should reject if amount is negative', async () => {
+			await expect(
+				method.transfer(methodContext, defaultAddress, defaultAddress, defaultTokenID, BigInt(-1)),
+			).resolves.toBeUndefined();
+		});
 	});
 
 	describe('transferCrossChain', () => {
@@ -849,6 +872,11 @@ describe('token module', () => {
 					'data',
 				),
 			).rejects.toThrow('Receiving chain cannot be the sending chain.');
+			checkEventResult(
+				methodContext.eventQueue,
+				TransferCrossChainEvent,
+				TokenEventResult.INVALID_RECEIVING_CHAIN,
+			);
 		});
 
 		it('should debit amount from sender and move to escrow', async () => {
@@ -901,7 +929,6 @@ describe('token module', () => {
 				CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 				BigInt('10000'),
-				CCM_STATUS_OK,
 				codec.encode(crossChainTransferMessageParams, {
 					tokenID: defaultTokenID,
 					amount: BigInt('100000'),
@@ -915,6 +942,36 @@ describe('token module', () => {
 				TransferCrossChainEvent,
 				TokenEventResult.SUCCESSFUL,
 			);
+		});
+
+		it('should reject if amount is zero', async () => {
+			await expect(
+				method.transferCrossChain(
+					methodContext,
+					defaultAddress,
+					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					utils.getRandomBytes(20),
+					defaultTokenID,
+					BigInt(0),
+					BigInt('10000'),
+					'data',
+				),
+			).resolves.toBeUndefined();
+		});
+
+		it('should reject if amount is negative', async () => {
+			await expect(
+				method.transferCrossChain(
+					methodContext,
+					defaultAddress,
+					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					utils.getRandomBytes(20),
+					defaultTokenID,
+					BigInt(-1),
+					BigInt('10000'),
+					'data',
+				),
+			).resolves.toBeUndefined();
 		});
 	});
 
@@ -967,6 +1024,12 @@ describe('token module', () => {
 			).resolves.toBe(defaultAccount.lockedBalances[0].amount);
 
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
+		it('should reject if amount is negative', async () => {
+			await expect(
+				method.lock(methodContext, defaultAddress, 'pos', defaultTokenID, BigInt(-1)),
+			).resolves.toBeUndefined();
 		});
 
 		it('should update address balance', async () => {
@@ -1059,6 +1122,12 @@ describe('token module', () => {
 			).resolves.toBe(defaultAccount.lockedBalances[0].amount);
 
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
+		it('should reject if amount is negative', async () => {
+			await expect(
+				method.unlock(methodContext, defaultAddress, 'pos', defaultTokenID, BigInt(-1)),
+			).resolves.toBeUndefined();
 		});
 
 		it('should update address balance', async () => {

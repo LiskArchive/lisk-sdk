@@ -22,15 +22,12 @@ import {
 	TokenEventResult,
 } from '../../../../src/modules/token/constants';
 import { TokenInteroperableMethod } from '../../../../src/modules/token/cc_method';
-import {
-	crossChainForwardMessageParams,
-	userStoreSchema,
-} from '../../../../src/modules/token/schemas';
+import { crossChainForwardMessageParams } from '../../../../src/modules/token/schemas';
 import { MethodContext, createMethodContext, EventQueue } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { fakeLogger } from '../../../utils/mocks';
-import { UserStore } from '../../../../src/modules/token/stores/user';
+import { UserStore, userStoreSchema } from '../../../../src/modules/token/stores/user';
 import { SupplyStore } from '../../../../src/modules/token/stores/supply';
 import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
 import { BeforeCCCExecutionEvent } from '../../../../src/modules/token/events/before_ccc_execution';

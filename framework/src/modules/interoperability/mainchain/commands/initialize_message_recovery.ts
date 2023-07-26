@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
-import { validator } from '@liskhq/lisk-validator';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -50,17 +50,9 @@ export class InitializeMessageRecoveryCommand extends BaseInteroperabilityComman
 	): Promise<VerificationResult> {
 		const { params } = context;
 
-		try {
-			validator.validate<MessageRecoveryInitializationParams>(
-				messageRecoveryInitializationParamsSchema,
-				context.params,
-			);
-		} catch (err) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: err as Error,
-			};
-		}
+		const deserializedChannel = codec.decode<ChannelData>(channelSchema, params.channel);
+
+		validator.validate(channelSchema, deserializedChannel);
 
 		const ownchainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
 		const mainchainID = getMainchainID(ownchainAccount.chainID);

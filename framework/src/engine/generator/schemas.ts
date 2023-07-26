@@ -253,6 +253,7 @@ export const previouslyGeneratedInfoSchema = {
 export interface DryRunTransactionRequest {
 	transaction: string;
 	skipVerify: boolean;
+	strict: boolean;
 }
 
 export interface DryRunTransactionResponse {
@@ -275,12 +276,17 @@ export const dryRunTransactionRequestSchema = {
 			type: 'boolean',
 			default: false,
 		},
+		strict: {
+			type: 'boolean',
+			default: false,
+		},
 	},
 };
 
 export const generatorKeysSchema = {
 	$id: '/generator/generatorKeysSchema',
 	type: 'object',
+	required: ['type', 'data'],
 	properties: {
 		type: {
 			dataType: 'string',
@@ -296,6 +302,7 @@ export const generatorKeysSchema = {
 export const plainGeneratorKeysSchema = {
 	$id: '/generator/plainGeneratorKeys',
 	type: 'object',
+	required: ['generatorKey', 'generatorPrivateKey', 'blsKey', 'blsPrivateKey'],
 	properties: {
 		generatorKey: {
 			dataType: 'bytes',
@@ -319,6 +326,7 @@ export const plainGeneratorKeysSchema = {
 export const encryptedMessageSchema = {
 	$id: '/generator/encryptedMessage',
 	type: 'object',
+	required: ['version', 'ciphertext', 'kdf', 'kdfparams', 'cipher', 'cipherparams'],
 	properties: {
 		version: {
 			dataType: 'string',
@@ -335,6 +343,7 @@ export const encryptedMessageSchema = {
 		kdfparams: {
 			type: 'object',
 			fieldNumber: 4,
+			required: ['parallelism', 'iterations', 'memorySize', 'salt'],
 			properties: {
 				parallelism: {
 					dataType: 'uint32',
@@ -361,6 +370,7 @@ export const encryptedMessageSchema = {
 		cipherparams: {
 			type: 'object',
 			fieldNumber: 6,
+			required: ['iv', 'tag'],
 			properties: {
 				iv: {
 					dataType: 'string',
@@ -466,6 +476,7 @@ const plainKeysObjectSchema = {
 export const setKeysRequestSchema = {
 	$id: '/generator/setKeysRequest',
 	type: 'object',
+	// nosemgrep: schema_with_required_that_is_not_a_property
 	required: ['address', 'type', 'data'],
 	properties: {
 		address: {
@@ -495,14 +506,26 @@ export const setKeysRequestSchema = {
 	],
 };
 
-export type HasKeysRequest = {
+export type Address = {
 	address: string;
 };
 
 export const hasKeysRequestSchema = {
 	$id: '/generator/hasKeysRequest',
 	type: 'object',
+	// nosemgrep: schema_with_required_that_is_not_a_property
 	required: ['address'],
+	properties: {
+		address: {
+			type: 'string',
+			format: 'lisk32',
+		},
+	},
+};
+
+export const getTransactionsFromPoolRequestSchema = {
+	$id: '/generator/getTransactionsFromPool',
+	type: 'object',
 	properties: {
 		address: {
 			type: 'string',
@@ -519,6 +542,8 @@ export const keysFileSchema = {
 		keys: {
 			type: 'array',
 			items: {
+				type: 'object',
+				// nosemgrep: schema_with_required_that_is_not_a_property
 				required: ['address'],
 				properties: {
 					address: {

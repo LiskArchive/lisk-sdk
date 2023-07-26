@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ADDRESS_LENGTH, SEED_LENGTH } from './constants';
+import { MAX_HASH_COMPUTATION, SEED_LENGTH } from './constants';
+import { UsedHashOnion } from './stores/used_hash_onions';
 
 interface AddressRequest {
 	address: string;
@@ -22,6 +23,7 @@ export interface SetHashOnionRequest extends AddressRequest {
 	seed?: string | undefined;
 	count?: number | undefined;
 	distance?: number | undefined;
+	hashes?: string[] | undefined;
 }
 
 export const hashOnionSchema = {
@@ -37,14 +39,27 @@ export const hashOnionSchema = {
 		seed: {
 			type: 'string',
 			format: 'hex',
+			minLength: SEED_LENGTH * 2,
+			maxLength: SEED_LENGTH * 2,
 		},
 		count: {
 			type: 'integer',
 			minimum: 1,
+			maximum: MAX_HASH_COMPUTATION * 1000,
 		},
 		distance: {
 			type: 'integer',
 			minimum: 1,
+		},
+		hashes: {
+			type: 'array',
+			minItems: 1,
+			items: {
+				type: 'string',
+				format: 'hex',
+				minLength: SEED_LENGTH * 2,
+				maxLength: SEED_LENGTH * 2,
+			},
 		},
 	},
 };
@@ -94,8 +109,7 @@ export const hasHashOnionResponseSchema = {
 };
 
 export interface GetHashOnionUsageResponse {
-	height: number;
-	count: number;
+	readonly usedHashOnions: UsedHashOnion[];
 	seed: string;
 }
 
@@ -104,15 +118,24 @@ export type GetHashOnionUsageRequest = AddressRequest;
 export const getHashOnionUsageResponse = {
 	$id: 'lisk/random/getHashOnionUsageResponse',
 	type: 'object',
-	required: ['count', 'height', 'seed'],
+	required: ['usedHashOnions', 'seed'],
 	properties: {
-		count: {
-			type: 'integer',
-			format: 'uint32',
-		},
-		height: {
-			type: 'integer',
-			format: 'uint32',
+		usedHashOnions: {
+			type: 'array',
+			items: {
+				type: 'object',
+				required: ['count', 'height'],
+				properties: {
+					count: {
+						type: 'integer',
+						format: 'uint32',
+					},
+					height: {
+						type: 'integer',
+						format: 'uint32',
+					},
+				},
+			},
 		},
 		seed: {
 			type: 'string',
@@ -122,26 +145,34 @@ export const getHashOnionUsageResponse = {
 };
 
 export interface SetHashOnionUsageRequest extends AddressRequest {
-	height: number;
-	count: number;
+	usedHashOnions: UsedHashOnion[];
 }
 
 export const setHashOnionUsageRequest = {
 	$id: 'lisk/random/setHashOnionUsageRequest',
 	type: 'object',
-	required: ['address', 'count', 'height'],
+	required: ['address', 'usedHashOnions'],
 	properties: {
 		address: {
 			type: 'string',
 			format: 'lisk32',
 		},
-		count: {
-			type: 'integer',
-			minimum: 1,
-		},
-		height: {
-			type: 'integer',
-			format: 'uint32',
+		usedHashOnions: {
+			type: 'array',
+			items: {
+				type: 'object',
+				required: ['count', 'height'],
+				properties: {
+					count: {
+						type: 'integer',
+						format: 'uint32',
+					},
+					height: {
+						type: 'integer',
+						format: 'uint32',
+					},
+				},
+			},
 		},
 	},
 };
@@ -165,8 +196,9 @@ export const randomModuleGeneratorConfig = {
 	properties: {
 		hashOnions: {
 			type: 'array',
-			required: ['address', 'hashOnion'],
 			items: {
+				type: 'object',
+				required: ['address', 'hashOnion'],
 				properties: {
 					address: {
 						type: 'string',
@@ -186,44 +218,6 @@ export const randomModuleGeneratorConfig = {
 								},
 							},
 						},
-					},
-				},
-			},
-		},
-	},
-};
-
-export const seedRevealSchema = {
-	$id: '/modules/random/seedReveal',
-	type: 'object',
-	required: ['validatorReveals'],
-	properties: {
-		validatorReveals: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['generatorAddress', 'seedReveal', 'height', 'valid'],
-				properties: {
-					generatorAddress: {
-						dataType: 'bytes',
-						minLength: ADDRESS_LENGTH,
-						maxLength: ADDRESS_LENGTH,
-						fieldNumber: 1,
-					},
-					seedReveal: {
-						dataType: 'bytes',
-						minLength: SEED_LENGTH,
-						maxLength: SEED_LENGTH,
-						fieldNumber: 2,
-					},
-					height: {
-						dataType: 'uint32',
-						fieldNumber: 3,
-					},
-					valid: {
-						dataType: 'boolean',
-						fieldNumber: 4,
 					},
 				},
 			},
@@ -273,38 +267,6 @@ export const registeredHashOnionsStoreSchema = {
 	},
 };
 
-export const usedHashOnionsStoreSchema = {
-	title: 'Used hash onion',
-	$id: '/node/forger/usedHashOnion',
-	type: 'object',
-	required: ['usedHashOnions'],
-	properties: {
-		usedHashOnions: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['address', 'count', 'height'],
-				properties: {
-					address: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-						format: 'lisk32',
-					},
-					count: {
-						dataType: 'uint32',
-						fieldNumber: 2,
-					},
-					height: {
-						dataType: 'uint32',
-						fieldNumber: 3,
-					},
-				},
-			},
-		},
-	},
-};
-
 export const isSeedRevealValidRequestSchema = {
 	$id: '/modules/random/endpoint/isSeedRevealRequest',
 	type: 'object',
@@ -322,7 +284,7 @@ export const isSeedRevealValidRequestSchema = {
 };
 
 export const isSeedRevealValidResponseSchema = {
-	$id: '/modules/random/endpoint/isSeedRevealRequest',
+	$id: '/modules/random/endpoint/isSeedRevealResponse',
 	type: 'object',
 	required: ['valid'],
 	properties: {

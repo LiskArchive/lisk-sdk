@@ -29,6 +29,7 @@ import * as defaultConfig from '../fixtures/config/devnet/config.json';
 import { ABIServer } from '../../src/abi_handler/abi_server';
 import { ABIHandler, EVENT_ENGINE_READY } from '../../src/abi_handler/abi_handler';
 import { systemDirs } from '../../src/system_dirs';
+import { OWNER_READ_WRITE } from '../../src/constants';
 
 jest.mock('fs-extra');
 jest.mock('zeromq', () => {
@@ -326,6 +327,9 @@ describe('Application', () => {
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`${dirs.pids}/controller.pid`,
 				expect.toBeString(),
+				{
+					mode: OWNER_READ_WRITE,
+				},
 			);
 		});
 	});

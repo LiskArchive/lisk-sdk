@@ -20,7 +20,7 @@ import { Block } from '@liskhq/lisk-chain';
 import { Database, StateDB } from '@liskhq/lisk-db';
 import { validator } from '@liskhq/lisk-validator';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
-import { APP_EVENT_SHUTDOWN, APP_EVENT_READY } from './constants';
+import { APP_EVENT_SHUTDOWN, APP_EVENT_READY, OWNER_READ_WRITE } from './constants';
 import {
 	ApplicationConfig,
 	PluginConfig,
@@ -164,7 +164,7 @@ export class Application {
 		const authModule = new AuthModule();
 		const tokenModule = new TokenModule();
 		const feeModule = new FeeModule();
-		const rewardModule = new DynamicRewardModule();
+		const dynamicRewardModule = new DynamicRewardModule();
 		const randomModule = new RandomModule();
 		const validatorModule = new ValidatorsModule();
 		const posModule = new PoSModule();
@@ -179,7 +179,7 @@ export class Application {
 
 		// resolve dependencies
 		feeModule.addDependencies(tokenModule.method, interoperabilityModule.method);
-		rewardModule.addDependencies(
+		dynamicRewardModule.addDependencies(
 			tokenModule.method,
 			randomModule.method,
 			validatorModule.method,
@@ -197,15 +197,15 @@ export class Application {
 		interoperabilityModule.registerInteroperableModule(tokenModule);
 		interoperabilityModule.registerInteroperableModule(feeModule);
 
-		// register modules
-		application._registerModule(feeModule); // fee should be registered first to call beforeTransactionsExecute first
+		// Register modules in the sequence defined in LIP0063 https://github.com/LiskHQ/lips/blob/main/proposals/lip-0063.md#modules
 		application._registerModule(authModule);
 		application._registerModule(validatorModule);
 		application._registerModule(tokenModule);
-		application._registerModule(rewardModule);
-		application._registerModule(randomModule);
-		application._registerModule(posModule);
+		application._registerModule(feeModule);
 		application._registerModule(interoperabilityModule);
+		application._registerModule(posModule);
+		application._registerModule(randomModule);
+		application._registerModule(dynamicRewardModule);
 
 		return {
 			app: application,
@@ -216,7 +216,7 @@ export class Application {
 				fee: feeModule.method,
 				pos: posModule.method,
 				random: randomModule.method,
-				reward: rewardModule.method,
+				reward: dynamicRewardModule.method,
 				interoperability: interoperabilityModule.method,
 			},
 		};
@@ -373,13 +373,13 @@ export class Application {
 	}
 
 	private _rootEndpoints(): EndpointHandlers {
-		const applicationEndpoint: EndpointHandlers = {
+		const applicationEndpoint: EndpointHandlers = new Map([
 			// eslint-disable-next-line @typescript-eslint/require-await
-			getRegisteredActions: async (_: PluginEndpointContext) => this._controller.getEndpoints(),
+			['getRegisteredActions', async (_: PluginEndpointContext) => this._controller.getEndpoints()],
 			// eslint-disable-next-line @typescript-eslint/require-await
-			getRegisteredEvents: async (_: PluginEndpointContext) => this._controller.getEvents(),
-		};
-		return mergeEndpointHandlers(applicationEndpoint, {});
+			['getRegisteredEvents', async (_: PluginEndpointContext) => this._controller.getEvents()],
+		]);
+		return mergeEndpointHandlers(applicationEndpoint, new Map());
 	}
 
 	private async _setupDirectories(): Promise<void> {
@@ -415,7 +415,7 @@ export class Application {
 				throw new DuplicateAppInstanceError(this.config.system.dataPath, pidPath);
 			}
 		}
-		await fs.writeFile(pidPath, process.pid.toString());
+		await fs.writeFile(pidPath, process.pid.toString(), { mode: OWNER_READ_WRITE });
 	}
 
 	private _clearControllerPidFile() {

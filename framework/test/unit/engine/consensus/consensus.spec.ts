@@ -38,7 +38,6 @@ import {
 } from '../../../fixtures';
 import * as forkchoice from '../../../../src/engine/consensus/fork_choice/fork_choice_rule';
 import { postBlockEventSchema } from '../../../../src/engine/consensus/schema';
-import { fakeLogger } from '../../../utils/mocks';
 import { BFTModule } from '../../../../src/engine/bft';
 import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../../../src/abi';
 import {
@@ -181,9 +180,13 @@ describe('consensus', () => {
 			jest.spyOn(consensus['_bft'].method, 'getBFTParameters').mockResolvedValue({
 				validatorsHash: genesis.header.validatorsHash,
 			} as never);
+			jest.spyOn(consensus, '_verifyEventRoot' as never);
+			jest.spyOn(consensus, '_verifyValidatorsHash' as never);
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
 			await initConsensus();
 
+			expect(consensus['_verifyEventRoot']).toHaveBeenCalledTimes(1);
+			expect(consensus['_verifyValidatorsHash']).toHaveBeenCalledTimes(1);
 			expect(genesis.validateGenesis).toHaveBeenCalledTimes(1);
 			expect(chain.saveBlock).toHaveBeenCalledTimes(1);
 			expect(chain.loadLastBlocks).toHaveBeenCalledTimes(1);
@@ -215,6 +218,13 @@ describe('consensus', () => {
 				validatorsHash: utils.getRandomBytes(32),
 			} as never);
 			await expect(initConsensus()).rejects.toThrow('Genesis block validators hash is invalid');
+		});
+
+		it('should fail initialization if ABI.commit fails', async () => {
+			// Arrange
+			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
+			jest.spyOn(consensus['_abi'], 'commit').mockRejectedValue(new Error('fail to commit'));
+			await expect(initConsensus()).rejects.toThrow('fail to commit');
 		});
 	});
 
@@ -263,7 +273,7 @@ describe('consensus', () => {
 			expect(network.applyPenaltyOnPeer).not.toHaveBeenCalled();
 		});
 
-		it('should apply when data is not Buffer', async () => {
+		it('should apply penalty when data is not Buffer', async () => {
 			await consensus.onBlockReceive('not buffer', peerID);
 			expect(network.applyPenaltyOnPeer).toHaveBeenCalledTimes(1);
 		});
@@ -593,12 +603,7 @@ describe('consensus', () => {
 		let stateStore: StateStore;
 
 		beforeEach(async () => {
-			await consensus.init({
-				logger: loggerMock,
-				db: dbMock,
-				genesisBlock: genesis,
-				legacyDB: dbMock,
-			});
+			await initConsensus();
 			jest.spyOn(abi, 'verifyTransaction').mockResolvedValue({
 				result: TransactionVerifyResult.OK,
 				errorMessage: '',
@@ -704,6 +709,14 @@ describe('consensus', () => {
 				expect(savingEvents).toHaveLength(3);
 				savingEvents.forEach((e: Event, i: number) => expect(e.toObject().index).toEqual(i));
 			});
+
+			it('should reject when ABI.commit fails and it should not store the block', async () => {
+				jest.spyOn(chain, 'saveBlock');
+				jest.spyOn(consensus['_abi'], 'commit').mockRejectedValue(new Error('fail to commit'));
+
+				await expect(consensus['_executeValidated'](block)).rejects.toThrow('fail to commit');
+				expect(chain.saveBlock).not.toHaveBeenCalled();
+			});
 		});
 
 		describe('block verification', () => {
@@ -721,12 +734,7 @@ describe('consensus', () => {
 				consensus['_db'] = dbMock;
 				consensus['_verifyEventRoot'] = jest.fn().mockReturnValue(undefined);
 
-				await consensus.init({
-					db: dbMock,
-					genesisBlock: genesis,
-					logger: fakeLogger,
-					legacyDB: dbMock,
-				});
+				await initConsensus();
 				jest.spyOn(consensus['_commitPool'], 'verifyAggregateCommit');
 			});
 
@@ -734,9 +742,12 @@ describe('consensus', () => {
 				it('should throw error when block timestamp is from future', () => {
 					const invalidBlock = { ...block };
 
-					jest.spyOn(bft.method, 'getSlotNumber').mockReturnValue(Math.floor(Date.now() / 10));
-
-					(invalidBlock.header as any).timestamp = Math.floor((Date.now() + 10000) / 1000);
+					jest
+						.spyOn(bft.method, 'getSlotNumber')
+						// return blockSlotNumber in the future
+						.mockReturnValueOnce(Math.floor(Date.now() / 1000 / 10) + 10000)
+						// return blockSlotNumber for the currrent value
+						.mockReturnValueOnce(Math.floor(Date.now() / 1000 / 10));
 
 					expect(() => consensus['_verifyTimestamp'](invalidBlock as any)).toThrow(
 						`Invalid timestamp ${
@@ -773,14 +784,14 @@ describe('consensus', () => {
 					const invalidBlock = { ...block };
 					(invalidBlock.header as any).height = consensus['_chain'].lastBlock.header.height;
 
-					expect(() => consensus['_verifyAssetsHeight'](invalidBlock as any)).toThrow(
+					expect(() => consensus['_verifyBlockHeight'](invalidBlock as any)).toThrow(
 						`Invalid height ${
 							invalidBlock.header.height
 						} of the block with id: ${invalidBlock.header.id.toString('hex')}`,
 					);
 				});
 				it('should be success when block has [height===lastBlock.height+1]', () => {
-					expect(consensus['_verifyAssetsHeight'](block as any)).toBeUndefined();
+					expect(consensus['_verifyBlockHeight'](block as any)).toBeUndefined();
 				});
 			});
 
@@ -872,6 +883,20 @@ describe('consensus', () => {
 					);
 				});
 
+				it('should throw error if the header impliesMaxPrevotes is not the same as the computed value', async () => {
+					when(consensus['_bft'].method.getBFTHeights as never)
+						.calledWith(stateStore)
+						.mockResolvedValue({ maxHeightPrevoted: block.header.maxHeightPrevoted } as never);
+
+					when(consensus['_bft'].method.impliesMaximalPrevotes as never)
+						.calledWith(stateStore, block.header)
+						.mockResolvedValue(false as never);
+
+					await expect(consensus['_verifyBFTProperties'](stateStore, block as any)).rejects.toThrow(
+						'Invalid imply max prevote',
+					);
+				});
+
 				it('should be success if maxHeightPrevoted is valid and header is not contradicting', async () => {
 					when(consensus['_bft'].method.getBFTHeights as never)
 						.calledWith(stateStore)
@@ -880,6 +905,10 @@ describe('consensus', () => {
 					when(consensus['_bft'].method.isHeaderContradictingChain as never)
 						.calledWith(stateStore, block.header)
 						.mockResolvedValue(false as never);
+
+					when(consensus['_bft'].method.impliesMaximalPrevotes as never)
+						.calledWith(stateStore, block.header)
+						.mockResolvedValue(true as never);
 
 					await expect(
 						consensus['_verifyBFTProperties'](stateStore, block as any),
@@ -898,7 +927,7 @@ describe('consensus', () => {
 						} as never);
 
 					await expect(
-						consensus['_verifyAssetsSignature'](stateStore, block as any),
+						consensus['_verifyBlockSignature'](stateStore, block as any),
 					).rejects.toThrow(
 						`Invalid signature ${block.header.signature.toString(
 							'hex',
@@ -928,7 +957,7 @@ describe('consensus', () => {
 						} as never);
 
 					await expect(
-						consensus['_verifyAssetsSignature'](stateStore, validBlock as any),
+						consensus['_verifyBlockSignature'](stateStore, validBlock as any),
 					).resolves.toBeUndefined();
 				});
 			});
@@ -1041,6 +1070,46 @@ describe('consensus', () => {
 				block.header.eventRoot = utils.hash(Buffer.alloc(0));
 				await expect(consensus['_verifyEventRoot'](block as any, [])).resolves.toBeUndefined();
 			});
+		});
+	});
+
+	describe('when a block is invalid', () => {
+		const invalidBlockID = Buffer.from('invalid');
+		let invalidBlock: Block;
+
+		beforeEach(async () => {
+			await initConsensus();
+			invalidBlock = await createValidDefaultBlock({
+				header: {
+					height: 2,
+					previousBlockID: invalidBlockID,
+					timestamp: consensus['_chain'].lastBlock.header.timestamp + 10,
+				},
+			});
+		});
+
+		it('should throw ApplyPenaltyError from _executeValidated()', async () => {
+			const errorMessage = `Error: Invalid previousBlockID ${invalidBlockID.toString(
+				'hex',
+			)} of the block with id: ${invalidBlock.header.id.toString('hex')}`;
+
+			await expect(consensus['_executeValidated'](invalidBlock)).rejects.toThrow(
+				new ApplyPenaltyError(errorMessage),
+			);
+		});
+
+		it('should throw ApplyPenaltyError from _execute() when fork status is VALID_BLOCK or TIE_BREAK', async () => {
+			jest.spyOn(chain, 'validateBlock').mockImplementation(() => {
+				throw new Error();
+			});
+
+			const peerID = 'peer';
+
+			jest.spyOn(forkchoice, 'forkChoice').mockReturnValue(forkchoice.ForkStatus.VALID_BLOCK);
+			await expect(consensus['_execute'](invalidBlock, peerID)).rejects.toThrow(ApplyPenaltyError);
+
+			jest.spyOn(forkchoice, 'forkChoice').mockReturnValue(forkchoice.ForkStatus.TIE_BREAK);
+			await expect(consensus['_execute'](invalidBlock, peerID)).rejects.toThrow(ApplyPenaltyError);
 		});
 	});
 });

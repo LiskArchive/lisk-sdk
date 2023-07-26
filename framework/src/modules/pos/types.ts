@@ -63,7 +63,7 @@ export interface ValidatorsMethod {
 		blsKey: Buffer,
 		generatorKey: Buffer,
 		proofOfPossession: Buffer,
-	): Promise<boolean>;
+	): Promise<void>;
 	registerValidatorWithoutBLSKey(
 		methodContext: MethodContext,
 		validatorAddress: Buffer,

@@ -42,6 +42,9 @@ jobs:
             exit 1
           fi
       - run: yarn lint:since --base ${{ github.base_ref }}
+      - name: Check duplicate schema
+        run: |
+          node scripts/duplicate_schema_id.js ./
 
   unit-test:
     runs-on: ubuntu-latest

@@ -26,6 +26,7 @@ import {
 	HASH_LENGTH,
 	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
 	SUBSTORE_PREFIX_LENGTH,
+	CHAIN_ID_STRING_LENGTH,
 } from './constants';
 import { chainDataJSONSchema, chainDataSchema } from './stores/chain_account';
 import { chainValidatorsSchema } from './stores/chain_validators';
@@ -178,8 +179,8 @@ export const mainchainRegParams = {
 		signature: {
 			dataType: 'bytes',
 			fieldNumber: 5,
-			minItems: BLS_SIGNATURE_LENGTH,
-			maxItems: BLS_SIGNATURE_LENGTH,
+			minLength: BLS_SIGNATURE_LENGTH,
+			maxLength: BLS_SIGNATURE_LENGTH,
 		},
 		aggregationBits: {
 			dataType: 'bytes',
@@ -566,6 +567,8 @@ export const getChainAccountRequestSchema = {
 		chainID: {
 			type: 'string',
 			format: 'hex',
+			minLength: CHAIN_ID_STRING_LENGTH,
+			maxLength: CHAIN_ID_STRING_LENGTH,
 		},
 	},
 };
@@ -597,6 +600,8 @@ export const isChainNameAvailableRequestSchema = {
 		name: {
 			dataType: 'string',
 			fieldNumber: 1,
+			minLength: MIN_CHAIN_NAME_LENGTH,
+			maxLength: MAX_CHAIN_NAME_LENGTH,
 		},
 	},
 };

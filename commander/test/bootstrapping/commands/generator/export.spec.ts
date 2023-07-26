@@ -21,6 +21,7 @@ import * as appUtils from '../../../../src/utils/application';
 import { ExportCommand } from '../../../../src/bootstrapping/commands/generator/export';
 import { getConfig } from '../../../helpers/config';
 import { Awaited } from '../../../types';
+import { OWNER_READ_WRITE } from '../../../../src/constants';
 
 describe('generator:export', () => {
 	const defaultPassword = 'elephant tree paris dragon chair galaxy';
@@ -83,7 +84,11 @@ describe('generator:export', () => {
 		defaultEncryptedKeys = {
 			address: Buffer.from('9cabee3d27426676b852ce6b804cb2fdff7cd0b5', 'hex'),
 			type: 'encrypted',
-			data: await encrypt.encryptAES256GCMWithPassword(utils.getRandomBytes(32), defaultPassword),
+			data: await encrypt.encryptAES256GCMWithPassword(utils.getRandomBytes(32), defaultPassword, {
+				kdfparams: {
+					memorySize: 2048,
+				},
+			}),
 		};
 		allKeysPlain = [
 			{
@@ -139,6 +144,7 @@ describe('generator:export', () => {
 			expect(fs.writeJSONSync).toHaveBeenCalledTimes(1);
 			expect(fs.writeJSONSync).toHaveBeenCalledWith('/my/path/info.json', fileData, {
 				spaces: ' ',
+				mode: OWNER_READ_WRITE,
 			});
 		});
 	});
@@ -161,6 +167,7 @@ describe('generator:export', () => {
 			expect(fs.writeJSONSync).toHaveBeenCalledTimes(1);
 			expect(fs.writeJSONSync).toHaveBeenCalledWith('/my/path/info.json', fileData, {
 				spaces: ' ',
+				mode: OWNER_READ_WRITE,
 			});
 		});
 	});

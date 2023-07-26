@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -14,12 +15,17 @@
 import { readBytes, writeBytes } from './bytes';
 
 export const writeString = (value: string): Buffer => {
-	const stringBuffer = Buffer.from(value, 'utf8');
+	const normalized = value.normalize('NFC');
+	const stringBuffer = Buffer.from(normalized, 'utf8');
 
 	return writeBytes(stringBuffer);
 };
 
 export const readString = (buffer: Buffer, offset: number): [string, number] => {
 	const [value, size] = readBytes(buffer, offset);
-	return [value.toString('utf8'), size];
+	const decodedStr = new TextDecoder('utf8', { fatal: true }).decode(value);
+	if (decodedStr.normalize('NFC') !== decodedStr) {
+		throw new Error('UTF8 bytes include non-normalized bytes');
+	}
+	return [decodedStr, size];
 };

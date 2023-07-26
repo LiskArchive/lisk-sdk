@@ -41,51 +41,6 @@ export const configSchema = {
 	},
 };
 
-export interface UserStoreData {
-	availableBalance: bigint;
-	lockedBalances: {
-		module: string;
-		amount: bigint;
-	}[];
-}
-
-export const userStoreSchema = {
-	$id: '/token/store/user',
-	type: 'object',
-	required: ['availableBalance', 'lockedBalances'],
-	properties: {
-		availableBalance: { dataType: 'uint64', fieldNumber: 1 },
-		lockedBalances: {
-			type: 'array',
-			fieldNumber: 2,
-			items: {
-				type: 'object',
-				required: ['module', 'amount'],
-				properties: {
-					module: { dataType: 'string', fieldNumber: 1 },
-					amount: { dataType: 'uint64', fieldNumber: 2 },
-				},
-			},
-		},
-	},
-};
-
-export interface SupplyStoreData {
-	totalSupply: bigint;
-}
-
-export const supplyStoreSchema = {
-	$id: '/token/store/supply',
-	type: 'object',
-	required: ['totalSupply'],
-	properties: {
-		totalSupply: {
-			dataType: 'uint64',
-			fieldNumber: 1,
-		},
-	},
-};
-
 export interface AvailableLocalIDStoreData {
 	nextAvailableLocalID: Buffer;
 }
@@ -97,22 +52,6 @@ export const availableLocalIDStoreSchema = {
 	properties: {
 		nextAvailableLocalID: {
 			dataType: 'bytes',
-			fieldNumber: 1,
-		},
-	},
-};
-
-export interface EscrowStoreData {
-	amount: bigint;
-}
-
-export const escrowStoreSchema = {
-	$id: '/token/store/escrow',
-	type: 'object',
-	required: ['amount'],
-	properties: {
-		amount: {
-			dataType: 'uint64',
 			fieldNumber: 1,
 		},
 	},
@@ -426,8 +365,6 @@ export const genesisTokenStoreSchema = {
 				properties: {
 					chainID: {
 						dataType: 'bytes',
-						minLength: CHAIN_ID_LENGTH,
-						maxLength: CHAIN_ID_LENGTH,
 						fieldNumber: 1,
 					},
 					supportedTokenIDs: {
@@ -446,7 +383,7 @@ export const genesisTokenStoreSchema = {
 };
 
 export const getBalanceRequestSchema = {
-	$id: '/token/endpoint/getBalance',
+	$id: '/token/endpoint/getBalanceRequest',
 	type: 'object',
 	properties: {
 		address: {
@@ -492,7 +429,7 @@ export const getBalanceResponseSchema = {
 };
 
 export const getBalancesRequestSchema = {
-	$id: '/token/endpoint/getBalance',
+	$id: '/token/endpoint/getBalancesRequest',
 	type: 'object',
 	properties: {
 		address: {
@@ -590,7 +527,7 @@ export const getEscrowedAmountsResponseSchema = {
 			type: 'array',
 			items: {
 				type: 'object',
-				required: ['escrowChainID', 'totalSupply', 'tokenID'],
+				required: ['escrowChainID', 'amount', 'tokenID'],
 				properties: {
 					escrowChainID: {
 						type: 'string',

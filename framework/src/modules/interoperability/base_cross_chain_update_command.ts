@@ -14,6 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 import { CommandExecuteContext } from '../../state_machine';
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
@@ -205,6 +206,25 @@ export abstract class BaseCrossChainUpdateCommand<
 			);
 			return;
 		}
+
+		let decodedParams;
+		try {
+			decodedParams = codec.decode(command.schema, context.ccm.params);
+			validator.validate(command.schema, decodedParams);
+		} catch (error) {
+			logger.info(
+				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+				'Invalid CCM params.',
+			);
+			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccm,
+				result: CCMProcessedResult.DISCARDED,
+				code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+			});
+			return;
+		}
+
 		if (command.verify) {
 			try {
 				await command.verify(context);
@@ -270,7 +290,6 @@ export abstract class BaseCrossChainUpdateCommand<
 			 * This is not necessarily a violation of the protocol, since the message
 			 * could have been sent before the direct channel was opened.
 			 */
-			const params = command.schema ? codec.decode(command.schema, context.ccm.params) : {};
 
 			const isSendingChainExist = await this.stores
 				.get(ChainAccountStore)
@@ -284,7 +303,7 @@ export abstract class BaseCrossChainUpdateCommand<
 				throw new Error('Cannot receive forwarded messages for a direct channel.');
 			}
 			// Execute the cross-chain command.
-			await command.execute({ ...context, params });
+			await command.execute({ ...context, params: decodedParams });
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccm,
 				result: CCMProcessedResult.APPLIED,

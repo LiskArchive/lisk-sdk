@@ -35,11 +35,18 @@ export class WSServer {
 	private readonly _path: string;
 	// subscription holds id: event names array
 	private readonly _subscriptions: Record<string, Set<string>> = {};
+	private readonly _accessControlAllowOrigin: string;
 
-	public constructor(options: { port: number; host?: string; path: string }) {
+	public constructor(options: {
+		port: number;
+		host?: string;
+		path: string;
+		accessControlAllowOrigin?: string;
+	}) {
 		this._port = options.port;
 		this._host = options.host;
 		this._path = options.path;
+		this._accessControlAllowOrigin = options.accessControlAllowOrigin ?? '*';
 	}
 
 	public start(
@@ -72,12 +79,24 @@ export class WSServer {
 			});
 		}
 
-		this.server.on('connection', socket =>
-			this._handleConnection(socket as WebSocketWithTracking, messageHandler),
-		);
+		this.server.on('connection', (socket, req) => {
+			const { origin } = req.headers;
+			if (
+				origin &&
+				this._accessControlAllowOrigin !== '*' &&
+				!this._accessControlAllowOrigin.includes(origin)
+			) {
+				socket.close();
+				return;
+			}
+
+			this._handleConnection(socket as WebSocketWithTracking, messageHandler);
+		});
+
 		this.server.on('error', error => {
 			this._logger.error(error);
 		});
+
 		this.server.on('listening', () => {
 			this._logger.info(
 				{ host: this._host, port: this._port, path: this._path },

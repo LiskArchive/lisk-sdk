@@ -18,16 +18,15 @@ import { dataStructures } from '@liskhq/lisk-utils';
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import { BaseMethod } from '../base_method';
 import {
-	CCM_STATUS_OK,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	LOCAL_ID_LENGTH,
 	TokenEventResult,
 	MAX_DATA_LENGTH,
 } from './constants';
-import { crossChainTransferMessageParams, UserStoreData } from './schemas';
+import { crossChainTransferMessageParams } from './schemas';
 import { InteroperabilityMethod, ModuleConfig } from './types';
 import { splitTokenID } from './utils';
-import { UserStore } from './stores/user';
+import { UserStore, UserStoreData } from './stores/user';
 import { EscrowStore } from './stores/escrow';
 import { SupplyStore, SupplyStoreData } from './stores/supply';
 import { NamedRegistry } from '../named_registry';
@@ -188,14 +187,16 @@ export class TokenMethod extends BaseMethod {
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
+		if (amount <= BigInt(0)) {
+			return;
+		}
+
 		const eventData = {
 			address,
 			tokenID,
 			amount,
 		};
-		if (amount === BigInt(0)) {
-			return;
-		}
+
 		if (!this.isNativeToken(tokenID)) {
 			this.events
 				.get(MintEvent)
@@ -261,6 +262,10 @@ export class TokenMethod extends BaseMethod {
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
+		if (amount <= BigInt(0)) {
+			return;
+		}
+
 		const userStore = this.stores.get(UserStore);
 		const eventData = {
 			address,
@@ -269,9 +274,6 @@ export class TokenMethod extends BaseMethod {
 		};
 		let userAccount: UserStoreData;
 		try {
-			if (amount === BigInt(0)) {
-				return;
-			}
 			userAccount = await userStore.get(methodContext, userStore.getKey(address, tokenID));
 			if (userAccount.availableBalance < amount) {
 				this.events
@@ -350,6 +352,10 @@ export class TokenMethod extends BaseMethod {
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
+		if (amount <= BigInt(0)) {
+			return;
+		}
+
 		const userStore = this.stores.get(UserStore);
 		const eventData = {
 			senderAddress,
@@ -404,6 +410,10 @@ export class TokenMethod extends BaseMethod {
 		messageFee: bigint,
 		data: string,
 	): Promise<void> {
+		if (amount <= BigInt(0)) {
+			return;
+		}
+
 		const eventData = {
 			senderAddress,
 			recipientAddress,
@@ -414,6 +424,9 @@ export class TokenMethod extends BaseMethod {
 		};
 
 		if (this._config.ownChainID.equals(receivingChainID)) {
+			this.events
+				.get(TransferCrossChainEvent)
+				.error(methodContext, eventData, TokenEventResult.INVALID_RECEIVING_CHAIN);
 			throw new Error('Receiving chain cannot be the sending chain.');
 		}
 
@@ -496,7 +509,6 @@ export class TokenMethod extends BaseMethod {
 			CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 			receivingChainID,
 			messageFee,
-			CCM_STATUS_OK,
 			codec.encode(crossChainTransferMessageParams, {
 				tokenID,
 				amount,
@@ -514,6 +526,10 @@ export class TokenMethod extends BaseMethod {
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
+		if (amount <= BigInt(0)) {
+			return;
+		}
+
 		const userStore = this.stores.get(UserStore);
 		const eventData = {
 			address,
@@ -523,9 +539,6 @@ export class TokenMethod extends BaseMethod {
 		};
 		let account: UserStoreData;
 		try {
-			if (amount === BigInt(0)) {
-				return;
-			}
 			account = await userStore.get(methodContext, userStore.getKey(address, tokenID));
 			if (account.availableBalance < amount) {
 				this.events
@@ -570,9 +583,10 @@ export class TokenMethod extends BaseMethod {
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void> {
-		if (amount === BigInt(0)) {
+		if (amount <= BigInt(0)) {
 			return;
 		}
+
 		const userStore = this.stores.get(UserStore);
 		const eventData = {
 			address,

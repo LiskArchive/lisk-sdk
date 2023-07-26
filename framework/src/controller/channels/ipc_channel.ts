@@ -146,7 +146,7 @@ export class IPCChannel extends BaseChannel {
 		await this.startAndListen();
 		// Register channel details
 		let endpointInfo: { [key: string]: EndpointInfo } = {};
-		endpointInfo = Object.keys(this.endpointHandlers).reduce((accumulator, value: string) => {
+		endpointInfo = Array.from(this.endpointHandlers.keys()).reduce((accumulator, value: string) => {
 			accumulator[value] = {
 				method: value,
 				namespace: this.namespace,
@@ -212,9 +212,11 @@ export class IPCChannel extends BaseChannel {
 
 		// When the handler is within the same channel
 		if (request.namespace === this.namespace) {
-			const handler = this.endpointHandlers[request.name];
+			const handler = this.endpointHandlers.get(request.name);
 			if (!handler) {
-				throw new Error('Handler does not exist.');
+				throw new Error(
+					`The action '${request.name}' on module '${this.namespace}' does not exist.`,
+				);
 			}
 
 			return handler({

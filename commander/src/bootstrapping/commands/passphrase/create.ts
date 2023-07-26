@@ -18,6 +18,7 @@ import { Command } from '@oclif/core';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { flagsWithParser } from '../../../utils/flags';
+import { OWNER_READ_WRITE } from '../../../constants';
 
 export class CreateCommand extends Command {
 	static description = 'Returns a randomly generated 24 words mnemonic passphrase.';
@@ -39,7 +40,7 @@ export class CreateCommand extends Command {
 		const passphrase = Mnemonic.generateMnemonic(256);
 
 		if (output) {
-			fs.writeJSONSync(output, { passphrase }, { spaces: ' ' });
+			fs.writeJSONSync(output, { passphrase }, { spaces: ' ', mode: OWNER_READ_WRITE });
 		} else {
 			this.log(JSON.stringify({ passphrase }, undefined, '  '));
 		}

@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-cryptography",
-	"version": "4.0.0-beta.0",
+	"version": "4.0.0-beta.2",
 	"description": "General cryptographic functions for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -17,7 +17,7 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=16.14.1 <=16",
+		"node": ">=18.12.0 <=18",
 		"npm": ">=8.1.0"
 	},
 	"main": "dist-node/index.js",
@@ -35,9 +35,8 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"@liskhq/lisk-passphrase": "^4.0.0-beta.0",
+		"@liskhq/lisk-passphrase": "^4.0.0-beta.2",
 		"buffer-reverse": "1.0.1",
-		"ed2curve": "0.3.0",
 		"hash-wasm": "4.9.0",
 		"tweetnacl": "1.0.3",
 		"varuint-bitcoin": "1.1.2"
@@ -55,11 +54,10 @@
 		}
 	},
 	"devDependencies": {
-		"@types/ed2curve": "0.2.2",
 		"@types/jest": "29.2.3",
 		"@types/jest-when": "3.5.2",
 		"@types/js-yaml": "4.0.1",
-		"@types/node": "16.18.3",
+		"@types/node": "18.15.3",
 		"@typescript-eslint/eslint-plugin": "5.44.0",
 		"@typescript-eslint/parser": "5.44.0",
 		"benchmark": "2.1.4",

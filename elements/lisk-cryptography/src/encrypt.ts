@@ -15,8 +15,6 @@
 import { argon2id } from 'hash-wasm';
 import * as querystring from 'querystring';
 import * as crypto from 'crypto';
-import * as ed2curve from 'ed2curve';
-import { box, getRandomBytes, openBox } from './nacl';
 import { hexToBuffer } from './utils';
 
 const PBKDF2_ITERATIONS = 1e6;
@@ -26,75 +24,7 @@ const ENCRYPTION_VERSION = '1';
 const HASH_LENGTH = 32;
 const ARGON2_ITERATIONS = 1;
 const ARGON2_PARALLELISM = 4;
-const ARGON2_MEMORY = 2024;
-
-export interface EncryptedMessageWithNonce {
-	readonly encryptedMessage: string;
-	readonly nonce: string;
-}
-
-export const encryptMessageWithPrivateKey = (
-	message: string,
-	senderPrivateKey: Buffer,
-	recipientPublicKey: Buffer,
-): EncryptedMessageWithNonce => {
-	const convertedPrivateKey = Buffer.from(ed2curve.convertSecretKey(senderPrivateKey));
-	const messageInBytes = Buffer.from(message, 'utf8');
-	const nonceSize = 24;
-	const nonce = getRandomBytes(nonceSize);
-	const publicKeyUint8Array = ed2curve.convertPublicKey(recipientPublicKey);
-
-	// This cannot be reproduced, but external library have type union with null
-	if (publicKeyUint8Array === null) {
-		throw new Error('given public key is not a valid Ed25519 public key');
-	}
-
-	const convertedPublicKey = Buffer.from(publicKeyUint8Array);
-
-	const cipherBytes = box(messageInBytes, nonce, convertedPublicKey, convertedPrivateKey);
-
-	const nonceHex = nonce.toString('hex');
-	const encryptedMessage = cipherBytes.toString('hex');
-
-	return {
-		nonce: nonceHex,
-		encryptedMessage,
-	};
-};
-
-export const decryptMessageWithPrivateKey = (
-	cipherHex: string,
-	nonce: string,
-	recipientPrivateKey: Buffer,
-	senderPublicKey: Buffer,
-): string => {
-	const convertedPrivateKey = Buffer.from(ed2curve.convertSecretKey(recipientPrivateKey));
-	const cipherBytes = hexToBuffer(cipherHex);
-	const nonceBytes = hexToBuffer(nonce);
-
-	const publicKeyUint8Array = ed2curve.convertPublicKey(senderPublicKey);
-
-	// This cannot be reproduced, but external library have type union with null
-	if (publicKeyUint8Array === null) {
-		throw new Error('given public key is not a valid Ed25519 public key');
-	}
-
-	const convertedPublicKey = Buffer.from(publicKeyUint8Array);
-
-	try {
-		const decoded = openBox(cipherBytes, nonceBytes, convertedPublicKey, convertedPrivateKey);
-
-		return Buffer.from(decoded).toString();
-	} catch (error) {
-		if (
-			// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
-			(error as Error).message.match(/bad nonce size|"n" must be crypto_box_NONCEBYTES bytes long/)
-		) {
-			throw new Error('Expected nonce to be 24 bytes.');
-		}
-		throw new Error('Something went wrong during decryption. Is this the full encrypted message?');
-	}
-};
+export const ARGON2_MEMORY = 2097023;
 
 const getKeyFromPassword = (password: string, salt: Buffer, iterations: number): Buffer =>
 	crypto.pbkdf2Sync(password, salt, iterations, PBKDF2_KEYLEN, PBKDF2_HASH_FUNCTION);
@@ -165,7 +95,7 @@ export const encryptAES256GCMWithPassword = async (
 	const iterations =
 		kdf === KDF.ARGON2 ? ARGON2_ITERATIONS : options?.kdfparams?.iterations ?? PBKDF2_ITERATIONS;
 	const parallelism = options?.kdfparams?.parallelism ?? ARGON2_PARALLELISM;
-	const memorySize = options?.kdfparams?.parallelism ?? ARGON2_MEMORY;
+	const memorySize = options?.kdfparams?.memorySize ?? ARGON2_MEMORY;
 	const key =
 		kdf === KDF.ARGON2
 			? await getKeyFromPasswordWithArgon2({

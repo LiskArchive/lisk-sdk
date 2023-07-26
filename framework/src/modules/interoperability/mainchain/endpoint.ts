@@ -16,11 +16,11 @@ import { validator } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../../../types';
 import { BaseInteroperabilityEndpoint } from '../base_interoperability_endpoint';
 import { CHAIN_REGISTRATION_FEE, EMPTY_BYTES, MIN_RETURN_FEE_PER_BYTE_BEDDOWS } from '../constants';
-import { isChainIDAvailableRequestSchema } from '../schemas';
+import { isChainIDAvailableRequestSchema, isChainNameAvailableRequestSchema } from '../schemas';
 import { ChainAccountStore } from '../stores/chain_account';
 import { OwnChainAccountStore } from '../stores/own_chain_account';
 import { RegisteredNamesStore } from '../stores/registered_names';
-import { isValidName } from '../utils';
+import { isValidName, validNameCharset } from '../utils';
 
 export interface ResultJSON {
 	result: boolean;
@@ -62,17 +62,12 @@ export class MainchainInteroperabilityEndpoint extends BaseInteroperabilityEndpo
 	}
 
 	public async isChainNameAvailable(context: ModuleEndpointContext): Promise<ResultJSON> {
-		const {
-			params: { name },
-		} = context;
+		validator.validate(isChainNameAvailableRequestSchema, context.params);
 
-		if (typeof name !== 'string') {
-			throw new Error('Chain name must be a string.');
-		}
-
+		const name = context.params.name as string;
 		if (!isValidName(name)) {
 			throw new Error(
-				`Invalid name property. It should contain only characters from the set [a-z0-9!@$&_.].`,
+				`Invalid name property. It should contain only characters from the set [${validNameCharset}].`,
 			);
 		}
 

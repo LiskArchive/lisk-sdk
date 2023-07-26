@@ -11,18 +11,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as ed2curve from 'ed2curve';
 import {
 	EncryptedMessageObject,
-	EncryptedMessageWithNonce,
-	encryptMessageWithPrivateKey,
-	decryptMessageWithPrivateKey,
 	encryptMessageWithPassword,
 	decryptMessageWithPassword,
 	KDF,
 	Cipher,
 	parseEncryptedMessage,
 	stringifyEncryptedMessage,
+	ARGON2_MEMORY,
 } from '../src/encrypt';
 import * as utils from '../src/utils';
 
@@ -31,105 +28,18 @@ describe('encrypt', () => {
 	const ARGON2_ITERATIONS = 1;
 	const ENCRYPTION_VERSION = '1';
 	const defaultPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
-	const defaultPrivateKey = Buffer.from(
-		'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588',
-		'hex',
-	);
-	const defaultPublicKey = Buffer.from(
-		'7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588',
-		'hex',
-	);
-	const defaultMessage = 'Some default text.';
 	const defaultPassword = 'myTotal53cr3t%&';
 	const customIterations = 12;
-
-	let defaultEncryptedMessageWithNonce: EncryptedMessageWithNonce;
 
 	let hashStub: any;
 
 	beforeEach(async () => {
-		defaultEncryptedMessageWithNonce = {
-			encryptedMessage: '299390b9cbb92fe6a43daece2ceaecbacd01c7c03cfdba51d693b5c0e2b65c634115',
-			nonce: 'df4c8b09e270d2cb3f7b3d53dfa8a6f3441ad3b14a13fb66',
-		};
-		jest
-			.spyOn(ed2curve, 'convertSecretKey')
-			.mockReturnValue(
-				Buffer.from('d8be8cacb03fb02f34e85030f902b635f364d6c23f090c7640e9dc9c568e7d5e', 'hex'),
-			);
-		jest
-			.spyOn(ed2curve, 'convertPublicKey')
-			.mockReturnValue(
-				Buffer.from('f245e78c83196d73452e55581ef924a1b792d352c142257aa3af13cded2e7905', 'hex'),
-			);
-
 		hashStub = jest
 			.spyOn(utils, 'hash')
 			.mockReturnValue(
 				Buffer.from('d43eed9049dd8f35106c720669a1148b2c6288d9ea517b936c33a1d84117a760', 'hex'),
 			);
 		return Promise.resolve();
-	});
-
-	describe('#encryptMessageWithPrivateKey', () => {
-		let encryptedMessage: EncryptedMessageWithNonce;
-
-		beforeEach(async () => {
-			encryptedMessage = encryptMessageWithPrivateKey(
-				defaultMessage,
-				defaultPrivateKey,
-				defaultPublicKey,
-			);
-			return Promise.resolve();
-		});
-
-		it('should encrypt a message', () => {
-			expect(encryptedMessage).toHaveProperty('encryptedMessage');
-			expect(regHexadecimal.test(encryptedMessage.encryptedMessage)).toBe(true);
-		});
-
-		it('should output the nonce', () => {
-			expect(encryptedMessage).toBeDefined();
-			expect(encryptedMessage).toHaveProperty('nonce');
-			expect(regHexadecimal.test(encryptedMessage.nonce)).toBe(true);
-		});
-	});
-
-	describe('#decryptMessageWithPrivateKey', () => {
-		it('should be able to decrypt the message correctly using the receiver’s secret passphrase', () => {
-			const decryptedMessage = decryptMessageWithPrivateKey(
-				defaultEncryptedMessageWithNonce.encryptedMessage,
-				defaultEncryptedMessageWithNonce.nonce,
-				defaultPrivateKey,
-				defaultPublicKey,
-			);
-
-			expect(decryptedMessage).toBe(defaultMessage);
-		});
-
-		it('should inform the user if the nonce is the wrong length', () => {
-			expect(
-				decryptMessageWithPrivateKey.bind(
-					null,
-					defaultEncryptedMessageWithNonce.encryptedMessage,
-					defaultEncryptedMessageWithNonce.encryptedMessage.slice(0, 2),
-					defaultPrivateKey,
-					defaultPublicKey,
-				),
-			).toThrow('Expected nonce to be 24 bytes.');
-		});
-
-		it('should inform the user if something goes wrong during decryption', () => {
-			expect(
-				decryptMessageWithPrivateKey.bind(
-					null,
-					defaultEncryptedMessageWithNonce.encryptedMessage.slice(0, 2),
-					defaultEncryptedMessageWithNonce.nonce,
-					defaultPrivateKey,
-					defaultPublicKey,
-				),
-			).toThrow('Something went wrong during decryption. Is this the full encrypted message?');
-		});
 	});
 
 	describe('encrypt and decrypt passphrase with password', () => {
@@ -462,7 +372,7 @@ describe('encrypt', () => {
 				kdfparams: {
 					salt: 'e8c7dae4c893e458e0ebb8bff9a36d84',
 					iterations: 1,
-					memorySize: 2024,
+					memorySize: ARGON2_MEMORY,
 					parallelism: 4,
 				},
 				cipher: 'aes-256-gcm',
@@ -486,7 +396,7 @@ describe('encrypt', () => {
 				kdfparams: {
 					salt: 'e8c7dae4c893e458e0ebb8bff9a36d84',
 					iterations: 12,
-					memorySize: 2024,
+					memorySize: ARGON2_MEMORY,
 					parallelism: 4,
 				},
 				cipher: 'aes-256-gcm',

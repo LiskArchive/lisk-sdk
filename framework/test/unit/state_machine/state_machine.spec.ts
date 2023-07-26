@@ -184,6 +184,7 @@ describe('state_machine', () => {
 				getMethodContext: expect.any(Function),
 				getStore: expect.any(Function),
 			});
+			expect(mod.commands[0].execute).toHaveBeenCalledTimes(1);
 			expect(mod.afterCommandExecute).toHaveBeenCalledTimes(1);
 		});
 
@@ -313,6 +314,23 @@ describe('state_machine', () => {
 			// expect(systemMod.verifyAssets).toHaveBeenCalledTimes(1);
 			expect(mod.verifyAssets).toHaveBeenCalledTimes(1);
 		});
+
+		it('should fail if module is not registered', async () => {
+			await expect(
+				stateMachine.verifyAssets(
+					new BlockContext({
+						eventQueue,
+						logger,
+						stateStore,
+						contextStore,
+						header,
+						assets: new BlockAssets([{ module: 'unknown', data: Buffer.alloc(30) }]),
+						chainID,
+						transactions: [transaction],
+					}),
+				),
+			).rejects.toThrow('Module unknown is not registered');
+		});
 	});
 
 	describe('beforeExecuteBlock', () => {
@@ -327,7 +345,7 @@ describe('state_machine', () => {
 				chainID,
 				transactions: [transaction],
 			});
-			await stateMachine.beforeExecuteBlock(ctx);
+			await stateMachine.beforeTransactionsExecute(ctx);
 			expect(mod.beforeTransactionsExecute).toHaveBeenCalledWith({
 				chainID,
 				logger,
@@ -354,7 +372,7 @@ describe('state_machine', () => {
 				chainID,
 				transactions: [transaction],
 			});
-			await stateMachine.beforeExecuteBlock(ctx);
+			await stateMachine.beforeTransactionsExecute(ctx);
 
 			const events = ctx.eventQueue.getEvents();
 			expect(events).toHaveLength(1);
@@ -408,48 +426,6 @@ describe('state_machine', () => {
 			const events = ctx.eventQueue.getEvents();
 			expect(events).toHaveLength(1);
 			expect(events[0].toObject().topics[0]).toEqual(EVENT_INDEX_AFTER_TRANSACTIONS);
-		});
-	});
-
-	describe('executeBlock', () => {
-		it('should call all registered before/after executeBlock', async () => {
-			const ctx = new BlockContext({
-				eventQueue,
-				logger,
-				stateStore,
-				contextStore,
-				header,
-				assets,
-				chainID,
-				transactions: [transaction],
-			});
-			await stateMachine.executeBlock(ctx);
-			expect(mod.beforeTransactionsExecute).toHaveBeenCalledWith({
-				chainID,
-				logger,
-				header,
-				assets,
-				stateStore,
-				contextStore,
-				eventQueue: expect.any(Object),
-				getMethodContext: expect.any(Function),
-				getStore: expect.any(Function),
-			});
-			expect(mod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
-			expect(mod.afterTransactionsExecute).toHaveBeenCalledWith({
-				chainID,
-				logger,
-				header,
-				assets,
-				stateStore,
-				contextStore,
-				eventQueue: expect.any(Object),
-				getMethodContext: expect.any(Function),
-				getStore: expect.any(Function),
-				transactions: [transaction],
-				setNextValidators: expect.any(Function),
-			});
-			expect(mod.afterTransactionsExecute).toHaveBeenCalledTimes(1);
 		});
 	});
 });
