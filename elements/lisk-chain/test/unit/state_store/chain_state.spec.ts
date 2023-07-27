@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {  Database, Batch } from '@liskhq/lisk-db';
+import { Database, Batch } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { StateStore } from '../../../src/state_store';
 import { DataAccess } from '../../../src/data_access';

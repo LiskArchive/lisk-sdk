@@ -124,7 +124,9 @@ describe('Delete block', () => {
 
 			it('should not persist the state diff for that block height', async () => {
 				await expect(
-					processEnv.getBlockchainDB().get(Buffer.from(`diff:${formatInt(newBlock.header.height)}`)),
+					processEnv
+						.getBlockchainDB()
+						.get(Buffer.from(`diff:${formatInt(newBlock.header.height)}`)),
 				).rejects.toBeInstanceOf(NotFoundError);
 			});
 		});

@@ -1493,7 +1493,10 @@ describe('forger', () => {
 						},
 					],
 				});
-				expect(dbStub.set).toHaveBeenCalledWith(Buffer.from('forger:previouslyForged'), maxHeightResult);
+				expect(dbStub.set).toHaveBeenCalledWith(
+					Buffer.from('forger:previouslyForged'),
+					maxHeightResult,
+				);
 			});
 
 			it('should set maxPreviouslyForgedHeight to forging height', async () => {
@@ -1518,7 +1521,10 @@ describe('forger', () => {
 						},
 					],
 				});
-				expect(dbStub.set).toHaveBeenCalledWith(Buffer.from('forger:previouslyForged'), maxHeightResult);
+				expect(dbStub.set).toHaveBeenCalledWith(
+					Buffer.from('forger:previouslyForged'),
+					maxHeightResult,
+				);
 			});
 
 			it('should not set maxPreviouslyForgedHeight to next height if lower', async () => {

@@ -74,7 +74,7 @@ describe('state store / account', () => {
 			.mockRejectedValue(new NotFoundError('Data not found') as never);
 		for (const data of accountInDB) {
 			dbGetMock
-				.calledWith((Buffer.from(`accounts:address:${data.key.toString('binary')}`)))
+				.calledWith(Buffer.from(`accounts:address:${data.key.toString('binary')}`))
 				.mockResolvedValue(data.value as never);
 		}
 		for (const account of stateStoreAccounts) {
@@ -232,7 +232,7 @@ describe('state store / account', () => {
 			stateStore.account.finalize(batchStub);
 
 			expect(batchStub.set).toHaveBeenCalledWith(
-				Buffer.from( `accounts:address:${updatedAccount.address.toString('binary')}` ),
+				Buffer.from(`accounts:address:${updatedAccount.address.toString('binary')}`),
 				expect.any(Buffer),
 			);
 		});

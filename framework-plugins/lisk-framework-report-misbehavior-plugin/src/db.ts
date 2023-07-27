@@ -182,7 +182,7 @@ export const clearBlockHeaders = async (
 	});
 	const batch = new Batch();
 	for (const k of keys) {
-		batch.del((Buffer.from(k)));
+		batch.del(Buffer.from(k));
 	}
 	await db.write(batch);
 };

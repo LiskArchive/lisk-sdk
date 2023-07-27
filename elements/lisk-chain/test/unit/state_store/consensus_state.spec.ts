@@ -110,9 +110,18 @@ describe('state store / chain_state', () => {
 			await stateStore.consensus.set('key4', Buffer.from('value5'));
 			stateDiff = stateStore.consensus.finalize(batchStub);
 			// Assert
-			expect(batchStub.set).toHaveBeenCalledWith(Buffer.from('consensus:key3'), Buffer.from('value4'));
-			expect(batchStub.set).toHaveBeenCalledWith(Buffer.from('consensus:key4'), Buffer.from('value5'));
-			expect(batchStub.set).toHaveBeenCalledWith(Buffer.from('consensus:finalizedHeight'), Buffer.from('3'));
+			expect(batchStub.set).toHaveBeenCalledWith(
+				Buffer.from('consensus:key3'),
+				Buffer.from('value4'),
+			);
+			expect(batchStub.set).toHaveBeenCalledWith(
+				Buffer.from('consensus:key4'),
+				Buffer.from('value5'),
+			);
+			expect(batchStub.set).toHaveBeenCalledWith(
+				Buffer.from('consensus:finalizedHeight'),
+				Buffer.from('3'),
+			);
 		});
 
 		it('should return state diff with created and updated values after finalize', async () => {

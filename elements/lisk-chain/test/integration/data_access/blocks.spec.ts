@@ -75,7 +75,10 @@ describe('dataAccess.blocks', () => {
 		const batch = new Batch();
 		for (const block of blocks) {
 			const { payload, header } = block;
-			batch.set(Buffer.from(`blocks:id:${header.id.toString('binary')}`), encodeDefaultBlockHeader(header));
+			batch.set(
+				Buffer.from(`blocks:id:${header.id.toString('binary')}`),
+				encodeDefaultBlockHeader(header),
+			);
 			batch.set(Buffer.from(`blocks:height:${formatInt(header.height)}`), header.id);
 			if (payload.length) {
 				batch.set(

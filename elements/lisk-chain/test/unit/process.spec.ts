@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {  Database } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { getRandomBytes, getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { codec } from '@liskhq/lisk-codec';

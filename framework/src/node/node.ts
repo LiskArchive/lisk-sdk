@@ -726,9 +726,19 @@ export class Node {
 					),
 				});
 
-				if (this._options.backup.height > 0 && this._options.backup.height === block.header.height) {
+				if (
+					this._options.backup.height > 0 &&
+					this._options.backup.height === block.header.height
+				) {
 					const backupPath = path.resolve(this._dataPath, 'backup');
-					this._blockchainDB.checkpoint(backupPath).catch(err => this._logger.fatal({ err: err as Error, height: this._options.backup.height, path: backupPath }, 'Fail to create backup'));
+					this._blockchainDB
+						.checkpoint(backupPath)
+						.catch(err =>
+							this._logger.fatal(
+								{ err: err as Error, height: this._options.backup.height, path: backupPath },
+								'Fail to create backup',
+							),
+						);
 				}
 
 				// Remove any transactions from the pool on new block

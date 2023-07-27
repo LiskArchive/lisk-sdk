@@ -19,7 +19,10 @@ import { defaultAccountSchema, defaultAccount } from './account';
 import { registeredBlockHeaders, defaultNetworkIdentifier } from './block';
 import { BlockHeader } from '../../src';
 
-export const createStateStore = (db: Database, lastBlockHeaders: BlockHeader[] = []): StateStore => {
+export const createStateStore = (
+	db: Database,
+	lastBlockHeaders: BlockHeader[] = [],
+): StateStore => {
 	const dataAccess = new DataAccess({
 		db,
 		accountSchema: defaultAccountSchema,

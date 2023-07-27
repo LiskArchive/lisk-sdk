@@ -129,8 +129,12 @@ describe('data_access', () => {
 
 			// Assert
 			expect(db.get).toHaveBeenCalledTimes(2);
-			expect(db.get).toHaveBeenCalledWith(Buffer.from(`blocks:height:${formatInt(block.header.height)}`));
-			expect(db.get).toHaveBeenCalledWith(Buffer.from(`blocks:id:${block.header.id.toString('binary')}`));
+			expect(db.get).toHaveBeenCalledWith(
+				Buffer.from(`blocks:height:${formatInt(block.header.height)}`),
+			);
+			expect(db.get).toHaveBeenCalledWith(
+				Buffer.from(`blocks:id:${block.header.id.toString('binary')}`),
+			);
 		});
 	});
 
@@ -192,8 +196,12 @@ describe('data_access', () => {
 
 			// Assert
 			expect(db.get).toHaveBeenCalledTimes(2);
-			expect(db.get).toHaveBeenCalledWith(Buffer.from(`blocks:height:${formatInt(block.header.height)}`));
-			expect(db.get).toHaveBeenCalledWith(Buffer.from(`blocks:id:${block.header.id.toString('binary')}`));
+			expect(db.get).toHaveBeenCalledWith(
+				Buffer.from(`blocks:height:${formatInt(block.header.height)}`),
+			);
+			expect(db.get).toHaveBeenCalledWith(
+				Buffer.from(`blocks:id:${block.header.id.toString('binary')}`),
+			);
 		});
 	});
 
@@ -225,7 +233,9 @@ describe('data_access', () => {
 			// Assert
 			expect(db.get).toHaveBeenCalledTimes(1);
 			expect(db.createReadStream).toHaveBeenCalledTimes(1);
-			expect(db.get).toHaveBeenCalledWith(Buffer.from(`blocks:id:${block.header.id.toString('binary')}`));
+			expect(db.get).toHaveBeenCalledWith(
+				Buffer.from(`blocks:id:${block.header.id.toString('binary')}`),
+			);
 		});
 	});
 
@@ -378,7 +388,9 @@ describe('data_access', () => {
 			await dataAccess.isBlockPersisted(block.header.id);
 
 			// Assert
-			expect(db.has).toHaveBeenCalledWith(Buffer.from(`blocks:id:${block.header.id.toString('binary')}`));
+			expect(db.has).toHaveBeenCalledWith(
+				Buffer.from(`blocks:id:${block.header.id.toString('binary')}`),
+			);
 		});
 	});
 
@@ -465,7 +477,9 @@ describe('data_access', () => {
 			);
 
 			// Assert
-			expect(db.get).toHaveBeenCalledWith(Buffer.from(`accounts:address:${account.address.toString('binary')}`));
+			expect(db.get).toHaveBeenCalledWith(
+				Buffer.from(`accounts:address:${account.address.toString('binary')}`),
+			);
 			expect(typeof result.token.balance).toEqual('bigint');
 		});
 	});
@@ -536,7 +550,9 @@ describe('data_access', () => {
 			const [result] = await dataAccess.getTransactionsByIDs([tx.id]);
 
 			// Assert
-			expect(db.get).toHaveBeenCalledWith(Buffer.from(`transactions:id:${tx.id.toString('binary')}`));
+			expect(db.get).toHaveBeenCalledWith(
+				Buffer.from(`transactions:id:${tx.id.toString('binary')}`),
+			);
 			expect(typeof result.fee).toBe('bigint');
 		});
 	});

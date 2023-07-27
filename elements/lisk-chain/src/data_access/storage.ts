@@ -324,7 +324,9 @@ export class Storage {
 		Accounts
 	*/
 	public async getAccountByAddress(address: Buffer): Promise<Buffer> {
-		const account = await this._db.get(Buffer.from(`${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(address)}`));
+		const account = await this._db.get(
+			Buffer.from(`${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(address)}`),
+		);
 		return account;
 	}
 
@@ -355,7 +357,9 @@ export class Storage {
 		Transactions
 	*/
 	public async getTransactionByID(id: Buffer): Promise<Buffer> {
-		const transaction = await this._db.get(Buffer.from(`${DB_KEY_TRANSACTIONS_ID}:${keyString(id)}`));
+		const transaction = await this._db.get(
+			Buffer.from(`${DB_KEY_TRANSACTIONS_ID}:${keyString(id)}`),
+		);
 
 		return transaction;
 	}
@@ -405,7 +409,10 @@ export class Storage {
 				ids.push(txID);
 				batch.set(Buffer.from(`${DB_KEY_TRANSACTIONS_ID}:${keyString(txID)}`), value);
 			}
-			batch.set(Buffer.from(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(id)}`), Buffer.concat(ids));
+			batch.set(
+				Buffer.from(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(id)}`),
+				Buffer.concat(ids),
+			);
 		}
 		if (removeFromTemp) {
 			batch.del(Buffer.from(`${DB_KEY_TEMPBLOCKS_HEIGHT}:${heightStr}`));
@@ -484,7 +491,9 @@ export class Storage {
 	private async _getTransactions(blockID: Buffer): Promise<Buffer[]> {
 		const txIDs: Buffer[] = [];
 		try {
-			const ids = await this._db.get(Buffer.from(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(blockID)}`));
+			const ids = await this._db.get(
+				Buffer.from(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(blockID)}`),
+			);
 			const idLength = 32;
 			for (let i = 0; i < ids.length; i += idLength) {
 				txIDs.push(ids.slice(i, i + idLength));

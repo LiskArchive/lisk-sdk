@@ -10,7 +10,7 @@ module.exports = {
 		'^.+\\.(ts|tsx)$': 'ts-jest',
 	},
 	moduleNameMapper: {
-		"^axios$": "axios/dist/axios.js"
+		'^axios$': 'axios/dist/axios.js',
 	},
 	verbose: false,
 	collectCoverage: false,

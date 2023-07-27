@@ -29,11 +29,7 @@ interface AdditionalInformation {
 	readonly defaultAccount: Record<string, unknown>;
 }
 
-const saveDiff = (
-	height: string,
-	stateDiffs: Array<Readonly<StateDiff>>,
-	batch: Batch,
-): void => {
+const saveDiff = (height: string, stateDiffs: Array<Readonly<StateDiff>>, batch: Batch): void => {
 	const diffToEncode: { updated: UpdatedDiff[]; created: string[]; deleted: UpdatedDiff[] } = {
 		updated: [],
 		created: [],

@@ -129,7 +129,9 @@ export class Network {
 		let previousPeers: ReadonlyArray<liskP2P.p2pTypes.ProtocolPeerInfo> = [];
 		try {
 			// Load peers from the database that were tried or connected the last time node was running
-			const previousPeersBuffer = await this._nodeDB.get(Buffer.from(DB_KEY_NETWORK_TRIED_PEERS_LIST));
+			const previousPeersBuffer = await this._nodeDB.get(
+				Buffer.from(DB_KEY_NETWORK_TRIED_PEERS_LIST),
+			);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			previousPeers = JSON.parse(previousPeersBuffer.toString('utf8'));
 		} catch (error) {

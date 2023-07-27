@@ -194,7 +194,10 @@ export const setRegisteredHashOnionSeeds = async (
 	}
 	const registeredHashOnionSeedsBuffer = codec.encode(registeredHashOnionsStoreSchema, savingData);
 
-	await db.set(Buffer.from(DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS), registeredHashOnionSeedsBuffer);
+	await db.set(
+		Buffer.from(DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS),
+		registeredHashOnionSeedsBuffer,
+	);
 };
 
 export const getUsedHashOnions = async (db: Database): Promise<UsedHashOnion[]> => {
