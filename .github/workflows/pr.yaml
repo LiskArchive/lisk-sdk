@@ -1,0 +1,91 @@
+name: 'PR'
+on:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install
+        uses: ./.github/actions/prepare-install
+      - name: Build
+        uses: ./.github/actions/prepare-build
+        with:
+          cache-key: ${{ github.event.number }}
+
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - run: git branch --track ${{ github.base_ref }} origin/${{ github.base_ref }}
+      - name: Install
+        uses: ./.github/actions/prepare-install
+      - name: Build
+        uses: ./.github/actions/prepare-build
+        with:
+          cache-key: ${{ github.event.number }}
+      - run: yarn format
+      - name: Check format
+        run: |
+          if [ -z "$(git status --untracked-files=no --porcelain)" ]; then
+            echo "All files formatted"
+          else
+            echo "Running format is required"
+            exit 1
+          fi
+      - run: yarn lint
+
+  unit-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install
+        uses: ./.github/actions/prepare-install
+      - name: Build
+        uses: ./.github/actions/prepare-build
+        with:
+          cache-key: ${{ github.event.number }}
+      - run: yarn test:elements
+      - run: yarn test:framework
+      - run: yarn test:commander
+
+  integration-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install
+        uses: ./.github/actions/prepare-install
+      - name: Build
+        uses: ./.github/actions/prepare-build
+        with:
+          cache-key: ${{ github.event.number }}
+      - run: yarn nx run-many --target=test:integration --projects=lisk-framework
+
+  functional-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install
+        uses: ./.github/actions/prepare-install
+      - name: Build
+        uses: ./.github/actions/prepare-build
+        with:
+          cache-key: ${{ github.event.number }}
+      - run:  yarn nx run-many --target=test:debug --projects=lisk-sdk-test
