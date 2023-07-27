@@ -27,6 +27,8 @@ import {
 	getChannelRequestSchema,
 	getTerminatedOutboxAccountRequestSchema,
 	getTerminatedStateAccountRequestSchema,
+	getMainchainIDRequestSchema,
+	getMainchainIDResponseSchema,
 } from '../schemas';
 import { allChainAccountsSchema, chainDataSchema, ChainStatus } from '../stores/chain_account';
 import { channelSchema } from '../stores/channel_data';
@@ -193,6 +195,11 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 					name: this.endpoint.getChainValidators.name,
 					request: getChainValidatorsRequestSchema,
 					response: getChainValidatorsResponseSchema,
+				},
+				{
+					name: this.endpoint.getMainchainID.name,
+					request: getMainchainIDRequestSchema,
+					response: getMainchainIDResponseSchema,
 				},
 			],
 			assets: [
