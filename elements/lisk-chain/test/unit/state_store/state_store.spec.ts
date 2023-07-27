@@ -334,7 +334,7 @@ describe('state store', () => {
 		});
 
 		it('should reset the snapshot id to 0 when the limit is reached', () => {
-			stateStore['_latestSnapshotId'] = Number.MAX_SAFE_INTEGER;
+			stateStore['_latestSnapshotId'] = Number.MAX_SAFE_INTEGER - 1;
 			const snapshotId = stateStore.createSnapshot();
 			expect(snapshotId).toBe(0);
 		});
