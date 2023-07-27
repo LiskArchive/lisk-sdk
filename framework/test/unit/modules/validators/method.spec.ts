@@ -677,6 +677,16 @@ describe('ValidatorsModuleMethod', () => {
 			expect(genWithCountGreaterThanTwo).toBeGreaterThan(0);
 		});
 
+		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is zero', async () => {
+			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
+				methodContext,
+				100,
+				100,
+			);
+
+			expect(Object.keys(result)).toHaveLength(0);
+		});
+
 		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is less than block time ', async () => {
 			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
 				methodContext,
@@ -700,18 +710,18 @@ describe('ValidatorsModuleMethod', () => {
 		it('should throw error if the end timestamp is less than the start timestamp', async () => {
 			await expect(
 				validatorsModule.method.getGeneratorsBetweenTimestamps(methodContext, 10, 1),
-			).rejects.toThrow('End timestamp must be greater than start timestamp.');
-		});
-
-		it('should throw error if the end timestamp is equal to the start timestamp ', async () => {
-			await expect(
-				validatorsModule.method.getGeneratorsBetweenTimestamps(methodContext, 10, 10),
-			).rejects.toThrow('End timestamp must be greater than start timestamp.');
+			).rejects.toThrow('End timestamp must be greater than or equal to start timestamp.');
 		});
 
 		it('should return empty result when startSlotNumber is lower than endSlotNumber but in the same block slot', async () => {
 			await expect(
 				validatorsModule.method.getGeneratorsBetweenTimestamps(methodContext, 2, 3),
+			).resolves.toEqual({});
+		});
+
+		it('should return empty result when startSlotNumber equals endSlotNumber but in the same block slot', async () => {
+			await expect(
+				validatorsModule.method.getGeneratorsBetweenTimestamps(methodContext, 2, 2),
 			).resolves.toEqual({});
 		});
 	});
