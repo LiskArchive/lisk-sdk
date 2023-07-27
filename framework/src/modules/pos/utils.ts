@@ -252,7 +252,7 @@ export const getPunishmentPeriod = (
 	return remainingBlocks < 0 ? 0 : remainingBlocks;
 };
 
-export function getModuleConfig(config: ModuleConfigJSON): ModuleConfig {
+export const getModuleConfig = (config: ModuleConfigJSON): ModuleConfig => {
 	const roundLength = config.numberActiveValidators + config.numberStandbyValidators;
 
 	return {
@@ -262,7 +262,7 @@ export function getModuleConfig(config: ModuleConfigJSON): ModuleConfig {
 		posTokenID: Buffer.from(config.posTokenID, 'hex'),
 		validatorRegistrationFee: BigInt(config.validatorRegistrationFee),
 	};
-}
+};
 
 export const getValidatorWeight = (
 	factorSelfStakes: bigint,

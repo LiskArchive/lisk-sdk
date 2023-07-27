@@ -268,7 +268,8 @@ export class PoSModule extends BaseModule {
 			},
 			moduleConfig,
 		) as ModuleConfigJSON;
-		validator.validate(configSchema, config);
+
+		validator.validate(this._getConfigSchema(args.genesisConfig.blockTime), config);
 
 		this._moduleConfig = getModuleConfig(config);
 
@@ -844,5 +845,19 @@ export class PoSModule extends BaseModule {
 			throw new Error('Cannot divide by zero.');
 		}
 		return (x + y - BigInt(1)) / y;
+	}
+
+	// updates schema to dynamically assign min/max range values for properties that depend on block time
+	private _getConfigSchema(blockTime = 10) {
+		const SECONDS_IN_A_DAY = 60 * 60 * 24;
+		const blocksPerDay = SECONDS_IN_A_DAY / blockTime;
+
+		const posSchema = { ...configSchema };
+		posSchema.properties.failSafeInactiveWindow.minimum = Math.floor(5 * blocksPerDay);
+		posSchema.properties.failSafeInactiveWindow.maximum = Math.floor(365 * blocksPerDay);
+		posSchema.properties.punishmentWindow.minimum = Math.floor(5 * blocksPerDay);
+		posSchema.properties.punishmentWindow.maximum = Math.floor(365 * blocksPerDay);
+
+		return posSchema;
 	}
 }
