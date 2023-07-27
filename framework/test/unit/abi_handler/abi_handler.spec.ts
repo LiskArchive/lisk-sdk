@@ -348,7 +348,7 @@ describe('abi handler', () => {
 		});
 
 		it('should execute beforeTransactionsExecute and resolve the response', async () => {
-			jest.spyOn(abiHandler['_stateMachine'], 'beforeExecuteBlock');
+			jest.spyOn(abiHandler['_stateMachine'], 'beforeTransactionsExecute');
 			const { contextID } = await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
 			});
@@ -356,7 +356,7 @@ describe('abi handler', () => {
 				contextID,
 				assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
 			});
-			expect(abiHandler['_stateMachine'].beforeExecuteBlock).toHaveBeenCalledTimes(1);
+			expect(abiHandler['_stateMachine'].beforeTransactionsExecute).toHaveBeenCalledTimes(1);
 
 			expect(resp.events).toBeArray();
 		});

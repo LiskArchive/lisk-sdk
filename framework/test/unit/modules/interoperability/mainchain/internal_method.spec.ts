@@ -80,7 +80,7 @@ describe('Mainchain interoperability internal method', () => {
 				.mockResolvedValue(ownChainAccount as never);
 		});
 
-		it('should return true if chainID equals ownChainAccount id', async () => {
+		it('should return true if chainID equals ownChainAccount ID', async () => {
 			const isLive = await mainchainInteroperabilityInternalMethod.isLive(
 				context,
 				ownChainAccount.chainID,

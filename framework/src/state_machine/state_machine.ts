@@ -240,7 +240,7 @@ export class StateMachine {
 		}
 	}
 
-	public async beforeExecuteBlock(ctx: BlockContext): Promise<void> {
+	public async beforeTransactionsExecute(ctx: BlockContext): Promise<void> {
 		const blockExecuteContext = ctx.getBlockExecuteContext();
 		for (const mod of this._modules) {
 			if (mod.beforeTransactionsExecute) {
@@ -260,24 +260,6 @@ export class StateMachine {
 				this._logger.debug({ moduleName: mod.name }, 'Executed afterTransactionsExecute');
 			}
 		}
-	}
-
-	public async executeBlock(ctx: BlockContext): Promise<void> {
-		await this.beforeExecuteBlock(ctx);
-		for (const tx of ctx.transactions) {
-			const txContext = ctx.getTransactionContext(tx);
-			const verifyResult = await this.verifyTransaction(txContext);
-			if (verifyResult.status !== VerifyStatus.OK) {
-				if (verifyResult.error) {
-					this._logger.debug({ err: verifyResult.error }, 'Transaction verification failed');
-					throw verifyResult.error;
-				}
-				this._logger.debug(`Transaction verification failed. ID ${tx.id.toString('hex')}.`);
-				throw new Error(`Transaction verification failed. ID ${tx.id.toString('hex')}.`);
-			}
-			await this.executeTransaction(txContext);
-		}
-		await this.afterExecuteBlock(ctx);
 	}
 
 	private _findModule(name: string): BaseModule | undefined {

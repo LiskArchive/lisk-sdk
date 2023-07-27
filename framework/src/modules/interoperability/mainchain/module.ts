@@ -67,8 +67,9 @@ import { InvalidRegistrationSignatureEvent } from '../events/invalid_registratio
 import { InvalidCertificateSignatureEvent } from '../events/invalid_certificate_signature';
 import { CHAIN_NAME_MAINCHAIN, EMPTY_HASH, MODULE_NAME_INTEROPERABILITY } from '../constants';
 import { GenesisBlockExecuteContext } from '../../../state_machine';
-import { getMainchainID, isValidName, validNameCharset } from '../utils';
+import { getMainchainID, isValidName } from '../utils';
 import { RegisteredNamesStore } from '../stores/registered_names';
+import { InvalidNameError } from '../errors';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
@@ -345,7 +346,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 
 		// chainData.name only uses the character set a-z0-9!@$&_.;
 		if (!isValidName(chainData.name)) {
-			throw new Error(`chainData.name only uses the character set ${validNameCharset}.`);
+			throw new InvalidNameError('chainData.name');
 		}
 
 		// chainData.status is in set {CHAIN_STATUS_REGISTERED, CHAIN_STATUS_ACTIVE, CHAIN_STATUS_TERMINATED}.

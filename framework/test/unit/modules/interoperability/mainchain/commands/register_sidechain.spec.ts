@@ -66,6 +66,7 @@ import { OwnChainAccountStore } from '../../../../../../src/modules/interoperabi
 import { EMPTY_BYTES } from '../../../../../../src/modules/token/constants';
 import { ChainAccountUpdatedEvent } from '../../../../../../src/modules/interoperability/events/chain_account_updated';
 import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
+import { InvalidNameError } from '../../../../../../src/modules/interoperability/errors';
 
 describe('RegisterSidechainCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -262,9 +263,7 @@ describe('RegisterSidechainCommand', () => {
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				`Invalid name property. It should contain only characters from the set [a-z0-9!@$&_.].`,
-			);
+			expect(result.error?.message).toInclude(new InvalidNameError().message);
 		});
 
 		it('should return error if store key name already exists in name store', async () => {

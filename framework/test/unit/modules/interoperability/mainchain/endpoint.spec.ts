@@ -27,6 +27,7 @@ import { ChainAccountStore } from '../../../../../src/modules/interoperability/s
 import { OwnChainAccountStore } from '../../../../../src/modules/interoperability/stores/own_chain_account';
 import { RegisteredNamesStore } from '../../../../../src/modules/interoperability/stores/registered_names';
 import { createTransientModuleEndpointContext } from '../../../../../src/testing';
+import { InvalidNameError } from '../../../../../src/modules/interoperability/errors';
 
 describe('MainchainInteroperabilityEndpoint', () => {
 	let endpoint: MainchainInteroperabilityEndpoint;
@@ -55,7 +56,8 @@ describe('MainchainInteroperabilityEndpoint', () => {
 	});
 
 	describe('isChainNameAvailable', () => {
-		const nameLengthMinMaxErrMsg = `Invalid name property. Length should be >= ${MIN_CHAIN_NAME_LENGTH} and <= ${MAX_CHAIN_NAME_LENGTH}.`;
+		const nameMinLengthErrMsg = `Property '.name' must NOT have fewer than ${MIN_CHAIN_NAME_LENGTH} characters`;
+		const nameMaxLengthErrMsg = `Property '.name' must NOT have more than ${MAX_CHAIN_NAME_LENGTH} characters`;
 		const interopMod = new MainchainInteroperabilityModule();
 		const registeredNamesStore = {
 			has: jest.fn(),
@@ -72,12 +74,51 @@ describe('MainchainInteroperabilityEndpoint', () => {
 		it('should throw error if name is not a string', async () => {
 			const context = createTransientModuleEndpointContext({
 				params: {
-					name: 1,
+					name: 123,
 				},
 			});
 			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(
-				'Chain name must be a string.',
+				'\'.name\' should pass "dataType" keyword validation',
 			);
+		});
+
+		it(`should throw error if name has 0 length`, async () => {
+			const context = createTransientModuleEndpointContext({
+				params: {
+					name: '',
+				},
+			});
+			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(nameMinLengthErrMsg);
+		});
+
+		it(`should not throw error if name length equals ${MIN_CHAIN_NAME_LENGTH}`, () => {
+			const context = createTransientModuleEndpointContext({
+				params: {
+					name: 'a',
+				},
+			});
+			// https://stackoverflow.com/questions/49603338/how-to-test-an-exception-was-not-thrown-with-jest
+			// eslint-disable-next-line @typescript-eslint/require-await
+			expect(async () => endpoint.isChainNameAvailable(context)).not.toThrow(nameMinLengthErrMsg);
+		});
+
+		it(`should not throw error if name length equals ${MAX_CHAIN_NAME_LENGTH}`, () => {
+			const context = createTransientModuleEndpointContext({
+				params: {
+					name: 'a'.repeat(MAX_CHAIN_NAME_LENGTH),
+				},
+			});
+			// eslint-disable-next-line @typescript-eslint/require-await
+			expect(async () => endpoint.isChainNameAvailable(context)).not.toThrow(nameMaxLengthErrMsg);
+		});
+
+		it(`should throw error if name length exceeds ${MAX_CHAIN_NAME_LENGTH}`, async () => {
+			const context = createTransientModuleEndpointContext({
+				params: {
+					name: 'a'.repeat(MAX_CHAIN_NAME_LENGTH + 1),
+				},
+			});
+			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(nameMaxLengthErrMsg);
 		});
 
 		it('should throw error if name has invalid chars', async () => {
@@ -87,39 +128,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 				},
 			});
 			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(
-				`Invalid name property. It should contain only characters from the set [a-z0-9!@$&_.].`,
-			);
-		});
-
-		it(`should throw error if name length exceeds ${MAX_CHAIN_NAME_LENGTH}`, async () => {
-			const context = createTransientModuleEndpointContext({
-				params: {
-					name: 'a'.repeat(MAX_CHAIN_NAME_LENGTH + 1),
-				},
-			});
-			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(nameLengthMinMaxErrMsg);
-		});
-
-		it(`should not throw error if name length equals ${MIN_CHAIN_NAME_LENGTH}`, async () => {
-			const context = createTransientModuleEndpointContext({
-				params: {
-					name: 'a',
-				},
-			});
-			// https://stackoverflow.com/questions/49603338/how-to-test-an-exception-was-not-thrown-with-jest
-			expect(async () => endpoint.isChainNameAvailable(context)).not.toThrow(
-				nameLengthMinMaxErrMsg,
-			);
-		});
-
-		it(`should not throw error if name length equals ${MAX_CHAIN_NAME_LENGTH}`, async () => {
-			const context = createTransientModuleEndpointContext({
-				params: {
-					name: 'a'.repeat(MAX_CHAIN_NAME_LENGTH),
-				},
-			});
-			expect(async () => endpoint.isChainNameAvailable(context)).not.toThrow(
-				nameLengthMinMaxErrMsg,
+				new InvalidNameError().message,
 			);
 		});
 
