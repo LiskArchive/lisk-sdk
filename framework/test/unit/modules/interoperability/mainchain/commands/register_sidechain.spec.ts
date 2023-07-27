@@ -17,6 +17,7 @@ import { Transaction } from '@liskhq/lisk-chain';
 import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import * as testing from '../../../../../../src/testing';
+import { createTransactionContext } from '../../../../../../src/testing';
 import { RegisterSidechainCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/register_sidechain';
 import {
 	EMPTY_HASH,
@@ -33,7 +34,6 @@ import {
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
-	ccmSchema,
 	registrationCCMParamsSchema,
 	sidechainRegParams,
 } from '../../../../../../src/modules/interoperability/schemas';
@@ -47,6 +47,7 @@ import {
 	computeValidatorsHash,
 	getMainchainID,
 	getMainchainTokenID,
+	getEncodedCCMAndID,
 } from '../../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
@@ -61,7 +62,6 @@ import {
 	ChainStatus,
 } from '../../../../../../src/modules/interoperability/stores/chain_account';
 import { ChainValidatorsStore } from '../../../../../../src/modules/interoperability/stores/chain_validators';
-import { createTransactionContext } from '../../../../../../src/testing';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 import { EMPTY_BYTES } from '../../../../../../src/modules/token/constants';
 import { ChainAccountUpdatedEvent } from '../../../../../../src/modules/interoperability/events/chain_account_updated';
@@ -297,8 +297,7 @@ describe('RegisterSidechainCommand', () => {
 		});
 
 		it('should return error if first byte of chainID does not match', async () => {
-			const invalidChain = Buffer.from([0x11, 0x01, 0x02, 0x01]);
-			verifyContext.params.chainID = invalidChain;
+			verifyContext.params.chainID = Buffer.from([0x11, 0x01, 0x02, 0x01]);
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
@@ -636,8 +635,7 @@ describe('RegisterSidechainCommand', () => {
 				params: encodedParams,
 			};
 
-			const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
-
+			const { ccmID } = getEncodedCCMAndID(ccm);
 			// Act
 			await sidechainRegistrationCommand.execute(context);
 

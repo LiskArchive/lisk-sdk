@@ -25,7 +25,12 @@ import {
 import { CCMsg, CrossChainMessageContext, MessageRecoveryParams } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
-import { getMainchainID, validateFormat, getEncodedCCMAndID } from '../../utils';
+import {
+	getMainchainID,
+	validateFormat,
+	getEncodedCCMAndID,
+	getDecodedCCMAndID,
+} from '../../utils';
 import { CCMStatusCode } from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from '../../stores/terminated_outbox';
@@ -175,8 +180,7 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 		// Set CCM status to recovered and assign fee to trs sender.
 		const recoveredCCMs: Buffer[] = [];
 		for (const crossChainMessage of params.crossChainMessages) {
-			const ccmID = utils.hash(crossChainMessage);
-			const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
+			const { decodedCCM: ccm, ccmID } = getDecodedCCMAndID(crossChainMessage);
 			const ctx: CrossChainMessageContext = {
 				...context,
 				ccm,
@@ -396,8 +400,7 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	private async _forwardRecovery(context: CrossChainMessageContext): Promise<void> {
 		const { logger } = context;
-		const encodedCCM = codec.encode(ccmSchema, context.ccm);
-		const ccmID = utils.hash(encodedCCM);
+		const { ccmID } = getEncodedCCMAndID(context.ccm);
 		const recoveredCCM: CCMsg = {
 			...context.ccm,
 			status: CCMStatusCode.RECOVERED,
