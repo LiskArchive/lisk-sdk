@@ -181,8 +181,8 @@ describe('utils/network', () => {
 
 		it("should return undefined when peers don't have dateAdded field", () => {
 			const peerBucketWithoutDateAdded = new Map<string, P2PEnhancedPeerInfo>();
-			const peers = initPeerInfoList();
-			for (const p of peers) {
+			const peers2 = initPeerInfoList();
+			for (const p of peers2) {
 				peerBucketWithoutDateAdded.set(p?.peerId, p);
 			}
 			expect(

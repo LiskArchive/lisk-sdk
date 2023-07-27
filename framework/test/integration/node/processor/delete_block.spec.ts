@@ -152,7 +152,7 @@ describe('Delete block', () => {
 				// Assert
 				await expect(
 					processEnv.getDataAccess().getAccountByAddress(recipientAccount.address),
-				).rejects.toThrow('Specified key accounts:address');
+				).rejects.toThrow('Specified key 6163636f756e74733a61646472657373');
 				const revertedGenesisAccount = await processEnv
 					.getDataAccess()
 					.getAccountByAddress<DefaultAccountProps>(genesisAccount.address);

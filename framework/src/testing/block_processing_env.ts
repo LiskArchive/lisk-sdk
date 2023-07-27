@@ -290,7 +290,7 @@ export const getBlockProcessingEnv = async (
 		getDataAccess: () => processor['_chain'].dataAccess,
 		cleanup: async ({ databasePath }): Promise<void> => {
 			await processor.stop();
-			await db.close();
+			db.close();
 			removeDB(databasePath);
 		},
 	};

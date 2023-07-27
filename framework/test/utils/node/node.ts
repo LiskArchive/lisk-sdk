@@ -64,7 +64,7 @@ export const createAndLoadNode = async (
 	});
 	const nodeDB = ({
 		get: jest.fn(),
-		put: jest.fn(),
+		set: jest.fn(),
 	} as unknown) as Database;
 	await chainModule.init({
 		genesisBlockJSON,
