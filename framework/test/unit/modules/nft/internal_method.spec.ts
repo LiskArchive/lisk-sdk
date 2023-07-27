@@ -40,7 +40,6 @@ import {
 	TransferCrossChainEventData,
 } from '../../../../src/modules/nft/events/transfer_cross_chain';
 import { DestroyEvent, DestroyEventData } from '../../../../src/modules/nft/events/destroy';
-import { CCM_STATUS_OK } from '../../../../src/modules/token/constants';
 import { crossChainNFTTransferMessageParamsSchema } from '../../../../src/modules/nft/schemas';
 
 describe('InternalMethod', () => {
@@ -294,7 +293,6 @@ describe('InternalMethod', () => {
 					CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 					receivingChainID,
 					messageFee,
-					CCM_STATUS_OK,
 					ccmParameters,
 				);
 			});
@@ -363,7 +361,6 @@ describe('InternalMethod', () => {
 					CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 					receivingChainID,
 					messageFee,
-					CCM_STATUS_OK,
 					ccmParameters,
 				);
 			});
@@ -449,7 +446,6 @@ describe('InternalMethod', () => {
 					CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 					receivingChainID,
 					messageFee,
-					CCM_STATUS_OK,
 					ccmParameters,
 				);
 			});
@@ -525,7 +521,6 @@ describe('InternalMethod', () => {
 					CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 					receivingChainID,
 					messageFee,
-					CCM_STATUS_OK,
 					ccmParameters,
 				);
 			});
