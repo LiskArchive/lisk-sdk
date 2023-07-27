@@ -37,3 +37,6 @@ export const MAX_BLOCK_CACHE = 515;
 export const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 export const OWNER_READ_WRITE = 0o600;
+
+export const MAX_CCM_SIZE = 10240;
+export const MAX_NUM_VALIDATORS = 199;

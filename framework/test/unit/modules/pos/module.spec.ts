@@ -121,11 +121,41 @@ describe('PoS module', () => {
 			await expect(
 				pos.init({
 					genesisConfig: { chainID: '00'.repeat(CHAIN_ID_LENGTH) } as any,
-					moduleConfig: { ...defaultConfig, maxLengthName: 50 },
+					moduleConfig: { ...defaultConfig, maxLengthName: 25 },
 				}),
 			).toResolve();
 
-			expect(pos['_moduleConfig'].maxLengthName).toBe(50);
+			expect(pos['_moduleConfig'].maxLengthName).toBe(25);
+		});
+
+		it('should throw when configured values for failSafeInactiveWindow or punishmentWindow are outside of their allowed ranges', async () => {
+			await expect(
+				pos.init({
+					genesisConfig: { chainID: '00000000', blockTime: 3 } as any,
+					moduleConfig: { ...defaultConfig, failSafeInactiveWindow: 140_000 },
+				}),
+			).rejects.toThrow('Lisk validator found 1 error[s]:');
+
+			await expect(
+				pos.init({
+					genesisConfig: { chainID: '00000000', blockTime: 5 } as any,
+					moduleConfig: { ...defaultConfig, failSafeInactiveWindow: 6_400_000 },
+				}),
+			).rejects.toThrow('Lisk validator found 1 error[s]:');
+
+			await expect(
+				pos.init({
+					genesisConfig: { chainID: '00000000', blockTime: 7 } as any,
+					moduleConfig: { ...defaultConfig, punishmentWindow: 60_000 },
+				}),
+			).rejects.toThrow('Lisk validator found 1 error[s]:');
+
+			await expect(
+				pos.init({
+					genesisConfig: { chainID: '00000000', blockTime: 8 } as any,
+					moduleConfig: { ...defaultConfig, punishmentWindow: 4_000_000 },
+				}),
+			).rejects.toThrow('Lisk validator found 1 error[s]:');
 		});
 	});
 

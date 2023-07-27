@@ -47,7 +47,7 @@ describe('genesis block', () => {
 			it('should save genesis block to the database', async () => {
 				const block = await processEnv.getChain().dataAccess.getBlockByHeight(0);
 
-				expect(block.header.version).toEqual(0);
+				expect(block.header.version).toBe(0);
 				expect(block.header.toObject()).toEqual(processEnv.getGenesisBlock().header.toObject());
 			});
 

@@ -13,7 +13,13 @@
  *
  */
 
-import { DEFAULT_HOST, DEFAULT_PORT_P2P, DEFAULT_PORT_RPC } from '../constants';
+import {
+	DEFAULT_HOST,
+	DEFAULT_PORT_P2P,
+	DEFAULT_PORT_RPC,
+	MAX_CCM_SIZE,
+	MAX_NUM_VALIDATORS,
+} from '../constants';
 
 export const applicationConfigSchema = {
 	$id: '#/config',
@@ -235,12 +241,13 @@ export const applicationConfigSchema = {
 				},
 				blockTime: {
 					type: 'number',
-					minimum: 2,
+					minimum: 3,
+					maximum: 30 * 24 * 60 * 60, // 1 block per month
 					description: 'Slot time interval in seconds',
 				},
 				bftBatchSize: {
 					type: 'number',
-					minimum: 1,
+					maximum: MAX_NUM_VALIDATORS + 2,
 					description: 'The length of a round',
 				},
 				chainID: {
@@ -250,9 +257,7 @@ export const applicationConfigSchema = {
 				},
 				maxTransactionsSize: {
 					type: 'integer',
-					// eslint-disable-next-line @typescript-eslint/no-magic-numbers
-					minimum: 10 * 1024, // Kilo Bytes
-					// eslint-disable-next-line @typescript-eslint/no-magic-numbers
+					minimum: MAX_CCM_SIZE + 1024,
 					maximum: 30 * 1024, // Kilo Bytes
 					description: 'Maximum number of transactions allowed per block',
 				},

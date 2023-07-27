@@ -1285,7 +1285,7 @@ describe('Base interoperability internal method', () => {
 					},
 				}),
 			).rejects.toThrow(
-				'The bitmap in the outbox root witness must be non-mepty if the sibling hashes are non-empty.',
+				'The bitmap in the outbox root witness must be non-empty if the sibling hashes are non-empty.',
 			);
 		});
 
@@ -1303,7 +1303,7 @@ describe('Base interoperability internal method', () => {
 					},
 				}),
 			).rejects.toThrow(
-				'The sibling hashes in the outbox root witness must be non-mepty if the bitmap is non-empty.',
+				'The sibling hashes in the outbox root witness must be non-empty if the bitmap is non-empty.',
 			);
 		});
 

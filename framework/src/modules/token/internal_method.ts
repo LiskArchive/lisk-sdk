@@ -21,6 +21,7 @@ import { TransferEvent } from './events/transfer';
 import { EscrowStore } from './stores/escrow';
 import { UserStore } from './stores/user';
 import { FeeMethod, ModuleConfig } from './types';
+import { InsufficientBalanceError } from '../../errors';
 
 export class InternalMethod extends BaseMethod {
 	private _feeMethod!: FeeMethod;
@@ -74,10 +75,10 @@ export class InternalMethod extends BaseMethod {
 		const senderAccountKey = userStore.getKey(senderAddress, tokenID);
 		const senderAccount = await userStore.get(methodContext, senderAccountKey);
 		if (senderAccount.availableBalance < amount) {
-			throw new Error(
-				`${cryptography.address.getLisk32AddressFromAddress(
-					senderAddress,
-				)} balance ${senderAccount.availableBalance.toString()} is not sufficient for ${amount.toString()}.`,
+			throw new InsufficientBalanceError(
+				cryptography.address.getLisk32AddressFromAddress(senderAddress),
+				senderAccount.availableBalance.toString(),
+				amount.toString(),
 			);
 		}
 
