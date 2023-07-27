@@ -731,6 +731,10 @@ export class Node {
 					this._options.backup.height === block.header.height
 				) {
 					const backupPath = path.resolve(this._dataPath, 'backup');
+					// if backup already exist, it should remove the directory and create a new checkpoint
+					if (fs.existsSync(backupPath)) {
+						fs.removeSync(backupPath);
+					}
 					this._blockchainDB
 						.checkpoint(backupPath)
 						.catch(err =>
