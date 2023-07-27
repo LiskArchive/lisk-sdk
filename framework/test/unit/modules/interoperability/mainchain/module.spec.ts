@@ -28,7 +28,7 @@ import {
 } from '../../../../../src/testing';
 import {
 	computeValidatorsHash,
-	validNameCharset,
+	validNameChars,
 } from '../../../../../src/modules/interoperability/utils';
 
 import {
@@ -45,6 +45,7 @@ import {
 	getStoreMock,
 } from '../interopFixtures';
 import { RegisteredNamesStore } from '../../../../../src/modules/interoperability/stores/registered_names';
+import { InvalidNameError } from '../../../../../src/modules/interoperability/errors';
 
 describe('initGenesisState', () => {
 	const chainID = Buffer.from([0, 0, 0, 0]);
@@ -244,7 +245,7 @@ describe('initGenesisState', () => {
 				);
 			});
 
-			it(`should throw error if chainData.name has chars outside [${validNameCharset}] range`, async () => {
+			it(`should throw error if chainData.name has chars outside [${validNameChars}] range`, async () => {
 				const context = createInitGenesisStateContext(
 					{
 						...genesisInteroperability,
@@ -266,7 +267,7 @@ describe('initGenesisState', () => {
 					},
 				);
 				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					`chainData.name only uses the character set ${validNameCharset}.`,
+					new InvalidNameError('chainData.name').message,
 				);
 			});
 

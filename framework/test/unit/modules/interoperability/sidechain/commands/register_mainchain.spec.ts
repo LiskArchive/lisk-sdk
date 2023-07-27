@@ -69,6 +69,7 @@ import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/pre
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
 import { InvalidRegistrationSignatureEvent } from '../../../../../../src/modules/interoperability/events/invalid_registration_signature';
 import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
+import { InvalidNameError } from '../../../../../../src/modules/interoperability/errors';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -241,9 +242,7 @@ describe('RegisterMainchainCommand', () => {
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				`Invalid ownName property. It should contain only characters from the set [a-z0-9!@$&_.].`,
-			);
+			expect(result.error?.message).toInclude(new InvalidNameError('ownName').message);
 		});
 
 		it('should return error if bls keys are not lexicographically ordered', async () => {

@@ -55,6 +55,7 @@ import { ChainAccountUpdatedEvent } from '../../events/chain_account_updated';
 import { InvalidRegistrationSignatureEvent } from '../../events/invalid_registration_signature';
 import { CcmSendSuccessEvent } from '../../events/ccm_send_success';
 import { SidechainInteroperabilityInternalMethod } from '../internal_method';
+import { InvalidNameError } from '../../errors';
 
 export class RegisterMainchainCommand extends BaseInteroperabilityCommand<SidechainInteroperabilityInternalMethod> {
 	public schema = mainchainRegParams;
@@ -92,9 +93,7 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 		if (!isValidName(ownName)) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error(
-					`Invalid ownName property. It should contain only characters from the set [a-z0-9!@$&_.].`,
-				),
+				error: new InvalidNameError('ownName'),
 			};
 		}
 
