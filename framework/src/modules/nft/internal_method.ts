@@ -22,7 +22,6 @@ import { UserStore } from './stores/user';
 import { CROSS_CHAIN_COMMAND_NAME_TRANSFER, MODULE_NAME_NFT, NFT_NOT_LOCKED } from './constants';
 import { EscrowStore } from './stores/escrow';
 import { TransferCrossChainEvent } from './events/transfer_cross_chain';
-import { CCM_STATUS_OK } from '../token/constants';
 import { crossChainNFTTransferMessageParamsSchema } from './schemas';
 
 export class InternalMethod extends BaseMethod {
@@ -166,7 +165,6 @@ export class InternalMethod extends BaseMethod {
 			CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 			receivingChainID,
 			messageFee,
-			CCM_STATUS_OK,
 			codec.encode(crossChainNFTTransferMessageParamsSchema, {
 				nftID,
 				senderAddress,

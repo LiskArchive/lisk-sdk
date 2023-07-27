@@ -27,7 +27,6 @@ export interface InteroperabilityMethod {
 		crossChainCommand: string,
 		receivingChainID: Buffer,
 		fee: bigint,
-		status: number,
 		parameters: Buffer,
 		timestamp?: number,
 	): Promise<void>;
