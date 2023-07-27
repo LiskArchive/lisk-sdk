@@ -25,6 +25,7 @@ import { transferParamsSchema } from '../schemas';
 import { UserStore } from '../stores/user';
 import { TokenID } from '../types';
 import { InternalMethod } from '../internal_method';
+import { InsufficientBalanceError } from '../../../errors';
 
 interface Params {
 	tokenID: TokenID;
@@ -52,10 +53,10 @@ export class TransferCommand extends BaseCommand {
 			params.tokenID,
 		);
 		if (availableBalance < params.amount) {
-			throw new Error(
-				`${cryptography.address.getLisk32AddressFromAddress(
-					context.transaction.senderAddress,
-				)} balance ${availableBalance.toString()} is not sufficient for ${params.amount.toString()}.`,
+			throw new InsufficientBalanceError(
+				cryptography.address.getLisk32AddressFromAddress(context.transaction.senderAddress),
+				availableBalance.toString(),
+				params.amount.toString(),
 			);
 		}
 		return {

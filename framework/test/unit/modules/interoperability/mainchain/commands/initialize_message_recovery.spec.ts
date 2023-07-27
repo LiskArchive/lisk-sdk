@@ -20,6 +20,7 @@ import {
 	MainchainInteroperabilityModule,
 	Transaction,
 	VerifyStatus,
+	messageRecoveryInitializationParamsSchema,
 } from '../../../../../../src';
 import {
 	EMPTY_BYTES,
@@ -149,6 +150,27 @@ describe('InitializeMessageRecoveryCommand', () => {
 					}),
 				}),
 			}).createCommandVerifyContext<MessageRecoveryInitializationParams>(command.schema);
+		});
+
+		it('should return error if channel data is invalid', async () => {
+			const transactionParams = {
+				...defaultParams,
+				channel: Buffer.alloc(0),
+			};
+			const encodedTransactionParams = codec.encode(
+				messageRecoveryInitializationParamsSchema,
+				transactionParams,
+			);
+			const context = createTransactionContext({
+				transaction: new Transaction({
+					...defaultTx,
+					command: command.name,
+					params: encodedTransactionParams,
+				}),
+				stateStore,
+			}).createCommandVerifyContext<MessageRecoveryInitializationParams>(command.schema);
+
+			await expect(command.verify(context)).rejects.toThrow('Invalid buffer length');
 		});
 
 		it('should reject when chainID is the mainchain', async () => {

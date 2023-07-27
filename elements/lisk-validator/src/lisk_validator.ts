@@ -13,7 +13,7 @@
  *
  */
 
-import Ajv, { SchemaObject, ValidateFunction } from 'ajv';
+import Ajv, { Format, SchemaObject, ValidateFunction } from 'ajv';
 import addDefaultFormats from 'ajv-formats';
 import * as formats from './formats';
 import { convertErrorsToLegacyFormat, LiskValidationError } from './errors';
@@ -32,7 +32,6 @@ export class LiskValidator {
 			strict: true,
 			strictSchema: true,
 			allErrors: true,
-			useDefaults: false,
 			// FIXME: Combination with lisk-codec schema, making true would throw error because
 			// Trace: Error: schema with key or id "/block/header"
 			addUsedSchema: false,
@@ -43,12 +42,8 @@ export class LiskValidator {
 
 		addDefaultFormats(this._validator);
 
-		for (const formatName of Object.keys(formats)) {
-			this._validator.addFormat(
-				formatName,
-				// eslint-disable-next-line import/namespace
-				formats[formatName as keyof typeof formats],
-			);
+		for (const [formatName, format] of Object.entries(formats)) {
+			this._validator.addFormat(formatName, format as Format);
 		}
 
 		this._validator.addKeyword({
