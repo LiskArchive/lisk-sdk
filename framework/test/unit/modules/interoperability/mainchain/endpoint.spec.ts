@@ -27,7 +27,7 @@ import { ChainAccountStore } from '../../../../../src/modules/interoperability/s
 import { OwnChainAccountStore } from '../../../../../src/modules/interoperability/stores/own_chain_account';
 import { RegisteredNamesStore } from '../../../../../src/modules/interoperability/stores/registered_names';
 import { createTransientModuleEndpointContext } from '../../../../../src/testing';
-import { validNameCharset } from '../../../../../src/modules/interoperability/utils';
+import { InvalidNameError } from '../../../../../src/modules/interoperability/errors';
 
 describe('MainchainInteroperabilityEndpoint', () => {
 	let endpoint: MainchainInteroperabilityEndpoint;
@@ -98,6 +98,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 				},
 			});
 			// https://stackoverflow.com/questions/49603338/how-to-test-an-exception-was-not-thrown-with-jest
+			// eslint-disable-next-line @typescript-eslint/require-await
 			expect(async () => endpoint.isChainNameAvailable(context)).not.toThrow(nameMinLengthErrMsg);
 		});
 
@@ -107,6 +108,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 					name: 'a'.repeat(MAX_CHAIN_NAME_LENGTH),
 				},
 			});
+			// eslint-disable-next-line @typescript-eslint/require-await
 			expect(async () => endpoint.isChainNameAvailable(context)).not.toThrow(nameMaxLengthErrMsg);
 		});
 
@@ -126,7 +128,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 				},
 			});
 			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(
-				`Invalid name property. It should contain only characters from the set [${validNameCharset}].`,
+				new InvalidNameError().message,
 			);
 		});
 
