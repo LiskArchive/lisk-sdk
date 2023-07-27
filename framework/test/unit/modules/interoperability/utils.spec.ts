@@ -436,10 +436,8 @@ describe('Utils', () => {
 		it('should throw if certificate timestamp is older than half of liveness limit', () => {
 			expect(() =>
 				verifyLivenessConditionForRegisteredChains(
-					{
-						...ccuParams,
-					},
 					certificate.timestamp + LIVENESS_LIMIT / 2 + 1,
+					ccuParams.certificate,
 				),
 			).toThrow('The first CCU with a non-empty inbox update cannot contain a certificate older');
 		});
@@ -447,10 +445,8 @@ describe('Utils', () => {
 		it('should not throw if inbox update is not older than half of liveness limit', () => {
 			expect(
 				verifyLivenessConditionForRegisteredChains(
-					{
-						...ccuParams,
-					},
 					certificate.timestamp + LIVENESS_LIMIT / 2,
+					ccuParams.certificate,
 				),
 			).toBeUndefined();
 		});
