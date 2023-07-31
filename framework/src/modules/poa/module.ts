@@ -318,17 +318,13 @@ export class PoAModule extends BaseModule {
 
 		// Pass the BLS keys and generator keys to the Validators module.
 		for (const v of asset.validators) {
-			const isValid = await this._validatorsMethod.registerValidatorKeys(
+			await this._validatorsMethod.registerValidatorKeys(
 				methodContext,
 				v.address,
 				v.blsKey,
 				v.generatorKey,
 				v.proofOfPossession,
 			);
-
-			if (!isValid) {
-				throw new Error('Invalid validator key found in poa genesis asset validators.');
-			}
 		}
 
 		await this._validatorsMethod.setValidatorsParams(

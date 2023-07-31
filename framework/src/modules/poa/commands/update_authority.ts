@@ -62,7 +62,7 @@ export class UpdateAuthorityCommand extends BaseCommand {
 		}
 
 		const newValidatorsAddresses = newValidators.map(newValidator => newValidator.address);
-		if (!objectUtils.bufferArrayOrderByLex(newValidatorsAddresses)) {
+		if (!objectUtils.isBufferArrayOrdered(newValidatorsAddresses)) {
 			throw new Error('Addresses in newValidators are not lexicographically ordered.');
 		}
 

@@ -15,7 +15,7 @@
 	"homepage": "",
 	"repository": {},
 	"engines": {
-		"node": ">=16.14.1 <=16",
+		"node": ">=18.12.0 <=18",
 		"npm": ">=8.1.0"
 	},
 	"main": "dist/index.js",
@@ -37,13 +37,13 @@
 		"updateAuthority": "./node_modules/.bin/ts-node scripts/updateAuthority.ts"
 	},
 	"bin": {
-		"pos-mainchain": "./bin/run"
+		"poa-sidechain": "./bin/run"
 	},
 	"lisk": {
 		"addressPrefix": "lsk"
 	},
 	"oclif": {
-		"bin": "poa-mainchain",
+		"bin": "poa-sidechain",
 		"commands": "./dist/commands",
 		"plugins": [
 			"@oclif/plugin-help",
@@ -59,19 +59,19 @@
 		"topicSeparator": " ",
 		"topics": {
 			"account": {
-				"description": "Commands relating to poa-mainchain accounts."
+				"description": "Commands relating to poa-sidechain accounts."
 			},
 			"block": {
-				"description": "Commands relating to poa-mainchain blocks."
+				"description": "Commands relating to poa-sidechain blocks."
 			},
 			"blockchain": {
-				"description": "Commands relating to poa-mainchain blockchain data."
+				"description": "Commands relating to poa-sidechain blockchain data."
 			},
 			"console": {
-				"description": "poa-mainchain interactive REPL session to run commands."
+				"description": "poa-sidechain interactive REPL session to run commands."
 			},
 			"config": {
-				"description": "Commands relating to poa-mainchain node configuration."
+				"description": "Commands relating to poa-sidechain node configuration."
 			},
 			"endpoint": {
 				"description": "Commands relating to endpoints."
@@ -80,22 +80,22 @@
 				"description": "Commands relating to account, generator and bls keys."
 			},
 			"generator": {
-				"description": "Commands relating to poa-mainchain forging and generator-info data."
+				"description": "Commands relating to poa-sidechain forging and generator-info data."
 			},
 			"hash-onion": {
 				"description": "Create hash onions to be used by the forger."
 			},
 			"system": {
-				"description": "Commands relating to poa-mainchain node."
+				"description": "Commands relating to poa-sidechain node."
 			},
 			"passphrase": {
-				"description": "Commands relating to poa-mainchain passphrases."
+				"description": "Commands relating to poa-sidechain passphrases."
 			},
 			"sdk": {
 				"description": "Commands relating to Lisk SDK development."
 			},
 			"transaction": {
-				"description": "Commands relating to poa-mainchain transactions."
+				"description": "Commands relating to poa-sidechain transactions."
 			}
 		}
 	},
@@ -118,7 +118,7 @@
 		"@liskhq/lisk-framework-forger-plugin": "^0.3.0-alpha.7",
 		"@liskhq/lisk-framework-monitor-plugin": "^0.3.0-alpha.7",
 		"@liskhq/lisk-framework-report-misbehavior-plugin": "^0.3.0-alpha.7",
-		"@liskhq/lisk-framework-chain-connector-plugin": "0.1.0-beta.0",
+		"@liskhq/lisk-framework-chain-connector-plugin": "^0.1.0-beta.0",
 		"@oclif/core": "1.20.4",
 		"@oclif/plugin-autocomplete": "1.3.6",
 		"@oclif/plugin-help": "5.1.19",
@@ -135,7 +135,7 @@
 		"@types/fs-extra": "9.0.13",
 		"@types/jest": "29.2.3",
 		"@types/jest-when": "3.5.2",
-		"@types/node": "16.18.3",
+		"@types/node": "18.15.3",
 		"@types/tar": "6.1.3",
 		"@typescript-eslint/eslint-plugin": "5.44.0",
 		"@typescript-eslint/parser": "5.44.0",
