@@ -38,11 +38,7 @@ import { BurnEvent } from './events/burn';
 import { LockEvent } from './events/lock';
 import { UnlockEvent } from './events/unlock';
 import { TransferCrossChainEvent } from './events/transfer_cross_chain';
-import {
-	ALL_SUPPORTED_TOKENS_KEY,
-	SupportedTokensStore,
-	SupportedTokensStoreData,
-} from './stores/supported_tokens';
+import { ALL_SUPPORTED_TOKENS_KEY, SupportedTokensStore } from './stores/supported_tokens';
 import { AllTokensSupportedEvent } from './events/all_tokens_supported';
 import { AllTokensSupportRemovedEvent } from './events/all_tokens_supported_removed';
 import { TokenIDSupportedEvent } from './events/token_id_supported';
@@ -693,7 +689,9 @@ export class TokenMethod extends BaseMethod {
 		methodContext: MethodContext,
 		chainID: Buffer,
 	): Promise<void> {
-		const allTokensSupported = await this._isAllTokensSupported(methodContext);
+		const allTokensSupported = await this.stores
+			.get(SupportedTokensStore)
+			.has(methodContext, ALL_SUPPORTED_TOKENS_KEY);
 
 		if (allTokensSupported) {
 			return;
@@ -714,7 +712,9 @@ export class TokenMethod extends BaseMethod {
 		methodContext: MethodContext,
 		chainID: Buffer,
 	): Promise<void> {
-		const allTokensSupported = await this._isAllTokensSupported(methodContext);
+		const allTokensSupported = await this.stores
+			.get(SupportedTokensStore)
+			.has(methodContext, ALL_SUPPORTED_TOKENS_KEY);
 
 		if (allTokensSupported) {
 			throw new Error('Invalid operation. All tokens from all chains are supported.');
@@ -726,10 +726,14 @@ export class TokenMethod extends BaseMethod {
 			);
 		}
 
-		const supportedTokens = await this._getSupportedTokens(methodContext, chainID);
+		try {
+			await this.stores.get(SupportedTokensStore).get(methodContext, chainID);
+		} catch (err) {
+			if (err instanceof NotFoundError) {
+				return;
+			}
 
-		if (!supportedTokens) {
-			return;
+			throw err;
 		}
 
 		await this.stores.get(SupportedTokensStore).del(methodContext, chainID);
@@ -745,7 +749,9 @@ export class TokenMethod extends BaseMethod {
 	public async removeSupport(methodContext: MethodContext, tokenID: Buffer): Promise<void> {
 		const [chainID] = splitTokenID(tokenID);
 
-		const allTokensSupported = await this._isAllTokensSupported(methodContext);
+		const allTokensSupported = await this.stores
+			.get(SupportedTokensStore)
+			.has(methodContext, ALL_SUPPORTED_TOKENS_KEY);
 
 		if (allTokensSupported) {
 			throw new Error('All tokens are supported.');
@@ -755,22 +761,32 @@ export class TokenMethod extends BaseMethod {
 			throw new Error('Cannot remove support for the specified token.');
 		}
 
-		const supportedTokens = await this._getSupportedTokens(methodContext, chainID);
+		try {
+			const supportedTokens = await this.stores
+				.get(SupportedTokensStore)
+				.get(methodContext, chainID);
 
-		if (supportedTokens) {
-			if (supportedTokens.supportedTokenIDs.length === 0) {
-				throw new Error('All tokens from the specified chain are supported.');
-			}
-
-			const tokenIndex = supportedTokens.supportedTokenIDs.indexOf(tokenID);
-
-			if (tokenIndex !== -1) {
-				supportedTokens.supportedTokenIDs.splice(tokenIndex, 1);
-
+			if (supportedTokens) {
 				if (supportedTokens.supportedTokenIDs.length === 0) {
-					await this.stores.get(SupportedTokensStore).del(methodContext, chainID);
+					throw new Error('All tokens from the specified chain are supported.');
+				}
+
+				const tokenIndex = supportedTokens.supportedTokenIDs.indexOf(tokenID);
+
+				if (tokenIndex !== -1) {
+					supportedTokens.supportedTokenIDs.splice(tokenIndex, 1);
+
+					if (supportedTokens.supportedTokenIDs.length === 0) {
+						await this.stores.get(SupportedTokensStore).del(methodContext, chainID);
+					}
 				}
 			}
+		} catch (err) {
+			if (err instanceof NotFoundError) {
+				return;
+			}
+
+			throw err;
 		}
 
 		this.events.get(TokenIDSupportRemovedEvent).log(methodContext, tokenID);
@@ -798,29 +814,5 @@ export class TokenMethod extends BaseMethod {
 		return this.stores
 			.get(EscrowStore)
 			.has(methodContext, this.stores.get(EscrowStore).getKey(chainID, tokenID));
-	}
-
-	private async _isAllTokensSupported(methodContext: MethodContext): Promise<boolean> {
-		const supportedTokensStore = this.stores.get(SupportedTokensStore);
-
-		return supportedTokensStore.has(methodContext, ALL_SUPPORTED_TOKENS_KEY);
-	}
-
-	private async _getSupportedTokens(
-		methodContext: MethodContext,
-		chainID: Buffer,
-	): Promise<SupportedTokensStoreData> {
-		if (chainID.length === 0 || !chainID) {
-			throw new Error('Chain ID is required.');
-		}
-
-		const supportedTokensStore = this.stores.get(SupportedTokensStore);
-		const supportedTokens = await supportedTokensStore.get(methodContext, chainID);
-
-		if (!supportedTokens) {
-			throw new Error('No supported tokens found.');
-		}
-
-		return supportedTokens;
 	}
 }

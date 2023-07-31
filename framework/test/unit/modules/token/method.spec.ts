@@ -41,8 +41,8 @@ import { crossChainTransferMessageParams } from '../../../../src/modules/token/s
 import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
 import { SupplyStore } from '../../../../src/modules/token/stores/supply';
 import {
+	ALL_SUPPORTED_TOKENS_KEY,
 	SupportedTokensStore,
-	supportedTokensStoreSchema,
 } from '../../../../src/modules/token/stores/supported_tokens';
 import { UserStore } from '../../../../src/modules/token/stores/user';
 import { MethodContext, createMethodContext, EventQueue } from '../../../../src/state_machine';
@@ -71,7 +71,6 @@ describe('token module', () => {
 
 	let method: TokenMethod;
 	let methodContext: MethodContext;
-	let chainID: Buffer;
 
 	const checkEventResult = (
 		eventQueue: EventQueue,
@@ -92,7 +91,6 @@ describe('token module', () => {
 
 	beforeEach(async () => {
 		method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
-		chainID = Buffer.from([1, 2, 3, 4]);
 		const internalMethod = new InternalMethod(tokenModule.stores, tokenModule.events);
 		const config = {
 			ownChainID: Buffer.from([0, 0, 0, 1]),
@@ -1230,50 +1228,52 @@ describe('token module', () => {
 	});
 
 	describe('supportAllTokensFromChainID', () => {
-		it('should return early if all supported token entries is truthy', async () => {
-			(method as any)._isAllTokensSupported = jest.fn().mockResolvedValue(true);
+		it('should return early if all tokens are already supported', async () => {
+			await tokenModule.stores
+				.get(SupportedTokensStore)
+				.set(methodContext, ALL_SUPPORTED_TOKENS_KEY, { supportedTokenIDs: [] });
 
-			await method.supportAllTokensFromChainID(methodContext, chainID);
-
-			expect((method as any)._isAllTokensSupported).toHaveBeenCalledWith(methodContext);
 			await expect(
-				method.supportAllTokensFromChainID(methodContext, chainID),
+				method.supportAllTokensFromChainID(methodContext, Buffer.from([1, 2, 3, 4])),
 			).resolves.toBeUndefined();
+
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
 		});
 
-		it('should return early if chainID equals ownChainID', async () => {
-			(method as any)._isAllTokensSupported = jest.fn().mockResolvedValue(false);
+		it('should return early if the chain ID is the same as the own chain ID', async () => {
+			const chainID = Buffer.from([1, 2, 3, 4]);
 			method['_config'].ownChainID = chainID;
 
 			await method.supportAllTokensFromChainID(methodContext, chainID);
 
-			expect((method as any)._isAllTokensSupported).toHaveBeenCalledWith(methodContext);
 			await expect(
 				method.supportAllTokensFromChainID(methodContext, chainID),
 			).resolves.toBeUndefined();
+
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
 		});
 
-		it('should set supportedTokenIDs to an empty array', async () => {
-			(method as any)._isAllTokensSupported = jest.fn().mockResolvedValue(false);
-			const setSpy = jest.spyOn(tokenModule.stores.get(SupportedTokensStore), 'set');
+		it('should set an empty array of supported token IDs for the chain ID', async () => {
+			await tokenModule.stores
+				.get(SupportedTokensStore)
+				.set(methodContext, ALL_SUPPORTED_TOKENS_KEY, { supportedTokenIDs: [] });
 
-			await method.supportAllTokensFromChainID(methodContext, chainID);
+			await expect(
+				method.supportAllTokensFromChainID(methodContext, Buffer.from([1, 2, 3, 4])),
+			).resolves.toBeUndefined();
 
-			expect((method as any)._isAllTokensSupported).toHaveBeenCalledWith(methodContext);
-			expect(setSpy).toHaveBeenCalledWith(methodContext, chainID, { supportedTokenIDs: [] });
-			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
+			const supportedTokens = await tokenModule.stores
+				.get(SupportedTokensStore)
+				.get(methodContext, ALL_SUPPORTED_TOKENS_KEY);
+
+			expect(supportedTokens.supportedTokenIDs).toHaveLength(0);
 		});
 
 		it('should log AllTokensFromChainSupportedEvent', async () => {
-			(method as any)._isAllTokensSupported = jest.fn().mockResolvedValue(false);
-			const encodeSpy = jest.spyOn(codec, 'encode');
+			await expect(
+				method.supportAllTokensFromChainID(methodContext, Buffer.from([1, 2, 3, 4])),
+			).resolves.toBeUndefined();
 
-			await method.supportAllTokensFromChainID(methodContext, chainID);
-
-			expect((method as any)._isAllTokensSupported).toHaveBeenCalledWith(methodContext);
-			expect(encodeSpy).toHaveBeenCalledWith(supportedTokensStoreSchema, { supportedTokenIDs: [] });
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
 				new AllTokensFromChainSupportedEvent('token').name,
@@ -1282,60 +1282,62 @@ describe('token module', () => {
 	});
 
 	describe('removeAllTokensSupportFromChainID', () => {
-		it('should throw an error if all supported tokens is truthy', async () => {
-			(method as any)._isAllTokensSupported = jest.fn().mockResolvedValue(true);
+		it('should call remove support from chain', async () => {
+			await tokenModule.stores
+				.get(SupportedTokensStore)
+				.supportChain(methodContext, Buffer.from([1, 2, 3, 4]));
+			await expect(
+				method.removeAllTokensSupportFromChainID(methodContext, Buffer.from([1, 2, 3, 4])),
+			).resolves.toBeUndefined();
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
+			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
+				new AllTokensFromChainSupportRemovedEvent('token').name,
+			);
+		});
+
+		it('should throw an error if all tokens from all chains are supported', async () => {
+			await tokenModule.stores
+				.get(SupportedTokensStore)
+				.set(methodContext, ALL_SUPPORTED_TOKENS_KEY, { supportedTokenIDs: [] });
 
 			await expect(
 				method.removeAllTokensSupportFromChainID(methodContext, Buffer.from([1, 2, 3, 4])),
 			).rejects.toThrow('Invalid operation. All tokens from all chains are supported.');
-		});
 
-		it('should throw an error if chainID equals ownChainID', async () => {
-			(method as any)._isAllTokensSupported = jest.fn().mockResolvedValue(false);
-			method['_config'].ownChainID = Buffer.from([1, 2, 3, 4]);
-
-			await expect(
-				method.removeAllTokensSupportFromChainID(methodContext, Buffer.from([1, 2, 3, 4])),
-			).rejects.toThrow(
-				'Invalid operation. All tokens from all the specified chain should be supported.',
-			);
-			expect((method as any)._isAllTokensSupported).toHaveBeenCalledWith(methodContext);
-		});
-
-		it('should return early if supportedTokens is falsy', async () => {
-			(method as any)._isAllTokensSupported = jest.fn().mockResolvedValue(false);
-			(method as any)._getSupportedTokens = jest.fn().mockResolvedValue(false);
-			const deleteSpy = jest.spyOn(tokenModule.stores.get(SupportedTokensStore), 'del');
-
-			await method.removeAllTokensSupportFromChainID(methodContext, Buffer.from([1, 2, 3, 4]));
-
-			expect((method as any)._isAllTokensSupported).toHaveBeenCalledWith(methodContext);
-			expect((method as any)._getSupportedTokens).toHaveBeenCalledWith(methodContext, chainID);
-			expect(deleteSpy).not.toHaveBeenCalled();
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
 		});
 
-		it('should delete supported tokens from stores when supportedTokens is truthy', async () => {
-			(method as any)._isAllTokensSupported = jest.fn().mockResolvedValue(false);
-			(method as any)._getSupportedTokens = jest.fn().mockResolvedValue(true);
-			const deleteSpy = jest.spyOn(tokenModule.stores.get(SupportedTokensStore), 'del');
+		it('should throw an error if the chain ID is the same as the own chain ID', async () => {
+			const chainID = Buffer.from([1, 2, 3, 4]);
+			method['_config'].ownChainID = chainID;
 
-			await method.removeAllTokensSupportFromChainID(methodContext, Buffer.from([1, 2, 3, 4]));
+			await expect(
+				method.removeAllTokensSupportFromChainID(methodContext, chainID),
+			).rejects.toThrow(
+				'Invalid operation. All tokens from all the specified chain should be supported.',
+			);
 
-			expect((method as any)._isAllTokensSupported).toHaveBeenCalledWith(methodContext);
-			expect((method as any)._getSupportedTokens).toHaveBeenCalledWith(methodContext, chainID);
-			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
-			expect(deleteSpy).toHaveBeenCalledWith(methodContext, Buffer.from([1, 2, 3, 4]));
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
 		});
 
-		it('should log an event when supportedTokens is truthy', async () => {
-			(method as any)._isAllTokensSupported = jest.fn().mockResolvedValue(false);
-			(method as any)._getSupportedTokens = jest.fn().mockResolvedValue(true);
+		it('should return early if there are no supportedTokens', async () => {
+			await expect(
+				method.removeAllTokensSupportFromChainID(methodContext, Buffer.from([1, 2, 3, 4])),
+			).resolves.toBeUndefined();
 
-			await method.removeAllTokensSupportFromChainID(methodContext, Buffer.from([1, 2, 3, 4]));
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
 
-			expect((method as any)._isAllTokensSupported).toHaveBeenCalledWith(methodContext);
-			expect((method as any)._getSupportedTokens).toHaveBeenCalledWith(methodContext, chainID);
+		it('should remove the chain ID from the supported tokens store', async () => {
+			await tokenModule.stores
+				.get(SupportedTokensStore)
+				.supportChain(methodContext, Buffer.from([1, 2, 3, 4]));
+
+			await expect(
+				method.removeAllTokensSupportFromChainID(methodContext, Buffer.from([1, 2, 3, 4])),
+			).resolves.toBeUndefined();
+
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
 				new AllTokensFromChainSupportRemovedEvent('token').name,
@@ -1357,117 +1359,75 @@ describe('token module', () => {
 	});
 
 	describe('removeSupport', () => {
-		it('should throw an error if all supported tokens is truthy', async () => {
-			(method as any)._isAllTokensSupported = jest.fn().mockResolvedValue(true);
+		it('should call remove support for token', async () => {
+			await tokenModule.stores
+				.get(SupportedTokensStore)
+				.supportToken(methodContext, Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]));
+
+			await expect(
+				method.removeSupport(methodContext, Buffer.from([1, 2, 3, 4, 0, 0, 0, 0])),
+			).resolves.toBeUndefined();
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
+			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
+				new TokenIDSupportRemovedEvent('token').name,
+			);
+		});
+
+		it('throws an error if all tokens are supported', async () => {
+			await tokenModule.stores
+				.get(SupportedTokensStore)
+				.set(methodContext, ALL_SUPPORTED_TOKENS_KEY, { supportedTokenIDs: [] });
 
 			await expect(
 				method.removeSupport(methodContext, Buffer.from([1, 2, 3, 4, 0, 0, 0, 0])),
 			).rejects.toThrow('All tokens are supported.');
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
 		});
 
-		it('should throw an error if tokenID is the mainchainTokenID', async () => {
-			(method as any)._isAllTokensSupported = jest.fn().mockResolvedValue(false);
+		it('throws an error if the specified token is the mainchain token or the own chain ID', async () => {
+			const tokenId = Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]);
+			const chainID = Buffer.from([1, 2, 3, 4]);
+			method['_config'].ownChainID = chainID;
 
-			await expect(
-				method.removeSupport(methodContext, Buffer.from([0, 0, 0, 0, 0, 0, 0, 0])),
-			).rejects.toThrow('Cannot remove support for the specified token.');
-			expect((method as any)._isAllTokensSupported).toHaveBeenCalledWith(methodContext);
+			await expect(method.removeSupport(methodContext, tokenId)).rejects.toThrow(
+				'Cannot remove support for the specified token.',
+			);
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
 		});
 
-		it('should throw an error if tokenID is the own chain id', async () => {
-			(method as any)._isAllTokensSupported = jest.fn().mockResolvedValue(false);
-			method['_config'].ownChainID = Buffer.from([1, 2, 3, 4]);
+		it('throws an error if all tokens from the specified chain are supported', async () => {
+			const tokenId = Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]);
+			const chainID = Buffer.from([1, 2, 3, 4]);
+			await tokenModule.stores.get(SupportedTokensStore).supportChain(methodContext, chainID);
 
-			await expect(
-				method.removeSupport(methodContext, Buffer.from([1, 2, 3, 4, 0, 0, 0, 0])),
-			).rejects.toThrow('Cannot remove support for the specified token.');
-			expect((method as any)._isAllTokensSupported).toHaveBeenCalledWith(methodContext);
+			await expect(method.removeSupport(methodContext, tokenId)).rejects.toThrow(
+				'All tokens from the specified chain are supported.',
+			);
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
 		});
 
-		it('should throw an error when supportedTokens returns truthy value with empty supportedTokenIDs', async () => {
-			(method as any)._isAllTokensSupported = jest.fn().mockResolvedValue(false);
-			(method as any)._getSupportedTokens = jest.fn().mockResolvedValue({ supportedTokenIDs: [] });
+		it('removes support for the specified token', async () => {
+			const tokenId = Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]);
+			await tokenModule.stores.get(SupportedTokensStore).supportToken(methodContext, tokenId);
 
-			await expect(
-				method.removeSupport(methodContext, Buffer.from([1, 0, 0, 0, 0, 0, 0, 0])),
-			).rejects.toThrow('All tokens from the specified chain are supported.');
-			expect((method as any)._isAllTokensSupported).toHaveBeenCalledWith(methodContext);
-		});
+			await expect(method.removeSupport(methodContext, tokenId)).resolves.toBeUndefined();
 
-		it('should remove data if the tokenID and keep other supported tokens', async () => {
-			const tokenID = Buffer.from([1, 1, 1, 1, 1, 0, 0, 0]);
-			await tokenModule.stores
-				.get(SupportedTokensStore)
-				.set(methodContext, Buffer.from([1, 1, 1, 1]), {
-					supportedTokenIDs: [
-						Buffer.from([1, 1, 1, 1, 1, 0, 1, 1]),
-						tokenID,
-						Buffer.from([1, 1, 1, 1, 1, 0, 0, 1]),
-					],
-				});
-
-			await method.removeSupport(methodContext, tokenID);
-
-			await expect(
-				tokenModule.stores.get(SupportedTokensStore).has(methodContext, Buffer.from([1, 1, 1, 1])),
-			).resolves.toBeTrue();
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
 				new TokenIDSupportRemovedEvent('token').name,
 			);
 		});
 
-		it('should delete supported tokens store if supportedTokenIDs is empty', async () => {
-			const tokenID = Buffer.from([1, 1, 1, 0, 0, 0, 0, 0]);
-			await tokenModule.stores
-				.get(SupportedTokensStore)
-				.set(methodContext, Buffer.from([1, 1, 1, 0]), {
-					supportedTokenIDs: [tokenID],
-				});
+		it('does nothing if the specified token is not supported', async () => {
+			const tokenId = Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]);
 
-			await method.removeSupport(methodContext, tokenID);
+			await expect(method.removeSupport(methodContext, tokenId)).resolves.toBeUndefined();
 
-			await expect(
-				tokenModule.stores.get(SupportedTokensStore).has(methodContext, Buffer.from([1, 1, 1, 1])),
-			).resolves.toBeFalse();
-			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
-			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
-				new TokenIDSupportRemovedEvent('token').name,
-			);
-		});
-
-		it('should not delete supported tokens store if supportedTokenIDs is not empty', async () => {
-			const tokenID = Buffer.from([1, 1, 1, 1, 1, 0, 0, 0]);
-			await tokenModule.stores
-				.get(SupportedTokensStore)
-				.set(methodContext, Buffer.from([1, 1, 1, 1]), {
-					supportedTokenIDs: [
-						Buffer.from([1, 1, 1, 1, 1, 0, 1, 1]),
-						tokenID,
-						Buffer.from([1, 1, 1, 1, 1, 0, 0, 1]),
-					],
-				});
-
-			await method.removeSupport(methodContext, tokenID);
-
-			await expect(
-				tokenModule.stores.get(SupportedTokensStore).has(methodContext, Buffer.from([1, 1, 1, 1])),
-			).resolves.toBeTrue();
-		});
-
-		it('logs TokenIDSupportRemovedEvent', async () => {
-			(method as any)._isAllTokensSupported = jest.fn().mockResolvedValue(false);
-			(method as any)._getSupportedTokens = jest
-				.fn()
-				.mockResolvedValue({ supportedTokenIDs: [Buffer.from([1, 0, 0, 0, 0, 0, 0, 0])] });
-
-			await method.removeSupport(methodContext, Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]));
-
-			expect((method as any)._isAllTokensSupported).toHaveBeenCalledWith(methodContext);
-			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
-			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
-				new TokenIDSupportRemovedEvent('token').name,
-			);
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
 		});
 	});
 
