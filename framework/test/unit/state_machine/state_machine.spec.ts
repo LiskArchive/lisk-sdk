@@ -410,46 +410,4 @@ describe('state_machine', () => {
 			expect(events[0].toObject().topics[0]).toEqual(EVENT_INDEX_AFTER_TRANSACTIONS);
 		});
 	});
-
-	describe('executeBlock', () => {
-		it('should call all registered before/after executeBlock', async () => {
-			const ctx = new BlockContext({
-				eventQueue,
-				logger,
-				stateStore,
-				contextStore,
-				header,
-				assets,
-				chainID,
-				transactions: [transaction],
-			});
-			await stateMachine.executeBlock(ctx);
-			expect(mod.beforeTransactionsExecute).toHaveBeenCalledWith({
-				chainID,
-				logger,
-				header,
-				assets,
-				stateStore,
-				contextStore,
-				eventQueue: expect.any(Object),
-				getMethodContext: expect.any(Function),
-				getStore: expect.any(Function),
-			});
-			expect(mod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
-			expect(mod.afterTransactionsExecute).toHaveBeenCalledWith({
-				chainID,
-				logger,
-				header,
-				assets,
-				stateStore,
-				contextStore,
-				eventQueue: expect.any(Object),
-				getMethodContext: expect.any(Function),
-				getStore: expect.any(Function),
-				transactions: [transaction],
-				setNextValidators: expect.any(Function),
-			});
-			expect(mod.afterTransactionsExecute).toHaveBeenCalledTimes(1);
-		});
-	});
 });

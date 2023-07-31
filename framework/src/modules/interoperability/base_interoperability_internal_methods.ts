@@ -603,12 +603,12 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		// or both to a non-default value.
 		if (outboxRootWitness.bitmap.length === 0 && outboxRootWitness.siblingHashes.length > 0) {
 			throw new Error(
-				'The bitmap in the outbox root witness must be non-mepty if the sibling hashes are non-empty.',
+				'The bitmap in the outbox root witness must be non-empty if the sibling hashes are non-empty.',
 			);
 		}
 		if (outboxRootWitness.bitmap.length !== 0 && outboxRootWitness.siblingHashes.length === 0) {
 			throw new Error(
-				'The sibling hashes in the outbox root witness must be non-mepty if the bitmap is non-empty.',
+				'The sibling hashes in the outbox root witness must be non-empty if the bitmap is non-empty.',
 			);
 		}
 
@@ -652,7 +652,10 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		}
 	}
 
-	// Different in mainchain and sidechain so to be implemented in each module store separately
+	/**
+	 * https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#islive
+	 * Different in mainchain and sidechain so to be implemented in each module store separately
+	 */
 	public abstract isLive(
 		context: ImmutableMethodContext,
 		chainID: Buffer,
