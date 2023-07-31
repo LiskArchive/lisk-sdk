@@ -288,7 +288,7 @@ export class ValidatorsMethod extends BaseMethod {
 		endTimestamp: number,
 	): Promise<Record<string, number>> {
 		if (endTimestamp < startTimestamp) {
-			throw new Error('End timestamp must be greater than start timestamp.');
+			throw new Error('End timestamp must be greater than or equal to start timestamp.');
 		}
 
 		const result: Record<string, number> = {};
