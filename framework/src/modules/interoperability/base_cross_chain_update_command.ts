@@ -174,78 +174,15 @@ export abstract class BaseCrossChainUpdateCommand<
 		}
 	}
 
-	/**
-	 * @param context
-	 * @returns Promise<void>
-	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#apply
-	 */
-	protected async apply(context: CrossChainMessageContext): Promise<void> {
+	private async _beforeCrossChainCommandExecute(
+		context: CrossChainMessageContext,
+		baseEventSnapshotID: number,
+		baseStateSnapshotID: number,
+	): Promise<{ anyError: boolean }> {
 		const { ccm, logger } = context;
-		const { ccmID, encodedCCM } = getEncodedCCMAndID(ccm);
-		const valid = await this.verifyCCM(context, ccmID);
-		if (!valid) {
-			return;
-		}
-		const commands = this.ccCommands.get(ccm.module);
-		if (!commands) {
-			await this.bounce(
-				context,
-				encodedCCM.length,
-				CCMStatusCode.MODULE_NOT_SUPPORTED,
-				CCMProcessedCode.MODULE_NOT_SUPPORTED,
-			);
-			return;
-		}
-		const command = commands.find(com => com.name === ccm.crossChainCommand);
-		if (!command) {
-			await this.bounce(
-				context,
-				encodedCCM.length,
-				CCMStatusCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
-				CCMProcessedCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
-			);
-			return;
-		}
+		const { ccmID } = getEncodedCCMAndID(ccm);
 
-		let decodedParams;
-		try {
-			decodedParams = codec.decode(command.schema, context.ccm.params);
-			validator.validate(command.schema, decodedParams);
-		} catch (error) {
-			logger.info(
-				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
-				'Invalid CCM params.',
-			);
-			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
-			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccm,
-				result: CCMProcessedResult.DISCARDED,
-				code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
-			});
-			return;
-		}
-
-		if (command.verify) {
-			try {
-				await command.verify(context);
-			} catch (error) {
-				logger.info(
-					{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
-					'Fail to verify cross chain command.',
-				);
-				await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
-				this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-					ccm,
-					result: CCMProcessedResult.DISCARDED,
-					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
-				});
-				return;
-			}
-		}
-		// Create a state snapshot.
-		const baseEventSnapshotID = context.eventQueue.createSnapshot();
-		const baseStateSnapshotID = context.stateStore.createSnapshot();
-
+		let anyError = false;
 		try {
 			// Call the beforeCrossChainCommandExecute functions from other modules.
 			// For example, the Token module assigns the message fee to the CCU sender.
@@ -263,65 +200,39 @@ export abstract class BaseCrossChainUpdateCommand<
 				}
 			}
 		} catch (error) {
+			// revert state to baseSnapshot
 			context.eventQueue.restoreSnapshot(baseEventSnapshotID);
 			context.stateStore.restoreSnapshot(baseStateSnapshotID);
+
 			logger.info(
 				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
 				'Fail to execute beforeCrossChainCommandExecute.',
 			);
+
 			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccm,
 				result: CCMProcessedResult.DISCARDED,
 				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
 			});
-			return;
+			anyError = true;
 		}
 
-		// Create a state snapshot.
-		const execEventSnapshotID = context.eventQueue.createSnapshot();
-		const execStateSnapshotID = context.stateStore.createSnapshot();
+		return { anyError };
+	}
 
+	private async _afterCrossChainCommandExecute(
+		context: CrossChainMessageContext,
+		baseEventSnapshotID: number,
+		baseStateSnapshotID: number,
+	): Promise<{ anyError: boolean }> {
+		const { ccm, logger } = context;
+		const { ccmID } = getEncodedCCMAndID(ccm);
+
+		let anyError = false;
 		try {
-			/**
-			 * This could happen during the execution of a mainchain CCU containing a CCM
-			 * from a sidechain for which a direct channel has been registered.
-			 * Then, ccu.params.sendingChainID == getMainchainID().
-			 * This is not necessarily a violation of the protocol, since the message
-			 * could have been sent before the direct channel was opened.
-			 */
-
-			const isSendingChainExist = await this.stores
-				.get(ChainAccountStore)
-				.has(context, ccm.sendingChainID);
-
-			const ccuParams = codec.decode<CCUpdateParams>(
-				crossChainUpdateTransactionParams,
-				context.transaction.params,
-			);
-			if (isSendingChainExist && !ccuParams.sendingChainID.equals(ccm.sendingChainID)) {
-				throw new Error('Cannot receive forwarded messages for a direct channel.');
-			}
-			// Execute the cross-chain command.
-			await command.execute({ ...context, params: decodedParams });
-			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				ccm,
-				result: CCMProcessedResult.APPLIED,
-				code: CCMProcessedCode.SUCCESS,
-			});
-		} catch (error) {
-			context.eventQueue.restoreSnapshot(execEventSnapshotID);
-			context.stateStore.restoreSnapshot(execStateSnapshotID);
-			await this.bounce(
-				context,
-				encodedCCM.length,
-				CCMStatusCode.FAILED_CCM,
-				CCMProcessedCode.FAILED_CCM,
-			);
-		}
-
-		try {
-			// Call the afterCrossChainCommandExecution functions from other modules.
+			// Call the beforeCrossChainCommandExecute functions from other modules.
+			// For example, the Token module assigns the message fee to the CCU sender.
 			for (const [module, method] of this.interoperableCCMethods.entries()) {
 				if (method.afterCrossChainCommandExecute) {
 					logger.debug(
@@ -336,19 +247,205 @@ export abstract class BaseCrossChainUpdateCommand<
 				}
 			}
 		} catch (error) {
+			// revert state to baseSnapshot
 			context.eventQueue.restoreSnapshot(baseEventSnapshotID);
 			context.stateStore.restoreSnapshot(baseStateSnapshotID);
+
 			logger.info(
 				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
-				'Fail to execute afterCrossChainCommandExecute',
+				'Fail to execute afterCrossChainCommandExecute.',
 			);
+
 			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				ccm,
 				result: CCMProcessedResult.DISCARDED,
 				code: CCMProcessedCode.INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
 			});
+			anyError = true;
 		}
+
+		return { anyError };
+	}
+
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#apply
+	protected async apply(context: CrossChainMessageContext): Promise<void> {
+		const { ccm, logger } = context;
+		const { ccmID, encodedCCM } = getEncodedCCMAndID(ccm);
+		const valid = await this.verifyCCM(context, ccmID);
+		if (!valid) {
+			return;
+		}
+
+		// Create a state snapshot.
+		const baseEventSnapshotID = context.eventQueue.createSnapshot();
+		const baseStateSnapshotID = context.stateStore.createSnapshot();
+
+		const crossChainCommands = this.ccCommands.get(ccm.module);
+		if (!crossChainCommands) {
+			if (
+				(
+					await this._beforeCrossChainCommandExecute(
+						context,
+						baseEventSnapshotID,
+						baseStateSnapshotID,
+					)
+				).anyError
+			) {
+				return;
+			}
+			if (
+				(
+					await this._afterCrossChainCommandExecute(
+						context,
+						baseEventSnapshotID,
+						baseStateSnapshotID,
+					)
+				).anyError
+			) {
+				return;
+			}
+			await this.bounce(
+				context,
+				encodedCCM.length,
+				CCMStatusCode.MODULE_NOT_SUPPORTED,
+				CCMProcessedCode.MODULE_NOT_SUPPORTED,
+			);
+			return;
+		}
+
+		const crossChainCommand = crossChainCommands.find(com => com.name === ccm.crossChainCommand);
+		if (!crossChainCommand) {
+			if (
+				(
+					await this._beforeCrossChainCommandExecute(
+						context,
+						baseEventSnapshotID,
+						baseStateSnapshotID,
+					)
+				).anyError
+			) {
+				return;
+			}
+			if (
+				(
+					await this._afterCrossChainCommandExecute(
+						context,
+						baseEventSnapshotID,
+						baseStateSnapshotID,
+					)
+				).anyError
+			) {
+				return;
+			}
+			await this.bounce(
+				context,
+				encodedCCM.length,
+				CCMStatusCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
+				CCMProcessedCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
+			);
+			return;
+		}
+
+		// Although this part is not mentioned in LIP, but it covers #8558
+		let decodedParams;
+		try {
+			decodedParams = codec.decode(crossChainCommand.schema, context.ccm.params);
+			validator.validate(crossChainCommand.schema, decodedParams);
+		} catch (error) {
+			logger.info(
+				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+				'Invalid CCM params.',
+			);
+			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccm,
+				result: CCMProcessedResult.DISCARDED,
+				code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+			});
+			return;
+		}
+
+		if (crossChainCommand.verify) {
+			try {
+				await crossChainCommand.verify(context);
+			} catch (error) {
+				logger.info(
+					{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
+					'Fail to verify cross chain command.',
+				);
+				await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
+				this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+					ccm,
+					result: CCMProcessedResult.DISCARDED,
+					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
+				});
+				return;
+			}
+		}
+
+		if (
+			(
+				await this._beforeCrossChainCommandExecute(
+					context,
+					baseEventSnapshotID,
+					baseStateSnapshotID,
+				)
+			).anyError
+		) {
+			return;
+		}
+
+		// Continue to ccm execution only if there was no error until now.
+		// Create a state snapshot.
+		const execEventSnapshotID = context.eventQueue.createSnapshot();
+		const execStateSnapshotID = context.stateStore.createSnapshot();
+
+		try {
+			/**
+			 * This could happen during the execution of a mainchain CCU containing a CCM
+			 * from a sidechain for which a direct channel has been registered.
+			 * Then, ccu.params.sendingChainID == getMainchainID().
+			 * This is not necessarily a violation of the protocol, since the message
+			 * could have been sent before the direct channel was opened.
+			 */
+			const sendingChainExists = await this.stores
+				.get(ChainAccountStore)
+				.has(context, ccm.sendingChainID);
+
+			const ccuParams = codec.decode<CCUpdateParams>(
+				crossChainUpdateTransactionParams,
+				context.transaction.params,
+			);
+			if (sendingChainExists && !ccuParams.sendingChainID.equals(ccm.sendingChainID)) {
+				throw new Error('Cannot receive forwarded messages for a direct channel.');
+			}
+
+			// Execute the cross-chain command.
+			await crossChainCommand.execute({ ...context, params: decodedParams });
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				ccm,
+				result: CCMProcessedResult.APPLIED,
+				code: CCMProcessedCode.SUCCESS,
+			});
+		} catch (error) {
+			// revert state to executionSnapshot
+			context.eventQueue.restoreSnapshot(execEventSnapshotID);
+			context.stateStore.restoreSnapshot(execStateSnapshotID);
+
+			// in case of error, run `afterCrossChainCommandExecute` & `bounce` followed by `return`
+			await this._afterCrossChainCommandExecute(context, baseEventSnapshotID, baseStateSnapshotID);
+			await this.bounce(
+				context,
+				encodedCCM.length,
+				CCMStatusCode.FAILED_CCM,
+				CCMProcessedCode.FAILED_CCM,
+			);
+			return;
+		}
+
+		// run `afterCrossChainCommandExecute` after a successful command execution (i.e., when there is no error in above `try` block)
+		await this._afterCrossChainCommandExecute(context, baseEventSnapshotID, baseStateSnapshotID);
 	}
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#bounce
