@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { formatInt, KVStore, getFirstPrefix, getLastPrefix } from '@liskhq/lisk-db';
+import { Batch, Database } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { RawBlockHeader, BlockHeader } from '@liskhq/lisk-chain';
 import { areHeadersContradicting } from '@liskhq/lisk-bft';
@@ -47,22 +47,43 @@ interface BlockHeaders {
 	readonly blockHeaders: Buffer[];
 }
 
+const formatInt = (num: number | bigint): string => {
+	let buf: Buffer;
+	if (typeof num === 'bigint') {
+		if (num < BigInt(0)) {
+			throw new Error('Negative number cannot be formatted');
+		}
+		buf = Buffer.alloc(8);
+		buf.writeBigUInt64BE(num);
+	} else {
+		if (num < 0) {
+			throw new Error('Negative number cannot be formatted');
+		}
+		buf = Buffer.alloc(4);
+		buf.writeUInt32BE(num, 0);
+	}
+	return buf.toString('binary');
+};
+
+const getFirstPrefix = (prefix: string): Buffer => Buffer.from(`${prefix}\x00`);
+const getLastPrefix = (prefix: string): Buffer => Buffer.from(`${prefix}\xFF`);
+
 export const getDBInstance = async (
 	dataPath: string,
 	dbName = 'lisk-framework-report-misbehavior-plugin.db',
-): Promise<KVStore> => {
+): Promise<Database> => {
 	const dirPath = join(dataPath.replace('~', os.homedir()), 'plugins/data', dbName);
 	await ensureDir(dirPath);
 
-	return new KVStore(dirPath);
+	return new Database(dirPath);
 };
 
 export const getBlockHeaders = async (
-	db: KVStore,
+	db: Database,
 	dbKeyBlockHeader: string,
 ): Promise<BlockHeaders> => {
 	try {
-		const encodedBlockHeaders = await db.get(dbKeyBlockHeader);
+		const encodedBlockHeaders = await db.get(Buffer.from(dbKeyBlockHeader));
 		return codec.decode<BlockHeaders>(blockHeadersSchema, encodedBlockHeaders);
 	} catch (error) {
 		return { blockHeaders: [] as Buffer[] };
@@ -82,7 +103,7 @@ export const decodeBlockHeader = (encodedHeader: Buffer, schema: RegisteredSchem
 };
 
 export const saveBlockHeaders = async (
-	db: KVStore,
+	db: Database,
 	schemas: RegisteredSchema,
 	header: Buffer,
 ): Promise<boolean> => {
@@ -92,8 +113,8 @@ export const saveBlockHeaders = async (
 	const { blockHeaders } = await getBlockHeaders(db, dbKey);
 
 	if (!blockHeaders.find(blockHeader => hash(blockHeader).equals(blockId))) {
-		await db.put(
-			dbKey,
+		await db.set(
+			Buffer.from(dbKey),
 			codec.encode(blockHeadersSchema, {
 				blockHeaders: [...blockHeaders, header],
 			}),
@@ -106,7 +127,7 @@ export const saveBlockHeaders = async (
 type IteratableStream = NodeJS.ReadableStream & { destroy: (err?: Error) => void };
 
 export const getContradictingBlockHeader = async (
-	db: KVStore,
+	db: Database,
 	blockHeader: BlockHeader,
 	schemas: RegisteredSchema,
 ): Promise<BlockHeader | undefined> =>
@@ -135,7 +156,7 @@ export const getContradictingBlockHeader = async (
 	});
 
 export const clearBlockHeaders = async (
-	db: KVStore,
+	db: Database,
 	schemas: RegisteredSchema,
 	currentHeight: number,
 ): Promise<void> => {
@@ -159,9 +180,9 @@ export const clearBlockHeaders = async (
 				resolve(res);
 			});
 	});
-	const batch = db.batch();
+	const batch = new Batch();
 	for (const k of keys) {
-		batch.del(k);
+		batch.del(Buffer.from(k));
 	}
-	await batch.write();
+	await db.write(batch);
 };

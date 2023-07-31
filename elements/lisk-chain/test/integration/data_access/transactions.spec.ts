@@ -14,21 +14,21 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { KVStore, NotFoundError } from '@liskhq/lisk-db';
+import { Batch, Database, NotFoundError } from '@liskhq/lisk-db';
 import { DataAccess } from '../../../src/data_access';
 import { defaultAccountSchema } from '../../utils/account';
 import { registeredBlockHeaders } from '../../utils/block';
 import { getTransaction } from '../../utils/transaction';
 
 describe('dataAccess.transactions', () => {
-	let db: KVStore;
+	let db: Database;
 	let dataAccess: DataAccess;
 	let transactions: any;
 
 	beforeAll(() => {
 		const parentPath = path.join(__dirname, '../../tmp/transactions');
 		fs.ensureDirSync(parentPath);
-		db = new KVStore(path.join(parentPath, '/test-transactions.db'));
+		db = new Database(path.join(parentPath, '/test-transactions.db'));
 		dataAccess = new DataAccess({
 			db,
 			accountSchema: defaultAccountSchema,
@@ -40,11 +40,11 @@ describe('dataAccess.transactions', () => {
 
 	beforeEach(async () => {
 		transactions = [getTransaction({ nonce: BigInt(1000) }), getTransaction({ nonce: BigInt(0) })];
-		const batch = db.batch();
+		const batch = new Batch();
 		for (const tx of transactions) {
-			batch.put(`transactions:id:${tx.id.toString('binary')}`, tx.getBytes());
+			batch.set(Buffer.from(`transactions:id:${tx.id.toString('binary')}`), tx.getBytes());
 		}
-		await batch.write();
+		await db.write(batch);
 	});
 
 	afterEach(async () => {

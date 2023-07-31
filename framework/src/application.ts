@@ -17,7 +17,7 @@ import * as path from 'path';
 import * as psList from 'ps-list';
 import * as assert from 'assert';
 import { promisify } from 'util';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
 import {
@@ -125,9 +125,9 @@ export class Application {
 	private _channel!: InMemoryChannel;
 
 	private _genesisBlock!: Record<string, unknown> | undefined;
-	private _blockchainDB!: KVStore;
-	private _nodeDB!: KVStore;
-	private _forgerDB!: KVStore;
+	private _blockchainDB!: Database;
+	private _nodeDB!: Database;
+	private _forgerDB!: Database;
 
 	private readonly _mutex = new jobHandlers.Mutex();
 
@@ -304,9 +304,9 @@ export class Application {
 			this._channel.publish(APP_EVENT_SHUTDOWN);
 			await this._node.cleanup();
 			await this._controller.cleanup(errorCode, message);
-			await this._blockchainDB.close();
-			await this._forgerDB.close();
-			await this._nodeDB.close();
+			this._blockchainDB.close();
+			this._forgerDB.close();
+			this._nodeDB.close();
 			await this._emptySocketsDirectory();
 			this._clearControllerPidFile();
 			this.logger.info({ errorCode, message }, 'Application shutdown completed');
@@ -531,10 +531,10 @@ export class Application {
 		fs.unlinkSync(path.join(dirs.pids, 'controller.pid'));
 	}
 
-	private _getDBInstance(options: ApplicationConfig, dbName: string): KVStore {
+	private _getDBInstance(options: ApplicationConfig, dbName: string): Database {
 		const dirs = systemDirs(options.label, options.rootPath);
 		const dbPath = `${dirs.data}/${dbName}`;
 		this.logger.debug({ dbName, dbPath }, 'Create database instance.');
-		return new KVStore(dbPath);
+		return new Database(dbPath);
 	}
 }

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { codec } from '@liskhq/lisk-codec';
 import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
@@ -81,7 +81,7 @@ describe('block_synchronization_mechanism', () => {
 
 		channelMock = new ChannelMock();
 
-		const blockchainDB = new KVStore('blockchain.db');
+		const blockchainDB = new Database('blockchain.db');
 
 		networkMock = {
 			requestFromPeer: jest.fn(),

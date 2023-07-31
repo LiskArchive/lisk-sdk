@@ -13,7 +13,7 @@
  */
 
 import { when } from 'jest-when';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { Block, Chain } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
@@ -73,7 +73,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 		channelMock = new ChannelMock();
 
-		const blockchainDB = new KVStore('blockchain.db');
+		const blockchainDB = new Database('blockchain.db');
 
 		chainModule = new Chain({
 			networkIdentifier: defaultNetworkIdentifier,

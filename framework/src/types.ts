@@ -172,6 +172,9 @@ export interface ApplicationConfig {
 		force?: boolean;
 		defaultPassword?: string;
 	};
+	backup: {
+		height: number;
+	};
 	network: NetworkConfig;
 	logger: {
 		logFileName: string;

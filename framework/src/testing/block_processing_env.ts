@@ -30,7 +30,7 @@ import {
 	getPrivateAndPublicKeyFromPassphrase,
 	getAddressAndPublicKeyFromPassphrase,
 } from '@liskhq/lisk-cryptography';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 
 import { TokenModule, SequenceModule, KeysModule, DPoSModule } from '../modules';
@@ -68,7 +68,7 @@ export interface BlockProcessingEnv {
 	createBlock: (payload?: Transaction[], timestamp?: number) => Promise<Block>;
 	getProcessor: () => Processor;
 	getChain: () => Chain;
-	getBlockchainDB: () => KVStore;
+	getBlockchainDB: () => Database;
 	process: (block: Block) => Promise<void>;
 	processUntilHeight: (height: number) => Promise<void>;
 	getLastBlock: () => Block;
@@ -97,7 +97,7 @@ const getAppConfig = (genesisConfig?: GenesisConfig): ApplicationConfig => {
 };
 
 const getProcessor = (
-	db: KVStore,
+	db: Database,
 	appConfig: ApplicationConfig,
 	genesisBlock: GenesisBlock,
 	networkIdentifier: Buffer,
@@ -290,7 +290,7 @@ export const getBlockProcessingEnv = async (
 		getDataAccess: () => processor['_chain'].dataAccess,
 		cleanup: async ({ databasePath }): Promise<void> => {
 			await processor.stop();
-			await db.close();
+			db.close();
 			removeDB(databasePath);
 		},
 	};

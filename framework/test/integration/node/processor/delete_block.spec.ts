@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { formatInt, NotFoundError } from '@liskhq/lisk-db';
+import { NotFoundError } from '@liskhq/lisk-db';
 import {
 	Block,
 	stateDiffSchema,
@@ -27,6 +27,7 @@ import { genesis, DefaultAccountProps } from '../../../fixtures';
 import { createTransferTransaction } from '../../../utils/node/transaction';
 import * as testing from '../../../../src/testing';
 import { Processor } from '../../../../src/node/processor';
+import { formatInt } from '../../../utils/kv_store';
 
 describe('Delete block', () => {
 	let processEnv: testing.BlockProcessingEnv;
@@ -89,7 +90,7 @@ describe('Delete block', () => {
 				newBlock = await processEnv.createBlock([transaction]);
 				await processEnv
 					.getBlockchainDB()
-					.put(`diff:${formatInt(newBlock.header.height)}`, emptyDiffState);
+					.set(Buffer.from(`diff:${formatInt(newBlock.header.height)}`), emptyDiffState);
 				await processEnv.process(newBlock);
 				await processor.deleteLastBlock();
 			});
@@ -123,7 +124,9 @@ describe('Delete block', () => {
 
 			it('should not persist the state diff for that block height', async () => {
 				await expect(
-					processEnv.getBlockchainDB().get(`diff:${formatInt(newBlock.header.height)}`),
+					processEnv
+						.getBlockchainDB()
+						.get(Buffer.from(`diff:${formatInt(newBlock.header.height)}`)),
 				).rejects.toBeInstanceOf(NotFoundError);
 			});
 		});
@@ -151,7 +154,7 @@ describe('Delete block', () => {
 				// Assert
 				await expect(
 					processEnv.getDataAccess().getAccountByAddress(recipientAccount.address),
-				).rejects.toThrow('Specified key accounts:address');
+				).rejects.toThrow('Specified key 6163636f756e74733a61646472657373');
 				const revertedGenesisAccount = await processEnv
 					.getDataAccess()
 					.getAccountByAddress<DefaultAccountProps>(genesisAccount.address);

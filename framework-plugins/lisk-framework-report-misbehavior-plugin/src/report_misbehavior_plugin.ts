@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { BlockHeader, RawBlock, Transaction } from '@liskhq/lisk-chain';
 import {
@@ -59,7 +59,7 @@ const actionParamsSchema = {
 };
 
 export class ReportMisbehaviorPlugin extends BasePlugin {
-	private _pluginDB!: KVStore;
+	private _pluginDB!: Database;
 	private _options!: Options;
 	private readonly _state: State = { currentHeight: 0 };
 	private _channel!: BaseChannel;
@@ -153,10 +153,11 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 		}, this._clearBlockHeadersInterval);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async unload(): Promise<void> {
 		clearInterval(this._clearBlockHeadersIntervalId as NodeJS.Timer);
 
-		await this._pluginDB.close();
+		this._pluginDB.close();
 	}
 
 	private _subscribeToChannel(): void {

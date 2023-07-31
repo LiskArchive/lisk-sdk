@@ -2,6 +2,9 @@
 
 exports[`Application #constructor should set internal variables 1`] = `
 Object {
+  "backup": Object {
+    "height": 0,
+  },
   "forging": Object {
     "defaultPassword": "elephant tree paris dragon chair galaxy",
     "delegates": Array [

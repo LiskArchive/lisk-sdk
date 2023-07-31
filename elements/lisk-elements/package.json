@@ -1,6 +1,6 @@
 {
 	"name": "lisk-elements",
-	"version": "5.2.2",
+	"version": "5.2.3-alpha.0",
 	"description": "Libraries to support building blockchain applications according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -36,14 +36,13 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-api-client": "^5.1.6",
-		"@liskhq/lisk-bft": "^0.3.4",
-		"@liskhq/lisk-chain": "^0.3.4",
+		"@liskhq/lisk-api-client": "^5.1.7-alpha.0",
+		"@liskhq/lisk-bft": "^0.3.5-alpha.0",
+		"@liskhq/lisk-chain": "^0.3.5-alpha.0",
 		"@liskhq/lisk-codec": "^0.2.2",
 		"@liskhq/lisk-cryptography": "^3.2.1",
-		"@liskhq/lisk-db": "^0.2.1",
-		"@liskhq/lisk-genesis": "^0.2.4",
-		"@liskhq/lisk-p2p": "^0.7.3",
+		"@liskhq/lisk-genesis": "^0.2.5-alpha.0",
+		"@liskhq/lisk-p2p": "^0.7.4-alpha.0",
 		"@liskhq/lisk-passphrase": "^3.1.1",
 		"@liskhq/lisk-transaction-pool": "^0.5.3",
 		"@liskhq/lisk-transactions": "^5.2.2",

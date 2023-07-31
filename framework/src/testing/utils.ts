@@ -15,7 +15,7 @@
 
 import * as fs from 'fs-extra';
 import { AccountDefaultProps, AccountSchema, Block, BlockHeaderAsset } from '@liskhq/lisk-chain';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 
 import { Logger } from '../logger';
 import { BaseModule, BaseModuleChannel } from '../modules';
@@ -226,10 +226,10 @@ const defaultDatabasePath = '/tmp/lisk-framework/test';
 export const getDBPath = (name: string, dbPath = defaultDatabasePath): string =>
 	`${dbPath}/${name}.db`;
 
-export const createDB = (name: string, dbPath = defaultDatabasePath): KVStore => {
+export const createDB = (name: string, dbPath = defaultDatabasePath): Database => {
 	fs.ensureDirSync(dbPath);
 	const filePath = getDBPath(name, dbPath);
-	return new KVStore(filePath);
+	return new Database(filePath);
 };
 
 export const removeDB = (dbPath = defaultDatabasePath): void =>
