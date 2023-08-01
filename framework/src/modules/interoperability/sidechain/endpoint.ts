@@ -11,7 +11,17 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
+import { validator } from '@liskhq/lisk-validator';
 import { BaseInteroperabilityEndpoint } from '../base_interoperability_endpoint';
+import { ModuleEndpointContext } from '../../../types';
+import { isChainIDAvailableRequestSchema } from '../schemas';
+import { getMainchainID } from '../utils';
 
-export class SidechainInteroperabilityEndpoint extends BaseInteroperabilityEndpoint {}
+export class SidechainInteroperabilityEndpoint extends BaseInteroperabilityEndpoint {
+	public getMainchainID(context: ModuleEndpointContext): { mainchainID: string } {
+		validator.validate(isChainIDAvailableRequestSchema, context.params);
+
+		const chainID = Buffer.from(context.params.chainID as string, 'hex');
+		return { mainchainID: getMainchainID(chainID).toString('hex') };
+	}
+}
