@@ -18,7 +18,7 @@ const validator = {
 };
 
 export const updateAuthorityWithoutSigSchema = {
-	$id: '/poa/command/updateAuthority',
+	$id: '/poa-sidechain/command/updateAuthority',
 	type: 'object',
 	required: ['newValidators', 'threshold', 'validatorsUpdateNonce'],
 	properties: {

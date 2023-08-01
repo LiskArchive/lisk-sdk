@@ -494,7 +494,9 @@ describe('PoA module', () => {
 		});
 
 		it('should fail if registerValidatorKeys return false', async () => {
-			(poa['_validatorsMethod'].registerValidatorKeys as jest.Mock).mockResolvedValue(false);
+			(poa['_validatorsMethod'].registerValidatorKeys as jest.Mock).mockRejectedValue(
+				new Error('Invalid validator key found in poa genesis asset validators.'),
+			);
 
 			await expect(poa.finalizeGenesisState(context)).rejects.toThrow(
 				'Invalid validator key found in poa genesis asset validators.',
