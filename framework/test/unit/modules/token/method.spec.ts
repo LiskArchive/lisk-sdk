@@ -1360,10 +1360,6 @@ describe('token module', () => {
 
 	describe('removeSupport', () => {
 		it('should call remove support for token', async () => {
-			await tokenModule.stores
-				.get(SupportedTokensStore)
-				.supportToken(methodContext, Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]));
-
 			await expect(
 				method.removeSupport(methodContext, Buffer.from([1, 2, 3, 4, 0, 0, 0, 0])),
 			).resolves.toBeUndefined();
@@ -1374,7 +1370,7 @@ describe('token module', () => {
 			);
 		});
 
-		it('throws an error if all tokens are supported', async () => {
+		it('should throw an error if all tokens are supported', async () => {
 			await tokenModule.stores
 				.get(SupportedTokensStore)
 				.set(methodContext, ALL_SUPPORTED_TOKENS_KEY, { supportedTokenIDs: [] });
@@ -1386,7 +1382,7 @@ describe('token module', () => {
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
 		});
 
-		it('throws an error if the specified token is the mainchain token or the own chain ID', async () => {
+		it('should throw an error if the specified token is the mainchain token or the own chain ID', async () => {
 			const tokenId = Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]);
 			const chainID = Buffer.from([1, 2, 3, 4]);
 			method['_config'].ownChainID = chainID;
@@ -1398,21 +1394,8 @@ describe('token module', () => {
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
 		});
 
-		it('throws an error if all tokens from the specified chain are supported', async () => {
+		it('should return early and log an event if the specified token is not supported', async () => {
 			const tokenId = Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]);
-			const chainID = Buffer.from([1, 2, 3, 4]);
-			await tokenModule.stores.get(SupportedTokensStore).supportChain(methodContext, chainID);
-
-			await expect(method.removeSupport(methodContext, tokenId)).rejects.toThrow(
-				'All tokens from the specified chain are supported.',
-			);
-
-			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
-		});
-
-		it('removes support for the specified token', async () => {
-			const tokenId = Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]);
-			await tokenModule.stores.get(SupportedTokensStore).supportToken(methodContext, tokenId);
 
 			await expect(method.removeSupport(methodContext, tokenId)).resolves.toBeUndefined();
 
@@ -1422,8 +1405,23 @@ describe('token module', () => {
 			);
 		});
 
-		it('does nothing if the specified token is not supported', async () => {
+		it('should throw an error if all tokens from the specified chain are supported', async () => {
 			const tokenId = Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]);
+			const chainID = Buffer.from([1, 2, 3, 4]);
+
+			await tokenModule.stores.get(SupportedTokensStore).supportChain(methodContext, chainID);
+
+			await expect(method.removeSupport(methodContext, tokenId)).rejects.toThrow(
+				'All tokens from the specified chain are supported.',
+			);
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
+		it('should remove the specified token from the supported tokens list', async () => {
+			const tokenId = Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]);
+
+			await tokenModule.stores.get(SupportedTokensStore).supportToken(methodContext, tokenId);
 
 			await expect(method.removeSupport(methodContext, tokenId)).resolves.toBeUndefined();
 

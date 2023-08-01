@@ -726,8 +726,11 @@ export class TokenMethod extends BaseMethod {
 			);
 		}
 
-		const chainSupported = await this.stores.get(SupportedTokensStore).has(methodContext, chainID);
-		if (!chainSupported) {
+		const isChainSupported = await this.stores
+			.get(SupportedTokensStore)
+			.has(methodContext, chainID);
+
+		if (!isChainSupported) {
 			return;
 		}
 
@@ -754,6 +757,15 @@ export class TokenMethod extends BaseMethod {
 
 		if (tokenID.equals(this.getMainchainTokenID()) || chainID.equals(this._config.ownChainID)) {
 			throw new Error('Cannot remove support for the specified token.');
+		}
+
+		const isChainSupported = await this.stores
+			.get(SupportedTokensStore)
+			.has(methodContext, chainID);
+
+		if (!isChainSupported) {
+			this.events.get(TokenIDSupportRemovedEvent).log(methodContext, tokenID);
+			return;
 		}
 
 		try {
@@ -783,8 +795,6 @@ export class TokenMethod extends BaseMethod {
 
 			throw err;
 		}
-
-		this.events.get(TokenIDSupportRemovedEvent).log(methodContext, tokenID);
 	}
 
 	public async getTotalSupply(
