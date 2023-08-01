@@ -513,6 +513,9 @@ export class Node {
 					...this._options.genesisConfig,
 				},
 				registeredModules: this.getRegisteredModules(),
+				backup: {
+					height: this._options.backup.height,
+				},
 				network: {
 					port: this._options.network.port,
 					hostIp: this._options.network.hostIp,
