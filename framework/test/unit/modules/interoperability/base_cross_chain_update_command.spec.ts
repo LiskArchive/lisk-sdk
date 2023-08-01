@@ -800,7 +800,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				jest.spyOn(context.stateStore, 'restoreSnapshot');
 
 				const result = await command['_beforeCrossChainCommandExecute'](context, 99, 10);
-				expect(result.anyError).toBe(true);
+				expect(result).toBe(false);
 
 				expect(context.eventQueue.restoreSnapshot).toHaveBeenCalledWith(99);
 				expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(10);
@@ -843,7 +843,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				jest.spyOn(context.stateStore, 'restoreSnapshot');
 
 				const result = await command['_afterCrossChainCommandExecute'](context, 99, 10);
-				expect(result.anyError).toBe(true);
+				expect(result).toBe(false);
 
 				expect(context.eventQueue.restoreSnapshot).toHaveBeenCalledWith(99);
 				expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(10);

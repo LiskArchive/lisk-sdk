@@ -178,11 +178,11 @@ export abstract class BaseCrossChainUpdateCommand<
 		context: CrossChainMessageContext,
 		baseEventSnapshotID: number,
 		baseStateSnapshotID: number,
-	): Promise<{ anyError: boolean }> {
+	): Promise<boolean> {
 		const { ccm, logger } = context;
 		const { ccmID } = getEncodedCCMAndID(ccm);
 
-		let anyError = false;
+		let result = true;
 		try {
 			// Call the beforeCrossChainCommandExecute functions from other modules.
 			// For example, the Token module assigns the message fee to the CCU sender.
@@ -215,21 +215,21 @@ export abstract class BaseCrossChainUpdateCommand<
 				result: CCMProcessedResult.DISCARDED,
 				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
 			});
-			anyError = true;
+			result = false;
 		}
 
-		return { anyError };
+		return result;
 	}
 
 	private async _afterCrossChainCommandExecute(
 		context: CrossChainMessageContext,
 		baseEventSnapshotID: number,
 		baseStateSnapshotID: number,
-	): Promise<{ anyError: boolean }> {
+	): Promise<boolean> {
 		const { ccm, logger } = context;
 		const { ccmID } = getEncodedCCMAndID(ccm);
 
-		let anyError = false;
+		let result = true;
 		try {
 			// Call the beforeCrossChainCommandExecute functions from other modules.
 			// For example, the Token module assigns the message fee to the CCU sender.
@@ -262,10 +262,10 @@ export abstract class BaseCrossChainUpdateCommand<
 				result: CCMProcessedResult.DISCARDED,
 				code: CCMProcessedCode.INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
 			});
-			anyError = true;
+			result = false;
 		}
 
-		return { anyError };
+		return result;
 	}
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#apply
@@ -284,24 +284,20 @@ export abstract class BaseCrossChainUpdateCommand<
 		const crossChainCommands = this.ccCommands.get(ccm.module);
 		if (!crossChainCommands) {
 			if (
-				(
-					await this._beforeCrossChainCommandExecute(
-						context,
-						baseEventSnapshotID,
-						baseStateSnapshotID,
-					)
-				).anyError
+				!(await this._beforeCrossChainCommandExecute(
+					context,
+					baseEventSnapshotID,
+					baseStateSnapshotID,
+				))
 			) {
 				return;
 			}
 			if (
-				(
-					await this._afterCrossChainCommandExecute(
-						context,
-						baseEventSnapshotID,
-						baseStateSnapshotID,
-					)
-				).anyError
+				!(await this._afterCrossChainCommandExecute(
+					context,
+					baseEventSnapshotID,
+					baseStateSnapshotID,
+				))
 			) {
 				return;
 			}
@@ -317,24 +313,20 @@ export abstract class BaseCrossChainUpdateCommand<
 		const crossChainCommand = crossChainCommands.find(com => com.name === ccm.crossChainCommand);
 		if (!crossChainCommand) {
 			if (
-				(
-					await this._beforeCrossChainCommandExecute(
-						context,
-						baseEventSnapshotID,
-						baseStateSnapshotID,
-					)
-				).anyError
+				!(await this._beforeCrossChainCommandExecute(
+					context,
+					baseEventSnapshotID,
+					baseStateSnapshotID,
+				))
 			) {
 				return;
 			}
 			if (
-				(
-					await this._afterCrossChainCommandExecute(
-						context,
-						baseEventSnapshotID,
-						baseStateSnapshotID,
-					)
-				).anyError
+				!(await this._afterCrossChainCommandExecute(
+					context,
+					baseEventSnapshotID,
+					baseStateSnapshotID,
+				))
 			) {
 				return;
 			}
@@ -385,13 +377,11 @@ export abstract class BaseCrossChainUpdateCommand<
 		}
 
 		if (
-			(
-				await this._beforeCrossChainCommandExecute(
-					context,
-					baseEventSnapshotID,
-					baseStateSnapshotID,
-				)
-			).anyError
+			!(await this._beforeCrossChainCommandExecute(
+				context,
+				baseEventSnapshotID,
+				baseStateSnapshotID,
+			))
 		) {
 			return;
 		}
