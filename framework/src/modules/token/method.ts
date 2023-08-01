@@ -783,6 +783,8 @@ export class TokenMethod extends BaseMethod {
 				await this.stores.get(SupportedTokensStore).del(methodContext, chainID);
 			}
 		}
+
+		this.events.get(TokenIDSupportRemovedEvent).log(methodContext, tokenID);
 	}
 
 	public async getTotalSupply(

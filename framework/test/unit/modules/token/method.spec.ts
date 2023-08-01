@@ -1425,7 +1425,21 @@ describe('token module', () => {
 
 			await expect(method.removeSupport(methodContext, tokenId)).resolves.toBeUndefined();
 
-			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
+			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
+				new TokenIDSupportRemovedEvent('token').name,
+			);
+		});
+
+		it('should log an event when support is removed for token', async () => {
+			const tokenId = Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]);
+
+			await expect(method.removeSupport(methodContext, tokenId)).resolves.toBeUndefined();
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
+			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
+				new TokenIDSupportRemovedEvent('token').name,
+			);
 		});
 	});
 
