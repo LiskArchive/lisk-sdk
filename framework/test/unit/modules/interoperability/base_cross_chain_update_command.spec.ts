@@ -102,6 +102,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(4) },
 		{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(2) },
 	].sort((v1, v2) => v1.blsKey.compare(v2.blsKey));
+
 	const defaultSendingChainID = Buffer.from([0, 0, 2, 0]);
 	const params = {
 		activeValidatorsUpdate: {
@@ -192,6 +193,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		status: 0,
 		params: Buffer.alloc(0),
 	};
+
 	let context: CrossChainMessageContext;
 	let command: CrossChainUpdateCommand;
 	let ccMethods: Map<string, BaseCCMethod>;
@@ -736,7 +738,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 	});
 
-	describe('apply', () => {
+	describe('verifyCCM', () => {
 		it('should terminate the chain and log event when sending chain is not live', async () => {
 			(internalMethod.isLive as jest.Mock).mockResolvedValue(false);
 
@@ -780,6 +782,34 @@ describe('BaseCrossChainUpdateCommand', () => {
 					result: CCMProcessedResult.DISCARDED,
 				},
 			);
+		});
+	});
+
+	describe('apply', () => {
+		let crossChainCommands: BaseCCCommand[];
+		let crossChainCommand: BaseCCCommand;
+
+		beforeEach(() => {
+			crossChainCommands = ccCommands.get(defaultCCM.module) as BaseCCCommand[];
+			crossChainCommand = crossChainCommands.find(
+				com => com.name === defaultCCM.crossChainCommand,
+			) as BaseCCCommand;
+		});
+
+		it('should call verifyCCM & simply return when it fails', async () => {
+			jest.spyOn(command['ccCommands'], 'get');
+			jest.spyOn(command, 'verifyCCM' as any).mockResolvedValue(false);
+			jest.spyOn(context.eventQueue, 'createSnapshot');
+
+			await expect(command['apply'](context)).resolves.toBeUndefined();
+
+			// additional checks, since it can return undefined in any other case
+
+			// no snapshot should be created
+			expect(context.eventQueue.createSnapshot).not.toHaveBeenCalled();
+
+			// shouldn't proceed towards finding a module
+			expect(command['ccCommands'].get).not.toHaveBeenCalled();
 		});
 
 		// let's first address beforeCrossChainCommandExecute & afterCrossChainCommandExecute tests
@@ -933,11 +963,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should terminate the chain and log event when crossChainCommand.verify fails', async () => {
-			const crossChainCommands = ccCommands.get(defaultCCM.module) as BaseCCCommand[];
-			const crossChainCommand = crossChainCommands.find(
-				com => com.name === defaultCCM.crossChainCommand,
-			) as BaseCCCommand;
-
 			jest.spyOn(crossChainCommand, 'verify').mockRejectedValue('error');
 
 			await expect(command['apply'](context)).resolves.toBeUndefined();
@@ -960,11 +985,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should call beforeCrossChainCommandExecute when crossChainCommand.verify pass', async () => {
-			const crossChainCommands = ccCommands.get(defaultCCM.module) as BaseCCCommand[];
-			const crossChainCommand = crossChainCommands.find(
-				com => com.name === defaultCCM.crossChainCommand,
-			) as BaseCCCommand;
-
 			jest.spyOn(crossChainCommand, 'verify').mockResolvedValue();
 			jest
 				.spyOn(command, '_beforeCrossChainCommandExecute' as any)
@@ -997,10 +1017,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 			jest.spyOn(context.eventQueue, 'restoreSnapshot');
 			jest.spyOn(context.stateStore, 'restoreSnapshot');
 
-			const crossChainCommand = (ccCommands.get(defaultCCM.module) as BaseCCCommand[]).find(
-				com => com.name === defaultCCM.crossChainCommand,
-			) as BaseCCCommand;
-
 			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			// shouldn't proceed to `crossChainCommand.execute`
@@ -1028,10 +1044,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 			const chainAccountStore = command['stores'].get(ChainAccountStore);
 			jest.spyOn(chainAccountStore, 'has').mockResolvedValue(false);
-
-			const crossChainCommand = (ccCommands.get(defaultCCM.module) as BaseCCCommand[]).find(
-				com => com.name === defaultCCM.crossChainCommand,
-			) as BaseCCCommand;
 
 			jest.spyOn(crossChainCommand, 'execute').mockRejectedValue('error'); // raise error
 
@@ -1080,10 +1092,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 			const chainAccountStore = command['stores'].get(ChainAccountStore);
 			jest.spyOn(chainAccountStore, 'has').mockResolvedValue(false);
-
-			const crossChainCommand = (ccCommands.get(defaultCCM.module) as BaseCCCommand[]).find(
-				com => com.name === defaultCCM.crossChainCommand,
-			) as BaseCCCommand;
 
 			jest.spyOn(crossChainCommand, 'execute').mockResolvedValue(); // don't raise any error
 
