@@ -116,6 +116,7 @@ export class InternalMethod extends BaseMethod {
 		messageFee: bigint,
 		data: string,
 		includeAttributes: boolean,
+		timestamp?: number,
 	): Promise<void> {
 		const chainID = this._method.getChainID(nftID);
 		const nftStore = this.stores.get(NFTStore);
@@ -172,6 +173,7 @@ export class InternalMethod extends BaseMethod {
 				attributesArray,
 				data,
 			}),
+			timestamp,
 		);
 	}
 

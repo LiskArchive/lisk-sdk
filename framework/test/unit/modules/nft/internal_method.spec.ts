@@ -205,6 +205,7 @@ describe('InternalMethod', () => {
 		let receivingChainID: Buffer;
 		const messageFee = BigInt(1000);
 		const data = '';
+		const timestamp = Math.floor(Date.now() / 1000);
 
 		beforeEach(() => {
 			receivingChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
@@ -254,6 +255,7 @@ describe('InternalMethod', () => {
 						messageFee,
 						data,
 						includeAttributes,
+						timestamp,
 					),
 				).resolves.toBeUndefined();
 
@@ -294,6 +296,7 @@ describe('InternalMethod', () => {
 					receivingChainID,
 					messageFee,
 					ccmParameters,
+					timestamp,
 				);
 			});
 
@@ -330,6 +333,7 @@ describe('InternalMethod', () => {
 						messageFee,
 						data,
 						includeAttributes,
+						timestamp,
 					),
 				).resolves.toBeUndefined();
 
@@ -362,6 +366,7 @@ describe('InternalMethod', () => {
 					receivingChainID,
 					messageFee,
 					ccmParameters,
+					timestamp,
 				);
 			});
 		});
@@ -407,6 +412,7 @@ describe('InternalMethod', () => {
 						messageFee,
 						data,
 						includeAttributes,
+						timestamp,
 					),
 				).resolves.toBeUndefined();
 
@@ -447,6 +453,7 @@ describe('InternalMethod', () => {
 					receivingChainID,
 					messageFee,
 					ccmParameters,
+					timestamp,
 				);
 			});
 
@@ -490,6 +497,7 @@ describe('InternalMethod', () => {
 						messageFee,
 						data,
 						includeAttributes,
+						timestamp,
 					),
 				).resolves.toBeUndefined();
 
@@ -522,6 +530,7 @@ describe('InternalMethod', () => {
 					receivingChainID,
 					messageFee,
 					ccmParameters,
+					timestamp,
 				);
 			});
 		});
