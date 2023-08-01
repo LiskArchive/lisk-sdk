@@ -27,6 +27,8 @@ import {
 	getChannelRequestSchema,
 	getTerminatedOutboxAccountRequestSchema,
 	getTerminatedStateAccountRequestSchema,
+	getMainchainIDRequestSchema,
+	getMainchainIDResponseSchema,
 } from '../schemas';
 import { allChainAccountsSchema, chainDataSchema, ChainStatus } from '../stores/chain_account';
 import { channelSchema } from '../stores/channel_data';
@@ -57,9 +59,10 @@ import {
 	MIN_CHAIN_NAME_LENGTH,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../constants';
-import { getMainchainID, isValidName, validNameCharset } from '../utils';
+import { getMainchainID, isValidName } from '../utils';
 import { TokenMethod } from '../../token';
 import { InvalidCertificateSignatureEvent } from '../events/invalid_certificate_signature';
+import { InvalidNameError } from '../errors';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod: BaseCCMethod = new SidechainCCMethod(this.stores, this.events);
@@ -193,6 +196,11 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 					request: getChainValidatorsRequestSchema,
 					response: getChainValidatorsResponseSchema,
 				},
+				{
+					name: this.endpoint.getMainchainID.name,
+					request: getMainchainIDRequestSchema,
+					response: getMainchainIDResponseSchema,
+				},
 			],
 			assets: [
 				{
@@ -282,7 +290,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			// CAUTION!
 			// this check is intentionally applied after MIN_CHAIN_NAME_LENGTH, as it will fail for empty string
 			if (!isValidName(ownChainName)) {
-				throw new Error(`ownChainName must have only ${validNameCharset} character set.`);
+				throw new InvalidNameError('ownChainName');
 			}
 			if (ownChainName === CHAIN_NAME_MAINCHAIN) {
 				throw new Error(`ownChainName must be not equal to ${CHAIN_NAME_MAINCHAIN}.`);

@@ -20,7 +20,8 @@ import { isChainIDAvailableRequestSchema, isChainNameAvailableRequestSchema } fr
 import { ChainAccountStore } from '../stores/chain_account';
 import { OwnChainAccountStore } from '../stores/own_chain_account';
 import { RegisteredNamesStore } from '../stores/registered_names';
-import { isValidName, validNameCharset } from '../utils';
+import { isValidName } from '../utils';
+import { InvalidNameError } from '../errors';
 
 export interface ResultJSON {
 	result: boolean;
@@ -66,9 +67,7 @@ export class MainchainInteroperabilityEndpoint extends BaseInteroperabilityEndpo
 
 		const name = context.params.name as string;
 		if (!isValidName(name)) {
-			throw new Error(
-				`Invalid name property. It should contain only characters from the set [${validNameCharset}].`,
-			);
+			throw new InvalidNameError();
 		}
 
 		const nameSubstore = this.stores.get(RegisteredNamesStore);

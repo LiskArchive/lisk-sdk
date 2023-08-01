@@ -50,29 +50,24 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 	public async execute(
 		context: CCCommandExecuteContext<CCMSidechainTerminatedParams>,
 	): Promise<void> {
+		const { chainID, stateRoot } = context.params;
+
 		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
-		const terminatedStateAccountExists = await terminatedStateSubstore.has(
-			context,
-			context.chainID,
-		);
+		const terminatedStateAccountExists = await terminatedStateSubstore.has(context, chainID);
 
 		if (terminatedStateAccountExists) {
-			const terminatedStateAccount = await terminatedStateSubstore.get(context, context.chainID);
+			const terminatedStateAccount = await terminatedStateSubstore.get(context, chainID);
 			if (terminatedStateAccount.initialized) {
 				return;
 			}
 
-			await terminatedStateSubstore.set(context, context.chainID, {
-				stateRoot: context.params.stateRoot,
+			await terminatedStateSubstore.set(context, chainID, {
+				stateRoot,
 				mainchainStateRoot: EMPTY_HASH,
 				initialized: true,
 			});
 		} else {
-			await this.internalMethods.createTerminatedStateAccount(
-				context,
-				context.params.chainID,
-				context.params.stateRoot,
-			);
+			await this.internalMethods.createTerminatedStateAccount(context, chainID, stateRoot);
 		}
 	}
 }

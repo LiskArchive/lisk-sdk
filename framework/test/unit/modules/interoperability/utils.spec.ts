@@ -37,6 +37,7 @@ import {
 	computeValidatorsHash,
 	validateFormat,
 	verifyLivenessConditionForRegisteredChains,
+	isValidName,
 } from '../../../../src/modules/interoperability/utils';
 import * as interopUtils from '../../../../src/modules/interoperability/utils';
 import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
@@ -435,10 +436,8 @@ describe('Utils', () => {
 		it('should throw if certificate timestamp is older than half of liveness limit', () => {
 			expect(() =>
 				verifyLivenessConditionForRegisteredChains(
-					{
-						...ccuParams,
-					},
 					certificate.timestamp + LIVENESS_LIMIT / 2 + 1,
+					ccuParams.certificate,
 				),
 			).toThrow('The first CCU with a non-empty inbox update cannot contain a certificate older');
 		});
@@ -446,10 +445,8 @@ describe('Utils', () => {
 		it('should not throw if inbox update is not older than half of liveness limit', () => {
 			expect(
 				verifyLivenessConditionForRegisteredChains(
-					{
-						...ccuParams,
-					},
 					certificate.timestamp + LIVENESS_LIMIT / 2,
+					ccuParams.certificate,
 				),
 			).toBeUndefined();
 		});
@@ -654,6 +651,40 @@ describe('Utils', () => {
 					bytesToBuffer('1110'),
 				),
 			).toThrow('No BFT weights should be left');
+		});
+	});
+
+	describe('isValidName', () => {
+		it('should return true for a-z', () => {
+			expect(isValidName('abcxyz')).toBeTrue();
+		});
+
+		it('should return true for 0-9', () => {
+			expect(isValidName('01239')).toBeTrue();
+		});
+
+		it('should return true for of a-z0-9', () => {
+			expect(isValidName('abcxyz01239')).toBeTrue();
+		});
+
+		it('should return true for !@$&_. chars', () => {
+			expect(isValidName('abc_!@$&_._xyz')).toBeTrue();
+		});
+
+		it('should return true for [a-z0-9!@$&_.]+', () => {
+			expect(isValidName('abc_!@$&_._xyz_abc_!@$&_._xyz')).toBeTrue();
+		});
+
+		it('should return false for space character', () => {
+			expect(isValidName('abc xyz')).toBeFalse();
+		});
+
+		it('should return false for %', () => {
+			expect(isValidName('abc%xyz')).toBeFalse();
+		});
+
+		it('should return false for (', () => {
+			expect(isValidName('abc(xyz')).toBeFalse();
 		});
 	});
 });

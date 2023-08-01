@@ -313,6 +313,30 @@ describe('state store', () => {
 
 			await expect(subStore.get(Buffer.from([0]))).rejects.toThrow(NotFoundError);
 			await expect(subStore.get(existingKey)).resolves.toEqual(existingValue);
+			expect(subStore['_snapshot']).toBeUndefined();
+			expect(subStore['_latestSnapshotId']).toBe(id);
+		});
+
+		it('should throw an error when restoring with an invalid snapshot ID', () => {
+			const subStore = stateStore.getStore(moduleID, storePrefix);
+
+			expect(() => subStore.restoreSnapshot(100)).toThrow(
+				'Invalid snapshot ID. Cannot revert to an older snapshot.',
+			);
+		});
+
+		it('should throw an error when restoring without taking a snapshot first', () => {
+			const subStore = stateStore.getStore(moduleID, storePrefix);
+
+			expect(() => subStore.restoreSnapshot(0)).toThrow(
+				'Invalid snapshot ID. Cannot revert to an older snapshot.',
+			);
+		});
+
+		it('should reset the snapshot id to 0 when the limit is reached', () => {
+			stateStore['_latestSnapshotId'] = Number.MAX_SAFE_INTEGER - 1;
+			const snapshotId = stateStore.createSnapshot();
+			expect(snapshotId).toBe(0);
 		});
 	});
 
