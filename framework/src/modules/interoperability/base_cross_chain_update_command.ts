@@ -182,7 +182,6 @@ export abstract class BaseCrossChainUpdateCommand<
 		const { ccm, logger } = context;
 		const { ccmID } = getEncodedCCMAndID(ccm);
 
-		let result = true;
 		try {
 			// Call the beforeCrossChainCommandExecute functions from other modules.
 			// For example, the Token module assigns the message fee to the CCU sender.
@@ -215,10 +214,10 @@ export abstract class BaseCrossChainUpdateCommand<
 				result: CCMProcessedResult.DISCARDED,
 				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_EXECUTION_EXCEPTION,
 			});
-			result = false;
+			return false;
 		}
 
-		return result;
+		return true;
 	}
 
 	private async _afterCrossChainCommandExecute(
@@ -229,7 +228,6 @@ export abstract class BaseCrossChainUpdateCommand<
 		const { ccm, logger } = context;
 		const { ccmID } = getEncodedCCMAndID(ccm);
 
-		let result = true;
 		try {
 			// Call the beforeCrossChainCommandExecute functions from other modules.
 			// For example, the Token module assigns the message fee to the CCU sender.
@@ -262,10 +260,10 @@ export abstract class BaseCrossChainUpdateCommand<
 				result: CCMProcessedResult.DISCARDED,
 				code: CCMProcessedCode.INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
 			});
-			result = false;
+			return false;
 		}
 
-		return result;
+		return true;
 	}
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#apply
