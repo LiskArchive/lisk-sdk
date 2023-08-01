@@ -169,7 +169,7 @@ describe('keys:create command', () => {
 			expect(loggedData.keys[0].encrypted).toHaveProperty('mac');
 			expect(loggedData.keys[0].encrypted).toHaveProperty('cipherparams');
 			expect(loggedData.keys[0].encrypted).toHaveProperty('kdfparams');
-			expect(loggedData.keys[0].encrypted.cipher).toBe('aes-256-gcm');
+			expect(loggedData.keys[0].encrypted.cipher).toBe('aes-128-gcm');
 			expect(loggedData.keys[0].encrypted.kdf).toBe('argon2id');
 			expect(loggedData.keys[0].encrypted.version).toBe('1');
 			expect(consoleWarnSpy).toHaveBeenCalledTimes(0);
