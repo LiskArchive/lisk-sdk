@@ -700,6 +700,31 @@ describe('Base interoperability internal method', () => {
 		});
 	});
 
+	describe('getChainValidators', () => {
+		it('should throw error if chain account does not exist', async () => {
+			await expect(
+				mainchainInteroperabilityInternalMethod.getChainValidators(
+					methodContext,
+					cryptoUtils.getRandomBytes(4),
+				),
+			).rejects.toThrow('Chain account does not exist.');
+		});
+
+		it('should return chain account', async () => {
+			const chainValidatorData = {
+				activeValidators: [{ blsKey: Buffer.from([0, 0, 2, 0]), bftWeight: BigInt(2) }],
+				certificateThreshold: BigInt(1),
+			};
+
+			await chainDataSubstore.set(methodContext, chainID, chainAccount);
+
+			await chainValidatorsSubstore.set(methodContext, chainID, chainValidatorData);
+			await expect(
+				mainchainInteroperabilityInternalMethod.getChainValidators(methodContext, chainID),
+			).resolves.toEqual(chainValidatorData);
+		});
+	});
+
 	describe('updatePartnerChainOutboxRoot', () => {
 		it('should update partnerChainOutboxRoot in the channel', async () => {
 			jest.spyOn(interopMod.stores.get(ChannelDataStore), 'updatePartnerChainOutboxRoot');
