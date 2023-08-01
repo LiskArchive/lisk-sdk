@@ -134,6 +134,7 @@ export class TransferCrossChainCommand extends BaseCommand {
 			params.messageFee,
 			params.data,
 			params.includeAttributes,
+			context.header.timestamp,
 		);
 	}
 }
