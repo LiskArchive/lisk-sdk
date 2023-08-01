@@ -768,32 +768,20 @@ export class TokenMethod extends BaseMethod {
 			return;
 		}
 
-		try {
-			const supportedTokens = await this.stores
-				.get(SupportedTokensStore)
-				.get(methodContext, chainID);
+		const supportedTokens = await this.stores.get(SupportedTokensStore).get(methodContext, chainID);
 
-			if (supportedTokens) {
-				if (supportedTokens.supportedTokenIDs.length === 0) {
-					throw new Error('All tokens from the specified chain are supported.');
-				}
+		if (supportedTokens.supportedTokenIDs.length === 0) {
+			throw new Error('All tokens from the specified chain are supported.');
+		}
 
-				const tokenIndex = supportedTokens.supportedTokenIDs.indexOf(tokenID);
+		const tokenIndex = supportedTokens.supportedTokenIDs.indexOf(tokenID);
 
-				if (tokenIndex !== -1) {
-					supportedTokens.supportedTokenIDs.splice(tokenIndex, 1);
+		if (tokenIndex !== -1) {
+			supportedTokens.supportedTokenIDs.splice(tokenIndex, 1);
 
-					if (supportedTokens.supportedTokenIDs.length === 0) {
-						await this.stores.get(SupportedTokensStore).del(methodContext, chainID);
-					}
-				}
+			if (supportedTokens.supportedTokenIDs.length === 0) {
+				await this.stores.get(SupportedTokensStore).del(methodContext, chainID);
 			}
-		} catch (err) {
-			if (err instanceof NotFoundError) {
-				return;
-			}
-
-			throw err;
 		}
 	}
 
