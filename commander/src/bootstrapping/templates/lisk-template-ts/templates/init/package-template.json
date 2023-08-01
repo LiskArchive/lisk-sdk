@@ -14,7 +14,7 @@
 	"homepage": "",
 	"repository": {},
 	"engines": {
-		"node": ">=16.14.1 <=16",
+		"node": ">=18.12.0 <=18",
 		"npm": ">=8.1.0"
 	},
 	"main": "dist/index.js",
@@ -115,7 +115,7 @@
 		"@oclif/dev-cli": "1.26.10",
 		"@oclif/config": "1.18.3",
 		"@types/fs-extra": "8.1.0",
-		"@types/node": "16.11.26",
+		"@types/node": "18.15.3",
 		"@types/tar": "4.0.3",
 		"@types/jest": "26.0.21",
 		"@types/jest-when": "2.7.2",
