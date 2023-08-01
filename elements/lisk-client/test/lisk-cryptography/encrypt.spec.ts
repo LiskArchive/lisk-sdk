@@ -135,7 +135,7 @@ describe('encrypt', () => {
 						memorySize: 2024,
 						salt: 'c2561895bbfdb396cd70c8c1dd3da6c8',
 					},
-					cipher: Cipher.AES256GCM,
+					cipher: Cipher.AES128GCM,
 					cipherparams: {
 						iv: 'abd164afd834b9da47ba5d17',
 						tag: '457b33c03e2f138b6c334c9cf12195b0',

@@ -69,7 +69,7 @@ describe('generator endpoint', () => {
 		defaultEncryptedKeys = {
 			address: Buffer.from('9cabee3d27426676b852ce6b804cb2fdff7cd0b5', 'hex'),
 			type: 'encrypted',
-			data: await encrypt.encryptAES256GCMWithPassword(
+			data: await encrypt.encryptAES128GCMWithPassword(
 				codec.encode(plainGeneratorKeysSchema, defaultKeys),
 				defaultPassword,
 				{
@@ -517,7 +517,7 @@ describe('generator endpoint', () => {
 								memorySize: 2024,
 								salt: 'e9f564ce7f8392acb2691fb4953e17c0',
 							},
-							cipher: 'aes-256-gcm',
+							cipher: 'aes-128-gcm',
 							cipherparams: {},
 						},
 					},
@@ -539,7 +539,7 @@ describe('generator endpoint', () => {
 					memorySize: 2024,
 					salt: 'e9f564ce7f8392acb2691fb4953e17c0',
 				},
-				cipher: 'aes-256-gcm',
+				cipher: 'aes-128-gcm',
 				cipherparams: {
 					iv: '57124bb910dbf9e24e37d401',
 					tag: 'b769dcbd4ad0d3f44041afe5322aad82',
@@ -602,7 +602,7 @@ describe('generator endpoint', () => {
 							memorySize: 2024,
 							salt: 'e9f564ce7f8392acb2691fb4953e17c0',
 						},
-						cipher: 'aes-256-gcm',
+						cipher: 'aes-128-gcm',
 						cipherparams: {
 							iv: '57124bb910dbf9e24e37d401',
 							tag: 'b769dcbd4ad0d3f44041afe5322aad82',
@@ -656,7 +656,7 @@ describe('generator endpoint', () => {
 							memorySize: 2024,
 							salt: 'e9f564ce7f8392acb2691fb4953e17c0',
 						},
-						cipher: 'aes-256-gcm',
+						cipher: 'aes-128-gcm',
 						cipherparams: {
 							iv: '57124bb910dbf9e24e37d401',
 							tag: 'b769dcbd4ad0d3f44041afe5322aad82',
