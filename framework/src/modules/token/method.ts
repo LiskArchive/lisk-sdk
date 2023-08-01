@@ -726,14 +726,9 @@ export class TokenMethod extends BaseMethod {
 			);
 		}
 
-		try {
-			await this.stores.get(SupportedTokensStore).get(methodContext, chainID);
-		} catch (err) {
-			if (err instanceof NotFoundError) {
-				return;
-			}
-
-			throw err;
+		const chainSupported = await this.stores.get(SupportedTokensStore).has(methodContext, chainID);
+		if (!chainSupported) {
+			return;
 		}
 
 		await this.stores.get(SupportedTokensStore).del(methodContext, chainID);
