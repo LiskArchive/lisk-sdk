@@ -362,6 +362,7 @@ export class TokenModule extends BaseInteroperableModule {
 						'supportedTokenIds must be an empty array when all tokens are supported.',
 					);
 				}
+				await this.stores.get(SupportedTokensStore).supportAll(context);
 			} else {
 				copiedSupportedTokenIDsStore.sort((a, b) => a.chainID.compare(b.chainID));
 
