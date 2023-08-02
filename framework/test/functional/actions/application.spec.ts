@@ -43,6 +43,9 @@ describe('Application related actions', () => {
 					networkIdentifier: expect.any(String),
 					networkVersion: expect.any(String),
 					lastBlockID: expect.any(String),
+					backup: {
+						height: expect.any(Number),
+					},
 					finalizedHeight: expect.any(Number),
 					unconfirmedTransactions: expect.any(Number),
 				}),
