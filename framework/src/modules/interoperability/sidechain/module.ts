@@ -63,6 +63,8 @@ import { getMainchainID, isValidName } from '../utils';
 import { TokenMethod } from '../../token';
 import { InvalidCertificateSignatureEvent } from '../events/invalid_certificate_signature';
 import { InvalidNameError } from '../errors';
+import { InvalidRMTVerification } from '../events/invalid_rmt_verification';
+import { InvalidSMTVerification } from '../events/invalid_smt_verification';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod: BaseCCMethod = new SidechainCCMethod(this.stores, this.events);
@@ -149,6 +151,8 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			InvalidCertificateSignatureEvent,
 			new InvalidCertificateSignatureEvent(this.name),
 		);
+		this.events.register(InvalidSMTVerification, new InvalidSMTVerification(this.name));
+		this.events.register(InvalidRMTVerification, new InvalidRMTVerification(this.name));
 	}
 
 	public addDependencies(validatorsMethod: ValidatorsMethod, tokenMethod: TokenMethod) {
