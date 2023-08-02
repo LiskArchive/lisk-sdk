@@ -22,10 +22,9 @@ import { Awaited } from '../../types';
 
 describe('message:decrypt', () => {
 	const defaultEncryptedMessage =
-		'kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=fc17353ac21dbdaa8b2c8a09d1ee7ded3e64559922d679e7fd382ac403247bd41389d32c7bc98bfa8f74a141b3946549b0d4ecdc995f130b321274484784f7bc4ac383491cb1010ead36abf91f0cf8be&mac=61792857203a0860c12ff9ed8dcb70db7240f1dfb28d6ddb8c7478e23c1fe029&salt=35e8e6305e6577f0&iv=bc47f1c691d2e60e59ba6e54a78442fe&tag=965a1c13309a5272d1bdf84090736f9e&iterations=1&parallelism=4&memorySize=2097023';
-	const result =
-		'target cancel solution recipe vague faint bomb convince pink vendor fresh patrol\n';
-	const defaultInputs = 'testpassword';
+		'kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=ee0737fa31&mac=8a179bc8e5f1ede2f624037bae19e5d4866e1cb794f571749f93a94c01d32db2&salt=9e32f89854b84589&iv=2f61c199638e1620d8bfe3bb1d9999b7&tag=787872a238a952ecfe821fa5058aa629&iterations=1&parallelism=4&memorySize=2097023';
+	const result = 'hello\n';
+	const defaultInputs = '123';
 
 	let stdout: string[];
 	let stderr: string[];
