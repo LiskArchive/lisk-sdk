@@ -25,12 +25,18 @@ import { EMPTY_BYTES } from '../interoperability/constants';
 import { BeforeCCMForwardingEvent } from './events/before_ccm_forwarding';
 import { splitTokenID } from './utils';
 import { getEncodedCCMAndID } from '../interoperability/utils';
+import { InternalMethod } from './internal_method';
 
 export class TokenInteroperableMethod extends BaseCCMethod {
 	private _interopMethod!: InteroperabilityMethod;
+	private _internalMethod!: InternalMethod;
 
-	public addDependencies(interoperabilityMethod: InteroperabilityMethod) {
+	public addDependencies(
+		interoperabilityMethod: InteroperabilityMethod,
+		internalMethod: InternalMethod,
+	) {
 		this._interopMethod = interoperabilityMethod;
+		this._internalMethod = internalMethod;
 	}
 
 	public async beforeCrossChainCommandExecute(ctx: CrossChainMessageContext): Promise<void> {
@@ -202,6 +208,11 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 
 		escrowData.amount -= totalAmount;
 		await escrowStore.set(methodContext, escrowKey, escrowData);
+
+		const userExists = await userStore.has(methodContext, userStore.getKey(address, tokenID));
+		if (!userExists) {
+			await this._internalMethod.initializeUserAccount(methodContext, address, tokenID);
+		}
 
 		await userStore.addAvailableBalance(methodContext, address, tokenID, totalAmount);
 
