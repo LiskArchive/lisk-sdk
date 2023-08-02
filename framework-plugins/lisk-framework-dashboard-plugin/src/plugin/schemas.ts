@@ -37,7 +37,7 @@ export const configSchema = {
 	},
 	required: [],
 	default: {
-		applicationUrl: 'ws://localhost:8080/ws',
+		applicationUrl: 'ws://127.0.0.1:7887/rpc-ws',
 		port: 4005,
 		host: '127.0.0.1',
 		applicationName: 'Lisk',

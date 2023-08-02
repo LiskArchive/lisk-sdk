@@ -13,9 +13,6 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { utils } from '@liskhq/lisk-cryptography';
-import { certificateSchema } from '../../../../engine/consensus/certificate_generation/schema';
-import { Certificate } from '../../../../engine/consensus/certificate_generation/types';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -29,7 +26,6 @@ import {
 	CONTEXT_STORE_KEY_CCM_PROCESSING,
 	CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 	EMPTY_FEE_ADDRESS,
-	LIVENESS_LIMIT,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../constants';
 import {
@@ -46,6 +42,8 @@ import {
 	getEncodedCCMAndID,
 	getMainchainID,
 	isInboxUpdateEmpty,
+	getDecodedCCMAndID,
+	verifyLivenessConditionForRegisteredChains,
 } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
@@ -89,7 +87,10 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			sendingChainAccount.status === ChainStatus.REGISTERED &&
 			!isInboxUpdateEmpty(params.inboxUpdate)
 		) {
-			this._verifyLivenessConditionForRegisteredChains(context);
+			verifyLivenessConditionForRegisteredChains(
+				context.header.timestamp,
+				context.params.certificate,
+			);
 		}
 
 		const sendingChainValidators = await this.stores
@@ -127,7 +128,7 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			for (let i = 0; i < decodedCCMs.length; i += 1) {
 				const ccm = decodedCCMs[i];
 				const ccmBytes = params.inboxUpdate.crossChainMessages[i];
-				const ccmID = utils.hash(ccmBytes);
+				const { ccmID } = getDecodedCCMAndID(ccmBytes);
 				const ccmContext = {
 					...context,
 					ccm,
@@ -228,7 +229,7 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 							commandName: ccm.crossChainCommand,
 							ccmID: ccmID.toString('hex'),
 						},
-						'Execute beforeCrossChainCommandExecute',
+						'Execute beforeCrossChainMessageForwarding',
 					);
 					await method.beforeCrossChainMessageForwarding(context);
 				}
@@ -238,7 +239,7 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			context.stateStore.restoreSnapshot(stateSnapshotID);
 			logger.info(
 				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
-				'Fail to execute beforeCrossChainCommandExecute.',
+				'Fail to execute beforeCrossChainMessageForwarding.',
 			);
 			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
@@ -254,18 +255,5 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			result: CCMProcessedResult.FORWARDED,
 			ccm,
 		});
-	}
-
-	private _verifyLivenessConditionForRegisteredChains(
-		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
-	): void {
-		const certificate = codec.decode<Certificate>(certificateSchema, context.params.certificate);
-		if (context.header.timestamp - certificate.timestamp > LIVENESS_LIMIT / 2) {
-			throw new Error(
-				`The first CCU with a non-empty inbox update cannot contain a certificate older than ${
-					LIVENESS_LIMIT / 2
-				} seconds.`,
-			);
-		}
 	}
 }
