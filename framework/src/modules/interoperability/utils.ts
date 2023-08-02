@@ -56,10 +56,6 @@ export const validateFormat = (ccm: CCMsg) => {
 
 export const validateCertificate = (certificate: Certificate) => {
 	validator.validate(certificateSchema, certificate);
-
-	if (certificate.timestamp === 0) {
-		throw new Error('Certificate timestamp cannot be 0.');
-	}
 };
 
 export const getCCMSize = (ccm: CCMsg) => {
@@ -92,10 +88,9 @@ export const handlePromiseErrorWithNull = async <T>(promise: Promise<T>) => {
 	return result;
 };
 
-export const isValidName = (username: string): boolean => /^[a-z0-9!@$&_.]+$/g.test(username);
-// CAUTION!
-// It must hold range from above `isValidName` function (as it's used in relevant error messages)
-export const validNameCharset = 'a-z0-9!@$&_.';
+export const validNameChars = 'a-z0-9!@$&_.';
+export const isValidName = (username: string): boolean =>
+	new RegExp(`^[${validNameChars}]+$`, 'g').test(username);
 
 export const computeValidatorsHash = (
 	initValidators: ActiveValidators[],
@@ -264,10 +259,10 @@ export const chainAccountToJSON = (chainAccount: ChainAccount) => {
 };
 
 export const verifyLivenessConditionForRegisteredChains = (
-	ccu: CrossChainUpdateTransactionParams,
 	blockTimestamp: number,
+	certificateBuffer: Buffer,
 ) => {
-	const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
+	const certificate = codec.decode<Certificate>(certificateSchema, certificateBuffer);
 	validateCertificate(certificate);
 
 	const limitSecond = LIVENESS_LIMIT / 2;
@@ -293,7 +288,15 @@ export const getMainchainTokenID = (chainID: Buffer): Buffer => {
 
 export const getEncodedCCMAndID = (ccm: CCMsg) => {
 	const encodedCCM = codec.encode(ccmSchema, ccm);
-	return { ccmID: utils.hash(encodedCCM), encodedCCM };
+	return { encodedCCM, ccmID: utils.hash(encodedCCM) };
+};
+
+export const getDecodedCCMAndID = (ccmBytes: Buffer) => {
+	const decodedCCM = codec.decode<CCMsg>(ccmSchema, ccmBytes);
+	return {
+		decodedCCM,
+		ccmID: utils.hash(ccmBytes),
+	};
 };
 
 export const emptyActiveValidatorsUpdate = (value: ActiveValidatorsUpdate): boolean =>

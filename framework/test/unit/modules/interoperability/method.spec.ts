@@ -13,16 +13,13 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { codec } from '@liskhq/lisk-codec';
 import { MainchainInteroperabilityModule, TokenMethod, ChannelData } from '../../../../src';
 import { BaseInteroperabilityMethod } from '../../../../src/modules/interoperability/base_interoperability_method';
 import {
 	CCMStatusCode,
-	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
 	EMPTY_BYTES,
 	EMPTY_FEE_ADDRESS,
-	HASH_LENGTH,
 	MAX_CCM_SIZE,
 	MODULE_NAME_INTEROPERABILITY,
 	MAX_RESERVED_ERROR_STATUS,
@@ -33,7 +30,6 @@ import {
 } from '../../../../src/modules/interoperability/events/ccm_send_fail';
 import { CcmSendSuccessEvent } from '../../../../src/modules/interoperability/events/ccm_send_success';
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
-import { ccmSchema } from '../../../../src/modules/interoperability/schemas';
 import {
 	ChainAccountStore,
 	ChainStatus,
@@ -44,7 +40,7 @@ import { createTransientMethodContext } from '../../../../src/testing';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
-import { getMainchainID } from '../../../../src/modules/interoperability/utils';
+import { getMainchainID, getEncodedCCMAndID } from '../../../../src/modules/interoperability/utils';
 
 class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {}
 
@@ -246,6 +242,7 @@ describe('Sample Method', () => {
 					ccm.receivingChainID,
 					ccm.fee,
 					ccm.params,
+					ccm.status,
 				),
 			).rejects.toThrow('Timestamp must be provided in mainchain context.');
 		});
@@ -413,7 +410,7 @@ describe('Sample Method', () => {
 				.mockResolvedValue(receivingChainAccount);
 
 			interopMod.stores.get(OwnChainAccountStore).set = ownChainAccountStoreMock.set;
-			const ccmID = utils.hash(codec.encode(ccmSchema, ccmOnMainchain));
+			const { ccmID } = getEncodedCCMAndID(ccmOnMainchain);
 
 			// Act & Assert
 			await expect(
@@ -533,38 +530,20 @@ describe('Sample Method', () => {
 	});
 
 	describe('terminateChain', () => {
-		const sidechainChainAccount = {
-			name: 'sidechain1',
-			chainID: Buffer.alloc(CHAIN_ID_LENGTH),
-			lastCertificate: {
-				height: 10,
-				stateRoot: utils.getRandomBytes(32),
-				timestamp: 100,
-				validatorsHash: utils.getRandomBytes(32),
-			},
-			status: ChainStatus.TERMINATED,
-		};
-
 		beforeEach(() => {
 			interopMod['internalMethod'].sendInternal = jest.fn();
 			interopMod['internalMethod'].createTerminatedStateAccount = jest.fn();
 		});
 
 		it('should do nothing if chain was already terminated', async () => {
-			jest.spyOn(sampleInteroperabilityMethod, 'getTerminatedStateAccount').mockResolvedValue({
-				stateRoot: sidechainChainAccount.lastCertificate.stateRoot,
-				mainchainStateRoot: Buffer.alloc(HASH_LENGTH),
-				initialized: true,
-			});
+			jest.spyOn(terminatedStateAccountStoreMock, 'has').mockResolvedValue(true);
 			await sampleInteroperabilityMethod.terminateChain(methodContext, chainID);
 
 			expect(interopMod['internalMethod'].sendInternal).not.toHaveBeenCalled();
 		});
 
 		it('should process with input chainID', async () => {
-			jest
-				.spyOn(sampleInteroperabilityMethod as any, 'getTerminatedStateAccount')
-				.mockResolvedValue(undefined);
+			jest.spyOn(terminatedStateAccountStoreMock, 'has').mockResolvedValue(false);
 
 			await sampleInteroperabilityMethod.terminateChain(methodContext, chainID);
 

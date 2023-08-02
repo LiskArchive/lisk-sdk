@@ -286,6 +286,8 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 		jest.spyOn(interopUtils, 'computeValidatorsHash').mockReturnValue(validatorsHash);
 		jest.spyOn(interopUtils, 'validateCertificate');
 		jest.spyOn(bls, 'verifyWeightedAggSig').mockReturnValue(true);
+
+		jest.spyOn(interopUtils, 'verifyLivenessConditionForRegisteredChains');
 	});
 
 	describe('verify schema', () => {
@@ -372,7 +374,6 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			jest
 				.spyOn(MainchainInteroperabilityInternalMethod.prototype, 'isLive')
 				.mockResolvedValue(true);
-			jest.spyOn(mainchainCCUUpdateCommand, '_verifyLivenessConditionForRegisteredChains' as never);
 		});
 
 		it('should reject when certificate and inboxUpdate are empty', async () => {
@@ -571,9 +572,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				}),
 			).resolves.toEqual({ status: VerifyStatus.OK });
 
-			expect(
-				mainchainCCUUpdateCommand['_verifyLivenessConditionForRegisteredChains'],
-			).toHaveBeenCalled();
+			expect(interopUtils.verifyLivenessConditionForRegisteredChains).toHaveBeenCalled();
 			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 	});
