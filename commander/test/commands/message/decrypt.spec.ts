@@ -22,9 +22,10 @@ import { Awaited } from '../../types';
 
 describe('message:decrypt', () => {
 	const defaultEncryptedMessage =
-		'kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=ee0737fa31&mac=8a179bc8e5f1ede2f624037bae19e5d4866e1cb794f571749f93a94c01d32db2&salt=9e32f89854b84589&iv=2f61c199638e1620d8bfe3bb1d9999b7&tag=787872a238a952ecfe821fa5058aa629&iterations=1&parallelism=4&memorySize=2097023';
-	const result = 'hello\n';
-	const defaultInputs = '123';
+		'kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=31b2cec3ca4585d4503b46444f5836b948d875367a5f5fc08bc4ca424db60acb4a86ab98f8dd4dd73f5589ede1b8c5abc16eb73561b48aab422dd6e716b97c91721a781e3e8acfdb39c0a7f41fd23ba8&mac=bfdf26800dab13a8e88ee7fa90fcd6d43459e762fe811b3be3664537df36c026&salt=e3db480467e4e61e&iv=11af231d8cbbe77d09e515f1b3308c57&tag=81b20ab2154678a020412a8459d79554&iterations=1&parallelism=4&memorySize=2024';
+	const defaultInputs = 'testpassword';
+	const result =
+		'target cancel solution recipe vague faint bomb convince pink vendor fresh patrol\n';
 
 	let stdout: string[];
 	let stderr: string[];
