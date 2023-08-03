@@ -105,29 +105,20 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 		const proofOfInclusion = { siblingHashes, queries: [query] };
 
 		const smt = new SparseMerkleTree();
+		let stateRoot: Buffer;
 		if (terminatedStateAccountExists) {
 			const terminatedStateAccount = await terminatedStateSubstore.get(context, chainID);
-			const verified = await smt.verify(
-				terminatedStateAccount.mainchainStateRoot,
-				[queryKey],
-				proofOfInclusion,
-			);
-			if (!verified) {
-				this.events.get(InvalidSMTVerification).error(context);
-				throw new Error('State recovery initialization proof of inclusion is not valid.');
-			}
+			stateRoot = terminatedStateAccount.mainchainStateRoot;
 		} else {
 			const mainchainID = getMainchainID(context.chainID);
 			const mainchainAccount = await this.stores.get(ChainAccountStore).get(context, mainchainID);
-			const verified = await smt.verify(
-				mainchainAccount.lastCertificate.stateRoot,
-				[queryKey],
-				proofOfInclusion,
-			);
-			if (!verified) {
-				this.events.get(InvalidSMTVerification).error(context);
-				throw new Error('State recovery initialization proof of inclusion is not valid.');
-			}
+			stateRoot = mainchainAccount.lastCertificate.stateRoot;
+		}
+
+		const verified = await smt.verify(stateRoot, [queryKey], proofOfInclusion);
+		if (!verified) {
+			this.events.get(InvalidSMTVerification).error(context);
+			throw new Error('State recovery initialization proof of inclusion is not valid.');
 		}
 
 		const deserializedSidechainAccount = codec.decode<ChainAccount>(

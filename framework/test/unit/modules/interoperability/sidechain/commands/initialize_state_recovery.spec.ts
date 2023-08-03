@@ -268,7 +268,7 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 			);
 		});
 
-		it('should return error if the sidechain is not terminated on the mainchain but the sidechain violates the liveness requirement', async () => {
+		it('should return error if the sidechain is active on the mainchain and does not violate the liveness requirement', async () => {
 			await terminatedStateSubstore.set(createStoreGetter(stateStore), transactionParams.chainID, {
 				...terminatedStateAccount,
 				initialized: false,
