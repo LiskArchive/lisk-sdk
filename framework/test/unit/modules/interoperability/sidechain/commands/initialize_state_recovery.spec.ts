@@ -50,6 +50,7 @@ import {
 import { createStoreGetter } from '../../../../../../src/testing/utils';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 import { getMainchainID } from '../../../../../../src/modules/interoperability/utils';
+import { InvalidSMTVerification } from '../../../../../../src/modules/interoperability/events/invalid_smt_verification';
 
 describe('Sidechain InitializeStateRecoveryCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
@@ -86,13 +87,7 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 	let mainchainAccount: ChainAccount;
 
 	beforeEach(async () => {
-		stateRecoveryInitCommand = new InitializeStateRecoveryCommand(
-			interopMod.stores,
-			interopMod.events,
-			new Map(),
-			new Map(),
-			interopMod['internalMethod'],
-		);
+		stateRecoveryInitCommand = interopMod['_stateRecoveryInitCommand'];
 
 		sidechainChainAccount = {
 			name: 'sidechain1',
@@ -232,7 +227,7 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 			});
 
 			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
-				'Sidechain is already terminated',
+				'Sidechain is already terminated.',
 			);
 		});
 
@@ -274,6 +269,10 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 		});
 
 		it('should return error if the sidechain is not terminated on the mainchain but the sidechain violates the liveness requirement', async () => {
+			await terminatedStateSubstore.set(createStoreGetter(stateStore), transactionParams.chainID, {
+				...terminatedStateAccount,
+				initialized: false,
+			});
 			const mainchainID = getMainchainID(transactionParams.chainID);
 			when(chainAccountStoreMock.get)
 				.calledWith(expect.anything(), mainchainID)
@@ -314,35 +313,113 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 			);
 
 			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
-				'Sidechain is not terminated.',
+				'Sidechain is still active and obeys the liveness requirement.',
 			);
 		});
 
-		it('should return error if terminated state account exists and proof of inclusion is not verified', async () => {
-			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
-
-			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
-				'State recovery initialization proof of inclusion is not valid',
-			);
-		});
-
-		it('should return error if terminated state account does not exist and proof of inclusion is not verified', async () => {
-			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
+		it('should return error if the sidechain has ChainStatus.REGISTERED status', async () => {
+			await terminatedStateSubstore.set(createStoreGetter(stateStore), transactionParams.chainID, {
+				...terminatedStateAccount,
+				initialized: false,
+			});
 			const mainchainID = getMainchainID(transactionParams.chainID);
-
 			when(chainAccountStoreMock.get)
 				.calledWith(expect.anything(), mainchainID)
 				.mockResolvedValue(mainchainAccount);
-
-			await terminatedStateSubstore.del(createStoreGetter(stateStore), transactionParams.chainID);
+			sidechainChainAccount = {
+				name: 'sidechain1',
+				lastCertificate: {
+					height: 10,
+					stateRoot: utils.getRandomBytes(32),
+					timestamp: 100,
+					validatorsHash: utils.getRandomBytes(32),
+				},
+				status: ChainStatus.REGISTERED,
+			};
+			sidechainChainAccountEncoded = codec.encode(chainDataSchema, sidechainChainAccount);
+			transactionParams = {
+				chainID: utils.intToBuffer(3, 4),
+				bitmap: Buffer.alloc(0),
+				siblingHashes: [],
+				sidechainAccount: sidechainChainAccountEncoded,
+			};
+			encodedTransactionParams = codec.encode(stateRecoveryInitParamsSchema, transactionParams);
+			transaction = new Transaction({
+				module: MODULE_NAME_INTEROPERABILITY,
+				command: COMMAND_NAME_STATE_RECOVERY_INIT,
+				fee: BigInt(100000000),
+				nonce: BigInt(0),
+				params: encodedTransactionParams,
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [],
+			});
+			transactionContext = createTransactionContext({
+				transaction,
+				stateStore,
+			});
+			commandVerifyContext = transactionContext.createCommandVerifyContext<StateRecoveryInitParams>(
+				stateRecoveryInitParamsSchema,
+			);
 
 			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
-				'State recovery initialization proof of inclusion is not valid',
+				'Sidechain has status registered.',
 			);
 		});
 	});
 
 	describe('execute', () => {
+		let invalidSMTVerificationEvent: InvalidSMTVerification;
+		beforeEach(() => {
+			mainchainAccount = {
+				name: 'mainchain',
+				lastCertificate: {
+					height: 10,
+					stateRoot: utils.getRandomBytes(32),
+					timestamp: 100 + LIVENESS_LIMIT,
+					validatorsHash: utils.getRandomBytes(32),
+				},
+				status: ChainStatus.ACTIVE,
+			};
+			invalidSMTVerificationEvent = new InvalidSMTVerification(interopMod.name);
+			stateRecoveryInitCommand['events'].register(
+				InvalidSMTVerification,
+				invalidSMTVerificationEvent,
+			);
+		});
+
+		it('should return error if terminated state account exists and proof of inclusion is not verified', async () => {
+			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
+			jest.spyOn(invalidSMTVerificationEvent, 'error');
+
+			await expect(stateRecoveryInitCommand.execute(commandExecuteContext)).rejects.toThrow(
+				'State recovery initialization proof of inclusion is not valid',
+			);
+			expect(interopStoreMock.createTerminatedStateAccount).not.toHaveBeenCalled();
+			expect(invalidSMTVerificationEvent.error).toHaveBeenCalled();
+		});
+
+		it('should return error if terminated state account does not exist and proof of inclusion is not verified', async () => {
+			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
+			jest.spyOn(invalidSMTVerificationEvent, 'error');
+
+			const mainchainID = getMainchainID(commandExecuteContext.chainID);
+
+			when(chainAccountStoreMock.get)
+				.calledWith(expect.anything(), mainchainID)
+				.mockResolvedValue(mainchainAccount);
+
+			await terminatedStateSubstore.del(
+				createStoreGetter(commandExecuteContext.stateStore as any),
+				transactionParams.chainID,
+			);
+
+			await expect(stateRecoveryInitCommand.execute(commandExecuteContext)).rejects.toThrow(
+				'State recovery initialization proof of inclusion is not valid',
+			);
+			expect(interopStoreMock.createTerminatedStateAccount).not.toHaveBeenCalled();
+			expect(invalidSMTVerificationEvent.error).toHaveBeenCalled();
+		});
+
 		it('should create a terminated state account when there is none', async () => {
 			// Arrange & Assign & Act
 			await stateRecoveryInitCommand.execute(commandExecuteContext);
