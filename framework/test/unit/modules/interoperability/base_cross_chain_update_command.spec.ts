@@ -1004,7 +1004,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			);
 		});
 
-		it('should terminate the chain and log event & return when crossChainCommand.verify fails', async () => {
+		it('should terminate the chain, log event & return when crossChainCommand.verify fails', async () => {
 			jest.spyOn(crossChainCommand, 'verify').mockRejectedValue('error');
 			jest.spyOn(command, '_beforeCrossChainCommandExecute' as any);
 
@@ -1115,7 +1115,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			);
 		});
 
-		it('should revert, call _afterCrossChainCommandExecution and then bounce when crossChainCommand.execute fails', async () => {
+		it('should revert, call _afterCrossChainCommandExecution (& if it pass) and then bounce when crossChainCommand.execute fails', async () => {
 			jest.spyOn(command, 'bounce' as never).mockResolvedValue(undefined as never);
 
 			const chainAccountStore = command['stores'].get(ChainAccountStore);
