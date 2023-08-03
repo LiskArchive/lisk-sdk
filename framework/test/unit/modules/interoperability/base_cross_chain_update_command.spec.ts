@@ -1004,8 +1004,9 @@ describe('BaseCrossChainUpdateCommand', () => {
 			);
 		});
 
-		it('should terminate the chain and log event when crossChainCommand.verify fails', async () => {
+		it('should terminate the chain and log event & return when crossChainCommand.verify fails', async () => {
 			jest.spyOn(crossChainCommand, 'verify').mockRejectedValue('error');
+			jest.spyOn(command, '_beforeCrossChainCommandExecute' as any);
 
 			await expect(command['apply'](context)).resolves.toBeUndefined();
 
@@ -1024,6 +1025,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					result: CCMProcessedResult.DISCARDED,
 				},
 			);
+			expect(command['_beforeCrossChainCommandExecute']).not.toHaveBeenCalled();
 		});
 
 		it('should call beforeCrossChainCommandExecute when crossChainCommand.verify pass', async () => {
