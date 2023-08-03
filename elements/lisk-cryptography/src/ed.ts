@@ -14,9 +14,8 @@
  */
 import * as crypto from 'crypto';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
-import { encode as encodeVarInt } from 'varuint-bitcoin';
 import { parseKeyDerivationPath, hash, tagMessage } from './utils';
-import { ED25519_CURVE, SIGNED_MESSAGE_PREFIX } from './constants';
+import { ED25519_CURVE, EMPTY_BUFFER } from './constants';
 import {
 	NACL_SIGN_PUBLICKEY_LENGTH,
 	NACL_SIGN_SIGNATURE_LENGTH,
@@ -26,28 +25,14 @@ import {
 	verifyDetached,
 } from './nacl';
 
+const MESSAGE_TAG_NON_PROTOCOL_MESSAGE = 'LSK_NPM_';
+
 const createHeader = (text: string): string => `-----${text}-----`;
 const signedMessageHeader = createHeader('BEGIN LISK SIGNED MESSAGE');
 const messageHeader = createHeader('MESSAGE');
 const publicKeyHeader = createHeader('PUBLIC KEY');
 const signatureHeader = createHeader('SIGNATURE');
 const signatureFooter = createHeader('END LISK SIGNED MESSAGE');
-
-const SIGNED_MESSAGE_PREFIX_BYTES = Buffer.from(SIGNED_MESSAGE_PREFIX, 'utf8');
-const SIGNED_MESSAGE_PREFIX_LENGTH = encodeVarInt(SIGNED_MESSAGE_PREFIX.length);
-
-export const digestMessage = (message: string): Buffer => {
-	const msgBytes = Buffer.from(message, 'utf8');
-	const msgLenBytes = encodeVarInt(message.length);
-	const dataBytes = Buffer.concat([
-		SIGNED_MESSAGE_PREFIX_LENGTH,
-		SIGNED_MESSAGE_PREFIX_BYTES,
-		msgLenBytes,
-		msgBytes,
-	]);
-
-	return hash(hash(dataBytes));
-};
 
 export const getPublicKeyFromPrivateKey = (pk: Buffer): Buffer => getPublicKey(pk);
 
@@ -100,9 +85,13 @@ export const signMessageWithPrivateKey = (
 	message: string,
 	privateKey: Buffer,
 ): SignedMessageWithPrivateKey => {
-	const msgBytes = digestMessage(message);
 	const publicKey = getPublicKey(privateKey);
-	const signature = signDetached(msgBytes, privateKey);
+	const signature = signDataWithPrivateKey(
+		MESSAGE_TAG_NON_PROTOCOL_MESSAGE,
+		EMPTY_BUFFER,
+		Buffer.from(message, 'utf8'),
+		privateKey,
+	);
 
 	return {
 		message,
@@ -116,21 +105,23 @@ export const verifyMessageWithPublicKey = ({
 	publicKey,
 	signature,
 }: SignedMessageWithPrivateKey): boolean => {
-	const msgBytes = digestMessage(message);
-
 	if (publicKey.length !== NACL_SIGN_PUBLICKEY_LENGTH) {
-		throw new Error(
-			`Invalid publicKey, expected ${NACL_SIGN_PUBLICKEY_LENGTH.toString()}-byte publicKey`,
-		);
+		throw new Error(`Invalid publicKey, expected ${NACL_SIGN_PUBLICKEY_LENGTH}-byte publicKey`);
 	}
 
 	if (signature.length !== NACL_SIGN_SIGNATURE_LENGTH) {
 		throw new Error(
-			`Invalid signature length, expected ${NACL_SIGN_SIGNATURE_LENGTH.toString()}-byte signature`,
+			`Invalid signature length, expected ${NACL_SIGN_SIGNATURE_LENGTH}-byte signature`,
 		);
 	}
 
-	return verifyDetached(msgBytes, signature, publicKey);
+	return verifyData(
+		MESSAGE_TAG_NON_PROTOCOL_MESSAGE,
+		EMPTY_BUFFER,
+		Buffer.from(message, 'utf8'),
+		signature,
+		publicKey,
+	);
 };
 
 export interface SignedMessage {

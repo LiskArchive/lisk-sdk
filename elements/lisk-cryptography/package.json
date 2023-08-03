@@ -38,8 +38,7 @@
 		"@liskhq/lisk-passphrase": "^4.0.0-beta.2",
 		"buffer-reverse": "1.0.1",
 		"hash-wasm": "4.9.0",
-		"tweetnacl": "1.0.3",
-		"varuint-bitcoin": "1.1.2"
+		"tweetnacl": "1.0.3"
 	},
 	"peerDependencies": {
 		"@chainsafe/blst": "0.2.9",
