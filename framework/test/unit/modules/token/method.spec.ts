@@ -39,7 +39,10 @@ import { InternalMethod } from '../../../../src/modules/token/internal_method';
 import { crossChainTransferMessageParams } from '../../../../src/modules/token/schemas';
 import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
 import { SupplyStore } from '../../../../src/modules/token/stores/supply';
-import { SupportedTokensStore } from '../../../../src/modules/token/stores/supported_tokens';
+import {
+	ALL_SUPPORTED_TOKENS_KEY,
+	SupportedTokensStore,
+} from '../../../../src/modules/token/stores/supported_tokens';
 import { UserStore } from '../../../../src/modules/token/stores/user';
 import { MethodContext, createMethodContext, EventQueue } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
@@ -1223,7 +1226,48 @@ describe('token module', () => {
 	});
 
 	describe('supportAllTokensFromChainID', () => {
-		it('should call support chain', async () => {
+		it('should return early if all tokens are already supported', async () => {
+			await tokenModule.stores
+				.get(SupportedTokensStore)
+				.set(methodContext, ALL_SUPPORTED_TOKENS_KEY, { supportedTokenIDs: [] });
+
+			await expect(
+				method.supportAllTokensFromChainID(methodContext, Buffer.from([1, 2, 3, 4])),
+			).resolves.toBeUndefined();
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
+		it('should return early if the chain ID is the same as the own chain ID', async () => {
+			const chainID = Buffer.from([1, 2, 3, 4]);
+			method['_config'].ownChainID = chainID;
+
+			await method.supportAllTokensFromChainID(methodContext, chainID);
+
+			await expect(
+				method.supportAllTokensFromChainID(methodContext, chainID),
+			).resolves.toBeUndefined();
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
+		it('should set an empty array of supported token IDs for the chain ID', async () => {
+			await tokenModule.stores
+				.get(SupportedTokensStore)
+				.set(methodContext, ALL_SUPPORTED_TOKENS_KEY, { supportedTokenIDs: [] });
+
+			await expect(
+				method.supportAllTokensFromChainID(methodContext, Buffer.from([1, 2, 3, 4])),
+			).resolves.toBeUndefined();
+
+			const supportedTokens = await tokenModule.stores
+				.get(SupportedTokensStore)
+				.get(methodContext, ALL_SUPPORTED_TOKENS_KEY);
+
+			expect(supportedTokens.supportedTokenIDs).toHaveLength(0);
+		});
+
+		it('should log AllTokensFromChainSupportedEvent', async () => {
 			await expect(
 				method.supportAllTokensFromChainID(methodContext, Buffer.from([1, 2, 3, 4])),
 			).resolves.toBeUndefined();
@@ -1249,6 +1293,54 @@ describe('token module', () => {
 				new AllTokensFromChainSupportRemovedEvent('token').name,
 			);
 		});
+
+		it('should throw an error if all tokens from all chains are supported', async () => {
+			await tokenModule.stores
+				.get(SupportedTokensStore)
+				.set(methodContext, ALL_SUPPORTED_TOKENS_KEY, { supportedTokenIDs: [] });
+
+			await expect(
+				method.removeAllTokensSupportFromChainID(methodContext, Buffer.from([1, 2, 3, 4])),
+			).rejects.toThrow('Invalid operation. All tokens from all chains are supported.');
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
+		it('should throw an error if the chain ID is the same as the own chain ID', async () => {
+			const chainID = Buffer.from([1, 2, 3, 4]);
+			method['_config'].ownChainID = chainID;
+
+			await expect(
+				method.removeAllTokensSupportFromChainID(methodContext, chainID),
+			).rejects.toThrow(
+				'Invalid operation. All tokens from all the specified chain should be supported.',
+			);
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
+		it('should return early if there are no supportedTokens', async () => {
+			await expect(
+				method.removeAllTokensSupportFromChainID(methodContext, Buffer.from([1, 2, 3, 4])),
+			).resolves.toBeUndefined();
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
+		it('should remove the chain ID from the supported tokens store', async () => {
+			await tokenModule.stores
+				.get(SupportedTokensStore)
+				.supportChain(methodContext, Buffer.from([1, 2, 3, 4]));
+
+			await expect(
+				method.removeAllTokensSupportFromChainID(methodContext, Buffer.from([1, 2, 3, 4])),
+			).resolves.toBeUndefined();
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
+			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
+				new AllTokensFromChainSupportRemovedEvent('token').name,
+			);
+		});
 	});
 
 	describe('supportTokenID', () => {
@@ -1264,14 +1356,83 @@ describe('token module', () => {
 		});
 	});
 
-	describe('removeSupportTokenID', () => {
+	describe('removeSupport', () => {
 		it('should call remove support for token', async () => {
+			await expect(
+				method.removeSupport(methodContext, Buffer.from([1, 2, 3, 4, 0, 0, 0, 0])),
+			).resolves.toBeUndefined();
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
+			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
+				new TokenIDSupportRemovedEvent('token').name,
+			);
+		});
+
+		it('should throw an error if all tokens are supported', async () => {
 			await tokenModule.stores
 				.get(SupportedTokensStore)
-				.supportToken(methodContext, Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]));
+				.set(methodContext, ALL_SUPPORTED_TOKENS_KEY, { supportedTokenIDs: [] });
+
 			await expect(
-				method.removeSupportTokenID(methodContext, Buffer.from([1, 2, 3, 4, 0, 0, 0, 0])),
-			).resolves.toBeUndefined();
+				method.removeSupport(methodContext, Buffer.from([1, 2, 3, 4, 0, 0, 0, 0])),
+			).rejects.toThrow('All tokens are supported.');
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
+		it('should throw an error if the specified token is the mainchain token or the own chain ID', async () => {
+			const tokenId = Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]);
+			const chainID = Buffer.from([1, 2, 3, 4]);
+			method['_config'].ownChainID = chainID;
+
+			await expect(method.removeSupport(methodContext, tokenId)).rejects.toThrow(
+				'Cannot remove support for the specified token.',
+			);
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
+		it('should return early and log an event if the specified token is not supported', async () => {
+			const tokenId = Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]);
+
+			await expect(method.removeSupport(methodContext, tokenId)).resolves.toBeUndefined();
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
+			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
+				new TokenIDSupportRemovedEvent('token').name,
+			);
+		});
+
+		it('should throw an error if all tokens from the specified chain are supported', async () => {
+			const tokenId = Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]);
+			const chainID = Buffer.from([1, 2, 3, 4]);
+
+			await tokenModule.stores.get(SupportedTokensStore).supportChain(methodContext, chainID);
+
+			await expect(method.removeSupport(methodContext, tokenId)).rejects.toThrow(
+				'All tokens from the specified chain are supported.',
+			);
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+		});
+
+		it('should remove the specified token from the supported tokens list', async () => {
+			const tokenId = Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]);
+
+			await tokenModule.stores.get(SupportedTokensStore).supportToken(methodContext, tokenId);
+
+			await expect(method.removeSupport(methodContext, tokenId)).resolves.toBeUndefined();
+
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
+			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
+				new TokenIDSupportRemovedEvent('token').name,
+			);
+		});
+
+		it('should log an event when support is removed for token', async () => {
+			const tokenId = Buffer.from([1, 2, 3, 4, 0, 0, 0, 0]);
+
+			await expect(method.removeSupport(methodContext, tokenId)).resolves.toBeUndefined();
 
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
