@@ -49,7 +49,7 @@ const getKeyFromPasswordWithArgon2 = async (options: {
 	);
 
 export enum Cipher {
-	AES256GCM = 'aes-256-gcm',
+	AES128GCM = 'aes-128-gcm',
 }
 
 export enum KDF {
@@ -75,7 +75,7 @@ export interface EncryptedMessageObject {
 	};
 }
 
-export const encryptAES256GCMWithPassword = async (
+export const encryptAES128GCMWithPassword = async (
 	plainText: string | Buffer,
 	password: string,
 	options?: {
@@ -88,8 +88,8 @@ export const encryptAES256GCMWithPassword = async (
 	},
 ): Promise<EncryptedMessageObject> => {
 	const kdf = options?.kdf ?? KDF.ARGON2;
-	const IV_BUFFER_SIZE = 12;
-	const SALT_BUFFER_SIZE = 16;
+	const IV_BUFFER_SIZE = 16;
+	const SALT_BUFFER_SIZE = 8;
 	const salt = crypto.randomBytes(SALT_BUFFER_SIZE);
 	const iv = crypto.randomBytes(IV_BUFFER_SIZE);
 	const iterations =
@@ -106,7 +106,7 @@ export const encryptAES256GCMWithPassword = async (
 					memorySize,
 			  })
 			: getKeyFromPassword(password, salt, iterations);
-	const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+	const cipher = crypto.createCipheriv('aes-128-gcm', key.slice(0, 16), iv);
 	const firstBlock = Buffer.isBuffer(plainText)
 		? cipher.update(plainText)
 		: cipher.update(plainText, 'utf8');
@@ -123,7 +123,7 @@ export const encryptAES256GCMWithPassword = async (
 			memorySize,
 			salt: salt.toString('hex'),
 		},
-		cipher: Cipher.AES256GCM,
+		cipher: Cipher.AES128GCM,
 		cipherparams: {
 			iv: iv.toString('hex'),
 			tag: tag.toString('hex'),
@@ -143,16 +143,16 @@ const getTagBuffer = (tag: string): Buffer => {
 };
 
 // Using `function` for overloading typescript
-export async function decryptAES256GCMWithPassword(
+export async function decryptAES128GCMWithPassword(
 	encryptedMessage: EncryptedMessageObject,
 	password: string,
 ): Promise<Buffer>;
-export async function decryptAES256GCMWithPassword(
+export async function decryptAES128GCMWithPassword(
 	encryptedMessage: EncryptedMessageObject,
 	password: string,
 	encoding: 'utf8' | 'utf-8',
 ): Promise<string>;
-export async function decryptAES256GCMWithPassword(
+export async function decryptAES128GCMWithPassword(
 	encryptedMessage: EncryptedMessageObject,
 	password: string,
 	encoding?: 'utf8' | 'utf-8',
@@ -176,7 +176,7 @@ export async function decryptAES256GCMWithPassword(
 			  })
 			: getKeyFromPassword(password, hexToBuffer(salt, 'Salt'), iterations);
 
-	const decipher = crypto.createDecipheriv('aes-256-gcm', key, hexToBuffer(iv, 'IV'));
+	const decipher = crypto.createDecipheriv('aes-128-gcm', key.slice(0, 16), hexToBuffer(iv, 'IV'));
 	decipher.setAuthTag(tagBuffer);
 	const firstBlock = decipher.update(hexToBuffer(ciphertext, 'Cipher text'));
 	const decrypted = Buffer.concat([firstBlock, decipher.final()]);
@@ -188,9 +188,9 @@ export async function decryptAES256GCMWithPassword(
 	return decrypted;
 }
 
-export const encryptMessageWithPassword = encryptAES256GCMWithPassword;
+export const encryptMessageWithPassword = encryptAES128GCMWithPassword;
 
-export const decryptMessageWithPassword = decryptAES256GCMWithPassword;
+export const decryptMessageWithPassword = decryptAES128GCMWithPassword;
 
 const parseOption = (optionString?: string): number | undefined => {
 	const option = !optionString ? undefined : parseInt(optionString, 10);
@@ -244,7 +244,7 @@ export const parseEncryptedMessage = (encryptedMessage: string): EncryptedMessag
 		throw new Error(`KDF must be one of ${kdfTypes.toString()}`);
 	}
 
-	const cipherTypes: string[] = [Cipher.AES256GCM];
+	const cipherTypes: string[] = [Cipher.AES128GCM];
 	if (!cipherTypes.includes(cipher)) {
 		throw new Error(`Cipher must be one of ${cipherTypes.toString()}`);
 	}

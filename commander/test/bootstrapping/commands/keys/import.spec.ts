@@ -107,7 +107,7 @@ describe('keys:import', () => {
 			defaultEncryptedKeys = {
 				address: Buffer.from('9cabee3d27426676b852ce6b804cb2fdff7cd0b5', 'hex'),
 				type: 'encrypted',
-				data: await encrypt.encryptAES256GCMWithPassword(
+				data: await encrypt.encryptAES128GCMWithPassword(
 					codec.encode(plainGeneratorKeysSchema, defaultKeys),
 					defaultPassword,
 					{

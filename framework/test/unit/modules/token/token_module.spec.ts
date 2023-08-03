@@ -20,6 +20,8 @@ import { SupplyStore } from '../../../../src/modules/token/stores/supply';
 import { UserStore } from '../../../../src/modules/token/stores/user';
 import { createGenesisBlockContext } from '../../../../src/testing';
 import { invalidGenesisAssets, validGenesisAssets } from './init_genesis_state_fixture';
+import { SupportedTokensStore } from '../../../../src/modules/token/stores/supported_tokens';
+import { EMPTY_BYTES } from '../../../../src';
 
 describe('token module', () => {
 	let tokenModule: TokenModule;
@@ -99,6 +101,19 @@ describe('token module', () => {
 				lte: Buffer.alloc(TOKEN_ID_LENGTH, 255),
 			});
 			expect(allEscrows).toHaveLength(input.escrowSubstore.length);
+
+			const supportedTokenStore = tokenModule.stores.get(SupportedTokensStore);
+			const allSupported = await supportedTokenStore.allSupported(context);
+
+			// When all the tokens are supported
+			if (
+				input.supportedTokensSubstore.length === 1 &&
+				input.supportedTokensSubstore[0].chainID.equals(EMPTY_BYTES)
+			) {
+				expect(allSupported).toBeTrue();
+			} else {
+				expect(allSupported).toBeFalse();
+			}
 		});
 
 		it.each(invalidGenesisAssets)('%s', async (_desc, input, err) => {
