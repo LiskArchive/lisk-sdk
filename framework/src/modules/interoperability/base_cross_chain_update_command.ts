@@ -411,7 +411,15 @@ export abstract class BaseCrossChainUpdateCommand<
 			context.stateStore.restoreSnapshot(execStateSnapshotID);
 
 			// in case of error, run `afterCrossChainCommandExecute` & `bounce` followed by `return`
-			await this._afterCrossChainCommandExecute(context, baseEventSnapshotID, baseStateSnapshotID);
+			if (
+				!(await this._afterCrossChainCommandExecute(
+					context,
+					baseEventSnapshotID,
+					baseStateSnapshotID,
+				))
+			) {
+				return;
+			}
 			await this.bounce(
 				context,
 				encodedCCM.length,

@@ -785,6 +785,60 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 	});
 
+	// https://stackoverflow.com/questions/58081822/how-to-share-test-cases-in-multiple-suites-with-jest
+	const commonTestsForNonExistingModuleAndCrossChainCommand = (
+		nonExistingContext: CrossChainMessageContext,
+		statusCode: CCMStatusCode,
+		processedCode: CCMProcessedCode,
+	) => {
+		describe('common tests for non existing module & crossChainCommand', () => {
+			beforeEach(() => {
+				jest.spyOn(command, '_beforeCrossChainCommandExecute' as any).mockResolvedValue(true);
+				jest.spyOn(command, 'bounce' as any);
+			});
+
+			it('should first call beforeCrossChainCommandExecute then simply return, if it fails', async () => {
+				jest.spyOn(command, '_beforeCrossChainCommandExecute' as any).mockResolvedValue(false);
+				jest.spyOn(command, '_afterCrossChainCommandExecute' as any);
+
+				await expect(command['apply'](nonExistingContext)).resolves.toBeUndefined();
+
+				expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
+				expect(command['_afterCrossChainCommandExecute']).not.toHaveBeenCalled();
+
+				expect(command['bounce']).not.toHaveBeenCalled();
+			});
+
+			it('should first call beforeCrossChainCommandExecute then afterCrossChainCommandExecute & simply return when beforeCrossChainCommandExecute pass but afterCrossChainCommandExecute fails', async () => {
+				jest.spyOn(command, '_afterCrossChainCommandExecute' as any).mockResolvedValue(false);
+
+				await expect(command['apply'](nonExistingContext)).resolves.toBeUndefined();
+
+				expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
+				expect(command['_afterCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
+
+				expect(command['bounce']).not.toHaveBeenCalled();
+			});
+
+			it('should bounce when beforeCrossChainCommandExecute & afterCrossChainCommandExecute pass', async () => {
+				jest.spyOn(command, '_afterCrossChainCommandExecute' as any).mockResolvedValue(true);
+
+				await expect(command['apply'](nonExistingContext)).resolves.toBeUndefined();
+
+				expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
+				expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
+
+				expect(command['bounce']).toHaveBeenCalledTimes(1);
+				expect(command['bounce']).toHaveBeenCalledWith(
+					nonExistingContext,
+					expect.toBeNumber(),
+					statusCode,
+					processedCode,
+				);
+			});
+		});
+	};
+
 	describe('apply', () => {
 		let crossChainCommands: BaseCCCommand[];
 		let crossChainCommand: BaseCCCommand;
@@ -901,18 +955,11 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		describe('when ccm.module is not supported', () => {
-			let nonExistingModuleContext: CrossChainMessageContext;
-
-			beforeEach(() => {
-				nonExistingModuleContext = createCrossChainMessageContext({
-					ccm: {
-						...defaultCCM,
-						module: 'blah',
-					},
-				});
-
-				jest.spyOn(command, '_beforeCrossChainCommandExecute' as any).mockResolvedValue(true);
-				jest.spyOn(command, 'bounce' as any);
+			const nonExistingModuleContext = createCrossChainMessageContext({
+				ccm: {
+					...defaultCCM,
+					module: 'foo',
+				},
 			});
 
 			it('shouldn return undefined for non existing module context', async () => {
@@ -921,81 +968,43 @@ describe('BaseCrossChainUpdateCommand', () => {
 				expect(command['ccCommands'].get(nonExistingModuleContext.ccm.module)).toBeUndefined();
 			});
 
-			it('should first call beforeCrossChainCommandExecute then simply return, if it fails', async () => {
-				jest.spyOn(command, '_beforeCrossChainCommandExecute' as any).mockResolvedValue(false);
-				jest.spyOn(command, '_afterCrossChainCommandExecute' as any);
-
-				await expect(command['apply'](nonExistingModuleContext)).resolves.toBeUndefined();
-
-				expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
-				expect(command['_afterCrossChainCommandExecute']).not.toHaveBeenCalled();
-
-				expect(command['bounce']).not.toHaveBeenCalled();
-			});
-
-			it('should first call beforeCrossChainCommandExecute then afterCrossChainCommandExecute & simply return when beforeCrossChainCommandExecute pass but afterCrossChainCommandExecute fails', async () => {
-				jest.spyOn(command, '_afterCrossChainCommandExecute' as any).mockResolvedValue(false);
-
-				await expect(command['apply'](nonExistingModuleContext)).resolves.toBeUndefined();
-
-				expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
-				expect(command['_afterCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
-
-				expect(command['bounce']).not.toHaveBeenCalled();
-			});
-
-			it('should first call beforeCrossChainCommandExecute then afterCrossChainCommandExecute & finally bounce when both (beforeCrossChainCommandExecute & afterCrossChainCommandExecute) pass', async () => {
-				jest.spyOn(command, '_afterCrossChainCommandExecute' as any).mockResolvedValue(true);
-
-				await expect(command['apply'](context)).resolves.toBeUndefined();
-
-				expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
-				expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
-
-				await expect(command['apply'](nonExistingModuleContext)).resolves.toBeUndefined();
-
-				expect(command['bounce']).toHaveBeenCalledTimes(1);
-				expect(command['bounce']).toHaveBeenCalledWith(
-					nonExistingModuleContext,
-					expect.toBeNumber(),
-					CCMStatusCode.MODULE_NOT_SUPPORTED,
-					CCMProcessedCode.MODULE_NOT_SUPPORTED,
-				);
-			});
+			commonTestsForNonExistingModuleAndCrossChainCommand(
+				nonExistingModuleContext,
+				CCMStatusCode.MODULE_NOT_SUPPORTED,
+				CCMProcessedCode.MODULE_NOT_SUPPORTED,
+			);
 		});
 
 		describe('when ccm.crossChainCommand is not supported', () => {
-			it('should first call beforeCrossChainCommandExecute then afterCrossChainCommandExecute & finally bounce when crossChainCommand is not supported', async () => {
-				jest.spyOn(command, 'bounce' as never).mockResolvedValue(undefined as never);
-				jest
-					.spyOn(command, '_beforeCrossChainCommandExecute' as any)
-					.mockResolvedValue({ anyError: false });
-				jest
-					.spyOn(command, '_afterCrossChainCommandExecute' as any)
-					.mockResolvedValue({ anyError: false });
+			const nonExistingCrossChainCommandContext = createCrossChainMessageContext({
+				ccm: {
+					...defaultCCM,
+					crossChainCommand: 'foo',
+				},
+			});
 
-				const nonExistingCrossChainCommandContext = createCrossChainMessageContext({
-					ccm: {
-						...defaultCCM,
-						crossChainCommand: 'blah',
-					},
-				});
-
+			it('shouldn return undefined for non existing crossChainCommand context', async () => {
 				await expect(
 					command['apply'](nonExistingCrossChainCommandContext),
 				).resolves.toBeUndefined();
 
-				expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
-				expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
+				const { ccm } = nonExistingCrossChainCommandContext;
+				const crossChainCommandsLocal = command['ccCommands'].get(ccm.module);
+				// ccm.module is supported
+				expect(crossChainCommandsLocal).toBeDefined();
 
-				expect(command['bounce']).toHaveBeenCalledTimes(1);
-				expect(command['bounce']).toHaveBeenCalledWith(
-					nonExistingCrossChainCommandContext,
-					expect.toBeNumber(),
-					CCMStatusCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
-					CCMProcessedCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
+				const crossChainCommandLocal = crossChainCommands.find(
+					com => com.name === ccm.crossChainCommand,
 				);
+				// but ccm.crossChainCommand is not supported
+				expect(crossChainCommandLocal).toBeUndefined();
 			});
+
+			commonTestsForNonExistingModuleAndCrossChainCommand(
+				nonExistingCrossChainCommandContext,
+				CCMStatusCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
+				CCMProcessedCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
+			);
 		});
 
 		it('should terminate the chain and log event when crossChainCommand.verify fails', async () => {
@@ -1022,20 +1031,52 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 		it('should call beforeCrossChainCommandExecute when crossChainCommand.verify pass', async () => {
 			jest.spyOn(crossChainCommand, 'verify').mockResolvedValue();
-			jest
-				.spyOn(command, '_beforeCrossChainCommandExecute' as any)
-				.mockResolvedValue({ anyError: false });
+			jest.spyOn(command, '_beforeCrossChainCommandExecute' as any).mockResolvedValue(false);
 
 			await expect(command['apply'](context)).resolves.toBeUndefined();
 
 			expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
 		});
 
-		it('should revert, call _afterCrossChainCommandExecution and then bounce when chainAccount(ccm.sendingChainID) exists and ccu.params.sendingChainID !== ccm.sendingChainID', async () => {
+		it('should revert, call _afterCrossChainCommandExecution (& if it fails, not bounce) when chainAccount(ccm.sendingChainID) exists and ccu.params.sendingChainID !== ccm.sendingChainID', async () => {
 			jest.spyOn(command, 'bounce' as never).mockResolvedValue(undefined as never);
-			jest
-				.spyOn(command, '_afterCrossChainCommandExecute' as any)
-				.mockResolvedValue({ anyError: false });
+			jest.spyOn(command, '_afterCrossChainCommandExecute' as any).mockResolvedValue(false);
+
+			const chainAccountStore = command['stores'].get(ChainAccountStore);
+			jest.spyOn(chainAccountStore, 'has').mockResolvedValue(true);
+
+			let eventQueueCount = 0;
+			let stateStoreCount = 0;
+			jest.spyOn(context.eventQueue, 'createSnapshot').mockImplementation(() => {
+				eventQueueCount += 1;
+				return eventQueueCount;
+			});
+			jest.spyOn(context.stateStore, 'createSnapshot').mockImplementation(() => {
+				stateStoreCount += 1;
+				return stateStoreCount;
+			});
+			jest.spyOn(context.eventQueue, 'restoreSnapshot');
+			jest.spyOn(context.stateStore, 'restoreSnapshot');
+
+			await expect(command['apply'](context)).resolves.toBeUndefined();
+
+			// shouldn't proceed to `crossChainCommand.execute`
+			expect(crossChainCommand['execute']).not.toHaveBeenCalled();
+
+			// revert
+			expect(context.eventQueue.restoreSnapshot).toHaveBeenCalledWith(2);
+			expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(2);
+
+			// afterCrossChainCommandExecute
+			expect(command['_afterCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
+
+			// don't bounce when _afterCrossChainCommandExecution fail
+			expect(command['bounce']).not.toHaveBeenCalled();
+		});
+
+		it('should revert, call _afterCrossChainCommandExecution (& if it pass, bounce) when chainAccount(ccm.sendingChainID) exists and ccu.params.sendingChainID !== ccm.sendingChainID', async () => {
+			jest.spyOn(command, 'bounce' as never).mockResolvedValue(undefined as never);
+			jest.spyOn(command, '_afterCrossChainCommandExecute' as any).mockResolvedValue(true);
 
 			const chainAccountStore = command['stores'].get(ChainAccountStore);
 			jest.spyOn(chainAccountStore, 'has').mockResolvedValue(true);
@@ -1096,9 +1137,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			jest.spyOn(context.eventQueue, 'restoreSnapshot');
 			jest.spyOn(context.stateStore, 'restoreSnapshot');
 
-			jest
-				.spyOn(command, '_afterCrossChainCommandExecute' as any)
-				.mockResolvedValue({ anyError: false });
+			jest.spyOn(command, '_afterCrossChainCommandExecute' as any).mockResolvedValue(false);
 			jest.spyOn(command['events'], 'get');
 
 			await expect(command['apply'](context)).resolves.toBeUndefined();
@@ -1144,9 +1183,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			jest.spyOn(context.eventQueue, 'restoreSnapshot');
 			jest.spyOn(context.stateStore, 'restoreSnapshot');
 
-			jest
-				.spyOn(command, '_afterCrossChainCommandExecute' as any)
-				.mockResolvedValue({ anyError: false });
+			jest.spyOn(command, '_afterCrossChainCommandExecute' as any).mockResolvedValue(false);
 			jest.spyOn(command['events'], 'get');
 
 			await expect(command['apply'](context)).resolves.toBeUndefined();
@@ -1154,7 +1191,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			// if `execute` pass, `events.get` should be called
 			expect(command['events'].get).toHaveBeenCalled();
 
-			// don't call revert, since it's mocked as `{ anyError: false }` above
+			// don't call revert, since it's mocked as `false` above
 			expect(context.eventQueue.restoreSnapshot).not.toHaveBeenCalledWith();
 			expect(context.stateStore.restoreSnapshot).not.toHaveBeenCalledWith();
 
