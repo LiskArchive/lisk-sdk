@@ -424,7 +424,7 @@ const encryptedObjectSchema = {
 		},
 		cipher: {
 			type: 'string',
-			enum: ['aes-256-gcm'],
+			enum: ['aes-128-gcm'],
 		},
 		cipherparams: {
 			type: 'object',
