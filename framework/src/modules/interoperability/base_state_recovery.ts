@@ -29,6 +29,7 @@ import { TerminatedStateStore } from './stores/terminated_state';
 import { computeStorePrefix } from '../base_store';
 import { BaseCCMethod } from './base_cc_method';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
+import { InvalidSMTVerification } from './events/invalid_smt_verification';
 
 export class BaseStateRecoveryCommand<
 	T extends BaseInteroperabilityInternalMethod,
@@ -39,7 +40,7 @@ export class BaseStateRecoveryCommand<
 		context: CommandVerifyContext<StateRecoveryParams>,
 	): Promise<VerificationResult> {
 		const {
-			params: { chainID, storeEntries, siblingHashes, module },
+			params: { chainID, storeEntries, module },
 		} = context;
 
 		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
@@ -77,12 +78,8 @@ export class BaseStateRecoveryCommand<
 			};
 		}
 
-		const { stateRoot } = terminatedStateAccount;
 		const queryKeys = [];
-		const storeQueries = [];
-
-		const storePrefix = computeStorePrefix(module);
-
+		// For efficiency, only subStorePrefix+storeKey is enough to check for pairwise distinct keys in verification
 		for (const entry of storeEntries) {
 			if (entry.storeValue.equals(EMPTY_BYTES)) {
 				return {
@@ -90,34 +87,15 @@ export class BaseStateRecoveryCommand<
 					error: new Error('Recovered store value cannot be empty.'),
 				};
 			}
-			const queryKey = Buffer.concat([
-				storePrefix,
-				entry.substorePrefix,
-				utils.hash(entry.storeKey),
-			]);
+			const queryKey = Buffer.concat([entry.substorePrefix, entry.storeKey]);
 			queryKeys.push(queryKey);
-			storeQueries.push({
-				key: queryKey,
-				value: utils.hash(entry.storeValue),
-				bitmap: entry.bitmap,
-			});
 		}
 
+		// Check that all keys are pariwise distinct, meaning that we are not trying to recover the same entry twice.
 		if (!objectUtils.bufferArrayUniqueItems(queryKeys)) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Recovered store keys are not pairwise distinct.'),
-			};
-		}
-
-		const proofOfInclusionStores = { siblingHashes, queries: storeQueries };
-		const sparseMerkleTree = new SparseMerkleTree();
-		const verified = await sparseMerkleTree.verify(stateRoot, queryKeys, proofOfInclusionStores);
-
-		if (!verified) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('State recovery proof of inclusion is not valid.'),
 			};
 		}
 
@@ -130,16 +108,50 @@ export class BaseStateRecoveryCommand<
 		const {
 			params: { chainID, storeEntries, module, siblingHashes },
 		} = context;
-		const storeQueries = [];
+		const storeQueriesVerify = [];
+		const queryKeys = [];
+		const storePrefix = computeStorePrefix(module);
+
+		for (const entry of storeEntries) {
+			const queryKey = Buffer.concat([
+				storePrefix,
+				entry.substorePrefix,
+				utils.hash(entry.storeKey),
+			]);
+			queryKeys.push(queryKey);
+			storeQueriesVerify.push({
+				key: queryKey,
+				value: utils.hash(entry.storeValue),
+				bitmap: entry.bitmap,
+			});
+		}
+		const terminatedStateAccount = await this.stores
+			.get(TerminatedStateStore)
+			.get(context, chainID);
+
+		const sparseMerkleTree = new SparseMerkleTree();
+		const proofOfInclusionStores = { siblingHashes, queries: storeQueriesVerify };
+		// The SMT verification step is computationally expensive. Therefore,
+		// it is done in the execution step such that the transaction fee must be paid.
+		const smtVerified = await sparseMerkleTree.verify(
+			terminatedStateAccount.stateRoot,
+			queryKeys,
+			proofOfInclusionStores,
+		);
+
+		if (!smtVerified) {
+			this.events.get(InvalidSMTVerification).error(context);
+			throw new Error('State recovery proof of inclusion is not valid.');
+		}
 
 		// Casting for type issue. `recover` already verified to exist in module for verify
 		const moduleMethod = this.interoperableCCMethods.get(module) as BaseCCMethod & {
 			recover: (ctx: RecoverContext) => Promise<void>;
 		};
-		const storePrefix = computeStorePrefix(module);
-
+		const storeQueriesUpdate = [];
 		for (const entry of storeEntries) {
 			try {
+				// The recover function corresponding to trsParams.module applies the recovery logic.
 				await moduleMethod.recover({
 					...context,
 					module,
@@ -148,28 +160,22 @@ export class BaseStateRecoveryCommand<
 					storeKey: entry.storeKey,
 					storeValue: entry.storeValue,
 				});
+				storeQueriesUpdate.push({
+					key: Buffer.concat([storePrefix, entry.substorePrefix, utils.hash(entry.storeKey)]),
+					value: EMPTY_HASH,
+					bitmap: entry.bitmap,
+				});
 			} catch (err) {
 				throw new Error(`Recovery failed for module: ${module}`);
 			}
-
-			storeQueries.push({
-				key: Buffer.concat([storePrefix, entry.substorePrefix, utils.hash(entry.storeKey)]),
-				value: EMPTY_HASH,
-				bitmap: entry.bitmap,
-			});
 		}
 
-		const sparseMerkleTree = new SparseMerkleTree();
 		const root = await sparseMerkleTree.calculateRoot({
-			queries: storeQueries,
+			queries: storeQueriesUpdate,
 			siblingHashes,
 		});
 
-		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
-
-		const terminatedStateAccount = await terminatedStateSubstore.get(context, chainID);
-
-		await terminatedStateSubstore.set(context, chainID, {
+		await this.stores.get(TerminatedStateStore).set(context, chainID, {
 			...terminatedStateAccount,
 			stateRoot: root,
 		});

@@ -20,24 +20,26 @@ import {
 	CommandExecuteContext,
 	CommandVerifyContext,
 	MainchainInteroperabilityModule,
-} from '../../../../../../src';
-import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
-import { BaseCCMethod } from '../../../../../../src/modules/interoperability/base_cc_method';
-import { COMMAND_NAME_STATE_RECOVERY } from '../../../../../../src/modules/interoperability/constants';
-import { RecoverStateCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/recover_state';
-import { stateRecoveryParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
+} from '../../../../src';
+import { BaseCCCommand } from '../../../../src/modules/interoperability/base_cc_command';
+import { BaseCCMethod } from '../../../../src/modules/interoperability/base_cc_method';
+import { COMMAND_NAME_STATE_RECOVERY } from '../../../../src/modules/interoperability/constants';
+import { RecoverStateCommand } from '../../../../src/modules/interoperability/mainchain/commands/recover_state';
+import { stateRecoveryParamsSchema } from '../../../../src/modules/interoperability/schemas';
 import {
 	TerminatedStateAccount,
 	TerminatedStateStore,
-} from '../../../../../../src/modules/interoperability/stores/terminated_state';
-import { StateRecoveryParams } from '../../../../../../src/modules/interoperability/types';
-import { TransactionContext, VerifyStatus } from '../../../../../../src/state_machine';
-import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
-import { createTransactionContext } from '../../../../../../src/testing';
-import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
-import { createStoreGetter } from '../../../../../../src/testing/utils';
+} from '../../../../src/modules/interoperability/stores/terminated_state';
+import { StateRecoveryParams } from '../../../../src/modules/interoperability/types';
+import { TransactionContext, VerifyStatus } from '../../../../src/state_machine';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import { createTransactionContext } from '../../../../src/testing';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
+import { createStoreGetter } from '../../../../src/testing/utils';
+import { InvalidSMTVerification } from '../../../../src/modules/interoperability/events/invalid_smt_verification';
 
-describe('Mainchain RecoverStateCommand', () => {
+describe('RecoverStateCommand', () => {
+	// Since the code is same for both mainchain and sidechain, using mainchain will be enough to test both
 	const interopMod = new MainchainInteroperabilityModule();
 	const module = 'module';
 	let chainIDAsBuffer: Buffer;
@@ -189,20 +191,22 @@ describe('Mainchain RecoverStateCommand', () => {
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude('Recovered store keys are not pairwise distinct.');
 		});
-
-		it('should return error if proof of inclusion is not verified', async () => {
-			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
-
-			const result = await stateRecoveryCommand.verify(commandVerifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('State recovery proof of inclusion is not valid.');
-		});
 	});
 
 	describe('execute', () => {
 		it('should resolve if params are valid', async () => {
 			await expect(stateRecoveryCommand.execute(commandExecuteContext)).resolves.toBeUndefined();
+		});
+
+		it('should return error if proof of inclusion is not verified', async () => {
+			const invalidSMTVerificationEvent = interopMod.events.get(InvalidSMTVerification);
+			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
+			jest.spyOn(invalidSMTVerificationEvent, 'error');
+
+			await expect(stateRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
+				'State recovery proof of inclusion is not valid',
+			);
+			expect(invalidSMTVerificationEvent.error).toHaveBeenCalled();
 		});
 
 		it('should throw error if recovery not available for module', async () => {
