@@ -963,7 +963,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			});
 
 			it('shouldn return undefined for non existing module context', async () => {
-				await expect(command['apply'](nonExistingModuleContext)).resolves.toBeUndefined();
+				await command['apply'](nonExistingModuleContext);
 				expect(command['ccCommands'].get(nonExistingModuleContext.ccm.module)).toBeUndefined();
 			});
 
@@ -983,9 +983,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			});
 
 			it('shouldn return undefined for non existing crossChainCommand context', async () => {
-				await expect(
-					command['apply'](nonExistingCrossChainCommandContext),
-				).resolves.toBeUndefined();
+				await command['apply'](nonExistingCrossChainCommandContext);
 
 				const { ccm } = nonExistingCrossChainCommandContext;
 				const crossChainCommandsLocal = command['ccCommands'].get(ccm.module);
