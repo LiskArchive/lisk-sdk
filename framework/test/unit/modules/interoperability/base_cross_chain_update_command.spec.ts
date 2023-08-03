@@ -1037,7 +1037,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
 		});
 
-		it('should revert, call _afterCrossChainCommandExecution (& if it fails, not bounce) when chainAccount(ccm.sendingChainID) exists and ccu.params.sendingChainID !== ccm.sendingChainID', async () => {
+		it("should revert, call _afterCrossChainCommandExecution (& if it fails, don't bounce) when chainAccount(ccm.sendingChainID) exists and ccu.params.sendingChainID !== ccm.sendingChainID", async () => {
 			jest.spyOn(command, 'bounce' as never).mockResolvedValue(undefined as never);
 			jest.spyOn(command, '_afterCrossChainCommandExecute' as any).mockResolvedValue(false);
 
@@ -1073,7 +1073,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			expect(command['bounce']).not.toHaveBeenCalled();
 		});
 
-		it('should revert, call _afterCrossChainCommandExecution (& if it pass, bounce) when chainAccount(ccm.sendingChainID) exists and ccu.params.sendingChainID !== ccm.sendingChainID', async () => {
+		it('should revert, call _afterCrossChainCommandExecution (& if it pass then bounce) when chainAccount(ccm.sendingChainID) exists and ccu.params.sendingChainID !== ccm.sendingChainID', async () => {
 			jest.spyOn(command, 'bounce' as never).mockResolvedValue(undefined as never);
 			jest.spyOn(command, '_afterCrossChainCommandExecute' as any).mockResolvedValue(true);
 
@@ -1115,7 +1115,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			);
 		});
 
-		it('should revert, call _afterCrossChainCommandExecution (& if it pass) and then bounce when crossChainCommand.execute fails', async () => {
+		it('should revert, call _afterCrossChainCommandExecution (& if it pass then bounce) when crossChainCommand.execute fails', async () => {
 			jest.spyOn(command, 'bounce' as never).mockResolvedValue(undefined as never);
 
 			const chainAccountStore = command['stores'].get(ChainAccountStore);
