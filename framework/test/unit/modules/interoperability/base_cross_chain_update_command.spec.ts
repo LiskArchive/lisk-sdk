@@ -785,60 +785,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 	});
 
-	// https://stackoverflow.com/questions/58081822/how-to-share-test-cases-in-multiple-suites-with-jest
-	const commonTestsForNonExistingModuleAndCrossChainCommand = (
-		nonExistingContext: CrossChainMessageContext,
-		statusCode: CCMStatusCode,
-		processedCode: CCMProcessedCode,
-	) => {
-		describe('common tests for non existing module & crossChainCommand', () => {
-			beforeEach(() => {
-				jest.spyOn(command, '_beforeCrossChainCommandExecute' as any).mockResolvedValue(true);
-				jest.spyOn(command, 'bounce' as any);
-			});
-
-			it('should first call beforeCrossChainCommandExecute then simply return, if it fails', async () => {
-				jest.spyOn(command, '_beforeCrossChainCommandExecute' as any).mockResolvedValue(false);
-				jest.spyOn(command, '_afterCrossChainCommandExecute' as any);
-
-				await expect(command['apply'](nonExistingContext)).resolves.toBeUndefined();
-
-				expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
-				expect(command['_afterCrossChainCommandExecute']).not.toHaveBeenCalled();
-
-				expect(command['bounce']).not.toHaveBeenCalled();
-			});
-
-			it('should first call beforeCrossChainCommandExecute then afterCrossChainCommandExecute & simply return when beforeCrossChainCommandExecute pass but afterCrossChainCommandExecute fails', async () => {
-				jest.spyOn(command, '_afterCrossChainCommandExecute' as any).mockResolvedValue(false);
-
-				await expect(command['apply'](nonExistingContext)).resolves.toBeUndefined();
-
-				expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
-				expect(command['_afterCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
-
-				expect(command['bounce']).not.toHaveBeenCalled();
-			});
-
-			it('should bounce when beforeCrossChainCommandExecute & afterCrossChainCommandExecute pass', async () => {
-				jest.spyOn(command, '_afterCrossChainCommandExecute' as any).mockResolvedValue(true);
-
-				await expect(command['apply'](nonExistingContext)).resolves.toBeUndefined();
-
-				expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
-				expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
-
-				expect(command['bounce']).toHaveBeenCalledTimes(1);
-				expect(command['bounce']).toHaveBeenCalledWith(
-					nonExistingContext,
-					expect.toBeNumber(),
-					statusCode,
-					processedCode,
-				);
-			});
-		});
-	};
-
 	describe('apply', () => {
 		let crossChainCommands: BaseCCCommand[];
 		let crossChainCommand: BaseCCCommand;
@@ -954,6 +900,60 @@ describe('BaseCrossChainUpdateCommand', () => {
 			});
 		});
 
+		// https://stackoverflow.com/questions/58081822/how-to-share-test-cases-in-multiple-suites-with-jest
+		const commonTestsForNonExistingModuleAndCrossChainCommand = (
+			nonExistingContext: CrossChainMessageContext,
+			statusCode: CCMStatusCode,
+			processedCode: CCMProcessedCode,
+		) => {
+			describe('common tests for non existing module & crossChainCommand', () => {
+				beforeEach(() => {
+					jest.spyOn(command, '_beforeCrossChainCommandExecute' as any).mockResolvedValue(true);
+					jest.spyOn(command, 'bounce' as any);
+				});
+
+				it('should first call beforeCrossChainCommandExecute then simply return, if it fails', async () => {
+					jest.spyOn(command, '_beforeCrossChainCommandExecute' as any).mockResolvedValue(false);
+					jest.spyOn(command, '_afterCrossChainCommandExecute' as any);
+
+					await expect(command['apply'](nonExistingContext)).resolves.toBeUndefined();
+
+					expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
+					expect(command['_afterCrossChainCommandExecute']).not.toHaveBeenCalled();
+
+					expect(command['bounce']).not.toHaveBeenCalled();
+				});
+
+				it('should first call beforeCrossChainCommandExecute then afterCrossChainCommandExecute & simply return when beforeCrossChainCommandExecute pass but afterCrossChainCommandExecute fails', async () => {
+					jest.spyOn(command, '_afterCrossChainCommandExecute' as any).mockResolvedValue(false);
+
+					await expect(command['apply'](nonExistingContext)).resolves.toBeUndefined();
+
+					expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
+					expect(command['_afterCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
+
+					expect(command['bounce']).not.toHaveBeenCalled();
+				});
+
+				it('should bounce when beforeCrossChainCommandExecute & afterCrossChainCommandExecute pass', async () => {
+					jest.spyOn(command, '_afterCrossChainCommandExecute' as any).mockResolvedValue(true);
+
+					await expect(command['apply'](nonExistingContext)).resolves.toBeUndefined();
+
+					expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
+					expect(command['_beforeCrossChainCommandExecute']).toHaveBeenCalledTimes(1);
+
+					expect(command['bounce']).toHaveBeenCalledTimes(1);
+					expect(command['bounce']).toHaveBeenCalledWith(
+						nonExistingContext,
+						expect.toBeNumber(),
+						statusCode,
+						processedCode,
+					);
+				});
+			});
+		};
+
 		describe('when ccm.module is not supported', () => {
 			const nonExistingModuleContext = createCrossChainMessageContext({
 				ccm: {
@@ -964,7 +964,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 			it('shouldn return undefined for non existing module context', async () => {
 				await expect(command['apply'](nonExistingModuleContext)).resolves.toBeUndefined();
-
 				expect(command['ccCommands'].get(nonExistingModuleContext.ccm.module)).toBeUndefined();
 			});
 
