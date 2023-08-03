@@ -1190,7 +1190,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			// if `execute` pass, `events.get` should be called
 			expect(command['events'].get).toHaveBeenCalled();
 
-			// don't call revert, since it's mocked as `false` above
+			// don't call revert
 			expect(context.eventQueue.restoreSnapshot).not.toHaveBeenCalledWith();
 			expect(context.stateStore.restoreSnapshot).not.toHaveBeenCalledWith();
 
