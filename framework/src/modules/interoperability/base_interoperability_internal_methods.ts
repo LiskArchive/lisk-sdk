@@ -58,6 +58,7 @@ import { TerminatedOutboxCreatedEvent } from './events/terminated_outbox_created
 import { BaseCCMethod } from './base_cc_method';
 import { verifyAggregateCertificateSignature } from '../../engine/consensus/certificate_generation/utils';
 import { InvalidCertificateSignatureEvent } from './events/invalid_certificate_signature';
+import { ChainValidators } from './types';
 
 export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMethod {
 	protected readonly interoperableModuleMethods = new Map<string, BaseCCMethod>();
@@ -572,6 +573,23 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		this.events
 			.get(CcmSendSuccessEvent)
 			.log(context, ccm.sendingChainID, ccm.receivingChainID, ccmID, { ccm });
+	}
+
+	public async getChainValidators(
+		context: ImmutableMethodContext,
+		chainID: Buffer,
+	): Promise<ChainValidators> {
+		const chainAccountStore = this.stores.get(ChainAccountStore);
+		const chainAccountExists = await chainAccountStore.has(context, chainID);
+		if (!chainAccountExists) {
+			throw new Error('Chain account does not exist.');
+		}
+
+		const chainValidatorsStore = this.stores.get(ChainValidatorsStore);
+
+		const validators = await chainValidatorsStore.get(context, chainID);
+
+		return validators;
 	}
 
 	/**
