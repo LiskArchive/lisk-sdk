@@ -279,37 +279,26 @@ export abstract class BaseCrossChainUpdateCommand<
 		const baseEventSnapshotID = context.eventQueue.createSnapshot();
 		const baseStateSnapshotID = context.stateStore.createSnapshot();
 
+		let statusCode;
+		let processedCode;
+
+		let crossChainCommand;
+
+		// ccm.module supported ?
 		const crossChainCommands = this.ccCommands.get(ccm.module);
 		if (!crossChainCommands) {
-			if (
-				!(await this._beforeCrossChainCommandExecute(
-					context,
-					baseEventSnapshotID,
-					baseStateSnapshotID,
-				))
-			) {
-				return;
+			statusCode = CCMStatusCode.MODULE_NOT_SUPPORTED;
+			processedCode = CCMProcessedCode.MODULE_NOT_SUPPORTED;
+		} else {
+			// ccm.crossChainCommand supported ?
+			crossChainCommand = crossChainCommands.find(com => com.name === ccm.crossChainCommand);
+			if (!crossChainCommand) {
+				statusCode = CCMStatusCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED;
+				processedCode = CCMProcessedCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED;
 			}
-			if (
-				!(await this._afterCrossChainCommandExecute(
-					context,
-					baseEventSnapshotID,
-					baseStateSnapshotID,
-				))
-			) {
-				return;
-			}
-			await this.bounce(
-				context,
-				encodedCCM.length,
-				CCMStatusCode.MODULE_NOT_SUPPORTED,
-				CCMProcessedCode.MODULE_NOT_SUPPORTED,
-			);
-			return;
 		}
 
-		const crossChainCommand = crossChainCommands.find(com => com.name === ccm.crossChainCommand);
-		if (!crossChainCommand) {
+		if (!crossChainCommands || !crossChainCommand) {
 			if (
 				!(await this._beforeCrossChainCommandExecute(
 					context,
@@ -331,8 +320,8 @@ export abstract class BaseCrossChainUpdateCommand<
 			await this.bounce(
 				context,
 				encodedCCM.length,
-				CCMStatusCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
-				CCMProcessedCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
+				statusCode as CCMStatusCode,
+				processedCode as CCMProcessedCode,
 			);
 			return;
 		}
