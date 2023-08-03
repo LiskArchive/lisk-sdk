@@ -600,6 +600,8 @@ export const isChainNameAvailableRequestSchema = {
 		name: {
 			dataType: 'string',
 			fieldNumber: 1,
+			minLength: MIN_CHAIN_NAME_LENGTH,
+			maxLength: MAX_CHAIN_NAME_LENGTH,
 		},
 	},
 };
@@ -607,6 +609,22 @@ export const isChainNameAvailableRequestSchema = {
 export const isChainNameAvailableResponseSchema = {
 	...isChainIDAvailableResponseSchema,
 	$id: '/modules/interoperability/endpoint/isChainNameAvailableResponseSchema',
+};
+
+export const getMainchainIDRequestSchema = {
+	...isChainIDAvailableRequestSchema,
+	$id: '/modules/interoperability/endpoint/getMainchainIDRequestSchema',
+};
+
+export const getMainchainIDResponseSchema = {
+	$id: '/modules/interoperability/endpoint/getMainchainIDResponseSchema',
+	type: 'object',
+	required: ['mainchainID'],
+	properties: {
+		result: {
+			type: 'string',
+		},
+	},
 };
 
 export const getChannelRequestSchema = getChainAccountRequestSchema;

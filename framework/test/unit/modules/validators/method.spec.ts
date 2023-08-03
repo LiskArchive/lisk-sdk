@@ -710,7 +710,7 @@ describe('ValidatorsModuleMethod', () => {
 		it('should throw error if the end timestamp is less than the start timestamp', async () => {
 			await expect(
 				validatorsModule.method.getGeneratorsBetweenTimestamps(methodContext, 10, 1),
-			).rejects.toThrow('End timestamp must be greater than start timestamp.');
+			).rejects.toThrow('End timestamp must be greater than or equal to start timestamp.');
 		});
 
 		it('should return empty result when startSlotNumber is lower than endSlotNumber but in the same block slot', async () => {
@@ -727,7 +727,7 @@ describe('ValidatorsModuleMethod', () => {
 	});
 
 	describe('getValidatorKeys', () => {
-		const validAddress = utils.getRandomBytes(20);
+		const validAddress = utils.getRandomBytes(ADDRESS_LENGTH);
 		let validatorAccount: ValidatorKeys;
 		beforeEach(async () => {
 			methodContext = createNewMethodContext(new InMemoryPrefixedStateDB());
@@ -749,11 +749,11 @@ describe('ValidatorsModuleMethod', () => {
 			expect(receivedValidatorAccount).toEqual(validatorAccount);
 		});
 
-		it('should throw when address length is not 20', async () => {
+		it(`should throw error when address length is not ${ADDRESS_LENGTH}`, async () => {
 			const invalidAddress = utils.getRandomBytes(19);
 			await expect(
 				validatorsMethod.getValidatorKeys(methodContext, invalidAddress),
-			).rejects.toThrow('Address is not valid');
+			).rejects.toThrow(`Validator address length must be ${ADDRESS_LENGTH}.`);
 		});
 
 		it('should throw if address does not exist', async () => {

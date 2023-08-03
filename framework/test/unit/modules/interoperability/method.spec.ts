@@ -13,18 +13,16 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { codec } from '@liskhq/lisk-codec';
-import { MainchainInteroperabilityModule, TokenMethod } from '../../../../src';
+import { MainchainInteroperabilityModule, TokenMethod, ChannelData } from '../../../../src';
 import { BaseInteroperabilityMethod } from '../../../../src/modules/interoperability/base_interoperability_method';
 import {
 	CCMStatusCode,
-	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
 	EMPTY_BYTES,
 	EMPTY_FEE_ADDRESS,
-	HASH_LENGTH,
 	MAX_CCM_SIZE,
 	MODULE_NAME_INTEROPERABILITY,
+	MAX_RESERVED_ERROR_STATUS,
 } from '../../../../src/modules/interoperability/constants';
 import {
 	CCMSentFailedCode,
@@ -32,7 +30,6 @@ import {
 } from '../../../../src/modules/interoperability/events/ccm_send_fail';
 import { CcmSendSuccessEvent } from '../../../../src/modules/interoperability/events/ccm_send_success';
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
-import { ccmSchema } from '../../../../src/modules/interoperability/schemas';
 import {
 	ChainAccountStore,
 	ChainStatus,
@@ -43,16 +40,9 @@ import { createTransientMethodContext } from '../../../../src/testing';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
-import { getMainchainID } from '../../../../src/modules/interoperability/utils';
+import { getMainchainID, getEncodedCCMAndID } from '../../../../src/modules/interoperability/utils';
 
-class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {
-	protected getInteroperabilityInternalMethod = (): MainchainInteroperabilityInternalMethod =>
-		new MainchainInteroperabilityInternalMethod(
-			this.stores,
-			this.events,
-			this.interoperableCCMethods,
-		);
-}
+class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {}
 
 describe('Sample Method', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -63,7 +53,7 @@ describe('Sample Method', () => {
 		set: jest.fn(),
 		has: jest.fn(),
 	};
-	const channelStoreMock = {
+	const channelDataStoreMock = {
 		get: jest.fn(),
 		set: jest.fn(),
 		has: jest.fn(),
@@ -89,8 +79,15 @@ describe('Sample Method', () => {
 	let tokenMethodMock: TokenMethod;
 	let ccmSendFailEventMock: CcmSentFailedEvent;
 	let ccmSendSuccessEventMock: CcmSendSuccessEvent;
+	let sampleChannelData: ChannelData;
 
 	beforeEach(() => {
+		sampleChannelData = {
+			minReturnFeePerByte: Buffer.from('10000000', 'hex'),
+			messageFeeTokenID: {
+				localID: Buffer.from('10000000', 'hex'),
+			},
+		} as any;
 		const defaultEventQueue = new EventQueue(0, [], [utils.hash(utils.getRandomBytes(32))]);
 		methodContext = createTransientMethodContext({ eventQueue: defaultEventQueue });
 		tokenMethodMock = {
@@ -114,7 +111,7 @@ describe('Sample Method', () => {
 		sampleInteroperabilityMethod.addDependencies(tokenMethodMock as any);
 
 		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
-		interopMod.stores.register(ChannelDataStore, channelStoreMock as never);
+		interopMod.stores.register(ChannelDataStore, channelDataStoreMock as never);
 		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
 		interopMod.stores.register(TerminatedStateStore, terminatedStateAccountStoreMock as never);
 		interopMod.stores.register(TerminatedOutboxStore, terminatedOutboxAccountMock as never);
@@ -132,7 +129,7 @@ describe('Sample Method', () => {
 		it('should call getChannel', async () => {
 			await sampleInteroperabilityMethod.getChannel(methodContext, chainID);
 
-			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), chainID);
+			expect(channelDataStoreMock.get).toHaveBeenCalledWith(expect.anything(), chainID);
 		});
 	});
 
@@ -216,7 +213,6 @@ describe('Sample Method', () => {
 					invalidSizeCCM.crossChainCommand,
 					invalidSizeCCM.receivingChainID,
 					invalidSizeCCM.fee,
-					invalidSizeCCM.status,
 					invalidSizeCCM.params,
 					Date.now(),
 				),
@@ -230,6 +226,25 @@ describe('Sample Method', () => {
 				},
 				true,
 			);
+		});
+
+		it('should throw error when timestamp not provided in mainchain context', async () => {
+			jest
+				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
+				.mockResolvedValue(ownChainAccountMainchain);
+
+			await expect(
+				sampleInteroperabilityMethod.send(
+					methodContext,
+					sendingAddress,
+					ccm.module,
+					ccm.crossChainCommand,
+					ccm.receivingChainID,
+					ccm.fee,
+					ccm.params,
+					ccm.status,
+				),
+			).rejects.toThrow('Timestamp must be provided in mainchain context.');
 		});
 
 		it('should throw error and emit event when receiving chain is not live', async () => {
@@ -248,7 +263,6 @@ describe('Sample Method', () => {
 					ccm.crossChainCommand,
 					ccm.receivingChainID,
 					ccm.fee,
-					ccm.status,
 					ccm.params,
 					Date.now(),
 				),
@@ -288,7 +302,6 @@ describe('Sample Method', () => {
 					ccmOnMainchain.crossChainCommand,
 					ccmOnMainchain.receivingChainID,
 					ccmOnMainchain.fee,
-					ccmOnMainchain.status,
 					ccmOnMainchain.params,
 					Date.now(),
 				),
@@ -323,7 +336,6 @@ describe('Sample Method', () => {
 					ccm.crossChainCommand,
 					ccm.receivingChainID,
 					ccm.fee,
-					ccm.status,
 					ccm.params,
 					Date.now(),
 				),
@@ -363,7 +375,6 @@ describe('Sample Method', () => {
 					ccm.crossChainCommand,
 					ccm.receivingChainID,
 					ccm.fee,
-					ccm.status,
 					ccm.params,
 					Date.now(),
 				),
@@ -399,7 +410,7 @@ describe('Sample Method', () => {
 				.mockResolvedValue(receivingChainAccount);
 
 			interopMod.stores.get(OwnChainAccountStore).set = ownChainAccountStoreMock.set;
-			const ccmID = utils.hash(codec.encode(ccmSchema, ccmOnMainchain));
+			const { ccmID } = getEncodedCCMAndID(ccmOnMainchain);
 
 			// Act & Assert
 			await expect(
@@ -410,7 +421,6 @@ describe('Sample Method', () => {
 					ccmOnMainchain.crossChainCommand,
 					ccmOnMainchain.receivingChainID,
 					ccmOnMainchain.fee,
-					ccmOnMainchain.status,
 					ccmOnMainchain.params,
 					Date.now(),
 				),
@@ -431,41 +441,22 @@ describe('Sample Method', () => {
 		});
 	});
 
-	describe('getMessageFeeTokenID', () => {
-		const newChainID = Buffer.from('1234', 'hex');
-		beforeEach(() => {
-			jest.spyOn(channelStoreMock, 'get').mockResolvedValue({
-				messageFeeTokenID: {
-					localID: Buffer.from('10000000', 'hex'),
-				},
-			} as never);
-		});
-
-		it('should assign chainID as mainchain ID if chainAccount not found', async () => {
-			await sampleInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
-			expect(channelStoreMock.get).toHaveBeenCalledWith(
-				expect.anything(),
-				getMainchainID(newChainID),
-			);
-		});
-
-		it('should process with input chainID', async () => {
-			jest.spyOn(chainAccountStoreMock, 'has').mockResolvedValue(true);
-
-			await sampleInteroperabilityMethod.getMessageFeeTokenID(methodContext, newChainID);
-			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), newChainID);
-		});
-	});
-
-	describe('getMinReturnFeePerByte', () => {
+	// both `getMessageFeeTokenID` & `getMinReturnFeePerByte` are covered here
+	describe('_getChannelCommon', () => {
 		const newChainID = Buffer.from('00000000', 'hex');
 		beforeEach(() => {
-			jest.spyOn(channelStoreMock, 'has').mockResolvedValue(true);
+			jest.spyOn(channelDataStoreMock, 'has').mockResolvedValue(true);
+		});
+		beforeEach(() => {
+			jest.spyOn(channelDataStoreMock, 'get').mockResolvedValue(sampleChannelData);
+			jest.spyOn(ownChainAccountStoreMock, 'get').mockResolvedValue({
+				chainID: Buffer.from('01234567', 'hex'),
+			});
 		});
 
 		it('should assign chainID as mainchain ID if ownchain ID is not mainchain ID and chainAccount not found', async () => {
-			await sampleInteroperabilityMethod.getMinReturnFeePerByte(methodContext, newChainID);
-			expect(channelStoreMock.get).toHaveBeenCalledWith(
+			await sampleInteroperabilityMethod['_getChannelCommon'](methodContext, newChainID);
+			expect(channelDataStoreMock.get).toHaveBeenCalledWith(
 				expect.anything(),
 				getMainchainID(newChainID),
 			);
@@ -474,52 +465,85 @@ describe('Sample Method', () => {
 		it('should process with input chainID', async () => {
 			jest.spyOn(chainAccountStoreMock, 'has').mockResolvedValue(true);
 
-			await sampleInteroperabilityMethod.getMinReturnFeePerByte(methodContext, newChainID);
-			expect(channelStoreMock.get).toHaveBeenCalledWith(expect.anything(), newChainID);
+			await sampleInteroperabilityMethod['_getChannelCommon'](methodContext, newChainID);
+			expect(channelDataStoreMock.get).toHaveBeenCalledWith(expect.anything(), newChainID);
 		});
 
 		it('should throw error if channel is not found', async () => {
-			jest.spyOn(channelStoreMock, 'has').mockResolvedValue(false);
+			jest.spyOn(channelDataStoreMock, 'has').mockResolvedValue(false);
 
 			await expect(
-				sampleInteroperabilityMethod.getMinReturnFeePerByte(methodContext, newChainID),
+				sampleInteroperabilityMethod['_getChannelCommon'](methodContext, newChainID),
 			).rejects.toThrow('Channel does not exist.');
+		});
+
+		it('should return messageFeeTokenID', async () => {
+			const messageFeeTokenID = await sampleInteroperabilityMethod['getMessageFeeTokenID'](
+				methodContext,
+				newChainID,
+			);
+			expect(messageFeeTokenID).toBe(sampleChannelData.messageFeeTokenID);
+		});
+
+		it('should return minReturnFeePerByte', async () => {
+			const minReturnFeePerByte = await sampleInteroperabilityMethod['getMinReturnFeePerByte'](
+				methodContext,
+				newChainID,
+			);
+			expect(minReturnFeePerByte).toBe(sampleChannelData.minReturnFeePerByte);
+		});
+	});
+
+	describe('error', () => {
+		const errMsg = `Error codes from 0 to ${MAX_RESERVED_ERROR_STATUS} (inclusive) are reserved to the Interoperability module.`;
+
+		it('should throw error for errorStatus 0', async () => {
+			await expect(sampleInteroperabilityMethod.error(methodContext, {} as any, 0)).rejects.toThrow(
+				errMsg,
+			);
+		});
+
+		it(`should throw error for errorStatus < ${MAX_RESERVED_ERROR_STATUS}`, async () => {
+			await expect(
+				sampleInteroperabilityMethod.error(methodContext, {} as any, MAX_RESERVED_ERROR_STATUS - 1),
+			).rejects.toThrow(errMsg);
+		});
+
+		it(`should throw error for errorStatus ${MAX_RESERVED_ERROR_STATUS}`, async () => {
+			await expect(
+				sampleInteroperabilityMethod.error(methodContext, {} as any, MAX_RESERVED_ERROR_STATUS),
+			).rejects.toThrow(errMsg);
+		});
+
+		it(`should not throw error for errorStatus > ${MAX_RESERVED_ERROR_STATUS}`, async () => {
+			jest.spyOn(sampleInteroperabilityMethod, 'send');
+			try {
+				await sampleInteroperabilityMethod.error(
+					methodContext,
+					{} as any,
+					MAX_RESERVED_ERROR_STATUS + 1,
+				);
+			} catch (err) {
+				expect(sampleInteroperabilityMethod.send).toHaveBeenCalled();
+			}
 		});
 	});
 
 	describe('terminateChain', () => {
-		const sidechainChainAccount = {
-			name: 'sidechain1',
-			chainID: Buffer.alloc(CHAIN_ID_LENGTH),
-			lastCertificate: {
-				height: 10,
-				stateRoot: utils.getRandomBytes(32),
-				timestamp: 100,
-				validatorsHash: utils.getRandomBytes(32),
-			},
-			status: ChainStatus.TERMINATED,
-		};
-
 		beforeEach(() => {
 			interopMod['internalMethod'].sendInternal = jest.fn();
 			interopMod['internalMethod'].createTerminatedStateAccount = jest.fn();
 		});
 
 		it('should do nothing if chain was already terminated', async () => {
-			jest.spyOn(sampleInteroperabilityMethod, 'getTerminatedStateAccount').mockResolvedValue({
-				stateRoot: sidechainChainAccount.lastCertificate.stateRoot,
-				mainchainStateRoot: Buffer.alloc(HASH_LENGTH),
-				initialized: true,
-			});
+			jest.spyOn(terminatedStateAccountStoreMock, 'has').mockResolvedValue(true);
 			await sampleInteroperabilityMethod.terminateChain(methodContext, chainID);
 
 			expect(interopMod['internalMethod'].sendInternal).not.toHaveBeenCalled();
 		});
 
 		it('should process with input chainID', async () => {
-			jest
-				.spyOn(sampleInteroperabilityMethod as any, 'getTerminatedStateAccount')
-				.mockResolvedValue(undefined);
+			jest.spyOn(terminatedStateAccountStoreMock, 'has').mockResolvedValue(false);
 
 			await sampleInteroperabilityMethod.terminateChain(methodContext, chainID);
 

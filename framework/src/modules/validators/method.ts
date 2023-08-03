@@ -157,8 +157,8 @@ export class ValidatorsMethod extends BaseMethod {
 		methodContext: ImmutableMethodContext,
 		address: Buffer,
 	): Promise<ValidatorKeys> {
-		if (address.length !== 20) {
-			throw new Error('Address is not valid.');
+		if (address.length !== ADDRESS_LENGTH) {
+			throw new Error(`Validator address length must be ${ADDRESS_LENGTH}.`);
 		}
 
 		const validatorsSubStore = this.stores.get(ValidatorKeysStore);
@@ -288,7 +288,7 @@ export class ValidatorsMethod extends BaseMethod {
 		endTimestamp: number,
 	): Promise<Record<string, number>> {
 		if (endTimestamp < startTimestamp) {
-			throw new Error('End timestamp must be greater than start timestamp.');
+			throw new Error('End timestamp must be greater than or equal to start timestamp.');
 		}
 
 		const result: Record<string, number> = {};

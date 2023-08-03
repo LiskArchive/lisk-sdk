@@ -424,7 +424,7 @@ const encryptedObjectSchema = {
 		},
 		cipher: {
 			type: 'string',
-			enum: ['aes-256-gcm'],
+			enum: ['aes-128-gcm'],
 		},
 		cipherparams: {
 			type: 'object',
@@ -506,7 +506,7 @@ export const setKeysRequestSchema = {
 	],
 };
 
-export type HasKeysRequest = {
+export type Address = {
 	address: string;
 };
 
@@ -515,6 +515,17 @@ export const hasKeysRequestSchema = {
 	type: 'object',
 	// nosemgrep: schema_with_required_that_is_not_a_property
 	required: ['address'],
+	properties: {
+		address: {
+			type: 'string',
+			format: 'lisk32',
+		},
+	},
+};
+
+export const getTransactionsFromPoolRequestSchema = {
+	$id: '/generator/getTransactionsFromPool',
+	type: 'object',
 	properties: {
 		address: {
 			type: 'string',

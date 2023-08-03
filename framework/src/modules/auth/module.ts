@@ -24,7 +24,7 @@ import {
 	VerifyStatus,
 } from '../../state_machine';
 import { AuthMethod } from './method';
-import { MAX_NUMBER_OF_SIGNATURES } from './constants';
+import { MAX_NUMBER_OF_SIGNATURES, ADDRESS_LENGTH } from './constants';
 import { AuthEndpoint } from './endpoint';
 import {
 	addressRequestSchema,
@@ -47,7 +47,7 @@ import { InvalidNonceError } from './errors';
 
 export class AuthModule extends BaseModule {
 	public method = new AuthMethod(this.stores, this.events);
-	public endpoint = new AuthEndpoint(this.name, this.stores, this.offchainStores);
+	public endpoint = new AuthEndpoint(this.stores, this.offchainStores);
 	public configSchema = configSchema;
 	public commands = [new RegisterMultisignatureCommand(this.stores, this.events)];
 
@@ -113,7 +113,7 @@ export class AuthModule extends BaseModule {
 		const store = this.stores.get(AuthAccountStore);
 		const keys = [];
 		for (const { storeKey, storeValue } of genesisStore.authDataSubstore) {
-			if (storeKey.length !== 20) {
+			if (storeKey.length !== ADDRESS_LENGTH) {
 				throw new Error('Invalid store key length for auth module.');
 			}
 			keys.push(storeKey);
@@ -121,27 +121,25 @@ export class AuthModule extends BaseModule {
 			validator.validate(authAccountSchema, storeValue);
 
 			const { mandatoryKeys, optionalKeys, numberOfSignatures } = storeValue;
-			if (mandatoryKeys.length > 0) {
-				if (!objectUtils.bufferArrayOrderByLex(mandatoryKeys)) {
-					throw new Error(
-						'Invalid store value for auth module. MandatoryKeys are not sorted lexicographically.',
-					);
-				}
-				if (!objectUtils.bufferArrayUniqueItems(mandatoryKeys)) {
-					throw new Error('Invalid store value for auth module. MandatoryKeys are not unique.');
-				}
+
+			if (!objectUtils.isBufferArrayOrdered(mandatoryKeys)) {
+				throw new Error(
+					'Invalid store value for auth module. MandatoryKeys are not sorted lexicographically.',
+				);
+			}
+			if (!objectUtils.bufferArrayUniqueItems(mandatoryKeys)) {
+				throw new Error('Invalid store value for auth module. MandatoryKeys are not unique.');
 			}
 
-			if (optionalKeys.length > 0) {
-				if (!objectUtils.bufferArrayOrderByLex(optionalKeys)) {
-					throw new Error(
-						'Invalid store value for auth module. OptionalKeys are not sorted lexicographically.',
-					);
-				}
-				if (!objectUtils.bufferArrayUniqueItems(optionalKeys)) {
-					throw new Error('Invalid store value for auth module. OptionalKeys are not unique.');
-				}
+			if (!objectUtils.isBufferArrayOrdered(optionalKeys)) {
+				throw new Error(
+					'Invalid store value for auth module. OptionalKeys are not sorted lexicographically.',
+				);
 			}
+			if (!objectUtils.bufferArrayUniqueItems(optionalKeys)) {
+				throw new Error('Invalid store value for auth module. OptionalKeys are not unique.');
+			}
+
 			if (mandatoryKeys.length + optionalKeys.length > MAX_NUMBER_OF_SIGNATURES) {
 				throw new Error(
 					`The count of Mandatory and Optional keys should be maximum ${MAX_NUMBER_OF_SIGNATURES}.`,

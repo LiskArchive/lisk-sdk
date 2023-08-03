@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
@@ -29,9 +30,10 @@ import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { TerminatedStateAccount, TerminatedStateStore } from '../../stores/terminated_state';
 import { ChainAccount, StateRecoveryInitParams } from '../../types';
 import { getMainchainID } from '../../utils';
-import { MainchainInteroperabilityInternalMethod } from '../../mainchain/internal_method';
+import { SidechainInteroperabilityInternalMethod } from '../internal_method';
+import { InvalidSMTVerification } from '../../events/invalid_smt_verification';
 
-export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
+export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<SidechainInteroperabilityInternalMethod> {
 	public schema = stateRecoveryInitParamsSchema;
 
 	// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#verification-3
@@ -40,7 +42,7 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 	): Promise<VerificationResult> {
 		const { params } = context;
 
-		const { chainID, bitmap, siblingHashes, sidechainAccount } = params;
+		const { chainID, sidechainAccount } = params;
 
 		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
 
@@ -49,7 +51,7 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 			throw new Error('Chain ID is not valid.');
 		}
 
-		// The commands fails if the sidechain is already terminated on this chain.
+		// The commands fails if the sidechain is already terminated & initialized on this chain.
 		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
 		const terminatedStateAccountExists = await terminatedStateSubstore.has(context, chainID);
 		let terminatedStateAccount: TerminatedStateAccount;
@@ -64,47 +66,21 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 			chainDataSchema,
 			sidechainAccount,
 		);
+
+		validator.validate(chainDataSchema, deserializedSidechainAccount);
+
 		const mainchainAccount = await this.stores.get(ChainAccountStore).get(context, mainchainID);
-		// The commands fails if the sidechain is not terminated and did not violate the liveness requirement.
+		// The sidechain must either be terminated or must have violated the liveness limit while being active.
+		if (deserializedSidechainAccount.status === ChainStatus.REGISTERED) {
+			throw new Error('Sidechain has status registered.');
+		}
 		if (
-			deserializedSidechainAccount.status !== ChainStatus.TERMINATED &&
+			deserializedSidechainAccount.status === ChainStatus.ACTIVE &&
 			mainchainAccount.lastCertificate.timestamp -
 				deserializedSidechainAccount.lastCertificate.timestamp <=
 				LIVENESS_LIMIT
 		) {
-			throw new Error('Sidechain is not terminated.');
-		}
-
-		const chainStore = this.stores.get(ChainAccountStore);
-		const queryKey = Buffer.concat([chainStore.key, utils.hash(chainID)]);
-
-		const query = { key: queryKey, value: utils.hash(sidechainAccount), bitmap };
-
-		const proofOfInclusion = { siblingHashes, queries: [query] };
-
-		const smt = new SparseMerkleTree();
-		if (terminatedStateAccountExists) {
-			terminatedStateAccount = await terminatedStateSubstore.get(context, chainID);
-			if (!terminatedStateAccount.mainchainStateRoot) {
-				throw new Error('Sidechain account has missing property: mainchain state root');
-			}
-			const verified = await smt.verify(
-				terminatedStateAccount.mainchainStateRoot,
-				[queryKey],
-				proofOfInclusion,
-			);
-			if (!verified) {
-				throw new Error('State recovery initialization proof of inclusion is not valid.');
-			}
-		} else {
-			const verified = await smt.verify(
-				mainchainAccount.lastCertificate.stateRoot,
-				[queryKey],
-				proofOfInclusion,
-			);
-			if (!verified) {
-				throw new Error('State recovery initialization proof of inclusion is not valid.');
-			}
+			throw new Error('Sidechain is still active and obeys the liveness requirement.');
 		}
 
 		return {
@@ -114,29 +90,61 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 
 	// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#execution-3
 	public async execute(context: CommandExecuteContext<StateRecoveryInitParams>): Promise<void> {
-		const { params } = context;
-		const sidechainAccount = codec.decode<ChainAccount>(chainDataSchema, params.sidechainAccount);
+		const {
+			params: { chainID, siblingHashes, bitmap, sidechainAccount: sidechainAccountBuffer },
+		} = context;
 
+		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
+		const terminatedStateAccountExists = await terminatedStateSubstore.has(context, chainID);
+
+		const chainStore = this.stores.get(ChainAccountStore);
+		const queryKey = Buffer.concat([chainStore.key, utils.hash(chainID)]);
+
+		const query = { key: queryKey, value: utils.hash(sidechainAccountBuffer), bitmap };
+
+		const proofOfInclusion = { siblingHashes, queries: [query] };
+
+		const smt = new SparseMerkleTree();
+		let stateRoot: Buffer;
+		if (terminatedStateAccountExists) {
+			const terminatedStateAccount = await terminatedStateSubstore.get(context, chainID);
+			stateRoot = terminatedStateAccount.mainchainStateRoot;
+		} else {
+			const mainchainID = getMainchainID(context.chainID);
+			const mainchainAccount = await this.stores.get(ChainAccountStore).get(context, mainchainID);
+			stateRoot = mainchainAccount.lastCertificate.stateRoot;
+		}
+
+		const verified = await smt.verify(stateRoot, [queryKey], proofOfInclusion);
+		if (!verified) {
+			this.events.get(InvalidSMTVerification).error(context);
+			throw new Error('State recovery initialization proof of inclusion is not valid.');
+		}
+
+		const deserializedSidechainAccount = codec.decode<ChainAccount>(
+			chainDataSchema,
+			sidechainAccountBuffer,
+		);
 		const doesTerminatedStateAccountExist = await this.stores
 			.get(TerminatedStateStore)
-			.has(context, params.chainID);
+			.has(context, chainID);
 		if (doesTerminatedStateAccountExist) {
 			const newTerminatedStateAccount: TerminatedStateAccount = {
-				stateRoot: sidechainAccount.lastCertificate.stateRoot,
+				stateRoot: deserializedSidechainAccount.lastCertificate.stateRoot,
 				mainchainStateRoot: EMPTY_HASH,
 				initialized: true,
 			};
 
 			const store = this.stores.get(TerminatedStateStore);
 
-			await store.set(context, params.chainID, newTerminatedStateAccount);
+			await store.set(context, chainID, newTerminatedStateAccount);
 			return;
 		}
 
 		await this.internalMethod.createTerminatedStateAccount(
 			context,
-			params.chainID,
-			sidechainAccount.lastCertificate.stateRoot,
+			chainID,
+			deserializedSidechainAccount.lastCertificate.stateRoot,
 		);
 	}
 }

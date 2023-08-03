@@ -12,7 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MainchainInteroperabilityModule, ModuleEndpointContext } from '../../../../../src';
+import {
+	MainchainInteroperabilityModule,
+	ModuleEndpointContext,
+	MAX_CHAIN_NAME_LENGTH,
+	MIN_CHAIN_NAME_LENGTH,
+} from '../../../../../src';
 import {
 	CHAIN_REGISTRATION_FEE,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
@@ -22,6 +27,7 @@ import { ChainAccountStore } from '../../../../../src/modules/interoperability/s
 import { OwnChainAccountStore } from '../../../../../src/modules/interoperability/stores/own_chain_account';
 import { RegisteredNamesStore } from '../../../../../src/modules/interoperability/stores/registered_names';
 import { createTransientModuleEndpointContext } from '../../../../../src/testing';
+import { InvalidNameError } from '../../../../../src/modules/interoperability/errors';
 
 describe('MainchainInteroperabilityEndpoint', () => {
 	let endpoint: MainchainInteroperabilityEndpoint;
@@ -50,6 +56,8 @@ describe('MainchainInteroperabilityEndpoint', () => {
 	});
 
 	describe('isChainNameAvailable', () => {
+		const nameMinLengthErrMsg = `Property '.name' must NOT have fewer than ${MIN_CHAIN_NAME_LENGTH} characters`;
+		const nameMaxLengthErrMsg = `Property '.name' must NOT have more than ${MAX_CHAIN_NAME_LENGTH} characters`;
 		const interopMod = new MainchainInteroperabilityModule();
 		const registeredNamesStore = {
 			has: jest.fn(),
@@ -60,61 +68,88 @@ describe('MainchainInteroperabilityEndpoint', () => {
 				offchainStoresMock as any,
 			);
 			interopMod.stores.register(RegisteredNamesStore, registeredNamesStore as never);
+			jest.spyOn(registeredNamesStore, 'has').mockResolvedValue(true);
 		});
 
 		it('should throw error if name is not a string', async () => {
-			// Arrange
 			const context = createTransientModuleEndpointContext({
 				params: {
-					name: 1,
+					name: 123,
 				},
 			});
-
-			// Assert
 			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(
-				'Chain name must be a string.',
+				'\'.name\' should pass "dataType" keyword validation',
 			);
 		});
 
-		it('should throw error if name is invalid format', async () => {
-			// Arrange
+		it(`should throw error if name has 0 length`, async () => {
 			const context = createTransientModuleEndpointContext({
 				params: {
-					name: '@*#$*%&@((%$#@((',
+					name: '',
 				},
 			});
+			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(nameMinLengthErrMsg);
+		});
 
-			// Assert
+		it(`should not throw error if name length equals ${MIN_CHAIN_NAME_LENGTH}`, () => {
+			const context = createTransientModuleEndpointContext({
+				params: {
+					name: 'a',
+				},
+			});
+			// https://stackoverflow.com/questions/49603338/how-to-test-an-exception-was-not-thrown-with-jest
+			// eslint-disable-next-line @typescript-eslint/require-await
+			expect(async () => endpoint.isChainNameAvailable(context)).not.toThrow(nameMinLengthErrMsg);
+		});
+
+		it(`should not throw error if name length equals ${MAX_CHAIN_NAME_LENGTH}`, () => {
+			const context = createTransientModuleEndpointContext({
+				params: {
+					name: 'a'.repeat(MAX_CHAIN_NAME_LENGTH),
+				},
+			});
+			// eslint-disable-next-line @typescript-eslint/require-await
+			expect(async () => endpoint.isChainNameAvailable(context)).not.toThrow(nameMaxLengthErrMsg);
+		});
+
+		it(`should throw error if name length exceeds ${MAX_CHAIN_NAME_LENGTH}`, async () => {
+			const context = createTransientModuleEndpointContext({
+				params: {
+					name: 'a'.repeat(MAX_CHAIN_NAME_LENGTH + 1),
+				},
+			});
+			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(nameMaxLengthErrMsg);
+		});
+
+		it('should throw error if name has invalid chars', async () => {
+			const context = createTransientModuleEndpointContext({
+				params: {
+					name: '@*#(',
+				},
+			});
 			await expect(endpoint.isChainNameAvailable(context)).rejects.toThrow(
-				`Invalid name property. It should contain only characters from the set [a-z0-9!@$&_.].`,
+				new InvalidNameError().message,
 			);
 		});
 
 		it('should return false if name exists in the store', async () => {
-			// Arrange
-			jest.spyOn(registeredNamesStore, 'has').mockResolvedValue(true);
 			const context = createTransientModuleEndpointContext({
 				params: {
 					name: 'sidechain',
 				},
 			});
-
-			// Assert
 			await expect(endpoint.isChainNameAvailable(context)).resolves.toStrictEqual({
 				result: false,
 			});
 		});
 
 		it('should return true if name does not exist in the store', async () => {
-			// Arrange
 			jest.spyOn(registeredNamesStore, 'has').mockResolvedValue(false);
 			const context = createTransientModuleEndpointContext({
 				params: {
 					name: 'mitsuchain',
 				},
 			});
-
-			// Assert
 			await expect(endpoint.isChainNameAvailable(context)).resolves.toStrictEqual({ result: true });
 		});
 	});

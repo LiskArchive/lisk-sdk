@@ -7,7 +7,7 @@ exports[`DashboardPlugin defaults should return valid config schema with default
   "$id": "#/plugins/liskDashboard/config",
   "default": {
     "applicationName": "Lisk",
-    "applicationUrl": "ws://localhost:8080/ws",
+    "applicationUrl": "ws://127.0.0.1:7887/rpc-ws",
     "host": "127.0.0.1",
     "port": 4005,
   },

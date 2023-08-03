@@ -37,7 +37,7 @@ import {
 	EstimateSafeStatusResponse,
 	GeneratedInfo,
 	GetStatusResponse,
-	HasKeysRequest,
+	Address,
 	hasKeysRequestSchema,
 	plainGeneratorKeysSchema,
 	SetKeysRequest,
@@ -140,7 +140,7 @@ export class Endpoint {
 		if (generatorKeys.type === 'plain') {
 			decryptedKeys = generatorKeys.data;
 		} else {
-			const decryptedBytes = await encrypt.decryptAES256GCMWithPassword(
+			const decryptedBytes = await encrypt.decryptAES128GCMWithPassword(
 				generatorKeys.data,
 				req.password,
 			);
@@ -309,7 +309,7 @@ export class Endpoint {
 	}
 
 	public async hasKeys(ctx: RequestContext): Promise<{ hasKey: boolean }> {
-		validator.validate<HasKeysRequest>(hasKeysRequestSchema, ctx.params);
+		validator.validate<Address>(hasKeysRequestSchema, ctx.params);
 		const generatorStore = new GeneratorStore(this._generatorDB);
 		const keysExist = await generatorKeysExist(
 			generatorStore,
