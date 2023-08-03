@@ -1137,7 +1137,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			jest.spyOn(context.eventQueue, 'restoreSnapshot');
 			jest.spyOn(context.stateStore, 'restoreSnapshot');
 
-			jest.spyOn(command, '_afterCrossChainCommandExecute' as any).mockResolvedValue(false);
+			jest.spyOn(command, '_afterCrossChainCommandExecute' as any).mockResolvedValue(true);
 			jest.spyOn(command['events'], 'get');
 
 			await expect(command['apply'](context)).resolves.toBeUndefined();
