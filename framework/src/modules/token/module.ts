@@ -127,7 +127,7 @@ export class TokenModule extends BaseInteroperableModule {
 	public addDependencies(interoperabilityMethod: InteroperabilityMethod, feeMethod: FeeMethod) {
 		this._interoperabilityMethod = interoperabilityMethod;
 		this.method.addDependencies(interoperabilityMethod, this._internalMethod);
-		this.crossChainMethod.addDependencies(interoperabilityMethod);
+		this.crossChainMethod.addDependencies(interoperabilityMethod, this._internalMethod);
 		this._internalMethod.addDependencies(feeMethod);
 	}
 
@@ -362,6 +362,7 @@ export class TokenModule extends BaseInteroperableModule {
 						'supportedTokenIds must be an empty array when all tokens are supported.',
 					);
 				}
+				await this.stores.get(SupportedTokensStore).supportAll(context);
 			} else {
 				copiedSupportedTokenIDsStore.sort((a, b) => a.chainID.compare(b.chainID));
 

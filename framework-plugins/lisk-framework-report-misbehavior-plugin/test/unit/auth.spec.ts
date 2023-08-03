@@ -23,7 +23,7 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 const validPluginOptions = {
 	...configSchema.default,
 	encryptedPrivateKey:
-		'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=35ab87e625765cb46a2fa07c46321f79451587fb22407b535c3ce3d395ce955892e41c93cec994c9292d471b383f5fdee8a33d5e5d685bf2d9e3a88e93ea9117b6cf1feed9d87e8ca31dea6ae7bf28139ce6fa688b3cda97adf892a0b4e2b9b6d46ac26b2f3874f740c102ad4cc75f0ff3ddc2d09fab24ed3c0ae7f0cc16f10a&mac=56e406e2a3e79c518f697c9a7652abd1b6e40f4ae64471050981d109a95b64b0&salt=c56842e8189a53b26517fb284075c77e&iv=593b08e0ae2239e57e1fba51&tag=a04e2e1617581eb95fb17cc14877202c&iterations=1&parallelism=4&memorySize=2024',
+		'kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=6b90c4f36e5c198d6dc1a7e0f64f7524a2fc14fce8fb80165a9434de079a1dcbf8058ee9d369d2afbf26d64f9bc8954efb68a970d97af93a1a40ffe2d354244c9d8472007c618296a3d97e2a059e96f1b5b8004fd0aa254ac7615ade76ea4f2b0ecf0b13b7dcf8c78116e1770fc21aa5e0affcc00c8fd90795eea5c7bc29f597&mac=03cbf0d0695a937161e69c99744499414b52d56854087d8bc84971d2375bb59e&salt=184bc3eabc3ffbcb&iv=88aa7f136a044f09503348373c4b3efd&tag=a331b74e4e6fed55568966d572c4a525&iterations=1&parallelism=4&memorySize=2097023',
 	dataPath: '/my/app',
 };
 
@@ -44,7 +44,7 @@ describe('auth action', () => {
 	it('should disable the reporting when enable=false', async () => {
 		const params = {
 			enable: false,
-			password: 'testpassword',
+			password: '123',
 		};
 		const response = await reportMisbehaviorPlugin.endpoint.authorize({ params } as any);
 
@@ -54,7 +54,7 @@ describe('auth action', () => {
 	it('should enable the reporting when enable=true', async () => {
 		const params = {
 			enable: true,
-			password: 'testpassword',
+			password: '123',
 		};
 		const response = await reportMisbehaviorPlugin.endpoint.authorize({ params } as any);
 
