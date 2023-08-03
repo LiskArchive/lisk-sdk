@@ -46,9 +46,9 @@ describe('TokenInteroperableMethod', () => {
 		'hex',
 	);
 	const defaultAddress = address.getAddressFromPublicKey(defaultPublicKey);
-	const ownChainID = Buffer.from([0, 0, 0, 1]);
+	const ownChainID = Buffer.from([1, 0, 0, 0]);
 	const defaultTokenID = Buffer.concat([ownChainID, Buffer.alloc(4)]);
-	const defaultForeignTokenID = Buffer.from([0, 0, 0, 2, 0, 0, 0, 0]);
+	const defaultForeignTokenID = Buffer.from([2, 0, 0, 0, 0, 0, 0, 0]);
 	const defaultAccount = {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
@@ -162,7 +162,7 @@ describe('TokenInteroperableMethod', () => {
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						receivingChainID: ownChainID,
 						fee,
 						status: CCM_STATUS_OK,
 						params: utils.getRandomBytes(30),
@@ -205,7 +205,7 @@ describe('TokenInteroperableMethod', () => {
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						receivingChainID: ownChainID,
 						fee: fee + defaultEscrowAmount,
 						status: CCM_STATUS_OK,
 						params: utils.getRandomBytes(30),
@@ -243,7 +243,7 @@ describe('TokenInteroperableMethod', () => {
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						receivingChainID: ownChainID,
 						fee,
 						status: CCM_STATUS_OK,
 						params: utils.getRandomBytes(30),
@@ -285,6 +285,42 @@ describe('TokenInteroperableMethod', () => {
 	});
 
 	describe('beforeCrossChainMessageForwarding', () => {
+		it('should throw if messageFeeTokenID is not LSK', async () => {
+			jest
+				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenID')
+				.mockResolvedValue(defaultForeignTokenID);
+			await expect(
+				tokenInteropMethod.beforeCrossChainMessageForwarding({
+					ccm: {
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+						module: tokenModule.name,
+						nonce: BigInt(1),
+						sendingChainID,
+						receivingChainID: ownChainID,
+						fee: fee + defaultEscrowAmount,
+						status: CCM_STATUS_OK,
+						params: utils.getRandomBytes(30),
+					},
+					getMethodContext: () => methodContext,
+					eventQueue: new EventQueue(0),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+					logger: fakeLogger,
+					chainID: ownChainID,
+					header: {
+						timestamp: Date.now(),
+						height: 10,
+					},
+					stateStore,
+					contextStore,
+					transaction: {
+						fee,
+						senderAddress: defaultAddress,
+						params: defaultEncodedCCUParams,
+					},
+				}),
+			).rejects.toThrow('Message fee token should be LSK.');
+		});
+
 		it('should throw if escrow balance is not sufficient', async () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainMessageForwarding({
@@ -293,7 +329,7 @@ describe('TokenInteroperableMethod', () => {
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						receivingChainID: ownChainID,
 						fee: fee + defaultEscrowAmount,
 						status: CCM_STATUS_OK,
 						params: utils.getRandomBytes(30),
@@ -323,7 +359,7 @@ describe('TokenInteroperableMethod', () => {
 			);
 		});
 
-		it('should deduct escrow account for fee and credit to receving chain escrow account if ccm command is not transfer', async () => {
+		it('should deduct escrow account for fee and credit to receiving chain escrow account if ccm command is not transfer', async () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainMessageForwarding({
 					ccm: {
@@ -331,7 +367,7 @@ describe('TokenInteroperableMethod', () => {
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						receivingChainID: ownChainID,
 						fee,
 						status: CCM_STATUS_OK,
 						params: codec.encode(crossChainForwardMessageParams, {
@@ -370,7 +406,7 @@ describe('TokenInteroperableMethod', () => {
 			expect(amount).toEqual(defaultEscrowAmount - fee);
 			const { amount: receiver } = await escrowStore.get(
 				methodContext,
-				escrowStore.getKey(Buffer.from([0, 0, 0, 1]), defaultTokenID),
+				escrowStore.getKey(ownChainID, defaultTokenID),
 			);
 			expect(receiver).toEqual(fee);
 		});
@@ -385,7 +421,7 @@ describe('TokenInteroperableMethod', () => {
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						receivingChainID: ownChainID,
 						fee,
 						status: CCM_STATUS_OK,
 						params: utils.getRandomBytes(30),
@@ -418,7 +454,7 @@ describe('TokenInteroperableMethod', () => {
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						receivingChainID: ownChainID,
 						fee: fee + defaultEscrowAmount,
 						status: CCM_STATUS_OK,
 						params: utils.getRandomBytes(30),
@@ -454,7 +490,7 @@ describe('TokenInteroperableMethod', () => {
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						receivingChainID: ownChainID,
 						fee,
 						status: CCM_STATUS_OK,
 						params: utils.getRandomBytes(30),

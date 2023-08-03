@@ -24,7 +24,7 @@ import { RecoverEvent } from './events/recover';
 import { EMPTY_BYTES } from '../interoperability/constants';
 import { BeforeCCMForwardingEvent } from './events/before_ccm_forwarding';
 import { splitTokenID } from './utils';
-import { getEncodedCCMAndID } from '../interoperability/utils';
+import { getEncodedCCMAndID, getMainchainTokenID } from '../interoperability/utils';
 import { InternalMethod } from './internal_method';
 
 export class TokenInteroperableMethod extends BaseCCMethod {
@@ -93,6 +93,10 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 			ccm.receivingChainID,
 		);
 		const { ccmID } = getEncodedCCMAndID(ccm);
+
+		if (!messageFeeTokenID.equals(getMainchainTokenID(ctx.chainID))) {
+			throw new Error('Message fee token should be LSK.');
+		}
 
 		const escrowStore = this.stores.get(EscrowStore);
 		const escrowKey = escrowStore.getKey(ccm.sendingChainID, messageFeeTokenID);
