@@ -75,7 +75,7 @@ import {
 	proveResponseJSONToObj,
 } from './utils';
 
-const { address, ed, encrypt } = cryptography;
+const { address, ed } = cryptography;
 
 interface Data {
 	readonly blockHeader: chain.BlockHeaderJSON;
@@ -92,6 +92,7 @@ type ModulesMetadata = [
 export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig> {
 	public endpoint = new Endpoint();
 	public configSchema = configSchema;
+
 	private _chainConnectorPluginDB!: liskDB.Database;
 	private _chainConnectorStore!: ChainConnectorStore;
 	private _lastCertificate!: LastCertificate;
@@ -104,7 +105,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _receivingChainID!: Buffer;
 	private _isReceivingChainMainchain!: boolean;
 	private _registrationHeight!: number;
-	private _privateKey!: Buffer;
 	private _ccuSaveLimit!: number;
 
 	public get nodeModulePath(): string {
@@ -123,20 +123,12 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		this._isSaveCCU = this.config.isSaveCCU;
 		this._registrationHeight = this.config.registrationHeight;
 		this._ccuSaveLimit = this.config.ccuSaveLimit;
-		const { password, encryptedPrivateKey } = this.config;
-		if (password) {
-			const parsedEncryptedKey = encrypt.parseEncryptedMessage(encryptedPrivateKey);
-			this._privateKey = Buffer.from(
-				await encrypt.decryptMessageWithPassword(parsedEncryptedKey, password, 'utf-8'),
-				'hex',
-			);
-		}
 	}
 
 	public async load(): Promise<void> {
 		this._chainConnectorPluginDB = await getDBInstance(this.dataPath);
 		this._chainConnectorStore = new ChainConnectorStore(this._chainConnectorPluginDB);
-		this.endpoint.load(this._chainConnectorStore);
+		this.endpoint.load(this.config, this._chainConnectorStore);
 
 		this._sendingChainClient = this.apiClient;
 		this._ownChainID = Buffer.from(this.appConfig.genesis.chainID, 'hex');
@@ -722,8 +714,11 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	}
 
 	private async _submitCCU(ccuParams: Buffer): Promise<void> {
-		const relayerPrivateKey = this._privateKey;
-		const relayerPublicKey = ed.getPublicKeyFromPrivateKey(relayerPrivateKey);
+		if (!this._chainConnectorStore.privateKey) {
+			this.logger.info('There is no key enabled to submit CCU');
+			return;
+		}
+		const relayerPublicKey = ed.getPublicKeyFromPrivateKey(this._chainConnectorStore.privateKey);
 		const targetCommand = this._isReceivingChainMainchain
 			? COMMAND_NAME_SUBMIT_MAINCHAIN_CCU
 			: COMMAND_NAME_SUBMIT_SIDECHAIN_CCU;
@@ -749,7 +744,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			params: ccuParams,
 			signatures: [],
 		});
-		tx.sign(chainID, relayerPrivateKey);
+		tx.sign(chainID, this._chainConnectorStore.privateKey);
 		let result: { transactionId: string };
 		if (this._isSaveCCU) {
 			result = { transactionId: tx.id.toString('hex') };
