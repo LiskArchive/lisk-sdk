@@ -23,7 +23,11 @@ import {
 } from '../../../../src';
 import { BaseCCCommand } from '../../../../src/modules/interoperability/base_cc_command';
 import { BaseCCMethod } from '../../../../src/modules/interoperability/base_cc_method';
-import { COMMAND_NAME_STATE_RECOVERY } from '../../../../src/modules/interoperability/constants';
+import {
+	COMMAND_NAME_STATE_RECOVERY,
+	HASH_LENGTH,
+	RECOVERED_STORE_VALUE,
+} from '../../../../src/modules/interoperability/constants';
 import { RecoverStateCommand } from '../../../../src/modules/interoperability/mainchain/commands/recover_state';
 import { stateRecoveryParamsSchema } from '../../../../src/modules/interoperability/schemas';
 import {
@@ -37,11 +41,12 @@ import { createTransactionContext } from '../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { createStoreGetter } from '../../../../src/testing/utils';
 import { InvalidSMTVerification } from '../../../../src/modules/interoperability/events/invalid_smt_verification';
+import { computeStorePrefix } from '../../../../src/modules/base_store';
 
 describe('RecoverStateCommand', () => {
 	// Since the code is same for both mainchain and sidechain, using mainchain will be enough to test both
 	const interopMod = new MainchainInteroperabilityModule();
-	const module = 'module';
+	const moduleName = 'fooModule';
 	let chainIDAsBuffer: Buffer;
 	let stateRecoveryCommand: RecoverStateCommand;
 	let commandVerifyContext: CommandVerifyContext<StateRecoveryParams>;
@@ -60,10 +65,10 @@ describe('RecoverStateCommand', () => {
 	beforeEach(async () => {
 		interoperableCCMethods = new Map();
 		interoperableMethod = {
-			module,
+			module: moduleName,
 			recover: jest.fn(),
 		};
-		interoperableCCMethods.set('module', interoperableMethod);
+		interoperableCCMethods.set(moduleName, interoperableMethod);
 		ccCommands = new Map();
 		stateRecoveryCommand = new RecoverStateCommand(
 			interopMod.stores,
@@ -74,7 +79,7 @@ describe('RecoverStateCommand', () => {
 		);
 		transactionParams = {
 			chainID: utils.intToBuffer(3, 4),
-			module,
+			module: moduleName,
 			storeEntries: [
 				{
 					substorePrefix: Buffer.from([1, 1]),
@@ -83,12 +88,12 @@ describe('RecoverStateCommand', () => {
 					bitmap: utils.getRandomBytes(32),
 				},
 			],
-			siblingHashes: [utils.getRandomBytes(32)],
+			siblingHashes: [utils.getRandomBytes(HASH_LENGTH)],
 		};
 		chainIDAsBuffer = transactionParams.chainID;
 		encodedTransactionParams = codec.encode(stateRecoveryParamsSchema, transactionParams);
 		transaction = new Transaction({
-			module,
+			module: moduleName,
 			command: COMMAND_NAME_STATE_RECOVERY,
 			fee: BigInt(100000000),
 			nonce: BigInt(0),
@@ -104,7 +109,7 @@ describe('RecoverStateCommand', () => {
 				'3f91f1b7bc96933102dcce6a6c9200c68146a8327c16b91f8e4b37f40e2e2fb4',
 				'hex',
 			),
-			mainchainStateRoot: utils.getRandomBytes(32),
+			mainchainStateRoot: utils.getRandomBytes(HASH_LENGTH),
 		};
 		await terminatedStateSubstore.set(
 			createStoreGetter(stateStore),
@@ -124,7 +129,7 @@ describe('RecoverStateCommand', () => {
 		jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(true);
 		jest
 			.spyOn(SparseMerkleTree.prototype, 'calculateRoot')
-			.mockResolvedValue(utils.getRandomBytes(32));
+			.mockResolvedValue(utils.getRandomBytes(HASH_LENGTH));
 	});
 
 	describe('verify', () => {
@@ -153,7 +158,7 @@ describe('RecoverStateCommand', () => {
 		});
 
 		it('should return error if module not registered on chain', async () => {
-			interoperableCCMethods.delete(module);
+			interoperableCCMethods.delete(moduleName);
 			const result = await stateRecoveryCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
@@ -161,26 +166,12 @@ describe('RecoverStateCommand', () => {
 		});
 
 		it('should return error if module not recoverable', async () => {
-			const moduleMethod = interoperableCCMethods.get(module) as BaseCCMethod;
+			const moduleMethod = interoperableCCMethods.get(moduleName) as BaseCCMethod;
 			moduleMethod.recover = undefined;
 			const result = await stateRecoveryCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude('Module is not recoverable.');
-		});
-
-		it('should return error if recovered store value is empty', async () => {
-			commandVerifyContext.params.storeEntries[0] = {
-				substorePrefix: Buffer.from([1, 1]),
-				storeKey: utils.getRandomBytes(32),
-				storeValue: Buffer.alloc(0),
-				bitmap: utils.getRandomBytes(32),
-			};
-
-			const result = await stateRecoveryCommand.verify(commandVerifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Recovered store value cannot be empty.');
 		});
 
 		it('should return error if recovered store keys are not pairwise distinct', async () => {
@@ -198,7 +189,7 @@ describe('RecoverStateCommand', () => {
 			await expect(stateRecoveryCommand.execute(commandExecuteContext)).resolves.toBeUndefined();
 		});
 
-		it('should return error if proof of inclusion is not verified', async () => {
+		it('should return error if proof of inclusion is not valid', async () => {
 			const invalidSMTVerificationEvent = interopMod.events.get(InvalidSMTVerification);
 			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
 			jest.spyOn(invalidSMTVerificationEvent, 'error');
@@ -209,11 +200,11 @@ describe('RecoverStateCommand', () => {
 			expect(invalidSMTVerificationEvent.error).toHaveBeenCalled();
 		});
 
-		it('should throw error if recovery not available for module', async () => {
-			interoperableCCMethods.delete('module');
+		it(`should throw error if recovery not available for "${moduleName}"`, async () => {
+			interoperableCCMethods.delete(moduleName);
 
 			await expect(stateRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
-				`Recovery failed for module: ${module}`,
+				`Recovery failed for module: ${moduleName}`,
 			);
 		});
 
@@ -221,12 +212,12 @@ describe('RecoverStateCommand', () => {
 			interoperableMethod.recover = jest.fn().mockRejectedValue(new Error('error'));
 
 			await expect(stateRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
-				`Recovery failed for module: ${module}`,
+				`Recovery failed for module: ${moduleName}`,
 			);
 		});
 
 		it('should set root value for terminated state substore', async () => {
-			const newStateRoot = utils.getRandomBytes(32);
+			const newStateRoot = utils.getRandomBytes(HASH_LENGTH);
 			jest.spyOn(SparseMerkleTree.prototype, 'calculateRoot').mockResolvedValue(newStateRoot);
 
 			await stateRecoveryCommand.execute(commandExecuteContext);
@@ -235,6 +226,20 @@ describe('RecoverStateCommand', () => {
 				createStoreGetter(stateStore),
 				chainIDAsBuffer,
 			);
+
+			const storeQueriesUpdate = [];
+			const storePrefix = computeStorePrefix(transactionParams.module);
+			for (const entry of transactionParams.storeEntries) {
+				storeQueriesUpdate.push({
+					key: Buffer.concat([storePrefix, entry.substorePrefix, utils.hash(entry.storeKey)]),
+					value: RECOVERED_STORE_VALUE,
+					bitmap: entry.bitmap,
+				});
+			}
+			expect(SparseMerkleTree.prototype.calculateRoot).toHaveBeenCalledWith({
+				queries: storeQueriesUpdate,
+				siblingHashes: transactionParams.siblingHashes,
+			});
 
 			expect(newTerminatedStateAccount.stateRoot.toString('hex')).toBe(
 				newStateRoot.toString('hex'),

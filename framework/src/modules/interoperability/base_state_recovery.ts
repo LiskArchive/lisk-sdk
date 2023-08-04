@@ -16,7 +16,7 @@ import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
 import { utils } from '@liskhq/lisk-cryptography';
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
-import { EMPTY_BYTES, EMPTY_HASH } from './constants';
+import { RECOVERED_STORE_VALUE } from './constants';
 import { stateRecoveryParamsSchema } from './schemas';
 import { RecoverContext, StateRecoveryParams } from './types';
 import {
@@ -31,6 +31,7 @@ import { BaseCCMethod } from './base_cc_method';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import { InvalidSMTVerification } from './events/invalid_smt_verification';
 
+// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#state-recovery-command
 export class BaseStateRecoveryCommand<
 	T extends BaseInteroperabilityInternalMethod,
 > extends BaseInteroperabilityCommand<T> {
@@ -46,6 +47,7 @@ export class BaseStateRecoveryCommand<
 		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
 		const terminatedStateAccountExists = await terminatedStateSubstore.has(context, chainID);
 
+		// The terminated account has to exist for this sidechain.
 		if (!terminatedStateAccountExists) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -71,6 +73,8 @@ export class BaseStateRecoveryCommand<
 			};
 		}
 
+		// The module indicated in the transaction params must have a recover function.
+		// For example, this means that modules such as Interoperability or Auth cannot be recovered.
 		if (!moduleMethod.recover) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -81,17 +85,11 @@ export class BaseStateRecoveryCommand<
 		const queryKeys = [];
 		// For efficiency, only subStorePrefix+storeKey is enough to check for pairwise distinct keys in verification
 		for (const entry of storeEntries) {
-			if (entry.storeValue.equals(EMPTY_BYTES)) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error('Recovered store value cannot be empty.'),
-				};
-			}
 			const queryKey = Buffer.concat([entry.substorePrefix, entry.storeKey]);
 			queryKeys.push(queryKey);
 		}
 
-		// Check that all keys are pariwise distinct, meaning that we are not trying to recover the same entry twice.
+		// Check that all keys are pairwise distinct, meaning that we are not trying to recover the same entry twice.
 		if (!objectUtils.bufferArrayUniqueItems(queryKeys)) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -110,6 +108,7 @@ export class BaseStateRecoveryCommand<
 		} = context;
 		const storeQueriesVerify = [];
 		const queryKeys = [];
+		// Calculate store prefix from the module name according to LIP 0040.
 		const storePrefix = computeStorePrefix(module);
 
 		for (const entry of storeEntries) {
@@ -129,11 +128,10 @@ export class BaseStateRecoveryCommand<
 			.get(TerminatedStateStore)
 			.get(context, chainID);
 
-		const sparseMerkleTree = new SparseMerkleTree();
 		const proofOfInclusionStores = { siblingHashes, queries: storeQueriesVerify };
 		// The SMT verification step is computationally expensive. Therefore,
 		// it is done in the execution step such that the transaction fee must be paid.
-		const smtVerified = await sparseMerkleTree.verify(
+		const smtVerified = await new SparseMerkleTree().verify(
 			terminatedStateAccount.stateRoot,
 			queryKeys,
 			proofOfInclusionStores,
@@ -162,7 +160,7 @@ export class BaseStateRecoveryCommand<
 				});
 				storeQueriesUpdate.push({
 					key: Buffer.concat([storePrefix, entry.substorePrefix, utils.hash(entry.storeKey)]),
-					value: EMPTY_HASH,
+					value: RECOVERED_STORE_VALUE,
 					bitmap: entry.bitmap,
 				});
 			} catch (err) {
@@ -170,7 +168,7 @@ export class BaseStateRecoveryCommand<
 			}
 		}
 
-		const root = await sparseMerkleTree.calculateRoot({
+		const root = await new SparseMerkleTree().calculateRoot({
 			queries: storeQueriesUpdate,
 			siblingHashes,
 		});
