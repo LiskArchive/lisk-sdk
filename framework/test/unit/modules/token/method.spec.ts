@@ -146,22 +146,22 @@ describe('token module', () => {
 		});
 	});
 
-	describe('getMainchainTokenID', () => {
+	describe('getTokenIDLSK', () => {
 		it('should return mainchain token ID', () => {
-			expect(method.getMainchainTokenID()).toEqual(Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]));
+			expect(method.getTokenIDLSK()).toEqual(Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]));
 		});
 	});
 
-	describe('userAccountExists', () => {
+	describe('userSubstoreExists', () => {
 		it('should return zero if data does not exist', async () => {
 			await expect(
-				method.userAccountExists(methodContext, utils.getRandomBytes(20), defaultTokenID),
+				method.userSubstoreExists(methodContext, utils.getRandomBytes(20), defaultTokenID),
 			).resolves.toBe(false);
 		});
 
 		it('should return balance if data exists', async () => {
 			await expect(
-				method.userAccountExists(methodContext, defaultAddress, defaultTokenID),
+				method.userSubstoreExists(methodContext, defaultAddress, defaultTokenID),
 			).resolves.toBe(true);
 		});
 	});
@@ -482,7 +482,7 @@ describe('token module', () => {
 				method['_config'].userAccountInitializationFee,
 			);
 			await expect(
-				method.userAccountExists(methodContext, newAddress, defaultForeignTokenID),
+				method.userSubstoreExists(methodContext, newAddress, defaultForeignTokenID),
 			).resolves.toBeTrue();
 			checkEventResult(
 				methodContext.eventQueue,

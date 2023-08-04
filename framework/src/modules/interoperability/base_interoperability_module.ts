@@ -41,7 +41,7 @@ import {
 	OwnChainAccount,
 	TerminatedStateAccountWithChainID,
 } from './types';
-import { computeValidatorsHash, getMainchainTokenID } from './utils';
+import { computeValidatorsHash, getTokenIDLSK } from './utils';
 import { genesisInteroperabilitySchema } from './schemas';
 
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
@@ -74,7 +74,7 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 
 	// Commented checks are the ones which need to be checked/applied
 	protected _verifyChannelData(ctx: GenesisBlockExecuteContext, chainInfo: ChainInfo) {
-		const mainchainTokenID = getMainchainTokenID(ctx.chainID);
+		const mainchainTokenID = getTokenIDLSK(ctx.chainID);
 
 		const { channelData } = chainInfo;
 

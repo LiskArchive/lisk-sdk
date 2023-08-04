@@ -79,7 +79,7 @@ export class FeeInteroperableMethod extends BaseCCMethod {
 
 		if (
 			this._feePoolAddress &&
-			(await this._tokenMethod.userAccountExists(ctx, this._feePoolAddress, messageTokenID))
+			(await this._tokenMethod.userSubstoreExists(ctx, this._feePoolAddress, messageTokenID))
 		) {
 			await this._tokenMethod.transfer(
 				ctx.getMethodContext(),

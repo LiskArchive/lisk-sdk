@@ -280,7 +280,7 @@ export const getMainchainID = (chainID: Buffer): Buffer => {
 };
 
 // TODO: Update to use Token method after merging development
-export const getMainchainTokenID = (chainID: Buffer): Buffer => {
+export const getTokenIDLSK = (chainID: Buffer): Buffer => {
 	const networkID = chainID.slice(0, 1);
 	// 3 bytes for remaining chainID bytes
 	return Buffer.concat([networkID, Buffer.alloc(7, 0)]);

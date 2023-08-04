@@ -78,13 +78,13 @@ export class TokenMethod extends BaseMethod {
 		return chainID.equals(this._config.ownChainID);
 	}
 
-	public getMainchainTokenID(): Buffer {
+	public getTokenIDLSK(): Buffer {
 		const networkID = this._config.ownChainID.slice(0, 1);
 		// 3 bytes for remaining chainID bytes
 		return Buffer.concat([networkID, Buffer.alloc(3 + LOCAL_ID_LENGTH, 0)]);
 	}
 
-	public async userAccountExists(
+	public async userSubstoreExists(
 		methodContext: ImmutableMethodContext,
 		address: Buffer,
 		tokenID: Buffer,
@@ -312,7 +312,7 @@ export class TokenMethod extends BaseMethod {
 		address: Buffer,
 		tokenID: Buffer,
 	): Promise<void> {
-		const userAccountExist = await this.userAccountExists(methodContext, address, tokenID);
+		const userAccountExist = await this.userSubstoreExists(methodContext, address, tokenID);
 		if (userAccountExist) {
 			return;
 		}
@@ -753,7 +753,7 @@ export class TokenMethod extends BaseMethod {
 			throw new Error('All tokens are supported.');
 		}
 
-		if (tokenID.equals(this.getMainchainTokenID()) || chainID.equals(this._config.ownChainID)) {
+		if (tokenID.equals(this.getTokenIDLSK()) || chainID.equals(this._config.ownChainID)) {
 			throw new Error('Cannot remove support for the specified token.');
 		}
 

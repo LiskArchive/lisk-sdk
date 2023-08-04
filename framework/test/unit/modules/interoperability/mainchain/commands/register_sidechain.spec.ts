@@ -46,7 +46,7 @@ import {
 import {
 	computeValidatorsHash,
 	getMainchainID,
-	getMainchainTokenID,
+	getTokenIDLSK,
 	getEncodedCCMAndID,
 } from '../../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
@@ -492,7 +492,7 @@ describe('RegisterSidechainCommand', () => {
 				inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				partnerChainOutboxRoot: EMPTY_HASH,
-				messageFeeTokenID: getMainchainTokenID(chainID),
+				messageFeeTokenID: getTokenIDLSK(chainID),
 				minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 			};
 
@@ -598,7 +598,7 @@ describe('RegisterSidechainCommand', () => {
 			expect(initializeEscrowAmountMock).toHaveBeenCalledWith(
 				expect.anything(),
 				context.params.chainID,
-				getMainchainTokenID(context.params.chainID),
+				getTokenIDLSK(context.params.chainID),
 			);
 		});
 
@@ -621,7 +621,7 @@ describe('RegisterSidechainCommand', () => {
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
 				name: transactionParams.name,
 				chainID: newChainID,
-				messageFeeTokenID: getMainchainTokenID(chainID),
+				messageFeeTokenID: getTokenIDLSK(chainID),
 				minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 			});
 			const ccm = {
