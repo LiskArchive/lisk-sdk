@@ -120,6 +120,13 @@ export abstract class BaseInteroperabilityMethod<
 		return channel.messageFeeTokenID;
 	}
 
+	public async getMessageFeeTokenIDFromCCM(
+		context: ImmutableMethodContext,
+		ccm: CCMsg,
+	): Promise<Buffer> {
+		return this.getMessageFeeTokenID(context, ccm.receivingChainID);
+	}
+
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#getminreturnfeeperbyte
 	public async getMinReturnFeePerByte(
 		context: ImmutableMethodContext,

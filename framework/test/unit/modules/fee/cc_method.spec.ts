@@ -44,6 +44,7 @@ describe('FeeInteroperableMethod', () => {
 		feeMethod.addDependencies(
 			{
 				getMessageFeeTokenID: jest.fn().mockResolvedValue(messageFeeTokenID),
+				getMessageFeeTokenIDFromCCM: jest.fn().mockResolvedValue(messageFeeTokenID),
 			},
 			{
 				burn: jest.fn(),

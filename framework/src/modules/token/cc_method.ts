@@ -45,10 +45,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 			ccm,
 		} = ctx;
 		const methodContext = ctx.getMethodContext();
-		const tokenID = await this._interopMethod.getMessageFeeTokenID(
-			methodContext,
-			ccm.sendingChainID,
-		);
+		const tokenID = await this._interopMethod.getMessageFeeTokenIDFromCCM(methodContext, ccm);
 		const { ccmID } = getEncodedCCMAndID(ccm);
 		const [chainID] = splitTokenID(tokenID);
 		const userStore = this.stores.get(UserStore);
@@ -88,9 +85,9 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 	public async beforeCrossChainMessageForwarding(ctx: CrossChainMessageContext): Promise<void> {
 		const { ccm } = ctx;
 		const methodContext = ctx.getMethodContext();
-		const messageFeeTokenID = await this._interopMethod.getMessageFeeTokenID(
+		const messageFeeTokenID = await this._interopMethod.getMessageFeeTokenIDFromCCM(
 			methodContext,
-			ccm.receivingChainID,
+			ccm,
 		);
 		const { ccmID } = getEncodedCCMAndID(ccm);
 
@@ -132,10 +129,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 	public async verifyCrossChainMessage(ctx: CrossChainMessageContext): Promise<void> {
 		const { ccm } = ctx;
 		const methodContext = ctx.getMethodContext();
-		const tokenID = await this._interopMethod.getMessageFeeTokenID(
-			methodContext,
-			ccm.sendingChainID,
-		);
+		const tokenID = await this._interopMethod.getMessageFeeTokenIDFromCCM(methodContext, ccm);
 		const [chainID] = splitTokenID(tokenID);
 		if (chainID.equals(ctx.chainID)) {
 			const escrowStore = this.stores.get(EscrowStore);

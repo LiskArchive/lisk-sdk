@@ -119,6 +119,7 @@ describe('TokenInteroperableMethod', () => {
 			{
 				send: jest.fn().mockResolvedValue(true),
 				getMessageFeeTokenID: jest.fn().mockResolvedValue(defaultTokenID),
+				getMessageFeeTokenIDFromCCM: jest.fn().mockResolvedValue(defaultTokenID),
 			} as never,
 			internalMethod,
 		);
@@ -153,7 +154,7 @@ describe('TokenInteroperableMethod', () => {
 	describe('beforeCrossChainCommandExecute', () => {
 		it('should credit fee to transaction sender if token id is not native', async () => {
 			jest
-				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenID')
+				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenIDFromCCM')
 				.mockResolvedValue(defaultForeignTokenID);
 			await expect(
 				tokenInteropMethod.beforeCrossChainCommandExecute({
@@ -287,7 +288,7 @@ describe('TokenInteroperableMethod', () => {
 	describe('beforeCrossChainMessageForwarding', () => {
 		it('should throw if messageFeeTokenID is not LSK', async () => {
 			jest
-				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenID')
+				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenIDFromCCM')
 				.mockResolvedValue(defaultForeignTokenID);
 			await expect(
 				tokenInteropMethod.beforeCrossChainMessageForwarding({
@@ -481,7 +482,7 @@ describe('TokenInteroperableMethod', () => {
 
 		it('should resolve if token id is not native', async () => {
 			jest
-				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenID')
+				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenIDFromCCM')
 				.mockResolvedValue(defaultForeignTokenID);
 			await expect(
 				tokenInteropMethod.verifyCrossChainMessage({
@@ -585,7 +586,7 @@ describe('TokenInteroperableMethod', () => {
 
 		it('should reject if token is not native', async () => {
 			jest
-				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenID')
+				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenIDFromCCM')
 				.mockResolvedValue(defaultForeignTokenID);
 			await expect(
 				tokenInteropMethod.recover({
