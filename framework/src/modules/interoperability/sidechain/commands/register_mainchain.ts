@@ -119,14 +119,14 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 				};
 			}
 
+			totalWeight += currentValidator.bftWeight;
+
 			if (totalWeight > MAX_UINT64) {
 				return {
 					status: VerifyStatus.FAIL,
 					error: new Error('Total BFT weight exceeds maximum value.'),
 				};
 			}
-
-			totalWeight += currentValidator.bftWeight;
 		}
 
 		if (mainchainCertificateThreshold < totalWeight / BigInt(3) + BigInt(1)) {
