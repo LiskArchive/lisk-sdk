@@ -78,7 +78,7 @@ describe('Utils', () => {
 	});
 
 	describe('validateCertificate', () => {
-		it('should throw if certificate does not comply schema', () => {
+		it('should throw if certificate does not comply with schema', () => {
 			expect(() =>
 				validateCertificate({
 					...defaultCertificate,
