@@ -23,7 +23,7 @@ export const BLS_PUBLIC_KEY_LENGTH = 48;
 export const BLS_SIGNATURE_LENGTH = 96;
 export const SMT_KEY_LENGTH = 38;
 export const NUMBER_ACTIVE_VALIDATORS_MAINCHAIN = 101;
-export const MESSAGE_TAG_CHAIN_REG = 'LSK_CHAIN_REGISTRATION_';
+export const MESSAGE_TAG_CHAIN_REG = 'LSK_CRM_';
 export const LIVENESS_LIMIT = 2419200; // 28 * 24 * 3600
 export const MAX_CCM_SIZE = 10240;
 export const EMPTY_FEE_ADDRESS = Buffer.alloc(0);
@@ -83,6 +83,7 @@ export const COMMAND_NAME_STATE_RECOVERY = 'recoverState';
 export const COMMAND_NAME_MESSAGE_RECOVERY = 'recoverMessage';
 export const COMMAND_NAME_STATE_RECOVERY_INIT = 'initializeStateRecovery';
 export const COMMAND_NAME_LIVENESS_TERMINATION = 'terminateSidechainForLiveness';
+export const RECOVERED_STORE_VALUE = Buffer.alloc(32);
 
 // Events
 export const EVENT_NAME_CHAIN_ACCOUNT_UPDATED = 'chainAccountUpdated';
