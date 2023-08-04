@@ -42,7 +42,7 @@
 		"varuint-bitcoin": "1.1.2"
 	},
 	"peerDependencies": {
-		"@chainsafe/blst": "0.2.6",
+		"@chainsafe/blst": "0.2.9",
 		"sodium-native": "3.2.1"
 	},
 	"peerDependenciesMeta": {
