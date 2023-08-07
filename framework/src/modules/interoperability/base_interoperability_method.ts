@@ -124,7 +124,7 @@ export abstract class BaseInteroperabilityMethod<
 		context: ImmutableMethodContext,
 		ccm: CCMsg,
 	): Promise<Buffer> {
-		return this.getMessageFeeTokenID(context, ccm.receivingChainID);
+		return this.getMessageFeeTokenID(context, ccm.sendingChainID);
 	}
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#getminreturnfeeperbyte
