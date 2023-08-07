@@ -238,7 +238,7 @@ const MainPage: React.FC = () => {
 
 	const loadActions = async () => {
 		setActions(await getClient().invoke<string[]>('app_getRegisteredActions'));
-	}
+	};
 
 	const loadNodeInfo = async () => {
 		setNodeInfo(await getClient().node.getNodeInfo());
@@ -288,7 +288,7 @@ const MainPage: React.FC = () => {
 	React.useEffect(() => {
 		if (dashboard.connected) {
 			subscribeEvents();
-			loadActions().catch(console.error)
+			loadActions().catch(console.error);
 			loadNodeInfo().catch(console.error);
 			loadPeersInfo().catch(console.error);
 		}
