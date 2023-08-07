@@ -83,6 +83,7 @@ export const COMMAND_NAME_STATE_RECOVERY = 'recoverState';
 export const COMMAND_NAME_MESSAGE_RECOVERY = 'recoverMessage';
 export const COMMAND_NAME_STATE_RECOVERY_INIT = 'initializeStateRecovery';
 export const COMMAND_NAME_LIVENESS_TERMINATION = 'terminateSidechainForLiveness';
+export const RECOVERED_STORE_VALUE = Buffer.alloc(32);
 
 // Events
 export const EVENT_NAME_CHAIN_ACCOUNT_UPDATED = 'chainAccountUpdated';
