@@ -15,7 +15,7 @@
 import * as crypto from 'crypto';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { parseKeyDerivationPath, hash, tagMessage } from './utils';
-import { ED25519_CURVE, EMPTY_BUFFER } from './constants';
+import { ED25519_CURVE, EMPTY_BUFFER, MESSAGE_TAG_NON_PROTOCOL_MESSAGE } from './constants';
 import {
 	NACL_SIGN_PUBLICKEY_LENGTH,
 	NACL_SIGN_SIGNATURE_LENGTH,
@@ -24,8 +24,6 @@ import {
 	signDetached,
 	verifyDetached,
 } from './nacl';
-
-const MESSAGE_TAG_NON_PROTOCOL_MESSAGE = 'LSK_NPM_';
 
 const createHeader = (text: string): string => `-----${text}-----`;
 const signedMessageHeader = createHeader('BEGIN LISK SIGNED MESSAGE');
@@ -84,10 +82,11 @@ export interface SignedMessageWithPrivateKey {
 export const signMessageWithPrivateKey = (
 	message: string,
 	privateKey: Buffer,
+	tag = MESSAGE_TAG_NON_PROTOCOL_MESSAGE,
 ): SignedMessageWithPrivateKey => {
 	const publicKey = getPublicKey(privateKey);
 	const signature = signDataWithPrivateKey(
-		MESSAGE_TAG_NON_PROTOCOL_MESSAGE,
+		tag,
 		EMPTY_BUFFER,
 		Buffer.from(message, 'utf8'),
 		privateKey,
@@ -100,11 +99,10 @@ export const signMessageWithPrivateKey = (
 	};
 };
 
-export const verifyMessageWithPublicKey = ({
-	message,
-	publicKey,
-	signature,
-}: SignedMessageWithPrivateKey): boolean => {
+export const verifyMessageWithPublicKey = (
+	{ message, publicKey, signature }: SignedMessageWithPrivateKey,
+	tag = MESSAGE_TAG_NON_PROTOCOL_MESSAGE,
+): boolean => {
 	if (publicKey.length !== NACL_SIGN_PUBLICKEY_LENGTH) {
 		throw new Error(`Invalid publicKey, expected ${NACL_SIGN_PUBLICKEY_LENGTH}-byte publicKey`);
 	}
@@ -115,13 +113,7 @@ export const verifyMessageWithPublicKey = ({
 		);
 	}
 
-	return verifyData(
-		MESSAGE_TAG_NON_PROTOCOL_MESSAGE,
-		EMPTY_BUFFER,
-		Buffer.from(message, 'utf8'),
-		signature,
-		publicKey,
-	);
+	return verifyData(tag, EMPTY_BUFFER, Buffer.from(message, 'utf8'), signature, publicKey);
 };
 
 export interface SignedMessage {
