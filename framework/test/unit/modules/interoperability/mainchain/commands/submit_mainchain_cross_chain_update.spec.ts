@@ -284,10 +284,10 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 
 		jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(true);
 		jest.spyOn(interopUtils, 'computeValidatorsHash').mockReturnValue(validatorsHash);
-		jest.spyOn(interopUtils, 'validateCertificate');
 		jest.spyOn(bls, 'verifyWeightedAggSig').mockReturnValue(true);
 
 		jest.spyOn(interopUtils, 'verifyLivenessConditionForRegisteredChains');
+		jest.spyOn(validator, 'validate');
 	});
 
 	describe('verify schema', () => {
@@ -573,7 +573,10 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			).resolves.toEqual({ status: VerifyStatus.OK });
 
 			expect(interopUtils.verifyLivenessConditionForRegisteredChains).toHaveBeenCalled();
-			expect(interopUtils.validateCertificate).toHaveBeenCalled();
+			expect(validator.validate).toHaveBeenCalledWith(
+				certificateSchema,
+				expect.toBeObject() as Certificate,
+			);
 		});
 	});
 

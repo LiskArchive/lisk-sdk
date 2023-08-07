@@ -18,6 +18,7 @@ import { SparseMerkleTree } from '@liskhq/lisk-db';
 import { utils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { objects } from '@liskhq/lisk-utils';
+import { validator } from '@liskhq/lisk-validator';
 import {
 	EMPTY_BYTES,
 	EMPTY_FEE_ADDRESS,
@@ -27,7 +28,7 @@ import {
 	MAX_NUM_VALIDATORS,
 } from './constants';
 import { ccmSchema } from './schemas';
-import { CCMsg, CrossChainUpdateTransactionParams, ChainAccount } from './types';
+import { CCMsg, CrossChainUpdateTransactionParams, ChainAccount, ChainValidators } from './types';
 import {
 	computeValidatorsHash,
 	getEncodedCCMAndID,
@@ -35,7 +36,6 @@ import {
 	validateFormat,
 	calculateNewActiveValidators,
 	emptyActiveValidatorsUpdate,
-	validateCertificate,
 } from './utils';
 import { NamedRegistry } from '../named_registry';
 import { OwnChainAccountStore } from './stores/own_chain_account';
@@ -59,7 +59,6 @@ import { TerminatedOutboxCreatedEvent } from './events/terminated_outbox_created
 import { BaseCCMethod } from './base_cc_method';
 import { verifyAggregateCertificateSignature } from '../../engine/consensus/certificate_generation/utils';
 import { InvalidCertificateSignatureEvent } from './events/invalid_certificate_signature';
-import { ChainValidators } from './types';
 
 export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMethod {
 	protected readonly interoperableModuleMethods = new Map<string, BaseCCMethod>();
@@ -272,7 +271,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		ccu: CrossChainUpdateTransactionParams,
 	): Promise<void> {
 		const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
-		validateCertificate(certificate);
+		validator.validate(certificateSchema, certificate);
 
 		const chainAccountStore = this.stores.get(ChainAccountStore);
 		const chainAccount = await chainAccountStore.get(context, ccu.sendingChainID);
@@ -363,7 +362,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		}
 
 		const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
-		validateCertificate(certificate);
+		validator.validate(certificateSchema, certificate);
 
 		const newValidatorsHash = computeValidatorsHash(newActiveValidators, ccu.certificateThreshold);
 		if (!certificate.validatorsHash.equals(newValidatorsHash)) {
@@ -377,7 +376,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		blockTimestamp: number,
 	): Promise<void> {
 		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
-		validateCertificate(certificate);
+		validator.validate(certificateSchema, certificate);
 
 		const partnerchainAccount = await this.stores
 			.get(ChainAccountStore)
@@ -413,7 +412,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		params: CrossChainUpdateTransactionParams,
 	): Promise<void> {
 		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
-		validateCertificate(certificate);
+		validator.validate(certificateSchema, certificate);
 
 		const chainValidators = await this.stores
 			.get(ChainValidatorsStore)
@@ -671,7 +670,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			],
 		};
 		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
-		validateCertificate(certificate);
+		validator.validate(certificateSchema, certificate);
 
 		const smt = new SparseMerkleTree();
 		const valid = await smt.verify(certificate.stateRoot, [outboxKey], proof);

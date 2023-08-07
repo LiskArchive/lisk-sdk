@@ -54,10 +54,6 @@ export const validateFormat = (ccm: CCMsg) => {
 	}
 };
 
-export const validateCertificate = (certificate: Certificate) => {
-	validator.validate(certificateSchema, certificate);
-};
-
 export const getCCMSize = (ccm: CCMsg) => {
 	const serializedCCM = codec.encode(ccmSchema, ccm);
 
@@ -158,7 +154,7 @@ export const checkCertificateValidity = (
 
 	const certificate = codec.decode<Certificate>(certificateSchema, encodedCertificate);
 	try {
-		validateCertificate(certificate);
+		validator.validate(certificateSchema, certificate);
 	} catch (err) {
 		return {
 			status: VerifyStatus.FAIL,
@@ -213,7 +209,7 @@ export const checkValidatorsHashWithCertificate = (
 		let certificate: Certificate;
 		try {
 			certificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
-			validateCertificate(certificate);
+			validator.validate(certificateSchema, certificate);
 		} catch (error) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -263,7 +259,7 @@ export const verifyLivenessConditionForRegisteredChains = (
 	certificateBuffer: Buffer,
 ) => {
 	const certificate = codec.decode<Certificate>(certificateSchema, certificateBuffer);
-	validateCertificate(certificate);
+	validator.validate(certificateSchema, certificate);
 
 	const limitSecond = LIVENESS_LIMIT / 2;
 	if (blockTimestamp - certificate.timestamp > limitSecond) {

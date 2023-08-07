@@ -15,6 +15,7 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 import { BLS_SIGNATURE_LENGTH, VerifyStatus } from '../../../../src';
 import {
 	CCMStatusCode,
@@ -23,7 +24,6 @@ import {
 	HASH_LENGTH,
 	LIVENESS_LIMIT,
 	MAX_CCM_SIZE,
-	MAX_LENGTH_AGGREGATION_BITS,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../src/modules/interoperability/constants';
 import {
@@ -37,7 +37,6 @@ import {
 	checkLivenessRequirementFirstCCU,
 	checkValidatorsHashWithCertificate,
 	computeValidatorsHash,
-	validateCertificate,
 	validateFormat,
 	verifyLivenessConditionForRegisteredChains,
 	isValidName,
@@ -74,52 +73,7 @@ describe('Utils', () => {
 	};
 
 	beforeEach(() => {
-		jest.spyOn(interopUtils, 'validateCertificate');
-	});
-
-	describe('validateCertificate', () => {
-		it('should throw if certificate does not comply with schema', () => {
-			expect(() =>
-				validateCertificate({
-					...defaultCertificate,
-					blockID: cryptography.utils.getRandomBytes(HASH_LENGTH + 1),
-				}),
-			).toThrow("Property '.blockID' maxLength exceeded");
-			expect(() =>
-				validateCertificate({
-					...defaultCertificate,
-					stateRoot: Buffer.alloc(HASH_LENGTH + 1),
-				}),
-			).toThrow("Property '.stateRoot' maxLength exceeded");
-			expect(() =>
-				validateCertificate({
-					...defaultCertificate,
-					validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH + 1),
-				}),
-			).toThrow("Property '.validatorsHash' maxLength exceeded");
-			expect(() =>
-				validateCertificate({
-					...defaultCertificate,
-					aggregationBits: cryptography.utils.getRandomBytes(MAX_LENGTH_AGGREGATION_BITS + 1),
-				}),
-			).toThrow("Property '.aggregationBits' maxLength exceeded");
-			expect(() =>
-				validateCertificate({
-					...defaultCertificate,
-					signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH + 1),
-				}),
-			).toThrow("Property '.signature' maxLength exceeded");
-			expect(() =>
-				validateCertificate({
-					...defaultCertificate,
-					timestamp: 0,
-				}),
-			).toThrow('must be >= 1');
-		});
-
-		it('should pass validateCertificate check', () => {
-			expect(() => validateCertificate(defaultCertificate)).not.toThrow();
-		});
+		jest.spyOn(validator, 'validate');
 	});
 
 	describe('checkLivenessRequirementFirstCCU', () => {
@@ -192,7 +146,6 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toBe('Certificate is missing required values.');
-			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 
 		it('should return VerifyStatus.FAIL when certificate height is less than or equal to last certificate height', () => {
@@ -205,7 +158,6 @@ describe('Utils', () => {
 			expect(error?.message).toBe(
 				'Certificate height should be greater than last certificate height.',
 			);
-			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 
 		it('should return VerifyStatus.OK when certificate has all values and height greater than last certificate height', () => {
@@ -216,7 +168,10 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.OK);
 			expect(error).toBeUndefined();
-			expect(interopUtils.validateCertificate).toHaveBeenCalled();
+			expect(validator.validate).toHaveBeenCalledWith(
+				certificateSchema,
+				expect.toBeObject() as Certificate,
+			);
 		});
 	});
 
@@ -334,7 +289,6 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toBe('Validators hash given in the certificate is incorrect.');
-			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 
 		it('should return VerifyStatus.OK when validators hash is correct', () => {
@@ -346,7 +300,10 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.OK);
 			expect(error).toBeUndefined();
-			expect(interopUtils.validateCertificate).toHaveBeenCalled();
+			expect(validator.validate).toHaveBeenCalledWith(
+				certificateSchema,
+				expect.toBeObject() as Certificate,
+			);
 		});
 
 		it('should return VerifyStatus.OK when activeValidatorsUpdate is empty and certificateThreshold === 0', () => {
@@ -376,7 +333,10 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.OK);
 			expect(error).toBeUndefined();
-			expect(interopUtils.validateCertificate).toHaveBeenCalled();
+			expect(validator.validate).toHaveBeenCalledWith(
+				certificateSchema,
+				expect.toBeObject() as Certificate,
+			);
 		});
 
 		it('should return VerifyStatus.OK when certificateThreshold > 0 but activeValidatorsUpdate is empty', () => {
@@ -394,7 +354,10 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.OK);
 			expect(error).toBeUndefined();
-			expect(interopUtils.validateCertificate).toHaveBeenCalled();
+			expect(validator.validate).toHaveBeenCalledWith(
+				certificateSchema,
+				expect.toBeObject() as Certificate,
+			);
 		});
 	});
 
@@ -486,7 +449,6 @@ describe('Utils', () => {
 					ccuParams.certificate,
 				),
 			).toThrow('The first CCU with a non-empty inbox update cannot contain a certificate older');
-			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 
 		it('should not throw if inbox update is not older than half of liveness limit', () => {
@@ -496,7 +458,6 @@ describe('Utils', () => {
 					ccuParams.certificate,
 				),
 			).toBeUndefined();
-			expect(interopUtils.validateCertificate).toHaveBeenCalled();
 		});
 	});
 
