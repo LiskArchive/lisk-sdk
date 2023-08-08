@@ -54,7 +54,10 @@ import {
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
-import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
+import {
+	computeValidatorsHash,
+	getDecodedCCMAndID,
+} from '../../../../../../src/modules/interoperability/utils';
 import {
 	ChainAccountStore,
 	ChainStatus,
@@ -639,6 +642,13 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
 			expect(mainchainCCUUpdateCommand['apply']).toHaveBeenCalledTimes(1);
+			// Only second CCM have receivingChainID === ownChainID
+			const { ccmID, decodedCCM } = getDecodedCCMAndID(params.inboxUpdate.crossChainMessages[1]);
+			expect(mainchainCCUUpdateCommand['apply']).toHaveBeenCalledWith({
+				...executeContext,
+				ccm: decodedCCM,
+				eventQueue: executeContext.eventQueue.getChildQueue(ccmID),
+			});
 			expect(mainchainCCUUpdateCommand['internalMethod'].appendToInboxTree).toHaveBeenCalledTimes(
 				3,
 			);
@@ -659,6 +669,23 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
 			expect(mainchainCCUUpdateCommand['_forward']).toHaveBeenCalledTimes(2);
+			// First and third CCMs have receivingChainID !== ownChainID
+			const { ccmID: firstCCMID, decodedCCM: firstDecodedCCM } = getDecodedCCMAndID(
+				params.inboxUpdate.crossChainMessages[0],
+			);
+			expect(mainchainCCUUpdateCommand['_forward']).toHaveBeenCalledWith({
+				...executeContext,
+				ccm: firstDecodedCCM,
+				eventQueue: executeContext.eventQueue.getChildQueue(firstCCMID),
+			});
+			const { ccmID: thirdCCMID, decodedCCM: thirdDecodedCCM } = getDecodedCCMAndID(
+				params.inboxUpdate.crossChainMessages[2],
+			);
+			expect(mainchainCCUUpdateCommand['_forward']).toHaveBeenCalledWith({
+				...executeContext,
+				ccm: thirdDecodedCCM,
+				eventQueue: executeContext.eventQueue.getChildQueue(thirdCCMID),
+			});
 			expect(mainchainCCUUpdateCommand['internalMethod'].appendToInboxTree).toHaveBeenCalledTimes(
 				3,
 			);

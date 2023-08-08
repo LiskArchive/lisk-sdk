@@ -23,7 +23,12 @@ import { CONTEXT_STORE_KEY_CCM_PROCESSING } from '../../constants';
 import { ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { CrossChainUpdateTransactionParams } from '../../types';
-import { emptyActiveValidatorsUpdate, getMainchainID, isInboxUpdateEmpty } from '../../utils';
+import {
+	emptyActiveValidatorsUpdate,
+	getIDFromCCMBytes,
+	getMainchainID,
+	isInboxUpdateEmpty,
+} from '../../utils';
 import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 
 export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdateCommand<SidechainInteroperabilityInternalMethod> {
@@ -100,9 +105,11 @@ export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			for (let i = 0; i < decodedCCMs.length; i += 1) {
 				const ccm = decodedCCMs[i];
 				const ccmBytes = params.inboxUpdate.crossChainMessages[i];
+				const ccmID = getIDFromCCMBytes(ccmBytes);
 				const ccmContext = {
 					...context,
 					ccm,
+					eventQueue: context.eventQueue.getChildQueue(ccmID),
 				};
 
 				await this.apply(ccmContext);

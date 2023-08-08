@@ -44,7 +44,10 @@ import {
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
-import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
+import {
+	computeValidatorsHash,
+	getDecodedCCMAndID,
+} from '../../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import {
 	ChainAccountStore,
@@ -516,6 +519,14 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 
 			await expect(sidechainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
 			expect(sidechainCCUUpdateCommand['apply']).toHaveBeenCalledTimes(3);
+			for (const ccm of params.inboxUpdate.crossChainMessages) {
+				const { ccmID, decodedCCM } = getDecodedCCMAndID(ccm);
+				expect(sidechainCCUUpdateCommand['apply']).toHaveBeenCalledWith({
+					...executeContext,
+					ccm: decodedCCM,
+					eventQueue: executeContext.eventQueue.getChildQueue(ccmID),
+				});
+			}
 			expect(sidechainCCUUpdateCommand['internalMethod'].appendToInboxTree).toHaveBeenCalledTimes(
 				3,
 			);

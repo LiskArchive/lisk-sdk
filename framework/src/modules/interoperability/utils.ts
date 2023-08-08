@@ -282,16 +282,18 @@ export const getMainchainTokenID = (chainID: Buffer): Buffer => {
 	return Buffer.concat([networkID, Buffer.alloc(7, 0)]);
 };
 
+export const getIDFromCCMBytes = (ccmBytes: Buffer) => utils.hash(ccmBytes);
+
 export const getEncodedCCMAndID = (ccm: CCMsg) => {
 	const encodedCCM = codec.encode(ccmSchema, ccm);
-	return { encodedCCM, ccmID: utils.hash(encodedCCM) };
+	return { encodedCCM, ccmID: getIDFromCCMBytes(encodedCCM) };
 };
 
 export const getDecodedCCMAndID = (ccmBytes: Buffer) => {
 	const decodedCCM = codec.decode<CCMsg>(ccmSchema, ccmBytes);
 	return {
 		decodedCCM,
-		ccmID: utils.hash(ccmBytes),
+		ccmID: getIDFromCCMBytes(ccmBytes),
 	};
 };
 
