@@ -135,6 +135,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 		verifyCertificateSignature: jest.fn(),
 		verifyValidatorsUpdate: jest.fn(),
 		verifyPartnerChainOutboxRoot: jest.fn(),
+		verifyOutboxRootWitness: jest.fn(),
 		updateValidators: jest.fn(),
 		updateCertificate: jest.fn(),
 		updatePartnerChainOutboxRoot: jest.fn(),
@@ -458,7 +459,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			).resolves.toEqual({ status: VerifyStatus.OK });
 
 			expect(
-				sidechainCCUUpdateCommand['internalMethod'].verifyPartnerChainOutboxRoot,
+				sidechainCCUUpdateCommand['internalMethod'].verifyOutboxRootWitness,
 			).toHaveBeenCalledTimes(1);
 		});
 	});
