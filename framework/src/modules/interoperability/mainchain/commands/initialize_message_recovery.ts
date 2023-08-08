@@ -108,7 +108,7 @@ export class InitializeMessageRecoveryCommand extends BaseInteroperabilityComman
 		};
 
 		const smt = new SparseMerkleTree();
-		const valid = await smt.verify(terminatedAccount.stateRoot, [queryKey], {
+		const valid = await smt.verifyInclusionProof(terminatedAccount.stateRoot, [queryKey], {
 			siblingHashes: params.siblingHashes,
 			queries: [query],
 		});

@@ -673,7 +673,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		validator.validate(certificateSchema, certificate);
 
 		const smt = new SparseMerkleTree();
-		const valid = await smt.verify(certificate.stateRoot, [outboxKey], proof);
+		const valid = await smt.verifyInclusionProof(certificate.stateRoot, [outboxKey], proof);
 		if (!valid) {
 			throw new Error('Invalid inclusion proof for inbox update.');
 		}
