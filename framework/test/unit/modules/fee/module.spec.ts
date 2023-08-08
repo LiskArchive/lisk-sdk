@@ -194,6 +194,16 @@ describe('FeeModule', () => {
 				defaultTransaction.fee,
 			);
 		});
+
+		it('should throw if provided fee is lower than the min fee', async () => {
+			const transaction = new Transaction({ ...defaultTransaction, fee: BigInt(1) });
+			const context = createTransactionContext({ transaction });
+			const transactionExecuteContext = context.createTransactionExecuteContext();
+
+			await expect(feeModule.beforeCommandExecute(transactionExecuteContext)).rejects.toThrow(
+				'Insufficient transaction fee',
+			);
+		});
 	});
 
 	describe('afterCommandExecute', () => {
