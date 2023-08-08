@@ -131,7 +131,7 @@ export class BaseStateRecoveryCommand<
 		const proofOfInclusionStores = { siblingHashes, queries: storeQueriesVerify };
 		// The SMT verification step is computationally expensive. Therefore,
 		// it is done in the execution step such that the transaction fee must be paid.
-		const smtVerified = await new SparseMerkleTree().verify(
+		const smtVerified = await new SparseMerkleTree().verifyInclusionProof(
 			terminatedStateAccount.stateRoot,
 			queryKeys,
 			proofOfInclusionStores,
