@@ -311,7 +311,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			);
 		});
 
-		it('should verifyPartnerChainOutboxRoot when inboxUpdate is not empty', async () => {
+		it('should resolve empty ccm with false result when verifyPartnerChainOutboxRoot fails', async () => {
 			(command['internalMethod'].verifyPartnerChainOutboxRoot as jest.Mock).mockRejectedValue(
 				new Error('invalid root'),
 			);
@@ -320,7 +320,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			expect(command['_interopsMethod'].getMessageFeeTokenID).not.toHaveBeenCalled();
 		});
 
-		it('should resolve empty ccm with false result when verifyPartnerChainOutboxRoot fails', async () => {
+		it('should verifyPartnerChainOutboxRoot when inboxUpdate is not empty', async () => {
 			await expect(command['executeCommon'](executeContext, true)).resolves.toEqual([
 				expect.toBeArrayOfSize(params.inboxUpdate.crossChainMessages.length),
 				true,
