@@ -1249,7 +1249,7 @@ describe('Base interoperability internal method', () => {
 		});
 	});
 
-	describe('verifyPartnerChainOutboxRoot', () => {
+	describe('verifyOutboxRootWitness', () => {
 		const certificate: Certificate = {
 			blockID: cryptoUtils.getRandomBytes(20),
 			height: 21,
@@ -1285,20 +1285,9 @@ describe('Base interoperability internal method', () => {
 			});
 		});
 
-		it('should reject when certificate is empty but outboxRootWitness is non-empty', async () => {
-			await expect(
-				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
-					...txParams,
-					certificate: Buffer.alloc(0),
-				}),
-			).rejects.toThrow(
-				'The outbox root witness can be non-empty only if the certificate is non-empty.',
-			);
-		});
-
-		it('should reject when outboxRootWitness.bitmap is empty and sublingHashes is not empty', async () => {
-			await expect(
-				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
+		it('should reject when outboxRootWitness.bitmap is empty and sublingHashes is not empty', () => {
+			expect(() =>
+				mainchainInteroperabilityInternalMethod.verifyOutboxRootWitness(methodContext, {
 					...txParams,
 					inboxUpdate: {
 						crossChainMessages: [],
@@ -1309,14 +1298,14 @@ describe('Base interoperability internal method', () => {
 						},
 					},
 				}),
-			).rejects.toThrow(
+			).toThrow(
 				'The bitmap in the outbox root witness must be non-empty if the sibling hashes are non-empty.',
 			);
 		});
 
-		it('should reject when outboxRootWitness.bitmap is not empty and sublingHashes is empty', async () => {
-			await expect(
-				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
+		it('should reject when outboxRootWitness.bitmap is not empty and sublingHashes is empty', () => {
+			expect(() =>
+				mainchainInteroperabilityInternalMethod.verifyOutboxRootWitness(methodContext, {
 					...txParams,
 					inboxUpdate: {
 						crossChainMessages: [],
@@ -1327,14 +1316,14 @@ describe('Base interoperability internal method', () => {
 						},
 					},
 				}),
-			).rejects.toThrow(
+			).toThrow(
 				'The sibling hashes in the outbox root witness must be non-empty if the bitmap is non-empty.',
 			);
 		});
 
-		it('should reject when outboxRootWitness.bitmap is empty and certificate is not empty', async () => {
-			await expect(
-				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
+		it('should reject when outboxRootWitness.bitmap is empty and certificate is not empty', () => {
+			expect(() =>
+				mainchainInteroperabilityInternalMethod.verifyOutboxRootWitness(methodContext, {
 					...txParams,
 					certificate: cryptoUtils.getRandomBytes(100),
 					inboxUpdate: {
@@ -1346,14 +1335,14 @@ describe('Base interoperability internal method', () => {
 						},
 					},
 				}),
-			).rejects.toThrow(
+			).toThrow(
 				'The outbox root witness must be non-empty to authenticate the new partnerChainOutboxRoot.',
 			);
 		});
 
-		it('should reject when outboxRootWitness.bitmap is not empty and certificate is empty', async () => {
-			await expect(
-				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
+		it('should reject when outboxRootWitness.bitmap is not empty and certificate is empty', () => {
+			expect(() =>
+				mainchainInteroperabilityInternalMethod.verifyOutboxRootWitness(methodContext, {
 					...txParams,
 					certificate: Buffer.alloc(0),
 					inboxUpdate: {
@@ -1365,9 +1354,44 @@ describe('Base interoperability internal method', () => {
 						},
 					},
 				}),
-			).rejects.toThrow(
-				'The outbox root witness can be non-empty only if the certificate is non-empty.',
-			);
+			).toThrow('The outbox root witness can be non-empty only if the certificate is non-empty.');
+		});
+	});
+
+	describe('verifyPartnerChainOutboxRoot', () => {
+		const certificate: Certificate = {
+			blockID: cryptoUtils.getRandomBytes(20),
+			height: 21,
+			timestamp: Math.floor(Date.now() / 1000),
+			stateRoot: cryptoUtils.getRandomBytes(38),
+			validatorsHash: cryptoUtils.getRandomBytes(48),
+			aggregationBits: cryptoUtils.getRandomBytes(38),
+			signature: cryptoUtils.getRandomBytes(32),
+		};
+		const encodedCertificate = codec.encode(certificateSchema, certificate);
+		const txParams: CrossChainUpdateTransactionParams = {
+			certificate: encodedCertificate,
+			activeValidatorsUpdate: {
+				blsKeysUpdate: [],
+				bftWeightsUpdate: [],
+				bftWeightsUpdateBitmap: Buffer.from([]),
+			},
+			certificateThreshold: BigInt(10),
+			sendingChainID: cryptoUtils.getRandomBytes(4),
+			inboxUpdate: {
+				crossChainMessages: [],
+				messageWitnessHashes: [],
+				outboxRootWitness: {
+					bitmap: cryptoUtils.getRandomBytes(4),
+					siblingHashes: [cryptoUtils.getRandomBytes(32)],
+				},
+			},
+		};
+
+		beforeEach(async () => {
+			await interopMod.stores.get(ChannelDataStore).set(methodContext, txParams.sendingChainID, {
+				...channelData,
+			});
 		});
 
 		it('should reject when outboxRootWitness is empty but partnerchain outbox root does not match inboxRoot', async () => {
