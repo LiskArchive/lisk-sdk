@@ -1227,16 +1227,7 @@ describe('Base interoperability internal method', () => {
 	});
 
 	describe('verifyOutboxRootWitness', () => {
-		const certificate: Certificate = {
-			blockID: cryptoUtils.getRandomBytes(20),
-			height: 21,
-			timestamp: Math.floor(Date.now() / 1000),
-			stateRoot: cryptoUtils.getRandomBytes(38),
-			validatorsHash: cryptoUtils.getRandomBytes(48),
-			aggregationBits: cryptoUtils.getRandomBytes(38),
-			signature: cryptoUtils.getRandomBytes(32),
-		};
-		const encodedCertificate = codec.encode(certificateSchema, certificate);
+		const encodedCertificate = codec.encode(certificateSchema, defaultCertificate);
 		const txParams: CrossChainUpdateTransactionParams = {
 			certificate: encodedCertificate,
 			activeValidatorsUpdate: {
@@ -1336,16 +1327,7 @@ describe('Base interoperability internal method', () => {
 	});
 
 	describe('verifyPartnerChainOutboxRoot', () => {
-		const certificate: Certificate = {
-			blockID: cryptoUtils.getRandomBytes(20),
-			height: 21,
-			timestamp: Math.floor(Date.now() / 1000),
-			stateRoot: cryptoUtils.getRandomBytes(38),
-			validatorsHash: cryptoUtils.getRandomBytes(48),
-			aggregationBits: cryptoUtils.getRandomBytes(38),
-			signature: cryptoUtils.getRandomBytes(32),
-		};
-		const encodedCertificate = codec.encode(certificateSchema, certificate);
+		const encodedCertificate = codec.encode(certificateSchema, defaultCertificate);
 		const txParams: CrossChainUpdateTransactionParams = {
 			certificate: encodedCertificate,
 			activeValidatorsUpdate: {
