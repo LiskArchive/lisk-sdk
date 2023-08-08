@@ -65,6 +65,11 @@ export const certificateSchema = {
 	required: [...unsignedCertificateSchema.required, 'aggregationBits', 'signature'],
 	properties: {
 		...unsignedCertificateSchema.properties,
+		timestamp: {
+			minimum: 1,
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
 		aggregationBits: {
 			dataType: 'bytes',
 			fieldNumber: 6,

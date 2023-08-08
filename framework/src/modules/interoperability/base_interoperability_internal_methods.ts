@@ -18,6 +18,7 @@ import { SparseMerkleTree } from '@liskhq/lisk-db';
 import { utils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { objects } from '@liskhq/lisk-utils';
+import { validator } from '@liskhq/lisk-validator';
 import {
 	EMPTY_BYTES,
 	EMPTY_FEE_ADDRESS,
@@ -27,7 +28,7 @@ import {
 	MAX_NUM_VALIDATORS,
 } from './constants';
 import { ccmSchema } from './schemas';
-import { CCMsg, CrossChainUpdateTransactionParams, ChainAccount } from './types';
+import { CCMsg, CrossChainUpdateTransactionParams, ChainAccount, ChainValidators } from './types';
 import {
 	computeValidatorsHash,
 	getEncodedCCMAndID,
@@ -58,7 +59,6 @@ import { TerminatedOutboxCreatedEvent } from './events/terminated_outbox_created
 import { BaseCCMethod } from './base_cc_method';
 import { verifyAggregateCertificateSignature } from '../../engine/consensus/certificate_generation/utils';
 import { InvalidCertificateSignatureEvent } from './events/invalid_certificate_signature';
-import { ChainValidators } from './types';
 
 export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMethod {
 	protected readonly interoperableModuleMethods = new Map<string, BaseCCMethod>();
@@ -271,6 +271,8 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		ccu: CrossChainUpdateTransactionParams,
 	): Promise<void> {
 		const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
+		validator.validate(certificateSchema, certificate);
+
 		const chainAccountStore = this.stores.get(ChainAccountStore);
 		const chainAccount = await chainAccountStore.get(context, ccu.sendingChainID);
 		const updatedChainAccount = {
@@ -309,7 +311,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		}
 		const { bftWeightsUpdate, bftWeightsUpdateBitmap, blsKeysUpdate } = ccu.activeValidatorsUpdate;
 		if (!objects.isBufferArrayOrdered(blsKeysUpdate)) {
-			throw new Error('Keys are not sorted lexicographic order.');
+			throw new Error('Keys are not sorted in lexicographic order.');
 		}
 		const { activeValidators } = await this.stores
 			.get(ChainValidatorsStore)
@@ -360,6 +362,8 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		}
 
 		const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
+		validator.validate(certificateSchema, certificate);
+
 		const newValidatorsHash = computeValidatorsHash(newActiveValidators, ccu.certificateThreshold);
 		if (!certificate.validatorsHash.equals(newValidatorsHash)) {
 			throw new Error('ValidatorsHash in certificate and the computed values do not match.');
@@ -372,6 +376,8 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		blockTimestamp: number,
 	): Promise<void> {
 		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
+		validator.validate(certificateSchema, certificate);
+
 		const partnerchainAccount = await this.stores
 			.get(ChainAccountStore)
 			.get(context, params.sendingChainID);
@@ -406,6 +412,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		params: CrossChainUpdateTransactionParams,
 	): Promise<void> {
 		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
+		validator.validate(certificateSchema, certificate);
 
 		const chainValidators = await this.stores
 			.get(ChainValidatorsStore)
@@ -663,6 +670,8 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			],
 		};
 		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
+		validator.validate(certificateSchema, certificate);
+
 		const smt = new SparseMerkleTree();
 		const valid = await smt.verifyInclusionProof(certificate.stateRoot, [outboxKey], proof);
 		if (!valid) {
