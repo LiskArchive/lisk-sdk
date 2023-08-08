@@ -1285,7 +1285,7 @@ describe('Base interoperability internal method', () => {
 			});
 		});
 
-		it('should reject when outboxRootWitness.bitmap is empty and sublingHashes is not empty', () => {
+		it('should reject when outboxRootWitness.bitmap is empty and siblingHashes is not empty', () => {
 			expect(() =>
 				mainchainInteroperabilityInternalMethod.verifyOutboxRootWitness(methodContext, {
 					...txParams,
@@ -1303,7 +1303,7 @@ describe('Base interoperability internal method', () => {
 			);
 		});
 
-		it('should reject when outboxRootWitness.bitmap is not empty and sublingHashes is empty', () => {
+		it('should reject when outboxRootWitness.bitmap is not empty and siblingHashes is empty', () => {
 			expect(() =>
 				mainchainInteroperabilityInternalMethod.verifyOutboxRootWitness(methodContext, {
 					...txParams,
