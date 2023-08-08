@@ -104,7 +104,7 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 		}
 
 		if (!isInboxUpdateEmpty(params.inboxUpdate)) {
-			await this.internalMethod.verifyPartnerChainOutboxRoot(context, params);
+			this.internalMethod.verifyOutboxRootWitness(context, params);
 		}
 
 		return {

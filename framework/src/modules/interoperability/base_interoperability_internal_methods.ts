@@ -600,29 +600,12 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 	}
 
 	/**
-	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#verifypartnerchainoutboxroot
+	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#verifyoutboxrootwitness
 	 */
-	public async verifyPartnerChainOutboxRoot(
-		context: ImmutableMethodContext,
+	public verifyOutboxRootWitness(
+		_context: ImmutableMethodContext,
 		params: CrossChainUpdateTransactionParams,
-	): Promise<void> {
-		const channel = await this.stores.get(ChannelDataStore).get(context, params.sendingChainID);
-		let { appendPath, size } = channel.inbox;
-		for (const ccm of params.inboxUpdate.crossChainMessages) {
-			const updatedMerkleTree = regularMerkleTree.calculateMerkleRoot({
-				appendPath,
-				size,
-				value: utils.hash(ccm),
-			});
-			appendPath = updatedMerkleTree.appendPath;
-			size = updatedMerkleTree.size;
-		}
-		const newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
-			size,
-			appendPath,
-			params.inboxUpdate.messageWitnessHashes,
-		);
-
+	): void {
 		const { outboxRootWitness } = params.inboxUpdate;
 		// The outbox root witness properties must be set either both to their default values
 		// or both to a non-default value.
@@ -648,6 +631,33 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 				'The outbox root witness can be non-empty only if the certificate is non-empty.',
 			);
 		}
+	}
+
+	/**
+	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#verifypartnerchainoutboxroot
+	 */
+	public async verifyPartnerChainOutboxRoot(
+		context: ImmutableMethodContext,
+		params: CrossChainUpdateTransactionParams,
+	): Promise<void> {
+		const channel = await this.stores.get(ChannelDataStore).get(context, params.sendingChainID);
+		let { appendPath, size } = channel.inbox;
+		for (const ccm of params.inboxUpdate.crossChainMessages) {
+			const updatedMerkleTree = regularMerkleTree.calculateMerkleRoot({
+				appendPath,
+				size,
+				value: utils.hash(ccm),
+			});
+			appendPath = updatedMerkleTree.appendPath;
+			size = updatedMerkleTree.size;
+		}
+		const newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
+			size,
+			appendPath,
+			params.inboxUpdate.messageWitnessHashes,
+		);
+
+		const { outboxRootWitness } = params.inboxUpdate;
 
 		if (params.certificate.length === 0) {
 			if (!newInboxRoot.equals(channel.partnerChainOutboxRoot)) {
