@@ -115,7 +115,7 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 			stateRoot = mainchainAccount.lastCertificate.stateRoot;
 		}
 
-		const verified = await smt.verify(stateRoot, [queryKey], proofOfInclusion);
+		const verified = await smt.verifyInclusionProof(stateRoot, [queryKey], proofOfInclusion);
 		if (!verified) {
 			this.events.get(InvalidSMTVerification).error(context);
 			throw new Error('State recovery initialization proof of inclusion is not valid.');
