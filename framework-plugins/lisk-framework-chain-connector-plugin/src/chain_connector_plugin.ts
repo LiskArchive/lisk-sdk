@@ -223,6 +223,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 						}
 					} catch (error) {
 						this.logger.info(
+							{ err: error },
 							`Error occured while submitting CCU for the blockHeader at height: ${newBlockHeader.height}`,
 						);
 						return;
@@ -715,8 +716,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 	private async _submitCCU(ccuParams: Buffer): Promise<void> {
 		if (!this._chainConnectorStore.privateKey) {
-			this.logger.info('There is no key enabled to submit CCU');
-			return;
+			throw new Error('There is no key enabled to submit CCU');
 		}
 		const relayerPublicKey = ed.getPublicKeyFromPrivateKey(this._chainConnectorStore.privateKey);
 		const targetCommand = this._isReceivingChainMainchain
