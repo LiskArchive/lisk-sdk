@@ -458,6 +458,10 @@ describe('Utils', () => {
 					ccuParams.certificate,
 				),
 			).toBeUndefined();
+			expect(validator.validate).toHaveBeenCalledWith(
+				certificateSchema,
+				expect.toBeObject() as Certificate,
+			);
 		});
 	});
 
