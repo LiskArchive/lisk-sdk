@@ -38,11 +38,13 @@ export class StateStore {
 	private readonly _prefix: Buffer;
 	private _cache: CacheDB;
 	private _snapshot: CacheDB | undefined;
+	private _latestSnapshotId: number;
 
 	public constructor(db: DatabaseReader, prefix?: Buffer, cache?: CacheDB) {
 		this._db = db;
 		this._prefix = prefix ?? DB_KEY_STATE_STORE;
 		this._cache = cache ?? new CacheDB();
+		this._latestSnapshotId = -1;
 	}
 
 	// TODO: Remove accepting number for subStorePrefix
@@ -222,14 +224,25 @@ export class StateStore {
 	// createSnapshot follows the same interface as stateDB. However, it does not support multi snapshot.
 	public createSnapshot(): number {
 		this._snapshot = this._cache.copy();
-		return 0;
+		this._latestSnapshotId += 1;
+
+		if (this._latestSnapshotId === Number.MAX_SAFE_INTEGER) {
+			this._latestSnapshotId = 0;
+		}
+
+		return this._latestSnapshotId;
 	}
 
 	// restoreSnapshot does not support multi-snapshot. Therefore, id is not used.
-	public restoreSnapshot(_id: number): void {
+	public restoreSnapshot(id: number): void {
+		if (id !== this._latestSnapshotId) {
+			throw new Error('Invalid snapshot ID. Cannot revert to an older snapshot.');
+		}
+
 		if (!this._snapshot) {
 			throw new Error('Snapshot must be taken first before reverting');
 		}
+
 		this._cache = this._snapshot;
 		this._snapshot = undefined;
 	}

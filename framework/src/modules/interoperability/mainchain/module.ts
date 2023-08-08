@@ -70,6 +70,8 @@ import { GenesisBlockExecuteContext } from '../../../state_machine';
 import { getMainchainID, isValidName } from '../utils';
 import { RegisteredNamesStore } from '../stores/registered_names';
 import { InvalidNameError } from '../errors';
+import { InvalidSMTVerification } from '../events/invalid_smt_verification';
+import { InvalidRMTVerification } from '../events/invalid_rmt_verification';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
@@ -173,6 +175,8 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 			InvalidCertificateSignatureEvent,
 			new InvalidCertificateSignatureEvent(this.name),
 		);
+		this.events.register(InvalidSMTVerification, new InvalidSMTVerification(this.name));
+		this.events.register(InvalidRMTVerification, new InvalidRMTVerification(this.name));
 	}
 
 	public addDependencies(tokenMethod: TokenMethod, feeMethod: FeeMethod) {
