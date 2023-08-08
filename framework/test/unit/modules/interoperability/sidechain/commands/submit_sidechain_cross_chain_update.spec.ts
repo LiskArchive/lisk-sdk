@@ -67,7 +67,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 	const messageFeeTokenID = Buffer.alloc(8, 0);
 
 	const chainID = Buffer.from([0, 0, 2, 0]);
-	const defaultCertificateValues: Certificate = {
+	const defaultCertificate: Certificate = {
 		blockID: utils.getRandomBytes(20),
 		height: 21,
 		timestamp: Math.floor(Date.now() / 1000),
@@ -194,7 +194,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			partnerValidators.certificateThreshold,
 		);
 		encodedDefaultCertificate = codec.encode(certificateSchema, {
-			...defaultCertificateValues,
+			...defaultCertificate,
 			validatorsHash,
 		});
 
@@ -387,7 +387,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 					params: {
 						...params,
 						certificate: codec.encode(certificateSchema, {
-							...defaultCertificateValues,
+							...defaultCertificate,
 							timestamp: 0,
 						}),
 						inboxUpdate: {
