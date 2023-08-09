@@ -13,6 +13,8 @@
  *
  */
 
+import { ErrorBLST, SecretKey } from '@chainsafe/blst';
+import { isSecretKeyNonZeroModEC } from '../../src/bls_lib/lib';
 import {
 	blsAggregate,
 	blsAggregateVerify,
@@ -58,6 +60,29 @@ interface EthFastAggrVerifySpec {
 }
 
 describe('bls_lib', () => {
+	const curveOrder = '0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001';
+
+	describe('isSecretKeyNonZeroModEC', () => {
+		it('should return true when given a valid secret key', () => {
+			const secretKey = SecretKey.fromBytes(Buffer.alloc(32, 1));
+			expect(isSecretKeyNonZeroModEC(secretKey)).toBe(true);
+		});
+
+		it('should return true when given a non-zero modulo secret key', () => {
+			const secretKey = SecretKey.fromBytes(
+				Buffer.from('0000000000000000000000000000000000000000000000000000000000000001', 'hex'),
+			);
+			expect(isSecretKeyNonZeroModEC(secretKey)).toBe(true);
+		});
+
+		it('should throw an error when given a zero modulo secret key', () => {
+			const secretKey = SecretKey.fromBytes(
+				Buffer.from('73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001', 'hex'),
+			);
+			expect(() => isSecretKeyNonZeroModEC(secretKey)).toThrow('Secret key is not valid.');
+		});
+	});
+
 	describe('blsSkToPk', () => {
 		describe.each(getAllFiles(['bls_specs/sk_to_pk']))('%s', ({ path }) => {
 			it('should convert to valid pk', () => {
@@ -67,6 +92,30 @@ describe('bls_lib', () => {
 					hexToBuffer(output).toString('hex'),
 				);
 			});
+		});
+
+		it('should return a non-empty buffer when given a valid input buffer', () => {
+			const sk = Buffer.alloc(32, 1);
+			const pk = blsSkToPk(sk);
+
+			expect(pk).toBeDefined();
+			expect(pk.length).toBeGreaterThan(0);
+		});
+
+		it('should throw an error when given an input buffer with value equal to the curve order', () => {
+			const sk = Buffer.from(curveOrder.slice(2), 'hex');
+
+			expect(() => blsSkToPk(sk)).toThrow('Secret key is not valid.');
+		});
+
+		it('should throw an error if the input buffer is zero', () => {
+			const sk = Buffer.alloc(32, 0);
+			expect(() => blsSkToPk(sk)).toThrow('ZERO_SECRET_KEY');
+		});
+
+		it('should throw an error if the input buffer is not 32 bytes long', () => {
+			const sk = Buffer.alloc(31, 1);
+			expect(() => blsSkToPk(sk)).toThrow(ErrorBLST);
 		});
 	});
 

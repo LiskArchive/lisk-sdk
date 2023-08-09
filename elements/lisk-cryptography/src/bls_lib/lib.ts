@@ -45,9 +45,31 @@ export const blsKeyValidate = (pk: Buffer): boolean => {
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3
 export const blsKeyGen = (ikm: Buffer): Buffer => Buffer.from(SecretKey.fromKeygen(ikm).toBytes());
 
+// check that the secret key generated is non-zero modulo the order of the elliptic curve.
+export const isSecretKeyNonZeroModEC = (secretKey: SecretKey): boolean => {
+	// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-pairing-friendly-curves-10#section-4.2.1
+	const curveOrder = '0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001';
+
+	const skBigInt = BigInt(`0x${Buffer.from(secretKey.toBytes()).toString('hex')}`);
+
+	// check if secret key is non-zero modulo the order of the elliptic curve.
+	if (skBigInt % BigInt(curveOrder) === BigInt(0)) {
+		throw new Error('Secret key is not valid.');
+	}
+
+	return true;
+};
+
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.4
-export const blsSkToPk = (sk: Buffer): Buffer =>
-	Buffer.from(SecretKey.fromBytes(sk).toPublicKey().toBytes());
+export const blsSkToPk = (sk: Buffer): Buffer => {
+	const secretKey = SecretKey.fromBytes(sk);
+
+	if (!isSecretKeyNonZeroModEC(secretKey)) {
+		throw new Error('Secret key is not valid.');
+	}
+
+	return Buffer.from(secretKey.toPublicKey().toBytes());
+};
 
 // https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.8
 export const blsAggregate = (signatures: Buffer[]): Buffer | false => {
@@ -66,7 +88,13 @@ export const blsSign = (sk: Buffer, message: Buffer): Buffer => {
 		return Buffer.concat([Buffer.from([192]), Buffer.alloc(95)]);
 	}
 
-	return Buffer.from(SecretKey.fromBytes(sk).sign(message).toBytes());
+	const secretKey = SecretKey.fromBytes(sk);
+
+	if (!isSecretKeyNonZeroModEC(secretKey)) {
+		throw new Error('Secret key is not valid.');
+	}
+
+	return Buffer.from(secretKey.sign(message).toBytes());
 };
 
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.7
@@ -123,8 +151,14 @@ export const blsPopProve = (sk: Buffer): Buffer => {
 	const message = blsSkToPk(sk);
 	const sig = new blst.P2();
 
+	const secretKey = SecretKey.fromBytes(sk);
+
+	if (!isSecretKeyNonZeroModEC(secretKey)) {
+		throw new Error('Secret key is not valid.');
+	}
+
 	return Buffer.from(
-		new Signature(sig.hash_to(message, DST_POP).sign_with(SecretKey.fromBytes(sk).value)).toBytes(),
+		new Signature(sig.hash_to(message, DST_POP).sign_with(secretKey.value)).toBytes(),
 	);
 };
 
