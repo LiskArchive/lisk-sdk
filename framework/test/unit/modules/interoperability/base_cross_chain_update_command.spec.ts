@@ -313,6 +313,26 @@ describe('BaseCrossChainUpdateCommand', () => {
 			);
 		});
 
+		it('should resolve empty ccm with false result when verifyPartnerChainOutboxRoot fails', async () => {
+			(command['internalMethod'].verifyPartnerChainOutboxRoot as jest.Mock).mockRejectedValue(
+				new Error('invalid root'),
+			);
+			await expect(command['executeCommon'](executeContext, true)).resolves.toEqual([[], false]);
+
+			expect(command['_interopsMethod'].getMessageFeeTokenID).not.toHaveBeenCalled();
+		});
+
+		it('should verifyPartnerChainOutboxRoot when inboxUpdate is not empty', async () => {
+			await expect(command['executeCommon'](executeContext, true)).resolves.toEqual([
+				expect.toBeArrayOfSize(params.inboxUpdate.crossChainMessages.length),
+				true,
+			]);
+			expect(command['internalMethod'].verifyPartnerChainOutboxRoot).toHaveBeenCalledWith(
+				expect.anything(),
+				params,
+			);
+		});
+
 		it('should not initialize user account for message fee token ID when inboxUpdate is empty', async () => {
 			executeContext = createTransactionContext({
 				chainID,

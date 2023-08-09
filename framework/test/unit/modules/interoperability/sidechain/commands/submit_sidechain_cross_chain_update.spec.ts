@@ -67,7 +67,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 	const messageFeeTokenID = Buffer.alloc(8, 0);
 
 	const chainID = Buffer.from([0, 0, 2, 0]);
-	const defaultCertificateValues: Certificate = {
+	const defaultCertificate: Certificate = {
 		blockID: utils.getRandomBytes(20),
 		height: 21,
 		timestamp: Math.floor(Date.now() / 1000),
@@ -135,6 +135,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 		verifyCertificateSignature: jest.fn(),
 		verifyValidatorsUpdate: jest.fn(),
 		verifyPartnerChainOutboxRoot: jest.fn(),
+		verifyOutboxRootWitness: jest.fn(),
 		updateValidators: jest.fn(),
 		updateCertificate: jest.fn(),
 		updatePartnerChainOutboxRoot: jest.fn(),
@@ -194,7 +195,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			partnerValidators.certificateThreshold,
 		);
 		encodedDefaultCertificate = codec.encode(certificateSchema, {
-			...defaultCertificateValues,
+			...defaultCertificate,
 			validatorsHash,
 		});
 
@@ -387,7 +388,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 					params: {
 						...params,
 						certificate: codec.encode(certificateSchema, {
-							...defaultCertificateValues,
+							...defaultCertificate,
 							timestamp: 0,
 						}),
 						inboxUpdate: {
@@ -458,7 +459,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			).resolves.toEqual({ status: VerifyStatus.OK });
 
 			expect(
-				sidechainCCUUpdateCommand['internalMethod'].verifyPartnerChainOutboxRoot,
+				sidechainCCUUpdateCommand['internalMethod'].verifyOutboxRootWitness,
 			).toHaveBeenCalledTimes(1);
 		});
 	});

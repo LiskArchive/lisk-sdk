@@ -47,10 +47,6 @@ export const configSchema = {
 			format: 'uint64',
 			description: 'Fee to be paid for each CCU transaction',
 		},
-		password: {
-			type: 'string',
-			description: 'Password to decrypt encryptedPrivateKey',
-		},
 		isSaveCCU: {
 			type: 'boolean',
 			description:
@@ -77,7 +73,7 @@ export const configSchema = {
 			description: 'Chain ID of the receiving chain.',
 		},
 	},
-	required: ['ccuFee', 'encryptedPrivateKey', 'password', 'receivingChainID'],
+	required: ['ccuFee', 'encryptedPrivateKey', 'receivingChainID'],
 	default: {
 		ccuFrequency: CCU_FREQUENCY,
 		isSaveCCU: false,
@@ -215,6 +211,20 @@ export const ccmsFromEventsSchema = {
 					},
 				},
 			},
+		},
+	},
+};
+
+export const authorizeRequestSchema = {
+	$id: '/lisk/chainConnector/authorizeRequest',
+	type: 'object',
+	required: ['password', 'enable'],
+	properties: {
+		password: {
+			type: 'string',
+		},
+		enable: {
+			type: 'boolean',
 		},
 	},
 };
