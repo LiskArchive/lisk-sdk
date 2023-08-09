@@ -103,6 +103,10 @@ export abstract class BaseInteroperabilityMethod<
 			updatedChainID = mainchainID;
 		}
 
+		if (chainID.equals(ownChainAccount.chainID)) {
+			throw new Error('Channel with own chain account does not exist.');
+		}
+
 		const hasChannel = await this.stores.get(ChannelDataStore).has(context, updatedChainID);
 		if (!hasChannel) {
 			throw new Error('Channel does not exist.');
