@@ -52,9 +52,11 @@ import {
 	MainchainInteroperabilityModule,
 	SidechainInteroperabilityMethod,
 	MainchainInteroperabilityMethod,
+	BaseInteroperableModule,
 } from './modules/interoperability';
 import { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_rewards';
 import { Engine } from './engine';
+import { BaseInteroperabilityModule } from './modules/interoperability/base_interoperability_module';
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -237,6 +239,14 @@ export class Application {
 
 	public registerModule(Module: BaseModule): void {
 		this._registerModule(Module);
+	}
+
+	public registerInteroperableModule(interoperableModule: BaseInteroperableModule) {
+		const interoperabilityModule = this._registeredModules.find(
+			module => module.name === 'interoperability',
+		) as BaseInteroperabilityModule;
+
+		interoperabilityModule.registerInteroperableModule(interoperableModule);
 	}
 
 	public getRegisteredModules(): BaseModule[] {
