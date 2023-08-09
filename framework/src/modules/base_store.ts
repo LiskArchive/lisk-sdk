@@ -25,6 +25,7 @@ export interface StoreGetter {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 }
 
+// LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0040.md#module-store-prefix-1
 export const computeStorePrefix = (name: string): Buffer => {
 	const prefix = utils.hash(Buffer.from(name, 'utf-8')).slice(0, 4);
 	// eslint-disable-next-line no-bitwise

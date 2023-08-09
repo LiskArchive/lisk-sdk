@@ -165,6 +165,13 @@ describe('endpoints', () => {
 		const encryptedKey = await cryptography.encrypt.encryptMessageWithPassword(
 			Buffer.from(defaultPrivateKey, 'hex'),
 			defaultPassword,
+			{
+				kdfparams: {
+					iterations: 1,
+					memorySize: 256,
+					parallelism: 1,
+				},
+			},
 		);
 		const defaultEncryptedPrivateKey = cryptography.encrypt.stringifyEncryptedMessage(encryptedKey);
 
@@ -298,6 +305,50 @@ describe('endpoints', () => {
 			const response = await chainConnectorPlugin.endpoint.getLastSentCCM({} as any);
 
 			expect(response).toStrictEqual(lastSentCCMJSON);
+		});
+	});
+
+	describe('authorize', () => {
+		it('should reject when invalid params is given', async () => {
+			await expect(chainConnectorPlugin.endpoint.authorize({ params: {} } as any)).rejects.toThrow(
+				"must have required property 'password'",
+			);
+		});
+
+		it('should enable when correct password is given', async () => {
+			await expect(
+				chainConnectorPlugin.endpoint.authorize({
+					params: { enable: true, password: defaultPassword },
+				} as any),
+			).resolves.toEqual({
+				result: 'Successfully enabled the chain connector plugin.',
+			});
+		});
+
+		it('should not enable when incorrect password is given', async () => {
+			await expect(
+				chainConnectorPlugin.endpoint.authorize({
+					params: { enable: true, password: 'invalid' },
+				} as any),
+			).rejects.toThrow('Unsupported state or unable to authenticate data');
+		});
+
+		it('should not disable when incorrect password is given', async () => {
+			await expect(
+				chainConnectorPlugin.endpoint.authorize({
+					params: { enable: false, password: defaultPassword },
+				} as any),
+			).resolves.toEqual({
+				result: 'Successfully disabled the chain connector plugin.',
+			});
+		});
+
+		it('should disable when incorrect password is given', async () => {
+			await expect(
+				chainConnectorPlugin.endpoint.authorize({
+					params: { enable: false, password: 'invalid' },
+				} as any),
+			).rejects.toThrow('Unsupported state or unable to authenticate data');
 		});
 	});
 });
