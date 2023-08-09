@@ -26,7 +26,6 @@ import {
 	BaseModule,
 	BasePlugin,
 	MODULE_NAME_INTEROPERABILITY,
-	// MODULE_NAME_INTEROPERABILITY,
 	ModuleMetadata,
 	SidechainInteroperabilityModule,
 } from '../../src';
