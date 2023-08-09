@@ -54,7 +54,7 @@ export const isSecretKeyNonZeroModEC = (secretKey: SecretKey): boolean => {
 
 	// check if secret key is non-zero modulo the order of the elliptic curve.
 	if (skBigInt % BigInt(curveOrder) === BigInt(0)) {
-		throw new Error('Secret key is not valid.');
+		return false;
 	}
 
 	return true;

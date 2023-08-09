@@ -75,11 +75,11 @@ describe('bls_lib', () => {
 			expect(isSecretKeyNonZeroModEC(secretKey)).toBe(true);
 		});
 
-		it('should throw an error when given a zero modulo secret key', () => {
+		it('should return false for a secret key that is a multiple of the order of the elliptic curve', () => {
 			const secretKey = SecretKey.fromBytes(
 				Buffer.from('73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001', 'hex'),
 			);
-			expect(() => isSecretKeyNonZeroModEC(secretKey)).toThrow('Secret key is not valid.');
+			expect(isSecretKeyNonZeroModEC(secretKey)).toBe(false);
 		});
 	});
 
