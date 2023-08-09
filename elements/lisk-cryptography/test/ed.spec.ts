@@ -37,9 +37,13 @@ const publicKey = Buffer.from(
 	'hex',
 );
 
+const tag = createMessageTag('TST');
+
 describe('sign and verify message', () => {
 	const message = 'Some default text.';
+	const messageBuffer = Buffer.from(message, 'utf8');
 	const { signature } = signMessageWithPrivateKey(message, privateKey);
+	const { signature: signatureCustomTag } = signMessageWithPrivateKey(message, privateKey, tag);
 	const printedMessage = `
 -----BEGIN LISK SIGNED MESSAGE-----
 -----MESSAGE-----
@@ -52,8 +56,18 @@ ${signature.toString('hex')}
 `.trim();
 
 	describe('#signMessageWithPrivateKey', () => {
-		it('should create a signed message using a private key', () => {
+		it('should create a signed message using a private key when message is in string format', () => {
 			const signedMessage = signMessageWithPrivateKey(message, privateKey);
+			expect(signedMessage).toMatchSnapshot();
+		});
+
+		it('should create a signed message using a private key when message is in Buffer format', () => {
+			const signedMessage = signMessageWithPrivateKey(messageBuffer, privateKey, tag);
+			expect(signedMessage).toMatchSnapshot();
+		});
+
+		it('should create a signed message using a private key and a custom tag', () => {
+			const signedMessage = signMessageWithPrivateKey(message, privateKey, tag);
 			expect(signedMessage).toMatchSnapshot();
 		});
 	});
@@ -80,8 +94,18 @@ ${signature.toString('hex')}
 			expect(verification).toBeFalse();
 		});
 
-		it('should return true if the signature is valid', () => {
+		it('should return true if the signature is valid and message is in string format', () => {
 			const signedMessage = { message, publicKey, signature };
+			expect(verifyMessageWithPublicKey(signedMessage)).toBeTrue();
+		});
+
+		it('should return true if the signature is valid and message is in Buffer format', () => {
+			const signedMessage = { message: messageBuffer, publicKey, signature };
+			expect(verifyMessageWithPublicKey(signedMessage)).toBeTrue();
+		});
+
+		it('should return true if the signature is valid and a custom tag is used', () => {
+			const signedMessage = { message, publicKey, signature: signatureCustomTag, tag };
 			expect(verifyMessageWithPublicKey(signedMessage)).toBeTrue();
 		});
 	});
@@ -102,7 +126,6 @@ ${signature.toString('hex')}
 });
 
 describe('sign and verify data', () => {
-	const tag = createMessageTag('TST');
 	const chainID = Buffer.from('10000000', 'hex');
 
 	const data = Buffer.from('This is some data');
