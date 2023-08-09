@@ -36,7 +36,6 @@ export interface ChainConnectorPluginConfig {
 	ccuFrequency: number;
 	encryptedPrivateKey: string;
 	ccuFee: string;
-	password: string;
 	isSaveCCU: boolean;
 	maxCCUSize: number;
 	registrationHeight: number;
