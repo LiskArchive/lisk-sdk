@@ -73,24 +73,14 @@ export const getPrivateKeyFromPhraseAndPath = async (
 	return getKeyPair(node.key).privateKey;
 };
 
-export interface SignedMessageWithPrivateKey {
-	readonly message: string;
-	readonly publicKey: Buffer;
-	readonly signature: Buffer;
-}
-
 export const signMessageWithPrivateKey = (
-	message: string,
+	message: string | Buffer,
 	privateKey: Buffer,
 	tag = MESSAGE_TAG_NON_PROTOCOL_MESSAGE,
-): SignedMessageWithPrivateKey => {
+): SignedMessage => {
+	const messageBuffer = typeof message === 'string' ? Buffer.from(message, 'utf8') : message;
 	const publicKey = getPublicKey(privateKey);
-	const signature = signDataWithPrivateKey(
-		tag,
-		EMPTY_BUFFER,
-		Buffer.from(message, 'utf8'),
-		privateKey,
-	);
+	const signature = signDataWithPrivateKey(tag, EMPTY_BUFFER, messageBuffer, privateKey);
 
 	return {
 		message,
@@ -99,10 +89,12 @@ export const signMessageWithPrivateKey = (
 	};
 };
 
-export const verifyMessageWithPublicKey = (
-	{ message, publicKey, signature }: SignedMessageWithPrivateKey,
+export const verifyMessageWithPublicKey = ({
+	message,
+	publicKey,
+	signature,
 	tag = MESSAGE_TAG_NON_PROTOCOL_MESSAGE,
-): boolean => {
+}: SignedMessageWithTag): boolean => {
 	if (publicKey.length !== NACL_SIGN_PUBLICKEY_LENGTH) {
 		throw new Error(`Invalid publicKey, expected ${NACL_SIGN_PUBLICKEY_LENGTH}-byte publicKey`);
 	}
@@ -113,20 +105,30 @@ export const verifyMessageWithPublicKey = (
 		);
 	}
 
-	return verifyData(tag, EMPTY_BUFFER, Buffer.from(message, 'utf8'), signature, publicKey);
+	const messageBuffer = typeof message === 'string' ? Buffer.from(message, 'utf8') : message;
+
+	return verifyData(tag, EMPTY_BUFFER, messageBuffer, signature, publicKey);
 };
 
 export interface SignedMessage {
-	readonly message: string;
+	readonly message: string | Buffer;
 	readonly publicKey: Buffer;
 	readonly signature: Buffer;
 }
+
+interface SignedMessageWithTag extends SignedMessage {
+	tag?: string;
+}
+
+// Old redundant interface SignedMessageWithPrivateKey for backwards compatibility
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface SignedMessageWithPrivateKey extends SignedMessage {}
 
 export const printSignedMessage = ({ message, signature, publicKey }: SignedMessage): string =>
 	[
 		signedMessageHeader,
 		messageHeader,
-		message,
+		typeof message === 'string' ? message : message.toString('hex'),
 		publicKeyHeader,
 		publicKey.toString('hex'),
 		signatureHeader,

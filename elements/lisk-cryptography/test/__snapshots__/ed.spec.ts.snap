@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`sign and verify data #signDataWithPrivateKey should sign a transaction 1`] = `
+exports[`sign and verify data #signDataWithPrivateKey should sign data 1`] = `
 {
   "data": [
     44,

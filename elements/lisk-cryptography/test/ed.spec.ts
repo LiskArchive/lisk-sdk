@@ -109,7 +109,7 @@ describe('sign and verify data', () => {
 	const signature = signDataWithPrivateKey(tag, chainID, data, privateKey);
 
 	describe('#signDataWithPrivateKey', () => {
-		it('should sign a transaction', () => {
+		it('should sign data', () => {
 			expect(signDataWithPrivateKey(tag, chainID, data, privateKey)).toMatchSnapshot();
 		});
 	});
