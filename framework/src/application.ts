@@ -53,6 +53,7 @@ import {
 	SidechainInteroperabilityMethod,
 	MainchainInteroperabilityMethod,
 	BaseInteroperableModule,
+	MODULE_NAME_INTEROPERABILITY,
 } from './modules/interoperability';
 import { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_rewards';
 import { Engine } from './engine';
@@ -243,10 +244,16 @@ export class Application {
 
 	public registerInteroperableModule(interoperableModule: BaseInteroperableModule) {
 		const interoperabilityModule = this._registeredModules.find(
-			module => module.name === 'interoperability',
-		) as BaseInteroperabilityModule;
+			module => module.name === MODULE_NAME_INTEROPERABILITY,
+		);
 
-		interoperabilityModule.registerInteroperableModule(interoperableModule);
+		if (interoperabilityModule === undefined) {
+			throw new Error(`${MODULE_NAME_INTEROPERABILITY} module is not registered.`);
+		}
+
+		(interoperabilityModule as BaseInteroperabilityModule).registerInteroperableModule(
+			interoperableModule,
+		);
 	}
 
 	public getRegisteredModules(): BaseModule[] {

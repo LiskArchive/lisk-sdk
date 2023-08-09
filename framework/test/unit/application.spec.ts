@@ -25,6 +25,8 @@ import {
 	BaseMethod,
 	BaseModule,
 	BasePlugin,
+	MODULE_NAME_INTEROPERABILITY,
+	// MODULE_NAME_INTEROPERABILITY,
 	ModuleMetadata,
 	SidechainInteroperabilityModule,
 } from '../../src';
@@ -288,6 +290,20 @@ describe('Application', () => {
 			expect(
 				interoperabilityModule['interoperableCCMethods'].has(testInteroperableModule.name),
 			).toBeTrue();
+		});
+
+		it('should throw if Interoperability module is not registered', () => {
+			const { app } = Application.defaultApplication(config);
+
+			const index = app['_registeredModules'].findIndex(
+				module => module.name === MODULE_NAME_INTEROPERABILITY,
+			);
+
+			app['_registeredModules'][index] = new TestModule();
+
+			const testInteroperableModule = new TestInteroperableModule();
+
+			expect(() => app.registerInteroperableModule(testInteroperableModule)).toThrow();
 		});
 	});
 
