@@ -502,7 +502,7 @@ describe('CrossChain Transfer Command', () => {
 			// Act & Assert
 			await expect(command.execute(ctx)).resolves.toBeUndefined();
 			await expect(
-				method.userAccountExists(methodContext, defaultAddress, defaultTokenID),
+				method.userSubstoreExists(methodContext, defaultAddress, defaultTokenID),
 			).resolves.toBe(true);
 		});
 
@@ -553,7 +553,7 @@ describe('CrossChain Transfer Command', () => {
 			await command.execute(ctx);
 
 			await expect(
-				method.userAccountExists(methodContext, randomAddress, defaultTokenID),
+				method.userSubstoreExists(methodContext, randomAddress, defaultTokenID),
 			).resolves.toBe(true);
 
 			const { availableBalance } = await userStore.get(

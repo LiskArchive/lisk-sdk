@@ -52,7 +52,7 @@ describe('FeeInteroperableMethod', () => {
 				lock: jest.fn(),
 				transfer: jest.fn(),
 				unlock: jest.fn(),
-				userAccountExists: jest.fn(),
+				userSubstoreExists: jest.fn(),
 			},
 		);
 		context = createCrossChainMessageContext({
@@ -101,7 +101,7 @@ describe('FeeInteroperableMethod', () => {
 		});
 
 		it('should transfer the used fee to fee pool address if it exists and is initialized for the cross-chain message fee token', async () => {
-			feeMethod['_tokenMethod'].userAccountExists = jest.fn().mockResolvedValue(true);
+			feeMethod['_tokenMethod'].userSubstoreExists = jest.fn().mockResolvedValue(true);
 			await feeMethod.afterCrossChainCommandExecute(context);
 
 			expect(feeMethod['_tokenMethod'].transfer).toHaveBeenCalledWith(
@@ -114,7 +114,7 @@ describe('FeeInteroperableMethod', () => {
 		});
 
 		it('should burn the used fee', async () => {
-			feeMethod['_tokenMethod'].userAccountExists = jest.fn().mockResolvedValue(false);
+			feeMethod['_tokenMethod'].userSubstoreExists = jest.fn().mockResolvedValue(false);
 			await feeMethod.afterCrossChainCommandExecute(context);
 
 			expect(feeMethod['_tokenMethod'].burn).toHaveBeenCalledWith(

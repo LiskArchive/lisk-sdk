@@ -60,7 +60,7 @@ export interface TokenMethod {
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void>;
-	userAccountExists(
+	userSubstoreExists(
 		methodContext: ImmutableMethodContext,
 		address: Buffer,
 		tokenID: Buffer,

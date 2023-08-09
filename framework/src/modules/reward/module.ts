@@ -118,7 +118,7 @@ export class RewardModule extends BaseModule {
 			throw new Error("Block reward can't be negative.");
 		}
 
-		const userSubstoreExists = await this._tokenMethod.userAccountExists(
+		const userSubstoreExists = await this._tokenMethod.userSubstoreExists(
 			context,
 			context.header.generatorAddress,
 			this._moduleConfig.tokenID,

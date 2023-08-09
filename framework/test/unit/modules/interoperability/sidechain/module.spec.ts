@@ -33,7 +33,7 @@ import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefix
 import {
 	computeValidatorsHash,
 	getMainchainID,
-	getMainchainTokenID,
+	getTokenIDLSK,
 	validNameChars,
 } from '../../../../../src/modules/interoperability/utils';
 import {
@@ -155,7 +155,7 @@ describe('initGenesisState', () => {
 					},
 					channelData: {
 						...defaultData.chainInfos[0].channelData,
-						messageFeeTokenID: getMainchainTokenID(chainID),
+						messageFeeTokenID: getTokenIDLSK(chainID),
 					},
 					chainValidators: {
 						...chainValidators,
@@ -391,7 +391,7 @@ describe('initGenesisState', () => {
 									},
 									channelData: {
 										...defaultData.chainInfos[0].channelData,
-										messageFeeTokenID: getMainchainTokenID(chainID),
+										messageFeeTokenID: getTokenIDLSK(chainID),
 									},
 									chainValidators: {
 										...chainValidators,
