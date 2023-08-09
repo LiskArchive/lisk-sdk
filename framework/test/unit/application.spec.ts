@@ -302,7 +302,9 @@ describe('Application', () => {
 
 			const testInteroperableModule = new TestInteroperableModule();
 
-			expect(() => app.registerInteroperableModule(testInteroperableModule)).toThrow();
+			expect(() => app.registerInteroperableModule(testInteroperableModule)).toThrow(
+				`${MODULE_NAME_INTEROPERABILITY} module is not registered.`,
+			);
 		});
 	});
 
