@@ -229,16 +229,15 @@ const MainPage: React.FC = () => {
 	const subscribeEvents = () => {
 		getClient().subscribe('chain_newBlock', newBlockListener);
 		getClient().subscribe('txpool_newTransaction', newTransactionListener);
-		const endpoints = getClient().metadata.reduce<string[]>((prev, curr) => {
-			prev.push(...curr.endpoints.map(e => `${curr.name}_${e.name}`));
-			return prev;
-		}, []);
 		const listOfEvents = getClient().metadata.reduce<string[]>((prev, curr) => {
 			prev.push(...curr.events.map(e => `${curr.name}_${e.name}`));
 			return prev;
 		}, []);
-		setActions(endpoints);
 		setEvents(listOfEvents);
+	};
+
+	const loadActions = async () => {
+		setActions(await getClient().invoke<string[]>('app_getRegisteredActions'));
 	};
 
 	const loadNodeInfo = async () => {
@@ -289,6 +288,7 @@ const MainPage: React.FC = () => {
 	React.useEffect(() => {
 		if (dashboard.connected) {
 			subscribeEvents();
+			loadActions().catch(console.error);
 			loadNodeInfo().catch(console.error);
 			loadPeersInfo().catch(console.error);
 		}

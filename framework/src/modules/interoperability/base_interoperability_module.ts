@@ -43,14 +43,25 @@ import {
 } from './types';
 import { computeValidatorsHash, getMainchainTokenID } from './utils';
 import { genesisInteroperabilitySchema } from './schemas';
+import { CcmProcessedEvent } from './events/ccm_processed';
+import { CcmSentFailedEvent } from './events/ccm_send_fail';
+import { CcmSendSuccessEvent } from './events/ccm_send_success';
+import { ChainAccountUpdatedEvent } from './events/chain_account_updated';
+import { InvalidCertificateSignatureEvent } from './events/invalid_certificate_signature';
+import { InvalidRegistrationSignatureEvent } from './events/invalid_registration_signature';
+import { TerminatedOutboxCreatedEvent } from './events/terminated_outbox_created';
+import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
+import { InvalidSMTVerification } from './events/invalid_smt_verification';
+import { InvalidRMTVerification } from './events/invalid_rmt_verification';
 
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
 	protected interoperableCCCommands = new Map<string, BaseCCCommand[]>();
 	protected interoperableCCMethods = new Map<string, BaseCCMethod>();
 	protected tokenMethod!: TokenMethod;
 
-	protected constructor() {
+	public constructor() {
 		super();
+		// Register all the stores
 		this.stores.register(OutboxRootStore, new OutboxRootStore(this.name, 0));
 		this.stores.register(ChainAccountStore, new ChainAccountStore(this.name, 1));
 		this.stores.register(OwnChainAccountStore, new OwnChainAccountStore(this.name, 13));
@@ -59,6 +70,24 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		this.stores.register(TerminatedStateStore, new TerminatedStateStore(this.name, 3));
 		this.stores.register(TerminatedOutboxStore, new TerminatedOutboxStore(this.name, 11));
 		this.stores.register(RegisteredNamesStore, new RegisteredNamesStore(this.name, 7));
+
+		// Register all the events
+		this.events.register(ChainAccountUpdatedEvent, new ChainAccountUpdatedEvent(this.name));
+		this.events.register(CcmProcessedEvent, new CcmProcessedEvent(this.name));
+		this.events.register(CcmSendSuccessEvent, new CcmSendSuccessEvent(this.name));
+		this.events.register(CcmSentFailedEvent, new CcmSentFailedEvent(this.name));
+		this.events.register(
+			InvalidRegistrationSignatureEvent,
+			new InvalidRegistrationSignatureEvent(this.name),
+		);
+		this.events.register(TerminatedStateCreatedEvent, new TerminatedStateCreatedEvent(this.name));
+		this.events.register(TerminatedOutboxCreatedEvent, new TerminatedOutboxCreatedEvent(this.name));
+		this.events.register(InvalidSMTVerification, new InvalidSMTVerification(this.name));
+		this.events.register(InvalidRMTVerification, new InvalidRMTVerification(this.name));
+		this.events.register(
+			InvalidCertificateSignatureEvent,
+			new InvalidCertificateSignatureEvent(this.name),
+		);
 	}
 
 	// Common name for mainchain/sidechain interoperability module
