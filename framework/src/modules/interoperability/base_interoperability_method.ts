@@ -95,16 +95,16 @@ export abstract class BaseInteroperabilityMethod<
 	private async _getChannelCommon(context: ImmutableMethodContext, chainID: Buffer) {
 		const mainchainID = getMainchainID(chainID);
 		const ownChainAccount = await this.getOwnChainAccount(context);
-		const hasChainAccount = await this.stores.get(ChainAccountStore).has(context, chainID);
 
+		if (chainID.equals(ownChainAccount.chainID)) {
+			throw new Error('Channel with own chain account does not exist.');
+		}
+
+		const hasChainAccount = await this.stores.get(ChainAccountStore).has(context, chainID);
 		let updatedChainID = chainID;
 		// Check for direct channel while processing on a sidechain
 		if (!ownChainAccount.chainID.equals(mainchainID) && !hasChainAccount) {
 			updatedChainID = mainchainID;
-		}
-
-		if (chainID.equals(ownChainAccount.chainID)) {
-			throw new Error('Channel with own chain account does not exist.');
 		}
 
 		const hasChannel = await this.stores.get(ChannelDataStore).has(context, updatedChainID);
