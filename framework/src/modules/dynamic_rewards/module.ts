@@ -180,7 +180,7 @@ export class DynamicRewardModule extends BaseModule {
 		);
 
 		if (blockReward !== BigInt(0)) {
-			const userSubstoreExists = await this._tokenMethod.userAccountExists(
+			const userSubstoreExists = await this._tokenMethod.userSubstoreExists(
 				context,
 				context.header.generatorAddress,
 				this._moduleConfig.tokenID,

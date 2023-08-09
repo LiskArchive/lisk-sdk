@@ -50,7 +50,7 @@ describe('RewardModuleMethod', () => {
 		await rewardModule.init({ genesisConfig, moduleConfig });
 		tokenMethod = {
 			mint: jest.fn(),
-			userAccountExists: jest.fn(),
+			userSubstoreExists: jest.fn(),
 		} as any;
 		rewardModule.addDependencies(tokenMethod, {
 			isSeedRevealValid: jest.fn().mockReturnValue(true),
