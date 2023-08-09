@@ -119,12 +119,6 @@ export const isInboxUpdateEmpty = (inboxUpdate: InboxUpdate) =>
 export const isOutboxRootWitnessEmpty = (outboxRootWitness: OutboxRootWitness) =>
 	outboxRootWitness.siblingHashes.length === 0 || outboxRootWitness.bitmap.length === 0;
 
-export const isCertificateEmpty = (decodedCertificate: Certificate) =>
-	decodedCertificate.blockID.equals(EMPTY_BYTES) ||
-	decodedCertificate.stateRoot.equals(EMPTY_BYTES) ||
-	decodedCertificate.validatorsHash.equals(EMPTY_BYTES) ||
-	decodedCertificate.timestamp === 0;
-
 export const checkLivenessRequirementFirstCCU = (
 	partnerChainAccount: ChainAccount,
 	txParams: CrossChainUpdateTransactionParams,
@@ -158,8 +152,10 @@ export const checkCertificateValidity = (
 		};
 	}
 
-	const decodedCertificate = codec.decode<Certificate>(certificateSchema, encodedCertificate);
-	if (isCertificateEmpty(decodedCertificate)) {
+	const certificate = codec.decode<Certificate>(certificateSchema, encodedCertificate);
+	try {
+		validator.validate(certificateSchema, certificate);
+	} catch (err) {
 		return {
 			status: VerifyStatus.FAIL,
 			error: new Error('Certificate is missing required values.'),
@@ -167,7 +163,7 @@ export const checkCertificateValidity = (
 	}
 
 	// Last certificate height should be less than new certificate height
-	if (partnerChainAccount.lastCertificate.height >= decodedCertificate.height) {
+	if (partnerChainAccount.lastCertificate.height >= certificate.height) {
 		return {
 			status: VerifyStatus.FAIL,
 			error: new Error('Certificate height should be greater than last certificate height.'),
@@ -210,12 +206,10 @@ export const checkValidatorsHashWithCertificate = (
 				),
 			};
 		}
-		let decodedCertificate: Certificate;
+		let certificate: Certificate;
 		try {
-			decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
-			if (isCertificateEmpty(decodedCertificate)) {
-				throw new Error('Invalid empty certificate.');
-			}
+			certificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
+			validator.validate(certificateSchema, certificate);
 		} catch (error) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -237,7 +231,7 @@ export const checkValidatorsHashWithCertificate = (
 			txParams.certificateThreshold || partnerValidators.certificateThreshold,
 		);
 
-		if (!decodedCertificate.validatorsHash.equals(validatorsHash)) {
+		if (!certificate.validatorsHash.equals(validatorsHash)) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Validators hash given in the certificate is incorrect.'),
@@ -265,6 +259,8 @@ export const verifyLivenessConditionForRegisteredChains = (
 	certificateBuffer: Buffer,
 ) => {
 	const certificate = codec.decode<Certificate>(certificateSchema, certificateBuffer);
+	validator.validate(certificateSchema, certificate);
+
 	const limitSecond = LIVENESS_LIMIT / 2;
 	if (blockTimestamp - certificate.timestamp > limitSecond) {
 		throw new Error(
@@ -286,16 +282,18 @@ export const getTokenIDLSK = (chainID: Buffer): Buffer => {
 	return Buffer.concat([networkID, Buffer.alloc(7, 0)]);
 };
 
+export const getIDFromCCMBytes = (ccmBytes: Buffer) => utils.hash(ccmBytes);
+
 export const getEncodedCCMAndID = (ccm: CCMsg) => {
 	const encodedCCM = codec.encode(ccmSchema, ccm);
-	return { encodedCCM, ccmID: utils.hash(encodedCCM) };
+	return { encodedCCM, ccmID: getIDFromCCMBytes(encodedCCM) };
 };
 
 export const getDecodedCCMAndID = (ccmBytes: Buffer) => {
 	const decodedCCM = codec.decode<CCMsg>(ccmSchema, ccmBytes);
 	return {
 		decodedCCM,
-		ccmID: utils.hash(ccmBytes),
+		ccmID: getIDFromCCMBytes(ccmBytes),
 	};
 };
 

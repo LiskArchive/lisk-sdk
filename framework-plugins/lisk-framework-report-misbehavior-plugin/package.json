@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-framework-report-misbehavior-plugin",
-	"version": "0.3.0-beta.5",
+	"version": "0.3.0-beta.6",
 	"description": "A plugin for lisk-framework that provides automatic detection of validator misbehavior and sends a reportValidatorMisbehaviorTransaction to the running node",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -38,9 +38,9 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"@liskhq/lisk-cryptography": "^4.0.0-beta.2",
+		"@liskhq/lisk-cryptography": "^4.0.0-beta.3",
 		"fs-extra": "11.1.0",
-		"lisk-sdk": "^6.0.0-beta.5"
+		"lisk-sdk": "^6.0.0-beta.6"
 	},
 	"devDependencies": {
 		"@types/jest": "29.2.3",

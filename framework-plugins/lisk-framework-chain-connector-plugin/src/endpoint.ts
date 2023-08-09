@@ -18,21 +18,30 @@ import {
 	chain,
 	BlockHeader,
 	BlockHeaderJSON,
+	validator as liskValidator,
 } from 'lisk-sdk';
 import { ChainConnectorStore } from './db';
 import {
 	AggregateCommitJSON,
 	CCMsFromEventsJSON,
+	ChainConnectorPluginConfig,
 	LastSentCCMWithHeightJSON,
 	SentCCUsJSON,
 	ValidatorsDataJSON,
 } from './types';
 import { aggregateCommitToJSON, ccmsFromEventsToJSON, validatorsHashPreimagetoJSON } from './utils';
+import { authorizeRequestSchema } from './schemas';
+
+// disabled for type annotation
+// eslint-disable-next-line prefer-destructuring
+const validator: liskValidator.LiskValidator = liskValidator.validator;
 
 export class Endpoint extends BasePluginEndpoint {
 	private _chainConnectorStore!: ChainConnectorStore;
+	private _config!: ChainConnectorPluginConfig;
 
-	public load(store: ChainConnectorStore) {
+	public load(config: ChainConnectorPluginConfig, store: ChainConnectorStore) {
+		this._config = config;
 		this._chainConnectorStore = store;
 	}
 
@@ -85,5 +94,28 @@ export class Endpoint extends BasePluginEndpoint {
 	): Promise<ValidatorsDataJSON[]> {
 		const validatorsHashPreimage = await this._chainConnectorStore.getValidatorsHashPreimage();
 		return validatorsHashPreimagetoJSON(validatorsHashPreimage);
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async authorize(context: PluginEndpointContext): Promise<{ result: string }> {
+		validator.validate<{ enable: boolean; password: string }>(
+			authorizeRequestSchema,
+			context.params,
+		);
+
+		const { enable, password } = context.params;
+		const result = `Successfully ${enable ? 'enabled' : 'disabled'} the chain connector plugin.`;
+
+		if (!enable) {
+			await this._chainConnectorStore.deletePrivateKey(this._config.encryptedPrivateKey, password);
+			return {
+				result,
+			};
+		}
+
+		await this._chainConnectorStore.setPrivateKey(this._config.encryptedPrivateKey, password);
+		return {
+			result,
+		};
 	}
 }
