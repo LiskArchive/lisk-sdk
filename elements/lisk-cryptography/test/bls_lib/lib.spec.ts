@@ -135,6 +135,13 @@ describe('bls_lib', () => {
 				});
 			},
 		);
+
+		it('should throw an error when given an input buffer with value equal to the curve order', () => {
+			const sk = Buffer.from(curveOrder.slice(2), 'hex');
+			const message = Buffer.from('hello world');
+
+			expect(() => blsSign(sk, message)).toThrow('Secret key is not valid.');
+		});
 	});
 
 	describe('blsVerify', () => {
@@ -229,6 +236,14 @@ describe('bls_lib', () => {
 					hexToBuffer(output).toString('hex'),
 				);
 			});
+		});
+
+		it('should throw an error when given an input buffer with value equal to the curve order', () => {
+			const sk = Buffer.from(curveOrder.slice(2), 'hex');
+
+			expect(() => {
+				blsPopProve(sk);
+			}).toThrow('Secret key is not valid.');
 		});
 	});
 
