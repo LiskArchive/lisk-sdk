@@ -1821,7 +1821,6 @@
     buffer-reverse "1.0.1"
     hash-wasm "4.9.0"
     tweetnacl "1.0.3"
-    varuint-bitcoin "1.1.2"
 
 "@liskhq/lisk-db@0.3.7":
   version "0.3.7"
