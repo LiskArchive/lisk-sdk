@@ -17,14 +17,15 @@ import * as glob from 'glob';
 import { join } from 'path';
 import * as fs from 'fs';
 import * as yml from 'js-yaml';
-
-export const EMPTY_BUFFER = Buffer.alloc(0);
+import { EMPTY_BUFFER } from '../../src/constants';
 
 export const makeInvalid = (buffer: Buffer): Buffer => {
-	const replace = buffer[0] % 2 === 0 ? 1 : 2;
-	// eslint-disable-next-line no-param-reassign
-	buffer[0] = replace;
-	return buffer;
+	const newBuffer = Buffer.alloc(buffer.length);
+	buffer.copy(newBuffer);
+
+	const replace = newBuffer[0] % 2 === 0 ? 1 : 2;
+	newBuffer[0] = replace;
+	return newBuffer;
 };
 
 export const getAllFiles = (
