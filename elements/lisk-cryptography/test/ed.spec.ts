@@ -56,14 +56,12 @@ ${signature.toString('hex')}
 `.trim();
 
 	describe('#signMessageWithPrivateKey', () => {
-		it('should create a signed message using a private key when message is in string format', () => {
-			const signedMessage = signMessageWithPrivateKey(message, privateKey);
-			expect(signedMessage).toMatchSnapshot();
-		});
+		it('should create a signed message using a private key', () => {
+			const signedStringMessage = signMessageWithPrivateKey(message, privateKey);
+			expect(signedStringMessage).toMatchSnapshot();
 
-		it('should create a signed message using a private key when message is in Buffer format', () => {
-			const signedMessage = signMessageWithPrivateKey(messageBuffer, privateKey, tag);
-			expect(signedMessage).toMatchSnapshot();
+			const signedBufferMessage = signMessageWithPrivateKey(messageBuffer, privateKey);
+			expect(signedBufferMessage.signature).toEqual(signedStringMessage.signature);
 		});
 
 		it('should create a signed message using a private key and a custom tag', () => {
