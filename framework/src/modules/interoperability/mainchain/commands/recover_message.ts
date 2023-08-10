@@ -113,6 +113,18 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			};
 		}
 
+		// Check that the CCM indices do not exceed the outbox size. We check only the last one,
+		// as the idxs are sorted in ascending order.
+		if (
+			terminatedOutboxAccount.outboxSize <=
+			idxs[idxs.length - 1] - 2 ** terminatedOutboxAccount.outboxSize
+		) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Cross-chain message was never in the outbox.'),
+			};
+		}
+
 		// Process basic checks for all CCMs.
 		// Verify general format. Past this point, we can access ccm root properties.
 		for (const crossChainMessage of crossChainMessages) {

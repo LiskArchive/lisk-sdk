@@ -294,6 +294,39 @@ describe('MessageRecoveryCommand', () => {
 			expect(result.error?.message).toInclude(`Cross-chain message is not pending.`);
 		});
 
+		it('should return error if ccm indices exceed outbox size', async () => {
+			ccms = [
+				{
+					nonce: BigInt(0),
+					module: MODULE_NAME_INTEROPERABILITY,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+					sendingChainID: utils.intToBuffer(2, 4),
+					receivingChainID: utils.intToBuffer(3, 4),
+					fee: BigInt(1),
+					status: CCMStatusCode.FAILED_CCM,
+					params: Buffer.alloc(0),
+				},
+			];
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
+			transactionParams.idxs = [2 ** terminatedChainOutboxSize + terminatedChainOutboxSize];
+
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				});
+
+			const result = await command.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Cross-chain message was never in the outbox.`);
+		});
+
 		it('should return error if ccm.status !== CCMStatusCode.OK', async () => {
 			ccms = [
 				{
