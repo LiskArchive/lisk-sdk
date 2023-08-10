@@ -82,6 +82,14 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			};
 		}
 
+		for (let i = 0; i < idxs.length - 1; i += 1) {
+			if (idxs[i] > idxs[i + 1]) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error('Cross-chain message indexes are not strictly increasing.'),
+				};
+			}
+		}
 		// Check that the idxs are sorted in ascending order
 		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#sort_returns_the_reference_to_the_same_array
 		// CAUTION! `sort` modifies original array
