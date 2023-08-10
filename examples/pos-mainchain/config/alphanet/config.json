@@ -38,7 +38,7 @@
 	"modules": {},
 	"plugins": {
 		"reportMisbehavior": {
-			"encryptedPrivateKey": "kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=fb564e463ce46efab010f21b06d01acc62f705049563b58628d4ca23053ba6bdce5be39cb5c0624bd75735ee10a8a12b9c7876d86fc3646d036b414701dc6b01217102480cd327f5eec31b2cf209ea8b6c64505ab8bab81ed315c12c33feaaef982facec63c876def26eeefd1c0d9a5b7dce5e604622c704106a64c27b71eff7&mac=429c65daf7f6e9dba5e105be55fb7a450c74e424ff9a20cd5cb614c31fb8b010&salt=19a15ea6d5925d7104b4db0c8b0ca73a&iv=b5ec03e61586b202a1f4e9aa&tag=82ca4b682f89daa642a13edae085feea&iterations=1&parallelism=4&memorySize=2024"
+			"encryptedPrivateKey": "kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=550ae6bbc0ef89328ccb4f6f9023522d79c44c5776a53824c8a97878d4b7f8d80f94733cd0a12490649fa35cbffd814ca3b68b3f221e0790ea1e1af8837b7db789ec1752e1&mac=ef28a41cc5f9054405d32c4aa550d8f84cce74965d9f9ef4c4db2dddfbb8ee5a&salt=e0f03bb677158c2c&iv=56bf95e106f9d540b09f755f972f8606&tag=37ee036e097d294c5e2272aa33e520d5&iterations=1&parallelism=4&memorySize=2097023"
 		}
 	}
 }
