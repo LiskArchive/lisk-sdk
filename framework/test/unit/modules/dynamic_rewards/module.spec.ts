@@ -65,7 +65,7 @@ describe('DynamicRewardModule', () => {
 			genesisConfig: { chainID: '00000000' } as any,
 			moduleConfig: {},
 		});
-		tokenMethod = { mint: jest.fn(), userAccountExists: jest.fn() };
+		tokenMethod = { mint: jest.fn(), userSubstoreExists: jest.fn() };
 		randomMethod = { isSeedRevealValid: jest.fn().mockReturnValue(true) };
 		validatorsMethod = {
 			getGeneratorsBetweenTimestamps: jest.fn(),
@@ -281,7 +281,7 @@ describe('DynamicRewardModule', () => {
 
 		beforeEach(async () => {
 			jest.spyOn(rewardModule.events.get(RewardMintedEvent), 'log');
-			jest.spyOn(tokenMethod, 'userAccountExists');
+			jest.spyOn(tokenMethod, 'userSubstoreExists');
 			generatorAddress = utils.getRandomBytes(20);
 			standbyValidatorAddress = utils.getRandomBytes(20);
 			contextStore = new Map<string, unknown>();
@@ -316,7 +316,7 @@ describe('DynamicRewardModule', () => {
 				generatorMap,
 			);
 			(posMethod.getNumberOfActiveValidators as jest.Mock).mockReturnValue(activeValidator);
-			when(tokenMethod.userAccountExists)
+			when(tokenMethod.userSubstoreExists)
 				.calledWith(
 					expect.anything(),
 					blockExecuteContext.header.generatorAddress,
@@ -348,7 +348,7 @@ describe('DynamicRewardModule', () => {
 				contextStore,
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
-			when(tokenMethod.userAccountExists)
+			when(tokenMethod.userSubstoreExists)
 				.calledWith(
 					expect.anything(),
 					blockExecuteContext.header.generatorAddress,
@@ -405,7 +405,7 @@ describe('DynamicRewardModule', () => {
 		});
 
 		it('should not mint or update shared reward and return zero reward with no account reduction when reward is non zero and user account of geenrator does not exist for the token id', async () => {
-			when(tokenMethod.userAccountExists)
+			when(tokenMethod.userSubstoreExists)
 				.calledWith(
 					expect.anything(),
 					blockExecuteContext.header.generatorAddress,

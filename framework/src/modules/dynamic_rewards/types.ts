@@ -25,7 +25,7 @@ export type ModuleConfigJSON = JSONObject<ModuleConfig>;
 
 export interface TokenMethod {
 	mint(methodContext: MethodContext, address: Buffer, id: Buffer, amount: bigint): Promise<void>;
-	userAccountExists(
+	userSubstoreExists(
 		methodContext: ImmutableMethodContext,
 		address: Buffer,
 		tokenID: Buffer,

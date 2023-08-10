@@ -49,11 +49,11 @@ describe('FeeModule', () => {
 			unlock: jest.fn(),
 			transfer: jest.fn(),
 			getAvailableBalance: jest.fn(),
-			userAccountExists: jest.fn(),
+			userSubstoreExists: jest.fn(),
 		} as any;
 		feeModule.addDependencies(tokenMethod, {} as any);
 		jest.spyOn(tokenMethod, 'getAvailableBalance').mockResolvedValue(BigInt(2000000000));
-		jest.spyOn(tokenMethod, 'userAccountExists');
+		jest.spyOn(tokenMethod, 'userSubstoreExists');
 	});
 
 	describe('init', () => {
@@ -230,7 +230,7 @@ describe('FeeModule', () => {
 		});
 
 		it('should burn the used fee when addressFeePool is not defined and user account of generator address exists for the token id', async () => {
-			when(tokenMethod.userAccountExists)
+			when(tokenMethod.userSubstoreExists)
 				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
 				.mockResolvedValue(true as never);
 			await feeModule.afterCommandExecute(context);
@@ -244,7 +244,7 @@ describe('FeeModule', () => {
 		});
 
 		it('should burn the entire fee when addressFeePool is not defined and user account of generator address does not exist for the token id', async () => {
-			when(tokenMethod.userAccountExists)
+			when(tokenMethod.userSubstoreExists)
 				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
 				.mockResolvedValue(false as never);
 			await feeModule.afterCommandExecute(context);
@@ -259,10 +259,10 @@ describe('FeeModule', () => {
 
 		it('should transfer the entire fee when addressFeePool is defined and user account for token id exists for fee pool address but does not exist for generator address', async () => {
 			feeModule['_feePoolAddress'] = utils.getRandomBytes(20);
-			when(tokenMethod.userAccountExists)
+			when(tokenMethod.userSubstoreExists)
 				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
 				.mockResolvedValue(false as never);
-			when(tokenMethod.userAccountExists)
+			when(tokenMethod.userSubstoreExists)
 				.calledWith(expect.anything(), feeModule['_feePoolAddress'], feeModule['_tokenID'])
 				.mockResolvedValue(true as never);
 
@@ -280,10 +280,10 @@ describe('FeeModule', () => {
 
 		it('should transfer the used fee when addressFeePool is defined and user accounts of fee pool address and generator address exists for the token id', async () => {
 			feeModule['_feePoolAddress'] = utils.getRandomBytes(20);
-			when(tokenMethod.userAccountExists)
+			when(tokenMethod.userSubstoreExists)
 				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
 				.mockResolvedValue(true as never);
-			when(tokenMethod.userAccountExists)
+			when(tokenMethod.userSubstoreExists)
 				.calledWith(expect.anything(), feeModule['_feePoolAddress'], feeModule['_tokenID'])
 				.mockResolvedValue(true as never);
 
@@ -309,10 +309,10 @@ describe('FeeModule', () => {
 
 		it('should burn the used fee when addressFeePool is defined and user account for token id exists for generator address but does not exist for fee pool address', async () => {
 			feeModule['_feePoolAddress'] = utils.getRandomBytes(20);
-			when(tokenMethod.userAccountExists)
+			when(tokenMethod.userSubstoreExists)
 				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
 				.mockResolvedValue(true as never);
-			when(tokenMethod.userAccountExists)
+			when(tokenMethod.userSubstoreExists)
 				.calledWith(expect.anything(), feeModule['_feePoolAddress'], feeModule['_tokenID'])
 				.mockResolvedValue(false as never);
 
@@ -343,10 +343,10 @@ describe('FeeModule', () => {
 
 		it('should burn the entire fee when addressFeePool is defined but user accounts of fee pool address and generator address does not exist for the token id', async () => {
 			feeModule['_feePoolAddress'] = utils.getRandomBytes(20);
-			when(tokenMethod.userAccountExists)
+			when(tokenMethod.userSubstoreExists)
 				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
 				.mockResolvedValue(false as never);
-			when(tokenMethod.userAccountExists)
+			when(tokenMethod.userSubstoreExists)
 				.calledWith(expect.anything(), feeModule['_feePoolAddress'], feeModule['_tokenID'])
 				.mockResolvedValue(false as never);
 
@@ -362,7 +362,7 @@ describe('FeeModule', () => {
 		});
 
 		it('should transfer remaining fee to block generator if user account of generator address exists for the token id', async () => {
-			when(tokenMethod.userAccountExists)
+			when(tokenMethod.userSubstoreExists)
 				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
 				.mockResolvedValue(true as never);
 			await feeModule.afterCommandExecute(context);
@@ -377,7 +377,7 @@ describe('FeeModule', () => {
 		});
 
 		it('should not transfer remaining fee to block generator if user account of generator address does not exist for the token id', async () => {
-			when(tokenMethod.userAccountExists)
+			when(tokenMethod.userSubstoreExists)
 				.calledWith(expect.anything(), context.header.generatorAddress, feeModule['_tokenID'])
 				.mockResolvedValue(false as never);
 			await feeModule.afterCommandExecute(context);
