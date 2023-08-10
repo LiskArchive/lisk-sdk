@@ -187,9 +187,18 @@ describe('ChainConnectorPlugin', () => {
 		};
 		chainConnectorPlugin = new plugins.ChainConnectorPlugin();
 
+		(chainConnectorStoreMock as any).privateKey = Buffer.from(defaultPrivateKey, 'hex');
+
 		const encryptedKey = await cryptography.encrypt.encryptMessageWithPassword(
 			Buffer.from(defaultPrivateKey, 'hex'),
 			defaultPassword,
+			{
+				kdfparams: {
+					iterations: 1,
+					memorySize: 256,
+					parallelism: 1,
+				},
+			},
 		);
 		defaultEncryptedPrivateKey = cryptography.encrypt.stringifyEncryptedMessage(encryptedKey);
 

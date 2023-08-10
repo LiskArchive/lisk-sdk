@@ -162,7 +162,7 @@ export class FeeModule extends BaseInteroperableModule {
 
 		let availableFee = getContextStoreBigInt(context.contextStore, CONTEXT_STORE_KEY_AVAILABLE_FEE);
 
-		const userSubstoreGeneratorExists = await this._tokenMethod.userAccountExists(
+		const userSubstoreGeneratorExists = await this._tokenMethod.userSubstoreExists(
 			context,
 			header.generatorAddress,
 			this._tokenID,
@@ -181,7 +181,7 @@ export class FeeModule extends BaseInteroperableModule {
 
 		let burnConsumedFee = true;
 		if (this._feePoolAddress) {
-			const userSubstoreFeePoolExists = await this._tokenMethod.userAccountExists(
+			const userSubstoreFeePoolExists = await this._tokenMethod.userSubstoreExists(
 				context,
 				this._feePoolAddress,
 				this._tokenID,

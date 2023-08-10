@@ -291,24 +291,24 @@ describe('encrypt', () => {
 		it('should format an encrypted passphrase as a string', () => {
 			const encryptedMessage = {
 				ciphertext:
-					'fc8cdb068314590fa7e3156c60bf4a6b1f908f91bb81c79319e858cead7fba581101167c12a4f63acf86908b5c2d7dad96246cd9cd25bc8adca61d7301925869e8bf5cf2a573ae9e5a84e4',
-				mac: '997afad0b38f2d47f347648994a65e8d7ec46feec92720ab629a77cc11875c4d',
+					'3faba4444917306a5e62a83200955a46d99f08abf13960a7a722557f4e0fdd3b8e2abc460662a8d834f16164e13102e5a46bd48c3e1e164908113862a9305c953d5b921486b5432ca89ef87c16c672bb',
+				mac: '55ade5bb6ba6d0a3fc57d2ed741034bdc6bc01ac01d6e368d5246135f285faec',
 				kdf: 'argon2id',
 				kdfparams: {
 					parallelism: 4,
 					iterations: 1,
 					memorySize: 2024,
-					salt: 'd3228c53c27a44cbd9d88ea0919bdade',
+					salt: '9cc1bbc7d057e57f',
 				},
-				cipher: 'aes-256-gcm',
+				cipher: 'aes-128-gcm',
 				cipherparams: {
-					iv: 'b5c86483366f4698708e6985',
-					tag: '5d6c0f628ba12930111c33ef678b2319',
+					iv: 'fda7e894f968b70281854df32ad51273',
+					tag: '4e54653309917e537821504623ead4bf',
 				},
 				version: '1',
 			};
 			const stringifiedEncryptedPassphrase =
-				'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=fc8cdb068314590fa7e3156c60bf4a6b1f908f91bb81c79319e858cead7fba581101167c12a4f63acf86908b5c2d7dad96246cd9cd25bc8adca61d7301925869e8bf5cf2a573ae9e5a84e4&mac=997afad0b38f2d47f347648994a65e8d7ec46feec92720ab629a77cc11875c4d&salt=d3228c53c27a44cbd9d88ea0919bdade&iv=b5c86483366f4698708e6985&tag=5d6c0f628ba12930111c33ef678b2319&iterations=1&parallelism=4&memorySize=2024';
+				'kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=3faba4444917306a5e62a83200955a46d99f08abf13960a7a722557f4e0fdd3b8e2abc460662a8d834f16164e13102e5a46bd48c3e1e164908113862a9305c953d5b921486b5432ca89ef87c16c672bb&mac=55ade5bb6ba6d0a3fc57d2ed741034bdc6bc01ac01d6e368d5246135f285faec&salt=9cc1bbc7d057e57f&iv=fda7e894f968b70281854df32ad51273&tag=4e54653309917e537821504623ead4bf&iterations=1&parallelism=4&memorySize=2024';
 			expect(stringifyEncryptedMessage(encryptedMessage as any)).toBe(
 				stringifiedEncryptedPassphrase,
 			);
@@ -317,24 +317,24 @@ describe('encrypt', () => {
 		it('should format an encrypted passphrase with custom iterations as a string', () => {
 			const encryptedMessage = {
 				ciphertext:
-					'fc8cdb068314590fa7e3156c60bf4a6b1f908f91bb81c79319e858cead7fba581101167c12a4f63acf86908b5c2d7dad96246cd9cd25bc8adca61d7301925869e8bf5cf2a573ae9e5a84e4',
-				mac: '997afad0b38f2d47f347648994a65e8d7ec46feec92720ab629a77cc11875c4d',
+					'3faba4444917306a5e62a83200955a46d99f08abf13960a7a722557f4e0fdd3b8e2abc460662a8d834f16164e13102e5a46bd48c3e1e164908113862a9305c953d5b921486b5432ca89ef87c16c672bb',
+				mac: '55ade5bb6ba6d0a3fc57d2ed741034bdc6bc01ac01d6e368d5246135f285faec',
 				kdf: 'argon2id',
 				kdfparams: {
 					parallelism: 4,
-					iterations: 10000,
+					iterations: 1000,
 					memorySize: 2024,
-					salt: 'd3228c53c27a44cbd9d88ea0919bdade',
+					salt: '9cc1bbc7d057e57f',
 				},
-				cipher: 'aes-256-gcm',
+				cipher: 'aes-128-gcm',
 				cipherparams: {
-					iv: 'b5c86483366f4698708e6985',
-					tag: '5d6c0f628ba12930111c33ef678b2319',
+					iv: 'fda7e894f968b70281854df32ad51273',
+					tag: '4e54653309917e537821504623ead4bf',
 				},
 				version: '1',
 			};
 			const stringifiedEncryptedPassphrase =
-				'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=fc8cdb068314590fa7e3156c60bf4a6b1f908f91bb81c79319e858cead7fba581101167c12a4f63acf86908b5c2d7dad96246cd9cd25bc8adca61d7301925869e8bf5cf2a573ae9e5a84e4&mac=997afad0b38f2d47f347648994a65e8d7ec46feec92720ab629a77cc11875c4d&salt=d3228c53c27a44cbd9d88ea0919bdade&iv=b5c86483366f4698708e6985&tag=5d6c0f628ba12930111c33ef678b2319&iterations=10000&parallelism=4&memorySize=2024';
+				'kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=3faba4444917306a5e62a83200955a46d99f08abf13960a7a722557f4e0fdd3b8e2abc460662a8d834f16164e13102e5a46bd48c3e1e164908113862a9305c953d5b921486b5432ca89ef87c16c672bb&mac=55ade5bb6ba6d0a3fc57d2ed741034bdc6bc01ac01d6e368d5246135f285faec&salt=9cc1bbc7d057e57f&iv=fda7e894f968b70281854df32ad51273&tag=4e54653309917e537821504623ead4bf&iterations=1000&parallelism=4&memorySize=2024';
 			expect(stringifyEncryptedMessage(encryptedMessage as any)).toBe(
 				stringifiedEncryptedPassphrase,
 			);
