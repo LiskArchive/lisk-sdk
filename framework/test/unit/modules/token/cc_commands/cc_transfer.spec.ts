@@ -98,6 +98,7 @@ describe('CrossChain Transfer Command', () => {
 			terminateChain: jest.fn(),
 			getChannel: jest.fn(),
 			getMessageFeeTokenID: jest.fn(),
+			getMessageFeeTokenIDFromCCM: jest.fn(),
 		};
 		const config = {
 			ownChainID,

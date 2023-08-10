@@ -66,6 +66,7 @@ export interface InteroperabilityMethod {
 	terminateChain(methodContext: MethodContext, chainID: Buffer): Promise<void>;
 	getChannel(methodContext: MethodContext, chainID: Buffer): Promise<ChannelData>;
 	getMessageFeeTokenID(methodContext: ImmutableMethodContext, chainID: Buffer): Promise<Buffer>;
+	getMessageFeeTokenIDFromCCM(methodContext: ImmutableMethodContext, ccm: CCMsg): Promise<Buffer>;
 }
 
 export interface FeeMethod {
