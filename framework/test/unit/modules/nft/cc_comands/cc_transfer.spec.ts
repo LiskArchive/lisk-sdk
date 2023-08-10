@@ -291,9 +291,7 @@ describe('CrossChain Transfer Command', () => {
 		it('should throw if nft chain id equals own chain id but no entry exists in nft substore for the nft id', async () => {
 			await nftStore.del(methodContext, nftID);
 
-			await expect(command.verify(context)).rejects.toThrow(
-				'Non-existent entry in the NFT substore',
-			);
+			await expect(command.verify(context)).rejects.toThrow('NFT substore entry does not exist');
 		});
 
 		it('should throw if nft chain id equals own chain id but the owner of nft is different from the sending chain', async () => {
