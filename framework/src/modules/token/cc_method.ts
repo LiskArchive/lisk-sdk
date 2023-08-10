@@ -21,7 +21,7 @@ import { UserStore, UserStoreData, userStoreSchema } from './stores/user';
 import { InteroperabilityMethod } from './types';
 import { BeforeCCCExecutionEvent } from './events/before_ccc_execution';
 import { RecoverEvent } from './events/recover';
-import { EMPTY_BYTES } from '../interoperability/constants';
+import { CCMStatusCode, EMPTY_BYTES } from '../interoperability/constants';
 import { BeforeCCMForwardingEvent } from './events/before_ccm_forwarding';
 import { splitTokenID } from './utils';
 import { getEncodedCCMAndID } from '../interoperability/utils';
@@ -86,36 +86,60 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 	}
 
 	public async beforeCrossChainMessageForwarding(ctx: CrossChainMessageContext): Promise<void> {
-		const { ccm } = ctx;
+		const {
+			transaction: { senderAddress: relayerAddress },
+			ccm,
+		} = ctx;
+		const { ccmID } = getEncodedCCMAndID(ccm);
 		const methodContext = ctx.getMethodContext();
 		const messageFeeTokenID = await this._interopMethod.getMessageFeeTokenID(
 			methodContext,
 			ccm.receivingChainID,
 		);
-		const { ccmID } = getEncodedCCMAndID(ccm);
-
 		const escrowStore = this.stores.get(EscrowStore);
-		const escrowKey = escrowStore.getKey(ccm.sendingChainID, messageFeeTokenID);
-		const escrowAccount = await escrowStore.getOrDefault(methodContext, escrowKey);
-		if (escrowAccount.amount < ccm.fee) {
-			this.events.get(BeforeCCMForwardingEvent).error(
-				methodContext,
-				ccm.sendingChainID,
-				ccm.receivingChainID,
-				{
-					ccmID,
+		const sendingChainEscrowKey = escrowStore.getKey(ccm.sendingChainID, messageFeeTokenID);
+		const sendingChainEscrowAccount = await escrowStore.getOrDefault(
+			methodContext,
+			sendingChainEscrowKey,
+		);
+		if (ccm.fee > 0) {
+			if (sendingChainEscrowAccount.amount < ccm.fee) {
+				this.events.get(BeforeCCMForwardingEvent).error(
+					methodContext,
+					ccm.sendingChainID,
+					ccm.receivingChainID,
+					{
+						ccmID,
+						messageFeeTokenID,
+					},
+					TokenEventResult.INSUFFICIENT_ESCROW_BALANCE,
+				);
+
+				throw new Error('Insufficient balance in the sending chain for the message fee.');
+			}
+			// Deduct the fee from escrow of the sending chain.
+			sendingChainEscrowAccount.amount -= ccm.fee;
+			await escrowStore.set(methodContext, sendingChainEscrowKey, sendingChainEscrowAccount);
+
+			// If the ccm will get forwarded, we update the escrow of the receiving chain.
+			if (ccm.status !== CCMStatusCode.FAILED_CCM) {
+				const receivingChainEscrowKey = escrowStore.getKey(ccm.receivingChainID, messageFeeTokenID);
+				const receivingChainEscrowAccount = await escrowStore.getOrDefault(
+					methodContext,
+					receivingChainEscrowKey,
+				);
+				receivingChainEscrowAccount.amount += ccm.fee;
+				await escrowStore.set(methodContext, receivingChainEscrowKey, receivingChainEscrowAccount);
+			} else {
+				const userStore = this.stores.get(UserStore);
+				await userStore.addAvailableBalance(
+					methodContext,
+					relayerAddress,
 					messageFeeTokenID,
-				},
-				TokenEventResult.INSUFFICIENT_ESCROW_BALANCE,
-			);
-
-			throw new Error('Insufficient balance in the sending chain for the message fee.');
+					ccm.fee,
+				);
+			}
 		}
-
-		escrowAccount.amount -= ccm.fee;
-		await escrowStore.set(methodContext, escrowKey, escrowAccount);
-
-		await escrowStore.addAmount(methodContext, ccm.receivingChainID, messageFeeTokenID, ccm.fee);
 
 		this.events
 			.get(BeforeCCMForwardingEvent)

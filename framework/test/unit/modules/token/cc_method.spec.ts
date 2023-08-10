@@ -33,7 +33,10 @@ import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
 import { BeforeCCCExecutionEvent } from '../../../../src/modules/token/events/before_ccc_execution';
 import { BeforeCCMForwardingEvent } from '../../../../src/modules/token/events/before_ccm_forwarding';
 import { RecoverEvent } from '../../../../src/modules/token/events/recover';
-import { CROSS_CHAIN_COMMAND_REGISTRATION } from '../../../../src/modules/interoperability/constants';
+import {
+	CCMStatusCode,
+	CROSS_CHAIN_COMMAND_REGISTRATION,
+} from '../../../../src/modules/interoperability/constants';
 import { ccuParamsSchema } from '../../../../src';
 import { InternalMethod } from '../../../../src/modules/token/internal_method';
 import { InitializeUserAccountEvent } from '../../../../src/modules/token/events/initialize_user_account';
@@ -285,6 +288,52 @@ describe('TokenInteroperableMethod', () => {
 	});
 
 	describe('beforeCrossChainMessageForwarding', () => {
+		it(`should emit ${TokenEventResult.SUCCESSFUL} if there is no ccm fee`, async () => {
+			await expect(
+				tokenInteropMethod.beforeCrossChainMessageForwarding({
+					ccm: {
+						crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+						module: tokenModule.name,
+						nonce: BigInt(1),
+						sendingChainID,
+						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						fee: BigInt(0),
+						status: CCMStatusCode.OK,
+						params: codec.encode(crossChainForwardMessageParams, {
+							tokenID: utils.getRandomBytes(9),
+							amount: BigInt(1000),
+							senderAddress: defaultAddress,
+							forwardToChainID: Buffer.from([4, 0, 0, 0]),
+							recipientAddress: defaultAddress,
+							data: 'ddd',
+							forwardedMessageFee: BigInt(2000),
+						}),
+					},
+					getMethodContext: () => methodContext,
+					eventQueue: new EventQueue(0),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+					logger: fakeLogger,
+					chainID: ownChainID,
+					header: {
+						timestamp: Date.now(),
+						height: 10,
+					},
+					stateStore,
+					contextStore,
+					transaction: {
+						fee,
+						senderAddress: defaultAddress,
+						params: defaultEncodedCCUParams,
+					},
+				}),
+			).resolves.toBeUndefined();
+			checkEventResult(
+				methodContext.eventQueue,
+				BeforeCCMForwardingEvent,
+				TokenEventResult.SUCCESSFUL,
+			);
+		});
+
 		it('should throw if escrow balance is not sufficient', async () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainMessageForwarding({
@@ -295,7 +344,7 @@ describe('TokenInteroperableMethod', () => {
 						sendingChainID,
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee: fee + defaultEscrowAmount,
-						status: CCM_STATUS_OK,
+						status: CCMStatusCode.OK,
 						params: utils.getRandomBytes(30),
 					},
 					getMethodContext: () => methodContext,
@@ -323,7 +372,7 @@ describe('TokenInteroperableMethod', () => {
 			);
 		});
 
-		it('should deduct escrow account for fee and credit to receving chain escrow account if ccm command is not transfer', async () => {
+		it('should deduct sending chain escrow account for fee and credit to receving chain escrow account if ccm failed', async () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainMessageForwarding({
 					ccm: {
@@ -333,7 +382,7 @@ describe('TokenInteroperableMethod', () => {
 						sendingChainID,
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee,
-						status: CCM_STATUS_OK,
+						status: CCMStatusCode.FAILED_CCM,
 						params: codec.encode(crossChainForwardMessageParams, {
 							tokenID: utils.getRandomBytes(9),
 							amount: BigInt(1000),
@@ -368,11 +417,73 @@ describe('TokenInteroperableMethod', () => {
 				escrowStore.getKey(sendingChainID, defaultTokenID),
 			);
 			expect(amount).toEqual(defaultEscrowAmount - fee);
-			const { amount: receiver } = await escrowStore.get(
+			const { availableBalance } = await userStore.get(
+				methodContext,
+				userStore.getKey(defaultAddress, defaultTokenID),
+			);
+			expect(availableBalance).toEqual(defaultAccount.availableBalance + fee);
+			checkEventResult(
+				methodContext.eventQueue,
+				BeforeCCMForwardingEvent,
+				TokenEventResult.SUCCESSFUL,
+			);
+		});
+
+		it('should deduct sending chain escrow account for fee and credit to relayer account if ccm did not fail', async () => {
+			await expect(
+				tokenInteropMethod.beforeCrossChainMessageForwarding({
+					ccm: {
+						crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+						module: tokenModule.name,
+						nonce: BigInt(1),
+						sendingChainID,
+						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						fee,
+						status: CCMStatusCode.OK,
+						params: codec.encode(crossChainForwardMessageParams, {
+							tokenID: utils.getRandomBytes(9),
+							amount: BigInt(1000),
+							senderAddress: defaultAddress,
+							forwardToChainID: Buffer.from([4, 0, 0, 0]),
+							recipientAddress: defaultAddress,
+							data: 'ddd',
+							forwardedMessageFee: BigInt(2000),
+						}),
+					},
+					getMethodContext: () => methodContext,
+					eventQueue: new EventQueue(0),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+					logger: fakeLogger,
+					chainID: ownChainID,
+					header: {
+						timestamp: Date.now(),
+						height: 10,
+					},
+					stateStore,
+					contextStore,
+					transaction: {
+						fee,
+						senderAddress: defaultAddress,
+						params: defaultEncodedCCUParams,
+					},
+				}),
+			).resolves.toBeUndefined();
+
+			const { amount: sendingChainAmount } = await escrowStore.get(
+				methodContext,
+				escrowStore.getKey(sendingChainID, defaultTokenID),
+			);
+			expect(sendingChainAmount).toEqual(defaultEscrowAmount - fee);
+			const { amount: receivingChainAmount } = await escrowStore.get(
 				methodContext,
 				escrowStore.getKey(Buffer.from([0, 0, 0, 1]), defaultTokenID),
 			);
-			expect(receiver).toEqual(fee);
+			expect(receivingChainAmount).toEqual(fee);
+			checkEventResult(
+				methodContext.eventQueue,
+				BeforeCCMForwardingEvent,
+				TokenEventResult.SUCCESSFUL,
+			);
 		});
 	});
 
