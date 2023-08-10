@@ -57,6 +57,7 @@ import {
 	CCMProcessedResult,
 } from '../../../../../../src/modules/interoperability/events/ccm_processed';
 import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
+import { InvalidRMTVerification } from '../../../../../../src/modules/interoperability/events/invalid_rmt_verification';
 
 describe('MessageRecoveryCommand', () => {
 	const interopModule = new MainchainInteroperabilityModule();
@@ -406,6 +407,7 @@ describe('MessageRecoveryCommand', () => {
 			jest.spyOn(command, '_forwardRecovery' as never);
 			jest.spyOn(interopModule.stores.get(TerminatedOutboxStore), 'set');
 			jest.spyOn(commandExecuteContext['contextStore'], 'set');
+			jest.spyOn(command['events'].get(InvalidRMTVerification), 'error');
 		});
 
 		it('should return error if message recovery proof of inclusion is not valid', async () => {
@@ -436,10 +438,12 @@ describe('MessageRecoveryCommand', () => {
 					partnerChainInboxSize: 1,
 				});
 
-			const result = await command.verify(commandExecuteContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(`Message recovery proof of inclusion is not valid.`);
+			await expect(command.execute(commandExecuteContext)).rejects.toThrow(
+				'Message recovery proof of inclusion is not valid.',
+			);
+			expect(command['events'].get(InvalidRMTVerification).error).toHaveBeenCalledWith(
+				commandExecuteContext,
+			);
 		});
 
 		it('should call applyRecovery when sending chain is mainchain', async () => {

@@ -50,7 +50,7 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 		context: CommandVerifyContext<MessageRecoveryParams>,
 	): Promise<VerificationResult> {
 		const {
-			params: { chainID, crossChainMessages, idxs, siblingHashes },
+			params: { chainID, crossChainMessages, idxs },
 		} = context;
 		let terminatedOutboxAccount: TerminatedOutboxAccount | undefined;
 
@@ -134,24 +134,6 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 					error: new Error('Cross-chain message sending chain is not live.'),
 				};
 			}
-		}
-
-		// Check the inclusion proof against the sidechain outbox root.
-		const proof = {
-			size: terminatedOutboxAccount.outboxSize,
-			idxs,
-			siblingHashes,
-		};
-		const isVerified = regularMerkleTree.verifyDataBlock(
-			crossChainMessages,
-			proof,
-			terminatedOutboxAccount.outboxRoot,
-		);
-		if (!isVerified) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Message recovery proof of inclusion is not valid.'),
-			};
 		}
 
 		return {
