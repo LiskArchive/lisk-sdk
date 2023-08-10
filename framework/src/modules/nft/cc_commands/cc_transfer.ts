@@ -70,13 +70,12 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 
 		const nftStore = this.stores.get(NFTStore);
 		const nftExists = await nftStore.has(getMethodContext(), nftID);
-		if (nftChainID.equals(ownChainID) && !nftExists) {
-			throw new Error('Non-existent entry in the NFT substore');
-		}
 
-		const owner = await this._method.getNFTOwner(getMethodContext(), nftID);
-		if (nftChainID.equals(ownChainID) && !owner.equals(sendingChainID)) {
-			throw new Error('NFT has not been properly escrowed');
+		if (nftChainID.equals(ownChainID)) {
+			const owner = await this._method.getNFTOwner(getMethodContext(), nftID);
+			if (!owner.equals(sendingChainID)) {
+				throw new Error('NFT has not been properly escrowed');
+			}
 		}
 
 		if (!nftChainID.equals(ownChainID) && nftExists) {

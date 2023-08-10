@@ -280,7 +280,7 @@ describe('CrossChain Transfer Command', () => {
 				eventQueue,
 				getStore,
 				logger: fakeLogger,
-				chainID,
+				chainID: newConfig.ownChainID,
 			};
 
 			await expect(command.verify(context)).rejects.toThrow(
@@ -291,9 +291,7 @@ describe('CrossChain Transfer Command', () => {
 		it('should throw if nft chain id equals own chain id but no entry exists in nft substore for the nft id', async () => {
 			await nftStore.del(methodContext, nftID);
 
-			await expect(command.verify(context)).rejects.toThrow(
-				'Non-existent entry in the NFT substore',
-			);
+			await expect(command.verify(context)).rejects.toThrow('NFT substore entry does not exist');
 		});
 
 		it('should throw if nft chain id equals own chain id but the owner of nft is different from the sending chain', async () => {
@@ -304,6 +302,32 @@ describe('CrossChain Transfer Command', () => {
 			});
 
 			await expect(command.verify(context)).rejects.toThrow('NFT has not been properly escrowed');
+		});
+
+		it('should not throw if nft chain id is not equal to own chain id and no entry exists in nft substore for the nft id', async () => {
+			const newConfig = {
+				ownChainID: utils.getRandomBytes(LENGTH_CHAIN_ID),
+				escrowAccountInitializationFee: BigInt(50000000),
+				userAccountInitializationFee: BigInt(50000000),
+			};
+			method.init(newConfig);
+			internalMethod.addDependencies(method, interopMethod);
+			internalMethod.init(newConfig);
+			context = {
+				ccm,
+				transaction: defaultTransaction,
+				header: defaultHeader,
+				stateStore,
+				contextStore,
+				getMethodContext,
+				eventQueue: new EventQueue(0),
+				getStore,
+				logger: fakeLogger,
+				chainID: newConfig.ownChainID,
+			};
+			await nftStore.del(methodContext, nftID);
+
+			await expect(command.verify(context)).resolves.toBeUndefined();
 		});
 
 		it('throw if nft chain id is not equal to own chain id and entry already exists in nft substore for the nft id', async () => {
