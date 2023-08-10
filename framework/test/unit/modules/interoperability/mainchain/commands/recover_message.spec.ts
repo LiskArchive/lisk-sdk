@@ -538,6 +538,7 @@ describe('MessageRecoveryCommand', () => {
 			]);
 			jest.spyOn(command['events'].get(CcmProcessedEvent), 'log');
 			jest.spyOn(command['events'].get(CcmSendSuccessEvent), 'log');
+			jest.spyOn(command, 'execute');
 			context = createCrossChainMessageContext({
 				ccm: defaultCCM,
 			});
@@ -567,6 +568,7 @@ describe('MessageRecoveryCommand', () => {
 					result: CCMProcessedResult.DISCARDED,
 				},
 			);
+			expect(command.execute).toHaveBeenCalledTimes(0);
 		});
 
 		it('should log event if the module is not registered', async () => {
@@ -598,6 +600,7 @@ describe('MessageRecoveryCommand', () => {
 					result: CCMProcessedResult.DISCARDED,
 				},
 			);
+			expect(command.execute).toHaveBeenCalledTimes(0);
 		});
 
 		it('should log event if the command is not registered', async () => {
@@ -629,6 +632,7 @@ describe('MessageRecoveryCommand', () => {
 					result: CCMProcessedResult.DISCARDED,
 				},
 			);
+			expect(command.execute).toHaveBeenCalledTimes(0);
 		});
 
 		it('should log event when command verify fails', async () => {

@@ -218,6 +218,9 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			sendingChainID: context.ccm.receivingChainID,
 			receivingChainID: context.ccm.sendingChainID,
 		};
+		let ccmFailed = false;
+		let ccmResult = CCMProcessedResult.APPLIED;
+		let ccmCode = CCMProcessedCode.SUCCESS;
 		try {
 			for (const [module, method] of this.interoperableCCMethods.entries()) {
 				if (method.verifyCrossChainMessage) {
@@ -233,39 +236,23 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 				}
 			}
 		} catch (error) {
-			this.events
-				.get(CcmProcessedEvent)
-				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
-					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
-					result: CCMProcessedResult.DISCARDED,
-					ccm: recoveredCCM,
-				});
-			return recoveredCCM;
+			ccmFailed = true;
+			ccmResult = CCMProcessedResult.DISCARDED;
+			ccmCode = CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION;
 		}
-
 		const commands = this.ccCommands.get(recoveredCCM.module);
-		if (!commands) {
-			this.events
-				.get(CcmProcessedEvent)
-				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
-					code: CCMProcessedCode.MODULE_NOT_SUPPORTED,
-					result: CCMProcessedResult.DISCARDED,
-					ccm: recoveredCCM,
-				});
-			return recoveredCCM;
+		if (!ccmFailed && !commands) {
+			ccmFailed = true;
+			ccmResult = CCMProcessedResult.DISCARDED;
+			ccmCode = CCMProcessedCode.MODULE_NOT_SUPPORTED;
 		}
-		const command = commands.find(com => com.name === recoveredCCM.crossChainCommand);
-		if (!command) {
-			this.events
-				.get(CcmProcessedEvent)
-				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
-					code: CCMProcessedCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
-					result: CCMProcessedResult.DISCARDED,
-					ccm: recoveredCCM,
-				});
-			return recoveredCCM;
+		const command = commands?.find(com => com.name === recoveredCCM.crossChainCommand);
+		if (!ccmFailed && !command) {
+			ccmFailed = true;
+			ccmResult = CCMProcessedResult.DISCARDED;
+			ccmCode = CCMProcessedCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED;
 		}
-		if (command.verify) {
+		if (command?.verify) {
 			try {
 				await command.verify(context);
 			} catch (error) {
@@ -325,29 +312,31 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			return recoveredCCM;
 		}
 
-		const execEventSnapshotID = context.eventQueue.createSnapshot();
-		const execStateSnapshotID = context.stateStore.createSnapshot();
-
-		try {
-			const params = command.schema ? codec.decode(command.schema, recoveredCCM.params) : {};
-			await command.execute({ ...context, params });
-			this.events
-				.get(CcmProcessedEvent)
-				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
-					code: CCMProcessedCode.SUCCESS,
-					result: CCMProcessedResult.APPLIED,
-					ccm: recoveredCCM,
-				});
-		} catch (error) {
-			context.eventQueue.restoreSnapshot(execEventSnapshotID);
-			context.stateStore.restoreSnapshot(execStateSnapshotID);
-			this.events
-				.get(CcmProcessedEvent)
-				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
-					code: CCMProcessedCode.FAILED_CCM,
-					result: CCMProcessedResult.DISCARDED,
-					ccm: recoveredCCM,
-				});
+		// We execute the cross-chain command logic only if there is no ccm failure.
+		if (!ccmFailed) {
+			const execEventSnapshotID = context.eventQueue.createSnapshot();
+			const execStateSnapshotID = context.stateStore.createSnapshot();
+			try {
+				const params = command?.schema ? codec.decode(command?.schema, recoveredCCM.params) : {};
+				await command?.execute({ ...context, params });
+				this.events
+					.get(CcmProcessedEvent)
+					.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
+						code: CCMProcessedCode.SUCCESS,
+						result: CCMProcessedResult.APPLIED,
+						ccm: recoveredCCM,
+					});
+			} catch (error) {
+				context.eventQueue.restoreSnapshot(execEventSnapshotID);
+				context.stateStore.restoreSnapshot(execStateSnapshotID);
+				this.events
+					.get(CcmProcessedEvent)
+					.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
+						code: CCMProcessedCode.FAILED_CCM,
+						result: CCMProcessedResult.DISCARDED,
+						ccm: recoveredCCM,
+					});
+			}
 		}
 
 		try {
@@ -376,6 +365,17 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
 					code: CCMProcessedCode.INVALID_CCM_AFTER_CCC_EXECUTION_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
+					ccm: recoveredCCM,
+				});
+			return recoveredCCM;
+		}
+
+		if (ccmFailed) {
+			this.events
+				.get(CcmProcessedEvent)
+				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
+					code: ccmCode,
+					result: ccmResult,
 					ccm: recoveredCCM,
 				});
 		}
