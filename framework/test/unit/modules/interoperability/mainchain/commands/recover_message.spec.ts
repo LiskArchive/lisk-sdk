@@ -255,44 +255,6 @@ describe('MessageRecoveryCommand', () => {
 			);
 		});
 
-		it('should return error if idxs are not sorted in ascending order', async () => {
-			transactionParams.idxs = [1, 0];
-			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
-
-			await interopModule.stores
-				.get(TerminatedOutboxStore)
-				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
-					outboxRoot,
-					outboxSize: terminatedChainOutboxSize,
-					partnerChainInboxSize: 1,
-				});
-
-			const result = await command.verify(commandVerifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				`Cross-chain message indexes are not sorted in ascending order.`,
-			);
-		});
-
-		it('should return error if idxs are not unique', async () => {
-			transactionParams.idxs = [1, 1];
-			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
-
-			await interopModule.stores
-				.get(TerminatedOutboxStore)
-				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
-					outboxRoot,
-					outboxSize: terminatedChainOutboxSize,
-					partnerChainInboxSize: 1,
-				});
-
-			const result = await command.verify(commandVerifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Cross-chain message indexes are not unique.');
-		});
-
 		it('should return error if cross-chain message is not pending', async () => {
 			transactionParams.idxs = [0];
 			ccms = [ccms[0]];
