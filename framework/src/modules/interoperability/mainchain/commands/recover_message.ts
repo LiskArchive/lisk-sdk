@@ -236,9 +236,22 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 				}
 			}
 		} catch (error) {
-			ccmFailed = true;
-			ccmResult = CCMProcessedResult.DISCARDED;
-			ccmCode = CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION;
+			logger.debug(
+				{
+					err: error as Error,
+					moduleName: recoveredCCM.module,
+					commandName: recoveredCCM.crossChainCommand,
+				},
+				'Fail to verify cross chain message.',
+			);
+			this.events
+				.get(CcmProcessedEvent)
+				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
+					code: CCMProcessedCode.INVALID_CCM_VERIFY_EXCEPTION,
+					result: CCMProcessedResult.DISCARDED,
+					ccm: recoveredCCM,
+				});
+			return recoveredCCM;
 		}
 		const commands = this.ccCommands.get(recoveredCCM.module);
 		if (!ccmFailed && !commands) {
