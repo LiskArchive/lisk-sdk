@@ -24,7 +24,7 @@ import { RecoverEvent } from './events/recover';
 import { CCMStatusCode, EMPTY_BYTES } from '../interoperability/constants';
 import { BeforeCCMForwardingEvent } from './events/before_ccm_forwarding';
 import { splitTokenID } from './utils';
-import { getEncodedCCMAndID } from '../interoperability/utils';
+import { getEncodedCCMAndID, getTokenIDLSK } from '../interoperability/utils';
 import { InternalMethod } from './internal_method';
 
 export class TokenInteroperableMethod extends BaseCCMethod {
@@ -45,10 +45,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 			ccm,
 		} = ctx;
 		const methodContext = ctx.getMethodContext();
-		const tokenID = await this._interopMethod.getMessageFeeTokenID(
-			methodContext,
-			ccm.sendingChainID,
-		);
+		const tokenID = await this._interopMethod.getMessageFeeTokenIDFromCCM(methodContext, ccm);
 		const { ccmID } = getEncodedCCMAndID(ccm);
 		const [chainID] = splitTokenID(tokenID);
 		const userStore = this.stores.get(UserStore);
@@ -92,10 +89,15 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 		} = ctx;
 		const { ccmID } = getEncodedCCMAndID(ccm);
 		const methodContext = ctx.getMethodContext();
-		const messageFeeTokenID = await this._interopMethod.getMessageFeeTokenID(
+		const messageFeeTokenID = await this._interopMethod.getMessageFeeTokenIDFromCCM(
 			methodContext,
-			ccm.receivingChainID,
+			ccm,
 		);
+
+		if (!messageFeeTokenID.equals(getTokenIDLSK(ctx.chainID))) {
+			throw new Error('Message fee token should be LSK.');
+		}
+
 		const escrowStore = this.stores.get(EscrowStore);
 		const sendingChainEscrowKey = escrowStore.getKey(ccm.sendingChainID, messageFeeTokenID);
 		const sendingChainEscrowAccount = await escrowStore.getOrDefault(
@@ -152,10 +154,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 	public async verifyCrossChainMessage(ctx: CrossChainMessageContext): Promise<void> {
 		const { ccm } = ctx;
 		const methodContext = ctx.getMethodContext();
-		const tokenID = await this._interopMethod.getMessageFeeTokenID(
-			methodContext,
-			ccm.sendingChainID,
-		);
+		const tokenID = await this._interopMethod.getMessageFeeTokenIDFromCCM(methodContext, ccm);
 		const [chainID] = splitTokenID(tokenID);
 		if (chainID.equals(ctx.chainID)) {
 			const escrowStore = this.stores.get(EscrowStore);
