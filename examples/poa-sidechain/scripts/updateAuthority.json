@@ -1,0 +1,28 @@
+{
+	"newValidators": [
+		{
+			"address": "lskzbqjmwmd32sx8ya56saa4gk7tkco953btm24t8",
+			"weight": 20
+		},
+		{
+			"address": "lskzot8pzdcvjhpjwrhq3dkkbf499ok7mhwkrvsq3",
+			"weight": 20
+		},
+		{
+			"address": "lskz89nmk8tuwt93yzqm6wu2jxjdaftr9d5detn8v",
+			"weight": 20
+		},
+		{
+			"address": "lskx2hume2sg9grrnj94cpqkjummtz2mpcgc8dhoe",
+			"weight": 20
+		},
+		{
+			"address": "lskxa4895zkxjspdvu3e5eujash7okvnkkpr8xsr5",
+			"weight": 15
+		}
+	],
+	"threshold": "68",
+	"validatorsUpdateNonce": 0,
+	"signature": "87a20b81bdcbc7a4f228bc00894d53d55fbb2c53960f0ddc0cfa0f77395a33858a9907079773ad50a220cbdb49bc1d171250df83dd70572c4691eb280ae99d4501b289676b6bb0ad0e859b525752015bf5113e49050a8c70853470f2dd7e9344",
+	"aggregationBits": "1d224ad4cf64a3db52b2509c5b63365db970f34c8e09babf4af8135d9234f91f"
+}

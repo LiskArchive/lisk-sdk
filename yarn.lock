@@ -509,11 +509,12 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@chainsafe/blst@0.2.6":
-  version "0.2.6"
-  resolved "https://registry.yarnpkg.com/@chainsafe/blst/-/blst-0.2.6.tgz#56f17c82338d62421321dca60250951dd3a7db7a"
-  integrity sha512-7mzE9IRjG0TZKPit83GT4XPSgMnqmMT4AAeUTyTj/IwO4FDPQ3fJVheT6i9LaH3I4Y18oaL68G9j+Uh3mEEAYg==
+"@chainsafe/blst@0.2.9":
+  version "0.2.9"
+  resolved "https://registry.yarnpkg.com/@chainsafe/blst/-/blst-0.2.9.tgz#b356b47759c3ce127677227fc24faa3ac6c72032"
+  integrity sha512-6MXBUy5Co6k6V9Bv0EC5YrHD7kwWIpzwBO4yCqurLw//Zm3cUmN6DohuYuEGcS4QMNEswa/cXqzZLf+LFBJPiw==
   dependencies:
+    "@types/tar" "^6.1.4"
     node-fetch "^2.6.1"
     node-gyp "^8.4.0"
 
@@ -1802,36 +1803,15 @@
   dependencies:
     "@types/node" "11.11.2"
 
-"@liskhq/lisk-codec@0.3.0-beta.2":
-  version "0.3.0-beta.2"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-codec/-/lisk-codec-0.3.0-beta.2.tgz#f989d316f60902511565e8fc36d064ef32fa0eb3"
-  integrity sha512-aMMeuMXAwV8VMGK12bw1pLZNwxd1kv8J3VO+Lj3Y3GZEpBC8ibvVNfE4T5n13iozohUmCRERXituRB7cMD0IDg==
-  dependencies:
-    "@liskhq/lisk-cryptography" "^4.0.0-beta.2"
-    "@liskhq/lisk-utils" "^0.3.0-beta.2"
-    "@liskhq/lisk-validator" "^0.7.0-beta.2"
-
-"@liskhq/lisk-db@0.3.6":
-  version "0.3.6"
-  resolved "https://registry.yarnpkg.com/@liskhq/lisk-db/-/lisk-db-0.3.6.tgz#d8e3b0c548ae54dfd98b371738ce4dc259303108"
-  integrity sha512-x1NtivGhfIrgzusDhOTqiz7eNIpQbNrPnEbEcbK32Iz1KWagZpdaJ6kOAXTTNA4QBwM6brbmxjFagFPvIMkgnw==
+"@liskhq/lisk-db@0.3.7":
+  version "0.3.7"
+  resolved "https://registry.yarnpkg.com/@liskhq/lisk-db/-/lisk-db-0.3.7.tgz#9dce3d0c37f248f9221b26f0d57c3306d7d072ef"
+  integrity sha512-n0/i3lea8ApTaSX99mhEJr3IZgG5l65M8Bmoo3D4ytbzyTySY9q7ITqj0y3kEZd997g4IUJl0x6Slq2RgFeucA==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.9"
     "@types/node" "^16 || ^18"
     cargo-cp-artifact "^0.1"
     shelljs "^0.8.5"
-
-"@liskhq/lisk-validator@0.7.0-beta.2":
-  version "0.7.0-beta.2"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-validator/-/lisk-validator-0.7.0-beta.2.tgz#7f57471fa5411282f0c23d4f61c677dca0752024"
-  integrity sha512-AoT9Z0dmZLEWgYTXrwWFGDGSgePMr/VW8TNsVC1VC+Q1F8Rvta6qDimfH3OXdvDhFyOAp/aiXUy29EjsQ31EAQ==
-  dependencies:
-    "@liskhq/lisk-cryptography" "^4.0.0-beta.2"
-    ajv "8.1.0"
-    ajv-formats "2.1.1"
-    debug "4.3.4"
-    semver "7.3.8"
-    validator "13.7.0"
 
 "@lmdb/lmdb-darwin-arm64@2.5.2":
   version "2.5.2"
@@ -3968,6 +3948,14 @@
   dependencies:
     "@types/node" "*"
     minipass "^3.3.5"
+
+"@types/tar@^6.1.4":
+  version "6.1.5"
+  resolved "https://registry.yarnpkg.com/@types/tar/-/tar-6.1.5.tgz#90ccb3b6a35430e7427410d50eed564e85feaaff"
+  integrity sha512-qm2I/RlZij5RofuY7vohTpYNaYcrSQlN2MyjucQc7ZweDwaEWkdN/EeNh6e9zjK6uEm6PwjdMXkcj05BxZdX1Q==
+  dependencies:
+    "@types/node" "*"
+    minipass "^4.0.0"
 
 "@types/text-table@*":
   version "0.2.1"
@@ -11702,6 +11690,11 @@ minipass@^3.3.5:
   dependencies:
     yallist "^4.0.0"
 
+minipass@^4.0.0:
+  version "4.2.8"
+  resolved "https://registry.yarnpkg.com/minipass/-/minipass-4.2.8.tgz#f0010f64393ecfc1d1ccb5f582bcaf45f48e1a3a"
+  integrity sha512-fNzuVyifolSLFL4NzpF+wEF4qrgqaaKX0haXPQEdQ7NKAN+WecoKMHV09YcuL/DHxrUsYQOK3MiuDf7Ip2OXfQ==
+
 minizlib@^2.0.0, minizlib@^2.1.1, minizlib@^2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/minizlib/-/minizlib-2.1.2.tgz#e90d3466ba209b932451508a11ce3d3632145931"
@@ -14186,13 +14179,6 @@ semver@7.3.4:
   dependencies:
     lru-cache "^6.0.0"
 
-semver@7.3.8:
-  version "7.3.8"
-  resolved "https://npm.lisk.com/semver/-/semver-7.3.8.tgz#07a78feafb3f7b32347d725e33de7e2a2df67798"
-  integrity sha512-NB1ctGL5rlHrPJtFDVIVzTyQylMLu9N9VICA6HSFJo8MCGVTMW6gfpicwKmmK/dAjTOrqu5l63JJOpDSrAis3A==
-  dependencies:
-    lru-cache "^6.0.0"
-
 semver@7.5.2, semver@7.x, semver@^7.0.0, semver@^7.1.1, semver@^7.1.3, semver@^7.2.1, semver@^7.3.2, semver@^7.3.4, semver@^7.3.5, semver@^7.3.7, semver@^7.3.8:
   version "7.5.2"
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.5.2.tgz#5b851e66d1be07c1cdaf37dfc856f543325a2beb"
@@ -15972,13 +15958,6 @@ value-equal@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/value-equal/-/value-equal-1.0.1.tgz#1e0b794c734c5c0cade179c437d356d931a34d6c"
   integrity sha512-NOJ6JZCAWr0zlxZt+xqCHNTEKOsrks2HQd4MqhP1qy4z1SkbEP467eNx6TgDKXMvUOb+OENfJCZwM+16n7fRfw==
-
-varuint-bitcoin@1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/varuint-bitcoin/-/varuint-bitcoin-1.1.2.tgz#e76c138249d06138b480d4c5b40ef53693e24e92"
-  integrity sha512-4EVb+w4rx+YfVM32HQX42AbbT7/1f5zwAYhIujKXKk8NQK+JfRVl3pqT3hjNn/L+RstigmGGKVwHA/P0wgITZw==
-  dependencies:
-    safe-buffer "^5.1.1"
 
 vary@^1, vary@~1.1.2:
   version "1.1.2"

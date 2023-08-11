@@ -14,9 +14,8 @@
  */
 import * as crypto from 'crypto';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
-import { encode as encodeVarInt } from 'varuint-bitcoin';
 import { parseKeyDerivationPath, hash, tagMessage } from './utils';
-import { ED25519_CURVE, SIGNED_MESSAGE_PREFIX } from './constants';
+import { ED25519_CURVE, EMPTY_BUFFER, MESSAGE_TAG_NON_PROTOCOL_MESSAGE } from './constants';
 import {
 	NACL_SIGN_PUBLICKEY_LENGTH,
 	NACL_SIGN_SIGNATURE_LENGTH,
@@ -32,22 +31,6 @@ const messageHeader = createHeader('MESSAGE');
 const publicKeyHeader = createHeader('PUBLIC KEY');
 const signatureHeader = createHeader('SIGNATURE');
 const signatureFooter = createHeader('END LISK SIGNED MESSAGE');
-
-const SIGNED_MESSAGE_PREFIX_BYTES = Buffer.from(SIGNED_MESSAGE_PREFIX, 'utf8');
-const SIGNED_MESSAGE_PREFIX_LENGTH = encodeVarInt(SIGNED_MESSAGE_PREFIX.length);
-
-export const digestMessage = (message: string): Buffer => {
-	const msgBytes = Buffer.from(message, 'utf8');
-	const msgLenBytes = encodeVarInt(message.length);
-	const dataBytes = Buffer.concat([
-		SIGNED_MESSAGE_PREFIX_LENGTH,
-		SIGNED_MESSAGE_PREFIX_BYTES,
-		msgLenBytes,
-		msgBytes,
-	]);
-
-	return hash(hash(dataBytes));
-};
 
 export const getPublicKeyFromPrivateKey = (pk: Buffer): Buffer => getPublicKey(pk);
 
@@ -90,19 +73,14 @@ export const getPrivateKeyFromPhraseAndPath = async (
 	return getKeyPair(node.key).privateKey;
 };
 
-export interface SignedMessageWithPrivateKey {
-	readonly message: string;
-	readonly publicKey: Buffer;
-	readonly signature: Buffer;
-}
-
 export const signMessageWithPrivateKey = (
-	message: string,
+	message: string | Buffer,
 	privateKey: Buffer,
-): SignedMessageWithPrivateKey => {
-	const msgBytes = digestMessage(message);
+	tag = MESSAGE_TAG_NON_PROTOCOL_MESSAGE,
+): SignedMessage => {
+	const messageBuffer = typeof message === 'string' ? Buffer.from(message, 'utf8') : message;
 	const publicKey = getPublicKey(privateKey);
-	const signature = signDetached(msgBytes, privateKey);
+	const signature = signDataWithPrivateKey(tag, EMPTY_BUFFER, messageBuffer, privateKey);
 
 	return {
 		message,
@@ -115,35 +93,42 @@ export const verifyMessageWithPublicKey = ({
 	message,
 	publicKey,
 	signature,
-}: SignedMessageWithPrivateKey): boolean => {
-	const msgBytes = digestMessage(message);
-
+	tag = MESSAGE_TAG_NON_PROTOCOL_MESSAGE,
+}: SignedMessageWithTag): boolean => {
 	if (publicKey.length !== NACL_SIGN_PUBLICKEY_LENGTH) {
-		throw new Error(
-			`Invalid publicKey, expected ${NACL_SIGN_PUBLICKEY_LENGTH.toString()}-byte publicKey`,
-		);
+		throw new Error(`Invalid publicKey, expected ${NACL_SIGN_PUBLICKEY_LENGTH}-byte publicKey`);
 	}
 
 	if (signature.length !== NACL_SIGN_SIGNATURE_LENGTH) {
 		throw new Error(
-			`Invalid signature length, expected ${NACL_SIGN_SIGNATURE_LENGTH.toString()}-byte signature`,
+			`Invalid signature length, expected ${NACL_SIGN_SIGNATURE_LENGTH}-byte signature`,
 		);
 	}
 
-	return verifyDetached(msgBytes, signature, publicKey);
+	const messageBuffer = typeof message === 'string' ? Buffer.from(message, 'utf8') : message;
+
+	return verifyData(tag, EMPTY_BUFFER, messageBuffer, signature, publicKey);
 };
 
 export interface SignedMessage {
-	readonly message: string;
+	readonly message: string | Buffer;
 	readonly publicKey: Buffer;
 	readonly signature: Buffer;
 }
+
+interface SignedMessageWithTag extends SignedMessage {
+	tag?: string;
+}
+
+// Old redundant interface SignedMessageWithPrivateKey for backwards compatibility
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface SignedMessageWithPrivateKey extends SignedMessage {}
 
 export const printSignedMessage = ({ message, signature, publicKey }: SignedMessage): string =>
 	[
 		signedMessageHeader,
 		messageHeader,
-		message,
+		typeof message === 'string' ? message : message.toString('hex'),
 		publicKeyHeader,
 		publicKey.toString('hex'),
 		signatureHeader,

@@ -35,17 +35,20 @@ import { BeforeCCMForwardingEvent } from '../../../../src/modules/token/events/b
 import { RecoverEvent } from '../../../../src/modules/token/events/recover';
 import { CROSS_CHAIN_COMMAND_REGISTRATION } from '../../../../src/modules/interoperability/constants';
 import { ccuParamsSchema } from '../../../../src';
+import { InternalMethod } from '../../../../src/modules/token/internal_method';
+import { InitializeUserAccountEvent } from '../../../../src/modules/token/events/initialize_user_account';
 
 describe('TokenInteroperableMethod', () => {
 	const tokenModule = new TokenModule();
+	const internalMethod = new InternalMethod(tokenModule.stores, tokenModule.events);
 	const defaultPublicKey = Buffer.from(
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 		'hex',
 	);
 	const defaultAddress = address.getAddressFromPublicKey(defaultPublicKey);
-	const ownChainID = Buffer.from([0, 0, 0, 1]);
+	const ownChainID = Buffer.from([1, 0, 0, 0]);
 	const defaultTokenID = Buffer.concat([ownChainID, Buffer.alloc(4)]);
-	const defaultForeignTokenID = Buffer.from([0, 0, 0, 2, 0, 0, 0, 0]);
+	const defaultForeignTokenID = Buffer.from([2, 0, 0, 0, 0, 0, 0, 0]);
 	const defaultAccount = {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
@@ -77,6 +80,13 @@ describe('TokenInteroperableMethod', () => {
 		},
 		sendingChainID: Buffer.from('04000001', 'hex'),
 	});
+	const userAccountInitializationFee = BigInt('10000');
+	const escrowAccountInitializationFee = BigInt('1000');
+
+	internalMethod.init({
+		userAccountInitializationFee,
+		escrowAccountInitializationFee,
+	});
 
 	let tokenInteropMethod: TokenInteroperableMethod;
 	let stateStore: PrefixedStateReadWriter;
@@ -103,11 +113,16 @@ describe('TokenInteroperableMethod', () => {
 	};
 
 	beforeEach(async () => {
+		internalMethod.addDependencies({ payFee: jest.fn() });
 		tokenInteropMethod = new TokenInteroperableMethod(tokenModule.stores, tokenModule.events);
-		tokenInteropMethod.addDependencies({
-			send: jest.fn().mockResolvedValue(true),
-			getMessageFeeTokenID: jest.fn().mockResolvedValue(defaultTokenID),
-		} as never);
+		tokenInteropMethod.addDependencies(
+			{
+				send: jest.fn().mockResolvedValue(true),
+				getMessageFeeTokenID: jest.fn().mockResolvedValue(defaultTokenID),
+				getMessageFeeTokenIDFromCCM: jest.fn().mockResolvedValue(defaultTokenID),
+			} as never,
+			internalMethod,
+		);
 
 		methodContext = createMethodContext({
 			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
@@ -139,7 +154,7 @@ describe('TokenInteroperableMethod', () => {
 	describe('beforeCrossChainCommandExecute', () => {
 		it('should credit fee to transaction sender if token id is not native', async () => {
 			jest
-				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenID')
+				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenIDFromCCM')
 				.mockResolvedValue(defaultForeignTokenID);
 			await expect(
 				tokenInteropMethod.beforeCrossChainCommandExecute({
@@ -148,7 +163,7 @@ describe('TokenInteroperableMethod', () => {
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						receivingChainID: ownChainID,
 						fee,
 						status: CCM_STATUS_OK,
 						params: utils.getRandomBytes(30),
@@ -191,7 +206,7 @@ describe('TokenInteroperableMethod', () => {
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						receivingChainID: ownChainID,
 						fee: fee + defaultEscrowAmount,
 						status: CCM_STATUS_OK,
 						params: utils.getRandomBytes(30),
@@ -229,7 +244,7 @@ describe('TokenInteroperableMethod', () => {
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						receivingChainID: ownChainID,
 						fee,
 						status: CCM_STATUS_OK,
 						params: utils.getRandomBytes(30),
@@ -271,6 +286,42 @@ describe('TokenInteroperableMethod', () => {
 	});
 
 	describe('beforeCrossChainMessageForwarding', () => {
+		it('should throw if messageFeeTokenID is not LSK', async () => {
+			jest
+				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenIDFromCCM')
+				.mockResolvedValue(defaultForeignTokenID);
+			await expect(
+				tokenInteropMethod.beforeCrossChainMessageForwarding({
+					ccm: {
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+						module: tokenModule.name,
+						nonce: BigInt(1),
+						sendingChainID,
+						receivingChainID: ownChainID,
+						fee: fee + defaultEscrowAmount,
+						status: CCM_STATUS_OK,
+						params: utils.getRandomBytes(30),
+					},
+					getMethodContext: () => methodContext,
+					eventQueue: new EventQueue(0),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+					logger: fakeLogger,
+					chainID: ownChainID,
+					header: {
+						timestamp: Date.now(),
+						height: 10,
+					},
+					stateStore,
+					contextStore,
+					transaction: {
+						fee,
+						senderAddress: defaultAddress,
+						params: defaultEncodedCCUParams,
+					},
+				}),
+			).rejects.toThrow('Message fee token should be LSK.');
+		});
+
 		it('should throw if escrow balance is not sufficient', async () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainMessageForwarding({
@@ -279,7 +330,7 @@ describe('TokenInteroperableMethod', () => {
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						receivingChainID: ownChainID,
 						fee: fee + defaultEscrowAmount,
 						status: CCM_STATUS_OK,
 						params: utils.getRandomBytes(30),
@@ -309,7 +360,7 @@ describe('TokenInteroperableMethod', () => {
 			);
 		});
 
-		it('should deduct escrow account for fee and credit to receving chain escrow account if ccm command is not transfer', async () => {
+		it('should deduct escrow account for fee and credit to receiving chain escrow account if ccm command is not transfer', async () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainMessageForwarding({
 					ccm: {
@@ -317,7 +368,7 @@ describe('TokenInteroperableMethod', () => {
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						receivingChainID: ownChainID,
 						fee,
 						status: CCM_STATUS_OK,
 						params: codec.encode(crossChainForwardMessageParams, {
@@ -356,7 +407,7 @@ describe('TokenInteroperableMethod', () => {
 			expect(amount).toEqual(defaultEscrowAmount - fee);
 			const { amount: receiver } = await escrowStore.get(
 				methodContext,
-				escrowStore.getKey(Buffer.from([0, 0, 0, 1]), defaultTokenID),
+				escrowStore.getKey(ownChainID, defaultTokenID),
 			);
 			expect(receiver).toEqual(fee);
 		});
@@ -371,7 +422,7 @@ describe('TokenInteroperableMethod', () => {
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						receivingChainID: ownChainID,
 						fee,
 						status: CCM_STATUS_OK,
 						params: utils.getRandomBytes(30),
@@ -404,7 +455,7 @@ describe('TokenInteroperableMethod', () => {
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						receivingChainID: ownChainID,
 						fee: fee + defaultEscrowAmount,
 						status: CCM_STATUS_OK,
 						params: utils.getRandomBytes(30),
@@ -431,7 +482,7 @@ describe('TokenInteroperableMethod', () => {
 
 		it('should resolve if token id is not native', async () => {
 			jest
-				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenID')
+				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenIDFromCCM')
 				.mockResolvedValue(defaultForeignTokenID);
 			await expect(
 				tokenInteropMethod.verifyCrossChainMessage({
@@ -440,7 +491,7 @@ describe('TokenInteroperableMethod', () => {
 						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
-						receivingChainID: Buffer.from([0, 0, 0, 1]),
+						receivingChainID: ownChainID,
 						fee,
 						status: CCM_STATUS_OK,
 						params: utils.getRandomBytes(30),
@@ -535,7 +586,7 @@ describe('TokenInteroperableMethod', () => {
 
 		it('should reject if token is not native', async () => {
 			jest
-				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenID')
+				.spyOn(tokenInteropMethod['_interopMethod'], 'getMessageFeeTokenIDFromCCM')
 				.mockResolvedValue(defaultForeignTokenID);
 			await expect(
 				tokenInteropMethod.recover({
@@ -603,6 +654,36 @@ describe('TokenInteroperableMethod', () => {
 					defaultAccount.lockedBalances[0].amount,
 			);
 			checkEventResult(methodContext.eventQueue, RecoverEvent, TokenEventResult.SUCCESSFUL);
+		});
+
+		it('should initialize the account if it does not exist and credit it the total recovered amount', async () => {
+			const recipient = utils.getRandomBytes(20);
+
+			await expect(
+				tokenInteropMethod.recover({
+					...createRecoverContext(stateStore),
+					storeKey: Buffer.concat([recipient, defaultTokenID]),
+					substorePrefix: userStore.subStorePrefix,
+					storeValue: codec.encode(userStoreSchema, defaultAccount),
+					terminatedChainID: sendingChainID,
+				}),
+			).resolves.toBeUndefined();
+
+			const { availableBalance } = await userStore.get(
+				methodContext,
+				userStore.getKey(recipient, defaultTokenID),
+			);
+			expect(availableBalance).toEqual(
+				defaultAccount.availableBalance + defaultAccount.lockedBalances[0].amount,
+			);
+			checkEventResult(
+				methodContext.eventQueue,
+				InitializeUserAccountEvent,
+				TokenEventResult.SUCCESSFUL,
+				2,
+				0,
+			);
+			checkEventResult(methodContext.eventQueue, RecoverEvent, TokenEventResult.SUCCESSFUL, 2, 1);
 		});
 
 		it('should credit the address for the total recovered amount', async () => {

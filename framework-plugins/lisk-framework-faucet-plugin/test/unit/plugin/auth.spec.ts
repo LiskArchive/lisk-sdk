@@ -25,7 +25,7 @@ const validPluginOptions = {
 	captchaSitekey: '123',
 	captchaSecretkey: '123',
 	encryptedPrivateKey:
-		'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=99053afb5eb03999f06201a0099912cec7826cdc8d9f41fc64d575670128a532f922961353253b4e73815890ed210f637a98e5084e4521a1495f0b793184c5385a965fe70837a8a638f0667c8f803d84872274c4ddc046591c03bed5d141b2193358da2b8db4548ff2dd137dbc796b6fb29acc53362c3a1ea8dd212270a9e2c1&mac=909eba6a8b1b42812f3de13fcdcbe124acd52a40b7ca7e3e9179a2cb8bffa452&salt=082b9d532290492caa842b804517def0&iv=a2947e6a05031e5b4d250604&tag=ca7dab52dccfa9cdb6a74906e84ed625&iterations=1&parallelism=4&memorySize=2024',
+		'kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=6b90c4f36e5c198d6dc1a7e0f64f7524a2fc14fce8fb80165a9434de079a1dcbf8058ee9d369d2afbf26d64f9bc8954efb68a970d97af93a1a40ffe2d354244c9d8472007c618296a3d97e2a059e96f1b5b8004fd0aa254ac7615ade76ea4f2b0ecf0b13b7dcf8c78116e1770fc21aa5e0affcc00c8fd90795eea5c7bc29f597&mac=03cbf0d0695a937161e69c99744499414b52d56854087d8bc84971d2375bb59e&salt=184bc3eabc3ffbcb&iv=88aa7f136a044f09503348373c4b3efd&tag=a331b74e4e6fed55568966d572c4a525&iterations=1&parallelism=4&memorySize=2097023',
 	tokenID: '0400000000000000',
 	dataPath: '/my/app',
 };
@@ -53,7 +53,7 @@ describe('auth action', () => {
 	it('should disable faucet when enable=false', async () => {
 		const params = {
 			enable: false,
-			password: 'elephant tree paris dragon chair galaxy',
+			password: '123',
 		};
 		const response = await faucetPlugin.endpoint.authorize({ params } as any);
 
@@ -63,7 +63,7 @@ describe('auth action', () => {
 	it('should enable the faucet when enable=true', async () => {
 		const params = {
 			enable: true,
-			password: 'elephant tree paris dragon chair galaxy',
+			password: '123',
 		};
 		const response = await faucetPlugin.endpoint.authorize({ params } as any);
 
@@ -73,7 +73,7 @@ describe('auth action', () => {
 	it('should fail when encrypted passphrase does not match with password given', async () => {
 		const params = {
 			enable: true,
-			password: '123',
+			password: 'wrong',
 		};
 
 		await expect(faucetPlugin.endpoint.authorize({ params } as any)).rejects.toThrow(

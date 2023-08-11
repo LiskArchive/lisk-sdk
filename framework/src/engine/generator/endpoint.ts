@@ -140,7 +140,7 @@ export class Endpoint {
 		if (generatorKeys.type === 'plain') {
 			decryptedKeys = generatorKeys.data;
 		} else {
-			const decryptedBytes = await encrypt.decryptAES256GCMWithPassword(
+			const decryptedBytes = await encrypt.decryptAES128GCMWithPassword(
 				generatorKeys.data,
 				req.password,
 			);

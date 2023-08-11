@@ -12,14 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export const SIGNED_MESSAGE_PREFIX = 'Lisk Signed Message:\n';
 export const BINARY_ADDRESS_LENGTH = 20;
 export const DEFAULT_LISK32_ADDRESS_PREFIX = 'lsk';
-export const DEFAULT_BASE32_ADDRESS_PREFIX = DEFAULT_LISK32_ADDRESS_PREFIX;
 export const ED25519_CURVE = 'ed25519 seed';
 export const MAX_UINT32 = 4294967295;
 export const HARDENED_OFFSET = 0x80000000;
 export const HASH_LENGTH = 32;
 export const L = 8160; // 32 * 255
 export const EMPTY_SALT = Buffer.from(new Array(32).fill(0));
+export const EMPTY_BUFFER = Buffer.alloc(0);
 export const SHA256 = 'sha256';
+export const LISK32_CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
+export const LISK32_ADDRESS_LENGTH = 41;
+export const MESSAGE_TAG_NON_PROTOCOL_MESSAGE = 'LSK_NPM_';

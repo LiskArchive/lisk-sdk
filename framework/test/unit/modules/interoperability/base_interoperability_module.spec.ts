@@ -9,7 +9,6 @@ import {
 	contextWithValidValidatorsHash,
 	createInitGenesisStateContext,
 	genesisInteroperability,
-	getStoreMock,
 	lastCertificate,
 	terminatedOutboxAccount,
 	terminatedStateAccount,
@@ -34,6 +33,16 @@ import { ChainValidatorsStore } from '../../../../src/modules/interoperability/s
 import { OutboxRootStore } from '../../../../src/modules/interoperability/stores/outbox_root';
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
+import { CcmProcessedEvent } from '../../../../src/modules/interoperability/events/ccm_processed';
+import { ChainAccountUpdatedEvent } from '../../../../src/modules/interoperability/events/chain_account_updated';
+import { CcmSentFailedEvent } from '../../../../src/modules/interoperability/events/ccm_send_fail';
+import { CcmSendSuccessEvent } from '../../../../src/modules/interoperability/events/ccm_send_success';
+import { InvalidCertificateSignatureEvent } from '../../../../src/modules/interoperability/events/invalid_certificate_signature';
+import { InvalidRegistrationSignatureEvent } from '../../../../src/modules/interoperability/events/invalid_registration_signature';
+import { TerminatedOutboxCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_outbox_created';
+import { TerminatedStateCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_state_created';
+import { InvalidRMTVerification } from '../../../../src/modules/interoperability/events/invalid_rmt_verification';
+import { InvalidSMTVerification } from '../../../../src/modules/interoperability/events/invalid_smt_verification';
 
 describe('initGenesisState Common Tests', () => {
 	const chainID = Buffer.from([0, 0, 0, 0]);
@@ -42,13 +51,13 @@ describe('initGenesisState Common Tests', () => {
 	let interopMod: MainchainInteroperabilityModule;
 	let certificateThreshold = BigInt(0);
 	let params: CreateGenesisBlockContextParams;
-	const ownChainAccountStoreMock = getStoreMock();
-	const chainAccountStoreMock = getStoreMock();
-	const channelDataStoreMock = getStoreMock();
-	const chainValidatorsStoreMock = getStoreMock();
-	const outboxRootStoreMock = getStoreMock();
-	const terminatedStateStoreMock = getStoreMock();
-	const terminatedOutboxStoreMock = getStoreMock();
+	let ownChainAccountStore: OwnChainAccountStore;
+	let channelDataStore: ChannelDataStore;
+	let chainAccountStore: ChainAccountStore;
+	let chainValidatorsStore: ChainValidatorsStore;
+	let outboxRootStore: OutboxRootStore;
+	let terminatedStateStore: TerminatedStateStore;
+	let terminatedOutboxStore: TerminatedOutboxStore;
 
 	beforeEach(() => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -58,13 +67,36 @@ describe('initGenesisState Common Tests', () => {
 			chainID,
 		};
 
-		interopMod.stores.register(OwnChainAccountStore, ownChainAccountStoreMock as never);
-		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
-		interopMod.stores.register(ChannelDataStore, channelDataStoreMock as never);
-		interopMod.stores.register(ChainValidatorsStore, chainValidatorsStoreMock as never);
-		interopMod.stores.register(OutboxRootStore, outboxRootStoreMock as never);
-		interopMod.stores.register(TerminatedStateStore, terminatedStateStoreMock as never);
-		interopMod.stores.register(TerminatedOutboxStore, terminatedOutboxStoreMock as never);
+		ownChainAccountStore = interopMod.stores.get(OwnChainAccountStore);
+		chainAccountStore = interopMod.stores.get(ChainAccountStore);
+		channelDataStore = interopMod.stores.get(ChannelDataStore);
+		chainValidatorsStore = interopMod.stores.get(ChainValidatorsStore);
+		outboxRootStore = interopMod.stores.get(OutboxRootStore);
+		terminatedStateStore = interopMod.stores.get(TerminatedStateStore);
+		terminatedOutboxStore = interopMod.stores.get(TerminatedOutboxStore);
+	});
+
+	describe('constructor', () => {
+		it('should have all the events and stores registered', () => {
+			expect(interopMod.stores.get(OwnChainAccountStore)).toBeDefined();
+			expect(interopMod.stores.get(ChainAccountStore)).toBeDefined();
+			expect(interopMod.stores.get(ChannelDataStore)).toBeDefined();
+			expect(interopMod.stores.get(ChainValidatorsStore)).toBeDefined();
+			expect(interopMod.stores.get(OutboxRootStore)).toBeDefined();
+			expect(interopMod.stores.get(TerminatedStateStore)).toBeDefined();
+			expect(interopMod.stores.get(TerminatedOutboxStore)).toBeDefined();
+
+			expect(interopMod.events.get(ChainAccountUpdatedEvent)).toBeDefined();
+			expect(interopMod.events.get(CcmProcessedEvent)).toBeDefined();
+			expect(interopMod.events.get(CcmSendSuccessEvent)).toBeDefined();
+			expect(interopMod.events.get(CcmSentFailedEvent)).toBeDefined();
+			expect(interopMod.events.get(InvalidRegistrationSignatureEvent)).toBeDefined();
+			expect(interopMod.events.get(TerminatedStateCreatedEvent)).toBeDefined();
+			expect(interopMod.events.get(TerminatedOutboxCreatedEvent)).toBeDefined();
+			expect(interopMod.events.get(InvalidCertificateSignatureEvent)).toBeDefined();
+			expect(interopMod.events.get(InvalidRMTVerification)).toBeDefined();
+			expect(interopMod.events.get(InvalidSMTVerification)).toBeDefined();
+		});
 	});
 
 	describe('_verifyChannelData', () => {
@@ -522,6 +554,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 		];
 
 		it('should not throw error If ownChainName is not the empty string then add an entry to the own chain substore', async () => {
+			jest.spyOn(ownChainAccountStore, 'set');
 			const context = createInitGenesisStateContext(
 				{
 					...genesisInteroperability,
@@ -532,8 +565,8 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 
 			await expect(interopMod.initGenesisState(context)).resolves.not.toThrow();
 
-			expect(ownChainAccountStoreMock.set).toHaveBeenCalledTimes(1);
-			expect(ownChainAccountStoreMock.set).toHaveBeenCalledWith(context, EMPTY_BYTES, {
+			expect(ownChainAccountStore.set).toHaveBeenCalledTimes(1);
+			expect(ownChainAccountStore.set).toHaveBeenCalledWith(context, EMPTY_BYTES, {
 				name: genesisInteroperability.ownChainName,
 				chainID: context.chainID,
 				nonce: genesisInteroperability.ownChainNonce,
@@ -541,6 +574,10 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 		});
 
 		it('should not throw error If for each entry in chainInfos, we add valid substore entries', async () => {
+			jest.spyOn(chainAccountStore, 'set');
+			jest.spyOn(channelDataStore, 'set');
+			jest.spyOn(chainValidatorsStore, 'set');
+			jest.spyOn(outboxRootStore, 'set');
 			const context = createInitGenesisStateContext(
 				{
 					...genesisInteroperability,
@@ -555,34 +592,35 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 
 			await expect(interopMod.initGenesisState(context)).resolves.not.toThrow();
 
-			expect(chainAccountStoreMock.set).toHaveBeenCalledTimes(1);
-			expect(chainAccountStoreMock.set).toHaveBeenCalledWith(
+			expect(chainAccountStore.set).toHaveBeenCalledTimes(1);
+			expect(chainAccountStore.set).toHaveBeenCalledWith(
 				context,
 				chainInfos[0].chainID,
 				chainInfos[0].chainData,
 			);
 
-			expect(channelDataStoreMock.set).toHaveBeenCalledTimes(1);
-			expect(channelDataStoreMock.set).toHaveBeenCalledWith(
+			expect(channelDataStore.set).toHaveBeenCalledTimes(1);
+			expect(channelDataStore.set).toHaveBeenCalledWith(
 				context,
 				chainInfos[0].chainID,
 				chainInfos[0].channelData,
 			);
 
-			expect(chainValidatorsStoreMock.set).toHaveBeenCalledTimes(1);
-			expect(chainValidatorsStoreMock.set).toHaveBeenCalledWith(
+			expect(chainValidatorsStore.set).toHaveBeenCalledTimes(1);
+			expect(chainValidatorsStore.set).toHaveBeenCalledWith(
 				context,
 				chainInfos[0].chainID,
 				chainInfos[0].chainValidators,
 			);
 
-			expect(outboxRootStoreMock.set).toHaveBeenCalledTimes(1);
-			expect(outboxRootStoreMock.set).toHaveBeenCalledWith(context, chainInfos[0].chainID, {
+			expect(outboxRootStore.set).toHaveBeenCalledTimes(1);
+			expect(outboxRootStore.set).toHaveBeenCalledWith(context, chainInfos[0].chainID, {
 				root: chainInfos[0].channelData.outbox.root,
 			});
 		});
 
 		it('should not throw error If for each entry in terminatedStateAccounts, we add the valid substore entries', async () => {
+			jest.spyOn(terminatedStateStore, 'set');
 			const terminatedStateAccounts = [
 				{
 					chainID: chainInfo.chainID,
@@ -618,8 +656,8 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 
 			await expect(interopMod.initGenesisState(context)).resolves.not.toThrow();
 
-			expect(terminatedStateStoreMock.set).toHaveBeenCalledTimes(1);
-			expect(terminatedStateStoreMock.set).toHaveBeenCalledWith(
+			expect(terminatedStateStore.set).toHaveBeenCalledTimes(1);
+			expect(terminatedStateStore.set).toHaveBeenCalledWith(
 				context,
 				terminatedStateAccounts[0].chainID,
 				terminatedStateAccounts[0].terminatedStateAccount,
@@ -627,6 +665,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 		});
 
 		it('should not throw error If for each entry outboxAccount in terminatedOutboxAccounts, we add the following substore entries', async () => {
+			jest.spyOn(terminatedOutboxStore, 'set');
 			const terminatedStateAccounts = [
 				{
 					chainID: chainInfo.chainID,
@@ -670,8 +709,8 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 
 			await expect(interopMod.initGenesisState(context)).resolves.not.toThrow();
 
-			expect(terminatedOutboxStoreMock.set).toHaveBeenCalledTimes(1);
-			expect(terminatedOutboxStoreMock.set).toHaveBeenCalledWith(
+			expect(terminatedOutboxStore.set).toHaveBeenCalledTimes(1);
+			expect(terminatedOutboxStore.set).toHaveBeenCalledWith(
 				context,
 				terminatedOutboxAccounts[0].chainID,
 				terminatedOutboxAccounts[0].terminatedOutboxAccount,

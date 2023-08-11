@@ -611,6 +611,22 @@ export const isChainNameAvailableResponseSchema = {
 	$id: '/modules/interoperability/endpoint/isChainNameAvailableResponseSchema',
 };
 
+export const getMainchainIDRequestSchema = {
+	...isChainIDAvailableRequestSchema,
+	$id: '/modules/interoperability/endpoint/getMainchainIDRequestSchema',
+};
+
+export const getMainchainIDResponseSchema = {
+	$id: '/modules/interoperability/endpoint/getMainchainIDResponseSchema',
+	type: 'object',
+	required: ['mainchainID'],
+	properties: {
+		result: {
+			type: 'string',
+		},
+	},
+};
+
 export const getChannelRequestSchema = getChainAccountRequestSchema;
 
 export const getTerminatedStateAccountRequestSchema = getChainAccountRequestSchema;

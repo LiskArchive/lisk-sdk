@@ -44,7 +44,10 @@ import {
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
-import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
+import {
+	computeValidatorsHash,
+	getDecodedCCMAndID,
+} from '../../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import {
 	ChainAccountStore,
@@ -64,7 +67,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 	const messageFeeTokenID = Buffer.alloc(8, 0);
 
 	const chainID = Buffer.from([0, 0, 2, 0]);
-	const defaultCertificateValues: Certificate = {
+	const defaultCertificate: Certificate = {
 		blockID: utils.getRandomBytes(20),
 		height: 21,
 		timestamp: Math.floor(Date.now() / 1000),
@@ -132,6 +135,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 		verifyCertificateSignature: jest.fn(),
 		verifyValidatorsUpdate: jest.fn(),
 		verifyPartnerChainOutboxRoot: jest.fn(),
+		verifyOutboxRootWitness: jest.fn(),
 		updateValidators: jest.fn(),
 		updateCertificate: jest.fn(),
 		updatePartnerChainOutboxRoot: jest.fn(),
@@ -191,7 +195,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			partnerValidators.certificateThreshold,
 		);
 		encodedDefaultCertificate = codec.encode(certificateSchema, {
-			...defaultCertificateValues,
+			...defaultCertificate,
 			validatorsHash,
 		});
 
@@ -384,7 +388,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 					params: {
 						...params,
 						certificate: codec.encode(certificateSchema, {
-							...defaultCertificateValues,
+							...defaultCertificate,
 							timestamp: 0,
 						}),
 						inboxUpdate: {
@@ -455,7 +459,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			).resolves.toEqual({ status: VerifyStatus.OK });
 
 			expect(
-				sidechainCCUUpdateCommand['internalMethod'].verifyPartnerChainOutboxRoot,
+				sidechainCCUUpdateCommand['internalMethod'].verifyOutboxRootWitness,
 			).toHaveBeenCalledTimes(1);
 		});
 	});
@@ -516,6 +520,14 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 
 			await expect(sidechainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
 			expect(sidechainCCUUpdateCommand['apply']).toHaveBeenCalledTimes(3);
+			for (const ccm of params.inboxUpdate.crossChainMessages) {
+				const { ccmID, decodedCCM } = getDecodedCCMAndID(ccm);
+				expect(sidechainCCUUpdateCommand['apply']).toHaveBeenCalledWith({
+					...executeContext,
+					ccm: decodedCCM,
+					eventQueue: executeContext.eventQueue.getChildQueue(ccmID),
+				});
+			}
 			expect(sidechainCCUUpdateCommand['internalMethod'].appendToInboxTree).toHaveBeenCalledTimes(
 				3,
 			);

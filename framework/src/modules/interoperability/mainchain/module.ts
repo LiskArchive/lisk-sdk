@@ -46,11 +46,6 @@ import {
 	SubmitMainchainCrossChainUpdateCommand,
 	TerminateSidechainForLivenessCommand,
 } from './commands';
-import { CcmProcessedEvent } from '../events/ccm_processed';
-import { ChainAccountUpdatedEvent } from '../events/chain_account_updated';
-import { CcmSendSuccessEvent } from '../events/ccm_send_success';
-import { TerminatedStateCreatedEvent } from '../events/terminated_state_created';
-import { TerminatedOutboxCreatedEvent } from '../events/terminated_outbox_created';
 import { MainchainInteroperabilityInternalMethod } from './internal_method';
 import { InitializeMessageRecoveryCommand } from './commands/initialize_message_recovery';
 import {
@@ -62,13 +57,11 @@ import {
 } from '../types';
 import { MainchainCCChannelTerminatedCommand, MainchainCCRegistrationCommand } from './cc_commands';
 import { RecoverStateCommand } from './commands/recover_state';
-import { CcmSentFailedEvent } from '../events/ccm_send_fail';
-import { InvalidRegistrationSignatureEvent } from '../events/invalid_registration_signature';
-import { InvalidCertificateSignatureEvent } from '../events/invalid_certificate_signature';
 import { CHAIN_NAME_MAINCHAIN, EMPTY_HASH, MODULE_NAME_INTEROPERABILITY } from '../constants';
 import { GenesisBlockExecuteContext } from '../../../state_machine';
-import { getMainchainID, isValidName, validNameCharset } from '../utils';
+import { getMainchainID, isValidName } from '../utils';
 import { RegisteredNamesStore } from '../stores/registered_names';
+import { InvalidNameError } from '../errors';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
@@ -155,24 +148,6 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 			this.internalMethod,
 		),
 	];
-
-	public constructor() {
-		super();
-		this.events.register(ChainAccountUpdatedEvent, new ChainAccountUpdatedEvent(this.name));
-		this.events.register(CcmProcessedEvent, new CcmProcessedEvent(this.name));
-		this.events.register(CcmSendSuccessEvent, new CcmSendSuccessEvent(this.name));
-		this.events.register(CcmSentFailedEvent, new CcmSentFailedEvent(this.name));
-		this.events.register(
-			InvalidRegistrationSignatureEvent,
-			new InvalidRegistrationSignatureEvent(this.name),
-		);
-		this.events.register(TerminatedStateCreatedEvent, new TerminatedStateCreatedEvent(this.name));
-		this.events.register(TerminatedOutboxCreatedEvent, new TerminatedOutboxCreatedEvent(this.name));
-		this.events.register(
-			InvalidCertificateSignatureEvent,
-			new InvalidCertificateSignatureEvent(this.name),
-		);
-	}
 
 	public addDependencies(tokenMethod: TokenMethod, feeMethod: FeeMethod) {
 		this._sidechainRegistrationCommand.addDependencies(feeMethod, tokenMethod);
@@ -345,7 +320,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 
 		// chainData.name only uses the character set a-z0-9!@$&_.;
 		if (!isValidName(chainData.name)) {
-			throw new Error(`chainData.name only uses the character set ${validNameCharset}.`);
+			throw new InvalidNameError('chainData.name');
 		}
 
 		// chainData.status is in set {CHAIN_STATUS_REGISTERED, CHAIN_STATUS_ACTIVE, CHAIN_STATUS_TERMINATED}.

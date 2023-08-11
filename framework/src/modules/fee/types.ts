@@ -14,6 +14,7 @@
 
 import { MethodContext, ImmutableMethodContext } from '../../state_machine/types';
 import { JSONObject } from '../../types';
+import { CCMsg } from '../interoperability';
 
 export type FeeTokenID = Buffer;
 
@@ -59,7 +60,7 @@ export interface TokenMethod {
 		tokenID: Buffer,
 		amount: bigint,
 	): Promise<void>;
-	userAccountExists(
+	userSubstoreExists(
 		methodContext: ImmutableMethodContext,
 		address: Buffer,
 		tokenID: Buffer,
@@ -76,4 +77,5 @@ export interface GetMinFeePerByteResponse {
 
 export interface InteroperabilityMethod {
 	getMessageFeeTokenID(methodContext: ImmutableMethodContext, chainID: Buffer): Promise<Buffer>;
+	getMessageFeeTokenIDFromCCM(methodContext: ImmutableMethodContext, ccm: CCMsg): Promise<Buffer>;
 }

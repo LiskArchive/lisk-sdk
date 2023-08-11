@@ -106,7 +106,7 @@ describe('keys:create command', () => {
 				memorySize: 2097023,
 				salt: 'bd25ddc98eba7d8bf60a6738fca3ac23',
 			},
-			cipher: cryptography.encrypt.Cipher.AES256GCM,
+			cipher: cryptography.encrypt.Cipher.AES128GCM,
 			cipherparams: {
 				iv: '1933be196b54d01fd0979294',
 				tag: '11398f4dcfd776d783a35721c326f007',
@@ -169,7 +169,7 @@ describe('keys:create command', () => {
 			expect(loggedData.keys[0].encrypted).toHaveProperty('mac');
 			expect(loggedData.keys[0].encrypted).toHaveProperty('cipherparams');
 			expect(loggedData.keys[0].encrypted).toHaveProperty('kdfparams');
-			expect(loggedData.keys[0].encrypted.cipher).toBe('aes-256-gcm');
+			expect(loggedData.keys[0].encrypted.cipher).toBe('aes-128-gcm');
 			expect(loggedData.keys[0].encrypted.kdf).toBe('argon2id');
 			expect(loggedData.keys[0].encrypted.version).toBe('1');
 			expect(consoleWarnSpy).toHaveBeenCalledTimes(0);

@@ -32,7 +32,8 @@ describe('encrypt', () => {
 	const regHexadecimal = /[0-9A-Za-z]/g;
 	const PBKDF2_ITERATIONS = 1e6;
 	const ENCRYPTION_VERSION = '1';
-	const defaultPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
+	const defaultPassphrase =
+		'target cancel solution recipe vague faint bomb convince pink vendor fresh patrol';
 	const defaultPrivateKey = Buffer.from(
 		'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588',
 		'hex',
@@ -41,10 +42,8 @@ describe('encrypt', () => {
 		'7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588',
 		'hex',
 	);
-	const defaultPassword = 'myTotal53cr3t%&';
+	const defaultPassword = 'testpassword';
 	const customIterations = 12;
-
-	let hashStub: any;
 
 	beforeEach(async () => {
 		jest
@@ -56,21 +55,10 @@ describe('encrypt', () => {
 				};
 			});
 
-		hashStub = jest
-			.spyOn(cryptography.utils, 'hash')
-			.mockReturnValue(
-				Buffer.from('d43eed9049dd8f35106c720669a1148b2c6288d9ea517b936c33a1d84117a760', 'hex'),
-			);
 		return Promise.resolve();
 	});
 
 	describe('encrypt and decrypt passphrase with password', () => {
-		beforeEach(() => {
-			hashStub.mockReturnValue(
-				Buffer.from('e09dfc943d65d63f4f31e444c81afc6d5cf442c988fb87180165dd7119d3ae61', 'hex'),
-			);
-		});
-
 		describe('#encryptMessageWithPassword', () => {
 			let encryptedMessage: cryptography.encrypt.EncryptedMessageObject;
 
@@ -84,17 +72,17 @@ describe('encrypt', () => {
 			it('should encrypt a passphrase', () => {
 				expect(encryptedMessage).toHaveProperty('ciphertext');
 				expect(regHexadecimal.test(encryptedMessage.cipherparams.iv)).toBe(true);
-				expect(encryptedMessage.cipherparams.iv).toHaveLength(24);
+				expect(encryptedMessage.cipherparams.iv).toHaveLength(32);
 			});
 
 			it('should output the IV', () => {
 				expect(encryptedMessage.cipherparams).toHaveProperty('iv');
-				expect(encryptedMessage.cipherparams.iv).toHaveLength(24);
+				expect(encryptedMessage.cipherparams.iv).toHaveLength(32);
 			});
 
 			it('should output the salt', () => {
 				expect(encryptedMessage.kdfparams).toHaveProperty('salt');
-				expect(encryptedMessage.kdfparams.salt).toHaveLength(32);
+				expect(encryptedMessage.kdfparams.salt).toHaveLength(16);
 			});
 
 			it('should output the tag', () => {
@@ -126,19 +114,19 @@ describe('encrypt', () => {
 			beforeEach(() => {
 				encryptedMessage = {
 					ciphertext:
-						'35e25c6278eaf16891e8bd436615eb5fcd7d94a5bbd553535287a4175c0f8b27a67ee3767c4a7d07d0eaa515679f6c9267c34a3c55c2e921b1ede893e7f6f570de6bbf3bea',
-					mac: '0ad2a34f25fe791dcb72f5e0f9b1689566f834efcddcf7f490f4e0962756b5f2',
-					kdf: KDF.PBKDF2,
+						'fc17353ac21dbdaa8b2c8a09d1ee7ded3e64559922d679e7fd382ac403247bd41389d32c7bc98bfa8f74a141b3946549b0d4ecdc995f130b321274484784f7bc4ac383491cb1010ead36abf91f0cf8be',
+					mac: '61792857203a0860c12ff9ed8dcb70db7240f1dfb28d6ddb8c7478e23c1fe029',
+					kdf: KDF.ARGON2,
 					kdfparams: {
 						parallelism: 4,
-						iterations: 1000000,
-						memorySize: 2024,
-						salt: 'c2561895bbfdb396cd70c8c1dd3da6c8',
+						iterations: 1,
+						memorySize: 2097023,
+						salt: '35e8e6305e6577f0',
 					},
-					cipher: Cipher.AES256GCM,
+					cipher: Cipher.AES128GCM,
 					cipherparams: {
-						iv: 'abd164afd834b9da47ba5d17',
-						tag: '457b33c03e2f138b6c334c9cf12195b0',
+						iv: 'bc47f1c691d2e60e59ba6e54a78442fe',
+						tag: '965a1c13309a5272d1bdf84090736f9e',
 					},
 					version: '1',
 				};
@@ -216,19 +204,13 @@ describe('encrypt', () => {
 			});
 
 			it('should decrypt a passphrase with a password and a custom number of iterations', async () => {
-				encryptedMessage = {
-					...encryptedMessage,
-					kdfparams: {
-						...encryptedMessage.kdfparams,
-						iterations: 12,
-						salt: '245c6859a96339a7735a6cac78ccf625',
-					},
-					ciphertext:
-						'1f06671e13c0329aee057fee995e08a516bdacd287c7ff2714a74be6099713c87bbc3e005c63d4d3d02f8ba89b42810a5854444ad2b76855007a0925fafa7d870875beb010',
-					cipherparams: { iv: '3a583b21bbac609c7df3e7e0', tag: '63653f1d4e8d422a42d98b25d3844792' },
-				};
+				const encryptedMessageWithIterations = await encryptMessageWithPassword(
+					defaultPassphrase,
+					defaultPassword,
+					{ kdf: KDF.ARGON2, kdfparams: { iterations: 12 } },
+				);
 				const decrypted = await decryptMessageWithPassword(
-					encryptedMessage,
+					encryptedMessageWithIterations,
 					defaultPassword,
 					'utf-8',
 				);
@@ -309,24 +291,24 @@ describe('encrypt', () => {
 		it('should format an encrypted passphrase as a string', () => {
 			const encryptedMessage = {
 				ciphertext:
-					'fc8cdb068314590fa7e3156c60bf4a6b1f908f91bb81c79319e858cead7fba581101167c12a4f63acf86908b5c2d7dad96246cd9cd25bc8adca61d7301925869e8bf5cf2a573ae9e5a84e4',
-				mac: '997afad0b38f2d47f347648994a65e8d7ec46feec92720ab629a77cc11875c4d',
+					'3faba4444917306a5e62a83200955a46d99f08abf13960a7a722557f4e0fdd3b8e2abc460662a8d834f16164e13102e5a46bd48c3e1e164908113862a9305c953d5b921486b5432ca89ef87c16c672bb',
+				mac: '55ade5bb6ba6d0a3fc57d2ed741034bdc6bc01ac01d6e368d5246135f285faec',
 				kdf: 'argon2id',
 				kdfparams: {
 					parallelism: 4,
 					iterations: 1,
 					memorySize: 2024,
-					salt: 'd3228c53c27a44cbd9d88ea0919bdade',
+					salt: '9cc1bbc7d057e57f',
 				},
-				cipher: 'aes-256-gcm',
+				cipher: 'aes-128-gcm',
 				cipherparams: {
-					iv: 'b5c86483366f4698708e6985',
-					tag: '5d6c0f628ba12930111c33ef678b2319',
+					iv: 'fda7e894f968b70281854df32ad51273',
+					tag: '4e54653309917e537821504623ead4bf',
 				},
 				version: '1',
 			};
 			const stringifiedEncryptedPassphrase =
-				'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=fc8cdb068314590fa7e3156c60bf4a6b1f908f91bb81c79319e858cead7fba581101167c12a4f63acf86908b5c2d7dad96246cd9cd25bc8adca61d7301925869e8bf5cf2a573ae9e5a84e4&mac=997afad0b38f2d47f347648994a65e8d7ec46feec92720ab629a77cc11875c4d&salt=d3228c53c27a44cbd9d88ea0919bdade&iv=b5c86483366f4698708e6985&tag=5d6c0f628ba12930111c33ef678b2319&iterations=1&parallelism=4&memorySize=2024';
+				'kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=3faba4444917306a5e62a83200955a46d99f08abf13960a7a722557f4e0fdd3b8e2abc460662a8d834f16164e13102e5a46bd48c3e1e164908113862a9305c953d5b921486b5432ca89ef87c16c672bb&mac=55ade5bb6ba6d0a3fc57d2ed741034bdc6bc01ac01d6e368d5246135f285faec&salt=9cc1bbc7d057e57f&iv=fda7e894f968b70281854df32ad51273&tag=4e54653309917e537821504623ead4bf&iterations=1&parallelism=4&memorySize=2024';
 			expect(stringifyEncryptedMessage(encryptedMessage as any)).toBe(
 				stringifiedEncryptedPassphrase,
 			);
@@ -335,24 +317,24 @@ describe('encrypt', () => {
 		it('should format an encrypted passphrase with custom iterations as a string', () => {
 			const encryptedMessage = {
 				ciphertext:
-					'fc8cdb068314590fa7e3156c60bf4a6b1f908f91bb81c79319e858cead7fba581101167c12a4f63acf86908b5c2d7dad96246cd9cd25bc8adca61d7301925869e8bf5cf2a573ae9e5a84e4',
-				mac: '997afad0b38f2d47f347648994a65e8d7ec46feec92720ab629a77cc11875c4d',
+					'3faba4444917306a5e62a83200955a46d99f08abf13960a7a722557f4e0fdd3b8e2abc460662a8d834f16164e13102e5a46bd48c3e1e164908113862a9305c953d5b921486b5432ca89ef87c16c672bb',
+				mac: '55ade5bb6ba6d0a3fc57d2ed741034bdc6bc01ac01d6e368d5246135f285faec',
 				kdf: 'argon2id',
 				kdfparams: {
 					parallelism: 4,
-					iterations: 10000,
+					iterations: 1000,
 					memorySize: 2024,
-					salt: 'd3228c53c27a44cbd9d88ea0919bdade',
+					salt: '9cc1bbc7d057e57f',
 				},
-				cipher: 'aes-256-gcm',
+				cipher: 'aes-128-gcm',
 				cipherparams: {
-					iv: 'b5c86483366f4698708e6985',
-					tag: '5d6c0f628ba12930111c33ef678b2319',
+					iv: 'fda7e894f968b70281854df32ad51273',
+					tag: '4e54653309917e537821504623ead4bf',
 				},
 				version: '1',
 			};
 			const stringifiedEncryptedPassphrase =
-				'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=fc8cdb068314590fa7e3156c60bf4a6b1f908f91bb81c79319e858cead7fba581101167c12a4f63acf86908b5c2d7dad96246cd9cd25bc8adca61d7301925869e8bf5cf2a573ae9e5a84e4&mac=997afad0b38f2d47f347648994a65e8d7ec46feec92720ab629a77cc11875c4d&salt=d3228c53c27a44cbd9d88ea0919bdade&iv=b5c86483366f4698708e6985&tag=5d6c0f628ba12930111c33ef678b2319&iterations=10000&parallelism=4&memorySize=2024';
+				'kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=3faba4444917306a5e62a83200955a46d99f08abf13960a7a722557f4e0fdd3b8e2abc460662a8d834f16164e13102e5a46bd48c3e1e164908113862a9305c953d5b921486b5432ca89ef87c16c672bb&mac=55ade5bb6ba6d0a3fc57d2ed741034bdc6bc01ac01d6e368d5246135f285faec&salt=9cc1bbc7d057e57f&iv=fda7e894f968b70281854df32ad51273&tag=4e54653309917e537821504623ead4bf&iterations=1000&parallelism=4&memorySize=2024';
 			expect(stringifyEncryptedMessage(encryptedMessage as any)).toBe(
 				stringifiedEncryptedPassphrase,
 			);
@@ -385,7 +367,7 @@ describe('encrypt', () => {
 
 		it('should parse an encrypted passphrase string', () => {
 			const stringifiedEncryptedPassphrase =
-				'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=fc8cdb068314590fa7e3156c60bf4a6b1f908f91bb81c79319e858cead7fba581101167c12a4f63acf86908b5c2d7dad96246cd9cd25bc8adca61d7301925869e8bf5cf2a573ae9e5a84e4&mac=997afad0b38f2d47f347648994a65e8d7ec46feec92720ab629a77cc11875c4d&salt=d3228c53c27a44cbd9d88ea0919bdade&iv=b5c86483366f4698708e6985&tag=5d6c0f628ba12930111c33ef678b2319&iterations=1&parallelism=4&memorySize=2024';
+				'kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=fc8cdb068314590fa7e3156c60bf4a6b1f908f91bb81c79319e858cead7fba581101167c12a4f63acf86908b5c2d7dad96246cd9cd25bc8adca61d7301925869e8bf5cf2a573ae9e5a84e4&mac=997afad0b38f2d47f347648994a65e8d7ec46feec92720ab629a77cc11875c4d&salt=d3228c53c27a44cbd9d88ea0919bdade&iv=b5c86483366f4698708e6985&tag=5d6c0f628ba12930111c33ef678b2319&iterations=1&parallelism=4&memorySize=2024';
 			const encryptedMessage = {
 				ciphertext:
 					'fc8cdb068314590fa7e3156c60bf4a6b1f908f91bb81c79319e858cead7fba581101167c12a4f63acf86908b5c2d7dad96246cd9cd25bc8adca61d7301925869e8bf5cf2a573ae9e5a84e4',
@@ -397,7 +379,7 @@ describe('encrypt', () => {
 					memorySize: 2024,
 					salt: 'd3228c53c27a44cbd9d88ea0919bdade',
 				},
-				cipher: 'aes-256-gcm',
+				cipher: 'aes-128-gcm',
 				cipherparams: {
 					iv: 'b5c86483366f4698708e6985',
 					tag: '5d6c0f628ba12930111c33ef678b2319',
@@ -409,7 +391,7 @@ describe('encrypt', () => {
 
 		it('should parse an encrypted passphrase string with custom iterations', () => {
 			const stringifiedEncryptedPassphrase =
-				'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=fc8cdb068314590fa7e3156c60bf4a6b1f908f91bb81c79319e858cead7fba581101167c12a4f63acf86908b5c2d7dad96246cd9cd25bc8adca61d7301925869e8bf5cf2a573ae9e5a84e4&mac=997afad0b38f2d47f347648994a65e8d7ec46feec92720ab629a77cc11875c4d&salt=d3228c53c27a44cbd9d88ea0919bdade&iv=b5c86483366f4698708e6985&tag=5d6c0f628ba12930111c33ef678b2319&iterations=10000&parallelism=4&memorySize=2024';
+				'kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=fc8cdb068314590fa7e3156c60bf4a6b1f908f91bb81c79319e858cead7fba581101167c12a4f63acf86908b5c2d7dad96246cd9cd25bc8adca61d7301925869e8bf5cf2a573ae9e5a84e4&mac=997afad0b38f2d47f347648994a65e8d7ec46feec92720ab629a77cc11875c4d&salt=d3228c53c27a44cbd9d88ea0919bdade&iv=b5c86483366f4698708e6985&tag=5d6c0f628ba12930111c33ef678b2319&iterations=10000&parallelism=4&memorySize=2024';
 			const encryptedMessage = {
 				ciphertext:
 					'fc8cdb068314590fa7e3156c60bf4a6b1f908f91bb81c79319e858cead7fba581101167c12a4f63acf86908b5c2d7dad96246cd9cd25bc8adca61d7301925869e8bf5cf2a573ae9e5a84e4',
@@ -421,7 +403,7 @@ describe('encrypt', () => {
 					memorySize: 2024,
 					salt: 'd3228c53c27a44cbd9d88ea0919bdade',
 				},
-				cipher: 'aes-256-gcm',
+				cipher: 'aes-128-gcm',
 				cipherparams: {
 					iv: 'b5c86483366f4698708e6985',
 					tag: '5d6c0f628ba12930111c33ef678b2319',

@@ -27,16 +27,14 @@ import {
 	getChannelRequestSchema,
 	getTerminatedOutboxAccountRequestSchema,
 	getTerminatedStateAccountRequestSchema,
+	getMainchainIDRequestSchema,
+	getMainchainIDResponseSchema,
 } from '../schemas';
 import { allChainAccountsSchema, chainDataSchema, ChainStatus } from '../stores/chain_account';
 import { channelSchema } from '../stores/channel_data';
 import { ownChainAccountSchema } from '../stores/own_chain_account';
 import { terminatedStateSchema } from '../stores/terminated_state';
 import { terminatedOutboxSchema } from '../stores/terminated_outbox';
-import { ChainAccountUpdatedEvent } from '../events/chain_account_updated';
-import { CcmProcessedEvent } from '../events/ccm_processed';
-import { InvalidRegistrationSignatureEvent } from '../events/invalid_registration_signature';
-import { CcmSendSuccessEvent } from '../events/ccm_send_success';
 import { BaseCCMethod } from '../base_cc_method';
 import {
 	GenesisInteroperability,
@@ -48,7 +46,6 @@ import { SubmitSidechainCrossChainUpdateCommand } from './commands';
 import { InitializeStateRecoveryCommand } from './commands/initialize_state_recovery';
 import { RecoverStateCommand } from './commands/recover_state';
 import { SidechainCCChannelTerminatedCommand, SidechainCCRegistrationCommand } from './cc_commands';
-import { CcmSentFailedEvent } from '../events/ccm_send_fail';
 import { GenesisBlockExecuteContext } from '../../../state_machine';
 import {
 	CHAIN_NAME_MAINCHAIN,
@@ -57,9 +54,9 @@ import {
 	MIN_CHAIN_NAME_LENGTH,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../constants';
-import { getMainchainID, isValidName, validNameCharset } from '../utils';
+import { getMainchainID, isValidName } from '../utils';
 import { TokenMethod } from '../../token';
-import { InvalidCertificateSignatureEvent } from '../events/invalid_certificate_signature';
+import { InvalidNameError } from '../errors';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod: BaseCCMethod = new SidechainCCMethod(this.stores, this.events);
@@ -132,22 +129,6 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 
 	private _validatorsMethod!: ValidatorsMethod;
 
-	public constructor() {
-		super();
-		this.events.register(ChainAccountUpdatedEvent, new ChainAccountUpdatedEvent(this.name));
-		this.events.register(CcmProcessedEvent, new CcmProcessedEvent(this.name));
-		this.events.register(CcmSendSuccessEvent, new CcmSendSuccessEvent(this.name));
-		this.events.register(
-			InvalidRegistrationSignatureEvent,
-			new InvalidRegistrationSignatureEvent(this.name),
-		);
-		this.events.register(CcmSentFailedEvent, new CcmSentFailedEvent(this.name));
-		this.events.register(
-			InvalidCertificateSignatureEvent,
-			new InvalidCertificateSignatureEvent(this.name),
-		);
-	}
-
 	public addDependencies(validatorsMethod: ValidatorsMethod, tokenMethod: TokenMethod) {
 		this._validatorsMethod = validatorsMethod;
 		this._crossChainUpdateCommand.init(this.method, tokenMethod);
@@ -192,6 +173,11 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 					name: this.endpoint.getChainValidators.name,
 					request: getChainValidatorsRequestSchema,
 					response: getChainValidatorsResponseSchema,
+				},
+				{
+					name: this.endpoint.getMainchainID.name,
+					request: getMainchainIDRequestSchema,
+					response: getMainchainIDResponseSchema,
 				},
 			],
 			assets: [
@@ -282,7 +268,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			// CAUTION!
 			// this check is intentionally applied after MIN_CHAIN_NAME_LENGTH, as it will fail for empty string
 			if (!isValidName(ownChainName)) {
-				throw new Error(`ownChainName must have only ${validNameCharset} character set.`);
+				throw new InvalidNameError('ownChainName');
 			}
 			if (ownChainName === CHAIN_NAME_MAINCHAIN) {
 				throw new Error(`ownChainName must be not equal to ${CHAIN_NAME_MAINCHAIN}.`);

@@ -710,7 +710,7 @@ describe('ValidatorsModuleMethod', () => {
 		it('should throw error if the end timestamp is less than the start timestamp', async () => {
 			await expect(
 				validatorsModule.method.getGeneratorsBetweenTimestamps(methodContext, 10, 1),
-			).rejects.toThrow('End timestamp must be greater than start timestamp.');
+			).rejects.toThrow('End timestamp must be greater than or equal to start timestamp.');
 		});
 
 		it('should return empty result when startSlotNumber is lower than endSlotNumber but in the same block slot', async () => {

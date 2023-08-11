@@ -20,9 +20,9 @@ import { Awaited } from '../../types';
 
 describe('message:verify', () => {
 	const message = 'Hello World';
-	const defaultPublicKey = 'fd061b9146691f3c56504be051175d5b76d1b1d0179c5c4370e18534c5882122';
-	const defaultSignature =
-		'b24c548d8f39baa0d48ca4ee6069f76cde12f495632553e4a4ec55bced5344125787887c5a34caa1d78dd7b864f0446d228bbbaf23b1bb75e9c45a0bfb912b0a';
+	const publicKey = 'f1f9fb8717a6a3cc1213221e4bc3426e547407150947272e4f4b729a61726437';
+	const signature =
+		'48f2d8142b7d4834c68eae836cc0d44b31ca05ad91b8d3f96f1779626d187df89059cab3bf7bc466040578bba7497b6255002b749348c96fe76315496434a90c';
 	const defaultVerifyMessageResult = '{"verified":true}\n';
 	const messageSource = 'file:/message.txt';
 
@@ -47,7 +47,7 @@ describe('message:verify', () => {
 
 	describe('message:verify publicKey', () => {
 		it('should throw an error when arg is not provided', async () => {
-			await expect(VerifyCommand.run([defaultPublicKey], config)).rejects.toThrow(
+			await expect(VerifyCommand.run([publicKey], config)).rejects.toThrow(
 				'Missing 1 required arg',
 			);
 		});
@@ -55,7 +55,7 @@ describe('message:verify', () => {
 
 	describe('message:verify publicKey signature', () => {
 		it('should throw an error when message is not provided', async () => {
-			await expect(VerifyCommand.run([defaultPublicKey, defaultSignature], config)).rejects.toThrow(
+			await expect(VerifyCommand.run([publicKey, signature], config)).rejects.toThrow(
 				'No message was provided.',
 			);
 		});
@@ -63,17 +63,14 @@ describe('message:verify', () => {
 
 	describe('message:verify publicKey signature message', () => {
 		it('should verify message from the arg', async () => {
-			await VerifyCommand.run([defaultPublicKey, defaultSignature, message, '-j'], config);
+			await VerifyCommand.run([publicKey, signature, message, '-j'], config);
 			expect(process.stdout.write).toHaveBeenCalledWith(defaultVerifyMessageResult);
 		});
 	});
 
 	describe('message:verify publicKey signature --message=file:./message.txt', () => {
 		it('should verify message from the flag', async () => {
-			await VerifyCommand.run(
-				[defaultPublicKey, defaultSignature, `--message=${messageSource}`, '-j'],
-				config,
-			);
+			await VerifyCommand.run([publicKey, signature, `--message=${messageSource}`, '-j'], config);
 			expect(process.stdout.write).toHaveBeenCalledWith(defaultVerifyMessageResult);
 		});
 	});

@@ -18,6 +18,7 @@ import { SparseMerkleTree } from '@liskhq/lisk-db';
 import { utils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { objects } from '@liskhq/lisk-utils';
+import { validator } from '@liskhq/lisk-validator';
 import {
 	EMPTY_BYTES,
 	EMPTY_FEE_ADDRESS,
@@ -27,7 +28,7 @@ import {
 	MAX_NUM_VALIDATORS,
 } from './constants';
 import { ccmSchema } from './schemas';
-import { CCMsg, CrossChainUpdateTransactionParams, ChainAccount } from './types';
+import { CCMsg, CrossChainUpdateTransactionParams, ChainAccount, ChainValidators } from './types';
 import {
 	computeValidatorsHash,
 	getEncodedCCMAndID,
@@ -270,6 +271,8 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		ccu: CrossChainUpdateTransactionParams,
 	): Promise<void> {
 		const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
+		validator.validate(certificateSchema, certificate);
+
 		const chainAccountStore = this.stores.get(ChainAccountStore);
 		const chainAccount = await chainAccountStore.get(context, ccu.sendingChainID);
 		const updatedChainAccount = {
@@ -308,7 +311,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		}
 		const { bftWeightsUpdate, bftWeightsUpdateBitmap, blsKeysUpdate } = ccu.activeValidatorsUpdate;
 		if (!objects.isBufferArrayOrdered(blsKeysUpdate)) {
-			throw new Error('Keys are not sorted lexicographic order.');
+			throw new Error('Keys are not sorted in lexicographic order.');
 		}
 		const { activeValidators } = await this.stores
 			.get(ChainValidatorsStore)
@@ -359,6 +362,8 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		}
 
 		const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
+		validator.validate(certificateSchema, certificate);
+
 		const newValidatorsHash = computeValidatorsHash(newActiveValidators, ccu.certificateThreshold);
 		if (!certificate.validatorsHash.equals(newValidatorsHash)) {
 			throw new Error('ValidatorsHash in certificate and the computed values do not match.');
@@ -371,6 +376,8 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		blockTimestamp: number,
 	): Promise<void> {
 		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
+		validator.validate(certificateSchema, certificate);
+
 		const partnerchainAccount = await this.stores
 			.get(ChainAccountStore)
 			.get(context, params.sendingChainID);
@@ -405,6 +412,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		params: CrossChainUpdateTransactionParams,
 	): Promise<void> {
 		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
+		validator.validate(certificateSchema, certificate);
 
 		const chainValidators = await this.stores
 			.get(ChainValidatorsStore)
@@ -574,30 +582,30 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			.log(context, ccm.sendingChainID, ccm.receivingChainID, ccmID, { ccm });
 	}
 
-	/**
-	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#verifypartnerchainoutboxroot
-	 */
-	public async verifyPartnerChainOutboxRoot(
+	public async getChainValidators(
 		context: ImmutableMethodContext,
-		params: CrossChainUpdateTransactionParams,
-	): Promise<void> {
-		const channel = await this.stores.get(ChannelDataStore).get(context, params.sendingChainID);
-		let { appendPath, size } = channel.inbox;
-		for (const ccm of params.inboxUpdate.crossChainMessages) {
-			const updatedMerkleTree = regularMerkleTree.calculateMerkleRoot({
-				appendPath,
-				size,
-				value: utils.hash(ccm),
-			});
-			appendPath = updatedMerkleTree.appendPath;
-			size = updatedMerkleTree.size;
+		chainID: Buffer,
+	): Promise<ChainValidators> {
+		const chainAccountStore = this.stores.get(ChainAccountStore);
+		const chainAccountExists = await chainAccountStore.has(context, chainID);
+		if (!chainAccountExists) {
+			throw new Error('Chain account does not exist.');
 		}
-		const newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
-			size,
-			appendPath,
-			params.inboxUpdate.messageWitnessHashes,
-		);
 
+		const chainValidatorsStore = this.stores.get(ChainValidatorsStore);
+
+		const validators = await chainValidatorsStore.get(context, chainID);
+
+		return validators;
+	}
+
+	/**
+	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#verifyoutboxrootwitness
+	 */
+	public verifyOutboxRootWitness(
+		_context: ImmutableMethodContext,
+		params: CrossChainUpdateTransactionParams,
+	): void {
 		const { outboxRootWitness } = params.inboxUpdate;
 		// The outbox root witness properties must be set either both to their default values
 		// or both to a non-default value.
@@ -623,6 +631,33 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 				'The outbox root witness can be non-empty only if the certificate is non-empty.',
 			);
 		}
+	}
+
+	/**
+	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#verifypartnerchainoutboxroot
+	 */
+	public async verifyPartnerChainOutboxRoot(
+		context: ImmutableMethodContext,
+		params: CrossChainUpdateTransactionParams,
+	): Promise<void> {
+		const channel = await this.stores.get(ChannelDataStore).get(context, params.sendingChainID);
+		let { appendPath, size } = channel.inbox;
+		for (const ccm of params.inboxUpdate.crossChainMessages) {
+			const updatedMerkleTree = regularMerkleTree.calculateMerkleRoot({
+				appendPath,
+				size,
+				value: utils.hash(ccm),
+			});
+			appendPath = updatedMerkleTree.appendPath;
+			size = updatedMerkleTree.size;
+		}
+		const newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
+			size,
+			appendPath,
+			params.inboxUpdate.messageWitnessHashes,
+		);
+
+		const { outboxRootWitness } = params.inboxUpdate;
 
 		if (params.certificate.length === 0) {
 			if (!newInboxRoot.equals(channel.partnerChainOutboxRoot)) {
@@ -645,8 +680,10 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			],
 		};
 		const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
+		validator.validate(certificateSchema, certificate);
+
 		const smt = new SparseMerkleTree();
-		const valid = await smt.verify(certificate.stateRoot, [outboxKey], proof);
+		const valid = await smt.verifyInclusionProof(certificate.stateRoot, [outboxKey], proof);
 		if (!valid) {
 			throw new Error('Invalid inclusion proof for inbox update.');
 		}

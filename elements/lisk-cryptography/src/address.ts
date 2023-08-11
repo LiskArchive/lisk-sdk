@@ -12,11 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { BINARY_ADDRESS_LENGTH, DEFAULT_LISK32_ADDRESS_PREFIX } from './constants';
+import {
+	LISK32_CHARSET,
+	BINARY_ADDRESS_LENGTH,
+	DEFAULT_LISK32_ADDRESS_PREFIX,
+	LISK32_ADDRESS_LENGTH,
+} from './constants';
 import { getPublicKey } from './nacl';
 import { hash } from './utils';
-
-const CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
 
 const convertUIntArray = (uintArray: number[], fromBits: number, toBits: number): number[] => {
 	// eslint-disable-next-line no-bitwise
@@ -47,14 +50,14 @@ const convertUIntArray = (uintArray: number[], fromBits: number, toBits: number)
 };
 
 const convertUInt5ToBase32 = (uint5Array: number[]): string =>
-	uint5Array.map((val: number) => CHARSET[val]).join('');
+	uint5Array.map((val: number) => LISK32_CHARSET[val]).join('');
 
 export const getAddressFromPublicKey = (publicKey: Buffer): Buffer => {
 	const buffer = hash(publicKey);
 	const truncatedBuffer = buffer.slice(0, BINARY_ADDRESS_LENGTH);
 
 	if (truncatedBuffer.length !== BINARY_ADDRESS_LENGTH) {
-		throw new Error('The Lisk addresses must contains exactly 20 bytes');
+		throw new Error(`Lisk address must contain exactly ${BINARY_ADDRESS_LENGTH} bytes`);
 	}
 
 	return truncatedBuffer;
@@ -117,15 +120,14 @@ export const getLisk32AddressFromPublicKey = (
 	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
 ): string => `${prefix}${addressToLisk32(getAddressFromPublicKey(publicKey))}`;
 
-const LISK32_ADDRESS_LENGTH = 41;
-const LISK32_CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
-
 export const validateLisk32Address = (
 	address: string,
 	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
 ): true | never => {
 	if (address.length !== LISK32_ADDRESS_LENGTH) {
-		throw new Error('Address length does not match requirements. Expected 41 characters.');
+		throw new Error(
+			`Address length does not match requirements. Expected ${LISK32_ADDRESS_LENGTH} characters.`,
+		);
 	}
 
 	const addressPrefix = address.substring(0, 3);
@@ -140,7 +142,7 @@ export const validateLisk32Address = (
 
 	if (!addressSubstringArray.every(char => LISK32_CHARSET.includes(char))) {
 		throw new Error(
-			"Invalid character found in address. Only allow characters: 'abcdefghjkmnopqrstuvwxyz23456789'.",
+			`Invalid character found in address. Only allow characters: '${LISK32_CHARSET}'.`,
 		);
 	}
 

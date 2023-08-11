@@ -33,8 +33,8 @@ import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefix
 import {
 	computeValidatorsHash,
 	getMainchainID,
-	getMainchainTokenID,
-	validNameCharset,
+	getTokenIDLSK,
+	validNameChars,
 } from '../../../../../src/modules/interoperability/utils';
 import {
 	CHAIN_NAME_MAINCHAIN,
@@ -43,6 +43,7 @@ import {
 	MAX_CHAIN_NAME_LENGTH,
 	MIN_CHAIN_NAME_LENGTH,
 } from '../../../../../src/modules/interoperability/constants';
+import { InvalidNameError } from '../../../../../src/modules/interoperability/errors';
 
 describe('initGenesisState', () => {
 	const chainID = Buffer.from([1, 2, 3, 4]);
@@ -154,7 +155,7 @@ describe('initGenesisState', () => {
 					},
 					channelData: {
 						...defaultData.chainInfos[0].channelData,
-						messageFeeTokenID: getMainchainTokenID(chainID),
+						messageFeeTokenID: getTokenIDLSK(chainID),
 					},
 					chainValidators: {
 						...chainValidators,
@@ -165,7 +166,7 @@ describe('initGenesisState', () => {
 			];
 
 			describe('ownChainName', () => {
-				it(`should throw error if doesn't contain character set from ${validNameCharset}`, async () => {
+				it(`should throw error if doesn't contain chars from ${validNameChars}`, async () => {
 					const context = createInitGenesisStateContext(
 						{
 							...defaultData,
@@ -175,7 +176,7 @@ describe('initGenesisState', () => {
 					);
 
 					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						`ownChainName must have only ${validNameCharset} character set.`,
+						new InvalidNameError('ownChainName').message,
 					);
 				});
 
@@ -194,11 +195,11 @@ describe('initGenesisState', () => {
 					const context2 = createInitGenesisStateContext(
 						{
 							...defaultData,
-							ownChainName:
-								'some very very very very very very very very long very very long chain name',
+							ownChainName: `${'a'.repeat(MAX_CHAIN_NAME_LENGTH)} very long chain name`,
 						},
 						params,
 					);
+
 					// MAX_CHAIN_NAME_LENGTH check already applied in schema
 					await expect(interopMod.initGenesisState(context2)).rejects.toThrow(
 						`.ownChainName' must NOT have more than ${MAX_CHAIN_NAME_LENGTH} characters`,
@@ -390,7 +391,7 @@ describe('initGenesisState', () => {
 									},
 									channelData: {
 										...defaultData.chainInfos[0].channelData,
-										messageFeeTokenID: getMainchainTokenID(chainID),
+										messageFeeTokenID: getTokenIDLSK(chainID),
 									},
 									chainValidators: {
 										...chainValidators,

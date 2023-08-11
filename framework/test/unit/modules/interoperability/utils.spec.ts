@@ -15,11 +15,13 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { VerifyStatus } from '../../../../src';
+import { validator } from '@liskhq/lisk-validator';
+import { BLS_SIGNATURE_LENGTH, VerifyStatus } from '../../../../src';
 import {
 	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 	EMPTY_BYTES,
+	HASH_LENGTH,
 	LIVENESS_LIMIT,
 	MAX_CCM_SIZE,
 	MODULE_NAME_INTEROPERABILITY,
@@ -37,6 +39,7 @@ import {
 	computeValidatorsHash,
 	validateFormat,
 	verifyLivenessConditionForRegisteredChains,
+	isValidName,
 } from '../../../../src/modules/interoperability/utils';
 import * as interopUtils from '../../../../src/modules/interoperability/utils';
 import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
@@ -48,6 +51,16 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 }));
 
 describe('Utils', () => {
+	const defaultCertificate: Certificate = {
+		blockID: cryptography.utils.getRandomBytes(HASH_LENGTH),
+		height: 23,
+		stateRoot: Buffer.alloc(HASH_LENGTH),
+		timestamp: Math.floor(Date.now() / 1000),
+		validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH),
+		aggregationBits: cryptography.utils.getRandomBytes(1),
+		signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
+	};
+
 	const defaultActiveValidatorsUpdate = {
 		blsKeysUpdate: [
 			utils.getRandomBytes(48),
@@ -58,6 +71,10 @@ describe('Utils', () => {
 		bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4), BigInt(3)],
 		bftWeightsUpdateBitmap: Buffer.from([1, 0, 2]),
 	};
+
+	beforeEach(() => {
+		jest.spyOn(validator, 'validate');
+	});
 
 	describe('checkLivenessRequirementFirstCCU', () => {
 		const partnerChainAccount = {
@@ -104,20 +121,12 @@ describe('Utils', () => {
 		};
 
 		const certificate = {
-			blockID: cryptography.utils.getRandomBytes(20),
-			height: 23,
-			stateRoot: Buffer.alloc(2),
-			timestamp: Math.floor(Date.now() / 1000),
-			validatorsHash: cryptography.utils.getRandomBytes(20),
-			aggregationBits: cryptography.utils.getRandomBytes(1),
-			signature: cryptography.utils.getRandomBytes(32),
+			...defaultCertificate,
 		};
 
 		const certificateWithEmptyValues = {
-			blockID: cryptography.utils.getRandomBytes(20),
-			height: 23,
+			...defaultCertificate,
 			stateRoot: EMPTY_BYTES,
-			timestamp: Math.floor(Date.now() / 1000),
 			validatorsHash: EMPTY_BYTES,
 			aggregationBits: EMPTY_BYTES,
 			signature: EMPTY_BYTES,
@@ -159,6 +168,10 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.OK);
 			expect(error).toBeUndefined();
+			expect(validator.validate).toHaveBeenCalledWith(
+				certificateSchema,
+				expect.toBeObject() as Certificate,
+			);
 		});
 	});
 
@@ -214,13 +227,8 @@ describe('Utils', () => {
 		);
 
 		const certificate: Certificate = {
-			aggregationBits: Buffer.alloc(2),
-			signature: Buffer.alloc(2),
+			...defaultCertificate,
 			validatorsHash,
-			blockID: cryptography.utils.getRandomBytes(20),
-			height: 20,
-			stateRoot: cryptography.utils.getRandomBytes(32),
-			timestamp: Math.floor(Date.now() / 1000),
 		};
 
 		const encodedCertificate = codec.encode(certificateSchema, certificate);
@@ -265,13 +273,8 @@ describe('Utils', () => {
 
 		it('should return VerifyStatus.FAIL when validators hash is incorrect', () => {
 			const certificateInvalidValidatorHash: Certificate = {
-				aggregationBits: Buffer.alloc(2),
-				signature: Buffer.alloc(2),
-				validatorsHash: cryptography.utils.getRandomBytes(48),
-				blockID: cryptography.utils.getRandomBytes(20),
-				height: 20,
-				stateRoot: cryptography.utils.getRandomBytes(32),
-				timestamp: Math.floor(Date.now() / 1000),
+				...certificate,
+				validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH),
 			};
 			const invalidEncodedCertificate = codec.encode(
 				certificateSchema,
@@ -297,9 +300,13 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.OK);
 			expect(error).toBeUndefined();
+			expect(validator.validate).toHaveBeenCalledWith(
+				certificateSchema,
+				expect.toBeObject() as Certificate,
+			);
 		});
 
-		it('should return VerifyStatus.OK when activeValidatorsUpdateis empty and certificateThreshold === 0', () => {
+		it('should return VerifyStatus.OK when activeValidatorsUpdate is empty and certificateThreshold === 0', () => {
 			const ineligibleTxParams = {
 				...txParams,
 				activeValidatorsUpdate: {
@@ -326,6 +333,10 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.OK);
 			expect(error).toBeUndefined();
+			expect(validator.validate).toHaveBeenCalledWith(
+				certificateSchema,
+				expect.toBeObject() as Certificate,
+			);
 		});
 
 		it('should return VerifyStatus.OK when certificateThreshold > 0 but activeValidatorsUpdate is empty', () => {
@@ -343,6 +354,10 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.OK);
 			expect(error).toBeUndefined();
+			expect(validator.validate).toHaveBeenCalledWith(
+				certificateSchema,
+				expect.toBeObject() as Certificate,
+			);
 		});
 	});
 
@@ -405,13 +420,8 @@ describe('Utils', () => {
 
 	describe('verifyLivenessConditionForRegisteredChains', () => {
 		const certificate = {
-			blockID: utils.getRandomBytes(20),
-			height: 23,
-			stateRoot: Buffer.alloc(2),
+			...defaultCertificate,
 			timestamp: 100000,
-			validatorsHash: utils.getRandomBytes(20),
-			aggregationBits: utils.getRandomBytes(1),
-			signature: utils.getRandomBytes(32),
 		};
 		const ccuParams = {
 			activeValidatorsUpdate: {
@@ -435,10 +445,8 @@ describe('Utils', () => {
 		it('should throw if certificate timestamp is older than half of liveness limit', () => {
 			expect(() =>
 				verifyLivenessConditionForRegisteredChains(
-					{
-						...ccuParams,
-					},
 					certificate.timestamp + LIVENESS_LIMIT / 2 + 1,
+					ccuParams.certificate,
 				),
 			).toThrow('The first CCU with a non-empty inbox update cannot contain a certificate older');
 		});
@@ -446,12 +454,14 @@ describe('Utils', () => {
 		it('should not throw if inbox update is not older than half of liveness limit', () => {
 			expect(
 				verifyLivenessConditionForRegisteredChains(
-					{
-						...ccuParams,
-					},
 					certificate.timestamp + LIVENESS_LIMIT / 2,
+					ccuParams.certificate,
 				),
 			).toBeUndefined();
+			expect(validator.validate).toHaveBeenCalledWith(
+				certificateSchema,
+				expect.toBeObject() as Certificate,
+			);
 		});
 	});
 
@@ -654,6 +664,40 @@ describe('Utils', () => {
 					bytesToBuffer('1110'),
 				),
 			).toThrow('No BFT weights should be left');
+		});
+	});
+
+	describe('isValidName', () => {
+		it('should return true for a-z', () => {
+			expect(isValidName('abcxyz')).toBeTrue();
+		});
+
+		it('should return true for 0-9', () => {
+			expect(isValidName('01239')).toBeTrue();
+		});
+
+		it('should return true for of a-z0-9', () => {
+			expect(isValidName('abcxyz01239')).toBeTrue();
+		});
+
+		it('should return true for !@$&_. chars', () => {
+			expect(isValidName('abc_!@$&_._xyz')).toBeTrue();
+		});
+
+		it('should return true for [a-z0-9!@$&_.]+', () => {
+			expect(isValidName('abc_!@$&_._xyz_abc_!@$&_._xyz')).toBeTrue();
+		});
+
+		it('should return false for space character', () => {
+			expect(isValidName('abc xyz')).toBeFalse();
+		});
+
+		it('should return false for %', () => {
+			expect(isValidName('abc%xyz')).toBeFalse();
+		});
+
+		it('should return false for (', () => {
+			expect(isValidName('abc(xyz')).toBeFalse();
 		});
 	});
 });

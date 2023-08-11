@@ -84,10 +84,9 @@ export const handlePromiseErrorWithNull = async <T>(promise: Promise<T>) => {
 	return result;
 };
 
-export const isValidName = (username: string): boolean => /^[a-z0-9!@$&_.]+$/g.test(username);
-// CAUTION!
-// It must hold range from above `isValidName` function (as it's used in relevant error messages)
-export const validNameCharset = 'a-z0-9!@$&_.';
+export const validNameChars = 'a-z0-9!@$&_.';
+export const isValidName = (username: string): boolean =>
+	new RegExp(`^[${validNameChars}]+$`, 'g').test(username);
 
 export const computeValidatorsHash = (
 	initValidators: ActiveValidators[],
@@ -119,12 +118,6 @@ export const isInboxUpdateEmpty = (inboxUpdate: InboxUpdate) =>
 
 export const isOutboxRootWitnessEmpty = (outboxRootWitness: OutboxRootWitness) =>
 	outboxRootWitness.siblingHashes.length === 0 || outboxRootWitness.bitmap.length === 0;
-
-export const isCertificateEmpty = (decodedCertificate: Certificate) =>
-	decodedCertificate.blockID.equals(EMPTY_BYTES) ||
-	decodedCertificate.stateRoot.equals(EMPTY_BYTES) ||
-	decodedCertificate.validatorsHash.equals(EMPTY_BYTES) ||
-	decodedCertificate.timestamp === 0;
 
 export const checkLivenessRequirementFirstCCU = (
 	partnerChainAccount: ChainAccount,
@@ -159,8 +152,10 @@ export const checkCertificateValidity = (
 		};
 	}
 
-	const decodedCertificate = codec.decode<Certificate>(certificateSchema, encodedCertificate);
-	if (isCertificateEmpty(decodedCertificate)) {
+	const certificate = codec.decode<Certificate>(certificateSchema, encodedCertificate);
+	try {
+		validator.validate(certificateSchema, certificate);
+	} catch (err) {
 		return {
 			status: VerifyStatus.FAIL,
 			error: new Error('Certificate is missing required values.'),
@@ -168,7 +163,7 @@ export const checkCertificateValidity = (
 	}
 
 	// Last certificate height should be less than new certificate height
-	if (partnerChainAccount.lastCertificate.height >= decodedCertificate.height) {
+	if (partnerChainAccount.lastCertificate.height >= certificate.height) {
 		return {
 			status: VerifyStatus.FAIL,
 			error: new Error('Certificate height should be greater than last certificate height.'),
@@ -211,12 +206,10 @@ export const checkValidatorsHashWithCertificate = (
 				),
 			};
 		}
-		let decodedCertificate: Certificate;
+		let certificate: Certificate;
 		try {
-			decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
-			if (isCertificateEmpty(decodedCertificate)) {
-				throw new Error('Invalid empty certificate.');
-			}
+			certificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
+			validator.validate(certificateSchema, certificate);
 		} catch (error) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -238,7 +231,7 @@ export const checkValidatorsHashWithCertificate = (
 			txParams.certificateThreshold || partnerValidators.certificateThreshold,
 		);
 
-		if (!decodedCertificate.validatorsHash.equals(validatorsHash)) {
+		if (!certificate.validatorsHash.equals(validatorsHash)) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Validators hash given in the certificate is incorrect.'),
@@ -262,10 +255,12 @@ export const chainAccountToJSON = (chainAccount: ChainAccount) => {
 };
 
 export const verifyLivenessConditionForRegisteredChains = (
-	ccu: CrossChainUpdateTransactionParams,
 	blockTimestamp: number,
+	certificateBuffer: Buffer,
 ) => {
-	const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
+	const certificate = codec.decode<Certificate>(certificateSchema, certificateBuffer);
+	validator.validate(certificateSchema, certificate);
+
 	const limitSecond = LIVENESS_LIMIT / 2;
 	if (blockTimestamp - certificate.timestamp > limitSecond) {
 		throw new Error(
@@ -281,15 +276,25 @@ export const getMainchainID = (chainID: Buffer): Buffer => {
 };
 
 // TODO: Update to use Token method after merging development
-export const getMainchainTokenID = (chainID: Buffer): Buffer => {
+export const getTokenIDLSK = (chainID: Buffer): Buffer => {
 	const networkID = chainID.slice(0, 1);
 	// 3 bytes for remaining chainID bytes
 	return Buffer.concat([networkID, Buffer.alloc(7, 0)]);
 };
 
+export const getIDFromCCMBytes = (ccmBytes: Buffer) => utils.hash(ccmBytes);
+
 export const getEncodedCCMAndID = (ccm: CCMsg) => {
 	const encodedCCM = codec.encode(ccmSchema, ccm);
-	return { ccmID: utils.hash(encodedCCM), encodedCCM };
+	return { encodedCCM, ccmID: getIDFromCCMBytes(encodedCCM) };
+};
+
+export const getDecodedCCMAndID = (ccmBytes: Buffer) => {
+	const decodedCCM = codec.decode<CCMsg>(ccmSchema, ccmBytes);
+	return {
+		decodedCCM,
+		ccmID: getIDFromCCMBytes(ccmBytes),
+	};
 };
 
 export const emptyActiveValidatorsUpdate = (value: ActiveValidatorsUpdate): boolean =>

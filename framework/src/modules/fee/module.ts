@@ -126,6 +126,15 @@ export class FeeModule extends BaseInteroperableModule {
 
 	public async beforeCommandExecute(context: TransactionExecuteContext): Promise<void> {
 		const { transaction, header } = context;
+
+		// Same check as in verifyTransaction()
+		// Required to prevent negative available fee when doing a dry run in non-strict mode
+		const minFee = this._getMinFee(header.height, transaction.getBytes().length);
+		const availableFee = transaction.fee - minFee;
+		if (availableFee < 0) {
+			throw new Error(`Insufficient transaction fee. Minimum required fee is ${minFee}.`);
+		}
+
 		const methodContext = context.getMethodContext();
 		// The Token module beforeCrossChainCommandExecute needs to be called first
 		// to ensure that the relayer has enough funds
@@ -136,9 +145,8 @@ export class FeeModule extends BaseInteroperableModule {
 			this._tokenID,
 			transaction.fee,
 		);
-		const minFee = this._getMinFee(header.height, transaction.getBytes().length);
 
-		context.contextStore.set(CONTEXT_STORE_KEY_AVAILABLE_FEE, transaction.fee - minFee);
+		context.contextStore.set(CONTEXT_STORE_KEY_AVAILABLE_FEE, availableFee);
 	}
 
 	public async afterCommandExecute(context: TransactionExecuteContext): Promise<void> {
@@ -153,7 +161,7 @@ export class FeeModule extends BaseInteroperableModule {
 
 		let availableFee = getContextStoreBigInt(context.contextStore, CONTEXT_STORE_KEY_AVAILABLE_FEE);
 
-		const userSubstoreGeneratorExists = await this._tokenMethod.userAccountExists(
+		const userSubstoreGeneratorExists = await this._tokenMethod.userSubstoreExists(
 			context,
 			header.generatorAddress,
 			this._tokenID,
@@ -172,7 +180,7 @@ export class FeeModule extends BaseInteroperableModule {
 
 		let burnConsumedFee = true;
 		if (this._feePoolAddress) {
-			const userSubstoreFeePoolExists = await this._tokenMethod.userAccountExists(
+			const userSubstoreFeePoolExists = await this._tokenMethod.userSubstoreExists(
 				context,
 				this._feePoolAddress,
 				this._tokenID,
