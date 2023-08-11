@@ -15,10 +15,13 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { EMPTY_BUFFER } from '@liskhq/lisk-chain/dist-node/constants';
+import { validator } from '@liskhq/lisk-validator';
 import {
 	CommandExecuteContext,
 	MainchainInteroperabilityModule,
 	Transaction,
+	CommandVerifyContext,
+	ChainAccount,
 } from '../../../../src';
 import { BaseCCCommand } from '../../../../src/modules/interoperability/base_cc_command';
 import { BaseCrossChainUpdateCommand } from '../../../../src/modules/interoperability/base_cross_chain_update_command';
@@ -64,7 +67,11 @@ import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules
 import { getMainchainID } from '../../../../src/modules/interoperability/utils';
 import { BaseInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/base_interoperability_internal_methods';
 import { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../../../../src/modules/token/constants';
-import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
+import {
+	OwnChainAccountStore,
+	OwnChainAccount,
+} from '../../../../src/modules/interoperability/stores/own_chain_account';
+import { createStoreGetter } from '../../../../src/testing/utils';
 
 class CrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -230,6 +237,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			updateValidators: jest.fn(),
 			updateCertificate: jest.fn(),
 			updatePartnerChainOutboxRoot: jest.fn(),
+			verifyOutboxRootWitness: jest.fn(),
 		} as unknown as BaseInteroperabilityInternalMethod;
 		command = new CrossChainUpdateCommand(
 			interopModule.stores,
@@ -253,6 +261,234 @@ describe('BaseCrossChainUpdateCommand', () => {
 		);
 		context = createCrossChainMessageContext({
 			ccm: defaultCCM,
+		});
+	});
+
+	describe('verifyCommon', () => {
+		let stateStore: PrefixedStateReadWriter;
+		let verifyContext: CommandVerifyContext<CrossChainUpdateTransactionParams>;
+
+		const ownChainAccount: OwnChainAccount = {
+			chainID: EMPTY_BUFFER,
+			name: 'ownChain',
+			nonce: BigInt(1),
+		};
+
+		const chainAccount: ChainAccount = {
+			status: ChainStatus.REGISTERED,
+			name: 'chain123',
+			lastCertificate: {
+				height: 0,
+				stateRoot: utils.getRandomBytes(32),
+				timestamp: 0,
+				validatorsHash: utils.getRandomBytes(32),
+			},
+		};
+
+		const activeValidatorsUpdate = [
+			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) },
+			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(3) },
+			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(4) },
+			{ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(3) },
+		].sort((v1, v2) => v2.blsKey.compare(v1.blsKey)); // unsorted list
+
+		beforeEach(async () => {
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+			verifyContext = createTransactionContext({
+				chainID,
+				stateStore,
+				transaction: new Transaction({
+					...defaultTransaction,
+					command: command.name,
+					params: codec.encode(crossChainUpdateTransactionParams, params),
+				}),
+			}).createCommandVerifyContext(command.schema);
+
+			await command['stores']
+				.get(ChainValidatorsStore)
+				.set(createStoreGetter(stateStore), defaultSendingChainID, {
+					activeValidators: [...activeValidatorsUpdate],
+					certificateThreshold: BigInt(10),
+				});
+
+			await command['stores']
+				.get(OwnChainAccountStore)
+				.set(stateStore, EMPTY_BYTES, ownChainAccount);
+
+			await command['stores']
+				.get(ChainAccountStore)
+				.set(stateStore, params.sendingChainID, chainAccount);
+		});
+
+		it('should call validate.validate with crossChainUpdateTransactionParams schema', async () => {
+			jest.spyOn(validator, 'validate');
+
+			await expect(command['verifyCommon'](verifyContext, true)).resolves.toBeUndefined();
+
+			expect(validator.validate).toHaveBeenCalledWith(
+				crossChainUpdateTransactionParams,
+				verifyContext.params,
+			);
+		});
+
+		it('should throw error when the sending chain is the same as the receiving chain', async () => {
+			await command['stores'].get(OwnChainAccountStore).set(stateStore, EMPTY_BYTES, {
+				...ownChainAccount,
+				chainID: params.sendingChainID,
+			});
+
+			await expect(command['verifyCommon'](verifyContext, true)).rejects.toThrow(
+				'The sending chain cannot be the same as the receiving chain',
+			);
+		});
+
+		it('should reject when certificate and inboxUpdate are empty', async () => {
+			await expect(
+				command['verifyCommon'](
+					{
+						...verifyContext,
+						params: {
+							...verifyContext.params,
+							certificate: Buffer.alloc(0),
+							inboxUpdate: {
+								crossChainMessages: [],
+								messageWitnessHashes: [],
+								outboxRootWitness: {
+									bitmap: Buffer.alloc(0),
+									siblingHashes: [],
+								},
+							},
+						},
+					},
+					true,
+				),
+			).rejects.toThrow(
+				'A cross-chain update must contain a non-empty certificate and/or a non-empty inbox update.',
+			);
+		});
+
+		it('should throw error if the sending chain is not registered', async () => {
+			jest
+				.spyOn(command['stores'].get(ChainAccountStore), 'getOrUndefined')
+				.mockResolvedValue(undefined);
+
+			await expect(command['verifyCommon'](verifyContext, true)).rejects.toThrow(
+				'The sending chain is not registered',
+			);
+		});
+
+		it('should throw error if sending chain is not live', async () => {
+			jest.spyOn(command['internalMethod'], 'isLive').mockResolvedValue(false);
+
+			await expect(command['verifyCommon'](verifyContext, true)).rejects.toThrow(
+				'The sending chain is not live',
+			);
+
+			// because we passed `true` in `command['verifyCommon'](verifyContext, true)`
+			expect(command['internalMethod'].isLive).toHaveBeenCalledWith(
+				verifyContext,
+				verifyContext.params.sendingChainID,
+				verifyContext.header.timestamp,
+			);
+		});
+
+		it('should reject when sending chain status is registered and certificate is empty', async () => {
+			await expect(
+				command['verifyCommon'](
+					{
+						...verifyContext,
+						params: {
+							...params,
+							certificate: Buffer.alloc(0),
+						},
+					},
+					true,
+				),
+			).rejects.toThrow(
+				`Cross-chain updates from chains with status ${ChainStatus.REGISTERED} must contain a non-empty certificate`,
+			);
+		});
+
+		it('should verify certificate when certificate is not empty', async () => {
+			command['internalMethod'].verifyCertificate = jest.fn();
+
+			await expect(
+				command['verifyCommon'](
+					{
+						...verifyContext,
+						header: { timestamp: Math.floor(Date.now() / 1000), height: 0 },
+						params: {
+							...params,
+							certificate,
+						},
+					},
+					true,
+				),
+			).resolves.toBeUndefined();
+
+			expect(command['internalMethod'].verifyCertificate).toHaveBeenCalledTimes(1);
+		});
+
+		it('should verify validators update when active validator update exist', async () => {
+			await expect(
+				command['verifyCommon'](
+					{
+						...verifyContext,
+						params: {
+							...params,
+							activeValidatorsUpdate: {
+								blsKeysUpdate: [utils.getRandomBytes(48)],
+								bftWeightsUpdate: [],
+								bftWeightsUpdateBitmap: Buffer.from([1]),
+							},
+						},
+					},
+					true,
+				),
+			).resolves.toBeUndefined();
+
+			expect(command['internalMethod'].verifyValidatorsUpdate).toHaveBeenCalledTimes(1);
+		});
+
+		it('should verify validators update when certificate threshold changes', async () => {
+			await expect(
+				command['verifyCommon'](
+					{
+						...verifyContext,
+						params: {
+							...params,
+							certificateThreshold: BigInt(1),
+						},
+					},
+					true,
+				),
+			).resolves.toBeUndefined();
+
+			expect(command['internalMethod'].verifyValidatorsUpdate).toHaveBeenCalledTimes(1);
+		});
+
+		it('should verify partnerchain outbox root when inboxUpdate is not empty', async () => {
+			await expect(
+				command['verifyCommon'](
+					{
+						...verifyContext,
+						params: {
+							...params,
+							inboxUpdate: {
+								crossChainMessages: [utils.getRandomBytes(100)],
+								messageWitnessHashes: [utils.getRandomBytes(32)],
+								outboxRootWitness: {
+									bitmap: utils.getRandomBytes(2),
+									siblingHashes: [utils.getRandomBytes(32)],
+								},
+							},
+						},
+					},
+					true,
+				),
+			).resolves.toBeUndefined();
+
+			expect(command['internalMethod'].verifyOutboxRootWitness).toHaveBeenCalledTimes(1);
 		});
 	});
 

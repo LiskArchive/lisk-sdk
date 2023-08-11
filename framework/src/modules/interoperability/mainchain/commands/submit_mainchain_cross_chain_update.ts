@@ -35,10 +35,8 @@ import {
 } from '../../events/ccm_processed';
 import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
 import { ChainAccount, ChainAccountStore, ChainStatus } from '../../stores/chain_account';
-import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { CrossChainMessageContext, CrossChainUpdateTransactionParams } from '../../types';
 import {
-	emptyActiveValidatorsUpdate,
 	getEncodedCCMAndID,
 	getMainchainID,
 	isInboxUpdateEmpty,
@@ -47,42 +45,21 @@ import {
 } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#commands
 export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
 		const { params } = context;
 
-		if (params.certificate.length === 0 && isInboxUpdateEmpty(params.inboxUpdate)) {
-			throw new Error(
-				'A cross-chain update must contain a non-empty certificate and/or a non-empty inbox update.',
-			);
-		}
-
-		const isLive = await this.internalMethod.isLive(
-			context,
-			params.sendingChainID,
-			context.header.timestamp,
-		);
-		if (!isLive) {
-			throw new Error('The sending chain is not live.');
-		}
-
-		const sendingChainAccount = await this.stores
-			.get(ChainAccountStore)
-			.get(context, params.sendingChainID);
-
-		if (sendingChainAccount.status === ChainStatus.REGISTERED && params.certificate.length === 0) {
-			throw new Error(
-				'Cross-chain updates from chains with status CHAIN_STATUS_REGISTERED must contain a non-empty certificate.',
-			);
-		}
-
-		if (params.certificate.length > 0) {
-			await this.internalMethod.verifyCertificate(context, params, context.header.timestamp);
-		}
+		await this.verifyCommon(context, true);
 
 		// Liveness condition is only checked on the mainchain for the first CCU with a non-empty inbox update.
+		// after `verifyCommon`,`sendingChainAccount` is not `undefined`
+		const sendingChainAccount = (await this.stores
+			.get(ChainAccountStore)
+			.getOrUndefined(context, params.sendingChainID)) as ChainAccount;
+
 		if (
 			sendingChainAccount.status === ChainStatus.REGISTERED &&
 			!isInboxUpdateEmpty(params.inboxUpdate)
@@ -91,20 +68,6 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 				context.header.timestamp,
 				context.params.certificate,
 			);
-		}
-
-		const sendingChainValidators = await this.stores
-			.get(ChainValidatorsStore)
-			.get(context, params.sendingChainID);
-		if (
-			!emptyActiveValidatorsUpdate(params.activeValidatorsUpdate) ||
-			params.certificateThreshold !== sendingChainValidators.certificateThreshold
-		) {
-			await this.internalMethod.verifyValidatorsUpdate(context, params);
-		}
-
-		if (!isInboxUpdateEmpty(params.inboxUpdate)) {
-			this.internalMethod.verifyOutboxRootWitness(context, params);
 		}
 
 		return {

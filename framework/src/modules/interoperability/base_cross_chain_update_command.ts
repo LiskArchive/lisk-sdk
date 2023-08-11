@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { CommandExecuteContext } from '../../state_machine';
+import { CommandExecuteContext, CommandVerifyContext } from '../../state_machine';
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import { BaseInteroperabilityMethod } from './base_interoperability_method';
@@ -30,7 +30,7 @@ import {
 	CrossChainUpdateTransactionParams,
 	TokenMethod,
 } from './types';
-import { ChainAccountStore } from './stores/chain_account';
+import { ChainAccountStore, ChainStatus } from './stores/chain_account';
 import {
 	emptyActiveValidatorsUpdate,
 	getEncodedCCMAndID,
@@ -52,6 +52,75 @@ export abstract class BaseCrossChainUpdateCommand<
 	public init(interopsMethod: BaseInteroperabilityMethod<T>, tokenMethod: TokenMethod) {
 		this._tokenMethod = tokenMethod;
 		this._interopsMethod = interopsMethod;
+	}
+
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#verifycommon
+	protected async verifyCommon(
+		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
+		isMainchain: boolean,
+	): Promise<void> {
+		const { params } = context;
+
+		validator.validate(crossChainUpdateTransactionParams, params);
+
+		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
+		if (params.sendingChainID.equals(ownChainAccount.chainID)) {
+			throw new Error('The sending chain cannot be the same as the receiving chain.');
+		}
+
+		// An empty object has all properties set to their default values
+		if (params.certificate.length === 0 && isInboxUpdateEmpty(params.inboxUpdate)) {
+			throw new Error(
+				'A cross-chain update must contain a non-empty certificate and/or a non-empty inbox update.',
+			);
+		}
+
+		// The sending chain account must exist
+		const sendingChainAccount = await this.stores
+			.get(ChainAccountStore)
+			.getOrUndefined(context, params.sendingChainID);
+		if (!sendingChainAccount) {
+			throw new Error('The sending chain is not registered.');
+		}
+
+		let live;
+		if (isMainchain) {
+			live = await this.internalMethod.isLive(
+				context,
+				params.sendingChainID,
+				context.header.timestamp,
+			);
+		} else {
+			live = await this.internalMethod.isLive(context, params.sendingChainID);
+		}
+		if (!live) {
+			throw new Error('The sending chain is not live.');
+		}
+
+		if (sendingChainAccount.status === ChainStatus.REGISTERED && params.certificate.length === 0) {
+			throw new Error(
+				`Cross-chain updates from chains with status ${ChainStatus.REGISTERED} must contain a non-empty certificate.`,
+			);
+		}
+
+		if (params.certificate.length > 0) {
+			await this.internalMethod.verifyCertificate(context, params, context.header.timestamp);
+		}
+
+		// or validatorsUpdate.bftWeightsUpdateBitmap != EMPTY_BYTES // ???
+		const sendingChainValidators = await this.stores
+			.get(ChainValidatorsStore)
+			.get(context, params.sendingChainID);
+		if (
+			!emptyActiveValidatorsUpdate(params.activeValidatorsUpdate) ||
+			params.certificateThreshold !== sendingChainValidators.certificateThreshold
+		) {
+			await this.internalMethod.verifyValidatorsUpdate(context, params);
+		}
+
+		if (!isInboxUpdateEmpty(params.inboxUpdate)) {
+			this.internalMethod.verifyOutboxRootWitness(context, params);
+		}
 	}
 
 	protected async executeCommon(
