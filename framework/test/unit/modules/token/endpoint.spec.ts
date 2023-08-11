@@ -82,6 +82,7 @@ describe('token endpoint', () => {
 				terminateChain: jest.fn(),
 				getChannel: jest.fn(),
 				getMessageFeeTokenID: jest.fn(),
+				getMessageFeeTokenIDFromCCM: jest.fn(),
 			},
 			internalMethod,
 		);

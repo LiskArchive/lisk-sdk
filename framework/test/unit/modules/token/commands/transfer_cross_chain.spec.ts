@@ -117,6 +117,7 @@ describe('CCTransfer command', () => {
 		terminateChain: jest.Mock;
 		getChannel: jest.Mock;
 		getMessageFeeTokenID: jest.Mock;
+		getMessageFeeTokenIDFromCCM: jest.Mock;
 	};
 
 	beforeEach(() => {
@@ -129,6 +130,7 @@ describe('CCTransfer command', () => {
 			terminateChain: jest.fn(),
 			getChannel: jest.fn(),
 			getMessageFeeTokenID: jest.fn(),
+			getMessageFeeTokenIDFromCCM: jest.fn(),
 		};
 		internalMethod.addDependencies({
 			payFee: jest.fn(),

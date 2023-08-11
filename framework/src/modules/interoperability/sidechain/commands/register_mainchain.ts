@@ -41,7 +41,7 @@ import {
 	computeValidatorsHash,
 	getEncodedCCMAndID,
 	getMainchainID,
-	getMainchainTokenID,
+	getTokenIDLSK,
 	isValidName,
 	sortValidatorsByBLSKey,
 } from '../../utils';
@@ -197,7 +197,7 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 			throw new Error('Invalid signature property.');
 		}
 
-		const mainchainTokenID = getMainchainTokenID(context.chainID);
+		const mainchainTokenID = getTokenIDLSK(context.chainID);
 		const chainSubstore = this.stores.get(ChainAccountStore);
 		const mainchainAccount = {
 			name: CHAIN_NAME_MAINCHAIN,

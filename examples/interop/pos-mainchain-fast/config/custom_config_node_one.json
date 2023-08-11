@@ -28,7 +28,7 @@
 	"plugins": {
 		"chainConnector": {
 			"receivingChainID": "04000001",
-			"encryptedPrivateKey": "kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=21a949b02c031fda8099423b669a084acc81ca9bf379781eceaf35241070f3051f24953b954b1712970d197c421df10eb9ca1f9f3a71d0f753d1ca55f50cd9ec3a2ba5eafce8c6dba451ba2de0c5713b8036179b49fabf9ebaa5b70e57d1f029a935f4e3751c140d7d6a78e6b4dba12135de17d4991f8fc9b87c286ad11ce6ed&mac=9076312c9d54562a0f78ca19217efdea4f0079dc9189888ee32880c7cfdf6d41&salt=2469de0a1381a76010a6ad3ebc624705&iv=953c6d531b632bb7a0b76d15&tag=4ac2722a2f924f2bb8badaebb39862fe&iterations=1&parallelism=4&memorySize=2024",
+			"encryptedPrivateKey": "kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=550ae6bbc0ef89328ccb4f6f9023522d79c44c5776a53824c8a97878d4b7f8d80f94733cd0a12490649fa35cbffd814ca3b68b3f221e0790ea1e1af8837b7db789ec1752e1&mac=ef28a41cc5f9054405d32c4aa550d8f84cce74965d9f9ef4c4db2dddfbb8ee5a&salt=e0f03bb677158c2c&iv=56bf95e106f9d540b09f755f972f8606&tag=37ee036e097d294c5e2272aa33e520d5&iterations=1&parallelism=4&memorySize=2097023",
 			"password": "lisk",
 			"ccuFee": "500000000",
 			"receivingChainIPCPath": "~/.lisk/pos-sidechain-example-one",

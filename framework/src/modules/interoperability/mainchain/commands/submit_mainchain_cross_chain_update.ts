@@ -42,8 +42,8 @@ import {
 	getEncodedCCMAndID,
 	getMainchainID,
 	isInboxUpdateEmpty,
-	getDecodedCCMAndID,
 	verifyLivenessConditionForRegisteredChains,
+	getIDFromCCMBytes,
 } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
@@ -104,7 +104,7 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 		}
 
 		if (!isInboxUpdateEmpty(params.inboxUpdate)) {
-			await this.internalMethod.verifyPartnerChainOutboxRoot(context, params);
+			this.internalMethod.verifyOutboxRootWitness(context, params);
 		}
 
 		return {
@@ -128,7 +128,7 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			for (let i = 0; i < decodedCCMs.length; i += 1) {
 				const ccm = decodedCCMs[i];
 				const ccmBytes = params.inboxUpdate.crossChainMessages[i];
-				const { ccmID } = getDecodedCCMAndID(ccmBytes);
+				const ccmID = getIDFromCCMBytes(ccmBytes);
 				const ccmContext = {
 					...context,
 					ccm,

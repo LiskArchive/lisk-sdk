@@ -109,7 +109,7 @@ describe('validation', () => {
 		it('should return true when value is valid encrypted passphrase', () => {
 			return expect(
 				isEncryptedPassphrase(
-					'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=bd65587de1b7b42e289693e8ac14561c7c77370ff158133c6eb512849353446b339f04c8f45b6b8cc72e5e8485dab4031d9f5e2d7cb9d424076401ea58dad6d4a348fc1f013ceb5d8bb314&mac=6e017e6b2a341db10b91440462fc2626fe6e4b711ea09f8df3ac1df42a6de572&salt=e9f564ce7f8392acb2691fb4953e17c0&iv=57124bb910dbf9e24e37d401&tag=b769dcbd4ad0d3f44041afe5322aad82&iterations=1&parallelism=4&memorySize=2024',
+					'kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=31b2cec3ca4585d4503b46444f5836b948d875367a5f5fc08bc4ca424db60acb4a86ab98f8dd4dd73f5589ede1b8c5abc16eb73561b48aab422dd6e716b97c91721a781e3e8acfdb39c0a7f41fd23ba8&mac=bfdf26800dab13a8e88ee7fa90fcd6d43459e762fe811b3be3664537df36c026&salt=e3db480467e4e61e&iv=11af231d8cbbe77d09e515f1b3308c57&tag=81b20ab2154678a020412a8459d79554&iterations=1&parallelism=4&memorySize=2024',
 				),
 			).toBeTrue();
 		});
@@ -127,7 +127,7 @@ describe('validation', () => {
 		it('should return true when 24 words bip39 Mnemonic was encrypted', () => {
 			return expect(
 				isEncryptedPassphrase(
-					'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=bd65587de1b7b42e289693e8ac14561c7c77370ff158133c6eb512849353446b339f04c8f45b6b8cc72e5e8485dab4031d9f5e2d7cb9d424076401ea58dad6d4a348fc1f013ceb5d8bb314&mac=6e017e6b2a341db10b91440462fc2626fe6e4b711ea09f8df3ac1df42a6de572&salt=e9f564ce7f8392acb2691fb4953e17c0&iv=57124bb910dbf9e24e37d401&tag=b769dcbd4ad0d3f44041afe5322aad82&iterations=1&parallelism=4&memorySize=2024',
+					'kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=31b2cec3ca4585d4503b46444f5836b948d875367a5f5fc08bc4ca424db60acb4a86ab98f8dd4dd73f5589ede1b8c5abc16eb73561b48aab422dd6e716b97c91721a781e3e8acfdb39c0a7f41fd23ba8&mac=bfdf26800dab13a8e88ee7fa90fcd6d43459e762fe811b3be3664537df36c026&salt=e3db480467e4e61e&iv=11af231d8cbbe77d09e515f1b3308c57&tag=81b20ab2154678a020412a8459d79554&iterations=1&parallelism=4&memorySize=2024',
 				),
 			).toBeTrue();
 		});

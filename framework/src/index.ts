@@ -140,6 +140,7 @@ export {
 	RecoverContext,
 } from './modules/interoperability';
 export { RewardMethod, RewardModule } from './modules/reward';
+export { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_rewards';
 export { FeeMethod, FeeModule } from './modules/fee';
 export { RandomMethod, RandomModule } from './modules/random';
 export { PoAModule, PoAMethod } from './modules/poa';

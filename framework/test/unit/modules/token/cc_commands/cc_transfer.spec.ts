@@ -152,6 +152,7 @@ describe('CrossChain Transfer Command', () => {
 			terminateChain: jest.fn(),
 			getChannel: jest.fn(),
 			getMessageFeeTokenID: jest.fn(),
+			getMessageFeeTokenIDFromCCM: jest.fn(),
 		};
 		const config = {
 			ownChainID,
@@ -557,7 +558,7 @@ describe('CrossChain Transfer Command', () => {
 			await command.execute(ctx);
 
 			await expect(
-				method.userAccountExists(methodContext, randomAddress, defaultTokenID),
+				method.userSubstoreExists(methodContext, randomAddress, defaultTokenID),
 			).resolves.toBe(true);
 
 			const { availableBalance } = await userStore.get(
