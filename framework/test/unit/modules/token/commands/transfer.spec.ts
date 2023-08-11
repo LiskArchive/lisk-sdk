@@ -73,6 +73,7 @@ describe('Transfer command', () => {
 			terminateChain: jest.fn(),
 			getChannel: jest.fn(),
 			getMessageFeeTokenID: jest.fn(),
+			getMessageFeeTokenIDFromCCM: jest.fn(),
 		};
 		internalMethod.addDependencies({ payFee: jest.fn() });
 		method.addDependencies(interopMethod, internalMethod);

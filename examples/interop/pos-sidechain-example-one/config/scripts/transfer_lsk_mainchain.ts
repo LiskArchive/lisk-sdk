@@ -14,9 +14,8 @@ type ModulesMetadata = [
 	const nodeAlias = 'one';
 	const tokenID = Buffer.from('0400000000000000', 'hex');
 	const mainchainID = Buffer.from('04000000', 'hex');
-	const recipientAddress = address.getAddressFromLisk32Address(
-		'lskzjzeam6szx4a65sxgavr98m9h4kctcx85nvy7h',
-	);
+	const recipientLSKAddress = 'lskzjzeam6szx4a65sxgavr98m9h4kctcx85nvy7h';
+	const recipientAddress = address.getAddressFromLisk32Address(recipientLSKAddress);
 
 	const sidechainClient = await apiClient.createIPCClient(`~/.lisk/pos-sidechain-example-one`);
 
@@ -70,9 +69,7 @@ type ModulesMetadata = [
 	});
 
 	console.log(
-		`Sent cross chain transfer transaction (amount: ${params.amount.toString()}, recipient: ${
-			params.recipientAddress
-		}) from sidechain (sidechainID: ${
+		`Sent cross chain transfer transaction (amount: ${params.amount.toString()}, recipient: ${recipientLSKAddress}) from sidechain (sidechainID: ${
 			params.receivingChainID
 		}) node ${nodeAlias} to mainchain. Result from transaction pool is: `,
 		result,

@@ -288,7 +288,7 @@ type ProveResponseJSON = JSONObject<ProveResponse>;
 
 		console.log(
 			'Proving>>>>> ',
-			await smt.verify(newBlockHeader.stateRoot, [proof.queries[0].key], proof),
+			await smt.verifyInclusionProof(newBlockHeader.stateRoot, [proof.queries[0].key], proof),
 		);
 
 		const inclusionProof = {
@@ -356,16 +356,20 @@ type ProveResponseJSON = JSONObject<ProveResponse>;
 			const smt = new db.SparseMerkleTree();
 			console.log(
 				'Proving>here>>>> ',
-				await smt.verify(siblingHashesAfterLastCertificate.stateRoot, [keyToBeRecovered], {
-					siblingHashes: siblingHashesAfterLastCertificate.inclusionProof.siblingHashes,
-					queries: [
-						{
-							bitmap: siblingHashesAfterLastCertificate.inclusionProof.bitmap,
-							key: siblingHashesAfterLastCertificate.inclusionProof.key,
-							value: siblingHashesAfterLastCertificate.inclusionProof.value,
-						},
-					],
-				}),
+				await smt.verifyInclusionProof(
+					siblingHashesAfterLastCertificate.stateRoot,
+					[keyToBeRecovered],
+					{
+						siblingHashes: siblingHashesAfterLastCertificate.inclusionProof.siblingHashes,
+						queries: [
+							{
+								bitmap: siblingHashesAfterLastCertificate.inclusionProof.bitmap,
+								key: siblingHashesAfterLastCertificate.inclusionProof.key,
+								value: siblingHashesAfterLastCertificate.inclusionProof.value,
+							},
+						],
+					},
+				),
 			);
 
 			console.log('State Root -> ', siblingHashesAfterLastCertificate.stateRoot.toString('hex'));

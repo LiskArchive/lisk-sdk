@@ -93,10 +93,13 @@ export abstract class BaseInteroperabilityMethod<
 	}
 
 	private async _getChannelCommon(context: ImmutableMethodContext, chainID: Buffer) {
-		const mainchainID = getMainchainID(chainID);
 		const ownChainAccount = await this.getOwnChainAccount(context);
-		const hasChainAccount = await this.stores.get(ChainAccountStore).has(context, chainID);
+		if (chainID.equals(ownChainAccount.chainID)) {
+			throw new Error('Channel with own chain account does not exist.');
+		}
 
+		const mainchainID = getMainchainID(chainID);
+		const hasChainAccount = await this.stores.get(ChainAccountStore).has(context, chainID);
 		let updatedChainID = chainID;
 		// Check for direct channel while processing on a sidechain
 		if (!ownChainAccount.chainID.equals(mainchainID) && !hasChainAccount) {
@@ -118,6 +121,13 @@ export abstract class BaseInteroperabilityMethod<
 	): Promise<Buffer> {
 		const channel = await this._getChannelCommon(context, chainID);
 		return channel.messageFeeTokenID;
+	}
+
+	public async getMessageFeeTokenIDFromCCM(
+		context: ImmutableMethodContext,
+		ccm: CCMsg,
+	): Promise<Buffer> {
+		return this.getMessageFeeTokenID(context, ccm.sendingChainID);
 	}
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#getminreturnfeeperbyte

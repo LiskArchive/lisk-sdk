@@ -50,7 +50,7 @@ describe('RewardModule', () => {
 		await rewardModule.init({ genesisConfig, moduleConfig });
 		tokenMethod = {
 			mint,
-			userAccountExists: jest.fn(),
+			userSubstoreExists: jest.fn(),
 		} as any;
 		rewardModule.addDependencies(tokenMethod, {
 			isSeedRevealValid: jest.fn().mockReturnValue(true),
@@ -133,8 +133,8 @@ describe('RewardModule', () => {
 				header: blockHeader,
 			}).getBlockExecuteContext();
 			jest.spyOn(rewardModule.events.get(RewardMintedEvent), 'log');
-			jest.spyOn(tokenMethod, 'userAccountExists');
-			when(tokenMethod.userAccountExists)
+			jest.spyOn(tokenMethod, 'userSubstoreExists');
+			when(tokenMethod.userSubstoreExists)
 				.calledWith(
 					expect.anything(),
 					blockAfterExecuteContext.header.generatorAddress,
@@ -167,7 +167,7 @@ describe('RewardModule', () => {
 		});
 
 		it('should not call mint and emit rewardMinted event for event type REWARD_REDUCTION_NO_ACCOUNT if block reward is greater than 0 but no user account exists for the generator address', async () => {
-			when(tokenMethod.userAccountExists)
+			when(tokenMethod.userSubstoreExists)
 				.calledWith(
 					expect.anything(),
 					blockAfterExecuteContext.header.generatorAddress,

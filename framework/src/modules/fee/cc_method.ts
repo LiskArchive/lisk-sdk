@@ -44,10 +44,7 @@ export class FeeInteroperableMethod extends BaseCCMethod {
 	}
 
 	public async beforeCrossChainCommandExecute(ctx: CrossChainMessageContext): Promise<void> {
-		const messageTokenID = await this._interopMethod.getMessageFeeTokenID(
-			ctx,
-			ctx.ccm.sendingChainID,
-		);
+		const messageTokenID = await this._interopMethod.getMessageFeeTokenIDFromCCM(ctx, ctx.ccm);
 		await this._tokenMethod.lock(
 			ctx.getMethodContext(),
 			ctx.transaction.senderAddress,
@@ -59,10 +56,7 @@ export class FeeInteroperableMethod extends BaseCCMethod {
 	}
 
 	public async afterCrossChainCommandExecute(ctx: CrossChainMessageContext): Promise<void> {
-		const messageTokenID = await this._interopMethod.getMessageFeeTokenID(
-			ctx,
-			ctx.ccm.sendingChainID,
-		);
+		const messageTokenID = await this._interopMethod.getMessageFeeTokenIDFromCCM(ctx, ctx.ccm);
 		await this._tokenMethod.unlock(
 			ctx.getMethodContext(),
 			ctx.transaction.senderAddress,
@@ -79,7 +73,7 @@ export class FeeInteroperableMethod extends BaseCCMethod {
 
 		if (
 			this._feePoolAddress &&
-			(await this._tokenMethod.userAccountExists(ctx, this._feePoolAddress, messageTokenID))
+			(await this._tokenMethod.userSubstoreExists(ctx, this._feePoolAddress, messageTokenID))
 		) {
 			await this._tokenMethod.transfer(
 				ctx.getMethodContext(),

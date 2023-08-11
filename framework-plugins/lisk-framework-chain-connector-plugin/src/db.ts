@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec, db as liskDB, AggregateCommit, chain } from 'lisk-sdk';
+import { codec, db as liskDB, AggregateCommit, chain, cryptography } from 'lisk-sdk';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
@@ -71,6 +71,7 @@ export const checkDBError = (error: Error | unknown) => {
 
 export class ChainConnectorStore {
 	private readonly _db: KVStore;
+	private _privateKey?: Buffer;
 
 	public constructor(db: KVStore) {
 		this._db = db;
@@ -78,6 +79,10 @@ export class ChainConnectorStore {
 
 	public close() {
 		this._db.close();
+	}
+
+	public get privateKey(): Buffer | undefined {
+		return this._privateKey;
 	}
 
 	public async getBlockHeaders(): Promise<BlockHeader[]> {
@@ -192,5 +197,19 @@ export class ChainConnectorStore {
 		listOfCCUs.sort((a, b) => Number(b.nonce) - Number(a.nonce));
 
 		await this._db.set(DB_KEY_LIST_OF_CCU, codec.encode(listOfCCUsSchema, { listOfCCUs }));
+	}
+
+	public async setPrivateKey(encryptedPrivateKey: string, password: string) {
+		const parsedEncryptedKey = cryptography.encrypt.parseEncryptedMessage(encryptedPrivateKey);
+		this._privateKey = Buffer.from(
+			await cryptography.encrypt.decryptMessageWithPassword(parsedEncryptedKey, password, 'utf-8'),
+			'hex',
+		);
+	}
+
+	public async deletePrivateKey(encryptedPrivateKey: string, password: string) {
+		const parsedEncryptedKey = cryptography.encrypt.parseEncryptedMessage(encryptedPrivateKey);
+		await cryptography.encrypt.decryptMessageWithPassword(parsedEncryptedKey, password, 'utf-8');
+		this._privateKey = undefined;
 	}
 }

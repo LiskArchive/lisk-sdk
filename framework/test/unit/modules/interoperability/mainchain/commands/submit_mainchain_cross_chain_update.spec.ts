@@ -16,6 +16,7 @@
 import { bls, utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -23,6 +24,7 @@ import {
 	SubmitMainchainCrossChainUpdateCommand,
 	MainchainInteroperabilityModule,
 	Transaction,
+	BLS_SIGNATURE_LENGTH,
 } from '../../../../../../src';
 import {
 	ActiveValidator,
@@ -52,7 +54,10 @@ import {
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
-import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
+import {
+	computeValidatorsHash,
+	getDecodedCCMAndID,
+} from '../../../../../../src/modules/interoperability/utils';
 import {
 	ChainAccountStore,
 	ChainStatus,
@@ -82,14 +87,14 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 	const chainID = Buffer.alloc(4, 0);
 	const senderPublicKey = utils.getRandomBytes(32);
 	const messageFeeTokenID = Buffer.alloc(8, 0);
-	const defaultCertificateValues: Certificate = {
-		blockID: utils.getRandomBytes(20),
+	const defaultCertificate: Certificate = {
+		blockID: cryptography.utils.getRandomBytes(HASH_LENGTH),
 		height: 21,
 		timestamp: Math.floor(Date.now() / 1000),
 		stateRoot: utils.getRandomBytes(HASH_LENGTH),
-		validatorsHash: utils.getRandomBytes(48),
-		aggregationBits: utils.getRandomBytes(38),
-		signature: utils.getRandomBytes(32),
+		validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH),
+		aggregationBits: cryptography.utils.getRandomBytes(1),
+		signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
 	};
 
 	const defaultNewCertificateThreshold = BigInt(20);
@@ -151,6 +156,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 		verifyCertificateSignature: jest.fn(),
 		verifyValidatorsUpdate: jest.fn(),
 		verifyPartnerChainOutboxRoot: jest.fn(),
+		verifyOutboxRootWitness: jest.fn(),
 		updateValidators: jest.fn(),
 		updateCertificate: jest.fn(),
 		updatePartnerChainOutboxRoot: jest.fn(),
@@ -211,7 +217,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			partnerValidators.certificateThreshold,
 		);
 		encodedDefaultCertificate = codec.encode(certificateSchema, {
-			...defaultCertificateValues,
+			...defaultCertificate,
 			validatorsHash,
 		});
 
@@ -283,6 +289,9 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 		jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(true);
 		jest.spyOn(interopUtils, 'computeValidatorsHash').mockReturnValue(validatorsHash);
 		jest.spyOn(bls, 'verifyWeightedAggSig').mockReturnValue(true);
+
+		jest.spyOn(interopUtils, 'verifyLivenessConditionForRegisteredChains');
+		jest.spyOn(validator, 'validate');
 	});
 
 	describe('verify schema', () => {
@@ -446,7 +455,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 					params: {
 						...params,
 						certificate: codec.encode(certificateSchema, {
-							...defaultCertificateValues,
+							...defaultCertificate,
 							timestamp: 0,
 						}),
 						inboxUpdate: {
@@ -475,8 +484,8 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 					params: {
 						...params,
 						certificate: codec.encode(certificateSchema, {
-							...defaultCertificateValues,
-							timestamp: 0,
+							...defaultCertificate,
+							timestamp: 1,
 						}),
 					},
 				}),
@@ -540,8 +549,38 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			).resolves.toEqual({ status: VerifyStatus.OK });
 
 			expect(
-				mainchainCCUUpdateCommand['internalMethod'].verifyPartnerChainOutboxRoot,
+				mainchainCCUUpdateCommand['internalMethod'].verifyOutboxRootWitness,
 			).toHaveBeenCalledTimes(1);
+		});
+
+		it(`should verify liveness condition when sendingChainAccount.status == ${ChainStatus.REGISTERED} and inboxUpdate is not empty`, async () => {
+			await partnerChainStore.set(stateStore, params.sendingChainID, {
+				...partnerChainAccount,
+				status: ChainStatus.REGISTERED,
+			});
+
+			await expect(
+				mainchainCCUUpdateCommand.verify({
+					...verifyContext,
+					params: {
+						...params,
+						inboxUpdate: {
+							crossChainMessages: [utils.getRandomBytes(100)],
+							messageWitnessHashes: [utils.getRandomBytes(32)],
+							outboxRootWitness: {
+								bitmap: utils.getRandomBytes(2),
+								siblingHashes: [utils.getRandomBytes(32)],
+							},
+						},
+					},
+				}),
+			).resolves.toEqual({ status: VerifyStatus.OK });
+
+			expect(interopUtils.verifyLivenessConditionForRegisteredChains).toHaveBeenCalled();
+			expect(validator.validate).toHaveBeenCalledWith(
+				certificateSchema,
+				expect.toBeObject() as Certificate,
+			);
 		});
 	});
 
@@ -604,6 +643,13 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
 			expect(mainchainCCUUpdateCommand['apply']).toHaveBeenCalledTimes(1);
+			// Only second CCM have receivingChainID === ownChainID
+			const { ccmID, decodedCCM } = getDecodedCCMAndID(params.inboxUpdate.crossChainMessages[1]);
+			expect(mainchainCCUUpdateCommand['apply']).toHaveBeenCalledWith({
+				...executeContext,
+				ccm: decodedCCM,
+				eventQueue: executeContext.eventQueue.getChildQueue(ccmID),
+			});
 			expect(mainchainCCUUpdateCommand['internalMethod'].appendToInboxTree).toHaveBeenCalledTimes(
 				3,
 			);
@@ -624,6 +670,23 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
 			expect(mainchainCCUUpdateCommand['_forward']).toHaveBeenCalledTimes(2);
+			// First and third CCMs have receivingChainID !== ownChainID
+			const { ccmID: firstCCMID, decodedCCM: firstDecodedCCM } = getDecodedCCMAndID(
+				params.inboxUpdate.crossChainMessages[0],
+			);
+			expect(mainchainCCUUpdateCommand['_forward']).toHaveBeenCalledWith({
+				...executeContext,
+				ccm: firstDecodedCCM,
+				eventQueue: executeContext.eventQueue.getChildQueue(firstCCMID),
+			});
+			const { ccmID: thirdCCMID, decodedCCM: thirdDecodedCCM } = getDecodedCCMAndID(
+				params.inboxUpdate.crossChainMessages[2],
+			);
+			expect(mainchainCCUUpdateCommand['_forward']).toHaveBeenCalledWith({
+				...executeContext,
+				ccm: thirdDecodedCCM,
+				eventQueue: executeContext.eventQueue.getChildQueue(thirdCCMID),
+			});
 			expect(mainchainCCUUpdateCommand['internalMethod'].appendToInboxTree).toHaveBeenCalledTimes(
 				3,
 			);
