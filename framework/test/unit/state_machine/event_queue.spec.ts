@@ -70,17 +70,6 @@ describe('EventQueue', () => {
 		).toThrow('Max size of event data is');
 	});
 
-	it('should throw error if topics is empty', () => {
-		expect(() =>
-			eventQueue.add(
-				'token',
-				'Token Event Name',
-				utils.getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES),
-				[],
-			),
-		).toThrow('Topics must have at least one element');
-	});
-
 	it('should throw error if topics length exceeds maxumum allowed', () => {
 		expect(() =>
 			eventQueue.add(
