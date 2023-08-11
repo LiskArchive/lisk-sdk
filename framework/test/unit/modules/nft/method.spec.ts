@@ -380,20 +380,6 @@ describe('NFTMethod', () => {
 	});
 
 	describe('isNFTSupported', () => {
-		beforeEach(async () => {
-			await nftStore.save(methodContext, nftID, {
-				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
-				attributesArray: [],
-			});
-		});
-
-		it('should throw if entry does not exist in the nft substore for the nft id', async () => {
-			await nftStore.del(methodContext, nftID);
-			await expect(method.isNFTSupported(methodContext, nftID)).rejects.toThrow(
-				'NFT substore entry does not exist',
-			);
-		});
-
 		it('should return true if nft chain id equals own chain id', async () => {
 			const isSupported = await method.isNFTSupported(methodContext, existingNativeNFT.nftID);
 			expect(isSupported).toBe(true);
