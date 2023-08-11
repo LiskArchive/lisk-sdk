@@ -321,6 +321,7 @@ describe('TokenInteroperableMethod', () => {
 						senderAddress: defaultAddress,
 						params: defaultEncodedCCUParams,
 					},
+					ccmFailed: false,
 				}),
 			).rejects.toThrow('Message fee token should be LSK.');
 		});
@@ -362,6 +363,7 @@ describe('TokenInteroperableMethod', () => {
 						senderAddress: defaultAddress,
 						params: defaultEncodedCCUParams,
 					},
+					ccmFailed: false,
 				}),
 			).resolves.toBeUndefined();
 			checkEventResult(
@@ -400,6 +402,7 @@ describe('TokenInteroperableMethod', () => {
 						senderAddress: defaultAddress,
 						params: defaultEncodedCCUParams,
 					},
+					ccmFailed: false,
 				}),
 			).rejects.toThrow('Insufficient balance in the sending chain for the message fee.');
 			checkEventResult(
@@ -409,7 +412,7 @@ describe('TokenInteroperableMethod', () => {
 			);
 		});
 
-		it('should deduct sending chain escrow account for fee and credit to receving chain escrow account if ccm failed', async () => {
+		it('should deduct sending chain escrow account for fee and credit to receving chain escrow account if ccm did not fail', async () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainMessageForwarding({
 					ccm: {
@@ -446,6 +449,7 @@ describe('TokenInteroperableMethod', () => {
 						senderAddress: defaultAddress,
 						params: defaultEncodedCCUParams,
 					},
+					ccmFailed: false,
 				}),
 			).resolves.toBeUndefined();
 
@@ -466,7 +470,7 @@ describe('TokenInteroperableMethod', () => {
 			);
 		});
 
-		it('should deduct sending chain escrow account for fee and credit to relayer account if ccm did not fail', async () => {
+		it('should deduct sending chain escrow account for fee and credit to relayer account if ccm failed', async () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainMessageForwarding({
 					ccm: {
@@ -503,6 +507,7 @@ describe('TokenInteroperableMethod', () => {
 						senderAddress: defaultAddress,
 						params: defaultEncodedCCUParams,
 					},
+					ccmFailed: true,
 				}),
 			).resolves.toBeUndefined();
 
