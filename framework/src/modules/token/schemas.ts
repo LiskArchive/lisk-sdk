@@ -24,12 +24,6 @@ export const configSchema = {
 	$id: '/token/config',
 	type: 'object',
 	properties: {
-		supportedTokenIDs: {
-			items: {
-				type: 'string',
-				format: 'hex',
-			},
-		},
 		userAccountInitializationFee: {
 			type: 'string',
 			format: 'uint64',
