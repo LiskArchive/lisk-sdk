@@ -245,7 +245,7 @@ export const calculatePathNodes = (
 			return tree;
 		}
 		const currentHash = tree.get(idx) ?? parentCache.get(idx);
-		const parentIdx = idx >> 1;
+		const parentIdx = idx >>> 1;
 		if (!currentHash) {
 			throw new Error(`Invalid state. Hash for index ${idx} should exist.`);
 		}
