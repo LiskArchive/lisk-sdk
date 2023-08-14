@@ -470,7 +470,7 @@ describe('TokenInteroperableMethod', () => {
 			);
 		});
 
-		it('should credit to receving chain escrow account if ccm did not fail', async () => {
+		it('should credit to receiving chain escrow account if ccm did not fail', async () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainMessageForwarding({
 					ccm: {
