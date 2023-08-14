@@ -469,6 +469,15 @@ describe('Sample Method', () => {
 			expect(channelDataStoreMock.get).toHaveBeenCalledWith(expect.anything(), newChainID);
 		});
 
+		it('should throw error if chainID equals ownChainAccount.chainID', async () => {
+			jest.spyOn(ownChainAccountStoreMock, 'get').mockResolvedValue({
+				chainID: newChainID,
+			});
+			await expect(
+				sampleInteroperabilityMethod['_getChannelCommon'](methodContext, newChainID),
+			).rejects.toThrow('Channel with own chain account does not exist.');
+		});
+
 		it('should throw error if channel is not found', async () => {
 			jest.spyOn(channelDataStoreMock, 'has').mockResolvedValue(false);
 

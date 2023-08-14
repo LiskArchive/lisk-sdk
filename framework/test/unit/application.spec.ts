@@ -18,7 +18,17 @@ import * as childProcess from 'child_process';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import { join } from 'path';
-import { BaseEndpoint, BaseMethod, BaseModule, BasePlugin, ModuleMetadata } from '../../src';
+import {
+	BaseCCMethod,
+	BaseEndpoint,
+	BaseInteroperableModule,
+	BaseMethod,
+	BaseModule,
+	BasePlugin,
+	MODULE_NAME_INTEROPERABILITY,
+	ModuleMetadata,
+	SidechainInteroperabilityModule,
+} from '../../src';
 import { Application } from '../../src/application';
 import { Bus } from '../../src/controller/bus';
 import { WSServer } from '../../src/controller/ws/ws_server';
@@ -72,6 +82,25 @@ class TestModule extends BaseModule {
 	public get name() {
 		return 'test-module';
 	}
+	public metadata(): ModuleMetadata {
+		throw new Error('Method not implemented.');
+	}
+}
+
+class TestInteroperableModule extends BaseInteroperableModule {
+	public crossChainMethod = { stores: {}, events: {} } as unknown as BaseCCMethod;
+	public commands = [];
+	public endpoint: BaseEndpoint = {} as BaseEndpoint;
+	public method: BaseMethod = {} as BaseMethod;
+
+	public verifyAssets = jest.fn();
+	public beforeTransactionsExecute = jest.fn();
+	public afterCommandExecute = jest.fn();
+
+	public get name() {
+		return 'test-interoperable-module';
+	}
+
 	public metadata(): ModuleMetadata {
 		throw new Error('Method not implemented.');
 	}
@@ -237,6 +266,44 @@ describe('Application', () => {
 			// Act && Assert
 			expect(() => app.registerModule(new TestModule())).toThrow(
 				'A plugin with name "test-module" is already registered.',
+			);
+		});
+	});
+
+	describe('#registerInteroperableModule', () => {
+		it('should register CCCommands and CCMethods of the registered interoperable module', () => {
+			const { app } = Application.defaultApplication(config);
+
+			const testInteroperableModule = new TestInteroperableModule();
+
+			app.registerInteroperableModule(testInteroperableModule);
+
+			const interoperabilityModule = app['_registeredModules'].find(
+				module => module.name === 'interoperability',
+			) as SidechainInteroperabilityModule;
+
+			expect(
+				interoperabilityModule['interoperableCCCommands'].has(testInteroperableModule.name),
+			).toBeTrue();
+
+			expect(
+				interoperabilityModule['interoperableCCMethods'].has(testInteroperableModule.name),
+			).toBeTrue();
+		});
+
+		it('should throw if Interoperability module is not registered', () => {
+			const { app } = Application.defaultApplication(config);
+
+			const index = app['_registeredModules'].findIndex(
+				module => module.name === MODULE_NAME_INTEROPERABILITY,
+			);
+
+			app['_registeredModules'][index] = new TestModule();
+
+			const testInteroperableModule = new TestInteroperableModule();
+
+			expect(() => app.registerInteroperableModule(testInteroperableModule)).toThrow(
+				`${MODULE_NAME_INTEROPERABILITY} module is not registered.`,
 			);
 		});
 	});
