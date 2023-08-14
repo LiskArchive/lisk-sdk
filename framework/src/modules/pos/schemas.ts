@@ -217,6 +217,28 @@ export const configSchema = {
 		useInvalidBLSKey: {
 			type: 'boolean',
 		},
+		baseStakeAmount: {
+			type: 'string',
+			format: 'uint64',
+			minimum: 1,
+		},
+		lockingPeriodStaking: {
+			type: 'integer',
+			format: 'uint32',
+		},
+		lockingPeriodSelfStaking: {
+			type: 'integer',
+			format: 'uint32',
+		},
+		reportMisbehaviorReward: {
+			type: 'string',
+			format: 'uint64',
+		},
+		reportMisbehaviorLimitBanned: {
+			type: 'integer',
+			format: 'uint32',
+			minimum: 1,
+		},
 	},
 	required: [
 		'factorSelfStakes',
@@ -233,6 +255,11 @@ export const configSchema = {
 		'validatorRegistrationFee',
 		'maxBFTWeightCap',
 		'useInvalidBLSKey',
+		'baseStakeAmount',
+		'lockingPeriodStaking',
+		'lockingPeriodSelfStaking',
+		'reportMisbehaviorReward',
+		'reportMisbehaviorLimitBanned',
 	],
 };
 

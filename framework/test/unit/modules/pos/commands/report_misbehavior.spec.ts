@@ -21,9 +21,11 @@ import { ReportMisbehaviorCommand, VerifyStatus, PoSModule } from '../../../../.
 import * as testing from '../../../../../src/testing';
 import {
 	defaultConfig,
+	FACTOR_SELF_STAKES,
 	LOCKING_PERIOD_SELF_STAKING,
 	MODULE_NAME_POS,
-	REPORTING_PUNISHMENT_REWARD,
+	REPORT_MISBEHAVIOR_LIMIT_BANNED,
+	REPORT_MISBEHAVIOR_REWARD,
 	TOKEN_ID_LENGTH,
 } from '../../../../../src/modules/pos/constants';
 import {
@@ -52,7 +54,7 @@ describe('ReportMisbehaviorCommand', () => {
 	let mockTokenMethod: TokenMethod;
 	let mockValidatorsMethod: ValidatorsMethod;
 	const blockHeight = 8760000;
-	const reportPunishmentReward = REPORTING_PUNISHMENT_REWARD;
+	const reportPunishmentReward = REPORT_MISBEHAVIOR_REWARD;
 	let context: any;
 	let misBehavingValidator: ValidatorAccount;
 	let normalValidator: ValidatorAccount;
@@ -132,7 +134,10 @@ describe('ReportMisbehaviorCommand', () => {
 
 		pomCommand.init({
 			posTokenID: DEFAULT_LOCAL_ID,
-			factorSelfStakes: 10,
+			factorSelfStakes: FACTOR_SELF_STAKES,
+			lockingPeriodSelfStaking: LOCKING_PERIOD_SELF_STAKING,
+			reportMisbehaviorReward: REPORT_MISBEHAVIOR_REWARD,
+			reportMisbehaviorLimitBanned: REPORT_MISBEHAVIOR_LIMIT_BANNED,
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		transaction = new Transaction({
@@ -615,7 +620,7 @@ describe('ReportMisbehaviorCommand', () => {
 				sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 			};
 			const oldWeight = getValidatorWeight(
-				BigInt(10),
+				10,
 				misBehavingValidator.selfStake,
 				misBehavingValidator.totalStake,
 			);
@@ -679,7 +684,7 @@ describe('ReportMisbehaviorCommand', () => {
 
 		it('should not reward the sender if validator has zero self stake', async () => {
 			const oldWeight = getValidatorWeight(
-				BigInt(10),
+				10,
 				misBehavingValidator.selfStake,
 				misBehavingValidator.totalStake,
 			);
@@ -735,7 +740,7 @@ describe('ReportMisbehaviorCommand', () => {
 				sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 			};
 			const oldWeight = getValidatorWeight(
-				BigInt(10),
+				10,
 				misBehavingValidator.selfStake,
 				misBehavingValidator.totalStake,
 			);

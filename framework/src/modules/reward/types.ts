@@ -20,6 +20,7 @@ export interface ModuleConfig {
 	brackets: ReadonlyArray<bigint>;
 	offset: number;
 	distance: number;
+	rewardReductionFactorBFT: bigint;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;

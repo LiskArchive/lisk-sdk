@@ -39,6 +39,12 @@ export interface ModuleConfig {
 	commissionIncreasePeriod: number;
 	maxCommissionIncreaseRate: number;
 	useInvalidBLSKey: boolean;
+	baseStakeAmount: bigint;
+	lockingPeriodStaking: number;
+	lockingPeriodSelfStaking: number;
+	reportMisbehaviorReward: bigint;
+	reportMisbehaviorLimitBanned: number;
+	weightScaleFactor: bigint;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;

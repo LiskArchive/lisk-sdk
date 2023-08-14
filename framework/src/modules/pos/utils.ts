@@ -16,7 +16,6 @@ import { utils, ed } from '@liskhq/lisk-cryptography';
 import { math } from '@liskhq/lisk-utils';
 import { ModuleConfig, ModuleConfigJSON, UnlockingObject, StakeSharingCoefficient } from './types';
 import {
-	PUNISHMENT_PERIOD,
 	PUNISHMENT_WINDOW_STAKING,
 	PUNISHMENT_WINDOW_SELF_STAKING,
 	LOCKING_PERIOD_SELF_STAKING,
@@ -164,7 +163,7 @@ export const isCurrentlyPunished = (height: number, pomHeights: ReadonlyArray<nu
 		return false;
 	}
 	const lastPomHeight = Math.max(...pomHeights);
-	if (height - lastPomHeight < PUNISHMENT_PERIOD) {
+	if (height - lastPomHeight < PUNISHMENT_WINDOW_SELF_STAKING) {
 		return true;
 	}
 
@@ -175,7 +174,9 @@ export const getWaitTime = (senderAddress: Buffer, validatorAddress: Buffer): nu
 	validatorAddress.equals(senderAddress) ? LOCKING_PERIOD_SELF_STAKING : LOCKING_PERIOD_STAKING;
 
 export const getPunishTime = (senderAddress: Buffer, validatorAddress: Buffer): number =>
-	validatorAddress.equals(senderAddress) ? PUNISHMENT_PERIOD : PUNISHMENT_WINDOW_STAKING;
+	validatorAddress.equals(senderAddress)
+		? PUNISHMENT_WINDOW_SELF_STAKING
+		: PUNISHMENT_WINDOW_STAKING;
 
 export const hasWaited = (
 	unlockingObject: UnlockingObject,
@@ -261,15 +262,18 @@ export const getModuleConfig = (config: ModuleConfigJSON): ModuleConfig => {
 		minWeightStandby: BigInt(config.minWeightStandby),
 		posTokenID: Buffer.from(config.posTokenID, 'hex'),
 		validatorRegistrationFee: BigInt(config.validatorRegistrationFee),
+		baseStakeAmount: BigInt(config.baseStakeAmount),
+		reportMisbehaviorReward: BigInt(config.reportMisbehaviorReward),
+		weightScaleFactor: BigInt(config.weightScaleFactor),
 	};
 };
 
 export const getValidatorWeight = (
-	factorSelfStakes: bigint,
+	factorSelfStakes: number,
 	selfStake: bigint,
 	totalStakeReceived: bigint,
 ) => {
-	const cap = selfStake * factorSelfStakes;
+	const cap = selfStake * BigInt(factorSelfStakes);
 	if (cap < totalStakeReceived) {
 		return cap;
 	}

@@ -44,7 +44,7 @@ import {
 } from './types';
 import { getPunishTime, getWaitTime, isCertificateGenerated, calculateStakeRewards } from './utils';
 import { GenesisDataStore } from './stores/genesis';
-import { EMPTY_KEY, PUNISHMENT_PERIOD } from './constants';
+import { EMPTY_KEY, PUNISHMENT_WINDOW_SELF_STAKING } from './constants';
 import { EligibleValidator, EligibleValidatorsStore } from './stores/eligible_validators';
 import {
 	getClaimableRewardsRequestSchema,
@@ -169,6 +169,12 @@ export class PoSEndpoint extends BaseEndpoint {
 			commissionIncreasePeriod: this._moduleConfig.commissionIncreasePeriod,
 			maxCommissionIncreaseRate: this._moduleConfig.maxCommissionIncreaseRate,
 			useInvalidBLSKey: this._moduleConfig.useInvalidBLSKey,
+			baseStakeAmount: this._moduleConfig.baseStakeAmount.toString(),
+			lockingPeriodStaking: this._moduleConfig.lockingPeriodStaking,
+			lockingPeriodSelfStaking: this._moduleConfig.lockingPeriodSelfStaking,
+			reportMisbehaviorReward: this._moduleConfig.reportMisbehaviorReward.toString(),
+			reportMisbehaviorLimitBanned: this._moduleConfig.reportMisbehaviorLimitBanned,
+			weightScaleFactor: this._moduleConfig.weightScaleFactor.toString(),
 		};
 	}
 
@@ -394,7 +400,10 @@ export class PoSEndpoint extends BaseEndpoint {
 		);
 	}
 
-	private _calculatePunishmentPeriods(pomHeights: number[], period = PUNISHMENT_PERIOD) {
+	private _calculatePunishmentPeriods(
+		pomHeights: number[],
+		period = PUNISHMENT_WINDOW_SELF_STAKING,
+	) {
 		const result: punishmentPeriod[] = [];
 
 		for (const pomHeight of pomHeights) {

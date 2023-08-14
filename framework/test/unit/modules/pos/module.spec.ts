@@ -48,9 +48,14 @@ import { GenesisDataStore } from '../../../../src/modules/pos/stores/genesis';
 import { SnapshotStore } from '../../../../src/modules/pos/stores/snapshot';
 import { createStoreGetter } from '../../../../src/testing/utils';
 import {
+	BASE_STAKE_AMOUNT,
 	CHAIN_ID_LENGTH,
 	COMMISSION_INCREASE_PERIOD,
+	LOCKING_PERIOD_SELF_STAKING,
+	LOCKING_PERIOD_STAKING,
 	MAX_COMMISSION_INCREASE_RATE,
+	REPORT_MISBEHAVIOR_LIMIT_BANNED,
+	REPORT_MISBEHAVIOR_REWARD,
 	TOKEN_ID_LENGTH,
 	WEIGHT_SCALE_FACTOR,
 } from '../../../../src/modules/pos/constants';
@@ -81,6 +86,12 @@ describe('PoS module', () => {
 		commissionIncreasePeriod: COMMISSION_INCREASE_PERIOD,
 		maxCommissionIncreaseRate: MAX_COMMISSION_INCREASE_RATE,
 		useInvalidBLSKey: false,
+		baseStakeAmount: BASE_STAKE_AMOUNT.toString(),
+		lockingPeriodStaking: LOCKING_PERIOD_STAKING,
+		lockingPeriodSelfStaking: LOCKING_PERIOD_SELF_STAKING,
+		reportMisbehaviorReward: REPORT_MISBEHAVIOR_REWARD.toString(),
+		reportMisbehaviorLimitBanned: REPORT_MISBEHAVIOR_LIMIT_BANNED,
+		weightScaleFactor: WEIGHT_SCALE_FACTOR.toString(),
 	};
 
 	const sortValidatorsByWeightDesc = (validators: ValidatorWeight[]) =>
@@ -379,7 +390,7 @@ describe('PoS module', () => {
 						eligibleValidatorStore.getKey(
 							Buffer.from(data.address, 'hex'),
 							getValidatorWeight(
-								BigInt(defaultConfig.factorSelfStakes),
+								defaultConfig.factorSelfStakes,
 								BigInt(data.validatorWeight),
 								BigInt(data.validatorWeight),
 							),

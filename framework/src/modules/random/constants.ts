@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const DEFAULT_MAX_LENGTH_REVEALS = 206;
+export const MAX_LENGTH_REVEALS = 206; // DEFAULT_MAX_LENGTH_REVEALS in LIP-0063
 export const STORE_PREFIX_REGISTERED_HASH_ONION = Buffer.from('00', 'hex');
 export const STORE_PREFIX_USED_HASH_ONION = Buffer.from('01', 'hex');
 export const EMPTY_KEY = Buffer.alloc(0);
@@ -21,5 +21,5 @@ export const ADDRESS_LENGTH = 20;
 export const MAX_HASH_COMPUTATION = 10000;
 
 export const defaultConfig = {
-	maxLengthReveals: DEFAULT_MAX_LENGTH_REVEALS,
+	maxLengthReveals: MAX_LENGTH_REVEALS,
 };

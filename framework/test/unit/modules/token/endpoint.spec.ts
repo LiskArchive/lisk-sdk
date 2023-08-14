@@ -14,8 +14,8 @@
 import { address, utils } from '@liskhq/lisk-cryptography';
 import { TokenMethod, TokenModule, MethodContext } from '../../../../src';
 import {
-	USER_SUBSTORE_INITIALIZATION_FEE,
-	ESCROW_SUBSTORE_INITIALIZATION_FEE,
+	USER_ACCOUNT_INITIALIZATION_FEE,
+	ESCROW_ACCOUNT_INITIALIZATION_FEE,
 } from '../../../../src/modules/token/constants';
 import { TokenEndpoint } from '../../../../src/modules/token/endpoint';
 import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
@@ -70,8 +70,8 @@ describe('token endpoint', () => {
 		const internalMethod = new InternalMethod(tokenModule.stores, tokenModule.events);
 		endpoint = new TokenEndpoint(tokenModule.stores, tokenModule.offchainStores);
 		const config: ModuleConfig = {
-			userAccountInitializationFee: USER_SUBSTORE_INITIALIZATION_FEE,
-			escrowAccountInitializationFee: ESCROW_SUBSTORE_INITIALIZATION_FEE,
+			userAccountInitializationFee: USER_ACCOUNT_INITIALIZATION_FEE,
+			escrowAccountInitializationFee: ESCROW_ACCOUNT_INITIALIZATION_FEE,
 		};
 		method.init(Object.assign(config, { ownChainID: Buffer.from([0, 0, 0, 1]) }));
 		method.addDependencies(
@@ -351,8 +351,8 @@ describe('token endpoint', () => {
 	describe('getInitializationFees', () => {
 		it('should return configured initialization fees for user account and escrow account', () => {
 			expect(endpoint.getInitializationFees()).toEqual({
-				userAccount: USER_SUBSTORE_INITIALIZATION_FEE.toString(),
-				escrowAccount: ESCROW_SUBSTORE_INITIALIZATION_FEE.toString(),
+				userAccount: USER_ACCOUNT_INITIALIZATION_FEE.toString(),
+				escrowAccount: ESCROW_ACCOUNT_INITIALIZATION_FEE.toString(),
 			});
 		});
 	});

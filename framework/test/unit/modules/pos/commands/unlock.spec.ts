@@ -21,8 +21,6 @@ import {
 	EMPTY_KEY,
 	PUNISHMENT_WINDOW_SELF_STAKING,
 	PUNISHMENT_WINDOW_STAKING,
-	LOCKING_PERIOD_SELF_STAKING,
-	LOCKING_PERIOD_STAKING,
 	TOKEN_ID_LENGTH,
 } from '../../../../../src/modules/pos/constants';
 import {
@@ -136,7 +134,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when non self-staked non-punished account waits ${LOCKING_PERIOD_STAKING} blocks since unstakeHeight`, () => {
+	describe(`when non self-staked non-punished account waits ${config.lockingPeriodStaking} blocks since unstakeHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -155,7 +153,7 @@ describe('UnlockCommand', () => {
 			unlockableObject = {
 				validatorAddress: validator1.address,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKING,
+				unstakeHeight: blockHeight - config.lockingPeriodStaking,
 			};
 			nonUnlockableObject = {
 				validatorAddress: validator2.address,
@@ -196,7 +194,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when self-staked non-punished account waits ${LOCKING_PERIOD_SELF_STAKING} blocks since unstakeHeight`, () => {
+	describe(`when self-staked non-punished account waits ${config.lockingPeriodSelfStaking} blocks since unstakeHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -210,7 +208,7 @@ describe('UnlockCommand', () => {
 			unlockableObject = {
 				validatorAddress: transaction.senderAddress,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_SELF_STAKING,
+				unstakeHeight: blockHeight - config.lockingPeriodSelfStaking,
 			};
 			nonUnlockableObject = {
 				validatorAddress: transaction.senderAddress,
@@ -256,7 +254,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when non self-staked punished account waits ${PUNISHMENT_WINDOW_STAKING} blocks and unstakeHeight + ${LOCKING_PERIOD_STAKING} blocks since last pomHeight`, () => {
+	describe(`when non self-staked punished account waits ${PUNISHMENT_WINDOW_STAKING} blocks and unstakeHeight + ${config.lockingPeriodStaking} blocks since last pomHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -288,17 +286,17 @@ describe('UnlockCommand', () => {
 			unlockableObject = {
 				validatorAddress: validator1.address,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKING,
+				unstakeHeight: blockHeight - config.lockingPeriodStaking,
 			};
 			unlockableObject2 = {
 				validatorAddress: validator2.address,
 				amount: validator2.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKING - 1000,
+				unstakeHeight: blockHeight - config.lockingPeriodStaking - 1000,
 			};
 			unlockableObject3 = {
 				validatorAddress: validator3.address,
 				amount: validator3.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKING - 1000,
+				unstakeHeight: blockHeight - config.lockingPeriodStaking - 1000,
 			};
 			nonUnlockableObject = {
 				validatorAddress: validator4.address,
@@ -361,7 +359,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when self-staked punished account waits ${PUNISHMENT_WINDOW_SELF_STAKING} blocks and waits unstakeHeight + ${LOCKING_PERIOD_SELF_STAKING} blocks since pomHeight`, () => {
+	describe(`when self-staked punished account waits ${PUNISHMENT_WINDOW_SELF_STAKING} blocks and waits unstakeHeight + ${config.lockingPeriodSelfStaking} blocks since pomHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -376,7 +374,7 @@ describe('UnlockCommand', () => {
 			unlockableObject = {
 				validatorAddress: transaction.senderAddress,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_SELF_STAKING,
+				unstakeHeight: blockHeight - config.lockingPeriodSelfStaking,
 			};
 			nonUnlockableObject = {
 				validatorAddress: transaction.senderAddress,
@@ -422,7 +420,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when self-staked punished account does not wait ${PUNISHMENT_WINDOW_SELF_STAKING} blocks and waits unstakeHeight + ${LOCKING_PERIOD_SELF_STAKING} blocks since pomHeight`, () => {
+	describe(`when self-staked punished account does not wait ${PUNISHMENT_WINDOW_SELF_STAKING} blocks and waits unstakeHeight + ${config.lockingPeriodSelfStaking} blocks since pomHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -437,7 +435,7 @@ describe('UnlockCommand', () => {
 			nonUnlockableObject = {
 				validatorAddress: transaction.senderAddress,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_SELF_STAKING,
+				unstakeHeight: blockHeight - config.lockingPeriodSelfStaking,
 			};
 			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				stakes: [
@@ -541,7 +539,7 @@ describe('UnlockCommand', () => {
 			unlockableObject = {
 				validatorAddress: validator1.address,
 				amount: validator1.amount,
-				unstakeHeight: blockHeight - LOCKING_PERIOD_STAKING,
+				unstakeHeight: blockHeight - config.lockingPeriodStaking,
 			};
 			nonUnlockableObject = {
 				validatorAddress: validator2.address,

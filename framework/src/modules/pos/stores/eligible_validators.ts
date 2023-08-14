@@ -88,7 +88,7 @@ export class EligibleValidatorsStore extends BaseStore<EligibleValidator> {
 		}
 
 		const newWeight = getValidatorWeight(
-			BigInt(this._config.factorSelfStakes),
+			this._config.factorSelfStakes,
 			validator.selfStake,
 			validator.totalStake,
 		);

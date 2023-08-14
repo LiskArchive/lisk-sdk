@@ -39,6 +39,7 @@ describe('RewardModule', () => {
 			'100000000', // Milestone 4
 		],
 		tokenID: '0000000000000000',
+		rewardReductionFactorBFT: '4',
 	};
 
 	let rewardModule: RewardModule;
@@ -68,6 +69,7 @@ describe('RewardModule', () => {
 				...moduleConfig,
 				brackets: moduleConfig.brackets.map(b => BigInt(b)),
 				tokenID: Buffer.from(moduleConfig.tokenID, 'hex'),
+				rewardReductionFactorBFT: BigInt(moduleConfig.rewardReductionFactorBFT),
 			});
 		});
 
