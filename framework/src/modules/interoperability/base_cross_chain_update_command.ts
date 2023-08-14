@@ -107,7 +107,6 @@ export abstract class BaseCrossChainUpdateCommand<
 			await this.internalMethod.verifyCertificate(context, params, context.header.timestamp);
 		}
 
-		// or validatorsUpdate.bftWeightsUpdateBitmap != EMPTY_BYTES // ???
 		const sendingChainValidators = await this.stores
 			.get(ChainValidatorsStore)
 			.get(context, params.sendingChainID);
