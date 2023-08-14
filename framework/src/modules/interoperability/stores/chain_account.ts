@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { utils } from '@liskhq/lisk-cryptography';
+import { NotFoundError } from '@liskhq/lisk-db';
 import { BaseStore, ImmutableStoreGetter } from '../../base_store';
 import {
 	HASH_LENGTH,
@@ -164,5 +165,19 @@ export class ChainAccountStore extends BaseStore<ChainAccount> {
 		});
 
 		return chainAccounts.map(chainAccount => chainAccount.value);
+	}
+
+	public async getOrUndefined(
+		context: ImmutableStoreGetter,
+		key: Buffer,
+	): Promise<ChainAccount | undefined> {
+		try {
+			return await super.get(context, key);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			return undefined;
+		}
 	}
 }
