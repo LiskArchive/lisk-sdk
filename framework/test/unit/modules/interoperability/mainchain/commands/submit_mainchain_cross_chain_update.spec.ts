@@ -412,7 +412,17 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				});
 		});
 
-		it(`should verify liveness condition when sendingChainAccount.status == ${ChainStatus.REGISTERED} and inboxUpdate is empty`, async () => {
+		it('should verify verifyCommon is called', async () => {
+			jest.spyOn(mainchainCCUUpdateCommand, 'verifyCommon' as any);
+
+			await expect(mainchainCCUUpdateCommand.verify(verifyContext)).resolves.toEqual({
+				status: VerifyStatus.OK,
+			});
+
+			expect(mainchainCCUUpdateCommand['verifyCommon']).toHaveBeenCalled();
+		});
+
+		it(`should not verify liveness condition when sendingChainAccount.status == ${ChainStatus.REGISTERED} and inboxUpdate is empty`, async () => {
 			await expect(
 				mainchainCCUUpdateCommand.verify({
 					...verifyContext,

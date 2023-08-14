@@ -303,6 +303,16 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			jest.spyOn(sidechainCCUUpdateCommand['internalMethod'], 'isLive').mockResolvedValue(true);
 		});
 
+		it('should verify verifyCommon is called', async () => {
+			jest.spyOn(sidechainCCUUpdateCommand, 'verifyCommon' as any);
+
+			await expect(sidechainCCUUpdateCommand.verify(verifyContext)).resolves.toEqual({
+				status: VerifyStatus.OK,
+			});
+
+			expect(sidechainCCUUpdateCommand['verifyCommon']).toHaveBeenCalled();
+		});
+
 		it('should reject when ccu params validation fails', async () => {
 			await expect(
 				sidechainCCUUpdateCommand.verify({

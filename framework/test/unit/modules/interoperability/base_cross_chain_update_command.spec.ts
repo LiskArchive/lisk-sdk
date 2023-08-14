@@ -320,7 +320,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				.set(stateStore, params.sendingChainID, chainAccount);
 		});
 
-		it('should call validate.validate with crossChainUpdateTransactionParams schema', async () => {
+		it('should call validator.validate with crossChainUpdateTransactionParams schema', async () => {
 			jest.spyOn(validator, 'validate');
 
 			await expect(command['verifyCommon'](verifyContext, true)).resolves.toBeUndefined();
@@ -429,26 +429,42 @@ describe('BaseCrossChainUpdateCommand', () => {
 			expect(command['internalMethod'].verifyCertificate).toHaveBeenCalledTimes(1);
 		});
 
-		it('should verify validators update when active validator update exist', async () => {
-			await expect(
-				command['verifyCommon'](
-					{
-						...verifyContext,
-						params: {
-							...params,
-							activeValidatorsUpdate: {
-								blsKeysUpdate: [utils.getRandomBytes(48)],
-								bftWeightsUpdate: [],
-								bftWeightsUpdateBitmap: Buffer.from([1]),
+		// https://jestjs.io/docs/api#testeachtablename-fn-timeout
+		it.each([
+			{
+				blsKeysUpdate: [utils.getRandomBytes(48)],
+				bftWeightsUpdate: [],
+				bftWeightsUpdateBitmap: EMPTY_BUFFER,
+			},
+			{
+				blsKeysUpdate: [],
+				bftWeightsUpdate: [BigInt(1)],
+				bftWeightsUpdateBitmap: EMPTY_BUFFER,
+			},
+			{
+				blsKeysUpdate: [],
+				bftWeightsUpdate: [],
+				bftWeightsUpdateBitmap: Buffer.from([1]),
+			},
+		])(
+			"should verify validators update when any one of activeValidatorsUpdate's properties is non-empty",
+			async validatorsUpdate => {
+				await expect(
+					command['verifyCommon'](
+						{
+							...verifyContext,
+							params: {
+								...params,
+								activeValidatorsUpdate: validatorsUpdate,
 							},
 						},
-					},
-					true,
-				),
-			).resolves.toBeUndefined();
+						true,
+					),
+				).resolves.toBeUndefined();
 
-			expect(command['internalMethod'].verifyValidatorsUpdate).toHaveBeenCalledTimes(1);
-		});
+				expect(command['internalMethod'].verifyValidatorsUpdate).toHaveBeenCalledTimes(1);
+			},
+		);
 
 		it('should verify validators update when certificate threshold changes', async () => {
 			await expect(
@@ -457,6 +473,11 @@ describe('BaseCrossChainUpdateCommand', () => {
 						...verifyContext,
 						params: {
 							...params,
+							activeValidatorsUpdate: {
+								blsKeysUpdate: [],
+								bftWeightsUpdate: [],
+								bftWeightsUpdateBitmap: EMPTY_BUFFER,
+							},
 							certificateThreshold: BigInt(1),
 						},
 					},
