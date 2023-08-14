@@ -15,10 +15,10 @@
  */
 import * as inquirer from 'inquirer';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { getConfig } from '../../helpers/config';
-import EncryptCommand from '../../../src/commands/message/encrypt';
-import * as readerUtils from '../../../src/utils/reader';
-import { Awaited } from '../../types';
+import { getConfig } from '../../../helpers/config';
+import { EncryptCommand } from '../../../../src/commands/message/encrypt';
+import * as readerUtils from '../../../../src/utils/reader';
+import { Awaited } from '../../../types';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),

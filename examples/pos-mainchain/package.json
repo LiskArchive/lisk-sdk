@@ -94,6 +94,9 @@
 			},
 			"transaction": {
 				"description": "Commands relating to pos-mainchain transactions."
+			},
+			"message": {
+				"description": "Commands relating to user messages."
 			}
 		}
 	},
