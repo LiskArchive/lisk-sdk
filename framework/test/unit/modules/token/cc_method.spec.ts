@@ -412,7 +412,7 @@ describe('TokenInteroperableMethod', () => {
 			);
 		});
 
-		it('should deduct sending chain escrow account for fee and credit to receving chain escrow account if ccm did not fail', async () => {
+		it('should credit to relayer account if ccm failed', async () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainMessageForwarding({
 					ccm: {
@@ -449,7 +449,7 @@ describe('TokenInteroperableMethod', () => {
 						senderAddress: defaultAddress,
 						params: defaultEncodedCCUParams,
 					},
-					ccmFailed: false,
+					ccmFailed: true,
 				}),
 			).resolves.toBeUndefined();
 
@@ -470,7 +470,7 @@ describe('TokenInteroperableMethod', () => {
 			);
 		});
 
-		it('should deduct sending chain escrow account for fee and credit to relayer account if ccm failed', async () => {
+		it('should credit to receving chain escrow account if ccm did not fail', async () => {
 			await expect(
 				tokenInteropMethod.beforeCrossChainMessageForwarding({
 					ccm: {
@@ -507,7 +507,7 @@ describe('TokenInteroperableMethod', () => {
 						senderAddress: defaultAddress,
 						params: defaultEncodedCCUParams,
 					},
-					ccmFailed: true,
+					ccmFailed: false,
 				}),
 			).resolves.toBeUndefined();
 
@@ -518,7 +518,7 @@ describe('TokenInteroperableMethod', () => {
 			expect(sendingChainAmount).toEqual(defaultEscrowAmount - fee);
 			const { amount: receivingChainAmount } = await escrowStore.get(
 				methodContext,
-				escrowStore.getKey(ownChainID, defaultTokenID),
+				escrowStore.getKey(Buffer.from([0, 0, 0, 1]), defaultTokenID),
 			);
 			expect(receivingChainAmount).toEqual(fee);
 			checkEventResult(

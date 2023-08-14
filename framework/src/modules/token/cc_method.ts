@@ -25,7 +25,7 @@ import { UserStore, UserStoreData, userStoreSchema } from './stores/user';
 import { InteroperabilityMethod } from './types';
 import { BeforeCCCExecutionEvent } from './events/before_ccc_execution';
 import { RecoverEvent } from './events/recover';
-import { CCMStatusCode, EMPTY_BYTES } from '../interoperability/constants';
+import { EMPTY_BYTES } from '../interoperability/constants';
 import { BeforeCCMForwardingEvent } from './events/before_ccm_forwarding';
 import { splitTokenID } from './utils';
 import { getEncodedCCMAndID, getTokenIDLSK } from '../interoperability/utils';
