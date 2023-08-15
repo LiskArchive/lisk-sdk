@@ -158,7 +158,7 @@ export class PoSEndpoint extends BaseEndpoint {
 			maxNumberPendingUnlocks: this._moduleConfig.maxNumberPendingUnlocks,
 			failSafeMissedBlocks: this._moduleConfig.failSafeMissedBlocks,
 			failSafeInactiveWindow: this._moduleConfig.failSafeInactiveWindow,
-			punishmentWindow: this._moduleConfig.punishmentWindow,
+			punishmentWindowSelfStaking: this._moduleConfig.punishmentWindowSelfStaking,
 			roundLength: this._moduleConfig.roundLength,
 			minWeightStandby: this._moduleConfig.minWeightStandby.toString(),
 			numberActiveValidators: this._moduleConfig.numberActiveValidators,

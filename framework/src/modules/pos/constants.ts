@@ -62,7 +62,7 @@ export const defaultConfig = {
 	maxNumberPendingUnlocks: MAX_NUMBER_PENDING_UNLOCKS,
 	failSafeMissedBlocks: FAIL_SAFE_MISSED_BLOCKS,
 	failSafeInactiveWindow: FAIL_SAFE_INACTIVE_WINDOW,
-	punishmentWindow: PUNISHMENT_WINDOW_SELF_STAKING,
+	punishmentWindowSelfStaking: PUNISHMENT_WINDOW_SELF_STAKING,
 	minWeightStandby: MIN_WEIGHT_STANDBY.toString(),
 	numberActiveValidators: NUMBER_ACTIVE_VALIDATORS,
 	numberStandbyValidators: NUMBER_STANDBY_VALIDATORS,

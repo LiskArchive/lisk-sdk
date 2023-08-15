@@ -159,7 +159,7 @@ export const configSchema = {
 			format: 'uint32',
 			minimum: 2,
 		},
-		// Minimum and maximum for failSafeInactiveWindow and punishmentWindow are placeholder values
+		// Minimum and maximum for failSafeInactiveWindow and punishmentWindowSelfStaking are placeholder values
 		// that assume that block time is set to 10 seconds.
 		// During validation in in PoSModule.init(), they are assigned more accurate values at runtime.
 		failSafeInactiveWindow: {
@@ -168,7 +168,7 @@ export const configSchema = {
 			minimum: (5 * 60 * 60 * 24) / 10, // 5 days at 10 seconds per block
 			maximum: (365 * 60 * 60 * 24) / 10, // 1 year at 10 seconds per block
 		},
-		punishmentWindow: {
+		punishmentWindowSelfStaking: {
 			type: 'integer',
 			format: 'uint32',
 			minimum: (5 * 60 * 60 * 24) / 10, // 5 days at 10 seconds per block
@@ -247,7 +247,7 @@ export const configSchema = {
 		'maxNumberPendingUnlocks',
 		'failSafeMissedBlocks',
 		'failSafeInactiveWindow',
-		'punishmentWindow',
+		'punishmentWindowSelfStaking',
 		'minWeightStandby',
 		'numberActiveValidators',
 		'numberStandbyValidators',

@@ -594,7 +594,8 @@ export class PoSModule extends BaseModule {
 		for (const { key, value } of eligibleValidatorsList) {
 			if (
 				value.lastReportMisbehaviorHeight === 0 ||
-				value.lastReportMisbehaviorHeight < snapshotHeight - this._moduleConfig.punishmentWindow
+				value.lastReportMisbehaviorHeight <
+					snapshotHeight - this._moduleConfig.punishmentWindowSelfStaking
 			) {
 				const [address, weight] = eligibleValidatorStore.splitKey(key);
 				validatorWeightSnapshot.push({ address, weight });
@@ -860,8 +861,8 @@ export class PoSModule extends BaseModule {
 		const posSchema = { ...configSchema };
 		posSchema.properties.failSafeInactiveWindow.minimum = Math.floor(5 * blocksPerDay);
 		posSchema.properties.failSafeInactiveWindow.maximum = Math.floor(365 * blocksPerDay);
-		posSchema.properties.punishmentWindow.minimum = Math.floor(5 * blocksPerDay);
-		posSchema.properties.punishmentWindow.maximum = Math.floor(365 * blocksPerDay);
+		posSchema.properties.punishmentWindowSelfStaking.minimum = Math.floor(5 * blocksPerDay);
+		posSchema.properties.punishmentWindowSelfStaking.maximum = Math.floor(365 * blocksPerDay);
 
 		return posSchema;
 	}

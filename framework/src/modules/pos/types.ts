@@ -28,7 +28,7 @@ export interface ModuleConfig {
 	maxNumberPendingUnlocks: number;
 	failSafeMissedBlocks: number;
 	failSafeInactiveWindow: number;
-	punishmentWindow: number;
+	punishmentWindowSelfStaking: number;
 	roundLength: number;
 	minWeightStandby: bigint;
 	numberActiveValidators: number;

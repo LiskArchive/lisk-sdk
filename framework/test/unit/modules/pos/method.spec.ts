@@ -24,12 +24,10 @@ import { StakerStore } from '../../../../src/modules/pos/stores/staker';
 import { ValidatorStore } from '../../../../src/modules/pos/stores/validator';
 import { NameStore } from '../../../../src/modules/pos/stores/name';
 import { createStoreGetter } from '../../../../src/testing/utils';
-import {
-	COMMISSION_INCREASE_PERIOD,
-	MAX_COMMISSION_INCREASE_RATE,
-	MAX_NUMBER_BYTES_Q96,
-} from '../../../../src/modules/pos/constants';
+import { MAX_NUMBER_BYTES_Q96, defaultConfig } from '../../../../src/modules/pos/constants';
 import { EligibleValidatorsStore } from '../../../../src/modules/pos/stores/eligible_validators';
+import { getModuleConfig } from '../../../../src/modules/pos/utils';
+import { ModuleConfigJSON } from '../../../../src/modules/pos/types';
 
 describe('PoSMethod', () => {
 	const pos = new PoSModule();
@@ -40,6 +38,11 @@ describe('PoSMethod', () => {
 	let stakerSubStore: StakerStore;
 	let validatorSubStore: ValidatorStore;
 	let nameSubStore: NameStore;
+
+	const moduleName = 'pos';
+	const config = getModuleConfig({ ...defaultConfig, posTokenID: '00000000' } as ModuleConfigJSON);
+	const tokenMethod: any = { lock: jest.fn() };
+
 	const address = utils.getRandomBytes(20);
 	const stakerData = {
 		stakes: [
@@ -73,6 +76,7 @@ describe('PoSMethod', () => {
 
 	beforeEach(() => {
 		posMethod = new PoSMethod(pos.stores, pos.events);
+		posMethod.init(moduleName, config, pos['_internalMethod'], tokenMethod);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		stakerSubStore = pos.stores.get(StakerStore);
 		validatorSubStore = pos.stores.get(ValidatorStore);
@@ -154,7 +158,6 @@ describe('PoSMethod', () => {
 
 	describe('updateSharedRewards', () => {
 		const { q96 } = math;
-		const moduleName = 'pos';
 		const address1 = Buffer.from('bf2e956611a4bd24e7dabc6c66d243327a87028f', 'hex');
 		const address2 = Buffer.from('e6746edf586bb2a64d977add677afaebed7730e3', 'hex');
 		const address3 = Buffer.from('ea50b241deee288208800f1ab0ae9940fbde54db', 'hex');
@@ -213,36 +216,15 @@ describe('PoSMethod', () => {
 				{ tokenID: tokenID3, coefficient: Buffer.alloc(MAX_NUMBER_BYTES_Q96) },
 			],
 		};
-		const defaultConfig = {
-			factorSelfStakes: 10,
-			maxLengthName: 20,
-			maxNumberSentStakes: 10,
-			maxNumberPendingUnlocks: 20,
-			failSafeMissedBlocks: 50,
-			failSafeInactiveWindow: 260000,
-			punishmentWindow: 780000,
-			roundLength: 103,
-			minWeightStandby: BigInt(1000) * BigInt(10 ** 8),
-			numberActiveValidators: 101,
-			numberStandbyValidators: 2,
-			posTokenID: Buffer.from('0000000000000000', 'hex'),
-			validatorRegistrationFee: BigInt(10) * BigInt(10) ** BigInt(8),
-			maxBFTWeightCap: 500,
-			commissionIncreasePeriod: COMMISSION_INCREASE_PERIOD,
-			maxCommissionIncreaseRate: MAX_COMMISSION_INCREASE_RATE,
-			useInvalidBLSKey: true,
-		};
-		let tokenMethod: any;
 
 		beforeEach(async () => {
-			tokenMethod = { lock: jest.fn() };
-			posMethod.init(moduleName, defaultConfig, pos['_internalMethod'], tokenMethod);
+			posMethod.init(moduleName, config, pos['_internalMethod'], tokenMethod);
 			await validatorSubStore.set(createStoreGetter(stateStore), address1, validatorData1);
 			await validatorSubStore.set(createStoreGetter(stateStore), address2, validatorData2);
 			await validatorSubStore.set(createStoreGetter(stateStore), address3, validatorData3);
 			jest.spyOn(tokenMethod, 'lock');
 			jest.spyOn(validatorSubStore, 'set');
-			pos.stores.get(EligibleValidatorsStore).init(defaultConfig);
+			pos.stores.get(EligibleValidatorsStore).init(config);
 		});
 
 		it('should return if totalStakeReceived is 0', async () => {

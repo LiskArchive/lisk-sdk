@@ -18,16 +18,22 @@ import { address, utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { StakeCommand, VerifyStatus, PoSModule } from '../../../../../src';
 import {
+	defaultConfig,
 	MAX_NUMBER_PENDING_UNLOCKS,
 	MODULE_NAME_POS,
 	PoSEventResult,
+	TOKEN_ID_LENGTH,
 } from '../../../../../src/modules/pos/constants';
 import { ValidatorStakedEvent } from '../../../../../src/modules/pos/events/validator_staked';
 import { InternalMethod } from '../../../../../src/modules/pos/internal_method';
 import { ValidatorAccount, ValidatorStore } from '../../../../../src/modules/pos/stores/validator';
 import { EligibleValidatorsStore } from '../../../../../src/modules/pos/stores/eligible_validators';
 import { StakerStore } from '../../../../../src/modules/pos/stores/staker';
-import { StakeObject, StakeTransactionParams } from '../../../../../src/modules/pos/types';
+import {
+	ModuleConfigJSON,
+	StakeObject,
+	StakeTransactionParams,
+} from '../../../../../src/modules/pos/types';
 import { EventQueue, MethodContext } from '../../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 
@@ -57,22 +63,6 @@ describe('StakeCommand', () => {
 		expect(eventData).toEqual({ ...expectedResult, result });
 	};
 
-	const defaultConfig = {
-		factorSelfStakes: 10,
-		maxLengthName: 20,
-		maxNumberSentStakes: 10,
-		maxNumberPendingUnlocks: 20,
-		failSafeMissedBlocks: 50,
-		failSafeInactiveWindow: 260000,
-		punishmentWindow: 780000,
-		roundLength: 103,
-		minWeightStandby: (BigInt(1000) * BigInt(10 ** 8)).toString(),
-		numberActiveValidators: 101,
-		numberStandbyValidators: 2,
-		posTokenID: '0000000000000000',
-		validatorRegistrationFee: (BigInt(10) * BigInt(10) ** BigInt(8)).toString(),
-		maxBFTWeightCap: 500,
-	};
 	const lastBlockHeight = 200;
 	const posTokenID = DEFAULT_LOCAL_ID;
 	const senderPublicKey = utils.getRandomBytes(32);
@@ -117,9 +107,15 @@ describe('StakeCommand', () => {
 			transfer: jest.fn(),
 			getLockedAmount: jest.fn(),
 		};
+
+		const config = {
+			...defaultConfig,
+			posTokenID: '00'.repeat(TOKEN_ID_LENGTH),
+		} as ModuleConfigJSON;
+
 		await pos.init({
 			genesisConfig: {} as any,
-			moduleConfig: defaultConfig,
+			moduleConfig: config,
 		});
 		internalMethod = new InternalMethod(pos.stores, pos.events, pos.name);
 		internalMethod.addDependencies(tokenMethod);
@@ -131,7 +127,10 @@ describe('StakeCommand', () => {
 		});
 		command.init({
 			posTokenID: DEFAULT_LOCAL_ID,
-			factorSelfStakes: BigInt(10),
+			factorSelfStakes: defaultConfig.maxNumberSentStakes,
+			baseStakeAmount: BigInt(defaultConfig.baseStakeAmount),
+			maxNumberPendingUnlocks: defaultConfig.maxNumberPendingUnlocks,
+			maxNumberSentStakes: defaultConfig.maxNumberSentStakes,
 		});
 
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
