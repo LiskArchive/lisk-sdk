@@ -254,7 +254,7 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			return recoveredCCM;
 		}
 		const commands = this.ccCommands.get(recoveredCCM.module);
-		if (!ccmFailed && !commands) {
+		if (!commands) {
 			ccmFailed = true;
 			ccmResult = CCMProcessedResult.DISCARDED;
 			ccmCode = CCMProcessedCode.MODULE_NOT_SUPPORTED;
