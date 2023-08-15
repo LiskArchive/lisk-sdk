@@ -142,6 +142,20 @@ describe('bls_lib', () => {
 
 			expect(() => blsSign(sk, message)).toThrow('Secret key is not valid.');
 		});
+
+		it('should throw an error when a secret key that is non-zero but zero modulo the group order', () => {
+			// sk equals 2*r where r is order of the groups G1 and G2
+			const sk = Buffer.from(
+				'e7db4ea6533afa906673b0101343b00aa77b4805fffcb7fdfffffffe00000002',
+				'hex',
+			);
+			const message = Buffer.from(
+				'abababababababababababababababababababababababababababababababab',
+				'hex',
+			);
+
+			expect(() => blsSign(sk, message)).toThrow('Secret key is not valid.');
+		});
 	});
 
 	describe('blsVerify', () => {
