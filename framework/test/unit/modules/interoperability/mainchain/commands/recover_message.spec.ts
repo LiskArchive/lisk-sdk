@@ -66,6 +66,7 @@ const appendPrecedingToIndices = (indices: number[], terminatedChainOutboxSize: 
 	const mostSignificantBit = 2 ** (Math.ceil(Math.log2(terminatedChainOutboxSize)) + 1);
 	return indices.map(index => index + mostSignificantBit);
 };
+
 describe('MessageRecoveryCommand', () => {
 	const interopModule = new MainchainInteroperabilityModule();
 	const leafPrefix = Buffer.from([0]);
