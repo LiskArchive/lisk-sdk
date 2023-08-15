@@ -80,8 +80,11 @@ const createCommandVerifyContext = (
 	}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
 };
 
+// Choose the index such that the position of the ccm in the outbox tree is at terminatedChainOutboxSize,
+// i.e. just outside of the tree. Note that a 1 has to be prepended to the binary representation of the index, which is done by adding 2**indexLength.
+// See https://github.com/LiskHQ/lips/blob/main/proposals/lip-0031.md#proof-serialization.
 const appendPrecedingToIndices = (indices: number[], terminatedChainOutboxSize: number) => {
-	const mostSignificantBit = 2 ** terminatedChainOutboxSize;
+	const mostSignificantBit = 2 ** (Math.ceil(Math.log2(terminatedChainOutboxSize)) + 1);
 	return indices.map(index => index + mostSignificantBit);
 };
 
@@ -258,6 +261,27 @@ describe('MessageRecoveryCommand', () => {
 			expect(result.error?.message).toInclude(
 				'Cross-chain message indexes are not strictly increasing.',
 			);
+		});
+
+		it('should return error if idxs = [0]', async () => {
+			transactionParams.idxs = [0];
+			ccms = [ccms[0]];
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 1,
+				});
+
+			const result = await command.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Cross-chain message does not have a valid index.`);
 		});
 
 		it('should return error if cross-chain message is not pending', async () => {
