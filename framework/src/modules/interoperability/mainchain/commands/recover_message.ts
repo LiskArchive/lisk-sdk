@@ -247,7 +247,7 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			this.events
 				.get(CcmProcessedEvent)
 				.log(context, recoveredCCM.sendingChainID, recoveredCCM.receivingChainID, {
-					code: CCMProcessedCode.INVALID_CCM_VERIFY_EXCEPTION,
+					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
 					result: CCMProcessedResult.DISCARDED,
 					ccm: recoveredCCM,
 				});
