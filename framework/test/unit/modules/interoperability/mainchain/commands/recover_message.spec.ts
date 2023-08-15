@@ -59,17 +59,18 @@ import {
 import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
 import { InvalidRMTVerification } from '../../../../../../src/modules/interoperability/events/invalid_rmt_verification';
 
-// Choose the index such that the position of the ccm in the outbox tree is at terminatedChainOutboxSize,
-// i.e. just outside of the tree. Note that a 1 has to be prepended to the binary representation of the index, which is done by adding 2**indexLength.
-// See https://github.com/LiskHQ/lips/blob/main/proposals/lip-0031.md#proof-serialization.
-const appendPrecedingToIndices = (indices: number[], terminatedChainOutboxSize: number) => {
-	const mostSignificantBit = 2 ** (Math.ceil(Math.log2(terminatedChainOutboxSize)) + 1);
-	return indices.map(index => index + mostSignificantBit);
-};
-
 describe('MessageRecoveryCommand', () => {
 	const interopModule = new MainchainInteroperabilityModule();
 	const leafPrefix = Buffer.from([0]);
+
+	// Choose the index such that the position of the ccm in the outbox tree is at terminatedChainOutboxSize,
+	// i.e. just outside of the tree. Note that a 1 has to be prepended to the binary representation of the index, which is done by adding 2**indexLength.
+	// See https://github.com/LiskHQ/lips/blob/main/proposals/lip-0031.md#proof-serialization.
+	const appendPrecedingToIndices = (indices: number[], terminatedChainOutboxSize: number) => {
+		const mostSignificantBit = 2 ** (Math.ceil(Math.log2(terminatedChainOutboxSize)) + 1);
+		return indices.map(index => index + mostSignificantBit);
+	};
+
 	const createCommandVerifyContext = (
 		inputTx: Transaction,
 		transactionParams: MessageRecoveryParams,
