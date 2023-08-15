@@ -36,6 +36,7 @@ import {
 	ChannelData,
 	CrossChainMessageContext,
 	CrossChainUpdateTransactionParams,
+	BeforeCCMForwardingContext,
 } from '../../../../../../src/modules/interoperability/types';
 
 import { Certificate } from '../../../../../../src/engine/consensus/certificate_generation/types';
@@ -590,7 +591,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			sendingChainID: Buffer.from([0, 0, 2, 0]),
 			receivingChainID: Buffer.from([0, 0, 3, 0]),
 			fee: BigInt(20000),
-			status: 0,
+			status: ChainStatus.REGISTERED,
 			params: Buffer.alloc(0),
 		};
 		let context: CrossChainMessageContext;
@@ -649,175 +650,243 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			});
 		});
 
-		it('should terminate the chain and log event when sending chain is not live', async () => {
-			(interopMod['internalMethod'].isLive as jest.Mock).mockResolvedValue(false);
-			const terminateChainInternalMock = jest.fn();
-			interopMod['internalMethod'].terminateChainInternal = terminateChainInternalMock;
+		// verifyCCM related tests are handled separately in describe('verifyCCM') block
+		it('should call verifyCCM & simply return when it fails', async () => {
+			jest.spyOn(command, 'verifyCCM' as any).mockResolvedValue(false);
+
+			jest.spyOn(command['stores'], 'get');
 
 			await expect(command['_forward'](context)).resolves.toBeUndefined();
+			expect(command['verifyCCM']).toHaveBeenCalled();
 
-			expect(context.eventQueue.getEvents()).toHaveLength(1);
-			expect(terminateChainInternalMock).toHaveBeenCalledWith(
-				expect.anything(),
-				context.ccm.sendingChainID,
-			);
-			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
-				expect.anything(),
-				context.ccm.sendingChainID,
-				context.ccm.receivingChainID,
-				{
-					ccm: context.ccm,
-					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
-					result: CCMProcessedResult.DISCARDED,
-				},
-			);
+			// shouldn't proceed to fetching anything from stores
+			expect(command['stores'].get).not.toHaveBeenCalled();
 		});
 
-		it('should terminate the chain and log event when verifyCrossChainMessage fails', async () => {
-			(
-				(ccMethods.get('token') as BaseCCMethod).verifyCrossChainMessage as jest.Mock
-			).mockRejectedValue('error');
+		describe('_beforeCrossChainMessageForwarding', () => {
+			let beforeCCMForwardingContext: BeforeCCMForwardingContext;
 
-			const terminateChainInternalMock = jest.fn();
-			interopMod['internalMethod'].terminateChainInternal = terminateChainInternalMock;
-			await expect(command['_forward'](context)).resolves.toBeUndefined();
+			beforeEach(() => {
+				beforeCCMForwardingContext = { ...context, ccmFailed: false };
 
-			expect(terminateChainInternalMock).toHaveBeenCalledWith(
-				expect.anything(),
-				context.ccm.sendingChainID,
-			);
-			expect(context.eventQueue.getEvents()).toHaveLength(1);
-			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
-				expect.anything(),
-				context.ccm.sendingChainID,
-				context.ccm.receivingChainID,
-				{
-					ccm: context.ccm,
-					code: CCMProcessedCode.INVALID_CCM_VERIFY_CCM_EXCEPTION,
-					result: CCMProcessedResult.DISCARDED,
-				},
-			);
-		});
+				(
+					(ccMethods.get('token') as BaseCCMethod).beforeCrossChainMessageForwarding as jest.Mock
+				).mockRejectedValue('error');
 
-		it('should bounce and return if receiving chain does not exist', async () => {
-			await command['stores'].get(ChainAccountStore).del(context, context.ccm.receivingChainID);
-
-			await expect(command['_forward'](context)).resolves.toBeUndefined();
-
-			expect(command['bounce']).toHaveBeenCalledTimes(1);
-			expect(command['bounce']).toHaveBeenCalledWith(
-				expect.anything(),
-				expect.any(Number),
-				CCMStatusCode.CHANNEL_UNAVAILABLE,
-				CCMProcessedCode.CHANNEL_UNAVAILABLE,
-			);
-		});
-
-		it('should bounce and return if receiving chain status is registered', async () => {
-			await command['stores'].get(ChainAccountStore).set(context, context.ccm.receivingChainID, {
-				lastCertificate: {
-					height: 0,
-					stateRoot: utils.getRandomBytes(32),
-					timestamp: 0,
-					validatorsHash: utils.getRandomBytes(32),
-				},
-				name: 'random',
-				status: ChainStatus.REGISTERED,
+				jest
+					.spyOn(command['internalMethod'], 'terminateChainInternal')
+					.mockResolvedValue(undefined);
 			});
 
-			await expect(command['_forward'](context)).resolves.toBeUndefined();
+			it('should revert to the original state/event when beforeCrossChainMessageForwarding fails', async () => {
+				jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
+				jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);
 
-			expect(command['bounce']).toHaveBeenCalledTimes(1);
-			expect(command['bounce']).toHaveBeenCalledWith(
-				expect.anything(),
-				expect.any(Number),
-				CCMStatusCode.CHANNEL_UNAVAILABLE,
-				CCMProcessedCode.CHANNEL_UNAVAILABLE,
-			);
+				jest.spyOn(context.eventQueue, 'restoreSnapshot');
+				jest.spyOn(context.stateStore, 'restoreSnapshot');
+
+				const result = await command['_beforeCrossChainMessageForwarding'](
+					beforeCCMForwardingContext,
+					99,
+					10,
+				);
+				expect(result).toBe(false);
+
+				expect(context.eventQueue.restoreSnapshot).toHaveBeenCalledWith(99);
+				expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(10);
+			});
+
+			it('should terminate the chain and log event when beforeCrossChainMessageForwarding fails', async () => {
+				jest.spyOn(command['internalMethod'], 'terminateChainInternal');
+
+				const result = await command['_beforeCrossChainMessageForwarding'](
+					beforeCCMForwardingContext,
+					99,
+					10,
+				);
+				expect(result).toBe(false);
+
+				expect(command['internalMethod'].terminateChainInternal).toHaveBeenCalledWith(
+					expect.anything(),
+					context.ccm.sendingChainID,
+				);
+				expect(context.eventQueue.getEvents()).toHaveLength(1);
+				expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
+					expect.anything(),
+					context.ccm.sendingChainID,
+					context.ccm.receivingChainID,
+					{
+						ccm: context.ccm,
+						code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
+						result: CCMProcessedResult.DISCARDED,
+					},
+				);
+			});
 		});
 
-		it('should terminate the chain and log event when receiving chain is not live', async () => {
-			// First check sending chain, and second checks receiving chain
-			(interopMod['internalMethod'].isLive as jest.Mock)
-				.mockResolvedValueOnce(true)
-				.mockResolvedValueOnce(false);
-			const terminateChainInternalMock = jest.fn();
-			interopMod['internalMethod'].terminateChainInternal = terminateChainInternalMock;
+		const runBounceRelevantCommonTests = () => {
+			it('should call _beforeCrossChainMessageForwarding & simply return when it fails', async () => {
+				jest.spyOn(command, '_beforeCrossChainMessageForwarding' as any).mockResolvedValue(false); // cause failure
+
+				await expect(command['_forward'](context)).resolves.toBeUndefined();
+
+				expect(command['_beforeCrossChainMessageForwarding']).toHaveBeenCalledTimes(1);
+
+				// shouldn't call `bounce`
+				expect(command['bounce']).not.toHaveBeenCalled();
+			});
+
+			it("should call _beforeCrossChainMessageForwarding then bounce and return when _beforeCrossChainMessageForwarding doesn't cause any error", async () => {
+				jest.spyOn(command, '_beforeCrossChainMessageForwarding' as any).mockResolvedValue(true); // make it pass
+
+				await expect(command['_forward'](context)).resolves.toBeUndefined();
+
+				expect(command['_beforeCrossChainMessageForwarding']).toHaveBeenCalledTimes(1);
+				expect(command['bounce']).toHaveBeenCalledTimes(1);
+				expect(command['bounce']).toHaveBeenCalledWith(
+					context,
+					expect.any(Number),
+					CCMStatusCode.CHANNEL_UNAVAILABLE,
+					CCMProcessedCode.CHANNEL_UNAVAILABLE,
+				);
+			});
+		};
+
+		describe('when receiving chain account does not exist', () => {
+			beforeEach(async () => {
+				await command['stores'].get(ChainAccountStore).del(context, context.ccm.receivingChainID);
+				jest.spyOn(command['stores'].get(ChainAccountStore), 'has');
+			});
+
+			it('should return false', async () => {
+				await expect(command['_forward'](context)).resolves.toBeUndefined();
+
+				expect(
+					await command['stores'].get(ChainAccountStore).has(context, context.ccm.receivingChainID),
+				).toBe(false);
+			});
+
+			runBounceRelevantCommonTests();
+		});
+
+		describe('when receiving chain status is registered', () => {
+			let receivingChainAccount: ChainAccount;
+
+			beforeEach(async () => {
+				receivingChainAccount = {
+					lastCertificate: {
+						height: 0,
+						stateRoot: utils.getRandomBytes(32),
+						timestamp: 0,
+						validatorsHash: utils.getRandomBytes(32),
+					},
+					name: 'foo',
+					status: ChainStatus.REGISTERED,
+				};
+
+				// pre-set account
+				await command['stores']
+					.get(ChainAccountStore)
+					.set(context, context.ccm.receivingChainID, receivingChainAccount);
+			});
+
+			it('should return status REGISTERED', async () => {
+				await expect(command['_forward'](context)).resolves.toBeUndefined();
+
+				const account = await command['stores']
+					.get(ChainAccountStore)
+					.get(context, context.ccm.receivingChainID);
+
+				expect(account.status).toBe(ChainStatus.REGISTERED);
+			});
+
+			runBounceRelevantCommonTests();
+		});
+
+		describe('when receiving chain is not live', () => {
+			let chainAccount: ChainAccount;
 			const sendInternalMock = jest.fn();
-			interopMod['internalMethod'].sendInternal = sendInternalMock;
 
-			const chainAccount = await command['stores']
-				.get(ChainAccountStore)
-				.get(context, context.ccm.receivingChainID);
-			await expect(command['_forward'](context)).resolves.toBeUndefined();
+			beforeEach(async () => {
+				// first checks sending chain & second receiving
+				(interopMod['internalMethod'].isLive as jest.Mock)
+					.mockResolvedValueOnce(true)
+					.mockResolvedValueOnce(false);
 
-			expect(context.eventQueue.getEvents()).toHaveLength(1);
-			expect(terminateChainInternalMock).toHaveBeenCalledWith(
-				expect.anything(),
-				context.ccm.receivingChainID,
-			);
-			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
-				expect.anything(),
-				context.ccm.sendingChainID,
-				context.ccm.receivingChainID,
-				{
-					ccm: context.ccm,
-					code: CCMProcessedCode.CHANNEL_UNAVAILABLE,
-					result: CCMProcessedResult.DISCARDED,
-				},
-			);
-			expect(sendInternalMock).toHaveBeenCalledWith(
-				expect.anything(),
-				EMPTY_FEE_ADDRESS,
-				MODULE_NAME_INTEROPERABILITY,
-				CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
-				context.ccm.sendingChainID,
-				BigInt(0),
-				CCMStatusCode.OK,
-				codec.encode(sidechainTerminatedCCMParamsSchema, {
-					chainID: context.ccm.receivingChainID,
-					stateRoot: chainAccount.lastCertificate.stateRoot,
-				}),
-			);
+				interopMod['internalMethod'].sendInternal = sendInternalMock;
+
+				chainAccount = await command['stores']
+					.get(ChainAccountStore)
+					.get(context, context.ccm.receivingChainID);
+			});
+
+			it('should terminate the chain when receiving chain is not live', async () => {
+				jest.spyOn(interopMod['internalMethod'], 'terminateChainInternal');
+
+				await expect(command['_forward'](context)).resolves.toBeUndefined();
+
+				expect(interopMod['internalMethod'].terminateChainInternal).toHaveBeenCalledWith(
+					expect.anything(),
+					context.ccm.receivingChainID,
+				);
+			});
+
+			it('should call sendInternal', async () => {
+				await expect(command['_forward'](context)).resolves.toBeUndefined();
+
+				expect(sendInternalMock).toHaveBeenCalledWith(
+					expect.anything(),
+					EMPTY_FEE_ADDRESS,
+					MODULE_NAME_INTEROPERABILITY,
+					CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
+					context.ccm.sendingChainID,
+					BigInt(0),
+					CCMStatusCode.OK,
+					codec.encode(sidechainTerminatedCCMParamsSchema, {
+						chainID: context.ccm.receivingChainID,
+						stateRoot: chainAccount.lastCertificate.stateRoot,
+					}),
+				);
+			});
+
+			runBounceRelevantCommonTests();
 		});
 
-		it('should revert the state and terminate the sending chain if beforeCrossChainMessageForwarding fails', async () => {
-			(
-				(ccMethods.get('token') as BaseCCMethod).beforeCrossChainMessageForwarding as jest.Mock
-			).mockRejectedValue('error');
-			jest.spyOn(context.eventQueue, 'createSnapshot').mockReturnValue(99);
-			jest.spyOn(context.stateStore, 'createSnapshot').mockReturnValue(10);
-			jest.spyOn(context.eventQueue, 'restoreSnapshot');
-			jest.spyOn(context.stateStore, 'restoreSnapshot');
+		it("should call _beforeCrossChainMessageForwarding & if it fails, don't add ccm to receiving chain outbox & don't log event when live", async () => {
+			jest.spyOn(command, '_beforeCrossChainMessageForwarding' as any).mockResolvedValue(false); // cause failure
 
-			const terminateChainInternalMock = jest.fn();
-			interopMod['internalMethod'].terminateChainInternal = terminateChainInternalMock;
-
-			await expect(command['_forward'](context)).resolves.toBeUndefined();
-
-			expect(terminateChainInternalMock).toHaveBeenCalledWith(
-				expect.anything(),
-				context.ccm.sendingChainID,
-			);
-			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
-				expect.anything(),
-				context.ccm.sendingChainID,
-				context.ccm.receivingChainID,
-				{
-					ccm: context.ccm,
-					code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
-					result: CCMProcessedResult.DISCARDED,
-				},
-			);
-			expect(context.eventQueue.restoreSnapshot).toHaveBeenCalledWith(99);
-			expect(context.stateStore.restoreSnapshot).toHaveBeenCalledWith(10);
-		});
-
-		it('should add ccm to receiving chain outbox and log event when valid', async () => {
 			const addToOutboxMock = jest.fn();
 			interopMod['internalMethod'].addToOutbox = addToOutboxMock;
+
 			await expect(command['_forward'](context)).resolves.toBeUndefined();
 
+			expect(command['_beforeCrossChainMessageForwarding']).toHaveBeenCalled();
+			expect(addToOutboxMock).not.toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.receivingChainID,
+				context.ccm,
+			);
+			expect(command['events'].get(CcmProcessedEvent).log).not.toHaveBeenCalledWith(
+				expect.anything(),
+				context.ccm.sendingChainID,
+				context.ccm.receivingChainID,
+				{
+					ccm: context.ccm,
+					code: CCMProcessedCode.SUCCESS,
+					result: CCMProcessedResult.FORWARDED,
+				},
+			);
+		});
+
+		it('should call _beforeCrossChainMessageForwarding & if it pass, add ccm to receiving chain outbox and log event when live', async () => {
+			jest.spyOn(command, '_beforeCrossChainMessageForwarding' as any).mockResolvedValue(true); // make it pass
+
+			const addToOutboxMock = jest.fn();
+			interopMod['internalMethod'].addToOutbox = addToOutboxMock;
+
+			await expect(command['_forward'](context)).resolves.toBeUndefined();
+
+			expect(command['_beforeCrossChainMessageForwarding']).toHaveBeenCalled();
 			expect(addToOutboxMock).toHaveBeenCalledWith(
 				expect.anything(),
 				context.ccm.receivingChainID,
