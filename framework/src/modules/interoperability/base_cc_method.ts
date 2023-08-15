@@ -13,7 +13,7 @@
  */
 
 import { BaseMethod } from '..';
-import { CrossChainMessageContext, RecoverContext, BeforeCCMForwardingContext } from './types';
+import { BeforeCCMForwardingContext, CrossChainMessageContext, RecoverContext } from './types';
 
 export abstract class BaseCCMethod extends BaseMethod {
 	public beforeRecoverCCM?(ctx: CrossChainMessageContext): Promise<void>;
@@ -22,6 +22,5 @@ export abstract class BaseCCMethod extends BaseMethod {
 	public beforeCrossChainCommandExecute?(ctx: CrossChainMessageContext): Promise<void>;
 
 	public afterCrossChainCommandExecute?(ctx: CrossChainMessageContext): Promise<void>;
-
 	public beforeCrossChainMessageForwarding?(ctx: BeforeCCMForwardingContext): Promise<void>;
 }
