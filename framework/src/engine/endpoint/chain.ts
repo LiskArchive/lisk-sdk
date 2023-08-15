@@ -36,6 +36,7 @@ import { areHeadersContradictingRequestSchema, BFTVotes, bftVotesSchema } from '
 import { areDistinctHeadersContradicting } from '../bft/utils';
 import { getBFTParameters } from '../bft/bft_params';
 import { BFTMethod } from '../bft';
+import { EMPTY_HASH } from '../consensus/constants';
 
 interface EndpointArgs {
 	chain: Chain;
@@ -212,7 +213,7 @@ export class ChainEndpoint {
 				data.push(pair);
 			}
 		}
-		const root = await eventSMT.update(Buffer.alloc(0), data);
+		const root = await eventSMT.update(EMPTY_HASH, data);
 		const proof = await eventSMT.prove(root, queryBytes);
 		return {
 			queries: proof.queries.map(q => ({
