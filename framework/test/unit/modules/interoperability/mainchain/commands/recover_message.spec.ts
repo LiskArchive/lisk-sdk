@@ -66,6 +66,8 @@ import {
 } from '../../../../../../src/modules/interoperability/events/ccm_processed';
 import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
 
+const getHeight = (size: number) => Math.ceil(Math.log2(size)) + 1;
+
 const createCommandVerifyContext = (
 	inputTx: Transaction,
 	transactionParams: MessageRecoveryParams,
@@ -291,7 +293,9 @@ describe('MessageRecoveryCommand', () => {
 			];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 			transactionParams.crossChainMessages = [...ccmsEncoded];
-			transactionParams.idxs = [2 ** terminatedChainOutboxSize + terminatedChainOutboxSize];
+
+			const indexLength = getHeight(terminatedChainOutboxSize);
+			transactionParams.idxs = [2 ** indexLength + terminatedChainOutboxSize];
 
 			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
