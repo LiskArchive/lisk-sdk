@@ -441,7 +441,7 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 						},
 						'Execute beforeCrossChainMessageForwarding',
 					);
-					await method.beforeCrossChainMessageForwarding(context);
+					await method.beforeCrossChainMessageForwarding({ ...context, ccmFailed: false });
 				}
 			}
 		} catch (error) {
